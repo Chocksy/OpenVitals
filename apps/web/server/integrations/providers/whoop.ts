@@ -108,16 +108,22 @@ const whoopProvider: IntegrationProvider = {
       throw new Error(`Token exchange failed: ${res.status} ${text}`);
     }
 
-    const data = (await res.json()) as {
-      access_token: string;
-      refresh_token: string;
-      expires_in: number;
-    };
+    const data = await res.json() as Record<string, unknown>;
+
+    const accessToken = (data.access_token ?? data.accessToken) as string | undefined;
+    const refreshToken = (data.refresh_token ?? data.refreshToken) as string | undefined;
+    const expiresIn = (data.expires_in ?? data.expiresIn ?? 3600) as number;
+
+    if (!accessToken || !refreshToken) {
+      throw new Error(
+        `Token exchange returned missing tokens. Keys: ${Object.keys(data).join(', ')}`,
+      );
+    }
 
     return {
-      accessToken: data.access_token,
-      refreshToken: data.refresh_token,
-      expiresAt: new Date(Date.now() + data.expires_in * 1000),
+      accessToken,
+      refreshToken,
+      expiresAt: new Date(Date.now() + expiresIn * 1000),
     };
   },
 
@@ -138,16 +144,22 @@ const whoopProvider: IntegrationProvider = {
       throw new Error(`Token refresh failed: ${res.status} ${text}`);
     }
 
-    const data = (await res.json()) as {
-      access_token: string;
-      refresh_token: string;
-      expires_in: number;
-    };
+    const data = await res.json() as Record<string, unknown>;
+
+    const accessToken = (data.access_token ?? data.accessToken) as string | undefined;
+    const newRefreshToken = (data.refresh_token ?? data.refreshToken) as string | undefined;
+    const expiresIn = (data.expires_in ?? data.expiresIn ?? 3600) as number;
+
+    if (!accessToken || !newRefreshToken) {
+      throw new Error(
+        `Token refresh returned missing tokens. Keys: ${Object.keys(data).join(', ')}`,
+      );
+    }
 
     return {
-      accessToken: data.access_token,
-      refreshToken: data.refresh_token,
-      expiresAt: new Date(Date.now() + data.expires_in * 1000),
+      accessToken,
+      refreshToken: newRefreshToken,
+      expiresAt: new Date(Date.now() + expiresIn * 1000),
     };
   },
 
