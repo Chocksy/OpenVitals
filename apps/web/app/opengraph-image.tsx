@@ -1,6 +1,7 @@
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { ImageResponse } from "next/og";
+import { APP_DOMAIN } from "@/constants/app";
 
 export const alt = "OpenVitals — Your personal health data platform";
 export const size = { width: 1200, height: 630 };
@@ -185,7 +186,7 @@ export default async function Image() {
         }}
       >
         <span style={{ fontSize: 15, color: "#999999", fontFamily: "DM Sans" }}>
-          openvitals.ai
+          {APP_DOMAIN}
         </span>
         <span
           style={{
