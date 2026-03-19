@@ -1,6 +1,11 @@
 import Link from 'next/link';
 import { LogoWordmark } from '@/assets/app/images/logo';
 
+const linkHrefs: Record<string, string> = {
+  Privacy: '/privacy',
+  Terms: '/terms',
+};
+
 export function Footer() {
   return (
     <footer className="border-t border-neutral-200/50">
@@ -23,9 +28,15 @@ export function Footer() {
             <div key={col.title}>
               <div className="text-[11px] font-medium text-neutral-800 mb-3 font-body">{col.title}</div>
               <div className="space-y-2">
-                {col.links.map(l => (
-                  <div key={l} className="text-[12px] text-neutral-500 hover:text-neutral-700 cursor-pointer transition-colors font-body">{l}</div>
-                ))}
+                {col.links.map(l => {
+                  const href = linkHrefs[l];
+                  const className = "text-[12px] text-neutral-500 hover:text-neutral-700 cursor-pointer transition-colors font-body";
+                  return href ? (
+                    <Link key={l} href={href} className={`block ${className}`}>{l}</Link>
+                  ) : (
+                    <div key={l} className={className}>{l}</div>
+                  );
+                })}
               </div>
             </div>
           ))}

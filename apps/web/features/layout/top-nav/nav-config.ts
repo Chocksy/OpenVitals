@@ -8,6 +8,7 @@ import {
   MessageSquare,
   Settings,
   ListChecks,
+  Cable,
   type LucideIcon,
 } from "lucide-react";
 
@@ -38,5 +39,6 @@ export const secondaryNav: NavItem[] = [
 export const allMobileNav: NavItem[] = [
   ...navigation,
   ...secondaryNav,
+  { name: "Integrations", href: "/integrations", icon: Cable },
   { name: "Settings", href: "/settings", icon: Settings },
 ];

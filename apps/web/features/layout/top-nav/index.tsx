@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { LogOut, Settings } from "lucide-react";
+import { Cable, LogOut, Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { authClient } from "@/lib/auth/client";
 import { Avatar } from "@/components/avatar";
@@ -86,6 +86,12 @@ export function TopNav() {
                     <Link href="/settings">
                       <Settings className="mr-2 h-4 w-4" />
                       Settings
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/integrations">
+                      <Cable className="mr-2 h-4 w-4" />
+                      Integrations
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />

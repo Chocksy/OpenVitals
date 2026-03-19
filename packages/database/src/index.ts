@@ -26,3 +26,13 @@ export {
   deleteImportJob,
   getReviewQueue,
 } from './queries/importJobs';
+export {
+  listConnections,
+  getConnectionByProvider,
+  getConnectionByProviderUserId,
+  upsertConnection,
+  disconnectProvider,
+  updateConnectionTokens,
+  updateSyncStatus,
+  ensureDataSource,
+} from './queries/integrations';

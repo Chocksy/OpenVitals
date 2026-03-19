@@ -6,6 +6,7 @@ import { sharingRouter } from './routers/sharing';
 import { aiRouter } from './routers/ai';
 import { preferencesRouter } from './routers/preferences';
 import { metricsRouter } from './routers/metrics';
+import { integrationsRouter } from './routers/integrations';
 
 export const appRouter = createRouter({
   observations: observationsRouter,
@@ -15,6 +16,7 @@ export const appRouter = createRouter({
   ai: aiRouter,
   preferences: preferencesRouter,
   metrics: metricsRouter,
+  integrations: integrationsRouter,
 });
 
 export type AppRouter = typeof appRouter;

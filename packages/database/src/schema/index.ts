@@ -9,3 +9,4 @@ export * from './audit';
 export * from './metrics';
 export * from './insights';
 export * from './plugins';
+export * from './integrations';
