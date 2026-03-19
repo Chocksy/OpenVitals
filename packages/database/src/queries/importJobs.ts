@@ -91,6 +91,27 @@ export async function listImportJobs(
     .limit(params.limit ?? 20);
 }
 
+export async function deleteImportJob(
+  db: Database,
+  params: {
+    id: string;
+    userId: string;
+  },
+) {
+  const rows = await db
+    .delete(importJobs)
+    .where(and(eq(importJobs.id, params.id), eq(importJobs.userId, params.userId)))
+    .returning({ id: importJobs.id, sourceArtifactId: importJobs.sourceArtifactId });
+
+  if (rows[0]) {
+    await db
+      .delete(sourceArtifacts)
+      .where(eq(sourceArtifacts.id, rows[0].sourceArtifactId));
+  }
+
+  return rows[0] ?? null;
+}
+
 export async function getReviewQueue(
   db: Database,
   params: {

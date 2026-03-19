@@ -2,8 +2,9 @@
 
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { Logo } from '@/assets/app/images/logo';
+import { LogoWordmark } from '@/assets/app/images/logo';
 import { trpc } from '@/lib/trpc/client';
+import { useSession } from '@/lib/auth/client';
 import { ProgressBar } from './components/progress-bar';
 import { WelcomeStep } from './steps/welcome';
 import { AboutYouStep, type AboutYouData } from './steps/about-you';
@@ -47,6 +48,7 @@ export function OnboardingFlow() {
   const [skippedSteps, setSkippedSteps] = useState<Set<number>>(new Set());
   const initialized = useRef(false);
 
+  const { data: session } = useSession();
   const { data: prefs, isLoading } = trpc.preferences.get.useQuery();
   const updatePreferences = trpc.preferences.update.useMutation();
 
@@ -57,6 +59,19 @@ export function OnboardingFlow() {
       setStep(prefs.onboardingStep);
     }
   }, [isLoading, prefs]);
+
+  // Prefill first/last name from session if still empty
+  useEffect(() => {
+    const name = session?.user?.name;
+    if (!name) return;
+    setData((prev) => {
+      if (prev.aboutYou.firstName || prev.aboutYou.lastName) return prev;
+      const parts = name.trim().split(/\s+/);
+      const firstName = parts[0] ?? '';
+      const lastName = parts.slice(1).join(' ');
+      return { ...prev, aboutYou: { ...prev.aboutYou, firstName, lastName } };
+    });
+  }, [session?.user?.name]);
 
   const persistStep = useCallback((nextStep: number) => {
     updatePreferences.mutate({ onboardingStep: nextStep });
@@ -120,12 +135,10 @@ export function OnboardingFlow() {
         <div className="shrink-0">
           {/* Top bar */}
           <div className="flex h-12 items-center justify-between px-6">
-            <div className="flex items-center gap-2">
-              <div className="flex size-6 items-center justify-center rounded-md" style={{ background: 'linear-gradient(135deg, #3162FF, #1D3DB3)' }}>
-                <Logo className="size-3.5 text-white" />
-              </div>
-              <span className="text-[14px] font-semibold text-neutral-900 font-display">OpenVitals</span>
-            </div>
+            <LogoWordmark
+              logoProps={{ className: "size-6" }}
+              workmarkProps={{ className: "text-[14px]" }}
+            />
             <div className="flex items-center gap-4">
               <span className="text-[11px] text-neutral-400 font-mono">
                 Step {step} of {TOTAL_TRACKED_STEPS}

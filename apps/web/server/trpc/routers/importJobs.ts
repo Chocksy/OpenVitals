@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { TRPCError } from '@trpc/server';
 import { createRouter, protectedProcedure } from '../init';
-import { createImportJob, getImportJobStatus, listImportJobs, getReviewQueue } from '@openvitals/database';
+import { createImportJob, getImportJobStatus, listImportJobs, deleteImportJob, getReviewQueue, listObservationsByImportJob } from '@openvitals/database';
 
 export const importJobsRouter = createRouter({
   create: protectedProcedure
@@ -81,6 +81,36 @@ export const importJobsRouter = createRouter({
         status: input.status,
       });
       return { items };
+    }),
+
+  getDetail: protectedProcedure
+    .input(z.object({ id: z.string().uuid() }))
+    .query(async ({ ctx, input }) => {
+      const job = await getImportJobStatus(ctx.db, {
+        id: input.id,
+        userId: ctx.userId,
+      });
+      if (!job) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Import job not found' });
+      }
+      const observations = await listObservationsByImportJob(ctx.db, {
+        importJobId: input.id,
+        userId: ctx.userId,
+      });
+      return { job, observations };
+    }),
+
+  delete: protectedProcedure
+    .input(z.object({ id: z.string().uuid() }))
+    .mutation(async ({ ctx, input }) => {
+      const deleted = await deleteImportJob(ctx.db, {
+        id: input.id,
+        userId: ctx.userId,
+      });
+      if (!deleted) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Import job not found' });
+      }
+      return { success: true };
     }),
 
   reviewQueue: protectedProcedure

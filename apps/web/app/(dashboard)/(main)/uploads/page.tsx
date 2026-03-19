@@ -37,6 +37,9 @@ export default function UploadsPage() {
 
   const { data: jobsData, isLoading: jobsLoading } = trpc.importJobs.list.useQuery({ limit: 20 });
   const createImport = trpc.importJobs.create.useMutation();
+  const deleteImport = trpc.importJobs.delete.useMutation({
+    onSuccess: () => utils.importJobs.list.invalidate(),
+  });
   const utils = trpc.useUtils();
 
   const handleDrag = useCallback((e: React.DragEvent) => {
@@ -164,12 +167,14 @@ export default function UploadsPage() {
             {recentJobs.map((job) => (
               <ImportJobRow
                 key={job.id}
+                id={job.id}
                 fileName={job.fileName}
                 status={mapStatus(job.status)}
                 docType={DOC_TYPE_LABELS[job.classifiedType ?? ''] ?? job.classifiedType ?? '—'}
                 confidence={job.classificationConfidence != null ? String(job.classificationConfidence.toFixed(2)) : '—'}
                 extractions={job.extractionCount != null ? String(job.extractionCount) : '—'}
                 time={job.createdAt ? formatRelativeTime(job.createdAt) : '—'}
+                onDelete={() => deleteImport.mutate({ id: job.id })}
               />
             ))}
           </div>

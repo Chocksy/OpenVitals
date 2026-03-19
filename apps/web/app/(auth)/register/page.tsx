@@ -1,24 +1,24 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { signUp } from '@/lib/auth/client';
-import { Logo } from '@/assets/app/images/logo';
-import { toast } from 'sonner';
+import { useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { signUp } from "@/lib/auth/client";
+import { LogoWordmark } from "@/assets/app/images/logo";
+import { toast } from "sonner";
 
 export default function RegisterPage() {
   const router = useRouter();
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
 
     if (password.length < 8) {
-      toast.error('Password must be at least 8 characters');
+      toast.error("Password must be at least 8 characters");
       return;
     }
 
@@ -26,13 +26,13 @@ export default function RegisterPage() {
     try {
       const { error } = await signUp.email({ name, email, password });
       if (error) {
-        toast.error(error.message ?? 'Failed to create account');
+        toast.error(error.message ?? "Failed to create account");
         return;
       }
-      toast.success('Account created');
-      router.push('/onboarding');
+      toast.success("Account created");
+      router.push("/onboarding");
     } catch {
-      toast.error('Something went wrong. Please try again.');
+      toast.error("Something went wrong. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -41,12 +41,7 @@ export default function RegisterPage() {
   return (
     <div className="w-full max-w-[380px] animate-fade-in">
       {/* Mobile logo */}
-      <div className="mb-8 flex items-center gap-2 lg:hidden">
-        <div className="flex size-8 items-center justify-center rounded-[10px]" style={{ background: 'linear-gradient(135deg, #3162FF, #1D3DB3)' }}>
-          <Logo className="size-4 text-white" />
-        </div>
-        <span className="text-[16px] font-semibold text-neutral-900 font-display">OpenVitals</span>
-      </div>
+      <LogoWordmark className="mb-8 lg:hidden" />
 
       <h1 className="text-[26px] font-medium tracking-[-0.025em] text-neutral-900 font-display">
         Create your account
@@ -57,7 +52,10 @@ export default function RegisterPage() {
 
       <form onSubmit={handleSubmit} className="mt-8 space-y-4">
         <div>
-          <label htmlFor="name" className="block text-[13px] font-medium text-neutral-700 font-body">
+          <label
+            htmlFor="name"
+            className="block text-[13px] font-medium text-neutral-700 font-body"
+          >
             Name
           </label>
           <input
@@ -72,7 +70,10 @@ export default function RegisterPage() {
         </div>
 
         <div>
-          <label htmlFor="email" className="block text-[13px] font-medium text-neutral-700 font-body">
+          <label
+            htmlFor="email"
+            className="block text-[13px] font-medium text-neutral-700 font-body"
+          >
             Email
           </label>
           <input
@@ -87,7 +88,10 @@ export default function RegisterPage() {
         </div>
 
         <div>
-          <label htmlFor="password" className="block text-[13px] font-medium text-neutral-700 font-body">
+          <label
+            htmlFor="password"
+            className="block text-[13px] font-medium text-neutral-700 font-body"
+          >
             Password
           </label>
           <input
@@ -106,19 +110,24 @@ export default function RegisterPage() {
           type="submit"
           disabled={loading}
           className="w-full rounded-lg py-2.5 text-[14px] font-medium text-white transition-all active:scale-[0.98] disabled:opacity-50 shadow-sm"
-          style={{ background: 'linear-gradient(135deg, #3162FF, #2750D9)' }}
+          style={{ background: "linear-gradient(135deg, #3162FF, #2750D9)" }}
         >
-          {loading ? 'Creating account...' : 'Create account'}
+          {loading ? "Creating account..." : "Create account"}
         </button>
       </form>
 
       <p className="mt-4 text-center text-[11px] leading-relaxed text-neutral-400 font-body">
-        By creating an account, you agree to OpenVitals&apos; open-source license. Your health data is encrypted and never shared without your explicit consent.
+        By creating an account, you agree to OpenVitals&apos; open-source
+        license. Your health data is encrypted and never shared without your
+        explicit consent.
       </p>
 
       <p className="mt-6 text-center text-[13px] text-neutral-500 font-body">
-        Already have an account?{' '}
-        <Link href="/login" className="font-medium text-accent-600 hover:text-accent-700 transition-colors">
+        Already have an account?{" "}
+        <Link
+          href="/login"
+          className="font-medium text-accent-600 hover:text-accent-700 transition-colors"
+        >
           Log in
         </Link>
       </p>

@@ -3,7 +3,9 @@
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
-import { Logo } from "@/assets/app/images/logo";
+import { LogoWordmark } from "@/assets/app/images/logo";
+import { MenuIcon } from "@/assets/icons/menu";
+import { XIcon } from "@/assets/icons/x";
 
 const navLinks = ["Features", "Docs", "Pricing", "Open Source"];
 
@@ -37,13 +39,8 @@ export function Nav() {
         <div className="mx-auto flex max-w-280 items-center justify-between px-6 h-12">
           {/* Left: logo + desktop nav */}
           <div className="flex items-center gap-6">
-            <Link href="/" className="flex items-center gap-2">
-              <Logo className="size-6 text-accent-600 animate-spin-yoyo" />
-              <span
-                className="text-[16px] font-semibold text-neutral-900 font-display"
-              >
-                OpenVitals
-              </span>
+            <Link href="/" className="text-neutral-900">
+              <LogoWordmark logoProps={{ className: "animate-spin-yoyo" }} />
             </Link>
             <nav className="hidden md:flex items-center gap-5">
               {navLinks.map((l) => (
@@ -79,20 +76,7 @@ export function Nav() {
               aria-expanded={mobileOpen}
               onClick={() => setMobileOpen(true)}
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                strokeWidth="1.25"
-                stroke="currentColor"
-                className="size-5"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"
-                />
-              </svg>
+              <MenuIcon className="size-7" />
             </button>
           </div>
         </div>
@@ -117,20 +101,7 @@ export function Nav() {
             aria-label="Close navigation"
             onClick={close}
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth="1.25"
-              stroke="currentColor"
-              className="size-5"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M6 18L18 6M6 6l12 12"
-              />
-            </svg>
+            <XIcon className="size-7" />
           </button>
         </div>
 

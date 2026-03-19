@@ -21,15 +21,13 @@ export function MessageBlock({ message, onArtifactClick }: MessageBlockProps) {
   return (
     <div className={cn('flex gap-3 px-4 py-4', isUser && 'flex-row-reverse')}>
       {/* Avatar */}
-      <div
-        className={cn(
-          'flex size-8 shrink-0 items-center justify-center rounded-full text-xs font-semibold',
-          isUser ? 'bg-neutral-200 text-neutral-600' : 'text-white'
-        )}
-        style={!isUser ? { background: 'linear-gradient(135deg, #3162FF, #1D3DB3)' } : undefined}
-      >
-        {isUser ? 'U' : <Logo className="size-3.5 text-white" />}
-      </div>
+      {isUser ? (
+        <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-neutral-200 text-xs font-semibold text-neutral-600">
+          U
+        </div>
+      ) : (
+        <Logo className="size-8 shrink-0" />
+      )}
 
       <div className={cn('flex max-w-[85%] flex-col gap-2', isUser ? 'items-end' : 'items-start')}>
         {!isUser && (

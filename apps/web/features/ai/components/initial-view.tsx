@@ -29,12 +29,7 @@ export function InitialView({ input, onInputChange, onSubmit, onSuggestionClick 
     <div className="flex h-full flex-col items-center justify-center px-6">
       <div className="w-full max-w-2xl">
         <div className="mb-10 text-center">
-          <div
-            className="mx-auto mb-5 flex size-14 items-center justify-center rounded-2xl"
-            style={{ background: 'linear-gradient(135deg, #3162FF, #1D3DB3)' }}
-          >
-            <Logo className="size-6 text-white" />
-          </div>
+          <Logo className="mx-auto mb-5 size-14" />
           <h1 className="text-[28px] font-medium tracking-[-0.025em] text-neutral-900 font-display">
             {getGreeting()}
           </h1>

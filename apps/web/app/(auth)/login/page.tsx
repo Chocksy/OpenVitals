@@ -1,16 +1,16 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { signIn } from '@/lib/auth/client';
-import { Logo } from '@/assets/app/images/logo';
-import { toast } from 'sonner';
+import { useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { signIn } from "@/lib/auth/client";
+import { LogoWordmark } from "@/assets/app/images/logo";
+import { toast } from "sonner";
 
 export default function LoginPage() {
   const router = useRouter();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
@@ -19,30 +19,25 @@ export default function LoginPage() {
     try {
       const { error } = await signIn.email({ email, password });
       if (error) {
-        toast.error(error.message ?? 'Invalid email or password');
+        toast.error(error.message ?? "Invalid email or password");
         return;
       }
-      router.push('/timeline');
+      router.push("/timeline");
     } catch {
-      toast.error('Something went wrong. Please try again.');
+      toast.error("Something went wrong. Please try again.");
     } finally {
       setLoading(false);
     }
   }
 
   async function handleGoogleSignIn() {
-    await signIn.social({ provider: 'google', callbackURL: '/timeline' });
+    await signIn.social({ provider: "google", callbackURL: "/timeline" });
   }
 
   return (
     <div className="w-full max-w-[380px] animate-fade-in">
       {/* Mobile logo */}
-      <div className="mb-8 flex items-center gap-2 lg:hidden">
-        <div className="flex size-8 items-center justify-center rounded-[10px]" style={{ background: 'linear-gradient(135deg, #3162FF, #1D3DB3)' }}>
-          <Logo className="size-4 text-white" />
-        </div>
-        <span className="text-[16px] font-semibold text-neutral-900 font-display">OpenVitals</span>
-      </div>
+      <LogoWordmark className="mb-8 lg:hidden" />
 
       <h1 className="text-[26px] font-medium tracking-[-0.025em] text-neutral-900 font-display">
         Welcome back
@@ -53,7 +48,10 @@ export default function LoginPage() {
 
       <form onSubmit={handleSubmit} className="mt-8 space-y-4">
         <div>
-          <label htmlFor="email" className="block text-[13px] font-medium text-neutral-700 font-body">
+          <label
+            htmlFor="email"
+            className="block text-[13px] font-medium text-neutral-700 font-body"
+          >
             Email
           </label>
           <input
@@ -68,7 +66,10 @@ export default function LoginPage() {
         </div>
 
         <div>
-          <label htmlFor="password" className="block text-[13px] font-medium text-neutral-700 font-body">
+          <label
+            htmlFor="password"
+            className="block text-[13px] font-medium text-neutral-700 font-body"
+          >
             Password
           </label>
           <input
@@ -86,9 +87,9 @@ export default function LoginPage() {
           type="submit"
           disabled={loading}
           className="w-full rounded-lg py-2.5 text-[14px] font-medium text-white transition-all active:scale-[0.98] disabled:opacity-50 shadow-sm"
-          style={{ background: 'linear-gradient(135deg, #3162FF, #2750D9)' }}
+          style={{ background: "linear-gradient(135deg, #3162FF, #2750D9)" }}
         >
-          {loading ? 'Logging in...' : 'Log in'}
+          {loading ? "Logging in..." : "Log in"}
         </button>
       </form>
 
@@ -98,7 +99,9 @@ export default function LoginPage() {
           <div className="w-full border-t border-neutral-200" />
         </div>
         <div className="relative flex justify-center">
-          <span className="bg-white px-3 text-[12px] text-neutral-400 font-mono">or</span>
+          <span className="bg-white px-3 text-[12px] text-neutral-400 font-mono">
+            or
+          </span>
         </div>
       </div>
 
@@ -110,8 +113,11 @@ export default function LoginPage() {
       </button>
 
       <p className="mt-8 text-center text-[13px] text-neutral-500 font-body">
-        Don&apos;t have an account?{' '}
-        <Link href="/register" className="font-medium text-accent-600 hover:text-accent-700 transition-colors">
+        Don&apos;t have an account?{" "}
+        <Link
+          href="/register"
+          className="font-medium text-accent-600 hover:text-accent-700 transition-colors"
+        >
           Sign up
         </Link>
       </p>

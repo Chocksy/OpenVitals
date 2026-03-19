@@ -56,6 +56,25 @@ export async function getObservationTrend(
     .limit(params.limit ?? 200);
 }
 
+export async function listObservationsByImportJob(
+  db: Database,
+  params: {
+    importJobId: string;
+    userId: string;
+  },
+) {
+  return db
+    .select()
+    .from(observations)
+    .where(
+      and(
+        eq(observations.importJobId, params.importJobId),
+        eq(observations.userId, params.userId),
+      ),
+    )
+    .orderBy(asc(observations.metricCode));
+}
+
 export async function getObservationWithProvenance(
   db: Database,
   params: {

@@ -7,6 +7,7 @@ export { getDb, type Database } from './client';
 // Queries
 export {
   listObservations,
+  listObservationsByImportJob,
   getObservationTrend,
   getObservationWithProvenance,
 } from './queries/observations';
@@ -22,5 +23,6 @@ export {
   createImportJob,
   getImportJobStatus,
   listImportJobs,
+  deleteImportJob,
   getReviewQueue,
 } from './queries/importJobs';

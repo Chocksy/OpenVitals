@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Logo } from '@/assets/app/images/logo';
+import { LogoWordmark } from '@/assets/app/images/logo';
 
 export function Footer() {
   return (
@@ -7,10 +7,11 @@ export function Footer() {
       <div className="mx-auto max-w-[1120px] px-6 py-10">
         <div className="grid grid-cols-2 md:grid-cols-5 gap-8">
           <div className="col-span-2 md:col-span-1">
-            <div className="flex items-center gap-1.5 mb-4">
-              <Logo className="size-5" />
-              <span className="text-[12px] font-medium text-neutral-700 font-display">OpenVitals</span>
-            </div>
+            <LogoWordmark
+              className="mb-4"
+              logoProps={{ className: "size-5" }}
+              workmarkProps={{ className: "text-[12px] text-neutral-700" }}
+            />
             <p className="text-[11px] text-neutral-400 font-mono">Your data, your control.</p>
           </div>
           {[

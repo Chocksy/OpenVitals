@@ -12,6 +12,7 @@ export class VercelBlobAdapter implements BlobStorageProvider {
       access: 'private',
       contentType: params.contentType,
       addRandomSuffix: false,
+      allowOverwrite: true,
     });
 
     return { url: blob.url, path: params.path };

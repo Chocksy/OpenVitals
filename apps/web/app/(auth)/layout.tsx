@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Logo } from '@/assets/app/images/logo';
+import { LogoWordmark } from '@/assets/app/images/logo';
 
 export default function AuthLayout({
   children,
@@ -18,13 +18,12 @@ export default function AuthLayout({
 
         {/* Logo */}
         <div className="relative z-10">
-          <Link href="/" className="flex items-center gap-2.5">
-            <div className="flex size-9 items-center justify-center rounded-xl bg-white/15 backdrop-blur-sm">
-              <Logo className="size-5 text-white" />
-            </div>
-            <span className="text-[18px] font-semibold text-white tracking-[-0.01em] font-display">
-              OpenVitals
-            </span>
+          <Link href="/" className="text-white">
+            <LogoWordmark
+              className="gap-2.5"
+              logoProps={{ className: "size-7" }}
+              workmarkProps={{ className: "text-[18px] tracking-[-0.01em]" }}
+            />
           </Link>
         </div>
 
