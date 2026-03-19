@@ -5,12 +5,9 @@ export default defineConfig({
   format: ['esm'],
   outDir: 'dist',
   clean: true,
-  noExternal: [
-    '@openvitals/database',
-    '@openvitals/common',
-    '@openvitals/ai',
-    '@openvitals/blob-storage',
-    '@openvitals/ingestion',
-    '@openvitals/events',
-  ],
+  bundle: true,
+  noExternal: [/.*/],
+  banner: {
+    js: `import { createRequire } from 'module'; const require = createRequire(import.meta.url);`,
+  },
 });
