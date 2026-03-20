@@ -1,30 +1,28 @@
 import questLogo from "@/assets/marketing/brand-logos/quest-diagnostics.svg";
 import labcorpLogo from "@/assets/marketing/brand-logos/labcorp.svg";
-import mayoLogo from "@/assets/marketing/brand-logos/mayo-clinic.svg";
 import clevelandLogo from "@/assets/marketing/brand-logos/cleveland-clinic.svg";
 import kaiserLogo from "@/assets/marketing/brand-logos/kaiser.svg";
 import epicLogo from "@/assets/marketing/brand-logos/epic.svg";
-import cernerLogo from "@/assets/marketing/brand-logos/cerner.svg";
-import adobeLogo from "@/assets/marketing/brand-logos/adobe.svg";
+import ouraLogo from "@/assets/marketing/brand-logos/oura.svg";
+import whoopLogo from "@/assets/marketing/brand-logos/whoop.svg";
+import garminLogo from "@/assets/marketing/brand-logos/garmin.svg";
 
 const providers = [
   { name: "Quest Diagnostics", logo: questLogo },
   { name: "LabCorp", logo: labcorpLogo },
-  { name: "Mayo Clinic", logo: mayoLogo },
+  { name: "Epic", logo: epicLogo },
   { name: "Cleveland Clinic", logo: clevelandLogo },
   { name: "Kaiser", logo: kaiserLogo },
-  { name: "Epic", logo: epicLogo },
-  { name: "Cerner", logo: cernerLogo },
-  { name: "Adobe", logo: adobeLogo },
+  { name: "Garmin", logo: garminLogo },
+  { name: "Oura", logo: ouraLogo },
+  { name: "Whoop", logo: whoopLogo },
 ];
 
 export function TrustBar() {
   return (
     <section className="pb-10 pt-0">
       <div className="mx-auto max-w-280 px-6 text-center">
-        <h2
-          className="mb-6 text-[14px] text-neutral-500 font-body"
-        >
+        <h2 className="mb-6 text-[14px] text-neutral-500 font-body">
           Parses lab reports from the most common providers
         </h2>
         <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">

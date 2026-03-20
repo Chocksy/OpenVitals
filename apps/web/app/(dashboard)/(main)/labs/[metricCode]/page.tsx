@@ -1,45 +1,51 @@
-'use client';
+"use client";
 
-import { use, useMemo, useState } from 'react';
-import { trpc } from '@/lib/trpc/client';
-import { TitleActionHeader } from '@/components/title-action-header';
-import { StatusBadge, type HealthStatus } from '@/components/health/status-badge';
-import { TrendChart } from '@/components/health/trend-chart';
-import { deriveStatus, formatRange } from '@/lib/health-utils';
-import { cn, formatDate, formatObsValue, isDurationMetric } from '@/lib/utils';
-import { DataTable, type DataTableColumn } from '@/components/data-table';
+import { use, useMemo, useState } from "react";
+import { trpc } from "@/lib/trpc/client";
+import { TitleActionHeader } from "@/components/title-action-header";
+import {
+  StatusBadge,
+  type HealthStatus,
+} from "@/components/health/status-badge";
+import { TrendChart } from "@/components/health/trend-chart";
+import {
+  deriveStatus,
+  deriveOptimalStatus,
+  formatRange,
+} from "@/lib/health-utils";
+import { cn, formatDate, formatObsValue, isDurationMetric } from "@/lib/utils";
+import { DataTable, type DataTableColumn } from "@/components/data-table";
 
 const TIME_RANGES = [
-  { key: '3m', label: '3M', months: 3 },
-  { key: '6m', label: '6M', months: 6 },
-  { key: '1y', label: '1Y', months: 12 },
-  { key: '2y', label: '2Y', months: 24 },
-  { key: 'all', label: 'All', months: null },
+  { key: "3m", label: "3M", months: 3 },
+  { key: "6m", label: "6M", months: 6 },
+  { key: "1y", label: "1Y", months: 12 },
+  { key: "2y", label: "2Y", months: 24 },
+  { key: "all", label: "All", months: null },
 ] as const;
 
-type TimeRangeKey = (typeof TIME_RANGES)[number]['key'];
+type TimeRangeKey = (typeof TIME_RANGES)[number]["key"];
 
 function formatMetricName(code: string) {
-  return code.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+  return code.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 }
-
 
 function SummaryCard({
   label,
   value,
   subtext,
-  variant = 'default',
+  variant = "default",
 }: {
   label: string;
   value: string;
   subtext?: string;
-  variant?: 'default' | 'warning' | 'success' | 'accent';
+  variant?: "default" | "warning" | "success" | "accent";
 }) {
   const valueColor = {
-    default: 'text-neutral-900',
-    warning: 'text-[var(--color-health-warning)]',
-    success: 'text-[var(--color-health-normal)]',
-    accent: 'text-accent-600',
+    default: "text-neutral-900",
+    warning: "text-[var(--color-health-warning)]",
+    success: "text-[var(--color-health-normal)]",
+    accent: "text-accent-600",
   }[variant];
 
   return (
@@ -47,11 +53,18 @@ function SummaryCard({
       <div className="text-[11px] font-semibold uppercase tracking-[0.04em] text-neutral-400 font-mono">
         {label}
       </div>
-      <div className={cn('mt-1 text-2xl font-medium tracking-[-0.03em] font-display', valueColor)}>
+      <div
+        className={cn(
+          "mt-1 text-2xl font-medium tracking-[-0.03em] font-display",
+          valueColor,
+        )}
+      >
         {value}
       </div>
       {subtext && (
-        <div className="mt-0.5 text-[11px] text-neutral-400 font-mono">{subtext}</div>
+        <div className="mt-0.5 text-[11px] text-neutral-400 font-mono">
+          {subtext}
+        </div>
       )}
     </div>
   );
@@ -69,7 +82,14 @@ export default function LabDetailPage({
     limit: 200,
   });
   const { data: metricsData } = trpc.metrics.list.useQuery();
-  const displayPrecision = metricsData?.find((m) => m.id === metricCode)?.displayPrecision ?? null;
+  const { data: prefsData } = trpc.preferences.get.useQuery();
+  const { data: optimalRangesData } = trpc.optimalRanges.forUser.useQuery({
+    metricCode,
+  });
+  const displayPrecision =
+    metricsData?.find((m) => m.id === metricCode)?.displayPrecision ?? null;
+  const showOptimal = prefsData?.showOptimalRanges ?? true;
+  const optimalRange = optimalRangesData?.[metricCode] ?? null;
 
   const items = data?.items ?? [];
 
@@ -87,17 +107,19 @@ export default function LabDetailPage({
   }, [items]);
   const dateTo = useMemo(() => new Date(), []);
 
-  const { data: trendData, isLoading: trendLoading } = trpc.observations.trend.useQuery({
-    metricCode,
-    dateFrom,
-    dateTo,
-    granularity: 'raw',
-  });
+  const { data: trendData, isLoading: trendLoading } =
+    trpc.observations.trend.useQuery({
+      metricCode,
+      dateFrom,
+      dateTo,
+      granularity: "raw",
+    });
 
   const sorted = useMemo(
     () =>
       [...items].sort(
-        (a, b) => new Date(b.observedAt).getTime() - new Date(a.observedAt).getTime(),
+        (a, b) =>
+          new Date(b.observedAt).getTime() - new Date(a.observedAt).getTime(),
       ),
     [items],
   );
@@ -107,9 +129,9 @@ export default function LabDetailPage({
   const resultColumns: DataTableColumn<Observation>[] = useMemo(
     () => [
       {
-        id: 'date',
-        header: 'Date',
-        width: '1fr',
+        id: "date",
+        header: "Date",
+        width: "1fr",
         cell: (obs) => (
           <div className="text-xs text-neutral-500 font-mono">
             {formatDate(obs.observedAt)}
@@ -117,52 +139,63 @@ export default function LabDetailPage({
         ),
       },
       {
-        id: 'value',
-        header: 'Value',
-        width: '0.8fr',
+        id: "value",
+        header: "Value",
+        width: "0.8fr",
         cell: (obs) => {
           const obsStatus = deriveStatus(obs);
           return (
             <div className="flex items-baseline gap-1.5">
               <span
                 className={cn(
-                  'text-[15px] font-semibold tracking-[-0.01em] font-mono tabular-nums',
+                  "text-[15px] font-semibold tracking-[-0.01em] font-mono tabular-nums",
                   obs.isAbnormal
-                    ? obsStatus === 'critical'
-                      ? 'text-[var(--color-health-critical)]'
-                      : 'text-[var(--color-health-warning)]'
-                    : 'text-neutral-900',
+                    ? obsStatus === "critical"
+                      ? "text-[var(--color-health-critical)]"
+                      : "text-[var(--color-health-warning)]"
+                    : "text-neutral-900",
                 )}
               >
-                {formatObsValue(metricCode, obs.valueNumeric, obs.valueText, displayPrecision)}
+                {formatObsValue(
+                  metricCode,
+                  obs.valueNumeric,
+                  obs.valueText,
+                  displayPrecision,
+                )}
               </span>
               {!isDurationMetric(metricCode) && obs.unit && (
-                <span className="text-[11px] text-neutral-400 font-mono">{obs.unit}</span>
+                <span className="text-[11px] text-neutral-400 font-mono">
+                  {obs.unit}
+                </span>
               )}
             </div>
           );
         },
       },
       {
-        id: 'range',
-        header: 'Ref. Range',
-        width: '1fr',
+        id: "range",
+        header: "Ref. Range",
+        width: "1fr",
         cell: (obs) => (
           <div className="text-xs text-neutral-400 font-mono">
-            {formatRange(obs.referenceRangeLow, obs.referenceRangeHigh, obs.unit)}
+            {formatRange(
+              obs.referenceRangeLow,
+              obs.referenceRangeHigh,
+              obs.unit,
+            )}
           </div>
         ),
       },
       {
-        id: 'status',
-        header: 'Status',
-        width: '0.8fr',
+        id: "status",
+        header: "Status",
+        width: "0.8fr",
         cell: (obs) => {
           const obsStatus = deriveStatus(obs);
           return obs.isAbnormal ? (
             <StatusBadge
               status={obsStatus}
-              label={obsStatus === 'critical' ? 'High' : 'Abnormal'}
+              label={obsStatus === "critical" ? "High" : "Abnormal"}
             />
           ) : (
             <StatusBadge status="normal" label="Normal" />
@@ -170,16 +203,16 @@ export default function LabDetailPage({
         },
       },
       {
-        id: 'source',
-        header: 'Source',
-        width: '0.8fr',
+        id: "source",
+        header: "Source",
+        width: "0.8fr",
         cell: (obs) => (
           <div className="text-[11px] text-neutral-400 font-mono truncate">
-            {obs.status === 'corrected'
-              ? 'Corrected'
-              : obs.status === 'confirmed'
-                ? 'Confirmed'
-                : 'Extracted'}
+            {obs.status === "corrected"
+              ? "Corrected"
+              : obs.status === "confirmed"
+                ? "Confirmed"
+                : "Extracted"}
           </div>
         ),
       },
@@ -190,9 +223,9 @@ export default function LabDetailPage({
   const latest = sorted[0];
   const previous = sorted[1];
   const metricName = formatMetricName(metricCode);
-  const status: HealthStatus = latest ? deriveStatus(latest) : 'neutral';
+  const status: HealthStatus = latest ? deriveStatus(latest) : "neutral";
 
-  const [timeRange, setTimeRange] = useState<TimeRangeKey>('all');
+  const [timeRange, setTimeRange] = useState<TimeRangeKey>("all");
 
   // Chart data from trend endpoint — use ISO strings and disambiguate
   // duplicate dates so Recharts treats each point as unique on hover.
@@ -229,7 +262,7 @@ export default function LabDetailPage({
   const change = useMemo(() => {
     if (!latest?.valueNumeric || !previous?.valueNumeric) return null;
     const diff = latest.valueNumeric - previous.valueNumeric;
-    const sign = diff > 0 ? '+' : '';
+    const sign = diff > 0 ? "+" : "";
     return `${sign}${diff % 1 === 0 ? diff : diff.toFixed(1)}`;
   }, [latest, previous]);
 
@@ -239,7 +272,10 @@ export default function LabDetailPage({
         <TitleActionHeader showBackButton title={undefined} />
         <div className="mt-7 grid grid-cols-2 gap-3 sm:grid-cols-4">
           {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="h-20 animate-pulse rounded-xl border border-neutral-200 bg-neutral-50" />
+            <div
+              key={i}
+              className="h-20 animate-pulse rounded-xl border border-neutral-200 bg-neutral-50"
+            />
           ))}
         </div>
         <div className="mt-6 h-[340px] animate-pulse rounded-xl border border-neutral-200 bg-neutral-50" />
@@ -276,13 +312,22 @@ export default function LabDetailPage({
             <StatusBadge
               status={status}
               label={
-                status === 'critical' ? 'High' : status === 'warning' ? 'Abnormal' : 'Normal'
+                status === "critical"
+                  ? "High"
+                  : status === "warning"
+                    ? "Abnormal"
+                    : "Normal"
               }
             />
             {latest?.valueNumeric != null && (
               <span className="text-sm text-neutral-500 font-mono tabular-nums">
-                {formatObsValue(metricCode, latest.valueNumeric, latest.valueText, displayPrecision)}{' '}
-                {isDurationMetric(metricCode) ? '' : latest.unit ?? ''}
+                {formatObsValue(
+                  metricCode,
+                  latest.valueNumeric,
+                  latest.valueText,
+                  displayPrecision,
+                )}{" "}
+                {isDurationMetric(metricCode) ? "" : (latest.unit ?? "")}
               </span>
             )}
           </div>
@@ -293,37 +338,59 @@ export default function LabDetailPage({
       <div className="mt-7 grid grid-cols-2 gap-3 sm:grid-cols-4">
         <SummaryCard
           label="Latest value"
-          value={formatObsValue(metricCode, latest?.valueNumeric, latest?.valueText, displayPrecision)}
-          subtext={isDurationMetric(metricCode) ? undefined : (latest?.unit ?? undefined)}
-          variant={status === 'critical' ? 'warning' : status === 'warning' ? 'warning' : 'default'}
-        />
-        <SummaryCard
-          label="Change"
-          value={change ?? '—'}
-          subtext={change ? 'from previous' : undefined}
+          value={formatObsValue(
+            metricCode,
+            latest?.valueNumeric,
+            latest?.valueText,
+            displayPrecision,
+          )}
+          subtext={
+            isDurationMetric(metricCode)
+              ? undefined
+              : (latest?.unit ?? undefined)
+          }
           variant={
-            change
-              ? change.startsWith('+') || change.startsWith('-')
-                ? 'accent'
-                : 'default'
-              : 'default'
+            status === "critical"
+              ? "warning"
+              : status === "warning"
+                ? "warning"
+                : "default"
           }
         />
         <SummaryCard
-          label="Total tests"
-          value={String(items.length)}
+          label="Change"
+          value={change ?? "—"}
+          subtext={change ? "from previous" : undefined}
+          variant={
+            change
+              ? change.startsWith("+") || change.startsWith("-")
+                ? "accent"
+                : "default"
+              : "default"
+          }
         />
-        <SummaryCard
-          label="Reference range"
-          value={refRange}
-        />
+        <SummaryCard label="Total tests" value={String(items.length)} />
+        <SummaryCard label="Reference range" value={refRange} />
+        {showOptimal && optimalRange && (
+          <SummaryCard
+            label="Optimal range"
+            value={formatRange(
+              optimalRange.rangeLow,
+              optimalRange.rangeHigh,
+              latest?.unit,
+            )}
+            subtext={optimalRange.source ?? undefined}
+          />
+        )}
       </div>
 
       {/* Trend Chart */}
       {(trendLoading || allChartData.length > 0) && (
         <div className="mt-6 rounded-xl border border-neutral-200 bg-white p-5">
           <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-sm font-semibold text-neutral-700 font-body">Trend</h2>
+            <h2 className="text-sm font-semibold text-neutral-700 font-body">
+              Trend
+            </h2>
             {!trendLoading && (
               <div className="flex items-center gap-0.5 rounded-lg bg-neutral-100 p-0.5">
                 {TIME_RANGES.map((r) => (
@@ -331,10 +398,10 @@ export default function LabDetailPage({
                     key={r.key}
                     onClick={() => setTimeRange(r.key)}
                     className={cn(
-                      'rounded-md px-2.5 py-1 text-[11px] font-semibold tracking-[0.04em] font-mono transition-all',
+                      "rounded-md px-2.5 py-1 text-[11px] font-semibold tracking-[0.04em] font-mono transition-all",
                       timeRange === r.key
-                        ? 'bg-white text-neutral-900 shadow-sm'
-                        : 'text-neutral-400 hover:text-neutral-600',
+                        ? "bg-white text-neutral-900 shadow-sm"
+                        : "text-neutral-400 hover:text-neutral-600",
                     )}
                   >
                     {r.label}
@@ -349,7 +416,10 @@ export default function LabDetailPage({
               <div className="flex h-full gap-3">
                 <div className="flex w-10 flex-col justify-between py-2">
                   {Array.from({ length: 5 }).map((_, i) => (
-                    <div key={i} className="h-2.5 w-8 animate-pulse rounded bg-neutral-100" />
+                    <div
+                      key={i}
+                      className="h-2.5 w-8 animate-pulse rounded bg-neutral-100"
+                    />
                   ))}
                 </div>
                 <div className="relative flex-1 rounded-lg">
@@ -364,7 +434,10 @@ export default function LabDetailPage({
               {/* X-axis labels skeleton */}
               <div className="ml-[52px] flex justify-between">
                 {Array.from({ length: 4 }).map((_, i) => (
-                  <div key={i} className="h-2.5 w-10 animate-pulse rounded bg-neutral-100" />
+                  <div
+                    key={i}
+                    className="h-2.5 w-10 animate-pulse rounded bg-neutral-100"
+                  />
                 ))}
               </div>
             </div>
@@ -373,6 +446,10 @@ export default function LabDetailPage({
               data={chartData}
               referenceRangeLow={latest?.referenceRangeLow}
               referenceRangeHigh={latest?.referenceRangeHigh}
+              optimalRangeLow={showOptimal ? optimalRange?.rangeLow : undefined}
+              optimalRangeHigh={
+                showOptimal ? optimalRange?.rangeHigh : undefined
+              }
               unit={latest?.unit}
               status={status}
             />
@@ -392,7 +469,9 @@ export default function LabDetailPage({
         rowConfig={{
           getRowKey: (obs) => obs.id,
           getRowTint: (obs) =>
-            obs.isAbnormal ? 'bg-[var(--color-health-warning-bg)]/40' : undefined,
+            obs.isAbnormal
+              ? "bg-[var(--color-health-warning-bg)]/40"
+              : undefined,
         }}
       />
     </div>

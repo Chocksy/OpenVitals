@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
+import Image, { type StaticImageData } from "next/image";
 import {
   Watch,
   Activity,
@@ -23,9 +24,20 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { TitleActionHeader } from "@/components/title-action-header";
-import { getRelativeTime } from "@/lib/utils";
+import { cn, getRelativeTime } from "@/lib/utils";
 import { trpc } from "@/lib/trpc/client";
 import { toast } from "sonner";
+
+import whoopIcon from "@/assets/marketing/brand-logos/whoop-icon.jpeg";
+import appleIcon from "@/assets/marketing/brand-logos/apple-icon.png";
+import fitbitIcon from "@/assets/marketing/brand-logos/fitbit-icon.png";
+import garminIcon from "@/assets/marketing/brand-logos/garmin-icon.jpeg";
+import ouraIcon from "@/assets/marketing/brand-logos/oura-icon.jpeg";
+import samsungIcon from "@/assets/marketing/brand-logos/samsung-icon.png";
+import questIcon from "@/assets/marketing/brand-logos/quest-icon.png";
+import labcorpIcon from "@/assets/marketing/brand-logos/labcorp-icon.png";
+import epicIcon from "@/assets/marketing/brand-logos/epic-icon.png";
+import cernerIcon from "@/assets/marketing/brand-logos/cerner-icon.png";
 
 type Category =
   | "wearables"
@@ -41,6 +53,7 @@ interface IntegrationDef {
   description: string;
   category: Category;
   icon: LucideIcon;
+  brandIcon?: StaticImageData;
   color: string;
   iconBg: string;
   dataTypes: string[];
@@ -73,6 +86,7 @@ const integrationCatalog: IntegrationDef[] = [
       "Heart rate, activity, sleep, and ECG data from your Apple Watch",
     category: "wearables",
     icon: Watch,
+    brandIcon: appleIcon,
     color: "text-rose-600",
     iconBg: "bg-rose-50",
     dataTypes: ["Heart Rate", "Steps", "Sleep", "ECG"],
@@ -84,6 +98,7 @@ const integrationCatalog: IntegrationDef[] = [
       "Activity tracking, sleep analysis, and heart rate monitoring",
     category: "wearables",
     icon: Activity,
+    brandIcon: fitbitIcon,
     color: "text-teal-600",
     iconBg: "bg-teal-50",
     dataTypes: ["Steps", "Sleep", "Heart Rate", "SpO2"],
@@ -95,6 +110,7 @@ const integrationCatalog: IntegrationDef[] = [
       "GPS tracking, performance metrics, and health monitoring",
     category: "wearables",
     icon: CircleGauge,
+    brandIcon: garminIcon,
     color: "text-sky-600",
     iconBg: "bg-sky-50",
     dataTypes: ["GPS", "Heart Rate", "VO2 Max", "Steps"],
@@ -106,6 +122,7 @@ const integrationCatalog: IntegrationDef[] = [
       "Sleep tracking, readiness scores, and temperature trends",
     category: "wearables",
     icon: CircleDot,
+    brandIcon: ouraIcon,
     color: "text-violet-600",
     iconBg: "bg-violet-50",
     dataTypes: ["Sleep", "HRV", "Temperature", "Readiness"],
@@ -117,6 +134,7 @@ const integrationCatalog: IntegrationDef[] = [
       "Strain tracking, recovery analysis, and sleep performance",
     category: "wearables",
     icon: Zap,
+    brandIcon: whoopIcon,
     color: "text-amber-600",
     iconBg: "bg-amber-50",
     dataTypes: ["Strain", "Recovery", "Sleep", "HRV"],
@@ -128,6 +146,7 @@ const integrationCatalog: IntegrationDef[] = [
       "Health monitoring, body composition, and blood pressure tracking",
     category: "wearables",
     icon: Watch,
+    brandIcon: samsungIcon,
     color: "text-indigo-600",
     iconBg: "bg-indigo-50",
     dataTypes: ["Heart Rate", "Steps", "Body Comp", "BP"],
@@ -139,6 +158,7 @@ const integrationCatalog: IntegrationDef[] = [
       "Centralized health data from all your Apple devices and apps",
     category: "health_platforms",
     icon: Heart,
+    brandIcon: appleIcon,
     color: "text-pink-600",
     iconBg: "bg-pink-50",
     dataTypes: ["Vitals", "Activity", "Nutrition", "Sleep"],
@@ -160,6 +180,7 @@ const integrationCatalog: IntegrationDef[] = [
       "Health and fitness data from Samsung ecosystem devices",
     category: "health_platforms",
     icon: SquareActivity,
+    brandIcon: samsungIcon,
     color: "text-blue-600",
     iconBg: "bg-blue-50",
     dataTypes: ["Steps", "Heart Rate", "Stress", "Sleep"],
@@ -171,6 +192,7 @@ const integrationCatalog: IntegrationDef[] = [
       "Lab test results and diagnostic reports from Quest locations",
     category: "lab_services",
     icon: TestTubes,
+    brandIcon: questIcon,
     color: "text-orange-600",
     iconBg: "bg-orange-50",
     dataTypes: ["Blood Work", "Metabolic", "Lipid Panel"],
@@ -181,6 +203,7 @@ const integrationCatalog: IntegrationDef[] = [
     description: "Laboratory testing results and health screening data",
     category: "lab_services",
     icon: FlaskConical,
+    brandIcon: labcorpIcon,
     color: "text-cyan-600",
     iconBg: "bg-cyan-50",
     dataTypes: ["Blood Work", "Urinalysis", "Hormones"],
@@ -192,6 +215,7 @@ const integrationCatalog: IntegrationDef[] = [
       "Medical records, prescriptions, and visit summaries from Epic providers",
     category: "medical_records",
     icon: FileHeart,
+    brandIcon: epicIcon,
     color: "text-fuchsia-600",
     iconBg: "bg-fuchsia-50",
     dataTypes: ["Records", "Rx", "Labs", "Visits"],
@@ -203,6 +227,7 @@ const integrationCatalog: IntegrationDef[] = [
       "Electronic health records and clinical data from Cerner systems",
     category: "medical_records",
     icon: Hospital,
+    brandIcon: cernerIcon,
     color: "text-slate-600",
     iconBg: "bg-slate-100",
     dataTypes: ["Records", "Labs", "Imaging", "Notes"],
@@ -223,6 +248,7 @@ function IntegrationCard({
   isSyncing: boolean;
 }) {
   const Icon = integration.icon;
+  const hasBrandIcon = !!integration.brandIcon;
   const isImplemented = implementedProviders.has(integration.id);
   const isConnected = !!connection;
   const [showMenu, setShowMenu] = useState(false);
@@ -244,9 +270,22 @@ function IntegrationCard({
     <div className="p-4 flex-1">
       <div className="flex items-start gap-3">
         <div
-          className={`w-10 h-10 rounded-xl ${integration.iconBg} flex items-center justify-center shrink-0`}
+          className={cn(
+            "w-10 h-10 rounded-xl flex items-center justify-center shrink-0 overflow-hidden",
+            !hasBrandIcon && integration.iconBg,
+          )}
         >
-          <Icon className={`h-5 w-5 ${integration.color}`} />
+          {hasBrandIcon ? (
+            <Image
+              src={integration.brandIcon!}
+              alt={integration.name}
+              className="h-full w-full object-cover rounded-xl"
+              width={40}
+              height={40}
+            />
+          ) : (
+            <Icon className={`h-5 w-5 ${integration.color}`} />
+          )}
         </div>
         <div className="min-w-0">
           <h3 className="font-display text-[15px] font-semibold text-neutral-900">

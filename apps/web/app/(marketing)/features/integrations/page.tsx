@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import Image, { type StaticImageData } from 'next/image';
 import {
   Watch,
   Activity,
@@ -18,9 +19,20 @@ import {
   BarChart3,
   type LucideIcon,
 } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import { Nav } from '@/features/marketing/landing/sections/nav';
 import { Footer } from '@/features/marketing/landing/sections/footer';
 import { BrowserWindow } from '@/features/marketing/landing/components/browser-window';
+
+import whoopIcon from '@/assets/marketing/brand-logos/whoop-icon.jpeg';
+import appleIcon from '@/assets/marketing/brand-logos/apple-icon.png';
+import fitbitIcon from '@/assets/marketing/brand-logos/fitbit-icon.png';
+import garminIcon from '@/assets/marketing/brand-logos/garmin-icon.jpeg';
+import ouraIcon from '@/assets/marketing/brand-logos/oura-icon.jpeg';
+import questIcon from '@/assets/marketing/brand-logos/quest-icon.png';
+import labcorpIcon from '@/assets/marketing/brand-logos/labcorp-icon.png';
+import epicIcon from '@/assets/marketing/brand-logos/epic-icon.png';
+import cernerIcon from '@/assets/marketing/brand-logos/cerner-icon.png';
 
 export const metadata: Metadata = {
   title: 'Integrations | OpenVitals',
@@ -36,23 +48,24 @@ interface Provider {
   description: string;
   category: string;
   icon: LucideIcon;
+  brandIcon?: StaticImageData;
   color: string;
   iconBg: string;
   dataTypes: string[];
 }
 
 const providers: Provider[] = [
-  { id: 'whoop', name: 'Whoop', description: 'Strain tracking, recovery analysis, and sleep performance', category: 'Wearables', icon: Zap, color: 'text-amber-600', iconBg: 'bg-amber-50', dataTypes: ['Strain', 'Recovery', 'Sleep', 'HRV'] },
-  { id: 'apple-watch', name: 'Apple Watch', description: 'Heart rate, activity, sleep, and ECG data', category: 'Wearables', icon: Watch, color: 'text-rose-600', iconBg: 'bg-rose-50', dataTypes: ['Heart Rate', 'Steps', 'Sleep', 'ECG'] },
-  { id: 'fitbit', name: 'Fitbit', description: 'Activity tracking, sleep analysis, and heart rate monitoring', category: 'Wearables', icon: Activity, color: 'text-teal-600', iconBg: 'bg-teal-50', dataTypes: ['Steps', 'Sleep', 'Heart Rate', 'SpO2'] },
-  { id: 'garmin', name: 'Garmin', description: 'GPS tracking, performance metrics, and health monitoring', category: 'Wearables', icon: CircleGauge, color: 'text-sky-600', iconBg: 'bg-sky-50', dataTypes: ['GPS', 'Heart Rate', 'VO2 Max', 'Steps'] },
-  { id: 'oura-ring', name: 'Oura Ring', description: 'Sleep tracking, readiness scores, and temperature trends', category: 'Wearables', icon: CircleDot, color: 'text-violet-600', iconBg: 'bg-violet-50', dataTypes: ['Sleep', 'HRV', 'Temperature', 'Readiness'] },
-  { id: 'apple-health', name: 'Apple Health', description: 'Centralized health data from all your Apple devices', category: 'Platforms', icon: Heart, color: 'text-pink-600', iconBg: 'bg-pink-50', dataTypes: ['Vitals', 'Activity', 'Nutrition', 'Sleep'] },
+  { id: 'whoop', name: 'Whoop', description: 'Strain tracking, recovery analysis, and sleep performance', category: 'Wearables', icon: Zap, brandIcon: whoopIcon, color: 'text-amber-600', iconBg: 'bg-amber-50', dataTypes: ['Strain', 'Recovery', 'Sleep', 'HRV'] },
+  { id: 'apple-watch', name: 'Apple Watch', description: 'Heart rate, activity, sleep, and ECG data', category: 'Wearables', icon: Watch, brandIcon: appleIcon, color: 'text-rose-600', iconBg: 'bg-rose-50', dataTypes: ['Heart Rate', 'Steps', 'Sleep', 'ECG'] },
+  { id: 'fitbit', name: 'Fitbit', description: 'Activity tracking, sleep analysis, and heart rate monitoring', category: 'Wearables', icon: Activity, brandIcon: fitbitIcon, color: 'text-teal-600', iconBg: 'bg-teal-50', dataTypes: ['Steps', 'Sleep', 'Heart Rate', 'SpO2'] },
+  { id: 'garmin', name: 'Garmin', description: 'GPS tracking, performance metrics, and health monitoring', category: 'Wearables', icon: CircleGauge, brandIcon: garminIcon, color: 'text-sky-600', iconBg: 'bg-sky-50', dataTypes: ['GPS', 'Heart Rate', 'VO2 Max', 'Steps'] },
+  { id: 'oura-ring', name: 'Oura Ring', description: 'Sleep tracking, readiness scores, and temperature trends', category: 'Wearables', icon: CircleDot, brandIcon: ouraIcon, color: 'text-violet-600', iconBg: 'bg-violet-50', dataTypes: ['Sleep', 'HRV', 'Temperature', 'Readiness'] },
+  { id: 'apple-health', name: 'Apple Health', description: 'Centralized health data from all your Apple devices', category: 'Platforms', icon: Heart, brandIcon: appleIcon, color: 'text-pink-600', iconBg: 'bg-pink-50', dataTypes: ['Vitals', 'Activity', 'Nutrition', 'Sleep'] },
   { id: 'google-health-connect', name: 'Google Health Connect', description: 'Unified health data from Android apps and devices', category: 'Platforms', icon: Smartphone, color: 'text-emerald-600', iconBg: 'bg-emerald-50', dataTypes: ['Activity', 'Vitals', 'Sleep', 'Nutrition'] },
-  { id: 'quest-diagnostics', name: 'Quest Diagnostics', description: 'Lab test results and diagnostic reports', category: 'Lab Services', icon: TestTubes, color: 'text-orange-600', iconBg: 'bg-orange-50', dataTypes: ['Blood Work', 'Metabolic', 'Lipid Panel'] },
-  { id: 'labcorp', name: 'Labcorp', description: 'Laboratory testing results and health screening data', category: 'Lab Services', icon: FlaskConical, color: 'text-cyan-600', iconBg: 'bg-cyan-50', dataTypes: ['Blood Work', 'Urinalysis', 'Hormones'] },
-  { id: 'epic-mychart', name: 'Epic MyChart', description: 'Medical records and visit summaries from Epic providers', category: 'Medical Records', icon: FileHeart, color: 'text-fuchsia-600', iconBg: 'bg-fuchsia-50', dataTypes: ['Records', 'Rx', 'Labs', 'Visits'] },
-  { id: 'cerner', name: 'Cerner', description: 'Electronic health records and clinical data', category: 'Medical Records', icon: Hospital, color: 'text-slate-600', iconBg: 'bg-slate-100', dataTypes: ['Records', 'Labs', 'Imaging', 'Notes'] },
+  { id: 'quest-diagnostics', name: 'Quest Diagnostics', description: 'Lab test results and diagnostic reports', category: 'Lab Services', icon: TestTubes, brandIcon: questIcon, color: 'text-orange-600', iconBg: 'bg-orange-50', dataTypes: ['Blood Work', 'Metabolic', 'Lipid Panel'] },
+  { id: 'labcorp', name: 'Labcorp', description: 'Laboratory testing results and health screening data', category: 'Lab Services', icon: FlaskConical, brandIcon: labcorpIcon, color: 'text-cyan-600', iconBg: 'bg-cyan-50', dataTypes: ['Blood Work', 'Urinalysis', 'Hormones'] },
+  { id: 'epic-mychart', name: 'Epic MyChart', description: 'Medical records and visit summaries from Epic providers', category: 'Medical Records', icon: FileHeart, brandIcon: epicIcon, color: 'text-fuchsia-600', iconBg: 'bg-fuchsia-50', dataTypes: ['Records', 'Rx', 'Labs', 'Visits'] },
+  { id: 'cerner', name: 'Cerner', description: 'Electronic health records and clinical data', category: 'Medical Records', icon: Hospital, brandIcon: cernerIcon, color: 'text-slate-600', iconBg: 'bg-slate-100', dataTypes: ['Records', 'Labs', 'Imaging', 'Notes'] },
 ];
 
 const steps = [
@@ -84,11 +97,25 @@ const steps = [
 
 function ProviderCard({ provider }: { provider: Provider }) {
   const Icon = provider.icon;
+  const hasBrandIcon = !!provider.brandIcon;
   return (
     <div className="rounded-xl border border-neutral-200/80 bg-white p-4 transition-shadow hover:shadow-[0_2px_12px_rgba(0,0,0,0.06)]">
       <div className="flex items-start gap-3">
-        <div className={`w-9 h-9 rounded-lg ${provider.iconBg} flex items-center justify-center shrink-0`}>
-          <Icon className={`h-[18px] w-[18px] ${provider.color}`} />
+        <div className={cn(
+          "w-9 h-9 rounded-lg flex items-center justify-center shrink-0 overflow-hidden",
+          !hasBrandIcon && provider.iconBg,
+        )}>
+          {hasBrandIcon ? (
+            <Image
+              src={provider.brandIcon!}
+              alt={provider.name}
+              className="h-full w-full object-cover rounded-lg"
+              width={36}
+              height={36}
+            />
+          ) : (
+            <Icon className={`h-[18px] w-[18px] ${provider.color}`} />
+          )}
         </div>
         <div className="min-w-0">
           <h3 className="text-[14px] font-medium text-neutral-900 font-body">{provider.name}</h3>
@@ -128,8 +155,8 @@ function DetailMockup() {
       <div className="p-4 md:p-5" style={{ backgroundColor: '#FAF9F7' }}>
         {/* Header */}
         <div className="flex items-center gap-3 mb-4">
-          <div className="w-9 h-9 rounded-lg bg-amber-50 flex items-center justify-center">
-            <Zap className="h-[18px] w-[18px] text-amber-600" />
+          <div className="w-9 h-9 rounded-lg overflow-hidden flex items-center justify-center">
+            <Image src={whoopIcon} alt="Whoop" className="h-full w-full object-cover rounded-lg" width={36} height={36} />
           </div>
           <div>
             <div className="text-[14px] font-semibold text-neutral-900 font-body">Whoop</div>
@@ -232,16 +259,16 @@ function CatalogMockup() {
         {/* Cards grid */}
         <div className="grid grid-cols-3 gap-2">
           {[
-            { name: 'Whoop', icon: Zap, color: 'text-amber-600', bg: 'bg-amber-50', connected: true, types: ['Strain', 'Recovery', 'Sleep'] },
-            { name: 'Apple Watch', icon: Watch, color: 'text-rose-600', bg: 'bg-rose-50', connected: false, types: ['Heart Rate', 'Steps', 'ECG'] },
-            { name: 'Oura Ring', icon: CircleDot, color: 'text-violet-600', bg: 'bg-violet-50', connected: false, types: ['Sleep', 'HRV', 'Temp'] },
+            { name: 'Whoop', brandIcon: whoopIcon, icon: Zap, color: 'text-amber-600', bg: 'bg-amber-50', connected: true, types: ['Strain', 'Recovery', 'Sleep'] },
+            { name: 'Apple Watch', brandIcon: appleIcon, icon: Watch, color: 'text-rose-600', bg: 'bg-rose-50', connected: false, types: ['Heart Rate', 'Steps', 'ECG'] },
+            { name: 'Oura Ring', brandIcon: ouraIcon, icon: CircleDot, color: 'text-violet-600', bg: 'bg-violet-50', connected: false, types: ['Sleep', 'HRV', 'Temp'] },
           ].map((p) => {
             const Icon = p.icon;
             return (
               <div key={p.name} className="rounded-lg border border-neutral-200 bg-white p-2.5">
                 <div className="flex items-center gap-2 mb-2">
-                  <div className={`w-7 h-7 rounded-md ${p.bg} flex items-center justify-center`}>
-                    <Icon className={`h-3.5 w-3.5 ${p.color}`} />
+                  <div className="w-7 h-7 rounded-md overflow-hidden flex items-center justify-center">
+                    <Image src={p.brandIcon} alt={p.name} className="h-full w-full object-cover rounded-md" width={28} height={28} />
                   </div>
                   <span className="text-[11px] font-medium text-neutral-900 font-body">{p.name}</span>
                 </div>

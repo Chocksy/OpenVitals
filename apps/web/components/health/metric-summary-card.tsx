@@ -1,7 +1,8 @@
-import Link from 'next/link';
-import { MiniSparkline } from './mini-sparkline';
-import { StatusBadge, type HealthStatus } from './status-badge';
-import { cn } from '@/lib/utils';
+import Link from "next/link";
+import { MiniSparkline } from "./mini-sparkline";
+import { StatusBadge, type HealthStatus } from "./status-badge";
+import { cn } from "@/lib/utils";
+import type { OptimalStatus } from "@/lib/health-utils";
 
 interface MetricSummaryCardProps {
   metricCode: string;
@@ -14,22 +15,24 @@ interface MetricSummaryCardProps {
   sparkData: number[];
   referenceRange: string;
   latestDate: string;
+  optimalStatus?: OptimalStatus;
+  optimalRange?: string;
 }
 
 const statusValueColor: Record<string, string> = {
-  normal: 'text-neutral-900',
-  warning: 'text-[var(--color-health-warning)]',
-  critical: 'text-[var(--color-health-critical)]',
-  info: 'text-accent-600',
-  neutral: 'text-neutral-600',
+  normal: "text-neutral-900",
+  warning: "text-[var(--color-health-warning)]",
+  critical: "text-[var(--color-health-critical)]",
+  info: "text-accent-600",
+  neutral: "text-neutral-600",
 };
 
 const sparkColor: Record<string, string> = {
-  normal: 'var(--color-accent-500)',
-  warning: 'var(--color-health-warning)',
-  critical: 'var(--color-health-critical)',
-  info: 'var(--color-accent-500)',
-  neutral: 'var(--color-neutral-400)',
+  normal: "var(--color-accent-500)",
+  warning: "var(--color-health-warning)",
+  critical: "var(--color-health-critical)",
+  info: "var(--color-accent-500)",
+  neutral: "var(--color-neutral-400)",
 };
 
 export function MetricSummaryCard({
@@ -43,13 +46,15 @@ export function MetricSummaryCard({
   sparkData,
   referenceRange,
   latestDate,
+  optimalStatus,
+  optimalRange,
 }: MetricSummaryCardProps) {
   return (
     <Link
       href={`/labs/${metricCode}`}
       className={cn(
-        'flex flex-col gap-3 rounded-xl border border-neutral-200 bg-white p-5 min-w-0',
-        'hover:border-accent-200 hover:shadow-sm transition-all cursor-pointer',
+        "flex flex-col gap-3 rounded-xl border border-neutral-200 bg-white p-5 min-w-0",
+        "hover:border-accent-200 hover:shadow-sm transition-all cursor-pointer",
       )}
     >
       {/* Header: name + badge */}
@@ -64,7 +69,7 @@ export function MetricSummaryCard({
       <div className="flex items-baseline gap-1.5">
         <span
           className={cn(
-            'text-[28px] font-medium tracking-[-0.03em] font-display',
+            "text-[28px] font-medium tracking-[-0.03em] font-display",
             statusValueColor[status] ?? statusValueColor.normal,
           )}
         >
@@ -79,8 +84,18 @@ export function MetricSummaryCard({
           <span className="text-[11px] text-neutral-400 font-mono truncate">
             {referenceRange}
           </span>
+          {status === "normal" &&
+            optimalStatus === "suboptimal" &&
+            optimalRange && (
+              <span
+                className="text-[10px] font-mono"
+                style={{ color: "var(--color-health-optimal)" }}
+              >
+                Suboptimal · {optimalRange}
+              </span>
+            )}
           <span className="text-[11px] text-neutral-400 font-mono">
-            {resultCount} result{resultCount !== 1 ? 's' : ''} · {latestDate}
+            {resultCount} result{resultCount !== 1 ? "s" : ""} · {latestDate}
           </span>
         </div>
         <MiniSparkline
