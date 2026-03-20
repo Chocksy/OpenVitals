@@ -240,12 +240,16 @@ function IntegrationCard({
   onSync,
   onDisconnect,
   isSyncing,
+  hasVoted,
+  onVote,
 }: {
   integration: IntegrationDef;
   connection?: { provider: string; lastSyncAt: Date | null; lastSyncError: string | null };
   onSync: (provider: string) => void;
   onDisconnect: (provider: string) => void;
   isSyncing: boolean;
+  hasVoted?: boolean;
+  onVote?: (integrationId: string) => void;
 }) {
   const Icon = integration.icon;
   const hasBrandIcon = !!integration.brandIcon;
@@ -382,10 +386,16 @@ function IntegrationCard({
           </button>
         ) : (
           <button
-            disabled
-            className="w-full rounded-lg bg-neutral-100 text-neutral-400 text-[13px] font-medium py-1.5 cursor-not-allowed"
+            onClick={() => onVote?.(integration.id)}
+            disabled={hasVoted}
+            className={cn(
+              "w-full rounded-lg text-[13px] font-medium py-1.5 transition-colors cursor-pointer",
+              hasVoted
+                ? "bg-green-50 text-green-600 cursor-default"
+                : "bg-neutral-100 text-neutral-600 hover:bg-accent-50 hover:text-accent-700"
+            )}
           >
-            Coming Soon
+            {hasVoted ? "We just pinged the CEO for you 🫡" : "I want this!"}
           </button>
         )}
       </div>
@@ -396,11 +406,13 @@ function IntegrationCard({
 export default function IntegrationsPage() {
   const [activeTab, setActiveTab] = useState<FilterTab>("all");
   const [syncingProvider, setSyncingProvider] = useState<string | null>(null);
+  const [votedIntegrations, setVotedIntegrations] = useState<Set<string>>(new Set());
   const searchParams = useSearchParams();
 
   const connectionsQuery = trpc.integrations.list.useQuery();
   const syncMutation = trpc.integrations.sync.useMutation();
   const disconnectMutation = trpc.integrations.disconnect.useMutation();
+  const feedbackMutation = trpc.feedback.create.useMutation();
 
   // Show success toast when returning from OAuth
   useEffect(() => {
@@ -461,6 +473,26 @@ export default function IntegrationsPage() {
         },
         onError: (err) => {
           toast.error(`Failed to disconnect: ${err.message}`);
+        },
+      },
+    );
+  }
+
+  function handleVote(integrationId: string) {
+    const name = integrationCatalog.find((i) => i.id === integrationId)?.name ?? integrationId;
+    feedbackMutation.mutate(
+      {
+        message: `I want the ${name} integration!`,
+        rating: "GOOD",
+        page: "/integrations",
+      },
+      {
+        onSuccess: () => {
+          setVotedIntegrations((prev) => new Set(prev).add(integrationId));
+          toast.success("Feedback received — we hear you!");
+        },
+        onError: () => {
+          toast.error("Something went wrong. Try again.");
         },
       },
     );
@@ -547,6 +579,8 @@ export default function IntegrationsPage() {
                 onSync={handleSync}
                 onDisconnect={handleDisconnect}
                 isSyncing={false}
+                hasVoted={votedIntegrations.has(integration.id)}
+                onVote={handleVote}
               />
             ))}
           </div>
