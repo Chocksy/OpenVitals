@@ -7,7 +7,12 @@ import { LogoWordmark } from "@/assets/app/images/logo";
 import { MenuIcon } from "@/assets/icons/menu";
 import { XIcon } from "@/assets/icons/x";
 
-const navLinks = ["Features", "Docs", "Pricing", "Open Source"];
+const navLinks = [
+  { label: "Features", href: "/features/integrations" },
+  { label: "Docs", href: undefined },
+  { label: "Pricing", href: undefined },
+  { label: "Open Source", href: undefined },
+] as const;
 
 export function Nav() {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -43,14 +48,24 @@ export function Nav() {
               <LogoWordmark logoProps={{ className: "animate-spin-yoyo" }} />
             </Link>
             <nav className="hidden md:flex items-center gap-5">
-              {navLinks.map((l) => (
-                <span
-                  key={l}
-                  className="text-[13px] text-neutral-500 hover:text-neutral-800 cursor-pointer transition-colors font-body"
-                >
-                  {l}
-                </span>
-              ))}
+              {navLinks.map((l) =>
+                l.href ? (
+                  <Link
+                    key={l.label}
+                    href={l.href}
+                    className="text-[13px] text-neutral-500 hover:text-neutral-800 cursor-pointer transition-colors font-body"
+                  >
+                    {l.label}
+                  </Link>
+                ) : (
+                  <span
+                    key={l.label}
+                    className="text-[13px] text-neutral-500 hover:text-neutral-800 cursor-pointer transition-colors font-body"
+                  >
+                    {l.label}
+                  </span>
+                ),
+              )}
             </nav>
           </div>
 
@@ -107,9 +122,9 @@ export function Nav() {
 
         {/* Nav links — large, staggered */}
         <ul className="mt-6 flex flex-col px-6">
-          {navLinks.map((label, i) => (
+          {navLinks.map((l, i) => (
             <li
-              key={label}
+              key={l.label}
               className="transition-all duration-300"
               style={{
                 opacity: mobileOpen ? 1 : 0,
@@ -117,12 +132,22 @@ export function Nav() {
                 transitionDelay: mobileOpen ? `${80 + i * 40}ms` : "0ms",
               }}
             >
-              <span
-                className="block cursor-pointer border-b border-neutral-200/60 py-4 text-[24px] font-medium tracking-[-0.01em] text-neutral-900 transition-colors hover:text-neutral-500 font-display"
-                onClick={close}
-              >
-                {label}
-              </span>
+              {l.href ? (
+                <Link
+                  href={l.href}
+                  className="block border-b border-neutral-200/60 py-4 text-[24px] font-medium tracking-[-0.01em] text-neutral-900 transition-colors hover:text-neutral-500 font-display"
+                  onClick={close}
+                >
+                  {l.label}
+                </Link>
+              ) : (
+                <span
+                  className="block cursor-pointer border-b border-neutral-200/60 py-4 text-[24px] font-medium tracking-[-0.01em] text-neutral-900 transition-colors hover:text-neutral-500 font-display"
+                  onClick={close}
+                >
+                  {l.label}
+                </span>
+              )}
             </li>
           ))}
         </ul>

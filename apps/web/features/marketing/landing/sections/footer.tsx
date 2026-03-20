@@ -4,6 +4,7 @@ import { LogoWordmark } from '@/assets/app/images/logo';
 const linkHrefs: Record<string, string> = {
   Privacy: '/privacy',
   Terms: '/terms',
+  Integrations: '/features/integrations',
 };
 
 export function Footer() {
@@ -20,7 +21,7 @@ export function Footer() {
             <p className="text-[11px] text-neutral-400 font-mono">Your data, your control.</p>
           </div>
           {[
-            { title: 'Product', links: ['Labs', 'Medications', 'AI Chat', 'Sharing', 'Uploads'] },
+            { title: 'Product', links: ['Integrations', 'Labs', 'Medications', 'AI Chat', 'Sharing', 'Uploads'] },
             { title: 'Resources', links: ['Documentation', 'Plugin SDK', 'API Reference', 'Changelog'] },
             { title: 'Company', links: ['About', 'Open Source', 'GitHub', 'Blog'] },
             { title: 'Legal', links: ['Privacy', 'Terms', 'Security'] },
