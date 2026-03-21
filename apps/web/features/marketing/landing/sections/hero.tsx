@@ -107,19 +107,30 @@ function FloatingElements() {
       `}</style>
 
       <div className="relative h-full w-full" aria-hidden="true">
-
         {/* ── Animated cursor ── */}
         <svg
           className="hero-cursor absolute z-50 pointer-events-none"
-          width="16" height="20" viewBox="0 0 16 20" fill="none"
+          width="16"
+          height="20"
+          viewBox="0 0 16 20"
+          fill="none"
         >
-          <path d="M1 1L1 15.5L4.5 12L8.5 19L11 17.5L7 11L12 10.5L1 1Z" fill="#141414" stroke="white" strokeWidth="1" />
+          <path
+            d="M1 1L1 15.5L4.5 12L8.5 19L11 17.5L7 11L12 10.5L1 1Z"
+            fill="#141414"
+            stroke="white"
+            strokeWidth="1"
+          />
         </svg>
 
         {/* ── Row 1: Upload card + Metric card ── */}
         <div
           className="hero-card absolute top-[20px] left-0 w-[230px] bg-white border border-neutral-200"
-          style={{ animationDelay: "0.2s", boxShadow: "0 1px 2px rgba(0,0,0,0.03), 0 4px 16px rgba(0,0,0,0.04)" }}
+          style={{
+            animationDelay: "0.2s",
+            boxShadow:
+              "0 1px 2px rgba(0,0,0,0.03), 0 4px 16px rgba(0,0,0,0.04)",
+          }}
         >
           <WindowChrome title="Import" />
           <div className="p-3">
@@ -135,7 +146,10 @@ function FloatingElements() {
               <span className="shrink-0 inline-flex items-center gap-[3px] px-1.5 py-0.5 font-mono text-[7px] font-bold uppercase tracking-[0.04em] border border-[#16A34A] text-[#16A34A]">
                 <span
                   className="size-[4px] bg-[#16A34A]"
-                  style={{ animation: "heroPulse 1.2s ease-in-out 3", animationDelay: "0.8s" }}
+                  style={{
+                    animation: "heroPulse 1.2s ease-in-out 3",
+                    animationDelay: "0.8s",
+                  }}
                 />
                 DONE
               </span>
@@ -143,19 +157,32 @@ function FloatingElements() {
             <div className="mt-2.5 h-[3px] bg-neutral-100 overflow-hidden">
               <div
                 className="h-full bg-[#16A34A]"
-                style={{ animation: "heroProgress 2s cubic-bezier(0.4, 0, 0.2, 1) forwards", animationDelay: "0.6s", width: "0%" }}
+                style={{
+                  animation:
+                    "heroProgress 2s cubic-bezier(0.4, 0, 0.2, 1) forwards",
+                  animationDelay: "0.6s",
+                  width: "0%",
+                }}
               />
             </div>
             <div className="mt-1.5 flex items-center justify-between">
-              <span className="font-mono text-[8px] text-neutral-400">Confidence</span>
-              <span className="font-mono text-[9px] font-bold text-neutral-700">0.96</span>
+              <span className="font-mono text-[8px] text-neutral-400">
+                Confidence
+              </span>
+              <span className="font-mono text-[9px] font-bold text-neutral-700">
+                0.96
+              </span>
             </div>
           </div>
         </div>
 
         <div
           className="hero-card absolute top-[24px] left-[248px] w-[195px] bg-white border border-neutral-200"
-          style={{ animationDelay: "0.8s", boxShadow: "0 1px 2px rgba(0,0,0,0.03), 0 4px 16px rgba(0,0,0,0.04)" }}
+          style={{
+            animationDelay: "0.8s",
+            boxShadow:
+              "0 1px 2px rgba(0,0,0,0.03), 0 4px 16px rgba(0,0,0,0.04)",
+          }}
         >
           <WindowChrome />
           <div className="p-3">
@@ -163,20 +190,42 @@ function FloatingElements() {
               LDL Cholesterol
             </div>
             <div className="mt-1.5 flex items-baseline gap-1">
-              <span className="font-mono text-[24px] font-bold tracking-[-0.02em] text-neutral-900">98</span>
-              <span className="font-mono text-[8px] text-neutral-400">mg/dL</span>
+              <span className="font-mono text-[24px] font-bold tracking-[-0.02em] text-neutral-900">
+                98
+              </span>
+              <span className="font-mono text-[8px] text-neutral-400">
+                mg/dL
+              </span>
             </div>
             <div className="mt-1.5 flex items-end justify-between">
-              <span className="font-mono text-[8px] font-bold text-[#16A34A]">↓ 14</span>
+              <span className="font-mono text-[8px] font-bold text-[#16A34A]">
+                ↓ 14
+              </span>
               <svg width="56" height="16" viewBox="0 0 56 16">
                 <polyline
                   points="0,3 14,5.5 28,7 42,10 56,13"
-                  fill="none" stroke="#16A34A" strokeWidth="1.5" strokeLinecap="square"
+                  fill="none"
+                  stroke="#16A34A"
+                  strokeWidth="1.5"
+                  strokeLinecap="square"
                   strokeDasharray="200"
-                  style={{ animation: "heroDrawLine 1.5s ease-out forwards", animationDelay: "1.2s", strokeDashoffset: 200 }}
+                  style={{
+                    animation: "heroDrawLine 1.5s ease-out forwards",
+                    animationDelay: "1.2s",
+                    strokeDashoffset: 200,
+                  }}
                 />
-                <rect x="54" y="11" width="4" height="4" fill="#16A34A" opacity="0"
-                  style={{ animation: "heroCheckIn 0.3s ease-out forwards", animationDelay: "2.5s" }}
+                <rect
+                  x="54"
+                  y="11"
+                  width="4"
+                  height="4"
+                  fill="#16A34A"
+                  opacity="0"
+                  style={{
+                    animation: "heroCheckIn 0.3s ease-out forwards",
+                    animationDelay: "2.5s",
+                  }}
                 />
               </svg>
             </div>
@@ -186,12 +235,21 @@ function FloatingElements() {
         {/* ── Row 2: Lab results table + Toast ── */}
         <div
           className="hero-card absolute top-[170px] left-[20px] w-[330px] bg-white border border-neutral-200"
-          style={{ animationDelay: "1.2s", boxShadow: "0 1px 2px rgba(0,0,0,0.03), 0 4px 16px rgba(0,0,0,0.04)" }}
+          style={{
+            animationDelay: "1.2s",
+            boxShadow:
+              "0 1px 2px rgba(0,0,0,0.03), 0 4px 16px rgba(0,0,0,0.04)",
+          }}
         >
           <WindowChrome title="Parsed Results" />
           <div className="grid grid-cols-[1.4fr_1fr_0.7fr] gap-2 px-3 py-1.5 border-b border-neutral-200 bg-neutral-50/60">
             {["METRIC", "VALUE", "STATUS"].map((h) => (
-              <div key={h} className="font-mono text-[7px] font-bold uppercase tracking-[0.08em] text-neutral-400">{h}</div>
+              <div
+                key={h}
+                className="font-mono text-[7px] font-bold uppercase tracking-[0.08em] text-neutral-400"
+              >
+                {h}
+              </div>
             ))}
           </div>
           {tableRows.map((r, i) => (
@@ -200,10 +258,19 @@ function FloatingElements() {
               className="hero-slide grid grid-cols-[1.4fr_1fr_0.7fr] items-center gap-2 px-3 py-1.5 border-b border-neutral-100 last:border-b-0"
               style={{ animationDelay: `${1.6 + i * 0.15}s` }}
             >
-              <div className="font-display text-[9px] font-medium text-neutral-700">{r.m}</div>
+              <div className="font-display text-[9px] font-medium text-neutral-700">
+                {r.m}
+              </div>
               <div className="flex items-baseline gap-0.5">
-                <span className="font-mono text-[9px] font-bold tabular-nums" style={{ color: r.s === "NORMAL" ? "#141414" : r.c }}>{r.v}</span>
-                <span className="font-mono text-[7px] text-neutral-400">{r.u}</span>
+                <span
+                  className="font-mono text-[9px] font-bold tabular-nums"
+                  style={{ color: r.s === "NORMAL" ? "#141414" : r.c }}
+                >
+                  {r.v}
+                </span>
+                <span className="font-mono text-[7px] text-neutral-400">
+                  {r.u}
+                </span>
               </div>
               <span
                 className="inline-flex w-fit items-center gap-[3px] px-1 py-0.5 font-mono text-[6px] font-bold uppercase tracking-[0.04em]"
@@ -219,26 +286,48 @@ function FloatingElements() {
         {/* Toast — beside the table */}
         <div
           className="hero-toast absolute top-[190px] left-[368px] bg-white border border-neutral-200 px-3 py-2 flex items-center gap-2"
-          style={{ animationDelay: "3.0s", boxShadow: "0 1px 2px rgba(0,0,0,0.03), 0 4px 16px rgba(0,0,0,0.04)" }}
+          style={{
+            animationDelay: "3.0s",
+            boxShadow:
+              "0 1px 2px rgba(0,0,0,0.03), 0 4px 16px rgba(0,0,0,0.04)",
+          }}
         >
           <span
             className="flex size-[14px] items-center justify-center bg-[#16A34A] text-white"
-            style={{ opacity: 0, animation: "heroCheckIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards", animationDelay: "3.2s" }}
+            style={{
+              opacity: 0,
+              animation:
+                "heroCheckIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards",
+              animationDelay: "3.2s",
+            }}
           >
             <svg width="8" height="8" viewBox="0 0 24 24" fill="none">
-              <path d="M5 12l5 5L20 7" stroke="currentColor" strokeWidth="3" strokeLinecap="square" />
+              <path
+                d="M5 12l5 5L20 7"
+                stroke="currentColor"
+                strokeWidth="3"
+                strokeLinecap="square"
+              />
             </svg>
           </span>
           <div>
-            <div className="font-mono text-[8px] font-bold text-neutral-900">18 records extracted</div>
-            <div className="font-mono text-[7px] text-neutral-400">Quest Diagnostics · just now</div>
+            <div className="font-mono text-[8px] font-bold text-neutral-900">
+              18 records extracted
+            </div>
+            <div className="font-mono text-[7px] text-neutral-400">
+              Quest Diagnostics · just now
+            </div>
           </div>
         </div>
 
         {/* ── Row 3: AI Chat (bottom area) ── */}
         <div
           className="hero-card absolute top-[400px] left-[60px] w-[320px] bg-white border border-neutral-200"
-          style={{ animationDelay: "2.0s", boxShadow: "0 1px 2px rgba(0,0,0,0.03), 0 4px 16px rgba(0,0,0,0.04)" }}
+          style={{
+            animationDelay: "2.0s",
+            boxShadow:
+              "0 1px 2px rgba(0,0,0,0.03), 0 4px 16px rgba(0,0,0,0.04)",
+          }}
         >
           <WindowChrome title="AI Chat" />
           <div className="p-3 space-y-2.5">
@@ -252,15 +341,23 @@ function FloatingElements() {
                 OPENVITALS AI
               </div>
               <div className="border border-neutral-200 px-2.5 py-2 font-display text-[9px] leading-[1.5] text-neutral-600">
-                LDL improved to <strong className="text-neutral-900">98</strong> mg/dL — now in optimal range. Triglycerides at <strong className="text-neutral-900">162</strong>, slightly above threshold.
+                LDL improved to <strong className="text-neutral-900">98</strong>{" "}
+                mg/dL — now in optimal range. Triglycerides at{" "}
+                <strong className="text-neutral-900">162</strong>, slightly
+                above threshold.
               </div>
               <div className="mt-1.5 flex flex-wrap gap-1">
                 {[
                   { prefix: "SRC", label: "6 observations" },
                   { prefix: "RNG", label: "Mar 25–26" },
                 ].map((t) => (
-                  <span key={t.prefix} className="inline-flex items-center gap-1 border border-neutral-200 px-1.5 py-0.5 font-mono text-[7px]">
-                    <span className="font-bold text-accent-500">{t.prefix}</span>
+                  <span
+                    key={t.prefix}
+                    className="inline-flex items-center gap-1 border border-neutral-200 px-1.5 py-0.5 font-mono text-[7px]"
+                  >
+                    <span className="font-bold text-accent-500">
+                      {t.prefix}
+                    </span>
                     <span className="text-neutral-400">{t.label}</span>
                   </span>
                 ))}
@@ -289,7 +386,9 @@ function FloatingElements() {
                 <span
                   className="hero-tag text-neutral-300 font-mono text-[9px]"
                   style={{ animationDelay: `${2.46 + i * 0.12}s` }}
-                >→</span>
+                >
+                  →
+                </span>
               )}
             </div>
           ))}
@@ -306,7 +405,10 @@ function FloatingElements() {
         ].map((d, i) => (
           <span
             key={i}
-            className={cn("hero-tag absolute text-neutral-300/50 font-light select-none pointer-events-none text-[14px]", d.pos)}
+            className={cn(
+              "hero-tag absolute text-neutral-300/50 font-light select-none pointer-events-none text-[14px]",
+              d.pos,
+            )}
             style={{ animationDelay: d.delay }}
           >
             +
@@ -323,7 +425,10 @@ function FloatingElements() {
         ].map((d, i) => (
           <div
             key={i}
-            className={cn("hero-tag absolute size-[4px] rounded-full bg-neutral-300/40 pointer-events-none", d.pos)}
+            className={cn(
+              "hero-tag absolute size-[4px] rounded-full bg-neutral-300/40 pointer-events-none",
+              d.pos,
+            )}
             style={{ animationDelay: d.delay }}
           />
         ))}
@@ -341,7 +446,7 @@ export function Hero() {
     <div className="relative max-w-dvw overflow-x-clip">
       {/* Central watermark logo */}
       <div className="-z-0 absolute top-1/2 right-0 translate-x-1/2 -translate-y-1/2 opacity-[0.04] pointer-events-none">
-        <Logo className="size-[80vh]" />
+        <Logo className="size-[80vh] animate-[spin_60s_linear_infinite]" />
       </div>
       <section className="mx-auto max-w-[1280px] px-6 md:px-10 min-h-[calc(100vh-4rem)] flex items-center py-16 lg:py-0">
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_1.15fr] gap-12 lg:gap-6 items-center w-full">
