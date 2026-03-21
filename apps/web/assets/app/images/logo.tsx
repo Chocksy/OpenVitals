@@ -68,10 +68,7 @@ export function LogoWordmark({
     >
       <Logo className={cn("size-6", logoClassName)} {...logoProps} />
       <span
-        className={cn(
-          "text-[16px] font-semibold font-display",
-          wordmarkClassName,
-        )}
+        className={cn("text-[16px] font-semibold font-mono", wordmarkClassName)}
         {...workmarkProps}
       >
         OpenVitals

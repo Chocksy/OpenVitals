@@ -6,8 +6,9 @@ import { Spark } from "../components/spark";
 import { CornerCrossBadge } from "@/components/decorations/corner-cross";
 import { Button } from "@/components/button";
 import { DashBadge } from "@/components/decorations/dot-badge";
+
 /* ------------------------------------------------------------------ */
-/*  Floating data elements for the right side of the hero             */
+/*  Floating data elements — animated "living dashboard"               */
 /* ------------------------------------------------------------------ */
 
 const tableRows = [
@@ -16,154 +17,318 @@ const tableRows = [
   { m: "Ferritin", v: "14", u: "ng/mL", s: "LOW", c: "#DC2626" },
 ];
 
-function WindowChrome() {
+function WindowChrome({ title }: { title?: string }) {
   return (
-    <div className="flex items-center gap-1.5 px-3 py-2.5 border-b border-neutral-100">
+    <div className="flex items-center gap-1.5 px-3 py-2 border-b border-neutral-100">
       <div className="size-[6px] rounded-full bg-neutral-300" />
       <div className="size-[6px] rounded-full bg-neutral-300" />
       <div className="size-[6px] rounded-full bg-neutral-300" />
+      {title && (
+        <>
+          <span className="flex-1 text-center font-mono text-[8px] text-neutral-300">
+            {title}
+          </span>
+          <div className="w-[30px]" />
+        </>
+      )}
     </div>
   );
 }
 
 function FloatingElements() {
   return (
-    <div className="relative h-full w-full overflow-x-clip" aria-hidden="true">
-      {/* Card 1 — Metric summary */}
-      <div
-        className="absolute top-6 left-0 w-[210px] bg-white border border-neutral-200"
-        style={{
-          boxShadow: "0 1px 2px rgba(0,0,0,0.03), 0 4px 16px rgba(0,0,0,0.04)",
-        }}
-      >
-        <WindowChrome />
-        <div className="p-3.5">
-          <div className="font-mono text-[9px] font-bold uppercase tracking-[0.08em] text-neutral-400">
-            LDL CHOLESTEROL
-          </div>
-          <div className="mt-2 flex items-baseline gap-1">
-            <span className="font-mono text-[26px] font-bold tracking-[-0.02em] text-neutral-900">
-              98
-            </span>
-            <span className="font-mono text-[9px] text-neutral-400">mg/dL</span>
-          </div>
-          <div className="mt-2 flex items-end justify-between">
-            <span className="font-mono text-[9px] font-bold text-[#16A34A]">
-              ↓ 14
-            </span>
-            <Spark
-              data={[142, 130, 118, 105, 98]}
-              color="#16A34A"
-              w={56}
-              h={16}
-            />
+    <>
+      <style>{`
+        @keyframes heroFloatIn {
+          from { opacity: 0; transform: translateY(14px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes heroSlideRight {
+          from { opacity: 0; transform: translateX(-14px); }
+          to { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes heroProgress {
+          0% { width: 0%; }
+          60% { width: 84%; }
+          100% { width: 96%; }
+        }
+        @keyframes heroPulse {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.3; }
+        }
+        @keyframes heroCheckIn {
+          0% { opacity: 0; transform: scale(0.5); }
+          60% { opacity: 1; transform: scale(1.15); }
+          100% { opacity: 1; transform: scale(1); }
+        }
+        @keyframes heroToast {
+          from { opacity: 0; transform: translateY(8px) translateX(8px); }
+          to { opacity: 1; transform: translateY(0) translateX(0); }
+        }
+        @keyframes heroTagReveal {
+          from { opacity: 0; transform: scale(0.92); }
+          to { opacity: 1; transform: scale(1); }
+        }
+        @keyframes heroCursorMove {
+          0%   { top: 80px;  left: 100px; opacity: 0; }
+          8%   { top: 80px;  left: 100px; opacity: 1; }
+          25%  { top: 230px; left: 180px; opacity: 1; }
+          40%  { top: 230px; left: 180px; opacity: 1; }
+          55%  { top: 80px;  left: 300px; opacity: 1; }
+          70%  { top: 400px; left: 100px; opacity: 1; }
+          85%  { top: 470px; left: 220px; opacity: 1; }
+          100% { top: 470px; left: 220px; opacity: 0; }
+        }
+        @keyframes heroDrawLine {
+          from { stroke-dashoffset: 200; }
+          to { stroke-dashoffset: 0; }
+        }
+        .hero-card {
+          opacity: 0;
+          animation: heroFloatIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        .hero-slide {
+          opacity: 0;
+          animation: heroSlideRight 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        .hero-tag {
+          opacity: 0;
+          animation: heroTagReveal 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        .hero-toast {
+          opacity: 0;
+          animation: heroToast 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        .hero-cursor {
+          animation: heroCursorMove 8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+          animation-delay: 0.5s;
+          opacity: 0;
+        }
+      `}</style>
+
+      <div className="relative h-full w-full" aria-hidden="true">
+
+        {/* ── Animated cursor ── */}
+        <svg
+          className="hero-cursor absolute z-50 pointer-events-none"
+          width="16" height="20" viewBox="0 0 16 20" fill="none"
+        >
+          <path d="M1 1L1 15.5L4.5 12L8.5 19L11 17.5L7 11L12 10.5L1 1Z" fill="#141414" stroke="white" strokeWidth="1" />
+        </svg>
+
+        {/* ── Row 1: Upload card + Metric card ── */}
+        <div
+          className="hero-card absolute top-[20px] left-0 w-[230px] bg-white border border-neutral-200"
+          style={{ animationDelay: "0.2s", boxShadow: "0 1px 2px rgba(0,0,0,0.03), 0 4px 16px rgba(0,0,0,0.04)" }}
+        >
+          <WindowChrome title="Import" />
+          <div className="p-3">
+            <div className="flex items-center justify-between gap-2">
+              <div className="min-w-0">
+                <div className="font-mono text-[10px] font-medium text-neutral-800 truncate">
+                  quest_labs_mar2026.pdf
+                </div>
+                <div className="font-mono text-[8px] text-neutral-400 mt-0.5">
+                  Lab report · Quest Diagnostics
+                </div>
+              </div>
+              <span className="shrink-0 inline-flex items-center gap-[3px] px-1.5 py-0.5 font-mono text-[7px] font-bold uppercase tracking-[0.04em] border border-[#16A34A] text-[#16A34A]">
+                <span
+                  className="size-[4px] bg-[#16A34A]"
+                  style={{ animation: "heroPulse 1.2s ease-in-out 3", animationDelay: "0.8s" }}
+                />
+                DONE
+              </span>
+            </div>
+            <div className="mt-2.5 h-[3px] bg-neutral-100 overflow-hidden">
+              <div
+                className="h-full bg-[#16A34A]"
+                style={{ animation: "heroProgress 2s cubic-bezier(0.4, 0, 0.2, 1) forwards", animationDelay: "0.6s", width: "0%" }}
+              />
+            </div>
+            <div className="mt-1.5 flex items-center justify-between">
+              <span className="font-mono text-[8px] text-neutral-400">Confidence</span>
+              <span className="font-mono text-[9px] font-bold text-neutral-700">0.96</span>
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Card 2 — Mini lab table */}
-      <div
-        className="absolute top-[170px] left-[100px] w-[340px] bg-white border border-neutral-200"
-        style={{
-          boxShadow: "0 1px 2px rgba(0,0,0,0.03), 0 4px 16px rgba(0,0,0,0.04)",
-        }}
-      >
-        <WindowChrome />
-        {/* Table header */}
-        <div className="grid grid-cols-[1.4fr_1fr_0.7fr] gap-2 px-3.5 py-1.5 border-b border-neutral-200 bg-neutral-50/60">
-          {["METRIC", "VALUE", "STATUS"].map((h) => (
+        <div
+          className="hero-card absolute top-[24px] left-[248px] w-[195px] bg-white border border-neutral-200"
+          style={{ animationDelay: "0.8s", boxShadow: "0 1px 2px rgba(0,0,0,0.03), 0 4px 16px rgba(0,0,0,0.04)" }}
+        >
+          <WindowChrome />
+          <div className="p-3">
+            <div className="font-mono text-[8px] font-bold uppercase tracking-[0.08em] text-neutral-400">
+              LDL Cholesterol
+            </div>
+            <div className="mt-1.5 flex items-baseline gap-1">
+              <span className="font-mono text-[24px] font-bold tracking-[-0.02em] text-neutral-900">98</span>
+              <span className="font-mono text-[8px] text-neutral-400">mg/dL</span>
+            </div>
+            <div className="mt-1.5 flex items-end justify-between">
+              <span className="font-mono text-[8px] font-bold text-[#16A34A]">↓ 14</span>
+              <svg width="56" height="16" viewBox="0 0 56 16">
+                <polyline
+                  points="0,3 14,5.5 28,7 42,10 56,13"
+                  fill="none" stroke="#16A34A" strokeWidth="1.5" strokeLinecap="square"
+                  strokeDasharray="200"
+                  style={{ animation: "heroDrawLine 1.5s ease-out forwards", animationDelay: "1.2s", strokeDashoffset: 200 }}
+                />
+                <rect x="54" y="11" width="4" height="4" fill="#16A34A" opacity="0"
+                  style={{ animation: "heroCheckIn 0.3s ease-out forwards", animationDelay: "2.5s" }}
+                />
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        {/* ── Row 2: Lab results table + Toast ── */}
+        <div
+          className="hero-card absolute top-[170px] left-[20px] w-[330px] bg-white border border-neutral-200"
+          style={{ animationDelay: "1.2s", boxShadow: "0 1px 2px rgba(0,0,0,0.03), 0 4px 16px rgba(0,0,0,0.04)" }}
+        >
+          <WindowChrome title="Parsed Results" />
+          <div className="grid grid-cols-[1.4fr_1fr_0.7fr] gap-2 px-3 py-1.5 border-b border-neutral-200 bg-neutral-50/60">
+            {["METRIC", "VALUE", "STATUS"].map((h) => (
+              <div key={h} className="font-mono text-[7px] font-bold uppercase tracking-[0.08em] text-neutral-400">{h}</div>
+            ))}
+          </div>
+          {tableRows.map((r, i) => (
             <div
-              key={h}
-              className="font-mono text-[8px] font-bold uppercase tracking-[0.08em] text-neutral-400"
+              key={r.m}
+              className="hero-slide grid grid-cols-[1.4fr_1fr_0.7fr] items-center gap-2 px-3 py-1.5 border-b border-neutral-100 last:border-b-0"
+              style={{ animationDelay: `${1.6 + i * 0.15}s` }}
             >
-              {h}
+              <div className="font-display text-[9px] font-medium text-neutral-700">{r.m}</div>
+              <div className="flex items-baseline gap-0.5">
+                <span className="font-mono text-[9px] font-bold tabular-nums" style={{ color: r.s === "NORMAL" ? "#141414" : r.c }}>{r.v}</span>
+                <span className="font-mono text-[7px] text-neutral-400">{r.u}</span>
+              </div>
+              <span
+                className="inline-flex w-fit items-center gap-[3px] px-1 py-0.5 font-mono text-[6px] font-bold uppercase tracking-[0.04em]"
+                style={{ border: `1px solid ${r.c}`, color: r.c }}
+              >
+                <span className="size-[3px]" style={{ backgroundColor: r.c }} />
+                {r.s}
+              </span>
             </div>
           ))}
         </div>
-        {tableRows.map((r, i) => (
-          <div
-            key={r.m}
-            className={cn(
-              "grid grid-cols-[1.4fr_1fr_0.7fr] items-center gap-2 px-3.5 py-2",
-              i < tableRows.length - 1 && "border-b border-neutral-100",
-            )}
-          >
-            <div className="font-display text-[10px] font-medium text-neutral-700">
-              {r.m}
-            </div>
-            <div className="flex items-baseline gap-0.5">
-              <span className="font-mono text-[10px] font-bold tabular-nums text-neutral-800">
-                {r.v}
-              </span>
-              <span className="font-mono text-[8px] text-neutral-400">
-                {r.u}
-              </span>
-            </div>
-            <span
-              className="inline-flex w-fit items-center gap-[3px] px-1 py-0.5 font-mono text-[7px] font-bold uppercase tracking-[0.04em]"
-              style={{ border: `1px solid ${r.c}`, color: r.c }}
-            >
-              <span className="size-[4px]" style={{ backgroundColor: r.c }} />
-              {r.s}
-            </span>
-          </div>
-        ))}
-      </div>
 
-      {/* Provenance chain — bottom */}
-      <div className="absolute bottom-[50px] left-[30px] flex items-center gap-1.5">
-        {[
-          { prefix: "SRC", label: "Quest PDF" },
-          { prefix: "CNF", label: "0.94" },
-          { prefix: "COD", label: "LOINC" },
-        ].map((t, i) => (
-          <div key={t.prefix} className="flex items-center gap-1.5">
-            <span className="inline-flex items-center gap-1 border border-neutral-200 bg-white px-1.5 py-0.5 font-mono text-[8px]">
-              <span className="font-bold text-accent-500">{t.prefix}</span>
-              <span className="text-neutral-500">{t.label}</span>
-            </span>
-            {i < 2 && (
-              <span className="text-neutral-300 font-mono text-[10px]">→</span>
-            )}
-          </div>
-        ))}
-      </div>
-
-      {/* Decorative crosses */}
-      {[
-        "top-[80px] right-[20px]",
-        "top-[280px] right-[50px]",
-        "bottom-[90px] right-[10px]",
-        "top-[20px] left-[180px]",
-        "top-[320px] left-[60px]",
-      ].map((pos, i) => (
-        <span
-          key={i}
-          className={cn(
-            "absolute text-neutral-300/60 font-light select-none pointer-events-none text-[16px]",
-            pos,
-          )}
-        >
-          +
-        </span>
-      ))}
-
-      {/* Decorative dots */}
-      {[
-        "top-[130px] left-[-6px]",
-        "top-[250px] left-[80px]",
-        "bottom-[130px] right-[30px]",
-        "top-[40px] right-[60px]",
-      ].map((pos, i) => (
+        {/* Toast — beside the table */}
         <div
-          key={i}
-          className={cn(
-            "absolute size-[5px] rounded-full bg-neutral-300/50 pointer-events-none",
-            pos,
-          )}
-        />
-      ))}
-    </div>
+          className="hero-toast absolute top-[190px] left-[368px] bg-white border border-neutral-200 px-3 py-2 flex items-center gap-2"
+          style={{ animationDelay: "3.0s", boxShadow: "0 1px 2px rgba(0,0,0,0.03), 0 4px 16px rgba(0,0,0,0.04)" }}
+        >
+          <span
+            className="flex size-[14px] items-center justify-center bg-[#16A34A] text-white"
+            style={{ opacity: 0, animation: "heroCheckIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards", animationDelay: "3.2s" }}
+          >
+            <svg width="8" height="8" viewBox="0 0 24 24" fill="none">
+              <path d="M5 12l5 5L20 7" stroke="currentColor" strokeWidth="3" strokeLinecap="square" />
+            </svg>
+          </span>
+          <div>
+            <div className="font-mono text-[8px] font-bold text-neutral-900">18 records extracted</div>
+            <div className="font-mono text-[7px] text-neutral-400">Quest Diagnostics · just now</div>
+          </div>
+        </div>
+
+        {/* ── Row 3: AI Chat (bottom area) ── */}
+        <div
+          className="hero-card absolute top-[400px] left-[60px] w-[320px] bg-white border border-neutral-200"
+          style={{ animationDelay: "2.0s", boxShadow: "0 1px 2px rgba(0,0,0,0.03), 0 4px 16px rgba(0,0,0,0.04)" }}
+        >
+          <WindowChrome title="AI Chat" />
+          <div className="p-3 space-y-2.5">
+            <div className="flex justify-end">
+              <div className="bg-accent-500 px-2.5 py-1.5 font-display text-[9px] leading-[1.4] text-white max-w-[80%]">
+                How are my lipids trending?
+              </div>
+            </div>
+            <div>
+              <div className="font-mono text-[7px] font-bold uppercase tracking-[0.08em] text-accent-500 mb-1">
+                OPENVITALS AI
+              </div>
+              <div className="border border-neutral-200 px-2.5 py-2 font-display text-[9px] leading-[1.5] text-neutral-600">
+                LDL improved to <strong className="text-neutral-900">98</strong> mg/dL — now in optimal range. Triglycerides at <strong className="text-neutral-900">162</strong>, slightly above threshold.
+              </div>
+              <div className="mt-1.5 flex flex-wrap gap-1">
+                {[
+                  { prefix: "SRC", label: "6 observations" },
+                  { prefix: "RNG", label: "Mar 25–26" },
+                ].map((t) => (
+                  <span key={t.prefix} className="inline-flex items-center gap-1 border border-neutral-200 px-1.5 py-0.5 font-mono text-[7px]">
+                    <span className="font-bold text-accent-500">{t.prefix}</span>
+                    <span className="text-neutral-400">{t.label}</span>
+                  </span>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* ── Provenance chain (between table and chat) ── */}
+        <div className="absolute top-[370px] left-[0px] flex items-center gap-1.5">
+          {[
+            { prefix: "SRC", label: "Quest PDF" },
+            { prefix: "PSR", label: "v2.1" },
+            { prefix: "CNF", label: "0.94" },
+            { prefix: "COD", label: "LOINC" },
+          ].map((t, i) => (
+            <div key={t.prefix} className="flex items-center gap-1.5">
+              <span
+                className="hero-tag inline-flex items-center gap-1 border border-neutral-200 bg-white px-1.5 py-0.5 font-mono text-[7px]"
+                style={{ animationDelay: `${2.4 + i * 0.12}s` }}
+              >
+                <span className="font-bold text-accent-500">{t.prefix}</span>
+                <span className="text-neutral-500">{t.label}</span>
+              </span>
+              {i < 3 && (
+                <span
+                  className="hero-tag text-neutral-300 font-mono text-[9px]"
+                  style={{ animationDelay: `${2.46 + i * 0.12}s` }}
+                >→</span>
+              )}
+            </div>
+          ))}
+        </div>
+
+        {/* ── Decorative crosses ── */}
+        {[
+          { pos: "top-[90px] left-[200px]", delay: "0.4s" },
+          { pos: "top-[310px] left-[380px]", delay: "1.0s" },
+          { pos: "top-[540px] left-[400px]", delay: "1.8s" },
+          { pos: "top-[40px] left-[130px]", delay: "0.6s" },
+          { pos: "top-[380px] left-[10px]", delay: "2.2s" },
+          { pos: "top-[500px] left-[20px]", delay: "2.6s" },
+        ].map((d, i) => (
+          <span
+            key={i}
+            className={cn("hero-tag absolute text-neutral-300/50 font-light select-none pointer-events-none text-[14px]", d.pos)}
+            style={{ animationDelay: d.delay }}
+          >
+            +
+          </span>
+        ))}
+
+        {/* ── Decorative dots ── */}
+        {[
+          { pos: "top-[150px] left-[0px]", delay: "0.5s" },
+          { pos: "top-[290px] left-[10px]", delay: "1.4s" },
+          { pos: "top-[460px] left-[420px]", delay: "2.0s" },
+          { pos: "top-[50px] left-[420px]", delay: "0.9s" },
+          { pos: "top-[350px] left-[400px]", delay: "1.6s" },
+        ].map((d, i) => (
+          <div
+            key={i}
+            className={cn("hero-tag absolute size-[4px] rounded-full bg-neutral-300/40 pointer-events-none", d.pos)}
+            style={{ animationDelay: d.delay }}
+          />
+        ))}
+      </div>
+    </>
   );
 }
 
@@ -183,7 +348,6 @@ export function Hero() {
           {/* Left — text content */}
           <div className="max-w-xl">
             {/* Section label */}
-
             <div className="flex items-center gap-2.5 mb-8">
               <DashBadge>Open Source</DashBadge>
             </div>
@@ -224,7 +388,7 @@ export function Hero() {
           </div>
 
           {/* Right — floating data elements */}
-          <div className="relative hidden lg:block min-h-[520px]">
+          <div className="relative hidden lg:block min-h-[640px]">
             <FloatingElements />
           </div>
         </div>

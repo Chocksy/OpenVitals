@@ -37,7 +37,11 @@ export function Nav() {
         <div className="mx-auto flex max-w-[1280px] items-center justify-between px-6 md:px-10 h-16">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2.5 shrink-0">
-            <LogoWordmark />
+            <LogoWordmark
+              logoProps={{
+                className: "text-accent-500",
+              }}
+            />
           </Link>
 
           {/* Center nav links */}
