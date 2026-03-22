@@ -1,5 +1,5 @@
 import { Nav } from "./sections/nav";
-import { Hero } from "./sections/hero";
+import { Hero } from "./sections/hero-new";
 import { HowItWorks } from "./sections/how-it-works";
 import { Ingestion } from "./sections/feature-ai-parsing";
 import { Provenance } from "./sections/feature-provenance";

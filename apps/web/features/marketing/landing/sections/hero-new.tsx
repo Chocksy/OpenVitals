@@ -106,7 +106,10 @@ function FloatingElements() {
         }
       `}</style>
 
-      <div className="relative h-full w-full" aria-hidden="true">
+      <div
+        className="relative h-full w-full max-w-[500px] lg:max-w-none mx-auto"
+        aria-hidden="true"
+      >
         {/* ── Animated cursor ── */}
         <svg
           className="hero-cursor absolute z-50 pointer-events-none"
@@ -448,14 +451,12 @@ export function Hero() {
       <div className="-z-0 absolute top-1/2 right-0 translate-x-1/2 -translate-y-1/2 opacity-[0.04] pointer-events-none">
         <Logo className="size-[80vh] animate-[spin_60s_linear_infinite]" />
       </div>
-      <section className="mx-auto max-w-[1280px] px-6 md:px-10 min-h-[calc(100vh-4rem)] flex items-start py-16 lg:py-0">
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_1.15fr] gap-12 lg:gap-6 items-center w-full">
-          {/* Left — text content */}
-          <div className="max-w-xl">
+      <section className="relative mx-auto grid h-auto w-full max-w-[1400px] grid-cols-4 gap-x-4 lg:grid-cols-12 lg:gap-x-6 mt-6 my-20 bg-transparent px-4 first:mt-4 lg:mt-20 lg:px-9 first:lg:mt-10 lg:mb-30 lg:h-[calc(100dvh-160px)] lg:max-h-[725px] lg:min-h-[620px] xl:mb-22">
+        {/* Left — text content */}
+        <div className="z-10 col-span-4 flex flex-col justify-between lg:col-span-6 lg:max-w-none">
+          <div className="flex flex-col gap-y-6 lg:gap-y-8">
             {/* Section label */}
-            <div className="flex items-center gap-2.5 mb-8">
-              <DashBadge>Open Source</DashBadge>
-            </div>
+            <DashBadge>Open Source</DashBadge>
 
             {/* Headline */}
             <h1 className="text-foreground font-normal text-[40px] leading-[100%] tracking-[-0.16rem] lg:tracking-[-0.18rem] lg:-ml-1 lg:text-6xl 2xl:text-7xl visible">
@@ -465,20 +466,20 @@ export function Hero() {
             </h1>
 
             {/* Sub-headline */}
-            <p className="mt-7 font-display text-[17px] md:text-[18px] text-neutral-500 leading-[1.55] max-w-[420px]">
+            <p className="font-display text-[17px] md:text-[18px] text-neutral-500 leading-[1.55] lg:max-w-[420px]">
               The only open-source platform that parses, normalizes, and tracks
               health records from any lab, provider, or format.
             </p>
 
             {/* Body detail */}
-            <p className="mt-4 font-mono text-[13px] text-neutral-400 leading-[1.65] max-w-[420px]">
+            <p className="font-mono text-[13px] text-neutral-400 leading-[1.65] lg:max-w-[420px]">
               From lab PDFs to wearable exports — delegate parsing to AI with
               full provenance, confidence scoring, and insights grounded in your
               actual records.
             </p>
 
             {/* CTAs */}
-            <div className="mt-10 flex flex-wrap items-center gap-3">
+            <div className="flex flex-wrap items-center gap-3">
               <Link href="/register">
                 <Button
                   text="Start tracking for free"
@@ -491,11 +492,11 @@ export function Hero() {
               </a>
             </div>
           </div>
+        </div>
 
-          {/* Right — floating data elements */}
-          <div className="relative hidden lg:block min-h-[640px]">
-            <FloatingElements />
-          </div>
+        {/* Right — floating data elements */}
+        <div className="mt-6 lg:mt-0 pointer-events-none relative h-full w-full overflow-hidden md:pointer-events-auto z-0 col-span-full aspect-[3/2] lg:aspect-auto lg:col-span-6 lg:w-[clamp(600px,54vw,1000px)] lg:max-w-none">
+          <FloatingElements />
         </div>
       </section>
     </div>
