@@ -39,7 +39,7 @@ export default function PanelDetailPage() {
           {Array.from({ length: 8 }).map((_, i) => (
             <div
               key={i}
-              className="h-14 animate-pulse rounded-xl border border-neutral-200 bg-neutral-50"
+              className="card h-14 animate-pulse bg-neutral-50"
             />
           ))}
         </div>
@@ -86,7 +86,7 @@ export default function PanelDetailPage() {
 
       {/* Summary */}
       <div className="mt-4 mb-4 flex items-center gap-2">
-        <div className="rounded-lg border border-neutral-200 bg-white px-4 py-2.5">
+        <div className="card px-4 py-2.5">
           <p className="text-xs text-neutral-500">Coverage</p>
           <p className="text-lg font-medium tabular-nums text-neutral-900">
             {panel.testedCount}

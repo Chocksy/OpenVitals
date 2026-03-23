@@ -25,12 +25,12 @@ export default function HomePage() {
   if (isLoading) {
     return (
       <div>
-        <div className="h-20 animate-pulse rounded-xl bg-neutral-50" />
+        <div className="card h-20 animate-pulse bg-neutral-50" />
         <div className="mt-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {Array.from({ length: 5 }).map((_, i) => (
             <div
               key={i}
-              className={`h-44 animate-pulse rounded-xl border border-neutral-200 bg-neutral-50 ${i === 0 ? 'lg:col-span-2' : ''}`}
+              className={`card h-44 animate-pulse bg-neutral-50 ${i === 0 ? 'lg:col-span-2' : ''}`}
             />
           ))}
         </div>

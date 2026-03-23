@@ -32,7 +32,7 @@ export default function TimelinePage() {
         <TitleActionHeader title="Timeline" subtitle="Loading..." />
         <div className="mt-7 space-y-3">
           {Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="h-24 animate-pulse rounded-xl border border-neutral-200 bg-neutral-50" />
+            <div key={i} className="card h-24 animate-pulse bg-neutral-50" />
           ))}
         </div>
       </div>
@@ -105,7 +105,7 @@ export default function TimelinePage() {
 
       <div className="mt-7 space-y-3">
         {events.map((item) => (
-          <div key={item.id} className="rounded-xl border border-neutral-200 bg-white p-5 transition-all hover:border-accent-300 hover:shadow-[0_2px_12px_var(--color-accent-50)]">
+          <div key={item.id} className="card p-5 transition-all hover:border-accent-300 hover:shadow-[0_2px_12px_var(--color-accent-50)]">
             <div className="flex items-start justify-between">
               <div>
                 <div className="text-[15px] font-semibold text-neutral-900 font-body">

@@ -190,7 +190,7 @@ export default function UploadsPage() {
       {files.length > 0 && (
         <div className="mt-6">
           <h2 className="text-sm font-medium text-neutral-900 mb-2">Queued files</h2>
-          <ul className="divide-y divide-neutral-200 rounded-xl border border-neutral-200 bg-white overflow-hidden">
+          <ul className="card divide-y divide-neutral-200">
             {files.map((file, i) => (
               <li key={i} className="flex items-center justify-between px-5 py-3">
                 <div>

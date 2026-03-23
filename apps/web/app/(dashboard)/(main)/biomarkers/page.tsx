@@ -103,7 +103,7 @@ export default function BiomarkersPage() {
           {Array.from({ length: 5 }).map((_, i) => (
             <div
               key={i}
-              className="h-16 animate-pulse rounded-xl border border-neutral-200 bg-neutral-50"
+              className="card h-16 animate-pulse bg-neutral-50"
             />
           ))}
         </div>
@@ -204,7 +204,7 @@ export default function BiomarkersPage() {
             return (
               <div
                 key={cat}
-                className="overflow-hidden rounded-xl border border-neutral-200 bg-white"
+                className="card"
               >
                 {/* Category header */}
                 <button
@@ -346,7 +346,7 @@ export default function BiomarkersPage() {
                                   <div className="mb-2 text-[12px] font-medium text-neutral-700 font-body">
                                     Reference Ranges
                                   </div>
-                                  <div className="overflow-hidden rounded-lg border border-neutral-200 bg-white">
+                                  <div className="card">
                                     <div className="grid grid-cols-[1fr_1fr_1fr_1.2fr] gap-3 border-b border-neutral-200 bg-neutral-50 px-4 py-2">
                                       {["Sex", "Age", "Range", "Source"].map(
                                         (h) => (

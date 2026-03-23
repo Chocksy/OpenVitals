@@ -78,7 +78,7 @@ export default function ImportJobDetailPage({
           {[1, 2, 3, 4].map((i) => (
             <div
               key={i}
-              className="h-14 animate-pulse rounded-xl bg-neutral-100"
+              className="card h-14 animate-pulse bg-neutral-100"
             />
           ))}
         </div>
@@ -219,7 +219,7 @@ function SummaryCard({
   }[variant];
 
   return (
-    <div className="rounded-xl border border-neutral-200 bg-white px-4 py-3.5">
+    <div className="card px-4 py-3.5">
       <div className="text-[11px] font-semibold uppercase tracking-[0.04em] text-neutral-400 font-mono">
         {label}
       </div>
@@ -322,7 +322,7 @@ function CategoryGroup({
         )}
       </div>
 
-      <div className="overflow-hidden rounded-xl border border-neutral-200 bg-white">
+      <div className="card">
         {/* Table header */}
         <div
           className={cn(

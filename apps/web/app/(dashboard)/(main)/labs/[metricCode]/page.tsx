@@ -49,7 +49,7 @@ function SummaryCard({
   }[variant];
 
   return (
-    <div className="rounded-xl border border-neutral-200 bg-white px-4 py-3.5">
+    <div className="card px-4 py-3.5">
       <div className="text-[11px] font-semibold uppercase tracking-[0.04em] text-neutral-400 font-mono">
         {label}
       </div>
@@ -274,12 +274,12 @@ export default function LabDetailPage({
           {Array.from({ length: 4 }).map((_, i) => (
             <div
               key={i}
-              className="h-20 animate-pulse rounded-xl border border-neutral-200 bg-neutral-50"
+              className="card h-20 animate-pulse bg-neutral-50"
             />
           ))}
         </div>
-        <div className="mt-6 h-[340px] animate-pulse rounded-xl border border-neutral-200 bg-neutral-50" />
-        <div className="mt-6 h-64 animate-pulse rounded-xl border border-neutral-200 bg-neutral-50" />
+        <div className="card mt-6 h-[340px] animate-pulse bg-neutral-50" />
+        <div className="card mt-6 h-64 animate-pulse bg-neutral-50" />
       </div>
     );
   }
@@ -386,7 +386,7 @@ export default function LabDetailPage({
 
       {/* Trend Chart */}
       {(trendLoading || allChartData.length > 0) && (
-        <div className="mt-6 rounded-xl border border-neutral-200 bg-white p-5">
+        <div className="card mt-6 p-5">
           <div className="mb-4 flex items-center justify-between">
             <h2 className="text-sm font-semibold text-neutral-700 font-body">
               Trend

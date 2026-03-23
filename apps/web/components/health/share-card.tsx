@@ -11,7 +11,7 @@ interface ShareCardProps {
 
 export function ShareCard({ name, recipient, categories, accessLevel, expiresIn, lastAccessed }: ShareCardProps) {
   return (
-    <div className="border border-neutral-200 bg-white p-5">
+    <div className="card p-5">
       <div className="mb-3.5 flex items-start justify-between">
         <div>
           <div className="text-[15px] font-semibold text-neutral-900 font-display">

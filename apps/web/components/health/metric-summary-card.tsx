@@ -53,7 +53,7 @@ export function MetricSummaryCard({
     <Link
       href={`/labs/${metricCode}`}
       className={cn(
-        "flex flex-col gap-3 border border-neutral-200 bg-white p-5 min-w-0",
+        "card flex flex-col gap-3 p-5 min-w-0",
         "hover:border-accent-200 transition-all cursor-pointer",
       )}
     >

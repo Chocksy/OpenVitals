@@ -103,7 +103,7 @@ export default function OptimalRangesPage() {
           title="Optimal Ranges"
           subtitle="Loading..."
         />
-        <div className="mt-7 max-w-2xl h-64 animate-pulse rounded-xl border border-neutral-200 bg-neutral-50" />
+        <div className="card mt-7 max-w-2xl h-64 animate-pulse bg-neutral-50" />
       </div>
     );
   }
@@ -117,7 +117,7 @@ export default function OptimalRangesPage() {
       />
 
       <div className="mt-7 max-w-2xl">
-        <div className="rounded-xl border border-neutral-200 bg-white overflow-hidden">
+        <div className="card">
           {/* Header */}
           <div className="grid grid-cols-[1fr_6rem_6rem_5rem] gap-2 px-4 py-2.5 border-b border-neutral-100 bg-neutral-50">
             <span className="text-[11px] font-semibold uppercase tracking-[0.04em] text-neutral-400 font-mono">

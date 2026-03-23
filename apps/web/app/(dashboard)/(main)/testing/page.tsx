@@ -139,7 +139,7 @@ function DirectoryTab() {
         {Array.from({ length: 4 }).map((_, i) => (
           <div
             key={i}
-            className="h-32 animate-pulse rounded-xl border border-neutral-200 bg-neutral-50"
+            className="card h-32 animate-pulse bg-neutral-50"
           />
         ))}
       </div>
@@ -149,7 +149,7 @@ function DirectoryTab() {
   return (
     <div className="space-y-4">
       {/* Location bar */}
-      <div className="flex items-center justify-between rounded-xl bg-white px-4 py-3 shadow-xs border border-neutral-200">
+      <div className="card flex items-center justify-between px-4 py-3 shadow-xs">
         <div className="flex items-center gap-2">
           <MapPin className="h-4 w-4 text-[var(--color-accent-500)]" />
           {location ? (
@@ -268,7 +268,7 @@ function PanelsTab() {
         {Array.from({ length: 6 }).map((_, i) => (
           <div
             key={i}
-            className="h-36 animate-pulse rounded-xl border border-neutral-200 bg-neutral-50"
+            className="card h-36 animate-pulse bg-neutral-50"
           />
         ))}
       </div>

@@ -37,7 +37,7 @@ const deltaArrow: Record<string, string> = {
 
 export function MetricCard({ title, value, unit, delta, deltaDirection, sparkData, status }: MetricCardProps) {
   return (
-    <div className="flex flex-col gap-3 border border-neutral-200 bg-white p-5 min-w-0">
+    <div className="card flex flex-col gap-3 p-5 min-w-0">
       <div
         className="font-mono text-[10px] font-bold uppercase tracking-[0.08em] text-neutral-400"
       >

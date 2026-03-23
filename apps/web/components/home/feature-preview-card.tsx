@@ -15,7 +15,7 @@ export function FeaturePreviewCard({ title, href, icon: Icon, className, childre
     <Link
       href={href}
       className={cn(
-        'block border border-neutral-200 bg-white p-5 transition-all hover:border-accent-300',
+        'card block p-5 transition-all hover:border-accent-300',
         className,
       )}
     >

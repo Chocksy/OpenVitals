@@ -71,7 +71,7 @@ function SummaryCard({
   }[variant];
 
   return (
-    <div className="rounded-xl border border-neutral-200 bg-white px-4 py-3.5">
+    <div className="card px-4 py-3.5">
       <div className="text-[11px] font-semibold uppercase tracking-[0.04em] text-neutral-400 font-mono">
         {label}
       </div>
@@ -278,15 +278,15 @@ export default function IntegrationDetailPage({
         <TitleActionHeader showBackButton title={undefined} />
         <div className="mt-7 grid grid-cols-2 gap-3 sm:grid-cols-4">
           {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="h-20 animate-pulse rounded-xl border border-neutral-200 bg-neutral-50" />
+            <div key={i} className="card h-20 animate-pulse bg-neutral-50" />
           ))}
         </div>
         <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="h-40 animate-pulse rounded-xl border border-neutral-200 bg-neutral-50" />
+            <div key={i} className="card h-40 animate-pulse bg-neutral-50" />
           ))}
         </div>
-        <div className="mt-6 h-64 animate-pulse rounded-xl border border-neutral-200 bg-neutral-50" />
+        <div className="card mt-6 h-64 animate-pulse bg-neutral-50" />
       </div>
     );
   }
@@ -453,7 +453,7 @@ export default function IntegrationDetailPage({
 
       {/* Empty state: connected but no observations */}
       {observations.length === 0 && (
-        <div className="mt-8 flex flex-col items-center justify-center rounded-xl border border-neutral-200 bg-white py-16 text-center">
+        <div className="card mt-8 flex flex-col items-center justify-center py-16 text-center">
           <RefreshCw className="h-10 w-10 text-neutral-300 mb-4" />
           <h2 className="text-lg font-semibold text-neutral-700 font-display">No Data Yet</h2>
           <p className="mt-1 text-sm text-neutral-500 max-w-md">

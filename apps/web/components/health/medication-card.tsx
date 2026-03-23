@@ -11,7 +11,7 @@ interface MedicationCardProps {
 
 export function MedicationCard({ name, dose, frequency, indication, status, startDate }: MedicationCardProps) {
   return (
-    <div className="border border-neutral-200 bg-white p-5 transition-all hover:border-accent-300">
+    <div className="card p-5 transition-all hover:border-accent-300">
       <div className="mb-3 flex items-start justify-between">
         <div>
           <div className="text-[15px] font-semibold text-neutral-900 font-display">

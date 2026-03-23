@@ -451,7 +451,7 @@ export function Hero() {
       <div className="-z-0 absolute top-1/2 right-0 translate-x-1/2 -translate-y-1/2 opacity-[0.04] pointer-events-none">
         <Logo className="size-[80vh] animate-[spin_60s_linear_infinite]" />
       </div>
-      <section className="relative mx-auto grid h-auto w-full max-w-[1400px] grid-cols-1 gap-x-4 lg:grid-cols-2 lg:gap-x-6 mt-6 my-20 bg-transparent px-4 first:mt-4 lg:mt-20 lg:px-9 first:lg:mt-10 lg:mb-30 lg:h-[calc(100dvh-160px)] lg:max-h-[725px] lg:min-h-[620px] xl:mb-22">
+      <section className="relative mx-auto grid h-auto w-full max-w-[1280px] grid-cols-1 gap-x-4 lg:grid-cols-2 lg:gap-x-6 mt-6 my-20 bg-transparent px-4 first:mt-4 lg:mt-20 lg:px-9 first:lg:mt-10 lg:mb-30 lg:h-[calc(100dvh-160px)] lg:max-h-[725px] lg:min-h-[620px] xl:mb-22">
         {/* Left — text content */}
         <div className="z-10 col-span-full flex flex-col justify-between lg:col-span-1 lg:max-w-none">
           <div className="flex flex-col gap-y-6 lg:gap-y-8">

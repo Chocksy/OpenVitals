@@ -137,6 +137,10 @@
 }
 
 @layer utilities {
+  .card {
+    @apply border bg-card overflow-hidden rounded-md;
+  }
+
   .title {
     @apply font-medium leading-[100%] tracking-[-.035em] text-balance;
   }
@@ -204,6 +208,58 @@
 
   .animate-scale-in {
     animation: scaleIn 0.3s ease-out forwards;
+  }
+
+  /* ─── Sheet animations ─── */
+
+  @keyframes sheet-overlay-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  @keyframes sheet-overlay-out {
+    from { opacity: 1; }
+    to { opacity: 0; }
+  }
+
+  @keyframes sheet-slide-in-right {
+    from { transform: translateX(100%); }
+    to { transform: translateX(0); }
+  }
+
+  @keyframes sheet-slide-out-right {
+    from { transform: translateX(0); }
+    to { transform: translateX(100%); }
+  }
+
+  @keyframes sheet-slide-in-left {
+    from { transform: translateX(-100%); }
+    to { transform: translateX(0); }
+  }
+
+  @keyframes sheet-slide-out-left {
+    from { transform: translateX(0); }
+    to { transform: translateX(-100%); }
+  }
+
+  @keyframes sheet-slide-in-top {
+    from { transform: translateY(-100%); }
+    to { transform: translateY(0); }
+  }
+
+  @keyframes sheet-slide-out-top {
+    from { transform: translateY(0); }
+    to { transform: translateY(-100%); }
+  }
+
+  @keyframes sheet-slide-in-bottom {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
+  }
+
+  @keyframes sheet-slide-out-bottom {
+    from { transform: translateY(0); }
+    to { transform: translateY(100%); }
   }
 
   @keyframes fadeIn {

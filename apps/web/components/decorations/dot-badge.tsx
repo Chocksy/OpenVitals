@@ -44,7 +44,7 @@ export function CubeBadge({
   return (
     <div
       className={cn(
-        "flex items-center gap-2",
+        "flex items-center gap-1.5",
         border && "border border-accent-500 px-1 py-1 pl-1.5",
         className,
       )}

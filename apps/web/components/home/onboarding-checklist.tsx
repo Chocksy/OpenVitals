@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useCallback } from 'react';
-import Link from 'next/link';
-import { cn } from '@/lib/utils';
+import { useState, useEffect, useCallback } from "react";
+import Link from "next/link";
+import { cn } from "@/lib/utils";
 import {
   Check,
   Circle,
@@ -10,9 +10,15 @@ import {
   X,
   ArrowRight,
   type LucideIcon,
-} from 'lucide-react';
+} from "lucide-react";
+import {
+  Sheet,
+  SheetContent,
+  SheetTitle,
+  SheetDescription,
+} from "@/components/ui/sheet";
 
-const STORAGE_KEY = 'openvitals:checklist-dismissed';
+const STORAGE_KEY = "openvitals:checklist-dismissed";
 
 export interface ChecklistItem {
   label: string;
@@ -40,7 +46,7 @@ function CompactChecklist({
   const completed = items.filter((i) => i.completed).length;
 
   return (
-    <div className="border border-neutral-200 bg-white overflow-hidden">
+    <div className="card">
       {/* Header */}
       <div className="flex items-center justify-between px-5 pt-4 pb-3">
         <div className="flex items-center gap-2.5">
@@ -106,139 +112,89 @@ function CompactChecklist({
   );
 }
 
-/* ─── Expanded overlay panel ─────────────────────────────────────────────── */
+/* ─── Expanded overlay panel (rendered via Sheet portal) ──────────────── */
 
-function ExpandedChecklist({
-  items,
-  onClose,
-}: {
-  items: ChecklistItem[];
-  onClose: () => void;
-}) {
+function ExpandedChecklistContent({ items }: { items: ChecklistItem[] }) {
   const completed = items.filter((i) => i.completed).length;
 
-  // Close on Escape
-  useEffect(() => {
-    function handleKey(e: KeyboardEvent) {
-      if (e.key === 'Escape') onClose();
-    }
-    document.addEventListener('keydown', handleKey);
-    return () => document.removeEventListener('keydown', handleKey);
-  }, [onClose]);
-
-  // Prevent body scroll when open
-  useEffect(() => {
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.body.style.overflow = '';
-    };
-  }, []);
-
   return (
-    <div className="fixed inset-0 z-[100]">
-      {/* Backdrop */}
-      <div
-        className="absolute inset-0 bg-black/20 backdrop-blur-[2px] animate-in fade-in duration-200"
-        onClick={onClose}
-      />
-
-      {/* Panel — slides in from right */}
-      <div className="absolute right-0 top-0 bottom-0 w-full max-w-[520px] bg-white overflow-y-auto animate-in slide-in-from-right duration-250">
-        {/* Close button */}
-        <button
-          onClick={onClose}
-          className="absolute top-5 right-5 z-10 p-2 text-neutral-400 hover:bg-neutral-100 hover:text-neutral-600 transition-colors cursor-pointer"
-          aria-label="Close"
-        >
-          <X className="size-4" />
-        </button>
-
-        {/* Hero header */}
-        <div className="px-8 pt-12 pb-6 text-center border-b border-neutral-100">
-          <div className="mx-auto mb-4 flex size-14 items-center justify-center bg-accent-50 ring-1 ring-accent-100">
-            <Check className="size-6 text-accent-600" strokeWidth={2} />
-          </div>
-          <h2 className="text-xl font-semibold text-neutral-900 font-display">
-            Getting Started
-          </h2>
-          <p className="mt-1.5 text-[14px] text-neutral-500 font-display max-w-xs mx-auto">
-            Set up OpenVitals to get the most out of your health data — {completed} of {items.length} complete.
-          </p>
+    <>
+      {/* Hero header */}
+      <div className="px-8 pt-12 pb-6 text-center border-b border-neutral-100">
+        <div className="mx-auto mb-4 flex size-14 items-center justify-center bg-accent-50 ring-1 ring-accent-100">
+          <Check className="size-6 text-accent-600" strokeWidth={2} />
         </div>
+        <SheetTitle className="text-xl font-semibold text-neutral-900 font-display">
+          Getting Started
+        </SheetTitle>
+        <SheetDescription className="mt-1.5 text-[14px] text-neutral-500 font-display max-w-xs mx-auto">
+          Set up OpenVitals to get the most out of your health data —{" "}
+          {completed} of {items.length} complete.
+        </SheetDescription>
+      </div>
 
-        {/* Items */}
-        <div className="px-6 py-4 space-y-3">
-          {items.map((item) => {
-            const Icon = item.icon;
-            return (
-              <div
-                key={item.label}
+      {/* Items */}
+      <div className="px-6 py-4 space-y-3 overflow-y-auto flex-1">
+        {items.map((item) => {
+          const Icon = item.icon;
+          return (
+            <div
+              key={item.label}
+              className={cn(
+                "border p-5 transition-colors",
+                item.completed
+                  ? "border-accent-200 bg-accent-50/50"
+                  : "border-neutral-200 bg-white",
+              )}
+            >
+              <div className="flex size-9 items-center justify-center bg-white border border-neutral-200 mb-3">
+                <Icon
+                  className={cn(
+                    "size-4",
+                    item.completed ? "text-accent-600" : "text-neutral-500",
+                  )}
+                />
+              </div>
+              <h3
                 className={cn(
-                  'border p-5 transition-colors',
-                  item.completed
-                    ? 'border-accent-200 bg-accent-50/50'
-                    : 'border-neutral-200 bg-white',
+                  "text-[14px] font-semibold font-display",
+                  item.completed ? "text-accent-700" : "text-neutral-900",
                 )}
               >
-                <div className="flex size-9 items-center justify-center bg-white border border-neutral-200 mb-3">
-                  <Icon
-                    className={cn(
-                      'size-4',
-                      item.completed ? 'text-accent-600' : 'text-neutral-500',
-                    )}
-                  />
-                </div>
-                <h3
-                  className={cn(
-                    'text-[14px] font-semibold font-display',
-                    item.completed ? 'text-accent-700' : 'text-neutral-900',
-                  )}
-                >
-                  {item.label}
-                </h3>
-                <p
-                  className={cn(
-                    'text-[13px] mt-0.5 font-display',
-                    item.completed ? 'text-accent-600' : 'text-neutral-500',
-                  )}
-                >
-                  {item.description}
-                </p>
+                {item.label}
+              </h3>
+              <p
+                className={cn(
+                  "text-[13px] mt-0.5 font-display",
+                  item.completed ? "text-accent-600" : "text-neutral-500",
+                )}
+              >
+                {item.description}
+              </p>
 
-                <div className="mt-3">
-                  {item.completed ? (
-                    <span className="inline-flex items-center gap-1.5 bg-accent-100 px-2.5 py-1 text-[12px] font-medium text-accent-700">
-                      <Check className="size-3.5" strokeWidth={2.5} />
-                      Done
-                    </span>
-                  ) : (
-                    <div className="flex items-center gap-3">
-                      <Link
-                        href={item.href}
-                        className="inline-flex items-center gap-1.5 bg-neutral-900 px-3 py-1.5 text-[12px] font-medium text-white hover:bg-neutral-800 transition-colors"
-                      >
-                        Get started
-                        <ArrowRight className="size-3" />
-                      </Link>
-                    </div>
-                  )}
-                </div>
+              <div className="mt-3">
+                {item.completed ? (
+                  <span className="inline-flex items-center gap-1.5 bg-accent-100 px-2.5 py-1 text-[12px] font-medium text-accent-700">
+                    <Check className="size-3.5" strokeWidth={2.5} />
+                    Done
+                  </span>
+                ) : (
+                  <div className="flex items-center gap-3">
+                    <Link
+                      href={item.href}
+                      className="inline-flex items-center gap-1.5 bg-neutral-900 px-3 py-1.5 text-[12px] font-medium text-white hover:bg-neutral-800 transition-colors"
+                    >
+                      Get started
+                      <ArrowRight className="size-3" />
+                    </Link>
+                  </div>
+                )}
               </div>
-            );
-          })}
-        </div>
-
-        {/* Footer */}
-        <div className="sticky bottom-0 border-t border-neutral-100 bg-white px-6 py-4">
-          <button
-            onClick={onClose}
-            className="w-full bg-neutral-900 px-4 py-2.5 text-[13px] font-medium text-white hover:bg-neutral-800 transition-colors cursor-pointer"
-          >
-            Done
-          </button>
-        </div>
+            </div>
+          );
+        })}
       </div>
-    </div>
+    </>
   );
 }
 
@@ -249,19 +205,15 @@ export function OnboardingChecklist({ items }: OnboardingChecklistProps) {
   const [expanded, setExpanded] = useState(false);
 
   useEffect(() => {
-    setDismissed(localStorage.getItem(STORAGE_KEY) === 'true');
+    setDismissed(localStorage.getItem(STORAGE_KEY) === "true");
   }, []);
 
   const completedCount = items.filter((i) => i.completed).length;
   const allComplete = completedCount === items.length;
 
   const handleDismiss = useCallback(() => {
-    localStorage.setItem(STORAGE_KEY, 'true');
+    localStorage.setItem(STORAGE_KEY, "true");
     setDismissed(true);
-  }, []);
-
-  const handleClose = useCallback(() => {
-    setExpanded(false);
   }, []);
 
   if (dismissed || allComplete) return null;
@@ -273,7 +225,11 @@ export function OnboardingChecklist({ items }: OnboardingChecklistProps) {
         onExpand={() => setExpanded(true)}
         onDismiss={handleDismiss}
       />
-      {expanded && <ExpandedChecklist items={items} onClose={handleClose} />}
+      <Sheet open={expanded} onOpenChange={setExpanded}>
+        <SheetContent side="right">
+          <ExpandedChecklistContent items={items} />
+        </SheetContent>
+      </Sheet>
     </>
   );
 }

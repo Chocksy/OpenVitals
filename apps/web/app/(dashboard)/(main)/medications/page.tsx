@@ -25,7 +25,7 @@ export default function MedicationsPage() {
         <TitleActionHeader title="Medications" subtitle="Loading..." />
         <div className="mt-7 grid grid-cols-1 gap-4 md:grid-cols-2">
           {Array.from({ length: 2 }).map((_, i) => (
-            <div key={i} className="h-36 animate-pulse rounded-xl border border-neutral-200 bg-neutral-50" />
+            <div key={i} className="card h-36 animate-pulse bg-neutral-50" />
           ))}
         </div>
       </div>

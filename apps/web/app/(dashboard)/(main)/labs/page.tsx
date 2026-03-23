@@ -29,12 +29,12 @@ export default function LabsPage() {
         <TitleActionHeader title="Lab Results" subtitle="Loading..." />
         <div className="mt-7 mb-7 grid grid-cols-1 gap-3.5 sm:grid-cols-2 lg:grid-cols-4">
           {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="h-36 animate-pulse rounded-xl border border-neutral-200 bg-neutral-50" />
+            <div key={i} className="card h-36 animate-pulse bg-neutral-50" />
           ))}
         </div>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="h-40 animate-pulse rounded-xl border border-neutral-200 bg-neutral-50" />
+            <div key={i} className="card h-40 animate-pulse bg-neutral-50" />
           ))}
         </div>
       </div>

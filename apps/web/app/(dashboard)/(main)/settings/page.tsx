@@ -60,7 +60,7 @@ export default function SettingsPage() {
     return (
       <div>
         <TitleActionHeader title="Settings" subtitle="Loading..." />
-        <div className="max-w-lg h-64 animate-pulse rounded-xl border border-neutral-200 bg-neutral-50" />
+        <div className="card max-w-lg h-64 animate-pulse bg-neutral-50" />
       </div>
     );
   }
@@ -71,7 +71,7 @@ export default function SettingsPage() {
 
       <div className="mt-7 max-w-lg space-y-6">
         {/* General Preferences */}
-        <div className="rounded-xl border border-neutral-200 bg-white p-6 space-y-6">
+        <div className="card p-6 space-y-6">
           <h2 className="text-lg font-medium tracking-[-0.015em] text-neutral-900 font-display">
             Preferences
           </h2>
@@ -109,7 +109,7 @@ export default function SettingsPage() {
         </div>
 
         {/* Demographic Profile */}
-        <div className="rounded-xl border border-neutral-200 bg-white p-6 space-y-6">
+        <div className="card p-6 space-y-6">
           <div>
             <h2 className="text-lg font-medium tracking-[-0.015em] text-neutral-900 font-display">
               Demographic Profile
@@ -170,7 +170,7 @@ export default function SettingsPage() {
         </div>
 
         {/* Optimal Ranges */}
-        <div className="rounded-xl border border-neutral-200 bg-white p-6 space-y-4">
+        <div className="card p-6 space-y-4">
           <div>
             <h2 className="text-lg font-medium tracking-[-0.015em] text-neutral-900 font-display">
               Optimal Ranges
