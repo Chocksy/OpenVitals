@@ -1,18 +1,14 @@
 import Link from "next/link";
 import { Button } from "@/components/button";
 import { TOTAL_COUNT } from "../data";
+import { CubeBadge } from "@/components/decorations/dot-badge";
 
 export function Hero() {
   return (
     <section className="mx-auto max-w-[1280px] px-6 md:px-10 pt-20 md:pt-28 pb-14 md:pb-20">
       <div className="max-w-2xl">
         {/* Section label */}
-        <div className="flex items-center gap-2.5 mb-8">
-          <div className="size-[7px] rounded-full bg-accent-500" />
-          <span className="font-mono text-[11px] font-bold uppercase tracking-[0.1em] text-neutral-900">
-            Biomarker Library
-          </span>
-        </div>
+        <CubeBadge className="mb-8">Biomarker Library</CubeBadge>
 
         <h1 className="font-display text-[36px] md:text-[52px] font-medium tracking-[-0.035em] leading-[1.05] text-neutral-900">
           {TOTAL_COUNT}+ biomarkers
@@ -21,9 +17,9 @@ export function Hero() {
         </h1>
 
         <p className="mt-6 font-mono text-[14px] text-neutral-400 leading-[1.65] max-w-lg">
-          From metabolic panels and hormone levels to wearable
-          metrics and cardiac markers — OpenVitals tracks, trends,
-          and contextualizes every biomarker that matters.
+          From metabolic panels and hormone levels to wearable metrics and
+          cardiac markers — OpenVitals tracks, trends, and contextualizes every
+          biomarker that matters.
         </p>
 
         <div className="mt-10 flex items-center gap-3">

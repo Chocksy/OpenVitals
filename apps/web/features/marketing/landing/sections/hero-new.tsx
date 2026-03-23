@@ -6,6 +6,7 @@ import { Spark } from "../components/spark";
 import { CornerCrossBadge } from "@/components/decorations/corner-cross";
 import { Button } from "@/components/button";
 import { CubeBadge } from "@/components/decorations/dot-badge";
+import { BrowserWindow } from "../../components/browser-window";
 
 /* ------------------------------------------------------------------ */
 /*  Floating data elements — animated "living dashboard"               */
@@ -16,24 +17,6 @@ const tableRows = [
   { m: "HbA1c", v: "5.9", u: "%", s: "BORDER", c: "#D97706" },
   { m: "Ferritin", v: "14", u: "ng/mL", s: "LOW", c: "#DC2626" },
 ];
-
-function WindowChrome({ title }: { title?: string }) {
-  return (
-    <div className="flex items-center gap-1.5 px-2 h-5 border-b border-neutral-100">
-      <div className="size-[6px] rounded-full bg-neutral-300" />
-      <div className="size-[6px] rounded-full bg-neutral-300" />
-      <div className="size-[6px] rounded-full bg-neutral-300" />
-      {title && (
-        <>
-          <span className="flex-1 text-center font-mono text-[8px] text-neutral-300">
-            {title}
-          </span>
-          <div className="w-[30px]" />
-        </>
-      )}
-    </div>
-  );
-}
 
 function FloatingElements() {
   return (
@@ -128,162 +111,168 @@ function FloatingElements() {
 
         {/* ── Row 1: Upload card + Metric card ── */}
         <div
-          className="hero-card absolute top-[20px] left-0 w-[230px] bg-white border border-neutral-200 rounded"
+          className="hero-card absolute top-[20px] left-0 w-[230px]"
           style={{
             animationDelay: "0.2s",
             boxShadow:
               "0 1px 2px rgba(0,0,0,0.03), 0 4px 16px rgba(0,0,0,0.04)",
           }}
         >
-          <WindowChrome title="Import" />
-          <div className="p-3">
-            <div className="flex items-center justify-between gap-2">
-              <div className="min-w-0">
-                <div className="font-mono text-[10px] font-medium text-neutral-800 truncate">
-                  quest_labs_mar2026.pdf
+          <BrowserWindow title="Import">
+            <div className="p-3">
+              <div className="flex items-center justify-between gap-2">
+                <div className="min-w-0">
+                  <div className="font-mono text-[10px] font-medium text-neutral-800 truncate">
+                    quest_labs_mar2026.pdf
+                  </div>
+                  <div className="font-mono text-[8px] text-neutral-400 mt-0.5">
+                    Lab report · Quest Diagnostics
+                  </div>
                 </div>
-                <div className="font-mono text-[8px] text-neutral-400 mt-0.5">
-                  Lab report · Quest Diagnostics
-                </div>
+                <span className="shrink-0 inline-flex items-center gap-[3px] px-1.5 py-0.5 font-mono text-[7px] font-bold uppercase tracking-[0.04em] border border-[#16A34A] text-[#16A34A]">
+                  <span
+                    className="size-[4px] bg-[#16A34A]"
+                    style={{
+                      animation: "heroPulse 1.2s ease-in-out 3",
+                      animationDelay: "0.8s",
+                    }}
+                  />
+                  DONE
+                </span>
               </div>
-              <span className="shrink-0 inline-flex items-center gap-[3px] px-1.5 py-0.5 font-mono text-[7px] font-bold uppercase tracking-[0.04em] border border-[#16A34A] text-[#16A34A]">
-                <span
-                  className="size-[4px] bg-[#16A34A]"
+              <div className="mt-2.5 h-[3px] bg-neutral-100 overflow-hidden">
+                <div
+                  className="h-full bg-[#16A34A]"
                   style={{
-                    animation: "heroPulse 1.2s ease-in-out 3",
-                    animationDelay: "0.8s",
+                    animation:
+                      "heroProgress 2s cubic-bezier(0.4, 0, 0.2, 1) forwards",
+                    animationDelay: "0.6s",
+                    width: "0%",
                   }}
                 />
-                DONE
-              </span>
+              </div>
+              <div className="mt-1.5 flex items-center justify-between">
+                <span className="font-mono text-[8px] text-neutral-400">
+                  Confidence
+                </span>
+                <span className="font-mono text-[9px] font-bold text-neutral-700">
+                  0.96
+                </span>
+              </div>
             </div>
-            <div className="mt-2.5 h-[3px] bg-neutral-100 overflow-hidden">
-              <div
-                className="h-full bg-[#16A34A]"
-                style={{
-                  animation:
-                    "heroProgress 2s cubic-bezier(0.4, 0, 0.2, 1) forwards",
-                  animationDelay: "0.6s",
-                  width: "0%",
-                }}
-              />
-            </div>
-            <div className="mt-1.5 flex items-center justify-between">
-              <span className="font-mono text-[8px] text-neutral-400">
-                Confidence
-              </span>
-              <span className="font-mono text-[9px] font-bold text-neutral-700">
-                0.96
-              </span>
-            </div>
-          </div>
+          </BrowserWindow>
         </div>
 
         <div
-          className="hero-card absolute top-[24px] left-[248px] w-[195px] bg-white border border-neutral-200 rounded"
+          className="hero-card absolute top-[24px] left-[248px] w-[195px]"
           style={{
             animationDelay: "0.8s",
             boxShadow:
               "0 1px 2px rgba(0,0,0,0.03), 0 4px 16px rgba(0,0,0,0.04)",
           }}
         >
-          <WindowChrome />
-          <div className="p-3">
-            <div className="font-mono text-[8px] font-bold uppercase tracking-[0.08em] text-neutral-400">
-              LDL Cholesterol
+          <BrowserWindow>
+            <div className="p-3">
+              <div className="font-mono text-[8px] font-bold uppercase tracking-[0.08em] text-neutral-400">
+                LDL Cholesterol
+              </div>
+              <div className="mt-1.5 flex items-baseline gap-1">
+                <span className="font-mono text-[24px] font-bold tracking-[-0.02em] text-neutral-900">
+                  98
+                </span>
+                <span className="font-mono text-[8px] text-neutral-400">
+                  mg/dL
+                </span>
+              </div>
+              <div className="mt-1.5 flex items-end justify-between">
+                <span className="font-mono text-[8px] font-bold text-[#16A34A]">
+                  ↓ 14
+                </span>
+                <svg width="56" height="16" viewBox="0 0 56 16">
+                  <polyline
+                    points="0,3 14,5.5 28,7 42,10 56,13"
+                    fill="none"
+                    stroke="#16A34A"
+                    strokeWidth="1.5"
+                    strokeLinecap="square"
+                    strokeDasharray="200"
+                    style={{
+                      animation: "heroDrawLine 1.5s ease-out forwards",
+                      animationDelay: "1.2s",
+                      strokeDashoffset: 200,
+                    }}
+                  />
+                  <rect
+                    x="54"
+                    y="11"
+                    width="4"
+                    height="4"
+                    fill="#16A34A"
+                    opacity="0"
+                    style={{
+                      animation: "heroCheckIn 0.3s ease-out forwards",
+                      animationDelay: "2.5s",
+                    }}
+                  />
+                </svg>
+              </div>
             </div>
-            <div className="mt-1.5 flex items-baseline gap-1">
-              <span className="font-mono text-[24px] font-bold tracking-[-0.02em] text-neutral-900">
-                98
-              </span>
-              <span className="font-mono text-[8px] text-neutral-400">
-                mg/dL
-              </span>
-            </div>
-            <div className="mt-1.5 flex items-end justify-between">
-              <span className="font-mono text-[8px] font-bold text-[#16A34A]">
-                ↓ 14
-              </span>
-              <svg width="56" height="16" viewBox="0 0 56 16">
-                <polyline
-                  points="0,3 14,5.5 28,7 42,10 56,13"
-                  fill="none"
-                  stroke="#16A34A"
-                  strokeWidth="1.5"
-                  strokeLinecap="square"
-                  strokeDasharray="200"
-                  style={{
-                    animation: "heroDrawLine 1.5s ease-out forwards",
-                    animationDelay: "1.2s",
-                    strokeDashoffset: 200,
-                  }}
-                />
-                <rect
-                  x="54"
-                  y="11"
-                  width="4"
-                  height="4"
-                  fill="#16A34A"
-                  opacity="0"
-                  style={{
-                    animation: "heroCheckIn 0.3s ease-out forwards",
-                    animationDelay: "2.5s",
-                  }}
-                />
-              </svg>
-            </div>
-          </div>
+          </BrowserWindow>
         </div>
 
         {/* ── Row 2: Lab results table + Toast ── */}
         <div
-          className="hero-card absolute top-[170px] left-[20px] w-[330px] bg-white border border-neutral-200 rounded"
+          className="hero-card absolute top-[170px] left-[20px] w-[330px]"
           style={{
             animationDelay: "1.2s",
             boxShadow:
               "0 1px 2px rgba(0,0,0,0.03), 0 4px 16px rgba(0,0,0,0.04)",
           }}
         >
-          <WindowChrome title="Parsed Results" />
-          <div className="grid grid-cols-[1.4fr_1fr_0.7fr] gap-2 px-3 py-1.5 border-b border-neutral-200 bg-neutral-50/60">
-            {["METRIC", "VALUE", "STATUS"].map((h) => (
+          <BrowserWindow title="Parsed Results">
+            <div className="grid grid-cols-[1.4fr_1fr_0.7fr] gap-2 px-3 py-1.5 border-b border-neutral-200 bg-neutral-50/60">
+              {["METRIC", "VALUE", "STATUS"].map((h) => (
+                <div
+                  key={h}
+                  className="font-mono text-[7px] font-bold uppercase tracking-[0.08em] text-neutral-400"
+                >
+                  {h}
+                </div>
+              ))}
+            </div>
+            {tableRows.map((r, i) => (
               <div
-                key={h}
-                className="font-mono text-[7px] font-bold uppercase tracking-[0.08em] text-neutral-400"
+                key={r.m}
+                className="hero-slide grid grid-cols-[1.4fr_1fr_0.7fr] items-center gap-2 px-3 py-1.5 border-b border-neutral-100 last:border-b-0"
+                style={{ animationDelay: `${1.6 + i * 0.15}s` }}
               >
-                {h}
+                <div className="font-display text-[9px] font-medium text-neutral-700">
+                  {r.m}
+                </div>
+                <div className="flex items-baseline gap-0.5">
+                  <span
+                    className="font-mono text-[9px] font-bold tabular-nums"
+                    style={{ color: r.s === "NORMAL" ? "#141414" : r.c }}
+                  >
+                    {r.v}
+                  </span>
+                  <span className="font-mono text-[7px] text-neutral-400">
+                    {r.u}
+                  </span>
+                </div>
+                <span
+                  className="inline-flex w-fit items-center gap-[3px] px-1 py-0.5 font-mono text-[6px] font-bold uppercase tracking-[0.04em]"
+                  style={{ border: `1px solid ${r.c}`, color: r.c }}
+                >
+                  <span
+                    className="size-[3px]"
+                    style={{ backgroundColor: r.c }}
+                  />
+                  {r.s}
+                </span>
               </div>
             ))}
-          </div>
-          {tableRows.map((r, i) => (
-            <div
-              key={r.m}
-              className="hero-slide grid grid-cols-[1.4fr_1fr_0.7fr] items-center gap-2 px-3 py-1.5 border-b border-neutral-100 last:border-b-0"
-              style={{ animationDelay: `${1.6 + i * 0.15}s` }}
-            >
-              <div className="font-display text-[9px] font-medium text-neutral-700">
-                {r.m}
-              </div>
-              <div className="flex items-baseline gap-0.5">
-                <span
-                  className="font-mono text-[9px] font-bold tabular-nums"
-                  style={{ color: r.s === "NORMAL" ? "#141414" : r.c }}
-                >
-                  {r.v}
-                </span>
-                <span className="font-mono text-[7px] text-neutral-400">
-                  {r.u}
-                </span>
-              </div>
-              <span
-                className="inline-flex w-fit items-center gap-[3px] px-1 py-0.5 font-mono text-[6px] font-bold uppercase tracking-[0.04em]"
-                style={{ border: `1px solid ${r.c}`, color: r.c }}
-              >
-                <span className="size-[3px]" style={{ backgroundColor: r.c }} />
-                {r.s}
-              </span>
-            </div>
-          ))}
+          </BrowserWindow>
         </div>
 
         {/* Toast — beside the table */}
@@ -325,48 +314,50 @@ function FloatingElements() {
 
         {/* ── Row 3: AI Chat (bottom area) ── */}
         <div
-          className="hero-card absolute top-[400px] left-[60px] w-[320px] bg-white border border-neutral-200 rounded"
+          className="hero-card absolute top-[400px] left-[60px] w-[320px]"
           style={{
             animationDelay: "2.0s",
             boxShadow:
               "0 1px 2px rgba(0,0,0,0.03), 0 4px 16px rgba(0,0,0,0.04)",
           }}
         >
-          <WindowChrome title="AI Chat" />
-          <div className="p-3 space-y-2.5">
-            <div className="flex justify-end">
-              <div className="bg-accent-500 px-2.5 py-1.5 font-display text-[9px] leading-[1.4] text-white max-w-[80%]">
-                How are my lipids trending?
+          <BrowserWindow title="AI Chat">
+            <div className="p-3 space-y-2.5">
+              <div className="flex justify-end">
+                <div className="bg-accent-500 px-2.5 py-1.5 font-display text-[9px] leading-[1.4] text-white max-w-[80%]">
+                  How are my lipids trending?
+                </div>
               </div>
-            </div>
-            <div>
-              <div className="font-mono text-[7px] font-bold uppercase tracking-[0.08em] text-accent-500 mb-1">
-                OPENVITALS AI
-              </div>
-              <div className="border border-neutral-200 px-2.5 py-2 font-display text-[9px] leading-[1.5] text-neutral-600">
-                LDL improved to <strong className="text-neutral-900">98</strong>{" "}
-                mg/dL — now in optimal range. Triglycerides at{" "}
-                <strong className="text-neutral-900">162</strong>, slightly
-                above threshold.
-              </div>
-              <div className="mt-1.5 flex flex-wrap gap-1">
-                {[
-                  { prefix: "SRC", label: "6 observations" },
-                  { prefix: "RNG", label: "Mar 25–26" },
-                ].map((t) => (
-                  <span
-                    key={t.prefix}
-                    className="inline-flex items-center gap-1 border border-neutral-200 px-1.5 py-0.5 font-mono text-[7px]"
-                  >
-                    <span className="font-bold text-accent-500">
-                      {t.prefix}
+              <div>
+                <div className="font-mono text-[7px] font-bold uppercase tracking-[0.08em] text-accent-500 mb-1">
+                  OPENVITALS AI
+                </div>
+                <div className="border border-neutral-200 px-2.5 py-2 font-display text-[9px] leading-[1.5] text-neutral-600">
+                  LDL improved to{" "}
+                  <strong className="text-neutral-900">98</strong> mg/dL — now
+                  in optimal range. Triglycerides at{" "}
+                  <strong className="text-neutral-900">162</strong>, slightly
+                  above threshold.
+                </div>
+                <div className="mt-1.5 flex flex-wrap gap-1">
+                  {[
+                    { prefix: "SRC", label: "6 observations" },
+                    { prefix: "RNG", label: "Mar 25–26" },
+                  ].map((t) => (
+                    <span
+                      key={t.prefix}
+                      className="inline-flex items-center gap-1 border border-neutral-200 px-1.5 py-0.5 font-mono text-[7px]"
+                    >
+                      <span className="font-bold text-accent-500">
+                        {t.prefix}
+                      </span>
+                      <span className="text-neutral-400">{t.label}</span>
                     </span>
-                    <span className="text-neutral-400">{t.label}</span>
-                  </span>
-                ))}
+                  ))}
+                </div>
               </div>
             </div>
-          </div>
+          </BrowserWindow>
         </div>
 
         {/* ── Provenance chain (between table and chat) ── */}

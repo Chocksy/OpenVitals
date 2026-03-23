@@ -1,20 +1,11 @@
 import type { LucideIcon } from "lucide-react";
 import {
-  Dna,
-  Droplets,
-  Beaker,
-  Bug,
-  FlaskConical,
-  Sun,
-  LoaderPinwheel,
-  Bean,
-  Syringe,
-  Flame,
-  HeartPulse,
-  TestTubes,
-  BarChart3,
-  Watch,
-} from "lucide-react";
+  CATEGORY_META,
+  CATEGORY_ORDER,
+} from "@/lib/biomarker-categories";
+
+// Re-export so existing imports keep working
+export { CATEGORY_ORDER };
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -35,96 +26,31 @@ export interface CategoryConfig {
 }
 
 // ── Category configuration ───────────────────────────────────────────────────
+// Labels and icons come from shared config; descriptions are marketing-specific.
 
-export const CATEGORY_CONFIG: Record<string, CategoryConfig> = {
-  metabolic: {
-    label: "Metabolic",
-    icon: Dna,
-    description: "Comprehensive metabolic panel markers for organ function and electrolyte balance",
-  },
-  hormone: {
-    label: "Hormones",
-    icon: Syringe,
-    description: "Reproductive, adrenal, and growth hormone levels",
-  },
-  vital_sign: {
-    label: "Vital Signs",
-    icon: BarChart3,
-    description: "Core physiological measurements including blood pressure, heart rate, and body composition",
-  },
-  hematology: {
-    label: "Hematology",
-    icon: Droplets,
-    description: "Complete blood count and red/white blood cell indices",
-  },
-  lipid: {
-    label: "Lipid Panel",
-    icon: Beaker,
-    description: "Cholesterol, triglycerides, and cardiovascular risk markers",
-  },
-  thyroid: {
-    label: "Thyroid",
-    icon: Bug,
-    description: "Thyroid stimulating hormone and thyroid hormone levels",
-  },
-  wearable: {
-    label: "Wearable",
-    icon: Watch,
-    description: "Metrics from connected wearable devices like recovery, HRV, and sleep",
-  },
-  vitamin: {
-    label: "Vitamins",
-    icon: Sun,
-    description: "Essential vitamin and mineral levels",
-  },
-  urinalysis: {
-    label: "Urinalysis",
-    icon: TestTubes,
-    description: "Urine composition and kidney filtration markers",
-  },
-  iron_study: {
-    label: "Iron Studies",
-    icon: FlaskConical,
-    description: "Iron levels, storage, and transport capacity",
-  },
-  inflammation: {
-    label: "Inflammation",
-    icon: Flame,
-    description: "Inflammatory markers and cardiovascular risk indicators",
-  },
-  renal: {
-    label: "Renal",
-    icon: Bean,
-    description: "Kidney function and filtration rate markers",
-  },
-  cardiac: {
-    label: "Cardiac",
-    icon: HeartPulse,
-    description: "Heart-specific enzymes and biomarkers",
-  },
-  hepatic: {
-    label: "Hepatic",
-    icon: LoaderPinwheel,
-    description: "Liver function and bile metabolism markers",
-  },
+const CATEGORY_DESCRIPTIONS: Record<string, string> = {
+  metabolic: "Comprehensive metabolic panel markers for organ function and electrolyte balance",
+  hormone: "Reproductive, adrenal, and growth hormone levels",
+  vital_sign: "Core physiological measurements including blood pressure, heart rate, and body composition",
+  hematology: "Complete blood count and red/white blood cell indices",
+  lipid: "Cholesterol, triglycerides, and cardiovascular risk markers",
+  thyroid: "Thyroid stimulating hormone and thyroid hormone levels",
+  wearable: "Metrics from connected wearable devices like recovery, HRV, and sleep",
+  vitamin: "Essential vitamin and mineral levels",
+  urinalysis: "Urine composition and kidney filtration markers",
+  iron_study: "Iron levels, storage, and transport capacity",
+  inflammation: "Inflammatory markers and cardiovascular risk indicators",
+  renal: "Kidney function and filtration rate markers",
+  cardiac: "Heart-specific enzymes and biomarkers",
+  hepatic: "Liver function and bile metabolism markers",
 };
 
-export const CATEGORY_ORDER = [
-  "metabolic",
-  "hematology",
-  "hormone",
-  "lipid",
-  "vital_sign",
-  "vitamin",
-  "thyroid",
-  "inflammation",
-  "iron_study",
-  "renal",
-  "cardiac",
-  "wearable",
-  "urinalysis",
-  "hepatic",
-] as const;
+export const CATEGORY_CONFIG: Record<string, CategoryConfig> = Object.fromEntries(
+  Object.entries(CATEGORY_META).map(([key, meta]) => [
+    key,
+    { ...meta, description: CATEGORY_DESCRIPTIONS[key] ?? "" },
+  ]),
+);
 
 // ── Biomarker data ───────────────────────────────────────────────────────────
 

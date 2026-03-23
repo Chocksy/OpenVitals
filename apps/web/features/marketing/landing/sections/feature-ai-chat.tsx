@@ -1,8 +1,9 @@
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/button";
-import { DashBadge } from "@/components/decorations/dot-badge";
+import { CubeBadge, DashBadge } from "@/components/decorations/dot-badge";
 import { FeatureExampleCard } from "../components/feature-example-card";
+import { BrowserWindow } from "../../components/browser-window";
 
 const navItems = [
   { num: "01", label: "HEALTH CHAT", active: true },
@@ -94,139 +95,127 @@ export function AiChat() {
         {/* ── Right side — animated chat conversation ── */}
         <div className="relative lg:border-l border-neutral-200 bg-[#f2f2f0] overflow-hidden hidden lg:block">
           <div className="px-10 py-14">
-            <div className="flex items-center justify-between mb-6">
-              <div className="size-[7px] rounded-full bg-accent-500" />
-              <span className="font-mono text-[11px] font-bold uppercase tracking-[0.06em] text-neutral-400">
-                Health Chat
-              </span>
-            </div>
+            <CubeBadge className="mb-6">Health Chat</CubeBadge>
 
             <div
-              className="bg-white border border-neutral-200"
+              className=""
               style={{
                 boxShadow:
                   "0 1px 2px rgba(0,0,0,0.03), 0 4px 16px rgba(0,0,0,0.04)",
               }}
             >
-              <div className="flex items-center gap-1.5 px-3.5 py-2.5 border-b border-neutral-100">
-                <div className="size-[6px] rounded-full bg-neutral-300" />
-                <div className="size-[6px] rounded-full bg-neutral-300" />
-                <div className="size-[6px] rounded-full bg-neutral-300" />
-                <span className="flex-1 text-center font-mono text-[10px] text-neutral-400">
-                  OpenVitals AI Chat
-                </span>
-                <div className="w-[38px]" />
-              </div>
+              <BrowserWindow title="OpenVitals AI Chat">
+                <div className="p-5 space-y-4">
+                  {/* User message 1 */}
+                  <div
+                    className="chat-user flex justify-end"
+                    style={{ animationDelay: "0.3s" }}
+                  >
+                    <div className="max-w-[80%] bg-accent-500 px-4 py-2.5 font-display text-[12px] leading-relaxed text-white">
+                      How have my lipid panel results changed over the last
+                      year?
+                    </div>
+                  </div>
 
-              <div className="p-5 space-y-4">
-                {/* User message 1 */}
-                <div
-                  className="chat-user flex justify-end"
-                  style={{ animationDelay: "0.3s" }}
-                >
-                  <div className="max-w-[80%] bg-accent-500 px-4 py-2.5 font-display text-[12px] leading-relaxed text-white">
-                    How have my lipid panel results changed over the last year?
-                  </div>
-                </div>
-
-                {/* Typing indicator — visible briefly */}
-                <div
-                  className="chat-msg flex items-center gap-1 px-2 py-2"
-                  style={{ animationDelay: "0.9s" }}
-                >
-                  <div className="font-mono text-[9px] font-bold uppercase tracking-[0.08em] text-accent-500 mr-1">
-                    AI
-                  </div>
-                  {[0, 1, 2].map((d) => (
-                    <div
-                      key={d}
-                      className="size-[5px] bg-accent-400"
-                      style={{
-                        animation: "chatDot 1.2s ease-in-out infinite",
-                        animationDelay: `${1.0 + d * 0.15}s`,
-                      }}
-                    />
-                  ))}
-                </div>
-
-                {/* AI response */}
-                <div className="chat-msg" style={{ animationDelay: "1.8s" }}>
-                  <div className="font-mono text-[9px] font-bold uppercase tracking-[0.08em] text-accent-500 mb-1.5">
-                    OPENVITALS AI
-                  </div>
-                  <div className="border border-neutral-200 px-4 py-3 font-display text-[12px] leading-[1.6] text-neutral-700">
-                    Your lipid panel shows meaningful improvement. LDL dropped
-                    from 142 to <strong>98 mg/dL</strong> — now within optimal
-                    range. However, triglycerides trended up to{" "}
-                    <strong>162 mg/dL</strong>, which is above the recommended
-                    threshold of 150.
-                  </div>
-                  <div className="mt-2 flex flex-wrap gap-1.5">
-                    {[
-                      {
-                        prefix: "SRC",
-                        label: "6 lipid observations",
-                        delay: "2.4s",
-                      },
-                      {
-                        prefix: "RNG",
-                        label: "Mar 2025 – Mar 2026",
-                        delay: "2.55s",
-                      },
-                      {
-                        prefix: "LAB",
-                        label: "Quest + LabCorp",
-                        delay: "2.7s",
-                      },
-                    ].map((t) => (
-                      <span
-                        key={t.prefix}
-                        className="chat-tag inline-flex items-center gap-1 border border-neutral-200 bg-white px-1.5 py-0.5 font-mono text-[8px]"
-                        style={{ animationDelay: t.delay }}
-                      >
-                        <span className="font-bold text-accent-500">
-                          {t.prefix}
-                        </span>
-                        <span className="text-neutral-500">{t.label}</span>
-                      </span>
+                  {/* Typing indicator — visible briefly */}
+                  <div
+                    className="chat-msg flex items-center gap-1 px-2 py-2"
+                    style={{ animationDelay: "0.9s" }}
+                  >
+                    <div className="font-mono text-[9px] font-bold uppercase tracking-[0.08em] text-accent-500 mr-1">
+                      AI
+                    </div>
+                    {[0, 1, 2].map((d) => (
+                      <div
+                        key={d}
+                        className="size-[5px] bg-accent-400"
+                        style={{
+                          animation: "chatDot 1.2s ease-in-out infinite",
+                          animationDelay: `${1.0 + d * 0.15}s`,
+                        }}
+                      />
                     ))}
                   </div>
-                </div>
 
-                {/* User message 2 — appears late */}
-                <div
-                  className="chat-user flex justify-end"
-                  style={{ animationDelay: "3.2s" }}
-                >
-                  <div className="max-w-[80%] bg-accent-500 px-4 py-2.5 font-display text-[12px] leading-relaxed text-white">
-                    Should I be concerned about triglycerides?
+                  {/* AI response */}
+                  <div className="chat-msg" style={{ animationDelay: "1.8s" }}>
+                    <div className="font-mono text-[9px] font-bold uppercase tracking-[0.08em] text-accent-500 mb-1.5">
+                      OPENVITALS AI
+                    </div>
+                    <div className="border border-neutral-200 px-4 py-3 font-display text-[12px] leading-[1.6] text-neutral-700">
+                      Your lipid panel shows meaningful improvement. LDL dropped
+                      from 142 to <strong>98 mg/dL</strong> — now within optimal
+                      range. However, triglycerides trended up to{" "}
+                      <strong>162 mg/dL</strong>, which is above the recommended
+                      threshold of 150.
+                    </div>
+                    <div className="mt-2 flex flex-wrap gap-1.5">
+                      {[
+                        {
+                          prefix: "SRC",
+                          label: "6 lipid observations",
+                          delay: "2.4s",
+                        },
+                        {
+                          prefix: "RNG",
+                          label: "Mar 2025 – Mar 2026",
+                          delay: "2.55s",
+                        },
+                        {
+                          prefix: "LAB",
+                          label: "Quest + LabCorp",
+                          delay: "2.7s",
+                        },
+                      ].map((t) => (
+                        <span
+                          key={t.prefix}
+                          className="chat-tag inline-flex items-center gap-1 border border-neutral-200 bg-white px-1.5 py-0.5 font-mono text-[8px]"
+                          style={{ animationDelay: t.delay }}
+                        >
+                          <span className="font-bold text-accent-500">
+                            {t.prefix}
+                          </span>
+                          <span className="text-neutral-500">{t.label}</span>
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* User message 2 — appears late */}
+                  <div
+                    className="chat-user flex justify-end"
+                    style={{ animationDelay: "3.2s" }}
+                  >
+                    <div className="max-w-[80%] bg-accent-500 px-4 py-2.5 font-display text-[12px] leading-relaxed text-white">
+                      Should I be concerned about triglycerides?
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              {/* Input bar with blinking cursor */}
-              <div className="border-t border-neutral-200 px-4 py-2.5 flex items-center gap-2">
-                <div className="flex-1 border border-neutral-200 bg-neutral-50 px-3 py-1.5 flex items-center">
-                  <span className="font-display text-[11px] text-neutral-400">
-                    Ask about your health data
-                  </span>
-                  <span
-                    className="ml-0.5 w-px h-3.5 bg-neutral-900"
-                    style={{ animation: "chatBlink 1s step-end infinite" }}
-                  />
-                </div>
-                <div className="flex size-7 items-center justify-center bg-accent-500">
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
-                    <path
-                      d="M5 12h14M12 5l7 7-7 7"
-                      stroke="white"
-                      strokeWidth="2"
-                      strokeLinecap="square"
-                      strokeLinejoin="miter"
+                {/* Input bar with blinking cursor */}
+                <div className="border-t border-neutral-200 px-4 py-2.5 flex items-center gap-2">
+                  <div className="flex-1 border border-neutral-200 bg-neutral-50 px-3 py-1.5 flex items-center">
+                    <span className="font-display text-[11px] text-neutral-400">
+                      Ask about your health data
+                    </span>
+                    <span
+                      className="ml-0.5 w-px h-3.5 bg-neutral-900"
+                      style={{ animation: "chatBlink 1s step-end infinite" }}
                     />
-                  </svg>
+                  </div>
+                  <div className="flex size-7 items-center justify-center bg-accent-500">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+                      <path
+                        d="M5 12h14M12 5l7 7-7 7"
+                        stroke="white"
+                        strokeWidth="2"
+                        strokeLinecap="square"
+                        strokeLinejoin="miter"
+                      />
+                    </svg>
+                  </div>
                 </div>
-              </div>
+              </BrowserWindow>
             </div>
 
             {["top-[50px] left-[30px]", "bottom-[60px] left-[20px]"].map(

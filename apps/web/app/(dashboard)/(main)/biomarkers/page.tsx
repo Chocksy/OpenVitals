@@ -1,10 +1,18 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { trpc } from "@/lib/trpc/client";
 import { TitleActionHeader } from "@/components/title-action-header";
 import { AnimatedEmptyState } from "@/components/animated-empty-state";
 import { StatusBadge } from "@/components/health/status-badge";
+import {
+  CategoryNav,
+  type CategoryNavItem,
+} from "@/components/category-nav";
+import {
+  CATEGORY_META,
+  CATEGORY_ORDER,
+} from "@/lib/biomarker-categories";
 import {
   Search,
   ChevronDown,
@@ -15,18 +23,6 @@ import {
   Beaker,
   FlaskConical,
   Microscope,
-  Droplets,
-  Bug,
-  Sun,
-  CircleDot,
-  Bean,
-  Syringe,
-  Flame,
-  HeartPulse,
-  TestTubes,
-  BarChart3,
-  type LucideIcon,
-  LoaderPinwheel,
 } from "lucide-react";
 
 const emptyIcons = [
@@ -37,38 +33,6 @@ const emptyIcons = [
   FlaskConical,
   Microscope,
 ];
-
-const categoryLabels: Record<string, string> = {
-  metabolic: "Metabolic",
-  hematology: "Hematology",
-  lipid: "Lipid Panel",
-  thyroid: "Thyroid",
-  iron_study: "Iron Studies",
-  vitamin: "Vitamins",
-  hepatic: "Hepatic",
-  renal: "Renal",
-  hormone: "Hormones",
-  inflammation: "Inflammation",
-  cardiac: "Cardiac",
-  urinalysis: "Urinalysis",
-  vital_sign: "Vital Signs",
-};
-
-const categoryIcons: Record<string, LucideIcon> = {
-  metabolic: Dna,
-  hematology: Droplets,
-  lipid: Beaker,
-  thyroid: Bug,
-  iron_study: FlaskConical,
-  vitamin: Sun,
-  hepatic: LoaderPinwheel,
-  renal: Bean,
-  hormone: Syringe,
-  inflammation: Flame,
-  cardiac: HeartPulse,
-  urinalysis: TestTubes,
-  vital_sign: BarChart3,
-};
 
 function formatRange(
   low: number | null,
@@ -90,10 +54,117 @@ export default function BiomarkersPage() {
   const { data: prefs } = trpc.preferences.get.useQuery();
 
   const [search, setSearch] = useState("");
-  const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
   const [expandedMetric, setExpandedMetric] = useState<string | null>(null);
+  const [activeCategory, setActiveCategory] = useState<string>(
+    CATEGORY_ORDER[0],
+  );
+  const observerRef = useRef<IntersectionObserver | null>(null);
 
   const isLoading = metricsLoading || rangesLoading;
+
+  const allMetrics = metrics ?? [];
+  const allRanges = ranges ?? [];
+
+  // Group ranges by metric code
+  const rangesByMetric = useMemo(() => {
+    const map = new Map<string, typeof allRanges>();
+    for (const r of allRanges) {
+      const existing = map.get(r.metricCode) ?? [];
+      existing.push(r);
+      map.set(r.metricCode, existing);
+    }
+    return map;
+  }, [allRanges]);
+
+  // Filter by search
+  const lower = search.toLowerCase().trim();
+  const filtered = lower
+    ? allMetrics.filter(
+        (m) =>
+          m.name.toLowerCase().includes(lower) ||
+          m.id.toLowerCase().includes(lower) ||
+          m.category.toLowerCase().includes(lower) ||
+          m.aliases.some((a: string) => a.toLowerCase().includes(lower)),
+      )
+    : allMetrics;
+
+  // Group by category
+  const byCategory = useMemo(() => {
+    const map = new Map<string, typeof filtered>();
+    for (const m of filtered) {
+      const existing = map.get(m.category) ?? [];
+      existing.push(m);
+      map.set(m.category, existing);
+    }
+    return map;
+  }, [filtered]);
+
+  // Sorted category keys
+  const sortedCategories = useMemo(
+    () =>
+      [...byCategory.keys()].sort(
+        (a, b) =>
+          (CATEGORY_ORDER.indexOf(a as (typeof CATEGORY_ORDER)[number]) === -1
+            ? 999
+            : CATEGORY_ORDER.indexOf(a as (typeof CATEGORY_ORDER)[number])) -
+          (CATEGORY_ORDER.indexOf(b as (typeof CATEGORY_ORDER)[number]) === -1
+            ? 999
+            : CATEGORY_ORDER.indexOf(b as (typeof CATEGORY_ORDER)[number])),
+      ),
+    [byCategory],
+  );
+
+  // Build nav items
+  const navCategories: CategoryNavItem[] = useMemo(
+    () =>
+      sortedCategories
+        .map((cat) => {
+          const meta = CATEGORY_META[cat];
+          if (!meta) return null;
+          return {
+            id: cat,
+            label: meta.label,
+            icon: meta.icon,
+            count: byCategory.get(cat)?.length ?? 0,
+          };
+        })
+        .filter((c): c is CategoryNavItem => c !== null),
+    [sortedCategories, byCategory],
+  );
+
+  // Intersection observer for active category tracking
+  useEffect(() => {
+    observerRef.current?.disconnect();
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            const cat = entry.target.id.replace("biomarker-cat-", "");
+            setActiveCategory(cat);
+            break;
+          }
+        }
+      },
+      { rootMargin: "-20% 0px -70% 0px" },
+    );
+
+    observerRef.current = observer;
+
+    for (const cat of sortedCategories) {
+      const el = document.getElementById(`biomarker-cat-${cat}`);
+      if (el) observer.observe(el);
+    }
+
+    return () => observer.disconnect();
+  }, [sortedCategories]);
+
+  const handleCategoryClick = useCallback((category: string) => {
+    const el = document.getElementById(`biomarker-cat-${category}`);
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }, []);
 
   if (isLoading) {
     return (
@@ -110,9 +181,6 @@ export default function BiomarkersPage() {
       </div>
     );
   }
-
-  const allMetrics = metrics ?? [];
-  const allRanges = ranges ?? [];
 
   if (allMetrics.length === 0) {
     return (
@@ -131,42 +199,6 @@ export default function BiomarkersPage() {
       </div>
     );
   }
-
-  // Group ranges by metric code
-  const rangesByMetric = new Map<string, typeof allRanges>();
-  for (const r of allRanges) {
-    const existing = rangesByMetric.get(r.metricCode) ?? [];
-    existing.push(r);
-    rangesByMetric.set(r.metricCode, existing);
-  }
-
-  // Filter by search
-  const lower = search.toLowerCase().trim();
-  const filtered = lower
-    ? allMetrics.filter(
-        (m) =>
-          m.name.toLowerCase().includes(lower) ||
-          m.id.toLowerCase().includes(lower) ||
-          m.category.toLowerCase().includes(lower) ||
-          m.aliases.some((a: string) => a.toLowerCase().includes(lower)),
-      )
-    : allMetrics;
-
-  // Group by category
-  const byCategory = new Map<string, typeof filtered>();
-  for (const m of filtered) {
-    const existing = byCategory.get(m.category) ?? [];
-    existing.push(m);
-    byCategory.set(m.category, existing);
-  }
-
-  // Sorted category keys
-  const categoryOrder = Object.keys(categoryLabels);
-  const sortedCategories = [...byCategory.keys()].sort(
-    (a, b) =>
-      (categoryOrder.indexOf(a) === -1 ? 999 : categoryOrder.indexOf(a)) -
-      (categoryOrder.indexOf(b) === -1 ? 999 : categoryOrder.indexOf(b)),
-  );
 
   const userSex = prefs?.biologicalSex ?? null;
   const subtitle = `${allMetrics.length} metrics · ${allRanges.length} reference ranges${userSex ? ` · Profile: ${userSex}` : ""}`;
@@ -194,50 +226,58 @@ export default function BiomarkersPage() {
           cardIcon={({ index }) => emptyIcons[index % emptyIcons.length]!}
         />
       ) : (
-        <div className="space-y-3">
-          {sortedCategories.map((cat) => {
-            const catMetrics = byCategory.get(cat)!;
-            const isExpanded = expandedCategory === cat || lower.length > 0;
-            const IconComponent = categoryIcons[cat] ?? ListChecks;
-            const label = categoryLabels[cat] ?? cat;
+        <>
+          {/* Mobile pill nav */}
+          <div className="lg:hidden mb-4">
+            <CategoryNav
+              variant="pills"
+              categories={navCategories}
+              activeCategory={activeCategory}
+              onCategoryClick={handleCategoryClick}
+              className="static mx-0 px-0 border-0 bg-transparent"
+            />
+          </div>
 
-            return (
-              <div
-                key={cat}
-                className="card"
-              >
-                {/* Category header */}
-                <button
-                  type="button"
-                  onClick={() =>
-                    setExpandedCategory(isExpanded && !lower ? null : cat)
-                  }
-                  className="flex w-full items-center justify-between px-5 py-4 transition-colors hover:bg-neutral-50 cursor-pointer"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="flex size-8 items-center justify-center rounded-lg bg-neutral-100">
-                      <IconComponent className="size-4 text-neutral-500" />
-                    </div>
-                    <div className="text-left">
-                      <div className="text-[15px] font-semibold text-neutral-900 font-body">
-                        {label}
-                      </div>
-                      <div className="mt-0.5 text-[11px] text-neutral-400 font-mono">
-                        {catMetrics.length} metric
-                        {catMetrics.length !== 1 ? "s" : ""}
-                      </div>
-                    </div>
-                  </div>
-                  {isExpanded ? (
-                    <ChevronDown className="size-4 text-neutral-400" />
-                  ) : (
-                    <ChevronRight className="size-4 text-neutral-400" />
-                  )}
-                </button>
+          {/* Desktop: sidebar + content */}
+          <div className="lg:grid lg:grid-cols-[200px_1fr] lg:gap-10">
+            <div className="hidden lg:block">
+              <CategoryNav
+                variant="sidebar"
+                categories={navCategories}
+                activeCategory={activeCategory}
+                onCategoryClick={handleCategoryClick}
+              />
+            </div>
 
-                {/* Metrics table */}
-                {isExpanded && (
-                  <div>
+            <div className="space-y-3">
+              {sortedCategories.map((cat) => {
+                const catMetrics = byCategory.get(cat)!;
+                const meta = CATEGORY_META[cat];
+                const IconComponent = meta?.icon ?? ListChecks;
+                const label = meta?.label ?? cat;
+
+                return (
+                  <div
+                    key={cat}
+                    id={`biomarker-cat-${cat}`}
+                    className="card scroll-mt-20"
+                  >
+                    {/* Category header */}
+                    <div className="flex items-center gap-3 px-5 py-4">
+                      <div className="flex size-8 items-center justify-center rounded-lg bg-neutral-100">
+                        <IconComponent className="size-4 text-neutral-500" />
+                      </div>
+                      <div>
+                        <div className="text-[15px] font-semibold text-neutral-900 font-body">
+                          {label}
+                        </div>
+                        <div className="mt-0.5 text-[11px] text-neutral-400 font-mono">
+                          {catMetrics.length} metric
+                          {catMetrics.length !== 1 ? "s" : ""}
+                        </div>
+                      </div>
+                    </div>
+
                     {/* Header row */}
                     <div className="grid grid-cols-[1.6fr_1fr_1.4fr_0.8fr] gap-3 border-t border-b border-neutral-200 bg-neutral-50 px-5 py-2.5">
                       {["Metric", "Unit", "Default Range", "Aliases"].map(
@@ -421,11 +461,11 @@ export default function BiomarkersPage() {
                       );
                     })}
                   </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
+                );
+              })}
+            </div>
+          </div>
+        </>
       )}
     </div>
   );

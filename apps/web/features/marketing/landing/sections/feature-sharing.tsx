@@ -3,6 +3,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/button";
 import { DashBadge } from "@/components/decorations/dot-badge";
 import { FeatureExampleCard } from "../components/feature-example-card";
+import { BrowserWindow } from "../../components/browser-window";
 const shares = [
   {
     name: "Dr. Martinez",
@@ -66,75 +67,69 @@ export function Sharing() {
             <DashBadge className="mb-6">Share Policies</DashBadge>
 
             {/* Share policies table */}
+
             <div
-              className="bg-white border border-neutral-200 mb-5"
+              className="mb-5"
               style={{
                 boxShadow:
                   "0 1px 2px rgba(0,0,0,0.03), 0 4px 16px rgba(0,0,0,0.04)",
               }}
             >
-              <div className="flex items-center gap-1.5 px-3.5 py-2.5 border-b border-neutral-100">
-                <div className="size-[6px] rounded-full bg-neutral-300" />
-                <div className="size-[6px] rounded-full bg-neutral-300" />
-                <div className="size-[6px] rounded-full bg-neutral-300" />
-                <span className="flex-1 text-center font-mono text-[10px] text-neutral-400">
-                  Active share policies
-                </span>
-                <div className="w-[38px]" />
-              </div>
-              <div className="grid grid-cols-[1.2fr_1fr_0.6fr_0.6fr] gap-2 px-4 py-2 border-b border-neutral-200 bg-neutral-50/60">
-                {["RECIPIENT", "CATEGORIES", "LEVEL", "EXPIRES"].map((h) => (
+              <BrowserWindow title="Active share policies">
+                <div className="grid grid-cols-[1.2fr_1fr_0.6fr_0.6fr] gap-2 px-4 py-2 border-b border-neutral-200 bg-neutral-50/60">
+                  {["RECIPIENT", "CATEGORIES", "LEVEL", "EXPIRES"].map((h) => (
+                    <div
+                      key={h}
+                      className="font-mono text-[8px] font-bold uppercase tracking-[0.08em] text-neutral-400"
+                    >
+                      {h}
+                    </div>
+                  ))}
+                </div>
+                {shares.map((s, i) => (
                   <div
-                    key={h}
-                    className="font-mono text-[8px] font-bold uppercase tracking-[0.08em] text-neutral-400"
+                    key={s.name}
+                    className={cn(
+                      "share-row grid grid-cols-[1.2fr_1fr_0.6fr_0.6fr] items-start gap-2 px-4 py-3",
+                      i < shares.length - 1 && "border-b border-neutral-100",
+                    )}
+                    style={{ animationDelay: `${0.4 + i * 0.3}s` }}
                   >
-                    {h}
+                    <div>
+                      <div className="font-display text-[11px] font-medium text-neutral-800">
+                        {s.name}
+                      </div>
+                      <div className="font-mono text-[8px] text-neutral-400 mt-0.5">
+                        {s.target}
+                      </div>
+                    </div>
+                    <div className="flex flex-wrap gap-1">
+                      {s.categories.map((c, ci) => (
+                        <span
+                          key={c}
+                          className="share-badge border border-accent-200 px-1 py-0.5 font-mono text-[7px] font-bold text-accent-700"
+                          style={{
+                            animationDelay: `${0.6 + i * 0.3 + ci * 0.08}s`,
+                          }}
+                        >
+                          {c}
+                        </span>
+                      ))}
+                    </div>
+                    <div className="font-mono text-[9px] font-bold text-neutral-700">
+                      {s.level}
+                    </div>
+                    <div className="font-mono text-[9px] text-neutral-500">
+                      {s.expiry}
+                    </div>
                   </div>
                 ))}
-              </div>
-              {shares.map((s, i) => (
-                <div
-                  key={s.name}
-                  className={cn(
-                    "share-row grid grid-cols-[1.2fr_1fr_0.6fr_0.6fr] items-start gap-2 px-4 py-3",
-                    i < shares.length - 1 && "border-b border-neutral-100",
-                  )}
-                  style={{ animationDelay: `${0.4 + i * 0.3}s` }}
-                >
-                  <div>
-                    <div className="font-display text-[11px] font-medium text-neutral-800">
-                      {s.name}
-                    </div>
-                    <div className="font-mono text-[8px] text-neutral-400 mt-0.5">
-                      {s.target}
-                    </div>
-                  </div>
-                  <div className="flex flex-wrap gap-1">
-                    {s.categories.map((c, ci) => (
-                      <span
-                        key={c}
-                        className="share-badge border border-accent-200 px-1 py-0.5 font-mono text-[7px] font-bold text-accent-700"
-                        style={{
-                          animationDelay: `${0.6 + i * 0.3 + ci * 0.08}s`,
-                        }}
-                      >
-                        {c}
-                      </span>
-                    ))}
-                  </div>
-                  <div className="font-mono text-[9px] font-bold text-neutral-700">
-                    {s.level}
-                  </div>
-                  <div className="font-mono text-[9px] text-neutral-500">
-                    {s.expiry}
-                  </div>
-                </div>
-              ))}
+              </BrowserWindow>
             </div>
 
             {/* Access log — animated entries */}
             <div
-              className="bg-white border border-neutral-200"
+              className="card"
               style={{
                 boxShadow:
                   "0 1px 2px rgba(0,0,0,0.03), 0 4px 16px rgba(0,0,0,0.04)",

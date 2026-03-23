@@ -3,6 +3,7 @@ import { Button } from "@/components/button";
 import Link from "next/link";
 import { Spark } from "../components/spark";
 import { DashBadge } from "@/components/decorations/dot-badge";
+import { BrowserWindow } from "../../components/browser-window";
 
 const parsedRows = [
   {
@@ -237,7 +238,7 @@ export function Ingestion() {
 
             {/* Animated results table */}
             <div
-              className="relative bg-white border border-neutral-200"
+              className="relative"
               style={{
                 boxShadow:
                   "0 1px 2px rgba(0,0,0,0.03), 0 4px 16px rgba(0,0,0,0.04)",
@@ -253,71 +254,63 @@ export function Ingestion() {
                   top: 0,
                 }}
               />
-
-              <div className="flex items-center gap-1.5 px-3.5 py-2.5 border-b border-neutral-100">
-                <div className="size-[6px] rounded-full bg-neutral-300" />
-                <div className="size-[6px] rounded-full bg-neutral-300" />
-                <div className="size-[6px] rounded-full bg-neutral-300" />
-                <span className="flex-1 text-center font-mono text-[10px] text-neutral-400">
-                  quest_labs_mar2026.pdf — parsed results
-                </span>
-                <div className="w-[38px]" />
-              </div>
-
-              <div className="grid grid-cols-[1.5fr_1fr_0.8fr_0.6fr_0.5fr] gap-2 px-4 py-2 border-b border-neutral-200 bg-neutral-50/60">
-                {["METRIC", "VALUE", "REFERENCE", "STATUS", "TREND"].map(
-                  (h) => (
-                    <div
-                      key={h}
-                      className="font-mono text-[8px] font-bold uppercase tracking-[0.08em] text-neutral-400"
-                    >
-                      {h}
-                    </div>
-                  ),
-                )}
-              </div>
-
-              {parsedRows.map((r, i) => (
-                <div
-                  key={r.metric}
-                  className={cn(
-                    "parse-row grid grid-cols-[1.5fr_1fr_0.8fr_0.6fr_0.5fr] items-center gap-2 px-4 py-2",
-                    i < parsedRows.length - 1 && "border-b border-neutral-100",
+              <BrowserWindow title="quest_labs_mar2026.pdf — parsed results">
+                <div className="grid grid-cols-[1.5fr_1fr_0.8fr_0.6fr_0.5fr] gap-2 px-4 py-2 border-b border-neutral-200 bg-neutral-50/60">
+                  {["METRIC", "VALUE", "REFERENCE", "STATUS", "TREND"].map(
+                    (h) => (
+                      <div
+                        key={h}
+                        className="font-mono text-[8px] font-bold uppercase tracking-[0.08em] text-neutral-400"
+                      >
+                        {h}
+                      </div>
+                    ),
                   )}
-                  style={{ animationDelay: `${1.0 + i * 0.2}s` }}
-                >
-                  <div className="font-display text-[10px] font-medium text-neutral-700 truncate">
-                    {r.metric}
-                  </div>
-                  <div className="flex items-baseline gap-0.5">
-                    <span
-                      className="font-mono text-[10px] font-bold tabular-nums"
-                      style={{ color: r.st === "NORMAL" ? "#141414" : r.c }}
-                    >
-                      {r.val}
-                    </span>
-                    <span className="font-mono text-[8px] text-neutral-400">
-                      {r.unit}
-                    </span>
-                  </div>
-                  <div className="font-mono text-[9px] text-neutral-400">
-                    {r.ref}
-                  </div>
-                  <span
-                    className="inline-flex w-fit items-center gap-[3px] px-1 py-0.5 font-mono text-[7px] font-bold uppercase tracking-[0.04em]"
-                    style={{ border: `1px solid ${r.c}`, color: r.c }}
-                  >
-                    <span
-                      className="size-[4px]"
-                      style={{ backgroundColor: r.c }}
-                    />
-                    {r.st}
-                  </span>
-                  <div className="flex justify-end">
-                    <Spark data={r.trend} color={r.c} w={40} h={12} />
-                  </div>
                 </div>
-              ))}
+
+                {parsedRows.map((r, i) => (
+                  <div
+                    key={r.metric}
+                    className={cn(
+                      "parse-row grid grid-cols-[1.5fr_1fr_0.8fr_0.6fr_0.5fr] items-center gap-2 px-4 py-2",
+                      i < parsedRows.length - 1 &&
+                        "border-b border-neutral-100",
+                    )}
+                    style={{ animationDelay: `${1.0 + i * 0.2}s` }}
+                  >
+                    <div className="font-display text-[10px] font-medium text-neutral-700 truncate">
+                      {r.metric}
+                    </div>
+                    <div className="flex items-baseline gap-0.5">
+                      <span
+                        className="font-mono text-[10px] font-bold tabular-nums"
+                        style={{ color: r.st === "NORMAL" ? "#141414" : r.c }}
+                      >
+                        {r.val}
+                      </span>
+                      <span className="font-mono text-[8px] text-neutral-400">
+                        {r.unit}
+                      </span>
+                    </div>
+                    <div className="font-mono text-[9px] text-neutral-400">
+                      {r.ref}
+                    </div>
+                    <span
+                      className="inline-flex w-fit items-center gap-[3px] px-1 py-0.5 font-mono text-[7px] font-bold uppercase tracking-[0.04em]"
+                      style={{ border: `1px solid ${r.c}`, color: r.c }}
+                    >
+                      <span
+                        className="size-[4px]"
+                        style={{ backgroundColor: r.c }}
+                      />
+                      {r.st}
+                    </span>
+                    <div className="flex justify-end">
+                      <Spark data={r.trend} color={r.c} w={40} h={12} />
+                    </div>
+                  </div>
+                ))}
+              </BrowserWindow>
             </div>
 
             {/* Extraction summary — appears after rows */}

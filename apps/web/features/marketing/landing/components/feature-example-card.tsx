@@ -1,4 +1,5 @@
 import { Button } from "@/components/button";
+import { CubeBadge } from "@/components/decorations/dot-badge";
 import Link from "next/link";
 import { ReactNode } from "react";
 
@@ -17,10 +18,7 @@ export function FeatureExampleCard({
   return (
     <div className="mt-10 border border-neutral-200 bg-white rounded-md">
       <div className="flex items-center justify-between px-5 py-3.5 border-b border-neutral-100">
-        <div className="size-[7px] rounded-full bg-accent-500" />
-        <span className="font-mono text-[11px] font-bold uppercase tracking-[0.06em] text-neutral-500">
-          {topLabel}
-        </span>
+        <CubeBadge className="">{topLabel}</CubeBadge>
       </div>
       <div className="px-5 py-4 border-b border-neutral-100">{children}</div>
       <div className="px-5 py-5 flex flex-col gap-4">
