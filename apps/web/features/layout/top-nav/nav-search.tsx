@@ -22,6 +22,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { CornerEdge } from "@/components/decorations/corner-cross";
 
 interface SearchResult {
   id: string;
@@ -327,7 +328,7 @@ export function NavSearch() {
                   ref={inputRef}
                   type="text"
                   placeholder="Search biomarkers, medications, pages..."
-                  className="flex-1 text-[14px] text-neutral-900 placeholder:text-neutral-400 bg-transparent outline-none font-body"
+                  className="flex-1 text-[14px] text-neutral-900 placeholder:text-neutral-400 bg-transparent outline-none focus:shadow-none! font-body"
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                   onKeyDown={handleKeyDown}
@@ -368,7 +369,7 @@ export function NavSearch() {
                       >
                         <div
                           className={cn(
-                            "flex items-center justify-center size-7 shrink-0",
+                            "relative flex items-center justify-center size-7 shrink-0",
                             isSelected ? "bg-accent-100" : "bg-neutral-100",
                           )}
                         >
@@ -380,6 +381,7 @@ export function NavSearch() {
                                 : "text-neutral-400",
                             )}
                           />
+                          {!!isSelected && <CornerEdge />}
                         </div>
                         <div className="flex-1 min-w-0">
                           <span
