@@ -2,17 +2,12 @@
 
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { trpc } from "@/lib/trpc/client";
+import { cn } from "@/lib/utils";
 import { TitleActionHeader } from "@/components/title-action-header";
 import { AnimatedEmptyState } from "@/components/animated-empty-state";
 import { StatusBadge } from "@/components/health/status-badge";
-import {
-  CategoryNav,
-  type CategoryNavItem,
-} from "@/components/category-nav";
-import {
-  CATEGORY_META,
-  CATEGORY_ORDER,
-} from "@/lib/biomarker-categories";
+import { CategoryNav, type CategoryNavItem } from "@/components/category-nav";
+import { CATEGORY_META, CATEGORY_ORDER } from "@/lib/biomarker-categories";
 import {
   Search,
   ChevronDown,
@@ -55,6 +50,9 @@ export default function BiomarkersPage() {
 
   const [search, setSearch] = useState("");
   const [expandedMetric, setExpandedMetric] = useState<string | null>(null);
+  const [collapsedCategories, setCollapsedCategories] = useState<Set<string>>(
+    new Set(),
+  );
   const [activeCategory, setActiveCategory] = useState<string>(
     CATEGORY_ORDER[0],
   );
@@ -166,16 +164,22 @@ export default function BiomarkersPage() {
     }
   }, []);
 
+  const toggleCategory = useCallback((category: string) => {
+    setCollapsedCategories((prev) => {
+      const next = new Set(prev);
+      if (next.has(category)) next.delete(category);
+      else next.add(category);
+      return next;
+    });
+  }, []);
+
   if (isLoading) {
     return (
       <div>
         <TitleActionHeader title="Biomarkers" subtitle="Loading..." />
         <div className="space-y-3">
           {Array.from({ length: 5 }).map((_, i) => (
-            <div
-              key={i}
-              className="card h-16 animate-pulse bg-neutral-50"
-            />
+            <div key={i} className="card h-16 animate-pulse bg-neutral-50" />
           ))}
         </div>
       </div>
@@ -256,6 +260,8 @@ export default function BiomarkersPage() {
                 const IconComponent = meta?.icon ?? ListChecks;
                 const label = meta?.label ?? cat;
 
+                const isCategoryCollapsed = collapsedCategories.has(cat);
+
                 return (
                   <div
                     key={cat}
@@ -263,11 +269,15 @@ export default function BiomarkersPage() {
                     className="card scroll-mt-20"
                   >
                     {/* Category header */}
-                    <div className="flex items-center gap-3 px-5 py-4">
+                    <button
+                      type="button"
+                      onClick={() => toggleCategory(cat)}
+                      className="flex w-full items-center gap-3 px-5 py-4 text-left transition-colors hover:bg-neutral-50"
+                    >
                       <div className="flex size-8 items-center justify-center rounded-lg bg-neutral-100">
                         <IconComponent className="size-4 text-neutral-500" />
                       </div>
-                      <div>
+                      <div className="flex-1">
                         <div className="text-[15px] font-semibold text-neutral-900 font-body">
                           {label}
                         </div>
@@ -276,190 +286,208 @@ export default function BiomarkersPage() {
                           {catMetrics.length !== 1 ? "s" : ""}
                         </div>
                       </div>
-                    </div>
+                      <ChevronDown
+                        className={cn(
+                          "size-4 text-neutral-400 transition-transform",
+                          isCategoryCollapsed && "-rotate-90",
+                        )}
+                      />
+                    </button>
 
-                    {/* Header row */}
-                    <div className="grid grid-cols-[1.6fr_1fr_1.4fr_0.8fr] gap-3 border-t border-b border-neutral-200 bg-neutral-50 px-5 py-2.5">
-                      {["Metric", "Unit", "Default Range", "Aliases"].map(
-                        (h) => (
-                          <div
-                            key={h}
-                            className="text-[11px] font-semibold uppercase tracking-[0.04em] text-neutral-400 font-mono"
-                          >
-                            {h}
-                          </div>
-                        ),
-                      )}
-                    </div>
-
-                    {/* Metric rows */}
-                    {catMetrics.map((m) => {
-                      const metricRanges = rangesByMetric.get(m.id) ?? [];
-                      const hasDemographicRanges = metricRanges.length > 0;
-                      const isMetricExpanded = expandedMetric === m.id;
-                      const aliasList = m.aliases.slice(0, 4);
-                      const moreAliases =
-                        m.aliases.length > 4 ? m.aliases.length - 4 : 0;
-
-                      return (
-                        <div key={m.id}>
-                          <div
-                            className="grid grid-cols-[1.6fr_1fr_1.4fr_0.8fr] items-center gap-3 border-b border-neutral-100 px-5 py-3.5 transition-colors hover:bg-neutral-50 cursor-pointer"
-                            onClick={() =>
-                              setExpandedMetric(isMetricExpanded ? null : m.id)
-                            }
-                          >
-                            {/* Name + description */}
-                            <div>
-                              <div className="flex items-center gap-2">
-                                <span className="text-sm font-medium text-neutral-900 font-body">
-                                  {m.name}
-                                </span>
-                                {hasDemographicRanges && (
-                                  <StatusBadge
-                                    status="info"
-                                    label={`${metricRanges.length} range${metricRanges.length !== 1 ? "s" : ""}`}
-                                  />
-                                )}
+                    {!isCategoryCollapsed && (
+                      <>
+                        {/* Header row */}
+                        <div className="grid grid-cols-[1.6fr_1fr_1.4fr_0.8fr] gap-3 border-t border-b border-neutral-200 bg-neutral-50 px-5 py-2.5">
+                          {["Metric", "Unit", "Default Range", "Aliases"].map(
+                            (h) => (
+                              <div
+                                key={h}
+                                className="text-[11px] font-semibold uppercase tracking-[0.04em] text-neutral-400 font-mono"
+                              >
+                                {h}
                               </div>
-                              {m.description && (
-                                <div className="mt-0.5 text-[11px] text-neutral-400 font-mono">
-                                  {m.description}
-                                </div>
-                              )}
-                            </div>
-
-                            {/* Unit */}
-                            <div className="text-xs text-neutral-600 font-mono">
-                              {m.unit ?? "—"}
-                            </div>
-
-                            {/* Default range */}
-                            <div className="text-xs text-neutral-600 font-mono">
-                              {formatRange(
-                                m.referenceRangeLow,
-                                m.referenceRangeHigh,
-                                m.unit,
-                              )}
-                            </div>
-
-                            {/* Aliases preview */}
-                            <div className="flex flex-wrap gap-1">
-                              {aliasList.map((a: string) => (
-                                <span
-                                  key={a}
-                                  className="inline-block rounded bg-neutral-100 px-1.5 py-0.5 text-[10px] text-neutral-500 font-mono"
-                                >
-                                  {a}
-                                </span>
-                              ))}
-                              {moreAliases > 0 && (
-                                <span className="inline-block rounded bg-neutral-100 px-1.5 py-0.5 text-[10px] text-neutral-400 font-mono">
-                                  +{moreAliases}
-                                </span>
-                              )}
-                            </div>
-                          </div>
-
-                          {/* Expanded detail: demographic ranges */}
-                          {isMetricExpanded && (
-                            <div className="border-b border-neutral-100 bg-neutral-50/50 px-5 py-4">
-                              <div className="mb-3 flex flex-wrap gap-1.5">
-                                {m.aliases.map((a: string) => (
-                                  <span
-                                    key={a}
-                                    className="inline-block rounded-full border border-neutral-200 bg-white px-2.5 py-0.5 text-[11px] text-neutral-600 font-mono"
-                                  >
-                                    {a}
-                                  </span>
-                                ))}
-                              </div>
-
-                              {m.loincCode && (
-                                <div className="mb-3 text-[11px] text-neutral-400 font-mono">
-                                  LOINC: {m.loincCode}
-                                </div>
-                              )}
-
-                              {metricRanges.length > 0 ? (
-                                <div>
-                                  <div className="mb-2 text-[12px] font-medium text-neutral-700 font-body">
-                                    Reference Ranges
-                                  </div>
-                                  <div className="card">
-                                    <div className="grid grid-cols-[1fr_1fr_1fr_1.2fr] gap-3 border-b border-neutral-200 bg-neutral-50 px-4 py-2">
-                                      {["Sex", "Age", "Range", "Source"].map(
-                                        (h) => (
-                                          <div
-                                            key={h}
-                                            className="text-[10px] font-semibold uppercase tracking-[0.04em] text-neutral-400 font-mono"
-                                          >
-                                            {h}
-                                          </div>
-                                        ),
-                                      )}
-                                    </div>
-                                    {metricRanges.map((r) => {
-                                      const isUserMatch =
-                                        userSex &&
-                                        (r.sex === null || r.sex === userSex);
-
-                                      return (
-                                        <div
-                                          key={r.id}
-                                          className={`grid grid-cols-[1fr_1fr_1fr_1.2fr] items-center gap-3 border-b border-neutral-100 px-4 py-2.5 ${
-                                            isUserMatch ? "bg-accent-50/40" : ""
-                                          }`}
-                                        >
-                                          <div className="flex items-center gap-1.5">
-                                            <span className="text-xs text-neutral-700 font-mono">
-                                              {r.sex
-                                                ? r.sex
-                                                    .charAt(0)
-                                                    .toUpperCase() +
-                                                  r.sex.slice(1)
-                                                : "Any"}
-                                            </span>
-                                            {isUserMatch && r.sex && (
-                                              <span className="inline-block size-1.5 rounded-full bg-accent-500" />
-                                            )}
-                                          </div>
-                                          <div className="text-xs text-neutral-600 font-mono">
-                                            {r.ageMin != null &&
-                                            r.ageMax != null
-                                              ? `${r.ageMin}–${r.ageMax}`
-                                              : r.ageMin != null
-                                                ? `${r.ageMin}+`
-                                                : r.ageMax != null
-                                                  ? `≤ ${r.ageMax}`
-                                                  : "Any"}
-                                          </div>
-                                          <div className="text-xs font-medium text-neutral-900 font-mono">
-                                            {formatRange(
-                                              r.rangeLow,
-                                              r.rangeHigh,
-                                              m.unit,
-                                            )}
-                                          </div>
-                                          <div className="text-[11px] text-neutral-400 font-mono">
-                                            {r.source ?? "—"}
-                                          </div>
-                                        </div>
-                                      );
-                                    })}
-                                  </div>
-                                </div>
-                              ) : (
-                                <div className="text-[12px] text-neutral-400 font-body">
-                                  No demographic-specific ranges — using default
-                                  range only.
-                                </div>
-                              )}
-                            </div>
+                            ),
                           )}
                         </div>
-                      );
-                    })}
+
+                        {/* Metric rows */}
+                        {catMetrics.map((m) => {
+                          const metricRanges = rangesByMetric.get(m.id) ?? [];
+                          const hasDemographicRanges = metricRanges.length > 0;
+                          const isMetricExpanded = expandedMetric === m.id;
+                          const aliasList = m.aliases.slice(0, 4);
+                          const moreAliases =
+                            m.aliases.length > 4 ? m.aliases.length - 4 : 0;
+
+                          return (
+                            <div key={m.id}>
+                              <div
+                                className="grid grid-cols-[1.6fr_1fr_1.4fr_0.8fr] items-center gap-3 border-b border-neutral-100 px-5 py-3.5 transition-colors hover:bg-neutral-50 cursor-pointer"
+                                onClick={() =>
+                                  setExpandedMetric(
+                                    isMetricExpanded ? null : m.id,
+                                  )
+                                }
+                              >
+                                {/* Name + description */}
+                                <div>
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-sm font-medium text-neutral-900 font-body">
+                                      {m.name}
+                                    </span>
+                                    {hasDemographicRanges && (
+                                      <StatusBadge
+                                        status="info"
+                                        label={`${metricRanges.length} range${metricRanges.length !== 1 ? "s" : ""}`}
+                                      />
+                                    )}
+                                  </div>
+                                  {m.description && (
+                                    <div className="mt-0.5 text-[11px] text-neutral-400 font-mono">
+                                      {m.description}
+                                    </div>
+                                  )}
+                                </div>
+
+                                {/* Unit */}
+                                <div className="text-xs text-neutral-600 font-mono">
+                                  {m.unit ?? "—"}
+                                </div>
+
+                                {/* Default range */}
+                                <div className="text-xs text-neutral-600 font-mono">
+                                  {formatRange(
+                                    m.referenceRangeLow,
+                                    m.referenceRangeHigh,
+                                    m.unit,
+                                  )}
+                                </div>
+
+                                {/* Aliases preview */}
+                                <div className="flex flex-wrap gap-1">
+                                  {aliasList.map((a: string) => (
+                                    <span
+                                      key={a}
+                                      className="inline-block rounded bg-neutral-100 px-1.5 py-0.5 text-[10px] text-neutral-500 font-mono"
+                                    >
+                                      {a}
+                                    </span>
+                                  ))}
+                                  {moreAliases > 0 && (
+                                    <span className="inline-block rounded bg-neutral-100 px-1.5 py-0.5 text-[10px] text-neutral-400 font-mono">
+                                      +{moreAliases}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+
+                              {/* Expanded detail: demographic ranges */}
+                              {isMetricExpanded && (
+                                <div className="border-b border-neutral-100 bg-neutral-50/50 px-5 py-4">
+                                  <div className="mb-3 flex flex-wrap gap-1.5">
+                                    {m.aliases.map((a: string) => (
+                                      <span
+                                        key={a}
+                                        className="inline-block rounded-full border border-neutral-200 bg-white px-2.5 py-0.5 text-[11px] text-neutral-600 font-mono"
+                                      >
+                                        {a}
+                                      </span>
+                                    ))}
+                                  </div>
+
+                                  {m.loincCode && (
+                                    <div className="mb-3 text-[11px] text-neutral-400 font-mono">
+                                      LOINC: {m.loincCode}
+                                    </div>
+                                  )}
+
+                                  {metricRanges.length > 0 ? (
+                                    <div>
+                                      <div className="mb-2 text-[12px] font-medium text-neutral-700 font-body">
+                                        Reference Ranges
+                                      </div>
+                                      <div className="card">
+                                        <div className="grid grid-cols-[1fr_1fr_1fr_1.2fr] gap-3 border-b border-neutral-200 bg-neutral-50 px-4 py-2">
+                                          {[
+                                            "Sex",
+                                            "Age",
+                                            "Range",
+                                            "Source",
+                                          ].map((h) => (
+                                            <div
+                                              key={h}
+                                              className="text-[10px] font-semibold uppercase tracking-[0.04em] text-neutral-400 font-mono"
+                                            >
+                                              {h}
+                                            </div>
+                                          ))}
+                                        </div>
+                                        {metricRanges.map((r) => {
+                                          const isUserMatch =
+                                            userSex &&
+                                            (r.sex === null ||
+                                              r.sex === userSex);
+
+                                          return (
+                                            <div
+                                              key={r.id}
+                                              className={`grid grid-cols-[1fr_1fr_1fr_1.2fr] items-center gap-3 border-b border-neutral-100 px-4 py-2.5 ${
+                                                isUserMatch
+                                                  ? "bg-accent-50/40"
+                                                  : ""
+                                              }`}
+                                            >
+                                              <div className="flex items-center gap-1.5">
+                                                <span className="text-xs text-neutral-700 font-mono">
+                                                  {r.sex
+                                                    ? r.sex
+                                                        .charAt(0)
+                                                        .toUpperCase() +
+                                                      r.sex.slice(1)
+                                                    : "Any"}
+                                                </span>
+                                                {isUserMatch && r.sex && (
+                                                  <span className="inline-block size-1.5 rounded-full bg-accent-500" />
+                                                )}
+                                              </div>
+                                              <div className="text-xs text-neutral-600 font-mono">
+                                                {r.ageMin != null &&
+                                                r.ageMax != null
+                                                  ? `${r.ageMin}–${r.ageMax}`
+                                                  : r.ageMin != null
+                                                    ? `${r.ageMin}+`
+                                                    : r.ageMax != null
+                                                      ? `≤ ${r.ageMax}`
+                                                      : "Any"}
+                                              </div>
+                                              <div className="text-xs font-medium text-neutral-900 font-mono">
+                                                {formatRange(
+                                                  r.rangeLow,
+                                                  r.rangeHigh,
+                                                  m.unit,
+                                                )}
+                                              </div>
+                                              <div className="text-[11px] text-neutral-400 font-mono">
+                                                {r.source ?? "—"}
+                                              </div>
+                                            </div>
+                                          );
+                                        })}
+                                      </div>
+                                    </div>
+                                  ) : (
+                                    <div className="text-[12px] text-neutral-400 font-body">
+                                      No demographic-specific ranges — using
+                                      default range only.
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </>
+                    )}
                   </div>
                 );
               })}
