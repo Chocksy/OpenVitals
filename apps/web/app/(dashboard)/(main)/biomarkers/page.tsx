@@ -57,6 +57,7 @@ export default function BiomarkersPage() {
     CATEGORY_ORDER[0],
   );
   const observerRef = useRef<IntersectionObserver | null>(null);
+  const isScrollingRef = useRef(false);
 
   const isLoading = metricsLoading || rangesLoading;
 
@@ -136,6 +137,7 @@ export default function BiomarkersPage() {
 
     const observer = new IntersectionObserver(
       (entries) => {
+        if (isScrollingRef.current) return;
         for (const entry of entries) {
           if (entry.isIntersecting) {
             const cat = entry.target.id.replace("biomarker-cat-", "");
@@ -160,7 +162,20 @@ export default function BiomarkersPage() {
   const handleCategoryClick = useCallback((category: string) => {
     const el = document.getElementById(`biomarker-cat-${category}`);
     if (el) {
+      isScrollingRef.current = true;
+      setActiveCategory(category);
       el.scrollIntoView({ behavior: "smooth", block: "start" });
+
+      // Re-enable observer after scroll settles
+      let scrollTimer: ReturnType<typeof setTimeout>;
+      const onScroll = () => {
+        clearTimeout(scrollTimer);
+        scrollTimer = setTimeout(() => {
+          isScrollingRef.current = false;
+          window.removeEventListener("scroll", onScroll);
+        }, 100);
+      };
+      window.addEventListener("scroll", onScroll);
     }
   }, []);
 
