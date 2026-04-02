@@ -120,7 +120,26 @@ export const importJobsRouter = createRouter({
         importJobId: input.id,
         userId: ctx.userId,
       });
-      return { job, observations };
+
+      // Fetch flagged extractions (unmatched items)
+      const flaggedResult = await ctx.db.execute(
+        `SELECT id, analyte, value_numeric, value_text, unit, reference_range_low, reference_range_high, reference_range_text, is_abnormal, observed_at, flag_reason, flag_details, resolved, resolved_metric_code
+         FROM flagged_extractions
+         WHERE import_job_id = '${input.id}' AND user_id = '${ctx.userId}'
+         ORDER BY analyte`
+      );
+      const flaggedExtractions = (flaggedResult as any).rows ?? [];
+
+      // Filter out duplicates: if a flagged item's value+unit matches a stored observation, mark it
+      const storedValues = new Set(
+        observations.map((o) => `${o.valueNumeric}|${o.unit}`)
+      );
+      const genuinelyUnmatched = flaggedExtractions.filter((f: any) => {
+        const key = `${f.value_numeric}|${f.unit}`;
+        return !storedValues.has(key);
+      });
+
+      return { job, observations, flaggedExtractions: genuinelyUnmatched };
     }),
 
   delete: protectedProcedure

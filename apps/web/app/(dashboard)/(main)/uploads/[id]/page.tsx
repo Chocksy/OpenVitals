@@ -142,7 +142,7 @@ export default function ImportJobDetailPage({
       />
 
       {/* Summary cards */}
-      <div className="mt-7 grid grid-cols-2 gap-3 sm:grid-cols-4">
+      <div className="mt-7 grid grid-cols-2 gap-3 sm:grid-cols-5">
         <SummaryCard label="Total extracted" value={stats.total} />
         <SummaryCard
           label="Abnormal"
@@ -158,6 +158,11 @@ export default function ImportJobDetailPage({
           label="Pending review"
           value={stats.pending}
           variant={stats.pending > 0 ? "accent" : "default"}
+        />
+        <SummaryCard
+          label="Unmatched"
+          value={data?.flaggedExtractions?.length ?? 0}
+          variant={(data?.flaggedExtractions?.length ?? 0) > 0 ? "warning" : "default"}
         />
       </div>
 
@@ -198,6 +203,60 @@ export default function ImportJobDetailPage({
           ))
         )}
       </div>
+
+      {/* Unmatched / flagged extractions */}
+      {data.flaggedExtractions && data.flaggedExtractions.length > 0 && (
+        <div className="mt-8">
+          <div className="flex items-center gap-2 mb-4">
+            <AlertTriangle className="h-4 w-4 text-amber-500" />
+            <h3 className="text-base font-semibold text-neutral-900">
+              Unmatched Results
+            </h3>
+            <span className="text-xs text-neutral-400">
+              {data.flaggedExtractions.length} items could not be matched to known biomarkers
+            </span>
+          </div>
+          <div className="card overflow-hidden">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-neutral-100 text-left text-[11px] font-semibold uppercase tracking-[0.04em] text-neutral-400 font-mono">
+                  <th className="px-4 py-3">Analyte (from PDF)</th>
+                  <th className="px-4 py-3">Value</th>
+                  <th className="px-4 py-3">Unit</th>
+                  <th className="px-4 py-3">Reference Range</th>
+                  <th className="px-4 py-3">Reason</th>
+                </tr>
+              </thead>
+              <tbody>
+                {data.flaggedExtractions.map((f: any) => (
+                  <tr key={f.id} className="border-b border-neutral-50 last:border-0">
+                    <td className="px-4 py-3 font-medium text-neutral-900">{f.analyte}</td>
+                    <td className="px-4 py-3 font-mono text-neutral-700">
+                      {f.value_numeric ?? f.value_text ?? "—"}
+                    </td>
+                    <td className="px-4 py-3 text-neutral-500">{f.unit ?? "—"}</td>
+                    <td className="px-4 py-3 text-neutral-400 text-xs">
+                      {f.reference_range_text ?? (f.reference_range_low != null || f.reference_range_high != null ? `${f.reference_range_low ?? "?"} - ${f.reference_range_high ?? "?"}` : "—")}
+                    </td>
+                    <td className="px-4 py-3">
+                      <span className="inline-flex items-center rounded-full bg-amber-50 px-2.5 py-0.5 text-xs font-medium text-amber-700">
+                        {f.flag_reason === "unmatched_metric" ? "No matching biomarker" :
+                         f.flag_reason === "ambiguous_unit" ? "Unit mismatch" :
+                         f.flag_reason === "low_confidence" ? "Low confidence" :
+                         f.flag_reason}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <p className="mt-2 text-xs text-neutral-400">
+            These values were extracted by AI but could not be matched to existing biomarker definitions.
+            Future: assign to existing metrics or create new ones.
+          </p>
+        </div>
+      )}
     </div>
   );
 }
