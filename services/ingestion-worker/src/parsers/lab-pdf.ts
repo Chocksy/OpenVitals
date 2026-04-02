@@ -8,6 +8,9 @@ import { extractLabsPrompt } from '@openvitals/ai';
 import type { WorkflowContext } from '../workflow';
 import type { ParseResult, RawExtraction } from '@openvitals/ingestion';
 
+const OCR_MODEL = process.env.AI_OCR_MODEL ?? 'google/gemini-2.5-flash';
+const MIN_TEXT_LENGTH = 50; // Below this, assume scanned/image PDF
+
 export async function parseLabPdf(ctx: WorkflowContext): Promise<ParseResult> {
   const db = getDb();
 
@@ -44,14 +47,89 @@ export async function parseLabPdf(ctx: WorkflowContext): Promise<ParseResult> {
 
   console.log(`[lab-pdf] Extracted ${textContent.length} chars from artifact=${ctx.artifactId}`);
 
-  // Send to AI for structured extraction
   const openrouter = createOpenRouter({ apiKey: process.env.OPENROUTER_API_KEY });
-  const modelId = process.env.AI_DEFAULT_MODEL ?? 'anthropic/claude-sonnet-4';
-  const { text } = await generateText({
-    model: openrouter(modelId),
-    system: extractLabsPrompt,
-    prompt: textContent.slice(0, 30000),
-  });
+  let text: string;
+
+  if (textContent.trim().length >= MIN_TEXT_LENGTH) {
+    // Digital PDF - use text extraction + AI parsing
+    const modelId = process.env.AI_DEFAULT_MODEL ?? 'google/gemini-2.5-flash';
+    const result = await generateText({
+      model: openrouter(modelId),
+      system: extractLabsPrompt,
+      prompt: textContent.slice(0, 30000),
+    });
+    text = result.text;
+  } else {
+    // Scanned/image PDF - use vision model with rendered pages
+    console.log(`[lab-pdf] Text too short (${textContent.trim().length} chars), using OCR via ${OCR_MODEL}`);
+
+    const storage = createBlobStorage();
+    const blob = await storage.download(artifact.blobPath);
+    const chunks: Uint8Array[] = [];
+    const reader = blob.data.getReader();
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      if (value) chunks.push(value);
+    }
+    const pdfBuffer = Buffer.concat(chunks);
+
+    // Render PDF pages to images using pdfjs-dist
+    const { getDocument } = await import('pdfjs-dist/legacy/build/pdf.mjs');
+    const doc = await getDocument({ data: new Uint8Array(pdfBuffer) }).promise;
+    const pageImages: string[] = [];
+
+    for (let i = 1; i <= Math.min(doc.numPages, 10); i++) {
+      const page = await doc.getPage(i);
+      const viewport = page.getViewport({ scale: 2.0 }); // 2x for readability
+
+      // Create canvas-like rendering using node-canvas or sharp
+      // pdfjs-dist needs a canvas - use the OffscreenCanvas or render to PNG via sharp
+      // Simplest approach: send the PDF directly as base64 to Gemini (it supports PDF input)
+      // Actually, Gemini Flash supports PDF files directly via OpenRouter
+      break; // We'll send the whole PDF as a file
+    }
+    doc.destroy();
+
+    // Send PDF as base64 directly to vision model via OpenRouter raw API
+    // The AI SDK's file type isn't well-supported across providers, so use raw fetch
+    const pdfBase64 = pdfBuffer.toString('base64');
+    console.log(`[lab-pdf] Sending ${(pdfBuffer.length / 1024).toFixed(0)}KB PDF to ${OCR_MODEL} for OCR`);
+
+    const ocrResponse = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${process.env.OPENROUTER_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: OCR_MODEL,
+        messages: [{
+          role: 'user',
+          content: [
+            {
+              type: 'image_url',
+              image_url: { url: `data:application/pdf;base64,${pdfBase64}` },
+            },
+            {
+              type: 'text',
+              text: 'Extract all lab test results from this scanned lab report. ' + extractLabsPrompt,
+            },
+          ],
+        }],
+        temperature: 0,
+      }),
+    });
+
+    const ocrData = await ocrResponse.json();
+    if (ocrData.error) {
+      console.error('[lab-pdf] OCR API error:', ocrData.error);
+      text = '{}';
+    } else {
+      text = ocrData.choices[0].message.content;
+      console.log(`[lab-pdf] OCR response: ${text.length} chars`);
+    }
+  }
 
   let parsed: any;
   try {

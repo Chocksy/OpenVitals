@@ -65,6 +65,24 @@ export async function classify(ctx: WorkflowContext): Promise<ClassificationResu
     .set({ rawTextExtracted: textContent.slice(0, 50000) })
     .where(eq(sourceArtifacts.id, ctx.artifactId));
 
+  // If text extraction yielded almost nothing for a PDF, it's likely scanned.
+  // Auto-classify as lab_report (most common document type for blood work PDFs)
+  if (artifact.mimeType === 'application/pdf' && textContent.trim().length < 50) {
+    console.log(`[classify] Scanned PDF detected (${textContent.trim().length} chars), auto-classifying as lab_report`);
+    const scannedResult: ClassificationResult = {
+      documentType: 'lab_report',
+      confidence: 0.8,
+      reasoning: 'Scanned PDF with minimal extractable text - assuming lab report for OCR processing',
+    };
+    await db.update(importJobs)
+      .set({ classifiedType: scannedResult.documentType, classificationConfidence: scannedResult.confidence, classifyCompletedAt: new Date() })
+      .where(eq(importJobs.id, ctx.importJobId));
+    await db.update(sourceArtifacts)
+      .set({ classifiedType: scannedResult.documentType, classificationConfidence: scannedResult.confidence })
+      .where(eq(sourceArtifacts.id, ctx.artifactId));
+    return scannedResult;
+  }
+
   // Classify with AI
   const openrouter = createOpenRouter({ apiKey: process.env.OPENROUTER_API_KEY });
   const modelId = process.env.AI_DEFAULT_MODEL ?? 'anthropic/claude-sonnet-4';
