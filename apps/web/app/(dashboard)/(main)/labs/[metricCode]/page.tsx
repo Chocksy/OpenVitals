@@ -9,11 +9,10 @@ import {
 } from "@/components/health/status-badge";
 import { TrendChart } from "@/components/health/trend-chart";
 import {
-  deriveStatus,
   deriveOptimalStatus,
   formatRange,
-  type CanonicalRanges,
 } from "@/lib/health-utils";
+import { useDynamicStatus } from "@/hooks/use-dynamic-status";
 import { cn, formatDate, formatObsValue, isDurationMetric } from "@/lib/utils";
 import { DataTable, type DataTableColumn } from "@/components/data-table";
 import { Pill, TrendingUp, TrendingDown, Minus } from "lucide-react";
@@ -78,6 +77,7 @@ export default function LabDetailPage({
   params: Promise<{ metricCode: string }>;
 }) {
   const { metricCode } = use(params);
+  const { getStatus, getRanges } = useDynamicStatus();
 
   const { data, isLoading } = trpc.observations.list.useQuery({
     metricCode,
@@ -93,17 +93,11 @@ export default function LabDetailPage({
   const displayPrecision = metricDef?.displayPrecision ?? null;
   const showOptimal = prefsData?.showOptimalRanges ?? true;
   const optimalRange = optimalRangesData?.[metricCode] ?? null;
-  // Build canonical ranges for dynamic status calculation
-  // Priority: optimal range > metric definition reference range
-  const canonRanges: CanonicalRanges = useMemo(() => ({
-    optimalLow: optimalRange?.rangeLow,
-    optimalHigh: optimalRange?.rangeHigh,
-    referenceLow: metricDef?.referenceRangeLow,
-    referenceHigh: metricDef?.referenceRangeHigh,
-  }), [optimalRange, metricDef]);
+  // Get canonical ranges from the dynamic status hook
+  const canonRanges = getRanges(metricCode);
   // Display the active range used for status (optimal first, then reference)
-  const activeRangeLow = canonRanges.optimalLow ?? canonRanges.referenceLow;
-  const activeRangeHigh = canonRanges.optimalHigh ?? canonRanges.referenceHigh;
+  const activeRangeLow = canonRanges?.optimalLow ?? canonRanges?.referenceLow;
+  const activeRangeHigh = canonRanges?.optimalHigh ?? canonRanges?.referenceHigh;
   const canonicalRange = formatRange(activeRangeLow, activeRangeHigh, metricDef?.unit);
 
   const items = data?.items ?? [];
@@ -158,7 +152,7 @@ export default function LabDetailPage({
         header: "Value",
         width: "0.8fr",
         cell: (obs) => {
-          const obsStatus = deriveStatus(obs, canonRanges);
+          const obsStatus = getStatus(obs);
           const isAbn = obsStatus !== "normal";
           return (
             <div className="flex items-baseline gap-1.5">
@@ -209,7 +203,7 @@ export default function LabDetailPage({
         header: "Status",
         width: "0.8fr",
         cell: (obs) => {
-          const obsStatus = deriveStatus(obs, canonRanges);
+          const obsStatus = getStatus(obs);
           return obsStatus !== "normal" ? (
             <StatusBadge
               status={obsStatus}
@@ -241,7 +235,7 @@ export default function LabDetailPage({
   const latest = sorted[0];
   const previous = sorted[1];
   const metricName = formatMetricName(metricCode);
-  const status: HealthStatus = latest ? deriveStatus(latest, canonRanges) : "neutral";
+  const status: HealthStatus = latest ? getStatus(latest) : "neutral";
 
   const [timeRange, setTimeRange] = useState<TimeRangeKey>("all");
 
@@ -499,7 +493,7 @@ export default function LabDetailPage({
         rowConfig={{
           getRowKey: (obs) => obs.id,
           getRowTint: (obs) =>
-            deriveStatus(obs, canonRanges) !== "normal"
+            getStatus(obs) !== "normal"
               ? "bg-health-warning-bg/40"
               : undefined,
         }}
@@ -514,6 +508,7 @@ function MetricContext({
   metricName,
 }: {
   observations: Array<{
+    metricCode: string;
     valueNumeric?: number | null;
     isAbnormal?: boolean | null;
     observedAt: string | Date;
@@ -528,6 +523,7 @@ function MetricContext({
   }>;
   metricName: string;
 }) {
+  const { isAbnormal: isObsAbnormal } = useDynamicStatus();
   if (observations.length < 2) return null;
 
   const oldest = new Date(observations[observations.length - 1]!.observedAt).getTime();
@@ -554,7 +550,7 @@ function MetricContext({
   const secondAvg = secondHalf.reduce((s, v) => s + v, 0) / secondHalf.length;
   const changePct = firstAvg !== 0 ? ((secondAvg - firstAvg) / Math.abs(firstAvg)) * 100 : 0;
 
-  const latestAbnormal = observations[0]?.isAbnormal;
+  const latestAbnormal = observations[0] ? isObsAbnormal(observations[0]) : null;
   const trendDirection = Math.abs(changePct) < 3 ? 'stable' : changePct > 0 ? 'rising' : 'falling';
 
   if (overlapping.length === 0 && trendDirection === 'stable') return null;

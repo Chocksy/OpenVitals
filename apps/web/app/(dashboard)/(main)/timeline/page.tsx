@@ -2,6 +2,7 @@
 
 import { useMemo } from "react";
 import { trpc } from "@/lib/trpc/client";
+import { useDynamicStatus } from "@/hooks/use-dynamic-status";
 import { TitleActionHeader } from "@/components/title-action-header";
 import { StatusBadge } from "@/components/health/status-badge";
 import { ProvenancePill } from "@/components/health/provenance-pill";
@@ -49,6 +50,7 @@ function getMonthKey(date: Date): string {
 }
 
 export default function TimelinePage() {
+  const { isAbnormal: isObsAbnormal } = useDynamicStatus();
   const observations = trpc.observations.list.useQuery({ limit: 200 });
   const importJobs = trpc.importJobs.list.useQuery({ limit: 20 });
   const medications = trpc.medications.list.useQuery({});
@@ -79,7 +81,7 @@ export default function TimelinePage() {
 
     for (const [key, group] of obsByJob) {
       const first = group[0]!;
-      const abnormalCount = group.filter((o) => o.isAbnormal).length;
+      const abnormalCount = group.filter((o) => isObsAbnormal(o)).length;
       const metricNames = group
         .map((o) => o.metricCode.replace(/_/g, " "))
         .slice(0, 3);

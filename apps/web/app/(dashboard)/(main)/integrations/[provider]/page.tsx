@@ -6,7 +6,8 @@ import { TitleActionHeader } from '@/components/title-action-header';
 import { StatusBadge, type HealthStatus } from '@/components/health/status-badge';
 import { MetricSummaryCard } from '@/components/health/metric-summary-card';
 import { DataTable, type DataTableColumn } from '@/components/data-table';
-import { deriveStatus, formatRange } from '@/lib/health-utils';
+import { formatRange } from '@/lib/health-utils';
+import { useDynamicStatus } from '@/hooks/use-dynamic-status';
 import { cn, formatDate, formatObsValue, isDurationMetric, getRelativeTime } from '@/lib/utils';
 import { Avatar } from '@/components/avatar';
 import { Button } from '@/components/button';
@@ -101,6 +102,7 @@ export default function IntegrationDetailPage({
   params: Promise<{ provider: string }>;
 }) {
   const { provider } = use(params);
+  const { getStatus, isAbnormal: isObsAbnormal } = useDynamicStatus();
 
   const { data, isLoading } = trpc.integrations.detail.useQuery({ provider });
   const { data: metricsData } = trpc.metrics.list.useQuery();
@@ -146,7 +148,7 @@ export default function IntegrationDetailPage({
       .map(([code, items]) => {
         // items are already sorted desc by observedAt from the query
         const latest = items[0]!;
-        const status: HealthStatus = deriveStatus(latest);
+        const status: HealthStatus = getStatus(latest);
         const sparkData = items
           .slice(0, 20)
           .reverse()
@@ -202,13 +204,13 @@ export default function IntegrationDetailPage({
         header: 'Value',
         width: '0.8fr',
         cell: (obs) => {
-          const obsStatus = deriveStatus(obs);
+          const obsStatus = getStatus(obs);
           return (
             <div className="flex items-baseline gap-1.5">
               <span
                 className={cn(
                   'text-[15px] font-semibold tracking-[-0.01em] font-mono tabular-nums',
-                  obs.isAbnormal
+                  isObsAbnormal(obs)
                     ? obsStatus === 'critical'
                       ? 'text-[var(--color-health-critical)]'
                       : 'text-[var(--color-health-warning)]'
@@ -232,7 +234,7 @@ export default function IntegrationDetailPage({
         ),
       },
     ],
-    [precisionMap],
+    [precisionMap, getStatus, isObsAbnormal],
   );
 
   function handleSync() {
@@ -466,7 +468,7 @@ export default function IntegrationDetailPage({
             rowConfig={{
               getRowKey: (obs) => obs.id,
               getRowTint: (obs) =>
-                obs.isAbnormal ? 'bg-[var(--color-health-warning-bg)]/40' : undefined,
+                isObsAbnormal(obs) ? 'bg-[var(--color-health-warning-bg)]/40' : undefined,
             }}
           />
         </>

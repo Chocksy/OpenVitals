@@ -3,7 +3,7 @@
 import { useMemo, useRef, useState } from 'react';
 import { trpc } from '@/lib/trpc/client';
 import { useSession } from '@/lib/auth/client';
-import { deriveStatus } from '@/lib/health-utils';
+import { useDynamicStatus } from '@/hooks/use-dynamic-status';
 import { formatDate, formatObsValue } from '@/lib/utils';
 import { StatusBadge, type HealthStatus } from '@/components/health/status-badge';
 import { MiniSparkline } from '@/components/health/mini-sparkline';
@@ -71,6 +71,7 @@ type DateRangeKey = (typeof DATE_RANGES)[number]['key'];
 
 export default function ReportsPage() {
   const { data: session } = useSession();
+  const { getStatus } = useDynamicStatus();
   const observations = trpc.observations.list.useQuery({ limit: 200 });
   const medications = trpc.medications.list.useQuery({});
   const conditions = trpc.conditions.list.useQuery();
@@ -124,7 +125,7 @@ export default function ReportsPage() {
         (a, b) => new Date(b.observedAt).getTime() - new Date(a.observedAt).getTime(),
       );
       const latest = sorted[0]!;
-      const status = deriveStatus(latest);
+      const status = getStatus(latest);
       const def = defMap.get(code);
       const sparkData = sorted.slice(0, 8).reverse().map((o) => o.valueNumeric ?? 0);
       const category = latest.category ?? 'other';

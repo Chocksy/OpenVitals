@@ -7,7 +7,8 @@ import {
   StatusBadge,
   type HealthStatus,
 } from "@/components/health/status-badge";
-import { deriveStatus, formatRange } from "@/lib/health-utils";
+import { formatRange } from "@/lib/health-utils";
+import { useDynamicStatus } from "@/hooks/use-dynamic-status";
 import { cn, formatDate, formatObsValue } from "@/lib/utils";
 import { DOC_TYPE_LABELS, IMPORT_JOB_STATUS_MAP } from "@/lib/constants";
 import {
@@ -33,6 +34,7 @@ export default function ImportJobDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = use(params);
+  const { getStatus, isAbnormal: isObsAbnormal } = useDynamicStatus();
   const utils = trpc.useUtils();
 
   const { data, isLoading } = trpc.importJobs.getDetail.useQuery({ id });
@@ -72,7 +74,7 @@ export default function ImportJobDetailPage({
     if (!data?.observations)
       return { total: 0, abnormal: 0, confirmed: 0, pending: 0 };
     const total = data.observations.length;
-    const abnormal = data.observations.filter((o) => o.isAbnormal).length;
+    const abnormal = data.observations.filter((o) => isObsAbnormal(o)).length;
     const confirmed = data.observations.filter(
       (o) => o.status === "confirmed" || o.status === "corrected",
     ).length;
@@ -444,7 +446,8 @@ function CategoryGroup({
   isConfirming: boolean;
   precisionMap: Map<string, number | null>;
 }) {
-  const abnormalCount = observations.filter((o) => o.isAbnormal).length;
+  const { getStatus, isAbnormal: isObsAbnormal } = useDynamicStatus();
+  const abnormalCount = observations.filter((o) => isObsAbnormal(o)).length;
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editValue, setEditValue] = useState("");
   const [editUnit, setEditUnit] = useState("");
@@ -514,7 +517,7 @@ function CategoryGroup({
 
         {/* Rows */}
         {observations.map((obs) => {
-          const healthStatus = deriveStatus(obs);
+          const healthStatus = getStatus(obs);
           const isConfirmed =
             obs.status === "confirmed" || obs.status === "corrected";
           const isPending = obs.status === "extracted";
@@ -526,7 +529,7 @@ function CategoryGroup({
                 className={cn(
                   "grid items-center gap-x-4 border-b border-neutral-100 px-5 py-3 transition-colors last:border-b-0",
                   gridCols,
-                  obs.isAbnormal && "bg-[var(--color-health-warning-bg)]/40",
+                  isObsAbnormal(obs) && "bg-[var(--color-health-warning-bg)]/40",
                 )}
               >
                 {/* Metric name */}
@@ -544,7 +547,7 @@ function CategoryGroup({
                   <span
                     className={cn(
                       "text-[15px] font-semibold tracking-[-0.01em] font-mono tabular-nums",
-                      obs.isAbnormal
+                      isObsAbnormal(obs)
                         ? healthStatus === "critical"
                           ? "text-[var(--color-health-critical)]"
                           : "text-[var(--color-health-warning)]"
@@ -574,7 +577,7 @@ function CategoryGroup({
 
                 {/* Status badge */}
                 <div>
-                  {obs.isAbnormal ? (
+                  {healthStatus !== "normal" ? (
                     <StatusBadge
                       status={healthStatus}
                       label={healthStatus === "critical" ? "High" : "Abnormal"}

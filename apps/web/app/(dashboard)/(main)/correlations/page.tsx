@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import { trpc } from '@/lib/trpc/client';
-import { deriveStatus } from '@/lib/health-utils';
+import { useDynamicStatus } from '@/hooks/use-dynamic-status';
 import { formatDate, formatObsValue } from '@/lib/utils';
 import { StatusBadge, type HealthStatus } from '@/components/health/status-badge';
 import { MiniSparkline } from '@/components/health/mini-sparkline';
@@ -40,6 +40,7 @@ interface MedicationCorrelation {
 }
 
 export default function CorrelationsPage() {
+  const { getStatus } = useDynamicStatus();
   const observations = trpc.observations.list.useQuery({ limit: 200 });
   const medications = trpc.medications.list.useQuery({});
   const metricDefs = trpc.metrics.list.useQuery();
@@ -103,8 +104,8 @@ export default function CorrelationsPage() {
         // Determine if change is improvement, worsening, or unchanged
         const latestBefore = before[before.length - 1]!;
         const latestAfter = after[after.length - 1]!;
-        const beforeStatus = deriveStatus(latestBefore);
-        const afterStatus = deriveStatus(latestAfter);
+        const beforeStatus = getStatus(latestBefore);
+        const afterStatus = getStatus(latestAfter);
 
         let direction: 'improved' | 'worsened' | 'unchanged';
         const statusOrder = { critical: 0, warning: 1, normal: 2 };

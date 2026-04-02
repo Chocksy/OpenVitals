@@ -4,7 +4,7 @@ import { Logo } from '@/assets/app/images/logo';
 import { ChatInput } from './chat-input';
 
 import { trpc } from '@/lib/trpc/client';
-import { deriveStatus } from '@/lib/health-utils';
+import { useDynamicStatus } from '@/hooks/use-dynamic-status';
 import { useMemo } from 'react';
 
 interface InitialViewProps {
@@ -29,6 +29,7 @@ const DEFAULT_SUGGESTIONS = [
 ];
 
 export function InitialView({ input, onInputChange, onSubmit, onSuggestionClick }: InitialViewProps) {
+  const { getStatus } = useDynamicStatus();
   const observations = trpc.observations.list.useQuery({ limit: 200 });
   const medications = trpc.medications.list.useQuery({});
   const conditions = trpc.conditions.list.useQuery();
@@ -53,7 +54,7 @@ export function InitialView({ input, onInputChange, onSubmit, onSuggestionClick 
       const sorted = [...metricObs].sort(
         (a, b) => new Date(b.observedAt).getTime() - new Date(a.observedAt).getTime(),
       );
-      const status = deriveStatus(sorted[0]!);
+      const status = getStatus(sorted[0]!);
       if (status !== 'normal') {
         abnormalMetrics.push(code.replace(/_/g, ' '));
       }

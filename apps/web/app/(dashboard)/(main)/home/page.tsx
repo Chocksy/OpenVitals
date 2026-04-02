@@ -3,7 +3,7 @@
 import { useMemo } from 'react';
 import { trpc } from '@/lib/trpc/client';
 import { useSession } from '@/lib/auth/client';
-import { deriveStatus } from '@/lib/health-utils';
+import { useDynamicStatus } from '@/hooks/use-dynamic-status';
 import { GreetingHeader } from '@/components/home/greeting-header';
 import { OnboardingChecklist, type ChecklistItem } from '@/components/home/onboarding-checklist';
 import { DashboardStats } from '@/components/home/dashboard-stats';
@@ -24,6 +24,7 @@ import { TestTubes, Pill, Upload, MessageSquare, ListChecks, HeartPulse, FileTex
 
 export default function HomePage() {
   const { data: session } = useSession();
+  const { getStatus, isAbnormal: isObsAbnormal } = useDynamicStatus();
   const observations = trpc.observations.list.useQuery({ limit: 200 });
   const medications = trpc.medications.list.useQuery({});
   const importJobs = trpc.importJobs.list.useQuery({ limit: 20 });
@@ -76,7 +77,7 @@ export default function HomePage() {
         (a, b) => new Date(b.observedAt).getTime() - new Date(a.observedAt).getTime(),
       );
       const latest = sorted[0]!;
-      const status = deriveStatus(latest);
+      const status = getStatus(latest);
       if (status === 'critical') {
         criticalCount++;
         flaggedCount++;
@@ -115,7 +116,7 @@ export default function HomePage() {
         (a, b) => new Date(b.observedAt).getTime() - new Date(a.observedAt).getTime(),
       );
       const latest = sorted[0]!;
-      const status = deriveStatus(latest);
+      const status = getStatus(latest);
       if (status === 'normal') continue;
 
       const sparkData = sorted.slice(0, 8).reverse().map((o) => o.valueNumeric ?? 0);
@@ -151,7 +152,7 @@ export default function HomePage() {
       );
       const latest = sorted[0]!;
       const category = latest.category ?? 'other';
-      const status = deriveStatus(latest);
+      const status = getStatus(latest);
 
       const existing = catMap.get(category) ?? { total: 0, normal: 0, warning: 0, critical: 0 };
       existing.total++;
@@ -197,7 +198,7 @@ export default function HomePage() {
   const summaryLine = summaryParts.length > 0
     ? summaryParts.join(' · ')
     : 'Upload your first lab report to get started';
-  const abnormalCount = obsItems.filter((o) => o.isAbnormal).length;
+  const abnormalCount = obsItems.filter((o) => isObsAbnormal(o)).length;
 
   // Onboarding checklist items
   const checklistItems: ChecklistItem[] = [
