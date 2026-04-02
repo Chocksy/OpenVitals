@@ -5,6 +5,7 @@ import { emitEvent } from '@openvitals/events';
 import { classify } from './steps/classify';
 import { parse } from './steps/parse';
 import { normalize } from './steps/normalize';
+import { autoIdentify } from './steps/auto-identify';
 import { materialize } from './steps/materialize';
 
 export interface WorkflowContext {
@@ -43,11 +44,15 @@ export async function processWorkflow(ctx: WorkflowContext): Promise<void> {
     }
 
     // Step 3: Normalize extractions
-    const normalization = await normalize(ctx, parseResult.extractions);
+    const { result: normalization, metricDefs, unitConversions, demographics } = await normalize(ctx, parseResult.extractions);
     console.log(`[workflow] Normalized ${normalization.normalized.length}, flagged ${normalization.flagged.length}`);
 
+    // Step 3.5: Auto-identify unmatched items via LLM
+    const finalNormalization = await autoIdentify(ctx, normalization, metricDefs, unitConversions, demographics);
+    console.log(`[workflow] After auto-identify: ${finalNormalization.normalized.length} normalized, ${finalNormalization.flagged.length} flagged`);
+
     // Step 4: Materialize to database
-    await materialize(ctx, normalization);
+    await materialize(ctx, finalNormalization);
     console.log(`[workflow] Materialized. Job complete.`);
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);

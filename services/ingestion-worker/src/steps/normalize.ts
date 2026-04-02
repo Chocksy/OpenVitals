@@ -6,10 +6,17 @@ import type { RawExtraction, NormalizationResult } from '@openvitals/ingestion';
 import { normalizeExtractions } from '@openvitals/ingestion';
 import type { UserDemographics, DemographicRange } from '@openvitals/ingestion';
 
+export interface NormalizeOutput {
+  result: NormalizationResult;
+  metricDefs: any[];
+  unitConversions: any[];
+  demographics: any;
+}
+
 export async function normalize(
   ctx: WorkflowContext,
   extractions: RawExtraction[]
-): Promise<NormalizationResult> {
+): Promise<NormalizeOutput> {
   const db = getDb();
 
   await db.update(importJobs)
@@ -95,5 +102,5 @@ export async function normalize(
     }
   }
 
-  return result;
+  return { result, metricDefs, unitConversions: unitConvs, demographics };
 }
