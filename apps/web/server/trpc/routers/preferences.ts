@@ -23,7 +23,7 @@ export const preferencesRouter = createRouter({
     return {
       timezone: user?.timezone ?? "UTC",
       preferredUnits: user?.preferredUnits ?? "metric",
-      aiModel: user?.aiModel ?? "claude-sonnet-4-20250514",
+      aiModel: user?.aiModel ?? "claude-sonnet-4",
       dateOfBirth: user?.dateOfBirth ?? null,
       biologicalSex: user?.biologicalSex ?? null,
       bloodType: user?.bloodType ?? null,

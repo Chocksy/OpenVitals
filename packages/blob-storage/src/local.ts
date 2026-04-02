@@ -50,7 +50,15 @@ export class LocalFSAdapter implements BlobStorageProvider {
     contentType: string;
     size: number;
   }> {
-    const fullPath = this.resolvePath(filePath);
+    // Handle file:// URLs stored by upload() - resolve to absolute path directly
+    let fullPath: string;
+    if (filePath.startsWith('file://')) {
+      fullPath = filePath.replace('file://', '');
+    } else if (path.isAbsolute(filePath)) {
+      fullPath = filePath;
+    } else {
+      fullPath = this.resolvePath(filePath);
+    }
     const buffer = await fs.readFile(fullPath);
     const stat = await fs.stat(fullPath);
 
@@ -70,18 +78,24 @@ export class LocalFSAdapter implements BlobStorageProvider {
     };
   }
 
+  private resolvePathSafe(filePath: string): string {
+    if (filePath.startsWith('file://')) return filePath.replace('file://', '');
+    if (path.isAbsolute(filePath)) return filePath;
+    return this.resolvePath(filePath);
+  }
+
   async getSignedUrl(filePath: string, _expiresIn?: number): Promise<string> {
-    const fullPath = this.resolvePath(filePath);
+    const fullPath = this.resolvePathSafe(filePath);
     return `file://${fullPath}`;
   }
 
   async delete(filePath: string): Promise<void> {
-    const fullPath = this.resolvePath(filePath);
+    const fullPath = this.resolvePathSafe(filePath);
     await fs.unlink(fullPath);
   }
 
   async exists(filePath: string): Promise<boolean> {
-    const fullPath = this.resolvePath(filePath);
+    const fullPath = this.resolvePathSafe(filePath);
     try {
       await fs.access(fullPath);
       return true;

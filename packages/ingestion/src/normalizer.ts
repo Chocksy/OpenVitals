@@ -35,7 +35,8 @@ export interface UnitConversion {
 
 export function matchMetric(
   analyte: string,
-  metricDefinitions: MetricDefinition[]
+  metricDefinitions: MetricDefinition[],
+  unit?: string | null
 ): MetricDefinition | null {
   const lower = analyte.toLowerCase().trim();
 
@@ -54,12 +55,32 @@ export function matchMetric(
   if (aliasMatch) return aliasMatch;
 
   // Partial match (analyte contains metric name or vice versa)
-  const partialMatch = metricDefinitions.find(m =>
+  // When multiple partial matches exist, use unit to disambiguate
+  const partialMatches = metricDefinitions.filter(m =>
     lower.includes(m.name.toLowerCase()) || m.name.toLowerCase().includes(lower)
   );
-  if (partialMatch) return partialMatch;
 
-  return null;
+  if (partialMatches.length === 1) return partialMatches[0]!;
+
+  if (partialMatches.length > 1 && unit) {
+    const unitLower = unit.toLowerCase();
+    const isPercentage = unitLower === '%';
+    const isAbsolute = !isPercentage;
+
+    // For differentials: pick _pct for %, _abs for count units
+    const unitMatch = partialMatches.find(m => {
+      if (isPercentage && (m.id.endsWith('_pct') || m.unit === '%')) return true;
+      if (isAbsolute && (m.id.endsWith('_abs') || (m.unit && m.unit !== '%'))) return true;
+      return false;
+    });
+    if (unitMatch) return unitMatch;
+
+    // If no unit-based match, try matching by unit compatibility
+    const sameUnit = partialMatches.find(m => m.unit && m.unit.toLowerCase() === unitLower);
+    if (sameUnit) return sameUnit;
+  }
+
+  return partialMatches[0] ?? null;
 }
 
 export function convertUnit(
@@ -172,7 +193,7 @@ export function normalizeExtractions(
   const flagged: FlaggedExtraction[] = [];
 
   for (const extraction of extractions) {
-    const metric = matchMetric(extraction.analyte, metricDefinitions);
+    const metric = matchMetric(extraction.analyte, metricDefinitions, extraction.unit);
 
     if (!metric) {
       flagged.push({

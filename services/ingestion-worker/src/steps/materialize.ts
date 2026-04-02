@@ -51,6 +51,34 @@ export async function materialize(
     }
   }
 
+  // Save flagged extractions to DB so the UI can show them
+  if (flagged.length > 0) {
+    const flaggedRows = flagged.map((f) => ({
+      importJobId: ctx.importJobId,
+      userId: ctx.userId,
+      analyte: f.extraction.analyte,
+      valueNumeric: f.extraction.value,
+      valueText: f.extraction.valueText,
+      unit: f.extraction.unit,
+      referenceRangeLow: f.extraction.referenceRangeLow,
+      referenceRangeHigh: f.extraction.referenceRangeHigh,
+      referenceRangeText: f.extraction.referenceRangeText,
+      isAbnormal: f.extraction.isAbnormal,
+      observedAt: f.extraction.observedAt ? new Date(f.extraction.observedAt) : null,
+      flagReason: f.reason,
+      flagDetails: f.details,
+    }));
+
+    // Use raw SQL since this table isn't in the Drizzle schema yet
+    const rawDb = getDb();
+    for (const row of flaggedRows) {
+      await rawDb.execute(
+        `INSERT INTO flagged_extractions (import_job_id, user_id, analyte, value_numeric, value_text, unit, reference_range_low, reference_range_high, reference_range_text, is_abnormal, observed_at, flag_reason, flag_details) VALUES ('${row.importJobId}', '${row.userId}', '${row.analyte.replace(/'/g, "''")}', ${row.valueNumeric ?? 'NULL'}, ${row.valueText ? `'${row.valueText.replace(/'/g, "''")}'` : 'NULL'}, ${row.unit ? `'${row.unit}'` : 'NULL'}, ${row.referenceRangeLow ?? 'NULL'}, ${row.referenceRangeHigh ?? 'NULL'}, ${row.referenceRangeText ? `'${row.referenceRangeText.replace(/'/g, "''")}'` : 'NULL'}, ${row.isAbnormal ?? 'NULL'}, ${row.observedAt ? `'${row.observedAt.toISOString().split('T')[0]}'` : 'NULL'}, '${row.flagReason}', '${(row.flagDetails ?? '').replace(/'/g, "''")}')`
+      );
+    }
+    console.log(`[materialize] Saved ${flaggedRows.length} flagged extractions to DB`);
+  }
+
   // Determine final status
   const needsReview = flagged.length > 0;
   const finalStatus = needsReview ? 'review_needed' : 'completed';

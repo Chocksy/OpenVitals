@@ -20,7 +20,7 @@ export const users = pgTable("users", {
   timezone: varchar("timezone", { length: 50 }).default("UTC"),
   preferredUnits: varchar("preferred_units", { length: 20 }).default("metric"),
   aiModel: varchar("ai_model", { length: 100 }).default(
-    "claude-sonnet-4-20250514",
+    "claude-sonnet-4",
   ),
   dateOfBirth: date("date_of_birth"),
   biologicalSex: varchar("biological_sex", { length: 10 }),

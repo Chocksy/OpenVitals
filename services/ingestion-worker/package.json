@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@ai-sdk/gateway": "^3.0.66",
+    "@openrouter/ai-sdk-provider": "^2.3.3",
     "@openvitals/ai": "workspace:*",
     "@openvitals/blob-storage": "workspace:*",
     "@openvitals/common": "workspace:*",

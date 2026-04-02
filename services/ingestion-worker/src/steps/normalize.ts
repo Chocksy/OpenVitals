@@ -85,5 +85,15 @@ export async function normalize(
     .set({ normalizeCompletedAt: new Date() })
     .where(eq(importJobs.id, ctx.importJobId));
 
-  return normalizeExtractions(extractions, metricDefs, unitConvs, 0.85, demographics);
+  const result = normalizeExtractions(extractions, metricDefs, unitConvs, 0.85, demographics);
+
+  // Log flagged extractions for debugging
+  if (result.flagged.length > 0) {
+    console.log(`[normalize] Flagged ${result.flagged.length} extractions:`);
+    for (const f of result.flagged) {
+      console.log(`  - "${f.extraction.analyte}" (${f.reason}): ${f.details}`);
+    }
+  }
+
+  return result;
 }

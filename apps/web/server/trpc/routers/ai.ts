@@ -5,7 +5,7 @@ import { listObservations, users, insights, medications, conditions, encounters 
 import { healthChatPrompt, formatObservationForContext, buildContextSummary, estimateTokens } from '@openvitals/ai';
 import type { ContextBundle } from '@openvitals/ai';
 import { generateText } from 'ai';
-import { gateway } from '@ai-sdk/gateway';
+import { createOpenRouter } from '@openrouter/ai-sdk-provider';
 
 export const aiRouter = createRouter({
   chat: protectedProcedure
@@ -85,10 +85,11 @@ export const aiRouter = createRouter({
         .where(eq(users.id, ctx.userId))
         .limit(1);
 
-      const modelId = user?.aiModel ?? process.env.AI_DEFAULT_MODEL ?? 'claude-sonnet-4-20250514';
+      const openrouter = createOpenRouter({ apiKey: process.env.OPENROUTER_API_KEY });
+      const modelId = user?.aiModel ?? process.env.AI_DEFAULT_MODEL ?? 'anthropic/claude-sonnet-4';
 
       const { text: answer } = await generateText({
-        model: gateway(modelId),
+        model: openrouter(modelId),
         system: `${healthChatPrompt}\n\n--- USER HEALTH DATA ---\n${bundle.summary}\n${contextText}`,
         prompt: input.message,
       });

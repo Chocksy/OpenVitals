@@ -1,5 +1,5 @@
 import { generateText } from 'ai';
-import { gateway } from '@ai-sdk/gateway';
+import { createOpenRouter } from '@openrouter/ai-sdk-provider';
 import { getDb } from '@openvitals/database/client';
 import { importJobs, sourceArtifacts } from '@openvitals/database';
 import { eq } from 'drizzle-orm';
@@ -66,9 +66,10 @@ export async function classify(ctx: WorkflowContext): Promise<ClassificationResu
     .where(eq(sourceArtifacts.id, ctx.artifactId));
 
   // Classify with AI
-  const modelId = process.env.AI_DEFAULT_MODEL ?? 'anthropic/claude-sonnet-4-20250514';
+  const openrouter = createOpenRouter({ apiKey: process.env.OPENROUTER_API_KEY });
+  const modelId = process.env.AI_DEFAULT_MODEL ?? 'anthropic/claude-sonnet-4';
   const { text } = await generateText({
-    model: gateway(modelId),
+    model: openrouter(modelId),
     system: classifyDocumentPrompt,
     prompt: `Document type: ${artifact.mimeType}\nFile name: ${artifact.fileName}\n\nContent:\n${textContent.slice(0, 10000)}`,
   });

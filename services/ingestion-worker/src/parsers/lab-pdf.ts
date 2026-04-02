@@ -1,5 +1,5 @@
 import { generateText } from 'ai';
-import { gateway } from '@ai-sdk/gateway';
+import { createOpenRouter } from '@openrouter/ai-sdk-provider';
 import { getDb } from '@openvitals/database/client';
 import { sourceArtifacts } from '@openvitals/database';
 import { eq } from 'drizzle-orm';
@@ -45,9 +45,10 @@ export async function parseLabPdf(ctx: WorkflowContext): Promise<ParseResult> {
   console.log(`[lab-pdf] Extracted ${textContent.length} chars from artifact=${ctx.artifactId}`);
 
   // Send to AI for structured extraction
-  const modelId = process.env.AI_DEFAULT_MODEL ?? 'anthropic/claude-sonnet-4-20250514';
+  const openrouter = createOpenRouter({ apiKey: process.env.OPENROUTER_API_KEY });
+  const modelId = process.env.AI_DEFAULT_MODEL ?? 'anthropic/claude-sonnet-4';
   const { text } = await generateText({
-    model: gateway(modelId),
+    model: openrouter(modelId),
     system: extractLabsPrompt,
     prompt: textContent.slice(0, 30000),
   });
@@ -56,17 +57,32 @@ export async function parseLabPdf(ctx: WorkflowContext): Promise<ParseResult> {
   try {
     const jsonStr = text.replace(/^```(?:json)?\s*\n?/m, '').replace(/\n?```\s*$/m, '').trim();
     parsed = JSON.parse(jsonStr);
+    const analytes = (parsed.results ?? []).map((r: any) => r.analyte);
+    console.log(`[lab-pdf] AI extracted ${analytes.length} results:`);
+    for (const r of (parsed.results ?? [])) {
+      console.log(`  - ${r.analyte}: ${r.value} ${r.unit} (range: ${r.referenceRangeLow}-${r.referenceRangeHigh})`);
+    }
   } catch {
-    console.error('[lab-pdf] Failed to parse AI response:', text.slice(0, 300));
+    console.error('[lab-pdf] Failed to parse AI response:', text.slice(0, 500));
     return { extractions: [], rawMetadata: { parser: 'lab-pdf', version: '0.1.0', error: 'parse_failed' } };
   }
 
   const fallbackDate = parsed.collectionDate ?? new Date().toISOString().split('T')[0];
 
-  const extractions: RawExtraction[] = (parsed.results ?? []).map((r: any) => ({
+  const extractions: RawExtraction[] = (parsed.results ?? []).map((r: any) => {
+    // Handle "< X" or "> X" values - strip comparator and use the number
+    let numValue = typeof r.value === 'number' ? r.value : null;
+    const rawText = r.valueText ?? (r.value != null ? String(r.value) : null);
+    if (numValue === null && rawText) {
+      const ltMatch = rawText.match(/^[<>≤≥]\s*([\d.,]+)$/);
+      if (ltMatch) {
+        numValue = parseFloat(ltMatch[1]!.replace(',', '.'));
+      }
+    }
+    return {
     analyte: r.analyte ?? '',
-    value: typeof r.value === 'number' ? r.value : null,
-    valueText: r.valueText ?? (r.value != null ? String(r.value) : null),
+    value: numValue,
+    valueText: rawText,
     unit: r.unit ?? null,
     referenceRangeLow: typeof r.referenceRangeLow === 'number' ? r.referenceRangeLow : null,
     referenceRangeHigh: typeof r.referenceRangeHigh === 'number' ? r.referenceRangeHigh : null,
@@ -74,7 +90,8 @@ export async function parseLabPdf(ctx: WorkflowContext): Promise<ParseResult> {
     isAbnormal: typeof r.isAbnormal === 'boolean' ? r.isAbnormal : null,
     observedAt: r.observedAt ?? fallbackDate,
     category: 'lab_result' as const,
-  }));
+  };
+  });
 
   return {
     extractions,
