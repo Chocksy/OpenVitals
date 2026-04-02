@@ -130,13 +130,35 @@ export const importJobsRouter = createRouter({
       );
       const flaggedExtractions = (flaggedResult as any).rows ?? [];
 
-      // Filter out duplicates: if a flagged item's value+unit matches a stored observation, mark it
-      const storedValues = new Set(
-        observations.map((o) => `${o.valueNumeric}|${o.unit}`)
-      );
+      // Filter out duplicates using multiple strategies:
+      // 1. Exact value+unit match against stored observations
+      // 2. Analyte name similarity (e.g., "Basophils (%)" is duplicate of basophils_pct)
+      // 3. Same numeric value with compatible units (e.g., % matches %)
+      const storedLookup = observations.map((o) => ({
+        code: o.metricCode,
+        value: o.valueNumeric,
+        unit: o.unit,
+      }));
+
       const genuinelyUnmatched = flaggedExtractions.filter((f: any) => {
-        const key = `${f.value_numeric}|${f.unit}`;
-        return !storedValues.has(key);
+        const fVal = f.value_numeric;
+        const fUnit = f.unit?.toLowerCase() ?? '';
+        const fName = f.analyte?.toLowerCase() ?? '';
+
+        return !storedLookup.some((s) => {
+          // Strategy 1: exact value + unit match
+          if (s.value === fVal && s.unit?.toLowerCase() === fUnit) return true;
+
+          // Strategy 2: name contains metric code stem
+          // e.g., "basophils (%)" contains "basophils", stored code is "basophils_pct"
+          const codeStem = s.code.replace(/_pct$/, '').replace(/_abs$/, '');
+          if (fName.includes(codeStem) && Math.abs((s.value ?? 0) - (fVal ?? -1)) < 0.01) return true;
+
+          // Strategy 3: same value, compatible unit category
+          if (s.value === fVal && fUnit === '%' && s.unit === '%') return true;
+
+          return false;
+        });
       });
 
       return { job, observations, flaggedExtractions: genuinelyUnmatched };

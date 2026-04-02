@@ -151,4 +151,29 @@ export const observationsRouter = createRouter({
 
       return { success: true };
     }),
+
+  confirmAll: protectedProcedure
+    .input(z.object({ importJobId: z.string().uuid() }))
+    .mutation(async ({ ctx, input }) => {
+      // Batch confirm all extracted observations for this import job
+      const result = await ctx.db
+        .update(observations)
+        .set({ status: 'confirmed', updatedAt: new Date() })
+        .where(
+          and(
+            eq(observations.importJobId, input.importJobId),
+            eq(observations.userId, ctx.userId),
+            eq(observations.status, 'extracted'),
+          ),
+        )
+        .returning({ id: observations.id });
+
+      // Mark job completed
+      await ctx.db
+        .update(importJobs)
+        .set({ status: 'completed', needsReview: false, completedAt: new Date(), updatedAt: new Date() })
+        .where(and(eq(importJobs.id, input.importJobId), eq(importJobs.userId, ctx.userId)));
+
+      return { confirmed: result.length };
+    }),
 });

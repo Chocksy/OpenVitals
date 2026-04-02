@@ -42,6 +42,9 @@ export default function ImportJobDetailPage({
   const confirmMutation = trpc.observations.confirm.useMutation({
     onSuccess: () => utils.importJobs.getDetail.invalidate({ id }),
   });
+  const confirmAllMutation = trpc.observations.confirmAll.useMutation({
+    onSuccess: () => utils.importJobs.getDetail.invalidate({ id }),
+  });
   const correctMutation = trpc.observations.correct.useMutation({
     onSuccess: () => utils.importJobs.getDetail.invalidate({ id }),
   });
@@ -103,9 +106,7 @@ export default function ImportJobDetailPage({
     IMPORT_JOB_STATUS_MAP[job.status] ?? IMPORT_JOB_STATUS_MAP.completed!;
 
   const confirmAll = () => {
-    observations
-      .filter((o) => o.status === "extracted")
-      .forEach((o) => confirmMutation.mutate({ id: o.id }));
+    confirmAllMutation.mutate({ importJobId: id });
   };
 
   return (
@@ -131,7 +132,7 @@ export default function ImportJobDetailPage({
           stats.pending > 0 ? (
             <button
               onClick={confirmAll}
-              disabled={confirmMutation.isPending}
+              disabled={confirmAllMutation.isPending}
               className="flex items-center gap-2 rounded-lg bg-accent-600 px-5 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-accent-700 transition-colors disabled:opacity-50"
             >
               <CheckCheck className="h-4 w-4" />
