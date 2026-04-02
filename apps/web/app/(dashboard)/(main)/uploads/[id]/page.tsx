@@ -263,18 +263,22 @@ export default function ImportJobDetailPage({
                     </div>
                     <div className="w-40 flex justify-end">
                       {f.flag_reason === "ambiguous_unit" && suggestedMetricDef ? (
-                        /* Unit mismatch with known metric → one-click Fix */
-                        <button
-                          onClick={() => resolveFlaggedMutation.mutate(
-                            { flaggedId: f.id, metricCode: suggestedMetric! },
-                          )}
-                          disabled={resolveFlaggedMutation.isPending}
-                          className="flex items-center gap-1.5 rounded-md bg-blue-50 border border-blue-200 px-3 py-1.5 text-xs font-medium text-blue-700 hover:bg-blue-100 transition-colors disabled:opacity-50"
-                          title={`Assign to "${suggestedMetricDef.name}" (${f.unit} → ${suggestedMetricDef.unit})`}
-                        >
-                          <Check className="h-3 w-3" />
-                          Fix → {suggestedMetricDef.name}
-                        </button>
+                        /* Unit mismatch with known metric → one-click Fix with preview */
+                        <div className="flex flex-col items-end gap-1">
+                          <button
+                            onClick={() => resolveFlaggedMutation.mutate(
+                              { flaggedId: f.id, metricCode: suggestedMetric! },
+                            )}
+                            disabled={resolveFlaggedMutation.isPending}
+                            className="flex items-center gap-1.5 rounded-md bg-blue-50 border border-blue-200 px-3 py-1.5 text-xs font-medium text-blue-700 hover:bg-blue-100 transition-colors disabled:opacity-50"
+                          >
+                            <Check className="h-3 w-3" />
+                            Fix → {suggestedMetricDef.name}
+                          </button>
+                          <span className="text-[10px] text-neutral-400 font-mono">
+                            {f.value_numeric} {f.unit} → {suggestedMetricDef.unit}
+                          </span>
+                        </div>
                       ) : (
                         /* No match → expand panel */
                         <button

@@ -111,6 +111,11 @@ async function main() {
       { fromUnit: "g/L", toUnit: "mg/dL", metricCode: "apoa1", multiplier: 100, offset: 0 },
       // LH: mUI/mL = mIU/mL
       { fromUnit: "mUI/mL", toUnit: "mIU/mL", metricCode: null, multiplier: 1, offset: 0 },
+      // x10^3/µL = K/uL, x10^6/µL = M/uL (Medisim format with superscript)
+      { fromUnit: "x10^3/\u00B5L", toUnit: "K/uL", metricCode: null, multiplier: 1, offset: 0 },
+      { fromUnit: "x10^3/uL", toUnit: "K/uL", metricCode: null, multiplier: 1, offset: 0 },
+      { fromUnit: "x10^6/\u00B5L", toUnit: "M/uL", metricCode: null, multiplier: 1, offset: 0 },
+      { fromUnit: "x10^6/uL", toUnit: "M/uL", metricCode: null, multiplier: 1, offset: 0 },
     ])
     .onConflictDoNothing();
 
