@@ -15,8 +15,8 @@ interface TextItem {
  */
 export async function extractTextFromPdf(buffer: Buffer): Promise<string> {
   const pdfjs = await import('pdfjs-dist/legacy/build/pdf.mjs');
-  // Disable web worker — we're in Node.js, not a browser
-  pdfjs.GlobalWorkerOptions.workerSrc = '';
+  // Point to the worker file copied into dist/ — must be truthy or pdfjs overwrites with ||=
+  pdfjs.GlobalWorkerOptions.workerSrc = new URL('./pdf.worker.mjs', import.meta.url).href;
   const doc = await pdfjs.getDocument({ data: new Uint8Array(buffer), useWorkerFetch: false, isEvalSupported: false, useSystemFonts: true }).promise;
 
   let text = '';
