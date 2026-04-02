@@ -53,6 +53,7 @@ export default function ImportJobDetailPage({
     onSuccess: () => utils.importJobs.getDetail.invalidate({ id }),
   });
   const [assigningId, setAssigningId] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const grouped = useMemo(() => {
     if (!data?.observations)
@@ -219,85 +220,145 @@ export default function ImportJobDetailPage({
               Unmatched Results
             </h3>
             <span className="text-xs text-neutral-400">
-              {data.flaggedExtractions.length} items could not be matched to known biomarkers
+              {data.flaggedExtractions.length} items need attention
             </span>
           </div>
-          <div className="card overflow-hidden">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-neutral-100 text-left text-[11px] font-semibold uppercase tracking-[0.04em] text-neutral-400 font-mono">
-                  <th className="px-4 py-3">Analyte (from PDF)</th>
-                  <th className="px-4 py-3">Value</th>
-                  <th className="px-4 py-3">Unit</th>
-                  <th className="px-4 py-3">Reason</th>
-                  <th className="px-4 py-3">Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {data.flaggedExtractions.map((f: any) => (
-                  <tr key={f.id} className="border-b border-neutral-50 last:border-0">
-                    <td className="px-4 py-3 font-medium text-neutral-900">
-                      {f.analyte}
+          <div className="card overflow-hidden divide-y divide-neutral-50">
+            {data.flaggedExtractions.map((f: any) => {
+              // Parse suggested metric code from flag_details for unit mismatch items
+              const suggestedMetric = f.flag_reason === "ambiguous_unit"
+                ? f.flag_details?.match(/for (\w+)$/)?.[1] ?? null
+                : null;
+              const suggestedMetricDef = suggestedMetric
+                ? (metricsData ?? []).find((m) => m.id === suggestedMetric)
+                : null;
+              const isExpanded = assigningId === f.id;
+
+              return (
+                <div key={f.id}>
+                  {/* Main row */}
+                  <div className="flex items-center gap-4 px-4 py-3">
+                    <div className="flex-1 min-w-0">
+                      <div className="font-medium text-neutral-900 text-sm">{f.analyte}</div>
                       {f.reference_range_text && (
-                        <span className="block text-[10px] text-neutral-400 mt-0.5 truncate max-w-[250px]" title={f.reference_range_text}>
+                        <div className="text-[10px] text-neutral-400 mt-0.5 truncate" title={f.reference_range_text}>
                           {f.reference_range_text}
-                        </span>
+                        </div>
                       )}
-                    </td>
-                    <td className="px-4 py-3 font-mono text-neutral-700">
+                    </div>
+                    <div className="font-mono text-sm text-neutral-700 w-28 text-right">
                       {f.value_numeric ?? f.value_text ?? "—"}
                       <span className="text-neutral-400 text-xs ml-1">{f.unit ?? ""}</span>
-                    </td>
-                    <td className="px-4 py-3 text-neutral-500 text-xs">{f.unit ?? "—"}</td>
-                    <td className="px-4 py-3">
-                      <span className="inline-flex items-center rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-medium text-amber-700">
-                        {f.flag_reason === "unmatched_metric" ? "No match" :
-                         f.flag_reason === "ambiguous_unit" ? "Unit mismatch" :
-                         f.flag_reason}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3">
-                      {assigningId === f.id ? (
-                        <select
-                          className="w-full rounded border border-neutral-200 bg-white px-2 py-1.5 text-xs focus:border-accent-500 focus:ring-1 focus:ring-accent-500"
-                          defaultValue=""
-                          onChange={(e) => {
-                            if (e.target.value) {
-                              resolveFlaggedMutation.mutate(
-                                { flaggedId: f.id, metricCode: e.target.value },
-                                { onSuccess: () => setAssigningId(null) }
-                              );
-                            }
-                          }}
-                        >
-                          <option value="" disabled>Select biomarker...</option>
-                          {(metricsData ?? [])
-                            .sort((a, b) => a.name.localeCompare(b.name))
-                            .map((m) => (
-                              <option key={m.id} value={m.id}>
-                                {m.name} ({m.unit ?? "—"})
-                              </option>
-                            ))}
-                        </select>
+                    </div>
+                    <div className="w-28">
+                      {f.flag_reason === "ambiguous_unit" ? (
+                        <span className="inline-flex items-center rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-medium text-blue-700">
+                          Unit mismatch
+                        </span>
                       ) : (
+                        <span className="inline-flex items-center rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-medium text-amber-700">
+                          No match
+                        </span>
+                      )}
+                    </div>
+                    <div className="w-40 flex justify-end">
+                      {f.flag_reason === "ambiguous_unit" && suggestedMetricDef ? (
+                        /* Unit mismatch with known metric → one-click Fix */
                         <button
-                          onClick={() => setAssigningId(f.id)}
+                          onClick={() => resolveFlaggedMutation.mutate(
+                            { flaggedId: f.id, metricCode: suggestedMetric! },
+                          )}
                           disabled={resolveFlaggedMutation.isPending}
-                          className="flex items-center gap-1.5 rounded-md border border-neutral-200 bg-white px-3 py-1.5 text-xs font-medium text-neutral-700 hover:bg-neutral-50 transition-colors disabled:opacity-50"
+                          className="flex items-center gap-1.5 rounded-md bg-blue-50 border border-blue-200 px-3 py-1.5 text-xs font-medium text-blue-700 hover:bg-blue-100 transition-colors disabled:opacity-50"
+                          title={`Assign to "${suggestedMetricDef.name}" (${f.unit} → ${suggestedMetricDef.unit})`}
+                        >
+                          <Check className="h-3 w-3" />
+                          Fix → {suggestedMetricDef.name}
+                        </button>
+                      ) : (
+                        /* No match → expand panel */
+                        <button
+                          onClick={() => setAssigningId(isExpanded ? null : f.id)}
+                          disabled={resolveFlaggedMutation.isPending}
+                          className={cn(
+                            "flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-xs font-medium transition-colors disabled:opacity-50",
+                            isExpanded
+                              ? "border-accent-300 bg-accent-50 text-accent-700"
+                              : "border-neutral-200 bg-white text-neutral-700 hover:bg-neutral-50"
+                          )}
                         >
                           <Link2 className="h-3 w-3" />
-                          Assign
+                          {isExpanded ? "Cancel" : "Assign"}
                         </button>
                       )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                    </div>
+                  </div>
+
+                  {/* Expandable assign panel */}
+                  {isExpanded && (
+                    <div className="bg-neutral-50/80 border-t border-neutral-100 px-6 py-4">
+                      <div className="text-xs font-semibold text-neutral-500 mb-3">
+                        Assign &quot;{f.analyte}&quot; ({f.value_numeric} {f.unit}) to a biomarker
+                      </div>
+
+                      {/* Searchable metric selector */}
+                      <div className="relative mb-3">
+                        <input
+                          type="text"
+                          placeholder="Search biomarkers by name..."
+                          value={searchQuery}
+                          onChange={(e) => setSearchQuery(e.target.value)}
+                          className="w-full rounded-md border border-neutral-200 bg-white px-3 py-2 text-sm placeholder:text-neutral-400 focus:border-accent-500 focus:ring-1 focus:ring-accent-500"
+                          autoFocus
+                        />
+                      </div>
+
+                      <div className="max-h-48 overflow-y-auto rounded-md border border-neutral-200 bg-white">
+                        {(metricsData ?? [])
+                          .filter((m) =>
+                            !searchQuery ||
+                            m.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                            m.id.includes(searchQuery.toLowerCase())
+                          )
+                          .sort((a, b) => a.name.localeCompare(b.name))
+                          .slice(0, 20)
+                          .map((m) => (
+                            <button
+                              key={m.id}
+                              onClick={() => {
+                                resolveFlaggedMutation.mutate(
+                                  { flaggedId: f.id, metricCode: m.id },
+                                  { onSuccess: () => { setAssigningId(null); setSearchQuery(""); } }
+                                );
+                              }}
+                              className="flex w-full items-center justify-between px-3 py-2 text-left text-sm hover:bg-accent-50 transition-colors border-b border-neutral-50 last:border-0"
+                            >
+                              <span className="font-medium text-neutral-900">{m.name}</span>
+                              <span className="text-xs text-neutral-400">
+                                {m.unit ?? "—"} · {m.category}
+                              </span>
+                            </button>
+                          ))}
+                        {(metricsData ?? []).filter((m) =>
+                          !searchQuery ||
+                          m.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                          m.id.includes(searchQuery.toLowerCase())
+                        ).length === 0 && (
+                          <div className="px-3 py-4 text-center text-xs text-neutral-400">
+                            No biomarkers found for &quot;{searchQuery}&quot;
+                          </div>
+                        )}
+                      </div>
+
+                      <p className="mt-2 text-[10px] text-neutral-400">
+                        Select a biomarker to assign this result to. The name &quot;{f.analyte}&quot; will be saved as an alias for future auto-matching.
+                      </p>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
-          <p className="mt-2 text-xs text-neutral-400">
-            Click &quot;Assign&quot; to map an unmatched result to an existing biomarker. The analyte name will be saved as an alias for future auto-matching.
-          </p>
         </div>
       )}
     </div>
