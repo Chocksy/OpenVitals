@@ -12,6 +12,7 @@ import {
   deriveStatus,
   deriveOptimalStatus,
   formatRange,
+  type CanonicalRanges,
 } from "@/lib/health-utils";
 import { cn, formatDate, formatObsValue, isDurationMetric } from "@/lib/utils";
 import { DataTable, type DataTableColumn } from "@/components/data-table";
@@ -92,12 +93,18 @@ export default function LabDetailPage({
   const displayPrecision = metricDef?.displayPrecision ?? null;
   const showOptimal = prefsData?.showOptimalRanges ?? true;
   const optimalRange = optimalRangesData?.[metricCode] ?? null;
-  // Canonical reference range from metric definition (consistent across labs)
-  const canonicalRange = formatRange(
-    metricDef?.referenceRangeLow,
-    metricDef?.referenceRangeHigh,
-    metricDef?.unit,
-  );
+  // Build canonical ranges for dynamic status calculation
+  // Priority: optimal range > metric definition reference range
+  const canonRanges: CanonicalRanges = useMemo(() => ({
+    optimalLow: optimalRange?.rangeLow,
+    optimalHigh: optimalRange?.rangeHigh,
+    referenceLow: metricDef?.referenceRangeLow,
+    referenceHigh: metricDef?.referenceRangeHigh,
+  }), [optimalRange, metricDef]);
+  // Display the active range used for status (optimal first, then reference)
+  const activeRangeLow = canonRanges.optimalLow ?? canonRanges.referenceLow;
+  const activeRangeHigh = canonRanges.optimalHigh ?? canonRanges.referenceHigh;
+  const canonicalRange = formatRange(activeRangeLow, activeRangeHigh, metricDef?.unit);
 
   const items = data?.items ?? [];
 
@@ -151,13 +158,14 @@ export default function LabDetailPage({
         header: "Value",
         width: "0.8fr",
         cell: (obs) => {
-          const obsStatus = deriveStatus(obs);
+          const obsStatus = deriveStatus(obs, canonRanges);
+          const isAbn = obsStatus !== "normal";
           return (
             <div className="flex items-baseline gap-1.5">
               <span
                 className={cn(
                   "text-[15px] font-semibold tracking-[-0.01em] font-mono tabular-nums",
-                  obs.isAbnormal
+                  isAbn
                     ? obsStatus === "critical"
                       ? "text-health-critical"
                       : "text-health-warning"
@@ -201,8 +209,8 @@ export default function LabDetailPage({
         header: "Status",
         width: "0.8fr",
         cell: (obs) => {
-          const obsStatus = deriveStatus(obs);
-          return obs.isAbnormal ? (
+          const obsStatus = deriveStatus(obs, canonRanges);
+          return obsStatus !== "normal" ? (
             <StatusBadge
               status={obsStatus}
               label={obsStatus === "critical" ? "High" : "Abnormal"}
@@ -233,7 +241,7 @@ export default function LabDetailPage({
   const latest = sorted[0];
   const previous = sorted[1];
   const metricName = formatMetricName(metricCode);
-  const status: HealthStatus = latest ? deriveStatus(latest) : "neutral";
+  const status: HealthStatus = latest ? deriveStatus(latest, canonRanges) : "neutral";
 
   const [timeRange, setTimeRange] = useState<TimeRangeKey>("all");
 
@@ -381,7 +389,11 @@ export default function LabDetailPage({
           }
         />
         <SummaryCard label="Total tests" value={String(items.length)} />
-        <SummaryCard label="Reference range" value={refRange} />
+        <SummaryCard
+          label={optimalRange ? "Active range" : "Reference range"}
+          value={refRange}
+          subtext={optimalRange ? "Optimal" : undefined}
+        />
         {showOptimal && optimalRange && (
           <SummaryCard
             label="Optimal range"
@@ -487,7 +499,7 @@ export default function LabDetailPage({
         rowConfig={{
           getRowKey: (obs) => obs.id,
           getRowTint: (obs) =>
-            obs.isAbnormal
+            deriveStatus(obs, canonRanges) !== "normal"
               ? "bg-health-warning-bg/40"
               : undefined,
         }}

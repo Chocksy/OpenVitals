@@ -1,20 +1,67 @@
 import type { HealthStatus } from "@/components/health/status-badge";
 
-export function deriveStatus(obs: {
-  isAbnormal?: boolean | null;
-  referenceRangeLow?: number | null;
-  referenceRangeHigh?: number | null;
-  valueNumeric?: number | null;
-}): HealthStatus {
-  if (obs.isAbnormal === true) {
-    if (
-      obs.valueNumeric != null &&
-      obs.referenceRangeLow != null &&
-      obs.referenceRangeHigh != null
-    ) {
-      const distFromLow = obs.referenceRangeLow - obs.valueNumeric;
-      const distFromHigh = obs.valueNumeric - obs.referenceRangeHigh;
-      const rangeSpan = obs.referenceRangeHigh - obs.referenceRangeLow;
+/**
+ * Canonical ranges for dynamic abnormality calculation.
+ * Priority: optimal range > reference range from metric definition.
+ */
+export interface CanonicalRanges {
+  optimalLow?: number | null;
+  optimalHigh?: number | null;
+  referenceLow?: number | null;
+  referenceHigh?: number | null;
+}
+
+/**
+ * Dynamically compute whether an observation is abnormal using current ranges.
+ * Uses optimal range first; falls back to metric definition reference range.
+ * This is computed at display time so changes to ranges update instantly.
+ */
+export function isValueAbnormal(
+  value: number | null | undefined,
+  ranges: CanonicalRanges,
+): boolean | null {
+  if (value == null) return null;
+
+  // Priority 1: optimal range
+  const low = ranges.optimalLow ?? ranges.referenceLow;
+  const high = ranges.optimalHigh ?? ranges.referenceHigh;
+
+  if (low == null && high == null) return null;
+  if (low != null && value < low) return true;
+  if (high != null && value > high) return true;
+  return false;
+}
+
+/**
+ * Derive display status from an observation.
+ * When canonicalRanges are provided, computes dynamically (ignoring stored isAbnormal).
+ * Falls back to stored isAbnormal when no canonical ranges available.
+ */
+export function deriveStatus(
+  obs: {
+    isAbnormal?: boolean | null;
+    referenceRangeLow?: number | null;
+    referenceRangeHigh?: number | null;
+    valueNumeric?: number | null;
+  },
+  canonicalRanges?: CanonicalRanges,
+): HealthStatus {
+  // Dynamic calculation when ranges are provided
+  const abnormal = canonicalRanges
+    ? isValueAbnormal(obs.valueNumeric, canonicalRanges)
+    : obs.isAbnormal;
+
+  if (abnormal === true) {
+    // Determine severity using the active range
+    const low = canonicalRanges?.optimalLow ?? canonicalRanges?.referenceLow
+      ?? obs.referenceRangeLow;
+    const high = canonicalRanges?.optimalHigh ?? canonicalRanges?.referenceHigh
+      ?? obs.referenceRangeHigh;
+
+    if (obs.valueNumeric != null && low != null && high != null) {
+      const distFromLow = low - obs.valueNumeric;
+      const distFromHigh = obs.valueNumeric - high;
+      const rangeSpan = high - low;
       if (
         rangeSpan > 0 &&
         (distFromLow > rangeSpan * 0.5 || distFromHigh > rangeSpan * 0.5)
