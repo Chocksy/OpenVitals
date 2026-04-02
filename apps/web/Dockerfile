@@ -40,6 +40,9 @@ ENV NEXT_TELEMETRY_DISABLED=1
 RUN addgroup --system --gid 1001 nodejs && \
     adduser --system --uid 1001 nextjs
 
+# Create blob directory with correct ownership
+RUN mkdir -p /data/blobs && chown nextjs:nodejs /data/blobs
+
 # Copy standalone output
 COPY --from=base /app/apps/web/.next/standalone ./
 COPY --from=base /app/apps/web/.next/static ./apps/web/.next/static

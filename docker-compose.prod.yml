@@ -59,12 +59,13 @@ services:
       postgres:
         condition: service_healthy
 
-  # Run migrations and seed on deploy
+  # Run migrations and seed on deploy (one-shot, exits after completion)
   migrate:
     build:
       context: .
       dockerfile: apps/web/Dockerfile
       target: base
+    restart: "no"
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-openvitals}
     working_dir: /app
