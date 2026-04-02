@@ -75,8 +75,9 @@ export async function parseLabPdf(ctx: WorkflowContext): Promise<ParseResult> {
     const pdfBuffer = Buffer.concat(chunks);
 
     // Render PDF pages to images using pdfjs-dist
-    const { getDocument } = await import('pdfjs-dist/legacy/build/pdf.mjs');
-    const doc = await getDocument({ data: new Uint8Array(pdfBuffer) }).promise;
+    const pdfjs = await import('pdfjs-dist/legacy/build/pdf.mjs');
+    pdfjs.GlobalWorkerOptions.workerSrc = '';
+    const doc = await pdfjs.getDocument({ data: new Uint8Array(pdfBuffer), useWorkerFetch: false, isEvalSupported: false, useSystemFonts: true }).promise;
     const pageImages: string[] = [];
 
     for (let i = 1; i <= Math.min(doc.numPages, 10); i++) {

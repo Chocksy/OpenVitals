@@ -14,8 +14,10 @@ interface TextItem {
  * with their column headers in table-based documents like lab trend reports.
  */
 export async function extractTextFromPdf(buffer: Buffer): Promise<string> {
-  const { getDocument } = await import('pdfjs-dist/legacy/build/pdf.mjs');
-  const doc = await getDocument({ data: new Uint8Array(buffer) }).promise;
+  const pdfjs = await import('pdfjs-dist/legacy/build/pdf.mjs');
+  // Disable web worker — we're in Node.js, not a browser
+  pdfjs.GlobalWorkerOptions.workerSrc = '';
+  const doc = await pdfjs.getDocument({ data: new Uint8Array(buffer), useWorkerFetch: false, isEvalSupported: false, useSystemFonts: true }).promise;
 
   let text = '';
   for (let i = 1; i <= doc.numPages; i++) {
