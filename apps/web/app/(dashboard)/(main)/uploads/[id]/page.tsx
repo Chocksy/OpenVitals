@@ -120,22 +120,18 @@ export default function ImportJobDetailPage({
       <TitleActionHeader
         showBackButton
         title={
-          <div className="flex items-baseline gap-3">
-            <span>
-              {job.classifiedType
-                ? (DOC_TYPE_LABELS[job.classifiedType] ?? job.classifiedType)
-                : "Import details"}
-            </span>
-            {observations.length > 0 && observations[0]!.observedAt && (
-              <span className="text-base font-normal text-neutral-400">
-                {formatDate(observations[0]!.observedAt)}
-              </span>
-            )}
-          </div>
+          job.classifiedType
+            ? (DOC_TYPE_LABELS[job.classifiedType] ?? job.classifiedType)
+            : "Import details"
         }
         underTitle={
           <div className="mt-2 flex items-center gap-3">
             <StatusBadge status={jobStatus.badge} label={jobStatus.label} />
+            {observations.length > 0 && observations[0]!.observedAt && (
+              <span className="text-sm text-neutral-500 font-mono">
+                {formatDate(observations[0]!.observedAt)}
+              </span>
+            )}
             {job.classificationConfidence != null && (
               <span className="text-xs text-neutral-400 font-mono">
                 {(job.classificationConfidence * 100).toFixed(0)}% confidence
