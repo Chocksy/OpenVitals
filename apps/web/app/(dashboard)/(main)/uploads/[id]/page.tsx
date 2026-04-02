@@ -120,9 +120,18 @@ export default function ImportJobDetailPage({
       <TitleActionHeader
         showBackButton
         title={
-          job.classifiedType
-            ? (DOC_TYPE_LABELS[job.classifiedType] ?? job.classifiedType)
-            : "Import details"
+          <div className="flex items-baseline gap-3">
+            <span>
+              {job.classifiedType
+                ? (DOC_TYPE_LABELS[job.classifiedType] ?? job.classifiedType)
+                : "Import details"}
+            </span>
+            {observations.length > 0 && observations[0]!.observedAt && (
+              <span className="text-base font-normal text-neutral-400">
+                {formatDate(observations[0]!.observedAt)}
+              </span>
+            )}
+          </div>
         }
         underTitle={
           <div className="mt-2 flex items-center gap-3">
@@ -555,13 +564,16 @@ function CategoryGroup({
                   )}
                 </div>
 
-                {/* Reference range */}
-                <div className="text-xs text-neutral-400 font-mono">
-                  {formatRange(
-                    obs.referenceRangeLow,
-                    obs.referenceRangeHigh,
-                    obs.unit,
-                  )}
+                {/* Reference range (from lab PDF) */}
+                <div>
+                  <div className="text-[11px] text-neutral-400 font-mono">
+                    {formatRange(
+                      obs.referenceRangeLow,
+                      obs.referenceRangeHigh,
+                      obs.unit,
+                    )}
+                  </div>
+                  <div className="text-[9px] text-neutral-300 font-mono">lab ref</div>
                 </div>
 
                 {/* Status badge */}

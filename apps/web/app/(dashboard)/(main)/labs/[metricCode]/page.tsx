@@ -88,10 +88,16 @@ export default function LabDetailPage({
     metricCode,
   });
   const { data: medsData } = trpc.medications.list.useQuery({});
-  const displayPrecision =
-    metricsData?.find((m) => m.id === metricCode)?.displayPrecision ?? null;
+  const metricDef = metricsData?.find((m) => m.id === metricCode);
+  const displayPrecision = metricDef?.displayPrecision ?? null;
   const showOptimal = prefsData?.showOptimalRanges ?? true;
   const optimalRange = optimalRangesData?.[metricCode] ?? null;
+  // Canonical reference range from metric definition (consistent across labs)
+  const canonicalRange = formatRange(
+    metricDef?.referenceRangeLow,
+    metricDef?.referenceRangeHigh,
+    metricDef?.unit,
+  );
 
   const items = data?.items ?? [];
 
@@ -176,15 +182,17 @@ export default function LabDetailPage({
       },
       {
         id: "range",
-        header: "Ref. Range",
+        header: "Lab Ref.",
         width: "1fr",
         cell: (obs) => (
-          <div className="text-xs text-neutral-400 font-mono">
-            {formatRange(
-              obs.referenceRangeLow,
-              obs.referenceRangeHigh,
-              obs.unit,
-            )}
+          <div>
+            <div className="text-[11px] text-neutral-400 font-mono">
+              {formatRange(
+                obs.referenceRangeLow,
+                obs.referenceRangeHigh,
+                obs.unit,
+              )}
+            </div>
           </div>
         ),
       },
@@ -298,7 +306,8 @@ export default function LabDetailPage({
     );
   }
 
-  const refRange = formatRange(
+  // Use canonical range for the summary card (consistent standard)
+  const refRange = canonicalRange !== "—" ? canonicalRange : formatRange(
     latest?.referenceRangeLow,
     latest?.referenceRangeHigh,
     latest?.unit,

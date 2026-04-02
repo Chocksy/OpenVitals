@@ -36,12 +36,15 @@ async function main() {
     .onConflictDoNothing();
 
   console.log("Seeding reference ranges...");
+  // Delete-and-reinsert to avoid NULL-induced duplicates in unique constraint
+  await db.delete(referenceRanges);
   await db
     .insert(referenceRanges)
     .values(referenceRangeSeeds)
     .onConflictDoNothing();
 
   console.log("Seeding optimal ranges...");
+  await db.delete(optimalRanges);
   await db
     .insert(optimalRanges)
     .values(optimalRangeSeeds)

@@ -150,7 +150,7 @@ function findBestDemographicRange(
 
 /**
  * Resolve reference range with priority:
- * 1. Per-observation range from the extraction
+ * 1. Per-observation range from the extraction (what the lab printed)
  * 2. Demographic-matched range from reference_ranges table
  * 3. Metric definition fallback
  */
@@ -179,6 +179,39 @@ export function resolveReferenceRange(
   return {
     low: metric.referenceRangeLow,
     high: metric.referenceRangeHigh,
+  };
+}
+
+/**
+ * Resolve canonical reference range for abnormality calculation.
+ * Reversed priority: canonical sources first, per-PDF as last resort.
+ * This ensures consistent NORMAL/ABNORMAL status across labs.
+ */
+export function resolveCanonicalRange(
+  extraction: RawExtraction,
+  metric: MetricDefinition,
+  demographics?: UserDemographics | null,
+): { low: number | null; high: number | null } {
+  // Priority 1: metric definition (the canonical standard)
+  if (metric.referenceRangeLow !== null || metric.referenceRangeHigh !== null) {
+    return {
+      low: metric.referenceRangeLow,
+      high: metric.referenceRangeHigh,
+    };
+  }
+
+  // Priority 2: demographic match
+  if (demographics && metric.demographicRanges && metric.demographicRanges.length > 0) {
+    const match = findBestDemographicRange(metric.demographicRanges, demographics);
+    if (match) {
+      return { low: match.rangeLow, high: match.rangeHigh };
+    }
+  }
+
+  // Priority 3: fall back to what the lab printed
+  return {
+    low: extraction.referenceRangeLow,
+    high: extraction.referenceRangeHigh,
   };
 }
 
@@ -229,11 +262,13 @@ export function normalizeExtractions(
       }
     }
 
-    // Determine abnormality using demographic-aware ranges
-    const { low: refLow, high: refHigh } = resolveReferenceRange(extraction, metric, demographics);
+    // Store lab-reported range on observation (historical record)
+    const { low: labLow, high: labHigh } = resolveReferenceRange(extraction, metric, demographics);
+    // Use canonical range for abnormality (consistent across labs)
+    const { low: canonLow, high: canonHigh } = resolveCanonicalRange(extraction, metric, demographics);
     const isAbnormal = extraction.isAbnormal ??
-      (finalValue !== null && refLow !== null && refHigh !== null
-        ? finalValue < refLow || finalValue > refHigh
+      (finalValue !== null && (canonLow !== null || canonHigh !== null)
+        ? (canonLow !== null && finalValue < canonLow) || (canonHigh !== null && finalValue > canonHigh)
         : null);
 
     const obs: NormalizedObservation = {
@@ -242,8 +277,8 @@ export function normalizeExtractions(
       valueNumeric: finalValue,
       valueText: extraction.valueText,
       unit: finalUnit,
-      referenceRangeLow: refLow,
-      referenceRangeHigh: refHigh,
+      referenceRangeLow: labLow,
+      referenceRangeHigh: labHigh,
       referenceRangeText: extraction.referenceRangeText,
       isAbnormal,
       observedAt: new Date(extraction.observedAt),
