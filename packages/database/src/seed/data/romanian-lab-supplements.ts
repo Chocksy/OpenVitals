@@ -141,6 +141,21 @@ export const additionalMetricSeeds = [
     displayPrecision: 2,
     sortOrder: 509,
   },
+  {
+    id: "amylase",
+    name: "Amylase",
+    category: "metabolic",
+    unit: "U/L",
+    loincCode: null,
+    snomedCode: null,
+    aliases: ["alpha-amylase", "amilaza", "Alpha-amylase", "serum amylase"],
+    referenceRangeLow: 28,
+    referenceRangeHigh: 100,
+    referenceRangeText: "28 - 100 U/L",
+    description: "Serum amylase",
+    displayPrecision: 2,
+    sortOrder: 350,
+  },
 ];
 
 /**

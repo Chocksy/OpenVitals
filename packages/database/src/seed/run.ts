@@ -98,6 +98,19 @@ async function main() {
       { fromUnit: "pg/ml", toUnit: "pg/mL", metricCode: null, multiplier: 1, offset: 0 },
       { fromUnit: "g/dl", toUnit: "g/dL", metricCode: null, multiplier: 1, offset: 0 },
       { fromUnit: "fl", toUnit: "fL", metricCode: null, multiplier: 1, offset: 0 },
+      // Vitamin D: µg/L = ng/mL
+      { fromUnit: "\u00B5g/L", toUnit: "ng/mL", metricCode: "vitamin_d", multiplier: 1, offset: 0 },
+      { fromUnit: "\u03BCg/L", toUnit: "ng/mL", metricCode: "vitamin_d", multiplier: 1, offset: 0 },
+      // Albumin: g/L → g/dL
+      { fromUnit: "g/L", toUnit: "g/dL", metricCode: "albumin", multiplier: 0.1, offset: 0 },
+      // MCV/MPV: µm3 = fL
+      { fromUnit: "\u00B5m3", toUnit: "fL", metricCode: null, multiplier: 1, offset: 0 },
+      { fromUnit: "\u03BCm3", toUnit: "fL", metricCode: null, multiplier: 1, offset: 0 },
+      { fromUnit: "um3", toUnit: "fL", metricCode: null, multiplier: 1, offset: 0 },
+      // ApoA1: g/L → mg/dL
+      { fromUnit: "g/L", toUnit: "mg/dL", metricCode: "apoa1", multiplier: 100, offset: 0 },
+      // LH: mUI/mL = mIU/mL
+      { fromUnit: "mUI/mL", toUnit: "mIU/mL", metricCode: null, multiplier: 1, offset: 0 },
     ])
     .onConflictDoNothing();
 

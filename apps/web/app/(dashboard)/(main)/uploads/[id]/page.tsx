@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useMemo, useState } from "react";
+import { use, useMemo, useState, useCallback } from "react";
 import { trpc } from "@/lib/trpc/client";
 import { TitleActionHeader } from "@/components/title-action-header";
 import {
@@ -16,6 +16,7 @@ import {
   FileText,
   AlertTriangle,
   Pencil,
+  Link2,
 } from "lucide-react";
 
 function formatMetricName(code: string) {
@@ -48,6 +49,10 @@ export default function ImportJobDetailPage({
   const correctMutation = trpc.observations.correct.useMutation({
     onSuccess: () => utils.importJobs.getDetail.invalidate({ id }),
   });
+  const resolveFlaggedMutation = trpc.importJobs.resolveFlagged.useMutation({
+    onSuccess: () => utils.importJobs.getDetail.invalidate({ id }),
+  });
+  const [assigningId, setAssigningId] = useState<string | null>(null);
 
   const grouped = useMemo(() => {
     if (!data?.observations)
@@ -224,28 +229,66 @@ export default function ImportJobDetailPage({
                   <th className="px-4 py-3">Analyte (from PDF)</th>
                   <th className="px-4 py-3">Value</th>
                   <th className="px-4 py-3">Unit</th>
-                  <th className="px-4 py-3">Reference Range</th>
                   <th className="px-4 py-3">Reason</th>
+                  <th className="px-4 py-3">Action</th>
                 </tr>
               </thead>
               <tbody>
                 {data.flaggedExtractions.map((f: any) => (
                   <tr key={f.id} className="border-b border-neutral-50 last:border-0">
-                    <td className="px-4 py-3 font-medium text-neutral-900">{f.analyte}</td>
+                    <td className="px-4 py-3 font-medium text-neutral-900">
+                      {f.analyte}
+                      {f.reference_range_text && (
+                        <span className="block text-[10px] text-neutral-400 mt-0.5 truncate max-w-[250px]" title={f.reference_range_text}>
+                          {f.reference_range_text}
+                        </span>
+                      )}
+                    </td>
                     <td className="px-4 py-3 font-mono text-neutral-700">
                       {f.value_numeric ?? f.value_text ?? "—"}
+                      <span className="text-neutral-400 text-xs ml-1">{f.unit ?? ""}</span>
                     </td>
-                    <td className="px-4 py-3 text-neutral-500">{f.unit ?? "—"}</td>
-                    <td className="px-4 py-3 text-neutral-400 text-xs">
-                      {f.reference_range_text ?? (f.reference_range_low != null || f.reference_range_high != null ? `${f.reference_range_low ?? "?"} - ${f.reference_range_high ?? "?"}` : "—")}
-                    </td>
+                    <td className="px-4 py-3 text-neutral-500 text-xs">{f.unit ?? "—"}</td>
                     <td className="px-4 py-3">
-                      <span className="inline-flex items-center rounded-full bg-amber-50 px-2.5 py-0.5 text-xs font-medium text-amber-700">
-                        {f.flag_reason === "unmatched_metric" ? "No matching biomarker" :
+                      <span className="inline-flex items-center rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-medium text-amber-700">
+                        {f.flag_reason === "unmatched_metric" ? "No match" :
                          f.flag_reason === "ambiguous_unit" ? "Unit mismatch" :
-                         f.flag_reason === "low_confidence" ? "Low confidence" :
                          f.flag_reason}
                       </span>
+                    </td>
+                    <td className="px-4 py-3">
+                      {assigningId === f.id ? (
+                        <select
+                          className="w-full rounded border border-neutral-200 bg-white px-2 py-1.5 text-xs focus:border-accent-500 focus:ring-1 focus:ring-accent-500"
+                          defaultValue=""
+                          onChange={(e) => {
+                            if (e.target.value) {
+                              resolveFlaggedMutation.mutate(
+                                { flaggedId: f.id, metricCode: e.target.value },
+                                { onSuccess: () => setAssigningId(null) }
+                              );
+                            }
+                          }}
+                        >
+                          <option value="" disabled>Select biomarker...</option>
+                          {(metricsData ?? [])
+                            .sort((a, b) => a.name.localeCompare(b.name))
+                            .map((m) => (
+                              <option key={m.id} value={m.id}>
+                                {m.name} ({m.unit ?? "—"})
+                              </option>
+                            ))}
+                        </select>
+                      ) : (
+                        <button
+                          onClick={() => setAssigningId(f.id)}
+                          disabled={resolveFlaggedMutation.isPending}
+                          className="flex items-center gap-1.5 rounded-md border border-neutral-200 bg-white px-3 py-1.5 text-xs font-medium text-neutral-700 hover:bg-neutral-50 transition-colors disabled:opacity-50"
+                        >
+                          <Link2 className="h-3 w-3" />
+                          Assign
+                        </button>
+                      )}
                     </td>
                   </tr>
                 ))}
@@ -253,8 +296,7 @@ export default function ImportJobDetailPage({
             </table>
           </div>
           <p className="mt-2 text-xs text-neutral-400">
-            These values were extracted by AI but could not be matched to existing biomarker definitions.
-            Future: assign to existing metrics or create new ones.
+            Click &quot;Assign&quot; to map an unmatched result to an existing biomarker. The analyte name will be saved as an alias for future auto-matching.
           </p>
         </div>
       )}
