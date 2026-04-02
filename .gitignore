@@ -32,3 +32,5 @@ e2e/.auth/
 # misc
 *.log
 *.tsbuildinfo
+local-blobs/
+test-parse.*
