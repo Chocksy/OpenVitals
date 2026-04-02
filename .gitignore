@@ -34,3 +34,4 @@ e2e/.auth/
 *.tsbuildinfo
 local-blobs/
 test-parse.*
+.env.prod.local
