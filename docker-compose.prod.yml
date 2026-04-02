@@ -70,7 +70,7 @@ services:
       DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-openvitals}
     working_dir: /app
     command: >
-      sh -c "cd packages/database && pnpm db:migrate && pnpm db:seed"
+      sh -c "cd packages/database && pnpm db:migrate"
     depends_on:
       postgres:
         condition: service_healthy
