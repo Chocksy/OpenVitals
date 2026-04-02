@@ -143,19 +143,22 @@ export const importJobsRouter = createRouter({
       const genuinelyUnmatched = flaggedExtractions.filter((f: any) => {
         const fVal = f.value_numeric;
         const fUnit = f.unit?.toLowerCase() ?? '';
-        const fName = f.analyte?.toLowerCase() ?? '';
+        const fName = f.analyte?.toLowerCase().replace(/[()%]/g, '').trim() ?? '';
 
         return !storedLookup.some((s) => {
           // Strategy 1: exact value + unit match
           if (s.value === fVal && s.unit?.toLowerCase() === fUnit) return true;
 
-          // Strategy 2: name contains metric code stem
-          // e.g., "basophils (%)" contains "basophils", stored code is "basophils_pct"
+          // Strategy 2: analyte name stem matches metric code stem
+          // e.g., "basophils" from "Basophils (%)" matches "basophils" from "basophils_abs"
+          // Don't require value match since % and absolute are different numbers
           const codeStem = s.code.replace(/_pct$/, '').replace(/_abs$/, '');
-          if (fName.includes(codeStem) && Math.abs((s.value ?? 0) - (fVal ?? -1)) < 0.01) return true;
+          if (codeStem.length >= 3 && fName.includes(codeStem)) return true;
 
-          // Strategy 3: same value, compatible unit category
-          if (s.value === fVal && fUnit === '%' && s.unit === '%') return true;
+          // Strategy 3: metric code contains a word from the analyte name
+          // e.g., "total serum proteins" → check if any code contains "protein"
+          const fWords = fName.split(/\s+/).filter((w: string) => w.length >= 4);
+          if (fWords.some((w: string) => s.code.includes(w))) return true;
 
           return false;
         });
