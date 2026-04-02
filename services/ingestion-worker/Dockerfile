@@ -25,7 +25,8 @@ COPY services/ingestion-worker/ services/ingestion-worker/
 
 # Build worker
 WORKDIR /app/services/ingestion-worker
-RUN pnpm run build
+RUN pnpm run build && \
+    cp $(find /app/node_modules -path "*/pdfjs-dist/legacy/build/pdf.worker.mjs" | head -1) dist/pdf.worker.mjs
 
 # Production stage
 FROM node:20-alpine
@@ -33,6 +34,7 @@ WORKDIR /app
 
 COPY --from=base /app/services/ingestion-worker/dist ./dist
 COPY --from=base /app/services/ingestion-worker/package.json ./package.json
+
 
 EXPOSE 4000
 
