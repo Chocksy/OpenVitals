@@ -24,25 +24,24 @@ export interface NavItem {
   badge?: boolean;
 }
 
-// Primary navigation — main dashboard sections
+// Primary navigation — focused on health optimization workflow
 export const navigation: NavItem[] = [
   { name: "Home", href: "/home", icon: LayoutDashboard },
-  { name: "Timeline", href: "/timeline", icon: Clock },
   { name: "Labs", href: "/labs", icon: TestTubes },
-  { name: "Medications", href: "/medications", icon: Pill },
-  { name: "Conditions", href: "/conditions", icon: HeartPulse },
   { name: "Uploads", href: "/uploads", icon: Upload },
+  { name: "AI Coach", href: "/ai", icon: MessageSquare },
 ];
 
-// Secondary nav — less frequently used
+// Secondary nav — additional tools
 export const secondaryNav: NavItem[] = [
-  { name: "Biomarkers", href: "/biomarkers", icon: ListChecks },
-  { name: "Testing", href: "/testing", icon: Microscope },
   { name: "Reports", href: "/reports", icon: FileText },
-  { name: "Encounters", href: "/encounters", icon: Stethoscope },
+  { name: "Timeline", href: "/timeline", icon: Clock },
+  { name: "Testing", href: "/testing", icon: Microscope },
+  { name: "Biomarkers", href: "/biomarkers", icon: ListChecks },
   { name: "Correlations", href: "/correlations", icon: GitCompareArrows },
-  // { name: 'Sharing', href: '/sharing', icon: Share2 },
-  { name: "AI Chat", href: "/ai", icon: MessageSquare },
+  { name: "Medications", href: "/medications", icon: Pill },
+  { name: "Conditions", href: "/conditions", icon: HeartPulse },
+  { name: "Encounters", href: "/encounters", icon: Stethoscope },
 ];
 
 // All mobile nav items
