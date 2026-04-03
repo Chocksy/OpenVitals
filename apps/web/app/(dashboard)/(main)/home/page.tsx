@@ -165,10 +165,11 @@ export default function HomePage() {
       .slice(0, 5);
   }, [byMetric, metricNameMap, getStatus]);
 
-  // Retest items
+  // Retest items — only show metrics tested within the last 3 years
+  const MAX_RETEST_AGE_DAYS = 365 * 3;
   const upcomingRetests = useMemo<RetestItem[]>(() => {
     return retestItems
-      .filter((r) => !r.isPaused)
+      .filter((r) => !r.isPaused && r.daysSinceLastTest < MAX_RETEST_AGE_DAYS)
       .map((r) => ({
         metricCode: r.metricCode,
         metricName: r.metricName,

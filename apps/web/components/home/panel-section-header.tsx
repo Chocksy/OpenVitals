@@ -49,27 +49,38 @@ export function PanelSectionHeader({
           )}
         </div>
       </div>
-      {/* Progress bar — always full width, untested shown as striped */}
-      <div className="flex h-1.5 w-full overflow-hidden rounded-full bg-neutral-100">
+      {/* Progress bar — full width, untested shown as striped pattern */}
+      <div className="flex h-1.5 w-full overflow-hidden rounded-full">
         {inRangeCount > 0 && (
           <div
-            className="bg-[var(--color-health-normal)] transition-all"
+            className="bg-[var(--color-health-normal)]"
             style={{ width: `${(inRangeCount / totalMetrics) * 100}%` }}
           />
         )}
         {warningCount > 0 && (
           <div
-            className="bg-[var(--color-health-warning)] transition-all"
+            className="bg-[var(--color-health-warning)]"
             style={{ width: `${(warningCount / totalMetrics) * 100}%` }}
           />
         )}
         {criticalCount > 0 && (
           <div
-            className="bg-[var(--color-health-critical)] transition-all"
+            className="bg-[var(--color-health-critical)]"
             style={{ width: `${(criticalCount / totalMetrics) * 100}%` }}
           />
         )}
-        {/* Remaining space = untested (stays as bg-neutral-100) */}
+        {untestedCount > 0 && (
+          <div
+            className="flex-1"
+            style={{
+              backgroundImage:
+                "repeating-linear-gradient(135deg, var(--color-neutral-200) 0px, var(--color-neutral-200) 2px, transparent 2px, transparent 5px)",
+            }}
+          />
+        )}
+        {untestedCount === 0 && totalTested === 0 && (
+          <div className="flex-1 bg-neutral-100" />
+        )}
       </div>
     </div>
   );
