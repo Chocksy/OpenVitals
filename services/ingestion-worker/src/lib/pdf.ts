@@ -15,8 +15,11 @@ interface TextItem {
  */
 export async function extractTextFromPdf(buffer: Buffer): Promise<string> {
   const pdfjs = await import("pdfjs-dist/legacy/build/pdf.mjs");
-  // Disable web worker in Node.js — runs synchronously in the main thread
-  pdfjs.GlobalWorkerOptions.workerSrc = undefined as unknown as string;
+  // Resolve the worker file from node_modules (not relative to this source file)
+  const { createRequire } = await import("module");
+  const require = createRequire(import.meta.url);
+  pdfjs.GlobalWorkerOptions.workerSrc =
+    require.resolve("pdfjs-dist/legacy/build/pdf.worker.mjs");
   const doc = await pdfjs.getDocument({
     data: new Uint8Array(buffer),
     useWorkerFetch: false,

@@ -83,8 +83,12 @@ export async function parseLabPdf(ctx: WorkflowContext): Promise<ParseResult> {
 
     // Render PDF pages to images using pdfjs-dist
     const pdfjs = await import("pdfjs-dist/legacy/build/pdf.mjs");
-    // Disable web worker in Node.js — runs synchronously in the main thread
-    pdfjs.GlobalWorkerOptions.workerSrc = undefined as unknown as string;
+    // Resolve the worker file from node_modules (not relative to this source file)
+    const { createRequire } = await import("module");
+    const req = createRequire(import.meta.url);
+    pdfjs.GlobalWorkerOptions.workerSrc = req.resolve(
+      "pdfjs-dist/legacy/build/pdf.worker.mjs",
+    );
     const doc = await pdfjs.getDocument({
       data: new Uint8Array(pdfBuffer),
       useWorkerFetch: false,
