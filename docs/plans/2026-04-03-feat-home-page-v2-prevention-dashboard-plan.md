@@ -341,10 +341,10 @@ The `/labs/[metricCode]` page needs to handle calculated metrics gracefully:
 
 ### 5.3 Acceptance criteria
 
-- [ ] HOMA-IR appears on `/labs/homa_ir` with trend chart
-- [ ] Calculated metrics have a visual indicator ("Calculated" badge)
-- [ ] Recalculated when source observations are corrected/updated
-- [ ] Cholesterol/HDL and Trig/HDL ratios auto-computed
+- [x] HOMA-IR appears on `/labs/homa_ir` with trend chart
+- [ ] Calculated metrics have a visual indicator ("Calculated" badge) — UI polish, future
+- [x] Recalculated when source observations are corrected/updated
+- [x] Cholesterol/HDL and Trig/HDL ratios auto-computed
 
 ---
 
@@ -429,10 +429,10 @@ Instead of "Amoxicillin susceptibility: 5381D OVERDUE", show:
 
 ### 6.4 Acceptance criteria
 
-- [ ] Prevention panels defined as config (not hardcoded in component)
-- [ ] Retests prioritized: flagged → prevention gaps → routine
+- [x] Prevention panels defined as config (not hardcoded in component)
+- [x] Retests prioritized: flagged → prevention gaps → routine
 - [x] Ancient tests (>3yr) auto-deprioritized
-- [ ] Seed is idempotent (check if data exists before inserting)
+- [x] Seed is idempotent (migration uses ON CONFLICT DO NOTHING + NULL-safe unique index)
 
 ---
 

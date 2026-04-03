@@ -38,3 +38,8 @@ export {
   updateSyncStatus,
   ensureDataSource,
 } from "./queries/integrations";
+export {
+  computeCalculatedMetrics,
+  CALCULATED_METRICS,
+  type CalculatedMetricDef,
+} from "./queries/calculated-metrics";

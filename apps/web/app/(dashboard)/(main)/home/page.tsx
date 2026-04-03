@@ -169,11 +169,16 @@ export default function HomePage() {
       .slice(0, 5);
   }, [byMetric, metricNameMap, getStatus]);
 
-  // Retest items — only show metrics tested within the last 3 years
+  // Retest items — tested within last 3 years + prevention gaps (never_tested)
   const MAX_RETEST_AGE_DAYS = 365 * 3;
   const upcomingRetests = useMemo<RetestItem[]>(() => {
     return retestItems
-      .filter((r) => !r.isPaused && r.daysSinceLastTest < MAX_RETEST_AGE_DAYS)
+      .filter(
+        (r) =>
+          !r.isPaused &&
+          (r.urgency === "never_tested" ||
+            r.daysSinceLastTest < MAX_RETEST_AGE_DAYS),
+      )
       .map((r) => ({
         metricCode: r.metricCode,
         metricName: r.metricName,
@@ -181,6 +186,8 @@ export default function HomePage() {
         dueInDays: r.dueInDays,
         daysSinceLastTest: r.daysSinceLastTest,
         healthStatus: r.healthStatus,
+        preventionPanel: r.preventionPanel,
+        preventionWhy: r.preventionWhy,
       }));
   }, [retestItems]);
 

@@ -71,6 +71,13 @@
       "when": 1775132667401,
       "tag": "0009_purple_dragon_man",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1775350800000,
+      "tag": "0010_seed_missing_metric_data",
+      "breakpoints": true
     }
   ]
 }

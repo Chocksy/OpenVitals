@@ -6,6 +6,7 @@ import {
   listObservations,
   getObservationTrend,
   getObservationWithProvenance,
+  computeCalculatedMetrics,
   observations,
   importJobs,
 } from "@openvitals/database";
@@ -137,6 +138,13 @@ export const observationsRouter = createRouter({
         .where(
           and(eq(observations.id, id), eq(observations.userId, ctx.userId)),
         );
+
+      // Recalculate derived metrics that depend on this observation
+      const metricCode = corrections.metricCode ?? current.metricCode;
+      await computeCalculatedMetrics(ctx.db, {
+        userId: ctx.userId,
+        triggerMetricCodes: [metricCode],
+      });
 
       return { success: true };
     }),
@@ -276,4 +284,11 @@ export const observationsRouter = createRouter({
 
       return { confirmed: result.length };
     }),
+
+  recalculateDerived: protectedProcedure.mutation(async ({ ctx }) => {
+    const { computed, skipped } = await computeCalculatedMetrics(ctx.db, {
+      userId: ctx.userId,
+    });
+    return { computed, skipped };
+  }),
 });
