@@ -1,13 +1,19 @@
-import { betterAuth } from 'better-auth';
-import { drizzleAdapter } from 'better-auth/adapters/drizzle';
-import { getDb } from '@openvitals/database/client';
-import { users, sessions, accounts, verifications } from '@openvitals/database';
+import { betterAuth } from "better-auth";
+import { drizzleAdapter } from "better-auth/adapters/drizzle";
+import { getDb } from "@openvitals/database/client";
+import { users, sessions, accounts, verifications } from "@openvitals/database";
 
 export const auth = betterAuth({
   database: drizzleAdapter(getDb(), {
-    provider: 'pg',
-    schema: { user: users, session: sessions, account: accounts, verification: verifications },
+    provider: "pg",
+    schema: {
+      user: users,
+      session: sessions,
+      account: accounts,
+      verification: verifications,
+    },
   }),
+  trustedOrigins: [process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"],
   emailAndPassword: {
     enabled: true,
   },
