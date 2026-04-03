@@ -18,6 +18,7 @@ import {
   AlertTriangle,
   Pencil,
   Link2,
+  Trash2,
 } from "lucide-react";
 
 function formatMetricName(code: string) {
@@ -49,6 +50,9 @@ export default function ImportJobDetailPage({
     onSuccess: () => utils.importJobs.getDetail.invalidate({ id }),
   });
   const correctMutation = trpc.observations.correct.useMutation({
+    onSuccess: () => utils.importJobs.getDetail.invalidate({ id }),
+  });
+  const deleteMutation = trpc.observations.delete.useMutation({
     onSuccess: () => utils.importJobs.getDetail.invalidate({ id }),
   });
   const resolveFlaggedMutation = trpc.importJobs.resolveFlagged.useMutation({
@@ -211,6 +215,7 @@ export default function ImportJobDetailPage({
               observations={obs}
               onConfirm={(obsId) => confirmMutation.mutate({ id: obsId })}
               onCorrect={(input) => correctMutation.mutateAsync(input)}
+              onDelete={(obsId) => deleteMutation.mutate({ id: obsId })}
               isConfirming={confirmMutation.isPending}
               precisionMap={precisionMap}
             />
@@ -412,13 +417,14 @@ function SummaryCard({
 const inputClass =
   "rounded-lg border border-neutral-200 bg-white px-3 py-2 text-[13px] text-neutral-900 placeholder:text-neutral-400 focus:border-accent-300 focus:outline-none focus:ring-2 focus:ring-accent-100 transition-all";
 
-const gridCols = "grid-cols-[1.6fr_0.8fr_0.8fr_1fr_0.8fr_100px]";
+const gridCols = "grid-cols-[1.6fr_0.8fr_0.8fr_1fr_0.8fr_130px]";
 
 function CategoryGroup({
   category,
   observations,
   onConfirm,
   onCorrect,
+  onDelete,
   isConfirming,
   precisionMap,
 }: {
@@ -443,6 +449,7 @@ function CategoryGroup({
     unit?: string;
     correctionNote?: string;
   }) => Promise<unknown>;
+  onDelete: (id: string) => void;
   isConfirming: boolean;
   precisionMap: Map<string, number | null>;
 }) {
@@ -602,6 +609,13 @@ function CategoryGroup({
                       >
                         <Pencil className="h-3 w-3" />
                       </button>
+                      <button
+                        onClick={() => onDelete(obs.id)}
+                        className="rounded-md p-1 text-neutral-300 opacity-0 transition-all hover:bg-red-50 hover:text-red-500 group-hover:opacity-100 [div:hover>&]:opacity-100"
+                        title="Remove"
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </button>
                     </>
                   ) : isPending ? (
                     <>
@@ -619,6 +633,13 @@ function CategoryGroup({
                         title="Edit"
                       >
                         <Pencil className="h-3 w-3" />
+                      </button>
+                      <button
+                        onClick={() => onDelete(obs.id)}
+                        className="rounded-md border border-neutral-200 bg-white p-1 text-neutral-400 shadow-xs transition-all hover:border-red-300 hover:text-red-500 hover:shadow-sm"
+                        title="Remove"
+                      >
+                        <Trash2 className="h-3 w-3" />
                       </button>
                     </>
                   ) : null}

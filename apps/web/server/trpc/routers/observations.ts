@@ -152,6 +152,35 @@ export const observationsRouter = createRouter({
       return { success: true };
     }),
 
+  delete: protectedProcedure
+    .input(z.object({ id: z.string().uuid() }))
+    .mutation(async ({ ctx, input }) => {
+      const result = await ctx.db
+        .delete(observations)
+        .where(and(eq(observations.id, input.id), eq(observations.userId, ctx.userId)))
+        .returning({ id: observations.id, importJobId: observations.importJobId });
+
+      if (!result.length) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Observation not found' });
+      }
+
+      // Update extraction count on import job
+      const jobId = result[0]!.importJobId;
+      if (jobId) {
+        const remaining = await ctx.db
+          .select({ id: observations.id })
+          .from(observations)
+          .where(and(eq(observations.importJobId, jobId), eq(observations.userId, ctx.userId)));
+
+        await ctx.db
+          .update(importJobs)
+          .set({ extractionCount: remaining.length, updatedAt: new Date() })
+          .where(and(eq(importJobs.id, jobId), eq(importJobs.userId, ctx.userId)));
+      }
+
+      return { success: true };
+    }),
+
   confirmAll: protectedProcedure
     .input(z.object({ importJobId: z.string().uuid() }))
     .mutation(async ({ ctx, input }) => {
