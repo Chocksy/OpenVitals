@@ -13,7 +13,18 @@ import {
   type ChecklistItem,
 } from "@/components/home/onboarding-checklist";
 import { BiomarkerPanelCard } from "@/components/home/biomarker-panel-card";
+import { EmptyMetricCard } from "@/components/home/empty-metric-card";
+import { PanelSectionHeader } from "@/components/home/panel-section-header";
 import { WhatChanged, type ChangeItem } from "@/components/home/what-changed";
+import { calculateHealthScore } from "@/components/home/health-score";
+import {
+  AttentionMetrics,
+  type AttentionMetric,
+} from "@/components/home/attention-metrics";
+import {
+  UpcomingRetests,
+  type RetestItem,
+} from "@/components/home/upcoming-retests";
 import {
   Upload,
   Pill,
@@ -38,6 +49,10 @@ export default function HomePage() {
     enabled: (observations.data?.items?.length ?? 0) > 0,
   });
   const conditionsQuery = trpc.conditions.list.useQuery();
+  const retests = trpc.testing["retest.getRecommendations"].useQuery(
+    undefined,
+    { enabled: (observations.data?.items?.length ?? 0) > 0 },
+  );
 
   const isLoading =
     observations.isLoading || medications.isLoading || importJobs.isLoading;
@@ -47,6 +62,7 @@ export default function HomePage() {
   const jobItems = importJobs.data?.items ?? [];
   const metricDefsList = metricDefs.data ?? [];
   const condItems = conditionsQuery.data ?? [];
+  const retestItems = retests.data ?? [];
   const hasData = obsItems.length > 0;
 
   // Build metric name lookup
@@ -58,7 +74,7 @@ export default function HomePage() {
     return map;
   }, [metricDefsList]);
 
-  // Group observations by metric
+  // Group observations by metric (sorted newest first)
   const byMetric = useMemo(() => {
     const map = new Map<string, typeof obsItems>();
     for (const obs of obsItems) {
@@ -66,7 +82,6 @@ export default function HomePage() {
       existing.push(obs);
       map.set(obs.metricCode, existing);
     }
-    // Sort each metric's observations newest first
     for (const [, arr] of map) {
       arr.sort(
         (a, b) =>
@@ -76,60 +91,91 @@ export default function HomePage() {
     return map;
   }, [obsItems]);
 
-  // Panel data for rendering
+  // Aggregate stats for health score + summary
+  const stats = useMemo(() => {
+    let normalCount = 0;
+    let warningCount = 0;
+    let criticalCount = 0;
+
+    for (const [, metricObs] of byMetric) {
+      const latest = metricObs[0]!;
+      const status = getStatus(latest);
+      if (status === "critical") criticalCount++;
+      else if (status === "warning") warningCount++;
+      else normalCount++;
+    }
+
+    return { normalCount, warningCount, criticalCount };
+  }, [byMetric, getStatus]);
+
+  const healthScore = calculateHealthScore(
+    stats.normalCount,
+    stats.warningCount,
+    stats.criticalCount,
+  );
+
+  // Attention metrics (top flagged)
+  const attentionMetrics = useMemo<AttentionMetric[]>(() => {
+    const result: AttentionMetric[] = [];
+    const now = Date.now();
+
+    for (const [code, metricObs] of byMetric) {
+      const latest = metricObs[0]!;
+      const status = getStatus(latest);
+      if (status === "normal") continue;
+
+      const sparkData = metricObs
+        .slice(0, 8)
+        .reverse()
+        .map((o) => o.valueNumeric ?? 0);
+      const daysSinceTest = Math.floor(
+        (now - new Date(latest.observedAt).getTime()) / (1000 * 60 * 60 * 24),
+      );
+
+      result.push({
+        metricCode: code,
+        metricName: metricNameMap.get(code) ?? code.replace(/_/g, " "),
+        latestValue: latest.valueNumeric ?? null,
+        unit: latest.unit ?? null,
+        status,
+        sparkData,
+        daysSinceTest,
+      });
+    }
+
+    return result
+      .sort((a, b) => {
+        const order = {
+          critical: 0,
+          warning: 1,
+          normal: 2,
+          info: 3,
+          neutral: 4,
+        };
+        return (order[a.status] ?? 4) - (order[b.status] ?? 4);
+      })
+      .slice(0, 5);
+  }, [byMetric, metricNameMap, getStatus]);
+
+  // Retest items
+  const upcomingRetests = useMemo<RetestItem[]>(() => {
+    return retestItems
+      .filter((r) => !r.isPaused)
+      .map((r) => ({
+        metricCode: r.metricCode,
+        metricName: r.metricName,
+        urgency: r.urgency,
+        dueInDays: r.dueInDays,
+        daysSinceLastTest: r.daysSinceLastTest,
+        healthStatus: r.healthStatus,
+      }));
+  }, [retestItems]);
+
+  // Panel data: filled metrics + empty metrics
   const panelData = useMemo(() => {
     return PANELS.map((panel) => {
-      const metrics = panel.metrics
-        .map((code) => {
-          const metricObs = byMetric.get(code);
-          if (!metricObs || metricObs.length === 0) return null;
-
-          const latest = metricObs[0]!;
-          const previous = metricObs[1];
-          const value = latest.valueNumeric;
-          if (value == null) return null;
-
-          const sparkData = metricObs
-            .slice(0, 8)
-            .reverse()
-            .map((o) => o.valueNumeric ?? 0);
-          const status = getStatus(latest);
-          const ranges = getRanges(code);
-          const hasOptimal =
-            ranges?.optimalLow != null || ranges?.optimalHigh != null;
-          const rangeLabel = hasOptimal ? "optimal" : "ref";
-          const optimalRange = `${rangeLabel} ${formatRange(
-            ranges?.optimalLow ?? ranges?.referenceLow,
-            ranges?.optimalHigh ?? ranges?.referenceHigh,
-            latest.unit,
-          )}`;
-
-          let trendDelta: number | null = null;
-          if (previous?.valueNumeric && previous.valueNumeric !== 0) {
-            trendDelta =
-              ((value - previous.valueNumeric) /
-                Math.abs(previous.valueNumeric)) *
-              100;
-          }
-
-          const trendImproving =
-            trendDelta != null
-              ? isTrendImproving(trendDelta, ranges, value)
-              : null;
-
-          return {
-            metricCode: code,
-            name: metricNameMap.get(code) ?? code.replace(/_/g, " "),
-            value,
-            unit: latest.unit ?? "",
-            sparkData,
-            trendDelta,
-            trendImproving,
-            optimalRange,
-            status,
-          };
-        })
-        .filter(Boolean) as Array<{
+      type FilledMetric = {
+        type: "filled";
         metricCode: string;
         name: string;
         value: number;
@@ -139,13 +185,101 @@ export default function HomePage() {
         trendImproving: boolean | null;
         optimalRange: string;
         status: "normal" | "warning" | "critical" | "info" | "neutral";
-      }>;
+      };
+      type EmptyMetric = {
+        type: "empty";
+        metricCode: string;
+        name: string;
+        reason: string;
+      };
 
-      return { ...panel, metrics };
-    }).filter((p) => p.metrics.length > 0);
+      const allMetrics: (FilledMetric | EmptyMetric)[] = [];
+      let inRangeCount = 0;
+      let totalTested = 0;
+
+      for (const metricDef of panel.metrics) {
+        const code = metricDef.code;
+        const metricObs = byMetric.get(code);
+
+        if (!metricObs || metricObs.length === 0) {
+          allMetrics.push({
+            type: "empty",
+            metricCode: code,
+            name: metricNameMap.get(code) ?? code.replace(/_/g, " "),
+            reason: metricDef.reason,
+          });
+          continue;
+        }
+
+        const latest = metricObs[0]!;
+        const value = latest.valueNumeric;
+        if (value == null) {
+          allMetrics.push({
+            type: "empty",
+            metricCode: code,
+            name: metricNameMap.get(code) ?? code.replace(/_/g, " "),
+            reason: metricDef.reason,
+          });
+          continue;
+        }
+
+        totalTested++;
+        const status = getStatus(latest);
+        if (status === "normal") inRangeCount++;
+
+        const previous = metricObs[1];
+        const sparkData = metricObs
+          .slice(0, 8)
+          .reverse()
+          .map((o) => o.valueNumeric ?? 0);
+        const ranges = getRanges(code);
+        const hasOptimal =
+          ranges?.optimalLow != null || ranges?.optimalHigh != null;
+        const rangeLabel = hasOptimal ? "optimal" : "ref";
+        const optimalRange = `${rangeLabel} ${formatRange(
+          ranges?.optimalLow ?? ranges?.referenceLow,
+          ranges?.optimalHigh ?? ranges?.referenceHigh,
+          latest.unit,
+        )}`;
+
+        let trendDelta: number | null = null;
+        if (previous?.valueNumeric && previous.valueNumeric !== 0) {
+          trendDelta =
+            ((value - previous.valueNumeric) /
+              Math.abs(previous.valueNumeric)) *
+            100;
+        }
+
+        const trendImproving =
+          trendDelta != null
+            ? isTrendImproving(trendDelta, ranges, value)
+            : null;
+
+        allMetrics.push({
+          type: "filled",
+          metricCode: code,
+          name: metricNameMap.get(code) ?? code.replace(/_/g, " "),
+          value,
+          unit: latest.unit ?? "",
+          sparkData,
+          trendDelta,
+          trendImproving,
+          optimalRange,
+          status,
+        });
+      }
+
+      return {
+        ...panel,
+        allMetrics,
+        inRangeCount,
+        totalTested,
+        totalMetrics: panel.metrics.length,
+      };
+    });
   }, [byMetric, metricNameMap, getStatus, getRanges]);
 
-  // What Changed: compare latest 2 distinct blood work dates
+  // What Changed
   const whatChanged = useMemo(() => {
     const allDates = new Set<string>();
     for (const obs of obsItems) {
@@ -157,7 +291,6 @@ export default function HomePage() {
 
     const currentDate = sortedDates[0]!;
     const previousDate = sortedDates[1]!;
-
     const changes: ChangeItem[] = [];
 
     for (const [code, metricObs] of byMetric) {
@@ -179,7 +312,6 @@ export default function HomePage() {
         100;
       if (Math.abs(pct) < 5) continue;
 
-      // Determine if change is "improved" using range-aware direction
       const ranges = getRanges(code);
       const trendResult = isTrendImproving(
         pct,
@@ -199,7 +331,6 @@ export default function HomePage() {
       });
     }
 
-    // Sort by absolute change
     changes.sort(
       (a, b) => Math.abs(b.percentChange) - Math.abs(a.percentChange),
     );
@@ -214,66 +345,66 @@ export default function HomePage() {
       previousDate: fmt(previousDate),
       currentDate: fmt(currentDate),
     };
-  }, [obsItems, byMetric, metricNameMap, getStatus]);
+  }, [obsItems, byMetric, metricNameMap, getStatus, getRanges]);
 
   // Derive display values
   const fullName = session?.user?.name ?? "";
   const firstName = fullName.split(/\s+/)[0] ?? "";
   const metricCount = byMetric.size;
+  const retestsDueCount = retestItems.filter(
+    (r) => r.urgency === "overdue" || r.urgency === "due_soon",
+  ).length;
   const summaryParts = [];
-  if (hasData) summaryParts.push(`${metricCount} metrics tracked`);
+  if (hasData) summaryParts.push(`${metricCount} metrics`);
+  if (stats.warningCount + stats.criticalCount > 0)
+    summaryParts.push(`${stats.warningCount + stats.criticalCount} flagged`);
+  if (retestsDueCount > 0) summaryParts.push(`${retestsDueCount} retests due`);
   const summaryLine =
     summaryParts.length > 0
       ? summaryParts.join(" · ")
       : "Upload your first lab report to get started";
   const abnormalCount = obsItems.filter((o) => isObsAbnormal(o)).length;
 
-  // Onboarding checklist items
+  // Onboarding checklist
   const checklistItems: ChecklistItem[] = [
     {
       label: "Upload a lab report",
-      description:
-        "Import your lab results from any provider to start tracking your biomarkers over time.",
+      description: "Import your lab results to start tracking biomarkers.",
       href: "/uploads",
       completed: jobItems.length > 0,
       icon: Upload,
     },
     {
       label: "Add a medication",
-      description:
-        "Track your medications and supplements so AI insights can factor in what you're taking.",
+      description: "Track medications so AI insights can factor them in.",
       href: "/medications",
       completed: medItems.length > 0,
       icon: Pill,
     },
     {
       label: "Track a condition",
-      description:
-        "Record your health conditions and diagnoses to build a complete health picture.",
+      description: "Record health conditions to build a complete picture.",
       href: "/conditions",
       completed: condItems.length > 0,
       icon: HeartPulse,
     },
     {
       label: "Review your biomarkers",
-      description:
-        "Explore your lab results organized by category with reference ranges and trend lines.",
+      description: "Explore lab results with reference ranges and trends.",
       href: "/biomarkers",
       completed: obsItems.length > 0,
       icon: ListChecks,
     },
     {
       label: "Generate a health report",
-      description:
-        "Create a comprehensive health report to share with your doctor at your next visit.",
+      description: "Create a report to share with your doctor.",
       href: "/reports",
       completed: false,
       icon: FileText,
     },
     {
       label: "Ask AI a question",
-      description:
-        "Chat with your health data — ask about trends, get explanations, or request a summary.",
+      description: "Chat with your health data for insights.",
       href: "/ai",
       completed: false,
       icon: MessageSquare,
@@ -295,11 +426,48 @@ export default function HomePage() {
 
   return (
     <div className="stagger-children">
-      <GreetingHeader
-        firstName={firstName}
-        summaryLine={summaryLine}
-        abnormalCount={abnormalCount}
-      />
+      {/* Greeting + Health Score */}
+      <div className="flex items-start justify-between gap-4">
+        <GreetingHeader
+          firstName={firstName}
+          summaryLine={summaryLine}
+          abnormalCount={abnormalCount}
+        />
+        {hasData && (
+          <div className="shrink-0 text-right">
+            <span className="text-[32px] font-medium tracking-[-0.04em] font-display text-neutral-900">
+              {healthScore}
+            </span>
+            <span className="block text-[11px] font-mono text-neutral-400 mt-0.5">
+              health score
+            </span>
+          </div>
+        )}
+      </div>
+
+      {/* Summary stats row */}
+      {hasData && (
+        <div className="mt-4 flex items-center gap-4 text-[12px] font-mono">
+          <span className="text-[var(--color-health-normal)]">
+            {stats.normalCount} optimal
+          </span>
+          {stats.warningCount > 0 && (
+            <span className="text-[var(--color-health-warning)]">
+              {stats.warningCount} warning
+            </span>
+          )}
+          {stats.criticalCount > 0 && (
+            <span className="text-[var(--color-health-critical)]">
+              {stats.criticalCount} critical
+            </span>
+          )}
+          {retestsDueCount > 0 && (
+            <span className="text-neutral-500">
+              {retestsDueCount} retests due
+            </span>
+          )}
+        </div>
+      )}
 
       {/* Quick actions */}
       <div className="mt-5 flex gap-3">
@@ -319,63 +487,80 @@ export default function HomePage() {
         </Link>
       </div>
 
-      {/* Onboarding checklist (shown until dismissed or complete) */}
+      {/* Onboarding checklist (new users only) */}
       {!hasData && (
         <div className="mt-6">
           <OnboardingChecklist items={checklistItems} />
         </div>
       )}
 
-      {hasData && (
-        <>
-          {/* Panel sections */}
-          {panelData.map((panel) => (
-            <div key={panel.id} className="mt-6">
-              <h2 className="text-[15px] font-medium font-display tracking-[-0.02em] text-neutral-900 mb-3">
-                {panel.label}
-              </h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                {panel.metrics.map((m) => (
-                  <BiomarkerPanelCard key={m.metricCode} {...m} />
-                ))}
-              </div>
-            </div>
-          ))}
-
-          {/* What Changed */}
-          {whatChanged.changes.length > 0 && (
-            <div className="mt-8">
-              <WhatChanged
-                changes={whatChanged.changes}
-                previousDate={whatChanged.previousDate}
-                currentDate={whatChanged.currentDate}
-              />
-            </div>
-          )}
-
-          {/* AI Coach Suggestions placeholder */}
-          <div className="mt-8">
-            <div className="card p-5 border-dashed">
-              <div className="flex items-center gap-2 mb-2">
-                <Sparkles className="size-4 text-neutral-400" />
-                <h2 className="text-[15px] font-medium font-display tracking-[-0.02em] text-neutral-500">
-                  AI Coach Suggestions
-                </h2>
-              </div>
-              <p className="text-[13px] text-neutral-400 font-display">
-                Upload your latest blood work and the AI coach will analyze
-                trends and suggest next steps.
-              </p>
-              <Link
-                href="/ai"
-                className="mt-3 inline-flex text-[12px] font-medium text-accent-600 font-display hover:text-accent-700"
-              >
-                Ask AI Coach &rarr;
-              </Link>
-            </div>
-          </div>
-        </>
+      {/* Needs Attention (top flagged metrics) */}
+      {attentionMetrics.length > 0 && (
+        <div className="mt-6">
+          <AttentionMetrics metrics={attentionMetrics} />
+        </div>
       )}
+
+      {/* Panel sections — always show all panels */}
+      {panelData.map((panel) => (
+        <div key={panel.id} className="mt-6">
+          <PanelSectionHeader
+            label={panel.label}
+            inRangeCount={panel.inRangeCount}
+            totalTested={panel.totalTested}
+            totalMetrics={panel.totalMetrics}
+          />
+          <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2">
+            {panel.allMetrics.map((m) =>
+              m.type === "filled" ? (
+                <BiomarkerPanelCard key={m.metricCode} {...m} />
+              ) : (
+                <EmptyMetricCard key={m.metricCode} {...m} />
+              ),
+            )}
+          </div>
+        </div>
+      ))}
+
+      {/* Retests Due */}
+      {upcomingRetests.length > 0 && (
+        <div className="mt-8">
+          <UpcomingRetests items={upcomingRetests} />
+        </div>
+      )}
+
+      {/* What Changed */}
+      {whatChanged.changes.length > 0 && (
+        <div className="mt-8">
+          <WhatChanged
+            changes={whatChanged.changes}
+            previousDate={whatChanged.previousDate}
+            currentDate={whatChanged.currentDate}
+          />
+        </div>
+      )}
+
+      {/* AI Coach Suggestions placeholder */}
+      <div className="mt-8">
+        <div className="card p-5 border-dashed">
+          <div className="flex items-center gap-2 mb-2">
+            <Sparkles className="size-4 text-neutral-400" />
+            <h2 className="text-[15px] font-medium font-display tracking-[-0.02em] text-neutral-500">
+              AI Coach Suggestions
+            </h2>
+          </div>
+          <p className="text-[13px] text-neutral-400 font-display">
+            Upload your latest blood work and the AI coach will analyze trends
+            and suggest next steps.
+          </p>
+          <Link
+            href="/ai"
+            className="mt-3 inline-flex text-[12px] font-medium text-accent-600 font-display hover:text-accent-700"
+          >
+            Ask AI Coach &rarr;
+          </Link>
+        </div>
+      </div>
     </div>
   );
 }
