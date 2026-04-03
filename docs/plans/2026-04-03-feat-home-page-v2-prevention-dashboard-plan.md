@@ -306,6 +306,48 @@ Renders: section title + small inline bar + counts text.
 
 ---
 
+## Phase 5: Calculated/Derived Biomarkers (Future)
+
+**Goal**: Support biomarkers that are calculated from other markers, not directly measured in blood work.
+
+### 5.1 Calculated metrics engine
+
+Currently HOMA-IR is computed client-side in the home page `useMemo`. This needs to be a proper system:
+
+**Calculated metrics to support:**
+| Metric | Formula | Inputs |
+|--------|---------|--------|
+| HOMA-IR | (glucose × insulin) / 405 | glucose, insulin |
+| Cholesterol/HDL Ratio | total_cholesterol / hdl_cholesterol | total_cholesterol, hdl_cholesterol |
+| Triglyceride/HDL Ratio | triglycerides / hdl_cholesterol | triglycerides, hdl_cholesterol |
+| Non-HDL Cholesterol | total_cholesterol - hdl_cholesterol | total_cholesterol, hdl_cholesterol |
+
+**Approach options:**
+
+1. **Server-side on ingestion** — calculate and store as real observations when source markers are ingested. Pros: works everywhere (labs detail, reports, exports). Cons: need to recalculate when source values are corrected.
+2. **Client-side virtual metrics** — compute on the fly when rendering. Pros: always up to date. Cons: only works where the computation is wired up (home page today, but not labs detail page).
+3. **Hybrid** — compute on ingestion AND recompute on correction. Mark as `source: "calculated"` so they're visually distinct.
+
+**Recommended: Option 3 (Hybrid)** — store as observations with `source: "calculated"` tag so they appear on `/labs/homa_ir` detail page, trend charts, reports, etc. Recompute when source observations change.
+
+### 5.2 Labs detail page for calculated metrics
+
+The `/labs/[metricCode]` page needs to handle calculated metrics gracefully:
+
+- Show the calculated value with the formula used
+- Link to source metrics (glucose, insulin)
+- Show trend chart from historical calculated values
+- Display "Calculated from Glucose + Insulin" badge instead of "from lab report"
+
+### 5.3 Acceptance criteria
+
+- [ ] HOMA-IR appears on `/labs/homa_ir` with trend chart
+- [ ] Calculated metrics have a visual indicator ("Calculated" badge)
+- [ ] Recalculated when source observations are corrected/updated
+- [ ] Cholesterol/HDL and Trig/HDL ratios auto-computed
+
+---
+
 ## Files Summary
 
 ### New files
