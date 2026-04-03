@@ -15,7 +15,7 @@ import {
 import { useDynamicStatus } from "@/hooks/use-dynamic-status";
 import { cn, formatDate, formatObsValue, isDurationMetric } from "@/lib/utils";
 import { DataTable, type DataTableColumn } from "@/components/data-table";
-import { Pill, TrendingUp, TrendingDown, Minus } from "lucide-react";
+import { Pill, TrendingUp, TrendingDown, Minus, Pencil, Trash2, Check, X } from "lucide-react";
 
 const TIME_RANGES = [
   { key: "3m", label: "3M", months: 3 },
@@ -89,6 +89,16 @@ export default function LabDetailPage({
     metricCode,
   });
   const { data: medsData } = trpc.medications.list.useQuery({});
+  const utils = trpc.useUtils();
+  const correctMutation = trpc.observations.correct.useMutation({
+    onSuccess: () => utils.observations.list.invalidate({ metricCode }),
+  });
+  const deleteMutation = trpc.observations.delete.useMutation({
+    onSuccess: () => utils.observations.list.invalidate({ metricCode }),
+  });
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editValue, setEditValue] = useState("");
+  const [editNote, setEditNote] = useState("");
   const metricDef = metricsData?.find((m) => m.id === metricCode);
   const displayPrecision = metricDef?.displayPrecision ?? null;
   const showOptimal = prefsData?.showOptimalRanges ?? true;
@@ -215,21 +225,34 @@ export default function LabDetailPage({
         },
       },
       {
-        id: "source",
-        header: "Source",
-        width: "0.8fr",
+        id: "actions",
+        header: "",
+        width: "90px",
         cell: (obs) => (
-          <div className="text-[11px] text-neutral-400 font-mono truncate">
-            {obs.status === "corrected"
-              ? "Corrected"
-              : obs.status === "confirmed"
-                ? "Confirmed"
-                : "Extracted"}
+          <div className="flex items-center justify-end gap-1">
+            <button
+              onClick={() => {
+                setEditingId(obs.id);
+                setEditValue(obs.valueNumeric != null ? String(obs.valueNumeric) : "");
+                setEditNote("");
+              }}
+              className="rounded-md p-1 text-neutral-300 transition-all hover:bg-neutral-100 hover:text-neutral-500"
+              title="Edit"
+            >
+              <Pencil className="h-3 w-3" />
+            </button>
+            <button
+              onClick={() => deleteMutation.mutate({ id: obs.id })}
+              className="rounded-md p-1 text-neutral-300 transition-all hover:bg-red-50 hover:text-red-500"
+              title="Remove"
+            >
+              <Trash2 className="h-3 w-3" />
+            </button>
           </div>
         ),
       },
     ],
-    [metricCode, displayPrecision],
+    [metricCode, displayPrecision, deleteMutation],
   );
 
   const latest = sorted[0];
@@ -498,6 +521,59 @@ export default function LabDetailPage({
               : undefined,
         }}
       />
+
+      {/* Inline edit overlay */}
+      {editingId && (
+        <div className="card mt-2 border-accent-200 bg-accent-50/30 p-4">
+          <div className="flex flex-wrap items-end gap-3">
+            <label className="flex flex-col gap-1">
+              <span className="text-[10px] font-semibold uppercase tracking-[0.06em] text-neutral-400 font-mono">
+                Value
+              </span>
+              <input
+                type="number"
+                value={editValue}
+                onChange={(e) => setEditValue(e.target.value)}
+                className="w-28 rounded-lg border border-neutral-200 bg-white px-3 py-2 text-[13px] text-neutral-900 focus:border-accent-300 focus:outline-none focus:ring-2 focus:ring-accent-100 transition-all"
+              />
+            </label>
+            <label className="flex flex-col gap-1">
+              <span className="text-[10px] font-semibold uppercase tracking-[0.06em] text-neutral-400 font-mono">
+                Note
+              </span>
+              <input
+                type="text"
+                value={editNote}
+                onChange={(e) => setEditNote(e.target.value)}
+                placeholder="Reason for correction"
+                className="w-48 rounded-lg border border-neutral-200 bg-white px-3 py-2 text-[13px] text-neutral-900 placeholder:text-neutral-400 focus:border-accent-300 focus:outline-none focus:ring-2 focus:ring-accent-100 transition-all"
+              />
+            </label>
+            <button
+              onClick={async () => {
+                await correctMutation.mutateAsync({
+                  id: editingId,
+                  ...(editValue !== "" && { valueNumeric: Number(editValue) }),
+                  ...(editNote !== "" && { correctionNote: editNote }),
+                });
+                setEditingId(null);
+              }}
+              disabled={correctMutation.isPending}
+              className="flex items-center gap-1.5 rounded-lg bg-accent-600 px-4 py-2 text-[13px] font-medium text-white shadow-sm hover:bg-accent-700 transition-colors disabled:opacity-50"
+            >
+              <Check className="h-3 w-3" />
+              Save
+            </button>
+            <button
+              onClick={() => setEditingId(null)}
+              className="flex items-center gap-1.5 rounded-lg border border-neutral-200 px-4 py-2 text-[13px] font-medium text-neutral-600 shadow-sm hover:bg-neutral-50 transition-colors"
+            >
+              <X className="h-3 w-3" />
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
