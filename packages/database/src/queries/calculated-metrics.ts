@@ -49,11 +49,11 @@ export const CALCULATED_METRICS: CalculatedMetricDef[] = [
     name: "Cholesterol/HDL Ratio",
     category: "lipid",
     unit: "",
-    inputs: ["cholesterol_total", "hdl_cholesterol"],
+    inputs: ["total_cholesterol", "hdl_cholesterol"],
     calculate: (v) => {
-      if (v.cholesterol_total == null || v.hdl_cholesterol == null) return null;
+      if (v.total_cholesterol == null || v.hdl_cholesterol == null) return null;
       if (v.hdl_cholesterol === 0) return null;
-      return v.cholesterol_total / v.hdl_cholesterol;
+      return v.total_cholesterol / v.hdl_cholesterol;
     },
     formulaText: "total cholesterol / HDL cholesterol",
     precision: 1,
@@ -77,10 +77,10 @@ export const CALCULATED_METRICS: CalculatedMetricDef[] = [
     name: "Non-HDL Cholesterol",
     category: "lipid",
     unit: "mg/dL",
-    inputs: ["cholesterol_total", "hdl_cholesterol"],
+    inputs: ["total_cholesterol", "hdl_cholesterol"],
     calculate: (v) => {
-      if (v.cholesterol_total == null || v.hdl_cholesterol == null) return null;
-      return v.cholesterol_total - v.hdl_cholesterol;
+      if (v.total_cholesterol == null || v.hdl_cholesterol == null) return null;
+      return v.total_cholesterol - v.hdl_cholesterol;
     },
     formulaText: "total cholesterol − HDL cholesterol",
     precision: 0,
@@ -89,7 +89,9 @@ export const CALCULATED_METRICS: CalculatedMetricDef[] = [
 
 // ── Code aliases for input resolution ──────────────────────────────────────────
 const INPUT_ALIASES: Record<string, string[]> = {
-  cholesterol_total: ["cholesterol_total", "total_cholesterol"],
+  // After migration 0011, canonical is "total_cholesterol"
+  // Keep alias for safety during transition
+  total_cholesterol: ["total_cholesterol", "cholesterol_total"],
 };
 
 /** Get all metric codes (including aliases) that could be an input for any formula */

@@ -78,6 +78,13 @@
       "when": 1775350800000,
       "tag": "0010_seed_missing_metric_data",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1775351400000,
+      "tag": "0011_consolidate_metric_codes",
+      "breakpoints": true
     }
   ]
 }

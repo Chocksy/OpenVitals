@@ -95,7 +95,6 @@ export const PANELS: PanelDef[] = [
     metrics: [
       {
         code: "vitamin_d",
-        aliases: ["25_hydroxyvitamin_d", "vitamin_d_25_hydroxyvitamin_d"],
         reason: "Vitamin D — immune function, bone health, mood",
       },
       { code: "vitamin_b12", reason: "B12 — energy, neurological function" },
