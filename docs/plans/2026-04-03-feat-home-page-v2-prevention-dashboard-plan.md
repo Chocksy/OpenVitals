@@ -48,9 +48,9 @@ The normalizer (`packages/ingestion/src/normalizer.ts`) maps uploaded lab names 
 
 **Acceptance criteria:**
 
-- [ ] All 5 panel groups show optimal ranges (not "—") after re-seeding
-- [ ] `hba1c` observations resolve to `hemoglobin_a1c` optimal ranges
-- [ ] Run seed, reload home page, verify ranges appear
+- [x] All 5 panel groups show optimal ranges (not "—") after re-seeding
+- [x] `hba1c` observations resolve to `hemoglobin_a1c` optimal ranges
+- [x] Run seed, reload home page, verify ranges appear
 
 ### 1.2 Show reference range as fallback
 
@@ -78,9 +78,9 @@ const optimalRange = formatRange(
 
 **Acceptance criteria:**
 
-- [ ] Cards show reference range when no optimal range exists
-- [ ] Cards show optimal range when it exists (preferred)
-- [ ] Label changes: "optimal 72–85 mg/dL" vs "ref 70–99 mg/dL"
+- [x] Cards show reference range when no optimal range exists
+- [x] Cards show optimal range when it exists (preferred)
+- [x] Label changes: "optimal 72–85 mg/dL" vs "ref 70–99 mg/dL"
 
 ---
 
@@ -145,10 +145,10 @@ Replace naive color logic:
 
 **Acceptance criteria:**
 
-- [ ] LDL going down shows green delta
-- [ ] HDL going up shows green delta
-- [ ] Glucose moving from 95→82 (toward optimal 72–85 center) shows green
-- [ ] Metrics without ranges show neutral gray delta
+- [x] LDL going down shows green delta
+- [x] HDL going up shows green delta
+- [x] Glucose moving from 95→82 (toward optimal 72–85 center) shows green
+- [x] Metrics without ranges show neutral gray delta
 
 ---
 
@@ -229,10 +229,10 @@ export const PANELS = [
 
 **Acceptance criteria:**
 
-- [ ] All 5 panels always show, even with no data
-- [ ] Untested metrics show ghost cards with reason text
-- [ ] Panel headers show "X/Y in range" counts
-- [ ] Empty panels show "0/4 tested" with all ghost cards
+- [x] All 5 panels always show, even with no data
+- [x] Untested metrics show ghost cards with reason text
+- [x] Panel headers show "X/Y in range" counts
+- [x] Empty panels show "0/4 tested" with all ghost cards
 
 ---
 
@@ -298,11 +298,11 @@ Renders: section title + small inline bar + counts text.
 
 **Acceptance criteria:**
 
-- [ ] Health Score shows in greeting header
-- [ ] Summary stats row shows below greeting
-- [ ] "Needs Attention" section shows top 5 flagged metrics with sparklines
-- [ ] Retests Due section shows after panels
-- [ ] Panel headers show colored progress bars
+- [x] Health Score shows in greeting header
+- [x] Summary stats row shows below greeting
+- [x] "Needs Attention" section shows top 5 flagged metrics with sparklines
+- [x] Retests Due section shows after panels
+- [x] Panel headers show colored progress bars
 
 ---
 
@@ -431,7 +431,7 @@ Instead of "Amoxicillin susceptibility: 5381D OVERDUE", show:
 
 - [ ] Prevention panels defined as config (not hardcoded in component)
 - [ ] Retests prioritized: flagged → prevention gaps → routine
-- [ ] Ancient tests (>3yr) auto-deprioritized
+- [x] Ancient tests (>3yr) auto-deprioritized
 - [ ] Seed is idempotent (check if data exists before inserting)
 
 ---
