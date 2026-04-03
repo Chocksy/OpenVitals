@@ -42,7 +42,7 @@ export default function HomePage() {
     isAbnormal: isObsAbnormal,
     getRanges,
   } = useDynamicStatus();
-  const observations = trpc.observations.list.useQuery({ limit: 200 });
+  const observations = trpc.observations.list.useQuery({ limit: 500 });
   const medications = trpc.medications.list.useQuery({});
   const importJobs = trpc.importJobs.list.useQuery({ limit: 20 });
   const metricDefs = trpc.metrics.list.useQuery(undefined, {
