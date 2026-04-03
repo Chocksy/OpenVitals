@@ -46,6 +46,18 @@ export const optimalRangeSeeds: OptimalRangeSeed[] = [
     sourceUrl: null,
   },
 
+  {
+    metricCode: "homa_ir",
+    sex: null,
+    ageMin: 18,
+    ageMax: null,
+    rangeLow: 0,
+    rangeHigh: 1.0,
+    rangeText: "<1.0",
+    source: "Attia/Outlive",
+    sourceUrl: null,
+  },
+
   // HbA1c alias — observations use "hba1c", seed canonical is "hemoglobin_a1c"
   {
     metricCode: "hba1c",

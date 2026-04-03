@@ -171,6 +171,27 @@ export default function HomePage() {
       }));
   }, [retestItems]);
 
+  // Auto-calculate derived metrics (HOMA-IR = glucose × insulin / 405)
+  const calculatedMetrics = useMemo(() => {
+    const map = new Map<string, { value: number; unit: string }>();
+    const glucoseObs = byMetric.get("glucose");
+    const insulinObs = byMetric.get("insulin");
+
+    if (glucoseObs && insulinObs) {
+      const latestGlucose = glucoseObs.find((o) => o.valueNumeric != null);
+      const latestInsulin = insulinObs.find((o) => o.valueNumeric != null);
+      if (latestGlucose?.valueNumeric && latestInsulin?.valueNumeric) {
+        const homaIr =
+          (latestGlucose.valueNumeric * latestInsulin.valueNumeric) / 405;
+        map.set("homa_ir", {
+          value: Math.round(homaIr * 100) / 100,
+          unit: "",
+        });
+      }
+    }
+    return map;
+  }, [byMetric]);
+
   // Panel data: filled metrics + empty metrics
   const panelData = useMemo(() => {
     return PANELS.map((panel) => {
@@ -199,9 +220,23 @@ export default function HomePage() {
 
       for (const metricDef of panel.metrics) {
         const code = metricDef.code;
-        const metricObs = byMetric.get(code);
+        // Check primary code and aliases for observations
+        const codesToCheck = [code, ...(metricDef.aliases ?? [])];
+        let metricObs: typeof obsItems | undefined;
+        let resolvedCode = code;
+        for (const c of codesToCheck) {
+          const obs = byMetric.get(c);
+          if (obs && obs.length > 0) {
+            metricObs = obs;
+            resolvedCode = c;
+            break;
+          }
+        }
 
-        if (!metricObs || metricObs.length === 0) {
+        // Check calculated metrics as fallback (e.g., HOMA-IR)
+        const calculated = calculatedMetrics.get(code);
+
+        if ((!metricObs || metricObs.length === 0) && !calculated) {
           allMetrics.push({
             type: "empty",
             metricCode: code,
@@ -211,9 +246,37 @@ export default function HomePage() {
           continue;
         }
 
-        const latest = metricObs[0]!;
-        const value = latest.valueNumeric;
-        if (value == null) {
+        // Use calculated value if no observations
+        if ((!metricObs || metricObs.length === 0) && calculated) {
+          totalTested++;
+          const ranges = getRanges(code);
+          const hasOptimal =
+            ranges?.optimalLow != null || ranges?.optimalHigh != null;
+          const rangeLabel = hasOptimal ? "optimal" : "ref";
+          const optimalRange = `${rangeLabel} ${formatRange(
+            ranges?.optimalLow ?? ranges?.referenceLow,
+            ranges?.optimalHigh ?? ranges?.referenceHigh,
+            calculated.unit,
+          )}`;
+          allMetrics.push({
+            type: "filled",
+            metricCode: code,
+            name: metricNameMap.get(code) ?? code.replace(/_/g, " "),
+            value: calculated.value,
+            unit: calculated.unit,
+            sparkData: [calculated.value],
+            trendDelta: null,
+            trendImproving: null,
+            optimalRange,
+            status: "neutral",
+          });
+          continue;
+        }
+
+        // At this point metricObs is guaranteed non-empty (empty cases handled above)
+        const validObs = metricObs ?? [];
+        const latestWithValue = validObs.find((o) => o.valueNumeric != null);
+        if (!latestWithValue) {
           allMetrics.push({
             type: "empty",
             metricCode: code,
@@ -222,17 +285,21 @@ export default function HomePage() {
           });
           continue;
         }
+
+        const latest = latestWithValue;
+        const value = latest.valueNumeric!;
 
         totalTested++;
         const status = getStatus(latest);
         if (status === "normal") inRangeCount++;
 
-        const previous = metricObs[1];
-        const sparkData = metricObs
+        const withValues = validObs.filter((o) => o.valueNumeric != null);
+        const previous = withValues[1];
+        const sparkData = withValues
           .slice(0, 8)
           .reverse()
           .map((o) => o.valueNumeric ?? 0);
-        const ranges = getRanges(code);
+        const ranges = getRanges(resolvedCode) ?? getRanges(code);
         const hasOptimal =
           ranges?.optimalLow != null || ranges?.optimalHigh != null;
         const rangeLabel = hasOptimal ? "optimal" : "ref";
@@ -277,7 +344,7 @@ export default function HomePage() {
         totalMetrics: panel.metrics.length,
       };
     });
-  }, [byMetric, metricNameMap, getStatus, getRanges]);
+  }, [byMetric, metricNameMap, getStatus, getRanges, calculatedMetrics]);
 
   // What Changed
   const whatChanged = useMemo(() => {
