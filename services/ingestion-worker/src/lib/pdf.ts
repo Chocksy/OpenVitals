@@ -14,19 +14,24 @@ interface TextItem {
  * with their column headers in table-based documents like lab trend reports.
  */
 export async function extractTextFromPdf(buffer: Buffer): Promise<string> {
-  const pdfjs = await import('pdfjs-dist/legacy/build/pdf.mjs');
-  // Point to the worker file copied into dist/ — must be truthy or pdfjs overwrites with ||=
-  pdfjs.GlobalWorkerOptions.workerSrc = new URL('./pdf.worker.mjs', import.meta.url).href;
-  const doc = await pdfjs.getDocument({ data: new Uint8Array(buffer), useWorkerFetch: false, isEvalSupported: false, useSystemFonts: true }).promise;
+  const pdfjs = await import("pdfjs-dist/legacy/build/pdf.mjs");
+  // Disable web worker in Node.js — runs synchronously in the main thread
+  pdfjs.GlobalWorkerOptions.workerSrc = undefined as unknown as string;
+  const doc = await pdfjs.getDocument({
+    data: new Uint8Array(buffer),
+    useWorkerFetch: false,
+    isEvalSupported: false,
+    useSystemFonts: true,
+  }).promise;
 
-  let text = '';
+  let text = "";
   for (let i = 1; i <= doc.numPages; i++) {
     const page = await doc.getPage(i);
     const content = await page.getTextContent();
     const items = content.items as TextItem[];
 
     if (items.length === 0) {
-      text += '\n';
+      text += "\n";
       continue;
     }
 
@@ -36,7 +41,7 @@ export async function extractTextFromPdf(buffer: Buffer): Promise<string> {
     const rows: { y: number; items: { x: number; str: string }[] }[] = [];
 
     for (const item of items) {
-      if (!item.str.trim() && !item.str.includes(' ')) continue;
+      if (!item.str.trim() && !item.str.includes(" ")) continue;
       const x = item.transform[4]!;
       const y = item.transform[5]!;
 
@@ -56,23 +61,23 @@ export async function extractTextFromPdf(buffer: Buffer): Promise<string> {
       row.items.sort((a, b) => a.x - b.x);
 
       // Insert tab separators when there's a significant horizontal gap
-      let line = '';
+      let line = "";
       let prevEnd = -Infinity;
       for (const item of row.items) {
         const gap = item.x - prevEnd;
         if (prevEnd > -Infinity && gap > 15) {
-          line += '\t';
+          line += "\t";
         } else if (prevEnd > -Infinity && gap > 2) {
-          line += ' ';
+          line += " ";
         }
         line += item.str;
         // Estimate end position: x + approximate character width
-        prevEnd = item.x + (item.str.length * 5);
+        prevEnd = item.x + item.str.length * 5;
       }
-      text += line + '\n';
+      text += line + "\n";
     }
 
-    text += '\n';
+    text += "\n";
   }
 
   doc.destroy();
