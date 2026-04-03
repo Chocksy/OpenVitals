@@ -18,6 +18,10 @@ import { PanelSectionHeader } from "@/components/home/panel-section-header";
 import { WhatChanged, type ChangeItem } from "@/components/home/what-changed";
 import { calculateHealthScore } from "@/components/home/health-score";
 import {
+  HealthInsights,
+  generateInsights,
+} from "@/components/home/health-insights";
+import {
   AttentionMetrics,
   type AttentionMetric,
 } from "@/components/home/attention-metrics";
@@ -216,6 +220,8 @@ export default function HomePage() {
 
       const allMetrics: (FilledMetric | EmptyMetric)[] = [];
       let inRangeCount = 0;
+      let panelWarningCount = 0;
+      let panelCriticalCount = 0;
       let totalTested = 0;
 
       for (const metricDef of panel.metrics) {
@@ -292,6 +298,8 @@ export default function HomePage() {
         totalTested++;
         const status = getStatus(latest);
         if (status === "normal") inRangeCount++;
+        else if (status === "warning") panelWarningCount++;
+        else if (status === "critical") panelCriticalCount++;
 
         const withValues = validObs.filter((o) => o.valueNumeric != null);
         const previous = withValues[1];
@@ -340,11 +348,19 @@ export default function HomePage() {
         ...panel,
         allMetrics,
         inRangeCount,
+        panelWarningCount,
+        panelCriticalCount,
         totalTested,
         totalMetrics: panel.metrics.length,
       };
     });
   }, [byMetric, metricNameMap, getStatus, getRanges, calculatedMetrics]);
+
+  // Health insights
+  const healthInsights = useMemo(() => {
+    if (!hasData) return [];
+    return generateInsights(byMetric, metricNameMap);
+  }, [hasData, byMetric, metricNameMap]);
 
   // What Changed
   const whatChanged = useMemo(() => {
@@ -568,12 +584,21 @@ export default function HomePage() {
         </div>
       )}
 
+      {/* Insights */}
+      {healthInsights.length > 0 && (
+        <div className="mt-6">
+          <HealthInsights insights={healthInsights} />
+        </div>
+      )}
+
       {/* Panel sections — always show all panels */}
       {panelData.map((panel) => (
         <div key={panel.id} className="mt-6">
           <PanelSectionHeader
             label={panel.label}
             inRangeCount={panel.inRangeCount}
+            warningCount={panel.panelWarningCount}
+            criticalCount={panel.panelCriticalCount}
             totalTested={panel.totalTested}
             totalMetrics={panel.totalMetrics}
           />
