@@ -1,23 +1,27 @@
-import { generateText } from 'ai';
-import { gateway } from '@ai-sdk/gateway';
-import { getDb } from '@openvitals/database/client';
-import { importJobs, sourceArtifacts } from '@openvitals/database';
-import { eq } from 'drizzle-orm';
-import { classifyDocumentPrompt } from '@openvitals/ai';
-import { createBlobStorage } from '@openvitals/blob-storage';
-import type { WorkflowContext } from '../workflow';
-import type { ClassificationResult } from '@openvitals/ingestion';
+import { generateText } from "ai";
+import { gateway } from "@ai-sdk/gateway";
+import { getDb } from "@openvitals/database/client";
+import { importJobs, sourceArtifacts } from "@openvitals/database";
+import { eq } from "drizzle-orm";
+import { classifyDocumentPrompt } from "@openvitals/ai";
+import { createBlobStorage } from "@openvitals/blob-storage";
+import type { WorkflowContext } from "../workflow";
+import type { ClassificationResult } from "@openvitals/ingestion";
 
-export async function classify(ctx: WorkflowContext): Promise<ClassificationResult> {
+export async function classify(
+  ctx: WorkflowContext,
+): Promise<ClassificationResult> {
   const db = getDb();
 
   // Update status to classifying
-  await db.update(importJobs)
-    .set({ status: 'classifying', startedAt: new Date() })
+  await db
+    .update(importJobs)
+    .set({ status: "classifying", startedAt: new Date() })
     .where(eq(importJobs.id, ctx.importJobId));
 
   // Fetch artifact metadata
-  const [artifact] = await db.select()
+  const [artifact] = await db
+    .select()
     .from(sourceArtifacts)
     .where(eq(sourceArtifacts.id, ctx.artifactId))
     .limit(1);
@@ -25,17 +29,55 @@ export async function classify(ctx: WorkflowContext): Promise<ClassificationResu
   if (!artifact) throw new Error(`Artifact ${ctx.artifactId} not found`);
 
   // Quick heuristic for CSV files
-  if (artifact.mimeType === 'text/csv') {
+  if (artifact.mimeType === "text/csv") {
     const result: ClassificationResult = {
-      documentType: 'csv_export',
+      documentType: "csv_export",
       confidence: 0.95,
-      reasoning: 'File is CSV format',
+      reasoning: "File is CSV format",
     };
-    await db.update(importJobs)
-      .set({ classifiedType: result.documentType, classificationConfidence: result.confidence, classifyCompletedAt: new Date() })
+    await db
+      .update(importJobs)
+      .set({
+        classifiedType: result.documentType,
+        classificationConfidence: result.confidence,
+        classifyCompletedAt: new Date(),
+      })
       .where(eq(importJobs.id, ctx.importJobId));
-    await db.update(sourceArtifacts)
-      .set({ classifiedType: result.documentType, classificationConfidence: result.confidence })
+    await db
+      .update(sourceArtifacts)
+      .set({
+        classifiedType: result.documentType,
+        classificationConfidence: result.confidence,
+      })
+      .where(eq(sourceArtifacts.id, ctx.artifactId));
+    return result;
+  }
+
+  // Quick heuristic for Apple Health exports (ZIP files with known naming pattern)
+  if (
+    (artifact.mimeType === "application/zip" ||
+      artifact.mimeType === "application/x-zip-compressed") &&
+    /(?:export|apple.?health)/i.test(artifact.fileName)
+  ) {
+    const result: ClassificationResult = {
+      documentType: "apple_health_export",
+      confidence: 0.95,
+      reasoning: "ZIP file with Apple Health export naming pattern",
+    };
+    await db
+      .update(importJobs)
+      .set({
+        classifiedType: result.documentType,
+        classificationConfidence: result.confidence,
+        classifyCompletedAt: new Date(),
+      })
+      .where(eq(importJobs.id, ctx.importJobId));
+    await db
+      .update(sourceArtifacts)
+      .set({
+        classifiedType: result.documentType,
+        classificationConfidence: result.confidence,
+      })
       .where(eq(sourceArtifacts.id, ctx.artifactId));
     return result;
   }
@@ -52,21 +94,23 @@ export async function classify(ctx: WorkflowContext): Promise<ClassificationResu
   }
   const buffer = Buffer.concat(chunks);
 
-  let textContent = '';
-  if (artifact.mimeType === 'application/pdf') {
-    const { extractTextFromPdf } = await import('../lib/pdf');
+  let textContent = "";
+  if (artifact.mimeType === "application/pdf") {
+    const { extractTextFromPdf } = await import("../lib/pdf");
     textContent = await extractTextFromPdf(buffer);
   } else {
-    textContent = buffer.toString('utf-8');
+    textContent = buffer.toString("utf-8");
   }
 
   // Save extracted text
-  await db.update(sourceArtifacts)
+  await db
+    .update(sourceArtifacts)
     .set({ rawTextExtracted: textContent.slice(0, 50000) })
     .where(eq(sourceArtifacts.id, ctx.artifactId));
 
   // Classify with AI
-  const modelId = process.env.AI_DEFAULT_MODEL ?? 'anthropic/claude-sonnet-4-20250514';
+  const modelId =
+    process.env.AI_DEFAULT_MODEL ?? "anthropic/claude-sonnet-4-20250514";
   const { text } = await generateText({
     model: gateway(modelId),
     system: classifyDocumentPrompt,
@@ -76,24 +120,44 @@ export async function classify(ctx: WorkflowContext): Promise<ClassificationResu
   let result: ClassificationResult;
   try {
     // Strip markdown code fences if present
-    const jsonStr = text.replace(/^```(?:json)?\s*\n?/m, '').replace(/\n?```\s*$/m, '').trim();
+    const jsonStr = text
+      .replace(/^```(?:json)?\s*\n?/m, "")
+      .replace(/\n?```\s*$/m, "")
+      .trim();
     const parsed = JSON.parse(jsonStr);
     result = {
-      documentType: parsed.documentType ?? 'unknown',
-      confidence: typeof parsed.confidence === 'number' ? parsed.confidence : 0.5,
-      reasoning: parsed.reasoning ?? '',
+      documentType: parsed.documentType ?? "unknown",
+      confidence:
+        typeof parsed.confidence === "number" ? parsed.confidence : 0.5,
+      reasoning: parsed.reasoning ?? "",
     };
   } catch (e) {
-    console.error('[classify] Failed to parse AI response:', text.slice(0, 200));
-    result = { documentType: 'unknown', confidence: 0.3, reasoning: 'Failed to parse AI response' };
+    console.error(
+      "[classify] Failed to parse AI response:",
+      text.slice(0, 200),
+    );
+    result = {
+      documentType: "unknown",
+      confidence: 0.3,
+      reasoning: "Failed to parse AI response",
+    };
   }
 
   // Update DB
-  await db.update(importJobs)
-    .set({ classifiedType: result.documentType, classificationConfidence: result.confidence, classifyCompletedAt: new Date() })
+  await db
+    .update(importJobs)
+    .set({
+      classifiedType: result.documentType,
+      classificationConfidence: result.confidence,
+      classifyCompletedAt: new Date(),
+    })
     .where(eq(importJobs.id, ctx.importJobId));
-  await db.update(sourceArtifacts)
-    .set({ classifiedType: result.documentType, classificationConfidence: result.confidence })
+  await db
+    .update(sourceArtifacts)
+    .set({
+      classifiedType: result.documentType,
+      classificationConfidence: result.confidence,
+    })
     .where(eq(sourceArtifacts.id, ctx.artifactId));
 
   return result;
