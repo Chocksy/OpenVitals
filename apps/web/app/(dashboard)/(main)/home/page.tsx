@@ -5,7 +5,11 @@ import Link from "next/link";
 import { trpc } from "@/lib/trpc/client";
 import { useSession } from "@/lib/auth/client";
 import { useDynamicStatus } from "@/hooks/use-dynamic-status";
-import { formatRange, isTrendImproving } from "@/lib/health-utils";
+import {
+  formatRange,
+  isTrendImproving,
+  deriveStatus,
+} from "@/lib/health-utils";
 import { PANELS } from "@/lib/panel-config";
 import { GreetingHeader } from "@/components/home/greeting-header";
 import {
@@ -259,8 +263,16 @@ export default function HomePage() {
 
         // Use calculated value if no observations
         if ((!metricObs || metricObs.length === 0) && calculated) {
-          totalTested++;
           const ranges = getRanges(code);
+          const calcStatus = deriveStatus(
+            { valueNumeric: calculated.value },
+            ranges,
+          );
+          totalTested++;
+          if (calcStatus === "normal") inRangeCount++;
+          else if (calcStatus === "warning") panelWarningCount++;
+          else if (calcStatus === "critical") panelCriticalCount++;
+
           const hasOptimal =
             ranges?.optimalLow != null || ranges?.optimalHigh != null;
           const rangeLabel = hasOptimal ? "optimal" : "ref";
@@ -279,7 +291,7 @@ export default function HomePage() {
             trendDelta: null,
             trendImproving: null,
             optimalRange,
-            status: "neutral",
+            status: calcStatus,
           });
           continue;
         }

@@ -9,15 +9,6 @@ interface PanelSectionHeaderProps {
   totalMetrics: number;
 }
 
-function scoreLabel(inRange: number, total: number): string {
-  if (total === 0) return "";
-  const pct = Math.round((inRange / total) * 100);
-  if (pct === 100) return "Excellent";
-  if (pct >= 75) return "Good";
-  if (pct >= 50) return "Fair";
-  return "Needs work";
-}
-
 export function PanelSectionHeader({
   label,
   inRangeCount,
@@ -69,6 +60,7 @@ export function PanelSectionHeader({
             style={{ width: `${(criticalCount / totalMetrics) * 100}%` }}
           />
         )}
+        {/* Untested: striped pattern */}
         {untestedCount > 0 && (
           <div
             className="flex-1"
@@ -78,9 +70,8 @@ export function PanelSectionHeader({
             }}
           />
         )}
-        {untestedCount === 0 && totalTested === 0 && (
-          <div className="flex-1 bg-neutral-100" />
-        )}
+        {/* Nothing tested at all */}
+        {totalTested === 0 && <div className="flex-1 bg-neutral-100" />}
       </div>
     </div>
   );

@@ -348,6 +348,94 @@ The `/labs/[metricCode]` page needs to handle calculated metrics gracefully:
 
 ---
 
+## Phase 6: Prevention-Based Retest Recommendations (Future)
+
+**Goal**: Replace the naive "overdue" retest system with prevention-guided recommendations.
+
+### Problem
+
+Current retests show everything ever tested as "overdue" — including random tests from 2015 that are irrelevant. The retest system needs to be prevention-focused: recommend retests based on what matters for the user's health goals, not just what was tested historically.
+
+### 6.1 Universal prevention panels
+
+Define a set of recommended panels that everyone should track, regardless of onboarding goals. Based on Attia's "4 Horsemen" framework:
+
+```typescript
+const PREVENTION_PANELS = {
+  metabolic: {
+    label: "Metabolic Health (Diabetes Prevention)",
+    frequency: "every 6 months",
+    metrics: ["glucose", "hba1c", "insulin", "homa_ir"],
+    why: "Insulin resistance is detectable 10+ years before diabetes diagnosis",
+  },
+  cardiovascular: {
+    label: "Cardiovascular Risk",
+    frequency: "annually",
+    metrics: [
+      "ldl_cholesterol",
+      "hdl_cholesterol",
+      "triglycerides",
+      "apolipoprotein_b",
+      "crp",
+    ],
+    why: "Heart disease is the #1 killer — ApoB and hsCRP are the best early predictors",
+  },
+  inflammation: {
+    label: "Systemic Inflammation",
+    frequency: "annually",
+    metrics: ["crp", "homocysteine"],
+    why: "Chronic inflammation drives all 4 major disease categories",
+  },
+  thyroid: {
+    label: "Thyroid Function",
+    frequency: "annually",
+    metrics: ["tsh", "free_t3", "free_t4"],
+    why: "Thyroid dysfunction affects energy, metabolism, and mood",
+  },
+  nutrients: {
+    label: "Key Nutrients",
+    frequency: "every 6 months",
+    metrics: ["vitamin_d", "vitamin_b12", "ferritin", "magnesium"],
+    why: "Deficiencies are common and easily correctable",
+  },
+};
+```
+
+### 6.2 Smart retest prioritization
+
+Show retests in this priority order:
+
+1. **Flagged metrics** that need follow-up (tested + out of range → retest in 3 months)
+2. **Prevention panel gaps** — metrics you've never tested but should
+3. **Routine rechecks** — metrics in range that are due for periodic recheck
+4. **Deprioritize**: tests >3 years old with no abnormal history (consider resolved)
+
+### 6.3 Retest card redesign
+
+Instead of "Amoxicillin susceptibility: 5381D OVERDUE", show:
+
+```
+┌─ Recommended Next Tests ────────────────────────┐
+│ 🔴 Recheck: LDL Cholesterol (was 117, critical) │
+│    Last tested 115d ago · Retest recommended     │
+│                                                   │
+│ 🟡 Routine: Fasting Glucose                      │
+│    Last tested 115d ago · Every 6 months          │
+│                                                   │
+│ ⚪ Get Tested: ApoB                              │
+│    Never tested · Key cardiovascular marker       │
+└─────────────────────────────────────────────────┘
+```
+
+### 6.4 Acceptance criteria
+
+- [ ] Prevention panels defined as config (not hardcoded in component)
+- [ ] Retests prioritized: flagged → prevention gaps → routine
+- [ ] Ancient tests (>3yr) auto-deprioritized
+- [ ] Seed is idempotent (check if data exists before inserting)
+
+---
+
 ## Files Summary
 
 ### New files
