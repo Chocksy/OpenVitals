@@ -15,7 +15,7 @@ export const PANELS: PanelDef[] = [
     label: "Lipid Panel",
     metrics: [
       "ldl_cholesterol",
-      "cholesterol_total",
+      "total_cholesterol",
       "hdl_cholesterol",
       "triglycerides",
       "apolipoprotein_b",
@@ -26,7 +26,7 @@ export const PANELS: PanelDef[] = [
   {
     id: "inflammation",
     label: "Inflammation",
-    metrics: ["hs_crp", "crp", "homocysteine"],
+    metrics: ["crp", "homocysteine"],
   },
   {
     id: "thyroid",

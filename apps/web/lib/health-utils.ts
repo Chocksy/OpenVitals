@@ -53,10 +53,14 @@ export function deriveStatus(
 
   if (abnormal === true) {
     // Determine severity using the active range
-    const low = canonicalRanges?.optimalLow ?? canonicalRanges?.referenceLow
-      ?? obs.referenceRangeLow;
-    const high = canonicalRanges?.optimalHigh ?? canonicalRanges?.referenceHigh
-      ?? obs.referenceRangeHigh;
+    const low =
+      canonicalRanges?.optimalLow ??
+      canonicalRanges?.referenceLow ??
+      obs.referenceRangeLow;
+    const high =
+      canonicalRanges?.optimalHigh ??
+      canonicalRanges?.referenceHigh ??
+      obs.referenceRangeHigh;
 
     if (obs.valueNumeric != null && low != null && high != null) {
       const distFromLow = low - obs.valueNumeric;
@@ -93,6 +97,35 @@ export function formatRelativeTime(date: Date | string): string {
     day: "numeric",
     year: "numeric",
   });
+}
+
+/**
+ * Determine if a trend delta represents improvement based on optimal range bounds.
+ * - Only high bound (LDL < 70): lower is better → decrease = improving
+ * - Only low bound (HDL > 50): higher is better → increase = improving
+ * - Both bounds (glucose 72–85): moving toward center = improving
+ * - No range: can't determine → null
+ */
+export function isTrendImproving(
+  delta: number,
+  ranges: CanonicalRanges | undefined,
+  currentValue: number,
+): boolean | null {
+  if (!ranges || delta === 0) return null;
+
+  const low = ranges.optimalLow ?? ranges.referenceLow ?? null;
+  const high = ranges.optimalHigh ?? ranges.referenceHigh ?? null;
+  const hasLow = low != null;
+  const hasHigh = high != null;
+
+  if (hasHigh && !hasLow) return delta < 0;
+  if (hasLow && !hasHigh) return delta > 0;
+  if (hasLow && hasHigh && low != null && high != null) {
+    const center = (low + high) / 2;
+    const prevValue = currentValue / (1 + delta / 100);
+    return Math.abs(currentValue - center) < Math.abs(prevValue - center);
+  }
+  return null;
 }
 
 export type OptimalStatus = "optimal" | "suboptimal" | "unknown";

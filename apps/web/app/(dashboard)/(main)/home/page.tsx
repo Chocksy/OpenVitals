@@ -5,7 +5,7 @@ import Link from "next/link";
 import { trpc } from "@/lib/trpc/client";
 import { useSession } from "@/lib/auth/client";
 import { useDynamicStatus } from "@/hooks/use-dynamic-status";
-import { formatRange } from "@/lib/health-utils";
+import { formatRange, isTrendImproving } from "@/lib/health-utils";
 import { PANELS } from "@/lib/panel-config";
 import { GreetingHeader } from "@/components/home/greeting-header";
 import {
@@ -95,11 +95,14 @@ export default function HomePage() {
             .map((o) => o.valueNumeric ?? 0);
           const status = getStatus(latest);
           const ranges = getRanges(code);
-          const optimalRange = formatRange(
-            ranges?.optimalLow,
-            ranges?.optimalHigh,
+          const hasOptimal =
+            ranges?.optimalLow != null || ranges?.optimalHigh != null;
+          const rangeLabel = hasOptimal ? "optimal" : "ref";
+          const optimalRange = `${rangeLabel} ${formatRange(
+            ranges?.optimalLow ?? ranges?.referenceLow,
+            ranges?.optimalHigh ?? ranges?.referenceHigh,
             latest.unit,
-          );
+          )}`;
 
           let trendDelta: number | null = null;
           if (previous?.valueNumeric && previous.valueNumeric !== 0) {
@@ -109,6 +112,11 @@ export default function HomePage() {
               100;
           }
 
+          const trendImproving =
+            trendDelta != null
+              ? isTrendImproving(trendDelta, ranges, value)
+              : null;
+
           return {
             metricCode: code,
             name: metricNameMap.get(code) ?? code.replace(/_/g, " "),
@@ -116,6 +124,7 @@ export default function HomePage() {
             unit: latest.unit ?? "",
             sparkData,
             trendDelta,
+            trendImproving,
             optimalRange,
             status,
           };
@@ -127,6 +136,7 @@ export default function HomePage() {
         unit: string;
         sparkData: number[];
         trendDelta: number | null;
+        trendImproving: boolean | null;
         optimalRange: string;
         status: "normal" | "warning" | "critical" | "info" | "neutral";
       }>;
@@ -169,19 +179,14 @@ export default function HomePage() {
         100;
       if (Math.abs(pct) < 5) continue;
 
-      // Determine if change is "improved" based on status
-      const oldStatus = getStatus(previousObs);
-      const newStatus = getStatus(currentObs);
-      const statusOrder = {
-        critical: 0,
-        warning: 1,
-        normal: 2,
-        info: 2,
-        neutral: 2,
-      };
-      const improved =
-        (statusOrder[newStatus] ?? 2) > (statusOrder[oldStatus] ?? 2) ||
-        (newStatus === oldStatus && newStatus === "normal");
+      // Determine if change is "improved" using range-aware direction
+      const ranges = getRanges(code);
+      const trendResult = isTrendImproving(
+        pct,
+        ranges,
+        currentObs.valueNumeric,
+      );
+      const improved = trendResult ?? getStatus(currentObs) === "normal";
 
       changes.push({
         metricCode: code,

@@ -10,6 +10,7 @@ interface BiomarkerPanelCardProps {
   unit: string;
   sparkData: number[];
   trendDelta: number | null;
+  trendImproving: boolean | null;
   optimalRange: string;
   status: HealthStatus;
 }
@@ -50,6 +51,7 @@ export function BiomarkerPanelCard({
   unit,
   sparkData,
   trendDelta,
+  trendImproving,
   optimalRange,
   status,
 }: BiomarkerPanelCardProps) {
@@ -78,9 +80,9 @@ export function BiomarkerPanelCard({
           <span
             className={cn(
               "text-[11px] font-mono font-medium shrink-0",
-              trendDelta < 0
+              trendImproving === true
                 ? "text-[var(--color-health-normal)]"
-                : trendDelta > 0
+                : trendImproving === false
                   ? "text-[var(--color-health-warning)]"
                   : "text-neutral-400",
             )}
@@ -111,9 +113,9 @@ export function BiomarkerPanelCard({
         />
       </div>
 
-      {/* Row 3: optimal range */}
+      {/* Row 3: range info */}
       <span className="text-[10px] text-neutral-400 font-mono truncate">
-        optimal {optimalRange}
+        {optimalRange}
       </span>
     </Link>
   );
