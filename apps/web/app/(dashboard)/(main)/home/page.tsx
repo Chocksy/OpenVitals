@@ -16,7 +16,11 @@ import { BiomarkerPanelCard } from "@/components/home/biomarker-panel-card";
 import { EmptyMetricCard } from "@/components/home/empty-metric-card";
 import { PanelSectionHeader } from "@/components/home/panel-section-header";
 import { WhatChanged, type ChangeItem } from "@/components/home/what-changed";
-import { calculateHealthScore } from "@/components/home/health-score";
+import {
+  HealthScore,
+  calculateHealthScore,
+} from "@/components/home/health-score";
+import { DashboardStats } from "@/components/home/dashboard-stats";
 import {
   HealthInsights,
   generateInsights,
@@ -509,46 +513,36 @@ export default function HomePage() {
 
   return (
     <div className="stagger-children">
-      {/* Greeting + Health Score */}
-      <div className="flex items-start justify-between gap-4">
-        <GreetingHeader
-          firstName={firstName}
-          summaryLine={summaryLine}
-          abnormalCount={abnormalCount}
-        />
-        {hasData && (
-          <div className="shrink-0 text-right">
-            <span className="text-[32px] font-medium tracking-[-0.04em] font-display text-neutral-900">
-              {healthScore}
-            </span>
-            <span className="block text-[11px] font-mono text-neutral-400 mt-0.5">
-              health score
-            </span>
-          </div>
-        )}
-      </div>
+      {/* Greeting */}
+      <GreetingHeader
+        firstName={firstName}
+        summaryLine={summaryLine}
+        abnormalCount={abnormalCount}
+      />
 
-      {/* Summary stats row */}
+      {/* Health Score + Dashboard Stats */}
       {hasData && (
-        <div className="mt-4 flex items-center gap-4 text-[12px] font-mono">
-          <span className="text-[var(--color-health-normal)]">
-            {stats.normalCount} optimal
-          </span>
-          {stats.warningCount > 0 && (
-            <span className="text-[var(--color-health-warning)]">
-              {stats.warningCount} warning
-            </span>
-          )}
-          {stats.criticalCount > 0 && (
-            <span className="text-[var(--color-health-critical)]">
-              {stats.criticalCount} critical
-            </span>
-          )}
-          {retestsDueCount > 0 && (
-            <span className="text-neutral-500">
-              {retestsDueCount} retests due
-            </span>
-          )}
+        <div className="mt-4 grid grid-cols-1 lg:grid-cols-[1fr_2fr] gap-4">
+          <HealthScore
+            score={healthScore}
+            normalCount={stats.normalCount}
+            warningCount={stats.warningCount}
+            criticalCount={stats.criticalCount}
+            totalMetrics={metricCount}
+          />
+          <DashboardStats
+            metricCount={metricCount}
+            totalResults={obsItems.length}
+            flaggedCount={stats.warningCount + stats.criticalCount}
+            criticalCount={stats.criticalCount}
+            warningCount={stats.warningCount}
+            activeMedCount={medItems.filter((m) => m.isActive).length}
+            discontinuedMedCount={medItems.filter((m) => !m.isActive).length}
+            retestsDueCount={retestsDueCount}
+            overdueCount={
+              retestItems.filter((r) => r.urgency === "overdue").length
+            }
+          />
         </div>
       )}
 
@@ -577,17 +571,22 @@ export default function HomePage() {
         </div>
       )}
 
-      {/* Needs Attention (top flagged metrics) */}
-      {attentionMetrics.length > 0 && (
-        <div className="mt-6">
-          <AttentionMetrics metrics={attentionMetrics} />
-        </div>
-      )}
-
       {/* Insights */}
       {healthInsights.length > 0 && (
         <div className="mt-6">
           <HealthInsights insights={healthInsights} />
+        </div>
+      )}
+
+      {/* Needs Attention + Upcoming Retests (side-by-side) */}
+      {(attentionMetrics.length > 0 || upcomingRetests.length > 0) && (
+        <div className="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-4">
+          {attentionMetrics.length > 0 && (
+            <AttentionMetrics metrics={attentionMetrics} />
+          )}
+          {upcomingRetests.length > 0 && (
+            <UpcomingRetests items={upcomingRetests} />
+          )}
         </div>
       )}
 
@@ -613,13 +612,6 @@ export default function HomePage() {
           </div>
         </div>
       ))}
-
-      {/* Retests Due */}
-      {upcomingRetests.length > 0 && (
-        <div className="mt-8">
-          <UpcomingRetests items={upcomingRetests} />
-        </div>
-      )}
 
       {/* What Changed */}
       {whatChanged.changes.length > 0 && (
