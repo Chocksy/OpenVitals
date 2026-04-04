@@ -54,7 +54,10 @@ const tabDefs: { id: FilterTab; label: string }[] = [
 ];
 
 // Providers that have a real backend implementation
-const implementedProviders = new Set(["whoop"]);
+const implementedProviders = new Set(["whoop", "apple-health"]);
+
+// Providers that use file import instead of OAuth
+const importBasedProviders = new Set(["apple-health"]);
 
 const integrationCatalog: IntegrationDef[] = [
   {
@@ -300,6 +303,15 @@ function IntegrationCard({
               )}
             </div>
           </div>
+        ) : isImplemented && importBasedProviders.has(integration.id) ? (
+          <button
+            onClick={() => {
+              window.location.href = `/integrations/${integration.id}/import`;
+            }}
+            className="w-full rounded-lg bg-accent-600 text-white text-[13px] font-medium py-1.5 hover:bg-accent-700 transition-colors cursor-pointer"
+          >
+            Import Data
+          </button>
         ) : isImplemented ? (
           <button
             onClick={() => {
