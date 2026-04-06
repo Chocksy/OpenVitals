@@ -9,6 +9,8 @@ import {
   getReviewQueue,
   listObservationsByImportJob,
   resetImportJobsForReprocessing,
+  findImportJobByContentHash,
+  resetImportJob,
 } from "@openvitals/database";
 
 export const importJobsRouter = createRouter({
@@ -24,6 +26,21 @@ export const importJobsRouter = createRouter({
       }),
     )
     .mutation(async ({ ctx, input }) => {
+      // Check for duplicate document
+      const existing = await findImportJobByContentHash(ctx.db, {
+        userId: ctx.userId,
+        contentHash: input.contentHash,
+      });
+
+      if (existing) {
+        return {
+          duplicate: true as const,
+          existingJobId: existing.importJobId,
+          existingStatus: existing.status,
+          existingFileName: existing.fileName,
+        };
+      }
+
       const result = await createImportJob(ctx.db, {
         userId: ctx.userId,
         fileName: input.fileName,
@@ -57,7 +74,7 @@ export const importJobsRouter = createRouter({
         );
       });
 
-      return { importJobId: result.importJobId };
+      return { duplicate: false as const, importJobId: result.importJobId };
     }),
 
   getStatus: protectedProcedure
@@ -143,6 +160,47 @@ export const importJobsRouter = createRouter({
     const items = await getReviewQueue(ctx.db, { userId: ctx.userId });
     return { items };
   }),
+
+  reprocess: protectedProcedure
+    .input(z.object({ id: z.string().uuid() }))
+    .mutation(async ({ ctx, input }) => {
+      const job = await resetImportJob(ctx.db, {
+        id: input.id,
+        userId: ctx.userId,
+      });
+
+      if (!job) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Import job not found",
+        });
+      }
+
+      const workerUrl =
+        process.env.RENDER_WORKER_URL ?? "http://localhost:4000";
+      const webhookSecret =
+        process.env.RENDER_WEBHOOK_SECRET ?? "dev-secret-change-me";
+
+      fetch(`${workerUrl}/api/workflows/trigger`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${webhookSecret}`,
+        },
+        body: JSON.stringify({
+          importJobId: job.id,
+          artifactId: job.sourceArtifactId,
+          userId: ctx.userId,
+        }),
+      }).catch((err) => {
+        console.error(
+          `[importJobs.reprocess] Failed to trigger worker for job=${job.id}:`,
+          err.message,
+        );
+      });
+
+      return { importJobId: job.id };
+    }),
 
   reprocessAll: protectedProcedure.mutation(async ({ ctx }) => {
     const result = await resetImportJobsForReprocessing(ctx.db, {

@@ -112,6 +112,11 @@ export default function UploadsPage() {
   const [dragActive, setDragActive] = useState(false);
   const [files, setFiles] = useState<File[]>([]);
   const [error, setError] = useState("");
+  const [duplicateJob, setDuplicateJob] = useState<{
+    jobId: string;
+    status: string;
+    fileName: string;
+  } | null>(null);
   const [uploading, setUploading] = useState(false);
 
   const { data: jobsData, isLoading: jobsLoading } =
@@ -136,6 +141,12 @@ export default function UploadsPage() {
   const createImport = trpc.importJobs.create.useMutation();
   const deleteImport = trpc.importJobs.delete.useMutation({
     onSuccess: () => utils.importJobs.list.invalidate(),
+  });
+  const reprocessOne = trpc.importJobs.reprocess.useMutation({
+    onSuccess: () => {
+      setDuplicateJob(null);
+      utils.importJobs.list.invalidate();
+    },
   });
   const reprocessAll = trpc.importJobs.reprocessAll.useMutation({
     onSuccess: () => utils.importJobs.list.invalidate(),
@@ -188,6 +199,7 @@ export default function UploadsPage() {
     if (files.length === 0) return;
     setUploading(true);
     setError("");
+    setDuplicateJob(null);
     try {
       for (const file of files) {
         // Upload to blob storage first
@@ -201,13 +213,22 @@ export default function UploadsPage() {
         const { blobPath, contentHash } = await res.json();
 
         // Create import job
-        await createImport.mutateAsync({
+        const result = await createImport.mutateAsync({
           fileName: file.name,
           mimeType: file.type,
           blobPath,
           contentHash,
           fileSize: file.size,
         });
+
+        if (result.duplicate) {
+          setDuplicateJob({
+            jobId: result.existingJobId,
+            status: result.existingStatus,
+            fileName: result.existingFileName,
+          });
+          return;
+        }
       }
       setFiles([]);
       utils.importJobs.list.invalidate();
@@ -230,6 +251,43 @@ export default function UploadsPage() {
       {error && (
         <div className="mt-7 mb-4 rounded-lg bg-[var(--color-health-critical-bg)] border border-[var(--color-health-critical-border)] p-3 text-sm text-[var(--color-health-critical)]">
           {error}
+        </div>
+      )}
+
+      {duplicateJob && (
+        <div className="mt-7 mb-4 rounded-lg bg-amber-50 border border-amber-200 p-4">
+          <p className="text-sm font-medium text-amber-900">
+            &ldquo;{duplicateJob.fileName}&rdquo; has already been uploaded
+          </p>
+          <p className="mt-1 text-sm text-amber-700">
+            This document was previously imported and is currently{" "}
+            <span className="font-medium">{duplicateJob.status}</span>. You can
+            reprocess it if the previous import got stuck or failed.
+          </p>
+          <div className="mt-3 flex items-center gap-3">
+            <button
+              onClick={() => {
+                reprocessOne.mutate({ id: duplicateJob.jobId });
+                setFiles([]);
+              }}
+              disabled={reprocessOne.isPending}
+              className="flex items-center gap-1.5 rounded-lg border border-amber-300 bg-white px-3 py-1.5 text-sm font-medium text-amber-800 hover:bg-amber-50 disabled:opacity-50"
+            >
+              <RotateCw className="h-3.5 w-3.5" />
+              {reprocessOne.isPending
+                ? "Reprocessing..."
+                : "Reprocess document"}
+            </button>
+            <button
+              onClick={() => {
+                setDuplicateJob(null);
+                setFiles([]);
+              }}
+              className="text-sm text-amber-600 hover:text-amber-800"
+            >
+              Dismiss
+            </button>
+          </div>
         </div>
       )}
 

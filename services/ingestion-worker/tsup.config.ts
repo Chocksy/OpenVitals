@@ -1,12 +1,13 @@
-import { defineConfig } from 'tsup';
+import { defineConfig } from "tsup";
 
 export default defineConfig({
-  entry: ['src/server.ts'],
-  format: ['esm'],
-  outDir: 'dist',
+  entry: ["src/server.ts"],
+  format: ["esm"],
+  outDir: "dist",
   clean: true,
   bundle: true,
   noExternal: [/.*/],
+  external: ["pdfjs-dist", "@napi-rs/canvas"],
   banner: {
     js: `import { createRequire } from 'module'; const require = createRequire(import.meta.url);`,
   },

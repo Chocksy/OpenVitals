@@ -29,10 +29,12 @@ RUN pnpm run build
 
 # Production stage
 FROM node:20-alpine
+RUN corepack enable && corepack prepare pnpm@9.15.4 --activate
 WORKDIR /app
 
 COPY --from=base /app/services/ingestion-worker/dist ./dist
 COPY --from=base /app/services/ingestion-worker/package.json ./package.json
+RUN pnpm install --prod --ignore-scripts
 
 EXPOSE 4000
 

@@ -27,6 +27,8 @@ export {
   deleteImportJob,
   getReviewQueue,
   resetImportJobsForReprocessing,
+  findImportJobByContentHash,
+  resetImportJob,
 } from "./queries/importJobs";
 export {
   listConnections,
