@@ -1,16 +1,25 @@
-import { getDb } from '@openvitals/database/client';
-import { metricDefinitions } from '@openvitals/database';
-import type { WorkflowContext } from '../workflow';
+import { getDb } from "@openvitals/database/client";
+import {
+  getOpenRouterHeaders,
+  getOpenRouterBaseUrl,
+  getModelId,
+} from "../lib/ai-provider";
+import { metricDefinitions } from "@openvitals/database";
+import type { WorkflowContext } from "../workflow";
 import type {
   NormalizationResult,
   FlaggedExtraction,
   RawExtraction,
   NormalizedObservation,
-} from '@openvitals/ingestion';
-import { normalizeExtractions } from '@openvitals/ingestion';
-import type { MetricDefinition, UnitConversion, UserDemographics } from '@openvitals/ingestion';
+} from "@openvitals/ingestion";
+import { normalizeExtractions } from "@openvitals/ingestion";
+import type {
+  MetricDefinition,
+  UnitConversion,
+  UserDemographics,
+} from "@openvitals/ingestion";
 
-const IDENTIFY_MODEL = process.env.AI_OCR_MODEL ?? 'google/gemini-2.5-flash';
+const IDENTIFY_MODEL = process.env.AI_OCR_MODEL ?? "google/gemini-2.5-flash";
 
 interface IdentifiedBiomarker {
   analyte: string;
@@ -36,19 +45,26 @@ export async function autoIdentify(
   unitConversions: UnitConversion[],
   demographics?: UserDemographics | null,
 ): Promise<NormalizationResult> {
-  const unmatched = normResult.flagged.filter((f) => f.reason === 'unmatched_metric');
+  const unmatched = normResult.flagged.filter(
+    (f) => f.reason === "unmatched_metric",
+  );
 
   if (unmatched.length === 0) {
-    console.log('[auto-identify] No unmatched items to identify');
+    console.log("[auto-identify] No unmatched items to identify");
     return normResult;
   }
 
-  console.log(`[auto-identify] Sending ${unmatched.length} unmatched items to ${IDENTIFY_MODEL}`);
+  console.log(
+    `[auto-identify] Sending ${unmatched.length} unmatched items to ${IDENTIFY_MODEL}`,
+  );
 
   // Build the prompt with analyte details
-  const analyteList = unmatched.map((f) =>
-    `- "${f.extraction.analyte}" (${f.extraction.value ?? f.extraction.valueText ?? '?'} ${f.extraction.unit ?? ''})`
-  ).join('\n');
+  const analyteList = unmatched
+    .map(
+      (f) =>
+        `- "${f.extraction.analyte}" (${f.extraction.value ?? f.extraction.valueText ?? "?"} ${f.extraction.unit ?? ""})`,
+    )
+    .join("\n");
 
   const prompt = `You are a medical laboratory expert. For each unmatched lab test analyte below, identify it and provide structured information.
 
@@ -68,30 +84,32 @@ Analytes:
 ${analyteList}`;
 
   try {
-    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${process.env.OPENROUTER_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
+    const response = await fetch(`${getOpenRouterBaseUrl()}/chat/completions`, {
+      method: "POST",
+      headers: getOpenRouterHeaders(),
       body: JSON.stringify({
         model: IDENTIFY_MODEL,
-        messages: [{ role: 'user', content: prompt }],
+        messages: [{ role: "user", content: prompt }],
         temperature: 0,
       }),
     });
 
     const data = await response.json();
     if (data.error) {
-      console.error('[auto-identify] API error:', data.error);
+      console.error("[auto-identify] API error:", data.error);
       return normResult;
     }
 
     const aiText = data.choices[0].message.content;
-    const jsonStr = aiText.replace(/^```(?:json)?\s*\n?/m, '').replace(/\n?```\s*$/m, '').trim();
+    const jsonStr = aiText
+      .replace(/^```(?:json)?\s*\n?/m, "")
+      .replace(/\n?```\s*$/m, "")
+      .trim();
     const identified: IdentifiedBiomarker[] = JSON.parse(jsonStr);
 
-    console.log(`[auto-identify] LLM identified ${identified.filter((i) => i.id).length}/${identified.length} items`);
+    console.log(
+      `[auto-identify] LLM identified ${identified.filter((i) => i.id).length}/${identified.length} items`,
+    );
 
     // Create new metric definitions for identified items
     const db = getDb();
@@ -100,11 +118,13 @@ ${analyteList}`;
     const remainingFlagged: FlaggedExtraction[] = [];
 
     // Keep non-unmatched flags as-is
-    const otherFlagged = normResult.flagged.filter((f) => f.reason !== 'unmatched_metric');
+    const otherFlagged = normResult.flagged.filter(
+      (f) => f.reason !== "unmatched_metric",
+    );
 
     for (const flagged of unmatched) {
       const match = identified.find(
-        (i) => i.analyte === flagged.extraction.analyte && i.id !== null
+        (i) => i.analyte === flagged.extraction.analyte && i.id !== null,
       );
 
       if (!match || !match.id) {
@@ -114,30 +134,38 @@ ${analyteList}`;
 
       // Check if metric already exists
       const existing = metricDefs.find(
-        (m) => m.id === match.id || m.name.toLowerCase() === match.standardName.toLowerCase()
+        (m) =>
+          m.id === match.id ||
+          m.name.toLowerCase() === match.standardName.toLowerCase(),
       );
 
       if (!existing) {
         // Create new metric definition
         try {
-          await db.insert(metricDefinitions).values({
-            id: match.id,
-            name: match.standardName,
-            category: match.category,
-            unit: match.unit,
-            loincCode: match.loincCode,
-            aliases: [flagged.extraction.analyte],
-            referenceRangeLow: match.rangeLow,
-            referenceRangeHigh: match.rangeHigh,
-            referenceRangeText: match.rangeLow != null || match.rangeHigh != null
-              ? `${match.rangeLow ?? '?'} - ${match.rangeHigh ?? '?'} ${match.unit ?? ''}`
-              : null,
-            description: match.standardName,
-            displayPrecision: 2,
-            sortOrder: 900,
-          }).onConflictDoNothing();
+          await db
+            .insert(metricDefinitions)
+            .values({
+              id: match.id,
+              name: match.standardName,
+              category: match.category,
+              unit: match.unit,
+              loincCode: match.loincCode,
+              aliases: [flagged.extraction.analyte],
+              referenceRangeLow: match.rangeLow,
+              referenceRangeHigh: match.rangeHigh,
+              referenceRangeText:
+                match.rangeLow != null || match.rangeHigh != null
+                  ? `${match.rangeLow ?? "?"} - ${match.rangeHigh ?? "?"} ${match.unit ?? ""}`
+                  : null,
+              description: match.standardName,
+              displayPrecision: 2,
+              sortOrder: 900,
+            })
+            .onConflictDoNothing();
 
-          console.log(`[auto-identify] Created metric: ${match.id} (${match.standardName})`);
+          console.log(
+            `[auto-identify] Created metric: ${match.id} (${match.standardName})`,
+          );
 
           newMetricDefs.push({
             id: match.id,
@@ -149,16 +177,23 @@ ${analyteList}`;
             referenceRangeHigh: match.rangeHigh,
           });
         } catch (err) {
-          console.error(`[auto-identify] Failed to create metric ${match.id}:`, err);
+          console.error(
+            `[auto-identify] Failed to create metric ${match.id}:`,
+            err,
+          );
           remainingFlagged.push(flagged);
           continue;
         }
       } else {
         // Add alias to existing metric if not present
         const existingAliases = existing.aliases ?? [];
-        if (!existingAliases.some((a) => a.toLowerCase() === flagged.extraction.analyte.toLowerCase())) {
+        if (
+          !existingAliases.some(
+            (a) => a.toLowerCase() === flagged.extraction.analyte.toLowerCase(),
+          )
+        ) {
           await db.execute(
-            `UPDATE metric_definitions SET aliases = aliases::jsonb || '["${flagged.extraction.analyte.replace(/"/g, '\\"')}"]'::jsonb WHERE id = '${existing.id}'`
+            `UPDATE metric_definitions SET aliases = aliases::jsonb || '["${flagged.extraction.analyte.replace(/"/g, '\\"')}"]'::jsonb WHERE id = '${existing.id}'`,
           );
         }
         newMetricDefs.push(existing);
@@ -179,12 +214,16 @@ ${analyteList}`;
       );
 
       console.log(
-        `[auto-identify] Re-normalized: ${reNormResult.normalized.length} succeeded, ${reNormResult.flagged.length} still flagged`
+        `[auto-identify] Re-normalized: ${reNormResult.normalized.length} succeeded, ${reNormResult.flagged.length} still flagged`,
       );
 
       return {
         normalized: [...normResult.normalized, ...reNormResult.normalized],
-        flagged: [...otherFlagged, ...remainingFlagged, ...reNormResult.flagged],
+        flagged: [
+          ...otherFlagged,
+          ...remainingFlagged,
+          ...reNormResult.flagged,
+        ],
       };
     }
 
@@ -193,7 +232,7 @@ ${analyteList}`;
       flagged: [...otherFlagged, ...remainingFlagged],
     };
   } catch (err) {
-    console.error('[auto-identify] Failed:', err);
+    console.error("[auto-identify] Failed:", err);
     return normResult;
   }
 }

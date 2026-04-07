@@ -1,5 +1,4 @@
 import { generateText } from "ai";
-import { createOpenRouter } from "@openrouter/ai-sdk-provider";
 import { getDb } from "@openvitals/database/client";
 import { sourceArtifacts } from "@openvitals/database";
 import { eq } from "drizzle-orm";
@@ -7,6 +6,12 @@ import { createBlobStorage } from "@openvitals/blob-storage";
 import { extractLabsPrompt } from "@openvitals/ai";
 import type { WorkflowContext } from "../workflow";
 import type { ParseResult, RawExtraction } from "@openvitals/ingestion";
+import {
+  getModel,
+  getModelId,
+  getOpenRouterHeaders,
+  getOpenRouterBaseUrl,
+} from "../lib/ai-provider";
 
 const OCR_MODEL = process.env.AI_OCR_MODEL ?? "google/gemini-2.5-flash";
 const MIN_TEXT_LENGTH = 50; // Below this, assume scanned/image PDF
@@ -50,16 +55,13 @@ export async function parseLabPdf(ctx: WorkflowContext): Promise<ParseResult> {
     `[lab-pdf] Extracted ${textContent.length} chars from artifact=${ctx.artifactId}`,
   );
 
-  const openrouter = createOpenRouter({
-    apiKey: process.env.OPENROUTER_API_KEY,
-  });
   let text: string;
 
   if (textContent.trim().length >= MIN_TEXT_LENGTH) {
     // Digital PDF - use text extraction + AI parsing
-    const modelId = process.env.AI_DEFAULT_MODEL ?? "google/gemini-2.5-flash";
+    const modelId = getModelId();
     const result = await generateText({
-      model: openrouter(modelId),
+      model: getModel(modelId),
       system: extractLabsPrompt,
       prompt: textContent.slice(0, 30000),
     });
@@ -117,13 +119,10 @@ export async function parseLabPdf(ctx: WorkflowContext): Promise<ParseResult> {
     );
 
     const ocrResponse = await fetch(
-      "https://openrouter.ai/api/v1/chat/completions",
+      `${getOpenRouterBaseUrl()}/chat/completions`,
       {
         method: "POST",
-        headers: {
-          Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
-          "Content-Type": "application/json",
-        },
+        headers: getOpenRouterHeaders(),
         body: JSON.stringify({
           model: OCR_MODEL,
           messages: [
