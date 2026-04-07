@@ -155,6 +155,89 @@ export async function getReviewQueue(
     .orderBy(desc(importJobs.createdAt));
 }
 
+export async function findImportJobByContentHash(
+  db: Database,
+  params: {
+    userId: string;
+    contentHash: string;
+  },
+) {
+  const rows = await db
+    .select({
+      importJobId: importJobs.id,
+      status: importJobs.status,
+      fileName: sourceArtifacts.fileName,
+      createdAt: importJobs.createdAt,
+    })
+    .from(sourceArtifacts)
+    .innerJoin(importJobs, eq(importJobs.sourceArtifactId, sourceArtifacts.id))
+    .where(
+      and(
+        eq(sourceArtifacts.userId, params.userId),
+        eq(sourceArtifacts.contentHash, params.contentHash),
+      ),
+    )
+    .orderBy(desc(importJobs.createdAt))
+    .limit(1);
+
+  return rows[0] ?? null;
+}
+
+export async function resetImportJob(
+  db: Database,
+  params: {
+    id: string;
+    userId: string;
+  },
+) {
+  return db.transaction(async (tx) => {
+    // Verify the job belongs to the user
+    const [job] = await tx
+      .select({
+        id: importJobs.id,
+        sourceArtifactId: importJobs.sourceArtifactId,
+      })
+      .from(importJobs)
+      .where(
+        and(eq(importJobs.id, params.id), eq(importJobs.userId, params.userId)),
+      )
+      .limit(1);
+
+    if (!job) return null;
+
+    // Delete existing observations for this job
+    await tx.delete(observations).where(eq(observations.importJobId, job.id));
+
+    // Reset the job to pending
+    const [updated] = await tx
+      .update(importJobs)
+      .set({
+        status: "pending",
+        classifiedType: null,
+        classificationConfidence: null,
+        parserId: null,
+        parserVersion: null,
+        extractionCount: 0,
+        needsReview: false,
+        errorMessage: null,
+        errorDetailJson: null,
+        startedAt: null,
+        classifyCompletedAt: null,
+        parseCompletedAt: null,
+        normalizeCompletedAt: null,
+        completedAt: null,
+        updatedAt: new Date(),
+      })
+      .where(eq(importJobs.id, job.id))
+      .returning({
+        id: importJobs.id,
+        sourceArtifactId: importJobs.sourceArtifactId,
+      });
+
+    return updated ?? null;
+  });
+}
+
 export async function resetImportJobsForReprocessing(
   db: Database,
   params: {

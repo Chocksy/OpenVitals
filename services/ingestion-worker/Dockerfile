@@ -34,6 +34,7 @@ WORKDIR /app
 
 COPY --from=base /app/services/ingestion-worker/dist ./dist
 COPY --from=base /app/services/ingestion-worker/package.json ./package.json
+COPY --from=base /app/node_modules/.pnpm/pdfjs-dist@*/node_modules/pdfjs-dist ./node_modules/pdfjs-dist
 
 
 EXPOSE 4000

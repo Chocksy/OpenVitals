@@ -1,70 +1,84 @@
-'use client';
+"use client";
 
-import { use, useMemo } from 'react';
-import { trpc } from '@/lib/trpc/client';
-import { TitleActionHeader } from '@/components/title-action-header';
-import { StatusBadge, type HealthStatus } from '@/components/health/status-badge';
-import { MetricSummaryCard } from '@/components/health/metric-summary-card';
-import { DataTable, type DataTableColumn } from '@/components/data-table';
-import { formatRange } from '@/lib/health-utils';
-import { useDynamicStatus } from '@/hooks/use-dynamic-status';
-import { cn, formatDate, formatObsValue, isDurationMetric, getRelativeTime } from '@/lib/utils';
-import { Avatar } from '@/components/avatar';
-import { Button } from '@/components/button';
-import { toast } from 'sonner';
+import { use, useMemo } from "react";
+import { trpc } from "@/lib/trpc/client";
+import { TitleActionHeader } from "@/components/title-action-header";
 import {
-  RefreshCw,
-  Unplug,
-  Zap,
-} from 'lucide-react';
+  StatusBadge,
+  type HealthStatus,
+} from "@/components/health/status-badge";
+import { MetricSummaryCard } from "@/components/health/metric-summary-card";
+import { DataTable, type DataTableColumn } from "@/components/data-table";
+import { deriveStatus, formatRange } from "@/lib/health-utils";
+import {
+  cn,
+  formatDate,
+  formatObsValue,
+  isDurationMetric,
+  getRelativeTime,
+} from "@/lib/utils";
+import { Avatar } from "@/components/avatar";
+import { Button } from "@/components/button";
+import { toast } from "sonner";
+import { RefreshCw, Unplug, Upload, Zap } from "lucide-react";
 
-import whoopIcon from '@/assets/marketing/brand-logos/whoop-icon.jpeg';
-import appleIcon from '@/assets/marketing/brand-logos/apple-icon.png';
-import fitbitIcon from '@/assets/marketing/brand-logos/fitbit-icon.png';
-import garminIcon from '@/assets/marketing/brand-logos/garmin-icon.jpeg';
-import ouraIcon from '@/assets/marketing/brand-logos/oura-icon.jpeg';
-import samsungIcon from '@/assets/marketing/brand-logos/samsung-icon.png';
-import questIcon from '@/assets/marketing/brand-logos/quest-icon.png';
-import labcorpIcon from '@/assets/marketing/brand-logos/labcorp-icon.png';
-import epicIcon from '@/assets/marketing/brand-logos/epic-icon.png';
-import cernerIcon from '@/assets/marketing/brand-logos/cerner-icon.png';
+// Providers that use file import instead of OAuth
+const importBasedProviders = new Set(["apple-health"]);
 
-const providerCatalog: Record<string, { name: string; brandIconSrc?: string }> = {
-  'apple-watch': { name: 'Apple Watch', brandIconSrc: appleIcon.src },
-  fitbit: { name: 'Fitbit', brandIconSrc: fitbitIcon.src },
-  garmin: { name: 'Garmin', brandIconSrc: garminIcon.src },
-  'oura-ring': { name: 'Oura Ring', brandIconSrc: ouraIcon.src },
-  whoop: { name: 'Whoop', brandIconSrc: whoopIcon.src },
-  'samsung-galaxy-watch': { name: 'Samsung Galaxy Watch', brandIconSrc: samsungIcon.src },
-  'apple-health': { name: 'Apple Health', brandIconSrc: appleIcon.src },
-  'google-health-connect': { name: 'Google Health Connect' },
-  'samsung-health': { name: 'Samsung Health', brandIconSrc: samsungIcon.src },
-  'quest-diagnostics': { name: 'Quest Diagnostics', brandIconSrc: questIcon.src },
-  labcorp: { name: 'Labcorp', brandIconSrc: labcorpIcon.src },
-  'epic-mychart': { name: 'Epic MyChart', brandIconSrc: epicIcon.src },
-  cerner: { name: 'Cerner', brandIconSrc: cernerIcon.src },
-};
+import whoopIcon from "@/assets/marketing/brand-logos/whoop-icon.jpeg";
+import appleIcon from "@/assets/marketing/brand-logos/apple-icon.png";
+import fitbitIcon from "@/assets/marketing/brand-logos/fitbit-icon.png";
+import garminIcon from "@/assets/marketing/brand-logos/garmin-icon.jpeg";
+import ouraIcon from "@/assets/marketing/brand-logos/oura-icon.jpeg";
+import samsungIcon from "@/assets/marketing/brand-logos/samsung-icon.png";
+import questIcon from "@/assets/marketing/brand-logos/quest-icon.png";
+import labcorpIcon from "@/assets/marketing/brand-logos/labcorp-icon.png";
+import epicIcon from "@/assets/marketing/brand-logos/epic-icon.png";
+import cernerIcon from "@/assets/marketing/brand-logos/cerner-icon.png";
+
+const providerCatalog: Record<string, { name: string; brandIconSrc?: string }> =
+  {
+    "apple-watch": { name: "Apple Watch", brandIconSrc: appleIcon.src },
+    fitbit: { name: "Fitbit", brandIconSrc: fitbitIcon.src },
+    garmin: { name: "Garmin", brandIconSrc: garminIcon.src },
+    "oura-ring": { name: "Oura Ring", brandIconSrc: ouraIcon.src },
+    whoop: { name: "Whoop", brandIconSrc: whoopIcon.src },
+    "samsung-galaxy-watch": {
+      name: "Samsung Galaxy Watch",
+      brandIconSrc: samsungIcon.src,
+    },
+    "apple-health": { name: "Apple Health", brandIconSrc: appleIcon.src },
+    "google-health-connect": { name: "Google Health Connect" },
+    "samsung-health": { name: "Samsung Health", brandIconSrc: samsungIcon.src },
+    "quest-diagnostics": {
+      name: "Quest Diagnostics",
+      brandIconSrc: questIcon.src,
+    },
+    labcorp: { name: "Labcorp", brandIconSrc: labcorpIcon.src },
+    "epic-mychart": { name: "Epic MyChart", brandIconSrc: epicIcon.src },
+    cerner: { name: "Cerner", brandIconSrc: cernerIcon.src },
+  };
 
 function formatMetricName(code: string) {
-  return code.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+  return code.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
 function SummaryCard({
   label,
   value,
   subtext,
-  variant = 'default',
+  variant = "default",
 }: {
   label: string;
   value: string;
   subtext?: string;
-  variant?: 'default' | 'warning' | 'success' | 'accent';
+  variant?: "default" | "warning" | "success" | "accent";
 }) {
   const valueColor = {
-    default: 'text-neutral-900',
-    warning: 'text-[var(--color-health-warning)]',
-    success: 'text-[var(--color-health-normal)]',
-    accent: 'text-accent-600',
+    default: "text-neutral-900",
+    warning: "text-[var(--color-health-warning)]",
+    success: "text-[var(--color-health-normal)]",
+    accent: "text-accent-600",
   }[variant];
 
   return (
@@ -72,11 +86,18 @@ function SummaryCard({
       <div className="text-[11px] font-semibold uppercase tracking-[0.04em] text-neutral-400 font-mono">
         {label}
       </div>
-      <div className={cn('mt-1 text-2xl font-medium tracking-[-0.03em] font-display', valueColor)}>
+      <div
+        className={cn(
+          "mt-1 text-2xl font-medium tracking-[-0.03em] font-display",
+          valueColor,
+        )}
+      >
         {value}
       </div>
       {subtext && (
-        <div className="mt-0.5 text-[11px] text-neutral-400 font-mono">{subtext}</div>
+        <div className="mt-0.5 text-[11px] text-neutral-400 font-mono">
+          {subtext}
+        </div>
       )}
     </div>
   );
@@ -102,7 +123,6 @@ export default function IntegrationDetailPage({
   params: Promise<{ provider: string }>;
 }) {
   const { provider } = use(params);
-  const { getStatus, isAbnormal: isObsAbnormal } = useDynamicStatus();
 
   const { data, isLoading } = trpc.integrations.detail.useQuery({ provider });
   const { data: metricsData } = trpc.metrics.list.useQuery();
@@ -120,11 +140,11 @@ export default function IntegrationDetailPage({
   const catalog = providerCatalog[provider];
   const providerName = catalog?.name ?? formatMetricName(provider);
 
-  const providerAvatar = (size: string = 'size-10') => (
+  const providerAvatar = (size: string = "size-10") => (
     <Avatar
       src={catalog?.brandIconSrc ?? null}
       name={providerName}
-      className={cn(size, 'rounded-xl shrink-0')}
+      className={cn(size, "rounded-xl shrink-0")}
     />
   );
 
@@ -148,7 +168,7 @@ export default function IntegrationDetailPage({
       .map(([code, items]) => {
         // items are already sorted desc by observedAt from the query
         const latest = items[0]!;
-        const status: HealthStatus = getStatus(latest);
+        const status: HealthStatus = deriveStatus(latest);
         const sparkData = items
           .slice(0, 20)
           .reverse()
@@ -161,28 +181,40 @@ export default function IntegrationDetailPage({
           latest,
           status,
           statusLabel:
-            status === 'critical' ? 'High' : status === 'warning' ? 'Abnormal' : 'Normal',
+            status === "critical"
+              ? "High"
+              : status === "warning"
+                ? "Abnormal"
+                : "Normal",
           resultCount: items.length,
           sparkData,
-          referenceRange: formatRange(latest.referenceRangeLow, latest.referenceRangeHigh, latest.unit),
+          referenceRange: formatRange(
+            latest.referenceRangeLow,
+            latest.referenceRangeHigh,
+            latest.unit,
+          ),
           latestDate: formatDate(latest.observedAt),
         };
       })
       .sort(
         (a, b) =>
-          new Date(b.latest.observedAt).getTime() - new Date(a.latest.observedAt).getTime(),
+          new Date(b.latest.observedAt).getTime() -
+          new Date(a.latest.observedAt).getTime(),
       );
   }, [observations]);
 
   // Recent observations for table (limit 50)
-  const recentObservations = useMemo(() => observations.slice(0, 50), [observations]);
+  const recentObservations = useMemo(
+    () => observations.slice(0, 50),
+    [observations],
+  );
 
   const tableColumns: DataTableColumn<Observation>[] = useMemo(
     () => [
       {
-        id: 'date',
-        header: 'Date',
-        width: '1fr',
+        id: "date",
+        header: "Date",
+        width: "1fr",
         cell: (obs) => (
           <div className="text-xs text-neutral-500 font-mono">
             {formatDate(obs.observedAt)}
@@ -190,9 +222,9 @@ export default function IntegrationDetailPage({
         ),
       },
       {
-        id: 'metric',
-        header: 'Metric',
-        width: '1.2fr',
+        id: "metric",
+        header: "Metric",
+        width: "1.2fr",
         cell: (obs) => (
           <div className="text-[13px] font-medium text-neutral-700 truncate">
             {formatMetricName(obs.metricCode)}
@@ -200,41 +232,46 @@ export default function IntegrationDetailPage({
         ),
       },
       {
-        id: 'value',
-        header: 'Value',
-        width: '0.8fr',
+        id: "value",
+        header: "Value",
+        width: "0.8fr",
         cell: (obs) => {
-          const obsStatus = getStatus(obs);
+          const obsStatus = deriveStatus(obs);
           return (
             <div className="flex items-baseline gap-1.5">
               <span
                 className={cn(
-                  'text-[15px] font-semibold tracking-[-0.01em] font-mono tabular-nums',
-                  isObsAbnormal(obs)
-                    ? obsStatus === 'critical'
-                      ? 'text-[var(--color-health-critical)]'
-                      : 'text-[var(--color-health-warning)]'
-                    : 'text-neutral-900',
+                  "text-[15px] font-semibold tracking-[-0.01em] font-mono tabular-nums",
+                  obs.isAbnormal
+                    ? obsStatus === "critical"
+                      ? "text-[var(--color-health-critical)]"
+                      : "text-[var(--color-health-warning)]"
+                    : "text-neutral-900",
                 )}
               >
-                {formatObsValue(obs.metricCode, obs.valueNumeric, obs.valueText, precisionMap.get(obs.metricCode))}
+                {formatObsValue(
+                  obs.metricCode,
+                  obs.valueNumeric,
+                  obs.valueText,
+                  precisionMap.get(obs.metricCode),
+                )}
               </span>
             </div>
           );
         },
       },
       {
-        id: 'unit',
-        header: 'Unit',
-        width: '0.6fr',
+        id: "unit",
+        header: "Unit",
+        width: "0.6fr",
         cell: (obs) => (
           <div className="text-[11px] text-neutral-400 font-mono">
-            {obs.unit ?? '—'}
+            {obs.unit ?? "—"}
           </div>
         ),
       },
     ],
-    [precisionMap, getStatus, isObsAbnormal],
+    [precisionMap],
   );
 
   function handleSync() {
@@ -246,7 +283,7 @@ export default function IntegrationDetailPage({
             toast.error(`Sync failed: ${result.error}`);
           } else {
             toast.success(
-              `Synced ${result.count} observation${result.count !== 1 ? 's' : ''} from ${providerName}`,
+              `Synced ${result.count} observation${result.count !== 1 ? "s" : ""} from ${providerName}`,
             );
           }
           utils.integrations.detail.invalidate({ provider });
@@ -259,7 +296,8 @@ export default function IntegrationDetailPage({
   }
 
   function handleDisconnect() {
-    if (!confirm(`Disconnect ${providerName}? You can reconnect later.`)) return;
+    if (!confirm(`Disconnect ${providerName}? You can reconnect later.`))
+      return;
 
     disconnectMutation.mutate(
       { provider },
@@ -298,6 +336,7 @@ export default function IntegrationDetailPage({
 
   // Disconnected state (connection exists but inactive)
   if (connection && !isConnected) {
+    const isImportBased = importBasedProviders.has(provider);
     return (
       <div>
         <TitleActionHeader
@@ -312,15 +351,20 @@ export default function IntegrationDetailPage({
         />
         <div className="mt-10 flex flex-col items-center justify-center text-center py-12">
           <Unplug className="h-10 w-10 text-neutral-300 mb-4" />
-          <h2 className="text-lg font-semibold text-neutral-700 font-display">Disconnected</h2>
+          <h2 className="text-lg font-semibold text-neutral-700 font-display">
+            Disconnected
+          </h2>
           <p className="mt-1 text-sm text-neutral-500 max-w-md">
-            This integration is no longer connected. Reconnect to resume syncing data.
+            This integration is no longer connected. Reconnect to resume syncing
+            data.
           </p>
           <Button
             className="mt-6"
-            text="Reconnect"
+            text={isImportBased ? "Re-import Data" : "Reconnect"}
             onClick={() => {
-              window.location.href = `/api/integrations/${provider}/connect`;
+              window.location.href = isImportBased
+                ? `/integrations/${provider}/import`
+                : `/api/integrations/${provider}/connect`;
             }}
           />
         </div>
@@ -330,6 +374,7 @@ export default function IntegrationDetailPage({
 
   // No connection at all
   if (!connection) {
+    const isImportBased = importBasedProviders.has(provider);
     return (
       <div>
         <TitleActionHeader
@@ -338,16 +383,23 @@ export default function IntegrationDetailPage({
           beforeTitle={<div className="mt-1">{providerAvatar()}</div>}
         />
         <div className="mt-10 flex flex-col items-center justify-center text-center py-12">
-          <div className="mb-4">{providerAvatar('size-12')}</div>
-          <h2 className="text-lg font-semibold text-neutral-700 font-display">Not Connected</h2>
+          <div className="mb-4">{providerAvatar("size-12")}</div>
+          <h2 className="text-lg font-semibold text-neutral-700 font-display">
+            {isImportBased ? "No Data Imported" : "Not Connected"}
+          </h2>
           <p className="mt-1 text-sm text-neutral-500 max-w-md">
-            Connect {providerName} to start syncing your health data.
+            {isImportBased
+              ? `Import your ${providerName} data to start tracking your health metrics.`
+              : `Connect ${providerName} to start syncing your health data.`}
           </p>
           <Button
             className="mt-6"
-            text={`Connect ${providerName}`}
+            icon={isImportBased ? <Upload className="h-4 w-4" /> : undefined}
+            text={isImportBased ? "Import Data" : `Connect ${providerName}`}
             onClick={() => {
-              window.location.href = `/api/integrations/${provider}/connect`;
+              window.location.href = isImportBased
+                ? `/integrations/${provider}/import`
+                : `/api/integrations/${provider}/connect`;
             }}
           />
         </div>
@@ -388,21 +440,17 @@ export default function IntegrationDetailPage({
 
       {/* Connection Summary Cards */}
       <div className="mt-7 grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <SummaryCard
-          label="Status"
-          value="Connected"
-          variant="success"
-        />
+        <SummaryCard label="Status" value="Connected" variant="success" />
         <SummaryCard
           label="Connected since"
-          value={connection.createdAt ? formatDate(connection.createdAt) : '—'}
+          value={connection.createdAt ? formatDate(connection.createdAt) : "—"}
         />
         <SummaryCard
           label="Last synced"
           value={
             connection.lastSyncAt
               ? getRelativeTime(new Date(connection.lastSyncAt).toISOString())
-              : 'Never'
+              : "Never"
           }
         />
         <SummaryCard
@@ -424,8 +472,17 @@ export default function IntegrationDetailPage({
                 key={metric.code}
                 metricCode={metric.code}
                 name={metric.name}
-                latestValue={formatObsValue(metric.code, metric.latest.valueNumeric, metric.latest.valueText, precisionMap.get(metric.code))}
-                unit={isDurationMetric(metric.code) ? '' : (metric.latest.unit ?? '')}
+                latestValue={formatObsValue(
+                  metric.code,
+                  metric.latest.valueNumeric,
+                  metric.latest.valueText,
+                  precisionMap.get(metric.code),
+                )}
+                unit={
+                  isDurationMetric(metric.code)
+                    ? ""
+                    : (metric.latest.unit ?? "")
+                }
                 status={metric.status}
                 statusLabel={metric.statusLabel}
                 resultCount={metric.resultCount}
@@ -442,9 +499,12 @@ export default function IntegrationDetailPage({
       {observations.length === 0 && (
         <div className="card mt-8 flex flex-col items-center justify-center py-16 text-center">
           <RefreshCw className="h-10 w-10 text-neutral-300 mb-4" />
-          <h2 className="text-lg font-semibold text-neutral-700 font-display">No Data Yet</h2>
+          <h2 className="text-lg font-semibold text-neutral-700 font-display">
+            No Data Yet
+          </h2>
           <p className="mt-1 text-sm text-neutral-500 max-w-md">
-            {providerName} is connected but no observations have been synced yet. Try syncing now.
+            {providerName} is connected but no observations have been synced
+            yet. Try syncing now.
           </p>
           <Button
             className="mt-6"
@@ -468,7 +528,9 @@ export default function IntegrationDetailPage({
             rowConfig={{
               getRowKey: (obs) => obs.id,
               getRowTint: (obs) =>
-                isObsAbnormal(obs) ? 'bg-[var(--color-health-warning-bg)]/40' : undefined,
+                obs.isAbnormal
+                  ? "bg-[var(--color-health-warning-bg)]/40"
+                  : undefined,
             }}
           />
         </>
