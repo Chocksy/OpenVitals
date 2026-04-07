@@ -1,9 +1,7 @@
+import { generateText } from "ai";
 import { getDb } from "@openvitals/database/client";
-import {
-  getOpenRouterHeaders,
-  getOpenRouterBaseUrl,
-  getModelId,
-} from "../lib/ai-provider";
+import { sql } from "drizzle-orm";
+import { getModel } from "../lib/ai-provider";
 import { metricDefinitions } from "@openvitals/database";
 import type { WorkflowContext } from "../workflow";
 import type {
@@ -84,23 +82,13 @@ Analytes:
 ${analyteList}`;
 
   try {
-    const response = await fetch(`${getOpenRouterBaseUrl()}/chat/completions`, {
-      method: "POST",
-      headers: getOpenRouterHeaders(),
-      body: JSON.stringify({
-        model: IDENTIFY_MODEL,
-        messages: [{ role: "user", content: prompt }],
-        temperature: 0,
-      }),
+    const result = await generateText({
+      model: getModel(IDENTIFY_MODEL),
+      prompt,
+      temperature: 0,
     });
 
-    const data = await response.json();
-    if (data.error) {
-      console.error("[auto-identify] API error:", data.error);
-      return normResult;
-    }
-
-    const aiText = data.choices[0].message.content;
+    const aiText = result.text;
     const jsonStr = aiText
       .replace(/^```(?:json)?\s*\n?/m, "")
       .replace(/\n?```\s*$/m, "")
@@ -128,6 +116,13 @@ ${analyteList}`;
       );
 
       if (!match || !match.id) {
+        remainingFlagged.push(flagged);
+        continue;
+      }
+
+      // Validate LLM-returned id format to prevent injection/overwrites
+      if (!/^[a-z][a-z0-9_]{0,63}$/.test(match.id)) {
+        console.warn(`[auto-identify] Skipping unsafe id: ${match.id}`);
         remainingFlagged.push(flagged);
         continue;
       }
@@ -193,7 +188,7 @@ ${analyteList}`;
           )
         ) {
           await db.execute(
-            `UPDATE metric_definitions SET aliases = aliases::jsonb || '["${flagged.extraction.analyte.replace(/"/g, '\\"')}"]'::jsonb WHERE id = '${existing.id}'`,
+            sql`UPDATE metric_definitions SET aliases = aliases::jsonb || ${JSON.stringify([flagged.extraction.analyte])}::jsonb WHERE id = ${existing.id}`,
           );
         }
         newMetricDefs.push(existing);

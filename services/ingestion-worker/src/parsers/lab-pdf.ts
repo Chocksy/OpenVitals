@@ -83,36 +83,8 @@ export async function parseLabPdf(ctx: WorkflowContext): Promise<ParseResult> {
     }
     const pdfBuffer = Buffer.concat(chunks);
 
-    // Render PDF pages to images using pdfjs-dist
-    const pdfjs = await import("pdfjs-dist/legacy/build/pdf.mjs");
-    // Resolve the worker file from node_modules (not relative to this source file)
-    const { createRequire } = await import("module");
-    const req = createRequire(import.meta.url);
-    pdfjs.GlobalWorkerOptions.workerSrc = req.resolve(
-      "pdfjs-dist/legacy/build/pdf.worker.mjs",
-    );
-    const doc = await pdfjs.getDocument({
-      data: new Uint8Array(pdfBuffer),
-      useWorkerFetch: false,
-      isEvalSupported: false,
-      useSystemFonts: true,
-    }).promise;
-    const pageImages: string[] = [];
-
-    for (let i = 1; i <= Math.min(doc.numPages, 10); i++) {
-      const page = await doc.getPage(i);
-      const viewport = page.getViewport({ scale: 2.0 }); // 2x for readability
-
-      // Create canvas-like rendering using node-canvas or sharp
-      // pdfjs-dist needs a canvas - use the OffscreenCanvas or render to PNG via sharp
-      // Simplest approach: send the PDF directly as base64 to Gemini (it supports PDF input)
-      // Actually, Gemini Flash supports PDF files directly via OpenRouter
-      break; // We'll send the whole PDF as a file
-    }
-    doc.destroy();
-
     // Send PDF as base64 directly to vision model via OpenRouter raw API
-    // The AI SDK's file type isn't well-supported across providers, so use raw fetch
+    // Gemini Flash supports PDF files directly — no page rendering needed
     const pdfBase64 = pdfBuffer.toString("base64");
     console.log(
       `[lab-pdf] Sending ${(pdfBuffer.length / 1024).toFixed(0)}KB PDF to ${OCR_MODEL} for OCR`,

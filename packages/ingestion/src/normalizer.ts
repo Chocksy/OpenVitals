@@ -304,15 +304,21 @@ export function normalizeExtractions(
       metric.unit &&
       extraction.unit.toLowerCase() !== metric.unit.toLowerCase()
     ) {
-      const converted = convertUnit(
-        extraction.value ?? 0,
-        extraction.unit,
-        metric.unit,
-        unitConversions,
-        metric.id,
-      );
+      const converted =
+        extraction.value !== null
+          ? convertUnit(
+              extraction.value,
+              extraction.unit,
+              metric.unit,
+              unitConversions,
+              metric.id,
+            )
+          : null;
       if (converted !== null) {
         finalValue = converted;
+        finalUnit = metric.unit;
+      } else if (extraction.value === null) {
+        // Qualitative result (e.g., "< 0.050") — keep null value, adopt target unit
         finalUnit = metric.unit;
       } else {
         flagged.push({

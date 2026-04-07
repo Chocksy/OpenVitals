@@ -24,8 +24,8 @@ services:
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-openvitals}
       BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET}
-      BETTER_AUTH_URL: ${BETTER_AUTH_URL:-https://vitals.chocksy.com}
-      NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:-https://vitals.chocksy.com}
+      BETTER_AUTH_URL: ${BETTER_AUTH_URL:-http://localhost:3000}
+      NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:-http://localhost:3000}
       OPENROUTER_API_KEY: ${OPENROUTER_API_KEY}
       AI_DEFAULT_MODEL: ${AI_DEFAULT_MODEL:-google/gemini-2.5-flash}
       BLOB_STORAGE_PROVIDER: local
@@ -39,6 +39,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
 
   worker:
     build:
@@ -58,6 +60,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
 
   # Run migrations and seed on deploy (one-shot, exits after completion)
   migrate:
