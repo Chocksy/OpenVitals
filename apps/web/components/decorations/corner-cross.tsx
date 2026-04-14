@@ -132,7 +132,7 @@ export function CornerEdge({
   }
 
   return (["tl", "tr", "bl", "br"] as const).map((s) => (
-    <CornerEdge location={s} />
+    <CornerEdge key={s} location={s} />
   ));
 }
 export function CornerCrosses({

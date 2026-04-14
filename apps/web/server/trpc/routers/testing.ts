@@ -1,5 +1,13 @@
 import { z } from "zod";
-import { eq, and, desc, sql, inArray, notInArray } from "drizzle-orm";
+import {
+  eq,
+  and,
+  desc,
+  sql,
+  inArray,
+  notInArray,
+  isNotNull,
+} from "drizzle-orm";
 import { createRouter, protectedProcedure } from "../init";
 import {
   labProviders,
@@ -11,8 +19,18 @@ import {
   optimalRanges,
   userOptimalRanges,
   users,
+  insights,
+  medications,
+  conditions,
 } from "@openvitals/database";
 import { computeAge } from "@/lib/demographics";
+import {
+  retestTriagePrompt,
+  labPanelSuggestionPrompt,
+  estimateTokens,
+} from "@openvitals/ai";
+import { generateText } from "ai";
+import { createOpenRouter } from "@openrouter/ai-sdk-provider";
 import { deriveStatus, deriveOptimalStatus } from "@/lib/health-utils";
 import {
   getAllPreventionMetrics,
@@ -523,4 +541,790 @@ export const testingRouter = createRouter({
         });
       return { success: true };
     }),
+
+  // ── AI Triage ─────────────────────────────────────────────────────────────
+
+  "retest.getCachedTriage": protectedProcedure.query(async ({ ctx }) => {
+    const [cached] = await ctx.db
+      .select()
+      .from(insights)
+      .where(
+        and(
+          eq(insights.userId, ctx.userId),
+          eq(insights.type, "retest_triage"),
+          eq(insights.isDismissed, false),
+        ),
+      )
+      .orderBy(desc(insights.createdAt))
+      .limit(1);
+
+    if (!cached) return null;
+
+    try {
+      const content = JSON.parse(cached.content) as {
+        items: Array<{
+          metricCode: string;
+          priority: string;
+          reason: string;
+        }>;
+      };
+      return {
+        items: content.items,
+        generatedAt:
+          cached.createdAt?.toISOString() ?? new Date().toISOString(),
+        generatedBy: cached.generatedBy,
+      };
+    } catch {
+      return null;
+    }
+  }),
+
+  "retest.triage": protectedProcedure.mutation(async ({ ctx }) => {
+    // 1. Get recommendations (reuse existing query logic inline)
+    //    We call the DB directly rather than the procedure to avoid circular calls
+    const allObs = await ctx.db
+      .selectDistinctOn([observations.metricCode], {
+        metricCode: observations.metricCode,
+        valueNumeric: observations.valueNumeric,
+        unit: observations.unit,
+        observedAt: observations.observedAt,
+        isAbnormal: observations.isAbnormal,
+        referenceRangeLow: observations.referenceRangeLow,
+        referenceRangeHigh: observations.referenceRangeHigh,
+        category: observations.category,
+      })
+      .from(observations)
+      .where(
+        and(
+          eq(observations.userId, ctx.userId),
+          notInArray(observations.category, EXCLUDED_CATEGORIES),
+        ),
+      )
+      .orderBy(observations.metricCode, desc(observations.observedAt));
+
+    if (allObs.length === 0) {
+      return {
+        items: [],
+        generatedAt: new Date().toISOString(),
+        generatedBy: "",
+      };
+    }
+
+    const metricCodes = allObs.map((o) => o.metricCode);
+    const [metricDefs, optRanges, userOverrides] = await Promise.all([
+      ctx.db
+        .select()
+        .from(metricDefinitions)
+        .where(inArray(metricDefinitions.id, metricCodes)),
+      ctx.db
+        .select()
+        .from(optimalRanges)
+        .where(inArray(optimalRanges.metricCode, metricCodes)),
+      ctx.db
+        .select()
+        .from(userRetestSettings)
+        .where(eq(userRetestSettings.userId, ctx.userId)),
+    ]);
+
+    const defMap = new Map(metricDefs.map((d) => [d.id, d]));
+    const optMap = new Map<
+      string,
+      { rangeLow: number | null; rangeHigh: number | null }
+    >();
+    for (const r of optRanges) {
+      if (!optMap.has(r.metricCode)) {
+        optMap.set(r.metricCode, {
+          rangeLow: r.rangeLow,
+          rangeHigh: r.rangeHigh,
+        });
+      }
+    }
+    const overrideMap = new Map(userOverrides.map((o) => [o.metricCode, o]));
+    const now = Date.now();
+
+    // Build retest items for non-on-track metrics
+    const retestItems: Array<{
+      code: string;
+      name: string;
+      value: number | null;
+      unit: string | null;
+      status: string;
+      daysSince: number;
+      refLow: number | null;
+      refHigh: number | null;
+    }> = [];
+
+    for (const obs of allObs) {
+      const def = defMap.get(obs.metricCode);
+      const override = overrideMap.get(obs.metricCode);
+      if (override?.isPaused) continue;
+
+      const healthStatus = deriveStatus({
+        isAbnormal: obs.isAbnormal,
+        referenceRangeLow: obs.referenceRangeLow,
+        referenceRangeHigh: obs.referenceRangeHigh,
+        valueNumeric: obs.valueNumeric,
+      });
+      const optimalStatus = deriveOptimalStatus({
+        valueNumeric: obs.valueNumeric,
+        optimalRangeLow: optMap.get(obs.metricCode)?.rangeLow ?? null,
+        optimalRangeHigh: optMap.get(obs.metricCode)?.rangeHigh ?? null,
+      });
+
+      let recommendedIntervalDays: number;
+      if (healthStatus === "critical") recommendedIntervalDays = 30;
+      else if (healthStatus === "warning") recommendedIntervalDays = 90;
+      else if (optimalStatus === "suboptimal") recommendedIntervalDays = 120;
+      else if (optimalStatus === "optimal") recommendedIntervalDays = 365;
+      else recommendedIntervalDays = 180;
+
+      const effectiveInterval =
+        override?.retestIntervalDays ?? recommendedIntervalDays;
+      const daysSince = Math.floor(
+        (now - new Date(obs.observedAt).getTime()) / (1000 * 60 * 60 * 24),
+      );
+      const dueInDays = effectiveInterval - daysSince;
+
+      // Only include items that are not on_track
+      if (dueInDays > 30) continue;
+
+      retestItems.push({
+        code: obs.metricCode,
+        name: def?.name ?? obs.metricCode,
+        value: obs.valueNumeric,
+        unit: def?.unit ?? obs.unit,
+        status: healthStatus,
+        daysSince,
+        refLow: obs.referenceRangeLow,
+        refHigh: obs.referenceRangeHigh,
+      });
+    }
+
+    if (retestItems.length === 0) {
+      return {
+        items: [],
+        generatedAt: new Date().toISOString(),
+        generatedBy: "",
+      };
+    }
+
+    // 2. Fetch medications + conditions for context
+    const [meds, conds] = await Promise.all([
+      ctx.db
+        .select({
+          name: medications.name,
+          dosage: medications.dosage,
+          isActive: medications.isActive,
+        })
+        .from(medications)
+        .where(
+          and(
+            eq(medications.userId, ctx.userId),
+            eq(medications.isActive, true),
+          ),
+        )
+        .limit(30),
+      ctx.db
+        .select({ name: conditions.name, status: conditions.status })
+        .from(conditions)
+        .where(eq(conditions.userId, ctx.userId))
+        .limit(20),
+    ]);
+
+    // 3. Build compact payload
+    const payload = {
+      retests: retestItems,
+      medications: meds.map(
+        (m) => `${m.name}${m.dosage ? ` ${m.dosage}` : ""}`,
+      ),
+      conditions: conds.map((c) => c.name),
+    };
+
+    const payloadText = JSON.stringify(payload);
+
+    // 4. Rate limit: check if last triage was less than 1 hour ago
+    const [recent] = await ctx.db
+      .select({ createdAt: insights.createdAt })
+      .from(insights)
+      .where(
+        and(
+          eq(insights.userId, ctx.userId),
+          eq(insights.type, "retest_triage"),
+        ),
+      )
+      .orderBy(desc(insights.createdAt))
+      .limit(1);
+
+    if (recent?.createdAt) {
+      const hourAgo = new Date(Date.now() - 60 * 60 * 1000);
+      if (recent.createdAt > hourAgo) {
+        // Return the cached version instead
+        const [cached] = await ctx.db
+          .select()
+          .from(insights)
+          .where(
+            and(
+              eq(insights.userId, ctx.userId),
+              eq(insights.type, "retest_triage"),
+              eq(insights.isDismissed, false),
+            ),
+          )
+          .orderBy(desc(insights.createdAt))
+          .limit(1);
+
+        if (cached) {
+          try {
+            const content = JSON.parse(cached.content);
+            return {
+              items: content.items,
+              generatedAt:
+                cached.createdAt?.toISOString() ?? new Date().toISOString(),
+              generatedBy: cached.generatedBy,
+              rateLimited: true,
+            };
+          } catch {
+            // Fall through to regenerate
+          }
+        }
+      }
+    }
+
+    // 5. Call LLM
+    const [user] = await ctx.db
+      .select({ aiModel: users.aiModel })
+      .from(users)
+      .where(eq(users.id, ctx.userId))
+      .limit(1);
+
+    const openrouter = createOpenRouter({
+      apiKey: process.env.OPENROUTER_API_KEY,
+    });
+    const modelId =
+      user?.aiModel ??
+      process.env.AI_DEFAULT_MODEL ??
+      "anthropic/claude-sonnet-4";
+
+    const { text: answer } = await generateText({
+      model: openrouter(modelId),
+      system: retestTriagePrompt,
+      prompt: payloadText,
+      temperature: 0,
+    });
+
+    // 6. Parse response
+    let triageResult: {
+      items: Array<{ metricCode: string; priority: string; reason: string }>;
+    };
+    try {
+      // Strip markdown code fences if present
+      const cleaned = answer
+        .replace(/```json\n?/g, "")
+        .replace(/```\n?/g, "")
+        .trim();
+      triageResult = JSON.parse(cleaned);
+    } catch {
+      // If parsing fails, return empty — widget falls back to non-triaged view
+      return {
+        items: [],
+        generatedAt: new Date().toISOString(),
+        generatedBy: modelId,
+        error: "Failed to parse AI response",
+      };
+    }
+
+    // 7. Delete previous triage insights for this user, then insert new one
+    await ctx.db
+      .delete(insights)
+      .where(
+        and(
+          eq(insights.userId, ctx.userId),
+          eq(insights.type, "retest_triage"),
+        ),
+      );
+
+    const [insight] = await ctx.db
+      .insert(insights)
+      .values({
+        userId: ctx.userId,
+        type: "retest_triage",
+        content: JSON.stringify(triageResult),
+        generatedBy: modelId,
+        sourceObservationIds: retestItems.map((r) => r.code),
+        contextTokenCount: estimateTokens(payloadText),
+        metadataJson: {
+          itemCount: triageResult.items.length,
+          refreshedAt: new Date().toISOString(),
+        },
+      })
+      .returning();
+
+    return {
+      items: triageResult.items,
+      generatedAt:
+        insight!.createdAt?.toISOString() ?? new Date().toISOString(),
+      generatedBy: modelId,
+    };
+  }),
+
+  // ── Lab Panel Suggestion ──────────────────────────────────────────────────
+
+  "retest.getCachedPlan": protectedProcedure.query(async ({ ctx }) => {
+    const [cached] = await ctx.db
+      .select()
+      .from(insights)
+      .where(
+        and(
+          eq(insights.userId, ctx.userId),
+          eq(insights.type, "lab_panel_plan"),
+          eq(insights.isDismissed, false),
+        ),
+      )
+      .orderBy(desc(insights.createdAt))
+      .limit(1);
+
+    if (!cached) return null;
+
+    try {
+      const content = JSON.parse(cached.content) as LabPanelPlan;
+      return {
+        plan: content,
+        generatedAt:
+          cached.createdAt?.toISOString() ?? new Date().toISOString(),
+        generatedBy: cached.generatedBy,
+      };
+    } catch {
+      return null;
+    }
+  }),
+
+  "retest.generatePlan": protectedProcedure.mutation(async ({ ctx }) => {
+    // 1. Get all non-on-track observations (same as triage)
+    const allObs = await ctx.db
+      .selectDistinctOn([observations.metricCode], {
+        metricCode: observations.metricCode,
+        valueNumeric: observations.valueNumeric,
+        unit: observations.unit,
+        observedAt: observations.observedAt,
+        isAbnormal: observations.isAbnormal,
+        referenceRangeLow: observations.referenceRangeLow,
+        referenceRangeHigh: observations.referenceRangeHigh,
+        category: observations.category,
+      })
+      .from(observations)
+      .where(
+        and(
+          eq(observations.userId, ctx.userId),
+          notInArray(observations.category, EXCLUDED_CATEGORIES),
+        ),
+      )
+      .orderBy(observations.metricCode, desc(observations.observedAt));
+
+    if (allObs.length === 0) {
+      return {
+        plan: null,
+        generatedAt: new Date().toISOString(),
+        generatedBy: "",
+      };
+    }
+
+    const metricCodes = allObs.map((o) => o.metricCode);
+    const [metricDefs, optRanges, userOverrides] = await Promise.all([
+      ctx.db
+        .select()
+        .from(metricDefinitions)
+        .where(inArray(metricDefinitions.id, metricCodes)),
+      ctx.db
+        .select()
+        .from(optimalRanges)
+        .where(inArray(optimalRanges.metricCode, metricCodes)),
+      ctx.db
+        .select()
+        .from(userRetestSettings)
+        .where(eq(userRetestSettings.userId, ctx.userId)),
+    ]);
+
+    const defMap = new Map(metricDefs.map((d) => [d.id, d]));
+    const optMap = new Map<
+      string,
+      { rangeLow: number | null; rangeHigh: number | null }
+    >();
+    for (const r of optRanges) {
+      if (!optMap.has(r.metricCode)) {
+        optMap.set(r.metricCode, {
+          rangeLow: r.rangeLow,
+          rangeHigh: r.rangeHigh,
+        });
+      }
+    }
+    const overrideMap = new Map(userOverrides.map((o) => [o.metricCode, o]));
+    const now = Date.now();
+
+    // Build items for LLM
+    const retestItems: Array<{
+      code: string;
+      name: string;
+      value: number | null;
+      unit: string | null;
+      status: string;
+      category: string;
+      daysSince: number;
+      refLow: number | null;
+      refHigh: number | null;
+    }> = [];
+
+    for (const obs of allObs) {
+      const def = defMap.get(obs.metricCode);
+      const override = overrideMap.get(obs.metricCode);
+      if (override?.isPaused) continue;
+
+      const healthStatus = deriveStatus({
+        isAbnormal: obs.isAbnormal,
+        referenceRangeLow: obs.referenceRangeLow,
+        referenceRangeHigh: obs.referenceRangeHigh,
+        valueNumeric: obs.valueNumeric,
+      });
+      const optimalStatus = deriveOptimalStatus({
+        valueNumeric: obs.valueNumeric,
+        optimalRangeLow: optMap.get(obs.metricCode)?.rangeLow ?? null,
+        optimalRangeHigh: optMap.get(obs.metricCode)?.rangeHigh ?? null,
+      });
+
+      let recommendedIntervalDays: number;
+      if (healthStatus === "critical") recommendedIntervalDays = 30;
+      else if (healthStatus === "warning") recommendedIntervalDays = 90;
+      else if (optimalStatus === "suboptimal") recommendedIntervalDays = 120;
+      else if (optimalStatus === "optimal") recommendedIntervalDays = 365;
+      else recommendedIntervalDays = 180;
+
+      const effectiveInterval =
+        override?.retestIntervalDays ?? recommendedIntervalDays;
+      const daysSince = Math.floor(
+        (now - new Date(obs.observedAt).getTime()) / (1000 * 60 * 60 * 24),
+      );
+      const dueInDays = effectiveInterval - daysSince;
+
+      // Only include non-on-track items
+      if (dueInDays > 30) continue;
+
+      const opt = optMap.get(obs.metricCode);
+      retestItems.push({
+        code: obs.metricCode,
+        name: def?.name ?? obs.metricCode,
+        value: obs.valueNumeric,
+        unit: def?.unit ?? obs.unit,
+        status: healthStatus,
+        category: def?.category ?? obs.category,
+        daysSince,
+        refLow: obs.referenceRangeLow,
+        refHigh: obs.referenceRangeHigh,
+        optimalLow: opt?.rangeLow ?? null,
+        optimalHigh: opt?.rangeHigh ?? null,
+      });
+    }
+
+    if (retestItems.length === 0) {
+      return {
+        plan: null,
+        generatedAt: new Date().toISOString(),
+        generatedBy: "",
+      };
+    }
+
+    // 2. Fetch medications, conditions, and historical values for trending
+    const retestCodes_pre = retestItems.map((r) => r.code);
+    const [meds, conds, historyRows] = await Promise.all([
+      ctx.db
+        .select({ name: medications.name, dosage: medications.dosage })
+        .from(medications)
+        .where(
+          and(
+            eq(medications.userId, ctx.userId),
+            eq(medications.isActive, true),
+          ),
+        )
+        .limit(30),
+      ctx.db
+        .select({ name: conditions.name, status: conditions.status })
+        .from(conditions)
+        .where(eq(conditions.userId, ctx.userId))
+        .limit(20),
+      // Last 3 values per retest metric for trend analysis
+      retestCodes_pre.length > 0
+        ? ctx.db
+            .select({
+              metricCode: observations.metricCode,
+              valueNumeric: observations.valueNumeric,
+              observedAt: observations.observedAt,
+            })
+            .from(observations)
+            .where(
+              and(
+                eq(observations.userId, ctx.userId),
+                inArray(observations.metricCode, retestCodes_pre),
+                isNotNull(observations.valueNumeric),
+              ),
+            )
+            .orderBy(observations.metricCode, desc(observations.observedAt))
+        : Promise.resolve([]),
+    ]);
+
+    // Build trend map: code → last 3 values (newest first)
+    const trendMap = new Map<string, number[]>();
+    for (const row of historyRows) {
+      if (row.valueNumeric == null) continue;
+      const arr = trendMap.get(row.metricCode) ?? [];
+      if (arr.length < 3) {
+        arr.push(row.valueNumeric);
+        trendMap.set(row.metricCode, arr);
+      }
+    }
+
+    // Derive trend direction from historical values
+    function deriveTrend(values: number[]): string | null {
+      if (values.length < 2) return null;
+      const [newest, ...older] = values;
+      const prev = older[0]!;
+      const pctChange = ((newest - prev) / prev) * 100;
+      if (Math.abs(pctChange) < 3) return "stable";
+      return pctChange > 0 ? "rising" : "falling";
+    }
+
+    // Enrich retestItems with trend data
+    for (const item of retestItems) {
+      const history = trendMap.get(item.code);
+      if (history && history.length >= 2) {
+        (item as Record<string, unknown>).trend = deriveTrend(history);
+        (item as Record<string, unknown>).previousValues = history.slice(1);
+      }
+    }
+
+    // 3. Build payload — include ALL tested codes so LLM doesn't suggest already-tested ones
+    const allTestedCodes = allObs.map((o) => o.metricCode);
+
+    // Build compact optimal ranges context (only for metrics with optimal data)
+    const optimalContext = optRanges
+      .filter((r) => r.rangeLow != null || r.rangeHigh != null)
+      .reduce(
+        (acc, r) => {
+          if (!acc.some((a) => a.code === r.metricCode)) {
+            acc.push({
+              code: r.metricCode,
+              low: r.rangeLow,
+              high: r.rangeHigh,
+              source: r.source,
+            });
+          }
+          return acc;
+        },
+        [] as Array<{
+          code: string;
+          low: number | null;
+          high: number | null;
+          source: string;
+        }>,
+      );
+
+    const payload = {
+      retests: retestItems,
+      alreadyTested: allTestedCodes,
+      medications: meds.map(
+        (m) => `${m.name}${m.dosage ? ` ${m.dosage}` : ""}`,
+      ),
+      conditions: conds.map((c) => c.name),
+      optimalRanges: optimalContext,
+    };
+    const payloadText = JSON.stringify(payload);
+
+    // 4. Call LLM (no rate limit — user explicitly triggers this)
+    const [user] = await ctx.db
+      .select({ aiModel: users.aiModel })
+      .from(users)
+      .where(eq(users.id, ctx.userId))
+      .limit(1);
+
+    const openrouter = createOpenRouter({
+      apiKey: process.env.OPENROUTER_API_KEY,
+    });
+    const modelId =
+      user?.aiModel ??
+      process.env.AI_DEFAULT_MODEL ??
+      "anthropic/claude-sonnet-4";
+
+    const { text: answer } = await generateText({
+      model: openrouter(modelId),
+      system: labPanelSuggestionPrompt,
+      prompt: payloadText,
+      temperature: 0,
+    });
+
+    // 6. Parse
+    let planResult: LabPanelPlan;
+    try {
+      const cleaned = answer
+        .replace(/```json\n?/g, "")
+        .replace(/```\n?/g, "")
+        .trim();
+      planResult = JSON.parse(cleaned);
+    } catch {
+      return {
+        plan: null,
+        generatedAt: new Date().toISOString(),
+        generatedBy: modelId,
+        error: "Failed to parse AI response",
+      };
+    }
+
+    // 7. Enforce: strip metrics from groups that aren't in the input retestItems.
+    //    LLMs often add related metrics (e.g., TSH alongside Free T3) even when told not to.
+    //    Move any extras to newSuggestions if genuinely untested.
+    const retestMap = new Map(retestItems.map((r) => [r.code, r]));
+    const retestCodes = new Set(retestItems.map((r) => r.code));
+    const testedSet = new Set(allTestedCodes);
+    const extraSuggestions: Array<{
+      name: string;
+      code: string;
+      reason: string;
+    }> = [];
+
+    for (const group of planResult.groups) {
+      // Separate valid (in retestItems) from invented codes
+      const validMetrics: string[] = [];
+      for (const code of group.metrics) {
+        if (retestCodes.has(code)) {
+          validMetrics.push(code);
+        } else if (!testedSet.has(code)) {
+          // Genuinely untested — move to newSuggestions
+          const def = defMap.get(code);
+          extraSuggestions.push({
+            name: def?.name ?? code.replace(/_/g, " "),
+            code,
+            reason: `Suggested alongside ${group.domain} panel`,
+          });
+        }
+        // If tested but on-track, just drop it silently
+      }
+      group.metrics = validMetrics;
+    }
+
+    // Remove empty groups after filtering
+    planResult.groups = planResult.groups.filter((g) => g.metrics.length > 0);
+
+    // Merge extras into newSuggestions
+    if (!planResult.newSuggestions) planResult.newSuggestions = [];
+    for (const extra of extraSuggestions) {
+      if (!planResult.newSuggestions.some((s) => s.code === extra.code)) {
+        planResult.newSuggestions.push(extra);
+      }
+    }
+
+    // 8. Enrich with metric names and last values
+    function buildMetricDetails(codes: string[]): MetricDetail[] {
+      return codes.map((code) => {
+        const item = retestMap.get(code);
+        const def = defMap.get(code);
+        return {
+          code,
+          name: def?.name ?? code.replace(/_/g, " "),
+          lastValue: item?.value ?? null,
+          unit: item?.unit ?? def?.unit ?? null,
+          daysSince: item?.daysSince,
+        };
+      });
+    }
+
+    for (const group of planResult.groups) {
+      group.metricNames = group.metrics.map(
+        (code) => defMap.get(code)?.name ?? code.replace(/_/g, " "),
+      );
+      group.metricDetails = buildMetricDetails(group.metrics);
+    }
+    if (planResult.optional?.metrics) {
+      // Also filter optional metrics
+      planResult.optional.metrics = planResult.optional.metrics.filter((code) =>
+        retestCodes.has(code),
+      );
+      planResult.optional.metricNames = planResult.optional.metrics.map(
+        (code) => defMap.get(code)?.name ?? code.replace(/_/g, " "),
+      );
+      planResult.optional.metricDetails = buildMetricDetails(
+        planResult.optional.metrics,
+      );
+    }
+
+    // 9. Filter out already-tested codes from newSuggestions
+    if (planResult.newSuggestions) {
+      planResult.newSuggestions = planResult.newSuggestions.filter(
+        (s) => !testedSet.has(s.code),
+      );
+    }
+
+    // 9. Store
+    await ctx.db
+      .delete(insights)
+      .where(
+        and(
+          eq(insights.userId, ctx.userId),
+          eq(insights.type, "lab_panel_plan"),
+        ),
+      );
+
+    const [insight] = await ctx.db
+      .insert(insights)
+      .values({
+        userId: ctx.userId,
+        type: "lab_panel_plan",
+        content: JSON.stringify(planResult),
+        generatedBy: modelId,
+        contextTokenCount: estimateTokens(payloadText),
+        metadataJson: {
+          groupCount: planResult.groups.length,
+          totalMetrics:
+            planResult.groups.reduce((sum, g) => sum + g.metrics.length, 0) +
+            (planResult.optional?.metrics?.length ?? 0),
+          refreshedAt: new Date().toISOString(),
+        },
+      })
+      .returning();
+
+    return {
+      plan: planResult,
+      generatedAt:
+        insight!.createdAt?.toISOString() ?? new Date().toISOString(),
+      generatedBy: modelId,
+    };
+  }),
 });
+
+// ── Types ─────────────────────────────────────────────────────────────────────
+
+interface MetricDetail {
+  code: string;
+  name: string;
+  lastValue?: number | null;
+  unit?: string | null;
+  daysSince?: number;
+}
+
+interface LabPanelPlan {
+  summary: string;
+  groups: Array<{
+    domain: string;
+    priority: string;
+    reason: string;
+    rationale?: string;
+    metrics: string[];
+    metricNames?: string[];
+    metricDetails?: MetricDetail[];
+  }>;
+  optional?: {
+    reason: string;
+    metrics: string[];
+    metricNames?: string[];
+    metricDetails?: MetricDetail[];
+  };
+  newSuggestions?: Array<{
+    name: string;
+    code: string;
+    reason: string;
+  }>;
+}

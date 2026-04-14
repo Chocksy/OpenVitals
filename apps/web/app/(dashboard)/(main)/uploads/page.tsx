@@ -146,10 +146,14 @@ export default function UploadsPage() {
     onSuccess: () => {
       setDuplicateJob(null);
       utils.importJobs.list.invalidate();
+      utils.testing["retest.getCachedTriage"].invalidate();
     },
   });
   const reprocessAll = trpc.importJobs.reprocessAll.useMutation({
-    onSuccess: () => utils.importJobs.list.invalidate(),
+    onSuccess: () => {
+      utils.importJobs.list.invalidate();
+      utils.testing["retest.getCachedTriage"].invalidate();
+    },
   });
   const [confirmReprocess, setConfirmReprocess] = useState(false);
   const utils = trpc.useUtils();
@@ -232,6 +236,7 @@ export default function UploadsPage() {
       }
       setFiles([]);
       utils.importJobs.list.invalidate();
+      utils.testing["retest.getCachedTriage"].invalidate();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Upload failed");
     } finally {

@@ -44,6 +44,8 @@ interface RetestRecommendation {
 
 interface RetestItemProps {
   item: RetestRecommendation;
+  triageReason?: string;
+  triagePriority?: string;
   onCustomize: (metricCode: string) => void;
   onTogglePause: (metricCode: string, isPaused: boolean) => void;
 }
@@ -85,8 +87,15 @@ function formatDaysAgo(days: number): string {
   return `${(days / 365).toFixed(1)} yr ago`;
 }
 
+const priorityBorder: Record<string, string> = {
+  high: "border-l-red-400",
+  medium: "border-l-amber-400",
+};
+
 export function RetestItem({
   item,
+  triageReason,
+  triagePriority,
   onCustomize,
   onTogglePause,
 }: RetestItemProps) {
@@ -113,6 +122,9 @@ export function RetestItem({
     <div
       className={cn(
         "flex flex-col gap-2 rounded-xl border border-neutral-200 bg-white p-3.5",
+        triagePriority &&
+          priorityBorder[triagePriority] &&
+          `border-l-2 ${priorityBorder[triagePriority]}`,
         item.isPaused && "opacity-50",
       )}
     >
@@ -134,6 +146,11 @@ export function RetestItem({
             )}
             <span>{formatDaysAgo(item.daysSinceLastTest)}</span>
           </div>
+          {triageReason && (
+            <span className="text-[11px] text-neutral-500 mt-0.5">
+              {triageReason}
+            </span>
+          )}
         </div>
 
         <div className="flex items-center gap-1.5 shrink-0">

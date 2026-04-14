@@ -65,6 +65,13 @@ export default function HomePage() {
     undefined,
     { enabled: (observations.data?.items?.length ?? 0) > 0 },
   );
+  const triageQuery = trpc.testing["retest.getCachedTriage"].useQuery(
+    undefined,
+    { enabled: (observations.data?.items?.length ?? 0) > 0 },
+  );
+  const triageMutation = trpc.testing["retest.triage"].useMutation({
+    onSuccess: () => triageQuery.refetch(),
+  });
 
   const isLoading =
     observations.isLoading || medications.isLoading || importJobs.isLoading;
@@ -605,7 +612,12 @@ export default function HomePage() {
             <AttentionMetrics metrics={attentionMetrics} />
           )}
           {upcomingRetests.length > 0 && (
-            <UpcomingRetests items={upcomingRetests} />
+            <UpcomingRetests
+              items={upcomingRetests}
+              triage={triageQuery.data}
+              onAnalyze={() => triageMutation.mutate()}
+              isAnalyzing={triageMutation.isPending}
+            />
           )}
         </div>
       )}

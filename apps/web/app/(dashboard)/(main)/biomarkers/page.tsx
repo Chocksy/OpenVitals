@@ -389,9 +389,9 @@ export default function BiomarkersPage() {
 
                                 {/* Aliases preview */}
                                 <div className="flex flex-wrap gap-1">
-                                  {aliasList.map((a: string) => (
+                                  {aliasList.map((a: string, idx: number) => (
                                     <span
-                                      key={a}
+                                      key={`${a}-${idx}`}
                                       className="inline-block rounded bg-neutral-100 px-1.5 py-0.5 text-[10px] text-neutral-500 font-mono"
                                     >
                                       {a}
