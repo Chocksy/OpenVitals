@@ -970,6 +970,10 @@ export const testingRouter = createRouter({
       daysSince: number;
       refLow: number | null;
       refHigh: number | null;
+      optimalLow: number | null;
+      optimalHigh: number | null;
+      trend?: string | null;
+      previousValues?: number[];
     }> = [];
 
     for (const obs of allObs) {
@@ -1093,8 +1097,8 @@ export const testingRouter = createRouter({
     for (const item of retestItems) {
       const history = trendMap.get(item.code);
       if (history && history.length >= 2) {
-        (item as Record<string, unknown>).trend = deriveTrend(history);
-        (item as Record<string, unknown>).previousValues = history.slice(1);
+        item.trend = deriveTrend(history);
+        item.previousValues = history.slice(1);
       }
     }
 
