@@ -1,6 +1,9 @@
 import { and, desc, eq, inArray, type SQL } from "drizzle-orm";
 import { sourceArtifacts, importJobs } from "../schema/sources";
 import { observations } from "../schema/observations";
+import { conditions } from "../schema/conditions";
+import { medications } from "../schema/medications";
+import { encounters } from "../schema/encounters";
 import type { Database } from "../client";
 
 export async function createImportJob(
@@ -104,23 +107,37 @@ export async function deleteImportJob(
     userId: string;
   },
 ) {
-  const rows = await db
-    .delete(importJobs)
-    .where(
-      and(eq(importJobs.id, params.id), eq(importJobs.userId, params.userId)),
-    )
-    .returning({
-      id: importJobs.id,
-      sourceArtifactId: importJobs.sourceArtifactId,
-    });
+  return db.transaction(async (tx) => {
+    // Verify the job belongs to the user and get artifact ID
+    const [job] = await tx
+      .select({
+        id: importJobs.id,
+        sourceArtifactId: importJobs.sourceArtifactId,
+      })
+      .from(importJobs)
+      .where(
+        and(eq(importJobs.id, params.id), eq(importJobs.userId, params.userId)),
+      )
+      .limit(1);
 
-  if (rows[0]) {
-    await db
+    if (!job) return null;
+
+    // Delete dependent records that reference this import job
+    await tx.delete(observations).where(eq(observations.importJobId, job.id));
+    await tx.delete(conditions).where(eq(conditions.importJobId, job.id));
+    await tx.delete(medications).where(eq(medications.importJobId, job.id));
+    await tx.delete(encounters).where(eq(encounters.importJobId, job.id));
+
+    // Now delete the import job itself (flagged_extractions cascade automatically)
+    await tx.delete(importJobs).where(eq(importJobs.id, job.id));
+
+    // Delete the source artifact
+    await tx
       .delete(sourceArtifacts)
-      .where(eq(sourceArtifacts.id, rows[0].sourceArtifactId));
-  }
+      .where(eq(sourceArtifacts.id, job.sourceArtifactId));
 
-  return rows[0] ?? null;
+    return { id: job.id, sourceArtifactId: job.sourceArtifactId };
+  });
 }
 
 export async function getReviewQueue(
