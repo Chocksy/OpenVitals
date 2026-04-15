@@ -1124,7 +1124,7 @@ export const testingRouter = createRouter({
           code: string;
           low: number | null;
           high: number | null;
-          source: string;
+          source: string | null;
         }>,
       );
 
