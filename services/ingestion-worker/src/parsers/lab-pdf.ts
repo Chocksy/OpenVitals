@@ -131,13 +131,28 @@ export async function parseLabPdf(ctx: WorkflowContext): Promise<ParseResult> {
     }
   }
 
+  return transformAiResponse(text);
+}
+
+/**
+ * Strip markdown code fences from AI response and parse JSON.
+ * Exported for testing.
+ */
+export function stripCodeFences(text: string): string {
+  return text
+    .replace(/^```(?:json)?\s*\n?/m, "")
+    .replace(/\n?```\s*$/m, "")
+    .trim();
+}
+
+/**
+ * Transform raw AI JSON response text into a ParseResult.
+ * Pure function — no DB or AI calls. Exported for testing.
+ */
+export function transformAiResponse(text: string): ParseResult {
   let parsed: any;
   try {
-    const jsonStr = text
-      .replace(/^```(?:json)?\s*\n?/m, "")
-      .replace(/\n?```\s*$/m, "")
-      .trim();
-    parsed = JSON.parse(jsonStr);
+    parsed = JSON.parse(stripCodeFences(text));
     const analytes = (parsed.results ?? []).map((r: any) => r.analyte);
     console.log(`[lab-pdf] AI extracted ${analytes.length} results:`);
     for (const r of parsed.results ?? []) {

@@ -14,8 +14,19 @@
 
 import type { LanguageModel } from "ai";
 
-const AI_PROVIDER = process.env.AI_PROVIDER ?? "gateway";
 const DEFAULT_MODEL = "anthropic/claude-sonnet-4-20250514";
+
+/**
+ * Detect which AI provider to use.
+ * Priority: explicit AI_PROVIDER env > infer from available API key > "gateway" fallback.
+ */
+export function detectProvider(): "openrouter" | "gateway" {
+  if (process.env.AI_PROVIDER) {
+    return process.env.AI_PROVIDER as "openrouter" | "gateway";
+  }
+  if (process.env.OPENROUTER_API_KEY) return "openrouter";
+  return "gateway";
+}
 
 export function getModelId(): string {
   return process.env.AI_DEFAULT_MODEL ?? DEFAULT_MODEL;
@@ -24,7 +35,7 @@ export function getModelId(): string {
 export function getModel(modelId?: string): LanguageModel {
   const id = modelId ?? getModelId();
 
-  if (AI_PROVIDER === "openrouter") {
+  if (detectProvider() === "openrouter") {
     // Lazy import to avoid requiring the package when using gateway
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     const { createOpenRouter } = require("@openrouter/ai-sdk-provider");
