@@ -36,6 +36,7 @@ import {
   getAllPreventionMetrics,
   getPreventionFrequency,
 } from "@/lib/prevention-panels";
+import type { LabPanelPlan, MetricDetail } from "@/lib/retest-types";
 
 // Categories that are continuously measured (not lab-tested)
 const EXCLUDED_CATEGORIES = ["wearable", "vital_sign"];
@@ -1298,37 +1299,3 @@ export const testingRouter = createRouter({
     };
   }),
 });
-
-// ── Types ─────────────────────────────────────────────────────────────────────
-
-interface MetricDetail {
-  code: string;
-  name: string;
-  lastValue?: number | null;
-  unit?: string | null;
-  daysSince?: number;
-}
-
-interface LabPanelPlan {
-  summary: string;
-  groups: Array<{
-    domain: string;
-    priority: string;
-    reason: string;
-    rationale?: string;
-    metrics: string[];
-    metricNames?: string[];
-    metricDetails?: MetricDetail[];
-  }>;
-  optional?: {
-    reason: string;
-    metrics: string[];
-    metricNames?: string[];
-    metricDetails?: MetricDetail[];
-  };
-  newSuggestions?: Array<{
-    name: string;
-    code: string;
-    reason: string;
-  }>;
-}
