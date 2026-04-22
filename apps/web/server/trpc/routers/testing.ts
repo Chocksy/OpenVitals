@@ -1010,8 +1010,12 @@ export const testingRouter = createRouter({
       );
       const dueInDays = effectiveInterval - daysSince;
 
-      // Only include non-on-track items
-      if (dueInDays > 30) continue;
+      // Only include non-on-track items — UNLESS the metric is part of a core
+      // prevention panel. Core panels (metabolic, cardiovascular, inflammation,
+      // thyroid, nutrients) are always surfaced so the lab-panel plan can list
+      // them every time, which is the whole point of a "prevention panel".
+      const isCorePanelMetric = getPreventionFrequency(obs.metricCode) !== null;
+      if (dueInDays > 30 && !isCorePanelMetric) continue;
 
       const opt = optMap.get(obs.metricCode);
       retestItems.push({
