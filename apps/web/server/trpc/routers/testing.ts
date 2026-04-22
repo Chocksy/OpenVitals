@@ -1231,13 +1231,11 @@ export const testingRouter = createRouter({
       }
     }
 
-    // 7b. Safety net: ensure overdue core-panel metrics are represented.
+    // 7b. Safety net: ensure core-panel metrics flagged for retesting are
+    //     represented in the plan, even if the LLM silently dropped them.
     const patched = applyCorePanelSafetyNet({
       plan: planResult,
-      retestItems: retestItems.map((r) => ({
-        code: r.code,
-        daysSince: r.daysSince,
-      })),
+      retestCodes: retestItems.map((r) => r.code),
     });
     planResult.groups = patched.groups;
     planResult.optional = patched.optional;

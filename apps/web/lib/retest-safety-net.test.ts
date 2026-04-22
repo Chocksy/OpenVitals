@@ -3,7 +3,7 @@ import { applyCorePanelSafetyNet } from "./retest-safety-net";
 import type { LabPanelPlan } from "./retest-types";
 
 describe("applyCorePanelSafetyNet", () => {
-  it("injects an overdue core metric missing from the AI plan into its panel group", () => {
+  it("injects a core metric that is in retestCodes but missing from the AI plan", () => {
     const plan: LabPanelPlan = {
       summary: "Focus on cardiovascular risk.",
       groups: [
@@ -18,11 +18,7 @@ describe("applyCorePanelSafetyNet", () => {
 
     const result = applyCorePanelSafetyNet({
       plan,
-      retestItems: [
-        { code: "glucose", daysSince: 400 },
-        { code: "apolipoprotein_b", daysSince: 400 },
-        { code: "ldl_cholesterol", daysSince: 400 },
-      ],
+      retestCodes: ["glucose", "apolipoprotein_b", "ldl_cholesterol"],
     });
 
     const metabolic = result.groups.find(
@@ -47,10 +43,7 @@ describe("applyCorePanelSafetyNet", () => {
 
     const result = applyCorePanelSafetyNet({
       plan,
-      retestItems: [
-        { code: "glucose", daysSince: 400 },
-        { code: "hba1c", daysSince: 400 },
-      ],
+      retestCodes: ["glucose", "hba1c"],
     });
 
     const metabolic = result.groups.find(
@@ -60,23 +53,24 @@ describe("applyCorePanelSafetyNet", () => {
     expect(metabolic?.metrics.filter((m) => m === "hba1c")).toHaveLength(1);
   });
 
-  it("does not inject a core metric that is in retests but not overdue", () => {
-    // Metabolic frequency is 180 days. Glucose at 90 days is NOT overdue.
+  it("does not inject a core metric that is NOT in retestCodes (on-track)", () => {
+    // Glucose is on-track (not in retestCodes). Even though the plan omits it,
+    // the safety net must not force it in — the user is not due for a retest.
     const plan: LabPanelPlan = {
-      summary: "focus elsewhere",
+      summary: "cardio only",
       groups: [
         {
-          domain: "Thyroid Function",
+          domain: "Cardiovascular Risk",
           priority: "high",
-          reason: "TSH high",
-          metrics: ["tsh"],
+          reason: "ApoB",
+          metrics: ["apolipoprotein_b"],
         },
       ],
     };
 
     const result = applyCorePanelSafetyNet({
       plan,
-      retestItems: [{ code: "glucose", daysSince: 90 }],
+      retestCodes: ["apolipoprotein_b"],
     });
 
     const metabolic = result.groups.find(
@@ -100,10 +94,7 @@ describe("applyCorePanelSafetyNet", () => {
 
     const result = applyCorePanelSafetyNet({
       plan,
-      retestItems: [
-        { code: "tsh", daysSince: 400 },
-        { code: "free_t3", daysSince: 400 },
-      ],
+      retestCodes: ["tsh", "free_t3"],
     });
 
     const thyroid = result.groups.find((g) => g.domain === "Thyroid Function");
@@ -130,15 +121,11 @@ describe("applyCorePanelSafetyNet", () => {
 
     const result = applyCorePanelSafetyNet({
       plan,
-      retestItems: [
-        // uric_acid is NOT in any prevention panel
-        { code: "uric_acid", daysSince: 500 },
-      ],
+      retestCodes: ["uric_acid"], // not in any prevention panel
     });
 
     const allCodes = result.groups.flatMap((g) => g.metrics);
     expect(allCodes).not.toContain("uric_acid");
-    // original plan preserved
     expect(allCodes).toContain("apolipoprotein_b");
   });
 
@@ -161,10 +148,9 @@ describe("applyCorePanelSafetyNet", () => {
 
     const result = applyCorePanelSafetyNet({
       plan,
-      retestItems: [{ code: "vitamin_b12", daysSince: 400 }],
+      retestCodes: ["vitamin_b12"],
     });
 
-    // Should NOT also appear in a Key Nutrients group — it's already in optional.
     const keyNutrients = result.groups.find(
       (g) => g.domain === "Key Nutrients",
     );
