@@ -33,6 +33,7 @@ import { generateText } from "ai";
 import { createOpenRouter } from "@openrouter/ai-sdk-provider";
 import { deriveStatus, deriveOptimalStatus } from "@/lib/health-utils";
 import {
+  PREVENTION_PANELS,
   getAllPreventionMetrics,
   getPreventionFrequency,
 } from "@/lib/prevention-panels";
@@ -1137,6 +1138,13 @@ export const testingRouter = createRouter({
       ),
       conditions: conds.map((c) => c.name),
       optimalRanges: optimalContext,
+      corePanels: PREVENTION_PANELS.map((p) => ({
+        id: p.id,
+        label: p.label,
+        frequency: p.frequency,
+        metrics: p.metrics,
+        why: p.why,
+      })),
     };
     const payloadText = JSON.stringify(payload);
 
