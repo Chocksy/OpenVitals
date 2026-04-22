@@ -38,6 +38,7 @@ import {
   getPreventionFrequency,
 } from "@/lib/prevention-panels";
 import type { LabPanelPlan, MetricDetail } from "@/lib/retest-types";
+import { applyCorePanelSafetyNet } from "@/lib/retest-safety-net";
 
 // Categories that are continuously measured (not lab-tested)
 const EXCLUDED_CATEGORIES = ["wearable", "vital_sign"];
@@ -1229,6 +1230,17 @@ export const testingRouter = createRouter({
         planResult.newSuggestions.push(extra);
       }
     }
+
+    // 7b. Safety net: ensure overdue core-panel metrics are represented.
+    const patched = applyCorePanelSafetyNet({
+      plan: planResult,
+      retestItems: retestItems.map((r) => ({
+        code: r.code,
+        daysSince: r.daysSince,
+      })),
+    });
+    planResult.groups = patched.groups;
+    planResult.optional = patched.optional;
 
     // 8. Enrich with metric names and last values
     function buildMetricDetails(codes: string[]): MetricDetail[] {
