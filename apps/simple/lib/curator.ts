@@ -13,11 +13,12 @@ import { formatRange } from "./status";
  * `applyAnswer`, behind the user answering "Delete this reading".
  */
 import { generateText } from "ai";
-import { and, eq, sql } from "drizzle-orm";
+import { and, eq, isNull, sql } from "drizzle-orm";
 import {
   getDb,
   pool,
   curatorRuns,
+  goals as goalsTable,
   metrics as metricsTable,
   readings as readingsTable,
   reviewItems,
@@ -27,6 +28,7 @@ import {
   type ReviewSubject,
 } from "@/db";
 import { model, stripCodeFences } from "./extract";
+import { inGoal } from "./daily";
 import { conversionFactor, normalizeUnit, round } from "./units";
 
 export type Trigger = "upload" | "daily" | "manual";
@@ -37,7 +39,9 @@ export type Check =
   | "metric_identity"
   | "missing_range"
   | "missing_optimal"
-  | "implausible_value";
+  | "implausible_value"
+  | "foreign_reading"
+  | "goal_check";
 
 /** The subset of a reading the planners need. */
 export interface ReadingLike {
@@ -45,6 +49,7 @@ export interface ReadingLike {
   uploadId: string | null;
   metricCode: string;
   value: number | null;
+  valueText: string | null;
   unit: string | null;
   refLow: number | null;
   refHigh: number | null;
@@ -85,11 +90,7 @@ const median = (xs: number[]) => {
 const ratio = (a: number, b: number) => Math.max(a / b, b / a);
 
 /** Does this range contain the value? False when there is no range at all. */
-const brackets = (
-  lo: number | null,
-  hi: number | null,
-  v: number,
-): boolean =>
+const brackets = (lo: number | null, hi: number | null, v: number): boolean =>
   (lo != null || hi != null) &&
   (lo == null || v >= lo) &&
   (hi == null || v <= hi);
@@ -314,6 +315,104 @@ export function planImplausible(
   return actions;
 }
 
+/* ------------------------------------------------------------------ *
+ * 8. foreign_reading
+ * ------------------------------------------------------------------ */
+
+/** Answers that belong to a qualitative test, not to a numeric analyte. */
+const CATEGORICAL =
+  /^(negativ|negative|norm|normal|absent|prezent|present|pozitiv|positive)$/i;
+
+/** "norm mg/dl" is the same answer as "norm"; drop the trailing unit first. */
+const isCategorical = (text: string | null, unit: string | null) => {
+  if (!text) return false;
+  let t = text.trim();
+  const u = (unit ?? "").trim().toLowerCase();
+  if (u && t.toLowerCase().endsWith(u)) t = t.slice(0, -u.length).trim();
+  return CATEGORICAL.test(t);
+};
+
+const midpoint = (r: ReadingLike) =>
+  r.refLow != null && r.refHigh != null ? (r.refLow + r.refHigh) / 2 : null;
+
+/**
+ * The legacy import merged rows from neighbouring table lines into a metric:
+ * calcium landing in `glucose`, or the urine "Negativ" strip next to blood
+ * glucose. Both wreck the trend chart.
+ *
+ * A reading is foreign when its own reference range sits more than 3x away
+ * from what this metric normally reports, or when it carries no number at all
+ * and only a yes/no word. Never fixed here, only asked about.
+ */
+export function planForeignReadings(
+  targets: ReadingLike[],
+  history: ReadingLike[],
+  byCode: Map<string, MetricLike>,
+): Action[] {
+  const actions: Action[] = [];
+  const groups = new Map<string, ReadingLike[]>();
+  for (const h of history)
+    groups.set(h.metricCode, [...(groups.get(h.metricCode) ?? []), h]);
+
+  for (const r of targets) {
+    if ((r.flags ?? []).includes("foreign_ok")) continue;
+
+    const peers = groups.get(r.metricCode) ?? [];
+    if (peers.filter((p) => p.value != null).length < 4) continue;
+
+    const mids = peers.map(midpoint).filter((m): m is number => m != null);
+    const typical = mids.length ? median(mids) : null;
+    const mine = midpoint(r);
+
+    const oddRange =
+      typical != null &&
+      typical > 0 &&
+      mine != null &&
+      (mine < typical / 3 || mine > typical * 3);
+    const oddText = r.value == null && isCategorical(r.valueText, r.unit);
+    if (!oddRange && !oddText) continue;
+
+    const lows = peers
+      .map((p) => p.refLow)
+      .filter((v): v is number => v != null);
+    const highs = peers
+      .map((p) => p.refHigh)
+      .filter((v): v is number => v != null);
+    const usual = formatRange(
+      lows.length ? median(lows) : null,
+      highs.length ? median(highs) : null,
+    );
+    const name = byCode.get(r.metricCode)?.name ?? r.metricCode;
+    const reads =
+      r.value != null
+        ? `${r.value} ${r.unit ?? ""}`.trim() +
+          ` with range ${formatRange(r.refLow, r.refHigh)}`
+        : `"${r.valueText ?? ""}"`;
+
+    actions.push({
+      type: "queue",
+      check: "foreign_reading",
+      kind: "foreign_reading",
+      question: `"${name}" on ${r.observedAt} reads ${reads}, unlike its other readings (range ≈ ${usual}). Does it belong here?`,
+      options: ["Delete this reading", "Move to metric…", "Keep"],
+      subject: {
+        key: `${r.id}`,
+        readingId: r.id,
+        metricCode: r.metricCode,
+        value: r.value,
+        valueText: r.valueText,
+        unit: r.unit,
+        refLow: r.refLow,
+        refHigh: r.refHigh,
+        observedAt: r.observedAt,
+        detail: `${r.observedAt} · ${reads.replace(" with range ", " · range ")}`,
+      },
+    });
+  }
+
+  return actions;
+}
+
 /** Apply a fix action to an in-memory row, so later checks see the new value. */
 export function applyPatch(r: ReadingLike, patch: Partial<ReadingLike>) {
   Object.assign(r, patch);
@@ -414,7 +513,11 @@ ${batch.map((m) => `${m.code} | ${m.name} | ${m.unit ?? ""}`).join("\n")}`,
 
     // No consensus: stop asking about this one.
     if (r.low == null && r.high == null) {
-      actions.push({ type: "mute", check: "missing_optimal", metricCode: m.code });
+      actions.push({
+        type: "mute",
+        check: "missing_optimal",
+        metricCode: m.code,
+      });
       continue;
     }
 
@@ -468,6 +571,7 @@ export async function runCurator(
               uploadId: r.uploadId,
               metricCode: r.metricCode,
               value: r.value,
+              valueText: r.valueText,
               unit: r.unit,
               refLow: r.refLow,
               refHigh: r.refHigh,
@@ -521,6 +625,10 @@ export async function runCurator(
     bump("implausible_value").checked = targets.length;
     actions.push(...implausible);
 
+    const foreign = planForeignReadings(targets, history, byCode);
+    bump("foreign_reading").checked = targets.length;
+    actions.push(...foreign);
+
     const withReadings = new Set(history.map((r) => r.metricCode));
     const minted = allMetrics.filter(
       (m) =>
@@ -541,6 +649,25 @@ export async function runCurator(
     const optimal = await planMissingOptimal(noOptimal);
     bump("missing_optimal").checked = noOptimal.length;
     actions.push(...optimal);
+
+    // 7. goal_check: a reading inside the target band closes the goal.
+    const openGoals = await db
+      .select()
+      .from(goalsTable)
+      .where(and(eq(goalsTable.userId, userId), isNull(goalsTable.achievedAt)));
+    bump("goal_check").checked = openGoals.length;
+    for (const g of openGoals) {
+      const latest = history
+        .filter((r) => r.metricCode === g.metricCode && r.value != null)
+        .sort((a, b) => a.observedAt.localeCompare(b.observedAt))
+        .pop();
+      if (!inGoal(latest?.value, g.targetLow, g.targetHigh)) continue;
+      await db
+        .update(goalsTable)
+        .set({ achievedAt: new Date() })
+        .where(eq(goalsTable.id, g.id));
+      bump("goal_check").fixed++;
+    }
 
     for (const a of actions) {
       if (a.type === "mute") {
@@ -602,6 +729,9 @@ export async function runCuratorForAllUsers(trigger: Trigger) {
 /* ------------------------------------------------------------------ *
  * Answering
  * ------------------------------------------------------------------ */
+
+/** The answer itself was unusable (a metric code that does not exist). */
+export class BadAnswerError extends Error {}
 
 export async function applyAnswer(
   itemId: string,
@@ -708,6 +838,35 @@ export async function applyAnswer(
     }
   }
 
+  if (item.kind === "foreign_reading" && s.readingId) {
+    if (answer.startsWith("Delete")) {
+      await db.delete(readingsTable).where(eq(readingsTable.id, s.readingId));
+      status = "applied";
+    } else if (answer.startsWith("Move")) {
+      const code = String(note ?? "").trim();
+      const [target] = await db
+        .select()
+        .from(metricsTable)
+        .where(eq(metricsTable.code, code));
+      if (!target) throw new BadAnswerError(`no metric with code "${code}"`);
+      await db
+        .update(readingsTable)
+        .set({ metricCode: target.code })
+        .where(eq(readingsTable.id, s.readingId));
+      status = "applied";
+    } else {
+      const [r] = await db
+        .select()
+        .from(readingsTable)
+        .where(eq(readingsTable.id, s.readingId));
+      if (r)
+        await db
+          .update(readingsTable)
+          .set({ flags: addFlags(r, "foreign_ok") })
+          .where(eq(readingsTable.id, r.id));
+    }
+  }
+
   const [updated] = await db
     .update(reviewItems)
     .set({ answer, status, resolvedAt: new Date() })
@@ -743,7 +902,8 @@ if (
         .from(curatorRuns)
         .orderBy(sql`started_at desc`)
         .limit(users);
-      for (const r of runs) console.log(r.trigger, JSON.stringify(r.stats), r.error ?? "");
+      for (const r of runs)
+        console.log(r.trigger, JSON.stringify(r.stats), r.error ?? "");
       await pool().end();
       process.exit(0);
     })

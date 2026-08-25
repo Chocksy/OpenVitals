@@ -12,8 +12,10 @@ import {
   CheckCircle2,
   ChevronRight,
   Clock,
+  Flame,
   FlaskConical,
   Sparkles,
+  Target,
 } from "lucide-react";
 import { cn, formatDate } from "@/lib/utils";
 import { MiniSparkline } from "./ui-kit";
@@ -739,6 +741,126 @@ export function WhatChanged({
           </Link>
         ))}
       </div>
+    </div>
+  );
+}
+
+/** Today's progress, small enough to sit next to the goals card. */
+export function TodayCard({
+  streak,
+  habitsDone,
+  habitCount,
+  logged,
+}: {
+  streak: number;
+  habitsDone: number;
+  habitCount: number;
+  logged: boolean;
+}) {
+  return (
+    <Link href="/today" className="card block p-4 hover:border-accent-200">
+      <div className="flex items-center justify-between">
+        <span className="font-mono text-[10px] font-bold uppercase tracking-[0.06em] text-neutral-400">
+          Today
+        </span>
+        <span className="inline-flex items-center gap-1 font-mono text-[12px] font-semibold tabular-nums text-neutral-700">
+          <Flame className="size-3.5 text-[var(--color-health-warning)]" />
+          {streak}
+        </span>
+      </div>
+      <div className="mt-2 flex items-baseline gap-2">
+        <span className="font-mono text-[28px] font-semibold leading-none tabular-nums">
+          {habitsDone}
+          <span className="text-neutral-300">/{habitCount}</span>
+        </span>
+        <span className="font-mono text-[11px] text-neutral-400">habits</span>
+      </div>
+      <p className="mt-2 font-mono text-[11px] text-neutral-400">
+        {habitCount === 0
+          ? "Build a protocol to track"
+          : habitsDone === habitCount
+            ? "All done for today"
+            : `${habitCount - habitsDone} left`}
+        {logged ? " · numbers logged" : " · nothing logged yet"}
+      </p>
+    </Link>
+  );
+}
+
+/** The three goals with the nearest due date. */
+export function GoalsCard({
+  goals,
+}: {
+  goals: {
+    id: string;
+    metricCode: string;
+    metricName: string;
+    unit: string | null;
+    current: number | null;
+    progress: number;
+    due: string | null;
+    reached: boolean;
+  }[];
+}) {
+  return (
+    <div className="card">
+      <div className="flex items-center justify-between border-b border-neutral-200 px-4 py-3">
+        <div className="flex items-center gap-2">
+          <Target className="size-3.5 text-neutral-400" />
+          <h2 className="font-display text-[13px] font-semibold text-neutral-900">
+            Goals
+          </h2>
+        </div>
+        <Link
+          href="/goals"
+          className="flex items-center gap-1 font-mono text-[11px] text-neutral-400 hover:text-neutral-600"
+        >
+          All
+          <ChevronRight className="size-3" />
+        </Link>
+      </div>
+
+      {goals.length === 0 ? (
+        <p className="px-4 py-6 text-center font-body text-[12px] text-neutral-500">
+          No goals yet. Open a biomarker and set a target band.
+        </p>
+      ) : (
+        <div className="divide-y divide-neutral-100">
+          {goals.map((g) => (
+            <Link
+              key={g.id}
+              href={`/m/${g.metricCode}`}
+              className="block px-4 py-3 hover:bg-neutral-50"
+            >
+              <div className="flex items-baseline justify-between gap-2">
+                <span className="min-w-0 truncate font-body text-[12px] font-medium text-neutral-700">
+                  {g.metricName}
+                </span>
+                <span className="shrink-0 font-mono text-[12px] font-semibold tabular-nums">
+                  {g.current ?? "—"}
+                  <span className="ml-1 text-[10px] font-normal text-neutral-400">
+                    {g.unit ?? ""}
+                  </span>
+                </span>
+              </div>
+              <div className="mt-1.5 h-1 w-full overflow-hidden rounded-full bg-neutral-150">
+                <div
+                  className="h-full"
+                  style={{
+                    width: `${g.progress}%`,
+                    backgroundColor: g.reached
+                      ? "var(--color-health-normal)"
+                      : "var(--color-accent-500)",
+                  }}
+                />
+              </div>
+              <span className="mt-1 block font-mono text-[10px] text-neutral-400">
+                {g.progress}%{g.due ? ` · due ${g.due}` : ""}
+              </span>
+            </Link>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

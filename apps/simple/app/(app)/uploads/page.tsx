@@ -1,4 +1,5 @@
 import { desc, eq, sql } from "drizzle-orm";
+import { Download } from "lucide-react";
 import { requireUserId } from "@/lib/auth";
 import { getDb, uploads, readings } from "@/db";
 import { DeleteUpload, UploadButton } from "@/components/client";
@@ -34,7 +35,25 @@ export default async function UploadsPage() {
             Lab PDFs you imported. Deleting one removes its readings.
           </p>
         </div>
-        <UploadButton />
+        <div className="flex flex-wrap items-center gap-3">
+      <div className="flex items-center gap-2">
+        <a
+          href="/api/export.csv"
+          className="card inline-flex items-center gap-1.5 px-3 py-2 font-mono text-[11px] uppercase tracking-[0.04em] text-neutral-600 hover:border-accent-200 hover:text-neutral-900"
+        >
+          <Download className="size-3.5" />
+          Readings CSV
+        </a>
+        <a
+          href="/api/export-daily.csv"
+          className="card inline-flex items-center gap-1.5 px-3 py-2 font-mono text-[11px] uppercase tracking-[0.04em] text-neutral-600 hover:border-accent-200 hover:text-neutral-900"
+        >
+          <Download className="size-3.5" />
+          Daily log CSV
+        </a>
+      </div>
+          <UploadButton />
+        </div>
       </div>
 
       {rows.length === 0 ? (

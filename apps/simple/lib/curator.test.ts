@@ -3,6 +3,7 @@ import {
   planUnits,
   planMissingRange,
   planImplausible,
+  planForeignReadings,
   type MetricLike,
   type ReadingLike,
 } from "./curator";
@@ -20,6 +21,7 @@ const reading = (r: Partial<ReadingLike> & { id: string }): ReadingLike => ({
   uploadId: null,
   metricCode: "glucose",
   value: 90,
+  valueText: null,
   unit: "mg/dL",
   refLow: 70,
   refHigh: 106,
@@ -327,5 +329,157 @@ describe("planImplausible", () => {
   it("leaves a merely abnormal value alone", () => {
     const rows = [reading({ id: "x", metricCode: "glucose", value: 260 })];
     expect(planImplausible(rows, byCode)).toHaveLength(0);
+  });
+});
+
+describe("planForeignReadings", () => {
+  // Six real glucose rows: range midpoints all sit around 85.
+  const glucose = [
+    ["2016-06-24", 83, 60, 99],
+    ["2019-07-13", 93, 60, 110],
+    ["2021-10-14", 98.5, 60, 110],
+    ["2022-10-20", 92.9, 60, 99],
+    ["2024-11-20", 82, 74, 106],
+    ["2025-12-09", 81, 74, 106],
+  ].map(([observedAt, value, refLow, refHigh]) =>
+    reading({
+      id: `g${observedAt}`,
+      value: value as number,
+      refLow: refLow as number,
+      refHigh: refHigh as number,
+      observedAt: observedAt as string,
+    }),
+  );
+
+  it("queues a reading whose own range is far below the metric's median", () => {
+    // Calcium (8.6-10.2) that the legacy import dropped into glucose.
+    const alien = reading({
+      id: "calcium",
+      value: 9.8,
+      refLow: 8.6,
+      refHigh: 10.2,
+      observedAt: "2014-07-07",
+    });
+    const [action] = planForeignReadings([alien], [...glucose, alien], byCode);
+    expect(action).toMatchObject({
+      type: "queue",
+      check: "foreign_reading",
+      kind: "foreign_reading",
+      subject: { readingId: "calcium", metricCode: "glucose", value: 9.8 },
+    });
+    expect((action as { options: string[] }).options).toEqual([
+      "Delete this reading",
+      "Move to metric…",
+      "Keep",
+    ]);
+    expect((action as { question: string }).question).toContain("2014-07-07");
+  });
+
+  it("queues a reading whose range is more than 3x above the median", () => {
+    const alien = reading({
+      id: "high",
+      value: 300,
+      refLow: 200,
+      refHigh: 400,
+      observedAt: "2020-01-01",
+    });
+    expect(
+      planForeignReadings([alien], [...glucose, alien], byCode),
+    ).toHaveLength(1);
+  });
+
+  it("leaves a reading whose range is merely a bit different alone", () => {
+    const ok = reading({
+      id: "ok",
+      value: 91,
+      refLow: 70,
+      refHigh: 140,
+      observedAt: "2020-01-01",
+    });
+    expect(planForeignReadings([ok], [...glucose, ok], byCode)).toHaveLength(0);
+  });
+
+  it("queues a text-only row on an otherwise numeric metric", () => {
+    const strip = reading({
+      id: "urine",
+      value: null,
+      valueText: "Negativ",
+      refLow: 70,
+      refHigh: 99,
+      observedAt: "2024-05-13",
+    });
+    const [action] = planForeignReadings([strip], [...glucose, strip], byCode);
+    expect(action).toMatchObject({
+      kind: "foreign_reading",
+      subject: { readingId: "urine", valueText: "Negativ" },
+    });
+    expect((action as { question: string }).question).toContain('"Negativ"');
+  });
+
+  it("sees through a unit glued onto the text answer", () => {
+    const strip = reading({
+      id: "norm",
+      value: null,
+      valueText: "norm mg/dl",
+      refLow: 70,
+      refHigh: 99,
+      observedAt: "2015-03-21",
+    });
+    expect(
+      planForeignReadings([strip], [...glucose, strip], byCode),
+    ).toHaveLength(1);
+  });
+
+  it("ignores a text row that is not a yes/no answer", () => {
+    const note = reading({
+      id: "note",
+      value: null,
+      valueText: "see attached report",
+      refLow: 70,
+      refHigh: 99,
+    });
+    expect(
+      planForeignReadings([note], [...glucose, note], byCode),
+    ).toHaveLength(0);
+  });
+
+  it("stays quiet on a metric with fewer than 4 numeric readings", () => {
+    const few = glucose.slice(0, 2);
+    const alien = reading({
+      id: "calcium",
+      value: 9.8,
+      refLow: 8.6,
+      refHigh: 10.2,
+    });
+    expect(planForeignReadings([alien], [...few, alien], byCode)).toHaveLength(
+      0,
+    );
+  });
+
+  it("skips a reading the user already said to keep", () => {
+    const alien = reading({
+      id: "calcium",
+      value: 9.8,
+      refLow: 8.6,
+      refHigh: 10.2,
+      flags: ["foreign_ok"],
+    });
+    expect(
+      planForeignReadings([alien], [...glucose, alien], byCode),
+    ).toHaveLength(0);
+  });
+
+  it("never emits a fix or a delete", () => {
+    const alien = reading({
+      id: "calcium",
+      value: 9.8,
+      refLow: 8.6,
+      refHigh: 10.2,
+    });
+    expect(
+      planForeignReadings([alien], [...glucose, alien], byCode).every(
+        (a) => a.type === "queue",
+      ),
+    ).toBe(true);
   });
 });

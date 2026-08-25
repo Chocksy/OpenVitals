@@ -51,18 +51,53 @@ Every run writes a `curator_runs` row with per-check `{checked, fixed, queued}`.
 `/admin` (visible only to `ADMIN_EMAIL`) shows the data state, the last 20 runs,
 the remaining unit mismatches and the minted metrics.
 
+## The self-improvement loop
+
+Labs tell you where you are. The tracker is how you move.
+
+- `/today` is the fast screen: tick the protocol off, type six numbers, pick
+  energy and mood 1-5. Everything autosaves on blur. Arrows walk back a day
+  (`?d=YYYY-MM-DD`). A streak counter and a 52-week consistency heatmap sit on
+  the same page.
+- `/protocol` holds what you have decided to do. Items arrive from a lifestyle
+  plan ("Add to protocol" on `/insights`) or by hand. Each shows its 30-day
+  adherence strip. The first time the page loads empty, every lifestyle item you
+  answered "Did it" is adopted for you.
+- `/goals` is one target band per biomarker. Set it from `/m/[code]`; the band
+  is drawn on the trend chart and the curator closes the goal when a reading
+  lands inside it.
+- `/trends` charts sleep, weight, steps, exercise, alcohol and energy/mood over
+  30, 90 or 365 days with a 7-day rolling average, and marks your blood draws in
+  red so you can see what you were doing before each one.
+- `/labs` is one card per draw: date, result count, flagged dots, source file,
+  and the full list on click.
+- The weekly review (`kind = 'weekly'` in `simple_insights`) is an honest coach
+  reading your week against the one before it: 3 wins, 3 concerns, 3 actions you
+  can adopt into the protocol in one click, plus adherence and per-metric notes.
+  The Monday timer in `instrumentation.ts` writes one per user per week; the
+  button on `/insights` writes one on demand.
+
+## Export
+
+`GET /api/export.csv` is every reading with its flags. `GET /api/export-daily.csv`
+is the daily log. Buttons on `/uploads` and `/admin`. Nothing here is a lock-in.
+
 ## Pages
 
-`/` home dashboard, `/biomarkers` searchable list, `/m/[code]` trend + history,
-`/insights` AI retest panel and lifestyle plan, `/chat` streaming Q&A over your
-own numbers, `/uploads` import history, `/review` the curator's open questions,
+`/` home dashboard, `/today` the tracker, `/biomarkers` searchable list,
+`/labs` the draw timeline, `/trends` daily-log charts, `/protocol` your habits,
+`/goals` target bands, `/m/[code]` trend + history + goal, `/insights` weekly
+review, AI retest panel and lifestyle plan, `/chat` streaming Q&A over your own
+numbers, `/uploads` import history, `/review` the curator's open questions,
 `/admin` data state (admin only). Everything except `/login` lives in the
-`app/(app)` route group, whose layout always renders the nav.
+`app/(app)` route group, whose layout always renders the nav. Below 1280px the
+Labs / Trends / Protocol / Goals links fold into a "More" menu.
 
 ## Tables
 
 New: `metrics`, `uploads`, `readings`, `simple_insights`, `checkins`,
-`review_items`, `curator_runs`.
+`review_items`, `curator_runs`, `daily_logs`, `protocol_items`, `habit_logs`,
+`goals`.
 Reused as-is: `users`, `sessions`, `accounts`, `verifications`.
 Read once, never written: `metric_definitions`, `optimal_ranges`, `observations`.
 

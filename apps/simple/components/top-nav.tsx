@@ -4,12 +4,18 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   Activity,
-  LayoutDashboard,
+  CalendarCheck,
+  ChevronDown,
   ClipboardCheck,
+  FlaskConical,
+  LayoutDashboard,
   ListChecks,
+  ListTodo,
   LogOut,
   MessageSquare,
   Sparkles,
+  Target,
+  TrendingUp,
   Upload,
   type LucideIcon,
 } from "lucide-react";
@@ -20,16 +26,25 @@ interface NavItem {
   name: string;
   href: string;
   icon: LucideIcon;
+  /** Folded into the More menu below 1280px. */
+  secondary?: boolean;
 }
 
 const navigation: NavItem[] = [
   { name: "Home", href: "/", icon: LayoutDashboard },
+  { name: "Today", href: "/today", icon: CalendarCheck },
   { name: "Biomarkers", href: "/biomarkers", icon: ListChecks },
+  { name: "Labs", href: "/labs", icon: FlaskConical, secondary: true },
+  { name: "Trends", href: "/trends", icon: TrendingUp, secondary: true },
+  { name: "Protocol", href: "/protocol", icon: ListTodo, secondary: true },
+  { name: "Goals", href: "/goals", icon: Target, secondary: true },
   { name: "Insights", href: "/insights", icon: Sparkles },
   { name: "Chat", href: "/chat", icon: MessageSquare },
   { name: "Uploads", href: "/uploads", icon: Upload },
   { name: "Review", href: "/review", icon: ClipboardCheck },
 ];
+
+const secondary = navigation.filter((i) => i.secondary);
 
 const isActive = (pathname: string, href: string) =>
   href === "/" ? pathname === "/" : pathname.startsWith(href);
@@ -64,6 +79,9 @@ export function TopNav({ reviewCount = 0 }: { reviewCount?: number }) {
                     href={item.href}
                     className={cn(
                       "flex h-[30px] items-center gap-1.5 px-2.5 py-1 font-mono text-[11px] font-medium uppercase tracking-[0.04em] transition-colors",
+                      // Everything is visible at 1280px and up; below that the
+                      // secondary pages move into the More menu.
+                      item.secondary && "hidden xl:flex",
                       isActive(pathname, item.href)
                         ? "bg-accent-50 text-accent-500"
                         : "text-neutral-500 hover:text-neutral-900",
@@ -78,17 +96,53 @@ export function TopNav({ reviewCount = 0 }: { reviewCount?: number }) {
                     )}
                   </Link>
                 ))}
+
+                <details className="relative xl:hidden">
+                  <summary
+                    className={cn(
+                      "flex h-[30px] cursor-pointer list-none items-center gap-1 px-2.5 font-mono text-[11px] font-medium uppercase tracking-[0.04em]",
+                      secondary.some((i) => isActive(pathname, i.href))
+                        ? "bg-accent-50 text-accent-500"
+                        : "text-neutral-500 hover:text-neutral-900",
+                    )}
+                  >
+                    More
+                    <ChevronDown className="h-3 w-3" />
+                  </summary>
+                  <div className="card absolute left-0 mt-2 w-44 bg-white p-1 shadow-md">
+                    {secondary.map((item) => (
+                      <Link
+                        key={item.name}
+                        href={item.href}
+                        className="flex items-center gap-2 px-2 py-1.5 font-mono text-[11px] font-medium uppercase tracking-[0.04em] text-neutral-600 hover:bg-neutral-50 hover:text-neutral-900"
+                      >
+                        <item.icon className="h-3.5 w-3.5" />
+                        {item.name}
+                      </Link>
+                    ))}
+                  </div>
+                </details>
               </div>
             </nav>
           </div>
 
           <details className="group relative">
-            <summary className="flex size-8 cursor-pointer list-none items-center justify-center bg-neutral-200 font-mono text-[13px] font-bold text-accent-500">
+            {/* The session only exists on the client, so the initial differs
+                between the server HTML and the first client render. */}
+            <summary
+              suppressHydrationWarning
+              className="flex size-8 cursor-pointer list-none items-center justify-center bg-neutral-200 font-mono text-[13px] font-bold text-accent-500"
+            >
               {name.slice(0, 1).toUpperCase() || "?"}
             </summary>
             <div className="card absolute right-0 mt-2 w-56 bg-white p-3 shadow-md">
-              <p className="truncate text-sm font-medium">{name || "User"}</p>
-              <p className="truncate text-xs text-neutral-500">
+              <p suppressHydrationWarning className="truncate text-sm font-medium">
+                {name || "User"}
+              </p>
+              <p
+                suppressHydrationWarning
+                className="truncate text-xs text-neutral-500"
+              >
                 {session?.user?.email}
               </p>
               <button

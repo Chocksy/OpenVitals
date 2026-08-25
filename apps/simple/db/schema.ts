@@ -9,6 +9,7 @@ import {
   timestamp,
   index,
   boolean,
+  unique,
 } from "drizzle-orm/pg-core";
 import { users } from "./auth-schema";
 
@@ -122,6 +123,88 @@ export const curatorRuns = pgTable("curator_runs", {
   error: text("error"),
 });
 
+/* ------------------------------------------------------------------ *
+ * The self-improvement loop: one row a day, the protocol, and goals.
+ * ------------------------------------------------------------------ */
+
+/** One row per user per day. Everything is optional; the day is the key. */
+export const dailyLogs = pgTable(
+  "daily_logs",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    day: date("day").notNull(),
+    sleepHours: real("sleep_hours"),
+    weightKg: real("weight_kg"),
+    steps: integer("steps"),
+    exerciseMin: integer("exercise_min"),
+    alcoholUnits: real("alcohol_units"),
+    energy: integer("energy"),
+    mood: integer("mood"),
+    fastingHours: real("fasting_hours"),
+    notes: text("notes"),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
+  },
+  (t) => [unique("daily_logs_user_day_key").on(t.userId, t.day)],
+);
+
+/** A thing the user has decided to do, usually adopted from a lifestyle plan. */
+export const protocolItems = pgTable("protocol_items", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  text: text("text").notNull(),
+  why: text("why"),
+  metricCodes: jsonb("metric_codes").$type<string[]>(),
+  sourceInsightId: uuid("source_insight_id").references(() => insights.id, {
+    onDelete: "set null",
+  }),
+  cadence: text("cadence").default("daily").notNull(),
+  active: boolean("active").default(true).notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+});
+
+export const habitLogs = pgTable(
+  "habit_logs",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    itemId: uuid("item_id")
+      .notNull()
+      .references(() => protocolItems.id, { onDelete: "cascade" }),
+    day: date("day").notNull(),
+    done: boolean("done").default(true).notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+  },
+  (t) => [unique("habit_logs_item_day_key").on(t.itemId, t.day)],
+);
+
+export const goals = pgTable(
+  "goals",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    metricCode: text("metric_code")
+      .notNull()
+      .references(() => metrics.code),
+    targetLow: real("target_low"),
+    targetHigh: real("target_high"),
+    due: date("due"),
+    note: text("note"),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+    achievedAt: timestamp("achieved_at", { withTimezone: true }),
+  },
+  (t) => [unique("goals_user_metric_key").on(t.userId, t.metricCode)],
+);
+
 /** A plain tag, or the pre-conversion value kept for the audit trail. */
 export type ReadingFlag =
   | string
@@ -138,6 +221,13 @@ export interface ReviewSubject {
   optimalLow?: number | null;
   optimalHigh?: number | null;
   source?: string | null;
+  /** foreign_reading: enough of the row to describe it after it is gone. */
+  value?: number | null;
+  valueText?: string | null;
+  unit?: string | null;
+  refLow?: number | null;
+  refHigh?: number | null;
+  observedAt?: string;
   detail?: string;
 }
 
@@ -163,7 +253,19 @@ export type RetestBody = {
   optional?: { reason: string; metrics: string[] };
   newSuggestions?: { name: string; code: string; reason: string }[];
 };
-export type InsightBody = LifestyleBody | RetestBody;
+/** `kind = 'weekly'`. No schema change, just a third shape for `body`. */
+export type WeeklyBody = {
+  summary: string;
+  wins: string[];
+  concerns: string[];
+  nextWeek: string[];
+  adherencePct: number;
+  metricNotes: { code: string; note: string }[];
+};
+export type InsightBody = LifestyleBody | RetestBody | WeeklyBody;
 export type Metric = typeof metrics.$inferSelect;
 export type Reading = typeof readings.$inferSelect;
 export type Insight = typeof insights.$inferSelect;
+export type DailyLog = typeof dailyLogs.$inferSelect;
+export type ProtocolItem = typeof protocolItems.$inferSelect;
+export type Goal = typeof goals.$inferSelect;

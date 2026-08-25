@@ -5,16 +5,19 @@ import { requireUserId, currentUser } from "@/lib/auth";
 import { getDb, insights, uploads, type RetestBody } from "@/db";
 import { getMetricRows } from "@/lib/data";
 import { openReviewCount } from "@/lib/curator";
+import { getHomeExtras } from "@/lib/daily-data";
 import { buildHome, buildRetestPreview } from "@/lib/home-data";
 import { UploadButton } from "@/components/client";
 import {
   AttentionMetrics,
   BiomarkerPanelCard,
   DashboardStats,
+  GoalsCard,
   GreetingHeader,
   HealthInsights,
   HealthScore,
   PanelSectionHeader,
+  TodayCard,
   UpcomingRetests,
   WhatChanged,
 } from "@/components/home";
@@ -26,7 +29,7 @@ export default async function Home() {
   const [user, rows] = await Promise.all([currentUser(), getMetricRows(userId)]);
   const db = getDb();
 
-  const [uploadCount, latestRetest, reviewCount] = await Promise.all([
+  const [uploadCount, latestRetest, reviewCount, extras] = await Promise.all([
     db
       .select({ n: sql<number>`count(*)::int` })
       .from(uploads)
@@ -39,6 +42,7 @@ export default async function Home() {
       .orderBy(desc(insights.createdAt))
       .then((r) => r.find((i) => i.kind === "retest")),
     openReviewCount(userId),
+    getHomeExtras(userId),
   ]);
 
   const home = buildHome(rows);
@@ -121,6 +125,16 @@ export default async function Home() {
           <UpcomingRetests plan={retest} />
         </div>
       )}
+
+      <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-[1fr_2fr]">
+        <TodayCard
+          streak={extras.streak}
+          habitsDone={extras.habitsDone}
+          habitCount={extras.habitCount}
+          logged={extras.logged}
+        />
+        <GoalsCard goals={extras.goals} />
+      </div>
 
       {hasData &&
         home.panels.map((panel) => (

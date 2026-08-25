@@ -1,11 +1,13 @@
 import { generateText } from "ai";
-import { desc, eq, inArray } from "drizzle-orm";
-import { getDb, insights, checkins, type InsightBody } from "@/db";
+import { and, desc, eq, gte, inArray, sql } from "drizzle-orm";
+import { getDb, insights, checkins, readings, reviewItems, type InsightBody } from "@/db";
 import { model, stripCodeFences } from "./extract";
 import { getMetricRows, type MetricRow } from "./data";
+import { getGoals, getTrackerSummary, type TrackerSummary } from "./daily-data";
+import { lastDays, localDay, shiftDay } from "./daily";
 import { statusOf } from "./status";
 
-export type Kind = "lifestyle" | "retest";
+export type Kind = "lifestyle" | "retest" | "weekly";
 
 const LIFESTYLE_PROMPT = `You are a preventive-health coach. From the user's biomarker history, give 3-7 concrete, trackable lifestyle changes (sleep, food, exercise, supplements) tied to SPECIFIC metrics that sit outside their optimal range.
 
@@ -14,6 +16,7 @@ RULES:
 - Each item's "why" names the biomarker and its number, 200 characters or less.
 - "metricCodes" lists the exact metric codes from the context that the item targets.
 - Do not repeat advice the user already reported doing in the check-ins; escalate or replace it instead. If they answered "didnt" or "skip", make the action smaller and easier.
+- Read the PROTOCOL section. Anything already there at a high adherence is done: build the next step on top of it instead of restating it. Anything there at a low adherence is too hard: replace it with a smaller version.
 - If a retest plan exists, align the advice with the markers it is about to re-measure, so the next draw can show whether the change worked.
 - No diagnosis, no medication changes. JSON only, no markdown.
 
@@ -89,7 +92,38 @@ RULES:
    - Check the "alreadyTested" list carefully. If a code appears there, do NOT suggest it.
 8. The "rationale" is the most important field. It's what the user reads to understand WHY they need these tests. Make it specific, actionable, and reference their actual numbers and optimal targets when available.`;
 
+const WEEKLY_PROMPT = `You are the user's health coach, reviewing the week that just ended. You are honest, specific and short. You have their daily log, their protocol adherence, their goals and any new lab readings.
+
+RULES:
+- 3 wins, 3 concerns, 3 concrete actions for next week. Never more, fewer only if the data cannot support them.
+- Every line names a number from the data: hours slept, kilograms, percent adherence, a biomarker value. No generic encouragement.
+- Compare THIS week against the week before it. Say which way things moved.
+- "adherencePct" is the average protocol adherence for this week, as an integer 0-100. Use the number given to you; do not invent one.
+- "nextWeek" items are things the user can add to their protocol: an action, one sentence, under 120 characters.
+- "metricNotes" covers only metrics that actually matter this week (a new reading, a goal in play, or something clearly off). Zero to five of them. Never invent a value.
+- No diagnosis, no medication changes. JSON only, no markdown.
+
+Output: {"summary":"one sentence about the week","wins":["..."],"concerns":["..."],"nextWeek":["..."],"adherencePct":0,"metricNotes":[{"code":"...","note":"..."}]}`;
+
 const DAY = 1000 * 60 * 60 * 24;
+
+/** The tracker window in a form a prompt can read. */
+function trackerLines(label: string, t: TrackerSummary): string {
+  const averages = Object.entries(t.averages)
+    .filter(([, v]) => v != null)
+    .map(([k, v]) => `${k}=${v}`)
+    .join(", ");
+  const items = t.items.length
+    ? t.items
+        .map((i) => `- "${i.text}" (${i.cadence}): done ${i.done}x, ${i.adherence}% adherence`)
+        .join("\n")
+    : "- no protocol items";
+  return `${label} (${t.from} to ${t.to}):
+days logged: ${t.loggedDays}
+averages: ${averages || "nothing logged"}
+protocol adherence: ${t.adherencePct}%
+${items}`;
+}
 
 function metricLine(m: MetricRow): string {
   const last3 = m.rows
@@ -145,7 +179,9 @@ async function history(userId: string) {
 async function buildContext(userId: string, kind: Kind) {
   const rows = await getMetricRows(userId);
   const { prev, lines } = await history(userId);
-  const today = new Date().toISOString().slice(0, 10);
+  const today = localDay();
+
+  if (kind === "weekly") return buildWeeklyContext(userId, rows, today);
 
   if (kind === "retest") {
     return `Today is ${today}.
@@ -159,6 +195,7 @@ checkins and previous plans:
 ${lines.length ? lines.join("\n") : "none"}`;
   }
 
+  const tracker = await getTrackerSummary(userId, 14);
   const retest = prev.find((p) => p.kind === "retest");
   const retestSummary = retest
     ? `Next bloodwork plan: ${(retest.body as { summary?: string }).summary ?? ""} (due ${(retest.body as { dueAt?: string }).dueAt ?? "?"})`
@@ -171,17 +208,81 @@ ${rows.map(metricLine).join("\n")}
 
 ${retestSummary}
 
+PROTOCOL AND THE LAST 14 DAYS OF TRACKING:
+${trackerLines("last 14 days", tracker)}
+
 PREVIOUS PLANS AND CHECK-INS:
 ${lines.length ? lines.join("\n") : "none"}`;
 }
 
+/** This week against last week, plus goals, new readings and open questions. */
+async function buildWeeklyContext(
+  userId: string,
+  rows: MetricRow[],
+  today: string,
+) {
+  const db = getDb();
+  const weekStart = lastDays(7, today)[0]!;
+  const [thisWeek, lastWeek, goals, fresh, open] = await Promise.all([
+    getTrackerSummary(userId, 7, today),
+    getTrackerSummary(userId, 7, shiftDay(today, -7)),
+    getGoals(userId),
+    db
+      .select({
+        code: readings.metricCode,
+        value: readings.value,
+        unit: readings.unit,
+        observedAt: readings.observedAt,
+      })
+      .from(readings)
+      .where(
+        and(eq(readings.userId, userId), gte(readings.observedAt, weekStart)),
+      ),
+    db
+      .select({ n: sql<number>`count(*)::int` })
+      .from(reviewItems)
+      .where(and(eq(reviewItems.userId, userId), eq(reviewItems.status, "open")))
+      .then((r) => r[0]?.n ?? 0),
+  ]);
+
+  const goalLines = goals.length
+    ? goals
+        .map(
+          (g) =>
+            `- ${g.metricCode} (${g.metricName}): target ${g.targetLow ?? "-"}..${g.targetHigh ?? "-"} ${g.unit ?? ""}, current ${g.current ?? "?"}, ${g.progress}% of the way${g.due ? `, due ${g.due}` : ""}${g.achievedAt || g.reached ? ", REACHED" : ""}`,
+        )
+        .join("\n")
+    : "- none set";
+
+  return `Today is ${today}. Report on the week ${weekStart} to ${today}.
+
+${trackerLines("THIS WEEK", thisWeek)}
+
+${trackerLines("THE WEEK BEFORE", lastWeek)}
+
+Use adherencePct = ${thisWeek.adherencePct}.
+
+GOALS:
+${goalLines}
+
+NEW LAB READINGS THIS WEEK:
+${fresh.length ? fresh.map((r) => `- ${r.code}: ${r.value ?? "?"} ${r.unit ?? ""} on ${r.observedAt}`).join("\n") : "- none"}
+
+OPEN DATA QUESTIONS WAITING FOR THE USER: ${open}
+
+ALL METRICS (code | name | unit | last 3 readings | reference range | optimal range | status | recency):
+${rows.map(metricLine).join("\n")}`;
+}
+
 export async function generateInsight(userId: string, kind: Kind) {
   const context = await buildContext(userId, kind);
-  const { text } = await generateText({
-    model: model(),
-    system: kind === "lifestyle" ? LIFESTYLE_PROMPT : RETEST_PROMPT,
-    prompt: context,
-  });
+  const system =
+    kind === "lifestyle"
+      ? LIFESTYLE_PROMPT
+      : kind === "retest"
+        ? RETEST_PROMPT
+        : WEEKLY_PROMPT;
+  const { text } = await generateText({ model: model(), system, prompt: context });
 
   let body: InsightBody;
   try {
@@ -193,6 +294,8 @@ export async function generateInsight(userId: string, kind: Kind) {
     throw new Error("AI response had no items array");
   if (kind === "retest" && !Array.isArray((body as any).groups))
     throw new Error("AI response had no groups array");
+  if (kind === "weekly" && !Array.isArray((body as any).wins))
+    throw new Error("AI response had no wins array");
 
   const [row] = await getDb()
     .insert(insights)
@@ -224,3 +327,36 @@ IMPORTANT RULES:
 7. If asked about data categories not included in your context, say you don't have access to that information.
 
 The user's health data context will be provided before their question. Use it to give informed, accurate answers about their specific data.`;
+
+/**
+ * Monday morning, once per user, once per week. Skips anyone who already has a
+ * weekly review dated inside the current week or who has no tracker data yet.
+ */
+export async function generateWeeklyForAllUsers(): Promise<number> {
+  const db = getDb();
+  const weekStart = lastDays(7, localDay())[0]!;
+  const users = await db.selectDistinct({ userId: readings.userId }).from(readings);
+
+  let made = 0;
+  for (const { userId } of users) {
+    try {
+      const [recent] = await db
+        .select({ id: insights.id })
+        .from(insights)
+        .where(
+          and(
+            eq(insights.userId, userId),
+            eq(insights.kind, "weekly"),
+            gte(insights.createdAt, new Date(`${weekStart}T00:00:00`)),
+          ),
+        )
+        .limit(1);
+      if (recent) continue;
+      await generateInsight(userId, "weekly");
+      made++;
+    } catch (e) {
+      console.error("[weekly] failed for", userId, e);
+    }
+  }
+  return made;
+}

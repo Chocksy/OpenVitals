@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { desc } from "drizzle-orm";
+import { Download } from "lucide-react";
 import { isAdmin } from "@/lib/auth";
 import { getDb, pool, curatorRuns } from "@/db";
 import { RunCurator } from "@/components/client";
@@ -132,7 +133,25 @@ export default async function AdminPage() {
             .
           </p>
         </div>
-        <RunCurator />
+        <div className="flex flex-wrap items-center gap-3">
+      <div className="flex items-center gap-2">
+        <a
+          href="/api/export.csv"
+          className="card inline-flex items-center gap-1.5 px-3 py-2 font-mono text-[11px] uppercase tracking-[0.04em] text-neutral-600 hover:border-accent-200 hover:text-neutral-900"
+        >
+          <Download className="size-3.5" />
+          Readings CSV
+        </a>
+        <a
+          href="/api/export-daily.csv"
+          className="card inline-flex items-center gap-1.5 px-3 py-2 font-mono text-[11px] uppercase tracking-[0.04em] text-neutral-600 hover:border-accent-200 hover:text-neutral-900"
+        >
+          <Download className="size-3.5" />
+          Daily log CSV
+        </a>
+      </div>
+          <RunCurator />
+        </div>
       </div>
 
       <Card title="Data state">

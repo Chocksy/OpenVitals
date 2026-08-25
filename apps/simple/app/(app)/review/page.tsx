@@ -1,7 +1,7 @@
 import { and, desc, eq } from "drizzle-orm";
 import { CheckCircle2 } from "lucide-react";
 import { requireUserId } from "@/lib/auth";
-import { getDb, reviewItems } from "@/db";
+import { getDb, metrics as metricsTable, reviewItems } from "@/db";
 import { ReviewItem } from "@/components/client";
 
 export const dynamic = "force-dynamic";
@@ -11,15 +11,23 @@ const KIND_LABELS: Record<string, string> = {
   merge_metric: "Possible duplicate biomarkers",
   optimal_range: "Optimal ranges to confirm",
   implausible: "Values that look wrong",
+  foreign_reading: "Readings that may not belong here",
 };
 
 export default async function ReviewPage() {
   const userId = await requireUserId();
-  const rows = await getDb()
-    .select()
-    .from(reviewItems)
-    .where(and(eq(reviewItems.userId, userId), eq(reviewItems.status, "open")))
-    .orderBy(desc(reviewItems.createdAt));
+  const db = getDb();
+  const [rows, allMetrics] = await Promise.all([
+    db
+      .select()
+      .from(reviewItems)
+      .where(and(eq(reviewItems.userId, userId), eq(reviewItems.status, "open")))
+      .orderBy(desc(reviewItems.createdAt)),
+    db
+      .select({ code: metricsTable.code, name: metricsTable.name })
+      .from(metricsTable)
+      .orderBy(metricsTable.name),
+  ]);
 
   const byKind = new Map<string, typeof rows>();
   for (const r of rows) byKind.set(r.kind, [...(byKind.get(r.kind) ?? []), r]);
@@ -59,6 +67,7 @@ export default async function ReviewPage() {
                   question={item.question}
                   options={item.options}
                   detail={item.subject?.detail}
+                  metrics={allMetrics}
                 />
               ))}
             </div>

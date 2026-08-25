@@ -186,3 +186,65 @@ PGPASSWORD=postgres command psql -h localhost -p 5433 -U postgres -d openvitals 
 pnpm --filter simple build
 ```
 Expected: unit mismatches drop from 55 to a small remainder that is now queued as `unit_unknown`; `observations` 565; `readings` 540. Screenshots `/tmp/simple-admin.png` and `/tmp/simple-review.png` via `~/.local/bin/ab`.
+
+---
+
+# Phase 4: self-improvement loop (tracker, protocol, goals, weekly review, lab timeline)
+
+Goal: turn the app from "view my labs" into "improve my numbers". Caltrack-style daily logging with heatmaps, a protocol built from the accepted lifestyle plan, per-metric goals, an AI weekly review, a lab-draw timeline, and CSV export. Same rules as before: no legacy-table changes, same theme, ≤ 11,000 LOC total, `// ponytail:` on simplifications. New tables only (migration 0002).
+
+## 4.1 Schema
+```
+daily_logs   id uuid PK, user_id FK, day date NOT NULL, sleep_hours real, weight_kg real, steps int, exercise_min int, alcohol_units real, energy int (1-5), mood int (1-5), fasting_hours real, notes text, created_at, updated_at; UNIQUE(user_id, day)
+protocol_items  id uuid PK, user_id FK, text text, why text, metric_codes jsonb, source_insight_id uuid null FK simple_insights, cadence text default 'daily' ('daily'|'weekly'), active bool default true, created_at
+habit_logs   id uuid PK, user_id FK, item_id FK protocol_items cascade, day date, done bool default true, created_at; UNIQUE(item_id, day)
+goals        id uuid PK, user_id FK, metric_code FK metrics, target_low real, target_high real, due date null, note text, created_at, achieved_at timestamptz null; UNIQUE(user_id, metric_code)
+```
+`simple_insights.kind` gains value `weekly` (no schema change; jsonb body `{ summary, wins: string[], concerns: string[], nextWeek: string[], adherencePct, metricNotes: [{code, note}] }`).
+
+## 4.2 Today `/today` (the caltrack page; make this the fastest screen in the app)
+- Server component loads today's `daily_logs` row (or empty), active `protocol_items` with today's `habit_logs`, and the current streak (consecutive days with any log or habit done).
+- Top: date, streak flame "🔥 N day streak", left/right arrows to move by day (`?d=YYYY-MM-DD`).
+- Habit checklist: each protocol item as a big tappable row with a checkbox (client component, `POST /api/habits` `{itemId, day, done}` optimistic). Items with `cadence='weekly'` show "this week" and count done in the last 7 days.
+- Quick numbers: a single form row of number inputs (sleep h, weight kg, steps, exercise min, alcohol, fasting h) + two 1-5 segmented pickers (energy, mood) + notes. Autosave on blur/change via `PUT /api/daily-logs` (upsert by user+day). Show "Saved" tick.
+- Bottom: 3 mini sparklines of the last 30 days (sleep, weight, steps).
+- Add "Today" to the nav (first item after Home). Home page: add a "Today" card with streak + habits done x/y + link.
+
+## 4.3 Protocol `/protocol`
+- Lists active protocol items (text, why, metric chips, cadence, 30-day adherence % with a mini 30-cell strip), archive button, add-item form (text, why, cadence, optional metric codes via a datalist of metric names).
+- "Adopt from plan": on `/insights`, each lifestyle item gets an "Add to protocol" button (`POST /api/protocol` with `source_insight_id`). Items answered "Did it" in check-ins are pre-adopted the first time this page loads if the user has zero protocol items (`// ponytail:` one-time bootstrap).
+- The lifestyle-plan prompt gets the protocol + last 14 days of habit adherence + daily_logs averages in context, so new plans build on what the user already does.
+
+## 4.4 Goals
+- `/m/[code]`: "Set goal" inline form (target low/high prefilled from optimal range, due date, note). Goal band drawn on the trend chart as a dashed ReferenceArea in accent color; header shows "Goal: 60-80 mg/dL by 2026-12-01 · current 97 (−17 to go)". When a new reading lands inside the band, curator marks `achieved_at` (add a `goal_check` step to the curator).
+- `/goals` page: all goals as cards: metric, current vs target, delta, due, progress bar (from first reading after goal creation to target), achieved ones in a separate "Done" section. Home: "Goals" card with top 3 by closest due.
+
+## 4.5 Charts (caltrack / levels.io style, recharts + plain SVG; follow the theme tokens)
+- `components/heatmap.tsx`: GitHub-style 52-week grid, one cell per day, colored by intensity; used on `/today` (below the form: "Consistency", intensity = habits done ratio) and `/protocol` (per item strips).
+- `/trends` page: tabs for sleep, weight, steps, exercise, alcohol, energy/mood over 30/90/365 days, with 7-day rolling average line, plus a "Labs overlay": vertical markers on the dates of lab draws so you can see what you were doing before a draw.
+- Numbers are `tabular-nums`, dates short; keep it to one component file `components/daily-charts.tsx`.
+
+## 4.6 Weekly AI review
+- `lib/ai.ts`: new kind `weekly`. Context: last 7 days of daily_logs and habit_logs vs the previous 7, protocol items, goals with current values, any readings added this week, open review items count. Prompt: honest coach; 3 wins, 3 concerns, 3 concrete actions for next week, adherence %, one note per metric that matters. JSON only.
+- Trigger: the daily timer in `instrumentation.ts` also runs `weekly` for every user when `new Date().getDay() === 1` (Monday) and no weekly insight exists for the current week; manual button on `/insights` ("Generate weekly review").
+- `/insights` shows the latest weekly review at the top in a card (wins green, concerns amber, next-week as a checklist that can be adopted into the protocol with one click).
+
+## 4.7 Lab timeline `/labs`
+- One card per distinct `observed_at` date: date, n readings, flagged count (red/amber dots), the upload it came from if any, and the top 3 flagged metric chips. Click expands to the full list of that draw's readings with status badges. Newest first. This replaces the need for "reports".
+- Add to nav under Biomarkers as a sub-link or as its own item "Labs".
+
+## 4.8 Export
+- `GET /api/export.csv` (auth): all readings as CSV (date, metric, value, unit, ref_low, ref_high, flags). `GET /api/export-daily.csv`: daily_logs. Buttons on `/admin` and `/uploads`.
+
+## 4.9 Nav final order
+Home · Today · Biomarkers · Labs · Trends · Protocol · Goals · Insights · Chat · Uploads · Review(badge). If that overflows, put Labs/Trends/Protocol/Goals under a "More" `<details>` menu on small screens only; keep all visible ≥ 1280px.
+
+## 4.10 Verification (paste output)
+```
+pnpm --filter simple typecheck
+pnpm --filter simple test        # add tests: streak calculation, adherence %, goal progress %, heatmap bucketing, CSV escaping
+pnpm --filter simple db:migrate  # inspect 0002 SQL first: only CREATE TABLE / indexes on new tables
+PGPASSWORD=postgres command psql -h localhost -p 5433 -U postgres -d openvitals -Atc "select count(*) from observations; select count(*) from readings; select count(*) from users; \dt" 
+pnpm --filter simple build
+```
+Seed nothing fake into the user's data. For screenshots, you may create today's daily_log and 2 protocol items for the real user through the UI (they are real, harmless entries the user can delete), then screenshot `/today`, `/trends`, `/goals`, `/labs`, `/protocol` to `/tmp/simple-<page>.png` via `~/.local/bin/ab`. Restart the dev server on :3001 after migrations and leave it running.

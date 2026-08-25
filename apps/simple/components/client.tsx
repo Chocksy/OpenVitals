@@ -317,15 +317,19 @@ export function ReviewItem({
   question,
   options,
   detail,
+  metrics = [],
 }: {
   id: string;
   question: string;
   options: string[];
   detail?: string;
+  /** Targets for "Move to metric…"; the note carries the code. */
+  metrics?: { code: string; name: string }[];
 }) {
   const { run, busy, error } = useAction();
   const [note, setNote] = useState("");
-  const needsNote = (o: string) => o.startsWith("Multiply");
+  const needsNote = (o: string) =>
+    o.startsWith("Multiply") || o.startsWith("Move");
 
   return (
     <div className="card p-4">
@@ -336,15 +340,33 @@ export function ReviewItem({
       <div className="mt-3 flex flex-wrap items-center gap-2">
         {options.map((o) => (
           <span key={o} className="inline-flex items-center gap-1.5">
-            {needsNote(o) && (
-              <input
-                value={note}
-                onChange={(e) => setNote(e.target.value)}
-                placeholder="factor"
-                inputMode="decimal"
-                className="w-20 border border-neutral-200 bg-white px-2 py-1 font-mono text-[12px]"
-              />
-            )}
+            {needsNote(o) &&
+              (o.startsWith("Move") ? (
+                <>
+                  <input
+                    value={note}
+                    onChange={(e) => setNote(e.target.value)}
+                    placeholder="metric code"
+                    list={`metrics-${id}`}
+                    className="w-44 border border-neutral-200 bg-white px-2 py-1 font-mono text-[12px]"
+                  />
+                  <datalist id={`metrics-${id}`}>
+                    {metrics.map((m) => (
+                      <option key={m.code} value={m.code}>
+                        {m.name}
+                      </option>
+                    ))}
+                  </datalist>
+                </>
+              ) : (
+                <input
+                  value={note}
+                  onChange={(e) => setNote(e.target.value)}
+                  placeholder="factor"
+                  inputMode="decimal"
+                  className="w-20 border border-neutral-200 bg-white px-2 py-1 font-mono text-[12px]"
+                />
+              ))}
             <Button
               size="sm"
               variant="outline-subtle"

@@ -1,17 +1,28 @@
 import Link from "next/link";
 import { desc, eq, inArray } from "drizzle-orm";
-import { FlaskConical, Lightbulb, Plus, Sparkles } from "lucide-react";
+import {
+  CalendarCheck,
+  FlaskConical,
+  Lightbulb,
+  Plus,
+  Sparkles,
+  ThumbsUp,
+  TriangleAlert,
+} from "lucide-react";
 import { requireUserId } from "@/lib/auth";
 import {
   getDb,
   insights,
   checkins,
+  protocolItems,
   type LifestyleBody,
   type RetestBody,
+  type WeeklyBody,
 } from "@/db";
 import { getMetricNames } from "@/lib/data";
 import { cn, formatDate } from "@/lib/utils";
 import { GenerateButton, CheckinButtons } from "@/components/client";
+import { AdoptButton } from "@/components/tracker";
 
 export const dynamic = "force-dynamic";
 
@@ -50,17 +61,24 @@ function Chip({ code, name }: { code: string; name: string }) {
 export default async function InsightsPage() {
   const userId = await requireUserId();
   const db = getDb();
-  const [rows, names] = await Promise.all([
+  const [rows, names, adopted] = await Promise.all([
     db
       .select()
       .from(insights)
       .where(eq(insights.userId, userId))
       .orderBy(desc(insights.createdAt)),
     getMetricNames(),
+    db
+      .select({ text: protocolItems.text })
+      .from(protocolItems)
+      .where(eq(protocolItems.userId, userId))
+      .then((r) => new Set(r.map((i) => i.text))),
   ]);
 
   const lifestyle = rows.find((r) => r.kind === "lifestyle");
   const retest = rows.find((r) => r.kind === "retest");
+  const weekly = rows.find((r) => r.kind === "weekly");
+  const week = weekly?.body as WeeklyBody | undefined;
   const answers = lifestyle
     ? await db
         .select()
@@ -78,16 +96,142 @@ export default async function InsightsPage() {
     (plan?.groups ?? []).reduce((n, g) => n + g.metrics.length, 0) +
     (plan?.optional?.metrics?.length ?? 0);
 
+  const listCard = (
+    title: string,
+    Icon: typeof ThumbsUp,
+    color: string,
+    lines: string[] | undefined,
+  ) => (
+    <div className="card p-4">
+      <h3 className="mb-2 flex items-center gap-1.5 font-mono text-[10px] font-bold uppercase tracking-[0.06em] text-neutral-400">
+        <Icon className="size-3" style={{ color }} />
+        {title}
+      </h3>
+      <ul className="space-y-1.5">
+        {(lines ?? []).map((line, i) => (
+          <li
+            key={i}
+            className="font-body text-[12px] leading-relaxed text-neutral-700"
+          >
+            {line}
+          </li>
+        ))}
+        {!lines?.length && (
+          <li className="font-body text-[12px] text-neutral-400">Nothing.</li>
+        )}
+      </ul>
+    </div>
+  );
+
   return (
     <div className="space-y-10">
       <section className="space-y-4">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <div className="flex items-center gap-2">
-              <FlaskConical className="size-4 text-accent-500" />
+              <CalendarCheck className="size-4 text-accent-500" />
               <h1 className="font-display text-[20px] font-medium tracking-[-0.02em]">
-                Your Next Lab Panel
+                Weekly Review
               </h1>
+              {week && (
+                <span className="font-mono text-[11px] font-semibold tabular-nums text-neutral-500">
+                  {week.adherencePct}% adherence
+                </span>
+              )}
+            </div>
+            {week && (
+              <p className="mt-1 font-body text-[13px] text-neutral-500">
+                {week.summary}
+              </p>
+            )}
+          </div>
+          <div className="flex items-center gap-2">
+            {weekly?.createdAt && (
+              <span className="font-mono text-[10px] text-neutral-400">
+                {formatDate(weekly.createdAt)}
+              </span>
+            )}
+            <GenerateButton
+              kind="weekly"
+              label={week ? "Regenerate" : "Generate weekly review"}
+              variant={week ? "ghost" : "default"}
+            />
+          </div>
+        </div>
+
+        {!week ? (
+          <div className="card border-dashed p-8 text-center font-body text-[13px] text-neutral-500">
+            Log a few days on Today, then let the coach read the week back to
+            you. It also runs itself every Monday.
+          </div>
+        ) : (
+          <>
+            <div className="grid grid-cols-1 gap-3 lg:grid-cols-3">
+              {listCard("Wins", ThumbsUp, "var(--color-health-normal)", week.wins)}
+              {listCard(
+                "Concerns",
+                TriangleAlert,
+                "var(--color-health-warning)",
+                week.concerns,
+              )}
+              <div className="card p-4">
+                <h3 className="mb-2 flex items-center gap-1.5 font-mono text-[10px] font-bold uppercase tracking-[0.06em] text-neutral-400">
+                  <Plus className="size-3 text-accent-500" />
+                  Next week
+                </h3>
+                <div className="space-y-2">
+                  {(week.nextWeek ?? []).map((line, i) => (
+                    <div key={i} className="flex items-start gap-2">
+                      <span className="flex-1 font-body text-[12px] leading-relaxed text-neutral-700">
+                        {line}
+                      </span>
+                      <AdoptButton
+                        text={line}
+                        why={`From the weekly review of ${formatDate(weekly!.createdAt)}`}
+                        sourceInsightId={weekly!.id}
+                        adopted={adopted.has(line)}
+                      />
+                    </div>
+                  ))}
+                  {!week.nextWeek?.length && (
+                    <p className="font-body text-[12px] text-neutral-400">
+                      Nothing.
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {week.metricNotes?.length ? (
+              <div className="card divide-y divide-neutral-100">
+                {week.metricNotes.map((n) => (
+                  <Link
+                    key={n.code}
+                    href={`/m/${n.code}`}
+                    className="flex items-baseline gap-3 px-4 py-2.5 hover:bg-neutral-50"
+                  >
+                    <span className="w-40 shrink-0 truncate font-display text-[12px] font-medium">
+                      {nameOf(n.code)}
+                    </span>
+                    <span className="font-body text-[12px] text-neutral-600">
+                      {n.note}
+                    </span>
+                  </Link>
+                ))}
+              </div>
+            ) : null}
+          </>
+        )}
+      </section>
+
+      <section className="space-y-4">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <div className="flex items-center gap-2">
+              <FlaskConical className="size-4 text-accent-500" />
+              <h2 className="font-display text-[20px] font-medium tracking-[-0.02em]">
+                Your Next Lab Panel
+              </h2>
               <span className="inline-flex items-center gap-1 bg-accent-50 px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider text-accent-500">
                 <Sparkles className="size-2.5" />
                 AI suggested
@@ -277,6 +421,15 @@ export default async function InsightsPage() {
                   {(item.metricCodes ?? []).map((code) => (
                     <Chip key={code} code={code} name={nameOf(code)} />
                   ))}
+                </div>
+                <div className="mt-3 flex flex-wrap items-center gap-2">
+                  <AdoptButton
+                    text={item.text}
+                    why={item.why}
+                    metricCodes={item.metricCodes}
+                    sourceInsightId={lifestyle!.id}
+                    adopted={adopted.has(item.text)}
+                  />
                 </div>
                 <CheckinButtons
                   insightId={lifestyle!.id}

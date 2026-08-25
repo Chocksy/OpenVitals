@@ -1,5 +1,5 @@
 import { currentUserId } from "@/lib/auth";
-import { applyAnswer } from "@/lib/curator";
+import { applyAnswer, BadAnswerError } from "@/lib/curator";
 
 export async function POST(
   req: Request,
@@ -15,7 +15,13 @@ export async function POST(
   };
   if (!answer) return Response.json({ error: "no answer" }, { status: 400 });
 
-  const item = await applyAnswer(id, userId, answer, note);
+  let item;
+  try {
+    item = await applyAnswer(id, userId, answer, note);
+  } catch (e) {
+    if (!(e instanceof BadAnswerError)) throw e;
+    return Response.json({ error: e.message }, { status: 400 });
+  }
   if (!item)
     return Response.json(
       { error: "not found or already answered" },

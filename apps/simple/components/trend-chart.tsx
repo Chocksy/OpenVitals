@@ -24,6 +24,8 @@ interface TrendChartProps {
   referenceRangeHigh?: number | null;
   optimalRangeLow?: number | null;
   optimalRangeHigh?: number | null;
+  goalLow?: number | null;
+  goalHigh?: number | null;
   unit?: string | null;
   status?: HealthStatus;
 }
@@ -120,6 +122,8 @@ export function TrendChart({
   referenceRangeHigh,
   optimalRangeLow,
   optimalRangeHigh,
+  goalLow,
+  goalHigh,
   unit,
   status = "normal",
 }: TrendChartProps) {
@@ -156,6 +160,8 @@ export function TrendChart({
     ...(referenceRangeHigh != null ? [referenceRangeHigh] : []),
     ...(optimalRangeLow != null ? [optimalRangeLow] : []),
     ...(optimalRangeHigh != null ? [optimalRangeHigh] : []),
+    ...(goalLow != null ? [goalLow] : []),
+    ...(goalHigh != null ? [goalHigh] : []),
   ];
   const minVal = Math.min(...allValues);
   const maxVal = Math.max(...allValues);
@@ -165,6 +171,7 @@ export function TrendChart({
 
   const hasOptimal = optimalRangeLow != null || optimalRangeHigh != null;
   const hasReference = referenceRangeLow != null || referenceRangeHigh != null;
+  const hasGoal = goalLow != null || goalHigh != null;
 
   return (
     <div>
@@ -191,6 +198,16 @@ export function TrendChart({
               stroke="var(--color-health-optimal-border)"
               strokeDasharray="4 2"
               fillOpacity={0.4}
+            />
+          )}
+          {hasGoal && (
+            <ReferenceArea
+              y1={goalLow ?? yMin}
+              y2={goalHigh ?? yMax}
+              fill="var(--color-accent-500)"
+              stroke="var(--color-accent-500)"
+              strokeDasharray="6 3"
+              fillOpacity={0.07}
             />
           )}
           <XAxis
@@ -244,6 +261,7 @@ export function TrendChart({
           <Line
             type="monotone"
             dataKey="value"
+            isAnimationActive={false}
             stroke={stroke}
             strokeWidth={2}
             dot={(props: Record<string, unknown>) => {
@@ -293,7 +311,7 @@ export function TrendChart({
           />
         </LineChart>
       </ResponsiveContainer>
-      {(hasReference || hasOptimal) && (
+      {(hasReference || hasOptimal || hasGoal) && (
         <div className="mt-2 flex items-center gap-4 px-2">
           {hasReference && (
             <div className="flex items-center gap-1.5">
@@ -320,6 +338,20 @@ export function TrendChart({
               />
               <span className="text-[11px] text-neutral-400 font-mono">
                 Optimal
+              </span>
+            </div>
+          )}
+          {hasGoal && (
+            <div className="flex items-center gap-1.5">
+              <span
+                className="inline-block h-2.5 w-5 rounded-sm border border-dashed"
+                style={{
+                  backgroundColor: "var(--color-accent-50)",
+                  borderColor: "var(--color-accent-500)",
+                }}
+              />
+              <span className="text-[11px] text-neutral-400 font-mono">
+                Your goal
               </span>
             </div>
           )}

@@ -8,7 +8,7 @@ export async function POST(req: Request) {
   if (!userId) return Response.json({ error: "unauthorized" }, { status: 401 });
 
   const { kind } = (await req.json()) as { kind?: Kind };
-  if (kind !== "lifestyle" && kind !== "retest")
+  if (kind !== "lifestyle" && kind !== "retest" && kind !== "weekly")
     return Response.json({ error: "bad kind" }, { status: 400 });
 
   try {
