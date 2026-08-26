@@ -188,24 +188,64 @@ type Report = {
       expect: string;
       measureAfterWeeks: number;
     }[];
+    dose?: { amount: string; form?: string; schedule: string; duration?: string; ceiling?: string };
+    //   e.g. { amount: "4000 IU", form: "D3 with K2", schedule: "daily with the largest meal",
+    //          duration: "10 weeks, then retest", ceiling: "do not exceed 10000 IU/day without a level" }
     timing?: string; // "morning with fat", "evening"
     interactions?: { with: string; rule: string }[];
+    basis: "science" | "opinion" | "anecdotal";   // see "Three labels" below
+    reasoning: string;  // opinion only: the exact values, facts and edges this was inferred from
     evidence: {
       kind: "guideline" | "meta" | "rct" | "observational" | "anecdotal";
       title;
       doi?;
       url?;
+      source?: string; // anecdotal: "r/Supplements thread", "X post by @…"
     }[];
     confidence: "established" | "probable" | "speculative";
+    followUp: { afterDays: number; ask: string }[];  // check-ins the app schedules
   }[];
   questions: { key: string; text: string; why: string; options?: string[] }[];
 };
 ```
 
+### Three labels
+
+Every action, dose and claim carries exactly one `basis`. The label is the
+safety mechanism. There is no other hedging in the text.
+
+| Label | Means | Allowed to say | Must include |
+|---|---|---|---|
+| **science** | A guideline, meta-analysis, RCT or large cohort supports it for people like this | Doses within the studied range, targets, timings | At least one resolved reference |
+| **opinion** | The LLM inferred it from this person's blood work, tracker and interview. Never without data. | Personal doses, sequencing ("fix D before you judge testosterone"), which extra test to order and why, what to expect | `reasoning`: the exact values, facts and active edges it used. If a value is missing, the action becomes "measure X" instead. |
+| **anecdotal** | People report it (X, Reddit, forums, podcasts) and no study settles it | The claim and the source | `source`; never counted as support; never a dose above a science-labelled ceiling |
+
+The opinion layer is the product. It is what makes the report personal. The
+prompt tells the model to act as a physician who explains and commits: state
+the dose, the schedule, the duration, the expected change with a number and a
+date, and the reasoning chain. Prescription drugs get the same treatment with
+the label "opinion, needs a prescriber" and the usual dose range from the
+label; the action kind is `doctor` and the card says what to ask for.
+
+Dose ceilings are data in `lib/interactions.ts` next to interactions
+(vitamin D 10000 IU/day without a level, vitamin A, iron without ferritin,
+potassium, and so on). The renderer refuses any dose above a ceiling and
+turns it into a question.
+
 Evidence pipeline: the LLM proposes titles; the server resolves each through
 PubMed and Semantic Scholar (free APIs; the `paper-search` MCP already wraps
 them for local use). Unresolved references are dropped, not shown. Anecdotal
-items are allowed but labelled and never counted as support.
+sources are kept as given, with the URL when there is one.
+
+### Follow-through
+
+An adopted action schedules its `followUp` items as `review_items` of kind
+`check_in` on the dates given: "Day 3: any stomach upset from the iron?",
+"Day 14: sleep average this week?", "Week 10: book the vitamin D retest".
+Cadence comes from the action: every few days for anything with side
+effects or a habit to build, at the expected-effect date for the rest. A
+missed check-in re-asks once, then the report notes "not followed". Answers
+feed the next report, so the model can adjust the dose or drop the action.
 
 Storage: `reports` table (id, user_id, created_at, trigger, json). Keep every
 version; the UI shows the diff since the previous one.

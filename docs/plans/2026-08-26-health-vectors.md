@@ -161,8 +161,11 @@ FIB-4, PhenoAge.
 ### Tier 3: refer
 
 Anything above a referral threshold becomes a "doctor" action with the
-specialty named and the tier-2 results attached. The app never suggests
-treatment doses for prescription drugs.
+specialty named, the tier-2 results attached, and the usual dose range for
+the drug the report expects the doctor to discuss, labelled "opinion, needs a
+prescriber". The escalation ladder is also where the opinion layer pushes for
+more granular tests: an opinion action that lacks a value it needs becomes a
+"measure X" action first.
 
 ## 7. Mapping the current data onto the vectors
 
