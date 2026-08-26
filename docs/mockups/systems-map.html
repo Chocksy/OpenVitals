@@ -1,0 +1,1042 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+  <head>
+    <meta charset="utf-8" />
+    <title>OpenVitals: systems map mockup</title>
+    <style>
+      :root {
+        --bg: #0a0a0a;
+        --card: #121212;
+        --line: #262626;
+        --fg: #f2f2f2;
+        --muted: #9a9a9a;
+        --dim: #7a7a7a;
+        --accent: #5a75ff;
+        --ok: #4ade80;
+        --warn: #fbbf24;
+        --bad: #f87171;
+        --opt: #a78bfa;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--fg);
+        font:
+          14px/1.5 system-ui,
+          -apple-system,
+          sans-serif;
+      }
+      .mono {
+        font-family: ui-monospace, Menlo, monospace;
+        font-size: 11px;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--dim);
+      }
+      header {
+        height: 56px;
+        border-bottom: 1px solid var(--line);
+        display: flex;
+        align-items: center;
+        gap: 24px;
+        padding: 0 24px;
+      }
+      header b {
+        font-weight: 600;
+      }
+      header nav span {
+        margin-right: 16px;
+        color: var(--muted);
+        font-size: 12px;
+      }
+      header nav span.on {
+        color: var(--accent);
+      }
+      .layout {
+        display: grid;
+        grid-template-columns: 1fr 440px;
+        height: calc(100vh - 56px);
+      }
+      #scene {
+        position: relative;
+      }
+      #scene canvas {
+        display: block;
+      }
+      .hint {
+        position: absolute;
+        left: 20px;
+        bottom: 16px;
+        color: var(--dim);
+        font-size: 12px;
+      }
+      .legend {
+        position: absolute;
+        left: 20px;
+        top: 16px;
+        display: flex;
+        gap: 16px;
+        font-size: 12px;
+        color: var(--muted);
+      }
+      .legend i {
+        display: inline-block;
+        width: 22px;
+        border-top: 2px solid var(--muted);
+        vertical-align: middle;
+        margin-right: 6px;
+      }
+      .legend i.dash {
+        border-top-style: dashed;
+      }
+      .legend i.dot {
+        border-top-style: dotted;
+      }
+      aside {
+        border-left: 1px solid var(--line);
+        overflow: auto;
+        padding: 20px;
+      }
+      .card {
+        background: var(--card);
+        border: 1px solid var(--line);
+        padding: 14px;
+        margin-bottom: 12px;
+      }
+      h1 {
+        font-size: 22px;
+        margin: 0 0 2px;
+        font-weight: 500;
+        letter-spacing: -0.02em;
+      }
+      h2 {
+        font-size: 13px;
+        margin: 0 0 10px;
+        font-weight: 600;
+      }
+      .row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 10px;
+      }
+      .chip {
+        font-family: ui-monospace, Menlo, monospace;
+        font-size: 10px;
+        padding: 2px 6px;
+        border: 1px solid;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+      .chip.ok {
+        color: var(--ok);
+        border-color: #14532d;
+      }
+      .chip.warn {
+        color: var(--warn);
+        border-color: #78350f;
+      }
+      .chip.bad {
+        color: var(--bad);
+        border-color: #7f1d1d;
+      }
+      .chip.opt {
+        color: var(--opt);
+        border-color: #4c1d95;
+      }
+      .chip.est {
+        color: var(--fg);
+        border-color: #3a3a3a;
+      }
+      .chip.prob {
+        color: var(--muted);
+        border-color: #3a3a3a;
+        border-style: dashed;
+      }
+      .chip.spec {
+        color: var(--dim);
+        border-color: #3a3a3a;
+        border-style: dotted;
+      }
+      /* range bar */
+      .rb {
+        margin: 10px 0 4px;
+      }
+      .rb .track {
+        position: relative;
+        height: 10px;
+        background: #1a1a1a;
+        border: 1px solid var(--line);
+      }
+      .rb .normal {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        background: #1f2a1f;
+      }
+      .rb .optimal {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        background: #2a2140;
+      }
+      .rb .val {
+        position: absolute;
+        top: -4px;
+        width: 4px;
+        height: 16px;
+        background: var(--fg);
+        transform: translateX(-2px);
+      }
+      .rb .prev {
+        position: absolute;
+        top: 2px;
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: var(--dim);
+        transform: translateX(-3px);
+      }
+      .rb .goal {
+        position: absolute;
+        top: -3px;
+        width: 2px;
+        height: 14px;
+        background: var(--accent);
+      }
+      .rb .lbl {
+        display: flex;
+        justify-content: space-between;
+        font-size: 11px;
+        color: var(--dim);
+        margin-top: 3px;
+        font-family: ui-monospace, Menlo, monospace;
+      }
+      .num {
+        font-family: ui-monospace, Menlo, monospace;
+        font-size: 15px;
+      }
+      .num small {
+        color: var(--dim);
+        font-size: 11px;
+        margin-left: 3px;
+      }
+      .toggle {
+        display: inline-flex;
+        border: 1px solid var(--line);
+        background: #1a1a1a;
+        padding: 2px;
+        gap: 1px;
+      }
+      .toggle button {
+        border: 1px solid transparent;
+        background: none;
+        color: var(--muted);
+        font: 500 12px system-ui;
+        padding: 4px 10px;
+        cursor: pointer;
+      }
+      .toggle button.on {
+        background: var(--card);
+        color: var(--fg);
+        border-color: var(--line);
+      }
+      .action {
+        border-left: 3px solid var(--accent);
+        padding: 10px 12px;
+        background: #0e0e0e;
+        margin-top: 8px;
+      }
+      .action .w {
+        color: var(--accent);
+        font-family: ui-monospace, Menlo, monospace;
+        font-size: 11px;
+      }
+      .action p {
+        margin: 4px 0 0;
+        color: var(--muted);
+        font-size: 12px;
+      }
+      .action .btns {
+        margin-top: 8px;
+        display: flex;
+        gap: 6px;
+      }
+      .btn {
+        border: 1px solid var(--line);
+        background: var(--card);
+        color: var(--fg);
+        font: 500 12px system-ui;
+        padding: 5px 10px;
+        cursor: pointer;
+      }
+      .btn.primary {
+        background: var(--fg);
+        color: var(--bg);
+        border-color: var(--fg);
+      }
+      .edge {
+        padding: 8px 0;
+        border-top: 1px solid var(--line);
+        font-size: 12px;
+      }
+      .edge .m {
+        color: var(--dim);
+        font-size: 11px;
+        margin-top: 2px;
+      }
+      details summary {
+        cursor: pointer;
+        color: var(--muted);
+        font-size: 12px;
+      }
+      .eli5 {
+        background: #0e1330;
+        border: 1px solid #1d3db3;
+        padding: 12px;
+        font-size: 14px;
+        line-height: 1.55;
+      }
+      .refs a {
+        color: var(--accent);
+        font-size: 11px;
+        text-decoration: none;
+        display: block;
+      }
+    </style>
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://unpkg.com/three@0.160.0/build/three.module.js"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <header>
+      <b>OpenVitals</b>
+      <nav>
+        <span>Home</span><span>Today</span><span class="on">Systems</span
+        ><span>Biomarkers</span><span>Plan</span><span>Trends</span
+        ><span>Review</span>
+      </nav>
+    </header>
+    <div class="layout">
+      <div id="scene">
+        <div class="legend">
+          <span><i></i>established</span
+          ><span><i class="dash"></i>probable</span
+          ><span><i class="dot"></i>speculative</span
+          ><span style="color: var(--bad)">■ pushing the wrong way</span
+          ><span style="color: var(--ok)">■ helping</span>
+        </div>
+        <div class="hint">
+          Drag to orbit. Click a system to zoom in. Only edges that are active
+          for <b>this person</b> are drawn.
+        </div>
+      </div>
+      <aside id="panel"></aside>
+    </div>
+
+    <script type="module">
+      import * as THREE from "three";
+
+      // ---------- the person's evaluated model (what buildHealthModel returns) ----------
+      const systems = [
+        {
+          id: "lipids",
+          name: "Lipids & heart",
+          score: 58,
+          trend: "worsening",
+          pos: [0, 1.1, 0],
+          verdict:
+            "LDL and ApoB above optimal for two draws. Family history of early heart disease tightens the target.",
+          eli5: "Think of LDL as delivery trucks dropping cholesterol at your artery walls. You have more trucks than the road can handle. Your dad's heart history means we want fewer trucks than average.",
+          members: [
+            {
+              code: "apob",
+              name: "ApoB",
+              value: 98,
+              prev: 91,
+              unit: "mg/dL",
+              normal: [0, 130],
+              optimal: [0, 80],
+              goal: 80,
+              status: "warn",
+            },
+            {
+              code: "ldl",
+              name: "LDL-C",
+              value: 117,
+              prev: 129,
+              unit: "mg/dL",
+              normal: [0, 160],
+              optimal: [0, 100],
+              goal: 90,
+              status: "warn",
+            },
+            {
+              code: "hdl",
+              name: "HDL-C",
+              value: 44,
+              prev: 47,
+              unit: "mg/dL",
+              normal: [40, 100],
+              optimal: [55, 100],
+              status: "warn",
+            },
+            {
+              code: "tg",
+              name: "Triglycerides",
+              value: 145,
+              prev: 130,
+              unit: "mg/dL",
+              normal: [0, 150],
+              optimal: [0, 100],
+              status: "warn",
+            },
+            {
+              code: "lpa",
+              name: "Lp(a)",
+              value: 18,
+              prev: null,
+              unit: "mg/dL",
+              normal: [0, 30],
+              optimal: [0, 30],
+              status: "ok",
+            },
+          ],
+        },
+        {
+          id: "thyroid",
+          name: "Thyroid",
+          score: 70,
+          trend: "stable",
+          pos: [-2.2, 0.5, 0.6],
+          verdict: "TSH at the top of normal. Mild slowdown can raise LDL.",
+          eli5: "Your thyroid is the engine idle speed. It idles a bit low, and a slow engine burns less cholesterol.",
+          members: [
+            {
+              code: "tsh",
+              name: "TSH",
+              value: 3.9,
+              prev: 3.1,
+              unit: "mIU/L",
+              normal: [0.4, 4.5],
+              optimal: [0.5, 2.5],
+              status: "warn",
+            },
+            {
+              code: "ft4",
+              name: "Free T4",
+              value: 1.1,
+              prev: 1.2,
+              unit: "ng/dL",
+              normal: [0.8, 1.8],
+              optimal: [1.0, 1.6],
+              status: "ok",
+            },
+          ],
+        },
+        {
+          id: "metabolic",
+          name: "Glucose & insulin",
+          score: 82,
+          trend: "stable",
+          pos: [2.2, 0.4, 0.4],
+          verdict: "HbA1c fine, fasting insulin slightly high.",
+          eli5: "Your sugar handling is fine, but the hormone that stores sugar is working a bit harder than it should.",
+          members: [
+            {
+              code: "hba1c",
+              name: "HbA1c",
+              value: 5.3,
+              prev: 5.4,
+              unit: "%",
+              normal: [4, 5.7],
+              optimal: [4.5, 5.3],
+              status: "ok",
+            },
+            {
+              code: "insulin",
+              name: "Fasting insulin",
+              value: 9.2,
+              prev: 7.5,
+              unit: "uIU/mL",
+              normal: [2, 25],
+              optimal: [2, 6],
+              status: "warn",
+            },
+          ],
+        },
+        {
+          id: "inflammation",
+          name: "Inflammation",
+          score: 90,
+          trend: "improving",
+          pos: [0, -0.4, 1.8],
+          verdict: "hs-CRP low. Good.",
+          eli5: "No fire alarms going off.",
+          members: [
+            {
+              code: "crp",
+              name: "hs-CRP",
+              value: 0.6,
+              prev: 1.4,
+              unit: "mg/L",
+              normal: [0, 3],
+              optimal: [0, 1],
+              status: "ok",
+            },
+          ],
+        },
+        {
+          id: "liver",
+          name: "Liver",
+          score: 75,
+          trend: "stable",
+          pos: [1.4, -1.2, -0.8],
+          verdict: "GGT mildly up, matches alcohol log.",
+          eli5: "The liver is your filter. It is a bit busy, and the alcohol log explains why.",
+          members: [
+            {
+              code: "ggt",
+              name: "GGT",
+              value: 48,
+              prev: 39,
+              unit: "U/L",
+              normal: [0, 60],
+              optimal: [0, 30],
+              status: "warn",
+            },
+            {
+              code: "alt",
+              name: "ALT",
+              value: 28,
+              prev: 31,
+              unit: "U/L",
+              normal: [0, 45],
+              optimal: [0, 30],
+              status: "ok",
+            },
+          ],
+        },
+        {
+          id: "hormones",
+          name: "Sex hormones",
+          score: 65,
+          trend: "stable",
+          pos: [-1.6, -1.2, -0.6],
+          verdict:
+            "Testosterone low-normal for age 41. Sleep and vitamin D are the cheap levers.",
+          eli5: "Your testosterone is on the low side for your age. Sleep and vitamin D are the free fixes to try first.",
+          members: [
+            {
+              code: "testosterone",
+              name: "Testosterone",
+              value: 412,
+              prev: 455,
+              unit: "ng/dL",
+              normal: [264, 916],
+              optimal: [500, 900],
+              status: "warn",
+            },
+          ],
+        },
+        {
+          id: "vitamins",
+          name: "Vitamins & minerals",
+          score: 60,
+          trend: "worsening",
+          pos: [-0.6, -2.2, 0.8],
+          verdict: "Vitamin D low. Ferritin fine.",
+          eli5: "You are short on vitamin D. Sun is scarce and you are not taking it.",
+          members: [
+            {
+              code: "vitamin_d",
+              name: "Vitamin D",
+              value: 22,
+              prev: 31,
+              unit: "ng/mL",
+              normal: [20, 100],
+              optimal: [40, 60],
+              status: "warn",
+            },
+            {
+              code: "ferritin",
+              name: "Ferritin",
+              value: 88,
+              prev: 92,
+              unit: "ng/mL",
+              normal: [30, 400],
+              optimal: [50, 150],
+              status: "ok",
+            },
+          ],
+        },
+        {
+          id: "lifestyle",
+          name: "Lifestyle (30 d)",
+          score: 55,
+          trend: "stable",
+          pos: [0.8, -2.4, -1.2],
+          verdict:
+            "Sleep 6.4 h avg, 9 alcohol units/week, 90 min exercise/week.",
+          eli5: "You sleep less than your body wants, drink a bit more than your liver wants, and move less than your heart wants.",
+          members: [
+            {
+              code: "sleep",
+              name: "Sleep",
+              value: 6.4,
+              prev: 6.9,
+              unit: "h",
+              normal: [6, 10],
+              optimal: [7, 9],
+              status: "warn",
+            },
+            {
+              code: "alcohol",
+              name: "Alcohol",
+              value: 9,
+              prev: 6,
+              unit: "units/wk",
+              normal: [0, 14],
+              optimal: [0, 4],
+              status: "warn",
+            },
+            {
+              code: "exercise",
+              name: "Exercise",
+              value: 90,
+              prev: 140,
+              unit: "min/wk",
+              normal: [0, 1000],
+              optimal: [150, 600],
+              status: "warn",
+            },
+          ],
+        },
+      ];
+
+      // active edges for this person, ranked by impact
+      const edges = [
+        {
+          from: "thyroid",
+          to: "lipids",
+          dir: "bad",
+          conf: "established",
+          strength: 2,
+          text: "High-normal TSH lowers LDL receptor activity",
+          refs: ["10.1210/jc.2012-1447"],
+        },
+        {
+          from: "lifestyle",
+          to: "lipids",
+          dir: "bad",
+          conf: "established",
+          strength: 2,
+          text: "Less exercise: HDL down, TG up",
+          refs: ["10.1001/archinte.167.10.999"],
+        },
+        {
+          from: "lifestyle",
+          to: "liver",
+          dir: "bad",
+          conf: "established",
+          strength: 3,
+          text: "9 units/week: GGT and TG rise",
+          refs: ["10.1111/j.1530-0277.2004.tb03081.x"],
+        },
+        {
+          from: "metabolic",
+          to: "lipids",
+          dir: "bad",
+          conf: "probable",
+          strength: 1,
+          text: "Higher fasting insulin raises TG and small LDL",
+          refs: [],
+        },
+        {
+          from: "lifestyle",
+          to: "hormones",
+          dir: "bad",
+          conf: "established",
+          strength: 2,
+          text: "6.4 h sleep lowers testosterone 10-15%",
+          refs: ["10.1001/jama.2011.710"],
+        },
+        {
+          from: "vitamins",
+          to: "hormones",
+          dir: "bad",
+          conf: "speculative",
+          strength: 1,
+          text: "Low vitamin D may lower testosterone; small RCTs, mixed",
+          refs: ["10.1055/s-0030-1269854"],
+        },
+        {
+          from: "inflammation",
+          to: "lipids",
+          dir: "good",
+          conf: "established",
+          strength: 1,
+          text: "Low CRP: no inflammatory add-on to cardiac risk",
+          refs: [],
+        },
+      ];
+
+      // modifiers from the profile: sex, age, conditions, family history
+      const profile = {
+        sex: "male",
+        age: 41,
+        conditions: [],
+        family: ["father: MI at 52"],
+        meds: [],
+        supplements: ["omega-3 2 g (since Mar)"],
+      };
+      const modifiers = [
+        {
+          because: "father: MI at 52",
+          effect: "ApoB target tightened 100 → 80; lipids weight ×1.5",
+        },
+        {
+          because: "male, 41",
+          effect: "testosterone optimal band 500-900; ferritin band 50-150",
+        },
+      ];
+
+      const actions = [
+        {
+          w: 5,
+          title: "Take vitamin D3 4000 IU with your biggest meal",
+          kind: "supplement",
+          targets: "Vitamin D 22 → 40+ in 10 weeks; may lift testosterone",
+          timing: "With fat. Not with the iron days.",
+          conf: "established",
+          why: "Vitamin D is 22 ng/mL. Optimal is 40-60. This is the cheapest lever and it touches two systems.",
+          refs: ["Holick 2011, Endocrine Society guideline"],
+        },
+        {
+          w: 4,
+          title: "Cut alcohol to 4 units/week for 8 weeks",
+          kind: "stop",
+          targets: "GGT 48 → <30, TG 145 → <120",
+          timing: "",
+          conf: "established",
+          why: "GGT climbed with the alcohol log. Eight weeks is enough to see it drop.",
+          refs: ["Conigrave 2003"],
+        },
+        {
+          w: 4,
+          title: "150 min/week zone 2, 3 sessions",
+          kind: "exercise",
+          targets: "HDL 44 → 50, TG down, insulin down",
+          timing: "",
+          conf: "established",
+          why: "Exercise fell from 140 to 90 min/week and HDL followed.",
+          refs: ["Kodama 2007 meta-analysis"],
+        },
+        {
+          w: 3,
+          title: "Retest TSH, free T4 and anti-TPO",
+          kind: "test",
+          targets: "Decide if thyroid explains LDL",
+          timing: "Morning, no coffee before the draw",
+          conf: "probable",
+          why: "TSH rose 3.1 → 3.9. If antibodies are up, that is a doctor conversation, not a supplement.",
+          refs: [],
+        },
+        {
+          w: 2,
+          title: "Retest lipids in 12 weeks",
+          kind: "test",
+          targets: "ApoB, LDL, HDL, TG",
+          timing: "Fasted 12 h",
+          conf: "established",
+          why: "Measures the effect of the three actions above.",
+          refs: [],
+        },
+      ];
+
+      const questions = [
+        {
+          text: "Do you drink coffee before blood draws?",
+          why: "Coffee can raise cortisol and glucose in the sample.",
+        },
+        {
+          text: "Is the omega-3 taken with a meal?",
+          why: "Absorption doubles with fat.",
+        },
+      ];
+
+      // ---------- 3D scene ----------
+      const host = document.getElementById("scene");
+      const renderer = new THREE.WebGLRenderer({
+        antialias: true,
+        alpha: true,
+      });
+      renderer.setPixelRatio(devicePixelRatio);
+      host.appendChild(renderer.domElement);
+      const scene = new THREE.Scene();
+      const camera = new THREE.PerspectiveCamera(40, 1, 0.1, 100);
+      camera.position.set(0, -0.3, 9.6);
+      scene.add(new THREE.AmbientLight(0xffffff, 0.7));
+      const key = new THREE.DirectionalLight(0xffffff, 1.2);
+      key.position.set(3, 5, 6);
+      scene.add(key);
+
+      const colorFor = (s) =>
+        s >= 85 ? 0x4ade80 : s >= 65 ? 0xfbbf24 : 0xf87171;
+      const nodes = new Map();
+      const group = new THREE.Group();
+      scene.add(group);
+      for (const s of systems) {
+        const r = 0.28 + ((100 - s.score) / 100) * 0.22; // bigger sphere = bigger problem
+        const mesh = new THREE.Mesh(
+          new THREE.SphereGeometry(r, 32, 32),
+          new THREE.MeshStandardMaterial({
+            color: colorFor(s.score),
+            roughness: 0.45,
+            metalness: 0.1,
+            emissive: colorFor(s.score),
+            emissiveIntensity: 0.18,
+          }),
+        );
+        mesh.position.set(...s.pos);
+        mesh.userData = s;
+        group.add(mesh);
+        nodes.set(s.id, mesh);
+        group.add(makeLabel(s.name, s.pos, r));
+      }
+      for (const e of edges) {
+        const a = nodes.get(e.from).position,
+          b = nodes.get(e.to).position;
+        const mid = a
+          .clone()
+          .add(b)
+          .multiplyScalar(0.5)
+          .add(new THREE.Vector3(0, 0.35, 0.35));
+        const curve = new THREE.QuadraticBezierCurve3(a, mid, b);
+        const pts = curve.getPoints(60);
+        const geo = new THREE.BufferGeometry().setFromPoints(pts);
+        const color = e.dir === "bad" ? 0xf87171 : 0x4ade80;
+        const dash =
+          e.conf === "established"
+            ? null
+            : e.conf === "probable"
+              ? [0.18, 0.1]
+              : [0.06, 0.1];
+        const mat = dash
+          ? new THREE.LineDashedMaterial({
+              color,
+              dashSize: dash[0],
+              gapSize: dash[1],
+              transparent: true,
+              opacity: 0.55 + e.strength * 0.15,
+            })
+          : new THREE.LineBasicMaterial({
+              color,
+              transparent: true,
+              opacity: 0.55 + e.strength * 0.15,
+            });
+        const line = new THREE.Line(geo, mat);
+        line.computeLineDistances();
+        group.add(line);
+        // arrow head at the target
+        const dir = pts[59].clone().sub(pts[54]).normalize();
+        const cone = new THREE.Mesh(
+          new THREE.ConeGeometry(0.05 + e.strength * 0.015, 0.16, 12),
+          new THREE.MeshBasicMaterial({ color }),
+        );
+        cone.position.copy(pts[57]);
+        cone.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir);
+        group.add(cone);
+      }
+
+      function makeLabel(text, pos, r) {
+        const c = document.createElement("canvas");
+        c.width = 512;
+        c.height = 96;
+        const ctx = c.getContext("2d");
+        ctx.font = "500 40px system-ui";
+        ctx.fillStyle = "#f2f2f2";
+        ctx.textAlign = "center";
+        ctx.fillText(text, 256, 60);
+        const sp = new THREE.Sprite(
+          new THREE.SpriteMaterial({
+            map: new THREE.CanvasTexture(c),
+            transparent: true,
+            depthTest: false,
+          }),
+        );
+        sp.scale.set(2.2, 0.41, 1);
+        sp.position.set(pos[0], pos[1] - r - 0.28, pos[2]);
+        return sp;
+      }
+
+      // orbit by drag, no controls lib
+      let drag = null,
+        rot = { x: 0.15, y: 0 };
+      host.addEventListener(
+        "pointerdown",
+        (e) => (drag = { x: e.clientX, y: e.clientY, moved: false }),
+      );
+      addEventListener("pointermove", (e) => {
+        if (!drag) return;
+        rot.y += (e.clientX - drag.x) * 0.006;
+        rot.x += (e.clientY - drag.y) * 0.004;
+        drag.x = e.clientX;
+        drag.y = e.clientY;
+        drag.moved = true;
+      });
+      addEventListener("pointerup", (e) => {
+        if (drag && !drag.moved) pick(e);
+        drag = null;
+      });
+      const ray = new THREE.Raycaster();
+      function pick(e) {
+        const r = renderer.domElement.getBoundingClientRect();
+        ray.setFromCamera(
+          new THREE.Vector2(
+            ((e.clientX - r.left) / r.width) * 2 - 1,
+            -((e.clientY - r.top) / r.height) * 2 + 1,
+          ),
+          camera,
+        );
+        const hit = ray.intersectObjects([...nodes.values()])[0];
+        if (hit) showSystem(hit.object.userData);
+        else showOverview();
+      }
+      function resize() {
+        const w = host.clientWidth,
+          h = host.clientHeight;
+        renderer.setSize(w, h);
+        camera.aspect = w / h;
+        camera.updateProjectionMatrix();
+      }
+      addEventListener("resize", resize);
+      resize();
+      (function loop() {
+        group.rotation.y += (rot.y - group.rotation.y) * 0.1;
+        group.rotation.x += (rot.x - group.rotation.x) * 0.1;
+        renderer.render(scene, camera);
+        requestAnimationFrame(loop);
+      })();
+
+      // ---------- side panel: simple first, deeper on demand ----------
+      let simple = true;
+      const panel = document.getElementById("panel");
+      const chip = (t, c) => `<span class="chip ${c}">${t}</span>`;
+      const confClass = (c) =>
+        ({ established: "est", probable: "prob", speculative: "spec" })[c];
+
+      function rangeBar(m) {
+        const lo =
+          Math.min(m.normal[0], m.optimal[0], m.value, m.prev ?? m.value) * 0.9;
+        const hi =
+          Math.max(
+            m.normal[1] === Infinity ? m.value * 1.5 : m.normal[1],
+            m.value,
+            m.prev ?? m.value,
+          ) * 1.05;
+        const pct = (v) => (((v - lo) / (hi - lo)) * 100).toFixed(1) + "%";
+        return `<div class="rb">
+    <div class="row"><span>${m.name} ${chip(m.status === "ok" ? "ok" : "off", m.status)}</span>
+      <span class="num">${m.value}<small>${m.unit}</small>${m.prev != null ? `<small>· was ${m.prev}</small>` : ""}</span></div>
+    <div class="track" style="margin-top:6px">
+      <div class="normal" style="left:${pct(m.normal[0])};width:calc(${pct(m.normal[1])} - ${pct(m.normal[0])})"></div>
+      <div class="optimal" style="left:${pct(m.optimal[0])};width:calc(${pct(m.optimal[1])} - ${pct(m.optimal[0])})"></div>
+      ${m.prev != null ? `<div class="prev" style="left:${pct(m.prev)}"></div>` : ""}
+      ${m.goal != null ? `<div class="goal" style="left:${pct(m.goal)}"></div>` : ""}
+      <div class="val" style="left:${pct(m.value)}"></div>
+    </div>
+    <div class="lbl"><span>normal ${m.normal[0]}–${m.normal[1]}</span><span style="color:var(--opt)">optimal ${m.optimal[0]}–${m.optimal[1]}</span>${m.goal != null ? `<span style="color:var(--accent)">goal ${m.goal}</span>` : ""}</div>
+  </div>`;
+      }
+
+      function actionCard(a) {
+        return `<div class="action">
+    <div class="row"><b>${a.title}</b><span class="w">weight ${a.w}/5</span></div>
+    <p>${simple ? a.why : `${a.why} Targets: ${a.targets}. ${a.timing}`}</p>
+    ${simple ? "" : `<p>${chip(a.conf, confClass(a.conf))} ${a.refs.map((r) => `<span class="mono">${r}</span>`).join(" ")}</p>`}
+    <div class="btns"><button class="btn primary">Add to protocol</button><button class="btn">Plan retest</button><button class="btn">Not for me</button></div>
+  </div>`;
+      }
+
+      function modeToggle() {
+        return `<div class="row" style="margin-bottom:12px"><span class="mono">view</span>
+    <span class="toggle"><button class="${simple ? "on" : ""}" onclick="window.setMode(true)">Simple</button><button class="${simple ? "" : "on"}" onclick="window.setMode(false)">Deep</button></span></div>`;
+      }
+      window.setMode = (v) => {
+        simple = v;
+        current ? showSystem(current) : showOverview();
+      };
+      let current = null;
+
+      function showOverview() {
+        current = null;
+        const worst = [...systems]
+          .sort((a, b) => a.score - b.score)
+          .slice(0, 3);
+        panel.innerHTML =
+          modeToggle() +
+          `
+    <h1>Where you stand</h1><p class="mono">${profile.sex}, ${profile.age} · ${profile.family.join(", ")}</p>
+    ${
+      simple
+        ? `<div class="eli5">Three things matter this month: your <b>cholesterol trucks</b> (lipids), your <b>vitamin D</b>, and <b>sleep</b>. Fix D and sleep first; they are free and they push the other systems too.</div>`
+        : `<div class="card"><h2>Profile modifiers in effect</h2>${modifiers.map((m) => `<div class="edge"><b>${m.because}</b><div class="m">${m.effect}</div></div>`).join("")}</div>`
+    }
+    <div class="card"><h2>Do this first</h2>${actions.slice(0, 3).map(actionCard).join("")}</div>
+    <div class="card"><h2>Systems needing attention</h2>${worst.map((s) => `<div class="edge row"><span>${s.name}</span><span>${chip(s.score, s.score >= 85 ? "ok" : s.score >= 65 ? "warn" : "bad")} <span class="mono">${s.trend}</span></span></div>`).join("")}</div>
+    <div class="card"><h2>Two quick questions</h2>${questions.map((q) => `<div class="edge"><b>${q.text}</b><div class="m">${q.why}</div><div class="btns" style="margin-top:6px"><button class="btn">Yes</button><button class="btn">No</button></div></div>`).join("")}</div>`;
+      }
+
+      function showSystem(s) {
+        current = s;
+        const incoming = edges.filter((e) => e.to === s.id),
+          outgoing = edges.filter((e) => e.from === s.id);
+        const name = (id) => systems.find((x) => x.id === id).name;
+        const edgeRow = (e, other) =>
+          `<div class="edge"><div class="row"><span style="color:${e.dir === "bad" ? "var(--bad)" : "var(--ok)"}">${e.dir === "bad" ? "▲" : "▼"} ${name(other)}</span>${chip(e.conf, confClass(e.conf))}</div><div class="m">${e.text}</div>${simple || !e.refs.length ? "" : `<div class="refs">${e.refs.map((r) => `<a href="https://doi.org/${r}">doi:${r}</a>`).join("")}</div>`}</div>`;
+        const acts = actions.filter((a) =>
+          a.targets
+            .toLowerCase()
+            .split(/[ ,]/)
+            .some((w) =>
+              s.members.some(
+                (m) =>
+                  m.name.toLowerCase().startsWith(w.replace(/[^a-z]/g, "")) &&
+                  w.length > 2,
+              ),
+            ),
+        );
+        panel.innerHTML =
+          modeToggle() +
+          `
+    <a href="#" onclick="window.back();return false" class="mono">← all systems</a>
+    <h1 style="margin-top:6px">${s.name} ${chip(s.score, s.score >= 85 ? "ok" : s.score >= 65 ? "warn" : "bad")}</h1>
+    <p class="mono">${s.trend} · ${s.members.length} markers</p>
+    ${simple ? `<div class="eli5">${s.eli5}</div>` : `<div class="card"><h2>Verdict</h2>${s.verdict}</div>`}
+    <div class="card"><h2>Markers</h2>${(simple ? s.members.filter((m) => m.status !== "ok") : s.members).map(rangeBar).join("")}${
+      simple && s.members.some((m) => m.status === "ok")
+        ? `<details><summary>${s.members.filter((m) => m.status === "ok").length} markers in range</summary>${s.members
+            .filter((m) => m.status === "ok")
+            .map(rangeBar)
+            .join("")}</details>`
+        : ""
+    }</div>
+    ${acts.length ? `<div class="card"><h2>Actions for this system</h2>${acts.map(actionCard).join("")}</div>` : ""}
+    <div class="card"><h2>What may be pushing this</h2>${incoming.length ? incoming.map((e) => edgeRow(e, e.from)).join("") : "<span class='mono'>nothing active</span>"}</div>
+    <div class="card"><h2>What this affects</h2>${outgoing.length ? outgoing.map((e) => edgeRow(e, e.to)).join("") : "<span class='mono'>nothing active</span>"}</div>`;
+      }
+      window.back = showOverview;
+      window.showSystem = showSystem;
+      window.systems = systems;
+      showOverview();
+    </script>
+  </body>
+</html>
