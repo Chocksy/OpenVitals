@@ -57,6 +57,8 @@ export interface EvalCase {
   persona: Persona;
   must: Assertion[];
   mustNot: Assertion[];
+  /** Scored and printed, but never fails the run. */
+  should?: Assertion[];
   judge?: string;
 }
 

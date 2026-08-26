@@ -484,17 +484,96 @@ function ruleAction(rule: Rule): ReportAction {
   };
 }
 
+/** What this person's graph actually contains, for the traceability check. */
+export interface GraphFacts {
+  matchedPatternIds: string[];
+  activeEdgeIds: string[];
+  hotNodeIds: string[];
+}
+
+/**
+ * Every graph id an opinion action claims to have used, with whether it is
+ * real for this person. The model writes both "->" and "→"; both parse.
+ */
+function citedIds(reasoning: string, graph: GraphFacts) {
+  const text = reasoning.replace(/\u2192/g, "->");
+  const cited: { token: string; ok: boolean }[] = [];
+  const add = (token: string, ok: boolean) => {
+    if (!cited.some((c) => c.token === token)) cited.push({ token, ok });
+  };
+
+  for (const m of text.matchAll(/\bpattern:([a-z0-9_]+)/gi))
+    add(m[0], graph.matchedPatternIds.includes(m[1]!.toLowerCase()));
+  for (const m of text.matchAll(/\bmetric:([a-z0-9_]+)/gi))
+    add(m[0], graph.hotNodeIds.includes(`metric:${m[1]!.toLowerCase()}`));
+  // No parentheses in the class: node ids never contain them, and prose does
+  // ("(edge insulin->ogtt_insulin)").
+  for (const m of text.matchAll(/\b([a-z0-9_]+)\s*->\s*([a-z0-9_]+)/gi))
+    add(m[0], graph.activeEdgeIds.includes(`${m[1]!.toLowerCase()}->${m[2]!.toLowerCase()}`));
+
+  return cited;
+}
+
+const tidy = (s: string) =>
+  s
+    .replace(/\s{2,}/g, " ")
+    .replace(/\s+([;,.])/g, "$1")
+    .replace(/(^|[;,])\s*(?=[;,])/g, "")
+    .trim();
+
+/**
+ * An opinion action has to name a graph element that is real for this person.
+ * A made-up id is stripped and flagged; no id at all is flagged. The action
+ * survives either way, labelled so the reader can see the difference.
+ */
+function verifyTrace(action: ReportAction, graph: GraphFacts): ReportAction {
+  if (action.basis !== "opinion") return action;
+  const cited = citedIds(action.reasoning ?? "", graph);
+  const bogus = cited.filter((c) => !c.ok);
+
+  if (bogus.length) {
+    let reasoning = action.reasoning ?? "";
+    for (const c of bogus) reasoning = reasoning.split(c.token).join("");
+    console.warn(
+      `[plan] "${action.title}" cited graph ids that are not active for this person: ${bogus.map((c) => c.token).join(", ")}`,
+    );
+    return {
+      ...action,
+      basis: "opinion",
+      reasoning: `[unverified graph reference removed] ${tidy(reasoning)}`,
+    };
+  }
+
+  if (!cited.length) {
+    console.warn(`[plan] "${action.title}" is an opinion with no graph reference`);
+    return {
+      ...action,
+      reasoning: `[no graph reference] ${tidy(action.reasoning ?? "")}`,
+    };
+  }
+  return action;
+}
+
 /**
  * Drop anything over a dose ceiling and ask about it instead, add a test
- * action for every rule the model forgot, then keep the eight that matter
- * most.
+ * action for every rule the model forgot, check that opinions cite a real
+ * graph element, then cap the advice.
+ *
+ * Tests and doctor actions are never capped: the escalation ladder is the
+ * floor of the plan, and a rule that fired has to end up somewhere. Only the
+ * things the person does themselves compete for the ten slots.
  */
-export function postProcess(body: ReportBody, rules: Rule[]): ReportBody {
+export function postProcess(
+  body: ReportBody,
+  rules: Rule[],
+  graph?: GraphFacts,
+): ReportBody {
   const kept: ReportAction[] = [];
   const questions = [...body.questions];
 
   for (const raw of body.actions) {
-    const action: ReportAction = { ...raw, weight: clamp(raw.weight, 5) };
+    const weighted: ReportAction = { ...raw, weight: clamp(raw.weight, 5) };
+    const action = graph ? verifyTrace(weighted, graph) : weighted;
     const ceiling = overCeiling(action);
     if (!ceiling) {
       kept.push(action);
@@ -521,9 +600,12 @@ export function postProcess(body: ReportBody, rules: Rule[]): ReportBody {
     }),
   );
 
-  const actions = deduped
-    .sort((a, b) => b.weight - a.weight)
-    .slice(0, MAX_ACTIONS);
+  const sorted = [...deduped].sort((a, b) => b.weight - a.weight);
+  const toOrder = (a: ReportAction) => a.kind === "test" || a.kind === "doctor";
+  const actions = [
+    ...sorted.filter((a) => !toOrder(a)).slice(0, MAX_ACTIONS),
+    ...sorted.filter(toOrder),
+  ];
 
   return {
     ...body,
@@ -554,6 +636,7 @@ export async function generateFromContext(
   context: string,
   rules: Rule[],
   modelId?: string,
+  graph?: GraphFacts,
 ): Promise<ReportBody> {
   const { object } = await generateObject({
     model: model(modelId),
@@ -572,15 +655,34 @@ export async function generateFromContext(
       ],
     } as ReportBody,
     rules,
+    graph,
   );
+}
+
+/** The three id lists `postProcess` checks opinion reasoning against. */
+export function graphFacts(
+  patterns: PatternMatch[],
+  graph: GraphState,
+): GraphFacts {
+  return {
+    matchedPatternIds: patterns.filter((p) => p.matched).map((p) => p.pattern.id),
+    activeEdgeIds: graph.activeEdges.map((e) => e.id),
+    hotNodeIds: graph.hot.map((n) => n.id),
+  };
 }
 
 export async function generateReport(
   userId: string,
   trigger: ReportTrigger,
 ): Promise<Report> {
-  const { rules, context, questions } = await buildReportContext(userId);
-  const body = await generateFromContext(context, rules);
+  const { rules, context, questions, patterns, graph } =
+    await buildReportContext(userId);
+  const body = await generateFromContext(
+    context,
+    rules,
+    undefined,
+    graphFacts(patterns, graph),
+  );
 
   const [row] = await getDb()
     .insert(reports)

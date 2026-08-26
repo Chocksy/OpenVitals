@@ -112,18 +112,36 @@ describe("fired rules", () => {
 });
 
 describe("limits", () => {
-  it("keeps at most ten actions, heaviest first", () => {
-    const many = Array.from({ length: 12 }, (_, i) =>
+  const many = (n: number) =>
+    Array.from({ length: n }, (_, i) =>
       action({
         title: `Improve ${["lipids","sleep","iron","kidney","liver","thyroid","glucose","fitness","vitamin","alcohol","protein","hydration"][i]} markers`,
         weight: ((i % 5) + 1) as 1 | 2 | 3 | 4 | 5,
       }),
     );
-    const out = postProcess(body({ actions: many }), []);
+
+  it("keeps at most ten actions the person does themselves, heaviest first", () => {
+    const out = postProcess(body({ actions: many(12) }), []);
     expect(out.actions).toHaveLength(10);
     expect(out.actions[0]!.weight).toBe(5);
     const weights = out.actions.map((a) => a.weight);
     expect(weights).toEqual([...weights].sort((a, b) => b - a));
+  });
+
+  it("never caps the tests, so every fired rule still lands", () => {
+    const markers = ["lipoprotein", "apolipoprotein", "haemoglobin", "creatinine", "ferritin", "thyrotropin", "cortisol", "homocysteine", "calcium", "albuminuria", "cystatin", "insulin", "uric", "folate"];
+    const rules = markers.map((marker) =>
+      rule({
+        id: `rule_${marker}`,
+        suggest: `Measure ${marker}`,
+        why: `${marker} decides what happens next for this person.`,
+      }),
+    );
+    const out = postProcess(body({ actions: many(6) }), rules);
+    const tests = out.actions.filter((a) => a.kind === "test");
+    const rest = out.actions.filter((a) => a.kind !== "test");
+    expect(tests).toHaveLength(14);
+    expect(rest).toHaveLength(6);
   });
 
   it("trims the summary to three lines and the questions to three", () => {
@@ -200,5 +218,95 @@ describe("the context pack", () => {
 
   it("queues the pattern's unanswered questions", () => {
     expect(hashimoto.questions.map((q) => q.key)).toContain("pregnancy_plans");
+  });
+});
+
+describe("traceability", () => {
+  const graph = {
+    matchedPatternIds: ["hashimoto"],
+    activeEdgeIds: ["tsh->ldl_cholesterol", "selenium->tpo_antibodies"],
+    hotNodeIds: ["metric:tsh", "metric:ldl_cholesterol"],
+  };
+
+  const opinion = (reasoning: string) =>
+    action({
+      title: "Selenium 200 µg",
+      kind: "supplement",
+      basis: "opinion",
+      reasoning,
+    });
+
+  it("leaves a real citation alone", () => {
+    const out = postProcess(
+      body({
+        actions: [
+          opinion("pattern:hashimoto with tsh 3.9 via selenium->tpo_antibodies"),
+        ],
+      }),
+      [],
+      graph,
+    );
+    expect(out.actions[0]!.reasoning).toBe(
+      "pattern:hashimoto with tsh 3.9 via selenium->tpo_antibodies",
+    );
+    expect(out.actions[0]!.basis).toBe("opinion");
+  });
+
+  it("strips an id that is not real for this person", () => {
+    const out = postProcess(
+      body({ actions: [opinion("pattern:lmhr and pattern:hashimoto, tsh 3.9")] }),
+      [],
+      graph,
+    );
+    expect(out.actions[0]!.reasoning).toBe(
+      "[unverified graph reference removed] and pattern:hashimoto, tsh 3.9",
+    );
+    expect(out.actions[0]!.basis).toBe("opinion");
+  });
+
+  it("flags an opinion that cites nothing", () => {
+    const out = postProcess(
+      body({ actions: [opinion("Selenium usually helps antibodies.")] }),
+      [],
+      graph,
+    );
+    expect(out.actions[0]!.reasoning).toBe(
+      "[no graph reference] Selenium usually helps antibodies.",
+    );
+  });
+
+  it("does not swallow the bracket around a citation", () => {
+    const out = postProcess(
+      body({ actions: [opinion("(edge tsh->ldl_cholesterol) and tsh 6.2")] }),
+      [],
+      graph,
+    );
+    expect(out.actions[0]!.reasoning).not.toContain("[");
+  });
+
+  it("reads the arrow the model actually writes", () => {
+    const out = postProcess(
+      body({ actions: [opinion("via edge tsh\u2192ldl_cholesterol")] }),
+      [],
+      graph,
+    );
+    expect(out.actions[0]!.reasoning).not.toContain("[");
+  });
+
+  it("checks a metric id against the hot nodes", () => {
+    const out = postProcess(
+      body({ actions: [opinion("metric:ferritin is low")] }),
+      [],
+      graph,
+    );
+    expect(out.actions[0]!.reasoning).toContain(
+      "[unverified graph reference removed]",
+    );
+  });
+
+  it("skips the check for science actions and when no graph is given", () => {
+    const science = action({ basis: "science", reasoning: "" });
+    expect(postProcess(body({ actions: [science] }), [], graph).actions[0]!.reasoning).toBe("");
+    expect(postProcess(body({ actions: [opinion("nothing")] }), []).actions[0]!.reasoning).toBe("nothing");
   });
 });

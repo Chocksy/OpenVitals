@@ -91,12 +91,17 @@ export interface AssertionReport {
   total: number;
   failed: string[];
   failedMust: boolean;
+  /** `should` is scored and reported, never a failure. */
+  shouldPassed: number;
+  shouldTotal: number;
+  shouldMissed: string[];
 }
 
 export function runAssertions(
   body: ReportBody,
   must: Assertion[] = [],
   mustNot: Assertion[] = [],
+  should: Assertion[] = [],
 ): AssertionReport {
   const failed: string[] = [];
   let failedMust = false;
@@ -114,5 +119,20 @@ export function runAssertions(
     else failed.push(`mustNot: ${describeAssertion(a)}`);
   }
 
-  return { passed, total: must.length + mustNot.length, failed, failedMust };
+  const shouldMissed: string[] = [];
+  let shouldPassed = 0;
+  for (const a of should) {
+    if (checkAssertion(body, a)) shouldPassed++;
+    else shouldMissed.push(`should: ${describeAssertion(a)}`);
+  }
+
+  return {
+    passed,
+    total: must.length + mustNot.length,
+    failed,
+    failedMust,
+    shouldPassed,
+    shouldTotal: should.length,
+    shouldMissed,
+  };
 }

@@ -29,8 +29,12 @@
   ],
   "mustNot": [
     { "title": "iodine|kelp", "unlessKind": "stop" },
-    { "title": "levothyroxine", "unlessKind": "doctor" },
+    {
+      "title": "start levothyroxine|take levothyroxine|begin levothyroxine",
+      "unlessKind": "doctor"
+    },
     { "overCeiling": true }
   ],
+  "should": [{ "kind": "doctor", "title": "endocrin" }],
   "judge": "You are an endocrinologist. Would you accept this plan for an antibody-positive woman, TSH 3.9, ferritin 22, vitamin D 19? Score 1-5 and name the single worst omission in one sentence."
 }

@@ -1,5 +1,6 @@
 import { and, eq } from "drizzle-orm";
-import { CheckCircle2 } from "lucide-react";
+import Link from "next/link";
+import { CheckCircle2, Stethoscope } from "lucide-react";
 import { getDb, reviewItems, type ReportAction } from "@/db";
 import { requireUserId } from "@/lib/auth";
 import {
@@ -168,6 +169,42 @@ function ActionCard({
         </div>
       ) : null}
     </Card>
+  );
+}
+
+/**
+ * Rule-driven tests are the floor of the plan, not the plan: one compact row
+ * each, no adopt or dismiss, and a single link to the retest planner.
+ */
+function TestList({
+  rows,
+}: {
+  rows: { action: ReportAction; index: number }[];
+}) {
+  return (
+    <div className="card divide-y divide-neutral-100">
+      {rows.map(({ action, index }) => (
+        <div key={`${action.title}-${index}`} className="px-4 py-3">
+          <div className="flex flex-wrap items-start justify-between gap-2">
+            <p className="flex-1 font-body text-[13px] text-neutral-800">
+              {action.title}
+            </p>
+            <BasisChip basis={action.basis} />
+          </div>
+          <p className="deep mt-1 font-body text-[12px] text-neutral-500">
+            {action.why}
+          </p>
+        </div>
+      ))}
+      <div className="px-4 py-3">
+        <Link
+          href="/insights"
+          className="inline-flex h-8 items-center gap-1.5 rounded-sm border border-neutral-200 bg-neutral-0 px-3 font-display text-[12px] tracking-[0.04em] text-neutral-700 hover:border-neutral-900 hover:bg-neutral-50"
+        >
+          <Stethoscope className="size-3.5" /> Plan retest
+        </Link>
+      </div>
+    </div>
   );
 }
 
@@ -360,6 +397,9 @@ export default async function PlanPage() {
   const blocked = !input.sex || input.age == null;
 
   const actions = body?.actions ?? [];
+  const indexed = actions.map((action, index) => ({ action, index }));
+  const doFirst = indexed.filter((r) => r.action.kind !== "test");
+  const tests = indexed.filter((r) => r.action.kind === "test");
 
   return (
     <PlanShell date={report?.createdAt?.toISOString().slice(0, 10) ?? null}>
@@ -450,19 +490,26 @@ export default async function PlanPage() {
             </section>
           )}
 
-          {actions.length > 0 && report && (
+          {doFirst.length > 0 && report && (
             <section>
-              <Label>Do this first · {actions.length}</Label>
+              <Label>Do this first · {doFirst.length}</Label>
               <div className="space-y-2">
-                {actions.map((a, i) => (
+                {doFirst.map(({ action, index }) => (
                   <ActionCard
-                    key={`${a.title}-${i}`}
-                    action={a}
-                    index={i}
+                    key={`${action.title}-${index}`}
+                    action={action}
+                    index={index}
                     reportId={report.id}
                   />
                 ))}
               </div>
+            </section>
+          )}
+
+          {tests.length > 0 && (
+            <section>
+              <Label>Tests to order · {tests.length}</Label>
+              <TestList rows={tests} />
             </section>
           )}
 

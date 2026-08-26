@@ -18,6 +18,7 @@ import { model } from "@/lib/extract";
 import {
   buildContextFromInput,
   generateFromContext,
+  graphFacts,
   SYSTEM_PROMPT,
 } from "@/lib/report";
 import { runAssertions, type AssertionReport } from "./assert";
@@ -33,6 +34,9 @@ interface CaseResult {
   total: number;
   failed: string[];
   failedMust: boolean;
+  shouldPassed: number;
+  shouldTotal: number;
+  shouldMissed: string[];
   judgeScore?: number;
   omission?: string;
   latencyMs: number;
@@ -90,11 +94,21 @@ async function runCase(
   const started = Date.now();
   try {
     const input = personaToInput(c.persona);
-    const { context, rules } = buildContextFromInput(input, {
+    const { context, rules, patterns, graph } = buildContextFromInput(input, {
       tracker: personaTracker(c.persona),
     });
-    const body = await generateFromContext(context, rules, modelId);
-    const report: AssertionReport = runAssertions(body, c.must, c.mustNot);
+    const body = await generateFromContext(
+      context,
+      rules,
+      modelId,
+      graphFacts(patterns, graph),
+    );
+    const report: AssertionReport = runAssertions(
+      body,
+      c.must,
+      c.mustNot,
+      c.should,
+    );
     const graded = judge && c.judge ? await judgePlan(c, body, modelId) : {};
     return {
       id: c.id,
@@ -110,6 +124,9 @@ async function runCase(
       total: (c.must?.length ?? 0) + (c.mustNot?.length ?? 0),
       failed: [],
       failedMust: false,
+      shouldPassed: 0,
+      shouldTotal: c.should?.length ?? 0,
+      shouldMissed: [],
       latencyMs: Date.now() - started,
       error: e instanceof Error ? e.message : String(e),
     };
@@ -133,7 +150,7 @@ async function main() {
     console.log(
       result.error
         ? `error: ${result.error.slice(0, 120)}`
-        : `${result.passed}/${result.total}${result.judgeScore ? ` judge ${result.judgeScore}` : ""} (${Math.round(result.latencyMs / 1000)}s)`,
+        : `${result.passed}/${result.total}${result.shouldTotal ? ` should ${result.shouldPassed}/${result.shouldTotal}` : ""}${result.judgeScore ? ` judge ${result.judgeScore}` : ""} (${Math.round(result.latencyMs / 1000)}s)`,
     );
   }
 
@@ -143,13 +160,15 @@ async function main() {
       case: r.id,
       assertions: `${r.passed}/${r.total}`,
       must: r.failedMust ? "FAIL" : r.error ? "-" : "ok",
+      should: r.shouldTotal ? `${r.shouldPassed}/${r.shouldTotal}` : "-",
       judge: r.judgeScore ?? "-",
       seconds: Math.round(r.latencyMs / 1000),
       error: r.error ? r.error.slice(0, 40) : "",
     })),
   );
   for (const r of results)
-    for (const f of r.failed) console.log(`  ${r.id}: ${f}`);
+    for (const f of [...r.failed, ...r.shouldMissed])
+      console.log(`  ${r.id}: ${f}`);
 
   const graded = results.filter((r) => r.judgeScore != null);
   const scored = results.filter((r) => !r.error);
