@@ -19,6 +19,7 @@ import {
   Upload,
   type LucideIcon,
 } from "lucide-react";
+import { ThemeToggle } from "./theme-toggle";
 import { authClient, signOut } from "@/lib/auth-client";
 import { cn } from "@/lib/utils";
 
@@ -145,8 +146,9 @@ export function TopNav({ reviewCount = 0 }: { reviewCount?: number }) {
               >
                 {session?.user?.email}
               </p>
+              <ThemeToggle />
               <button
-                className="mt-3 flex w-full cursor-pointer items-center gap-2 border-t border-neutral-200 pt-2 text-left text-sm text-neutral-600 hover:text-neutral-900"
+                className="mt-2 flex w-full cursor-pointer items-center gap-2 border-t border-neutral-200 pt-2 text-left text-sm text-neutral-600 hover:text-neutral-900"
                 onClick={async () => {
                   await signOut();
                   window.location.href = "/login";

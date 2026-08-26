@@ -112,78 +112,77 @@
 
 :root {
   --top-nav-height: 3.5rem;
-  color-scheme: light dark;
 }
 
-/* System dark mode: the neutral scale flips, semantic tokens follow. */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --color-accent-50: #111a3d;
-    --color-accent-100: #172557;
-    --color-accent-200: #1d3db3;
-    --color-accent-500: #5a75ff;
-    --color-accent-600: #3162ff;
-    --color-accent-700: #2750d9;
+/* Dark theme. html[data-theme] is resolved by the inline script in layout.tsx
+   (user choice from localStorage, else the OS preference). */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --color-accent-50: #111a3d;
+  --color-accent-100: #172557;
+  --color-accent-200: #1d3db3;
+  --color-accent-500: #5a75ff;
+  --color-accent-600: #3162ff;
+  --color-accent-700: #2750d9;
 
-    --color-secondary-50: #16161c;
-    --color-secondary-100: #1e1e26;
-    --color-secondary-200: #2b2b38;
-    --color-secondary-300: #3a3a4c;
+  --color-secondary-50: #16161c;
+  --color-secondary-100: #1e1e26;
+  --color-secondary-200: #2b2b38;
+  --color-secondary-300: #3a3a4c;
 
-    --color-neutral-0: #0a0a0a;
-    --color-neutral-25: #0e0e0e;
-    --color-neutral-50: #121212;
-    --color-neutral-100: #1a1a1a;
-    --color-neutral-150: #202020;
-    --color-neutral-200: #262626;
-    --color-neutral-300: #3a3a3a;
-    --color-neutral-400: #7a7a7a;
-    --color-neutral-500: #9a9a9a;
-    --color-neutral-600: #b5b5b5;
-    --color-neutral-700: #d0d0d0;
-    --color-neutral-800: #e6e6e6;
-    --color-neutral-900: #f2f2f2;
-    --color-neutral-950: #fafafa;
+  --color-neutral-0: #0a0a0a;
+  --color-neutral-25: #0e0e0e;
+  --color-neutral-50: #121212;
+  --color-neutral-100: #1a1a1a;
+  --color-neutral-150: #202020;
+  --color-neutral-200: #262626;
+  --color-neutral-300: #3a3a3a;
+  --color-neutral-400: #7a7a7a;
+  --color-neutral-500: #9a9a9a;
+  --color-neutral-600: #b5b5b5;
+  --color-neutral-700: #d0d0d0;
+  --color-neutral-800: #e6e6e6;
+  --color-neutral-900: #f2f2f2;
+  --color-neutral-950: #fafafa;
 
-    --color-background: #0a0a0a;
-    --color-foreground: #f2f2f2;
-    --color-card: #121212;
-    --color-card-foreground: #f2f2f2;
-    --color-popover: #121212;
-    --color-popover-foreground: #f2f2f2;
-    --color-secondary-foreground: #f2f2f2;
-    --color-muted: #1a1a1a;
-    --color-muted-foreground: #9a9a9a;
-    --color-accent-foreground: #f2f2f2;
-    --color-border: #262626;
-    --color-input: #262626;
+  --color-background: #0a0a0a;
+  --color-foreground: #f2f2f2;
+  --color-card: #121212;
+  --color-card-foreground: #f2f2f2;
+  --color-popover: #121212;
+  --color-popover-foreground: #f2f2f2;
+  --color-secondary-foreground: #f2f2f2;
+  --color-muted: #1a1a1a;
+  --color-muted-foreground: #9a9a9a;
+  --color-accent-foreground: #f2f2f2;
+  --color-border: #262626;
+  --color-input: #262626;
 
-    --color-health-normal: #4ade80;
-    --color-health-normal-bg: #0b2416;
-    --color-health-normal-border: #14532d;
-    --color-health-warning: #fbbf24;
-    --color-health-warning-bg: #2a1d05;
-    --color-health-warning-border: #78350f;
-    --color-health-critical: #f87171;
-    --color-health-critical-bg: #2b0d0d;
-    --color-health-critical-border: #7f1d1d;
-    --color-health-info: #8295ff;
-    --color-health-info-bg: #111a3d;
-    --color-health-info-border: #1d3db3;
-    --color-health-optimal: #a78bfa;
-    --color-health-optimal-bg: #1e1436;
-    --color-health-optimal-border: #4c1d95;
+  --color-health-normal: #4ade80;
+  --color-health-normal-bg: #0b2416;
+  --color-health-normal-border: #14532d;
+  --color-health-warning: #fbbf24;
+  --color-health-warning-bg: #2a1d05;
+  --color-health-warning-border: #78350f;
+  --color-health-critical: #f87171;
+  --color-health-critical-bg: #2b0d0d;
+  --color-health-critical-border: #7f1d1d;
+  --color-health-info: #8295ff;
+  --color-health-info-bg: #111a3d;
+  --color-health-info-border: #1d3db3;
+  --color-health-optimal: #a78bfa;
+  --color-health-optimal-bg: #1e1436;
+  --color-health-optimal-border: #4c1d95;
 
-    --color-red-50: #2b0d0d;
-    --color-red-100: #7f1d1d;
-    --color-green-50: #0b2416;
-    --color-green-100: #14532d;
-    --color-amber-50: #2a1d05;
-    --color-amber-100: #78350f;
+  --color-red-50: #2b0d0d;
+  --color-red-100: #7f1d1d;
+  --color-green-50: #0b2416;
+  --color-green-100: #14532d;
+  --color-amber-50: #2a1d05;
+  --color-amber-100: #78350f;
 
-    --shadow-card: 0 0 0 1px rgba(255, 255, 255, 0.05), 0 2px 4px rgba(0, 0, 0, 0.4);
-    --shadow-card-hover: 0 0 0 1px rgba(255, 255, 255, 0.1), 0 4px 12px rgba(0, 0, 0, 0.5);
-  }
+  --shadow-card: 0 0 0 1px rgba(255, 255, 255, 0.05), 0 2px 4px rgba(0, 0, 0, 0.4);
+  --shadow-card-hover: 0 0 0 1px rgba(255, 255, 255, 0.1), 0 4px 12px rgba(0, 0, 0, 0.5);
 }
 
 
