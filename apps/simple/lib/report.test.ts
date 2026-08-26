@@ -110,15 +110,15 @@ describe("fired rules", () => {
 });
 
 describe("limits", () => {
-  it("keeps at most eight actions, heaviest first", () => {
+  it("keeps at most ten actions, heaviest first", () => {
     const many = Array.from({ length: 12 }, (_, i) =>
       action({
-        title: `action ${i}`,
+        title: `Improve ${["lipids","sleep","iron","kidney","liver","thyroid","glucose","fitness","vitamin","alcohol","protein","hydration"][i]} markers`,
         weight: ((i % 5) + 1) as 1 | 2 | 3 | 4 | 5,
       }),
     );
     const out = postProcess(body({ actions: many }), []);
-    expect(out.actions).toHaveLength(8);
+    expect(out.actions).toHaveLength(10);
     expect(out.actions[0]!.weight).toBe(5);
     const weights = out.actions.map((a) => a.weight);
     expect(weights).toEqual([...weights].sort((a, b) => b - a));

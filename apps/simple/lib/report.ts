@@ -33,7 +33,7 @@ import { overCeiling, VECTORS, type Rule } from "./vectors";
 
 export type ReportTrigger = "manual" | "upload" | "daily";
 
-const MAX_ACTIONS = 8;
+const MAX_ACTIONS = 10;
 const REPORT_EVERY_DAYS = 30;
 
 /* ── the schema the model must fill ───────────────────────────────────── */
@@ -109,6 +109,13 @@ const reportSchema = z.object({
     }),
   ),
   actions: z.array(actionSchema),
+  /** Opinion actions. Required and at least three, so the model cannot hide behind "science" only. */
+  personal: z
+    .array(actionSchema)
+    .min(3)
+    .describe(
+      "At least 3 actions that only THIS person's values, history and habits justify. basis is always opinion; reasoning quotes the values.",
+    ),
   questions: z.array(
     z.object({
       key: z.string(),
@@ -134,7 +141,7 @@ PRESCRIPTION DRUGS use kind "doctor". Say what to ask for, the usual dose range 
 
 ADAPT to sex and age. The optimal ranges you are given are already sex-adjusted; use those, not textbook ones. Prefer the cheapest lever first: food, sleep and movement before a supplement, a supplement before a drug.
 
-FIRED RULES: every rule in the FIRED RULES section becomes a "test" action, basis "science", using that rule's "why" as the action's "why" and its reference as an evidence item.
+FIRED RULES: every rule in the FIRED RULES section becomes its own "test" action, one per rule, never bundled. Use the rule's "suggest" text verbatim as the title, its "why" as the action's "why", and its reference as an evidence item. Basis "science".
 
 DISMISSED: never propose anything in the DISMISSED ACTIONS list again.
 
@@ -142,7 +149,9 @@ DISCUSSION: the USER CONTEXT AND DISCUSSION section is what this person told you
 
 REGISTERS: "why" is one plain sentence for a smart adult. "eli5" is two sentences with exactly one concrete metaphor and no numbers unless the number is the action itself.
 
-LIMITS: at most 8 actions, at most 3 summary lines, at most 3 questions. Sort nothing; give each action a weight from 1 to 5 for how much it matters to this person now. End with the questions whose answers would change the plan most.`;
+OPINION IS THE POINT. The rule-driven tests are the floor, not the plan. Write at least 3 "opinion" actions that only this person's numbers, history and habits justify: which lever to pull first and why for them, sequencing ("fix D before judging testosterone"), personal dose adjustments, what their family history changes about the target. Each one quotes the values in "reasoning".
+
+LIMITS: at most 10 actions, at most 3 summary lines, at most 3 questions. Sort nothing; give each action a weight from 1 to 5 for how much it matters to this person now. End with the questions whose answers would change the plan most.`;
 
 /* ── the context pack ─────────────────────────────────────────────────── */
 
@@ -351,7 +360,17 @@ export function postProcess(body: ReportBody, rules: Rule[]): ReportBody {
   for (const rule of rules)
     if (!ruleCovered(rule, kept)) kept.push(ruleAction(rule));
 
-  const actions = kept
+  // ponytail: word-overlap dedupe; the model sometimes writes the same test twice.
+  const words = (a: ReportAction) => new Set(norm(a.title).split(" ").filter((w) => w.length > 3));
+  const deduped = kept.filter((a, i) =>
+    !kept.slice(0, i).some((b) => {
+      const wa = words(a), wb = words(b);
+      const shared = [...wa].filter((w) => wb.has(w)).length;
+      return shared >= 3 && shared / Math.max(1, Math.min(wa.size, wb.size)) >= 0.75;
+    }),
+  );
+
+  const actions = deduped
     .sort((a, b) => b.weight - a.weight)
     .slice(0, MAX_ACTIONS);
 
@@ -392,7 +411,17 @@ export async function generateReport(
     prompt: context,
   });
 
-  const body = postProcess(object as ReportBody, rules);
+  const { personal, ...rest } = object;
+  const body = postProcess(
+    {
+      ...rest,
+      actions: [
+        ...rest.actions,
+        ...personal.map((a) => ({ ...a, basis: "opinion" as const })),
+      ],
+    } as ReportBody,
+    rules,
+  );
 
   const [row] = await getDb()
     .insert(reports)
