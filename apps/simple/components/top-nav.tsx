@@ -14,6 +14,7 @@ import {
   LogOut,
   MessageSquare,
   Sparkles,
+  Stethoscope,
   Target,
   TrendingUp,
   Upload,
@@ -34,6 +35,7 @@ interface NavItem {
 const navigation: NavItem[] = [
   { name: "Home", href: "/", icon: LayoutDashboard },
   { name: "Today", href: "/today", icon: CalendarCheck },
+  { name: "Plan", href: "/plan", icon: Stethoscope },
   { name: "Biomarkers", href: "/biomarkers", icon: ListChecks },
   { name: "Labs", href: "/labs", icon: FlaskConical, secondary: true },
   { name: "Trends", href: "/trends", icon: TrendingUp, secondary: true },

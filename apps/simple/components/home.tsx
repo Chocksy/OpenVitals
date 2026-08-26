@@ -15,6 +15,7 @@ import {
   Flame,
   FlaskConical,
   Sparkles,
+  Stethoscope,
   Target,
 } from "lucide-react";
 import { cn, formatDate } from "@/lib/utils";
@@ -862,5 +863,41 @@ export function GoalsCard({
         </div>
       )}
     </div>
+  );
+}
+
+/** The plan in two lines: what to do first, and how much is still unmeasured. */
+export function PlanCard({
+  actions,
+  neverCount,
+}: {
+  actions: string[];
+  neverCount: number;
+}) {
+  return (
+    <Link href="/plan" className="card block p-4 hover:border-accent-200">
+      <div className="flex items-center justify-between">
+        <span className="font-mono text-[10px] font-bold uppercase tracking-[0.06em] text-neutral-400">
+          Plan
+        </span>
+        <Stethoscope className="size-3.5 text-neutral-400" />
+      </div>
+      {actions.length ? (
+        <ul className="mt-2 space-y-1">
+          {actions.map((a) => (
+            <li key={a} className="truncate font-body text-[13px] text-neutral-800">
+              {a}
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="mt-2 font-body text-[13px] text-neutral-500">
+          No plan yet. Open it and press Generate.
+        </p>
+      )}
+      <p className="mt-2 font-mono text-[11px] text-neutral-400">
+        {neverCount} core marker{neverCount === 1 ? "" : "s"} never measured
+      </p>
+    </Link>
   );
 }

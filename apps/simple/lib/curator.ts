@@ -27,6 +27,7 @@ import {
   type ReadingFlag,
   type ReviewSubject,
 } from "@/db";
+import { queueProfileQuestions, saveFact } from "./coverage";
 import { model, stripCodeFences } from "./extract";
 import { inGoal } from "./daily";
 import { conversionFactor, normalizeUnit, round } from "./units";
@@ -701,6 +702,8 @@ export async function runCurator(
       bump(a.check).queued++;
     }
 
+    await queueProfileQuestions(userId);
+
     await db
       .update(curatorRuns)
       .set({ finishedAt: new Date(), stats })
@@ -865,6 +868,23 @@ export async function applyAnswer(
           .set({ flags: addFlags(r, "foreign_ok") })
           .where(eq(readingsTable.id, r.id));
     }
+  }
+
+  /** The plan's own questions: the answer becomes a profile fact. */
+  if (item.kind === "profile_question" && s.factKey) {
+    const text = s.free ? String(note ?? "") : answer;
+    if (text.trim()) {
+      await saveFact(userId, s.factKey, text);
+      status = "applied";
+    }
+  }
+
+  /** A scheduled check-in. Nothing to apply; the answer itself is the point. */
+  if (item.kind === "check_in") {
+    // ponytail: review_items has no note column, so a free-text check-in
+    // answer is folded into the answer string.
+    if (note?.trim()) answer = `${answer} — ${note.trim()}`;
+    status = "applied";
   }
 
   const [updated] = await db

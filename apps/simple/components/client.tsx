@@ -7,7 +7,7 @@ import { Play, RefreshCw, Search, Upload } from "lucide-react";
 import { signIn, signUp } from "@/lib/auth-client";
 import { statusColor, type Status } from "@/lib/status";
 import type { BiomarkerRow } from "@/lib/data";
-import { fmtCategory } from "@/lib/utils";
+import { cn, fmtCategory } from "@/lib/utils";
 import { Button, MiniSparkline } from "./ui-kit";
 
 const INPUT =
@@ -78,7 +78,9 @@ export function LoginForm({ google }: { google: boolean }) {
         <Button
           variant="outline-subtle"
           className="w-full"
-          onClick={() => signIn.social({ provider: "google", callbackURL: "/" })}
+          onClick={() =>
+            signIn.social({ provider: "google", callbackURL: "/" })
+          }
         >
           Continue with Google
         </Button>
@@ -90,7 +92,9 @@ export function LoginForm({ google }: { google: boolean }) {
         className="font-mono text-[11px] uppercase tracking-[0.04em] text-neutral-500 hover:text-neutral-900"
         onClick={() => setMode(mode === "in" ? "up" : "in")}
       >
-        {mode === "in" ? "Need an account? Sign up" : "Have an account? Sign in"}
+        {mode === "in"
+          ? "Need an account? Sign up"
+          : "Have an account? Sign in"}
       </button>
     </div>
   );
@@ -109,7 +113,9 @@ export function UploadButton() {
     const res = await fetch("/api/upload", { method: "POST", body });
     const json = await res.json();
     setBusy(false);
-    setState(res.ok ? `Imported ${json.count} results` : `Failed: ${json.error}`);
+    setState(
+      res.ok ? `Imported ${json.count} results` : `Failed: ${json.error}`,
+    );
     router.refresh();
   }
 
@@ -207,7 +213,9 @@ export function CheckinButtons({
           size="sm"
           variant={current === a ? "default" : "outline-subtle"}
           disabled={busy}
-          onClick={() => run("/api/checkins", { insightId, itemIndex, answer: a })}
+          onClick={() =>
+            run("/api/checkins", { insightId, itemIndex, answer: a })
+          }
         >
           {a === "did" ? "Did it" : a === "didnt" ? "Didn't" : "Skip"}
         </Button>
@@ -310,7 +318,8 @@ export function BiomarkerList({ rows }: { rows: BiomarkerRow[] }) {
 
 /**
  * One curator question. The option that needs a number ("Multiply by …") opens
- * a small input; everything else posts straight away.
+ * a small input; a question with no options at all is a free-text fact, so it
+ * gets a text box and a Save button; everything else posts straight away.
  */
 export function ReviewItem({
   id,
@@ -329,7 +338,44 @@ export function ReviewItem({
   const { run, busy, error } = useAction();
   const [note, setNote] = useState("");
   const needsNote = (o: string) =>
-    o.startsWith("Multiply") || o.startsWith("Move");
+    o.startsWith("Multiply") || o.startsWith("Move") || o.startsWith("Note");
+
+  if (options.length === 0)
+    return (
+      <div className="card p-4">
+        <p className="font-body text-[13px] text-neutral-800">{question}</p>
+        {detail && (
+          <p className="mt-1 font-mono text-[10px] text-neutral-400">
+            {detail}
+          </p>
+        )}
+        <div className="mt-3 flex flex-wrap items-center gap-2">
+          <input
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+            placeholder="Your answer"
+            className={`${INPUT} max-w-sm`}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && note.trim())
+                void run(`/api/review/${id}`, { answer: "text", note });
+            }}
+          />
+          <Button
+            size="sm"
+            variant="outline-subtle"
+            disabled={busy || !note.trim()}
+            onClick={() => run(`/api/review/${id}`, { answer: "text", note })}
+          >
+            Save
+          </Button>
+          {error && (
+            <span className="text-[12px] text-[var(--color-health-critical)]">
+              {error}
+            </span>
+          )}
+        </div>
+      </div>
+    );
 
   return (
     <div className="card p-4">
@@ -362,9 +408,12 @@ export function ReviewItem({
                 <input
                   value={note}
                   onChange={(e) => setNote(e.target.value)}
-                  placeholder="factor"
-                  inputMode="decimal"
-                  className="w-20 border border-neutral-200 bg-neutral-0 px-2 py-1 font-mono text-[12px]"
+                  placeholder={o.startsWith("Note") ? "your answer" : "factor"}
+                  inputMode={o.startsWith("Note") ? "text" : "decimal"}
+                  className={cn(
+                    "border border-neutral-200 bg-neutral-0 px-2 py-1 font-mono text-[12px]",
+                    o.startsWith("Note") ? "w-56" : "w-20",
+                  )}
                 />
               ))}
             <Button

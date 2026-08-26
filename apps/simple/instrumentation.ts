@@ -1,5 +1,6 @@
 /**
- * The daily curator pass, and the Monday weekly review.
+ * The daily curator pass, the 30-day plan refresh, and the Monday weekly
+ * review.
  *
  * ponytail: in-process timer; move to an external cron if there is ever more
  * than one web replica.
@@ -15,6 +16,10 @@ export function register() {
       const { runCuratorForAllUsers } = await import("@/lib/curator");
       const users = await runCuratorForAllUsers("daily");
       console.log(`[curator] daily pass over ${users} user(s)`);
+
+      const { generateStaleReports } = await import("@/lib/report");
+      const plans = await generateStaleReports();
+      console.log(`[plan] generated ${plans} report(s)`);
 
       if (new Date().getDay() === 1) {
         const { generateWeeklyForAllUsers } = await import("@/lib/ai");

@@ -500,6 +500,11 @@ select:focus {
   color: var(--color-accent-900);
 }
 
+/* ── Simple / Deep, one switch on the page root ──────────────────────── */
+[data-view="simple"] .deep {
+  display: none;
+}
+
 /* ── Print styles for health reports ─────────────────────────────────── */
 @media print {
   body {

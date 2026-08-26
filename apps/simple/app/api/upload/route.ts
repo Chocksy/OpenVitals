@@ -5,6 +5,7 @@ import { extractFromPdf, slugify } from "@/lib/extract";
 import { canonicalCode } from "@/lib/merge-metrics";
 import { ensureImported } from "@/lib/import-legacy";
 import { runCurator } from "@/lib/curator";
+import { generateReport } from "@/lib/report";
 
 export const maxDuration = 120;
 
@@ -70,7 +71,11 @@ export async function POST(req: Request) {
       .where(eq(uploads.id, upload!.id));
 
     // Fire and forget: runCurator writes its own failures into curator_runs.
-    void runCurator(userId, "upload", { uploadId: upload!.id });
+    void runCurator(userId, "upload", { uploadId: upload!.id }).then(() =>
+      generateReport(userId, "upload").catch((e) =>
+        console.error("[plan] upload report failed:", e),
+      ),
+    );
 
     return Response.json({ uploadId: upload!.id, count: values.length });
   } catch (e) {

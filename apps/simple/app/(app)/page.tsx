@@ -6,6 +6,8 @@ import { getDb, insights, uploads, type RetestBody } from "@/db";
 import { getMetricRows } from "@/lib/data";
 import { openReviewCount } from "@/lib/curator";
 import { getHomeExtras } from "@/lib/daily-data";
+import { buildModelInput, coverage } from "@/lib/coverage";
+import { latestReport } from "@/lib/report";
 import { buildHome, buildRetestPreview } from "@/lib/home-data";
 import { UploadButton } from "@/components/client";
 import {
@@ -17,6 +19,7 @@ import {
   HealthInsights,
   HealthScore,
   PanelSectionHeader,
+  PlanCard,
   TodayCard,
   UpcomingRetests,
   WhatChanged,
@@ -29,7 +32,8 @@ export default async function Home() {
   const [user, rows] = await Promise.all([currentUser(), getMetricRows(userId)]);
   const db = getDb();
 
-  const [uploadCount, latestRetest, reviewCount, extras] = await Promise.all([
+  const [uploadCount, latestRetest, reviewCount, extras, plan, model] =
+    await Promise.all([
     db
       .select({ n: sql<number>`count(*)::int` })
       .from(uploads)
@@ -41,9 +45,19 @@ export default async function Home() {
       .where(eq(insights.userId, userId))
       .orderBy(desc(insights.createdAt))
       .then((r) => r.find((i) => i.kind === "retest")),
-    openReviewCount(userId),
-    getHomeExtras(userId),
-  ]);
+      openReviewCount(userId),
+      getHomeExtras(userId),
+      latestReport(userId),
+      buildModelInput(userId),
+    ]);
+
+  const neverCount = coverage(model).filter(
+    (r) => r.vector.tier === 1 && r.state === "never",
+  ).length;
+  const topActions = [...(plan?.body.actions ?? [])]
+    .sort((a, b) => b.weight - a.weight)
+    .slice(0, 2)
+    .map((a) => a.title);
 
   const home = buildHome(rows);
   const retest = buildRetestPreview(
@@ -134,6 +148,10 @@ export default async function Home() {
           logged={extras.logged}
         />
         <GoalsCard goals={extras.goals} />
+      </div>
+
+      <div className="mt-6">
+        <PlanCard actions={topActions} neverCount={neverCount} />
       </div>
 
       {hasData &&
