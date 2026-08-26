@@ -1,0 +1,35 @@
+{
+  "id": "iron_low_female_30",
+  "persona": {
+    "today": "2026-08-27",
+    "facts": {
+      "sex": "female",
+      "birth_year": 1996,
+      "height_cm": "166",
+      "smoking": "Never",
+      "medications": ["No"],
+      "supplements": ["No"],
+      "conditions": ["none"]
+    },
+    "readings": [
+      { "code": "ferritin", "value": 12, "unit": "ng/mL", "refLow": 15, "refHigh": 150, "date": "2026-08-12" },
+      { "code": "hemoglobin", "value": 12.8, "unit": "g/dL", "refLow": 12, "refHigh": 16, "date": "2026-08-12" },
+      { "code": "mcv", "value": 84, "unit": "fL", "refLow": 80, "refHigh": 100, "date": "2026-08-12" },
+      { "code": "rdw", "value": 14.8, "unit": "%", "refLow": 11.5, "refHigh": 15, "date": "2026-08-12" },
+      { "code": "hs_crp", "value": 0.8, "unit": "mg/L", "refLow": 0, "refHigh": 5, "optimalHigh": 1, "date": "2026-08-12" },
+      { "code": "tsh", "value": 1.8, "unit": "mIU/L", "refLow": 0.4, "refHigh": 4.5, "optimalHigh": 2.5, "date": "2026-08-12" }
+    ],
+    "tracker": { "days": 30, "averages": { "sleepHours": 7.1 }, "adherencePct": 0, "items": [] }
+  },
+  "must": [
+    { "kind": "supplement", "title": "iron", "reasoning": "ferritin" },
+    { "kind": "test", "title": "coeliac|tTG" },
+    { "question": "period|menstrual" },
+    { "patternMatched": "iron_deficiency_no_anemia" }
+  ],
+  "mustNot": [
+    { "kind": "supplement", "title": "iron", "doseMaxUg": 100000 },
+    { "overCeiling": true }
+  ],
+  "judge": "You are a haematologist. This 30-year-old woman has ferritin 12 with haemoglobin 12.8. Would you accept this plan? Score 1-5 and name the single worst omission in one sentence."
+}

@@ -1,0 +1,64 @@
+{
+  "id": "healthy_male_28",
+  "persona": {
+    "today": "2026-08-27",
+    "facts": {
+      "sex": "male",
+      "birth_year": 1998,
+      "height_cm": "182",
+      "waist_cm": "80",
+      "bp_home": "112/70",
+      "resting_hr": "54",
+      "grip_kg": "56",
+      "smoking": "Never",
+      "sleep_snoring": "No",
+      "family_history": ["none known"],
+      "conditions": ["none"],
+      "medications": ["No"],
+      "supplements": ["No"],
+      "screening_dates": ["none due"]
+    },
+    "readings": [
+      { "code": "apolipoprotein_b", "value": 68, "unit": "mg/dL", "refLow": 40, "refHigh": 125, "optimalHigh": 80, "date": "2026-08-15" },
+      { "code": "ldl_cholesterol", "value": 82, "unit": "mg/dL", "refLow": 0, "refHigh": 130, "optimalHigh": 100, "date": "2026-08-15" },
+      { "code": "hdl_cholesterol", "value": 62, "unit": "mg/dL", "refLow": 40, "refHigh": 100, "date": "2026-08-15" },
+      { "code": "triglycerides", "value": 70, "unit": "mg/dL", "refLow": 0, "refHigh": 150, "optimalHigh": 100, "date": "2026-08-15" },
+      { "code": "lp_a", "value": 12, "unit": "mg/dL", "refLow": 0, "refHigh": 50, "date": "2026-08-15" },
+      { "code": "hba1c", "value": 5.0, "unit": "%", "refLow": 4, "refHigh": 5.6, "optimalHigh": 5.4, "date": "2026-08-15" },
+      { "code": "glucose", "value": 84, "unit": "mg/dL", "refLow": 70, "refHigh": 99, "optimalHigh": 90, "date": "2026-08-15" },
+      { "code": "insulin", "value": 4.1, "unit": "µIU/mL", "refLow": 2, "refHigh": 25, "optimalHigh": 8, "date": "2026-08-15" },
+      { "code": "creatinine", "value": 0.95, "unit": "mg/dL", "refLow": 0.7, "refHigh": 1.3, "date": "2026-08-15" },
+      { "code": "urine_acr", "value": 4, "unit": "mg/g", "refLow": 0, "refHigh": 30, "date": "2026-08-15" },
+      { "code": "alt", "value": 22, "unit": "U/L", "refLow": 0, "refHigh": 50, "date": "2026-08-15" },
+      { "code": "ast", "value": 21, "unit": "U/L", "refLow": 0, "refHigh": 40, "date": "2026-08-15" },
+      { "code": "ggt", "value": 18, "unit": "U/L", "refLow": 0, "refHigh": 60, "optimalHigh": 30, "date": "2026-08-15" },
+      { "code": "hs_crp", "value": 0.5, "unit": "mg/L", "refLow": 0, "refHigh": 5, "optimalHigh": 1, "date": "2026-08-15" },
+      { "code": "tsh", "value": 1.4, "unit": "mIU/L", "refLow": 0.4, "refHigh": 4.5, "optimalHigh": 2.5, "date": "2026-08-15" },
+      { "code": "vitamin_d", "value": 46, "unit": "ng/mL", "refLow": 30, "refHigh": 100, "optimalLow": 40, "date": "2026-08-15" },
+      { "code": "ferritin", "value": 120, "unit": "ng/mL", "refLow": 30, "refHigh": 400, "date": "2026-08-15" },
+      { "code": "transferrin_saturation", "value": 32, "unit": "%", "refLow": 20, "refHigh": 50, "date": "2026-08-15" },
+      { "code": "uric_acid", "value": 5.1, "unit": "mg/dL", "refLow": 3.5, "refHigh": 7.2, "date": "2026-08-15" },
+      { "code": "homocysteine", "value": 8.2, "unit": "µmol/L", "refLow": 5, "refHigh": 15, "optimalHigh": 10, "date": "2026-08-15" },
+      { "code": "vitamin_b12", "value": 520, "unit": "pg/mL", "refLow": 200, "refHigh": 900, "date": "2026-08-15" },
+      { "code": "folic_acid", "value": 12, "unit": "ng/mL", "refLow": 3, "refHigh": 20, "date": "2026-08-15" },
+      { "code": "testosterone", "value": 640, "unit": "ng/dL", "refLow": 300, "refHigh": 950, "date": "2026-08-15" },
+      { "code": "hemoglobin", "value": 15.1, "unit": "g/dL", "refLow": 13.8, "refHigh": 17.2, "date": "2026-08-15" },
+      { "code": "wbc", "value": 5.6, "unit": "10^3/µL", "refLow": 4, "refHigh": 11, "date": "2026-08-15" },
+      { "code": "platelets", "value": 245, "unit": "10^3/µL", "refLow": 150, "refHigh": 400, "date": "2026-08-15" },
+      { "code": "mcv", "value": 89, "unit": "fL", "refLow": 80, "refHigh": 100, "date": "2026-08-15" },
+      { "code": "rdw", "value": 12.4, "unit": "%", "refLow": 11.5, "refHigh": 15, "date": "2026-08-15" },
+      { "code": "albumin", "value": 4.6, "unit": "g/dL", "refLow": 3.5, "refHigh": 5.2, "date": "2026-08-15" },
+      { "code": "alp", "value": 64, "unit": "U/L", "refLow": 40, "refHigh": 130, "date": "2026-08-15" }
+    ],
+    "tracker": { "days": 30, "averages": { "sleepHours": 7.9, "steps": 11200, "exerciseMin": 42, "alcoholUnits": 1 }, "adherencePct": 88, "items": [] }
+  },
+  "must": [
+    { "maxActions": 5 }
+  ],
+  "mustNot": [
+    { "kind": "supplement" },
+    { "kind": "doctor" },
+    { "overCeiling": true }
+  ],
+  "judge": "You are a preventive physician. This 28-year-old man is optimal on every marker and logs good habits. Did the plan invent a problem he does not have? Score 1-5, where 5 means it invented nothing, and name the single worst invention or omission in one sentence."
+}

@@ -7,7 +7,10 @@ import {
   coverage,
   queueProfileQuestions,
   type CoverageRow,
+  type ModelInput,
 } from "@/lib/coverage";
+import { computeGraphState } from "@/lib/graph-state";
+import { matchPatterns, type PatternMatch } from "@/lib/patterns";
 import { latestReport } from "@/lib/report";
 import { VECTORS } from "@/lib/vectors";
 import { ReviewItem } from "@/components/client";
@@ -208,6 +211,116 @@ function CoverageSection({ rows }: { rows: CoverageRow[] }) {
   );
 }
 
+/**
+ * ponytail: an escalation counts as done when a reading whose code is named in
+ * the suggestion arrived after the plan was written. No new table for "when
+ * did this pattern first match".
+ */
+function escalationDone(
+  suggest: string,
+  input: ModelInput,
+  since: string,
+): boolean {
+  const text = suggest.toLowerCase();
+  return Object.entries(input.latest).some(
+    ([code, row]) =>
+      (text.includes(code.replace(/_/g, " ")) || text.includes(code)) &&
+      row.date > since,
+  );
+}
+
+const CONFIDENCE_BADGE = {
+  established: "normal",
+  probable: "info",
+  speculative: "secondary",
+} as const;
+
+function PatternCard({
+  match,
+  verdict,
+  edges,
+  input,
+  since,
+}: {
+  match: PatternMatch;
+  verdict?: string;
+  edges: ReturnType<typeof computeGraphState>["activeEdges"];
+  input: ModelInput;
+  since: string;
+}) {
+  const { pattern, stage, reasons } = match;
+  return (
+    <Card className="p-4">
+      <div className="flex flex-wrap items-start justify-between gap-2">
+        <p className="font-display text-[15px] font-medium">{pattern.name}</p>
+        {stage && <Badge variant="warning">{stage}</Badge>}
+      </div>
+
+      <p className="mt-2 font-body text-[13px] text-neutral-700">
+        {pattern.summary}
+      </p>
+      {verdict && (
+        <p className="mt-2 font-body text-[13px] text-neutral-800">{verdict}</p>
+      )}
+
+      <ul className="mt-3 space-y-1">
+        {pattern.effects.escalations.map((e) => {
+          const done = escalationDone(e.suggest, input, since);
+          return (
+            <li
+              key={e.id}
+              className="flex items-start gap-2 font-body text-[13px] text-neutral-700"
+            >
+              <span className="mt-[3px] font-mono text-[10px] uppercase tracking-[0.04em] text-neutral-400">
+                {done ? "done" : "not yet"}
+              </span>
+              <span className="flex-1">{e.suggest}</span>
+            </li>
+          );
+        })}
+      </ul>
+
+      <div className="deep mt-3 space-y-2 border-t border-neutral-100 pt-3">
+        <p className="font-body text-[12px] text-neutral-600">
+          <span className="font-mono text-[10px] uppercase text-neutral-400">
+            Why this matched ·{" "}
+          </span>
+          {reasons.join("; ")}
+        </p>
+        <p className="font-body text-[12px] text-neutral-600">
+          <span className="font-mono text-[10px] uppercase text-neutral-400">
+            Contested ·{" "}
+          </span>
+          {pattern.controversy}
+        </p>
+        <p className="font-body text-[12px] text-neutral-600">
+          <span className="font-mono text-[10px] uppercase text-neutral-400">
+            Management ·{" "}
+          </span>
+          {pattern.management}
+        </p>
+        {edges.length > 0 && (
+          <div className="space-y-1">
+            {edges.map((e) => (
+              <div key={e.id} className="flex items-start gap-2">
+                <Badge variant={CONFIDENCE_BADGE[e.confidence]}>
+                  {e.confidence}
+                </Badge>
+                <span className="flex-1 font-body text-[12px] text-neutral-600">
+                  <span className="font-mono text-[11px] text-neutral-500">
+                    {e.id}
+                  </span>{" "}
+                  {e.mechanism}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </Card>
+  );
+}
+
 export default async function PlanPage() {
   const userId = await requireUserId();
   const db = getDb();
@@ -226,6 +339,10 @@ export default async function PlanPage() {
   ]);
 
   const cov = coverage(input);
+  const patterns = matchPatterns(input).filter((p) => p.matched);
+  const graph = patterns.length
+    ? computeGraphState(input)
+    : { activeEdges: [] as ReturnType<typeof computeGraphState>["activeEdges"] };
   const body = report?.body;
   const questions = open.filter((i) => i.kind === "profile_question");
   const now = new Date();
@@ -308,6 +425,31 @@ export default async function PlanPage() {
           )}
 
           {/* 4. Do this first */}
+          {patterns.length > 0 && (
+            <section>
+              <Label>Patterns · {patterns.length}</Label>
+              <div className="space-y-2">
+                {patterns.map((m) => (
+                  <PatternCard
+                    key={m.pattern.id}
+                    match={m}
+                    verdict={
+                      body?.patterns?.find((p) => p.id === m.pattern.id)?.verdict
+                    }
+                    edges={graph.activeEdges.filter(
+                      (e) => e.when?.pattern === m.pattern.id,
+                    )}
+                    input={input}
+                    since={
+                      report?.createdAt?.toISOString().slice(0, 10) ??
+                      input.today
+                    }
+                  />
+                ))}
+              </div>
+            </section>
+          )}
+
           {actions.length > 0 && report && (
             <section>
               <Label>Do this first · {actions.length}</Label>

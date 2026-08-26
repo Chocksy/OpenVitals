@@ -27,8 +27,10 @@ import {
   type CoverageRow,
   type ModelInput,
 } from "./coverage";
-import { getTrackerSummary } from "./daily-data";
+import { getTrackerSummary, type TrackerSummary } from "./daily-data";
 import { model } from "./extract";
+import { computeGraphState, type GraphState } from "./graph-state";
+import { matchPatterns, type PatternMatch, type PatternQuestion } from "./patterns";
 import { overCeiling, VECTORS, type Rule } from "./vectors";
 
 export type ReportTrigger = "manual" | "upload" | "daily";
@@ -124,9 +126,19 @@ const reportSchema = z.object({
       options: z.array(z.string()).optional(),
     }),
   ),
+  /** One entry per pattern in MATCHED PATTERNS. Omitted when none matched. */
+  patterns: z
+    .array(
+      z.object({
+        id: z.string(),
+        stage: z.string().optional(),
+        verdict: z.string(),
+      }),
+    )
+    .optional(),
 });
 
-const SYSTEM_PROMPT = `You are this person's physician. You have their blood work, their profile answers, their daily tracker and a list of rules that already fired. Write the plan you would write for a patient you know well.
+export const SYSTEM_PROMPT = `You are this person's physician. You have their blood work, their profile answers, their daily tracker and a list of rules that already fired. Write the plan you would write for a patient you know well.
 
 COMMIT. Every action names the dose, the form, the schedule, the duration, and what you expect to change, with a number and a date. No "consider", no "may help", no hedging in the prose.
 
@@ -150,6 +162,10 @@ DISCUSSION: the USER CONTEXT AND DISCUSSION section is what this person told you
 REGISTERS: "why" is one plain sentence for a smart adult. "eli5" is two sentences with exactly one concrete metaphor and no numbers unless the number is the action itself.
 
 OPINION IS THE POINT. The rule-driven tests are the floor, not the plan. Write at least 3 "opinion" actions that only this person's numbers, history and habits justify: which lever to pull first and why for them, sequencing ("fix D before judging testosterone"), personal dose adjustments, what their family history changes about the target. Each one quotes the values in "reasoning".
+
+PATTERNS: when a pattern is matched, its management text is your starting point. State the controversy in one sentence in the system verdict, then say what decides it for this person. Fill "patterns" with one entry per matched pattern: its id, its stage, and your verdict.
+
+TRACEABILITY: every opinion action's "reasoning" names at least one graph element by id (an edge id like "tsh->ldl_cholesterol" or "pattern:hashimoto") from the HOT GRAPH or ACTIVE EDGES sections, plus the values.
 
 LIMITS: at most 10 actions, at most 3 summary lines, at most 3 questions. Sort nothing; give each action a weight from 1 to 5 for how much it matters to this person now. End with the questions whose answers would change the plan most.`;
 
@@ -181,7 +197,7 @@ function metricLines(input: ModelInput): string {
           r.value != null && r.prev != null
             ? `${r.value - r.prev > 0 ? "+" : ""}${Math.round((r.value - r.prev) * 100) / 100}`
             : "-";
-        return `    ${code}: ${num(r.value)} ${r.unit ?? ""} | optimal ${num(r.optimalLow)}..${num(r.optimalHigh)} | lab ${num(r.refLow)}..${num(r.refHigh)} | ${r.status} | delta ${delta} | ${r.date}`;
+        return `    ${code}: ${num(r.value)} ${r.unit ?? ""} | optimal ${num(r.optimalLow)}..${num(r.optimalHigh)} | lab ${num(r.refLow)}..${num(r.refHigh)} | ${r.status} | delta ${delta} | ${r.date}${r.note ? `\n      note: ${r.note}` : ""}`;
       });
     if (rows.length)
       out.push(`  ${vector.name} (${vector.id}):\n${rows.join("\n")}`);
@@ -238,27 +254,129 @@ function discussionLines(previous: Report | null): string {
   return rows.join("\n") || "- nothing discussed yet";
 }
 
-export async function buildReportContext(userId: string) {
-  const input = await buildModelInput(userId);
-  const cov = coverage(input);
-  const rules = fireRules(input);
-  const [tracker, previous] = await Promise.all([
-    getTrackerSummary(userId, 30),
-    latestReport(userId),
-  ]);
-  const open = profileQuestions(input);
-  const dismissed = Array.isArray(input.profile.dismissed_actions)
-    ? (input.profile.dismissed_actions as string[])
-    : [];
+/** The pattern questions this person has not answered yet. */
+function openPatternQuestions(
+  matches: PatternMatch[],
+  input: ModelInput,
+): PatternQuestion[] {
+  const out: PatternQuestion[] = [];
+  for (const match of matches) {
+    if (match.matched)
+      for (const q of match.pattern.effects.questions)
+        if (input.profile[q.key] == null) out.push(q);
+    for (const q of match.pendingQuestions ?? [])
+      if (input.profile[q.key] == null) out.push(q);
+  }
+  return out;
+}
 
-  const protocol = tracker.items.length
-    ? tracker.items
-        .map(
-          (i) =>
-            `- "${i.text}" (${i.cadence}): done ${i.done}x, ${i.adherence}% adherence`,
-        )
-        .join("\n")
-    : "- nothing adopted yet";
+function patternLines(matches: PatternMatch[], input: ModelInput): string {
+  const rows = matches
+    .filter((p) => p.matched)
+    .map(({ pattern, stage, reasons }) => {
+      const open = pattern.effects.questions
+        .filter((q) => input.profile[q.key] == null)
+        .map((q) => q.text);
+      return `- ${pattern.id}${stage ? ` (stage: ${stage})` : ""}: ${pattern.summary} | controversy: ${pattern.controversy} | management: ${pattern.management}
+  reasons: ${reasons.join("; ") || "detector matched"}
+  escalations not yet done: ${pattern.effects.escalations.map((e) => `${e.suggest} (${e.why})`).join(" ; ")}
+  open questions: ${open.join(" ") || "none"}`;
+    });
+  const pending = matches.flatMap((m) => m.pendingQuestions ?? []);
+  if (pending.length)
+    rows.push(
+      `- undecided: ask ${pending.map((q) => `"${q.text}"`).join(" ")} before calling a pattern.`,
+    );
+  return rows.join("\n") || "- none matched";
+}
+
+/** The node id without its kind prefix: "metric:tsh" reads as "tsh". */
+const short = (id: string) => id.slice(id.indexOf(":") + 1);
+
+function graphLines(graph: GraphState): string {
+  const hot = graph.hot
+    .map(
+      (n) =>
+        `- ${n.id} ${n.importance} (${n.reasons.join("; ") || "no reason recorded"})`,
+    )
+    .join("\n");
+  const edges = graph.activeEdges
+    .map(
+      (e) =>
+        `- ${e.id} ${e.relation} ${short(e.to)} | strength ${e.strength} | ${e.confidence} | ${e.basis} |${e.when?.pattern ? ` pattern:${e.when.pattern} |` : ""} mechanism: ${e.mechanism} | evidence: ${e.evidence.map((x) => x.title).join(", ")}`,
+    )
+    .join("\n");
+  return `HOT GRAPH (top ${graph.hot.length} nodes by importance for this person):
+${hot || "- nothing is hot yet"}
+
+ACTIVE EDGES:
+${edges || "- none active"}`;
+}
+
+export interface ContextExtras {
+  tracker: TrackerSummary;
+  previous?: Report | null;
+  /** Derived from `tracker` and `previous` when not given. */
+  protocol?: string;
+  discussion?: string;
+  dismissed?: string[];
+  adoptedCodes?: string[];
+}
+
+export interface ReportContext {
+  input: ModelInput;
+  cov: CoverageRow[];
+  /** Fired rules plus the escalations of every matched pattern. */
+  rules: Rule[];
+  patterns: PatternMatch[];
+  graph: GraphState;
+  /** Pattern questions to queue, on top of the model's own. */
+  questions: PatternQuestion[];
+  context: string;
+}
+
+/**
+ * Everything the model reads, from an input that is already loaded. Pure, so
+ * the evals build a persona in memory and get the same context pack the job
+ * would have built from the database.
+ */
+export function buildContextFromInput(
+  input: ModelInput,
+  extras: ContextExtras,
+): ReportContext {
+  const { tracker, previous = null } = extras;
+  const cov = coverage(input);
+  const patterns = matchPatterns(input);
+  const matched = patterns.filter((p) => p.matched);
+  const rules = [
+    ...fireRules(input),
+    ...matched.flatMap((p) => p.pattern.effects.escalations),
+  ];
+  const focus = String(input.profile.focus ?? "")
+    .split(",")
+    .map((f) => f.trim())
+    .filter(Boolean);
+  const adoptedCodes =
+    extras.adoptedCodes ?? tracker.items.flatMap((i) => i.metricCodes ?? []);
+  const graph = computeGraphState(input, { focus, adoptedCodes });
+
+  const open = profileQuestions(input);
+  const dismissed =
+    extras.dismissed ??
+    (Array.isArray(input.profile.dismissed_actions)
+      ? (input.profile.dismissed_actions as string[])
+      : []);
+
+  const protocol =
+    extras.protocol ??
+    (tracker.items.length
+      ? tracker.items
+          .map(
+            (i) =>
+              `- "${i.text}" (${i.cadence}): done ${i.done}x, ${i.adherence}% adherence`,
+          )
+          .join("\n")
+      : "- nothing adopted yet");
 
   const averages = Object.entries(tracker.averages)
     .filter(([, v]) => v != null)
@@ -283,6 +401,11 @@ ${gapLines(cov)}
 FIRED RULES (each one must become a "test" action):
 ${ruleLines(rules)}
 
+MATCHED PATTERNS:
+${patternLines(patterns, input)}
+
+${graphLines(graph)}
+
 PROTOCOL AND ADHERENCE, LAST 30 DAYS (${tracker.from} to ${tracker.to}):
 ${protocol}
 days logged: ${tracker.loggedDays} | averages: ${averages || "nothing logged"} | overall adherence ${tracker.adherencePct}%
@@ -292,11 +415,39 @@ QUESTIONS ALREADY WAITING FOR AN ANSWER: ${open.map((q) => q.key).join(", ") || 
 DISMISSED ACTIONS (never propose these again): ${dismissed.join("; ") || "none"}
 
 USER CONTEXT AND DISCUSSION ON PREVIOUS ACTIONS:
-${discussionLines(previous)}
+${extras.discussion ?? discussionLines(previous)}
 
 PREVIOUS REPORT SUMMARY: ${previous ? (previous.body as ReportBody).summary.join(" ") : "none"}`;
 
-  return { input, cov, rules, context };
+  if (process.env.DEBUG_PLAN)
+    console.log(
+      "[plan] context:\n" +
+        context.split("\n").slice(0, 20).join("\n") +
+        "\n[plan] hot graph:\n" +
+        graphLines(graph).split("\n").slice(0, 20).join("\n"),
+    );
+
+  return {
+    input,
+    cov,
+    rules,
+    patterns,
+    graph,
+    questions: openPatternQuestions(patterns, input),
+    context,
+  };
+}
+
+/** The database half: load the person, then build the same context pack. */
+export async function buildReportContext(
+  userId: string,
+): Promise<ReportContext> {
+  const input = await buildModelInput(userId);
+  const [tracker, previous] = await Promise.all([
+    getTrackerSummary(userId, 30),
+    latestReport(userId),
+  ]);
+  return buildContextFromInput(input, { tracker, previous });
 }
 
 /* ── the safety net ───────────────────────────────────────────────────── */
@@ -398,21 +549,21 @@ export async function latestReport(userId: string): Promise<Report | null> {
   return row ?? null;
 }
 
-export async function generateReport(
-  userId: string,
-  trigger: ReportTrigger,
-): Promise<Report> {
-  const { rules, context } = await buildReportContext(userId);
-
+/** One model call plus the safety net. No database, so the evals can use it. */
+export async function generateFromContext(
+  context: string,
+  rules: Rule[],
+  modelId?: string,
+): Promise<ReportBody> {
   const { object } = await generateObject({
-    model: model(),
+    model: model(modelId),
     schema: reportSchema,
     system: SYSTEM_PROMPT,
     prompt: context,
   });
 
   const { personal, ...rest } = object;
-  const body = postProcess(
+  return postProcess(
     {
       ...rest,
       actions: [
@@ -422,21 +573,34 @@ export async function generateReport(
     } as ReportBody,
     rules,
   );
+}
+
+export async function generateReport(
+  userId: string,
+  trigger: ReportTrigger,
+): Promise<Report> {
+  const { rules, context, questions } = await buildReportContext(userId);
+  const body = await generateFromContext(context, rules);
 
   const [row] = await getDb()
     .insert(reports)
     .values({ userId, trigger, body })
     .returning();
 
-  await queueFactQuestions(
-    userId,
-    body.questions.map((q) => ({
+  await queueFactQuestions(userId, [
+    ...body.questions.map((q) => ({
       key: q.key,
       question: q.text,
       options: q.options,
       free: !q.options?.length,
     })),
-  );
+    ...questions.map((q) => ({
+      key: q.key,
+      question: q.text,
+      options: q.options,
+      free: !q.options?.length,
+    })),
+  ]);
 
   return row!;
 }

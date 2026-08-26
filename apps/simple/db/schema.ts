@@ -295,6 +295,8 @@ export interface ReportBody {
   }[];
   actions: ReportAction[];
   questions: { key: string; text: string; why: string; options?: string[] }[];
+  /** One entry per matched pattern, filled by the model. Inside the jsonb. */
+  patterns?: { id: string; stage?: string; verdict: string }[];
 }
 
 export type Report = typeof reports.$inferSelect;

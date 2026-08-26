@@ -1,0 +1,42 @@
+{
+  "id": "lmhr_male_38",
+  "persona": {
+    "today": "2026-08-27",
+    "facts": {
+      "sex": "male",
+      "birth_year": 1988,
+      "height_cm": "180",
+      "waist_cm": "80",
+      "diet": "keto for 2 years",
+      "smoking": "Never",
+      "family_history": ["no early heart disease"],
+      "medications": ["No"],
+      "supplements": ["No"]
+    },
+    "readings": [
+      { "code": "ldl_cholesterol", "value": 215, "unit": "mg/dL", "refLow": 0, "refHigh": 130, "optimalHigh": 100, "date": "2026-08-10" },
+      { "code": "hdl_cholesterol", "value": 92, "unit": "mg/dL", "refLow": 40, "refHigh": 100, "date": "2026-08-10" },
+      { "code": "triglycerides", "value": 48, "unit": "mg/dL", "refLow": 0, "refHigh": 150, "optimalHigh": 100, "date": "2026-08-10" },
+      { "code": "total_cholesterol", "value": 320, "unit": "mg/dL", "refLow": 0, "refHigh": 200, "date": "2026-08-10" },
+      { "code": "hba1c", "value": 5.0, "unit": "%", "refLow": 4, "refHigh": 5.6, "optimalHigh": 5.4, "date": "2026-08-10" },
+      { "code": "glucose", "value": 88, "unit": "mg/dL", "refLow": 70, "refHigh": 99, "optimalHigh": 90, "date": "2026-08-10" },
+      { "code": "insulin", "value": 3.2, "unit": "µIU/mL", "refLow": 2, "refHigh": 25, "optimalHigh": 8, "date": "2026-08-10" },
+      { "code": "hs_crp", "value": 0.4, "unit": "mg/L", "refLow": 0, "refHigh": 5, "optimalHigh": 1, "date": "2026-08-10" },
+      { "code": "bmi", "value": 22.4, "unit": "kg/m2", "refLow": 18.5, "refHigh": 25, "date": "2026-08-10" }
+    ],
+    "tracker": { "days": 30, "averages": { "sleepHours": 7.4, "exerciseMin": 45 }, "adherencePct": 0, "items": [] }
+  },
+  "must": [
+    { "kind": "test", "title": "cac|calcium score" },
+    { "kind": "test", "title": "apob|apolipoprotein" },
+    { "kind": "test", "title": "lp\\(a\\)|lipoprotein\\(a\\)" },
+    { "title": "carb", "unlessKind": "test" },
+    { "patternMatched": "lmhr" }
+  ],
+  "mustNot": [
+    { "title": "statin|atorvastatin|rosuvastatin", "unlessKind": "doctor" },
+    { "title": "ldl", "unlessKind": "test" },
+    { "overCeiling": true }
+  ],
+  "judge": "You are a preventive cardiologist. This is a lean 38-year-old man on keto with LDL 215, HDL 92, triglycerides 48 and a waist-to-height of 0.44. Would you accept this plan? Score 1-5 and name the single worst omission in one sentence."
+}

@@ -1,0 +1,37 @@
+{
+  "id": "insulin_resistant_male_45",
+  "persona": {
+    "today": "2026-08-27",
+    "facts": {
+      "sex": "male",
+      "birth_year": 1981,
+      "height_cm": "178",
+      "waist_cm": "102",
+      "smoking": "Never",
+      "family_history": ["father type 2 diabetes at 58"],
+      "medications": ["No"],
+      "supplements": ["No"]
+    },
+    "readings": [
+      { "code": "hba1c", "value": 5.5, "unit": "%", "refLow": 4, "refHigh": 5.6, "optimalHigh": 5.4, "date": "2026-08-05" },
+      { "code": "glucose", "value": 97, "unit": "mg/dL", "refLow": 70, "refHigh": 99, "optimalHigh": 90, "date": "2026-08-05" },
+      { "code": "insulin", "value": 14, "unit": "µIU/mL", "refLow": 2, "refHigh": 25, "optimalHigh": 8, "date": "2026-08-05" },
+      { "code": "triglycerides", "value": 180, "unit": "mg/dL", "refLow": 0, "refHigh": 150, "optimalHigh": 100, "date": "2026-08-05" },
+      { "code": "hdl_cholesterol", "value": 38, "unit": "mg/dL", "refLow": 40, "refHigh": 100, "date": "2026-08-05" },
+      { "code": "ldl_cholesterol", "value": 128, "unit": "mg/dL", "refLow": 0, "refHigh": 130, "optimalHigh": 100, "date": "2026-08-05" },
+      { "code": "alt", "value": 41, "unit": "U/L", "refLow": 0, "refHigh": 50, "date": "2026-08-05" },
+      { "code": "ggt", "value": 44, "unit": "U/L", "refLow": 0, "refHigh": 60, "optimalHigh": 30, "date": "2026-08-05" }
+    ],
+    "tracker": { "days": 30, "averages": { "sleepHours": 6.2, "steps": 4200 }, "adherencePct": 0, "items": [] }
+  },
+  "must": [
+    { "kind": "test", "title": "ogtt|glucose tolerance" },
+    { "basis": "opinion", "reasoning": "insulin_resistance_early" },
+    { "patternMatched": "insulin_resistance_early" }
+  ],
+  "mustNot": [
+    { "title": "metformin", "unlessKind": "doctor" },
+    { "overCeiling": true }
+  ],
+  "judge": "You are an endocrinologist. This 45-year-old man has HbA1c 5.5, fasting insulin 14, triglycerides 180 and HDL 38. Would you accept this plan? Score 1-5 and name the single worst omission in one sentence."
+}

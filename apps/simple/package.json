@@ -12,7 +12,8 @@
     "import-legacy": "tsx lib/import-legacy.ts",
     "curate": "tsx lib/curator.ts",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "eval": "tsx --env-file=.env evals/run.ts"
   },
   "dependencies": {
     "@ai-sdk/react": "^3.0.269",

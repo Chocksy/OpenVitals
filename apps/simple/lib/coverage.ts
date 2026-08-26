@@ -24,6 +24,7 @@ import {
   phenoAge,
   tgHdl,
 } from "./derived";
+import { applyPatternTargets } from "./patterns";
 import { statusOf, type Status } from "./status";
 import {
   LIST_FACTS,
@@ -47,6 +48,8 @@ export interface LatestValue {
   refHigh: number | null;
   /** The reading before the latest one, for "rising" rules and deltas. */
   prev?: number | null;
+  /** Set when a matched pattern moved the optimal band. */
+  note?: string;
 }
 
 export interface ModelInput {
@@ -175,7 +178,10 @@ export async function buildModelInput(userId: string): Promise<ModelInput> {
     }),
   };
 
-  return { today, profile, sex, age, latest, derived };
+  // Patterns can move an optimal band (Hashimoto's ferritin floor, the
+  // suspended LDL goal in LMHR), so the ranges every caller sees are already
+  // the ones the pattern says apply.
+  return applyPatternTargets({ today, profile, sex, age, latest, derived });
 }
 
 /** hs-CRP in mg/L, whichever of the two codes carried it. */

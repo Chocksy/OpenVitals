@@ -1,0 +1,36 @@
+{
+  "id": "hashimoto_early_female_36",
+  "persona": {
+    "today": "2026-08-27",
+    "facts": {
+      "sex": "female",
+      "birth_year": 1990,
+      "family_history": ["mother hypothyroid"],
+      "medications": ["No"],
+      "supplements": ["No"]
+    },
+    "readings": [
+      { "code": "tsh", "value": 3.9, "unit": "mIU/L", "refLow": 0.4, "refHigh": 4.5, "date": "2026-08-01", "prev": 3.1 },
+      { "code": "free_t4", "value": 1.1, "unit": "ng/dL", "refLow": 0.8, "refHigh": 1.8, "date": "2026-08-01" },
+      { "code": "tpo_antibodies", "value": 320, "unit": "IU/mL", "refLow": 0, "refHigh": 34, "date": "2026-08-01" },
+      { "code": "ferritin", "value": 22, "unit": "ng/mL", "refLow": 15, "refHigh": 150, "date": "2026-08-01" },
+      { "code": "vitamin_d", "value": 19, "unit": "ng/mL", "refLow": 20, "refHigh": 100, "date": "2026-08-01" },
+      { "code": "hemoglobin", "value": 13.1, "unit": "g/dL", "refLow": 12, "refHigh": 16, "date": "2026-08-01" }
+    ],
+    "tracker": { "days": 30, "averages": { "sleepHours": 6.8 }, "adherencePct": 0, "items": [] }
+  },
+  "must": [
+    { "kind": "test", "title": "anti-Tg|free T4|free T3" },
+    { "kind": "test", "title": "coeliac|tTG" },
+    { "kind": "supplement", "title": "selenium", "doseMaxUg": 200, "basis": "science" },
+    { "kind": "supplement", "title": "iron", "reasoning": "ferritin" },
+    { "question": "pregnan" },
+    { "patternMatched": "hashimoto" }
+  ],
+  "mustNot": [
+    { "title": "iodine|kelp", "unlessKind": "stop" },
+    { "title": "levothyroxine", "unlessKind": "doctor" },
+    { "overCeiling": true }
+  ],
+  "judge": "You are an endocrinologist. Would you accept this plan for an antibody-positive woman, TSH 3.9, ferritin 22, vitamin D 19? Score 1-5 and name the single worst omission in one sentence."
+}

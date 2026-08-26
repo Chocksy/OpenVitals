@@ -1,5 +1,7 @@
 import { describe, it, expect, vi } from "vitest";
 import type { ReportAction, ReportBody } from "@/db";
+import type { LatestValue } from "./coverage";
+import type { TrackerSummary } from "./daily-data";
 import type { Rule } from "./vectors";
 
 // The model never runs in tests. `postProcess` is pure, but the mock makes it
@@ -10,7 +12,7 @@ vi.mock("ai", () => ({
   }),
 }));
 
-const { postProcess } = await import("./report");
+const { postProcess, buildContextFromInput } = await import("./report");
 
 const action = (over: Partial<ReportAction> = {}): ReportAction => ({
   title: "Walk 8000 steps",
@@ -137,5 +139,66 @@ describe("limits", () => {
     );
     expect(out.summary).toHaveLength(3);
     expect(out.questions).toHaveLength(3);
+  });
+});
+
+describe("the context pack", () => {
+  const tracker: TrackerSummary = {
+    from: "2026-07-29",
+    to: "2026-08-27",
+    items: [],
+    averages: { sleepHours: 6.8 },
+    loggedDays: 30,
+    adherencePct: 0,
+  };
+
+  const reading = (
+    value: number,
+    extra: Partial<LatestValue> = {},
+  ): LatestValue => ({
+    value,
+    unit: null,
+    date: "2026-08-01",
+    status: "green",
+    optimalLow: null,
+    optimalHigh: null,
+    refLow: null,
+    refHigh: null,
+    ...extra,
+  });
+
+  const hashimoto = buildContextFromInput(
+    {
+      today: "2026-08-27",
+      profile: { sex: "female", birth_year: 1990 },
+      sex: "female",
+      age: 36,
+      latest: {
+        tpo_antibodies: reading(320, { status: "red", refHigh: 34, unit: "IU/mL" }),
+        tsh: reading(3.9, { refLow: 0.4, refHigh: 4.5, prev: 3.1 }),
+      },
+      derived: {},
+    },
+    { tracker },
+  );
+
+  it("names the matched pattern with its controversy", () => {
+    expect(hashimoto.context).toContain("MATCHED PATTERNS");
+    expect(hashimoto.context).toContain("hashimoto (stage: early)");
+    expect(hashimoto.context).toContain("controversy:");
+  });
+
+  it("prints the hot graph and the active edges", () => {
+    expect(hashimoto.context).toContain("HOT GRAPH");
+    expect(hashimoto.context).toContain("ACTIVE EDGES");
+    expect(hashimoto.context).toContain("metric:tpo_antibodies");
+  });
+
+  it("appends the pattern escalations to the fired rules", () => {
+    expect(hashimoto.rules.map((r) => r.id)).toContain("hashimoto_full_panel");
+  });
+
+  it("queues the pattern's unanswered questions", () => {
+    expect(hashimoto.questions.map((q) => q.key)).toContain("pregnancy_plans");
   });
 });

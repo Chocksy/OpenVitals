@@ -478,7 +478,14 @@ export interface TrackerSummary {
   from: string;
   to: string;
   /** One row per active protocol item, with how often it was actually done. */
-  items: { text: string; cadence: string; done: number; adherence: number }[];
+  items: {
+    text: string;
+    cadence: string;
+    done: number;
+    adherence: number;
+    /** What this item is meant to move; feeds the graph's action boost. */
+    metricCodes?: string[];
+  }[];
   /** Mean of every number the user logged, over the days they logged it. */
   averages: Record<string, number | null>;
   loggedDays: number;
@@ -547,6 +554,7 @@ export async function getTrackerSummary(
       cadence: it.cadence,
       done: done.length,
       adherence: adherence(done, window),
+      metricCodes: it.metricCodes ?? [],
     };
   });
 

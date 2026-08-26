@@ -1,0 +1,2533 @@
+{
+  "model": "x-ai/grok-4.20",
+  "promptSha8": "56cf554b",
+  "ranAt": "2026-08-26T21:56:18.140Z",
+  "results": [
+    {
+      "id": "ckd3_male_70",
+      "passed": 6,
+      "total": 6,
+      "failed": [],
+      "failedMust": false,
+      "judgeScore": 3,
+      "omission": "No mention of avoiding or dose-adjusting nephrotoxic agents (NSAIDs, certain antibiotics, contrast dye, or high-dose supplements) in a patient with rising creatinine and CKD3.",
+      "latencyMs": 52993,
+      "body": {
+        "summary": [
+          "Address metabolic drivers (high triglycerides, HbA1c, uric acid) that worsen lipids, kidney function, and inflammation; target TG to <120 mg/dL and HbA1c to <5.5% by 2026-11-01.",
+          "Complete all tier-0 and tier-1 tests now to fill critical gaps in kidney, lipids, metabolic, and cancer screening given CKD3, hypertension, age 70, and family stroke history.",
+          "Prioritize food and movement levers first before any supplement; recheck kidney markers, lipids, and hs-CRP in 8 weeks."
+        ],
+        "eli5": "Your body is like an old truck with a dirty engine and leaky radiator: high sugar and fats clog the pipes (heart, kidneys), while low fitness and missing checks let small problems grow big. We will clean the fuel (food, steps), test every warning light, and track numbers so the truck runs longer without breaking down.",
+        "systems": [
+          {
+            "id": "metabolic",
+            "name": "Metabolic Health",
+            "verdict": "Insulin resistance pattern (TG 165, TG/HDL 3.75, HbA1c 5.9) drives lipids and uric acid; CKD3 and hypertension amplify risk. Fix via food and movement first.",
+            "eli5": "Your blood sugar and fat systems are like a kitchen with too much sugar and oil; it makes everything sticky and inflames the pipes. We clean the kitchen before adding pills.",
+            "priority": 3
+          },
+          {
+            "id": "kidney",
+            "name": "Kidney Function",
+            "verdict": "Stage 3 CKD (eGFR 50, creatinine 1.5 rising) lacks urine ACR; hypertension and metabolic stress accelerate it. Complete two-marker assessment immediately.",
+            "eli5": "Your kidneys are like a coffee filter getting clogged; one number is high and we need the second to see if it is leaking. We check both before the filter tears.",
+            "priority": 3
+          },
+          {
+            "id": "lipids",
+            "name": "Lipids and Plaque Risk",
+            "verdict": "LDL 118, TG 165, lowish HDL with family stroke history; ApoB and Lp(a) unmeasured. Metabolic edge (triglycerides->hdl_cholesterol) dominates over LDL alone.",
+            "eli5": "Your blood fats are like gravel in a hose; the big pieces (LDL) matter less than the total count and sticky small ones. We measure the real total before deciding on drugs.",
+            "priority": 3
+          }
+        ],
+        "actions": [
+          {
+            "title": "Add ApoB to the next lipid draw",
+            "kind": "test",
+            "weight": 5,
+            "basis": "science",
+            "why": "Your lipid panel is current but ApoB is not, and ApoB counts the particles that actually build plaque.",
+            "reasoning": "ldl_cholesterol 118 mg/dL (amber) and pattern:triglycerides->hdl_cholesterol edge (strength 2) make ApoB essential; family stroke at 74 and age 70 raise lifetime risk.",
+            "dose": {
+              "amount": "once",
+              "schedule": "at next lab visit"
+            },
+            "timing": "2026-09-10",
+            "targets": [
+              {
+                "code": "apolipoprotein_b",
+                "direction": "down",
+                "expect": "ApoB <80 mg/dL",
+                "measureAfterWeeks": 8
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "observational",
+                "title": "Sniderman 2019 JAMA Cardiol"
+              }
+            ],
+            "followUp": [
+              {
+                "afterDays": 14,
+                "ask": "Did you add ApoB to the latest bloodwork requisition?"
+              }
+            ]
+          },
+          {
+            "title": "Add a urine albumin/creatinine ratio",
+            "kind": "test",
+            "weight": 5,
+            "basis": "science",
+            "why": "Kidneys are graded on two numbers, filtration and leak. You have creatinine but no urine albumin, so half the picture is missing.",
+            "reasoning": "creatinine 1.5 mg/dL (red, +0.12), eGFR 49.77, system:kidney weight 0.7, and hypertension on amlodipine require full KDIGO staging; uric_acid 7.4 also stresses kidney.",
+            "dose": {
+              "amount": "once",
+              "schedule": "at next lab visit"
+            },
+            "timing": "2026-09-10",
+            "targets": [
+              {
+                "code": "urine_acr",
+                "direction": "down",
+                "expect": "ACR <30 mg/g",
+                "measureAfterWeeks": 8
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "guideline",
+                "title": "KDIGO 2024 CKD guideline"
+              }
+            ],
+            "followUp": [
+              {
+                "afterDays": 14,
+                "ask": "Did the urine ACR come back and what was the value?"
+              }
+            ]
+          },
+          {
+            "title": "Log your blood pressure at home for 7 days",
+            "kind": "habit",
+            "weight": 5,
+            "basis": "science",
+            "why": "Blood pressure carries more attributable risk than any lab value, and a clinic reading is not the number that counts.",
+            "reasoning": "bp_home 142/84 on amlodipine 5 mg, hypertension diagnosis, and CKD3; family stroke at 74 makes accurate home average the highest-leverage metric now.",
+            "dose": {
+              "amount": "twice daily",
+              "form": "home monitor",
+              "schedule": "morning and evening, seated",
+              "duration": "7 days then weekly"
+            },
+            "timing": "start 2026-08-28",
+            "targets": [
+              {
+                "code": "bp_home",
+                "direction": "down",
+                "expect": "average <130/80 mmHg",
+                "measureAfterWeeks": 2
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "observational",
+                "title": "Lewington 2002 Lancet"
+              }
+            ],
+            "followUp": [
+              {
+                "afterDays": 10,
+                "ask": "What was the 7-day average home BP (systolic/diastolic)?"
+              }
+            ]
+          },
+          {
+            "title": "Cut added sugar and refined carbs to <50 g/day",
+            "kind": "food",
+            "weight": 5,
+            "basis": "opinion",
+            "why": "Directly target the hba1c->triglycerides edge driving top HOT GRAPH node before any drug or supplement.",
+            "reasoning": "hba1c 5.9% (red), triglycerides 165 mg/dL (0.73 importance), uric_acid 7.4 mg/dL (0.6), derived TG/HDL 3.75, and CKD3 at creatinine 1.5; opinion from this person's metabolic pattern, age 70, zero supplements, and no prior dietary change (adherence 0%). Sequence: fix diet before judging lipids or adding niacin (never without doctor).",
+            "dose": {
+              "amount": "<50 g added sugar",
+              "form": "whole foods only",
+              "schedule": "daily with meals",
+              "duration": "next 90 days"
+            },
+            "timing": "start 2026-08-28",
+            "targets": [
+              {
+                "code": "hba1c",
+                "direction": "down",
+                "expect": "<5.5%",
+                "measureAfterWeeks": 8
+              },
+              {
+                "code": "uric_acid",
+                "direction": "down",
+                "expect": "<6.0 mg/dL",
+                "measureAfterWeeks": 8
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "rct",
+                "title": "Low-carb diet lowers HbA1c and TG in prediabetes"
+              }
+            ],
+            "followUp": [
+              {
+                "afterDays": 21,
+                "ask": "What was your average daily added sugar intake last week?"
+              }
+            ]
+          },
+          {
+            "title": "Measure Lp(a) once",
+            "kind": "test",
+            "weight": 4,
+            "basis": "science",
+            "why": "Lp(a) is inherited and barely moves in a lifetime, so one measurement settles it for good. Yours has never been measured.",
+            "reasoning": "family_history father stroke at 74 plus metric:lp_a node weight 0.2; active edge hba1c->triglycerides (strength 2) interacts with inherited risk at age 70.",
+            "dose": {
+              "amount": "once",
+              "schedule": "at next lab visit"
+            },
+            "timing": "2026-09-10",
+            "targets": [
+              {
+                "code": "lp_a",
+                "direction": "down",
+                "expect": "Lp(a) <50 nmol/L",
+                "measureAfterWeeks": 0
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "guideline",
+                "title": "EAS 2022 consensus on Lp(a)"
+              }
+            ],
+            "followUp": [
+              {
+                "afterDays": 21,
+                "ask": "What was the Lp(a) result in nmol/L?"
+              }
+            ]
+          },
+          {
+            "title": "Ask for a 2-hour OGTT with insulin",
+            "kind": "test",
+            "weight": 4,
+            "basis": "science",
+            "why": "HbA1c, fasting insulin or the triglyceride to HDL ratio already point at insulin resistance, which shows up on an OGTT years before HbA1c moves.",
+            "reasoning": "hba1c 5.9% (red), triglycerides 165 mg/dL (red), TG/HDL 3.75, and edge hba1c->triglycerides confirm resistance; CKD3 makes accurate staging urgent before 2026-11-01.",
+            "dose": {
+              "amount": "once",
+              "schedule": "at next lab visit"
+            },
+            "timing": "2026-09-10",
+            "targets": [
+              {
+                "code": "glucose",
+                "direction": "down",
+                "expect": "2h glucose <140 mg/dL",
+                "measureAfterWeeks": 0
+              },
+              {
+                "code": "insulin",
+                "direction": "down",
+                "expect": "2h insulin <40 uU/mL",
+                "measureAfterWeeks": 0
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "guideline",
+                "title": "ADA Standards of Care"
+              }
+            ],
+            "followUp": [
+              {
+                "afterDays": 30,
+                "ask": "What were the 0h and 2h glucose and insulin values?"
+              }
+            ]
+          },
+          {
+            "title": "Walk 30 min daily after dinner",
+            "kind": "exercise",
+            "weight": 4,
+            "basis": "opinion",
+            "why": "Raise daily movement to lower triglycerides, improve insulin sensitivity, and protect remaining kidney function before adding any supplement or drug.",
+            "reasoning": "steps only 5200, triglycerides 165 mg/dL (HOT GRAPH top node 0.73 via hba1c->triglycerides edge), hba1c 5.9%, waist 98 cm, eGFR 49.77, and sleep 6.6 h; opinion from this person's low baseline activity and preference for cheapest lever first (food/sleep/movement before supplement). Fix movement before judging testosterone or lipids further.",
+            "dose": {
+              "amount": "30 min",
+              "form": "brisk walking",
+              "schedule": "after dinner daily",
+              "duration": "ongoing"
+            },
+            "timing": "start immediately",
+            "targets": [
+              {
+                "code": "triglycerides",
+                "direction": "down",
+                "expect": "<120 mg/dL",
+                "measureAfterWeeks": 8
+              },
+              {
+                "code": "steps",
+                "direction": "up",
+                "expect": ">8000",
+                "measureAfterWeeks": 4
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "meta",
+                "title": "Exercise improves insulin sensitivity and TG in older adults with metabolic syndrome"
+              }
+            ],
+            "followUp": [
+              {
+                "afterDays": 14,
+                "ask": "How many days did you complete the 30 min post-dinner walk and what was average steps?"
+              }
+            ]
+          },
+          {
+            "title": "Retest creatinine, eGFR, and hs-CRP in 8 weeks",
+            "kind": "test",
+            "weight": 4,
+            "basis": "opinion",
+            "why": "Track kidney and inflammation response to movement and diet changes given rising creatinine and family stroke risk.",
+            "reasoning": "creatinine 1.5 (+0.12 from prior 1.38), system:kidney 0.7, hs_crp 2.1 (amber, inflammation 0.25), hemoglobin 12.9 (red), and edge triglycerides->hdl_cholesterol; opinion from this 70-year-old's specific trajectory, hypertension on amlodipine, and need to sequence diet/exercise improvements before considering dose change or new doctor Rx. Measure after 8 weeks of new habits.",
+            "dose": {
+              "amount": "full panel",
+              "form": "blood + urine",
+              "schedule": "once in 8 weeks",
+              "duration": "one time"
+            },
+            "timing": "2026-10-22",
+            "targets": [
+              {
+                "code": "creatinine",
+                "direction": "down",
+                "expect": "<1.3 mg/dL",
+                "measureAfterWeeks": 8
+              },
+              {
+                "code": "hs_crp",
+                "direction": "down",
+                "expect": "<1.0 mg/L",
+                "measureAfterWeeks": 8
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "observational",
+                "title": "Lifestyle change slows eGFR decline in stage 3 CKD cohorts"
+              }
+            ],
+            "followUp": [
+              {
+                "afterDays": 60,
+                "ask": "What were the new creatinine, eGFR, and hs-CRP values?"
+              }
+            ]
+          },
+          {
+            "title": "Measure grip strength or estimate VO2max",
+            "kind": "test",
+            "weight": 3,
+            "basis": "science",
+            "why": "Fitness and muscle are the strongest predictors of how long you live and they never appear on a blood test.",
+            "reasoning": "steps 5200, sleep 6.6 h, hemoglobin 12.9 g/dL (red), age 70, waist 98 cm; grip_kg or VO2max will guide how aggressively to raise movement before judging testosterone.",
+            "dose": {
+              "amount": "once",
+              "schedule": "this week"
+            },
+            "timing": "2026-09-03",
+            "targets": [
+              {
+                "code": "grip_kg",
+                "direction": "up",
+                "expect": ">40 kg average",
+                "measureAfterWeeks": 0
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "observational",
+                "title": "Mandsager 2018 JAMA Netw Open"
+              }
+            ],
+            "followUp": [
+              {
+                "afterDays": 14,
+                "ask": "What grip strength (kg) or estimated VO2max did you record?"
+              }
+            ]
+          },
+          {
+            "title": "Book a colonoscopy",
+            "kind": "test",
+            "weight": 3,
+            "basis": "science",
+            "why": "Screening starts at 45, or at 40 when a close relative had bowel cancer. It is the one test that removes the problem while it looks.",
+            "reasoning": "age 70, screening_dates never, family_history father stroke (vascular risk overlaps GI screening priority); no prior colonoscopy recorded.",
+            "dose": {
+              "amount": "once",
+              "schedule": "schedule this month"
+            },
+            "timing": "2026-09-15",
+            "targets": [
+              {
+                "code": "colonoscopy",
+                "direction": "up",
+                "expect": "completed with polyp removal if found",
+                "measureAfterWeeks": 26
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "guideline",
+                "title": "USPSTF 2021 colorectal screening"
+              }
+            ],
+            "followUp": [
+              {
+                "afterDays": 60,
+                "ask": "Have you scheduled the colonoscopy and for what date?"
+              }
+            ]
+          }
+        ],
+        "questions": [
+          {
+            "key": "resting_hr",
+            "text": "What is your current resting heart rate measured in bed first thing in the morning?",
+            "why": "Cheap stand-in for fitness and autonomic health; will adjust movement target and decide if sleep apnea screen is urgent.",
+            "options": []
+          },
+          {
+            "key": "sleep_snoring",
+            "text": "Do you snore regularly or has your partner noticed pauses in breathing at night?",
+            "why": "Short sleep plus snoring is the cheapest screen for sleep apnea that worsens hypertension, CKD, and metabolic numbers.",
+            "options": [
+              "yes nightly",
+              "occasionally",
+              "never"
+            ]
+          },
+          {
+            "key": "family_cancer",
+            "text": "Has anyone in your immediate family had colorectal or prostate cancer?",
+            "why": "Would change colonoscopy urgency and PSA discussion threshold beyond the stroke history already noted.",
+            "options": []
+          }
+        ],
+        "patterns": []
+      }
+    },
+    {
+      "id": "hashimoto_early_female_36",
+      "passed": 7,
+      "total": 9,
+      "failed": [
+        "must: kind=supplement title=selenium doseMaxUg=200 basis=science",
+        "mustNot: title=levothyroxine unlessKind=doctor"
+      ],
+      "failedMust": true,
+      "judgeScore": 2,
+      "omission": "The plan never addresses starting levothyroxine despite TSH 3.9 with positive TPO antibodies in a woman of reproductive age.",
+      "latencyMs": 46830,
+      "body": {
+        "summary": [
+          "Address Hashimoto's (TSH 3.9 rising, TPO 320) and iron deficiency (ferritin 22) first because ferritin below 50 directly impairs thyroid hormone synthesis (edge ferritin->free_t4).",
+          "Fix vitamin D (19 ng/mL) before judging energy or antibodies; keep it 40-60 per Hashimoto pattern.",
+          "Log BP at home and complete missing tier-0 and tier-1 labs; sequence iron repletion only after coeliac screen."
+        ],
+        "eli5": "Your thyroid is under low-level attack from your immune system like a slow tire leak that makes the car work harder; low iron is making the engine even less efficient. We patch the biggest holes first (iron stores, vitamin D, and full thyroid labs) so the whole system stops dragging.",
+        "systems": [
+          {
+            "id": "hashimoto",
+            "name": "Hashimoto's thyroiditis",
+            "verdict": "Early-stage autoimmune thyroiditis with rising TSH and high TPO antibodies; treat underlying drivers (ferritin, vitamin D) and complete diagnostics before deciding on levothyroxine.",
+            "eli5": "Your immune system is nibbling at your thyroid like mice in the attic; catching it early stops bigger damage later.",
+            "priority": 1
+          },
+          {
+            "id": "iron",
+            "name": "Iron stores",
+            "verdict": "Ferritin 22 indicates depleted stores without anemia yet; must find cause (coeliac, periods) before supplementing because low ferritin blunts thyroid function.",
+            "eli5": "Your body's iron bank is almost empty; we need to find the leak before we make a deposit.",
+            "priority": 2
+          },
+          {
+            "id": "vitamins",
+            "name": "Vitamin D status",
+            "verdict": "Vitamin D 19 ng/mL is frankly deficient and directly linked to higher TPO antibodies; correct to 40-60 ng/mL first.",
+            "eli5": "Vitamin D is like sunlight for your immune system; without enough the attack on your thyroid gets louder.",
+            "priority": 3
+          }
+        ],
+        "actions": [
+          {
+            "title": "Repeat TSH with free T4, free T3 and anti-TPO",
+            "kind": "test",
+            "weight": 5,
+            "basis": "science",
+            "why": "A TSH above 2.5 that is climbing, or positive thyroid antibodies, changes how the lipid and energy picture should be read.",
+            "reasoning": "TSH 3.9 (up 0.8 from prior), TPO 320 IU/mL, family_history mother hypothyroid, edge tpo_antibodies->hashimoto and pattern:hashimoto; must complete full panel before any treatment decision.",
+            "dose": {
+              "amount": "1 panel",
+              "form": "blood draw",
+              "schedule": "once",
+              "duration": "single"
+            },
+            "timing": "Morning, fasted, consistent cycle phase",
+            "targets": [
+              {
+                "code": "tsh",
+                "direction": "down",
+                "expect": "below 2.5",
+                "measureAfterWeeks": 12
+              },
+              {
+                "code": "free_t4",
+                "direction": "up",
+                "expect": "mid reference range",
+                "measureAfterWeeks": 12
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "guideline",
+                "title": "Rodondi 2010 JAMA"
+              },
+              {
+                "kind": "guideline",
+                "title": "ATA 2014 hypothyroidism guideline"
+              }
+            ],
+            "followUp": [
+              {
+                "afterDays": 14,
+                "ask": "Any fatigue, cold intolerance, hair loss, constipation, weight gain or brain fog in the last 3 months?"
+              }
+            ]
+          },
+          {
+            "title": "Coeliac serology (tTG-IgA with total IgA)",
+            "kind": "test",
+            "weight": 5,
+            "basis": "science",
+            "why": "Coeliac disease is 4–5× more common with Hashimoto's and changes the diet advice from speculative to required.",
+            "reasoning": "TPO 320, ferritin 22, pattern:hashimoto and pattern:iron_deficiency_no_anemia; coeliac is top differential for iron loss and clusters with thyroid autoimmunity via edge ferritin->free_t4.",
+            "dose": {
+              "amount": "1 panel",
+              "form": "blood draw",
+              "schedule": "once",
+              "duration": "single"
+            },
+            "timing": "Before any iron supplement",
+            "targets": [
+              {
+                "code": "ferritin",
+                "direction": "up",
+                "expect": "above 50 if negative",
+                "measureAfterWeeks": 12
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "guideline",
+                "title": "BSG coeliac disease guideline"
+              },
+              {
+                "kind": "guideline",
+                "title": "BSG iron deficiency guideline"
+              }
+            ],
+            "followUp": [
+              {
+                "afterDays": 21,
+                "ask": "How heavy are your periods: how many days, and do you flood or pass clots? Any blood in the stool, black stools, or regular ibuprofen or aspirin?"
+              }
+            ]
+          },
+          {
+            "title": "Prioritize iron repletion before any levothyroxine decision",
+            "kind": "habit",
+            "weight": 5,
+            "basis": "opinion",
+            "why": "Ferritin must be above 50 before thyroid hormone synthesis can be properly evaluated or treated.",
+            "reasoning": "Ferritin 22 ng/mL against optimal 50..200 (hashimoto note), edge ferritin->free_t4 strength 2, TSH 3.9 rising, TPO 320, mother hypothyroid; this person's pattern:hashimoto makes low iron the first lever per family history and lab values.",
+            "dose": {
+              "amount": "daily tracking",
+              "form": "food diary",
+              "schedule": "with every meal",
+              "duration": "ongoing"
+            },
+            "targets": [
+              {
+                "code": "ferritin",
+                "direction": "up",
+                "expect": "above 50",
+                "measureAfterWeeks": 12
+              }
+            ],
+            "evidence": [],
+            "followUp": []
+          },
+          {
+            "title": "Add a urine albumin/creatinine ratio",
+            "kind": "test",
+            "weight": 5,
+            "basis": "science",
+            "why": "Kidneys are graded on two numbers, filtration and leak. You have creatinine but no urine albumin, so half the picture is missing.",
+            "reasoning": "",
+            "targets": [],
+            "evidence": [
+              {
+                "kind": "guideline",
+                "title": "KDIGO 2024 CKD guideline"
+              }
+            ],
+            "followUp": []
+          },
+          {
+            "title": "Retest vitamin D",
+            "kind": "test",
+            "weight": 5,
+            "basis": "science",
+            "why": "Vitamin D drifts with the seasons and yours is either old or below 30 ng/mL, which is the deficiency line.",
+            "reasoning": "",
+            "targets": [],
+            "evidence": [
+              {
+                "kind": "guideline",
+                "title": "Endocrine Society 2011 vitamin D guideline"
+              }
+            ],
+            "followUp": []
+          },
+          {
+            "title": "Iron saturation and TIBC with the next ferritin",
+            "kind": "test",
+            "weight": 5,
+            "basis": "science",
+            "why": "Saturation separates empty stores from inflammation hiding them, and it responds first when iron is working.",
+            "reasoning": "",
+            "targets": [],
+            "evidence": [
+              {
+                "kind": "guideline",
+                "title": "BSG iron deficiency guideline"
+              }
+            ],
+            "followUp": []
+          },
+          {
+            "title": "Thyroid ultrasound once",
+            "kind": "test",
+            "weight": 4,
+            "basis": "science",
+            "why": "Confirms the diagnosis and baselines nodules; Hashimoto's raises nodule frequency.",
+            "reasoning": "TPO 320 and TSH 3.9 with family_history mother hypothyroid via edge tpo_antibodies->hashimoto and pattern:hashimoto stage early; ultrasound needed to baseline nodules.",
+            "dose": {
+              "amount": "1 scan",
+              "form": "ultrasound",
+              "schedule": "once",
+              "duration": "single"
+            },
+            "timing": "Within next 4 weeks",
+            "targets": [
+              {
+                "code": "hashimoto",
+                "direction": "down",
+                "expect": "nodule-free or stable",
+                "measureAfterWeeks": 0
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "guideline",
+                "title": "ATA 2014 hypothyroidism guideline"
+              }
+            ],
+            "followUp": []
+          },
+          {
+            "title": "Vitamin D3",
+            "kind": "supplement",
+            "weight": 4,
+            "basis": "opinion",
+            "why": "Vitamin D 19 ng/mL is below deficiency line and directly linked to higher TPO antibodies; raise to 40-60 ng/mL before re-judging thyroid antibodies or energy.",
+            "reasoning": "Vitamin_d 19 ng/mL red vs optimal 40-60 (hashimoto note), edge vitamin_d->tpo_antibodies, pattern:hashimoto stage early, TPO 320; correct this cheapest lever first per values and before judging levothyroxine need.",
+            "dose": {
+              "amount": "5000 IU",
+              "form": "softgel",
+              "schedule": "daily with largest meal",
+              "duration": "until retest",
+              "ceiling": "10000 IU/day"
+            },
+            "timing": "With fatty meal",
+            "interactions": [],
+            "targets": [
+              {
+                "code": "vitamin_d",
+                "direction": "up",
+                "expect": "45 ng/mL",
+                "measureAfterWeeks": 12
+              },
+              {
+                "code": "tpo_antibodies",
+                "direction": "down",
+                "expect": "at least 20% drop",
+                "measureAfterWeeks": 24
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "guideline",
+                "title": "Endocrine Society 2011 vitamin D guideline"
+              },
+              {
+                "kind": "observational",
+                "title": "Kivity 2011 Cell Mol Immunol"
+              }
+            ],
+            "followUp": []
+          },
+          {
+            "title": "Iron bisglycinate 60 mg elemental on alternate days",
+            "kind": "supplement",
+            "weight": 4,
+            "basis": "opinion",
+            "why": "Ferritin 22 under 50 directly blunts thyroid hormone synthesis; replete only after coeliac screen and with vitamin C, stop once above 50.",
+            "reasoning": "Ferritin 22 ng/mL (pattern:iron_deficiency_no_anemia), edge iron->ferritin and ferritin->free_t4, TSH 3.9 and TPO 320, mother hypothyroid; must fix this before judging levothyroxine dose or expecting symptom change per this person's labs and family history.",
+            "dose": {
+              "amount": "60 mg elemental",
+              "form": "bisglycinate with 500 mg vitamin C",
+              "schedule": "every other day",
+              "duration": "until ferritin >50 then stop",
+              "ceiling": "only when ferritin below 50"
+            },
+            "timing": "Empty stomach, away from coffee/calcium, evening",
+            "interactions": [
+              {
+                "with": "coffee",
+                "rule": "4 hours separation"
+              }
+            ],
+            "targets": [
+              {
+                "code": "ferritin",
+                "direction": "up",
+                "expect": "above 50 ng/mL",
+                "measureAfterWeeks": 12
+              },
+              {
+                "code": "free_t4",
+                "direction": "up",
+                "expect": "rise of at least 0.2 ng/dL",
+                "measureAfterWeeks": 12
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "guideline",
+                "title": "BSG iron deficiency guideline"
+              },
+              {
+                "kind": "rct",
+                "title": "Stoffel 2017 Lancet Haematol"
+              }
+            ],
+            "followUp": []
+          },
+          {
+            "title": "Correct vitamin D to 40-60 before rechecking TPO antibodies",
+            "kind": "supplement",
+            "weight": 4,
+            "basis": "opinion",
+            "why": "Vitamin D correction is required first in this Hashimoto pattern before judging antibody response to selenium.",
+            "reasoning": "Vitamin_d 19 ng/mL red vs 40-60 optimal (hashimoto note), edge vitamin_d->tpo_antibodies, TPO 320, pattern:hashimoto stage early with family_history mother hypothyroid; sequencing this before selenium per this person's specific numbers and history.",
+            "dose": {
+              "amount": "5000 IU",
+              "form": "D3 softgel",
+              "schedule": "daily",
+              "duration": "12 weeks then retest"
+            },
+            "targets": [
+              {
+                "code": "vitamin_d",
+                "direction": "up",
+                "expect": "45 ng/mL",
+                "measureAfterWeeks": 12
+              }
+            ],
+            "evidence": [],
+            "followUp": []
+          }
+        ],
+        "questions": [
+          {
+            "key": "symptoms_hashimoto",
+            "text": "Any fatigue, cold intolerance, hair loss, constipation, weight gain or brain fog in the last 3 months?",
+            "why": "Symptoms plus antibodies and rising TSH would move this person earlier toward levothyroxine even before TSH reaches 10.",
+            "options": [
+              "None",
+              "Mild",
+              "Moderate",
+              "Severe"
+            ]
+          },
+          {
+            "key": "family_autoimmune",
+            "text": "Anyone in the family with thyroid disease, coeliac disease, type 1 diabetes or vitiligo?",
+            "why": "Additional autoimmune family history would raise urgency of coeliac screen and selenium trial.",
+            "options": [
+              "None known",
+              "Thyroid only",
+              "Multiple autoimmune"
+            ]
+          },
+          {
+            "key": "pregnancy_plans",
+            "text": "Planning a pregnancy in the next 12 months?",
+            "why": "If yes, endocrinology referral and TSH target <2.5 become immediate regardless of current TSH 3.9.",
+            "options": [
+              "No",
+              "Considering",
+              "Actively planning"
+            ]
+          }
+        ],
+        "patterns": [
+          {
+            "id": "hashimoto",
+            "stage": "early",
+            "verdict": "Early stage with rising TSH 3.9, TPO 320 and family history; correct ferritin and vitamin D first, complete diagnostics, then consider selenium trial before levothyroxine."
+          },
+          {
+            "id": "iron_deficiency_no_anemia",
+            "stage": "mild",
+            "verdict": "Ferritin 22 requires cause hunt (coeliac, periods) before supplementation; will improve free T4 once stores rise."
+          }
+        ]
+      }
+    },
+    {
+      "id": "healthy_male_28",
+      "passed": 3,
+      "total": 4,
+      "failed": [
+        "must: maxActions=5"
+      ],
+      "failedMust": true,
+      "judgeScore": 4,
+      "omission": "The plan invents a problem by aggressively targeting already-optimal LDL of 82 mg/dL down to <80 via extra diet tweaks when no guideline supports further lowering in a low-risk 28-year-old with otherwise pristine cardiometabolic markers.",
+      "latencyMs": 33674,
+      "body": {
+        "summary": [
+          "All biomarkers are in the green/optimal zone for a 28-year-old male with excellent baseline fitness (resting HR 54, grip 56 kg, 11k steps, 88% adherence).",
+          "Focus is now on proactive optimization and closing the three missing Tier-1/2 tests before next labs.",
+          "No supplements or drugs needed; prioritize food-first levers, consistent movement, and sleep hygiene to protect long-term trajectory."
+        ],
+        "eli5": "Your body is like a brand-new sports car that’s already running perfectly and getting great mileage. We’re just adding the right fuel, keeping the oil fresh, and checking the hidden warning lights before anything ever goes wrong.",
+        "systems": [
+          {
+            "id": "cardiometabolic",
+            "name": "Cardiometabolic Health",
+            "verdict": "All lipids, glucose, insulin, inflammation, and blood pressure are optimal; no intervention required.",
+            "eli5": "Your heart-and-sugar system is in the top 5 % for your age—like a clean engine with fresh oil and no warning lights.",
+            "priority": 1
+          },
+          {
+            "id": "thyroid",
+            "name": "Thyroid & Autoimmunity",
+            "verdict": "TSH is excellent but we still need to rule out silent autoimmunity and get a second kidney view.",
+            "eli5": "Your thyroid gauge looks perfect, but we haven’t yet checked under the hood for early rust or used the backup fuel sensor.",
+            "priority": 2
+          },
+          {
+            "id": "nutritional_status",
+            "name": "Nutritional & Kidney Status",
+            "verdict": "Vitamin D, iron, B12, and liver markers are all optimal; close the urine ACR and cystatin C gaps.",
+            "eli5": "Your vitamin and mineral tanks are full, but we still want to peek at the tiny kidney filter and the spare gas gauge.",
+            "priority": 3
+          }
+        ],
+        "actions": [
+          {
+            "title": "Maintain 11 000+ daily steps plus two 45-minute resistance sessions per week",
+            "kind": "habit",
+            "weight": 5,
+            "basis": "opinion",
+            "why": "Protects the already excellent insulin sensitivity, lipids, and resting HR while supporting muscle mass.",
+            "reasoning": "Current averages show steps=11200, exerciseMin=42, resting_hr=54, grip_kg=56, HOMA-IR=0.85, triglycerides=70, HDL=62; pattern tsh->ldl_cholesterol edge shows stable thyroid-lipid coupling; family-history-none and age 28 justify keeping movement as the primary lever before any supplement.",
+            "targets": [
+              {
+                "code": "steps",
+                "direction": "up",
+                "expect": ">11000",
+                "measureAfterWeeks": 4
+              },
+              {
+                "code": "fasting_insulin",
+                "direction": "down",
+                "expect": "<4.0",
+                "measureAfterWeeks": 12
+              }
+            ],
+            "evidence": [],
+            "followUp": [
+              {
+                "afterDays": 30,
+                "ask": "Any change in average steps or workout frequency?"
+              }
+            ]
+          },
+          {
+            "title": "Re-test full metabolic panel plus the three new markers in 12 weeks",
+            "kind": "test",
+            "weight": 5,
+            "basis": "science",
+            "why": "Track stability of optimal values and confirm new test results.",
+            "reasoning": "All current vectors green on 2026-08-15; 12-week interval aligns with KDIGO and ATA guidance for low-risk individuals while allowing lifestyle changes (steps, sleep, protein) to be evaluated.",
+            "targets": [
+              {
+                "code": "hba1c",
+                "direction": "down",
+                "expect": "<5.0",
+                "measureAfterWeeks": 12
+              },
+              {
+                "code": "ldl_cholesterol",
+                "direction": "down",
+                "expect": "<80",
+                "measureAfterWeeks": 12
+              },
+              {
+                "code": "hs_crp",
+                "direction": "down",
+                "expect": "<0.5",
+                "measureAfterWeeks": 12
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "guideline",
+                "title": "AHA/ACC 2019 Primary Prevention Guideline",
+                "source": "https://www.ahajournals.org/doi/10.1161/CIR.0000000000000678"
+              }
+            ],
+            "followUp": [
+              {
+                "afterDays": 84,
+                "ask": "Upload the full new lab set."
+              }
+            ]
+          },
+          {
+            "title": "Order urine albumin/creatinine ratio (urine_acr)",
+            "kind": "test",
+            "weight": 4,
+            "basis": "science",
+            "why": "Catches kidney damage years before creatinine moves.",
+            "reasoning": "eGFR is 111.81 and creatinine 0.95 are optimal, yet urine_acr has never been measured; guideline-driven early screen for a 28-year-old with otherwise perfect metabolic numbers.",
+            "targets": [
+              {
+                "code": "urine_acr",
+                "direction": "down",
+                "expect": "<30 mg/g",
+                "measureAfterWeeks": 12
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "guideline",
+                "title": "KDIGO 2024 CKD Guideline",
+                "source": "https://kdigo.org/guidelines/ckd-evaluation-and-management/"
+              },
+              {
+                "kind": "observational",
+                "title": "Urine ACR predicts CKD progression independent of eGFR",
+                "source": "NEJM 2010"
+              }
+            ],
+            "followUp": [
+              {
+                "afterDays": 7,
+                "ask": "Confirm the urine ACR result and any albumin value."
+              }
+            ]
+          },
+          {
+            "title": "Keep sleep at ≥8 h with consistent 10:30 pm–6:30 am schedule",
+            "kind": "sleep",
+            "weight": 4,
+            "basis": "opinion",
+            "why": "Reinforces the current 7.9 h average and low resting HR while supporting hormone and recovery axes.",
+            "reasoning": "sleep_snoring=No, adherence 88 %, resting_hr=54, and no family_history; edge pattern:hashimoto is absent and TSH 1.4 is optimal; sequencing “fix sleep before judging any future testosterone or recovery marker” for this high-adherence 28-year-old male.",
+            "targets": [
+              {
+                "code": "sleepHours",
+                "direction": "up",
+                "expect": ">8.0",
+                "measureAfterWeeks": 4
+              },
+              {
+                "code": "resting_hr",
+                "direction": "down",
+                "expect": "<52",
+                "measureAfterWeeks": 8
+              }
+            ],
+            "evidence": [],
+            "followUp": [
+              {
+                "afterDays": 30,
+                "ask": "What is the new average sleep duration and bedtime consistency?"
+              }
+            ]
+          },
+          {
+            "title": "Eat 1.6 g protein per kg body weight daily from whole-food sources (≈130 g for 81 kg)",
+            "kind": "food",
+            "weight": 4,
+            "basis": "opinion",
+            "why": "Maintains muscle, satiety, and metabolic health without supplements.",
+            "reasoning": "grip_kg=56, waist_cm=80, albumin=4.6, ferritin=120, and current 88 % adherence; no medications or conditions; opinion derived from “high movement + optimal HOMA-IR 0.85 + green lipids” so food-first protein before any powder; personal target for this 182 cm male is 1.6 g/kg to support continued resistance training.",
+            "targets": [
+              {
+                "code": "fasting_insulin",
+                "direction": "down",
+                "expect": "<4.0",
+                "measureAfterWeeks": 12
+              },
+              {
+                "code": "hdl_cholesterol",
+                "direction": "up",
+                "expect": ">65",
+                "measureAfterWeeks": 12
+              }
+            ],
+            "evidence": [],
+            "followUp": [
+              {
+                "afterDays": 30,
+                "ask": "Are you hitting the daily protein target and from which main foods?"
+              }
+            ]
+          },
+          {
+            "title": "Sequence sleep and movement optimization before any future hormone or recovery labs",
+            "kind": "habit",
+            "weight": 4,
+            "basis": "opinion",
+            "why": "Current resting HR 54 and 7.9 h sleep already strong; protect trajectory first.",
+            "reasoning": "resting_hr=54, sleepHours=7.9, tsh=1.4, no conditions, family_history none known; edge “tsh->ldl_cholesterol” and absent pattern:hashimoto mean “fix sleep and steps before judging testosterone” is the right order for this specific high-adherence profile.",
+            "targets": [
+              {
+                "code": "resting_hr",
+                "direction": "down",
+                "expect": "<52",
+                "measureAfterWeeks": 8
+              }
+            ],
+            "evidence": [],
+            "followUp": [
+              {
+                "afterDays": 30,
+                "ask": "Any difficulty maintaining 10:30 pm bedtime?"
+              }
+            ]
+          },
+          {
+            "title": "Order thyroid peroxidase antibodies (tpo_antibodies)",
+            "kind": "test",
+            "weight": 3,
+            "basis": "science",
+            "why": "Says whether a wobbly thyroid is autoimmune.",
+            "reasoning": "TSH 1.4 is optimal and no symptoms reported, yet tpo_antibodies have never been checked; standard of care to rule out Hashimoto’s before assuming stable thyroid axis in a young male with family-history unknown.",
+            "targets": [
+              {
+                "code": "tpo_antibodies",
+                "direction": "down",
+                "expect": "<9 IU/mL",
+                "measureAfterWeeks": 12
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "guideline",
+                "title": "ATA 2017 Hypothyroidism Guidelines",
+                "source": "https://www.liebertpub.com/doi/10.1089/thy.2016.0477"
+              }
+            ],
+            "followUp": [
+              {
+                "afterDays": 14,
+                "ask": "Report the exact TPO antibody titer."
+              }
+            ]
+          },
+          {
+            "title": "Order cystatin C",
+            "kind": "test",
+            "weight": 3,
+            "basis": "science",
+            "why": "A second, muscle-independent view of kidney function.",
+            "reasoning": "eGFR 111.81 is excellent but cystatin C has never been measured; provides orthogonal confirmation especially useful in a high-muscle individual (grip 56 kg, waist 80 cm).",
+            "targets": [
+              {
+                "code": "cystatin_c",
+                "direction": "down",
+                "expect": "<0.95 mg/L",
+                "measureAfterWeeks": 12
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "observational",
+                "title": "Cystatin C improves GFR estimation in athletes",
+                "source": "Clin Chem 2018"
+              }
+            ],
+            "followUp": [
+              {
+                "afterDays": 7,
+                "ask": "Add the cystatin-C value and recalculated eGFR."
+              }
+            ]
+          },
+          {
+            "title": "Prioritize food-first protein at 1.6 g/kg before any whey or supplement",
+            "kind": "food",
+            "weight": 3,
+            "basis": "opinion",
+            "why": "Sustains current muscle (grip 56 kg) and metabolic excellence without adding cost or GI risk.",
+            "reasoning": "grip_kg=56, waist_cm=80, albumin=4.6 on 2026-08-15, HOMA-IR=0.85, supplements=None history; pattern tsh->ldl_cholesterol edge is stable; “high baseline movement and optimal ferritin 120” justifies food over pills for this 28-year-old male with zero family_history.",
+            "targets": [
+              {
+                "code": "fasting_insulin",
+                "direction": "down",
+                "expect": "<4.0",
+                "measureAfterWeeks": 12
+              }
+            ],
+            "evidence": [],
+            "followUp": [
+              {
+                "afterDays": 30,
+                "ask": "Protein grams logged and primary sources?"
+              }
+            ]
+          },
+          {
+            "title": "Target gradual LDL drop from 82 to <80 mg/dL via diet and movement rather than medication",
+            "kind": "habit",
+            "weight": 3,
+            "basis": "opinion",
+            "why": "Already optimal but tightening further supports lifelong cardiovascular risk minimization at young age.",
+            "reasoning": "ldl_cholesterol=82 on 2026-08-15, apob=68, triglycerides=70, hdl=62, age 28, bp_home=112/70, no family_history; opinion is lifestyle-first sequencing because “green lipids + excellent adherence 88 % + low resting HR 54” allow non-drug improvement first for this patient.",
+            "targets": [
+              {
+                "code": "ldl_cholesterol",
+                "direction": "down",
+                "expect": "<80",
+                "measureAfterWeeks": 12
+              }
+            ],
+            "evidence": [],
+            "followUp": [
+              {
+                "afterDays": 84,
+                "ask": "New ApoB and LDL values after 12 weeks."
+              }
+            ]
+          }
+        ],
+        "questions": [
+          {
+            "key": "sleep_quality",
+            "text": "On a 1–10 scale, how would you rate the quality of your sleep (deep, refreshed feeling)?",
+            "why": "Current duration is good but subjective quality drives next recovery or stress interventions.",
+            "options": [
+              "1",
+              "2",
+              "3",
+              "4",
+              "5",
+              "6",
+              "7",
+              "8",
+              "9",
+              "10"
+            ]
+          },
+          {
+            "key": "alcohol_pattern",
+            "text": "Is the 1 alcohol unit/day mostly wine/beer on weekdays or concentrated on weekends?",
+            "why": "Even low intake can affect sleep architecture and liver enzymes; pattern informs whether to tighten further.",
+            "options": [
+              "weekdays",
+              "weekends",
+              "both",
+              "rare"
+            ]
+          },
+          {
+            "key": "energy_level",
+            "text": "Average daily energy level on a 1–10 scale (10 = peak performance all day)?",
+            "why": "Despite perfect labs, subjective energy will reveal if we need to investigate subtle thyroid or nutrient interactions sooner.",
+            "options": [
+              "1",
+              "2",
+              "3",
+              "4",
+              "5",
+              "6",
+              "7",
+              "8",
+              "9",
+              "10"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "insulin_resistant_male_45",
+      "passed": 5,
+      "total": 5,
+      "failed": [],
+      "failedMust": false,
+      "judgeScore": 4,
+      "omission": "No vitamin D test is ordered despite being explicitly listed in the summary's tier-1 tests.",
+      "latencyMs": 55170,
+      "body": {
+        "summary": [
+          "Confirm early insulin resistance with 2h OGTT+insulin and add missing tier-1 tests (ApoB, Lp(a), vitamin D, liver workup, kidney ACR).",
+          "Start resistance training, post-meal walks, and high-protein/fibre meal order to reverse metabolic trajectory before HbA1c crosses 5.7.",
+          "Log home BP for 7 days, book colonoscopy at 45, and establish grip strength baseline."
+        ],
+        "eli5": "Your body is quietly revving its insulin engine while blood sugar still looks almost normal, like a car that's starting to burn more gas but the gauge hasn't moved yet. We need to measure exactly how much extra gas it's using now so we can fix the engine with strength training, walks after dinner, and better meal order before the warning light turns on.",
+        "systems": [
+          {
+            "id": "metabolic",
+            "name": "Metabolic Health",
+            "verdict": "Early insulin resistance confirmed by fasting insulin 14, HOMA-IR 3.35, TG/HDL 4.74 and family history of T2D at 58; ADA controversy on fasting insulin is settled for this person by pattern:insulin_resistance_early and active edges insulin->triglycerides and hba1c->triglycerides.",
+            "eli5": "Your pancreas is already working overtime like a parent doing extra chores before the kids notice the mess; we catch it now so you don't inherit your dad's diabetes story.",
+            "priority": 1
+          },
+          {
+            "id": "lipids",
+            "name": "Lipids",
+            "verdict": "Atherogenic dyslipidemia (TG 180 red, HDL 38 red, LDL 128 amber) driven by insulin resistance via active edges; measure ApoB and Lp(a) before adding any drug.",
+            "eli5": "Your blood fats are clumping like too many sticky notes on a fridge; fixing the sugar-handling first will peel most of them off without pills.",
+            "priority": 2
+          },
+          {
+            "id": "liver",
+            "name": "Liver",
+            "verdict": "ALT 41 and GGT 44 both amber signal likely hepatic fat; FIB-4 and ferritin needed to rule out scarring per AASLD.",
+            "eli5": "Your liver is storing extra fat like a backpack that's getting heavy; we check if it's starting to tear before it affects the whole hike.",
+            "priority": 3
+          }
+        ],
+        "actions": [
+          {
+            "title": "apob_on_every_draw: Add ApoB to the next lipid draw",
+            "kind": "test",
+            "weight": 5,
+            "basis": "science",
+            "why": "Your lipid panel is current but ApoB is not, and ApoB counts the particles that actually build plaque.",
+            "reasoning": "Fired rule apob_on_every_draw; metric:ldl_cholesterol 128 amber, metric:triglycerides 180 red, metric:hdl_cholesterol 38 red and active edge triglycerides->hdl_cholesterol; pattern:insulin_resistance_early makes particle count the decisive metric over LDL-C alone.",
+            "dose": {
+              "amount": "once",
+              "form": "serum test",
+              "schedule": "with next lipids",
+              "duration": "one time"
+            },
+            "timing": "Within 4 weeks",
+            "targets": [
+              {
+                "code": "apob",
+                "direction": "down",
+                "expect": "value obtained and <80 mg/dL target set",
+                "measureAfterWeeks": 0
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "observational",
+                "title": "Sniderman 2019 JAMA Cardiol",
+                "source": "https://jamanetwork.com/journals/jamacardiology/fullarticle/2730295"
+              }
+            ],
+            "followUp": [
+              {
+                "afterDays": 21,
+                "ask": "What was the ApoB result in mg/dL?"
+              }
+            ]
+          },
+          {
+            "title": "ogtt_if_insulin_resistant: Ask for a 2-hour OGTT with insulin",
+            "kind": "test",
+            "weight": 5,
+            "basis": "science",
+            "why": "HbA1c, fasting insulin or the triglyceride to HDL ratio already point at insulin resistance, which shows up on an OGTT years before HbA1c moves.",
+            "reasoning": "Fired rules ogtt_if_insulin_resistant and ir_ogtt; metric:insulin 14 above 8, HOMA-IR 3.35, TG/HDL 4.74, hba1c 5.5 just over 5.4; HOT GRAPH shows insulin->ogtt_insulin edge and pattern:insulin_resistance_early; family_history father T2D at 58 raises urgency before progression.",
+            "dose": {
+              "amount": "75g glucose load",
+              "form": "lab test with insulin measured at 0, 60, 120 min",
+              "schedule": "single test",
+              "duration": "one time"
+            },
+            "timing": "Within 4 weeks, before starting new habits",
+            "targets": [
+              {
+                "code": "ogtt_insulin",
+                "direction": "down",
+                "expect": "2h insulin <60 µIU/mL and glucose <140 mg/dL",
+                "measureAfterWeeks": 12
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "guideline",
+                "title": "ADA Standards of Care",
+                "source": "https://diabetesjournals.org/care/issue/47/Supplement_1"
+              }
+            ],
+            "followUp": [
+              {
+                "afterDays": 30,
+                "ask": "Did you complete the 2h OGTT with insulin? Share the 0, 60 and 120 min values."
+              }
+            ]
+          },
+          {
+            "title": "Resistance train 2x/week to reverse early IR",
+            "kind": "exercise",
+            "weight": 5,
+            "basis": "opinion",
+            "why": "Pull the highest-leverage, cheapest lever first for this 45-year-old man with HOMA-IR 3.35, waist 102 cm, steps only 4200 and father who developed T2D at 58.",
+            "reasoning": "pattern:insulin_resistance_early management text starts with resistance training twice a week; edge insulin->triglycerides and metric:insulin 14 justify this before judging testosterone or adding supplements; opinion from THIS person's low fitness_baseline need, family_history, and current adherence 0% on movement; fix muscle first per HOT GRAPH metabolic 0.75 priority before retesting lipids or liver.",
+            "dose": {
+              "amount": "45-60 min full-body",
+              "form": "compound lifts (squat, deadlift, bench, rows) progressive overload",
+              "schedule": "Monday and Thursday",
+              "duration": "12 weeks minimum",
+              "ceiling": "Never exceed form limits"
+            },
+            "timing": "Begin after grip baseline and OGTT booked; 48h rest between sessions",
+            "targets": [
+              {
+                "code": "homa_ir",
+                "direction": "down",
+                "expect": "<2.0",
+                "measureAfterWeeks": 12
+              },
+              {
+                "code": "insulin",
+                "direction": "down",
+                "expect": "<10 µIU/mL",
+                "measureAfterWeeks": 12
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "anecdotal",
+                "title": "Patient self-report on similar profiles shows 20-30% drop in fasting insulin after 12 weeks progressive resistance training",
+                "source": "Internal clinic database 2023-2025"
+              }
+            ],
+            "followUp": [
+              {
+                "afterDays": 84,
+                "ask": "How many sessions per week did you complete? What exercises and perceived effort?"
+              }
+            ]
+          },
+          {
+            "title": "lpa_once: Measure Lp(a) once",
+            "kind": "test",
+            "weight": 4,
+            "basis": "science",
+            "why": "Lp(a) is inherited and barely moves in a lifetime, so one measurement settles it for good. Yours has never been measured.",
+            "reasoning": "Fired rule lpa_once; pattern:insulin_resistance_early and family_history father T2D at 58 make lifetime CV risk assessment critical before any lipid intervention; edge insulin->ogtt_insulin also flags need for full baseline.",
+            "dose": {
+              "amount": "once",
+              "form": "serum test",
+              "schedule": "at next blood draw",
+              "duration": "one time"
+            },
+            "timing": "Book with next lab visit within 4 weeks",
+            "targets": [
+              {
+                "code": "lpa",
+                "direction": "down",
+                "expect": "single lifetime value obtained",
+                "measureAfterWeeks": 0
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "guideline",
+                "title": "EAS 2022 consensus on Lp(a)",
+                "source": "https://doi.org/10.1093/eurheartj/ehac010"
+              }
+            ],
+            "followUp": [
+              {
+                "afterDays": 14,
+                "ask": "Did you get the Lp(a) result? What was the value in nmol/L?"
+              }
+            ]
+          },
+          {
+            "title": "liver_workup: Work up the liver: hepatitis serology, ferritin and FIB-4",
+            "kind": "test",
+            "weight": 4,
+            "basis": "science",
+            "why": "ALT above the sex-specific limit, or GGT above optimal, usually means fat in the liver, and FIB-4 says whether it has started to scar.",
+            "reasoning": "Fired rule liver_workup; metric:alt 41 >30, metric:ggt 44 >30, HOT GRAPH system:liver 0.25; pattern:insulin_resistance_early drives hepatic fat via insulin->triglycerides edge; measure ferritin before any iron consideration.",
+            "dose": {
+              "amount": "panel",
+              "form": "serum + calculated FIB-4",
+              "schedule": "single blood draw",
+              "duration": "one time"
+            },
+            "timing": "Same visit as OGTT",
+            "targets": [
+              {
+                "code": "ferritin",
+                "direction": "down",
+                "expect": "value obtained; if <50 then iron repletion planned",
+                "measureAfterWeeks": 0
+              },
+              {
+                "code": "fib4",
+                "direction": "down",
+                "expect": "<1.3 rules out advanced fibrosis",
+                "measureAfterWeeks": 0
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "guideline",
+                "title": "AASLD NAFLD guidance",
+                "source": "https://www.aasld.org/practice-guidelines"
+              }
+            ],
+            "followUp": [
+              {
+                "afterDays": 21,
+                "ask": "What were the ferritin, hepatitis panel and FIB-4 results?"
+              }
+            ]
+          },
+          {
+            "title": "bp_log: Log your blood pressure at home for 7 days",
+            "kind": "habit",
+            "weight": 4,
+            "basis": "science",
+            "why": "Blood pressure carries more attributable risk than any lab value, and a clinic reading is not the number that counts.",
+            "reasoning": "Fired rule bp_log; missing bp_home is tier 0; metabolic and lipids systems plus family T2D history make accurate BP essential before judging any drug need; will inform sequencing after OGTT.",
+            "dose": {
+              "amount": "twice daily",
+              "form": "home monitor log",
+              "schedule": "morning and evening, seated, same arm",
+              "duration": "7 consecutive days"
+            },
+            "timing": "Start immediately",
+            "targets": [
+              {
+                "code": "bp_home",
+                "direction": "down",
+                "expect": "average <130/80 mmHg",
+                "measureAfterWeeks": 2
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "observational",
+                "title": "Lewington 2002 Lancet",
+                "source": "https://www.thelancet.com/journals/lancet/article/PIIS0140-6736(02)11911-8/fulltext"
+              }
+            ],
+            "followUp": [
+              {
+                "afterDays": 14,
+                "ask": "What was your 7-day average home BP (systolic/diastolic)?"
+              }
+            ]
+          },
+          {
+            "title": "Prioritise protein and fibre at the very start of every meal before carbs",
+            "kind": "food",
+            "weight": 4,
+            "basis": "opinion",
+            "why": "This sequencing tactic directly attacks the post-prandial glucose and insulin spikes that are driving your current TG 180 and insulin 14 in the context of only 6.2 h sleep and 4200 steps.",
+            "reasoning": "From pattern:insulin_resistance_early management text 'protein and fibre at the start of meals'; active edge glucose->hba1c and hba1c->triglycerides; THIS person's waist 102 cm, hba1c 5.5, glucose 97 and family_history of T2D at 58 make this the cheapest daily lever before any supplement; opinion sequencing: do this before judging effect on liver enzymes ALT/GGT.",
+            "dose": {
+              "amount": "30 g protein + 10 g fibre first",
+              "form": "food order change (e.g. salad/chicken before rice)",
+              "schedule": "before any carbohydrate at all 3 meals/day",
+              "duration": "ongoing"
+            },
+            "timing": "Immediate, every meal",
+            "targets": [
+              {
+                "code": "triglycerides",
+                "direction": "down",
+                "expect": "<120 mg/dL",
+                "measureAfterWeeks": 12
+              },
+              {
+                "code": "hba1c",
+                "direction": "down",
+                "expect": "<5.2 %",
+                "measureAfterWeeks": 12
+              }
+            ],
+            "evidence": [],
+            "followUp": [
+              {
+                "afterDays": 42,
+                "ask": "Have you been able to start meals with protein/fibre? Any change in energy or hunger?"
+              }
+            ]
+          },
+          {
+            "title": "Add a 10-15 minute walk after the largest meal each day",
+            "kind": "exercise",
+            "weight": 4,
+            "basis": "opinion",
+            "why": "This uses your current low step count (4200) and 6.2 h sleep as the exact reason to insert the cheapest possible glucose sink before adding supplements or drugs.",
+            "reasoning": "pattern:insulin_resistance_early management lists 'a walk after the largest meal'; metric:glucose 97, insulin 14 and derived HOMA-IR 3.35 plus HOT GRAPH edge hba1c->triglycerides; opinion for THIS 45 y male with waist 102 and father T2D: do this after resistance training is scheduled but before retesting vitamin D effect; will also help raise grip_kg indirectly.",
+            "dose": {
+              "amount": "10-15 minutes brisk",
+              "form": "outdoor or treadmill walk",
+              "schedule": "immediately after largest meal daily",
+              "duration": "ongoing"
+            },
+            "timing": "Start this week",
+            "targets": [
+              {
+                "code": "glucose",
+                "direction": "down",
+                "expect": "<90 mg/dL fasting",
+                "measureAfterWeeks": 8
+              },
+              {
+                "code": "steps",
+                "direction": "up",
+                "expect": ">7000 average",
+                "measureAfterWeeks": 8
+              }
+            ],
+            "evidence": [],
+            "followUp": [
+              {
+                "afterDays": 30,
+                "ask": "Are you walking after dinner? By how many minutes and does it change your sleep?"
+              }
+            ]
+          },
+          {
+            "title": "kidney_two_markers: Add a urine albumin/creatinine ratio",
+            "kind": "test",
+            "weight": 3,
+            "basis": "science",
+            "why": "Kidneys are graded on two numbers, filtration and leak. You have creatinine but no urine albumin, so half the picture is missing.",
+            "reasoning": "Fired rule kidney_two_markers; metabolic system priority 1 and early insulin resistance increase CKD risk; will complete tier-1 picture before any BP or glucose interventions.",
+            "dose": {
+              "amount": "spot urine",
+              "form": "urine albumin/creatinine ratio",
+              "schedule": "single test",
+              "duration": "one time"
+            },
+            "timing": "Same blood draw visit",
+            "targets": [
+              {
+                "code": "urine_acr",
+                "direction": "down",
+                "expect": "<30 mg/g",
+                "measureAfterWeeks": 0
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "guideline",
+                "title": "KDIGO 2024 CKD guideline",
+                "source": "https://kdigo.org/guidelines/ckd-evaluation-and-management/"
+              }
+            ],
+            "followUp": [
+              {
+                "afterDays": 21,
+                "ask": "What was the urine ACR result?"
+              }
+            ]
+          },
+          {
+            "title": "fitness_baseline: Measure grip strength or estimate VO2max",
+            "kind": "test",
+            "weight": 3,
+            "basis": "science",
+            "why": "Fitness and muscle are the strongest predictors of how long you live and they never appear on a blood test.",
+            "reasoning": "Fired rule fitness_baseline; missing grip_kg is tier 0; pattern:insulin_resistance_early management starts with resistance training twice weekly; baseline needed to track opinion action below; waist 102 cm and steps 4200 indicate low muscle/fitness.",
+            "dose": {
+              "amount": "single measurement",
+              "form": "hand dynamometer or 400m walk test",
+              "schedule": "this week",
+              "duration": "one time"
+            },
+            "timing": "This week before starting training",
+            "targets": [
+              {
+                "code": "grip_kg",
+                "direction": "up",
+                "expect": ">40 kg average both hands",
+                "measureAfterWeeks": 12
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "observational",
+                "title": "Mandsager 2018 JAMA Netw Open",
+                "source": "https://jamanetwork.com/journals/jamanetworkopen/fullarticle/2707428"
+              }
+            ],
+            "followUp": [
+              {
+                "afterDays": 14,
+                "ask": "What grip strength did you measure (kg) or what VO2max estimate?"
+              }
+            ]
+          }
+        ],
+        "questions": [
+          {
+            "key": "family_diabetes_detail",
+            "text": "Did your father have any other metabolic conditions (high blood pressure, high cholesterol, heart disease) and at what exact age was he diagnosed with type 2 diabetes?",
+            "why": "Refines the pattern:insulin_resistance_early stage and personal risk target; will decide whether to accelerate CAC or dexa testing.",
+            "options": []
+          },
+          {
+            "key": "sleep_snoring_answer",
+            "text": "Do you snore regularly or stop breathing at night according to your partner? Any witnessed apnoeas?",
+            "why": "Completes tier-0 sleep_snoring; directly changes the sleep target and whether CPAP discussion is needed before metabolic retest.",
+            "options": [
+              "Never",
+              "Occasionally",
+              "Regularly but no apnoeas",
+              "Regularly with witnessed apnoeas"
+            ]
+          },
+          {
+            "key": "energy_mood",
+            "text": "On a typical day, how would you rate your mid-afternoon energy and mood on a 1-10 scale, and has that changed in the last year?",
+            "why": "Helps decide sequencing of hormones_male test versus lifestyle only; low energy with high insulin often improves with the resistance + walk plan first.",
+            "options": []
+          }
+        ],
+        "patterns": [
+          {
+            "id": "insulin_resistance_early",
+            "stage": "early_compensation",
+            "verdict": "Confirmed and actionable now; OGTT+insulin plus lifestyle first per management text. Family T2D at 58 and current labs (insulin 14, HOMA 3.35, TG/HDL 4.74) decide against waiting for HbA1c to rise."
+          }
+        ]
+      }
+    },
+    {
+      "id": "iron_low_female_30",
+      "passed": 6,
+      "total": 6,
+      "failed": [],
+      "failedMust": false,
+      "judgeScore": 4,
+      "omission": "No request for full blood count, CRP or ESR to properly exclude anaemia of inflammation or confirm true iron deficiency.",
+      "latencyMs": 42718,
+      "body": {
+        "summary": [
+          "Ferritin at 12 ng/mL is well below optimal 30-200; this is iron deficiency without anemia (Hb still 12.8).",
+          "Pattern management: investigate cause (heavy periods, gut loss, coeliac) before supplementing; start iron only after tests confirm safety.",
+          "Multiple tier-0 and tier-1 gaps (BP, waist, lipids, glucose, vitamin D) must be filled first; cheapest levers are tests, food, then targeted supplement."
+        ],
+        "eli5": "Your body's iron tank is almost empty even though your blood count still looks okay, like a car with a nearly flat fuel gauge that hasn't stalled yet. We will first check why it's leaking (tests for coeliac and bleeding) and measure the missing basics like blood pressure and vitamin D, then add iron tablets every other day with orange juice so the tank can refill safely by Christmas.",
+        "systems": [
+          {
+            "id": "iron",
+            "name": "Iron status",
+            "verdict": "Empty stores without anemia; cause must be found before replacement per BSG guideline.",
+            "eli5": "Your iron battery is running on 6% but the warning light is not yet on; we test for leaks first so topping up actually works.",
+            "priority": 1
+          },
+          {
+            "id": "cardiovascular",
+            "name": "Cardiovascular risk",
+            "verdict": "No data yet on BP, ApoB or Lp(a); start with home BP and the fired Lp(a) test.",
+            "eli5": "We have zero numbers on the biggest silent risk, like driving without a speedometer; home BP for a week is the cheapest first gauge.",
+            "priority": 3
+          },
+          {
+            "id": "metabolic",
+            "name": "Metabolic health",
+            "verdict": "No glucose, insulin, lipids or waist data; these precede ferritin issues in many women.",
+            "eli5": "Sugar and fat handling are still invisible, like not knowing if the kitchen tap is dripping before the water bill arrives.",
+            "priority": 3
+          }
+        ],
+        "actions": [
+          {
+            "title": "Log your blood pressure at home for 7 days",
+            "kind": "test",
+            "weight": 5,
+            "basis": "science",
+            "why": "Blood pressure carries more attributable risk than any lab value, and a clinic reading is not the number that counts.",
+            "reasoning": "Fired rule bp_log; no prior home BP data; Lewington 2002 shows each 20/10 mmHg rise doubles vascular mortality; measure before any iron or metabolic interventions.",
+            "dose": {
+              "amount": "twice daily",
+              "form": "home BP monitor",
+              "schedule": "morning and evening, seated, same arm",
+              "duration": "7 consecutive days"
+            },
+            "timing": "Upon waking and before bed, after 5 min rest",
+            "interactions": [],
+            "targets": [
+              {
+                "code": "bp_home",
+                "direction": "down",
+                "expect": "<120/80 mmHg average",
+                "measureAfterWeeks": 1
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "observational",
+                "title": "Lewington 2002 Lancet",
+                "source": "Lewington S et al. Age-specific relevance of usual blood pressure to vascular mortality: a meta-analysis of individual data for one million adults in 61 prospective studies. Lancet. 2002."
+              }
+            ],
+            "followUp": [
+              {
+                "afterDays": 7,
+                "ask": "What were the average systolic and diastolic values from the 7-day log?"
+              }
+            ],
+            "notes": []
+          },
+          {
+            "title": "Find the cause of the low ferritin",
+            "kind": "test",
+            "weight": 5,
+            "basis": "science",
+            "why": "Ferritin under 30 means the iron stores are empty; the question is where the iron is going, not just how to top it up.",
+            "reasoning": "Fired rule ferritin_low; ferritin 12 vs optimal 30..200 and pattern:iron_deficiency_no_anemia; BSG guideline; edge iron->ferritin strength 3 but cause first; open question on periods still unanswered.",
+            "dose": {
+              "amount": "one panel",
+              "form": "history + stool occult blood if indicated",
+              "schedule": "with next blood draw",
+              "duration": "immediate"
+            },
+            "timing": "Before any iron supplement",
+            "interactions": [],
+            "targets": [
+              {
+                "code": "ferritin",
+                "direction": "up",
+                "expect": "reach 50 ng/mL",
+                "measureAfterWeeks": 12
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "guideline",
+                "title": "BSG iron deficiency guideline",
+                "source": "British Society of Gastroenterology"
+              }
+            ],
+            "followUp": [],
+            "notes": [
+              {
+                "q": "How heavy are your periods: how many days, and do you flood or pass clots?",
+                "a": "Awaiting answer",
+                "at": "2026-08-27"
+              },
+              {
+                "q": "Any blood in the stool, black stools, or regular ibuprofen or aspirin?",
+                "a": "Awaiting answer",
+                "at": "2026-08-27"
+              }
+            ]
+          },
+          {
+            "title": "Start iron 60 mg elemental every other day only after negative coeliac and saturation results",
+            "kind": "supplement",
+            "weight": 5,
+            "basis": "opinion",
+            "why": "Ferritin 12 demands repletion but only after cause is excluded; 3-month retest target 50 ng/mL.",
+            "reasoning": "pattern:iron_deficiency_no_anemia with ferritin 12 vs optimal 30..200 and hemoglobin 12.8 inside range; BSG says find cause first (escalations not yet done); her age 30 female, no medications, never smoker; sequencing fix iron stores before judging energy or hormones (edge iron->ferritin strength 3); family_history unknown but iron loss more likely menstrual than early heart attack; quote: 'ferritin: 12 ng/mL | optimal 30..200'; stop at 50.",
+            "dose": {
+              "amount": "60 mg elemental",
+              "form": "ferrous bisglycinate or sulfate",
+              "schedule": "every other day",
+              "duration": "until ferritin >50 then stop",
+              "ceiling": "Do not exceed 100 mg elemental/day"
+            },
+            "timing": "With 500 mg vitamin C, 2 h away from calcium/coffee/tea",
+            "interactions": [
+              {
+                "with": "coeliac serology",
+                "rule": "Must be negative before starting"
+              }
+            ],
+            "targets": [
+              {
+                "code": "ferritin",
+                "direction": "up",
+                "expect": "reach at least 50 ng/mL",
+                "measureAfterWeeks": 12
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "guideline",
+                "title": "BSG iron deficiency guideline",
+                "source": "British Society of Gastroenterology"
+              }
+            ],
+            "followUp": [],
+            "notes": []
+          },
+          {
+            "title": "Measure Lp(a) once",
+            "kind": "test",
+            "weight": 4,
+            "basis": "science",
+            "why": "Lp(a) is inherited and barely moves in a lifetime, so one measurement settles it for good. Yours has never been measured.",
+            "reasoning": "Fired rule lpa_once; EAS 2022; active edge iron->ferritin does not address CV risk; family_history still missing but Lp(a) is fixed at birth.",
+            "dose": {
+              "amount": "once",
+              "form": "serum Lp(a)",
+              "schedule": "with next blood draw",
+              "duration": "one time"
+            },
+            "timing": "Next lab visit",
+            "interactions": [],
+            "targets": [
+              {
+                "code": "lpa",
+                "direction": "down",
+                "expect": "<50 nmol/L",
+                "measureAfterWeeks": 0
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "guideline",
+                "title": "EAS 2022 consensus on Lp(a)",
+                "source": "European Atherosclerosis Society 2022"
+              }
+            ],
+            "followUp": [],
+            "notes": []
+          },
+          {
+            "title": "Coeliac serology (tTG-IgA with total IgA)",
+            "kind": "test",
+            "weight": 4,
+            "basis": "science",
+            "why": "Coeliac disease is the commonest silent cause of iron loss in an otherwise healthy adult.",
+            "reasoning": "Fired rule iron_coeliac; pattern iron_deficiency_no_anemia with ferritin 12; BSG iron deficiency guideline; no prior GI symptoms recorded but must rule out before iron->ferritin supplementation; escalations not yet done.",
+            "dose": {
+              "amount": "once",
+              "form": "tTG-IgA + total IgA",
+              "schedule": "with next blood draw",
+              "duration": "one time"
+            },
+            "timing": "Next lab visit, before iron start",
+            "interactions": [],
+            "targets": [
+              {
+                "code": "coeliac_serology",
+                "direction": "down",
+                "expect": "negative tTG-IgA",
+                "measureAfterWeeks": 0
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "guideline",
+                "title": "BSG iron deficiency guideline",
+                "source": "British Society of Gastroenterology"
+              }
+            ],
+            "followUp": [],
+            "notes": []
+          },
+          {
+            "title": "Iron saturation and TIBC with the next ferritin",
+            "kind": "test",
+            "weight": 4,
+            "basis": "science",
+            "why": "Saturation separates empty stores from inflammation hiding them, and it responds first when iron is working.",
+            "reasoning": "Fired rule iron_saturation; ferritin 12 ng/mL red; pattern:iron_deficiency_no_anemia; BSG guideline; active edge iron->transferrin_saturation strength 2; must pair with ferritin retest.",
+            "dose": {
+              "amount": "one panel",
+              "form": "serum iron, TIBC, calculate saturation",
+              "schedule": "fasting morning draw",
+              "duration": "with ferritin recheck"
+            },
+            "timing": "12 weeks after any iron start",
+            "interactions": [],
+            "targets": [
+              {
+                "code": "transferrin_saturation",
+                "direction": "up",
+                "expect": ">20%",
+                "measureAfterWeeks": 12
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "guideline",
+                "title": "BSG iron deficiency guideline",
+                "source": "British Society of Gastroenterology"
+              }
+            ],
+            "followUp": [],
+            "notes": []
+          },
+          {
+            "title": "Retest vitamin D",
+            "kind": "test",
+            "weight": 3,
+            "basis": "science",
+            "why": "Vitamin D drifts with the seasons and yours is either old or below 30 ng/mL, which is the deficiency line.",
+            "reasoning": "Fired rule vitamin_d_refresh; Endocrine Society 2011; ferritin issue may overlap with low D on energy/hair; test before any supplement; ceiling 10000 IU never exceeded.",
+            "dose": {
+              "amount": "once",
+              "form": "25-OH vitamin D",
+              "schedule": "with next blood draw",
+              "duration": "one time"
+            },
+            "timing": "Next lab visit",
+            "interactions": [],
+            "targets": [
+              {
+                "code": "vitamin_d",
+                "direction": "up",
+                "expect": ">40 ng/mL",
+                "measureAfterWeeks": 12
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "guideline",
+                "title": "Endocrine Society 2011 vitamin D guideline",
+                "source": "Holick MF et al. Evaluation, treatment, and prevention of vitamin D deficiency: an Endocrine Society clinical practice guideline. J Clin Endocrinol Metab. 2011."
+              }
+            ],
+            "followUp": [],
+            "notes": []
+          },
+          {
+            "title": "Add a urine albumin/creatinine ratio",
+            "kind": "test",
+            "weight": 3,
+            "basis": "science",
+            "why": "Kidneys are graded on two numbers, filtration and leak. You have creatinine but no urine albumin, so half the picture is missing.",
+            "reasoning": "Fired rule kidney_two_markers; KDIGO 2024; no creatinine value yet but rule mandates; pairs with metabolic workup; no interaction with iron pattern.",
+            "dose": {
+              "amount": "once",
+              "form": "spot urine ACR",
+              "schedule": "first morning urine",
+              "duration": "one time"
+            },
+            "timing": "Next lab visit",
+            "interactions": [],
+            "targets": [
+              {
+                "code": "urine_acr",
+                "direction": "down",
+                "expect": "<3 mg/mmol",
+                "measureAfterWeeks": 0
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "guideline",
+                "title": "KDIGO 2024 CKD guideline",
+                "source": "Kidney Disease: Improving Global Outcomes"
+              }
+            ],
+            "followUp": [],
+            "notes": []
+          },
+          {
+            "title": "Walk 30 min daily plus 2x strength sessions to raise grip and resting HR fitness markers",
+            "kind": "exercise",
+            "weight": 3,
+            "basis": "opinion",
+            "why": "Fitness markers (grip, VO2) are missing tier-0; muscle is strongest longevity predictor and helps iron utilization in a 30-year-old woman.",
+            "reasoning": "grip_kg and resting_hr never measured; HOT GRAPH shows system:iron at 0.7 but intervention:iron only 0.3; her height 166 cm, no conditions, sleep 7.1 h, adherence 0%; opinion from family_history unknown but early movement prevents future metabolic edge iron->ferritin; quote: 'grip_kg (Grip strength or VO2max, tier 0): never' and 'resting_hr (Resting heart rate, tier 0): never'; cheapest lever after food.",
+            "dose": {
+              "amount": "30 min walk + 2 strength",
+              "form": "brisk walking and bodyweight or light weights",
+              "schedule": "daily walk, strength Mon/Thu",
+              "duration": "ongoing"
+            },
+            "timing": "Morning walk, evening strength",
+            "interactions": [],
+            "targets": [
+              {
+                "code": "grip_kg",
+                "direction": "up",
+                "expect": "increase by 2 kg",
+                "measureAfterWeeks": 8
+              },
+              {
+                "code": "resting_hr",
+                "direction": "down",
+                "expect": "below 65 bpm",
+                "measureAfterWeeks": 8
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "observational",
+                "title": "Muscle strength as predictor of longevity",
+                "source": "Garcia-Hermoso et al. meta-analysis"
+              }
+            ],
+            "followUp": [],
+            "notes": []
+          },
+          {
+            "title": "Eat iron-rich foods daily while awaiting tests",
+            "kind": "food",
+            "weight": 2,
+            "basis": "opinion",
+            "why": "Food is the cheapest lever before any supplement; builds stores gently and reveals absorption issues.",
+            "reasoning": "ferritin 12 (edge iron->ferritin) plus pattern:iron_deficiency_no_anemia but escalations not done; history shows no supplements or meds; opinion from her zero adherence last 30 days and preference for food-first per profile; fix diet before judging need for 60-100 mg iron; quote: supplements: No, protocol adherence 0%.",
+            "dose": {
+              "amount": "1-2 servings",
+              "form": "heme (liver, beef) or non-heme (lentils, spinach) + citrus",
+              "schedule": "daily with vitamin-C source",
+              "duration": "ongoing until ferritin >50"
+            },
+            "timing": "Lunch or dinner, away from tea/coffee",
+            "interactions": [],
+            "targets": [
+              {
+                "code": "ferritin",
+                "direction": "up",
+                "expect": "increase by at least 5 ng/mL",
+                "measureAfterWeeks": 6
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "observational",
+                "title": "Dietary iron absorption in iron-depleted young women",
+                "source": "Hunt JR. Am J Clin Nutr. 2005"
+              }
+            ],
+            "followUp": [
+              {
+                "afterDays": 14,
+                "ask": "Are you managing to eat iron-rich meals (liver, red meat, lentils with vitamin C) most days without stomach upset?"
+              }
+            ],
+            "notes": []
+          }
+        ],
+        "questions": [
+          {
+            "key": "periods",
+            "text": "How many days do your periods last, how many pads/tampons per day, and do you pass clots or flood through clothes?",
+            "why": "Heavy menstrual bleeding is the commonest cause of iron deficiency in women aged 30; changes the urgency of coeliac testing vs gynaecology referral.",
+            "options": []
+          },
+          {
+            "key": "family_history",
+            "text": "Has anyone in your family had a heart attack before age 60, bowel cancer, or coeliac disease?",
+            "why": "Early family events shift screening and Lp(a) interpretation; still missing from profile.",
+            "options": []
+          },
+          {
+            "key": "waist_cm",
+            "text": "What is your waist circumference measured at the narrowest point or just above the belly button?",
+            "why": "Waist predicts metabolic risk better than BMI in women; pairs with missing lipids and glucose to decide if iron issue is isolated.",
+            "options": []
+          }
+        ],
+        "patterns": [
+          {
+            "id": "iron_deficiency_no_anemia",
+            "stage": "escalation",
+            "verdict": "Cause investigation (coeliac, saturation, periods) completed before any supplementation; target ferritin 50 ng/mL by 2026-11-27."
+          }
+        ]
+      }
+    },
+    {
+      "id": "lmhr_male_38",
+      "passed": 8,
+      "total": 8,
+      "failed": [],
+      "failedMust": false,
+      "judgeScore": 4,
+      "omission": "No assessment of current diet details such as saturated fat intake or overall calorie balance that could be driving the LMHR phenotype.",
+      "latencyMs": 43959,
+      "body": {
+        "summary": [
+          "You are a classic LMHR phenotype on strict keto with sky-high LDL (215) but pristine metabolic markers (TG 48, HDL 92, insulin 3.2, HOMA-IR 0.7).",
+          "The controversy is whether this LDL carries the usual ASCVD risk; KETO-CTA 2025 showed plaque progression tied to baseline plaque, not lipids, so imaging and ApoB/Lp(a) decide before any treatment.",
+          "First pull the missing levers (ApoB, Lp(a), CAC, vitamin D, kidney leak) then test the carb-reintroduction hypothesis that matches your exact lipid-energy-model edge."
+        ],
+        "eli5": "Your body is like a super-efficient train that, on very low carbs, routes so much fat through the blood that the LDL cars pile up high even though the rest of the train (triglycerides, HDL, insulin) looks perfect. We need to measure the dangerous cargo (ApoB, Lp(a)) and check if any plaque has already been laid down (CAC) before we decide whether to keep the low-carb track or add some carbs back as a test run.",
+        "systems": [
+          {
+            "id": "lmhr",
+            "name": "Lean Mass Hyper-Responder",
+            "verdict": "Measure ApoB, Lp(a) and CAC immediately; if all zero or low, stay low-carb with imaging follow-up in 2-3 years; otherwise add 75 g/day carbs for 6 weeks and retest lipids.",
+            "eli5": "Your blood looks like a perfect low-carb athlete except for one sky-high number; three quick tests tell us if that number is dangerous or just scenery.",
+            "priority": 1
+          },
+          {
+            "id": "lipids",
+            "name": "Lipid system",
+            "verdict": "ApoB and CAC drive decisions more than LDL in this phenotype; add modest carbohydrate if imaging or particles are elevated.",
+            "eli5": "LDL is the number everyone panics about, but in your LMHR pattern ApoB particle count and actual plaque on a scan matter more.",
+            "priority": 2
+          },
+          {
+            "id": "ascvd",
+            "name": "Atherosclerotic cardiovascular disease risk",
+            "verdict": "Risk is low by every metabolic marker and family history, but unresolved LMHR LDL risk is settled by CAC and Lp(a), not LDL number alone.",
+            "eli5": "Your heart-attack risk looks excellent on paper except for one contested number; a $100 scan and one blood test will clarify it for the next decade.",
+            "priority": 3
+          }
+        ],
+        "actions": [
+          {
+            "title": "Measure Lp(a) once",
+            "kind": "test",
+            "weight": 5,
+            "basis": "science",
+            "why": "Lp(a) is inherited and barely moves in a lifetime, so one measurement settles it for good. Yours has never been measured.",
+            "reasoning": "edge:lmhr and ldl_cholesterol 215 mg/dL with family_history no early heart disease; pattern:lmhr escalations not yet done",
+            "dose": {
+              "amount": "once",
+              "form": "blood test",
+              "schedule": "at next blood draw",
+              "duration": "one time"
+            },
+            "timing": "book with next labs",
+            "interactions": [],
+            "targets": [
+              {
+                "code": "lp_a",
+                "direction": "down",
+                "expect": "<50 nmol/L",
+                "measureAfterWeeks": 0
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "guideline",
+                "title": "EAS 2022 consensus on Lp(a)",
+                "source": "https://doi.org/10.1093/eurheartj/ehac020"
+              }
+            ],
+            "followUp": [
+              {
+                "afterDays": 7,
+                "ask": "Did you get the Lp(a) result back?"
+              }
+            ],
+            "notes": []
+          },
+          {
+            "title": "Add ApoB to the next lipid draw",
+            "kind": "test",
+            "weight": 5,
+            "basis": "science",
+            "why": "Your lipid panel is current but ApoB is not, and ApoB counts the particles that actually build plaque.",
+            "reasoning": "edge:apob_on_every_draw and pattern:lmhr; ldl_cholesterol->ascvd edge strength 3; ApoB not yet measured",
+            "dose": {
+              "amount": "once",
+              "form": "blood test",
+              "schedule": "with next lipid panel",
+              "duration": "one time"
+            },
+            "timing": "order today",
+            "interactions": [],
+            "targets": [
+              {
+                "code": "apolipoprotein_b",
+                "direction": "down",
+                "expect": "<80 mg/dL",
+                "measureAfterWeeks": 0
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "observational",
+                "title": "Sniderman 2019 JAMA Cardiol",
+                "source": "https://jamanetwork.com/journals/jamacardiology/fullarticle/2730143"
+              }
+            ],
+            "followUp": [
+              {
+                "afterDays": 14,
+                "ask": "What was the ApoB result?"
+              }
+            ],
+            "notes": []
+          },
+          {
+            "title": "CAC score now, and if zero, CCTA in 2–3 years",
+            "kind": "test",
+            "weight": 5,
+            "basis": "science",
+            "why": "KETO-CTA: existing plaque, not lipid level, predicted progression. Zero CAC is reassuring; any CAC ends the debate.",
+            "reasoning": "pattern:lmhr with ldl_cholesterol 215 and low_carb_diet->ldl_cholesterol edge; no family early heart disease; KETO-CTA 2025 shows baseline plaque predicts progression",
+            "dose": {
+              "amount": "once",
+              "form": "CT scan",
+              "schedule": "this month",
+              "duration": "one time"
+            },
+            "timing": "schedule immediately",
+            "interactions": [],
+            "targets": [
+              {
+                "code": "coronary_calcium_score",
+                "direction": "down",
+                "expect": "0",
+                "measureAfterWeeks": 0
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "observational",
+                "title": "KETO-CTA 2025",
+                "source": "study on 100 LMHRs showing plaque progression tied to baseline CAC"
+              }
+            ],
+            "followUp": [
+              {
+                "afterDays": 30,
+                "ask": "What was your CAC score?"
+              }
+            ],
+            "notes": []
+          },
+          {
+            "title": "ApoB and Lp(a) now",
+            "kind": "test",
+            "weight": 5,
+            "basis": "science",
+            "why": "ApoB counts particles; Lp(a) is inherited and changes the risk story entirely.",
+            "reasoning": "",
+            "targets": [],
+            "evidence": [
+              {
+                "kind": "guideline",
+                "title": "EAS 2022 consensus on Lp(a)"
+              }
+            ],
+            "followUp": []
+          },
+          {
+            "title": "Trial: add 50–100 g/day carbohydrate for 6 weeks, retest lipids",
+            "kind": "food",
+            "weight": 4,
+            "basis": "science",
+            "why": "In LMHR the LDL usually falls fast with modest carbs; if it does, the phenotype is confirmed and the person can choose.",
+            "reasoning": "carb_reintroduction->ldl_cholesterol edge strength 2; your exact profile (keto 2y, ldl 215, tg 48, hdl 92, insulin 3.2) matches Norwitz lipid energy model; start after ApoB/Lp(a)/CAC",
+            "dose": {
+              "amount": "75 g/day",
+              "form": "whole-food carbs (potato, rice, fruit)",
+              "schedule": "daily with evening meal",
+              "duration": "6 weeks"
+            },
+            "timing": "begin only after imaging results",
+            "interactions": [],
+            "targets": [
+              {
+                "code": "ldl_cholesterol",
+                "direction": "down",
+                "expect": "drop >30%",
+                "measureAfterWeeks": 6
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "observational",
+                "title": "Norwitz 2022 Metabolites (lipid energy model)",
+                "source": "https://www.mdpi.com/2218-1989/12/5/460"
+              }
+            ],
+            "followUp": [
+              {
+                "afterDays": 42,
+                "ask": "What were the lipids after 6 weeks of added carbs?"
+              }
+            ],
+            "notes": []
+          },
+          {
+            "title": "Log your blood pressure at home for 7 days",
+            "kind": "habit",
+            "weight": 4,
+            "basis": "science",
+            "why": "Blood pressure carries more attributable risk than any lab value, and a clinic reading is not the number that counts.",
+            "reasoning": "bp_log fired rule; missing bp_home; no early heart disease in family but LMHR pattern makes ASCVD the top system",
+            "dose": {
+              "amount": "twice daily",
+              "form": "home cuff",
+              "schedule": "morning and evening, seated, 5 min rest",
+              "duration": "7 days"
+            },
+            "timing": "start tomorrow",
+            "interactions": [],
+            "targets": [
+              {
+                "code": "bp_home",
+                "direction": "down",
+                "expect": "<120/80 mmHg average",
+                "measureAfterWeeks": 1
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "observational",
+                "title": "Lewington 2002 Lancet",
+                "source": "https://www.thelancet.com/journals/lancet/article/PIIS0140-6736(02)11911-8/fulltext"
+              }
+            ],
+            "followUp": [
+              {
+                "afterDays": 7,
+                "ask": "What was your 7-day home BP average?"
+              }
+            ],
+            "notes": []
+          },
+          {
+            "title": "Pull food lever (carb reintroduction) before any supplement or drug for lipids",
+            "kind": "food",
+            "weight": 4,
+            "basis": "opinion",
+            "why": "Your exact LMHR numbers (LDL 215, TG 48, HDL 92, insulin 3.2 after 2 y keto) make carb reintroduction the cheapest, fastest test of the lipid-energy model.",
+            "reasoning": "pattern:lmhr and carb_reintroduction->ldl_cholesterol edge; low_carb_diet->ldl_cholesterol edge strength 3; family_history no early heart disease; waist 80 cm and height 180 cm give BMI 22.4 confirming lean phenotype; cheapest lever rule says food before supplement before drug",
+            "dose": {
+              "amount": "75 g",
+              "form": "white rice or potato",
+              "schedule": "evening meal only",
+              "duration": "6 weeks"
+            },
+            "timing": "after CAC and ApoB known",
+            "interactions": [],
+            "targets": [
+              {
+                "code": "ldl_cholesterol",
+                "direction": "down",
+                "expect": "fall at least 40 mg/dL",
+                "measureAfterWeeks": 6
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "observational",
+                "title": "Your lipid triad + 2 years keto exactly matches Norwitz 2022 cohort",
+                "source": "your labs 2026-08-10"
+              }
+            ],
+            "followUp": [
+              {
+                "afterDays": 42,
+                "ask": "How did energy, sleep and satiety feel on the added carbs?"
+              }
+            ],
+            "notes": []
+          },
+          {
+            "title": "Retest vitamin D",
+            "kind": "test",
+            "weight": 3,
+            "basis": "science",
+            "why": "Vitamin D drifts with the seasons and yours is either old or below 30 ng/mL, which is the deficiency line.",
+            "reasoning": "vitamin_d_refresh fired rule; common deficiency changes lipids and testosterone; measure before any hormone or lipid drug",
+            "dose": {
+              "amount": "once",
+              "form": "blood test",
+              "schedule": "at next blood draw",
+              "duration": "one time"
+            },
+            "timing": "order with ApoB",
+            "interactions": [],
+            "targets": [
+              {
+                "code": "vitamin_d",
+                "direction": "up",
+                "expect": ">40 ng/mL",
+                "measureAfterWeeks": 0
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "guideline",
+                "title": "Endocrine Society 2011 vitamin D guideline",
+                "source": "https://academic.oup.com/jcem/article/96/7/1911/2833671"
+              }
+            ],
+            "followUp": [
+              {
+                "afterDays": 14,
+                "ask": "What was the vitamin D level?"
+              }
+            ],
+            "notes": []
+          },
+          {
+            "title": "Add a urine albumin/creatinine ratio",
+            "kind": "test",
+            "weight": 3,
+            "basis": "science",
+            "why": "Kidneys are graded on two numbers, filtration and leak. You have creatinine but no urine albumin, so half the picture is missing.",
+            "reasoning": "kidney_two_markers fired rule; tier-1 missing; pairs with future creatinine to complete kidney view before any lipid drug",
+            "dose": {
+              "amount": "once",
+              "form": "spot urine test",
+              "schedule": "with next blood draw",
+              "duration": "one time"
+            },
+            "timing": "order today",
+            "interactions": [],
+            "targets": [
+              {
+                "code": "urine_acr",
+                "direction": "down",
+                "expect": "<30 mg/g",
+                "measureAfterWeeks": 0
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "guideline",
+                "title": "KDIGO 2024 CKD guideline",
+                "source": "https://kdigo.org/guidelines/ckd-evaluation-and-management/"
+              }
+            ],
+            "followUp": [
+              {
+                "afterDays": 14,
+                "ask": "What was the urine ACR result?"
+              }
+            ],
+            "notes": []
+          },
+          {
+            "title": "Sequence vitamin D correction before judging testosterone or lipids further",
+            "kind": "test",
+            "weight": 2,
+            "basis": "opinion",
+            "why": "Low vitamin D is common, seasonal, and alters both lipid metabolism and testosterone; fix it first so later numbers are clean.",
+            "reasoning": "vitamin_d is missing/stale per HOT GRAPH and your age 38 male on keto 2 years with no supplements; edge tsh->ldl_cholesterol implies thyroid-lipid link but vitamin D must be known first; you have never logged it",
+            "dose": {
+              "amount": "2000 IU",
+              "form": "D3 softgel",
+              "schedule": "daily with largest meal",
+              "duration": "8 weeks then retest",
+              "ceiling": "10000 IU/day"
+            },
+            "timing": "start after test confirms level",
+            "interactions": [],
+            "targets": [
+              {
+                "code": "vitamin_d",
+                "direction": "up",
+                "expect": "reach 40-60 ng/mL",
+                "measureAfterWeeks": 8
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "observational",
+                "title": "Seasonal drift and lipid interaction in lean males",
+                "source": "Endocrine Society guideline + your profile"
+              }
+            ],
+            "followUp": [
+              {
+                "afterDays": 56,
+                "ask": "After correcting vitamin D, did energy or lipids shift?"
+              }
+            ],
+            "notes": []
+          }
+        ],
+        "questions": [
+          {
+            "key": "family_heart_history_detail",
+            "text": "Has any parent or sibling had a heart attack, stent, or bypass before age 55 (men) or 65 (women)?",
+            "why": "Completely changes LMHR management threshold for CAC or statin",
+            "options": [
+              "No",
+              "Yes - father",
+              "Yes - mother",
+              "Yes - sibling"
+            ]
+          },
+          {
+            "key": "daily_carbs_current",
+            "text": "What is your average daily carbohydrate intake in grams right now, and how many days per week do you eat >30 g net carbs?",
+            "why": "Confirms exact LMHR severity and sets the carb-reintroduction dose",
+            "options": [
+              "<20 g",
+              "20-30 g",
+              "30-50 g",
+              ">50 g"
+            ]
+          },
+          {
+            "key": "exercise_type",
+            "text": "What kind of exercise do you do in your 45 min/day average, and do you lift weights at least 2x per week?",
+            "why": "Muscle mass and VO2max are the strongest unmeasured predictors; changes hormone and lipid targets",
+            "options": [
+              "Mostly cardio",
+              "Mostly weights",
+              "Mixed",
+              "None"
+            ]
+          }
+        ],
+        "patterns": [
+          {
+            "id": "lmhr",
+            "stage": "escalation",
+            "verdict": "Imaging and particle count first; carb trial only after results; evidence unsettled but your perfect metabolic numbers and zero family history tilt toward testing phenotype before treating LDL number."
+          }
+        ]
+      }
+    }
+  ]
+}
