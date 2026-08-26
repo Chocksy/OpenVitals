@@ -14,13 +14,13 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-neutral-900 text-white hover:bg-neutral-800",
+        default: "bg-neutral-900 text-neutral-0 hover:bg-neutral-800",
         primary: "bg-accent-600 text-white hover:bg-accent-700",
         destructive: "bg-red-600 text-white hover:bg-red-700",
         outline:
-          "border border-neutral-900 bg-white text-neutral-900 hover:bg-neutral-900 hover:text-white",
+          "border border-neutral-900 bg-neutral-0 text-neutral-900 hover:bg-neutral-900 hover:text-neutral-0",
         "outline-subtle":
-          "border border-neutral-200 bg-white text-neutral-700 hover:border-neutral-900 hover:bg-neutral-50",
+          "border border-neutral-200 bg-neutral-0 text-neutral-700 hover:border-neutral-900 hover:bg-neutral-50",
         secondary: "bg-neutral-100 text-neutral-700 hover:bg-neutral-200",
         ghost:
           "hover:bg-neutral-100 text-neutral-600 hover:text-neutral-900 border-transparent",
@@ -55,7 +55,7 @@ const badgeVariants = cva(
   {
     variants: {
       variant: {
-        default: "border-transparent bg-neutral-900 text-white",
+        default: "border-transparent bg-neutral-900 text-neutral-0",
         secondary: "border-transparent bg-neutral-100 text-neutral-700",
         outline: "border-neutral-200 text-neutral-700",
         normal:

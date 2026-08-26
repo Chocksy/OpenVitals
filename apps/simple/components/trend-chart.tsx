@@ -75,7 +75,7 @@ function CustomTooltip({
 
   return (
     <div
-      className="rounded-lg border bg-white px-3 py-2 shadow-md"
+      className="rounded-lg border bg-neutral-0 px-3 py-2 shadow-md"
       style={{
         borderColor: abnormal
           ? "var(--color-health-warning-border)"

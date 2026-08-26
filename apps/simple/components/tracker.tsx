@@ -9,7 +9,7 @@ import { Button } from "./ui-kit";
 import { Strip } from "./heatmap";
 
 const INPUT =
-  "w-full border border-neutral-200 bg-white px-2 py-1.5 font-mono text-[13px] tabular-nums rounded-sm focus:border-accent-400 focus:outline-none";
+  "w-full border border-neutral-200 bg-neutral-0 px-2 py-1.5 font-mono text-[13px] tabular-nums rounded-sm focus:border-accent-400 focus:outline-none";
 
 /** POST/PUT then re-render the server components. Same shape as client.tsx. */
 function useSave() {
@@ -82,7 +82,7 @@ export function HabitChecklist({
                 "flex size-6 shrink-0 items-center justify-center rounded-sm border transition-colors",
                 done
                   ? "border-[var(--color-health-normal)] bg-[var(--color-health-normal)] text-white"
-                  : "border-neutral-300 bg-white",
+                  : "border-neutral-300 bg-neutral-0",
               )}
             >
               {done && <Check className="size-4" strokeWidth={3} />}
@@ -221,7 +221,7 @@ export function QuickNumbers({
           onChange={(e) => set("notes", e.target.value)}
           onBlur={() => void flush()}
           placeholder="Anything worth remembering about today"
-          className="w-full resize-none rounded-sm border border-neutral-200 bg-white px-2 py-1.5 font-body text-[13px] focus:border-accent-400 focus:outline-none"
+          className="w-full resize-none rounded-sm border border-neutral-200 bg-neutral-0 px-2 py-1.5 font-body text-[13px] focus:border-accent-400 focus:outline-none"
         />
       </label>
 

@@ -60,7 +60,7 @@ export function TopNav({ reviewCount = 0 }: { reviewCount?: number }) {
   const name = session?.user?.name || session?.user?.email || "";
 
   return (
-    <header className="sticky top-0 z-50 border-b border-neutral-200 bg-white">
+    <header className="sticky top-0 z-50 border-b border-neutral-200 bg-neutral-0">
       <div className="mx-auto h-(--top-nav-height) max-w-[1400px] px-4">
         <div className="flex h-full items-center justify-between gap-4">
           <div className="flex items-center gap-6 md:ml-2">
@@ -109,7 +109,7 @@ export function TopNav({ reviewCount = 0 }: { reviewCount?: number }) {
                     More
                     <ChevronDown className="h-3 w-3" />
                   </summary>
-                  <div className="card absolute left-0 mt-2 w-44 bg-white p-1 shadow-md">
+                  <div className="card absolute left-0 mt-2 w-44 bg-neutral-0 p-1 shadow-md">
                     {secondary.map((item) => (
                       <Link
                         key={item.name}
@@ -135,7 +135,7 @@ export function TopNav({ reviewCount = 0 }: { reviewCount?: number }) {
             >
               {name.slice(0, 1).toUpperCase() || "?"}
             </summary>
-            <div className="card absolute right-0 mt-2 w-56 bg-white p-3 shadow-md">
+            <div className="card absolute right-0 mt-2 w-56 bg-neutral-0 p-3 shadow-md">
               <p suppressHydrationWarning className="truncate text-sm font-medium">
                 {name || "User"}
               </p>
@@ -160,7 +160,7 @@ export function TopNav({ reviewCount = 0 }: { reviewCount?: number }) {
         </div>
       </div>
 
-      <nav className="flex items-center gap-0.5 overflow-x-auto border-t border-neutral-100 bg-white px-3 py-1.5 md:hidden">
+      <nav className="flex items-center gap-0.5 overflow-x-auto border-t border-neutral-100 bg-neutral-0 px-3 py-1.5 md:hidden">
         {navigation.map((item) => (
           <Link
             key={item.name}

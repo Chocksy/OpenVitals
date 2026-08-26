@@ -43,7 +43,7 @@ export function Chat() {
                 <button
                   key={s}
                   onClick={() => send(s)}
-                  className="border border-neutral-200 bg-white px-2.5 py-1.5 font-body text-[12px] text-neutral-600 hover:border-accent-300 hover:text-neutral-900"
+                  className="border border-neutral-200 bg-neutral-0 px-2.5 py-1.5 font-body text-[12px] text-neutral-600 hover:border-accent-300 hover:text-neutral-900"
                 >
                   {s}
                 </button>
@@ -62,7 +62,7 @@ export function Chat() {
               key={m.id}
               className={cn(
                 "card p-4",
-                m.role === "user" ? "bg-neutral-50" : "bg-white",
+                m.role === "user" ? "bg-neutral-50" : "bg-neutral-0",
               )}
             >
               <span className="mb-1 block font-mono text-[10px] font-bold uppercase tracking-[0.06em] text-neutral-400">
@@ -103,7 +103,7 @@ export function Chat() {
           }}
           rows={2}
           placeholder="Ask about your labs…"
-          className="w-full resize-none rounded-sm border border-neutral-200 bg-white px-3 py-2 font-body text-[13px]"
+          className="w-full resize-none rounded-sm border border-neutral-200 bg-neutral-0 px-3 py-2 font-body text-[13px]"
         />
         <Button type="submit" disabled={busy || !input.trim()} className="h-[52px]">
           <Send />

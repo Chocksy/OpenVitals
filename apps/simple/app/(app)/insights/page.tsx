@@ -355,7 +355,7 @@ export default async function InsightsPage() {
                     {plan.newSuggestions.map((s) => (
                       <div
                         key={s.code}
-                        className="flex items-start gap-2 border border-accent-100 bg-white px-3 py-2.5"
+                        className="flex items-start gap-2 border border-accent-100 bg-neutral-0 px-3 py-2.5"
                       >
                         <Sparkles className="mt-0.5 size-3 shrink-0 text-accent-400" />
                         <div>

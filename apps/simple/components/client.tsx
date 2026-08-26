@@ -11,7 +11,7 @@ import { fmtCategory } from "@/lib/utils";
 import { Button, MiniSparkline } from "./ui-kit";
 
 const INPUT =
-  "w-full border border-neutral-200 bg-white px-3 py-2 text-sm rounded-sm";
+  "w-full border border-neutral-200 bg-neutral-0 px-3 py-2 text-sm rounded-sm";
 
 const sparkStroke: Record<Status, string> = {
   red: "var(--color-health-critical)",
@@ -348,7 +348,7 @@ export function ReviewItem({
                     onChange={(e) => setNote(e.target.value)}
                     placeholder="metric code"
                     list={`metrics-${id}`}
-                    className="w-44 border border-neutral-200 bg-white px-2 py-1 font-mono text-[12px]"
+                    className="w-44 border border-neutral-200 bg-neutral-0 px-2 py-1 font-mono text-[12px]"
                   />
                   <datalist id={`metrics-${id}`}>
                     {metrics.map((m) => (
@@ -364,7 +364,7 @@ export function ReviewItem({
                   onChange={(e) => setNote(e.target.value)}
                   placeholder="factor"
                   inputMode="decimal"
-                  className="w-20 border border-neutral-200 bg-white px-2 py-1 font-mono text-[12px]"
+                  className="w-20 border border-neutral-200 bg-neutral-0 px-2 py-1 font-mono text-[12px]"
                 />
               ))}
             <Button
