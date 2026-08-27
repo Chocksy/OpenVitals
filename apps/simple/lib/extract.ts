@@ -5,7 +5,7 @@ import { extractTextFromPdf } from "./pdf";
 const OCR_MODEL = process.env.AI_OCR_MODEL ?? "google/gemini-2.5-flash";
 const MIN_TEXT_LENGTH = 50; // Below this, assume scanned/image PDF
 
-export function model(id = process.env.AI_DEFAULT_MODEL ?? "x-ai/grok-4.20") {
+export function model(id = process.env.AI_DEFAULT_MODEL ?? "google/gemini-3.7-flash") {
   // ponytail: OpenRouter only. The old worker's AI-gateway fallback is dropped.
   return createOpenRouter({ apiKey: process.env.OPENROUTER_API_KEY })(id);
 }

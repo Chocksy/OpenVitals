@@ -8,6 +8,7 @@ import { goalGap, inGoal } from "@/lib/daily";
 import { formatRange, healthStatus, statusColor, statusOf } from "@/lib/status";
 import { TrendChart } from "@/components/trend-chart";
 import { StatusBadge } from "@/components/status-badge";
+import { RangeBar } from "@/components/range-bar";
 import { GoalForm, OptimalForm } from "@/components/tracker";
 
 export const dynamic = "force-dynamic";
@@ -115,6 +116,19 @@ export default async function MetricPage({
             exists={Boolean(goal)}
           />
         </div>
+      </div>
+
+      <div className="card p-4">
+        <RangeBar
+          value={metric.latest.value}
+          prev={metric.points.length > 1 ? metric.points[metric.points.length - 2]!.value : null}
+          refLow={metric.latest.refLow}
+          refHigh={metric.latest.refHigh}
+          optimalLow={metric.optimalLow}
+          optimalHigh={metric.optimalHigh}
+          goal={goal?.targetHigh ?? goal?.targetLow ?? null}
+          unit={metric.unit}
+        />
       </div>
 
       <div className="card p-4">

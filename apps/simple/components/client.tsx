@@ -1,12 +1,11 @@
 "use client";
 
-import { useMemo, useState, useTransition } from "react";
+import { useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Play, RefreshCw, Search, Upload } from "lucide-react";
 import { signIn, signUp } from "@/lib/auth-client";
 import { statusColor, type Status } from "@/lib/status";
-import type { BiomarkerRow } from "@/lib/data";
 import { cn, fmtCategory } from "@/lib/utils";
 import { Button, MiniSparkline } from "./ui-kit";
 
@@ -273,84 +272,6 @@ export function ReanalyzeUpload({
   );
 }
 
-export function BiomarkerList({ rows }: { rows: BiomarkerRow[] }) {
-  const [query, setQuery] = useState("");
-
-  const groups = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    const map = new Map<string, BiomarkerRow[]>();
-    for (const r of rows) {
-      if (q && !r.name.toLowerCase().includes(q) && !r.code.includes(q))
-        continue;
-      map.set(r.category, [...(map.get(r.category) ?? []), r]);
-    }
-    return [...map.entries()];
-  }, [rows, query]);
-
-  return (
-    <div className="space-y-6">
-      <div className="relative max-w-sm">
-        <Search className="absolute left-3 top-1/2 size-3.5 -translate-y-1/2 text-neutral-400" />
-        <input
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search biomarkers"
-          className={`${INPUT} pl-9`}
-        />
-      </div>
-
-      {groups.length === 0 && (
-        <p className="font-body text-[13px] text-neutral-500">
-          Nothing matches “{query}”.
-        </p>
-      )}
-
-      {groups.map(([category, items]) => (
-        <section key={category}>
-          <h2 className="mb-2 font-mono text-[10px] font-bold uppercase tracking-[0.06em] text-neutral-400">
-            {fmtCategory(category)}
-          </h2>
-          <div className="card divide-y divide-neutral-100">
-            {items.map((m) => (
-              <Link
-                key={m.code}
-                href={`/m/${m.code}`}
-                className="flex items-center gap-3 px-4 py-2.5 hover:bg-neutral-50"
-              >
-                <span
-                  className={`size-[6px] shrink-0 rounded-full ${statusColor[m.status]}`}
-                />
-                <span className="flex-1 truncate font-body text-[13px]">
-                  {m.name}
-                  {m.derived && (
-                    <span className="ml-1.5 font-mono text-[9px] uppercase text-neutral-400">
-                      derived
-                    </span>
-                  )}
-                </span>
-                <MiniSparkline
-                  data={m.spark}
-                  color={sparkStroke[m.status]}
-                  width={64}
-                  height={20}
-                />
-                <span className="w-28 text-right font-mono text-[13px] font-semibold tabular-nums">
-                  {m.value}
-                  <span className="ml-1 text-[10px] font-normal text-neutral-400">
-                    {m.unit ?? ""}
-                  </span>
-                </span>
-                <span className="w-24 text-right font-mono text-[10px] tabular-nums text-neutral-400">
-                  {m.observedAt}
-                </span>
-              </Link>
-            ))}
-          </div>
-        </section>
-      ))}
-    </div>
-  );
-}
 
 /**
  * One curator question. The option that needs a number ("Multiply by …") opens
