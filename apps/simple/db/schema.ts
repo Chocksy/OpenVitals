@@ -323,10 +323,20 @@ export interface ReportBody {
 export type Report = typeof reports.$inferSelect;
 export type ProfileFact = typeof profileFacts.$inferSelect;
 
-/** A plain tag, or the pre-conversion value kept for the audit trail. */
+/** A plain tag, or the pre-fix state kept for the audit trail. */
 export type ReadingFlag =
   | string
-  | { orig: { value: number | null; unit: string | null } };
+  | { orig: { value: number | null; unit: string | null } }
+  /** ref_scale: the lab range was in another decimal scale than the value. */
+  | { ref_rescaled: { factor: number; orig: [number | null, number | null] } }
+  /** urine_text / split_measurand: where the reading came from. */
+  | {
+      moved: {
+        from: string;
+        refLow: number | null;
+        refHigh: number | null;
+      };
+    };
 
 export interface ReviewSubject {
   /** Dedupe handle: one question per (kind, key). */

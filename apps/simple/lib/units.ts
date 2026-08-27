@@ -44,6 +44,19 @@ const ALIASES: Record<string, string> = {
   // percent
   "%": "%",
   procent: "%",
+  // Counts: "K/uL" and "M/uL" are the catalog spellings of the same two units
+  // the labs also print as 10^3/uL and 10^6/uL.
+  "k/ul": "10^3/ul",
+  "m/ul": "10^6/ul",
+  // ESR, one hour, spelled six ways.
+  "mm/h": "mm/hr",
+  "mm/1h": "mm/hr",
+  mmla1h: "mm/hr",
+  // Cell volume: "μm 3" and "um^3" are femtolitres.
+  um3: "fl",
+  "um^3": "fl",
+  // Mean corpuscular haemoglobin is picograms per cell.
+  "pg/cell": "pg",
 };
 
 /** Lowercase, de-noise, fold Unicode. `"/ UI/l"` and `"U/I"` both give `u/l`. */
@@ -88,6 +101,14 @@ const RULES: Rule[] = [
   { from: "ug/l", to: "ug/dl", factor: 0.1 },
   { from: "g/l", to: "g/dl", factor: 0.1 },
   { from: "mg/dl", to: "g/dl", factor: 0.01 },
+  {
+    from: "g/l",
+    to: "mg/dl",
+    factor: 100,
+    metrics: ["apolipoprotein_b", "apolipoprotein_a1", "lp_a"],
+  },
+  // WHO 3rd IS: 1 ng/mL of prolactin is 21.2 mIU/L.
+  { from: "uiu/ml", to: "ng/ml", factor: 1 / 21.2, metrics: ["prolactin"] },
   { from: "ug/l", to: "ng/ml", factor: 1 },
   { from: "ng/ml", to: "ug/dl", factor: 0.1 },
   { from: "ng/ml", to: "ng/dl", factor: 100 },

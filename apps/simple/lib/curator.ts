@@ -37,6 +37,8 @@ export type Trigger = "upload" | "daily" | "manual";
 export type Check =
   | "unit_spelling"
   | "unit_convert"
+  | "ref_scale"
+  | "urine_text"
   | "metric_identity"
   | "missing_range"
   | "missing_optimal"
@@ -73,6 +75,15 @@ export type Action =
     }
   /** "Stop asking about this metric." */
   | { type: "mute"; check: Check; metricCode: string }
+  /** An optimal range good enough to set without asking. */
+  | {
+      type: "optimal";
+      check: Check;
+      metricCode: string;
+      low: number | null;
+      high: number | null;
+      source: string;
+    }
   | {
       type: "queue";
       check: Check;
@@ -101,9 +112,24 @@ const addFlags = (
   ...extra: ReadingFlag[]
 ): ReadingFlag[] => [...(reading.flags ?? []), ...extra];
 
+/** A tag, or the key of one of the object-shaped flags. */
+const hasFlag = (reading: ReadingLike, tag: string) =>
+  (reading.flags ?? []).some(
+    (f) => f === tag || (typeof f === "object" && f !== null && tag in f),
+  );
+
 /* ------------------------------------------------------------------ *
  * 1 + 2. unit_spelling and unit_convert
  * ------------------------------------------------------------------ */
+
+/**
+ * Two measurements sharing one catalog entry. PDW-SD is a width in fL and
+ * PDW-CV is the same width as a percentage; no factor turns one into the
+ * other, so the fL readings get their own metric instead of a question.
+ */
+const MEASURAND_SPLIT: Record<string, { unit: string; to: string }[]> = {
+  pdw: [{ unit: "fL", to: "pdw_sd" }],
+};
 
 /**
  * Same unit typed differently → adopt the canonical spelling. A unit we know
@@ -161,6 +187,28 @@ export function planUnits(
             relabelled ? "unit_relabelled" : "unit_converted",
             { orig: { value: r.value, unit: r.unit } },
           ),
+        },
+      });
+      continue;
+    }
+
+    const split = MEASURAND_SPLIT[r.metricCode]?.find(
+      (s) => normalizeUnit(s.unit) === normalizeUnit(r.unit),
+    );
+    if (split) {
+      actions.push({
+        type: "fix",
+        check: "unit_convert",
+        readingId: r.id,
+        patch: {
+          metricCode: split.to,
+          flags: addFlags(r, "split_measurand", {
+            moved: {
+              from: r.metricCode,
+              refLow: r.refLow,
+              refHigh: r.refHigh,
+            },
+          }),
         },
       });
       continue;
@@ -224,6 +272,171 @@ function valueIsAlreadyCanonical(
 }
 
 /* ------------------------------------------------------------------ *
+ * 3. ref_scale
+ * ------------------------------------------------------------------ */
+
+/** The decimal scales a printed lab range can be off by. */
+const REF_FACTORS = [10, 100, 1000, 1e6, 0.1, 0.01, 0.001, 1e-6];
+
+/** 5 % slack: a rescaled bound may land a hair inside the value. */
+const bracketsLoosely = (lo: number | null, hi: number | null, v: number) =>
+  (lo == null || v >= lo * 0.95) && (hi == null || v <= hi * 1.05);
+
+/**
+ * The value is in K/uL, M/uL or g/dL and the range next to it stayed in
+ * cells/uL or g/L: platelets `224` against `150000 - 370000`, albumin `5.349`
+ * against `35 - 53`. Exactly one power of ten turns the range back into the
+ * value's own scale, so the range moves and the value never does.
+ *
+ * The metric's other readings decide what is safe. Only readings whose own
+ * range holds their own value count, they say where this metric's ranges live,
+ * and the row is rescaled only when its value sits where their values sit.
+ * With no such reading anywhere, a single bracketing factor has to carry the
+ * row alone. A genuinely high result (CRP 15.8 in 0 - 49.9) is inside its
+ * range and is never touched.
+ */
+export function planRefScale(
+  targets: ReadingLike[],
+  history: ReadingLike[],
+): Action[] {
+  const actions: Action[] = [];
+
+  for (const r of targets) {
+    if (r.value == null || r.value <= 0) continue;
+    if (r.refHigh == null || r.refHigh <= 0) continue;
+    if (hasFlag(r, "ref_rescaled")) continue;
+    if (brackets(r.refLow, r.refHigh, r.value)) continue;
+
+    // The smallest factor on the table is ten, so a range in the wrong scale
+    // misses the value by an order of magnitude. Urobilinogen 0.1 under a
+    // 0.2 - 1 range is simply a low result and stays one.
+    const offBy =
+      r.value > r.refHigh
+        ? r.value / r.refHigh
+        : r.refLow != null && r.refLow > 0
+          ? r.refLow / r.value
+          : 0;
+    if (offBy < 5) continue;
+
+    const peers = history
+      .filter(
+        (h) =>
+          h.metricCode === r.metricCode &&
+          h.id !== r.id &&
+          h.value != null &&
+          h.refHigh != null &&
+          h.refHigh > 0 &&
+          normalizeUnit(h.unit) === normalizeUnit(r.unit) &&
+          brackets(h.refLow, h.refHigh, h.value),
+      )
+      .map((h) => h.refHigh!);
+    const usual = peers.length ? median(peers) : null;
+
+    // With peers, the value has to sit where their values sit inside their
+    // range, and the rescaled range has to land at their scale. Without
+    // peers there is nothing to compare against and a single bracketing
+    // factor has to carry the row on its own.
+    if (usual != null) {
+      const magnitude = r.value / usual;
+      if (magnitude < 0.2 || magnitude > 1.5) continue;
+    }
+
+    const fits = REF_FACTORS.filter(
+      (f) =>
+        bracketsLoosely(
+          r.refLow == null ? null : r.refLow * f,
+          r.refHigh! * f,
+          r.value!,
+        ) && (usual == null || ratio(r.refHigh! * f, usual) <= 3),
+    );
+    if (fits.length !== 1) continue;
+
+    const factor = fits[0]!;
+    actions.push({
+      type: "fix",
+      check: "ref_scale",
+      readingId: r.id,
+      patch: {
+        refLow: r.refLow == null ? null : round(r.refLow * factor),
+        refHigh: round(r.refHigh * factor),
+        flags: addFlags(r, {
+          ref_rescaled: { factor, orig: [r.refLow, r.refHigh] },
+        }),
+      },
+    });
+  }
+
+  return actions;
+}
+
+/* ------------------------------------------------------------------ *
+ * 4. urine_text
+ * ------------------------------------------------------------------ */
+
+/**
+ * A urine strip line the old extractor dropped onto the blood metric.
+ *
+ * ponytail: the target is spelled out instead of derived as `urine_<code>`,
+ * because the catalog already carries the canonical urinalysis codes and
+ * `urine_wbc` next to `urine_leukocytes` is exactly the duplicate that
+ * `merge-metrics.ts` exists to prevent.
+ */
+const URINE_TARGETS: Record<string, string> = {
+  glucose: "urine_glucose",
+  wbc: "urine_leukocytes",
+  rbc: "urine_red_blood_cells",
+  protein: "urine_protein",
+  total_protein: "urine_protein",
+  ketones: "urine_ketones",
+  bilirubin: "urine_bilirubin",
+  total_bilirubin: "urine_bilirubin",
+  urobilinogen: "urine_urobilinogen",
+  nitrites: "urine_nitrites",
+  hemoglobin: "urine_blood",
+};
+
+const STRIP_ANSWER =
+  /^(negativ|negative|absent|pozitiv|positive|trace|urme|prezent|present)/i;
+
+/**
+ * "Negativ" on blood glucose is the urine strip, not a blood sugar. The row
+ * moves to the urinalysis metric, loses the blood reference range it never
+ * had a right to, and keeps where it came from. No question.
+ */
+export function planUrineText(
+  targets: ReadingLike[],
+  byCode: Map<string, MetricLike>,
+): Action[] {
+  const actions: Action[] = [];
+
+  for (const r of targets) {
+    if (r.value != null || !r.valueText) continue;
+    const to = URINE_TARGETS[r.metricCode];
+    // A blood concentration is what makes the strip answer impossible here.
+    if (!to || !byCode.get(r.metricCode)?.unit) continue;
+    if (!STRIP_ANSWER.test(r.valueText.trim())) continue;
+
+    actions.push({
+      type: "fix",
+      check: "urine_text",
+      readingId: r.id,
+      patch: {
+        metricCode: to,
+        // A strip answer is a word, not a concentration: no unit, no range.
+        unit: null,
+        refLow: null,
+        refHigh: null,
+        flags: addFlags(r, "moved_urine", {
+          moved: { from: r.metricCode, refLow: r.refLow, refHigh: r.refHigh },
+        }),
+      },
+    });
+  }
+
+  return actions;
+}
+
+/* ------------------------------------------------------------------ *
  * 4. missing_range
  * ------------------------------------------------------------------ */
 
@@ -283,7 +496,26 @@ export function planMissingRange(
  * 6. implausible_value
  * ------------------------------------------------------------------ */
 
-/** 50x above the top of the range, or 50x below the bottom. */
+/**
+ * What a living person can read, in the metric's own canonical unit. A CBC
+ * count inside these bounds is never implausible however the lab printed its
+ * range, and one outside them always is. Everything else falls back to 50x
+ * outside the printed range.
+ */
+const BOUNDS: Record<string, [number, number]> = {
+  wbc: [0.5, 100], // K/uL
+  rbc: [1, 10], // M/uL
+  platelets: [5, 2000], // K/uL
+  neutrophils_abs: [0.01, 80], // K/uL
+  lymphocytes_abs: [0.05, 60], // K/uL
+  monocytes_abs: [0.01, 20], // K/uL
+  eosinophils_abs: [0.001, 20], // K/uL
+  basophils_abs: [0.001, 10], // K/uL
+  hemoglobin: [2, 25], // g/dL
+  hematocrit: [10, 70], // %
+};
+
+/** Outside the physiological bounds, or 50x outside the printed range. */
 export function planImplausible(
   targets: ReadingLike[],
   byCode: Map<string, MetricLike>,
@@ -292,23 +524,39 @@ export function planImplausible(
 
   for (const r of targets) {
     if (r.value == null) continue;
-    const tooHigh =
-      r.refHigh != null && r.refHigh > 0 && r.value > r.refHigh * 50;
-    const tooLow = r.refLow != null && r.refLow > 0 && r.value < r.refLow / 50;
-    if (!tooHigh && !tooLow) continue;
-
     const m = byCode.get(r.metricCode);
+    const bound = BOUNDS[r.metricCode];
+    const canonical =
+      bound != null &&
+      m?.unit != null &&
+      normalizeUnit(r.unit) === normalizeUnit(m.unit);
+
+    if (canonical) {
+      if (r.value >= bound[0] && r.value <= bound[1]) continue;
+    } else {
+      const tooHigh =
+        r.refHigh != null && r.refHigh > 0 && r.value > r.refHigh * 50;
+      const tooLow =
+        r.refLow != null && r.refLow > 0 && r.value < r.refLow / 50;
+      if (!tooHigh && !tooLow) continue;
+    }
+
+    const why = canonical
+      ? `outside anything a person can read (${formatRange(bound[0], bound[1], m?.unit)})`
+      : `far outside its range of ${formatRange(r.refLow, r.refHigh)}`;
     actions.push({
       type: "queue",
       check: "implausible_value",
       kind: "implausible",
-      question: `"${m?.name ?? r.metricCode}" reads ${r.value} ${r.unit ?? ""} on ${r.observedAt}, far outside its range of ${formatRange(r.refLow, r.refHigh)}. Is that right?`,
+      question: `"${m?.name ?? r.metricCode}" reads ${r.value} ${r.unit ?? ""} on ${r.observedAt}, ${why}. Is that right?`,
       options: ["It's correct", "Delete this reading"],
       subject: {
         key: `${r.id}`,
         readingId: r.id,
         metricCode: r.metricCode,
-        detail: `${r.value} ${r.unit ?? ""} vs ${formatRange(r.refLow, r.refHigh)}`,
+        detail: canonical
+          ? `${r.value} ${r.unit ?? ""} vs ${formatRange(bound[0], bound[1], m?.unit)}`
+          : `${r.value} ${r.unit ?? ""} vs ${formatRange(r.refLow, r.refHigh)}`,
       },
     });
   }
@@ -484,8 +732,53 @@ ${batch.map((m) => m.name).join("\n")}`,
   return actions;
 }
 
+/** Bands from these are not worth a question when the lab agrees with them. */
+export const TRUSTED_OPTIMAL_SOURCES = [
+  "Attia/Outlive",
+  "Function Health",
+  "Endocrine Society",
+  "AHA",
+  "ESC",
+  "ADA",
+  "KDIGO",
+  "ATA",
+];
+
+export interface OptimalProposal {
+  low: number | null;
+  high: number | null;
+  source: string | null;
+  /** Left out by a queued item, which was minted from the metric's unit. */
+  unit?: string | null;
+}
+
+/**
+ * A band from a source we trust, written in the metric's own unit, that sits
+ * inside what this lab already calls normal, tells the user nothing they can
+ * argue with. It is applied instead of asked. Every metric page keeps its
+ * manual override, so nothing is locked in.
+ */
+export function acceptsOptimal(
+  p: OptimalProposal,
+  m: MetricLike,
+  lab: { refLow: number | null; refHigh: number | null } | null,
+): boolean {
+  if (p.low == null && p.high == null) return false;
+  if (!p.source || !TRUSTED_OPTIMAL_SOURCES.includes(p.source)) return false;
+  if (p.unit !== undefined && normalizeUnit(p.unit) !== normalizeUnit(m.unit))
+    return false;
+  if (!lab) return true;
+  if (lab.refLow != null && p.low != null && p.low < lab.refLow) return false;
+  if (lab.refHigh != null && p.high != null && p.high > lab.refHigh)
+    return false;
+  return true;
+}
+
 /** 5. Metrics with readings but no optimal range. */
-async function planMissingOptimal(candidates: Metric[]): Promise<Action[]> {
+async function planMissingOptimal(
+  candidates: Metric[],
+  labRange: (code: string) => { refLow: number | null; refHigh: number | null } | null,
+): Promise<Action[]> {
   if (!candidates.length || !hasKey()) return [];
   const batch = candidates.slice(0, LLM_BATCH);
 
@@ -494,12 +787,13 @@ async function planMissingOptimal(candidates: Metric[]): Promise<Action[]> {
       code: string;
       low: number | null;
       high: number | null;
+      unit: string | null;
       source: string | null;
     }[];
   }>(
-    `You are a preventive-medicine reference. For each biomarker give the OPTIMAL range (not the lab reference range) for a healthy adult, in the unit given, plus the source it comes from (for example "Attia/Outlive", "Function Health", "AHA", "Endocrine Society").
+    `You are a preventive-medicine reference. For each biomarker give the OPTIMAL range (not the lab reference range) for a healthy adult, in the unit given, plus the unit you used and the source it comes from (for example "Attia/Outlive", "Function Health", "AHA", "Endocrine Society").
 Use null for low, high AND source when there is no published consensus on an optimal range for that marker. Never invent a source.
-Return JSON only: {"ranges":[{"code":"...","low":<number|null>,"high":<number|null>,"source":"<name|null>"}]}`,
+Return JSON only: {"ranges":[{"code":"...","low":<number|null>,"high":<number|null>,"unit":"<unit|null>","source":"<name|null>"}]}`,
     `BIOMARKERS (code | name | unit):
 ${batch.map((m) => `${m.code} | ${m.name} | ${m.unit ?? ""}`).join("\n")}`,
   );
@@ -518,6 +812,24 @@ ${batch.map((m) => `${m.code} | ${m.name} | ${m.unit ?? ""}`).join("\n")}`,
         type: "mute",
         check: "missing_optimal",
         metricCode: m.code,
+      });
+      continue;
+    }
+
+    if (
+      acceptsOptimal(
+        { low: r.low, high: r.high, source: r.source, unit: r.unit ?? m.unit },
+        m,
+        labRange(m.code),
+      )
+    ) {
+      actions.push({
+        type: "optimal",
+        check: "missing_optimal",
+        metricCode: m.code,
+        low: r.low,
+        high: r.high,
+        source: r.source!,
       });
       continue;
     }
@@ -546,6 +858,28 @@ ${batch.map((m) => `${m.code} | ${m.name} | ${m.unit ?? ""}`).join("\n")}`,
  * The run
  * ------------------------------------------------------------------ */
 
+/**
+ * Units the legacy catalog got wrong. Lp(a) is convertible between mass and
+ * molar only through an apo(a) isoform count nobody prints, and every lab
+ * here reports mass, so mass is the canonical unit.
+ */
+const CATALOG_UNITS: Record<string, string> = { lp_a: "mg/dL" };
+
+/** Metrics the curator mints the first time it moves a reading onto one. */
+const NEW_METRICS: Record<
+  string,
+  { name: string; category: string; unit: string | null }
+> = {
+  pdw_sd: {
+    name: "Platelet distribution width (SD)",
+    category: "hematology",
+    unit: "fL",
+  },
+};
+
+/** Kinds the deterministic planners own end to end, so a run can close them. */
+const AUTO_CLOSED_KINDS = ["unit_unknown", "implausible", "foreign_reading"];
+
 const blank = () => ({ checked: 0, fixed: 0, queued: 0 });
 
 export async function runCurator(
@@ -559,6 +893,12 @@ export async function runCurator(
   const bump = (c: Check) => (stats[c] ??= blank());
 
   try {
+    for (const [code, unit] of Object.entries(CATALOG_UNITS))
+      await db
+        .update(metricsTable)
+        .set({ unit })
+        .where(eq(metricsTable.code, code));
+
     const [allMetrics, history, existing] = await Promise.all([
       db.select().from(metricsTable),
       db
@@ -583,7 +923,9 @@ export async function runCurator(
         ),
       db
         .select({
+          id: reviewItems.id,
           kind: reviewItems.kind,
+          status: reviewItems.status,
           subject: reviewItems.subject,
         })
         .from(reviewItems)
@@ -604,31 +946,38 @@ export async function runCurator(
 
     const byId = new Map(history.map((r) => [r.id, r]));
     const actions: Action[] = [];
+    /** readingId -> what the curator did to it, for the answer it closes. */
+    const autoAnswer = new Map<string, string>();
 
-    const unitActions = planUnits(targets, byCode, history);
+    /** Collect, and let the next check see the row as it now stands. */
+    const take = (planned: Action[], answer?: string) => {
+      for (const a of planned) {
+        if (a.type === "fix") {
+          applyPatch(byId.get(a.readingId)!, a.patch);
+          if (answer) autoAnswer.set(a.readingId, answer);
+        }
+        actions.push(a);
+      }
+    };
+
+    // 1 + 2 + the measurand split.
     bump("unit_spelling").checked = targets.length;
     bump("unit_convert").checked = targets.length;
-    for (const a of unitActions) {
-      if (a.type === "fix") applyPatch(byId.get(a.readingId)!, a.patch);
-      actions.push(a);
-    }
+    take(planUnits(targets, byCode, history), "auto: unit resolved");
 
-    const rangeActions = planMissingRange(targets, history);
+    // 3. The range was printed in another decimal scale than the value.
+    bump("ref_scale").checked = targets.length;
+    take(planRefScale(targets, history), "auto: reference range rescaled");
+
+    // 4. Urine strip answers sitting on a blood metric.
+    bump("urine_text").checked = targets.length;
+    take(planUrineText(targets, byCode), "auto: moved to urinalysis");
+
+    // 5. missing_range
     bump("missing_range").checked = targets.filter(
       (r) => r.refLow == null && r.refHigh == null,
     ).length;
-    for (const a of rangeActions) {
-      if (a.type === "fix") applyPatch(byId.get(a.readingId)!, a.patch);
-      actions.push(a);
-    }
-
-    const implausible = planImplausible(targets, byCode);
-    bump("implausible_value").checked = targets.length;
-    actions.push(...implausible);
-
-    const foreign = planForeignReadings(targets, history, byCode);
-    bump("foreign_reading").checked = targets.length;
-    actions.push(...foreign);
+    take(planMissingRange(targets, history));
 
     const withReadings = new Set(history.map((r) => r.metricCode));
     const minted = allMetrics.filter(
@@ -640,16 +989,70 @@ export async function runCurator(
     bump("metric_identity").checked = minted.length;
     actions.push(...identity);
 
+    /** The newest range this user actually got printed for a metric. */
+    const labRange = (code: string) => {
+      const last = history
+        .filter(
+          (r) =>
+            r.metricCode === code && (r.refLow != null || r.refHigh != null),
+        )
+        .sort((a, b) => a.observedAt.localeCompare(b.observedAt))
+        .pop();
+      return last ? { refLow: last.refLow, refHigh: last.refHigh } : null;
+    };
+
+    // Questions already in the queue that the auto-accept rule now answers.
+    const autoOptimal = new Set<string>();
+    for (const item of existing) {
+      if (item.status !== "open" || item.kind !== "optimal_range") continue;
+      const code = item.subject?.metricCode;
+      const m = code ? byCode.get(code) : undefined;
+      if (!code || !m) continue;
+      const proposal = {
+        low: item.subject.optimalLow ?? null,
+        high: item.subject.optimalHigh ?? null,
+        source: item.subject.source ?? null,
+      };
+      if (!acceptsOptimal(proposal, m, labRange(code))) continue;
+      await db
+        .update(metricsTable)
+        .set({
+          optimalLow: proposal.low,
+          optimalHigh: proposal.high,
+          optimalSource: `auto:${proposal.source}`,
+          needsReview: false,
+        })
+        .where(eq(metricsTable.code, code));
+      await db
+        .update(reviewItems)
+        .set({
+          answer: "auto: inside lab range, trusted source",
+          status: "applied",
+          resolvedAt: new Date(),
+        })
+        .where(eq(reviewItems.id, item.id));
+      autoOptimal.add(code);
+      bump("missing_optimal").fixed++;
+    }
+
     const noOptimal = allMetrics.filter(
       (m) =>
         withReadings.has(m.code) &&
         m.optimalLow == null &&
         m.optimalHigh == null &&
-        !m.needsReview,
+        !m.needsReview &&
+        !autoOptimal.has(m.code),
     );
-    const optimal = await planMissingOptimal(noOptimal);
+    const optimal = await planMissingOptimal(noOptimal, labRange);
     bump("missing_optimal").checked = noOptimal.length;
     actions.push(...optimal);
+
+    // 8 + 9, on rows the checks above have already straightened out.
+    bump("implausible_value").checked = targets.length;
+    actions.push(...planImplausible(targets, byCode));
+
+    bump("foreign_reading").checked = targets.length;
+    actions.push(...planForeignReadings(targets, history, byCode));
 
     // 7. goal_check: a reading inside the target band closes the goal.
     const openGoals = await db
@@ -670,11 +1073,38 @@ export async function runCurator(
       bump("goal_check").fixed++;
     }
 
+    // A move needs somewhere to move to.
+    for (const a of actions) {
+      const to = a.type === "fix" ? a.patch.metricCode : undefined;
+      if (!to || byCode.has(to)) continue;
+      const minted = NEW_METRICS[to] ?? {
+        name: to,
+        category: "urinalysis",
+        unit: null,
+      };
+      await db.insert(metricsTable).values({ code: to, ...minted });
+      byCode.set(to, { code: to, ...minted });
+    }
+
     for (const a of actions) {
       if (a.type === "mute") {
         await db
           .update(metricsTable)
           .set({ needsReview: true })
+          .where(eq(metricsTable.code, a.metricCode));
+        bump(a.check).fixed++;
+        continue;
+      }
+
+      if (a.type === "optimal") {
+        await db
+          .update(metricsTable)
+          .set({
+            optimalLow: a.low,
+            optimalHigh: a.high,
+            optimalSource: `auto:${a.source}`,
+            needsReview: false,
+          })
           .where(eq(metricsTable.code, a.metricCode));
         bump(a.check).fixed++;
         continue;
@@ -700,6 +1130,32 @@ export async function runCurator(
         options: a.options,
       });
       bump(a.check).queued++;
+    }
+
+    // A question the checks above answered on their own is not a question any
+    // more. Only a full run may close one; an upload run only sees its own
+    // rows and cannot tell whether the rest still trigger.
+    if (!scope?.uploadId) {
+      const triggered = new Set(
+        actions
+          .filter((a) => a.type === "queue")
+          .map((a) => `${a.kind}:${a.subject.key}`),
+      );
+      for (const item of existing) {
+        if (item.status !== "open") continue;
+        if (!AUTO_CLOSED_KINDS.includes(item.kind)) continue;
+        if (triggered.has(`${item.kind}:${item.subject?.key ?? ""}`)) continue;
+        await db
+          .update(reviewItems)
+          .set({
+            answer:
+              autoAnswer.get(item.subject?.readingId ?? "") ??
+              "auto: no longer flagged by the curator",
+            status: "applied",
+            resolvedAt: new Date(),
+          })
+          .where(eq(reviewItems.id, item.id));
+      }
     }
 
     await queueProfileQuestions(userId);

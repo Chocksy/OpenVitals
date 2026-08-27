@@ -21,6 +21,25 @@ describe("normalizeUnit", () => {
     ["mmc", "/mm³"],
     ["mcg/dL", "ug/dL"],
     [" g / L ", "g/L"],
+    // the spellings the two production accounts actually carry
+    ["10^3/ul", "K/uL"],
+    ["x10^3/uL", "K/uL"],
+    ["10³/µL", "K/uL"],
+    ["x10e3/ul", "K/uL"],
+    ["k/µL", "K/uL"],
+    ["10^6/ul", "M/uL"],
+    ["x10^6/uL", "M/uL"],
+    ["10⁶/µL", "M/uL"],
+    ["mm/h", "mm/hr"],
+    ["mm la 1h", "mm/hr"],
+    ["/ mm/h", "mm/hr"],
+    ["mm/1h", "mm/hr"],
+    ["μm 3", "fL"],
+    ["µm3", "fL"],
+    ["um^3", "fL"],
+    ["pg/cell", "pg"],
+    ["ui/ml", "IU/mL"],
+    ["iu/ml", "IU/mL"],
   ];
 
   for (const [raw, canonical] of SAME) {
@@ -30,6 +49,9 @@ describe("normalizeUnit", () => {
   }
 
   it("keeps genuinely different units apart", () => {
+    expect(normalizeUnit("K/uL")).not.toBe(normalizeUnit("M/uL"));
+    expect(normalizeUnit("fL")).not.toBe(normalizeUnit("%"));
+    expect(normalizeUnit("g/dL")).not.toBe(normalizeUnit("g/L"));
     expect(normalizeUnit("mg/L")).not.toBe(normalizeUnit("mg/dL"));
     expect(normalizeUnit("ng/mL")).not.toBe(normalizeUnit("ug/dL"));
     expect(normalizeUnit("/mm³")).not.toBe(normalizeUnit("10^3/uL"));
@@ -101,12 +123,32 @@ describe("convert", () => {
     expect(conversionFactor("μg/dL", "ug/dL")).toBe(1);
   });
 
+  it("g/L to mg/dL for the apolipoproteins and Lp(a)", () => {
+    expect(convert(0.99, "g/L", "mg/dL", "apolipoprotein_b")).toBeCloseTo(99, 5);
+    expect(convert(1.69, "g/L", "mg/dL", "apolipoprotein_a1")).toBeCloseTo(
+      169,
+      5,
+    );
+    expect(convert(0.25, "g/L", "mg/dL", "lp_a")).toBeCloseTo(25, 5);
+  });
+
+  it("uIU/mL to ng/mL for prolactin", () => {
+    expect(convert(182, "uIU/mL", "ng/mL", "prolactin")).toBeCloseTo(8.585, 3);
+  });
+
+  it("mg/dL to mg/L for CRP", () => {
+    expect(convert(1.58, "mg/dL", "mg/L", "crp")).toBeCloseTo(15.8, 5);
+  });
+
   it("returns null when the analyte does not match a molar rule", () => {
     expect(convert(5, "mmol/L", "mg/dL", "ferritin")).toBeNull();
   });
 
   it("returns null for an unknown pair", () => {
     expect(convert(33, "g/dl", "pg", "mch")).toBeNull();
+    // g/L is not mg/dL for anything but the three lipoprotein assays
+    expect(convert(70, "g/L", "mg/dL", "total_protein")).toBeNull();
+    expect(convert(182, "uIU/mL", "ng/mL", "tsh")).toBeNull();
     expect(convert(12, "", "/uL", "urine_red_blood_cells")).toBeNull();
     expect(convert(12, "banana", "mg/dL", "glucose")).toBeNull();
   });
