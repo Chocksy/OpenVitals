@@ -390,3 +390,128 @@ describe("what the model should never have written", () => {
     ]);
   });
 });
+
+describe("the prose follows the actions", () => {
+  const empty = {
+    matchedPatternIds: [],
+    activeEdgeIds: [],
+    hotNodeIds: [],
+    hasReadings: false,
+  };
+
+  // The zero-data plan: the model promised two supplements, postProcess threw
+  // both away, and the summary was still selling them.
+  const zeroData = body({
+    summary: [
+      "Order every missing tier-0 and tier-1 vector plus the full thyroid panel.",
+      "Start food-first levers on protein, sunlight and movement; add vitamin D 4000 IU/day and selenium 200 µg/day.",
+      "Expect vitamin D to reach 40 ng/mL by 12 weeks.",
+    ],
+    eli5:
+      "Your body is a new car with the hood still closed. Take vitamin D 4000 IU every morning while we look.",
+    actions: [
+      action({
+        title: "Supplement vitamin D3 4000 IU daily",
+        kind: "supplement",
+        dose: { amount: "4000 IU", schedule: "daily" },
+      }),
+      action({ title: "Supplement selenium 200 µg daily", kind: "supplement" }),
+      action({ title: "Measure vitamin D", kind: "test" }),
+    ],
+  });
+
+  it("drops the summary lines and eli5 sentences that sell a dropped action", () => {
+    const out = postProcess(zeroData, [], empty);
+    expect(out.actions.map((a) => a.title)).toEqual(["Measure vitamin D"]);
+    expect(out.summary).toEqual([
+      "Order every missing tier-0 and tier-1 vector plus the full thyroid panel.",
+    ]);
+    expect(out.eli5).toBe("Your body is a new car with the hood still closed.");
+  });
+
+  it("says so when nothing is left to say", () => {
+    const out = postProcess(
+      body({
+        summary: ["Add vitamin D 4000 IU/day."],
+        eli5: "Take vitamin D every morning.",
+        actions: [
+          action({
+            title: "Supplement vitamin D3 4000 IU daily",
+            kind: "supplement",
+          }),
+        ],
+      }),
+      [],
+      empty,
+    );
+    expect(out.summary).toEqual(["Nothing to act on beyond the tests listed."]);
+    expect(out.eli5).toBe("Nothing to act on beyond the tests listed.");
+  });
+
+  it("leaves the prose alone when nothing was dropped", () => {
+    const out = postProcess(zeroData, [], { ...empty, hasReadings: true });
+    expect(out.summary).toHaveLength(3);
+    expect(out.eli5).toBe(zeroData.eli5);
+  });
+});
+
+describe("rule ids never reach a title", () => {
+  it("strips the id the context pack used to hand the model", () => {
+    const out = postProcess(
+      body({
+        actions: [
+          action({
+            title: "thyroid_workup: Repeat TSH with free T4, free T3 and anti-TPO",
+            kind: "test",
+          }),
+        ],
+      }),
+      [],
+    );
+    expect(out.actions[0]!.title).toBe(
+      "Repeat TSH with free T4, free T3 and anti-TPO",
+    );
+  });
+
+  it("strips an id it only knows from the rules it was given", () => {
+    const out = postProcess(
+      body({ actions: [action({ title: "lpaonce: Measure Lp(a) once", kind: "test" })] }),
+      [rule({ id: "lpaonce" })],
+    );
+    expect(out.actions[0]!.title).toBe("Measure Lp(a) once");
+  });
+
+  it("leaves a real colon in a title alone", () => {
+    const out = postProcess(
+      body({ actions: [action({ title: "Iron: 60 mg on alternate days", kind: "test" })] }),
+      [],
+    );
+    expect(out.actions[0]!.title).toBe("Iron: 60 mg on alternate days");
+  });
+
+  it("hands the model the rule id in brackets, not as a prefix", () => {
+    const { context } = buildContextFromInput(
+      {
+        today: "2026-08-27",
+        profile: { sex: "female", birth_year: 1992 },
+        sex: "female",
+        age: 34,
+        latest: {},
+        derived: {},
+      },
+      {
+        tracker: {
+          from: "2026-07-29",
+          to: "2026-08-27",
+          items: [],
+          averages: {},
+          loggedDays: 0,
+          adherencePct: 0,
+        },
+      },
+    );
+    expect(context).toContain("(rule lpa_once)");
+    expect(context).not.toContain("- lpa_once:");
+  });
+});
+

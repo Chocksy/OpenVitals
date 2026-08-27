@@ -35,7 +35,7 @@ import {
   type PatternMatch,
   type PatternQuestion,
 } from "./patterns";
-import { overCeiling, VECTORS, type Rule } from "./vectors";
+import { CEILINGS, overCeiling, VECTORS, type Rule } from "./vectors";
 
 export type ReportTrigger = "manual" | "upload" | "daily";
 
@@ -244,7 +244,7 @@ function ruleLines(rules: Rule[]): string {
     ? rules
         .map(
           (r) =>
-            `- ${r.id}: ${r.suggest}\n  why: ${r.why}\n  reference: ${r.ref ?? "guideline"}`,
+            `- ${r.suggest} (rule ${r.id})\n  why: ${r.why}\n  reference: ${r.ref ?? "guideline"}`,
         )
         .join("\n")
     : "- none fired";
@@ -577,6 +577,90 @@ function verifyTrace(action: ReportAction, graph: GraphFacts): ReportAction {
 const FACT_NOT_ACTION =
   /(report|provide|tell|answer|share|enter|gather|collect)\b.*(height|weight|waist|family history|medication|supplement|conditions|questions)/i;
 
+/** Words too ordinary to identify an action. */
+const COMMON = new Set([
+  "with",
+  "from",
+  "your",
+  "this",
+  "that",
+  "then",
+  "when",
+  "once",
+  "only",
+  "every",
+  "before",
+  "after",
+  "daily",
+  "take",
+  "start",
+  "stop",
+  "keep",
+  "high",
+  "more",
+  "less",
+]);
+
+/** The first two words that could name this action, for the prose scrub. */
+const titleWords = (title: string) =>
+  norm(title)
+    .split(" ")
+    .filter((w) => w.length > 3 && !COMMON.has(w))
+    .slice(0, 2);
+
+/**
+ * Does this sentence talk about an action that is no longer in the plan? The
+ * substance regexes catch "vitamin D 4000 IU/day" in prose that never repeats
+ * the action's title; the title words catch everything else.
+ */
+function namesDropped(sentence: string, dropped: ReportAction[]): boolean {
+  const text = norm(sentence);
+  return dropped.some((a) => {
+    const dose = a.dose?.amount ?? "";
+    if (
+      CEILINGS.some(
+        (c) =>
+          (c.substance.test(a.title) || c.substance.test(dose)) &&
+          c.substance.test(sentence),
+      )
+    )
+      return true;
+    const words = titleWords(a.title);
+    return words.length > 0 && words.every((w) => text.includes(w));
+  });
+}
+
+const NOTHING_LEFT = "Nothing to act on beyond the tests listed.";
+
+/**
+ * The summary and the eli5 are written before anything is dropped, so a plan
+ * can end up promising a supplement it no longer contains. Any line that names
+ * a dropped action goes with it.
+ */
+function scrubProse(
+  body: ReportBody,
+  dropped: ReportAction[],
+): Pick<ReportBody, "summary" | "eli5"> {
+  if (!dropped.length) return { summary: body.summary, eli5: body.eli5 };
+  const summary = body.summary.filter((line) => !namesDropped(line, dropped));
+  const eli5 = (body.eli5 ?? "")
+    .split(/(?<=[.!?])\s+/)
+    .filter((s) => s.trim() && !namesDropped(s, dropped))
+    .join(" ");
+  return {
+    summary: summary.length ? summary : [NOTHING_LEFT],
+    eli5: eli5 || NOTHING_LEFT,
+  };
+}
+
+/** "thyroid_workup: Repeat TSH" is the context pack's id leaking into a title. */
+function stripRuleId(title: string, ids: Set<string>): string {
+  const hit = title.match(/^([a-z][a-z0-9_]*)\s*:\s*(.+)$/i);
+  if (!hit) return title;
+  const [, id, rest] = hit;
+  return ids.has(id!.toLowerCase()) || id!.includes("_") ? rest!.trim() : title;
+}
+
 /**
  * Drop what the model should never have written, drop anything over a dose
  * ceiling and ask about it instead, add a test action for every rule the model
@@ -604,21 +688,15 @@ export function postProcess(
   const coldGraph = graph != null && graph.hotNodeIds.length === 0;
   const noReadings = graph != null && !graph.hasReadings;
   const dropped = { opinion: 0, fact: 0, unmeasured: 0 };
+  const gone: ReportAction[] = [];
 
   const proposed = body.actions.filter((a) => {
-    if (coldGraph && a.basis === "opinion") {
-      dropped.opinion++;
-      return false;
-    }
-    if (FACT_NOT_ACTION.test(a.title)) {
-      dropped.fact++;
-      return false;
-    }
-    if (noReadings && a.kind !== "test") {
-      dropped.unmeasured++;
-      return false;
-    }
-    return true;
+    if (coldGraph && a.basis === "opinion") dropped.opinion++;
+    else if (FACT_NOT_ACTION.test(a.title)) dropped.fact++;
+    else if (noReadings && a.kind !== "test") dropped.unmeasured++;
+    else return true;
+    gone.push(a);
+    return false;
   });
 
   if (dropped.opinion || dropped.fact || dropped.unmeasured)
@@ -626,14 +704,21 @@ export function postProcess(
       `[plan] dropped ${dropped.opinion} opinion actions with a cold graph, ${dropped.fact} actions that only ask for a fact, ${dropped.unmeasured} non-test actions for a person with no readings`,
     );
 
+  const ruleIds = new Set(rules.map((r) => r.id.toLowerCase()));
+
   for (const raw of proposed) {
-    const weighted: ReportAction = { ...raw, weight: clamp(raw.weight, 5) };
+    const weighted: ReportAction = {
+      ...raw,
+      title: raw.kind === "test" ? stripRuleId(raw.title, ruleIds) : raw.title,
+      weight: clamp(raw.weight, 5),
+    };
     const action = graph ? verifyTrace(weighted, graph) : weighted;
     const ceiling = overCeiling(action);
     if (!ceiling) {
       kept.push(action);
       continue;
     }
+    gone.push(action);
     questions.push({
       key: `ceiling_${norm(action.title).replace(/ /g, "_").slice(0, 40)}`,
       text: `"${action.title}" was suggested at ${action.dose?.amount ?? "an unstated dose"}, which is over the safe ceiling of ${ceiling.max} ${ceiling.unit}. Have you discussed this dose with a doctor?`,
@@ -672,9 +757,12 @@ export function postProcess(
     ...sorted.filter(toOrder),
   ];
 
+  const prose = scrubProse(body, gone);
+
   return {
     ...body,
-    summary: body.summary.slice(0, 3),
+    summary: prose.summary.slice(0, 3),
+    eli5: prose.eli5,
     systems: body.systems.map((s) => ({
       ...s,
       priority: clamp(s.priority, 3) as 1 | 2 | 3,
