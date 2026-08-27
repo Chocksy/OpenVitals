@@ -18,11 +18,13 @@ export async function extractTextFromPdf(
   buffer: Buffer,
 ): Promise<{ text: string; pages: number }> {
   const pdfjs = await import("pdfjs-dist/legacy/build/pdf.mjs");
-  // Resolve the worker file from node_modules (not relative to this source file)
-  const { createRequire } = await import("module");
-  const require = createRequire(import.meta.url);
-  pdfjs.GlobalWorkerOptions.workerSrc =
-    require.resolve("pdfjs-dist/legacy/build/pdf.worker.mjs");
+  // ponytail: hand pdf.js the worker module instead of a path to it. In Node
+  // pdf.js runs the worker on the main thread and takes it from
+  // `globalThis.pdfjsWorker` when it is there. Resolving a *path* breaks inside
+  // the Next server bundle, where `import.meta.url` is "[project]/...", and the
+  // upload then falls through to OCR.
+  const g = globalThis as { pdfjsWorker?: unknown };
+  g.pdfjsWorker ??= await import("pdfjs-dist/legacy/build/pdf.worker.mjs");
   const doc = await pdfjs.getDocument({
     data: new Uint8Array(buffer),
     useWorkerFetch: false,

@@ -1,0 +1,79 @@
+{
+  "model": "openai/gpt-5.6-sol",
+  "promptSha8": "bfb47934",
+  "ranAt": "2026-08-27T11:22:45.177Z",
+  "results": [
+    {
+      "id": "ckd3_male_70",
+      "passed": 0,
+      "total": 6,
+      "failed": [],
+      "failedMust": false,
+      "shouldPassed": 0,
+      "shouldTotal": 0,
+      "shouldMissed": [],
+      "latencyMs": 3925,
+      "error": "[Azure] Invalid schema for response_format 'response': In context=('properties', 'actions', 'items', 'properties', 'dose'), 'required' is required to be supplied and to be an array including every key in properties. Missing 'form'."
+    },
+    {
+      "id": "hashimoto_early_female_36",
+      "passed": 0,
+      "total": 9,
+      "failed": [],
+      "failedMust": false,
+      "shouldPassed": 0,
+      "shouldTotal": 1,
+      "shouldMissed": [],
+      "latencyMs": 1752,
+      "error": "[Azure] Invalid schema for response_format 'response': In context=('properties', 'actions', 'items', 'properties', 'dose'), 'required' is required to be supplied and to be an array including every key in properties. Missing 'form'."
+    },
+    {
+      "id": "healthy_male_28",
+      "passed": 0,
+      "total": 4,
+      "failed": [],
+      "failedMust": false,
+      "shouldPassed": 0,
+      "shouldTotal": 0,
+      "shouldMissed": [],
+      "latencyMs": 1000,
+      "error": "[Azure] Invalid schema for response_format 'response': In context=('properties', 'actions', 'items', 'properties', 'dose'), 'required' is required to be supplied and to be an array including every key in properties. Missing 'form'."
+    },
+    {
+      "id": "insulin_resistant_male_45",
+      "passed": 0,
+      "total": 5,
+      "failed": [],
+      "failedMust": false,
+      "shouldPassed": 0,
+      "shouldTotal": 0,
+      "shouldMissed": [],
+      "latencyMs": 1110,
+      "error": "[Azure] Invalid schema for response_format 'response': In context=('properties', 'actions', 'items', 'properties', 'dose'), 'required' is required to be supplied and to be an array including every key in properties. Missing 'form'."
+    },
+    {
+      "id": "iron_low_female_30",
+      "passed": 0,
+      "total": 6,
+      "failed": [],
+      "failedMust": false,
+      "shouldPassed": 0,
+      "shouldTotal": 0,
+      "shouldMissed": [],
+      "latencyMs": 817,
+      "error": "[Azure] Invalid schema for response_format 'response': In context=('properties', 'actions', 'items', 'properties', 'dose'), 'required' is required to be supplied and to be an array including every key in properties. Missing 'form'."
+    },
+    {
+      "id": "lmhr_male_38",
+      "passed": 0,
+      "total": 8,
+      "failed": [],
+      "failedMust": false,
+      "shouldPassed": 0,
+      "shouldTotal": 0,
+      "shouldMissed": [],
+      "latencyMs": 953,
+      "error": "[Azure] Invalid schema for response_format 'response': In context=('properties', 'actions', 'items', 'properties', 'dose'), 'required' is required to be supplied and to be an array including every key in properties. Missing 'form'."
+    }
+  ]
+}

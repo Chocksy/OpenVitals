@@ -1,0 +1,1104 @@
+{
+  "model": "google/gemini-2.5-pro",
+  "promptSha8": "bfb47934",
+  "ranAt": "2026-08-27T11:21:04.896Z",
+  "results": [
+    {
+      "id": "ckd3_male_70",
+      "passed": 5,
+      "total": 6,
+      "failed": [
+        "must: kind=test title=cystatin|egfr|kidney"
+      ],
+      "failedMust": true,
+      "shouldPassed": 0,
+      "shouldTotal": 0,
+      "shouldMissed": [],
+      "judgeScore": 2,
+      "omission": "The plan omits prompt albuminuria-guided antihypertensive therapy—typically an ACE inhibitor or ARB when indicated—with repeat creatinine and potassium monitoring within 1–2 weeks.",
+      "latencyMs": 96372,
+      "body": {
+        "summary": [
+          "Your main priorities are protecting your kidneys and improving your metabolic health to lower your high cardiovascular risk.",
+          "We will begin with key tests to get a full picture of your kidney function, blood sugar control, and cardiovascular risk factors.",
+          "The plan's foundation is diet and exercise, but we will also discuss powerful, guideline-recommended medications with your doctor."
+        ],
+        "eli5": "Think of your body as a sophisticated plumbing system. Right now, the pipes (blood vessels) are under high pressure, the main filter (kidneys) is showing strain, and the fuel mix (blood sugar) is running too rich. Our plan is to check the filter more closely, adjust the pressure and fuel, and reinforce the pipes to make everything run smoothly for a long, long time.",
+        "systems": [
+          {
+            "id": "kidney",
+            "name": "Kidney Health",
+            "verdict": "Major Concern. Your creatinine is elevated and has risen, indicating your chronic kidney disease is active. We are missing a key test for kidney damage (urine albumin) which is a top priority.",
+            "eli5": "Your body's main filter is getting clogged, and we need to see if it's also starting to leak. Reducing the pressure on it is our most important job.",
+            "priority": 3
+          },
+          {
+            "id": "metabolic",
+            "name": "Metabolic Health",
+            "verdict": "Major Concern. Your HbA1c (average blood sugar) is in the pre-diabetic range, and your triglycerides are high. These are driving much of your cardiovascular and kidney risk.",
+            "eli5": "Your body isn't handling sugar and fats efficiently, which is stressing your whole system. We need to improve your fuel efficiency with diet, exercise, and possibly medication.",
+            "priority": 3
+          },
+          {
+            "id": "lipids",
+            "name": "Lipid & Cardiovascular Health",
+            "verdict": "High Risk. Your LDL cholesterol is above optimal, and your pattern of high triglycerides suggests your cholesterol particles are the more dangerous, small, dense type. Your family history of stroke adds urgency.",
+            "eli5": "The type of fat in your blood is promoting plaque buildup in your arteries. We need to lower the bad fats and get a more accurate count of the particles causing the problem.",
+            "priority": 3
+          }
+        ],
+        "actions": [
+          {
+            "title": "Follow a low-sodium diet for kidney health and blood pressure",
+            "kind": "food",
+            "weight": 5,
+            "basis": "opinion",
+            "why": "Your kidneys are under strain and your blood pressure is high; reducing sodium is the most effective dietary change to address both.",
+            "reasoning": "With CKD Stage 3 (`system:kidney` 0.7, `metric:creatinine` 1.5 mg/dL) and hypertension (142/84 mmHg), a low-sodium diet is crucial to slow kidney decline and lower blood pressure, which is a primary driver of your father's stroke.",
+            "dose": {
+              "amount": "less than 2,000 mg",
+              "form": "dietary sodium",
+              "schedule": "daily",
+              "duration": "ongoing"
+            },
+            "targets": [
+              {
+                "code": "bp_home",
+                "direction": "down",
+                "expect": "to fall below 130/80 mmHg by 2026-11-27",
+                "measureAfterWeeks": 12
+              },
+              {
+                "code": "creatinine",
+                "direction": "down",
+                "expect": "to show a slower rate of increase, checked 2026-11-27",
+                "measureAfterWeeks": 12
+              }
+            ],
+            "evidence": [],
+            "followUp": [
+              {
+                "afterDays": 14,
+                "ask": "Have you found it challenging to find low-sodium options for your meals?"
+              }
+            ]
+          },
+          {
+            "title": "Adopt a low-sugar, high-fiber diet for metabolic health",
+            "kind": "food",
+            "weight": 4,
+            "basis": "opinion",
+            "why": "Your high blood sugar and triglycerides are a team, and the best way to break them up is by cutting out sugar and processed carbs and adding fiber.",
+            "reasoning": "Your labs show clear signs of insulin resistance, with `metric:hba1c` at 5.9% and `metric:triglycerides` at 165 mg/dL. The link between them (`hba1c->triglycerides`) means tackling sugar intake is the root-cause solution for your metabolic and lipid problems.",
+            "dose": {
+              "amount": "zero",
+              "form": "sugar-sweetened beverages and desserts",
+              "schedule": "daily",
+              "duration": "ongoing"
+            },
+            "targets": [
+              {
+                "code": "triglycerides",
+                "direction": "down",
+                "expect": "to fall below 100 mg/dL by 2026-11-27",
+                "measureAfterWeeks": 12
+              },
+              {
+                "code": "hba1c",
+                "direction": "down",
+                "expect": "to fall below 5.7% by 2026-11-27",
+                "measureAfterWeeks": 12
+              },
+              {
+                "code": "uric_acid",
+                "direction": "down",
+                "expect": "to fall below 6.0 mg/dL by 2026-11-27",
+                "measureAfterWeeks": 12
+              }
+            ],
+            "evidence": [],
+            "followUp": [
+              {
+                "afterDays": 7,
+                "ask": "What has been the easiest and hardest food to replace this week?"
+              }
+            ]
+          },
+          {
+            "title": "Increase daily physical activity",
+            "kind": "exercise",
+            "weight": 4,
+            "basis": "opinion",
+            "why": "Your current activity level is low, and exercise is a powerful tool to improve blood sugar, blood pressure, and overall heart health without needing a prescription.",
+            "reasoning": "Your low step count (average 5200) is a major opportunity. Increasing activity will directly improve insulin sensitivity (`metric:hba1c` 5.9%) and help lower your blood pressure (142/84), two of your most significant health challenges.",
+            "dose": {
+              "amount": "30 minutes",
+              "form": "brisk walking",
+              "schedule": "5 days per week",
+              "duration": "ongoing"
+            },
+            "targets": [
+              {
+                "code": "steps",
+                "direction": "up",
+                "expect": "to average over 8,000 steps/day by 2026-09-27",
+                "measureAfterWeeks": 4
+              },
+              {
+                "code": "hba1c",
+                "direction": "down",
+                "expect": "to contribute to a fall below 5.7% by 2026-11-27",
+                "measureAfterWeeks": 12
+              }
+            ],
+            "evidence": [],
+            "followUp": [
+              {
+                "afterDays": 7,
+                "ask": "How many days were you able to get your walk in this week?"
+              }
+            ]
+          },
+          {
+            "title": "Ask your doctor about an SGLT2 inhibitor",
+            "kind": "doctor",
+            "weight": 5,
+            "basis": "science",
+            "why": "This class of medication is strongly recommended by guidelines to protect your kidneys and heart, given your CKD stage 3 and elevated blood sugar.",
+            "reasoning": "This is a first-line therapy for patients with CKD and signs of metabolic stress to slow disease progression and reduce cardiovascular events.",
+            "dose": {
+              "amount": "e.g., Dapagliflozin 10 mg or Empagliflozin 10 mg",
+              "schedule": "Once daily"
+            },
+            "targets": [
+              {
+                "code": "creatinine",
+                "direction": "down",
+                "expect": "to stabilize or slow its rate of increase after a small initial drop, by 2026-11-27",
+                "measureAfterWeeks": 12
+              },
+              {
+                "code": "hba1c",
+                "direction": "down",
+                "expect": "to fall below 5.7% by 2026-11-27",
+                "measureAfterWeeks": 12
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "guideline",
+                "title": "KDIGO 2024 Clinical Practice Guideline for the Evaluation and Management of Chronic Kidney Disease",
+                "source": "KDIGO"
+              },
+              {
+                "kind": "rct",
+                "title": "DAPA-CKD Trial: Dapagliflozin in Patients with Chronic Kidney Disease",
+                "source": "N Engl J Med 2020"
+              }
+            ],
+            "followUp": []
+          },
+          {
+            "title": "Log your blood pressure at home for 7 days",
+            "kind": "test",
+            "weight": 5,
+            "basis": "science",
+            "why": "Blood pressure carries more attributable risk than any lab value, and a clinic reading is not the number that counts.",
+            "reasoning": "This rule fires when home blood pressure is not logged, as clinic readings are often unreliable and managing blood pressure is critical for kidney and cardiovascular health.",
+            "targets": [
+              {
+                "code": "bp_home",
+                "direction": "down",
+                "expect": "to establish a baseline for treatment changes, by 2026-09-04",
+                "measureAfterWeeks": 1
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "rct",
+                "title": "Age, sex, and blood pressure as risk factors for death from cardiovascular disease",
+                "source": "Lewington 2002 Lancet"
+              }
+            ],
+            "followUp": []
+          },
+          {
+            "title": "Add a urine albumin/creatinine ratio",
+            "kind": "test",
+            "weight": 5,
+            "basis": "science",
+            "why": "Kidneys are graded on two numbers, filtration and leak. You have creatinine but no urine albumin, so half the picture is missing.",
+            "reasoning": "This rule fires because creatinine alone is insufficient for CKD staging; urine albumin is required by all international guidelines.",
+            "targets": [
+              {
+                "code": "urine_acr",
+                "direction": "down",
+                "expect": "to get a baseline measurement of kidney protein leak, by 2026-10-27",
+                "measureAfterWeeks": 8
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "guideline",
+                "title": "KDIGO 2024 CKD guideline",
+                "source": "KDIGO"
+              }
+            ],
+            "followUp": []
+          },
+          {
+            "title": "Measure Lp(a) once",
+            "kind": "test",
+            "weight": 5,
+            "basis": "science",
+            "why": "Lp(a) is inherited and barely moves in a lifetime, so one measurement settles it for good. Yours has never been measured.",
+            "reasoning": "",
+            "targets": [],
+            "evidence": [
+              {
+                "kind": "guideline",
+                "title": "EAS 2022 consensus on Lp(a)"
+              }
+            ],
+            "followUp": []
+          },
+          {
+            "title": "Measure grip strength or estimate VO2max",
+            "kind": "test",
+            "weight": 5,
+            "basis": "science",
+            "why": "Fitness and muscle are the strongest predictors of how long you live and they never appear on a blood test.",
+            "reasoning": "",
+            "targets": [],
+            "evidence": [
+              {
+                "kind": "guideline",
+                "title": "Mandsager 2018 JAMA Netw Open"
+              }
+            ],
+            "followUp": []
+          },
+          {
+            "title": "Ask your doctor about starting a statin",
+            "kind": "doctor",
+            "weight": 4,
+            "basis": "science",
+            "why": "To lower your LDL cholesterol and reduce your high risk of stroke and heart attack, given your age, family history of stroke, and other risk factors like hypertension and pre-diabetes.",
+            "reasoning": "Cardiovascular prevention guidelines strongly recommend statin therapy for primary prevention in individuals at high 10-year risk.",
+            "dose": {
+              "amount": "e.g., Atorvastatin 20-40 mg or Rosuvastatin 10-20 mg",
+              "schedule": "Once daily"
+            },
+            "targets": [
+              {
+                "code": "ldl_cholesterol",
+                "direction": "down",
+                "expect": "to fall below 70 mg/dL by 2026-11-27",
+                "measureAfterWeeks": 12
+              },
+              {
+                "code": "apolipoprotein_b",
+                "direction": "down",
+                "expect": "to fall below 80 mg/dL by 2026-11-27",
+                "measureAfterWeeks": 12
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "guideline",
+                "title": "2018 AHA/ACC/AACVPR/AAPA/ABC/ACPM/ADA/AGS/APhA/ASPC/NLA/PCNA Guideline on the Management of Blood Cholesterol",
+                "source": "J Am Coll Cardiol. 2019"
+              }
+            ],
+            "followUp": []
+          },
+          {
+            "title": "Ask for a 2-hour OGTT with insulin",
+            "kind": "test",
+            "weight": 4,
+            "basis": "science",
+            "why": "HbA1c, fasting insulin or the triglyceride to HDL ratio already point at insulin resistance, which shows up on an OGTT years before HbA1c moves.",
+            "reasoning": "This rule fires when markers like high HbA1c (5.9%) and high Trig/HDL ratio (3.75) suggest insulin resistance, to quantify the degree of glucose intolerance.",
+            "targets": [
+              {
+                "code": "glucose",
+                "direction": "down",
+                "expect": "to understand your glucose and insulin dynamics under load, by 2026-10-27",
+                "measureAfterWeeks": 8
+              },
+              {
+                "code": "insulin",
+                "direction": "down",
+                "expect": "to understand your glucose and insulin dynamics under load, by 2026-10-27",
+                "measureAfterWeeks": 8
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "guideline",
+                "title": "2. Classification and Diagnosis of Diabetes: Standards of Medical Care in Diabetes—2022",
+                "source": "ADA Standards of Care"
+              }
+            ],
+            "followUp": []
+          },
+          {
+            "title": "Book a colonoscopy",
+            "kind": "test",
+            "weight": 4,
+            "basis": "science",
+            "why": "Screening starts at 45, or at 40 when a close relative had bowel cancer. It is the one test that removes the problem while it looks.",
+            "reasoning": "",
+            "targets": [],
+            "evidence": [
+              {
+                "kind": "guideline",
+                "title": "USPSTF 2021 colorectal screening"
+              }
+            ],
+            "followUp": []
+          },
+          {
+            "title": "Have the PSA conversation with a doctor",
+            "kind": "test",
+            "weight": 4,
+            "basis": "science",
+            "why": "From 50, or from 45 with prostate cancer in the family, PSA is a shared decision rather than an automatic test.",
+            "reasoning": "",
+            "targets": [],
+            "evidence": [
+              {
+                "kind": "guideline",
+                "title": "USPSTF 2018 prostate screening"
+              }
+            ],
+            "followUp": []
+          },
+          {
+            "title": "Add ApoB to the next lipid draw",
+            "kind": "test",
+            "weight": 3,
+            "basis": "science",
+            "why": "Your lipid panel is current but ApoB is not, and ApoB counts the particles that actually build plaque.",
+            "reasoning": "This rule fires because ApoB provides a more accurate assessment of cardiovascular risk than LDL-C alone, especially when triglycerides are high.",
+            "targets": [
+              {
+                "code": "apolipoprotein_b",
+                "direction": "down",
+                "expect": "to get a baseline measurement of atherogenic particle count, by 2026-10-27",
+                "measureAfterWeeks": 8
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "guideline",
+                "title": "Apolipoprotein B and the Traditional Lipid Panel in the Prediction of Cardiovascular Disease",
+                "source": "Sniderman 2019 JAMA Cardiol"
+              }
+            ],
+            "followUp": []
+          },
+          {
+            "title": "Measure vitamin D",
+            "kind": "test",
+            "weight": 2,
+            "basis": "science",
+            "why": "Vitamin D has never been measured, and it is the cheapest deficiency there is to find and to fix.",
+            "reasoning": "This rule fires when Vitamin D is stale or missing, as deficiency is common and particularly relevant for bone health in patients with CKD.",
+            "targets": [
+              {
+                "code": "vitamin_d",
+                "direction": "up",
+                "expect": "to get a baseline measurement, by 2026-10-27",
+                "measureAfterWeeks": 8
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "guideline",
+                "title": "Evaluation, Treatment, and Prevention of Vitamin D Deficiency: an Endocrine Society Clinical Practice Guideline",
+                "source": "Endocrine Society 2011 vitamin D guideline"
+              }
+            ],
+            "followUp": []
+          }
+        ],
+        "questions": [
+          {
+            "key": "symptoms_ckd_hf",
+            "text": "In the last month, have you experienced any new or worsening fatigue, swelling in your ankles, or increased need to urinate at night?",
+            "why": "These can be symptoms of worsening kidney or heart function, and your answers would help determine the urgency of further cardiac evaluation."
+          },
+          {
+            "key": "diet_details",
+            "text": "What does a typical day of eating and drinking look like for you, from morning to night?",
+            "why": "Knowing your current habits will help me give you more specific and effective advice for the diet changes we've discussed."
+          },
+          {
+            "key": "prior_cardiac_screening",
+            "text": "Have you ever had a coronary artery calcium (CAC) score, a cardiac stress test, or a CT angiogram of your heart?",
+            "why": "Given your risk profile, knowing if you've had these advanced screening tests would clarify how much plaque is already in your arteries and guide the intensity of our treatment."
+          }
+        ],
+        "patterns": []
+      }
+    },
+    {
+      "id": "hashimoto_early_female_36",
+      "passed": 8,
+      "total": 9,
+      "failed": [
+        "mustNot: title=iodine|kelp unlessKind=stop"
+      ],
+      "failedMust": false,
+      "shouldPassed": 0,
+      "shouldTotal": 1,
+      "shouldMissed": [
+        "should: kind=doctor title=endocrin"
+      ],
+      "judgeScore": 2,
+      "omission": "The worst omission is confirming pregnancy or conception plans before deferring levothyroxine, because antibody-positive women with TSH 3.9 require pregnancy-specific management.",
+      "latencyMs": 83037,
+      "body": {
+        "summary": [
+          "Your blood work shows the start of an autoimmune thyroid condition (Hashimoto's), which is likely why your TSH is climbing.",
+          "This is currently complicated by very low levels of vitamin D and iron, which are essential for both immune and thyroid health.",
+          "Our plan is to first get a clearer picture with more tests, then correct these nutrient deficiencies aggressively and reassess your thyroid function in 3 months."
+        ],
+        "eli5": "Your thyroid is like the thermostat for your body's energy. Right now, your immune system is mistakenly fiddling with the thermostat, making it work harder. On top of that, it's low on two key battery packs—vitamin D and iron—so our first job is to charge those batteries all the way up and see if the thermostat calms down on its own.",
+        "systems": [
+          {
+            "id": "thyroid",
+            "name": "Thyroid",
+            "verdict": "You have early-stage Hashimoto's, where the immune system attacks the thyroid. Function is currently strained (TSH 3.9) and made worse by nutrient gaps. Our first step is a full workup and supporting the thyroid with key nutrients.",
+            "eli5": "Your thyroid, the body's energy manager, is being pestered by your own immune system. It's like trying to work with someone constantly poking you, so it's getting stressed out.",
+            "priority": 1
+          },
+          {
+            "id": "iron",
+            "name": "Iron",
+            "verdict": "Your iron stores are empty (ferritin 22), a condition called iron deficiency. This directly impairs thyroid hormone production and is a major cause of fatigue. We need to replenish your stores and investigate the cause of the loss.",
+            "eli5": "Iron is a key ingredient for making energy and red blood cells. Your body's iron pantry is almost bare, so even simple tasks can feel like a marathon.",
+            "priority": 2
+          },
+          {
+            "id": "vitamins",
+            "name": "Vitamins",
+            "verdict": "You have a significant vitamin D deficiency (19 ng/mL). Since vitamin D helps regulate the immune system, correcting this is a priority in managing Hashimoto's.",
+            "eli5": "Vitamin D is like the coach for your immune system's team. Your coach is missing, so the players are getting rowdy and attacking your own body.",
+            "priority": 3
+          }
+        ],
+        "actions": [
+          {
+            "title": "Start high-dose Vitamin D3 to support immune function",
+            "kind": "supplement",
+            "weight": 5,
+            "basis": "opinion",
+            "why": "Your vitamin D is 19 ng/mL, well below the 40-60 ng/mL range that helps calm the immune system in Hashimoto's.",
+            "reasoning": "Your vitamin D is 19 ng/mL, well below the optimal 40-60 ng/mL required for Hashimoto's management (pattern:hashimoto). Raising it is a priority as low levels are associated with higher thyroid antibodies (edge: vitamin_d->tpo_antibodies).",
+            "dose": {
+              "amount": "5000 IU",
+              "form": "Vitamin D3",
+              "schedule": "Once daily with a meal containing fat",
+              "duration": "For 12 weeks, then retest"
+            },
+            "targets": [
+              {
+                "code": "vitamin_d",
+                "direction": "up",
+                "expect": "to 40-60 ng/mL by 2026-11-19",
+                "measureAfterWeeks": 12
+              }
+            ],
+            "evidence": [],
+            "followUp": [
+              {
+                "afterDays": 14,
+                "ask": "Any side effects like nausea or fatigue? This is rare but good to check."
+              }
+            ]
+          },
+          {
+            "title": "Replenish iron stores to improve energy and thyroid function",
+            "kind": "supplement",
+            "weight": 5,
+            "basis": "opinion",
+            "why": "Your ferritin is 22 ng/mL, which means your iron stores are empty; this directly impairs thyroid hormone production and causes fatigue.",
+            "reasoning": "Your ferritin is only 22 ng/mL, which is too low for your thyroid to make hormone effectively (edge: ferritin->free_t4). With Hashimoto's (pattern:hashimoto), we need ferritin above 50 ng/mL to properly assess thyroid function and support hormone production.",
+            "dose": {
+              "amount": "100 mg elemental iron",
+              "form": "Iron Bisglycinate",
+              "schedule": "Every other day, on an empty stomach with 500mg Vitamin C",
+              "duration": "For 12 weeks, then retest"
+            },
+            "timing": "Take in the morning, 1 hour before food/coffee, or at bedtime, 2+ hours after your last meal. Take 4 hours away from thyroid medication if you start it.",
+            "targets": [
+              {
+                "code": "ferritin",
+                "direction": "up",
+                "expect": "to >50 ng/mL by 2026-11-19",
+                "measureAfterWeeks": 12
+              }
+            ],
+            "evidence": [],
+            "followUp": [
+              {
+                "afterDays": 7,
+                "ask": "Any constipation or stomach upset? Iron bisglycinate is usually gentle, but we can adjust if needed."
+              }
+            ]
+          },
+          {
+            "title": "Trial Selenium to reduce thyroid antibodies",
+            "kind": "supplement",
+            "weight": 3,
+            "basis": "science",
+            "why": "In people with Hashimoto's, selenium may help lower the autoimmune attack on the thyroid.",
+            "reasoning": "The Hashimoto's pattern management suggests a trial is reasonable, and the active edge `selenium->tpo_antibodies` is supported by RCTs showing a reduction in antibody levels, though effects on symptoms are less certain.",
+            "dose": {
+              "amount": "200 µg",
+              "form": "Selenomethionine",
+              "schedule": "Once daily with food",
+              "duration": "For 6 months"
+            },
+            "targets": [
+              {
+                "code": "tpo_antibodies",
+                "direction": "down",
+                "expect": "to see a reduction by 2027-02-27",
+                "measureAfterWeeks": 26
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "rct",
+                "title": "Selenium supplementation and the course of autoimmune thyroiditis",
+                "source": "Wichman 2016 Thyroid"
+              }
+            ],
+            "followUp": []
+          },
+          {
+            "title": "Pause supplements and remeasure in 12 weeks",
+            "kind": "habit",
+            "weight": 3,
+            "basis": "opinion",
+            "why": "This is a planned experiment; we need to check if the doses are right and see how your thyroid is responding before continuing.",
+            "reasoning": "We are starting Vitamin D and Iron together. After 12 weeks, it's crucial to stop them for a few days and remeasure ferritin (`iron->ferritin`), vitamin D, and TSH to see if the doses are working and if they have improved your thyroid function (`ferritin->free_t4`). This isn't a permanent prescription, it's a test-and-measure cycle.",
+            "dose": {
+              "amount": "1",
+              "schedule": "Around 2026-11-19, stop iron and vitamin D for 3 days before your blood test"
+            },
+            "targets": [
+              {
+                "code": "ferritin",
+                "direction": "up",
+                "expect": "Confirming new baseline",
+                "measureAfterWeeks": 12
+              },
+              {
+                "code": "vitamin_d",
+                "direction": "up",
+                "expect": "Confirming new baseline",
+                "measureAfterWeeks": 12
+              },
+              {
+                "code": "tsh",
+                "direction": "down",
+                "expect": "Confirming thyroid response",
+                "measureAfterWeeks": 12
+              }
+            ],
+            "evidence": [],
+            "followUp": []
+          },
+          {
+            "title": "Avoid iodine supplements and kelp",
+            "kind": "habit",
+            "weight": 1,
+            "basis": "science",
+            "why": "In Hashimoto's, excess iodine can 'fan the flames' of the autoimmune attack, worsening the condition.",
+            "reasoning": "The active edge `iodine_excess->hashimoto` is well-established. While you don't currently take supplements, it's crucial you avoid multivitamins with iodine, kelp, and other high-iodine sources going forward.",
+            "targets": [],
+            "evidence": [
+              {
+                "kind": "guideline",
+                "title": "ATA 2014 hypothyroidism guideline",
+                "source": "ATA 2014 hypothyroidism guideline"
+              }
+            ],
+            "followUp": []
+          },
+          {
+            "title": "Measure Lp(a) once",
+            "kind": "test",
+            "weight": 5,
+            "basis": "science",
+            "why": "Lp(a) is inherited and barely moves in a lifetime, so one measurement settles it for good. Yours has never been measured.",
+            "reasoning": "",
+            "targets": [],
+            "evidence": [
+              {
+                "kind": "guideline",
+                "title": "EAS 2022 consensus on Lp(a)"
+              }
+            ],
+            "followUp": []
+          },
+          {
+            "title": "Add a urine albumin/creatinine ratio",
+            "kind": "test",
+            "weight": 5,
+            "basis": "science",
+            "why": "Kidneys are graded on two numbers, filtration and leak. You have creatinine but no urine albumin, so half the picture is missing.",
+            "reasoning": "",
+            "targets": [],
+            "evidence": [
+              {
+                "kind": "guideline",
+                "title": "KDIGO 2024 CKD guideline"
+              }
+            ],
+            "followUp": []
+          },
+          {
+            "title": "Retest vitamin D",
+            "kind": "test",
+            "weight": 5,
+            "basis": "science",
+            "why": "Vitamin D drifts with the seasons and yours is either over a year old or below 30 ng/mL, which is the deficiency line.",
+            "reasoning": "",
+            "targets": [],
+            "evidence": [
+              {
+                "kind": "guideline",
+                "title": "Endocrine Society 2011 vitamin D guideline"
+              }
+            ],
+            "followUp": []
+          },
+          {
+            "title": "B12 and ferritin every 12 months",
+            "kind": "test",
+            "weight": 5,
+            "basis": "science",
+            "why": "Pernicious anaemia and iron deficiency cluster with thyroid autoimmunity.",
+            "reasoning": "",
+            "targets": [],
+            "evidence": [
+              {
+                "kind": "guideline",
+                "title": "BSG iron deficiency guideline"
+              }
+            ],
+            "followUp": []
+          },
+          {
+            "title": "Repeat TSH every 6 months while antibody-positive and untreated",
+            "kind": "test",
+            "weight": 5,
+            "basis": "science",
+            "why": "Progression to overt hypothyroidism runs 2–5 % per year; catch it early.",
+            "reasoning": "",
+            "targets": [],
+            "evidence": [
+              {
+                "kind": "guideline",
+                "title": "Rodondi 2010 JAMA"
+              }
+            ],
+            "followUp": []
+          },
+          {
+            "title": "Get a full thyroid panel to understand your Hashimoto's",
+            "kind": "test",
+            "weight": 4,
+            "basis": "science",
+            "why": "TSH alone misses early failure; anti-Tg catches the 10 % who are TPO-negative.",
+            "reasoning": "This is a standard-of-care workup for your rising TSH (3.9 mIU/L), positive antibodies, and family history, as specified by the fired rule 'hashimoto_full_panel'.",
+            "targets": [],
+            "evidence": [
+              {
+                "kind": "guideline",
+                "title": "ATA 2014 hypothyroidism guideline",
+                "source": "ATA 2014 hypothyroidism guideline"
+              }
+            ],
+            "followUp": []
+          },
+          {
+            "title": "Repeat TSH with free T4, free T3 and anti-TPO",
+            "kind": "test",
+            "weight": 4,
+            "basis": "science",
+            "why": "A TSH above 2.5 that is climbing, or positive thyroid antibodies, changes how the lipid and energy picture should be read.",
+            "reasoning": "",
+            "targets": [],
+            "evidence": [
+              {
+                "kind": "guideline",
+                "title": "Rodondi 2010 JAMA"
+              }
+            ],
+            "followUp": []
+          },
+          {
+            "title": "Find the cause of the low ferritin",
+            "kind": "test",
+            "weight": 4,
+            "basis": "science",
+            "why": "Ferritin under 30 means the iron stores are empty; the question is where the iron is going, not just how to top it up.",
+            "reasoning": "",
+            "targets": [],
+            "evidence": [
+              {
+                "kind": "guideline",
+                "title": "BSG iron deficiency guideline"
+              }
+            ],
+            "followUp": []
+          },
+          {
+            "title": "Coeliac serology (tTG-IgA with total IgA)",
+            "kind": "test",
+            "weight": 4,
+            "basis": "science",
+            "why": "Coeliac disease is the commonest silent cause of iron loss in an otherwise healthy adult.",
+            "reasoning": "",
+            "targets": [],
+            "evidence": [
+              {
+                "kind": "guideline",
+                "title": "BSG iron deficiency guideline"
+              }
+            ],
+            "followUp": []
+          },
+          {
+            "title": "Check for coeliac disease, a common partner to Hashimoto's",
+            "kind": "test",
+            "weight": 3,
+            "basis": "science",
+            "why": "Coeliac disease is 4–5× more common with Hashimoto's and changes the diet advice from speculative to required.",
+            "reasoning": "This test is indicated by two separate conditions you have (Hashimoto's and Iron Deficiency), making it a high-yield screen. This action is triggered by the 'hashimoto_coeliac' rule.",
+            "targets": [],
+            "evidence": [
+              {
+                "kind": "guideline",
+                "title": "BSG coeliac disease guideline",
+                "source": "BSG coeliac disease guideline"
+              }
+            ],
+            "followUp": [
+              {
+                "afterDays": 1,
+                "ask": "Important: For this test to be accurate, you must be eating gluten (wheat, barley, rye) regularly in the weeks leading up to the blood draw. Are you currently eating gluten?"
+              }
+            ]
+          },
+          {
+            "title": "Measure iron saturation to complete the iron picture",
+            "kind": "test",
+            "weight": 3,
+            "basis": "science",
+            "why": "Saturation separates empty stores from inflammation hiding them, and it responds first when iron is working.",
+            "reasoning": "Your low ferritin (22 ng/mL) requires a full workup. This test, triggered by rule 'iron_saturation', will confirm true iron deficiency and will be the first marker to improve when you start iron.",
+            "targets": [],
+            "evidence": [
+              {
+                "kind": "guideline",
+                "title": "BSG iron deficiency guideline",
+                "source": "BSG iron deficiency guideline"
+              }
+            ],
+            "followUp": []
+          },
+          {
+            "title": "If pregnant or planning: TSH target below 2.5 and an endocrinology visit now",
+            "kind": "test",
+            "weight": 3,
+            "basis": "science",
+            "why": "TPO-positive women have higher miscarriage and preterm risk; ATA 2017 recommends treatment thresholds change in pregnancy.",
+            "reasoning": "",
+            "targets": [],
+            "evidence": [
+              {
+                "kind": "guideline",
+                "title": "ATA 2017 thyroid in pregnancy guideline"
+              }
+            ],
+            "followUp": []
+          },
+          {
+            "title": "Get a thyroid ultrasound",
+            "kind": "test",
+            "weight": 2,
+            "basis": "science",
+            "why": "Confirms the diagnosis and baselines nodules; Hashimoto's raises nodule frequency.",
+            "reasoning": "An ultrasound provides a structural look at your thyroid, which complements the functional data from your blood tests. It's a standard part of a new Hashimoto's diagnosis, per rule 'hashimoto_ultrasound'.",
+            "targets": [],
+            "evidence": [
+              {
+                "kind": "guideline",
+                "title": "ATA 2014 hypothyroidism guideline",
+                "source": "ATA 2014 hypothyroidism guideline"
+              }
+            ],
+            "followUp": []
+          },
+          {
+            "title": "Log your blood pressure at home for 7 days",
+            "kind": "test",
+            "weight": 2,
+            "basis": "science",
+            "why": "Blood pressure carries more attributable risk than any lab value, and a clinic reading is not the number that counts.",
+            "reasoning": "This is a foundational health metric we've never measured. Even subclinical hypothyroidism can affect blood pressure, so establishing a baseline now is important. Triggered by rule 'bp_log'.",
+            "targets": [],
+            "evidence": [
+              {
+                "kind": "rct",
+                "title": "Lewington 2002 Lancet",
+                "source": "Lewington 2002 Lancet"
+              }
+            ],
+            "followUp": []
+          }
+        ],
+        "questions": [
+          {
+            "key": "pregnancy_planning",
+            "text": "Are you pregnant or planning to become pregnant in the next 12 months?",
+            "why": "The TSH target for conception and pregnancy is much stricter (<2.5 mIU/L) for women with Hashimoto's to reduce risks. Your answer would immediately change the treatment plan."
+          },
+          {
+            "key": "thyroid_symptoms",
+            "text": "In the last 3 months, have you noticed any new or worsening fatigue, cold intolerance, hair loss, constipation, weight gain, or brain fog?",
+            "why": "Your TSH is in a 'grey zone'. The presence of symptoms would argue for starting thyroid hormone medication sooner rather than later, after we've corrected your iron and vitamin D."
+          },
+          {
+            "key": "menstrual_flow",
+            "text": "How would you describe your periods? Specifically, how many days do they last, and would you describe the flow as heavy (e.g., needing to change pads/tampons every 1-2 hours, passing clots)?",
+            "why": "Heavy periods are the most common cause of iron deficiency in women your age. This is the first place to look for the 'why' behind your empty iron stores."
+          }
+        ],
+        "patterns": [
+          {
+            "id": "hashimoto",
+            "stage": "early",
+            "verdict": "Confirmed early Hashimoto's. The current controversy on treating 'subclinical' disease is decided for you by your rising TSH, positive antibodies, and family history. Our plan: treat the nutrient deficiencies that worsen it (iron, vitamin D), get a full diagnostic picture (ultrasound, full panel), and re-evaluate TSH in 3 months with a low threshold to start levothyroxine if it hasn't improved."
+          },
+          {
+            "id": "iron_deficiency_no_anemia",
+            "stage": "symptomatic",
+            "verdict": "Confirmed iron deficiency. While your hemoglobin is still normal, a ferritin this low is a major source of fatigue and hair loss, and it impairs thyroid function. The plan is to investigate the cause (starting with period flow and coeliac screen) and aggressively replenish your stores with oral iron."
+          }
+        ]
+      }
+    },
+    {
+      "id": "healthy_male_28",
+      "passed": 4,
+      "total": 4,
+      "failed": [],
+      "failedMust": false,
+      "shouldPassed": 0,
+      "shouldTotal": 0,
+      "shouldMissed": [],
+      "judgeScore": 4,
+      "omission": "The worst invention is suggesting TPO-antibody screening in an asymptomatic man with normal thyroid function, which may create an unnecessary “hidden autoimmune” concern and false-positive cascade.",
+      "latencyMs": 63591,
+      "body": {
+        "summary": [
+          "Your lab results are excellent, with every marker in the optimal range for a man your age.",
+          "This is a testament to your healthy habits, and our goal is simply to maintain this high standard.",
+          "Because everything looks great, this plan reinforces your current lifestyle and asks about optional tests for an even more complete baseline."
+        ],
+        "eli5": "Your health is like a brand-new car running perfectly. Our plan is to keep it that way with regular, high-quality maintenance, not to fix anything that's broken.",
+        "systems": [
+          {
+            "id": "metabolism",
+            "name": "Metabolism",
+            "verdict": "Excellent. Your blood sugar control and insulin sensitivity are optimal.",
+            "eli5": "Your body is processing sugar and energy very efficiently, like a finely-tuned engine.",
+            "priority": 1
+          },
+          {
+            "id": "lipids",
+            "name": "Heart & Vessel Health",
+            "verdict": "Excellent. Your lipid profile shows a very low risk of cardiovascular disease.",
+            "eli5": "Your arteries are clear and healthy, like clean pipes in a new house.",
+            "priority": 1
+          }
+        ],
+        "actions": [
+          {
+            "title": "Maintain your high level of physical activity",
+            "kind": "habit",
+            "weight": 5,
+            "basis": "science",
+            "why": "Your current average of 42 minutes of exercise and 11,200 steps per day is a cornerstone of your excellent metabolic and cardiovascular health.",
+            "reasoning": "N/A",
+            "dose": {
+              "amount": "40+ minutes of exercise and 10,000+ steps",
+              "schedule": "as a daily average",
+              "duration": "ongoing"
+            },
+            "targets": [
+              {
+                "code": "hdl_cholesterol",
+                "direction": "up",
+                "expect": "Maintain above 60 mg/dL by 2027-02-27",
+                "measureAfterWeeks": 26
+              },
+              {
+                "code": "triglycerides",
+                "direction": "down",
+                "expect": "Maintain below 100 mg/dL by 2027-02-27",
+                "measureAfterWeeks": 26
+              },
+              {
+                "code": "hba1c",
+                "direction": "down",
+                "expect": "Maintain below 5.4 % by 2027-02-27",
+                "measureAfterWeeks": 26
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "guideline",
+                "title": "WHO Guidelines on physical activity and sedentary behaviour",
+                "source": "World Health Organization, 2020"
+              }
+            ],
+            "followUp": []
+          },
+          {
+            "title": "Maintain your excellent sleep schedule",
+            "kind": "habit",
+            "weight": 4,
+            "basis": "science",
+            "why": "Your average of 7.9 hours of sleep per night is crucial for hormonal balance, mental clarity, and keeping inflammation low.",
+            "reasoning": "N/A",
+            "dose": {
+              "amount": "7-9 hours",
+              "schedule": "per night",
+              "duration": "ongoing"
+            },
+            "targets": [
+              {
+                "code": "hs_crp",
+                "direction": "down",
+                "expect": "Maintain below 1.0 mg/L by 2027-02-27",
+                "measureAfterWeeks": 26
+              },
+              {
+                "code": "insulin",
+                "direction": "down",
+                "expect": "Maintain below 8 µIU/mL by 2027-02-27",
+                "measureAfterWeeks": 26
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "meta",
+                "title": "Sleep duration and all-cause mortality: a systematic review and meta-analysis of prospective studies",
+                "source": "J Sleep Res. 2010"
+              }
+            ],
+            "followUp": []
+          },
+          {
+            "title": "Continue your low alcohol intake",
+            "kind": "habit",
+            "weight": 3,
+            "basis": "science",
+            "why": "Your low average alcohol consumption (1 unit/day) helps preserve your excellent liver function and low inflammation.",
+            "reasoning": "N/A",
+            "dose": {
+              "amount": "0-2 units",
+              "schedule": "per day, with 2-3 alcohol-free days per week",
+              "duration": "ongoing"
+            },
+            "targets": [
+              {
+                "code": "ggt",
+                "direction": "down",
+                "expect": "Maintain below 30 U/L by 2027-02-27",
+                "measureAfterWeeks": 26
+              },
+              {
+                "code": "alt",
+                "direction": "down",
+                "expect": "Maintain below 30 U/L by 2027-02-27",
+                "measureAfterWeeks": 26
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "guideline",
+                "title": "Dietary Guidelines for Americans, 2020-2025",
+                "source": "U.S. Department of Agriculture and U.S. Department of Health and Human Services"
+              }
+            ],
+            "followUp": []
+          }
+        ],
+        "questions": [
+          {
+            "key": "urine_acr_interest",
+            "text": "Your kidney function looks great from your blood work. Would you be interested in a simple urine test (Urine Albumin-to-Creatinine Ratio, or ACR) to establish a more complete baseline for your kidney health?",
+            "why": "An ACR test can detect the very earliest signs of kidney stress, years before blood markers change, providing a more comprehensive view of your long-term health."
+          },
+          {
+            "key": "tpo_interest",
+            "text": "Your thyroid function is optimal. To be thorough, we can run a one-time test for TPO antibodies to screen for a predisposition to autoimmune thyroid conditions. Is this something you'd like to do for a complete baseline?",
+            "why": "While your TSH is perfect, checking for TPO antibodies can identify a hidden autoimmune process that might affect the thyroid gland in the future."
+          },
+          {
+            "key": "cystatin_c_interest",
+            "text": "As a final check on your excellent kidney health, we can measure Cystatin C, a marker of kidney function that is independent of muscle mass. Would you be interested in adding this for the most complete picture?",
+            "why": "Cystatin C provides a second, complementary view of kidney filtration rate, confirming the excellent results from your creatinine test."
+          }
+        ],
+        "patterns": []
+      }
+    },
+    {
+      "id": "insulin_resistant_male_45",
+      "passed": 0,
+      "total": 5,
+      "failed": [],
+      "failedMust": false,
+      "shouldPassed": 0,
+      "shouldTotal": 0,
+      "shouldMissed": [],
+      "latencyMs": 155920,
+      "error": "No object generated: the model did not return a response."
+    },
+    {
+      "id": "iron_low_female_30",
+      "passed": 0,
+      "total": 6,
+      "failed": [],
+      "failedMust": false,
+      "shouldPassed": 0,
+      "shouldTotal": 0,
+      "shouldMissed": [],
+      "latencyMs": 156325,
+      "error": "No object generated: the model did not return a response."
+    },
+    {
+      "id": "lmhr_male_38",
+      "passed": 0,
+      "total": 8,
+      "failed": [],
+      "failedMust": false,
+      "shouldPassed": 0,
+      "shouldTotal": 0,
+      "shouldMissed": [],
+      "latencyMs": 191677,
+      "error": "Failed to process successful response"
+    }
+  ]
+}
