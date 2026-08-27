@@ -33,5 +33,6 @@ e2e/.auth/
 *.log
 *.tsbuildinfo
 local-blobs/
+apps/simple/data/
 test-parse.*
 .env.prod.local

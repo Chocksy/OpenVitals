@@ -1,7 +1,7 @@
 /**
  * One-time, idempotent import of the legacy OpenVitals tables into the lean
- * schema. Reads `metric_definitions`, `optimal_ranges` and `observations`.
- * Never writes to them.
+ * schema. Reads `metric_definitions`, `optimal_ranges`, `source_artifacts`,
+ * `import_jobs` and `observations`. Never writes to them.
  *
  * Duplicate catalog entries (`mch`/`mean_corpuscular_hemoglobin`, ...) collapse
  * onto one canonical code, so a biomarker has a single trend line.
@@ -18,7 +18,42 @@ interface LegacyMetric {
   sort_order: number | null;
 }
 
-const chunk = <T,>(rows: T[], size: number): T[][] =>
+/** One `source_artifacts` row plus its latest `import_jobs.status`. */
+export interface LegacyArtifact {
+  id: string;
+  user_id: string;
+  file_name: string | null;
+  created_at: Date | string | null;
+  raw_text_extracted: string | null;
+  blob_path: string | null;
+  content_hash: string | null;
+  job_status: string | null;
+}
+
+/**
+ * Pure: a legacy artifact → the `uploads` row. The id is reused, so importing
+ * twice updates instead of duplicating.
+ */
+export function legacyUploadRow(a: LegacyArtifact) {
+  return {
+    id: a.id,
+    userId: a.user_id,
+    fileName: a.file_name,
+    status:
+      a.job_status === "completed"
+        ? "done"
+        : a.job_status === "review_needed"
+          ? "needs_review"
+          : "failed",
+    createdAt: a.created_at,
+    rawText: a.raw_text_extracted,
+    blobPath: a.blob_path,
+    sha256: a.content_hash,
+    source: "legacy" as const,
+  };
+}
+
+const chunk = <T>(rows: T[], size: number): T[][] =>
   rows.length ? [rows.slice(0, size), ...chunk(rows.slice(size), size)] : [];
 
 export async function importLegacy({ reset = false } = {}) {
@@ -97,11 +132,61 @@ export async function importLegacy({ reset = false } = {}) {
     );
   }
 
+  /* One `uploads` row per legacy file, before the readings that point at it. */
+  const artifacts = (
+    await db.query<LegacyArtifact>(
+      `SELECT a.id, a.user_id, a.file_name, a.created_at, a.raw_text_extracted,
+              a.blob_path, a.content_hash,
+              (SELECT j.status FROM import_jobs j
+                WHERE j.source_artifact_id = a.id
+                ORDER BY j.created_at DESC LIMIT 1) AS job_status
+         FROM source_artifacts a`,
+    )
+  ).rows;
+
+  /** Files the user deleted here. A re-import must not resurrect them. */
+  const dropped = new Set(
+    (
+      await db.query<{ id: string }>(
+        "SELECT id FROM uploads WHERE status = 'deleted'",
+      )
+    ).rows.map((r) => r.id),
+  );
+
+  let uploadsUpserted = 0;
+  for (const a of artifacts) {
+    if (dropped.has(a.id)) continue;
+    const u = legacyUploadRow(a);
+    const res = await db.query(
+      `INSERT INTO uploads (id, user_id, file_name, status, created_at,
+                            raw_text, blob_path, sha256, source)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+       ON CONFLICT (id) DO UPDATE SET
+         file_name = EXCLUDED.file_name, status = EXCLUDED.status,
+         created_at = EXCLUDED.created_at, raw_text = EXCLUDED.raw_text,
+         blob_path = EXCLUDED.blob_path, sha256 = EXCLUDED.sha256,
+         source = EXCLUDED.source`,
+      [
+        u.id,
+        u.userId,
+        u.fileName,
+        u.status,
+        u.createdAt,
+        u.rawText,
+        u.blobPath,
+        u.sha256,
+        u.source,
+      ],
+    );
+    uploadsUpserted += res.rowCount ?? 0;
+  }
+
   const observations = (
     await db.query<Record<string, any>>(
       `SELECT o.id, o.user_id, o.metric_code, o.value_numeric, o.value_text, o.unit,
               o.reference_range_low, o.reference_range_high,
               o.observed_at::date AS observed_at, o.created_at,
+              o.source_artifact_id,
               COALESCE(o.metadata_json->>'source', '') AS source
        FROM observations o`,
     )
@@ -120,6 +205,7 @@ export async function importLegacy({ reset = false } = {}) {
       unknown++;
       continue;
     }
+    if (dropped.has(o.source_artifact_id)) continue;
     values.push([
       o.id,
       o.user_id,
@@ -131,39 +217,61 @@ export async function importLegacy({ reset = false } = {}) {
       o.reference_range_high,
       o.observed_at,
       o.created_at,
+      o.source_artifact_id,
     ]);
   }
 
+  const COLS = 11;
   let readingsInserted = 0;
   for (const batch of chunk(values, 100)) {
     const params = batch.flat();
     const tuples = batch
       .map(
         (_, i) =>
-          `(${Array.from({ length: 10 }, (_, j) => `$${i * 10 + j + 1}`).join(", ")})`,
+          `(${Array.from({ length: COLS }, (_, j) => `$${i * COLS + j + 1}`).join(", ")})`,
       )
       .join(", ");
+    // DO UPDATE, not DO NOTHING: rows imported before uploads existed still
+    // need their upload_id.
     const res = await db.query(
       `INSERT INTO readings (id, user_id, metric_code, value, value_text, unit,
-                             ref_low, ref_high, observed_at, created_at)
-       VALUES ${tuples} ON CONFLICT (id) DO NOTHING`,
+                             ref_low, ref_high, observed_at, created_at, upload_id)
+       VALUES ${tuples}
+       ON CONFLICT (id) DO UPDATE SET upload_id = EXCLUDED.upload_id
+        WHERE readings.upload_id IS NULL AND EXCLUDED.upload_id IS NOT NULL`,
       params,
     );
     readingsInserted += res.rowCount ?? 0;
   }
 
+  await db.query(
+    `UPDATE uploads u
+        SET readings_count = (SELECT count(*) FROM readings r WHERE r.upload_id = u.id)
+      WHERE u.source = 'legacy'`,
+  );
+
   const totals = (
     await db.query(
-      "SELECT (SELECT count(*) FROM metrics) AS metrics, (SELECT count(*) FROM readings) AS readings",
+      `SELECT (SELECT count(*) FROM metrics) AS metrics,
+              (SELECT count(*) FROM readings) AS readings,
+              (SELECT count(*) FROM readings WHERE upload_id IS NOT NULL) AS linked,
+              (SELECT count(*) FROM uploads) AS uploads`,
     )
   ).rows[0];
   console.log(
     `[import-legacy] catalog=${defs.length} canonical=${groups.size} merged_away=${defs.length - groups.size} ` +
       `metrics_inserted=${metricsInserted} readings_inserted=${readingsInserted} ` +
+      `uploads_upserted=${uploadsUpserted} ` +
       `skipped_calculated=${calculated} skipped_unknown_metric=${unknown} ` +
-      `totals: metrics=${totals.metrics} readings=${totals.readings}`,
+      `totals: metrics=${totals.metrics} readings=${totals.readings} ` +
+      `uploads=${totals.uploads} readings_linked=${totals.linked}`,
   );
-  return { metrics: Number(totals.metrics), readings: Number(totals.readings) };
+  return {
+    metrics: Number(totals.metrics),
+    readings: Number(totals.readings),
+    uploads: Number(totals.uploads),
+    linked: Number(totals.linked),
+  };
 }
 
 let ensured: Promise<unknown> | null = null;

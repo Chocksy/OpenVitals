@@ -6,14 +6,17 @@ interface TextItem {
 }
 
 /**
- * Extract text from a PDF buffer, preserving tabular layout.
+ * Extract text from a PDF buffer, preserving tabular layout. Returns the page
+ * count too, because the uploads list shows it.
  *
  * pdfjs gives us individual text items with x/y coordinates. We sort them
  * into rows (by Y position) and columns (by X position), inserting tab
  * characters between columns so the AI can correctly associate values
  * with their column headers in table-based documents like lab trend reports.
  */
-export async function extractTextFromPdf(buffer: Buffer): Promise<string> {
+export async function extractTextFromPdf(
+  buffer: Buffer,
+): Promise<{ text: string; pages: number }> {
   const pdfjs = await import("pdfjs-dist/legacy/build/pdf.mjs");
   // Resolve the worker file from node_modules (not relative to this source file)
   const { createRequire } = await import("module");
@@ -83,6 +86,7 @@ export async function extractTextFromPdf(buffer: Buffer): Promise<string> {
     text += "\n";
   }
 
+  const pages = doc.numPages;
   doc.destroy();
-  return text;
+  return { text, pages };
 }

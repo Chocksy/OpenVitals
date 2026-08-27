@@ -144,7 +144,7 @@ export function UploadButton() {
 }
 
 /** POSTs to an endpoint, then refreshes the server components. */
-function useAction() {
+export function useAction() {
   const router = useRouter();
   const [pending, start] = useTransition();
   const [error, setError] = useState("");
@@ -224,16 +224,52 @@ export function CheckinButtons({
   );
 }
 
-export function DeleteUpload({ id }: { id: string }) {
+const rowAction =
+  "font-mono text-[11px] uppercase tracking-[0.04em] hover:underline disabled:opacity-40 disabled:no-underline";
+
+export function DeleteUpload({ id, name }: { id: string; name?: string }) {
   const { run, busy } = useAction();
   return (
     <button
-      className="font-mono text-[11px] uppercase tracking-[0.04em] text-[var(--color-health-critical)] hover:underline disabled:opacity-50"
+      className={`${rowAction} text-[var(--color-health-critical)]`}
       disabled={busy}
-      onClick={() => run(`/api/uploads/${id}`, null, "DELETE")}
+      onClick={() => {
+        if (window.confirm(`Delete ${name ?? "this upload"} and its readings?`))
+          void run(`/api/uploads/${id}`, null, "DELETE");
+      }}
     >
       Delete
     </button>
+  );
+}
+
+/** Re-runs extraction from the stored PDF, or from the text we kept. */
+export function ReanalyzeUpload({
+  id,
+  disabled,
+  title,
+}: {
+  id: string;
+  disabled?: boolean;
+  title?: string;
+}) {
+  const { run, busy, error } = useAction();
+  return (
+    <span className="inline-flex items-center gap-2">
+      <button
+        className={`${rowAction} text-neutral-600 hover:text-neutral-900`}
+        disabled={busy || disabled}
+        title={title}
+        onClick={() => run(`/api/uploads/${id}/reanalyze`, {})}
+      >
+        {busy ? "Re-analyzing…" : "Re-analyze"}
+      </button>
+      {error && (
+        <span className="font-mono text-[10px] text-[var(--color-health-critical)]">
+          {error}
+        </span>
+      )}
+    </span>
   );
 }
 

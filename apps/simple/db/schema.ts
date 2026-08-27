@@ -28,6 +28,12 @@ export const metrics = pgTable("metrics", {
   needsReview: boolean("needs_review").default(false).notNull(),
 });
 
+/**
+ * One row per lab file, whether it came through `/api/upload` or the legacy
+ * import (then `id` is the old `source_artifacts.id`, so re-imports are
+ * idempotent).
+ * `status`: pending | extracting | done | needs_review | failed | deleted.
+ */
 export const uploads = pgTable("uploads", {
   id: uuid("id").primaryKey().defaultRandom(),
   userId: text("user_id")
@@ -37,7 +43,22 @@ export const uploads = pgTable("uploads", {
   status: text("status").default("pending"),
   error: text("error"),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+  /** The text layer (or the OCR answer), kept so a re-analyze works without the PDF. */
+  rawText: text("raw_text"),
+  /** Where the PDF sits: a local path here, a `file:///data/blobs/...` URL for legacy rows. */
+  blobPath: text("blob_path"),
+  sha256: text("sha256"),
+  pages: integer("pages"),
+  /** Denormalised count, refreshed after every extraction. */
+  readingsCount: integer("readings_count"),
+  /** `upload` | `legacy`. */
+  source: text("source").default("upload"),
+  // ponytail: the spec wants deleted rows hidden after a day, which needs a
+  // timestamp; `created_at` cannot say when the delete happened.
+  deletedAt: timestamp("deleted_at", { withTimezone: true }),
 });
+
+export type Upload = typeof uploads.$inferSelect;
 
 export const readings = pgTable(
   "readings",

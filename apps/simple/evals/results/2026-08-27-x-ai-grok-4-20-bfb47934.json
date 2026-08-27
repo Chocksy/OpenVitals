@@ -1,0 +1,163 @@
+{
+  "model": "x-ai/grok-4.20",
+  "promptSha8": "bfb47934",
+  "ranAt": "2026-08-27T11:08:42.897Z",
+  "results": [
+    {
+      "id": "healthy_male_28",
+      "passed": 4,
+      "total": 4,
+      "failed": [],
+      "failedMust": false,
+      "shouldPassed": 0,
+      "shouldTotal": 0,
+      "shouldMissed": [],
+      "latencyMs": 9043,
+      "body": {
+        "summary": [
+          "Everything optimal; continue high-adherence lifestyle of 7.9 h sleep, 11.2 k steps and 42 min exercise daily.",
+          "Add first-tier kidney and thyroid-safety labs now that you have a baseline.",
+          "No supplements or drugs warranted."
+        ],
+        "eli5": "Your blood work is a shiny new sports car that already runs perfectly; we just want to peek under the hood at two extra gauges so we stay ahead of any future squeaks.",
+        "systems": [
+          {
+            "id": "metabolic",
+            "name": "Metabolic Health",
+            "verdict": "All markers optimal; HOMA-IR 0.85, triglycerides 70, HbA1c 5.0 %.",
+            "eli5": "Your energy factory is running so cleanly it could win a gold medal.",
+            "priority": 1
+          },
+          {
+            "id": "cardiovascular",
+            "name": "Cardiovascular",
+            "verdict": "ApoB 68, LDL 82, HDL 62, hs-CRP 0.5, Lp(a) 12; all green.",
+            "eli5": "Your heart plumbing and engine score top marks on every test.",
+            "priority": 2
+          },
+          {
+            "id": "thyroid_kidney",
+            "name": "Thyroid & Kidney",
+            "verdict": "TSH 1.4 optimal; eGFR 112; add urine ACR and TPO antibodies for early surveillance.",
+            "eli5": "Like checking the oil and coolant even when the dashboard looks perfect.",
+            "priority": 3
+          }
+        ],
+        "actions": [
+          {
+            "title": "Order urine albumin/creatinine ratio",
+            "kind": "test",
+            "weight": 3,
+            "basis": "science",
+            "why": "Catches kidney damage years before creatinine moves.",
+            "reasoning": "eGFR is 111.81 and creatinine 0.95 mg/dL both optimal, yet urine ACR has never been measured.",
+            "dose": {
+              "amount": "single test",
+              "schedule": "once"
+            },
+            "timing": "order at next blood draw",
+            "targets": [
+              {
+                "code": "urine_acr",
+                "direction": "down",
+                "expect": "optimal <30 mg/g",
+                "measureAfterWeeks": 0
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "guideline",
+                "title": "KDIGO 2024 guideline on CKD evaluation"
+              }
+            ],
+            "followUp": [
+              {
+                "afterDays": 14,
+                "ask": "What was the urine ACR result?"
+              }
+            ]
+          },
+          {
+            "title": "Order TPO antibodies",
+            "kind": "test",
+            "weight": 2,
+            "basis": "science",
+            "why": "Says whether a wobbly thyroid is autoimmune.",
+            "reasoning": "TSH 1.4 mIU/L is optimal yet TPO antibodies have never been measured; family history none known.",
+            "dose": {
+              "amount": "single test",
+              "schedule": "once"
+            },
+            "timing": "order at next blood draw",
+            "targets": [
+              {
+                "code": "tpo_antibodies",
+                "direction": "down",
+                "expect": "<9 IU/mL",
+                "measureAfterWeeks": 0
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "guideline",
+                "title": "American Thyroid Association 2017 guidelines"
+              }
+            ],
+            "followUp": [
+              {
+                "afterDays": 14,
+                "ask": "What was the TPO antibody result?"
+              }
+            ]
+          },
+          {
+            "title": "Order cystatin C",
+            "kind": "test",
+            "weight": 2,
+            "basis": "science",
+            "why": "A second, muscle-independent view of kidney function.",
+            "reasoning": "eGFR 111.81 based on creatinine; grip strength 56 kg and age 28 indicate high muscle mass, so cystatin C provides orthogonal data.",
+            "dose": {
+              "amount": "single test",
+              "schedule": "once"
+            },
+            "timing": "order at next blood draw",
+            "targets": [
+              {
+                "code": "cystatin_c",
+                "direction": "down",
+                "expect": "optimal eGFR >90 mL/min/1.73m2",
+                "measureAfterWeeks": 0
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "observational",
+                "title": "Cystatin C vs creatinine in athletes and high-muscle individuals"
+              }
+            ],
+            "followUp": [
+              {
+                "afterDays": 14,
+                "ask": "What was the cystatin C result?"
+              }
+            ]
+          }
+        ],
+        "questions": [
+          {
+            "key": "family_thyroid",
+            "text": "Has anyone in your family been diagnosed with Hashimoto’s, Graves’, or any other thyroid condition?",
+            "why": "Would raise priority of TPO antibodies and potentially trigger earlier re-testing if positive.",
+            "options": [
+              "Yes",
+              "No",
+              "Unsure"
+            ]
+          }
+        ],
+        "patterns": []
+      }
+    }
+  ]
+}

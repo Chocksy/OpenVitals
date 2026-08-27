@@ -1,10 +1,23 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import {
   stripCodeFences,
   transformAiResponse,
   metricCatalogPrompt,
   slugify,
+  extractFromText,
 } from "./extract";
+
+/** The model is the only non-pure part of `extractFromText`, so it is stubbed. */
+const ai = vi.hoisted(() => ({ reply: "", last: null as any }));
+vi.mock("ai", () => ({
+  generateText: async (opts: unknown) => {
+    ai.last = opts;
+    return { text: ai.reply };
+  },
+}));
+vi.mock("@openrouter/ai-sdk-provider", () => ({
+  createOpenRouter: () => () => "stub-model",
+}));
 
 describe("stripCodeFences", () => {
   it("strips ```json fences", () => {
@@ -191,5 +204,59 @@ describe("slugify", () => {
     expect(slugify("Ac. anti-TPO (µIU/mL)")).toBe("ac_anti_tpo_iu_ml");
     expect(slugify("Glucoză")).toBe("glucoza");
     expect(slugify("!!!")).toBe("unknown");
+  });
+});
+
+describe("extractFromText", () => {
+  const LAB_REPORT = `HEMOGRAMA
+Glucoza\t95\tmg/dL\t74 - 106
+TSH\t2.1\tuIU/mL\t0.4 - 4.0`;
+
+  it("turns the model answer into readings", async () => {
+    ai.reply = JSON.stringify({
+      collectionDate: "2025-01-15",
+      labName: "Synevo",
+      results: [
+        {
+          analyte: "Glucose",
+          code: "glucose",
+          value: 95,
+          unit: "mg/dL",
+          referenceRangeLow: 74,
+          referenceRangeHigh: 106,
+        },
+        { analyte: "TSH", code: "tsh", value: 2.1, unit: "uIU/mL" },
+      ],
+    });
+    const r = await extractFromText(LAB_REPORT, [
+      { code: "glucose", name: "Glucose", unit: "mg/dL", aliases: ["Glucoza"] },
+      { code: "tsh", name: "TSH", unit: "uIU/mL", aliases: null },
+    ]);
+    expect(r.readings.map((x) => x.code)).toEqual(["glucose", "tsh"]);
+    expect(r.readings[0]!.observedAt).toBe("2025-01-15");
+    expect(r.labName).toBe("Synevo");
+  });
+
+  it("sends the known metrics with the prompt and keeps the source text", async () => {
+    ai.reply = '{"results":[]}';
+    const r = await extractFromText(LAB_REPORT, [
+      { code: "glucose", name: "Glucose", unit: "mg/dL", aliases: null },
+    ]);
+    expect(ai.last.system).toContain("glucose | Glucose | mg/dL");
+    expect(ai.last.prompt).toBe(LAB_REPORT);
+    expect(r.text).toBe(LAB_REPORT);
+  });
+
+  it("survives an unparseable answer the same way the pure step does", async () => {
+    ai.reply = "sorry, I cannot read that";
+    const r = await extractFromText(LAB_REPORT, []);
+    expect(r.error).toBe("parse_failed");
+    expect(r.readings).toHaveLength(0);
+  });
+
+  it("caps the prompt at 30k characters", async () => {
+    ai.reply = '{"results":[]}';
+    await extractFromText("x".repeat(40000), []);
+    expect(ai.last.prompt).toHaveLength(30000);
   });
 });

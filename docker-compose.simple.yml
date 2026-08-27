@@ -31,10 +31,14 @@ services:
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
       ADMIN_EMAIL: ${ADMIN_EMAIL:-}
+      UPLOAD_DIR: /app/data/uploads
       NODE_ENV: production
+    volumes:
+      - simple_uploads:/app/data/uploads
     depends_on:
       postgres:
         condition: service_healthy
 
 volumes:
   pgdata:
+  simple_uploads:

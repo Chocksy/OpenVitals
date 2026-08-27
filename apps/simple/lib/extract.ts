@@ -5,9 +5,7 @@ import { extractTextFromPdf } from "./pdf";
 const OCR_MODEL = process.env.AI_OCR_MODEL ?? "google/gemini-2.5-flash";
 const MIN_TEXT_LENGTH = 50; // Below this, assume scanned/image PDF
 
-export function model(
-  id = process.env.AI_DEFAULT_MODEL ?? "x-ai/grok-4.20",
-) {
+export function model(id = process.env.AI_DEFAULT_MODEL ?? "x-ai/grok-4.20") {
   // ponytail: OpenRouter only. The old worker's AI-gateway fallback is dropped.
   return createOpenRouter({ apiKey: process.env.OPENROUTER_API_KEY })(id);
 }
@@ -112,6 +110,9 @@ export interface ExtractResult {
   collectionDate?: string;
   labName?: string;
   error?: string;
+  /** What the model actually read: the PDF text layer, or the OCR answer. */
+  text?: string;
+  pages?: number;
 }
 
 /** Pure: raw AI JSON text → readings. No DB, no network. */
@@ -163,6 +164,22 @@ export function transformAiResponse(text: string): ExtractResult {
   };
 }
 
+/**
+ * Text → readings. The half of `extractFromPdf` that a re-analyze can call on
+ * its own when only the stored `raw_text` is left.
+ */
+export async function extractFromText(
+  textContent: string,
+  metrics: MetricRef[],
+): Promise<ExtractResult> {
+  const { text } = await generateText({
+    model: model(),
+    system: extractLabsPrompt + metricCatalogPrompt(metrics),
+    prompt: textContent.slice(0, 30000),
+  });
+  return { ...transformAiResponse(text), text: textContent };
+}
+
 /** PDF buffer → readings. Falls back to OCR for scanned documents. */
 export async function extractFromPdf(
   buffer: Buffer,
@@ -170,20 +187,15 @@ export async function extractFromPdf(
 ): Promise<ExtractResult> {
   const system = extractLabsPrompt + metricCatalogPrompt(metrics);
   let textContent = "";
+  let pages = 0;
   try {
-    textContent = await extractTextFromPdf(buffer);
+    ({ text: textContent, pages } = await extractTextFromPdf(buffer));
   } catch (e) {
     console.error("[extract] pdf text layer failed:", e);
   }
 
-  if (textContent.trim().length >= MIN_TEXT_LENGTH) {
-    const { text } = await generateText({
-      model: model(),
-      system,
-      prompt: textContent.slice(0, 30000),
-    });
-    return transformAiResponse(text);
-  }
+  if (textContent.trim().length >= MIN_TEXT_LENGTH)
+    return { ...(await extractFromText(textContent, metrics)), pages };
 
   console.log(
     `[extract] text too short (${textContent.trim().length} chars), OCR via ${OCR_MODEL}`,
@@ -221,7 +233,8 @@ export async function extractFromPdf(
   const data = await res.json();
   if (data.error) {
     console.error("[extract] OCR API error:", data.error);
-    return { readings: [], error: "ocr_failed" };
+    return { readings: [], error: "ocr_failed", pages };
   }
-  return transformAiResponse(data.choices[0].message.content);
+  const ocr = data.choices[0].message.content as string;
+  return { ...transformAiResponse(ocr), text: ocr, pages };
 }

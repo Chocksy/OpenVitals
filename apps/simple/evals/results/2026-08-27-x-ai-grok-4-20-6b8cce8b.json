@@ -1,0 +1,964 @@
+{
+  "model": "x-ai/grok-4.20",
+  "promptSha8": "6b8cce8b",
+  "ranAt": "2026-08-27T10:53:11.773Z",
+  "results": [
+    {
+      "id": "hashimoto_early_female_36",
+      "passed": 7,
+      "total": 9,
+      "failed": [
+        "must: kind=supplement title=iron reasoning=ferritin",
+        "must: question=pregnan"
+      ],
+      "failedMust": true,
+      "shouldPassed": 0,
+      "shouldTotal": 1,
+      "shouldMissed": [
+        "should: kind=doctor title=endocrin"
+      ],
+      "latencyMs": 44212,
+      "body": {
+        "summary": [
+          "Fix vitamin D to 40 ng/mL and ferritin to 60 ng/mL first; both blunt thyroid hormone synthesis via ferritin->free_t4 edge.",
+          "Order full Hashimoto workup plus coeliac and iron studies now; family history and tpo_antibodies 320 IU/mL make early levothyroxine likely before TSH hits 10.",
+          "Start 200 µg selenium daily for 6 months targeting tpo_antibodies drop; pattern:hashimoto stage early plus mother hypothyroid justifies it before judging symptoms."
+        ],
+        "eli5": "Your thyroid is like a car engine that is slowly getting gummed up by your immune system. We need to top up the oil (vitamin D and iron stores) and check exactly what is wrong before the check-engine light gets brighter.",
+        "systems": [
+          {
+            "id": "hashimoto",
+            "name": "Hashimoto thyroiditis",
+            "verdict": "Early stage confirmed by tpo_antibodies 320 and rising TSH 3.9; treatable before overt failure. Controversy on treating subclinical resolved for you by antibodies, family history, and ferritin 22.",
+            "eli5": "Your immune system is attacking your thyroid like ants on a picnic sandwich. We catch it early so the sandwich does not disappear.",
+            "priority": 1
+          },
+          {
+            "id": "iron",
+            "name": "Iron stores",
+            "verdict": "Ferritin 22 empties the tank that thyroid peroxidase needs; must fix before judging levothyroxine response via ferritin->free_t4.",
+            "eli5": "Ferritin is the gas gauge for your thyroid factory; at 22 the factory is on fumes even if the blood count looks okay.",
+            "priority": 2
+          },
+          {
+            "id": "vitamins",
+            "name": "Vitamin D status",
+            "verdict": "19 ng/mL is frankly deficient; hashimoto pattern demands 40–60 ng/mL to lower tpo_antibodies via vitamin_d->tpo_antibodies edge.",
+            "eli5": "Vitamin D is the night watchman for your immune system; when it is only at 19 the watchman falls asleep and lets the thyroid attack continue.",
+            "priority": 3
+          }
+        ],
+        "actions": [
+          {
+            "title": "Vitamin D3",
+            "kind": "supplement",
+            "weight": 5,
+            "basis": "opinion",
+            "why": "Vitamin D 19 ng/mL is red; must reach 40 ng/mL to lower tpo_antibodies via vitamin_d->tpo_antibodies before judging thyroid symptoms or starting levothyroxine.",
+            "reasoning": "vitamin_d 19 against optimal 40-60 (hashimoto note), tpo_antibodies 320, pattern:hashimoto, mother hypothyroid; cheapest lever is supplement before drug; ferritin->free_t4 makes D and iron the first two fixes.",
+            "dose": {
+              "amount": "5000 IU",
+              "form": "softgel",
+              "schedule": "daily with largest meal",
+              "duration": "until level 45 ng/mL then 2000 IU maintenance",
+              "ceiling": "10000 IU/day"
+            },
+            "timing": "With breakfast or lunch; recheck 2026-11-26",
+            "targets": [
+              {
+                "code": "vitamin_d",
+                "direction": "up",
+                "expect": "45 ng/mL",
+                "measureAfterWeeks": 12
+              },
+              {
+                "code": "tpo_antibodies",
+                "direction": "down",
+                "expect": "below 100",
+                "measureAfterWeeks": 24
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "guideline",
+                "title": "Endocrine Society 2011 vitamin D guideline"
+              },
+              {
+                "kind": "observational",
+                "title": "Kivity 2011 Cell Mol Immunol"
+              }
+            ],
+            "followUp": [
+              {
+                "afterDays": 84,
+                "ask": "Retest vitamin D to confirm 40-60 range"
+              }
+            ]
+          },
+          {
+            "title": "Prioritise iron and vitamin D repletion before judging need for levothyroxine",
+            "kind": "habit",
+            "weight": 5,
+            "basis": "opinion",
+            "why": "Ferritin 22 and vitamin D 19 blunt thyroid peroxidase and levothyroxine efficacy; correct them first per ferritin->free_t4 and vitamin_d->tpo_antibodies.",
+            "reasoning": "ferritin 22 (optimal >50), vitamin_d 19 (optimal 40-60), tsh 3.9 rising, tpo_antibodies 320, pattern:hashimoto, mother hypothyroid; \"fix D before judging testosterone\" logic applies to thyroid here via HOT GRAPH edges.",
+            "dose": {
+              "amount": "daily adherence",
+              "form": "habit",
+              "schedule": "track both supplements until targets met",
+              "duration": "until retest Nov 2026"
+            },
+            "timing": "Start both 2026-09-01",
+            "targets": [
+              {
+                "code": "free_t4",
+                "direction": "up",
+                "expect": "mid-range once ferritin >50",
+                "measureAfterWeeks": 12
+              }
+            ],
+            "evidence": [],
+            "followUp": [
+              {
+                "afterDays": 90,
+                "ask": "Has fatigue or brain fog changed after iron and D are optimised?"
+              }
+            ]
+          },
+          {
+            "title": "Selenium",
+            "kind": "supplement",
+            "weight": 4,
+            "basis": "science",
+            "why": "200 µg/day for 6 months as 6-month trial with antibodies as the outcome in early Hashimoto's.",
+            "reasoning": "pattern:hashimoto stage early, tpo_antibodies 320, selenium->tpo_antibodies edge; mother hypothyroid; 6-month trial per management text before judging need for levothyroxine.",
+            "dose": {
+              "amount": "200 µg",
+              "form": "selenomethionine",
+              "schedule": "once daily with food",
+              "duration": "6 months"
+            },
+            "timing": "Start 2026-09-01; avoid if iodine excess confirmed",
+            "targets": [
+              {
+                "code": "tpo_antibodies",
+                "direction": "down",
+                "expect": "50% reduction",
+                "measureAfterWeeks": 24
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "rct",
+                "title": "Wichman 2016 Thyroid"
+              }
+            ],
+            "followUp": [
+              {
+                "afterDays": 180,
+                "ask": "Repeat anti-TPO and anti-Tg to measure antibody drop"
+              }
+            ]
+          },
+          {
+            "title": "Log your blood pressure at home for 7 days",
+            "kind": "habit",
+            "weight": 3,
+            "basis": "science",
+            "why": "Blood pressure carries more attributable risk than any lab value, and a clinic reading is not the number that counts.",
+            "reasoning": "bp_log fired rule; missing bp_home; pattern:hashimoto can raise BP via thyroid edge; must establish baseline before any levothyroxine.",
+            "dose": {
+              "amount": "2x daily",
+              "form": "home cuff",
+              "schedule": "morning and evening, seated, same arm",
+              "duration": "7 consecutive days then weekly"
+            },
+            "timing": "Start immediately, record in tracker",
+            "targets": [
+              {
+                "code": "bp_home",
+                "direction": "down",
+                "expect": "average <120/80",
+                "measureAfterWeeks": 4
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "observational",
+                "title": "Lewington 2002 Lancet"
+              }
+            ],
+            "followUp": [
+              {
+                "afterDays": 14,
+                "ask": "What is your 7-day average BP?"
+              }
+            ]
+          },
+          {
+            "title": "Stop all iodine sources and track cycle regularity",
+            "kind": "stop",
+            "weight": 3,
+            "basis": "opinion",
+            "why": "Iodine excess worsens hashimoto; cycle data plus pregnancy planning changes TSH target to <2.5 and triggers endo visit.",
+            "reasoning": "iodine_excess->hashimoto edge strength 3, pattern:hashimoto stage early, tpo_antibodies 320, missing cycle_phase_at_last_draw and open question on planning pregnancy; mother hypothyroid raises stakes; hashimoto_pregnancy rule fired.",
+            "dose": {
+              "amount": "zero",
+              "form": "no kelp, no high-iodine multis",
+              "schedule": "immediately and forever",
+              "duration": "permanent"
+            },
+            "timing": "Review all current supplements (none listed) and switch to iodine-free",
+            "targets": [
+              {
+                "code": "tpo_antibodies",
+                "direction": "down",
+                "expect": "no worsening",
+                "measureAfterWeeks": 12
+              }
+            ],
+            "evidence": [],
+            "followUp": [
+              {
+                "afterDays": 30,
+                "ask": "Last period date and any plans for pregnancy in next 12 months?"
+              }
+            ]
+          },
+          {
+            "title": "Repeat TSH with free T4, free T3 and anti-TPO",
+            "kind": "test",
+            "weight": 5,
+            "basis": "science",
+            "why": "A TSH above 2.5 that is climbing, or positive thyroid antibodies, changes how the lipid and energy picture should be read.",
+            "reasoning": "tsh 3.9 (up 0.8 from prior) sits above optimal <2.5; tpo_antibodies 320 drives pattern:hashimoto and tpo_antibodies->hashimoto edge; mother hypothyroid adds risk.",
+            "dose": {
+              "amount": "once",
+              "form": "serum panel",
+              "schedule": "at next blood draw",
+              "duration": "one time"
+            },
+            "timing": "Book for 2026-09-03, morning, fasted, cycle day 3-5 if still cycling",
+            "targets": [
+              {
+                "code": "tsh",
+                "direction": "down",
+                "expect": "below 2.5",
+                "measureAfterWeeks": 12
+              },
+              {
+                "code": "free_t4",
+                "direction": "up",
+                "expect": "mid reference range",
+                "measureAfterWeeks": 12
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "guideline",
+                "title": "Rodondi 2010 JAMA"
+              },
+              {
+                "kind": "guideline",
+                "title": "ATA 2014 hypothyroidism guideline"
+              }
+            ],
+            "followUp": [
+              {
+                "afterDays": 7,
+                "ask": "Any fatigue, cold intolerance, hair loss, constipation, weight gain or brain fog in the last 3 months?"
+              }
+            ]
+          },
+          {
+            "title": "Coeliac serology (tTG-IgA with total IgA)",
+            "kind": "test",
+            "weight": 5,
+            "basis": "science",
+            "why": "Coeliac disease is 4–5× more common with Hashimoto's and changes the diet advice from speculative to required.",
+            "reasoning": "pattern:hashimoto plus pattern:iron_deficiency_no_anemia; ferritin 22 and tpo_antibodies 320; gluten_free_diet->tpo_antibodies edge exists; mother hypothyroid.",
+            "dose": {
+              "amount": "once",
+              "form": "serum tTG-IgA + total IgA",
+              "schedule": "at next blood draw",
+              "duration": "one time"
+            },
+            "timing": "Same draw as thyroid panel, 2026-09-03",
+            "targets": [
+              {
+                "code": "tTG_IgA",
+                "direction": "down",
+                "expect": "negative",
+                "measureAfterWeeks": 4
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "guideline",
+                "title": "BSG coeliac disease guideline"
+              },
+              {
+                "kind": "guideline",
+                "title": "BSG iron deficiency guideline"
+              }
+            ],
+            "followUp": []
+          },
+          {
+            "title": "Find the cause of the low ferritin",
+            "kind": "test",
+            "weight": 5,
+            "basis": "science",
+            "why": "Ferritin under 30 means the iron stores are empty; the question is where the iron is going, not just how to top it up.",
+            "reasoning": "ferritin_low and iron_coeliac fired; ferritin 22 with pattern:iron_deficiency_no_anemia and ferritin->free_t4 edge; tpo_antibodies 320 and mother hypothyroid make iron restoration priority 1 before thyroid drug.",
+            "dose": {
+              "amount": "full workup",
+              "form": "coeliac serology + iron panel + history",
+              "schedule": "with 2026-09-03 labs",
+              "duration": "one time now"
+            },
+            "timing": "Ask about periods, stool, NSAID use at next visit",
+            "targets": [
+              {
+                "code": "ferritin",
+                "direction": "up",
+                "expect": "60 ng/mL",
+                "measureAfterWeeks": 12
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "guideline",
+                "title": "BSG iron deficiency guideline"
+              }
+            ],
+            "followUp": []
+          },
+          {
+            "title": "Add a urine albumin/creatinine ratio",
+            "kind": "test",
+            "weight": 5,
+            "basis": "science",
+            "why": "Kidneys are graded on two numbers, filtration and leak. You have creatinine but no urine albumin, so half the picture is missing.",
+            "reasoning": "",
+            "targets": [],
+            "evidence": [
+              {
+                "kind": "guideline",
+                "title": "KDIGO 2024 CKD guideline"
+              }
+            ],
+            "followUp": []
+          },
+          {
+            "title": "Retest vitamin D",
+            "kind": "test",
+            "weight": 5,
+            "basis": "science",
+            "why": "Vitamin D drifts with the seasons and yours is either old or below 30 ng/mL, which is the deficiency line.",
+            "reasoning": "",
+            "targets": [],
+            "evidence": [
+              {
+                "kind": "guideline",
+                "title": "Endocrine Society 2011 vitamin D guideline"
+              }
+            ],
+            "followUp": []
+          },
+          {
+            "title": "B12 and ferritin every 12 months",
+            "kind": "test",
+            "weight": 5,
+            "basis": "science",
+            "why": "Pernicious anaemia and iron deficiency cluster with thyroid autoimmunity.",
+            "reasoning": "",
+            "targets": [],
+            "evidence": [
+              {
+                "kind": "guideline",
+                "title": "BSG iron deficiency guideline"
+              }
+            ],
+            "followUp": []
+          },
+          {
+            "title": "Repeat TSH every 6 months while antibody-positive and untreated",
+            "kind": "test",
+            "weight": 5,
+            "basis": "science",
+            "why": "Progression to overt hypothyroidism runs 2–5 % per year; catch it early.",
+            "reasoning": "",
+            "targets": [],
+            "evidence": [
+              {
+                "kind": "guideline",
+                "title": "Rodondi 2010 JAMA"
+              }
+            ],
+            "followUp": []
+          },
+          {
+            "title": "Thyroid ultrasound once",
+            "kind": "test",
+            "weight": 4,
+            "basis": "science",
+            "why": "Confirms the diagnosis and baselines nodules; Hashimoto's raises nodule frequency.",
+            "reasoning": "pattern:hashimoto stage early with tpo_antibodies 320 and family_history mother hypothyroid; tpo_antibodies->hashimoto edge.",
+            "dose": {
+              "amount": "once",
+              "form": "neck ultrasound",
+              "schedule": "within 4 weeks",
+              "duration": "one time"
+            },
+            "timing": "Refer to endocrinology or radiology",
+            "targets": [
+              {
+                "code": "thyroid_nodules",
+                "direction": "down",
+                "expect": "none or stable",
+                "measureAfterWeeks": 52
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "guideline",
+                "title": "ATA 2014 hypothyroidism guideline"
+              }
+            ],
+            "followUp": []
+          },
+          {
+            "title": "Iron saturation and TIBC with the next ferritin",
+            "kind": "test",
+            "weight": 4,
+            "basis": "science",
+            "why": "Saturation separates empty stores from inflammation hiding them, and it responds first when iron is working.",
+            "reasoning": "ferritin 22 triggers pattern:iron_deficiency_no_anemia and iron->ferritin edge; ferritin->free_t4 edge means low iron blunts thyroid response; must clarify before supplementing.",
+            "dose": {
+              "amount": "once",
+              "form": "serum panel",
+              "schedule": "with next iron studies",
+              "duration": "one time"
+            },
+            "timing": "2026-09-03 draw",
+            "targets": [
+              {
+                "code": "transferrin_saturation",
+                "direction": "up",
+                "expect": "above 20%",
+                "measureAfterWeeks": 12
+              },
+              {
+                "code": "ferritin",
+                "direction": "up",
+                "expect": "above 50",
+                "measureAfterWeeks": 12
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "guideline",
+                "title": "BSG iron deficiency guideline"
+              }
+            ],
+            "followUp": []
+          },
+          {
+            "title": "Ask doctor for levothyroxine only if TSH >4.5 or symptomatic after iron/D/selenium",
+            "kind": "doctor",
+            "weight": 4,
+            "basis": "opinion",
+            "why": "Antibody-positive rising TSH 3.9 plus family history justifies treatment threshold below usual 10; sequence after fixing ferritin 22 and vitamin D 19.",
+            "reasoning": "tsh 3.9 up from 3.1, tpo_antibodies 320, mother hypothyroid, pattern:hashimoto via tpo_antibodies->hashimoto edge, ferritin 22 impairs synthesis via ferritin->free_t4; management text says treat earlier if antibody-positive with rising TSH.",
+            "dose": {
+              "amount": "usual starting dose 25-50 µg",
+              "form": "tablet",
+              "schedule": "once daily 30-60 min before food or coffee",
+              "duration": "lifelong if started"
+            },
+            "timing": "Endocrinology visit after 2026-09-03 labs; ask doctor to check antibodies, ultrasound referral, and rule out pregnancy first",
+            "targets": [
+              {
+                "code": "tsh",
+                "direction": "down",
+                "expect": "under 2.5 on treatment if started",
+                "measureAfterWeeks": 6
+              }
+            ],
+            "evidence": [],
+            "followUp": []
+          },
+          {
+            "title": "Measure Lp(a) once",
+            "kind": "test",
+            "weight": 3,
+            "basis": "science",
+            "why": "Lp(a) is inherited and barely moves in a lifetime, so one measurement settles it for good. Yours has never been measured.",
+            "reasoning": "lpa_once fired rule; family_history mother hypothyroid does not directly affect but cardiovascular risk rises with untreated hypothyroidism via tsh->ldl_cholesterol if present later.",
+            "dose": {
+              "amount": "once",
+              "form": "serum Lp(a)",
+              "schedule": "at next blood draw",
+              "duration": "one time"
+            },
+            "timing": "Add to 2026-09-03 panel",
+            "targets": [
+              {
+                "code": "lpa",
+                "direction": "down",
+                "expect": "record baseline",
+                "measureAfterWeeks": 0
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "guideline",
+                "title": "EAS 2022 consensus on Lp(a)"
+              }
+            ],
+            "followUp": []
+          },
+          {
+            "title": "If pregnant or planning: TSH target below 2.5 and an endocrinology visit now",
+            "kind": "test",
+            "weight": 3,
+            "basis": "science",
+            "why": "TPO-positive women have higher miscarriage and preterm risk; ATA 2017 recommends treatment thresholds change in pregnancy.",
+            "reasoning": "",
+            "targets": [],
+            "evidence": [
+              {
+                "kind": "guideline",
+                "title": "ATA 2017 thyroid in pregnancy guideline"
+              }
+            ],
+            "followUp": []
+          }
+        ],
+        "questions": [
+          {
+            "key": "symptoms_last_3mo",
+            "text": "Any fatigue, cold intolerance, hair loss, constipation, weight gain or brain fog in the last 3 months?",
+            "why": "Symptoms plus antibodies and rising TSH shift decision to treat subclinical hypothyroidism earlier; pattern:hashimoto management.",
+            "options": [
+              "None",
+              "Mild",
+              "Moderate",
+              "Severe"
+            ]
+          },
+          {
+            "key": "period_details",
+            "text": "How heavy are your periods (days, flooding, clots)? Any blood in stool or regular NSAID use?",
+            "why": "Heavy periods are the commonest cause of iron loss in pre-menopausal women; explains ferritin 22 and changes urgency of iron workup.",
+            "options": [
+              "Light 3-4 days no clots",
+              "Moderate 4-6 days occasional clots",
+              "Heavy >7 days flooding clots",
+              "Unknown"
+            ]
+          },
+          {
+            "key": "family_autoimmune",
+            "text": "Anyone in the family with coeliac, type 1 diabetes or vitiligo?",
+            "why": "Further autoimmune clustering with Hashimoto's raises pre-test probability of coeliac and changes diet threshold; already have mother hypothyroid.",
+            "options": [
+              "None known",
+              "Yes one relative",
+              "Yes multiple",
+              "Unsure"
+            ]
+          }
+        ],
+        "patterns": [
+          {
+            "id": "hashimoto",
+            "stage": "early",
+            "verdict": "Early stage with tpo_antibodies 320 and TSH 3.9 rising; management text followed with full panel, ultrasound, coeliac, selenium 200 µg, vitamin D to 40-60, ferritin to >50, iodine stop. Controversy on subclinical treatment decided by antibodies, family history and patient values for prevention."
+          },
+          {
+            "id": "iron_deficiency_no_anemia",
+            "stage": "active",
+            "verdict": "Ferritin 22 with normal hemoglobin 13.1; cause must be found (coeliac, periods) before supplementation per management; stop at ferritin 50."
+          }
+        ]
+      }
+    },
+    {
+      "id": "healthy_male_28",
+      "passed": 3,
+      "total": 4,
+      "failed": [
+        "must: maxActions=5"
+      ],
+      "failedMust": true,
+      "shouldPassed": 0,
+      "shouldTotal": 0,
+      "shouldMissed": [],
+      "latencyMs": 41157,
+      "body": {
+        "summary": [
+          "Everything is already optimal across lipids, glucose control, inflammation, thyroid, iron, kidney and liver markers.",
+          "Your 88% adherence to 7.9 h sleep, 11.2 k steps and 42 min exercise daily plus low alcohol keeps you here.",
+          "Add three targeted tests to close the missing vectors, then maintain with food-first habits."
+        ],
+        "eli5": "Your body is like a perfectly tuned sports car that is already running in the green on every gauge. We will just check the three hidden warning lights that have never been looked at, keep feeding it the same high-octane fuel of sleep, steps and lifting, and you will stay in peak form.",
+        "systems": [
+          {
+            "id": "metabolic",
+            "name": "Metabolic Health",
+            "verdict": "All markers optimal; HOMA-IR 0.85, HbA1c 5%, TG 70, fasting glucose 84 mg/dL.",
+            "eli5": "Your engine burns fuel so cleanly the exhaust is almost pure water.",
+            "priority": 1
+          },
+          {
+            "id": "cardiovascular",
+            "name": "Cardiovascular",
+            "verdict": "ApoB 68, LDL 82, HDL 62, Lp(a) 12, hs-CRP 0.5, BP 112/70, resting HR 54.",
+            "eli5": "Your pipes and pump look factory-new with zero sludge or pressure.",
+            "priority": 2
+          },
+          {
+            "id": "thyroid_iron",
+            "name": "Thyroid & Iron Status",
+            "verdict": "TSH 1.4, ferritin 120, saturation 32%, all green.",
+            "eli5": "The spark plugs and oil level are exactly where a 28-year-old man wants them.",
+            "priority": 3
+          }
+        ],
+        "actions": [
+          {
+            "title": "Maintain 8 h sleep opportunity with consistent bedtime",
+            "kind": "sleep",
+            "weight": 5,
+            "basis": "opinion",
+            "why": "Protect TSH 1.4, fasting insulin 4.1 and hs-CRP 0.5 that all move with sleep debt.",
+            "reasoning": "[unverified graph reference removed] sleepHours=7.9 average and no snoring; edge and edge both stay optimal only when sleep is locked; this is the highest-weight lever for a 28-year-old with your exact profile.",
+            "dose": {
+              "amount": "8 h opportunity",
+              "schedule": "10 pm to 6 am",
+              "duration": "ongoing"
+            },
+            "timing": "wind-down routine starts 9:30 pm",
+            "targets": [
+              {
+                "code": "tsh",
+                "direction": "down",
+                "expect": "stay below 1.6 mIU/L",
+                "measureAfterWeeks": 12
+              },
+              {
+                "code": "insulin",
+                "direction": "down",
+                "expect": "stay below 5 µIU/mL",
+                "measureAfterWeeks": 12
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "rct",
+                "title": "Sleep extension RCT on insulin and TSH",
+                "source": "https://pubmed.ncbi.nlm.nih.gov/32584914/"
+              }
+            ],
+            "followUp": [
+              {
+                "afterDays": 30,
+                "ask": "Is bedtime still within a 30-minute window every night?"
+              }
+            ]
+          },
+          {
+            "title": "Continue resistance training 4x/week",
+            "kind": "exercise",
+            "weight": 4,
+            "basis": "opinion",
+            "why": "Maintain grip strength, muscle mass and insulin sensitivity already at elite levels for your age.",
+            "reasoning": "[unverified graph reference removed] grip_kg 56, HOMA-IR 0.85, resting_hr 54 and steps=11200 all edge-optimal; is absent so training drives further small gains in hdl_cholesterol and insulin without need for supplements.",
+            "dose": {
+              "amount": "45-60 min",
+              "schedule": "4 times per week",
+              "duration": "ongoing"
+            },
+            "timing": "evenings after work",
+            "targets": [
+              {
+                "code": "grip_kg",
+                "direction": "up",
+                "expect": "stay above 55 kg",
+                "measureAfterWeeks": 12
+              },
+              {
+                "code": "insulin",
+                "direction": "down",
+                "expect": "stay below 5 µIU/mL",
+                "measureAfterWeeks": 12
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "observational",
+                "title": "Resistance training preserves metabolic health in young men",
+                "source": "https://pubmed.ncbi.nlm.nih.gov/31269000/"
+              }
+            ],
+            "followUp": [
+              {
+                "afterDays": 30,
+                "ask": "How many resistance sessions per week are you completing?"
+              }
+            ]
+          },
+          {
+            "title": "Prioritise food-first maintenance over any new supplement",
+            "kind": "habit",
+            "weight": 4,
+            "basis": "opinion",
+            "why": "Your current labs already sit in the middle or better of every optimal range so supplements add unnecessary cost and risk.",
+            "reasoning": "[unverified graph reference removed] vitamin_d 46 ng/mL, ferritin 120, apob 68, hba1c 5%, tsh 1.4 and grip_kg 56 all optimal; absent and family_history none known; cheapest lever is food, sleep and movement per protocol.",
+            "dose": {
+              "amount": "zero new supplements",
+              "schedule": "daily"
+            },
+            "targets": [
+              {
+                "code": "vitamin_d",
+                "direction": "up",
+                "expect": "stay above 40 ng/mL without supplement",
+                "measureAfterWeeks": 12
+              }
+            ],
+            "evidence": [],
+            "followUp": [
+              {
+                "afterDays": 60,
+                "ask": "Have you added any new supplement since the last labs?"
+              }
+            ]
+          },
+          {
+            "title": "Target grip strength above 55 kg as proxy for overall anabolism",
+            "kind": "exercise",
+            "weight": 4,
+            "basis": "opinion",
+            "why": "Your family-history-absent, low-inflammation profile means muscle preservation is the single best predictor of long-term metabolic trajectory.",
+            "reasoning": "[unverified graph reference removed] grip_kg 56 on 2026-08-15, resting_hr 54 and HOMA-IR 0.85; and edges are optimal only while muscle mass is high; this personal target is set 2 kg below current value for a 28-year-old male.",
+            "dose": {
+              "amount": "progressive overload",
+              "schedule": "4 sessions per week"
+            },
+            "targets": [
+              {
+                "code": "grip_kg",
+                "direction": "up",
+                "expect": "stay above 55 kg",
+                "measureAfterWeeks": 12
+              }
+            ],
+            "evidence": [],
+            "followUp": []
+          },
+          {
+            "title": "Eat 200 g fatty fish per week",
+            "kind": "food",
+            "weight": 3,
+            "basis": "opinion",
+            "why": "Keep ApoB 68, triglycerides 70 and hs-CRP 0.5 locked in without adding supplements.",
+            "reasoning": "[no graph reference] apob 68 and triglyceride/HDL 1.13 are already optimal; family_history none known plus your 88% adherence and alcoholUnits=1 make food the cheapest lever before any supplement for lipids.",
+            "dose": {
+              "amount": "200 g",
+              "schedule": "spread over 2 meals per week",
+              "duration": "ongoing"
+            },
+            "timing": "lunch or dinner",
+            "targets": [
+              {
+                "code": "apob",
+                "direction": "down",
+                "expect": "stay below 70 mg/dL",
+                "measureAfterWeeks": 12
+              },
+              {
+                "code": "hs_crp",
+                "direction": "down",
+                "expect": "stay below 0.6 mg/L",
+                "measureAfterWeeks": 12
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "meta",
+                "title": "Fish intake meta-analysis on ApoB and CRP",
+                "source": "https://pubmed.ncbi.nlm.nih.gov/28900035/"
+              }
+            ],
+            "followUp": [
+              {
+                "afterDays": 30,
+                "ask": "Are you hitting roughly 200 g salmon or mackerel each week?"
+              }
+            ]
+          },
+          {
+            "title": "Sequence vitamin D check only after confirming sleep and fish intake",
+            "kind": "habit",
+            "weight": 3,
+            "basis": "opinion",
+            "why": "Do not chase vitamin D further until the highest-weight levers are locked.",
+            "reasoning": "[unverified graph reference removed] vitamin_d 46 already above 40; sleepHours=7.9 and 200 g fish/week drive downstream vitamin_d stability; fix and edges first before judging any other lever per your exact 2026-08-15 values.",
+            "dose": {
+              "amount": "monitor only",
+              "schedule": "next labs"
+            },
+            "targets": [
+              {
+                "code": "vitamin_d",
+                "direction": "up",
+                "expect": "stay 40-60 ng/mL",
+                "measureAfterWeeks": 12
+              }
+            ],
+            "evidence": [],
+            "followUp": []
+          },
+          {
+            "title": "Order urine albumin/creatinine ratio (urine_acr)",
+            "kind": "test",
+            "weight": 3,
+            "basis": "science",
+            "why": "Catches kidney damage years before creatinine moves.",
+            "reasoning": "Guideline-driven early screening for a 28-year-old male with eGFR already 111.81 but no prior urine_acr test.",
+            "dose": {
+              "amount": "single test",
+              "schedule": "once"
+            },
+            "timing": "order today, complete within 7 days",
+            "targets": [
+              {
+                "code": "urine_acr",
+                "direction": "down",
+                "expect": "optimal <30 mg/g",
+                "measureAfterWeeks": 0
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "guideline",
+                "title": "KDIGO 2024 guideline on CKD evaluation",
+                "source": "https://kdigo.org/guidelines/ckd-evaluation-and-management/"
+              }
+            ],
+            "followUp": [
+              {
+                "afterDays": 14,
+                "ask": "Did the lab report urine_acr and is it under 30 mg/g?"
+              }
+            ]
+          },
+          {
+            "title": "Order thyroid peroxidase antibodies (tpo_antibodies)",
+            "kind": "test",
+            "weight": 2,
+            "basis": "science",
+            "why": "Says whether a wobbly thyroid is autoimmune.",
+            "reasoning": "Even with TSH 1.4 inside optimal, baseline autoimmunity screen is indicated per endocrine guidelines for young adults before any future drift occurs.",
+            "dose": {
+              "amount": "single test",
+              "schedule": "once"
+            },
+            "timing": "order today, complete within 7 days",
+            "targets": [
+              {
+                "code": "tpo_antibodies",
+                "direction": "down",
+                "expect": "negative <9 IU/mL",
+                "measureAfterWeeks": 0
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "guideline",
+                "title": "ATA 2017 guidelines on thyroid disease",
+                "source": "https://www.liebertpub.com/doi/10.1089/thy.2016.0457"
+              }
+            ],
+            "followUp": [
+              {
+                "afterDays": 14,
+                "ask": "Did the lab report tpo_antibodies and is it negative?"
+              }
+            ]
+          },
+          {
+            "title": "Order cystatin C",
+            "kind": "test",
+            "weight": 2,
+            "basis": "science",
+            "why": "A second, muscle-independent view of kidney function.",
+            "reasoning": "Your creatinine-based eGFR is 111.81 but cystatin C gives orthogonal confirmation especially useful in a 28-year-old male with high muscle mass (grip 56 kg).",
+            "dose": {
+              "amount": "single test",
+              "schedule": "once"
+            },
+            "timing": "order today, complete within 7 days",
+            "targets": [
+              {
+                "code": "cystatin_c",
+                "direction": "down",
+                "expect": "optimal <0.95 mg/L",
+                "measureAfterWeeks": 0
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "observational",
+                "title": "Cystatin C vs creatinine for GFR in athletes",
+                "source": "https://pubmed.ncbi.nlm.nih.gov/30143435/"
+              }
+            ],
+            "followUp": [
+              {
+                "afterDays": 14,
+                "ask": "Did the lab report cystatin C and is it below 0.95 mg/L?"
+              }
+            ]
+          }
+        ],
+        "questions": [
+          {
+            "key": "sun_exposure",
+            "text": "On average how many minutes of midday sun exposure (arms and face uncovered) do you get per day?",
+            "why": "Helps decide whether any vitamin D food sources need emphasis before next blood draw.",
+            "options": [
+              "<10 min",
+              "10-30 min",
+              ">30 min"
+            ]
+          },
+          {
+            "key": "protein_g_per_kg",
+            "text": "Roughly how many grams of protein do you eat per day?",
+            "why": "Confirms whether current food pattern is already sufficient to support grip 56 kg and insulin 4.1 without added supplementation.",
+            "options": [
+              "<120 g",
+              "120-160 g",
+              ">160 g"
+            ]
+          },
+          {
+            "key": "stress_level",
+            "text": "On a 1-10 scale, what has your average daily stress felt like over the last month?",
+            "why": "Even with perfect labs, chronic stress can silently move TSH and hs-CRP before next labs.",
+            "options": [
+              "1-3",
+              "4-6",
+              "7-10"
+            ]
+          }
+        ],
+        "patterns": []
+      }
+    }
+  ]
+}

@@ -1,11 +1,11 @@
-import { eq } from "drizzle-orm";
-import { getDb, metrics, readings, uploads } from "@/db";
+import { and, eq, ne } from "drizzle-orm";
+import { getDb, metrics, uploads } from "@/db";
 import { currentUserId } from "@/lib/auth";
-import { extractFromPdf, slugify } from "@/lib/extract";
-import { canonicalCode } from "@/lib/merge-metrics";
+import { extractFromPdf } from "@/lib/extract";
 import { ensureImported } from "@/lib/import-legacy";
 import { runCurator } from "@/lib/curator";
 import { generateReport } from "@/lib/report";
+import { saveReadings, sha256, writeUpload } from "@/lib/uploads";
 
 export const maxDuration = 120;
 
@@ -19,65 +19,76 @@ export async function POST(req: Request) {
 
   await ensureImported();
   const db = getDb();
+  const buffer = Buffer.from(await file.arrayBuffer());
+  const hash = sha256(buffer);
+
+  // Same bytes, same user, still around: point at the row we already have.
+  const [dupe] = await db
+    .select({ id: uploads.id, fileName: uploads.fileName })
+    .from(uploads)
+    .where(
+      and(
+        eq(uploads.userId, userId),
+        eq(uploads.sha256, hash),
+        ne(uploads.status, "deleted"),
+      ),
+    )
+    .limit(1);
+  if (dupe)
+    return Response.json(
+      {
+        error: `already uploaded as ${dupe.fileName ?? "(no name)"}`,
+        uploadId: dupe.id,
+        fileName: dupe.fileName,
+      },
+      { status: 409 },
+    );
+
   const [upload] = await db
     .insert(uploads)
-    .values({ userId, fileName: file.name, status: "pending" })
+    .values({
+      userId,
+      fileName: file.name,
+      status: "pending",
+      sha256: hash,
+      source: "upload",
+    })
     .returning();
 
   try {
-    const buffer = Buffer.from(await file.arrayBuffer());
+    const blobPath = await writeUpload(userId, upload!.id, buffer);
+    await db
+      .update(uploads)
+      .set({ status: "extracting", blobPath })
+      .where(eq(uploads.id, upload!.id));
+
     const known = await db.select().from(metrics);
     const result = await extractFromPdf(buffer, known);
     if (result.error) throw new Error(result.error);
-
-    const codes = new Set(known.map((m) => m.code));
-    const values = [];
-    for (const r of result.readings) {
-      const suggested = r.code ? canonicalCode(r.code, r.analyte) : null;
-      let code = suggested && codes.has(suggested) ? suggested : null;
-      if (!code) {
-        // Unmatched analyte: mint a metric on the fly.
-        code = canonicalCode(slugify(r.analyte), r.analyte);
-        if (!codes.has(code)) {
-          await db
-            .insert(metrics)
-            .values({
-              code,
-              name: r.analyte || code,
-              category: "other",
-              unit: r.unit,
-            })
-            .onConflictDoNothing();
-          codes.add(code);
-        }
-      }
-      values.push({
-        userId,
-        uploadId: upload!.id,
-        metricCode: code,
-        value: r.value,
-        valueText: r.valueText,
-        unit: r.unit,
-        refLow: r.refLow,
-        refHigh: r.refHigh,
-        observedAt: r.observedAt,
-      });
-    }
-    if (values.length) await db.insert(readings).values(values);
+    const count = await saveReadings(
+      userId,
+      upload!.id,
+      result.readings,
+      known,
+    );
 
     await db
       .update(uploads)
-      .set({ status: "done" })
+      .set({
+        status: "done",
+        rawText: result.text ?? null,
+        pages: result.pages ?? null,
+        readingsCount: count,
+      })
       .where(eq(uploads.id, upload!.id));
 
-    // Fire and forget: runCurator writes its own failures into curator_runs.
     void runCurator(userId, "upload", { uploadId: upload!.id }).then(() =>
       generateReport(userId, "upload").catch((e) =>
         console.error("[plan] upload report failed:", e),
       ),
     );
 
-    return Response.json({ uploadId: upload!.id, count: values.length });
+    return Response.json({ uploadId: upload!.id, count });
   } catch (e) {
     const error = e instanceof Error ? e.message : String(e);
     console.error("[upload] failed:", e);
