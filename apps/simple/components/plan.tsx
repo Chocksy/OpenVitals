@@ -128,7 +128,7 @@ export function PlanShell({
   );
 }
 
-function GeneratePlan() {
+export function GeneratePlan() {
   const { run, busy, error } = useAction();
   return (
     <span className="inline-flex items-center gap-2">

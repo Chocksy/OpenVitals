@@ -1,7 +1,14 @@
-import { and, eq } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 import Link from "next/link";
 import { CheckCircle2, Network, Stethoscope } from "lucide-react";
-import { getDb, reviewItems, type ReportAction } from "@/db";
+import {
+  getDb,
+  insights,
+  reviewItems,
+  type LifestyleBody,
+  type ReportAction,
+  type WeeklyBody,
+} from "@/db";
 import { requireUserId } from "@/lib/auth";
 import {
   buildModelInput,
@@ -16,7 +23,7 @@ import { latestReport } from "@/lib/report";
 import { VECTORS } from "@/lib/vectors";
 import { ReviewItem } from "@/components/client";
 import { ActionButtons, PlanShell } from "@/components/plan";
-import { Badge, Card } from "@/components/ui-kit";
+import { Badge, BasisChip, Card } from "@/components/ui-kit";
 
 export const dynamic = "force-dynamic";
 
@@ -32,23 +39,6 @@ const STATE_BADGE = {
   never: "critical",
   "n/a": "secondary",
 } as const;
-
-/** science solid, opinion accent, anecdotal dotted. Nothing else hedges. */
-const BASIS_CLASS: Record<string, string> = {
-  science: "border-neutral-900 text-neutral-900",
-  opinion: "border-accent-500 text-accent-600",
-  anecdotal: "border-dashed border-neutral-400 text-neutral-500",
-};
-
-function BasisChip({ basis }: { basis: string }) {
-  return (
-    <span
-      className={`inline-flex items-center border px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-[0.04em] ${BASIS_CLASS[basis] ?? BASIS_CLASS.science}`}
-    >
-      {basis}
-    </span>
-  );
-}
 
 function Label({ children }: { children: React.ReactNode }) {
   return (
@@ -211,9 +201,11 @@ function TestList({
 function CoverageSection({ rows }: { rows: CoverageRow[] }) {
   const tiers = [0, 1, 2] as const;
   return (
-    <section>
-      <Label>Coverage · what we have and what we do not</Label>
-      <div className="space-y-4">
+    <details className="card p-4">
+      <summary className="cursor-pointer font-mono text-[10px] font-bold uppercase tracking-[0.06em] text-neutral-400 hover:text-neutral-600">
+        What we have and what we do not
+      </summary>
+      <div className="mt-3 space-y-4">
         {tiers.map((tier) => {
           const group = rows.filter((r) => r.vector.tier === tier);
           if (!group.length) return null;
@@ -244,7 +236,7 @@ function CoverageSection({ rows }: { rows: CoverageRow[] }) {
           );
         })}
       </div>
-    </section>
+    </details>
   );
 }
 
@@ -379,7 +371,7 @@ export default async function PlanPage() {
   const report = await latestReport(userId);
   if (!report) await queueProfileQuestions(userId);
 
-  const [input, open] = await Promise.all([
+  const [input, open, earlier] = await Promise.all([
     buildModelInput(userId),
     db
       .select()
@@ -387,7 +379,18 @@ export default async function PlanPage() {
       .where(
         and(eq(reviewItems.userId, userId), eq(reviewItems.status, "open")),
       ),
+    db
+      .select()
+      .from(insights)
+      .where(eq(insights.userId, userId))
+      .orderBy(desc(insights.createdAt)),
   ]);
+  const weekly = earlier.find((r) => r.kind === "weekly")?.body as
+    | WeeklyBody
+    | undefined;
+  const lifestyle = earlier.find((r) => r.kind === "lifestyle")?.body as
+    | LifestyleBody
+    | undefined;
 
   const cov = coverage(input);
   const patterns = matchPatterns(input).filter((p) => p.matched);
@@ -438,6 +441,24 @@ export default async function PlanPage() {
             {answered} of {tier0.length} facts
           </span>
         </div>
+
+        {patterns.length > 0 && (
+          <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-neutral-100 pt-3">
+            <span className="font-mono text-[10px] uppercase tracking-[0.06em] text-neutral-400">
+              Patterns
+            </span>
+            {patterns.map((m) => (
+              <Link
+                key={m.pattern.id}
+                href={`/patterns/${m.pattern.id}`}
+                className="inline-flex items-center gap-1.5 border border-neutral-200 bg-neutral-50 px-2.5 py-1 font-body text-[12px] text-neutral-700 hover:border-neutral-900 hover:text-neutral-900"
+              >
+                {m.pattern.name}
+                {m.stage && <Badge variant="warning">{m.stage}</Badge>}
+              </Link>
+            ))}
+          </div>
+        )}
 
         {blocked && (
           <div className="mt-3 space-y-2">
@@ -572,7 +593,59 @@ export default async function PlanPage() {
             </Card>
           )}
 
-          {/* 7. Coverage */}
+          {/* 7. The older, narrower plans, out of the way. */}
+          {(weekly || lifestyle) && (
+            <details className="card p-4">
+              <summary className="cursor-pointer font-mono text-[10px] font-bold uppercase tracking-[0.06em] text-neutral-400 hover:text-neutral-600">
+                Earlier plans
+              </summary>
+              <div className="mt-3 space-y-4">
+                {weekly && (
+                  <div>
+                    <p className="mb-1 font-mono text-[10px] uppercase tracking-[0.06em] text-neutral-400">
+                      Weekly review · {weekly.adherencePct}% adherence
+                    </p>
+                    <p className="font-body text-[13px] text-neutral-700">
+                      {weekly.summary}
+                    </p>
+                    <ul className="mt-2 space-y-1">
+                      {(weekly.nextWeek ?? []).map((line) => (
+                        <li
+                          key={line}
+                          className="font-body text-[12px] text-neutral-600"
+                        >
+                          {line}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                {lifestyle?.items?.length ? (
+                  <div>
+                    <p className="mb-1 font-mono text-[10px] uppercase tracking-[0.06em] text-neutral-400">
+                      Lifestyle plan
+                    </p>
+                    <ul className="space-y-1.5">
+                      {lifestyle.items.map((item, i) => (
+                        <li key={i} className="font-body text-[12px]">
+                          <span className="text-neutral-800">{item.text}</span>{" "}
+                          <span className="text-neutral-500">{item.why}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ) : null}
+                <Link
+                  href="/insights"
+                  className="inline-flex h-8 items-center rounded-sm border border-neutral-200 bg-neutral-0 px-3 font-display text-[12px] tracking-[0.04em] text-neutral-700 hover:border-neutral-900 hover:bg-neutral-50"
+                >
+                  Open the old insights page
+                </Link>
+              </div>
+            </details>
+          )}
+
+          {/* 8. Coverage */}
           <CoverageSection rows={cov} />
         </>
       )}

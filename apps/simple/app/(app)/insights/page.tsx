@@ -125,6 +125,16 @@ export default async function InsightsPage() {
 
   return (
     <div className="space-y-10">
+      <Link
+        href="/plan"
+        className="card flex items-center gap-2 px-4 py-2.5 font-body text-[13px] text-neutral-700 hover:border-accent-200"
+      >
+        These live on your plan now.
+        <span className="ml-auto font-mono text-[10px] uppercase tracking-[0.06em] text-neutral-400">
+          Open the plan →
+        </span>
+      </Link>
+
       <section className="space-y-4">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>

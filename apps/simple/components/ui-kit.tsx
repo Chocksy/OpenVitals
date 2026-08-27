@@ -38,7 +38,8 @@ const buttonVariants = cva(
 );
 
 export interface ButtonProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
+  extends
+    React.ButtonHTMLAttributes<HTMLButtonElement>,
     VariantProps<typeof buttonVariants> {}
 
 export function Button({ className, variant, size, ...props }: ButtonProps) {
@@ -76,7 +77,9 @@ export function Badge({
   variant,
   ...props
 }: React.HTMLAttributes<HTMLDivElement> & VariantProps<typeof badgeVariants>) {
-  return <div className={cn(badgeVariants({ variant }), className)} {...props} />;
+  return (
+    <div className={cn(badgeVariants({ variant }), className)} {...props} />
+  );
 }
 
 export function Card({
@@ -84,6 +87,26 @@ export function Card({
   ...props
 }: React.HTMLAttributes<HTMLDivElement>) {
   return <div className={cn("card", className)} {...props} />;
+}
+
+/** science solid, opinion accent, anecdotal dotted. Nothing else hedges. */
+const BASIS_CLASS: Record<string, string> = {
+  science: "border-neutral-900 text-neutral-900",
+  opinion: "border-accent-500 text-accent-600",
+  anecdotal: "border-dashed border-neutral-400 text-neutral-500",
+};
+
+export function BasisChip({ basis }: { basis: string }) {
+  return (
+    <span
+      className={cn(
+        "inline-flex items-center border px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-[0.04em]",
+        BASIS_CLASS[basis] ?? BASIS_CLASS.science,
+      )}
+    >
+      {basis}
+    </span>
+  );
 }
 
 export function MiniSparkline({

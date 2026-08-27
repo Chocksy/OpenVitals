@@ -17,6 +17,7 @@ import {
   type SystemId,
 } from "./graph";
 import { matchPatterns, type PatternMatch } from "./patterns";
+import type { Status } from "./status";
 import { VECTORS } from "./vectors";
 
 export interface NodeState {
@@ -301,4 +302,27 @@ export function computeGraphState(
     hot,
     patterns,
   };
+}
+
+const STATUS_RANK: Record<Status, number> = { red: 3, amber: 2, green: 1, gray: 0 };
+
+/**
+ * The member metric this person should look at first in this system: worst
+ * status wins, importance breaks the tie. Shared by /graph and the Home strip.
+ */
+export function worstMember(
+  system: SystemId,
+  m: ModelInput,
+  importance: Map<string, number>,
+): { node: GraphNode; code: string } | null {
+  let best: { node: GraphNode; code: string; rank: number } | null = null;
+  for (const node of NODES) {
+    if (node.kind !== "metric" || node.system !== system) continue;
+    const metricCode = node.id.slice(node.id.indexOf(":") + 1);
+    const row = m.latest[metricCode];
+    if (row?.value == null) continue;
+    const rank = STATUS_RANK[row.status] * 10 + (importance.get(node.id) ?? 0);
+    if (!best || rank > best.rank) best = { node, code: metricCode, rank };
+  }
+  return best ? { node: best.node, code: best.code } : null;
 }

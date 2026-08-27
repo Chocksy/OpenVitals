@@ -3,11 +3,8 @@ import Link from "next/link";
 import { Download } from "lucide-react";
 import { requireUserId } from "@/lib/auth";
 import { getDb, uploads, readings } from "@/db";
-import {
-  DeleteUpload,
-  ReanalyzeUpload,
-  UploadButton,
-} from "@/components/client";
+import { DeleteUpload, ReanalyzeUpload } from "@/components/client";
+import { LabsHeader } from "@/components/labs-header";
 import { StatusBadge } from "@/components/status-badge";
 import { localPath, MIN_RAW_TEXT } from "@/lib/uploads";
 import type { HealthStatus } from "@/lib/status";
@@ -107,34 +104,26 @@ export default async function UploadsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <h1 className="font-display text-[28px] font-medium tracking-[-0.03em]">
-            Uploads
-          </h1>
-          <p className="mt-1 font-body text-[13px] text-neutral-500">
-            Lab PDFs you imported. Deleting one removes its readings.
-          </p>
-        </div>
-        <div className="flex flex-wrap items-center gap-3">
-          <div className="flex items-center gap-2">
-            <a
-              href="/api/export.csv"
-              className="card inline-flex items-center gap-1.5 px-3 py-2 font-mono text-[11px] uppercase tracking-[0.04em] text-neutral-600 hover:border-accent-200 hover:text-neutral-900"
-            >
-              <Download className="size-3.5" />
-              Readings CSV
-            </a>
-            <a
-              href="/api/export-daily.csv"
-              className="card inline-flex items-center gap-1.5 px-3 py-2 font-mono text-[11px] uppercase tracking-[0.04em] text-neutral-600 hover:border-accent-200 hover:text-neutral-900"
-            >
-              <Download className="size-3.5" />
-              Daily log CSV
-            </a>
-          </div>
-          <UploadButton />
-        </div>
+      <LabsHeader
+        active="uploads"
+        subtitle="Lab PDFs you imported. Deleting one removes its readings."
+      />
+
+      <div className="flex flex-wrap items-center gap-2">
+        <a
+          href="/api/export.csv"
+          className="card inline-flex items-center gap-1.5 px-3 py-2 font-mono text-[11px] uppercase tracking-[0.04em] text-neutral-600 hover:border-accent-200 hover:text-neutral-900"
+        >
+          <Download className="size-3.5" />
+          Readings CSV
+        </a>
+        <a
+          href="/api/export-daily.csv"
+          className="card inline-flex items-center gap-1.5 px-3 py-2 font-mono text-[11px] uppercase tracking-[0.04em] text-neutral-600 hover:border-accent-200 hover:text-neutral-900"
+        >
+          <Download className="size-3.5" />
+          Daily log CSV
+        </a>
       </div>
 
       {rows.length === 0 ? (

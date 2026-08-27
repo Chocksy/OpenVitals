@@ -2,21 +2,15 @@ import { and, eq } from "drizzle-orm";
 import Link from "next/link";
 import { getDb, reviewItems } from "@/db";
 import { requireUserId } from "@/lib/auth";
+import { buildModelInput, queueProfileQuestions } from "@/lib/coverage";
 import {
-  buildModelInput,
-  queueProfileQuestions,
-  type ModelInput,
-} from "@/lib/coverage";
-import { computeGraphState, type ActiveEdge } from "@/lib/graph-state";
-import {
-  NODES,
-  SYSTEMS,
-  type GraphNode,
-  type Relation,
-  type SystemId,
-} from "@/lib/graph";
-import { matchPatterns } from "@/lib/patterns";
-import { healthStatus, type Status } from "@/lib/status";
+  computeGraphState,
+  worstMember,
+  type ActiveEdge,
+} from "@/lib/graph-state";
+import { NODES, SYSTEMS, type Relation, type SystemId } from "@/lib/graph";
+import { matchPatterns, PATTERNS } from "@/lib/patterns";
+import { healthStatus } from "@/lib/status";
 import { ReviewItem } from "@/components/client";
 import { SystemLinks, type SystemLink } from "@/components/graph-map";
 import { ViewShell } from "@/components/plan";
@@ -41,13 +35,6 @@ const TONE: Record<Relation, SystemLink["tone"]> = {
   modifies_target: "neutral",
 };
 
-const SEVERITY: Record<Status, number> = {
-  red: 3,
-  amber: 2,
-  green: 1,
-  gray: 0,
-};
-
 const CONFIDENCE_RANK = {
   established: 3,
   probable: 2,
@@ -62,8 +49,6 @@ const CONFIDENCE_BADGE = {
 
 const systemOf = (nodeId: string): SystemId | undefined =>
   byId.get(nodeId)?.system;
-
-const short = (id: string) => id.slice(id.indexOf(":") + 1);
 
 function Label({ children }: { children: React.ReactNode }) {
   return (
@@ -101,28 +86,6 @@ function ImportanceBar({
       />
     </span>
   );
-}
-
-/** The member metric this person should look at first in this system. */
-function worstMember(
-  system: SystemId,
-  input: ModelInput,
-  importance: Map<string, number>,
-): { node: GraphNode; code: string } | null {
-  const members = NODES.filter(
-    (n) =>
-      n.kind === "metric" &&
-      n.system === system &&
-      input.latest[short(n.id)]?.value != null,
-  );
-  let best: { node: GraphNode; code: string; rank: number } | null = null;
-  for (const node of members) {
-    const code = short(node.id);
-    const row = input.latest[code]!;
-    const rank = SEVERITY[row.status] * 10 + (importance.get(node.id) ?? 0);
-    if (!best || rank > best.rank) best = { node, code, rank };
-  }
-  return best;
 }
 
 /** One arc per system pair, tone and confidence; the strongest edge wins. */
@@ -201,6 +164,8 @@ export default async function GraphPage() {
   }
 
   const patterns = matchPatterns(input).filter((p) => p.matched);
+  const matchedIds = new Set(patterns.map((p) => p.pattern.id));
+  const unmatched = PATTERNS.filter((p) => !matchedIds.has(p.id));
   const graph = computeGraphState(input, { top: HOT_NODES });
   const importance = new Map(graph.nodes.map((n) => [n.id, n.importance]));
   const links = toLinks(graph.activeEdges);
@@ -269,18 +234,27 @@ export default async function GraphPage() {
       </SystemLinks>
 
       <section>
-        <Label>Matched patterns · {patterns.length}</Label>
+        <Label>Patterns · {patterns.length} matched</Label>
         {patterns.length ? (
-          <div className="flex flex-wrap gap-2">
+          <div className="space-y-2">
             {patterns.map((m) => (
-              <Link
-                key={m.pattern.id}
-                href={`/patterns/${m.pattern.id}`}
-                className="inline-flex items-center gap-2 border border-neutral-200 bg-neutral-0 px-3 py-1.5 font-body text-[13px] text-neutral-800 hover:border-neutral-900"
-              >
-                {m.pattern.name}
-                {m.stage && <Badge variant="warning">{m.stage}</Badge>}
-              </Link>
+              <Card key={m.pattern.id} className="p-4">
+                <div className="flex flex-wrap items-start justify-between gap-2">
+                  <Link
+                    href={`/patterns/${m.pattern.id}`}
+                    className="font-display text-[15px] font-medium hover:underline"
+                  >
+                    {m.pattern.name}
+                  </Link>
+                  {m.stage && <Badge variant="warning">{m.stage}</Badge>}
+                </div>
+                <p className="mt-2 font-body text-[13px] text-neutral-700">
+                  {m.pattern.summary}
+                </p>
+                <p className="deep mt-2 font-body text-[12px] text-neutral-500">
+                  {m.reasons.join("; ")}
+                </p>
+              </Card>
             ))}
           </div>
         ) : (
@@ -289,6 +263,20 @@ export default async function GraphPage() {
               No pattern matches your numbers yet.
             </p>
           </Card>
+        )}
+
+        {unmatched.length > 0 && (
+          <div className="mt-3 flex flex-wrap gap-2">
+            {unmatched.map((p) => (
+              <Link
+                key={p.id}
+                href={`/patterns/${p.id}`}
+                className="inline-flex items-center border border-neutral-200 bg-neutral-50 px-2.5 py-1 font-body text-[12px] text-neutral-400 hover:border-neutral-300 hover:text-neutral-600"
+              >
+                {p.name}
+              </Link>
+            ))}
+          </div>
         )}
       </section>
 

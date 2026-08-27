@@ -28,6 +28,8 @@ interface TrendChartProps {
   goalHigh?: number | null;
   unit?: string | null;
   status?: HealthStatus;
+  /** Home draws the same chart small; /m/[code] keeps the full height. */
+  height?: number;
 }
 
 const statusStroke: Record<string, string> = {
@@ -126,10 +128,14 @@ export function TrendChart({
   goalHigh,
   unit,
   status = "normal",
+  height = 300,
 }: TrendChartProps) {
   if (data.length === 0) {
     return (
-      <div className="flex h-[300px] items-center justify-center text-sm text-neutral-400">
+      <div
+        style={{ height }}
+        className="flex items-center justify-center text-sm text-neutral-400"
+      >
         No data points available
       </div>
     );
@@ -137,21 +143,9 @@ export function TrendChart({
 
   const stroke = statusStroke[status] ?? statusStroke.normal;
 
-  // Estimate how many x-axis labels can fit without overlapping.
-  // Each formatted date label is roughly 70px wide; the chart area
-  // is roughly the container width minus margins (~72px).  We compute
-  // the interval (skip every N ticks) so labels don't collide.
-  const estimatedLabelWidth = 72;
-  const estimatedChartWidth =
-    typeof window !== "undefined"
-      ? Math.min(window.innerWidth - 100, 900)
-      : 700;
-  const maxTicks = Math.max(
-    1,
-    Math.floor(estimatedChartWidth / estimatedLabelWidth),
-  );
-  const tickInterval = Math.max(0, Math.ceil(data.length / maxTicks) - 1);
-
+  // ponytail: the old guess at the label count read `window.innerWidth`, which
+  // is wrong for any chart that is not the full page. `minTickGap` lets
+  // recharts drop the colliding labels itself, at any container width.
   // Compute Y domain with padding
   const values = data.map((d) => d.value);
   const allValues = [
@@ -175,7 +169,7 @@ export function TrendChart({
 
   return (
     <div>
-      <ResponsiveContainer width="100%" height={300}>
+      <ResponsiveContainer width="100%" height={height}>
         <LineChart
           data={data}
           margin={{ top: 8, right: 32, bottom: 8, left: 8 }}
@@ -213,7 +207,8 @@ export function TrendChart({
           <XAxis
             dataKey="date"
             tickFormatter={formatChartDate}
-            interval={tickInterval}
+            interval="preserveStartEnd"
+            minTickGap={44}
             tick={{
               fontSize: 11,
               fontFamily: "var(--font-mono)",

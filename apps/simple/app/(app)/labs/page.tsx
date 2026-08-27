@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { FileText } from "lucide-react";
 import { requireUserId } from "@/lib/auth";
+import { LabsHeader } from "@/components/labs-header";
 import { getDraws } from "@/lib/daily-data";
 import { formatDate } from "@/lib/utils";
 import { formatRange, statusColor } from "@/lib/status";
@@ -14,23 +15,14 @@ export default async function LabsPage() {
 
   return (
     <div className="space-y-5">
-      <div>
-        <h1 className="font-display text-[28px] font-medium tracking-[-0.03em]">
-          Labs
-        </h1>
-        <p className="mt-1 font-body text-[13px] text-neutral-500">
-          {draws.length} blood draw{draws.length === 1 ? "" : "s"}, newest
-          first.
-        </p>
-      </div>
+      <LabsHeader
+        active="draws"
+        subtitle={`${draws.length} blood draw${draws.length === 1 ? "" : "s"}, newest first.`}
+      />
 
       {draws.length === 0 ? (
         <p className="card border-dashed p-10 text-center font-body text-[13px] text-neutral-500">
-          No readings yet. Upload a lab PDF from{" "}
-          <Link href="/uploads" className="underline">
-            Uploads
-          </Link>
-          .
+          No readings yet. Upload a lab PDF with the button above.
         </p>
       ) : (
         draws.map((draw) => (

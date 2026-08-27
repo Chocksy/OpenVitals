@@ -1,179 +1,174 @@
 import Link from "next/link";
-import { desc, eq, sql } from "drizzle-orm";
-import { ClipboardCheck, MessageSquare } from "lucide-react";
+import { and, eq } from "drizzle-orm";
 import { requireUserId, currentUser } from "@/lib/auth";
-import { getDb, insights, uploads, type RetestBody } from "@/db";
+import { getDb, reviewItems } from "@/db";
 import { getMetricRows } from "@/lib/data";
-import { openReviewCount } from "@/lib/curator";
-import { getHomeExtras } from "@/lib/daily-data";
-import { buildModelInput, coverage } from "@/lib/coverage";
+import { getGoals } from "@/lib/daily-data";
+import { buildModelInput } from "@/lib/coverage";
+import { computeGraphState, worstMember } from "@/lib/graph-state";
+import { SYSTEMS } from "@/lib/graph";
+import { healthStatus } from "@/lib/status";
 import { latestReport } from "@/lib/report";
-import { buildHome, buildRetestPreview } from "@/lib/home-data";
-import { UploadButton } from "@/components/client";
+import { buildHome, buildTrend, type TrendMetric } from "@/lib/home-data";
+import { ReviewItem } from "@/components/client";
 import {
   AttentionMetrics,
-  BiomarkerPanelCard,
-  DashboardStats,
-  GoalsCard,
+  FixNext,
   GreetingHeader,
-  HealthInsights,
   HealthScore,
-  PanelSectionHeader,
-  PlanCard,
-  TodayCard,
-  UpcomingRetests,
-  WhatChanged,
+  KeyTrends,
+  SectionHeader,
+  SystemsStrip,
+  type SystemTile,
 } from "@/components/home";
 
 export const dynamic = "force-dynamic";
 
+const KEY_TRENDS = 4;
+const MAX_QUESTIONS = 3;
+
 export default async function Home() {
   const userId = await requireUserId();
-  const [user, rows] = await Promise.all([currentUser(), getMetricRows(userId)]);
   const db = getDb();
 
-  const [uploadCount, latestRetest, reviewCount, extras, plan, model] =
-    await Promise.all([
-    db
-      .select({ n: sql<number>`count(*)::int` })
-      .from(uploads)
-      .where(eq(uploads.userId, userId))
-      .then((r) => r[0]?.n ?? 0),
+  const [user, rows, open, model, plan, goals] = await Promise.all([
+    currentUser(),
+    getMetricRows(userId),
     db
       .select()
-      .from(insights)
-      .where(eq(insights.userId, userId))
-      .orderBy(desc(insights.createdAt))
-      .then((r) => r.find((i) => i.kind === "retest")),
-      openReviewCount(userId),
-      getHomeExtras(userId),
-      latestReport(userId),
-      buildModelInput(userId),
-    ]);
-
-  const neverCount = coverage(model).filter(
-    (r) => r.vector.tier === 1 && r.state === "never",
-  ).length;
-  const topActions = [...(plan?.body.actions ?? [])]
-    .sort((a, b) => b.weight - a.weight)
-    .slice(0, 2)
-    .map((a) => a.title);
+      .from(reviewItems)
+      .where(
+        and(eq(reviewItems.userId, userId), eq(reviewItems.status, "open")),
+      ),
+    buildModelInput(userId),
+    latestReport(userId),
+    getGoals(userId),
+  ]);
 
   const home = buildHome(rows);
-  const retest = buildRetestPreview(
-    latestRetest?.body as RetestBody | undefined,
-    new Map(rows.map((m) => [m.code, m])),
-  );
   const firstName = (user?.name ?? "").split(/\s+/)[0] ?? "";
   const hasData = rows.length > 0;
 
+  const now = new Date();
+  const questions = [
+    ...open.filter((i) => i.kind === "profile_question"),
+    ...open.filter((i) => i.kind === "check_in" && (i.createdAt ?? now) <= now),
+  ].slice(0, MAX_QUESTIONS);
+
+  // 2. the 12 system tiles, worst first, without the arcs.
+  const graph = computeGraphState(model, { top: 60 });
+  const importance = new Map(graph.nodes.map((n) => [n.id, n.importance]));
+  const systems: SystemTile[] = SYSTEMS.map((system) => {
+    const worst = worstMember(system.id, model, importance);
+    const row = worst ? model.latest[worst.code] : null;
+    return {
+      id: system.id,
+      name: system.name,
+      score: importance.get(`system:${system.id}`) ?? 0,
+      worstName: worst?.node.name ?? null,
+      worstStatus: row ? healthStatus(row) : null,
+    };
+  }).sort((a, b) => b.score - a.score);
+
+  // 3. the plan's top actions, tests counted separately.
+  const indexed = (plan?.body.actions ?? []).map((action, index) => ({
+    action,
+    index,
+  }));
+  const topActions = indexed
+    .filter((r) => r.action.kind !== "test")
+    .sort((a, b) => b.action.weight - a.action.weight)
+    .slice(0, 3);
+  const testCount = indexed.filter((r) => r.action.kind === "test").length;
+
+  // 4. the four hottest markers with enough history to draw.
+  const byCode = new Map(rows.map((m) => [m.code, m]));
+  const goalByCode = new Map(goals.map((g) => [g.metricCode, g]));
+  const trends: TrendMetric[] = [];
+  for (const node of graph.hot) {
+    if (trends.length >= KEY_TRENDS) break;
+    if (!node.id.startsWith("metric:")) continue;
+    const code = node.id.slice("metric:".length);
+    const metric = byCode.get(code);
+    if (!metric) continue;
+    const trend = buildTrend(metric, goalByCode.get(code));
+    if (trend) trends.push(trend);
+  }
+
   return (
-    <div className="stagger-children">
-      <GreetingHeader
-        firstName={firstName}
-        summaryLine={home.summaryLine}
-        abnormalCount={home.abnormalCount}
-      />
-
-      {reviewCount > 0 && (
-        <Link
-          href="/review"
-          className="mt-4 flex items-center gap-2 border border-[var(--color-health-warning-border)] bg-[var(--color-health-warning-bg)] px-3 py-2 font-body text-[13px] text-neutral-800 hover:border-[var(--color-health-warning)]"
-        >
-          <ClipboardCheck className="size-4 text-[var(--color-health-warning)]" />
-          {reviewCount} data question{reviewCount === 1 ? "" : "s"} waiting
-          <span className="ml-auto font-mono text-[10px] uppercase tracking-[0.06em] text-neutral-500">
-            Review →
-          </span>
-        </Link>
-      )}
-
-      {hasData && (
-        <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-[1fr_2fr]">
+    <div className="space-y-8">
+      <div className="space-y-4">
+        <GreetingHeader
+          firstName={firstName}
+          summaryLine={home.summaryLine}
+          lastDraw={home.lastDraw}
+          questionCount={open.length}
+        />
+        {hasData && (
           <HealthScore
             score={home.score}
+            optimalCount={home.stats.optimalCount}
             normalCount={home.stats.normalCount}
-            warningCount={home.stats.warningCount}
-            criticalCount={home.stats.criticalCount}
+            offCount={home.stats.offCount}
             totalMetrics={home.metricCount}
           />
-          <DashboardStats
-            metricCount={home.metricCount}
-            totalResults={home.totalResults}
-            flaggedCount={home.abnormalCount}
-            criticalCount={home.stats.criticalCount}
-            warningCount={home.stats.warningCount}
-            uploadCount={uploadCount}
-            retestCount={retest?.items.length ?? 0}
-            retestDue={retest?.dueAt ?? null}
-          />
-        </div>
-      )}
-
-      <div className="mt-5 flex flex-wrap gap-3">
-        <UploadButton />
-        <Link
-          href="/chat"
-          className="card inline-flex items-center gap-2 px-4 py-2.5 font-display text-[13px] font-medium transition-all hover:border-accent-200"
-        >
-          <MessageSquare className="size-4 text-neutral-500" />
-          Ask the AI coach
-        </Link>
+        )}
       </div>
 
       {!hasData && (
-        <p className="mt-6 font-body text-[13px] text-neutral-500">
-          No readings yet. Upload a lab PDF to get started.
+        <p className="card border-dashed p-10 text-center font-body text-[13px] text-neutral-500">
+          No readings yet.{" "}
+          <Link href="/labs" className="underline">
+            Upload a lab PDF
+          </Link>{" "}
+          to get started.
         </p>
       )}
 
-      {home.insights.length > 0 && (
-        <div className="mt-6">
-          <HealthInsights insights={home.insights} />
-        </div>
-      )}
+      <section>
+        <SectionHeader title="Systems" href="/graph" linkLabel="Your graph" />
+        <SystemsStrip systems={systems} />
+      </section>
 
-      {hasData && (
-        <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-2">
-          <AttentionMetrics metrics={home.attention} />
-          <UpcomingRetests plan={retest} />
-        </div>
-      )}
-
-      <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-[1fr_2fr]">
-        <TodayCard
-          streak={extras.streak}
-          habitsDone={extras.habitsDone}
-          habitCount={extras.habitCount}
-          logged={extras.logged}
+      <section>
+        <SectionHeader title="Fix next" href="/plan" linkLabel="Full plan" />
+        <FixNext
+          actions={topActions}
+          reportId={plan?.id ?? null}
+          testCount={testCount}
         />
-        <GoalsCard goals={extras.goals} />
-      </div>
+      </section>
 
-      <div className="mt-6">
-        <PlanCard actions={topActions} neverCount={neverCount} />
-      </div>
-
-      {hasData &&
-        home.panels.map((panel) => (
-          <div key={panel.id} className="mt-6">
-            <PanelSectionHeader panel={panel} />
-            <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4">
-              {panel.metrics.map((m) => (
-                <BiomarkerPanelCard key={m.metricCode} metric={m} />
-              ))}
-            </div>
-          </div>
-        ))}
-
-      {home.changed.changes.length > 0 && (
-        <div className="mt-8">
-          <WhatChanged
-            changes={home.changed.changes}
-            previousDate={home.changed.previousDate}
-            currentDate={home.changed.currentDate}
+      {trends.length > 0 && (
+        <section>
+          <SectionHeader
+            title="Key trends"
+            href="/biomarkers"
+            linkLabel="All markers"
           />
-        </div>
+          <KeyTrends trends={trends} />
+        </section>
+      )}
+
+      {home.attention.length > 0 && (
+        <AttentionMetrics metrics={home.attention} />
+      )}
+
+      {questions.length > 0 && (
+        <section>
+          <SectionHeader title="Questions" href="/review" linkLabel="Review" />
+          <div className="space-y-2">
+            {questions.map((q) => (
+              <ReviewItem
+                key={q.id}
+                id={q.id}
+                question={q.question}
+                options={q.options}
+                detail={q.subject?.detail}
+              />
+            ))}
+          </div>
+        </section>
       )}
     </div>
   );

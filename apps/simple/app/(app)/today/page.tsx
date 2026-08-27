@@ -73,6 +73,10 @@ export default async function TodayPage({
         </div>
       </div>
 
+      <p className="font-mono text-[11px] text-neutral-400">
+        Manual entry stays here until the phone app syncs Apple Health.
+      </p>
+
       <HabitChecklist day={day} habits={view.habits} />
       <QuickNumbers key={day} day={day} values={view.values} />
       <DailySparks series={view.series} />
