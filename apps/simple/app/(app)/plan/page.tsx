@@ -1,6 +1,6 @@
 import { and, eq } from "drizzle-orm";
 import Link from "next/link";
-import { CheckCircle2, Stethoscope } from "lucide-react";
+import { CheckCircle2, Network, Stethoscope } from "lucide-react";
 import { getDb, reviewItems, type ReportAction } from "@/db";
 import { requireUserId } from "@/lib/auth";
 import {
@@ -289,7 +289,12 @@ function PatternCard({
   return (
     <Card className="p-4">
       <div className="flex flex-wrap items-start justify-between gap-2">
-        <p className="font-display text-[15px] font-medium">{pattern.name}</p>
+        <Link
+          href={`/patterns/${pattern.id}`}
+          className="font-display text-[15px] font-medium hover:underline"
+        >
+          {pattern.name}
+        </Link>
         {stage && <Badge variant="warning">{stage}</Badge>}
       </div>
 
@@ -316,6 +321,15 @@ function PatternCard({
           );
         })}
       </ul>
+
+      <div className="mt-3">
+        <Link
+          href={`/patterns/${pattern.id}`}
+          className="inline-flex h-8 items-center gap-1.5 rounded-sm border border-neutral-200 bg-neutral-0 px-3 font-display text-[12px] tracking-[0.04em] text-neutral-700 hover:border-neutral-900 hover:bg-neutral-50"
+        >
+          <Network className="size-3.5" /> The whole pattern
+        </Link>
+      </div>
 
       <div className="deep mt-3 space-y-2 border-t border-neutral-100 pt-3">
         <p className="font-body text-[12px] text-neutral-600">
@@ -379,7 +393,9 @@ export default async function PlanPage() {
   const patterns = matchPatterns(input).filter((p) => p.matched);
   const graph = patterns.length
     ? computeGraphState(input)
-    : { activeEdges: [] as ReturnType<typeof computeGraphState>["activeEdges"] };
+    : {
+        activeEdges: [] as ReturnType<typeof computeGraphState>["activeEdges"],
+      };
   const body = report?.body;
   const questions = open.filter((i) => i.kind === "profile_question");
   const now = new Date();
@@ -442,7 +458,37 @@ export default async function PlanPage() {
 
       {!blocked && (
         <>
-          {/* 3. ELI5 in simple, the summary lines in deep */}
+          {/* 3. Anything waiting for an answer, before anything to read.
+              Questions at the bottom of a long page are questions nobody
+              answers. */}
+          {questions.length + checkIns.length > 0 && (
+            <section>
+              <Label>
+                Answer these first · {questions.length + checkIns.length}
+              </Label>
+              <div className="space-y-2">
+                {questions.map((q) => (
+                  <ReviewItem
+                    key={q.id}
+                    id={q.id}
+                    question={q.question}
+                    options={q.options}
+                  />
+                ))}
+                {checkIns.map((c) => (
+                  <ReviewItem
+                    key={c.id}
+                    id={c.id}
+                    question={c.question}
+                    options={c.options}
+                    detail={c.subject?.detail}
+                  />
+                ))}
+              </div>
+            </section>
+          )}
+
+          {/* 4. ELI5 in simple, the summary lines in deep */}
           {body && (
             <section>
               <Label>What this means</Label>
@@ -474,7 +520,8 @@ export default async function PlanPage() {
                     key={m.pattern.id}
                     match={m}
                     verdict={
-                      body?.patterns?.find((p) => p.id === m.pattern.id)?.verdict
+                      body?.patterns?.find((p) => p.id === m.pattern.id)
+                        ?.verdict
                     }
                     edges={graph.activeEdges.filter(
                       (e) => e.when?.pattern === m.pattern.id,
@@ -525,43 +572,8 @@ export default async function PlanPage() {
             </Card>
           )}
 
-          {/* 5. Coverage */}
+          {/* 7. Coverage */}
           <CoverageSection rows={cov} />
-
-          {/* 6. Questions */}
-          {questions.length > 0 && (
-            <section>
-              <Label>Questions · {questions.length}</Label>
-              <div className="space-y-2">
-                {questions.map((q) => (
-                  <ReviewItem
-                    key={q.id}
-                    id={q.id}
-                    question={q.question}
-                    options={q.options}
-                  />
-                ))}
-              </div>
-            </section>
-          )}
-
-          {/* 7. Check-ins due */}
-          {checkIns.length > 0 && (
-            <section>
-              <Label>Check-ins due · {checkIns.length}</Label>
-              <div className="space-y-2">
-                {checkIns.map((c) => (
-                  <ReviewItem
-                    key={c.id}
-                    id={c.id}
-                    question={c.question}
-                    options={c.options}
-                    detail={c.subject?.detail}
-                  />
-                ))}
-              </div>
-            </section>
-          )}
         </>
       )}
     </PlanShell>

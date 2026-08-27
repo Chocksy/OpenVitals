@@ -58,6 +58,34 @@ describe("hashimoto", () => {
     expect(out.stage).toBe("confirmed");
   });
 
+  it("calls a TSH under 2.5 that crept up by less than 0.5 antibodies only", () => {
+    const out = detect(
+      "hashimoto",
+      input({
+        latest: {
+          ...antibodyPositive.latest,
+          tsh: value(1.995, { refLow: 0.4, refHigh: 4.5, prev: 1.888 }),
+        },
+      }),
+    );
+    expect(out.stage).toBe("antibodies only");
+    expect(out.reasons.join(" ")).not.toContain("rising");
+  });
+
+  it("calls a TSH under 2.5 early once it rose by 0.5 or more", () => {
+    const out = detect(
+      "hashimoto",
+      input({
+        latest: {
+          ...antibodyPositive.latest,
+          tsh: value(2.0, { refLow: 0.4, refHigh: 4.5, prev: 1.4 }),
+        },
+      }),
+    );
+    expect(out.stage).toBe("early");
+    expect(out.reasons.join(" ")).toContain("rising from 1.4");
+  });
+
   it("falls back to 34 IU/mL when the lab printed no limit", () => {
     const out = detect(
       "hashimoto",

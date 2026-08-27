@@ -30,7 +30,11 @@ import {
 import { getTrackerSummary, type TrackerSummary } from "./daily-data";
 import { model } from "./extract";
 import { computeGraphState, type GraphState } from "./graph-state";
-import { matchPatterns, type PatternMatch, type PatternQuestion } from "./patterns";
+import {
+  matchPatterns,
+  type PatternMatch,
+  type PatternQuestion,
+} from "./patterns";
 import { overCeiling, VECTORS, type Rule } from "./vectors";
 
 export type ReportTrigger = "manual" | "upload" | "daily";
@@ -46,7 +50,7 @@ const REPORT_EVERY_DAYS = 30;
  * them; `clamp` in `postProcess` is one line and never fails.
  */
 const clamp = (v: number, hi: number) =>
-  (Math.min(Math.max(Math.round(v) || 1, 1), hi) as 1 | 2 | 3 | 4 | 5);
+  Math.min(Math.max(Math.round(v) || 1, 1), hi) as 1 | 2 | 3 | 4 | 5;
 
 const actionSchema = z.object({
   title: z.string(),
@@ -163,7 +167,9 @@ REGISTERS: "why" is one plain sentence for a smart adult. "eli5" is two sentence
 
 OPINION IS THE POINT. The rule-driven tests are the floor, not the plan. Write at least 3 "opinion" actions that only this person's numbers, history and habits justify: which lever to pull first and why for them, sequencing ("fix D before judging testosterone"), personal dose adjustments, what their family history changes about the target. Each one quotes the values in "reasoning".
 
-PATTERNS: when a pattern is matched, its management text is your starting point. State the controversy in one sentence in the system verdict, then say what decides it for this person. Fill "patterns" with one entry per matched pattern: its id, its stage, and your verdict.
+PATTERNS: when a pattern is matched, its management text is a list of mandatory actions: each numbered intervention in it becomes an action with the pattern's dose (e.g. selenium 200 µg/day) unless a listed contraindication applies; say which basis it has. State the controversy in one sentence in the system verdict, then say what decides it for this person. Fill "patterns" with one entry per matched pattern: its id, its stage, and your verdict.
+
+NOTHING WRONG: a person with every marker in optimal and no pattern gets at most 4 actions and no supplement; say so in the summary.
 
 TRACEABILITY: every opinion action's "reasoning" names at least one graph element by id (an edge id like "tsh->ldl_cholesterol" or "pattern:hashimoto") from the HOT GRAPH or ACTIVE EDGES sections, plus the values.
 
@@ -509,7 +515,12 @@ function citedIds(reasoning: string, graph: GraphFacts) {
   // No parentheses in the class: node ids never contain them, and prose does
   // ("(edge insulin->ogtt_insulin)").
   for (const m of text.matchAll(/\b([a-z0-9_]+)\s*->\s*([a-z0-9_]+)/gi))
-    add(m[0], graph.activeEdgeIds.includes(`${m[1]!.toLowerCase()}->${m[2]!.toLowerCase()}`));
+    add(
+      m[0],
+      graph.activeEdgeIds.includes(
+        `${m[1]!.toLowerCase()}->${m[2]!.toLowerCase()}`,
+      ),
+    );
 
   return cited;
 }
@@ -545,7 +556,9 @@ function verifyTrace(action: ReportAction, graph: GraphFacts): ReportAction {
   }
 
   if (!cited.length) {
-    console.warn(`[plan] "${action.title}" is an opinion with no graph reference`);
+    console.warn(
+      `[plan] "${action.title}" is an opinion with no graph reference`,
+    );
     return {
       ...action,
       reasoning: `[no graph reference] ${tidy(action.reasoning ?? "")}`,
@@ -591,13 +604,23 @@ export function postProcess(
     if (!ruleCovered(rule, kept)) kept.push(ruleAction(rule));
 
   // ponytail: word-overlap dedupe; the model sometimes writes the same test twice.
-  const words = (a: ReportAction) => new Set(norm(a.title).split(" ").filter((w) => w.length > 3));
-  const deduped = kept.filter((a, i) =>
-    !kept.slice(0, i).some((b) => {
-      const wa = words(a), wb = words(b);
-      const shared = [...wa].filter((w) => wb.has(w)).length;
-      return shared >= 3 && shared / Math.max(1, Math.min(wa.size, wb.size)) >= 0.75;
-    }),
+  const words = (a: ReportAction) =>
+    new Set(
+      norm(a.title)
+        .split(" ")
+        .filter((w) => w.length > 3),
+    );
+  const deduped = kept.filter(
+    (a, i) =>
+      !kept.slice(0, i).some((b) => {
+        const wa = words(a),
+          wb = words(b);
+        const shared = [...wa].filter((w) => wb.has(w)).length;
+        return (
+          shared >= 3 &&
+          shared / Math.max(1, Math.min(wa.size, wb.size)) >= 0.75
+        );
+      }),
   );
 
   const sorted = [...deduped].sort((a, b) => b.weight - a.weight);
@@ -665,7 +688,9 @@ export function graphFacts(
   graph: GraphState,
 ): GraphFacts {
   return {
-    matchedPatternIds: patterns.filter((p) => p.matched).map((p) => p.pattern.id),
+    matchedPatternIds: patterns
+      .filter((p) => p.matched)
+      .map((p) => p.pattern.id),
     activeEdgeIds: graph.activeEdges.map((e) => e.id),
     hotNodeIds: graph.hot.map((n) => n.id),
   };

@@ -34,6 +34,8 @@ export interface Pattern {
   summary: string;
   controversy: string;
   management: string;
+  /** The detector in one sentence, for the pattern page when it did not match. */
+  detects: string;
   detector: (m: ModelInput) => DetectorResult;
   effects: {
     systemPriority?: Partial<Record<SystemId, 1 | 2 | 3>>;
@@ -102,6 +104,9 @@ function aboveLimit(
   };
 }
 
+/** The smallest TSH rise between two draws that is not assay noise, mIU/L. */
+const RISING_TSH = 0.5;
+
 const HASHIMOTO: Pattern = {
   id: "hashimoto",
   name: "Autoimmune thyroiditis (Hashimoto's)",
@@ -109,6 +114,8 @@ const HASHIMOTO: Pattern = {
     "The immune system is attacking the thyroid. TSH climbs slowly over years; antibodies show it before TSH does.",
   controversy:
     "Whether to treat subclinical hypothyroidism (TSH 4.5–10, normal fT4) is debated; most guidelines say treat if TSH > 10, symptomatic, pregnant or planning pregnancy, or antibody-positive with rising TSH.",
+  detects:
+    "Matches when TPO or thyroglobulin antibodies are above the lab's upper limit, and calls it confirmed above a TSH of 4.5, early from 2.5 up or when TSH rose by at least 0.5 mIU/L since the last draw, and antibodies only below that.",
   management:
     "Track TSH, fT4 and antibodies every 6 months. Keep ferritin above 50 and vitamin D 40–60. Stop iodine supplements. Selenium 200 µg/day is a reasonable 6-month trial with antibodies as the outcome. Treat with levothyroxine when TSH passes 10, or earlier if symptomatic, antibody-positive with rising TSH, or planning pregnancy. If treated: dose 30–60 min before coffee and 4 h away from iron and calcium. Symptoms and antibodies are the outcomes to watch, not TSH alone.",
   detector: (m) => {
@@ -123,7 +130,10 @@ const HASHIMOTO: Pattern = {
     const reasons = positive.map((r) => r.reason);
     const tsh = m.latest.tsh;
     const value = tsh?.value ?? null;
-    const rising = value != null && tsh?.prev != null && value > tsh.prev;
+    // "Rising" has to mean something: assay noise moves TSH by a tenth between
+    // draws, so half a unit is the smallest step worth calling a trend.
+    const rising =
+      value != null && tsh?.prev != null && value - tsh.prev >= RISING_TSH;
 
     let stage = "antibodies only";
     if (value != null && value > 4.5) {
@@ -274,6 +284,8 @@ const LMHR: Pattern = {
     "Very high LDL that appears when a lean person eats very low carb. HDL and triglycerides are excellent. The LDL is real; the question is whether it carries the usual risk.",
   controversy:
     "Lipid-energy model (Norwitz 2022) argues the LDL rise is metabolic, not pathological. KETO-CTA (2025) followed 100 LMHRs for a year and found plaque progression in many, with baseline plaque, not ApoB, predicting progression. Guideline bodies treat ApoB as causal regardless of phenotype.",
+  detects:
+    "Matches when LDL is 200 or more with HDL 80 or more and triglycerides 70 or less, in someone whose BMI is under 25 (or waist under half their height) and whose diet answer says low-carb, keto or carnivore.",
   management:
     "Measure before arguing: ApoB, Lp(a), CAC. Zero CAC and normal Lp(a): the person can stay low-carb with imaging every 2–3 years, knowing the evidence is unsettled. Any CAC, or Lp(a) above 50, or family history: treat ApoB like anyone else, and the cheapest lever is adding carbohydrate back.",
   detector: (m) => {
@@ -383,6 +395,8 @@ const INSULIN_RESISTANCE: Pattern = {
     "The pancreas is compensating: insulin is already high while HbA1c still reads normal. This is the decade where the trajectory is easiest to change.",
   controversy:
     "Fasting insulin has no agreed cut-off and is not in most guidelines; the ADA screens on HbA1c and glucose, which move years later.",
+  detects:
+    "Matches when HbA1c is still under 5.7 while fasting insulin is above 10, HOMA-IR is above 2, or the triglyceride/HDL ratio is above 2.",
   management:
     "Confirm with a 2-hour OGTT that measures insulin, not just glucose. Then the levers in order: resistance training twice a week, protein and fibre at the start of meals, a walk after the largest meal, and enough sleep. Retest fasting insulin and TG/HDL in 12 weeks, not HbA1c.",
   detector: (m) => {
@@ -443,6 +457,8 @@ const IRON_DEFICIENCY: Pattern = {
     "The iron stores are empty but the blood count still looks fine. Fatigue, hair loss and breathlessness arrive at this stage, long before haemoglobin drops.",
   controversy:
     "Labs call ferritin normal from 15, and many doctors will not treat a normal blood count. Fatigue improves in trials at ferritin thresholds nearer 30 to 50.",
+  detects:
+    "Matches when ferritin is under 30 while haemoglobin still sits inside the lab's own reference range.",
   management:
     "Find the cause before topping it up: periods, gut losses, coeliac disease. Then iron 60–100 mg elemental on alternate days with vitamin C, away from coffee, tea and calcium, and retest ferritin at three months. Stop once ferritin passes 50.",
   detector: (m) => {

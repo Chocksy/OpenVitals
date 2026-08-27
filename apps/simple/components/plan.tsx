@@ -44,14 +44,20 @@ function useAction() {
 }
 
 /**
- * The page root. `data-view` drives one CSS rule in globals.css, so every deep
- * detail is just a `.deep` class on the server-rendered markup.
+ * The page root for every page with two audiences. `data-view` drives one CSS
+ * rule in globals.css, so every deep detail is just a `.deep` class on the
+ * server-rendered markup. /plan, /graph and /patterns/[id] share the switch
+ * and the localStorage key, so the choice follows the reader around.
  */
-export function PlanShell({
-  date,
+export function ViewShell({
+  title,
+  subtitle,
+  actions,
   children,
 }: {
-  date: string | null;
+  title: React.ReactNode;
+  subtitle?: React.ReactNode;
+  actions?: React.ReactNode;
   children: React.ReactNode;
 }) {
   const [view, setView] = useState<"simple" | "deep">("simple");
@@ -71,14 +77,16 @@ export function PlanShell({
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="font-display text-[28px] font-medium tracking-[-0.03em]">
-            Your plan
+            {title}
           </h1>
-          <p className="mt-1 font-body text-[13px] text-neutral-500">
-            {date ? `Written ${date}` : "No plan yet. Generate one."}
-          </p>
+          {subtitle && (
+            <p className="mt-1 font-body text-[13px] text-neutral-500">
+              {subtitle}
+            </p>
+          )}
         </div>
         <div className="flex items-center gap-2">
-          <GeneratePlan />
+          {actions}
           <div className="flex items-center gap-0.5 rounded border bg-neutral-100 p-0.5">
             {(["simple", "deep"] as const).map((v) => (
               <button
@@ -99,6 +107,24 @@ export function PlanShell({
       </div>
       {children}
     </div>
+  );
+}
+
+export function PlanShell({
+  date,
+  children,
+}: {
+  date: string | null;
+  children: React.ReactNode;
+}) {
+  return (
+    <ViewShell
+      title="Your plan"
+      subtitle={date ? `Written ${date}` : "No plan yet. Generate one."}
+      actions={<GeneratePlan />}
+    >
+      {children}
+    </ViewShell>
   );
 }
 
@@ -159,50 +185,50 @@ export function ActionButtons({
   return (
     <div className="space-y-2">
       <div className="flex flex-wrap items-center gap-2">
-      {isTest ? (
-        <Link
-          href="/insights"
-          className="inline-flex h-8 items-center gap-1.5 rounded-sm border border-neutral-200 bg-neutral-0 px-3 font-display text-[12px] tracking-[0.04em] text-neutral-700 hover:border-neutral-900 hover:bg-neutral-50"
-        >
-          <Stethoscope className="size-3.5" /> Plan retest
-        </Link>
-      ) : (
+        {isTest ? (
+          <Link
+            href="/insights"
+            className="inline-flex h-8 items-center gap-1.5 rounded-sm border border-neutral-200 bg-neutral-0 px-3 font-display text-[12px] tracking-[0.04em] text-neutral-700 hover:border-neutral-900 hover:bg-neutral-50"
+          >
+            <Stethoscope className="size-3.5" /> Plan retest
+          </Link>
+        ) : (
+          <Button
+            size="sm"
+            variant="outline-subtle"
+            disabled={busy}
+            onClick={async () => {
+              if (await run("/api/plan/adopt", { reportId, actionIndex }))
+                setState("adopted");
+            }}
+          >
+            Add to protocol
+          </Button>
+        )}
         <Button
           size="sm"
-          variant="outline-subtle"
+          variant="ghost"
           disabled={busy}
           onClick={async () => {
-            if (await run("/api/plan/adopt", { reportId, actionIndex }))
-              setState("adopted");
+            if (await run("/api/plan/dismiss", { reportId, actionIndex }))
+              setState("dismissed");
           }}
         >
-          Add to protocol
+          Not for me
         </Button>
-      )}
-      <Button
-        size="sm"
-        variant="ghost"
-        disabled={busy}
-        onClick={async () => {
-          if (await run("/api/plan/dismiss", { reportId, actionIndex }))
-            setState("dismissed");
-        }}
-      >
-        Not for me
-      </Button>
-      <Button
-        size="sm"
-        variant="ghost"
-        disabled={busy}
-        onClick={() => setAsking((v) => !v)}
-      >
-        <MessageSquare className="size-3.5" /> Discuss
-      </Button>
-      {error && (
-        <span className="text-[12px] text-[var(--color-health-critical)]">
-          {error}
-        </span>
-      )}
+        <Button
+          size="sm"
+          variant="ghost"
+          disabled={busy}
+          onClick={() => setAsking((v) => !v)}
+        >
+          <MessageSquare className="size-3.5" /> Discuss
+        </Button>
+        {error && (
+          <span className="text-[12px] text-[var(--color-health-critical)]">
+            {error}
+          </span>
+        )}
       </div>
 
       {asking && (

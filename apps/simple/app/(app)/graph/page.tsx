@@ -1,0 +1,352 @@
+import { and, eq } from "drizzle-orm";
+import Link from "next/link";
+import { getDb, reviewItems } from "@/db";
+import { requireUserId } from "@/lib/auth";
+import {
+  buildModelInput,
+  queueProfileQuestions,
+  type ModelInput,
+} from "@/lib/coverage";
+import { computeGraphState, type ActiveEdge } from "@/lib/graph-state";
+import {
+  NODES,
+  SYSTEMS,
+  type GraphNode,
+  type Relation,
+  type SystemId,
+} from "@/lib/graph";
+import { matchPatterns } from "@/lib/patterns";
+import { healthStatus, type Status } from "@/lib/status";
+import { ReviewItem } from "@/components/client";
+import { SystemLinks, type SystemLink } from "@/components/graph-map";
+import { ViewShell } from "@/components/plan";
+import { StatusBadge } from "@/components/status-badge";
+import { Badge, Card } from "@/components/ui-kit";
+
+export const dynamic = "force-dynamic";
+
+const HOT_NODES = 15;
+
+const byId = new Map(NODES.map((n) => [n.id, n]));
+
+/** Red raises something bad, green helps, grey is neither. */
+const TONE: Record<Relation, SystemLink["tone"]> = {
+  raises: "bad",
+  worsens: "bad",
+  confounds: "bad",
+  lowers: "good",
+  treats: "good",
+  indicates: "good",
+  requires_test: "neutral",
+  modifies_target: "neutral",
+};
+
+const SEVERITY: Record<Status, number> = {
+  red: 3,
+  amber: 2,
+  green: 1,
+  gray: 0,
+};
+
+const CONFIDENCE_RANK = {
+  established: 3,
+  probable: 2,
+  speculative: 1,
+} as const;
+
+const CONFIDENCE_BADGE = {
+  established: "normal",
+  probable: "info",
+  speculative: "secondary",
+} as const;
+
+const systemOf = (nodeId: string): SystemId | undefined =>
+  byId.get(nodeId)?.system;
+
+const short = (id: string) => id.slice(id.indexOf(":") + 1);
+
+function Label({ children }: { children: React.ReactNode }) {
+  return (
+    <h2 className="mb-2 font-mono text-[10px] font-bold uppercase tracking-[0.06em] text-neutral-400">
+      {children}
+    </h2>
+  );
+}
+
+/** 0..1 as a track with a filled portion. The ring, flattened. */
+function ImportanceBar({
+  importance,
+  className = "",
+}: {
+  importance: number;
+  className?: string;
+}) {
+  const tone =
+    importance >= 0.6
+      ? "var(--color-health-critical)"
+      : importance >= 0.3
+        ? "var(--color-health-warning)"
+        : "var(--color-accent-500)";
+  return (
+    <span
+      className={`inline-block h-[3px] w-full bg-neutral-150 ${className}`}
+      title={`importance ${importance}`}
+    >
+      <span
+        className="block h-full"
+        style={{
+          width: `${Math.round(importance * 100)}%`,
+          background: tone,
+        }}
+      />
+    </span>
+  );
+}
+
+/** The member metric this person should look at first in this system. */
+function worstMember(
+  system: SystemId,
+  input: ModelInput,
+  importance: Map<string, number>,
+): { node: GraphNode; code: string } | null {
+  const members = NODES.filter(
+    (n) =>
+      n.kind === "metric" &&
+      n.system === system &&
+      input.latest[short(n.id)]?.value != null,
+  );
+  let best: { node: GraphNode; code: string; rank: number } | null = null;
+  for (const node of members) {
+    const code = short(node.id);
+    const row = input.latest[code]!;
+    const rank = SEVERITY[row.status] * 10 + (importance.get(node.id) ?? 0);
+    if (!best || rank > best.rank) best = { node, code, rank };
+  }
+  return best;
+}
+
+/** One arc per system pair, tone and confidence; the strongest edge wins. */
+function toLinks(edges: ActiveEdge[]): SystemLink[] {
+  const out = new Map<string, SystemLink>();
+  for (const edge of edges) {
+    const from = systemOf(edge.from);
+    const to = systemOf(edge.to);
+    if (!from || !to || from === to) continue;
+    const tone = TONE[edge.relation];
+    const key = `${from}|${to}|${tone}`;
+    const seen = out.get(key);
+    if (seen && seen.strength >= edge.strength) {
+      if (CONFIDENCE_RANK[edge.confidence] > CONFIDENCE_RANK[seen.confidence])
+        seen.confidence = edge.confidence;
+      continue;
+    }
+    out.set(key, {
+      from,
+      to,
+      tone,
+      confidence: edge.confidence,
+      strength: edge.strength,
+      title: `${edge.id}: ${edge.mechanism}`,
+    });
+  }
+  return [...out.values()];
+}
+
+export default async function GraphPage() {
+  const userId = await requireUserId();
+  const db = getDb();
+
+  let input = await buildModelInput(userId);
+  if (!input.sex || input.age == null) {
+    await queueProfileQuestions(userId);
+    input = await buildModelInput(userId);
+  }
+
+  const blocked = !input.sex || input.age == null;
+  if (blocked) {
+    const open = await db
+      .select()
+      .from(reviewItems)
+      .where(
+        and(
+          eq(reviewItems.userId, userId),
+          eq(reviewItems.status, "open"),
+          eq(reviewItems.kind, "profile_question"),
+        ),
+      );
+    const firstTwo = open.filter((q) =>
+      ["sex", "birth_year"].includes(q.subject?.factKey ?? ""),
+    );
+    return (
+      <ViewShell title="Your graph" subtitle="Nothing to draw yet">
+        <Card className="p-4">
+          <p className="font-body text-[13px] text-neutral-700">
+            The graph needs sex and age before it can rank anything: every
+            optimal range and half the edges depend on them. Answer these two
+            and it fills in.
+          </p>
+          <div className="mt-3 space-y-2">
+            {firstTwo.map((q) => (
+              <ReviewItem
+                key={q.id}
+                id={q.id}
+                question={q.question}
+                options={q.options}
+              />
+            ))}
+          </div>
+        </Card>
+      </ViewShell>
+    );
+  }
+
+  const patterns = matchPatterns(input).filter((p) => p.matched);
+  const graph = computeGraphState(input, { top: HOT_NODES });
+  const importance = new Map(graph.nodes.map((n) => [n.id, n.importance]));
+  const links = toLinks(graph.activeEdges);
+
+  return (
+    <ViewShell
+      title="Your graph"
+      subtitle={`${graph.activeEdges.length} active edges over 12 systems`}
+    >
+      <SystemLinks links={links}>
+        <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
+          {SYSTEMS.map((system) => {
+            const score = importance.get(`system:${system.id}`) ?? 0;
+            const worst = worstMember(system.id, input, importance);
+            const row = worst ? input.latest[worst.code] : null;
+            const touching = graph.activeEdges.filter(
+              (e) =>
+                systemOf(e.from) === system.id || systemOf(e.to) === system.id,
+            ).length;
+            return (
+              <Card
+                key={system.id}
+                data-system={system.id}
+                className="flex min-h-[112px] flex-col gap-2 p-3"
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <p className="font-display text-[13px] font-medium leading-tight">
+                    {system.name}
+                  </p>
+                  <span className="font-mono text-[10px] tabular-nums text-neutral-400">
+                    {score.toFixed(2)}
+                  </span>
+                </div>
+                <ImportanceBar importance={score} />
+
+                {worst && row ? (
+                  <div className="mt-auto space-y-1">
+                    <Link
+                      href={`/m/${worst.code}`}
+                      className="block truncate font-body text-[12px] text-neutral-700 hover:underline"
+                    >
+                      {worst.node.name}{" "}
+                      <span className="font-mono tabular-nums">
+                        {row.value}
+                        {row.unit ? ` ${row.unit}` : ""}
+                      </span>
+                    </Link>
+                    <StatusBadge
+                      status={healthStatus(row)}
+                      label={healthStatus(row)}
+                    />
+                  </div>
+                ) : (
+                  <p className="mt-auto font-mono text-[10px] uppercase tracking-[0.04em] text-neutral-400">
+                    never measured
+                  </p>
+                )}
+
+                <p className="font-mono text-[10px] uppercase tracking-[0.04em] text-neutral-400">
+                  {touching} active {touching === 1 ? "edge" : "edges"}
+                </p>
+              </Card>
+            );
+          })}
+        </div>
+      </SystemLinks>
+
+      <section>
+        <Label>Matched patterns · {patterns.length}</Label>
+        {patterns.length ? (
+          <div className="flex flex-wrap gap-2">
+            {patterns.map((m) => (
+              <Link
+                key={m.pattern.id}
+                href={`/patterns/${m.pattern.id}`}
+                className="inline-flex items-center gap-2 border border-neutral-200 bg-neutral-0 px-3 py-1.5 font-body text-[13px] text-neutral-800 hover:border-neutral-900"
+              >
+                {m.pattern.name}
+                {m.stage && <Badge variant="warning">{m.stage}</Badge>}
+              </Link>
+            ))}
+          </div>
+        ) : (
+          <Card className="p-4">
+            <p className="font-body text-[13px] text-neutral-500">
+              No pattern matches your numbers yet.
+            </p>
+          </Card>
+        )}
+      </section>
+
+      <section>
+        <Label>Hot nodes · top {Math.min(HOT_NODES, graph.hot.length)}</Label>
+        <div className="card divide-y divide-neutral-100">
+          {graph.hot.length === 0 && (
+            <p className="px-4 py-3 font-body text-[13px] text-neutral-500">
+              Nothing is hot yet. Upload a lab result and this fills in.
+            </p>
+          )}
+          {graph.hot.map((node) => (
+            <div key={node.id} className="px-4 py-2">
+              <div className="flex items-center gap-3">
+                <span className="flex-1 truncate font-mono text-[11px] text-neutral-700">
+                  {node.id}
+                </span>
+                <span className="w-24 shrink-0">
+                  <ImportanceBar importance={node.importance} />
+                </span>
+                <span className="w-9 shrink-0 text-right font-mono text-[10px] tabular-nums text-neutral-400">
+                  {node.importance.toFixed(2)}
+                </span>
+              </div>
+              <p className="deep mt-1 font-body text-[12px] text-neutral-500">
+                {node.reasons.join("; ") || "no reason recorded"}
+              </p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="deep">
+        <Label>Active edges · {graph.activeEdges.length}</Label>
+        <div className="card divide-y divide-neutral-100">
+          {graph.activeEdges.length === 0 && (
+            <p className="px-4 py-3 font-body text-[13px] text-neutral-500">
+              No edge is active for you.
+            </p>
+          )}
+          {graph.activeEdges.map((edge) => (
+            <div key={edge.id} className="flex items-start gap-2 px-4 py-2">
+              <Badge variant={CONFIDENCE_BADGE[edge.confidence]}>
+                {edge.confidence}
+              </Badge>
+              <span className="flex-1 font-body text-[12px] text-neutral-600">
+                <span className="font-mono text-[11px] text-neutral-500">
+                  {edge.id}
+                </span>{" "}
+                {edge.mechanism}
+              </span>
+              <span className="shrink-0 font-mono text-[10px] tabular-nums text-neutral-400">
+                impact {edge.impact}
+              </span>
+            </div>
+          ))}
+        </div>
+      </section>
+    </ViewShell>
+  );
+}
