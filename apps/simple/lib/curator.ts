@@ -1,4 +1,4 @@
-import { formatRange } from "./status";
+import { formatRange, healthStatus } from "./status";
 /**
  * The data curator. It runs after every upload and once a day, fixes what is
  * safe to fix on its own, and turns everything else into a question for the
@@ -13,23 +13,34 @@ import { formatRange } from "./status";
  * `applyAnswer`, behind the user answering "Delete this reading".
  */
 import { generateText } from "ai";
-import { and, eq, isNull, sql } from "drizzle-orm";
+import { and, eq, inArray, isNull, sql } from "drizzle-orm";
 import {
   getDb,
   pool,
   curatorRuns,
   goals as goalsTable,
   metrics as metricsTable,
+  optimalOverrides,
+  profileFacts,
   readings as readingsTable,
   reviewItems,
+  uploads as uploadsTable,
   type CuratorStats,
   type Metric,
   type ReadingFlag,
   type ReviewSubject,
 } from "@/db";
-import { queueProfileQuestions, saveFact } from "./coverage";
+import {
+  optimalFor,
+  queueProfileQuestions,
+  saveFact,
+  toAge,
+  toSex,
+} from "./coverage";
 import { model, stripCodeFences } from "./extract";
-import { inGoal } from "./daily";
+import { inGoal, localDay } from "./daily";
+import { planRawVerify, rawVerifyScope } from "./raw-verify";
+import { SEX_RANGES } from "./vectors";
 import { conversionFactor, normalizeUnit, round } from "./units";
 
 export type Trigger = "upload" | "daily" | "manual";
@@ -38,6 +49,7 @@ export type Check =
   | "unit_spelling"
   | "unit_convert"
   | "ref_scale"
+  | "raw_verify"
   | "urine_text"
   | "metric_identity"
   | "missing_range"
@@ -75,15 +87,6 @@ export type Action =
     }
   /** "Stop asking about this metric." */
   | { type: "mute"; check: Check; metricCode: string }
-  /** An optimal range good enough to set without asking. */
-  | {
-      type: "optimal";
-      check: Check;
-      metricCode: string;
-      low: number | null;
-      high: number | null;
-      source: string;
-    }
   | {
       type: "queue";
       check: Check;
@@ -732,7 +735,12 @@ ${batch.map((m) => m.name).join("\n")}`,
   return actions;
 }
 
-/** Bands from these are not worth a question when the lab agrees with them. */
+/**
+ * Guideline bodies and named authors. A band whose source is one of these is
+ * labelled `science`; anything else is somebody's opinion until the model says
+ * otherwise. Used for the proposals queued before this app decided ranges on
+ * its own and had no `basis` field.
+ */
 export const TRUSTED_OPTIMAL_SOURCES = [
   "Attia/Outlive",
   "Function Health",
@@ -744,119 +752,201 @@ export const TRUSTED_OPTIMAL_SOURCES = [
   "ATA",
 ];
 
+export interface OptimalBand {
+  metricCode: string;
+  low: number | null;
+  high: number | null;
+  unit: string | null;
+  source: string;
+  basis: "science" | "opinion";
+  rationale: string;
+}
+
+export interface LabRange {
+  refLow: number | null;
+  refHigh: number | null;
+}
+
+/** What the model is asked to return for one biomarker. */
 export interface OptimalProposal {
   low: number | null;
   high: number | null;
-  source: string | null;
-  /** Left out by a queued item, which was minted from the metric's unit. */
   unit?: string | null;
+  source?: string | null;
+  basis?: string | null;
+  rationale?: string | null;
 }
 
 /**
- * A band from a source we trust, written in the metric's own unit, that sits
- * inside what this lab already calls normal, tells the user nothing they can
- * argue with. It is applied instead of asked. Every metric page keeps its
- * manual override, so nothing is locked in.
+ * A proposal into a band this app is willing to store, or null when it cannot
+ * be used at all. Two rules live here and not in the prompt: the band has to
+ * be in the metric's own unit (converted when the factor is known, dropped
+ * when it is not), and a band wider than the lab's own range at BOTH ends is
+ * the model restating the reference interval, so it is clamped back onto it.
  */
-export function acceptsOptimal(
+export function planOptimalBand(
   p: OptimalProposal,
   m: MetricLike,
-  lab: { refLow: number | null; refHigh: number | null } | null,
-): boolean {
-  if (p.low == null && p.high == null) return false;
-  if (!p.source || !TRUSTED_OPTIMAL_SOURCES.includes(p.source)) return false;
-  if (p.unit !== undefined && normalizeUnit(p.unit) !== normalizeUnit(m.unit))
-    return false;
-  if (!lab) return true;
-  if (lab.refLow != null && p.low != null && p.low < lab.refLow) return false;
-  if (lab.refHigh != null && p.high != null && p.high > lab.refHigh)
-    return false;
-  return true;
+  lab: LabRange | null,
+): OptimalBand | null {
+  if (p.low == null && p.high == null) return null;
+
+  let low = p.low;
+  let high = p.high;
+  if (p.unit && normalizeUnit(p.unit) !== normalizeUnit(m.unit)) {
+    const factor = conversionFactor(p.unit, m.unit, m.code);
+    if (factor == null) return null;
+    low = low == null ? null : round(low * factor);
+    high = high == null ? null : round(high * factor);
+  }
+
+  let rationale = (p.rationale ?? "").trim();
+  if (
+    lab &&
+    lab.refLow != null &&
+    low != null &&
+    low < lab.refLow &&
+    lab.refHigh != null &&
+    high != null &&
+    high > lab.refHigh
+  ) {
+    low = lab.refLow;
+    high = lab.refHigh;
+    rationale = rationale
+      ? `${rationale} \u00b7 clamped to lab range`
+      : "clamped to lab range";
+  }
+
+  return {
+    metricCode: m.code,
+    low,
+    high,
+    unit: m.unit,
+    source: (p.source ?? "").trim() || "unsourced",
+    basis: p.basis === "science" ? "science" : "opinion",
+    rationale,
+  };
 }
 
-/** 5. Metrics with readings but no optimal range. */
+/**
+ * Does a new band turn a result the lab is happy with into a red one? Amber
+ * does not count: only a value sitting more than half a band outside it. That
+ * is the one range question this app still asks, and it carries its reason.
+ */
+export function flipsToRed(
+  latest: {
+    value: number | null;
+    refLow: number | null;
+    refHigh: number | null;
+    observedAt?: string;
+  } | null,
+  before: [number | null, number | null],
+  after: [number | null, number | null],
+): boolean {
+  if (latest?.value == null) return false;
+  const at = (band: [number | null, number | null]) =>
+    healthStatus({
+      value: latest.value,
+      refLow: latest.refLow,
+      refHigh: latest.refHigh,
+      optimalLow: band[0],
+      optimalHigh: band[1],
+    });
+  return at(before) === "normal" && at(after) === "critical";
+}
+
+/** The one range question left: a band that just turned a good result red. */
+export function planRangeImpact(
+  band: OptimalBand,
+  m: MetricLike,
+  latest: {
+    value: number | null;
+    refLow: number | null;
+    refHigh: number | null;
+    observedAt: string;
+  } | null,
+  before: [number | null, number | null],
+  lab: LabRange | null,
+): Action | null {
+  if (!flipsToRed(latest, before, [band.low, band.high])) return null;
+  const value = `${latest!.value} ${m.unit ?? ""}`.trim();
+  return {
+    type: "queue",
+    check: "missing_optimal",
+    kind: "range_impact",
+    question: `Your ${m.name} of ${value} is now outside the optimal band ${formatRange(band.low, band.high, m.unit)} (${band.source}). Keep this band or use the lab's range?`,
+    options: ["Keep optimal band", "Use lab range"],
+    subject: {
+      key: m.code,
+      metricCode: m.code,
+      optimalLow: band.low,
+      optimalHigh: band.high,
+      source: band.source,
+      labLow: lab?.refLow ?? null,
+      labHigh: lab?.refHigh ?? null,
+      detail: `${value} on ${latest!.observedAt} \u00b7 lab range ${formatRange(lab?.refLow ?? null, lab?.refHigh ?? null, m.unit)}`,
+    },
+  };
+}
+
+/** The person the band is for, so the model is not guessing at a generic adult. */
+export interface Person {
+  sex?: string;
+  age?: number;
+}
+
+/** 5. Metrics with readings but no optimal band for THIS user. */
 async function planMissingOptimal(
   candidates: Metric[],
-  labRange: (code: string) => { refLow: number | null; refHigh: number | null } | null,
-): Promise<Action[]> {
-  if (!candidates.length || !hasKey()) return [];
+  person: Person,
+  labRange: (code: string) => LabRange | null,
+  lastValues: (code: string) => number[],
+): Promise<{ bands: OptimalBand[]; mute: string[] }> {
+  const nothing = { bands: [], mute: [] };
+  if (!candidates.length || !hasKey()) return nothing;
   const batch = candidates.slice(0, LLM_BATCH);
 
-  const answer = await askJson<{
-    ranges?: {
-      code: string;
-      low: number | null;
-      high: number | null;
-      unit: string | null;
-      source: string | null;
-    }[];
-  }>(
-    `You are a preventive-medicine reference. For each biomarker give the OPTIMAL range (not the lab reference range) for a healthy adult, in the unit given, plus the unit you used and the source it comes from (for example "Attia/Outlive", "Function Health", "AHA", "Endocrine Society").
-Use null for low, high AND source when there is no published consensus on an optimal range for that marker. Never invent a source.
-Return JSON only: {"ranges":[{"code":"...","low":<number|null>,"high":<number|null>,"unit":"<unit|null>","source":"<name|null>"}]}`,
-    `BIOMARKERS (code | name | unit):
-${batch.map((m) => `${m.code} | ${m.name} | ${m.unit ?? ""}`).join("\n")}`,
+  const answer = await askJson<{ ranges?: (OptimalProposal & { code: string })[] }>(
+    `You are a preventive-medicine reference. For each biomarker give the OPTIMAL range for THIS person (not the lab reference range), in the unit given.
+Return, for each: low, high, the unit you used, the source, the basis and a one-sentence rationale.
+"source" must be a named guideline or a named author ("Endocrine Society 2011", "Attia/Outlive", "AHA 2019"), never "general consensus".
+"basis" is "science" when you cite a guideline or a meta-analysis, otherwise "opinion".
+Use null for low, high AND source when there is no published optimal range for that marker. Never invent a source.
+Return JSON only: {"ranges":[{"code":"...","low":<number|null>,"high":<number|null>,"unit":"<unit|null>","source":"<name|null>","basis":"science|opinion","rationale":"..."}]}`,
+    `PERSON: ${person.sex ?? "sex unknown"}, ${person.age != null ? `${person.age} years old` : "age unknown"}
+
+BIOMARKERS (code | name | unit | this person's lab reference range | their last values, oldest first):
+${batch
+  .map((m) => {
+    const lab = labRange(m.code);
+    const values = lastValues(m.code);
+    return `${m.code} | ${m.name} | ${m.unit ?? ""} | ${lab ? formatRange(lab.refLow, lab.refHigh, m.unit) : "no printed range"} | ${values.length ? values.join(", ") : "none"}`;
+  })
+  .join("\n")}`,
   );
-  if (!answer?.ranges) return [];
+  if (!answer?.ranges) return nothing;
 
   const byCode = new Map(batch.map((m) => [m.code, m]));
-  const actions: Action[] = [];
+  const bands: OptimalBand[] = [];
+  const mute: string[] = [];
 
   for (const r of answer.ranges) {
     const m = byCode.get(r.code);
     if (!m) continue;
-
-    // No consensus: stop asking about this one.
-    if (r.low == null && r.high == null) {
-      actions.push({
-        type: "mute",
-        check: "missing_optimal",
-        metricCode: m.code,
-      });
+    const band = planOptimalBand(r, m, labRange(m.code));
+    if (band) {
+      bands.push(band);
       continue;
     }
-
-    if (
-      acceptsOptimal(
-        { low: r.low, high: r.high, source: r.source, unit: r.unit ?? m.unit },
-        m,
-        labRange(m.code),
-      )
-    ) {
-      actions.push({
-        type: "optimal",
-        check: "missing_optimal",
-        metricCode: m.code,
-        low: r.low,
-        high: r.high,
-        source: r.source!,
-      });
-      continue;
-    }
-
-    actions.push({
-      type: "queue",
-      check: "missing_optimal",
-      kind: "optimal_range",
-      question: `Set the optimal range for "${m.name}" to ${formatRange(r.low, r.high, m.unit)}${r.source ? ` (source: ${r.source})` : ""}?`,
-      options: ["Accept", "Reject"],
-      subject: {
-        key: m.code,
-        metricCode: m.code,
-        optimalLow: r.low,
-        optimalHigh: r.high,
-        source: r.source,
-        detail: `${formatRange(r.low, r.high, m.unit)}`,
-      },
-    });
+    if (r.low != null || r.high != null)
+      console.warn(
+        `[curator] dropped optimal band for ${m.code}: ${r.low}-${r.high} ${r.unit ?? ""} cannot be read in ${m.unit ?? "no unit"}`,
+      );
+    mute.push(m.code);
   }
 
-  return actions;
+  return { bands, mute };
 }
-
-/* ------------------------------------------------------------------ *
- * The run
- * ------------------------------------------------------------------ */
 
 /**
  * Units the legacy catalog got wrong. Lp(a) is convertible between mass and
@@ -878,7 +968,12 @@ const NEW_METRICS: Record<
 };
 
 /** Kinds the deterministic planners own end to end, so a run can close them. */
-const AUTO_CLOSED_KINDS = ["unit_unknown", "implausible", "foreign_reading"];
+const AUTO_CLOSED_KINDS = [
+  "unit_unknown",
+  "implausible",
+  "foreign_reading",
+  "confirm_value",
+];
 
 const blank = () => ({ checked: 0, fixed: 0, queued: 0 });
 
@@ -939,6 +1034,23 @@ export async function runCurator(
       ? history.filter((r) => r.uploadId === scope.uploadId)
       : history;
 
+    // Who this is, and which bands they already have. Both feed the range step.
+    const [facts, overrides] = await Promise.all([
+      db.select().from(profileFacts).where(eq(profileFacts.userId, userId)),
+      db
+        .select()
+        .from(optimalOverrides)
+        .where(eq(optimalOverrides.userId, userId)),
+    ]);
+    const profile: Record<string, unknown> = {};
+    for (const f of facts) profile[f.key] = f.value;
+    const sex = toSex(profile.sex);
+    const age = toAge(profile.birth_year, localDay());
+    const ageBand = age == null ? null : `${Math.floor(age / 10) * 10}s`;
+    const had = new Map<string, [number | null, number | null]>(
+      overrides.map((o) => [o.metricCode, [o.low, o.high]]),
+    );
+
     // Asked once, never asked again, whatever the answer was.
     const asked = new Set(
       existing.map((i) => `${i.kind}:${i.subject?.key ?? ""}`),
@@ -969,7 +1081,42 @@ export async function runCurator(
     bump("ref_scale").checked = targets.length;
     take(planRefScale(targets, history), "auto: reference range rescaled");
 
-    // 4. Urine strip answers sitting on a blood metric.
+    // 4. The lab sheet itself, for the rows that look wrong or were rewritten.
+    const askedAbout = new Set(
+      existing
+        .filter(
+          (i) =>
+            i.status === "open" &&
+            ["implausible", "foreign_reading", "confirm_value"].includes(i.kind),
+        )
+        .map((i) => i.subject?.readingId ?? "")
+        .filter(Boolean),
+    );
+    const suspect = rawVerifyScope(targets, askedAbout);
+    if (suspect.length) {
+      const ids = [
+        ...new Set(suspect.map((r) => r.uploadId).filter((id) => id != null)),
+      ];
+      const sheets = await db
+        .select({ id: uploadsTable.id, rawText: uploadsTable.rawText })
+        .from(uploadsTable)
+        .where(inArray(uploadsTable.id, ids));
+      const raw = new Map(
+        sheets
+          .filter((u) => u.rawText)
+          .map((u) => [u.id, u.rawText!] as [string, string]),
+      );
+      const aliases = new Map(
+        allMetrics.map((m) => [m.code, m.aliases ?? []] as [string, string[]]),
+      );
+      bump("raw_verify").checked = suspect.length;
+      take(
+        planRawVerify(suspect, byCode, raw, aliases),
+        "auto: checked against the lab sheet",
+      );
+    }
+
+    // 5. Urine strip answers sitting on a blood metric.
     bump("urine_text").checked = targets.length;
     take(planUrineText(targets, byCode), "auto: moved to urinalysis");
 
@@ -1001,51 +1148,116 @@ export async function runCurator(
       return last ? { refLow: last.refLow, refHigh: last.refHigh } : null;
     };
 
-    // Questions already in the queue that the auto-accept rule now answers.
-    const autoOptimal = new Set<string>();
+    /** The last five values this person actually got, oldest first. */
+    const lastValues = (code: string) =>
+      history
+        .filter((r) => r.metricCode === code && r.value != null)
+        .sort((a, b) => a.observedAt.localeCompare(b.observedAt))
+        .slice(-5)
+        .map((r) => r.value!);
+
+    const latestOf = (code: string) => {
+      const rows = history
+        .filter((r) => r.metricCode === code && r.value != null)
+        .sort((a, b) => a.observedAt.localeCompare(b.observedAt));
+      return rows[rows.length - 1] ?? null;
+    };
+
+    /** The band in force before this run: the user's own, then sex, then catalog. */
+    const bandBefore = (code: string): [number | null, number | null] => {
+      const m = allMetrics.find((x) => x.code === code);
+      return optimalFor(code, sex, [m?.optimalLow ?? null, m?.optimalHigh ?? null], had);
+    };
+
+    /** Write one band for THIS user. The shared catalog columns stay untouched. */
+    const writeBand = async (band: OptimalBand) => {
+      await saveOptimalOverride(userId, band.metricCode, {
+        ...band,
+        rationale: band.rationale || null,
+        sex: sex ?? null,
+        ageBand,
+      });
+      bump("missing_optimal").fixed++;
+    };
+
+    // The range questions asked before this app decided ranges on its own.
+    // Each becomes a band with provenance, and the question goes away.
     for (const item of existing) {
       if (item.status !== "open" || item.kind !== "optimal_range") continue;
       const code = item.subject?.metricCode;
       const m = code ? byCode.get(code) : undefined;
-      if (!code || !m) continue;
-      const proposal = {
-        low: item.subject.optimalLow ?? null,
-        high: item.subject.optimalHigh ?? null,
-        source: item.subject.source ?? null,
-      };
-      if (!acceptsOptimal(proposal, m, labRange(code))) continue;
-      await db
-        .update(metricsTable)
-        .set({
-          optimalLow: proposal.low,
-          optimalHigh: proposal.high,
-          optimalSource: `auto:${proposal.source}`,
-          needsReview: false,
-        })
-        .where(eq(metricsTable.code, code));
+      if (code && m) {
+        const source = item.subject.source ?? null;
+        const band = planOptimalBand(
+          {
+            low: item.subject.optimalLow ?? null,
+            high: item.subject.optimalHigh ?? null,
+            source,
+            basis:
+              source && TRUSTED_OPTIMAL_SOURCES.includes(source)
+                ? "science"
+                : "opinion",
+            rationale: "proposed for review before the app settled ranges itself",
+          },
+          m,
+          labRange(code),
+        );
+        if (band) {
+          const impact = planRangeImpact(
+            band,
+            m,
+            latestOf(code),
+            bandBefore(code),
+            labRange(code),
+          );
+          await writeBand(band);
+          had.set(code, [band.low, band.high]);
+          if (impact) actions.push(impact);
+        }
+      }
       await db
         .update(reviewItems)
         .set({
-          answer: "auto: inside lab range, trusted source",
+          answer: "auto: applied with provenance",
           status: "applied",
           resolvedAt: new Date(),
         })
         .where(eq(reviewItems.id, item.id));
-      autoOptimal.add(code);
-      bump("missing_optimal").fixed++;
     }
 
     const noOptimal = allMetrics.filter(
       (m) =>
         withReadings.has(m.code) &&
+        !had.has(m.code) &&
+        !(sex && SEX_RANGES[m.code]?.[sex]) &&
         m.optimalLow == null &&
         m.optimalHigh == null &&
-        !m.needsReview &&
-        !autoOptimal.has(m.code),
+        !m.needsReview,
     );
-    const optimal = await planMissingOptimal(noOptimal, labRange);
+    const optimal = await planMissingOptimal(
+      noOptimal,
+      { sex, age },
+      labRange,
+      lastValues,
+    );
     bump("missing_optimal").checked = noOptimal.length;
-    actions.push(...optimal);
+
+    for (const metricCode of optimal.mute)
+      actions.push({ type: "mute", check: "missing_optimal", metricCode });
+
+    for (const band of optimal.bands) {
+      const m = byCode.get(band.metricCode)!;
+      const impact = planRangeImpact(
+        band,
+        m,
+        latestOf(m.code),
+        bandBefore(m.code),
+        labRange(m.code),
+      );
+      await writeBand(band);
+      had.set(m.code, [band.low, band.high]);
+      if (impact) actions.push(impact);
+    }
 
     // 8 + 9, on rows the checks above have already straightened out.
     bump("implausible_value").checked = targets.length;
@@ -1091,20 +1303,6 @@ export async function runCurator(
         await db
           .update(metricsTable)
           .set({ needsReview: true })
-          .where(eq(metricsTable.code, a.metricCode));
-        bump(a.check).fixed++;
-        continue;
-      }
-
-      if (a.type === "optimal") {
-        await db
-          .update(metricsTable)
-          .set({
-            optimalLow: a.low,
-            optimalHigh: a.high,
-            optimalSource: `auto:${a.source}`,
-            needsReview: false,
-          })
           .where(eq(metricsTable.code, a.metricCode));
         bump(a.check).fixed++;
         continue;
@@ -1189,6 +1387,47 @@ export async function runCuratorForAllUsers(trigger: Trigger) {
  * Answering
  * ------------------------------------------------------------------ */
 
+/**
+ * One optimal band for one user. The shared `metrics.optimal*` columns are the
+ * catalog fallback and are never written from here, so two users cannot
+ * overwrite each other.
+ */
+export async function saveOptimalOverride(
+  userId: string,
+  metricCode: string,
+  band: {
+    low: number | null;
+    high: number | null;
+    unit?: string | null;
+    source: string;
+    basis: "science" | "opinion";
+    rationale?: string | null;
+    sex?: string | null;
+    ageBand?: string | null;
+  },
+) {
+  const set = {
+    low: band.low,
+    high: band.high,
+    unit: band.unit ?? null,
+    source: band.source,
+    basis: band.basis,
+    rationale: band.rationale ?? null,
+    sex: band.sex ?? null,
+    ageBand: band.ageBand ?? null,
+    updatedAt: new Date(),
+  };
+  const [row] = await getDb()
+    .insert(optimalOverrides)
+    .values({ userId, metricCode, ...set })
+    .onConflictDoUpdate({
+      target: [optimalOverrides.userId, optimalOverrides.metricCode],
+      set,
+    })
+    .returning();
+  return row ?? null;
+}
+
 /** The answer itself was unusable (a metric code that does not exist). */
 export class BadAnswerError extends Error {}
 
@@ -1259,22 +1498,57 @@ export async function applyAnswer(
     }
   }
 
-  if (item.kind === "optimal_range" && s.metricCode) {
-    if (answer.startsWith("Accept")) {
-      await db
-        .update(metricsTable)
-        .set({
-          optimalLow: s.optimalLow ?? null,
-          optimalHigh: s.optimalHigh ?? null,
-          optimalSource: s.source ?? null,
-        })
-        .where(eq(metricsTable.code, s.metricCode));
+  /**
+   * The only range question left. Keeping the band needs no write; the lab's
+   * own range becomes this user's band, with the lab named as the source.
+   */
+  if (item.kind === "range_impact" && s.metricCode) {
+    if (answer.startsWith("Use lab")) {
+      await saveOptimalOverride(userId, s.metricCode, {
+        low: s.labLow ?? null,
+        high: s.labHigh ?? null,
+        source: "lab range",
+        basis: "science",
+        rationale: "you chose the lab's own reference range over the band",
+      });
+    }
+    status = "applied";
+  }
+
+  /**
+   * The lab sheet did not settle a value. "Note…" carries the right number.
+   */
+  if (item.kind === "confirm_value" && s.readingId) {
+    const [r] = await db
+      .select()
+      .from(readingsTable)
+      .where(eq(readingsTable.id, s.readingId));
+    if (answer.startsWith("Discard")) {
+      await db.delete(readingsTable).where(eq(readingsTable.id, s.readingId));
       status = "applied";
-    } else {
+    } else if (answer.startsWith("Note") && r) {
+      const value = Number(String(note ?? "").replace(",", "."));
+      if (Number.isFinite(value)) {
+        await db
+          .update(readingsTable)
+          .set({
+            value,
+            flags: addFlags(r, {
+              raw_verified: {
+                orig: { value: r.value, refLow: r.refLow, refHigh: r.refHigh },
+                sheet: s.sheet ?? "answered by the user",
+              },
+            }),
+          })
+          .where(eq(readingsTable.id, r.id));
+        status = "applied";
+      }
+    } else if (r) {
       await db
-        .update(metricsTable)
-        .set({ needsReview: true })
-        .where(eq(metricsTable.code, s.metricCode));
+        .update(readingsTable)
+        .set({ flags: addFlags(r, "raw_confirmed") })
+        .where(eq(readingsTable.id, r.id));
+      status = "applied";
     }
   }
 

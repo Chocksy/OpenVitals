@@ -97,14 +97,24 @@ export function toAge(value: unknown, today: string): number | undefined {
   return age >= 0 && age < 130 ? age : undefined;
 }
 
-/** Optimal band for a code once sex is known. Never touches the lab range. */
+/** A band this user decided on, or had decided for them, by metric code. */
+export type OptimalOverrides = Map<string, [number | null, number | null]>;
+
+/**
+ * The optimal band for a code: the user's own override first, then the
+ * sex-specific default, then the shared catalog columns. Never touches the lab
+ * range.
+ */
 export function optimalFor(
   code: string,
   sex: Sex | undefined,
   fallback: [number | null, number | null],
+  overrides?: OptimalOverrides,
 ): [number | null, number | null] {
-  const override = sex ? SEX_RANGES[code]?.[sex] : undefined;
-  return override ?? fallback;
+  const mine = overrides?.get(code);
+  if (mine) return mine;
+  const bySex = sex ? SEX_RANGES[code]?.[sex] : undefined;
+  return bySex ?? fallback;
 }
 
 /** `getMetricRows` plus `profile_facts`, folded into one plain object. */
@@ -124,10 +134,8 @@ export async function buildModelInput(userId: string): Promise<ModelInput> {
   const latest: Record<string, LatestValue> = {};
   for (const m of rows) {
     const withValue = m.rows.filter((r) => r.value != null);
-    const [optimalLow, optimalHigh] = optimalFor(m.code, sex, [
-      m.optimalLow,
-      m.optimalHigh,
-    ]);
+    // `getMetricRows` already resolved override -> sex -> catalog.
+    const [optimalLow, optimalHigh] = [m.optimalLow, m.optimalHigh];
     latest[m.code] = {
       value: m.latest.value,
       unit: m.latest.unit ?? m.unit,

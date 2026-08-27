@@ -8,7 +8,7 @@ import { goalGap, inGoal } from "@/lib/daily";
 import { formatRange, healthStatus, statusColor, statusOf } from "@/lib/status";
 import { TrendChart } from "@/components/trend-chart";
 import { StatusBadge } from "@/components/status-badge";
-import { GoalForm } from "@/components/tracker";
+import { GoalForm, OptimalForm } from "@/components/tracker";
 
 export const dynamic = "force-dynamic";
 
@@ -56,11 +56,27 @@ export default async function MetricPage({
             </span>
           )}
         </div>
-        <p className="mt-1 font-mono text-[11px] text-neutral-400">
-          {metric.unit ?? "no unit"} · reference{" "}
-          {formatRange(metric.latest.refLow, metric.latest.refHigh)} · optimal{" "}
-          {formatRange(metric.optimalLow, metric.optimalHigh)}
+        <p className="mt-1 flex flex-wrap items-center gap-x-1.5 font-mono text-[11px] text-neutral-400">
+          <span>
+            {metric.unit ?? "no unit"} · reference{" "}
+            {formatRange(metric.latest.refLow, metric.latest.refHigh)} · optimal{" "}
+            {formatRange(metric.optimalLow, metric.optimalHigh, metric.unit)}
+            {metric.optimalSource && ` · ${metric.optimalSource}`}
+            {metric.optimalBasis && ` · ${metric.optimalBasis}`}
+          </span>
+          <OptimalForm
+            metricCode={metric.code}
+            low={metric.optimalLow}
+            high={metric.optimalHigh}
+            unit={metric.unit}
+            mine={metric.optimalSource === "user"}
+          />
         </p>
+        {metric.optimalRationale && (
+          <p className="mt-1 font-body text-[12px] text-neutral-500">
+            {metric.optimalRationale}
+          </p>
+        )}
       </div>
 
       <div className="space-y-3">

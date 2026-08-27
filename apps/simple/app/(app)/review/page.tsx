@@ -9,7 +9,8 @@ export const dynamic = "force-dynamic";
 const KIND_LABELS: Record<string, string> = {
   unit_unknown: "Units I could not convert",
   merge_metric: "Possible duplicate biomarkers",
-  optimal_range: "Optimal ranges to confirm",
+  range_impact: "Optimal ranges that change a result",
+  confirm_value: "Values the lab sheet did not settle",
   implausible: "Values that look wrong",
   foreign_reading: "Readings that may not belong here",
 };

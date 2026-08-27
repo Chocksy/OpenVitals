@@ -246,6 +246,42 @@ export const profileFacts = pgTable(
   (t) => [unique("profile_facts_user_key").on(t.userId, t.key)],
 );
 
+/**
+ * One optimal band per (user, metric), decided by the app and always carrying
+ * its provenance. It wins over `SEX_RANGES` and over the shared
+ * `metrics.optimal*` columns, which stay as the catalog-wide fallback so two
+ * users can never overwrite each other's band.
+ */
+export const optimalOverrides = pgTable(
+  "optimal_overrides",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    metricCode: text("metric_code")
+      .notNull()
+      .references(() => metrics.code),
+    low: real("low"),
+    high: real("high"),
+    unit: text("unit"),
+    /** A named guideline, a named author, "user", or "lab range". */
+    source: text("source"),
+    /** `science` when a guideline or meta-analysis is cited, else `opinion`. */
+    basis: text("basis"),
+    rationale: text("rationale"),
+    sex: text("sex"),
+    ageBand: text("age_band"),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
+  },
+  (t) => [
+    unique("optimal_overrides_user_metric_key").on(t.userId, t.metricCode),
+  ],
+);
+
+export type OptimalOverride = typeof optimalOverrides.$inferSelect;
+
 /** One generated plan. Every version is kept. */
 export const reports = pgTable("reports", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -329,6 +365,17 @@ export type ReadingFlag =
   | { orig: { value: number | null; unit: string | null } }
   /** ref_scale: the lab range was in another decimal scale than the value. */
   | { ref_rescaled: { factor: number; orig: [number | null, number | null] } }
+  /** raw_verify: the row before the lab sheet corrected it, and the line. */
+  | {
+      raw_verified: {
+        orig: {
+          value: number | null;
+          refLow: number | null;
+          refHigh: number | null;
+        };
+        sheet: string;
+      };
+    }
   /** urine_text / split_measurand: where the reading came from. */
   | {
       moved: {
@@ -349,6 +396,11 @@ export interface ReviewSubject {
   optimalLow?: number | null;
   optimalHigh?: number | null;
   source?: string | null;
+  /** range_impact: the lab range the user can fall back to. */
+  labLow?: number | null;
+  labHigh?: number | null;
+  /** confirm_value: the lab-sheet line the curator read, or null. */
+  sheet?: string | null;
   /** foreign_reading: enough of the row to describe it after it is gone. */
   value?: number | null;
   valueText?: string | null;

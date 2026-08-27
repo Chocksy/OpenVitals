@@ -6,7 +6,9 @@ import {
   planUrineText,
   planImplausible,
   planForeignReadings,
-  acceptsOptimal,
+  planOptimalBand,
+  planRangeImpact,
+  flipsToRed,
   type MetricLike,
   type ReadingLike,
 } from "./curator";
@@ -876,69 +878,154 @@ describe("planImplausible", () => {
   });
 });
 
-describe("acceptsOptimal", () => {
-  const platelets = byCode.get("platelets")!;
+describe("planOptimalBand", () => {
+  const lpa = byCode.get("lp_a")!;
 
-  it("accepts a trusted band that sits inside the lab range", () => {
+  it("keeps a band that is already in the metric's unit", () => {
     expect(
-      acceptsOptimal(
-        { low: 150, high: 250, source: "Attia/Outlive" },
-        platelets,
+      planOptimalBand(
+        {
+          low: null,
+          high: 50,
+          unit: "mg/dL",
+          source: "ESC 2019",
+          basis: "science",
+          rationale: "ESC dyslipidaemia guideline",
+        },
+        lpa,
+        null,
+      ),
+    ).toMatchObject({
+      metricCode: "lp_a",
+      low: null,
+      high: 50,
+      unit: "mg/dL",
+      source: "ESC 2019",
+      basis: "science",
+    });
+  });
+
+  it("converts a band written in another unit", () => {
+    expect(
+      planOptimalBand(
+        { low: 0.4, high: 1.4, unit: "g/L", source: "AHA", basis: "science" },
+        byCode.get("apolipoprotein_b")!,
+        null,
+      ),
+    ).toMatchObject({ low: 40, high: 140, unit: "mg/dL" });
+  });
+
+  it("drops a band whose unit cannot be read in the metric's unit", () => {
+    expect(
+      planOptimalBand(
+        { low: null, high: 75, unit: "nmol/L", source: "Attia/Outlive" },
+        lpa,
+        null,
+      ),
+    ).toBeNull();
+  });
+
+  it("drops a proposal with no band at all", () => {
+    expect(
+      planOptimalBand({ low: null, high: null, source: "AHA" }, lpa, null),
+    ).toBeNull();
+  });
+
+  it("clamps a band that is wider than the lab range at both ends", () => {
+    const band = planOptimalBand(
+      { low: 100, high: 500, source: "Function Health", basis: "science" },
+      byCode.get("platelets")!,
+      { refLow: 150, refHigh: 370 },
+    );
+    expect(band).toMatchObject({ low: 150, high: 370 });
+    expect(band!.rationale).toContain("clamped to lab range");
+  });
+
+  it("leaves a band that is only tighter than the lab range", () => {
+    expect(
+      planOptimalBand(
+        { low: 175, high: 250, source: "Attia/Outlive", basis: "opinion" },
+        byCode.get("platelets")!,
         { refLow: 150, refHigh: 370 },
       ),
-    ).toBe(true);
+    ).toMatchObject({ low: 175, high: 250, basis: "opinion" });
   });
 
-  it("still asks when the band reaches under the lab range", () => {
-    // "White Blood Cell Count 3.5 - 6 K/uL" against a lab floor of 3.9.
+  it("calls an unnamed basis an opinion", () => {
     expect(
-      acceptsOptimal(
-        { low: 3.5, high: 6, source: "Attia/Outlive" },
-        byCode.get("wbc")!,
-        { refLow: 3.9, refHigh: 10.2 },
+      planOptimalBand({ low: 1, high: 2, source: "a blog" }, lpa, null)!.basis,
+    ).toBe("opinion");
+  });
+});
+
+describe("flipsToRed / planRangeImpact", () => {
+  const crp = byCode.get("crp")!;
+  const latest = { value: 4.6, refLow: 0, refHigh: 6, observedAt: "2026-04-23" };
+
+  it("sees a band that turns a normal result critical", () => {
+    expect(flipsToRed(latest, [null, null], [null, 1])).toBe(true);
+  });
+
+  it("ignores a band that only makes the result amber", () => {
+    expect(flipsToRed(latest, [null, null], [null, 4])).toBe(false);
+  });
+
+  it("ignores a result that was already outside the lab range", () => {
+    expect(
+      flipsToRed(
+        { value: 15.8, refLow: 0, refHigh: 6, observedAt: "2023-03-17" },
+        [null, null],
+        [null, 1],
       ),
     ).toBe(false);
   });
 
-  it("accepts anything trusted when the labs never printed a range", () => {
-    expect(
-      acceptsOptimal(
-        { low: 1.5, high: 2.2, source: "Function Health" },
-        platelets,
-        null,
-      ),
-    ).toBe(true);
+  it("asks one question, with the reason and a way back to the lab", () => {
+    const action = planRangeImpact(
+      {
+        metricCode: "crp",
+        low: null,
+        high: 1,
+        unit: "mg/L",
+        source: "AHA 2003",
+        basis: "science",
+        rationale: "",
+      },
+      crp,
+      latest,
+      [null, null],
+      { refLow: 0, refHigh: 6 },
+    );
+    expect(action).toMatchObject({
+      type: "queue",
+      kind: "range_impact",
+      subject: { metricCode: "crp", labLow: 0, labHigh: 6 },
+    });
+    expect((action as { options: string[] }).options).toEqual([
+      "Keep optimal band",
+      "Use lab range",
+    ]);
+    expect((action as { question: string }).question).toContain("AHA 2003");
   });
 
-  it("refuses a source we do not know", () => {
+  it("stays quiet when nothing flips", () => {
     expect(
-      acceptsOptimal(
-        { low: 150, high: 250, source: "some blog" },
-        platelets,
+      planRangeImpact(
+        {
+          metricCode: "crp",
+          low: null,
+          high: 6,
+          unit: "mg/L",
+          source: "AHA",
+          basis: "science",
+          rationale: "",
+        },
+        crp,
+        latest,
+        [null, null],
         null,
       ),
-    ).toBe(false);
-  });
-
-  it("refuses a band written in another unit", () => {
-    // Lp(a) < 75 nmol/L against a catalog that now reads mg/dL.
-    expect(
-      acceptsOptimal(
-        { low: null, high: 75, source: "Attia/Outlive", unit: "nmol/L" },
-        byCode.get("lp_a")!,
-        null,
-      ),
-    ).toBe(false);
-  });
-
-  it("refuses a proposal with no band at all", () => {
-    expect(
-      acceptsOptimal(
-        { low: null, high: null, source: "Attia/Outlive" },
-        platelets,
-        null,
-      ),
-    ).toBe(false);
+    ).toBeNull();
   });
 });
 

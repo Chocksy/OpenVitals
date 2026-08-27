@@ -1,0 +1,79 @@
+{
+  "model": "anthropic/claude-sonnet-5",
+  "promptSha8": "bfb47934",
+  "ranAt": "2026-08-27T12:35:32.246Z",
+  "results": [
+    {
+      "id": "ckd3_male_70",
+      "passed": 0,
+      "total": 6,
+      "failed": [],
+      "failedMust": false,
+      "shouldPassed": 0,
+      "shouldTotal": 0,
+      "shouldMissed": [],
+      "latencyMs": 134325,
+      "error": "No object generated: could not parse the response."
+    },
+    {
+      "id": "hashimoto_early_female_36",
+      "passed": 0,
+      "total": 9,
+      "failed": [],
+      "failedMust": false,
+      "shouldPassed": 0,
+      "shouldTotal": 1,
+      "shouldMissed": [],
+      "latencyMs": 159940,
+      "error": "No object generated: could not parse the response."
+    },
+    {
+      "id": "healthy_male_28",
+      "passed": 0,
+      "total": 4,
+      "failed": [],
+      "failedMust": false,
+      "shouldPassed": 0,
+      "shouldTotal": 0,
+      "shouldMissed": [],
+      "latencyMs": 46181,
+      "error": "No object generated: could not parse the response."
+    },
+    {
+      "id": "insulin_resistant_male_45",
+      "passed": 0,
+      "total": 5,
+      "failed": [],
+      "failedMust": false,
+      "shouldPassed": 0,
+      "shouldTotal": 0,
+      "shouldMissed": [],
+      "latencyMs": 203027,
+      "error": "No object generated: could not parse the response."
+    },
+    {
+      "id": "iron_low_female_30",
+      "passed": 0,
+      "total": 6,
+      "failed": [],
+      "failedMust": false,
+      "shouldPassed": 0,
+      "shouldTotal": 0,
+      "shouldMissed": [],
+      "latencyMs": 200011,
+      "error": "No object generated: could not parse the response."
+    },
+    {
+      "id": "lmhr_male_38",
+      "passed": 0,
+      "total": 8,
+      "failed": [],
+      "failedMust": false,
+      "shouldPassed": 0,
+      "shouldTotal": 0,
+      "shouldMissed": [],
+      "latencyMs": 105667,
+      "error": "No object generated: could not parse the response."
+    }
+  ]
+}

@@ -1,5 +1,13 @@
 import { asc, eq } from "drizzle-orm";
-import { getDb, metrics, readings, type Metric } from "@/db";
+import {
+  getDb,
+  metrics,
+  optimalOverrides,
+  profileFacts,
+  readings,
+  type Metric,
+} from "@/db";
+import { optimalFor, toSex, type OptimalOverrides } from "./coverage";
 import { ensureImported } from "./import-legacy";
 import { statusOf, type Status } from "./status";
 
@@ -15,6 +23,11 @@ export interface MetricRow {
   unit: string | null;
   optimalLow: number | null;
   optimalHigh: number | null;
+  /** Where the band came from: a guideline, an author, "user", "lab range". */
+  optimalSource: string | null;
+  /** `science` when a guideline or a meta-analysis backs it, else `opinion`. */
+  optimalBasis: string | null;
+  optimalRationale: string | null;
   sortOrder: number;
   derived: boolean;
   points: Point[];
@@ -42,15 +55,41 @@ const DERIVED: Record<
   },
 };
 
-function toRow(m: Metric, rows: MetricRow["rows"], derived = false): MetricRow {
+/** The band in force for one person, with the provenance to print next to it. */
+export interface Band {
+  low: number | null;
+  high: number | null;
+  source: string | null;
+  basis: string | null;
+  rationale: string | null;
+}
+
+const catalogBand = (m: Metric): Band => ({
+  low: m.optimalLow,
+  high: m.optimalHigh,
+  // The catalog rows carry an "auto:" prefix from an older curator run.
+  source: m.optimalSource?.replace(/^auto:/, "") ?? null,
+  basis: null,
+  rationale: null,
+});
+
+function toRow(
+  m: Metric,
+  rows: MetricRow["rows"],
+  derived = false,
+  band: Band = catalogBand(m),
+): MetricRow {
   const latest = rows[rows.length - 1]!;
   return {
     code: m.code,
     name: m.name,
     category: m.category,
     unit: m.unit,
-    optimalLow: m.optimalLow,
-    optimalHigh: m.optimalHigh,
+    optimalLow: band.low,
+    optimalHigh: band.high,
+    optimalSource: band.source,
+    optimalBasis: band.basis,
+    optimalRationale: band.rationale,
     sortOrder: m.sortOrder ?? 0,
     derived,
     points: rows
@@ -62,8 +101,8 @@ function toRow(m: Metric, rows: MetricRow["rows"], derived = false): MetricRow {
       value: latest.value,
       refLow: latest.refLow,
       refHigh: latest.refHigh,
-      optimalLow: m.optimalLow,
-      optimalHigh: m.optimalHigh,
+      optimalLow: band.low,
+      optimalHigh: band.high,
     }),
   };
 }
@@ -72,15 +111,47 @@ function toRow(m: Metric, rows: MetricRow["rows"], derived = false): MetricRow {
 export async function getMetricRows(userId: string): Promise<MetricRow[]> {
   await ensureImported();
   const db = getDb();
-  const [defs, all] = await Promise.all([
+  const [defs, all, overrides, sexFact] = await Promise.all([
     db.select().from(metrics),
     db
       .select()
       .from(readings)
       .where(eq(readings.userId, userId))
       .orderBy(asc(readings.observedAt)),
+    db
+      .select()
+      .from(optimalOverrides)
+      .where(eq(optimalOverrides.userId, userId)),
+    db
+      .select()
+      .from(profileFacts)
+      .where(eq(profileFacts.userId, userId))
+      .then((rows) => rows.find((f) => f.key === "sex")?.value),
   ]);
   const byCode = new Map(defs.map((m) => [m.code, m]));
+
+  const sex = toSex(sexFact);
+  const mine = new Map(overrides.map((o) => [o.metricCode, o]));
+  const bands: OptimalOverrides = new Map(
+    overrides.map((o) => [o.metricCode, [o.low, o.high] as [number | null, number | null]]),
+  );
+
+  /** Override, then the sex-specific default, then the shared catalog row. */
+  const bandFor = (m: Metric): Band => {
+    const own = mine.get(m.code);
+    if (own)
+      return {
+        low: own.low,
+        high: own.high,
+        source: own.source,
+        basis: own.basis,
+        rationale: own.rationale,
+      };
+    const [low, high] = optimalFor(m.code, sex, [m.optimalLow, m.optimalHigh], bands);
+    return low === m.optimalLow && high === m.optimalHigh
+      ? catalogBand(m)
+      : { low, high, source: `${sex} reference`, basis: "science", rationale: null };
+  };
 
   const grouped = new Map<string, MetricRow["rows"]>();
   for (const r of all) {
@@ -98,7 +169,7 @@ export async function getMetricRows(userId: string): Promise<MetricRow[]> {
   const out: MetricRow[] = [];
   for (const [code, rows] of grouped) {
     const m = byCode.get(code);
-    if (m) out.push(toRow(m, rows));
+    if (m) out.push(toRow(m, rows, false, bandFor(m)));
   }
 
   // Derived metrics are computed at read time and never stored.
@@ -123,7 +194,7 @@ export async function getMetricRows(userId: string): Promise<MetricRow[]> {
         refLow: null,
         refHigh: null,
       }));
-    if (rows.length) out.push(toRow(m, rows, true));
+    if (rows.length) out.push(toRow(m, rows, true, bandFor(m)));
   }
 
   return out.sort(

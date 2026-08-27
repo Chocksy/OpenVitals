@@ -522,3 +522,88 @@ export function AdherenceStrip({
     </div>
   );
 }
+
+/**
+ * The optimal band on a metric page. It shows where the band came from, and
+ * lets the person replace it with their own; "Reset" hands the metric back to
+ * whatever the app would have chosen.
+ */
+export function OptimalForm({
+  metricCode,
+  low,
+  high,
+  unit,
+  mine,
+}: {
+  metricCode: string;
+  low: number | null;
+  high: number | null;
+  unit: string | null;
+  /** True when this user already saved their own band for this metric. */
+  mine: boolean;
+}) {
+  const { save, busy, error } = useSave();
+  const [open, setOpen] = useState(false);
+  const [form, setForm] = useState({ low: low ?? "", high: high ?? "" });
+
+  if (!open)
+    return (
+      <button
+        className="font-mono text-[10px] uppercase tracking-[0.06em] text-neutral-400 hover:text-neutral-900"
+        onClick={() => setOpen(true)}
+      >
+        Edit
+      </button>
+    );
+
+  return (
+    <span className="inline-flex flex-wrap items-center gap-1.5">
+      {(["low", "high"] as const).map((key) => (
+        <input
+          key={key}
+          type="number"
+          step="any"
+          value={form[key]}
+          placeholder={key}
+          onChange={(e) => setForm({ ...form, [key]: e.target.value })}
+          className="w-20 border border-neutral-200 bg-neutral-0 px-2 py-1 font-mono text-[12px] tabular-nums"
+        />
+      ))}
+      <Button
+        size="sm"
+        disabled={busy}
+        onClick={async () => {
+          const ok = await save("/api/optimal", { metricCode, ...form, unit });
+          if (ok) setOpen(false);
+        }}
+      >
+        <Check /> Save
+      </Button>
+      {mine && (
+        <Button
+          size="sm"
+          variant="ghost"
+          disabled={busy}
+          onClick={async () => {
+            const ok = await save(
+              `/api/optimal?code=${metricCode}`,
+              null,
+              "DELETE",
+            );
+            if (ok) setOpen(false);
+          }}
+        >
+          Reset
+        </Button>
+      )}
+      <Button size="sm" variant="ghost" onClick={() => setOpen(false)}>
+        <X />
+      </Button>
+      {error && (
+        <span className="text-[12px] text-[var(--color-health-critical)]">
+          {error}
+        </span>
+      )}
+    </span>
+  );
+}
