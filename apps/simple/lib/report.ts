@@ -115,12 +115,11 @@ const reportSchema = z.object({
     }),
   ),
   actions: z.array(actionSchema),
-  /** Opinion actions. Required and at least three, so the model cannot hide behind "science" only. */
+  /** Opinion actions. Three of them when the graph is hot, none when it is empty. */
   personal: z
     .array(actionSchema)
-    .min(3)
     .describe(
-      "At least 3 actions that only THIS person's values, history and habits justify. basis is always opinion; reasoning quotes the values.",
+      "Actions that only THIS person's values, history and habits justify: at least 3 when HOT GRAPH has nodes, none when it is empty. basis is always opinion; reasoning quotes the values.",
     ),
   questions: z.array(
     z.object({
@@ -161,11 +160,13 @@ FIRED RULES: every rule in the FIRED RULES section becomes its own "test" action
 
 DISMISSED: never propose anything in the DISMISSED ACTIONS list again.
 
+FACTS ARE NOT ACTIONS: missing interview facts are asked as questions by the app, never as actions; do not write actions like "report your height".
+
 DISCUSSION: the USER CONTEXT AND DISCUSSION section is what this person told you about the actions in the last plan, and what you answered. Treat it as fact about them and carry it into this plan.
 
 REGISTERS: "why" is one plain sentence for a smart adult. "eli5" is two sentences with exactly one concrete metaphor and no numbers unless the number is the action itself.
 
-OPINION IS THE POINT. The rule-driven tests are the floor, not the plan. Write at least 3 "opinion" actions that only this person's numbers, history and habits justify: which lever to pull first and why for them, sequencing ("fix D before judging testosterone"), personal dose adjustments, what their family history changes about the target. Each one quotes the values in "reasoning".
+OPINION IS THE POINT. The rule-driven tests are the floor, not the plan. Write at least 3 "opinion" actions when HOT GRAPH has nodes; when it is empty write none, there is nothing to reason from. An opinion action is one that only this person's numbers, history and habits justify: which lever to pull first and why for them, sequencing ("fix D before judging testosterone"), personal dose adjustments, what their family history changes about the target. Each one quotes the values in "reasoning".
 
 PATTERNS: when a pattern is matched, its management text is a list of mandatory actions: each numbered intervention in it becomes an action with the pattern's dose (e.g. selenium 200 µg/day) unless a listed contraindication applies; say which basis it has. State the controversy in one sentence in the system verdict, then say what decides it for this person. Fill "patterns" with one entry per matched pattern: its id, its stage, and your verdict.
 
@@ -495,6 +496,8 @@ export interface GraphFacts {
   matchedPatternIds: string[];
   activeEdgeIds: string[];
   hotNodeIds: string[];
+  /** False when the person has no lab value at all. */
+  hasReadings: boolean;
 }
 
 /**
@@ -568,9 +571,23 @@ function verifyTrace(action: ReportAction, graph: GraphFacts): ReportAction {
 }
 
 /**
- * Drop anything over a dose ceiling and ask about it instead, add a test
- * action for every rule the model forgot, check that opinions cite a real
- * graph element, then cap the advice.
+ * A fact the app already asks for as a question, dressed up as an action.
+ * "Report your height" is not advice, it is the interview leaking into the plan.
+ */
+const FACT_NOT_ACTION =
+  /(report|provide|tell|answer|share|enter|gather|collect)\b.*(height|weight|waist|family history|medication|supplement|conditions|questions)/i;
+
+/**
+ * Drop what the model should never have written, drop anything over a dose
+ * ceiling and ask about it instead, add a test action for every rule the model
+ * forgot, check that opinions cite a real graph element, then cap the advice.
+ *
+ * Three drops happen before anything else:
+ *  - an opinion action when nothing in the graph is hot: there is nothing to
+ *    reason from, so the "opinion" would be invention,
+ *  - an action that just asks for an interview fact,
+ *  - everything except a test when the person has no readings at all: with no
+ *    numbers, the only honest plan is the fired rules and the questions.
  *
  * Tests and doctor actions are never capped: the escalation ladder is the
  * floor of the plan, and a rule that fired has to end up somewhere. Only the
@@ -584,7 +601,32 @@ export function postProcess(
   const kept: ReportAction[] = [];
   const questions = [...body.questions];
 
-  for (const raw of body.actions) {
+  const coldGraph = graph != null && graph.hotNodeIds.length === 0;
+  const noReadings = graph != null && !graph.hasReadings;
+  const dropped = { opinion: 0, fact: 0, unmeasured: 0 };
+
+  const proposed = body.actions.filter((a) => {
+    if (coldGraph && a.basis === "opinion") {
+      dropped.opinion++;
+      return false;
+    }
+    if (FACT_NOT_ACTION.test(a.title)) {
+      dropped.fact++;
+      return false;
+    }
+    if (noReadings && a.kind !== "test") {
+      dropped.unmeasured++;
+      return false;
+    }
+    return true;
+  });
+
+  if (dropped.opinion || dropped.fact || dropped.unmeasured)
+    console.warn(
+      `[plan] dropped ${dropped.opinion} opinion actions with a cold graph, ${dropped.fact} actions that only ask for a fact, ${dropped.unmeasured} non-test actions for a person with no readings`,
+    );
+
+  for (const raw of proposed) {
     const weighted: ReportAction = { ...raw, weight: clamp(raw.weight, 5) };
     const action = graph ? verifyTrace(weighted, graph) : weighted;
     const ceiling = overCeiling(action);
@@ -686,6 +728,7 @@ export async function generateFromContext(
 export function graphFacts(
   patterns: PatternMatch[],
   graph: GraphState,
+  input: ModelInput,
 ): GraphFacts {
   return {
     matchedPatternIds: patterns
@@ -693,6 +736,7 @@ export function graphFacts(
       .map((p) => p.pattern.id),
     activeEdgeIds: graph.activeEdges.map((e) => e.id),
     hotNodeIds: graph.hot.map((n) => n.id),
+    hasReadings: Object.values(input.latest).some((r) => r.value != null),
   };
 }
 
@@ -700,13 +744,13 @@ export async function generateReport(
   userId: string,
   trigger: ReportTrigger,
 ): Promise<Report> {
-  const { rules, context, questions, patterns, graph } =
+  const { rules, context, questions, patterns, graph, input } =
     await buildReportContext(userId);
   const body = await generateFromContext(
     context,
     rules,
     undefined,
-    graphFacts(patterns, graph),
+    graphFacts(patterns, graph, input),
   );
 
   const [row] = await getDb()

@@ -178,6 +178,31 @@ describe("rules", () => {
     expect(fired(input({ sex: "male", age: 46 }))).not.toContain("psa_discuss");
   });
 
+  it("says measure, not retest, when vitamin D was never measured", () => {
+    const never = fired(input());
+    expect(never).toContain("vitamin_d_measure");
+    expect(never).not.toContain("vitamin_d_refresh");
+  });
+
+  it("says retest once there is a reading that is old or low", () => {
+    const oldReading = fired(
+      input({ latest: { vitamin_d: value(52, "2024-01-05") } }),
+    );
+    expect(oldReading).toContain("vitamin_d_refresh");
+    expect(oldReading).not.toContain("vitamin_d_measure");
+
+    const lowAndFresh = fired(
+      input({ latest: { vitamin_d: value(24, "2026-08-01") } }),
+    );
+    expect(lowAndFresh).toContain("vitamin_d_refresh");
+
+    const fine = fired(
+      input({ latest: { vitamin_d: value(52, "2026-08-01") } }),
+    );
+    expect(fine).not.toContain("vitamin_d_refresh");
+    expect(fine).not.toContain("vitamin_d_measure");
+  });
+
   it("stops asking for a home BP log once the log reads normal", () => {
     expect(fired(input({ profile: { bp_home: "118/74" } }))).not.toContain(
       "bp_log",

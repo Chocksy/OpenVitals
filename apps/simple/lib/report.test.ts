@@ -226,6 +226,7 @@ describe("traceability", () => {
     matchedPatternIds: ["hashimoto"],
     activeEdgeIds: ["tsh->ldl_cholesterol", "selenium->tpo_antibodies"],
     hotNodeIds: ["metric:tsh", "metric:ldl_cholesterol"],
+    hasReadings: true,
   };
 
   const opinion = (reasoning: string) =>
@@ -308,5 +309,84 @@ describe("traceability", () => {
     const science = action({ basis: "science", reasoning: "" });
     expect(postProcess(body({ actions: [science] }), [], graph).actions[0]!.reasoning).toBe("");
     expect(postProcess(body({ actions: [opinion("nothing")] }), []).actions[0]!.reasoning).toBe("nothing");
+  });
+});
+
+describe("what the model should never have written", () => {
+  const cold = {
+    matchedPatternIds: [],
+    activeEdgeIds: [],
+    hotNodeIds: [],
+    hasReadings: true,
+  };
+  const empty = { ...cold, hasReadings: false };
+
+  it("drops opinion actions when nothing in the graph is hot", () => {
+    const out = postProcess(
+      body({
+        actions: [
+          action({ basis: "opinion", title: "Take magnesium at night" }),
+          action({ basis: "science", title: "Walk 8000 steps" }),
+        ],
+      }),
+      [],
+      cold,
+    );
+    expect(out.actions.map((a) => a.title)).toEqual(["Walk 8000 steps"]);
+  });
+
+  it("keeps opinion actions when the graph has hot nodes", () => {
+    const out = postProcess(
+      body({ actions: [action({ basis: "opinion", title: "Take magnesium" })] }),
+      [],
+      { ...cold, hotNodeIds: ["metric:tsh"] },
+    );
+    expect(out.actions).toHaveLength(1);
+  });
+
+  it("drops an action that only asks for an interview fact", () => {
+    const titles = [
+      "Report height in cm and weight in kg",
+      "Gather height, weight and waist before any nutrition change",
+      "Provide your full medication and supplement list",
+      "Answer all remaining tier-0 questions",
+      "Collect family history and conditions first",
+    ];
+    const out = postProcess(
+      body({
+        actions: [
+          ...titles.map((title) => action({ title })),
+          action({ title: "Eat 30 g of fibre a day" }),
+        ],
+      }),
+      [],
+    );
+    expect(out.actions.map((a) => a.title)).toEqual(["Eat 30 g of fibre a day"]);
+  });
+
+  it("does not drop a real supplement action for the word supplement", () => {
+    const out = postProcess(
+      body({ actions: [action({ title: "Supplement vitamin D3 2000 IU" })] }),
+      [],
+    );
+    expect(out.actions).toHaveLength(1);
+  });
+
+  it("leaves the fired rules as the whole plan when there are no readings", () => {
+    const out = postProcess(
+      body({
+        actions: [
+          action({ kind: "supplement", title: "Magnesium glycinate 300 mg" }),
+          action({ kind: "doctor", title: "Ask for a statin" }),
+          action({ kind: "test", title: "Measure vitamin D" }),
+        ],
+      }),
+      [rule()],
+      empty,
+    );
+    expect(out.actions.map((a) => a.title).sort()).toEqual([
+      "Measure Lp(a) once",
+      "Measure vitamin D",
+    ]);
   });
 });

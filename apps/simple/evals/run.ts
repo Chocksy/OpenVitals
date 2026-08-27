@@ -77,7 +77,7 @@ async function judgePlan(
   modelId: string,
 ): Promise<{ judgeScore?: number; omission?: string }> {
   const { text } = await generateText({
-    model: model(modelId),
+    model: model(process.env.EVAL_JUDGE_MODEL ?? "openai/gpt-5.6-sol"), // ponytail: fixed independent judge so candidates are comparable
     system: JUDGE_SYSTEM,
     prompt: `${c.judge}\n\nTHE PLAN:\n${JSON.stringify(body, null, 2)}`,
   });
@@ -101,7 +101,7 @@ async function runCase(
       context,
       rules,
       modelId,
-      graphFacts(patterns, graph),
+      graphFacts(patterns, graph, input),
     );
     const report: AssertionReport = runAssertions(
       body,

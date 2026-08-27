@@ -615,6 +615,8 @@ export const RULES: Rule[] = [
   },
   {
     id: "apob_on_every_draw",
+    // The second half needs a fresh LDL, so this never fires for someone with
+    // no labs, and "add to the next draw" reads the same either way.
     when: (m) => stale(m, "apolipoprotein_b") && !stale(m, "ldl_cholesterol"),
     suggest: "Add ApoB to the next lipid draw",
     why: "Your lipid panel is current but ApoB is not, and ApoB counts the particles that actually build plaque.",
@@ -826,11 +828,25 @@ export const RULES: Rule[] = [
     basis: "science",
     ref: "Endocrine Society female hormone testing",
   },
+  // Never measured and gone stale are two different sentences. `stale()` is
+  // true for both, so the rule that says "retest" has to check for a reading
+  // first, or a person with no labs is told to repeat a test they never had.
+  {
+    id: "vitamin_d_measure",
+    when: (m) => !has(m, "vitamin_d"),
+    suggest: "Measure vitamin D",
+    why: "Vitamin D has never been measured, and it is the cheapest deficiency there is to find and to fix.",
+    tier: 1,
+    basis: "science",
+    ref: "Endocrine Society 2011 vitamin D guideline",
+  },
   {
     id: "vitamin_d_refresh",
-    when: (m) => stale(m, "vitamin_d") || (val(m, "vitamin_d") ?? 99) < 30,
+    when: (m) =>
+      has(m, "vitamin_d") &&
+      (stale(m, "vitamin_d") || (val(m, "vitamin_d") ?? 99) < 30),
     suggest: "Retest vitamin D",
-    why: "Vitamin D drifts with the seasons and yours is either old or below 30 ng/mL, which is the deficiency line.",
+    why: "Vitamin D drifts with the seasons and yours is either over a year old or below 30 ng/mL, which is the deficiency line.",
     tier: 1,
     basis: "science",
     ref: "Endocrine Society 2011 vitamin D guideline",
