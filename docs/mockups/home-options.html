@@ -1,0 +1,626 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>OpenVitals · Home: three shapes</title>
+    <style>
+      :root {
+        --bg: #0a0a0a;
+        --card: #121212;
+        --line: #262626;
+        --fg: #f2f2f2;
+        --muted: #9a9a9a;
+        --dim: #7a7a7a;
+        --accent: #5a75ff;
+        --ok: #4ade80;
+        --warn: #fbbf24;
+        --bad: #f87171;
+        --opt: #a78bfa;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--fg);
+        font:
+          15px/1.5 system-ui,
+          -apple-system,
+          sans-serif;
+      }
+      .mono {
+        font-family: ui-monospace, Menlo, monospace;
+        font-size: 11px;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--dim);
+      }
+      h1 {
+        font-size: 34px;
+        font-weight: 500;
+        letter-spacing: -0.03em;
+        margin: 0 0 6px;
+      }
+      h2 {
+        font-size: 22px;
+        font-weight: 500;
+        margin: 0 0 4px;
+        letter-spacing: -0.02em;
+      }
+      .intro {
+        max-width: 900px;
+        margin: 48px auto 24px;
+        padding: 0 24px;
+      }
+      .intro p {
+        color: var(--muted);
+        font-size: 17px;
+      }
+      .option {
+        max-width: 1100px;
+        margin: 56px auto;
+        padding: 0 24px;
+      }
+      .label {
+        display: flex;
+        align-items: baseline;
+        gap: 14px;
+        margin-bottom: 6px;
+      }
+      .label .n {
+        font-size: 44px;
+        font-weight: 600;
+        color: var(--accent);
+        line-height: 1;
+      }
+      .verdict {
+        color: var(--muted);
+        margin: 0 0 18px;
+        font-size: 16px;
+      }
+      .frame {
+        border: 1px solid var(--line);
+        background: #0e0e0e;
+        padding: 22px;
+        border-radius: 6px;
+      }
+      .card {
+        background: var(--card);
+        border: 1px solid var(--line);
+        padding: 16px;
+        border-radius: 4px;
+      }
+      .row {
+        display: flex;
+        gap: 14px;
+      }
+      .col {
+        flex: 1;
+      }
+      .big {
+        font-size: 96px;
+        font-weight: 300;
+        letter-spacing: -0.05em;
+        line-height: 1;
+      }
+      .big small {
+        font-size: 22px;
+        color: var(--muted);
+        letter-spacing: 0;
+        margin-left: 10px;
+      }
+      .chip {
+        font-family: ui-monospace, Menlo, monospace;
+        font-size: 10px;
+        padding: 2px 7px;
+        border: 1px solid #3a3a3a;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--muted);
+      }
+      .chip.a {
+        color: var(--ok);
+        border-color: #14532d;
+      }
+      .chip.b {
+        color: var(--warn);
+        border-color: #78350f;
+      }
+      .chip.bad {
+        color: var(--bad);
+        border-color: #7f1d1d;
+      }
+      .chip.acc {
+        color: var(--accent);
+        border-color: #1d3db3;
+      }
+      .bar {
+        height: 8px;
+        background: #1a1a1a;
+        border: 1px solid var(--line);
+        position: relative;
+        margin-top: 8px;
+      }
+      .bar i {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        background: var(--warn);
+      }
+      .bar i.ok {
+        background: var(--ok);
+      }
+      .bar i.bad {
+        background: var(--bad);
+      }
+      .prob {
+        font-size: 30px;
+        font-weight: 500;
+        letter-spacing: -0.02em;
+      }
+      .btns {
+        display: flex;
+        gap: 6px;
+        margin-top: 10px;
+      }
+      .btn {
+        border: 1px solid var(--line);
+        background: var(--card);
+        color: var(--fg);
+        font: 500 12px system-ui;
+        padding: 5px 10px;
+      }
+      .btn.p {
+        background: var(--fg);
+        color: var(--bg);
+        border-color: var(--fg);
+      }
+      .sys {
+        display: grid;
+        grid-template-columns: repeat(6, 1fr);
+        gap: 8px;
+      }
+      .sys .card {
+        padding: 10px;
+        text-align: center;
+      }
+      .ring {
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        margin: 0 auto 6px;
+        display: grid;
+        place-items: center;
+        font-family: ui-monospace, Menlo, monospace;
+        font-size: 12px;
+        border: 4px solid var(--warn);
+      }
+      .ring.ok {
+        border-color: var(--ok);
+      }
+      .ring.bad {
+        border-color: var(--bad);
+      }
+      .spark {
+        height: 70px;
+        background: linear-gradient(to top, #111 0, #111 100%);
+        border: 1px solid var(--line);
+        position: relative;
+        overflow: hidden;
+      }
+      .spark svg {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+      }
+      .q {
+        border-left: 3px solid var(--accent);
+        padding: 10px 12px;
+        background: #0e1330;
+        margin-top: 8px;
+      }
+      .step {
+        display: flex;
+        gap: 18px;
+        align-items: flex-start;
+        margin-bottom: 14px;
+      }
+      .step .num {
+        font-family: ui-monospace, Menlo, monospace;
+        color: var(--dim);
+        width: 36px;
+        padding-top: 6px;
+      }
+      .pros {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 14px;
+        margin-top: 16px;
+        font-size: 14px;
+      }
+      .pros div {
+        padding: 12px;
+        border: 1px dashed var(--line);
+      }
+      .pros b {
+        display: block;
+        margin-bottom: 4px;
+      }
+      .pick {
+        max-width: 900px;
+        margin: 40px auto 80px;
+        padding: 24px;
+        border: 1px solid var(--accent);
+        background: #0e1330;
+        border-radius: 6px;
+      }
+      .why {
+        color: var(--dim);
+        font-size: 13px;
+        margin-top: 4px;
+      }
+      .muted {
+        color: var(--muted);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="intro">
+      <h1>Home, three shapes</h1>
+      <p>
+        Same data (yours, today), same engine underneath. The question is only
+        what you see first and how far you scroll. Pick one, or mix.
+      </p>
+    </div>
+
+    <!-- ───────────────── OPTION A ───────────────── -->
+    <div class="option">
+      <div class="label">
+        <span class="n">A</span>
+        <h2>The ledger</h2>
+      </div>
+      <p class="verdict">
+        One column. Biological age first, then every conclusion in rank order.
+        Each card is complete on its own: what, why, do this, not right?
+      </p>
+      <div class="frame">
+        <div class="row" style="align-items: center; margin-bottom: 14px">
+          <div>
+            <div class="mono">Biological age</div>
+            <div class="big">31.8<small>at 39</small></div>
+            <div class="why">
+              PhenoAge from 9 routine markers · 7 years younger
+            </div>
+          </div>
+          <div class="col" style="text-align: right">
+            <div class="mono">since your April draw</div>
+            <div style="font-size: 16px">
+              2 conclusions resolved · 1 new · 1 stronger
+            </div>
+            <div class="why">
+              TG 145 → 106 closed "high triglycerides" · LDL 117 → 131 opened
+              "ApoB rising"
+            </div>
+          </div>
+        </div>
+
+        <div class="card" style="border-color: #7f1d1d">
+          <div class="row" style="justify-content: space-between">
+            <div>
+              <span class="chip bad">1 · matters most</span>
+              <span class="chip">lifespan A</span>
+            </div>
+            <div class="prob">ApoB 99</div>
+          </div>
+          <h2 style="margin-top: 6px">
+            Too many cholesterol particles, and rising
+          </h2>
+          <p class="muted">
+            LDL 117 → 131 in four months. Target ApoB &lt; 80 (EAS 2022). Lp(a)
+            25 is fine, measured once, done.
+          </p>
+          <div class="bar">
+            <i style="left: 20%; width: 60%; opacity: 0.25"></i
+            ><i class="bad" style="left: 71%; width: 4px"></i>
+          </div>
+          <div class="q">
+            <b>Changes the plan:</b> heart attack or stroke in a parent or
+            sibling before 55 / 65?
+            <span class="btns" style="display: inline-flex; margin: 0 0 0 10px"
+              ><span class="btn">Yes</span><span class="btn">No</span></span
+            >
+          </div>
+          <div class="btns">
+            <span class="btn p">Diet + training 12 weeks, retest ApoB</span
+            ><span class="btn">Not right?</span><span class="btn">Why</span>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top: 10px">
+          <div class="row" style="justify-content: space-between">
+            <div>
+              <span class="chip b">2 · undecided</span>
+              <span class="chip">lifespan A · energy B</span>
+            </div>
+            <div class="prob">38%</div>
+          </div>
+          <h2 style="margin-top: 6px">
+            Early insulin resistance: signals disagree
+          </h2>
+          <p class="muted">
+            For: TG/HDL 2.1, father with T2D. Against: TG falling, HbA1c 5.0.
+            One OGTT with insulin settles it (€24).
+          </p>
+          <div class="btns">
+            <span class="btn p">Order OGTT</span
+            ><span class="btn">Not right?</span>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top: 10px">
+          <div class="row" style="justify-content: space-between">
+            <div><span class="chip a">3 · small and certain</span></div>
+            <div class="prob">32.7</div>
+          </div>
+          <h2 style="margin-top: 6px">Vitamin D below 40</h2>
+          <p class="muted">
+            4000 IU D3 with your largest meal, retest in 10 weeks. Bone B · mood
+            C.
+          </p>
+          <div class="btns">
+            <span class="btn p">Add to protocol</span
+            ><span class="btn">Not right?</span>
+          </div>
+        </div>
+
+        <div class="mono" style="margin: 18px 0 6px">
+          18 conditions ruled out · 4 unlikely · show
+        </div>
+      </div>
+      <div class="pros">
+        <div>
+          <b>Good</b> Nothing to decode. The order is the answer. Works on a
+          phone as is.
+        </div>
+        <div>
+          <b>Costs</b> No overview: you never see "all systems" at once. Charts
+          only inside cards.
+        </div>
+      </div>
+    </div>
+
+    <!-- ───────────────── OPTION B ───────────────── -->
+    <div class="option">
+      <div class="label">
+        <span class="n">B</span>
+        <h2>Cockpit + spear</h2>
+      </div>
+      <p class="verdict">
+        A dashboard row you can read in three seconds, then one big card for the
+        single most important thing, then the rest.
+      </p>
+      <div class="frame">
+        <div class="row" style="margin-bottom: 12px">
+          <div class="card" style="flex: 1.2">
+            <div class="mono">Biological age</div>
+            <div class="big" style="font-size: 72px">
+              31.8<small>at 39</small>
+            </div>
+          </div>
+          <div class="card col">
+            <div class="mono">Markers</div>
+            <div style="font-size: 26px; margin-top: 8px">
+              <span style="color: var(--ok)">82</span> ·
+              <span style="color: var(--warn)">22</span> ·
+              <span style="color: var(--bad)">6</span>
+            </div>
+            <div class="why">optimal · normal · off</div>
+          </div>
+          <div class="card col">
+            <div class="mono">Open questions</div>
+            <div style="font-size: 26px; margin-top: 8px">3</div>
+            <div class="why">each changes a conclusion</div>
+          </div>
+          <div class="card col">
+            <div class="mono">Next draw</div>
+            <div style="font-size: 26px; margin-top: 8px">12 wk</div>
+            <div class="why">ApoB, OGTT, vitamin D</div>
+          </div>
+        </div>
+        <div class="sys" style="margin-bottom: 12px">
+          <div class="card">
+            <div class="ring bad">58</div>
+            Lipids
+            <div class="why">ApoB 99</div>
+          </div>
+          <div class="card">
+            <div class="ring">65</div>
+            Glucose
+            <div class="why">TG/HDL 2.1</div>
+          </div>
+          <div class="card">
+            <div class="ring">60</div>
+            Vitamins
+            <div class="why">D 32.7</div>
+          </div>
+          <div class="card">
+            <div class="ring ok">90</div>
+            Liver
+            <div class="why">ALT 10</div>
+          </div>
+          <div class="card">
+            <div class="ring ok">92</div>
+            Kidney
+            <div class="why">eGFR 111</div>
+          </div>
+          <div class="card">
+            <div class="ring ok">95</div>
+            Thyroid
+            <div class="why">TSH 1.1</div>
+          </div>
+        </div>
+        <div class="card" style="border-color: var(--accent); padding: 22px">
+          <div class="mono" style="color: var(--accent)">Tip of the spear</div>
+          <div class="row" style="align-items: flex-end; gap: 28px">
+            <div class="col">
+              <h2 style="font-size: 28px">
+                ApoB 99 and LDL rising: fix this first
+              </h2>
+              <p class="muted">
+                Why it matters: particle count is causal for plaque (grade A).
+                Why now: 117 → 131 in four months. What decides the next step:
+                family history, home BP, waist.
+              </p>
+            </div>
+            <div style="width: 300px">
+              <div class="spark">
+                <svg viewBox="0 0 300 70" preserveAspectRatio="none">
+                  <rect x="0" y="40" width="300" height="30" fill="#14251a" />
+                  <polyline
+                    points="10,45 60,42 110,48 160,40 210,44 260,30 290,22"
+                    fill="none"
+                    stroke="#f87171"
+                    stroke-width="2"
+                  />
+                </svg>
+              </div>
+              <div class="why">LDL, 9 draws, optimal band shaded</div>
+            </div>
+          </div>
+          <div class="btns">
+            <span class="btn p">Start the 12-week plan</span
+            ><span class="btn">Answer the 3 questions</span
+            ><span class="btn">Not right?</span>
+          </div>
+        </div>
+        <div class="mono" style="margin: 16px 0 6px">
+          then: second signal · small certain things · what improved · ruled out
+        </div>
+      </div>
+      <div class="pros">
+        <div>
+          <b>Good</b> Overview and focus in one screen. Systems strip gives the
+          "where am I" glance you asked for.
+        </div>
+        <div>
+          <b>Costs</b> Two things compete for the eye (numbers row vs spear). On
+          a phone the strip becomes a scroll.
+        </div>
+      </div>
+    </div>
+
+    <!-- ───────────────── OPTION C ───────────────── -->
+    <div class="option">
+      <div class="label">
+        <span class="n">C</span>
+        <h2>The story</h2>
+      </div>
+      <p class="verdict">
+        The wizard we walked through, as a page. Numbered steps, each one short.
+        Questions appear exactly where they change the next step.
+      </p>
+      <div class="frame">
+        <div class="step">
+          <div class="num">01</div>
+          <div class="card col">
+            <div class="mono">Where you stand</div>
+            <div class="row" style="align-items: baseline; gap: 16px">
+              <div class="big" style="font-size: 64px">31.8</div>
+              <div class="muted">
+                biological age at 39. Kidney, liver, thyroid, inflammation,
+                iron: all inside optimal. 132 markers, 6 off.
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="num">02</div>
+          <div class="card col" style="border-color: #7f1d1d">
+            <div class="mono">The one thing that matters most</div>
+            <h2>ApoB 99, LDL rising</h2>
+            <p class="muted">
+              More cholesterol-carrying particles than the artery wall can
+              handle, for more years. Target &lt; 80. Grade A.
+            </p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="num">03</div>
+          <div class="card col" style="border-color: #1d3db3">
+            <div class="mono" style="color: var(--accent)">
+              Three answers change what we do
+            </div>
+            <div class="q">
+              Heart attack or stroke in a parent or sibling before 55 / 65?
+              <span class="btn">Yes</span> <span class="btn">No</span>
+            </div>
+            <div class="q">
+              Home blood pressure, 7 mornings?
+              <span class="btn">How to measure</span>
+              <span class="btn">Enter</span>
+            </div>
+            <div class="q">
+              Waist at the navel? <span class="btn">Enter</span>
+            </div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="num">04</div>
+          <div class="card col">
+            <div class="mono">Second signal, weaker</div>
+            <p class="muted" style="margin: 4px 0">
+              Insulin resistance 38%. Signals disagree; one OGTT settles it.
+            </p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="num">05</div>
+          <div class="card col">
+            <div class="mono">Small, certain</div>
+            <p class="muted" style="margin: 4px 0">
+              Vitamin D 32.7 → 40–60. B12 472, borderline.
+            </p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="num">06</div>
+          <div class="card col">
+            <div class="mono">What improved</div>
+            <p class="muted" style="margin: 4px 0">
+              TG 145 → 106, HDL 44 → 50, HbA1c 5.2 → 5.0 across the
+              one-meal-a-day years.
+            </p>
+          </div>
+        </div>
+      </div>
+      <div class="pros">
+        <div>
+          <b>Good</b> Reads like a doctor talking. Encouragement has a natural
+          place. Questions sit where they matter.
+        </div>
+        <div>
+          <b>Costs</b> Long. Hard to "check one number" quickly. Needs the LLM
+          to write the prose every time data changes.
+        </div>
+      </div>
+    </div>
+
+    <div class="pick">
+      <h2>My pick: B on top, A underneath</h2>
+      <p class="muted">
+        Biological age, the counters and the systems strip give the three-second
+        read. The spear card is the "what do I do". Below it, the ledger cards
+        in rank order carry everything else, including the story's step 06 as a
+        "what improved" card. Questions live inside the card they change. The
+        story (C) becomes the Deep view of any card, not the page.
+      </p>
+      <p class="muted" style="margin-bottom: 0">
+        Charts: one range bar per conclusion card, one trend inside the spear,
+        four small trends at the bottom. Big numbers only for biological age and
+        probabilities. Colour only on data.
+      </p>
+    </div>
+  </body>
+</html>
