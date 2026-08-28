@@ -31,6 +31,7 @@ import { getTrackerSummary, type TrackerSummary } from "./daily-data";
 import { model } from "./extract";
 import { computeGraphState, type GraphState } from "./graph-state";
 import { loadCatalog } from "./hkb";
+import { isConclusion, mattersOf } from "./ledger";
 import {
   scoreHypotheses,
   type Catalog,
@@ -175,6 +176,8 @@ REGISTERS: "why" is one plain sentence for a smart adult. "eli5" is two sentence
 OPINION IS THE POINT. The rule-driven tests are the floor, not the plan. Write at least 3 "opinion" actions when HOT GRAPH has nodes; when it is empty write none, there is nothing to reason from. An opinion action is one that only this person's numbers, history and habits justify: which lever to pull first and why for them, sequencing ("fix D before judging testosterone"), personal dose adjustments, what their family history changes about the target. Each one quotes the values in "reasoning".
 
 HYPOTHESES are scored by the app; do not re-score them, explain them and order tests by the path given.
+
+CONCLUSIONS: write one plain sentence per conclusion in "systems[].verdict", keyed by the condition id in "systems[].id".
 
 PATTERNS: when a pattern is matched, its management text is a list of mandatory actions: each numbered intervention in it becomes an action with the pattern's dose (e.g. selenium 200 µg/day) unless a listed contraindication applies; say which basis it has. State the controversy in one sentence in the system verdict, then say what decides it for this person. Fill "patterns" with one entry per matched pattern: its id, its stage, and your verdict.
 
@@ -338,6 +341,30 @@ function hypothesisLines(rows: HypothesisResult[]): string {
     : head;
 }
 
+/**
+ * The same rows again, cut to the ones the home ledger shows as cards, in the
+ * order it ranks them. The model writes one sentence per id into `systems`.
+ */
+const TOP_CONCLUSIONS = 6;
+
+function conclusionLines(rows: HypothesisResult[]): string {
+  const head = (list: { input: string; value: string; lr: number }[]) =>
+    list
+      .slice(0, 2)
+      .map((e) => `${e.input} ${e.value} (LR ${e.lr})`)
+      .join("; ") || "none";
+  const picked = rows.filter((h) => isConclusion(h)).slice(0, TOP_CONCLUSIONS);
+  if (!picked.length) return "- nothing rises to a conclusion yet";
+  return picked
+    .map(
+      (h) =>
+        `- ${h.id} (${h.name}) | ${h.state} | p ${h.score} | matters ${mattersOf(h)}
+  for: ${head(h.for)}
+  against: ${head(h.against)}`,
+    )
+    .join("\n");
+}
+
 /** The node id without its kind prefix: "metric:tsh" reads as "tsh". */
 const short = (id: string) => id.slice(id.indexOf(":") + 1);
 
@@ -456,6 +483,9 @@ ${ruleLines(rules)}
 
 MATCHED PATTERNS:
 ${patternLines(patterns, input)}
+
+CONCLUSIONS (the home ledger, in rank order; write one verdict sentence per id):
+${conclusionLines(hypotheses)}
 
 HYPOTHESES (scored by the app; explain them, do not re-score them):
 ${hypothesisLines(hypotheses)}

@@ -136,6 +136,35 @@ export const reviewItems = pgTable("review_items", {
   resolvedAt: timestamp("resolved_at", { withTimezone: true }),
 });
 
+/**
+ * What the engine believed at one moment: `{conditionId: {p, state}}`. Written
+ * after an upload's curator run, an answered question, an adopted or dismissed
+ * action, and at most once a day from the home page, so the ledger can say
+ * "was unlikely, now possible".
+ */
+export const beliefSnapshots = pgTable(
+  "belief_snapshots",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    computedAt: timestamp("computed_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    beliefs: jsonb("beliefs").$type<BeliefSnapshotBeliefs>().notNull(),
+  },
+  (t) => [index("belief_snapshots_user_at_idx").on(t.userId, t.computedAt)],
+);
+
+/** `state` is an `HState`; typed loosely here so `db` never imports `lib`. */
+export type BeliefSnapshotBeliefs = Record<
+  string,
+  { p: number; state: string }
+>;
+
+export type BeliefSnapshot = typeof beliefSnapshots.$inferSelect;
+
 export const curatorRuns = pgTable("curator_runs", {
   id: uuid("id").primaryKey().defaultRandom(),
   trigger: text("trigger").notNull(),

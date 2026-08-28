@@ -57,6 +57,13 @@
       "when": 1787920038836,
       "tag": "0007_huge_ogun",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1787947332656,
+      "tag": "0008_common_warbird",
+      "breakpoints": true
     }
   ]
 }

@@ -425,7 +425,7 @@ export function planRawVerify(
         : conversionFactor(sheet.unit, unit, r.metricCode);
 
     if (!sheet || sheet.value == null || factor == null) {
-      actions.push(ask(r, m, sheet?.line ?? null));
+      actions.push(confirmValueAsk(r, m, sheet?.line ?? null));
       continue;
     }
 
@@ -453,7 +453,7 @@ export function planRawVerify(
     // Rewriting a value is the one dangerous move here, so it needs the sheet's
     // own range to hold the sheet's own value. A range-only fix never does.
     if (valueMoved && !brackets(refLow, refHigh, value)) {
-      actions.push(ask(r, m, sheet.line));
+      actions.push(confirmValueAsk(r, m, sheet.line));
       continue;
     }
 
@@ -482,7 +482,12 @@ export function planRawVerify(
   return actions;
 }
 
-function ask(r: ReadingLike, m: MetricLike, line: string | null): Action {
+/** "Keep it or discard it": the one question a lab sheet cannot settle. */
+export function confirmValueAsk(
+  r: ReadingLike,
+  m: MetricLike,
+  line: string | null,
+): Action {
   return {
     type: "queue",
     check: "raw_verify",

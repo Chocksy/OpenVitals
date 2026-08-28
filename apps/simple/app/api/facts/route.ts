@@ -1,5 +1,6 @@
 import { currentUserId } from "@/lib/auth";
 import { saveFact } from "@/lib/coverage";
+import { recordBeliefs } from "@/lib/ledger";
 import { PROFILE_QUESTIONS } from "@/lib/vectors";
 
 /** One answered profile fact. The only writer the "How do you feel" page needs. */
@@ -18,5 +19,6 @@ export async function POST(req: Request) {
     return Response.json({ error: "not one of the options" }, { status: 400 });
 
   await saveFact(userId, key, value);
+  await recordBeliefs(userId);
   return Response.json({ ok: true, key, value });
 }

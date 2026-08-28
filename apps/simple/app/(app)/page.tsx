@@ -1,143 +1,127 @@
-import Link from "next/link";
-import { and, eq } from "drizzle-orm";
-import { requireUserId, currentUser } from "@/lib/auth";
-import { getDb, reviewItems } from "@/db";
+import { requireUserId } from "@/lib/auth";
 import { getMetricRows } from "@/lib/data";
 import { getGoals } from "@/lib/daily-data";
-import { buildModelInput } from "@/lib/coverage";
-import { computeGraphState, worstMember } from "@/lib/graph-state";
-import { SYSTEMS } from "@/lib/graph";
-import { healthStatus } from "@/lib/status";
+import { buildTrend, type TrendMetric } from "@/lib/home-data";
+import { buildLedger, isLoud } from "@/lib/ledger";
 import { latestReport } from "@/lib/report";
-import { buildHome, buildTrend, type TrendMetric } from "@/lib/home-data";
-import { ReviewItem } from "@/components/client";
+import { loadCatalog } from "@/lib/hkb";
+import { PROFILE_QUESTIONS } from "@/lib/vectors";
 import {
-  AttentionMetrics,
-  FixNext,
-  GreetingHeader,
-  HealthScore,
+  Cockpit,
+  ConclusionCard,
+  EmptyHome,
+  ImprovedCard,
   KeyTrends,
+  QuietLine,
   SectionHeader,
   SystemsStrip,
-  type SystemTile,
 } from "@/components/home";
 
 export const dynamic = "force-dynamic";
 
 const KEY_TRENDS = 4;
-const MAX_QUESTIONS = 3;
 
 export default async function Home() {
   const userId = await requireUserId();
-  const db = getDb();
 
-  const [user, rows, open, model, plan, goals] = await Promise.all([
-    currentUser(),
-    getMetricRows(userId),
-    db
-      .select()
-      .from(reviewItems)
-      .where(
-        and(eq(reviewItems.userId, userId), eq(reviewItems.status, "open")),
-      ),
-    buildModelInput(userId),
+  const [ledger, report, rows, goals, catalog] = await Promise.all([
+    buildLedger(userId),
     latestReport(userId),
+    getMetricRows(userId),
     getGoals(userId),
+    loadCatalog(),
   ]);
 
-  const home = buildHome(rows);
-  const firstName = (user?.name ?? "").split(/\s+/)[0] ?? "";
-  const hasData = rows.length > 0;
+  if (rows.length === 0) return <EmptyHome />;
 
-  const now = new Date();
-  const questions = [
-    ...open.filter((i) => i.kind === "profile_question"),
-    ...open.filter((i) => i.kind === "check_in" && (i.createdAt ?? now) <= now),
-  ].slice(0, MAX_QUESTIONS);
+  // The model writes one sentence per conclusion into `systems[].verdict`,
+  // keyed by the condition id. No sentence yet: fall back to the catalog.
+  const summaries = new Map(catalog.map((h) => [h.id, h.summary]));
+  const written = new Map(
+    (report?.body.systems ?? []).map((s) => [s.id, s.verdict || s.eli5]),
+  );
+  const verdictOf = (id: string) => written.get(id) ?? summaries.get(id);
 
-  // 2. the 12 system tiles, worst first, without the arcs.
-  const graph = computeGraphState(model, { top: 60 });
-  const importance = new Map(graph.nodes.map((n) => [n.id, n.importance]));
-  const systems: SystemTile[] = SYSTEMS.map((system) => {
-    const worst = worstMember(system.id, model, importance);
-    const row = worst ? model.latest[worst.code] : null;
-    return {
-      id: system.id,
-      name: system.name,
-      score: importance.get(`system:${system.id}`) ?? 0,
-      worstName: worst?.node.name ?? null,
-      worstStatus: row ? healthStatus(row) : null,
-    };
-  }).sort((a, b) => b.score - a.score);
+  const actions = report?.body.actions ?? [];
+  const indexOf = (title: string) => {
+    const i = actions.findIndex((a) => a.title === title);
+    return i === -1 ? undefined : i;
+  };
 
-  // 3. the plan's top actions, tests counted separately.
-  const indexed = (plan?.body.actions ?? []).map((action, index) => ({
-    action,
-    index,
-  }));
-  const topActions = indexed
-    .filter((r) => r.action.kind !== "test")
-    .sort((a, b) => b.action.weight - a.action.weight)
-    .slice(0, 3);
-  const testCount = indexed.filter((r) => r.action.kind === "test").length;
+  const optionsOf = (featureId: string) =>
+    PROFILE_QUESTIONS[featureId.replace(/^fact:/, "")]?.options ?? [];
 
-  // 4. the four hottest markers with enough history to draw.
+  const { spear } = ledger;
+  const rest = ledger.conclusions.filter((c) => c.id !== spear?.id);
+  // "What improved" sits after the last possible-or-higher conclusion.
+  const lastLoud = rest.reduce(
+    (last, c, i) => (c.state && isLoud(c.state) ? i : last),
+    -1,
+  );
+  const loud = rest.slice(0, lastLoud + 1);
+  const quietTail = rest.slice(lastLoud + 1);
+
   const byCode = new Map(rows.map((m) => [m.code, m]));
   const goalByCode = new Map(goals.map((g) => [g.metricCode, g]));
   const trends: TrendMetric[] = [];
-  for (const node of graph.hot) {
+  for (const c of [spear, ...rest].filter((c) => c != null)) {
     if (trends.length >= KEY_TRENDS) break;
-    if (!node.id.startsWith("metric:")) continue;
-    const code = node.id.slice("metric:".length);
-    const metric = byCode.get(code);
-    if (!metric) continue;
-    const trend = buildTrend(metric, goalByCode.get(code));
+    const metric = c.trend ? byCode.get(c.trend.code) : null;
+    if (!metric || trends.some((t) => t.metricCode === metric.code)) continue;
+    const trend = buildTrend(metric, goalByCode.get(metric.code));
     if (trend) trends.push(trend);
   }
 
+  let questionSeen = false;
+  const card = (c: (typeof rest)[number], isSpear = false) => {
+    const first = !questionSeen && c.question != null;
+    if (first) questionSeen = true;
+    return (
+      <ConclusionCard
+        key={c.id}
+        c={c}
+        spear={isSpear}
+        firstQuestion={first}
+        verdict={verdictOf(c.id)}
+        reportId={report?.id ?? null}
+        actionIndex={c.action ? indexOf(c.action.title) : undefined}
+        questionOptions={
+          c.question ? optionsOf(c.question.featureId) : undefined
+        }
+      />
+    );
+  };
+
   return (
     <div className="space-y-8">
-      <div className="space-y-4">
-        <GreetingHeader
-          firstName={firstName}
-          summaryLine={home.summaryLine}
-          lastDraw={home.lastDraw}
-          questionCount={open.length}
-        />
-        {hasData && (
-          <HealthScore
-            score={home.score}
-            optimalCount={home.stats.optimalCount}
-            normalCount={home.stats.normalCount}
-            offCount={home.stats.offCount}
-            totalMetrics={home.metricCount}
-          />
-        )}
-      </div>
-
-      {!hasData && (
-        <p className="card border-dashed p-10 text-center font-body text-[13px] text-neutral-500">
-          No readings yet.{" "}
-          <Link href="/labs" className="underline">
-            Upload a lab PDF
-          </Link>{" "}
-          to get started.
-        </p>
-      )}
+      <Cockpit ledger={ledger} />
 
       <section>
         <SectionHeader title="Systems" href="/graph" linkLabel="Your graph" />
-        <SystemsStrip systems={systems} />
+        <SystemsStrip systems={ledger.systems} />
       </section>
 
-      <section>
-        <SectionHeader title="Fix next" href="/plan" linkLabel="Full plan" />
-        <FixNext
-          actions={topActions}
-          reportId={plan?.id ?? null}
-          testCount={testCount}
-        />
-      </section>
+      {spear && (
+        <section>
+          <SectionHeader
+            title="Fix this first"
+            href="/plan"
+            linkLabel="Full plan"
+          />
+          {card(spear, true)}
+        </section>
+      )}
+
+      {rest.length > 0 && (
+        <section className="space-y-2">
+          <SectionHeader title="The ledger" />
+          {loud.map((c) => card(c))}
+          <ImprovedCard improved={ledger.improved} />
+          {quietTail.map((c) => card(c))}
+        </section>
+      )}
+
+      <QuietLine quiet={ledger.quiet} />
 
       {trends.length > 0 && (
         <section>
@@ -147,27 +131,6 @@ export default async function Home() {
             linkLabel="All markers"
           />
           <KeyTrends trends={trends} />
-        </section>
-      )}
-
-      {home.attention.length > 0 && (
-        <AttentionMetrics metrics={home.attention} />
-      )}
-
-      {questions.length > 0 && (
-        <section>
-          <SectionHeader title="Questions" href="/review" linkLabel="Review" />
-          <div className="space-y-2">
-            {questions.map((q) => (
-              <ReviewItem
-                key={q.id}
-                id={q.id}
-                question={q.question}
-                options={q.options}
-                detail={q.subject?.detail}
-              />
-            ))}
-          </div>
         </section>
       )}
     </div>

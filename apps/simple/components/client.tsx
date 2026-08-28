@@ -413,3 +413,114 @@ export function RunCurator() {
     </span>
   );
 }
+
+/* ── the three writers Home needs ─────────────────────────────────────── */
+
+/** The inline question on a ledger card. Options when we have them, else a box. */
+export function AnswerQuestion({
+  factKey,
+  options,
+}: {
+  factKey: string;
+  options: string[];
+}) {
+  const { run, busy, error } = useAction();
+  const [text, setText] = useState("");
+
+  return (
+    <div className="flex flex-wrap items-center gap-2">
+      {options.length > 0 ? (
+        options.map((o) => (
+          <Button
+            key={o}
+            size="sm"
+            variant="outline-subtle"
+            disabled={busy}
+            onClick={() => run("/api/facts", { key: factKey, value: o })}
+          >
+            {o}
+          </Button>
+        ))
+      ) : (
+        <>
+          <input
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            placeholder="Your answer"
+            className={`${INPUT} max-w-[200px]`}
+          />
+          <Button
+            size="sm"
+            variant="outline-subtle"
+            disabled={busy || !text.trim()}
+            onClick={() => run("/api/facts", { key: factKey, value: text })}
+          >
+            Save
+          </Button>
+        </>
+      )}
+      {error && (
+        <span className="text-[12px] text-[var(--color-health-critical)]">
+          {error}
+        </span>
+      )}
+    </div>
+  );
+}
+
+/** "Wrong value": queues the curator's own confirm_value question. */
+export function WrongValue({ readingId }: { readingId: string }) {
+  const { run, busy, error } = useAction();
+  return (
+    <span className="inline-flex items-center gap-2">
+      <button
+        className={`${rowAction} text-neutral-500 hover:text-neutral-900`}
+        disabled={busy}
+        onClick={() => run("/api/not-right", { readingId })}
+      >
+        {busy ? "Asking…" : "Wrong value"}
+      </button>
+      {error && (
+        <span className="font-mono text-[10px] text-[var(--color-health-critical)]">
+          {error}
+        </span>
+      )}
+    </span>
+  );
+}
+
+/** One profile fact a card read, editable in place. */
+export function EditFact({
+  factKey,
+  label,
+  value,
+}: {
+  factKey: string;
+  label: string;
+  value: string;
+}) {
+  const { run, busy, error } = useAction();
+  const [text, setText] = useState(value);
+  return (
+    <div className="flex flex-wrap items-center gap-2">
+      <span className="font-body text-[12px] text-neutral-700">{label}</span>
+      <input
+        value={text}
+        onChange={(e) => setText(e.target.value)}
+        className="w-44 border border-neutral-200 bg-neutral-0 px-2 py-1 font-mono text-[11px]"
+      />
+      <button
+        className={`${rowAction} text-neutral-500 hover:text-neutral-900`}
+        disabled={busy || !text.trim() || text === value}
+        onClick={() => run("/api/facts", { key: factKey, value: text })}
+      >
+        Save
+      </button>
+      {error && (
+        <span className="font-mono text-[10px] text-[var(--color-health-critical)]">
+          {error}
+        </span>
+      )}
+    </div>
+  );
+}

@@ -4,6 +4,7 @@ import { currentUserId } from "@/lib/auth";
 import { extractFromPdf } from "@/lib/extract";
 import { ensureImported } from "@/lib/import-legacy";
 import { runCurator } from "@/lib/curator";
+import { recordBeliefs } from "@/lib/ledger";
 import { generateReport } from "@/lib/report";
 import { saveReadings, sha256, writeUpload } from "@/lib/uploads";
 
@@ -82,11 +83,13 @@ export async function POST(req: Request) {
       })
       .where(eq(uploads.id, upload!.id));
 
-    void runCurator(userId, "upload", { uploadId: upload!.id }).then(() =>
-      generateReport(userId, "upload").catch((e) =>
-        console.error("[plan] upload report failed:", e),
-      ),
-    );
+    void runCurator(userId, "upload", { uploadId: upload!.id })
+      .then(() => recordBeliefs(userId))
+      .then(() =>
+        generateReport(userId, "upload").catch((e) =>
+          console.error("[plan] upload report failed:", e),
+        ),
+      );
 
     return Response.json({ uploadId: upload!.id, count });
   } catch (e) {

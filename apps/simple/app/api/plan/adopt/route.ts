@@ -9,6 +9,7 @@ import {
   type ReportAction,
 } from "@/db";
 import { currentUserId } from "@/lib/auth";
+import { recordBeliefs } from "@/lib/ledger";
 
 const DAY = 86_400_000;
 
@@ -110,5 +111,6 @@ export async function POST(req: Request) {
       });
   }
 
+  await recordBeliefs(userId);
   return Response.json({ ok: true });
 }

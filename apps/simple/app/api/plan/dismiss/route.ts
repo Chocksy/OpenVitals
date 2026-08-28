@@ -1,6 +1,7 @@
 import { and, eq } from "drizzle-orm";
 import { getDb, profileFacts, reports } from "@/db";
 import { currentUserId } from "@/lib/auth";
+import { recordBeliefs } from "@/lib/ledger";
 
 /**
  * "Not for me". The title lands in the `dismissed_actions` fact, which the
@@ -51,5 +52,6 @@ export async function POST(req: Request) {
       set: { value, answeredAt: new Date() },
     });
 
+  await recordBeliefs(userId);
   return Response.json({ ok: true });
 }

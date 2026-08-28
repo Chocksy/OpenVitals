@@ -1,5 +1,6 @@
 import { currentUserId } from "@/lib/auth";
 import { applyAnswer, BadAnswerError } from "@/lib/curator";
+import { recordBeliefs } from "@/lib/ledger";
 
 export async function POST(
   req: Request,
@@ -27,5 +28,6 @@ export async function POST(
       { error: "not found or already answered" },
       { status: 404 },
     );
+  await recordBeliefs(userId);
   return Response.json(item);
 }
