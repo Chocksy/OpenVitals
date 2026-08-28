@@ -105,6 +105,7 @@ const SAMPLE_ANSWERS: Record<string, [string, string]> = {
   height_cm: ["165", "185"],
   bp_home: ["146/92", "118/74"],
   resting_hr: ["82", "58"],
+  family_history: ["type 2 diabetes, father 58", "none"],
 };
 
 const overlayOf = (patch: Partial<Overlay>): Overlay => ({

@@ -262,8 +262,21 @@ const INSULIN_RESISTANCE: Hypothesis = {
       input: { fact: "waist_height_ratio" },
       when: { above: 0.5 },
       lr: 2.5,
+      lrNeg: 0.6,
       grade: "A",
-      source: "Ashwell 2012 Obes Rev: waist-to-height above 0.5 beats BMI for cardiometabolic risk.",
+      source: "Ashwell 2012 Obes Rev: waist-to-height above 0.5 beats BMI for cardiometabolic risk. The negative LR of 0.6 is a curated grade C: a waist under half your height does not exclude resistance, but it is the strongest thing against it that a tape measure can say.",
+    },
+    {
+      id: "ir_family_negative",
+      input: { fact: "family_history" },
+      when: { includes: "diabet" },
+      // The prior modifier already doubles it when diabetes is in the family;
+      // this rule only bites on the answer that says it is not, so no answer
+      // is ever counted twice.
+      lr: 1,
+      lrNeg: 0.8,
+      grade: "C",
+      source: "Grade C for the size: no published negative LR for a clean family history, but roughly half the population risk sits in the family, so its absence is worth about a fifth of the odds.",
     },
     {
       id: "ir_alt",
@@ -382,6 +395,19 @@ const HASHIMOTO: Hypothesis = {
       lrNeg: 0.6,
       grade: "A",
       source: "Hollowell 2002 JCEM: anti-Tg catches the roughly 10 % who are TPO-negative.",
+    },
+    {
+      id: "hashi_family_negative",
+      input: { fact: "family_history" },
+      when: {
+        includes: "thyroid|hashimoto|graves|autoimmune|coeliac|celiac|vitiligo|type 1",
+      },
+      // Same shape as the insulin-resistance rule: the prior modifier handles
+      // the positive answer, this one handles the negative.
+      lr: 1,
+      lrNeg: 0.8,
+      grade: "C",
+      source: "Grade C for the size: thyroid autoimmunity clusters in families (B), so a family with none of it argues down, but no study puts a number on the negative.",
     },
     {
       id: "hashi_tsh_high",
@@ -725,16 +751,18 @@ const PCOS: Hypothesis = {
       input: { fact: "cycle_regularity" },
       when: { includes: "irregular|absent|oligo" },
       lr: 4,
+      lrNeg: 0.4,
       grade: "A",
-      source: "Rotterdam 2003 criteria: oligo- or anovulation is one of the three defining features.",
+      source: "Rotterdam 2003 criteria: oligo- or anovulation is one of the three defining features. The negative LR of 0.4 is a curated grade C: regular ovulatory cycles remove one of the three, and most of the syndrome with it.",
     },
     {
       id: "pcos_hirsutism",
       input: { fact: "hirsutism_acne" },
       when: { includes: "yes|hirsut|acne" },
       lr: 3,
+      lrNeg: 0.6,
       grade: "A",
-      source: "Rotterdam 2003 criteria: clinical hyperandrogenism counts the same as a biochemical one.",
+      source: "Rotterdam 2003 criteria: clinical hyperandrogenism counts the same as a biochemical one. The negative LR of 0.6 is a curated grade C: no hair and no acne removes the commonest presenting feature.",
     },
     {
       id: "pcos_lh_fsh",
@@ -872,8 +900,9 @@ const SLEEP_APNOEA: Hypothesis = {
       input: { fact: "daytime_sleepiness" },
       when: { includes: "yes|often|most" },
       lr: 2,
+      lrNeg: 0.6,
       grade: "A",
-      source: "Chung 2016 Chest (STOP-Bang): daytime tiredness is the second question in the score.",
+      source: "Chung 2016 Chest (STOP-Bang): daytime tiredness is the second question in the score. The negative LR of 0.6 is a curated grade C: STOP-Bang publishes no per-item negative, but sleeping well through the day is real evidence against.",
     },
     {
       id: "osa_bmi",
@@ -1097,6 +1126,17 @@ const B12_DEFICIENCY: Hypothesis = {
       lr: 2,
       grade: "B",
       source: "Stabler 2013 NEJM: 200–300 pg/mL is the grey zone where MMA decides.",
+    },
+    {
+      id: "b12_diet_negative",
+      input: { fact: "diet" },
+      when: { includes: "vegetarian|vegan|plant-based" },
+      // The prior modifier triples it for a plant-based diet; this rule only
+      // reads the answer that says animal foods are on the plate.
+      lr: 1,
+      lrNeg: 0.7,
+      grade: "C",
+      source: "Grade C for the size: B12 comes only from animal foods or supplements (A), so an omnivore diet is the commonest reason a B12 is fine. No study puts a number on it.",
     },
     {
       id: "b12_mcv",

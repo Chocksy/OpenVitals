@@ -229,6 +229,30 @@ describe("buildTree", () => {
     expect(tree.stop).toBe("exhausted");
   });
 
+  it("stops on a quiet differential: nothing likely, nothing worth asking", () => {
+    const weak: Hypothesis = {
+      ...shared,
+      id: "weak",
+      priors: { base: 0.1, modifiers: [] },
+      evidence: [],
+      discriminators: [
+        {
+          test: "Weak draw",
+          codes: ["insulin"],
+          cost: 1,
+          lrPos: 1.5,
+          lrNeg: 0.8,
+          typicalPos: 18,
+          typicalNeg: 4,
+        },
+      ],
+    };
+    const tree = buildTree(input(), [weak], { depth: 4 });
+    expect(tree.branches).toEqual([]);
+    expect(tree.stop).toBe("exhausted");
+    expect(nextMoves(input(), [weak])[0]!.gain).toBeLessThan(0.15);
+  });
+
   it("stops on the budget when every move costs more than is left", () => {
     const tree = buildTree(
       input(),

@@ -25,6 +25,14 @@ export interface TreeNode {
 
 const round3 = (v: number) => Math.round(v * 1000) / 1000;
 
+/**
+ * The floor under "keep testing". With nothing above a quarter and no move
+ * worth a sixth of a bit, the differential is quiet: another test is noise,
+ * not an answer.
+ */
+const QUIET_BELIEF = 0.25;
+const QUIET_GAIN = 0.15;
+
 /** The eight that matter, and one bar for everything else. */
 function top8(beliefs: Belief[]): Belief[] {
   const sorted = [...beliefs].sort((a, b) => b.p - a.p);
@@ -80,6 +88,8 @@ export function buildTree(
 
     const chosen = affordable[0];
     if (!chosen || chosen.gain <= 0.01) return { ...node, stop: "exhausted" };
+    if (top < QUIET_BELIEF && chosen.gain < QUIET_GAIN)
+      return { ...node, stop: "exhausted" };
 
     return {
       ...node,
