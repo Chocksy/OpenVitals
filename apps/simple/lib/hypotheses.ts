@@ -481,9 +481,9 @@ const IRON_DEFICIENCY: Hypothesis = {
       id: "iron_ferritin_15",
       input: { metric: "ferritin" },
       when: { below: 15 },
-      lr: 2.5,
+      lr: 50,
       grade: "A",
-      source: "Guyatt 1992: on top of the under-30 rule this makes the combined LR about 50 at ferritin under 15.",
+      source: "Guyatt 1992 J Gen Intern Med: ferritin under 15 ng/mL has an LR near 50. It supersedes the under-30 rule rather than stacking on it.",
       confoundedBy: ["ferritin"],
     },
     {
@@ -1198,6 +1198,15 @@ export interface HypothesisResult {
     grade: Grade;
   }[];
   missing: { rule: string; input: string }[]; // evidence that could not be evaluated
+  /** rules that held but read an input a stronger rule already scored */
+  superseded: {
+    rule: string;
+    input: string;
+    value: string;
+    lr: number;
+    grade: Grade;
+    by: string;
+  }[];
   confounded: { input: string; tag: string }[];
   nextTests: {
     test: string;
@@ -1340,6 +1349,16 @@ function resolve(
   return null;
 }
 
+/** One string per thing a rule can read, so two rules over the same marker
+ *  land in the same group and only the strongest of them scores. */
+function inputKey(input: EvidenceRule["input"]): string {
+  if (input.metric) return `metric:${input.metric}`;
+  if (input.derived) return `derived:${input.derived}`;
+  if (input.hypothesis) return `hypothesis:${input.hypothesis}`;
+  if (input.event) return `event:${input.event}`;
+  return `fact:${input.fact}`;
+}
+
 /** Does the condition hold? `null` when the input cannot answer the question. */
 function holds(when: EvidenceRule["when"], r: Resolved): boolean | null {
   const checks: boolean[] = [];
@@ -1478,8 +1497,17 @@ export function scoreHypotheses(
     const against: HypothesisResult["against"] = [];
     const missing: HypothesisResult["missing"] = [];
     const confounded: HypothesisResult["confounded"] = [];
+    const superseded: HypothesisResult["superseded"] = [];
     const positiveCodes = new Set<string>();
 
+    // Pass one: everything that could be read and whose condition decided.
+    const fired: {
+      rule: EvidenceRule;
+      r: Resolved;
+      hit: boolean;
+      raw: number;
+      key: string;
+    }[] = [];
     for (const rule of h.evidence) {
       const r = resolve(rule.input, m, scores);
       if (!r) {
@@ -1502,7 +1530,33 @@ export function scoreHypotheses(
       }
       const raw = hit ? rule.lr : rule.lrNeg;
       if (raw == null) continue;
+      fired.push({ rule, r, hit, raw, key: inputKey(rule.input) });
+    }
 
+    // Pass two: one factor per input. Two rules over the same ferritin are two
+    // readings of one fact, not two facts, so the strongest one wins and the
+    // rest are printed as superseded.
+    const byInput = new Map<string, typeof fired>();
+    for (const f of fired)
+      byInput.set(f.key, [...(byInput.get(f.key) ?? []), f]);
+
+    for (const group of byInput.values()) {
+      const winner = group.reduce((best, f) =>
+        Math.abs(Math.log(f.raw)) > Math.abs(Math.log(best.raw)) ? f : best,
+      );
+      for (const loser of group) {
+        if (loser === winner) continue;
+        superseded.push({
+          rule: loser.rule.id,
+          input: loser.r.label,
+          value: loser.r.text,
+          lr: loser.raw,
+          grade: loser.rule.grade,
+          by: winner.rule.id,
+        });
+      }
+
+      const { rule, r, hit, raw } = winner;
       const conf = confounderFor(r.code, rule, tags);
       const lr = conf ? discountLr(raw, conf.discount) : raw;
       if (conf) confounded.push({ input: r.label, tag: conf.tag });
@@ -1524,7 +1578,9 @@ export function scoreHypotheses(
 
     // A discriminator whose marker no evidence rule reads still has to move
     // the score once it comes back, or the Simulate button would lie. Nearest
-    // typical value wins, which works whichever way round positive is.
+    // typical value wins, which works whichever way round positive is. A
+    // marker any evidence rule reads is already scored above, so it is skipped
+    // here: one input, one factor, always.
     const readCodes = new Set(
       h.evidence.flatMap((e) => [
         ...(e.input.metric ? [e.input.metric] : []),
@@ -1592,6 +1648,7 @@ export function scoreHypotheses(
       for: forList,
       against,
       missing,
+      superseded,
       confounded,
       nextTests,
       lenses: h.lenses,

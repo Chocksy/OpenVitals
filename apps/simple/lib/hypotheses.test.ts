@@ -133,6 +133,31 @@ describe("iron_deficiency", () => {
     expect(score("iron_deficiency", matching)!.score).toBeGreaterThan(0.95);
   });
 
+  it("counts one ferritin factor, not both thresholds", () => {
+    const r = score(
+      "iron_deficiency",
+      input({ latest: { ferritin: value(8) } }),
+    )!;
+    const ferritinRows = r.for.filter((f) => f.input === "ferritin");
+    expect(ferritinRows).toHaveLength(1);
+    expect(ferritinRows[0]!.lr).toBe(50);
+    expect(r.superseded.map((x) => [x.rule, x.by])).toEqual([
+      ["iron_ferritin_30", "iron_ferritin_15"],
+    ]);
+    // prior 0.12 -> odds 0.13636 x 50 = 6.818 -> 0.872, one factor of 50.
+    expect(r.score).toBeCloseTo(0.872, 3);
+  });
+
+  it("uses the under-30 rule on its own above 15", () => {
+    const r = score(
+      "iron_deficiency",
+      input({ latest: { ferritin: value(22) } }),
+    )!;
+    expect(r.for.filter((f) => f.input === "ferritin")).toHaveLength(1);
+    expect(r.for[0]!.lr).toBe(20);
+    expect(r.superseded).toEqual([]);
+  });
+
   it("stays at its prior with full stores: nothing here argues either way", () => {
     const r = score("iron_deficiency", clean)!;
     expect(r.state).toBe("unlikely");
@@ -502,8 +527,13 @@ describe("discriminators with no evidence rule behind them", () => {
   });
 
   it("never double-counts a marker an evidence rule already reads", () => {
-    const m = input({ latest: { ferritin: value(9) } });
-    const r = score("iron_deficiency", m)!;
+    const r = score("iron_deficiency", input({ latest: { ferritin: value(9) } }))!;
     expect(r.for.map((f) => f.rule)).not.toContain("discriminator:Ferritin");
+    // ferritin has both an evidence rule and a discriminator: exactly one
+    // factor of 50 reaches the odds.
+    expect(
+      [...r.for, ...r.against].filter((x) => x.input === "ferritin"),
+    ).toHaveLength(1);
+    expect(r.score).toBeCloseTo(0.872, 3);
   });
 });

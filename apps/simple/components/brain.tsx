@@ -735,6 +735,18 @@ function Hypotheses({
                 <EvidenceList title="Against" rows={h.against} />
               </div>
 
+              {h.superseded.length > 0 && (
+                <p className="mt-2 font-mono text-[10px] text-neutral-400">
+                  Superseded (read the same input, not counted):{" "}
+                  {h.superseded
+                    .map(
+                      (x) =>
+                        `${x.rule} ${x.input} ${x.value} LR ${x.lr} → ${x.by}`,
+                    )
+                    .join(" · ")}
+                </p>
+              )}
+
               <div className="deep mt-3 grid gap-3 border-t border-neutral-100 pt-3 md:grid-cols-2">
                 <div>
                   <Label>Missing</Label>
