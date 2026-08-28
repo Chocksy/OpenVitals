@@ -38,9 +38,16 @@ export const priceOf = (
  */
 export const MIN_EUR = 5;
 
-/** Gain per euro when the test has a price, gain per cost band when it does not. */
+/**
+ * Nominal euros for an unpriced cost band, so priced and unpriced moves rank on
+ * one scale. ponytail: rough Western European list prices; replaced row by row
+ * as real prices arrive.
+ */
+export const BAND_EUR: Record<number, number> = { 0: 0, 1: 10, 2: 30, 3: 80, 4: 300 };
+
+/** Gain per euro on one scale: a real price, else the band's nominal price. Questions sit on the MIN_EUR floor. */
 export const ratioOf = (gain: number, cost: number, priced: boolean): number =>
-  gain / Math.max(cost, priced ? MIN_EUR : 0.5);
+  gain / Math.max(priced ? cost : (BAND_EUR[cost] ?? cost * 30), MIN_EUR);
 
 /** "€57" — how a price prints. Bands print as "cost 2". */
 export const money = (eur: number): string =>

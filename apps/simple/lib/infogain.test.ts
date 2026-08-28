@@ -1,4 +1,5 @@
 import { describe, it, expect } from "vitest";
+import { ratioOf } from "./prices";
 import type { ModelInput } from "./coverage";
 import type { Catalog, Hypothesis } from "./hypotheses";
 import { entropyOf, nextMoves, sensSpec } from "./infogain";
@@ -210,7 +211,7 @@ describe("nextMoves", () => {
   it("keeps the entropy it reports honest", () => {
     const move = nextMoves(input(), twoConditions)[0]!;
     expect(move.gain).toBeCloseTo(move.entropyBefore - move.entropyAfter, 3);
-    expect(move.ratio).toBeCloseTo(move.gain / Math.max(move.cost, 0.5), 3);
+    expect(move.ratio).toBeCloseTo(ratioOf(move.gain, move.cost, !!move.priced), 3);
   });
 });
 

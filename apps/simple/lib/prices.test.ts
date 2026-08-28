@@ -29,8 +29,8 @@ describe("prices", () => {
   it("ranks per euro when priced and per cost band when not", () => {
     expect(ratioOf(1, 20, true)).toBe(0.05);
     expect(ratioOf(1, 2, true)).toBe(0.2); // the €5 floor
-    expect(ratioOf(1, 2, false)).toBe(0.5);
-    expect(ratioOf(1, 0, false)).toBe(2); // a free question, on the 0.5 floor
+    expect(ratioOf(1, 2, false)).toBeCloseTo(1 / 30); // band 2 = €30 nominal
+    expect(ratioOf(1, 0, false)).toBe(0.2); // a free question, on the €5 floor
   });
 
   it("prints a price the way the page does", () => {
