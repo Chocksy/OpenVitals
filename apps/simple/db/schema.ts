@@ -9,6 +9,7 @@ import {
   timestamp,
   index,
   boolean,
+  primaryKey,
   unique,
 } from "drizzle-orm/pg-core";
 import { users } from "./auth-schema";
@@ -457,3 +458,164 @@ export type Insight = typeof insights.$inferSelect;
 export type DailyLog = typeof dailyLogs.$inferSelect;
 export type ProtocolItem = typeof protocolItems.$inferSelect;
 export type Goal = typeof goals.$inferSelect;
+
+/* ── the hypothesis knowledge base ─────────────────────────────────────
+ *
+ * The catalog `lib/hypotheses.ts` holds in code, as rows. `lib/hkb-seed.ts`
+ * writes it, `lib/hkb.ts` reads it back into the same `Hypothesis[]` the
+ * engine already consumes, so the engine itself never learns about the
+ * database. Types are structural here on purpose: the db layer stays a leaf
+ * and does not import the model.
+ */
+
+/** One story the engine can tell. Later: MONDO ids and their parents. */
+export const hkbConditions = pgTable("hkb_conditions", {
+  id: text("id").primaryKey(),
+  name: text("name").notNull(),
+  summary: text("summary").notNull(),
+  management: text("management").notNull(),
+  parentId: text("parent_id"),
+  /** Disability-adjusted life years, once GBD is imported (phase 11). */
+  burdenDaly: real("burden_daly"),
+  inCatalog: boolean("in_catalog").default(true).notNull(),
+  lenses: jsonb("lenses").$type<Record<string, { w: number; grade: string }>>().notNull(),
+  appliesTo: jsonb("applies_to").$type<{
+    sex?: string;
+    minAge?: number;
+    maxAge?: number;
+  }>(),
+  requires: jsonb("requires").$type<{ condition: string; minState: number }>(),
+  confirmAtLrPos: real("confirm_at_lr_pos"),
+  patternId: text("pattern_id"),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
+});
+
+/** Anything a rule can read: `metric:ferritin`, `derived:tgHdl`, `fact:sex`. */
+export const hkbFeatures = pgTable("hkb_features", {
+  id: text("id").primaryKey(),
+  /** symptom | sign | lab | derived | fact | event | hypothesis */
+  kind: text("kind").notNull(),
+  name: text("name").notNull(),
+  unit: text("unit"),
+  howTo: text("how_to"),
+});
+
+/** The base rate. One row per (condition, country, sex, age band). */
+export const hkbPriors = pgTable(
+  "hkb_priors",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    conditionId: text("condition_id")
+      .notNull()
+      .references(() => hkbConditions.id, { onDelete: "cascade" }),
+    country: text("country"),
+    sex: text("sex"),
+    ageMin: integer("age_min"),
+    ageMax: integer("age_max"),
+    prevalence: real("prevalence").notNull(),
+    source: text("source").notNull(),
+  },
+  (t) => [
+    // The seed's row is the all-null one, so the key has to treat NULLs as
+    // equal or every run would insert it again.
+    unique("hkb_priors_key")
+      .on(t.conditionId, t.country, t.sex, t.ageMin, t.ageMax)
+      .nullsNotDistinct(),
+  ],
+);
+
+/** What multiplies the base rate before any evidence is read. */
+export const hkbPriorModifiers = pgTable(
+  "hkb_prior_modifiers",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    conditionId: text("condition_id")
+      .notNull()
+      .references(() => hkbConditions.id, { onDelete: "cascade" }),
+    featureId: text("feature_id")
+      .notNull()
+      .references(() => hkbFeatures.id),
+    conditionOn: jsonb("condition_on").$type<Record<string, unknown>>().notNull(),
+    times: real("times").notNull(),
+    why: text("why").notNull(),
+    grade: text("grade"),
+    source: text("source"),
+  },
+  (t) => [
+    unique("hkb_prior_modifiers_key").on(
+      t.conditionId,
+      t.featureId,
+      t.conditionOn,
+    ),
+  ],
+);
+
+/** One likelihood ratio: this condition, that feature, under this condition. */
+export const hkbEvidence = pgTable(
+  "hkb_evidence",
+  {
+    /** The rule id the engine and the page print, e.g. `ir_insulin`. */
+    id: text("id").primaryKey(),
+    conditionId: text("condition_id")
+      .notNull()
+      .references(() => hkbConditions.id, { onDelete: "cascade" }),
+    featureId: text("feature_id")
+      .notNull()
+      .references(() => hkbFeatures.id),
+    conditionOn: jsonb("condition_on").$type<Record<string, unknown>>().notNull(),
+    lrPos: real("lr_pos").notNull(),
+    lrNeg: real("lr_neg"),
+    grade: text("grade").notNull(),
+    source: text("source").notNull(),
+    population: text("population"),
+    confoundedBy: jsonb("confounded_by").$type<string[]>(),
+    /** seed | proposed | accepted | rejected */
+    status: text("status").default("accepted").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+  },
+  (t) => [
+    unique("hkb_evidence_key").on(t.conditionId, t.featureId, t.conditionOn),
+  ],
+);
+
+/** A test that could be ordered, with what it would say either way. */
+export const hkbTests = pgTable("hkb_tests", {
+  id: text("id").primaryKey(),
+  name: text("name").notNull(),
+  /** Metric codes the test writes. */
+  featureIds: jsonb("feature_ids").$type<string[]>().notNull(),
+  /** 1 cheap blood, 2 special blood, 3 imaging/functional, 4 invasive. */
+  cost: integer("cost").notNull(),
+  costByCountry: jsonb("cost_by_country").$type<Record<string, number>>(),
+  invasiveness: integer("invasiveness"),
+  lrPos: real("lr_pos").notNull(),
+  lrNeg: real("lr_neg").notNull(),
+  /** Keyed by metric code, so a multi-marker test can carry one value each. */
+  typicalPos: jsonb("typical_pos").$type<Record<string, number>>(),
+  typicalNeg: jsonb("typical_neg").$type<Record<string, number>>(),
+  repeatable: boolean("repeatable").default(false).notNull(),
+  howTo: text("how_to"),
+});
+
+/** Which test discriminates which condition. */
+export const hkbConditionTests = pgTable(
+  "hkb_condition_tests",
+  {
+    conditionId: text("condition_id")
+      .notNull()
+      .references(() => hkbConditions.id, { onDelete: "cascade" }),
+    testId: text("test_id")
+      .notNull()
+      .references(() => hkbTests.id, { onDelete: "cascade" }),
+  },
+  (t) => [primaryKey({ columns: [t.conditionId, t.testId] })],
+);
+
+export type HkbCondition = typeof hkbConditions.$inferSelect;
+export type HkbFeature = typeof hkbFeatures.$inferSelect;
+export type HkbPrior = typeof hkbPriors.$inferSelect;
+export type HkbPriorModifier = typeof hkbPriorModifiers.$inferSelect;
+export type HkbEvidence = typeof hkbEvidence.$inferSelect;
+export type HkbTest = typeof hkbTests.$inferSelect;
+export type HkbConditionTest = typeof hkbConditionTests.$inferSelect;

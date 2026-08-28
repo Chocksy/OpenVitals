@@ -78,6 +78,8 @@ export interface Hypothesis {
   summary: string;
   priors: {
     base: number;
+    /** Where the base rate comes from, printed as "why this is in the catalog". */
+    source?: string;
     modifiers: {
       when: EvidenceRule["input"] & {
         equals?: string;
@@ -103,7 +105,13 @@ export interface Hypothesis {
   requires?: { id: string; minScore: number };
   /** the discriminator strength that lets a score of 0.9 read "confirmed" */
   confirmAtLrPos?: number;
+  /** disability-adjusted life years, once GBD is imported. Phase 11. */
+  burdenDaly?: number;
 }
+
+/** The catalog the engine scores: in code below, or the same rows out of
+ *  `hkb_conditions` and friends via `lib/hkb.ts`. One shape either way. */
+export type Catalog = Hypothesis[];
 
 export const CONFOUNDERS: {
   tag: string;
@@ -175,9 +183,9 @@ const INSULIN_RESISTANCE: Hypothesis = {
   summary:
     "The pancreas is compensating: insulin rises for years before glucose or HbA1c move. The decade where the trajectory is easiest to change.",
   priors: {
-    // grade C: NHANES-style surveys put a third of Western adults over a
-    // HOMA-IR based cut-off, so a third is the honest starting point.
     base: 0.3,
+    source:
+      "NHANES-style surveys put a third of Western adults over a HOMA-IR cut-off, so a third is the honest starting point (grade C).",
     modifiers: [
       {
         when: { fact: "family_history", includes: "diabet" },
@@ -328,9 +336,9 @@ const HASHIMOTO: Hypothesis = {
   summary:
     "The immune system is attacking the thyroid. TSH climbs slowly over years; antibodies show it before TSH does.",
   priors: {
-    // grade C: antibody positivity runs near 10 % of adults and clinical
-    // disease near 5 %, so 5 % is the base before sex is known.
     base: 0.05,
+    source:
+      "Antibody positivity runs near 10 % of adults and clinical disease near 5 %, so 5 % is the base before sex is known (grade C).",
     modifiers: [
       {
         when: { sex: "female" },
@@ -462,9 +470,9 @@ const IRON_DEFICIENCY: Hypothesis = {
   summary:
     "The iron stores are empty. Fatigue, hair loss and breathlessness arrive long before haemoglobin drops.",
   priors: {
-    // grade C: pooled European surveys put low ferritin near 12 % of adults
-    // once menstruating women are included.
     base: 0.12,
+    source:
+      "Pooled European surveys put low ferritin near 12 % of adults once menstruating women are included (grade C).",
     modifiers: [],
   },
   evidence: [
@@ -573,9 +581,9 @@ const IRON_DEFICIENCY_CAUSE_GI: Hypothesis = {
     "Iron is low and the gut is the reason: coeliac disease, atrophic gastritis, H. pylori, or a bleed nobody has looked for.",
   requires: { id: "iron_deficiency", minScore: 0.25 },
   priors: {
-    // grade C: in referred iron-deficiency series a gut cause is found in
-    // roughly a fifth of unselected adults, more in men.
     base: 0.2,
+    source:
+      "In referred iron-deficiency series a gut cause is found in roughly a fifth of unselected adults, more in men (grade C).",
     modifiers: [
       {
         when: { sex: "male" },
@@ -707,6 +715,8 @@ const PCOS: Hypothesis = {
   confirmAtLrPos: 4,
   priors: {
     base: 0.1,
+    source:
+      "Rotterdam-criteria prevalence runs 8–13 % of women of reproductive age (grade C).",
     modifiers: [],
   },
   evidence: [
@@ -829,9 +839,9 @@ const SLEEP_APNOEA: Hypothesis = {
   summary:
     "The airway closes repeatedly during sleep. It drives blood pressure, atrial fibrillation, insulin resistance and daytime exhaustion, and most cases are never diagnosed.",
   priors: {
-    // grade C for the base: moderate-to-severe OSA prevalence estimates run
-    // 10–20 % of middle-aged adults, so 15 % sits in the middle.
     base: 0.15,
+    source:
+      "Moderate-to-severe OSA prevalence estimates run 10–20 % of middle-aged adults, so 15 % sits in the middle (grade C).",
     modifiers: [
       {
         when: { sex: "male" },
@@ -947,6 +957,8 @@ const NAFLD: Hypothesis = {
     "Fat in the liver, usually the liver's share of insulin resistance. Silent until fibrosis arrives, and the commonest liver finding there is.",
   priors: {
     base: 0.25,
+    source:
+      "Imaging series put fatty liver in about a quarter of Western adults (grade C).",
     modifiers: [],
   },
   evidence: [
@@ -1050,9 +1062,9 @@ const B12_DEFICIENCY: Hypothesis = {
   summary:
     "Low B12 damages nerves before it changes the blood count, and the damage is only partly reversible once it arrives.",
   priors: {
-    // grade C: population surveys put B12 under 200 pg/mL near 6–10 % of
-    // adults, higher over 60.
     base: 0.08,
+    source:
+      "Population surveys put B12 under 200 pg/mL near 6–10 % of adults, higher over 60 (grade C).",
     modifiers: [
       {
         when: { fact: "diet", includes: "vegetarian|vegan|plant-based" },
@@ -1222,6 +1234,9 @@ export interface HypothesisResult {
   summary: string;
   management: string;
   patternId?: string;
+  /** why this is in the catalog at all: burden and where the prior came from */
+  burdenDaly?: number;
+  priorSource?: string;
 }
 
 /** How much a claim counts when it is only as good as its grade. */
@@ -1470,6 +1485,8 @@ export function scoreHypotheses(
   opts: {
     confounderTags?: Record<string, string[]>;
     lens?: Lens;
+    /** the rows out of the database; `HYPOTHESES` when nothing passes one. */
+    catalog?: Catalog;
   } = {},
 ): HypothesisResult[] {
   const lens = opts.lens ?? "lifespan";
@@ -1480,7 +1497,7 @@ export function scoreHypotheses(
   const scores = new Map<string, number>();
   const out: HypothesisResult[] = [];
 
-  for (const h of HYPOTHESES) {
+  for (const h of opts.catalog ?? HYPOTHESES) {
     if (!gateOpen(h, m)) continue;
     if (h.requires) {
       const gate = scores.get(h.requires.id);
@@ -1657,6 +1674,8 @@ export function scoreHypotheses(
       summary: h.summary,
       management: h.management,
       patternId: h.patternId,
+      burdenDaly: h.burdenDaly,
+      priorSource: h.priors.source,
     });
   }
 

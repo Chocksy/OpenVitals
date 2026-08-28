@@ -9,13 +9,15 @@
  * overlay (simulated readings, added facts, confounder tags) lives in
  * localStorage keyed by the scenario, so a reload keeps the simulation.
  */
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { Pin, RefreshCw, RotateCcw, Trash2 } from "lucide-react";
+import { Pin, RefreshCw, RotateCcw, Trash2, Undo2 } from "lucide-react";
 import type { ReportBody } from "@/db";
 import type { BrainRun } from "@/lib/brain";
 import type { Discriminator, HypothesisResult, Lens } from "@/lib/hypotheses";
+import type { Move } from "@/lib/infogain";
 import type { Overlay, Scenario } from "@/lib/sample";
+import type { TreeNode } from "@/lib/tree";
 import { cn } from "@/lib/utils";
 import type { AssertionReport } from "@/evals/assert";
 import { ActionCard } from "./action-card";
@@ -104,6 +106,8 @@ interface Query {
   year: number;
   persona: string;
   lens: Lens;
+  /** 0 = no budget; anything dearer than what is left is dropped */
+  budget: number;
 }
 
 function toScenario(q: Query): Scenario {
@@ -158,6 +162,7 @@ export function Brain({
       year: Number(p.get("year") ?? 2024),
       persona: p.get("persona") ?? firstPersona,
       lens: (p.get("lens") as Lens) ?? "lifespan",
+      budget: Number(p.get("budget") ?? 0),
     };
   }, [search, firstUser, firstPersona]);
 
@@ -175,6 +180,7 @@ export function Brain({
   const [run, setRun] = useState<BrainRun | null>(null);
   const [last, setLast] = useState<Map<string, number>>(new Map());
   const [pinned, setPinned] = useState<BrainRun | null>(null);
+  const [trail, setTrail] = useState<{ label: string; before: Overlay }[]>([]);
   const [plan, setPlan] = useState<ReportBody | null>(null);
   const [assertions, setAssertions] = useState<AssertionReport | null>(null);
   const [busy, setBusy] = useState<"" | "run" | "plan">("");
@@ -184,6 +190,7 @@ export function Brain({
   useEffect(() => {
     const saved = window.localStorage.getItem(`brain:${key}`);
     setOverlay(saved ? (JSON.parse(saved) as Overlay) : EMPTY);
+    setTrail([]);
   }, [key]);
 
   const save = (next: Overlay) => {
@@ -193,13 +200,19 @@ export function Brain({
   };
 
   const post = useCallback(
-    async (mode: "run" | "generate", next: Overlay, lens: Lens) => {
+    async (mode: "run" | "generate", next: Overlay, lens: Lens, budget = 0) => {
       setBusy(mode === "run" ? "run" : "plan");
       setError("");
       const res = await fetch("/api/brain", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ mode, scenario, overlay: next, lens }),
+        body: JSON.stringify({
+          mode,
+          scenario,
+          overlay: next,
+          lens,
+          budget: budget || undefined,
+        }),
       });
       const data = (await res.json().catch(() => ({}))) as Record<
         string,
@@ -215,8 +228,12 @@ export function Brain({
     [scenario],
   );
 
-  const doRun = async (next: Overlay = overlay, lens: Lens = q.lens) => {
-    const data = await post("run", next, lens);
+  const doRun = async (
+    next: Overlay = overlay,
+    lens: Lens = q.lens,
+    budget: number = q.budget,
+  ) => {
+    const data = await post("run", next, lens, budget);
     if (!data) return;
     setLast(new Map((run?.hypotheses ?? []).map((h) => [h.id, h.score])));
     setRun(data as unknown as BrainRun);
@@ -236,6 +253,29 @@ export function Brain({
       { code, value, unit, date: run?.today ?? new Date().toISOString().slice(0, 10) },
     ];
     void doRun(save({ ...overlay, readings }));
+  };
+
+  /** Clicking a branch is the Simulate button with the outcome filled in. */
+  const takeBranch = (label: string, apply: Overlay) => {
+    const next: Overlay = {
+      readings: [
+        ...overlay.readings.filter(
+          (r) => !apply.readings.some((a) => a.code === r.code),
+        ),
+        ...apply.readings,
+      ],
+      facts: { ...overlay.facts, ...apply.facts },
+      confounders: { ...overlay.confounders, ...apply.confounders },
+    };
+    setTrail([...trail, { label, before: overlay }]);
+    void doRun(save(next));
+  };
+
+  const undoBranch = () => {
+    const last = trail[trail.length - 1];
+    if (!last) return;
+    setTrail(trail.slice(0, -1));
+    void doRun(save(last.before));
   };
 
   const pinnedScores = useMemo(
@@ -268,7 +308,10 @@ export function Brain({
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => void doRun(save(EMPTY))}
+            onClick={() => {
+              setTrail([]);
+              void doRun(save(EMPTY));
+            }}
           >
             <RotateCcw className="size-3.5" /> Reset overlay
           </Button>
@@ -301,13 +344,18 @@ export function Brain({
 
       {run && (
         <div className="space-y-6">
+          <Path
+            run={run}
+            trail={trail}
+            onBranch={takeBranch}
+            onUndo={undoBranch}
+          />
           <Hypotheses
             run={run}
             pinned={pinnedScores}
             last={last}
             onSimulate={simulate}
           />
-          <Path run={run} />
           <Pillars run={run} pinnedRanks={pinnedRanks} />
           <FactsPanel
             run={run}
@@ -485,6 +533,17 @@ function ScenarioBar({
           </Field>
         </>
       )}
+
+      <Field label="budget">
+        <input
+          className={`${inputClass} w-20`}
+          type="number"
+          min={0}
+          placeholder="none"
+          value={q.budget || ""}
+          onChange={(e) => set({ budget: Number(e.target.value) })}
+        />
+      </Field>
 
       <Field label="lens">
         <select
@@ -675,13 +734,21 @@ function Hypotheses({
   last: Map<string, number>;
   onSimulate: (code: string, value: number, unit?: string) => void;
 }) {
+  const [showQuiet, setShowQuiet] = useState(false);
+  const quiet = (h: HypothesisResult) =>
+    h.state === "unlikely" || h.state === "ruled_out";
+  const hidden = run.hypotheses.filter(quiet);
+  const shown = showQuiet
+    ? run.hypotheses
+    : run.hypotheses.filter((h) => !quiet(h));
+
   return (
     <section>
       <Label>
         Hypotheses · ranked by score × lens weight ({run.lens})
       </Label>
       <div className="space-y-3">
-        {run.hypotheses.map((h) => {
+        {shown.map((h) => {
           const was = pinned.get(h.id);
           const before = last.get(h.id);
           return (
@@ -693,6 +760,13 @@ function Hypotheses({
                   </p>
                   <p className="font-mono text-[10px] uppercase tracking-[0.04em] text-neutral-400">
                     {h.id} · prior {pct(h.prior)} · lens weight {h.lensWeight}
+                  </p>
+                  <p className="font-body text-[11px] text-neutral-400">
+                    Why in the catalog:{" "}
+                    {h.burdenDaly != null
+                      ? `${h.burdenDaly} DALYs · `
+                      : ""}
+                    {h.priorSource ?? "seed"}
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
@@ -807,6 +881,16 @@ function Hypotheses({
             </Card>
           );
         })}
+        {hidden.length > 0 && (
+          <button
+            onClick={() => setShowQuiet(!showQuiet)}
+            className="font-mono text-[11px] text-neutral-500 underline decoration-dotted"
+          >
+            {hidden.filter((h) => h.state === "unlikely").length} unlikely,{" "}
+            {hidden.filter((h) => h.state === "ruled_out").length} ruled out (
+            {showQuiet ? "hide" : "show"})
+          </button>
+        )}
       </div>
     </section>
   );
@@ -814,35 +898,322 @@ function Hypotheses({
 
 /* ── 4. path ──────────────────────────────────────────────────────────── */
 
-function Path({ run }: { run: BrainRun }) {
+/** The colour a probability earns, on the same thresholds the engine uses. */
+function beliefColour(p: number): string {
+  if (p >= 0.9) return "var(--color-health-critical)";
+  if (p >= 0.6) return "var(--color-health-warning)";
+  if (p >= 0.25) return "var(--color-health-info)";
+  return "var(--color-neutral-300)";
+}
+
+const STOP_LABEL: Record<string, string> = {
+  likely: "likely",
+  confirmed: "confirmed",
+  exhausted: "exhausted",
+  pruned: "pruned",
+  budget: "budget reached",
+};
+
+interface Spot {
+  left: number;
+  right: number;
+  y: number;
+}
+
+/** Every node by depth, so the tree lays out as columns. */
+function columnsOf(root: TreeNode): TreeNode[][] {
+  const columns: TreeNode[][] = [];
+  const walk = (n: TreeNode) => {
+    (columns[n.depth] ??= []).push(n);
+    for (const b of n.branches) walk(b.child);
+  };
+  walk(root);
+  return columns;
+}
+
+function NodeCard({
+  node,
+  onBranch,
+}: {
+  node: TreeNode;
+  onBranch: (label: string, apply: Overlay) => void;
+}) {
   return (
-    <section>
-      <Label>Path · cheapest first, by expected movement per unit of cost</Label>
-      <Card className="divide-y divide-neutral-100">
-        {run.path.map((step) => (
-          <div key={step.test} className="flex flex-wrap items-center gap-2 px-3 py-2">
-            <span className="w-6 font-mono text-[11px] tabular-nums text-neutral-400">
-              {step.step}
+    <div
+      data-node={node.id}
+      className="w-[230px] shrink-0 border border-neutral-200 bg-neutral-0 p-2"
+    >
+      <div className="flex items-start justify-between gap-1">
+        <p className="font-body text-[12px] leading-snug">
+          {node.chosen ? node.chosen.label : "—"}
+        </p>
+        {node.chosen && (
+          <Badge variant="outline">
+            {node.chosen.cost === 0 ? "free" : `cost ${node.chosen.cost}`}
+          </Badge>
+        )}
+      </div>
+      {node.chosen && (
+        <p className="mt-0.5 font-mono text-[10px] tabular-nums text-neutral-400">
+          gain {node.chosen.gain.toFixed(3)} · ratio{" "}
+          {node.chosen.ratio.toFixed(3)}
+        </p>
+      )}
+      <div className="mt-2 space-y-0.5">
+        {node.beliefs.slice(0, 5).map((b) => (
+          <div key={b.id} className="flex items-center gap-1">
+            <span className="w-24 truncate font-mono text-[9px] uppercase text-neutral-500">
+              {b.id}
             </span>
-            <span className="min-w-48 flex-1 font-body text-[13px]">
-              {step.test}
+            <span className="h-[6px] flex-1 bg-neutral-150">
+              <span
+                className="block h-full"
+                style={{
+                  width: `${Math.round(b.p * 100)}%`,
+                  background: beliefColour(b.p),
+                }}
+              />
             </span>
-            <Badge variant="secondary">{step.kind}</Badge>
-            <Badge variant="outline">
-              {step.cost === 0 ? "free" : `cost ${step.cost}`}
-            </Badge>
-            <span className="font-mono text-[11px] tabular-nums text-neutral-500">
-              {step.moves
-                .map((m) => `${m.id} ${m.shift.toFixed(3)}`)
-                .join(" · ")}
+            <span className="w-8 text-right font-mono text-[9px] tabular-nums text-neutral-500">
+              {pct(b.p)}
             </span>
           </div>
         ))}
-        {!run.path.length && (
-          <p className="px-3 py-2 font-body text-[13px] text-neutral-500">
-            Nothing left to order.
+        {node.beliefs.length > 5 && (
+          <p className="font-mono text-[9px] text-neutral-400">
+            rest {node.beliefs.slice(5).map((b) => b.id).join(", ")}
           </p>
         )}
+      </div>
+      <div className="mt-2 flex items-center justify-between">
+        <span className="font-mono text-[9px] tabular-nums text-neutral-400">
+          mass {pct(node.mass)}
+        </span>
+        {node.stop && (
+          <Badge variant={node.stop === "budget" ? "warning" : "secondary"}>
+            {STOP_LABEL[node.stop] ?? node.stop}
+          </Badge>
+        )}
+      </div>
+      {node.chosen && (
+        <div className="mt-2 flex flex-wrap gap-1 border-t border-neutral-100 pt-2">
+          {node.chosen.outcomes.map((o) => (
+            <Button
+              key={o.label}
+              size="sm"
+              variant="ghost"
+              onClick={() => onBranch(`${node.chosen!.label} → ${o.label}`, o.apply)}
+            >
+              {o.label} {pct(o.prob)}
+            </Button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/**
+ * The tree as columns with SVG connectors on top. Same trick as
+ * `components/graph-map.tsx`: the cards are laid out by CSS, measured with
+ * `getBoundingClientRect`, and one SVG is drawn over whatever CSS did.
+ */
+function Tree({
+  root,
+  onBranch,
+}: {
+  root: TreeNode;
+  onBranch: (label: string, apply: Overlay) => void;
+}) {
+  const box = useRef<HTMLDivElement>(null);
+  const row = useRef<HTMLDivElement>(null);
+  const [size, setSize] = useState({ w: 0, h: 0 });
+  const [spots, setSpots] = useState<Record<string, Spot>>({});
+  const columns = useMemo(() => columnsOf(root), [root]);
+
+  useEffect(() => {
+    const el = box.current;
+    if (!el) return;
+    const measure = () => {
+      const base = el.getBoundingClientRect();
+      const next: Record<string, Spot> = {};
+      for (const card of el.querySelectorAll<HTMLElement>("[data-node]")) {
+        const r = card.getBoundingClientRect();
+        if (!r.width) continue;
+        next[card.dataset.node!] = {
+          left: r.left - base.left + el.scrollLeft,
+          right: r.right - base.left + el.scrollLeft,
+          y: r.top - base.top + el.scrollTop + r.height / 2,
+        };
+      }
+      setSize({ w: el.scrollWidth, h: el.scrollHeight });
+      setSpots(next);
+    };
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(el);
+    // The row is what shrinks when Simple hides the deep columns, so the
+    // connectors to them go with it.
+    if (row.current) observer.observe(row.current);
+    window.addEventListener("resize", measure);
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("resize", measure);
+    };
+  }, [root]);
+
+  const edges = useMemo(() => {
+    const out: { from: string; to: string; label: string; prob: number; apply: Overlay; title: string }[] = [];
+    const walk = (n: TreeNode) => {
+      for (const b of n.branches) {
+        const outcome = n.chosen?.outcomes.find((o) => o.label === b.label);
+        out.push({
+          from: n.id,
+          to: b.child.id,
+          label: b.label,
+          prob: b.prob,
+          apply: outcome?.apply ?? { readings: [], facts: {}, confounders: {} },
+          title: `${n.chosen?.label ?? ""} → ${b.label}`,
+        });
+      }
+      for (const b of n.branches) walk(b.child);
+    };
+    walk(root);
+    return out;
+  }, [root]);
+
+  return (
+    <div ref={box} className="relative overflow-x-auto pb-2">
+      {size.w > 0 && (
+        <svg
+          className="pointer-events-none absolute left-0 top-0 z-10"
+          width={size.w}
+          height={size.h}
+          viewBox={`0 0 ${size.w} ${size.h}`}
+        >
+          {edges.map((e) => {
+            const a = spots[e.from];
+            const b = spots[e.to];
+            if (!a || !b) return null;
+            const mid = (a.right + b.left) / 2;
+            const d = `M ${a.right} ${a.y} C ${mid} ${a.y} ${mid} ${b.y} ${b.left} ${b.y}`;
+            return (
+              <g
+                key={`${e.from}->${e.to}`}
+                className="pointer-events-auto cursor-pointer"
+                onClick={() => onBranch(e.title, e.apply)}
+              >
+                <title>{`${e.title} (${pct(e.prob)}) — click to take this branch`}</title>
+                <path d={d} fill="none" stroke="transparent" strokeWidth={12} />
+                <path
+                  d={d}
+                  fill="none"
+                  stroke="var(--color-accent-500)"
+                  strokeWidth={1 + e.prob * 5}
+                  strokeOpacity={0.5}
+                />
+                <text
+                  x={mid}
+                  y={(a.y + b.y) / 2 - 4}
+                  textAnchor="middle"
+                  className="font-mono"
+                  fontSize={9}
+                  fill="var(--color-neutral-500)"
+                >
+                  {e.label} {pct(e.prob)}
+                </text>
+              </g>
+            );
+          })}
+        </svg>
+      )}
+      <div ref={row} className="flex w-fit gap-16">
+        {columns.map((column, depth) => (
+          <div
+            key={depth}
+            className={cn("flex flex-col gap-4", depth > 2 ? "deep" : "")}
+          >
+            {column.map((node) => (
+              <NodeCard key={node.id} node={node} onBranch={onBranch} />
+            ))}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function MoveRow({ move, rank }: { move: Move; rank: number }) {
+  return (
+    <div className="flex flex-wrap items-center gap-2 px-3 py-2">
+      <span className="w-6 font-mono text-[11px] tabular-nums text-neutral-400">
+        {rank}
+      </span>
+      <span className="min-w-48 flex-1 font-body text-[13px]">{move.label}</span>
+      <Badge variant="secondary">{move.kind}</Badge>
+      <Badge variant="outline">
+        {move.cost === 0 ? "free" : `cost ${move.cost}`}
+      </Badge>
+      <span className="font-mono text-[11px] tabular-nums text-neutral-500">
+        gain {move.gain.toFixed(3)} · ratio {move.ratio.toFixed(3)}
+      </span>
+      <span className="font-mono text-[11px] tabular-nums text-neutral-400">
+        {move.moves
+          .map((x) => `${x.id} ${x.from.toFixed(2)}→${x.to.toFixed(2)}`)
+          .join(" · ")}
+      </span>
+      {move.howTo && (
+        <span className="deep w-full font-body text-[12px] text-neutral-500">
+          {move.howTo}
+        </span>
+      )}
+    </div>
+  );
+}
+
+/** The tree, its breadcrumb, and the ranked moves underneath it. */
+function Path({
+  run,
+  trail,
+  onBranch,
+  onUndo,
+}: {
+  run: BrainRun;
+  trail: { label: string }[];
+  onBranch: (label: string, apply: Overlay) => void;
+  onUndo: () => void;
+}) {
+  return (
+    <section>
+      <Label>
+        Path · the next question or test, by information gain over the whole
+        differential
+        {run.budget ? ` · budget ${run.budget}` : ""}
+      </Label>
+      <Card className="space-y-3 p-4">
+        {trail.length > 0 && (
+          <div className="flex flex-wrap items-center gap-2">
+            {trail.map((t, i) => (
+              <Badge key={`${t.label}-${i}`} variant="info">
+                {t.label}
+              </Badge>
+            ))}
+            <Button size="sm" variant="ghost" onClick={onUndo}>
+              <Undo2 className="size-3.5" /> undo
+            </Button>
+          </div>
+        )}
+        <Tree root={run.tree} onBranch={onBranch} />
+        <div className="divide-y divide-neutral-100 border-t border-neutral-100">
+          {run.path.map((move, i) => (
+            <MoveRow key={`${move.featureId}-${move.label}`} move={move} rank={i + 1} />
+          ))}
+          {!run.path.length && (
+            <p className="px-3 py-2 font-body text-[13px] text-neutral-500">
+              Nothing left to order.
+            </p>
+          )}
+        </div>
       </Card>
     </section>
   );

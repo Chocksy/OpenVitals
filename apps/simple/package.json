@@ -10,6 +10,7 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "import-legacy": "tsx lib/import-legacy.ts",
+    "hkb:seed": "tsx lib/hkb-seed.ts",
     "curate": "tsx lib/curator.ts",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",

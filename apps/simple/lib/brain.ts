@@ -1,25 +1,17 @@
 /**
  * One run of the whole engine over one scenario, as plain data: the pillars
- * ranked, the hypotheses scored, the cheapest path through the tests that are
- * still open, the patterns, the graph, and the context pack the model would
- * see, split by section with a token count each.
+ * ranked, the hypotheses scored, the moves that would shrink the differential
+ * fastest and the tree they make, the patterns, the graph, and the context
+ * pack the model would see, split by section with a token count each.
  *
  * `/brain` is a thin client over this. Nothing here writes anything.
  */
-import {
-  coverage,
-  fireRules,
-  profileQuestions,
-  type CoverageRow,
-  type ModelInput,
-} from "./coverage";
+import { coverage, type CoverageRow, type ModelInput } from "./coverage";
 import { computeGraphState, type NodeState } from "./graph-state";
-import {
-  scoreHypotheses,
-  type Discriminator,
-  type HypothesisResult,
-  type Lens,
-} from "./hypotheses";
+import { loadCatalog } from "./hkb";
+import { scoreHypotheses, type HypothesisResult, type Lens } from "./hypotheses";
+import { nextMoves, type Move } from "./infogain";
+import { buildTree, type TreeNode } from "./tree";
 import { matchPatterns } from "./patterns";
 import { buildContextFromInput } from "./report";
 import { buildScenarioInput, EMPTY_OVERLAY, type Overlay, type Scenario } from "./sample";
@@ -40,16 +32,12 @@ export interface BrainRun {
     lastDate?: string;
   }[];
   hypotheses: HypothesisResult[];
-  path: {
-    step: number;
-    /** free = an unanswered interview question, rule = a fired escalation,
-     *  test = a discriminator the hypotheses would move on. */
-    kind: "question" | "rule" | "test";
-    test: string;
-    cost: number;
-    moves: { id: string; shift: number }[];
-    howTo?: string;
-  }[];
+  /** the ten best moves across the whole differential, by information gain */
+  path: Move[];
+  /** the same choice, taken four times, with the branches drawn */
+  tree: TreeNode;
+  /** cost the run was allowed to spend, when the scenario bar set one */
+  budget?: number;
   patterns: ReturnType<typeof matchPatterns>;
   graph: { hot: NodeState[]; activeEdges: number };
   pack: { section: string; text: string; tokens: number }[];
@@ -135,73 +123,6 @@ function pillars(m: ModelInput): BrainRun["pillars"] {
   return rows.map((r, i) => ({ ...r, rank: i + 1 }));
 }
 
-const MAX_PATH = 24;
-
-/**
- * Greedy on expected shift per unit of cost, with the free things first: an
- * unanswered interview question costs nothing, and a rule the app already
- * fired is a decision that has been made, so both jump the queue. Then the
- * discriminators, best ratio first, each one scored as if nothing after it had
- * been answered. Deduped on the codes a test reads, so one draw is never
- * listed twice.
- */
-function bestPath(rows: HypothesisResult[], m: ModelInput): BrainRun["path"] {
-  const byKey = new Map<
-    string,
-    {
-      test: Discriminator;
-      shift: number;
-      moves: { id: string; shift: number }[];
-    }
-  >();
-  for (const h of rows) {
-    // A hypothesis nobody believes does not get to order tests. Its card still
-    // lists them; the path is what you would actually do next.
-    if (h.state === "ruled_out" || h.state === "unlikely") continue;
-    for (const d of h.tests) {
-      const key = d.codes.slice().sort().join("+");
-      const next = h.nextTests.find((t) => t.test === d.test);
-      if (!next) continue;
-      const found = byKey.get(key) ?? { test: d, shift: 0, moves: [] };
-      found.shift += next.expectedShift;
-      found.moves.push({ id: h.id, shift: next.expectedShift });
-      byKey.set(key, found);
-    }
-  }
-  const free: Omit<BrainRun["path"][number], "step">[] = [
-    ...profileQuestions(m).map((q) => ({
-      kind: "question" as const,
-      test: q.question,
-      cost: 0,
-      moves: [],
-      howTo: `Answers the ${q.key} question. Free.`,
-    })),
-    ...fireRules(m).map((r) => ({
-      kind: "rule" as const,
-      test: r.suggest,
-      cost: 1,
-      moves: [],
-      howTo: r.why,
-    })),
-  ];
-
-  const tests = [...byKey.values()]
-    .sort((a, b) => b.shift / b.test.cost - a.shift / a.test.cost)
-    .map((row) => ({
-      kind: "test" as const,
-      test: row.test.test,
-      cost: row.test.cost,
-      moves: row.moves.sort((a, b) => b.shift - a.shift),
-      howTo: row.test.howTo,
-    }));
-
-  const seen = new Set<string>();
-  return [...free, ...tests]
-    .filter((row) => !seen.has(row.test) && (seen.add(row.test), true))
-    .slice(0, MAX_PATH)
-    .map((row, i) => ({ ...row, step: i + 1 }));
-}
-
 /** A line that opens a section: two or more capitals, then a colon somewhere. */
 const isHeading = (line: string) =>
   /^[A-Z][A-Z0-9]{2,}/.test(line) && line.includes(":");
@@ -234,12 +155,16 @@ export async function runBrain(
   s: Scenario,
   overlay: Overlay = EMPTY_OVERLAY,
   lens: Lens = "lifespan",
+  budget?: number,
 ): Promise<BrainRun> {
   const input = await buildScenarioInput(s, overlay);
+  const catalog = await loadCatalog();
   const hypotheses = scoreHypotheses(input, {
     confounderTags: overlay.confounders,
     lens,
+    catalog,
   });
+  const affordable = (m: Move) => budget == null || m.cost <= budget;
   const graph = computeGraphState(input);
   const { context } = buildContextFromInput(input, {
     tracker: {
@@ -258,7 +183,9 @@ export async function runBrain(
     overlay,
     pillars: pillars(input),
     hypotheses,
-    path: bestPath(hypotheses, input),
+    path: nextMoves(input, catalog, { lens }).filter(affordable).slice(0, 10),
+    tree: buildTree(input, catalog, { lens, budget }),
+    budget,
     patterns: matchPatterns(input),
     graph: { hot: graph.hot, activeEdges: graph.activeEdges.length },
     pack,

@@ -13,6 +13,8 @@ interface Body {
   scenario: Scenario;
   overlay?: Overlay;
   lens?: Lens;
+  /** cost the tree is allowed to spend; moves above it are dropped */
+  budget?: number;
 }
 
 /** One engine run for one scenario, or one plan for it. Admin only. */
@@ -25,7 +27,9 @@ export async function POST(request: Request) {
 
   try {
     if (body.mode !== "generate")
-      return Response.json(await runBrain(body.scenario, overlay, body.lens));
+      return Response.json(
+        await runBrain(body.scenario, overlay, body.lens, body.budget),
+      );
 
     const { context, rules, patterns, graph, input } = await brainContext(
       body.scenario,

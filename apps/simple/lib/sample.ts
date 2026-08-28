@@ -138,8 +138,9 @@ function emptyInput(sex?: Sex, age?: number): ModelInput {
   };
 }
 
-/** The overlay's readings replace the latest value for their code. */
-function applyOverlay(input: ModelInput, overlay: Overlay): ModelInput {
+/** The overlay's readings replace the latest value for their code. Exported
+ *  because `lib/infogain.ts` simulates an outcome the same way. */
+export function applyOverlay(input: ModelInput, overlay: Overlay): ModelInput {
   const profile = { ...input.profile, ...overlay.facts };
   const sex = toSex(profile.sex) ?? input.sex;
   const age = toAge(profile.birth_year, input.today) ?? input.age;
