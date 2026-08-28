@@ -9,6 +9,7 @@
  */
 import { profileQuestions, type ModelInput } from "./coverage";
 import {
+  countryOf,
   scoreHypotheses,
   type Catalog,
   type Discriminator,
@@ -16,7 +17,9 @@ import {
   type HypothesisResult,
   type Lens,
 } from "./hypotheses";
+import { priceOf, ratioOf } from "./prices";
 import { applyOverlay, EMPTY_OVERLAY, type Overlay } from "./sample";
+import { SYMPTOMS } from "./symptoms";
 import { PROFILE_QUESTIONS } from "./vectors";
 
 export interface Belief {
@@ -32,8 +35,10 @@ export interface Move {
   /** the question or the test name, so the page needs no catalog */
   label: string;
   howTo?: string;
-  /** questions 0, tests from `hkb_tests.cost` (later €) */
+  /** questions 0, a euro list price when we have one, else the 1–4 cost band */
   cost: number;
+  /** true when `cost` is euros, so the page prints "€57" and not "cost 2" */
+  priced?: boolean;
   outcomes: {
     label: string;
     prob: number;
@@ -44,7 +49,7 @@ export interface Move {
   entropyBefore: number;
   entropyAfter: number;
   gain: number;
-  /** ponytail: questions are not free of attention; 0.5 keeps them from dominating */
+  /** gain per euro when the test is priced, gain per cost band when it is not */
   ratio: number;
   /**
    * Expected movement per condition, absolute, biggest five first. ponytail:
@@ -120,15 +125,37 @@ interface Candidate {
   label: string;
   howTo?: string;
   cost: number;
+  priced?: boolean;
   /** the conditions that read this feature, for the outcome probability */
   readers: string[];
   outcomes: { label: string; apply: Overlay }[];
 }
 
-/** Every unanswered tier-0 fact that an evidence rule reads. */
+/** The symptom items this person could still answer. Same shape as a vector question. */
+function openSymptoms(m: ModelInput) {
+  const has = (key: string) => {
+    const v = m.profile[key];
+    return v != null && String(v).trim() !== "";
+  };
+  return SYMPTOMS.filter((s) => {
+    if (has(s.key)) return false;
+    const gate = s.appliesTo;
+    if (!gate) return true;
+    if (gate.sex && m.sex !== gate.sex) return false;
+    if (gate.minAge != null && (m.age == null || m.age < gate.minAge)) return false;
+    if (gate.maxAge != null && (m.age == null || m.age > gate.maxAge)) return false;
+    return true;
+  }).map((s) => ({ key: s.key, question: s.question, options: s.options }));
+}
+
+/** Every unanswered tier-0 fact, and every open symptom item, that a rule reads. */
 function questionCandidates(m: ModelInput, catalog: Catalog): Candidate[] {
   const out: Candidate[] = [];
-  for (const q of profileQuestions(m)) {
+  const asks = [...profileQuestions(m), ...openSymptoms(m)];
+  const seen = new Set<string>();
+  for (const q of asks) {
+    if (seen.has(q.key)) continue;
+    seen.add(q.key);
     const readers: string[] = [];
     const rules: EvidenceRule[] = [];
     for (const h of catalog)
@@ -171,6 +198,7 @@ function testCandidates(
   catalog: Catalog,
   today: string,
 ): Candidate[] {
+  const country = countryOf(m);
   const byCodes = new Map<string, { d: Discriminator; readers: string[] }>();
   for (const h of catalog)
     for (const d of h.discriminators) {
@@ -186,19 +214,23 @@ function testCandidates(
       }
     }
 
-  return [...byCodes.values()].map(({ d, readers }) => ({
+  return [...byCodes.values()].map(({ d, readers }) => {
+    const price = priceOf(d, country);
+    return {
     kind: "test" as const,
     featureId: `metric:${d.codes[0]}`,
     testId: slug(d.test),
     label: d.test,
     howTo: d.howTo,
-    cost: d.cost,
+    cost: price ?? d.cost,
+    priced: price != null,
     readers,
     outcomes: [
       { label: "positive", apply: reading(d, d.typicalPos!, today) },
       { label: "negative", apply: reading(d, d.typicalNeg!, today) },
     ],
-  }));
+    };
+  });
 }
 
 /** Same id `hkb_tests` uses, so a move points at a row. */
@@ -343,11 +375,12 @@ export function nextMoves(
       label: c.label,
       howTo: c.howTo,
       cost: c.cost,
+      ...(c.priced ? { priced: true } : {}),
       outcomes,
       entropyBefore: round3(entropyBefore),
       entropyAfter: round3(entropyAfter),
       gain: round3(gain),
-      ratio: round3(gain / Math.max(c.cost, 0.5)),
+      ratio: round3(ratioOf(gain, c.cost, !!c.priced)),
       moves: movement,
     });
   }

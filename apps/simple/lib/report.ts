@@ -30,7 +30,12 @@ import {
 import { getTrackerSummary, type TrackerSummary } from "./daily-data";
 import { model } from "./extract";
 import { computeGraphState, type GraphState } from "./graph-state";
-import { scoreHypotheses, type HypothesisResult } from "./hypotheses";
+import { loadCatalog } from "./hkb";
+import {
+  scoreHypotheses,
+  type Catalog,
+  type HypothesisResult,
+} from "./hypotheses";
 import {
   matchPatterns,
   type PatternMatch,
@@ -300,7 +305,16 @@ function patternLines(matches: PatternMatch[], input: ModelInput): string {
   return rows.join("\n") || "- none matched";
 }
 
-/** The top five scored hypotheses, with the evidence that moved each one. */
+/**
+ * The top scored hypotheses, with the evidence that moved each one.
+ *
+ * ponytail: eight is what a clinician holds in their head, and with a
+ * thirty-two condition catalog printing them all would be most of the pack.
+ * The rest go on one line with their probabilities, so the model can see that
+ * they were scored and dismissed rather than never considered.
+ */
+const TOP_HYPOTHESES = 8;
+
 function hypothesisLines(rows: HypothesisResult[]): string {
   const one = (h: HypothesisResult) => {
     const side = (
@@ -315,7 +329,13 @@ function hypothesisLines(rows: HypothesisResult[]): string {
   against: ${side(h.against)}
   next test: ${next ? `${next.test} (cost ${next.cost}, expected shift ${next.expectedShift})` : "nothing left that would move it"}`;
   };
-  return rows.slice(0, 5).map(one).join("\n") || "- nothing scored yet";
+  if (!rows.length) return "- nothing scored yet";
+  const head = rows.slice(0, TOP_HYPOTHESES).map(one).join("\n");
+  const tail = rows.slice(TOP_HYPOTHESES);
+  return tail.length
+    ? `${head}\n- ${tail.length} more, all scored below ${rows[TOP_HYPOTHESES - 1]!.score}: ` +
+        tail.map((h) => `${h.id} ${h.score}`).join(", ")
+    : head;
 }
 
 /** The node id without its kind prefix: "metric:tsh" reads as "tsh". */
@@ -349,6 +369,8 @@ export interface ContextExtras {
   discussion?: string;
   dismissed?: string[];
   adoptedCodes?: string[];
+  /** The rows out of `hkb_*`; `HYPOTHESES` when the caller has none. */
+  catalog?: Catalog;
 }
 
 export interface ReportContext {
@@ -389,7 +411,7 @@ export function buildContextFromInput(
   const adoptedCodes =
     extras.adoptedCodes ?? tracker.items.flatMap((i) => i.metricCodes ?? []);
   const graph = computeGraphState(input, { focus, adoptedCodes });
-  const hypotheses = scoreHypotheses(input);
+  const hypotheses = scoreHypotheses(input, { catalog: extras.catalog });
 
   const open = profileQuestions(input);
   const dismissed =
@@ -482,7 +504,11 @@ export async function buildReportContext(
     getTrackerSummary(userId, 30),
     latestReport(userId),
   ]);
-  return buildContextFromInput(input, { tracker, previous });
+  return buildContextFromInput(input, {
+    tracker,
+    previous,
+    catalog: await loadCatalog(),
+  });
 }
 
 /* ── the safety net ───────────────────────────────────────────────────── */

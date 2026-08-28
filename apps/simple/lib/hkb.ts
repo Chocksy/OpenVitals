@@ -27,6 +27,7 @@ import {
   type EvidenceRule,
   type Grade,
   type Hypothesis,
+  type PriorBand,
 } from "./hypotheses";
 
 /* ── the rows ─────────────────────────────────────────────────────────── */
@@ -37,6 +38,8 @@ export interface ConditionRow {
   summary: string;
   management: string;
   parentId: string | null;
+  mondoId: string | null;
+  why: string | null;
   burdenDaly: number | null;
   inCatalog: boolean;
   lenses: Record<string, { w: number; grade: string }>;
@@ -188,18 +191,18 @@ export function rowsToCatalog(rows: CatalogRows): Catalog {
     rows.conditions.filter((c) => c.inCatalog),
     rows.evidence,
   ).map((c): Hypothesis => {
-    const prior =
-      rows.priors.find(
-        (p) =>
-          p.conditionId === c.id &&
-          !p.country &&
-          !p.sex &&
-          p.ageMin == null &&
-          p.ageMax == null,
-      ) ?? rows.priors.find((p) => p.conditionId === c.id);
+    const mine = rows.priors.filter((p) => p.conditionId === c.id);
+    const isBase = (p: PriorRow) =>
+      !p.country && !p.sex && p.ageMin == null && p.ageMax == null;
+    const prior = mine.find(isBase) ?? mine[0];
+    const bands = mine.filter((p) => !isBase(p));
 
     const evidence: EvidenceRule[] = rows.evidence
-      .filter((e) => e.conditionId === c.id && e.status !== "rejected")
+      .filter(
+        (e) =>
+          e.conditionId === c.id &&
+          (e.status === "seed" || e.status === "accepted"),
+      )
       .map((e) => ({
         id: e.id,
         input: featureInput(e.featureId),
@@ -228,6 +231,7 @@ export function rowsToCatalog(rows: CatalogRows): Catalog {
           typicalNeg: t.typicalNeg?.[first] ?? undefined,
           unit: units.get(`metric:${first}`) ?? undefined,
           repeatable: t.repeatable || undefined,
+          costByCountry: t.costByCountry ?? undefined,
         };
       });
 
@@ -239,6 +243,18 @@ export function rowsToCatalog(rows: CatalogRows): Catalog {
       priors: {
         base: prior?.prevalence ?? 0.01,
         source: prior?.source,
+        ...(bands.length
+          ? {
+              bands: bands.map((b) => ({
+                country: b.country,
+                sex: b.sex as PriorBand["sex"],
+                ageMin: b.ageMin,
+                ageMax: b.ageMax,
+                prevalence: b.prevalence,
+                source: b.source,
+              })),
+            }
+          : {}),
         modifiers: rows.modifiers
           .filter((m) => m.conditionId === c.id)
           .map((m) => ({
@@ -257,6 +273,9 @@ export function rowsToCatalog(rows: CatalogRows): Catalog {
       confirmAtLrPos: c.confirmAtLrPos ?? undefined,
       patternId: c.patternId ?? undefined,
       burdenDaly: c.burdenDaly ?? undefined,
+      mondoId: c.mondoId ?? undefined,
+      why: c.why ?? undefined,
+      parentId: c.parentId ?? undefined,
     };
   });
 }

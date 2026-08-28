@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import type { LatestValue, ModelInput } from "./coverage";
-import { CONFOUNDERS, HYPOTHESES, scoreHypotheses } from "./hypotheses";
+import { CONFOUNDERS, HYPOTHESES, priorFor, scoreHypotheses } from "./hypotheses";
 import { NODES } from "./graph";
 import { VECTORS } from "./vectors";
 
@@ -535,5 +535,53 @@ describe("discriminators with no evidence rule behind them", () => {
       [...r.for, ...r.against].filter((x) => x.input === "ferritin"),
     ).toHaveLength(1);
     expect(r.score).toBeCloseTo(0.872, 3);
+  });
+});
+
+describe("priorFor", () => {
+  const bands = [
+    { country: "RO", sex: "male" as const, ageMin: 50, ageMax: 54, prevalence: 0.61, source: "RO male 50-54" },
+    { country: "RO", sex: "male" as const, ageMin: null, ageMax: null, prevalence: 0.45, source: "RO male" },
+    { country: null, sex: "male" as const, ageMin: 50, ageMax: 54, prevalence: 0.34, source: "male 50-54" },
+    { country: null, sex: "female" as const, ageMin: 50, ageMax: 54, prevalence: 0.28, source: "female 50-54" },
+  ];
+  const h = {
+    ...HYPOTHESES[0]!,
+    priors: { base: 0.2, source: "base", bands, modifiers: [] },
+  };
+  const who = (profile: Record<string, unknown>, sex?: "male" | "female", age?: number) =>
+    priorFor(h, input({ profile, sex, age }));
+
+  it("takes country, sex and age band when all three fit", () => {
+    expect(who({ country: "RO" }, "male", 52).source).toBe("RO male 50-54");
+  });
+
+  it("falls back to country and sex when the age band does not fit", () => {
+    expect(who({ country: "RO" }, "male", 40).source).toBe("RO male");
+  });
+
+  it("falls back to sex and age band when the country is not covered", () => {
+    expect(who({ country: "GB" }, "male", 52).source).toBe("male 50-54");
+  });
+
+  it("falls back to the catalog base when nothing fits", () => {
+    expect(who({}, "male", 20)).toEqual({ prevalence: 0.2, source: "base" });
+  });
+
+  it("never reads a row that contradicts the person", () => {
+    expect(who({ country: "RO" }, "female", 52).source).toBe("female 50-54");
+  });
+
+  it("reads the country fact as an alpha-2 code and ignores anything else", () => {
+    expect(who({ country: "Romania" }, "male", 52).source).toBe("male 50-54");
+    expect(who({ country: "ro" }, "male", 52).source).toBe("RO male 50-54");
+  });
+
+  it("scores the prior it picked, not the base", () => {
+    const rows = scoreHypotheses(input({ profile: { country: "RO" }, sex: "male", age: 52 }), {
+      catalog: [h],
+    });
+    expect(rows[0]!.prior).toBe(0.61);
+    expect(rows[0]!.priorSource).toBe("RO male 50-54");
   });
 });

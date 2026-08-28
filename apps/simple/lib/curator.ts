@@ -30,9 +30,9 @@ import {
   type ReadingFlag,
   type ReviewSubject,
 } from "@/db";
+import { queueQuestions } from "./ask";
 import {
   optimalFor,
-  queueProfileQuestions,
   saveFact,
   toAge,
   toSex,
@@ -1356,7 +1356,7 @@ export async function runCurator(
       }
     }
 
-    await queueProfileQuestions(userId);
+    await queueQuestions(userId);
 
     await db
       .update(curatorRuns)

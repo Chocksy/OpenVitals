@@ -8,7 +8,9 @@ import {
   Brain,
   ClipboardCheck,
   FlaskConical,
+  HeartPulse,
   LayoutDashboard,
+  Library,
   ListTodo,
   LogOut,
   MessageSquare,
@@ -40,6 +42,7 @@ const navigation: NavItem[] = [
 
 const tracker: NavItem[] = [
   { name: "Today", href: "/today", icon: CalendarCheck },
+  { name: "How do you feel", href: "/feel", icon: HeartPulse },
   { name: "Protocol", href: "/protocol", icon: ListTodo },
   { name: "Goals", href: "/goals", icon: Target },
   { name: "Trends", href: "/trends", icon: TrendingUp },
@@ -173,6 +176,10 @@ export function TopNav({
                       <Link href="/brain" className={menuLink}>
                         <Brain className="size-3.5 text-neutral-400" />
                         Brain
+                      </Link>
+                      <Link href="/hkb" className={menuLink}>
+                        <Library className="size-3.5 text-neutral-400" />
+                        Knowledge base
                       </Link>
                       <Link href="/admin" className={menuLink}>
                         <Settings className="size-3.5 text-neutral-400" />

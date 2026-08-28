@@ -74,7 +74,11 @@ export default async function TodayPage({
       </div>
 
       <p className="font-mono text-[11px] text-neutral-400">
-        Manual entry stays here until the phone app syncs Apple Health.
+        Manual entry stays here until the phone app syncs Apple Health.{" "}
+        <Link href="/feel" className="underline hover:text-neutral-900">
+          How do you feel
+        </Link>{" "}
+        asks the twelve symptom questions the engine scores.
       </p>
 
       <HabitChecklist day={day} habits={view.habits} />

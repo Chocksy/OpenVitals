@@ -70,6 +70,18 @@ export interface Discriminator {
   unit?: string;
   /** a repeat of a test that is already done still counts as a next test */
   repeatable?: boolean;
+  /** list price in euros by ISO-3166 alpha-2, from `hkb_tests.cost_by_country` */
+  costByCountry?: Record<string, number>;
+}
+
+/** One base rate, for a country, a sex and an age band. Any of them may be null. */
+export interface PriorBand {
+  country: string | null;
+  sex: Sex | null;
+  ageMin: number | null;
+  ageMax: number | null;
+  prevalence: number;
+  source: string;
 }
 
 export interface Hypothesis {
@@ -80,8 +92,12 @@ export interface Hypothesis {
     base: number;
     /** Where the base rate comes from, printed as "why this is in the catalog". */
     source?: string;
+    /** Rows out of `hkb_priors` that are narrower than the base rate. */
+    bands?: PriorBand[];
     modifiers: {
       when: EvidenceRule["input"] & {
+        above?: number;
+        below?: number;
         equals?: string;
         includes?: string;
         sex?: Sex;
@@ -90,6 +106,9 @@ export interface Hypothesis {
       };
       times: number;
       why: string;
+      /** seed-only: written to `hkb_prior_modifiers`, never read by the engine */
+      grade?: Grade;
+      source?: string;
     }[];
   };
   evidence: EvidenceRule[];
@@ -107,6 +126,12 @@ export interface Hypothesis {
   confirmAtLrPos?: number;
   /** disability-adjusted life years, once GBD is imported. Phase 11. */
   burdenDaly?: number;
+  /** the MONDO term this condition is, so an ontology import can join to it */
+  mondoId?: string;
+  /** why it is in the catalog at all: the burden source, in one line */
+  why?: string;
+  /** a broader condition this one is a kind of, e.g. hashimoto → hypothyroidism */
+  parentId?: string;
 }
 
 /** The catalog the engine scores: in code below, or the same rows out of
@@ -1277,6 +1302,7 @@ export interface HypothesisResult {
   /** why this is in the catalog at all: burden and where the prior came from */
   burdenDaly?: number;
   priorSource?: string;
+  why?: string;
 }
 
 /** How much a claim counts when it is only as good as its grade. */
@@ -1470,6 +1496,50 @@ function modifierApplies(
   return holds(keys, r) === true;
 }
 
+/** The country fact, already stored as ISO-3166 alpha-2 by `saveFact`. */
+export const countryOf = (m: ModelInput): string | null => {
+  const raw = String(m.profile.country ?? "").trim().toUpperCase();
+  return /^[A-Z]{2}$/.test(raw) ? raw : null;
+};
+
+/**
+ * The base rate for this person: the narrowest `hkb_priors` row that fits.
+ *
+ * Order, as the spec asks for it: (country, sex, age band) → (country, sex) →
+ * (no country, sex, age band) → the catalog base. Scored rather than tried
+ * four times, so a row that only knows the country still beats one that knows
+ * nothing. A row that contradicts the person (wrong country, wrong sex, age
+ * outside the band) is never a candidate.
+ */
+export function priorFor(
+  h: Hypothesis,
+  m: ModelInput,
+): { prevalence: number; source?: string } {
+  const country = countryOf(m);
+  let best: { band: PriorBand; rank: number } | null = null;
+  for (const band of h.priors.bands ?? []) {
+    let rank = 0;
+    if (band.country != null) {
+      if (band.country !== country) continue;
+      rank += 8;
+    }
+    if (band.sex != null) {
+      if (band.sex !== m.sex) continue;
+      rank += 4;
+    }
+    if (band.ageMin != null || band.ageMax != null) {
+      if (m.age == null) continue;
+      if (band.ageMin != null && m.age < band.ageMin) continue;
+      if (band.ageMax != null && m.age > band.ageMax) continue;
+      rank += 2;
+    }
+    if (!best || rank > best.rank) best = { band, rank };
+  }
+  return best
+    ? { prevalence: best.band.prevalence, source: best.band.source }
+    : { prevalence: h.priors.base, source: h.priors.source };
+}
+
 function gateOpen(h: Hypothesis, m: ModelInput): boolean {
   const gate = h.appliesTo;
   if (!gate) return true;
@@ -1544,7 +1614,8 @@ export function scoreHypotheses(
       if (gate == null || gate < h.requires.minScore) continue;
     }
 
-    let prior = h.priors.base;
+    const base = priorFor(h, m);
+    let prior = base.prevalence;
     for (const mod of h.priors.modifiers)
       if (modifierApplies(mod, m, scores)) prior *= mod.times;
     prior = Math.min(Math.max(prior, 0.001), 0.9);
@@ -1715,7 +1786,8 @@ export function scoreHypotheses(
       management: h.management,
       patternId: h.patternId,
       burdenDaly: h.burdenDaly,
-      priorSource: h.priors.source,
+      priorSource: base.source,
+      why: h.why,
     });
   }
 

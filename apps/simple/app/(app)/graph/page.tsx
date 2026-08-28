@@ -2,7 +2,8 @@ import { and, eq } from "drizzle-orm";
 import Link from "next/link";
 import { getDb, reviewItems } from "@/db";
 import { requireUserId } from "@/lib/auth";
-import { buildModelInput, queueProfileQuestions } from "@/lib/coverage";
+import { buildModelInput } from "@/lib/coverage";
+import { queueQuestions } from "@/lib/ask";
 import {
   computeGraphState,
   worstMember,
@@ -121,7 +122,7 @@ export default async function GraphPage() {
 
   let input = await buildModelInput(userId);
   if (!input.sex || input.age == null) {
-    await queueProfileQuestions(userId);
+    await queueQuestions(userId);
     input = await buildModelInput(userId);
   }
 

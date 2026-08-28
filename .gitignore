@@ -33,6 +33,8 @@ e2e/.auth/
 *.log
 *.tsbuildinfo
 local-blobs/
-apps/simple/data/
+apps/simple/data/uploads/
+apps/simple/data/hkb/*
+!apps/simple/data/hkb/prices-ro.csv
 test-parse.*
 .env.prod.local

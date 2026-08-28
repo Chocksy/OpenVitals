@@ -167,6 +167,7 @@ export async function runBrain(
   const affordable = (m: Move) => budget == null || m.cost <= budget;
   const graph = computeGraphState(input);
   const { context } = buildContextFromInput(input, {
+    catalog,
     tracker: {
       from: input.today,
       to: input.today,
@@ -200,6 +201,7 @@ export async function runBrain(
 export async function brainContext(s: Scenario, overlay: Overlay = EMPTY_OVERLAY) {
   const input = await buildScenarioInput(s, overlay);
   return buildContextFromInput(input, {
+    catalog: await loadCatalog(),
     tracker: {
       from: input.today,
       to: input.today,

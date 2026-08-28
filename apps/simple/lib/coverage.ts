@@ -11,6 +11,7 @@
  */
 import { and, eq } from "drizzle-orm";
 import { getDb, profileFacts, reviewItems, type ReviewSubject } from "@/db";
+import { toCountryCode } from "./countries";
 import { localDay } from "./daily";
 import { getMetricRows } from "./data";
 import { deriveAll } from "./derived";
@@ -256,6 +257,17 @@ export function profileQuestions(input: ModelInput): FactQuestion[] {
 const MAX_OPEN_QUESTIONS = 3;
 
 /**
+ * Questions that only mean something together. Waist without height is not a
+ * ratio, so asking one queues the other whatever the room limit says.
+ */
+const PAIRS: Record<string, string> = {
+  waist_cm: "height_cm",
+  height_cm: "waist_cm",
+  sym_phq2_interest: "sym_phq2_down",
+  sym_phq2_down: "sym_phq2_interest",
+};
+
+/**
  * Queue up to three open `profile_question` items, deduped on `subject.key`
  * exactly the way the curator dedupes its own questions: a key that was ever
  * asked is never asked twice.
@@ -281,9 +293,7 @@ export async function queueFactQuestions(
   let room = MAX_OPEN_QUESTIONS - open;
   let queued = 0;
 
-  for (const ask of asks) {
-    if (room <= 0) break;
-    if (asked.has(ask.key)) continue;
+  const write = async (ask: FactQuestion) => {
     const subject: ReviewSubject = {
       key: ask.key,
       factKey: ask.key,
@@ -298,8 +308,18 @@ export async function queueFactQuestions(
       options: ask.options ?? [],
     });
     asked.add(ask.key);
-    room--;
     queued++;
+  };
+
+  for (const ask of asks) {
+    if (room <= 0) break;
+    if (asked.has(ask.key)) continue;
+    await write(ask);
+    room--;
+    const partner = asks.find(
+      (a) => a.key === PAIRS[ask.key] && !asked.has(a.key),
+    );
+    if (partner) await write(partner);
   }
   return queued;
 }
@@ -332,7 +352,11 @@ export function splitListFact(raw: string): string[] {
   return [trimmed];
 }
 
-/** Write one answered fact. List facts become string arrays. */
+/**
+ * Write one answered fact. List facts become string arrays, and the country
+ * answer is normalised to its ISO-3166 alpha-2 code on the way in, so every
+ * reader downstream compares two-letter codes and nothing else.
+ */
 export async function saveFact(
   userId: string,
   key: string,
@@ -343,7 +367,9 @@ export async function saveFact(
     ? splitListFact(trimmed)
     : key === "sex"
       ? trimmed.toLowerCase()
-      : trimmed;
+      : key === "country"
+        ? (toCountryCode(trimmed) ?? trimmed)
+        : trimmed;
 
   await getDb()
     .insert(profileFacts)

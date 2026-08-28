@@ -16,6 +16,7 @@ import type { ReportBody } from "@/db";
 import type { BrainRun } from "@/lib/brain";
 import type { Discriminator, HypothesisResult, Lens } from "@/lib/hypotheses";
 import type { Move } from "@/lib/infogain";
+import { money } from "@/lib/prices";
 import type { Overlay, Scenario } from "@/lib/sample";
 import type { TreeNode } from "@/lib/tree";
 import { cn } from "@/lib/utils";
@@ -98,6 +99,9 @@ const inputClass =
 
 interface Query {
   kind: (typeof KINDS)[number];
+  /** `empty` only: who the person with nothing measured is */
+  sex: "female" | "male";
+  age: number;
   userId: string;
   seed: number;
   mask: (typeof MASKS)[number];
@@ -111,7 +115,7 @@ interface Query {
 }
 
 function toScenario(q: Query): Scenario {
-  if (q.kind === "empty") return { kind: "empty", sex: "female", age: 34 };
+  if (q.kind === "empty") return { kind: "empty", sex: q.sex, age: q.age };
   if (q.kind === "persona") return { kind: "persona", id: q.persona };
   if (q.kind === "user") return { kind: "user", userId: q.userId };
   return {
@@ -163,6 +167,8 @@ export function Brain({
       persona: p.get("persona") ?? firstPersona,
       lens: (p.get("lens") as Lens) ?? "lifespan",
       budget: Number(p.get("budget") ?? 0),
+      sex: p.get("sex") === "male" ? "male" : "female",
+      age: Number(p.get("age") ?? 34),
     };
   }, [search, firstUser, firstPersona]);
 
@@ -324,6 +330,7 @@ export function Brain({
         users={users}
         personas={personas}
         panels={panels[q.userId] ?? []}
+        priced={!!run?.path.some((m) => m.priced)}
         onLens={(lens) => {
           set({ lens });
           void doRun(overlay, lens);
@@ -404,6 +411,7 @@ function ScenarioBar({
   users,
   personas,
   panels,
+  priced,
   onLens,
 }: {
   q: Query;
@@ -411,6 +419,8 @@ function ScenarioBar({
   users: BrainUser[];
   personas: string[];
   panels: string[];
+  /** the run priced its tests in euros, so the budget is euros too */
+  priced: boolean;
   onLens: (lens: Lens) => void;
 }) {
   return (
@@ -534,7 +544,34 @@ function ScenarioBar({
         </>
       )}
 
-      <Field label="budget">
+      {q.kind === "empty" && (
+        <>
+          <Field label="sex">
+            <select
+              className={inputClass}
+              value={q.sex}
+              onChange={(e) =>
+                set({ sex: e.target.value === "male" ? "male" : "female" })
+              }
+            >
+              <option value="female">female</option>
+              <option value="male">male</option>
+            </select>
+          </Field>
+          <Field label="age">
+            <input
+              className={`${inputClass} w-16`}
+              type="number"
+              min={18}
+              max={100}
+              value={q.age}
+              onChange={(e) => set({ age: Number(e.target.value) })}
+            />
+          </Field>
+        </>
+      )}
+
+      <Field label={priced ? "budget €" : "budget"}>
         <input
           className={`${inputClass} w-20`}
           type="number"
@@ -898,6 +935,14 @@ function Hypotheses({
 
 /* ── 4. path ──────────────────────────────────────────────────────────── */
 
+/** "free", "\u20ac57" once a country has a price, "cost 2" when it does not. */
+const costLabel = (move: Move) =>
+  move.cost === 0
+    ? "free"
+    : move.priced
+      ? money(move.cost)
+      : `cost ${move.cost}`;
+
 /** The colour a probability earns, on the same thresholds the engine uses. */
 function beliefColour(p: number): string {
   if (p >= 0.9) return "var(--color-health-critical)";
@@ -947,11 +992,7 @@ function NodeCard({
         <p className="font-body text-[12px] leading-snug">
           {node.chosen ? node.chosen.label : "—"}
         </p>
-        {node.chosen && (
-          <Badge variant="outline">
-            {node.chosen.cost === 0 ? "free" : `cost ${node.chosen.cost}`}
-          </Badge>
-        )}
+        {node.chosen && <Badge variant="outline">{costLabel(node.chosen)}</Badge>}
       </div>
       {node.chosen && (
         <p className="mt-0.5 font-mono text-[10px] tabular-nums text-neutral-400">
@@ -1151,9 +1192,7 @@ function MoveRow({ move, rank }: { move: Move; rank: number }) {
       </span>
       <span className="min-w-48 flex-1 font-body text-[13px]">{move.label}</span>
       <Badge variant="secondary">{move.kind}</Badge>
-      <Badge variant="outline">
-        {move.cost === 0 ? "free" : `cost ${move.cost}`}
-      </Badge>
+      <Badge variant="outline">{costLabel(move)}</Badge>
       <span className="font-mono text-[11px] tabular-nums text-neutral-500">
         gain {move.gain.toFixed(3)} · ratio {move.ratio.toFixed(3)}
       </span>
@@ -1188,7 +1227,10 @@ function Path({
       <Label>
         Path · the next question or test, by information gain over the whole
         differential
-        {run.budget ? ` · budget ${run.budget}` : ""}
+        {run.path.some((m) => m.priced) ? " · per €" : " · per cost band"}
+        {run.budget
+          ? ` · budget ${run.path.some((m) => m.priced) ? money(run.budget) : run.budget}`
+          : ""}
       </Label>
       <Card className="space-y-3 p-4">
         {trail.length > 0 && (

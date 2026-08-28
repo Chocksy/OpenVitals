@@ -9,6 +9,7 @@
  */
 import type { ModelInput } from "./coverage";
 import type { Grade, Lens } from "./hypotheses";
+import { SYMPTOMS } from "./symptoms";
 
 export type Sex = "male" | "female";
 
@@ -61,6 +62,26 @@ export const VECTORS: Vector[] = [
     fact: "birth_year",
     staleDays: ONCE,
     why: "Age drives kidney and liver maths and every screening date.",
+  },
+  {
+    id: "country",
+    grade: "A",
+    lenses: ["lifespan"],
+    name: "Country",
+    tier: 0,
+    fact: "country",
+    staleDays: ONCE,
+    why: "Base rates for diabetes, blood pressure and obesity differ threefold between countries, and so do the test prices.",
+  },
+  {
+    id: "ancestry",
+    grade: "A",
+    lenses: ["lifespan"],
+    name: "Ancestry",
+    tier: 0,
+    fact: "ancestry",
+    staleDays: ONCE,
+    why: "Haemochromatosis, thalassaemia trait, Lp(a) and the diabetes risk at a given waist all track ancestry.",
   },
   {
     id: "height_cm",
@@ -530,7 +551,7 @@ export const VECTORS: Vector[] = [
 ];
 
 /** The question the review queue asks for each tier-0 fact. */
-export const PROFILE_QUESTIONS: Record<
+const ASKED: Record<
   string,
   { question: string; options?: string[]; free?: boolean }
 > = {
@@ -539,6 +560,24 @@ export const PROFILE_QUESTIONS: Record<
     options: ["Female", "Male"],
   },
   birth_year: { question: "Which year were you born?", free: true },
+  country: {
+    question: "Which country do you live in?",
+    free: true,
+  },
+  ancestry: {
+    question: "Which ancestry describes you best?",
+    options: [
+      "European",
+      "South Asian",
+      "East Asian",
+      "South-East Asian",
+      "Middle Eastern / North African",
+      "Sub-Saharan African",
+      "Latin American",
+      "Mixed / other",
+      "Prefer not to say",
+    ],
+  },
   height_cm: { question: "How tall are you, in centimetres?", free: true },
   smoking: {
     question: "Do you smoke?",
@@ -608,6 +647,22 @@ export const PROFILE_QUESTIONS: Record<
     question: "Have you ever had a DEXA scan? Give the year and the result.",
     free: true,
   },
+};
+
+/**
+ * The interview, plus the twelve symptom items. Symptoms live in
+ * `lib/symptoms.ts` because the evidence rules read them too; they are merged
+ * here so `saveFact`, the review queue and `lib/infogain.ts` need to know
+ * about one map and not two.
+ */
+export const PROFILE_QUESTIONS: Record<
+  string,
+  { question: string; options?: string[]; free?: boolean }
+> = {
+  ...ASKED,
+  ...Object.fromEntries(
+    SYMPTOMS.map((s) => [s.key, { question: s.question, options: s.options }]),
+  ),
 };
 
 /** Facts stored as arrays: the answer is split on commas. */

@@ -1,3 +1,4 @@
+import { queueQuestions } from "@/lib/ask";
 import { and, desc, eq } from "drizzle-orm";
 import Link from "next/link";
 import { CheckCircle2, Network, Stethoscope } from "lucide-react";
@@ -13,7 +14,6 @@ import { requireUserId } from "@/lib/auth";
 import {
   buildModelInput,
   coverage,
-  queueProfileQuestions,
   type CoverageRow,
   type ModelInput,
 } from "@/lib/coverage";
@@ -256,7 +256,7 @@ export default async function PlanPage() {
   const db = getDb();
 
   const report = await latestReport(userId);
-  if (!report) await queueProfileQuestions(userId);
+  if (!report) await queueQuestions(userId);
 
   const [input, open, earlier] = await Promise.all([
     buildModelInput(userId),

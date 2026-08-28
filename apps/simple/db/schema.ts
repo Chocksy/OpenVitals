@@ -475,6 +475,10 @@ export const hkbConditions = pgTable("hkb_conditions", {
   summary: text("summary").notNull(),
   management: text("management").notNull(),
   parentId: text("parent_id"),
+  /** The MONDO term this condition is, so an ontology import can join to it. */
+  mondoId: text("mondo_id"),
+  /** Why it is in the catalog at all: the burden source, in one line. */
+  why: text("why"),
   /** Disability-adjusted life years, once GBD is imported (phase 11). */
   burdenDaly: real("burden_daly"),
   inCatalog: boolean("in_catalog").default(true).notNull(),
@@ -612,6 +616,59 @@ export const hkbConditionTests = pgTable(
   (t) => [primaryKey({ columns: [t.conditionId, t.testId] })],
 );
 
+/**
+ * One ontology term, HPO or MONDO. Imported wholesale by
+ * `scripts/hkb-import-ontology.ts`; nothing scores off it directly, it is what
+ * the annotations and our own `mondo_id` values join through.
+ */
+export const hkbTerms = pgTable(
+  "hkb_terms",
+  {
+    /** "HP:0001945", "MONDO:0005044" */
+    id: text("id").primaryKey(),
+    /** HP | MONDO */
+    ontology: text("ontology").notNull(),
+    name: text("name").notNull(),
+    synonyms: jsonb("synonyms").$type<string[]>(),
+    parents: jsonb("parents").$type<string[]>(),
+    /** OMIM and Orphanet ids, so HPOA rows can be joined to a MONDO term. */
+    xrefs: jsonb("xrefs").$type<string[]>(),
+  },
+  (t) => [index("hkb_terms_ontology_idx").on(t.ontology)],
+);
+
+/** One HPOA row: this disease shows this phenotype, this often. */
+export const hkbAnnotations = pgTable(
+  "hkb_annotations",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    /** "OMIM:143100", "ORPHA:98897" */
+    diseaseId: text("disease_id").notNull(),
+    diseaseName: text("disease_name"),
+    hpoId: text("hpo_id").notNull(),
+    /** "HP:0040282", "12/25" or "30%", exactly as the file says it */
+    frequency: text("frequency"),
+    onset: text("onset"),
+    source: text("source"),
+  },
+  (t) => [
+    unique("hkb_annotations_key").on(t.diseaseId, t.hpoId, t.frequency),
+    index("hkb_annotations_disease_idx").on(t.diseaseId),
+  ],
+);
+
+/** One importer run, so /hkb can say when the tables were last filled. */
+export const hkbImportRuns = pgTable("hkb_import_runs", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  script: text("script").notNull(),
+  ranAt: timestamp("ran_at", { withTimezone: true }).defaultNow(),
+  rows: jsonb("rows").$type<Record<string, number>>(),
+  notes: text("notes"),
+});
+
+export type HkbTerm = typeof hkbTerms.$inferSelect;
+export type HkbAnnotation = typeof hkbAnnotations.$inferSelect;
+export type HkbImportRun = typeof hkbImportRuns.$inferSelect;
 export type HkbCondition = typeof hkbConditions.$inferSelect;
 export type HkbFeature = typeof hkbFeatures.$inferSelect;
 export type HkbPrior = typeof hkbPriors.$inferSelect;

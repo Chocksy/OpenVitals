@@ -19,6 +19,7 @@ import {
   hkbPriors,
   hkbTests,
 } from "@/db";
+import { CATALOG } from "./hkb-catalog";
 import { featureIdOf, type CatalogRows, type FeatureRow } from "./hkb";
 import {
   HYPOTHESES,
@@ -26,6 +27,7 @@ import {
   type Discriminator,
   type EvidenceRule,
 } from "./hypotheses";
+import { SYMPTOM_KEYS, symptomByKey } from "./symptoms";
 import { PROFILE_QUESTIONS } from "./vectors";
 
 /** "OGTT with insulin" → "ogtt_with_insulin". Stable, so re-seeds update. */
@@ -82,10 +84,15 @@ export function catalogRows(catalog: Catalog = HYPOTHESES): CatalogRows {
   const feature = (id: string, extra: Partial<FeatureRow> = {}) => {
     const kind = id.split(":")[0]!;
     const name = id.slice(kind.length + 1);
+    const symptom = kind === "fact" && SYMPTOM_KEYS.has(name);
     const found = features.get(id) ?? {
       id,
-      kind: KIND[kind] ?? kind,
-      name: kind === "hypothesis" ? name : humanise(name),
+      kind: symptom ? "symptom" : (KIND[kind] ?? kind),
+      name: symptom
+        ? symptomByKey(name)!.name
+        : kind === "hypothesis"
+          ? name
+          : humanise(name),
       unit: null,
       howTo:
         kind === "fact" ? (PROFILE_QUESTIONS[name]?.question ?? null) : null,
@@ -112,7 +119,9 @@ export function catalogRows(catalog: Catalog = HYPOTHESES): CatalogRows {
       name: h.name,
       summary: h.summary,
       management: h.management,
-      parentId: null,
+      parentId: h.parentId ?? null,
+      mondoId: h.mondoId ?? null,
+      why: h.why ?? null,
       burdenDaly: h.burdenDaly ?? null,
       inCatalog: true,
       lenses: h.lenses as CatalogRows["conditions"][number]["lenses"],
@@ -134,6 +143,9 @@ export function catalogRows(catalog: Catalog = HYPOTHESES): CatalogRows {
       source: h.priors.source ?? "seed",
     });
 
+    for (const b of h.priors.bands ?? [])
+      rows.priors.push({ conditionId: h.id, ...b });
+
     for (const m of h.priors.modifiers) {
       const when = m.when as Record<string, unknown>;
       rows.modifiers.push({
@@ -142,8 +154,8 @@ export function catalogRows(catalog: Catalog = HYPOTHESES): CatalogRows {
         conditionOn: conditionOnOf(when),
         times: m.times,
         why: m.why,
-        grade: gradeInWhy(m.why),
-        source: null,
+        grade: m.grade ?? gradeInWhy(m.why),
+        source: m.source ?? null,
       });
     }
 
@@ -185,7 +197,7 @@ function testRow(id: string, d: Discriminator): CatalogRows["tests"][number] {
     name: d.test,
     featureIds: d.codes,
     cost: d.cost,
-    costByCountry: null,
+    costByCountry: d.costByCountry ?? null,
     invasiveness: null,
     lrPos: d.lrPos,
     lrNeg: d.lrNeg,
@@ -202,7 +214,7 @@ function testRow(id: string, d: Discriminator): CatalogRows["tests"][number] {
  * Upsert every row. `updated_at` is left alone on purpose, so a second run is
  * a true no-op and the "nothing changed" check is a checksum, not a diff.
  */
-export async function seedHkb(catalog: Catalog = HYPOTHESES) {
+export async function seedHkb(catalog: Catalog = CATALOG) {
   const rows = catalogRows(catalog);
   const db = getDb();
 
@@ -218,11 +230,15 @@ export async function seedHkb(catalog: Catalog = HYPOTHESES) {
       .values(f)
       .onConflictDoUpdate({ target: hkbFeatures.id, set: withoutId(f) });
 
-  for (const t of rows.tests)
+  // `cost_by_country` is written by the price importer, never by the seed, so
+  // it is left out of the update set: a re-seed must not wipe the prices.
+  for (const t of rows.tests) {
+    const { id, costByCountry, ...set } = t;
     await db
       .insert(hkbTests)
       .values(t)
-      .onConflictDoUpdate({ target: hkbTests.id, set: withoutId(t) });
+      .onConflictDoUpdate({ target: hkbTests.id, set });
+  }
 
   for (const p of rows.priors)
     await db

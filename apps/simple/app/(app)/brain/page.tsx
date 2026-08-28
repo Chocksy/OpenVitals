@@ -1,4 +1,3 @@
-import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { getDb } from "@/db";
 import { users } from "@/db/auth-schema";
@@ -28,9 +27,9 @@ export default async function BrainPage() {
     ),
   );
 
-  return (
-    <Suspense fallback={null}>
-      <Brain users={people} personas={PERSONA_IDS} panels={panels} />
-    </Suspense>
-  );
+  // ponytail: no Suspense boundary. `useSearchParams` only needs one on a
+  // page that prerenders, and this one is force-dynamic. With the boundary in
+  // place Next 16.2 leaves it postponed (`<!--$~-->`) and never resumes it, so
+  // the page renders an empty <main>.
+  return <Brain users={people} personas={PERSONA_IDS} panels={panels} />;
 }
