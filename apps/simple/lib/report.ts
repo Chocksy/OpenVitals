@@ -28,6 +28,11 @@ import {
   type ModelInput,
 } from "./coverage";
 import { getTrackerSummary, type TrackerSummary } from "./daily-data";
+import {
+  documentLines,
+  documentSummaries,
+  type DocumentSummary,
+} from "./documents";
 import { model } from "./extract";
 import { computeGraphState, type GraphState } from "./graph-state";
 import { loadCatalog } from "./hkb";
@@ -398,6 +403,8 @@ export interface ContextExtras {
   adoptedCodes?: string[];
   /** The rows out of `hkb_*`; `HYPOTHESES` when the caller has none. */
   catalog?: Catalog;
+  /** The last five medical documents, for the DOCUMENTS section. */
+  documents?: DocumentSummary[];
 }
 
 export interface ReportContext {
@@ -469,6 +476,9 @@ PROFILE FACTS:
 ${factLines(input)}
 sex: ${input.sex ?? "unknown"} | age: ${input.age ?? "unknown"}
 
+DOCUMENTS (the last 5 uploaded, with what the user accepted out of them):
+${documentLines(extras.documents ?? [])}
+
 LAB VALUES BY VECTOR (optimal ranges are already adjusted for sex):
 ${metricLines(input)}
 
@@ -538,6 +548,7 @@ export async function buildReportContext(
     tracker,
     previous,
     catalog: await loadCatalog(),
+    documents: await documentSummaries(userId),
   });
 }
 

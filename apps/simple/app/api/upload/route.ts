@@ -1,12 +1,11 @@
 import { and, eq, ne } from "drizzle-orm";
-import { getDb, metrics, uploads } from "@/db";
+import { getDb, uploads } from "@/db";
 import { currentUserId } from "@/lib/auth";
-import { extractFromPdf } from "@/lib/extract";
 import { ensureImported } from "@/lib/import-legacy";
 import { runCurator } from "@/lib/curator";
 import { recordBeliefs } from "@/lib/ledger";
 import { generateReport } from "@/lib/report";
-import { saveReadings, sha256, writeUpload } from "@/lib/uploads";
+import { extOf, processUpload, sha256, writeUpload } from "@/lib/uploads";
 
 export const maxDuration = 120;
 
@@ -23,7 +22,6 @@ export async function POST(req: Request) {
   const buffer = Buffer.from(await file.arrayBuffer());
   const hash = sha256(buffer);
 
-  // Same bytes, same user, still around: point at the row we already have.
   const [dupe] = await db
     .select({ id: uploads.id, fileName: uploads.fileName })
     .from(uploads)
@@ -57,41 +55,52 @@ export async function POST(req: Request) {
     .returning();
 
   try {
-    const blobPath = await writeUpload(userId, upload!.id, buffer);
+    const blobPath = await writeUpload(
+      userId,
+      upload!.id,
+      buffer,
+      extOf(file.name),
+    );
     await db
       .update(uploads)
       .set({ status: "extracting", blobPath })
       .where(eq(uploads.id, upload!.id));
 
-    const known = await db.select().from(metrics);
-    const result = await extractFromPdf(buffer, known);
-    if (result.error) throw new Error(result.error);
-    const count = await saveReadings(
-      userId,
-      upload!.id,
-      result.readings,
-      known,
-    );
+    const result = await processUpload(userId, upload!.id, buffer, file.name);
 
     await db
       .update(uploads)
       .set({
         status: "done",
+        kind: result.kind,
         rawText: result.text ?? null,
         pages: result.pages ?? null,
-        readingsCount: count,
+        readingsCount: result.kind === "lab" ? result.count : 0,
       })
       .where(eq(uploads.id, upload!.id));
 
-    void runCurator(userId, "upload", { uploadId: upload!.id })
-      .then(() => recordBeliefs(userId))
-      .then(() =>
-        generateReport(userId, "upload").catch((e) =>
-          console.error("[plan] upload report failed:", e),
-        ),
+    // A lab sheet moves readings, so the curator runs. A genome file moves
+    // facts, so only the beliefs are re-recorded. A document has moved nothing
+    // yet: its items are proposed and accepting one is what writes.
+    if (result.kind === "lab")
+      void runCurator(userId, "upload", { uploadId: upload!.id })
+        .then(() => recordBeliefs(userId))
+        .then(() =>
+          generateReport(userId, "upload").catch((e) =>
+            console.error("[plan] upload report failed:", e),
+          ),
+        );
+    else if (result.kind === "genome")
+      void recordBeliefs(userId).catch((e) =>
+        console.error("[upload] genome beliefs failed:", e),
       );
 
-    return Response.json({ uploadId: upload!.id, count });
+    return Response.json({
+      uploadId: upload!.id,
+      kind: result.kind,
+      count: result.count,
+      note: result.note,
+    });
   } catch (e) {
     const error = e instanceof Error ? e.message : String(e);
     console.error("[upload] failed:", e);

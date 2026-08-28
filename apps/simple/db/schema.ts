@@ -54,12 +54,97 @@ export const uploads = pgTable("uploads", {
   readingsCount: integer("readings_count"),
   /** `upload` | `legacy`. */
   source: text("source").default("upload"),
+  /** What kind of file this is: `lab` | `genome` | `document`. */
+  kind: text("kind").default("lab"),
+  /** Document header the extractor read: type, date, institution, specialty. */
+  docMeta: jsonb("doc_meta").$type<DocMeta>(),
   // ponytail: the spec wants deleted rows hidden after a day, which needs a
   // timestamp; `created_at` cannot say when the delete happened.
   deletedAt: timestamp("deleted_at", { withTimezone: true }),
 });
 
 export type Upload = typeof uploads.$inferSelect;
+
+/** The header of a medical document, kept next to the file it came from. */
+export interface DocMeta {
+  docType: string;
+  date?: string;
+  institution?: string;
+  specialty?: string;
+}
+
+/**
+ * One catalog SNP this person carries, kept per (user, rsid). The rest of the
+ * ~600k rows in a consumer array are dropped at parse time: nothing outside
+ * `GENOME_CATALOG` is ever stored.
+ */
+export const genomeVariants = pgTable(
+  "genome_variants",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    rsid: text("rsid").notNull(),
+    /** Alleles, sorted, e.g. `CT`. */
+    genotype: text("genotype").notNull(),
+    chromosome: text("chromosome"),
+    position: integer("position"),
+    uploadId: uuid("upload_id").references(() => uploads.id, {
+      onDelete: "cascade",
+    }),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+  },
+  (t) => [unique("genome_variants_user_rsid_key").on(t.userId, t.rsid)],
+);
+
+export type GenomeVariant = typeof genomeVariants.$inferSelect;
+
+/**
+ * One thing an extractor read out of a medical document. Everything lands
+ * `proposed`; nothing enters inference until the user accepts it.
+ * `kind`: finding | measurement | diagnosis | medication | recommendation | event.
+ * `status`: proposed | accepted | rejected.
+ */
+export const documentItems = pgTable(
+  "document_items",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    uploadId: uuid("upload_id")
+      .notNull()
+      .references(() => uploads.id, { onDelete: "cascade" }),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    kind: text("kind").notNull(),
+    payload: jsonb("payload").$type<Record<string, unknown>>().notNull(),
+    excerpt: text("excerpt"),
+    status: text("status").default("proposed").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+  },
+  (t) => [index("document_items_upload_idx").on(t.uploadId, t.kind)],
+);
+
+export type DocumentItem = typeof documentItems.$inferSelect;
+
+/** The timeline: a surgery, a hospitalisation, an illness, with its dates. */
+export const lifeEvents = pgTable("life_events", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  kind: text("kind").notNull(),
+  text: text("text").notNull(),
+  startedAt: date("started_at"),
+  endedAt: date("ended_at"),
+  source: text("source"),
+  uploadId: uuid("upload_id").references(() => uploads.id, {
+    onDelete: "set null",
+  }),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+});
+
+export type LifeEvent = typeof lifeEvents.$inferSelect;
 
 export const readings = pgTable(
   "readings",
@@ -511,7 +596,9 @@ export const hkbConditions = pgTable("hkb_conditions", {
   /** Disability-adjusted life years, once GBD is imported (phase 11). */
   burdenDaly: real("burden_daly"),
   inCatalog: boolean("in_catalog").default(true).notNull(),
-  lenses: jsonb("lenses").$type<Record<string, { w: number; grade: string }>>().notNull(),
+  lenses: jsonb("lenses")
+    .$type<Record<string, { w: number; grade: string }>>()
+    .notNull(),
   appliesTo: jsonb("applies_to").$type<{
     sex?: string;
     minAge?: number;
@@ -569,7 +656,9 @@ export const hkbPriorModifiers = pgTable(
     featureId: text("feature_id")
       .notNull()
       .references(() => hkbFeatures.id),
-    conditionOn: jsonb("condition_on").$type<Record<string, unknown>>().notNull(),
+    conditionOn: jsonb("condition_on")
+      .$type<Record<string, unknown>>()
+      .notNull(),
     times: real("times").notNull(),
     why: text("why").notNull(),
     grade: text("grade"),
@@ -596,7 +685,9 @@ export const hkbEvidence = pgTable(
     featureId: text("feature_id")
       .notNull()
       .references(() => hkbFeatures.id),
-    conditionOn: jsonb("condition_on").$type<Record<string, unknown>>().notNull(),
+    conditionOn: jsonb("condition_on")
+      .$type<Record<string, unknown>>()
+      .notNull(),
     lrPos: real("lr_pos").notNull(),
     lrNeg: real("lr_neg"),
     grade: text("grade").notNull(),

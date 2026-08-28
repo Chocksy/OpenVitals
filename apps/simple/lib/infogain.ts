@@ -8,6 +8,7 @@
  * out. Pure, deterministic, no LLM and no clock.
  */
 import { profileQuestions, type ModelInput } from "./coverage";
+import { GENOME_CATALOG } from "./genome-catalog";
 import {
   countryOf,
   scoreHypotheses,
@@ -60,6 +61,9 @@ export interface Move {
 }
 
 const round3 = (v: number) => Math.round(v * 1000) / 1000;
+
+/** `stateFor` in lib/hypotheses.ts calls anything at or above this "possible". */
+const POSSIBLE = 0.25;
 
 /** Shannon entropy of one binary belief, in bits. */
 const bits = (p: number) =>
@@ -142,8 +146,10 @@ function openSymptoms(m: ModelInput) {
     const gate = s.appliesTo;
     if (!gate) return true;
     if (gate.sex && m.sex !== gate.sex) return false;
-    if (gate.minAge != null && (m.age == null || m.age < gate.minAge)) return false;
-    if (gate.maxAge != null && (m.age == null || m.age > gate.maxAge)) return false;
+    if (gate.minAge != null && (m.age == null || m.age < gate.minAge))
+      return false;
+    if (gate.maxAge != null && (m.age == null || m.age > gate.maxAge))
+      return false;
     return true;
   }).map((s) => ({ key: s.key, question: s.question, options: s.options }));
 }
@@ -188,6 +194,49 @@ function questionCandidates(m: ModelInput, catalog: Catalog): Candidate[] {
   return out;
 }
 
+/**
+ * "Upload a genome file", once and only once it would pay for itself: some
+ * condition that a genome rule reads has to be at least possible already.
+ * Cost band 2. One candidate per catalog row that qualifies, because which
+ * row moves the differential most is only known after the simulation;
+ * `nextMoves` keeps the best of them and drops the rest.
+ */
+function genomeCandidates(
+  m: ModelInput,
+  catalog: Catalog,
+  beliefs: Map<string, number>,
+): Candidate[] {
+  const answered = GENOME_CATALOG.some(
+    (r) => String(m.profile[r.factKey] ?? "").trim() !== "",
+  );
+  if (answered) return [];
+
+  return GENOME_CATALOG.filter(
+    (r) =>
+      r.sample &&
+      r.conditions.some((id) => (beliefs.get(id) ?? 0) >= POSSIBLE) &&
+      catalog.some(
+        (h) =>
+          h.evidence.some((e) => e.input.fact === r.factKey) ||
+          h.priors.modifiers.some(
+            (mod) => (mod.when as { fact?: string }).fact === r.factKey,
+          ),
+      ),
+  ).map((row) => ({
+    kind: "test" as const,
+    featureId: `fact:${row.factKey}`,
+    testId: "genome_file",
+    label: "Upload a genome file",
+    howTo: `A 23andMe or AncestryDNA raw file answers ${GENOME_CATALOG.length} catalog rows at once, ${row.gene} among them, and never has to be repeated.`,
+    cost: 2,
+    readers: row.conditions.filter((id) => beliefs.has(id)),
+    outcomes: row.sample!.map((value) => ({
+      label: `${row.gene} ${value}`,
+      apply: overlayOf({ facts: { [row.factKey]: value } }),
+    })),
+  }));
+}
+
 /** A test still worth ordering: unmeasured, or repeatable. */
 const stillOpen = (d: Discriminator, m: ModelInput) =>
   d.repeatable || !d.codes.every((c) => m.latest[c]?.value != null);
@@ -217,18 +266,18 @@ function testCandidates(
   return [...byCodes.values()].map(({ d, readers }) => {
     const price = priceOf(d, country);
     return {
-    kind: "test" as const,
-    featureId: `metric:${d.codes[0]}`,
-    testId: slug(d.test),
-    label: d.test,
-    howTo: d.howTo,
-    cost: price ?? d.cost,
-    priced: price != null,
-    readers,
-    outcomes: [
-      { label: "positive", apply: reading(d, d.typicalPos!, today) },
-      { label: "negative", apply: reading(d, d.typicalNeg!, today) },
-    ],
+      kind: "test" as const,
+      featureId: `metric:${d.codes[0]}`,
+      testId: slug(d.test),
+      label: d.test,
+      howTo: d.howTo,
+      cost: price ?? d.cost,
+      priced: price != null,
+      readers,
+      outcomes: [
+        { label: "positive", apply: reading(d, d.typicalPos!, today) },
+        { label: "negative", apply: reading(d, d.typicalNeg!, today) },
+      ],
     };
   });
 }
@@ -258,10 +307,7 @@ const reading = (d: Discriminator, value: number, date: string): Overlay =>
  * three options it is the same constraint, solved as the most even weights
  * that satisfy it.
  */
-function outcomeProbs(
-  p: number,
-  ps: number[],
-): number[] {
+function outcomeProbs(p: number, ps: number[]): number[] {
   const n = ps.length;
   if (n < 2) return ps.map(() => 1);
   const odds = (v: number) => v / (1 - v);
@@ -303,6 +349,7 @@ export function nextMoves(
   for (const c of [
     ...questionCandidates(m, catalog),
     ...testCandidates(m, catalog, m.today),
+    ...genomeCandidates(m, catalog, baseP),
   ]) {
     if (exclude.has(c.featureId) || (c.testId && exclude.has(c.testId)))
       continue;
@@ -357,7 +404,10 @@ export function nextMoves(
           p: o.beliefs.find((b) => b.id === id)?.p ?? 0,
           prob: o.prob,
         }));
-        const shift = ps.reduce((sum, x) => sum + x.prob * Math.abs(x.p - from), 0);
+        const shift = ps.reduce(
+          (sum, x) => sum + x.prob * Math.abs(x.p - from),
+          0,
+        );
         const furthest = ps.reduce((best, x) =>
           Math.abs(x.p - from) > Math.abs(best.p - from) ? x : best,
         );
@@ -386,5 +436,14 @@ export function nextMoves(
   }
 
   moves.sort((a, b) => b.ratio - a.ratio || b.gain - a.gain);
-  return opts.max != null ? moves.slice(0, opts.max) : moves;
+  // One genome upload answers every row at once, so only the best-scoring of
+  // its candidates survives the sort.
+  let genome = false;
+  const out = moves.filter((move) => {
+    if (move.testId !== "genome_file") return true;
+    if (genome) return false;
+    genome = true;
+    return true;
+  });
+  return opts.max != null ? out.slice(0, opts.max) : out;
 }

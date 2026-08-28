@@ -2994,6 +2994,160 @@ const NEW: Hypothesis[] = [
   CANCER_SCREENING_DUE,
 ];
 
+/* ── what a genome file adds ──────────────────────────────────────────── *
+ *
+ * One place for every rule that reads a `genome:` profile fact, so the twelve
+ * rows of `lib/genome-catalog.ts` and the conditions they move stay next to
+ * each other. The calls these match are exactly the strings that catalog's
+ * `call()` returns.
+ */
+
+const GENOME_EVIDENCE: Record<string, EvidenceRule[]> = {
+  lpa_elevated: [
+    {
+      id: "lpa_genotype",
+      input: { fact: "genome:lpa" },
+      when: { equals: "carrier" },
+      lr: 4,
+      grade: "A",
+      source:
+        "Clarke 2009 N Engl J Med (PROCARDIS): rs10455872 and rs3798220 carriers have roughly a fourfold odds of Lp(a) in the top decile.",
+    },
+  ],
+  haemochromatosis: [
+    {
+      id: "hfe_c282y_homozygous",
+      input: { fact: "genome:hfe" },
+      when: { includes: "c282y homozygous" },
+      lr: 50,
+      grade: "A",
+      source:
+        "EASL 2022 haemochromatosis guidelines: C282Y homozygosity underlies the great majority of HFE haemochromatosis in Northern European ancestry.",
+    },
+    {
+      id: "hfe_compound_heterozygous",
+      input: { fact: "genome:hfe" },
+      when: { includes: "compound heterozygous" },
+      lr: 5,
+      grade: "A",
+      source:
+        "Gurrin 2009 Hepatology (HealthIron): compound heterozygotes load iron far less often than C282Y homozygotes but well above the background rate.",
+    },
+  ],
+  coeliac_disease: [
+    {
+      id: "coeliac_hla_absent",
+      input: { fact: "genome:hla_dq" },
+      when: { includes: "carries dq" },
+      lr: 1,
+      lrNeg: 0.1,
+      grade: "A",
+      source:
+        "Karell 2003 Hum Immunol; NICE NG20: over 99 % of coeliac patients carry DQ2.5 or DQ8, so the absence of both is a rule-out and the presence of one only opens the question the prior already counted.",
+    },
+  ],
+};
+
+const GENOME_MODIFIERS: Record<string, Hypothesis["priors"]["modifiers"]> = {
+  ascvd_risk: [
+    {
+      when: { fact: "genome:apoe", includes: "e4" },
+      times: 1.3,
+      why: "One APOE ε4 copy raises coronary disease risk by about a quarter to a third (A).",
+      grade: "A",
+      source:
+        "Bennet 2007 JAMA: APOE ε4 carriers, meta-analysis of 82 studies, odds ratio ≈ 1.3 for coronary disease.",
+    },
+  ],
+  coeliac_disease: [
+    {
+      when: { fact: "genome:hla_dq", includes: "carries dq" },
+      times: 3,
+      why: "Carrying DQ2.5 or DQ8 is necessary but nowhere near sufficient; it raises the pre-test odds roughly threefold (A).",
+      grade: "A",
+      source:
+        "Romanos 2014 Gut (HLA risk stratification in coeliac disease); Monsuur 2008 PLoS ONE.",
+    },
+  ],
+  type2_diabetes: [
+    {
+      when: { fact: "genome:tcf7l2", equals: "CT" },
+      times: 1.4,
+      why: "One TCF7L2 T allele raises type 2 diabetes risk about 1.4-fold (A).",
+      grade: "A",
+      source: "Grant 2006 Nat Genet (deCODE): per-allele odds ratio 1.45.",
+    },
+    {
+      when: { fact: "genome:tcf7l2", equals: "TT" },
+      times: 1.96,
+      why: "Two TCF7L2 T alleles roughly double the risk (A).",
+      grade: "A",
+      source: "Grant 2006 Nat Genet: homozygote odds ratio ≈ 2.4 vs CC.",
+    },
+  ],
+  insulin_resistance: [
+    {
+      when: { fact: "genome:fto", equals: "AT" },
+      times: 1.2,
+      why: "One FTO A allele adds about 1.2 kg of body weight and a matching nudge to insulin resistance (B).",
+      grade: "B",
+      source: "Frayling 2007 Science: per-allele BMI effect 0.4 kg/m².",
+    },
+    {
+      when: { fact: "genome:fto", equals: "AA" },
+      times: 1.44,
+      why: "Two FTO A alleles double that nudge (B).",
+      grade: "B",
+      source: "Frayling 2007 Science; Kilpeläinen 2011 PLoS Med.",
+    },
+  ],
+  folate_deficiency: [
+    {
+      when: { fact: "genome:mthfr", includes: "c677t homozygous" },
+      times: 1.5,
+      why: "677TT lowers MTHFR activity and raises homocysteine, but only when folate intake is low (C).",
+      grade: "C",
+      source:
+        "Clarke 2012 PLoS Med (MTHFR and homocysteine); ACMG 2013 statement: the clinical effect is small and folate-dependent.",
+    },
+  ],
+  hashimoto: [
+    {
+      when: { fact: "genome:hla_dr", includes: "carries dr" },
+      times: 1.5,
+      why: "DR3 and DR4 are the shared autoimmune haplotypes behind thyroid autoimmunity (B).",
+      grade: "B",
+      source:
+        "Zeitlin 2008 Clin Endocrinol: HLA class II association with autoimmune thyroid disease, odds ratios around 1.5.",
+    },
+  ],
+  atrophic_gastritis: [
+    {
+      when: { fact: "genome:hla_dr", includes: "carries dr" },
+      times: 1.5,
+      why: "The same DR3/DR4 haplotypes carry autoimmune gastritis (B).",
+      grade: "B",
+      source:
+        "Jacobson 2008 Clin Immunol (epidemiology of autoimmune disease clustering on DR3/DR4).",
+    },
+  ],
+};
+
+/** A condition plus whatever a genome file would say about it. */
+function withGenome(h: Hypothesis): Hypothesis {
+  const evidence = GENOME_EVIDENCE[h.id];
+  const modifiers = GENOME_MODIFIERS[h.id];
+  if (!evidence && !modifiers) return h;
+  return {
+    ...h,
+    evidence: [...h.evidence, ...(evidence ?? [])],
+    priors: {
+      ...h.priors,
+      modifiers: [...h.priors.modifiers, ...(modifiers ?? [])],
+    },
+  };
+}
+
 /** The eight, patched, plus the twenty-four. Thirty-two conditions. */
 export const CATALOG: Catalog = [
   ...HYPOTHESES.map((h): Hypothesis => {
@@ -3012,7 +3166,7 @@ export const CATALOG: Catalog = [
     };
   }),
   ...NEW,
-];
+].map(withGenome);
 
 /** Every prior band and every evidence row needs one, so it is worth asserting. */
 export const missingSources = (catalog: Catalog = CATALOG): string[] => [

@@ -39,6 +39,7 @@ export default async function UploadsPage() {
       error: uploads.error,
       createdAt: uploads.createdAt,
       source: uploads.source,
+      kind: uploads.kind,
       pages: uploads.pages,
       blobPath: uploads.blobPath,
       readingsCount: uploads.readingsCount,
@@ -106,7 +107,7 @@ export default async function UploadsPage() {
     <div className="space-y-6">
       <LabsHeader
         active="uploads"
-        subtitle="Lab PDFs you imported. Deleting one removes its readings."
+        subtitle="Everything you imported: lab PDFs, genome files and medical documents. Deleting one removes its readings."
       />
 
       <div className="flex flex-wrap items-center gap-2">
@@ -166,6 +167,7 @@ export default async function UploadsPage() {
                       status="neutral"
                       label={u.source ?? "upload"}
                     />
+                    <StatusBadge status="info" label={u.kind ?? "lab"} />
                     <StatusBadge
                       status={badge[u.status ?? "pending"] ?? "neutral"}
                       label={u.status ?? "pending"}

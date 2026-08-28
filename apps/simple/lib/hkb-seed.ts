@@ -19,6 +19,7 @@ import {
   hkbPriors,
   hkbTests,
 } from "@/db";
+import { GENOME_CATALOG } from "./genome-catalog";
 import { CATALOG } from "./hkb-catalog";
 import { featureIdOf, type CatalogRows, type FeatureRow } from "./hkb";
 import {
@@ -85,17 +86,24 @@ export function catalogRows(catalog: Catalog = HYPOTHESES): CatalogRows {
     const kind = id.split(":")[0]!;
     const name = id.slice(kind.length + 1);
     const symptom = kind === "fact" && SYMPTOM_KEYS.has(name);
+    // A rule that reads a `genome:` answer reads a genotype, not an answer.
+    const gene = GENOME_CATALOG.find((r) => r.factKey === name);
     const found = features.get(id) ?? {
       id,
-      kind: symptom ? "symptom" : (KIND[kind] ?? kind),
-      name: symptom
-        ? symptomByKey(name)!.name
-        : kind === "hypothesis"
-          ? name
-          : humanise(name),
+      kind: gene ? "genetic" : symptom ? "symptom" : (KIND[kind] ?? kind),
+      name: gene
+        ? gene.gene
+        : symptom
+          ? symptomByKey(name)!.name
+          : kind === "hypothesis"
+            ? name
+            : humanise(name),
       unit: null,
-      howTo:
-        kind === "fact" ? (PROFILE_QUESTIONS[name]?.question ?? null) : null,
+      howTo: gene
+        ? gene.why
+        : kind === "fact"
+          ? (PROFILE_QUESTIONS[name]?.question ?? null)
+          : null,
     };
     features.set(id, { ...found, ...extra, unit: extra.unit ?? found.unit });
     return id;
@@ -182,6 +190,17 @@ export function catalogRows(catalog: Catalog = HYPOTHESES): CatalogRows {
       rows.links.push({ conditionId: h.id, testId: id });
     }
   }
+
+  // Every catalog SNP is a feature in its own right, whether or not a rule
+  // reads it: the genome page prints the whole table, including the rows that
+  // only write a profile fact.
+  for (const row of GENOME_CATALOG)
+    for (const rsid of row.rsids)
+      feature(`snp:${rsid}`, {
+        kind: "genetic",
+        name: `${row.gene} ${rsid}`,
+        howTo: row.why,
+      });
 
   rows.tests = [...tests.values()];
   rows.features = [...features.values()].sort((a, b) =>

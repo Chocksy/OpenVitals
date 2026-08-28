@@ -10,8 +10,10 @@ import { mkdir, rm, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { and, eq, sql } from "drizzle-orm";
 import { getDb, metrics, readings, uploads, type Metric } from "@/db";
+import { readDocumentText, saveDocument } from "./documents";
 import type { ExtractedReading } from "./extract";
-import { slugify } from "./extract";
+import { extractFromPdf, slugify } from "./extract";
+import { looksLikeGenome, saveGenome } from "./genome";
 import { canonicalCode } from "./merge-metrics";
 
 /** Below this many characters the stored text is a scan artefact, not a report. */
@@ -19,8 +21,12 @@ export const MIN_RAW_TEXT = 200;
 
 export const uploadDir = () => process.env.UPLOAD_DIR ?? "./data/uploads";
 
-export const uploadPath = (userId: string, uploadId: string) =>
-  join(uploadDir(), userId, `${uploadId}.pdf`);
+/** `report.PDF` -> `pdf`. Anything without one is treated as a PDF. */
+export const extOf = (fileName: string | null | undefined) =>
+  (fileName?.match(/\.([a-z0-9]+)$/i)?.[1] ?? "pdf").toLowerCase();
+
+export const uploadPath = (userId: string, uploadId: string, ext = "pdf") =>
+  join(uploadDir(), userId, `${uploadId}.${ext}`);
 
 export const sha256 = (buffer: Buffer) =>
   createHash("sha256").update(buffer).digest("hex");
@@ -45,8 +51,9 @@ export async function writeUpload(
   userId: string,
   uploadId: string,
   buffer: Buffer,
+  ext = "pdf",
 ): Promise<string> {
-  const path = uploadPath(userId, uploadId);
+  const path = uploadPath(userId, uploadId, ext);
   await mkdir(dirname(path), { recursive: true });
   await writeFile(path, buffer);
   return path;
@@ -131,4 +138,86 @@ export async function findUpload(userId: string, id: string) {
     .where(and(eq(uploads.id, id), eq(uploads.userId, userId)))
     .limit(1);
   return row ?? null;
+}
+
+/* ── which kind of file is this, and what to do with it ───────────────── */
+
+export type UploadKind = "lab" | "genome" | "document";
+
+export const UPLOAD_KINDS: UploadKind[] = ["lab", "genome", "document"];
+
+/** A PDF is a lab report when the extractor finds at least this many results. */
+export const LAB_MIN_READINGS = 5;
+
+const TEXT_EXTS = new Set(["txt", "csv", "tsv"]);
+
+/** The sniff test, before a single model call. */
+export function detectKind(fileName: string, buffer: Buffer): UploadKind {
+  const ext = extOf(fileName);
+  if (TEXT_EXTS.has(ext) && looksLikeGenome(buffer.subarray(0, 4000).toString("utf8")))
+    return "genome";
+  return ext === "pdf" ? "lab" : "document";
+}
+
+export interface ProcessResult {
+  kind: UploadKind;
+  /** readings for a lab, catalog variants for a genome, items for a document. */
+  count: number;
+  text: string | null;
+  pages: number | null;
+  note?: string;
+}
+
+/**
+ * One file into whichever of the three pipelines it belongs to. `want` is the
+ * kind the user chose on the upload page; without it the sniff test decides,
+ * and a PDF that turns out not to be a lab sheet falls through to the document
+ * path rather than failing.
+ */
+export async function processUpload(
+  userId: string,
+  uploadId: string,
+  buffer: Buffer,
+  fileName: string,
+  want?: UploadKind,
+): Promise<ProcessResult> {
+  const db = getDb();
+  let kind = want ?? detectKind(fileName, buffer);
+
+  if (kind === "genome") {
+    const text = buffer.toString("utf8");
+    const { variants, facts } = await saveGenome(userId, uploadId, text);
+    if (!variants && !want) throw new Error("no catalog rsids in this file");
+    return {
+      kind,
+      count: variants,
+      text: text.slice(0, 4000),
+      pages: null,
+      note: `${variants} catalog variants, ${facts} facts`,
+    };
+  }
+
+  let carried: { text: string; pages: number | null } | null = null;
+  if (kind === "lab") {
+    const known = await db.select().from(metrics);
+    const result = await extractFromPdf(buffer, known);
+    if (result.error && want) throw new Error(result.error);
+    if (!result.error && (result.readings.length >= LAB_MIN_READINGS || want)) {
+      const count = await saveReadings(userId, uploadId, result.readings, known);
+      return {
+        kind,
+        count,
+        text: result.text ?? null,
+        pages: result.pages ?? null,
+      };
+    }
+    // Too few results to be a lab sheet: read it as a document instead, and
+    // reuse the text the PDF already gave up so nothing is read twice.
+    kind = "document";
+    if (result.text) carried = { text: result.text, pages: result.pages ?? null };
+  }
+
+  const { text, pages } = carried ?? (await readDocumentText(buffer, fileName));
+  const { items } = await saveDocument(userId, uploadId, text);
+  return { kind, count: items, text, pages, note: `${items} proposed items` };
 }

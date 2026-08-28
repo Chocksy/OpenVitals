@@ -113,7 +113,9 @@ export function UploadButton() {
     const json = await res.json();
     setBusy(false);
     setState(
-      res.ok ? `Imported ${json.count} results` : `Failed: ${json.error}`,
+      res.ok
+        ? `Imported as ${json.kind}: ${json.note ?? `${json.count} results`}`
+        : `Failed: ${json.error}`,
     );
     router.refresh();
   }
@@ -122,10 +124,10 @@ export function UploadButton() {
     <div className="flex items-center gap-3">
       <label className="card inline-flex cursor-pointer items-center gap-2 px-4 py-2.5 font-display text-[13px] font-medium transition-all hover:border-accent-200">
         <Upload className="size-4 text-neutral-500" />
-        {busy ? "Working…" : "Upload Blood Work"}
+        {busy ? "Working…" : "Upload a file"}
         <input
           type="file"
-          accept="application/pdf"
+          accept=".pdf,.txt,.csv,.tsv,.docx,.jpg,.jpeg,.png"
           hidden
           disabled={busy}
           onChange={(e) => {
@@ -272,6 +274,39 @@ export function ReanalyzeUpload({
   );
 }
 
+
+/** Re-read this file as another kind: a lab sheet, a genome file, a document. */
+export function ChangeKind({ id, kind }: { id: string; kind: string }) {
+  const { run, busy, error } = useAction();
+  const [want, setWant] = useState(kind);
+  return (
+    <span className="inline-flex items-center gap-2">
+      <select
+        value={want}
+        onChange={(e) => setWant(e.target.value)}
+        className="border border-neutral-200 bg-neutral-0 px-2 py-1 font-mono text-[11px]"
+      >
+        {["lab", "genome", "document"].map((k) => (
+          <option key={k} value={k}>
+            {k}
+          </option>
+        ))}
+      </select>
+      <button
+        className={`${rowAction} text-neutral-600 hover:text-neutral-900`}
+        disabled={busy || want === kind}
+        onClick={() => run(`/api/uploads/${id}/reanalyze`, { kind: want })}
+      >
+        {busy ? "Re-reading…" : "Re-read as this"}
+      </button>
+      {error && (
+        <span className="font-mono text-[10px] text-[var(--color-health-critical)]">
+          {error}
+        </span>
+      )}
+    </span>
+  );
+}
 
 /**
  * One curator question. The option that needs a number ("Multiply by …") opens

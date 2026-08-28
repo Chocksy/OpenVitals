@@ -1,22 +1,27 @@
 import { readFile } from "node:fs/promises";
-import { eq } from "drizzle-orm";
-import { getDb, metrics, uploads } from "@/db";
+import { and, eq } from "drizzle-orm";
+import { documentItems, genomeVariants, getDb, uploads } from "@/db";
 import { currentUserId } from "@/lib/auth";
 import { runCurator } from "@/lib/curator";
-import { extractFromPdf, extractFromText } from "@/lib/extract";
 import {
   dropReadings,
   findUpload,
   localPath,
   pickSource,
-  saveReadings,
+  processUpload,
+  UPLOAD_KINDS,
+  type UploadKind,
 } from "@/lib/uploads";
 
 export const maxDuration = 120;
 
-/** Read the file again if we still have it, else the text we kept from last time. */
+/**
+ * Read the file again if we still have it, else the text we kept from last
+ * time. `kind` in the body overrides the sniff test, which is how the user
+ * says "this PDF is a document, not a lab sheet".
+ */
 export async function POST(
-  _req: Request,
+  req: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
   const userId = await currentUserId();
@@ -26,14 +31,24 @@ export async function POST(
   const upload = await findUpload(userId, id);
   if (!upload) return Response.json({ error: "not found" }, { status: 404 });
 
+  const body = (await req.json().catch(() => ({}))) as { kind?: string };
+  const want = UPLOAD_KINDS.includes(body.kind as UploadKind)
+    ? (body.kind as UploadKind)
+    : undefined;
+
   const file = localPath(upload.blobPath);
   const source = pickSource(!!file, upload.rawText);
   if (!source)
     return Response.json(
       {
         error:
-          "no source to re-analyze; the original PDF is not on this machine",
+          "no source to re-analyze; the original file is not on this machine",
       },
+      { status: 422 },
+    );
+  if (!file && (want ?? upload.kind) === "genome")
+    return Response.json(
+      { error: "a genome file can only be re-read from the file itself" },
       { status: 422 },
     );
 
@@ -44,23 +59,36 @@ export async function POST(
     .where(eq(uploads.id, id));
 
   try {
+    // Everything the last run wrote for this upload goes first, so a re-read
+    // never doubles up. Accepted document items are dropped with the rest:
+    // what they wrote (readings, facts, evidence) stays, as the audit does.
     await dropReadings(userId, id);
-    const known = await db.select().from(metrics);
-    const result =
-      source === "file"
-        ? await extractFromPdf(await readFile(file!), known)
-        : await extractFromText(upload.rawText!, known);
-    if (result.error) throw new Error(result.error);
+    await db.delete(documentItems).where(eq(documentItems.uploadId, id));
+    await db
+      .delete(genomeVariants)
+      .where(
+        and(eq(genomeVariants.userId, userId), eq(genomeVariants.uploadId, id)),
+      );
 
-    const count = await saveReadings(userId, id, result.readings, known);
+    const buffer = file
+      ? await readFile(file)
+      : Buffer.from(upload.rawText!, "utf8");
+    const result = await processUpload(
+      userId,
+      id,
+      buffer,
+      upload.fileName ?? (file ? file : "document.txt"),
+      want,
+    );
+
     const [row] = await db
       .update(uploads)
       .set({
         status: "done",
         error: null,
-        readingsCount: count,
-        // Only the file gives fresh text; a text re-run would just echo itself.
-        ...(source === "file"
+        kind: result.kind,
+        readingsCount: result.kind === "lab" ? result.count : 0,
+        ...(file
           ? {
               rawText: result.text ?? upload.rawText,
               pages: result.pages ?? upload.pages,
@@ -70,11 +98,12 @@ export async function POST(
       .where(eq(uploads.id, id))
       .returning();
 
-    void runCurator(userId, "upload", { uploadId: id }).catch((e) =>
-      console.error("[reanalyze] curator failed:", e),
-    );
+    if (result.kind === "lab")
+      void runCurator(userId, "upload", { uploadId: id }).catch((e) =>
+        console.error("[reanalyze] curator failed:", e),
+      );
 
-    return Response.json(row);
+    return Response.json({ ...row, count: result.count, note: result.note });
   } catch (e) {
     const error = e instanceof Error ? e.message : String(e);
     console.error("[reanalyze] failed:", e);
