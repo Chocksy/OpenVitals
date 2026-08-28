@@ -13,17 +13,7 @@ import { and, eq } from "drizzle-orm";
 import { getDb, profileFacts, reviewItems, type ReviewSubject } from "@/db";
 import { localDay } from "./daily";
 import { getMetricRows } from "./data";
-import {
-  albuminToGL,
-  creatinineToUmolL,
-  egfr,
-  fib4,
-  glucoseToMmolL,
-  homaIr,
-  nonHdl,
-  phenoAge,
-  tgHdl,
-} from "./derived";
+import { deriveAll } from "./derived";
 import { applyPatternTargets } from "./patterns";
 import { statusOf, type Status } from "./status";
 import {
@@ -155,51 +145,12 @@ export async function buildModelInput(userId: string): Promise<ModelInput> {
     };
   }
 
-  const v = (code: string) => latest[code]?.value ?? null;
-  const derived: ModelInput["derived"] = {
-    egfr: egfr({ creatinine: v("creatinine"), age, sex }),
-    homaIr: latest.homa_ir?.value ?? homaIr(v("glucose"), v("insulin")),
-    tgHdl:
-      latest.triglyceride_hdl_ratio?.value ??
-      tgHdl(v("triglycerides"), v("hdl_cholesterol")),
-    nonHdl:
-      latest.non_hdl_cholesterol?.value ??
-      nonHdl(v("total_cholesterol"), v("hdl_cholesterol")),
-    fib4: fib4({
-      age,
-      ast: v("ast"),
-      alt: v("alt"),
-      platelets: v("platelets"),
-    }),
-    phenoAge: phenoAge({
-      albuminGL: v("albumin") == null ? null : albuminToGL(v("albumin")!),
-      creatinineUmolL:
-        v("creatinine") == null ? null : creatinineToUmolL(v("creatinine")!),
-      glucoseMmolL: v("glucose") == null ? null : glucoseToMmolL(v("glucose")!),
-      crpMgL: crpMgL(latest),
-      lymphocytePct: v("lymphocytes_pct"),
-      mcv: v("mcv"),
-      rdw: v("rdw") ?? v("rdw_cv"),
-      alp: v("alp"),
-      wbc: v("wbc"),
-      age,
-    }),
-  };
+  const derived = deriveAll(latest, sex, age);
 
   // Patterns can move an optimal band (Hashimoto's ferritin floor, the
   // suspended LDL goal in LMHR), so the ranges every caller sees are already
   // the ones the pattern says apply.
   return applyPatternTargets({ today, profile, sex, age, latest, derived });
-}
-
-/** hs-CRP in mg/L, whichever of the two codes carried it. */
-function crpMgL(latest: Record<string, LatestValue>): number | null {
-  for (const code of ["hs_crp", "crp"]) {
-    const row = latest[code];
-    if (row?.value == null) continue;
-    return /mg\/dl/i.test(row.unit ?? "") ? row.value * 10 : row.value;
-  }
-  return null;
 }
 
 /**

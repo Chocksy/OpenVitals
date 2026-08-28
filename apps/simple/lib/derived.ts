@@ -6,6 +6,7 @@
  * when an input is missing, so callers never have to null-check the inputs.
  * Tested against one published vector each in `derived.test.ts`.
  */
+import type { LatestValue, ModelInput } from "./coverage";
 import type { Sex } from "./vectors";
 
 type Maybe = number | null | undefined;
@@ -157,4 +158,57 @@ export function tgHdl(triglycerides?: Maybe, hdl?: Maybe): number | undefined {
 export function nonHdl(total?: Maybe, hdl?: Maybe): number | undefined {
   if (!ok(total) || !ok(hdl)) return undefined;
   return round2(total - hdl);
+}
+
+/* ── the whole set, from one `latest` map ─────────────────────────────── */
+
+/** hs-CRP in mg/L, whichever of the two codes carried it. */
+function crpMgL(latest: Record<string, LatestValue>): number | null {
+  for (const code of ["hs_crp", "crp"]) {
+    const row = latest[code];
+    if (row?.value == null) continue;
+    return /mg\/dl/i.test(row.unit ?? "") ? row.value * 10 : row.value;
+  }
+  return null;
+}
+
+/**
+ * The six derived numbers for one person. The model input, the eval personas
+ * and the /brain sampler all call this, so they cannot drift apart.
+ */
+export function deriveAll(
+  latest: Record<string, LatestValue>,
+  sex: Sex | undefined,
+  age: number | undefined,
+): ModelInput["derived"] {
+  const v = (code: string) => latest[code]?.value ?? null;
+  return {
+    egfr: egfr({ creatinine: v("creatinine"), age, sex }),
+    homaIr: latest.homa_ir?.value ?? homaIr(v("glucose"), v("insulin")),
+    tgHdl:
+      latest.triglyceride_hdl_ratio?.value ??
+      tgHdl(v("triglycerides"), v("hdl_cholesterol")),
+    nonHdl:
+      latest.non_hdl_cholesterol?.value ??
+      nonHdl(v("total_cholesterol"), v("hdl_cholesterol")),
+    fib4: fib4({
+      age,
+      ast: v("ast"),
+      alt: v("alt"),
+      platelets: v("platelets"),
+    }),
+    phenoAge: phenoAge({
+      albuminGL: v("albumin") == null ? null : albuminToGL(v("albumin")!),
+      creatinineUmolL:
+        v("creatinine") == null ? null : creatinineToUmolL(v("creatinine")!),
+      glucoseMmolL: v("glucose") == null ? null : glucoseToMmolL(v("glucose")!),
+      crpMgL: crpMgL(latest),
+      lymphocytePct: v("lymphocytes_pct"),
+      mcv: v("mcv"),
+      rdw: v("rdw") ?? v("rdw_cv"),
+      alp: v("alp"),
+      wbc: v("wbc"),
+      age,
+    }),
+  };
 }

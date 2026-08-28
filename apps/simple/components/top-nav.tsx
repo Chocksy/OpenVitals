@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import {
   Activity,
   CalendarCheck,
+  Brain,
   ClipboardCheck,
   FlaskConical,
   LayoutDashboard,
@@ -168,10 +169,16 @@ export function TopNav({
                     Uploads
                   </Link>
                   {admin && (
-                    <Link href="/admin" className={menuLink}>
-                      <Settings className="size-3.5 text-neutral-400" />
-                      Admin
-                    </Link>
+                    <>
+                      <Link href="/brain" className={menuLink}>
+                        <Brain className="size-3.5 text-neutral-400" />
+                        Brain
+                      </Link>
+                      <Link href="/admin" className={menuLink}>
+                        <Settings className="size-3.5 text-neutral-400" />
+                        Admin
+                      </Link>
+                    </>
                   )}
                 </MenuGroup>
 

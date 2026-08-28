@@ -8,6 +8,7 @@
  * this file touches the database.
  */
 import type { ModelInput } from "./coverage";
+import type { Grade, Lens } from "./hypotheses";
 
 export type Sex = "male" | "female";
 
@@ -24,6 +25,10 @@ export interface Vector {
   /** 365 for annual labs, ONCE for once-in-a-life. */
   staleDays: number;
   appliesTo?: { sex?: Sex; minAge?: number; maxAge?: number };
+  /** How good the evidence for this vector is, from the vectors doc section 3. */
+  grade: Grade;
+  /** Which of the four lenses this vector moves. */
+  lenses: Lens[];
   why: string;
 }
 
@@ -39,6 +44,8 @@ export const VECTORS: Vector[] = [
   // ── Tier 0: the interview and the bathroom ────────────────────────────
   {
     id: "sex",
+    grade: "A",
+    lenses: ["lifespan"],
     name: "Sex",
     tier: 0,
     fact: "sex",
@@ -47,6 +54,8 @@ export const VECTORS: Vector[] = [
   },
   {
     id: "birth_year",
+    grade: "A",
+    lenses: ["lifespan"],
     name: "Year of birth",
     tier: 0,
     fact: "birth_year",
@@ -55,6 +64,8 @@ export const VECTORS: Vector[] = [
   },
   {
     id: "height_cm",
+    grade: "B",
+    lenses: ["weight"],
     name: "Height",
     tier: 0,
     fact: "height_cm",
@@ -63,6 +74,8 @@ export const VECTORS: Vector[] = [
   },
   {
     id: "smoking",
+    grade: "A",
+    lenses: ["lifespan", "energy"],
     name: "Smoking",
     tier: 0,
     fact: "smoking",
@@ -71,6 +84,8 @@ export const VECTORS: Vector[] = [
   },
   {
     id: "family_history",
+    grade: "A",
+    lenses: ["lifespan"],
     name: "Family history",
     tier: 0,
     fact: "family_history",
@@ -79,6 +94,8 @@ export const VECTORS: Vector[] = [
   },
   {
     id: "conditions",
+    grade: "A",
+    lenses: ["lifespan"],
     name: "Known conditions",
     tier: 0,
     fact: "conditions",
@@ -87,6 +104,8 @@ export const VECTORS: Vector[] = [
   },
   {
     id: "medications",
+    grade: "B",
+    lenses: ["lifespan"],
     name: "Medications",
     tier: 0,
     fact: "medications",
@@ -95,6 +114,8 @@ export const VECTORS: Vector[] = [
   },
   {
     id: "supplements",
+    grade: "C",
+    lenses: ["lifespan"],
     name: "Supplements",
     tier: 0,
     fact: "supplements",
@@ -103,6 +124,8 @@ export const VECTORS: Vector[] = [
   },
   {
     id: "waist_cm",
+    grade: "A",
+    lenses: ["lifespan", "weight"],
     name: "Waist",
     tier: 0,
     fact: "waist_cm",
@@ -111,6 +134,8 @@ export const VECTORS: Vector[] = [
   },
   {
     id: "bp_home",
+    grade: "A",
+    lenses: ["lifespan"],
     name: "Home blood pressure",
     tier: 0,
     fact: "bp_home",
@@ -119,6 +144,8 @@ export const VECTORS: Vector[] = [
   },
   {
     id: "resting_hr",
+    grade: "A",
+    lenses: ["lifespan", "energy"],
     name: "Resting heart rate",
     tier: 0,
     fact: "resting_hr",
@@ -129,6 +156,8 @@ export const VECTORS: Vector[] = [
     // ponytail: one question covers grip and a VO2max estimate; the answer
     // says which. `vo2max_est` stays a separate fact for a future device sync.
     id: "grip_kg",
+    grade: "A",
+    lenses: ["lifespan", "energy"],
     name: "Grip strength or VO2max",
     tier: 0,
     fact: "grip_kg",
@@ -137,6 +166,8 @@ export const VECTORS: Vector[] = [
   },
   {
     id: "sleep_snoring",
+    grade: "B",
+    lenses: ["lifespan", "energy", "mood"],
     name: "Snoring",
     tier: 0,
     fact: "sleep_snoring",
@@ -145,6 +176,8 @@ export const VECTORS: Vector[] = [
   },
   {
     id: "screening_dates",
+    grade: "A",
+    lenses: ["lifespan"],
     name: "Screening dates",
     tier: 0,
     fact: "screening_dates",
@@ -153,6 +186,8 @@ export const VECTORS: Vector[] = [
   },
   {
     id: "cycle_phase_at_last_draw",
+    grade: "C",
+    lenses: ["mood"],
     name: "Cycle phase at the last draw",
     tier: 0,
     fact: "cycle_phase_at_last_draw",
@@ -162,6 +197,8 @@ export const VECTORS: Vector[] = [
   },
   {
     id: "menopause_status",
+    grade: "B",
+    lenses: ["lifespan", "mood"],
     name: "Menopause status",
     tier: 0,
     fact: "menopause_status",
@@ -173,6 +210,8 @@ export const VECTORS: Vector[] = [
   // ── Tier 1: the annual core panel ─────────────────────────────────────
   {
     id: "apob",
+    grade: "A",
+    lenses: ["lifespan"],
     name: "ApoB",
     tier: 1,
     codes: ["apolipoprotein_b"],
@@ -181,6 +220,8 @@ export const VECTORS: Vector[] = [
   },
   {
     id: "lipids",
+    grade: "A",
+    lenses: ["lifespan"],
     name: "Lipid panel",
     tier: 1,
     codes: ["ldl_cholesterol", "hdl_cholesterol", "triglycerides"],
@@ -189,6 +230,8 @@ export const VECTORS: Vector[] = [
   },
   {
     id: "hba1c",
+    grade: "A",
+    lenses: ["lifespan", "weight"],
     name: "HbA1c",
     tier: 1,
     codes: ["hba1c"],
@@ -197,6 +240,8 @@ export const VECTORS: Vector[] = [
   },
   {
     id: "glucose",
+    grade: "A",
+    lenses: ["lifespan", "weight"],
     name: "Fasting glucose",
     tier: 1,
     codes: ["glucose"],
@@ -205,6 +250,8 @@ export const VECTORS: Vector[] = [
   },
   {
     id: "insulin",
+    grade: "A",
+    lenses: ["lifespan", "weight", "energy"],
     name: "Fasting insulin",
     tier: 1,
     codes: ["insulin"],
@@ -213,6 +260,8 @@ export const VECTORS: Vector[] = [
   },
   {
     id: "creatinine",
+    grade: "A",
+    lenses: ["lifespan"],
     name: "Creatinine",
     tier: 1,
     codes: ["creatinine"],
@@ -221,6 +270,8 @@ export const VECTORS: Vector[] = [
   },
   {
     id: "liver",
+    grade: "B",
+    lenses: ["lifespan", "energy"],
     name: "Liver enzymes",
     tier: 1,
     codes: ["alt", "ast"],
@@ -229,6 +280,8 @@ export const VECTORS: Vector[] = [
   },
   {
     id: "ggt",
+    grade: "B",
+    lenses: ["lifespan", "energy"],
     name: "GGT",
     tier: 1,
     codes: ["ggt"],
@@ -237,6 +290,8 @@ export const VECTORS: Vector[] = [
   },
   {
     id: "alp",
+    grade: "B",
+    lenses: ["lifespan"],
     name: "Alkaline phosphatase",
     tier: 1,
     codes: ["alp"],
@@ -245,6 +300,8 @@ export const VECTORS: Vector[] = [
   },
   {
     id: "albumin",
+    grade: "B",
+    lenses: ["lifespan"],
     name: "Albumin",
     tier: 1,
     codes: ["albumin"],
@@ -253,6 +310,8 @@ export const VECTORS: Vector[] = [
   },
   {
     id: "cbc",
+    grade: "A",
+    lenses: ["lifespan", "energy"],
     name: "Blood count",
     tier: 1,
     codes: ["hemoglobin", "rbc", "wbc", "platelets", "mcv", "rdw"],
@@ -261,6 +320,8 @@ export const VECTORS: Vector[] = [
   },
   {
     id: "crp",
+    grade: "B",
+    lenses: ["lifespan", "energy"],
     name: "hs-CRP",
     tier: 1,
     codes: ["hs_crp", "crp"],
@@ -269,6 +330,8 @@ export const VECTORS: Vector[] = [
   },
   {
     id: "tsh",
+    grade: "B",
+    lenses: ["energy", "mood", "weight"],
     name: "TSH",
     tier: 1,
     codes: ["tsh"],
@@ -277,6 +340,8 @@ export const VECTORS: Vector[] = [
   },
   {
     id: "vitamin_d",
+    grade: "B",
+    lenses: ["lifespan", "mood"],
     name: "Vitamin D",
     tier: 1,
     codes: ["vitamin_d"],
@@ -285,6 +350,8 @@ export const VECTORS: Vector[] = [
   },
   {
     id: "ferritin",
+    grade: "B",
+    lenses: ["energy", "mood"],
     name: "Ferritin",
     tier: 1,
     codes: ["ferritin"],
@@ -293,6 +360,8 @@ export const VECTORS: Vector[] = [
   },
   {
     id: "transferrin_saturation",
+    grade: "B",
+    lenses: ["energy"],
     name: "Iron saturation",
     tier: 1,
     codes: ["transferrin_saturation"],
@@ -301,6 +370,8 @@ export const VECTORS: Vector[] = [
   },
   {
     id: "uric_acid",
+    grade: "B",
+    lenses: ["lifespan"],
     name: "Uric acid",
     tier: 1,
     codes: ["uric_acid"],
@@ -309,6 +380,8 @@ export const VECTORS: Vector[] = [
   },
   {
     id: "urine_acr",
+    grade: "A",
+    lenses: ["lifespan"],
     name: "Urine albumin/creatinine",
     tier: 1,
     codes: [],
@@ -317,6 +390,8 @@ export const VECTORS: Vector[] = [
   },
   {
     id: "b12",
+    grade: "B",
+    lenses: ["energy", "mood"],
     name: "Vitamin B12",
     tier: 1,
     codes: ["vitamin_b12"],
@@ -325,6 +400,8 @@ export const VECTORS: Vector[] = [
   },
   {
     id: "folate",
+    grade: "B",
+    lenses: ["energy", "mood"],
     name: "Folate",
     tier: 1,
     codes: ["folic_acid"],
@@ -333,6 +410,8 @@ export const VECTORS: Vector[] = [
   },
   {
     id: "homocysteine",
+    grade: "C",
+    lenses: ["lifespan"],
     name: "Homocysteine",
     tier: 1,
     codes: ["homocysteine"],
@@ -341,6 +420,8 @@ export const VECTORS: Vector[] = [
   },
   {
     id: "lpa",
+    grade: "A",
+    lenses: ["lifespan"],
     name: "Lp(a)",
     tier: 1,
     codes: ["lp_a"],
@@ -351,6 +432,8 @@ export const VECTORS: Vector[] = [
   // ── Tier 2: conditional ───────────────────────────────────────────────
   {
     id: "psa",
+    grade: "A",
+    lenses: ["lifespan"],
     name: "PSA",
     tier: 2,
     codes: ["psa_total"],
@@ -360,6 +443,8 @@ export const VECTORS: Vector[] = [
   },
   {
     id: "hormones_male",
+    grade: "C",
+    lenses: ["energy", "mood"],
     name: "Testosterone",
     tier: 2,
     codes: ["testosterone"],
@@ -369,6 +454,8 @@ export const VECTORS: Vector[] = [
   },
   {
     id: "hormones_female",
+    grade: "C",
+    lenses: ["mood", "energy"],
     name: "Estradiol, FSH, LH",
     tier: 2,
     codes: ["estradiol", "fsh", "lh"],
@@ -378,6 +465,8 @@ export const VECTORS: Vector[] = [
   },
   {
     id: "tpo_antibodies",
+    grade: "B",
+    lenses: ["energy", "mood", "weight"],
     name: "TPO antibodies",
     tier: 2,
     codes: ["tpo_antibodies"],
@@ -386,6 +475,8 @@ export const VECTORS: Vector[] = [
   },
   {
     id: "cystatin_c",
+    grade: "A",
+    lenses: ["lifespan"],
     name: "Cystatin C",
     tier: 2,
     codes: ["cystatin_c"],
@@ -394,6 +485,8 @@ export const VECTORS: Vector[] = [
   },
   {
     id: "cac_score",
+    grade: "A",
+    lenses: ["lifespan"],
     name: "Coronary calcium score",
     tier: 2,
     fact: "cac_score",
@@ -403,6 +496,8 @@ export const VECTORS: Vector[] = [
   },
   {
     id: "dexa",
+    grade: "A",
+    lenses: ["lifespan", "weight"],
     name: "DEXA scan",
     tier: 2,
     fact: "dexa",
@@ -412,6 +507,8 @@ export const VECTORS: Vector[] = [
   },
   {
     id: "colonoscopy",
+    grade: "A",
+    lenses: ["lifespan"],
     name: "Colonoscopy",
     tier: 2,
     fact: "screening_dates",
@@ -421,6 +518,8 @@ export const VECTORS: Vector[] = [
   },
   {
     id: "mammography",
+    grade: "A",
+    lenses: ["lifespan"],
     name: "Mammography",
     tier: 2,
     fact: "screening_dates",

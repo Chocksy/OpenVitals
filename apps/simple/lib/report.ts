@@ -30,6 +30,7 @@ import {
 import { getTrackerSummary, type TrackerSummary } from "./daily-data";
 import { model } from "./extract";
 import { computeGraphState, type GraphState } from "./graph-state";
+import { scoreHypotheses, type HypothesisResult } from "./hypotheses";
 import {
   matchPatterns,
   type PatternMatch,
@@ -168,6 +169,8 @@ REGISTERS: "why" is one plain sentence for a smart adult. "eli5" is two sentence
 
 OPINION IS THE POINT. The rule-driven tests are the floor, not the plan. Write at least 3 "opinion" actions when HOT GRAPH has nodes; when it is empty write none, there is nothing to reason from. An opinion action is one that only this person's numbers, history and habits justify: which lever to pull first and why for them, sequencing ("fix D before judging testosterone"), personal dose adjustments, what their family history changes about the target. Each one quotes the values in "reasoning".
 
+HYPOTHESES are scored by the app; do not re-score them, explain them and order tests by the path given.
+
 PATTERNS: when a pattern is matched, its management text is a list of mandatory actions: each numbered intervention in it becomes an action with the pattern's dose (e.g. selenium 200 µg/day) unless a listed contraindication applies; say which basis it has. State the controversy in one sentence in the system verdict, then say what decides it for this person. Fill "patterns" with one entry per matched pattern: its id, its stage, and your verdict.
 
 NOTHING WRONG: a person with every marker in optimal and no pattern gets at most 4 actions and no supplement; say so in the summary.
@@ -297,6 +300,24 @@ function patternLines(matches: PatternMatch[], input: ModelInput): string {
   return rows.join("\n") || "- none matched";
 }
 
+/** The top five scored hypotheses, with the evidence that moved each one. */
+function hypothesisLines(rows: HypothesisResult[]): string {
+  const one = (h: HypothesisResult) => {
+    const side = (
+      list: { input: string; value: string; lr: number; grade: string }[],
+    ) =>
+      list
+        .map((e) => `${e.input} ${e.value} (LR ${e.lr}, ${e.grade})`)
+        .join("; ") || "none";
+    const next = h.nextTests[0];
+    return `- ${h.id} ${h.score} ${h.state} (prior ${h.prior})
+  for: ${side(h.for)}
+  against: ${side(h.against)}
+  next test: ${next ? `${next.test} (cost ${next.cost}, expected shift ${next.expectedShift})` : "nothing left that would move it"}`;
+  };
+  return rows.slice(0, 5).map(one).join("\n") || "- nothing scored yet";
+}
+
 /** The node id without its kind prefix: "metric:tsh" reads as "tsh". */
 const short = (id: string) => id.slice(id.indexOf(":") + 1);
 
@@ -337,6 +358,8 @@ export interface ReportContext {
   rules: Rule[];
   patterns: PatternMatch[];
   graph: GraphState;
+  /** Scored hypotheses, highest first. The model explains them, never re-scores. */
+  hypotheses: HypothesisResult[];
   /** Pattern questions to queue, on top of the model's own. */
   questions: PatternQuestion[];
   context: string;
@@ -366,6 +389,7 @@ export function buildContextFromInput(
   const adoptedCodes =
     extras.adoptedCodes ?? tracker.items.flatMap((i) => i.metricCodes ?? []);
   const graph = computeGraphState(input, { focus, adoptedCodes });
+  const hypotheses = scoreHypotheses(input);
 
   const open = profileQuestions(input);
   const dismissed =
@@ -411,6 +435,9 @@ ${ruleLines(rules)}
 MATCHED PATTERNS:
 ${patternLines(patterns, input)}
 
+HYPOTHESES (scored by the app; explain them, do not re-score them):
+${hypothesisLines(hypotheses)}
+
 ${graphLines(graph)}
 
 PROTOCOL AND ADHERENCE, LAST 30 DAYS (${tracker.from} to ${tracker.to}):
@@ -440,6 +467,7 @@ PREVIOUS REPORT SUMMARY: ${previous ? (previous.body as ReportBody).summary.join
     rules,
     patterns,
     graph,
+    hypotheses,
     questions: openPatternQuestions(patterns, input),
     context,
   };
