@@ -9,6 +9,7 @@
  *
  * Pure data plus one small function per row. No database, no clock.
  */
+import { CATALOG } from "./hkb-catalog";
 import type { Grade } from "./hypotheses";
 
 export interface GenomeCall {
@@ -18,6 +19,8 @@ export interface GenomeCall {
   call: string;
   /** One plain sentence about this person's own call. */
   meaning: string;
+  /** Extra profile facts this row writes beyond `factKey`, keyed by fact. */
+  facts?: Record<string, string>;
 }
 
 export interface GenomeRow {
@@ -196,21 +199,22 @@ export const GENOME_CATALOG: GenomeRow[] = [
   },
   {
     id: "hla_dq",
-    gene: "HLA-DQ2.5 / DQ8",
-    rsids: ["rs2187668", "rs7454108"],
+    gene: "HLA DR3-DQ2.5 haplotype tag",
+    rsids: ["rs2187668", "rs7454108", "rs660895"],
     factKey: "genome:hla_dq",
     effect:
-      "coeliac_disease: a carrier multiplies the prior by 3; carrying neither tag is an LR of 0.1 against.",
-    why: "Coeliac disease is not possible without DQ2.5 or DQ8; the tags are how a consumer array rules it out.",
+      "coeliac_disease: a DQ2.5 or DQ8 carrier multiplies the prior by 3; carrying neither tag is an LR of 0.1 against. hashimoto prior ×1.5 and atrophic_gastritis prior ×1.5 from DR3/DR4.",
+    why: "rs2187668 tags one haplotype that two stories read: it is the DQ2.5 tag coeliac disease needs and the DR3 tag the autoimmune thyroid and gastric stories read, so it is one row here rather than two.",
     grade: "A",
     source:
-      "Monsuur 2008 PLoS ONE (the rs2187668 T allele tags DQ2.5, rs7454108 C tags DQ8); Karell 2003 Hum Immunol; NICE NG20 coeliac guidance on HLA testing as a rule-out.",
-    conditions: ["coeliac_disease"],
+      "Monsuur 2008 PLoS ONE (the rs2187668 T allele tags DQ2.5-DR3, rs7454108 C tags DQ8); Karell 2003 Hum Immunol; NICE NG20 coeliac guidance on HLA testing as a rule-out; Zeitlin 2008 Clin Endocrinol and Jacobson 2008 Clin Immunol for DR3/DR4 and autoimmunity; rs660895 tags DRB1*04:01 (Raychaudhuri 2012 Nat Genet).",
+    conditions: ["coeliac_disease", "hashimoto", "atrophic_gastritis"],
     sample: ["carries DQ2.5", "no DQ2.5 or DQ8 tag"],
     call: (g) => {
-      if (!some(g, ["rs2187668", "rs7454108"])) return null;
+      if (!some(g, ["rs2187668", "rs7454108", "rs660895"])) return null;
       const dq2 = count(g.rs2187668, "T") > 0;
       const dq8 = count(g.rs7454108, "C") > 0;
+      const dr4 = count(g.rs660895, "G") > 0;
       const call =
         dq2 && dq8
           ? "carries DQ2.5 and DQ8"
@@ -219,13 +223,27 @@ export const GENOME_CATALOG: GenomeRow[] = [
             : dq8
               ? "carries DQ8"
               : "no DQ2.5 or DQ8 tag";
+      // The same rs2187668 T allele is the DR3 tag, and the DR story is a
+      // separate fact because a separate set of catalog rules reads it.
+      const dr =
+        dq2 && dr4
+          ? "carries DR3 and DR4"
+          : dq2
+            ? "carries DR3"
+            : dr4
+              ? "carries DR4"
+              : "no DR3 or DR4 tag";
       return {
-        genotype: shown(g, ["rs2187668", "rs7454108"]),
+        genotype: shown(g, ["rs2187668", "rs7454108", "rs660895"]),
         call,
+        facts: { "genome:hla_dr": dr },
         meaning:
-          call === "no DQ2.5 or DQ8 tag"
+          (call === "no DQ2.5 or DQ8 tag"
             ? "Coeliac disease is essentially excluded: over 99 % of people with it carry one of these two haplotypes."
-            : "Carries the permissive haplotype. About a third of Europeans do and almost none of them get coeliac disease, so this only raises the question; serology answers it.",
+            : "Carries the permissive coeliac haplotype. About a third of Europeans do and almost none of them get coeliac disease, so this only raises the question; serology answers it.") +
+          (dr === "no DR3 or DR4 tag"
+            ? " Neither shared autoimmune haplotype tag, which argues mildly against the thyroid and gastric autoimmune stories."
+            : ` Also ${dr}, a shared autoimmune haplotype behind thyroid and gastric autoimmunity; it is common and most carriers never get an autoimmune disease.`),
       };
     },
   },
@@ -366,40 +384,6 @@ export const GENOME_CATALOG: GenomeRow[] = [
     },
   },
   {
-    id: "hla_dr",
-    gene: "HLA-DR3 / DR4 tags",
-    rsids: ["rs2187668", "rs660895"],
-    factKey: "genome:hla_dr",
-    effect: "hashimoto prior ×1.5 and atrophic_gastritis prior ×1.5.",
-    why: "DR3 and DR4 are the shared autoimmune haplotypes behind thyroid autoimmunity and autoimmune gastritis; the same two tags cover both.",
-    grade: "B",
-    source:
-      "Zeitlin 2008 Clin Endocrinol (HLA class II and autoimmune thyroid disease); Jacobson 2008 Clin Immunol; rs660895 tags DRB1*04:01 (Raychaudhuri 2012 Nat Genet).",
-    conditions: ["hashimoto", "atrophic_gastritis"],
-    sample: ["carries DR3", "no DR3 or DR4 tag"],
-    call: (g) => {
-      if (!some(g, ["rs2187668", "rs660895"])) return null;
-      const dr3 = count(g.rs2187668, "T") > 0;
-      const dr4 = count(g.rs660895, "G") > 0;
-      const call =
-        dr3 && dr4
-          ? "carries DR3 and DR4"
-          : dr3
-            ? "carries DR3"
-            : dr4
-              ? "carries DR4"
-              : "no DR3 or DR4 tag";
-      return {
-        genotype: shown(g, ["rs2187668", "rs660895"]),
-        call,
-        meaning:
-          call === "no DR3 or DR4 tag"
-            ? "Neither shared autoimmune haplotype tag, which argues mildly against the autoimmune stories."
-            : "Carries a shared autoimmune haplotype. It is common and most carriers never get an autoimmune disease; antibodies are what decide.",
-      };
-    },
-  },
-  {
     id: "g6pd",
     gene: "G6PD",
     rsids: ["rs1050828"],
@@ -459,3 +443,54 @@ export const CATALOG_RSIDS = new Set(GENOME_CATALOG.flatMap((r) => r.rsids));
 
 export const genomeRow = (id: string) =>
   GENOME_CATALOG.find((r) => r.id === id);
+
+/* ── did this call actually move anything? ────────────────────────────── */
+
+/** The two ways a catalog rule reads a text fact. Absent keys never match. */
+const answers = (
+  when: { equals?: string; includes?: string },
+  value: string,
+): boolean => {
+  const v = value.toLowerCase();
+  if (when.equals != null) return v === when.equals.toLowerCase();
+  if (when.includes != null)
+    return when.includes
+      .toLowerCase()
+      .split("|")
+      .some((part) => v.includes(part));
+  return false;
+};
+
+/**
+ * Whether this person's call changes any prior or any likelihood ratio in the
+ * catalog. False is the interesting answer: an APOE ε3/ε3 or an FTO TT is a
+ * real call that moves nothing, and the page says so instead of printing an
+ * effect that belongs to somebody else.
+ *
+ * A row whose facts no rule reads at all returns true: silence is not
+ * evidence of no effect.
+ */
+export function movesAnything(row: GenomeRow, call: GenomeCall): boolean {
+  const facts: Record<string, string> = {
+    [row.factKey]: call.call,
+    ...(call.facts ?? {}),
+  };
+  let read = false;
+  for (const h of CATALOG) {
+    for (const m of h.priors.modifiers) {
+      const value = m.when.fact ? facts[m.when.fact] : undefined;
+      if (value == null) continue;
+      read = true;
+      if (answers(m.when, value)) return true;
+    }
+    for (const e of h.evidence) {
+      const value = e.input.fact ? facts[e.input.fact] : undefined;
+      if (value == null) continue;
+      read = true;
+      // A rule with an lrNeg moves the score on the answer that does not hold
+      // as well, so having the fact at all is enough.
+      if (e.lrNeg != null || answers(e.when, value)) return true;
+    }
+  }
+  return !read;
+}

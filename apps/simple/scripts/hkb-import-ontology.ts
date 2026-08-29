@@ -17,19 +17,19 @@
  * default old-space on any machine that can run the app. The `.hpoa` file is
  * a TSV and is read line by line.
  *
- * The mapping to our catalog, and the one place it departs from the spec:
+ * The mapping to our catalog:
  *
- *   For every `hkb_conditions` row with a MONDO id, the spec joins HPOA
- *   through that term's OMIM and Orphanet xrefs. Measured against the real
- *   files that join returns 59 annotation rows across the whole catalog and
- *   *none* of them carries a frequency: HPOA quantifies Orphanet rare-disease
- *   entries, and common adult conditions map to OMIM entries curated without
- *   frequencies. So the join also walks MONDO's `is_a` graph three levels down
- *   and uses the subtypes' xrefs, which is where the frequencies live. A
- *   phenotype that is frequent in a subtype is real evidence about the parent
- *   and a weaker claim than the subtype's own, which is exactly why every row
- *   lands as `status = "proposed"`, `grade = "C"`, for a human to accept on
- *   /hkb before it can score.
+ *   For every `hkb_conditions` row with a MONDO id, HPOA is joined through
+ *   that term's own OMIM and Orphanet xrefs, and through the xrefs of a
+ *   direct child term whose name still carries the condition's head word
+ *   ("congenital hypothyroidism" under "hypothyroidism"). Nothing deeper.
+ *
+ *   Phase 14 cut the old three-level descendant walk. It reached the rare
+ *   Mendelian tips of MONDO, where the frequencies live, and mapped a
+ *   phenotype that is "frequent" in a one-in-a-million syndrome onto a common
+ *   adult condition. Every one of the 32 rows it proposed was rejected on
+ *   /hkb. `proposals_old_rule` in the run row says how many that walk would
+ *   still produce, so the difference stays visible.
  *
  * Idempotent: every write is an upsert, so a second run changes nothing.
  */
@@ -233,8 +233,21 @@ export function frequencyOf(raw: string | undefined): number | null {
 /** "frequent" and above. Below that the phenotype argues nothing useful. */
 const FREQUENT = 0.3;
 
-/** How far down MONDO's `is_a` graph a subtype still counts as the parent. */
-const DEPTH = 3;
+/** How far the old (phase 13) rule walked `is_a`, kept only to count it. */
+const OLD_DEPTH = 3;
+
+/**
+ * "Subclinical hypothyroidism" → "hypothyroidism". The head of an English
+ * noun phrase is its last word, and that is the word a MONDO child term has to
+ * repeat before its rare-disease frequencies may speak for the parent.
+ */
+export const headWord = (name: string): string =>
+  name
+    .toLowerCase()
+    .replace(/[^a-z0-9 ]/g, " ")
+    .trim()
+    .split(/\s+/)
+    .pop() ?? "";
 
 const shortId = (iri: string) => iri.split("/").pop()!.replace("_", ":");
 
@@ -259,7 +272,10 @@ interface Term {
 }
 
 /** One OBO graph file as `hkb_terms` rows. */
-export async function readOntology(file: string, prefix: string): Promise<Term[]> {
+export async function readOntology(
+  file: string,
+  prefix: string,
+): Promise<Term[]> {
   const graph = (
     JSON.parse(await readFile(file, "utf8")) as {
       graphs: {
@@ -410,6 +426,7 @@ export async function importOntology() {
     annotations: annotations.length,
     proposed_evidence: proposed.written,
     proposals_seen: proposed.proposals,
+    proposals_old_rule: proposed.oldRule,
     conditions_touched: proposed.conditions,
   };
   const ms = Date.now() - started;
@@ -428,7 +445,11 @@ export async function importOntology() {
 async function proposeEvidence(mondo: Term[], annotations: Annotation[]) {
   const db = getDb();
   const conditions = await db
-    .select({ id: hkbConditions.id, mondoId: hkbConditions.mondoId })
+    .select({
+      id: hkbConditions.id,
+      name: hkbConditions.name,
+      mondoId: hkbConditions.mondoId,
+    })
     .from(hkbConditions);
 
   const children = new Map<string, string[]>();
@@ -436,24 +457,42 @@ async function proposeEvidence(mondo: Term[], annotations: Annotation[]) {
     for (const parent of t.parents ?? [])
       children.set(parent, [...(children.get(parent) ?? []), t.id]);
 
+  const nameOf = new Map(mondo.map((t) => [t.id, t.name]));
   const xrefsOf = new Map(mondo.map((t) => [t.id, t.xrefs ?? []]));
 
   const byDisease = new Map<string, Annotation[]>();
   for (const a of annotations)
     byDisease.set(a.diseaseId, [...(byDisease.get(a.diseaseId) ?? []), a]);
 
-  /** The term and everything `is_a` it, three levels down. */
-  const family = (root: string) => {
-    const seen = new Set([root]);
-    let frontier = [root];
-    for (let d = 0; d < DEPTH; d++) {
+  type Condition = (typeof conditions)[number];
+
+  /**
+   * The MONDO terms allowed to speak for a condition: the condition's own
+   * term, plus a term one `is_a` step below it whose name still carries the
+   * condition's head word. "Congenital hypothyroidism" counts for
+   * hypothyroidism; "Bamforth-Lazarus syndrome" does not.
+   */
+  const speakFor = (c: Condition): string[] => {
+    const head = headWord(c.name);
+    const out = [c.mondoId!];
+    for (const kid of children.get(c.mondoId!) ?? [])
+      if (head && (nameOf.get(kid) ?? "").toLowerCase().includes(head))
+        out.push(kid);
+    return out;
+  };
+
+  /** The old rule: the term and everything `is_a` it, three levels down. */
+  const family = (c: Condition): string[] => {
+    const seen = new Set([c.mondoId!]);
+    let frontier = [c.mondoId!];
+    for (let d = 0; d < OLD_DEPTH; d++) {
       const next: string[] = [];
       for (const id of frontier)
         for (const kid of children.get(id) ?? [])
           if (!seen.has(kid)) (seen.add(kid), next.push(kid));
       frontier = next;
     }
-    return seen;
+    return [...seen];
   };
 
   interface Proposal {
@@ -466,46 +505,50 @@ async function proposeEvidence(mondo: Term[], annotations: Annotation[]) {
     source: string;
     status: string;
   }
-  const best = new Map<string, Proposal & { f: number }>();
 
-  for (const c of conditions) {
-    if (!c.mondoId) continue;
-    for (const term of family(c.mondoId))
-      for (const xref of xrefsOf.get(term) ?? []) {
-        const diseaseId = xref.replace("Orphanet:", "ORPHA:");
-        if (!diseaseId.startsWith("OMIM:") && !diseaseId.startsWith("ORPHA:"))
-          continue;
-        for (const a of byDisease.get(diseaseId) ?? []) {
-          const back = BACKGROUND[a.hpoId];
-          if (!back) continue;
-          const f = frequencyOf(a.frequency);
-          if (f == null || f < FREQUENT) continue;
+  /** Every proposal a term-picking rule produces, best frequency per key. */
+  const collect = (terms: (c: Condition) => string[]) => {
+    const best = new Map<string, Proposal & { f: number }>();
+    for (const c of conditions) {
+      if (!c.mondoId) continue;
+      for (const term of terms(c))
+        for (const xref of xrefsOf.get(term) ?? []) {
+          const diseaseId = xref.replace("Orphanet:", "ORPHA:");
+          if (!diseaseId.startsWith("OMIM:") && !diseaseId.startsWith("ORPHA:"))
+            continue;
+          for (const a of byDisease.get(diseaseId) ?? []) {
+            const back = BACKGROUND[a.hpoId];
+            if (!back) continue;
+            const f = frequencyOf(a.frequency);
+            if (f == null || f < FREQUENT) continue;
 
-          const key = `hpoa_${c.id}_${a.hpoId.replace(":", "_")}`;
-          const found = best.get(key);
-          if (found && found.f >= f) continue;
-          best.set(key, {
-            f,
-            id: key,
-            conditionId: c.id,
-            featureId: back.featureId,
-            conditionOn: back.when,
-            lrPos: Math.round((f / back.p) * 100) / 100,
-            grade: "C",
-            source:
-              `HPOA ${diseaseId} "${a.diseaseName ?? ""}" ${a.hpoId} frequency ${a.frequency} ` +
-              `(${Math.round(f * 100)} %) ÷ background ${back.p} — ${back.source} ` +
-              `Proposed by scripts/hkb-import-ontology.ts; grade C until a human accepts it.`,
-            status: "proposed",
-          });
+            const key = `hpoa_${c.id}_${a.hpoId.replace(":", "_")}`;
+            const found = best.get(key);
+            if (found && found.f >= f) continue;
+            best.set(key, {
+              f,
+              id: key,
+              conditionId: c.id,
+              featureId: back.featureId,
+              conditionOn: back.when,
+              lrPos: Math.round((f / back.p) * 100) / 100,
+              grade: "C",
+              source:
+                `HPOA ${diseaseId} "${a.diseaseName ?? ""}" ${a.hpoId} frequency ${a.frequency} ` +
+                `(${Math.round(f * 100)} %) \u00f7 background ${back.p} \u2014 ${back.source} ` +
+                `Proposed by scripts/hkb-import-ontology.ts; grade C until a human accepts it.`,
+              status: "proposed",
+            });
+          }
         }
-      }
-  }
+    }
+    return [...best.values()].map(({ f: _f, ...row }) => row);
+  };
 
   // A proposal that reads the same feature under the same condition as a rule
   // we already wrote by hand is not news. `on conflict do nothing` with no
   // target covers both the id and the (condition, feature, condition_on) key.
-  const rows = [...best.values()].map(({ f: _f, ...row }) => row);
+  const rows = collect(speakFor);
   const before = await countEvidence();
   await inChunks(rows, 200, (batch) =>
     db.insert(hkbEvidence).values(batch).onConflictDoNothing(),
@@ -515,6 +558,7 @@ async function proposeEvidence(mondo: Term[], annotations: Annotation[]) {
   return {
     written,
     proposals: rows.length,
+    oldRule: collect(family).length,
     conditions: new Set(rows.map((r) => r.conditionId)).size,
   };
 }
@@ -534,7 +578,8 @@ if (
       console.log(
         `[hkb:import] hpo=${r.hpo_terms} mondo=${r.mondo_terms} ` +
           `annotations=${r.annotations} proposed=${r.proposed_evidence} ` +
-          `(of ${r.proposals_seen} candidates) ` +
+          `(of ${r.proposals_seen} candidates; the old three-level walk would ` +
+          `have proposed ${r.proposals_old_rule}) ` +
           `over ${r.conditions_touched} conditions in ${took(r.ms)}`,
       ),
     )

@@ -16,7 +16,9 @@ import { countryName } from "@/lib/countries";
 import { money } from "@/lib/prices";
 import {
   CatalogToggle,
+  EditLr,
   EvidenceButtons,
+  ResearchButton,
   RunImport,
 } from "@/components/hkb-controls";
 import { Badge } from "@/components/ui-kit";
@@ -108,6 +110,7 @@ async function conditionsTab() {
             <th className={TH}>parent</th>
             <th className={TH}>catalog</th>
             <th className={TH}>evidence</th>
+            <th className={TH}>research</th>
             <th className={TH}>why in the catalog · prior source</th>
           </tr>
         </thead>
@@ -141,6 +144,9 @@ async function conditionsTab() {
                     .map(([k, v]) => `${k} ${v}`)
                     .join(" · ") || "none"}
                 </td>
+                <td className={TDT}>
+                  <ResearchButton conditionId={c.id} />
+                </td>
                 <td className="px-3 py-1.5 text-[11px] text-neutral-500">
                   {c.why ?? "—"}
                   <br />
@@ -157,10 +163,15 @@ async function conditionsTab() {
   );
 }
 
-async function evidenceTab(status: string) {
+async function evidenceTab(status: string, condition: string) {
   const db = getDb();
-  const where = status === "all" ? undefined : eq(hkbEvidence.status, status);
-  const [rows, total] = await Promise.all([
+  const byStatus =
+    status === "all" ? undefined : eq(hkbEvidence.status, status);
+  const where =
+    condition === "all"
+      ? byStatus
+      : and(byStatus, eq(hkbEvidence.conditionId, condition));
+  const [rows, total, conditions] = await Promise.all([
     db
       .select()
       .from(hkbEvidence)
@@ -171,7 +182,19 @@ async function evidenceTab(status: string) {
       .select({ status: hkbEvidence.status, n: sql<number>`count(*)::int` })
       .from(hkbEvidence)
       .groupBy(hkbEvidence.status),
+    db
+      .select({
+        conditionId: hkbEvidence.conditionId,
+        n: sql<number>`count(*)::int`,
+      })
+      .from(hkbEvidence)
+      .where(byStatus)
+      .groupBy(hkbEvidence.conditionId)
+      .orderBy(asc(hkbEvidence.conditionId)),
   ]);
+
+  const href = (s: string, c: string) =>
+    `/hkb?tab=evidence&status=${s}&condition=${c}`;
 
   return (
     <Card
@@ -181,7 +204,7 @@ async function evidenceTab(status: string) {
           {["all", "proposed", "seed", "accepted", "rejected"].map((s) => (
             <Link
               key={s}
-              href={`/hkb?tab=evidence&status=${s}`}
+              href={href(s, condition)}
               className={
                 s === status
                   ? "font-bold underline"
@@ -196,6 +219,21 @@ async function evidenceTab(status: string) {
         </span>
       }
     >
+      <p className="mb-3 flex flex-wrap gap-x-2 gap-y-1 font-mono text-[10px]">
+        {[{ conditionId: "all", n: rows.length }, ...conditions].map((c) => (
+          <Link
+            key={c.conditionId}
+            href={href(status, c.conditionId)}
+            className={
+              c.conditionId === condition
+                ? "font-bold underline"
+                : "text-neutral-500 underline decoration-dotted"
+            }
+          >
+            {c.conditionId} {c.n}
+          </Link>
+        ))}
+      </p>
       <table className="w-full font-body text-[12px]">
         <thead className="font-mono text-[10px] uppercase tracking-[0.06em] text-neutral-400">
           <tr className="border-b border-neutral-200">
@@ -221,7 +259,7 @@ async function evidenceTab(status: string) {
           {rows.map((e) => (
             <tr key={e.id}>
               <td className={TD}>{e.conditionId}</td>
-              <td className={TD}>{e.id}</td>
+              <td className={`${TD} max-w-[190px] break-all`}>{e.id}</td>
               <td className={TD}>{e.featureId}</td>
               <td className={TD}>{JSON.stringify(e.conditionOn)}</td>
               <td className={TD}>{e.lrPos}</td>
@@ -232,11 +270,41 @@ async function evidenceTab(status: string) {
                   <Badge variant={STATUS_BADGE[e.status] ?? "secondary"}>
                     {e.status}
                   </Badge>
-                  {e.status === "proposed" && <EvidenceButtons id={e.id} />}
+                  {e.status === "proposed" && (
+                    <>
+                      <EvidenceButtons id={e.id} />
+                      <EditLr id={e.id} lrPos={e.lrPos} lrNeg={e.lrNeg} />
+                    </>
+                  )}
                 </span>
               </td>
               <td className="max-w-[520px] px-3 py-1.5 text-[11px] text-neutral-500">
+                {e.paper && (
+                  <>
+                    <a
+                      href={e.paper.url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="font-medium text-neutral-800 underline"
+                    >
+                      {e.paper.title}
+                    </a>{" "}
+                    <span className="font-mono text-[10px]">
+                      {[e.paper.journal, e.paper.year]
+                        .filter(Boolean)
+                        .join(" ")}
+                    </span>
+                    <p className="my-1 border-l-2 border-neutral-200 pl-2 italic text-neutral-600">
+                      “{e.paper.quote}”
+                    </p>
+                  </>
+                )}
                 {e.source}
+                {e.reviewNote && (
+                  <p className="mt-1 font-mono text-[10px] text-neutral-400">
+                    reviewed: {e.reviewNote}
+                  </p>
+                )}
               </td>
             </tr>
           ))}
@@ -370,12 +438,18 @@ async function testsTab() {
 
 async function importsTab() {
   const db = getDb();
-  const [runs, terms, annotations] = await Promise.all([
+  const [runs, research, terms, annotations] = await Promise.all([
     db
       .select()
       .from(hkbImportRuns)
       .orderBy(desc(hkbImportRuns.ranAt))
       .limit(20),
+    db
+      .select()
+      .from(hkbImportRuns)
+      .where(eq(hkbImportRuns.script, "hkb-research"))
+      .orderBy(desc(hkbImportRuns.ranAt))
+      .limit(30),
     db
       .select({ ontology: hkbTerms.ontology, n: sql<number>`count(*)::int` })
       .from(hkbTerms)
@@ -404,6 +478,48 @@ async function importsTab() {
           the cache in <code>data/hkb/</code> after that. Every write is an
           upsert, so a second run changes nothing.
         </p>
+      </Card>
+
+      <Card title={`Research runs (${research.length})`}>
+        <table className="w-full font-body text-[12px]">
+          <thead className="font-mono text-[10px] uppercase tracking-[0.06em] text-neutral-400">
+            <tr className="border-b border-neutral-200">
+              <th className={TH}>ran at</th>
+              <th className={TH}>hits</th>
+              <th className={TH}>verified</th>
+              <th className={TH}>extracted</th>
+              <th className={TH}>proposed</th>
+              <th className={TH}>new</th>
+              <th className={TH}>tokens</th>
+              <th className={TH}>condition</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-neutral-100">
+            {research.length === 0 && (
+              <tr>
+                <td className={TD} colSpan={8}>
+                  no research run yet
+                </td>
+              </tr>
+            )}
+            {research.map((r) => (
+              <tr key={r.id}>
+                <td className={TD}>
+                  {r.ranAt?.toISOString().slice(0, 19).replace("T", " ")}
+                </td>
+                <td className={TD}>{r.rows?.hits ?? 0}</td>
+                <td className={TD}>{r.rows?.verified ?? 0}</td>
+                <td className={TD}>{r.rows?.extracted ?? 0}</td>
+                <td className={TD}>{r.rows?.proposed ?? 0}</td>
+                <td className={TD}>{r.rows?.written ?? 0}</td>
+                <td className={TD}>{r.rows?.tokens ?? 0}</td>
+                <td className="px-3 py-1.5 text-[11px] text-neutral-500">
+                  {r.notes ?? ""}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </Card>
 
       <Card title={`Import runs (${runs.length})`}>
@@ -455,13 +571,19 @@ async function importsTab() {
 export default async function HkbPage({
   searchParams,
 }: {
-  searchParams: Promise<{ tab?: string; status?: string; country?: string }>;
+  searchParams: Promise<{
+    tab?: string;
+    status?: string;
+    country?: string;
+    condition?: string;
+  }>;
 }) {
   if (!(await isAdmin())) notFound();
   const q = await searchParams;
   const tab = (TABS.includes(q.tab as Tab) ? q.tab : "conditions") as Tab;
   const status = q.status ?? "proposed";
   const country = q.country ?? "RO";
+  const condition = q.condition ?? "all";
 
   return (
     <div className="space-y-4">
@@ -493,7 +615,7 @@ export default async function HkbPage({
       </nav>
 
       {tab === "conditions" && (await conditionsTab())}
-      {tab === "evidence" && (await evidenceTab(status))}
+      {tab === "evidence" && (await evidenceTab(status, condition))}
       {tab === "priors" && (await priorsTab(country))}
       {tab === "tests" && (await testsTab())}
       {tab === "imports" && (await importsTab())}

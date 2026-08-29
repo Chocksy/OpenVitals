@@ -96,7 +96,7 @@ export function callGenome(variants: ParsedVariant[]): GenomeResult[] {
 export function genomeFacts(results: GenomeResult[]): Record<string, string> {
   const out: Record<string, string> = {};
   for (const { row, result } of results)
-    if (result) out[row.factKey] = result.call;
+    if (result) Object.assign(out, { [row.factKey]: result.call }, result.facts);
   return out;
 }
 

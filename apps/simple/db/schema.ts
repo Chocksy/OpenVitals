@@ -696,6 +696,19 @@ export const hkbEvidence = pgTable(
     confoundedBy: jsonb("confounded_by").$type<string[]>(),
     /** seed | proposed | accepted | rejected */
     status: text("status").default("accepted").notNull(),
+    /** Why the admin accepted or rejected it, in one line. */
+    reviewNote: text("review_note"),
+    reviewedAt: timestamp("reviewed_at", { withTimezone: true }),
+    /** The paper a research proposal came from, so /hkb can link to it. */
+    paper: jsonb("paper").$type<{
+      pmid: string | null;
+      doi: string | null;
+      title: string;
+      year: number | null;
+      journal: string | null;
+      url: string;
+      quote: string;
+    }>(),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
   },
   (t) => [

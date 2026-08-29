@@ -3,6 +3,7 @@
  * not carry read "not in this array"; nothing outside the catalog is ever
  * printed, so a raw file never leaks onto the page.
  */
+import { movesAnything } from "@/lib/genome-catalog";
 import type { GenomeResult } from "@/lib/genome";
 
 export function GenomeTable({ results }: { results: GenomeResult[] }) {
@@ -45,9 +46,20 @@ export function GenomeTable({ results }: { results: GenomeResult[] }) {
             <p className="mt-1 font-body text-[11px] text-neutral-500">
               Why this SNP is here: {row.why}
             </p>
-            <p className="mt-0.5 font-body text-[11px] text-neutral-500">
-              Effect: {row.effect}
-            </p>
+            {result && !movesAnything(row, result) ? (
+              <>
+                <p className="mt-0.5 font-body text-[11px] text-neutral-500">
+                  Effect: no effect for you
+                </p>
+                <p className="font-body text-[11px] text-neutral-400">
+                  {row.effect}
+                </p>
+              </>
+            ) : (
+              <p className="mt-0.5 font-body text-[11px] text-neutral-500">
+                Effect: {row.effect}
+              </p>
+            )}
             <p className="mt-0.5 font-mono text-[10px] text-neutral-400">
               {row.source}
             </p>

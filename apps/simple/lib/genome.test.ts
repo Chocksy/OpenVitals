@@ -1,7 +1,8 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { GENOME_CATALOG, normalizeGenotype } from "./genome-catalog";
+import { GENOME_CATALOG,
+  movesAnything, normalizeGenotype } from "./genome-catalog";
 import {
   callGenome,
   genomeFacts,
@@ -112,6 +113,33 @@ describe("the fixture calls", () => {
     expect(call(results, "hla_dq")!.result!.call).toBe("carries DQ2.5");
     expect(call(results, "tcf7l2")!.result!.call).toBe("CT");
     expect(call(results, "lct")!.result!.call).toBe("lactase non-persistent");
+  });
+
+  it("says 'no effect for you' only when no rule reads the call", () => {
+    const row = (id: string) => GENOME_CATALOG.find((r) => r.id === id)!;
+    // The fixture is e3/e4, which the ASCVD prior modifier reads.
+    expect(movesAnything(row("apoe"), call(results, "apoe")!.result!)).toBe(
+      true,
+    );
+    // e3/e3 is a real call that no modifier and no rule reads.
+    expect(
+      movesAnything(
+        row("apoe"),
+        row("apoe").call({ rs429358: "TT", rs7412: "CC" })!,
+      ),
+    ).toBe(false);
+    // One TCF7L2 T allele multiplies the type 2 diabetes prior.
+    expect(movesAnything(row("tcf7l2"), call(results, "tcf7l2")!.result!)).toBe(
+      true,
+    );
+    // Neither HLA tag still argues, through the coeliac rule's lrNeg.
+    expect(movesAnything(row("hla_dq"), call(results, "hla_dq")!.result!)).toBe(
+      true,
+    );
+  });
+
+  it("writes the DR3 fact from the merged HLA row", () => {
+    expect(genomeFacts(results)["genome:hla_dr"]).toBe("carries DR3");
   });
 
   it("writes one profile fact per row that called", () => {

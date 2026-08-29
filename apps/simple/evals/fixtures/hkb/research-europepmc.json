@@ -1,0 +1,109 @@
+{
+  "search": {
+    "hitCount": 3,
+    "resultList": {
+      "result": [
+        {
+          "pmid": "21123456",
+          "doi": "10.1001/jama.2013.0001",
+          "title": "Does this patient have hypothyroidism? A systematic review of the diagnostic accuracy of thyroid-stimulating hormone.",
+          "journalTitle": "JAMA",
+          "pubYear": "2013",
+          "authorString": "Zulewski H, Muller B, Exer P, Miserez AR, Staub JJ.",
+          "citedByCount": 412
+        },
+        {
+          "pmid": "22222222",
+          "doi": "10.1210/jc.2015.0002",
+          "title": "Anti-thyroid peroxidase antibodies for autoimmune thyroiditis: a meta-analysis of diagnostic accuracy.",
+          "journalTitle": "J Clin Endocrinol Metab",
+          "pubYear": "2015",
+          "authorString": "Pedersen IB, Knudsen N, Jorgensen T.",
+          "citedByCount": 188
+        },
+        {
+          "pmid": "33333333",
+          "doi": "10.9999/nowhere.2016.0003",
+          "title": "Cold intolerance as a presenting symptom in primary care: a prospective cohort.",
+          "journalTitle": "Br J Gen Pract",
+          "pubYear": "2016",
+          "authorString": "Okeke L, Warren S.",
+          "citedByCount": 9
+        }
+      ]
+    }
+  },
+  "core": {
+    "resultList": {
+      "result": [
+        {
+          "pmid": "21123456",
+          "doi": "10.1001/jama.2013.0001",
+          "title": "Does this patient have hypothyroidism? A systematic review of the diagnostic accuracy of thyroid-stimulating hormone.",
+          "journalTitle": "JAMA",
+          "pubYear": "2013",
+          "authorString": "Zulewski H, Muller B, Exer P, Miserez AR, Staub JJ.",
+          "citedByCount": 412,
+          "abstractText": "BACKGROUND: Hypothyroidism is common and its symptoms are non-specific. OBJECTIVE: To summarise the accuracy of thyroid-stimulating hormone (TSH) and of the classical clinical signs for overt primary hypothyroidism in adults. DATA SYNTHESIS: Across 14 studies of 9 412 unselected adults, a serum TSH above 4.5 mIU/L had a positive likelihood ratio of 3.8 (95% CI 2.1-6.9) and a negative likelihood ratio of 0.21 for overt hypothyroidism. The twelve-sign clinical score performed far worse. CONCLUSION: TSH remains the single most useful first test in primary care."
+        },
+        {
+          "pmid": "22222222",
+          "doi": "10.1210/jc.2015.0002",
+          "title": "Anti-thyroid peroxidase antibodies for autoimmune thyroiditis: a meta-analysis of diagnostic accuracy.",
+          "journalTitle": "J Clin Endocrinol Metab",
+          "pubYear": "2015",
+          "authorString": "Pedersen IB, Knudsen N, Jorgensen T.",
+          "citedByCount": 188,
+          "abstractText": "CONTEXT: Thyroid peroxidase antibodies (anti-TPO) are used to separate autoimmune from non-autoimmune thyroid failure. OBJECTIVE: To pool the diagnostic accuracy of a positive anti-TPO result against histology or long-term follow-up. RESULTS: Eleven studies with 4 015 participants were pooled. A positive anti-TPO test had a sensitivity of 0.90 and a specificity of 0.80 for autoimmune thyroiditis; heterogeneity was moderate. CONCLUSIONS: Anti-TPO is sensitive but not specific enough to stand alone in a low-prevalence population."
+        },
+        {
+          "pmid": "33333333",
+          "doi": "10.9999/nowhere.2016.0003",
+          "title": "Cold intolerance as a presenting symptom in primary care: a prospective cohort.",
+          "journalTitle": "Br J Gen Pract",
+          "pubYear": "2016",
+          "authorString": "Okeke L, Warren S.",
+          "citedByCount": 9,
+          "abstractText": "BACKGROUND: Cold intolerance is a classical symptom of thyroid failure but is rarely quantified. METHODS: We followed 640 adults presenting to 12 general practices and recorded cold intolerance, tiredness and weight change against thyroid function testing at six months. RESULTS: Cold intolerance carried a positive likelihood ratio of 2.1 for a subsequent diagnosis of hypothyroidism. CONCLUSION: The symptom is weakly informative on its own."
+        }
+      ]
+    }
+  },
+  "doi": {
+    "10.1001/jama.2013.0001": {
+      "resultList": {
+        "result": [
+          {
+            "pmid": "21123456",
+            "doi": "10.1001/jama.2013.0001",
+            "title": "Does this patient have hypothyroidism? A systematic review of the diagnostic accuracy of thyroid-stimulating hormone.",
+            "journalTitle": "JAMA",
+            "pubYear": "2013",
+            "authorString": "Zulewski H, Muller B, Exer P, Miserez AR, Staub JJ.",
+            "citedByCount": 412
+          }
+        ]
+      }
+    },
+    "10.1210/jc.2015.0002": {
+      "resultList": {
+        "result": [
+          {
+            "pmid": "22222222",
+            "doi": "10.1210/jc.2015.0002",
+            "title": "Anti-thyroid peroxidase antibodies for autoimmune thyroiditis: a meta-analysis of diagnostic accuracy.",
+            "journalTitle": "J Clin Endocrinol Metab",
+            "pubYear": "2015",
+            "authorString": "Pedersen IB, Knudsen N, Jorgensen T.",
+            "citedByCount": 188
+          }
+        ]
+      }
+    },
+    "10.9999/nowhere.2016.0003": {
+      "resultList": {
+        "result": []
+      }
+    }
+  }
+}
