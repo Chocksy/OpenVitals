@@ -210,16 +210,8 @@
         cursor: pointer;
         margin-left: 4px;
       }
-      .node text {
-        pointer-events: none;
-        fill: var(--fg);
-        font-size: 11px;
-      }
-      .node circle {
-        cursor: grab;
-        stroke: #0a0a0a;
-        stroke-width: 1.5;
-      }
+      .node text { pointer-events: none; fill: var(--fg); paint-order: stroke; stroke: #0a0a0a; stroke-width: 3px; }
+      .node circle { cursor: grab; }
       .node.dim circle {
         opacity: 0.25;
       }
@@ -259,17 +251,9 @@
     <div class="layout">
       <div id="stage">
         <div class="legend">
-          <span><i style="background: var(--fg)"></i>marker</span
-          ><span><i style="background: var(--cond)"></i>condition</span
-          ><span><i style="background: var(--life)"></i>lifestyle / event</span
-          ><span><i style="background: var(--gene)"></i>genome</span>
-          <span>· size = how much it matters for <b>this person</b></span
-          ><span
-            >· ring colour = state (green / amber / red / grey unknown)</span
-          ><span
-            >· line: solid established, dashed probable, dotted speculative;
-            faint = not for you</span
-          >
+          <span><i style="background:#dc2626"></i>off</span><span><i style="background:#d97706"></i>borderline</span><span><i style="background:#15803d"></i>optimal</span><span><i style="background:#262626;border:1px solid #555"></i>not measured</span><span><i style="background:#0369a1"></i>your genotype</span><span><i style="background:#9d174d"></i>life event</span>
+          <span>· outline: <span style="color:#f2f2f2">white marker</span>, <span style="color:var(--cond)">orange condition</span>, <span style="color:var(--life)">pink lifestyle</span>, <span style="color:var(--gene)">blue gene</span>; dotted outline = illustrative, not your data</span>
+          <span>· size = how much it matters for <b>this person</b></span><span>· line: solid established, dashed probable, dotted speculative; faint = not for you</span>
         </div>
         <svg id="svg"></svg>
         <div class="hint" id="hint"></div>
@@ -624,6 +608,12 @@
             grade: "A",
             mech: "Draws within 6 weeks of surgery carry an inflammation tag.",
           },
+          { s: "hashimoto", t: "insulin", rel: "raises", conf: "probable", grade: "B", mech: "Hypothyroidism lowers insulin sensitivity (Brenta 2011 review)." },
+          { s: "sleep", t: "crp", rel: "raises", conf: "probable", grade: "B", mech: "Short sleep raises CRP (Irwin 2016 meta-analysis).", whenState: { sleep: "low" } },
+          { s: "iron_def", t: "sleep", rel: "lowers", conf: "probable", grade: "B", mech: "Low ferritin drives restless legs and fragmented sleep (Allen 2018 IRLSSG).", whenState: { ferritin: "low" } },
+          { s: "omad", t: "insulin", rel: "lowers", conf: "probable", grade: "B", mech: "Time-restricted eating lowered fasting insulin in RCTs (Sutton 2018); this person's insulin fell 2019–2024.", basis: "opinion" },
+          { s: "dairy", t: "gi_cause", rel: "confounds", conf: "probable", grade: "B", mech: "Lactose bloating mimics the bowel symptoms that point at coeliac disease; with LCT non-persistent, bowel symptoms lose weight as coeliac evidence.", when: { gene: { lct: "non-persistent" } } },
+          { s: "ldl", t: "ir", rel: "confounds", conf: "probable", grade: "B", mech: "Insulin resistance shifts LDL to small dense particles; LDL alone under-reads the risk." },
         ],
         lens: {
           // importance weight per condition per lens
@@ -660,7 +650,7 @@
           next: ["Starter panel: CBC, ferritin, TSH, glucose, lipids (≈ €40)"],
         },
         partial: {
-          label: "One €40 panel",
+          label: "One €40 panel (illustrative)",
           sex: "female",
           age: 34,
           state: {
@@ -672,6 +662,7 @@
             insulin: "ok",
             periods: "high",
           },
+          illus: { ferritin: 1, hemoglobin: 1, tsh: 1, crp: 1, tg: 1, insulin: 1, periods: 1 },
           gene: {},
           p: {
             iron_def: 0.93,
@@ -695,21 +686,8 @@
           label: "Razvan (full)",
           sex: "male",
           age: 39,
-          state: {
-            ferritin: "ok",
-            hemoglobin: "ok",
-            tsh: "ok",
-            tpo: "ok",
-            crp: "ok",
-            b12: "amber",
-            ldl: "high",
-            insulin: "amber",
-            tg: "amber",
-            sleep: "low",
-            coffee: "yes",
-            omad: "event",
-            surgery: "event",
-          },
+          state: { ferritin: "ok", hemoglobin: "ok", tsh: "ok", tpo: "ok", crp: "ok", b12: "amber", ldl: "high", insulin: "amber", tg: "amber", omad: "event" },
+          illus: { omad: true, surgery: true },
           gene: {
             cyp1a2: "fast",
             hla_dq: "absent",
@@ -724,7 +702,7 @@
             osa: 0.3,
           },
           story:
-            "14 years of draws plus a genome. Insulin resistance is the biggest bubble (38 %, TCF7L2 CT adds prior, TG/HDL 2.1, but TG fell during the one-meal-a-day years). Coffee → sleep is drawn faint: fast metaboliser, the edge is off for him. HLA-DQ absent makes the coeliac branch of the gut cause grey and tiny.",
+            "Real: 14 years of draws, the genome (TCF7L2 CT, CYP1A2 fast, HLA-DQ absent, LCT non-persistent), the engine's 38 % insulin resistance and 30 % sleep apnoea, LDL 131 off, B12 472 borderline, TG/HDL 2.1. Not recorded yet, so grey: sleep hours, coffee timing, snoring, dairy. Dotted outline = illustrative: the one-meal-a-day dates and the appendix event; real dates come from the life-events timeline when you enter them. Coffee → sleep is faint: fast metaboliser, the edge is off for you.",
           questions: [
             "Home blood pressure, 7 mornings?",
             "Waist at the navel?",
@@ -739,18 +717,8 @@
           label: "Ramona (full)",
           sex: "female",
           age: 36,
-          state: {
-            ferritin: "low",
-            hemoglobin: "ok",
-            tsh: "ok",
-            tpo: "ok",
-            crp: "ok",
-            b12: "ok",
-            ldl: "amber",
-            insulin: "ok",
-            tg: "ok",
-            periods: "high",
-          },
+          state: { ferritin: "low", hemoglobin: "ok", tsh: "ok", tpo: "ok", crp: "ok", b12: "ok", ldl: "amber", insulin: "ok", tg: "ok" },
+          illus: {},
           gene: {},
           p: {
             iron_def: 0.93,
@@ -760,7 +728,7 @@
             osa: 0.05,
           },
           story:
-            "Ferritin 6–14 for eight years, haemoglobin fine, anti-Tg positive in 2024 with TPO negative. Iron deficiency red; the gut cause is 20 % and waits on a coeliac test; Hashimoto's 35 % on the anti-Tg alone. Once her genome is uploaded, an absent HLA-DQ would shrink the gut bubble further.",
+            "Real: ferritin 6–14 for eight years, haemoglobin in range, anti-Tg 65 IU/mL positive in 2024 with TPO negative, TSH steady near 2.0, the engine's 93 % iron deficiency and 20 % gut cause. The 35 % Hashimoto's is the engine with the 2024 anti-Tg in the picture. Not recorded yet, so grey: periods, cycle day, bowel symptoms, sleep. No genome uploaded yet: HLA-DQ is grey and the coeliac branch stays open.",
           questions: [
             "Cycle day at the last draw?",
             "Bloating or diarrhoea most weeks?",
@@ -815,24 +783,8 @@
           .reduce((m, c) => Math.max(m, per.p[c.id]), 0);
         return base + touch * 0.4;
       }
-      const ringColor = (s) =>
-        ({
-          high: "var(--bad)",
-          low: "var(--bad)",
-          amber: "var(--warn)",
-          ok: "var(--ok)",
-          yes: "var(--warn)",
-          event: "var(--life)",
-          gene: "var(--gene)",
-          unknown: "#3a3a3a",
-        })[s] ?? "#3a3a3a";
-      const fillColor = (k) =>
-        ({
-          marker: "#1f1f1f",
-          cond: "#2a1a0e",
-          life: "#2a1020",
-          gene: "#0e2230",
-        })[k];
+      const fillColor = (s) => ({ high: "#dc2626", low: "#dc2626", amber: "#d97706", ok: "#15803d", yes: "#d97706", event: "#9d174d", gene: "#0369a1", unknown: "#262626", faint: "#161616" })[s] ?? "#262626";
+      const kindStrokeColor = (k) => ({ marker: "#f2f2f2", cond: "#fb923c", life: "#f472b6", gene: "#38bdf8" })[k];
       const kindStroke = (k) =>
         ({
           marker: "var(--fg)",
@@ -851,14 +803,8 @@
       const root = svg.append("g");
       const gl = root.append("g"),
         gn = root.append("g");
-      svg.call(
-        d3
-          .zoom()
-          .scaleExtent([0.4, 3])
-          .on("zoom", (ev) => {
-            root.attr("transform", ev.transform);
-          }),
-      );
+      const zoomer = d3.zoom().scaleExtent([0.4, 3]).on("zoom", (ev) => { root.attr("transform", ev.transform); });
+      svg.call(zoomer);
       const whoBox = document.getElementById("who");
       Object.entries(P).forEach(([k, p]) => {
         const b = document.createElement("button");
@@ -893,7 +839,8 @@
         const nodes = K.nodes.map((n) => ({
           ...n,
           imp: importance(per, n, lens),
-          st: stateOf(per, n.id),
+          st: n.kind === "cond" ? (per.p[n.id] >= 0.6 ? "high" : per.p[n.id] >= 0.25 ? "amber" : per.p[n.id] >= 0.05 ? "unknown" : "faint") : stateOf(per, n.id),
+          illus: !!(per.illus && per.illus[n.id]),
         }));
         const links = K.edges.map((e) => ({
           ...e,
@@ -901,7 +848,7 @@
           source: e.s,
           target: e.t,
         }));
-        const r = (n) => 8 + n.imp * 34;
+        const r = (n) => 10 + n.imp * 44;
         if (sim) sim.stop();
         sim = d3
           .forceSimulation(nodes)
@@ -910,19 +857,17 @@
             d3
               .forceLink(links)
               .id((d) => d.id)
-              .distance(
-                (l) => 90 + (1 - Math.max(l.source.imp, l.target.imp)) * 60,
-              )
-              .strength((l) => (l.on === false ? 0.15 : 0.6)),
+              .distance((l) => 150 + (1 - Math.max(l.source.imp, l.target.imp)) * 90)
+              .strength((l) => (l.on === false ? 0.1 : 0.35)),
           )
           .force(
             "charge",
-            d3.forceManyBody().strength((d) => -120 - d.imp * 300),
+            d3.forceManyBody().strength((d) => -380 - d.imp * 700),
           )
           .force("center", d3.forceCenter(W / 2, H / 2))
           .force(
             "collide",
-            d3.forceCollide((d) => r(d) + 14),
+            d3.forceCollide((d) => r(d) + 30),
           );
         const dash = (c) =>
           c === "established" ? null : c === "probable" ? "6 4" : "2 4";
@@ -954,16 +899,8 @@
             g.append("text").attr("text-anchor", "middle");
             return g;
           });
-        N.select("circle")
-          .attr("r", r)
-          .attr("fill", (d) => fillColor(d.kind))
-          .attr("stroke", (d) => ringColor(d.st))
-          .attr("stroke-width", (d) => (d.st === "unknown" ? 1.5 : 3.5));
-        N.select("text")
-          .text((d) =>
-            d.name.length > 18 ? d.name.slice(0, 17) + "…" : d.name,
-          )
-          .attr("dy", (d) => r(d) + 13);
+        N.select("circle").attr("r", r).attr("fill", (d) => fillColor(d.st)).attr("fill-opacity", (d) => (d.st === "unknown" ? 0.7 : d.st === "faint" ? 0.5 : 0.92)).attr("stroke", (d) => kindStrokeColor(d.kind)).attr("stroke-width", (d) => (d.kind === "cond" ? 3 : 2)).attr("stroke-dasharray", (d) => (d.illus ? "3 3" : null));
+        N.select("text").text((d) => (d.name.length > 20 ? d.name.slice(0, 19) + "…" : d.name)).attr("dy", (d) => (d.imp > 0.55 ? 4 : r(d) + 15)).attr("font-size", (d) => (d.imp > 0.5 ? 13 : 11)).attr("font-weight", (d) => (d.imp > 0.5 ? 600 : 400));
         N.classed(
           "dim",
           (d) =>
@@ -995,6 +932,12 @@
               sim.alphaTarget(0);
             }),
         );
+        sim.stop(); for (let i = 0; i < 300; i++) sim.tick(); sim.alpha(0.03).restart();
+        { const xs = nodes.map((d) => d.x), ys = nodes.map((d) => d.y);
+          const x0 = Math.min(...xs) - 90, x1 = Math.max(...xs) + 90, y0 = Math.min(...ys) - 70, y1 = Math.max(...ys) + 70;
+          const k = Math.min(W / (x1 - x0), H / (y1 - y0), 1.4);
+          const t = d3.zoomIdentity.translate(W / 2 - k * (x0 + x1) / 2, H / 2 - k * (y0 + y1) / 2).scale(k);
+          svg.call(zoomer.transform, t); }
         sim.on("tick", () => {
           L.attr("d", (l) => {
             const dx = l.target.x - l.source.x,
