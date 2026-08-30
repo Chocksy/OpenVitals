@@ -47,12 +47,14 @@ describe("the helpers", () => {
     expect(disagree([])).toBe(false);
   });
 
-  it("needs a name and a unit before it will mint", () => {
+  it("needs a name before it will mint, and nothing else", () => {
     expect(mintable({ ...clean, featureName: "EmA IgA" })).toBe(true);
+    // a paper that never printed the unit still named the marker
     expect(
       mintable({ ...clean, featureName: "EmA IgA", featureUnit: " " }),
-    ).toBe(false);
+    ).toBe(true);
     expect(mintable({ ...clean, featureName: "" })).toBe(false);
+    expect(mintable({ ...clean, featureName: undefined })).toBe(false);
   });
 
   it("only calls a unit convertible when a factor exists", () => {

@@ -19,6 +19,7 @@ import {
   mintedId,
   proposalId,
   researchCondition,
+  semanticScholar,
   sourceLine,
   titleMatches,
   testCost,
@@ -269,6 +270,68 @@ describe("the arithmetic", () => {
   });
 });
 
+describe("semantic scholar", () => {
+  const answer = {
+    data: [
+      {
+        title: "A big review",
+        year: 2021,
+        venue: "J Clin Endocrinol Metab",
+        abstract: "…",
+        citationCount: 91,
+        externalIds: { DOI: "10.1/x", PubMed: "1" },
+      },
+    ],
+  };
+
+  it("sends the API key as x-api-key when there is one", async () => {
+    process.env.SEMANTIC_SCHOLAR_API_KEY = "s2-secret";
+    const calls: RequestInit[] = [];
+    vi.stubGlobal("fetch", async (_u: string, init: RequestInit) => {
+      calls.push(init);
+      return new Response(JSON.stringify(answer), { status: 200 });
+    });
+    const papers = await semanticScholar("hypothyroidism", 0);
+    delete process.env.SEMANTIC_SCHOLAR_API_KEY;
+    expect(
+      (calls[0]?.headers as Record<string, string>)["x-api-key"],
+    ).toBe("s2-secret");
+    expect(papers[0]?.journal).toBe("J Clin Endocrinol Metab");
+  });
+
+  it("waits out one keyless 429 instead of losing the venues", async () => {
+    delete process.env.SEMANTIC_SCHOLAR_API_KEY;
+    let n = 0;
+    vi.stubGlobal("fetch", async () => {
+      n++;
+      return n === 1
+        ? new Response("{}", { status: 429 })
+        : new Response(JSON.stringify(answer), { status: 200 });
+    });
+    const papers = await semanticScholar("hypothyroidism", 0);
+    expect(n).toBe(2);
+    expect(papers).toHaveLength(1);
+    expect(papers[0]?.citedBy).toBe(91);
+  });
+
+  it("gives up after the retry, and never retries with a key", async () => {
+    delete process.env.SEMANTIC_SCHOLAR_API_KEY;
+    let n = 0;
+    vi.stubGlobal("fetch", async () => {
+      n++;
+      return new Response("{}", { status: 429 });
+    });
+    expect(await semanticScholar("hypothyroidism", 0)).toEqual([]);
+    expect(n).toBe(2);
+
+    process.env.SEMANTIC_SCHOLAR_API_KEY = "s2-secret";
+    n = 0;
+    expect(await semanticScholar("hypothyroidism", 0)).toEqual([]);
+    delete process.env.SEMANTIC_SCHOLAR_API_KEY;
+    expect(n).toBe(1);
+  });
+});
+
 describe("the paper checks", () => {
   it("matches a title through its punctuation and full stop", () => {
     expect(
@@ -314,7 +377,7 @@ describe("proposals", () => {
     );
   });
 
-  it("drops a finding whose feature is not in the catalog", () => {
+  it("drops a finding the model gave no feature name at all", () => {
     const { rows, unmapped } = toProposals(
       CONDITION,
       FEATURES,
@@ -322,19 +385,46 @@ describe("proposals", () => {
       [
         {
           paperIndex: 1,
-          feature: "goitre",
+          feature: "",
           featureId: null,
           condition: "hypothyroidism",
           direction: "present",
           lrPos: 2,
           population: "adults",
           studyType: "cohort",
-          quote: "goitre was present",
+          quote: "a likelihood ratio of 2",
         },
       ],
     );
     expect(rows).toHaveLength(0);
     expect(unmapped).toBe(1);
+  });
+
+  it("mints a feature the paper never printed a unit for", () => {
+    const { rows, mints, unmapped } = toProposals(
+      CONDITION,
+      FEATURES,
+      [paper],
+      [
+        {
+          paperIndex: 1,
+          feature: "goitre on palpation",
+          featureId: null,
+          condition: "hypothyroidism",
+          direction: "present",
+          lrPos: 2,
+          population: "adults",
+          studyType: "meta",
+          quote: "a positive palpation gave a likelihood ratio of 2",
+        },
+      ],
+    );
+    expect(unmapped).toBe(0);
+    expect(mints).toHaveLength(1);
+    expect(mints[0]!.unit).toBeNull();
+    // no cut-off in the paper: "positive" is the lab's own reference range
+    expect(rows[0]!.conditionOn).toEqual({ status: "red" });
+    expect(rows[0]!.status).toBe("accepted");
   });
 
   const mintFinding: Finding = {
@@ -507,6 +597,7 @@ describe("one condition, end to end", () => {
     const { rows, counts } = await researchCondition(CONDITION, FEATURES, {
       maxPapers: 10,
       extract,
+      s2RetryMs: 0,
     });
 
     // Three hits per feature query, three papers, one DOI that resolves to
@@ -515,7 +606,11 @@ describe("one condition, end to end", () => {
     expect(counts.papers).toBe(3);
     expect(counts.verified).toBe(2);
     expect(counts.tokens).toBe(1234);
-    expect(counts.unmapped).toBe(1);
+    // the goitre finding mints its own feature now, and is then rejected for a
+    // quote that carries no number
+    expect(counts.unmapped).toBe(0);
+    expect(counts.rejected).toBe(1);
+    expect(counts.minted).toBe(0);
     expect(rows.map((r) => r.paper.pmid)).not.toContain("33333333");
 
     const tsh = rows.find((r) => r.featureId === "metric:tsh")!;
@@ -544,6 +639,7 @@ describe("one condition, end to end", () => {
     const { rows, counts } = await researchCondition(CONDITION, FEATURES, {
       extract: spy,
       spent: TOKEN_BUDGET,
+      s2RetryMs: 0,
     });
     expect(spy).not.toHaveBeenCalled();
     expect(rows).toHaveLength(0);

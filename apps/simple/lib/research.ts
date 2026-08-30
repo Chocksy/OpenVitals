@@ -35,6 +35,8 @@ import { normalizeName } from "./merge-metrics";
 const EPMC = "https://www.ebi.ac.uk/europepmc/webservices/rest/search";
 const S2 = "https://api.semanticscholar.org/graph/v1/paper/search";
 
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
 /** How far back a diagnostic-accuracy number is still worth reading. */
 const YEARS = 15;
 
@@ -267,44 +269,65 @@ export function dedupe(papers: Paper[]): Paper[] {
   return [...seen.values()];
 }
 
+/** How long the keyless API is given to calm down after a 429. */
+export const S2_RETRY_MS = 2_000;
+
 /**
- * Semantic Scholar, only for the citation counts Europe PMC does not carry.
- * The keyless API answers 429 most of the time, and that is fine: the run
- * loses a sort key, not a paper.
+ * Semantic Scholar, for the citation counts and venues Europe PMC does not
+ * carry.
+ *
+ * With `SEMANTIC_SCHOLAR_API_KEY` set the request is authenticated and goes
+ * through. Without one the API answers 429 most of the time, so the call is
+ * retried once after a couple of seconds rather than giving up: an empty
+ * answer would make `venueIndex` treat every venue as unknown-but-unpunished,
+ * which is a quieter grade than the papers deserve.
  */
-export async function semanticScholar(query: string): Promise<Paper[]> {
+export async function semanticScholar(
+  query: string,
+  retryMs = S2_RETRY_MS,
+): Promise<Paper[]> {
+  const key = process.env.SEMANTIC_SCHOLAR_API_KEY?.trim();
   const url = `${S2}?${new URLSearchParams({
     query,
     limit: "25",
     fields: "title,year,venue,abstract,citationCount,externalIds",
   })}`;
-  try {
-    const res = await fetch(url);
-    if (!res.ok) return [];
-    const data = (await res.json()) as {
-      data?: {
-        title?: string;
-        year?: number;
-        venue?: string;
-        abstract?: string;
-        citationCount?: number;
-        externalIds?: { DOI?: string; PubMed?: string };
-      }[];
-    };
-    return (data.data ?? []).map((p) => ({
-      pmid: p.externalIds?.PubMed ?? null,
-      doi: p.externalIds?.DOI ?? null,
-      title: cleanTitle(p.title ?? ""),
-      journal: p.venue ?? null,
-      year: p.year ?? null,
-      authors: "",
-      citedBy: p.citationCount ?? 0,
-      url: p.externalIds?.DOI ? `https://doi.org/${p.externalIds.DOI}` : "",
-      abstract: p.abstract ?? "",
-    }));
-  } catch {
-    return [];
+  const init = key ? { headers: { "x-api-key": key } } : {};
+
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      const res = await fetch(url, init);
+      if (res.status === 429 && !key && attempt === 0) {
+        await sleep(retryMs);
+        continue;
+      }
+      if (!res.ok) return [];
+      const data = (await res.json()) as {
+        data?: {
+          title?: string;
+          year?: number;
+          venue?: string;
+          abstract?: string;
+          citationCount?: number;
+          externalIds?: { DOI?: string; PubMed?: string };
+        }[];
+      };
+      return (data.data ?? []).map((p) => ({
+        pmid: p.externalIds?.PubMed ?? null,
+        doi: p.externalIds?.DOI ?? null,
+        title: cleanTitle(p.title ?? ""),
+        journal: p.venue ?? null,
+        year: p.year ?? null,
+        authors: "",
+        citedBy: p.citationCount ?? 0,
+        url: p.externalIds?.DOI ? `https://doi.org/${p.externalIds.DOI}` : "",
+        abstract: p.abstract ?? "",
+      }));
+    } catch {
+      return [];
+    }
   }
+  return [];
 }
 
 /** The abstracts Europe PMC's `lite` answer leaves out, 25 ids at a time. */
@@ -667,11 +690,15 @@ export const testCost = (name: string): number =>
  */
 export const mintedId = (name: string) => `metric:${normalizeName(name)}`;
 
+/** What a minted feature says instead of a unit it was never given. */
+export const UNIT_UNKNOWN = "unit unknown; set on first reading";
+
 /** A feature the extractor asked for that the catalog does not carry yet. */
 export interface Mint {
   id: string;
   name: string;
-  unit: string;
+  /** null when the paper never printed one; `how_to` says so. */
+  unit: string | null;
   doi: string | null;
   lrPos: number;
   lrNeg: number | null;
@@ -714,11 +741,10 @@ export function toProposals(
     // The catalog id the model picked, then the same analyte under another
     // name, then a new id minted from the paper.
     const named = f.feature?.trim() ? byName.get(normalizeName(f.feature)) : undefined;
-    const mintable = !!f.feature?.trim() && !!f.unit?.trim();
     const featureId =
       (f.featureId && known.has(f.featureId) ? f.featureId : null) ??
       named?.id ??
-      (mintable ? mintedId(f.feature) : null);
+      (f.feature?.trim() ? mintedId(f.feature) : null);
     if (!featureId) {
       unmapped++;
       continue;
@@ -760,7 +786,7 @@ export function toProposals(
       mints.set(featureId, {
         id: featureId,
         name: f.feature.trim(),
-        unit: f.unit!.trim(),
+        unit: f.unit?.trim() || null,
         doi: paper.doi,
         lrPos: lr.lrPos,
         lrNeg: lr.lrNeg,
@@ -807,11 +833,11 @@ export interface ResearchOptions {
   /** How many tokens the whole run has already spent. */
   spent?: number;
   modelId?: string;
+  /** How long to wait out a keyless Semantic Scholar 429. The test uses 0. */
+  s2RetryMs?: number;
   /** Printed before the LLM is called at all. */
   onEstimate?: (tokens: number, papers: number) => void;
 }
-
-const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 /**
  * Search, extract, derive, verify, and hand back rows nobody has accepted yet.
@@ -830,6 +856,7 @@ export async function researchCondition(
     found.push(...(await epmc(query, "lite")).map(toPaper));
   const s2 = await semanticScholar(
     `${condition.name} diagnostic accuracy likelihood ratio`,
+    options.s2RetryMs,
   );
   found.push(...s2);
   const venueKnown = venueIndex(s2);
@@ -1014,7 +1041,7 @@ export async function saveProposals(
         kind: "lab",
         name: m.name,
         unit: m.unit,
-        howTo: null,
+        howTo: m.unit ? null : UNIT_UNKNOWN,
         mintedFrom: m.doi,
       })
       .onConflictDoNothing();

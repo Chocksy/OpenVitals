@@ -49,9 +49,12 @@ export interface PolicyInput {
   peers?: number[];
 }
 
-/** A feature the extractor could not map is only usable if it can be minted. */
-export const mintable = (p: PolicyInput): boolean =>
-  !!p.featureName?.trim() && !!p.featureUnit?.trim();
+/**
+ * A feature the extractor could not map is only usable if it can be minted,
+ * and a name is all that takes. A paper that reports a marker without printing
+ * its unit still reports the marker; the unit lands with the first reading.
+ */
+export const mintable = (p: PolicyInput): boolean => !!p.featureName?.trim();
 
 /** `metric:hba1c` → `hba1c`, so the unit rules that need the analyte find it. */
 const codeOf = (featureId: string | null) =>
