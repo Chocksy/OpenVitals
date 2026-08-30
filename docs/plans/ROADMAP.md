@@ -57,10 +57,15 @@ run); Semantic Scholar keyless API returns 429 most of the time, so venue
 downgrades rarely fire (an API key would fix it); interventions land
 easily (26 rows in one run, A 12 / B 2 / C 5 / D 7).
 
+Follow-ups done (`fe675b3`): unit-less minting (10 features landed:
+EmA/DGP serology, VCTE, HRI, FAST, MAST, DXA model), Semantic Scholar key
+with 429 retry. Known gap: minted synonyms ("EmA IgA" vs "IgA endomysial
+antibodies") are separate features until the curator's LLM metric-identity
+step also runs over `hkb_features`.
+
 ## In progress
 
-Phase 15 follow-ups: mint unit-less features as "unit unknown" so the
-finding is kept; optional `SEMANTIC_SCHOLAR_API_KEY`.
+Nothing. Next up: phase 16.
 
 ## Next
 
