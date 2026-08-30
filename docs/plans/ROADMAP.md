@@ -49,14 +49,19 @@ app `apps/simple`. Detailed specs live next to this file as
 | 13    | Genome parser (12 genes), any-document extraction with review, life_events table                             | `1d807c8`                       |
 | 14    | Research intake (Europe PMC, DOI-verified), importer fix, rare-disease proposals rejected                    | `2e7954d`                       |
 
+| 15 | Autonomous knowledge (grades A–E, policy, pooling, minting, interventions and horizon, schedule, `/hkb` window, System nav) and fact history (changed vs corrected, `/history`, event confounders) | `ed91fac` |
+
+Findings from phase 15 worth remembering: diagnostic-accuracy searches
+now mostly return papers already ingested (dedupe works); the yield lever
+is minting features the model names without a unit (11 dropped in one
+run); Semantic Scholar keyless API returns 429 most of the time, so venue
+downgrades rarely fire (an API key would fix it); interventions land
+easily (26 rows in one run, A 12 / B 2 / C 5 / D 7).
+
 ## In progress
 
-**Phase 15: autonomous knowledge and fact history**
-(`2026-08-29-phase15-autonomous-knowledge-spec.md`). Auto-acceptance by
-grade, feature minting, LR pooling, retraction and quality filters,
-intervention and horizon searches, monthly schedule and trigger on
-"possible", `/hkb` as a view with override, admin nav, fact history with
-changed vs corrected, cycle day and life events as dated facts.
+Phase 15 follow-ups: mint unit-less features as "unit unknown" so the
+finding is kept; optional `SEMANTIC_SCHOLAR_API_KEY`.
 
 ## Next
 
