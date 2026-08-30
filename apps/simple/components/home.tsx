@@ -420,6 +420,13 @@ export function ConclusionCard({
             <AnswerQuestion
               factKey={c.question.featureId.replace(/^fact:/, "")}
               options={questionOptions ?? []}
+              current={
+                c.inputs.find(
+                  (i) =>
+                    i.kind === "fact" &&
+                    i.id === c.question!.featureId.replace(/^fact:/, ""),
+                )?.value
+              }
             />
           </div>
         </div>

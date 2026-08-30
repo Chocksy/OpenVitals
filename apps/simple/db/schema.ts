@@ -362,6 +362,41 @@ export const profileFacts = pgTable(
 );
 
 /**
+ * Every value a fact ever held, with the dates it held them between.
+ *
+ * `profile_facts` stays the current view; this is the timeline behind it.
+ * Two kinds of edit, and the difference is the whole point:
+ *  - `changed`: a new value from a date. The old row keeps its period
+ *    (`valid_to` = the day before) because it was true then.
+ *  - `corrected`: the old value never held. Its row is marked `corrected` and
+ *    the new one opens at the old row's `valid_from`.
+ */
+export const profileFactHistory = pgTable(
+  "profile_fact_history",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    key: text("key").notNull(),
+    value: jsonb("value").$type<unknown>().notNull(),
+    validFrom: date("valid_from").notNull(),
+    validTo: date("valid_to"),
+    /** initial | changed | corrected */
+    changeKind: text("change_kind").notNull(),
+    note: text("note"),
+    /** user | document | genome | system */
+    source: text("source").default("user").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+  },
+  (t) => [
+    index("profile_fact_history_user_key_idx").on(t.userId, t.key, t.validFrom),
+  ],
+);
+
+export type ProfileFactHistory = typeof profileFactHistory.$inferSelect;
+
+/**
  * One optimal band per (user, metric), decided by the app and always carrying
  * its provenance. It wins over `SEX_RANGES` and over the shared
  * `metrics.optimal*` columns, which stay as the catalog-wide fallback so two
@@ -449,6 +484,12 @@ export interface ReportAction {
     source?: string;
   }[];
   followUp: { afterDays: number; ask: string }[];
+  /**
+   * How settled the evidence behind it is, from `hkb_interventions`: A/B are
+   * "established", C is "early", D and E are "experimental" and only ever
+   * offered with a measurement plan.
+   */
+  tier?: "established" | "early" | "experimental";
   /** The back-and-forth about this one action: question, reply, when. */
   notes?: { q: string; a: string; at: string }[];
 }
@@ -619,6 +660,8 @@ export const hkbFeatures = pgTable("hkb_features", {
   name: text("name").notNull(),
   unit: text("unit"),
   howTo: text("how_to"),
+  /** The DOI of the paper that made the research run mint this feature. */
+  mintedFrom: text("minted_from"),
 });
 
 /** The base rate. One row per (condition, country, sex, age band). */
@@ -696,19 +739,17 @@ export const hkbEvidence = pgTable(
     confoundedBy: jsonb("confounded_by").$type<string[]>(),
     /** seed | proposed | accepted | rejected */
     status: text("status").default("accepted").notNull(),
+    /**
+     * The acceptance policy let it score but wants a human to look: a pair of
+     * verified rows that disagree by more than 3x, or an LR outside 0.01..100
+     * with no meta-analysis behind it. It is a chip on /hkb, never a gate.
+     */
+    needsLook: boolean("needs_look").default(false).notNull(),
     /** Why the admin accepted or rejected it, in one line. */
     reviewNote: text("review_note"),
     reviewedAt: timestamp("reviewed_at", { withTimezone: true }),
     /** The paper a research proposal came from, so /hkb can link to it. */
-    paper: jsonb("paper").$type<{
-      pmid: string | null;
-      doi: string | null;
-      title: string;
-      year: number | null;
-      journal: string | null;
-      url: string;
-      quote: string;
-    }>(),
+    paper: jsonb("paper").$type<HkbPaper>(),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
   },
   (t) => [
@@ -748,6 +789,52 @@ export const hkbConditionTests = pgTable(
   },
   (t) => [primaryKey({ columns: [t.conditionId, t.testId] })],
 );
+
+/** The paper a research proposal came from, kept next to the row it made. */
+export interface HkbPaper {
+  pmid: string | null;
+  doi: string | null;
+  title: string;
+  year: number | null;
+  journal: string | null;
+  url: string;
+  quote: string;
+}
+
+/**
+ * One thing a paper says helps a condition: a treatment, a supplement, a
+ * protocol. Grades A–E exactly like `hkb_evidence`; A/B are candidate actions,
+ * C is early, D and E are the horizon and only ever offered with a measurement
+ * plan. Nothing here multiplies a probability.
+ */
+export const hkbInterventions = pgTable(
+  "hkb_interventions",
+  {
+    id: text("id").primaryKey(),
+    conditionId: text("condition_id")
+      .notNull()
+      .references(() => hkbConditions.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    dose: text("dose"),
+    duration: text("duration"),
+    /** The marker the paper measured, when it maps to a catalog feature. */
+    outcomeFeatureId: text("outcome_feature_id"),
+    /** The effect size as the paper states it, e.g. "-0.4 mmol/L". */
+    effect: text("effect"),
+    /** up | down | none */
+    direction: text("direction").notNull(),
+    grade: text("grade").notNull(),
+    paper: jsonb("paper").$type<HkbPaper>(),
+    quote: text("quote"),
+    /** accepted | review | rejected */
+    status: text("status").default("accepted").notNull(),
+    population: text("population"),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+  },
+  (t) => [index("hkb_interventions_condition_idx").on(t.conditionId)],
+);
+
+export type HkbIntervention = typeof hkbInterventions.$inferSelect;
 
 /**
  * One ontology term, HPO or MONDO. Imported wholesale by

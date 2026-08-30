@@ -109,6 +109,27 @@ export function BasisChip({ basis }: { basis: string }) {
   );
 }
 
+/** How settled the evidence behind an action is: established, early, horizon. */
+const TIER_CLASS: Record<string, string> = {
+  established: "border-neutral-300 text-neutral-600",
+  early: "border-[var(--color-health-warning)] text-[var(--color-health-warning)]",
+  experimental: "border-dashed border-neutral-400 text-neutral-500",
+};
+
+export function TierChip({ tier }: { tier?: string }) {
+  if (!tier) return null;
+  return (
+    <span
+      className={cn(
+        "inline-flex items-center border px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-[0.04em]",
+        TIER_CLASS[tier] ?? TIER_CLASS.established,
+      )}
+    >
+      {tier}
+    </span>
+  );
+}
+
 export function MiniSparkline({
   data,
   color,

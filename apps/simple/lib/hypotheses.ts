@@ -14,7 +14,13 @@ import type { LatestValue, ModelInput } from "./coverage";
 import { parseBp, type Sex } from "./vectors";
 
 export type Lens = "lifespan" | "energy" | "mood" | "weight";
-export type Grade = "A" | "B" | "C" | "D"; // D = anecdotal only
+/**
+ * A meta-analysis or guideline, an RCT or large cohort, a small human study, a
+ * case report or n-of-1, an animal or in-vitro result. A and B score in full,
+ * C is shrunk toward 1, D and E never reach the engine (`loadCatalog` drops
+ * them) and live on as horizon ideas.
+ */
+export type Grade = "A" | "B" | "C" | "D" | "E";
 export type HState =
   | "ruled_out"
   | "unlikely"
@@ -54,6 +60,12 @@ export interface EvidenceRule {
   source: string;
   /** markers whose weight is discounted on a confounded draw (see confounders) */
   confoundedBy?: string[];
+  /**
+   * The papers pooled into `lr`, when this rule came out of `hkb_pool`. Its
+   * presence also says the grade shrink is already in the number, so the
+   * engine never applies it twice.
+   */
+  sources?: { id: string; grade: Grade; lrPos: number; source: string }[];
 }
 
 export interface Discriminator {
@@ -191,6 +203,24 @@ export const CONFOUNDERS: {
     markers: ["vitamin_d"],
     discount: 0.6,
     why: "Vitamin D swings with the season; a winter low is expected and says little on its own.",
+  },
+  {
+    tag: "pregnancy",
+    markers: [
+      "ferritin",
+      "hemoglobin",
+      "hematocrit",
+      "tsh",
+      "free_t4",
+      "creatinine",
+      "albumin",
+      "alp",
+      "total_cholesterol",
+      "triglycerides",
+      "glucose",
+    ],
+    discount: 0.4,
+    why: "Pregnancy moves half the panel by design: plasma volume, thyroid binding, lipids and alkaline phosphatase all shift without any disease.",
   },
   {
     tag: "dehydration",
@@ -1306,7 +1336,25 @@ export interface HypothesisResult {
 }
 
 /** How much a claim counts when it is only as good as its grade. */
-const GRADE_WEIGHT: Record<Grade, number> = { A: 1, B: 0.75, C: 0.5, D: 0.25 };
+const GRADE_WEIGHT: Record<Grade, number> = {
+  A: 1,
+  B: 0.75,
+  C: 0.5,
+  D: 0.25,
+  E: 0.1,
+};
+
+/**
+ * The exponent a grade puts on a likelihood ratio before it multiplies the
+ * odds. A and B count in full; C is `lr^0.5`, which pulls 20 down to 4.5 and
+ * 0.2 up to 0.45 — toward 1 from either side. D and E are not here because
+ * they never reach the engine at all.
+ */
+export const GRADE_SHRINK: Partial<Record<Grade, number>> = { C: 0.5 };
+
+/** The likelihood ratio the engine actually multiplies by. */
+export const effectiveLr = (lr: number, rule: EvidenceRule): number =>
+  rule.sources ? lr : lr ** (GRADE_SHRINK[rule.grade] ?? 1);
 
 const round2 = (v: number) => Math.round(v * 100) / 100;
 const round3 = (v: number) => Math.round(v * 1000) / 1000;
@@ -1633,6 +1681,9 @@ export function scoreHypotheses(
       rule: EvidenceRule;
       r: Resolved;
       hit: boolean;
+      /** the number the paper printed, for the card */
+      stated: number;
+      /** the same number after the grade shrink, for the arithmetic */
       raw: number;
       key: string;
     }[] = [];
@@ -1656,9 +1707,16 @@ export function scoreHypotheses(
         missing.push({ rule: rule.id, input: r.label });
         continue;
       }
-      const raw = hit ? rule.lr : rule.lrNeg;
-      if (raw == null) continue;
-      fired.push({ rule, r, hit, raw, key: inputKey(rule.input) });
+      const stated = hit ? rule.lr : rule.lrNeg;
+      if (stated == null) continue;
+      fired.push({
+        rule,
+        r,
+        hit,
+        stated,
+        raw: effectiveLr(stated, rule),
+        key: inputKey(rule.input),
+      });
     }
 
     // Pass two: one factor per input. Two rules over the same ferritin are two
@@ -1678,13 +1736,13 @@ export function scoreHypotheses(
           rule: loser.rule.id,
           input: loser.r.label,
           value: loser.r.text,
-          lr: loser.raw,
+          lr: loser.stated,
           grade: loser.rule.grade,
           by: winner.rule.id,
         });
       }
 
-      const { rule, r, hit, raw } = winner;
+      const { rule, r, hit, raw, stated } = winner;
       const conf = confounderFor(r.code, rule, tags);
       const lr = conf ? discountLr(raw, conf.discount) : raw;
       if (conf) confounded.push({ input: r.label, tag: conf.tag });
@@ -1694,9 +1752,11 @@ export function scoreHypotheses(
         rule: rule.id,
         input: r.label,
         value: r.text,
-        lr: raw,
+        lr: stated,
         grade: rule.grade,
-        ...(conf ? { discounted: round2(lr) } : {}),
+        // the grade shrink and the confounder discount both land here, so the
+        // card can print "3.8, counted as 1.9" without a second field
+        ...(round2(lr) !== round2(stated) ? { discounted: round2(lr) } : {}),
       };
       if (lr >= 1) {
         forList.push(entry);

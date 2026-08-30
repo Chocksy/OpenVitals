@@ -12,6 +12,7 @@ import { desc, eq } from "drizzle-orm";
 import { z } from "zod";
 import {
   getDb,
+  hkbInterventions,
   readings,
   reports,
   type Report,
@@ -109,6 +110,7 @@ const actionSchema = z.object({
     }),
   ),
   followUp: z.array(z.object({ afterDays: z.number(), ask: z.string() })),
+  tier: z.enum(["established", "early", "experimental"]).optional(),
   notes: z
     .array(z.object({ q: z.string(), a: z.string(), at: z.string() }))
     .optional(),
@@ -189,6 +191,14 @@ PATTERNS: when a pattern is matched, its management text is a list of mandatory 
 NOTHING WRONG: a person with every marker in optimal and no pattern gets at most 4 actions and no supplement; say so in the summary.
 
 TRACEABILITY: every opinion action's "reasoning" names at least one graph element by id (an edge id like "tsh->ldl_cholesterol" or "pattern:hashimoto") from the HOT GRAPH or ACTIVE EDGES sections, plus the values.
+
+WHAT MIGHT HELP: the section of that name lists what papers report for these
+conditions, each with a grade. A and B are candidate actions, tier
+"established". C is tier "early": say it is early in the "why". D and E are
+tier "experimental" and an experimental item is only offered with a measurement
+plan — name the marker and when to remeasure it in "targets" — or it is not
+offered at all. Set "tier" on any action that came out of that section, and on
+no other action.
 
 LIMITS: at most 10 actions, at most 3 summary lines, at most 3 questions. Sort nothing; give each action a weight from 1 to 5 for how much it matters to this person now. End with the questions whose answers would change the plan most.`;
 
@@ -405,7 +415,62 @@ export interface ContextExtras {
   catalog?: Catalog;
   /** The last five medical documents, for the DOCUMENTS section. */
   documents?: DocumentSummary[];
+  /** `hkb_interventions` for the conditions that scored, ranked by grade. */
+  interventions?: InterventionSummary[];
 }
+
+/** One row of `hkb_interventions`, cut to what the prompt reads. */
+export interface InterventionSummary {
+  conditionId: string;
+  name: string;
+  dose: string | null;
+  duration: string | null;
+  effect: string | null;
+  direction: string;
+  outcomeFeatureId: string | null;
+  grade: string;
+  paperTitle?: string | null;
+}
+
+/** A/B are established, C is early, D and E are the horizon. */
+export const tierOf = (grade: string): NonNullable<ReportAction["tier"]> =>
+  grade === "A" || grade === "B"
+    ? "established"
+    : grade === "C"
+      ? "early"
+      : "experimental";
+
+const GRADE_ORDER = ["A", "B", "C", "D", "E"];
+
+/** The best-graded interventions for the conditions that actually scored. */
+export function helpLines(
+  rows: InterventionSummary[],
+  hypotheses: HypothesisResult[],
+): string {
+  const loud = new Set(hypotheses.filter((h) => isConclusion(h)).map((h) => h.id));
+  const picked = rows
+    .filter((r) => loud.has(r.conditionId))
+    .sort(
+      (a, b) =>
+        GRADE_ORDER.indexOf(a.grade) - GRADE_ORDER.indexOf(b.grade) ||
+        a.name.localeCompare(b.name),
+    )
+    .slice(0, MAX_HELP);
+  if (!picked.length) return "- nothing read yet";
+  return picked
+    .map(
+      (r) =>
+        `- ${r.conditionId} | ${r.name}${r.dose ? ` ${r.dose}` : ""}` +
+        `${r.duration ? ` for ${r.duration}` : ""} | grade ${r.grade} (${tierOf(r.grade)})` +
+        ` | ${r.direction}${r.effect ? ` ${r.effect}` : ""}` +
+        `${r.outcomeFeatureId ? ` in ${short(r.outcomeFeatureId)}` : ""}` +
+        `${r.paperTitle ? ` | ${r.paperTitle}` : ""}`,
+    )
+    .join("\n");
+}
+
+/** How many rows of `hkb_interventions` the prompt can carry. */
+const MAX_HELP = 20;
 
 export interface ReportContext {
   input: ModelInput;
@@ -494,6 +559,9 @@ ${ruleLines(rules)}
 MATCHED PATTERNS:
 ${patternLines(patterns, input)}
 
+WHAT MIGHT HELP (from the papers, per condition; A/B established, C early, D/E experimental and only with a measurement plan):
+${helpLines(extras.interventions ?? [], hypotheses)}
+
 CONCLUSIONS (the home ledger, in rank order; write one verdict sentence per id):
 ${conclusionLines(hypotheses)}
 
@@ -535,6 +603,25 @@ PREVIOUS REPORT SUMMARY: ${previous ? (previous.body as ReportBody).summary.join
   };
 }
 
+/** Everything `hkb_interventions` carries that is still standing. */
+export async function interventionSummaries(): Promise<InterventionSummary[]> {
+  const rows = await getDb()
+    .select()
+    .from(hkbInterventions)
+    .where(eq(hkbInterventions.status, "accepted"));
+  return rows.map((r) => ({
+    conditionId: r.conditionId,
+    name: r.name,
+    dose: r.dose,
+    duration: r.duration,
+    effect: r.effect,
+    direction: r.direction,
+    outcomeFeatureId: r.outcomeFeatureId,
+    grade: r.grade,
+    paperTitle: r.paper?.title ?? null,
+  }));
+}
+
 /** The database half: load the person, then build the same context pack. */
 export async function buildReportContext(
   userId: string,
@@ -544,11 +631,13 @@ export async function buildReportContext(
     getTrackerSummary(userId, 30),
     latestReport(userId),
   ]);
+  const catalog = await loadCatalog();
   return buildContextFromInput(input, {
     tracker,
     previous,
-    catalog: await loadCatalog(),
+    catalog,
     documents: await documentSummaries(userId),
+    interventions: await interventionSummaries(),
   });
 }
 

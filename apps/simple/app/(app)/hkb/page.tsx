@@ -1,23 +1,27 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { and, asc, desc, eq, isNull, or, sql } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, isNull, or, sql } from "drizzle-orm";
 import { isAdmin } from "@/lib/auth";
 import {
   getDb,
   hkbAnnotations,
   hkbConditions,
   hkbEvidence,
+  hkbFeatures,
   hkbImportRuns,
+  hkbInterventions,
   hkbPriors,
   hkbTerms,
   hkbTests,
 } from "@/db";
+import { poolMembers, sizeOf } from "@/lib/hkb-pool";
+import { tierOf } from "@/lib/report";
+import type { Grade } from "@/lib/hypotheses";
 import { countryName } from "@/lib/countries";
 import { money } from "@/lib/prices";
 import {
   CatalogToggle,
-  EditLr,
-  EvidenceButtons,
+  Override,
   ResearchButton,
   RunImport,
 } from "@/components/hkb-controls";
@@ -25,7 +29,15 @@ import { Badge } from "@/components/ui-kit";
 
 export const dynamic = "force-dynamic";
 
-const TABS = ["conditions", "evidence", "priors", "tests", "imports"] as const;
+const TABS = [
+  "conditions",
+  "evidence",
+  "interventions",
+  "activity",
+  "priors",
+  "tests",
+  "imports",
+] as const;
 type Tab = (typeof TABS)[number];
 
 const TH = "px-3 py-1.5 text-left font-bold";
@@ -171,7 +183,7 @@ async function evidenceTab(status: string, condition: string) {
     condition === "all"
       ? byStatus
       : and(byStatus, eq(hkbEvidence.conditionId, condition));
-  const [rows, total, conditions] = await Promise.all([
+  const [rows, total, conditions, scoring] = await Promise.all([
     db
       .select()
       .from(hkbEvidence)
@@ -191,7 +203,35 @@ async function evidenceTab(status: string, condition: string) {
       .where(byStatus)
       .groupBy(hkbEvidence.conditionId)
       .orderBy(asc(hkbEvidence.conditionId)),
+    db
+      .select()
+      .from(hkbEvidence)
+      .where(inArray(hkbEvidence.status, ["seed", "accepted"])),
   ]);
+
+  // The number the engine actually multiplies by: every scoring row on the
+  // same (condition, feature, condition_on), pooled in log space.
+  const groups = new Map<string, typeof scoring>();
+  const keyOf = (e: { conditionId: string; featureId: string; conditionOn: unknown }) =>
+    `${e.conditionId}|${e.featureId}|${JSON.stringify(e.conditionOn)}`;
+  for (const e of scoring) {
+    if (e.grade === "D" || e.grade === "E") continue;
+    groups.set(keyOf(e), [...(groups.get(keyOf(e)) ?? []), e]);
+  }
+  const pooled = new Map<string, { lrPos: number; n: number }>();
+  for (const [key, members] of groups) {
+    const p = poolMembers(
+      members.map((e) => ({
+        id: e.id,
+        lrPos: e.lrPos,
+        lrNeg: e.lrNeg,
+        grade: e.grade as Grade,
+        source: e.source,
+        n: sizeOf(e.source),
+      })),
+    );
+    if (p) pooled.set(key, { lrPos: p.lrPos, n: members.length });
+  }
 
   const href = (s: string, c: string) =>
     `/hkb?tab=evidence&status=${s}&condition=${c}`;
@@ -234,7 +274,8 @@ async function evidenceTab(status: string, condition: string) {
           </Link>
         ))}
       </p>
-      <table className="w-full font-body text-[12px]">
+      <div className="overflow-x-auto">
+      <table className="w-full min-w-[1200px] font-body text-[12px]">
         <thead className="font-mono text-[10px] uppercase tracking-[0.06em] text-neutral-400">
           <tr className="border-b border-neutral-200">
             <th className={TH}>condition</th>
@@ -243,6 +284,8 @@ async function evidenceTab(status: string, condition: string) {
             <th className={TH}>when</th>
             <th className={TH}>LR+</th>
             <th className={TH}>LR−</th>
+            <th className={TH}>pooled</th>
+            <th className={TH}>papers</th>
             <th className={TH}>grade</th>
             <th className={TH}>status</th>
             <th className={TH}>source</th>
@@ -251,34 +294,46 @@ async function evidenceTab(status: string, condition: string) {
         <tbody className="divide-y divide-neutral-100">
           {rows.length === 0 && (
             <tr>
-              <td className={TD} colSpan={9}>
+              <td className={TD} colSpan={11}>
                 nothing with that status
               </td>
             </tr>
           )}
-          {rows.map((e) => (
+          {rows.map((e) => {
+            const p = pooled.get(keyOf(e));
+            return (
             <tr key={e.id}>
               <td className={TD}>{e.conditionId}</td>
-              <td className={`${TD} max-w-[190px] break-all`}>{e.id}</td>
+              <td className={`${TD} max-w-[150px] truncate`} title={e.id}>
+                {e.id}
+              </td>
               <td className={TD}>{e.featureId}</td>
               <td className={TD}>{JSON.stringify(e.conditionOn)}</td>
               <td className={TD}>{e.lrPos}</td>
               <td className={TD}>{e.lrNeg ?? "—"}</td>
+              <td className={TD} title="what the engine multiplies by">
+                {p ? p.lrPos : "—"}
+              </td>
+              <td className={TD}>{p ? p.n : 0}</td>
               <td className={TD}>{e.grade}</td>
               <td className={TD}>
                 <span className="flex flex-col items-start gap-1">
                   <Badge variant={STATUS_BADGE[e.status] ?? "secondary"}>
                     {e.status}
                   </Badge>
-                  {e.status === "proposed" && (
-                    <>
-                      <EvidenceButtons id={e.id} />
-                      <EditLr id={e.id} lrPos={e.lrPos} lrNeg={e.lrNeg} />
-                    </>
+                  {e.needsLook && (
+                    <Badge variant="warning">needs look</Badge>
                   )}
+                  <Override
+                    id={e.id}
+                    lrPos={e.lrPos}
+                    lrNeg={e.lrNeg}
+                    grade={e.grade}
+                    status={e.status}
+                  />
                 </span>
               </td>
-              <td className="max-w-[520px] px-3 py-1.5 text-[11px] text-neutral-500">
+              <td className="max-w-[420px] px-3 py-1.5 text-[11px] text-neutral-500">
                 {e.paper && (
                   <>
                     <a
@@ -305,6 +360,256 @@ async function evidenceTab(status: string, condition: string) {
                     reviewed: {e.reviewNote}
                   </p>
                 )}
+              </td>
+            </tr>
+            );
+          })}
+        </tbody>
+      </table>
+      </div>
+    </Card>
+  );
+}
+
+const TIER_BADGE: Record<string, "normal" | "info" | "secondary"> = {
+  established: "normal",
+  early: "info",
+  experimental: "secondary",
+};
+
+/** What the papers say might help, per condition, grade first. */
+async function interventionsTab(condition: string) {
+  const db = getDb();
+  const [rows, byCondition] = await Promise.all([
+    db
+      .select()
+      .from(hkbInterventions)
+      .where(
+        condition === "all"
+          ? undefined
+          : eq(hkbInterventions.conditionId, condition),
+      )
+      .orderBy(
+        asc(hkbInterventions.conditionId),
+        asc(hkbInterventions.grade),
+        asc(hkbInterventions.name),
+      )
+      .limit(LIMIT),
+    db
+      .select({
+        conditionId: hkbInterventions.conditionId,
+        n: sql<number>`count(*)::int`,
+      })
+      .from(hkbInterventions)
+      .groupBy(hkbInterventions.conditionId)
+      .orderBy(asc(hkbInterventions.conditionId)),
+  ]);
+
+  return (
+    <Card
+      title={`Interventions (${rows.length}${rows.length === LIMIT ? "+" : ""})`}
+      action={
+        <span className="font-mono text-[10px] text-neutral-400">
+          A and B are candidate actions, C is early, D and E are the horizon and
+          only ever offered with a measurement plan
+        </span>
+      }
+    >
+      <p className="mb-3 flex flex-wrap gap-x-2 gap-y-1 font-mono text-[10px]">
+        {[{ conditionId: "all", n: rows.length }, ...byCondition].map((c) => (
+          <Link
+            key={c.conditionId}
+            href={`/hkb?tab=interventions&condition=${c.conditionId}`}
+            className={
+              c.conditionId === condition
+                ? "font-bold underline"
+                : "text-neutral-500 underline decoration-dotted"
+            }
+          >
+            {c.conditionId} {c.n}
+          </Link>
+        ))}
+      </p>
+      <table className="w-full font-body text-[12px]">
+        <thead className="font-mono text-[10px] uppercase tracking-[0.06em] text-neutral-400">
+          <tr className="border-b border-neutral-200">
+            <th className={TH}>condition</th>
+            <th className={TH}>tier</th>
+            <th className={TH}>what</th>
+            <th className={TH}>dose</th>
+            <th className={TH}>for</th>
+            <th className={TH}>effect</th>
+            <th className={TH}>grade</th>
+            <th className={TH}>paper</th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-neutral-100">
+          {rows.length === 0 && (
+            <tr>
+              <td className={TD} colSpan={8}>
+                nothing read yet — run the research job on a condition
+              </td>
+            </tr>
+          )}
+          {rows.map((r) => (
+            <tr key={r.id}>
+              <td className={TD}>{r.conditionId}</td>
+              <td className={TD}>
+                <Badge variant={TIER_BADGE[tierOf(r.grade)] ?? "secondary"}>
+                  {tierOf(r.grade)}
+                </Badge>
+              </td>
+              <td className={TDT}>{r.name}</td>
+              <td className={TD}>{r.dose ?? "—"}</td>
+              <td className={TD}>{r.duration ?? "—"}</td>
+              <td className={TD}>
+                {r.direction}
+                {r.effect ? ` ${r.effect}` : ""}
+                {r.outcomeFeatureId ? ` in ${r.outcomeFeatureId}` : ""}
+              </td>
+              <td className={TD}>{r.grade}</td>
+              <td className="max-w-[460px] px-3 py-1.5 text-[11px] text-neutral-500">
+                {r.paper && (
+                  <a
+                    href={r.paper.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="font-medium text-neutral-800 underline"
+                  >
+                    {r.paper.title}
+                  </a>
+                )}
+                {r.quote && (
+                  <p className="my-1 border-l-2 border-neutral-200 pl-2 italic text-neutral-600">
+                    “{r.quote}”
+                  </p>
+                )}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </Card>
+  );
+}
+
+/** The last 100 things the knowledge base did, newest first. */
+async function activityTab() {
+  const db = getDb();
+  const FEED = 100;
+  const [evidence, minted, interventions, runs] = await Promise.all([
+    db
+      .select()
+      .from(hkbEvidence)
+      .orderBy(desc(hkbEvidence.createdAt))
+      .limit(FEED),
+    db
+      .select({
+        id: hkbFeatures.id,
+        name: hkbFeatures.name,
+        unit: hkbFeatures.unit,
+        mintedFrom: hkbFeatures.mintedFrom,
+        // hkb_features carries no timestamp of its own; a feature is minted in
+        // the same write as the rule that needed it, so that rule dates it.
+        at: sql<Date | null>`(
+          select min(e.created_at) from hkb_evidence e
+          where e.feature_id = ${hkbFeatures.id}
+        )`,
+      })
+      .from(hkbFeatures)
+      .where(sql`${hkbFeatures.mintedFrom} is not null`)
+      .limit(FEED),
+    db
+      .select()
+      .from(hkbInterventions)
+      .orderBy(desc(hkbInterventions.createdAt))
+      .limit(FEED),
+    db
+      .select()
+      .from(hkbImportRuns)
+      .orderBy(desc(hkbImportRuns.ranAt))
+      .limit(FEED),
+  ]);
+
+  // How many scoring rows share each key, so the feed can say a row was pooled
+  // into an existing claim rather than opening a new one.
+  const shared = new Map<string, number>();
+  for (const e of evidence) {
+    const key = `${e.conditionId}|${e.featureId}|${JSON.stringify(e.conditionOn)}`;
+    shared.set(key, (shared.get(key) ?? 0) + 1);
+  }
+
+  const feed: { at: Date | null; kind: string; text: string }[] = [
+    ...evidence.map((e) => ({
+      at: e.createdAt,
+      kind: e.status === "rejected" ? "rejected" : "evidence",
+      text:
+        `${e.conditionId} · ${e.featureId} ${JSON.stringify(e.conditionOn)} ` +
+        `LR+ ${e.lrPos} grade ${e.grade}` +
+        (e.needsLook ? " · needs look" : "") +
+        (shared.get(
+          `${e.conditionId}|${e.featureId}|${JSON.stringify(e.conditionOn)}`,
+        )! > 1
+          ? " · pooled with another paper on the same claim"
+          : "") +
+        (e.paper ? ` — ${e.paper.title}` : ""),
+    })),
+    ...minted.map((f) => ({
+      at: f.at ? new Date(f.at) : null,
+      kind: "minted",
+      text: `${f.id} (${f.name}${f.unit ? `, ${f.unit}` : ""}) minted from doi:${f.mintedFrom}`,
+    })),
+    ...interventions.map((r) => ({
+      at: r.createdAt,
+      kind: "intervention",
+      text: `${r.conditionId} · ${r.name}${r.dose ? ` ${r.dose}` : ""} · grade ${r.grade} (${tierOf(r.grade)})`,
+    })),
+    ...runs.map((r) => ({
+      at: r.ranAt,
+      kind: "run",
+      text: `${r.script}: ${r.notes ?? Object.entries(r.rows ?? {}).map(([k, v]) => `${k}=${v}`).join(" ")}`,
+    })),
+  ]
+    .sort((a, b) => (b.at?.getTime() ?? 0) - (a.at?.getTime() ?? 0))
+    .slice(0, FEED);
+
+  return (
+    <Card
+      title={`Activity (last ${feed.length})`}
+      action={
+        <span className="font-mono text-[10px] text-neutral-400">
+          what the knowledge base did on its own
+        </span>
+      }
+    >
+      <table className="w-full font-body text-[12px]">
+        <thead className="font-mono text-[10px] uppercase tracking-[0.06em] text-neutral-400">
+          <tr className="border-b border-neutral-200">
+            <th className={TH}>when</th>
+            <th className={TH}>what</th>
+            <th className={TH}>detail</th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-neutral-100">
+          {feed.length === 0 && (
+            <tr>
+              <td className={TD} colSpan={3}>
+                nothing has happened yet
+              </td>
+            </tr>
+          )}
+          {feed.map((row, i) => (
+            <tr key={`${row.kind}-${i}`}>
+              <td className={TD}>
+                {row.at?.toISOString().slice(0, 19).replace("T", " ") ?? "—"}
+              </td>
+              <td className={TD}>
+                <Badge variant={STATUS_BADGE[row.kind] ?? "secondary"}>
+                  {row.kind}
+                </Badge>
+              </td>
+              <td className="px-3 py-1.5 text-[11px] text-neutral-500">
+                {row.text}
               </td>
             </tr>
           ))}
@@ -581,7 +886,7 @@ export default async function HkbPage({
   if (!(await isAdmin())) notFound();
   const q = await searchParams;
   const tab = (TABS.includes(q.tab as Tab) ? q.tab : "conditions") as Tab;
-  const status = q.status ?? "proposed";
+  const status = q.status ?? "all";
   const country = q.country ?? "RO";
   const condition = q.condition ?? "all";
 
@@ -593,8 +898,9 @@ export default async function HkbPage({
         </h1>
         <p className="mt-1 max-w-3xl font-body text-[13px] text-neutral-500">
           Every condition the engine scores, every likelihood ratio it
-          multiplies, and where each number came from. Rows an importer proposed
-          do not score until somebody accepts them here.
+          multiplies, and where each number came from. The acceptance policy
+          decides in code: rows land already scoring, the ones worth a second
+          look carry a chip, and Override is how you disagree with it.
         </p>
       </div>
 
@@ -616,6 +922,8 @@ export default async function HkbPage({
 
       {tab === "conditions" && (await conditionsTab())}
       {tab === "evidence" && (await evidenceTab(status, condition))}
+      {tab === "interventions" && (await interventionsTab(condition))}
+      {tab === "activity" && (await activityTab())}
       {tab === "priors" && (await priorsTab(country))}
       {tab === "tests" && (await testsTab())}
       {tab === "imports" && (await importsTab())}

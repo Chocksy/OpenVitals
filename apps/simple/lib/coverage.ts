@@ -9,9 +9,16 @@
  * Everything except `buildModelInput` and `queueProfileQuestions` is pure, so
  * the whole model is testable without a database.
  */
-import { and, eq } from "drizzle-orm";
-import { getDb, profileFacts, reviewItems, type ReviewSubject } from "@/db";
+import { and, desc, eq } from "drizzle-orm";
+import {
+  getDb,
+  profileFacts,
+  readings,
+  reviewItems,
+  type ReviewSubject,
+} from "@/db";
 import { toCountryCode } from "./countries";
+import { CYCLE_FACT, profileAt, writeFact } from "./facts";
 import { localDay } from "./daily";
 import { getMetricRows } from "./data";
 import { deriveAll } from "./derived";
@@ -108,16 +115,31 @@ export function optimalFor(
   return bySex ?? fallback;
 }
 
-/** `getMetricRows` plus `profile_facts`, folded into one plain object. */
-export async function buildModelInput(userId: string): Promise<ModelInput> {
-  const today = localDay();
+/**
+ * `getMetricRows` plus `profile_facts`, folded into one plain object.
+ *
+ * `asOf` runs the whole thing as it stood on a day: the facts come out of
+ * `profile_fact_history` at that date instead of out of the current view, so
+ * the ledger can say why a conclusion looked different then.
+ */
+export async function buildModelInput(
+  userId: string,
+  asOf?: string,
+): Promise<ModelInput> {
+  const today = asOf ?? localDay();
   const [rows, facts] = await Promise.all([
     getMetricRows(userId),
-    getDb().select().from(profileFacts).where(eq(profileFacts.userId, userId)),
+    asOf
+      ? profileAt(userId, asOf)
+      : getDb()
+          .select()
+          .from(profileFacts)
+          .where(eq(profileFacts.userId, userId)),
   ]);
 
-  const profile: Record<string, unknown> = {};
-  for (const f of facts) profile[f.key] = f.value;
+  const profile: Record<string, unknown> = Array.isArray(facts)
+    ? Object.fromEntries(facts.map((f) => [f.key, f.value]))
+    : facts;
 
   const sex = toSex(profile.sex);
   const age = toAge(profile.birth_year, today);
@@ -361,6 +383,7 @@ export async function saveFact(
   userId: string,
   key: string,
   raw: string,
+  edit: { kind?: "changed" | "corrected"; date?: string; note?: string } = {},
 ): Promise<void> {
   const trimmed = raw.trim();
   const value: unknown = LIST_FACTS.has(key)
@@ -371,11 +394,23 @@ export async function saveFact(
         ? (toCountryCode(trimmed) ?? trimmed)
         : trimmed;
 
-  await getDb()
-    .insert(profileFacts)
-    .values({ userId, key, value })
-    .onConflictDoUpdate({
-      target: [profileFacts.userId, profileFacts.key],
-      set: { value, source: "user", answeredAt: new Date() },
-    });
+  // The cycle answer is about one blood draw, so its period starts on the day
+  // of that draw and not on the day it was typed in.
+  const date =
+    edit.date ??
+    (key === CYCLE_FACT ? await lastDrawDate(userId) : undefined) ??
+    undefined;
+
+  await writeFact(userId, key, value, { ...edit, date, source: "user" });
+}
+
+/** The newest observation this person has, whatever the marker. */
+async function lastDrawDate(userId: string): Promise<string | undefined> {
+  const [row] = await getDb()
+    .select({ observedAt: readings.observedAt })
+    .from(readings)
+    .where(eq(readings.userId, userId))
+    .orderBy(desc(readings.observedAt))
+    .limit(1);
+  return row?.observedAt;
 }

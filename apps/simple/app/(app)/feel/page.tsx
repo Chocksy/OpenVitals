@@ -1,7 +1,9 @@
 import { eq } from "drizzle-orm";
-import { getDb, profileFacts } from "@/db";
+import { getDb, profileFactHistory, profileFacts } from "@/db";
 import { requireUserId } from "@/lib/auth";
 import { buildModelInput } from "@/lib/coverage";
+import { localDay } from "@/lib/daily";
+import { historyLine } from "@/lib/facts";
 import { SYMPTOM_ITEMS } from "@/lib/symptoms";
 import { Feel } from "@/components/feel";
 
@@ -14,9 +16,14 @@ export const dynamic = "force-dynamic";
  */
 export default async function FeelPage() {
   const userId = await requireUserId();
-  const [m, facts] = await Promise.all([
+  const db = getDb();
+  const [m, facts, history] = await Promise.all([
     buildModelInput(userId),
-    getDb().select().from(profileFacts).where(eq(profileFacts.userId, userId)),
+    db.select().from(profileFacts).where(eq(profileFacts.userId, userId)),
+    db
+      .select()
+      .from(profileFactHistory)
+      .where(eq(profileFactHistory.userId, userId)),
   ]);
 
   const items = SYMPTOM_ITEMS.map((group) => ({
@@ -38,6 +45,13 @@ export default async function FeelPage() {
       .map((f) => [f.key, String(f.value ?? "")]),
   );
 
+  // "since 2026-03: no; before: yes" under any answer that ever moved.
+  const lines: Record<string, string> = {};
+  for (const key of keys) {
+    const line = historyLine(history.filter((h) => h.key === key));
+    if (line) lines[key] = line;
+  }
+
   return (
     <div className="space-y-5">
       <div>
@@ -50,7 +64,12 @@ export default async function FeelPage() {
           costs nothing. Answers save as you tap them.
         </p>
       </div>
-      <Feel items={items} answers={answers} />
+      <Feel
+        items={items}
+        answers={answers}
+        history={lines}
+        today={localDay()}
+      />
     </div>
   );
 }

@@ -18,7 +18,8 @@
     "hkb:import": "tsx scripts/hkb-import-ontology.ts",
     "hkb:research": "tsx --env-file=.env scripts/hkb-research.ts",
     "hkb:import:priors": "tsx scripts/hkb-import-priors.ts",
-    "hkb:import:prices": "tsx scripts/hkb-import-prices.ts"
+    "hkb:import:prices": "tsx scripts/hkb-import-prices.ts",
+    "hkb:policy": "tsx --env-file=.env scripts/hkb-policy.ts"
   },
   "dependencies": {
     "@ai-sdk/react": "^3.0.269",

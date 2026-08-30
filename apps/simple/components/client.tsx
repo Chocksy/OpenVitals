@@ -8,6 +8,7 @@ import { signIn, signUp } from "@/lib/auth-client";
 import { statusColor, type Status } from "@/lib/status";
 import { cn, fmtCategory } from "@/lib/utils";
 import { Button, MiniSparkline } from "./ui-kit";
+import { FactEditButtons, type FactEdit } from "./fact-edit";
 
 const INPUT =
   "w-full border border-neutral-200 bg-neutral-0 px-3 py-2 text-sm rounded-sm";
@@ -451,53 +452,74 @@ export function RunCurator() {
 
 /* ── the three writers Home needs ─────────────────────────────────────── */
 
-/** The inline question on a ledger card. Options when we have them, else a box. */
+/**
+ * The inline question on a ledger card. Options when we have them, else a box.
+ * Once it carries an answer it also carries the two edits: This changed and
+ * I was wrong.
+ */
 export function AnswerQuestion({
   factKey,
   options,
+  current,
+  today,
 }: {
   factKey: string;
   options: string[];
+  /** The answer already on file, when there is one. */
+  current?: string;
+  today?: string;
 }) {
   const { run, busy, error } = useAction();
   const [text, setText] = useState("");
+  const [edit, setEdit] = useState<FactEdit | null>(null);
+  const save = (value: string) =>
+    run("/api/facts", { key: factKey, value, ...(edit ?? {}) });
 
   return (
-    <div className="flex flex-wrap items-center gap-2">
-      {options.length > 0 ? (
-        options.map((o) => (
-          <Button
-            key={o}
-            size="sm"
-            variant="outline-subtle"
-            disabled={busy}
-            onClick={() => run("/api/facts", { key: factKey, value: o })}
-          >
-            {o}
-          </Button>
-        ))
-      ) : (
-        <>
-          <input
-            value={text}
-            onChange={(e) => setText(e.target.value)}
-            placeholder="Your answer"
-            className={`${INPUT} max-w-[200px]`}
-          />
-          <Button
-            size="sm"
-            variant="outline-subtle"
-            disabled={busy || !text.trim()}
-            onClick={() => run("/api/facts", { key: factKey, value: text })}
-          >
-            Save
-          </Button>
-        </>
-      )}
-      {error && (
-        <span className="text-[12px] text-[var(--color-health-critical)]">
-          {error}
-        </span>
+    <div className="flex flex-col gap-2">
+      <div className="flex flex-wrap items-center gap-2">
+        {options.length > 0 ? (
+          options.map((o) => (
+            <Button
+              key={o}
+              size="sm"
+              variant="outline-subtle"
+              disabled={busy}
+              onClick={() => save(o)}
+            >
+              {o}
+            </Button>
+          ))
+        ) : (
+          <>
+            <input
+              value={text}
+              onChange={(e) => setText(e.target.value)}
+              placeholder="Your answer"
+              className={`${INPUT} max-w-[200px]`}
+            />
+            <Button
+              size="sm"
+              variant="outline-subtle"
+              disabled={busy || !text.trim()}
+              onClick={() => save(text)}
+            >
+              Save
+            </Button>
+          </>
+        )}
+        {error && (
+          <span className="text-[12px] text-[var(--color-health-critical)]">
+            {error}
+          </span>
+        )}
+      </div>
+      {current && (
+        <FactEditButtons
+          edit={edit}
+          onChange={setEdit}
+          today={today ?? new Date().toISOString().slice(0, 10)}
+        />
       )}
     </div>
   );
@@ -524,38 +546,53 @@ export function WrongValue({ readingId }: { readingId: string }) {
   );
 }
 
-/** One profile fact a card read, editable in place. */
+/**
+ * One profile fact a card read, editable in place. Saving says which kind of
+ * edit it is: a new value from a date, or a correction of one that never held.
+ */
 export function EditFact({
   factKey,
   label,
   value,
+  today,
 }: {
   factKey: string;
   label: string;
   value: string;
+  today?: string;
 }) {
   const { run, busy, error } = useAction();
   const [text, setText] = useState(value);
+  const [edit, setEdit] = useState<FactEdit | null>(null);
   return (
-    <div className="flex flex-wrap items-center gap-2">
-      <span className="font-body text-[12px] text-neutral-700">{label}</span>
-      <input
-        value={text}
-        onChange={(e) => setText(e.target.value)}
-        className="w-44 border border-neutral-200 bg-neutral-0 px-2 py-1 font-mono text-[11px]"
+    <div className="flex flex-col gap-1">
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="font-body text-[12px] text-neutral-700">{label}</span>
+        <input
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          className="w-44 border border-neutral-200 bg-neutral-0 px-2 py-1 font-mono text-[11px]"
+        />
+        <button
+          className={`${rowAction} text-neutral-500 hover:text-neutral-900`}
+          disabled={busy || !text.trim() || text === value}
+          onClick={() =>
+            run("/api/facts", { key: factKey, value: text, ...(edit ?? {}) })
+          }
+        >
+          Save
+        </button>
+        {error && (
+          <span className="font-mono text-[10px] text-[var(--color-health-critical)]">
+            {error}
+          </span>
+        )}
+      </div>
+      <FactEditButtons
+        edit={edit}
+        onChange={setEdit}
+        today={today ?? new Date().toISOString().slice(0, 10)}
       />
-      <button
-        className={`${rowAction} text-neutral-500 hover:text-neutral-900`}
-        disabled={busy || !text.trim() || text === value}
-        onClick={() => run("/api/facts", { key: factKey, value: text })}
-      >
-        Save
-      </button>
-      {error && (
-        <span className="font-mono text-[10px] text-[var(--color-health-critical)]">
-          {error}
-        </span>
-      )}
     </div>
   );
 }

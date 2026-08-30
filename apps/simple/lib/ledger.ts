@@ -6,16 +6,19 @@
  * says what to do about it, the readings say what improved. The LLM only ever
  * writes the one sentence on a card, and that arrives from the latest report.
  */
-import { and, asc, desc, eq, lt } from "drizzle-orm";
+import { and, asc, desc, eq, gt, lt } from "drizzle-orm";
 import {
   beliefSnapshots,
   getDb,
+  lifeEvents,
+  profileFactHistory,
   protocolItems,
   readings,
   type ReportAction,
 } from "@/db";
 import type { RangeBarProps } from "@/components/range-bar";
 import { buildModelInput, type ModelInput } from "./coverage";
+import { eventConfounders } from "./facts";
 import { getMetricRows, type MetricRow, type Point } from "./data";
 import { SYSTEMS } from "./graph";
 import { computeGraphState, worstMember } from "./graph-state";
@@ -30,6 +33,7 @@ import {
 } from "./hypotheses";
 import { nextMoves, type Move } from "./infogain";
 import { latestReport } from "./report";
+import { queueResearch } from "./research";
 import type { Status } from "./status";
 
 /** One line of evidence, exactly as `scoreHypotheses` emits it. */
@@ -66,7 +70,13 @@ export interface Conclusion {
   action?: ReportAction;
   rangeBar?: RangeBarProps;
   trend?: { code: string; points: Point[] };
-  changed?: { from?: HState; to: HState; deltaP: number };
+  changed?: {
+    from?: HState;
+    to: HState;
+    deltaP: number;
+    /** the fact edit that explains the flip, when one does */
+    because?: string;
+  };
 }
 
 export interface Ledger {
@@ -223,12 +233,35 @@ export async function recordBeliefs(
   userId: string,
   opts: { oncePerDay?: boolean } = {},
 ): Promise<void> {
-  const [input, catalog] = await Promise.all([
+  const [input, catalog, before] = await Promise.all([
     buildModelInput(userId),
     loadCatalog(),
+    previousSnapshot(userId),
   ]);
   const rows = scoreHypotheses(input, { catalog });
   await writeSnapshot(userId, beliefsOf(rows), opts.oncePerDay ?? false);
+  await queueNewlyPossible(rows, (before?.beliefs ?? null) as Beliefs | null);
+}
+
+/**
+ * A condition that just became worth arguing about is a condition worth
+ * reading papers on. The queue is drained by the timer in
+ * `instrumentation.ts`, and a condition read in the last 90 days is skipped.
+ */
+async function queueNewlyPossible(
+  rows: HypothesisResult[],
+  before: Beliefs | null,
+) {
+  for (const h of rows) {
+    if (!isLoud(h.state)) continue;
+    if (before && isLoud((before[h.id]?.state ?? "ruled_out") as HState))
+      continue;
+    try {
+      await queueResearch(h.id);
+    } catch (e) {
+      console.error("[research] could not queue", h.id, e);
+    }
+  }
 }
 
 /* ── the pure halves, so the tests need no database ───────────────────── */
@@ -352,7 +385,7 @@ export async function buildLedger(
   lens: Lens = "lifespan",
 ): Promise<Ledger> {
   const db = getDb();
-  const [input, catalog, rows, report, protocol, rawReadings, before] =
+  const [input, catalog, rows, report, protocol, rawReadings, before, events] =
     await Promise.all([
       buildModelInput(userId),
       loadCatalog(),
@@ -376,10 +409,42 @@ export async function buildLedger(
         .where(eq(readings.userId, userId))
         .orderBy(asc(readings.observedAt)),
       previousSnapshot(userId),
+      db.select().from(lifeEvents).where(eq(lifeEvents.userId, userId)),
     ]);
 
-  const scored = scoreHypotheses(input, { catalog, lens });
+  // An old draw gets its context from the timeline, not from a question: an
+  // illness or a pregnancy that was going on when a marker was drawn discounts
+  // that marker exactly the way a tagged confounder does.
+  const confounderTags = eventConfounders(
+    events,
+    Object.fromEntries(
+      Object.entries(input.latest).map(([code, v]) => [code, v.date]),
+    ),
+  );
+
+  const scored = scoreHypotheses(input, { catalog, lens, confounderTags });
   const moves = nextMoves(input, catalog, { lens });
+
+  // What a person told us since the last snapshot, so a flip can name its
+  // cause instead of just its size.
+  const edits = before
+    ? await db
+        .select()
+        .from(profileFactHistory)
+        .where(
+          and(
+            eq(profileFactHistory.userId, userId),
+            gt(profileFactHistory.createdAt, before.computedAt),
+          ),
+        )
+    : [];
+  const editText = new Map(
+    edits.map((e) => [
+      e.key,
+      `${pretty(e.key)} ${Array.isArray(e.value) ? e.value.join(", ") : String(e.value)} ` +
+        `${e.changeKind === "corrected" ? "corrected" : "entered"} ${e.validFrom}`,
+    ]),
+  );
   const byId = new Map(catalog.map((h) => [h.id, h]));
   const byCode = new Map(rows.map((m) => [m.code, m]));
   const latestReading = new Map(rawReadings.map((r) => [r.metricCode, r]));
@@ -397,12 +462,19 @@ export async function buildLedger(
 
   for (const h of scored) {
     const prev = was?.[h.id];
+    const spec0 = byId.get(h.id);
+    const because = spec0
+      ? factKeysOf(spec0)
+          .map((k) => editText.get(k))
+          .find(Boolean)
+      : undefined;
     const changed =
       prev != null && prev.state !== h.state
         ? {
             from: prev.state as HState,
             to: h.state,
             deltaP: round3(h.score - prev.p),
+            ...(because ? { because } : {}),
           }
         : undefined;
 

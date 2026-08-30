@@ -5,7 +5,7 @@
  */
 import type { ReportAction } from "@/db";
 import { ActionButtons } from "./plan";
-import { Badge, BasisChip, Card } from "./ui-kit";
+import { Badge, BasisChip, Card, TierChip } from "./ui-kit";
 
 export function ActionCard({
   action,
@@ -23,6 +23,7 @@ export function ActionCard({
         <div className="flex items-center gap-1.5">
           <Badge variant="secondary">weight {action.weight}</Badge>
           <BasisChip basis={action.basis} />
+          <TierChip tier={action.tier} />
         </div>
       </div>
 

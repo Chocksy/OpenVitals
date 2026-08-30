@@ -24,7 +24,7 @@ import { VECTORS } from "@/lib/vectors";
 import { ReviewItem } from "@/components/client";
 import { ActionCard } from "@/components/action-card";
 import { PlanShell } from "@/components/plan";
-import { Badge, BasisChip, Card } from "@/components/ui-kit";
+import { Badge, BasisChip, Card, TierChip } from "@/components/ui-kit";
 
 export const dynamic = "force-dynamic";
 
@@ -66,7 +66,10 @@ function TestList({
             <p className="flex-1 font-body text-[13px] text-neutral-800">
               {action.title}
             </p>
-            <BasisChip basis={action.basis} />
+            <span className="flex items-center gap-1.5">
+              <BasisChip basis={action.basis} />
+              <TierChip tier={action.tier} />
+            </span>
           </div>
           <p className="deep mt-1 font-body text-[12px] text-neutral-500">
             {action.why}

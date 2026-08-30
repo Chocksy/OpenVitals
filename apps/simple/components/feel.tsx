@@ -7,28 +7,38 @@
  * still worth something. No form, no submit button, no draft state.
  */
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Check, Loader2 } from "lucide-react";
 import type { Symptom } from "@/lib/symptoms";
 import { cn } from "@/lib/utils";
+import { FactEditButtons, type FactEdit } from "./fact-edit";
 
 export function Feel({
   items,
   answers,
+  history = {},
+  today,
 }: {
   items: { item: number; questions: Symptom[] }[];
   answers: Record<string, string>;
+  /** "since 2026-03: no; before: yes", per question key. */
+  history?: Record<string, string>;
+  today: string;
 }) {
+  const router = useRouter();
   const [saved, setSaved] = useState(answers);
   const [busy, setBusy] = useState("");
   const [error, setError] = useState("");
+  const [edits, setEdits] = useState<Record<string, FactEdit | null>>({});
 
   const answer = async (key: string, value: string) => {
     setBusy(key);
     setError("");
+    const edit = edits[key];
     const res = await fetch("/api/facts", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ key, value }),
+      body: JSON.stringify({ key, value, ...(edit ?? {}) }),
     });
     setBusy("");
     if (!res.ok) {
@@ -36,6 +46,8 @@ export function Feel({
       return;
     }
     setSaved((s) => ({ ...s, [key]: value }));
+    setEdits((e) => ({ ...e, [key]: null }));
+    router.refresh();
   };
 
   const done = Object.keys(saved).length;
@@ -80,6 +92,22 @@ export function Feel({
                   </button>
                 ))}
               </div>
+              {saved[q.key] && (
+                <div className="mt-2 flex flex-wrap items-center gap-3">
+                  <FactEditButtons
+                    edit={edits[q.key] ?? null}
+                    today={today}
+                    onChange={(edit) =>
+                      setEdits((e) => ({ ...e, [q.key]: edit }))
+                    }
+                  />
+                  {history[q.key] && (
+                    <span className="font-mono text-[10px] text-neutral-400">
+                      {history[q.key]}
+                    </span>
+                  )}
+                </div>
+              )}
               <p className="mt-1.5 font-mono text-[10px] text-neutral-400">
                 {q.source}
               </p>

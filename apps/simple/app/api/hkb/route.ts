@@ -6,12 +6,15 @@ export const maxDuration = 300;
 
 type Body =
   | {
-      action: "evidence";
+      action: "override";
       id: string;
-      status: "accepted" | "rejected";
+      lrPos?: number;
+      lrNeg?: number | null;
+      grade?: string;
+      /** Take the rule out of the engine, or put it back in. */
+      exclude?: boolean;
       note?: string;
     }
-  | { action: "evidence_lr"; id: string; lrPos: number; lrNeg?: number | null }
   | { action: "in_catalog"; id: string; inCatalog: boolean }
   | { action: "import"; script: "ontology" | "priors" | "prices" }
   | { action: "research"; conditionId: string; maxPapers?: number };
@@ -32,44 +35,37 @@ export async function POST(request: Request) {
   const db = getDb();
 
   try {
-    if (body.action === "evidence") {
-      if (!["accepted", "rejected"].includes(body.status))
-        return Response.json({ error: "bad status" }, { status: 400 });
-      const [row] = await db
-        .update(hkbEvidence)
-        .set({
-          status: body.status,
-          reviewedAt: new Date(),
-          ...(body.note ? { reviewNote: body.note } : {}),
-        })
-        .where(eq(hkbEvidence.id, body.id))
-        .returning();
-      if (!row) return Response.json({ error: "no such rule" }, { status: 404 });
-      return Response.json({ ok: true, id: row.id, status: row.status });
-    }
+    if (body.action === "override") {
+      const set: Record<string, unknown> = {
+        reviewedAt: new Date(),
+        reviewNote: body.note?.trim()
+          ? `override: ${body.note.trim()}`
+          : "override on /hkb",
+        // a human looked, so the policy's own flag comes off
+        needsLook: false,
+      };
+      if (body.lrPos != null) {
+        const lrPos = Number(body.lrPos);
+        if (!Number.isFinite(lrPos) || lrPos <= 0)
+          return Response.json({ error: "bad LR+" }, { status: 400 });
+        set.lrPos = lrPos;
+      }
+      if (body.lrNeg !== undefined) {
+        const lrNeg = body.lrNeg == null ? null : Number(body.lrNeg);
+        if (lrNeg != null && (!Number.isFinite(lrNeg) || lrNeg <= 0))
+          return Response.json({ error: "bad LR-" }, { status: 400 });
+        set.lrNeg = lrNeg;
+      }
+      if (body.grade) {
+        if (!["A", "B", "C", "D", "E"].includes(body.grade))
+          return Response.json({ error: "bad grade" }, { status: 400 });
+        set.grade = body.grade;
+      }
+      if (body.exclude != null) set.status = body.exclude ? "rejected" : "accepted";
 
-    // Edit LR: the admin corrects the number the model read, and that edit is
-    // the acceptance. A rule nobody looked at never scores; a rule somebody
-    // retyped does.
-    if (body.action === "evidence_lr") {
-      const lrPos = Number(body.lrPos);
-      if (!Number.isFinite(lrPos) || lrPos <= 0)
-        return Response.json({ error: "bad LR+" }, { status: 400 });
-      const lrNeg =
-        body.lrNeg == null || body.lrNeg === ("" as unknown)
-          ? null
-          : Number(body.lrNeg);
-      if (lrNeg != null && (!Number.isFinite(lrNeg) || lrNeg <= 0))
-        return Response.json({ error: "bad LR-" }, { status: 400 });
       const [row] = await db
         .update(hkbEvidence)
-        .set({
-          lrPos,
-          lrNeg,
-          status: "accepted",
-          reviewedAt: new Date(),
-          reviewNote: "LR edited on /hkb before accepting",
-        })
+        .set(set)
         .where(eq(hkbEvidence.id, body.id))
         .returning();
       if (!row) return Response.json({ error: "no such rule" }, { status: 404 });

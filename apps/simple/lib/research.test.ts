@@ -14,13 +14,18 @@ import {
   dedupe,
   estimateTokens,
   gradeOf,
+  interventionQueries,
   likelihoodRatios,
+  mintedId,
   proposalId,
   researchCondition,
   sourceLine,
   titleMatches,
+  testCost,
+  toInterventions,
   toProposals,
   TOKEN_BUDGET,
+  venueIndex,
   type Extractor,
   type Feature,
   type Finding,
@@ -181,12 +186,64 @@ describe("the arithmetic", () => {
     expect(likelihoodRatios({ ...base, lrPos: 0 })).toBeNull();
   });
 
-  it("grades meta and guideline A, a big cohort B, the rest C", () => {
-    expect(gradeOf({ ...base, studyType: "meta" })).toBe("A");
-    expect(gradeOf({ ...base, studyType: "guideline" })).toBe("A");
-    expect(gradeOf({ ...base, studyType: "cohort", n: 900 })).toBe("B");
-    expect(gradeOf({ ...base, studyType: "cohort", n: 90 })).toBe("C");
-    expect(gradeOf({ ...base, studyType: "case_control", n: 9000 })).toBe("C");
+  it("grades every study type the way the roadmap does", () => {
+    const table: [Finding["studyType"], number | null, string][] = [
+      ["meta", null, "A"],
+      ["guideline", null, "A"],
+      ["rct", 40, "B"],
+      ["cohort", 900, "B"],
+      ["cohort", 90, "C"],
+      ["cross_sectional", 900, "B"],
+      ["cross_sectional", 90, "C"],
+      ["case_control", 9000, "C"],
+      ["case_series", 8, "D"],
+      ["case_series", 40, "C"],
+      ["case_report", null, "D"],
+      ["n_of_1", null, "D"],
+      ["self_experiment", null, "D"],
+      ["animal", null, "E"],
+      ["in_vitro", null, "E"],
+      ["computational", null, "E"],
+      ["other", null, "C"],
+    ];
+    for (const [studyType, n, grade] of table)
+      expect([studyType, n, gradeOf({ ...base, studyType, n })]).toEqual([
+        studyType,
+        n,
+        grade,
+      ]);
+  });
+
+  it("takes a grade off a paper the world never cited or indexed", () => {
+    const meta: Finding = { ...base, studyType: "meta" };
+    expect(gradeOf(meta, { citedBy: 0, year: 2015, thisYear: 2026 })).toBe("B");
+    expect(gradeOf(meta, { citedBy: 0, year: 2025, thisYear: 2026 })).toBe("A");
+    expect(gradeOf(meta, { citedBy: 40, year: 2015, thisYear: 2026 })).toBe("A");
+    expect(gradeOf(meta, { venueKnown: false })).toBe("B");
+    // both, and a DOI that never resolved, which caps the row at C
+    expect(
+      gradeOf(meta, {
+        citedBy: 0,
+        year: 2015,
+        thisYear: 2026,
+        venueKnown: false,
+      }),
+    ).toBe("C");
+    expect(gradeOf(meta, { resolved: false })).toBe("C");
+    expect(gradeOf({ ...base, studyType: "animal" }, { resolved: false })).toBe(
+      "E",
+    );
+  });
+
+  it("only calls a venue unknown when Semantic Scholar answered at all", () => {
+    const known = venueIndex([]);
+    expect(known("Journal of Nowhere")).toBe(true);
+    const seen = venueIndex([
+      { journal: "J Clin Endocrinol Metab" } as Paper,
+    ]);
+    expect(seen("J. Clin. Endocrinol. Metab.")).toBe(true);
+    expect(seen("Journal of Nowhere")).toBe(false);
+    expect(seen(null)).toBe(false);
   });
 
   it("turns direction and threshold into the `when` the engine reads", () => {
@@ -249,6 +306,9 @@ describe("proposals", () => {
     expect(sourceLine(paper, "a positive likelihood ratio of 3.8")).toBe(
       'Zulewski H 2013 JAMA; doi:10.1001/jama.2013.0001; quote: "a positive likelihood ratio of 3.8"',
     );
+    expect(sourceLine(paper, "a positive likelihood ratio of 3.8", 1240)).toBe(
+      'Zulewski H 2013 JAMA; doi:10.1001/jama.2013.0001; n = 1240; quote: "a positive likelihood ratio of 3.8"',
+    );
     expect(proposalId("hypothyroidism", "metric:tsh", paper)).toBe(
       "res_hypothyroidism_metric_tsh_21123456",
     );
@@ -276,6 +336,169 @@ describe("proposals", () => {
     expect(rows).toHaveLength(0);
     expect(unmapped).toBe(1);
   });
+
+  const mintFinding: Finding = {
+    paperIndex: 1,
+    feature: "Anti-endomysial antibodies",
+    featureId: null,
+    condition: "hypothyroidism",
+    direction: "above",
+    threshold: 10,
+    unit: "U/mL",
+    lrPos: 6,
+    population: "adults",
+    studyType: "meta",
+    quote: "a titre above 10 U/mL gave a likelihood ratio of 6",
+  };
+
+  it("mints a feature the catalog does not carry, under one normalised id", () => {
+    // the curator's own normaliser: word order, case, punctuation and the
+    // plural all fold away, so one analyte only ever mints one id
+    expect(mintedId("Anti-endomysial antibodies")).toBe(
+      mintedId("antibodies, anti endomysial"),
+    );
+    const { rows, mints, unmapped } = toProposals(
+      CONDITION,
+      FEATURES,
+      [paper],
+      [mintFinding],
+    );
+    expect(unmapped).toBe(0);
+    expect(mints).toHaveLength(1);
+    expect(mints[0]!.id).toBe(rows[0]!.featureId);
+    expect(mints[0]!.unit).toBe("U/mL");
+    expect(mints[0]!.doi).toBe(paper.doi);
+    expect(rows[0]!.status).toBe("accepted");
+  });
+
+  it("folds a paper's own name onto a catalog feature instead of minting", () => {
+    const { mints, rows } = toProposals(
+      CONDITION,
+      FEATURES,
+      [paper],
+      [{ ...mintFinding, feature: "Antibodies, TPO", unit: "IU/mL" }],
+    );
+    expect(mints).toHaveLength(0);
+    expect(rows[0]!.featureId).toBe("metric:tpo_antibodies");
+  });
+
+  it("guesses what a minted test costs from what kind of test it is", () => {
+    expect(testCost("Anti-endomysial antibodies")).toBe(1);
+    expect(testCost("Liver ultrasound elastography")).toBe(3);
+    expect(testCost("Small bowel biopsy")).toBe(4);
+    expect(testCost("Serum fructosamine")).toBe(2);
+  });
+
+  it("rejects a row whose condition is out of the catalog", () => {
+    const { rows, rejected } = toProposals(
+      CONDITION,
+      FEATURES,
+      [paper],
+      [mintFinding],
+      { inCatalog: false },
+    );
+    expect(rejected).toBe(1);
+    expect(rows[0]!.status).toBe("rejected");
+  });
+});
+
+describe("interventions", () => {
+  it("asks for treatments over fifteen years and the horizon over three", () => {
+    const [trials, horizon] = interventionQueries(
+      "Hypothyroidism",
+      new Date("2026-08-29"),
+    );
+    expect(trials!.kind).toBe("intervention");
+    expect(trials!.query).toContain(
+      '"Hypothyroidism" AND (treatment OR supplementation OR intervention) AND (randomized OR "meta-analysis")',
+    );
+    expect(trials!.query).toContain("FIRST_PDATE:[2011-01-01 TO 2026-12-31]");
+    expect(horizon!.kind).toBe("horizon");
+    expect(horizon!.query).toContain(
+      '(case report OR pilot OR "n-of-1" OR animal OR mice OR "in vitro")',
+    );
+    expect(horizon!.query).toContain("FIRST_PDATE:[2023-01-01 TO 2026-12-31]");
+  });
+
+  const trialPaper: Paper = {
+    pmid: "31000000",
+    doi: "10.1/trial",
+    title: "Selenium in autoimmune thyroiditis: a randomized trial",
+    journal: "Thyroid",
+    year: 2020,
+    authors: "Rossi A.",
+    citedBy: 30,
+    url: "https://doi.org/10.1/trial",
+    abstract: "…",
+  };
+
+  const finding = {
+    paperIndex: 1,
+    intervention: "Selenium",
+    dose: "200 µg/day",
+    duration: "12 weeks",
+    outcomeFeature: "metric:tpo_antibodies",
+    effectSize: "-21%",
+    direction: "down" as const,
+    population: "adults with Hashimoto",
+    studyType: "rct" as const,
+    quote: "TPO antibodies fell 21% on 200 µg/day of selenium",
+  };
+
+  it("keeps the dose, the duration and the mapped outcome", () => {
+    const [row] = toInterventions(
+      CONDITION,
+      FEATURES,
+      [trialPaper],
+      [finding],
+      "intervention",
+    );
+    expect(row!.name).toBe("Selenium");
+    expect(row!.dose).toBe("200 µg/day");
+    expect(row!.duration).toBe("12 weeks");
+    expect(row!.outcomeFeatureId).toBe("metric:tpo_antibodies");
+    expect(row!.grade).toBe("B");
+    expect(row!.direction).toBe("down");
+  });
+
+  it("never lets the horizon search claim more than D or E", () => {
+    const [trial] = toInterventions(
+      CONDITION,
+      FEATURES,
+      [trialPaper],
+      [finding],
+      "horizon",
+    );
+    expect(trial!.grade).toBe("D");
+    const [mouse] = toInterventions(
+      CONDITION,
+      FEATURES,
+      [trialPaper],
+      [{ ...finding, studyType: "animal" as const }],
+      "horizon",
+    );
+    expect(mouse!.grade).toBe("E");
+  });
+
+  it("drops a retracted paper and an unmapped outcome", () => {
+    expect(
+      toInterventions(
+        CONDITION,
+        FEATURES,
+        [{ ...trialPaper, retracted: true }],
+        [finding],
+        "intervention",
+      ),
+    ).toHaveLength(0);
+    const [row] = toInterventions(
+      CONDITION,
+      FEATURES,
+      [trialPaper],
+      [{ ...finding, outcomeFeature: "metric:nothing" }],
+      "intervention",
+    );
+    expect(row!.outcomeFeatureId).toBeNull();
+  });
 });
 
 describe("one condition, end to end", () => {
@@ -299,7 +522,9 @@ describe("one condition, end to end", () => {
     expect(tsh.lrPos).toBe(3.8);
     expect(tsh.lrNeg).toBe(0.21);
     expect(tsh.grade).toBe("A");
-    expect(tsh.status).toBe("proposed");
+    // the policy decides at insert time now: nothing waits for a click
+    expect(tsh.status).toBe("accepted");
+    expect(tsh.needsLook).toBe(false);
     expect(tsh.conditionOn).toEqual({ above: 4.5 });
     expect(tsh.source).toContain("doi:10.1001/jama.2013.0001");
     expect(tsh.paper.title).toContain("Does this patient have hypothyroidism");

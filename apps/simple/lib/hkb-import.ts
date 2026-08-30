@@ -12,6 +12,7 @@ import { mkdir, readFile, stat } from "node:fs/promises";
 import { Readable } from "node:stream";
 import { pipeline } from "node:stream/promises";
 import path from "node:path";
+import { and, desc, eq, sql } from "drizzle-orm";
 import { getDb, hkbImportRuns } from "@/db";
 
 /** `apps/simple/data/hkb`, wherever the process was started from. */
@@ -116,6 +117,39 @@ export async function recordRun(
   notes?: string,
 ) {
   await getDb().insert(hkbImportRuns).values({ script, rows, notes });
+}
+
+/** When this importer last ran, optionally only for one condition's line. */
+export async function lastRun(
+  script: string,
+  notesPrefix?: string,
+): Promise<Date | null> {
+  const [row] = await getDb()
+    .select({ ranAt: hkbImportRuns.ranAt })
+    .from(hkbImportRuns)
+    .where(
+      notesPrefix
+        ? and(
+            eq(hkbImportRuns.script, script),
+            sql`${hkbImportRuns.notes} like ${`${notesPrefix}%`}`,
+          )
+        : eq(hkbImportRuns.script, script),
+    )
+    .orderBy(desc(hkbImportRuns.ranAt))
+    .limit(1);
+  return row?.ranAt ?? null;
+}
+
+const DAY_MS = 86_400_000;
+
+/** Has this importer not run for `days`? Never having run counts as yes. */
+export async function dueAgain(
+  script: string,
+  days: number,
+  notesPrefix?: string,
+): Promise<boolean> {
+  const at = await lastRun(script, notesPrefix);
+  return !at || Date.now() - at.getTime() > days * DAY_MS;
 }
 
 /** "1.2s", "3m 04s": how the report prints a duration. */

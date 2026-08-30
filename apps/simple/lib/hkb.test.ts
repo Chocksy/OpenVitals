@@ -1,15 +1,28 @@
 import { describe, it, expect } from "vitest";
 import { catalogRows, testId } from "./hkb-seed";
 import { loadCatalog, rowsToCatalog } from "./hkb";
-import { HYPOTHESES, type Hypothesis } from "./hypotheses";
+import { shrunk } from "./hkb-pool";
+import { HYPOTHESES, type EvidenceRule, type Hypothesis } from "./hypotheses";
 
-/** Rows carry no order, so both sides are sorted before they are compared. */
-const normalise = (catalog: Hypothesis[]) =>
+const round2 = (v: number) => Math.round(v * 100) / 100;
+
+/**
+ * Rows carry no order, so both sides are sorted before they are compared.
+ * `rule` folds the grade shrink into the in-code rule and the pooled papers
+ * out of the rebuilt one, because the database catalog carries its shrink in
+ * the number and the in-code one carries it in `effectiveLr`.
+ */
+const normalise = (
+  catalog: Hypothesis[],
+  rule: (e: EvidenceRule) => EvidenceRule,
+) =>
   [...catalog]
     .sort((a, b) => a.id.localeCompare(b.id))
     .map((h) => ({
       ...h,
-      evidence: [...h.evidence].sort((a, b) => a.id.localeCompare(b.id)),
+      evidence: [...h.evidence]
+        .sort((a, b) => a.id.localeCompare(b.id))
+        .map(rule),
       discriminators: [...h.discriminators].sort((a, b) =>
         a.test.localeCompare(b.test),
       ),
@@ -20,6 +33,15 @@ const normalise = (catalog: Hypothesis[]) =>
         ),
       },
     }));
+
+/** The in-code rule as the database would serve it: shrunk, no papers. */
+const asPooled = (e: EvidenceRule): EvidenceRule => ({
+  ...e,
+  lr: round2(shrunk(e.lr, e.grade)),
+  lrNeg: e.lrNeg == null ? undefined : round2(shrunk(e.lrNeg, e.grade)),
+});
+
+const withoutSources = ({ sources: _s, ...e }: EvidenceRule): EvidenceRule => e;
 
 describe("catalogRows", () => {
   const rows = catalogRows();
@@ -63,9 +85,18 @@ describe("catalogRows", () => {
 
 describe("rowsToCatalog", () => {
   it("round-trips the whole in-code catalog", () => {
-    expect(normalise(rowsToCatalog(catalogRows()))).toEqual(
-      normalise(HYPOTHESES),
+    expect(normalise(rowsToCatalog(catalogRows()), withoutSources)).toEqual(
+      normalise(HYPOTHESES, asPooled),
     );
+  });
+
+  it("keeps every paper behind a pooled rule", () => {
+    const rebuilt = rowsToCatalog(catalogRows());
+    for (const h of rebuilt)
+      for (const e of h.evidence) {
+        expect(e.sources).toHaveLength(1);
+        expect(e.sources![0]!.id).toBe(e.id);
+      }
   });
 
   it("scores a rebuilt catalog exactly like the in-code one", async () => {

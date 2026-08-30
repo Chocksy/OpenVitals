@@ -1,6 +1,7 @@
 import { and, eq } from "drizzle-orm";
 import { getDb, profileFacts, reports } from "@/db";
 import { currentUserId } from "@/lib/auth";
+import { writeFact } from "@/lib/facts";
 import { recordBeliefs } from "@/lib/ledger";
 
 /**
@@ -44,13 +45,7 @@ export async function POST(req: Request) {
   titles.add(action.title);
   const value = [...titles];
 
-  await db
-    .insert(profileFacts)
-    .values({ userId, key: "dismissed_actions", value, source: "user" })
-    .onConflictDoUpdate({
-      target: [profileFacts.userId, profileFacts.key],
-      set: { value, answeredAt: new Date() },
-    });
+  await writeFact(userId, "dismissed_actions", value, { source: "system" });
 
   await recordBeliefs(userId);
   return Response.json({ ok: true });

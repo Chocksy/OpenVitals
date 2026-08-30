@@ -9,6 +9,7 @@ import {
   ClipboardCheck,
   FlaskConical,
   HeartPulse,
+  History,
   LayoutDashboard,
   Library,
   ListTodo,
@@ -38,6 +39,18 @@ const navigation: NavItem[] = [
   { name: "Plan", href: "/plan", icon: Stethoscope },
   { name: "Labs", href: "/labs", icon: FlaskConical },
   { name: "Graph", href: "/graph", icon: Network },
+];
+
+/**
+ * The admin's own destinations, next to the four everybody has. They are
+ * windows on the engine, not a queue: /brain shows how a scenario scored, /hkb
+ * what the knowledge base ingested, /admin the users and the runs. A user
+ * never sees this group.
+ */
+const system: NavItem[] = [
+  { name: "Brain", href: "/brain", icon: Brain },
+  { name: "HKB", href: "/hkb", icon: Library },
+  { name: "Admin", href: "/admin", icon: Settings },
 ];
 
 const tracker: NavItem[] = [
@@ -115,7 +128,7 @@ export function TopNav({
                 </span>
               </Link>
 
-              <nav className="hidden items-center md:flex">
+              <nav className="hidden items-center gap-3 md:flex">
                 <div className="flex items-center gap-1 rounded border bg-neutral-100 p-0.5">
                   {navigation.map((item) => (
                     <Link
@@ -133,6 +146,32 @@ export function TopNav({
                     </Link>
                   ))}
                 </div>
+
+                {admin && (
+                  <div
+                    className="flex items-center gap-1 rounded border border-dashed border-neutral-300 p-0.5"
+                    title="System"
+                  >
+                    <span className="px-1.5 font-mono text-[9px] uppercase tracking-wider text-neutral-400">
+                      System
+                    </span>
+                    {system.map((item) => (
+                      <Link
+                        key={item.name}
+                        href={item.href}
+                        className={cn(
+                          "flex h-[30px] items-center gap-1.5 px-2 py-1 font-mono text-[11px] font-medium uppercase tracking-[0.04em] transition-colors",
+                          isActive(pathname, item.href)
+                            ? "bg-accent-50 text-accent-500"
+                            : "text-neutral-500 hover:text-neutral-900",
+                        )}
+                      >
+                        <item.icon className="h-3.5 w-3.5" />
+                        {item.name}
+                      </Link>
+                    ))}
+                  </div>
+                )}
               </nav>
             </div>
 
@@ -171,23 +210,14 @@ export function TopNav({
                     <Upload className="size-3.5 text-neutral-400" />
                     Uploads
                   </Link>
-                  {admin && (
-                    <>
-                      <Link href="/brain" className={menuLink}>
-                        <Brain className="size-3.5 text-neutral-400" />
-                        Brain
-                      </Link>
-                      <Link href="/hkb" className={menuLink}>
-                        <Library className="size-3.5 text-neutral-400" />
-                        Knowledge base
-                      </Link>
-                      <Link href="/admin" className={menuLink}>
-                        <Settings className="size-3.5 text-neutral-400" />
-                        Admin
-                      </Link>
-                    </>
-                  )}
+                  <Link href="/history" className={menuLink}>
+                    <History className="size-3.5 text-neutral-400" />
+                    History
+                  </Link>
                 </MenuGroup>
+
+                {/* the same three as the System pills, for a narrow screen */}
+                {admin && <MenuGroup label="System" items={system} />}
 
                 <MenuGroup label="Tracker" items={tracker} />
 

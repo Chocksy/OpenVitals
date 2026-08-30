@@ -28,6 +28,7 @@ import {
   type DocumentItem,
 } from "@/db";
 import { localDay } from "./daily";
+import { writeFact } from "./facts";
 import { model } from "./extract";
 import { extractTextFromPdf } from "./pdf";
 import { convert } from "./units";
@@ -417,14 +418,7 @@ async function appendListFact(userId: string, key: string, value: string) {
       ? [String(row.value)]
       : [];
   if (current.some((v) => norm(v) === norm(value))) return;
-  const next = [...current, value];
-  await db
-    .insert(profileFacts)
-    .values({ userId, key, value: next, source: "document" })
-    .onConflictDoUpdate({
-      target: [profileFacts.userId, profileFacts.key],
-      set: { value: next, source: "document", answeredAt: new Date() },
-    });
+  await writeFact(userId, key, [...current, value], { source: "document" });
 }
 
 export interface AcceptResult {

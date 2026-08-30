@@ -13,7 +13,8 @@
  * one function that writes.
  */
 import { eq } from "drizzle-orm";
-import { getDb, genomeVariants, profileFacts } from "@/db";
+import { getDb, genomeVariants } from "@/db";
+import { writeFact } from "./facts";
 import {
   CATALOG_RSIDS,
   GENOME_CATALOG,
@@ -137,13 +138,7 @@ export async function saveGenome(
   const results = callGenome(variants);
   const facts = genomeFacts(results);
   for (const [key, value] of Object.entries(facts))
-    await db
-      .insert(profileFacts)
-      .values({ userId, key, value, source: "genome" })
-      .onConflictDoUpdate({
-        target: [profileFacts.userId, profileFacts.key],
-        set: { value, source: "genome", answeredAt: new Date() },
-      });
+    await writeFact(userId, key, value, { source: "genome" });
 
   return {
     variants: variants.length,

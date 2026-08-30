@@ -20,6 +20,7 @@ import {
   hkbPriors,
   hkbTests,
 } from "@/db";
+import { poolMembers, sizeOf } from "./hkb-pool";
 import {
   HYPOTHESES,
   type Catalog,
@@ -89,6 +90,8 @@ export interface EvidenceRow {
   population: string | null;
   confoundedBy: string[] | null;
   status: string;
+  /** The policy let it score and still wants a human to look at it. */
+  needsLook?: boolean;
 }
 
 export interface TestRow {
@@ -174,6 +177,57 @@ function inDependencyOrder(
   return out;
 }
 
+/**
+ * The rows on one (feature, condition_on) key as one rule.
+ *
+ * Two papers on the same claim are one fact measured twice, so they are
+ * averaged in log space by `poolMembers` and the rule carries every paper in
+ * `sources`. The lowest id wins the rule id, so the number on /brain keeps its
+ * name across runs. D and E are already gone by the time this is called: they
+ * are horizon ideas, not evidence.
+ */
+export function pooledEvidence(rows: EvidenceRow[]): EvidenceRule[] {
+  const groups = new Map<string, EvidenceRow[]>();
+  for (const e of rows) {
+    const key = `${e.featureId}|${JSON.stringify(e.conditionOn)}`;
+    groups.set(key, [...(groups.get(key) ?? []), e]);
+  }
+
+  const out: EvidenceRule[] = [];
+  for (const group of groups.values()) {
+    const members = [...group].sort((a, b) => a.id.localeCompare(b.id));
+    const first = members[0]!;
+    const pooled = poolMembers(
+      members.map((e) => ({
+        id: e.id,
+        lrPos: e.lrPos,
+        lrNeg: e.lrNeg,
+        grade: e.grade as Grade,
+        source: e.source,
+        n: sizeOf(e.source),
+      })),
+    );
+    if (!pooled) continue;
+    out.push({
+      id: first.id,
+      input: featureInput(first.featureId),
+      when: first.conditionOn as EvidenceRule["when"],
+      lr: pooled.lrPos,
+      lrNeg: pooled.lrNeg ?? undefined,
+      grade: pooled.grade,
+      source:
+        members.length === 1
+          ? first.source
+          : `pooled from ${members.length} papers: ${members
+              .map((m) => `${m.grade} LR+ ${m.lrPos}`)
+              .join("; ")}`,
+      confoundedBy: first.confoundedBy ?? undefined,
+      sources: pooled.sources,
+    });
+  }
+  return out;
+}
+
 /** The seven tables back into the eight (or eighty) hypotheses. */
 export function rowsToCatalog(rows: CatalogRows): Catalog {
   const units = new Map(rows.features.map((f) => [f.id, f.unit]));
@@ -197,22 +251,15 @@ export function rowsToCatalog(rows: CatalogRows): Catalog {
     const prior = mine.find(isBase) ?? mine[0];
     const bands = mine.filter((p) => !isBase(p));
 
-    const evidence: EvidenceRule[] = rows.evidence
-      .filter(
+    const evidence = pooledEvidence(
+      rows.evidence.filter(
         (e) =>
           e.conditionId === c.id &&
-          (e.status === "seed" || e.status === "accepted"),
-      )
-      .map((e) => ({
-        id: e.id,
-        input: featureInput(e.featureId),
-        when: e.conditionOn as EvidenceRule["when"],
-        lr: e.lrPos,
-        lrNeg: e.lrNeg ?? undefined,
-        grade: e.grade as Grade,
-        source: e.source,
-        confoundedBy: e.confoundedBy ?? undefined,
-      }));
+          (e.status === "seed" || e.status === "accepted") &&
+          e.grade !== "D" &&
+          e.grade !== "E",
+      ),
+    );
 
     const discriminators: Discriminator[] = rows.links
       .filter((l) => l.conditionId === c.id)
