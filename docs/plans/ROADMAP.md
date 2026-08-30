@@ -75,7 +75,8 @@ extraction from reviews with `when_` clauses, personal conditional edges
 | #   | Phase                                                                                                                                    | Why                                     |
 | --- | ---------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------- |
 | 16  | The picture, section 5 only: `/graph/[node]` pathograph, after the mockup is approved                                                    | the relations chart the owner asked for |
-| 17  | Prod cutover to Coolify (branch `simple`, compose, volumes, seeds, imports)                                                              | Ramona on her phone                     |
+| 17  | Knowledge rings (all diseases reachable, ring-2 waking on five triggers incl. the ask box), correlation guards, trend evidence, KB versioning in "what changed", calibration logging (`2026-08-30-phase17-rings-and-rigor-spec.md`) | any word, any peculiar disease, probabilistically |
+| 17b | Prod cutover to Coolify (branch `simple`, compose, volumes, seeds, imports) — owner said not to rush it | Ramona on her phone |
 | 18  | GBD priors (owner downloads one CSV), NCD-RisC to more conditions, prices from a second lab                                              | better empty-user starts                |
 | 19  | Wearables via the phone app (resting HR, sleep, HRV, steps) and Apple Health; food photos later                                          | the tier-0 vectors blood cannot see     |
 | 20  | Genome tier 2 (~40 SNPs, polygenic scores, ancestry-matched), microbiome report parser                                                   | more evidence for the same engine       |
