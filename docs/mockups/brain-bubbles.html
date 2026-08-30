@@ -1,0 +1,1061 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>OpenVitals · your brain (mockup)</title>
+    <script src="https://unpkg.com/d3@7/dist/d3.min.js"></script>
+    <style>
+      :root {
+        --bg: #0a0a0a;
+        --card: #121212;
+        --line: #262626;
+        --fg: #f2f2f2;
+        --muted: #9a9a9a;
+        --dim: #7a7a7a;
+        --accent: #5a75ff;
+        --ok: #4ade80;
+        --warn: #fbbf24;
+        --bad: #f87171;
+        --opt: #a78bfa;
+        --gene: #38bdf8;
+        --life: #f472b6;
+        --cond: #fb923c;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--fg);
+        font:
+          14px/1.5 system-ui,
+          -apple-system,
+          sans-serif;
+        height: 100vh;
+        display: grid;
+        grid-template-rows: 56px 1fr;
+      }
+      header {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        padding: 0 20px;
+        border-bottom: 1px solid var(--line);
+      }
+      header b {
+        font-weight: 600;
+      }
+      .mono {
+        font-family: ui-monospace, Menlo, monospace;
+        font-size: 11px;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--dim);
+      }
+      .seg {
+        display: inline-flex;
+        border: 1px solid var(--line);
+        background: #141414;
+        padding: 2px;
+        gap: 1px;
+      }
+      .seg button {
+        border: 1px solid transparent;
+        background: none;
+        color: var(--muted);
+        font: 500 12px system-ui;
+        padding: 5px 10px;
+        cursor: pointer;
+      }
+      .seg button.on {
+        background: var(--card);
+        color: var(--fg);
+        border-color: var(--line);
+      }
+      .layout {
+        display: grid;
+        grid-template-columns: 1fr 400px;
+        min-height: 0;
+      }
+      #stage {
+        position: relative;
+        overflow: hidden;
+      }
+      svg {
+        width: 100%;
+        height: 100%;
+        display: block;
+      }
+      .legend {
+        position: absolute;
+        left: 16px;
+        top: 14px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        font-size: 12px;
+        color: var(--muted);
+        max-width: 70%;
+      }
+      .legend i {
+        display: inline-block;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        margin-right: 5px;
+        vertical-align: middle;
+      }
+      .hint {
+        position: absolute;
+        left: 16px;
+        bottom: 12px;
+        font-size: 12px;
+        color: var(--dim);
+      }
+      aside {
+        border-left: 1px solid var(--line);
+        overflow: auto;
+        padding: 18px;
+      }
+      .card {
+        background: var(--card);
+        border: 1px solid var(--line);
+        padding: 14px;
+        margin-bottom: 10px;
+        border-radius: 4px;
+      }
+      h2 {
+        font-size: 20px;
+        font-weight: 500;
+        margin: 0 0 4px;
+        letter-spacing: -0.02em;
+      }
+      h3 {
+        font-size: 12px;
+        margin: 0 0 8px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: var(--dim);
+      }
+      .chip {
+        font-family: ui-monospace, Menlo, monospace;
+        font-size: 10px;
+        padding: 2px 6px;
+        border: 1px solid #3a3a3a;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--muted);
+        margin-right: 4px;
+      }
+      .chip.ok {
+        color: var(--ok);
+        border-color: #14532d;
+      }
+      .chip.warn {
+        color: var(--warn);
+        border-color: #78350f;
+      }
+      .chip.bad {
+        color: var(--bad);
+        border-color: #7f1d1d;
+      }
+      .chip.acc {
+        color: var(--accent);
+        border-color: #1d3db3;
+      }
+      .chip.gene {
+        color: var(--gene);
+        border-color: #075985;
+      }
+      .edge {
+        padding: 8px 0;
+        border-top: 1px solid var(--line);
+        font-size: 13px;
+      }
+      .edge .m {
+        color: var(--dim);
+        font-size: 12px;
+        margin-top: 2px;
+      }
+      .edge.off {
+        opacity: 0.45;
+      }
+      .big {
+        font-size: 40px;
+        font-weight: 300;
+        letter-spacing: -0.04em;
+        line-height: 1;
+      }
+      .big small {
+        font-size: 14px;
+        color: var(--muted);
+        margin-left: 6px;
+        letter-spacing: 0;
+      }
+      .q {
+        border-left: 3px solid var(--accent);
+        padding: 8px 10px;
+        background: #0e1330;
+        margin-top: 8px;
+        font-size: 13px;
+      }
+      .btn {
+        border: 1px solid var(--line);
+        background: var(--card);
+        color: var(--fg);
+        font: 500 12px system-ui;
+        padding: 4px 9px;
+        cursor: pointer;
+        margin-left: 4px;
+      }
+      .node text {
+        pointer-events: none;
+        fill: var(--fg);
+        font-size: 11px;
+      }
+      .node circle {
+        cursor: grab;
+        stroke: #0a0a0a;
+        stroke-width: 1.5;
+      }
+      .node.dim circle {
+        opacity: 0.25;
+      }
+      .node.dim text {
+        opacity: 0.3;
+      }
+      .link {
+        fill: none;
+      }
+      .link.off {
+        opacity: 0.2;
+      }
+      .story {
+        font-size: 13px;
+        color: var(--muted);
+      }
+      .story b {
+        color: var(--fg);
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <b>OpenVitals</b><span class="mono">your brain · mockup</span>
+      <span class="mono" style="margin-left: 14px">who</span>
+      <span class="seg" id="who"></span>
+      <span class="mono" style="margin-left: 14px">lens</span>
+      <span class="seg" id="lens"
+        ><button class="on" data-l="lifespan">Lifespan</button
+        ><button data-l="energy">Energy</button
+        ><button data-l="mood">Mood</button></span
+      >
+      <span class="mono" style="margin-left: auto"
+        >click a bubble · drag to rearrange · scroll to zoom</span
+      >
+    </header>
+    <div class="layout">
+      <div id="stage">
+        <div class="legend">
+          <span><i style="background: var(--fg)"></i>marker</span
+          ><span><i style="background: var(--cond)"></i>condition</span
+          ><span><i style="background: var(--life)"></i>lifestyle / event</span
+          ><span><i style="background: var(--gene)"></i>genome</span>
+          <span>· size = how much it matters for <b>this person</b></span
+          ><span
+            >· ring colour = state (green / amber / red / grey unknown)</span
+          ><span
+            >· line: solid established, dashed probable, dotted speculative;
+            faint = not for you</span
+          >
+        </div>
+        <svg id="svg"></svg>
+        <div class="hint" id="hint"></div>
+      </div>
+      <aside id="panel"></aside>
+    </div>
+
+    <script>
+      // ───────────────────────── knowledge (shared by everyone) ─────────────────────────
+      // kind: marker | cond | life | gene. Edges carry confidence, grade, mechanism, optional `when` (personal condition).
+      const K = {
+        nodes: [
+          {
+            id: "ferritin",
+            kind: "marker",
+            name: "Ferritin",
+            what: "Your iron store. Low long before haemoglobin drops.",
+          },
+          {
+            id: "hemoglobin",
+            kind: "marker",
+            name: "Haemoglobin",
+            what: "Oxygen carrier. Falls late in iron deficiency.",
+          },
+          {
+            id: "tsh",
+            kind: "marker",
+            name: "TSH",
+            what: "Thyroid drive from the brain. Rises when the thyroid slows.",
+          },
+          {
+            id: "tpo",
+            kind: "marker",
+            name: "Anti-TPO",
+            what: "Antibody against the thyroid. Positive years before TSH moves.",
+          },
+          {
+            id: "crp",
+            kind: "marker",
+            name: "hs-CRP",
+            what: "Inflammation. Also inflates ferritin.",
+          },
+          {
+            id: "b12",
+            kind: "marker",
+            name: "B12",
+            what: "Nerve and blood vitamin. Absorbed in the stomach with intrinsic factor.",
+          },
+          {
+            id: "ldl",
+            kind: "marker",
+            name: "LDL / ApoB",
+            what: "Cholesterol particles. More particles, more plaque, over years.",
+          },
+          {
+            id: "insulin",
+            kind: "marker",
+            name: "Fasting insulin",
+            what: "How hard the pancreas works to keep sugar normal.",
+          },
+          {
+            id: "tg",
+            kind: "marker",
+            name: "Triglycerides",
+            what: "Blood fat. Follows carbs, alcohol and sleep.",
+          },
+          {
+            id: "sleep",
+            kind: "life",
+            name: "Sleep",
+            what: "Hours and quality. Wearable later, questions now.",
+          },
+          {
+            id: "coffee",
+            kind: "life",
+            name: "Coffee after 15:00",
+            what: "Timing of the last coffee.",
+          },
+          {
+            id: "periods",
+            kind: "life",
+            name: "Heavy periods",
+            what: "The commonest iron loss in women.",
+          },
+          {
+            id: "dairy",
+            kind: "life",
+            name: "Daily dairy",
+            what: "Matters only with the lactase gene.",
+          },
+          {
+            id: "omad",
+            kind: "life",
+            name: "One meal a day (2019–2024)",
+            what: "A life event with dates. Explains old draws.",
+          },
+          {
+            id: "surgery",
+            kind: "life",
+            name: "Appendix removed 2016",
+            what: "Life event; tags the 2016 draw as post-surgical.",
+          },
+          {
+            id: "iron_def",
+            kind: "cond",
+            name: "Iron deficiency",
+            what: "Empty iron stores. Energy A · mood B · lifespan B.",
+          },
+          {
+            id: "gi_cause",
+            kind: "cond",
+            name: "Gut cause of iron loss",
+            what: "Coeliac, gastritis, H. pylori, a bleed. Only scored once iron deficiency is likely.",
+          },
+          {
+            id: "hashimoto",
+            kind: "cond",
+            name: "Hashimoto's",
+            what: "Autoimmune thyroid. Energy A · mood B · weight B.",
+          },
+          {
+            id: "ir",
+            kind: "cond",
+            name: "Insulin resistance",
+            what: "Lifespan A · weight A · energy B.",
+          },
+          {
+            id: "osa",
+            kind: "cond",
+            name: "Sleep apnoea",
+            what: "Lifespan A · energy A · mood B.",
+          },
+          {
+            id: "cyp1a2",
+            kind: "gene",
+            name: "CYP1A2 (caffeine)",
+            what: "Fast or slow caffeine metaboliser.",
+          },
+          {
+            id: "hla_dq",
+            kind: "gene",
+            name: "HLA-DQ2/DQ8",
+            what: "Needed for coeliac disease. Absent both: coeliac ruled out.",
+          },
+          {
+            id: "lct",
+            kind: "gene",
+            name: "LCT (lactase)",
+            what: "Adult lactose tolerance.",
+          },
+          {
+            id: "tcf7l2",
+            kind: "gene",
+            name: "TCF7L2",
+            what: "Type 2 diabetes risk allele.",
+          },
+        ],
+        edges: [
+          {
+            s: "periods",
+            t: "ferritin",
+            rel: "lowers",
+            conf: "established",
+            grade: "A",
+            mech: "Monthly blood loss outpaces absorption.",
+            when: { sex: "female" },
+          },
+          {
+            s: "crp",
+            t: "ferritin",
+            rel: "confounds",
+            conf: "established",
+            grade: "A",
+            mech: "Ferritin is an acute-phase protein; inflammation inflates it and hides deficiency.",
+            whenState: { crp: "high" },
+          },
+          {
+            s: "ferritin",
+            t: "iron_def",
+            rel: "indicates",
+            conf: "established",
+            grade: "A",
+            mech: "Ferritin < 30 is near-diagnostic (LR 20); < 15 LR 50.",
+          },
+          {
+            s: "hemoglobin",
+            t: "iron_def",
+            rel: "indicates",
+            conf: "established",
+            grade: "A",
+            mech: "Low haemoglobin with low ferritin: iron-deficiency anaemia.",
+          },
+          {
+            s: "iron_def",
+            t: "gi_cause",
+            rel: "raises",
+            conf: "established",
+            grade: "A",
+            mech: "In men and post-menopausal women iron loss is a gut question until proven otherwise.",
+            when: { sexNot: "female" },
+          },
+          {
+            s: "hla_dq",
+            t: "gi_cause",
+            rel: "lowers",
+            conf: "established",
+            grade: "A",
+            mech: "No DQ2/DQ8: coeliac disease essentially ruled out (LR 0.1).",
+            when: { gene: { hla_dq: "absent" } },
+          },
+          {
+            s: "b12",
+            t: "gi_cause",
+            rel: "indicates",
+            conf: "probable",
+            grade: "B",
+            mech: "Low B12 with low iron points at atrophic gastritis.",
+            whenState: { b12: "low" },
+          },
+          {
+            s: "tpo",
+            t: "hashimoto",
+            rel: "indicates",
+            conf: "established",
+            grade: "A",
+            mech: "Positive anti-TPO: LR 10.",
+          },
+          {
+            s: "tsh",
+            t: "hashimoto",
+            rel: "indicates",
+            conf: "established",
+            grade: "A",
+            mech: "TSH above 4.5: LR 3; 2.5–4.5: LR 1.5.",
+          },
+          {
+            s: "hashimoto",
+            t: "ferritin",
+            rel: "lowers",
+            conf: "probable",
+            grade: "B",
+            mech: "Hypothyroidism reduces iron absorption and is linked with autoimmune gastritis.",
+          },
+          {
+            s: "hashimoto",
+            t: "ldl",
+            rel: "raises",
+            conf: "established",
+            grade: "A",
+            mech: "Low thyroid hormone slows LDL receptor clearance.",
+          },
+          {
+            s: "sleep",
+            t: "insulin",
+            rel: "raises",
+            conf: "established",
+            grade: "A",
+            mech: "Short sleep raises next-day insulin resistance (Spiegel 1999).",
+            whenState: { sleep: "low" },
+          },
+          {
+            s: "sleep",
+            t: "tg",
+            rel: "raises",
+            conf: "probable",
+            grade: "B",
+            mech: "Short sleep raises triglycerides.",
+            whenState: { sleep: "low" },
+          },
+          {
+            s: "coffee",
+            t: "sleep",
+            rel: "lowers",
+            conf: "established",
+            grade: "B",
+            mech: "Caffeine 6 h before bed cuts sleep by ~1 h in slow metabolisers (Drake 2013).",
+            when: { gene: { cyp1a2: "slow" } },
+          },
+          {
+            s: "cyp1a2",
+            t: "sleep",
+            rel: "confounds",
+            conf: "probable",
+            grade: "B",
+            mech: "Fast metabolisers clear caffeine in ~2–3 h; the afternoon coffee edge is off for them.",
+            when: { gene: { cyp1a2: "fast" } },
+          },
+          {
+            s: "insulin",
+            t: "ir",
+            rel: "indicates",
+            conf: "established",
+            grade: "A",
+            mech: "Fasting insulin > 10: LR 3.",
+          },
+          {
+            s: "tg",
+            t: "ir",
+            rel: "indicates",
+            conf: "probable",
+            grade: "B",
+            mech: "TG/HDL > 2: LR 2.",
+          },
+          {
+            s: "tcf7l2",
+            t: "ir",
+            rel: "raises",
+            conf: "established",
+            grade: "A",
+            mech: "Risk allele: prior ×1.4 per T.",
+            when: { gene: { tcf7l2: "CT|TT" } },
+          },
+          {
+            s: "omad",
+            t: "tg",
+            rel: "lowers",
+            conf: "probable",
+            grade: "B",
+            mech: "Time-restricted eating lowered triglycerides in this person's draws 2019–2024.",
+            basis: "opinion",
+          },
+          {
+            s: "osa",
+            t: "insulin",
+            rel: "raises",
+            conf: "probable",
+            grade: "B",
+            mech: "Intermittent hypoxia raises insulin resistance.",
+          },
+          {
+            s: "osa",
+            t: "sleep",
+            rel: "lowers",
+            conf: "established",
+            grade: "A",
+            mech: "Fragmented sleep.",
+          },
+          {
+            s: "lct",
+            t: "dairy",
+            rel: "confounds",
+            conf: "established",
+            grade: "A",
+            mech: "Lactase non-persistent: daily dairy → bloating, bowel symptoms.",
+            when: { gene: { lct: "non-persistent" } },
+          },
+          {
+            s: "surgery",
+            t: "crp",
+            rel: "confounds",
+            conf: "established",
+            grade: "A",
+            mech: "Draws within 6 weeks of surgery carry an inflammation tag.",
+          },
+        ],
+        lens: {
+          // importance weight per condition per lens
+          iron_def: { lifespan: 1, energy: 3, mood: 2 },
+          gi_cause: { lifespan: 2, energy: 1, mood: 1 },
+          hashimoto: { lifespan: 1, energy: 3, mood: 2 },
+          ir: { lifespan: 3, energy: 2, mood: 1 },
+          osa: { lifespan: 3, energy: 3, mood: 2 },
+        },
+      };
+
+      // ───────────────────────── personas (what the brain has on this person) ─────────────────────────
+      const P = {
+        empty: {
+          label: "New account",
+          sex: "female",
+          age: 34,
+          state: {},
+          gene: {},
+          p: {
+            iron_def: 0.12,
+            gi_cause: 0.05,
+            hashimoto: 0.05,
+            ir: 0.3,
+            osa: 0.15,
+          },
+          story:
+            "No data yet. Everything sits at its population prior for a 34-year-old woman in Romania. Bubbles are small and grey; only the questions and the €40 starter panel matter.",
+          questions: [
+            "Tired most days for over a month?",
+            "Any heart attack, stroke, diabetes or thyroid disease in the family?",
+            "Periods regular, irregular, heavy or absent?",
+          ],
+          next: ["Starter panel: CBC, ferritin, TSH, glucose, lipids (≈ €40)"],
+        },
+        partial: {
+          label: "One €40 panel",
+          sex: "female",
+          age: 34,
+          state: {
+            ferritin: "low",
+            hemoglobin: "ok",
+            tsh: "amber",
+            crp: "ok",
+            tg: "ok",
+            insulin: "ok",
+            periods: "high",
+          },
+          gene: {},
+          p: {
+            iron_def: 0.93,
+            gi_cause: 0.08,
+            hashimoto: 0.31,
+            ir: 0.12,
+            osa: 0.1,
+          },
+          story:
+            "Ferritin 18, TSH 3.8, everything else fine; she said her periods are heavy and she is tired. Iron deficiency lights up red (confirmed); the periods bubble explains it, so the gut cause stays small. Thyroid is amber and pulls Hashimoto's to 31 %.",
+          questions: [
+            "Cold hands, hair thinning, constipation?",
+            "Mother or sister with thyroid disease?",
+          ],
+          next: [
+            "Anti-TPO antibodies (€12): moves Hashimoto's 31 % → 82 % if positive",
+            "Iron 60 mg alternate days, retest ferritin in 12 weeks",
+          ],
+        },
+        razvan: {
+          label: "Razvan (full)",
+          sex: "male",
+          age: 39,
+          state: {
+            ferritin: "ok",
+            hemoglobin: "ok",
+            tsh: "ok",
+            tpo: "ok",
+            crp: "ok",
+            b12: "amber",
+            ldl: "high",
+            insulin: "amber",
+            tg: "amber",
+            sleep: "low",
+            coffee: "yes",
+            omad: "event",
+            surgery: "event",
+          },
+          gene: {
+            cyp1a2: "fast",
+            hla_dq: "absent",
+            lct: "non-persistent",
+            tcf7l2: "CT",
+          },
+          p: {
+            iron_def: 0.02,
+            gi_cause: 0.01,
+            hashimoto: 0.02,
+            ir: 0.38,
+            osa: 0.3,
+          },
+          story:
+            "14 years of draws plus a genome. Insulin resistance is the biggest bubble (38 %, TCF7L2 CT adds prior, TG/HDL 2.1, but TG fell during the one-meal-a-day years). Coffee → sleep is drawn faint: fast metaboliser, the edge is off for him. HLA-DQ absent makes the coeliac branch of the gut cause grey and tiny.",
+          questions: [
+            "Home blood pressure, 7 mornings?",
+            "Waist at the navel?",
+            "Do you snore?",
+          ],
+          next: [
+            "Home BP log (free) then OGTT with insulin (€24) if still undecided",
+            "Resistance training twice a week; walk after the largest meal",
+          ],
+        },
+        ramona: {
+          label: "Ramona (full)",
+          sex: "female",
+          age: 36,
+          state: {
+            ferritin: "low",
+            hemoglobin: "ok",
+            tsh: "ok",
+            tpo: "ok",
+            crp: "ok",
+            b12: "ok",
+            ldl: "amber",
+            insulin: "ok",
+            tg: "ok",
+            periods: "high",
+          },
+          gene: {},
+          p: {
+            iron_def: 0.93,
+            gi_cause: 0.2,
+            hashimoto: 0.35,
+            ir: 0.1,
+            osa: 0.05,
+          },
+          story:
+            "Ferritin 6–14 for eight years, haemoglobin fine, anti-Tg positive in 2024 with TPO negative. Iron deficiency red; the gut cause is 20 % and waits on a coeliac test; Hashimoto's 35 % on the anti-Tg alone. Once her genome is uploaded, an absent HLA-DQ would shrink the gut bubble further.",
+          questions: [
+            "Cycle day at the last draw?",
+            "Bloating or diarrhoea most weeks?",
+          ],
+          next: [
+            "tTG-IgA + total IgA (€15), H. pylori stool antigen (€10)",
+            "Anti-Tg repeat + ultrasound once",
+          ],
+        },
+      };
+
+      // ───────────────────────── personal evaluation ─────────────────────────
+      const stateOf = (per, id) =>
+        per.state[id] ?? (per.gene[id] ? "gene" : "unknown");
+      function edgeOn(per, e) {
+        if (e.when?.sex && per.sex !== e.when.sex) return false;
+        if (e.when?.sexNot && per.sex === e.when.sexNot) return false;
+        if (e.when?.gene) {
+          const [g, v] = Object.entries(e.when.gene)[0];
+          if (!per.gene[g]) return null;
+          return new RegExp(`^(${v})$`).test(per.gene[g]);
+        }
+        if (e.whenState) {
+          const [m, v] = Object.entries(e.whenState)[0];
+          if (!per.state[m]) return null;
+          return (
+            per.state[m] === v || (v === "high" && per.state[m] === "amber")
+          );
+        }
+        return true;
+      }
+      function importance(per, n, lens) {
+        if (n.kind === "cond")
+          return 0.15 + per.p[n.id] * (K.lens[n.id]?.[lens] ?? 1) * 0.5;
+        const s = stateOf(per, n.id);
+        const base =
+          {
+            high: 0.55,
+            low: 0.55,
+            amber: 0.4,
+            ok: 0.2,
+            yes: 0.35,
+            event: 0.3,
+            gene: 0.3,
+            unknown: 0.12,
+          }[s] ?? 0.15;
+        // pull toward the conditions it touches
+        const touch = K.edges
+          .filter((e) => e.s === n.id || e.t === n.id)
+          .map((e) => K.nodes.find((x) => x.id === (e.s === n.id ? e.t : e.s)))
+          .filter((x) => x && x.kind === "cond")
+          .reduce((m, c) => Math.max(m, per.p[c.id]), 0);
+        return base + touch * 0.4;
+      }
+      const ringColor = (s) =>
+        ({
+          high: "var(--bad)",
+          low: "var(--bad)",
+          amber: "var(--warn)",
+          ok: "var(--ok)",
+          yes: "var(--warn)",
+          event: "var(--life)",
+          gene: "var(--gene)",
+          unknown: "#3a3a3a",
+        })[s] ?? "#3a3a3a";
+      const fillColor = (k) =>
+        ({
+          marker: "#1f1f1f",
+          cond: "#2a1a0e",
+          life: "#2a1020",
+          gene: "#0e2230",
+        })[k];
+      const kindStroke = (k) =>
+        ({
+          marker: "var(--fg)",
+          cond: "var(--cond)",
+          life: "var(--life)",
+          gene: "var(--gene)",
+        })[k];
+
+      // ───────────────────────── render ─────────────────────────
+      let who = "razvan",
+        lens = "lifespan",
+        selected = null,
+        sim,
+        zoomK = 1;
+      const svg = d3.select("#svg");
+      const root = svg.append("g");
+      const gl = root.append("g"),
+        gn = root.append("g");
+      svg.call(
+        d3
+          .zoom()
+          .scaleExtent([0.4, 3])
+          .on("zoom", (ev) => {
+            root.attr("transform", ev.transform);
+          }),
+      );
+      const whoBox = document.getElementById("who");
+      Object.entries(P).forEach(([k, p]) => {
+        const b = document.createElement("button");
+        b.textContent = p.label;
+        b.dataset.w = k;
+        if (k === who) b.classList.add("on");
+        b.onclick = () => {
+          who = k;
+          selected = null;
+          [...whoBox.children].forEach((x) =>
+            x.classList.toggle("on", x === b),
+          );
+          draw();
+        };
+        whoBox.appendChild(b);
+      });
+      document.querySelectorAll("#lens button").forEach(
+        (b) =>
+          (b.onclick = () => {
+            lens = b.dataset.l;
+            document
+              .querySelectorAll("#lens button")
+              .forEach((x) => x.classList.toggle("on", x === b));
+            draw();
+          }),
+      );
+
+      function draw() {
+        const per = P[who];
+        const W = document.getElementById("stage").clientWidth,
+          H = document.getElementById("stage").clientHeight;
+        const nodes = K.nodes.map((n) => ({
+          ...n,
+          imp: importance(per, n, lens),
+          st: stateOf(per, n.id),
+        }));
+        const links = K.edges.map((e) => ({
+          ...e,
+          on: edgeOn(per, e),
+          source: e.s,
+          target: e.t,
+        }));
+        const r = (n) => 8 + n.imp * 34;
+        if (sim) sim.stop();
+        sim = d3
+          .forceSimulation(nodes)
+          .force(
+            "link",
+            d3
+              .forceLink(links)
+              .id((d) => d.id)
+              .distance(
+                (l) => 90 + (1 - Math.max(l.source.imp, l.target.imp)) * 60,
+              )
+              .strength((l) => (l.on === false ? 0.15 : 0.6)),
+          )
+          .force(
+            "charge",
+            d3.forceManyBody().strength((d) => -120 - d.imp * 300),
+          )
+          .force("center", d3.forceCenter(W / 2, H / 2))
+          .force(
+            "collide",
+            d3.forceCollide((d) => r(d) + 14),
+          );
+        const dash = (c) =>
+          c === "established" ? null : c === "probable" ? "6 4" : "2 4";
+        const lcol = (l) =>
+          l.rel === "raises" || l.rel === "worsens"
+            ? "var(--bad)"
+            : l.rel === "lowers" || l.rel === "treats"
+              ? "var(--ok)"
+              : l.rel === "indicates"
+                ? "var(--accent)"
+                : "var(--dim)";
+        const L = gl
+          .selectAll("path")
+          .data(links, (d) => d.s + d.t + d.rel)
+          .join("path")
+          .attr("class", (d) => "link" + (d.on === false ? " off" : ""))
+          .attr("stroke", lcol)
+          .attr("stroke-width", (d) =>
+            d.grade === "A" ? 2.2 : d.grade === "B" ? 1.6 : 1,
+          )
+          .attr("stroke-dasharray", (d) => dash(d.conf))
+          .attr("opacity", (d) => (d.on === null ? 0.35 : 1));
+        const N = gn
+          .selectAll("g.node")
+          .data(nodes, (d) => d.id)
+          .join((enter) => {
+            const g = enter.append("g").attr("class", "node");
+            g.append("circle");
+            g.append("text").attr("text-anchor", "middle");
+            return g;
+          });
+        N.select("circle")
+          .attr("r", r)
+          .attr("fill", (d) => fillColor(d.kind))
+          .attr("stroke", (d) => ringColor(d.st))
+          .attr("stroke-width", (d) => (d.st === "unknown" ? 1.5 : 3.5));
+        N.select("text")
+          .text((d) =>
+            d.name.length > 18 ? d.name.slice(0, 17) + "…" : d.name,
+          )
+          .attr("dy", (d) => r(d) + 13);
+        N.classed(
+          "dim",
+          (d) =>
+            selected &&
+            selected !== d.id &&
+            !links.some(
+              (l) =>
+                (l.source.id === d.id && l.target.id === selected) ||
+                (l.target.id === d.id && l.source.id === selected),
+            ),
+        );
+        N.on("click", (ev, d) => {
+          selected = selected === d.id ? null : d.id;
+          panel();
+          draw();
+        }).call(
+          d3
+            .drag()
+            .on("start", (ev, d) => {
+              sim.alphaTarget(0.3).restart();
+              d.fx = d.x;
+              d.fy = d.y;
+            })
+            .on("drag", (ev, d) => {
+              d.fx = ev.x;
+              d.fy = ev.y;
+            })
+            .on("end", (ev, d) => {
+              sim.alphaTarget(0);
+            }),
+        );
+        sim.on("tick", () => {
+          L.attr("d", (l) => {
+            const dx = l.target.x - l.source.x,
+              dy = l.target.y - l.source.y,
+              dr = Math.hypot(dx, dy) * 1.6;
+            return `M${l.source.x},${l.source.y}A${dr},${dr} 0 0,1 ${l.target.x},${l.target.y}`;
+          });
+          N.attr("transform", (d) => `translate(${d.x},${d.y})`);
+        });
+        document.getElementById("hint").textContent =
+          `${per.label}: ${nodes.filter((n) => n.st !== "unknown").length} of ${nodes.length} nodes known · ${links.filter((l) => l.on === true).length} edges active for this person · ${links.filter((l) => l.on === false).length} not for them`;
+        panel();
+      }
+
+      function panel() {
+        const per = P[who];
+        const el = document.getElementById("panel");
+        const chip = (t, c = "") => `<span class="chip ${c}">${t}</span>`;
+        if (!selected) {
+          const conds = Object.entries(per.p)
+            .map(([id, p]) => ({
+              n: K.nodes.find((x) => x.id === id),
+              p,
+              w: K.lens[id]?.[lens] ?? 1,
+            }))
+            .sort((a, b) => b.p * b.w - a.p * a.w);
+          el.innerHTML = `<h2>${per.label}</h2><div class="mono">${per.sex}, ${per.age} · lens ${lens}</div>
+      <div class="card" style="margin-top:12px"><p class="story" style="margin:0">${per.story}</p></div>
+      <div class="card"><h3>Conditions, ranked for this person</h3>${conds.map((c) => `<div class="edge" style="display:flex;justify-content:space-between;align-items:center"><span>${c.n.name}</span><span><span class="big" style="font-size:22px">${Math.round(c.p * 100)}%</span> ${chip(c.p >= 0.9 ? "confirmed" : c.p >= 0.6 ? "likely" : c.p >= 0.25 ? "possible" : c.p >= 0.05 ? "unlikely" : "ruled out", c.p >= 0.6 ? "bad" : c.p >= 0.25 ? "warn" : "ok")}</span></div>`).join("")}</div>
+      <div class="card"><h3>Questions that change the picture</h3>${per.questions.map((q) => `<div class="q">${q} <span class="btn">Answer</span></div>`).join("")}</div>
+      <div class="card"><h3>Next</h3>${per.next.map((n) => `<div class="edge">${n}</div>`).join("")}</div>`;
+          return;
+        }
+        const n = K.nodes.find((x) => x.id === selected);
+        const st = stateOf(per, n.id);
+        const inc = K.edges.filter((e) => e.t === n.id),
+          out = K.edges.filter((e) => e.s === n.id);
+        const row = (e, other) => {
+          const on = edgeOn(per, e);
+          const o = K.nodes.find((x) => x.id === other);
+          return `<div class="edge ${on === false ? "off" : ""}"><div style="display:flex;justify-content:space-between;gap:8px"><span>${e.rel === "raises" || e.rel === "worsens" ? "▲" : e.rel === "lowers" || e.rel === "treats" ? "▼" : e.rel === "indicates" ? "→" : "≈"} <b>${o.name}</b> <span class="mono">${e.rel}</span></span><span>${chip(e.conf)}${chip("grade " + e.grade)}${e.basis ? chip(e.basis, "acc") : ""}</span></div><div class="m">${e.mech}</div>${on === false ? `<div class="m" style="color:var(--dim)">not for you: ${JSON.stringify(e.when ?? e.whenState)}</div>` : on === null ? `<div class="m" style="color:var(--warn)">unknown: needs ${Object.keys(e.when?.gene ?? e.whenState ?? {}).join(", ")}</div>` : e.when || e.whenState ? `<div class="m" style="color:var(--ok)">for you: ${JSON.stringify(e.when ?? e.whenState)}</div>` : ""}</div>`;
+        };
+        el.innerHTML = `<a href="#" onclick="selected=null;panel();draw();return false" class="mono">← ${per.label}</a>
+    <h2 style="margin-top:6px">${n.name} ${chip(n.kind)} ${st !== "unknown" ? chip(st, st === "ok" ? "ok" : st === "amber" ? "warn" : st === "high" || st === "low" ? "bad" : st === "gene" ? "gene" : "") : chip("not measured")}</h2>
+    <p class="story" style="margin:4px 0 10px">${n.what}</p>
+    ${
+      n.kind === "cond"
+        ? `<div class="card"><div class="big">${Math.round(per.p[n.id] * 100)}%<small>for ${per.label}</small></div><div class="mono" style="margin-top:6px">lens weights · ${Object.entries(
+            K.lens[n.id],
+          )
+            .map(([l, w]) => `${l} ${w}`)
+            .join(" · ")}</div></div>`
+        : ""
+    }
+    ${st === "gene" ? `<div class="card"><h3>Your genotype</h3><b>${per.gene[n.id]}</b></div>` : ""}
+    <div class="card"><h3>What pushes this</h3>${inc.length ? inc.map((e) => row(e, e.s)).join("") : "<span class='mono'>nothing known</span>"}</div>
+    <div class="card"><h3>What this affects</h3>${out.length ? out.map((e) => row(e, e.t)).join("") : "<span class='mono'>nothing known</span>"}</div>
+    <div class="card"><h3>Not right?</h3><span class="btn">Wrong value</span><span class="btn">This changed</span><span class="btn">I was wrong</span></div>`;
+      }
+      draw();
+      addEventListener("resize", draw);
+    </script>
+  </body>
+</html>
