@@ -65,7 +65,10 @@ step also runs over `hkb_features`.
 
 ## In progress
 
-Nothing. Next up: phase 16.
+**Phase 16: the picture** (`2026-08-30-phase16-picture-spec.md`): graph
+in Postgres with seed, Monarch phenotype and gene edges, mechanism-edge
+extraction from reviews with `when_` clauses, personal conditional edges
+(genome, timing facts), `/graph/[node]` pathograph.
 
 ## Next
 
