@@ -48,7 +48,6 @@ app `apps/simple`. Detailed specs live next to this file as
 | 12    | Home as cockpit + conclusion ledger, belief snapshots                                                        | `91c89cb`                       |
 | 13    | Genome parser (12 genes), any-document extraction with review, life_events table                             | `1d807c8`                       |
 | 14    | Research intake (Europe PMC, DOI-verified), importer fix, rare-disease proposals rejected                    | `2e7954d`                       |
-
 | 15 | Autonomous knowledge (grades A–E, policy, pooling, minting, interventions and horizon, schedule, `/hkb` window, System nav) and fact history (changed vs corrected, `/history`, event confounders) | `ed91fac` |
 
 Findings from phase 15 worth remembering: diagnostic-accuracy searches
