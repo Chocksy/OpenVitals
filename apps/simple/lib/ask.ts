@@ -11,11 +11,14 @@ import {
   queueFactQuestions,
   type FactQuestion,
 } from "./coverage";
+import { BEDTIME_FACT, evaluateWhen } from "./graph-state";
 import { loadCatalog } from "./hkb";
+import { CODE_GRAPH, loadGraph, type Graph } from "./kg";
 import { scoreHypotheses } from "./hypotheses";
 import { nextMoves } from "./infogain";
+import { matchPatterns } from "./patterns";
 import { SYMPTOMS } from "./symptoms";
-import { PROFILE_QUESTIONS, type Sex } from "./vectors";
+import { CONDITIONAL_FACTS, PROFILE_QUESTIONS, type Sex } from "./vectors";
 import type { ModelInput } from "./coverage";
 
 const applies = (
@@ -70,12 +73,60 @@ export async function symptomAsks(m: ModelInput): Promise<FactQuestion[]> {
 }
 
 /**
+ * The timing and habit answers a conditional edge is waiting on.
+ *
+ * An edge is worth asking about when everything it reads that the person
+ * cannot answer already holds: the genotype is called, the pattern matches,
+ * the sex is right. Then the one missing answer is the whole difference
+ * between "coffee costs you an hour of sleep" and silence. Nothing else in the
+ * interview works this way, which is why these four facts are not vectors.
+ */
+export function conditionalAsks(
+  m: ModelInput,
+  graph: Graph = CODE_GRAPH,
+): FactQuestion[] {
+  const matched = new Set(
+    matchPatterns(m)
+      .filter((p) => p.matched)
+      .map((p) => p.pattern.id),
+  );
+  const out: FactQuestion[] = [];
+
+  for (const edge of graph.edges) {
+    const w = edge.when;
+    if (!w) continue;
+    const keys = [
+      w.fact?.key,
+      w.hoursBefore?.eventFact,
+      w.hoursBefore ? BEDTIME_FACT : undefined,
+    ].filter((k): k is string => !!k && CONDITIONAL_FACTS.has(k));
+    const wanted = keys.filter((k) => !answered(m, k));
+    if (!wanted.length) continue;
+
+    // Everything except the answers themselves has to hold already.
+    const { fact: _f, hoursBefore: _h, ...rest } = w;
+    if (!evaluateWhen({ ...edge, when: rest }, m, matched, graph.nodes).holds)
+      continue;
+
+    for (const key of wanted)
+      if (PROFILE_QUESTIONS[key] && !out.some((q) => q.key === key))
+        out.push({ key, ...PROFILE_QUESTIONS[key]! });
+  }
+  return out;
+}
+
+/**
  * The curator, `/plan` and `/graph` all call this. Interview first, then the
- * symptom items the differential is actually waiting on.
+ * symptom items the differential is actually waiting on, then the answers a
+ * conditional edge needs.
  */
 export async function queueQuestions(userId: string): Promise<number> {
   const m = await buildModelInput(userId);
   const interview = await queueFactQuestions(userId, profileQuestions(m));
   const symptoms = await queueFactQuestions(userId, await symptomAsks(m));
-  return interview + symptoms;
+  const conditional = await queueFactQuestions(
+    userId,
+    conditionalAsks(m, await loadGraph()),
+  );
+  return interview + symptoms + conditional;
 }

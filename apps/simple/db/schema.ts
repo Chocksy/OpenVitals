@@ -11,7 +11,9 @@ import {
   boolean,
   primaryKey,
   unique,
+  uniqueIndex,
 } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
 import { users } from "./auth-schema";
 
 export const metrics = pgTable("metrics", {
@@ -896,3 +898,87 @@ export type HkbPriorModifier = typeof hkbPriorModifiers.$inferSelect;
 export type HkbEvidence = typeof hkbEvidence.$inferSelect;
 export type HkbTest = typeof hkbTests.$inferSelect;
 export type HkbConditionTest = typeof hkbConditionTests.$inferSelect;
+
+/* ── the knowledge graph (phase 16) ───────────────────────────────────── */
+
+/**
+ * One node of the knowledge graph. `lib/graph.ts` seeds the hand-written ones;
+ * the Monarch importer adds `phenotype` and `gene` nodes; a research run that
+ * mints a feature adds a `metric` node. Nothing is ever deleted here.
+ */
+export const kgNodes = pgTable("kg_nodes", {
+  /** "metric:tsh", "fact:genome:CYP1A2", "phenotype:HP:0002870". */
+  id: text("id").primaryKey(),
+  /** metric | system | condition | intervention | behavior | test | risk | fact | gene | phenotype */
+  kind: text("kind").notNull(),
+  name: text("name").notNull(),
+  systemId: text("system_id"),
+  codes: jsonb("codes").$type<string[]>(),
+  note: text("note"),
+  /** seed | monarch | research | minted */
+  source: text("source").default("seed").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+});
+
+/** What one node does to another, graded and sourced like everything else. */
+export const kgEdges = pgTable(
+  "kg_edges",
+  {
+    id: text("id").primaryKey(),
+    fromId: text("from_id")
+      .notNull()
+      .references(() => kgNodes.id, { onDelete: "cascade" }),
+    toId: text("to_id")
+      .notNull()
+      .references(() => kgNodes.id, { onDelete: "cascade" }),
+    /** raises | lowers | confounds | indicates | treats | worsens | requires_test | modifies_target */
+    relation: text("relation").notNull(),
+    strength: integer("strength").notNull(),
+    /** established | probable | speculative */
+    confidence: text("confidence").notNull(),
+    /** A–E, the same ladder as `hkb_evidence`. */
+    grade: text("grade").notNull(),
+    /** science | opinion | anecdotal */
+    basis: text("basis").notNull(),
+    /**
+     * When this edge applies to a person at all: a side, a sex, a pattern, a
+     * profile fact, a genotype, or a timing gap. `lib/graph-state.ts` reads it.
+     * `when` is reserved in SQL, hence the trailing underscore.
+     */
+    when_: jsonb("when_").$type<Record<string, unknown>>(),
+    mechanism: text("mechanism").notNull(),
+    evidence: jsonb("evidence").$type<KgEvidence[]>().notNull(),
+    /** seed | pattern | monarch | research */
+    source: text("source").default("seed").notNull(),
+    status: text("status").default("active").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+  },
+  (t) => [
+    // One edge per (from, to, relation, when). A null `when_` is the
+    // unconditional edge, so it has to compare equal to itself.
+    uniqueIndex("kg_edges_key").on(
+      t.fromId,
+      t.toId,
+      t.relation,
+      sql`coalesce(${t.when_}::text, '')`,
+    ),
+    index("kg_edges_from_idx").on(t.fromId),
+    index("kg_edges_to_idx").on(t.toId),
+  ],
+);
+
+/** One named source behind an edge, with the quote when a paper gave one. */
+export interface KgEvidence {
+  kind: "guideline" | "meta" | "rct" | "observational" | "anecdotal";
+  title: string;
+  doi?: string;
+  year?: number;
+  source?: string;
+  /** Verbatim from the abstract, when the LLM extracted this edge. */
+  quote?: string;
+  /** The effect size as the paper prints it, e.g. "+0.3 mmol/L per 1 h". */
+  effect?: string;
+}
+
+export type KgNode = typeof kgNodes.$inferSelect;
+export type KgEdge = typeof kgEdges.$inferSelect;

@@ -18,7 +18,9 @@ import {
   featuresFor,
   researchCondition,
   researchInterventions,
+  researchMechanisms,
   saveInterventions,
+  saveMechanisms,
   saveProposals,
   thinnestConditions,
   TOKEN_BUDGET,
@@ -30,7 +32,26 @@ export interface ResearchRunRow extends RunCounts {
   conditionId: string;
   name: string;
   written: number;
+  /** Edges extracted, and edges that were new to `kg_edges`. */
+  mechanisms: number;
+  mechanismsNew: number;
 }
+
+/** A skipped diagnostic-accuracy pass still has to report zeroes. */
+const EMPTY_COUNTS = (): RunCounts => ({
+  hits: 0,
+  papers: 0,
+  verified: 0,
+  extracted: 0,
+  proposed: 0,
+  rejected: 0,
+  needsLook: 0,
+  minted: 0,
+  interventions: 0,
+  skipped: 0,
+  unmapped: 0,
+  tokens: 0,
+});
 
 /** The conditions asked for, or the ten with the least evidence behind them. */
 async function conditionsOf(ids: string[]): Promise<ConditionRef[]> {
@@ -55,12 +76,18 @@ export async function researchRun({
   maxPapers = 20,
   modelId,
   interventions = true,
+  mechanisms = true,
+  evidence = true,
 }: {
   conditionIds?: string[];
   maxPapers?: number;
   modelId?: string;
   /** The two "what might help" searches. Off for a diagnostics-only run. */
   interventions?: boolean;
+  /** The third search: what moves what, into `kg_edges`. */
+  mechanisms?: boolean;
+  /** The diagnostic-accuracy search. Off for a mechanisms-only run. */
+  evidence?: boolean;
 } = {}): Promise<{ rows: ResearchRunRow[]; tokens: number; ms: number }> {
   const started = Date.now();
   const conditions = await conditionsOf(conditionIds);
@@ -74,26 +101,22 @@ export async function researchRun({
       console.log(`[hkb:research] ${condition.id}: no features, skipped`);
       continue;
     }
-    const { rows: proposals, mints, counts } = await researchCondition(
-      condition,
-      features,
-      {
-        maxPapers,
-        modelId,
-        spent,
-        onEstimate: (tokens, papers) =>
-          console.log(
-            `[hkb:research] ${condition.id}: ${papers} verified papers, ~${tokens} tokens ` +
-              `(${spent + tokens} of ${TOKEN_BUDGET} used after this)`,
-          ),
-      },
-    );
+    const { rows: proposals, mints, counts } = evidence
+      ? await researchCondition(condition, features, {
+          maxPapers,
+          modelId,
+          spent,
+          onEstimate: (tokens, papers) =>
+            console.log(
+              `[hkb:research] ${condition.id}: ${papers} verified papers, ~${tokens} tokens ` +
+                `(${spent + tokens} of ${TOKEN_BUDGET} used after this)`,
+            ),
+        })
+      : { rows: [], mints: [], counts: EMPTY_COUNTS() };
     spent += counts.tokens;
-    const { written, minted } = await saveProposals(
-      condition.id,
-      proposals,
-      mints,
-    );
+    const { written, minted } = evidence
+      ? await saveProposals(condition.id, proposals, mints)
+      : { written: 0, minted: 0 };
 
     let helped = 0;
     if (interventions) {
@@ -108,11 +131,31 @@ export async function researchRun({
     counts.interventions = helped;
     counts.minted = minted;
 
+    let edges = 0;
+    let edgesNew = 0;
+    if (mechanisms) {
+      const found = await researchMechanisms(condition, features, {
+        maxPapers,
+        modelId,
+      });
+      spent += found.counts.tokens;
+      counts.tokens += found.counts.tokens;
+      edges = found.rows.length;
+      edgesNew = await saveMechanisms(found.rows);
+      console.log(
+        `[hkb:research] ${condition.id}: ${found.counts.verified} mechanism papers, ` +
+          `${found.counts.extracted} claims, ${edges} edges (${found.counts.parsed} with a ` +
+          `parsed when, ${found.counts.unresolved} endpoints unresolved), ${edgesNew} new`,
+      );
+    }
+
     rows.push({
       ...counts,
       conditionId: condition.id,
       name: condition.name,
       written,
+      mechanisms: edges,
+      mechanismsNew: edgesNew,
     });
 
     await recordRun(
@@ -127,6 +170,8 @@ export async function researchRun({
         needsLook: counts.needsLook,
         minted,
         interventions: helped,
+        mechanisms: edges,
+        mechanismsNew: edgesNew,
         written,
         tokens: counts.tokens,
       },
@@ -134,7 +179,7 @@ export async function researchRun({
         `${counts.proposed} proposals (${written} new, ${counts.rejected} rejected by policy, ` +
         `${counts.needsLook} flagged, ${minted} features minted, ${counts.unmapped} unmapped, ` +
         `${counts.skipped} without usable numbers), ${helped} interventions, ` +
-        `${took(Date.now() - at)}`,
+        `${edges} mechanism edges (${edgesNew} new), ${took(Date.now() - at)}`,
     );
 
     if (spent >= TOKEN_BUDGET) {
@@ -164,12 +209,21 @@ if (
     (a, i) => !a.startsWith("--") && i !== flag + 1,
   );
   const interventions = !argv.includes("--no-interventions");
+  // `--mechanisms a b` is the mechanism pass on its own, over those conditions.
+  const onlyMechanisms = argv.includes("--mechanisms");
+  const mechanisms = onlyMechanisms || !argv.includes("--no-mechanisms");
 
   const { pool } = await import("@/db");
-  researchRun({ conditionIds, maxPapers, interventions })
+  researchRun({
+    conditionIds,
+    maxPapers,
+    interventions: onlyMechanisms ? false : interventions,
+    mechanisms,
+    evidence: !onlyMechanisms,
+  })
     .then(({ rows, tokens, ms }) => {
       console.log(
-        "\ncondition            hits  verified  extracted  proposed  new  rej  look  mint  interv  tokens",
+        "\ncondition            hits  verified  extracted  proposed  new  rej  look  mint  interv  mech  tokens",
       );
       for (const r of rows)
         console.log(
@@ -178,7 +232,7 @@ if (
             `${String(r.proposed).padStart(9)} ${String(r.written).padStart(4)} ` +
             `${String(r.rejected).padStart(4)} ${String(r.needsLook).padStart(5)} ` +
             `${String(r.minted).padStart(5)} ${String(r.interventions).padStart(7)} ` +
-            `${String(r.tokens).padStart(7)}`,
+            `${String(r.mechanisms).padStart(5)} ${String(r.tokens).padStart(7)}`,
         );
       console.log(`\ntotal ${tokens} tokens in ${took(ms)}`);
     })

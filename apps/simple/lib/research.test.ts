@@ -6,9 +6,15 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
 import { readFileSync } from "node:fs";
 import path from "node:path";
+import { SYSTEMS, type GraphNode } from "./graph";
 import { FIXTURES } from "./hkb-import";
 import {
   buildQueries,
+  mechanismQueries,
+  parseWhen,
+  researchMechanisms,
+  strengthOf,
+  toMechanismEdges,
   cleanTitle,
   conditionOn,
   dedupe,
@@ -30,6 +36,8 @@ import {
   type Extractor,
   type Feature,
   type Finding,
+  type MechanismExtractor,
+  type MechanismFinding,
   type Paper,
 } from "./research";
 
@@ -645,5 +653,224 @@ describe("one condition, end to end", () => {
     expect(rows).toHaveLength(0);
     expect(counts.verified).toBe(2);
     expect(estimateTokens([], FEATURES)).toBe(0);
+  });
+});
+
+/* ── mechanism edges (phase 16) ───────────────────────────────────────── */
+
+const GRAPH_NODES: GraphNode[] = [
+  { id: "metric:sleep_duration", kind: "metric", name: "Sleep duration" },
+  { id: "metric:insulin", kind: "metric", name: "Insulin" },
+  { id: "metric:triglycerides", kind: "metric", name: "Triglycerides" },
+  { id: "behavior:coffee_after_15", kind: "behavior", name: "Coffee after 15:00" },
+  {
+    id: "fact:genome:CYP1A2",
+    kind: "gene",
+    name: "CYP1A2 (Caffeine metabolism)",
+    codes: ["caffeine_slow_metaboliser"],
+  },
+];
+
+const PAPER: Paper = {
+  pmid: "31111111",
+  doi: "10.1016/j.metabol.2018.02.010",
+  title: "Sleep influences on obesity, insulin resistance and diabetes risk",
+  journal: "Metabolism",
+  year: 2018,
+  authors: "Reutrakul S, Van Cauter E.",
+  citedBy: 640,
+  url: "https://doi.org/10.1016/j.metabol.2018.02.010",
+  abstract: "…",
+  retracted: false,
+};
+
+const mechanism = (over: Partial<MechanismFinding> = {}): MechanismFinding => ({
+  paperIndex: 1,
+  from: "Sleep duration",
+  to: "Insulin",
+  relation: "raises",
+  effect: "+0.3 mmol/L per 1 h less sleep",
+  condition: null,
+  population: "healthy adults",
+  studyType: "meta",
+  quote: "each hour of lost sleep raised fasting insulin by 0.3 mmol/L",
+  ...over,
+});
+
+describe("mechanismQueries", () => {
+  const queries = mechanismQueries("Type 2 diabetes", FEATURES, new Date("2026-08-30"));
+
+  it("asks one query per system plus one per feature", () => {
+    expect(queries).toHaveLength(SYSTEMS.length + 3);
+  });
+
+  it("carries the verbs, the review filter and a 15-year window", () => {
+    expect(queries[0]).toContain('"increases" OR "decreases"');
+    expect(queries[0]).toContain('PUB_TYPE:"review"');
+    expect(queries[0]).toContain("FIRST_PDATE:[2011-01-01 TO 2026-12-31]");
+  });
+
+  it("names the headline markers of a system, not their codes", () => {
+    expect(queries[0]).toContain('"ApoB"');
+    expect(queries[0]).not.toContain("apolipoprotein_b");
+  });
+});
+
+describe("parseWhen", () => {
+  it("reads a genotype when exactly one gene is in play", () => {
+    expect(parseWhen("only in fast metabolisers", ["CYP1A2"])).toEqual({
+      genome: { gene: "CYP1A2", genotype: "fast" },
+    });
+  });
+
+  it("reads a timing gap and the event it belongs to", () => {
+    expect(parseWhen("only when the coffee is taken within 6 h of bedtime")).toEqual({
+      hoursBefore: { eventFact: "coffee_last_hour", threshold: 6 },
+    });
+    expect(parseWhen("only when the meal is within 3 hours of going to bed")).toEqual({
+      hoursBefore: { eventFact: "last_meal_hour", threshold: 3 },
+    });
+  });
+
+  it("reads sex and age", () => {
+    expect(parseWhen("in women only")).toEqual({ sex: "female" });
+    expect(parseWhen("only in adults over 65")).toEqual({ age: { min: 65 } });
+  });
+
+  it("gives up rather than guessing", () => {
+    expect(parseWhen("in people with a high dietary polyphenol intake")).toBe(null);
+    expect(parseWhen("only in fast metabolisers", ["CYP1A2", "CYP2C19"])).toBe(null);
+    expect(parseWhen(null)).toBe(null);
+  });
+});
+
+describe("strengthOf", () => {
+  it("reads the word the paper used", () => {
+    expect(strengthOf("a large effect")).toBe(3);
+    expect(strengthOf("a moderate reduction")).toBe(2);
+    expect(strengthOf("a small but significant change")).toBe(1);
+  });
+
+  it("reads a ratio when there is no word", () => {
+    expect(strengthOf("OR 2.4")).toBe(3);
+    expect(strengthOf("HR 1.6")).toBe(2);
+    expect(strengthOf("RR 1.1")).toBe(1);
+  });
+
+  it("never invents a strength out of nothing", () => {
+    expect(strengthOf(null)).toBe(1);
+    expect(strengthOf("")).toBe(1);
+  });
+});
+
+describe("toMechanismEdges", () => {
+  it("writes one graded, sourced edge with the quote on it", () => {
+    const { rows } = toMechanismEdges(GRAPH_NODES, [PAPER], [mechanism()]);
+    expect(rows).toHaveLength(1);
+    const row = rows[0]!;
+    expect(row.fromId).toBe("metric:sleep_duration");
+    expect(row.toId).toBe("metric:insulin");
+    expect(row.relation).toBe("raises");
+    expect(row.grade).toBe("A");
+    expect(row.confidence).toBe("established");
+    expect(row.when_).toBe(null);
+    expect(row.source).toBe("research");
+    expect(row.evidence[0]!.quote).toContain("0.3 mmol/L");
+    expect(row.evidence[0]!.doi).toBe(PAPER.doi);
+    expect(row.evidence[0]!.effect).toBe("+0.3 mmol/L per 1 h less sleep");
+  });
+
+  it("turns a parseable condition into a when clause", () => {
+    const { rows, parsed } = toMechanismEdges(
+      GRAPH_NODES,
+      [PAPER],
+      [
+        mechanism({
+          from: "Coffee after 15:00",
+          to: "Sleep duration",
+          relation: "lowers",
+          condition: "only in CYP1A2 slow metabolisers",
+        }),
+      ],
+    );
+    expect(parsed).toBe(1);
+    expect(rows[0]!.when_).toEqual({
+      genome: { gene: "CYP1A2", genotype: "slow" },
+    });
+    expect(rows[0]!.confidence).toBe("established");
+  });
+
+  it("keeps an unparseable condition as text and drops to speculative", () => {
+    const { rows, parsed } = toMechanismEdges(
+      GRAPH_NODES,
+      [PAPER],
+      [mechanism({ condition: "only in people on a low-polyphenol diet" })],
+    );
+    expect(parsed).toBe(0);
+    expect(rows[0]!.when_).toBe(null);
+    expect(rows[0]!.confidence).toBe("speculative");
+    expect(rows[0]!.mechanism).toContain("low-polyphenol diet");
+    expect(rows[0]!.mechanism).toContain("stays speculative");
+  });
+
+  it("takes the strength from the effect size and nowhere else", () => {
+    const { rows } = toMechanismEdges(
+      GRAPH_NODES,
+      [PAPER],
+      [
+        mechanism({ effect: "a large reduction" }),
+        mechanism({ to: "Triglycerides", effect: null }),
+      ],
+    );
+    expect(rows.map((r) => [r.toId, r.strength])).toEqual([
+      ["metric:insulin", 3],
+      ["metric:triglycerides", 1],
+    ]);
+  });
+
+  it("drops a claim whose endpoints are not nodes we draw", () => {
+    const { rows, unresolved } = toMechanismEdges(
+      GRAPH_NODES,
+      [PAPER],
+      [mechanism({ to: "gut microbiome diversity", toId: null })],
+    );
+    expect(rows).toEqual([]);
+    expect(unresolved).toBe(1);
+  });
+
+  it("dedupes on from, to, relation and when", () => {
+    const { rows } = toMechanismEdges(GRAPH_NODES, [PAPER], [
+      mechanism(),
+      mechanism({ quote: "another sentence about the same thing" }),
+    ]);
+    expect(rows).toHaveLength(1);
+  });
+
+  it("refuses a paper with no DOI, however good the quote is", () => {
+    const { rows } = toMechanismEdges(
+      GRAPH_NODES,
+      [{ ...PAPER, doi: null }],
+      [mechanism()],
+    );
+    expect(rows).toEqual([]);
+  });
+});
+
+describe("researchMechanisms end to end, offline", () => {
+  it("searches, verifies the DOIs and hands back rows", async () => {
+    stubNetwork();
+    const extract: MechanismExtractor = async (papers) => ({
+      tokens: 500,
+      edges: papers.map((_, i) => mechanism({ paperIndex: i + 1 })),
+    });
+    const { rows, counts } = await researchMechanisms(CONDITION, FEATURES, {
+      extract,
+      nodes: GRAPH_NODES,
+      maxPapers: 5,
+    });
+    expect(counts.verified).toBeGreaterThan(0);
+    expect(counts.extracted).toBe(counts.verified);
+    expect(rows).toHaveLength(1);
+    expect(rows[0]!.source).toBe("research");
   });
 });

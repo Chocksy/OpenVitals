@@ -21,7 +21,7 @@ import { buildModelInput, type ModelInput } from "./coverage";
 import { eventConfounders } from "./facts";
 import { getMetricRows, type MetricRow, type Point } from "./data";
 import { SYSTEMS } from "./graph";
-import { computeGraphState, worstMember } from "./graph-state";
+import { graphState, worstMember } from "./graph-state";
 import { loadCatalog } from "./hkb";
 import {
   scoreHypotheses,
@@ -630,7 +630,7 @@ export async function buildLedger(
         ),
       ];
 
-  const graph = computeGraphState(input, { top: 60 });
+  const graph = await graphState(input, { top: 60 });
   const importance = new Map(graph.nodes.map((n) => [n.id, n.importance]));
   const systems: Ledger["systems"] = SYSTEMS.map((s) => {
     const worst = worstMember(s.id, input, importance);

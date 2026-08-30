@@ -12,6 +12,8 @@ const FIRST_RUN = 5 * 60 * 1000;
 /** How often the knowledge base re-reads the literature, and re-imports. */
 const RESEARCH_EVERY_DAYS = 30;
 const IMPORT_EVERY_DAYS = 365;
+/** Monarch is a live API, not a 100 MB download, so it can run monthly. */
+const MONARCH_EVERY_DAYS = 30;
 
 /** Papers per condition on a scheduled pass. The manual run asks for more. */
 const MAX_PAPERS = 10;
@@ -19,7 +21,11 @@ const MAX_PAPERS = 10;
 /**
  * The monthly sweep over the whole catalog, then the queue somebody's
  * differential filled during the month, then the policy over everything that
- * is still `proposed`. Nothing here waits for a click.
+ * is still `proposed`, then the graph imports. Nothing here waits for a click.
+ *
+ * The mechanism search rides inside `researchRun`, after the evidence and
+ * intervention searches for each condition, so one pass over the catalog does
+ * all three.
  */
 async function knowledge() {
   const { dueAgain } = await import("@/lib/hkb-import");
@@ -59,6 +65,15 @@ async function knowledge() {
     console.log(
       `[hkb:policy] ${applied} rows decided: ${counts.accepted} accepted, ` +
         `${counts.review} flagged, ${counts.rejected} rejected`,
+    );
+  }
+
+  if (await dueAgain("kg-import-monarch", MONARCH_EVERY_DAYS)) {
+    const { importMonarch } = await import("@/scripts/kg-import-monarch");
+    const r = await importMonarch();
+    console.log(
+      `[kg:import:monarch] ${r.conditions} conditions, ${r.edges} new edges ` +
+        `(${r.phenotype_edges} phenotype, ${r.gene_edges} gene)`,
     );
   }
 

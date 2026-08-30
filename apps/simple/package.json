@@ -11,6 +11,8 @@
     "db:migrate": "drizzle-kit migrate",
     "import-legacy": "tsx lib/import-legacy.ts",
     "hkb:seed": "tsx lib/hkb-seed.ts",
+    "kg:seed": "tsx lib/graph.ts",
+    "kg:import:monarch": "tsx scripts/kg-import-monarch.ts",
     "curate": "tsx lib/curator.ts",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",

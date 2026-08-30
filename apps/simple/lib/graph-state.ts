@@ -9,13 +9,13 @@
  */
 import type { ModelInput } from "./coverage";
 import {
-  EDGES,
   NODES,
   SYSTEMS,
   type GraphEdge,
   type GraphNode,
   type SystemId,
 } from "./graph";
+import { CODE_GRAPH, loadGraph, type Graph } from "./kg";
 import { matchPatterns, type PatternMatch } from "./patterns";
 import type { Status } from "./status";
 import { VECTORS } from "./vectors";
@@ -29,6 +29,8 @@ export interface NodeState {
 export interface ActiveEdge extends GraphEdge {
   impact: number;
   overriddenConfidence?: GraphEdge["confidence"];
+  /** Why this edge applies to this person, one clause at a time. */
+  whenReasons?: string[];
 }
 
 export interface GraphState {
@@ -92,15 +94,15 @@ function isStale(m: ModelInput, metricCode: string): boolean {
 }
 
 /** Node ids a matched pattern names: its edges' endpoints and its systems. */
-function namedByPattern(match: PatternMatch): Set<string> {
+function namedByPattern(match: PatternMatch, edges: GraphEdge[]): Set<string> {
   const ids = new Set<string>();
   const edgeIds = new Set([
-    ...EDGES.filter((e) => e.when?.pattern === match.pattern.id).map(
+    ...edges.filter((e) => e.when?.pattern === match.pattern.id).map(
       (e) => e.id,
     ),
     ...(match.pattern.effects.edgeOverrides ?? []).map((o) => o.edgeId),
   ]);
-  for (const edge of EDGES) {
+  for (const edge of edges) {
     if (!edgeIds.has(edge.id)) continue;
     ids.add(edge.from);
     ids.add(edge.to);
@@ -117,37 +119,148 @@ function namedByPattern(match: PatternMatch): Set<string> {
   return ids;
 }
 
-/** Does this edge's `when` hold for this person? */
-function whenHolds(
+/** "21:00" and "9pm" and "21" are all 21. Minutes count, so 21:30 is 21.5. */
+export function parseHour(raw: unknown): number | null {
+  const text = String(raw ?? "")
+    .trim()
+    .toLowerCase();
+  const m = text.match(/^(\d{1,2})(?::(\d{2}))?\s*(am|pm)?/);
+  if (!m) return null;
+  let hour = Number(m[1]);
+  const minutes = Number(m[2] ?? 0);
+  if (!Number.isFinite(hour) || hour > 24 || minutes > 59) return null;
+  if (m[3] === "pm" && hour < 12) hour += 12;
+  if (m[3] === "am" && hour === 12) hour = 0;
+  return hour + minutes / 60;
+}
+
+const asNumber = (raw: unknown): number | null => {
+  const n = Number(raw);
+  return Number.isFinite(n) ? n : parseHour(raw);
+};
+
+const readable = (key: string) => key.replace(/_/g, " ");
+
+const answer = (m: ModelInput, key: string): string => {
+  const raw = m.profile[key];
+  return Array.isArray(raw) ? raw.join(", ") : String(raw ?? "");
+};
+
+/** The profile fact a `fact:genome:<gene>` node writes, e.g. `genome:apoe`. */
+const genomeFactKey = (gene: string, nodes: GraphNode[]): string =>
+  nodes.find((n) => n.id === `fact:genome:${gene}`)?.codes?.[0] ??
+  `genome:${gene.toLowerCase()}`;
+
+export interface WhenVerdict {
+  holds: boolean;
+  /** One line per clause that holds: the "for you: ..." chip. */
+  reasons: string[];
+  /** The first clause that failed: the "not for you" chip. */
+  failed?: string;
+}
+
+/**
+ * Does this edge's `when` hold for this person, and why?
+ *
+ * Every clause has to hold. `reasons` is what the pathograph prints next to a
+ * live edge ("fast metaboliser, last coffee 13:00"); `failed` is what it
+ * prints next to a faint one. Nothing here reads the database.
+ */
+export function evaluateWhen(
   edge: GraphEdge,
   m: ModelInput,
   matched: Set<string>,
-): boolean {
+  nodes: GraphNode[] = NODES,
+): WhenVerdict {
   const w = edge.when;
-  if (!w) return true;
-  if (w.pattern && !matched.has(w.pattern)) return false;
-  if (w.sex && m.sex !== w.sex) return false;
-  if (w.fact) {
-    const raw = m.profile[w.fact.key];
-    const text = Array.isArray(raw) ? raw.join(", ") : String(raw ?? "");
-    if (!text.toLowerCase().includes(w.fact.includes.toLowerCase()))
-      return false;
+  const reasons: string[] = [];
+  if (!w) return { holds: true, reasons };
+  const no = (failed: string): WhenVerdict => ({ holds: false, reasons, failed });
+
+  if (w.pattern) {
+    if (!matched.has(w.pattern)) return no(`the ${w.pattern} pattern does not match you`);
+    reasons.push(`pattern ${w.pattern}`);
   }
-  const side = (endpoint: string, want: "high" | "low") => {
+  if (w.sex) {
+    if (m.sex !== w.sex) return no(`only in ${w.sex}s`);
+    reasons.push(w.sex);
+  }
+
+  if (w.fact) {
+    const { key, includes, equals, above, below } = w.fact;
+    const text = answer(m, key);
+    if (!text.trim()) return no(`you have not answered "${readable(key)}" yet`);
+    if (includes && !text.toLowerCase().includes(includes.toLowerCase()))
+      return no(`${readable(key)} is "${text}", not "${includes}"`);
+    if (equals && text.trim().toLowerCase() !== equals.toLowerCase())
+      return no(`${readable(key)} is "${text}", not "${equals}"`);
+    if (above != null || below != null) {
+      const value = asNumber(text);
+      if (value == null) return no(`${readable(key)} "${text}" is not a number`);
+      if (above != null && value < above)
+        return no(`${readable(key)} ${text} is below ${above}`);
+      if (below != null && value > below)
+        return no(`${readable(key)} ${text} is above ${below}`);
+    }
+    reasons.push(`${readable(key)} ${text}`);
+  }
+
+  if (w.genome) {
+    const { gene, genotype } = w.genome;
+    const call = answer(m, genomeFactKey(gene, nodes));
+    if (!call.trim()) return no(`${gene} has not been called from your genome`);
+    if (!call.toLowerCase().includes(genotype.toLowerCase()))
+      return no(`your ${gene} call is "${call}", not "${genotype}"`);
+    reasons.push(`${gene} ${call}`);
+  }
+
+  if (w.age) {
+    if (m.age == null) return no("we do not know your age yet");
+    if (w.age.min != null && m.age < w.age.min) return no(`only over ${w.age.min}`);
+    if (w.age.max != null && m.age > w.age.max) return no(`only under ${w.age.max}`);
+    reasons.push(`age ${m.age}`);
+  }
+
+  if (w.hoursBefore) {
+    const { eventFact, threshold } = w.hoursBefore;
+    const event = parseHour(m.profile[eventFact]);
+    const bed = parseHour(m.profile[BEDTIME_FACT]);
+    if (event == null) return no(`you have not answered "${readable(eventFact)}" yet`);
+    if (bed == null) return no(`you have not answered "bedtime hour" yet`);
+    const gap = (bed - event + 24) % 24;
+    if (gap >= threshold)
+      return no(
+        `${readable(eventFact)} is ${gap.toFixed(1)} h before bed, more than ${threshold}`,
+      );
+    reasons.push(
+      `${readable(eventFact)} ${answer(m, eventFact)}, ${gap.toFixed(1)} h before bed`,
+    );
+  }
+
+  const side = (endpoint: string, want: "high" | "low", label: string) => {
     if (!endpoint.startsWith("metric:")) return false;
     const row = m.latest[endpoint.slice(7)];
     if (row?.value == null) return false;
     if (row.status !== "red" && row.status !== "amber") return false;
     const mid = row.optimalHigh ?? row.refHigh;
     const floor = row.optimalLow ?? row.refLow;
-    return want === "high"
-      ? mid != null && row.value > mid
-      : floor != null && row.value < floor;
+    const ok =
+      want === "high"
+        ? mid != null && row.value > mid
+        : floor != null && row.value < floor;
+    if (ok) reasons.push(`${label} ${want}`);
+    return ok;
   };
-  if (w.from && !side(edge.from, w.from)) return false;
-  if (w.to && !side(edge.to, w.to)) return false;
-  return true;
+  if (w.from && !side(edge.from, w.from, readable(edge.from.slice(7))))
+    return no(`${readable(edge.from.slice(7))} is not ${w.from} for you`);
+  if (w.to && !side(edge.to, w.to, readable(edge.to.slice(7))))
+    return no(`${readable(edge.to.slice(7))} is not ${w.to} for you`);
+
+  return { holds: true, reasons };
 }
+
+/** The bedtime answer every `hoursBefore` clause measures against. */
+export const BEDTIME_FACT = "bedtime_hour";
 
 /**
  * Importance per the knowledge-graph doc section 3, then one round of
@@ -155,15 +268,22 @@ function whenHolds(
  */
 export function computeGraphState(
   m: ModelInput,
-  opts: { focus?: string[]; adoptedCodes?: string[]; top?: number } = {},
+  opts: {
+    focus?: string[];
+    adoptedCodes?: string[];
+    top?: number;
+    /** The graph to reason over. Defaults to the one compiled into the app. */
+    graph?: Graph;
+  } = {},
 ): GraphState {
+  const { nodes: allNodes, edges: allEdges } = opts.graph ?? CODE_GRAPH;
   const patterns = matchPatterns(m);
   const matched = patterns.filter((p) => p.matched);
   const matchedIds = new Set(matched.map((p) => p.pattern.id));
 
   const patternNames = new Map<string, string[]>();
   for (const match of matched)
-    for (const id of namedByPattern(match))
+    for (const id of namedByPattern(match, allEdges))
       patternNames.set(id, [...(patternNames.get(id) ?? []), match.pattern.id]);
 
   const history = [m.profile.family_history, m.profile.conditions]
@@ -175,7 +295,7 @@ export function computeGraphState(
   const adopted = new Set(opts.adoptedCodes ?? []);
 
   const state = new Map<string, NodeState>();
-  for (const node of NODES) {
+  for (const node of allNodes) {
     const reasons: string[] = [];
     let importance = 0;
     const metricCode = code(node);
@@ -204,6 +324,17 @@ export function computeGraphState(
       if (adopted.has(metricCode)) {
         importance += 0.1;
         reasons.push("an adopted action targets it");
+      }
+    }
+
+    // A behaviour, a symptom answer or a genotype call is only in play once
+    // the person has answered it. That is what makes a conditional edge
+    // reachable at all: both its endpoints have to be warm.
+    if (node.kind === "fact" || node.kind === "behavior" || node.kind === "gene") {
+      const key = node.codes?.find((c) => answer(m, c).trim());
+      if (key) {
+        importance += 0.2;
+        reasons.push(`you answered ${readable(key)}: ${answer(m, key)}`);
       }
     }
 
@@ -236,8 +367,9 @@ export function computeGraphState(
 
   // A system is as hot as its hottest member.
   for (const system of SYSTEMS) {
-    const node = state.get(`system:${system.id}`)!;
-    const members = NODES.filter(
+    const node = state.get(`system:${system.id}`);
+    if (!node) continue;
+    const members = allNodes.filter(
       (n) => n.kind === "metric" && n.system === system.id,
     );
     const worst = Math.max(
@@ -256,12 +388,13 @@ export function computeGraphState(
       overrides.set(o.edgeId, o);
 
   const activeEdges: ActiveEdge[] = [];
-  for (const edge of EDGES) {
+  for (const edge of allEdges) {
     const from = state.get(edge.from);
     const to = state.get(edge.to);
     if (!from || !to) continue;
     if (from.importance < ACTIVE_AT || to.importance < ACTIVE_AT) continue;
-    if (!whenHolds(edge, m, matchedIds)) continue;
+    const verdict = evaluateWhen(edge, m, matchedIds, allNodes);
+    if (!verdict.holds) continue;
     const override = overrides.get(edge.id);
     const confidence = override?.confidence ?? edge.confidence;
     activeEdges.push({
@@ -271,6 +404,7 @@ export function computeGraphState(
         : edge.mechanism,
       confidence,
       overriddenConfidence: override?.confidence,
+      whenReasons: verdict.reasons.length ? verdict.reasons : undefined,
       impact: round(
         edge.strength * CONFIDENCE_WEIGHT[confidence] * from.importance,
       ),
@@ -314,9 +448,10 @@ export function worstMember(
   system: SystemId,
   m: ModelInput,
   importance: Map<string, number>,
+  nodes: GraphNode[] = NODES,
 ): { node: GraphNode; code: string } | null {
   let best: { node: GraphNode; code: string; rank: number } | null = null;
-  for (const node of NODES) {
+  for (const node of nodes) {
     if (node.kind !== "metric" || node.system !== system) continue;
     const metricCode = node.id.slice(node.id.indexOf(":") + 1);
     const row = m.latest[metricCode];
@@ -325,4 +460,16 @@ export function worstMember(
     if (!best || rank > best.rank) best = { node, code: metricCode, rank };
   }
   return best ? { node: best.node, code: best.code } : null;
+}
+
+/**
+ * The personal state over the graph in the database, with the in-code graph as
+ * the fallback. Every async caller (`/graph`, `/plan`, the report, the ledger)
+ * uses this; `computeGraphState` stays pure for the tests.
+ */
+export async function graphState(
+  m: ModelInput,
+  opts: { focus?: string[]; adoptedCodes?: string[]; top?: number } = {},
+): Promise<GraphState> {
+  return computeGraphState(m, { ...opts, graph: await loadGraph() });
 }

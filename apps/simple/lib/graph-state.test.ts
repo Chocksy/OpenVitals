@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import type { LatestValue, ModelInput } from "./coverage";
-import { computeGraphState } from "./graph-state";
+import { EDGES } from "./graph";
+import { computeGraphState, evaluateWhen, parseHour } from "./graph-state";
 
 const value = (
   v: number | null,
@@ -115,5 +116,154 @@ describe("an empty person", () => {
     const state = computeGraphState(input());
     expect(state.activeEdges).toEqual([]);
     expect(state.hot).toEqual([]);
+  });
+});
+
+describe("conditional edges (phase 16)", () => {
+  const sleepy = {
+    sleep_duration: value(5.5, { status: "red", optimalLow: 7, refLow: 6 }),
+  };
+
+  it("fires the CYP1A2 slow edge and not the fast one", () => {
+    const slow = computeGraphState(
+      input({
+        latest: sleepy,
+        profile: {
+          caffeine_slow_metaboliser: "slow metaboliser",
+          coffee_last_hour: "17:00",
+        },
+      }),
+    );
+    const ids = slow.activeEdges.map((e) => e.id);
+    expect(ids).toContain("coffee_after_15->sleep_duration@cyp1a2_slow");
+    expect(ids).not.toContain("coffee_after_15->sleep_duration@cyp1a2_fast");
+  });
+
+  it("fires the fast edge for a fast metaboliser, at strength 1", () => {
+    const fast = computeGraphState(
+      input({
+        latest: sleepy,
+        profile: {
+          caffeine_slow_metaboliser: "fast metaboliser",
+          coffee_last_hour: "17:00",
+        },
+      }),
+    );
+    const edge = fast.activeEdges.find(
+      (e) => e.id === "coffee_after_15->sleep_duration@cyp1a2_fast",
+    );
+    expect(edge?.strength).toBe(1);
+    expect(edge?.whenReasons).toContain("CYP1A2 fast metaboliser");
+  });
+
+  it("fires neither edge when the last coffee is before 15:00", () => {
+    const early = computeGraphState(
+      input({
+        latest: sleepy,
+        profile: {
+          caffeine_slow_metaboliser: "slow metaboliser",
+          coffee_last_hour: "13:00",
+        },
+      }),
+    );
+    expect(early.activeEdges.map((e) => e.id).join(" ")).not.toContain(
+      "coffee_after_15",
+    );
+  });
+
+  it("says why an edge is not for you", () => {
+    const edge = EDGES.find(
+      (e) => e.id === "coffee_after_15->sleep_duration@cyp1a2_slow",
+    )!;
+    const m = input({
+      profile: {
+        caffeine_slow_metaboliser: "fast metaboliser",
+        coffee_last_hour: "17:00",
+      },
+    });
+    const verdict = evaluateWhen(edge, m, new Set());
+    expect(verdict.holds).toBe(false);
+    expect(verdict.failed).toBe(
+      'your CYP1A2 call is "fast metaboliser", not "slow"',
+    );
+  });
+
+  it("holds a hoursBefore clause inside the threshold and drops it outside", () => {
+    const edge = EDGES.find((e) => e.id === "late_meal->glucose")!;
+    const late = evaluateWhen(
+      edge,
+      input({ profile: { last_meal_hour: "21:30", bedtime_hour: "23:00" } }),
+      new Set(),
+    );
+    expect(late.holds).toBe(true);
+    expect(late.reasons[0]).toContain("1.5 h before bed");
+
+    const early = evaluateWhen(
+      edge,
+      input({ profile: { last_meal_hour: "18:00", bedtime_hour: "23:00" } }),
+      new Set(),
+    );
+    expect(early.holds).toBe(false);
+    expect(early.failed).toContain("5.0 h before bed");
+  });
+
+  it("waits for the bedtime answer rather than guessing one", () => {
+    const edge = EDGES.find((e) => e.id === "late_meal->glucose")!;
+    const verdict = evaluateWhen(
+      edge,
+      input({ profile: { last_meal_hour: "21:30" } }),
+      new Set(),
+    );
+    expect(verdict.holds).toBe(false);
+    expect(verdict.failed).toContain("bedtime hour");
+  });
+
+  it("gates the lactose edge on the genotype and the dairy answer together", () => {
+    const edge = EDGES.find((e) => e.id === "genome:LCT->sym_bowel")!;
+    const both = evaluateWhen(
+      edge,
+      input({
+        profile: {
+          lactase_nonpersistent: "lactase non-persistent",
+          dairy_daily: "Yes",
+        },
+      }),
+      new Set(),
+    );
+    expect(both.holds).toBe(true);
+    expect(both.reasons).toEqual(["dairy daily Yes", "LCT lactase non-persistent"]);
+
+    const noDairy = evaluateWhen(
+      edge,
+      input({
+        profile: {
+          lactase_nonpersistent: "lactase non-persistent",
+          dairy_daily: "No",
+        },
+      }),
+      new Set(),
+    );
+    expect(noDairy.holds).toBe(false);
+
+    const persistent = evaluateWhen(
+      edge,
+      input({
+        profile: { lactase_nonpersistent: "lactase persistent", dairy_daily: "Yes" },
+      }),
+      new Set(),
+    );
+    expect(persistent.holds).toBe(false);
+  });
+});
+
+describe("parseHour", () => {
+  it("reads the shapes the answers actually come in", () => {
+    expect(parseHour("21:00")).toBe(21);
+    expect(parseHour("21:30")).toBe(21.5);
+    expect(parseHour("9pm")).toBe(21);
+    expect(parseHour("15")).toBe(15);
+    expect(parseHour("12am")).toBe(0);
+    expect(parseHour("")).toBe(null);
+    expect(parseHour("whenever")).toBe(null);
   });
 });

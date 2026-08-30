@@ -1,0 +1,816 @@
+{
+  "subject=MONDO%3A0005148&category=biolink%3ADiseaseToPhenotypicFeatureAssociation&limit=200": {
+    "items": [
+      {
+        "id": "uuid:93478a30-8ede-11f1-9424-000d3aa60caf",
+        "subject": "MONDO:0005148",
+        "subject_label": "type 2 diabetes mellitus",
+        "object": "HP:0031819",
+        "object_label": "Increased waist to hip ratio",
+        "predicate": "biolink:has_phenotype",
+        "primary_knowledge_source": "infores:omim",
+        "publications": null,
+        "negated": false
+      },
+      {
+        "id": "uuid:93478a31-8ede-11f1-9424-000d3aa60caf",
+        "subject": "MONDO:0005148",
+        "subject_label": "type 2 diabetes mellitus",
+        "object": "HP:0000855",
+        "object_label": "Insulin resistance",
+        "predicate": "biolink:has_phenotype",
+        "primary_knowledge_source": "infores:omim",
+        "publications": null,
+        "negated": false
+      },
+      {
+        "id": "uuid:93478a32-8ede-11f1-9424-000d3aa60caf",
+        "subject": "MONDO:0005148",
+        "subject_label": "type 2 diabetes mellitus",
+        "object": "HP:0005978",
+        "object_label": "Type II diabetes mellitus",
+        "predicate": "biolink:has_phenotype",
+        "primary_knowledge_source": "infores:omim",
+        "publications": null,
+        "negated": false
+      },
+      {
+        "id": "urn:uuid:e6d4394d-2523-4025-ae47-fc543ff52244",
+        "subject": "MONDO:0005148",
+        "subject_label": "type 2 diabetes mellitus",
+        "object": "HP:0000855",
+        "object_label": "Insulin resistance",
+        "predicate": "biolink:has_phenotype",
+        "primary_knowledge_source": "infores:mondo",
+        "publications": null,
+        "negated": null
+      }
+    ]
+  },
+  "object=MONDO%3A0005148&category=biolink%3ACausalGeneToDiseaseAssociation&limit=200": {
+    "items": [
+      {
+        "id": "uuid:8b240597-c8b4-456e-a35f-48827f87f59d",
+        "subject": "HGNC:59",
+        "subject_label": "ABCC8",
+        "object": "MONDO:0005148",
+        "object_label": "type 2 diabetes mellitus",
+        "predicate": "biolink:causes",
+        "primary_knowledge_source": "infores:omim",
+        "publications": null,
+        "negated": null
+      },
+      {
+        "id": "uuid:484ecb0c-136d-47f0-9b10-4bb687ba589e",
+        "subject": "HGNC:4195",
+        "subject_label": "GCK",
+        "object": "MONDO:0005148",
+        "object_label": "type 2 diabetes mellitus",
+        "predicate": "biolink:causes",
+        "primary_knowledge_source": "infores:omim",
+        "publications": null,
+        "negated": null
+      },
+      {
+        "id": "uuid:255e6760-4033-4eaf-a673-601720ef44cd",
+        "subject": "HGNC:8618",
+        "subject_label": "PAX4",
+        "object": "MONDO:0005148",
+        "object_label": "type 2 diabetes mellitus",
+        "predicate": "biolink:causes",
+        "primary_knowledge_source": "infores:omim",
+        "publications": null,
+        "negated": null
+      },
+      {
+        "id": "uuid:119c9ff4-b2a4-489c-9c72-e03dcc326c68",
+        "subject": "HGNC:392",
+        "subject_label": "AKT2",
+        "object": "MONDO:0005148",
+        "object_label": "type 2 diabetes mellitus",
+        "predicate": "biolink:causes",
+        "primary_knowledge_source": "infores:omim",
+        "publications": null,
+        "negated": null
+      },
+      {
+        "id": "uuid:7167ab9f-cc98-44e6-aa88-30541fd7cdfc",
+        "subject": "HGNC:9236",
+        "subject_label": "PPARG",
+        "object": "MONDO:0005148",
+        "object_label": "type 2 diabetes mellitus",
+        "predicate": "biolink:causes",
+        "primary_knowledge_source": "infores:omim",
+        "publications": null,
+        "negated": null
+      },
+      {
+        "id": "uuid:52a83463-469f-4852-91c3-d8ed94020cfe",
+        "subject": "HGNC:9291",
+        "subject_label": "PPP1R3A",
+        "object": "MONDO:0005148",
+        "object_label": "type 2 diabetes mellitus",
+        "predicate": "biolink:causes",
+        "primary_knowledge_source": "infores:omim",
+        "publications": null,
+        "negated": null
+      },
+      {
+        "id": "uuid:97772f9d-0a1d-40df-817e-6980f8c4f2ea",
+        "subject": "HGNC:11630",
+        "subject_label": "HNF1B",
+        "object": "MONDO:0005148",
+        "object_label": "type 2 diabetes mellitus",
+        "predicate": "biolink:causes",
+        "primary_knowledge_source": "infores:omim",
+        "publications": null,
+        "negated": null
+      }
+    ]
+  },
+  "object=MONDO%3A0005148&category=biolink%3ACorrelatedGeneToDiseaseAssociation&limit=200": {
+    "items": [
+      {
+        "id": "uuid:0b61c5a0-a531-4866-b0d1-4cb2a5ace76e",
+        "subject": "HGNC:11641",
+        "subject_label": "TCF7L2",
+        "object": "MONDO:0005148",
+        "object_label": "type 2 diabetes mellitus",
+        "predicate": "biolink:contributes_to",
+        "primary_knowledge_source": "infores:omim",
+        "publications": null,
+        "negated": null
+      },
+      {
+        "id": "uuid:1a0700f7-0c73-4b33-8a66-d3ce73eb3fdd",
+        "subject": "HGNC:9236",
+        "subject_label": "PPARG",
+        "object": "MONDO:0005148",
+        "object_label": "type 2 diabetes mellitus",
+        "predicate": "biolink:contributes_to",
+        "primary_knowledge_source": "infores:omim",
+        "publications": null,
+        "negated": null
+      },
+      {
+        "id": "uuid:e9b3b1ec-213e-4c5d-abeb-bef3451b70b0",
+        "subject": "HGNC:20389",
+        "subject_label": "RETN",
+        "object": "MONDO:0005148",
+        "object_label": "type 2 diabetes mellitus",
+        "predicate": "biolink:contributes_to",
+        "primary_knowledge_source": "infores:omim",
+        "publications": null,
+        "negated": null
+      },
+      {
+        "id": "uuid:a1b8573c-4e6c-4e7f-883b-96c58d231ca9",
+        "subject": "HGNC:4456",
+        "subject_label": "GPD2",
+        "object": "MONDO:0005148",
+        "object_label": "type 2 diabetes mellitus",
+        "predicate": "biolink:contributes_to",
+        "primary_knowledge_source": "infores:omim",
+        "publications": null,
+        "negated": null
+      },
+      {
+        "id": "uuid:437d1593-7291-4897-93e4-75e31f8ad145",
+        "subject": "HGNC:5010",
+        "subject_label": "HMGA1",
+        "object": "MONDO:0005148",
+        "object_label": "type 2 diabetes mellitus",
+        "predicate": "biolink:contributes_to",
+        "primary_knowledge_source": "infores:omim",
+        "publications": null,
+        "negated": null
+      },
+      {
+        "id": "uuid:6913361f-d38e-456d-94d9-9215efc1ae88",
+        "subject": "HGNC:6125",
+        "subject_label": "IRS1",
+        "object": "MONDO:0005148",
+        "object_label": "type 2 diabetes mellitus",
+        "predicate": "biolink:contributes_to",
+        "primary_knowledge_source": "infores:omim",
+        "publications": null,
+        "negated": null
+      },
+      {
+        "id": "uuid:59675c1a-de0e-40fe-9745-43a534fb7f21",
+        "subject": "HGNC:7762",
+        "subject_label": "NEUROD1",
+        "object": "MONDO:0005148",
+        "object_label": "type 2 diabetes mellitus",
+        "predicate": "biolink:contributes_to",
+        "primary_knowledge_source": "infores:omim",
+        "publications": null,
+        "negated": null
+      },
+      {
+        "id": "uuid:3d852b7c-4a11-41f3-be7b-e79f7afd346c",
+        "subject": "HGNC:3356",
+        "subject_label": "ENPP1",
+        "object": "MONDO:0005148",
+        "object_label": "type 2 diabetes mellitus",
+        "predicate": "biolink:contributes_to",
+        "primary_knowledge_source": "infores:omim",
+        "publications": null,
+        "negated": null
+      },
+      {
+        "id": "uuid:edefc743-553b-4672-a3df-5e5755249a27",
+        "subject": "HGNC:11621",
+        "subject_label": "HNF1A",
+        "object": "MONDO:0005148",
+        "object_label": "type 2 diabetes mellitus",
+        "predicate": "biolink:contributes_to",
+        "primary_knowledge_source": "infores:omim",
+        "publications": null,
+        "negated": null
+      },
+      {
+        "id": "uuid:fb0dc6bc-c968-4818-a7b5-6abe0a9c0088",
+        "subject": "HGNC:28867",
+        "subject_label": "IGF2BP2",
+        "object": "MONDO:0005148",
+        "object_label": "type 2 diabetes mellitus",
+        "predicate": "biolink:contributes_to",
+        "primary_knowledge_source": "infores:omim",
+        "publications": null,
+        "negated": null
+      },
+      {
+        "id": "uuid:ddd94179-834d-4472-b68b-a128de275ca5",
+        "subject": "HGNC:20389",
+        "subject_label": "RETN",
+        "object": "MONDO:0005148",
+        "object_label": "type 2 diabetes mellitus",
+        "predicate": "biolink:contributes_to",
+        "primary_knowledge_source": "infores:omim",
+        "publications": null,
+        "negated": null
+      },
+      {
+        "id": "uuid:ce543dce-58a3-4ea3-b7a5-f1e8c2bda835",
+        "subject": "HGNC:20303",
+        "subject_label": "SLC30A8",
+        "object": "MONDO:0005148",
+        "object_label": "type 2 diabetes mellitus",
+        "predicate": "biolink:contributes_to",
+        "primary_knowledge_source": "infores:omim",
+        "publications": null,
+        "negated": null
+      },
+      {
+        "id": "uuid:e3922f43-8651-48cb-857b-03a8b26581df",
+        "subject": "HGNC:5024",
+        "subject_label": "HNF4A",
+        "object": "MONDO:0005148",
+        "object_label": "type 2 diabetes mellitus",
+        "predicate": "biolink:contributes_to",
+        "primary_knowledge_source": "infores:omim",
+        "publications": null,
+        "negated": null
+      },
+      {
+        "id": "uuid:f9ceb0e6-1376-4567-b947-1ce6cad32fd3",
+        "subject": "MONDO:0011955",
+        "subject_label": "diabetes mellitus, noninsulin-dependent, 4",
+        "object": "MONDO:0005148",
+        "object_label": "type 2 diabetes mellitus",
+        "predicate": "biolink:contributes_to",
+        "primary_knowledge_source": "infores:omim",
+        "publications": null,
+        "negated": null
+      },
+      {
+        "id": "uuid:066dcc32-1bc0-4dce-bb6e-88a507c09672",
+        "subject": "HGNC:6018",
+        "subject_label": "IL6",
+        "object": "MONDO:0005148",
+        "object_label": "type 2 diabetes mellitus",
+        "predicate": "biolink:contributes_to",
+        "primary_knowledge_source": "infores:omim",
+        "publications": null,
+        "negated": null
+      },
+      {
+        "id": "uuid:d078107a-0c4c-4721-83d3-cb1f8f5c1672",
+        "subject": "HGNC:6126",
+        "subject_label": "IRS2",
+        "object": "MONDO:0005148",
+        "object_label": "type 2 diabetes mellitus",
+        "predicate": "biolink:contributes_to",
+        "primary_knowledge_source": "infores:omim",
+        "publications": null,
+        "negated": null
+      },
+      {
+        "id": "uuid:d13a9d2a-c8fa-458d-8ed9-19790ea6d01c",
+        "subject": "HGNC:6619",
+        "subject_label": "LIPC",
+        "object": "MONDO:0005148",
+        "object_label": "type 2 diabetes mellitus",
+        "predicate": "biolink:contributes_to",
+        "primary_knowledge_source": "infores:omim",
+        "publications": null,
+        "negated": null
+      },
+      {
+        "id": "uuid:67ff61d6-0a8d-47cc-83ca-eae1dda2cd3e",
+        "subject": "HGNC:6882",
+        "subject_label": "MAPK8IP1",
+        "object": "MONDO:0005148",
+        "object_label": "type 2 diabetes mellitus",
+        "predicate": "biolink:contributes_to",
+        "primary_knowledge_source": "infores:omim",
+        "publications": null,
+        "negated": null
+      },
+      {
+        "id": "uuid:764fe2ed-fcc0-4231-b406-fc3c2639c91c",
+        "subject": "HGNC:11006",
+        "subject_label": "SLC2A2",
+        "object": "MONDO:0005148",
+        "object_label": "type 2 diabetes mellitus",
+        "predicate": "biolink:contributes_to",
+        "primary_knowledge_source": "infores:omim",
+        "publications": null,
+        "negated": null
+      },
+      {
+        "id": "uuid:1d490246-6f72-4e84-becf-33ce6b08d911",
+        "subject": "HGNC:7464",
+        "subject_label": "MTNR1B",
+        "object": "MONDO:0005148",
+        "object_label": "type 2 diabetes mellitus",
+        "predicate": "biolink:contributes_to",
+        "primary_knowledge_source": "infores:omim",
+        "publications": null,
+        "negated": null
+      },
+      {
+        "id": "uuid:11bf0b47-3ef5-4db6-bbd6-280961af087d",
+        "subject": "HGNC:6107",
+        "subject_label": "PDX1",
+        "object": "MONDO:0005148",
+        "object_label": "type 2 diabetes mellitus",
+        "predicate": "biolink:contributes_to",
+        "primary_knowledge_source": "infores:omim",
+        "publications": null,
+        "negated": null
+      },
+      {
+        "id": "uuid:70510774-c2ef-43b9-adad-bdf0c2b15585",
+        "subject": "HGNC:9642",
+        "subject_label": "PTPN1",
+        "object": "MONDO:0005148",
+        "object_label": "type 2 diabetes mellitus",
+        "predicate": "biolink:contributes_to",
+        "primary_knowledge_source": "infores:omim",
+        "publications": null,
+        "negated": null
+      },
+      {
+        "id": "uuid:4276d9f9-3320-4605-9321-546efc3fb671",
+        "subject": "HGNC:1477",
+        "subject_label": "CAPN10",
+        "object": "MONDO:0011027",
+        "object_label": "diabetes mellitus, noninsulin-dependent, 1",
+        "predicate": "biolink:contributes_to",
+        "primary_knowledge_source": "infores:omim",
+        "publications": null,
+        "negated": null
+      },
+      {
+        "id": "uuid:a202fa81-b4e2-4771-a161-a78e351b15a8",
+        "subject": "HGNC:19165",
+        "subject_label": "TBC1D4",
+        "object": "MONDO:0014488",
+        "object_label": "diabetes mellitus, noninsulin-dependent, 5",
+        "predicate": "biolink:contributes_to",
+        "primary_knowledge_source": "infores:omim",
+        "publications": null,
+        "negated": null
+      }
+    ]
+  },
+  "subject=MONDO%3A0007147&category=biolink%3ADiseaseToPhenotypicFeatureAssociation&limit=200": {
+    "items": [
+      {
+        "id": "uuid:90d863b3-8ede-11f1-9424-000d3aa60caf",
+        "subject": "MONDO:0007147",
+        "subject_label": "obstructive sleep apnea syndrome",
+        "object": "HP:0002870",
+        "object_label": "Obstructive sleep apnea",
+        "predicate": "biolink:has_phenotype",
+        "primary_knowledge_source": "infores:omim",
+        "publications": null,
+        "negated": false
+      },
+      {
+        "id": "uuid:90d863b6-8ede-11f1-9424-000d3aa60caf",
+        "subject": "MONDO:0007147",
+        "subject_label": "obstructive sleep apnea syndrome",
+        "object": "HP:0001262",
+        "object_label": "Excessive daytime somnolence",
+        "predicate": "biolink:has_phenotype",
+        "primary_knowledge_source": "infores:omim",
+        "publications": null,
+        "negated": false
+      },
+      {
+        "id": "uuid:90d863b4-8ede-11f1-9424-000d3aa60caf",
+        "subject": "MONDO:0007147",
+        "subject_label": "obstructive sleep apnea syndrome",
+        "object": "HP:0002384",
+        "object_label": "Focal impaired awareness seizure",
+        "predicate": "biolink:has_phenotype",
+        "primary_knowledge_source": "infores:omim",
+        "publications": null,
+        "negated": false
+      },
+      {
+        "id": "uuid:90d863b5-8ede-11f1-9424-000d3aa60caf",
+        "subject": "MONDO:0007147",
+        "subject_label": "obstructive sleep apnea syndrome",
+        "object": "HP:0025267",
+        "object_label": "Snoring",
+        "predicate": "biolink:has_phenotype",
+        "primary_knowledge_source": "infores:omim",
+        "publications": null,
+        "negated": false
+      },
+      {
+        "id": "uuid:90d863b7-8ede-11f1-9424-000d3aa60caf",
+        "subject": "MONDO:0007147",
+        "subject_label": "obstructive sleep apnea syndrome",
+        "object": "HP:0000458",
+        "object_label": "Anosmia",
+        "predicate": "biolink:has_phenotype",
+        "primary_knowledge_source": "infores:omim",
+        "publications": null,
+        "negated": false
+      }
+    ]
+  },
+  "object=MONDO%3A0007147&category=biolink%3ACausalGeneToDiseaseAssociation&limit=200": {
+    "items": []
+  },
+  "object=MONDO%3A0007147&category=biolink%3ACorrelatedGeneToDiseaseAssociation&limit=200": {
+    "items": []
+  },
+  "subject=MONDO%3A0021001&category=biolink%3ADiseaseToPhenotypicFeatureAssociation&limit=200": {
+    "items": [
+      {
+        "id": "uuid:922ed07b-8ede-11f1-9424-000d3aa60caf",
+        "subject": "MONDO:0021001",
+        "subject_label": "hemochromatosis type 1",
+        "object": "HP:0001596",
+        "object_label": "Alopecia",
+        "predicate": "biolink:has_phenotype",
+        "primary_knowledge_source": "infores:omim",
+        "publications": null,
+        "negated": false
+      },
+      {
+        "id": "uuid:922ed07c-8ede-11f1-9424-000d3aa60caf",
+        "subject": "MONDO:0021001",
+        "subject_label": "hemochromatosis type 1",
+        "object": "HP:0003452",
+        "object_label": "Elevated circulating iron concentration",
+        "predicate": "biolink:has_phenotype",
+        "primary_knowledge_source": "infores:omim",
+        "publications": null,
+        "negated": false
+      },
+      {
+        "id": "uuid:922ed080-8ede-11f1-9424-000d3aa60caf",
+        "subject": "MONDO:0021001",
+        "subject_label": "hemochromatosis type 1",
+        "object": "HP:0011675",
+        "object_label": "Arrhythmia",
+        "predicate": "biolink:has_phenotype",
+        "primary_knowledge_source": "infores:omim",
+        "publications": null,
+        "negated": false
+      },
+      {
+        "id": "uuid:922ed081-8ede-11f1-9424-000d3aa60caf",
+        "subject": "MONDO:0021001",
+        "subject_label": "hemochromatosis type 1",
+        "object": "HP:0000819",
+        "object_label": "Diabetes mellitus",
+        "predicate": "biolink:has_phenotype",
+        "primary_knowledge_source": "infores:omim",
+        "publications": null,
+        "negated": false
+      },
+      {
+        "id": "uuid:922ed084-8ede-11f1-9424-000d3aa60caf",
+        "subject": "MONDO:0021001",
+        "subject_label": "hemochromatosis type 1",
+        "object": "HP:0000953",
+        "object_label": "Hyperpigmentation of the skin",
+        "predicate": "biolink:has_phenotype",
+        "primary_knowledge_source": "infores:omim",
+        "publications": null,
+        "negated": false
+      },
+      {
+        "id": "uuid:922ed085-8ede-11f1-9424-000d3aa60caf",
+        "subject": "MONDO:0021001",
+        "subject_label": "hemochromatosis type 1",
+        "object": "HP:0002910",
+        "object_label": "Elevated circulating hepatic transaminase concentration",
+        "predicate": "biolink:has_phenotype",
+        "primary_knowledge_source": "infores:omim",
+        "publications": null,
+        "negated": false
+      },
+      {
+        "id": "uuid:922ed086-8ede-11f1-9424-000d3aa60caf",
+        "subject": "MONDO:0021001",
+        "subject_label": "hemochromatosis type 1",
+        "object": "HP:0001744",
+        "object_label": "Splenomegaly",
+        "predicate": "biolink:has_phenotype",
+        "primary_knowledge_source": "infores:omim",
+        "publications": null,
+        "negated": false
+      },
+      {
+        "id": "uuid:922ed087-8ede-11f1-9424-000d3aa60caf",
+        "subject": "MONDO:0021001",
+        "subject_label": "hemochromatosis type 1",
+        "object": "HP:0001402",
+        "object_label": "Hepatocellular carcinoma",
+        "predicate": "biolink:has_phenotype",
+        "primary_knowledge_source": "infores:omim",
+        "publications": null,
+        "negated": false
+      },
+      {
+        "id": "uuid:922ed088-8ede-11f1-9424-000d3aa60caf",
+        "subject": "MONDO:0021001",
+        "subject_label": "hemochromatosis type 1",
+        "object": "HP:0001541",
+        "object_label": "Ascites",
+        "predicate": "biolink:has_phenotype",
+        "primary_knowledge_source": "infores:omim",
+        "publications": null,
+        "negated": false
+      },
+      {
+        "id": "uuid:922ed089-8ede-11f1-9424-000d3aa60caf",
+        "subject": "MONDO:0021001",
+        "subject_label": "hemochromatosis type 1",
+        "object": "HP:0001640",
+        "object_label": "Cardiomegaly",
+        "predicate": "biolink:has_phenotype",
+        "primary_knowledge_source": "infores:omim",
+        "publications": null,
+        "negated": false
+      },
+      {
+        "id": "uuid:922ed08a-8ede-11f1-9424-000d3aa60caf",
+        "subject": "MONDO:0021001",
+        "subject_label": "hemochromatosis type 1",
+        "object": "HP:0003040",
+        "object_label": "Arthropathy",
+        "predicate": "biolink:has_phenotype",
+        "primary_knowledge_source": "infores:omim",
+        "publications": null,
+        "negated": false
+      },
+      {
+        "id": "uuid:922ed08c-8ede-11f1-9424-000d3aa60caf",
+        "subject": "MONDO:0021001",
+        "subject_label": "hemochromatosis type 1",
+        "object": "HP:0000029",
+        "object_label": "Testicular atrophy",
+        "predicate": "biolink:has_phenotype",
+        "primary_knowledge_source": "infores:omim",
+        "publications": null,
+        "negated": false
+      },
+      {
+        "id": "uuid:922ed08d-8ede-11f1-9424-000d3aa60caf",
+        "subject": "MONDO:0021001",
+        "subject_label": "hemochromatosis type 1",
+        "object": "HP:0001635",
+        "object_label": "Congestive heart failure",
+        "predicate": "biolink:has_phenotype",
+        "primary_knowledge_source": "infores:omim",
+        "publications": null,
+        "negated": false
+      },
+      {
+        "id": "uuid:922ed08e-8ede-11f1-9424-000d3aa60caf",
+        "subject": "MONDO:0021001",
+        "subject_label": "hemochromatosis type 1",
+        "object": "HP:0000802",
+        "object_label": "Impotence",
+        "predicate": "biolink:has_phenotype",
+        "primary_knowledge_source": "infores:omim",
+        "publications": null,
+        "negated": false
+      },
+      {
+        "id": "uuid:922ed08f-8ede-11f1-9424-000d3aa60caf",
+        "subject": "MONDO:0021001",
+        "subject_label": "hemochromatosis type 1",
+        "object": "HP:0001638",
+        "object_label": "Cardiomyopathy",
+        "predicate": "biolink:has_phenotype",
+        "primary_knowledge_source": "infores:omim",
+        "publications": null,
+        "negated": false
+      },
+      {
+        "id": "uuid:922ed090-8ede-11f1-9424-000d3aa60caf",
+        "subject": "MONDO:0021001",
+        "subject_label": "hemochromatosis type 1",
+        "object": "HP:0002027",
+        "object_label": "Abdominal pain",
+        "predicate": "biolink:has_phenotype",
+        "primary_knowledge_source": "infores:omim",
+        "publications": null,
+        "negated": false
+      },
+      {
+        "id": "uuid:922ed079-8ede-11f1-9424-000d3aa60caf",
+        "subject": "MONDO:0021001",
+        "subject_label": "hemochromatosis type 1",
+        "object": "HP:0000044",
+        "object_label": "Hypogonadotropic hypogonadism",
+        "predicate": "biolink:has_phenotype",
+        "primary_knowledge_source": "infores:omim",
+        "publications": null,
+        "negated": false
+      },
+      {
+        "id": "uuid:922ed07a-8ede-11f1-9424-000d3aa60caf",
+        "subject": "MONDO:0021001",
+        "subject_label": "hemochromatosis type 1",
+        "object": "HP:0002202",
+        "object_label": "Pleural effusion",
+        "predicate": "biolink:has_phenotype",
+        "primary_knowledge_source": "infores:omim",
+        "publications": null,
+        "negated": false
+      },
+      {
+        "id": "uuid:922ed07f-8ede-11f1-9424-000d3aa60caf",
+        "subject": "MONDO:0021001",
+        "subject_label": "hemochromatosis type 1",
+        "object": "HP:0002240",
+        "object_label": "Hepatomegaly",
+        "predicate": "biolink:has_phenotype",
+        "primary_knowledge_source": "infores:omim",
+        "publications": null,
+        "negated": false
+      },
+      {
+        "id": "uuid:922ed07d-8ede-11f1-9424-000d3aa60caf",
+        "subject": "MONDO:0021001",
+        "subject_label": "hemochromatosis type 1",
+        "object": "HP:0000141",
+        "object_label": "Amenorrhea",
+        "predicate": "biolink:has_phenotype",
+        "primary_knowledge_source": "infores:omim",
+        "publications": null,
+        "negated": false
+      },
+      {
+        "id": "uuid:922ed07e-8ede-11f1-9424-000d3aa60caf",
+        "subject": "MONDO:0021001",
+        "subject_label": "hemochromatosis type 1",
+        "object": "HP:0001394",
+        "object_label": "Cirrhosis",
+        "predicate": "biolink:has_phenotype",
+        "primary_knowledge_source": "infores:omim",
+        "publications": null,
+        "negated": false
+      },
+      {
+        "id": "uuid:922ed082-8ede-11f1-9424-000d3aa60caf",
+        "subject": "MONDO:0021001",
+        "subject_label": "hemochromatosis type 1",
+        "object": "HP:0000939",
+        "object_label": "Osteoporosis",
+        "predicate": "biolink:has_phenotype",
+        "primary_knowledge_source": "infores:omim",
+        "publications": null,
+        "negated": false
+      },
+      {
+        "id": "uuid:922ed083-8ede-11f1-9424-000d3aa60caf",
+        "subject": "MONDO:0021001",
+        "subject_label": "hemochromatosis type 1",
+        "object": "HP:0001009",
+        "object_label": "Telangiectasia",
+        "predicate": "biolink:has_phenotype",
+        "primary_knowledge_source": "infores:omim",
+        "publications": null,
+        "negated": false
+      },
+      {
+        "id": "uuid:922ed08b-8ede-11f1-9424-000d3aa60caf",
+        "subject": "MONDO:0021001",
+        "subject_label": "hemochromatosis type 1",
+        "object": "HP:0003281",
+        "object_label": "Increased circulating ferritin concentration",
+        "predicate": "biolink:has_phenotype",
+        "primary_knowledge_source": "infores:omim",
+        "publications": null,
+        "negated": false
+      },
+      {
+        "id": "uuid:922ed091-8ede-11f1-9424-000d3aa60caf",
+        "subject": "MONDO:0021001",
+        "subject_label": "hemochromatosis type 1",
+        "object": "HP:0000027",
+        "object_label": "Azoospermia",
+        "predicate": "biolink:has_phenotype",
+        "primary_knowledge_source": "infores:omim",
+        "publications": null,
+        "negated": false
+      },
+      {
+        "id": "uuid:922ed092-8ede-11f1-9424-000d3aa60caf",
+        "subject": "MONDO:0021001",
+        "subject_label": "hemochromatosis type 1",
+        "object": "HP:0001952",
+        "object_label": "Glucose intolerance",
+        "predicate": "biolink:has_phenotype",
+        "primary_knowledge_source": "infores:omim",
+        "publications": null,
+        "negated": false
+      }
+    ]
+  },
+  "object=MONDO%3A0021001&category=biolink%3ACausalGeneToDiseaseAssociation&limit=200": {
+    "items": [
+      {
+        "id": "uuid:fb3c42b0-67e2-446f-b7e0-3c46fcba9553",
+        "subject": "HGNC:4886",
+        "subject_label": "HFE",
+        "object": "MONDO:0021001",
+        "object_label": "hemochromatosis type 1",
+        "predicate": "biolink:causes",
+        "primary_knowledge_source": "infores:omim",
+        "publications": null,
+        "negated": null
+      }
+    ]
+  },
+  "object=MONDO%3A0021001&category=biolink%3ACorrelatedGeneToDiseaseAssociation&limit=200": {
+    "items": [
+      {
+        "id": "uuid:78775730-cdb9-445b-b824-702cd6b1ef2d",
+        "subject": "HGNC:1069",
+        "subject_label": "BMP2",
+        "object": "MONDO:0021001",
+        "object_label": "hemochromatosis type 1",
+        "predicate": "biolink:contributes_to",
+        "primary_knowledge_source": "infores:omim",
+        "publications": null,
+        "negated": null
+      }
+    ]
+  },
+  "subject=MONDO%3A0007699&category=biolink%3ADiseaseToPhenotypicFeatureAssociation&limit=200": {
+    "items": [
+      {
+        "id": "uuid:95a9f0a8-8ede-11f1-9424-000d3aa60caf",
+        "subject": "MONDO:0007699",
+        "subject_label": "Hashimoto thyroiditis",
+        "object": "HP:0030057",
+        "object_label": "Autoimmune antibody positivity",
+        "predicate": "biolink:has_phenotype",
+        "primary_knowledge_source": "infores:omim",
+        "publications": null,
+        "negated": false
+      },
+      {
+        "id": "uuid:95a9f0a9-8ede-11f1-9424-000d3aa60caf",
+        "subject": "MONDO:0007699",
+        "subject_label": "Hashimoto thyroiditis",
+        "object": "HP:0000872",
+        "object_label": "Hashimoto thyroiditis",
+        "predicate": "biolink:has_phenotype",
+        "primary_knowledge_source": "infores:omim",
+        "publications": null,
+        "negated": false
+      }
+    ]
+  },
+  "object=MONDO%3A0007699&category=biolink%3ACausalGeneToDiseaseAssociation&limit=200": {
+    "items": []
+  },
+  "object=MONDO%3A0007699&category=biolink%3ACorrelatedGeneToDiseaseAssociation&limit=200": {
+    "items": []
+  }
+}

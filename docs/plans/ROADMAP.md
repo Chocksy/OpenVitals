@@ -74,7 +74,7 @@ extraction from reviews with `when_` clauses, personal conditional edges
 
 | #   | Phase                                                                                                                                    | Why                                     |
 | --- | ---------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------- |
-| 16  | The picture: Monarch KG edges, mechanism-edge extraction, personal conditional edges (genome, facts, timing), `/graph/[node]` pathograph | the relations chart the owner asked for |
+| 16  | The picture, section 5 only: `/graph/[node]` pathograph, after the mockup is approved                                                    | the relations chart the owner asked for |
 | 17  | Prod cutover to Coolify (branch `simple`, compose, volumes, seeds, imports)                                                              | Ramona on her phone                     |
 | 18  | GBD priors (owner downloads one CSV), NCD-RisC to more conditions, prices from a second lab                                              | better empty-user starts                |
 | 19  | Wearables via the phone app (resting HR, sleep, HRV, steps) and Apple Health; food photos later                                          | the tier-0 vectors blood cannot see     |

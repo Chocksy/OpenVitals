@@ -17,7 +17,7 @@ import {
   type CoverageRow,
   type ModelInput,
 } from "@/lib/coverage";
-import { computeGraphState } from "@/lib/graph-state";
+import { computeGraphState, graphState } from "@/lib/graph-state";
 import { matchPatterns, type PatternMatch } from "@/lib/patterns";
 import { latestReport } from "@/lib/report";
 import { VECTORS } from "@/lib/vectors";
@@ -285,7 +285,7 @@ export default async function PlanPage() {
   const cov = coverage(input);
   const patterns = matchPatterns(input).filter((p) => p.matched);
   const graph = patterns.length
-    ? computeGraphState(input)
+    ? await graphState(input)
     : {
         activeEdges: [] as ReturnType<typeof computeGraphState>["activeEdges"],
       };

@@ -14,6 +14,8 @@
  * with research intake in phase 7, when something other than a git commit can
  * change an edge.
  */
+import type { Grade } from "./hypotheses";
+import { SYMPTOMS } from "./symptoms";
 import type { Sex } from "./vectors";
 
 export type NodeKind =
@@ -23,7 +25,13 @@ export type NodeKind =
   | "intervention"
   | "behavior"
   | "test"
-  | "risk";
+  | "risk"
+  /** A profile answer: a symptom item, a habit, a genotype call. */
+  | "fact"
+  /** A gene the genome catalog calls, e.g. `fact:genome:CYP1A2`. */
+  | "gene"
+  /** An HPO term Monarch named that none of our features cover. Display only. */
+  | "phenotype";
 
 export type SystemId =
   | "lipids"
@@ -44,8 +52,11 @@ export interface GraphNode {
   kind: NodeKind;
   name: string;
   system?: SystemId;
+  /** Metric codes for a metric; the profile fact key for a fact or gene. */
   codes?: string[];
   note?: string;
+  /** seed | monarch | research | minted. Absent means seed. */
+  source?: "seed" | "monarch" | "research" | "minted";
 }
 
 export type Relation =
@@ -64,14 +75,38 @@ export interface Evidence {
   doi?: string;
   year?: number;
   source?: string;
+  /** Verbatim from the abstract, when an extraction run wrote this edge. */
+  quote?: string;
+  /** The effect size as the paper prints it, e.g. "+0.3 mmol/L per 1 h". */
+  effect?: string;
 }
 
+/**
+ * When an edge applies to this person at all. Every clause has to hold.
+ *
+ * `from`/`to` read a metric's side, `pattern` and `sex` read the model input,
+ * and the three phase-16 clauses read the profile: any answer (`fact`), a
+ * genome call (`genome`), and how long before bed something happened
+ * (`hoursBefore`).
+ */
 export interface EdgeWhen {
   from?: "high" | "low";
   to?: "high" | "low";
   sex?: Sex;
   pattern?: string;
-  fact?: { key: string; includes: string };
+  fact?: {
+    key: string;
+    includes?: string;
+    equals?: string;
+    /** Numbers, and "21:00" as 21. */
+    above?: number;
+    below?: number;
+  };
+  /** A gene symbol in `GENOME_CATALOG` and a substring of its call. */
+  genome?: { gene: string; genotype: string };
+  age?: { min?: number; max?: number };
+  /** The answer in `eventFact` is less than `threshold` hours before bedtime. */
+  hoursBefore?: { eventFact: string; threshold: number };
 }
 
 export interface GraphEdge {
@@ -83,11 +118,28 @@ export interface GraphEdge {
   strength: 1 | 2 | 3;
   confidence: "established" | "probable" | "speculative";
   basis: "science" | "opinion" | "anecdotal";
+  /** A–E, the ladder of `ROADMAP.md` principle 2. Derived when absent. */
+  grade?: Grade;
   when?: EdgeWhen;
   mechanism: string;
   evidence: Evidence[];
-  source: "seed" | "pattern";
+  source: "seed" | "pattern" | "monarch" | "research";
 }
+
+/** guideline and meta are A, a trial or a cohort is B, a forum post is D. */
+const EVIDENCE_GRADE: Record<Evidence["kind"], Grade> = {
+  guideline: "A",
+  meta: "A",
+  rct: "B",
+  observational: "B",
+  anecdotal: "D",
+};
+
+/** The edge's own grade, or the best grade its evidence list earns. */
+export const gradeOfEdge = (edge: GraphEdge): Grade =>
+  edge.grade ??
+  edge.evidence.map((v) => EVIDENCE_GRADE[v.kind]).sort()[0] ??
+  "C";
 
 export const SYSTEMS: { id: SystemId; name: string; headline: string[] }[] = [
   {
@@ -196,6 +248,43 @@ const METRICS: [string, string, SystemId][] = [
   ["bp_diastolic", "Diastolic blood pressure", "lifestyle"],
   ["bmi", "BMI", "lifestyle"],
 ];
+
+/**
+ * One node per row of `GENOME_CATALOG`, so a Monarch gene edge and a personal
+ * genotype land on the same node. `codes` is the profile fact the call writes.
+ *
+ * ponytail: hand-written rather than derived, because importing the genome
+ * catalog here would pull the whole hypothesis catalog into every page that
+ * draws the graph. `lib/kg.test.ts` asserts the two lists stay in step.
+ */
+const GENE_NODES: GraphNode[] = (
+  [
+    ["APOE", "genome:apoe", "Apolipoprotein E"],
+    ["LPA", "genome:lpa", "Lipoprotein(a)"],
+    ["HFE", "genome:hfe", "Haemochromatosis gene"],
+    ["HLA", "genome:hla_dq", "HLA DQ2.5 coeliac haplotype"],
+    ["TCF7L2", "genome:tcf7l2", "Transcription factor 7-like 2"],
+    ["MTHFR", "genome:mthfr", "Methylenetetrahydrofolate reductase"],
+    ["CYP1A2", "caffeine_slow_metaboliser", "Caffeine metabolism"],
+    ["LCT", "lactase_nonpersistent", "Lactase persistence"],
+    ["FTO", "genome:fto", "FTO appetite variant"],
+    ["G6PD", "genome:g6pd", "Glucose-6-phosphate dehydrogenase"],
+    ["SLCO1B1", "statin_myopathy_risk", "Statin transporter"],
+  ] as const
+).map(([gene, factKey, name]) => ({
+  id: `fact:genome:${gene}`,
+  kind: "gene" as const,
+  name: `${gene} (${name})`,
+  codes: [factKey],
+}));
+
+/** The twelve questionnaire items, so a Monarch phenotype can land on one. */
+const SYMPTOM_NODES: GraphNode[] = SYMPTOMS.map((s) => ({
+  id: `fact:${s.key}`,
+  kind: "fact" as const,
+  name: s.name,
+  codes: [s.key],
+}));
 
 const OTHERS: GraphNode[] = [
   { id: "risk:ascvd", kind: "risk", name: "Atherosclerotic heart disease" },
@@ -330,6 +419,23 @@ const OTHERS: GraphNode[] = [
     name: "Urine albumin/creatinine ratio",
   },
   { id: "test:cystatin_c", kind: "test", name: "Cystatin C eGFR" },
+
+  // ── phase 16: the behaviours and the answers a conditional edge reads ──
+  {
+    id: "behavior:coffee_after_15",
+    kind: "behavior",
+    name: "Coffee after 15:00",
+    codes: ["coffee_last_hour"],
+  },
+  {
+    id: "behavior:late_meal",
+    kind: "behavior",
+    name: "Eating close to bedtime",
+    codes: ["last_meal_hour"],
+  },
+
+  ...GENE_NODES,
+  ...SYMPTOM_NODES,
 ];
 
 export const NODES: GraphNode[] = [
@@ -1526,4 +1632,222 @@ export const EDGES: GraphEdge[] = [
     [guide("BSG iron deficiency guideline")],
     { when: { pattern: "iron_deficiency_no_anemia" }, source: "pattern" },
   ),
+
+  // --- phase 16: the conditional edges (spec section 4) -------------------
+  // Five hand-written edges whose `when` reads a genotype, an answer or a
+  // clock. They are the shape the extraction run in `lib/research.ts` writes
+  // by machine, proved by hand first.
+  e(
+    "behavior:coffee_after_15",
+    "metric:sleep_duration",
+    "lowers",
+    2,
+    "established",
+    "400 mg of caffeine six hours before bed cost an hour of sleep in a blinded crossover; a CYP1A2*1F slow metaboliser clears that dose far more slowly, so a 15:00 coffee is still working at midnight.",
+    [
+      trial("Drake 2013 J Clin Sleep Med (caffeine 0, 3 or 6 h before bed)", 2013),
+      cohort("Sachse 1999 Br J Clin Pharmacol (CYP1A2*1F and caffeine clearance)", 1999),
+    ],
+    {
+      id: "coffee_after_15->sleep_duration@cyp1a2_slow",
+      grade: "B",
+      when: {
+        genome: { gene: "CYP1A2", genotype: "slow" },
+        fact: { key: "coffee_last_hour", above: 15 },
+      },
+    },
+  ),
+  e(
+    "behavior:coffee_after_15",
+    "metric:sleep_duration",
+    "lowers",
+    1,
+    "probable",
+    "A fast metaboliser has cleared most of an afternoon coffee by bedtime, so the same cup costs far less sleep; the effect is not zero, only smaller.",
+    [
+      trial("Drake 2013 J Clin Sleep Med (caffeine 0, 3 or 6 h before bed)", 2013),
+      cohort("Sachse 1999 Br J Clin Pharmacol (CYP1A2*1F and caffeine clearance)", 1999),
+    ],
+    {
+      id: "coffee_after_15->sleep_duration@cyp1a2_fast",
+      grade: "B",
+      when: {
+        genome: { gene: "CYP1A2", genotype: "fast" },
+        fact: { key: "coffee_last_hour", above: 15 },
+      },
+    },
+  ),
+  e(
+    "metric:sleep_duration",
+    "metric:insulin",
+    "raises",
+    2,
+    "established",
+    "Six nights at four hours in bed cut glucose tolerance by 30 % in healthy young men, and the meta-analysis finds the same dose-response across cohorts: less sleep, more fasting insulin.",
+    [
+      trial("Spiegel 1999 Lancet (impact of sleep debt on metabolic function)", 1999),
+      meta("Reutrakul 2018 Metabolism (sleep, obesity and insulin resistance)", 2018),
+    ],
+    { grade: "A", when: { from: "low" } },
+  ),
+  e(
+    "metric:sleep_duration",
+    "metric:triglycerides",
+    "raises",
+    1,
+    "probable",
+    "Short sleepers carry higher fasting triglycerides in cross-sectional cohorts; the association survives adjustment but no trial has moved triglycerides by adding sleep alone.",
+    [cohort("Kaneita 2008 Sleep (usual sleep duration and serum lipids)", 2008)],
+    { grade: "B", when: { from: "low" } },
+  ),
+  e(
+    "behavior:late_meal",
+    "metric:glucose",
+    "raises",
+    1,
+    "probable",
+    "The same dinner eaten at 22:00 instead of 18:00 raised the overnight glucose peak in a randomised crossover; eating inside three hours of bed is the version of that anyone can act on.",
+    [trial("Gu 2020 J Clin Endocrinol Metab (metabolic effects of late dinner)", 2020)],
+    {
+      grade: "B",
+      when: { hoursBefore: { eventFact: "last_meal_hour", threshold: 3 } },
+    },
+  ),
+  e(
+    "fact:genome:LCT",
+    "fact:sym_bowel",
+    "raises",
+    2,
+    "established",
+    "Without lactase persistence the lactose in a daily glass of milk reaches the colon and ferments, which is bloating and loose stools rather than any disease.",
+    [
+      meta("Storhaug 2017 Lancet Gastroenterol Hepatol (global lactose malabsorption)", 2017),
+      guide("NIH Consensus 2010: lactose intolerance and health", 2010),
+    ],
+    {
+      grade: "A",
+      when: {
+        genome: { gene: "LCT", genotype: "non-persistent" },
+        fact: { key: "dairy_daily", equals: "Yes" },
+      },
+    },
+  ),
 ];
+
+/* ── the seed ─────────────────────────────────────────────────────────── */
+
+/**
+ * `NODES` and `EDGES` as `kg_nodes` / `kg_edges` rows. Pure, so `kg.test.ts`
+ * can round-trip the whole graph without a database.
+ */
+export function kgRows() {
+  return {
+    nodes: NODES.map((n) => ({
+      id: n.id,
+      kind: n.kind as string,
+      name: n.name,
+      systemId: n.system ?? null,
+      codes: n.codes ?? null,
+      note: n.note ?? null,
+      source: n.source ?? ("seed" as const),
+    })),
+    edges: EDGES.map((e) => ({
+      id: e.id,
+      fromId: e.from,
+      toId: e.to,
+      relation: e.relation as string,
+      strength: e.strength as number,
+      confidence: e.confidence as string,
+      grade: gradeOfEdge(e) as string,
+      basis: e.basis as string,
+      when_: (e.when ?? null) as Record<string, unknown> | null,
+      mechanism: e.mechanism,
+      evidence: e.evidence,
+      source: e.source as string,
+      status: "active",
+    })),
+  };
+}
+
+/**
+ * The in-code graph into Postgres.
+ *
+ *   pnpm --filter simple kg:seed
+ *
+ * One upsert per row keyed on the id, so a second run changes nothing and the
+ * counts are identical. Nothing is deleted: an edge that leaves this file
+ * stays in the table until a human drops it, exactly like `hkb:seed`.
+ *
+ * ponytail: `@/db` is imported here and not at the top of the file, so every
+ * page that only wants `NODES` keeps its import graph free of `pg`.
+ */
+export async function seedKg() {
+  const { getDb, kgEdges, kgNodes } = await import("@/db");
+  const { sql } = await import("drizzle-orm");
+  const rows = kgRows();
+  const db = getDb();
+
+  for (const n of rows.nodes)
+    await db
+      .insert(kgNodes)
+      .values(n)
+      .onConflictDoUpdate({
+        target: kgNodes.id,
+        set: {
+          kind: sql`excluded.kind`,
+          name: sql`excluded.name`,
+          systemId: sql`excluded.system_id`,
+          codes: sql`excluded.codes`,
+          note: sql`excluded.note`,
+        },
+      });
+
+  for (const e of rows.edges)
+    await db
+      .insert(kgEdges)
+      .values(e)
+      .onConflictDoUpdate({
+        target: kgEdges.id,
+        set: {
+          relation: sql`excluded.relation`,
+          strength: sql`excluded.strength`,
+          confidence: sql`excluded.confidence`,
+          grade: sql`excluded.grade`,
+          basis: sql`excluded.basis`,
+          when_: sql`excluded.when_`,
+          mechanism: sql`excluded.mechanism`,
+          evidence: sql`excluded.evidence`,
+          source: sql`excluded.source`,
+        },
+      });
+
+  return {
+    nodes: rows.nodes.length,
+    edges: rows.edges.length,
+    conditional: rows.edges.filter((e) => e.when_).length,
+  };
+}
+
+if (
+  process.argv[1] &&
+  import.meta.url.endsWith(process.argv[1].split("/").pop()!)
+) {
+  for (const f of [".env", "../../.env"]) {
+    try {
+      process.loadEnvFile(f);
+    } catch {}
+  }
+  const { pool } = await import("@/db");
+  seedKg()
+    .then((n) =>
+      console.log(
+        `[kg:seed] nodes=${n.nodes} edges=${n.edges} conditional=${n.conditional}`,
+      ),
+    )
+    .then(() => pool().end())
+    .then(() => process.exit(0))
+    .catch((e) => {
+      console.error(e);
+      process.exit(1);
+    });
+}

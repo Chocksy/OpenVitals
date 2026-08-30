@@ -5,7 +5,7 @@ import { requireUserId } from "@/lib/auth";
 import { buildModelInput } from "@/lib/coverage";
 import { queueQuestions } from "@/lib/ask";
 import {
-  computeGraphState,
+  graphState,
   worstMember,
   type ActiveEdge,
 } from "@/lib/graph-state";
@@ -167,7 +167,7 @@ export default async function GraphPage() {
   const patterns = matchPatterns(input).filter((p) => p.matched);
   const matchedIds = new Set(patterns.map((p) => p.pattern.id));
   const unmatched = PATTERNS.filter((p) => !matchedIds.has(p.id));
-  const graph = computeGraphState(input, { top: HOT_NODES });
+  const graph = await graphState(input, { top: HOT_NODES });
   const importance = new Map(graph.nodes.map((n) => [n.id, n.importance]));
   const links = toLinks(graph.activeEdges);
 

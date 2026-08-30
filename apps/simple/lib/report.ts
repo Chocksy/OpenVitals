@@ -36,6 +36,7 @@ import {
 } from "./documents";
 import { model } from "./extract";
 import { computeGraphState, type GraphState } from "./graph-state";
+import { loadGraph, type Graph } from "./kg";
 import { loadCatalog } from "./hkb";
 import { isConclusion, mattersOf } from "./ledger";
 import {
@@ -417,6 +418,8 @@ export interface ContextExtras {
   documents?: DocumentSummary[];
   /** `hkb_interventions` for the conditions that scored, ranked by grade. */
   interventions?: InterventionSummary[];
+  /** `kg_nodes` / `kg_edges`; the in-code graph when the caller has none. */
+  graph?: Graph;
 }
 
 /** One row of `hkb_interventions`, cut to what the prompt reads. */
@@ -509,7 +512,11 @@ export function buildContextFromInput(
     .filter(Boolean);
   const adoptedCodes =
     extras.adoptedCodes ?? tracker.items.flatMap((i) => i.metricCodes ?? []);
-  const graph = computeGraphState(input, { focus, adoptedCodes });
+  const graph = computeGraphState(input, {
+    focus,
+    adoptedCodes,
+    graph: extras.graph,
+  });
   const hypotheses = scoreHypotheses(input, { catalog: extras.catalog });
 
   const open = profileQuestions(input);
@@ -636,6 +643,7 @@ export async function buildReportContext(
     tracker,
     previous,
     catalog,
+    graph: await loadGraph(),
     documents: await documentSummaries(userId),
     interventions: await interventionSummaries(),
   });

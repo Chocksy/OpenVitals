@@ -25,8 +25,18 @@ import {
   hkbFeatures,
   hkbInterventions,
   hkbTests,
+  kgEdges,
 } from "@/db";
 import { model } from "./extract";
+import {
+  NODES,
+  SYSTEMS,
+  type EdgeWhen,
+  type Evidence,
+  type GraphEdge,
+  type GraphNode,
+} from "./graph";
+import { forgetGraph, loadGraph, mintNode } from "./kg";
 import { dueAgain } from "./hkb-import";
 import { decide, statusOf, type PolicyInput } from "./hkb-policy";
 import type { Grade } from "./hypotheses";
@@ -1045,6 +1055,8 @@ export async function saveProposals(
         mintedFrom: m.doi,
       })
       .onConflictDoNothing();
+    // A feature the engine can score on is a thing the graph can draw.
+    await mintNode(m.id, m.name, m.unit ? null : UNIT_UNKNOWN);
     const code = m.id.slice("metric:".length);
     await db
       .insert(hkbTests)
@@ -1343,5 +1355,414 @@ export async function saveInterventions(
     .values(rows)
     .onConflictDoNothing()
     .returning({ id: hkbInterventions.id });
+  return written.length;
+}
+
+/* ── mechanism edges ──────────────────────────────────────────────────── */
+
+/** The verbs a paper uses when it says one thing moves another. */
+const MECHANISM_VERBS =
+  '("increases" OR "decreases" OR "raises" OR "lowers" OR "associated with")';
+const MECHANISM_TYPES = '(PUB_TYPE:"review" OR PUB_TYPE:"meta-analysis")';
+
+/** How far back a mechanism claim is still worth reading. */
+export const MECHANISM_YEARS = 15;
+
+/** Papers per condition on a mechanism pass. */
+export const MECHANISM_PAPERS = 10;
+
+/** How many of the condition's own features get a query of their own. */
+const MECHANISM_FEATURES = 4;
+
+/**
+ * One query per system, plus one per feature the condition already reads.
+ *
+ * The Y side is the twelve systems' headline markers, which is what makes the
+ * answers land on nodes we can draw. The X side is the condition, and then the
+ * condition's own evidence features, which is where "poor sleep raises
+ * insulin" comes from rather than "diabetes raises insulin".
+ */
+export function mechanismQueries(
+  condition: string,
+  features: Feature[],
+  now = new Date(),
+): string[] {
+  const to = now.getFullYear();
+  const dates = `(FIRST_PDATE:[${to - MECHANISM_YEARS}-01-01 TO ${to}-12-31])`;
+  const nameOf = (code: string) =>
+    NODES.find((n) => n.id === `metric:${code}`)?.name ?? code.replace(/_/g, " ");
+
+  const bySystem = SYSTEMS.map((s) => {
+    const markers = s.headline.map((c) => `"${nameOf(c)}"`).join(" OR ");
+    return `"${condition}" AND ${MECHANISM_VERBS} AND (${markers}) AND ${MECHANISM_TYPES} AND ${dates}`;
+  });
+
+  const byFeature = features
+    .slice(0, MECHANISM_FEATURES)
+    .map(
+      (f) =>
+        `"${f.name}" AND ${MECHANISM_VERBS} AND ("${condition}") AND ${MECHANISM_TYPES} AND ${dates}`,
+    );
+
+  return [...bySystem, ...byFeature];
+}
+
+const mechanismSchema = z.object({
+  paperIndex: z.number(),
+  from: z.string(),
+  fromId: z.string().nullish(),
+  to: z.string(),
+  toId: z.string().nullish(),
+  relation: z.enum(["raises", "lowers", "confounds", "treats", "worsens"]),
+  effect: z.string().nullish(),
+  condition: z.string().nullish(),
+  population: z.string(),
+  studyType: z.enum(STUDY_TYPES),
+  quote: z.string(),
+});
+
+export const mechanismExtraction = z.object({
+  edges: z.array(mechanismSchema),
+});
+
+export type MechanismFinding = z.infer<typeof mechanismSchema>;
+
+export const MECHANISM_PROMPT = `You read medical reviews and pull out the relations they state between two
+things: what moves what, in which direction, and under what condition. Report
+only what the abstract itself states.
+
+Rules:
+- One item per (from, to, relation) the abstract states. No item at all is the
+  right answer for an abstract that states no relation.
+- \`quote\` must be a verbatim span copied from that abstract, containing the claim.
+- \`paperIndex\` is the number of the abstract the item came from.
+- \`from\` and \`to\` are the two things, in the abstract's own words. Map \`fromId\`
+  and \`toId\` to a listed graph node id when the thing clearly is that node.
+  Leave them null otherwise; do not force a match.
+- \`relation\` is what \`from\` does to \`to\`: raises, lowers, confounds, treats or worsens.
+- \`effect\` is the effect size with its unit, as the abstract prints it
+  ("+0.3 mmol/L per 1 h less sleep", "OR 1.8"), or null.
+- \`condition\` is the qualifier the abstract puts on the claim, in its own words
+  ("only in fast metabolisers", "only when taken within 6 hours of bedtime",
+  "in women only"), or null when the claim is unqualified.
+- Never invent a weight, a strength or a number the abstract does not print.`;
+
+export const nodeList = (nodes: GraphNode[]) =>
+  nodes.map((n) => `${n.id} | ${n.name}`).join("\n");
+
+export interface MechanismExtractor {
+  (
+    papers: Paper[],
+    condition: ConditionRef,
+    nodes: GraphNode[],
+  ): Promise<{ edges: MechanismFinding[]; tokens: number }>;
+}
+
+export const llmMechanisms =
+  (modelId?: string): MechanismExtractor =>
+  async (papers, condition, nodes) => {
+    const numbered = papers
+      .map(
+        (p, i) =>
+          `[${i + 1}] ${p.title} (${p.journal ?? "?"} ${p.year ?? "?"})\n${p.abstract}`,
+      )
+      .join("\n\n");
+    const { object, usage } = await generateObject({
+      model: model(modelId),
+      schema: mechanismExtraction,
+      system: MECHANISM_PROMPT,
+      prompt:
+        `Condition: ${condition.name} (id ${condition.id}).\n\n` +
+        `GRAPH NODES (id | name):\n${nodeList(nodes)}\n\n` +
+        `ABSTRACTS:\n${numbered}`,
+    });
+    return { edges: object.edges, tokens: usage?.totalTokens ?? 0 };
+  };
+
+/* ── the `when` parser ────────────────────────────────────────────────── */
+
+/** The event facts a "within N hours of bedtime" qualifier can name. */
+const TIMING_FACTS: { words: RegExp; fact: string }[] = [
+  { words: /coffee|caffeine|espresso/i, fact: "coffee_last_hour" },
+  { words: /meal|dinner|supper|eating|food|snack/i, fact: "last_meal_hour" },
+];
+
+const GENOTYPE_WORDS =
+  /\b(fast|slow|rapid|poor|intermediate|extensive|ultrarapid|non-?persistent|persistent|carrier|homozygous|heterozygous)\b/i;
+
+/**
+ * A qualifier sentence into an `EdgeWhen`, for the four shapes we can check
+ * against a real profile: a genotype, a timing gap, sex and age.
+ *
+ * Anything else comes back null, and the caller keeps the sentence as text and
+ * marks the edge speculative. Guessing here would be inventing a gate.
+ */
+export function parseWhen(
+  text: string | null | undefined,
+  genes: string[] = [],
+): EdgeWhen | null {
+  const raw = (text ?? "").trim();
+  if (!raw) return null;
+
+  const hours = raw.match(
+    /within\s+(\d+(?:\.\d+)?)\s*(?:h|hr|hrs|hour|hours)\s+of\s+(?:bed|bedtime|going to bed|sleep|sleeping)/i,
+  );
+  if (hours) {
+    const timing = TIMING_FACTS.find((t) => t.words.test(raw));
+    if (timing)
+      return {
+        hoursBefore: { eventFact: timing.fact, threshold: Number(hours[1]) },
+      };
+  }
+
+  const genotype = raw.match(GENOTYPE_WORDS)?.[1];
+  if (genotype) {
+    const named = genes.filter((g) => new RegExp(`\\b${g}\\b`, "i").test(raw));
+    const gene = named.length === 1 ? named[0] : genes.length === 1 ? genes[0] : null;
+    if (gene)
+      return { genome: { gene, genotype: genotype.toLowerCase().replace("-", "") } };
+  }
+
+  if (/\b(only |)in (women|females|female)\b/i.test(raw)) return { sex: "female" };
+  if (/\b(only |)in (men|males|male)\b/i.test(raw)) return { sex: "male" };
+
+  const over = raw.match(/\b(?:over|above|older than)\s+(\d{2})\b/);
+  if (over) return { age: { min: Number(over[1]) } };
+  const under = raw.match(/\b(?:under|below|younger than)\s+(\d{2})\b/);
+  if (under) return { age: { max: Number(under[1]) } };
+
+  return null;
+}
+
+/** large 3, moderate 2, small or unstated 1. Never invented from nothing. */
+export function strengthOf(effect: string | null | undefined): 1 | 2 | 3 {
+  const text = (effect ?? "").toLowerCase();
+  if (!text.trim()) return 1;
+  if (/\b(large|strong|marked|substantial)\b/.test(text)) return 3;
+  if (/\b(moderate|medium)\b/.test(text)) return 2;
+  if (/\b(small|modest|weak|slight|minimal)\b/.test(text)) return 1;
+  const ratio = text.match(/\b(?:or|rr|hr|odds ratio|risk ratio)\s*[:=]?\s*(\d+(?:\.\d+)?)/);
+  if (ratio) {
+    const value = Number(ratio[1]);
+    if (value >= 2 || (value > 0 && value <= 0.5)) return 3;
+    if (value >= 1.5 || (value > 0 && value <= 0.67)) return 2;
+  }
+  return 1;
+}
+
+/** The study type as one of the five kinds an `Evidence` item can be. */
+const EVIDENCE_KIND: Partial<Record<StudyType, Evidence["kind"]>> = {
+  meta: "meta",
+  guideline: "guideline",
+  rct: "rct",
+  case_report: "anecdotal",
+  case_series: "anecdotal",
+  n_of_1: "anecdotal",
+  self_experiment: "anecdotal",
+};
+
+/** A is settled, B is probable, anything shrunk is speculative. */
+const CONFIDENCE_BY_GRADE: Record<Grade, GraphEdge["confidence"]> = {
+  A: "established",
+  B: "probable",
+  C: "speculative",
+  D: "speculative",
+  E: "speculative",
+};
+
+/** The row `saveMechanisms` writes. Same columns as the seed. */
+export interface MechanismRow {
+  id: string;
+  fromId: string;
+  toId: string;
+  relation: string;
+  strength: number;
+  confidence: string;
+  grade: string;
+  basis: string;
+  when_: (EdgeWhen & Record<string, unknown>) | null;
+  mechanism: string;
+  evidence: Evidence[];
+  source: string;
+  status: string;
+}
+
+const whenSlug = (when: EdgeWhen | null) =>
+  when ? slug(JSON.stringify(when)).slice(0, 40) : "any";
+
+/**
+ * Mechanism findings into `kg_edges` rows.
+ *
+ * An endpoint that does not resolve to a node we already draw is dropped: this
+ * run adds edges to the graph, it does not invent the graph. A qualifier the
+ * parser cannot check stays in the mechanism sentence and costs the edge its
+ * confidence, which is the honest version of "we could not test this for you".
+ */
+export function toMechanismEdges(
+  nodes: GraphNode[],
+  papers: Paper[],
+  findings: MechanismFinding[],
+  ctx: { venueKnown?: Set<string> } = {},
+): { rows: MechanismRow[]; unresolved: number; parsed: number } {
+  const byId = new Map(nodes.map((n) => [n.id, n]));
+  const byName = new Map(
+    nodes.map((n) => [normalizeName(n.name), n.id] as const),
+  );
+  const genes = nodes
+    .filter((n) => n.kind === "gene")
+    .map((n) => n.id.split(":").pop()!);
+
+  const resolve = (id: string | null | undefined, name: string) => {
+    if (id && byId.has(id)) return id;
+    const key = normalizeName(name);
+    return byName.get(key) ?? byName.get(key.replace(/^the /, "")) ?? null;
+  };
+
+  const rows = new Map<string, MechanismRow>();
+  let unresolved = 0;
+  let parsed = 0;
+
+  for (const f of findings) {
+    const paper = papers[f.paperIndex - 1];
+    if (!paper || paper.retracted || !paper.doi) continue;
+    if (!f.quote?.trim()) continue;
+
+    const fromId = resolve(f.fromId, f.from);
+    const toId = resolve(f.toId, f.to);
+    if (!fromId || !toId || fromId === toId) {
+      unresolved++;
+      continue;
+    }
+
+    const grade = gradeOf({ studyType: f.studyType, n: null } as Finding, {
+      citedBy: paper.citedBy,
+      year: paper.year,
+      resolved: true,
+      venueKnown: ctx.venueKnown?.has(paper.doi) || undefined,
+    });
+
+    const qualifier = f.condition?.trim() || null;
+    const when = parseWhen(qualifier, genes);
+    if (when) parsed++;
+    const confidence = when || !qualifier
+      ? CONFIDENCE_BY_GRADE[grade]
+      : "speculative";
+
+    const key = `${fromId}|${toId}|${f.relation}|${whenSlug(when)}`;
+    if (rows.has(key)) continue;
+
+    rows.set(key, {
+      id: `res_${slug(fromId)}_${slug(toId)}_${f.relation}_${whenSlug(when)}`.slice(0, 120),
+      fromId,
+      toId,
+      relation: f.relation,
+      strength: strengthOf(f.effect),
+      confidence,
+      grade,
+      basis: "science",
+      when_: when as (EdgeWhen & Record<string, unknown>) | null,
+      mechanism:
+        `${f.from} ${f.relation} ${f.to}` +
+        (f.effect?.trim() ? ` (${f.effect.trim()})` : "") +
+        (qualifier && !when ? `. Stated only ${qualifier}; we cannot check that against your profile, so this edge stays speculative.` : "."),
+      evidence: [
+        {
+          kind: EVIDENCE_KIND[f.studyType] ?? "observational",
+          title: paper.title,
+          doi: paper.doi ?? undefined,
+          year: paper.year ?? undefined,
+          source: `${paper.journal ?? "?"}; ${f.population}`,
+          quote: f.quote.replace(/\s+/g, " ").trim(),
+          ...(f.effect?.trim() ? { effect: f.effect.trim() } : {}),
+        },
+      ],
+      source: "research",
+      status: "active",
+    });
+  }
+
+  return { rows: [...rows.values()], unresolved, parsed };
+}
+
+export interface MechanismCounts {
+  hits: number;
+  verified: number;
+  extracted: number;
+  edges: number;
+  parsed: number;
+  unresolved: number;
+  tokens: number;
+}
+
+/**
+ * The third search: what moves what, for one condition. Same shape as the
+ * other two — search, verify the DOIs, extract, hand back rows.
+ */
+export async function researchMechanisms(
+  condition: ConditionRef,
+  features: Feature[],
+  options: {
+    maxPapers?: number;
+    modelId?: string;
+    extract?: MechanismExtractor;
+    nodes?: GraphNode[];
+    now?: Date;
+  } = {},
+): Promise<{ rows: MechanismRow[]; counts: MechanismCounts }> {
+  const maxPapers = options.maxPapers ?? MECHANISM_PAPERS;
+  const extract = options.extract ?? llmMechanisms(options.modelId);
+  const nodes = options.nodes ?? (await loadGraph()).nodes;
+
+  const found: Paper[] = [];
+  for (const query of mechanismQueries(condition.name, features, options.now))
+    found.push(...(await epmc(query, "lite")).map(toPaper));
+  const hits = found.length;
+
+  const candidates = await withAbstracts(dedupe(found).slice(0, 40));
+  const verified: Paper[] = [];
+  for (const p of candidates.slice(0, maxPapers)) {
+    const ok = await verify(p);
+    if (ok && !ok.retracted) verified.push(ok);
+  }
+
+  const findings: MechanismFinding[] = [];
+  let tokens = 0;
+  for (let i = 0; i < verified.length; i += BATCH) {
+    const batch = verified.slice(i, i + BATCH);
+    const out = await extract(batch, condition, nodes);
+    tokens += out.tokens;
+    for (const edge of out.edges)
+      findings.push({ ...edge, paperIndex: i + edge.paperIndex });
+    if (i + BATCH < verified.length) await sleep(200);
+  }
+
+  const { rows, unresolved, parsed } = toMechanismEdges(
+    nodes,
+    verified,
+    findings,
+  );
+  return {
+    rows,
+    counts: {
+      hits,
+      verified: verified.length,
+      extracted: findings.length,
+      edges: rows.length,
+      parsed,
+      unresolved,
+      tokens,
+    },
+  };
+}
+
+/** The rows, minus the (from, to, relation, when) keys already on the table. */
+export async function saveMechanisms(rows: MechanismRow[]): Promise<number> {
+  if (!rows.length) return 0;
+  const written = await getDb()
+    .insert(kgEdges)
+    .values(rows.map((r) => ({ ...r, when_: r.when_ ?? null })))
+    .onConflictDoNothing()
+    .returning({ id: kgEdges.id });
+  forgetGraph();
   return written.length;
 }

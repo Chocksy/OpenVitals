@@ -647,7 +647,36 @@ const ASKED: Record<
     question: "Have you ever had a DEXA scan? Give the year and the result.",
     free: true,
   },
+
+  // The four timing and habit answers the phase-16 conditional edges read.
+  // They are not vectors: nothing screens on them, and `lib/ask.ts` only
+  // queues them when an edge is one answer away from applying to this person.
+  coffee_last_hour: {
+    question:
+      "What time do you usually have your last coffee or caffeinated drink? Write it as 15:00.",
+    free: true,
+  },
+  last_meal_hour: {
+    question: "What time do you usually finish your last meal? Write it as 21:00.",
+    free: true,
+  },
+  bedtime_hour: {
+    question: "What time do you usually go to bed? Write it as 23:00.",
+    free: true,
+  },
+  dairy_daily: {
+    question: "Do you have milk, yoghurt or cheese most days?",
+    options: ["Yes", "No"],
+  },
 };
+
+/** The four answers only a conditional edge asks for. */
+export const CONDITIONAL_FACTS = new Set([
+  "coffee_last_hour",
+  "last_meal_hour",
+  "bedtime_hour",
+  "dairy_daily",
+]);
 
 /**
  * The interview, plus the twelve symptom items. Symptoms live in

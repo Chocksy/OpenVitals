@@ -8,6 +8,7 @@
  */
 import { coverage, type CoverageRow, type ModelInput } from "./coverage";
 import { computeGraphState, type NodeState } from "./graph-state";
+import { loadGraph } from "./kg";
 import { loadCatalog } from "./hkb";
 import { scoreHypotheses, type HypothesisResult, type Lens } from "./hypotheses";
 import { nextMoves, type Move } from "./infogain";
@@ -165,9 +166,11 @@ export async function runBrain(
     catalog,
   });
   const affordable = (m: Move) => budget == null || m.cost <= budget;
-  const graph = computeGraphState(input);
+  const loaded = await loadGraph();
+  const graph = computeGraphState(input, { graph: loaded });
   const { context } = buildContextFromInput(input, {
     catalog,
+    graph: loaded,
     tracker: {
       from: input.today,
       to: input.today,
@@ -202,6 +205,7 @@ export async function brainContext(s: Scenario, overlay: Overlay = EMPTY_OVERLAY
   const input = await buildScenarioInput(s, overlay);
   return buildContextFromInput(input, {
     catalog: await loadCatalog(),
+    graph: await loadGraph(),
     tracker: {
       from: input.today,
       to: input.today,
