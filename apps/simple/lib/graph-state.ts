@@ -97,9 +97,9 @@ function isStale(m: ModelInput, metricCode: string): boolean {
 function namedByPattern(match: PatternMatch, edges: GraphEdge[]): Set<string> {
   const ids = new Set<string>();
   const edgeIds = new Set([
-    ...edges.filter((e) => e.when?.pattern === match.pattern.id).map(
-      (e) => e.id,
-    ),
+    ...edges
+      .filter((e) => e.when?.pattern === match.pattern.id)
+      .map((e) => e.id),
     ...(match.pattern.effects.edgeOverrides ?? []).map((o) => o.edgeId),
   ]);
   for (const edge of edges) {
@@ -175,10 +175,15 @@ export function evaluateWhen(
   const w = edge.when;
   const reasons: string[] = [];
   if (!w) return { holds: true, reasons };
-  const no = (failed: string): WhenVerdict => ({ holds: false, reasons, failed });
+  const no = (failed: string): WhenVerdict => ({
+    holds: false,
+    reasons,
+    failed,
+  });
 
   if (w.pattern) {
-    if (!matched.has(w.pattern)) return no(`the ${w.pattern} pattern does not match you`);
+    if (!matched.has(w.pattern))
+      return no(`the ${w.pattern} pattern does not match you`);
     reasons.push(`pattern ${w.pattern}`);
   }
   if (w.sex) {
@@ -186,17 +191,26 @@ export function evaluateWhen(
     reasons.push(w.sex);
   }
 
-  if (w.fact) {
-    const { key, includes, equals, above, below } = w.fact;
+  for (const clause of [w.fact, ...(w.facts ?? [])]) {
+    if (!clause) continue;
+    const { key, includes, equals, oneOf, above, below } = clause;
     const text = answer(m, key);
     if (!text.trim()) return no(`you have not answered "${readable(key)}" yet`);
     if (includes && !text.toLowerCase().includes(includes.toLowerCase()))
       return no(`${readable(key)} is "${text}", not "${includes}"`);
     if (equals && text.trim().toLowerCase() !== equals.toLowerCase())
       return no(`${readable(key)} is "${text}", not "${equals}"`);
+    if (
+      oneOf?.length &&
+      !oneOf.some((o) => o.toLowerCase() === text.trim().toLowerCase())
+    )
+      return no(
+        `${readable(key)} is "${text}", not one of ${oneOf.join(", ")}`,
+      );
     if (above != null || below != null) {
       const value = asNumber(text);
-      if (value == null) return no(`${readable(key)} "${text}" is not a number`);
+      if (value == null)
+        return no(`${readable(key)} "${text}" is not a number`);
       if (above != null && value < above)
         return no(`${readable(key)} ${text} is below ${above}`);
       if (below != null && value > below)
@@ -216,8 +230,10 @@ export function evaluateWhen(
 
   if (w.age) {
     if (m.age == null) return no("we do not know your age yet");
-    if (w.age.min != null && m.age < w.age.min) return no(`only over ${w.age.min}`);
-    if (w.age.max != null && m.age > w.age.max) return no(`only under ${w.age.max}`);
+    if (w.age.min != null && m.age < w.age.min)
+      return no(`only over ${w.age.min}`);
+    if (w.age.max != null && m.age > w.age.max)
+      return no(`only under ${w.age.max}`);
     reasons.push(`age ${m.age}`);
   }
 
@@ -225,7 +241,8 @@ export function evaluateWhen(
     const { eventFact, threshold } = w.hoursBefore;
     const event = parseHour(m.profile[eventFact]);
     const bed = parseHour(m.profile[BEDTIME_FACT]);
-    if (event == null) return no(`you have not answered "${readable(eventFact)}" yet`);
+    if (event == null)
+      return no(`you have not answered "${readable(eventFact)}" yet`);
     if (bed == null) return no(`you have not answered "bedtime hour" yet`);
     const gap = (bed - event + 24) % 24;
     if (gap >= threshold)
@@ -330,7 +347,11 @@ export function computeGraphState(
     // A behaviour, a symptom answer or a genotype call is only in play once
     // the person has answered it. That is what makes a conditional edge
     // reachable at all: both its endpoints have to be warm.
-    if (node.kind === "fact" || node.kind === "behavior" || node.kind === "gene") {
+    if (
+      node.kind === "fact" ||
+      node.kind === "behavior" ||
+      node.kind === "gene"
+    ) {
       const key = node.codes?.find((c) => answer(m, c).trim());
       if (key) {
         importance += 0.2;
@@ -438,7 +459,12 @@ export function computeGraphState(
   };
 }
 
-const STATUS_RANK: Record<Status, number> = { red: 3, amber: 2, green: 1, gray: 0 };
+const STATUS_RANK: Record<Status, number> = {
+  red: 3,
+  amber: 2,
+  green: 1,
+  gray: 0,
+};
 
 /**
  * The member metric this person should look at first in this system: worst

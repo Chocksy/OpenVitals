@@ -18,6 +18,7 @@
     "test": "vitest run",
     "eval": "tsx --env-file=.env evals/run.ts",
     "eval:journeys": "tsx --env-file=.env evals/journeys.ts",
+    "eval:compose": "tsx --env-file=.env evals/compose.ts",
     "hkb:import": "tsx scripts/hkb-import-ontology.ts",
     "hkb:ring2:build": "tsx scripts/hkb-ring2-build.ts",
     "hkb:research": "tsx --env-file=.env scripts/hkb-research.ts",

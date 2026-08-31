@@ -1,6 +1,6 @@
 {
-  "ranAt": "2026-08-31T13:13:03.489Z",
-  "kbRevision": 52,
+  "ranAt": "2026-08-31T14:14:23.891Z",
+  "kbRevision": 55,
   "results": [
     {
       "id": "a1at_female_41",
@@ -57327,6 +57327,1965 @@
       "falseLikely": [],
       "totalEur": 0,
       "stop": "discovered",
+      "pass": true,
+      "failed": []
+    },
+    {
+      "id": "interview_fatigue_coffee_m41",
+      "prior": {
+        "cancer_screening_due": 0.667,
+        "insulin_resistance": 0.184,
+        "hypertension": 0.141,
+        "low_fitness_sarcopenia": 0.136,
+        "nafld": 0.202,
+        "ascvd_risk": 0.08,
+        "sleep_apnoea": 0.053,
+        "b12_deficiency": 0.09,
+        "chronic_inflammation": 0.043,
+        "type2_diabetes": 0.021,
+        "alcohol_use_disorder": 0.016,
+        "atrophic_gastritis": 0.02,
+        "depression": 0.016,
+        "lpa_elevated": 0.012,
+        "vitamin_d_deficiency": 0.024,
+        "sibo": 0.032,
+        "hashimoto": 0.018,
+        "male_hypogonadism": 0.023,
+        "gout_hyperuricaemia": 0.012,
+        "ckd": 0.003,
+        "anaemia_other": 0.01,
+        "coeliac_disease": 0.008,
+        "hypothyroidism": 0.003,
+        "familial_hypercholesterolaemia": 0.001,
+        "iron_deficiency": 0.002,
+        "a1at_deficiency": 0,
+        "haemochromatosis": 0,
+        "hyperthyroidism": 0,
+        "addisons": 0,
+        "hepatitis_bc": 0,
+        "mast_cell_activation": 0,
+        "wilson": 0,
+        "fabry": 0,
+        "gilbert": 0.016,
+        "folate_deficiency": 0.006
+      },
+      "priorWoken": [],
+      "steps": [
+        {
+          "n": 1,
+          "move": {
+            "kind": "test",
+            "featureId": "metric:ldl_cholesterol",
+            "testId": "repeat_ldl_off_any_treatment",
+            "label": "Repeat LDL off any treatment",
+            "cost": 19.02,
+            "priced": true,
+            "outcomes": [
+              {
+                "label": "positive",
+                "prob": 0.01,
+                "beliefs": [
+                  {
+                    "id": "cancer_screening_due",
+                    "p": 0.667
+                  },
+                  {
+                    "id": "ascvd_risk",
+                    "p": 0.245
+                  },
+                  {
+                    "id": "insulin_resistance",
+                    "p": 0.184
+                  },
+                  {
+                    "id": "hypertension",
+                    "p": 0.141
+                  },
+                  {
+                    "id": "low_fitness_sarcopenia",
+                    "p": 0.136
+                  },
+                  {
+                    "id": "nafld",
+                    "p": 0.202
+                  },
+                  {
+                    "id": "sleep_apnoea",
+                    "p": 0.053
+                  },
+                  {
+                    "id": "familial_hypercholesterolaemia",
+                    "p": 0.024
+                  },
+                  {
+                    "id": "b12_deficiency",
+                    "p": 0.09
+                  },
+                  {
+                    "id": "chronic_inflammation",
+                    "p": 0.043
+                  },
+                  {
+                    "id": "type2_diabetes",
+                    "p": 0.021
+                  },
+                  {
+                    "id": "alcohol_use_disorder",
+                    "p": 0.016
+                  },
+                  {
+                    "id": "atrophic_gastritis",
+                    "p": 0.02
+                  },
+                  {
+                    "id": "depression",
+                    "p": 0.016
+                  },
+                  {
+                    "id": "lpa_elevated",
+                    "p": 0.012
+                  },
+                  {
+                    "id": "vitamin_d_deficiency",
+                    "p": 0.024
+                  },
+                  {
+                    "id": "sibo",
+                    "p": 0.032
+                  },
+                  {
+                    "id": "hashimoto",
+                    "p": 0.018
+                  },
+                  {
+                    "id": "male_hypogonadism",
+                    "p": 0.023
+                  },
+                  {
+                    "id": "gout_hyperuricaemia",
+                    "p": 0.012
+                  },
+                  {
+                    "id": "ckd",
+                    "p": 0.003
+                  },
+                  {
+                    "id": "anaemia_other",
+                    "p": 0.01
+                  },
+                  {
+                    "id": "coeliac_disease",
+                    "p": 0.008
+                  },
+                  {
+                    "id": "hypothyroidism",
+                    "p": 0.003
+                  },
+                  {
+                    "id": "iron_deficiency",
+                    "p": 0.002
+                  },
+                  {
+                    "id": "a1at_deficiency",
+                    "p": 0.000336
+                  },
+                  {
+                    "id": "haemochromatosis",
+                    "p": 0.000495
+                  },
+                  {
+                    "id": "hyperthyroidism",
+                    "p": 0.000281
+                  },
+                  {
+                    "id": "addisons",
+                    "p": 0.000102
+                  },
+                  {
+                    "id": "hepatitis_bc",
+                    "p": 0.0000761
+                  },
+                  {
+                    "id": "mast_cell_activation",
+                    "p": 0.0000694
+                  },
+                  {
+                    "id": "wilson",
+                    "p": 0.0000294
+                  },
+                  {
+                    "id": "fabry",
+                    "p": 0.0000291
+                  },
+                  {
+                    "id": "gilbert",
+                    "p": 0.016
+                  },
+                  {
+                    "id": "folate_deficiency",
+                    "p": 0.006
+                  }
+                ],
+                "apply": {
+                  "readings": [
+                    {
+                      "code": "ldl_cholesterol",
+                      "value": 230,
+                      "unit": "mg/dL",
+                      "date": "2026-08-31"
+                    }
+                  ],
+                  "facts": {},
+                  "confounders": {}
+                }
+              },
+              {
+                "label": "negative",
+                "prob": 0.99,
+                "beliefs": [
+                  {
+                    "id": "cancer_screening_due",
+                    "p": 0.667
+                  },
+                  {
+                    "id": "insulin_resistance",
+                    "p": 0.184
+                  },
+                  {
+                    "id": "hypertension",
+                    "p": 0.141
+                  },
+                  {
+                    "id": "low_fitness_sarcopenia",
+                    "p": 0.136
+                  },
+                  {
+                    "id": "nafld",
+                    "p": 0.202
+                  },
+                  {
+                    "id": "sleep_apnoea",
+                    "p": 0.053
+                  },
+                  {
+                    "id": "ascvd_risk",
+                    "p": 0.049
+                  },
+                  {
+                    "id": "b12_deficiency",
+                    "p": 0.09
+                  },
+                  {
+                    "id": "chronic_inflammation",
+                    "p": 0.043
+                  },
+                  {
+                    "id": "type2_diabetes",
+                    "p": 0.021
+                  },
+                  {
+                    "id": "alcohol_use_disorder",
+                    "p": 0.016
+                  },
+                  {
+                    "id": "atrophic_gastritis",
+                    "p": 0.02
+                  },
+                  {
+                    "id": "depression",
+                    "p": 0.016
+                  },
+                  {
+                    "id": "lpa_elevated",
+                    "p": 0.012
+                  },
+                  {
+                    "id": "vitamin_d_deficiency",
+                    "p": 0.024
+                  },
+                  {
+                    "id": "sibo",
+                    "p": 0.032
+                  },
+                  {
+                    "id": "hashimoto",
+                    "p": 0.018
+                  },
+                  {
+                    "id": "male_hypogonadism",
+                    "p": 0.023
+                  },
+                  {
+                    "id": "gout_hyperuricaemia",
+                    "p": 0.012
+                  },
+                  {
+                    "id": "ckd",
+                    "p": 0.003
+                  },
+                  {
+                    "id": "anaemia_other",
+                    "p": 0.01
+                  },
+                  {
+                    "id": "coeliac_disease",
+                    "p": 0.008
+                  },
+                  {
+                    "id": "hypothyroidism",
+                    "p": 0.003
+                  },
+                  {
+                    "id": "familial_hypercholesterolaemia",
+                    "p": 0.000601
+                  },
+                  {
+                    "id": "iron_deficiency",
+                    "p": 0.002
+                  },
+                  {
+                    "id": "a1at_deficiency",
+                    "p": 0.000336
+                  },
+                  {
+                    "id": "haemochromatosis",
+                    "p": 0.000495
+                  },
+                  {
+                    "id": "hyperthyroidism",
+                    "p": 0.000281
+                  },
+                  {
+                    "id": "addisons",
+                    "p": 0.000102
+                  },
+                  {
+                    "id": "hepatitis_bc",
+                    "p": 0.0000761
+                  },
+                  {
+                    "id": "mast_cell_activation",
+                    "p": 0.0000694
+                  },
+                  {
+                    "id": "wilson",
+                    "p": 0.0000294
+                  },
+                  {
+                    "id": "fabry",
+                    "p": 0.0000291
+                  },
+                  {
+                    "id": "gilbert",
+                    "p": 0.016
+                  },
+                  {
+                    "id": "folate_deficiency",
+                    "p": 0.006
+                  }
+                ],
+                "apply": {
+                  "readings": [
+                    {
+                      "code": "ldl_cholesterol",
+                      "value": 120,
+                      "unit": "mg/dL",
+                      "date": "2026-08-31"
+                    }
+                  ],
+                  "facts": {},
+                  "confounders": {}
+                }
+              }
+            ],
+            "entropyBefore": 6.68,
+            "entropyAfter": 6.567,
+            "gain": 0.113,
+            "ratio": 0.006,
+            "shift": 0.033,
+            "moves": [
+              {
+                "id": "ascvd_risk",
+                "from": 0.08,
+                "to": 0.245
+              }
+            ]
+          },
+          "outcome": "ldl_cholesterol 120",
+          "costEur": 19.02,
+          "cumEur": 19.02,
+          "beliefs": {
+            "cancer_screening_due": 0.667,
+            "insulin_resistance": 0.184,
+            "hypertension": 0.141,
+            "low_fitness_sarcopenia": 0.136,
+            "nafld": 0.202,
+            "sleep_apnoea": 0.053,
+            "ascvd_risk": 0.049,
+            "b12_deficiency": 0.09,
+            "chronic_inflammation": 0.043,
+            "type2_diabetes": 0.021,
+            "alcohol_use_disorder": 0.016,
+            "atrophic_gastritis": 0.02,
+            "depression": 0.016,
+            "lpa_elevated": 0.012,
+            "vitamin_d_deficiency": 0.024,
+            "sibo": 0.032,
+            "hashimoto": 0.018,
+            "male_hypogonadism": 0.023,
+            "gout_hyperuricaemia": 0.012,
+            "ckd": 0.003,
+            "anaemia_other": 0.01,
+            "coeliac_disease": 0.008,
+            "hypothyroidism": 0.003,
+            "familial_hypercholesterolaemia": 0.001,
+            "iron_deficiency": 0.002,
+            "a1at_deficiency": 0,
+            "haemochromatosis": 0,
+            "hyperthyroidism": 0,
+            "addisons": 0,
+            "hepatitis_bc": 0,
+            "mast_cell_activation": 0,
+            "wilson": 0,
+            "fabry": 0,
+            "gilbert": 0.016,
+            "folate_deficiency": 0.006
+          },
+          "woken": []
+        },
+        {
+          "n": 2,
+          "move": {
+            "kind": "test",
+            "featureId": "metric:vo2max_est",
+            "testId": "vo2max_estimate_from_a_submaximal_test",
+            "label": "VO2max estimate from a submaximal test",
+            "howTo": "A twelve-minute run, a step test or a watch estimate. Any of them beats not measuring it, which is what almost every clinic does.",
+            "cost": 2,
+            "outcomes": [
+              {
+                "label": "positive",
+                "prob": 0.23,
+                "beliefs": [
+                  {
+                    "id": "cancer_screening_due",
+                    "p": 0.667
+                  },
+                  {
+                    "id": "low_fitness_sarcopenia",
+                    "p": 0.44
+                  },
+                  {
+                    "id": "insulin_resistance",
+                    "p": 0.184
+                  },
+                  {
+                    "id": "hypertension",
+                    "p": 0.141
+                  },
+                  {
+                    "id": "nafld",
+                    "p": 0.202
+                  },
+                  {
+                    "id": "sleep_apnoea",
+                    "p": 0.053
+                  },
+                  {
+                    "id": "ascvd_risk",
+                    "p": 0.049
+                  },
+                  {
+                    "id": "b12_deficiency",
+                    "p": 0.09
+                  },
+                  {
+                    "id": "chronic_inflammation",
+                    "p": 0.043
+                  },
+                  {
+                    "id": "type2_diabetes",
+                    "p": 0.021
+                  },
+                  {
+                    "id": "alcohol_use_disorder",
+                    "p": 0.016
+                  },
+                  {
+                    "id": "atrophic_gastritis",
+                    "p": 0.02
+                  },
+                  {
+                    "id": "depression",
+                    "p": 0.016
+                  },
+                  {
+                    "id": "lpa_elevated",
+                    "p": 0.012
+                  },
+                  {
+                    "id": "vitamin_d_deficiency",
+                    "p": 0.024
+                  },
+                  {
+                    "id": "sibo",
+                    "p": 0.032
+                  },
+                  {
+                    "id": "hashimoto",
+                    "p": 0.018
+                  },
+                  {
+                    "id": "male_hypogonadism",
+                    "p": 0.023
+                  },
+                  {
+                    "id": "gout_hyperuricaemia",
+                    "p": 0.012
+                  },
+                  {
+                    "id": "ckd",
+                    "p": 0.003
+                  },
+                  {
+                    "id": "anaemia_other",
+                    "p": 0.01
+                  },
+                  {
+                    "id": "coeliac_disease",
+                    "p": 0.008
+                  },
+                  {
+                    "id": "hypothyroidism",
+                    "p": 0.003
+                  },
+                  {
+                    "id": "familial_hypercholesterolaemia",
+                    "p": 0.000601
+                  },
+                  {
+                    "id": "iron_deficiency",
+                    "p": 0.002
+                  },
+                  {
+                    "id": "a1at_deficiency",
+                    "p": 0.000336
+                  },
+                  {
+                    "id": "haemochromatosis",
+                    "p": 0.000495
+                  },
+                  {
+                    "id": "hyperthyroidism",
+                    "p": 0.000281
+                  },
+                  {
+                    "id": "addisons",
+                    "p": 0.000102
+                  },
+                  {
+                    "id": "hepatitis_bc",
+                    "p": 0.0000761
+                  },
+                  {
+                    "id": "mast_cell_activation",
+                    "p": 0.0000694
+                  },
+                  {
+                    "id": "wilson",
+                    "p": 0.0000294
+                  },
+                  {
+                    "id": "fabry",
+                    "p": 0.0000291
+                  },
+                  {
+                    "id": "gilbert",
+                    "p": 0.016
+                  },
+                  {
+                    "id": "folate_deficiency",
+                    "p": 0.006
+                  }
+                ],
+                "apply": {
+                  "readings": [
+                    {
+                      "code": "vo2max_est",
+                      "value": 22,
+                      "unit": "mL/kg/min",
+                      "date": "2026-08-31"
+                    }
+                  ],
+                  "facts": {},
+                  "confounders": {}
+                }
+              },
+              {
+                "label": "negative",
+                "prob": 0.77,
+                "beliefs": [
+                  {
+                    "id": "cancer_screening_due",
+                    "p": 0.667
+                  },
+                  {
+                    "id": "insulin_resistance",
+                    "p": 0.184
+                  },
+                  {
+                    "id": "hypertension",
+                    "p": 0.141
+                  },
+                  {
+                    "id": "nafld",
+                    "p": 0.202
+                  },
+                  {
+                    "id": "sleep_apnoea",
+                    "p": 0.053
+                  },
+                  {
+                    "id": "ascvd_risk",
+                    "p": 0.049
+                  },
+                  {
+                    "id": "low_fitness_sarcopenia",
+                    "p": 0.045
+                  },
+                  {
+                    "id": "b12_deficiency",
+                    "p": 0.09
+                  },
+                  {
+                    "id": "chronic_inflammation",
+                    "p": 0.043
+                  },
+                  {
+                    "id": "type2_diabetes",
+                    "p": 0.021
+                  },
+                  {
+                    "id": "alcohol_use_disorder",
+                    "p": 0.016
+                  },
+                  {
+                    "id": "atrophic_gastritis",
+                    "p": 0.02
+                  },
+                  {
+                    "id": "depression",
+                    "p": 0.016
+                  },
+                  {
+                    "id": "lpa_elevated",
+                    "p": 0.012
+                  },
+                  {
+                    "id": "vitamin_d_deficiency",
+                    "p": 0.024
+                  },
+                  {
+                    "id": "sibo",
+                    "p": 0.032
+                  },
+                  {
+                    "id": "hashimoto",
+                    "p": 0.018
+                  },
+                  {
+                    "id": "male_hypogonadism",
+                    "p": 0.023
+                  },
+                  {
+                    "id": "gout_hyperuricaemia",
+                    "p": 0.012
+                  },
+                  {
+                    "id": "ckd",
+                    "p": 0.003
+                  },
+                  {
+                    "id": "anaemia_other",
+                    "p": 0.01
+                  },
+                  {
+                    "id": "coeliac_disease",
+                    "p": 0.008
+                  },
+                  {
+                    "id": "hypothyroidism",
+                    "p": 0.003
+                  },
+                  {
+                    "id": "familial_hypercholesterolaemia",
+                    "p": 0.000601
+                  },
+                  {
+                    "id": "iron_deficiency",
+                    "p": 0.002
+                  },
+                  {
+                    "id": "a1at_deficiency",
+                    "p": 0.000336
+                  },
+                  {
+                    "id": "haemochromatosis",
+                    "p": 0.000495
+                  },
+                  {
+                    "id": "hyperthyroidism",
+                    "p": 0.000281
+                  },
+                  {
+                    "id": "addisons",
+                    "p": 0.000102
+                  },
+                  {
+                    "id": "hepatitis_bc",
+                    "p": 0.0000761
+                  },
+                  {
+                    "id": "mast_cell_activation",
+                    "p": 0.0000694
+                  },
+                  {
+                    "id": "wilson",
+                    "p": 0.0000294
+                  },
+                  {
+                    "id": "fabry",
+                    "p": 0.0000291
+                  },
+                  {
+                    "id": "gilbert",
+                    "p": 0.016
+                  },
+                  {
+                    "id": "folate_deficiency",
+                    "p": 0.006
+                  }
+                ],
+                "apply": {
+                  "readings": [
+                    {
+                      "code": "vo2max_est",
+                      "value": 45,
+                      "unit": "mL/kg/min",
+                      "date": "2026-08-31"
+                    }
+                  ],
+                  "facts": {},
+                  "confounders": {}
+                }
+              }
+            ],
+            "entropyBefore": 6.56,
+            "entropyAfter": 6.418,
+            "gain": 0.142,
+            "ratio": 0.005,
+            "shift": 0.14,
+            "moves": [
+              {
+                "id": "low_fitness_sarcopenia",
+                "from": 0.136,
+                "to": 0.44
+              }
+            ]
+          },
+          "outcome": "vo2max_est 45",
+          "costEur": 30,
+          "cumEur": 49.02,
+          "beliefs": {
+            "cancer_screening_due": 0.667,
+            "insulin_resistance": 0.184,
+            "hypertension": 0.141,
+            "nafld": 0.202,
+            "sleep_apnoea": 0.053,
+            "ascvd_risk": 0.049,
+            "low_fitness_sarcopenia": 0.045,
+            "b12_deficiency": 0.09,
+            "chronic_inflammation": 0.043,
+            "type2_diabetes": 0.021,
+            "alcohol_use_disorder": 0.016,
+            "atrophic_gastritis": 0.02,
+            "depression": 0.016,
+            "lpa_elevated": 0.012,
+            "vitamin_d_deficiency": 0.024,
+            "sibo": 0.032,
+            "hashimoto": 0.018,
+            "male_hypogonadism": 0.023,
+            "gout_hyperuricaemia": 0.012,
+            "ckd": 0.003,
+            "anaemia_other": 0.01,
+            "coeliac_disease": 0.008,
+            "hypothyroidism": 0.003,
+            "familial_hypercholesterolaemia": 0.001,
+            "iron_deficiency": 0.002,
+            "a1at_deficiency": 0,
+            "haemochromatosis": 0,
+            "hyperthyroidism": 0,
+            "addisons": 0,
+            "hepatitis_bc": 0,
+            "mast_cell_activation": 0,
+            "wilson": 0,
+            "fabry": 0,
+            "gilbert": 0.016,
+            "folate_deficiency": 0.006
+          },
+          "woken": []
+        },
+        {
+          "n": 3,
+          "move": {
+            "kind": "test",
+            "featureId": "metric:testosterone_total",
+            "testId": "morning_testosterone_repeated",
+            "label": "Morning testosterone, repeated",
+            "howTo": "Before 10 am, fasted, twice on separate days. A single afternoon sample is the commonest reason this gets diagnosed wrongly.",
+            "cost": 11.6,
+            "priced": true,
+            "outcomes": [
+              {
+                "label": "positive",
+                "prob": 0.108,
+                "beliefs": [
+                  {
+                    "id": "cancer_screening_due",
+                    "p": 0.667
+                  },
+                  {
+                    "id": "insulin_resistance",
+                    "p": 0.184
+                  },
+                  {
+                    "id": "hypertension",
+                    "p": 0.141
+                  },
+                  {
+                    "id": "nafld",
+                    "p": 0.202
+                  },
+                  {
+                    "id": "sleep_apnoea",
+                    "p": 0.053
+                  },
+                  {
+                    "id": "ascvd_risk",
+                    "p": 0.049
+                  },
+                  {
+                    "id": "low_fitness_sarcopenia",
+                    "p": 0.045
+                  },
+                  {
+                    "id": "male_hypogonadism",
+                    "p": 0.189
+                  },
+                  {
+                    "id": "b12_deficiency",
+                    "p": 0.09
+                  },
+                  {
+                    "id": "chronic_inflammation",
+                    "p": 0.043
+                  },
+                  {
+                    "id": "type2_diabetes",
+                    "p": 0.021
+                  },
+                  {
+                    "id": "alcohol_use_disorder",
+                    "p": 0.016
+                  },
+                  {
+                    "id": "atrophic_gastritis",
+                    "p": 0.02
+                  },
+                  {
+                    "id": "depression",
+                    "p": 0.016
+                  },
+                  {
+                    "id": "lpa_elevated",
+                    "p": 0.012
+                  },
+                  {
+                    "id": "vitamin_d_deficiency",
+                    "p": 0.024
+                  },
+                  {
+                    "id": "sibo",
+                    "p": 0.032
+                  },
+                  {
+                    "id": "hashimoto",
+                    "p": 0.018
+                  },
+                  {
+                    "id": "gout_hyperuricaemia",
+                    "p": 0.012
+                  },
+                  {
+                    "id": "ckd",
+                    "p": 0.003
+                  },
+                  {
+                    "id": "anaemia_other",
+                    "p": 0.01
+                  },
+                  {
+                    "id": "coeliac_disease",
+                    "p": 0.008
+                  },
+                  {
+                    "id": "hypothyroidism",
+                    "p": 0.003
+                  },
+                  {
+                    "id": "familial_hypercholesterolaemia",
+                    "p": 0.000601
+                  },
+                  {
+                    "id": "iron_deficiency",
+                    "p": 0.002
+                  },
+                  {
+                    "id": "a1at_deficiency",
+                    "p": 0.000336
+                  },
+                  {
+                    "id": "haemochromatosis",
+                    "p": 0.000495
+                  },
+                  {
+                    "id": "hyperthyroidism",
+                    "p": 0.000281
+                  },
+                  {
+                    "id": "addisons",
+                    "p": 0.000102
+                  },
+                  {
+                    "id": "hepatitis_bc",
+                    "p": 0.0000761
+                  },
+                  {
+                    "id": "mast_cell_activation",
+                    "p": 0.0000694
+                  },
+                  {
+                    "id": "wilson",
+                    "p": 0.0000294
+                  },
+                  {
+                    "id": "fabry",
+                    "p": 0.0000291
+                  },
+                  {
+                    "id": "gilbert",
+                    "p": 0.016
+                  },
+                  {
+                    "id": "folate_deficiency",
+                    "p": 0.006
+                  }
+                ],
+                "apply": {
+                  "readings": [
+                    {
+                      "code": "testosterone_total",
+                      "value": 210,
+                      "unit": "ng/dL",
+                      "date": "2026-08-31"
+                    }
+                  ],
+                  "facts": {},
+                  "confounders": {}
+                }
+              },
+              {
+                "label": "negative",
+                "prob": 0.892,
+                "beliefs": [
+                  {
+                    "id": "cancer_screening_due",
+                    "p": 0.667
+                  },
+                  {
+                    "id": "insulin_resistance",
+                    "p": 0.184
+                  },
+                  {
+                    "id": "hypertension",
+                    "p": 0.141
+                  },
+                  {
+                    "id": "nafld",
+                    "p": 0.202
+                  },
+                  {
+                    "id": "sleep_apnoea",
+                    "p": 0.053
+                  },
+                  {
+                    "id": "ascvd_risk",
+                    "p": 0.049
+                  },
+                  {
+                    "id": "low_fitness_sarcopenia",
+                    "p": 0.045
+                  },
+                  {
+                    "id": "b12_deficiency",
+                    "p": 0.09
+                  },
+                  {
+                    "id": "chronic_inflammation",
+                    "p": 0.043
+                  },
+                  {
+                    "id": "type2_diabetes",
+                    "p": 0.021
+                  },
+                  {
+                    "id": "alcohol_use_disorder",
+                    "p": 0.016
+                  },
+                  {
+                    "id": "atrophic_gastritis",
+                    "p": 0.02
+                  },
+                  {
+                    "id": "depression",
+                    "p": 0.016
+                  },
+                  {
+                    "id": "lpa_elevated",
+                    "p": 0.012
+                  },
+                  {
+                    "id": "vitamin_d_deficiency",
+                    "p": 0.024
+                  },
+                  {
+                    "id": "sibo",
+                    "p": 0.032
+                  },
+                  {
+                    "id": "hashimoto",
+                    "p": 0.018
+                  },
+                  {
+                    "id": "gout_hyperuricaemia",
+                    "p": 0.012
+                  },
+                  {
+                    "id": "ckd",
+                    "p": 0.003
+                  },
+                  {
+                    "id": "anaemia_other",
+                    "p": 0.01
+                  },
+                  {
+                    "id": "coeliac_disease",
+                    "p": 0.008
+                  },
+                  {
+                    "id": "hypothyroidism",
+                    "p": 0.003
+                  },
+                  {
+                    "id": "familial_hypercholesterolaemia",
+                    "p": 0.000601
+                  },
+                  {
+                    "id": "male_hypogonadism",
+                    "p": 0.003
+                  },
+                  {
+                    "id": "iron_deficiency",
+                    "p": 0.002
+                  },
+                  {
+                    "id": "a1at_deficiency",
+                    "p": 0.000336
+                  },
+                  {
+                    "id": "haemochromatosis",
+                    "p": 0.000495
+                  },
+                  {
+                    "id": "hyperthyroidism",
+                    "p": 0.000281
+                  },
+                  {
+                    "id": "addisons",
+                    "p": 0.000102
+                  },
+                  {
+                    "id": "hepatitis_bc",
+                    "p": 0.0000761
+                  },
+                  {
+                    "id": "mast_cell_activation",
+                    "p": 0.0000694
+                  },
+                  {
+                    "id": "wilson",
+                    "p": 0.0000294
+                  },
+                  {
+                    "id": "fabry",
+                    "p": 0.0000291
+                  },
+                  {
+                    "id": "gilbert",
+                    "p": 0.016
+                  },
+                  {
+                    "id": "folate_deficiency",
+                    "p": 0.006
+                  }
+                ],
+                "apply": {
+                  "readings": [
+                    {
+                      "code": "testosterone_total",
+                      "value": 520,
+                      "unit": "ng/dL",
+                      "date": "2026-08-31"
+                    }
+                  ],
+                  "facts": {},
+                  "confounders": {}
+                }
+              }
+            ],
+            "entropyBefore": 6.251,
+            "entropyAfter": 6.195,
+            "gain": 0.056,
+            "ratio": 0.005,
+            "shift": 0.036,
+            "moves": [
+              {
+                "id": "male_hypogonadism",
+                "from": 0.023,
+                "to": 0.189
+              }
+            ]
+          },
+          "outcome": "testosterone_total 520",
+          "costEur": 11.6,
+          "cumEur": 60.62,
+          "beliefs": {
+            "cancer_screening_due": 0.667,
+            "insulin_resistance": 0.184,
+            "hypertension": 0.141,
+            "nafld": 0.202,
+            "sleep_apnoea": 0.053,
+            "ascvd_risk": 0.049,
+            "low_fitness_sarcopenia": 0.045,
+            "b12_deficiency": 0.09,
+            "chronic_inflammation": 0.043,
+            "type2_diabetes": 0.021,
+            "alcohol_use_disorder": 0.016,
+            "atrophic_gastritis": 0.02,
+            "depression": 0.016,
+            "lpa_elevated": 0.012,
+            "vitamin_d_deficiency": 0.024,
+            "sibo": 0.032,
+            "hashimoto": 0.018,
+            "gout_hyperuricaemia": 0.012,
+            "ckd": 0.003,
+            "anaemia_other": 0.01,
+            "coeliac_disease": 0.008,
+            "hypothyroidism": 0.003,
+            "familial_hypercholesterolaemia": 0.001,
+            "male_hypogonadism": 0.003,
+            "iron_deficiency": 0.002,
+            "a1at_deficiency": 0,
+            "haemochromatosis": 0,
+            "hyperthyroidism": 0,
+            "addisons": 0,
+            "hepatitis_bc": 0,
+            "mast_cell_activation": 0,
+            "wilson": 0,
+            "fabry": 0,
+            "gilbert": 0.016,
+            "folate_deficiency": 0.006
+          },
+          "woken": []
+        },
+        {
+          "n": 4,
+          "move": {
+            "kind": "test",
+            "featureId": "metric:ogtt_2h_glucose",
+            "testId": "ogtt",
+            "label": "OGTT",
+            "howTo": "Two hours after 75 g of glucose. It catches the people whose fasting numbers look fine and whose post-meal ones do not.",
+            "cost": 11.6,
+            "priced": true,
+            "outcomes": [
+              {
+                "label": "positive",
+                "prob": 0.071,
+                "beliefs": [
+                  {
+                    "id": "cancer_screening_due",
+                    "p": 0.667
+                  },
+                  {
+                    "id": "type2_diabetes",
+                    "p": 0.242
+                  },
+                  {
+                    "id": "insulin_resistance",
+                    "p": 0.184
+                  },
+                  {
+                    "id": "hypertension",
+                    "p": 0.141
+                  },
+                  {
+                    "id": "nafld",
+                    "p": 0.202
+                  },
+                  {
+                    "id": "sleep_apnoea",
+                    "p": 0.053
+                  },
+                  {
+                    "id": "ascvd_risk",
+                    "p": 0.049
+                  },
+                  {
+                    "id": "low_fitness_sarcopenia",
+                    "p": 0.045
+                  },
+                  {
+                    "id": "b12_deficiency",
+                    "p": 0.09
+                  },
+                  {
+                    "id": "chronic_inflammation",
+                    "p": 0.043
+                  },
+                  {
+                    "id": "alcohol_use_disorder",
+                    "p": 0.016
+                  },
+                  {
+                    "id": "atrophic_gastritis",
+                    "p": 0.02
+                  },
+                  {
+                    "id": "depression",
+                    "p": 0.016
+                  },
+                  {
+                    "id": "lpa_elevated",
+                    "p": 0.012
+                  },
+                  {
+                    "id": "vitamin_d_deficiency",
+                    "p": 0.024
+                  },
+                  {
+                    "id": "sibo",
+                    "p": 0.032
+                  },
+                  {
+                    "id": "hashimoto",
+                    "p": 0.018
+                  },
+                  {
+                    "id": "gout_hyperuricaemia",
+                    "p": 0.012
+                  },
+                  {
+                    "id": "ckd",
+                    "p": 0.003
+                  },
+                  {
+                    "id": "anaemia_other",
+                    "p": 0.01
+                  },
+                  {
+                    "id": "coeliac_disease",
+                    "p": 0.008
+                  },
+                  {
+                    "id": "hypothyroidism",
+                    "p": 0.003
+                  },
+                  {
+                    "id": "familial_hypercholesterolaemia",
+                    "p": 0.000601
+                  },
+                  {
+                    "id": "male_hypogonadism",
+                    "p": 0.003
+                  },
+                  {
+                    "id": "iron_deficiency",
+                    "p": 0.002
+                  },
+                  {
+                    "id": "a1at_deficiency",
+                    "p": 0.000336
+                  },
+                  {
+                    "id": "haemochromatosis",
+                    "p": 0.000495
+                  },
+                  {
+                    "id": "hyperthyroidism",
+                    "p": 0.000281
+                  },
+                  {
+                    "id": "addisons",
+                    "p": 0.000102
+                  },
+                  {
+                    "id": "hepatitis_bc",
+                    "p": 0.0000761
+                  },
+                  {
+                    "id": "mast_cell_activation",
+                    "p": 0.0000694
+                  },
+                  {
+                    "id": "wilson",
+                    "p": 0.0000294
+                  },
+                  {
+                    "id": "fabry",
+                    "p": 0.0000291
+                  },
+                  {
+                    "id": "gilbert",
+                    "p": 0.016
+                  },
+                  {
+                    "id": "folate_deficiency",
+                    "p": 0.006
+                  }
+                ],
+                "apply": {
+                  "readings": [
+                    {
+                      "code": "ogtt_2h_glucose",
+                      "value": 210,
+                      "unit": "mg/dL",
+                      "date": "2026-08-31"
+                    }
+                  ],
+                  "facts": {},
+                  "confounders": {}
+                }
+              },
+              {
+                "label": "negative",
+                "prob": 0.929,
+                "beliefs": [
+                  {
+                    "id": "cancer_screening_due",
+                    "p": 0.667
+                  },
+                  {
+                    "id": "insulin_resistance",
+                    "p": 0.184
+                  },
+                  {
+                    "id": "hypertension",
+                    "p": 0.141
+                  },
+                  {
+                    "id": "nafld",
+                    "p": 0.202
+                  },
+                  {
+                    "id": "sleep_apnoea",
+                    "p": 0.053
+                  },
+                  {
+                    "id": "ascvd_risk",
+                    "p": 0.049
+                  },
+                  {
+                    "id": "low_fitness_sarcopenia",
+                    "p": 0.045
+                  },
+                  {
+                    "id": "b12_deficiency",
+                    "p": 0.09
+                  },
+                  {
+                    "id": "chronic_inflammation",
+                    "p": 0.043
+                  },
+                  {
+                    "id": "alcohol_use_disorder",
+                    "p": 0.016
+                  },
+                  {
+                    "id": "atrophic_gastritis",
+                    "p": 0.02
+                  },
+                  {
+                    "id": "depression",
+                    "p": 0.016
+                  },
+                  {
+                    "id": "lpa_elevated",
+                    "p": 0.012
+                  },
+                  {
+                    "id": "vitamin_d_deficiency",
+                    "p": 0.024
+                  },
+                  {
+                    "id": "sibo",
+                    "p": 0.032
+                  },
+                  {
+                    "id": "hashimoto",
+                    "p": 0.018
+                  },
+                  {
+                    "id": "type2_diabetes",
+                    "p": 0.004
+                  },
+                  {
+                    "id": "gout_hyperuricaemia",
+                    "p": 0.012
+                  },
+                  {
+                    "id": "ckd",
+                    "p": 0.003
+                  },
+                  {
+                    "id": "anaemia_other",
+                    "p": 0.01
+                  },
+                  {
+                    "id": "coeliac_disease",
+                    "p": 0.008
+                  },
+                  {
+                    "id": "hypothyroidism",
+                    "p": 0.003
+                  },
+                  {
+                    "id": "familial_hypercholesterolaemia",
+                    "p": 0.000601
+                  },
+                  {
+                    "id": "male_hypogonadism",
+                    "p": 0.003
+                  },
+                  {
+                    "id": "iron_deficiency",
+                    "p": 0.002
+                  },
+                  {
+                    "id": "a1at_deficiency",
+                    "p": 0.000336
+                  },
+                  {
+                    "id": "haemochromatosis",
+                    "p": 0.000495
+                  },
+                  {
+                    "id": "hyperthyroidism",
+                    "p": 0.000281
+                  },
+                  {
+                    "id": "addisons",
+                    "p": 0.000102
+                  },
+                  {
+                    "id": "hepatitis_bc",
+                    "p": 0.0000761
+                  },
+                  {
+                    "id": "mast_cell_activation",
+                    "p": 0.0000694
+                  },
+                  {
+                    "id": "wilson",
+                    "p": 0.0000294
+                  },
+                  {
+                    "id": "fabry",
+                    "p": 0.0000291
+                  },
+                  {
+                    "id": "gilbert",
+                    "p": 0.016
+                  },
+                  {
+                    "id": "folate_deficiency",
+                    "p": 0.006
+                  }
+                ],
+                "apply": {
+                  "readings": [
+                    {
+                      "code": "ogtt_2h_glucose",
+                      "value": 110,
+                      "unit": "mg/dL",
+                      "date": "2026-08-31"
+                    }
+                  ],
+                  "facts": {},
+                  "confounders": {}
+                }
+              }
+            ],
+            "entropyBefore": 6.123,
+            "entropyAfter": 6.067,
+            "gain": 0.055,
+            "ratio": 0.005,
+            "shift": 0.031,
+            "moves": [
+              {
+                "id": "type2_diabetes",
+                "from": 0.021,
+                "to": 0.242
+              }
+            ]
+          },
+          "outcome": "ogtt_2h_glucose 110",
+          "costEur": 11.6,
+          "cumEur": 72.22,
+          "beliefs": {
+            "cancer_screening_due": 0.667,
+            "insulin_resistance": 0.184,
+            "hypertension": 0.141,
+            "nafld": 0.202,
+            "sleep_apnoea": 0.053,
+            "ascvd_risk": 0.049,
+            "low_fitness_sarcopenia": 0.045,
+            "b12_deficiency": 0.09,
+            "chronic_inflammation": 0.043,
+            "alcohol_use_disorder": 0.016,
+            "atrophic_gastritis": 0.02,
+            "depression": 0.016,
+            "lpa_elevated": 0.012,
+            "vitamin_d_deficiency": 0.024,
+            "sibo": 0.032,
+            "hashimoto": 0.018,
+            "type2_diabetes": 0.004,
+            "gout_hyperuricaemia": 0.012,
+            "ckd": 0.003,
+            "anaemia_other": 0.01,
+            "coeliac_disease": 0.008,
+            "hypothyroidism": 0.003,
+            "familial_hypercholesterolaemia": 0.001,
+            "male_hypogonadism": 0.003,
+            "iron_deficiency": 0.002,
+            "a1at_deficiency": 0,
+            "haemochromatosis": 0,
+            "hyperthyroidism": 0,
+            "addisons": 0,
+            "hepatitis_bc": 0,
+            "mast_cell_activation": 0,
+            "wilson": 0,
+            "fabry": 0,
+            "gilbert": 0.016,
+            "folate_deficiency": 0.006
+          },
+          "woken": []
+        },
+        {
+          "n": 5,
+          "move": {
+            "kind": "test",
+            "featureId": "metric:mammography_done",
+            "testId": "mammography",
+            "label": "Mammography",
+            "howTo": "Every two years from 50, and from 40 by preference or family history.",
+            "cost": 3,
+            "outcomes": [
+              {
+                "label": "positive",
+                "prob": 0.566,
+                "beliefs": [
+                  {
+                    "id": "cancer_screening_due",
+                    "p": 0.923
+                  },
+                  {
+                    "id": "insulin_resistance",
+                    "p": 0.184
+                  },
+                  {
+                    "id": "hypertension",
+                    "p": 0.141
+                  },
+                  {
+                    "id": "nafld",
+                    "p": 0.202
+                  },
+                  {
+                    "id": "sleep_apnoea",
+                    "p": 0.053
+                  },
+                  {
+                    "id": "ascvd_risk",
+                    "p": 0.049
+                  },
+                  {
+                    "id": "low_fitness_sarcopenia",
+                    "p": 0.045
+                  },
+                  {
+                    "id": "b12_deficiency",
+                    "p": 0.09
+                  },
+                  {
+                    "id": "chronic_inflammation",
+                    "p": 0.043
+                  },
+                  {
+                    "id": "alcohol_use_disorder",
+                    "p": 0.016
+                  },
+                  {
+                    "id": "atrophic_gastritis",
+                    "p": 0.02
+                  },
+                  {
+                    "id": "depression",
+                    "p": 0.016
+                  },
+                  {
+                    "id": "lpa_elevated",
+                    "p": 0.012
+                  },
+                  {
+                    "id": "vitamin_d_deficiency",
+                    "p": 0.024
+                  },
+                  {
+                    "id": "sibo",
+                    "p": 0.032
+                  },
+                  {
+                    "id": "hashimoto",
+                    "p": 0.018
+                  },
+                  {
+                    "id": "type2_diabetes",
+                    "p": 0.004
+                  },
+                  {
+                    "id": "gout_hyperuricaemia",
+                    "p": 0.012
+                  },
+                  {
+                    "id": "ckd",
+                    "p": 0.003
+                  },
+                  {
+                    "id": "anaemia_other",
+                    "p": 0.01
+                  },
+                  {
+                    "id": "coeliac_disease",
+                    "p": 0.008
+                  },
+                  {
+                    "id": "hypothyroidism",
+                    "p": 0.003
+                  },
+                  {
+                    "id": "familial_hypercholesterolaemia",
+                    "p": 0.000601
+                  },
+                  {
+                    "id": "male_hypogonadism",
+                    "p": 0.003
+                  },
+                  {
+                    "id": "iron_deficiency",
+                    "p": 0.002
+                  },
+                  {
+                    "id": "a1at_deficiency",
+                    "p": 0.000336
+                  },
+                  {
+                    "id": "haemochromatosis",
+                    "p": 0.000495
+                  },
+                  {
+                    "id": "hyperthyroidism",
+                    "p": 0.000281
+                  },
+                  {
+                    "id": "addisons",
+                    "p": 0.000102
+                  },
+                  {
+                    "id": "hepatitis_bc",
+                    "p": 0.0000761
+                  },
+                  {
+                    "id": "mast_cell_activation",
+                    "p": 0.0000694
+                  },
+                  {
+                    "id": "wilson",
+                    "p": 0.0000294
+                  },
+                  {
+                    "id": "fabry",
+                    "p": 0.0000291
+                  },
+                  {
+                    "id": "gilbert",
+                    "p": 0.016
+                  },
+                  {
+                    "id": "folate_deficiency",
+                    "p": 0.006
+                  }
+                ],
+                "apply": {
+                  "readings": [
+                    {
+                      "code": "mammography_done",
+                      "value": 0,
+                      "date": "2026-08-31"
+                    }
+                  ],
+                  "facts": {},
+                  "confounders": {}
+                }
+              },
+              {
+                "label": "negative",
+                "prob": 0.434,
+                "beliefs": [
+                  {
+                    "id": "cancer_screening_due",
+                    "p": 0.333
+                  },
+                  {
+                    "id": "insulin_resistance",
+                    "p": 0.184
+                  },
+                  {
+                    "id": "hypertension",
+                    "p": 0.141
+                  },
+                  {
+                    "id": "nafld",
+                    "p": 0.202
+                  },
+                  {
+                    "id": "sleep_apnoea",
+                    "p": 0.053
+                  },
+                  {
+                    "id": "ascvd_risk",
+                    "p": 0.049
+                  },
+                  {
+                    "id": "low_fitness_sarcopenia",
+                    "p": 0.045
+                  },
+                  {
+                    "id": "b12_deficiency",
+                    "p": 0.09
+                  },
+                  {
+                    "id": "chronic_inflammation",
+                    "p": 0.043
+                  },
+                  {
+                    "id": "alcohol_use_disorder",
+                    "p": 0.016
+                  },
+                  {
+                    "id": "atrophic_gastritis",
+                    "p": 0.02
+                  },
+                  {
+                    "id": "depression",
+                    "p": 0.016
+                  },
+                  {
+                    "id": "lpa_elevated",
+                    "p": 0.012
+                  },
+                  {
+                    "id": "vitamin_d_deficiency",
+                    "p": 0.024
+                  },
+                  {
+                    "id": "sibo",
+                    "p": 0.032
+                  },
+                  {
+                    "id": "hashimoto",
+                    "p": 0.018
+                  },
+                  {
+                    "id": "type2_diabetes",
+                    "p": 0.004
+                  },
+                  {
+                    "id": "gout_hyperuricaemia",
+                    "p": 0.012
+                  },
+                  {
+                    "id": "ckd",
+                    "p": 0.003
+                  },
+                  {
+                    "id": "anaemia_other",
+                    "p": 0.01
+                  },
+                  {
+                    "id": "coeliac_disease",
+                    "p": 0.008
+                  },
+                  {
+                    "id": "hypothyroidism",
+                    "p": 0.003
+                  },
+                  {
+                    "id": "familial_hypercholesterolaemia",
+                    "p": 0.000601
+                  },
+                  {
+                    "id": "male_hypogonadism",
+                    "p": 0.003
+                  },
+                  {
+                    "id": "iron_deficiency",
+                    "p": 0.002
+                  },
+                  {
+                    "id": "a1at_deficiency",
+                    "p": 0.000336
+                  },
+                  {
+                    "id": "haemochromatosis",
+                    "p": 0.000495
+                  },
+                  {
+                    "id": "hyperthyroidism",
+                    "p": 0.000281
+                  },
+                  {
+                    "id": "addisons",
+                    "p": 0.000102
+                  },
+                  {
+                    "id": "hepatitis_bc",
+                    "p": 0.0000761
+                  },
+                  {
+                    "id": "mast_cell_activation",
+                    "p": 0.0000694
+                  },
+                  {
+                    "id": "wilson",
+                    "p": 0.0000294
+                  },
+                  {
+                    "id": "fabry",
+                    "p": 0.0000291
+                  },
+                  {
+                    "id": "gilbert",
+                    "p": 0.016
+                  },
+                  {
+                    "id": "folate_deficiency",
+                    "p": 0.006
+                  }
+                ],
+                "apply": {
+                  "readings": [
+                    {
+                      "code": "mammography_done",
+                      "value": 1,
+                      "date": "2026-08-31"
+                    }
+                  ],
+                  "facts": {},
+                  "confounders": {}
+                }
+              }
+            ],
+            "entropyBefore": 6.013,
+            "entropyAfter": 5.716,
+            "gain": 0.298,
+            "ratio": 0.004,
+            "shift": 0.29,
+            "moves": [
+              {
+                "id": "cancer_screening_due",
+                "from": 0.667,
+                "to": 0.333
+              }
+            ]
+          },
+          "outcome": "mammography_done 1",
+          "costEur": 80,
+          "cumEur": 152.22,
+          "beliefs": {
+            "cancer_screening_due": 0.333,
+            "insulin_resistance": 0.184,
+            "hypertension": 0.141,
+            "nafld": 0.202,
+            "sleep_apnoea": 0.053,
+            "ascvd_risk": 0.049,
+            "low_fitness_sarcopenia": 0.045,
+            "b12_deficiency": 0.09,
+            "chronic_inflammation": 0.043,
+            "alcohol_use_disorder": 0.016,
+            "atrophic_gastritis": 0.02,
+            "depression": 0.016,
+            "lpa_elevated": 0.012,
+            "vitamin_d_deficiency": 0.024,
+            "sibo": 0.032,
+            "hashimoto": 0.018,
+            "type2_diabetes": 0.004,
+            "gout_hyperuricaemia": 0.012,
+            "ckd": 0.003,
+            "anaemia_other": 0.01,
+            "coeliac_disease": 0.008,
+            "hypothyroidism": 0.003,
+            "familial_hypercholesterolaemia": 0.001,
+            "male_hypogonadism": 0.003,
+            "iron_deficiency": 0.002,
+            "a1at_deficiency": 0,
+            "haemochromatosis": 0,
+            "hyperthyroidism": 0,
+            "addisons": 0,
+            "hepatitis_bc": 0,
+            "mast_cell_activation": 0,
+            "wilson": 0,
+            "fabry": 0,
+            "gilbert": 0.016,
+            "folate_deficiency": 0.006
+          },
+          "woken": []
+        }
+      ],
+      "discoveredAt": {},
+      "falseLikely": [],
+      "totalEur": 152.22,
+      "stop": "exhausted",
       "pass": true,
       "failed": []
     },

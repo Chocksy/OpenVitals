@@ -1,5 +1,7 @@
 import { isAdmin, requireUserId } from "@/lib/auth";
 import { openReviewCount } from "@/lib/curator";
+import { localDay } from "@/lib/daily";
+import { Composer } from "@/components/composer";
 import { TopNav } from "@/components/top-nav";
 
 /** Every signed-in page. Redirects to /login and always renders the nav. */
@@ -20,6 +22,7 @@ export default async function AppLayout({
       <main className="mx-auto max-w-[1400px] px-3 pb-24 pt-6 md:px-6 md:pb-8 md:pt-8">
         {children}
       </main>
+      <Composer today={localDay()} />
     </>
   );
 }

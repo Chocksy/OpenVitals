@@ -550,19 +550,39 @@ export const VECTORS: Vector[] = [
   },
 ];
 
-/** The question the review queue asks for each tier-0 fact. */
+/**
+ * The question the review queue asks for each tier-0 fact, and how many days
+ * later it is worth asking again (`revisitDays`).
+ *
+ * Phase 20. `0` means never on a clock: sex and ancestry do not move, so only
+ * a correction ever touches them. Everything else carries a one-line reason
+ * for its number, because "ask me again in 90 days" is a claim about how fast
+ * the world changes and not a preference.
+ */
 const ASKED: Record<
   string,
-  { question: string; options?: string[]; free?: boolean }
+  {
+    question: string;
+    options?: string[];
+    free?: boolean;
+    /** days until this answer is worth re-asking; 0 = never on a clock */
+    revisitDays?: number;
+  }
 > = {
   sex: {
     question: "What is your biological sex?",
     options: ["Female", "Male"],
+    revisitDays: 0, // does not change
   },
-  birth_year: { question: "Which year were you born?", free: true },
+  birth_year: {
+    question: "Which year were you born?",
+    free: true,
+    revisitDays: 0, // does not change
+  },
   country: {
     question: "Which country do you live in?",
     free: true,
+    revisitDays: 0, // a move is an edit, not a cadence
   },
   ancestry: {
     question: "Which ancestry describes you best?",
@@ -577,75 +597,95 @@ const ASKED: Record<
       "Mixed / other",
       "Prefer not to say",
     ],
+    revisitDays: 0, // does not change
   },
-  height_cm: { question: "How tall are you, in centimetres?", free: true },
+  height_cm: {
+    question: "How tall are you, in centimetres?",
+    free: true,
+    revisitDays: 0, // adults stop growing
+  },
   smoking: {
     question: "Do you smoke?",
     options: ["Never", "Former", "Current"],
+    revisitDays: 180, // quitting and relapsing both happen on this scale
   },
   family_history: {
     question:
       "Any heart attack, stroke, diabetes, dementia or cancer in your parents or siblings? List them with ages, separated by commas.",
     free: true,
+    revisitDays: 365, // a parent's diagnosis is news once a year at most
   },
   conditions: {
     question:
       "Which conditions have you been diagnosed with? Separate with commas.",
     free: true,
+    revisitDays: 180,
   },
   medications: {
     question:
       "Which medications do you take, and at what dose? Separate with commas.",
     free: true,
+    revisitDays: 90, // a prescription changes faster than anything else here
   },
   supplements: {
     question:
       "Which supplements do you take, and at what dose? Separate with commas.",
     free: true,
+    revisitDays: 90,
   },
   waist_cm: {
     question: "What is your waist, in centimetres, measured at the navel?",
     free: true,
+    revisitDays: 90, // a measurable change takes about a season
   },
   bp_home: {
     question:
       "What is your home blood pressure, averaged over 7 days? Write it as 120/80.",
     free: true,
+    revisitDays: 90,
   },
   resting_hr: {
     question: "What is your resting heart rate, in beats per minute?",
     free: true,
+    revisitDays: 90,
   },
   grip_kg: {
     question:
       "What is your grip strength in kilograms, or your VO2max estimate? Say which one.",
     free: true,
+    revisitDays: 90,
   },
   sleep_snoring: {
     question: "Do you snore?",
     options: ["No", "Sometimes", "Most nights"],
+    revisitDays: 90,
   },
   screening_dates: {
     question:
       "When did you last have a colonoscopy, mammography, cervical screen or skin check? List the ones you have had, with dates.",
     free: true,
+    revisitDays: 365, // screening intervals are years, so a year is the floor
   },
   cycle_phase_at_last_draw: {
     question: "Where in your cycle were you at your last blood draw?",
     options: ["Follicular", "Luteal", "On the pill", "Don't know"],
+    revisitDays: 0, // per draw, not per clock: `dueFacts` re-asks it on a new draw
   },
   menopause_status: {
     question: "Where are you with menopause?",
     options: ["Pre", "Peri", "Post"],
+    revisitDays: 365, // and never again once the answer is "Post"
   },
   cac_score: {
     question:
       "Have you ever had a coronary calcium (CAC) score? Give the number and the year.",
     free: true,
+    revisitDays: 365,
   },
   dexa: {
     question: "Have you ever had a DEXA scan? Give the year and the result.",
     free: true,
+    revisitDays: 365,
   },
 
   // The four timing and habit answers the phase-16 conditional edges read.
@@ -655,18 +695,68 @@ const ASKED: Record<
     question:
       "What time do you usually have your last coffee or caffeinated drink? Write it as 15:00.",
     free: true,
+    revisitDays: 180,
   },
   last_meal_hour: {
-    question: "What time do you usually finish your last meal? Write it as 21:00.",
+    question:
+      "What time do you usually finish your last meal? Write it as 21:00.",
     free: true,
+    revisitDays: 180,
   },
   bedtime_hour: {
     question: "What time do you usually go to bed? Write it as 23:00.",
     free: true,
+    revisitDays: 180,
   },
   dairy_daily: {
     question: "Do you have milk, yoghurt or cheese most days?",
     options: ["Yes", "No"],
+    revisitDays: 180,
+  },
+
+  // ── phase 20: the clarifiers the composer asks after a post ────────────
+  // One more detail each, and each one feeds a rule or an edge. Nothing here
+  // is ever asked cold by the interview: `lib/compose.ts` asks them, once,
+  // about something the person has just written.
+  energy_when: {
+    question: "When in the day are you most tired?",
+    options: ["Mornings", "Afternoons", "Evenings", "All day"],
+    revisitDays: 90,
+  },
+  sym_energy_duration: {
+    question: "How long has the tiredness been going on?",
+    options: ["Under a month", "Over a month"],
+    revisitDays: 90,
+  },
+  sym_weight_amount: {
+    question: "How much weight, and over how long?",
+    options: [
+      "Under 3 kg",
+      "3 to 6 kg over 6 months",
+      "More than 6 kg over 6 months",
+    ],
+    revisitDays: 180,
+  },
+  sleep_apnoea_witnessed: {
+    question: "Has anyone seen you stop breathing while you sleep?",
+    options: ["No", "Yes", "Nobody has watched"],
+    revisitDays: 180,
+  },
+  cycle_length_days: {
+    question:
+      "How many days from the first day of one period to the first day of the next?",
+    options: ["Under 21", "21 to 35", "Over 35", "It varies a lot"],
+    revisitDays: 180,
+  },
+  glucose_when: {
+    question: "Was that glucose fasting, or after a meal?",
+    options: ["Fasting", "After a meal"],
+    revisitDays: 0, // it describes one reading, not a standing habit
+  },
+  finding_since: {
+    question: "Since when have you noticed it?",
+    options: ["This week", "This month", "Over a month", "Years"],
+    revisitDays: 0, // asked about a specific finding, never on a clock
   },
 };
 
@@ -686,11 +776,26 @@ export const CONDITIONAL_FACTS = new Set([
  */
 export const PROFILE_QUESTIONS: Record<
   string,
-  { question: string; options?: string[]; free?: boolean }
+  {
+    question: string;
+    options?: string[];
+    free?: boolean;
+    /** days until this answer is worth re-asking; 0 = never on a clock */
+    revisitDays?: number;
+  }
 > = {
   ...ASKED,
   ...Object.fromEntries(
-    SYMPTOMS.map((s) => [s.key, { question: s.question, options: s.options }]),
+    SYMPTOMS.map((s) => [
+      s.key,
+      {
+        question: s.question,
+        options: s.options,
+        // A symptom is a claim about the last few weeks, so a season is the
+        // honest cadence. `SYMPTOMS` may override it per item.
+        revisitDays: s.revisitDays ?? 90,
+      },
+    ]),
   ),
 };
 
@@ -1077,7 +1182,6 @@ export const BOUNDS: Record<string, [number, number]> = {
   hemoglobin: [2, 25], // g/dL
   hematocrit: [10, 70], // %
 };
-
 
 /**
  * The reference top a marker has when the lab printed none.

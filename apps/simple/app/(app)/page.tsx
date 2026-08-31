@@ -1,7 +1,8 @@
 import { requireUserId } from "@/lib/auth";
 import { getMetricRows } from "@/lib/data";
 import { getGoals } from "@/lib/daily-data";
-import { buildTrend, type TrendMetric } from "@/lib/home-data";
+import { buildToday, buildTrend, type TrendMetric } from "@/lib/home-data";
+import { localDay } from "@/lib/daily";
 import { buildLedger, isLoud } from "@/lib/ledger";
 import { latestReport } from "@/lib/report";
 import { catalogFor } from "@/lib/hkb";
@@ -15,6 +16,7 @@ import {
   QuietLine,
   SectionHeader,
   SystemsStrip,
+  TodayCard,
 } from "@/components/home";
 import { AskBox } from "@/components/ask-box";
 
@@ -25,12 +27,13 @@ const KEY_TRENDS = 4;
 export default async function Home() {
   const userId = await requireUserId();
 
-  const [ledger, report, rows, goals, catalog] = await Promise.all([
+  const [ledger, report, rows, goals, catalog, today] = await Promise.all([
     buildLedger(userId),
     latestReport(userId),
     getMetricRows(userId),
     getGoals(userId),
     catalogFor(userId),
+    buildToday(userId),
   ]);
 
   if (rows.length === 0) return <EmptyHome />;
@@ -95,6 +98,7 @@ export default async function Home() {
 
   return (
     <div className="space-y-8">
+      <TodayCard today={today} day={localDay()} />
       <Cockpit ledger={ledger} />
 
       <section>

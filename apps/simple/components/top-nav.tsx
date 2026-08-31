@@ -16,6 +16,7 @@ import {
   LogOut,
   MessageSquare,
   Network,
+  Plus,
   Settings,
   Stethoscope,
   Target,
@@ -23,6 +24,7 @@ import {
   Upload,
   type LucideIcon,
 } from "lucide-react";
+import { openComposer } from "./composer";
 import { ThemeToggle } from "./theme-toggle";
 import { authClient, signOut } from "@/lib/auth-client";
 import { cn } from "@/lib/utils";
@@ -245,8 +247,34 @@ export function TopNav({
         </div>
       </header>
 
-      <nav className="fixed inset-x-0 bottom-0 z-50 grid grid-cols-4 border-t border-neutral-200 bg-neutral-0 md:hidden">
-        {navigation.map((item) => (
+      {/* Five slots on the phone, and the middle one is the composer: the one
+          thing you always want to reach is not a page, it is a sentence. */}
+      <nav className="fixed inset-x-0 bottom-0 z-50 grid grid-cols-5 border-t border-neutral-200 bg-neutral-0 md:hidden">
+        {navigation.slice(0, 2).map((item) => (
+          <Link
+            key={item.name}
+            href={item.href}
+            className={cn(
+              "flex flex-col items-center gap-0.5 py-2 font-mono text-[10px] font-medium uppercase tracking-[0.04em] transition-colors",
+              isActive(pathname, item.href)
+                ? "bg-accent-50 text-accent-500"
+                : "text-neutral-500",
+            )}
+          >
+            <item.icon className="size-4" />
+            {item.name}
+          </Link>
+        ))}
+        <button
+          aria-label="Post something"
+          onClick={openComposer}
+          className="flex cursor-pointer flex-col items-center justify-center py-1"
+        >
+          <span className="flex size-9 items-center justify-center rounded-full bg-neutral-900 text-neutral-0">
+            <Plus className="size-5" />
+          </span>
+        </button>
+        {navigation.slice(2).map((item) => (
           <Link
             key={item.name}
             href={item.href}

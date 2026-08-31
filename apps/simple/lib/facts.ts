@@ -23,6 +23,7 @@ import {
 } from "@/db";
 import { localDay } from "./daily";
 import { CONFOUNDERS } from "./hypotheses";
+import { addDays, revisitAtFor, SKIP_DAYS } from "./revisit";
 
 export type ChangeKind = "initial" | "changed" | "corrected";
 export type FactSource = "user" | "document" | "genome" | "system";
@@ -265,13 +266,80 @@ export async function writeFact(
     source,
   });
 
+  // Phase 20: a new value restarts the cadence from the day it starts holding,
+  // and clears the last "still true" — that confirmation was about the old
+  // answer and says nothing about this one.
+  const revisitAt = revisitAtFor(key, plan.open.validFrom, value);
   await db
     .insert(profileFacts)
-    .values({ userId, key, value, source })
+    .values({ userId, key, value, source, revisitAt, confirmedAt: null })
     .onConflictDoUpdate({
       target: [profileFacts.userId, profileFacts.key],
-      set: { value, source, answeredAt: new Date() },
+      set: {
+        value,
+        source,
+        answeredAt: new Date(),
+        revisitAt,
+        confirmedAt: null,
+      },
     });
+}
+
+/**
+ * "Still true": the answer did not change, so nothing new is true and no
+ * history row is written. What changes is when we ask again, and the fact that
+ * somebody looked at it today — which is kept on the open history row so
+ * `/history` can draw a tick without a table of its own.
+ */
+export async function confirmFact(
+  userId: string,
+  key: string,
+  today = localDay(),
+): Promise<{ revisitAt: string | null } | null> {
+  const db = getDb();
+  const [current] = await db
+    .select()
+    .from(profileFacts)
+    .where(and(eq(profileFacts.userId, userId), eq(profileFacts.key, key)));
+  if (!current) return null;
+
+  const revisitAt = revisitAtFor(key, today, current.value);
+  await db
+    .update(profileFacts)
+    .set({ confirmedAt: today, revisitAt })
+    .where(eq(profileFacts.id, current.id));
+
+  const rows = await backfilled(userId, key);
+  const open = rows
+    .filter((r) => r.changeKind !== "corrected" && r.validTo == null)
+    .at(-1);
+  if (open) {
+    const [row] = await db
+      .select({ confirmations: profileFactHistory.confirmations })
+      .from(profileFactHistory)
+      .where(eq(profileFactHistory.id, open.id));
+    const ticks = new Set([...(row?.confirmations ?? []), today]);
+    await db
+      .update(profileFactHistory)
+      .set({ confirmations: [...ticks].sort() })
+      .where(eq(profileFactHistory.id, open.id));
+  }
+  return { revisitAt };
+}
+
+/** "Not now": the same question, a month later, whatever its own cadence says. */
+export async function skipFact(
+  userId: string,
+  key: string,
+  today = localDay(),
+): Promise<{ revisitAt: string } | null> {
+  const revisitAt = addDays(today, SKIP_DAYS);
+  const rows = await getDb()
+    .update(profileFacts)
+    .set({ revisitAt })
+    .where(and(eq(profileFacts.userId, userId), eq(profileFacts.key, key)))
+    .returning({ id: profileFacts.id });
+  return rows.length ? { revisitAt } : null;
 }
 
 /**

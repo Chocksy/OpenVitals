@@ -291,6 +291,22 @@ export function personPhenotypes(m: ModelInput): PersonPhenotype[] {
       );
   }
 
+  // Phase 20: the composer writes a phenotype it recognised straight into the
+  // profile as `hp:HP:0002315 = present`, so a finding the person typed in
+  // their own words reaches trigger 4 next to the symptom answers. Anything
+  // else in the profile is ignored here.
+  for (const [key, raw] of Object.entries(m.profile)) {
+    if (!key.startsWith("hp:HP:")) continue;
+    if (
+      String(raw ?? "")
+        .trim()
+        .toLowerCase() !== "present"
+    )
+      continue;
+    const hpoId = key.slice("hp:".length);
+    push(hpoId, hpoId, "you wrote it in a check-in");
+  }
+
   for (const row of MARKER_HPO) {
     const value = m.latest[row.code]?.value;
     if (value == null) continue;

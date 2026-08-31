@@ -29,6 +29,16 @@ export interface HistoryFact {
   changeKind: string;
   source: string;
   note: string | null;
+  /** phase 20: the days somebody said "still true" without changing it */
+  confirmations?: string[];
+}
+
+/** One check-in, as a dot on the facts lane. */
+export interface HistoryPost {
+  id: string;
+  date: string;
+  text: string;
+  chips: number;
 }
 
 export interface HistoryAction {
@@ -74,11 +84,13 @@ export function HistoryLanes({
   actions,
   markers,
   snapshots,
+  posts = [],
 }: {
   facts: HistoryFact[];
   actions: HistoryAction[];
   markers: HistoryMarker[];
   snapshots: HistorySnapshot[];
+  posts?: HistoryPost[];
 }) {
   const [at, setAt] = useState(snapshots.length - 1);
   const [hover, setHover] = useState<HistoryFact | null>(null);
@@ -88,6 +100,7 @@ export function HistoryLanes({
   // years into a centimetre, so old readings are dropped rather than drawn.
   const anchors = [
     ...facts.map((f) => f.validFrom),
+    ...posts.map((p) => p.date),
     ...actions.map((a) => a.from),
     ...markers.flatMap((m) => m.projections.map((p) => p.madeAt)),
     ...snapshots.map((s) => s.at),
@@ -119,8 +132,7 @@ export function HistoryLanes({
   const cut = snapshots[at]?.at ?? null;
   const dim = (d: string) => (cut && day(d) > day(cut) ? 0.18 : 1);
 
-  const height =
-    PAD.top + LANE.markers + markers.length * 46 + PAD.bottom;
+  const height = PAD.top + LANE.markers + markers.length * 46 + PAD.bottom;
 
   /** What this fact moved, from the snapshots either side of it. */
   const movedBy = useMemo(() => {
@@ -180,7 +192,11 @@ export function HistoryLanes({
         )}
 
         {/* lane 1: facts */}
-        <text x={4} y={LANE.facts} className="fill-neutral-400 font-mono text-[10px]">
+        <text
+          x={4}
+          y={LANE.facts}
+          className="fill-neutral-400 font-mono text-[10px]"
+        >
           facts
         </text>
         {facts.map((f, i) => (
@@ -218,8 +234,42 @@ export function HistoryLanes({
           </g>
         ))}
 
+        {/* the ticks: a day somebody confirmed a fact without changing it */}
+        {facts.flatMap((f, i) =>
+          (f.confirmations ?? []).map((day) => (
+            <path
+              key={`tick-${f.key}-${i}-${day}`}
+              d={`M${x(day) - 3} ${LANE.facts + 8} l3 3 l5 -6`}
+              fill="none"
+              stroke="var(--color-health-normal)"
+              strokeWidth={1.5}
+              opacity={dim(day)}
+            >
+              <title>{`${f.key.replace(/_/g, " ")} confirmed on ${day}`}</title>
+            </path>
+          )),
+        )}
+
+        {/* the posts: one dot each, on the same lane the facts land on */}
+        {posts.map((p) => (
+          <circle
+            key={`post-${p.id}`}
+            cx={x(p.date)}
+            cy={LANE.facts + 16}
+            r={3}
+            fill="var(--color-accent-500)"
+            opacity={dim(p.date)}
+          >
+            <title>{`${p.date}: ${p.text.slice(0, 120)} (${p.chips} chips)`}</title>
+          </circle>
+        ))}
+
         {/* lane 2: actions and adherence */}
-        <text x={4} y={LANE.actions} className="fill-neutral-400 font-mono text-[10px]">
+        <text
+          x={4}
+          y={LANE.actions}
+          className="fill-neutral-400 font-mono text-[10px]"
+        >
           actions
         </text>
         {actions.map((a, i) => {
@@ -250,7 +300,11 @@ export function HistoryLanes({
         })}
 
         {/* lane 3: markers, one row each */}
-        <text x={4} y={LANE.markers} className="fill-neutral-400 font-mono text-[10px]">
+        <text
+          x={4}
+          y={LANE.markers}
+          className="fill-neutral-400 font-mono text-[10px]"
+        >
           markers
         </text>
         {markers.map((marker, i) => {
@@ -325,7 +379,14 @@ export function HistoryLanes({
               />
               {m.points.map((p) => (
                 <g key={p.date} opacity={dim(p.date)}>
-                  <circle cx={x(p.date)} cy={y(p.value)} r={3} fill="white" stroke="var(--color-neutral-600)" strokeWidth={1.5}>
+                  <circle
+                    cx={x(p.date)}
+                    cy={y(p.value)}
+                    r={3}
+                    fill="white"
+                    stroke="var(--color-neutral-600)"
+                    strokeWidth={1.5}
+                  >
                     <title>{`${m.code} ${p.value}${m.unit ? ` ${m.unit}` : ""} on ${p.date}`}</title>
                   </circle>
                   <text
@@ -378,7 +439,9 @@ export function HistoryLanes({
 
       {hover && (
         <p className="font-mono text-[11px] text-neutral-600">
-          <Badge variant={hover.changeKind === "corrected" ? "warning" : "info"}>
+          <Badge
+            variant={hover.changeKind === "corrected" ? "warning" : "info"}
+          >
             {hover.changeKind}
           </Badge>{" "}
           {hover.key.replace(/_/g, " ")} = {hover.value} ·{" "}

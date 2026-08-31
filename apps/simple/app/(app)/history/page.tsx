@@ -1,6 +1,7 @@
 import { asc, desc, eq } from "drizzle-orm";
 import {
   beliefSnapshots,
+  checkinPosts,
   getDb,
   habitLogs,
   lifeEvents,
@@ -15,6 +16,7 @@ import { Badge } from "@/components/ui-kit";
 import {
   HistoryLanes,
   type HistoryMarker,
+  type HistoryPost,
 } from "@/components/history-lanes";
 
 export const dynamic = "force-dynamic";
@@ -25,6 +27,7 @@ const TH = "px-3 py-1.5 text-left font-bold";
 const KIND_BADGE: Record<string, "secondary" | "info" | "normal" | "warning"> =
   {
     fact: "info",
+    post: "normal",
     corrected: "warning",
     event: "secondary",
     upload: "secondary",
@@ -46,40 +49,55 @@ const text = (v: unknown) =>
 export default async function HistoryPage() {
   const userId = await requireUserId();
   const db = getDb();
-  const [facts, events, files, actions, logs, snaps, metrics, made] =
+  const [facts, events, files, actions, logs, snaps, metrics, made, posts] =
     await Promise.all([
-    db
-      .select()
-      .from(profileFactHistory)
-      .where(eq(profileFactHistory.userId, userId))
-      .orderBy(asc(profileFactHistory.validFrom)),
-    db
-      .select()
-      .from(lifeEvents)
-      .where(eq(lifeEvents.userId, userId))
-      .orderBy(asc(lifeEvents.startedAt)),
-    db
-      .select()
-      .from(uploads)
-      .where(eq(uploads.userId, userId))
-      .orderBy(desc(uploads.createdAt))
-      .limit(100),
-    db
-      .select()
-      .from(protocolItems)
-      .where(eq(protocolItems.userId, userId))
-      .orderBy(desc(protocolItems.createdAt))
-      .limit(100),
-    db.select().from(habitLogs).where(eq(habitLogs.userId, userId)),
-    db
-      .select()
-      .from(beliefSnapshots)
-      .where(eq(beliefSnapshots.userId, userId))
-      .orderBy(asc(beliefSnapshots.computedAt))
-      .limit(200),
-    getMetricRows(userId),
-    projectionsFor(userId),
-  ]);
+      db
+        .select()
+        .from(profileFactHistory)
+        .where(eq(profileFactHistory.userId, userId))
+        .orderBy(asc(profileFactHistory.validFrom)),
+      db
+        .select()
+        .from(lifeEvents)
+        .where(eq(lifeEvents.userId, userId))
+        .orderBy(asc(lifeEvents.startedAt)),
+      db
+        .select()
+        .from(uploads)
+        .where(eq(uploads.userId, userId))
+        .orderBy(desc(uploads.createdAt))
+        .limit(100),
+      db
+        .select()
+        .from(protocolItems)
+        .where(eq(protocolItems.userId, userId))
+        .orderBy(desc(protocolItems.createdAt))
+        .limit(100),
+      db.select().from(habitLogs).where(eq(habitLogs.userId, userId)),
+      db
+        .select()
+        .from(beliefSnapshots)
+        .where(eq(beliefSnapshots.userId, userId))
+        .orderBy(asc(beliefSnapshots.computedAt))
+        .limit(200),
+      getMetricRows(userId),
+      projectionsFor(userId),
+      db
+        .select()
+        .from(checkinPosts)
+        .where(eq(checkinPosts.userId, userId))
+        .orderBy(desc(checkinPosts.createdAt))
+        .limit(200),
+    ]);
+
+  const lanePosts: HistoryPost[] = posts
+    .filter((p) => p.createdAt)
+    .map((p) => ({
+      id: p.id,
+      date: p.createdAt!.toISOString().slice(0, 10),
+      text: p.text,
+      chips: (p.chips ?? []).length,
+    }));
 
   /* ── the three lanes ────────────────────────────────────────────────── */
 
@@ -91,6 +109,7 @@ export default async function HistoryPage() {
     changeKind: f.changeKind,
     source: f.source,
     note: f.note,
+    confirmations: f.confirmations ?? [],
   }));
 
   const laneActions = actions
@@ -125,7 +144,10 @@ export default async function HistoryPage() {
       return {
         code,
         unit: m?.unit ?? null,
-        points: (m?.points ?? []).map((p) => ({ date: p.date, value: p.value })),
+        points: (m?.points ?? []).map((p) => ({
+          date: p.date,
+          value: p.value,
+        })),
         projections: made
           .filter((p) => p.code === code)
           .map((p) => ({
@@ -158,6 +180,20 @@ export default async function HistoryPage() {
     what: string;
     detail: string;
   }[] = [
+    ...lanePosts.map((p) => {
+      const row = posts.find((x) => x.id === p.id)!;
+      return {
+        date: p.date,
+        kind: "post",
+        what: `${p.chips} chip${p.chips === 1 ? "" : "s"}`,
+        detail:
+          p.text +
+          (row.followUp?.answer
+            ? ` · ${row.followUp.question} ${row.followUp.answer}`
+            : "") +
+          (row.reply ? ` · ${row.reply}` : ""),
+      };
+    }),
     ...facts.map((f) => ({
       date: f.validFrom,
       kind: f.changeKind === "corrected" ? "corrected" : "fact",
@@ -205,16 +241,18 @@ export default async function HistoryPage() {
 
       {(laneFacts.length > 0 ||
         laneActions.length > 0 ||
-        laneMarkers.length > 0) && (
+        laneMarkers.length > 0 ||
+        lanePosts.length > 0) && (
         <section className="card p-4">
           <h2 className="mb-2 font-mono text-[10px] font-bold uppercase tracking-[0.06em] text-neutral-400">
-            the path · facts, actions, markers
+            the path · facts, posts, actions, markers
           </h2>
           <HistoryLanes
             facts={laneFacts}
             actions={laneActions}
             markers={laneMarkers}
             snapshots={laneSnapshots}
+            posts={lanePosts}
           />
         </section>
       )}

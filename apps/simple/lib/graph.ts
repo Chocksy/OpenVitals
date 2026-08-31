@@ -89,19 +89,30 @@ export interface Evidence {
  * genome call (`genome`), and how long before bed something happened
  * (`hoursBefore`).
  */
+export interface FactClause {
+  key: string;
+  includes?: string;
+  equals?: string;
+  /** Any one of these options; the multiple-choice version of `equals`. */
+  oneOf?: string[];
+  /** Numbers, and "21:00" as 21. */
+  above?: number;
+  below?: number;
+}
+
 export interface EdgeWhen {
   from?: "high" | "low";
   to?: "high" | "low";
   sex?: Sex;
   pattern?: string;
-  fact?: {
-    key: string;
-    includes?: string;
-    equals?: string;
-    /** Numbers, and "21:00" as 21. */
-    above?: number;
-    below?: number;
-  };
+  fact?: FactClause;
+  /**
+   * Phase 20: the other answers the edge needs, all of which have to hold.
+   * `fact` stays the single clause `lib/ask.ts` strips when it works out which
+   * answer an edge is waiting on, so an edge can say "ask me this one, given
+   * these others" without the two jobs fighting.
+   */
+  facts?: FactClause[];
   /** A gene symbol in `GENOME_CATALOG` and a substring of its call. */
   genome?: { gene: string; genotype: string };
   age?: { min?: number; max?: number };
@@ -1645,8 +1656,14 @@ export const EDGES: GraphEdge[] = [
     "established",
     "400 mg of caffeine six hours before bed cost an hour of sleep in a blinded crossover; a CYP1A2*1F slow metaboliser clears that dose far more slowly, so a 15:00 coffee is still working at midnight.",
     [
-      trial("Drake 2013 J Clin Sleep Med (caffeine 0, 3 or 6 h before bed)", 2013),
-      cohort("Sachse 1999 Br J Clin Pharmacol (CYP1A2*1F and caffeine clearance)", 1999),
+      trial(
+        "Drake 2013 J Clin Sleep Med (caffeine 0, 3 or 6 h before bed)",
+        2013,
+      ),
+      cohort(
+        "Sachse 1999 Br J Clin Pharmacol (CYP1A2*1F and caffeine clearance)",
+        1999,
+      ),
     ],
     {
       id: "coffee_after_15->sleep_duration@cyp1a2_slow",
@@ -1665,8 +1682,14 @@ export const EDGES: GraphEdge[] = [
     "probable",
     "A fast metaboliser has cleared most of an afternoon coffee by bedtime, so the same cup costs far less sleep; the effect is not zero, only smaller.",
     [
-      trial("Drake 2013 J Clin Sleep Med (caffeine 0, 3 or 6 h before bed)", 2013),
-      cohort("Sachse 1999 Br J Clin Pharmacol (CYP1A2*1F and caffeine clearance)", 1999),
+      trial(
+        "Drake 2013 J Clin Sleep Med (caffeine 0, 3 or 6 h before bed)",
+        2013,
+      ),
+      cohort(
+        "Sachse 1999 Br J Clin Pharmacol (CYP1A2*1F and caffeine clearance)",
+        1999,
+      ),
     ],
     {
       id: "coffee_after_15->sleep_duration@cyp1a2_fast",
@@ -1685,8 +1708,14 @@ export const EDGES: GraphEdge[] = [
     "established",
     "Six nights at four hours in bed cut glucose tolerance by 30 % in healthy young men, and the meta-analysis finds the same dose-response across cohorts: less sleep, more fasting insulin.",
     [
-      trial("Spiegel 1999 Lancet (impact of sleep debt on metabolic function)", 1999),
-      meta("Reutrakul 2018 Metabolism (sleep, obesity and insulin resistance)", 2018),
+      trial(
+        "Spiegel 1999 Lancet (impact of sleep debt on metabolic function)",
+        1999,
+      ),
+      meta(
+        "Reutrakul 2018 Metabolism (sleep, obesity and insulin resistance)",
+        2018,
+      ),
     ],
     { grade: "A", when: { from: "low" } },
   ),
@@ -1697,7 +1726,12 @@ export const EDGES: GraphEdge[] = [
     1,
     "probable",
     "Short sleepers carry higher fasting triglycerides in cross-sectional cohorts; the association survives adjustment but no trial has moved triglycerides by adding sleep alone.",
-    [cohort("Kaneita 2008 Sleep (usual sleep duration and serum lipids)", 2008)],
+    [
+      cohort(
+        "Kaneita 2008 Sleep (usual sleep duration and serum lipids)",
+        2008,
+      ),
+    ],
     { grade: "B", when: { from: "low" } },
   ),
   e(
@@ -1707,7 +1741,12 @@ export const EDGES: GraphEdge[] = [
     1,
     "probable",
     "The same dinner eaten at 22:00 instead of 18:00 raised the overnight glucose peak in a randomised crossover; eating inside three hours of bed is the version of that anyone can act on.",
-    [trial("Gu 2020 J Clin Endocrinol Metab (metabolic effects of late dinner)", 2020)],
+    [
+      trial(
+        "Gu 2020 J Clin Endocrinol Metab (metabolic effects of late dinner)",
+        2020,
+      ),
+    ],
     {
       grade: "B",
       when: { hoursBefore: { eventFact: "last_meal_hour", threshold: 3 } },
@@ -1721,7 +1760,10 @@ export const EDGES: GraphEdge[] = [
     "established",
     "Without lactase persistence the lactose in a daily glass of milk reaches the colon and ferments, which is bloating and loose stools rather than any disease.",
     [
-      meta("Storhaug 2017 Lancet Gastroenterol Hepatol (global lactose malabsorption)", 2017),
+      meta(
+        "Storhaug 2017 Lancet Gastroenterol Hepatol (global lactose malabsorption)",
+        2017,
+      ),
       guide("NIH Consensus 2010: lactose intolerance and health", 2010),
     ],
     {
@@ -1731,6 +1773,105 @@ export const EDGES: GraphEdge[] = [
         fact: { key: "dairy_daily", equals: "Yes" },
       },
     },
+  ),
+
+  // --- phase 20: the fatigue / late-coffee path (spec section 3.4) -------
+  // The four edges the composer's reply needs when somebody writes "tired in
+  // the afternoons, last coffee at 4pm". Caffeine and appetite is deliberately
+  // absent: no graded human trial measures ghrelin against an afternoon cup.
+  e(
+    "behavior:coffee_after_15",
+    "metric:sleep_duration",
+    "lowers",
+    2,
+    "established",
+    "Caffeine blocks the adenosine A1 and A2A receptors that carry the day's sleep pressure, so the pressure is still there and stops being felt. The systematic review finds longer sleep latency, less total sleep and less slow-wave sleep, with a dose and a timing response: the later the cup, the more of it is still on board at lights out.",
+    [
+      meta(
+        "Clark 2017 Sleep Med Rev (coffee, caffeine and sleep: systematic review of epidemiological studies and RCTs)",
+        2017,
+        "10.1016/j.smrv.2016.01.006",
+      ),
+      trial(
+        "Drake 2013 J Clin Sleep Med (caffeine 0, 3 or 6 h before bed)",
+        2013,
+      ),
+    ],
+    {
+      id: "coffee_after_15->sleep_duration@anyone",
+      grade: "A",
+      when: { fact: { key: "coffee_last_hour", above: 15 } },
+    },
+  ),
+  e(
+    "behavior:coffee_after_15",
+    "fact:sym_energy",
+    "raises",
+    2,
+    "probable",
+    "400 mg of caffeine six hours before bed cost an hour of sleep in a blinded crossover, and the person did not notice it going: their own rating of the night was unchanged. An afternoon that starts flat every day is what a shorter, lighter night is made of, so the tiredness and the 16:00 coffee are usually the same fact twice.",
+    [
+      trial(
+        "Drake 2013 J Clin Sleep Med (caffeine 0, 3 or 6 h before bed)",
+        2013,
+      ),
+      meta(
+        "Clark 2017 Sleep Med Rev (coffee, caffeine and sleep: systematic review of epidemiological studies and RCTs)",
+        2017,
+        "10.1016/j.smrv.2016.01.006",
+      ),
+    ],
+    {
+      id: "coffee_after_15->sym_energy@afternoons",
+      grade: "B",
+      when: {
+        fact: { key: "coffee_last_hour", above: 15 },
+        facts: [{ key: "energy_when", oneOf: ["Afternoons", "All day"] }],
+      },
+    },
+  ),
+  e(
+    "fact:genome:CYP1A2",
+    "behavior:coffee_after_15",
+    "worsens",
+    2,
+    "established",
+    "CYP1A2 clears over 90 % of caffeine, and the rs762551 C allele is the low-inducibility form, so the same cup sits in a slow metaboliser far longer. In HARVEST, ten years of follow-up, heavy coffee only carried risk in the AC and CC carriers; the AA fast metabolisers took none.",
+    [
+      cohort(
+        "Mahdavi 2023 JAMA Netw Open (CYP1A2 genetic variation, coffee intake and kidney dysfunction; HARVEST cohort)",
+        2023,
+      ),
+      cohort(
+        "Sachse 1999 Br J Clin Pharmacol (CYP1A2*1F and caffeine clearance)",
+        1999,
+      ),
+    ],
+    {
+      id: "genome:CYP1A2->coffee_after_15",
+      grade: "B",
+      when: {
+        genome: { gene: "CYP1A2", genotype: "slow" },
+        // The genotype only says anything about a cup that is late enough to
+        // still be on board at bedtime; a 13:00 coffee is cleared either way.
+        fact: { key: "coffee_last_hour", above: 15 },
+      },
+    },
+  ),
+  e(
+    "metric:glucose",
+    "fact:sym_energy",
+    "raises",
+    1,
+    "speculative",
+    "In 1,070 people wearing continuous monitors, the size of the glucose dip 2–3 h after a meal predicted hunger and how much they ate next better than the peak did. A raised fasting glucose is the marker that those swings are bigger, so a heavy lunch is felt as an afternoon slump rather than seen as a number.",
+    [
+      cohort(
+        "Wyatt 2021 Nat Metab (postprandial glycaemic dips predict appetite and energy intake in healthy individuals; PREDICT)",
+        2021,
+      ),
+    ],
+    { id: "glucose->sym_energy@dip", grade: "B", when: { from: "high" } },
   ),
 ];
 

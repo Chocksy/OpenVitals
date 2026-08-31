@@ -57,6 +57,23 @@ const ALIASES: Record<string, string> = {
   "um^3": "fl",
   // Mean corpuscular haemoglobin is picograms per cell.
   "pg/cell": "pg",
+  // Phase 20: what a person types into the composer rather than what a lab
+  // prints. `weight` is stored in lbs and `sleep_duration` in minutes, so
+  // "82 kg" and "6h" need a factor like any other unit.
+  kgs: "kg",
+  kilos: "kg",
+  kilograms: "kg",
+  kilogram: "kg",
+  lb: "lbs",
+  pound: "lbs",
+  pounds: "lbs",
+  hr: "h",
+  hrs: "h",
+  hour: "h",
+  hours: "h",
+  minutes: "min",
+  minute: "min",
+  mins: "min",
 };
 
 /** Lowercase, de-noise, fold Unicode. `"/ UI/l"` and `"U/I"` both give `u/l`. */
@@ -155,6 +172,9 @@ const RULES: Rule[] = [
   { from: "pmol/l", to: "pg/ml", factor: 0.777, metrics: ["free_t4"] },
   { from: "pmol/l", to: "pg/ml", factor: 0.651, metrics: ["free_t3"] },
   { from: "pmol/l", to: "ng/dl", factor: 0.0777, metrics: ["free_t4"] },
+  // Phase 20: the two everyday conversions the composer needs.
+  { from: "kg", to: "lbs", factor: 2.20462 },
+  { from: "h", to: "min", factor: 60 },
 ];
 
 /** The multiplier that takes a value from `from` into `to`, or null. */

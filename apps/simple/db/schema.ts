@@ -367,6 +367,14 @@ export const profileFacts = pgTable(
     value: jsonb("value").$type<unknown>().notNull(),
     source: text("source").default("user").notNull(),
     answeredAt: timestamp("answered_at", { withTimezone: true }).defaultNow(),
+    /**
+     * Phase 20: the day this answer is worth asking about again. Null means
+     * never on a clock (sex, ancestry); `lib/revisit.ts` owns the arithmetic
+     * and the triggers that override it.
+     */
+    revisitAt: date("revisit_at"),
+    /** The last day the person said "still true" without changing anything. */
+    confirmedAt: date("confirmed_at"),
   },
   (t) => [unique("profile_facts_user_key").on(t.userId, t.key)],
 );
@@ -397,6 +405,12 @@ export const profileFactHistory = pgTable(
     note: text("note"),
     /** user | document | genome | system */
     source: text("source").default("user").notNull(),
+    /**
+     * Phase 20: the days the person confirmed this row without changing it.
+     * A confirmation is not a new value, so it writes no row; it lands here so
+     * `/history` can draw a tick on the lane without a table of its own.
+     */
+    confirmations: jsonb("confirmations").$type<string[]>(),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
   },
   (t) => [
@@ -1186,3 +1200,49 @@ export const interventionOutcomes = pgTable(
 
 export type Projection = typeof projections.$inferSelect;
 export type InterventionOutcome = typeof interventionOutcomes.$inferSelect;
+
+/**
+ * One thing a person wrote in the composer, with what the engine understood.
+ *
+ * Phase 20. The text is kept verbatim because it is the person's own words and
+ * the reply quotes them back; `chips` is what was written from it, so a post is
+ * auditable against the facts, readings and events it produced. `follow_up` is
+ * the one question the engine asked back and its answer; `reply` is the
+ * paragraph, computed in code and phrased by the model.
+ */
+export const checkinPosts = pgTable(
+  "checkin_posts",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    text: text("text").notNull(),
+    chips: jsonb("chips").$type<PostChip[]>().notNull(),
+    followUp: jsonb("follow_up").$type<PostFollowUp>(),
+    reply: text("reply"),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+  },
+  (t) => [index("checkin_posts_user_idx").on(t.userId, t.createdAt)],
+);
+
+/** Typed loosely here so `db` never imports `lib`; `lib/compose.ts` owns it. */
+export interface PostChip {
+  kind: string;
+  key: string;
+  label: string;
+  value: unknown;
+  date: string;
+  quote: string;
+  confidence: number;
+  by: string;
+}
+
+export interface PostFollowUp {
+  key: string;
+  question: string;
+  options?: string[];
+  answer?: string;
+}
+
+export type CheckinPost = typeof checkinPosts.$inferSelect;

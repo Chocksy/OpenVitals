@@ -275,7 +275,6 @@ export function ReanalyzeUpload({
   );
 }
 
-
 /** Re-read this file as another kind: a lab sheet, a genome file, a document. */
 export function ChangeKind({ id, kind }: { id: string; kind: string }) {
   const { run, busy, error } = useAction();
@@ -520,6 +519,134 @@ export function AnswerQuestion({
           onChange={setEdit}
           today={today ?? new Date().toISOString().slice(0, 10)}
         />
+      )}
+    </div>
+  );
+}
+
+/**
+ * One "still true?" line: the question derived from the value, then three
+ * chips.
+ *
+ * Phase 20, and the difference between the three is the whole point.
+ * **Confirm** says the value did not change, so no history row is written and
+ * only the next-ask date moves. **Changed** is a new value from a date, which
+ * is `/api/facts` and a real row. **Not now** is a month of silence.
+ */
+export function StillTrue({
+  factKey,
+  question,
+  original,
+  options,
+  current,
+  today,
+}: {
+  factKey: string;
+  question: string;
+  original: string;
+  options: string[];
+  current: string;
+  today: string;
+}) {
+  const { run, busy, error } = useAction();
+  const [changing, setChanging] = useState(false);
+  const [date, setDate] = useState(today);
+  const [text, setText] = useState(current);
+  const save = (value: string) =>
+    run("/api/facts", { key: factKey, value, kind: "changed", date });
+
+  return (
+    <div className="flex flex-col gap-1.5 border-l-2 border-neutral-200 pl-3">
+      <p className="font-body text-[13px] text-neutral-800" title={original}>
+        {question}
+        <span className="ml-1.5 font-mono text-[10px] uppercase tracking-[0.04em] text-neutral-400">
+          {factKey.replace(/_/g, " ")}
+        </span>
+      </p>
+      {!changing ? (
+        <div className="flex flex-wrap items-center gap-1.5">
+          <Button
+            size="sm"
+            variant="outline-subtle"
+            disabled={busy}
+            onClick={() =>
+              run("/api/facts/revisit", { key: factKey, action: "confirm" })
+            }
+          >
+            Still {current.toLowerCase()}
+          </Button>
+          <Button
+            size="sm"
+            variant="ghost"
+            disabled={busy}
+            onClick={() => setChanging(true)}
+          >
+            Changed
+          </Button>
+          <Button
+            size="sm"
+            variant="ghost"
+            disabled={busy}
+            onClick={() =>
+              run("/api/facts/revisit", { key: factKey, action: "skip" })
+            }
+          >
+            Not now
+          </Button>
+          {error && (
+            <span className="font-mono text-[10px] text-[var(--color-health-critical)]">
+              {error}
+            </span>
+          )}
+        </div>
+      ) : (
+        <div className="flex flex-wrap items-center gap-1.5">
+          <label className="flex items-center gap-1 font-mono text-[10px] text-neutral-500">
+            since when?
+            <input
+              type="date"
+              max={today}
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+              className="border border-neutral-300 bg-neutral-0 px-1 py-0.5 font-mono text-[11px]"
+            />
+          </label>
+          {options.length > 0 ? (
+            options.map((o) => (
+              <Button
+                key={o}
+                size="sm"
+                variant="outline-subtle"
+                disabled={busy}
+                onClick={() => save(o)}
+              >
+                {o}
+              </Button>
+            ))
+          ) : (
+            <>
+              <input
+                value={text}
+                onChange={(e) => setText(e.target.value)}
+                className="w-28 border border-neutral-300 bg-neutral-0 px-2 py-1 font-mono text-[11px]"
+              />
+              <Button
+                size="sm"
+                variant="outline-subtle"
+                disabled={busy || !text.trim()}
+                onClick={() => save(text)}
+              >
+                Save
+              </Button>
+            </>
+          )}
+          <button
+            className={`${rowAction} text-neutral-500 hover:text-neutral-900`}
+            onClick={() => setChanging(false)}
+          >
+            cancel
+          </button>
+        </div>
       )}
     </div>
   );

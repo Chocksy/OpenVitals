@@ -8,12 +8,14 @@
  */
 import Link from "next/link";
 import { ChevronRight, FlaskConical } from "lucide-react";
+import type { Today } from "@/lib/home-data";
 import type { Conclusion, Ledger } from "@/lib/ledger";
 import type { Move } from "@/lib/infogain";
 import type { TrendMetric } from "@/lib/home-data";
 import type { HState } from "@/lib/hypotheses";
 import { cn, formatDate } from "@/lib/utils";
-import { AnswerQuestion, EditFact, WrongValue } from "./client";
+import { AnswerQuestion, EditFact, StillTrue, WrongValue } from "./client";
+import { PostButton } from "./composer-button";
 import { ActionButtons, GeneratePlan } from "./plan";
 import { RangeBar } from "./range-bar";
 import { StatusBadge } from "./status-badge";
@@ -53,6 +55,53 @@ const WHY = "mt-1 font-mono text-[11px] text-neutral-400";
 const one = (v: number) => v.toFixed(1);
 
 /* ── 1. cockpit ───────────────────────────────────────────────────────── */
+
+/**
+ * "Today": the first card in the cockpit, and the shortest one.
+ *
+ * At most two answers worth re-asking, the last check-in's reply in one line,
+ * and nothing else. With nothing due and nothing posted it is one sentence,
+ * because a card that always has something to say is a card nobody reads.
+ */
+export function TodayCard({ today, day }: { today: Today; day: string }) {
+  const empty = !today.due.length && !today.post;
+  return (
+    <Card className="p-4">
+      <div className="flex items-baseline justify-between gap-3">
+        <div className={LABEL}>Today</div>
+        <PostButton />
+      </div>
+
+      {empty ? (
+        <p className="mt-2 font-body text-[13px] text-neutral-500">
+          Nothing to ask today. Post anything with +.
+        </p>
+      ) : (
+        <div className="mt-3 space-y-3">
+          {today.due.map((d) => (
+            <StillTrue
+              key={d.key}
+              factKey={d.key}
+              question={d.question}
+              original={d.original}
+              options={d.options}
+              current={d.current}
+              today={day}
+            />
+          ))}
+          {today.post && (
+            <p className="font-body text-[13px] leading-relaxed text-neutral-600">
+              <span className="font-mono text-[10px] uppercase tracking-[0.04em] text-neutral-400">
+                {today.post.date} ·{" "}
+              </span>
+              {today.post.reply ?? `"${today.post.text}"`}
+            </p>
+          )}
+        </div>
+      )}
+    </Card>
+  );
+}
 
 export function Cockpit({ ledger }: { ledger: Ledger }) {
   const { bioAge, bioAgeMissing, counters, since } = ledger;

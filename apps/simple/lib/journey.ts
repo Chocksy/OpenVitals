@@ -17,6 +17,8 @@
  * in-code catalog offline).
  */
 import { personaToInput } from "@/evals/persona";
+import type { ModelInput } from "./coverage";
+import { computeGraphState } from "./graph-state";
 import { loadCatalog } from "./hkb";
 import { scoreHypotheses, type Catalog } from "./hypotheses";
 import { eurOf, nextMoves, type Move } from "./infogain";
@@ -52,6 +54,7 @@ import hashimotoEarly from "@/evals/journeys/hashimoto_early_female_36.json";
 import hashimotoScratch from "@/evals/journeys/hashimoto_from_scratch_f34_ro.json";
 import healthy from "@/evals/journeys/healthy_male_28.json";
 import insulinResistant from "@/evals/journeys/insulin_resistant_male_45.json";
+import interviewFatigue from "@/evals/journeys/interview_fatigue_coffee_m41.json";
 import ironGi from "@/evals/journeys/iron_gi_cause_m45.json";
 import ironLow from "@/evals/journeys/iron_low_female_30.json";
 import lmhr from "@/evals/journeys/lmhr_male_38.json";
@@ -116,6 +119,12 @@ export interface Journey {
     verdict?: Record<string, Verdict>;
     /** conditions that have to end under "possible" */
     belowPossible?: string[];
+    /**
+     * Graph edges that have to be live for this person once the run is over.
+     * Phase 20: the fatigue journey's whole point is that the timing edge, not
+     * a disease, is what ends up explaining the afternoons.
+     */
+    activeEdges?: string[];
     /** a corrected fact must move no belief at all */
     correctedChangesNothing?: boolean;
     /** the context pack's CONCLUSIONS section has to carry this */
@@ -194,6 +203,7 @@ export const JOURNEYS: Journey[] = [
   hashimotoScratch,
   healthy,
   insulinResistant,
+  interviewFatigue,
   ironGi,
   ironLow,
   lmhr,
@@ -262,8 +272,17 @@ function answerMove(move: Move, j: Journey, date: string) {
 }
 
 /** Did every expectation hold? */
-function verdict(j: Journey, r: Omit<JourneyResult, "pass" | "failed">) {
+function verdict(
+  j: Journey,
+  r: Omit<JourneyResult, "pass" | "failed">,
+  final?: ModelInput,
+) {
   const failed: string[] = [];
+  if (j.expect.activeEdges?.length && final) {
+    const live = new Set(computeGraphState(final).activeEdges.map((e) => e.id));
+    for (const id of j.expect.activeEdges)
+      if (!live.has(id)) failed.push(`the edge ${id} never came alive`);
+  }
   for (const id of j.expect.discover)
     if (r.discoveredAt[id] == null) failed.push(`${id} never reached likely`);
   if (j.expect.withinDraws != null) {
@@ -297,7 +316,9 @@ function verdict(j: Journey, r: Omit<JourneyResult, "pass" | "failed">) {
         .filter((s) => s.projection)
         .map((s) => {
           const p = s.projection!;
-          const judged = r.steps.find((x) => x.verdict?.code === p.code)?.verdict;
+          const judged = r.steps.find(
+            (x) => x.verdict?.code === p.code,
+          )?.verdict;
           return {
             code: p.code,
             expected: p.expected,
@@ -320,9 +341,7 @@ function verdict(j: Journey, r: Omit<JourneyResult, "pass" | "failed">) {
     const p = r.steps.find((s) => s.projection?.code === code)?.projection;
     if (!p) failed.push(`no projection was made for ${code}`);
     else if (want < p.low || want > p.high)
-      failed.push(
-        `the ${code} band ${p.low}-${p.high} does not cover ${want}`,
-      );
+      failed.push(`the ${code} band ${p.low}-${p.high} does not cover ${want}`);
   }
   for (const [code, want] of Object.entries(j.expect.verdict ?? {})) {
     const v = r.steps.find((s) => s.verdict?.code === code)?.verdict;
@@ -359,7 +378,9 @@ function verdict(j: Journey, r: Omit<JourneyResult, "pass" | "failed">) {
       ...r.steps.map((s) => s.beliefs[id] ?? 0),
     );
     if (peak < want)
-      failed.push(`${id} only reached ${(peak * 100).toFixed(2)} %, wanted ${(want * 100).toFixed(2)} %`);
+      failed.push(
+        `${id} only reached ${(peak * 100).toFixed(2)} %, wanted ${(want * 100).toFixed(2)} %`,
+      );
   }
   return failed;
 }
@@ -477,7 +498,11 @@ async function runHistory(
           verdict: verdictOf(
             open.projection,
             value,
-            betterDirection(open.projection.code, row?.optimalLow, row?.optimalHigh),
+            betterDirection(
+              open.projection.code,
+              row?.optimalLow,
+              row?.optimalHigh,
+            ),
           ),
           expected: open.projection.expected,
           value,
@@ -551,7 +576,7 @@ async function runHistory(
     totalEur: 0,
     stop: "discovered" as const,
   };
-  const failed = verdict(j, partial);
+  const failed = verdict(j, partial, input);
   return { ...partial, pass: failed.length === 0, failed };
 }
 
@@ -666,6 +691,6 @@ export async function runJourney(
     totalEur: cumEur,
     stop,
   };
-  const failed = verdict(j, partial);
+  const failed = verdict(j, partial, input);
   return { ...partial, pass: failed.length === 0, failed };
 }

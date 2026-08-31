@@ -21,6 +21,13 @@ export interface Symptom {
   name: string;
   question: string;
   options: string[];
+  /**
+   * Phase 20: days until the answer is worth re-asking. Left out on every item
+   * today, so `PROFILE_QUESTIONS` gives them all 90 days — a symptom answer is
+   * a claim about the last few weeks and a season is when it can honestly have
+   * turned over. Set it here when one item needs a different cadence.
+   */
+  revisitDays?: number;
   appliesTo?: { sex?: Sex; minAge?: number; maxAge?: number };
   /** where the wording comes from, printed on /hkb */
   source: string;
@@ -48,9 +55,11 @@ export const SYMPTOMS: Symptom[] = [
     key: "sym_cold",
     item: 2,
     name: "Cold intolerance",
-    question: "Do you have cold hands and feet, or feel cold when others do not?",
+    question:
+      "Do you have cold hands and feet, or feel cold when others do not?",
     options: ["No", "Yes"],
-    source: "Zulewski 1997 J Clin Endocrinol Metab: cold intolerance is one of the twelve signs in the clinical hypothyroid score.",
+    source:
+      "Zulewski 1997 J Clin Endocrinol Metab: cold intolerance is one of the twelve signs in the clinical hypothyroid score.",
   },
   {
     key: "sym_weight",
@@ -68,15 +77,18 @@ export const SYMPTOMS: Symptom[] = [
     name: "Hair thinning or dry skin",
     question: "Is your hair thinning, or your skin very dry?",
     options: ["No", "Yes"],
-    source: "Zulewski 1997: dry skin and coarse hair are two of the twelve clinical hypothyroid signs.",
+    source:
+      "Zulewski 1997: dry skin and coarse hair are two of the twelve clinical hypothyroid signs.",
   },
   {
     key: "sleep_snoring",
     item: 5,
     name: "Snoring",
-    question: "Do you snore, or has anyone told you that you stop breathing at night?",
+    question:
+      "Do you snore, or has anyone told you that you stop breathing at night?",
     options: ["No", "Sometimes", "Most nights"],
-    source: "Chung 2008 Anesthesiology (STOP-Bang): snoring and witnessed apnoea are two of the eight items.",
+    source:
+      "Chung 2008 Anesthesiology (STOP-Bang): snoring and witnessed apnoea are two of the eight items.",
   },
   {
     key: "sym_sleepiness",
@@ -84,13 +96,15 @@ export const SYMPTOMS: Symptom[] = [
     name: "Daytime sleepiness",
     question: "Do you fall asleep when you are sitting quietly during the day?",
     options: ["No", "Yes"],
-    source: "Johns 1991 Sleep (Epworth): sitting-quietly items carry most of the scale's weight for sleep apnoea.",
+    source:
+      "Johns 1991 Sleep (Epworth): sitting-quietly items carry most of the scale's weight for sleep apnoea.",
   },
   {
     key: "sym_phq2_interest",
     item: 7,
     name: "Little interest or pleasure",
-    question: "Over the last 2 weeks: little interest or pleasure in doing things?",
+    question:
+      "Over the last 2 weeks: little interest or pleasure in doing things?",
     options: PHQ,
     source: "Kroenke 2003 Med Care: PHQ-2 item 1.",
   },
@@ -106,9 +120,11 @@ export const SYMPTOMS: Symptom[] = [
     key: "sym_bowel",
     item: 8,
     name: "Bowel pattern",
-    question: "Most weeks, do you have constipation, or diarrhoea and bloating?",
+    question:
+      "Most weeks, do you have constipation, or diarrhoea and bloating?",
     options: ["Neither", "Constipation", "Diarrhoea and bloating"],
-    source: "Rome IV criteria (Drossman 2016 Gastroenterology): the two stool-pattern branches.",
+    source:
+      "Rome IV criteria (Drossman 2016 Gastroenterology): the two stool-pattern branches.",
   },
   {
     key: "sym_cycle",
@@ -127,7 +143,8 @@ export const SYMPTOMS: Symptom[] = [
     question:
       "Have you ever had a sudden painful, swollen joint, usually the big toe or ankle?",
     options: ["No", "Yes"],
-    source: "Janssens 2010 Arch Intern Med (gout diagnostic rule): podagra is the single strongest clinical item.",
+    source:
+      "Janssens 2010 Arch Intern Med (gout diagnostic rule): podagra is the single strongest clinical item.",
   },
   {
     key: "sym_thirst",
@@ -135,7 +152,8 @@ export const SYMPTOMS: Symptom[] = [
     name: "Thirst and urination",
     question: "Are you unusually thirsty, or urinating much more than usual?",
     options: ["No", "Yes"],
-    source: "ADA Standards of Care: polyuria and polydipsia are the classic hyperglycaemia symptoms.",
+    source:
+      "ADA Standards of Care: polyuria and polydipsia are the classic hyperglycaemia symptoms.",
   },
   {
     key: "sym_alcohol",
@@ -201,8 +219,7 @@ export const SYMPTOMS: Symptom[] = [
     key: "sym_tingling",
     item: 17,
     name: "Tingling or numbness",
-    question:
-      "Do you get pins and needles or numbness in your hands or feet?",
+    question: "Do you get pins and needles or numbness in your hands or feet?",
     options: ["No", "Yes"],
     source:
       "Stabler 2013 NEJM (vitamin B12 deficiency): paraesthesiae are the commonest neurological presentation and can precede the anaemia.",
@@ -249,8 +266,7 @@ export const SYMPTOMS: Symptom[] = [
     key: "sym_bloating",
     item: 22,
     name: "Bloating after meals",
-    question:
-      "Does your abdomen bloat or distend after meals, most days?",
+    question: "Does your abdomen bloat or distend after meals, most days?",
     options: ["No", "Yes"],
     source:
       "Pimentel 2020 Am J Gastroenterol (ACG guideline on SIBO): bloating and distension are the symptoms the breath test is validated against.",
@@ -262,7 +278,10 @@ export const SYMPTOM_ITEMS: { item: number; questions: Symptom[] }[] = [
   ...new Set(SYMPTOMS.map((s) => s.item)),
 ]
   .sort((a, b) => a - b)
-  .map((item) => ({ item, questions: SYMPTOMS.filter((s) => s.item === item) }));
+  .map((item) => ({
+    item,
+    questions: SYMPTOMS.filter((s) => s.item === item),
+  }));
 
 /** Facts that are symptoms, so the seed writes `kind = "symptom"`. */
 export const SYMPTOM_KEYS = new Set(SYMPTOMS.map((s) => s.key));

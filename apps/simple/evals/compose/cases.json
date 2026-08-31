@@ -1,0 +1,261 @@
+[
+  {
+    "id": "tired_plain",
+    "text": "I feel tired",
+    "today": "2026-08-31",
+    "facts": {
+      "sex": "male",
+      "birth_year": 1985
+    },
+    "expect": {
+      "chips": [
+        {
+          "key": "sym_energy",
+          "value": "Yes",
+          "kind": "symptom"
+        }
+      ],
+      "followUp": "energy_when"
+    }
+  },
+  {
+    "id": "tired_afternoons_coffee",
+    "text": "tired in the afternoons since last week, last coffee at 4pm",
+    "today": "2026-08-31",
+    "facts": {
+      "sex": "male",
+      "birth_year": 1985
+    },
+    "expect": {
+      "chips": [
+        {
+          "key": "sym_energy",
+          "value": "Yes"
+        },
+        {
+          "key": "energy_when",
+          "value": "Afternoons"
+        },
+        {
+          "key": "coffee_last_hour",
+          "value": "16:00"
+        }
+      ],
+      "followUp": null
+    }
+  },
+  {
+    "id": "home_glucose",
+    "text": "checked my glucose 98 this morning before breakfast",
+    "today": "2026-08-31",
+    "facts": {
+      "sex": "male",
+      "birth_year": 1985
+    },
+    "expect": {
+      "chips": [
+        {
+          "key": "glucose",
+          "value": 98,
+          "kind": "reading"
+        }
+      ],
+      "followUp": "glucose_when"
+    }
+  },
+  {
+    "id": "bp_and_weight",
+    "text": "BP 128/82 this morning and I weigh 82 kg now",
+    "today": "2026-08-31",
+    "facts": {
+      "sex": "male",
+      "birth_year": 1985
+    },
+    "expect": {
+      "chips": [
+        {
+          "key": "bp_systolic",
+          "value": 128
+        },
+        {
+          "key": "bp_diastolic",
+          "value": 82
+        },
+        {
+          "key": "weight",
+          "kind": "reading"
+        }
+      ],
+      "followUp": null
+    }
+  },
+  {
+    "id": "snoring_and_sleepy",
+    "text": "I snore every night and I am sleepy all day",
+    "today": "2026-08-31",
+    "facts": {
+      "sex": "male",
+      "birth_year": 1985
+    },
+    "expect": {
+      "chips": [
+        {
+          "key": "sleep_snoring",
+          "value": "Most nights"
+        },
+        {
+          "key": "sym_sleepiness",
+          "value": "Yes"
+        }
+      ],
+      "followUp": "sleep_apnoea_witnessed"
+    }
+  },
+  {
+    "id": "bowel_and_cold",
+    "text": "constipated most weeks and my hands are always cold",
+    "today": "2026-08-31",
+    "facts": {
+      "sex": "male",
+      "birth_year": 1985
+    },
+    "expect": {
+      "chips": [
+        {
+          "key": "sym_bowel",
+          "value": "Constipation"
+        },
+        {
+          "key": "sym_cold",
+          "value": "Yes"
+        }
+      ],
+      "followUp": null
+    }
+  },
+  {
+    "id": "timing_only",
+    "text": "in bed by 23:30 and dinner at 21:00 most days",
+    "today": "2026-08-31",
+    "facts": {
+      "sex": "male",
+      "birth_year": 1985
+    },
+    "expect": {
+      "chips": [
+        {
+          "key": "bedtime_hour",
+          "value": "23:30"
+        },
+        {
+          "key": "last_meal_hour",
+          "value": "21:00"
+        }
+      ],
+      "notChips": ["sym_energy"],
+      "followUp": null
+    }
+  },
+  {
+    "id": "surgery_dated",
+    "text": "gallbladder surgery on 12 Aug, back at work now",
+    "today": "2026-08-31",
+    "facts": {
+      "sex": "male",
+      "birth_year": 1985
+    },
+    "expect": {
+      "chips": [
+        {
+          "key": "post_viral",
+          "kind": "event"
+        }
+      ],
+      "followUp": null
+    }
+  },
+  {
+    "id": "nothing_medical",
+    "text": "bought a new bike and the weather is good",
+    "today": "2026-08-31",
+    "facts": {
+      "sex": "male",
+      "birth_year": 1985
+    },
+    "expect": {
+      "chips": [],
+      "notChips": ["sym_energy"],
+      "followUp": null
+    }
+  },
+  {
+    "id": "sleep_and_hba1c",
+    "text": "slept 6h last night, hba1c 5.4% from the lab",
+    "today": "2026-08-31",
+    "facts": {
+      "sex": "male",
+      "birth_year": 1985
+    },
+    "expect": {
+      "chips": [
+        {
+          "key": "sleep_duration",
+          "value": 360
+        },
+        {
+          "key": "hba1c",
+          "value": 5.4
+        }
+      ],
+      "followUp": "coffee_last_hour"
+    }
+  },
+  {
+    "id": "ramona_periods_and_fatigue",
+    "text": "heavy periods again and I am exhausted, for two months now",
+    "today": "2026-08-31",
+    "facts": {
+      "sex": "female",
+      "birth_year": 1985,
+      "menopause_status": "Pre",
+      "country": "RO"
+    },
+    "expect": {
+      "chips": [
+        {
+          "key": "sym_cycle",
+          "value": "Heavy"
+        },
+        {
+          "key": "sym_energy",
+          "value": "Yes"
+        }
+      ],
+      "followUp": "energy_when"
+    }
+  },
+  {
+    "id": "ramona_quit_smoking_gained",
+    "text": "I quit smoking last month and I have put on weight since",
+    "today": "2026-08-31",
+    "facts": {
+      "sex": "female",
+      "birth_year": 1985,
+      "menopause_status": "Pre",
+      "country": "RO"
+    },
+    "expect": {
+      "chips": [
+        {
+          "key": "smoking",
+          "value": "Former"
+        },
+        {
+          "key": "sym_weight",
+          "value": "Gained"
+        }
+      ],
+      "followUp": "sym_weight_amount"
+    }
+  }
+]
