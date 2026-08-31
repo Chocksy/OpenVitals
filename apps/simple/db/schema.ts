@@ -1121,3 +1121,68 @@ export const journeyRuns = pgTable(
 );
 
 export type JourneyRun = typeof journeyRuns.$inferSelect;
+
+/* ── projections (phase 19) ───────────────────────────────────────────── */
+
+/**
+ * Where a marker was expected to land, written down before the draw.
+ *
+ * One row per (person, marker) while it is open; `resolved_*` is filled by the
+ * first reading after `retest_at − 2 weeks`, and the verdict is read off the
+ * band. Nothing is ever updated except the resolution, so the history of what
+ * the engine believed is kept exactly as it was believed.
+ */
+export const projections = pgTable(
+  "projections",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    code: text("code").notNull(),
+    madeAt: date("made_at").notNull(),
+    horizonWeeks: integer("horizon_weeks").notNull(),
+    fromValue: real("from_value").notNull(),
+    expected: real("expected").notNull(),
+    low: real("low").notNull(),
+    high: real("high").notNull(),
+    contributions: jsonb("contributions").notNull(),
+    assumptions: jsonb("assumptions").$type<string[]>(),
+    retestAt: date("retest_at").notNull(),
+    resolvedValue: real("resolved_value"),
+    resolvedAt: date("resolved_at"),
+    /** better | as_expected | worse | unmeasured */
+    verdict: text("verdict"),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+  },
+  (t) => [index("projections_user_idx").on(t.userId, t.code, t.madeAt)],
+);
+
+/**
+ * What actually happened to one (intervention, marker) pair for one person, so
+ * the published effect size can later be pooled with this person's own
+ * history. The sibling of `calibration_events`, which does the same for
+ * beliefs.
+ */
+export const interventionOutcomes = pgTable(
+  "intervention_outcomes",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    /** `cut added sugar -> hba1c` */
+    pair: text("pair").notNull(),
+    predictedDelta: real("predicted_delta").notNull(),
+    observedDelta: real("observed_delta").notNull(),
+    adherence: real("adherence"),
+    projectionId: uuid("projection_id").references(() => projections.id, {
+      onDelete: "cascade",
+    }),
+    at: date("at").notNull(),
+  },
+  (t) => [index("intervention_outcomes_pair_idx").on(t.pair)],
+);
+
+export type Projection = typeof projections.$inferSelect;
+export type InterventionOutcome = typeof interventionOutcomes.$inferSelect;

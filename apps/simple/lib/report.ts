@@ -371,6 +371,41 @@ function hypothesisLines(rows: HypothesisResult[]): string {
  */
 const TOP_CONCLUSIONS = 6;
 
+/**
+ * What was projected for a marker and what the draw said about it, in the
+ * CONCLUSIONS section: the model has to explain the gap, and the first thing
+ * to check when a marker missed its band is whether the person did the thing.
+ */
+export interface ProjectionLine {
+  code: string;
+  expected: number;
+  low: number;
+  high: number;
+  retestAt: string;
+  unit?: string;
+  adherence?: number;
+  resolvedValue?: number | null;
+  verdict?: string | null;
+}
+
+export function projectionLines(rows: ProjectionLine[]): string {
+  if (!rows.length) return "";
+  return rows
+    .map((p) => {
+      const u = p.unit ? ` ${p.unit}` : "";
+      const judged =
+        p.resolvedValue != null
+          ? `measured ${p.resolvedValue}${u} — ${p.verdict ?? "unjudged"}`
+          : `not yet measured, retest ${p.retestAt}`;
+      const adherence =
+        p.adherence != null
+          ? `; adherence ${Math.round(p.adherence * 100)} %`
+          : "";
+      return `- projection ${p.code}: expected ${p.expected}${u} (${p.low}–${p.high}) by ${p.retestAt}; ${judged}${adherence}`;
+    })
+    .join("\n");
+}
+
 function conclusionLines(rows: HypothesisResult[]): string {
   const head = (list: { input: string; value: string; lr: number }[]) =>
     list
@@ -428,6 +463,8 @@ export interface ContextExtras {
   interventions?: InterventionSummary[];
   /** `kg_nodes` / `kg_edges`; the in-code graph when the caller has none. */
   graph?: Graph;
+  /** open and just-judged projections, printed under CONCLUSIONS (phase 19) */
+  projections?: ProjectionLine[];
 }
 
 /** One row of `hkb_interventions`, cut to what the prompt reads. */
@@ -579,6 +616,7 @@ ${helpLines(extras.interventions ?? [], hypotheses)}
 
 CONCLUSIONS (the home ledger, in rank order; write one verdict sentence per id):
 ${conclusionLines(hypotheses)}
+${projectionLines(extras.projections ?? [])}
 
 HYPOTHESES (scored by the app; explain them, do not re-score them):
 ${hypothesisLines(hypotheses)}

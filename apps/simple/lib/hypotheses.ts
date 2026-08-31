@@ -12,6 +12,7 @@
  */
 import type { LatestValue, ModelInput } from "./coverage";
 import { slopeText, type Slope } from "./derived";
+import { SYMPTOM_KEYS } from "./symptoms";
 import { parseBp, type Sex } from "./vectors";
 
 export type Lens = "lifespan" | "energy" | "mood" | "weight";
@@ -1875,8 +1876,8 @@ const discountLr = (lr: number, discount: number) => 1 + (lr - 1) * discount;
  * exactly that reason.
  *
  * The keys are metric codes and `derived` keys, which is everything a rule can
- * read that is a measurement. Facts and symptoms are not grouped: two answers
- * about two different symptoms really are two facts.
+ * read that is a measurement. Symptoms are grouped separately, in
+ * `correlationGroupOf`: see `SYMPTOM_GROUP`.
  */
 export const CORRELATION_GROUPS: Record<string, string> = {
   // one glycaemia, read four ways
@@ -1909,6 +1910,9 @@ export const CORRELATION_GROUPS: Record<string, string> = {
   // one blood pressure
   bp_systolic: "bp",
   bp_diastolic: "bp",
+  // one apoB-to-LDL discordance, which is its own fact and not a second
+  // reading of the panel: the whole point of it is that it disagrees.
+  apobLdl: "apob_discordance",
   // one liver
   alt: "liver_enzymes",
   ast: "liver_enzymes",
@@ -1926,6 +1930,39 @@ export const CORRELATION_GROUPS: Record<string, string> = {
 export const CORR_DAMP = 0.3;
 
 /**
+ * Every symptom and interview answer of one condition is one group.
+ *
+ * They are not independent facts. Feeling cold, being tired, dry skin and
+ * constipation are four ways of saying the same thing, and multiplying four
+ * likelihood ratios of 1.4 to 2.3 took hypothyroidism to 89 % for a woman with
+ * a normal free T4 and a TSH of 3.9. Grouping them damps every one after the
+ * strongest, and `SYMPTOM_LR_CAP` puts a ceiling on what the whole interview
+ * can do to one condition: six-fold, either way, however many boxes are
+ * ticked. A measurement is unaffected.
+ */
+export const SYMPTOM_GROUP = "symptoms";
+export const SYMPTOM_LR_CAP = 6;
+
+/**
+ * The ceiling on the product of a condition's prior modifiers. Sex, age band
+ * and family history overlap heavily with each other and with the base rate
+ * they multiply, so six-fold is as far as "before we measured anything" is
+ * allowed to travel.
+ */
+export const PRIOR_MODIFIER_CAP = 6;
+
+/**
+ * The most a base rate is allowed to be before anything is measured.
+ *
+ * A prior is what is true of people like this person, not of this person. A
+ * modified prior of 0.9 (insulin resistance for a 45-year-old man with a waist
+ * and a diabetic father) makes the condition unfalsifiable: a normal HbA1c and
+ * a normal insulin together could not bring it under "likely". Half is as far
+ * as a base rate goes; everything above that has to be measured.
+ */
+export const PRIOR_CEILING = 0.5;
+
+/**
  * The group a rule's input belongs to, when it belongs to one.
  *
  * Facts are looked up too, because three of them are measurements wearing a
@@ -1935,14 +1972,16 @@ export const CORR_DAMP = 0.3;
  */
 export const correlationGroupOf = (
   input: EvidenceRule["input"],
-): string | undefined =>
-  input.metric
-    ? CORRELATION_GROUPS[input.metric]
-    : input.derived
-      ? CORRELATION_GROUPS[input.derived]
-      : input.fact
-        ? CORRELATION_GROUPS[input.fact]
-        : undefined;
+): string | undefined => {
+  if (input.metric) return CORRELATION_GROUPS[input.metric];
+  if (input.derived) return CORRELATION_GROUPS[input.derived];
+  if (!input.fact) return undefined;
+  const named = CORRELATION_GROUPS[input.fact];
+  if (named) return named;
+  return input.fact.startsWith("sym_") || SYMPTOM_KEYS.has(input.fact)
+    ? SYMPTOM_GROUP
+    : undefined;
+};
 
 /**
  * The floor a prior is clamped to. It used to be 0.001, which was harmless
@@ -1986,10 +2025,20 @@ export function scoreHypotheses(
     }
 
     const base = priorFor(h, m);
-    let prior = base.prevalence;
+    let modifier = 1;
     for (const mod of h.priors.modifiers)
-      if (modifierApplies(mod, m, scores)) prior *= mod.times;
-    prior = Math.min(Math.max(prior, MIN_PRIOR), 0.9);
+      if (modifierApplies(mod, m, scores)) modifier *= mod.times;
+    // The same ceiling as the interview, for the same reason. Being a woman
+    // (x4) whose mother had a thyroid (x3) took the *prior* for hypothyroidism
+    // to 60 % before anything at all was measured, and one dry-skin answer
+    // then made it likely. The base rate already counts most of that overlap.
+    modifier = Math.min(Math.max(modifier, 1 / PRIOR_MODIFIER_CAP), PRIOR_MODIFIER_CAP);
+    // The ceiling applies to what the modifiers did, not to what the epidemiology
+    // says: a published prevalence stays whatever it was measured to be.
+    const prior = Math.min(
+      Math.max(base.prevalence * modifier, MIN_PRIOR),
+      Math.max(base.prevalence, PRIOR_CEILING),
+    );
 
     let odds = prior / (1 - prior);
     const forList: HypothesisResult["for"] = [];
@@ -2169,6 +2218,34 @@ export function scoreHypotheses(
           with: strongest.rule,
         });
         f.lr = damped;
+      }
+    }
+
+    // The ceiling on the interview. Once the symptom group has been damped,
+    // whatever it still multiplies to is pulled back to `SYMPTOM_LR_CAP` in
+    // log space, which keeps the direction and the ordering and drops the
+    // magnitude. Labs and genome calls are not in this group and are untouched.
+    const symptoms = inGroups.get(SYMPTOM_GROUP) ?? [];
+    const product = symptoms.reduce((total, f) => total * f.lr, 1);
+    const ceiling =
+      product > SYMPTOM_LR_CAP
+        ? SYMPTOM_LR_CAP
+        : product < 1 / SYMPTOM_LR_CAP
+          ? 1 / SYMPTOM_LR_CAP
+          : null;
+    if (ceiling != null && product > 0 && product !== 1) {
+      const k = Math.log(ceiling) / Math.log(product);
+      for (const f of symptoms) {
+        const capped = f.lr ** k;
+        correlated.push({
+          rule: f.rule,
+          input: f.input,
+          group: SYMPTOM_GROUP,
+          lr: round2(f.lr),
+          counted: round2(capped),
+          with: `the interview cap of ${SYMPTOM_LR_CAP}x`,
+        });
+        f.lr = capped;
       }
     }
 

@@ -416,6 +416,24 @@ const ASCVD_RISK: Hypothesis = {
         "EAS 2022 apoB consensus (Marston 2022 JAMA Cardiol pooled analysis): an apoB under 80 mg/dL is the high-risk treatment target and halves the event rate against the population mean. This is the negative side of the same test, without which the engine will not order it.",
     },
     {
+      id: "ascvd_apob_discordant_high",
+      input: { derived: "apobLdl" },
+      when: { above: 10 },
+      lr: 2,
+      grade: "A",
+      source:
+        "Sniderman 2019 JAMA Cardiol and Wilkins 2016 J Am Coll Cardiol (MESA discordance analysis): when apoB is high relative to LDL-C, the apoB is what the event rate follows. Discordance is defined here as apoB more than 10 mg/dL above 0.75 x LDL-C.",
+    },
+    {
+      id: "ascvd_apob_discordant_low",
+      input: { derived: "apobLdl" },
+      when: { below: -10 },
+      lr: 0.6,
+      grade: "A",
+      source:
+        "Sniderman 2019 JAMA Cardiol; Wilkins 2016 J Am Coll Cardiol: the discordant group with low apoB and high LDL-C carries the event rate of its apoB, not of its LDL-C. This is the arm that matters for a lean mass hyper-responder.",
+    },
+    {
       id: "ascvd_ldl",
       input: { metric: "ldl_cholesterol" },
       when: { above: 160 },

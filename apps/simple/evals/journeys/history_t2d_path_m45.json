@@ -1,0 +1,199 @@
+{
+  "id": "history_t2d_path_m45",
+  "title": "The path that worked, man 45: three actions, 80 % adherence, HbA1c 6.0 to 5.5",
+  "today": "2026-08-31",
+  "start": {
+    "facts": {
+      "sex": "male",
+      "birth_year": 1981,
+      "country": "RO",
+      "height_cm": "178",
+      "medications": "No",
+      "supplements": "No",
+      "waist_cm": "104",
+      "bp_home": "128/82",
+      "resting_hr": "70",
+      "grip_kg": "46",
+      "smoking": "Never",
+      "sleep_snoring": "Sometimes",
+      "family_history": "type 2 diabetes, father 58",
+      "conditions": "none",
+      "screening_dates": "none",
+      "sym_energy": "Yes",
+      "sym_cold": "No",
+      "sym_weight": "Gained",
+      "sym_hair_skin": "No",
+      "sym_sleepiness": "No",
+      "sym_bowel": "Neither",
+      "sym_joint": "No",
+      "sym_thirst": "No",
+      "sym_phq2_interest": "Not at all",
+      "sym_phq2_down": "Not at all",
+      "sym_alcohol": "Monthly or less",
+      "sym_tingling": "No",
+      "sym_tremor": "No",
+      "sym_breathless": "No",
+      "sym_acroparesthesia": "No",
+      "sym_anhidrosis": "No",
+      "sym_flushing": "No",
+      "sym_hives": "No",
+      "sym_bloating": "No",
+      "sym_salt_craving": "No",
+      "sym_dizzy_standing": "No"
+    },
+    "readings": [
+      {
+        "code": "hba1c",
+        "value": 6.0,
+        "unit": "%",
+        "date": "2026-08-31"
+      },
+      {
+        "code": "glucose",
+        "value": 104,
+        "unit": "mg/dL",
+        "date": "2026-08-31"
+      },
+      {
+        "code": "insulin",
+        "value": 16,
+        "unit": "µIU/mL",
+        "date": "2026-08-31"
+      },
+      {
+        "code": "triglycerides",
+        "value": 170,
+        "unit": "mg/dL",
+        "date": "2026-08-31"
+      },
+      {
+        "code": "hdl_cholesterol",
+        "value": 40,
+        "unit": "mg/dL",
+        "date": "2026-08-31"
+      },
+      {
+        "code": "ldl_cholesterol",
+        "value": 126,
+        "unit": "mg/dL",
+        "date": "2026-08-31"
+      },
+      {
+        "code": "total_cholesterol",
+        "value": 200,
+        "unit": "mg/dL",
+        "date": "2026-08-31"
+      },
+      {
+        "code": "alt",
+        "value": 34,
+        "unit": "U/L",
+        "date": "2026-08-31"
+      },
+      {
+        "code": "hemoglobin",
+        "value": 15.1,
+        "unit": "g/dL",
+        "date": "2026-08-31"
+      },
+      {
+        "code": "creatinine",
+        "value": 0.95,
+        "unit": "mg/dL",
+        "date": "2026-08-31"
+      },
+      {
+        "code": "ferritin",
+        "value": 180,
+        "unit": "ng/mL",
+        "date": "2026-08-31"
+      },
+      {
+        "code": "tsh",
+        "value": 2.1,
+        "unit": "mIU/L",
+        "date": "2026-08-31"
+      },
+      {
+        "code": "vitamin_d",
+        "value": 30,
+        "unit": "ng/mL",
+        "date": "2026-08-31"
+      },
+      {
+        "code": "hs_crp",
+        "value": 2.1,
+        "unit": "mg/L",
+        "date": "2026-08-31"
+      }
+    ]
+  },
+  "truth": {
+    "conditions": [
+      "insulin_resistance"
+    ],
+    "answers": {},
+    "labs": {},
+    "defaultAnswer": "No",
+    "defaultLab": "typicalNeg"
+  },
+  "maxSteps": 10,
+  "timeline": [
+    {
+      "week": 0,
+      "adopt": [
+        "cut added sugar",
+        "walk 30 minutes after the largest meal",
+        "resistance training twice a week"
+      ],
+      "adherence": 0.8,
+      "note": "adopts three actions and keeps 80 % of them"
+    },
+    {
+      "week": 12,
+      "readings": {
+        "hba1c": 5.6,
+        "glucose": 94,
+        "insulin": 11
+      },
+      "note": "first retest, twelve weeks on"
+    },
+    {
+      "week": 24,
+      "readings": {
+        "hba1c": 5.4,
+        "glucose": 90,
+        "insulin": 9,
+        "triglycerides": 120,
+        "hdl_cholesterol": 48
+      },
+      "facts": {
+        "weight_kg": "82",
+        "waist_cm": "96"
+      },
+      "factChange": "changed",
+      "note": "second retest, five kilos and eight centimetres of waist down"
+    },
+    {
+      "week": 25,
+      "facts": {
+        "height_cm": "178"
+      },
+      "factChange": "corrected",
+      "note": "the height was typed as 187 in the first place; correcting it must move nothing"
+    }
+  ],
+  "expect": {
+    "discover": [],
+    "projectionCovers": {
+      "hba1c": 5.6
+    },
+    "verdict": {
+      "hba1c": "as_expected"
+    },
+    "belowPossible": [
+      "type2_diabetes"
+    ],
+    "correctedChangesNothing": true
+  }
+}

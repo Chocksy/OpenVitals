@@ -350,6 +350,29 @@ function StepStrip({
                 </li>
               ))}
             </ul>
+            {step.projection && (
+              <p className="mt-1 font-mono text-[10px] text-[var(--color-accent-600)]">
+                projected {step.projection.expected} ({step.projection.low}–
+                {step.projection.high}) by {step.projection.retestAt}
+              </p>
+            )}
+            {step.verdict && (
+              <p className="mt-1">
+                <Badge
+                  variant={
+                    step.verdict.verdict === "better"
+                      ? "normal"
+                      : step.verdict.verdict === "worse"
+                        ? "critical"
+                        : "info"
+                  }
+                >
+                  {step.verdict.verdict === "as_expected"
+                    ? "as expected"
+                    : step.verdict.verdict}
+                </Badge>
+              </p>
+            )}
             {step.woken.map((w) => (
               <p
                 key={w}

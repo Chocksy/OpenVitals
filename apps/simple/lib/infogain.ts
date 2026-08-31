@@ -95,7 +95,7 @@ const POSSIBLE = 0.25;
  * before. It is what a clinician does with a signal, and it is the only place
  * the ordering is not pure information theory.
  */
-const PURSUE_LIFT = 3;
+const PURSUE_LIFT = 2.5;
 const PURSUE_SPREAD = 20;
 
 /**

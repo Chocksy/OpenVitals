@@ -14,7 +14,10 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { getDb, hkbInterventions } from "@/db";
+import { eq } from "drizzle-orm";
 import { currentRevision, loadCatalog } from "@/lib/hkb";
+import type { EffectSource } from "@/lib/projection";
 import { JOURNEYS, runJourney, type JourneyResult } from "@/lib/journey";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
@@ -30,10 +33,28 @@ async function main() {
 
   const catalog = await loadCatalog();
   const kbRevision = await currentRevision();
+  // A history journey projects, so it needs the published effect sizes.
+  const effects: EffectSource[] = (
+    await getDb()
+      .select()
+      .from(hkbInterventions)
+      .where(eq(hkbInterventions.status, "accepted"))
+  )
+    .filter((r) => r.outcomeFeatureId)
+    .map((r) => ({
+      id: r.id,
+      name: r.name,
+      outcomeFeatureId: r.outcomeFeatureId!,
+      effect: r.effect,
+      direction: (r.direction as EffectSource["direction"]) ?? "none",
+      grade: (r.grade as EffectSource["grade"]) ?? "C",
+      duration: r.duration,
+      source: (r.paper as { title?: string } | null)?.title ?? r.id,
+    }));
   const results: JourneyResult[] = [];
   for (const j of journeys) {
     process.stdout.write(`· ${j.id} … `);
-    const result = await runJourney(j, catalog);
+    const result = await runJourney(j, catalog, effects);
     results.push(result);
     console.log(
       `${result.steps.length} steps, €${result.totalEur}, ${result.stop}, ${

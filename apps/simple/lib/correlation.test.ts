@@ -77,8 +77,13 @@ describe("correlationGroupOf", () => {
     );
   });
 
-  it("leaves answers and symptoms ungrouped", () => {
-    expect(correlationGroupOf({ fact: "sym_energy" })).toBeUndefined();
+  it("puts every symptom in one group and leaves the other answers alone", () => {
+    // Phase 19: four ways of saying "I feel slow" are one fact, so every
+    // symptom is one group and the whole interview is capped.
+    expect(correlationGroupOf({ fact: "sym_energy" })).toBe("symptoms");
+    expect(correlationGroupOf({ fact: "sleep_snoring" })).toBe("symptoms");
+    // An answer that is not a symptom stays its own fact.
+    expect(correlationGroupOf({ fact: "family_history" })).toBeUndefined();
     expect(correlationGroupOf({ hypothesis: "nafld" })).toBeUndefined();
     expect(CORRELATION_GROUPS.sym_energy).toBeUndefined();
   });

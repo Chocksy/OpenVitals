@@ -160,6 +160,23 @@ export function nonHdl(total?: Maybe, hdl?: Maybe): number | undefined {
   return round2(total - hdl);
 }
 
+/**
+ * How far apoB sits from where this person's LDL says it should.
+ *
+ * ponytail: the published version of this is a percentile-band difference,
+ * which needs a population distribution nobody has loaded. The approximation
+ * is the one the lipid literature uses for a back-of-envelope: an LDL of
+ * `x` mg/dL usually travels with an apoB near `0.75x` (Sniderman 2019 JAMA
+ * Cardiol, apoB and LDL-C concordance), so the residual is the discordance.
+ * Positive means more particles than the cholesterol suggests, which is the
+ * dangerous direction; negative means fewer and bigger, which is the lean mass
+ * hyper-responder pattern.
+ */
+export function apobLdl(apob?: Maybe, ldl?: Maybe): number | undefined {
+  if (!ok(apob) || !ok(ldl)) return undefined;
+  return round2(apob - 0.75 * ldl);
+}
+
 /* ── the whole set, from one `latest` map ─────────────────────────────── */
 
 /** hs-CRP in mg/L, whichever of the two codes carried it. */
@@ -191,6 +208,7 @@ export function deriveAll(
     nonHdl:
       latest.non_hdl_cholesterol?.value ??
       nonHdl(v("total_cholesterol"), v("hdl_cholesterol")),
+    apobLdl: apobLdl(v("apolipoprotein_b"), v("ldl_cholesterol")),
     fib4: fib4({
       age,
       ast: v("ast"),

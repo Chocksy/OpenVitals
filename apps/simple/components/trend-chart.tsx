@@ -16,6 +16,19 @@ interface TrendChartDataPoint {
   date: string;
   value: number;
   unit?: string | null;
+  /** the dashed line that runs from the last reading to the expected value */
+  projected?: number;
+}
+
+/** What the engine wrote down before the draw, drawn ahead of the line. */
+export interface TrendProjection {
+  madeAt: string;
+  retestAt: string;
+  expected: number;
+  low: number;
+  high: number;
+  verdict?: "better" | "as_expected" | "worse" | "unmeasured" | null;
+  resolvedValue?: number | null;
 }
 
 interface TrendChartProps {
@@ -30,6 +43,7 @@ interface TrendChartProps {
   status?: HealthStatus;
   /** Home draws the same chart small; /m/[code] keeps the full height. */
   height?: number;
+  projection?: TrendProjection | null;
 }
 
 const statusStroke: Record<string, string> = {
@@ -129,6 +143,7 @@ export function TrendChart({
   unit,
   status = "normal",
   height = 300,
+  projection = null,
 }: TrendChartProps) {
   if (data.length === 0) {
     return (
@@ -142,6 +157,26 @@ export function TrendChart({
   }
 
   const stroke = statusStroke[status] ?? statusStroke.normal;
+
+  // The projection is one more point on the x axis, at the retest date, joined
+  // to the last real reading by a dashed line. Recharts wants it in the same
+  // array as the readings, so it is added here rather than drawn separately.
+  const series: TrendChartDataPoint[] = projection
+    ? [
+        ...data.map((d, i) =>
+          i === data.length - 1 ? { ...d, projected: d.value } : d,
+        ),
+        ...(data.some((d) => d.date === projection.retestAt)
+          ? []
+          : [
+              {
+                date: projection.retestAt,
+                value: Number.NaN,
+                projected: projection.expected,
+              },
+            ]),
+      ]
+    : data;
 
   // ponytail: the old guess at the label count read `window.innerWidth`, which
   // is wrong for any chart that is not the full page. `minTickGap` lets
@@ -171,7 +206,7 @@ export function TrendChart({
     <div>
       <ResponsiveContainer width="100%" height={height}>
         <LineChart
-          data={data}
+          data={series}
           margin={{ top: 8, right: 32, bottom: 8, left: 8 }}
         >
           {referenceRangeLow != null && referenceRangeHigh != null && (
@@ -202,6 +237,25 @@ export function TrendChart({
               stroke="var(--color-accent-500)"
               strokeDasharray="6 3"
               fillOpacity={0.07}
+            />
+          )}
+          {projection && (
+            <ReferenceArea
+              y1={projection.low}
+              y2={projection.high}
+              fill="var(--color-accent-500)"
+              stroke="var(--color-accent-500)"
+              strokeDasharray="2 4"
+              fillOpacity={0.12}
+              label={{
+                value: `expected ${projection.expected} by ${projection.retestAt}`,
+                position: "insideTopRight",
+                style: {
+                  fontSize: 10,
+                  fontFamily: "var(--font-mono)",
+                  fill: "var(--color-accent-600)",
+                },
+              }}
             />
           )}
           <XAxis
@@ -253,6 +307,19 @@ export function TrendChart({
               />
             )}
           />
+          {projection && (
+            <Line
+              type="linear"
+              dataKey="projected"
+              isAnimationActive={false}
+              stroke="var(--color-accent-500)"
+              strokeWidth={2}
+              strokeDasharray="5 4"
+              connectNulls
+              dot={false}
+              activeDot={false}
+            />
+          )}
           <Line
             type="monotone"
             dataKey="value"
@@ -266,7 +333,7 @@ export function TrendChart({
                 index: number;
               };
               const isLast = index === data.length - 1;
-              const pt = data[index];
+              const pt = series[index];
               const abnormal = pt
                 ? isAbnormal(pt.value, referenceRangeLow, referenceRangeHigh)
                 : false;

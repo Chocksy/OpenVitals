@@ -113,7 +113,8 @@
       "total_cholesterol": 182,
       "triglycerides": 92,
       "uric_acid": 4.6,
-      "reticulocyte_hemoglobin": 22.5
+      "reticulocyte_hemoglobin": 22.5,
+      "hla_dq2_dq8": 1
     },
     "defaultAnswer": "No",
     "defaultLab": "typicalNeg"

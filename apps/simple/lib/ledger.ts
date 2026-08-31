@@ -26,6 +26,13 @@ import { SYSTEMS } from "./graph";
 import { graphState, worstMember } from "./graph-state";
 import { catalogFor, currentRevision } from "./hkb";
 import {
+  ledgerLine,
+  makeProjections,
+  projectionsFor,
+  resolveProjections,
+  type StoredProjection,
+} from "./projections";
+import {
   scoreHypotheses,
   type Grade,
   type HState,
@@ -73,6 +80,12 @@ export interface Conclusion {
   action?: ReportAction;
   rangeBar?: RangeBarProps;
   trend?: { code: string; points: Point[] };
+  /**
+   * The projection for this conclusion's lead marker, as one line: "On track:
+   * HbA1c expected 5.6 by Nov 20", or the verdict once the draw has landed.
+   * Phase 19.
+   */
+  projection?: { code: string; line: string; verdict: string | null };
   changed?: {
     from?: HState;
     to: HState;
@@ -314,6 +327,16 @@ export async function recordBeliefs(
   await recordCalibration(userId, input, rows, await catalogFor(userId)).catch(
     (e) => console.error("[calibration] could not record:", e),
   );
+  // A draw that lands after a projection's retest window closes it, and a new
+  // adoption or a changed adherence opens the next one. Both hang off the same
+  // hook that recomputes beliefs, so nothing has to be scheduled.
+  await resolveProjections(userId).catch((e) =>
+    console.error("[projection] could not resolve:", e),
+  );
+  await makeProjections(userId).catch((e) =>
+    console.error("[projection] could not project:", e),
+  );
+
   await writeSnapshot(userId, beliefsOf(rows), opts.oncePerDay ?? false);
   await queueNewlyPossible(rows, (before?.beliefs ?? null) as Beliefs | null);
 }
@@ -518,6 +541,23 @@ function headline(codes: string[], byCode: Map<string, MetricRow>) {
   return best;
 }
 
+/**
+ * The projection line for a conclusion: the newest open one for any marker it
+ * reads, else the newest resolved one, so the card can say either "on track"
+ * or what the draw said.
+ */
+function projectionFor(
+  codes: string[],
+  made: StoredProjection[],
+  rows: MetricRow[],
+): Conclusion["projection"] {
+  const mine = made.filter((p) => codes.includes(p.code));
+  const p = mine.find((x) => !x.resolvedAt) ?? mine[0];
+  if (!p) return undefined;
+  const unit = rows.find((r) => r.code === p.code)?.unit ?? "";
+  return { code: p.code, line: ledgerLine(p, unit), verdict: p.verdict };
+}
+
 const rangeBarOf = (m: MetricRow): RangeBarProps => ({
   value: m.latest.value,
   prev: m.rows.filter((r) => r.value != null).at(-2)?.value ?? null,
@@ -535,8 +575,17 @@ export async function buildLedger(
   lens: Lens = "lifespan",
 ): Promise<Ledger> {
   const db = getDb();
-  const [input, catalog, rows, report, protocol, rawReadings, before, events] =
-    await Promise.all([
+  const [
+    input,
+    catalog,
+    rows,
+    report,
+    protocol,
+    rawReadings,
+    before,
+    events,
+    made,
+  ] = await Promise.all([
       buildModelInput(userId),
       catalogFor(userId),
       getMetricRows(userId),
@@ -560,6 +609,7 @@ export async function buildLedger(
         .orderBy(asc(readings.observedAt)),
       previousSnapshot(userId),
       db.select().from(lifeEvents).where(eq(lifeEvents.userId, userId)),
+      projectionsFor(userId),
     ]);
 
   // An old draw gets its context from the timeline, not from a question: an
@@ -729,6 +779,7 @@ export async function buildLedger(
         lead && lead.points.length >= 3
           ? { code: lead.code, points: lead.points }
           : undefined,
+      projection: projectionFor(codes, made, rows),
       changed,
     });
   }
@@ -770,6 +821,7 @@ export async function buildLedger(
       rangeBar: rangeBarOf(m),
       trend:
         m.points.length >= 3 ? { code: m.code, points: m.points } : undefined,
+      projection: projectionFor([m.code], made, rows),
     });
   }
 

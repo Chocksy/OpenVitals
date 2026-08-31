@@ -70,6 +70,8 @@ export interface ModelInput {
     homaIr?: number;
     tgHdl?: number;
     nonHdl?: number;
+    /** apoB minus 0.75 x LDL: the particle count the cholesterol did not predict. */
+    apobLdl?: number;
     fib4?: number;
     phenoAge?: number;
   };

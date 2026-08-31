@@ -10,6 +10,9 @@ import { TrendChart } from "@/components/trend-chart";
 import { StatusBadge } from "@/components/status-badge";
 import { RangeBar } from "@/components/range-bar";
 import { GoalForm, OptimalForm } from "@/components/tracker";
+import { projectionsFor } from "@/lib/projections";
+import { projectionLine } from "@/lib/projection";
+import { Badge } from "@/components/ui-kit";
 
 export const dynamic = "force-dynamic";
 
@@ -20,10 +23,14 @@ export default async function MetricPage({
 }) {
   const { code } = await params;
   const userId = await requireUserId();
-  const [rows, goal] = await Promise.all([
+  const [rows, goal, made] = await Promise.all([
     getMetricRows(userId),
     getGoalFor(userId, code),
+    projectionsFor(userId, code),
   ]);
+  // The newest projection is the one drawn; an unresolved one takes priority
+  // over a resolved one, because that is the one still being judged.
+  const projection = made.find((p) => !p.resolvedAt) ?? made[0] ?? null;
   const metric = rows.find((m) => m.code === code);
   if (!metric) notFound();
 
@@ -146,7 +153,52 @@ export default async function MetricPage({
           goalHigh={goal?.targetHigh ?? null}
           unit={metric.unit}
           status={status}
+          projection={
+            projection
+              ? {
+                  madeAt: projection.fromDate,
+                  retestAt: projection.retestAt,
+                  expected: projection.expected,
+                  low: projection.low,
+                  high: projection.high,
+                  verdict: projection.verdict,
+                  resolvedValue: projection.resolvedValue,
+                }
+              : null
+          }
         />
+        {projection && (
+          <div className="mt-3 space-y-1 border-t border-neutral-100 pt-3">
+            <p className="flex flex-wrap items-center gap-2 font-mono text-[12px] text-neutral-700">
+              {projection.verdict && (
+                <Badge
+                  variant={
+                    projection.verdict === "better"
+                      ? "normal"
+                      : projection.verdict === "worse"
+                        ? "critical"
+                        : "info"
+                  }
+                >
+                  {projection.verdict === "as_expected"
+                    ? "as expected"
+                    : projection.verdict}
+                </Badge>
+              )}
+              {projectionLine({ ...projection, unit: metric.unit ?? "" })}
+              {projection.resolvedValue != null && (
+                <span className="text-neutral-500">
+                  · measured {projection.resolvedValue} on {projection.resolvedAt}
+                </span>
+              )}
+            </p>
+            {projection.assumptions.map((a) => (
+              <p key={a} className="font-body text-[12px] text-neutral-500">
+                {a}
+              </p>
+            ))}
+          </div>
+        )}
       </div>
 
       <table className="card w-full font-body text-[13px]">

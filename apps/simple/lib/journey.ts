@@ -20,12 +20,25 @@ import { personaToInput } from "@/evals/persona";
 import { loadCatalog } from "./hkb";
 import { scoreHypotheses, type Catalog } from "./hypotheses";
 import { eurOf, nextMoves, type Move } from "./infogain";
+import {
+  addWeeks,
+  betterDirection,
+  project,
+  verdictOf,
+  type AdoptedAction,
+  type EffectSource,
+  type Projection,
+  type Verdict,
+} from "./projection";
+import { projectionLines } from "./report";
 import { applyOverlay, type Overlay } from "./sample";
 
 export { eurOf };
 import { wakeInMemory } from "./wake";
 
 import a1at from "@/evals/journeys/a1at_female_41.json";
+import historyPath from "@/evals/journeys/history_t2d_path_m45.json";
+import historyStalled from "@/evals/journeys/history_t2d_stalled_m45.json";
 import addisons from "@/evals/journeys/addisons_female_38.json";
 import ckd3 from "@/evals/journeys/ckd3_male_70.json";
 import fabry from "@/evals/journeys/fabry_male_33.json";
@@ -73,6 +86,13 @@ export interface Journey {
   /** euros the journey is meant to stay inside. A guide, never a gate. */
   budget?: number;
   maxSteps: number;
+  /**
+   * A scripted history instead of an engine-chosen path: the same person over
+   * weeks, adopting actions and coming back with draws. The engine still
+   * scores every state, and the projections are made and judged the way they
+   * are for a real person.
+   */
+  timeline?: TimelineEntry[];
   expect: {
     discover: string[];
     /**
@@ -90,6 +110,16 @@ export interface Journey {
     orders?: string[];
     /** substrings of move labels the run must never contain */
     notOrders?: string[];
+    /** the day-0 projection band has to contain this value, by marker */
+    projectionCovers?: Record<string, number>;
+    /** the verdict the resolving draw has to produce, by marker */
+    verdict?: Record<string, Verdict>;
+    /** conditions that have to end under "possible" */
+    belowPossible?: string[];
+    /** a corrected fact must move no belief at all */
+    correctedChangesNothing?: boolean;
+    /** the context pack's CONCLUSIONS section has to carry this */
+    conclusionsMention?: string;
     /**
      * A condition that cannot reach "likely" from a one-in-ten-thousand base
      * rate, and the probability the run does have to lift it to. Mast cell
@@ -98,6 +128,22 @@ export interface Journey {
      */
     reaches?: Record<string, number>;
   };
+}
+
+export interface TimelineEntry {
+  /** weeks after day 0 */
+  week: number;
+  /** protocol items adopted that week, by the intervention's own name */
+  adopt?: string[];
+  /** 0..1, the adherence the person actually manages from then on */
+  adherence?: number;
+  /** readings that arrive that week */
+  readings?: Record<string, number>;
+  /** facts entered or corrected that week */
+  facts?: Record<string, string>;
+  /** `changed` keeps the old period, `corrected` replaces it */
+  factChange?: "changed" | "corrected";
+  note?: string;
 }
 
 export interface JourneyStep {
@@ -111,6 +157,12 @@ export interface JourneyStep {
   beliefs: Record<string, number>;
   woken: string[];
   note?: string;
+  /** the projection written down at this step, on a history journey */
+  projection?: Projection;
+  /** what the draw at this step said about the open projection */
+  verdict?: { code: string; verdict: Verdict; expected: number; value: number };
+  /** the reading values this step brought, for the marker lane */
+  readings?: Record<string, number>;
 }
 
 export interface JourneyResult {
@@ -135,6 +187,8 @@ export const JOURNEYS: Journey[] = [
   ckd3,
   fabry,
   gilbert,
+  historyPath,
+  historyStalled,
   haemochromatosis,
   hashimotoEarly,
   hashimotoScratch,
@@ -237,6 +291,68 @@ function verdict(j: Journey, r: Omit<JourneyResult, "pass" | "failed">) {
   for (const never of j.expect.notOrders ?? [])
     if (r.steps.some((s) => s.move.label.includes(never)))
       failed.push(`ordered ${never}, which it should not have`);
+  if (j.expect.conclusionsMention) {
+    const line = projectionLines(
+      r.steps
+        .filter((s) => s.projection)
+        .map((s) => {
+          const p = s.projection!;
+          const judged = r.steps.find((x) => x.verdict?.code === p.code)?.verdict;
+          return {
+            code: p.code,
+            expected: p.expected,
+            low: p.low,
+            high: p.high,
+            retestAt: p.retestAt,
+            unit: p.unit,
+            adherence: p.contributions[0]?.adherence,
+            resolvedValue: judged?.value ?? null,
+            verdict: judged?.verdict ?? null,
+          };
+        }),
+    );
+    if (!line.includes(j.expect.conclusionsMention))
+      failed.push(
+        `the CONCLUSIONS projection line does not carry "${j.expect.conclusionsMention}": ${line || "(no projection)"}`,
+      );
+  }
+  for (const [code, want] of Object.entries(j.expect.projectionCovers ?? {})) {
+    const p = r.steps.find((s) => s.projection?.code === code)?.projection;
+    if (!p) failed.push(`no projection was made for ${code}`);
+    else if (want < p.low || want > p.high)
+      failed.push(
+        `the ${code} band ${p.low}-${p.high} does not cover ${want}`,
+      );
+  }
+  for (const [code, want] of Object.entries(j.expect.verdict ?? {})) {
+    const v = r.steps.find((s) => s.verdict?.code === code)?.verdict;
+    if (!v) failed.push(`${code} was never judged against a projection`);
+    else if (v.verdict !== want)
+      failed.push(`${code} came back "${v.verdict}", expected "${want}"`);
+  }
+  for (const id of j.expect.belowPossible ?? []) {
+    const last = r.steps[r.steps.length - 1]?.beliefs ?? r.prior;
+    if ((last[id] ?? 0) >= 0.25)
+      failed.push(
+        `${id} ended at ${Math.round((last[id] ?? 0) * 100)} %, wanted under 25 %`,
+      );
+  }
+  if (j.expect.correctedChangesNothing) {
+    const corrected = r.steps.filter((s) =>
+      s.move.label.startsWith("Corrected:"),
+    );
+    if (!corrected.length) failed.push("nothing was corrected");
+    for (const s of corrected) {
+      const before = r.steps[s.n - 2]?.beliefs ?? r.prior;
+      const moved = Object.entries(s.beliefs).filter(
+        ([id, p]) => Math.abs(p - (before[id] ?? 0)) >= 0.005,
+      );
+      if (moved.length)
+        failed.push(
+          `the corrected fact moved ${moved.map(([id]) => id).join(", ")}`,
+        );
+    }
+  }
   for (const [id, want] of Object.entries(j.expect.reaches ?? {})) {
     const peak = Math.max(
       r.prior[id] ?? 0,
@@ -248,11 +364,204 @@ function verdict(j: Journey, r: Omit<JourneyResult, "pass" | "failed">) {
   return failed;
 }
 
+/** A move card for something that is not a move: an adoption, a draw, an edit. */
+const eventMove = (label: string, kind: Move["kind"] = "question"): Move => ({
+  kind,
+  featureId: `event:${label}`,
+  label,
+  cost: 0,
+  outcomes: [],
+  entropyBefore: 0,
+  entropyAfter: 0,
+  gain: 0,
+  ratio: 0,
+  shift: 0,
+  moves: [],
+});
+
+/**
+ * A history journey: the same person over weeks, with the actions they adopt,
+ * the adherence they manage, the draws that come back and the facts they
+ * change or correct. The engine does not choose anything here — the point is
+ * whether the projection made on day 0 survives contact with the draw, and
+ * whether a corrected typo leaves the beliefs alone.
+ */
+async function runHistory(
+  j: Journey,
+  rules: Catalog,
+  effects: EffectSource[],
+): Promise<JourneyResult> {
+  const base = personaToInput({
+    today: j.today,
+    facts: j.start.facts,
+    readings: j.start.readings,
+  });
+  const overlay: Overlay = { readings: [], facts: {}, confounders: {} };
+  const steps: JourneyStep[] = [];
+  const discoveredAt: Record<string, number | null> = Object.fromEntries(
+    j.expect.discover.map((id) => [id, null]),
+  );
+  const falseLikely: JourneyResult["falseLikely"] = [];
+  const truth = new Set(j.truth.conditions);
+
+  let input = applyOverlay(base, overlay);
+  const prior = beliefsOf(scoreHypotheses(input, { catalog: rules }));
+  const priorWoken = wakeInMemory(input);
+
+  const adopted: AdoptedAction[] = [];
+  let open: { projection: Projection; step: number } | null = null;
+  let n = 0;
+
+  for (const entry of j.timeline ?? []) {
+    const day = addWeeks(j.today, entry.week);
+
+    for (const name of entry.adopt ?? []) {
+      const effect = effects.find((e) => e.name === name) ?? null;
+      adopted.push({
+        itemId: `${name}`,
+        text: name,
+        adoptedAt: day,
+        adherence: entry.adherence,
+        effect,
+      });
+    }
+    if (entry.adherence != null)
+      for (const a of adopted) a.adherence = entry.adherence;
+
+    if (entry.facts) overlay.facts = { ...overlay.facts, ...entry.facts };
+    if (entry.readings)
+      overlay.readings = [
+        ...overlay.readings,
+        ...Object.entries(entry.readings).map(([code, value]) => ({
+          code,
+          value,
+          date: day,
+        })),
+      ];
+
+    const before = beliefsOf(scoreHypotheses(input, { catalog: rules }));
+    input = applyOverlay(base, overlay);
+    const beliefs = beliefsOf(scoreHypotheses(input, { catalog: rules }));
+
+    // One projection per adoption week, over the marker the actions move.
+    let projection: Projection | undefined;
+    if (entry.adopt?.length) {
+      const code = adopted
+        .map((a) => a.effect?.outcomeFeatureId ?? "")
+        .find((id) => id.startsWith("metric:"))
+        ?.slice("metric:".length);
+      const row = code ? input.latest[code] : undefined;
+      if (code && row?.value != null) {
+        projection = project({
+          code,
+          unit: row.unit ?? "",
+          from: row.value,
+          fromDate: day,
+          actions: adopted,
+          adherence: entry.adherence,
+          optimalLow: row.optimalLow,
+          optimalHigh: row.optimalHigh,
+        });
+        open = { projection, step: n + 1 };
+      }
+    }
+
+    // A draw inside the window closes whatever was open.
+    let verdict: JourneyStep["verdict"];
+    if (entry.readings && open) {
+      const value = entry.readings[open.projection.code];
+      if (value != null && day >= addWeeks(open.projection.retestAt, -2)) {
+        const row = input.latest[open.projection.code];
+        verdict = {
+          code: open.projection.code,
+          verdict: verdictOf(
+            open.projection,
+            value,
+            betterDirection(open.projection.code, row?.optimalLow, row?.optimalHigh),
+          ),
+          expected: open.projection.expected,
+          value,
+        };
+        steps.push({
+          n: ++n,
+          move: eventMove(
+            `Judged: ${open.projection.code} ${value} against ${open.projection.expected} (${open.projection.low}–${open.projection.high})`,
+          ),
+          outcome: verdict.verdict,
+          costEur: 0,
+          cumEur: 0,
+          beliefs,
+          woken: [],
+          verdict,
+        });
+        open = null;
+      }
+    }
+
+    const labels = [
+      ...(entry.adopt ?? []).map((a) => `Adopts: ${a}`),
+      ...Object.entries(entry.readings ?? {}).map(
+        ([code, value]) => `Draw: ${code} ${value}`,
+      ),
+      ...Object.entries(entry.facts ?? {}).map(
+        ([key, value]) =>
+          `${entry.factChange === "corrected" ? "Corrected" : "Changed"}: ${key} = ${value}`,
+      ),
+    ];
+    const moved = Object.entries(beliefs).filter(
+      ([id, p]) => Math.abs(p - (before[id] ?? 0)) >= 0.005,
+    );
+    steps.push({
+      n: ++n,
+      move: eventMove(labels.join(" · ") || `Week ${entry.week}`),
+      outcome:
+        entry.note ??
+        (moved.length
+          ? moved
+              .slice(0, 3)
+              .map(([id, p]) => `${id} ${Math.round(p * 100)} %`)
+              .join(", ")
+          : "nothing moved"),
+      costEur: 0,
+      cumEur: 0,
+      beliefs,
+      woken: [],
+      ...(projection ? { projection } : {}),
+      ...(entry.readings ? { readings: entry.readings } : {}),
+      ...(entry.factChange === "corrected"
+        ? { note: `corrected, ${moved.length} beliefs moved` }
+        : {}),
+    });
+
+    for (const [id, p] of Object.entries(beliefs)) {
+      if (p < LIKELY) continue;
+      if (id in discoveredAt && discoveredAt[id] == null) discoveredAt[id] = n;
+      if (!truth.has(id) && !falseLikely.some((f) => f.id === id))
+        falseLikely.push({ id, step: n, p });
+    }
+  }
+
+  const partial = {
+    id: j.id,
+    prior,
+    priorWoken,
+    steps,
+    discoveredAt,
+    falseLikely,
+    totalEur: 0,
+    stop: "discovered" as const,
+  };
+  const failed = verdict(j, partial);
+  return { ...partial, pass: failed.length === 0, failed };
+}
+
 export async function runJourney(
   j: Journey,
   catalog?: Catalog,
+  effects: EffectSource[] = [],
 ): Promise<JourneyResult> {
   const rules = catalog ?? (await loadCatalog());
+  if (j.timeline?.length) return runHistory(j, rules, effects);
   const base = personaToInput({
     today: j.today,
     facts: j.start.facts,

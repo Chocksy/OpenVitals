@@ -582,6 +582,16 @@ const MCAS: Hypothesis = {
         "Valent 2012 J Allergy Clin Immunol: flushing is one of the defining episodic symptoms. Grade C: the ratio is a judgement against how often adults report flushing for other reasons.",
     },
     {
+      id: "mcas_hypotension",
+      input: { fact: "sym_dizzy_standing" },
+      when: { equals: "Yes" },
+      lr: 3,
+      lrNeg: 0.7,
+      grade: "C",
+      source:
+        "Valent 2012 J Allergy Clin Immunol and Valent 2021 Blood: presyncope and hypotension are among the defining episodic mediator symptoms, and the consensus criteria weight cardiovascular involvement heavily. Grade C: the ratio is a judgement against how often adults report standing dizziness.",
+    },
+    {
       id: "mcas_hives",
       input: { fact: "sym_hives" },
       when: { equals: "Yes" },

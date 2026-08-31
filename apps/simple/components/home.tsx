@@ -391,6 +391,29 @@ export function ConclusionCard({
         </div>
       )}
 
+      {/* Phase 19: what was written down before the draw, and what the draw
+          said about it. Factual, and the only gamified line on the page. */}
+      {c.projection && (
+        <p className="mt-3 flex items-center gap-2 border-l-2 border-accent-500 bg-accent-50 px-3 py-2 font-mono text-[12px] text-neutral-700">
+          {c.projection.verdict && (
+            <Badge
+              variant={
+                c.projection.verdict === "better"
+                  ? "normal"
+                  : c.projection.verdict === "worse"
+                    ? "critical"
+                    : "info"
+              }
+            >
+              {c.projection.verdict === "as_expected"
+                ? "as expected"
+                : c.projection.verdict}
+            </Badge>
+          )}
+          {c.projection.line}
+        </p>
+      )}
+
       {spear && c.trend && (
         <div className="mt-3">
           <TrendChart

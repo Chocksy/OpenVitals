@@ -11,10 +11,13 @@ export function ActionCard({
   action,
   index = 0,
   reportId,
+  projection,
 }: {
   action: ReportAction;
   index?: number;
   reportId?: string;
+  /** what this one action alone would do, before it is adopted (phase 19) */
+  projection?: string;
 }) {
   return (
     <Card className="p-4">
@@ -40,6 +43,12 @@ export function ActionCard({
       <p className="mt-2 font-body text-[13px] text-neutral-700">
         {action.why}
       </p>
+
+      {projection && (
+        <p className="mt-2 border-l-2 border-accent-500 bg-accent-50 px-3 py-1.5 font-mono text-[11px] text-neutral-700">
+          {projection}
+        </p>
+      )}
 
       <div className="deep mt-3 space-y-2 border-t border-neutral-100 pt-3">
         {action.reasoning && (

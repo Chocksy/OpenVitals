@@ -23,6 +23,7 @@ import { latestReport } from "@/lib/report";
 import { VECTORS } from "@/lib/vectors";
 import { ReviewItem } from "@/components/client";
 import { ActionCard } from "@/components/action-card";
+import { previewLines } from "@/lib/projections";
 import { PlanShell } from "@/components/plan";
 import { Badge, BasisChip, Card, TierChip } from "@/components/ui-kit";
 
@@ -309,6 +310,8 @@ export default async function PlanPage() {
   const indexed = actions.map((action, index) => ({ action, index }));
   const doFirst = indexed.filter((r) => r.action.kind !== "test");
   const tests = indexed.filter((r) => r.action.kind === "test");
+  // What each action would do on its own, shown before it is adopted.
+  const previews = await previewLines(doFirst.map((r) => r.action.title));
 
   return (
     <PlanShell date={report?.createdAt?.toISOString().slice(0, 10) ?? null}>
@@ -458,6 +461,7 @@ export default async function PlanPage() {
                     action={action}
                     index={index}
                     reportId={report.id}
+                    projection={previews[action.title]}
                   />
                 ))}
               </div>

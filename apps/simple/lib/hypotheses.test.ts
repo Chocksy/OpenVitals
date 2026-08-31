@@ -1,6 +1,12 @@
 import { describe, it, expect } from "vitest";
 import type { LatestValue, ModelInput } from "./coverage";
-import { CONFOUNDERS, HYPOTHESES, priorFor, scoreHypotheses } from "./hypotheses";
+import {
+  CONFOUNDERS,
+  HYPOTHESES,
+  PRIOR_CEILING,
+  priorFor,
+  scoreHypotheses,
+} from "./hypotheses";
 import { personaToInput } from "@/evals/persona";
 import { CATALOG } from "./hkb-catalog";
 import { NODES } from "./graph";
@@ -67,13 +73,16 @@ describe("insulin_resistance", () => {
     expect(r.against.map((a) => a.rule)).toContain("ir_hba1c_low");
   });
 
-  it("doubles the prior on a family history of diabetes", () => {
+  it("raises the prior on a family history of diabetes, up to the ceiling", () => {
     const withFamily = score(
       "insulin_resistance",
       input({ profile: { family_history: ["type 2 diabetes, father 58"] } }),
     )!;
     const without = score("insulin_resistance", input())!;
-    expect(withFamily.prior).toBeCloseTo(without.prior * 2, 5);
+    expect(withFamily.prior).toBeGreaterThan(without.prior);
+    // Phase 19: a base rate of 0.3 doubled is 0.6, and a prior of 0.6 makes a
+    // condition unfalsifiable by measurement. Half is the ceiling.
+    expect(withFamily.prior).toBe(PRIOR_CEILING);
   });
 });
 
