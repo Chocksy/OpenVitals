@@ -48,7 +48,7 @@ app `apps/simple`. Detailed specs live next to this file as
 | 12    | Home as cockpit + conclusion ledger, belief snapshots                                                        | `91c89cb`                       |
 | 13    | Genome parser (12 genes), any-document extraction with review, life_events table                             | `1d807c8`                       |
 | 14    | Research intake (Europe PMC, DOI-verified), importer fix, rare-disease proposals rejected                    | `2e7954d`                       |
-| 15 | Autonomous knowledge (grades A–E, policy, pooling, minting, interventions and horizon, schedule, `/hkb` window, System nav) and fact history (changed vs corrected, `/history`, event confounders) | `ed91fac` |
+| 15    | Autonomous knowledge (grades A–E, policy, pooling, minting, interventions and horizon, schedule, `/hkb` window, System nav) and fact history (changed vs corrected, `/history`, event confounders) | `ed91fac` |
 
 Findings from phase 15 worth remembering: diagnostic-accuracy searches
 now mostly return papers already ingested (dedupe works); the yield lever
@@ -63,19 +63,21 @@ with 429 retry. Known gap: minted synonyms ("EmA IgA" vs "IgA endomysial
 antibodies") are separate features until the curator's LLM metric-identity
 step also runs over `hkb_features`.
 
+| 16 | The picture, data layers: graph in Postgres, Monarch edges (same-term filter), mechanism-edge extraction with `when_`, personal conditional edges, pathograph helper (page held for the bubbles mockup) | `42cfe43` |
+| 17 | Knowledge rings (10,597 dormant diseases), waking on five triggers incl. the ask box (pg_trgm), correlation guards, trend evidence, KB revisions in what-changed, calibration logging, ruled-out hidden app-wide | `4283893` |
+
 ## In progress
 
-**Phase 16: the picture** (`2026-08-30-phase16-picture-spec.md`): graph
-in Postgres with seed, Monarch phenotype and gene edges, mechanism-edge
-extraction from reviews with `when_` clauses, personal conditional edges
-(genome, timing facts), `/graph/[node]` pathograph.
+**Phase 18: journey evals** (`2026-08-31-phase18-journey-evals-spec.md`):
+scripted personas with a hidden truth, the engine choosing every step,
+a 0–100 discovery track per condition, Journeys tab on `/brain` with a
+select, verdicts, budget slider and what-if flips.
 
 ## Next
 
 | #   | Phase                                                                                                                                    | Why                                     |
 | --- | ---------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------- |
-| 16  | The picture, section 5 only: `/graph/[node]` pathograph, after the mockup is approved                                                    | the relations chart the owner asked for |
-| 17  | Knowledge rings (all diseases reachable, ring-2 waking on five triggers incl. the ask box), correlation guards, trend evidence, KB versioning in "what changed", calibration logging (`2026-08-30-phase17-rings-and-rigor-spec.md`) | any word, any peculiar disease, probabilistically |
+| 16b | The picture, page: bubbles view on `/graph` per the approved mockup (state fills, kind outlines, faint not-for-you, ask box), mobile card stack | the relations chart the owner asked for |
 | 17b | Prod cutover to Coolify (branch `simple`, compose, volumes, seeds, imports) — owner said not to rush it | Ramona on her phone |
 | 18  | GBD priors (owner downloads one CSV), NCD-RisC to more conditions, prices from a second lab                                              | better empty-user starts                |
 | 19  | Wearables via the phone app (resting HR, sleep, HRV, steps) and Apple Health; food photos later                                          | the tier-0 vectors blood cannot see     |
