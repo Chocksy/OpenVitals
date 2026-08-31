@@ -10,6 +10,8 @@ import { SYSTEMS, type GraphNode } from "./graph";
 import { FIXTURES } from "./hkb-import";
 import {
   buildQueries,
+  CONTESTED,
+  withContested,
   mechanismQueries,
   parseWhen,
   researchMechanisms,
@@ -228,7 +230,9 @@ describe("the arithmetic", () => {
     const meta: Finding = { ...base, studyType: "meta" };
     expect(gradeOf(meta, { citedBy: 0, year: 2015, thisYear: 2026 })).toBe("B");
     expect(gradeOf(meta, { citedBy: 0, year: 2025, thisYear: 2026 })).toBe("A");
-    expect(gradeOf(meta, { citedBy: 40, year: 2015, thisYear: 2026 })).toBe("A");
+    expect(gradeOf(meta, { citedBy: 40, year: 2015, thisYear: 2026 })).toBe(
+      "A",
+    );
     expect(gradeOf(meta, { venueKnown: false })).toBe("B");
     // both, and a DOI that never resolved, which caps the row at C
     expect(
@@ -248,9 +252,7 @@ describe("the arithmetic", () => {
   it("only calls a venue unknown when Semantic Scholar answered at all", () => {
     const known = venueIndex([]);
     expect(known("Journal of Nowhere")).toBe(true);
-    const seen = venueIndex([
-      { journal: "J Clin Endocrinol Metab" } as Paper,
-    ]);
+    const seen = venueIndex([{ journal: "J Clin Endocrinol Metab" } as Paper]);
     expect(seen("J. Clin. Endocrinol. Metab.")).toBe(true);
     expect(seen("Journal of Nowhere")).toBe(false);
     expect(seen(null)).toBe(false);
@@ -302,9 +304,9 @@ describe("semantic scholar", () => {
     });
     const papers = await semanticScholar("hypothyroidism", 0);
     delete process.env.SEMANTIC_SCHOLAR_API_KEY;
-    expect(
-      (calls[0]?.headers as Record<string, string>)["x-api-key"],
-    ).toBe("s2-secret");
+    expect((calls[0]?.headers as Record<string, string>)["x-api-key"]).toBe(
+      "s2-secret",
+    );
     expect(papers[0]?.journal).toBe("J Clin Endocrinol Metab");
   });
 
@@ -388,9 +390,7 @@ describe("proposals", () => {
 
   it("converts a threshold into the unit the feature is stored in", () => {
     // 6.3 mmol/L is 113 mg/dL. Filed as "above 6.3" it fires for everybody.
-    expect(
-      convertOn({ above: 6.3 }, "mmol/L", "mg/dL", "glucose"),
-    ).toEqual({
+    expect(convertOn({ above: 6.3 }, "mmol/L", "mg/dL", "glucose")).toEqual({
       on: { above: 113.4 },
       unit: "mg/dL",
       note: "threshold converted: above 6.3 mmol/L = 113.4 mg/dL",
@@ -407,21 +407,26 @@ describe("proposals", () => {
   });
 
   it("holds a row whose unit will not convert, with the reason on it", () => {
-    const { rows } = toProposals(CONDITION, FEATURES, [paper], [
-      {
-        paperIndex: 1,
-        feature: "TSH",
-        featureId: "metric:tsh",
-        condition: "hypothyroidism",
-        direction: "above",
-        threshold: 9,
-        unit: "ng/mL",
-        lrPos: 4,
-        population: "adults",
-        studyType: "cohort",
-        quote: "above 9 ng/mL, likelihood ratio 4",
-      },
-    ]);
+    const { rows } = toProposals(
+      CONDITION,
+      FEATURES,
+      [paper],
+      [
+        {
+          paperIndex: 1,
+          feature: "TSH",
+          featureId: "metric:tsh",
+          condition: "hypothyroidism",
+          direction: "above",
+          threshold: 9,
+          unit: "ng/mL",
+          lrPos: 4,
+          population: "adults",
+          studyType: "cohort",
+          quote: "above 9 ng/mL, likelihood ratio 4",
+        },
+      ],
+    );
     expect(rows[0]!.status).toBe("review");
     expect(rows[0]!.needsLook).toBe(true);
     expect(rows[0]!.conditionOn).toEqual({ above: 9 });
@@ -705,7 +710,11 @@ const GRAPH_NODES: GraphNode[] = [
   { id: "metric:sleep_duration", kind: "metric", name: "Sleep duration" },
   { id: "metric:insulin", kind: "metric", name: "Insulin" },
   { id: "metric:triglycerides", kind: "metric", name: "Triglycerides" },
-  { id: "behavior:coffee_after_15", kind: "behavior", name: "Coffee after 15:00" },
+  {
+    id: "behavior:coffee_after_15",
+    kind: "behavior",
+    name: "Coffee after 15:00",
+  },
   {
     id: "fact:genome:CYP1A2",
     kind: "gene",
@@ -741,7 +750,11 @@ const mechanism = (over: Partial<MechanismFinding> = {}): MechanismFinding => ({
 });
 
 describe("mechanismQueries", () => {
-  const queries = mechanismQueries("Type 2 diabetes", FEATURES, new Date("2026-08-30"));
+  const queries = mechanismQueries(
+    "Type 2 diabetes",
+    FEATURES,
+    new Date("2026-08-30"),
+  );
 
   it("asks one query per system plus one per feature", () => {
     expect(queries).toHaveLength(SYSTEMS.length + 3);
@@ -767,10 +780,14 @@ describe("parseWhen", () => {
   });
 
   it("reads a timing gap and the event it belongs to", () => {
-    expect(parseWhen("only when the coffee is taken within 6 h of bedtime")).toEqual({
+    expect(
+      parseWhen("only when the coffee is taken within 6 h of bedtime"),
+    ).toEqual({
       hoursBefore: { eventFact: "coffee_last_hour", threshold: 6 },
     });
-    expect(parseWhen("only when the meal is within 3 hours of going to bed")).toEqual({
+    expect(
+      parseWhen("only when the meal is within 3 hours of going to bed"),
+    ).toEqual({
       hoursBefore: { eventFact: "last_meal_hour", threshold: 3 },
     });
   });
@@ -781,8 +798,12 @@ describe("parseWhen", () => {
   });
 
   it("gives up rather than guessing", () => {
-    expect(parseWhen("in people with a high dietary polyphenol intake")).toBe(null);
-    expect(parseWhen("only in fast metabolisers", ["CYP1A2", "CYP2C19"])).toBe(null);
+    expect(parseWhen("in people with a high dietary polyphenol intake")).toBe(
+      null,
+    );
+    expect(parseWhen("only in fast metabolisers", ["CYP1A2", "CYP2C19"])).toBe(
+      null,
+    );
     expect(parseWhen(null)).toBe(null);
   });
 });
@@ -882,10 +903,14 @@ describe("toMechanismEdges", () => {
   });
 
   it("dedupes on from, to, relation and when", () => {
-    const { rows } = toMechanismEdges(GRAPH_NODES, [PAPER], [
-      mechanism(),
-      mechanism({ quote: "another sentence about the same thing" }),
-    ]);
+    const { rows } = toMechanismEdges(
+      GRAPH_NODES,
+      [PAPER],
+      [
+        mechanism(),
+        mechanism({ quote: "another sentence about the same thing" }),
+      ],
+    );
     expect(rows).toHaveLength(1);
   });
 
@@ -915,5 +940,51 @@ describe("researchMechanisms end to end, offline", () => {
     expect(counts.extracted).toBe(counts.verified);
     expect(rows).toHaveLength(1);
     expect(rows[0]!.source).toBe("research");
+  });
+});
+
+describe("the contested watch list", () => {
+  /** The three, plus a thick condition each, as the pick would see them. */
+  const known = [
+    { id: "hashimoto", name: "Hashimoto's thyroiditis" },
+    { id: "type_2_diabetes", name: "Type 2 diabetes" },
+    ...CONTESTED.map((c) => ({ id: c.id, name: c.id })),
+  ];
+
+  it("adds the contested conditions to a run that never picked them", () => {
+    const picked = withContested(
+      [
+        { id: "hashimoto", name: "Hashimoto's thyroiditis" },
+        { id: "type_2_diabetes", name: "Type 2 diabetes" },
+      ],
+      known,
+    );
+    expect(picked.map((c) => c.id)).toEqual([
+      "hashimoto",
+      "type_2_diabetes",
+      "pcos",
+      "mast_cell_activation",
+      "sibo",
+    ]);
+  });
+
+  it("names one already-thin contested condition once, in its thin place", () => {
+    const picked = withContested(
+      [
+        { id: "sibo", name: "SIBO" },
+        { id: "hashimoto", name: "Hashimoto's thyroiditis" },
+      ],
+      known,
+    );
+    expect(picked.map((c) => c.id)).toEqual([
+      "sibo",
+      "hashimoto",
+      "pcos",
+      "mast_cell_activation",
+    ]);
+  });
+
+  it("says why each one is on the list, with the citation", () => {
+    for (const c of CONTESTED) expect(c.why.length).toBeGreaterThan(60);
   });
 });

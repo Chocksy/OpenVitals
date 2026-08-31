@@ -43,6 +43,7 @@ import historyPath from "@/evals/journeys/history_t2d_path_m45.json";
 import historyStalled from "@/evals/journeys/history_t2d_stalled_m45.json";
 import addisons from "@/evals/journeys/addisons_female_38.json";
 import ckd3 from "@/evals/journeys/ckd3_male_70.json";
+import crcFamily from "@/evals/journeys/crc_family_history_m42.json";
 import fabry from "@/evals/journeys/fabry_male_33.json";
 import gilbert from "@/evals/journeys/gilbert_male_30.json";
 import mcas from "@/evals/journeys/mcas_female_29.json";
@@ -197,6 +198,7 @@ export const JOURNEYS: Journey[] = [
   a1at,
   addisons,
   ckd3,
+  crcFamily,
   fabry,
   gilbert,
   historyPath,

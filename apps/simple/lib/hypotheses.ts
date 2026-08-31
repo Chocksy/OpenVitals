@@ -115,6 +115,19 @@ export interface Discriminator {
   appliesTo?: { sex?: Sex; minAge?: number; maxAge?: number };
   /** the answer that has to hold before the test makes sense at all */
   requiresFact?: { fact: string; includes: string };
+  /**
+   * What brings the start age forward. A screening age is a population
+   * default, not a fact about a person: a father with bowel cancer moves the
+   * colonoscopy five years earlier, and no guideline writes that as a second
+   * test. First match wins, and a clause can only lower `appliesTo.minAge`,
+   * never raise it, so the base row stays the worst case.
+   */
+  earlierWhen?: {
+    fact: string;
+    includes: string;
+    minAge: number;
+    source: string;
+  }[];
   /** list price in euros by ISO-3166 alpha-2, from `hkb_tests.cost_by_country` */
   costByCountry?: Record<string, number>;
 }
@@ -165,6 +178,14 @@ export interface Hypothesis {
   patternId?: string; // link to lib/patterns.ts when one exists
   /** who the hypothesis can apply to at all; outside the gate it is not scored */
   appliesTo?: { sex?: Sex; minAge?: number; maxAge?: number };
+  /**
+   * What brings the condition's own start age forward, read exactly the way a
+   * test's is. "Cancer screening is overdue" is gated at 40 because that is
+   * where its earliest test used to start; a woman of 33 whose mother had
+   * breast cancer is owed a mammogram, and a condition gate frozen at 40 would
+   * hide the test that has already moved.
+   */
+  earlierWhen?: Discriminator["earlierWhen"];
   /** only scored once another hypothesis is at least this likely */
   requires?: { id: string; minScore: number };
   /** the discriminator strength that lets a score of 0.9 read "confirmed" */
@@ -1879,7 +1900,7 @@ export function priorFor(
 }
 
 function gateOpen(h: Hypothesis, m: ModelInput): boolean {
-  return openFor(h.appliesTo, m);
+  return openFor(withEarlier(h.appliesTo, h.earlierWhen, m), m);
 }
 
 /** sex, and the age band, the way every gate in the app reads them. */
@@ -1905,15 +1926,42 @@ function openFor(
  * not — "cancer screening is overdue" is true of every 41-year-old and its
  * mammography is not — and `requiresFact` covers the other half: low-dose CT
  * only means anything to somebody who has smoked.
+ *
+ * `earlierWhen` is the third half: the age is a default, and a family history
+ * moves it. The clauses are read first, the matched one lowers `minAge`, and
+ * everything after that is the same gate as before.
  */
 export function discriminatorApplies(d: Discriminator, m: ModelInput): boolean {
-  if (!openFor(d.appliesTo, m)) return false;
+  if (!openFor(withEarlier(d.appliesTo, d.earlierWhen, m), m)) return false;
   const need = d.requiresFact;
-  if (!need) return true;
-  const text = factText(m, need.fact);
+  return !need || factIncludes(m, need.fact, need.includes);
+}
+
+/**
+ * The gate with the matched earlier-start clause folded into it. First match
+ * wins, and a clause can only lower the age, so a badly written 55 on a base
+ * of 45 changes nothing.
+ */
+function withEarlier(
+  gate: { sex?: Sex; minAge?: number; maxAge?: number } | undefined,
+  clauses: Discriminator["earlierWhen"],
+  m: ModelInput,
+): { sex?: Sex; minAge?: number; maxAge?: number } | undefined {
+  const hit = (clauses ?? []).find((c) => factIncludes(m, c.fact, c.includes));
+  if (!hit) return gate;
+  return { ...gate, minAge: Math.min(gate?.minAge ?? hit.minAge, hit.minAge) };
+}
+
+/**
+ * The `includes` matcher the evidence rules use, over a fact read as text:
+ * case-insensitive, and `a|b` means either. One place, so a gate and a rule
+ * can never disagree about what "former" matches.
+ */
+function factIncludes(m: ModelInput, fact: string, includes: string): boolean {
+  const text = factText(m, fact);
   if (text == null) return false;
   const hay = text.toLowerCase();
-  return need.includes
+  return includes
     .toLowerCase()
     .split("|")
     .some((needle) => hay.includes(needle));

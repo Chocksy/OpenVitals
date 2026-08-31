@@ -143,17 +143,32 @@ export interface CatalogRows {
  */
 const TEST_GATES: Map<
   string,
-  Pick<Discriminator, "appliesTo" | "requiresFact">
+  Pick<Discriminator, "appliesTo" | "requiresFact" | "earlierWhen">
 > = new Map(
   CATALOG.flatMap((h) => h.discriminators)
-    .filter((d) => d.appliesTo || d.requiresFact)
+    .filter((d) => d.appliesTo || d.requiresFact || d.earlierWhen)
     .map((d) => [
       d.test,
       {
         ...(d.appliesTo ? { appliesTo: d.appliesTo } : {}),
         ...(d.requiresFact ? { requiresFact: d.requiresFact } : {}),
+        ...(d.earlierWhen ? { earlierWhen: d.earlierWhen } : {}),
       },
     ]),
+);
+
+/**
+ * What brings a condition's own start age forward, by condition id.
+ *
+ * Same reason as `TEST_GATES`: `hkb_conditions.applies_to` is a jsonb column
+ * with three keys in it and this phase adds no migration, so the clauses stay
+ * in `lib/hkb-catalog.ts` and the read side puts them back.
+ */
+const CONDITION_EARLIER = new Map(
+  CATALOG.filter((h) => h.earlierWhen?.length).map((h) => [
+    h.id,
+    h.earlierWhen!,
+  ]),
 );
 
 /** Keys that read a value. Anything else in `condition_on` is demographics. */
@@ -359,6 +374,7 @@ export function rowsToCatalog(rows: CatalogRows, awake?: Set<string>): Catalog {
         discriminators,
         lenses: c.lenses as Hypothesis["lenses"],
         appliesTo: (c.appliesTo as Hypothesis["appliesTo"]) ?? undefined,
+        earlierWhen: CONDITION_EARLIER.get(c.id),
         requires: c.requires
           ? { id: c.requires.condition, minScore: c.requires.minState }
           : undefined,

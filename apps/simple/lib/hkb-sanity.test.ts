@@ -11,6 +11,12 @@
  * unhappy about, so a failing import names its own bad rows, and every check
  * asserts it actually scanned something, so a check cannot pass by looking at
  * an empty list.
+ *
+ * Structural, never exact: a check asks whether a rule can fire, whether a
+ * gate exists, whether a likelihood ratio is on the right side of 1. It never
+ * asserts a particular number, because the research run and the pooling are
+ * meant to move those, and a suite that pinned them would turn every accepted
+ * paper into a red build.
  */
 import { describe, expect, it } from "vitest";
 import { EDGES, NODES } from "./graph";
@@ -313,13 +319,70 @@ describe("discriminators are gated the way the condition is not", () => {
   });
 
   it("gives every screening test an age", () => {
+    // Phase 21b: `earlierWhen` is an age path too, because a test whose whole
+    // start age comes from a family history is still gated by an age.
     const bad = CATALOG.filter((h) => h.id === "cancer_screening_due")
       .flatMap((h) => h.discriminators.map((d) => ({ h, d })))
       .filter(
-        ({ h, d }) => (d.appliesTo?.minAge ?? h.appliesTo?.minAge) == null,
+        ({ h, d }) =>
+          (d.appliesTo?.minAge ?? h.appliesTo?.minAge) == null &&
+          !d.earlierWhen?.every((c) => typeof c.minAge === "number"),
       )
       .map(({ h, d }) => tid(h, d));
     expect(bad).toEqual([]);
+  });
+
+  const relative = tests.filter(({ d }) => d.earlierWhen?.length);
+
+  it("makes every earlier-start clause carry an age and a source", () => {
+    const bad = relative.flatMap(({ h, d }) =>
+      d
+        .earlierWhen!.filter(
+          (c) => typeof c.minAge !== "number" || (c.source ?? "").length < 40,
+        )
+        .map((c) => `${tid(h, d)} on ${c.fact} has no age or no source`),
+    );
+    expect(bad).toEqual([]);
+  });
+
+  it("never lets an earlier-start clause raise the start age", () => {
+    const bad = relative.flatMap(({ h, d }) => {
+      const base = d.appliesTo?.minAge ?? h.appliesTo?.minAge;
+      return d
+        .earlierWhen!.filter((c) => base == null || c.minAge >= base)
+        .map((c) => `${tid(h, d)} on ${c.fact}: ${c.minAge} vs base ${base}`);
+    });
+    expect(bad).toEqual([]);
+  });
+
+  it("names a fact that exists in every earlier-start clause", () => {
+    const bad = relative.flatMap(({ h, d }) =>
+      d
+        .earlierWhen!.filter((c) => !answerable(c.fact))
+        .map((c) => `${tid(h, d)} reads ${c.fact}`),
+    );
+    expect(bad).toEqual([]);
+  });
+
+  it("holds a condition's own earlier-start clauses to the same rules", () => {
+    const withClauses = CATALOG.filter((h) => h.earlierWhen?.length);
+    expect(withClauses.length).toBeGreaterThan(0);
+    const bad = withClauses.flatMap((h) =>
+      h
+        .earlierWhen!.filter(
+          (c) =>
+            !answerable(c.fact) ||
+            (c.source ?? "").length < 40 ||
+            h.appliesTo?.minAge == null ||
+            c.minAge >= h.appliesTo.minAge,
+        )
+        .map((c) => `${h.id} on ${c.fact}`),
+    );
+    expect(bad).toEqual([]);
+  });
+
+  it("scans the tests that move with the person", () => {
+    expect(relative.length).toBeGreaterThan(2);
   });
 
   it("makes a fact-dependent test say which answer it needs", () => {

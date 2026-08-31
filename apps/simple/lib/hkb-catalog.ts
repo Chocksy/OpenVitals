@@ -2909,6 +2909,18 @@ const CANCER_SCREENING_DUE: Hypothesis = {
   summary:
     "Not a disease: a state of the calendar. The screening tests with mortality evidence behind them have ages attached, and most people are late for at least one.",
   appliesTo: { minAge: 40 },
+  // 40 is where the earliest screening test used to start. With a strong
+  // family history the mammography starts at 30, so the condition has to be
+  // scored from 30 for exactly those people or its own gate hides the test.
+  earlierWhen: [
+    {
+      fact: "family_history",
+      includes: "breast",
+      minAge: 30,
+      source:
+        "ACS high-risk screening guideline (Saslow 2007 CA Cancer J Clin, reaffirmed): annual screening from 30 for women with a strong family history, which is the earliest start age any test in this condition has.",
+    },
+  ],
   priors: {
     base: 0.4,
     source:
@@ -2976,8 +2988,21 @@ const CANCER_SCREENING_DUE: Hypothesis = {
       // condition applies from 40 because mammography does; nothing bowel-
       // related is owed to a 41-year-old.
       appliesTo: { minAge: 45 },
+      // ponytail: a flat 40, not "ten years before the relative's diagnosis,
+      // whichever is earlier". The second term needs the age the relative was
+      // diagnosed at and nothing asks for it yet, so a father diagnosed at 45
+      // should start this person at 35 and this row will still say 40.
+      earlierWhen: [
+        {
+          fact: "family_history",
+          includes: "colorectal|colon|bowel",
+          minAge: 40,
+          source:
+            "USPSTF 2021 colorectal recommendation and US Multi-Society Task Force 2017: with a first-degree relative, screening starts at 40, or ten years before the relative's diagnosis, whichever is earlier.",
+        },
+      ],
       howTo:
-        "From 45, every ten years if it is clean. A faecal immunochemical test every year is the cheaper alternative with almost as much mortality evidence.",
+        "From 45, every ten years if it is clean, and from 40 with a first-degree relative — or ten years before their diagnosis if that is earlier. A faecal immunochemical test every year is the cheaper alternative with almost as much mortality evidence.",
     },
     {
       test: "Mammography",
@@ -2991,8 +3016,17 @@ const CANCER_SCREENING_DUE: Hypothesis = {
       // USPSTF 2024 breast cancer recommendation: biennial mammography for
       // women from 40 to 74.
       appliesTo: { sex: "female", minAge: 40 },
+      earlierWhen: [
+        {
+          fact: "family_history",
+          includes: "breast",
+          minAge: 30,
+          source:
+            "ACS high-risk screening guideline (Saslow 2007 CA Cancer J Clin, reaffirmed): annual screening from 30 for women with a strong family history. NICE CG164 puts moderate risk at 40.",
+        },
+      ],
       howTo:
-        "Every two years from 50, and from 40 by preference or family history.",
+        "Every two years from 50, and from 40 by preference. With a strong family history it starts at 30, and a genetics referral is what decides whether MRI is added to it.",
     },
     {
       test: "Low-dose CT for lung cancer",
@@ -3020,12 +3054,28 @@ const CANCER_SCREENING_DUE: Hypothesis = {
       typicalNeg: 0.8,
       unit: "ng/mL",
       // USPSTF 2018 prostate recommendation: an individual decision from 55 to
-      // 69, brought forward to 45 by family history or Black ancestry. 45 is
-      // the earliest age at which the conversation is ever right, and the howTo
-      // says the rest.
-      appliesTo: { sex: "male", minAge: 45 },
+      // 69. 50 is where the conversation commonly starts, and the two things
+      // that bring it forward to 45 are clauses rather than a lower base, so an
+      // average 46-year-old is not offered it at all.
+      appliesTo: { sex: "male", minAge: 50 },
+      earlierWhen: [
+        {
+          fact: "family_history",
+          includes: "prostate",
+          minAge: 45,
+          source:
+            "USPSTF 2018 prostate recommendation: men at higher risk, including those with a family history of prostate cancer, may benefit from starting the conversation at 45.",
+        },
+        {
+          fact: "ancestry",
+          includes: "african|black",
+          minAge: 45,
+          source:
+            "USPSTF 2018 prostate recommendation: Black men carry roughly double the prostate cancer mortality risk, so the conversation is reasonable from 45.",
+        },
+      ],
       howTo:
-        "A conversation before a blood test, from 50, or 45 with family history. The benefit is real and small and the overdiagnosis is real and large.",
+        "A conversation before a blood test, from 50, or 45 with a family history or African ancestry. The benefit is real and small and the overdiagnosis is real and large.",
     },
   ],
   lenses: {

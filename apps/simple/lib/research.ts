@@ -15,7 +15,7 @@
  * against `evals/fixtures/hkb/research-europepmc.json`.
  */
 import { generateObject } from "ai";
-import { asc, eq, sql } from "drizzle-orm";
+import { asc, eq, inArray, sql } from "drizzle-orm";
 import { z } from "zod";
 import {
   getDb,
@@ -648,7 +648,10 @@ export function conditionOn(
   f: Finding,
 ): Record<string, unknown> | null {
   if (numeric(featureId)) {
-    if (f.threshold != null && (f.direction === "above" || f.direction === "below"))
+    if (
+      f.threshold != null &&
+      (f.direction === "above" || f.direction === "below")
+    )
       return { [f.direction]: f.threshold };
     // "raised", "positive": out of range, with no number of its own.
     if (f.direction === "above" || f.direction === "present")
@@ -673,14 +676,19 @@ export function convertOn(
   from: string | null | undefined,
   to: string | null | undefined,
   code?: string,
-): { on: Record<string, unknown>; unit: string | null; note: string | null } | null {
+): {
+  on: Record<string, unknown>;
+  unit: string | null;
+  note: string | null;
+} | null {
   const keys = (["above", "below"] as const).filter(
     (k) => typeof on[k] === "number",
   );
   const unit = to?.trim() || from?.trim() || null;
   if (!keys.length) return { on, unit: null, note: null };
   if (!from?.trim() || !to?.trim()) return { on, unit, note: null };
-  if (normalizeUnit(from) === normalizeUnit(to)) return { on, unit: to, note: null };
+  if (normalizeUnit(from) === normalizeUnit(to))
+    return { on, unit: to, note: null };
 
   const next = { ...on };
   const said: string[] = [];
@@ -690,7 +698,11 @@ export function convertOn(
     next[k] = value;
     said.push(`${k} ${on[k]} ${from} = ${value} ${to}`);
   }
-  return { on: next, unit: to, note: `threshold converted: ${said.join(", ")}` };
+  return {
+    on: next,
+    unit: to,
+    note: `threshold converted: ${said.join(", ")}`,
+  };
 }
 
 const slug = (s: string) =>
@@ -723,7 +735,8 @@ const TEST_CLASS: { cost: number; words: RegExp }[] = [
   { cost: 1, words: /antibod|antigen|serolog|igg|iga|igm|titre|titer/i },
   {
     cost: 3,
-    words: /ultrasound|mri|ct\b|scan|elastograph|imaging|dexa|echocardio|x-?ray|densitometr/i,
+    words:
+      /ultrasound|mri|ct\b|scan|elastograph|imaging|dexa|echocardio|x-?ray|densitometr/i,
   },
   { cost: 4, words: /biopsy|endoscop|colonoscop|catheter|puncture|aspirat/i },
 ];
@@ -764,7 +777,10 @@ export function toProposals(
   features: Feature[],
   papers: Paper[],
   findings: Finding[],
-  opts: { inCatalog?: boolean; venueKnown?: (j: string | null) => boolean } = {},
+  opts: {
+    inCatalog?: boolean;
+    venueKnown?: (j: string | null) => boolean;
+  } = {},
 ): {
   rows: Proposal[];
   mints: Mint[];
@@ -789,7 +805,9 @@ export function toProposals(
 
     // The catalog id the model picked, then the same analyte under another
     // name, then a new id minted from the paper.
-    const named = f.feature?.trim() ? byName.get(normalizeName(f.feature)) : undefined;
+    const named = f.feature?.trim()
+      ? byName.get(normalizeName(f.feature))
+      : undefined;
     const featureId =
       (f.featureId && known.has(f.featureId) ? f.featureId : null) ??
       named?.id ??
@@ -1033,6 +1051,49 @@ export async function featuresFor(conditionId: string): Promise<Feature[]> {
     .map((f) => ({ id: f.id, name: f.name, unit: f.unit }));
 }
 
+/**
+ * Conditions whose diagnostic criteria are themselves in motion, so the
+ * monthly run always includes them regardless of how thick they look.
+ * Each entry says why, with the citation that calls the criteria contested.
+ */
+export const CONTESTED: { id: string; why: string }[] = [
+  {
+    id: "pcos",
+    why: "Rotterdam vs AE-PCOS vs the 2023 international guideline disagree on which two of three criteria suffice; AMH keeps moving in and out (Teede 2023 J Clin Endocrinol Metab).",
+  },
+  {
+    id: "mast_cell_activation",
+    why: "Consensus-1 vs consensus-2 diagnostic criteria are openly disputed (Valent 2019 vs Afrin 2020).",
+  },
+  {
+    id: "sibo",
+    why: "Breath-test cutoffs and the role of the microbiome panel are unsettled (Rezaie 2017 North American consensus vs later critiques).",
+  },
+];
+
+/**
+ * The thin list, then the contested ones that are not already on it.
+ *
+ * The pick is by evidence count, so a condition whose rules were just revived
+ * stops being revisited exactly when its contested criteria most need fresh
+ * papers. These ride along at the end, inside the same `TOKEN_BUDGET`: the run
+ * loop stops when the next estimate would pass it, so a long thin list simply
+ * means the contested ones wait for the next run.
+ */
+export function withContested(
+  thin: ConditionRef[],
+  known: ConditionRef[],
+): ConditionRef[] {
+  const seen = new Set(thin.map((c) => c.id));
+  const byId = new Map(known.map((c) => [c.id, c]));
+  return [
+    ...thin,
+    ...CONTESTED.map((c) => byId.get(c.id)).filter(
+      (c): c is ConditionRef => !!c && !seen.has(c.id),
+    ),
+  ];
+}
+
 /** The conditions with the least evidence behind them, thinnest first. */
 export async function thinnestConditions(n: number): Promise<ConditionRef[]> {
   const rows = await getDb()
@@ -1052,7 +1113,19 @@ export async function thinnestConditions(n: number): Promise<ConditionRef[]> {
       asc(hkbConditions.id),
     )
     .limit(n);
-  return rows.map((r) => ({ id: r.id, name: r.name }));
+  const contested = await getDb()
+    .select({ id: hkbConditions.id, name: hkbConditions.name })
+    .from(hkbConditions)
+    .where(
+      inArray(
+        hkbConditions.id,
+        CONTESTED.map((c) => c.id),
+      ),
+    );
+  return withContested(
+    rows.map((r) => ({ id: r.id, name: r.name })),
+    contested,
+  );
 }
 
 /**
@@ -1157,7 +1230,8 @@ export async function saveProposals(
 
 const HELP = "(treatment OR supplementation OR intervention)";
 const TRIALS = '(randomized OR "meta-analysis")';
-const HORIZON = '(case report OR pilot OR "n-of-1" OR animal OR mice OR "in vitro")';
+const HORIZON =
+  '(case report OR pilot OR "n-of-1" OR animal OR mice OR "in vitro")';
 
 /** How far back each of the two intervention searches looks. */
 export const INTERVENTION_YEARS = 15;
@@ -1282,10 +1356,11 @@ export function toInterventions(
     if (!paper || paper.retracted) continue;
     if (!f.intervention?.trim() || !f.quote?.trim()) continue;
 
-    const base = gradeOf(
-      { studyType: f.studyType, n: null } as Finding,
-      { citedBy: paper.citedBy, year: paper.year, resolved: !!paper.doi },
-    );
+    const base = gradeOf({ studyType: f.studyType, n: null } as Finding, {
+      citedBy: paper.citedBy,
+      year: paper.year,
+      resolved: !!paper.doi,
+    });
     const grade =
       kind === "horizon" ? (base === "E" ? "E" : worst(base, "D")) : base;
 
@@ -1387,7 +1462,9 @@ export const RESEARCH_COOLDOWN_DAYS = 90;
 /** Ask for a condition to be read, unless it was read in the last 90 days. */
 export async function queueResearch(conditionId: string): Promise<boolean> {
   if (queued.has(conditionId)) return false;
-  if (!(await dueAgain("hkb-research", RESEARCH_COOLDOWN_DAYS, `${conditionId}:`)))
+  if (
+    !(await dueAgain("hkb-research", RESEARCH_COOLDOWN_DAYS, `${conditionId}:`))
+  )
     return false;
   queued.add(conditionId);
   return true;
@@ -1445,7 +1522,8 @@ export function mechanismQueries(
   const to = now.getFullYear();
   const dates = `(FIRST_PDATE:[${to - MECHANISM_YEARS}-01-01 TO ${to}-12-31])`;
   const nameOf = (code: string) =>
-    NODES.find((n) => n.id === `metric:${code}`)?.name ?? code.replace(/_/g, " ");
+    NODES.find((n) => n.id === `metric:${code}`)?.name ??
+    code.replace(/_/g, " ");
 
   const bySystem = SYSTEMS.map((s) => {
     const markers = s.headline.map((c) => `"${nameOf(c)}"`).join(" OR ");
@@ -1573,12 +1651,16 @@ export function parseWhen(
   const genotype = raw.match(GENOTYPE_WORDS)?.[1];
   if (genotype) {
     const named = genes.filter((g) => new RegExp(`\\b${g}\\b`, "i").test(raw));
-    const gene = named.length === 1 ? named[0] : genes.length === 1 ? genes[0] : null;
+    const gene =
+      named.length === 1 ? named[0] : genes.length === 1 ? genes[0] : null;
     if (gene)
-      return { genome: { gene, genotype: genotype.toLowerCase().replace("-", "") } };
+      return {
+        genome: { gene, genotype: genotype.toLowerCase().replace("-", "") },
+      };
   }
 
-  if (/\b(only |)in (women|females|female)\b/i.test(raw)) return { sex: "female" };
+  if (/\b(only |)in (women|females|female)\b/i.test(raw))
+    return { sex: "female" };
   if (/\b(only |)in (men|males|male)\b/i.test(raw)) return { sex: "male" };
 
   const over = raw.match(/\b(?:over|above|older than)\s+(\d{2})\b/);
@@ -1596,7 +1678,9 @@ export function strengthOf(effect: string | null | undefined): 1 | 2 | 3 {
   if (/\b(large|strong|marked|substantial)\b/.test(text)) return 3;
   if (/\b(moderate|medium)\b/.test(text)) return 2;
   if (/\b(small|modest|weak|slight|minimal)\b/.test(text)) return 1;
-  const ratio = text.match(/\b(?:or|rr|hr|odds ratio|risk ratio)\s*[:=]?\s*(\d+(?:\.\d+)?)/);
+  const ratio = text.match(
+    /\b(?:or|rr|hr|odds ratio|risk ratio)\s*[:=]?\s*(\d+(?:\.\d+)?)/,
+  );
   if (ratio) {
     const value = Number(ratio[1]);
     if (value >= 2 || (value > 0 && value <= 0.5)) return 3;
@@ -1699,15 +1783,17 @@ export function toMechanismEdges(
     const qualifier = f.condition?.trim() || null;
     const when = parseWhen(qualifier, genes);
     if (when) parsed++;
-    const confidence = when || !qualifier
-      ? CONFIDENCE_BY_GRADE[grade]
-      : "speculative";
+    const confidence =
+      when || !qualifier ? CONFIDENCE_BY_GRADE[grade] : "speculative";
 
     const key = `${fromId}|${toId}|${f.relation}|${whenSlug(when)}`;
     if (rows.has(key)) continue;
 
     rows.set(key, {
-      id: `res_${slug(fromId)}_${slug(toId)}_${f.relation}_${whenSlug(when)}`.slice(0, 120),
+      id: `res_${slug(fromId)}_${slug(toId)}_${f.relation}_${whenSlug(when)}`.slice(
+        0,
+        120,
+      ),
       fromId,
       toId,
       relation: f.relation,
@@ -1719,7 +1805,9 @@ export function toMechanismEdges(
       mechanism:
         `${f.from} ${f.relation} ${f.to}` +
         (f.effect?.trim() ? ` (${f.effect.trim()})` : "") +
-        (qualifier && !when ? `. Stated only ${qualifier}; we cannot check that against your profile, so this edge stays speculative.` : "."),
+        (qualifier && !when
+          ? `. Stated only ${qualifier}; we cannot check that against your profile, so this edge stays speculative.`
+          : "."),
       evidence: [
         {
           kind: EVIDENCE_KIND[f.studyType] ?? "observational",

@@ -196,12 +196,16 @@ describe("nextMoves", () => {
 
   it("weights the outcomes so they average back to the prior", () => {
     for (const move of nextMoves(input(), [snorer, sleeper])) {
-      expect(move.outcomes.reduce((sum, o) => sum + o.prob, 0)).toBeCloseTo(1, 2);
+      expect(move.outcomes.reduce((sum, o) => sum + o.prob, 0)).toBeCloseTo(
+        1,
+        2,
+      );
       for (const id of ["snorer", "sleeper"]) {
         const from = move.moves.find((x) => x.id === id);
         if (!from) continue;
         const mixed = move.outcomes.reduce(
-          (sum, o) => sum + o.prob * (o.beliefs.find((b) => b.id === id)?.p ?? 0),
+          (sum, o) =>
+            sum + o.prob * (o.beliefs.find((b) => b.id === id)?.p ?? 0),
           0,
         );
         expect(mixed).toBeCloseTo(from.from, 1);
@@ -213,7 +217,10 @@ describe("nextMoves", () => {
   it("keeps the entropy it reports honest", () => {
     const move = nextMoves(input(), twoConditions)[0]!;
     expect(move.gain).toBeCloseTo(move.entropyBefore - move.entropyAfter, 3);
-    expect(move.ratio).toBeCloseTo(ratioOf(move.gain, move.cost, !!move.priced), 3);
+    expect(move.ratio).toBeCloseTo(
+      ratioOf(move.gain, move.cost, !!move.priced),
+      3,
+    );
   });
 });
 
@@ -325,5 +332,106 @@ describe("a test is only offered to the people it is for", () => {
     expect(found).toContain("Mammography");
     expect(found).toContain("Low-dose CT for lung cancer");
     expect(found).not.toContain("PSA discussion");
+  });
+
+  /* ── the screening age moves with the person (phase 21b) ────────────── */
+
+  it("brings the colonoscopy forward to 40 for a father with colon cancer", () => {
+    const m = person({
+      sex: "male",
+      age: 42,
+      profile: { family_history: "father colon cancer at 52" },
+    });
+    expect(labels(m)).toContain("Colonoscopy");
+  });
+
+  it("still says 45 for a 42-year-old with nothing in the family", () => {
+    expect(
+      labels(
+        person({
+          sex: "male",
+          age: 42,
+          profile: { family_history: "none known" },
+        }),
+      ),
+    ).not.toContain("Colonoscopy");
+  });
+
+  it("never brings the colonoscopy below the clause's own 40", () => {
+    expect(
+      labels(
+        person({
+          sex: "male",
+          age: 39,
+          profile: { family_history: "father colon cancer at 52" },
+        }),
+      ),
+    ).not.toContain("Colonoscopy");
+  });
+
+  it("brings the mammography forward to 30 for a mother with breast cancer", () => {
+    const m = person({
+      sex: "female",
+      age: 33,
+      profile: { family_history: "mother breast cancer at 44" },
+    });
+    expect(labels(m)).toContain("Mammography");
+  });
+
+  it("still says 40 for a 33-year-old with nothing in the family", () => {
+    expect(
+      labels(
+        person({
+          sex: "female",
+          age: 33,
+          profile: { family_history: "none known" },
+        }),
+      ),
+    ).not.toContain("Mammography");
+  });
+
+  it("brings the PSA conversation forward to 45 for a father with prostate cancer", () => {
+    const m = person({
+      sex: "male",
+      age: 46,
+      profile: { family_history: "father prostate cancer at 61" },
+    });
+    expect(labels(m)).toContain("PSA discussion");
+  });
+
+  it("does not offer a plain 46-year-old the PSA conversation, and does offer it at 52", () => {
+    expect(
+      labels(
+        person({
+          sex: "male",
+          age: 46,
+          profile: { family_history: "none known" },
+        }),
+      ),
+    ).not.toContain("PSA discussion");
+    expect(
+      labels(
+        person({
+          sex: "male",
+          age: 52,
+          profile: { family_history: "none known" },
+        }),
+      ),
+    ).toContain("PSA discussion");
+  });
+
+  it("brings the PSA conversation forward on ancestry too", () => {
+    expect(
+      labels(
+        person({
+          sex: "male",
+          age: 46,
+          profile: {
+            family_history: "none known",
+            ancestry: "Sub-Saharan African",
+          },
+        }),
+      ),
+    ).toContain("PSA discussion");
   });
 });
