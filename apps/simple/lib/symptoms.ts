@@ -137,6 +137,20 @@ export const SYMPTOMS: Symptom[] = [
       "Rotterdam 2004 consensus (oligo-anovulation) and Harlow 2012 STRAW+10 (cycle change as the perimenopause marker).",
   },
   {
+    // The second Rotterdam criterion. `sym_cycle` (item 9) is the first, and
+    // without this one PCOS could only ever be argued from a blood test:
+    // `pcos_hirsutism` read a `hirsutism_acne` nobody asked. Phase 21.
+    key: "hirsutism_acne",
+    item: 9,
+    name: "Coarse hair or persistent acne",
+    question:
+      "Do you get coarse dark hair on your face, chest or stomach, or acne that will not settle?",
+    options: ["No", "Yes"],
+    appliesTo: { sex: "female", maxAge: 55 },
+    source:
+      "Rotterdam 2004 consensus: clinical hyperandrogenism (hirsutism or persistent acne) counts the same as a biochemical one, and it is the commonest presenting feature.",
+  },
+  {
     key: "sym_joint",
     item: 10,
     name: "Acute painful joint",

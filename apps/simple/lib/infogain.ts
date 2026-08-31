@@ -11,6 +11,7 @@ import { coverage, profileQuestions, type ModelInput } from "./coverage";
 import { GENOME_CATALOG } from "./genome-catalog";
 import {
   countryOf,
+  discriminatorApplies,
   scoreHypotheses,
   type Catalog,
   type Discriminator,
@@ -368,7 +369,9 @@ function exomeCandidates(
 
   const raised = catalog.filter((h) => {
     const r = byId.get(h.id);
-    return MONOGENIC_GENE[h.id] != null && r != null && r.score >= r.prior * RAISED;
+    return (
+      MONOGENIC_GENE[h.id] != null && r != null && r.score >= r.prior * RAISED
+    );
   });
   const explained = new Set(
     rows.flatMap((r) => (r.score >= POSSIBLE ? r.for.map((f) => f.input) : [])),
@@ -379,7 +382,8 @@ function exomeCandidates(
   const first = raised[0] ? byId.get(raised[0].id) : undefined;
   const alone =
     raised.length === 1 &&
-    (unresolved || (first != null && first.score >= first.prior * RAISED_ALONE));
+    (unresolved ||
+      (first != null && first.score >= first.prior * RAISED_ALONE));
   if (raised.length < 2 && !alone) return [];
 
   const country = countryOf(m);
@@ -433,6 +437,9 @@ function testCandidates(
   for (const h of catalog)
     for (const d of h.discriminators) {
       if (!stillOpen(d, m)) continue;
+      // A test the person is not a candidate for is not a move. Same gate the
+      // engine scores with, so the path and the cards agree.
+      if (!discriminatorApplies(d, m)) continue;
       if (d.typicalPos == null || d.typicalNeg == null) continue;
       const key = d.codes.slice().sort().join("+");
       const found = byCodes.get(key);
@@ -445,7 +452,8 @@ function testCandidates(
         // instead used to file the everyday lipid panel under "Repeat LDL off
         // any treatment" at twice the price, which is how a €10 panel ended up
         // ranked below a €80 CT.
-        const price = (x: Discriminator) => priceOf(x, country) ?? BAND_EUR[x.cost] ?? x.cost * 30;
+        const price = (x: Discriminator) =>
+          priceOf(x, country) ?? BAND_EUR[x.cost] ?? x.cost * 30;
         const cheaper = price(d) - price(found.d);
         if (cheaper < 0 || (cheaper === 0 && d.lrPos > found.d.lrPos))
           found.d = d;
@@ -663,12 +671,25 @@ export function nextMoves(
   // And it only closes once somebody has actually looked: a person with no
   // annual panel at all is quiet the way an unopened envelope is quiet, so a
   // tier-0 or tier-1 vector that has never been measured keeps the floor open.
+  //
+  // And a live belief only keeps it open while something on the list would
+  // actually move it. Phase 21: gating mammography to women left a
+  // 41-year-old man with "your screening is overdue" at 80 % and no test he
+  // is old enough to take, and that unsettleable belief then justified an
+  // OGTT, a liver ultrasound and a colonoscopy — €600 of looking at the wrong
+  // thing. A question nobody can answer is not a reason to keep testing.
   const core = coverage(m).filter((r) => r.vector.tier <= 1);
   const seen = core.filter((r) => r.state !== "never").length;
   const unlooked = !core.length || seen / core.length < LOOKED;
+  const movable = new Set(moves.flatMap((mv) => mv.moves.map((x) => x.id)));
   const quiet =
     !unlooked &&
-    !rows.some((r) => r.score >= QUIET_BELIEF && r.score > r.prior + 1e-9);
+    !rows.some(
+      (r) =>
+        r.score >= QUIET_BELIEF &&
+        r.score > r.prior + 1e-9 &&
+        movable.has(r.id),
+    );
   const worthIt = (move: Move) =>
     !quiet ||
     move.pursue ||

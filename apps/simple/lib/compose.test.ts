@@ -205,6 +205,19 @@ describe("understandRules: the twenty-five sentences", () => {
     expect(byKey("heavy periods again", "sym_cycle")?.value).toBe("Heavy");
   });
 
+  it("22b. periods all over the place, and the acne next to them", () => {
+    const text =
+      "my periods have been all over the place and I keep breaking out";
+    expect(byKey(text, "sym_cycle")?.value).toBe("Irregular");
+    const acne = byKey(text, "hirsutism_acne");
+    expect(acne?.value).toBe("Yes");
+    expect(acne?.kind).toBe("symptom");
+  });
+
+  it("22c. a plant-based diet, which is what the B12 rules read", () => {
+    expect(byKey("I went vegan in the spring", "diet")?.value).toBe("Vegan");
+  });
+
   it("23. a life event keeps its own sentence", () => {
     const c = byKey("I had the flu last week. Now I am fine.", "acute_illness");
     expect(c?.kind).toBe("event");

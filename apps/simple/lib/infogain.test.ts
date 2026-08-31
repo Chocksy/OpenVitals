@@ -3,6 +3,8 @@ import { ratioOf } from "./prices";
 import type { ModelInput } from "./coverage";
 import type { Catalog, Hypothesis } from "./hypotheses";
 import { entropyOf, nextMoves, sensSpec } from "./infogain";
+import { CATALOG } from "./hkb-catalog";
+import { scoreHypotheses } from "./hypotheses";
 import { buildTree } from "./tree";
 
 const input = (over: Partial<ModelInput> = {}): ModelInput => ({
@@ -270,5 +272,58 @@ describe("buildTree", () => {
     // the tree keeps going.
     expect(tree.stop).not.toBe("budget");
     expect(tree.overBudget).toBe(true);
+  });
+});
+
+/* ── the mammography defect (phase 21) ────────────────────────────────── */
+
+describe("a test is only offered to the people it is for", () => {
+  const person = (
+    over: Partial<ModelInput> & { profile?: Record<string, unknown> },
+  ): ModelInput =>
+    input({
+      ...over,
+      profile: {
+        smoking: "Never",
+        screening_dates: "none",
+        ...(over.profile ?? {}),
+      },
+    });
+
+  const labels = (m: ModelInput) => nextMoves(m, CATALOG).map((mv) => mv.label);
+
+  it("never offers a man a mammography, however overdue his screening is", () => {
+    const m = person({ sex: "male", age: 45 });
+    expect(
+      scoreHypotheses(m, { catalog: CATALOG }).find(
+        (h) => h.id === "cancer_screening_due",
+      )!.score,
+    ).toBeGreaterThanOrEqual(0.8);
+    expect(labels(m)).not.toContain("Mammography");
+  });
+
+  it("never offers a woman a PSA discussion", () => {
+    expect(labels(person({ sex: "female", age: 45 }))).not.toContain(
+      "PSA discussion",
+    );
+  });
+
+  it("never offers a never-smoker a low-dose CT", () => {
+    expect(labels(person({ sex: "male", age: 60 }))).not.toContain(
+      "Low-dose CT for lung cancer",
+    );
+  });
+
+  it("still offers a 52-year-old smoking woman both, and never the PSA", () => {
+    const found = labels(
+      person({
+        sex: "female",
+        age: 52,
+        profile: { smoking: "Current" },
+      }),
+    );
+    expect(found).toContain("Mammography");
+    expect(found).toContain("Low-dose CT for lung cancer");
+    expect(found).not.toContain("PSA discussion");
   });
 });

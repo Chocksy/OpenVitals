@@ -152,7 +152,9 @@
           "value": "21:00"
         }
       ],
-      "notChips": ["sym_energy"],
+      "notChips": [
+        "sym_energy"
+      ],
       "followUp": null
     }
   },
@@ -184,7 +186,9 @@
     },
     "expect": {
       "chips": [],
-      "notChips": ["sym_energy"],
+      "notChips": [
+        "sym_energy"
+      ],
       "followUp": null
     }
   },
@@ -256,6 +260,31 @@
         }
       ],
       "followUp": "sym_weight_amount"
+    }
+  },
+  {
+    "id": "ramona_irregular_and_acne",
+    "text": "my periods have been all over the place and I keep breaking out",
+    "today": "2026-08-31",
+    "facts": {
+      "sex": "female",
+      "birth_year": 1998,
+      "menopause_status": "Pre",
+      "country": "RO"
+    },
+    "expect": {
+      "chips": [
+        {
+          "key": "sym_cycle",
+          "value": "Irregular"
+        },
+        {
+          "key": "hirsutism_acne",
+          "value": "Yes",
+          "kind": "symptom"
+        }
+      ],
+      "followUp": "cycle_length_days"
     }
   }
 ]

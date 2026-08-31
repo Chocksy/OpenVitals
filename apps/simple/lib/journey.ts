@@ -50,6 +50,9 @@ import pernicious from "@/evals/journeys/pernicious_anaemia_female_52.json";
 import sibo from "@/evals/journeys/sibo_male_44.json";
 import wilson from "@/evals/journeys/wilson_male_24.json";
 import haemochromatosis from "@/evals/journeys/haemochromatosis_ferritin_m52.json";
+import haemochromatosisF47 from "@/evals/journeys/haemochromatosis_female_47.json";
+import pcosInterview from "@/evals/journeys/pcos_from_interview_f28.json";
+import screeningSmoker from "@/evals/journeys/screening_f52_smoker.json";
 import hashimotoEarly from "@/evals/journeys/hashimoto_early_female_36.json";
 import hashimotoScratch from "@/evals/journeys/hashimoto_from_scratch_f34_ro.json";
 import healthy from "@/evals/journeys/healthy_male_28.json";
@@ -189,7 +192,7 @@ export interface JourneyResult {
   failed: string[];
 }
 
-/** The ten journeys, statically imported so the bundler and the CLI share them. */
+/** The journeys, statically imported so the bundler and the CLI share them. */
 export const JOURNEYS: Journey[] = [
   a1at,
   addisons,
@@ -199,6 +202,7 @@ export const JOURNEYS: Journey[] = [
   historyPath,
   historyStalled,
   haemochromatosis,
+  haemochromatosisF47,
   hashimotoEarly,
   hashimotoScratch,
   healthy,
@@ -209,7 +213,9 @@ export const JOURNEYS: Journey[] = [
   lmhr,
   lmhrScratch,
   mcas,
+  pcosInterview,
   pernicious,
+  screeningSmoker,
   sibo,
   wilson,
 ].map((j) => j as unknown as Journey);

@@ -1,41 +1,38 @@
 {
-  "id": "interview_fatigue_coffee_m41",
-  "title": "Man 41, flat every afternoon: the timing explains it, not a disease",
+  "id": "screening_f52_smoker",
+  "title": "Woman 52, 30 pack-years, never screened: mammography and a low-dose CT, and never a PSA",
   "today": "2026-08-31",
   "start": {
     "facts": {
-      "sex": "male",
-      "birth_year": 1985,
+      "sex": "female",
+      "birth_year": 1974,
       "country": "RO",
-      "height_cm": "182",
-      "waist_cm": "80",
-      "bp_home": "112/70",
-      "resting_hr": "54",
-      "grip_kg": "56",
-      "smoking": "Never",
-      "sleep_snoring": "No",
-      "family_history": "none known",
+      "height_cm": "164",
+      "waist_cm": "86",
+      "smoking": "Current",
       "conditions": "none",
       "medications": "No",
       "supplements": "No",
-      "screening_dates": "none due",
-      "sym_energy": "Yes",
+      "menopause_status": "Peri",
+      "screening_dates": "none, never had any of them",
+      "family_history": "none known",
+      "bp_home": "126/78",
+      "resting_hr": "72",
+      "grip_kg": "26",
+      "sym_energy": "No",
       "sym_cold": "No",
       "sym_weight": "No",
       "sym_hair_skin": "No",
+      "sleep_snoring": "No",
       "sym_sleepiness": "No",
       "sym_phq2_interest": "Not at all",
       "sym_phq2_down": "Not at all",
       "sym_bowel": "Neither",
+      "sym_cycle": "Irregular",
+      "hirsutism_acne": "No",
       "sym_joint": "No",
       "sym_thirst": "No",
       "sym_alcohol": "Monthly or less",
-      "sym_energy_duration": "Over a month",
-      "energy_when": "Afternoons",
-      "coffee_last_hour": "16:00",
-      "bedtime_hour": "23:00",
-      "last_meal_hour": "20:00",
-      "dairy_daily": "Yes",
       "sym_salt_craving": "No",
       "sym_dizzy_standing": "No",
       "sym_tremor": "No",
@@ -104,13 +101,13 @@
       },
       {
         "code": "hs_crp",
-        "value": 0.4,
+        "value": 1.2,
         "unit": "mg/L",
         "date": "2026-08-01"
       },
       {
         "code": "creatinine",
-        "value": 0.95,
+        "value": 0.76,
         "unit": "mg/dL",
         "date": "2026-08-01"
       },
@@ -152,13 +149,13 @@
       },
       {
         "code": "hemoglobin",
-        "value": 15.1,
+        "value": 13.8,
         "unit": "g/dL",
         "date": "2026-08-01"
       },
       {
         "code": "hematocrit",
-        "value": 45,
+        "value": 42,
         "unit": "%",
         "date": "2026-08-01"
       },
@@ -182,7 +179,7 @@
       },
       {
         "code": "ferritin",
-        "value": 120,
+        "value": 96,
         "unit": "ng/mL",
         "date": "2026-08-01"
       },
@@ -230,13 +227,13 @@
       },
       {
         "code": "uric_acid",
-        "value": 4.8,
+        "value": 4.6,
         "unit": "mg/dL",
         "date": "2026-08-01"
       },
       {
         "code": "testosterone",
-        "value": 640,
+        "value": 42,
         "unit": "ng/dL",
         "date": "2026-08-01"
       },
@@ -287,56 +284,133 @@
         "date": "2026-08-01"
       },
       {
-        "code": "psa_total",
-        "value": 0.8,
+        "code": "ogtt_2h_glucose",
+        "value": 110,
+        "date": "2026-08-01"
+      },
+      {
+        "code": "vo2max_est",
+        "value": 45,
+        "date": "2026-08-01"
+      },
+      {
+        "code": "ogtt_insulin_120",
+        "value": 30,
+        "date": "2026-08-01"
+      },
+      {
+        "code": "stop_bang",
+        "value": 1,
+        "date": "2026-08-01"
+      },
+      {
+        "code": "phq9_score",
+        "value": 3,
+        "date": "2026-08-01"
+      },
+      {
+        "code": "liver_ultrasound",
+        "value": 0,
+        "date": "2026-08-01"
+      },
+      {
+        "code": "anti_thyroglobulin",
+        "value": 10,
+        "date": "2026-08-01"
+      },
+      {
+        "code": "fsh",
+        "value": 6,
+        "date": "2026-08-01"
+      },
+      {
+        "code": "estradiol",
+        "value": 6,
+        "date": "2026-08-01"
+      },
+      {
+        "code": "dexa_t_score",
+        "value": -0.5,
+        "date": "2026-08-01"
+      },
+      {
+        "code": "cac_score",
+        "value": 0,
+        "date": "2026-08-01"
+      },
+      {
+        "code": "holotranscobalamin",
+        "value": 70,
+        "date": "2026-08-01"
+      },
+      {
+        "code": "breath_h2_peak",
+        "value": 8,
+        "date": "2026-08-01"
+      },
+      {
+        "code": "folate_rbc",
+        "value": 420,
+        "date": "2026-08-01"
+      },
+      {
+        "code": "reticulocytes",
+        "value": 1.2,
+        "date": "2026-08-01"
+      },
+      {
+        "code": "ttg_iga",
+        "value": 2,
+        "date": "2026-08-01"
+      },
+      {
+        "code": "total_iga",
+        "value": 180,
+        "date": "2026-08-01"
+      },
+      {
+        "code": "hemoglobin_electrophoresis",
+        "value": 0,
         "date": "2026-08-01"
       }
     ]
   },
   "truth": {
     "conditions": [
-      "cancer_screening_due"
+      "cancer_screening_due",
+      "perimenopause"
     ],
     "answers": {
-      "sym_energy": "Yes",
-      "sym_energy_duration": "Over a month",
-      "energy_when": "Afternoons",
-      "coffee_last_hour": "16:00",
-      "bedtime_hour": "23:00"
+      "screening_dates": "none, never had any of them",
+      "smoking": "Current",
+      "family_history": "none known",
+      "sym_energy": "No",
+      "bp_home": "126/78",
+      "resting_hr": "72",
+      "grip_kg": "26"
     },
     "labs": {
-      "reticulocyte_hemoglobin": 33.0
+      "mammography_done": 0,
+      "ldct_done": 0,
+      "colonoscopy_done": 0,
+      "psa_total": 0.8
     },
     "defaultAnswer": "No",
     "defaultLab": "typicalNeg"
   },
-  "budget": 180,
+  "budget": 300,
   "maxSteps": 6,
   "expect": {
     "discover": [],
-    "noFalseLikely": true,
-    "stop": "exhausted",
-    "withinDraws": 5,
-    "withinEur": 160,
-    "activeEdges": [
-      "coffee_after_15->sym_energy@afternoons"
-    ],
-    "belowPossible": [
-      "hypothyroidism",
-      "iron_deficiency",
-      "sleep_apnoea",
-      "depression",
-      "b12_deficiency"
+    "reaches": {
+      "cancer_screening_due": 0.6
+    },
+    "orders": [
+      "Mammography",
+      "Colonoscopy"
     ],
     "notOrders": [
-      "TSH",
-      "Ferritin",
-      "sleep study",
-      "B12",
-      "Vitamin B12",
-      "Mammography",
-      "PSA discussion",
-      "Low-dose CT"
+      "PSA discussion"
     ]
   }
 }

@@ -22,6 +22,7 @@ import {
   hkbTests,
   userConditions,
 } from "@/db";
+import { CATALOG } from "./hkb-catalog";
 import { poolMembers, sizeOf } from "./hkb-pool";
 import {
   HYPOTHESES,
@@ -129,6 +130,31 @@ export interface CatalogRows {
 }
 
 /* ── rows → catalog ───────────────────────────────────────────────────── */
+
+/**
+ * Who each test is for, by its name.
+ *
+ * ponytail: `hkb_tests` has no column for a gate and this phase adds no
+ * migration, so the gate stays where a human reads it — on the discriminator
+ * in `lib/hkb-catalog.ts` — and the read side puts it back on the way out. The
+ * name is the join because it is what both sides already carry (`testId` is
+ * only a slug of it). A test row that no catalog discriminator names keeps no
+ * gate, which is the same answer it had before.
+ */
+const TEST_GATES: Map<
+  string,
+  Pick<Discriminator, "appliesTo" | "requiresFact">
+> = new Map(
+  CATALOG.flatMap((h) => h.discriminators)
+    .filter((d) => d.appliesTo || d.requiresFact)
+    .map((d) => [
+      d.test,
+      {
+        ...(d.appliesTo ? { appliesTo: d.appliesTo } : {}),
+        ...(d.requiresFact ? { requiresFact: d.requiresFact } : {}),
+      },
+    ]),
+);
 
 /** Keys that read a value. Anything else in `condition_on` is demographics. */
 const VALUE_KEYS = [
@@ -258,93 +284,96 @@ export function rowsToCatalog(rows: CatalogRows, awake?: Set<string>): Catalog {
     } as EvidenceRule["when"] & EvidenceRule["input"];
   };
 
-  return withNegatives(inDependencyOrder(
-    rows.conditions.filter((c) => c.inCatalog || awake?.has(c.id)),
-    rows.evidence,
-  ).map((c): Hypothesis => {
-    const mine = rows.priors.filter((p) => p.conditionId === c.id);
-    const isBase = (p: PriorRow) =>
-      !p.country && !p.sex && p.ageMin == null && p.ageMax == null;
-    const prior = mine.find(isBase) ?? mine[0];
-    const bands = mine.filter((p) => !isBase(p));
+  return withNegatives(
+    inDependencyOrder(
+      rows.conditions.filter((c) => c.inCatalog || awake?.has(c.id)),
+      rows.evidence,
+    ).map((c): Hypothesis => {
+      const mine = rows.priors.filter((p) => p.conditionId === c.id);
+      const isBase = (p: PriorRow) =>
+        !p.country && !p.sex && p.ageMin == null && p.ageMax == null;
+      const prior = mine.find(isBase) ?? mine[0];
+      const bands = mine.filter((p) => !isBase(p));
 
-    const evidence = pooledEvidence(
-      rows.evidence.filter(
-        (e) =>
-          e.conditionId === c.id &&
-          (e.status === "seed" || e.status === "accepted") &&
-          e.grade !== "D" &&
-          e.grade !== "E",
-      ),
-    );
+      const evidence = pooledEvidence(
+        rows.evidence.filter(
+          (e) =>
+            e.conditionId === c.id &&
+            (e.status === "seed" || e.status === "accepted") &&
+            e.grade !== "D" &&
+            e.grade !== "E",
+        ),
+      );
 
-    const discriminators: Discriminator[] = rows.links
-      .filter((l) => l.conditionId === c.id)
-      .map((l) => testsById.get(l.testId))
-      .filter((t): t is TestRow => !!t)
-      .map((t) => {
-        const first = t.featureIds[0]!;
-        return {
-          test: t.name,
-          codes: t.featureIds,
-          cost: t.cost as Discriminator["cost"],
-          lrPos: t.lrPos,
-          lrNeg: t.lrNeg,
-          howTo: t.howTo ?? undefined,
-          typicalPos: t.typicalPos?.[first] ?? undefined,
-          typicalNeg: t.typicalNeg?.[first] ?? undefined,
-          unit: units.get(`metric:${first}`) ?? undefined,
-          repeatable: t.repeatable || undefined,
-          costByCountry: t.costByCountry ?? undefined,
-        };
-      });
+      const discriminators: Discriminator[] = rows.links
+        .filter((l) => l.conditionId === c.id)
+        .map((l) => testsById.get(l.testId))
+        .filter((t): t is TestRow => !!t)
+        .map((t) => {
+          const first = t.featureIds[0]!;
+          return {
+            ...(TEST_GATES.get(t.name) ?? {}),
+            test: t.name,
+            codes: t.featureIds,
+            cost: t.cost as Discriminator["cost"],
+            lrPos: t.lrPos,
+            lrNeg: t.lrNeg,
+            howTo: t.howTo ?? undefined,
+            typicalPos: t.typicalPos?.[first] ?? undefined,
+            typicalNeg: t.typicalNeg?.[first] ?? undefined,
+            unit: units.get(`metric:${first}`) ?? undefined,
+            repeatable: t.repeatable || undefined,
+            costByCountry: t.costByCountry ?? undefined,
+          };
+        });
 
-    return {
-      id: c.id,
-      name: c.name,
-      summary: c.summary,
-      management: c.management,
-      priors: {
-        base: prior?.prevalence ?? 0.01,
-        source: prior?.source,
-        ...(bands.length
-          ? {
-              bands: bands.map((b) => ({
-                country: b.country,
-                sex: b.sex as PriorBand["sex"],
-                ageMin: b.ageMin,
-                ageMax: b.ageMax,
-                prevalence: b.prevalence,
-                source: b.source,
-              })),
-            }
-          : {}),
-        modifiers: rows.modifiers
-          .filter((m) => m.conditionId === c.id)
-          .map((m) => ({
-            when: whenOf(m.featureId, m.conditionOn),
-            times: m.times,
-            why: m.why,
-          })),
-      },
-      evidence,
-      discriminators,
-      lenses: c.lenses as Hypothesis["lenses"],
-      appliesTo: (c.appliesTo as Hypothesis["appliesTo"]) ?? undefined,
-      requires: c.requires
-        ? { id: c.requires.condition, minScore: c.requires.minState }
-        : undefined,
-      confirmAtLrPos: c.confirmAtLrPos ?? undefined,
-      patternId: c.patternId ?? undefined,
-      burdenDaly: c.burdenDaly ?? undefined,
-      mondoId: c.mondoId ?? undefined,
-      why: c.why ?? undefined,
-      parentId: c.parentId ?? undefined,
-      // Ring 1 is the default everywhere, so it is left off: the in-code
-      // catalog has no `ring` and the round-trip test compares the two.
-      ...(c.ring && c.ring !== 1 ? { ring: c.ring } : {}),
-    };
-  }));
+      return {
+        id: c.id,
+        name: c.name,
+        summary: c.summary,
+        management: c.management,
+        priors: {
+          base: prior?.prevalence ?? 0.01,
+          source: prior?.source,
+          ...(bands.length
+            ? {
+                bands: bands.map((b) => ({
+                  country: b.country,
+                  sex: b.sex as PriorBand["sex"],
+                  ageMin: b.ageMin,
+                  ageMax: b.ageMax,
+                  prevalence: b.prevalence,
+                  source: b.source,
+                })),
+              }
+            : {}),
+          modifiers: rows.modifiers
+            .filter((m) => m.conditionId === c.id)
+            .map((m) => ({
+              when: whenOf(m.featureId, m.conditionOn),
+              times: m.times,
+              why: m.why,
+            })),
+        },
+        evidence,
+        discriminators,
+        lenses: c.lenses as Hypothesis["lenses"],
+        appliesTo: (c.appliesTo as Hypothesis["appliesTo"]) ?? undefined,
+        requires: c.requires
+          ? { id: c.requires.condition, minScore: c.requires.minState }
+          : undefined,
+        confirmAtLrPos: c.confirmAtLrPos ?? undefined,
+        patternId: c.patternId ?? undefined,
+        burdenDaly: c.burdenDaly ?? undefined,
+        mondoId: c.mondoId ?? undefined,
+        why: c.why ?? undefined,
+        parentId: c.parentId ?? undefined,
+        // Ring 1 is the default everywhere, so it is left off: the in-code
+        // catalog has no `ring` and the round-trip test compares the two.
+        ...(c.ring && c.ring !== 1 ? { ring: c.ring } : {}),
+      };
+    }),
+  );
 }
 
 /* ── the database read ────────────────────────────────────────────────── */

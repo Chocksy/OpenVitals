@@ -14,11 +14,17 @@ const input = (over: Partial<ModelInput> = {}): ModelInput => ({
 });
 
 describe("SYMPTOMS", () => {
-  it("is twelve core items, with the mood one asked as two questions", () => {
+  it("is twelve core items; the mood and cycle ones are asked as two questions", () => {
     const core = SYMPTOM_ITEMS.filter((i) => i.item <= 12);
     expect(core).toHaveLength(12);
-    expect(SYMPTOMS.filter((s) => s.item <= 12)).toHaveLength(13);
+    expect(SYMPTOMS.filter((s) => s.item <= 12)).toHaveLength(14);
+    // item 7 is PHQ-2; item 9 is the cycle and, since phase 21, the second
+    // Rotterdam criterion next to it.
     expect(SYMPTOM_ITEMS[6]!.questions).toHaveLength(2);
+    expect(SYMPTOM_ITEMS[8]!.questions.map((q) => q.key)).toEqual([
+      "sym_cycle",
+      "hirsutism_acne",
+    ]);
   });
 
   it("adds the rare-disease block after the twelve, one question each", () => {
@@ -49,7 +55,9 @@ describe("SYMPTOMS", () => {
 
   it("has an evidence rule somewhere in the catalog for every item", () => {
     const read = new Set(
-      CATALOG.flatMap((h) => h.evidence.map((e) => e.input.fact)).filter(Boolean),
+      CATALOG.flatMap((h) => h.evidence.map((e) => e.input.fact)).filter(
+        Boolean,
+      ),
     );
     for (const s of SYMPTOMS) expect(read.has(s.key)).toBe(true);
   });

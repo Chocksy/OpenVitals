@@ -676,6 +676,30 @@ const ASKED: Record<
     options: ["Pre", "Peri", "Post"],
     revisitDays: 365, // and never again once the answer is "Post"
   },
+  // Two answers a rule has always read and nobody has ever been able to give.
+  // Neither is a vector, so the interview never asks them cold; they are here
+  // so the composer and `/api/facts` can write them and the rule can fire.
+  // Phase 21.
+  neck_cm: {
+    question: "What is your neck circumference, in centimetres?",
+    free: true,
+    // Chung 2008 Anesthesiology (STOP-Bang): the collar-size item, 43 cm in
+    // men and 41 in women.
+    revisitDays: 365,
+  },
+  diet: {
+    question: "How would you describe the way you eat?",
+    options: [
+      "Omnivore",
+      "Pescatarian",
+      "Vegetarian",
+      "Vegan",
+      "Low-carb or keto",
+      "Mediterranean",
+    ],
+    revisitDays: 365, // people change how they eat about once a year, at most
+  },
+
   cac_score: {
     question:
       "Have you ever had a coronary calcium (CAC) score? Give the number and the year.",

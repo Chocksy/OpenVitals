@@ -165,16 +165,8 @@ const PATCHES: Record<string, Patch> = {
     mondoId: "MONDO:0008487",
     why: "PCOS affects 8–13 % of women of reproductive age and is the commonest cause of anovulatory infertility (Teede 2023 international evidence-based guideline).",
     evidence: [
-      {
-        id: "pcos_cycle_irregular",
-        input: { fact: "sym_cycle" },
-        when: { includes: "irregular|absent" },
-        lr: 5,
-        lrNeg: 0.3,
-        grade: "A",
-        source:
-          "Rotterdam 2004 / Teede 2023: oligo-anovulation is one of the three diagnostic criteria, and regular cycles make the diagnosis very unlikely.",
-      },
+      // `pcos_cycle_irregular` moved to `lib/hypotheses.ts` in phase 21: it was
+      // the second rule over one answer, and the offline catalog needs it too.
       {
         id: "pcos_weight_gained",
         input: { fact: "sym_weight" },
@@ -190,16 +182,8 @@ const PATCHES: Record<string, Patch> = {
     mondoId: "MONDO:0007147",
     why: "Moderate-to-severe sleep apnoea affects ~13 % of men and 6 % of women aged 30–70 and roughly doubles cardiovascular mortality (Peppard 2013 Am J Epidemiol; Marin 2005 Lancet).",
     evidence: [
-      {
-        id: "osa_sleepiness",
-        input: { fact: "sym_sleepiness" },
-        when: { equals: "Yes" },
-        lr: 2,
-        lrNeg: 0.7,
-        grade: "B",
-        source:
-          "Chung 2008 Anesthesiology (STOP-Bang): tiredness and observed apnoea each add about a doubling; sleepiness alone is the weaker half of the pair.",
-      },
+      // `osa_sleepiness` moved to `lib/hypotheses.ts` in phase 21: it was the
+      // same id twice, once over a fact nobody writes.
       {
         id: "osa_weight_gained",
         input: { fact: "sym_weight" },
@@ -1110,11 +1094,13 @@ const ALCOHOL_USE_DISORDER: Hypothesis = {
       id: "aud_audit_c_never",
       input: { fact: "sym_alcohol" },
       when: { equals: "Never" },
-      lr: 1,
-      lrNeg: 1,
+      // This IS the negative finding, so it carries no `lrNeg`: everybody who
+      // is not a "Never" is covered by the frequency rules above and below.
+      // It sat at lr 1 / lrNeg 1, which is a rule that does nothing.
+      lr: 0.1,
       grade: "B",
       source:
-        "Bush 1998 Arch Intern Med: a zero on AUDIT-C item 1 scores the whole instrument zero, which excludes the disorder.",
+        "Bush 1998 Arch Intern Med (AUDIT-C validation): a zero on item 1 scores the whole instrument zero, and an AUDIT-C of zero has a negative predictive value near 99 % for heavy drinking, so 0.1 is the order of the contrast.",
     },
     {
       id: "aud_ggt",
@@ -2155,12 +2141,22 @@ const GOUT_HYPERURICAEMIA: Hypothesis = {
     {
       id: "gout_urate_high",
       input: { metric: "uric_acid" },
-      when: { above: 7 },
+      when: { above: 7, sex: "male" },
       lr: 4,
       lrNeg: 0.3,
       grade: "A",
       source:
-        "Campion 1987 Am J Med (Normative Aging Study): incidence rises steeply above 7 mg/dL, which is roughly the solubility limit of urate at body temperature.",
+        "Campion 1987 Am J Med (Normative Aging Study): incidence rises steeply above 7 mg/dL, which is roughly the solubility limit of urate at body temperature. The saturation-referenced definition of hyperuricaemia (Bardin 2014 Curr Opin Rheumatol; ACR usage) is 7 mg/dL in men and 6 in women.",
+    },
+    {
+      id: "gout_urate_high_female",
+      input: { metric: "uric_acid" },
+      when: { above: 6, sex: "female" },
+      lr: 4,
+      lrNeg: 0.3,
+      grade: "A",
+      source:
+        "The saturation-referenced definition of hyperuricaemia (Bardin 2014 Curr Opin Rheumatol; ACR usage): 7 mg/dL in men and 6 mg/dL in women, because oestrogen is uricosuric and the female reference range sits a whole milligram lower.",
     },
     {
       id: "gout_urate_very_high",
@@ -2504,11 +2500,21 @@ const HAEMOCHROMATOSIS: Hypothesis = {
     {
       id: "hfe_ferritin_high",
       input: { metric: "ferritin" },
-      when: { above: 300 },
+      when: { above: 300, sex: "male" },
       lr: 3,
       grade: "A",
       source:
-        "EASL 2022: ferritin above 300 µg/L in men and 200 in women is the second screening arm, but it also rises with inflammation, alcohol and fatty liver.",
+        "EASL 2022 Clinical Practice Guidelines on haemochromatosis (J Hepatol): ferritin above 300 µg/L in men and 200 in women, with a raised transferrin saturation, is the phenotypic case definition. It also rises with inflammation, alcohol and fatty liver.",
+      confoundedBy: ["ferritin"],
+    },
+    {
+      id: "hfe_ferritin_high_female",
+      input: { metric: "ferritin" },
+      when: { above: 200, sex: "female" },
+      lr: 3,
+      grade: "A",
+      source:
+        "EASL 2022 Clinical Practice Guidelines on haemochromatosis (J Hepatol): ferritin above 300 µg/L in men and 200 in women, with a raised transferrin saturation, is the phenotypic case definition. The 300 cut applied to a woman is how the diagnosis gets missed for a decade.",
       confoundedBy: ["ferritin"],
     },
     {
@@ -2966,6 +2972,10 @@ const CANCER_SCREENING_DUE: Hypothesis = {
       lrNeg: 0.2,
       typicalPos: 0,
       typicalNeg: 1,
+      // USPSTF 2021 colorectal recommendation: screening starts at 45. The
+      // condition applies from 40 because mammography does; nothing bowel-
+      // related is owed to a 41-year-old.
+      appliesTo: { minAge: 45 },
       howTo:
         "From 45, every ten years if it is clean. A faecal immunochemical test every year is the cheaper alternative with almost as much mortality evidence.",
     },
@@ -2977,6 +2987,10 @@ const CANCER_SCREENING_DUE: Hypothesis = {
       lrNeg: 0.25,
       typicalPos: 0,
       typicalNeg: 1,
+      // The condition applies to everybody past 40; this test does not.
+      // USPSTF 2024 breast cancer recommendation: biennial mammography for
+      // women from 40 to 74.
+      appliesTo: { sex: "female", minAge: 40 },
       howTo:
         "Every two years from 50, and from 40 by preference or family history.",
     },
@@ -2988,6 +3002,11 @@ const CANCER_SCREENING_DUE: Hypothesis = {
       lrNeg: 0.3,
       typicalPos: 0,
       typicalNeg: 1,
+      // USPSTF 2021 lung cancer recommendation: annual low-dose CT from 50 for
+      // a 20 pack-year history, current or quit within 15 years. A never-smoker
+      // is not a candidate at any age.
+      appliesTo: { minAge: 50 },
+      requiresFact: { fact: "smoking", includes: "current|former" },
       howTo:
         "Annually from 50 with a 20 pack-year history, current or quit within 15 years. The one screening test with a mortality benefit in smokers (NLST 2011 NEJM).",
     },
@@ -3000,6 +3019,11 @@ const CANCER_SCREENING_DUE: Hypothesis = {
       typicalPos: 6,
       typicalNeg: 0.8,
       unit: "ng/mL",
+      // USPSTF 2018 prostate recommendation: an individual decision from 55 to
+      // 69, brought forward to 45 by family history or Black ancestry. 45 is
+      // the earliest age at which the conversation is ever right, and the howTo
+      // says the rest.
+      appliesTo: { sex: "male", minAge: 45 },
       howTo:
         "A conversation before a blood test, from 50, or 45 with family history. The benefit is real and small and the overdiagnosis is real and large.",
     },
@@ -3178,7 +3202,6 @@ const GENOME_MODIFIERS: Record<string, Hypothesis["priors"]["modifiers"]> = {
   ],
 };
 
-
 /* ── trend evidence (phase 17, section 4) ─────────────────────────────── *
  *
  * A direction is a fact in its own right. A TSH of 3.1 says little; a TSH of
@@ -3313,24 +3336,26 @@ function withGenomeAndTrends(h: Hypothesis): Hypothesis {
 }
 
 /** The eight, patched, plus the twenty-four. Thirty-two conditions. */
-export const CATALOG: Catalog = withNegatives([
-  ...HYPOTHESES.map((h): Hypothesis => {
-    const patch = PATCHES[h.id];
-    if (!patch) return h;
-    const { evidence, modifiers, ...rest } = patch;
-    return {
-      ...h,
-      ...rest,
-      evidence: [...h.evidence, ...(evidence ?? [])],
-      priors: {
-        ...h.priors,
-        bands: PRIOR_BANDS[h.id],
-        modifiers: [...h.priors.modifiers, ...(modifiers ?? [])],
-      },
-    };
-  }),
-  ...NEW,
-].map(withGenomeAndTrends));
+export const CATALOG: Catalog = withNegatives(
+  [
+    ...HYPOTHESES.map((h): Hypothesis => {
+      const patch = PATCHES[h.id];
+      if (!patch) return h;
+      const { evidence, modifiers, ...rest } = patch;
+      return {
+        ...h,
+        ...rest,
+        evidence: [...h.evidence, ...(evidence ?? [])],
+        priors: {
+          ...h.priors,
+          bands: PRIOR_BANDS[h.id],
+          modifiers: [...h.priors.modifiers, ...(modifiers ?? [])],
+        },
+      };
+    }),
+    ...NEW,
+  ].map(withGenomeAndTrends),
+);
 
 /** Every prior band and every evidence row needs one, so it is worth asserting. */
 export const missingSources = (catalog: Catalog = CATALOG): string[] => [

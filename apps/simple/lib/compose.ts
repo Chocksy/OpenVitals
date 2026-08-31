@@ -442,10 +442,25 @@ export const SYNONYMS: Record<string, [string, RegExp][]> = {
   sym_cycle: [
     [
       "Irregular",
-      /\b(irregular periods?|cycle is irregular|periods? all over)\b/i,
+      /\b(irregular periods?|cycle is irregular|periods? (are |have been |has been |were )?all over)\b/i,
     ],
     ["Heavy", /\b(heavy periods?|heavy bleeding|flooding)\b/i],
     ["Absent", /\b(no periods?|periods? stopped|missed my period)\b/i],
+  ],
+  // The second Rotterdam criterion, next to the cycle above it. "Breaking out"
+  // is how people say persistent acne; the hair words are the hirsutism half.
+  hirsutism_acne: [
+    [
+      "Yes",
+      /\b(break(ing)? out|acne|spots on my (chin|jaw|face)|dark hairs?|facial hair|hair on my (chin|face|chest|stomach)|hirsut\w*)\b/i,
+    ],
+  ],
+  diet: [
+    ["Vegan", /\b(vegan|plant-?based)\b/i],
+    ["Vegetarian", /\b(vegetarian|I do not eat meat|no meat)\b/i],
+    ["Pescatarian", /\b(pescatarian|only fish)\b/i],
+    ["Low-carb or keto", /\b(low-?carb|keto(genic)?)\b/i],
+    ["Mediterranean", /\b(mediterranean diet)\b/i],
   ],
   sym_joint: [
     ["Yes", /\b(gout|swollen (big )?toe|hot swollen joint|podagra)\b/i],

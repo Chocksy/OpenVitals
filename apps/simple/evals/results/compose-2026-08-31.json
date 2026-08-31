@@ -1,5 +1,5 @@
 {
-  "ranAt": "2026-08-31T14:15:03.931Z",
+  "ranAt": "2026-08-31T16:35:23.249Z",
   "model": "google/gemini-3.7-flash",
   "results": [
     {
@@ -235,6 +235,26 @@
           "smoking=Former"
         ],
         "followUp": "sym_weight_amount",
+        "failed": []
+      },
+      "pass": true
+    },
+    {
+      "id": "ramona_irregular_and_acne",
+      "rules": {
+        "chips": [
+          "sym_cycle=Irregular",
+          "hirsutism_acne=Yes"
+        ],
+        "followUp": "cycle_length_days",
+        "failed": []
+      },
+      "model": {
+        "chips": [
+          "sym_cycle=Irregular",
+          "hirsutism_acne=Yes"
+        ],
+        "followUp": "cycle_length_days",
         "failed": []
       },
       "pass": true

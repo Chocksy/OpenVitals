@@ -47,6 +47,14 @@ export interface EvidenceRule {
     above?: number;
     below?: number;
     equals?: string;
+    /**
+     * Who the cut is for. Three markers are read against a different number in
+     * men and in women (ferritin, urate, haematocrit), so the rule is written
+     * twice rather than once against the male cut. AND'd with everything else;
+     * a rule with a `sex` and a person with no sex answer is missing, not
+     * false, because "we do not know" is not "no".
+     */
+    sex?: Sex;
     /** substring; "a|b" matches either */
     includes?: string;
     status?: "red" | "amber";
@@ -98,6 +106,15 @@ export interface Discriminator {
   unit?: string;
   /** a repeat of a test that is already done still counts as a next test */
   repeatable?: boolean;
+  /**
+   * Who the test is for at all. A condition's own `appliesTo` gates the
+   * condition; this gates one test inside it, which is what "cancer screening
+   * is overdue" needs: it applies to everybody past 40 and its mammography
+   * does not. Without it the engine offered a 41-year-old man a mammogram.
+   */
+  appliesTo?: { sex?: Sex; minAge?: number; maxAge?: number };
+  /** the answer that has to hold before the test makes sense at all */
+  requiresFact?: { fact: string; includes: string };
   /** list price in euros by ISO-3166 alpha-2, from `hkb_tests.cost_by_country` */
   costByCountry?: Record<string, number>;
 }
@@ -606,6 +623,12 @@ const IRON_DEFICIENCY: Hypothesis = {
     modifiers: [],
   },
   evidence: [
+    // The four ferritin cuts below carry no `when.sex` on purpose. Ferritin is
+    // read against a different number in men and in women when the question is
+    // iron *overload* (EASL 2022: 300 vs 200), but the deficiency cuts are the
+    // same for everybody: WHO 2020 (Serum ferritin concentrations for the
+    // assessment of iron status) puts depleted stores at 15 µg/L in every adult
+    // and 30 is the ruling-in cut Guyatt 1992 pooled over both sexes.
     {
       id: "iron_ferritin_30",
       input: { metric: "ferritin" },
@@ -886,19 +909,24 @@ const PCOS: Hypothesis = {
   },
   evidence: [
     {
-      id: "pcos_cycles",
-      input: { fact: "cycle_regularity" },
-      when: { includes: "irregular|absent|oligo" },
-      lr: 4,
-      lrNeg: 0.4,
+      // Phase 21: this was `pcos_cycles` reading a `cycle_regularity` nobody
+      // asks and nobody stores, so one of the three Rotterdam criteria could
+      // never fire, while `lib/hkb-catalog.ts` patched in a second rule over
+      // the answer the interview does write. One rule now, here, with the
+      // patch's numbers, so the fallback catalog and the database agree.
+      id: "pcos_cycle_irregular",
+      input: { fact: "sym_cycle" },
+      when: { includes: "irregular|absent" },
+      lr: 5,
+      lrNeg: 0.3,
       grade: "A",
       source:
-        "Rotterdam 2003 criteria: oligo- or anovulation is one of the three defining features. The negative LR of 0.4 is a curated grade C: regular ovulatory cycles remove one of the three, and most of the syndrome with it.",
+        "Rotterdam 2004 / Teede 2023: oligo-anovulation is one of the three diagnostic criteria, and regular cycles make the diagnosis very unlikely.",
     },
     {
       id: "pcos_hirsutism",
       input: { fact: "hirsutism_acne" },
-      when: { includes: "yes|hirsut|acne" },
+      when: { equals: "Yes" },
       lr: 3,
       lrNeg: 0.6,
       grade: "A",
@@ -1046,8 +1074,12 @@ const SLEEP_APNOEA: Hypothesis = {
     },
     {
       id: "osa_sleepiness",
-      input: { fact: "daytime_sleepiness" },
-      when: { includes: "yes|often|most" },
+      // Phase 21: this read a `daytime_sleepiness` nobody ever wrote, while
+      // `lib/hkb-catalog.ts` patched in a second rule with the same id over
+      // `sym_sleepiness`, which is what the interview and the composer write.
+      // One rule now, here, so both catalogs say the same thing.
+      input: { fact: "sym_sleepiness" },
+      when: { equals: "Yes" },
       lr: 2,
       lrNeg: 0.6,
       grade: "A",
@@ -1085,11 +1117,21 @@ const SLEEP_APNOEA: Hypothesis = {
     {
       id: "osa_hematocrit",
       input: { metric: "hematocrit" },
-      when: { above: 50 },
+      when: { above: 49, sex: "male" },
       lr: 1.5,
       grade: "B",
       source:
-        "Nocturnal hypoxia raises erythropoietin; a high haematocrit with no other cause is a hint.",
+        "Nocturnal hypoxia raises erythropoietin; a high haematocrit with no other cause is a hint. WHO 2016 polycythaemia thresholds (Arber 2016 Blood): haematocrit 49 % in men and 48 % in women mark absolute erythrocytosis.",
+      confoundedBy: ["hematocrit"],
+    },
+    {
+      id: "osa_hematocrit_female",
+      input: { metric: "hematocrit" },
+      when: { above: 48, sex: "female" },
+      lr: 1.5,
+      grade: "B",
+      source:
+        "Nocturnal hypoxia raises erythropoietin; a high haematocrit with no other cause is a hint. WHO 2016 polycythaemia thresholds (Arber 2016 Blood): haematocrit 49 % in men and 48 % in women mark absolute erythrocytosis.",
       confoundedBy: ["hematocrit"],
     },
     {
@@ -1417,9 +1459,7 @@ export function withNegatives(catalog: Catalog): Catalog {
     // A trend rule is about the direction, not about the level, so it is not
     // the "second opinion" that makes a marker ambiguous.
     const rulesOn = (code: string) =>
-      h.evidence.filter(
-        (e) => e.input.metric === code && !e.when.slopePerYear,
-      );
+      h.evidence.filter((e) => e.input.metric === code && !e.when.slopePerYear);
     const patch = new Map<string, number>();
     for (const d of h.discriminators) {
       if (d.lrNeg == null || d.lrNeg >= 1) continue;
@@ -1604,6 +1644,12 @@ const FACT_METRICS: Record<string, string[]> = {
   bp_systolic: ["bp_systolic"],
 };
 
+/**
+ * The facts `syntheticFact` computes rather than anybody answering them. The
+ * catalog sanity suite reads this to tell a computed fact from an orphan one.
+ */
+export const SYNTHETIC_FACTS = new Set(Object.keys(FACT_METRICS));
+
 interface Resolved {
   label: string;
   value: number | null;
@@ -1701,8 +1747,18 @@ function inputKey(rule: EvidenceRule): string {
 }
 
 /** Does the condition hold? `null` when the input cannot answer the question. */
-function holds(when: EvidenceRule["when"], r: Resolved): boolean | null {
+function holds(
+  when: EvidenceRule["when"],
+  r: Resolved,
+  sex?: Sex | null,
+): boolean | null {
   const checks: boolean[] = [];
+  if (when.sex != null) {
+    // A cut written for men says nothing about a person whose sex we have not
+    // been told, so it is missing rather than false.
+    if (sex == null) return null;
+    checks.push(sex === when.sex);
+  }
   if (when.slopePerYear != null) {
     const slope = r.row?.slope ?? r.slope;
     // No slope is not a flat slope: three draws over five years is the price
@@ -1823,7 +1879,14 @@ export function priorFor(
 }
 
 function gateOpen(h: Hypothesis, m: ModelInput): boolean {
-  const gate = h.appliesTo;
+  return openFor(h.appliesTo, m);
+}
+
+/** sex, and the age band, the way every gate in the app reads them. */
+function openFor(
+  gate: { sex?: Sex; minAge?: number; maxAge?: number } | undefined,
+  m: ModelInput,
+): boolean {
   if (!gate) return true;
   if (gate.sex && m.sex !== gate.sex) return false;
   if (gate.minAge != null && (m.age == null || m.age < gate.minAge))
@@ -1831,6 +1894,29 @@ function gateOpen(h: Hypothesis, m: ModelInput): boolean {
   if (gate.maxAge != null && (m.age == null || m.age > gate.maxAge))
     return false;
   return true;
+}
+
+/**
+ * Is this test on the table for this person at all?
+ *
+ * The one gate every consumer uses: `nextTests` and the Simulate list here,
+ * the move list in `lib/infogain.ts`, and through it the tree, the journeys
+ * and `/brain`. A condition can apply to somebody while one of its tests does
+ * not — "cancer screening is overdue" is true of every 41-year-old and its
+ * mammography is not — and `requiresFact` covers the other half: low-dose CT
+ * only means anything to somebody who has smoked.
+ */
+export function discriminatorApplies(d: Discriminator, m: ModelInput): boolean {
+  if (!openFor(d.appliesTo, m)) return false;
+  const need = d.requiresFact;
+  if (!need) return true;
+  const text = factText(m, need.fact);
+  if (text == null) return false;
+  const hay = text.toLowerCase();
+  return need.includes
+    .toLowerCase()
+    .split("|")
+    .some((needle) => hay.includes(needle));
 }
 
 /**
@@ -2032,7 +2118,10 @@ export function scoreHypotheses(
     // (x4) whose mother had a thyroid (x3) took the *prior* for hypothyroidism
     // to 60 % before anything at all was measured, and one dry-skin answer
     // then made it likely. The base rate already counts most of that overlap.
-    modifier = Math.min(Math.max(modifier, 1 / PRIOR_MODIFIER_CAP), PRIOR_MODIFIER_CAP);
+    modifier = Math.min(
+      Math.max(modifier, 1 / PRIOR_MODIFIER_CAP),
+      PRIOR_MODIFIER_CAP,
+    );
     // The ceiling applies to what the modifiers did, not to what the epidemiology
     // says: a published prevalence stays whatever it was measured to be.
     const prior = Math.min(
@@ -2075,7 +2164,7 @@ export function scoreHypotheses(
         });
         continue;
       }
-      const hit = holds(rule.when, r);
+      const hit = holds(rule.when, r, m.sex);
       if (hit == null) {
         missing.push({ rule: rule.id, input: r.label });
         continue;
@@ -2171,7 +2260,8 @@ export function scoreHypotheses(
         ...(e.input.fact ? (FACT_METRICS[e.input.fact] ?? []) : []),
       ]),
     );
-    for (const d of h.discriminators) {
+    const myTests = h.discriminators.filter((d) => discriminatorApplies(d, m));
+    for (const d of myTests) {
       if (d.repeatable || d.codes.some((c) => readCodes.has(c))) continue;
       if (d.typicalPos == null || d.typicalNeg == null) continue;
       const code = d.codes.find((c) => m.latest[c]?.value != null);
@@ -2273,14 +2363,14 @@ export function scoreHypotheses(
     scores.set(h.id, score);
 
     const confirmAt = h.confirmAtLrPos ?? 10;
-    const confirmed = h.discriminators.some(
+    const confirmed = myTests.some(
       (d) => d.lrPos >= confirmAt && d.codes.some((c) => positiveCodes.has(c)),
     );
 
     const measured = (d: Discriminator) =>
       !d.repeatable && d.codes.every((c) => m.latest[c]?.value != null);
 
-    const nextTests = h.discriminators
+    const nextTests = myTests
       .filter((d) => !measured(d))
       .map((d) => {
         const pPos = pFromOdds(odds * d.lrPos);
@@ -2313,7 +2403,7 @@ export function scoreHypotheses(
       nextTests,
       lenses: h.lenses,
       lensWeight: weight ? round2(weight.w * GRADE_WEIGHT[weight.grade]) : 0,
-      tests: h.discriminators.filter((d) => !measured(d)),
+      tests: myTests.filter((d) => !measured(d)),
       summary: h.summary,
       management: h.management,
       patternId: h.patternId,

@@ -1,0 +1,108 @@
+{
+  "id": "haemochromatosis_female_47",
+  "title": "Woman 47, ferritin 260 and saturation 52: the patient the male cut-off misses",
+  "today": "2026-08-31",
+  "start": {
+    "facts": {
+      "sex": "female",
+      "birth_year": 1979,
+      "country": "RO",
+      "height_cm": "166",
+      "medications": "No",
+      "supplements": "No"
+    },
+    "readings": [
+      {
+        "code": "ferritin",
+        "value": 260,
+        "unit": "ng/mL",
+        "date": "2026-08-01"
+      },
+      {
+        "code": "alt",
+        "value": 34,
+        "unit": "U/L",
+        "date": "2026-08-01"
+      },
+      {
+        "code": "ast",
+        "value": 28,
+        "unit": "U/L",
+        "date": "2026-08-01"
+      },
+      {
+        "code": "hemoglobin",
+        "value": 13.6,
+        "unit": "g/dL",
+        "date": "2026-08-01"
+      },
+      {
+        "code": "platelets",
+        "value": 232,
+        "unit": "10^9/L",
+        "date": "2026-08-01"
+      },
+      {
+        "code": "glucose",
+        "value": 92,
+        "unit": "mg/dL",
+        "date": "2026-08-01"
+      },
+      {
+        "code": "creatinine",
+        "value": 0.78,
+        "unit": "mg/dL",
+        "date": "2026-08-01"
+      }
+    ]
+  },
+  "truth": {
+    "conditions": ["haemochromatosis"],
+    "answers": {
+      "sym_joint": "Yes",
+      "sym_energy": "Yes",
+      "menopause_status": "Peri",
+      "family_history": "father liver disease 61",
+      "conditions": "none",
+      "medications": "No",
+      "smoking": "Never",
+      "waist_cm": "76",
+      "bp_home": "118/74",
+      "resting_hr": "66",
+      "grip_kg": "29",
+      "screening_dates": "mammography 2025",
+      "genome:hfe": "C282Y homozygous"
+    },
+    "labs": {
+      "ferritin": 260,
+      "transferrin_saturation": 52,
+      "hfe_genotype": 1,
+      "hba1c": 5.3,
+      "insulin": 6,
+      "hs_crp": 0.5,
+      "esr": 7,
+      "vitamin_d": 30,
+      "vitamin_b12": 430,
+      "tsh": 1.8,
+      "free_t4": 1.2,
+      "uric_acid": 4.4,
+      "ldl_cholesterol": 104,
+      "hdl_cholesterol": 62,
+      "total_cholesterol": 182,
+      "triglycerides": 78,
+      "fibroscan_kpa": 5.4,
+      "mcv": 90,
+      "rdw": 12.8,
+      "reticulocyte_hemoglobin": 33.0
+    },
+    "defaultAnswer": "No",
+    "defaultLab": "typicalNeg"
+  },
+  "budget": 250,
+  "maxSteps": 45,
+  "expect": {
+    "discover": ["haemochromatosis"],
+    "withinDraws": 10,
+    "withinEur": 200
+  }
+}

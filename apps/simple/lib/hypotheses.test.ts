@@ -10,6 +10,7 @@ import {
 import { personaToInput } from "@/evals/persona";
 import { CATALOG } from "./hkb-catalog";
 import { NODES } from "./graph";
+import { nextMoves } from "./infogain";
 import { VECTORS } from "./vectors";
 
 const value = (
@@ -57,7 +58,12 @@ describe("insulin_resistance", () => {
     sex: "male",
     age: 28,
     profile: { waist_cm: "80", height_cm: "182" },
-    latest: { insulin: value(4.1), hba1c: value(5.0), glucose: value(84), alt: value(22) },
+    latest: {
+      insulin: value(4.1),
+      hba1c: value(5.0),
+      glucose: value(84),
+      alt: value(22),
+    },
     derived: { homaIr: 0.85, tgHdl: 1.1 },
   });
 
@@ -238,8 +244,10 @@ describe("pcos", () => {
       input({
         sex: "female",
         age: 28,
-        profile: { cycle_regularity: "irregular", hirsutism_acne: "yes" },
-        latest: { testosterone: value(95, { optimalLow: 15, optimalHigh: 70 }) },
+        profile: { sym_cycle: "Irregular", hirsutism_acne: "Yes" },
+        latest: {
+          testosterone: value(95, { optimalLow: 15, optimalHigh: 70 }),
+        },
       }),
     )!;
     expect(r.score).toBeGreaterThan(0.6);
@@ -251,8 +259,10 @@ describe("pcos", () => {
       input({
         sex: "female",
         age: 28,
-        profile: { cycle_regularity: "regular", hirsutism_acne: "no" },
-        latest: { testosterone: value(30, { optimalLow: 15, optimalHigh: 70 }) },
+        profile: { sym_cycle: "Regular", hirsutism_acne: "No" },
+        latest: {
+          testosterone: value(30, { optimalLow: 15, optimalHigh: 70 }),
+        },
       }),
     )!;
     expect(r.score).toBeLessThan(0.25);
@@ -528,7 +538,11 @@ describe("VECTORS", () => {
 
 describe("discriminators with no evidence rule behind them", () => {
   it("still move the score when the result comes back", () => {
-    const base = input({ sex: "male", age: 50, profile: { sleep_snoring: "Most nights" } });
+    const base = input({
+      sex: "male",
+      age: 50,
+      profile: { sleep_snoring: "Most nights" },
+    });
     const before = score("sleep_apnoea", base)!;
     const after = score("sleep_apnoea", {
       ...base,
@@ -541,7 +555,11 @@ describe("discriminators with no evidence rule behind them", () => {
   });
 
   it("argues down when the result comes back negative", () => {
-    const base = input({ sex: "male", age: 50, profile: { sleep_snoring: "Most nights" } });
+    const base = input({
+      sex: "male",
+      age: 50,
+      profile: { sleep_snoring: "Most nights" },
+    });
     const before = score("sleep_apnoea", base)!;
     const after = score("sleep_apnoea", {
       ...base,
@@ -551,7 +569,10 @@ describe("discriminators with no evidence rule behind them", () => {
   });
 
   it("never double-counts a marker an evidence rule already reads", () => {
-    const r = score("iron_deficiency", input({ latest: { ferritin: value(9) } }))!;
+    const r = score(
+      "iron_deficiency",
+      input({ latest: { ferritin: value(9) } }),
+    )!;
     expect(r.for.map((f) => f.rule)).not.toContain("discriminator:Ferritin");
     // ferritin has both an evidence rule and a discriminator: exactly one
     // factor of 50 reaches the odds.
@@ -564,17 +585,48 @@ describe("discriminators with no evidence rule behind them", () => {
 
 describe("priorFor", () => {
   const bands = [
-    { country: "RO", sex: "male" as const, ageMin: 50, ageMax: 54, prevalence: 0.61, source: "RO male 50-54" },
-    { country: "RO", sex: "male" as const, ageMin: null, ageMax: null, prevalence: 0.45, source: "RO male" },
-    { country: null, sex: "male" as const, ageMin: 50, ageMax: 54, prevalence: 0.34, source: "male 50-54" },
-    { country: null, sex: "female" as const, ageMin: 50, ageMax: 54, prevalence: 0.28, source: "female 50-54" },
+    {
+      country: "RO",
+      sex: "male" as const,
+      ageMin: 50,
+      ageMax: 54,
+      prevalence: 0.61,
+      source: "RO male 50-54",
+    },
+    {
+      country: "RO",
+      sex: "male" as const,
+      ageMin: null,
+      ageMax: null,
+      prevalence: 0.45,
+      source: "RO male",
+    },
+    {
+      country: null,
+      sex: "male" as const,
+      ageMin: 50,
+      ageMax: 54,
+      prevalence: 0.34,
+      source: "male 50-54",
+    },
+    {
+      country: null,
+      sex: "female" as const,
+      ageMin: 50,
+      ageMax: 54,
+      prevalence: 0.28,
+      source: "female 50-54",
+    },
   ];
   const h = {
     ...HYPOTHESES[0]!,
     priors: { base: 0.2, source: "base", bands, modifiers: [] },
   };
-  const who = (profile: Record<string, unknown>, sex?: "male" | "female", age?: number) =>
-    priorFor(h, input({ profile, sex, age }));
+  const who = (
+    profile: Record<string, unknown>,
+    sex?: "male" | "female",
+    age?: number,
+  ) => priorFor(h, input({ profile, sex, age }));
 
   it("takes country, sex and age band when all three fit", () => {
     expect(who({ country: "RO" }, "male", 52).source).toBe("RO male 50-54");
@@ -602,9 +654,12 @@ describe("priorFor", () => {
   });
 
   it("scores the prior it picked, not the base", () => {
-    const rows = scoreHypotheses(input({ profile: { country: "RO" }, sex: "male", age: 52 }), {
-      catalog: [h],
-    });
+    const rows = scoreHypotheses(
+      input({ profile: { country: "RO" }, sex: "male", age: 52 }),
+      {
+        catalog: [h],
+      },
+    );
     expect(rows[0]!.prior).toBe(0.61);
     expect(rows[0]!.priorSource).toBe("RO male 50-54");
   });
@@ -627,5 +682,98 @@ describe("a marker with no range at all", () => {
     )!;
     expect(r.for.map((f) => f.lr)).toContain(30);
     expect(r.score).toBeGreaterThan(r.prior);
+  });
+});
+
+/* ── sexed cuts, the no-op AUDIT rule, PCOS from the interview (phase 21) ── */
+
+describe("a cut written for men is not applied to a woman", () => {
+  const iron = (sex: "male" | "female") =>
+    personaToInput({
+      today: "2026-08-31",
+      facts: { sex, birth_year: 1979 },
+      readings: [
+        { code: "ferritin", value: 250, unit: "ng/mL", date: "2026-08-31" },
+        {
+          code: "transferrin_saturation",
+          value: 48,
+          unit: "%",
+          date: "2026-08-31",
+        },
+      ],
+    });
+  const score = (m: ModelInput, id: string) =>
+    scoreHypotheses(m, { catalog: CATALOG }).find((h) => h.id === id)!;
+
+  it("reads a ferritin of 250 as iron overload in a woman and not in a man", () => {
+    // EASL 2022: 300 µg/L in men, 200 in women, with a raised saturation.
+    const woman = score(iron("female"), "haemochromatosis");
+    const man = score(iron("male"), "haemochromatosis");
+    expect(woman.for.map((f) => f.rule)).toContain("hfe_ferritin_high_female");
+    expect(man.for.map((f) => f.rule)).not.toContain("hfe_ferritin_high");
+    expect(woman.score).toBeGreaterThan(man.score);
+  });
+
+  const urate = (sex: "male" | "female") =>
+    personaToInput({
+      today: "2026-08-31",
+      facts: { sex, birth_year: 1979 },
+      readings: [
+        { code: "uric_acid", value: 6.5, unit: "mg/dL", date: "2026-08-31" },
+      ],
+    });
+
+  it("calls a urate of 6.5 hyperuricaemia in a woman and not in a man", () => {
+    // Bardin 2014 Curr Opin Rheumatol: 7 mg/dL in men, 6 in women.
+    expect(
+      score(urate("female"), "gout_hyperuricaemia").for.map((f) => f.rule),
+    ).toContain("gout_urate_high_female");
+    expect(
+      score(urate("male"), "gout_hyperuricaemia").for.map((f) => f.rule),
+    ).not.toContain("gout_urate_high");
+  });
+});
+
+describe("alcohol_use_disorder", () => {
+  it("takes a Never on AUDIT-C item 1 as evidence against", () => {
+    const m = personaToInput({
+      today: "2026-08-31",
+      facts: { sex: "male", birth_year: 1979, sym_alcohol: "Never" },
+      readings: [],
+    });
+    const r = scoreHypotheses(m, { catalog: CATALOG }).find(
+      (h) => h.id === "alcohol_use_disorder",
+    )!;
+    expect(r.against.map((a) => a.rule)).toContain("aud_audit_c_never");
+    expect(r.score).toBeLessThan(r.prior);
+  });
+});
+
+describe("pcos from the interview alone", () => {
+  const f28 = (profile: Record<string, unknown>) =>
+    personaToInput({
+      today: "2026-08-31",
+      facts: { sex: "female", birth_year: 1998, ...profile },
+      readings: [],
+    });
+
+  it("moves into the live band on the two Rotterdam answers", () => {
+    const before = scoreHypotheses(f28({}), { catalog: CATALOG }).find(
+      (h) => h.id === "pcos",
+    )!;
+    const after = scoreHypotheses(
+      f28({ sym_cycle: "Irregular", hirsutism_acne: "Yes" }),
+      { catalog: CATALOG },
+    ).find((h) => h.id === "pcos")!;
+    expect(after.score).toBeGreaterThan(before.score);
+    expect(after.score).toBeGreaterThan(0.25);
+    expect(after.for.map((f) => f.rule)).toContain("pcos_hirsutism");
+  });
+
+  it("offers the androgen panel next", () => {
+    const m = f28({ sym_cycle: "Irregular", hirsutism_acne: "Yes" });
+    expect(nextMoves(m, CATALOG).map((mv) => mv.label)).toContain(
+      "Total and free testosterone",
+    );
   });
 });

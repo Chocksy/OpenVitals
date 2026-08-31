@@ -130,6 +130,9 @@
       "atrophic_gastritis"
     ],
     "withinEur": 150,
-    "withinDraws": 8
+    "withinDraws": 8,
+    "notOrders": [
+      "Low-dose CT"
+    ]
   }
 }

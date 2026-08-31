@@ -1,0 +1,82 @@
+{
+  "id": "pcos_from_interview_f28",
+  "title": "Woman 28, irregular cycles and acne: PCOS out of the interview, then the androgen panel",
+  "today": "2026-08-31",
+  "start": {
+    "facts": {
+      "sex": "female",
+      "birth_year": 1998,
+      "country": "RO",
+      "height_cm": "167",
+      "waist_cm": "76",
+      "bp_home": "112/70",
+      "resting_hr": "68",
+      "grip_kg": "30",
+      "smoking": "Never",
+      "family_history": "none known",
+      "conditions": "none",
+      "medications": "No",
+      "supplements": "No",
+      "screening_dates": "cervical screen 2025",
+      "menopause_status": "Pre",
+      "sleep_snoring": "No",
+      "sym_energy": "No",
+      "sym_cold": "No",
+      "sym_weight": "No",
+      "sym_hair_skin": "No",
+      "sym_sleepiness": "No",
+      "sym_phq2_interest": "Not at all",
+      "sym_phq2_down": "Not at all",
+      "sym_bowel": "Neither",
+      "sym_joint": "No",
+      "sym_thirst": "No",
+      "sym_alcohol": "Monthly or less",
+      "sym_salt_craving": "No",
+      "sym_dizzy_standing": "No",
+      "sym_tremor": "No",
+      "sym_breathless": "No",
+      "sym_tingling": "No",
+      "sym_acroparesthesia": "No",
+      "sym_anhidrosis": "No",
+      "sym_flushing": "No",
+      "sym_hives": "No",
+      "sym_bloating": "No"
+    },
+    "readings": []
+  },
+  "truth": {
+    "conditions": ["pcos"],
+    "answers": {
+      "sym_cycle": "Irregular",
+      "hirsutism_acne": "Yes"
+    },
+    "labs": {
+      "testosterone": 95,
+      "free_testosterone": 9,
+      "lh": 12,
+      "fsh": 5,
+      "amh": 7,
+      "shbg": 24,
+      "insulin": 9,
+      "glucose": 88,
+      "hba1c": 5.2,
+      "tsh": 1.9,
+      "free_t4": 1.2,
+      "ferritin": 48,
+      "transferrin_saturation": 28,
+      "hemoglobin": 13.4,
+      "vitamin_d": 26,
+      "vitamin_b12": 410
+    },
+    "defaultAnswer": "No",
+    "defaultLab": "typicalNeg"
+  },
+  "budget": 200,
+  "maxSteps": 10,
+  "expect": {
+    "discover": ["pcos"],
+    "withinDraws": 8,
+    "noFalseLikely": true,
+    "orders": ["Total and free testosterone"]
+  }
+}
