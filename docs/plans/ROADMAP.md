@@ -104,13 +104,21 @@ fragility fracture or steroids; the ancestry option list has no
 "ten years before the relative's diagnosis" term needs a diagnosis-age
 fact nobody asks yet.
 
+| 22 | Always fresh: staleness-driven research picks (contested/horizon/pooled/guideline classes), the trends inbox (sardines: claim → graded science via marker-directed search + horizon E row with measurement plan; /hkb claim box, /plan horizon shelf, composer claim chips), guideline watch as review rows, personal effect multipliers in projections; eval:trends 5/5, 928 tests | `5efbd6e` |
+| 16b | Bubbles page on /graph per the approved mockup: deterministic server-side force layout (no d3), lens re-scoring, belief bubbles, waiting-on edges, ruled-out toggle, systems map kept | `faa7090` |
+| 17b-prep | Compose healthcheck + legacy blob mount, prod-init runbook (silent-migrate landmine documented, pg_dump path A with person-table guard), only one cron needed (guideline watch; research is an in-process tick) | `d0b2965` |
+
+Small notes parked: horizon shelf has no dismiss; hba1c claims land under
+insulin_resistance (alphabetical pick); `applyPatternTargets` mutates its
+input (test-fixture landmine); one seeded intervention_outcomes dev row on
+the test account makes the personal multiplier visible.
+
 ## In progress
 
-**Phase 22: always fresh**
-(`2026-09-01-phase22-always-fresh-spec.md`): staleness-driven research
-scheduling by refresh class, the trends inbox (popular claims enter as
-labelled horizon items with a measurement plan), the guideline watch,
-personal outcome pooling into per-person effect sizes.
+**17b cutover execution** (main agent): push, flip the Coolify app to
+branch `simple` + `/docker-compose.simple.yml`, set `BETTER_AUTH_URL`
+and `ADMIN_EMAIL`, deploy, run the prod-init runbook, create the
+guideline-watch task, verify vitals.chocksy.com. Then phase 23 (iOS).
 
 Queued behind it, owner-ordered (2026-09-01): 16b bubbles as-is (in
 flight), 17b Coolify cutover with scheduled jobs (prep in flight), then
