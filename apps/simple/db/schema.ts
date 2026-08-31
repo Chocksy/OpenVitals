@@ -10,6 +10,7 @@ import {
   index,
   boolean,
   primaryKey,
+  serial,
   unique,
   uniqueIndex,
 } from "drizzle-orm/pg-core";
@@ -240,6 +241,13 @@ export const beliefSnapshots = pgTable(
       .defaultNow()
       .notNull(),
     beliefs: jsonb("beliefs").$type<BeliefSnapshotBeliefs>().notNull(),
+    /**
+     * The `hkb_revisions.id` the knowledge base was at when this was computed.
+     * Two snapshots on the same revision differ because the person's data
+     * changed; two on different revisions may differ because we learned
+     * something. `lib/ledger.ts` says which in "what changed".
+     */
+    kbRevision: integer("kb_revision"),
   },
   (t) => [index("belief_snapshots_user_at_idx").on(t.userId, t.computedAt)],
 );
@@ -639,6 +647,12 @@ export const hkbConditions = pgTable("hkb_conditions", {
   /** Disability-adjusted life years, once GBD is imported (phase 11). */
   burdenDaly: real("burden_daly"),
   inCatalog: boolean("in_catalog").default(true).notNull(),
+  /**
+   * 1 = scored for everyone, 2 = dormant until a trigger wakes it for one
+   * person (`user_conditions`), 3 = a name in `hkb_terms` and nothing else, so
+   * no row here at all. Phase 17.
+   */
+  ring: integer("ring").default(1).notNull(),
   lenses: jsonb("lenses")
     .$type<Record<string, { w: number; grade: string }>>()
     .notNull(),
@@ -739,6 +753,13 @@ export const hkbEvidence = pgTable(
     source: text("source").notNull(),
     population: text("population"),
     confoundedBy: jsonb("confounded_by").$type<string[]>(),
+    /**
+     * Markers that measure the same thing, so two rules in one group are one
+     * fact read twice: `glycaemia`, `iron_panel`, `lipid_panel`,
+     * `thyroid_axis`, `bp`, `liver_enzymes`. The engine counts the strongest
+     * at full weight and every other one at `lr ** CORR_DAMP`. Phase 17.
+     */
+    correlationGroup: text("correlation_group"),
     /** seed | proposed | accepted | rejected */
     status: text("status").default("accepted").notNull(),
     /**
@@ -878,6 +899,86 @@ export const hkbAnnotations = pgTable(
     index("hkb_annotations_disease_idx").on(t.diseaseId),
   ],
 );
+
+/**
+ * One ring-2 disease this person's data woke, and why. Waking is per person
+ * and reversible: `dismissed` puts it back to sleep and keeps the row, so the
+ * audit trail says the engine did look and what it concluded.
+ */
+export const userConditions = pgTable(
+  "user_conditions",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    conditionId: text("condition_id")
+      .notNull()
+      .references(() => hkbConditions.id, { onDelete: "cascade" }),
+    ringWokenAt: timestamp("ring_woken_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    /** document | genome | lab | phenotype | user */
+    trigger: text("trigger").notNull(),
+    triggerDetail: jsonb("trigger_detail").$type<Record<string, unknown>>(),
+    /** awake | dismissed */
+    status: text("status").default("awake").notNull(),
+    /** Why it went back to sleep, when it did. */
+    note: text("note"),
+  },
+  (t) => [unique("user_conditions_key").on(t.userId, t.conditionId)],
+);
+
+export type UserCondition = typeof userConditions.$inferSelect;
+
+/**
+ * One mutation batch of the knowledge base: a research run, a policy apply, a
+ * seed, an override, a ring-2 build. `belief_snapshots.kb_revision` points at
+ * the newest one, so "what changed" can separate a new lab result from a
+ * changed likelihood ratio.
+ */
+export const hkbRevisions = pgTable("hkb_revisions", {
+  id: serial("id").primaryKey(),
+  changedAt: timestamp("changed_at", { withTimezone: true })
+    .defaultNow()
+    .notNull(),
+  summary: text("summary").notNull(),
+});
+
+export type HkbRevision = typeof hkbRevisions.$inferSelect;
+
+/**
+ * The measuring stick: what the engine believed just before a strong test came
+ * back, and what the test said. Nothing reads it to change a probability; it
+ * exists so /hkb can print predicted-band against observed-rate once there are
+ * enough rows to read.
+ */
+export const calibrationEvents = pgTable(
+  "calibration_events",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    conditionId: text("condition_id").notNull(),
+    /** The probability before the resolver was read. */
+    predicted: real("predicted").notNull(),
+    predictedAt: timestamp("predicted_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    /** 1 confirmed, 0 excluded. */
+    resolved: real("resolved"),
+    resolvedAt: timestamp("resolved_at", { withTimezone: true }),
+    /** The test id or the document that settled it. */
+    resolver: text("resolver").notNull(),
+  },
+  (t) => [
+    unique("calibration_events_key").on(t.userId, t.conditionId, t.resolver),
+    index("calibration_events_condition_idx").on(t.conditionId),
+  ],
+);
+
+export type CalibrationEvent = typeof calibrationEvents.$inferSelect;
 
 /** One importer run, so /hkb can say when the tables were last filled. */
 export const hkbImportRuns = pgTable("hkb_import_runs", {

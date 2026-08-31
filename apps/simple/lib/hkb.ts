@@ -9,7 +9,7 @@
  * there is no database or the tables are still empty. The engine itself never
  * learns any of this happened.
  */
-import { asc } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, or, sql } from "drizzle-orm";
 import {
   getDb,
   hkbConditionTests,
@@ -18,7 +18,9 @@ import {
   hkbFeatures,
   hkbPriorModifiers,
   hkbPriors,
+  hkbRevisions,
   hkbTests,
+  userConditions,
 } from "@/db";
 import { poolMembers, sizeOf } from "./hkb-pool";
 import {
@@ -48,6 +50,8 @@ export interface ConditionRow {
   requires: { condition: string; minState: number } | null;
   confirmAtLrPos: number | null;
   patternId: string | null;
+  /** 1 scored for everyone, 2 dormant until woken for one person. */
+  ring?: number;
 }
 
 export interface FeatureRow {
@@ -90,6 +94,8 @@ export interface EvidenceRow {
   population: string | null;
   confoundedBy: string[] | null;
   status: string;
+  /** Markers that measure the same thing; see `CORRELATION_GROUPS`. */
+  correlationGroup?: string | null;
   /** The policy let it score and still wants a human to look at it. */
   needsLook?: boolean;
 }
@@ -130,6 +136,7 @@ const VALUE_KEYS = [
   "status",
   "aboveOptimal",
   "belowOptimal",
+  "slopePerYear",
 ];
 
 /** `metric:ferritin` → `{ metric: "ferritin" }`. */
@@ -222,14 +229,21 @@ export function pooledEvidence(rows: EvidenceRow[]): EvidenceRule[] {
               .map((m) => `${m.grade} LR+ ${m.lrPos}`)
               .join("; ")}`,
       confoundedBy: first.confoundedBy ?? undefined,
+      correlationGroup: first.correlationGroup ?? undefined,
       sources: pooled.sources,
     });
   }
   return out;
 }
 
-/** The seven tables back into the eight (or eighty) hypotheses. */
-export function rowsToCatalog(rows: CatalogRows): Catalog {
+/**
+ * The seven tables back into the eight (or eighty) hypotheses.
+ *
+ * `awake` is the ring-2 ids one person's data woke: they are scored for that
+ * person even though `in_catalog` is false, which is the whole of what a ring
+ * is.
+ */
+export function rowsToCatalog(rows: CatalogRows, awake?: Set<string>): Catalog {
   const units = new Map(rows.features.map((f) => [f.id, f.unit]));
   const testsById = new Map(rows.tests.map((t) => [t.id, t]));
 
@@ -242,7 +256,7 @@ export function rowsToCatalog(rows: CatalogRows): Catalog {
   };
 
   return inDependencyOrder(
-    rows.conditions.filter((c) => c.inCatalog),
+    rows.conditions.filter((c) => c.inCatalog || awake?.has(c.id)),
     rows.evidence,
   ).map((c): Hypothesis => {
     const mine = rows.priors.filter((p) => p.conditionId === c.id);
@@ -323,6 +337,9 @@ export function rowsToCatalog(rows: CatalogRows): Catalog {
       mondoId: c.mondoId ?? undefined,
       why: c.why ?? undefined,
       parentId: c.parentId ?? undefined,
+      // Ring 1 is the default everywhere, so it is left off: the in-code
+      // catalog has no `ring` and the round-trip test compares the two.
+      ...(c.ring && c.ring !== 1 ? { ring: c.ring } : {}),
     };
   });
 }
@@ -331,12 +348,28 @@ export function rowsToCatalog(rows: CatalogRows): Catalog {
 
 const TTL = 60_000;
 let cache: { at: number; catalog: Catalog } | null = null;
+const userCache = new Map<string, { at: number; catalog: Catalog }>();
 
-async function readRows(): Promise<CatalogRows | null> {
+/**
+ * Every row the engine reads, minus the ring-2 rows nobody has woken.
+ *
+ * There are ten thousand of those and they carry nothing but a name and a
+ * prior, so loading them all on every request would be ten thousand rows of
+ * nothing. `extra` is the handful one person's data did wake.
+ */
+async function readRows(extra: string[] = []): Promise<CatalogRows | null> {
   const db = getDb();
+  const wanted = or(
+    eq(hkbConditions.ring, 1),
+    extra.length ? inArray(hkbConditions.id, extra) : sql`false`,
+  );
   const [conditions, features, priors, modifiers, evidence, tests, links] =
     await Promise.all([
-      db.select().from(hkbConditions).orderBy(asc(hkbConditions.id)),
+      db
+        .select()
+        .from(hkbConditions)
+        .where(wanted)
+        .orderBy(asc(hkbConditions.id)),
       db.select().from(hkbFeatures).orderBy(asc(hkbFeatures.id)),
       db.select().from(hkbPriors),
       db.select().from(hkbPriorModifiers).orderBy(asc(hkbPriorModifiers.why)),
@@ -370,13 +403,104 @@ export async function loadCatalog(): Promise<Catalog> {
   return catalog;
 }
 
-async function fromDb(): Promise<Catalog | null> {
+async function fromDb(
+  extra: string[] = [],
+  awake?: Set<string>,
+): Promise<Catalog | null> {
   if (!process.env.DATABASE_URL) return null;
   try {
-    const rows = await readRows();
-    return rows ? rowsToCatalog(rows) : null;
+    const rows = await readRows(extra);
+    return rows ? rowsToCatalog(rows, awake) : null;
   } catch (e) {
     console.error("[hkb] falling back to the in-code catalog:", e);
+    return null;
+  }
+}
+
+/* ── rings ────────────────────────────────────────────────────────────── */
+
+/** The ring-2 conditions this person's data woke and nobody dismissed. */
+export async function wokenFor(userId: string): Promise<string[]> {
+  if (!process.env.DATABASE_URL) return [];
+  try {
+    const rows = await getDb()
+      .select({ conditionId: userConditions.conditionId })
+      .from(userConditions)
+      .where(
+        and(
+          eq(userConditions.userId, userId),
+          eq(userConditions.status, "awake"),
+        ),
+      );
+    return rows.map((r) => r.conditionId);
+  } catch (e) {
+    console.error("[hkb] could not read woken conditions:", e);
+    return [];
+  }
+}
+
+/**
+ * The catalog for one person: ring 1 plus their own awake ring-2 rows.
+ *
+ * Every per-user scoring path goes through this rather than `loadCatalog`, so
+ * a woken rare disease appears in the differential everywhere at once and
+ * nowhere else. Cached for a minute per user, like the shared one.
+ */
+export async function catalogFor(userId: string): Promise<Catalog> {
+  const hit = userCache.get(userId);
+  if (hit && Date.now() - hit.at < TTL) return hit.catalog;
+  const awake = await wokenFor(userId);
+  if (!awake.length) {
+    const catalog = await loadCatalog();
+    userCache.set(userId, { at: Date.now(), catalog });
+    return catalog;
+  }
+  const catalog =
+    (await fromDb(awake, new Set(awake))) ?? (await loadCatalog());
+  userCache.set(userId, { at: Date.now(), catalog });
+  return catalog;
+}
+
+/** Forget the cached catalogs. Called after anything wakes or dismisses. */
+export function forgetCatalog(userId?: string) {
+  if (userId) userCache.delete(userId);
+  else (userCache.clear(), (cache = null));
+}
+
+/* ── knowledge-base revisions ─────────────────────────────────────────── */
+
+/**
+ * One line in `hkb_revisions` per mutation batch: a research run, a policy
+ * apply, a seed, an override, a ring-2 build, a wake. `belief_snapshots`
+ * records the id, so the ledger can tell "your data changed" from "what we
+ * know changed".
+ */
+export async function recordRevision(summary: string): Promise<number | null> {
+  if (!process.env.DATABASE_URL) return null;
+  try {
+    const [row] = await getDb()
+      .insert(hkbRevisions)
+      .values({ summary })
+      .returning({ id: hkbRevisions.id });
+    forgetCatalog();
+    return row?.id ?? null;
+  } catch (e) {
+    console.error("[hkb] could not record a revision:", e);
+    return null;
+  }
+}
+
+/** The newest revision id, or null when nothing has ever written one. */
+export async function currentRevision(): Promise<number | null> {
+  if (!process.env.DATABASE_URL) return null;
+  try {
+    const [row] = await getDb()
+      .select({ id: hkbRevisions.id })
+      .from(hkbRevisions)
+      .orderBy(desc(hkbRevisions.id))
+      .limit(1);
+    return row?.id ?? null;
+  } catch {
     return null;
   }
 }

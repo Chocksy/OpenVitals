@@ -4,7 +4,7 @@ import { getGoals } from "@/lib/daily-data";
 import { buildTrend, type TrendMetric } from "@/lib/home-data";
 import { buildLedger, isLoud } from "@/lib/ledger";
 import { latestReport } from "@/lib/report";
-import { loadCatalog } from "@/lib/hkb";
+import { catalogFor } from "@/lib/hkb";
 import { PROFILE_QUESTIONS } from "@/lib/vectors";
 import {
   Cockpit,
@@ -16,6 +16,7 @@ import {
   SectionHeader,
   SystemsStrip,
 } from "@/components/home";
+import { AskBox } from "@/components/ask-box";
 
 export const dynamic = "force-dynamic";
 
@@ -29,7 +30,7 @@ export default async function Home() {
     latestReport(userId),
     getMetricRows(userId),
     getGoals(userId),
-    loadCatalog(),
+    catalogFor(userId),
   ]);
 
   if (rows.length === 0) return <EmptyHome />;
@@ -122,6 +123,11 @@ export default async function Home() {
       )}
 
       <QuietLine quiet={ledger.quiet} />
+
+      <section>
+        <SectionHeader title="Ask" />
+        <AskBox />
+      </section>
 
       {trends.length > 0 && (
         <section>

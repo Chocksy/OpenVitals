@@ -1,6 +1,7 @@
 import { eq } from "drizzle-orm";
 import { isAdmin } from "@/lib/auth";
 import { getDb, hkbConditions, hkbEvidence } from "@/db";
+import { recordRevision } from "@/lib/hkb";
 
 export const maxDuration = 300;
 
@@ -69,6 +70,11 @@ export async function POST(request: Request) {
         .where(eq(hkbEvidence.id, body.id))
         .returning();
       if (!row) return Response.json({ error: "no such rule" }, { status: 404 });
+      await recordRevision(
+        `override on /hkb: ${row.conditionId} rule ${row.id} is now ` +
+          `LR+ ${row.lrPos}${row.lrNeg == null ? "" : ` / LR- ${row.lrNeg}`}, grade ${row.grade}, ` +
+          `${row.status}${body.note?.trim() ? ` — ${body.note.trim()}` : ""}`,
+      );
       return Response.json({ ok: true, id: row.id, status: row.status });
     }
 
@@ -80,6 +86,9 @@ export async function POST(request: Request) {
         .returning();
       if (!row)
         return Response.json({ error: "no such condition" }, { status: 404 });
+      await recordRevision(
+        `${row.id} (${row.name}) taken ${row.inCatalog ? "into" : "out of"} the catalog on /hkb`,
+      );
       return Response.json({ ok: true, id: row.id, inCatalog: row.inCatalog });
     }
 

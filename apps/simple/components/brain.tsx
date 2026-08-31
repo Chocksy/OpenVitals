@@ -15,6 +15,7 @@ import { Pin, RefreshCw, RotateCcw, Trash2, Undo2 } from "lucide-react";
 import type { ReportBody } from "@/db";
 import type { BrainRun } from "@/lib/brain";
 import type { Discriminator, HypothesisResult, Lens } from "@/lib/hypotheses";
+import { AskBox } from "./ask-box";
 import type { Move } from "@/lib/infogain";
 import { money } from "@/lib/prices";
 import type { Overlay, Scenario } from "@/lib/sample";
@@ -65,7 +66,13 @@ const TREND = { up: "↑", down: "↓", flat: "→", "n/a": "·" } as const;
 
 const EMPTY: Overlay = { readings: [], facts: {}, confounders: {} };
 
-const pct = (v: number) => `${Math.round(v * 100)}%`;
+/**
+ * Ring 2 put diseases at one in ten million into the differential, so a
+ * percentage rounded to the nearest point prints "0%" for all of them and
+ * hides the thousand-fold difference between two of them.
+ */
+const pct = (v: number) =>
+  v >= 0.005 ? `${Math.round(v * 100)}%` : `${(v * 100).toPrecision(2)}%`;
 
 function Label({ children }: { children: React.ReactNode }) {
   return (
@@ -336,6 +343,11 @@ export function Brain({
           void doRun(overlay, lens);
         }}
       />
+
+      {/* Trigger 5 of the five rings triggers. Read-only over the engine
+          until "Consider this for me" is pressed, which wakes it for the
+          signed-in admin, never for the scenario's user. */}
+      <AskBox />
 
       {error && (
         <p className="font-mono text-[12px] text-[var(--color-health-critical)]">
@@ -771,13 +783,18 @@ function Hypotheses({
   last: Map<string, number>;
   onSimulate: (code: string, value: number, unit?: string) => void;
 }) {
-  const [showQuiet, setShowQuiet] = useState(false);
-  const quiet = (h: HypothesisResult) =>
-    h.state === "unlikely" || h.state === "ruled_out";
-  const hidden = run.hypotheses.filter(quiet);
-  const shown = showQuiet
-    ? run.hypotheses
-    : run.hypotheses.filter((h) => !quiet(h));
+  // Phase 17: two toggles, because they are two different things. Unlikely is
+  // worth a glance; ruled out is the engine saying it looked, and after ring 2
+  // most of that list is rare diseases something woke and the prior buried.
+  const [showUnlikely, setShowUnlikely] = useState(false);
+  const [showRuledOut, setShowRuledOut] = useState(false);
+  const unlikely = run.hypotheses.filter((h) => h.state === "unlikely");
+  const ruledOut = run.hypotheses.filter((h) => h.state === "ruled_out");
+  const shown = run.hypotheses.filter(
+    (h) =>
+      (h.state !== "unlikely" || showUnlikely) &&
+      (h.state !== "ruled_out" || showRuledOut),
+  );
 
   return (
     <section>
@@ -918,14 +935,21 @@ function Hypotheses({
             </Card>
           );
         })}
-        {hidden.length > 0 && (
+        {unlikely.length > 0 && (
           <button
-            onClick={() => setShowQuiet(!showQuiet)}
+            onClick={() => setShowUnlikely(!showUnlikely)}
             className="font-mono text-[11px] text-neutral-500 underline decoration-dotted"
           >
-            {hidden.filter((h) => h.state === "unlikely").length} unlikely,{" "}
-            {hidden.filter((h) => h.state === "ruled_out").length} ruled out (
-            {showQuiet ? "hide" : "show"})
+            {unlikely.length} unlikely ({showUnlikely ? "hide" : "show"})
+          </button>
+        )}
+        {ruledOut.length > 0 && (
+          <button
+            onClick={() => setShowRuledOut(!showRuledOut)}
+            className="ml-3 font-mono text-[11px] text-neutral-500 underline decoration-dotted"
+          >
+            show ruled out ({ruledOut.length})
+            {showRuledOut ? " · hide" : ""}
           </button>
         )}
       </div>

@@ -1,5 +1,6 @@
 import { and, eq, inArray } from "drizzle-orm";
-import { documentItems, getDb } from "@/db";
+import { documentItems, getDb, hkbConditions } from "@/db";
+import { recordDocumentCalibration } from "@/lib/calibration";
 import { currentUserId } from "@/lib/auth";
 import { runCurator } from "@/lib/curator";
 import { acceptItems } from "@/lib/documents";
@@ -86,6 +87,20 @@ export async function POST(
   await recordBeliefs(userId).catch((e) =>
     console.error("[items] beliefs failed:", e),
   );
+  // A document that names a condition outright settles it, so it is a
+  // calibration resolver in its own right. After the beliefs, so the woken
+  // ring-2 rows are in the catalog it reads.
+  await recordDocumentCalibration(
+    userId,
+    id,
+    await getDb()
+      .select({
+        id: hkbConditions.id,
+        name: hkbConditions.name,
+        mondoId: hkbConditions.mondoId,
+      })
+      .from(hkbConditions),
+  ).catch((e) => console.error("[items] calibration failed:", e));
 
   return Response.json(result);
 }

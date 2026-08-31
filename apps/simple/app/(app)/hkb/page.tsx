@@ -11,9 +11,16 @@ import {
   hkbImportRuns,
   hkbInterventions,
   hkbPriors,
+  hkbRevisions,
   hkbTerms,
   hkbTests,
 } from "@/db";
+import {
+  bandsOf,
+  calibrationRows,
+  READABLE_AT,
+  RESOLVING_LR,
+} from "@/lib/calibration";
 import { poolMembers, sizeOf } from "@/lib/hkb-pool";
 import { tierOf } from "@/lib/report";
 import type { Grade } from "@/lib/hypotheses";
@@ -36,6 +43,7 @@ const TABS = [
   "activity",
   "priors",
   "tests",
+  "calibration",
   "imports",
 ] as const;
 type Tab = (typeof TABS)[number];
@@ -82,7 +90,14 @@ function Card({
 async function conditionsTab() {
   const db = getDb();
   const [rows, evidence, priors] = await Promise.all([
-    db.select().from(hkbConditions).orderBy(asc(hkbConditions.id)),
+    // Ring 1 only. Ring 2 is ten thousand dormant names with a prior and
+    // nothing else; it is counted on the Calibration tab and reachable through
+    // the ask box, not listed here.
+    db
+      .select()
+      .from(hkbConditions)
+      .where(eq(hkbConditions.ring, 1))
+      .orderBy(asc(hkbConditions.id)),
     db
       .select({
         conditionId: hkbEvidence.conditionId,
@@ -112,7 +127,7 @@ async function conditionsTab() {
   const priorBy = new Map(priors.map((p) => [p.conditionId, p.source]));
 
   return (
-    <Card title={`Conditions (${rows.length})`}>
+    <Card title={`Conditions · ring 1 (${rows.length})`}>
       <table className="w-full font-body text-[12px]">
         <thead className="font-mono text-[10px] uppercase tracking-[0.06em] text-neutral-400">
           <tr className="border-b border-neutral-200">
@@ -741,6 +756,181 @@ async function testsTab() {
   );
 }
 
+
+async function calibrationTab() {
+  const db = getDb();
+  const [rows, rings, revisions] = await Promise.all([
+    calibrationRows(),
+    db
+      .select({
+        ring: hkbConditions.ring,
+        inCatalog: hkbConditions.inCatalog,
+        n: sql<number>`count(*)::int`,
+      })
+      .from(hkbConditions)
+      .groupBy(hkbConditions.ring, hkbConditions.inCatalog)
+      .orderBy(asc(hkbConditions.ring)),
+    db
+      .select()
+      .from(hkbRevisions)
+      .orderBy(desc(hkbRevisions.id))
+      .limit(25),
+  ]);
+
+  const bands = bandsOf(rows);
+  const names = new Map(
+    (
+      await db
+        .select({ id: hkbConditions.id, name: hkbConditions.name })
+        .from(hkbConditions)
+        .where(
+          rows.length
+            ? inArray(hkbConditions.id, [
+                ...new Set(rows.map((r) => r.conditionId)),
+              ])
+            : sql`false`,
+        )
+    ).map((c) => [c.id, c.name]),
+  );
+
+  return (
+    <>
+      <Card title={`Calibration (${rows.length} events)`}>
+        {rows.length < READABLE_AT ? (
+          <p className="font-body text-[13px] text-neutral-500">
+            {rows.length} settled prediction{rows.length === 1 ? "" : "s"} so
+            far. Too few to read: the table appears at {READABLE_AT}. An event
+            is written when a discriminator with an LR+ of {RESOLVING_LR} or
+            more comes back, or when an accepted document confirms or excludes
+            a condition. Nothing here changes a probability; it is the
+            measuring stick.
+          </p>
+        ) : (
+          <table className="w-full font-mono text-[11px]">
+            <thead className="border-b border-neutral-200 text-neutral-500">
+              <tr>
+                <th className={TH}>band</th>
+                <th className={TH}>n</th>
+                <th className={TH}>mean predicted</th>
+                <th className={TH}>observed rate</th>
+                <th className={TH}>gap</th>
+              </tr>
+            </thead>
+            <tbody>
+              {bands.map((b) => (
+                <tr key={b.label} className="border-b border-neutral-100">
+                  <td className={TDT}>{b.label}</td>
+                  <td className={TD}>{b.n}</td>
+                  <td className={TD}>
+                    {b.predicted == null
+                      ? "—"
+                      : `${(b.predicted * 100).toFixed(0)} %`}
+                  </td>
+                  <td className={TD}>
+                    {b.observed == null
+                      ? "—"
+                      : `${(b.observed * 100).toFixed(0)} %`}
+                  </td>
+                  <td className={TD}>
+                    {b.predicted == null || b.observed == null
+                      ? "—"
+                      : `${((b.observed - b.predicted) * 100).toFixed(0)}`}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </Card>
+
+      <Card title="Rings">
+        <table className="w-full font-mono text-[11px]">
+          <thead className="border-b border-neutral-200 text-neutral-500">
+            <tr>
+              <th className={TH}>ring</th>
+              <th className={TH}>in catalog</th>
+              <th className={TH}>conditions</th>
+              <th className={TH}>what it means</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rings.map((r) => (
+              <tr
+                key={`${r.ring}-${String(r.inCatalog)}`}
+                className="border-b border-neutral-100"
+              >
+                <td className={TD}>{r.ring}</td>
+                <td className={TD}>{r.inCatalog ? "yes" : "no"}</td>
+                <td className={TD}>{r.n}</td>
+                <td className={TDT}>
+                  {r.ring === 1
+                    ? "scored for everybody, every time"
+                    : "dormant: a name and a rarity-class prior, scored only for a person something woke it for"}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </Card>
+
+      <Card title="Knowledge-base revisions">
+        <table className="w-full font-mono text-[11px]">
+          <thead className="border-b border-neutral-200 text-neutral-500">
+            <tr>
+              <th className={TH}>#</th>
+              <th className={TH}>when</th>
+              <th className={TH}>what changed</th>
+            </tr>
+          </thead>
+          <tbody>
+            {revisions.map((r) => (
+              <tr key={r.id} className="border-b border-neutral-100">
+                <td className={TD}>{r.id}</td>
+                <td className={TD}>
+                  {r.changedAt.toISOString().slice(0, 16).replace("T", " ")}
+                </td>
+                <td className={TDT}>{r.summary}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </Card>
+
+      {rows.length > 0 && (
+        <Card title="Every settled prediction">
+          <table className="w-full font-mono text-[11px]">
+            <thead className="border-b border-neutral-200 text-neutral-500">
+              <tr>
+                <th className={TH}>condition</th>
+                <th className={TH}>predicted</th>
+                <th className={TH}>turned out</th>
+                <th className={TH}>resolver</th>
+                <th className={TH}>when</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.slice(0, LIMIT).map((r, i) => (
+                <tr
+                  key={`${r.conditionId}-${r.resolver}-${i}`}
+                  className="border-b border-neutral-100"
+                >
+                  <td className={TDT}>
+                    {names.get(r.conditionId) ?? r.conditionId}
+                  </td>
+                  <td className={TD}>{(r.predicted * 100).toFixed(1)} %</td>
+                  <td className={TD}>{r.resolved ? "yes" : "no"}</td>
+                  <td className={TDT}>{r.resolver}</td>
+                  <td className={TD}>{r.at.toISOString().slice(0, 10)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </Card>
+      )}
+    </>
+  );
+}
+
 async function importsTab() {
   const db = getDb();
   const [runs, research, terms, annotations] = await Promise.all([
@@ -926,6 +1116,7 @@ export default async function HkbPage({
       {tab === "activity" && (await activityTab())}
       {tab === "priors" && (await priorsTab(country))}
       {tab === "tests" && (await testsTab())}
+      {tab === "calibration" && (await calibrationTab())}
       {tab === "imports" && (await importsTab())}
     </div>
   );

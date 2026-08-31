@@ -9,7 +9,7 @@
 import { coverage, type CoverageRow, type ModelInput } from "./coverage";
 import { computeGraphState, type NodeState } from "./graph-state";
 import { loadGraph } from "./kg";
-import { loadCatalog } from "./hkb";
+import { catalogFor, loadCatalog } from "./hkb";
 import { scoreHypotheses, type HypothesisResult, type Lens } from "./hypotheses";
 import { nextMoves, type Move } from "./infogain";
 import { buildTree, type TreeNode } from "./tree";
@@ -152,6 +152,14 @@ export function splitPack(context: string): BrainRun["pack"] {
   return out;
 }
 
+/**
+ * A scenario over a real person is scored with that person's rings, so a woken
+ * rare disease shows up on /brain exactly where it shows up on their home page.
+ * A persona or an empty person has no rings, so it gets ring 1.
+ */
+const catalogOf = (s: Scenario) =>
+  "userId" in s ? catalogFor(s.userId) : loadCatalog();
+
 export async function runBrain(
   s: Scenario,
   overlay: Overlay = EMPTY_OVERLAY,
@@ -159,7 +167,7 @@ export async function runBrain(
   budget?: number,
 ): Promise<BrainRun> {
   const input = await buildScenarioInput(s, overlay);
-  const catalog = await loadCatalog();
+  const catalog = await catalogOf(s);
   const hypotheses = scoreHypotheses(input, {
     confounderTags: overlay.confounders,
     lens,
@@ -204,7 +212,7 @@ export async function runBrain(
 export async function brainContext(s: Scenario, overlay: Overlay = EMPTY_OVERLAY) {
   const input = await buildScenarioInput(s, overlay);
   return buildContextFromInput(input, {
-    catalog: await loadCatalog(),
+    catalog: await catalogOf(s),
     graph: await loadGraph(),
     tracker: {
       from: input.today,

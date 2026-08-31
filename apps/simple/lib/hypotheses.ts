@@ -11,6 +11,7 @@
  * grades in docs/plans/2026-08-28-phase9-brain-hypotheses-spec.md section 2.
  */
 import type { LatestValue, ModelInput } from "./coverage";
+import { slopeText, type Slope } from "./derived";
 import { parseBp, type Sex } from "./vectors";
 
 export type Lens = "lifespan" | "energy" | "mood" | "weight";
@@ -51,6 +52,13 @@ export interface EvidenceRule {
     /** outside the sex-adjusted optimal band, so one rule covers both sexes */
     aboveOptimal?: boolean;
     belowOptimal?: boolean;
+    /**
+     * The direction the marker is moving, in its own unit per year, fitted by
+     * least squares over the last five years (`slopePerYear` in
+     * `lib/derived.ts`). Needs three readings; without them the rule is
+     * missing rather than false. Phase 17, section 4.
+     */
+    slopePerYear?: { above?: number; below?: number };
   };
   /** likelihood ratio when the condition holds; < 1 argues against. Absent input = no change. */
   lr: number;
@@ -60,6 +68,13 @@ export interface EvidenceRule {
   source: string;
   /** markers whose weight is discounted on a confounded draw (see confounders) */
   confoundedBy?: string[];
+  /**
+   * Markers that measure the same thing. Glucose and HbA1c are two readings of
+   * one glycaemia, so multiplying both likelihood ratios in full counts the
+   * same fact twice. Set explicitly, or derived from the input by
+   * `correlationGroupOf`. Phase 17, section 3.
+   */
+  correlationGroup?: string;
   /**
    * The papers pooled into `lr`, when this rule came out of `hkb_pool`. Its
    * presence also says the grade shrink is already in the number, so the
@@ -144,6 +159,8 @@ export interface Hypothesis {
   why?: string;
   /** a broader condition this one is a kind of, e.g. hashimoto → hypothyroidism */
   parentId?: string;
+  /** 1 = scored for everyone, 2 = woken for this person only. Phase 17. */
+  ring?: number;
 }
 
 /** The catalog the engine scores: in code below, or the same rows out of
@@ -158,7 +175,15 @@ export const CONFOUNDERS: {
 }[] = [
   {
     tag: "acute_illness",
-    markers: ["ferritin", "hs_crp", "crp", "albumin", "iron", "transferrin_saturation", "wbc"],
+    markers: [
+      "ferritin",
+      "hs_crp",
+      "crp",
+      "albumin",
+      "iron",
+      "transferrin_saturation",
+      "wbc",
+    ],
     discount: 0.5,
     why: "Ferritin and CRP are acute-phase reactants: an infection raises ferritin and hides empty iron stores.",
   },
@@ -256,7 +281,8 @@ const INSULIN_RESISTANCE: Hypothesis = {
       when: { above: 10 },
       lr: 3,
       grade: "B",
-      source: "DeFronzo 2009 Diabetes: fasting insulin above 10 µIU/mL tracks clamp-measured resistance.",
+      source:
+        "DeFronzo 2009 Diabetes: fasting insulin above 10 µIU/mL tracks clamp-measured resistance.",
       confoundedBy: ["insulin"],
     },
     {
@@ -265,7 +291,8 @@ const INSULIN_RESISTANCE: Hypothesis = {
       when: { above: 2 },
       lr: 3,
       grade: "B",
-      source: "Matthews 1985 Diabetologia (HOMA); cut-off 2 is the common European threshold.",
+      source:
+        "Matthews 1985 Diabetologia (HOMA); cut-off 2 is the common European threshold.",
       confoundedBy: ["glucose", "insulin"],
     },
     {
@@ -274,7 +301,8 @@ const INSULIN_RESISTANCE: Hypothesis = {
       when: { above: 2 },
       lr: 2,
       grade: "B",
-      source: "McLaughlin 2005 Am J Cardiol: TG/HDL above 2 identifies insulin resistance in non-diabetics.",
+      source:
+        "McLaughlin 2005 Am J Cardiol: TG/HDL above 2 identifies insulin resistance in non-diabetics.",
       confoundedBy: ["triglycerides"],
     },
     {
@@ -283,7 +311,8 @@ const INSULIN_RESISTANCE: Hypothesis = {
       when: { below: 1.5 },
       lr: 0.6,
       grade: "B",
-      source: "McLaughlin 2005 Am J Cardiol: below 1.5 the ratio argues against resistance.",
+      source:
+        "McLaughlin 2005 Am J Cardiol: below 1.5 the ratio argues against resistance.",
       confoundedBy: ["triglycerides"],
     },
     {
@@ -301,7 +330,8 @@ const INSULIN_RESISTANCE: Hypothesis = {
       when: { below: 5.4 },
       lr: 0.7,
       grade: "A",
-      source: "ADA Standards of Care: an HbA1c under 5.4 argues against, but does not exclude, resistance.",
+      source:
+        "ADA Standards of Care: an HbA1c under 5.4 argues against, but does not exclude, resistance.",
     },
     {
       id: "ir_glucose",
@@ -309,7 +339,8 @@ const INSULIN_RESISTANCE: Hypothesis = {
       when: { above: 100 },
       lr: 2,
       grade: "A",
-      source: "ADA Standards of Care: fasting glucose 100–125 mg/dL is impaired fasting glucose.",
+      source:
+        "ADA Standards of Care: fasting glucose 100–125 mg/dL is impaired fasting glucose.",
       confoundedBy: ["glucose"],
     },
     {
@@ -319,7 +350,8 @@ const INSULIN_RESISTANCE: Hypothesis = {
       lr: 2.5,
       lrNeg: 0.6,
       grade: "A",
-      source: "Ashwell 2012 Obes Rev: waist-to-height above 0.5 beats BMI for cardiometabolic risk. The negative LR of 0.6 is a curated grade C: a waist under half your height does not exclude resistance, but it is the strongest thing against it that a tape measure can say.",
+      source:
+        "Ashwell 2012 Obes Rev: waist-to-height above 0.5 beats BMI for cardiometabolic risk. The negative LR of 0.6 is a curated grade C: a waist under half your height does not exclude resistance, but it is the strongest thing against it that a tape measure can say.",
     },
     {
       id: "ir_family_negative",
@@ -331,7 +363,8 @@ const INSULIN_RESISTANCE: Hypothesis = {
       lr: 1,
       lrNeg: 0.8,
       grade: "C",
-      source: "Grade C for the size: no published negative LR for a clean family history, but roughly half the population risk sits in the family, so its absence is worth about a fifth of the odds.",
+      source:
+        "Grade C for the size: no published negative LR for a clean family history, but roughly half the population risk sits in the family, so its absence is worth about a fifth of the odds.",
     },
     {
       id: "ir_alt",
@@ -339,7 +372,8 @@ const INSULIN_RESISTANCE: Hypothesis = {
       when: { above: 30 },
       lr: 1.5,
       grade: "B",
-      source: "Lazo 2011 (NHANES): ALT above 30 travels with liver fat, which travels with insulin resistance.",
+      source:
+        "Lazo 2011 (NHANES): ALT above 30 travels with liver fat, which travels with insulin resistance.",
       confoundedBy: ["alt"],
     },
   ],
@@ -353,7 +387,8 @@ const INSULIN_RESISTANCE: Hypothesis = {
       typicalPos: 18,
       typicalNeg: 4,
       unit: "µIU/mL",
-      howTo: "Add it to the next fasting draw; it costs a few euro on top of glucose.",
+      howTo:
+        "Add it to the next fasting draw; it costs a few euro on top of glucose.",
     },
     {
       test: "OGTT with insulin",
@@ -364,7 +399,8 @@ const INSULIN_RESISTANCE: Hypothesis = {
       typicalPos: 120,
       typicalNeg: 30,
       unit: "µIU/mL",
-      howTo: "75 g glucose, insulin at 0 and 120 minutes. Ask for insulin, not glucose alone.",
+      howTo:
+        "75 g glucose, insulin at 0 and 120 minutes. Ask for insulin, not glucose alone.",
     },
     {
       test: "HbA1c",
@@ -385,7 +421,8 @@ const INSULIN_RESISTANCE: Hypothesis = {
       typicalPos: 115,
       typicalNeg: 88,
       unit: "mg/dL",
-      howTo: "Two weeks of continuous glucose. Useful for learning, not for grading: no outcome data in non-diabetics.",
+      howTo:
+        "Two weeks of continuous glucose. Useful for learning, not for grading: no outcome data in non-diabetics.",
     },
   ],
   lenses: {
@@ -416,7 +453,8 @@ const HASHIMOTO: Hypothesis = {
       {
         when: {
           fact: "family_history",
-          includes: "thyroid|hashimoto|graves|autoimmune|coeliac|celiac|vitiligo|type 1",
+          includes:
+            "thyroid|hashimoto|graves|autoimmune|coeliac|celiac|vitiligo|type 1",
         },
         times: 2,
         why: "Thyroid and other autoimmune disease clusters in families (B).",
@@ -440,7 +478,8 @@ const HASHIMOTO: Hypothesis = {
       // negative"; the discriminator carries the single-test 0.3 instead.
       lrNeg: 0.5,
       grade: "A",
-      source: "Hollowell 2002 JCEM (NHANES III): TPO antibodies above the assay limit are the defining marker.",
+      source:
+        "Hollowell 2002 JCEM (NHANES III): TPO antibodies above the assay limit are the defining marker.",
     },
     {
       id: "hashi_tg",
@@ -449,20 +488,23 @@ const HASHIMOTO: Hypothesis = {
       lr: 5,
       lrNeg: 0.6,
       grade: "A",
-      source: "Hollowell 2002 JCEM: anti-Tg catches the roughly 10 % who are TPO-negative.",
+      source:
+        "Hollowell 2002 JCEM: anti-Tg catches the roughly 10 % who are TPO-negative.",
     },
     {
       id: "hashi_family_negative",
       input: { fact: "family_history" },
       when: {
-        includes: "thyroid|hashimoto|graves|autoimmune|coeliac|celiac|vitiligo|type 1",
+        includes:
+          "thyroid|hashimoto|graves|autoimmune|coeliac|celiac|vitiligo|type 1",
       },
       // Same shape as the insulin-resistance rule: the prior modifier handles
       // the positive answer, this one handles the negative.
       lr: 1,
       lrNeg: 0.8,
       grade: "C",
-      source: "Grade C for the size: thyroid autoimmunity clusters in families (B), so a family with none of it argues down, but no study puts a number on the negative.",
+      source:
+        "Grade C for the size: thyroid autoimmunity clusters in families (B), so a family with none of it argues down, but no study puts a number on the negative.",
     },
     {
       id: "hashi_tsh_high",
@@ -470,7 +512,8 @@ const HASHIMOTO: Hypothesis = {
       when: { above: 4.5 },
       lr: 3,
       grade: "A",
-      source: "Rodondi 2010 JAMA: TSH above 4.5 is subclinical hypothyroidism, most often autoimmune.",
+      source:
+        "Rodondi 2010 JAMA: TSH above 4.5 is subclinical hypothyroidism, most often autoimmune.",
     },
     {
       id: "hashi_tsh_mid",
@@ -478,7 +521,8 @@ const HASHIMOTO: Hypothesis = {
       when: { above: 2.5, below: 4.5 },
       lr: 1.5,
       grade: "B",
-      source: "Vanderpump 1995 Clin Endocrinol (Whickham 20-year follow-up): risk rises from a TSH of 2.5 up.",
+      source:
+        "Vanderpump 1995 Clin Endocrinol (Whickham 20-year follow-up): risk rises from a TSH of 2.5 up.",
     },
     {
       id: "hashi_ft4_low",
@@ -486,7 +530,8 @@ const HASHIMOTO: Hypothesis = {
       when: { below: 0.9 },
       lr: 2,
       grade: "A",
-      source: "ATA 2014 hypothyroidism guideline: free T4 under about 0.9 ng/dL with a high TSH is overt failure.",
+      source:
+        "ATA 2014 hypothyroidism guideline: free T4 under about 0.9 ng/dL with a high TSH is overt failure.",
     },
   ],
   discriminators: [
@@ -499,7 +544,8 @@ const HASHIMOTO: Hypothesis = {
       typicalPos: 320,
       typicalNeg: 9,
       unit: "IU/mL",
-      howTo: "One extra tube on the next thyroid draw. It never needs repeating once positive.",
+      howTo:
+        "One extra tube on the next thyroid draw. It never needs repeating once positive.",
     },
     {
       test: "Anti-thyroglobulin antibodies",
@@ -519,7 +565,8 @@ const HASHIMOTO: Hypothesis = {
       lrNeg: 0.5,
       typicalPos: 1,
       typicalNeg: 0,
-      howTo: "1 for a heterogeneous, hypoechoic gland, 0 for a normal one. Also baselines nodules.",
+      howTo:
+        "1 for a heterogeneous, hypoechoic gland, 0 for a normal one. Also baselines nodules.",
     },
     {
       test: "Repeat TSH in 6 months",
@@ -531,7 +578,8 @@ const HASHIMOTO: Hypothesis = {
       typicalNeg: 1.6,
       unit: "mIU/L",
       repeatable: true,
-      howTo: "Progression runs 2–5 % per year while antibody-positive, so a second TSH is the cheapest test there is.",
+      howTo:
+        "Progression runs 2–5 % per year while antibody-positive, so a second TSH is the cheapest test there is.",
     },
   ],
   lenses: {
@@ -563,7 +611,8 @@ const IRON_DEFICIENCY: Hypothesis = {
       when: { below: 30 },
       lr: 20,
       grade: "A",
-      source: "Guyatt 1992 J Gen Intern Med: ferritin under 30 ng/mL has an LR near 20 for absent marrow iron.",
+      source:
+        "Guyatt 1992 J Gen Intern Med: ferritin under 30 ng/mL has an LR near 20 for absent marrow iron.",
       confoundedBy: ["ferritin"],
     },
     {
@@ -572,7 +621,8 @@ const IRON_DEFICIENCY: Hypothesis = {
       when: { below: 15 },
       lr: 50,
       grade: "A",
-      source: "Guyatt 1992 J Gen Intern Med: ferritin under 15 ng/mL has an LR near 50. It supersedes the under-30 rule rather than stacking on it.",
+      source:
+        "Guyatt 1992 J Gen Intern Med: ferritin under 15 ng/mL has an LR near 50. It supersedes the under-30 rule rather than stacking on it.",
       confoundedBy: ["ferritin"],
     },
     {
@@ -581,7 +631,8 @@ const IRON_DEFICIENCY: Hypothesis = {
       when: { below: 20 },
       lr: 3,
       grade: "A",
-      source: "BSG iron deficiency guideline: transferrin saturation under 20 % means iron is not reaching the marrow.",
+      source:
+        "BSG iron deficiency guideline: transferrin saturation under 20 % means iron is not reaching the marrow.",
       confoundedBy: ["transferrin_saturation"],
     },
     {
@@ -590,7 +641,8 @@ const IRON_DEFICIENCY: Hypothesis = {
       when: { below: 80 },
       lr: 2,
       grade: "A",
-      source: "BSG iron deficiency guideline: microcytosis is the late red-cell consequence.",
+      source:
+        "BSG iron deficiency guideline: microcytosis is the late red-cell consequence.",
     },
     {
       id: "iron_rdw",
@@ -620,7 +672,8 @@ const IRON_DEFICIENCY: Hypothesis = {
       typicalPos: 12,
       typicalNeg: 90,
       unit: "ng/mL",
-      howTo: "Draw it with a CRP: inflammation lifts ferritin and hides an empty store.",
+      howTo:
+        "Draw it with a CRP: inflammation lifts ferritin and hides an empty store.",
     },
     {
       test: "Transferrin saturation and TIBC",
@@ -631,7 +684,8 @@ const IRON_DEFICIENCY: Hypothesis = {
       typicalPos: 12,
       typicalNeg: 32,
       unit: "%",
-      howTo: "Separates empty stores from inflammation hiding them, and it responds first when iron is working.",
+      howTo:
+        "Separates empty stores from inflammation hiding them, and it responds first when iron is working.",
     },
     {
       test: "Reticulocyte haemoglobin",
@@ -642,7 +696,8 @@ const IRON_DEFICIENCY: Hypothesis = {
       typicalPos: 25,
       typicalNeg: 32,
       unit: "pg",
-      howTo: "Grade C for the LRs here: small diagnostic series only, but it is the one marker CRP does not move.",
+      howTo:
+        "Grade C for the LRs here: small diagnostic series only, but it is the one marker CRP does not move.",
     },
   ],
   lenses: {
@@ -685,7 +740,8 @@ const IRON_DEFICIENCY_CAUSE_GI: Hypothesis = {
       when: { above: 0.5 },
       lr: 3,
       grade: "B",
-      source: "Hudak 2017 Helicobacter (meta-analysis): H. pylori associates with iron deficiency. 1 = positive, 0 = negative.",
+      source:
+        "Hudak 2017 Helicobacter (meta-analysis): H. pylori associates with iron deficiency. 1 = positive, 0 = negative.",
     },
     {
       id: "gi_coeliac",
@@ -693,7 +749,8 @@ const IRON_DEFICIENCY_CAUSE_GI: Hypothesis = {
       when: { above: 10 },
       lr: 8,
       grade: "A",
-      source: "BSG coeliac guideline: tTG-IgA above 10 RU/mL, read with a total IgA, is close to diagnostic.",
+      source:
+        "BSG coeliac guideline: tTG-IgA above 10 RU/mL, read with a total IgA, is close to diagnostic.",
     },
     {
       id: "gi_parietal",
@@ -701,7 +758,8 @@ const IRON_DEFICIENCY_CAUSE_GI: Hypothesis = {
       when: { above: 0.5 },
       lr: 8,
       grade: "B",
-      source: "Lahner 2009 World J Gastroenterol: parietal-cell or intrinsic-factor antibodies mark atrophic gastritis. 1 = positive.",
+      source:
+        "Lahner 2009 World J Gastroenterol: parietal-cell or intrinsic-factor antibodies mark atrophic gastritis. 1 = positive.",
     },
     {
       id: "gi_b12_low",
@@ -709,7 +767,8 @@ const IRON_DEFICIENCY_CAUSE_GI: Hypothesis = {
       when: { below: 300 },
       lr: 2,
       grade: "B",
-      source: "Lahner 2009: low B12 alongside low ferritin points at the stomach rather than the diet.",
+      source:
+        "Lahner 2009: low B12 alongside low ferritin points at the stomach rather than the diet.",
     },
     {
       id: "gi_gastrin",
@@ -717,7 +776,8 @@ const IRON_DEFICIENCY_CAUSE_GI: Hypothesis = {
       when: { above: 100 },
       lr: 5,
       grade: "B",
-      source: "Lahner 2009: high gastrin with a low pepsinogen I is the serological picture of atrophic gastritis.",
+      source:
+        "Lahner 2009: high gastrin with a low pepsinogen I is the serological picture of atrophic gastritis.",
     },
     {
       id: "gi_fobt",
@@ -725,7 +785,8 @@ const IRON_DEFICIENCY_CAUSE_GI: Hypothesis = {
       when: { above: 0.5 },
       lr: 6,
       grade: "A",
-      source: "USPSTF 2021 colorectal screening: a positive faecal immunochemical test needs a scope. 1 = positive.",
+      source:
+        "USPSTF 2021 colorectal screening: a positive faecal immunochemical test needs a scope. 1 = positive.",
     },
   ],
   discriminators: [
@@ -738,7 +799,8 @@ const IRON_DEFICIENCY_CAUSE_GI: Hypothesis = {
       typicalPos: 40,
       typicalNeg: 2,
       unit: "RU/mL",
-      howTo: "Must be taken while still eating gluten, and the total IgA rules out a false negative.",
+      howTo:
+        "Must be taken while still eating gluten, and the total IgA rules out a false negative.",
     },
     {
       test: "H. pylori stool antigen",
@@ -776,7 +838,8 @@ const IRON_DEFICIENCY_CAUSE_GI: Hypothesis = {
       lrNeg: 0.1,
       typicalPos: 1,
       typicalNeg: 0,
-      howTo: "The test that both looks and biopsies. It ends the question; it is also the only invasive one here.",
+      howTo:
+        "The test that both looks and biopsies. It ends the question; it is also the only invasive one here.",
     },
   ],
   lenses: {
@@ -808,7 +871,8 @@ const PCOS: Hypothesis = {
       lr: 4,
       lrNeg: 0.4,
       grade: "A",
-      source: "Rotterdam 2003 criteria: oligo- or anovulation is one of the three defining features. The negative LR of 0.4 is a curated grade C: regular ovulatory cycles remove one of the three, and most of the syndrome with it.",
+      source:
+        "Rotterdam 2003 criteria: oligo- or anovulation is one of the three defining features. The negative LR of 0.4 is a curated grade C: regular ovulatory cycles remove one of the three, and most of the syndrome with it.",
     },
     {
       id: "pcos_hirsutism",
@@ -817,7 +881,8 @@ const PCOS: Hypothesis = {
       lr: 3,
       lrNeg: 0.6,
       grade: "A",
-      source: "Rotterdam 2003 criteria: clinical hyperandrogenism counts the same as a biochemical one. The negative LR of 0.6 is a curated grade C: no hair and no acne removes the commonest presenting feature.",
+      source:
+        "Rotterdam 2003 criteria: clinical hyperandrogenism counts the same as a biochemical one. The negative LR of 0.6 is a curated grade C: no hair and no acne removes the commonest presenting feature.",
     },
     {
       id: "pcos_lh_fsh",
@@ -825,7 +890,8 @@ const PCOS: Hypothesis = {
       when: { above: 2 },
       lr: 2,
       grade: "B",
-      source: "Balen 1995 Hum Reprod: an LH/FSH ratio above 2 is common in PCOS but absent in a third of cases.",
+      source:
+        "Balen 1995 Hum Reprod: an LH/FSH ratio above 2 is common in PCOS but absent in a third of cases.",
       confoundedBy: ["lh", "fsh"],
     },
     {
@@ -834,7 +900,8 @@ const PCOS: Hypothesis = {
       when: { aboveOptimal: true },
       lr: 4,
       grade: "A",
-      source: "Rotterdam 2003 criteria: biochemical hyperandrogenism; the band here is already sex-adjusted.",
+      source:
+        "Rotterdam 2003 criteria: biochemical hyperandrogenism; the band here is already sex-adjusted.",
       confoundedBy: ["testosterone"],
     },
     {
@@ -843,7 +910,8 @@ const PCOS: Hypothesis = {
       when: { below: 30 },
       lr: 1.5,
       grade: "B",
-      source: "Deswal 2018 J Hum Reprod Sci: low SHBG raises free androgen and travels with insulin resistance.",
+      source:
+        "Deswal 2018 J Hum Reprod Sci: low SHBG raises free androgen and travels with insulin resistance.",
     },
     {
       id: "pcos_insulin",
@@ -851,7 +919,8 @@ const PCOS: Hypothesis = {
       when: { above: 10 },
       lr: 1.5,
       grade: "B",
-      source: "Diamanti-Kandarakis 2012 Endocr Rev: insulin resistance is present in most, but not all, PCOS.",
+      source:
+        "Diamanti-Kandarakis 2012 Endocr Rev: insulin resistance is present in most, but not all, PCOS.",
       confoundedBy: ["insulin"],
     },
     {
@@ -860,7 +929,8 @@ const PCOS: Hypothesis = {
       when: { above: 5 },
       lr: 3,
       grade: "B",
-      source: "Iliodromiti 2013 JCEM: AMH above about 5 ng/mL stands in for the follicle count.",
+      source:
+        "Iliodromiti 2013 JCEM: AMH above about 5 ng/mL stands in for the follicle count.",
     },
   ],
   discriminators: [
@@ -903,7 +973,8 @@ const PCOS: Hypothesis = {
       lrNeg: 0.4,
       typicalPos: 1,
       typicalNeg: 0,
-      howTo: "1 for 20 or more follicles or a raised ovarian volume. With two Rotterdam criteria already met, this settles it.",
+      howTo:
+        "1 for 20 or more follicles or a raised ovarian volume. With two Rotterdam criteria already met, this settles it.",
     },
   ],
   lenses: {
@@ -940,7 +1011,8 @@ const SLEEP_APNOEA: Hypothesis = {
       when: { includes: "most" },
       lr: 3,
       grade: "A",
-      source: "Chung 2016 Chest (STOP-Bang): habitual loud snoring is the single strongest question.",
+      source:
+        "Chung 2016 Chest (STOP-Bang): habitual loud snoring is the single strongest question.",
     },
     {
       id: "osa_no_snoring",
@@ -948,7 +1020,8 @@ const SLEEP_APNOEA: Hypothesis = {
       when: { equals: "no" },
       lr: 0.4,
       grade: "C",
-      source: "Grade C for the size: STOP-Bang has no published negative LR per item, but a firm no to habitual snoring is the single most useful thing anyone says against OSA.",
+      source:
+        "Grade C for the size: STOP-Bang has no published negative LR per item, but a firm no to habitual snoring is the single most useful thing anyone says against OSA.",
     },
     {
       id: "osa_sleepiness",
@@ -957,7 +1030,8 @@ const SLEEP_APNOEA: Hypothesis = {
       lr: 2,
       lrNeg: 0.6,
       grade: "A",
-      source: "Chung 2016 Chest (STOP-Bang): daytime tiredness is the second question in the score. The negative LR of 0.6 is a curated grade C: STOP-Bang publishes no per-item negative, but sleeping well through the day is real evidence against.",
+      source:
+        "Chung 2016 Chest (STOP-Bang): daytime tiredness is the second question in the score. The negative LR of 0.6 is a curated grade C: STOP-Bang publishes no per-item negative, but sleeping well through the day is real evidence against.",
     },
     {
       id: "osa_bmi",
@@ -965,7 +1039,8 @@ const SLEEP_APNOEA: Hypothesis = {
       when: { above: 30 },
       lr: 3,
       grade: "A",
-      source: "Peppard 2013 Am J Epidemiol (Wisconsin cohort): BMI is the dominant risk factor.",
+      source:
+        "Peppard 2013 Am J Epidemiol (Wisconsin cohort): BMI is the dominant risk factor.",
     },
     {
       id: "osa_neck",
@@ -973,7 +1048,8 @@ const SLEEP_APNOEA: Hypothesis = {
       when: { above: 43 },
       lr: 2,
       grade: "C",
-      source: "Grade C: a neck over 43 cm is a STOP-Bang item, but it is strongly correlated with BMI, so it carries less once BMI is already counted.",
+      source:
+        "Grade C: a neck over 43 cm is a STOP-Bang item, but it is strongly correlated with BMI, so it carries less once BMI is already counted.",
     },
     {
       id: "osa_bp",
@@ -981,7 +1057,8 @@ const SLEEP_APNOEA: Hypothesis = {
       when: { above: 135 },
       lr: 2,
       grade: "A",
-      source: "Marin 2005 Lancet: OSA and hypertension travel together; resistant hypertension is a red flag.",
+      source:
+        "Marin 2005 Lancet: OSA and hypertension travel together; resistant hypertension is a red flag.",
       confoundedBy: ["bp_systolic"],
     },
     {
@@ -990,7 +1067,8 @@ const SLEEP_APNOEA: Hypothesis = {
       when: { above: 50 },
       lr: 1.5,
       grade: "B",
-      source: "Nocturnal hypoxia raises erythropoietin; a high haematocrit with no other cause is a hint.",
+      source:
+        "Nocturnal hypoxia raises erythropoietin; a high haematocrit with no other cause is a hint.",
       confoundedBy: ["hematocrit"],
     },
     {
@@ -999,7 +1077,8 @@ const SLEEP_APNOEA: Hypothesis = {
       when: { above: 75 },
       lr: 1.3,
       grade: "C",
-      source: "Grade C: a raised sleeping heart rate on a wearable tracks sympathetic drive; suggestive, never diagnostic.",
+      source:
+        "Grade C: a raised sleeping heart rate on a wearable tracks sympathetic drive; suggestive, never diagnostic.",
     },
   ],
   discriminators: [
@@ -1011,7 +1090,8 @@ const SLEEP_APNOEA: Hypothesis = {
       lrNeg: 0.3,
       typicalPos: 5,
       typicalNeg: 1,
-      howTo: "Eight yes/no questions, two minutes, free. Three or more is a positive screen.",
+      howTo:
+        "Eight yes/no questions, two minutes, free. Three or more is a positive screen.",
     },
     {
       test: "Home sleep study",
@@ -1022,7 +1102,8 @@ const SLEEP_APNOEA: Hypothesis = {
       typicalPos: 22,
       typicalNeg: 3,
       unit: "AHI events/h",
-      howTo: "One night with a home kit gives the apnoea-hypopnoea index. Five or more with symptoms is a diagnosis.",
+      howTo:
+        "One night with a home kit gives the apnoea-hypopnoea index. Five or more with symptoms is a diagnosis.",
     },
   ],
   lenses: {
@@ -1055,7 +1136,8 @@ const NAFLD: Hypothesis = {
       // only weakly. The 0.7 is grade C; the 2.5 and the band are Prati 2002.
       lrNeg: 0.7,
       grade: "B",
-      source: "Prati 2002 Ann Intern Med: the true upper limit is about 30 U/L in men and 20 in women; the band here is already sex-adjusted. The negative LR of 0.7 is a curated grade C: a normal ALT does not exclude steatosis.",
+      source:
+        "Prati 2002 Ann Intern Med: the true upper limit is about 30 U/L in men and 20 in women; the band here is already sex-adjusted. The negative LR of 0.7 is a curated grade C: a normal ALT does not exclude steatosis.",
       confoundedBy: ["alt"],
     },
     {
@@ -1064,7 +1146,8 @@ const NAFLD: Hypothesis = {
       when: { below: 0.5 },
       lr: 0.6,
       grade: "C",
-      source: "Grade C for the size: central adiposity is the dominant clinical predictor, so its absence is the strongest thing against fatty liver short of imaging.",
+      source:
+        "Grade C for the size: central adiposity is the dominant clinical predictor, so its absence is the strongest thing against fatty liver short of imaging.",
     },
     {
       id: "nafld_ggt",
@@ -1072,7 +1155,8 @@ const NAFLD: Hypothesis = {
       when: { aboveOptimal: true },
       lr: 2,
       grade: "B",
-      source: "Lazo 2011 (NHANES): GGT above the optimal band tracks liver fat and alcohol together.",
+      source:
+        "Lazo 2011 (NHANES): GGT above the optimal band tracks liver fat and alcohol together.",
       confoundedBy: ["ggt"],
     },
     {
@@ -1081,7 +1165,8 @@ const NAFLD: Hypothesis = {
       when: { above: 150 },
       lr: 1.5,
       grade: "B",
-      source: "EASL-EASD-EASO 2016 NAFLD guideline: hypertriglyceridaemia is part of the metabolic picture.",
+      source:
+        "EASL-EASD-EASO 2016 NAFLD guideline: hypertriglyceridaemia is part of the metabolic picture.",
       confoundedBy: ["triglycerides"],
     },
     {
@@ -1090,7 +1175,8 @@ const NAFLD: Hypothesis = {
       when: { above: 0.5 },
       lr: 2,
       grade: "A",
-      source: "EASL-EASD-EASO 2016: central adiposity is the strongest clinical predictor of liver fat.",
+      source:
+        "EASL-EASD-EASO 2016: central adiposity is the strongest clinical predictor of liver fat.",
     },
     {
       id: "nafld_ir",
@@ -1098,7 +1184,8 @@ const NAFLD: Hypothesis = {
       when: { above: 0.6 },
       lr: 2,
       grade: "B",
-      source: "EASL-EASD-EASO 2016: insulin resistance is the mechanism; the app scores it separately above.",
+      source:
+        "EASL-EASD-EASO 2016: insulin resistance is the mechanism; the app scores it separately above.",
     },
     {
       id: "nafld_fib4",
@@ -1106,7 +1193,8 @@ const NAFLD: Hypothesis = {
       when: { above: 1.3 },
       lr: 3,
       grade: "A",
-      source: "Sterling 2006 Hepatology: FIB-4 above 1.3 is the guideline trigger to look for fibrosis, not just fat.",
+      source:
+        "Sterling 2006 Hepatology: FIB-4 above 1.3 is the guideline trigger to look for fibrosis, not just fat.",
     },
   ],
   discriminators: [
@@ -1118,7 +1206,8 @@ const NAFLD: Hypothesis = {
       lrNeg: 0.3,
       typicalPos: 1,
       typicalNeg: 0,
-      howTo: "1 for a bright liver, 0 for a normal one. Cheap and everywhere, but it misses mild steatosis.",
+      howTo:
+        "1 for a bright liver, 0 for a normal one. Cheap and everywhere, but it misses mild steatosis.",
     },
     {
       test: "FibroScan",
@@ -1129,7 +1218,8 @@ const NAFLD: Hypothesis = {
       typicalPos: 9,
       typicalNeg: 4,
       unit: "kPa",
-      howTo: "Elastography measures stiffness, which is the number that decides whether this matters.",
+      howTo:
+        "Elastography measures stiffness, which is the number that decides whether this matters.",
     },
   ],
   lenses: {
@@ -1158,7 +1248,8 @@ const B12_DEFICIENCY: Hypothesis = {
       {
         when: {
           fact: "medications",
-          includes: "metformin|omeprazole|pantoprazole|esomeprazole|lansoprazole|ppi",
+          includes:
+            "metformin|omeprazole|pantoprazole|esomeprazole|lansoprazole|ppi",
         },
         times: 2,
         why: "Metformin and proton-pump inhibitors both cut B12 absorption (A).",
@@ -1172,7 +1263,8 @@ const B12_DEFICIENCY: Hypothesis = {
       when: { below: 200 },
       lr: 10,
       grade: "A",
-      source: "Stabler 2013 NEJM: under 200 pg/mL is deficient in almost everyone.",
+      source:
+        "Stabler 2013 NEJM: under 200 pg/mL is deficient in almost everyone.",
     },
     {
       id: "b12_borderline",
@@ -1180,7 +1272,8 @@ const B12_DEFICIENCY: Hypothesis = {
       when: { above: 200, below: 300 },
       lr: 2,
       grade: "B",
-      source: "Stabler 2013 NEJM: 200–300 pg/mL is the grey zone where MMA decides.",
+      source:
+        "Stabler 2013 NEJM: 200–300 pg/mL is the grey zone where MMA decides.",
     },
     {
       id: "b12_diet_negative",
@@ -1191,7 +1284,8 @@ const B12_DEFICIENCY: Hypothesis = {
       lr: 1,
       lrNeg: 0.7,
       grade: "C",
-      source: "Grade C for the size: B12 comes only from animal foods or supplements (A), so an omnivore diet is the commonest reason a B12 is fine. No study puts a number on it.",
+      source:
+        "Grade C for the size: B12 comes only from animal foods or supplements (A), so an omnivore diet is the commonest reason a B12 is fine. No study puts a number on it.",
     },
     {
       id: "b12_mcv",
@@ -1199,7 +1293,8 @@ const B12_DEFICIENCY: Hypothesis = {
       when: { above: 100 },
       lr: 3,
       grade: "A",
-      source: "Stabler 2013 NEJM: macrocytosis is the classic, and late, blood sign.",
+      source:
+        "Stabler 2013 NEJM: macrocytosis is the classic, and late, blood sign.",
     },
     {
       id: "b12_homocysteine",
@@ -1207,7 +1302,8 @@ const B12_DEFICIENCY: Hypothesis = {
       when: { above: 12 },
       lr: 3,
       grade: "B",
-      source: "Stabler 2013 NEJM: homocysteine rises in B12 and folate deficiency both.",
+      source:
+        "Stabler 2013 NEJM: homocysteine rises in B12 and folate deficiency both.",
     },
     {
       id: "b12_mma",
@@ -1215,7 +1311,8 @@ const B12_DEFICIENCY: Hypothesis = {
       when: { above: 0.4 },
       lr: 8,
       grade: "A",
-      source: "Stabler 2013 NEJM: methylmalonic acid rises only in B12 deficiency, which is why it settles the grey zone.",
+      source:
+        "Stabler 2013 NEJM: methylmalonic acid rises only in B12 deficiency, which is why it settles the grey zone.",
     },
     {
       id: "b12_parietal",
@@ -1223,7 +1320,8 @@ const B12_DEFICIENCY: Hypothesis = {
       when: { above: 0.5 },
       lr: 5,
       grade: "B",
-      source: "Lahner 2009 World J Gastroenterol: parietal-cell antibodies mark the pernicious-anaemia route. 1 = positive.",
+      source:
+        "Lahner 2009 World J Gastroenterol: parietal-cell antibodies mark the pernicious-anaemia route. 1 = positive.",
     },
   ],
   discriminators: [
@@ -1236,7 +1334,8 @@ const B12_DEFICIENCY: Hypothesis = {
       typicalPos: 0.8,
       typicalNeg: 0.2,
       unit: "µmol/L",
-      howTo: "The test that decides a borderline B12. Kidney failure raises it too, so read it with creatinine.",
+      howTo:
+        "The test that decides a borderline B12. Kidney failure raises it too, so read it with creatinine.",
     },
     {
       test: "Holotranscobalamin",
@@ -1247,7 +1346,8 @@ const B12_DEFICIENCY: Hypothesis = {
       typicalPos: 25,
       typicalNeg: 70,
       unit: "pmol/L",
-      howTo: "Grade C for the LRs here: the active fraction performs like MMA in small series, and not every lab runs it.",
+      howTo:
+        "Grade C for the LRs here: the active fraction performs like MMA in small series, and not every lab runs it.",
     },
     {
       test: "Repeat B12",
@@ -1314,6 +1414,20 @@ export interface HypothesisResult {
     grade: Grade;
     by: string;
   }[];
+  /**
+   * Rules that held and were counted at less than their stated strength
+   * because a stronger rule in the same correlation group already spoke for
+   * that marker. The card prints it the way it prints `superseded`.
+   */
+  correlated: {
+    rule: string;
+    input: string;
+    group: string;
+    lr: number;
+    counted: number;
+    /** the rule in the group that counted in full */
+    with: string;
+  }[];
   confounded: { input: string; tag: string }[];
   nextTests: {
     test: string;
@@ -1358,6 +1472,15 @@ export const effectiveLr = (lr: number, rule: EvidenceRule): number =>
 
 const round2 = (v: number) => Math.round(v * 100) / 100;
 const round3 = (v: number) => Math.round(v * 1000) / 1000;
+
+/**
+ * A probability, rounded for printing. Three decimals down to 0.001, and three
+ * significant figures under it: ring 2 put ten thousand diseases in the engine
+ * whose honest answer is 0.000003 %, and rounding those to a flat 0 would make
+ * the one that is a thousand times likelier than the rest look identical.
+ */
+const roundP = (v: number) =>
+  v >= 0.001 ? round3(v) : Number(v.toPrecision(3));
 
 const pFromOdds = (odds: number) => odds / (1 + odds);
 
@@ -1414,6 +1537,8 @@ interface Resolved {
   value: number | null;
   text: string;
   row?: LatestValue;
+  /** the trend, when the input is a derived number rather than a marker */
+  slope?: Slope;
   /** the metric code the confounder tags are keyed on */
   code?: string;
 }
@@ -1438,7 +1563,12 @@ function resolve(
   if (input.derived) {
     const value = m.derived[input.derived];
     if (value == null) return null;
-    return { label: input.derived, value, text: String(value) };
+    return {
+      label: input.derived,
+      value,
+      text: String(value),
+      slope: m.slopes?.[input.derived],
+    };
   }
   if (input.hypothesis) {
     const value = scores.get(input.hypothesis);
@@ -1478,19 +1608,38 @@ function resolve(
   return null;
 }
 
-/** One string per thing a rule can read, so two rules over the same marker
- *  land in the same group and only the strongest of them scores. */
-function inputKey(input: EvidenceRule["input"]): string {
-  if (input.metric) return `metric:${input.metric}`;
-  if (input.derived) return `derived:${input.derived}`;
-  if (input.hypothesis) return `hypothesis:${input.hypothesis}`;
-  if (input.event) return `event:${input.event}`;
-  return `fact:${input.fact}`;
+/**
+ * One string per thing a rule can read, so two rules over the same marker land
+ * in the same group and only the strongest of them scores.
+ *
+ * A slope rule is a separate key. "TSH is 3.4" and "TSH has climbed 0.8 a year
+ * for three years" are two facts about one marker, not two readings of one
+ * fact, so neither supersedes the other. They are still correlated, and the
+ * correlation guard handles that: both sit in `thyroid_axis`, so the weaker of
+ * the two is counted at `lr ** CORR_DAMP`.
+ */
+function inputKey(rule: EvidenceRule): string {
+  const input = rule.input;
+  const trend = rule.when.slopePerYear ? ":slope" : "";
+  if (input.metric) return `metric:${input.metric}${trend}`;
+  if (input.derived) return `derived:${input.derived}${trend}`;
+  if (input.hypothesis) return `hypothesis:${input.hypothesis}${trend}`;
+  if (input.event) return `event:${input.event}${trend}`;
+  return `fact:${input.fact}${trend}`;
 }
 
 /** Does the condition hold? `null` when the input cannot answer the question. */
 function holds(when: EvidenceRule["when"], r: Resolved): boolean | null {
   const checks: boolean[] = [];
+  if (when.slopePerYear != null) {
+    const slope = r.row?.slope ?? r.slope;
+    // No slope is not a flat slope: three draws over five years is the price
+    // of having an opinion about a direction.
+    if (!slope) return null;
+    const { above, below } = when.slopePerYear;
+    if (above != null) checks.push(slope.perYear > above);
+    if (below != null) checks.push(slope.perYear < below);
+  }
   if (when.status != null) {
     if (!r.row) return null;
     checks.push(r.row.status === when.status);
@@ -1537,7 +1686,13 @@ function modifierApplies(
   if (minAge != null && (m.age == null || m.age < minAge)) return false;
   if (maxAge != null && (m.age == null || m.age > maxAge)) return false;
   const keys = input as EvidenceRule["input"] & EvidenceRule["when"];
-  if (!keys.metric && !keys.derived && !keys.fact && !keys.event && !keys.hypothesis)
+  if (
+    !keys.metric &&
+    !keys.derived &&
+    !keys.fact &&
+    !keys.event &&
+    !keys.hypothesis
+  )
     return true;
   const r = resolve(keys, m, scores);
   if (!r) return false;
@@ -1546,7 +1701,9 @@ function modifierApplies(
 
 /** The country fact, already stored as ISO-3166 alpha-2 by `saveFact`. */
 export const countryOf = (m: ModelInput): string | null => {
-  const raw = String(m.profile.country ?? "").trim().toUpperCase();
+  const raw = String(m.profile.country ?? "")
+    .trim()
+    .toUpperCase();
   return /^[A-Z]{2}$/.test(raw) ? raw : null;
 };
 
@@ -1630,6 +1787,96 @@ function confounderFor(
 /** An LR pulled toward 1 by the confounder's discount. */
 const discountLr = (lr: number, discount: number) => 1 + (lr - 1) * discount;
 
+/* ── correlation guards (phase 17, section 3) ─────────────────────────── */
+
+/**
+ * Markers that measure the same underlying thing, by the name of the thing.
+ *
+ * Bayes with likelihood ratios assumes the pieces of evidence are conditionally
+ * independent. Glucose, HbA1c and fasting insulin are not: they are three
+ * windows on one glycaemia, and multiplying all three in full counts one fact
+ * three times. Every group here is a panel a laboratory prints together for
+ * exactly that reason.
+ *
+ * The keys are metric codes and `derived` keys, which is everything a rule can
+ * read that is a measurement. Facts and symptoms are not grouped: two answers
+ * about two different symptoms really are two facts.
+ */
+export const CORRELATION_GROUPS: Record<string, string> = {
+  // one glycaemia, read four ways
+  glucose: "glycaemia",
+  hba1c: "glycaemia",
+  insulin: "glycaemia",
+  homaIr: "glycaemia",
+  homa_ir: "glycaemia",
+  tgHdl: "glycaemia",
+  triglyceride_hdl_ratio: "glycaemia",
+  ogtt_insulin_120: "glycaemia",
+  // one iron store
+  ferritin: "iron_panel",
+  transferrin_saturation: "iron_panel",
+  iron: "iron_panel",
+  tibc: "iron_panel",
+  mcv: "iron_panel",
+  rdw: "iron_panel",
+  rdw_cv: "iron_panel",
+  // one apoB-carrying particle count
+  ldl_cholesterol: "lipid_panel",
+  non_hdl_cholesterol: "lipid_panel",
+  nonHdl: "lipid_panel",
+  apolipoprotein_b: "lipid_panel",
+  total_cholesterol: "lipid_panel",
+  // one thyroid axis
+  tsh: "thyroid_axis",
+  free_t4: "thyroid_axis",
+  free_t3: "thyroid_axis",
+  // one blood pressure
+  bp_systolic: "bp",
+  bp_diastolic: "bp",
+  // one liver
+  alt: "liver_enzymes",
+  ast: "liver_enzymes",
+  ggt: "liver_enzymes",
+  fib4: "liver_enzymes",
+};
+
+/**
+ * The exponent every rule in a group after the strongest one is raised to.
+ * `lr ** 0.3` turns an LR of 4 into 1.5 and an LR of 0.5 into 0.81: the second
+ * reading of the same fact still counts, at about a third of its weight in log
+ * space, which is the honest thing to do with a measurement you already partly
+ * had.
+ */
+export const CORR_DAMP = 0.3;
+
+/**
+ * The group a rule's input belongs to, when it belongs to one.
+ *
+ * Facts are looked up too, because three of them are measurements wearing a
+ * fact's clothes: `bp_systolic` is a home reading, and `lh_fsh_ratio` is two
+ * markers divided. A fact that is genuinely an answer (`sym_energy`,
+ * `family_history`) is not in the table and stays ungrouped.
+ */
+export const correlationGroupOf = (
+  input: EvidenceRule["input"],
+): string | undefined =>
+  input.metric
+    ? CORRELATION_GROUPS[input.metric]
+    : input.derived
+      ? CORRELATION_GROUPS[input.derived]
+      : input.fact
+        ? CORRELATION_GROUPS[input.fact]
+        : undefined;
+
+/**
+ * The floor a prior is clamped to. It used to be 0.001, which was harmless
+ * while every condition was a common one; ring 2 made it wrong, because it
+ * started a one-in-ten-million syndrome at the same 0.1 % as type 2 diabetes
+ * and threw away the only thing that keeps rare diseases in their place. One
+ * order of magnitude under the ultra-rare class (1e-7) is the new floor.
+ */
+export const MIN_PRIOR = 1e-8;
+
 function stateFor(p: number, confirmed: boolean): HState {
   if (p < 0.05) return "ruled_out";
   if (p < 0.25) return "unlikely";
@@ -1666,7 +1913,7 @@ export function scoreHypotheses(
     let prior = base.prevalence;
     for (const mod of h.priors.modifiers)
       if (modifierApplies(mod, m, scores)) prior *= mod.times;
-    prior = Math.min(Math.max(prior, 0.001), 0.9);
+    prior = Math.min(Math.max(prior, MIN_PRIOR), 0.9);
 
     let odds = prior / (1 - prior);
     const forList: HypothesisResult["for"] = [];
@@ -1674,6 +1921,7 @@ export function scoreHypotheses(
     const missing: HypothesisResult["missing"] = [];
     const confounded: HypothesisResult["confounded"] = [];
     const superseded: HypothesisResult["superseded"] = [];
+    const correlated: HypothesisResult["correlated"] = [];
     const positiveCodes = new Set<string>();
 
     // Pass one: everything that could be read and whose condition decided.
@@ -1715,7 +1963,7 @@ export function scoreHypotheses(
         hit,
         stated,
         raw: effectiveLr(stated, rule),
-        key: inputKey(rule.input),
+        key: inputKey(rule),
       });
     }
 
@@ -1725,6 +1973,27 @@ export function scoreHypotheses(
     const byInput = new Map<string, typeof fired>();
     for (const f of fired)
       byInput.set(f.key, [...(byInput.get(f.key) ?? []), f]);
+
+    /**
+     * One factor: a rule (or a discriminator) that already won its own input
+     * and is about to multiply the odds. Collected rather than multiplied
+     * straight away, because the correlation guard needs to see the whole set
+     * before it knows which member of a group is the strongest.
+     */
+    interface Factor {
+      rule: string;
+      input: string;
+      value: string;
+      /** the number the paper printed, for the card */
+      stated: number;
+      grade: Grade;
+      /** what will actually multiply the odds */
+      lr: number;
+      group?: string;
+      positive: boolean;
+      code?: string;
+    }
+    const factors: Factor[] = [];
 
     for (const group of byInput.values()) {
       const winner = group.reduce((best, f) =>
@@ -1746,22 +2015,24 @@ export function scoreHypotheses(
       const conf = confounderFor(r.code, rule, tags);
       const lr = conf ? discountLr(raw, conf.discount) : raw;
       if (conf) confounded.push({ input: r.label, tag: conf.tag });
-      odds *= lr;
-
-      const entry = {
+      factors.push({
         rule: rule.id,
         input: r.label,
-        value: r.text,
-        lr: stated,
+        // A slope rule is about the direction, so the card prints the
+        // direction: "rising: +0.8 mIU/L/yr over 3 years (4 draws)".
+        value: (() => {
+          const slope = r.row?.slope ?? r.slope;
+          return rule.when.slopePerYear && slope
+            ? slopeText(slope, r.row?.unit)
+            : r.text;
+        })(),
+        stated,
         grade: rule.grade,
-        // the grade shrink and the confounder discount both land here, so the
-        // card can print "3.8, counted as 1.9" without a second field
-        ...(round2(lr) !== round2(stated) ? { discounted: round2(lr) } : {}),
-      };
-      if (lr >= 1) {
-        forList.push(entry);
-        if (hit && r.code) positiveCodes.add(r.code);
-      } else against.push(entry);
+        lr,
+        group: rule.correlationGroup ?? correlationGroupOf(rule.input),
+        positive: hit,
+        code: r.code,
+      });
     }
 
     // A discriminator whose marker no evidence rule reads still has to move
@@ -1784,21 +2055,68 @@ export function scoreHypotheses(
       const positive =
         Math.abs(value - d.typicalPos) <= Math.abs(value - d.typicalNeg);
       const lr = positive ? d.lrPos : d.lrNeg;
-      odds *= lr;
-      const entry = {
+      factors.push({
         rule: `discriminator:${d.test}`,
         input: code,
         value: `${value}${d.unit ? ` ${d.unit}` : ""}`,
+        stated: lr,
+        grade: "B",
         lr,
-        grade: "B" as Grade,
+        group: CORRELATION_GROUPS[code],
+        positive: true,
+        code,
+      });
+    }
+
+    // The correlation guard. Glucose and HbA1c are two readings of one
+    // glycaemia, so the strongest member of a group counts in full and every
+    // other one counts at `lr ** CORR_DAMP`, which pulls it toward 1 without
+    // silencing it. Two different groups still multiply unchanged: that is
+    // what makes them different groups.
+    const inGroups = new Map<string, Factor[]>();
+    for (const f of factors)
+      if (f.group) inGroups.set(f.group, [...(inGroups.get(f.group) ?? []), f]);
+    for (const [group, members] of inGroups) {
+      if (members.length < 2) continue;
+      const strongest = members.reduce((best, f) =>
+        Math.abs(Math.log(f.lr)) > Math.abs(Math.log(best.lr)) ? f : best,
+      );
+      for (const f of members) {
+        if (f === strongest) continue;
+        const damped = f.lr ** CORR_DAMP;
+        correlated.push({
+          rule: f.rule,
+          input: f.input,
+          group,
+          lr: round2(f.lr),
+          counted: round2(damped),
+          with: strongest.rule,
+        });
+        f.lr = damped;
+      }
+    }
+
+    for (const f of factors) {
+      odds *= f.lr;
+      const entry = {
+        rule: f.rule,
+        input: f.input,
+        value: f.value,
+        lr: f.stated,
+        grade: f.grade,
+        // the grade shrink, the confounder discount and the correlation damp
+        // all land here, so the card can print "3.8, counted as 1.9"
+        ...(round2(f.lr) !== round2(f.stated)
+          ? { discounted: round2(f.lr) }
+          : {}),
       };
-      if (lr >= 1) {
+      if (f.lr >= 1) {
         forList.push(entry);
-        positiveCodes.add(code);
+        if (f.positive && f.code) positiveCodes.add(f.code);
       } else against.push(entry);
     }
 
-    const score = round3(pFromOdds(odds));
+    const score = roundP(pFromOdds(odds));
     scores.set(h.id, score);
 
     const confirmAt = h.confirmAtLrPos ?? 10;
@@ -1830,13 +2148,14 @@ export function scoreHypotheses(
     out.push({
       id: h.id,
       name: h.name,
-      prior: round3(prior),
+      prior: roundP(prior),
       score,
       state: stateFor(score, confirmed),
       for: forList,
       against,
       missing,
       superseded,
+      correlated,
       confounded,
       nextTests,
       lenses: h.lenses,
@@ -1852,6 +2171,7 @@ export function scoreHypotheses(
   }
 
   return out.sort(
-    (a, b) => b.score * b.lensWeight - a.score * a.lensWeight || b.score - a.score,
+    (a, b) =>
+      b.score * b.lensWeight - a.score * a.lensWeight || b.score - a.score,
   );
 }

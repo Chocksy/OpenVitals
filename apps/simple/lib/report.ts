@@ -37,7 +37,7 @@ import {
 import { model } from "./extract";
 import { computeGraphState, type GraphState } from "./graph-state";
 import { loadGraph, type Graph } from "./kg";
-import { loadCatalog } from "./hkb";
+import { catalogFor } from "./hkb";
 import { isConclusion, mattersOf } from "./ledger";
 import {
   scoreHypotheses,
@@ -351,9 +351,17 @@ function hypothesisLines(rows: HypothesisResult[]): string {
   if (!rows.length) return "- nothing scored yet";
   const head = rows.slice(0, TOP_HYPOTHESES).map(one).join("\n");
   const tail = rows.slice(TOP_HYPOTHESES);
+  // Ring 2 can put dozens of woken rare diseases in the tail, all of them at a
+  // fraction of a percent. The count stays honest; only the first two dozen
+  // names are printed, so the pack does not turn into a MONDO listing.
+  const NAMED = 24;
   return tail.length
     ? `${head}\n- ${tail.length} more, all scored below ${rows[TOP_HYPOTHESES - 1]!.score}: ` +
-        tail.map((h) => `${h.id} ${h.score}`).join(", ")
+        tail
+          .slice(0, NAMED)
+          .map((h) => `${h.id} ${h.score}`)
+          .join(", ") +
+        (tail.length > NAMED ? `, and ${tail.length - NAMED} more` : "")
     : head;
 }
 
@@ -638,7 +646,7 @@ export async function buildReportContext(
     getTrackerSummary(userId, 30),
     latestReport(userId),
   ]);
-  const catalog = await loadCatalog();
+  const catalog = await catalogFor(userId);
   return buildContextFromInput(input, {
     tracker,
     previous,

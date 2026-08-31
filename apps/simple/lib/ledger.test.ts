@@ -28,6 +28,7 @@ const hypothesis = (
   against: [],
   missing: [],
   superseded: [],
+  correlated: [],
   confounded: [],
   nextTests: [],
   lenses: { lifespan: { w: 3, grade: "A" } },
@@ -283,5 +284,38 @@ describe("the spear", () => {
 
   it("is a red marker when that is all there is", () => {
     expect(spearOf([{ kind: "marker" }])).toBeDefined();
+  });
+});
+
+describe("the phase-17 display rule", () => {
+  it("never gives a ruled-out condition a card, even when it changed", () => {
+    const h = hypothesis("mondo_0010526", 0.0002, "ruled_out", {
+      for: [
+        {
+          rule: "wake_x",
+          input: "sym_energy",
+          value: "Yes",
+          lr: 4,
+          grade: "C",
+        },
+      ],
+      nextTests: [
+        { test: "a test", cost: 1, expectedShift: 0.2, ratio: 0.2 },
+      ],
+    });
+    expect(isConclusion(h, false)).toBe(false);
+    expect(isConclusion(h, true)).toBe(false);
+  });
+
+  it("still gives an unlikely one a card when a rule fired and a test would move it", () => {
+    const h = hypothesis("hashimoto", 0.2, "unlikely", {
+      for: [
+        { rule: "r", input: "tsh", value: "4.9", lr: 3, grade: "A" },
+      ],
+      nextTests: [
+        { test: "Anti-TPO", cost: 1, expectedShift: 0.3, ratio: 0.3 },
+      ],
+    });
+    expect(isConclusion(h)).toBe(true);
   });
 });

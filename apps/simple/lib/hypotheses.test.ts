@@ -130,7 +130,16 @@ describe("iron_deficiency", () => {
   });
 
   it("is close to certain with an empty store and small red cells", () => {
-    expect(score("iron_deficiency", matching)!.score).toBeGreaterThan(0.95);
+    // 0.929, not the 0.97 of phase 16: ferritin, transferrin saturation, MCV
+    // and RDW are one iron panel, so the correlation guard counts the
+    // strongest of the four in full and the rest at `lr ** CORR_DAMP`.
+    const r = score("iron_deficiency", matching)!;
+    expect(r.score).toBeGreaterThan(0.9);
+    expect(r.correlated.map((c) => c.group)).toEqual([
+      "iron_panel",
+      "iron_panel",
+      "iron_panel",
+    ]);
   });
 
   it("counts one ferritin factor, not both thresholds", () => {
@@ -282,7 +291,10 @@ describe("nafld", () => {
         derived: { fib4: 1.8 },
       }),
     )!;
-    expect(r.score).toBeGreaterThan(0.9);
+    // 0.888, not 0.93: ALT and FIB-4 are both the liver enzymes group, so
+    // FIB-4 counts at `3 ** 0.3` on top of the ALT rather than in full.
+    expect(r.score).toBeGreaterThan(0.85);
+    expect(r.correlated[0]?.group).toBe("liver_enzymes");
   });
 
   it("argues itself down on a normal ALT and a lean waist", () => {

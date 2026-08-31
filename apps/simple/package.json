@@ -18,6 +18,7 @@
     "test": "vitest run",
     "eval": "tsx --env-file=.env evals/run.ts",
     "hkb:import": "tsx scripts/hkb-import-ontology.ts",
+    "hkb:ring2:build": "tsx scripts/hkb-ring2-build.ts",
     "hkb:research": "tsx --env-file=.env scripts/hkb-research.ts",
     "hkb:import:priors": "tsx scripts/hkb-import-priors.ts",
     "hkb:import:prices": "tsx scripts/hkb-import-prices.ts",

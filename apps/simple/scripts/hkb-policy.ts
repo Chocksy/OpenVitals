@@ -11,6 +11,7 @@
  */
 import { eq, inArray } from "drizzle-orm";
 import { getDb, hkbConditions, hkbEvidence, hkbFeatures } from "@/db";
+import { recordRevision } from "@/lib/hkb";
 import { recordRun, took } from "@/lib/hkb-import";
 import { decide, statusOf, type Decision } from "@/lib/hkb-policy";
 import type { Grade } from "@/lib/hypotheses";
@@ -110,6 +111,12 @@ export async function runPolicy({
       .where(eq(hkbEvidence.id, e.id));
     applied++;
   }
+
+  if (apply && applied)
+    await recordRevision(
+      `policy applied to ${applied} evidence rows: ${counts.accepted} accepted, ` +
+        `${counts.review} flagged, ${counts.rejected} rejected`,
+    );
 
   if (apply)
     await recordRun(

@@ -233,6 +233,23 @@
       }
     </style>
   </head>
+  <!--
+    Phase 17 note (2026-08-31): this mockup still draws every condition,
+    including the ruled-out rings. The shipped app does not. The display rule
+    now is:
+
+      - a condition whose posterior is under 5 % is hidden everywhere by
+        default, behind a "show ruled out (N)" toggle: on Home (QuietLine in
+        components/home.tsx) and on /brain (components/brain.tsx). It never
+        gets a card, not even when it changed state, because ring 2 means
+        thousands of diseases change state the day something wakes them;
+      - a condition whose `applies_to` excludes the person is never rendered at
+        all, and never has been: `gateOpen` in lib/hypotheses.ts drops it
+        before it is scored, so PCOS does not exist for a man rather than
+        sitting at 0 %.
+
+    Redo the bubbles against those two rules before this becomes a page.
+  -->
   <body>
     <header>
       <b>OpenVitals</b><span class="mono">your brain · mockup</span>

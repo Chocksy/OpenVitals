@@ -2,7 +2,12 @@ import { describe, it, expect } from "vitest";
 import { catalogRows, testId } from "./hkb-seed";
 import { loadCatalog, rowsToCatalog } from "./hkb";
 import { shrunk } from "./hkb-pool";
-import { HYPOTHESES, type EvidenceRule, type Hypothesis } from "./hypotheses";
+import {
+  correlationGroupOf,
+  HYPOTHESES,
+  type EvidenceRule,
+  type Hypothesis,
+} from "./hypotheses";
 
 const round2 = (v: number) => Math.round(v * 100) / 100;
 
@@ -34,11 +39,15 @@ const normalise = (
       },
     }));
 
-/** The in-code rule as the database would serve it: shrunk, no papers. */
+/**
+ * The in-code rule as the database would serve it: shrunk, no papers, and
+ * carrying the correlation group the seed derives from its input.
+ */
 const asPooled = (e: EvidenceRule): EvidenceRule => ({
   ...e,
   lr: round2(shrunk(e.lr, e.grade)),
   lrNeg: e.lrNeg == null ? undefined : round2(shrunk(e.lrNeg, e.grade)),
+  correlationGroup: e.correlationGroup ?? correlationGroupOf(e.input),
 });
 
 const withoutSources = ({ sources: _s, ...e }: EvidenceRule): EvidenceRule => e;

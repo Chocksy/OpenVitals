@@ -13,6 +13,7 @@
  */
 import { eq, inArray } from "drizzle-orm";
 import { getDb, hkbConditions } from "@/db";
+import { recordRevision } from "@/lib/hkb";
 import { recordRun, took } from "@/lib/hkb-import";
 import {
   featuresFor,
@@ -189,6 +190,13 @@ export async function researchRun({
       break;
     }
   }
+
+  const changed = rows.reduce((sum, r) => sum + (r.written ?? 0), 0);
+  if (changed)
+    await recordRevision(
+      `research run over ${rows.map((r) => r.conditionId).join(", ")}: ${changed} new evidence rows ` +
+        `from ${rows.reduce((sum, r) => sum + (r.verified ?? 0), 0)} verified papers`,
+    );
 
   return { rows, tokens: spent, ms: Date.now() - started };
 }

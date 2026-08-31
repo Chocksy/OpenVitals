@@ -3133,14 +3133,133 @@ const GENOME_MODIFIERS: Record<string, Hypothesis["priors"]["modifiers"]> = {
   ],
 };
 
-/** A condition plus whatever a genome file would say about it. */
-function withGenome(h: Hypothesis): Hypothesis {
-  const evidence = GENOME_EVIDENCE[h.id];
+
+/* ── trend evidence (phase 17, section 4) ─────────────────────────────── *
+ *
+ * A direction is a fact in its own right. A TSH of 3.1 says little; a TSH of
+ * 3.1 that was 1.4 three years ago says the gland is failing slowly, and that
+ * is the difference between "watch" and "test the antibodies". Every rule here
+ * needs three draws inside five years (`slopePerYear` in `lib/derived.ts`);
+ * with fewer it is missing, not false.
+ *
+ * The likelihood ratios are small on purpose. None of these thresholds has a
+ * published diagnostic LR — they are guideline definitions of "progressing"
+ * turned into a nudge — so they are graded B where the threshold itself is a
+ * guideline number and C where it is not, and `GRADE_SHRINK` pulls the C ones
+ * down again.
+ */
+
+const TREND_EVIDENCE: Record<string, EvidenceRule[]> = {
+  hashimoto: [
+    {
+      id: "hashi_tsh_rising",
+      input: { metric: "tsh" },
+      when: { slopePerYear: { above: 0.5 } },
+      lr: 1.5,
+      grade: "B",
+      source:
+        "Vanderpump 1995 Clin Endocrinol (Whickham 20-year follow-up): antibody-positive people progress to overt hypothyroidism at 2-5 % a year, and the TSH climbs before the free T4 falls. Grade B for the direction; the 0.5 mIU/L per year threshold is a curated cut-off, not a published one, which is why the ratio is 1.5 and not 5.",
+    },
+  ],
+  hypothyroidism: [
+    {
+      id: "hypo_tsh_rising",
+      input: { metric: "tsh" },
+      when: { slopePerYear: { above: 0.5 } },
+      lr: 1.5,
+      grade: "B",
+      source:
+        "Vanderpump 1995 Clin Endocrinol (Whickham): a rising TSH is how subclinical hypothyroidism becomes overt. Same curated 0.5 mIU/L per year threshold as the Hashimoto rule.",
+    },
+  ],
+  iron_deficiency: [
+    {
+      id: "iron_ferritin_falling",
+      input: { metric: "ferritin" },
+      when: { slopePerYear: { below: -15 } },
+      lr: 1.5,
+      grade: "C",
+      source:
+        "Grade C for the size: no published slope threshold exists. A store falling 15 ng/mL a year is losing roughly a milligram of iron a week (Cook 2003 Blood: 1 ng/mL of ferritin is about 8-10 mg of stored iron), which is the order of a real ongoing loss rather than assay noise.",
+    },
+  ],
+  iron_deficiency_cause_gi: [
+    {
+      id: "gi_ferritin_falling",
+      input: { metric: "ferritin" },
+      when: { slopePerYear: { below: -15 } },
+      lr: 1.3,
+      grade: "C",
+      source:
+        "Grade C: a store that keeps falling has a source, and in an adult who is eating normally the gut is where it usually is (BSG 2021 iron deficiency guideline). Weaker than the iron-deficiency rule itself because the slope says there is a loss, not where it is.",
+    },
+  ],
+  atrophic_gastritis: [
+    {
+      id: "gastritis_ferritin_falling",
+      input: { metric: "ferritin" },
+      when: { slopePerYear: { below: -15 } },
+      lr: 1.3,
+      grade: "C",
+      source:
+        "Grade C: same reasoning as the gut-loss rule. Atrophic gastritis causes iron deficiency by failing to absorb rather than by bleeding (Lahner 2009 World J Gastroenterol), and a falling store is what that looks like over years.",
+    },
+  ],
+  ckd: [
+    {
+      id: "ckd_egfr_falling",
+      input: { derived: "egfr" },
+      when: { slopePerYear: { below: -3 } },
+      lr: 2,
+      grade: "A",
+      source:
+        "KDIGO 2024 CKD guideline: a sustained decline in eGFR of more than 5 mL/min/1.73m2 per year is rapid progression, and more than 3 is faster than ageing alone (about 1 per year after 40). Grade A because the threshold is the guideline's own.",
+    },
+  ],
+  insulin_resistance: [
+    {
+      id: "ir_insulin_rising",
+      input: { metric: "insulin" },
+      when: { slopePerYear: { above: 2 } },
+      lr: 1.3,
+      grade: "C",
+      source:
+        "Grade C for the size: no published slope threshold. Fasting insulin rises for years while glucose holds (DeFronzo 2009 Diabetes), so 2 uIU/mL a year is compensation happening rather than a fasting artefact, but nobody has measured the ratio.",
+    },
+  ],
+  ascvd_risk: [
+    {
+      id: "ascvd_apob_rising",
+      input: { metric: "apolipoprotein_b" },
+      when: { slopePerYear: { above: 10 } },
+      lr: 1.2,
+      grade: "C",
+      source:
+        "Grade C: risk is cumulative exposure, so a particle count going up adds area under the curve (Ference 2017 Eur Heart J, Mendelian randomisation on lifetime LDL exposure). The 10 mg/dL a year threshold is curated; the direction is the evidence.",
+    },
+    {
+      id: "ascvd_ldl_rising",
+      input: { metric: "ldl_cholesterol" },
+      when: { slopePerYear: { above: 10 } },
+      lr: 1.2,
+      grade: "C",
+      source:
+        "Grade C, same reasoning as the apoB rule (Ference 2017 Eur Heart J). Both sit in the `lipid_panel` correlation group, so whichever of the two the person has measured counts once.",
+    },
+  ],
+};
+
+/** A condition plus what a genome file and a trend would say about it. */
+function withGenomeAndTrends(h: Hypothesis): Hypothesis {
+  const evidence = [
+    ...(GENOME_EVIDENCE[h.id] ?? []),
+    ...(TREND_EVIDENCE[h.id] ?? []),
+  ];
   const modifiers = GENOME_MODIFIERS[h.id];
-  if (!evidence && !modifiers) return h;
+  if (!evidence.length && !modifiers) return h;
   return {
     ...h,
-    evidence: [...h.evidence, ...(evidence ?? [])],
+    evidence: [...h.evidence, ...evidence],
     priors: {
       ...h.priors,
       modifiers: [...h.priors.modifiers, ...(modifiers ?? [])],
@@ -3166,7 +3285,7 @@ export const CATALOG: Catalog = [
     };
   }),
   ...NEW,
-].map(withGenome);
+].map(withGenomeAndTrends);
 
 /** Every prior band and every evidence row needs one, so it is worth asserting. */
 export const missingSources = (catalog: Catalog = CATALOG): string[] => [

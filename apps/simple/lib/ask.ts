@@ -12,7 +12,7 @@ import {
   type FactQuestion,
 } from "./coverage";
 import { BEDTIME_FACT, evaluateWhen } from "./graph-state";
-import { loadCatalog } from "./hkb";
+import { catalogFor, loadCatalog } from "./hkb";
 import { CODE_GRAPH, loadGraph, type Graph } from "./kg";
 import { scoreHypotheses } from "./hypotheses";
 import { nextMoves } from "./infogain";
@@ -53,11 +53,14 @@ const LIVE = { low: 0.05, high: 0.6 };
  * and possible. With nothing in that band, the questionnaire waits for the
  * user to open "How do you feel" themselves.
  */
-export async function symptomAsks(m: ModelInput): Promise<FactQuestion[]> {
+export async function symptomAsks(
+  m: ModelInput,
+  userId?: string,
+): Promise<FactQuestion[]> {
   const open = new Set(symptomQuestions(m).map((q) => q.key));
   if (!open.size) return [];
 
-  const catalog = await loadCatalog();
+  const catalog = userId ? await catalogFor(userId) : await loadCatalog();
   const live = new Set(
     scoreHypotheses(m, { catalog })
       .filter((r) => r.score >= LIVE.low && r.score < LIVE.high)
@@ -123,7 +126,10 @@ export function conditionalAsks(
 export async function queueQuestions(userId: string): Promise<number> {
   const m = await buildModelInput(userId);
   const interview = await queueFactQuestions(userId, profileQuestions(m));
-  const symptoms = await queueFactQuestions(userId, await symptomAsks(m));
+  const symptoms = await queueFactQuestions(
+    userId,
+    await symptomAsks(m, userId),
+  );
   const conditional = await queueFactQuestions(
     userId,
     conditionalAsks(m, await loadGraph()),

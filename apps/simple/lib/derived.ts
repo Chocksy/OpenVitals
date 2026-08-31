@@ -212,3 +212,76 @@ export function deriveAll(
     }),
   };
 }
+
+/* ── trends (phase 17, section 4) ─────────────────────────────────────── */
+
+/** One reading on a date, the shape `lib/data.ts` already keeps. */
+export interface TrendPoint {
+  date: string;
+  value: number;
+}
+
+export interface Slope {
+  /** change in the metric's own unit per year */
+  perYear: number;
+  /** how many years the fitted window spans */
+  years: number;
+  /** how many readings went into it */
+  n: number;
+}
+
+const YEAR_MS = 365.25 * 86_400_000;
+
+/** The most recent window a slope is fitted over. */
+export const TREND_YEARS = 5;
+/** Fewer than this and a line through them says nothing. */
+export const TREND_MIN_POINTS = 3;
+
+/**
+ * Least squares through the last five years of one marker.
+ *
+ * Two readings are a difference, not a trend, so three is the floor. Anything
+ * older than five years is dropped rather than fitted: a thyroid that drifted
+ * a decade ago is a different question from one drifting now, and the whole
+ * point of a slope rule is that it reads the direction the person is moving
+ * today.
+ *
+ * `undefined` when there is not enough, or when every reading is on one day
+ * (the fit would divide by zero).
+ */
+export function slopePerYear(
+  points: TrendPoint[],
+  asOf?: string,
+): Slope | undefined {
+  const end = asOf ? new Date(asOf).getTime() : Date.now();
+  const window = points
+    .filter((p) => {
+      const t = new Date(p.date).getTime();
+      return Number.isFinite(t) && Number.isFinite(p.value) && end - t <= TREND_YEARS * YEAR_MS;
+    })
+    .sort((a, b) => a.date.localeCompare(b.date));
+  if (window.length < TREND_MIN_POINTS) return undefined;
+
+  const xs = window.map((p) => new Date(p.date).getTime() / YEAR_MS);
+  const ys = window.map((p) => p.value);
+  const meanX = xs.reduce((s, x) => s + x, 0) / xs.length;
+  const meanY = ys.reduce((s, y) => s + y, 0) / ys.length;
+  let top = 0;
+  let bottom = 0;
+  for (let i = 0; i < xs.length; i++) {
+    top += (xs[i]! - meanX) * (ys[i]! - meanY);
+    bottom += (xs[i]! - meanX) ** 2;
+  }
+  if (bottom === 0) return undefined;
+  return {
+    perYear: round2(top / bottom),
+    years: round2(xs[xs.length - 1]! - xs[0]!),
+    n: window.length,
+  };
+}
+
+/** "rising: +0.8/yr over 3 years", the line a card prints under a slope rule. */
+export const slopeText = (slope: Slope, unit?: string | null): string =>
+  `${slope.perYear > 0 ? "rising" : slope.perYear < 0 ? "falling" : "flat"}: ` +
+  `${slope.perYear > 0 ? "+" : ""}${slope.perYear}${unit ? ` ${unit}` : ""}/yr ` +
+  `over ${slope.years} year${slope.years === 1 ? "" : "s"} (${slope.n} draws)`;

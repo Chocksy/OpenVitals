@@ -508,25 +508,63 @@ export function ImprovedCard({ improved }: { improved: Ledger["improved"] }) {
   );
 }
 
+/** "2 %", and "0.0021 %" for the rare ones ring 2 put in the list. */
+const quietPct = (p: number) =>
+  p >= 0.01 ? `${Math.round(p * 100)}%` : `${(p * 100).toPrecision(2)}%`;
+
+function QuietRows({
+  rows,
+}: {
+  rows: { id: string; name: string; p: number }[];
+}) {
+  return (
+    <ul className="mt-2 grid gap-1 sm:grid-cols-2 lg:grid-cols-3">
+      {rows.map((r) => (
+        <li
+          key={r.id}
+          className="flex justify-between gap-2 font-mono text-[11px] tabular-nums text-neutral-500"
+        >
+          <span className="truncate">{r.name}</span>
+          <span>{quietPct(r.p)}</span>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+/**
+ * Two toggles, not one. Unlikely is a thing worth glancing at; ruled out is a
+ * thing the engine looked at and dismissed, and after phase 17 most of that
+ * list is rare diseases something woke and the arithmetic put back to sleep.
+ * Both are closed by default, everywhere.
+ */
 export function QuietLine({ quiet }: { quiet: Ledger["quiet"] }) {
   if (!quiet.ids.length) return null;
+  const summary =
+    "cursor-pointer list-none font-mono text-[11px] uppercase tracking-[0.06em] text-neutral-400 hover:text-neutral-700";
   return (
-    <details>
-      <summary className="cursor-pointer list-none font-mono text-[11px] uppercase tracking-[0.06em] text-neutral-400 hover:text-neutral-700">
-        {quiet.unlikely} unlikely · {quiet.ruledOut} ruled out · show
-      </summary>
-      <ul className="mt-2 grid gap-1 sm:grid-cols-2 lg:grid-cols-3">
-        {quiet.rows.map((r) => (
-          <li
-            key={r.id}
-            className="flex justify-between gap-2 font-mono text-[11px] tabular-nums text-neutral-500"
-          >
-            <span className="truncate">{r.name}</span>
-            <span>{Math.round(r.p * 100)}%</span>
-          </li>
-        ))}
-      </ul>
-    </details>
+    <div className="space-y-2">
+      {quiet.unlikely > 0 && (
+        <details>
+          <summary className={summary}>
+            {quiet.unlikely} unlikely · show
+          </summary>
+          <QuietRows rows={quiet.rows} />
+        </details>
+      )}
+      {quiet.ruledOut > 0 && (
+        <details>
+          <summary className={summary}>
+            show ruled out ({quiet.ruledOut})
+          </summary>
+          <p className="mt-2 font-body text-[12px] text-neutral-400">
+            Under 5 %. Every one of these was scored and dismissed; the ring-2
+            entries are rare diseases something in your data woke for a look.
+          </p>
+          <QuietRows rows={quiet.ruledOutRows} />
+        </details>
+      )}
+    </div>
   );
 }
 

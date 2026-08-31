@@ -21,7 +21,7 @@ import { toCountryCode } from "./countries";
 import { CYCLE_FACT, profileAt, writeFact } from "./facts";
 import { localDay } from "./daily";
 import { getMetricRows } from "./data";
-import { deriveAll } from "./derived";
+import { deriveAll, egfr, slopePerYear, type Slope } from "./derived";
 import { applyPatternTargets } from "./patterns";
 import { statusOf, type Status } from "./status";
 import {
@@ -48,6 +48,13 @@ export interface LatestValue {
   prev?: number | null;
   /** Set when a matched pattern moved the optimal band. */
   note?: string;
+  /**
+   * Least squares through the last five years of this marker, when there are
+   * at least three readings in the window. Phase 17: a direction is evidence
+   * in its own right, and "TSH rising 0.8 a year" is a different fact from
+   * "TSH is 3.1".
+   */
+  slope?: Slope;
 }
 
 export interface ModelInput {
@@ -65,6 +72,12 @@ export interface ModelInput {
     fib4?: number;
     phenoAge?: number;
   };
+  /**
+   * The direction a derived number is moving, keyed the same way `derived` is.
+   * Only eGFR is filled today, because KDIGO defines rapid progression on the
+   * eGFR slope and nothing else here has a published slope threshold.
+   */
+  slopes?: Partial<Record<keyof ModelInput["derived"], Slope>>;
 }
 
 export interface CoverageRow {
@@ -165,15 +178,39 @@ export async function buildModelInput(
       refLow: m.latest.refLow,
       refHigh: m.latest.refHigh,
       prev: withValue[withValue.length - 2]?.value ?? null,
+      slope: slopePerYear(m.points, today),
     };
   }
 
   const derived = deriveAll(latest, sex, age);
 
+  // eGFR has a published slope threshold and no reading of its own on most
+  // panels, so it is refitted from the creatinine series. ponytail: the age
+  // term uses today's age for every point; over a five-year window that costs
+  // about 0.03 mL/min/1.73m2 per year, well inside the -3 threshold.
+  const creatinine = rows.find((m) => m.code === "creatinine");
+  const egfrSlope = creatinine
+    ? slopePerYear(
+        creatinine.points.flatMap((p) => {
+          const value = egfr({ creatinine: p.value, age, sex });
+          return value == null ? [] : [{ date: p.date, value }];
+        }),
+        today,
+      )
+    : undefined;
+
   // Patterns can move an optimal band (Hashimoto's ferritin floor, the
   // suspended LDL goal in LMHR), so the ranges every caller sees are already
   // the ones the pattern says apply.
-  return applyPatternTargets({ today, profile, sex, age, latest, derived });
+  return applyPatternTargets({
+    today,
+    profile,
+    sex,
+    age,
+    latest,
+    derived,
+    ...(egfrSlope ? { slopes: { egfr: egfrSlope } } : {}),
+  });
 }
 
 /**

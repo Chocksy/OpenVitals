@@ -10,6 +10,7 @@ import { and, asc, desc, eq, gt, lt } from "drizzle-orm";
 import {
   beliefSnapshots,
   getDb,
+  hkbRevisions,
   lifeEvents,
   profileFactHistory,
   protocolItems,
@@ -17,12 +18,13 @@ import {
   type ReportAction,
 } from "@/db";
 import type { RangeBarProps } from "@/components/range-bar";
+import { recordCalibration } from "./calibration";
 import { buildModelInput, type ModelInput } from "./coverage";
 import { eventConfounders } from "./facts";
 import { getMetricRows, type MetricRow, type Point } from "./data";
 import { SYSTEMS } from "./graph";
 import { graphState, worstMember } from "./graph-state";
-import { loadCatalog } from "./hkb";
+import { catalogFor, currentRevision } from "./hkb";
 import {
   scoreHypotheses,
   type Grade,
@@ -32,6 +34,7 @@ import {
   type Lens,
 } from "./hypotheses";
 import { nextMoves, type Move } from "./infogain";
+import { wakeConditions } from "./wake";
 import { latestReport } from "./report";
 import { queueResearch } from "./research";
 import type { Status } from "./status";
@@ -76,6 +79,17 @@ export interface Conclusion {
     deltaP: number;
     /** the fact edit that explains the flip, when one does */
     because?: string;
+    /**
+     * Which kind of change this was. `data` is the same knowledge base reading
+     * new inputs; `knowledge` is the same inputs read by a knowledge base that
+     * learned something; `both` is both, and `unknown` is a snapshot from
+     * before phase 17, which carries no revision.
+     */
+    kind: "data" | "knowledge" | "both" | "unknown";
+    /** the `hkb_revisions` summaries that name this condition */
+    knowledge?: string[];
+    /** the whole sentence, already written */
+    line: string;
   };
 }
 
@@ -108,8 +122,14 @@ export interface Ledger {
     unlikely: number;
     ruledOut: number;
     ids: string[];
-    /** the same rows again with what the line prints: name and probability */
+    /** the unlikely ones, with what the line prints: name and probability */
     rows: { id: string; name: string; p: number }[];
+    /**
+     * The ruled-out ones, kept apart so the page can hide them behind their
+     * own toggle. Ring 2 means this list is mostly rare diseases the engine
+     * looked at and dismissed, which is exactly what it should be.
+     */
+    ruledOutRows: { id: string; name: string; p: number; ring?: number }[];
   };
   improved: {
     code: string;
@@ -125,6 +145,11 @@ export interface Ledger {
     new: number;
     stronger: number;
     weaker: number;
+    /** the knowledge-base revision then and now */
+    wasKbRevision?: number | null;
+    kbRevision?: number | null;
+    /** how many mutation batches the knowledge base took in between */
+    knowledgeBatches?: number;
   };
 }
 
@@ -151,6 +176,9 @@ const STATUS_RANK: Record<Status, number> = {
 const round2 = (v: number) => Math.round(v * 100) / 100;
 const round3 = (v: number) => Math.round(v * 1000) / 1000;
 
+/** How far a probability has to move before a knowledge change is worth a line. */
+const KNOWLEDGE_DELTA = 0.02;
+
 /** score × lensWeight, the same product `scoreHypotheses` already sorts on. */
 export const mattersOf = (h: HypothesisResult) =>
   round3(h.score * h.lensWeight);
@@ -159,11 +187,17 @@ export const mattersOf = (h: HypothesisResult) =>
  * A condition earns a card when it is at least possible, when a rule fired for
  * it and there is still a test that would move it, or when it changed state
  * since the last snapshot. Everything else is a line in the quiet list.
+ *
+ * Phase 17: ruled out is ruled out. A posterior under 5 % never gets a card,
+ * not even on a state change, because ring 2 put ten thousand diseases in the
+ * engine and every one of them "changes state" the day it is woken. It is
+ * still in the quiet list, behind the "show ruled out" toggle.
  */
 export const isConclusion = (h: HypothesisResult, changed = false): boolean =>
-  isLoud(h.state) ||
-  changed ||
-  (h.state !== "ruled_out" && h.for.length > 0 && h.nextTests.length > 0);
+  h.state !== "ruled_out" &&
+  (isLoud(h.state) ||
+    changed ||
+    (h.for.length > 0 && h.nextTests.length > 0));
 
 const metricCodesOf = (h: Hypothesis): string[] => [
   ...new Set([
@@ -221,7 +255,31 @@ async function writeSnapshot(
       .limit(1);
     if (last?.at && Date.now() - last.at.getTime() < DAY) return;
   }
-  await db.insert(beliefSnapshots).values({ userId, beliefs });
+  // The knowledge base as it stood, so "what changed" can tell a new lab
+  // result from a changed likelihood ratio.
+  await db
+    .insert(beliefSnapshots)
+    .values({ userId, beliefs, kbRevision: await currentRevision() });
+}
+
+/**
+ * What the knowledge base learned between two revisions, and which of it names
+ * this condition.
+ *
+ * Every mutation batch writes one `hkb_revisions` row with the condition id in
+ * its summary where it has one, so a plain substring is enough to say "the
+ * evidence for Hashimoto's changed" rather than "something changed".
+ */
+async function knowledgeSince(
+  from: number | null,
+  to: number | null,
+): Promise<{ id: number; summary: string }[]> {
+  if (from == null || to == null || to <= from) return [];
+  return getDb()
+    .select({ id: hkbRevisions.id, summary: hkbRevisions.summary })
+    .from(hkbRevisions)
+    .where(gt(hkbRevisions.id, from))
+    .orderBy(asc(hkbRevisions.id));
 }
 
 /**
@@ -235,10 +293,27 @@ export async function recordBeliefs(
 ): Promise<void> {
   const [input, catalog, before] = await Promise.all([
     buildModelInput(userId),
-    loadCatalog(),
+    catalogFor(userId),
     previousSnapshot(userId),
   ]);
-  const rows = scoreHypotheses(input, { catalog });
+  let rows = scoreHypotheses(input, { catalog });
+
+  // The rings are reconsidered by exactly the hooks that recompute beliefs, so
+  // a ferritin of 1200 or an accepted diagnosis reaches the differential on the
+  // same request that recorded it. A wake changes the catalog, so anything that
+  // woke is scored before the snapshot is written.
+  const wakes = await wakeConditions(userId, input, rows).catch((e) => {
+    console.error("[wake] could not reconsider the rings:", e);
+    return null;
+  });
+  if (wakes && (wakes.woke.length || wakes.dismissed.length))
+    rows = scoreHypotheses(input, { catalog: await catalogFor(userId) });
+
+  // Before the new snapshot, so `predicted` is the belief from before today's
+  // readings and not the one they already moved.
+  await recordCalibration(userId, input, rows, await catalogFor(userId)).catch(
+    (e) => console.error("[calibration] could not record:", e),
+  );
   await writeSnapshot(userId, beliefsOf(rows), opts.oncePerDay ?? false);
   await queueNewlyPossible(rows, (before?.beliefs ?? null) as Beliefs | null);
 }
@@ -329,6 +404,81 @@ export function improvedOf(rows: MetricRow[]): Ledger["improved"] {
   return out;
 }
 
+
+/* ── what changed, and whether it was you or us ───────────────────────── */
+
+/** The `hkb_revisions` summaries that name this condition by id or by name. */
+const namesIt = (
+  h: HypothesisResult,
+  revisions: { summary: string }[],
+): string[] =>
+  revisions
+    .filter(
+      (r) =>
+        r.summary.includes(h.id) ||
+        r.summary.toLowerCase().includes(h.name.toLowerCase()),
+    )
+    // The summary starts with the condition id so `namesIt` can find it; the
+    // sentence does not need to say it twice.
+    .map((r) => r.summary.replace(new RegExp(`^${h.id}:\\s*`), ""));
+
+const pct = (p: number) =>
+  p >= 0.01 ? `${Math.round(p * 100)} %` : `${(p * 100).toPrecision(2)} %`;
+
+/**
+ * "Hashimoto's 5 % → 8 %: the evidence for anti-Tg was updated (pooled with
+ * Sheppard 2022), your data did not change."
+ *
+ * Two diffs, not one. Same knowledge base and different inputs means the
+ * person changed; same inputs and a different knowledge base means we did. The
+ * distinction matters because only one of the two is about them.
+ */
+export function changeOf(
+  h: HypothesisResult,
+  prev: { p: number; state: string },
+  because: string | undefined,
+  dataChanged: boolean,
+  revisions: { summary: string }[],
+  wasRevision: number | null,
+  nowRevision: number | null,
+): NonNullable<Conclusion["changed"]> {
+  const knowledge = namesIt(h, revisions);
+  const kind: NonNullable<Conclusion["changed"]>["kind"] =
+    wasRevision == null || nowRevision == null
+      ? "unknown"
+      : knowledge.length && dataChanged
+        ? "both"
+        : knowledge.length
+          ? "knowledge"
+          : dataChanged
+            ? "data"
+            : "unknown";
+
+  const move = `${h.name} ${pct(prev.p)} → ${pct(h.score)}`;
+  const why =
+    kind === "knowledge"
+      ? `${knowledge[0]}, your data did not change.`
+      : kind === "both"
+        ? `${knowledge[0]}, and your data changed too${because ? ` (${because})` : ""}.`
+        : kind === "data"
+          ? because
+            ? `${because}. What we know did not change.`
+            : "your data changed; what we know did not."
+          : because
+            ? `${because}.`
+            : "the inputs moved.";
+
+  return {
+    from: prev.state as HState,
+    to: h.state,
+    deltaP: round3(h.score - prev.p),
+    ...(because ? { because } : {}),
+    kind,
+    ...(knowledge.length ? { knowledge } : {}),
+    line: `${move}: ${why}`,
+  };
+}
+
 /* ── the ledger ───────────────────────────────────────────────────────── */
 
 /** The nine markers PhenoAge reads, plus the age it needs to read them with. */
@@ -388,7 +538,7 @@ export async function buildLedger(
   const [input, catalog, rows, report, protocol, rawReadings, before, events] =
     await Promise.all([
       buildModelInput(userId),
-      loadCatalog(),
+      catalogFor(userId),
       getMetricRows(userId),
       latestReport(userId),
       db
@@ -445,6 +595,20 @@ export async function buildLedger(
         `${e.changeKind === "corrected" ? "corrected" : "entered"} ${e.validFrom}`,
     ]),
   );
+  // The other half of "what changed": what the knowledge base learned in the
+  // same window, and whether any reading arrived at all.
+  const kbRevision = await currentRevision();
+  const revisions = await knowledgeSince(
+    before?.kbRevision ?? null,
+    kbRevision,
+  );
+  const dataChanged =
+    edits.length > 0 ||
+    (before != null &&
+      rawReadings.some(
+        (r) => new Date(r.observedAt).getTime() >= before.computedAt.getTime(),
+      ));
+
   const byId = new Map(catalog.map((h) => [h.id, h]));
   const byCode = new Map(rows.map((m) => [m.code, m]));
   const latestReading = new Map(rawReadings.map((r) => [r.metricCode, r]));
@@ -458,6 +622,7 @@ export async function buildLedger(
     ruledOut: 0,
     ids: [],
     rows: [],
+    ruledOutRows: [],
   };
 
   for (const h of scored) {
@@ -468,21 +633,41 @@ export async function buildLedger(
           .map((k) => editText.get(k))
           .find(Boolean)
       : undefined;
+    // A state change always counts. So does a plain probability move, but only
+    // when the knowledge base moved too: "Hashimoto's 5 % -> 8 % because the
+    // anti-Tg evidence was updated" is the sentence phase 17 exists to write,
+    // and 5 % to 8 % is not a state change.
+    const knowledgeMoved =
+      revisions.length > 0 &&
+      prev != null &&
+      Math.abs(h.score - prev.p) >= KNOWLEDGE_DELTA;
     const changed =
-      prev != null && prev.state !== h.state
-        ? {
-            from: prev.state as HState,
-            to: h.state,
-            deltaP: round3(h.score - prev.p),
-            ...(because ? { because } : {}),
-          }
+      prev != null && (prev.state !== h.state || knowledgeMoved)
+        ? changeOf(
+            h,
+            prev,
+            because,
+            dataChanged,
+            revisions,
+            before?.kbRevision ?? null,
+            kbRevision,
+          )
         : undefined;
 
     if (!isConclusion(h, changed != null)) {
-      if (h.state === "ruled_out") quiet.ruledOut++;
-      else quiet.unlikely++;
       quiet.ids.push(h.id);
-      quiet.rows.push({ id: h.id, name: h.name, p: h.score });
+      if (h.state === "ruled_out") {
+        quiet.ruledOut++;
+        quiet.ruledOutRows.push({
+          id: h.id,
+          name: h.name,
+          p: h.score,
+          ring: byId.get(h.id)?.ring ?? 1,
+        });
+      } else {
+        quiet.unlikely++;
+        quiet.rows.push({ id: h.id, name: h.name, p: h.score });
+      }
       continue;
     }
 
@@ -679,8 +864,16 @@ export async function buildLedger(
     improved: improvedOf(rows),
     since:
       was && before
-        ? sinceOf(scored, was, before.computedAt.toISOString().slice(0, 10))
+        ? {
+            ...sinceOf(
+              scored,
+              was,
+              before.computedAt.toISOString().slice(0, 10),
+            )!,
+            wasKbRevision: before.kbRevision,
+            kbRevision,
+            knowledgeBatches: revisions.length,
+          }
         : undefined,
   };
 }
-

@@ -21,8 +21,14 @@ import {
 } from "@/db";
 import { GENOME_CATALOG } from "./genome-catalog";
 import { CATALOG } from "./hkb-catalog";
-import { featureIdOf, type CatalogRows, type FeatureRow } from "./hkb";
 import {
+  featureIdOf,
+  recordRevision,
+  type CatalogRows,
+  type FeatureRow,
+} from "./hkb";
+import {
+  correlationGroupOf,
   HYPOTHESES,
   type Catalog,
   type Discriminator,
@@ -179,6 +185,8 @@ export function catalogRows(catalog: Catalog = HYPOTHESES): CatalogRows {
         source: e.source,
         population: null,
         confoundedBy: e.confoundedBy ?? null,
+        correlationGroup:
+          e.correlationGroup ?? correlationGroupOf(e.input) ?? null,
         status: "seed",
       });
 
@@ -295,6 +303,11 @@ export async function seedHkb(catalog: Catalog = CATALOG) {
 
   for (const l of rows.links)
     await db.insert(hkbConditionTests).values(l).onConflictDoNothing();
+
+  await recordRevision(
+    `seed: ${rows.conditions.length} conditions, ${rows.evidence.length} evidence rows, ` +
+      `${rows.priors.length} priors, ${rows.tests.length} tests`,
+  );
 
   return {
     conditions: rows.conditions.length,
