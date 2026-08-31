@@ -87,9 +87,13 @@ strip stacks one chip per row.
 
 ## In progress
 
-Nothing. Next up needs an owner pick: 16b bubbles page (three UX answers
-pending), GBD priors (one CSV download), wearables app, or the
-Discriminator sex gate.
+**Phase 21: the defect sweep and the sanity suite**
+(`2026-09-01-phase21-defect-sweep-spec.md`): discriminator gates (the
+mammography defect), sex-split thresholds (haemochromatosis ferritin,
+gout urate, OSA haematocrit), five orphan facts revived (PCOS Rotterdam
+criteria, OSA sleepiness/neck, B12 diet), the no-op AUDIT rule, and a
+catalog sanity suite in vitest that locks all of it against future
+imports and agents; three new journeys.
 
 ## Next
 
