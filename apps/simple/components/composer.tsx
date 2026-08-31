@@ -13,7 +13,7 @@
  */
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2, Plus, X } from "lucide-react";
+import { Camera, Loader2, Plus, X } from "lucide-react";
 import { Button } from "./ui-kit";
 
 export const COMPOSER_ID = "composer";
@@ -53,11 +53,33 @@ const KIND_TONE: Record<string, string> = {
     "border-[var(--color-health-warning)] text-[var(--color-health-warning)]",
   // Hearsay: dotted, because it is about the world and writes nothing here.
   claim: "border-dashed border-neutral-400 text-neutral-500",
+  // Food off a photo: an estimate, and the chip says so in its own label.
+  nutrition: "border-[var(--color-health-info)] text-neutral-600",
   unknown: "border-neutral-300 text-neutral-400",
 };
 
 const field =
   "border border-neutral-300 bg-neutral-0 px-1.5 py-0.5 font-mono text-[11px]";
+
+const pad = (n: number) => String(n).padStart(2, "0");
+
+/**
+ * A timestamp in the browser's own wall clock, offset attached.
+ *
+ * `toISOString` would say 18:40 for a meal eaten at 21:40 in Bucharest, and
+ * "dinner at 18:40" is a different fact. The server reads the clock in the
+ * string, so the string has to be the one the person was living in.
+ */
+function localIso(ms: number): string {
+  const d = new Date(ms);
+  const offset = -d.getTimezoneOffset();
+  const sign = offset >= 0 ? "+" : "-";
+  return (
+    `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}` +
+    `T${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}` +
+    `${sign}${pad(Math.floor(Math.abs(offset) / 60))}:${pad(Math.abs(offset) % 60)}`
+  );
+}
 
 function ChipEditor({
   chip,
@@ -149,6 +171,20 @@ export function Composer({ today }: { today: string }) {
     followUp: FollowUp | null;
   } | null>(null);
   const [error, setError] = useState("");
+  // Phase 23: a photo is its own little flow inside the same box. Its chips
+  // are kept apart from the text ones because they are written by
+  // `/api/capture`, not by `/api/compose`.
+  const photoInput = useRef<HTMLInputElement>(null);
+  const [photo, setPhoto] = useState<{
+    kind: string;
+    basis: string;
+    label: string | null;
+    chips: Chip[];
+    note: string | null;
+    saved: boolean;
+    at: string | null;
+  } | null>(null);
+  const [reading, setReading] = useState(false);
 
   // An unsent draft survives a reload; a posted one is cleared.
   useEffect(() => {
@@ -200,6 +236,70 @@ export function Composer({ today }: { today: string }) {
     setPosted(null);
     setError("");
     setOpen(null);
+    setPhoto(null);
+  };
+
+  /** A photo up, chips back. Nothing is written until "Save these" is tapped. */
+  const readPhoto = async (file: File) => {
+    setReading(true);
+    setError("");
+    const form = new FormData();
+    form.append("photo", file);
+    if (text.trim()) form.append("caption", text.trim());
+    // The phone knows when the picture was taken; the browser has the file's
+    // own timestamp, which is the same thing for a photo just taken.
+    form.append("takenAt", localIso(file.lastModified));
+    const res = await fetch("/api/capture", { method: "POST", body: form });
+    const data = (await res.json().catch(() => ({ error: "no answer" }))) as {
+      kind?: string;
+      basis?: string;
+      label?: string | null;
+      chips?: Chip[];
+      routedTo?: string;
+      count?: number;
+      note?: string;
+      error?: string;
+    };
+    setReading(false);
+    if (data.error) {
+      setError(data.error);
+      return;
+    }
+    setPhoto({
+      kind: data.kind ?? "other",
+      basis: data.basis ?? "",
+      label: data.label ?? null,
+      chips: data.chips ?? [],
+      note: data.routedTo
+        ? `sent to the ${data.routedTo} reader: ${data.note ?? `${data.count ?? 0} items`}`
+        : null,
+      saved: false,
+      at: localIso(file.lastModified),
+    });
+  };
+
+  const savePhoto = async () => {
+    if (!photo?.chips.length) return;
+    setPosting(true);
+    const res = await fetch("/api/capture", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        chips: photo.chips,
+        label: photo.label ?? photo.basis,
+        at: photo.at,
+      }),
+    });
+    const data = (await res.json().catch(() => ({ error: "no answer" }))) as {
+      error?: string;
+    };
+    setPosting(false);
+    if (data.error) {
+      setError(data.error);
+      return;
+    }
+    setPhoto({ ...photo, saved: true });
+    router.refresh();
   };
 
   const send = async () => {
@@ -332,6 +432,104 @@ export function Composer({ today }: { today: string }) {
             )}
           </div>
 
+          {(reading || photo) && (
+            <div className="mt-3 border border-neutral-200 bg-neutral-50 p-2">
+              {reading ? (
+                <p className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.04em] text-neutral-400">
+                  <Loader2 className="size-3.5 animate-spin" /> reading the
+                  photo
+                </p>
+              ) : (
+                photo && (
+                  <>
+                    <p className="font-mono text-[10px] uppercase tracking-[0.04em] text-neutral-400">
+                      {photo.kind.replace(/_/g, " ")}
+                      {photo.chips.length ? " · estimate, tap to fix" : ""}
+                    </p>
+                    {photo.basis && (
+                      <p className="mt-1 font-body text-[12px] text-neutral-600">
+                        {photo.basis}
+                      </p>
+                    )}
+                    <div className="mt-2 flex flex-wrap items-start gap-1.5">
+                      {photo.chips.map((chip) => (
+                        <div key={`p:${chip.key}`} className="w-full">
+                          <button
+                            onClick={() =>
+                              setOpen(
+                                open === `p:${chip.key}`
+                                  ? null
+                                  : `p:${chip.key}`,
+                              )
+                            }
+                            className={`inline-flex cursor-pointer items-center gap-1 border px-2 py-0.5 font-mono text-[10px] uppercase tracking-[0.04em] ${
+                              KIND_TONE[chip.kind] ?? KIND_TONE.unknown
+                            } ${photo.saved ? "" : "border-dashed"}`}
+                          >
+                            {chip.label}
+                            {chip.date !== today && (
+                              <span className="text-neutral-400">
+                                · {chip.date}
+                              </span>
+                            )}
+                          </button>
+                          {open === `p:${chip.key}` && !photo.saved && (
+                            <ChipEditor
+                              chip={chip}
+                              options={[]}
+                              today={today}
+                              onChange={(next) =>
+                                setPhoto({
+                                  ...photo,
+                                  chips: photo.chips.map((c) =>
+                                    c.key === chip.key ? next : c,
+                                  ),
+                                })
+                              }
+                              onRemove={() => {
+                                setPhoto({
+                                  ...photo,
+                                  chips: photo.chips.filter(
+                                    (c) => c.key !== chip.key,
+                                  ),
+                                });
+                                setOpen(null);
+                              }}
+                              onClose={() => setOpen(null)}
+                            />
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                    {photo.note && (
+                      <p className="mt-2 font-mono text-[10px] uppercase tracking-[0.04em] text-neutral-500">
+                        {photo.note}
+                      </p>
+                    )}
+                    {!!photo.chips.length && (
+                      <div className="mt-2">
+                        {photo.saved ? (
+                          <span className="font-mono text-[10px] uppercase tracking-[0.04em] text-neutral-400">
+                            saved
+                          </span>
+                        ) : (
+                          <Button
+                            size="sm"
+                            variant="outline-subtle"
+                            disabled={posting}
+                            onClick={() => void savePhoto()}
+                          >
+                            Save these
+                          </Button>
+                        )}
+                      </div>
+                    )}
+                  </>
+                )
+              )}
+            </div>
+          )}
+
           {posted?.followUp && (
             <div className="mt-4 border-l-2 border-accent-500 bg-accent-50 px-3 py-2">
               <p className="font-body text-[13px] text-neutral-800">
@@ -366,6 +564,28 @@ export function Composer({ today }: { today: string }) {
           )}
 
           <div className="mt-4 flex items-center justify-end gap-2">
+            <input
+              ref={photoInput}
+              type="file"
+              accept="image/*"
+              capture="environment"
+              className="hidden"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                e.target.value = "";
+                if (file) void readPhoto(file);
+              }}
+            />
+            {!posted && (
+              <button
+                title="A plate, a supplement label, a lab sheet"
+                disabled={reading}
+                onClick={() => photoInput.current?.click()}
+                className="mr-auto flex cursor-pointer items-center gap-1 font-mono text-[10px] uppercase tracking-[0.04em] text-neutral-500 hover:text-neutral-900 disabled:text-neutral-300"
+              >
+                <Camera className="size-3.5" /> photo
+              </button>
+            )}
             {posted ? (
               <>
                 <Button variant="outline-subtle" size="sm" onClick={reset}>

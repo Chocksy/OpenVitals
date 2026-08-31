@@ -1,0 +1,225 @@
+[
+  {
+    "id": "dinner-plate",
+    "photo": "a plate photographed at 21:40: a salmon fillet, a mound of white rice, a pile of green beans",
+    "today": "2026-08-31",
+    "takenAt": "2026-08-31T21:40:00+03:00",
+    "extract": {
+      "kind": "meal",
+      "basis": "grilled salmon, white rice, green beans",
+      "confidence": 0.7,
+      "items": [
+        {
+          "name": "grilled salmon",
+          "portion": "150 g",
+          "kcal": 310,
+          "proteinG": 34,
+          "carbsG": 0,
+          "fatG": 19,
+          "confidence": 0.7
+        },
+        {
+          "name": "white rice",
+          "portion": "200 g cooked",
+          "kcal": 260,
+          "proteinG": 5,
+          "carbsG": 57,
+          "fatG": 1,
+          "confidence": 0.6
+        },
+        {
+          "name": "green beans",
+          "portion": "100 g",
+          "kcal": 35,
+          "proteinG": 2,
+          "carbsG": 7,
+          "fatG": 0,
+          "confidence": 0.8
+        }
+      ]
+    },
+    "expect": {
+      "route": null,
+      "chips": [
+        { "key": "kcal", "kind": "nutrition", "value": 605 },
+        { "key": "proteinG", "kind": "nutrition", "value": 41 },
+        { "key": "carbsG", "kind": "nutrition", "value": 64 },
+        { "key": "fatG", "kind": "nutrition", "value": 20 },
+        { "key": "last_meal_hour", "kind": "fact", "value": "21:40" }
+      ],
+      "notKinds": ["reading", "symptom", "phenotype", "claim"],
+      "estimated": true
+    }
+  },
+  {
+    "id": "breakfast-no-clock",
+    "photo": "porridge with berries, no clock anywhere and the client sent no timestamp",
+    "today": "2026-08-31",
+    "takenAt": null,
+    "extract": {
+      "kind": "meal",
+      "basis": "porridge with blueberries and a spoon of peanut butter",
+      "confidence": 0.6,
+      "items": [
+        {
+          "name": "porridge",
+          "portion": "60 g oats",
+          "kcal": 230,
+          "proteinG": 8,
+          "carbsG": 40,
+          "fatG": 4,
+          "confidence": 0.6
+        },
+        {
+          "name": "blueberries",
+          "portion": "80 g",
+          "kcal": 45,
+          "proteinG": 1,
+          "carbsG": 11,
+          "fatG": 0,
+          "confidence": 0.7
+        },
+        {
+          "name": "peanut butter",
+          "portion": "15 g",
+          "kcal": 95,
+          "proteinG": 4,
+          "carbsG": 3,
+          "fatG": 8,
+          "confidence": 0.5
+        }
+      ]
+    },
+    "expect": {
+      "route": null,
+      "chips": [
+        { "key": "kcal", "kind": "nutrition", "value": 370 },
+        { "key": "proteinG", "kind": "nutrition", "value": 13 }
+      ],
+      "notChips": ["last_meal_hour"],
+      "notKinds": ["reading"],
+      "estimated": true
+    }
+  },
+  {
+    "id": "supplement-label",
+    "photo": "a bottle of vitamin D3, the front label filling the frame",
+    "today": "2026-08-31",
+    "takenAt": "2026-08-31T10:05:00+03:00",
+    "extract": {
+      "kind": "supplement_label",
+      "basis": "Vitamin D3 4000 IU, 120 softgels",
+      "confidence": 0.9,
+      "items": [],
+      "product": { "name": "Vitamin D3", "dose": "4000 IU", "confidence": 0.9 }
+    },
+    "expect": {
+      "route": null,
+      "chips": [
+        { "key": "supplements", "kind": "fact", "value": "Vitamin D3 4000 IU" }
+      ],
+      "notChips": ["kcal", "medications"],
+      "notKinds": ["reading", "nutrition"]
+    }
+  },
+  {
+    "id": "medication-box",
+    "photo": "a box of levothyroxine 75 mcg",
+    "today": "2026-08-31",
+    "takenAt": "2026-08-31T08:12:00+03:00",
+    "extract": {
+      "kind": "medication_label",
+      "basis": "Euthyrox 75 mcg, levothyroxine sodium, 100 tablets",
+      "confidence": 0.85,
+      "items": [],
+      "product": { "name": "Euthyrox", "dose": "75 mcg", "confidence": 0.85 }
+    },
+    "expect": {
+      "route": null,
+      "chips": [
+        { "key": "medications", "kind": "fact", "value": "Euthyrox 75 mcg" }
+      ],
+      "notChips": ["supplements"],
+      "notKinds": ["reading", "nutrition"]
+    }
+  },
+  {
+    "id": "lab-sheet",
+    "photo": "a printed page of blood results held under a desk lamp",
+    "today": "2026-08-31",
+    "takenAt": "2026-08-31T12:00:00+03:00",
+    "extract": {
+      "kind": "lab_sheet",
+      "basis": "Hemoleucograma completa, Glucoza 96 mg/dL, TSH 2.1 uIU/mL",
+      "confidence": 0.95,
+      "items": []
+    },
+    "expect": {
+      "route": "lab",
+      "chips": [],
+      "notKinds": ["nutrition", "fact", "reading"]
+    }
+  },
+  {
+    "id": "doctor-letter",
+    "photo": "a cardiologist's letter, two paragraphs and a signature",
+    "today": "2026-08-31",
+    "takenAt": "2026-08-31T12:00:00+03:00",
+    "extract": {
+      "kind": "other_medical",
+      "basis": "Ecocardiografie: fractie de ejectie 58%, fara valvulopatii semnificative",
+      "confidence": 0.9,
+      "items": []
+    },
+    "expect": {
+      "route": "document",
+      "chips": [],
+      "notKinds": ["nutrition", "fact", "reading"]
+    }
+  },
+  {
+    "id": "misread-portion",
+    "photo": "a bowl of soup the model priced at ninety thousand calories",
+    "today": "2026-08-31",
+    "takenAt": "2026-08-31T13:30:00+03:00",
+    "extract": {
+      "kind": "meal",
+      "basis": "chicken soup with noodles",
+      "confidence": 0.4,
+      "items": [
+        {
+          "name": "chicken soup",
+          "portion": "one bowl",
+          "kcal": 90000,
+          "proteinG": 18,
+          "carbsG": 22,
+          "fatG": 6,
+          "confidence": 0.4
+        }
+      ]
+    },
+    "expect": {
+      "route": null,
+      "chips": [
+        { "key": "proteinG", "kind": "nutrition", "value": 18 },
+        { "key": "last_meal_hour", "kind": "fact", "value": "13:30" }
+      ],
+      "notChips": ["kcal"],
+      "notKinds": ["reading"],
+      "estimated": true
+    }
+  },
+  {
+    "id": "not-health",
+    "photo": "a photo of a bicycle",
+    "today": "2026-08-31",
+    "takenAt": "2026-08-31T17:00:00+03:00",
+    "extract": {
+      "kind": "other",
+      "basis": "a red road bicycle leaning on a wall",
+      "confidence": 0.9,
+      "items": []
+    },
+    "expect": { "route": null, "chips": [], "notKinds": ["nutrition", "fact"] }
+  }
+]

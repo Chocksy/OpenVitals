@@ -64,6 +64,12 @@ export interface Chip {
      * (`lib/trends.ts`), which files it as a labelled horizon item.
      */
     | "claim"
+    /**
+     * Phase 23: food off a photo. It writes a `daily_logs` nutrition entry and
+     * never a reading, because it is an estimate and no evidence rule may read
+     * it. `lib/capture.ts` makes these; the text composer never does.
+     */
+    | "nutrition"
     | "unknown";
   /** fact key, metric code, life-event kind, HP id */
   key: string;

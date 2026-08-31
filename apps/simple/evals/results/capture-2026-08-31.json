@@ -1,0 +1,81 @@
+{
+  "ranAt": "2026-08-31T19:09:59.095Z",
+  "results": [
+    {
+      "id": "dinner-plate",
+      "kind": "meal",
+      "chips": [
+        "kcal=605",
+        "proteinG=41",
+        "carbsG=64",
+        "fatG=20",
+        "last_meal_hour=21:40"
+      ],
+      "failed": [],
+      "pass": true
+    },
+    {
+      "id": "breakfast-no-clock",
+      "kind": "meal",
+      "chips": [
+        "kcal=370",
+        "proteinG=13",
+        "carbsG=54",
+        "fatG=12"
+      ],
+      "failed": [],
+      "pass": true
+    },
+    {
+      "id": "supplement-label",
+      "kind": "supplement_label",
+      "chips": [
+        "supplements=Vitamin D3 4000 IU"
+      ],
+      "failed": [],
+      "pass": true
+    },
+    {
+      "id": "medication-box",
+      "kind": "medication_label",
+      "chips": [
+        "medications=Euthyrox 75 mcg"
+      ],
+      "failed": [],
+      "pass": true
+    },
+    {
+      "id": "lab-sheet",
+      "kind": "lab_sheet",
+      "chips": [],
+      "failed": [],
+      "pass": true
+    },
+    {
+      "id": "doctor-letter",
+      "kind": "other_medical",
+      "chips": [],
+      "failed": [],
+      "pass": true
+    },
+    {
+      "id": "misread-portion",
+      "kind": "meal",
+      "chips": [
+        "proteinG=18",
+        "carbsG=22",
+        "fatG=6",
+        "last_meal_hour=13:30"
+      ],
+      "failed": [],
+      "pass": true
+    },
+    {
+      "id": "not-health",
+      "kind": "other",
+      "chips": [],
+      "failed": [],
+      "pass": true
+    }
+  ]
+}

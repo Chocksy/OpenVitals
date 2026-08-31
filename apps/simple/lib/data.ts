@@ -1,4 +1,4 @@
-import { asc, eq } from "drizzle-orm";
+import { asc, eq, sql } from "drizzle-orm";
 import {
   getDb,
   metrics,
@@ -117,7 +117,11 @@ export async function getMetricRows(userId: string): Promise<MetricRow[]> {
       .select()
       .from(readings)
       .where(eq(readings.userId, userId))
-      .orderBy(asc(readings.observedAt)),
+      // Oldest first, and within one day the lab draw last: `latest` is the
+      // final row, and a wearable row must never shadow a draw taken the same
+      // day. `source` is null for a draw, so "source is null" is false for a
+      // device row (sorted first) and true for a draw (sorted last).
+      .orderBy(asc(readings.observedAt), sql`${readings.source} is null`),
     db
       .select()
       .from(optimalOverrides)
@@ -133,7 +137,10 @@ export async function getMetricRows(userId: string): Promise<MetricRow[]> {
   const sex = toSex(sexFact);
   const mine = new Map(overrides.map((o) => [o.metricCode, o]));
   const bands: OptimalOverrides = new Map(
-    overrides.map((o) => [o.metricCode, [o.low, o.high] as [number | null, number | null]]),
+    overrides.map((o) => [
+      o.metricCode,
+      [o.low, o.high] as [number | null, number | null],
+    ]),
   );
 
   /** Override, then the sex-specific default, then the shared catalog row. */
@@ -147,10 +154,21 @@ export async function getMetricRows(userId: string): Promise<MetricRow[]> {
         basis: own.basis,
         rationale: own.rationale,
       };
-    const [low, high] = optimalFor(m.code, sex, [m.optimalLow, m.optimalHigh], bands);
+    const [low, high] = optimalFor(
+      m.code,
+      sex,
+      [m.optimalLow, m.optimalHigh],
+      bands,
+    );
     return low === m.optimalLow && high === m.optimalHigh
       ? catalogBand(m)
-      : { low, high, source: `${sex} reference`, basis: "science", rationale: null };
+      : {
+          low,
+          high,
+          source: `${sex} reference`,
+          basis: "science",
+          rationale: null,
+        };
   };
 
   const grouped = new Map<string, MetricRow["rows"]>();
@@ -221,7 +239,6 @@ export function groupByCategory(rows: MetricRow[]) {
   }
   return [...map.entries()];
 }
-
 
 export interface BiomarkerRow {
   code: string;

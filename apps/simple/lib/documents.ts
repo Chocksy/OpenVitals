@@ -405,7 +405,7 @@ export function matchCondition(
 }
 
 /** Append one value to a list fact without losing what is already there. */
-async function appendListFact(userId: string, key: string, value: string) {
+export async function appendListFact(userId: string, key: string, value: string) {
   const db = getDb();
   const [row] = await db
     .select()

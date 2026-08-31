@@ -171,6 +171,12 @@ export const readings = pgTable(
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
     /** Curator breadcrumbs: tag strings plus, after a conversion, the original. */
     flags: jsonb("flags").$type<ReadingFlag[]>(),
+    /**
+     * Phase 23: where a non-lab row came from, e.g. `healthkit`. Null is a lab
+     * draw and always will be, which is what the unique index below relies on:
+     * a device can only ever collide with its own row, never with a draw.
+     */
+    source: text("source"),
   },
   (t) => [
     index("readings_user_metric_observed_idx").on(
@@ -178,6 +184,12 @@ export const readings = pgTable(
       t.metricCode,
       t.observedAt,
     ),
+    // One row per (user, metric, day, source) for anything that names a source.
+    // Partial, so the millions of lab rows with a null source are untouched and
+    // a re-sync of the same day updates instead of doubling.
+    uniqueIndex("readings_user_metric_day_source_key")
+      .on(t.userId, t.metricCode, t.observedAt, t.source)
+      .where(sql`${t.source} is not null`),
   ],
 );
 
@@ -291,11 +303,58 @@ export const dailyLogs = pgTable(
     mood: integer("mood"),
     fastingHours: real("fasting_hours"),
     notes: text("notes"),
+    /**
+     * Phase 23: what was eaten that day. Context only — the engine reads it in
+     * the graph and as a confounder, and no evidence rule may ever read it,
+     * because most of these numbers are a model's estimate off a photo.
+     */
+    nutrition: jsonb("nutrition").$type<DailyNutrition>(),
+    /** Phase 23: what a wearable sync sent that has no column of its own. */
+    wearable: jsonb("wearable").$type<DailyWearable>(),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
   },
   (t) => [unique("daily_logs_user_day_key").on(t.userId, t.day)],
 );
+
+/** One thing eaten, as logged or as estimated off a photo. */
+export interface NutritionEntry {
+  /** `HH:MM` local, when we know it. */
+  at?: string;
+  label: string;
+  kcal?: number | null;
+  proteinG?: number | null;
+  carbsG?: number | null;
+  fatG?: number | null;
+  /** `capture` (a photo) or `healthkit` (another app's log). */
+  source: string;
+  /** True for a model's guess off a picture. Never dropped in the UI. */
+  estimated: boolean;
+}
+
+/** The day's food. Totals are the sum of `entries`, computed server-side. */
+export interface DailyNutrition {
+  kcal: number | null;
+  proteinG: number | null;
+  carbsG: number | null;
+  fatG: number | null;
+  /** True when any entry is an estimate, so the UI can say so. */
+  estimated: boolean;
+  entries: NutritionEntry[];
+}
+
+/** What a wearable sync sent for one day that no column holds. */
+export interface DailyWearable {
+  source: string;
+  /** The `daily_logs` columns this sync owns, so it may refresh them later. */
+  wrote?: string[];
+  activeEnergyKcal?: number;
+  standHours?: number;
+  mindfulMin?: number;
+  /** Minutes per sleep stage: deep, core, rem, awake. */
+  sleepStages?: Record<string, number>;
+  syncedAt?: string;
+}
 
 /** A thing the user has decided to do, usually adopted from a lifestyle plan. */
 export const protocolItems = pgTable("protocol_items", {

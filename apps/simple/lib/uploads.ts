@@ -12,7 +12,7 @@ import { and, eq, sql } from "drizzle-orm";
 import { getDb, metrics, readings, uploads, type Metric } from "@/db";
 import { readDocumentText, saveDocument } from "./documents";
 import type { ExtractedReading } from "./extract";
-import { extractFromPdf, slugify } from "./extract";
+import { extractFromPdf, extractFromText, slugify } from "./extract";
 import { looksLikeGenome, saveGenome } from "./genome";
 import { canonicalCode } from "./merge-metrics";
 
@@ -154,7 +154,10 @@ const TEXT_EXTS = new Set(["txt", "csv", "tsv"]);
 /** The sniff test, before a single model call. */
 export function detectKind(fileName: string, buffer: Buffer): UploadKind {
   const ext = extOf(fileName);
-  if (TEXT_EXTS.has(ext) && looksLikeGenome(buffer.subarray(0, 4000).toString("utf8")))
+  if (
+    TEXT_EXTS.has(ext) &&
+    looksLikeGenome(buffer.subarray(0, 4000).toString("utf8"))
+  )
     return "genome";
   return ext === "pdf" ? "lab" : "document";
 }
@@ -200,10 +203,24 @@ export async function processUpload(
   let carried: { text: string; pages: number | null } | null = null;
   if (kind === "lab") {
     const known = await db.select().from(metrics);
-    const result = await extractFromPdf(buffer, known);
+    // A photographed lab sheet has no text layer at all, so it is transcribed
+    // first and then read by the same extractor a PDF goes through. Phase 23:
+    // this is the door `/api/capture` opens for a photo of a results page.
+    const shot = /\.pdf$/i.test(fileName)
+      ? null
+      : await readDocumentText(buffer, fileName);
+    if (shot) carried = { text: shot.text, pages: shot.pages };
+    const result = shot
+      ? { ...(await extractFromText(shot.text, known)), pages: shot.pages ?? 0 }
+      : await extractFromPdf(buffer, known);
     if (result.error && want) throw new Error(result.error);
     if (!result.error && (result.readings.length >= LAB_MIN_READINGS || want)) {
-      const count = await saveReadings(userId, uploadId, result.readings, known);
+      const count = await saveReadings(
+        userId,
+        uploadId,
+        result.readings,
+        known,
+      );
       return {
         kind,
         count,
@@ -214,7 +231,8 @@ export async function processUpload(
     // Too few results to be a lab sheet: read it as a document instead, and
     // reuse the text the PDF already gave up so nothing is read twice.
     kind = "document";
-    if (result.text) carried = { text: result.text, pages: result.pages ?? null };
+    if (result.text)
+      carried = { text: result.text, pages: result.pages ?? null };
   }
 
   const { text, pages } = carried ?? (await readDocumentText(buffer, fileName));

@@ -1,5 +1,5 @@
 {
-  "ranAt": "2026-08-31T18:29:39.722Z",
+  "ranAt": "2026-08-31T19:09:47.037Z",
   "model": "google/gemini-3.7-flash",
   "results": [
     {
@@ -211,7 +211,8 @@
       "model": {
         "chips": [
           "sym_energy=Yes",
-          "sym_cycle=Heavy"
+          "sym_cycle=Heavy",
+          "sym_energy_duration=Over a month"
         ],
         "followUp": "energy_when",
         "failed": []

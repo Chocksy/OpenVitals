@@ -175,6 +175,10 @@ const RULES: Rule[] = [
   // Phase 20: the two everyday conversions the composer needs.
   { from: "kg", to: "lbs", factor: 2.20462 },
   { from: "h", to: "min", factor: 60 },
+  // Phase 23: HealthKit sends a body measurement in whatever unit the phone is
+  // set to, and a tape measure is the one place inches still turn up.
+  { from: "m", to: "cm", factor: 100 },
+  { from: "in", to: "cm", factor: 2.54 },
 ];
 
 /** The multiplier that takes a value from `from` into `to`, or null. */
