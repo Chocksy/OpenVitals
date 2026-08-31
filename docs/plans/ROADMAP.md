@@ -120,11 +120,19 @@ so /graph asks its two bootstrap questions (working as designed; the
 "owner inputs wanted" list now shows up in the product itself). Server
 SSH is Tailscale SSH with a browser check-in.
 
+| 23 | The iOS companion: server half (22-type healthkit mapping with server-side aggregation and lab-draw priority, /api/capture photo→chips for meals/labels/lab sheets, composer photo button; eval:capture 8/8, 968 tests) and the SwiftUI app (Today webview, Capture, Sync; 25 types, anchored queries, background delivery; 29 XCTests) | server pushed, app in `apps/ios` |
+
+Needs the owner to ship the app: pick a DEVELOPMENT_TEAM in Xcode once,
+install on the phone, sign in, grant Health access. Open calls parked:
+first-sync window is 365 days; background delivery is hourly for all
+types (CGM might want immediate); MenstrualFlow counts any sample as a
+bleeding day; respiratory rate is sent as breaths/min because the
+server drops count/min.
+
 ## In progress
 
-**Phase 23: the iOS companion** (spec committed): server half first
-(healthkit mapping + /api/sync/healthkit + /api/capture + composer
-photo button), then the SwiftUI app against vitals.chocksy.com.
+Nothing. Next: owner inputs on prod (sex + birth year fill the bubbles),
+GBD priors CSV, wearables data flowing once the app is installed.
 
 Queued behind it, owner-ordered (2026-09-01): 16b bubbles as-is (in
 flight), 17b Coolify cutover with scheduled jobs (prep in flight), then
