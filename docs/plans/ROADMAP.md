@@ -74,11 +74,15 @@ one cause, symptom-only rules stacking multiplicatively (hypothyroidism
 hides ApoB after LDL is known, which is wrong exactly in the LMHR case
 (discordance is the signal). Both are decided and go into phase 19.
 
+| 19 | Projections with expectation (graded effect sizes, adherence, bands, resolution better/as-expected/worse, intervention outcomes), three-lane `/history` with replay, band on `/m/[code]`, on-track ledger line; symptom LR cap and prior-modifier caps; ApoB–LDL discordance; 20/20 journeys pass, 746 tests | `d6ee0da` |
+
 ## In progress
 
-**Phase 19: projections with expectation and the history path**
-(`2026-08-31-phase19-projections-and-history-spec.md`), plus the two
-knowledge-quality fixes above.
+**Phase 20: the interview as a relationship** (spec pending the owner's
+answer on check-in cadence): per-fact revisit cadence and triggers,
+"still true?" one-tap re-asks, engine-chosen follow-ups phrased with
+memory by the LLM, free-text box mapped to dated facts with confirm
+chips, Today's check-in card on Home, interview journeys.
 
 ## Next
 
