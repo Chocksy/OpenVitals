@@ -98,7 +98,14 @@ instead of relying on per-test gates.
 
 ## In progress
 
-Nothing. Next up needs an owner pick: 16b bubbles page (three UX answers
+**Phase 21b: relative gates and the contested-criteria watch**
+(`2026-09-01-phase21b-relative-gates-spec.md`): `earlierWhen` clauses so
+family history lowers screening start ages (colonoscopy 40, mammography
+30, PSA 45), and a CONTESTED list (PCOS, MCAS, SIBO) the monthly
+research run always revisits so fluid diagnostic criteria keep absorbing
+new evidence.
+
+After that, next up needs an owner pick: 16b bubbles page (three UX answers
 pending), GBD priors (one CSV download), wearables app, or prod cutover
 when ready.
 
