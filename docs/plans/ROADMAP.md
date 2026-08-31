@@ -106,7 +106,8 @@ fact nobody asks yet.
 
 ## In progress
 
-**Phase 22: always fresh** (spec pending): staleness-driven research
+**Phase 22: always fresh**
+(`2026-09-01-phase22-always-fresh-spec.md`): staleness-driven research
 scheduling by refresh class, the trends inbox (popular claims enter as
 labelled horizon items with a measurement plan), the guideline watch,
 personal outcome pooling into per-person effect sizes.
