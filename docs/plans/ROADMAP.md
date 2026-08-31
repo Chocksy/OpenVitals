@@ -96,14 +96,20 @@ modifier); a dead `pcos_cycles` row sits in `hkb_evidence` (delete needs
 owner OK); `cancer_screening_due` could take a sexed condition gate
 instead of relying on per-test gates.
 
+| 21b | Relative gates and the contested watch: `earlierWhen` clauses (family history brings colonoscopy to 40, mammography to 30, PSA to 45, ancestry clause; condition-level clause so the under-40 case is scored at all), CONTESTED list (PCOS, MCAS, SIBO) always in the research run, sanity suite 34 checks, `crc_family_history_m42` journey; 25/25, 875 tests | `964f1a9` |
+
+Parked from 21b: `osteoporosis_risk` could take an `earlierWhen` for
+fragility fracture or steroids; the ancestry option list has no
+"Black / African diaspora" answer for the PSA clause to match; the
+"ten years before the relative's diagnosis" term needs a diagnosis-age
+fact nobody asks yet.
+
 ## In progress
 
-**Phase 21b: relative gates and the contested-criteria watch**
-(`2026-09-01-phase21b-relative-gates-spec.md`): `earlierWhen` clauses so
-family history lowers screening start ages (colonoscopy 40, mammography
-30, PSA 45), and a CONTESTED list (PCOS, MCAS, SIBO) the monthly
-research run always revisits so fluid diagnostic criteria keep absorbing
-new evidence.
+**Phase 22: always fresh** (spec pending): staleness-driven research
+scheduling by refresh class, the trends inbox (popular claims enter as
+labelled horizon items with a measurement plan), the guideline watch,
+personal outcome pooling into per-person effect sizes.
 
 After that, next up needs an owner pick: 16b bubbles page (three UX answers
 pending), GBD priors (one CSV download), wearables app, or prod cutover
