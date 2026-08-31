@@ -85,15 +85,22 @@ engine offers mammography to a 41-year-old man. Left undone: hollow
 markers for self-reported readings on `/m/[code]`; the composer chip
 strip stacks one chip per row.
 
+| 21 | Defect sweep and sanity suite: discriminator gates (mammography defect and family), sex-split thresholds (haemochromatosis ferritin, gout urate, OSA haematocrit), five orphan facts revived (PCOS Rotterdam, OSA sleepiness/neck, B12 diet), no-op AUDIT rule fixed, quiet floor only held open by movable beliefs; `hkb-sanity.test.ts` with 29 catalog invariants; three new journeys, 24/24, 859 tests | `04b8c57` |
+
+Findings from phase 21 worth remembering: the gated m41 now exhausts at
+zero steps (was five draws ending in a mammography); the seed itself
+caught two duplicate evidence rows once the sanity suite mirrored the
+`hkb_evidence` unique key. Open questions parked: `hashimoto`'s
+`hla_type` prior modifier reads a fact no question asks (orphan, on a
+modifier); a dead `pcos_cycles` row sits in `hkb_evidence` (delete needs
+owner OK); `cancer_screening_due` could take a sexed condition gate
+instead of relying on per-test gates.
+
 ## In progress
 
-**Phase 21: the defect sweep and the sanity suite**
-(`2026-09-01-phase21-defect-sweep-spec.md`): discriminator gates (the
-mammography defect), sex-split thresholds (haemochromatosis ferritin,
-gout urate, OSA haematocrit), five orphan facts revived (PCOS Rotterdam
-criteria, OSA sleepiness/neck, B12 diet), the no-op AUDIT rule, and a
-catalog sanity suite in vitest that locks all of it against future
-imports and agents; three new journeys.
+Nothing. Next up needs an owner pick: 16b bubbles page (three UX answers
+pending), GBD priors (one CSV download), wearables app, or prod cutover
+when ready.
 
 ## Next
 
