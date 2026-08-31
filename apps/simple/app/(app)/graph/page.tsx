@@ -4,14 +4,20 @@ import { getDb, reviewItems } from "@/db";
 import { requireUserId } from "@/lib/auth";
 import { buildModelInput } from "@/lib/coverage";
 import { queueQuestions } from "@/lib/ask";
+import { buildBubbles, viewBoxOf } from "@/lib/bubbles";
 import {
-  graphState,
+  computeGraphState,
   worstMember,
   type ActiveEdge,
 } from "@/lib/graph-state";
 import { NODES, SYSTEMS, type Relation, type SystemId } from "@/lib/graph";
+import { catalogFor } from "@/lib/hkb";
+import { scoreHypotheses, type Lens } from "@/lib/hypotheses";
+import { nextMoves } from "@/lib/infogain";
+import { loadGraph } from "@/lib/kg";
 import { matchPatterns, PATTERNS } from "@/lib/patterns";
 import { healthStatus } from "@/lib/status";
+import { Bubbles } from "@/components/bubbles";
 import { ReviewItem } from "@/components/client";
 import { SystemLinks, type SystemLink } from "@/components/graph-map";
 import { ViewShell } from "@/components/plan";
@@ -21,6 +27,9 @@ import { Badge, Card } from "@/components/ui-kit";
 export const dynamic = "force-dynamic";
 
 const HOT_NODES = 15;
+
+/** The mockup's lens switcher, plus the fourth lens the engine actually has. */
+const LENSES: Lens[] = ["lifespan", "energy", "mood", "weight"];
 
 const byId = new Map(NODES.map((n) => [n.id, n]));
 
@@ -116,7 +125,63 @@ function toLinks(edges: ActiveEdge[]): SystemLink[] {
   return [...out.values()];
 }
 
-export default async function GraphPage() {
+/** The lens switcher and the link to the systems map, as the mockup places them. */
+function Switcher({
+  lens,
+  systems,
+  ruled,
+}: {
+  lens: Lens;
+  systems: boolean;
+  ruled: boolean;
+}) {
+  const href = (next: Partial<{ lens: Lens; systems: boolean }>) => {
+    const p = new URLSearchParams();
+    const l = next.lens ?? lens;
+    if (l !== "lifespan") p.set("lens", l);
+    if (next.systems ?? systems) p.set("systems", "1");
+    if (ruled) p.set("ruled", "1");
+    return `/graph${p.size ? `?${p}` : ""}`;
+  };
+  return (
+    <div className="flex flex-wrap items-center gap-2">
+      <div className="flex flex-wrap items-center gap-0.5 rounded border bg-neutral-100 p-0.5">
+        {LENSES.map((l) => (
+          <Link
+            key={l}
+            href={href({ lens: l })}
+            className={`h-[30px] px-2 font-mono text-[10px] font-medium uppercase leading-[30px] tracking-[0.04em] ${
+              l === lens
+                ? "bg-accent-50 text-accent-500"
+                : "text-neutral-500 hover:text-neutral-900"
+            }`}
+          >
+            {l}
+          </Link>
+        ))}
+      </div>
+      <Link
+        href={href({ systems: !systems })}
+        className="h-[30px] border border-neutral-200 px-2 font-mono text-[10px] font-medium uppercase leading-[28px] tracking-[0.04em] text-neutral-500 hover:border-neutral-900 hover:text-neutral-900"
+      >
+        {systems ? "Bubbles" : "Systems"}
+      </Link>
+    </div>
+  );
+}
+
+export default async function GraphPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ lens?: string; systems?: string; ruled?: string }>;
+}) {
+  const q = await searchParams;
+  const lens: Lens = LENSES.includes(q.lens as Lens)
+    ? (q.lens as Lens)
+    : "lifespan";
+  const systems = q.systems === "1";
+  const showRuledOut = q.ruled === "1";
+
   const userId = await requireUserId();
   const db = getDb();
 
@@ -167,14 +232,51 @@ export default async function GraphPage() {
   const patterns = matchPatterns(input).filter((p) => p.matched);
   const matchedIds = new Set(patterns.map((p) => p.pattern.id));
   const unmatched = PATTERNS.filter((p) => !matchedIds.has(p.id));
-  const graph = await graphState(input, { top: HOT_NODES });
+  const loaded = await loadGraph();
+  const graph = computeGraphState(input, { top: HOT_NODES, graph: loaded });
   const importance = new Map(graph.nodes.map((n) => [n.id, n.importance]));
   const links = toLinks(graph.activeEdges);
+
+  // The bubbles: the mockup's picture, over this person's own graph.
+  if (!systems) {
+    const catalog = await catalogFor(userId);
+    const bubbles = buildBubbles({
+      graph: loaded,
+      state: graph,
+      m: input,
+      beliefs: scoreHypotheses(input, { catalog, lens }),
+      moves: nextMoves(input, catalog, { lens }),
+      lens,
+      matched: matchedIds,
+      showRuledOut,
+    });
+    const ruledHref = `/graph?${new URLSearchParams({
+      ...(lens !== "lifespan" ? { lens } : {}),
+      ...(showRuledOut ? {} : { ruled: "1" }),
+    })}`;
+    return (
+      <ViewShell
+        title="Your brain"
+        subtitle={`${bubbles.nodes.length} bubbles · ${bubbles.links.length} edges · lens ${lens}`}
+        actions={
+          <Switcher lens={lens} systems={systems} ruled={showRuledOut} />
+        }
+      >
+        <Bubbles
+          graph={bubbles}
+          viewBox={viewBoxOf(bubbles.nodes)}
+          ruledOutHref={ruledHref}
+          showRuledOut={showRuledOut}
+        />
+      </ViewShell>
+    );
+  }
 
   return (
     <ViewShell
       title="Your graph"
       subtitle={`${graph.activeEdges.length} active edges over 12 systems`}
+      actions={<Switcher lens={lens} systems={systems} ruled={showRuledOut} />}
     >
       <SystemLinks links={links}>
         <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
