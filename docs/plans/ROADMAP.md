@@ -113,12 +113,18 @@ insulin_resistance (alphabetical pick); `applyPatternTargets` mutates its
 input (test-fixture landmine); one seeded intervention_outcomes dev row on
 the test account makes the personal multiplier visible.
 
+| 17b | Cutover executed 2026-08-31: pushed, Coolify app flipped to branch `simple` + `/docker-compose.simple.yml`, envs set (ADMIN_EMAIL, models aligned to the evals), deployed, boot migrations + legacy import ran (2 users, 1,198 readings intact), knowledge tables loaded via runbook path A (51,943 terms, 285,455 annotations, 10,637 conditions, 15,449 priors), guideline-watch task created (`0 6 15 */3 *`), vitals.chocksy.com serves the new app; old compose kept for rollback | live |
+
+Cutover notes: the owner's prod profile has no sex/birth-year facts yet,
+so /graph asks its two bootstrap questions (working as designed; the
+"owner inputs wanted" list now shows up in the product itself). Server
+SSH is Tailscale SSH with a browser check-in.
+
 ## In progress
 
-**17b cutover execution** (main agent): push, flip the Coolify app to
-branch `simple` + `/docker-compose.simple.yml`, set `BETTER_AUTH_URL`
-and `ADMIN_EMAIL`, deploy, run the prod-init runbook, create the
-guideline-watch task, verify vitals.chocksy.com. Then phase 23 (iOS).
+**Phase 23: the iOS companion** (spec committed): server half first
+(healthkit mapping + /api/sync/healthkit + /api/capture + composer
+photo button), then the SwiftUI app against vitals.chocksy.com.
 
 Queued behind it, owner-ordered (2026-09-01): 16b bubbles as-is (in
 flight), 17b Coolify cutover with scheduled jobs (prep in flight), then
