@@ -76,15 +76,20 @@ hides ApoB after LDL is known, which is wrong exactly in the LMHR case
 
 | 19 | Projections with expectation (graded effect sizes, adherence, bands, resolution better/as-expected/worse, intervention outcomes), three-lane `/history` with replay, band on `/m/[code]`, on-track ledger line; symptom LR cap and prior-modifier caps; ApoB–LDL discordance; 20/20 journeys pass, 746 tests | `d6ee0da` |
 
+| 20 | The composer and the interview as a relationship: per-fact revisit cadence with triggers, still-true one-tap re-asks, always-present "+" modal with understood chips (rules first, closed-key model layer with verified quotes), one follow-up per post, replies computed in code and phrased with memory, Today card, `hp:*` phenotype facts wake ring 2, four sourced caffeine/glucose edges; compose evals 12/12, journeys 21/21, 819 tests | `ee62c3e` |
+
+Findings from phase 20: the rules layer alone covers every eval chip (the
+model only adds clarifier answers); a pre-existing defect surfaced, not
+fixed: `Discriminator` in `lib/hkb-catalog.ts` has no sex gate, so the
+engine offers mammography to a 41-year-old man. Left undone: hollow
+markers for self-reported readings on `/m/[code]`; the composer chip
+strip stacks one chip per row.
+
 ## In progress
 
-**Phase 20: the interview as a relationship, and the composer**
-(`2026-09-01-phase20-interview-composer-spec.md`): per-fact revisit
-cadence and triggers, "still true?" one-tap re-asks, an always-present
-"+" composer modal with live "understood" chips (rules first, model
-second, closed keys), one engine-chosen follow-up per post, a reply
-computed in code and phrased by the LLM with memory, Today card on Home,
-compose evals and a fatigue/coffee journey.
+Nothing. Next up needs an owner pick: 16b bubbles page (three UX answers
+pending), GBD priors (one CSV download), wearables app, or the
+Discriminator sex gate.
 
 ## Next
 
