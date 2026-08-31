@@ -8,9 +8,10 @@ import SwiftUI
 
 struct SyncView: View {
     @ObservedObject private var model = HealthSyncModel.shared
+    @ObservedObject private var session = Session.shared
     @State private var base = Api.base
-    @State private var signIn = false
     @State private var mustAsk = true
+    @State private var confirmResync = false
 
     private static let stamp: DateFormatter = {
         let f = DateFormatter()
@@ -22,15 +23,16 @@ struct SyncView: View {
     var body: some View {
         NavigationStack {
             List {
-                Section("Account") {
+                Section {
                     LabeledContent("Session",
-                                   value: Api.signedIn ? "signed in" : "signed out")
-                    Button(Api.signedIn ? "Sign in again" : "Sign in") {
-                        signIn = true
+                                   value: session.signedIn ? "signed in" : "signed out")
+                    Button("Sign out", role: .destructive) {
+                        Task { await session.signOut() }
                     }
-                    if Api.signedIn {
-                        Button("Sign out", role: .destructive) { Api.signOut() }
-                    }
+                } header: {
+                    Text("Account")
+                } footer: {
+                    Text("Email and password only. Google sign-in is on the website.")
                 }
 
                 Section("Apple Health") {
@@ -49,11 +51,15 @@ struct SyncView: View {
                         Task { await model.syncAll() }
                     }
                     .disabled(!model.available || model.busy)
+                    Button("Resync full history") { confirmResync = true }
+                        .disabled(!model.available || model.busy)
                     if !model.status.isEmpty {
                         Text(model.status).font(.footnote)
                             .foregroundStyle(.secondary)
                     }
                     Text("iOS never reveals which types you granted. A type with nothing sent is either empty or not granted.")
+                        .font(.footnote).foregroundStyle(.secondary)
+                    Text("A normal sync only reads what is new. Resync forgets that place and reads every year Apple Health holds; the server writes each day over the old one, so nothing doubles.")
                         .font(.footnote).foregroundStyle(.secondary)
                 }
 
@@ -86,7 +92,16 @@ struct SyncView: View {
                 }
             }
             .navigationTitle("Sync")
-            .sheet(isPresented: $signIn) { SignInView() }
+            .confirmationDialog("Read every year again?",
+                                isPresented: $confirmResync,
+                                titleVisibility: .visible) {
+                Button("Resync full history") {
+                    Task { await model.resyncEverything() }
+                }
+                Button("Cancel", role: .cancel) {}
+            } message: {
+                Text("This can be tens of thousands of samples and take a while on the phone.")
+            }
             .task { mustAsk = await model.needsAsking() }
         }
     }

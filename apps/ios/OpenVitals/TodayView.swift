@@ -1,10 +1,14 @@
 /// Today: the deployed site, in a webview, plus the cookie bridge.
 ///
 /// The site is already responsive at 390 px, so there is no native Today card
-/// to build. The only native job here is sign-in: whatever better-auth cookie
-/// the webview ends up holding is copied into `HTTPCookieStorage`, which is
-/// what `URLSession.shared` reads, so the sync and capture calls are signed in
-/// the moment the login page redirects.
+/// to build. The bridge runs both ways: the cookie the native sign-in form got
+/// is pushed into the webview before it loads, so the site never shows its own
+/// login page; and whatever cookie the webview ends up holding is copied back
+/// into `HTTPCookieStorage`, which is what `URLSession.shared` reads.
+///
+/// The webview also announces itself. `Api.userAgentTag` rides in the user
+/// agent, the site's `(app)` layout sees it and renders no nav of its own, and
+/// the tab bar below is then the only navigation in the app.
 import SwiftUI
 import WebKit
 
@@ -29,7 +33,7 @@ struct TodayView: View {
 }
 
 /// A plain WKWebView on the site, sharing one persistent data store with every
-/// other webview in the app so a login on the Sign in sheet counts here too.
+/// other webview in the app, so the session survives a tab switch and a relaunch.
 struct SiteWebView: UIViewRepresentable {
     let url: URL
     var reload: Int = 0
@@ -38,23 +42,89 @@ struct SiteWebView: UIViewRepresentable {
 
     static let dataStore = WKWebsiteDataStore.default()
 
+    /// iOS zooms a focused input under 16 px and never zooms back. Pinning the
+    /// viewport is the first belt; the 16 px rule in `globals.css` is the
+    /// second. Run at document end, because the page's own viewport meta is
+    /// parsed after document start and the last one written wins.
+    static let viewportScript = WKUserScript(source: """
+        (function () {
+          var m = document.querySelector('meta[name=viewport]');
+          if (!m) { m = document.createElement('meta'); m.name = 'viewport';
+                    document.head.appendChild(m); }
+          m.content = 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no';
+        })();
+        """, injectionTime: .atDocumentEnd, forMainFrameOnly: false)
+
     func makeCoordinator() -> Coordinator { Coordinator(self) }
 
-    func makeUIView(context: Context) -> WKWebView {
+    /// The one configuration, built here so a test can ask a real WKWebView
+    /// what it ends up doing rather than trusting an API's name.
+    static func configuration() -> WKWebViewConfiguration {
         let config = WKWebViewConfiguration()
-        config.websiteDataStore = Self.dataStore
-        let view = WKWebView(frame: .zero, configuration: config)
+        config.websiteDataStore = dataStore
+        config.userContentController.addUserScript(viewportScript)
+        return config
+    }
+
+    func makeUIView(context: Context) -> WKWebView {
+        let view = WKWebView(frame: .zero, configuration: Self.configuration())
         view.navigationDelegate = context.coordinator
         view.allowsBackForwardNavigationGestures = true
-        view.load(URLRequest(url: url))
+        Self.announce(view) {
+            Self.push(Api.cookies()) { view.load(URLRequest(url: url)) }
+        }
         return view
+    }
+
+    /// The default user agent with the tag on the end.
+    ///
+    /// `applicationNameForUserAgent` looks like the one-line way to do this and
+    /// is not: it *replaces* the `Mobile/15E148` token, so the site would stop
+    /// reading as a phone. Asking the webview for its own agent and appending
+    /// keeps every token WebKit put there.
+    static func announce(_ view: WKWebView, then next: @escaping () -> Void) {
+        view.evaluateJavaScript("navigator.userAgent") { value, _ in
+            if let agent = value as? String, !agent.contains(Api.userAgentTag) {
+                view.customUserAgent = "\(agent) \(Api.userAgentTag)"
+            }
+            next()
+        }
+    }
+
+    /// native → webview. The load waits for the cookies, or the first request
+    /// goes out anonymous and the site bounces to `/login`.
+    static func push(_ cookies: [HTTPCookie], then load: @escaping () -> Void) {
+        var left = cookies.count
+        guard left > 0 else { return load() }
+        for cookie in cookies {
+            dataStore.httpCookieStore.setCookie(cookie) {
+                left -= 1
+                if left == 0 { load() }
+            }
+        }
+    }
+
+    /// Signing out has to empty the webview's store too, or the next load
+    /// hands the old session straight back.
+    static func forgetCookies(then done: @escaping () -> Void = {}) {
+        let store = dataStore.httpCookieStore
+        store.getAllCookies { cookies in
+            var left = cookies.count
+            guard left > 0 else { return done() }
+            for cookie in cookies {
+                store.delete(cookie) {
+                    left -= 1
+                    if left == 0 { done() }
+                }
+            }
+        }
     }
 
     func updateUIView(_ view: WKWebView, context: Context) {
         context.coordinator.parent = self
         if context.coordinator.lastReload != reload {
             context.coordinator.lastReload = reload
-            view.load(URLRequest(url: url))
+            Self.push(Api.cookies()) { view.load(URLRequest(url: url)) }
         }
     }
 
@@ -78,29 +148,11 @@ struct SiteWebView: UIViewRepresentable {
             webView.configuration.websiteDataStore.httpCookieStore
                 .getAllCookies { [weak self] cookies in
                     let taken = Api.adopt(cookies)
+                    // Only when something arrived, so a stray navigation
+                    // during sign-out cannot put the session back.
+                    if taken > 0 { Task { @MainActor in Session.shared.refresh() } }
                     self?.parent.onCookies?(taken)
                 }
-        }
-    }
-}
-
-/// The sign-in sheet: the same webview, pointed at `/login`, dismissed as soon
-/// as a session cookie shows up.
-struct SignInView: View {
-    @Environment(\.dismiss) private var dismiss
-
-    var body: some View {
-        NavigationStack {
-            SiteWebView(url: Api.baseURL.appendingPathComponent("login")) { _ in
-                if Api.signedIn { dismiss() }
-            }
-            .navigationTitle("Sign in")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
-                    Button("Close") { dismiss() }
-                }
-            }
         }
     }
 }

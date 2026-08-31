@@ -260,6 +260,16 @@ final class SyncState {
         store.set(nil, forKey: stateKey(id))
     }
 
+    /// Forget where the anchored query got to, keep the audit line.
+    ///
+    /// An anchored query never looks back, so widening the first-sync window
+    /// does nothing for a phone that already synced: the anchor is past the old
+    /// years. Dropping the anchor is the only way to read them, and re-sending
+    /// is safe because the server upserts per day.
+    func clearAnchor(_ id: String) {
+        store.set(nil, forKey: anchorKey(id))
+    }
+
     var seenNotUsed: [String] {
         get {
             guard let d = store.data(forKey: "hk.seenNotUsed") else { return [] }
@@ -284,10 +294,13 @@ final class HealthSyncModel: ObservableObject {
     let store = HKHealthStore()
     let state = SyncState()
 
-    /// The first sync reads a year. After that the anchor decides.
-    private let firstSyncDays = 365.0
     /// One anchored read; the loop repeats while a pass comes back full.
     private let pageSize = 2000
+    /// How many pages one type may take in a single run: 400 000 samples at
+    /// 2000 a page, enough for years of steps. It used to be 25, which was a
+    /// year's worth and no more. A type that ever hits the ceiling has still
+    /// moved its anchor, so the next sync carries on where this one stopped.
+    private let maxPages = 200
 
     var available: Bool { HKHealthStore.isHealthDataAvailable() }
 
@@ -340,13 +353,26 @@ final class HealthSyncModel: ObservableObject {
         status = sent == 0 ? "Nothing new to send." : "Sent \(sent) samples."
     }
 
+    /// Every anchor dropped, then a full read.
+    ///
+    /// For the phone that already synced under the old one-year window this is
+    /// the only way back to 2019: an anchored query will not re-read the past
+    /// on its own. The per-day upsert on the server means the year that came
+    /// through the first time is simply written again, not doubled.
+    func resyncEverything() async {
+        guard !busy else { return }
+        for spec in HK.types { state.clearAnchor(spec.identifier) }
+        status = "Reading all of Apple Health…"
+        await syncAll()
+    }
+
     /// One type, paged until HealthKit stops filling a page.
     @discardableResult
     func sync(_ spec: HKTypeSpec) async throws -> (Int, [String]) {
         guard let sampleType = spec.sampleType else { return (0, []) }
         var sent = 0
         var unmapped: [String] = []
-        for _ in 0..<25 {
+        for _ in 0..<maxPages {
             let page = try await read(sampleType, spec: spec,
                                       anchor: state.anchorData(spec.identifier))
             for batch in HK.batches(page.samples) {
@@ -371,16 +397,15 @@ final class HealthSyncModel: ObservableObject {
         let anchor = anchorData.flatMap {
             try? NSKeyedUnarchiver.unarchivedObject(ofClass: HKQueryAnchor.self, from: $0)
         }
-        // Without an anchor this is a first sync, and a first sync is a year.
-        let predicate: NSPredicate? = anchor == nil
-            ? HKQuery.predicateForSamples(
-                withStart: Date().addingTimeInterval(-firstSyncDays * 86_400),
-                end: nil, options: [])
-            : nil
+        // No predicate at all: a first sync reads everything HealthKit has,
+        // back to the first watch the person ever wore. It used to be a year,
+        // which quietly threw away the years that make a trend a trend. The
+        // 500-sample batches are the throttle, and the anchor makes every sync
+        // after the first incremental.
         let page = pageSize
         return try await withCheckedThrowingContinuation { continuation in
             let query = HKAnchoredObjectQuery(
-                type: type, predicate: predicate, anchor: anchor, limit: page
+                type: type, predicate: nil, anchor: anchor, limit: page
             ) { _, added, _, newAnchor, error in
                 if let error {
                     continuation.resume(throwing: error)

@@ -48,6 +48,11 @@ enum Api {
 
     static func iso(_ date: Date) -> String { localISO.string(from: date) }
 
+    /// The suffix the webview adds to its user agent. `app/(app)/layout.tsx`
+    /// looks for `OpenVitalsiOS` and then renders no nav bar of its own, so
+    /// the app's tab bar is the only navigation. Change one, change both.
+    static let userAgentTag = "OpenVitalsiOS/1"
+
     // MARK: - the session cookie
 
     /// A better-auth session cookie is `better-auth.session_token`, or
@@ -55,6 +60,13 @@ enum Api {
     /// the suffix so both spellings, and any future prefix, count.
     static func isSessionCookie(_ name: String) -> Bool {
         name.hasSuffix("session_token")
+    }
+
+    /// Everything the native side holds for the site. The webview is handed
+    /// this list before it loads, which is the native→webview half of the
+    /// bridge: sign in once in the form and the site is already signed in.
+    static func cookies() -> [HTTPCookie] {
+        HTTPCookieStorage.shared.cookies(for: baseURL) ?? []
     }
 
     /// Copy what the webview holds into the store `URLSession.shared` reads.
@@ -76,10 +88,64 @@ enum Api {
             .contains { isSessionCookie($0.name) }
     }
 
-    static func signOut() {
-        for cookie in HTTPCookieStorage.shared.cookies(for: baseURL) ?? [] {
-            HTTPCookieStorage.shared.deleteCookie(cookie)
+    static func clearCookies() {
+        for cookie in cookies() { HTTPCookieStorage.shared.deleteCookie(cookie) }
+    }
+
+    // MARK: - sign in
+
+    struct Credentials: Encodable {
+        let email: String
+        let password: String
+    }
+
+    /// `POST /api/auth/sign-in/email`, better-auth's email+password route.
+    /// Built apart from the call so a test can read the wire shape back.
+    static func signInRequest(email: String, password: String) throws -> URLRequest {
+        var req = URLRequest(url: baseURL.appendingPathComponent("api/auth/sign-in/email"))
+        req.httpMethod = "POST"
+        req.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        req.httpBody = try JSONEncoder().encode(
+            Credentials(email: email, password: password))
+        return req
+    }
+
+    /// better-auth answers `{"message":"Invalid email or password","code":…}`,
+    /// spelling its errors `message` where our own routes say `error`.
+    static func authError(_ data: Data, status: Int) -> Failure {
+        let body = try? JSONDecoder().decode([String: JSON].self, from: data)
+        let message = body?["message"]?.text ?? body?["error"]?.text
+        return Failure(status: status, message: message ?? "sign-in failed")
+    }
+
+    /// Sign in and keep the cookie. `URLSession.shared` stores it on its own,
+    /// and the response header is read as well so the one cookie that matters
+    /// is in `HTTPCookieStorage` whatever the session's accept policy does.
+    static func signIn(email: String, password: String) async throws {
+        let request = try signInRequest(email: email, password: password)
+        let (data, response) = try await URLSession.shared.data(for: request)
+        let http = response as? HTTPURLResponse
+        let status = http?.statusCode ?? 0
+        guard (200..<300).contains(status) else {
+            throw authError(data, status: status)
         }
+        if let fields = http?.allHeaderFields as? [String: String], let url = http?.url {
+            adopt(HTTPCookie.cookies(withResponseHeaderFields: fields, for: url))
+        }
+        guard signedIn else {
+            throw Failure(status: 0, message: "signed in, but no session cookie came back")
+        }
+    }
+
+    /// `POST /api/auth/sign-out`, then forget the cookie locally either way:
+    /// a server that cannot be reached must not leave the app looking signed in.
+    static func signOut() async {
+        var req = URLRequest(url: baseURL.appendingPathComponent("api/auth/sign-out"))
+        req.httpMethod = "POST"
+        req.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        req.httpBody = Data("{}".utf8)
+        _ = try? await URLSession.shared.data(for: req)
+        clearCookies()
     }
 
     // MARK: - shapes

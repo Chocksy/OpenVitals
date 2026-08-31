@@ -2,6 +2,7 @@
 /// batching, and the anchor bookkeeping. No live HealthKit store is touched —
 /// every function under test takes plain values or goes through `KeyValueStore`.
 import XCTest
+import WebKit
 @testable import OpenVitals
 
 final class InstantTests: XCTestCase {
@@ -229,6 +230,29 @@ final class AnchorBookkeepingTests: XCTestCase {
         XCTAssertEqual(state.state(type).samples, 0)
     }
 
+    /// "Resync full history": the anchor goes, the audit line stays. An
+    /// anchored query never looks back, so this is the only way to the years
+    /// the old 365-day first sync left behind.
+    func testClearAnchorKeepsTheAuditLine() {
+        let state = SyncState(store: MemoryStore())
+        let sent = Date()
+        state.commit(type, anchor: Data([9]), sent: 2153, at: sent)
+        state.clearAnchor(type)
+        XCTAssertNil(state.anchorData(type))
+        XCTAssertEqual(state.state(type).samples, 2153)
+        XCTAssertEqual(state.state(type).lastSent, sent)
+    }
+
+    func testClearAnchorOnOneTypeLeavesTheOthers() {
+        let state = SyncState(store: MemoryStore())
+        let other = "HKQuantityTypeIdentifierBodyMass"
+        state.commit(type, anchor: Data([1]), sent: 1, at: Date())
+        state.commit(other, anchor: Data([2]), sent: 1, at: Date())
+        state.clearAnchor(type)
+        XCTAssertNil(state.anchorData(type))
+        XCTAssertEqual(state.anchorData(other), Data([2]))
+    }
+
     func testResetForgetsEverythingForOneType() {
         let state = SyncState(store: MemoryStore())
         state.commit(type, anchor: Data([9]), sent: 3, at: Date())
@@ -340,5 +364,130 @@ final class ApiShapeTests: XCTestCase {
         XCTAssertTrue(Api.isSessionCookie("better-auth.session_token"))
         XCTAssertTrue(Api.isSessionCookie("__Secure-better-auth.session_token"))
         XCTAssertFalse(Api.isSessionCookie("better-auth.csrf_token"))
+    }
+}
+
+/// Phase 23b: the app signs in itself, so the wire shape of that one call and
+/// the cookie it leaves behind are the things worth pinning.
+final class SignInTests: XCTestCase {
+    private var previousBase = Api.base
+
+    override func setUp() {
+        super.setUp()
+        previousBase = Api.base
+        Api.base = "https://sign-in.test"
+        Api.clearCookies()
+    }
+
+    override func tearDown() {
+        Api.clearCookies()
+        Api.base = previousBase
+        super.tearDown()
+    }
+
+    /// `POST /api/auth/sign-in/email` with `{ email, password }` — better-auth's
+    /// own route, the one `components/client.tsx` calls through its client lib.
+    func testSignInRequestShape() throws {
+        let request = try Api.signInRequest(email: "someone@example.com",
+                                            password: "hunter2hunter2")
+        XCTAssertEqual(request.httpMethod, "POST")
+        XCTAssertEqual(request.url?.absoluteString,
+                       "https://sign-in.test/api/auth/sign-in/email")
+        XCTAssertEqual(request.value(forHTTPHeaderField: "Content-Type"),
+                       "application/json")
+        let body = try JSONSerialization.jsonObject(
+            with: XCTUnwrap(request.httpBody)) as! [String: Any]
+        XCTAssertEqual(body["email"] as? String, "someone@example.com")
+        XCTAssertEqual(body["password"] as? String, "hunter2hunter2")
+        XCTAssertEqual(Set(body.keys), ["email", "password"])
+    }
+
+    /// The request follows the base URL, so a dev server on the Sync tab
+    /// signs in against the dev server and not against production.
+    func testSignInFollowsTheBaseURL() throws {
+        Api.base = "http://localhost:3001"
+        let request = try Api.signInRequest(email: "a@b.c", password: "x")
+        XCTAssertEqual(request.url?.absoluteString,
+                       "http://localhost:3001/api/auth/sign-in/email")
+    }
+
+    /// better-auth spells its errors `message`; our own routes say `error`.
+    /// A wrong password has to read as a wrong password, not as "no reply".
+    func testAuthErrorReadsBetterAuthsMessage() {
+        let body = Data(#"{"code":"INVALID_EMAIL_OR_PASSWORD","message":"Invalid email or password"}"#.utf8)
+        let failure = Api.authError(body, status: 401)
+        XCTAssertEqual(failure.message, "Invalid email or password")
+        XCTAssertEqual(failure.errorDescription, "401: Invalid email or password")
+    }
+
+    func testAuthErrorFallsBackWhenTheBodyIsNotJSON() {
+        let failure = Api.authError(Data("<html>502</html>".utf8), status: 502)
+        XCTAssertEqual(failure.message, "sign-in failed")
+    }
+
+    /// The seam the webview push runs through: what the native side holds for
+    /// the base URL is what gets handed to `WKHTTPCookieStore`.
+    func testCookiesForPushAreTheSessionCookies() throws {
+        XCTAssertTrue(Api.cookies().isEmpty)
+        XCTAssertFalse(Api.signedIn)
+
+        let cookie = try XCTUnwrap(HTTPCookie(properties: [
+            .name: "better-auth.session_token", .value: "abc123",
+            .domain: "sign-in.test", .path: "/",
+        ]))
+        XCTAssertEqual(Api.adopt([cookie]), 1)
+
+        XCTAssertEqual(Api.cookies().map(\.name), ["better-auth.session_token"])
+        XCTAssertTrue(Api.signedIn)
+
+        Api.clearCookies()
+        XCTAssertTrue(Api.cookies().isEmpty)
+        XCTAssertFalse(Api.signedIn)
+    }
+
+    /// A cookie for somebody else's domain is not ours to keep.
+    func testAdoptIgnoresAForeignDomain() throws {
+        let cookie = try XCTUnwrap(HTTPCookie(properties: [
+            .name: "better-auth.session_token", .value: "abc123",
+            .domain: "example.com", .path: "/",
+        ]))
+        XCTAssertEqual(Api.adopt([cookie]), 0)
+        XCTAssertFalse(Api.signedIn)
+    }
+
+    /// The string the site's `(app)` layout greps for. Both halves of phase
+    /// 23b hang on it, so it is spelled out here rather than inferred.
+    func testUserAgentTag() {
+        XCTAssertEqual(Api.userAgentTag, "OpenVitalsiOS/1")
+        XCTAssertTrue(Api.userAgentTag.contains("OpenVitalsiOS"))
+    }
+}
+
+/// The webview half of "one navigation": a real WKWebView, asked what user
+/// agent it actually sends. Naming the API is not the same as it working, and
+/// if this string stops carrying the tag the site quietly grows a nav bar
+/// again inside the app.
+@MainActor
+final class WebViewUserAgentTests: XCTestCase {
+    func testTheWebviewAnnouncesItselfToTheSite() async throws {
+        let view = WKWebView(frame: .zero, configuration: SiteWebView.configuration())
+        await withCheckedContinuation { done in
+            SiteWebView.announce(view) { done.resume() }
+        }
+        let ua = try XCTUnwrap(view.customUserAgent)
+        XCTAssertTrue(ua.hasSuffix(" OpenVitalsiOS/1"), ua)
+        // Still a normal iPhone UA underneath. `applicationNameForUserAgent`
+        // eats the `Mobile/` token; appending to the default does not.
+        XCTAssertTrue(ua.hasPrefix("Mozilla/5.0 (iPhone"), ua)
+        XCTAssertTrue(ua.contains("Mobile/"), ua)
+        XCTAssertTrue(ua.contains("AppleWebKit/"), ua)
+    }
+
+    /// The zoom belt. The script is what stops iOS blowing up a focused input.
+    func testViewportScriptRunsInEveryFrameAndPinsTheScale() {
+        let script = SiteWebView.viewportScript
+        XCTAssertFalse(script.isForMainFrameOnly)
+        XCTAssertTrue(script.source.contains("maximum-scale=1"))
+        XCTAssertTrue(script.source.contains("width=device-width"))
     }
 }

@@ -155,7 +155,17 @@ function ChipEditor({
   );
 }
 
-export function Composer({ today }: { today: string }) {
+/**
+ * `app` is true inside the iOS webview, where the site renders no bottom bar:
+ * the floating "+" is then the only way in, so it shows at every width.
+ */
+export function Composer({
+  today,
+  app = false,
+}: {
+  today: string;
+  app?: boolean;
+}) {
   const router = useRouter();
   const dialog = useRef<HTMLDialogElement>(null);
   const box = useRef<HTMLTextAreaElement>(null);
@@ -343,7 +353,7 @@ export function Composer({ today }: { today: string }) {
         aria-label="Post something"
         title="Post a symptom, a habit, a number"
         onClick={() => dialog.current?.showModal()}
-        className="fixed bottom-6 right-6 z-40 hidden size-14 cursor-pointer items-center justify-center rounded-full bg-neutral-900 text-neutral-0 shadow-lg transition-all hover:bg-accent-600 active:scale-95 md:flex"
+        className={`fixed bottom-6 right-6 z-40 size-14 cursor-pointer items-center justify-center rounded-full bg-neutral-900 text-neutral-0 shadow-lg transition-all hover:bg-accent-600 active:scale-95 ${app ? "flex" : "hidden md:flex"}`}
       >
         <Plus className="size-6" />
       </button>
@@ -351,6 +361,7 @@ export function Composer({ today }: { today: string }) {
       <dialog
         id={COMPOSER_ID}
         ref={dialog}
+        data-app={app ? "" : undefined}
         onClose={() => setOpen(null)}
         onClick={(e) => {
           if (e.target === dialog.current) dialog.current?.close();

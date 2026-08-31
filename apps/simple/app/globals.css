@@ -532,3 +532,13 @@ select:focus {
     size: A4 portrait;
   }
 }
+
+/* ── Inside the iOS app ──────────────────────────────────────────────────
+   iOS zooms a focused input whose font-size is under 16 px and never zooms
+   back out. The webview pins the viewport as well; this is the second belt,
+   scoped to `[data-app]`, which only the app UA gets. */
+[data-app] input,
+[data-app] textarea,
+[data-app] select {
+  font-size: 16px;
+}
