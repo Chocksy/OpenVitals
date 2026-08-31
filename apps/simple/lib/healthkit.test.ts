@@ -3,6 +3,7 @@ import {
   aggregate,
   cycleFacts,
   dayOf,
+  exerciseDaysWeek,
   factsFromReadings,
   hourOf,
   HK_METRICS,
@@ -13,6 +14,8 @@ import {
   seenNotUsed,
   shortType,
   toStored,
+  workoutsFrom,
+  workoutTicks,
   type Sample,
 } from "./healthkit";
 
@@ -25,6 +28,15 @@ const sample = (
 });
 
 const at = (day: string, time: string) => `${day}T${time}:00+03:00`;
+
+/** "07:00" to "08:05" is 65, the number the phone puts in a workout's value. */
+const minutes = (from: string, to: string) => {
+  const mins = (t: string) => {
+    const [h, m] = t.split(":").map(Number) as [number, number];
+    return h * 60 + m;
+  };
+  return mins(to) - mins(from);
+};
 
 describe("the type names", () => {
   it("takes the identifier with or without its prefix", () => {
@@ -41,9 +53,18 @@ describe("the type names", () => {
       seenNotUsed([
         sample({ type: "StepCount", value: 10 }),
         sample({ type: "HKQuantityTypeIdentifierDietaryWater", value: 500 }),
-        sample({ type: "HKQuantityTypeIdentifierFlightsClimbed", value: 3 }),
+        sample({ type: "HKQuantityTypeIdentifierDietaryFiber", value: 30 }),
       ]),
-    ).toEqual(["DietaryWater", "FlightsClimbed"]);
+    ).toEqual(["DietaryFiber", "DietaryWater"]);
+  });
+
+  it("does not call a workout unused: it is a list, not a table row", () => {
+    expect(
+      seenNotUsed([
+        sample({ type: "HKWorkout", unit: "running", value: 30 }),
+        sample({ type: "HKWorkoutEnergy", unit: "kcal", value: 300 }),
+      ]),
+    ).toEqual([]);
   });
 
   it("gives every reading type a metric the catalog can hold", () => {
@@ -266,6 +287,218 @@ describe("one day of samples", () => {
       { day: "2026-08-30", field: "proteinG", value: 120 },
     ]);
     expect(agg.readings).toEqual([]);
+  });
+});
+
+describe("workouts", () => {
+  const workout = (
+    activity: string,
+    day: string,
+    from: string,
+    to: string,
+  ): Sample => ({
+    type: "HKWorkout",
+    unit: activity,
+    value: minutes(from, to),
+    start: at(day, from),
+    end: at(day, to),
+  });
+  const energy = (
+    kcal: number,
+    day: string,
+    from: string,
+    to: string,
+  ): Sample => ({
+    type: "HKWorkoutEnergy",
+    unit: "kcal",
+    value: kcal,
+    start: at(day, from),
+    end: at(day, to),
+  });
+
+  it("keeps the name, the minutes and the paired energy", () => {
+    expect(
+      workoutsFrom([
+        workout("strengthTraining", "2026-08-30", "07:00", "08:05"),
+        energy(430, "2026-08-30", "07:00", "08:05"),
+        workout("running", "2026-08-30", "18:00", "18:42"),
+        energy(390, "2026-08-30", "18:00", "18:42"),
+      ]),
+    ).toEqual([
+      {
+        day: "2026-08-30",
+        workouts: [
+          { type: "strengthTraining", min: 65, kcal: 430 },
+          { type: "running", min: 42, kcal: 390 },
+        ],
+      },
+    ]);
+  });
+
+  it("counts a session the watch and the phone both saw once", () => {
+    const day = workoutsFrom([
+      workout("running", "2026-08-30", "18:00", "18:40"),
+      workout("running", "2026-08-30", "18:01", "18:42"),
+    ])[0]!;
+    expect(day.workouts).toEqual([{ type: "running", min: 41 }]);
+  });
+
+  it("keeps two sessions of the same kind that do not overlap apart", () => {
+    const day = workoutsFrom([
+      workout("walking", "2026-08-30", "09:00", "09:30"),
+      workout("walking", "2026-08-30", "19:00", "19:25"),
+    ])[0]!;
+    expect(day.workouts.map((w) => w.min)).toEqual([30, 25]);
+  });
+
+  it("leaves the energy off a workout that has none", () => {
+    const day = workoutsFrom([
+      workout("yoga", "2026-08-30", "07:00", "07:30"),
+    ])[0]!;
+    expect(day.workouts[0]).toEqual({ type: "yoga", min: 30 });
+  });
+
+  it("rides the same batch as everything else", () => {
+    const agg = aggregate([
+      workout("cycling", "2026-08-30", "17:00", "18:00"),
+      sample({
+        type: "StepCount",
+        value: 4000,
+        unit: "count",
+        start: at("2026-08-30", "09:00"),
+      }),
+    ]);
+    expect(agg.workouts).toEqual([
+      { day: "2026-08-30", workouts: [{ type: "cycling", min: 60 }] },
+    ]);
+    expect(agg.days).toEqual(["2026-08-30"]);
+  });
+
+  it("puts a day with only a workout on it into the day list", () => {
+    expect(
+      aggregate([workout("swimming", "2026-08-31", "07:00", "07:45")]).days,
+    ).toEqual(["2026-08-31"]);
+  });
+
+  it("sums distance and flights into the day", () => {
+    const agg = aggregate([
+      sample({ type: "DistanceWalkingRunning", value: 3.2, unit: "km" }),
+      sample({ type: "DistanceWalkingRunning", value: 1.8, unit: "km" }),
+      sample({ type: "FlightsClimbed", value: 7, unit: "count" }),
+      sample({ type: "FlightsClimbed", value: 5, unit: "count" }),
+    ]);
+    expect(agg.daily).toEqual([
+      { day: "2026-08-30", field: "distanceKm", value: 5 },
+      { day: "2026-08-30", field: "flights", value: 12 },
+    ]);
+  });
+
+  it("takes a distance in metres too", () => {
+    expect(toStored(3200, "m", mappingFor("DistanceWalkingRunning")!)).toBe(
+      3.2,
+    );
+  });
+});
+
+describe("the exercise answer", () => {
+  const day = (n: number) =>
+    new Date(Date.parse("2026-09-01T00:00:00Z") - n * 86_400_000)
+      .toISOString()
+      .slice(0, 10);
+  const trained = (n: number, min = 45) => ({
+    day: day(n),
+    workouts: [{ type: "strengthTraining", min }],
+  });
+
+  it("reads three sessions a week as 3-4", () => {
+    // Twelve training days spread over the 28-day window.
+    const days = [0, 2, 4, 7, 9, 11, 14, 16, 18, 21, 23, 25].map((n) =>
+      trained(n),
+    );
+    expect(exerciseDaysWeek(days, "2026-09-01")).toBe("3–4");
+  });
+
+  it("reads two a week as 1-2 and six as 5+", () => {
+    const every = (step: number) =>
+      Array.from({ length: Math.ceil(28 / step) }, (_, i) => trained(i * step));
+    expect(exerciseDaysWeek(every(4), "2026-09-01")).toBe("1–2");
+    expect(exerciseDaysWeek(every(1).slice(0, 24), "2026-09-01")).toBe("5+");
+  });
+
+  it("does not count a ten-minute walk as a training day", () => {
+    expect(
+      exerciseDaysWeek(
+        [0, 2, 4, 7, 9, 11].map((n) => trained(n, 10)),
+        "2026-09-01",
+      ),
+    ).toBe(null);
+  });
+
+  it("ignores days outside the window", () => {
+    expect(exerciseDaysWeek([trained(40), trained(60)], "2026-09-01")).toBe(
+      null,
+    );
+  });
+
+  it("never says zero: an empty HealthKit is not proof nobody trained", () => {
+    expect(exerciseDaysWeek([], "2026-09-01")).toBe(null);
+    expect(
+      exerciseDaysWeek([{ day: "2026-09-01", workouts: [] }], "2026-09-01"),
+    ).toBe(null);
+  });
+});
+
+describe("the habit a workout ticks", () => {
+  const items = [
+    { id: "a", text: "Lift weights three times a week" },
+    { id: "b", text: "Walk 30 minutes after dinner" },
+    { id: "c", text: "Take vitamin D" },
+  ];
+
+  it("ticks the habit the activity names, and nothing else", () => {
+    expect(
+      workoutTicks(
+        [
+          {
+            day: "2026-08-30",
+            workouts: [
+              { type: "strengthTraining", min: 65 },
+              { type: "walking", min: 32 },
+            ],
+          },
+        ],
+        items,
+      ),
+    ).toEqual([
+      { itemId: "a", day: "2026-08-30" },
+      { itemId: "b", day: "2026-08-30" },
+    ]);
+  });
+
+  it("ticks a habit once however many sessions the day held", () => {
+    expect(
+      workoutTicks(
+        [
+          {
+            day: "2026-08-30",
+            workouts: [
+              { type: "functionalStrengthTraining", min: 30 },
+              { type: "traditionalStrengthTraining", min: 40 },
+            ],
+          },
+        ],
+        items,
+      ),
+    ).toEqual([{ itemId: "a", day: "2026-08-30" }]);
+  });
+
+  it("has nothing to tick when no habit names the activity", () => {
+    expect(
+      workoutTicks(
+        [{ day: "2026-08-30", workouts: [{ type: "swimming", min: 40 }] }],
+        items,
+      ),
+    ).toEqual([]);
   });
 });
 

@@ -687,6 +687,18 @@ const ASKED: Record<
     // men and 41 in women.
     revisitDays: 365,
   },
+  // Phase 23c. Not a vector: nothing screens on it and it has no graded
+  // likelihood ratio anywhere, so no evidence rule reads it. It is here so the
+  // interview, the composer and the HealthKit sync can all write the same
+  // answer, and so the review queue can re-ask it on a sane clock.
+  exercise_days_week: {
+    question: "How many days a week do you exercise on purpose?",
+    options: ["0", "1–2", "3–4", "5+"],
+    // WHO 2020 physical activity guideline: 150-300 minutes of moderate
+    // activity a week, which is three to five sessions for most people. A
+    // training habit moves over seasons, not weeks.
+    revisitDays: 180,
+  },
   diet: {
     question: "How would you describe the way you eat?",
     options: [
@@ -1074,10 +1086,14 @@ export const RULES: Rule[] = [
     id: "sleep_study",
     when: (m) => {
       const snore = fact(m, "sleep_snoring");
-      const hours = val(m, "sleep_duration");
+      // `sleep_duration` is stored in minutes — the catalog row says `min`,
+      // the composer writes minutes and so does the HealthKit sync. This rule
+      // used to compare it against 6.5, so short sleep never counted and the
+      // watch's nightly reading did nothing here.
+      const minutes = val(m, "sleep_duration");
       return (
         snore === "Most nights" ||
-        (snore === "Sometimes" && hours != null && hours < 6.5)
+        (snore === "Sometimes" && minutes != null && minutes < 6.5 * 60)
       );
     },
     suggest: "Do a home sleep study",
@@ -1205,6 +1221,22 @@ export const BOUNDS: Record<string, [number, number]> = {
   basophils_abs: [0.001, 10], // K/uL
   hemoglobin: [2, 25], // g/dL
   hematocrit: [10, 70], // %
+
+  // Phase 23c: the codes a watch writes. Same numbers as the `plausible`
+  // guard `lib/healthkit.ts` applies on the way in, so a device artefact
+  // caught by one is caught by the other, and the curator's unit check has a
+  // canonical band to read for a metric no lab ever prints a range for.
+  resting_heart_rate: [25, 140], // bpm
+  hrv_sdnn: [1, 400], // ms
+  walking_hr_avg: [40, 200], // bpm
+  hr_recovery_1min: [1, 120], // bpm
+  respiratory_rate: [4, 60], // breaths/min
+  spo2: [50, 100], // %
+  sleep_duration: [30, 1080], // min — the catalog stores minutes, not hours
+  vo2max_est: [10, 90], // mL/kg/min
+  wrist_temp: [28, 42], // C
+  body_fat_pct: [2, 70], // %
+  waist_cm: [40, 200], // cm
 };
 
 /**

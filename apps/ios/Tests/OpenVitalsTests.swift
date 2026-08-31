@@ -2,6 +2,7 @@
 /// batching, and the anchor bookkeeping. No live HealthKit store is touched —
 /// every function under test takes plain values or goes through `KeyValueStore`.
 import XCTest
+import HealthKit
 import WebKit
 @testable import OpenVitals
 
@@ -116,6 +117,7 @@ final class TypeTableTests: XCTestCase {
     func testTableCoversTheServerMapping() {
         let expected: Set<String> = [
             "StepCount", "ActiveEnergyBurned", "AppleExerciseTime", "AppleStandHour",
+            "DistanceWalkingRunning", "FlightsClimbed", "HKWorkout",
             "RestingHeartRate", "HeartRateVariabilitySDNN", "RespiratoryRate",
             "OxygenSaturation", "WalkingHeartRateAverage", "HeartRateRecoveryOneMinute",
             "SleepAnalysis", "VO2Max", "BodyMass", "BodyFatPercentage",
@@ -155,24 +157,77 @@ final class TypeTableTests: XCTestCase {
     }
 }
 
+/// Phase 23c. The server aggregates one POST at a time and replaces the day's
+/// totals with what that POST adds up to, so a day split across two POSTs ends
+/// up holding only its second half. Every test here is that one rule: a day
+/// leaves the phone in one piece.
 final class BatchingTests: XCTestCase {
-    private func samples(_ n: Int) -> [Api.Sample] {
+    /// `n` samples on `day`, one an hour so they are all clearly that day's.
+    private func samples(_ n: Int, day: String = "2026-09-01") -> [Api.Sample] {
         (0..<n).map {
             Api.Sample(type: "HKQuantityTypeIdentifierStepCount", unit: "count",
-                       value: Double($0), start: "2026-09-01T07:10:00+03:00",
+                       value: Double($0),
+                       start: "\(day)T07:10:00+03:00",
                        end: nil, sourceBundle: nil)
         }
     }
 
-    func testBatchesOfFiveHundred() {
-        let batches = HK.batches(samples(1200))
-        XCTAssertEqual(batches.map(\.count), [500, 500, 200])
-        XCTAssertEqual(batches.flatMap { $0 }.count, 1200)
-        XCTAssertEqual(batches[1].first?.value, 500)
+    private func days(_ list: [(String, Int)]) -> [Api.Sample] {
+        list.flatMap { samples($0.1, day: $0.0) }
     }
 
-    func testExactMultipleDoesNotLeaveAnEmptyBatch() {
-        XCTAssertEqual(HK.batches(samples(1000)).map(\.count), [500, 500])
+    private func daysIn(_ batch: [Api.Sample]) -> Set<String> {
+        Set(batch.map(HK.day(of:)))
+    }
+
+    func testADayIsNeverSplitAcrossTwoBatches() {
+        // 200 samples a day is about what a watch writes for steps, so the
+        // 500-sample cut used to land inside a day roughly every other time.
+        let batches = HK.batches(days((1...10).map {
+            (String(format: "2026-09-%02d", $0), 200)
+        }))
+        let seen = batches.map(daysIn)
+        for (i, a) in seen.enumerated() {
+            for b in seen[(i + 1)...] {
+                XCTAssertTrue(a.isDisjoint(with: b),
+                              "a day landed in two batches: \(a.intersection(b))")
+            }
+        }
+        XCTAssertEqual(batches.flatMap { $0 }.count, 2000)
+        XCTAssertEqual(batches.map(\.count), [400, 400, 400, 400, 400])
+    }
+
+    func testWholeDaysArePackedUpToTheLimit() {
+        // 3 x 150 fits in 500; the fourth day would make 600, so it waits.
+        let batches = HK.batches(days([
+            ("2026-09-01", 150), ("2026-09-02", 150),
+            ("2026-09-03", 150), ("2026-09-04", 150),
+        ]))
+        XCTAssertEqual(batches.map(\.count), [450, 150])
+    }
+
+    /// One oversize POST is honest; half a day of steps is not.
+    func testADayBiggerThanTheBatchIsItsOwnOversizeBatch() {
+        let batches = HK.batches(days([
+            ("2026-09-01", 10), ("2026-09-02", 900), ("2026-09-03", 10),
+        ]))
+        XCTAssertEqual(batches.map(\.count), [10, 900, 10])
+        XCTAssertEqual(daysIn(batches[1]), ["2026-09-02"])
+    }
+
+    /// A night that starts at 23:30 is filed by the server on the morning it
+    /// ended, so that is the day it has to be batched by too.
+    func testANightIsBatchedByTheMorningItEndedOn() {
+        let evening = Api.Sample(
+            type: "HKCategoryTypeIdentifierSleepAnalysis", unit: "asleepCore",
+            value: 1, start: "2026-08-31T23:30:00+03:00",
+            end: "2026-09-01T03:00:00+03:00", sourceBundle: nil)
+        let morning = Api.Sample(
+            type: "HKCategoryTypeIdentifierSleepAnalysis", unit: "asleepREM",
+            value: 1, start: "2026-09-01T03:00:00+03:00",
+            end: "2026-09-01T06:30:00+03:00", sourceBundle: nil)
+        XCTAssertEqual(HK.day(of: evening), "2026-09-01")
+        XCTAssertEqual(HK.batches([evening, morning]).count, 1)
     }
 
     func testNothingToSendIsNoRequests() {
@@ -181,6 +236,113 @@ final class BatchingTests: XCTestCase {
 
     func testSmallerThanOneBatch() {
         XCTAssertEqual(HK.batches(samples(3)).map(\.count), [3])
+    }
+
+    /// The other cut that used to land mid-day: the 2000-sample page. The
+    /// newest day waits for the page that finishes it.
+    func testTheNewestDayIsHeldBackWhileMorePagesCouldExtendIt() {
+        let page = days([
+            ("2026-09-01", 3), ("2026-09-02", 3), ("2026-09-03", 2),
+        ])
+        let (ready, held) = HK.holdNewestDay(page)
+        XCTAssertEqual(daysIn(ready), ["2026-09-01", "2026-09-02"])
+        XCTAssertEqual(daysIn(held), ["2026-09-03"])
+        XCTAssertEqual(ready.count + held.count, page.count)
+    }
+
+    /// Order on the wire is insertion order, not date order, so "newest" is
+    /// the largest date and not the last element.
+    func testHoldNewestDayReadsDatesNotPositions() {
+        let page = days([("2026-09-05", 2), ("2026-09-01", 2)])
+        let (ready, held) = HK.holdNewestDay(page)
+        XCTAssertEqual(daysIn(held), ["2026-09-05"])
+        XCTAssertEqual(daysIn(ready), ["2026-09-01"])
+    }
+
+    func testAPageOfOneDayHoldsAllOfIt() {
+        let (ready, held) = HK.holdNewestDay(samples(4))
+        XCTAssertTrue(ready.isEmpty)
+        XCTAssertEqual(held.count, 4)
+    }
+
+    func testHoldingBackNothing() {
+        let (ready, held) = HK.holdNewestDay([])
+        XCTAssertTrue(ready.isEmpty)
+        XCTAssertTrue(held.isEmpty)
+    }
+}
+
+/// Phase 23c: a workout goes over as two flat samples rather than a new wire
+/// shape. `HKWorkout` itself cannot be built on a device without a live store,
+/// so the builder takes plain values and the store adapter is the thin part.
+final class WorkoutTests: XCTestCase {
+    private let zone = TimeZone(secondsFromGMT: 3 * 3600)!
+    private let start = Date(timeIntervalSince1970: 1_788_246_600)
+
+    private func build(_ activity: String, minutes: Double,
+                       kcal: Double?) -> [Api.Sample] {
+        HK.workoutSamples(activity: activity, minutes: minutes, kcal: kcal,
+                          start: start,
+                          end: start.addingTimeInterval(minutes * 60),
+                          source: "com.apple.health", zone: zone)
+    }
+
+    func testDurationAndEnergyRideAsTwoSamplesOnTheSameWindow() {
+        let out = build("strengthTraining", minutes: 65, kcal: 430)
+        XCTAssertEqual(out.count, 2)
+        XCTAssertEqual(out[0].type, "HKWorkout")
+        XCTAssertEqual(out[0].unit, "strengthTraining")
+        XCTAssertEqual(out[0].value, 65)
+        XCTAssertEqual(out[1].type, "HKWorkoutEnergy")
+        XCTAssertEqual(out[1].unit, "kcal")
+        XCTAssertEqual(out[1].value, 430)
+        XCTAssertEqual(out[0].start, out[1].start)
+        XCTAssertEqual(out[0].end, out[1].end)
+        XCTAssertTrue(out[0].start.hasSuffix("+03:00"))
+    }
+
+    func testAWorkoutWithNoEnergyIsOneSample() {
+        XCTAssertEqual(build("yoga", minutes: 30, kcal: nil).count, 1)
+        XCTAssertEqual(build("yoga", minutes: 30, kcal: 0).count, 1)
+    }
+
+    func testAZeroLengthWorkoutIsNotASample() {
+        XCTAssertTrue(build("running", minutes: 0, kcal: 200).isEmpty)
+    }
+
+    /// The names the server's habit matcher and day view read.
+    func testActivityNames() {
+        XCTAssertEqual(HK.activityName(.traditionalStrengthTraining),
+                       "strengthTraining")
+        XCTAssertEqual(HK.activityName(.functionalStrengthTraining),
+                       "strengthTraining")
+        XCTAssertEqual(HK.activityName(.running), "running")
+        XCTAssertEqual(HK.activityName(.walking), "walking")
+        XCTAssertEqual(HK.activityName(.cycling), "cycling")
+        XCTAssertEqual(HK.activityName(.swimming), "swimming")
+        XCTAssertEqual(HK.activityName(.yoga), "yoga")
+        XCTAssertEqual(HK.activityName(.highIntensityIntervalTraining), "hiit")
+    }
+
+    /// Anything else keeps whatever name it has, and never a bracketed
+    /// `HKWorkoutActivityType(rawValue: 3000)`.
+    func testAnUnmappedActivityStillReadsAsAName() {
+        for type in [HKWorkoutActivityType.rowing, .boxing,
+                     HKWorkoutActivityType(rawValue: 4242) ?? .other] {
+            let name = HK.activityName(type)
+            XCTAssertFalse(name.isEmpty)
+            XCTAssertFalse(name.contains("("), name)
+        }
+    }
+
+    /// The workout spec is not a category type: it resolves to
+    /// `HKObjectType.workoutType()` and nothing else.
+    func testTheWorkoutSpecResolvesToTheWorkoutType() throws {
+        let spec = try XCTUnwrap(HK.types.first { $0.isWorkout })
+        XCTAssertEqual(spec.identifier, "HKWorkout")
+        XCTAssertFalse(spec.isCategory)
+        XCTAssertEqual(spec.sampleType, HKObjectType.workoutType())
+        XCTAssertTrue(HK.readTypes.contains(HKObjectType.workoutType()))
     }
 }
 

@@ -7,6 +7,7 @@ import { formatDate } from "@/lib/utils";
 import { HabitChecklist, QuickNumbers } from "@/components/tracker";
 import { DailySparks } from "@/components/daily-charts";
 import { Heatmap } from "@/components/heatmap";
+import { NutritionLine, WearableStrip } from "@/components/wearable";
 
 export const dynamic = "force-dynamic";
 
@@ -40,7 +41,8 @@ export default async function TodayPage({
             </h1>
             <p className="font-mono text-[11px] text-neutral-400">
               {day === today ? formatDate(day) : day}
-              {view.habits.length > 0 && ` · ${done}/${view.habits.length} habits`}
+              {view.habits.length > 0 &&
+                ` · ${done}/${view.habits.length} habits`}
             </p>
           </div>
           {day < today ? (
@@ -74,12 +76,20 @@ export default async function TodayPage({
       </div>
 
       <p className="font-mono text-[11px] text-neutral-400">
-        Manual entry stays here until the phone app syncs Apple Health.{" "}
+        Numbers the phone sent are filled in for you; anything you type wins.{" "}
         <Link href="/feel" className="underline hover:text-neutral-900">
           How do you feel
         </Link>{" "}
         asks the twelve symptom questions the engine scores.
       </p>
+
+      <WearableStrip
+        wearable={view.wearable}
+        steps={view.values.steps}
+        exerciseMin={view.values.exerciseMin}
+        sleepHours={view.values.sleepHours}
+      />
+      <NutritionLine nutrition={view.nutrition} />
 
       <HabitChecklist day={day} habits={view.habits} />
       <QuickNumbers key={day} day={day} values={view.values} />

@@ -179,6 +179,9 @@ const RULES: Rule[] = [
   // set to, and a tape measure is the one place inches still turn up.
   { from: "m", to: "cm", factor: 100 },
   { from: "in", to: "cm", factor: 2.54 },
+  // Phase 23c: the day's distance is stored in kilometres, and a phone set to
+  // metres would otherwise be dropped as unconvertible.
+  { from: "km", to: "m", factor: 1000 },
 ];
 
 /** The multiplier that takes a value from `from` into `to`, or null. */

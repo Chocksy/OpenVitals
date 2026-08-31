@@ -23,9 +23,13 @@ struct HKTypeSpec: Identifiable, Hashable {
     let hkUnit: HKUnit?
 
     var id: String { identifier }
-    var isCategory: Bool { hkUnit == nil }
+    /// The one type that is neither a quantity nor a category. Its samples are
+    /// `HKWorkout`, and each one goes on the wire as two flat samples.
+    var isWorkout: Bool { identifier == HK.workoutType }
+    var isCategory: Bool { hkUnit == nil && !isWorkout }
 
     var sampleType: HKSampleType? {
+        if isWorkout { return HKObjectType.workoutType() }
         if hkUnit != nil {
             return HKObjectType.quantityType(
                 forIdentifier: HKQuantityTypeIdentifier(rawValue: identifier))
@@ -69,6 +73,12 @@ enum HK {
         q("ActiveEnergyBurned", "Active energy", "kcal", .kilocalorie()),
         q("AppleExerciseTime", "Exercise minutes", "min", .minute()),
         c("AppleStandHour", "Stand hours", "count"),
+        q("DistanceWalkingRunning", "Distance", "km", .meterUnit(with: .kilo)),
+        q("FlightsClimbed", "Flights climbed", "count", .count()),
+        // The workout itself: the activity name rides in `unit`, the minutes
+        // in `value`, and the energy follows as a second `HKWorkoutEnergy`.
+        HKTypeSpec(identifier: workoutType, name: "Workouts", unit: "",
+                   hkUnit: nil),
         // heart
         q("RestingHeartRate", "Resting heart rate", "count/min", perMinute),
         q("HeartRateVariabilitySDNN", "HRV (SDNN)", "ms",
@@ -109,6 +119,67 @@ enum HK {
 
     static var readTypes: Set<HKObjectType> {
         Set(types.compactMap { $0.sampleType as HKObjectType? })
+    }
+
+    // MARK: - workouts
+
+    /// The wire type of a workout, and of the spec that reads them. The server
+    /// spells both of these out in `lib/healthkit.ts`; change one, change both.
+    static let workoutType = "HKWorkout"
+    static let workoutEnergyType = "HKWorkoutEnergy"
+
+    /// The activity names the server's habit matcher knows by name. Everything
+    /// else goes over as whatever Swift calls the case, which is still more
+    /// useful in the day view than a number would be.
+    private static let activityNames: [HKWorkoutActivityType: String] = [
+        .traditionalStrengthTraining: "strengthTraining",
+        .functionalStrengthTraining: "strengthTraining",
+        .coreTraining: "strengthTraining",
+        .running: "running",
+        .walking: "walking",
+        .hiking: "walking",
+        .cycling: "cycling",
+        .swimming: "swimming",
+        .yoga: "yoga",
+        .pilates: "yoga",
+        .highIntensityIntervalTraining: "hiit",
+    ]
+
+    static func activityName(_ type: HKWorkoutActivityType) -> String {
+        if let name = activityNames[type] { return name }
+        // `HKWorkoutActivityType` is an imported `NS_ENUM` with no name API.
+        // Reflection gives the case name for the ones Swift knows and
+        // `HKWorkoutActivityType(rawValue: 3000)` for the ones it does not, so
+        // anything with a bracket in it is not a name.
+        let described = String(describing: type)
+        return described.contains("(") ? "workout" : described
+    }
+
+    /// A workout as the two samples the wire carries. Pure: everything a live
+    /// `HKWorkout` has that matters is a parameter, so the tests can build one.
+    static func workoutSamples(activity: String, minutes: Double, kcal: Double?,
+                               start: Date, end: Date, source: String?,
+                               zone: TimeZone = .current) -> [Api.Sample] {
+        let f = Api.isoFormatter(zone)
+        let from = f.string(from: start)
+        let to = f.string(from: end)
+        guard minutes > 0 else { return [] }
+        var out = [Api.Sample(type: workoutType, unit: activity,
+                              value: (minutes * 100).rounded() / 100,
+                              start: from, end: to, sourceBundle: source)]
+        if let kcal, kcal > 0 {
+            out.append(Api.Sample(type: workoutEnergyType, unit: "kcal",
+                                  value: (kcal * 10).rounded() / 10,
+                                  start: from, end: to, sourceBundle: source))
+        }
+        return out
+    }
+
+    /// The active energy a workout recorded, in kilocalories.
+    static func workoutEnergy(_ workout: HKWorkout) -> Double? {
+        workout.statistics(for: HKQuantityType(.activeEnergyBurned))?
+            .sumQuantity()?
+            .doubleValue(for: .kilocalorie())
     }
 
     // MARK: - pure
@@ -175,16 +246,92 @@ enum HK {
         }
     }
 
+    /// Every sample a store sample becomes. One for almost everything; two for
+    /// a workout, which carries its energy alongside; none for a kind we
+    /// cannot read.
+    static func samples(from hkSample: HKSample, spec: HKTypeSpec,
+                        zone: TimeZone = .current) -> [Api.Sample] {
+        guard let workout = hkSample as? HKWorkout else {
+            return sample(from: hkSample, spec: spec, zone: zone).map { [$0] } ?? []
+        }
+        return workoutSamples(
+            activity: activityName(workout.workoutActivityType),
+            minutes: workout.duration / 60,
+            kcal: workoutEnergy(workout),
+            start: workout.startDate, end: workout.endDate,
+            source: workout.sourceRevision.source.bundleIdentifier, zone: zone)
+    }
+
+    // MARK: - batching
+
+    /// The day the server will file this sample under.
+    ///
+    /// `lib/healthkit.ts` reads the date out of `start` — except for sleep,
+    /// which it files on the morning the night ended (`sleepDay`). Getting
+    /// this wrong splits a night across two POSTs, so the two rules are
+    /// spelled the same way on both sides.
+    static func day(of sample: Api.Sample) -> String {
+        let isSleep = sample.type.hasSuffix("SleepAnalysis")
+        let instant = isSleep ? (sample.end ?? sample.start) : sample.start
+        return String(instant.prefix(10))
+    }
+
     /// One POST per slice. The server takes 20 000 in a batch; 500 keeps a
     /// failed request small and a first sync interruptible.
     static let batchSize = 500
 
+    /// Batches that never cut a day in half.
+    ///
+    /// The server aggregates each POST on its own and *replaces* the day's
+    /// totals with what that POST adds up to, because a resync sends the same
+    /// day again and adding would double it. So a day whose samples land in
+    /// two POSTs ends up with only the second half of itself: with 500-sample
+    /// batches and a few hundred step samples a day, that was roughly one day
+    /// in five.
+    ///
+    /// Days are therefore packed whole. A day bigger than `size` becomes its
+    /// own batch and is allowed to exceed it — one oversize POST is honest,
+    /// half a day of steps is not.
     static func batches(_ samples: [Api.Sample],
                         size: Int = batchSize) -> [[Api.Sample]] {
         guard size > 0, !samples.isEmpty else { return [] }
-        return stride(from: 0, to: samples.count, by: size).map {
-            Array(samples[$0..<min($0 + size, samples.count)])
+        var order: [String] = []
+        var byDay: [String: [Api.Sample]] = [:]
+        for sample in samples {
+            let key = day(of: sample)
+            if byDay[key] == nil { order.append(key) }
+            byDay[key, default: []].append(sample)
         }
+
+        var out: [[Api.Sample]] = []
+        var current: [Api.Sample] = []
+        for key in order {
+            let group = byDay[key]!
+            if !current.isEmpty && current.count + group.count > size {
+                out.append(current)
+                current = []
+            }
+            current.append(contentsOf: group)
+        }
+        if !current.isEmpty { out.append(current) }
+        return out
+    }
+
+    /// The samples that are safe to send now, and the newest day, held back.
+    ///
+    /// A page is cut by sample count, so its far edge lands mid-day almost
+    /// every time — the same split `batches` fixes, one level up. While more
+    /// pages could still add to the newest day, that day waits for the page
+    /// that finishes it.
+    static func holdNewestDay(_ samples: [Api.Sample])
+        -> (ready: [Api.Sample], held: [Api.Sample]) {
+        guard let newest = samples.map(day(of:)).max() else { return ([], []) }
+        var ready: [Api.Sample] = []
+        var held: [Api.Sample] = []
+        for sample in samples {
+            if day(of: sample) == newest { held.append(sample) } else { ready.append(sample) }
+        }
+        return (ready, held)
     }
 }
 
@@ -367,26 +514,65 @@ final class HealthSyncModel: ObservableObject {
     }
 
     /// One type, paged until HealthKit stops filling a page.
+    ///
+    /// The whole job of the loop is that a day leaves the phone in one piece.
+    /// The server replaces a day's totals with whatever one POST adds up to,
+    /// so both cuts that could split a day — the 500-sample batch and the
+    /// 2000-sample page — are made on day boundaries instead.
     @discardableResult
     func sync(_ spec: HKTypeSpec) async throws -> (Int, [String]) {
         guard let sampleType = spec.sampleType else { return (0, []) }
+        var anchor = state.anchorData(spec.identifier)
+        var held: [Api.Sample] = []
         var sent = 0
+        /// Sent, but not yet in the audit line: the anchor they belong to has
+        /// not moved yet.
+        var uncounted = 0
         var unmapped: [String] = []
-        for _ in 0..<maxPages {
-            let page = try await read(sampleType, spec: spec,
-                                      anchor: state.anchorData(spec.identifier))
-            for batch in HK.batches(page.samples) {
+
+        func post(_ samples: [Api.Sample]) async throws {
+            for batch in HK.batches(samples) {
                 let reply = try await Api.sync(batch)
                 unmapped.append(contentsOf: reply.seenNotUsed ?? [])
             }
-            // The anchor moves once the server has taken whatever the page
-            // held — including a page that held nothing we send (an idle stand
-            // hour, a sleep value Apple has not defined yet). Reading those
-            // again on every sync would be a loop with no way out.
-            state.commit(spec.identifier, anchor: page.anchor,
-                         sent: page.samples.count, at: Date())
-            sent += page.samples.count
-            if page.count < pageSize { break }
+            sent += samples.count
+            uncounted += samples.count
+        }
+
+        for _ in 0..<maxPages {
+            let page = try await read(sampleType, spec: spec, anchor: anchor)
+            anchor = page.anchor ?? anchor
+            let more = page.count >= pageSize
+            let ready: [Api.Sample]
+            if more {
+                (ready, held) = HK.holdNewestDay(held + page.samples)
+            } else {
+                ready = held + page.samples
+                held = []
+            }
+            try await post(ready)
+            // The anchor only moves once every sample behind it has gone —
+            // including a page that held nothing we send (an idle stand hour,
+            // a sleep value Apple has not defined yet), or reading those again
+            // would be a loop with no way out. While a day is still held back
+            // it stays put, so an interrupted sync re-reads that day whole
+            // rather than leaving it with half a day's total for ever.
+            if held.isEmpty {
+                state.commit(spec.identifier, anchor: anchor, sent: uncounted,
+                             at: Date())
+                uncounted = 0
+            }
+            if !more { break }
+        }
+
+        // `maxPages` ran out mid-day: send what is left and move on, or this
+        // type would re-read the same pages on every sync and never progress.
+        if !held.isEmpty {
+            let last = held
+            held = []
+            try await post(last)
+            state.commit(spec.identifier, anchor: anchor, sent: uncounted,
+                         at: Date())
         }
         return (sent, unmapped)
     }
@@ -412,7 +598,7 @@ final class HealthSyncModel: ObservableObject {
                     return
                 }
                 let raw = added ?? []
-                let samples = raw.compactMap { HK.sample(from: $0, spec: spec) }
+                let samples = raw.flatMap { HK.samples(from: $0, spec: spec) }
                 let data = newAnchor.flatMap {
                     try? NSKeyedArchiver.archivedData(withRootObject: $0,
                                                       requiringSecureCoding: true)

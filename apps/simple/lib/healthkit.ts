@@ -90,6 +90,23 @@ export const HK_TYPES: HkMapping[] = [
     plausible: [0, 24],
     name: "Stand hours",
   },
+  {
+    type: "DistanceWalkingRunning",
+    lands: "daily",
+    key: "distanceKm",
+    unit: "km",
+    how: "sum",
+    plausible: [0, 300],
+    name: "Distance",
+  },
+  {
+    type: "FlightsClimbed",
+    lands: "daily",
+    key: "flights",
+    how: "sum",
+    plausible: [0, 500],
+    name: "Flights climbed",
+  },
 
   // ── heart: one representative value a day ─────────────────────────────
   {
@@ -312,6 +329,16 @@ export const HK_METRICS: {
   name: string;
   category: string;
   unit: string;
+  /**
+   * Phase 23c: an optimal band only where a real guideline draws one. A band
+   * is never overwritten on a metric that already has one — `ensureMetrics`
+   * coalesces — so this fills an empty row and nothing else. Bands nobody can
+   * defend for everybody (HRV, VO2max, body fat, waist: all age- or
+   * sex-dependent) are left empty on purpose.
+   */
+  optimalLow?: number;
+  optimalHigh?: number;
+  optimalSource?: string;
 }[] = [
   { code: "hrv_sdnn", name: "HRV (SDNN)", category: "wearable", unit: "ms" },
   {
@@ -325,6 +352,31 @@ export const HK_METRICS: {
     name: "Heart Rate Recovery, 1 min",
     category: "wearable",
     unit: "bpm",
+    optimalLow: 12,
+    optimalSource:
+      "Cole 1999 NEJM: a fall of 12 bpm or less in the first minute after exercise predicts mortality",
+  },
+  // Two rows the catalog already has. They are listed here for their bands,
+  // which is the only thing `ensureMetrics` will add to a row that exists.
+  {
+    code: "resting_heart_rate",
+    name: "Resting Heart Rate",
+    category: "vital_sign",
+    unit: "bpm",
+    optimalLow: 50,
+    optimalHigh: 70,
+    optimalSource:
+      "Aune 2017 J Am Heart Assoc (meta-analysis, 1.2 M people): all-cause mortality starts rising at about 70 bpm",
+  },
+  {
+    code: "sleep_duration",
+    name: "Sleep Duration",
+    category: "wearable",
+    unit: "min",
+    optimalLow: 420,
+    optimalHigh: 540,
+    optimalSource:
+      "Watson 2015 SLEEP (AASM/SRS consensus): 7 to 9 hours a night for adults",
   },
   {
     code: "vo2max_est",
@@ -365,11 +417,27 @@ const BY_TYPE = new Map(HK_TYPES.map((m) => [m.type.toLowerCase(), m]));
 export const mappingFor = (type: string): HkMapping | null =>
   BY_TYPE.get(shortType(type).toLowerCase()) ?? null;
 
+/**
+ * The two wire types a workout rides on.
+ *
+ * A workout is not one number a day, it is a list, so it stays out of
+ * `HK_TYPES` and gets its own little pipeline below. `HKWorkoutEnergy` is the
+ * paired active-energy sample: two flat samples beat changing the wire shape.
+ */
+export const WORKOUT = "HKWorkout";
+export const WORKOUT_ENERGY = "HKWorkoutEnergy";
+
+const isWorkoutWire = (type: string) => {
+  const t = shortType(type);
+  return t === WORKOUT || t === WORKOUT_ENERGY;
+};
+
 /** The types in this batch the table has never heard of, deduped and sorted. */
 export function seenNotUsed(samples: Sample[]): string[] {
   const out = new Set<string>();
   for (const s of samples)
-    if (!mappingFor(s.type)) out.add(shortType(s.type) || String(s.type));
+    if (!mappingFor(s.type) && !isWorkoutWire(s.type))
+      out.add(shortType(s.type) || String(s.type));
   return [...out].sort();
 }
 
@@ -531,10 +599,25 @@ export interface DayStages {
   stages: Record<string, number>;
 }
 
+/** One training session, as the day view and the habit matcher read it. */
+export interface DayWorkout {
+  /** `strengthTraining`, `running`, `walking`, ... whatever the phone called it. */
+  type: string;
+  min: number;
+  kcal?: number;
+}
+
+export interface DayWorkouts {
+  day: string;
+  workouts: DayWorkout[];
+}
+
 export interface Aggregate {
   readings: DayReading[];
   daily: DayDaily[];
   stages: DayStages[];
+  /** Phase 23c: the day's training sessions, merged and named. */
+  workouts: DayWorkouts[];
   /** Fact key → value, from the whole batch rather than from one day. */
   facts: Record<string, string>;
   /** The days this batch touched at all, sorted. */
@@ -637,8 +720,11 @@ export function aggregate(samples: Sample[]): Aggregate {
   }
 
   const facts = cycleFacts([...flowDays]);
+  const workouts = workoutsFrom(samples);
+  for (const w of workouts) days.add(w.day);
 
   return {
+    workouts,
     readings: readings.sort(
       (a, b) => a.day.localeCompare(b.day) || a.code.localeCompare(b.code),
     ),
@@ -653,6 +739,164 @@ export function aggregate(samples: Sample[]): Aggregate {
     unmapped: seenNotUsed(samples),
     dropped,
   };
+}
+
+/* ── workouts ─────────────────────────────────────────────────────────── */
+
+interface Session extends DayWorkout {
+  day: string;
+  from: number;
+  to: number;
+}
+
+const overlaps = (
+  a: { from: number; to: number },
+  b: { from: number; to: number },
+) => a.from < b.to && b.from < a.to;
+
+/**
+ * The training sessions in a batch, per day.
+ *
+ * One session recorded twice — the watch and the phone both saw it — is one
+ * session: two `HKWorkout` samples of the same activity that overlap in time
+ * are merged and the longer wins. `HKWorkoutEnergy` carries the same start and
+ * end, so it is attached to the session it overlaps rather than matched by an
+ * id the wire does not have.
+ */
+export function workoutsFrom(samples: Sample[]): DayWorkouts[] {
+  const sessions: Session[] = [];
+  const energy: { from: number; to: number; kcal: number }[] = [];
+
+  for (const s of [...samples].sort((a, b) =>
+    String(a.start).localeCompare(String(b.start)),
+  )) {
+    const kind = shortType(s.type);
+    if (kind !== WORKOUT && kind !== WORKOUT_ENERGY) continue;
+    const from = Date.parse(s.start);
+    const to = Date.parse(s.end ?? s.start);
+    if (!Number.isFinite(from) || !Number.isFinite(to) || to < from) continue;
+
+    if (kind === WORKOUT_ENERGY) {
+      const kcal = cleanUnit(s.unit) === "cal" ? s.value / 1000 : s.value;
+      if (Number.isFinite(kcal) && kcal > 0 && kcal < 20000)
+        energy.push({ from, to, kcal });
+      continue;
+    }
+
+    const day = dayOf(s.start);
+    // The phone sends minutes in `value`; a client that sends none still has
+    // a start and an end, and those say the same thing.
+    const raw =
+      Number.isFinite(s.value) && s.value > 0 ? s.value : (to - from) / 60_000;
+    const min = Math.round(raw * 10) / 10;
+    if (!day || !(min > 0) || min > 1440) continue;
+    const type = String(s.unit ?? "").trim() || "workout";
+    const same = sessions.find(
+      (x) => x.day === day && x.type === type && overlaps(x, { from, to }),
+    );
+    if (same) {
+      same.min = Math.max(same.min, min);
+      same.from = Math.min(same.from, from);
+      same.to = Math.max(same.to, to);
+      continue;
+    }
+    sessions.push({ day, type, min, from, to });
+  }
+
+  for (const e of energy) {
+    const hit = sessions.find((s) => overlaps(s, e));
+    if (hit) hit.kcal = Math.round((hit.kcal ?? 0) + e.kcal);
+  }
+
+  const byDay = new Map<string, DayWorkout[]>();
+  for (const s of [...sessions].sort((a, b) => a.from - b.from))
+    byDay.set(s.day, [
+      ...(byDay.get(s.day) ?? []),
+      { type: s.type, min: s.min, ...(s.kcal != null ? { kcal: s.kcal } : {}) },
+    ]);
+  return [...byDay.entries()]
+    .map(([day, workouts]) => ({ day, workouts }))
+    .sort((a, b) => a.day.localeCompare(b.day));
+}
+
+/** The fact the trailing window answers, and the two numbers that define it. */
+export const EXERCISE_FACT = "exercise_days_week";
+/** A session shorter than this is a walk to the shop, not a training day. */
+export const EXERCISE_MIN = 20;
+export const EXERCISE_WINDOW = 28;
+
+const shiftDay = (day: string, n: number) =>
+  new Date(Date.parse(`${day}T00:00:00Z`) + n * DAY_MS)
+    .toISOString()
+    .slice(0, 10);
+
+/**
+ * The `exercise_days_week` answer, from the days that hold at least
+ * `EXERCISE_MIN` minutes of workout in the trailing `EXERCISE_WINDOW` days.
+ *
+ * `null` for a window with no workouts at all, and that is deliberate: a
+ * HealthKit with nothing in it is not evidence that nobody trained, only that
+ * nothing pressed start. The sync fills in what it can see and never writes
+ * "0" — only the person can say that.
+ */
+export function exerciseDaysWeek(
+  days: { day: string; workouts?: DayWorkout[] | null }[],
+  today: string,
+): string | null {
+  const from = shiftDay(today, -(EXERCISE_WINDOW - 1));
+  const active = new Set(
+    days
+      .filter((d) => d.day >= from && d.day <= today)
+      .filter(
+        (d) =>
+          (d.workouts ?? []).reduce((sum, w) => sum + (w.min ?? 0), 0) >=
+          EXERCISE_MIN,
+      )
+      .map((d) => d.day),
+  );
+  if (!active.size) return null;
+  const perWeek = (active.size * 7) / EXERCISE_WINDOW;
+  if (perWeek < 2.5) return "1–2";
+  if (perWeek < 4.5) return "3–4";
+  return "5+";
+}
+
+/**
+ * The words a habit uses for a kind of training, so a workout ticks the habit
+ * it names — the way a mindful session already ticks "meditate". Adherence is
+ * what the projections read, so training counts without a manual tap.
+ */
+export const WORKOUT_HABITS: { activity: RegExp; habit: RegExp }[] = [
+  {
+    activity: /strength|lift|weight|functional|crossfit/i,
+    habit: /strength|gym|lift|weight|resistance/i,
+  },
+  { activity: /run|jog/i, habit: /\brun|jog/i },
+  { activity: /walk|hik/i, habit: /\bwalk|hike|steps?\b/i },
+  { activity: /cycl|bik|spin/i, habit: /cycl|bike|spin|ride/i },
+  { activity: /swim/i, habit: /swim/i },
+  {
+    activity: /yoga|pilates|flexibility|mindandbody/i,
+    habit: /yoga|pilates|stretch|mobility/i,
+  },
+];
+
+/** Which (habit, day) pairs a batch of workouts earns. */
+export function workoutTicks(
+  workouts: DayWorkouts[],
+  items: { id: string; text: string }[],
+): { itemId: string; day: string }[] {
+  const out = new Map<string, { itemId: string; day: string }>();
+  for (const { day, workouts: list } of workouts)
+    for (const w of list)
+      for (const { activity, habit } of WORKOUT_HABITS) {
+        if (!activity.test(w.type)) continue;
+        for (const item of items.filter((i) => habit.test(i.text)))
+          out.set(`${item.id}|${day}`, { itemId: item.id, day });
+      }
+  return [...out.values()].sort(
+    (a, b) => a.day.localeCompare(b.day) || a.itemId.localeCompare(b.itemId),
+  );
 }
 
 /**
@@ -748,6 +992,9 @@ export interface WearableBlob {
   activeEnergyKcal?: number;
   standHours?: number;
   mindfulMin?: number;
+  distanceKm?: number;
+  flights?: number;
+  workouts?: DayWorkout[];
   sleepStages?: Record<string, number>;
   syncedAt?: string;
 }
@@ -759,6 +1006,13 @@ export interface WearableBlob {
  * when it is empty or when the last sync is the one that filled it, which
  * `wearable.wrote` remembers. So a re-sync refreshes its own numbers for ever
  * and never overwrites a hand-typed one.
+ *
+ * **The client contract: one POST carries whole days.** Every number here is
+ * a replacement, not an addition, because the same day arrives again on every
+ * resync and adding would double it. That only adds up while a day's samples
+ * never straddle two POSTs, which is why `HK.batches` on the phone cuts
+ * batches on day boundaries and holds the newest day back until the page that
+ * finishes it. A client that sends half a day writes half a day's total.
  */
 export function mergeDaily(
   existing: { row: DailyRow; wearable: WearableBlob | null } | null,

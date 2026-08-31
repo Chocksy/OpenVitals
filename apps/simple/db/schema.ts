@@ -351,6 +351,11 @@ export interface DailyWearable {
   activeEnergyKcal?: number;
   standHours?: number;
   mindfulMin?: number;
+  /** Phase 23c. */
+  distanceKm?: number;
+  flights?: number;
+  /** Phase 23c: the day's training sessions, by name and minutes. */
+  workouts?: { type: string; min: number; kcal?: number }[];
   /** Minutes per sleep stage: deep, core, rem, awake. */
   sleepStages?: Record<string, number>;
   syncedAt?: string;

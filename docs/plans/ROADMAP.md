@@ -129,6 +129,19 @@ types (CGM might want immediate); MenstrualFlow counts any sample as a
 bleeding day; respiratory rate is sent as breaths/min because the
 server drops count/min.
 
+| 23c | Workouts in and windows on the data: **the batch-boundary bug fixed** (day-aligned batches plus a held-back newest day, so a day never straddles two POSTs — a 620-sample day stored 2,400 steps instead of 12,400 before), HKWorkout + paired energy + distance + flights synced, workouts into `daily_logs.wearable` with auto habit ticks, minted `exercise_days_week` (system-sourced from 28 days, a manual answer wins), /today wearable strip and nutrition line, optimal bands with sources for resting HR / sleep / HR recovery, `sleep_study` unit bug fixed; 985 tests, 52 XCTests, journeys 25/25, compose 14/14 | `apps/ios` + `apps/simple` |
+
+The batching fix has to be on the phone **before** the owner taps
+"Resync full history", or every day whose samples cross a batch or page
+edge is stored short. The client contract is now written down in both
+halves: one POST carries whole days, and every server write replaces
+rather than adds.
+
+`exercise_days_week` has no evidence rule. Nothing published gives a
+likelihood ratio for self-reported exercise days against measured
+fitness, so it stays a fact the interview, the composer and the sync all
+write, and no LR was invented to make it look busier.
+
 ## In progress
 
 Nothing. Next: owner inputs on prod (sex + birth year fill the bubbles),

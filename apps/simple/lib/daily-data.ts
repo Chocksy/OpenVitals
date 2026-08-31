@@ -15,6 +15,8 @@ import {
   readings,
   uploads,
   type DailyLog,
+  type DailyNutrition,
+  type DailyWearable,
   type LifestyleBody,
 } from "@/db";
 import {
@@ -37,6 +39,9 @@ import { statusOf, type Status } from "./status";
 export interface TodayView {
   day: string;
   values: LogValues;
+  /** Phase 23c: what the phone sent for this day, when it sent anything. */
+  wearable: DailyWearable | null;
+  nutrition: DailyNutrition | null;
   habits: HabitView[];
   streak: number;
   heat: { day: string; bucket: number }[];
@@ -139,9 +144,12 @@ export async function getToday(
   const byDay = new Map(logs.map((l) => [l.day, l]));
   const heatWindow = lastDays(HEAT_DAYS, day);
 
+  const log = byDay.get(day);
   return {
     day,
-    values: toValues(byDay.get(day)),
+    values: toValues(log),
+    wearable: (log?.wearable as DailyWearable | null) ?? null,
+    nutrition: (log?.nutrition as DailyNutrition | null) ?? null,
     habits: habitViews,
     streak: streak(active, day),
     heat: heatWindow.map((d) => ({
@@ -566,8 +574,9 @@ export async function getTrackerSummary(
       return [
         k,
         values.length
-          ? Math.round((values.reduce((s, v) => s + v, 0) / values.length) * 100) /
-            100
+          ? Math.round(
+              (values.reduce((s, v) => s + v, 0) / values.length) * 100,
+            ) / 100
           : null,
       ];
     }),
