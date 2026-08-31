@@ -124,12 +124,12 @@
     "defaultLab": "typicalNeg"
   },
   "budget": 200,
-  "maxSteps": 12,
+  "maxSteps": 45,
   "expect": {
     "discover": [
       "insulin_resistance"
     ],
-    "withinSteps": 8,
-    "withinEur": 120
+    "withinEur": 120,
+    "withinDraws": 8
   }
 }

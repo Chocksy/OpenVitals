@@ -1,6 +1,8 @@
 import { describe, it, expect } from "vitest";
 import type { LatestValue, ModelInput } from "./coverage";
 import { CONFOUNDERS, HYPOTHESES, priorFor, scoreHypotheses } from "./hypotheses";
+import { personaToInput } from "@/evals/persona";
+import { CATALOG } from "./hkb-catalog";
 import { NODES } from "./graph";
 import { VECTORS } from "./vectors";
 
@@ -167,10 +169,11 @@ describe("iron_deficiency", () => {
     expect(r.superseded).toEqual([]);
   });
 
-  it("stays at its prior with full stores: nothing here argues either way", () => {
+  it("is ruled out by full stores: a ferritin over 100 is the other side of the test", () => {
     const r = score("iron_deficiency", clean)!;
-    expect(r.state).toBe("unlikely");
-    expect(r.score).toBeCloseTo(r.prior, 3);
+    expect(r.state).toBe("ruled_out");
+    expect(r.score).toBeLessThan(r.prior);
+    expect(r.against.map((a) => a.rule)).toContain("iron_ferritin_100");
   });
 
   it("is discounted when CRP tags the ferritin draw", () => {
@@ -595,5 +598,25 @@ describe("priorFor", () => {
     });
     expect(rows[0]!.prior).toBe(0.61);
     expect(rows[0]!.priorSource).toBe("RO male 50-54");
+  });
+});
+
+describe("a marker with no range at all", () => {
+  it("reads a positive tTG as positive, not as a negative", () => {
+    // The lab printed no range (a simulated draw, a typical value from a
+    // paper). `statusOf` used to call that "gray" and the status rules read it
+    // as "not red", so a tTG of 68 argued *against* coeliac disease at LR
+    // 0.03. Now the default cut-off makes it red and the seed rule fires.
+    const m = personaToInput({
+      today: "2026-08-31",
+      facts: { sex: "male", birth_year: 1981 },
+      readings: [{ code: "ttg_iga", value: 68, date: "2026-08-31" }],
+    });
+    expect(m.latest.ttg_iga!.status).toBe("red");
+    const r = scoreHypotheses(m, { catalog: CATALOG }).find(
+      (h) => h.id === "coeliac_disease",
+    )!;
+    expect(r.for.map((f) => f.lr)).toContain(30);
+    expect(r.score).toBeGreaterThan(r.prior);
   });
 });

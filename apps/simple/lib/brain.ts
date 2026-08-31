@@ -173,7 +173,6 @@ export async function runBrain(
     lens,
     catalog,
   });
-  const affordable = (m: Move) => budget == null || m.cost <= budget;
   const loaded = await loadGraph();
   const graph = computeGraphState(input, { graph: loaded });
   const { context } = buildContextFromInput(input, {
@@ -195,7 +194,9 @@ export async function runBrain(
     overlay,
     pillars: pillars(input),
     hypotheses,
-    path: nextMoves(input, catalog, { lens }).filter(affordable).slice(0, 10),
+    // The budget ranks the path, it never shortens it: a test past the guide
+    // still shows, because hiding it hides the answer.
+    path: nextMoves(input, catalog, { lens }).slice(0, 10),
     tree: buildTree(input, catalog, { lens, budget }),
     budget,
     patterns: matchPatterns(input),

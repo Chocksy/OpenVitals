@@ -1,0 +1,2562 @@
+{
+  "model": "google/gemini-3.7-flash",
+  "promptSha8": "3ad41b03",
+  "ranAt": "2026-08-31T12:30:31.181Z",
+  "results": [
+    {
+      "id": "ckd3_male_70",
+      "passed": 5,
+      "total": 6,
+      "failed": [
+        "must: kind=test title=cystatin|egfr|kidney"
+      ],
+      "failedMust": true,
+      "shouldPassed": 0,
+      "shouldTotal": 0,
+      "shouldMissed": [],
+      "latencyMs": 41569,
+      "body": {
+        "summary": [
+          "Your kidney markers and blood pressure show Stage 3 chronic kidney disease with suboptimal pressure control on single-agent amlodipine.",
+          "Elevated triglycerides, HbA1c of 5.9%, and waist circumference point to early metabolic insulin resistance affecting vascular and renal health.",
+          "Mild normocytic anemia and elevated uric acid warrant specific testing alongside your overdue preventive screening panels."
+        ],
+        "eli5": "Your kidneys and blood vessels are like household water pipes dealing with slightly too much pressure and gritty buildup. Clearing the buildup and lowering the pressure keeps the plumbing working smoothly for decades to come.",
+        "systems": [
+          {
+            "id": "insulin_resistance",
+            "name": "Insulin Resistance",
+            "verdict": "Your elevated HbA1c, triglyceride-to-HDL ratio, and waistline confirm mild insulin resistance.",
+            "eli5": "Your cells are keeping their doors locked when insulin knocks with fuel. That leaves extra sugar and fat circulating in the bloodstream.",
+            "priority": 1
+          },
+          {
+            "id": "sleep_apnoea",
+            "name": "Obstructive Sleep Apnoea",
+            "verdict": "Persistent systolic hypertension despite medication makes obstructive sleep apnoea a possible contributor.",
+            "eli5": "Nighttime breathing pauses act like tiny alarms waking your vascular system up in secret. This keeps your blood pressure elevated around the clock.",
+            "priority": 2
+          },
+          {
+            "id": "nafld",
+            "name": "Fatty Liver Disease",
+            "verdict": "Central adiposity combined with hypertriglyceridemia indicates a high probability of hepatic steatosis.",
+            "eli5": "The liver stores excess fuel droplets like an overpacked pantry. Easing the fuel load lets the liver unpack and breathe.",
+            "priority": 3
+          },
+          {
+            "id": "iron_deficiency",
+            "name": "Iron Deficiency",
+            "verdict": "Mild anemia is present and requires ferritin evaluation to differentiate iron deficiency from renal anemia.",
+            "eli5": "Your red blood cell count is slightly low, like a delivery fleet running a truck short. Checking iron stores confirms if parts are missing.",
+            "priority": 3
+          }
+        ],
+        "actions": [
+          {
+            "title": "Log your blood pressure at home for 7 days",
+            "kind": "habit",
+            "weight": 5,
+            "basis": "science",
+            "why": "Blood pressure carries more attributable risk than any lab value, and a clinic reading is not the number that counts.",
+            "reasoning": "Fired rule bp_log based on Lewington 2002 Lancet.",
+            "dose": {
+              "amount": "2 readings morning and 2 readings evening",
+              "schedule": "twice daily for 7 days",
+              "duration": "7 days"
+            },
+            "targets": [
+              {
+                "code": "bp_home",
+                "direction": "down",
+                "expect": "<130/80 mmHg",
+                "measureAfterWeeks": 2
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "meta",
+                "title": "Lewington 2002 Lancet"
+              }
+            ],
+            "followUp": [
+              {
+                "afterDays": 7,
+                "ask": "What is your 7-day average systolic and diastolic home blood pressure reading?"
+              }
+            ]
+          },
+          {
+            "title": "Eliminate liquid sugars and high-fructose beverages",
+            "kind": "food",
+            "weight": 4,
+            "basis": "opinion",
+            "why": "Cutting dietary fructose directly lowers liver triglyceride production and reduces circulating uric acid levels.",
+            "reasoning": "Graph edge hba1c->triglycerides and nodes metric:triglycerides (165 mg/dL), metric:uric_acid (7.4 mg/dL), and metric:hba1c (5.9%) show liver metabolic strain and impaired renal clearance. Eliminating liquid sugars and sweetened drinks reduces hepatic de novo lipogenesis and uric acid burden without pharmaceutical risk.",
+            "dose": {
+              "amount": "0 sweetened drinks or high-fructose corn syrup products per day",
+              "schedule": "daily ongoing",
+              "duration": "12 weeks"
+            },
+            "targets": [
+              {
+                "code": "triglycerides",
+                "direction": "down",
+                "expect": "<120 mg/dL",
+                "measureAfterWeeks": 12
+              },
+              {
+                "code": "uric_acid",
+                "direction": "down",
+                "expect": "<6.0 mg/dL",
+                "measureAfterWeeks": 12
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "meta",
+                "title": "Stanhope 2015 J Clin Invest (fructose, triglycerides and uric acid)"
+              }
+            ],
+            "followUp": [
+              {
+                "afterDays": 21,
+                "ask": "Have you successfully replaced sweetened beverages with water or unsweetened tea?"
+              }
+            ]
+          },
+          {
+            "title": "Progress daily walking to 8,000 steps",
+            "kind": "exercise",
+            "weight": 4,
+            "basis": "opinion",
+            "why": "Increasing daily aerobic movement improves skeletal muscle glucose clearance and raises HDL cholesterol.",
+            "reasoning": "Graph edge triglycerides->hdl_cholesterol, waist circumference of 98 cm (ratio 0.56), and current tracker baseline of 5,200 steps/day justify a gradual progression to 8,000 steps daily to improve insulin sensitivity and lipid clearance in stage 3 CKD safely.",
+            "dose": {
+              "amount": "8000 steps per day, accumulating at least 30 minutes of brisk continuous walking",
+              "schedule": "daily",
+              "duration": "ongoing"
+            },
+            "targets": [
+              {
+                "code": "triglycerides",
+                "direction": "down",
+                "expect": "<130 mg/dL",
+                "measureAfterWeeks": 12
+              },
+              {
+                "code": "hdl_cholesterol",
+                "direction": "up",
+                "expect": ">50 mg/dL",
+                "measureAfterWeeks": 12
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "meta",
+                "title": "Paluch 2022 Lancet Public Health (daily steps and cardiovascular outcomes)"
+              }
+            ],
+            "followUp": [
+              {
+                "afterDays": 14,
+                "ask": "Are you reaching an average of 7,000 to 8,000 steps per day on your tracker?"
+              }
+            ]
+          },
+          {
+            "title": "Add a urine albumin/creatinine ratio",
+            "kind": "test",
+            "weight": 5,
+            "basis": "science",
+            "why": "Kidneys are graded on two numbers, filtration and leak. You have creatinine but no urine albumin, so half the picture is missing.",
+            "reasoning": "Fired rule kidney_two_markers based on KDIGO 2024 CKD guideline.",
+            "dose": {
+              "amount": "1 spot urine sample",
+              "schedule": "first morning void"
+            },
+            "targets": [
+              {
+                "code": "urine_acr",
+                "direction": "down",
+                "expect": "<30 mg/g",
+                "measureAfterWeeks": 4
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "guideline",
+                "title": "KDIGO 2024 CKD guideline"
+              }
+            ],
+            "followUp": [
+              {
+                "afterDays": 30,
+                "ask": "Did you provide a first morning urine sample for albumin/creatinine ratio?"
+              }
+            ]
+          },
+          {
+            "title": "Consult doctor regarding blood pressure intensification and kidney protection",
+            "kind": "doctor",
+            "weight": 5,
+            "basis": "opinion",
+            "why": "Your home blood pressure is 142/84 mmHg and creatinine has increased to 1.5 mg/dL, requiring medication review for renal preservation.",
+            "reasoning": "Graph node metric:creatinine at 1.5 mg/dL (up from 1.38 mg/dL) and system:kidney indicate stage 3 CKD (eGFR 49.8 mL/min) with uncontrolled systolic BP of 142 mmHg on single-agent amlodipine 5 mg. Father had a stroke at 74. Discussing an ACE inhibitor or ARB with your doctor is essential once urine ACR and potassium are verified.",
+            "dose": {
+              "amount": "1 consultation to discuss adding an ARB/ACEi or optimizing amlodipine",
+              "schedule": "within 4 weeks"
+            },
+            "targets": [
+              {
+                "code": "bp_home",
+                "direction": "down",
+                "expect": "<130/80 mmHg",
+                "measureAfterWeeks": 6
+              },
+              {
+                "code": "creatinine",
+                "direction": "down",
+                "expect": "<1.3 mg/dL",
+                "measureAfterWeeks": 12
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "guideline",
+                "title": "KDIGO 2024 Clinical Practice Guideline for CKD Blood Pressure Management"
+              }
+            ],
+            "followUp": [
+              {
+                "afterDays": 28,
+                "ask": "Did your physician adjust your anti-hypertensive regimen to better protect your kidneys?"
+              }
+            ]
+          },
+          {
+            "title": "Measure Lp(a) once",
+            "kind": "test",
+            "weight": 4,
+            "basis": "science",
+            "why": "Lp(a) is inherited and barely moves in a lifetime, so one measurement settles it for good. Yours has never been measured.",
+            "reasoning": "Fired rule lpa_once based on EAS 2022 consensus guideline.",
+            "dose": {
+              "amount": "1 blood draw",
+              "schedule": "once"
+            },
+            "targets": [
+              {
+                "code": "lp_a",
+                "direction": "down",
+                "expect": "<75 nmol/L",
+                "measureAfterWeeks": 4
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "guideline",
+                "title": "EAS 2022 consensus on Lp(a)"
+              }
+            ],
+            "followUp": [
+              {
+                "afterDays": 30,
+                "ask": "Were you able to get your Lp(a) drawn at the lab?"
+              }
+            ]
+          },
+          {
+            "title": "Add ApoB to the next lipid draw",
+            "kind": "test",
+            "weight": 4,
+            "basis": "science",
+            "why": "Your lipid panel is current but ApoB is not, and ApoB counts the particles that actually build plaque.",
+            "reasoning": "Fired rule apob_on_every_draw based on Sniderman 2019 JAMA Cardiol.",
+            "dose": {
+              "amount": "1 blood draw",
+              "schedule": "with next lipid panel"
+            },
+            "targets": [
+              {
+                "code": "apolipoprotein_b",
+                "direction": "down",
+                "expect": "<80 mg/dL",
+                "measureAfterWeeks": 12
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "meta",
+                "title": "Sniderman 2019 JAMA Cardiol"
+              }
+            ],
+            "followUp": [
+              {
+                "afterDays": 90,
+                "ask": "Did your physician add ApoB to your repeat blood draw?"
+              }
+            ]
+          },
+          {
+            "title": "Book a colonoscopy",
+            "kind": "test",
+            "weight": 4,
+            "basis": "science",
+            "why": "Screening starts at 45, or at 40 when a close relative had bowel cancer. It is the one test that removes the problem while it looks.",
+            "reasoning": "Fired rule colonoscopy_age based on USPSTF 2021 colorectal screening.",
+            "dose": {
+              "amount": "1 complete endoscopic procedure",
+              "schedule": "once per screening interval"
+            },
+            "targets": [
+              {
+                "code": "colonoscopy",
+                "direction": "up",
+                "expect": "completed screening",
+                "measureAfterWeeks": 12
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "guideline",
+                "title": "USPSTF 2021 colorectal screening"
+              }
+            ],
+            "followUp": [
+              {
+                "afterDays": 60,
+                "ask": "Have you booked your appointment for a screening colonoscopy?"
+              }
+            ]
+          },
+          {
+            "title": "Ask for a 2-hour OGTT with insulin",
+            "kind": "test",
+            "weight": 3,
+            "basis": "science",
+            "why": "HbA1c, fasting insulin or the triglyceride to HDL ratio already point at insulin resistance, which shows up on an OGTT years before HbA1c moves.",
+            "reasoning": "Fired rule ogtt_if_insulin_resistant based on ADA Standards of Care.",
+            "dose": {
+              "amount": "75g glucose tolerance test with concurrent insulin sampling",
+              "schedule": "once in morning"
+            },
+            "targets": [
+              {
+                "code": "hba1c",
+                "direction": "down",
+                "expect": "<5.7 %",
+                "measureAfterWeeks": 12
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "guideline",
+                "title": "ADA Standards of Care"
+              }
+            ],
+            "followUp": [
+              {
+                "afterDays": 45,
+                "ask": "Have you scheduled your oral glucose tolerance test?"
+              }
+            ]
+          },
+          {
+            "title": "Measure grip strength or estimate VO2max",
+            "kind": "test",
+            "weight": 3,
+            "basis": "science",
+            "why": "Fitness and muscle are the strongest predictors of how long you live and they never appear on a blood test.",
+            "reasoning": "Fired rule fitness_baseline based on Mandsager 2018 JAMA Netw Open.",
+            "dose": {
+              "amount": "Dynamometer 3 trials each hand or validated submaximal step test",
+              "schedule": "once"
+            },
+            "targets": [
+              {
+                "code": "grip_kg",
+                "direction": "up",
+                "expect": ">35 kg",
+                "measureAfterWeeks": 6
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "observational",
+                "title": "Mandsager 2018 JAMA Netw Open"
+              }
+            ],
+            "followUp": [
+              {
+                "afterDays": 30,
+                "ask": "Did you measure your baseline grip strength or fitness level?"
+              }
+            ]
+          },
+          {
+            "title": "Have the PSA conversation with a doctor",
+            "kind": "doctor",
+            "weight": 3,
+            "basis": "science",
+            "why": "From 50, or from 45 with prostate cancer in the family, PSA is a shared decision rather than an automatic test.",
+            "reasoning": "Fired rule psa_discuss based on USPSTF 2018 prostate screening.",
+            "dose": {
+              "amount": "1 consultation",
+              "schedule": "next clinical visit"
+            },
+            "targets": [
+              {
+                "code": "psa",
+                "direction": "down",
+                "expect": "<4.0 ng/mL",
+                "measureAfterWeeks": 12
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "guideline",
+                "title": "USPSTF 2018 prostate screening"
+              }
+            ],
+            "followUp": [
+              {
+                "afterDays": 45,
+                "ask": "Did you discuss the risks and benefits of PSA screening with your doctor?"
+              }
+            ]
+          },
+          {
+            "title": "Measure vitamin D",
+            "kind": "test",
+            "weight": 2,
+            "basis": "science",
+            "why": "Vitamin D has never been measured, and it is the cheapest deficiency there is to find and to fix.",
+            "reasoning": "Fired rule vitamin_d_measure based on Endocrine Society 2011 vitamin D guideline.",
+            "dose": {
+              "amount": "1 25-hydroxyvitamin D blood test",
+              "schedule": "once"
+            },
+            "targets": [
+              {
+                "code": "vitamin_d",
+                "direction": "up",
+                "expect": ">30 ng/mL",
+                "measureAfterWeeks": 8
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "guideline",
+                "title": "Endocrine Society 2011 vitamin D guideline"
+              }
+            ],
+            "followUp": [
+              {
+                "afterDays": 30,
+                "ask": "Was 25-OH vitamin D included in your latest lab panel?"
+              }
+            ]
+          }
+        ],
+        "questions": [
+          {
+            "key": "sleep_snoring",
+            "text": "Do you snore loudly, wake up gasping, or feel excessively tired during the daytime?",
+            "why": "Screening for obstructive sleep apnoea is vital because untreated apnoea directly drives resistant hypertension."
+          },
+          {
+            "key": "screening_dates",
+            "text": "When was your last colonoscopy or stool-based screening test, if ever?",
+            "why": "Colorectal screening is standard from age 45 to 75 and prevents malignancy through polyp detection."
+          },
+          {
+            "key": "resting_hr",
+            "text": "What is your typical resting heart rate upon waking in the morning?",
+            "why": "Resting heart rate provides an immediate window into cardiovascular autonomic balance and aerobic fitness."
+          }
+        ],
+        "patterns": []
+      }
+    },
+    {
+      "id": "hashimoto_early_female_36",
+      "passed": 8,
+      "total": 9,
+      "failed": [
+        "must: kind=supplement title=selenium doseMaxUg=200 basis=science"
+      ],
+      "failedMust": true,
+      "shouldPassed": 0,
+      "shouldTotal": 1,
+      "shouldMissed": [
+        "should: kind=doctor title=endocrin"
+      ],
+      "latencyMs": 47141,
+      "body": {
+        "summary": [
+          "Confirmed early Hashimoto thyroiditis with elevated TPO antibodies (320 IU/mL) and rising TSH (3.9 mIU/L), alongside a maternal history of hypothyroidism.",
+          "Iron deficiency without anaemia (ferritin 22 ng/mL with normal haemoglobin 13.1 g/dL) and marked vitamin D deficiency (19 ng/mL).",
+          "Priority is replenishing iron and vitamin D to support thyroid hormone synthesis and testing for coeliac disease before considering levothyroxine."
+        ],
+        "eli5": "Your thyroid is facing mild autoimmune friction from antibodies while your body is low on the key building blocks—iron and vitamin D—needed to run smoothly. By refilling these nutrient tanks and running a few targeted checks, we keep your thyroid supported and catch any further changes early.",
+        "systems": [
+          {
+            "id": "hashimoto",
+            "name": "Thyroid",
+            "verdict": "Early autoimmune thyroiditis is confirmed with high anti-TPO antibodies and rising TSH, though active thyroid hormone levels remain compensated.",
+            "eli5": "Your body's defense system is gently tapping the brakes on your thyroid gland. Giving it the right support now keeps the engine running at full speed.",
+            "priority": 1
+          },
+          {
+            "id": "iron_deficiency",
+            "name": "Iron Stores",
+            "verdict": "Non-anaemic iron deficiency is present with ferritin at 22 ng/mL, which impairs optimal thyroid peroxidase function.",
+            "eli5": "Your iron fuel tank is running near empty even though the car is still driving normally. We need to fill the tank back up before performance drops.",
+            "priority": 2
+          },
+          {
+            "id": "insulin_resistance",
+            "name": "Metabolic Health",
+            "verdict": "Insulin resistance is unconfirmed and requires baseline glycaemic testing.",
+            "eli5": "Your blood sugar processing looks quiet for now, but we need a single baseline test to be certain. It is like checking tire pressure before a long trip.",
+            "priority": 3
+          },
+          {
+            "id": "nafld",
+            "name": "Liver Health",
+            "verdict": "Liver health cannot be assessed without baseline transaminases and metabolic panels.",
+            "eli5": "Your liver has not had its standard checkup yet. A simple panel will ensure your metabolic filter is clean.",
+            "priority": 3
+          }
+        ],
+        "actions": [
+          {
+            "title": "Vitamin D3 4000 IU daily with meal",
+            "kind": "supplement",
+            "weight": 5,
+            "basis": "opinion",
+            "why": "Restoring your vitamin D from deficiency level to optimal range dampens immune system overactivation against your thyroid.",
+            "reasoning": "Values on 2026-08-01 show vitamin_d at 19 ng/mL (optimal 40-60 ng/mL). Active edge vitamin_d->tpo_antibodies and node condition:hashimoto require holding vitamin D at 40–60 ng/mL to support immune modulation in Hashimoto's.",
+            "dose": {
+              "amount": "4000 IU",
+              "form": "cholecalciferol (D3) softgel",
+              "schedule": "once daily with a fat-containing meal",
+              "duration": "12 weeks",
+              "ceiling": "10000 IU/day"
+            },
+            "timing": "with breakfast or lunch",
+            "interactions": [
+              {
+                "with": "calcium",
+                "rule": "Enhances intestinal absorption of calcium; ensure balanced dietary intake."
+              }
+            ],
+            "targets": [
+              {
+                "code": "vitamin_d",
+                "direction": "up",
+                "expect": "45–55 ng/mL",
+                "measureAfterWeeks": 12
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "rct",
+                "title": "Kivity 2011 Cell Mol Immunol",
+                "source": "Kivity 2011 Cell Mol Immunol"
+              }
+            ],
+            "followUp": [
+              {
+                "afterDays": 30,
+                "ask": "Are you taking your vitamin D3 daily with a meal containing dietary fat?"
+              }
+            ]
+          },
+          {
+            "title": "Elemental iron 65 mg on alternate days",
+            "kind": "supplement",
+            "weight": 5,
+            "basis": "opinion",
+            "why": "Restoring iron stores above 50 ng/mL is required for thyroid peroxidase enzyme activity and prevents progression to overt fatigue.",
+            "reasoning": "Ferritin is 22 ng/mL on 2026-08-01 (below 50 ng/mL threshold) with haemoglobin 13.1 g/dL. Active edges iron->ferritin and ferritin->free_t4 confirm that thyroid peroxidase is iron-dependent, requiring alternate-day oral iron until ferritin clears 50 ng/mL.",
+            "dose": {
+              "amount": "65 mg elemental iron",
+              "form": "ferrous bisglycinate or ferrous sulfate",
+              "schedule": "every other morning with 250 mg vitamin C",
+              "duration": "12 weeks",
+              "ceiling": "100 mg elemental iron per dose"
+            },
+            "timing": "morning on an empty stomach, at least 1 hour before coffee or tea",
+            "interactions": [
+              {
+                "with": "coffee_tea_calcium",
+                "rule": "Take at least 2 hours away from tea, coffee, and dairy to avoid blunting absorption."
+              }
+            ],
+            "targets": [
+              {
+                "code": "ferritin",
+                "direction": "up",
+                "expect": "> 50 ng/mL",
+                "measureAfterWeeks": 12
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "rct",
+                "title": "Stoffel 2017 Lancet Haematol",
+                "source": "Stoffel 2017 Lancet Haematol"
+              }
+            ],
+            "followUp": [
+              {
+                "afterDays": 14,
+                "ask": "Are you tolerating alternate-day iron without gastrointestinal upset?"
+              }
+            ]
+          },
+          {
+            "title": "Selenium 200 µg daily trial for 6 months",
+            "kind": "supplement",
+            "weight": 4,
+            "basis": "opinion",
+            "why": "A six-month trial of selenium helps reduce circulating anti-TPO antibody levels and reduces thyroid cellular stress.",
+            "reasoning": "TPO antibodies are elevated at 320 IU/mL alongside TSH 3.9 mIU/L (up from 3.1 mIU/L) in pattern:hashimoto. Active edge selenium->tpo_antibodies justifies a standard 6-month trial of 200 µg/day selenomethionine to lower antibody titers.",
+            "dose": {
+              "amount": "200 µg",
+              "form": "selenomethionine",
+              "schedule": "once daily with food",
+              "duration": "6 months",
+              "ceiling": "300 µg/day"
+            },
+            "timing": "with morning or midday meal",
+            "interactions": [],
+            "targets": [
+              {
+                "code": "tpo_antibodies",
+                "direction": "down",
+                "expect": "> 20 % reduction from baseline",
+                "measureAfterWeeks": 24
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "meta",
+                "title": "Wichman 2016 Thyroid",
+                "source": "Wichman 2016 Thyroid"
+              }
+            ],
+            "followUp": [
+              {
+                "afterDays": 90,
+                "ask": "Have you noticed any change in symptoms or adverse reactions with daily selenium?"
+              }
+            ]
+          },
+          {
+            "title": "Log your blood pressure at home for 7 days",
+            "kind": "habit",
+            "weight": 2,
+            "basis": "science",
+            "why": "Blood pressure carries more attributable risk than any lab value, and a clinic reading is not the number that counts.",
+            "reasoning": "Baseline cardiovascular and hemodynamic status is unrecorded in the profile.",
+            "dose": {
+              "amount": "2 readings morning and evening",
+              "schedule": "daily for 7 consecutive days"
+            },
+            "targets": [
+              {
+                "code": "bp_home",
+                "direction": "down",
+                "expect": "< 120/80 mmHg",
+                "measureAfterWeeks": 2
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "observational",
+                "title": "Lewington 2002 Lancet"
+              }
+            ],
+            "followUp": [
+              {
+                "afterDays": 10,
+                "ask": "Have you logged 7 days of home blood pressure readings?"
+              }
+            ]
+          },
+          {
+            "title": "Repeat TSH with free T4, free T3 and anti-TPO",
+            "kind": "test",
+            "weight": 5,
+            "basis": "science",
+            "why": "A TSH above 2.5 that is climbing, or positive thyroid antibodies, changes how the lipid and energy picture should be read.",
+            "reasoning": "TSH increased to 3.9 mIU/L on 2026-08-01 with elevated TPO antibodies and a maternal family history of hypothyroidism.",
+            "dose": {
+              "amount": "1 blood draw",
+              "schedule": "morning fasting"
+            },
+            "targets": [
+              {
+                "code": "tsh",
+                "direction": "down",
+                "expect": "< 2.5 mIU/L",
+                "measureAfterWeeks": 12
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "guideline",
+                "title": "Rodondi 2010 JAMA"
+              }
+            ],
+            "followUp": [
+              {
+                "afterDays": 90,
+                "ask": "Have you completed your repeat thyroid panel?"
+              }
+            ]
+          },
+          {
+            "title": "B12 and ferritin every 12 months",
+            "kind": "test",
+            "weight": 5,
+            "basis": "science",
+            "why": "Pernicious anaemia and iron deficiency cluster with thyroid autoimmunity.",
+            "reasoning": "",
+            "targets": [],
+            "evidence": [
+              {
+                "kind": "guideline",
+                "title": "BSG iron deficiency guideline"
+              }
+            ],
+            "followUp": []
+          },
+          {
+            "title": "Repeat TSH every 6 months while antibody-positive and untreated",
+            "kind": "test",
+            "weight": 5,
+            "basis": "science",
+            "why": "Progression to overt hypothyroidism runs 2–5 % per year; catch it early.",
+            "reasoning": "",
+            "targets": [],
+            "evidence": [
+              {
+                "kind": "guideline",
+                "title": "Rodondi 2010 JAMA"
+              }
+            ],
+            "followUp": []
+          },
+          {
+            "title": "Thyroid ultrasound once",
+            "kind": "test",
+            "weight": 4,
+            "basis": "science",
+            "why": "Confirms the diagnosis and baselines nodules; Hashimoto's raises nodule frequency.",
+            "reasoning": "Hashimoto pattern is matched with TPO antibodies at 320 IU/mL; structural ultrasound imaging is standard of care.",
+            "dose": {
+              "amount": "1 ultrasound exam",
+              "schedule": "once"
+            },
+            "targets": [
+              {
+                "code": "thyroid_ultrasound",
+                "direction": "up",
+                "expect": "Baseline parenchymal assessment completed",
+                "measureAfterWeeks": 8
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "guideline",
+                "title": "ATA 2014 hypothyroidism guideline"
+              }
+            ],
+            "followUp": [
+              {
+                "afterDays": 60,
+                "ask": "Did your ultrasound show any discrete nodules or diffuse heterogeneity?"
+              }
+            ]
+          },
+          {
+            "title": "Coeliac serology (tTG-IgA with total IgA)",
+            "kind": "test",
+            "weight": 4,
+            "basis": "science",
+            "why": "Coeliac disease is 4–5× more common with Hashimoto's and changes the diet advice from speculative to required.",
+            "reasoning": "Screening for coeliac disease is indicated by concurrent Hashimoto pattern and unexplained low ferritin of 22 ng/mL.",
+            "dose": {
+              "amount": "1 blood draw",
+              "schedule": "while on a gluten-containing diet"
+            },
+            "targets": [
+              {
+                "code": "ttg_iga",
+                "direction": "down",
+                "expect": "Negative (< 4 U/mL)",
+                "measureAfterWeeks": 6
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "guideline",
+                "title": "BSG coeliac disease guideline"
+              }
+            ],
+            "followUp": [
+              {
+                "afterDays": 45,
+                "ask": "Are your coeliac serology results ready?"
+              }
+            ]
+          },
+          {
+            "title": "Find the cause of the low ferritin",
+            "kind": "test",
+            "weight": 4,
+            "basis": "science",
+            "why": "Ferritin under 30 means the iron stores are empty; the question is where the iron is going, not just how to top it up.",
+            "reasoning": "Ferritin measured at 22 ng/mL on 2026-08-01 with preserved haemoglobin of 13.1 g/dL necessitates loss evaluation.",
+            "dose": {
+              "amount": "1 clinical review",
+              "schedule": "once"
+            },
+            "targets": [
+              {
+                "code": "ferritin",
+                "direction": "up",
+                "expect": "> 50 ng/mL",
+                "measureAfterWeeks": 12
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "guideline",
+                "title": "BSG iron deficiency guideline"
+              }
+            ],
+            "followUp": [
+              {
+                "afterDays": 30,
+                "ask": "Have you assessed heavy menstrual bleeding or gastrointestinal causes?"
+              }
+            ]
+          },
+          {
+            "title": "Iron saturation and TIBC with the next ferritin",
+            "kind": "test",
+            "weight": 3,
+            "basis": "science",
+            "why": "Saturation separates empty stores from inflammation hiding them, and it responds first when iron is working.",
+            "reasoning": "Ferritin is 22 ng/mL; iron saturation is needed to track mucosal absorption and rule out inflammatory masking.",
+            "dose": {
+              "amount": "1 blood draw",
+              "schedule": "morning fasting"
+            },
+            "targets": [
+              {
+                "code": "transferrin_saturation",
+                "direction": "up",
+                "expect": "20–40 %",
+                "measureAfterWeeks": 12
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "guideline",
+                "title": "BSG iron deficiency guideline"
+              }
+            ],
+            "followUp": [
+              {
+                "afterDays": 90,
+                "ask": "Was iron saturation checked alongside your repeat ferritin?"
+              }
+            ]
+          },
+          {
+            "title": "Retest vitamin D",
+            "kind": "test",
+            "weight": 3,
+            "basis": "science",
+            "why": "Vitamin D drifts with the seasons and yours is either over a year old or below 30 ng/mL, which is the deficiency line.",
+            "reasoning": "25-OH vitamin D was deficient at 19 ng/mL on 2026-08-01, well below the optimal Hashimoto target of 40-60 ng/mL.",
+            "dose": {
+              "amount": "1 blood draw",
+              "schedule": "after 12 weeks of repletion"
+            },
+            "targets": [
+              {
+                "code": "vitamin_d",
+                "direction": "up",
+                "expect": "40–60 ng/mL",
+                "measureAfterWeeks": 12
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "guideline",
+                "title": "Endocrine Society 2011 vitamin D guideline"
+              }
+            ],
+            "followUp": [
+              {
+                "afterDays": 90,
+                "ask": "Have you completed your follow-up 25-OH vitamin D draw?"
+              }
+            ]
+          },
+          {
+            "title": "If pregnant or planning: TSH target below 2.5 and an endocrinology visit now",
+            "kind": "test",
+            "weight": 3,
+            "basis": "science",
+            "why": "TPO-positive women have higher miscarriage and preterm risk; ATA 2017 recommends treatment thresholds change in pregnancy.",
+            "reasoning": "",
+            "targets": [],
+            "evidence": [
+              {
+                "kind": "guideline",
+                "title": "ATA 2017 thyroid in pregnancy guideline"
+              }
+            ],
+            "followUp": []
+          },
+          {
+            "title": "Measure Lp(a) once",
+            "kind": "test",
+            "weight": 2,
+            "basis": "science",
+            "why": "Lp(a) is inherited and barely moves in a lifetime, so one measurement settles it for good. Yours has never been measured.",
+            "reasoning": "Rule lpa_once fired as baseline cardiovascular risk stratification has never included Lp(a).",
+            "dose": {
+              "amount": "1 blood draw",
+              "schedule": "once"
+            },
+            "targets": [
+              {
+                "code": "lpa",
+                "direction": "down",
+                "expect": "< 75 nmol/L",
+                "measureAfterWeeks": 12
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "guideline",
+                "title": "EAS 2022 consensus on Lp(a)"
+              }
+            ],
+            "followUp": [
+              {
+                "afterDays": 90,
+                "ask": "Has your one-time Lp(a) test been completed?"
+              }
+            ]
+          },
+          {
+            "title": "Add a urine albumin/creatinine ratio",
+            "kind": "test",
+            "weight": 2,
+            "basis": "science",
+            "why": "Kidneys are graded on two numbers, filtration and leak. You have creatinine but no urine albumin, so half the picture is missing.",
+            "reasoning": "Rule kidney_two_markers fired to provide a complete baseline renal screen.",
+            "dose": {
+              "amount": "1 first-morning urine sample",
+              "schedule": "once"
+            },
+            "targets": [
+              {
+                "code": "urine_acr",
+                "direction": "down",
+                "expect": "< 3 mg/mmol",
+                "measureAfterWeeks": 12
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "guideline",
+                "title": "KDIGO 2024 CKD guideline"
+              }
+            ],
+            "followUp": [
+              {
+                "afterDays": 90,
+                "ask": "Did you drop off the first-morning urine sample for ACR?"
+              }
+            ]
+          }
+        ],
+        "questions": [
+          {
+            "key": "pregnancy_plans",
+            "text": "Are you currently pregnant or planning a pregnancy in the next 12 months?",
+            "why": "Pregnancy lowers the TSH intervention threshold to 2.5 mIU/L in TPO-positive women to prevent obstetric risks.",
+            "options": [
+              "Yes, currently pregnant",
+              "Planning pregnancy within 12 months",
+              "No pregnancy plans"
+            ]
+          },
+          {
+            "key": "hypothyroid_symptoms",
+            "text": "Have you experienced cold intolerance, unexplained fatigue, constipation, hair shedding, or brain fog recently?",
+            "why": "Clinical symptoms determine whether early thyroid hormone replacement is indicated at your current TSH level.",
+            "options": [
+              "No noticeable symptoms",
+              "Mild fatigue or sluggishness",
+              "Multiple distinct symptoms"
+            ]
+          },
+          {
+            "key": "menstrual_flow",
+            "text": "Are your menstrual periods unusually heavy, long, or accompanied by large clots?",
+            "why": "Heavy menstrual bleeding is the primary cause of isolated non-anaemic iron deficiency in premenopausal women.",
+            "options": [
+              "Light to normal flow",
+              "Moderately heavy",
+              "Very heavy or flooding"
+            ]
+          }
+        ],
+        "patterns": [
+          {
+            "id": "hashimoto",
+            "stage": "early",
+            "verdict": "Subclinical autoimmune thyroiditis with TPO antibodies 320 IU/mL and TSH 3.9 mIU/L; controversy over immediate levothyroxine is resolved in favour of nutrient repletion, monitoring every 6 months, and reserving hormone treatment for symptoms, pregnancy planning, or TSH > 10."
+          },
+          {
+            "id": "iron_deficiency_no_anemia",
+            "stage": "early",
+            "verdict": "Depleted iron stores (ferritin 22 ng/mL) with normal haemoglobin (13.1 g/dL); controversy regarding treatment is resolved by supplementing to a ferritin floor of 50 ng/mL to maintain thyroid peroxidase integrity."
+          }
+        ]
+      }
+    },
+    {
+      "id": "healthy_male_28",
+      "passed": 4,
+      "total": 4,
+      "failed": [],
+      "failedMust": false,
+      "shouldPassed": 0,
+      "shouldTotal": 0,
+      "shouldMissed": [],
+      "latencyMs": 24372,
+      "body": {
+        "summary": [
+          "Every measured biomarker is in the optimal range and no disease patterns are present, so no dietary supplements or medications are indicated.",
+          "Cardiometabolic efficiency, insulin sensitivity, and lipid transport are exemplary, supported by solid daily activity and sleep habits.",
+          "The focus remains entirely on sustaining current movement and nutrition routines with annual routine surveillance."
+        ],
+        "eli5": "Your body is running like a finely tuned sports car with clean fuel, perfect tire pressure, and a spotless engine. We do not need to add any aftermarket parts or make any repairs; we just need to keep driving it smoothly.",
+        "systems": [
+          {
+            "id": "cardiometabolic",
+            "name": "Cardiovascular and Metabolic Health",
+            "verdict": "Cardiovascular and metabolic parameters demonstrate optimal vascular health and exceptional insulin sensitivity.",
+            "eli5": "Your heart and metabolism are working together like a well-oiled clockwork engine. Everything is running cleanly without extra friction or wear.",
+            "priority": 1
+          },
+          {
+            "id": "lifestyle_recovery",
+            "name": "Sleep and Recovery",
+            "verdict": "Resting autonomic tone and reported sleep patterns show robust physiological recovery without airway obstruction.",
+            "eli5": "Your nightly rest acts like a full overnight battery recharge without any power interruptions. Your body resets completely each morning.",
+            "priority": 2
+          }
+        ],
+        "actions": [
+          {
+            "title": "Maintain zone 2 aerobic conditioning",
+            "kind": "exercise",
+            "weight": 5,
+            "basis": "opinion",
+            "why": "Sustaining regular low-intensity aerobic training preserves your current resting heart rate and optimal lipid profile.",
+            "reasoning": "[no graph reference] With resting_hr at 54 bpm, bp_home at 112/70 mmHg, and fact:sleep_snoring confirming no sleep obstruction, maintaining 40-45 minutes of daily conditioning preserves stellar mitochondrial efficiency without inducing unnecessary autonomic strain.",
+            "dose": {
+              "amount": "45 minutes",
+              "form": "Zone 2 aerobic exercise",
+              "schedule": "4 sessions per week",
+              "duration": "ongoing"
+            },
+            "targets": [
+              {
+                "code": "resting_hr",
+                "direction": "down",
+                "expect": "50-56 bpm",
+                "measureAfterWeeks": 12
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "guideline",
+                "title": "AHA Physical Activity Guidelines for Adults"
+              }
+            ],
+            "followUp": [
+              {
+                "afterDays": 90,
+                "ask": "Are you maintaining 40 to 45 minutes of aerobic exercise 4 times weekly while keeping resting heart rate under 55 bpm?"
+              }
+            ]
+          },
+          {
+            "title": "Maintain whole-food dietary fiber intake",
+            "kind": "food",
+            "weight": 4,
+            "basis": "opinion",
+            "why": "A consistent intake of soluble and insoluble fiber supports your already ideal glycemic and lipid metrics.",
+            "reasoning": "[no graph reference] Your apolipoprotein_b is 68 mg/dL, hba1c is 5.0%, and triglycerides are 70 mg/dL; anchored to fact:sleep_snoring indicating metabolic stability, aiming for at least 35 grams of daily dietary fiber preserves this optimal baseline without supplements.",
+            "dose": {
+              "amount": "35-40 grams",
+              "form": "Dietary fiber from legumes, vegetables, and whole grains",
+              "schedule": "daily",
+              "duration": "ongoing"
+            },
+            "targets": [
+              {
+                "code": "apolipoprotein_b",
+                "direction": "down",
+                "expect": "< 70 mg/dL",
+                "measureAfterWeeks": 24
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "meta",
+                "title": "Dietary fibre and cardiovascular health: a systematic review and meta-analysis"
+              }
+            ],
+            "followUp": [
+              {
+                "afterDays": 90,
+                "ask": "Are you consistently incorporating high-fiber plant foods across all main meals?"
+              }
+            ]
+          },
+          {
+            "title": "Preserve consistent sleep schedule",
+            "kind": "sleep",
+            "weight": 4,
+            "basis": "opinion",
+            "why": "Maintaining your current sleep duration protects metabolic homeostasis and low systemic inflammation.",
+            "reasoning": "[no graph reference] Your average sleep is 7.9 hours, hs_crp is 0.5 mg/L, and fact:sleep_snoring shows absence of airway disruption; locking in a fixed sleep-wake window preserves this low-inflammatory state.",
+            "dose": {
+              "amount": "8 hours",
+              "form": "Nightly sleep window",
+              "schedule": "nightly",
+              "duration": "ongoing"
+            },
+            "targets": [
+              {
+                "code": "hs_crp",
+                "direction": "down",
+                "expect": "< 0.8 mg/L",
+                "measureAfterWeeks": 24
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "guideline",
+                "title": "Consensus Statement of the American Academy of Sleep Medicine and Sleep Research Society"
+              }
+            ],
+            "followUp": [
+              {
+                "afterDays": 90,
+                "ask": "Have you maintained a consistent bedtime and wake time within a 30-minute window?"
+              }
+            ]
+          }
+        ],
+        "questions": [
+          {
+            "key": "country",
+            "text": "Which country do you currently reside in?",
+            "why": "Baseline population risks and clinical reference ranges vary by geographical region."
+          },
+          {
+            "key": "ancestry",
+            "text": "What is your primary ancestral background?",
+            "why": "Ancestral background refines cardiovascular risk calibration and genetic metabolic thresholds."
+          }
+        ],
+        "patterns": []
+      }
+    },
+    {
+      "id": "insulin_resistant_male_45",
+      "passed": 5,
+      "total": 5,
+      "failed": [],
+      "failedMust": false,
+      "shouldPassed": 0,
+      "shouldTotal": 0,
+      "shouldMissed": [],
+      "latencyMs": 40519,
+      "body": {
+        "summary": [
+          "Your fasting insulin (14 µIU/mL), HOMA-IR (3.35), and triglyceride/HDL ratio (4.74) indicate early insulin resistance with liver stress, while HbA1c is still 5.5%.",
+          "We are addressing this metabolic shift immediately with targeted meal sequencing, post-meal walking, progressive resistance training, and sleep extension.",
+          "Essential baseline screening tests are scheduled, including an OGTT with insulin, ApoB, Lp(a), liver workup, and colonoscopy."
+        ],
+        "eli5": "Your body's fuel delivery trucks are knocking loudly because the cell doors are starting to stick, leaving excess sugar and fat idling in the bloodstream. By shifting how you eat and moving your muscles after meals, we can unstick those doors and clear the traffic before any permanent damage occurs.",
+        "systems": [
+          {
+            "id": "insulin_resistance",
+            "name": "Metabolic Health",
+            "verdict": "Insulin resistance is active and driving dyslipidemia, as shown by an elevated fasting insulin of 14 µIU/mL and HOMA-IR of 3.35 despite a normal HbA1c.",
+            "eli5": "Your pancreas is working overtime pumping extra insulin to keep blood sugar looking normal. We need to lighten its load before it gets tired.",
+            "priority": 1
+          },
+          {
+            "id": "nafld",
+            "name": "Liver Function",
+            "verdict": "Elevated ALT (41 U/L) and GGT (44 U/L) in the setting of hypertriglyceridemia point to early metabolic liver fat accumulation.",
+            "eli5": "Your liver is acting like an overstuffed storage locker holding onto extra energy. Clearing the metabolic backlog will let the liver clean itself up.",
+            "priority": 2
+          },
+          {
+            "id": "sleep_apnoea",
+            "name": "Sleep & Airway",
+            "verdict": "Shorter sleep duration and central adiposity increase the risk for subclinical sleep-disordered breathing that can worsen metabolic resistance.",
+            "eli5": "Getting solid rest is the nightly reset button for your metabolism. Without enough deep sleep, your body stays stuck in stress mode.",
+            "priority": 3
+          }
+        ],
+        "actions": [
+          {
+            "title": "Start whole-body progressive resistance training twice weekly",
+            "kind": "exercise",
+            "weight": 5,
+            "basis": "opinion",
+            "why": "Lifting weights expands muscle glycogen storage capacity, which directly drives down fasting insulin and reduces liver triglyceride production.",
+            "reasoning": "Inferred from pattern:insulin_resistance_early and edge insulin->triglycerides: fasting insulin is 14 µIU/mL, HOMA-IR is 3.35, triglycerides are 180 mg/dL, waist is 102 cm (waist-to-height 0.57), and father had T2D at 58. Expanding muscle mass increases non-insulin-mediated glucose clearance.",
+            "dose": {
+              "amount": "45 minutes compound resistance exercises (squats, deadlifts, presses, rows)",
+              "schedule": "2 sessions per week",
+              "duration": "12 weeks"
+            },
+            "targets": [
+              {
+                "code": "insulin",
+                "direction": "down",
+                "expect": "<8 µIU/mL",
+                "measureAfterWeeks": 12
+              },
+              {
+                "code": "triglycerides",
+                "direction": "down",
+                "expect": "<100 mg/dL",
+                "measureAfterWeeks": 12
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "meta",
+                "title": "Resistance exercise in metabolic health and insulin sensitivity (ADA Standards of Care)"
+              }
+            ],
+            "followUp": [
+              {
+                "afterDays": 14,
+                "ask": "Have you completed 2 resistance training sessions this week?"
+              }
+            ]
+          },
+          {
+            "title": "Eat protein and dietary fiber before carbohydrates at each main meal",
+            "kind": "food",
+            "weight": 5,
+            "basis": "opinion",
+            "why": "Sequencing vegetables and protein ahead of starches slows gastric emptying and prevents the post-meal glucose and insulin spikes that drive hepatic fat storage.",
+            "reasoning": "Inferred from pattern:insulin_resistance_early, glucose->hba1c, and edge hba1c->triglycerides: fasting glucose is 97 mg/dL, HbA1c is 5.5%, triglycerides are 180 mg/dL, and ALT is 41 U/L on 2026-08-05. Meal sequencing attenuates glycemic excursions without requiring extreme caloric restriction.",
+            "dose": {
+              "amount": "Minimum 30g protein and 10g dietary fiber consumed before any starchy carbohydrates",
+              "schedule": "all main meals daily",
+              "duration": "12 weeks"
+            },
+            "targets": [
+              {
+                "code": "glucose",
+                "direction": "down",
+                "expect": "<90 mg/dL",
+                "measureAfterWeeks": 12
+              },
+              {
+                "code": "triglycerides",
+                "direction": "down",
+                "expect": "<120 mg/dL",
+                "measureAfterWeeks": 12
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "rct",
+                "title": "Food order impact on postprandial glucose and insulin excursions in prediabetes"
+              }
+            ],
+            "followUp": [
+              {
+                "afterDays": 14,
+                "ask": "Are you consistently starting lunch and dinner with fibrous greens and protein?"
+              }
+            ]
+          },
+          {
+            "title": "Log your blood pressure at home for 7 days",
+            "kind": "habit",
+            "weight": 4,
+            "basis": "science",
+            "why": "Blood pressure carries more attributable risk than any lab value, and a clinic reading is not the number that counts.",
+            "reasoning": "Fired rule bp_log to screen for endothelial dysfunction and hypertension in insulin resistance.",
+            "dose": {
+              "amount": "2 readings morning and 2 readings evening",
+              "schedule": "daily for 7 consecutive days"
+            },
+            "targets": [
+              {
+                "code": "bp_home",
+                "direction": "down",
+                "expect": "<120/80 mmHg average",
+                "measureAfterWeeks": 2
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "guideline",
+                "title": "Lewington 2002 Lancet"
+              }
+            ],
+            "followUp": [
+              {
+                "afterDays": 10,
+                "ask": "Have you logged your 7-day home blood pressure averages?"
+              }
+            ]
+          },
+          {
+            "title": "Take a 15-minute brisk walk immediately following your largest meal",
+            "kind": "habit",
+            "weight": 4,
+            "basis": "opinion",
+            "why": "Postprandial muscular contraction clears glucose directly into skeletal muscle via GLUT4 translocation without requiring extra insulin production.",
+            "reasoning": "Inferred from pattern:insulin_resistance_early and edge triglycerides->hdl_cholesterol: daily steps average 4200, TG/HDL ratio is 4.74, and HDL is 38 mg/dL. Increasing step count with meal-timed ambulation rapidly enhances lipid clearance and raises HDL.",
+            "dose": {
+              "amount": "15 minutes continuous brisk walking",
+              "schedule": "within 30 minutes after largest meal daily",
+              "duration": "12 weeks"
+            },
+            "targets": [
+              {
+                "code": "hdl_cholesterol",
+                "direction": "up",
+                "expect": ">45 mg/dL",
+                "measureAfterWeeks": 12
+              },
+              {
+                "code": "triglycerides",
+                "direction": "down",
+                "expect": "<130 mg/dL",
+                "measureAfterWeeks": 12
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "meta",
+                "title": "Postprandial walking vs single daily bout on glucose control and lipid metabolism"
+              }
+            ],
+            "followUp": [
+              {
+                "afterDays": 7,
+                "ask": "Did you manage to walk for 15 minutes after your evening meal most days?"
+              }
+            ]
+          },
+          {
+            "title": "Extend total sleep duration to a minimum of 7 hours nightly",
+            "kind": "sleep",
+            "weight": 4,
+            "basis": "opinion",
+            "why": "Chronic short sleep triggers morning cortisol elevation, worsening peripheral insulin resistance and elevating liver enzymes.",
+            "reasoning": "Inferred from tracker data showing average sleep duration of 6.2 hours, alongside pattern:insulin_resistance_early, ALT 41 U/L, GGT 44 U/L, and waist circumference 102 cm. Sleep extension directly improves insulin sensitivity and reduces hepatic steatosis.",
+            "dose": {
+              "amount": "7.5 hours time in bed nightly (lights out 30 minutes earlier)",
+              "schedule": "every night",
+              "duration": "12 weeks"
+            },
+            "targets": [
+              {
+                "code": "insulin",
+                "direction": "down",
+                "expect": "<10 µIU/mL",
+                "measureAfterWeeks": 12
+              },
+              {
+                "code": "alt",
+                "direction": "down",
+                "expect": "<30 U/L",
+                "measureAfterWeeks": 12
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "observational",
+                "title": "Sleep restriction and its acute effects on insulin sensitivity and hepatic lipogenesis"
+              }
+            ],
+            "followUp": [
+              {
+                "afterDays": 14,
+                "ask": "Are you averaging at least 7 hours of sleep per night on your tracker?"
+              }
+            ]
+          },
+          {
+            "title": "Ask for a 2-hour OGTT with insulin",
+            "kind": "test",
+            "weight": 5,
+            "basis": "science",
+            "why": "HbA1c, fasting insulin or the triglyceride to HDL ratio already point at insulin resistance, which shows up on an OGTT years before HbA1c moves.",
+            "reasoning": "Fired rule ogtt_if_insulin_resistant due to insulin 14 µIU/mL, HOMA-IR 3.35, and TG/HDL 4.74.",
+            "dose": {
+              "amount": "75g glucose tolerance test with 0, 30, 60, 120 min glucose and insulin",
+              "schedule": "once"
+            },
+            "targets": [
+              {
+                "code": "insulin",
+                "direction": "down",
+                "expect": "2-hour insulin <30 µIU/mL",
+                "measureAfterWeeks": 4
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "guideline",
+                "title": "ADA Standards of Care"
+              }
+            ],
+            "followUp": [
+              {
+                "afterDays": 30,
+                "ask": "Have you scheduled and completed the 2-hour oral glucose tolerance test with insulin?"
+              }
+            ]
+          },
+          {
+            "title": "Measure Lp(a) once",
+            "kind": "test",
+            "weight": 4,
+            "basis": "science",
+            "why": "Lp(a) is inherited and barely moves in a lifetime, so one measurement settles it for good. Yours has never been measured.",
+            "reasoning": "Fired rule lpa_once based on missing tier 1 cardiovascular marker.",
+            "dose": {
+              "amount": "1 draw",
+              "schedule": "once"
+            },
+            "targets": [
+              {
+                "code": "lpa",
+                "direction": "down",
+                "expect": "<75 nmol/L",
+                "measureAfterWeeks": 4
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "guideline",
+                "title": "EAS 2022 consensus on Lp(a)"
+              }
+            ],
+            "followUp": [
+              {
+                "afterDays": 30,
+                "ask": "Were you able to get your Lp(a) test completed?"
+              }
+            ]
+          },
+          {
+            "title": "Add ApoB to the next lipid draw",
+            "kind": "test",
+            "weight": 4,
+            "basis": "science",
+            "why": "Your lipid panel is current but ApoB is not, and ApoB counts the particles that actually build plaque.",
+            "reasoning": "Fired rule apob_on_every_draw to quantify atherogenic particle burden given LDL 128 mg/dL and triglycerides 180 mg/dL.",
+            "dose": {
+              "amount": "1 draw",
+              "schedule": "once at next lab draw"
+            },
+            "targets": [
+              {
+                "code": "apob",
+                "direction": "down",
+                "expect": "<80 mg/dL",
+                "measureAfterWeeks": 12
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "guideline",
+                "title": "Sniderman 2019 JAMA Cardiol"
+              }
+            ],
+            "followUp": [
+              {
+                "afterDays": 90,
+                "ask": "Did you add ApoB to your follow-up blood work?"
+              }
+            ]
+          },
+          {
+            "title": "Work up the liver: hepatitis serology, ferritin and FIB-4",
+            "kind": "test",
+            "weight": 4,
+            "basis": "science",
+            "why": "ALT above the sex-specific limit, or GGT above optimal, usually means fat in the liver, and FIB-4 says whether it has started to scar.",
+            "reasoning": "Fired rule liver_workup because ALT is 41 U/L and GGT is 44 U/L on 2026-08-05.",
+            "dose": {
+              "amount": "1 panel draw",
+              "schedule": "once"
+            },
+            "targets": [
+              {
+                "code": "alt",
+                "direction": "down",
+                "expect": "<30 U/L",
+                "measureAfterWeeks": 12
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "guideline",
+                "title": "AASLD NAFLD guidance"
+              }
+            ],
+            "followUp": [
+              {
+                "afterDays": 30,
+                "ask": "Have your viral hepatitis serologies and ferritin been drawn?"
+              }
+            ]
+          },
+          {
+            "title": "Book a colonoscopy",
+            "kind": "doctor",
+            "weight": 4,
+            "basis": "science",
+            "why": "Screening starts at 45, or at 40 when a close relative had bowel cancer. It is the one test that removes the problem while it looks.",
+            "reasoning": "Fired rule colonoscopy_age based on age 45 (birth year 1981).",
+            "dose": {
+              "amount": "Diagnostic colonoscopy procedure",
+              "schedule": "once every 10 years if normal"
+            },
+            "targets": [
+              {
+                "code": "colonoscopy",
+                "direction": "up",
+                "expect": "Complete screening without high-risk adenomas",
+                "measureAfterWeeks": 12
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "guideline",
+                "title": "USPSTF 2021 colorectal screening"
+              }
+            ],
+            "followUp": [
+              {
+                "afterDays": 60,
+                "ask": "Have you scheduled your routine screening colonoscopy?"
+              }
+            ]
+          },
+          {
+            "title": "Add a urine albumin/creatinine ratio",
+            "kind": "test",
+            "weight": 3,
+            "basis": "science",
+            "why": "Kidneys are graded on two numbers, filtration and leak. You have creatinine but no urine albumin, so half the picture is missing.",
+            "reasoning": "Fired rule kidney_two_markers for comprehensive microvascular assessment in metabolic resistance.",
+            "dose": {
+              "amount": "1 spot urine sample",
+              "schedule": "once"
+            },
+            "targets": [
+              {
+                "code": "urine_acr",
+                "direction": "down",
+                "expect": "<30 mg/g",
+                "measureAfterWeeks": 12
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "guideline",
+                "title": "KDIGO 2024 CKD guideline"
+              }
+            ],
+            "followUp": [
+              {
+                "afterDays": 30,
+                "ask": "Did you submit the first-morning urine sample for albumin/creatinine ratio?"
+              }
+            ]
+          },
+          {
+            "title": "Measure grip strength or estimate VO2max",
+            "kind": "test",
+            "weight": 3,
+            "basis": "science",
+            "why": "Fitness and muscle are the strongest predictors of how long you live and they never appear on a blood test.",
+            "reasoning": "Fired rule fitness_baseline to quantify baseline functional capacity and metabolic sink.",
+            "dose": {
+              "amount": "Dynamometer assessment or 12-minute Cooper test",
+              "schedule": "once"
+            },
+            "targets": [
+              {
+                "code": "grip_kg",
+                "direction": "up",
+                "expect": ">45 kg dominant hand",
+                "measureAfterWeeks": 4
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "observational",
+                "title": "Mandsager 2018 JAMA Netw Open"
+              }
+            ],
+            "followUp": [
+              {
+                "afterDays": 14,
+                "ask": "Were you able to record your grip strength or estimate your VO2max?"
+              }
+            ]
+          },
+          {
+            "title": "Measure vitamin D",
+            "kind": "test",
+            "weight": 3,
+            "basis": "science",
+            "why": "Vitamin D has never been measured, and it is the cheapest deficiency there is to find and to fix.",
+            "reasoning": "Fired rule vitamin_d_measure for baseline metabolic and bone health.",
+            "dose": {
+              "amount": "1 25-OH vitamin D draw",
+              "schedule": "once"
+            },
+            "targets": [
+              {
+                "code": "vitamin_d",
+                "direction": "up",
+                "expect": ">30 ng/mL",
+                "measureAfterWeeks": 12
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "guideline",
+                "title": "Endocrine Society 2011 vitamin D guideline"
+              }
+            ],
+            "followUp": [
+              {
+                "afterDays": 30,
+                "ask": "Did you add 25-OH Vitamin D to your blood work panel?"
+              }
+            ]
+          }
+        ],
+        "questions": [
+          {
+            "key": "sleep_snoring",
+            "text": "Do you snore loudly, gasp for air, or wake up feeling unrefreshed in the morning?",
+            "why": "Given your waist circumference and sleep duration of 6.2 hours, screening for obstructive sleep apnea is critical as it directly fuels insulin resistance.",
+            "options": [
+              "Yes, frequent loud snoring or morning fatigue",
+              "Occasionally",
+              "No known snoring or fatigue"
+            ]
+          },
+          {
+            "key": "ancestry",
+            "text": "What is your ethnic ancestry?",
+            "why": "Cardiometabolic risk thresholds, baseline Lp(a) distribution, and visceral adiposity phenotypes differ substantially by ancestral background."
+          },
+          {
+            "key": "bp_home",
+            "text": "Do you have recent typical home blood pressure readings to share?",
+            "why": "Identifying resting vascular load helps guide cardiovascular risk stratification alongside your lipid panel and insulin levels."
+          }
+        ],
+        "patterns": [
+          {
+            "id": "insulin_resistance_early",
+            "stage": "early",
+            "verdict": "Your pancreas is compensating with high insulin output (14 µIU/mL) to maintain a normal HbA1c (5.5%), and early lifestyle levers decide whether this reverses before progression to diabetes."
+          }
+        ]
+      }
+    },
+    {
+      "id": "iron_low_female_30",
+      "passed": 6,
+      "total": 6,
+      "failed": [],
+      "failedMust": false,
+      "shouldPassed": 0,
+      "shouldTotal": 0,
+      "shouldMissed": [],
+      "latencyMs": 49655,
+      "body": {
+        "summary": [
+          "Ferritin is critically low at 12 ng/mL, indicating depleted iron stores despite a normal hemoglobin of 12.8 g/dL.",
+          "We are starting alternate-day elemental iron supplementation while investigating potential causes of blood or absorption loss.",
+          "Key baseline screenings for Lp(a), vitamin D, and renal leak will establish your preventive foundation."
+        ],
+        "eli5": "Your body's iron fuel tank is running near empty even though your red blood cell engine is still running smoothly. We are going to refill the tank with targeted supplements every other day while checking under the hood to see where iron might be slipping away.",
+        "systems": [
+          {
+            "id": "iron_deficiency",
+            "name": "Iron Metabolism",
+            "verdict": "Ferritin at 12 ng/mL confirms stage 1 non-anemic iron deficiency despite normal hemoglobin of 12.8 g/dL.",
+            "eli5": "Your storage closets for iron are almost completely empty even though your daily blood count looks normal.",
+            "priority": 1
+          },
+          {
+            "id": "insulin_resistance",
+            "name": "Metabolic Health",
+            "verdict": "Metabolic and glucose regulation remain uncharacterized until fasting markers are obtained.",
+            "eli5": "We need to check your morning blood sugar to ensure your cells process food smoothly.",
+            "priority": 2
+          },
+          {
+            "id": "nafld",
+            "name": "Hepatic Health",
+            "verdict": "Liver health cannot be assessed without baseline transaminase and enzyme testing.",
+            "eli5": "A routine liver test will confirm your internal filter is running clean.",
+            "priority": 3
+          },
+          {
+            "id": "hashimoto",
+            "name": "Thyroid Health",
+            "verdict": "Thyroid status is currently optimal with a TSH of 1.8 mIU/L.",
+            "eli5": "Your thyroid thermostat is maintaining the correct body temperature and pace.",
+            "priority": 3
+          }
+        ],
+        "actions": [
+          {
+            "title": "Take elemental iron 65 mg on alternate mornings",
+            "kind": "supplement",
+            "weight": 5,
+            "basis": "opinion",
+            "why": "Alternate-day dosing minimizes hepcidin elevation and maximizes intestinal iron uptake to refill your depleted reserves.",
+            "reasoning": "Referencing edge iron->ferritin and pattern:iron_deficiency_no_anemia: ferritin is 12 ng/mL on 2026-08-12 (below optimal 30..200 ng/mL and well below the 50 ng/mL ceiling). Alternate-day dosing of 65 mg elemental iron as ferrous sulfate or bisglycinate improves fractional absorption and gastrointestinal tolerance.",
+            "dose": {
+              "amount": "65 mg elemental iron",
+              "form": "Ferrous bisglycinate or sulfate",
+              "schedule": "Every other morning",
+              "duration": "12 weeks",
+              "ceiling": "100 mg/day elemental"
+            },
+            "timing": "Morning on an empty stomach with 500 mg vitamin C",
+            "interactions": [
+              {
+                "with": "Coffee, tea, dairy, and calcium supplements",
+                "rule": "Separate iron intake from calcium, coffee, and tea by at least 2 hours."
+              }
+            ],
+            "targets": [
+              {
+                "code": "ferritin",
+                "direction": "up",
+                "expect": "> 30 ng/mL",
+                "measureAfterWeeks": 12
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "guideline",
+                "title": "BSG iron deficiency guideline"
+              },
+              {
+                "kind": "rct",
+                "title": "Stoffel 2017 Lancet Haematol"
+              }
+            ],
+            "followUp": [
+              {
+                "afterDays": 14,
+                "ask": "Are you tolerating the alternate-day iron without stomach upset or constipation?"
+              }
+            ]
+          },
+          {
+            "title": "Pair iron with 500 mg vitamin C and separate from coffee",
+            "kind": "food",
+            "weight": 4,
+            "basis": "opinion",
+            "why": "Ascorbic acid keeps iron in its absorbable ferrous state while dietary tannins and calcium strongly block its uptake.",
+            "reasoning": "Referencing edge iron->ferritin and metric:ferritin: with ferritin at 12 ng/mL on 2026-08-12, co-ingesting 500 mg vitamin C and separating polyphenol-rich beverages (tea/coffee) by 2 hours ensures maximum bioavailability of each dose.",
+            "dose": {
+              "amount": "500 mg vitamin C",
+              "form": "Ascorbic acid with a glass of water",
+              "schedule": "Every other morning with iron supplement",
+              "duration": "12 weeks"
+            },
+            "timing": "Simultaneous with oral iron",
+            "interactions": [
+              {
+                "with": "Tea and coffee",
+                "rule": "Avoid coffee or black tea within 2 hours of the iron and vitamin C dose."
+              }
+            ],
+            "targets": [
+              {
+                "code": "ferritin",
+                "direction": "up",
+                "expect": "> 30 ng/mL",
+                "measureAfterWeeks": 12
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "rct",
+                "title": "Stoffel 2017 Lancet Haematol"
+              }
+            ],
+            "followUp": [
+              {
+                "afterDays": 14,
+                "ask": "Are you able to maintain a 2-hour separation between your iron dose and morning coffee or tea?"
+              }
+            ]
+          },
+          {
+            "title": "Log your blood pressure at home for 7 days",
+            "kind": "habit",
+            "weight": 3,
+            "basis": "science",
+            "why": "Blood pressure carries more attributable risk than any lab value, and a clinic reading is not the number that counts.",
+            "reasoning": "Fired rule bp_log: establishment of home blood pressure baseline over 7 consecutive days.",
+            "dose": {
+              "amount": "2 readings morning and evening",
+              "schedule": "Daily for 7 days",
+              "duration": "7 days"
+            },
+            "targets": [
+              {
+                "code": "bp_home",
+                "direction": "down",
+                "expect": "< 120/80 mmHg",
+                "measureAfterWeeks": 2
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "observational",
+                "title": "Lewington 2002 Lancet"
+              }
+            ],
+            "followUp": [
+              {
+                "afterDays": 7,
+                "ask": "Did you complete the 7-day home blood pressure log?"
+              }
+            ]
+          },
+          {
+            "title": "Find the cause of the low ferritin",
+            "kind": "doctor",
+            "weight": 5,
+            "basis": "science",
+            "why": "Ferritin under 30 means the iron stores are empty; the question is where the iron is going, not just how to top it up.",
+            "reasoning": "Fired rule ferritin_low: ferritin is 12 ng/mL on 2026-08-12, requiring clinical evaluation of menstrual volume and gastrointestinal blood loss.",
+            "dose": {
+              "amount": "1 consultation",
+              "schedule": "Once",
+              "duration": "1 visit"
+            },
+            "targets": [
+              {
+                "code": "ferritin",
+                "direction": "up",
+                "expect": "> 30 ng/mL",
+                "measureAfterWeeks": 12
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "guideline",
+                "title": "BSG iron deficiency guideline"
+              }
+            ],
+            "followUp": [
+              {
+                "afterDays": 14,
+                "ask": "Have you discussed your low ferritin and menstrual or digestive history with your doctor?"
+              }
+            ]
+          },
+          {
+            "title": "Measure Lp(a) once",
+            "kind": "test",
+            "weight": 4,
+            "basis": "science",
+            "why": "Lp(a) is inherited and barely moves in a lifetime, so one measurement settles it for good. Yours has never been measured.",
+            "reasoning": "Fired rule lpa_once requires a one-time baseline assessment to evaluate genetic cardiovascular risk.",
+            "dose": {
+              "amount": "1 draw",
+              "schedule": "Once"
+            },
+            "targets": [
+              {
+                "code": "lpa",
+                "direction": "down",
+                "expect": "< 75 nmol/L",
+                "measureAfterWeeks": 4
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "guideline",
+                "title": "EAS 2022 consensus on Lp(a)"
+              }
+            ],
+            "followUp": [
+              {
+                "afterDays": 30,
+                "ask": "Have you scheduled or completed your one-time Lp(a) lab test?"
+              }
+            ]
+          },
+          {
+            "title": "Iron saturation and TIBC with the next ferritin",
+            "kind": "test",
+            "weight": 4,
+            "basis": "science",
+            "why": "Saturation separates empty stores from inflammation hiding them, and it responds first when iron is working.",
+            "reasoning": "Fired rule iron_saturation: co-ordering transferrin saturation and total iron binding capacity alongside repeat ferritin.",
+            "dose": {
+              "amount": "1 blood draw",
+              "schedule": "Once at 12 weeks"
+            },
+            "targets": [
+              {
+                "code": "transferrin_saturation",
+                "direction": "up",
+                "expect": "20–45 %",
+                "measureAfterWeeks": 12
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "guideline",
+                "title": "BSG iron deficiency guideline"
+              }
+            ],
+            "followUp": [
+              {
+                "afterDays": 84,
+                "ask": "Did you get your follow-up ferritin, iron saturation, and TIBC drawn?"
+              }
+            ]
+          },
+          {
+            "title": "Coeliac serology (tTG-IgA with total IgA)",
+            "kind": "test",
+            "weight": 4,
+            "basis": "science",
+            "why": "Coeliac disease is the commonest silent cause of iron loss in an otherwise healthy adult.",
+            "reasoning": "Fired rule iron_coeliac: screening for silent malabsorption in the setting of unexplained low ferritin.",
+            "dose": {
+              "amount": "1 blood draw",
+              "schedule": "Once while eating gluten"
+            },
+            "targets": [
+              {
+                "code": "tTG_IgA",
+                "direction": "down",
+                "expect": "Negative",
+                "measureAfterWeeks": 4
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "guideline",
+                "title": "BSG iron deficiency guideline"
+              }
+            ],
+            "followUp": [
+              {
+                "afterDays": 30,
+                "ask": "Have you had your coeliac antibody panel drawn while maintaining a normal gluten intake?"
+              }
+            ]
+          },
+          {
+            "title": "Re-evaluate transferrin saturation and ferritin at 12 weeks to stop at ceiling",
+            "kind": "test",
+            "weight": 4,
+            "basis": "opinion",
+            "why": "Tracking ferritin ensures we stop iron supplementation once your stores pass 50 ng/mL to prevent iron overload.",
+            "reasoning": "Referencing edge iron->transferrin_saturation and metric:ferritin: baseline ferritin is 12 ng/mL (2026-08-12); our protocol mandates stopping oral iron once ferritin surpasses 50 ng/mL to avoid excessive accumulation while ensuring saturation stays in the healthy 20–45% window.",
+            "dose": {
+              "amount": "1 blood draw",
+              "schedule": "Once at 12 weeks",
+              "duration": "Single draw"
+            },
+            "targets": [
+              {
+                "code": "ferritin",
+                "direction": "up",
+                "expect": "30–50 ng/mL",
+                "measureAfterWeeks": 12
+              },
+              {
+                "code": "transferrin_saturation",
+                "direction": "up",
+                "expect": "20–45 %",
+                "measureAfterWeeks": 12
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "guideline",
+                "title": "BSG iron deficiency guideline"
+              }
+            ],
+            "followUp": [
+              {
+                "afterDays": 84,
+                "ask": "Did your 12-week lab results confirm ferritin has risen past 30–50 ng/mL?"
+              }
+            ]
+          },
+          {
+            "title": "Add a urine albumin/creatinine ratio",
+            "kind": "test",
+            "weight": 3,
+            "basis": "science",
+            "why": "Kidneys are graded on two numbers, filtration and leak. You have creatinine but no urine albumin, so half the picture is missing.",
+            "reasoning": "Fired rule kidney_two_markers requires spot urine albumin-to-creatinine ratio to complete kidney screening.",
+            "dose": {
+              "amount": "1 first-morning urine sample",
+              "schedule": "Once"
+            },
+            "targets": [
+              {
+                "code": "urine_acr",
+                "direction": "down",
+                "expect": "< 3 mg/mmol",
+                "measureAfterWeeks": 4
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "guideline",
+                "title": "KDIGO 2024 CKD guideline"
+              }
+            ],
+            "followUp": [
+              {
+                "afterDays": 30,
+                "ask": "Were you able to provide a first-morning urine sample for the albumin/creatinine ratio?"
+              }
+            ]
+          },
+          {
+            "title": "Measure vitamin D",
+            "kind": "test",
+            "weight": 3,
+            "basis": "science",
+            "why": "Vitamin D has never been measured, and it is the cheapest deficiency there is to find and to fix.",
+            "reasoning": "Fired rule vitamin_d_measure: baseline 25-hydroxyvitamin D level is unmeasured.",
+            "dose": {
+              "amount": "1 blood draw",
+              "schedule": "Once"
+            },
+            "targets": [
+              {
+                "code": "vitamin_d",
+                "direction": "up",
+                "expect": "> 75 nmol/L",
+                "measureAfterWeeks": 4
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "guideline",
+                "title": "Endocrine Society 2011 vitamin D guideline"
+              }
+            ],
+            "followUp": [
+              {
+                "afterDays": 30,
+                "ask": "Have you completed your 25-OH vitamin D blood draw?"
+              }
+            ]
+          }
+        ],
+        "questions": [
+          {
+            "key": "menstrual_bleeding_intensity",
+            "text": "How heavy are your menstrual periods in terms of duration, frequency of pad/tampon changes, or passing blood clots?",
+            "why": "Heavy menstrual bleeding is the primary cause of isolated low ferritin in young females."
+          },
+          {
+            "key": "gi_symptoms_and_meds",
+            "text": "Do you have any digestive symptoms, dark or tarry stools, or regular use of painkillers like ibuprofen?",
+            "why": "Gastrointestinal bleeding or malabsorption can deplete storage iron silently without obvious symptoms."
+          },
+          {
+            "key": "dietary_iron_intake",
+            "text": "Do you follow a vegetarian, vegan, or low-meat diet?",
+            "why": "Dietary patterns dictate the baseline non-heme iron intake and the risk of recurring depletion."
+          }
+        ],
+        "patterns": [
+          {
+            "id": "iron_deficiency_no_anemia",
+            "stage": "active",
+            "verdict": "Ferritin is 12 ng/mL indicating depleted storage iron despite normal hemoglobin (12.8 g/dL); the clinical debate regarding treating normal blood counts is resolved here by established fatigue trial evidence warranting replacement to exceed 30–50 ng/mL."
+          }
+        ]
+      }
+    },
+    {
+      "id": "lmhr_male_38",
+      "passed": 8,
+      "total": 8,
+      "failed": [],
+      "failedMust": false,
+      "shouldPassed": 0,
+      "shouldTotal": 0,
+      "shouldMissed": [],
+      "latencyMs": 32685,
+      "body": {
+        "summary": [
+          "Your lipid panel shows classic Lean Mass Hyper-Responder (LMHR) triad with LDL-C 215 mg/dL alongside optimal HDL-C 92 mg/dL and triglycerides 48 mg/dL on a 2-year keto diet.",
+          "Metabolic markers are pristine with HbA1c 5.0%, fasting insulin 3.2 µIU/mL, and hs-CRP 0.4 mg/L, but coronary calcium and particle burden must be quantified.",
+          "Immediate focus is baseline coronary calcium scoring, ApoB, and Lp(a) before considering dietary adjustments or carbohydrate reintroduction."
+        ],
+        "eli5": "Your blood work looks like a high-performance sports car running on premium fuel, but with the engine revving high enough that we need to inspect the exhaust pipes. We are ordering an imaging scan and particle counts to confirm your blood vessels remain completely clean.",
+        "systems": [
+          {
+            "id": "sleep_apnoea",
+            "name": "Obstructive Sleep Apnoea",
+            "verdict": "Obstructive sleep apnoea remains an unconfirmed possibility that requires questionnaire screening despite your lean habitus.",
+            "eli5": "Even lean athletes can have nighttime breathing interruptions. A quick checklist will tell us if your breathing stays smooth all night.",
+            "priority": 3
+          },
+          {
+            "id": "lipids",
+            "name": "Lipid Metabolism and Cardiovascular Risk",
+            "verdict": "The lipid-energy model attributes your high LDL to lean mass trafficking, but whether ApoB particle count causes vascular damage in this context must be decided by coronary artery calcium imaging and particle measurement.",
+            "eli5": "Your body moves fats around very efficiently on keto, sending LDL numbers soaring. We need a direct picture of your arteries to ensure those particles are doing no harm.",
+            "priority": 1
+          }
+        ],
+        "actions": [
+          {
+            "title": "Evaluate carbohydrate reintroduction threshold against metabolic markers",
+            "kind": "food",
+            "weight": 4,
+            "basis": "opinion",
+            "why": "Testing a modest carbohydrate increase verifies the lipid energy model while ensuring your optimal glycemic parameters remain preserved.",
+            "reasoning": "Evaluated edge carb_reintroduction->ldl_cholesterol and edge low_carb_diet->ldl_cholesterol using baseline fasting glucose 88 mg/dL, HbA1c 5.0%, and waist circumference 80 cm on 2026-08-10.",
+            "dose": {
+              "amount": "50 g/day from sweet potato or berries",
+              "form": "whole food",
+              "schedule": "divided between lunch and dinner",
+              "duration": "6 weeks"
+            },
+            "targets": [
+              {
+                "code": "glucose",
+                "direction": "up",
+                "expect": "<92 mg/dL and HbA1c <5.2% on 2026-10-15",
+                "measureAfterWeeks": 6
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "observational",
+                "title": "Norwitz 2022 Metabolites (lipid energy model)"
+              }
+            ],
+            "followUp": [
+              {
+                "afterDays": 21,
+                "ask": "Are you maintaining stable energy and waist measurement with 50g added carbs?"
+              }
+            ]
+          },
+          {
+            "title": "Maintain lean metabolic habitus and monitor visceral adiposity",
+            "kind": "habit",
+            "weight": 4,
+            "basis": "opinion",
+            "why": "Your waist-to-height ratio of 0.44 is protective against cardiometabolic dysfunction and should be monitored monthly.",
+            "reasoning": "Inferred from waist 80 cm, height 180 cm (waist/height 0.44), BMI 22.4, triglycerides 48 mg/dL, and HDL 92 mg/dL on 2026-08-10 connected to pattern:lmhr.",
+            "dose": {
+              "amount": "1 tape measurement at navel",
+              "schedule": "monthly on the 1st",
+              "duration": "ongoing"
+            },
+            "targets": [
+              {
+                "code": "waist_cm",
+                "direction": "down",
+                "expect": "<82 cm on 2026-11-01",
+                "measureAfterWeeks": 8
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "guideline",
+                "title": "IDF Consensus Worldwide Definition of the Metabolic Syndrome"
+              }
+            ],
+            "followUp": [
+              {
+                "afterDays": 30,
+                "ask": "Has your waist circumference remained under 82 cm?"
+              }
+            ]
+          },
+          {
+            "title": "Measure Lp(a) once",
+            "kind": "test",
+            "weight": 5,
+            "basis": "science",
+            "why": "Lp(a) is inherited and barely moves in a lifetime, so one measurement settles it for good. Yours has never been measured.",
+            "reasoning": "Fired rule lpa_once based on missing tier 1 marker Lp(a).",
+            "dose": {
+              "amount": "1 blood draw",
+              "schedule": "once"
+            },
+            "targets": [
+              {
+                "code": "lpa",
+                "direction": "down",
+                "expect": "<30 mg/dL (<75 nmol/L) on 2026-09-15",
+                "measureAfterWeeks": 3
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "guideline",
+                "title": "EAS 2022 consensus on Lp(a)"
+              }
+            ],
+            "followUp": [
+              {
+                "afterDays": 21,
+                "ask": "Have you completed your baseline Lp(a) blood draw?"
+              }
+            ]
+          },
+          {
+            "title": "Add ApoB to the next lipid draw",
+            "kind": "test",
+            "weight": 5,
+            "basis": "science",
+            "why": "Your lipid panel is current but ApoB is not, and ApoB counts the particles that actually build plaque.",
+            "reasoning": "Fired rule apob_on_every_draw based on LDL-C 215 mg/dL on 2026-08-10.",
+            "dose": {
+              "amount": "1 blood draw",
+              "schedule": "with next lipid panel"
+            },
+            "targets": [
+              {
+                "code": "apob",
+                "direction": "down",
+                "expect": "<90 mg/dL on 2026-09-15",
+                "measureAfterWeeks": 3
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "observational",
+                "title": "Sniderman 2019 JAMA Cardiol"
+              }
+            ],
+            "followUp": [
+              {
+                "afterDays": 21,
+                "ask": "Did your lab order include serum ApoB?"
+              }
+            ]
+          },
+          {
+            "title": "ApoB and Lp(a) now",
+            "kind": "test",
+            "weight": 5,
+            "basis": "science",
+            "why": "ApoB counts particles; Lp(a) is inherited and changes the risk story entirely.",
+            "reasoning": "Fired rule lmhr_apob_lpa triggered by pattern:lmhr with LDL-C 215 mg/dL, HDL-C 92 mg/dL, and triglycerides 48 mg/dL.",
+            "dose": {
+              "amount": "1 blood draw",
+              "schedule": "immediate"
+            },
+            "targets": [
+              {
+                "code": "apob",
+                "direction": "down",
+                "expect": "<90 mg/dL by 2026-09-15",
+                "measureAfterWeeks": 3
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "guideline",
+                "title": "EAS 2022 consensus on Lp(a)"
+              }
+            ],
+            "followUp": [
+              {
+                "afterDays": 21,
+                "ask": "Have you reviewed both ApoB and Lp(a) concentrations?"
+              }
+            ]
+          },
+          {
+            "title": "CAC score now, and if zero, CCTA in 2–3 years",
+            "kind": "test",
+            "weight": 5,
+            "basis": "science",
+            "why": "KETO-CTA: existing plaque, not lipid level, predicted progression. Zero CAC is reassuring; any CAC ends the debate.",
+            "reasoning": "Fired rule lmhr_cac and pattern:lmhr for vascular stratification in a 38-year-old male with LDL-C 215 mg/dL.",
+            "dose": {
+              "amount": "1 non-contrast CT scan",
+              "schedule": "once"
+            },
+            "targets": [
+              {
+                "code": "cac_score",
+                "direction": "down",
+                "expect": "0 Agatston score on 2026-09-30",
+                "measureAfterWeeks": 5
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "observational",
+                "title": "KETO-CTA 2025"
+              }
+            ],
+            "followUp": [
+              {
+                "afterDays": 35,
+                "ask": "What was your Agatston coronary artery calcium score?"
+              }
+            ]
+          },
+          {
+            "title": "Sequence CAC scan before considering lipid-lowering pharmacological therapy",
+            "kind": "doctor",
+            "weight": 5,
+            "basis": "opinion",
+            "why": "Given your excellent insulin sensitivity and absence of family history, direct vascular imaging should guide treatment intensity rather than LDL-C alone.",
+            "reasoning": "Evaluated pattern:lmhr and edge ldl_cholesterol->ascvd in light of LDL 215 mg/dL, HDL 92 mg/dL, triglycerides 48 mg/dL, fasting insulin 3.2 µIU/mL, and HOMA-IR 0.7 on 2026-08-10 with family history negative for early heart disease.",
+            "dose": {
+              "amount": "Cardiology consultation for CAC review",
+              "schedule": "once post-scan"
+            },
+            "targets": [
+              {
+                "code": "ldl_cholesterol",
+                "direction": "down",
+                "expect": "Definitive management plan established by 2026-10-01",
+                "measureAfterWeeks": 5
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "observational",
+                "title": "KETO-CTA 2025"
+              }
+            ],
+            "followUp": [
+              {
+                "afterDays": 35,
+                "ask": "Did you review your CAC results with your physician?"
+              }
+            ]
+          },
+          {
+            "title": "Log your blood pressure at home for 7 days",
+            "kind": "test",
+            "weight": 4,
+            "basis": "science",
+            "why": "Blood pressure carries more attributable risk than any lab value, and a clinic reading is not the number that counts.",
+            "reasoning": "Fired rule bp_log given missing home blood pressure profile.",
+            "dose": {
+              "amount": "2 readings morning and evening",
+              "schedule": "daily for 7 days",
+              "duration": "7 days"
+            },
+            "targets": [
+              {
+                "code": "bp_home",
+                "direction": "down",
+                "expect": "<120/80 mmHg average by 2026-09-10",
+                "measureAfterWeeks": 2
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "meta",
+                "title": "Lewington 2002 Lancet"
+              }
+            ],
+            "followUp": [
+              {
+                "afterDays": 10,
+                "ask": "What was your 7-day average seated home blood pressure?"
+              }
+            ]
+          },
+          {
+            "title": "Trial: add 50–100 g/day carbohydrate for 6 weeks, retest lipids",
+            "kind": "test",
+            "weight": 4,
+            "basis": "science",
+            "why": "In LMHR the LDL usually falls fast with modest carbs; if it does, the phenotype is confirmed and the person can choose.",
+            "reasoning": "Fired rule lmhr_carb_trial and edge carb_reintroduction->ldl_cholesterol based on LDL 215 mg/dL and keto diet.",
+            "dose": {
+              "amount": "50-100 g/day whole-food complex carbohydrate",
+              "schedule": "daily with meals",
+              "duration": "6 weeks"
+            },
+            "targets": [
+              {
+                "code": "ldl_cholesterol",
+                "direction": "down",
+                "expect": "<130 mg/dL by 2026-10-15",
+                "measureAfterWeeks": 6
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "rct",
+                "title": "Norwitz 2022 Metabolites (lipid energy model)"
+              }
+            ],
+            "followUp": [
+              {
+                "afterDays": 42,
+                "ask": "Did your LDL cholesterol drop significantly after 6 weeks of 50-100g daily carbohydrates?"
+              }
+            ]
+          },
+          {
+            "title": "Add a urine albumin/creatinine ratio",
+            "kind": "test",
+            "weight": 3,
+            "basis": "science",
+            "why": "Kidneys are graded on two numbers, filtration and leak. You have creatinine but no urine albumin, so half the picture is missing.",
+            "reasoning": "Fired rule kidney_two_markers for comprehensive baseline renal assessment.",
+            "dose": {
+              "amount": "1 spot urine sample",
+              "schedule": "once"
+            },
+            "targets": [
+              {
+                "code": "urine_acr",
+                "direction": "down",
+                "expect": "<30 mg/g on 2026-09-15",
+                "measureAfterWeeks": 3
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "guideline",
+                "title": "KDIGO 2024 CKD guideline"
+              }
+            ],
+            "followUp": [
+              {
+                "afterDays": 21,
+                "ask": "Did you collect the first-morning spot urine sample?"
+              }
+            ]
+          },
+          {
+            "title": "Measure vitamin D",
+            "kind": "test",
+            "weight": 3,
+            "basis": "science",
+            "why": "Vitamin D has never been measured, and it is the cheapest deficiency there is to find and to fix.",
+            "reasoning": "Fired rule vitamin_d_measure due to missing 25-OH vitamin D.",
+            "dose": {
+              "amount": "1 blood draw",
+              "schedule": "once"
+            },
+            "targets": [
+              {
+                "code": "vitamin_d",
+                "direction": "up",
+                "expect": ">30 ng/mL on 2026-09-15",
+                "measureAfterWeeks": 3
+              }
+            ],
+            "evidence": [
+              {
+                "kind": "guideline",
+                "title": "Endocrine Society 2011 vitamin D guideline"
+              }
+            ],
+            "followUp": [
+              {
+                "afterDays": 21,
+                "ask": "What was your total 25-hydroxyvitamin D result?"
+              }
+            ]
+          }
+        ],
+        "questions": [
+          {
+            "key": "sleep_snoring",
+            "text": "Do you snore loudly, wake up gasping, or feel unrefreshed despite 7+ hours of sleep?",
+            "why": "Helps clarify obstructive sleep apnoea probability without requiring immediate polysomnography.",
+            "options": [
+              "Never snore",
+              "Occasional mild snoring",
+              "Frequent loud snoring or gasping",
+              "Unsure / sleep alone"
+            ]
+          },
+          {
+            "key": "keto_carbs_grams",
+            "text": "Exactly how many total or net grams of carbohydrate do you consume daily on your keto protocol?",
+            "why": "Quantifies the depth of carbohydrate restriction driving hepatic VLDL/LDL export in the lipid-energy model.",
+            "options": [
+              "<20 g/day",
+              "20–50 g/day",
+              ">50 g/day"
+            ]
+          }
+        ],
+        "patterns": [
+          {
+            "id": "lmhr",
+            "stage": "active",
+            "verdict": "Classic Lean Mass Hyper-Responder triad confirmed by LDL 215 mg/dL, HDL 92 mg/dL, and triglycerides 48 mg/dL on a 2-year ketogenic diet; coronary calcium imaging and ApoB will decide cardiovascular risk management."
+          }
+        ]
+      }
+    }
+  ]
+}

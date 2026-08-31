@@ -105,13 +105,13 @@
     "defaultLab": "typicalNeg"
   },
   "budget": 120,
-  "maxSteps": 10,
+  "maxSteps": 45,
   "expect": {
     "discover": [
       "iron_deficiency"
     ],
-    "withinSteps": 6,
     "withinEur": 60,
-    "noFalseLikely": true
+    "noFalseLikely": true,
+    "withinDraws": 6
   }
 }

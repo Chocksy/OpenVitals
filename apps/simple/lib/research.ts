@@ -39,6 +39,7 @@ import {
 import { forgetGraph, loadGraph, mintNode } from "./kg";
 import { dueAgain } from "./hkb-import";
 import { decide, statusOf, type PolicyInput } from "./hkb-policy";
+import { convert, normalizeUnit } from "./units";
 import type { Grade } from "./hypotheses";
 import { normalizeName } from "./merge-metrics";
 
@@ -138,6 +139,10 @@ export interface Proposal {
   status: string;
   /** The policy let it score and still wants a human to look at it. */
   needsLook: boolean;
+  /** The unit the threshold is expressed in, after conversion. */
+  thresholdUnit: string | null;
+  /** What was converted, or why nobody could: one line, for /hkb. */
+  reviewNote: string | null;
   paper: {
     pmid: string | null;
     doi: string | null;
@@ -654,6 +659,40 @@ export function conditionOn(
   return { equals: f.direction === "present" ? "Yes" : "No" };
 }
 
+/**
+ * The threshold in the unit the feature is stored in.
+ *
+ * A paper prints its cut-off in whatever unit its country uses. The catalog
+ * stores one unit per feature. Nothing converted between them, so a fasting
+ * glucose cut-off of 6.3 mmol/L was filed as "glucose above 6.3" and fired for
+ * every living adult at LR 8. Returns null when the two units exist and will
+ * not convert, which is a row for a human rather than a row for the engine.
+ */
+export function convertOn(
+  on: Record<string, unknown>,
+  from: string | null | undefined,
+  to: string | null | undefined,
+  code?: string,
+): { on: Record<string, unknown>; unit: string | null; note: string | null } | null {
+  const keys = (["above", "below"] as const).filter(
+    (k) => typeof on[k] === "number",
+  );
+  const unit = to?.trim() || from?.trim() || null;
+  if (!keys.length) return { on, unit: null, note: null };
+  if (!from?.trim() || !to?.trim()) return { on, unit, note: null };
+  if (normalizeUnit(from) === normalizeUnit(to)) return { on, unit: to, note: null };
+
+  const next = { ...on };
+  const said: string[] = [];
+  for (const k of keys) {
+    const value = convert(on[k] as number, from, to, code);
+    if (value == null) return null;
+    next[k] = value;
+    said.push(`${k} ${on[k]} ${from} = ${value} ${to}`);
+  }
+  return { on: next, unit: to, note: `threshold converted: ${said.join(", ")}` };
+}
+
 const slug = (s: string) =>
   s
     .toLowerCase()
@@ -760,12 +799,18 @@ export function toProposals(
       continue;
     }
 
-    const on = conditionOn(featureId, f);
+    const raw = conditionOn(featureId, f);
     const lr = likelihoodRatios(f);
-    if (!on || !lr || !f.quote?.trim()) {
+    if (!raw || !lr || !f.quote?.trim()) {
       skipped++;
       continue;
     }
+    const targetUnit = known.get(featureId)?.unit ?? named?.unit ?? null;
+    const code = featureId.startsWith("metric:")
+      ? featureId.slice("metric:".length)
+      : undefined;
+    const fixed = convertOn(raw, f.unit, targetUnit, code);
+    const on = fixed?.on ?? raw;
 
     const grade = gradeOf(f, {
       citedBy: paper.citedBy,
@@ -779,7 +824,7 @@ export function toProposals(
       featureId: known.has(featureId) || named ? featureId : null,
       featureName: f.feature,
       featureUnit: f.unit,
-      targetUnit: known.get(featureId)?.unit ?? named?.unit ?? null,
+      targetUnit,
       conditionOn: on,
       lrPos: lr.lrPos,
       lrNeg: lr.lrNeg,
@@ -789,7 +834,9 @@ export function toProposals(
       retracted: paper.retracted,
       conditionInCatalog: opts.inCatalog ?? true,
     };
-    const decision = decide(policy);
+    // A unit that will not convert is the policy's own `held`, and the note
+    // has to say which unit the number is still in.
+    const decision = fixed ? decide(policy) : "held";
     if (decision === "rejected") rejected++;
 
     if (decision !== "rejected" && !known.has(featureId) && !named)
@@ -813,6 +860,14 @@ export function toProposals(
       grade,
       source: sourceLine(paper, f.quote, f.n),
       population: f.population || null,
+      thresholdUnit: fixed?.unit ?? f.unit?.trim() ?? null,
+      reviewNote:
+        fixed?.note ??
+        (fixed
+          ? decision === "held"
+            ? `threshold ${JSON.stringify(on)} is outside what ${featureId} can take; unit unchecked`
+            : null
+          : `no conversion from ${f.unit} to ${targetUnit} for ${featureId}; threshold left as the paper printed it`),
       ...statusOf(decision),
       paper: {
         pmid: paper.pmid,

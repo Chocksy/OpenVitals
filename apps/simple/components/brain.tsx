@@ -1001,7 +1001,6 @@ const STOP_LABEL: Record<string, string> = {
   confirmed: "confirmed",
   exhausted: "exhausted",
   pruned: "pruned",
-  budget: "budget reached",
 };
 
 interface Spot {
@@ -1075,8 +1074,9 @@ function NodeCard({
         <span className="font-mono text-[9px] tabular-nums text-neutral-400">
           mass {pct(node.mass)}
         </span>
+        {node.overBudget && <Badge variant="warning">over the guide</Badge>}
         {node.stop && (
-          <Badge variant={node.stop === "budget" ? "warning" : "secondary"}>
+          <Badge variant="secondary">
             {STOP_LABEL[node.stop] ?? node.stop}
           </Badge>
         )}

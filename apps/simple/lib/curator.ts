@@ -40,7 +40,7 @@ import {
 import { model, stripCodeFences } from "./extract";
 import { inGoal, localDay } from "./daily";
 import { planRawVerify, rawVerifyScope } from "./raw-verify";
-import { SEX_RANGES } from "./vectors";
+import { BOUNDS, SEX_RANGES } from "./vectors";
 import { conversionFactor, normalizeUnit, round } from "./units";
 
 export type Trigger = "upload" | "daily" | "manual";
@@ -499,24 +499,6 @@ export function planMissingRange(
  * 6. implausible_value
  * ------------------------------------------------------------------ */
 
-/**
- * What a living person can read, in the metric's own canonical unit. A CBC
- * count inside these bounds is never implausible however the lab printed its
- * range, and one outside them always is. Everything else falls back to 50x
- * outside the printed range.
- */
-const BOUNDS: Record<string, [number, number]> = {
-  wbc: [0.5, 100], // K/uL
-  rbc: [1, 10], // M/uL
-  platelets: [5, 2000], // K/uL
-  neutrophils_abs: [0.01, 80], // K/uL
-  lymphocytes_abs: [0.05, 60], // K/uL
-  monocytes_abs: [0.01, 20], // K/uL
-  eosinophils_abs: [0.001, 20], // K/uL
-  basophils_abs: [0.001, 10], // K/uL
-  hemoglobin: [2, 25], // g/dL
-  hematocrit: [10, 70], // %
-};
 
 /** Outside the physiological bounds, or 50x outside the printed range. */
 export function planImplausible(

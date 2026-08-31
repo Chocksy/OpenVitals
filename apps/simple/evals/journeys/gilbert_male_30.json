@@ -1,0 +1,120 @@
+{
+  "id": "gilbert_male_30",
+  "title": "An isolated bilirubin at 30: Gilbert syndrome, and no scan",
+  "today": "2026-08-31",
+  "start": {
+    "facts": {
+      "sex": "male",
+      "birth_year": 1996,
+      "country": "RO",
+      "height_cm": "180"
+    },
+    "readings": [
+      {
+        "code": "total_bilirubin",
+        "value": 2.4,
+        "unit": "mg/dL",
+        "date": "2026-08-20"
+      },
+      {
+        "code": "glucose",
+        "value": 88,
+        "unit": "mg/dL",
+        "date": "2026-08-20"
+      },
+      {
+        "code": "creatinine",
+        "value": 0.98,
+        "unit": "mg/dL",
+        "date": "2026-08-20"
+      }
+    ]
+  },
+  "truth": {
+    "conditions": [
+      "gilbert"
+    ],
+    "answers": {
+      "sym_phq2_interest": "Not at all",
+      "sym_phq2_down": "Not at all",
+      "sym_alcohol": "Monthly or less",
+      "sleep_snoring": "No",
+      "conditions": "none",
+      "medications": "No",
+      "supplements": "No",
+      "smoking": "Never",
+      "screening_dates": "none",
+      "sym_energy": "No",
+      "sym_weight": "No",
+      "sym_cold": "No",
+      "sym_bowel": "Neither",
+      "sym_thirst": "No",
+      "sym_joint": "No",
+      "sym_sleepiness": "No",
+      "sym_hair_skin": "No",
+      "sym_tingling": "No",
+      "sym_tremor": "No",
+      "sym_breathless": "No",
+      "sym_acroparesthesia": "No",
+      "sym_anhidrosis": "No",
+      "sym_flushing": "No",
+      "sym_hives": "No",
+      "sym_bloating": "No",
+      "sym_salt_craving": "No",
+      "sym_dizzy_standing": "No",
+      "family_history": "father also has a high bilirubin",
+      "waist_cm": "82",
+      "bp_home": "116/72",
+      "resting_hr": "58",
+      "grip_kg": "50"
+    },
+    "labs": {
+      "indirect_bilirubin": 2.1,
+      "alt": 22,
+      "ast": 20,
+      "ggt": 16,
+      "alp": 66,
+      "hemoglobin": 15.2,
+      "hematocrit": 45,
+      "mcv": 90,
+      "rdw": 12.8,
+      "reticulocytes": 1.2,
+      "platelets": 250,
+      "ferritin": 150,
+      "transferrin_saturation": 33,
+      "hbs_ag_screening": 0,
+      "hcv_antibodies": 0,
+      "tsh": 1.8,
+      "vitamin_d": 38,
+      "vitamin_b12": 510,
+      "hba1c": 5.0,
+      "insulin": 4,
+      "ldl_cholesterol": 102,
+      "hdl_cholesterol": 56,
+      "total_cholesterol": 174,
+      "triglycerides": 80,
+      "hs_crp": 0.4,
+      "reticulocyte_hemoglobin": 33
+    },
+    "defaultAnswer": "No",
+    "defaultLab": "typicalNeg"
+  },
+  "budget": 120,
+  "maxSteps": 45,
+  "expect": {
+    "discover": [
+      "gilbert"
+    ],
+    "withinEur": 80,
+    "noFalseLikely": true,
+    "orders": [
+      "Bilirubin fractions"
+    ],
+    "notOrders": [
+      "ultrasound",
+      "FibroScan",
+      "Gastroscopy"
+    ],
+    "withinDraws": 6
+  }
+}

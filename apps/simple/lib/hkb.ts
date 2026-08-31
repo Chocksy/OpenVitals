@@ -25,6 +25,7 @@ import {
 import { poolMembers, sizeOf } from "./hkb-pool";
 import {
   HYPOTHESES,
+  withNegatives,
   type Catalog,
   type Discriminator,
   type EvidenceRule,
@@ -60,6 +61,8 @@ export interface FeatureRow {
   name: string;
   unit: string | null;
   howTo: string | null;
+  /** The cut-off a serology is read against when the lab printed no range. */
+  defaultRefHigh?: number | null;
 }
 
 export interface PriorRow {
@@ -255,7 +258,7 @@ export function rowsToCatalog(rows: CatalogRows, awake?: Set<string>): Catalog {
     } as EvidenceRule["when"] & EvidenceRule["input"];
   };
 
-  return inDependencyOrder(
+  return withNegatives(inDependencyOrder(
     rows.conditions.filter((c) => c.inCatalog || awake?.has(c.id)),
     rows.evidence,
   ).map((c): Hypothesis => {
@@ -341,7 +344,7 @@ export function rowsToCatalog(rows: CatalogRows, awake?: Set<string>): Catalog {
       // catalog has no `ring` and the round-trip test compares the two.
       ...(c.ring && c.ring !== 1 ? { ring: c.ring } : {}),
     };
-  });
+  }));
 }
 
 /* ── the database read ────────────────────────────────────────────────── */

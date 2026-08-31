@@ -151,6 +151,110 @@ export const SYMPTOMS: Symptom[] = [
     ],
     source: "Bush 1998 Arch Intern Med: AUDIT-C item 1.",
   },
+  /* ── the rare-disease block (phase 18) ──────────────────────────────
+   *
+   * Items 13-22. Each one exists because a specific rare diagnosis turns on
+   * it and nothing else in the interview asks it: the questions a specialist
+   * asks in the first minute and a general panel never does.
+   */
+  {
+    key: "sym_salt_craving",
+    item: 13,
+    name: "Salt craving",
+    question:
+      "Do you crave salt or salty food, enough that you add it to everything or eat it straight?",
+    options: ["No", "Yes"],
+    source:
+      "Bancos 2015 Lancet Diabetes Endocrinol (adrenal insufficiency): salt craving is a specific volunteered symptom of mineralocorticoid loss.",
+  },
+  {
+    key: "sym_dizzy_standing",
+    item: 14,
+    name: "Dizziness on standing",
+    question:
+      "Do you go dizzy or grey out when you stand up quickly, most days?",
+    options: ["No", "Yes"],
+    source:
+      "Bancos 2015 Lancet Diabetes Endocrinol: postural symptoms from volume depletion are present in most people with adrenal insufficiency at diagnosis.",
+  },
+  {
+    key: "sym_tremor",
+    item: 15,
+    name: "Tremor or clumsy hands",
+    question:
+      "Have your hands become shaky, or your handwriting or speech changed?",
+    options: ["No", "Yes"],
+    source:
+      "EASL 2012 Wilson disease guideline: tremor, dysarthria and deteriorating handwriting are the neurological presentation.",
+  },
+  {
+    key: "sym_breathless",
+    item: 16,
+    name: "Breathlessness on exertion",
+    question:
+      "Are you short of breath walking up a hill or a flight of stairs, more than people your age?",
+    options: ["No", "Yes"],
+    source:
+      "ATS/ERS 2003 alpha-1 antitrypsin standards: early-onset exertional breathlessness, especially in a never-smoker, is the trigger to test.",
+  },
+  {
+    key: "sym_tingling",
+    item: 17,
+    name: "Tingling or numbness",
+    question:
+      "Do you get pins and needles or numbness in your hands or feet?",
+    options: ["No", "Yes"],
+    source:
+      "Stabler 2013 NEJM (vitamin B12 deficiency): paraesthesiae are the commonest neurological presentation and can precede the anaemia.",
+  },
+  {
+    key: "sym_acroparesthesia",
+    item: 18,
+    name: "Burning hands and feet in the heat",
+    question:
+      "Do your hands and feet burn or sting in hot weather, a fever, or after exercise?",
+    options: ["No", "Yes"],
+    source:
+      "Germain 2010 Orphanet J Rare Dis (Fabry disease): heat-triggered acroparaesthesia from childhood is the earliest and most specific symptom.",
+  },
+  {
+    key: "sym_anhidrosis",
+    item: 19,
+    name: "Not sweating",
+    question: "Do you sweat much less than other people, even in the heat?",
+    options: ["No", "Yes"],
+    source:
+      "Germain 2010 Orphanet J Rare Dis: hypohidrosis is reported by more than half of affected males and is part of the same small-fibre picture.",
+  },
+  {
+    key: "sym_flushing",
+    item: 20,
+    name: "Flushing episodes",
+    question:
+      "Do you get sudden episodes of flushing, with your face and chest going red and hot?",
+    options: ["No", "Yes"],
+    source:
+      "Valent 2012 J Allergy Clin Immunol (mast cell disorders consensus): flushing is one of the defining episodic mediator symptoms.",
+  },
+  {
+    key: "sym_hives",
+    item: 21,
+    name: "Hives or itchy weals",
+    question: "Do you get hives, weals or itchy blotches on your skin?",
+    options: ["No", "Yes"],
+    source:
+      "Valent 2012 J Allergy Clin Immunol: urticaria, including urticaria pigmentosa, is the commonest skin finding in mast cell disease.",
+  },
+  {
+    key: "sym_bloating",
+    item: 22,
+    name: "Bloating after meals",
+    question:
+      "Does your abdomen bloat or distend after meals, most days?",
+    options: ["No", "Yes"],
+    source:
+      "Pimentel 2020 Am J Gastroenterol (ACG guideline on SIBO): bloating and distension are the symptoms the breath test is validated against.",
+  },
 ];
 
 /** The twelve numbered items, for the questionnaire page. */

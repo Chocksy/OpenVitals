@@ -75,6 +75,7 @@ export async function runPolicy({
   const counts: Record<Decision, number> = {
     accepted: 0,
     review: 0,
+    held: 0,
     rejected: 0,
   };
   let applied = 0;

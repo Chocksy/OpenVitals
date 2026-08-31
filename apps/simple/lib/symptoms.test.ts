@@ -14,10 +14,20 @@ const input = (over: Partial<ModelInput> = {}): ModelInput => ({
 });
 
 describe("SYMPTOMS", () => {
-  it("is twelve items, with the mood one asked as two questions", () => {
-    expect(SYMPTOM_ITEMS).toHaveLength(12);
-    expect(SYMPTOMS).toHaveLength(13);
+  it("is twelve core items, with the mood one asked as two questions", () => {
+    const core = SYMPTOM_ITEMS.filter((i) => i.item <= 12);
+    expect(core).toHaveLength(12);
+    expect(SYMPTOMS.filter((s) => s.item <= 12)).toHaveLength(13);
     expect(SYMPTOM_ITEMS[6]!.questions).toHaveLength(2);
+  });
+
+  it("adds the rare-disease block after the twelve, one question each", () => {
+    // Phase 18: the questions a specialist asks in the first minute and a
+    // general panel never does. Each one is read by at least one rule.
+    const rare = SYMPTOM_ITEMS.filter((i) => i.item > 12);
+    expect(rare).toHaveLength(10);
+    expect(rare.every((i) => i.questions.length === 1)).toBe(true);
+    expect(SYMPTOMS.map((s) => s.key)).toContain("sym_acroparesthesia");
   });
 
   it("merges snoring rather than asking it twice", () => {

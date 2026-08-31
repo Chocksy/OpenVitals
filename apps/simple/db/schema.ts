@@ -676,6 +676,12 @@ export const hkbFeatures = pgTable("hkb_features", {
   name: text("name").notNull(),
   unit: text("unit"),
   howTo: text("how_to"),
+  /**
+   * The cut-off a serology is read against when the lab printed no range, so
+   * `statusOf` can call a tTG of 68 red instead of gray. Mirrors
+   * `DEFAULT_REF_HIGH` in lib/vectors.ts, which is what the engine reads.
+   */
+  defaultRefHigh: real("default_ref_high"),
   /** The DOI of the paper that made the research run mint this feature. */
   mintedFrom: text("minted_from"),
 });
@@ -749,6 +755,13 @@ export const hkbEvidence = pgTable(
       .notNull(),
     lrPos: real("lr_pos").notNull(),
     lrNeg: real("lr_neg"),
+    /**
+     * The unit the numbers in `condition_on` are in, after the importer
+     * converted them to the feature's own unit. Null for a rule with no
+     * numeric cut-off. Phase 18: without it nobody could tell a mmol/L
+     * threshold filed against a mg/dL feature.
+     */
+    thresholdUnit: text("threshold_unit"),
     grade: text("grade").notNull(),
     source: text("source").notNull(),
     population: text("population"),

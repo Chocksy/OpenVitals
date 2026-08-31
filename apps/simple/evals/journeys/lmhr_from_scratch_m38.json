@@ -76,7 +76,7 @@
     "defaultLab": "typicalNeg"
   },
   "budget": 250,
-  "maxSteps": 12,
+  "maxSteps": 45,
   "expect": {
     "discover": [],
     "noFalseLikely": true

@@ -1,0 +1,135 @@
+{
+  "id": "pernicious_anaemia_female_52",
+  "title": "Tingling and a big red cell, woman 52: pernicious anaemia",
+  "today": "2026-08-31",
+  "start": {
+    "facts": {
+      "sex": "female",
+      "birth_year": 1974,
+      "country": "RO",
+      "height_cm": "164"
+    },
+    "readings": [
+      {
+        "code": "hemoglobin",
+        "value": 11.8,
+        "unit": "g/dL",
+        "date": "2026-08-05"
+      },
+      {
+        "code": "mcv",
+        "value": 104,
+        "unit": "fL",
+        "date": "2026-08-05"
+      },
+      {
+        "code": "rdw",
+        "value": 15.6,
+        "unit": "%",
+        "date": "2026-08-05"
+      },
+      {
+        "code": "platelets",
+        "value": 220,
+        "unit": "10^9/L",
+        "date": "2026-08-05"
+      },
+      {
+        "code": "glucose",
+        "value": 92,
+        "unit": "mg/dL",
+        "date": "2026-08-05"
+      },
+      {
+        "code": "creatinine",
+        "value": 0.8,
+        "unit": "mg/dL",
+        "date": "2026-08-05"
+      }
+    ]
+  },
+  "truth": {
+    "conditions": [
+      "b12_deficiency",
+      "atrophic_gastritis",
+      "anaemia_other"
+    ],
+    "answers": {
+      "sym_phq2_interest": "Not at all",
+      "sym_phq2_down": "Not at all",
+      "sym_alcohol": "Monthly or less",
+      "sleep_snoring": "No",
+      "conditions": "none",
+      "medications": "No",
+      "supplements": "No",
+      "smoking": "Never",
+      "screening_dates": "none",
+      "sym_tingling": "Yes",
+      "sym_energy": "Yes",
+      "sym_weight": "No",
+      "sym_cold": "Yes",
+      "sym_bowel": "Neither",
+      "sym_thirst": "No",
+      "sym_joint": "No",
+      "sym_sleepiness": "No",
+      "sym_hair_skin": "No",
+      "sym_tremor": "No",
+      "sym_breathless": "No",
+      "sym_acroparesthesia": "No",
+      "sym_anhidrosis": "No",
+      "sym_flushing": "No",
+      "sym_hives": "No",
+      "sym_bloating": "No",
+      "sym_salt_craving": "No",
+      "sym_dizzy_standing": "No",
+      "menopause_status": "Post",
+      "family_history": "sister hypothyroid",
+      "waist_cm": "84",
+      "bp_home": "124/78",
+      "resting_hr": "74",
+      "grip_kg": "22",
+      "diet": "omnivore"
+    },
+    "labs": {
+      "vitamin_b12": 180,
+      "methylmalonic_acid": 0.9,
+      "homocysteine": 18,
+      "parietal_cell_antibodies": 1,
+      "intrinsic_factor_antibodies": 1,
+      "gastrin": 250,
+      "pepsinogen_i": 15,
+      "folic_acid": 9,
+      "red_cell_folate": 320,
+      "ferritin": 95,
+      "transferrin_saturation": 30,
+      "reticulocytes": 1.4,
+      "tsh": 3.2,
+      "free_t4": 1.1,
+      "tpo_antibodies": 40,
+      "vitamin_d": 22,
+      "hba1c": 5.4,
+      "insulin": 7,
+      "ldl_cholesterol": 124,
+      "hdl_cholesterol": 58,
+      "total_cholesterol": 198,
+      "triglycerides": 98,
+      "hs_crp": 1.2,
+      "alt": 20,
+      "h_pylori_stool_antigen": 0,
+      "reticulocyte_hemoglobin": 33,
+      "holotranscobalamin": 22
+    },
+    "defaultAnswer": "No",
+    "defaultLab": "typicalNeg"
+  },
+  "budget": 200,
+  "maxSteps": 45,
+  "expect": {
+    "discover": [
+      "b12_deficiency",
+      "atrophic_gastritis"
+    ],
+    "withinEur": 150,
+    "withinDraws": 8
+  }
+}

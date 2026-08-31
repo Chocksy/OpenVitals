@@ -7,7 +7,7 @@
  */
 import type { ModelInput } from "./coverage";
 import { scoreHypotheses, type Catalog, type Lens } from "./hypotheses";
-import { beliefsOf, nextMoves, type Belief, type Move } from "./infogain";
+import { beliefsOf, eurOf, nextMoves, type Belief, type Move } from "./infogain";
 import { applyOverlay } from "./sample";
 
 export interface TreeNode {
@@ -20,7 +20,9 @@ export interface TreeNode {
   /** the move taken from this node */
   chosen?: Move;
   branches: { label: string; prob: number; child: TreeNode }[];
-  stop?: "likely" | "confirmed" | "exhausted" | "pruned" | "budget";
+  stop?: "likely" | "confirmed" | "exhausted" | "pruned";
+  /** the move taken here costs more than the budget still allows */
+  overBudget?: true;
 }
 
 const round3 = (v: number) => Math.round(v * 1000) / 1000;
@@ -81,18 +83,23 @@ export function buildTree(
     if (d >= depth) return { ...node, stop: "exhausted" };
     if (mass < prune) return { ...node, stop: "pruned" };
 
+    // The budget ranks, it never excludes: `ratioOf` already divides the gain
+    // by the price, and a path that stops because the money ran out is a path
+    // that hides the one test that would have answered the question. Past the
+    // guide the branch is flagged and the tree keeps going.
     const all = nextMoves(input, catalog, { lens: opts.lens });
-    const left = opts.budget == null ? Infinity : opts.budget - spent;
-    const affordable = all.filter((mv) => mv.cost <= left);
-    if (all.length && !affordable.length) return { ...node, stop: "budget" };
-
-    const chosen = affordable[0];
+    const chosen = all[0];
     if (!chosen || chosen.gain <= 0.01) return { ...node, stop: "exhausted" };
     if (top < QUIET_BELIEF && chosen.gain < QUIET_GAIN)
       return { ...node, stop: "exhausted" };
+    const over =
+      opts.budget != null && spent + eurOf(chosen) > opts.budget
+        ? ({ overBudget: true } as const)
+        : {};
 
     return {
       ...node,
+      ...over,
       chosen,
       branches: chosen.outcomes.map((o) => ({
         label: o.label,
@@ -102,7 +109,7 @@ export function buildTree(
           d + 1,
           mass * o.prob,
           `${id}>${chosen.featureId}=${o.label}`,
-          spent + chosen.cost,
+          spent + eurOf(chosen),
         ),
       })),
     };

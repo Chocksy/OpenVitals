@@ -12,6 +12,7 @@ import { getDb, profileFacts } from "@/db";
 import {
   buildModelInput,
   optimalFor,
+  refHighFor,
   toAge,
   toSex,
   type LatestValue,
@@ -160,7 +161,7 @@ export function applyOverlay(input: ModelInput, overlay: Overlay): ModelInput {
       optimalLow,
       optimalHigh,
       refLow: old?.refLow ?? null,
-      refHigh: old?.refHigh ?? null,
+      refHigh: refHighFor(r.code, old?.refHigh),
       prev: old?.value ?? null,
     };
     row.status = statusOf(row);

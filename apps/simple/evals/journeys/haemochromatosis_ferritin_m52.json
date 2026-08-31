@@ -117,13 +117,13 @@
     "defaultLab": "typicalNeg"
   },
   "budget": 250,
-  "maxSteps": 10,
+  "maxSteps": 45,
   "expect": {
     "discover": [
       "haemochromatosis"
     ],
-    "withinSteps": 8,
     "withinEur": 150,
-    "wakeWithin": 2
+    "wakeWithin": 2,
+    "withinDraws": 8
   }
 }

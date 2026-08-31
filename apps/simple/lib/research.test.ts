@@ -17,6 +17,7 @@ import {
   toMechanismEdges,
   cleanTitle,
   conditionOn,
+  convertOn,
   dedupe,
   estimateTokens,
   gradeOf,
@@ -383,6 +384,48 @@ describe("proposals", () => {
     expect(proposalId("hypothyroidism", "metric:tsh", paper)).toBe(
       "res_hypothyroidism_metric_tsh_21123456",
     );
+  });
+
+  it("converts a threshold into the unit the feature is stored in", () => {
+    // 6.3 mmol/L is 113 mg/dL. Filed as "above 6.3" it fires for everybody.
+    expect(
+      convertOn({ above: 6.3 }, "mmol/L", "mg/dL", "glucose"),
+    ).toEqual({
+      on: { above: 113.4 },
+      unit: "mg/dL",
+      note: "threshold converted: above 6.3 mmol/L = 113.4 mg/dL",
+    });
+    // Same unit, nothing to do; no unit either side, nothing to do.
+    expect(convertOn({ above: 4.5 }, "mIU/L", "mIU/L", "tsh")?.on).toEqual({
+      above: 4.5,
+    });
+    expect(convertOn({ above: 4.5 }, null, "mIU/L", "tsh")?.on).toEqual({
+      above: 4.5,
+    });
+    // No factor between them: the caller has to hold the row.
+    expect(convertOn({ above: 9 }, "ng/mL", "mIU/L", "tsh")).toBeNull();
+  });
+
+  it("holds a row whose unit will not convert, with the reason on it", () => {
+    const { rows } = toProposals(CONDITION, FEATURES, [paper], [
+      {
+        paperIndex: 1,
+        feature: "TSH",
+        featureId: "metric:tsh",
+        condition: "hypothyroidism",
+        direction: "above",
+        threshold: 9,
+        unit: "ng/mL",
+        lrPos: 4,
+        population: "adults",
+        studyType: "cohort",
+        quote: "above 9 ng/mL, likelihood ratio 4",
+      },
+    ]);
+    expect(rows[0]!.status).toBe("review");
+    expect(rows[0]!.needsLook).toBe(true);
+    expect(rows[0]!.conditionOn).toEqual({ above: 9 });
+    expect(rows[0]!.reviewNote).toContain("no conversion");
   });
 
   it("drops a finding the model gave no feature name at all", () => {

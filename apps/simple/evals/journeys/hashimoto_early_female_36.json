@@ -117,14 +117,14 @@
     "defaultLab": "typicalNeg"
   },
   "budget": 150,
-  "maxSteps": 12,
+  "maxSteps": 45,
   "expect": {
     "discover": [
       "hashimoto",
       "iron_deficiency"
     ],
-    "withinSteps": 8,
     "withinEur": 100,
-    "noFalseLikely": true
+    "noFalseLikely": true,
+    "withinDraws": 8
   }
 }

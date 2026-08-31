@@ -18,12 +18,14 @@
  */
 import {
   HYPOTHESES,
+  withNegatives,
   type Catalog,
   type EvidenceRule,
   type Hypothesis,
   type PriorBand,
 } from "./hypotheses";
 import { PRIOR_BANDS } from "./hkb-priors";
+import { RARE } from "./hkb-rare";
 
 /* ── the eight that already exist ─────────────────────────────────────── */
 
@@ -398,12 +400,20 @@ const ASCVD_RISK: Hypothesis = {
     {
       id: "ascvd_apob",
       input: { metric: "apolipoprotein_b" },
-      when: { above: 100 },
+      when: { above: 90 },
       lr: 3,
-      lrNeg: 0.4,
       grade: "A",
       source:
-        "Sniderman 2019 JAMA Cardiol: apoB discriminates events better than LDL-C; above 100 mg/dL is roughly the population 60th percentile.",
+        "Sniderman 2019 JAMA Cardiol: apoB discriminates events better than LDL-C. ESC/EAS 2019 and the EAS 2022 apoB consensus put the population threshold at 90 mg/dL, which is where the risk gradient starts.",
+    },
+    {
+      id: "ascvd_apob_low",
+      input: { metric: "apolipoprotein_b" },
+      when: { below: 80 },
+      lr: 0.5,
+      grade: "A",
+      source:
+        "EAS 2022 apoB consensus (Marston 2022 JAMA Cardiol pooled analysis): an apoB under 80 mg/dL is the high-risk treatment target and halves the event rate against the population mean. This is the negative side of the same test, without which the engine will not order it.",
     },
     {
       id: "ascvd_ldl",
@@ -454,6 +464,22 @@ const ASCVD_RISK: Hypothesis = {
     },
   ],
   discriminators: [
+    {
+      // Nothing in the catalog could order the commonest draw in preventive
+      // medicine, so the LDL and non-HDL rules were unanswerable and the path
+      // never got to apoB. It scores on the LDL, because a test writes one
+      // number to every code it names and an HDL of 180 is not a thing.
+      test: "Lipid panel",
+      codes: ["ldl_cholesterol"],
+      cost: 1,
+      lrPos: 2.5,
+      lrNeg: 0.4,
+      typicalPos: 180,
+      typicalNeg: 90,
+      unit: "mg/dL",
+      howTo:
+        "One draw, no fast needed for a modern panel. It reports total, LDL, HDL and triglycerides; the LDL is what the risk rules read, and apoB is the better follow-up when it comes back high.",
+    },
     {
       test: "ApoB",
       codes: ["apolipoprotein_b"],
@@ -2992,6 +3018,7 @@ const NEW: Hypothesis[] = [
   HEPATITIS_BC,
   ANAEMIA_OTHER,
   CANCER_SCREENING_DUE,
+  ...RARE,
 ];
 
 /* ── what a genome file adds ──────────────────────────────────────────── *
@@ -3268,7 +3295,7 @@ function withGenomeAndTrends(h: Hypothesis): Hypothesis {
 }
 
 /** The eight, patched, plus the twenty-four. Thirty-two conditions. */
-export const CATALOG: Catalog = [
+export const CATALOG: Catalog = withNegatives([
   ...HYPOTHESES.map((h): Hypothesis => {
     const patch = PATCHES[h.id];
     if (!patch) return h;
@@ -3285,7 +3312,7 @@ export const CATALOG: Catalog = [
     };
   }),
   ...NEW,
-].map(withGenomeAndTrends);
+].map(withGenomeAndTrends));
 
 /** Every prior band and every evidence row needs one, so it is worth asserting. */
 export const missingSources = (catalog: Catalog = CATALOG): string[] => [

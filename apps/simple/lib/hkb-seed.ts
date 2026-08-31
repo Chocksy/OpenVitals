@@ -19,8 +19,10 @@ import {
   hkbPriors,
   hkbTests,
 } from "@/db";
+import { sql } from "drizzle-orm";
 import { GENOME_CATALOG } from "./genome-catalog";
 import { CATALOG } from "./hkb-catalog";
+import { EXOME_TEST } from "./infogain";
 import {
   featureIdOf,
   recordRevision,
@@ -35,7 +37,7 @@ import {
   type EvidenceRule,
 } from "./hypotheses";
 import { SYMPTOM_KEYS, symptomByKey } from "./symptoms";
-import { PROFILE_QUESTIONS } from "./vectors";
+import { DEFAULT_REF_HIGH, PROFILE_QUESTIONS } from "./vectors";
 
 /** "OGTT with insulin" → "ogtt_with_insulin". Stable, so re-seeds update. */
 export const testId = (name: string) =>
@@ -94,8 +96,10 @@ export function catalogRows(catalog: Catalog = HYPOTHESES): CatalogRows {
     const symptom = kind === "fact" && SYMPTOM_KEYS.has(name);
     // A rule that reads a `genome:` answer reads a genotype, not an answer.
     const gene = GENOME_CATALOG.find((r) => r.factKey === name);
+    const code = kind === "metric" ? name : null;
     const found = features.get(id) ?? {
       id,
+      defaultRefHigh: code ? (DEFAULT_REF_HIGH[code] ?? null) : null,
       kind: gene ? "genetic" : symptom ? "symptom" : (KIND[kind] ?? kind),
       name: gene
         ? gene.gene
@@ -243,6 +247,23 @@ function testRow(id: string, d: Discriminator): CatalogRows["tests"][number] {
  */
 export async function seedHkb(catalog: Catalog = CATALOG) {
   const rows = catalogRows(catalog);
+  // The exome belongs to no single condition, so no discriminator carries it
+  // and `catalogRows` never sees it. The row still has to exist: /hkb lists it
+  // and the path prints its price.
+  rows.tests.push({
+    id: EXOME_TEST.id,
+    name: EXOME_TEST.name,
+    featureIds: ["genome:gla", "genome:atp7b", "genome:serpina1"],
+    cost: EXOME_TEST.cost,
+    costByCountry: EXOME_TEST.costByCountry,
+    invasiveness: 1,
+    lrPos: EXOME_TEST.lrPos,
+    lrNeg: EXOME_TEST.lrNeg,
+    typicalPos: null,
+    typicalNeg: null,
+    repeatable: false,
+    howTo: EXOME_TEST.howTo,
+  });
   const db = getDb();
 
   for (const c of rows.conditions)
@@ -251,11 +272,20 @@ export async function seedHkb(catalog: Catalog = CATALOG) {
       .values(c)
       .onConflictDoUpdate({ target: hkbConditions.id, set: withoutId(c) });
 
+  // Like `cost_by_country` below: a unit the importer or a human already
+  // filled in is not wiped by a re-seed, because the catalog has no unit of
+  // its own for most chemistry.
   for (const f of rows.features)
     await db
       .insert(hkbFeatures)
       .values(f)
-      .onConflictDoUpdate({ target: hkbFeatures.id, set: withoutId(f) });
+      .onConflictDoUpdate({
+        target: hkbFeatures.id,
+        set: {
+          ...withoutId(f),
+          unit: sql`coalesce(excluded.unit, ${hkbFeatures.unit})`,
+        },
+      });
 
   // `cost_by_country` is written by the price importer, never by the seed, so
   // it is left out of the update set: a re-seed must not wipe the prices.

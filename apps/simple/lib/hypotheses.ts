@@ -626,6 +626,26 @@ const IRON_DEFICIENCY: Hypothesis = {
       confoundedBy: ["ferritin"],
     },
     {
+      id: "iron_ferritin_100",
+      input: { metric: "ferritin" },
+      when: { above: 100 },
+      lr: 0.08,
+      grade: "A",
+      source:
+        "Guyatt 1992 J Gen Intern Med (meta-analysis of ferritin against marrow iron): a ferritin over 100 ng/mL has an LR near 0.08 for absent stores. Mast 1998 Clin Chem confirms the same direction in an unselected series. Without this the engine has only one side of the ferritin test and will not order it.",
+      confoundedBy: ["ferritin"],
+    },
+    {
+      id: "iron_ferritin_45_100",
+      input: { metric: "ferritin" },
+      when: { above: 45, below: 100 },
+      lr: 0.25,
+      grade: "A",
+      source:
+        "Guyatt 1992 J Gen Intern Med: the 45-100 ng/mL band carries an LR near 0.25 for absent marrow iron. Mast 1998 Clin Chem puts the same band between 0.2 and 0.3.",
+      confoundedBy: ["ferritin"],
+    },
+    {
       id: "iron_tsat",
       input: { metric: "transferrin_saturation" },
       when: { below: 20 },
@@ -1306,6 +1326,16 @@ const B12_DEFICIENCY: Hypothesis = {
         "Stabler 2013 NEJM: homocysteine rises in B12 and folate deficiency both.",
     },
     {
+      id: "b12_tingling",
+      input: { fact: "sym_tingling" },
+      when: { equals: "Yes" },
+      lr: 3,
+      lrNeg: 0.8,
+      grade: "C",
+      source:
+        "Stabler 2013 NEJM: paraesthesiae are the commonest neurological presentation of B12 deficiency and can precede the anaemia by years. Grade C: pins and needles have many causes, so 3 is the order of the contrast rather than a measured ratio.",
+    },
+    {
       id: "b12_mma",
       input: { metric: "methylmalonic_acid" },
       when: { above: 0.4 },
@@ -1370,7 +1400,48 @@ const B12_DEFICIENCY: Hypothesis = {
     "Confirm a borderline B12 with methylmalonic acid before treating, because treatment erases the evidence. Then 1000 µg oral daily, or injections if there is neurological involvement or an absorption problem. Retest at three months and look for the cause: diet, metformin, PPIs, or the stomach.",
 };
 
-export const HYPOTHESES: Hypothesis[] = [
+/**
+ * A test can only be worth ordering when the engine knows what a normal result
+ * would mean. Where a discriminator carries an `lrNeg` and the one evidence
+ * rule that reads its marker carries only an `lr`, the test's own negative
+ * ratio becomes that rule's `lrNeg`, so `outcomeProbs` sees both branches.
+ *
+ * Only markers with exactly one rule are touched. Two rules on one marker
+ * (`tsh above 4.5` and `tsh 2.5-4.5`) already describe the region between
+ * them, and adding a third opinion there would let a normal TSH out-shout the
+ * band rule that was written for it.
+ */
+export function withNegatives(catalog: Catalog): Catalog {
+  return catalog.map((h) => {
+    // A trend rule is about the direction, not about the level, so it is not
+    // the "second opinion" that makes a marker ambiguous.
+    const rulesOn = (code: string) =>
+      h.evidence.filter(
+        (e) => e.input.metric === code && !e.when.slopePerYear,
+      );
+    const patch = new Map<string, number>();
+    for (const d of h.discriminators) {
+      if (d.lrNeg == null || d.lrNeg >= 1) continue;
+      for (const code of d.codes) {
+        const rules = rulesOn(code);
+        if (rules.length !== 1) continue;
+        const rule = rules[0]!;
+        if (rule.lrNeg != null || rule.lr <= 1) continue;
+        if (rule.when.slopePerYear) continue; // no slope is not a flat slope
+        patch.set(rule.id, Math.min(d.lrNeg, patch.get(rule.id) ?? 1));
+      }
+    }
+    if (!patch.size) return h;
+    return {
+      ...h,
+      evidence: h.evidence.map((e) =>
+        patch.has(e.id) ? { ...e, lrNeg: patch.get(e.id)! } : e,
+      ),
+    };
+  });
+}
+
+export const HYPOTHESES: Hypothesis[] = withNegatives([
   INSULIN_RESISTANCE,
   HASHIMOTO,
   IRON_DEFICIENCY,
@@ -1379,7 +1450,7 @@ export const HYPOTHESES: Hypothesis[] = [
   SLEEP_APNOEA,
   NAFLD,
   B12_DEFICIENCY,
-];
+]);
 
 /* ── the engine ───────────────────────────────────────────────────────── */
 
@@ -1642,6 +1713,11 @@ function holds(when: EvidenceRule["when"], r: Resolved): boolean | null {
   }
   if (when.status != null) {
     if (!r.row) return null;
+    // A marker with no reference range and no optimal band has status "gray",
+    // which means "nobody said", not "in range". Scoring it as a negative is
+    // how a tTG of 68 with no printed range used to argue against coeliac
+    // disease. Unknown goes to `missing`.
+    if (r.row.status === "gray") return null;
     checks.push(r.row.status === when.status);
   }
   if (when.aboveOptimal) {

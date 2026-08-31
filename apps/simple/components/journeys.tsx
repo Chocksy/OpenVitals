@@ -182,6 +182,9 @@ function DiscoveryTrack({
       ))}
 
       {series.map((s) => {
+        // Every value on a true condition's line, in per cent, so the curve
+        // reads as "5 → 12 → 31 → 83" without hovering anything.
+        const labels = s.isTruth || s.falseAt != null;
         const stroke = s.isTruth
           ? LINE[colour++ % LINE.length]!
           : s.falseAt != null
@@ -198,7 +201,34 @@ function DiscoveryTrack({
             >
               <title>{`${s.id}: ${s.points.map(pctOf).join(" → ")}`}</title>
             </path>
-            {(s.isTruth || s.falseAt != null) && (
+            {labels &&
+              s.points.map((p, i) =>
+                i > 0 && p === s.points[i - 1] ? null : (
+                  <text
+                    key={`${s.id}-${i}`}
+                    x={at(i)}
+                    y={y(p) - 4}
+                    textAnchor="middle"
+                    className="font-mono text-[8px] tabular-nums"
+                    fill={stroke}
+                  >
+                    {pctOf(p)}
+                  </text>
+                ),
+              )}
+            {s.points.map((p, i) => (
+              <circle
+                key={`${s.id}-dot-${i}`}
+                cx={at(i)}
+                cy={y(p)}
+                r={hover === i ? 3 : 1.5}
+                fill={stroke}
+                opacity={labels ? 1 : 0.5}
+              >
+                <title>{`${s.id} at step ${i}: ${pctOf(p)} %`}</title>
+              </circle>
+            ))}
+            {labels && (
               <text
                 x={W - PAD.right + 6}
                 y={labelY(s.points[s.points.length - 1]!)}
@@ -298,6 +328,15 @@ function StepStrip({
             <p className="mt-1 font-body text-[12px] leading-snug text-neutral-800">
               {step.move.label}
             </p>
+            <span className="flex flex-wrap gap-1">
+              {step.move.specialPath && (
+                <Badge variant="info">special path</Badge>
+              )}
+              {step.move.pursue && <Badge variant="warning">follows a signal</Badge>}
+              {step.overBudget && (
+                <Badge variant="secondary">over the guide</Badge>
+              )}
+            </span>
             <p className="mt-1 font-mono text-[11px] text-neutral-600">
               → {step.outcome}
             </p>
@@ -352,17 +391,40 @@ function Verdict({
           ? `step ${result.discoveredAt[id]}`
           : "never reached 60%",
     });
-  if (journey.expect.withinSteps != null)
+  if (journey.expect.withinDraws != null) {
+    const draws = result.steps.filter((s) => s.costEur > 0).length;
     lines.push({
-      label: `within ${journey.expect.withinSteps} steps`,
-      ok: result.steps.length <= journey.expect.withinSteps,
-      detail: `${result.steps.length} steps`,
+      label: `within ${journey.expect.withinDraws} draws`,
+      ok: draws <= journey.expect.withinDraws,
+      detail: `${draws} draws, ${result.steps.length - draws} free questions`,
     });
-  if (journey.expect.withinEur != null)
+  }
+  // Money is reported, never failed: the budget is a guide.
+  lines.push({
+    label: "money",
+    ok: true,
+    detail: `spent ${money(result.totalEur)}${
+      journey.budget ? ` (guide ${money(journey.budget)})` : ""
+    }`,
+  });
+  for (const [id, want] of Object.entries(journey.expect.reaches ?? {})) {
+    const peak = Math.max(
+      result.prior[id] ?? 0,
+      ...result.steps.map((s) => s.beliefs[id] ?? 0),
+    );
     lines.push({
-      label: `within ${money(journey.expect.withinEur)}`,
-      ok: result.totalEur <= journey.expect.withinEur,
-      detail: money(result.totalEur),
+      label: `${id} reaches ${(want * 100).toFixed(2)} %`,
+      ok: peak >= want,
+      detail: `${(peak * 100).toFixed(2)} %`,
+    });
+  }
+  for (const never of journey.expect.notOrders ?? [])
+    lines.push({
+      label: `never orders ${never}`,
+      ok: !result.steps.some((s) => s.move.label.includes(never)),
+      detail: result.steps.some((s) => s.move.label.includes(never))
+        ? "ordered"
+        : "not ordered",
     });
   if (journey.expect.noFalseLikely)
     lines.push({

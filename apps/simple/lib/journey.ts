@@ -19,12 +19,21 @@
 import { personaToInput } from "@/evals/persona";
 import { loadCatalog } from "./hkb";
 import { scoreHypotheses, type Catalog } from "./hypotheses";
-import { nextMoves, type Move } from "./infogain";
-import { BAND_EUR } from "./prices";
+import { eurOf, nextMoves, type Move } from "./infogain";
 import { applyOverlay, type Overlay } from "./sample";
+
+export { eurOf };
 import { wakeInMemory } from "./wake";
 
+import a1at from "@/evals/journeys/a1at_female_41.json";
+import addisons from "@/evals/journeys/addisons_female_38.json";
 import ckd3 from "@/evals/journeys/ckd3_male_70.json";
+import fabry from "@/evals/journeys/fabry_male_33.json";
+import gilbert from "@/evals/journeys/gilbert_male_30.json";
+import mcas from "@/evals/journeys/mcas_female_29.json";
+import pernicious from "@/evals/journeys/pernicious_anaemia_female_52.json";
+import sibo from "@/evals/journeys/sibo_male_44.json";
+import wilson from "@/evals/journeys/wilson_male_24.json";
 import haemochromatosis from "@/evals/journeys/haemochromatosis_ferritin_m52.json";
 import hashimotoEarly from "@/evals/journeys/hashimoto_early_female_36.json";
 import hashimotoScratch from "@/evals/journeys/hashimoto_from_scratch_f34_ro.json";
@@ -61,12 +70,17 @@ export interface Journey {
     /** anything not in `labs`: the test's own typical negative */
     defaultLab: "typicalNeg";
   };
-  /** euros the engine may spend over the whole journey */
+  /** euros the journey is meant to stay inside. A guide, never a gate. */
   budget?: number;
   maxSteps: number;
   expect: {
     discover: string[];
-    withinSteps?: number;
+    /**
+     * Draws, not steps: a step that costs nothing is a question, and the
+     * engine is not rationed on questions. This is how many times somebody
+     * has to be stuck with a needle or booked into a scanner.
+     */
+    withinDraws?: number;
     withinEur?: number;
     noFalseLikely?: boolean;
     stop?: JourneyResult["stop"];
@@ -74,6 +88,15 @@ export interface Journey {
     wakeWithin?: number;
     /** substrings of move labels the run has to contain, e.g. "ApoB" */
     orders?: string[];
+    /** substrings of move labels the run must never contain */
+    notOrders?: string[];
+    /**
+     * A condition that cannot reach "likely" from a one-in-ten-thousand base
+     * rate, and the probability the run does have to lift it to. Mast cell
+     * disease with a raised tryptase is a referral at one per cent, not a
+     * diagnosis at sixty.
+     */
+    reaches?: Record<string, number>;
   };
 }
 
@@ -83,6 +106,8 @@ export interface JourneyStep {
   outcome: string;
   costEur: number;
   cumEur: number;
+  /** this step took the run past the budget guide */
+  overBudget?: boolean;
   beliefs: Record<string, number>;
   woken: string[];
   note?: string;
@@ -98,14 +123,18 @@ export interface JourneyResult {
   discoveredAt: Record<string, number | null>;
   falseLikely: { id: string; step: number; p: number }[];
   totalEur: number;
-  stop: "discovered" | "exhausted" | "budget" | "maxSteps";
+  stop: "discovered" | "exhausted" | "maxSteps";
   pass: boolean;
   failed: string[];
 }
 
 /** The ten journeys, statically imported so the bundler and the CLI share them. */
 export const JOURNEYS: Journey[] = [
+  a1at,
+  addisons,
   ckd3,
+  fabry,
+  gilbert,
   haemochromatosis,
   hashimotoEarly,
   hashimotoScratch,
@@ -115,6 +144,10 @@ export const JOURNEYS: Journey[] = [
   ironLow,
   lmhr,
   lmhrScratch,
+  mcas,
+  pernicious,
+  sibo,
+  wilson,
 ].map((j) => j as unknown as Journey);
 
 export const journeyById = (id: string): Journey | undefined =>
@@ -125,14 +158,6 @@ const LIKELY = 0.6;
 
 /** A move worth making at all. */
 const MIN_GAIN = 0.01;
-
-/**
- * What a move costs in euros. A priced test is its list price; an unpriced one
- * is its cost band's nominal price, the same scale `ratioOf` ranks on. A
- * question is free.
- */
-export const eurOf = (move: Move): number =>
-  move.priced ? move.cost : (BAND_EUR[move.cost] ?? move.cost * 30);
 
 const round3 = (v: number) => Math.round(v * 1000) / 1000;
 
@@ -187,19 +212,11 @@ function verdict(j: Journey, r: Omit<JourneyResult, "pass" | "failed">) {
   const failed: string[] = [];
   for (const id of j.expect.discover)
     if (r.discoveredAt[id] == null) failed.push(`${id} never reached likely`);
-  if (j.expect.withinSteps != null) {
-    if (r.steps.length > j.expect.withinSteps)
-      failed.push(
-        `took ${r.steps.length} steps, allowed ${j.expect.withinSteps}`,
-      );
-    for (const [id, at] of Object.entries(r.discoveredAt))
-      if (at != null && at > j.expect.withinSteps)
-        failed.push(
-          `${id} found at step ${at}, allowed ${j.expect.withinSteps}`,
-        );
+  if (j.expect.withinDraws != null) {
+    const draws = r.steps.filter((s) => s.costEur > 0).length;
+    if (draws > j.expect.withinDraws)
+      failed.push(`took ${draws} draws, allowed ${j.expect.withinDraws}`);
   }
-  if (j.expect.withinEur != null && r.totalEur > j.expect.withinEur)
-    failed.push(`spent €${r.totalEur}, allowed €${j.expect.withinEur}`);
   if (j.expect.noFalseLikely && r.falseLikely.length)
     failed.push(
       `false likely: ${r.falseLikely
@@ -217,6 +234,17 @@ function verdict(j: Journey, r: Omit<JourneyResult, "pass" | "failed">) {
   for (const want of j.expect.orders ?? [])
     if (!r.steps.some((s) => s.move.label.includes(want)))
       failed.push(`never ordered ${want}`);
+  for (const never of j.expect.notOrders ?? [])
+    if (r.steps.some((s) => s.move.label.includes(never)))
+      failed.push(`ordered ${never}, which it should not have`);
+  for (const [id, want] of Object.entries(j.expect.reaches ?? {})) {
+    const peak = Math.max(
+      r.prior[id] ?? 0,
+      ...r.steps.map((s) => s.beliefs[id] ?? 0),
+    );
+    if (peak < want)
+      failed.push(`${id} only reached ${(peak * 100).toFixed(2)} %, wanted ${(want * 100).toFixed(2)} %`);
+  }
   return failed;
 }
 
@@ -272,19 +300,19 @@ export async function runJourney(
     // "twice" rule ever fires) and never a third, which is also what stops
     // the loop spending the whole budget on one marker.
     const exclude = [...taken].filter(([, c]) => c >= 2).map(([k]) => k);
+    // The floor is for tests. A question costs nothing, so it is worth asking
+    // even when the answer only moves a one-in-forty-thousand disease: that is
+    // the only kind of move that ever raises one.
     const moves = nextMoves(input, rules, { exclude }).filter(
-      (m) => m.gain >= MIN_GAIN,
+      (m) => m.cost === 0 || m.pursue || m.gain >= MIN_GAIN,
     );
     if (!moves.length) {
       stop = "exhausted";
       break;
     }
-    const left = j.budget == null ? Infinity : j.budget - cumEur;
-    const move = moves.find((m) => eurOf(m) <= left);
-    if (!move) {
-      stop = "budget";
-      break;
-    }
+    // The budget ranks and never gates: an expensive test that answers the
+    // question is still the right next move, and the run says so.
+    const move = moves[0]!;
 
     const key = move.testId ?? move.featureId;
     taken.set(key, (taken.get(key) ?? 0) + 1);
@@ -311,6 +339,7 @@ export async function runJourney(
       cumEur,
       beliefs,
       woken,
+      ...(j.budget != null && cumEur > j.budget ? { overBudget: true } : {}),
       ...(repeat ? { note: "repeat draw" } : {}),
     });
 

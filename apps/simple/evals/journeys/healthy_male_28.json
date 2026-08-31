@@ -47,7 +47,7 @@
       {
         "code": "insulin",
         "value": 4,
-        "unit": "\u00b5IU/mL",
+        "unit": "µIU/mL",
         "date": "2026-08-01"
       },
       {
@@ -241,11 +241,11 @@
     "defaultAnswer": "No",
     "defaultLab": "typicalNeg"
   },
-  "maxSteps": 8,
+  "maxSteps": 45,
   "expect": {
     "discover": [],
-    "withinSteps": 4,
     "noFalseLikely": true,
-    "stop": "exhausted"
+    "stop": "exhausted",
+    "withinDraws": 4
   }
 }

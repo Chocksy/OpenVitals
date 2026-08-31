@@ -1,0 +1,134 @@
+{
+  "id": "a1at_female_41",
+  "title": "Breathless and never smoked, woman 41: alpha-1 antitrypsin deficiency",
+  "today": "2026-08-31",
+  "start": {
+    "facts": {
+      "sex": "female",
+      "birth_year": 1985,
+      "country": "RO",
+      "height_cm": "170",
+      "smoking": "Never"
+    },
+    "readings": [
+      {
+        "code": "alt",
+        "value": 55,
+        "unit": "U/L",
+        "date": "2026-08-12"
+      },
+      {
+        "code": "ast",
+        "value": 40,
+        "unit": "U/L",
+        "date": "2026-08-12"
+      },
+      {
+        "code": "ggt",
+        "value": 30,
+        "unit": "U/L",
+        "date": "2026-08-12"
+      },
+      {
+        "code": "hemoglobin",
+        "value": 13.4,
+        "unit": "g/dL",
+        "date": "2026-08-12"
+      },
+      {
+        "code": "glucose",
+        "value": 90,
+        "unit": "mg/dL",
+        "date": "2026-08-12"
+      },
+      {
+        "code": "creatinine",
+        "value": 0.78,
+        "unit": "mg/dL",
+        "date": "2026-08-12"
+      }
+    ]
+  },
+  "truth": {
+    "conditions": [
+      "a1at_deficiency"
+    ],
+    "answers": {
+      "sym_phq2_interest": "Not at all",
+      "sym_phq2_down": "Not at all",
+      "sym_alcohol": "Monthly or less",
+      "sleep_snoring": "No",
+      "conditions": "none",
+      "medications": "No",
+      "supplements": "No",
+      "smoking": "Never",
+      "screening_dates": "none",
+      "sym_breathless": "Yes",
+      "sym_energy": "Yes",
+      "sym_weight": "No",
+      "sym_cold": "No",
+      "sym_bowel": "Neither",
+      "sym_thirst": "No",
+      "sym_joint": "No",
+      "sym_sleepiness": "No",
+      "sym_hair_skin": "No",
+      "sym_tingling": "No",
+      "sym_tremor": "No",
+      "sym_acroparesthesia": "No",
+      "sym_anhidrosis": "No",
+      "sym_flushing": "No",
+      "sym_hives": "No",
+      "sym_bloating": "No",
+      "sym_salt_craving": "No",
+      "sym_dizzy_standing": "No",
+      "sym_cycle": "Regular",
+      "menopause_status": "Pre",
+      "cycle_phase_at_last_draw": "Follicular",
+      "family_history": "brother emphysema at 50",
+      "waist_cm": "78",
+      "bp_home": "118/74",
+      "resting_hr": "72",
+      "grip_kg": "28"
+    },
+    "labs": {
+      "aat_level": 45,
+      "aat_phenotype": 1,
+      "ceruloplasmin": 28,
+      "hbs_ag_screening": 0,
+      "hcv_antibodies": 0,
+      "ferritin": 70,
+      "transferrin_saturation": 28,
+      "tsh": 2.0,
+      "free_t4": 1.2,
+      "tpo_antibodies": 8,
+      "vitamin_d": 25,
+      "vitamin_b12": 430,
+      "hba1c": 5.2,
+      "insulin": 6,
+      "ldl_cholesterol": 110,
+      "hdl_cholesterol": 62,
+      "total_cholesterol": 186,
+      "triglycerides": 72,
+      "hs_crp": 1.1,
+      "fibroscan_kpa": 6.0,
+      "liver_ultrasound": 1,
+      "reticulocyte_hemoglobin": 31,
+      "alpha_gal_a": 8,
+      "urine_copper_24h": 22
+    },
+    "defaultAnswer": "No",
+    "defaultLab": "typicalNeg"
+  },
+  "budget": 200,
+  "maxSteps": 45,
+  "expect": {
+    "discover": [
+      "a1at_deficiency"
+    ],
+    "withinEur": 150,
+    "orders": [
+      "Alpha-1 antitrypsin level"
+    ],
+    "withinDraws": 8
+  }
+}

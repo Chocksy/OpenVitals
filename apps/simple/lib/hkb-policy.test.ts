@@ -96,10 +96,37 @@ describe("decide", () => {
     ).toBe("accepted");
   });
 
-  it("rejects a unit that will not convert to the feature's own", () => {
+  it("holds a unit that will not convert to the feature's own", () => {
+    // Held, not rejected: the finding may be real and the row is kept for a
+    // human, but it does not score until somebody says what the number means.
     expect(
       decide({ ...clean, featureUnit: "ng/mL", targetUnit: "mIU/L" }),
-    ).toBe("rejected");
+    ).toBe("held");
+    expect(statusOf(decide({ ...clean, featureUnit: "ng/mL", targetUnit: "mIU/L" })))
+      .toEqual({ status: "review", needsLook: true });
+  });
+
+  it("holds a threshold the marker could never take", () => {
+    // 6.3 mmol/L filed against a mg/dL glucose feature: every living adult.
+    expect(
+      decide({
+        ...clean,
+        featureId: "metric:glucose",
+        conditionOn: { above: 6.3 },
+        numbers: [6.3],
+        quote: "an optimal cutoff of 6.3 mmol/L yielding 73% sensitivity",
+      }),
+    ).toBe("held");
+    // The same paper's number, converted, is an ordinary accepted row.
+    expect(
+      decide({
+        ...clean,
+        featureId: "metric:glucose",
+        conditionOn: { above: 113 },
+        numbers: [6.3],
+        quote: "an optimal cutoff of 6.3 mmol/L yielding 73% sensitivity",
+      }),
+    ).toBe("accepted");
   });
 
   it("rejects a quote with no number in it", () => {

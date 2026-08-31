@@ -6,6 +6,7 @@
  */
 import {
   optimalFor,
+  refHighFor,
   toAge,
   toSex,
   type LatestValue,
@@ -68,6 +69,7 @@ export function personaToInput(p: Persona): ModelInput {
       r.optimalLow ?? null,
       r.optimalHigh ?? null,
     ]);
+    const refHigh = refHighFor(r.code, r.refHigh);
     latest[r.code] = {
       value: r.value,
       unit: r.unit ?? null,
@@ -75,14 +77,14 @@ export function personaToInput(p: Persona): ModelInput {
       status: statusOf({
         value: r.value,
         refLow: r.refLow ?? null,
-        refHigh: r.refHigh ?? null,
+        refHigh,
         optimalLow,
         optimalHigh,
       }),
       optimalLow,
       optimalHigh,
       refLow: r.refLow ?? null,
-      refHigh: r.refHigh ?? null,
+      refHigh,
       prev: r.prev ?? null,
     };
   }

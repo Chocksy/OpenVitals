@@ -28,6 +28,7 @@ import {
   LIST_FACTS,
   PROFILE_QUESTIONS,
   RULES,
+  DEFAULT_REF_HIGH,
   SEX_RANGES,
   VECTORS,
   type Rule,
@@ -116,6 +117,16 @@ export type OptimalOverrides = Map<string, [number | null, number | null]>;
  * sex-specific default, then the shared catalog columns. Never touches the lab
  * range.
  */
+/**
+ * The reference top for a marker: what the lab printed, else the marker's own
+ * default cut-off. Without it `statusOf` calls a positive serology "gray" and
+ * every rule that reads a status becomes unanswerable.
+ */
+export const refHighFor = (
+  code: string,
+  printed: number | null | undefined,
+): number | null => printed ?? DEFAULT_REF_HIGH[code] ?? null;
+
 export function optimalFor(
   code: string,
   sex: Sex | undefined,
@@ -162,6 +173,7 @@ export async function buildModelInput(
     const withValue = m.rows.filter((r) => r.value != null);
     // `getMetricRows` already resolved override -> sex -> catalog.
     const [optimalLow, optimalHigh] = [m.optimalLow, m.optimalHigh];
+    const refHigh = refHighFor(m.code, m.latest.refHigh);
     latest[m.code] = {
       value: m.latest.value,
       unit: m.latest.unit ?? m.unit,
@@ -169,14 +181,14 @@ export async function buildModelInput(
       status: statusOf({
         value: m.latest.value,
         refLow: m.latest.refLow,
-        refHigh: m.latest.refHigh,
+        refHigh,
         optimalLow,
         optimalHigh,
       }),
       optimalLow,
       optimalHigh,
       refLow: m.latest.refLow,
-      refHigh: m.latest.refHigh,
+      refHigh,
       prev: withValue[withValue.length - 2]?.value ?? null,
       slope: slopePerYear(m.points, today),
     };

@@ -1060,6 +1060,95 @@ export const SEX_RANGES: Record<
 };
 
 /**
+ * What a living person can read, in the metric's own canonical unit. A CBC
+ * count inside these bounds is never implausible however the lab printed its
+ * range, and one outside them always is. Everything else falls back to 50x
+ * outside the printed range.
+ */
+export const BOUNDS: Record<string, [number, number]> = {
+  wbc: [0.5, 100], // K/uL
+  rbc: [1, 10], // M/uL
+  platelets: [5, 2000], // K/uL
+  neutrophils_abs: [0.01, 80], // K/uL
+  lymphocytes_abs: [0.05, 60], // K/uL
+  monocytes_abs: [0.01, 20], // K/uL
+  eosinophils_abs: [0.001, 20], // K/uL
+  basophils_abs: [0.001, 10], // K/uL
+  hemoglobin: [2, 25], // g/dL
+  hematocrit: [10, 70], // %
+};
+
+
+/**
+ * The reference top a marker has when the lab printed none.
+ *
+ * A serology is only readable against a cut-off, and a simulated draw, a
+ * questionnaire answer and a paper's typical value all arrive without one. The
+ * engine used to read "no range" as "in range", so a tTG of 68 argued against
+ * coeliac disease. These are the manufacturer or guideline cut-offs, one per
+ * marker, and they are only ever a fallback: a range the lab printed always
+ * wins.
+ *
+ * A categorical test (positive/negative, written 1/0) gets 0.5, which is the
+ * same statement in the only unit it has.
+ */
+export const DEFAULT_REF_HIGH: Record<string, number> = {
+  // U/mL. Husby 2020 ESPGHAN / Rubio-Tapia 2023 ACG: the coeliac serologies
+  // are read against the assay's upper limit of normal, conventionally 10.
+  ttg_iga: 10,
+  dgp_iga: 10,
+  dgp_igg: 10,
+  // IU/mL. Caturegli 2014 Autoimmun Rev: 34 IU/mL is the usual anti-TPO limit.
+  tpo_antibodies: 34,
+  // IU/mL. Same assay family; 115 is the conventional anti-Tg limit.
+  anti_thyroglobulin: 115,
+  // Categorical, reported as positive or negative.
+  ema_iga: 0.5,
+  antibodie_endomysial_iga: 0.5,
+  hbs_ag_screening: 0.5,
+  hcv_antibodies: 0.5,
+  hcv_rna: 0.5,
+  parietal_cell_antibodies: 0.5,
+  intrinsic_factor_antibodies: 0.5,
+  h_pylori_stool_antigen: 0.5,
+  fobt: 0.5,
+  hla_dq2_dq8: 0.5,
+  hfe_genotype: 0.5,
+  synovial_urate_crystals: 0.5,
+  // ng/mL. Valent 2021 Blood: 11.4 is the upper reference limit for baseline
+  // serum tryptase.
+  tryptase: 11.4,
+  // mmol/L. Kovesdy 2014 (KDIGO controversies): 5.0-5.5 is the usual upper
+  // limit for serum potassium.
+  potassium: 5.1,
+  // mg/dL. Fevery 2008 Liver Int: the conventional upper limit for total and
+  // unconjugated bilirubin.
+  total_bilirubin: 1.2,
+  indirect_bilirubin: 1.2,
+  // µg/24h. EASL 2012: over 40 µg is abnormal, over 100 is diagnostic.
+  urine_copper_24h: 40,
+  // µg/g. Menees 2015 Am J Gastroenterol: 50 µg/g is the usual cut-off for
+  // faecal calprotectin.
+  calprotectin: 50,
+  // ppm rise. Rezaie 2017 North American Consensus: 20 ppm within 90 minutes.
+  breath_h2_peak: 20,
+  // index 1-5. Casén 2015 Aliment Pharmacol Ther: above 2 is dysbiosis.
+  dysbiosis_index: 2.5,
+  // Categorical: a phenotype report is positive or negative.
+  aat_phenotype: 0.5,
+  // U/L. Kwo 2017 Am J Gastroenterol (ACG): the conventional laboratory upper
+  // limit. The sex-specific optimal band in `SEX_RANGES` is lower and is what
+  // "amber" reads; this is the line that makes a value abnormal rather than
+  // merely non-optimal.
+  alt: 40,
+  ast: 40,
+  ggt: 60,
+  // mg/g. KDIGO 2024: an albumin-creatinine ratio of 30 mg/g or more is
+  // albuminuria, whatever the eGFR.
+  urine_albumin_creatinine_ratio: 30,
+};
+
+/**
  * The doses the app refuses to print, whatever the model says. The check is
  * blunt on purpose: match the substance in the title, read the first number in
  * the dose, compare.

@@ -1,0 +1,133 @@
+{
+  "id": "sibo_male_44",
+  "title": "Bloating with a low B12 and a high folate, man 44: bacterial overgrowth",
+  "today": "2026-08-31",
+  "start": {
+    "facts": {
+      "sex": "male",
+      "birth_year": 1982,
+      "country": "RO",
+      "height_cm": "180",
+      "medications": "omeprazole 20 mg for reflux"
+    },
+    "readings": [
+      {
+        "code": "vitamin_b12",
+        "value": 240,
+        "unit": "pg/mL",
+        "date": "2026-08-08"
+      },
+      {
+        "code": "folic_acid",
+        "value": 26,
+        "unit": "ng/mL",
+        "date": "2026-08-08"
+      },
+      {
+        "code": "hemoglobin",
+        "value": 14.6,
+        "unit": "g/dL",
+        "date": "2026-08-08"
+      },
+      {
+        "code": "mcv",
+        "value": 92,
+        "unit": "fL",
+        "date": "2026-08-08"
+      },
+      {
+        "code": "glucose",
+        "value": 94,
+        "unit": "mg/dL",
+        "date": "2026-08-08"
+      },
+      {
+        "code": "creatinine",
+        "value": 0.94,
+        "unit": "mg/dL",
+        "date": "2026-08-08"
+      }
+    ]
+  },
+  "truth": {
+    "conditions": [
+      "sibo"
+    ],
+    "answers": {
+      "sym_phq2_interest": "Not at all",
+      "sym_phq2_down": "Not at all",
+      "sym_alcohol": "Monthly or less",
+      "sleep_snoring": "No",
+      "conditions": "none",
+      "medications": "omeprazole 20 mg for reflux",
+      "supplements": "No",
+      "smoking": "Never",
+      "screening_dates": "none",
+      "sym_bloating": "Yes",
+      "sym_bowel": "Diarrhoea and bloating",
+      "sym_energy": "Yes",
+      "sym_weight": "No",
+      "sym_cold": "No",
+      "sym_thirst": "No",
+      "sym_joint": "No",
+      "sym_sleepiness": "No",
+      "sym_hair_skin": "No",
+      "sym_tingling": "No",
+      "sym_tremor": "No",
+      "sym_breathless": "No",
+      "sym_acroparesthesia": "No",
+      "sym_anhidrosis": "No",
+      "sym_flushing": "No",
+      "sym_hives": "No",
+      "sym_salt_craving": "No",
+      "sym_dizzy_standing": "No",
+      "family_history": "none known",
+      "waist_cm": "88",
+      "bp_home": "122/78",
+      "resting_hr": "68",
+      "grip_kg": "44"
+    },
+    "labs": {
+      "breath_h2_peak": 35,
+      "dysbiosis_index": 4,
+      "calprotectin": 22,
+      "elastase": 420,
+      "ttg_iga": 2,
+      "methylmalonic_acid": 0.35,
+      "homocysteine": 11,
+      "ferritin": 110,
+      "transferrin_saturation": 29,
+      "tsh": 2.2,
+      "free_t4": 1.2,
+      "vitamin_d": 26,
+      "hba1c": 5.3,
+      "insulin": 8,
+      "ldl_cholesterol": 120,
+      "hdl_cholesterol": 50,
+      "total_cholesterol": 190,
+      "triglycerides": 110,
+      "hs_crp": 1.0,
+      "alt": 26,
+      "parietal_cell_antibodies": 0,
+      "intrinsic_factor_antibodies": 0,
+      "gastrin": 60,
+      "pepsinogen_i": 70,
+      "reticulocyte_hemoglobin": 32,
+      "h_pylori_stool_antigen": 0
+    },
+    "defaultAnswer": "No",
+    "defaultLab": "typicalNeg"
+  },
+  "budget": 250,
+  "maxSteps": 45,
+  "expect": {
+    "discover": [
+      "sibo"
+    ],
+    "withinEur": 200,
+    "orders": [
+      "breath test"
+    ],
+    "withinDraws": 8
+  }
+}

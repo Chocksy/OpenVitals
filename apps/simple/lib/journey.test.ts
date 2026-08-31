@@ -7,7 +7,10 @@
  * the tables.
  */
 import { describe, expect, it } from "vitest";
+import { personaToInput } from "@/evals/persona";
+import { CATALOG } from "./hkb-catalog";
 import { HYPOTHESES } from "./hypotheses";
+import { nextMoves } from "./infogain";
 import { eurOf, journeyById, runJourney } from "./journey";
 
 describe("runJourney", () => {
@@ -17,7 +20,7 @@ describe("runJourney", () => {
 
     expect(r.discoveredAt.hashimoto).not.toBeNull();
     expect(r.discoveredAt.hashimoto!).toBeLessThanOrEqual(
-      j.expect.withinSteps!,
+      j.expect.withinDraws!,
     );
     // Every step is one move the engine chose, paid for and answered.
     expect(r.steps.length).toBeGreaterThan(0);
@@ -53,5 +56,46 @@ describe("runJourney", () => {
       for (const [code, value] of Object.entries(j.truth.labs))
         if (step.outcome.includes(`${code} `))
           expect(step.outcome).toContain(`${code} ${value}`);
+  });
+
+  it("offers the ferritin draw for a woman with symptoms and no iron panel", () => {
+    // Phase 18: the ferritin rules had no negative side, so a normal ferritin
+    // moved nothing, the expected gain went negative and the cheapest, most
+    // discriminating test in the catalog was never on the list at all.
+    const j = journeyById("iron_low_female_30")!;
+    const moves = nextMoves(
+      personaToInput({
+        today: j.today,
+        facts: j.start.facts,
+        readings: j.start.readings,
+      }),
+      CATALOG,
+    );
+    // Questions come first now, because they are free. Ferritin is the first
+    // thing anybody is asked to pay for.
+    const paid = moves.filter((m) => m.cost > 0).slice(0, 3);
+    expect(paid.map((m) => m.label)).toContain("Ferritin");
+  });
+
+  it("offers the lipid panel to a man with no lipids on file", async () => {
+    // Nothing in the catalog could order a lipid panel, so the LDL and
+    // non-HDL rules were unanswerable and the whole cardiovascular arm of the
+    // differential was frozen at its prior.
+    const j = journeyById("lmhr_from_scratch_m38")!;
+    const moves = nextMoves(
+      personaToInput({
+        today: j.today,
+        facts: j.start.facts,
+        readings: j.start.readings,
+      }),
+      CATALOG,
+    );
+    // By code, not by label: the same draw is listed by whichever reading of
+    // it is cheapest, and offline every band-1 test costs the same nominal €10.
+    const panel = moves.find((m) => m.featureId === "metric:ldl_cholesterol");
+    expect(panel).toBeDefined();
+    expect(panel!.gain).toBeGreaterThan(0.05);
+    // And apoB is orderable too, on both sides of its own threshold.
+    expect(moves.some((m) => m.label === "ApoB")).toBe(true);
   });
 });

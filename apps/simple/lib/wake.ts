@@ -94,6 +94,28 @@ export const MARKER_HPO: {
       "Grade C: population iron-studies series (Adams 2005 NEJM, HEIRS) put transferrin saturation above 45 % in about 5 % of adults.",
   },
   {
+    code: "sodium",
+    when: { below: 135 },
+    hpoId: "HP:0002902",
+    name: "Hyponatremia",
+    source:
+      "Spasovski 2014 Eur J Endocrinol (European hyponatraemia guideline): a serum sodium under 135 mmol/L is hyponatraemia.",
+    p: 0.03,
+    backgroundSource:
+      "Grade C: Upadhyay 2006 Am J Med and outpatient audits put mild hyponatraemia in about 3 % of unselected adults.",
+  },
+  {
+    code: "potassium",
+    when: { above: 5.1 },
+    hpoId: "HP:0002153",
+    name: "Hyperkalemia",
+    source:
+      "Kovesdy 2014 (KDIGO controversies conference): a potassium above 5.0-5.5 mmol/L is hyperkalaemia, and the risk rises steeply above 5.5.",
+    p: 0.02,
+    backgroundSource:
+      "Grade C: Kovesdy 2014 puts hyperkalaemia at 2-3 % of the general adult population, most of it with kidney disease or a blocker of the renin-angiotensin system.",
+  },
+  {
     code: "calcium",
     when: { above: 10.5 },
     hpoId: "HP:0003072",

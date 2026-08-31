@@ -251,6 +251,9 @@ describe("buildTree", () => {
     const tree = buildTree(input(), [weak], { depth: 4 });
     expect(tree.branches).toEqual([]);
     expect(tree.stop).toBe("exhausted");
+    // The path applies the same floor, but only once somebody has looked:
+    // this person has never had a panel, so the weak draw is still offered
+    // and it is the gain that says it is not worth much.
     expect(nextMoves(input(), [weak])[0]!.gain).toBeLessThan(0.15);
   });
 
@@ -263,6 +266,9 @@ describe("buildTree", () => {
         budget: 2,
       },
     );
-    expect(tree.stop).toBe("budget");
+    // Phase 18: the budget ranks, it never gates. The branch is flagged and
+    // the tree keeps going.
+    expect(tree.stop).not.toBe("budget");
+    expect(tree.overBudget).toBe(true);
   });
 });

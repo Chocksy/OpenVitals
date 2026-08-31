@@ -15,10 +15,12 @@
  *
  * Pure. No database, no network, no clock.
  */
+import { CATALOG } from "./hkb-catalog";
 import type { Grade } from "./hypotheses";
 import { conversionFactor } from "./units";
+import { BOUNDS, SEX_RANGES } from "./vectors";
 
-export type Decision = "accepted" | "review" | "rejected";
+export type Decision = "accepted" | "review" | "held" | "rejected";
 
 export interface PolicyInput {
   conditionId: string;
@@ -92,6 +94,63 @@ export const unitFits = (p: PolicyInput): boolean => {
   return conversionFactor(from, to, codeOf(p.featureId)) != null;
 };
 
+/**
+ * The numbers a threshold on this marker can plausibly be, in the marker's own
+ * unit: the curator's physiological bounds first, then the sex-adjusted
+ * optimal band, then whatever the catalog's own rules already cut on. The last
+ * two are widened to a tenth and ten times, because a cut-off is allowed to
+ * sit well outside the normal range (ferritin 1000, calcium 11.5) while a
+ * wrong unit lands an order of magnitude away or more. A tenth rather than a
+ * twentieth on purpose: the catalog's lowest glucose cut-off is 100 mg/dL, and
+ * a twentieth of it would still admit the 6.3 mmol/L that started all this.
+ */
+export function plausibleBand(code: string): [number, number] | null {
+  const bound = BOUNDS[code];
+  if (bound) return bound;
+  const wide = (values: number[]): [number, number] | null =>
+    values.length ? [Math.min(...values) * 0.1, Math.max(...values) * 10] : null;
+
+  const sex = SEX_RANGES[code];
+  if (sex) {
+    const band = wide(
+      Object.values(sex)
+        .flat()
+        .filter((v): v is number => v != null && v > 0),
+    );
+    if (band) return band;
+  }
+
+  const cuts: number[] = [];
+  for (const h of CATALOG) {
+    for (const e of h.evidence) {
+      if (e.input.metric !== code) continue;
+      for (const key of ["above", "below"] as const) {
+        const v = e.when[key];
+        if (typeof v === "number" && v > 0) cuts.push(v);
+      }
+    }
+    for (const d of h.discriminators)
+      if (d.codes.includes(code))
+        for (const v of [d.typicalPos, d.typicalNeg])
+          if (typeof v === "number" && v > 0) cuts.push(v);
+  }
+  return wide(cuts);
+}
+
+/** A cut-off the marker could never take is a unit error, not a finding. */
+export const thresholdPlausible = (p: PolicyInput): boolean => {
+  const code = codeOf(p.featureId);
+  if (!code || !p.conditionOn) return true;
+  const band = plausibleBand(code);
+  if (!band) return true;
+  for (const key of ["above", "below"] as const) {
+    const v = p.conditionOn[key];
+    if (typeof v !== "number" || v <= 0) continue;
+    if (v < band[0] || v > band[1]) return false;
+  }
+  return true;
+};
+
 /** More than 3× apart, in either direction. */
 export const disagree = (values: number[]): boolean => {
   const usable = values.filter((v) => Number.isFinite(v) && v > 0);
@@ -107,7 +166,8 @@ export function decide(p: PolicyInput): Decision {
   if (p.retracted) return "rejected";
   if (!p.conditionInCatalog) return "rejected";
   if (!p.featureId && !mintable(p)) return "rejected";
-  if (!unitFits(p)) return "rejected";
+  if (!unitFits(p)) return "held";
+  if (!thresholdPlausible(p)) return "held";
 
   const claimed = (p.numbers ?? []).filter(
     (n): n is number => n != null && Number.isFinite(n),
@@ -129,4 +189,6 @@ export const statusOf = (
 ): { status: string; needsLook: boolean } =>
   d === "rejected"
     ? { status: "rejected", needsLook: false }
-    : { status: "accepted", needsLook: d === "review" };
+    : d === "held"
+      ? { status: "review", needsLook: true }
+      : { status: "accepted", needsLook: d === "review" };

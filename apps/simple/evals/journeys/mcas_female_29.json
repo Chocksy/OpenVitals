@@ -1,0 +1,118 @@
+{
+  "id": "mcas_female_29",
+  "title": "Flushing and hives, woman 29: a raised baseline tryptase",
+  "today": "2026-08-31",
+  "start": {
+    "facts": {
+      "sex": "female",
+      "birth_year": 1997,
+      "country": "RO",
+      "height_cm": "166"
+    },
+    "readings": [
+      {
+        "code": "hemoglobin",
+        "value": 13.2,
+        "unit": "g/dL",
+        "date": "2026-08-14"
+      },
+      {
+        "code": "eosinophils_abs",
+        "value": 0.3,
+        "unit": "10^9/L",
+        "date": "2026-08-14"
+      },
+      {
+        "code": "glucose",
+        "value": 84,
+        "unit": "mg/dL",
+        "date": "2026-08-14"
+      },
+      {
+        "code": "creatinine",
+        "value": 0.74,
+        "unit": "mg/dL",
+        "date": "2026-08-14"
+      }
+    ]
+  },
+  "truth": {
+    "conditions": [
+      "mast_cell_activation"
+    ],
+    "answers": {
+      "sym_phq2_interest": "Not at all",
+      "sym_phq2_down": "Not at all",
+      "sym_alcohol": "Monthly or less",
+      "sleep_snoring": "No",
+      "conditions": "none",
+      "medications": "No",
+      "supplements": "No",
+      "smoking": "Never",
+      "screening_dates": "none",
+      "sym_flushing": "Yes",
+      "sym_hives": "Yes",
+      "sym_energy": "Yes",
+      "sym_weight": "No",
+      "sym_cold": "No",
+      "sym_bowel": "Diarrhoea and bloating",
+      "sym_thirst": "No",
+      "sym_joint": "No",
+      "sym_sleepiness": "No",
+      "sym_hair_skin": "No",
+      "sym_tingling": "No",
+      "sym_tremor": "No",
+      "sym_breathless": "No",
+      "sym_acroparesthesia": "No",
+      "sym_anhidrosis": "No",
+      "sym_bloating": "Yes",
+      "sym_salt_craving": "No",
+      "sym_dizzy_standing": "Yes",
+      "sym_cycle": "Regular",
+      "menopause_status": "Pre",
+      "cycle_phase_at_last_draw": "Follicular",
+      "family_history": "none known",
+      "waist_cm": "70",
+      "bp_home": "106/66",
+      "resting_hr": "78",
+      "grip_kg": "26"
+    },
+    "labs": {
+      "tryptase": 18,
+      "tsh": 1.6,
+      "free_t4": 1.3,
+      "tpo_antibodies": 7,
+      "ferritin": 40,
+      "transferrin_saturation": 28,
+      "vitamin_d": 29,
+      "vitamin_b12": 450,
+      "hba1c": 4.9,
+      "insulin": 4,
+      "ldl_cholesterol": 90,
+      "hdl_cholesterol": 68,
+      "total_cholesterol": 172,
+      "triglycerides": 62,
+      "hs_crp": 0.6,
+      "alt": 16,
+      "ttg_iga": 1,
+      "reticulocyte_hemoglobin": 31,
+      "breath_h2_peak": 9,
+      "dysbiosis_index": 1,
+      "calprotectin": 18
+    },
+    "defaultAnswer": "No",
+    "defaultLab": "typicalNeg"
+  },
+  "budget": 150,
+  "maxSteps": 45,
+  "expect": {
+    "discover": [],
+    "reaches": {
+      "mast_cell_activation": 0.002
+    },
+    "orders": [
+      "Baseline serum tryptase"
+    ],
+    "noFalseLikely": true
+  }
+}

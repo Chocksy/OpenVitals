@@ -1,0 +1,122 @@
+{
+  "id": "fabry_male_33",
+  "title": "Burning hands and protein in the urine, man 33: Fabry disease by exome",
+  "today": "2026-08-31",
+  "start": {
+    "facts": {
+      "sex": "male",
+      "birth_year": 1993,
+      "country": "RO",
+      "height_cm": "176"
+    },
+    "readings": [
+      {
+        "code": "urine_albumin_creatinine_ratio",
+        "value": 60,
+        "unit": "mg/g",
+        "date": "2026-08-18"
+      },
+      {
+        "code": "creatinine",
+        "value": 1.0,
+        "unit": "mg/dL",
+        "date": "2026-08-18"
+      },
+      {
+        "code": "hemoglobin",
+        "value": 14.9,
+        "unit": "g/dL",
+        "date": "2026-08-18"
+      },
+      {
+        "code": "glucose",
+        "value": 88,
+        "unit": "mg/dL",
+        "date": "2026-08-18"
+      },
+      {
+        "code": "alt",
+        "value": 24,
+        "unit": "U/L",
+        "date": "2026-08-18"
+      }
+    ]
+  },
+  "truth": {
+    "conditions": [
+      "fabry"
+    ],
+    "answers": {
+      "sym_phq2_interest": "Not at all",
+      "sym_phq2_down": "Not at all",
+      "sym_alcohol": "Monthly or less",
+      "sleep_snoring": "No",
+      "conditions": "none",
+      "medications": "No",
+      "supplements": "No",
+      "smoking": "Never",
+      "screening_dates": "none",
+      "sym_acroparesthesia": "Yes",
+      "sym_anhidrosis": "Yes",
+      "sym_energy": "Yes",
+      "sym_weight": "No",
+      "sym_cold": "No",
+      "sym_bowel": "Diarrhoea and bloating",
+      "sym_thirst": "No",
+      "sym_joint": "No",
+      "sym_sleepiness": "No",
+      "sym_hair_skin": "No",
+      "sym_tingling": "Yes",
+      "sym_tremor": "No",
+      "sym_breathless": "No",
+      "sym_flushing": "No",
+      "sym_hives": "No",
+      "sym_bloating": "Yes",
+      "sym_salt_craving": "No",
+      "sym_dizzy_standing": "No",
+      "family_history": "uncle on kidney dialysis at 45",
+      "waist_cm": "80",
+      "bp_home": "122/76",
+      "resting_hr": "64",
+      "grip_kg": "46",
+      "genome:gla": "pathogenic variant in GLA"
+    },
+    "labs": {
+      "alpha_gal_a": 0.4,
+      "ceruloplasmin": 27,
+      "aat_level": 135,
+      "cystatin_c": 1.0,
+      "hba1c": 5.1,
+      "insulin": 5,
+      "tsh": 1.7,
+      "free_t4": 1.2,
+      "vitamin_d": 30,
+      "vitamin_b12": 460,
+      "ferritin": 130,
+      "transferrin_saturation": 31,
+      "ldl_cholesterol": 104,
+      "hdl_cholesterol": 52,
+      "total_cholesterol": 176,
+      "triglycerides": 100,
+      "hs_crp": 0.8,
+      "ttg_iga": 2,
+      "reticulocyte_hemoglobin": 32,
+      "breath_h2_peak": 8,
+      "dysbiosis_index": 1,
+      "calprotectin": 20
+    },
+    "defaultAnswer": "No",
+    "defaultLab": "typicalNeg"
+  },
+  "budget": 300,
+  "maxSteps": 45,
+  "expect": {
+    "discover": [
+      "fabry"
+    ],
+    "orders": [
+      "Exome sequencing"
+    ],
+    "withinDraws": 8
+  }
+}
