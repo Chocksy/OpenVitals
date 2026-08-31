@@ -112,9 +112,13 @@ scheduling by refresh class, the trends inbox (popular claims enter as
 labelled horizon items with a measurement plan), the guideline watch,
 personal outcome pooling into per-person effect sizes.
 
-After that, next up needs an owner pick: 16b bubbles page (three UX answers
-pending), GBD priors (one CSV download), wearables app, or prod cutover
-when ready.
+Queued behind it, owner-ordered (2026-09-01): 16b bubbles as-is (in
+flight), 17b Coolify cutover with scheduled jobs (prep in flight), then
+phase 23 the iOS companion (`2026-09-01-phase23-ios-companion-spec.md`):
+HealthKit for all we can take (server-side mapping, daily aggregation,
+"seen, not used" honesty), and the camera front — photo → vision LLM →
+chips → confirmed facts/meals/supplements, same chip UX as the
+composer, also surfaced as a web photo button.
 
 ## Next
 
