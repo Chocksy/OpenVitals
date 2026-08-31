@@ -31,14 +31,32 @@ services:
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
       ADMIN_EMAIL: ${ADMIN_EMAIL:-}
+      # Optional: raises the Semantic Scholar rate limit for hkb:research.
+      SEMANTIC_SCHOLAR_API_KEY: ${SEMANTIC_SCHOLAR_API_KEY:-}
       UPLOAD_DIR: /app/data/uploads
       NODE_ENV: production
     volumes:
+      # lib/uploads.ts:writeUpload writes the PDF to disk, so this has to
+      # outlive the container.
       - simple_uploads:/app/data/uploads
+      # The legacy artefacts apps/web wrote, on the same volume name
+      # docker-compose.prod.yml uses. import-legacy copies their `blob_path`
+      # onto the uploads rows and lib/uploads.ts:localPath only serves the
+      # file when this machine has it. Read-only: simple never writes here.
+      - blobdata:/data/blobs:ro
     depends_on:
       postgres:
         condition: service_healthy
+    healthcheck:
+      # better-auth mounts GET /ok under the /api/auth catch-all.
+      test:
+        ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:3000/api/auth/ok"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 120s
 
 volumes:
   pgdata:
+  blobdata:
   simple_uploads:
