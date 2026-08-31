@@ -1,5 +1,5 @@
 {
-  "ranAt": "2026-08-31T16:35:23.249Z",
+  "ranAt": "2026-08-31T18:29:39.722Z",
   "model": "google/gemini-3.7-flash",
   "results": [
     {
@@ -211,8 +211,7 @@
       "model": {
         "chips": [
           "sym_energy=Yes",
-          "sym_cycle=Heavy",
-          "sym_energy_duration=Over a month"
+          "sym_cycle=Heavy"
         ],
         "followUp": "energy_when",
         "failed": []
@@ -255,6 +254,24 @@
           "hirsutism_acne=Yes"
         ],
         "followUp": "cycle_length_days",
+        "failed": []
+      },
+      "pass": true
+    },
+    {
+      "id": "hearsay_sardines",
+      "rules": {
+        "chips": [
+          "CLAIM · sardines → triglycerides"
+        ],
+        "followUp": null,
+        "failed": []
+      },
+      "model": {
+        "chips": [
+          "CLAIM · sardines → triglycerides"
+        ],
+        "followUp": null,
         "failed": []
       },
       "pass": true

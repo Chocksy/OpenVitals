@@ -20,6 +20,10 @@ import { getMetricRows } from "./data";
 import { localDay } from "./daily";
 import type { Grade } from "./hypotheses";
 import {
+  personalMultipliers,
+  type PersonalMultiplier,
+} from "./personal-effects";
+import {
   addWeeks,
   betterDirection,
   project,
@@ -96,7 +100,9 @@ export async function adoptedActions(userId: string): Promise<AdoptedAction[]> {
     db
       .select()
       .from(protocolItems)
-      .where(and(eq(protocolItems.userId, userId), eq(protocolItems.active, true))),
+      .where(
+        and(eq(protocolItems.userId, userId), eq(protocolItems.active, true)),
+      ),
     db.select().from(habitLogs).where(eq(habitLogs.userId, userId)),
     db
       .select()
@@ -127,6 +133,30 @@ export async function adoptedActions(userId: string): Promise<AdoptedAction[]> {
       effect: match ? toEffect(match) : null,
     };
   });
+}
+
+/**
+ * This person's own multipliers, by pair.
+ *
+ * Every closed projection wrote one `intervention_outcomes` row per
+ * contribution, so this is simply what has already happened to them, grouped.
+ * Two cycles of the same pair is the floor; anything thinner returns nothing
+ * and the projection stays at the literature's own number.
+ */
+export async function personalFor(
+  userId: string,
+): Promise<Record<string, PersonalMultiplier>> {
+  const rows = await getDb()
+    .select({
+      pair: interventionOutcomes.pair,
+      predicted: interventionOutcomes.predictedDelta,
+      observed: interventionOutcomes.observedDelta,
+      adherence: interventionOutcomes.adherence,
+    })
+    .from(interventionOutcomes)
+    .where(eq(interventionOutcomes.userId, userId))
+    .orderBy(asc(interventionOutcomes.at));
+  return personalMultipliers(rows);
 }
 
 /** The marker codes a set of actions can move, from their effect rows. */
@@ -194,6 +224,7 @@ export async function makeProjections(userId: string): Promise<Projection[]> {
   if (!codes.length) return [];
 
   const rows = await getMetricRows(userId);
+  const personal = await personalFor(userId);
   const open = await db
     .select({ code: projections.code })
     .from(projections)
@@ -211,6 +242,7 @@ export async function makeProjections(userId: string): Promise<Projection[]> {
       from: row.latest.value,
       fromDate: localDay(),
       actions,
+      personal,
       optimalLow: row.optimalLow,
       optimalHigh: row.optimalHigh,
     });
@@ -287,7 +319,7 @@ export async function resolveProjections(userId: string): Promise<number> {
         predictedDelta: c.delta,
         observedDelta:
           Math.round(
-            (observed * (c.delta / (stored.expected - row.fromValue || 1))) * 100,
+            observed * (c.delta / (stored.expected - row.fromValue || 1)) * 100,
           ) / 100,
         adherence: c.adherence ?? null,
         projectionId: row.id,

@@ -23,11 +23,18 @@ import {
   hkbConditions,
   hkbEvidence,
   hkbFeatures,
+  hkbImportRuns,
   hkbInterventions,
   hkbTests,
   kgEdges,
 } from "@/db";
 import { model } from "./extract";
+import {
+  freshnessOf,
+  pickConditions,
+  type ConditionFreshness,
+  type FreshnessRow,
+} from "./freshness";
 import {
   NODES,
   SYSTEMS,
@@ -1126,6 +1133,238 @@ export async function thinnestConditions(n: number): Promise<ConditionRef[]> {
     rows.map((r) => ({ id: r.id, name: r.name })),
     contested,
   );
+}
+
+/**
+ * Every ring-1 condition with its refresh class and how overdue it is.
+ *
+ * Phase 22. The rows that decide the class are the evidence rows that score
+ * (`seed` and `accepted`) plus the D/E interventions, which is where a filed
+ * trend claim lives: a condition somebody has just hung "sardines" on is on the
+ * ninety-day clock, not the two-year one. `lastLookedAt` is the last research
+ * run that named the condition, and the newest evidence row is the fallback for
+ * everything seeded before the runs table existed.
+ *
+ * ponytail: four small selects and the arithmetic in `lib/freshness.ts`. Thirty-
+ * nine conditions do not need a join.
+ */
+export async function conditionFreshness(
+  today = new Date().toISOString().slice(0, 10),
+): Promise<ConditionFreshness[]> {
+  const db = getDb();
+  const [conditions, evidence, horizon, runs] = await Promise.all([
+    db
+      .select({
+        id: hkbConditions.id,
+        name: hkbConditions.name,
+        inCatalog: hkbConditions.inCatalog,
+      })
+      .from(hkbConditions)
+      .where(eq(hkbConditions.inCatalog, true))
+      .orderBy(asc(hkbConditions.id)),
+    db
+      .select({
+        conditionId: hkbEvidence.conditionId,
+        featureId: hkbEvidence.featureId,
+        conditionOn: hkbEvidence.conditionOn,
+        grade: hkbEvidence.grade,
+        createdAt: hkbEvidence.createdAt,
+      })
+      .from(hkbEvidence)
+      .where(inArray(hkbEvidence.status, ["seed", "accepted"])),
+    db
+      .select({
+        conditionId: hkbInterventions.conditionId,
+        grade: hkbInterventions.grade,
+        createdAt: hkbInterventions.createdAt,
+      })
+      .from(hkbInterventions)
+      .where(inArray(hkbInterventions.grade, ["D", "E"])),
+    db
+      .select({ notes: hkbImportRuns.notes, ranAt: hkbImportRuns.ranAt })
+      .from(hkbImportRuns)
+      .where(inArray(hkbImportRuns.script, ["hkb-research", GUIDELINE_SCRIPT])),
+  ]);
+
+  // Two rows on the same (feature, condition_on) key are one claim measured
+  // twice, which is what `pooledEvidence` averages: that is a pooled effect.
+  const keyCount = new Map<string, number>();
+  for (const e of evidence) {
+    const key = `${e.conditionId}|${e.featureId}|${JSON.stringify(e.conditionOn)}`;
+    keyCount.set(key, (keyCount.get(key) ?? 0) + 1);
+  }
+
+  const contested = new Set(CONTESTED.map((c) => c.id));
+  const iso = (d: Date | null | undefined) =>
+    d ? d.toISOString().slice(0, 10) : null;
+  const newest = (a: string | null, b: string | null) =>
+    !a ? b : !b ? a : a > b ? a : b;
+
+  return conditions.map((c) => {
+    const mine = evidence.filter((e) => e.conditionId === c.id);
+    const rows: FreshnessRow[] = [
+      ...mine.map((e) => ({
+        grade: e.grade,
+        sources:
+          (keyCount.get(
+            `${e.conditionId}|${e.featureId}|${JSON.stringify(e.conditionOn)}`,
+          ) ?? 1) > 1
+            ? ["pooled", "pooled"]
+            : undefined,
+      })),
+      ...horizon
+        .filter((h) => h.conditionId === c.id)
+        .map((h) => ({ grade: h.grade })),
+    ];
+
+    const run = runs
+      .filter((r) => r.notes?.startsWith(`${c.id}:`))
+      .reduce<string | null>((best, r) => newest(best, iso(r.ranAt)), null);
+    const written = mine.reduce<string | null>(
+      (best, e) => newest(best, iso(e.createdAt)),
+      null,
+    );
+
+    return freshnessOf(c, rows, contested, run ?? written, today);
+  });
+}
+
+/** The `n` stalest ring-1 conditions, contested first. */
+export async function staleConditions(
+  n: number,
+  today?: string,
+): Promise<ConditionFreshness[]> {
+  return pickConditions(await conditionFreshness(today), n);
+}
+
+/* ── the guideline watch ──────────────────────────────────────────────── */
+
+/** The `hkb_import_runs.script` the watch writes, and reads its window from. */
+export const GUIDELINE_SCRIPT = "hkb-guidelines";
+
+/** How often the watch runs, and therefore how far back it looks by default. */
+export const GUIDELINE_DAYS = 90;
+
+const GUIDELINE_TYPES =
+  '(PUB_TYPE:"guideline" OR PUB_TYPE:"practice guideline" OR PUB_TYPE:"consensus development conference")';
+
+/** The one feature every watch row hangs on. It is a note, not a marker. */
+export const GUIDELINE_FEATURE = "note:guideline_watch";
+
+/**
+ * Guidelines published for this condition since the last watch.
+ *
+ * `since` is a day; Europe PMC's `FIRST_PDATE` range takes it as the lower
+ * bound and today as the upper one, so a hit is by definition something nobody
+ * has looked at yet.
+ */
+export function guidelineQuery(
+  condition: string,
+  since: string,
+  now = new Date(),
+): string {
+  const to = now.toISOString().slice(0, 10);
+  return `"${condition}" AND ${GUIDELINE_TYPES} AND (FIRST_PDATE:[${since} TO ${to}])`;
+}
+
+/** The day the watch last ran, or `GUIDELINE_DAYS` ago when it never has. */
+export function watchWindow(
+  lastRun: Date | string | null,
+  now = new Date(),
+): string {
+  if (!lastRun)
+    return new Date(now.getTime() - GUIDELINE_DAYS * 86_400_000)
+      .toISOString()
+      .slice(0, 10);
+  return new Date(lastRun).toISOString().slice(0, 10);
+}
+
+export interface GuidelineHit {
+  conditionId: string;
+  conditionName: string;
+  paper: Proposal["paper"];
+}
+
+/**
+ * A guideline hit into the row that asks a human to look.
+ *
+ * It is an `hkb_evidence` row so it lands where /hkb already surfaces
+ * `needs_look`, and it is `status = "review"`, which `rowsToCatalog` filters
+ * out: the row can never multiply a probability. Gates and thresholds live in
+ * code and change with eyes on them; this is the thing that calls the eyes.
+ */
+export function toGuidelineRow(hit: GuidelineHit) {
+  const key = hit.paper.pmid ?? hit.paper.doi ?? hit.paper.title.slice(0, 60);
+  return {
+    id: `watch_${hit.conditionId}_${slug(key)}`.slice(0, 120),
+    conditionId: hit.conditionId,
+    featureId: GUIDELINE_FEATURE,
+    conditionOn: { guideline: key } as Record<string, unknown>,
+    lrPos: 1,
+    lrNeg: null,
+    grade: "A",
+    source: `guideline watch: check gates and thresholds for ${hit.conditionName}`,
+    status: "review",
+    needsLook: true,
+    paper: hit.paper,
+  };
+}
+
+/** One Europe PMC search per condition, no LLM: the watch is search and filing. */
+export async function researchGuidelines(
+  conditions: ConditionRef[],
+  options: { since?: string; now?: Date; perCondition?: number } = {},
+): Promise<GuidelineHit[]> {
+  const now = options.now ?? new Date();
+  const since = options.since ?? watchWindow(null, now);
+  const out: GuidelineHit[] = [];
+  for (const condition of conditions) {
+    const found = dedupe(
+      (await epmc(guidelineQuery(condition.name, since, now), "lite")).map(
+        toPaper,
+      ),
+    )
+      .filter((p) => !p.retracted && (p.pmid || p.doi))
+      .slice(0, options.perCondition ?? 5);
+    for (const p of found)
+      out.push({
+        conditionId: condition.id,
+        conditionName: condition.name,
+        paper: {
+          pmid: p.pmid,
+          doi: p.doi,
+          title: p.title,
+          year: p.year,
+          journal: p.journal,
+          url: p.url,
+          quote: p.title,
+        },
+      });
+  }
+  return out;
+}
+
+/** The watch rows, minus the ones already filed. Touches no accepted row. */
+export async function saveGuidelineReviews(
+  hits: GuidelineHit[],
+): Promise<number> {
+  if (!hits.length) return 0;
+  const db = getDb();
+  await db
+    .insert(hkbFeatures)
+    .values({
+      id: GUIDELINE_FEATURE,
+      kind: "note",
+      name: "Guideline watch",
+      unit: null,
+    })
+    .onConflictDoNothing();
+  const written = await db
+    .insert(hkbEvidence)
+    .values(hits.map(toGuidelineRow))
+    .onConflictDoNothing()
+    .returning({ id: hkbEvidence.id });
+  return written.length;
 }
 
 /**

@@ -5,6 +5,7 @@ import { CheckCircle2, Network, Stethoscope } from "lucide-react";
 import {
   getDb,
   insights,
+  protocolItems,
   reviewItems,
   type LifestyleBody,
   type ReportAction,
@@ -24,7 +25,8 @@ import { VECTORS } from "@/lib/vectors";
 import { ReviewItem } from "@/components/client";
 import { ActionCard } from "@/components/action-card";
 import { previewLines } from "@/lib/projections";
-import { PlanShell } from "@/components/plan";
+import { horizonShelf, type HorizonItem } from "@/lib/trends";
+import { AdoptHorizon, PlanShell } from "@/components/plan";
 import { Badge, BasisChip, Card, TierChip } from "@/components/ui-kit";
 
 export const dynamic = "force-dynamic";
@@ -255,6 +257,69 @@ function PatternCard({
   );
 }
 
+/**
+ * "Popular right now — labelled, unproven, measurable."
+ *
+ * Everything the trends inbox filed, with its labels said out loud: anecdotal,
+ * grade E, where it came from. When the marker it names already has graded
+ * science behind it, that is printed next to it, because those are two
+ * different claims and the shelf must never let them blur.
+ */
+function HorizonShelf({ items }: { items: HorizonItem[] }) {
+  return (
+    <section>
+      <Label>Popular right now · {items.length}</Label>
+      <p className="mb-2 font-body text-[12px] text-neutral-500">
+        Labelled, unproven, measurable. Nothing here moves a conclusion; it is
+        offered so it can be tried and judged.
+      </p>
+      <div className="space-y-2">
+        {items.map((item) => (
+          <Card key={item.id} className="p-4">
+            <div className="flex flex-wrap items-start justify-between gap-2">
+              <p className="flex-1 font-body text-[14px] text-neutral-800">
+                {item.name}
+              </p>
+              <span className="flex flex-wrap items-center gap-1.5">
+                <BasisChip basis="anecdotal" />
+                <Badge variant="secondary">{item.grade}</Badge>
+                <span className="font-mono text-[10px] uppercase tracking-[0.04em] text-neutral-400">
+                  from {item.sourceKind}
+                </span>
+              </span>
+            </div>
+            {item.quote && (
+              <p className="mt-1 border-l-2 border-neutral-200 pl-2 font-body text-[12px] italic text-neutral-500">
+                “{item.quote}”
+              </p>
+            )}
+            {item.science.length > 0 && (
+              <p className="mt-2 font-body text-[12px] text-neutral-600">
+                the science inside it:{" "}
+                {item.science
+                  .map(
+                    (s) =>
+                      `${s.name} — grade ${s.grade}${
+                        s.effect ? `, ${s.effect}` : ""
+                      } for ${s.outcomeFeatureId?.replace(/^metric:/, "") ?? "it"}`,
+                  )
+                  .join(" · ")}
+              </p>
+            )}
+            <p className="mt-1 font-body text-[12px] text-neutral-600">
+              {item.plan ??
+                "It names no marker this app measures, so there is nothing to judge it by yet."}
+            </p>
+            <div className="mt-3">
+              <AdoptHorizon interventionId={item.id} adopted={item.adopted} />
+            </div>
+          </Card>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 export default async function PlanPage() {
   const userId = await requireUserId();
   const db = getDb();
@@ -305,6 +370,17 @@ export default async function PlanPage() {
     ["sex", "birth_year"].includes(q.subject?.factKey ?? ""),
   );
   const blocked = !input.sex || input.age == null;
+
+  // The trends inbox, with what this person has already adopted marked off.
+  const adoptedTexts = (
+    await db
+      .select({ text: protocolItems.text })
+      .from(protocolItems)
+      .where(
+        and(eq(protocolItems.userId, userId), eq(protocolItems.active, true)),
+      )
+  ).map((r) => r.text);
+  const horizon = await horizonShelf(adoptedTexts);
 
   const actions = body?.actions ?? [];
   const indexed = actions.map((action, index) => ({ action, index }));
@@ -474,6 +550,8 @@ export default async function PlanPage() {
               <TestList rows={tests} />
             </section>
           )}
+
+          {horizon.length > 0 && <HorizonShelf items={horizon} />}
 
           {!report && (
             <Card className="border-dashed p-10 text-center">

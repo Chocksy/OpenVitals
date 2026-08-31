@@ -1,0 +1,60 @@
+[
+  {
+    "id": "sardines",
+    "text": "sardines are everywhere right now — omega-3, protein, low mercury, people eat 3 tins a week and say it fixes their triglycerides",
+    "expect": {
+      "isClaim": true,
+      "intervention": "sardine",
+      "markers": ["triglycerides"],
+      "direction": "down",
+      "horizonGrade": "E",
+      "plan": true
+    }
+  },
+  {
+    "id": "berberine",
+    "text": "everyone on TikTok is taking berberine, they call it nature's ozempic and say it drops your HbA1c",
+    "expect": {
+      "isClaim": true,
+      "intervention": "berberine",
+      "markers": ["hba1c"],
+      "direction": "down",
+      "sourceKind": "social",
+      "horizonGrade": "E",
+      "plan": true,
+      "science": "some"
+    }
+  },
+  {
+    "id": "cold_plunge",
+    "text": "I heard on a podcast that cold plunges fix your cortisol",
+    "expect": {
+      "isClaim": true,
+      "intervention": "cold plunge",
+      "markers": ["cortisol_am"],
+      "direction": "down",
+      "sourceKind": "podcast",
+      "horizonGrade": "E",
+      "plan": true
+    }
+  },
+  {
+    "id": "not_a_claim",
+    "text": "I have been tired every afternoon since the start of the month and my last ferritin was 12",
+    "expect": {
+      "isClaim": false
+    }
+  },
+  {
+    "id": "untracked_marker",
+    "text": "apparently mouth taping at night fixes your jaw alignment, half my gym does it",
+    "expect": {
+      "isClaim": true,
+      "intervention": "tap",
+      "markers": [],
+      "horizonGrade": "E",
+      "plan": false,
+      "science": "none"
+    }
+  }
+]

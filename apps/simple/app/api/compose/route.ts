@@ -15,6 +15,12 @@ import { writeFact } from "@/lib/facts";
 import { catalogFor } from "@/lib/hkb";
 import { loadGraph } from "@/lib/kg";
 import { recordBeliefs } from "@/lib/ledger";
+import {
+  fileClaim,
+  MARKER_CODES,
+  SOURCE_KINDS,
+  type Claim,
+} from "@/lib/trends";
 import { PROFILE_QUESTIONS } from "@/lib/vectors";
 import { SELF_METRICS } from "@/lib/compose";
 
@@ -82,6 +88,32 @@ function clean(chips: Chip[], today: string): Chip[] {
       const value = String(c.value ?? "").trim();
       if (!value) continue;
       out.push({ ...c, value, date });
+      continue;
+    }
+    // Hearsay. It carries a whole claim, so the claim is re-read here rather
+    // than trusted: the intervention has to be words, and every marker has to
+    // be one of ours. It writes nothing about the person either way.
+    if (c.kind === "claim") {
+      const claim = c.value as Partial<Claim> | null;
+      const intervention = String(claim?.intervention ?? "").trim();
+      if (!intervention) continue;
+      out.push({
+        ...c,
+        date,
+        value: {
+          text: String(claim?.text ?? c.quote ?? "").slice(0, 500),
+          intervention: intervention.slice(0, 120),
+          markers: (claim?.markers ?? []).filter((m) =>
+            MARKER_CODES.includes(m),
+          ),
+          direction: claim?.direction === "up" ? "up" : "down",
+          sourceKind: SOURCE_KINDS.includes(
+            claim?.sourceKind as (typeof SOURCE_KINDS)[number],
+          )
+            ? claim!.sourceKind!
+            : "unknown",
+        } satisfies Claim,
+      });
     }
   }
   return out;
@@ -115,6 +147,8 @@ async function write(userId: string, chips: Chip[], held: Set<string>) {
         observedAt: c.date,
         flags: ["self_reported"],
       });
+      // A claim is about the world, so it writes nothing here. It goes to the
+      // trends inbox instead, below.
     } else if (c.kind === "event") {
       await db.insert(lifeEvents).values({
         userId,
@@ -227,6 +261,18 @@ export async function POST(req: Request) {
     const held = heldChips(chips, m);
 
     await write(userId, chips, held);
+    // The trends inbox. The science half is left to the scheduled run: the
+    // horizon row this writes is what puts the condition on the ninety-day
+    // clock, and a check-in must not wait on Europe PMC.
+    const filed = [];
+    for (const c of chips.filter((x) => x.kind === "claim"))
+      filed.push(
+        await fileClaim(c.value as Claim, { science: false }).catch((e) => {
+          console.error("[compose] could not file the claim:", e);
+          return null;
+        }),
+      );
+
     const [post] = await db
       .insert(checkinPosts)
       .values({
@@ -253,6 +299,7 @@ export async function POST(req: Request) {
       chips,
       options: optionsFor(chips),
       held: [...held],
+      claims: filed.filter((f) => f != null),
       followUp: post!.followUp,
       reply,
       pack,

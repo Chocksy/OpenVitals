@@ -28,6 +28,7 @@ import { countryName } from "@/lib/countries";
 import { money } from "@/lib/prices";
 import {
   CatalogToggle,
+  ClaimBox,
   Override,
   ResearchButton,
   RunImport,
@@ -227,8 +228,11 @@ async function evidenceTab(status: string, condition: string) {
   // The number the engine actually multiplies by: every scoring row on the
   // same (condition, feature, condition_on), pooled in log space.
   const groups = new Map<string, typeof scoring>();
-  const keyOf = (e: { conditionId: string; featureId: string; conditionOn: unknown }) =>
-    `${e.conditionId}|${e.featureId}|${JSON.stringify(e.conditionOn)}`;
+  const keyOf = (e: {
+    conditionId: string;
+    featureId: string;
+    conditionOn: unknown;
+  }) => `${e.conditionId}|${e.featureId}|${JSON.stringify(e.conditionOn)}`;
   for (const e of scoring) {
     if (e.grade === "D" || e.grade === "E") continue;
     groups.set(keyOf(e), [...(groups.get(keyOf(e)) ?? []), e]);
@@ -290,97 +294,97 @@ async function evidenceTab(status: string, condition: string) {
         ))}
       </p>
       <div className="overflow-x-auto">
-      <table className="w-full min-w-[1200px] font-body text-[12px]">
-        <thead className="font-mono text-[10px] uppercase tracking-[0.06em] text-neutral-400">
-          <tr className="border-b border-neutral-200">
-            <th className={TH}>condition</th>
-            <th className={TH}>rule</th>
-            <th className={TH}>reads</th>
-            <th className={TH}>when</th>
-            <th className={TH}>LR+</th>
-            <th className={TH}>LR−</th>
-            <th className={TH}>pooled</th>
-            <th className={TH}>papers</th>
-            <th className={TH}>grade</th>
-            <th className={TH}>status</th>
-            <th className={TH}>source</th>
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-neutral-100">
-          {rows.length === 0 && (
-            <tr>
-              <td className={TD} colSpan={11}>
-                nothing with that status
-              </td>
+        <table className="w-full min-w-[1200px] font-body text-[12px]">
+          <thead className="font-mono text-[10px] uppercase tracking-[0.06em] text-neutral-400">
+            <tr className="border-b border-neutral-200">
+              <th className={TH}>condition</th>
+              <th className={TH}>rule</th>
+              <th className={TH}>reads</th>
+              <th className={TH}>when</th>
+              <th className={TH}>LR+</th>
+              <th className={TH}>LR−</th>
+              <th className={TH}>pooled</th>
+              <th className={TH}>papers</th>
+              <th className={TH}>grade</th>
+              <th className={TH}>status</th>
+              <th className={TH}>source</th>
             </tr>
-          )}
-          {rows.map((e) => {
-            const p = pooled.get(keyOf(e));
-            return (
-            <tr key={e.id}>
-              <td className={TD}>{e.conditionId}</td>
-              <td className={`${TD} max-w-[150px] truncate`} title={e.id}>
-                {e.id}
-              </td>
-              <td className={TD}>{e.featureId}</td>
-              <td className={TD}>{JSON.stringify(e.conditionOn)}</td>
-              <td className={TD}>{e.lrPos}</td>
-              <td className={TD}>{e.lrNeg ?? "—"}</td>
-              <td className={TD} title="what the engine multiplies by">
-                {p ? p.lrPos : "—"}
-              </td>
-              <td className={TD}>{p ? p.n : 0}</td>
-              <td className={TD}>{e.grade}</td>
-              <td className={TD}>
-                <span className="flex flex-col items-start gap-1">
-                  <Badge variant={STATUS_BADGE[e.status] ?? "secondary"}>
-                    {e.status}
-                  </Badge>
-                  {e.needsLook && (
-                    <Badge variant="warning">needs look</Badge>
-                  )}
-                  <Override
-                    id={e.id}
-                    lrPos={e.lrPos}
-                    lrNeg={e.lrNeg}
-                    grade={e.grade}
-                    status={e.status}
-                  />
-                </span>
-              </td>
-              <td className="max-w-[420px] px-3 py-1.5 text-[11px] text-neutral-500">
-                {e.paper && (
-                  <>
-                    <a
-                      href={e.paper.url}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="font-medium text-neutral-800 underline"
-                    >
-                      {e.paper.title}
-                    </a>{" "}
-                    <span className="font-mono text-[10px]">
-                      {[e.paper.journal, e.paper.year]
-                        .filter(Boolean)
-                        .join(" ")}
+          </thead>
+          <tbody className="divide-y divide-neutral-100">
+            {rows.length === 0 && (
+              <tr>
+                <td className={TD} colSpan={11}>
+                  nothing with that status
+                </td>
+              </tr>
+            )}
+            {rows.map((e) => {
+              const p = pooled.get(keyOf(e));
+              return (
+                <tr key={e.id}>
+                  <td className={TD}>{e.conditionId}</td>
+                  <td className={`${TD} max-w-[150px] truncate`} title={e.id}>
+                    {e.id}
+                  </td>
+                  <td className={TD}>{e.featureId}</td>
+                  <td className={TD}>{JSON.stringify(e.conditionOn)}</td>
+                  <td className={TD}>{e.lrPos}</td>
+                  <td className={TD}>{e.lrNeg ?? "—"}</td>
+                  <td className={TD} title="what the engine multiplies by">
+                    {p ? p.lrPos : "—"}
+                  </td>
+                  <td className={TD}>{p ? p.n : 0}</td>
+                  <td className={TD}>{e.grade}</td>
+                  <td className={TD}>
+                    <span className="flex flex-col items-start gap-1">
+                      <Badge variant={STATUS_BADGE[e.status] ?? "secondary"}>
+                        {e.status}
+                      </Badge>
+                      {e.needsLook && (
+                        <Badge variant="warning">needs look</Badge>
+                      )}
+                      <Override
+                        id={e.id}
+                        lrPos={e.lrPos}
+                        lrNeg={e.lrNeg}
+                        grade={e.grade}
+                        status={e.status}
+                      />
                     </span>
-                    <p className="my-1 border-l-2 border-neutral-200 pl-2 italic text-neutral-600">
-                      “{e.paper.quote}”
-                    </p>
-                  </>
-                )}
-                {e.source}
-                {e.reviewNote && (
-                  <p className="mt-1 font-mono text-[10px] text-neutral-400">
-                    reviewed: {e.reviewNote}
-                  </p>
-                )}
-              </td>
-            </tr>
-            );
-          })}
-        </tbody>
-      </table>
+                  </td>
+                  <td className="max-w-[420px] px-3 py-1.5 text-[11px] text-neutral-500">
+                    {e.paper && (
+                      <>
+                        <a
+                          href={e.paper.url}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="font-medium text-neutral-800 underline"
+                        >
+                          {e.paper.title}
+                        </a>{" "}
+                        <span className="font-mono text-[10px]">
+                          {[e.paper.journal, e.paper.year]
+                            .filter(Boolean)
+                            .join(" ")}
+                        </span>
+                        <p className="my-1 border-l-2 border-neutral-200 pl-2 italic text-neutral-600">
+                          “{e.paper.quote}”
+                        </p>
+                      </>
+                    )}
+                    {e.source}
+                    {e.reviewNote && (
+                      <p className="mt-1 font-mono text-[10px] text-neutral-400">
+                        reviewed: {e.reviewNote}
+                      </p>
+                    )}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
       </div>
     </Card>
   );
@@ -430,6 +434,15 @@ async function interventionsTab(condition: string) {
         </span>
       }
     >
+      <div className="mb-4 border-b border-neutral-100 pb-4">
+        <p className="mb-2 font-body text-[12px] text-neutral-500">
+          Whatever is popular this month gets a door in. The engine reads the
+          science the claim implies, and files the popular form itself as grade
+          E, anecdotal, on the horizon shelf with a measurement plan. Nothing
+          filed here can move a probability.
+        </p>
+        <ClaimBox />
+      </div>
       <p className="mb-3 flex flex-wrap gap-x-2 gap-y-1 font-mono text-[10px]">
         {[{ conditionId: "all", n: rows.length }, ...byCondition].map((c) => (
           <Link
@@ -473,6 +486,11 @@ async function interventionsTab(condition: string) {
                 <Badge variant={TIER_BADGE[tierOf(r.grade)] ?? "secondary"}>
                   {tierOf(r.grade)}
                 </Badge>
+                {r.status === "horizon" && (
+                  <span className="ml-1 font-mono text-[10px] text-neutral-400">
+                    horizon · {r.population ?? "unknown"}
+                  </span>
+                )}
               </td>
               <td className={TDT}>{r.name}</td>
               <td className={TD}>{r.dose ?? "—"}</td>
@@ -582,7 +600,12 @@ async function activityTab() {
     ...runs.map((r) => ({
       at: r.ranAt,
       kind: "run",
-      text: `${r.script}: ${r.notes ?? Object.entries(r.rows ?? {}).map(([k, v]) => `${k}=${v}`).join(" ")}`,
+      text: `${r.script}: ${
+        r.notes ??
+        Object.entries(r.rows ?? {})
+          .map(([k, v]) => `${k}=${v}`)
+          .join(" ")
+      }`,
     })),
   ]
     .sort((a, b) => (b.at?.getTime() ?? 0) - (a.at?.getTime() ?? 0))
@@ -756,7 +779,6 @@ async function testsTab() {
   );
 }
 
-
 async function calibrationTab() {
   const db = getDb();
   const [rows, rings, revisions] = await Promise.all([
@@ -770,11 +792,7 @@ async function calibrationTab() {
       .from(hkbConditions)
       .groupBy(hkbConditions.ring, hkbConditions.inCatalog)
       .orderBy(asc(hkbConditions.ring)),
-    db
-      .select()
-      .from(hkbRevisions)
-      .orderBy(desc(hkbRevisions.id))
-      .limit(25),
+    db.select().from(hkbRevisions).orderBy(desc(hkbRevisions.id)).limit(25),
   ]);
 
   const bands = bandsOf(rows);
@@ -801,9 +819,9 @@ async function calibrationTab() {
             {rows.length} settled prediction{rows.length === 1 ? "" : "s"} so
             far. Too few to read: the table appears at {READABLE_AT}. An event
             is written when a discriminator with an LR+ of {RESOLVING_LR} or
-            more comes back, or when an accepted document confirms or excludes
-            a condition. Nothing here changes a probability; it is the
-            measuring stick.
+            more comes back, or when an accepted document confirms or excludes a
+            condition. Nothing here changes a probability; it is the measuring
+            stick.
           </p>
         ) : (
           <table className="w-full font-mono text-[11px]">

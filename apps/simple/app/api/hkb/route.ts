@@ -2,6 +2,7 @@ import { eq } from "drizzle-orm";
 import { isAdmin } from "@/lib/auth";
 import { getDb, hkbConditions, hkbEvidence } from "@/db";
 import { recordRevision } from "@/lib/hkb";
+import { extractClaim, fileClaim } from "@/lib/trends";
 
 export const maxDuration = 300;
 
@@ -18,7 +19,9 @@ type Body =
     }
   | { action: "in_catalog"; id: string; inCatalog: boolean }
   | { action: "import"; script: "ontology" | "priors" | "prices" }
-  | { action: "research"; conditionId: string; maxPapers?: number };
+  | { action: "research"; conditionId: string; maxPapers?: number }
+  /** The trends inbox: free text about something popular, filed as a claim. */
+  | { action: "claim"; text: string; maxPapers?: number };
 
 /** The importers, named statically so the bundler can see them. */
 const SCRIPTS = {
@@ -62,14 +65,16 @@ export async function POST(request: Request) {
           return Response.json({ error: "bad grade" }, { status: 400 });
         set.grade = body.grade;
       }
-      if (body.exclude != null) set.status = body.exclude ? "rejected" : "accepted";
+      if (body.exclude != null)
+        set.status = body.exclude ? "rejected" : "accepted";
 
       const [row] = await db
         .update(hkbEvidence)
         .set(set)
         .where(eq(hkbEvidence.id, body.id))
         .returning();
-      if (!row) return Response.json({ error: "no such rule" }, { status: 404 });
+      if (!row)
+        return Response.json({ error: "no such rule" }, { status: 404 });
       await recordRevision(
         `override on /hkb: ${row.conditionId} rule ${row.id} is now ` +
           `LR+ ${row.lrPos}${row.lrNeg == null ? "" : ` / LR- ${row.lrNeg}`}, grade ${row.grade}, ` +
@@ -94,7 +99,8 @@ export async function POST(request: Request) {
 
     if (body.action === "import") {
       const load = SCRIPTS[body.script];
-      if (!load) return Response.json({ error: "no such script" }, { status: 400 });
+      if (!load)
+        return Response.json({ error: "no such script" }, { status: 400 });
       const mod = await load();
       const run =
         "importOntology" in mod
@@ -103,6 +109,31 @@ export async function POST(request: Request) {
             ? mod.importPriors
             : mod.importPrices;
       return Response.json({ ok: true, result: await run() });
+    }
+
+    if (body.action === "claim") {
+      const text = String(body.text ?? "").trim();
+      if (text.length < 4)
+        return Response.json(
+          { error: "write the claim first" },
+          { status: 400 },
+        );
+      const claim = await extractClaim(text);
+      if (!claim)
+        return Response.json({
+          ok: true,
+          filed: null,
+          note: "that is not a claim about the world, so nothing was filed",
+        });
+      const filed = await fileClaim(claim, {
+        maxPapers: body.maxPapers ?? 3,
+      });
+      await recordRevision(
+        `claim filed from /hkb: "${claim.intervention}" → ` +
+          `${claim.markers.join(", ") || "no marker we track"} as grade E horizon ` +
+          `under ${filed.conditionId}${filed.scienceWritten ? `, ${filed.scienceWritten} graded rows from the search` : ""}`,
+      );
+      return Response.json({ ok: true, filed });
     }
 
     if (body.action === "research") {

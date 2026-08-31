@@ -13,7 +13,7 @@
  */
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Check, Loader2, Play, Search } from "lucide-react";
+import { Check, Loader2, Play, Search, Sparkles } from "lucide-react";
 import { Button } from "./ui-kit";
 
 function useWrite() {
@@ -207,6 +207,125 @@ export function ResearchButton({ conditionId }: { conditionId: string }) {
         </span>
       )}
     </span>
+  );
+}
+
+interface Filed {
+  claim: {
+    intervention: string;
+    markers: string[];
+    direction: string;
+    sourceKind: string;
+    text: string;
+  };
+  conditionId: string;
+  conditionName: string;
+  horizonId: string;
+  horizonNew: boolean;
+  science: { name: string; grade: string; effect: string | null }[];
+  scienceWritten: number;
+  plan: string | null;
+}
+
+/**
+ * "Drop a claim": the trends inbox, in one box.
+ *
+ * A claim does not have to be true to enter. What comes back says which half of
+ * it landed where — the science the engine went and read, and the popular form
+ * itself as a grade E horizon row with a measurement plan.
+ */
+export function ClaimBox() {
+  const { post, busy, error } = useWrite();
+  const [text, setText] = useState("");
+  const [filed, setFiled] = useState<Filed | null>(null);
+  const [note, setNote] = useState("");
+
+  const send = async () => {
+    if (text.trim().length < 4) return;
+    setFiled(null);
+    setNote("");
+    const data = (await post({ action: "claim", text, maxPapers: 3 })) as {
+      filed?: Filed | null;
+      note?: string;
+    } | null;
+    if (!data) return;
+    setFiled(data.filed ?? null);
+    setNote(data.note ?? "");
+  };
+
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center gap-2">
+        <Sparkles className="size-4 shrink-0 text-neutral-400" />
+        <input
+          className="min-w-0 flex-1 border-b border-neutral-200 bg-transparent py-1.5 font-body text-[13px] outline-none placeholder:text-neutral-400 focus:border-neutral-400"
+          placeholder="Drop a claim — “sardines are everywhere right now, people eat 3 tins a week”"
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") void send();
+          }}
+        />
+        <Button
+          size="sm"
+          variant="outline-subtle"
+          disabled={busy}
+          onClick={send}
+        >
+          {busy ? <Loader2 className="size-3.5 animate-spin" /> : null}
+          {busy ? "Reading…" : "File it"}
+        </Button>
+      </div>
+
+      {error && (
+        <p className="font-mono text-[10px] text-[var(--color-health-critical)]">
+          {error}
+        </p>
+      )}
+      {note && <p className="font-body text-[12px] text-neutral-500">{note}</p>}
+
+      {filed && (
+        <div className="space-y-1 border-l-2 border-neutral-200 pl-3">
+          <p className="font-body text-[13px] text-neutral-800">
+            <span className="font-mono text-[10px] font-bold uppercase tracking-[0.04em] text-neutral-400">
+              claim
+            </span>{" "}
+            {filed.claim.intervention}
+            {filed.claim.markers.length
+              ? ` → ${filed.claim.markers.join(", ")} ${filed.claim.direction}`
+              : " → no marker we measure"}
+          </p>
+          <p className="font-mono text-[11px] text-neutral-500">
+            horizon · grade E · anecdotal · from {filed.claim.sourceKind} ·
+            filed under {filed.conditionId}
+            {filed.horizonNew ? "" : " (already on the shelf)"}
+          </p>
+          {filed.science.length > 0 ? (
+            <p className="font-body text-[12px] text-neutral-600">
+              the science inside it:{" "}
+              {filed.science
+                .map(
+                  (s) =>
+                    `${s.name} (grade ${s.grade}${s.effect ? `, ${s.effect}` : ""})`,
+                )
+                .join(" · ")}
+            </p>
+          ) : (
+            <p className="font-body text-[12px] text-neutral-500">
+              no graded row for that marker yet
+              {filed.scienceWritten
+                ? `; the search just added ${filed.scienceWritten}`
+                : ""}
+            </p>
+          )}
+          {filed.plan && (
+            <p className="font-body text-[12px] text-neutral-600">
+              {filed.plan}
+            </p>
+          )}
+        </div>
+      )}
+    </div>
   );
 }
 

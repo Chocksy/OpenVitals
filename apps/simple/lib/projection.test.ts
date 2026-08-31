@@ -65,7 +65,11 @@ describe("project", () => {
         action({
           itemId: "2",
           text: "walk after meals",
-          effect: effect({ name: "walk after meals", effect: "-0.20 %", grade: "C" }),
+          effect: effect({
+            name: "walk after meals",
+            effect: "-0.20 %",
+            grade: "C",
+          }),
         }),
       ],
     });
@@ -130,7 +134,9 @@ describe("project", () => {
     });
     expect(p.contributions).toEqual([]);
     expect(p.expected).toBe(5);
-    expect(p.assumptions.join(" ")).toContain("already inside its optimal band");
+    expect(p.assumptions.join(" ")).toContain(
+      "already inside its optimal band",
+    );
   });
 
   it("names the pairs it has no effect size for", () => {
@@ -146,9 +152,39 @@ describe("project", () => {
   it("only counts an intervention aimed at this marker", () => {
     const p = project({
       ...base,
-      actions: [action({ effect: effect({ outcomeFeatureId: "metric:ldl_cholesterol" }) })],
+      actions: [
+        action({
+          effect: effect({ outcomeFeatureId: "metric:ldl_cholesterol" }),
+        }),
+      ],
     });
     expect(p.contributions).toEqual([]);
+  });
+
+  it("scales a contribution by this person's own response, and says so", () => {
+    const plain = project({ ...base, actions: [action()] });
+    const mine = project({
+      ...base,
+      actions: [action()],
+      personal: { "cut added sugar -> hba1c": { times: 1.6, n: 2 } },
+    });
+    expect(plain.contributions[0]!.delta).toBe(-0.3);
+    expect(mine.contributions[0]!.delta).toBe(-0.48);
+    expect(mine.expected).toBe(5.52);
+    expect(mine.assumptions.join(" ")).toContain(
+      "your own last 2 responses to cut added sugar ran 1.6× the literature",
+    );
+    expect(mine.assumptions.join(" ")).toContain("n=1 evidence");
+  });
+
+  it("leaves a pair with no personal history at the literature's number", () => {
+    const p = project({
+      ...base,
+      actions: [action()],
+      personal: { "walk after meals -> hba1c": { times: 3, n: 4 } },
+    });
+    expect(p.contributions[0]!.delta).toBe(-0.3);
+    expect(p.assumptions.join(" ")).not.toContain("your own last");
   });
 
   it("delivers less of a long trial over a short horizon", () => {

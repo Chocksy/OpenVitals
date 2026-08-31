@@ -46,12 +46,25 @@ import { CODE_GRAPH, loadGraph, type Graph } from "./kg";
 import { searchTerms, type RankedTerm } from "./lookup";
 import { applyOverlay } from "./sample";
 import { SYMPTOM_KEYS } from "./symptoms";
+import { claimFrom, claimLabel } from "./trends";
 import { convert, normalizeUnit } from "./units";
 import { buildModelInput } from "./coverage";
 import { LIST_FACTS, PROFILE_QUESTIONS } from "./vectors";
 
 export interface Chip {
-  kind: "fact" | "symptom" | "reading" | "event" | "phenotype" | "unknown";
+  kind:
+    | "fact"
+    | "symptom"
+    | "reading"
+    | "event"
+    | "phenotype"
+    /**
+     * Hearsay: a sentence about the world, not about this person. It writes no
+     * fact, no reading and no event — it goes to the trends inbox
+     * (`lib/trends.ts`), which files it as a labelled horizon item.
+     */
+    | "claim"
+    | "unknown";
   /** fact key, metric code, life-event kind, HP id */
   key: string;
   /** "tired · afternoons", "glucose 98 mg/dL", "last coffee 16:00" */
@@ -692,7 +705,30 @@ export function understandRules(
     });
   }
 
-  return out;
+  // 7. hearsay. "I heard sardines lower triglycerides" is a sentence about the
+  // world, so nothing in it may be written about the person: every chip whose
+  // words sit inside the claim's own sentence is dropped, and the claim goes to
+  // the trends inbox instead.
+  const claim = claimFrom(text);
+  if (!claim) return out;
+  const said = claim.text.toLowerCase();
+  const kept = out.filter(
+    (c) => !c.quote || !said.includes(c.quote.toLowerCase()),
+  );
+  kept.push({
+    kind: "claim",
+    key: `claim:${claim.intervention
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "_")
+      .replace(/^_+|_+$/g, "")}`,
+    label: claimLabel(claim),
+    value: claim,
+    date,
+    quote: claim.text,
+    confidence: 0.7,
+    by: "rule",
+  });
+  return kept;
 }
 
 /** The sentence a match sits in, so a life event keeps its own words. */

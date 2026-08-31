@@ -2,6 +2,7 @@ import { eq, inArray } from "drizzle-orm";
 import {
   getDb,
   goals,
+  hkbInterventions,
   metrics,
   protocolItems,
   reports,
@@ -10,6 +11,7 @@ import {
 } from "@/db";
 import { currentUserId } from "@/lib/auth";
 import { recordBeliefs } from "@/lib/ledger";
+import { queueResearch } from "@/lib/research";
 
 const DAY = 86_400_000;
 
@@ -31,14 +33,46 @@ export async function POST(req: Request) {
   const userId = await currentUserId();
   if (!userId) return Response.json({ error: "unauthorized" }, { status: 401 });
 
-  const { reportId, actionIndex } = (await req.json()) as {
+  const { reportId, actionIndex, interventionId } = (await req.json()) as {
     reportId?: string;
     actionIndex?: number;
+    /** the horizon shelf: one popular claim, adopted as an experiment */
+    interventionId?: string;
   };
+  const db = getDb();
+
+  /**
+   * A claim off the horizon shelf. It becomes a protocol item like anything
+   * else, but nothing pretends it has an effect size: grade E never projects,
+   * so the card says what it will be judged on and the research queue gets the
+   * condition, which is exactly the phase 19 behaviour for a pair with no
+   * number on file.
+   */
+  if (interventionId) {
+    const [row] = await db
+      .select()
+      .from(hkbInterventions)
+      .where(eq(hkbInterventions.id, interventionId));
+    if (!row || row.status !== "horizon")
+      return Response.json({ error: "not found" }, { status: 404 });
+    const code = row.outcomeFeatureId?.replace(/^metric:/, "") ?? null;
+    await db.insert(protocolItems).values({
+      userId,
+      text: row.name.slice(0, 300),
+      why: `popular right now, grade ${row.grade}, anecdotal (from ${
+        row.population ?? "unknown"
+      }): ${row.quote ?? ""}`.slice(0, 500),
+      metricCodes: code ? [code] : [],
+      cadence: "daily",
+    });
+    await queueResearch(row.conditionId).catch(() => false);
+    await recordBeliefs(userId);
+    return Response.json({ ok: true, adopted: row.name });
+  }
+
   if (!reportId || typeof actionIndex !== "number")
     return Response.json({ error: "no action" }, { status: 400 });
 
-  const db = getDb();
   const [report] = await db
     .select()
     .from(reports)

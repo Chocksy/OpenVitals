@@ -23,6 +23,11 @@
  * Pure. No database, no clock, no network.
  */
 import type { Grade } from "./hypotheses";
+import {
+  pairKey,
+  personalLine,
+  type PersonalMultiplier,
+} from "./personal-effects";
 
 export interface EffectSource {
   /** `hkb_interventions.id` */
@@ -186,7 +191,9 @@ export const weeksBetween = (from: string, to: string): number =>
   (new Date(to).getTime() - new Date(from).getTime()) / (7 * 86_400_000);
 
 /** The number of weeks a duration string names, or null. */
-export function durationWeeks(duration: string | null | undefined): number | null {
+export function durationWeeks(
+  duration: string | null | undefined,
+): number | null {
   if (!duration) return null;
   const m = /([\d.]+)\s*(day|week|month|year)/i.exec(duration);
   if (!m) return null;
@@ -280,6 +287,12 @@ export interface ProjectInput {
   from: number;
   fromDate: string;
   actions: AdoptedAction[];
+  /**
+   * This person's own response to a pair, from `lib/personal-effects.ts`, keyed
+   * by `pairKey(intervention, code)`. It scales the contribution and says so on
+   * the card. It never touches a belief or the shared knowledge base.
+   */
+  personal?: Record<string, PersonalMultiplier>;
   /** defaults to the marker's own retest window */
   horizonWeeks?: number;
   /** the person's overall adherence, used when an action has none of its own */
@@ -296,13 +309,15 @@ export function project(input: ProjectInput): Projection {
 
   const contributions: Projection["contributions"] = [];
   const gaps: string[] = [];
+  const personal: string[] = [];
   let total = 0;
   let variance = 0;
 
   // Somebody already inside the optimal band is not the person these trials
   // recruited, so their numbers say nothing about them.
   const inBand =
-    (input.optimalHigh != null && input.from <= input.optimalHigh) &&
+    input.optimalHigh != null &&
+    input.from <= input.optimalHigh &&
     (input.optimalLow == null || input.from >= input.optimalLow);
 
   for (const action of input.actions) {
@@ -312,19 +327,30 @@ export function project(input: ProjectInput): Projection {
       continue;
     }
     const e = action.effect;
-    if (e.outcomeFeatureId !== `metric:${code}` && e.outcomeFeatureId !== `derived:${code}`)
+    if (
+      e.outcomeFeatureId !== `metric:${code}` &&
+      e.outcomeFeatureId !== `derived:${code}`
+    )
       continue;
     const raw = parseEffect(e.effect, e.direction);
     const weight = GRADE_WEIGHT[e.grade] ?? 0;
     if (raw == null || weight === 0) {
-      if (raw == null) gaps.push(`${action.text} (no number in "${e.effect ?? "no effect stated"}")`);
+      if (raw == null)
+        gaps.push(
+          `${action.text} (no number in "${e.effect ?? "no effect stated"}")`,
+        );
       continue;
     }
     const adherence = action.adherence ?? input.adherence ?? 1;
     // A twelve-week trial read at six weeks has delivered about half of it.
     const trial = durationWeeks(e.duration) ?? retestWeeks;
     const reached = Math.min(1, horizonWeeks / Math.max(trial, 1));
-    const delta = round2(raw * weight * adherence * reached);
+    // What this person's own closed cycles say about this exact pair.
+    const mine = input.personal?.[pairKey(e.name, code)];
+    if (mine) personal.push(personalLine(e.name, mine));
+    const delta = round2(
+      raw * weight * adherence * reached * (mine?.times ?? 1),
+    );
     if (delta === 0) continue;
     total += delta;
     variance += (delta * (GRADE_SPREAD[e.grade] ?? 1)) ** 2;
@@ -363,6 +389,7 @@ export function project(input: ProjectInput): Projection {
     assumptions.push(
       `${code} is already inside its optimal band, and every effect size here comes from a trial that recruited people outside it: nothing is projected`,
     );
+  assumptions.push(...personal);
   const stated = input.actions
     .map((a) => a.adherence ?? input.adherence)
     .filter((a): a is number => a != null);
@@ -425,6 +452,9 @@ export const projectionLine = (p: Projection): string =>
   `Expected ${p.expected} ${p.unit} (${p.low}–${p.high}) by ${p.retestAt}` +
   (p.contributions.length
     ? `: ${p.contributions
-        .map((c) => `${c.intervention} ${c.delta > 0 ? "+" : ""}${c.delta} (${c.grade})`)
+        .map(
+          (c) =>
+            `${c.intervention} ${c.delta > 0 ? "+" : ""}${c.delta} (${c.grade})`,
+        )
         .join(", ")}`
     : ": nothing adopted that moves it");

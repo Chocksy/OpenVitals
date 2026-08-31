@@ -145,6 +145,51 @@ export function GeneratePlan() {
   );
 }
 
+/**
+ * Adopt one thing off the Horizon shelf.
+ *
+ * The same protocol item as anything else, and none of the promises: the row
+ * behind it is grade E, so no projection borrows an effect size from it. What
+ * it gets instead is the measurement plan printed next to it.
+ */
+export function AdoptHorizon({
+  interventionId,
+  adopted,
+}: {
+  interventionId: string;
+  adopted: boolean;
+}) {
+  const { run, busy, error } = useAction();
+  const [state, setState] = useState(adopted);
+
+  if (state)
+    return (
+      <span className="inline-flex items-center gap-1 font-mono text-[10px] uppercase tracking-[0.04em] text-[var(--color-health-normal)]">
+        <Check className="size-3" /> Adopted
+      </span>
+    );
+
+  return (
+    <span className="inline-flex items-center gap-2">
+      <Button
+        size="sm"
+        variant="outline-subtle"
+        disabled={busy}
+        onClick={async () => {
+          if (await run("/api/plan/adopt", { interventionId })) setState(true);
+        }}
+      >
+        {busy ? "Adopting…" : "Adopt and measure"}
+      </Button>
+      {error && (
+        <span className="text-[12px] text-[var(--color-health-critical)]">
+          {error}
+        </span>
+      )}
+    </span>
+  );
+}
+
 const MAX_MESSAGE = 1000;
 
 /**

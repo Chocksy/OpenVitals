@@ -40,6 +40,12 @@ interface ComposeCase {
     chips: { key: string; value?: string | number; kind?: string }[];
     /** chips that must never appear */
     notChips?: string[];
+    /**
+     * Kinds that must never appear. A hearsay post is the case this exists
+     * for: it says something about the world, so it must write nothing at all
+     * about the person.
+     */
+    notKinds?: string[];
     /** the key of the one question asked back, or null for none */
     followUp: string | null;
   };
@@ -52,7 +58,8 @@ interface Result {
   pass: boolean;
 }
 
-const describe = (c: Chip) => `${c.key}=${String(c.value)}`;
+const describe = (c: Chip) =>
+  c.kind === "claim" ? c.label : `${c.key}=${String(c.value)}`;
 
 function check(
   c: ComposeCase,
@@ -74,6 +81,9 @@ function check(
   }
   for (const never of c.expect.notChips ?? [])
     if (chips.some((x) => x.key === never)) failed.push(`wrote ${never}`);
+  for (const never of c.expect.notKinds ?? [])
+    for (const chip of chips.filter((x) => x.kind === never))
+      failed.push(`wrote a ${never}: ${chip.key}`);
   if (needFollowUp && ask !== c.expect.followUp)
     failed.push(`asked back "${ask}", wanted "${c.expect.followUp}"`);
   return failed;

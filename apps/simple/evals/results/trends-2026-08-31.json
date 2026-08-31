@@ -1,0 +1,95 @@
+{
+  "ranAt": "2026-08-31T18:30:19.081Z",
+  "model": "google/gemini-3.7-flash",
+  "results": [
+    {
+      "id": "sardines",
+      "claim": {
+        "text": "people eat 3 tins a week and say it fixes their triglycerides",
+        "intervention": "sardines, 3 tins a week",
+        "markers": [
+          "triglycerides"
+        ],
+        "direction": "down",
+        "sourceKind": "unknown"
+      },
+      "conditionId": "nafld",
+      "horizon": "E · horizon · unknown · nafld",
+      "plan": "Measure triglycerides now, keep it up, retest in 8 weeks (lower is better).",
+      "science": [
+        "HQP supplementation (A)",
+        "L-carnitine supplementation (A)",
+        "Nanocurcumin supplementation (A)"
+      ],
+      "failed": [],
+      "pass": true
+    },
+    {
+      "id": "berberine",
+      "claim": {
+        "text": "everyone on TikTok is taking berberine, they call it nature's ozempic and say it drops your HbA1c",
+        "intervention": "berberine",
+        "markers": [
+          "hba1c"
+        ],
+        "direction": "down",
+        "sourceKind": "social"
+      },
+      "conditionId": "insulin_resistance",
+      "horizon": "E · horizon · social · insulin_resistance",
+      "plan": "Measure HbA1c now, keep it up, retest in 12 weeks (lower is better).",
+      "science": [
+        "cut added sugar (B)",
+        "resistance training twice a week (B)",
+        "Anthocyanin supplementation (C)",
+        "walk 30 minutes after the largest meal (C)"
+      ],
+      "failed": [],
+      "pass": true
+    },
+    {
+      "id": "cold_plunge",
+      "claim": {
+        "text": "I heard on a podcast that cold plunges fix your cortisol",
+        "intervention": "cold plunges",
+        "markers": [
+          "cortisol_am"
+        ],
+        "direction": "down",
+        "sourceKind": "podcast"
+      },
+      "conditionId": "addisons",
+      "horizon": "E · horizon · podcast · addisons",
+      "plan": "Measure morning cortisol now, keep it up, retest in 12 weeks (the band decides).",
+      "science": [],
+      "failed": [],
+      "pass": true
+    },
+    {
+      "id": "not_a_claim",
+      "claim": null,
+      "conditionId": null,
+      "horizon": null,
+      "plan": null,
+      "science": [],
+      "failed": [],
+      "pass": true
+    },
+    {
+      "id": "untracked_marker",
+      "claim": {
+        "text": "apparently mouth taping at night fixes your jaw alignment, half my gym does it",
+        "intervention": "mouth taping at night",
+        "markers": [],
+        "direction": "up",
+        "sourceKind": "friend"
+      },
+      "conditionId": "popular_claims",
+      "horizon": "E · horizon · friend · popular_claims",
+      "plan": null,
+      "science": [],
+      "failed": [],
+      "pass": true
+    }
+  ]
+}

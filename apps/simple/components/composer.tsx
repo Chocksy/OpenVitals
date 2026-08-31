@@ -51,6 +51,8 @@ const KIND_TONE: Record<string, string> = {
   event: "border-neutral-300 text-neutral-500",
   phenotype:
     "border-[var(--color-health-warning)] text-[var(--color-health-warning)]",
+  // Hearsay: dotted, because it is about the world and writes nothing here.
+  claim: "border-dashed border-neutral-400 text-neutral-500",
   unknown: "border-neutral-300 text-neutral-400",
 };
 
@@ -304,7 +306,7 @@ export function Composer({ today }: { today: string }) {
                     <span className="text-neutral-300">· ai</span>
                   )}
                 </button>
-                {open === chip.key && !posted && (
+                {open === chip.key && !posted && chip.kind !== "claim" && (
                   <ChipEditor
                     chip={chip}
                     options={options[chip.key] ?? []}

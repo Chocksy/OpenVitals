@@ -14,17 +14,23 @@
 import { eq, inArray } from "drizzle-orm";
 import { getDb, hkbConditions } from "@/db";
 import { recordRevision } from "@/lib/hkb";
-import { recordRun, took } from "@/lib/hkb-import";
+import { lastRun, recordRun, took } from "@/lib/hkb-import";
+import { freshnessLine } from "@/lib/freshness";
 import {
+  conditionFreshness,
   featuresFor,
+  GUIDELINE_SCRIPT,
   researchCondition,
+  researchGuidelines,
   researchInterventions,
   researchMechanisms,
+  saveGuidelineReviews,
   saveInterventions,
   saveMechanisms,
   saveProposals,
-  thinnestConditions,
+  staleConditions,
   TOKEN_BUDGET,
+  watchWindow,
   type ConditionRef,
   type RunCounts,
 } from "@/lib/research";
@@ -54,9 +60,22 @@ const EMPTY_COUNTS = (): RunCounts => ({
   tokens: 0,
 });
 
-/** The conditions asked for, or the ten with the least evidence behind them. */
+/**
+ * The conditions asked for, or the ten stalest.
+ *
+ * Phase 22: the pick is by staleness class, not by row count, and it prints
+ * why it picked each one so /hkb Activity and the console say the same thing.
+ * Contested ids are always first, and a condition with fewer than three rows is
+ * infinitely stale, so the old thin-first behaviour survives inside the new
+ * ordering.
+ */
 async function conditionsOf(ids: string[]): Promise<ConditionRef[]> {
-  if (!ids.length) return thinnestConditions(10);
+  if (!ids.length) {
+    const picks = await staleConditions(10);
+    console.log("[hkb:research] the pick, stalest first:");
+    for (const p of picks) console.log(`  ${freshnessLine(p)}`);
+    return picks;
+  }
   const rows = await getDb()
     .select({
       id: hkbConditions.id,
@@ -102,7 +121,11 @@ export async function researchRun({
       console.log(`[hkb:research] ${condition.id}: no features, skipped`);
       continue;
     }
-    const { rows: proposals, mints, counts } = evidence
+    const {
+      rows: proposals,
+      mints,
+      counts,
+    } = evidence
       ? await researchCondition(condition, features, {
           maxPapers,
           modelId,
@@ -201,6 +224,44 @@ export async function researchRun({
   return { rows, tokens: spent, ms: Date.now() - started };
 }
 
+/**
+ * The quarterly guideline watch: search only, no LLM, no accepted row touched.
+ *
+ * Every ring-1 condition is searched for guidelines, practice guidelines and
+ * consensus statements published since the last watch. A hit changes nothing by
+ * itself — it lands as a `review` row with `needs_look`, which is how /hkb asks
+ * a human to check the gates and thresholds that live in code.
+ */
+export async function guidelineWatch(
+  conditionIds: string[] = [],
+): Promise<{ conditions: number; hits: number; written: number; ms: number }> {
+  const started = Date.now();
+  const all = await conditionFreshness();
+  const conditions = conditionIds.length
+    ? all.filter((c) => conditionIds.includes(c.id))
+    : all;
+  const since = watchWindow(await lastRun(GUIDELINE_SCRIPT));
+  console.log(
+    `[hkb:guidelines] ${conditions.length} conditions, guidelines since ${since}`,
+  );
+
+  const hits = await researchGuidelines(conditions, { since });
+  const written = await saveGuidelineReviews(hits);
+  for (const h of hits)
+    console.log(
+      `  ${h.conditionId}: ${h.paper.title} (${h.paper.year ?? "?"}) ${h.paper.url}`,
+    );
+
+  const ms = Date.now() - started;
+  await recordRun(
+    GUIDELINE_SCRIPT,
+    { conditions: conditions.length, hits: hits.length, written },
+    `guideline watch since ${since}: ${hits.length} guidelines over ` +
+      `${conditions.length} conditions, ${written} new review rows, ${took(ms)}`,
+  );
+  return { conditions: conditions.length, hits: hits.length, written, ms };
+}
+
 if (
   process.argv[1] &&
   import.meta.url.endsWith(process.argv[1].split("/").pop()!)
@@ -222,6 +283,18 @@ if (
   const mechanisms = onlyMechanisms || !argv.includes("--no-mechanisms");
 
   const { pool } = await import("@/db");
+
+  // `--guidelines` is the quarterly watch on its own: search and filing, no LLM.
+  if (argv.includes("--guidelines")) {
+    const out = await guidelineWatch(conditionIds);
+    console.log(
+      `\n${out.hits} guidelines over ${out.conditions} conditions, ` +
+        `${out.written} new review rows, ${took(out.ms)}`,
+    );
+    await pool().end();
+    process.exit(0);
+  }
+
   researchRun({
     conditionIds,
     maxPapers,

@@ -286,5 +286,30 @@
       ],
       "followUp": "cycle_length_days"
     }
+  },
+  {
+    "id": "hearsay_sardines",
+    "text": "I heard on a podcast that sardines lower triglycerides \u2014 everyone is eating 3 tins a week",
+    "today": "2026-08-31",
+    "facts": {
+      "sex": "female",
+      "birth_year": 1985
+    },
+    "expect": {
+      "chips": [
+        {
+          "key": "claim:sardines",
+          "kind": "claim"
+        }
+      ],
+      "notKinds": [
+        "fact",
+        "symptom",
+        "reading",
+        "event",
+        "phenotype"
+      ],
+      "followUp": null
+    }
   }
 ]

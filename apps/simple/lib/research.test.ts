@@ -12,6 +12,11 @@ import {
   buildQueries,
   CONTESTED,
   withContested,
+  watchWindow,
+  guidelineQuery,
+  toGuidelineRow,
+  GUIDELINE_DAYS,
+  GUIDELINE_FEATURE,
   mechanismQueries,
   parseWhen,
   researchMechanisms,
@@ -986,5 +991,72 @@ describe("the contested watch list", () => {
 
   it("says why each one is on the list, with the citation", () => {
     for (const c of CONTESTED) expect(c.why.length).toBeGreaterThan(60);
+  });
+});
+
+describe("the guideline watch", () => {
+  const NOW = new Date("2026-09-01T09:00:00.000Z");
+
+  it("searches from the last watch run to today", () => {
+    expect(watchWindow(new Date("2026-06-01T10:00:00.000Z"), NOW)).toBe(
+      "2026-06-01",
+    );
+    const query = guidelineQuery("Hashimoto's thyroiditis", "2026-06-01", NOW);
+    expect(query).toContain("FIRST_PDATE:[2026-06-01 TO 2026-09-01]");
+    expect(query).toContain('PUB_TYPE:"practice guideline"');
+    expect(query).toContain('"Hashimoto\'s thyroiditis"');
+  });
+
+  it("looks back one quarter when it has never run", () => {
+    expect(watchWindow(null, NOW)).toBe("2026-06-03");
+    expect(GUIDELINE_DAYS).toBe(90);
+  });
+
+  it("writes a review row that cannot score, and names the condition", () => {
+    const row = toGuidelineRow({
+      conditionId: "hashimoto",
+      conditionName: "Hashimoto's thyroiditis",
+      paper: {
+        pmid: "40123456",
+        doi: "10.1000/x",
+        title: "2026 ATA guideline for hypothyroidism",
+        year: 2026,
+        journal: "Thyroid",
+        url: "https://doi.org/10.1000/x",
+        quote: "2026 ATA guideline for hypothyroidism",
+      },
+    });
+    expect(row.status).toBe("review");
+    expect(row.needsLook).toBe(true);
+    expect(row.featureId).toBe(GUIDELINE_FEATURE);
+    expect(row.lrPos).toBe(1);
+    expect(row.source).toContain(
+      "guideline watch: check gates and thresholds for Hashimoto's thyroiditis",
+    );
+    expect(row.id).toBe("watch_hashimoto_40123456");
+    // `rowsToCatalog` only ever reads `seed` and `accepted`, so this row is
+    // invisible to the engine no matter what else is on it.
+    expect(["seed", "accepted"]).not.toContain(row.status);
+  });
+
+  it("gives two guidelines for one condition two rows", () => {
+    const paper = (pmid: string) => ({
+      conditionId: "ckd",
+      conditionName: "Chronic kidney disease",
+      paper: {
+        pmid,
+        doi: null,
+        title: `guideline ${pmid}`,
+        year: 2026,
+        journal: null,
+        url: "",
+        quote: "",
+      },
+    });
+    const ids = [paper("1"), paper("2")].map((h) => toGuidelineRow(h).id);
+    expect(new Set(ids).size).toBe(2);
+    expect(
+      new Set([paper("1"), paper("1")].map((h) => toGuidelineRow(h).id)).size,
+    ).toBe(1);
   });
 });
