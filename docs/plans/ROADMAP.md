@@ -36,19 +36,19 @@ app `apps/simple`. Detailed specs live next to this file as
 
 ## Done (commits on `simple`)
 
-| Phase | What                                                                                                         | Key commits                     |
-| ----- | ------------------------------------------------------------------------------------------------------------ | ------------------------------- |
-| 1–4   | Lean app, curator, review queue, tracker, protocol, goals, trends, dark mode                                 | `ab1df30`…`9c45242`             |
-| 5     | Profile facts, vectors and coverage, escalation rules, AI plan with labels and doses, `/plan`, discuss       | `c3644d2`                       |
-| 6     | Knowledge graph (99 nodes, 112 edges), patterns, personal graph state, persona evals                         | `82b55e0`, `c7e5a02`            |
-| 7     | Uploads with state and re-analyze, curator range/unit repair, raw-sheet verification, per-user optimal bands | `e26d6df`, `2383468`, `36b1fb0` |
-| 8     | Four-destination nav, Labs tabs, tracker under avatar                                                        | `0f6a6f8`                       |
-| 9–10  | Hypothesis engine, scenarios, `/brain`, HKB tables, information gain, diagnostic tree                        | `9beaee3`, `2d4b111`, `02ea7b2` |
-| 11    | 32-condition catalog, HPO/MONDO/HPOA import, NCD-RisC priors, symptom set, RO prices, `/hkb`                 | `768919d`, `c8ea074`            |
-| 12    | Home as cockpit + conclusion ledger, belief snapshots                                                        | `91c89cb`                       |
-| 13    | Genome parser (12 genes), any-document extraction with review, life_events table                             | `1d807c8`                       |
-| 14    | Research intake (Europe PMC, DOI-verified), importer fix, rare-disease proposals rejected                    | `2e7954d`                       |
-| 15    | Autonomous knowledge (grades A–E, policy, pooling, minting, interventions and horizon, schedule, `/hkb` window, System nav) and fact history (changed vs corrected, `/history`, event confounders) | `ed91fac` |
+| Phase | What                                                                                                                                                                                               | Key commits                     |
+| ----- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------- |
+| 1–4   | Lean app, curator, review queue, tracker, protocol, goals, trends, dark mode                                                                                                                       | `ab1df30`…`9c45242`             |
+| 5     | Profile facts, vectors and coverage, escalation rules, AI plan with labels and doses, `/plan`, discuss                                                                                             | `c3644d2`                       |
+| 6     | Knowledge graph (99 nodes, 112 edges), patterns, personal graph state, persona evals                                                                                                               | `82b55e0`, `c7e5a02`            |
+| 7     | Uploads with state and re-analyze, curator range/unit repair, raw-sheet verification, per-user optimal bands                                                                                       | `e26d6df`, `2383468`, `36b1fb0` |
+| 8     | Four-destination nav, Labs tabs, tracker under avatar                                                                                                                                              | `0f6a6f8`                       |
+| 9–10  | Hypothesis engine, scenarios, `/brain`, HKB tables, information gain, diagnostic tree                                                                                                              | `9beaee3`, `2d4b111`, `02ea7b2` |
+| 11    | 32-condition catalog, HPO/MONDO/HPOA import, NCD-RisC priors, symptom set, RO prices, `/hkb`                                                                                                       | `768919d`, `c8ea074`            |
+| 12    | Home as cockpit + conclusion ledger, belief snapshots                                                                                                                                              | `91c89cb`                       |
+| 13    | Genome parser (12 genes), any-document extraction with review, life_events table                                                                                                                   | `1d807c8`                       |
+| 14    | Research intake (Europe PMC, DOI-verified), importer fix, rare-disease proposals rejected                                                                                                          | `2e7954d`                       |
+| 15    | Autonomous knowledge (grades A–E, policy, pooling, minting, interventions and horizon, schedule, `/hkb` window, System nav) and fact history (changed vs corrected, `/history`, event confounders) | `ed91fac`                       |
 
 Findings from phase 15 worth remembering: diagnostic-accuracy searches
 now mostly return papers already ingested (dedupe works); the yield lever
@@ -78,21 +78,23 @@ hides ApoB after LDL is known, which is wrong exactly in the LMHR case
 
 ## In progress
 
-**Phase 20: the interview as a relationship** (spec pending the owner's
-answer on check-in cadence): per-fact revisit cadence and triggers,
-"still true?" one-tap re-asks, engine-chosen follow-ups phrased with
-memory by the LLM, free-text box mapped to dated facts with confirm
-chips, Today's check-in card on Home, interview journeys.
+**Phase 20: the interview as a relationship, and the composer**
+(`2026-09-01-phase20-interview-composer-spec.md`): per-fact revisit
+cadence and triggers, "still true?" one-tap re-asks, an always-present
+"+" composer modal with live "understood" chips (rules first, model
+second, closed keys), one engine-chosen follow-up per post, a reply
+computed in code and phrased by the LLM with memory, Today card on Home,
+compose evals and a fatigue/coffee journey.
 
 ## Next
 
-| #   | Phase                                                                                                                                    | Why                                     |
-| --- | ---------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------- |
+| #   | Phase                                                                                                                                           | Why                                     |
+| --- | ----------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------- |
 | 16b | The picture, page: bubbles view on `/graph` per the approved mockup (state fills, kind outlines, faint not-for-you, ask box), mobile card stack | the relations chart the owner asked for |
-| 17b | Prod cutover to Coolify (branch `simple`, compose, volumes, seeds, imports) — owner said not to rush it | Ramona on her phone |
-| 18  | GBD priors (owner downloads one CSV), NCD-RisC to more conditions, prices from a second lab                                              | better empty-user starts                |
-| 19  | Wearables via the phone app (resting HR, sleep, HRV, steps) and Apple Health; food photos later                                          | the tier-0 vectors blood cannot see     |
-| 20  | Genome tier 2 (~40 SNPs, polygenic scores, ancestry-matched), microbiome report parser                                                   | more evidence for the same engine       |
+| 17b | Prod cutover to Coolify (branch `simple`, compose, volumes, seeds, imports) — owner said not to rush it                                         | Ramona on her phone                     |
+| 18  | GBD priors (owner downloads one CSV), NCD-RisC to more conditions, prices from a second lab                                                     | better empty-user starts                |
+| 19  | Wearables via the phone app (resting HR, sleep, HRV, steps) and Apple Health; food photos later                                                 | the tier-0 vectors blood cannot see     |
+| 20  | Genome tier 2 (~40 SNPs, polygenic scores, ancestry-matched), microbiome report parser                                                          | more evidence for the same engine       |
 
 ## Open cleanups (need owner OK)
 
