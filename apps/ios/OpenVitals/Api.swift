@@ -1,0 +1,279 @@
+/// The server contract, and nothing else.
+///
+/// Two endpoints (`/api/sync/healthkit`, `/api/capture`), one better-auth
+/// session cookie, and the one date format the server actually reads. Nothing
+/// in this file knows about HealthKit or SwiftUI, so every shape below is
+/// testable on its own.
+import Foundation
+
+enum Api {
+    /// Where the app talks. Overridable on the Sync tab for a dev server.
+    static let productionBase = "https://vitals.chocksy.com"
+
+    private static let baseKey = "baseURL"
+
+    static var base: String {
+        get { UserDefaults.standard.string(forKey: baseKey) ?? productionBase }
+        set {
+            let trimmed = newValue.trimmingCharacters(in: .whitespacesAndNewlines)
+            UserDefaults.standard.set(
+                trimmed.isEmpty ? productionBase : trimmed, forKey: baseKey)
+        }
+    }
+
+    static var baseURL: URL {
+        URL(string: base) ?? URL(string: productionBase)!
+    }
+
+    // MARK: - instants
+
+    /// A formatter that writes the local offset and never `Z`.
+    ///
+    /// The server derives the day from the *date in the string*
+    /// (`lib/healthkit.ts: dayOf`), so an instant sent as UTC moves a 23:10
+    /// sample onto the wrong day for anyone east of Greenwich. Lowercase
+    /// `xxxxx` writes `+03:00`, and unlike `XXXXX` or `ZZZZZ` it writes
+    /// `+00:00` rather than `Z` at zero offset — so "never Z" holds in London
+    /// in winter too.
+    static func isoFormatter(_ zone: TimeZone) -> DateFormatter {
+        let f = DateFormatter()
+        f.locale = Locale(identifier: "en_US_POSIX")
+        f.calendar = Calendar(identifier: .gregorian)
+        f.dateFormat = "yyyy-MM-dd'T'HH:mm:ssxxxxx"
+        f.timeZone = zone
+        return f
+    }
+
+    private static let localISO = isoFormatter(.current)
+
+    static func iso(_ date: Date) -> String { localISO.string(from: date) }
+
+    // MARK: - the session cookie
+
+    /// A better-auth session cookie is `better-auth.session_token`, or
+    /// `__Secure-better-auth.session_token` once the site is on https. Match on
+    /// the suffix so both spellings, and any future prefix, count.
+    static func isSessionCookie(_ name: String) -> Bool {
+        name.hasSuffix("session_token")
+    }
+
+    /// Copy what the webview holds into the store `URLSession.shared` reads.
+    /// This is the whole of "sign-in": no token flow, no keychain.
+    @discardableResult
+    static func adopt(_ cookies: [HTTPCookie]) -> Int {
+        guard let host = baseURL.host else { return 0 }
+        var taken = 0
+        for cookie in cookies where host.hasSuffix(cookie.domain.hasPrefix(".")
+            ? String(cookie.domain.dropFirst()) : cookie.domain) {
+            HTTPCookieStorage.shared.setCookie(cookie)
+            taken += 1
+        }
+        return taken
+    }
+
+    static var signedIn: Bool {
+        (HTTPCookieStorage.shared.cookies(for: baseURL) ?? [])
+            .contains { isSessionCookie($0.name) }
+    }
+
+    static func signOut() {
+        for cookie in HTTPCookieStorage.shared.cookies(for: baseURL) ?? [] {
+            HTTPCookieStorage.shared.deleteCookie(cookie)
+        }
+    }
+
+    // MARK: - shapes
+
+    /// One HealthKit sample, exactly as `lib/healthkit.ts` declares it.
+    /// Sleep-stage category samples carry the stage name (`asleepCore`,
+    /// `asleepDeep`, `asleepREM`, `awake`, `inBed`) in `unit`, because a
+    /// category sample has no unit of its own.
+    struct Sample: Codable, Equatable {
+        let type: String
+        let unit: String?
+        let value: Double
+        let start: String
+        let end: String?
+        let sourceBundle: String?
+    }
+
+    struct SyncBody: Encodable { let samples: [Sample] }
+
+    struct SyncResult: Decodable {
+        let ok: Bool?
+        let samples: Int?
+        let days: [String]?
+        let readings: Int?
+        let dailyLogs: Int?
+        let facts: [String]?
+        let habitTicks: Int?
+        let dropped: Int?
+        let skipped: [String]?
+        /// Take all, use what we can, hide nothing: the Sync tab lists these.
+        let seenNotUsed: [String]?
+        let error: String?
+    }
+
+    /// A JSON value the server owns the meaning of. A chip's `value` is a
+    /// number for nutrition and a string for a fact, so it round-trips as-is.
+    enum JSON: Codable, Equatable {
+        case string(String)
+        case number(Double)
+        case bool(Bool)
+        case null
+
+        init(from decoder: Decoder) throws {
+            let c = try decoder.singleValueContainer()
+            if c.decodeNil() { self = .null }
+            else if let d = try? c.decode(Double.self) { self = .number(d) }
+            else if let b = try? c.decode(Bool.self) { self = .bool(b) }
+            else { self = .string(try c.decode(String.self)) }
+        }
+
+        func encode(to encoder: Encoder) throws {
+            var c = encoder.singleValueContainer()
+            switch self {
+            case .string(let s): try c.encode(s)
+            case .number(let d): try c.encode(d)
+            case .bool(let b): try c.encode(b)
+            case .null: try c.encodeNil()
+            }
+        }
+
+        var text: String {
+            switch self {
+            case .string(let s): return s
+            case .number(let d):
+                return d == d.rounded() ? String(Int(d)) : String(d)
+            case .bool(let b): return b ? "true" : "false"
+            case .null: return ""
+            }
+        }
+    }
+
+    /// `lib/compose.ts: Chip`, the shape the capture route returns and takes
+    /// back. Sent back verbatim; the server re-checks every field anyway.
+    struct Chip: Codable, Equatable, Identifiable {
+        var kind: String
+        var key: String
+        var label: String
+        var value: JSON
+        var date: String
+        var quote: String
+        var confidence: Double
+        var by: String
+        var unit: String?
+
+        var id: String { "\(kind)|\(key)|\(label)|\(date)" }
+    }
+
+    struct CaptureResult: Decodable {
+        let ok: Bool?
+        /// `meal`, `supplement_label`, `medication_label`, `lab_sheet`, ...
+        let kind: String?
+        let basis: String?
+        let confidence: Double?
+        let label: String?
+        let chips: [Chip]?
+        /// Food numbers are guesses and say so.
+        let estimated: Bool?
+        /// Set when the photo went to the lab/document pipeline instead.
+        let routedTo: String?
+        let uploadId: String?
+        let count: Int?
+        let note: String?
+        let error: String?
+    }
+
+    struct ConfirmBody: Encodable {
+        let chips: [Chip]
+        let label: String?
+        let at: String?
+    }
+
+    struct ConfirmResult: Decodable {
+        let ok: Bool?
+        let facts: [String]?
+        let day: String?
+        let error: String?
+    }
+
+    struct Failure: LocalizedError {
+        let status: Int
+        let message: String
+        var errorDescription: String? {
+            status > 0 ? "\(status): \(message)" : message
+        }
+    }
+
+    // MARK: - calls
+
+    /// `POST /api/sync/healthkit` with `{ samples: [...] }`.
+    static func sync(_ samples: [Sample]) async throws -> SyncResult {
+        var req = URLRequest(url: baseURL.appendingPathComponent("api/sync/healthkit"))
+        req.httpMethod = "POST"
+        req.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        req.httpBody = try JSONEncoder().encode(SyncBody(samples: samples))
+        return try await send(req)
+    }
+
+    /// `POST /api/capture` as multipart: a photo, chips back, nothing written.
+    static func capture(photo: Data, fileName: String = "photo.jpg",
+                        caption: String = "", takenAt: Date? = nil) async throws -> CaptureResult {
+        let boundary = "ov-\(UUID().uuidString)"
+        var fields = ["caption": caption]
+        if let takenAt { fields["takenAt"] = iso(takenAt) }
+        var req = URLRequest(url: baseURL.appendingPathComponent("api/capture"))
+        req.httpMethod = "POST"
+        req.setValue("multipart/form-data; boundary=\(boundary)",
+                     forHTTPHeaderField: "Content-Type")
+        req.httpBody = multipart(boundary: boundary, photo: photo,
+                                 fileName: fileName, fields: fields)
+        return try await send(req)
+    }
+
+    /// `POST /api/capture` as JSON: the person confirmed, so it writes.
+    static func confirm(chips: [Chip], label: String?, at: String?) async throws -> ConfirmResult {
+        var req = URLRequest(url: baseURL.appendingPathComponent("api/capture"))
+        req.httpMethod = "POST"
+        req.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        req.httpBody = try JSONEncoder().encode(
+            ConfirmBody(chips: chips, label: label, at: at))
+        return try await send(req)
+    }
+
+    /// The multipart body, built by hand because one photo and two strings do
+    /// not need a library. Pure, so a test can read it back.
+    static func multipart(boundary: String, photo: Data, fileName: String,
+                          fields: [String: String]) -> Data {
+        var body = Data()
+        func add(_ s: String) { body.append(Data(s.utf8)) }
+        for key in fields.keys.sorted() {
+            add("--\(boundary)\r\n")
+            add("Content-Disposition: form-data; name=\"\(key)\"\r\n\r\n")
+            add("\(fields[key]!)\r\n")
+        }
+        add("--\(boundary)\r\n")
+        add("Content-Disposition: form-data; name=\"photo\"; filename=\"\(fileName)\"\r\n")
+        add("Content-Type: image/jpeg\r\n\r\n")
+        body.append(photo)
+        add("\r\n--\(boundary)--\r\n")
+        return body
+    }
+
+    private static func send<T: Decodable>(_ req: URLRequest) async throws -> T {
+        let (data, response) = try await URLSession.shared.data(for: req)
+        let status = (response as? HTTPURLResponse)?.statusCode ?? 0
+        // The routes answer JSON on every path they own, including 401 and 500,
+        // so decode first and use the status only for the message.
+        if let decoded = try? JSONDecoder().decode(T.self, from: data),
+           (200..<300).contains(status) {
+            return decoded
+        }
+        let message = (try? JSONDecoder().decode([String: JSON].self, from: data))?["error"]?.text
+            ?? String(data: data.prefix(400), encoding: .utf8)
+            ?? "no reply"
+        throw Failure(status: status,
+                      message: status == 401 ? "not signed in" : message)
+    }
+}

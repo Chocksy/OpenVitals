@@ -1,0 +1,357 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXContainerItemProxy section */
+		D10000000000000000000026 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = D10000000000000000000001 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = D10000000000000000000004;
+			remoteInfo = OpenVitals;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		D10000000000000000000006 /* OpenVitals.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = OpenVitals.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		D10000000000000000000007 /* OpenVitalsTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = OpenVitalsTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		D10000000000000000000008 /* OpenVitals */ = {isa = PBXFileSystemSynchronizedRootGroup; path = OpenVitals; sourceTree = "<group>"; };
+		D10000000000000000000009 /* Tests */ = {isa = PBXFileSystemSynchronizedRootGroup; path = Tests; sourceTree = "<group>"; };
+/* End PBXFileSystemSynchronizedRootGroup section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		D10000000000000000000011 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D10000000000000000000014 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		D10000000000000000000002 = {
+			isa = PBXGroup;
+			children = (
+				D10000000000000000000008 /* OpenVitals */,
+				D10000000000000000000009 /* Tests */,
+				D10000000000000000000003 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		D10000000000000000000003 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				D10000000000000000000006 /* OpenVitals.app */,
+				D10000000000000000000007 /* OpenVitalsTests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		D10000000000000000000004 /* OpenVitals */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = D10000000000000000000017 /* Build configuration list for PBXNativeTarget "OpenVitals" */;
+			buildPhases = (
+				D10000000000000000000010 /* Sources */,
+				D10000000000000000000011 /* Frameworks */,
+				D10000000000000000000012 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				D10000000000000000000008 /* OpenVitals */,
+			);
+			name = OpenVitals;
+			productName = OpenVitals;
+			productReference = D10000000000000000000006 /* OpenVitals.app */;
+			productType = "com.apple.product-type.application";
+		};
+		D10000000000000000000005 /* OpenVitalsTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = D10000000000000000000018 /* Build configuration list for PBXNativeTarget "OpenVitalsTests" */;
+			buildPhases = (
+				D10000000000000000000013 /* Sources */,
+				D10000000000000000000014 /* Frameworks */,
+				D10000000000000000000015 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				D10000000000000000000025 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				D10000000000000000000009 /* Tests */,
+			);
+			name = OpenVitalsTests;
+			productName = OpenVitalsTests;
+			productReference = D10000000000000000000007 /* OpenVitalsTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		D10000000000000000000001 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 2660;
+				LastUpgradeCheck = 2660;
+				TargetAttributes = {
+					D10000000000000000000004 = {
+						CreatedOnToolsVersion = 26.6;
+					};
+					D10000000000000000000005 = {
+						CreatedOnToolsVersion = 26.6;
+						TestTargetID = D10000000000000000000004;
+					};
+				};
+			};
+			buildConfigurationList = D10000000000000000000016 /* Build configuration list for PBXProject "OpenVitals" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = D10000000000000000000002;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = D10000000000000000000003 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				D10000000000000000000004 /* OpenVitals */,
+				D10000000000000000000005 /* OpenVitalsTests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		D10000000000000000000012 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D10000000000000000000015 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		D10000000000000000000010 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D10000000000000000000013 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		D10000000000000000000025 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = D10000000000000000000004 /* OpenVitals */;
+			targetProxy = D10000000000000000000026 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		D10000000000000000000019 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		D10000000000000000000020 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_VERSION = 5.0;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		D10000000000000000000021 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = "";
+				CODE_SIGN_ENTITLEMENTS = OpenVitals.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = OpenVitals;
+				INFOPLIST_KEY_NSCameraUsageDescription = "Take a photo of a meal, a supplement label or a lab sheet.";
+				INFOPLIST_KEY_NSHealthShareUsageDescription = "OpenVitals reads your Health data (steps, sleep, heart rate, weight and the rest) so your own numbers feed the engine.";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Pick a photo of a meal, a supplement label or a lab sheet.";
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.chocksy.OpenVitals;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		D10000000000000000000022 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = "";
+				CODE_SIGN_ENTITLEMENTS = OpenVitals.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = OpenVitals;
+				INFOPLIST_KEY_NSCameraUsageDescription = "Take a photo of a meal, a supplement label or a lab sheet.";
+				INFOPLIST_KEY_NSHealthShareUsageDescription = "OpenVitals reads your Health data (steps, sleep, heart rate, weight and the rest) so your own numbers feed the engine.";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Pick a photo of a meal, a supplement label or a lab sheet.";
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.chocksy.OpenVitals;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		D10000000000000000000023 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.chocksy.OpenVitalsTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/OpenVitals.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/OpenVitals";
+			};
+			name = Debug;
+		};
+		D10000000000000000000024 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.chocksy.OpenVitalsTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/OpenVitals.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/OpenVitals";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		D10000000000000000000016 /* Build configuration list for PBXProject "OpenVitals" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				D10000000000000000000019 /* Debug */,
+				D10000000000000000000020 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		D10000000000000000000017 /* Build configuration list for PBXNativeTarget "OpenVitals" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				D10000000000000000000021 /* Debug */,
+				D10000000000000000000022 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		D10000000000000000000018 /* Build configuration list for PBXNativeTarget "OpenVitalsTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				D10000000000000000000023 /* Debug */,
+				D10000000000000000000024 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = D10000000000000000000001 /* Project object */;
+}

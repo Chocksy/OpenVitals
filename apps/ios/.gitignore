@@ -1,0 +1,7 @@
+# Xcode writes per-user state next to the checked-in project. None of it is
+# the app.
+xcuserdata/
+*.xcworkspace/xcuserdata/
+DerivedData/
+build/
+*.xcuserstate

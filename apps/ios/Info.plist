@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  Everything Xcode can synthesise from INFOPLIST_KEY_* build settings lives
+  there, not here. This file exists for the one key that is a dictionary and so
+  cannot be a build setting: the transport exception that lets the debug base
+  URL point at a plain-http dev server on the LAN.
+-->
+<plist version="1.0">
+<dict>
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsLocalNetworking</key>
+		<true/>
+	</dict>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>processing</string>
+	</array>
+</dict>
+</plist>
