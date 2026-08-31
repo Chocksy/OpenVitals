@@ -66,12 +66,19 @@ step also runs over `hkb_features`.
 | 16 | The picture, data layers: graph in Postgres, Monarch edges (same-term filter), mechanism-edge extraction with `when_`, personal conditional edges, pathograph helper (page held for the bubbles mockup) | `42cfe43` |
 | 17 | Knowledge rings (10,597 dormant diseases), waking on five triggers incl. the ask box (pg_trgm), correlation guards, trend evidence, KB revisions in what-changed, calibration logging, ruled-out hidden app-wide | `4283893` |
 
+| 18 | Journey evals (18 scripted personas incl. 8 rare-disease paths: Addison's, Wilson, Gilbert, A1AT, pernicious anaemia, Fabry via exome, MCAS, SIBO via microbiome), 0–100 discovery track with percentages, Journeys tab on `/brain`; the evals found and we fixed four engine defects (threshold units, missing negative LRs, unknown≠negative, stopping floor); budget is a guide; special-path tests | `a484e69`, `42eb271` |
+
+Findings from phase 18: 15/18 journeys pass; the three failures share
+one cause, symptom-only rules stacking multiplicatively (hypothyroidism
+89 % on symptoms + TSH band alone). Also: the lipid correlation guard
+hides ApoB after LDL is known, which is wrong exactly in the LMHR case
+(discordance is the signal). Both are decided and go into phase 19.
+
 ## In progress
 
-**Phase 18: journey evals** (`2026-08-31-phase18-journey-evals-spec.md`):
-scripted personas with a hidden truth, the engine choosing every step,
-a 0–100 discovery track per condition, Journeys tab on `/brain` with a
-select, verdicts, budget slider and what-if flips.
+**Phase 19: projections with expectation and the history path**
+(`2026-08-31-phase19-projections-and-history-spec.md`), plus the two
+knowledge-quality fixes above.
 
 ## Next
 
