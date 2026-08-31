@@ -1,0 +1,129 @@
+{
+  "id": "haemochromatosis_ferritin_m52",
+  "title": "Ferritin 1200 twice, man 52: haemochromatosis and a ring-2 wake",
+  "today": "2026-08-31",
+  "start": {
+    "facts": {
+      "sex": "male",
+      "birth_year": 1974,
+      "country": "RO",
+      "height_cm": "179",
+      "medications": "No",
+      "supplements": "No"
+    },
+    "readings": [
+      {
+        "code": "ferritin",
+        "value": 1200,
+        "unit": "ng/mL",
+        "date": "2026-08-01",
+        "prev": 1180
+      },
+      {
+        "code": "hemoglobin",
+        "value": 15.6,
+        "unit": "g/dL",
+        "date": "2026-02-10"
+      },
+      {
+        "code": "alt",
+        "value": 58,
+        "unit": "U/L",
+        "date": "2026-02-10"
+      },
+      {
+        "code": "ast",
+        "value": 44,
+        "unit": "U/L",
+        "date": "2026-02-10"
+      },
+      {
+        "code": "ggt",
+        "value": 45,
+        "unit": "U/L",
+        "date": "2026-02-10"
+      },
+      {
+        "code": "platelets",
+        "value": 210,
+        "unit": "10^9/L",
+        "date": "2026-02-10"
+      },
+      {
+        "code": "glucose",
+        "value": 98,
+        "unit": "mg/dL",
+        "date": "2026-02-10"
+      },
+      {
+        "code": "creatinine",
+        "value": 0.95,
+        "unit": "mg/dL",
+        "date": "2026-02-10"
+      }
+    ]
+  },
+  "truth": {
+    "conditions": [
+      "haemochromatosis"
+    ],
+    "answers": {
+      "sym_joint": "Yes",
+      "sym_energy": "Yes",
+      "sym_cold": "No",
+      "sym_weight": "No",
+      "sym_hair_skin": "No",
+      "sym_thirst": "No",
+      "sym_sleepiness": "No",
+      "sym_bowel": "Neither",
+      "sym_phq2_interest": "Not at all",
+      "sym_phq2_down": "Not at all",
+      "sym_alcohol": "Monthly or less",
+      "sleep_snoring": "No",
+      "family_history": "brother liver disease 58",
+      "conditions": "none",
+      "smoking": "Never",
+      "waist_cm": "88",
+      "bp_home": "124/78",
+      "resting_hr": "64",
+      "grip_kg": "48",
+      "screening_dates": "none",
+      "genome:hfe": "C282Y homozygous"
+    },
+    "labs": {
+      "ferritin": 1200,
+      "transferrin_saturation": 62,
+      "hfe_genotype": 1,
+      "hba1c": 5.6,
+      "insulin": 8,
+      "hs_crp": 0.6,
+      "esr": 8,
+      "vitamin_d": 28,
+      "vitamin_b12": 420,
+      "tsh": 2.0,
+      "free_t4": 1.2,
+      "testosterone": 380,
+      "uric_acid": 6.2,
+      "ldl_cholesterol": 118,
+      "hdl_cholesterol": 52,
+      "total_cholesterol": 192,
+      "triglycerides": 110,
+      "fibroscan_kpa": 7.8,
+      "mcv": 92,
+      "rdw": 13.1,
+      "reticulocyte_hemoglobin": 34.0
+    },
+    "defaultAnswer": "No",
+    "defaultLab": "typicalNeg"
+  },
+  "budget": 250,
+  "maxSteps": 10,
+  "expect": {
+    "discover": [
+      "haemochromatosis"
+    ],
+    "withinSteps": 8,
+    "withinEur": 150,
+    "wakeWithin": 2
+  }
+}

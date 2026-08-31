@@ -1,0 +1,118 @@
+{
+  "id": "ckd3_male_70",
+  "title": "Stage 3 kidney disease behind a raised creatinine, man 70",
+  "today": "2026-08-31",
+  "start": {
+    "facts": {
+      "sex": "male",
+      "birth_year": 1956,
+      "country": "RO",
+      "height_cm": "174",
+      "conditions": "high blood pressure",
+      "medications": "amlodipine 5 mg",
+      "supplements": "No"
+    },
+    "readings": [
+      {
+        "code": "creatinine",
+        "value": 1.6,
+        "unit": "mg/dL",
+        "date": "2026-08-01",
+        "prev": 1.35
+      },
+      {
+        "code": "hemoglobin",
+        "value": 13.4,
+        "unit": "g/dL",
+        "date": "2026-08-01"
+      },
+      {
+        "code": "glucose",
+        "value": 98,
+        "unit": "mg/dL",
+        "date": "2026-08-01"
+      },
+      {
+        "code": "ldl_cholesterol",
+        "value": 122,
+        "unit": "mg/dL",
+        "date": "2026-08-01"
+      },
+      {
+        "code": "hdl_cholesterol",
+        "value": 48,
+        "unit": "mg/dL",
+        "date": "2026-08-01"
+      },
+      {
+        "code": "total_cholesterol",
+        "value": 198,
+        "unit": "mg/dL",
+        "date": "2026-08-01"
+      },
+      {
+        "code": "triglycerides",
+        "value": 140,
+        "unit": "mg/dL",
+        "date": "2026-08-01"
+      }
+    ]
+  },
+  "truth": {
+    "conditions": [
+      "ckd",
+      "hypertension"
+    ],
+    "answers": {
+      "bp_home": "148/88",
+      "sym_energy": "Yes",
+      "sym_thirst": "No",
+      "sym_weight": "No",
+      "sym_cold": "No",
+      "sym_bowel": "Neither",
+      "sym_joint": "No",
+      "sym_hair_skin": "No",
+      "sym_sleepiness": "No",
+      "sym_phq2_interest": "Not at all",
+      "sym_phq2_down": "Not at all",
+      "sym_alcohol": "Monthly or less",
+      "sleep_snoring": "Sometimes",
+      "family_history": "father stroke 74",
+      "smoking": "Former",
+      "waist_cm": "98",
+      "resting_hr": "68",
+      "grip_kg": "34",
+      "screening_dates": "colonoscopy 2022"
+    },
+    "labs": {
+      "cystatin_c": 1.42,
+      "urine_albumin_creatinine_ratio": 62,
+      "hba1c": 5.7,
+      "insulin": 9,
+      "uric_acid": 7.1,
+      "hs_crp": 1.8,
+      "ferritin": 140,
+      "transferrin_saturation": 26,
+      "vitamin_d": 22,
+      "vitamin_b12": 360,
+      "tsh": 2.4,
+      "free_t4": 1.1,
+      "apolipoprotein_b": 102,
+      "lp_a": 18,
+      "alt": 22,
+      "psa_total": 1.9,
+      "reticulocyte_hemoglobin": 31.0
+    },
+    "defaultAnswer": "No",
+    "defaultLab": "typicalNeg"
+  },
+  "budget": 200,
+  "maxSteps": 12,
+  "expect": {
+    "discover": [
+      "ckd"
+    ],
+    "withinSteps": 8,
+    "withinEur": 120
+  }
+}

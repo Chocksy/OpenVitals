@@ -1,0 +1,135 @@
+{
+  "id": "insulin_resistant_male_45",
+  "title": "Insulin resistance and a fatty liver, man 45",
+  "today": "2026-08-31",
+  "start": {
+    "facts": {
+      "sex": "male",
+      "birth_year": 1981,
+      "country": "RO",
+      "height_cm": "176",
+      "medications": "No",
+      "supplements": "No"
+    },
+    "readings": [
+      {
+        "code": "glucose",
+        "value": 104,
+        "unit": "mg/dL",
+        "date": "2026-08-01"
+      },
+      {
+        "code": "ldl_cholesterol",
+        "value": 128,
+        "unit": "mg/dL",
+        "date": "2026-08-01"
+      },
+      {
+        "code": "hdl_cholesterol",
+        "value": 38,
+        "unit": "mg/dL",
+        "date": "2026-08-01"
+      },
+      {
+        "code": "total_cholesterol",
+        "value": 204,
+        "unit": "mg/dL",
+        "date": "2026-08-01"
+      },
+      {
+        "code": "triglycerides",
+        "value": 190,
+        "unit": "mg/dL",
+        "date": "2026-08-01"
+      },
+      {
+        "code": "alt",
+        "value": 46,
+        "unit": "U/L",
+        "date": "2026-08-01"
+      },
+      {
+        "code": "ast",
+        "value": 32,
+        "unit": "U/L",
+        "date": "2026-08-01"
+      },
+      {
+        "code": "ggt",
+        "value": 60,
+        "unit": "U/L",
+        "date": "2026-08-01"
+      },
+      {
+        "code": "hemoglobin",
+        "value": 15.4,
+        "unit": "g/dL",
+        "date": "2026-08-01"
+      },
+      {
+        "code": "creatinine",
+        "value": 0.98,
+        "unit": "mg/dL",
+        "date": "2026-08-01"
+      }
+    ]
+  },
+  "truth": {
+    "conditions": [
+      "insulin_resistance",
+      "nafld"
+    ],
+    "answers": {
+      "waist_cm": "104",
+      "sym_thirst": "No",
+      "sym_weight": "Gained",
+      "sym_energy": "Yes",
+      "sym_cold": "No",
+      "sym_bowel": "Neither",
+      "sym_hair_skin": "No",
+      "sym_joint": "No",
+      "sym_sleepiness": "Yes",
+      "sym_phq2_interest": "Not at all",
+      "sym_phq2_down": "Not at all",
+      "sym_alcohol": "2 to 4 times a month",
+      "sleep_snoring": "Most nights",
+      "family_history": "type 2 diabetes, father 58",
+      "conditions": "none",
+      "smoking": "Never",
+      "bp_home": "132/84",
+      "resting_hr": "74",
+      "grip_kg": "44",
+      "screening_dates": "none"
+    },
+    "labs": {
+      "hba1c": 5.9,
+      "insulin": 18,
+      "uric_acid": 6.8,
+      "hs_crp": 2.4,
+      "liver_ultrasound": 1,
+      "fibroscan_kpa": 6.2,
+      "ferritin": 210,
+      "transferrin_saturation": 34,
+      "tsh": 2.1,
+      "free_t4": 1.2,
+      "vitamin_d": 24,
+      "apolipoprotein_b": 108,
+      "lp_a": 14,
+      "home_sleep_study": 12,
+      "testosterone": 420,
+      "vitamin_b12": 380,
+      "reticulocyte_hemoglobin": 32.0
+    },
+    "defaultAnswer": "No",
+    "defaultLab": "typicalNeg"
+  },
+  "budget": 200,
+  "maxSteps": 12,
+  "expect": {
+    "discover": [
+      "insulin_resistance"
+    ],
+    "withinSteps": 8,
+    "withinEur": 120
+  }
+}

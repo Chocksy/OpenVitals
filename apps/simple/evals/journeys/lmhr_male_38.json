@@ -1,0 +1,130 @@
+{
+  "id": "lmhr_male_38",
+  "title": "Lean mass hyper-responder, man 38: LDL 215 with nothing behind it",
+  "today": "2026-08-31",
+  "start": {
+    "facts": {
+      "sex": "male",
+      "birth_year": 1988,
+      "country": "RO",
+      "height_cm": "180",
+      "medications": "No",
+      "supplements": "creatine 5 g"
+    },
+    "readings": [
+      {
+        "code": "ldl_cholesterol",
+        "value": 215,
+        "unit": "mg/dL",
+        "date": "2026-08-01"
+      },
+      {
+        "code": "hdl_cholesterol",
+        "value": 92,
+        "unit": "mg/dL",
+        "date": "2026-08-01"
+      },
+      {
+        "code": "total_cholesterol",
+        "value": 317,
+        "unit": "mg/dL",
+        "date": "2026-08-01"
+      },
+      {
+        "code": "triglycerides",
+        "value": 48,
+        "unit": "mg/dL",
+        "date": "2026-08-01"
+      },
+      {
+        "code": "glucose",
+        "value": 88,
+        "unit": "mg/dL",
+        "date": "2026-08-01"
+      },
+      {
+        "code": "hemoglobin",
+        "value": 15.2,
+        "unit": "g/dL",
+        "date": "2026-08-01"
+      },
+      {
+        "code": "alt",
+        "value": 22,
+        "unit": "U/L",
+        "date": "2026-08-01"
+      },
+      {
+        "code": "creatinine",
+        "value": 1.0,
+        "unit": "mg/dL",
+        "date": "2026-08-01"
+      }
+    ]
+  },
+  "truth": {
+    "conditions": [],
+    "answers": {
+      "waist_cm": "78",
+      "cac_score": "0",
+      "family_history": "none known",
+      "conditions": "none",
+      "smoking": "Never",
+      "bp_home": "116/72",
+      "resting_hr": "52",
+      "grip_kg": "54",
+      "sleep_snoring": "No",
+      "screening_dates": "none due",
+      "sym_energy": "No",
+      "sym_cold": "No",
+      "sym_weight": "No",
+      "sym_hair_skin": "No",
+      "sym_sleepiness": "No",
+      "sym_bowel": "Neither",
+      "sym_joint": "No",
+      "sym_thirst": "No",
+      "sym_phq2_interest": "Not at all",
+      "sym_phq2_down": "Not at all",
+      "sym_alcohol": "Never",
+      "dexa": "2025, T-score +0.4"
+    },
+    "labs": {
+      "apolipoprotein_b": 120,
+      "lp_a": 12,
+      "cac_score": 0,
+      "insulin": 3,
+      "hba1c": 5.0,
+      "hs_crp": 0.3,
+      "ferritin": 130,
+      "transferrin_saturation": 34,
+      "tsh": 1.7,
+      "free_t4": 1.3,
+      "tpo_antibodies": 5,
+      "vitamin_d": 46,
+      "vitamin_b12": 600,
+      "uric_acid": 5.4,
+      "testosterone": 720,
+      "cystatin_c": 0.85,
+      "urine_albumin_creatinine_ratio": 5,
+      "mcv": 90,
+      "rdw": 12.4,
+      "platelets": 230,
+      "ast": 24,
+      "ggt": 16,
+      "reticulocyte_hemoglobin": 33.0
+    },
+    "defaultAnswer": "No",
+    "defaultLab": "typicalNeg"
+  },
+  "budget": 250,
+  "maxSteps": 10,
+  "expect": {
+    "discover": [],
+    "noFalseLikely": true,
+    "orders": [
+      "ApoB",
+      "Lp(a)",
+      "calcium score"
+    ]
+  }
+}

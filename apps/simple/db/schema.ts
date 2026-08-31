@@ -1083,3 +1083,28 @@ export interface KgEvidence {
 
 export type KgNode = typeof kgNodes.$inferSelect;
 export type KgEdge = typeof kgEdges.$inferSelect;
+
+/* ── journeys (phase 18) ──────────────────────────────────────────────── */
+
+/**
+ * One run of one journey, kept the way `hkb_import_runs` keeps an importer
+ * run: so the history is there, and a change in the knowledge base shows up as
+ * a change in the curve rather than as a number nobody wrote down.
+ *
+ * `result` is the whole `JourneyResult`, steps and beliefs included, because
+ * the page draws it and nothing else reads it.
+ */
+export const journeyRuns = pgTable(
+  "journey_runs",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    journeyId: text("journey_id").notNull(),
+    ranAt: timestamp("ran_at", { withTimezone: true }).defaultNow(),
+    /** `hkb_revisions.id` at the time, so two runs can be told apart */
+    kbRevision: integer("kb_revision"),
+    result: jsonb("result").notNull(),
+  },
+  (t) => [index("journey_runs_journey_idx").on(t.journeyId, t.ranAt)],
+);
+
+export type JourneyRun = typeof journeyRuns.$inferSelect;

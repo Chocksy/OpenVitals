@@ -1,0 +1,86 @@
+{
+  "id": "hashimoto_from_scratch_f34_ro",
+  "title": "Hashimoto's from an empty account, woman 34, Romania",
+  "today": "2026-08-31",
+  "start": {
+    "facts": {
+      "sex": "female",
+      "birth_year": 1992,
+      "country": "RO"
+    },
+    "readings": []
+  },
+  "truth": {
+    "conditions": [
+      "hashimoto",
+      "iron_deficiency",
+      "vitamin_d_deficiency"
+    ],
+    "answers": {
+      "sym_energy": "Yes",
+      "sym_cold": "Yes",
+      "sym_hair_skin": "Yes",
+      "sym_bowel": "Neither",
+      "sym_cycle": "Heavy",
+      "sym_weight": "No",
+      "sym_phq2_interest": "Not at all",
+      "sym_phq2_down": "Several days",
+      "sym_alcohol": "Monthly or less",
+      "sleep_snoring": "No",
+      "family_history": "mother hypothyroid at 45",
+      "conditions": "none",
+      "medications": "No",
+      "supplements": "No",
+      "smoking": "Never",
+      "menopause_status": "Pre",
+      "cycle_phase_at_last_draw": "Follicular",
+      "waist_cm": "74",
+      "height_cm": "166",
+      "bp_home": "112/70",
+      "resting_hr": "72",
+      "grip_kg": "28"
+    },
+    "labs": {
+      "tsh": 3.9,
+      "free_t4": 1.1,
+      "free_t3": 2.9,
+      "tpo_antibodies": 320,
+      "anti_thyroglobulin": 180,
+      "ferritin": 18,
+      "transferrin_saturation": 14,
+      "hemoglobin": 12.8,
+      "hematocrit": 38,
+      "mcv": 84,
+      "rdw": 14.2,
+      "vitamin_d": 19,
+      "glucose": 84,
+      "hba1c": 5.1,
+      "insulin": 5,
+      "ldl_cholesterol": 105,
+      "hdl_cholesterol": 62,
+      "total_cholesterol": 181,
+      "triglycerides": 70,
+      "hs_crp": 0.8,
+      "creatinine": 0.78,
+      "alt": 17,
+      "ast": 19,
+      "vitamin_b12": 410,
+      "ttg_iga": 2,
+      "reticulocyte_hemoglobin": 27.5,
+      "thyroid_ultrasound": 1
+    },
+    "defaultAnswer": "No",
+    "defaultLab": "typicalNeg"
+  },
+  "budget": 120,
+  "maxSteps": 12,
+  "expect": {
+    "discover": [
+      "hashimoto",
+      "iron_deficiency"
+    ],
+    "withinSteps": 8,
+    "withinEur": 80,
+    "noFalseLikely": true
+  }
+}

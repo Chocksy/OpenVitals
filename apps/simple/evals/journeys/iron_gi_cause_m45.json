@@ -1,0 +1,132 @@
+{
+  "id": "iron_gi_cause_m45",
+  "title": "Iron deficiency in a man of 45: coeliac disease is the cause",
+  "today": "2026-08-31",
+  "start": {
+    "facts": {
+      "sex": "male",
+      "birth_year": 1981,
+      "country": "RO",
+      "height_cm": "178",
+      "medications": "No",
+      "supplements": "No"
+    },
+    "readings": [
+      {
+        "code": "hemoglobin",
+        "value": 11.9,
+        "unit": "g/dL",
+        "date": "2026-08-01"
+      },
+      {
+        "code": "hematocrit",
+        "value": 36,
+        "unit": "%",
+        "date": "2026-08-01"
+      },
+      {
+        "code": "mcv",
+        "value": 79,
+        "unit": "fL",
+        "date": "2026-08-01"
+      },
+      {
+        "code": "rdw",
+        "value": 15.4,
+        "unit": "%",
+        "date": "2026-08-01"
+      },
+      {
+        "code": "platelets",
+        "value": 290,
+        "unit": "10^9/L",
+        "date": "2026-08-01"
+      },
+      {
+        "code": "glucose",
+        "value": 90,
+        "unit": "mg/dL",
+        "date": "2026-08-01"
+      },
+      {
+        "code": "creatinine",
+        "value": 0.95,
+        "unit": "mg/dL",
+        "date": "2026-08-01"
+      },
+      {
+        "code": "alt",
+        "value": 21,
+        "unit": "U/L",
+        "date": "2026-08-01"
+      }
+    ]
+  },
+  "truth": {
+    "conditions": [
+      "iron_deficiency",
+      "iron_deficiency_cause_gi",
+      "coeliac_disease"
+    ],
+    "answers": {
+      "sym_bowel": "Diarrhoea and bloating",
+      "sym_energy": "Yes",
+      "sym_weight": "No",
+      "sym_cold": "No",
+      "sym_hair_skin": "No",
+      "sym_joint": "No",
+      "sym_thirst": "No",
+      "sym_sleepiness": "No",
+      "sym_phq2_interest": "Not at all",
+      "sym_phq2_down": "Not at all",
+      "sym_alcohol": "Monthly or less",
+      "sleep_snoring": "No",
+      "family_history": "sister coeliac",
+      "conditions": "none",
+      "smoking": "Never",
+      "waist_cm": "84",
+      "bp_home": "118/74",
+      "resting_hr": "66",
+      "grip_kg": "46",
+      "screening_dates": "none",
+      "genome:hla_dq": "carries DQ2.5"
+    },
+    "labs": {
+      "ferritin": 11,
+      "transferrin_saturation": 9,
+      "ttg_iga": 68,
+      "ema_iga": 1,
+      "vitamin_b12": 340,
+      "folic_acid": 3.2,
+      "fobt": 0,
+      "h_pylori_stool_antigen": 0,
+      "parietal_cell_antibodies": 0,
+      "gastrin": 40,
+      "vitamin_d": 21,
+      "tsh": 1.8,
+      "free_t4": 1.2,
+      "hs_crp": 1.1,
+      "hba1c": 5.1,
+      "insulin": 5,
+      "ldl_cholesterol": 108,
+      "hdl_cholesterol": 52,
+      "total_cholesterol": 182,
+      "triglycerides": 92,
+      "uric_acid": 4.6,
+      "reticulocyte_hemoglobin": 22.5
+    },
+    "defaultAnswer": "No",
+    "defaultLab": "typicalNeg"
+  },
+  "budget": 250,
+  "maxSteps": 12,
+  "expect": {
+    "discover": [
+      "iron_deficiency",
+      "coeliac_disease"
+    ],
+    "withinSteps": 8,
+    "withinEur": 150,
+    "noFalseLikely": true
+  }
+}

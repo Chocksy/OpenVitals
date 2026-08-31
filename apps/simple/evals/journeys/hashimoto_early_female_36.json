@@ -1,0 +1,130 @@
+{
+  "id": "hashimoto_early_female_36",
+  "title": "Early Hashimoto's, woman 36, one routine panel on file",
+  "today": "2026-08-31",
+  "start": {
+    "facts": {
+      "sex": "female",
+      "birth_year": 1990,
+      "country": "RO",
+      "height_cm": "168",
+      "medications": "No",
+      "supplements": "No"
+    },
+    "readings": [
+      {
+        "code": "glucose",
+        "value": 88,
+        "unit": "mg/dL",
+        "date": "2026-08-01"
+      },
+      {
+        "code": "hemoglobin",
+        "value": 13.1,
+        "unit": "g/dL",
+        "date": "2026-08-01"
+      },
+      {
+        "code": "mcv",
+        "value": 86,
+        "unit": "fL",
+        "date": "2026-08-01"
+      },
+      {
+        "code": "ldl_cholesterol",
+        "value": 118,
+        "unit": "mg/dL",
+        "date": "2026-08-01"
+      },
+      {
+        "code": "hdl_cholesterol",
+        "value": 64,
+        "unit": "mg/dL",
+        "date": "2026-08-01"
+      },
+      {
+        "code": "total_cholesterol",
+        "value": 196,
+        "unit": "mg/dL",
+        "date": "2026-08-01"
+      },
+      {
+        "code": "triglycerides",
+        "value": 72,
+        "unit": "mg/dL",
+        "date": "2026-08-01"
+      },
+      {
+        "code": "alt",
+        "value": 18,
+        "unit": "U/L",
+        "date": "2026-08-01"
+      },
+      {
+        "code": "creatinine",
+        "value": 0.8,
+        "unit": "mg/dL",
+        "date": "2026-08-01"
+      }
+    ]
+  },
+  "truth": {
+    "conditions": [
+      "hashimoto",
+      "iron_deficiency",
+      "vitamin_d_deficiency"
+    ],
+    "answers": {
+      "sym_energy": "Yes",
+      "sym_cold": "Yes",
+      "sym_hair_skin": "Yes",
+      "sym_bowel": "Neither",
+      "sym_weight": "No",
+      "sym_cycle": "Heavy",
+      "sym_phq2_interest": "Not at all",
+      "sym_phq2_down": "Not at all",
+      "sym_alcohol": "Monthly or less",
+      "sleep_snoring": "No",
+      "family_history": "mother hypothyroid at 50",
+      "conditions": "none",
+      "menopause_status": "Pre",
+      "cycle_phase_at_last_draw": "Follicular",
+      "smoking": "Never",
+      "waist_cm": "76",
+      "bp_home": "114/72",
+      "resting_hr": "70",
+      "grip_kg": "30"
+    },
+    "labs": {
+      "tsh": 3.9,
+      "free_t4": 1.1,
+      "free_t3": 3.0,
+      "tpo_antibodies": 320,
+      "anti_thyroglobulin": 210,
+      "ferritin": 22,
+      "transferrin_saturation": 16,
+      "rdw": 14.1,
+      "vitamin_d": 19,
+      "hba1c": 5.2,
+      "insulin": 6,
+      "hs_crp": 0.9,
+      "vitamin_b12": 440,
+      "ttg_iga": 2,
+      "reticulocyte_hemoglobin": 28.0,
+      "thyroid_ultrasound": 1
+    },
+    "defaultAnswer": "No",
+    "defaultLab": "typicalNeg"
+  },
+  "budget": 150,
+  "maxSteps": 12,
+  "expect": {
+    "discover": [
+      "hashimoto",
+      "iron_deficiency"
+    ],
+    "withinSteps": 8,
+    "withinEur": 100,
+    "noFalseLikely": true
+  }
+}

@@ -16,6 +16,7 @@ import type { ReportBody } from "@/db";
 import type { BrainRun } from "@/lib/brain";
 import type { Discriminator, HypothesisResult, Lens } from "@/lib/hypotheses";
 import { AskBox } from "./ask-box";
+import { Journeys } from "./journeys";
 import type { Move } from "@/lib/infogain";
 import { money } from "@/lib/prices";
 import type { Overlay, Scenario } from "@/lib/sample";
@@ -198,6 +199,7 @@ export function Brain({
   const [assertions, setAssertions] = useState<AssertionReport | null>(null);
   const [busy, setBusy] = useState<"" | "run" | "plan">("");
   const [error, setError] = useState("");
+  const [tab, setTab] = useState<"engine" | "journeys">("engine");
 
   // The overlay follows the scenario, not the tab.
   useEffect(() => {
@@ -331,6 +333,23 @@ export function Brain({
         </span>
       }
     >
+      <div className="flex gap-1">
+        {(["engine", "journeys"] as const).map((name) => (
+          <Button
+            key={name}
+            variant={tab === name ? "default" : "ghost"}
+            size="sm"
+            onClick={() => setTab(name)}
+          >
+            {name === "engine" ? "Engine" : "Journeys"}
+          </Button>
+        ))}
+      </div>
+
+      {tab === "journeys" && <Journeys />}
+
+      {tab === "engine" && (
+        <>
       <ScenarioBar
         q={q}
         set={set}
@@ -410,6 +429,8 @@ export function Brain({
             onGenerate={doPlan}
           />
         </div>
+      )}
+        </>
       )}
     </ViewShell>
   );

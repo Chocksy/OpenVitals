@@ -80,7 +80,7 @@ export const MARKER_HPO: {
       "EASL 2022 haemochromatosis guideline: a ferritin above 300 µg/L in men and 200 in women is the threshold for iron-overload work-up; 300 is used for both here and the sex band is read separately.",
     p: 0.12,
     backgroundSource:
-      "Grade C: NHANES 2017-2020 ferritin distributions put roughly an eighth of adult men above 300 µg/L, most of it metabolic rather than genetic."
+      "Grade C: NHANES 2017-2020 ferritin distributions put roughly an eighth of adult men above 300 µg/L, most of it metabolic rather than genetic.",
   },
   {
     code: "transferrin_saturation",
@@ -91,7 +91,7 @@ export const MARKER_HPO: {
       "EASL 2022 haemochromatosis guideline: transferrin saturation above 45 % is the screening cut-off for iron overload.",
     p: 0.05,
     backgroundSource:
-      "Grade C: population iron-studies series (Adams 2005 NEJM, HEIRS) put transferrin saturation above 45 % in about 5 % of adults."
+      "Grade C: population iron-studies series (Adams 2005 NEJM, HEIRS) put transferrin saturation above 45 % in about 5 % of adults.",
   },
   {
     code: "calcium",
@@ -102,7 +102,7 @@ export const MARKER_HPO: {
       "Bilezikian 2018 (Fourth International Workshop on Asymptomatic Primary Hyperparathyroidism): the upper reference limit for albumin-corrected serum calcium is about 10.5 mg/dL in most laboratories.",
     p: 0.01,
     backgroundSource:
-      "Grade C: Yeh 2013 JCEM and outpatient audit series put albumin-corrected calcium above the reference limit in about 1 % of adults."
+      "Grade C: Yeh 2013 JCEM and outpatient audit series put albumin-corrected calcium above the reference limit in about 1 % of adults.",
   },
   {
     code: "eosinophils_abs",
@@ -113,7 +113,7 @@ export const MARKER_HPO: {
       "Valent 2012 J Allergy Clin Immunol (consensus on eosinophil disorders): an absolute eosinophil count above 0.5 ×10⁹/L is eosinophilia.",
     p: 0.045,
     backgroundSource:
-      "Grade C: Hartl 2020 Eur Respir J (NHANES): about 4-5 % of adults carry a blood eosinophil count above 0.5 x10^9/L."
+      "Grade C: Hartl 2020 Eur Respir J (NHANES): about 4-5 % of adults carry a blood eosinophil count above 0.5 x10^9/L.",
   },
   {
     code: "platelets",
@@ -124,7 +124,7 @@ export const MARKER_HPO: {
       "Rodeghiero 2009 Blood (ITP standardisation): a platelet count under 150 ×10⁹/L is thrombocytopenia.",
     p: 0.015,
     backgroundSource:
-      "Grade C: Biino 2013 PLoS One (population platelet distributions): a count under 150 x10^9/L in roughly 1.5 % of adults."
+      "Grade C: Biino 2013 PLoS One (population platelet distributions): a count under 150 x10^9/L in roughly 1.5 % of adults.",
   },
   {
     code: "hemoglobin",
@@ -135,7 +135,7 @@ export const MARKER_HPO: {
       "WHO 2011 haemoglobin thresholds: under 13 g/dL in men and 12 in women; 12 is used here and the sex band is read separately by the iron rules.",
     p: 0.06,
     backgroundSource:
-      "Grade C: WHO 2021 anaemia estimates put adult anaemia near 6 % in high-income populations at these thresholds."
+      "Grade C: WHO 2021 anaemia estimates put adult anaemia near 6 % in high-income populations at these thresholds.",
   },
   {
     code: "alt",
@@ -146,7 +146,7 @@ export const MARKER_HPO: {
       "Kwo 2017 Am J Gastroenterol (ACG guideline): the laboratory upper limit for ALT is conventionally 40 U/L, and the true limit is lower.",
     p: 0.1,
     backgroundSource:
-      "Grade C: Ruhl 2012 Gastroenterology (NHANES): about a tenth of adults sit above the conventional 40 U/L ALT limit."
+      "Grade C: Ruhl 2012 Gastroenterology (NHANES): about a tenth of adults sit above the conventional 40 U/L ALT limit.",
   },
   {
     code: "ast",
@@ -157,7 +157,7 @@ export const MARKER_HPO: {
       "Kwo 2017 Am J Gastroenterol (ACG guideline): same threshold as ALT.",
     p: 0.05,
     backgroundSource:
-      "Grade C: Ruhl 2012 Gastroenterology (NHANES): AST above 40 U/L in roughly 5 % of adults."
+      "Grade C: Ruhl 2012 Gastroenterology (NHANES): AST above 40 U/L in roughly 5 % of adults.",
   },
   {
     code: "alp",
@@ -168,7 +168,7 @@ export const MARKER_HPO: {
       "Kwo 2017 Am J Gastroenterol (ACG guideline): the usual adult upper reference limit for alkaline phosphatase is about 130 U/L.",
     p: 0.03,
     backgroundSource:
-      "Grade C: NHANES alkaline-phosphatase distributions put about 3 % of adults above 130 U/L."
+      "Grade C: NHANES alkaline-phosphatase distributions put about 3 % of adults above 130 U/L.",
   },
   {
     code: "creatinine",
@@ -179,7 +179,7 @@ export const MARKER_HPO: {
       "KDIGO 2024 CKD guideline: a creatinine above about 1.3 mg/dL in an adult male is outside the reference interval; eGFR is the number that matters and is read separately.",
     p: 0.05,
     backgroundSource:
-      "Grade C: KDIGO 2024 and NHANES eGFR distributions: about 5 % of adults sit above this creatinine, most of them older."
+      "Grade C: KDIGO 2024 and NHANES eGFR distributions: about 5 % of adults sit above this creatinine, most of them older.",
   },
   {
     code: "hs_crp",
@@ -190,7 +190,7 @@ export const MARKER_HPO: {
       "Pearson 2003 Circulation (AHA/CDC): hs-CRP above 10 mg/L is out of the cardiovascular-risk range altogether and means an inflammatory process.",
     p: 0.05,
     backgroundSource:
-      "Grade C: Pearson 2003 Circulation and NHANES hs-CRP distributions: about 5 % of adults are over 10 mg/L on a single draw."
+      "Grade C: Pearson 2003 Circulation and NHANES hs-CRP distributions: about 5 % of adults are over 10 mg/L on a single draw.",
   },
   {
     code: "tryptase",
@@ -201,7 +201,7 @@ export const MARKER_HPO: {
       "Valent 2021 Blood (WHO/ECNM consensus): the upper reference limit for baseline serum tryptase is 11.4 ng/mL.",
     p: 0.05,
     backgroundSource:
-      "Grade C: Lyons 2016 Nat Genet: hereditary alpha-tryptasemia raises baseline tryptase in about 5 % of people of European ancestry, which is the background any mastocytosis ratio has to beat."
+      "Grade C: Lyons 2016 Nat Genet: hereditary alpha-tryptasemia raises baseline tryptase in about 5 % of people of European ancestry, which is the background any mastocytosis ratio has to beat.",
   },
   {
     code: "pth",
@@ -212,7 +212,7 @@ export const MARKER_HPO: {
       "Bilezikian 2018: the usual adult upper reference limit for intact PTH is about 65 pg/mL.",
     p: 0.05,
     backgroundSource:
-      "Grade C: vitamin-D-driven secondary hyperparathyroidism puts roughly a twentieth of adults above the PTH reference limit in European surveys."
+      "Grade C: vitamin-D-driven secondary hyperparathyroidism puts roughly a twentieth of adults above the PTH reference limit in European surveys.",
   },
 ];
 
@@ -485,6 +485,28 @@ export function firedWakeLabs(m: ModelInput): WakeLab[] {
     if (!row.twice) return true;
     return latest.prev != null && hit(latest.prev);
   });
+}
+
+/**
+ * The wake triggers that need no database: a pathognomonic lab (trigger 3) and
+ * a genome call (trigger 2). One line each, in the words the card would use.
+ *
+ * `wakeConditions` is the real thing and it writes rows for one user. A
+ * journey has no user and must not write, so it runs these two triggers in
+ * memory: they are the only ones a scripted person can fire, because the other
+ * three need documents, HPOA annotations or somebody asking.
+ */
+export function wakeInMemory(m: ModelInput): string[] {
+  const out = firedWakeLabs(m).map(
+    (lab) =>
+      `${lab.finding} (${m.latest[lab.code]!.value}) → ${lab.mondoIds.join(", ")}`,
+  );
+  for (const row of GENOME_CATALOG) {
+    const call = String(m.profile[row.factKey] ?? "").trim();
+    if (!call || !row.conditions.length) continue;
+    out.push(`${row.gene} ${call} → ${row.conditions.join(", ")}`);
+  }
+  return out;
 }
 
 /* ── writing ──────────────────────────────────────────────────────────── */

@@ -1,0 +1,117 @@
+{
+  "id": "iron_low_female_30",
+  "title": "Iron deficiency from heavy periods, woman 30",
+  "today": "2026-08-31",
+  "start": {
+    "facts": {
+      "sex": "female",
+      "birth_year": 1996,
+      "country": "RO",
+      "height_cm": "165",
+      "medications": "No",
+      "supplements": "No"
+    },
+    "readings": [
+      {
+        "code": "hemoglobin",
+        "value": 12.9,
+        "unit": "g/dL",
+        "date": "2026-08-01"
+      },
+      {
+        "code": "hematocrit",
+        "value": 39,
+        "unit": "%",
+        "date": "2026-08-01"
+      },
+      {
+        "code": "mcv",
+        "value": 82,
+        "unit": "fL",
+        "date": "2026-08-01"
+      },
+      {
+        "code": "rdw",
+        "value": 14.8,
+        "unit": "%",
+        "date": "2026-08-01"
+      },
+      {
+        "code": "platelets",
+        "value": 310,
+        "unit": "10^9/L",
+        "date": "2026-08-01"
+      },
+      {
+        "code": "glucose",
+        "value": 82,
+        "unit": "mg/dL",
+        "date": "2026-08-01"
+      },
+      {
+        "code": "creatinine",
+        "value": 0.72,
+        "unit": "mg/dL",
+        "date": "2026-08-01"
+      }
+    ]
+  },
+  "truth": {
+    "conditions": [
+      "iron_deficiency"
+    ],
+    "answers": {
+      "sym_energy": "Yes",
+      "sym_cycle": "Heavy",
+      "sym_cold": "Yes",
+      "sym_bowel": "Neither",
+      "sym_weight": "No",
+      "sym_hair_skin": "Yes",
+      "sym_phq2_interest": "Not at all",
+      "sym_phq2_down": "Not at all",
+      "sym_alcohol": "Never",
+      "sleep_snoring": "No",
+      "family_history": "none known",
+      "conditions": "none",
+      "menopause_status": "Pre",
+      "cycle_phase_at_last_draw": "Follicular",
+      "smoking": "Never",
+      "waist_cm": "70",
+      "bp_home": "108/66",
+      "resting_hr": "76",
+      "grip_kg": "26"
+    },
+    "labs": {
+      "ferritin": 9,
+      "transferrin_saturation": 11,
+      "vitamin_b12": 420,
+      "folic_acid": 9,
+      "tsh": 1.9,
+      "free_t4": 1.2,
+      "tpo_antibodies": 6,
+      "vitamin_d": 33,
+      "ttg_iga": 1,
+      "hs_crp": 0.6,
+      "reticulocytes": 1.1,
+      "hba1c": 5.0,
+      "insulin": 5,
+      "ldl_cholesterol": 92,
+      "hdl_cholesterol": 66,
+      "total_cholesterol": 172,
+      "triglycerides": 68,
+      "reticulocyte_hemoglobin": 24.0
+    },
+    "defaultAnswer": "No",
+    "defaultLab": "typicalNeg"
+  },
+  "budget": 120,
+  "maxSteps": 10,
+  "expect": {
+    "discover": [
+      "iron_deficiency"
+    ],
+    "withinSteps": 6,
+    "withinEur": 60,
+    "noFalseLikely": true
+  }
+}
