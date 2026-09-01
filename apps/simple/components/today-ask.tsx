@@ -1,0 +1,83 @@
+"use client";
+
+/**
+ * The one input on Home, and the only place an answer is typed.
+ *
+ * Phase 24a made this the single asking surface. Phase 24d made it live: the
+ * answer posts, the button wears its success check (10), the ledger re-reads
+ * itself and animates the difference, a toast says what moved (22), and the
+ * card slides the next question in (`07-panel-reveal.md`). The page never
+ * reloads, so the person sees cause and effect instead of a flash.
+ */
+import { useState } from "react";
+import { ASK_ID, effectLine, type Ask } from "@/lib/asking";
+import { AnswerQuestion } from "./client";
+import { refreshLedger, toast, type LedgerPayload } from "./ledger-motion";
+
+type LiveAsk = Ask & { options: string[] };
+
+const PANEL =
+  "t-panel-slide border-l-2 border-accent-500 bg-accent-50 px-3 py-2";
+
+export function TodayAsk({
+  ask: first,
+  options,
+  onEmpty = "Nothing else worth asking today.",
+}: {
+  ask: Ask;
+  options: string[];
+  onEmpty?: string;
+}) {
+  const [ask, setAsk] = useState<LiveAsk | null>({ ...first, options });
+  const [open, setOpen] = useState(true);
+
+  const advance = (next: LedgerPayload["ask"]) => {
+    setOpen(false);
+    window.setTimeout(() => {
+      setAsk(next);
+      if (next) setOpen(true);
+    }, 360);
+  };
+
+  const saved = async () => {
+    const { ask: next, diff } = await refreshLedger();
+    toast(diff?.line ? `Saved · ${diff.line}` : "Saved");
+    advance(next);
+  };
+
+  if (!ask)
+    return (
+      <p id={ASK_ID} className="font-body text-[13px] text-neutral-500">
+        {onEmpty}
+      </p>
+    );
+
+  return (
+    <div id={ASK_ID} className="scroll-mt-24">
+      <div
+        className={PANEL}
+        data-open={open}
+        // The snippet's 100 px travel is a full panel; this one is two lines
+        // tall, so it moves about half its own height.
+        style={{ "--panel-translate-y": "28px" } as React.CSSProperties}
+      >
+        <p className="text-pretty font-body text-[13px] text-neutral-800">
+          {ask.question}
+        </p>
+        {ask.moves.length > 0 && (
+          <p className="mt-0.5 font-mono text-[11px] tabular-nums text-neutral-500">
+            moves {effectLine(ask.moves)}
+          </p>
+        )}
+        <div className="mt-2">
+          <AnswerQuestion
+            key={ask.key}
+            factKey={ask.key}
+            options={ask.options}
+            onSaved={saved}
+          />
+        </div>
+      </div>
+    </div>
+  );
+}

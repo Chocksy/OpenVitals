@@ -7,7 +7,7 @@ import { Play, RefreshCw, Search, Upload } from "lucide-react";
 import { signIn, signUp } from "@/lib/auth-client";
 import { statusColor, type Status } from "@/lib/status";
 import { cn, fmtCategory } from "@/lib/utils";
-import { Button, MiniSparkline } from "./ui-kit";
+import { Button, MiniSparkline, SuccessCheck } from "./ui-kit";
 import { FactEditButtons, type FactEdit } from "./fact-edit";
 
 const INPUT =
@@ -123,7 +123,7 @@ export function UploadButton() {
 
   return (
     <div className="flex items-center gap-3">
-      <label className="card inline-flex cursor-pointer items-center gap-2 px-4 py-2.5 font-display text-[13px] font-medium transition-all hover:border-accent-200">
+      <label className="card inline-flex cursor-pointer items-center gap-2 px-4 py-2.5 font-display text-[13px] font-medium transition-[border-color,scale] duration-150 ease-out hover:border-accent-200 active:scale-[0.96]">
         <Upload className="size-4 text-neutral-500" />
         {busy ? "Working…" : "Upload a file"}
         <input
@@ -461,18 +461,52 @@ export function AnswerQuestion({
   options,
   current,
   today,
+  onSaved,
 }: {
   factKey: string;
   options: string[];
   /** The answer already on file, when there is one. */
   current?: string;
   today?: string;
+  /**
+   * Phase 24d. When Today hands this in, the answer does **not** reload the
+   * page: the fact is posted, the button wears its success check, and the
+   * caller re-reads the ledger and animates the difference. Without it the
+   * old `router.refresh()` path stays, for any surface that wants a reload.
+   */
+  onSaved?: (value: string) => void | Promise<void>;
 }) {
   const { run, busy, error } = useAction();
   const [text, setText] = useState("");
   const [edit, setEdit] = useState<FactEdit | null>(null);
-  const save = (value: string) =>
-    run("/api/facts", { key: factKey, value, ...(edit ?? {}) });
+  const [live, setLive] = useState<{
+    busy: boolean;
+    done: boolean;
+    error: string;
+  }>({ busy: false, done: false, error: "" });
+
+  const save = async (value: string) => {
+    if (!onSaved) {
+      void run("/api/facts", { key: factKey, value, ...(edit ?? {}) });
+      return;
+    }
+    setLive({ busy: true, done: false, error: "" });
+    const res = await fetch("/api/facts", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ key: factKey, value, ...(edit ?? {}) }),
+    });
+    if (!res.ok) {
+      const body = (await res.json().catch(() => ({}))) as { error?: string };
+      setLive({ busy: false, done: false, error: body.error ?? "Failed" });
+      return;
+    }
+    setLive({ busy: false, done: true, error: "" });
+    await onSaved(value);
+  };
+
+  const working = busy || live.busy;
+  const message = error || live.error;
 
   return (
     <div className="flex flex-col gap-2">
@@ -483,10 +517,11 @@ export function AnswerQuestion({
               key={o}
               size="sm"
               variant="outline-subtle"
-              disabled={busy}
-              onClick={() => save(o)}
+              disabled={working}
+              onClick={() => void save(o)}
             >
               {o}
+              {live.done && <SuccessCheck shown />}
             </Button>
           ))
         ) : (
@@ -500,16 +535,17 @@ export function AnswerQuestion({
             <Button
               size="sm"
               variant="outline-subtle"
-              disabled={busy || !text.trim()}
-              onClick={() => save(text)}
+              disabled={working || !text.trim()}
+              onClick={() => void save(text)}
             >
               Save
+              {live.done && <SuccessCheck shown />}
             </Button>
           </>
         )}
-        {error && (
+        {message && (
           <span className="text-[12px] text-[var(--color-health-critical)]">
-            {error}
+            {message}
           </span>
         )}
       </div>

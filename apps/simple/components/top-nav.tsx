@@ -137,7 +137,9 @@ export function TopNav({
                       key={item.name}
                       href={item.href}
                       className={cn(
-                        "flex h-[30px] items-center gap-1.5 px-2.5 py-1 font-mono text-[11px] font-medium uppercase tracking-[0.04em] transition-colors",
+                        // Concentric: the group is `rounded` (4 px) with
+                        // 2 px of padding, so the pill inside is 2 px.
+                        "flex h-[30px] items-center gap-1.5 rounded-[2px] px-2.5 py-1 font-mono text-[11px] font-medium uppercase tracking-[0.04em] transition-colors duration-150 ease-out",
                         isActive(pathname, item.href)
                           ? "bg-accent-50 text-accent-500"
                           : "text-neutral-500 hover:text-neutral-900",
@@ -162,7 +164,7 @@ export function TopNav({
                         key={item.name}
                         href={item.href}
                         className={cn(
-                          "flex h-[30px] items-center gap-1.5 px-2 py-1 font-mono text-[11px] font-medium uppercase tracking-[0.04em] transition-colors",
+                          "flex h-[30px] items-center gap-1.5 rounded-[2px] px-2 py-1 font-mono text-[11px] font-medium uppercase tracking-[0.04em] transition-colors duration-150 ease-out",
                           isActive(pathname, item.href)
                             ? "bg-accent-50 text-accent-500"
                             : "text-neutral-500 hover:text-neutral-900",

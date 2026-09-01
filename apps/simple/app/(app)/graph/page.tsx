@@ -23,6 +23,7 @@ import { ReviewItem } from "@/components/client";
 import { SystemLinks, type SystemLink } from "@/components/graph-map";
 import { ViewShell } from "@/components/plan";
 import { StatusBadge } from "@/components/status-badge";
+import { PillTabs } from "@/components/pill-tabs";
 import { Badge, Card } from "@/components/ui-kit";
 
 export const dynamic = "force-dynamic";
@@ -145,27 +146,19 @@ function Switcher({
     return `/graph${p.size ? `?${p}` : ""}`;
   };
   return (
-    <div className="flex flex-wrap items-center gap-2">
-      <div className="flex flex-wrap items-center gap-0.5 rounded border bg-neutral-100 p-0.5">
-        {LENSES.map((l) => (
-          <Link
-            key={l}
-            href={href({ lens: l })}
-            className={`h-[30px] px-2 font-mono text-[10px] font-medium uppercase leading-[30px] tracking-[0.04em] ${
-              l === lens
-                ? "bg-accent-50 text-accent-500"
-                : "text-neutral-500 hover:text-neutral-900"
-            }`}
-          >
-            {l}
-          </Link>
-        ))}
-      </div>
+    <div className="flex flex-wrap items-center gap-3">
+      {/* One pill, not two toggles: the lens is the choice, and the view is
+          a link next to it. Phase 24d. */}
+      <PillTabs
+        label="Lens"
+        active={lens}
+        tabs={LENSES.map((l) => ({ id: l, label: l, href: href({ lens: l }) }))}
+      />
       <Link
         href={href({ systems: !systems })}
-        className="h-[30px] border border-neutral-200 px-2 font-mono text-[10px] font-medium uppercase leading-[28px] tracking-[0.04em] text-neutral-500 hover:border-neutral-900 hover:text-neutral-900"
+        className="hit-40 inline-flex items-center font-mono text-[10px] font-medium uppercase tracking-[0.04em] text-neutral-500 underline decoration-dotted underline-offset-4 transition-colors duration-150 ease-out hover:text-neutral-900"
       >
-        {systems ? "Bubbles" : "Systems"}
+        {systems ? "See the bubbles" : "See the systems"}
       </Link>
     </div>
   );

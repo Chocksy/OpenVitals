@@ -8,20 +8,21 @@
  */
 import Link from "next/link";
 import { ChevronRight, FlaskConical } from "lucide-react";
-import { ASK_ID, effectLine, type Ask } from "@/lib/asking";
+import { ASK_HREF, type Ask } from "@/lib/asking";
 import { explainInput, type Finding } from "@/lib/explain";
 import type { Today } from "@/lib/home-data";
 import type { Conclusion, Ledger } from "@/lib/ledger";
 import type { Move } from "@/lib/infogain";
 import type { TrendMetric } from "@/lib/home-data";
-import type { HState } from "@/lib/hypotheses";
+import type { HState, Grade, Lens } from "@/lib/hypotheses";
 import { cn, formatDate } from "@/lib/utils";
 import { AskLink } from "./ask-link";
-import { AnswerQuestion, EditFact, StillTrue, WrongValue } from "./client";
+import { EditFact, StillTrue, WrongValue } from "./client";
 import { PostButton } from "./composer-button";
 import { ActionButtons, GeneratePlan } from "./plan";
 import { RangeBar } from "./range-bar";
 import { StatusBadge } from "./status-badge";
+import { TodayAsk } from "./today-ask";
 import { TrendChart } from "./trend-chart";
 import { Badge, Card } from "./ui-kit";
 
@@ -57,6 +58,59 @@ const LABEL =
 const WHY = "mt-1 font-mono text-[11px] text-neutral-400";
 const one = (v: number) => v.toFixed(1);
 
+/**
+ * A small link that reads at 11 px but answers to a 40 px finger.
+ * `.hit-40` is the pseudo-element from `surfaces.md`; the width stays the
+ * link's own so two of them can never overlap.
+ */
+const SMALL_LINK =
+  "hit-40 inline-flex cursor-pointer list-none items-center font-mono text-[11px] uppercase tracking-[0.04em] text-neutral-400 hover:text-neutral-700";
+
+/**
+ * A number the ledger can replay in place (`02-number-pop-in.md`): one span
+ * per character, the last two staggered. Server-rendered at rest; when an
+ * answer moves it, `ledger-motion.tsx` swaps the spans and adds
+ * `.is-animating`.
+ */
+function Digits({
+  text,
+  className,
+  ...rest
+}: { text: string } & React.HTMLAttributes<HTMLSpanElement>) {
+  const chars = [...text];
+  return (
+    <span className={cn("t-digit-group tabular-nums", className)} {...rest}>
+      {chars.map((ch, i) => (
+        <span
+          key={`${i}-${ch}`}
+          className="t-digit"
+          data-stagger={
+            i === chars.length - 2
+              ? "1"
+              : i === chars.length - 1
+                ? "2"
+                : undefined
+          }
+        >
+          {ch}
+        </span>
+      ))}
+    </span>
+  );
+}
+
+/**
+ * The lens badges said `ENERGY B · WEIGHT A · LIFESPAN A`, which is the
+ * engine's vocabulary, not a person's. One line, the lens that weighs most,
+ * with the grade the evidence earned.
+ */
+function lensLine(
+  lenses: Partial<Record<Lens, { w: number; grade: Grade }>>,
+): string | null {
+  const best = Object.entries(lenses).sort((a, b) => b[1].w - a[1].w)[0];
+  return best ? `matters most for ${best[0]} (${best[1].grade})` : null;
+}
+
 /* ── 1. cockpit ───────────────────────────────────────────────────────── */
 
 /**
@@ -81,7 +135,8 @@ export function TodayCard({
 }) {
   const empty = !today.due.length && !today.post && !ask;
   return (
-    <Card className="p-4">
+    // 01: the card's own box changes when the question it holds changes.
+    <Card className="t-resize p-4">
       <div className="flex items-baseline justify-between gap-3">
         <div className={LABEL}>Today</div>
         <PostButton />
@@ -104,24 +159,7 @@ export function TodayCard({
               today={day}
             />
           ))}
-          {ask && (
-            <div
-              id={ASK_ID}
-              className="scroll-mt-24 border-l-2 border-accent-500 bg-accent-50 px-3 py-2"
-            >
-              <p className="font-body text-[13px] text-neutral-800">
-                {ask.question}
-              </p>
-              {ask.moves.length > 0 && (
-                <p className="mt-0.5 font-mono text-[11px] tabular-nums text-neutral-500">
-                  moves {effectLine(ask.moves)}
-                </p>
-              )}
-              <div className="mt-2">
-                <AnswerQuestion factKey={ask.key} options={askOptions} />
-              </div>
-            </div>
-          )}
+          {ask && <TodayAsk ask={ask} options={askOptions} />}
           {today.post && (
             <p className="font-body text-[13px] leading-relaxed text-neutral-600">
               <span className="font-mono text-[10px] uppercase tracking-[0.04em] text-neutral-400">
@@ -133,6 +171,30 @@ export function TodayCard({
         </div>
       )}
     </Card>
+  );
+}
+
+/**
+ * "Since Aug 31: 0 resolved · 0 new · 0 stronger · 0 weaker" was a line of
+ * zeros pretending to be news. Nothing moved is not a sentence, so it is not
+ * printed; when something did move, only that part is.
+ */
+export function SinceLine({ since }: { since: Ledger["since"] }) {
+  if (!since) return null;
+  const parts = (
+    [
+      ["resolved", since.resolved],
+      ["new", since.new],
+      ["stronger", since.stronger],
+      ["weaker", since.weaker],
+    ] as const
+  ).filter(([, n]) => n > 0);
+  if (parts.length === 0) return null;
+  return (
+    <p className="font-mono text-[11px] tabular-nums text-neutral-400">
+      Since {formatDate(since.at)}:{" "}
+      {parts.map(([label, n]) => `${n} ${label}`).join(" · ")}
+    </p>
   );
 }
 
@@ -172,26 +234,40 @@ export function Cockpit({ ledger }: { ledger: Ledger }) {
 
         <Card className="p-4">
           <div className={LABEL}>Markers</div>
-          <div className="mt-2 font-display text-[26px] tabular-nums">
-            <span className="text-health-normal">{counters.optimal}</span>
-            <span className="text-neutral-300"> · </span>
-            <span className="text-health-warning">{counters.normal}</span>
-            <span className="text-neutral-300"> · </span>
-            <span className="text-health-critical">{counters.off}</span>
+          <div className="mt-2 flex items-baseline font-display text-[26px] tabular-nums">
+            <Digits
+              data-counter="optimal"
+              text={String(counters.optimal)}
+              className="text-health-normal"
+            />
+            <span className="px-1.5 text-neutral-300">·</span>
+            <Digits
+              data-counter="normal"
+              text={String(counters.normal)}
+              className="text-health-warning"
+            />
+            <span className="px-1.5 text-neutral-300">·</span>
+            <Digits
+              data-counter="off"
+              text={String(counters.off)}
+              className="text-health-critical"
+            />
           </div>
           <p className={WHY}>optimal · normal · off</p>
         </Card>
 
         <Card className="p-4">
           <div className={LABEL}>Questions worth answering</div>
-          <div className="mt-2 font-display text-[26px] tabular-nums text-neutral-900">
-            {counters.questions}
-          </div>
+          <Digits
+            data-counter="questions"
+            text={String(counters.questions)}
+            className="mt-2 font-display text-[26px] text-neutral-900"
+          />
           {counters.questions > 0 && (
             <p className={WHY}>
               <a
-                href={`#${ASK_ID}`}
-                className="underline hover:text-neutral-600"
+                href={ASK_HREF}
+                className="hit-40 inline-flex items-center underline hover:text-neutral-600"
               >
                 answer the first one
               </a>
@@ -210,12 +286,7 @@ export function Cockpit({ ledger }: { ledger: Ledger }) {
         </Card>
       </div>
 
-      {since && (
-        <p className="font-mono text-[11px] text-neutral-400">
-          Since {formatDate(since.at)}: {since.resolved} resolved · {since.new}{" "}
-          new · {since.stronger} stronger · {since.weaker} weaker
-        </p>
-      )}
+      <SinceLine since={since} />
     </div>
   );
 }
@@ -259,16 +330,33 @@ export function SystemsStrip({ systems }: { systems: Ledger["systems"] }) {
               strokeWidth="3"
               strokeDasharray={`${s.score * circumference} ${circumference}`}
               transform="rotate(-90 16 16)"
+              data-system-arc={s.id}
+              data-circumference={circumference}
             />
-            <text
-              x="16"
-              y="20"
-              textAnchor="middle"
-              className="fill-neutral-500 font-mono"
-              style={{ fontSize: 10 }}
-            >
-              {Math.round(s.score * 100)}
-            </text>
+            {/* A zero in a green ring reads as "empty", not as "healthy".
+                Nothing off gets a tick; every system with a score keeps its
+                number. */}
+            {Math.round(s.score * 100) === 0 ? (
+              <path
+                d="M11 16.2l3.4 3.4L21.4 12"
+                fill="none"
+                stroke="var(--color-health-normal)"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            ) : (
+              <text
+                x="16"
+                y="20"
+                textAnchor="middle"
+                data-system-score={s.id}
+                className="fill-neutral-500 font-mono tabular-nums"
+                style={{ fontSize: 10 }}
+              >
+                {Math.round(s.score * 100)}
+              </text>
+            )}
           </svg>
           <span className="line-clamp-2 font-display text-[11px] font-medium leading-tight text-neutral-800">
             {s.name}
@@ -341,9 +429,7 @@ function NotRight({ inputs }: { inputs: Conclusion["inputs"] }) {
   if (!inputs.length) return null;
   return (
     <details className="mt-2">
-      <summary className="cursor-pointer list-none font-mono text-[11px] uppercase tracking-[0.04em] text-neutral-400 hover:text-neutral-700">
-        Not right?
-      </summary>
+      <summary className={SMALL_LINK}>Not right?</summary>
       <div className="mt-2 space-y-1.5 border-l-2 border-neutral-150 pl-3">
         {inputs.map((i) =>
           i.kind === "reading" ? (
@@ -393,47 +479,56 @@ export function ConclusionCard({
   // A question move is never a button here: the Today card takes the answer,
   // so a "(free)" chip repeating the question would be the second asker again.
   const top = c.next.find((m) => m.kind !== "question");
+  const lens = lensLine(c.lenses);
   return (
-    <Card className={cn("p-4", spear && "border-accent-500 p-5")}>
+    <Card
+      data-card={c.id}
+      className={cn("t-flip t-resize p-4", spear && "border-accent-500 p-5")}
+    >
       {spear && (
         <div className="mb-2 font-mono text-[10px] font-bold uppercase tracking-[0.06em] text-accent-600">
-          Tip of the spear
+          Start here
         </div>
       )}
 
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div className="flex flex-wrap items-center gap-1.5">
-          <Badge variant="outline">{c.rank}</Badge>
+          <Badge variant="outline" className="tabular-nums">
+            {c.rank}
+          </Badge>
           {c.risk ? (
             <Badge variant="warning">risk</Badge>
           ) : (
             c.state && (
-              <Badge variant={STATE_VARIANT[c.state]}>
-                {c.state.replace("_", " ")}
+              <Badge variant={STATE_VARIANT[c.state]} data-state-chip={c.id}>
+                <span className="t-text-swap">{c.state.replace("_", " ")}</span>
               </Badge>
             )
           )}
-          {Object.entries(c.lenses).map(([lens, v]) => (
-            <Badge key={lens} variant="secondary">
-              {lens} {v.grade}
-            </Badge>
-          ))}
         </div>
         {c.probability != null && (
-          <span className="font-display text-[28px] font-medium leading-none tracking-[-0.02em] tabular-nums text-neutral-900">
-            {Math.round(c.probability * 100)}%
-          </span>
+          <Digits
+            data-percent={c.id}
+            text={`${Math.round(c.probability * 100)}%`}
+            className="font-display text-[28px] font-medium leading-none tracking-[-0.02em] text-neutral-900"
+          />
         )}
       </div>
 
       <h3
         className={cn(
-          "mt-2 font-display font-medium tracking-[-0.02em] text-neutral-900",
+          "mt-2 text-balance font-display font-medium tracking-[-0.02em] text-neutral-900",
           spear ? "text-[24px]" : "text-[17px]",
         )}
       >
         {c.title}
       </h3>
+
+      {lens && (
+        <p className="mt-1 font-mono text-[11px] text-neutral-400">
+          {lens}
+        </p>
+      )}
 
       {verdict && (
         <p className="mt-1.5 font-body text-[13px] leading-relaxed text-neutral-600">
@@ -454,14 +549,18 @@ export function ConclusionCard({
           <span className="font-mono text-[10px] uppercase text-neutral-400">
             For ·{" "}
           </span>
-          {c.for.slice(0, 2).map((e) => explainInput(e)).join(", ") ||
-            "nothing yet"}
+          {c.for
+            .slice(0, 2)
+            .map((e) => explainInput(e))
+            .join(", ") || "nothing yet"}
           <br />
           <span className="font-mono text-[10px] uppercase text-neutral-400">
             Against ·{" "}
           </span>
-          {c.against.slice(0, 2).map((e) => explainInput(e)).join(", ") ||
-            "nothing yet"}
+          {c.against
+            .slice(0, 2)
+            .map((e) => explainInput(e))
+            .join(", ") || "nothing yet"}
         </p>
       )}
 
@@ -523,7 +622,7 @@ export function ConclusionCard({
         ) : top ? (
           <Link
             href="/plan"
-            className="inline-flex h-8 items-center gap-1.5 rounded-sm border border-neutral-200 bg-neutral-0 px-3 font-display text-[12px] tracking-[0.04em] text-neutral-700 hover:border-neutral-900 hover:bg-neutral-50"
+            className="inline-flex h-10 items-center gap-1.5 border border-neutral-200 bg-neutral-0 px-3 font-display text-[12px] tracking-[0.04em] text-neutral-700 transition-[color,background-color,border-color] duration-150 ease-out hover:border-neutral-900 hover:bg-neutral-50 active:scale-[0.96]"
           >
             <FlaskConical className="size-3.5" />
             {top.kind === "test" ? `Order ${top.label}` : top.label} (
@@ -533,9 +632,7 @@ export function ConclusionCard({
       </div>
 
       <details className="mt-3">
-        <summary className="cursor-pointer list-none font-mono text-[11px] uppercase tracking-[0.04em] text-neutral-400 hover:text-neutral-700">
-          Why
-        </summary>
+        <summary className={SMALL_LINK}>Why</summary>
         <div className="mt-2 space-y-2 border-t border-neutral-100 pt-2">
           <EvidenceList title="For" lines={c.for} />
           <EvidenceList title="Against" lines={c.against} />
@@ -566,6 +663,75 @@ export function ConclusionCard({
 }
 
 /* ── the improved card and the quiet line ─────────────────────────────── */
+
+/* ── 4b. the markers nobody explains, one card per system ─────────────── */
+
+/** Consecutive "marker off" cards, gathered by the system they belong to. */
+export interface MarkerGroup {
+  /** `markers:<systemId>`, the card's identity for the diff and the FLIP */
+  id: string;
+  systemName: string;
+  /** the best rank in the group: where the collapsed card sits */
+  rank: number;
+  markers: { code: string; name: string; value: string }[];
+  /** every reading behind the group, for the one "…" menu */
+  inputs: Conclusion["inputs"];
+}
+
+/**
+ * Five cards that each said "Cholesterol, Total 217 mg/dL, off" over two
+ * collapsed stubs were filler: same shape, same two links, no sentence. One
+ * card per system says the same thing in one line, and the markers stay one
+ * tap from their own page.
+ */
+export function MarkersCard({ group }: { group: MarkerGroup }) {
+  const n = group.markers.length;
+  return (
+    <Card data-card={group.id} className="t-flip t-resize p-4">
+      <details>
+        <summary className="flex cursor-pointer list-none items-start justify-between gap-2">
+          <h3 className="text-balance font-display text-[17px] font-medium tracking-[-0.02em] text-neutral-900">
+            {group.systemName}: {n} marker{n === 1 ? "" : "s"} off
+          </h3>
+          <span
+            aria-label="Where these readings came from"
+            className="hit-40 flex size-10 shrink-0 items-center justify-center font-mono text-[16px] leading-none text-neutral-400 hover:text-neutral-700"
+          >
+            …
+          </span>
+        </summary>
+        <div className="mt-2 space-y-1.5 border-l-2 border-neutral-150 pl-3">
+          {group.inputs.map((i) => (
+            <div key={i.id} className="flex flex-wrap items-center gap-2">
+              <span className="font-body text-[12px] text-neutral-700">
+                {i.label}
+              </span>
+              <span className="font-mono text-[11px] tabular-nums text-neutral-500">
+                {i.value}
+                {i.date ? ` · ${i.date}` : ""}
+              </span>
+              {i.kind === "reading" && <WrongValue readingId={i.id} />}
+            </div>
+          ))}
+        </div>
+      </details>
+
+      <ul className="mt-2 flex flex-wrap gap-1.5">
+        {group.markers.map((m) => (
+          <li key={m.code}>
+            <Link
+              href={`/m/${m.code}`}
+              className="inline-flex h-10 items-center gap-1.5 border border-neutral-200 px-2.5 font-mono text-[11px] tabular-nums text-neutral-600 transition-[color,border-color] duration-150 ease-out hover:border-neutral-900 hover:text-neutral-900 active:scale-[0.96]"
+            >
+              <span className="font-body">{m.name}</span>
+              {m.value}
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </Card>
+  );
+}
 
 /**
  * "What your genome changed": the three sentences the upload page already
@@ -658,8 +824,7 @@ function QuietRows({
  */
 export function QuietLine({ quiet }: { quiet: Ledger["quiet"] }) {
   if (!quiet.ids.length) return null;
-  const summary =
-    "cursor-pointer list-none font-mono text-[11px] uppercase tracking-[0.06em] text-neutral-400 hover:text-neutral-700";
+  const summary = cn(SMALL_LINK, "tracking-[0.06em]");
   return (
     <div className="space-y-2">
       {quiet.unlikely > 0 && (

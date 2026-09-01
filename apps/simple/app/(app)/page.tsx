@@ -4,15 +4,18 @@ import { getGoals } from "@/lib/daily-data";
 import {
   buildToday,
   buildTrend,
+  homeAskPlan,
+  linkedAsk,
+  optionsFor,
   recentFindings,
   type TrendMetric,
 } from "@/lib/home-data";
 import { localDay } from "@/lib/daily";
-import { buildLedger, isLoud } from "@/lib/ledger";
-import { askSurfaces } from "@/lib/asking";
+import { buildLedger, isLoud, type Conclusion } from "@/lib/ledger";
+import { snapshotLedger } from "@/lib/ledger-diff";
+import { NODES, SYSTEMS } from "@/lib/graph";
 import { latestReport } from "@/lib/report";
 import { catalogFor } from "@/lib/hkb";
-import { PROFILE_QUESTIONS } from "@/lib/vectors";
 import {
   Cockpit,
   ConclusionCard,
@@ -20,11 +23,14 @@ import {
   FindingsCard,
   ImprovedCard,
   KeyTrends,
+  MarkersCard,
   QuietLine,
   SectionHeader,
   SystemsStrip,
   TodayCard,
+  type MarkerGroup,
 } from "@/components/home";
+import { LedgerMotion } from "@/components/ledger-motion";
 import { AskBox } from "@/components/ask-box";
 
 export const dynamic = "force-dynamic";
@@ -62,33 +68,14 @@ export default async function Home() {
     return i === -1 ? undefined : i;
   };
 
-  const optionsOf = (key: string) => PROFILE_QUESTIONS[key]?.options ?? [];
-
   /**
    * One asking surface, decided once for the whole page: the Today card takes
    * the answer, every card that would have asked the same thing links to it.
+   * `GET /api/ledger` calls the same function, so the question Today advances
+   * to after an answer is the one a reload would have shown.
    */
-  const keyOf = (c: (typeof ledger.conclusions)[number]) =>
-    c.question?.featureId.replace(/^fact:/, "");
-  const plan = askSurfaces({
-    due: today.due.map((d) => d.key),
-    gain: ledger.asks,
-    others: ledger.conclusions.flatMap((c) => {
-      const key = keyOf(c);
-      return key ? [{ where: `card:${c.id}`, keys: [key] }] : [];
-    }),
-  });
-  const askOf = (c: (typeof ledger.conclusions)[number]) => {
-    const key = keyOf(c);
-    if (!key || !plan.links.includes(key)) return undefined;
-    return (
-      ledger.asks.find((a) => a.key === key) ?? {
-        key,
-        question: c.question!.label,
-        moves: [],
-      }
-    );
-  };
+  const plan = homeAskPlan(ledger, today.due);
+  const askOf = (c: Conclusion) => linkedAsk(ledger, plan, c);
 
   const { spear } = ledger;
   const rest = ledger.conclusions.filter((c) => c.id !== spear?.id);
@@ -111,6 +98,65 @@ export default async function Home() {
     if (trend) trends.push(trend);
   }
 
+  /**
+   * Cards 6-10 of the audit were five bare "Cholesterol, Total 217 mg/dL,
+   * off" rows in a line. A run of them collapses to one card per system: the
+   * markers stay, as chips that link to their own page, and the five pairs of
+   * WHY / NOT RIGHT? stubs become one "…".
+   */
+  const systemOf = new Map(
+    NODES.flatMap((n) =>
+      n.kind === "metric" && n.system
+        ? [[n.id.slice("metric:".length), n.system] as const]
+        : [],
+    ),
+  );
+  const systemName = new Map(SYSTEMS.map((x) => [x.id, x.name]));
+
+  const groupMarkers = (run: Conclusion[]): MarkerGroup[] => {
+    const groups = new Map<string, MarkerGroup>();
+    for (const c of run) {
+      const code = c.id.slice("marker:".length);
+      const sys = systemOf.get(code) ?? "other";
+      const group = groups.get(sys) ?? {
+        id: `markers:${sys}`,
+        systemName: systemName.get(sys as never) ?? "Other markers",
+        rank: c.rank,
+        markers: [],
+        inputs: [],
+      };
+      const m = byCode.get(code);
+      const unit = m?.latest.unit ?? m?.unit;
+      group.markers.push({
+        code,
+        name: m?.name ?? code.replace(/_/g, " "),
+        value: `${m?.latest.value ?? "?"}${unit ? ` ${unit}` : ""}`,
+      });
+      group.inputs.push(...c.inputs);
+      groups.set(sys, group);
+    }
+    return [...groups.values()];
+  };
+
+  /** The ledger in print order, with each run of marker cards collapsed. */
+  const collapse = (list: Conclusion[]): (Conclusion | MarkerGroup)[] => {
+    const out: (Conclusion | MarkerGroup)[] = [];
+    let run: Conclusion[] = [];
+    const flush = () => {
+      if (run.length) out.push(...groupMarkers(run));
+      run = [];
+    };
+    for (const c of list) {
+      if (c.kind === "marker") run.push(c);
+      else {
+        flush();
+        out.push(c);
+      }
+    }
+    flush();
+    return out;
+  };
+
   const card = (c: (typeof rest)[number], isSpear = false) => (
     <ConclusionCard
       key={c.id}
@@ -123,13 +169,20 @@ export default async function Home() {
     />
   );
 
+  const row = (item: Conclusion | MarkerGroup) =>
+    "systemName" in item ? (
+      <MarkersCard key={item.id} group={item} />
+    ) : (
+      card(item)
+    );
+
   return (
     <div className="space-y-8">
       <TodayCard
         today={today}
         day={day}
         ask={plan.ask}
-        askOptions={plan.ask ? optionsOf(plan.ask.key) : []}
+        askOptions={plan.ask ? optionsFor(plan.ask.key) : []}
       />
       <Cockpit ledger={ledger} />
 
@@ -150,14 +203,14 @@ export default async function Home() {
       )}
 
       {(rest.length > 0 || findings.length > 0) && (
-        <section className="space-y-2">
+        <section className="space-y-2" data-ledger>
           <SectionHeader title="The ledger" />
           {findings.map((f) => (
             <FindingsCard key={f.id} finding={f} />
           ))}
-          {loud.map((c) => card(c))}
+          {collapse(loud).map(row)}
           <ImprovedCard improved={ledger.improved} />
-          {quietTail.map((c) => card(c))}
+          {collapse(quietTail).map(row)}
         </section>
       )}
 
@@ -178,6 +231,10 @@ export default async function Home() {
           <KeyTrends trends={trends} />
         </section>
       )}
+
+      {/* Last child on purpose: it renders a fixed toast, so anywhere else in
+          a `space-y-8` stack it would push the card under it down. */}
+      <LedgerMotion snapshot={snapshotLedger(ledger)} />
     </div>
   );
 }

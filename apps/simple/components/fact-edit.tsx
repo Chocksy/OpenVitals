@@ -15,8 +15,10 @@ export interface FactEdit {
   note?: string;
 }
 
+// `hit-40` is the pseudo-element from the interface checklist: the label
+// still reads at 10 px, the finger still gets 40.
 const link =
-  "cursor-pointer font-mono text-[10px] text-neutral-500 underline decoration-dotted hover:text-neutral-900";
+  "hit-40 inline-flex cursor-pointer items-center font-mono text-[10px] text-neutral-500 underline decoration-dotted hover:text-neutral-900";
 
 const field =
   "border border-neutral-300 bg-neutral-0 px-1 py-0.5 font-mono text-[11px]";
@@ -32,7 +34,7 @@ export function FactEditButtons({
 }) {
   if (!edit)
     return (
-      <span className="flex items-center gap-2">
+      <span className="flex items-center gap-4">
         <button
           className={link}
           onClick={() => onChange({ kind: "changed", date: today })}

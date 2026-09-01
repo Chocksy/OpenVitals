@@ -3,9 +3,8 @@
  * `/labs/phone` and `/uploads` are the others, so every old URL keeps working
  * and the tab bar is the same component with a different tab lit.
  */
-import Link from "next/link";
 import { UploadButton } from "./client";
-import { cn } from "@/lib/utils";
+import { PillTabs } from "./pill-tabs";
 
 export type LabsTab = "biomarkers" | "draws" | "phone" | "uploads";
 
@@ -37,22 +36,11 @@ export function LabsHeader({
         <UploadButton />
       </div>
 
-      <nav className="flex items-center gap-1 rounded border bg-neutral-100 p-0.5">
-        {TABS.map((tab) => (
-          <Link
-            key={tab.id}
-            href={tab.href}
-            className={cn(
-              "flex h-[30px] items-center px-3 font-mono text-[11px] font-medium uppercase tracking-[0.04em] transition-colors",
-              tab.id === active
-                ? "bg-accent-50 text-accent-500"
-                : "text-neutral-500 hover:text-neutral-900",
-            )}
-          >
-            {tab.name}
-          </Link>
-        ))}
-      </nav>
+      <PillTabs
+        label="Labs"
+        active={active}
+        tabs={TABS.map((t) => ({ id: t.id, label: t.name, href: t.href }))}
+      />
     </div>
   );
 }

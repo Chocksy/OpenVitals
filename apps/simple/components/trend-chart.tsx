@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { chartDomain } from "./chart-domain";
 import {
   ResponsiveContainer,
   LineChart,
@@ -67,7 +68,9 @@ export function inRange<T extends { date: string }>(
 ): T[] {
   const last = points[points.length - 1]?.date;
   if (days == null || !last) return points;
-  const from = new Date(new Date(`${last}T00:00:00Z`).getTime() - days * 86_400_000)
+  const from = new Date(
+    new Date(`${last}T00:00:00Z`).getTime() - days * 86_400_000,
+  )
     .toISOString()
     .slice(0, 10);
   return points.filter((p) => p.date >= from);
@@ -174,6 +177,41 @@ export function TrendChart({
   daily = false,
 }: TrendChartProps) {
   const [days, setDays] = useState<number | null>(90);
+  /**
+   * Phase 24d, the blank chart on Home's spear card.
+   *
+   * `ResponsiveContainer` with a percentage width renders **nothing** —
+   * server-side and on the first client paint — because recharts starts it at
+   * `initialDimension {-1,-1}` and returns `null` for a non-positive size
+   * (recharts 3.8 `component/ResponsiveContainer.js`). The server therefore
+   * ships `<div class="recharts-responsive-container" style="height:140px">`
+   * with an empty child, and the card's caption and legend render around a
+   * void until the client's ResizeObserver reports a width. That void is what
+   * the audit photographed.
+   *
+   * The fix is a skeleton in the same slot (`14-skeleton-reveal.md`), revealed
+   * the moment recharts puts an `<svg>` in it. The signal is the drawing
+   * itself rather than `ResponsiveContainer`'s `onResize`, which recharts 3.8
+   * only fires from its ResizeObserver and which never arrived here on the
+   * first paint. A chart that never measures now keeps a loading state
+   * instead of leaving a labelled hole.
+   */
+  const slot = useRef<HTMLDivElement>(null);
+  const [drawn, setDrawn] = useState(false);
+  useEffect(() => {
+    const el = slot.current;
+    if (!el || drawn) return;
+    if (el.querySelector("svg")) {
+      setDrawn(true);
+      return;
+    }
+    const seen = new MutationObserver(() => {
+      if (el.querySelector("svg")) setDrawn(true);
+    });
+    seen.observe(el, { childList: true, subtree: true });
+    return () => seen.disconnect();
+  }, [drawn]);
+
   const data = daily ? inRange(all, days) : all;
 
   if (data.length === 0) {
@@ -212,22 +250,14 @@ export function TrendChart({
   // ponytail: the old guess at the label count read `window.innerWidth`, which
   // is wrong for any chart that is not the full page. `minTickGap` lets
   // recharts drop the colliding labels itself, at any container width.
-  // Compute Y domain with padding
-  const values = data.map((d) => d.value);
-  const allValues = [
-    ...values,
-    ...(referenceRangeLow != null ? [referenceRangeLow] : []),
-    ...(referenceRangeHigh != null ? [referenceRangeHigh] : []),
-    ...(optimalRangeLow != null ? [optimalRangeLow] : []),
-    ...(optimalRangeHigh != null ? [optimalRangeHigh] : []),
-    ...(goalLow != null ? [goalLow] : []),
-    ...(goalHigh != null ? [goalHigh] : []),
-  ];
-  const minVal = Math.min(...allValues);
-  const maxVal = Math.max(...allValues);
-  const padding = (maxVal - minVal) * 0.15 || 1;
-  const yMin = Math.floor(minVal - padding);
-  const yMax = Math.ceil(maxVal + padding);
+  const { yMin, yMax } = chartDomain(data, {
+    referenceRangeLow,
+    referenceRangeHigh,
+    optimalRangeLow,
+    optimalRangeHigh,
+    goalLow,
+    goalHigh,
+  });
 
   const hasOptimal = optimalRangeLow != null || optimalRangeHigh != null;
   const hasReference = referenceRangeLow != null || referenceRangeHigh != null;
@@ -250,175 +280,204 @@ export function TrendChart({
           </div>
         </div>
       )}
-      <ResponsiveContainer width="100%" height={height}>
-        <LineChart
-          data={series}
-          margin={{ top: 8, right: 32, bottom: 8, left: 8 }}
-        >
-          {referenceRangeLow != null && referenceRangeHigh != null && (
-            <ReferenceArea
-              y1={referenceRangeLow}
-              y2={referenceRangeHigh}
-              fill="var(--color-health-normal-bg)"
-              stroke="var(--color-health-normal-border)"
-              strokeDasharray="3 3"
-              fillOpacity={0.6}
-            />
-          )}
-          {optimalRangeLow != null && optimalRangeHigh != null && (
-            <ReferenceArea
-              y1={optimalRangeLow}
-              y2={optimalRangeHigh}
-              fill="var(--color-health-optimal-bg)"
-              stroke="var(--color-health-optimal-border)"
-              strokeDasharray="4 2"
-              fillOpacity={0.4}
-            />
-          )}
-          {hasGoal && (
-            <ReferenceArea
-              y1={goalLow ?? yMin}
-              y2={goalHigh ?? yMax}
-              fill="var(--color-accent-500)"
-              stroke="var(--color-accent-500)"
-              strokeDasharray="6 3"
-              fillOpacity={0.07}
-            />
-          )}
-          {projection && (
-            <ReferenceArea
-              y1={projection.low}
-              y2={projection.high}
-              fill="var(--color-accent-500)"
-              stroke="var(--color-accent-500)"
-              strokeDasharray="2 4"
-              fillOpacity={0.12}
-              label={{
-                value: `expected ${projection.expected} by ${projection.retestAt}`,
-                position: "insideTopRight",
-                style: {
-                  fontSize: 10,
-                  fontFamily: "var(--font-mono)",
-                  fill: "var(--color-accent-600)",
-                },
-              }}
-            />
-          )}
-          <XAxis
-            dataKey="date"
-            tickFormatter={formatChartDate}
-            interval="preserveStartEnd"
-            minTickGap={44}
-            tick={{
-              fontSize: 11,
-              fontFamily: "var(--font-mono)",
-              fill: "var(--color-neutral-400)",
-            }}
-            axisLine={{ stroke: "var(--color-neutral-200)" }}
-            tickLine={false}
-            dy={8}
-          />
-          <YAxis
-            domain={[yMin, yMax]}
-            tick={{
-              fontSize: 11,
-              fontFamily: "var(--font-mono)",
-              fill: "var(--color-neutral-400)",
-            }}
-            axisLine={false}
-            tickLine={false}
-            width={45}
-            label={
-              unit
-                ? {
-                    value: unit,
-                    angle: -90,
-                    position: "insideLeft",
-                    offset: 0,
+      <div
+        ref={slot}
+        className={`t-skel${drawn ? " is-revealed" : ""}`}
+        style={{ height }}
+      >
+        <div className="t-skel-skeleton is-pulsing" aria-hidden="true">
+          <div className="skeleton size-full" />
+        </div>
+        <div className="t-skel-content">
+          <ResponsiveContainer width="100%" height={height}>
+            <LineChart
+              data={series}
+              margin={{ top: 8, right: 32, bottom: 8, left: 8 }}
+            >
+              {referenceRangeLow != null && referenceRangeHigh != null && (
+                <ReferenceArea
+                  y1={referenceRangeLow}
+                  y2={referenceRangeHigh}
+                  fill="var(--color-health-normal-bg)"
+                  stroke="var(--color-health-normal-border)"
+                  strokeDasharray="3 3"
+                  fillOpacity={0.6}
+                />
+              )}
+              {optimalRangeLow != null && optimalRangeHigh != null && (
+                <ReferenceArea
+                  y1={optimalRangeLow}
+                  y2={optimalRangeHigh}
+                  fill="var(--color-health-optimal-bg)"
+                  stroke="var(--color-health-optimal-border)"
+                  strokeDasharray="4 2"
+                  fillOpacity={0.4}
+                />
+              )}
+              {hasGoal && (
+                <ReferenceArea
+                  y1={goalLow ?? yMin}
+                  y2={goalHigh ?? yMax}
+                  fill="var(--color-accent-500)"
+                  stroke="var(--color-accent-500)"
+                  strokeDasharray="6 3"
+                  fillOpacity={0.07}
+                />
+              )}
+              {projection && (
+                <ReferenceArea
+                  y1={projection.low}
+                  y2={projection.high}
+                  fill="var(--color-accent-500)"
+                  stroke="var(--color-accent-500)"
+                  strokeDasharray="2 4"
+                  fillOpacity={0.12}
+                  label={{
+                    value: `expected ${projection.expected} by ${projection.retestAt}`,
+                    position: "insideTopRight",
                     style: {
-                      fontSize: 11,
+                      fontSize: 10,
                       fontFamily: "var(--font-mono)",
-                      fill: "var(--color-neutral-400)",
+                      fill: "var(--color-accent-600)",
                     },
-                  }
-                : undefined
-            }
-          />
-          <Tooltip
-            content={(props) => (
-              <CustomTooltip
-                {...props}
-                referenceRangeLow={referenceRangeLow}
-                referenceRangeHigh={referenceRangeHigh}
+                  }}
+                />
+              )}
+              <XAxis
+                dataKey="date"
+                tickFormatter={formatChartDate}
+                interval="preserveStartEnd"
+                minTickGap={44}
+                tick={{
+                  fontSize: 11,
+                  fontFamily: "var(--font-mono)",
+                  fill: "var(--color-neutral-400)",
+                }}
+                axisLine={{ stroke: "var(--color-neutral-200)" }}
+                tickLine={false}
+                dy={8}
               />
-            )}
-          />
-          {projection && (
-            <Line
-              type="linear"
-              dataKey="projected"
-              isAnimationActive={false}
-              stroke="var(--color-accent-500)"
-              strokeWidth={2}
-              strokeDasharray="5 4"
-              connectNulls
-              dot={false}
-              activeDot={false}
-            />
-          )}
-          <Line
-            type="monotone"
-            dataKey="value"
-            isAnimationActive={false}
-            stroke={stroke}
-            strokeWidth={daily ? 1.5 : 2}
-            dot={daily ? false : (props: Record<string, unknown>) => {
-              const { cx, cy, index } = props as {
-                cx: number;
-                cy: number;
-                index: number;
-              };
-              const isLast = index === data.length - 1;
-              const pt = series[index];
-              const abnormal = pt
-                ? isAbnormal(pt.value, referenceRangeLow, referenceRangeHigh)
-                : false;
-              return (
-                <circle
-                  key={index}
-                  cx={cx}
-                  cy={cy}
-                  r={isLast ? 5 : abnormal ? 4 : 3}
-                  fill={abnormal ? "var(--color-health-warning-bg)" : "white"}
-                  stroke={abnormal ? "var(--color-health-warning)" : stroke}
+              <YAxis
+                domain={[yMin, yMax]}
+                tick={{
+                  fontSize: 11,
+                  fontFamily: "var(--font-mono)",
+                  fill: "var(--color-neutral-400)",
+                }}
+                axisLine={false}
+                tickLine={false}
+                width={45}
+                label={
+                  unit
+                    ? {
+                        value: unit,
+                        angle: -90,
+                        position: "insideLeft",
+                        offset: 0,
+                        style: {
+                          fontSize: 11,
+                          fontFamily: "var(--font-mono)",
+                          fill: "var(--color-neutral-400)",
+                        },
+                      }
+                    : undefined
+                }
+              />
+              <Tooltip
+                content={(props) => (
+                  <CustomTooltip
+                    {...props}
+                    referenceRangeLow={referenceRangeLow}
+                    referenceRangeHigh={referenceRangeHigh}
+                  />
+                )}
+              />
+              {projection && (
+                <Line
+                  type="linear"
+                  dataKey="projected"
+                  isAnimationActive={false}
+                  stroke="var(--color-accent-500)"
                   strokeWidth={2}
+                  strokeDasharray="5 4"
+                  connectNulls
+                  dot={false}
+                  activeDot={false}
                 />
-              );
-            }}
-            activeDot={(props: {
-              cx?: number;
-              cy?: number;
-              index?: number;
-            }) => {
-              const { cx = 0, cy = 0, index = 0 } = props;
-              const pt = data[index];
-              const abnormal = pt
-                ? isAbnormal(pt.value, referenceRangeLow, referenceRangeHigh)
-                : false;
-              return (
-                <circle
-                  cx={cx}
-                  cy={cy}
-                  r={5}
-                  fill={abnormal ? "var(--color-health-warning)" : stroke}
-                  stroke="white"
-                  strokeWidth={2}
-                />
-              );
-            }}
-          />
-        </LineChart>
-      </ResponsiveContainer>
+              )}
+              <Line
+                type="monotone"
+                dataKey="value"
+                isAnimationActive={false}
+                stroke={stroke}
+                strokeWidth={daily ? 1.5 : 2}
+                dot={
+                  daily
+                    ? false
+                    : (props: Record<string, unknown>) => {
+                        const { cx, cy, index } = props as {
+                          cx: number;
+                          cy: number;
+                          index: number;
+                        };
+                        const isLast = index === data.length - 1;
+                        const pt = series[index];
+                        const abnormal = pt
+                          ? isAbnormal(
+                              pt.value,
+                              referenceRangeLow,
+                              referenceRangeHigh,
+                            )
+                          : false;
+                        return (
+                          <circle
+                            key={index}
+                            cx={cx}
+                            cy={cy}
+                            r={isLast ? 5 : abnormal ? 4 : 3}
+                            fill={
+                              abnormal
+                                ? "var(--color-health-warning-bg)"
+                                : "white"
+                            }
+                            stroke={
+                              abnormal ? "var(--color-health-warning)" : stroke
+                            }
+                            strokeWidth={2}
+                          />
+                        );
+                      }
+                }
+                activeDot={(props: {
+                  cx?: number;
+                  cy?: number;
+                  index?: number;
+                }) => {
+                  const { cx = 0, cy = 0, index = 0 } = props;
+                  const pt = data[index];
+                  const abnormal = pt
+                    ? isAbnormal(
+                        pt.value,
+                        referenceRangeLow,
+                        referenceRangeHigh,
+                      )
+                    : false;
+                  return (
+                    <circle
+                      cx={cx}
+                      cy={cy}
+                      r={5}
+                      fill={abnormal ? "var(--color-health-warning)" : stroke}
+                      stroke="white"
+                      strokeWidth={2}
+                    />
+                  );
+                }}
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
       {(hasReference || hasOptimal || hasGoal) && (
         <div className="mt-2 flex items-center gap-4 px-2">
           {hasReference && (

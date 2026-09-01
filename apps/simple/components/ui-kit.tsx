@@ -10,7 +10,9 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-1.5 whitespace-nowrap font-display text-[14px] leading-[1.25rem] rounded-sm tracking-[0.04em] transition-all duration-150 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-3.5 [&_svg]:shrink-0 active:scale-[0.98]",
+  // Exact properties, never `transition: all` — an unrelated style change must
+  // not ride in for free. 0.96 on press is the checklist's own number.
+  "inline-flex items-center justify-center gap-1.5 whitespace-nowrap font-display text-[14px] leading-[1.25rem] rounded-sm tracking-[0.04em] transition-[color,background-color,border-color,box-shadow,scale] duration-150 ease-out cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-3.5 [&_svg]:shrink-0 active:not-disabled:scale-[0.96]",
   {
     variants: {
       variant: {
@@ -112,7 +114,8 @@ export function BasisChip({ basis }: { basis: string }) {
 /** How settled the evidence behind an action is: established, early, horizon. */
 const TIER_CLASS: Record<string, string> = {
   established: "border-neutral-300 text-neutral-600",
-  early: "border-[var(--color-health-warning)] text-[var(--color-health-warning)]",
+  early:
+    "border-[var(--color-health-warning)] text-[var(--color-health-warning)]",
   experimental: "border-dashed border-neutral-400 text-neutral-500",
 };
 
@@ -126,6 +129,32 @@ export function TierChip({ tier }: { tier?: string }) {
       )}
     >
       {tier}
+    </span>
+  );
+}
+
+/**
+ * The tick a button wears the moment a write lands: fade, rotate upright,
+ * settle with a Y-bob, and draw the stroke (`10-success-check.md`). The
+ * dasharray in `globals.css` is 21, which is `M5 13l4 4L19 7`'s own length
+ * (19.8) rounded up by one, so the stroke neither pre-reveals nor overdraws.
+ */
+export function SuccessCheck({ shown }: { shown: boolean }) {
+  return (
+    <span
+      className="t-success-check"
+      data-state={shown ? "in" : "out"}
+      aria-hidden="true"
+    >
+      <svg viewBox="0 0 24 24" width="14" height="14" fill="none">
+        <path
+          d="M5 13l4 4L19 7"
+          stroke="currentColor"
+          strokeWidth="2.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
     </span>
   );
 }

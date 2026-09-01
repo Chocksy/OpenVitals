@@ -28,7 +28,7 @@ export function AskLink({
         </span>
         <Link
           href={ASK_HREF}
-          className="inline-flex h-8 items-center gap-1 px-1 font-display text-[12px] tracking-[0.04em] text-accent-600 underline hover:text-neutral-900"
+          className="inline-flex h-10 items-center gap-1 px-1 font-display text-[12px] tracking-[0.04em] text-accent-600 underline transition-colors duration-150 ease-out hover:text-neutral-900 active:scale-[0.96]"
         >
           Answer
           <ArrowRight className="size-3.5" />

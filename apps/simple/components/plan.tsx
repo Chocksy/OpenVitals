@@ -8,8 +8,8 @@
 import { useEffect, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { PillTabs } from "./pill-tabs";
 import { Check, MessageSquare, RefreshCw, Stethoscope } from "lucide-react";
-import { cn } from "@/lib/utils";
 import { Button } from "./ui-kit";
 
 const STORAGE_KEY = "planView";
@@ -87,22 +87,15 @@ export function ViewShell({
         </div>
         <div className="flex items-center gap-2">
           {actions}
-          <div className="flex items-center gap-0.5 rounded border bg-neutral-100 p-0.5">
-            {(["simple", "deep"] as const).map((v) => (
-              <button
-                key={v}
-                onClick={() => pick(v)}
-                className={cn(
-                  "h-[30px] px-3 font-mono text-[11px] font-medium uppercase tracking-[0.04em] transition-colors",
-                  view === v
-                    ? "bg-accent-50 text-accent-500"
-                    : "text-neutral-500 hover:text-neutral-900",
-                )}
-              >
-                {v}
-              </button>
-            ))}
-          </div>
+          <PillTabs
+            label="Detail"
+            active={view}
+            tabs={[
+              { id: "simple", label: "simple" },
+              { id: "deep", label: "deep" },
+            ]}
+            onSelect={(v) => pick(v as "simple" | "deep")}
+          />
         </div>
       </div>
       {children}

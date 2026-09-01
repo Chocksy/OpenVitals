@@ -13,7 +13,7 @@
  */
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Camera, Loader2, Plus, X } from "lucide-react";
+import { Camera, Check, Circle, Loader2, Plus, X } from "lucide-react";
 import { Button } from "./ui-kit";
 
 export const COMPOSER_ID = "composer";
@@ -169,6 +169,8 @@ export function Composer({
   const router = useRouter();
   const dialog = useRef<HTMLDialogElement>(null);
   const box = useRef<HTMLTextAreaElement>(null);
+  /** 18: the chips rise in, 40 ms apart, every time the reading changes. */
+  const chipBox = useRef<HTMLDivElement>(null);
   const [text, setText] = useState("");
   const [chips, setChips] = useState<Chip[]>([]);
   const [options, setOptions] = useState<Record<string, string[]>>({});
@@ -239,6 +241,14 @@ export function Composer({
     }, 400);
     return () => clearTimeout(id);
   }, [text, posted, post]);
+
+  useEffect(() => {
+    const el = chipBox.current;
+    if (!el || chips.length === 0) return;
+    el.classList.remove("is-shown");
+    void el.offsetHeight; // force reflow so the stagger replays
+    el.classList.add("is-shown");
+  }, [chips]);
 
   const reset = () => {
     setText("");
@@ -353,7 +363,7 @@ export function Composer({
         aria-label="Post something"
         title="Post a symptom, a habit, a number"
         onClick={() => dialog.current?.showModal()}
-        className={`fixed bottom-6 right-6 z-40 size-14 cursor-pointer items-center justify-center rounded-full bg-neutral-900 text-neutral-0 shadow-lg transition-all hover:bg-accent-600 active:scale-95 ${app ? "flex" : "hidden md:flex"}`}
+        className={`fixed bottom-6 right-6 z-40 size-14 cursor-pointer items-center justify-center rounded-full bg-neutral-900 text-neutral-0 shadow-lg transition-[background-color,scale] duration-150 ease-out hover:bg-accent-600 active:scale-[0.96] ${app ? "flex" : "hidden md:flex"}`}
       >
         <Plus className="size-6" />
       </button>
@@ -397,18 +407,38 @@ export function Composer({
             className="w-full resize-none border-b border-neutral-200 bg-transparent py-1 font-body text-[15px] leading-relaxed outline-none placeholder:text-neutral-400 focus:border-neutral-400 disabled:text-neutral-500"
           />
 
-          <div className="mt-3 flex min-h-6 flex-wrap items-start gap-1.5">
+          <div
+            ref={chipBox}
+            className="t-stagger mt-3 flex min-h-6 flex-wrap items-start gap-1.5"
+          >
             {thinking && (
               <Loader2 className="size-3.5 animate-spin text-neutral-300" />
             )}
-            {chips.map((chip) => (
-              <div key={`${chip.kind}:${chip.key}`} className="w-full">
+            {chips.map((chip, i) => (
+              <div
+                key={`${chip.kind}:${chip.key}`}
+                className={`t-stagger-line w-full t-stagger-line--${Math.min(i + 1, 8)}`}
+              >
                 <button
                   onClick={() => setOpen(open === chip.key ? null : chip.key)}
-                  className={`inline-flex cursor-pointer items-center gap-1 border px-2 py-0.5 font-mono text-[10px] uppercase tracking-[0.04em] ${
+                  className={`inline-flex h-10 cursor-pointer items-center gap-1.5 border px-2 font-mono text-[10px] uppercase tracking-[0.04em] transition-[color,border-color] duration-150 ease-out active:scale-[0.96] ${
                     KIND_TONE[chip.kind] ?? KIND_TONE.unknown
                   } ${posted ? "" : "border-dashed"}`}
                 >
+                  {/* 09: a dashed chip is a guess; posting draws it solid and
+                      swaps the open circle for a tick in the same slot. */}
+                  <span
+                    className="t-icon-swap size-2.5"
+                    data-state={posted ? "b" : "a"}
+                    aria-hidden="true"
+                  >
+                    <span className="t-icon" data-icon="a">
+                      <Circle className="size-2.5" />
+                    </span>
+                    <span className="t-icon" data-icon="b">
+                      <Check className="size-2.5" />
+                    </span>
+                  </span>
                   {chip.label}
                   {chip.date !== today && (
                     <span className="text-neutral-400">· {chip.date}</span>

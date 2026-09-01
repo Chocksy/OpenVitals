@@ -19,6 +19,7 @@ import {
   uploads,
   type CheckinPost,
 } from "@/db";
+import { askSurfaces, type Ask, type AskPlan } from "./asking";
 import { buildModelInput } from "./coverage";
 import {
   documentFinding,
@@ -34,6 +35,52 @@ import { catalogFor } from "./hkb";
 import { nextMoves } from "./infogain";
 import { dueFacts, revisitAtFor, type DueFact } from "./revisit";
 import { healthStatus, type HealthStatus } from "./status";
+import { PROFILE_QUESTIONS } from "./vectors";
+import type { Conclusion, Ledger } from "./ledger";
+
+/** The profile fact key a card's own question would answer. */
+export const askKeyOf = (c: Conclusion): string | undefined =>
+  c.question?.featureId.replace(/^fact:/, "");
+
+/**
+ * Where each question is asked on Home, decided once for the whole page.
+ *
+ * The page renders from this and so does `GET /api/ledger`, so the question
+ * the Today card advances to after an answer is the same one a reload would
+ * have shown. Phase 24a wrote the rule; phase 24d needed both callers to
+ * agree, which is why it lives here and not inside the page.
+ */
+export function homeAskPlan(ledger: Ledger, due: DueFact[]): AskPlan {
+  return askSurfaces({
+    due: due.map((d) => d.key),
+    gain: ledger.asks,
+    others: ledger.conclusions.flatMap((c) => {
+      const key = askKeyOf(c);
+      return key ? [{ where: `card:${c.id}`, keys: [key] }] : [];
+    }),
+  });
+}
+
+/** The options that question offers, empty for a free-text one. */
+export const optionsFor = (key: string): string[] =>
+  PROFILE_QUESTIONS[key]?.options ?? [];
+
+/** One card's question as a link, when the plan says this card only links. */
+export function linkedAsk(
+  ledger: Ledger,
+  plan: AskPlan,
+  c: Conclusion,
+): Ask | undefined {
+  const key = askKeyOf(c);
+  if (!key || !plan.links.includes(key)) return undefined;
+  return (
+    ledger.asks.find((a) => a.key === key) ?? {
+      key,
+      question: c.question!.label,
+      moves: [],
+    }
+  );
+}
 
 /** The bands a reading is judged against, i.e. the range bar's props. */
 export interface Bands {
@@ -242,7 +289,8 @@ export async function recentFindings(
     .orderBy(desc(uploads.createdAt));
   if (!recent.length) return [];
 
-  const dayOf = (d: Date | null) => (d ?? new Date()).toISOString().slice(0, 10);
+  const dayOf = (d: Date | null) =>
+    (d ?? new Date()).toISOString().slice(0, 10);
   const out: Finding[] = [];
 
   const genome = recent.find((u) => u.kind === "genome");
