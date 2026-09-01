@@ -645,6 +645,12 @@ export interface ReviewSubject {
   labHigh?: number | null;
   /** confirm_value: the lab-sheet line the curator read, or null. */
   sheet?: string | null;
+  /** confirm_value, second pass: who settled it, or why nobody could. */
+  settledBy?: string | null;
+  /** confirm_value, second pass: the sheet line the answer rests on. */
+  evidenceLine?: string | null;
+  /** confirm_value, second pass: what the sheet says, in the reading's unit. */
+  sheetValue?: number | null;
   /** foreign_reading: enough of the row to describe it after it is gone. */
   value?: number | null;
   valueText?: string | null;

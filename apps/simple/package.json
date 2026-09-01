@@ -20,6 +20,7 @@
     "eval:journeys": "tsx --env-file=.env evals/journeys.ts",
     "eval:compose": "tsx --env-file=.env evals/compose.ts",
     "eval:trends": "tsx --env-file=.env evals/trends.ts",
+    "eval:second-pass": "tsx --env-file=.env evals/second-pass.ts",
     "eval:capture": "tsx --env-file=.env evals/capture.ts",
     "hkb:import": "tsx scripts/hkb-import-ontology.ts",
     "hkb:ring2:build": "tsx scripts/hkb-ring2-build.ts",

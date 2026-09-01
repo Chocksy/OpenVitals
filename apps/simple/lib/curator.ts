@@ -40,6 +40,7 @@ import {
 import { model, stripCodeFences } from "./extract";
 import { inGoal, localDay } from "./daily";
 import { planRawVerify, rawVerifyScope } from "./raw-verify";
+import { runSecondPass } from "./second-pass";
 import { BOUNDS, SEX_RANGES } from "./vectors";
 import { conversionFactor, normalizeUnit, round } from "./units";
 
@@ -56,7 +57,8 @@ export type Check =
   | "missing_optimal"
   | "implausible_value"
   | "foreign_reading"
-  | "goal_check";
+  | "goal_check"
+  | "second_pass";
 
 /** The subset of a reading the planners need. */
 export interface ReadingLike {
@@ -1338,6 +1340,17 @@ export async function runCurator(
       }
     }
 
+    // 10. The second pass, on whatever `confirm_value` questions are still
+    // open after everything above: re-match the sheet, then read it again with
+    // the model, and only then leave it for the person.
+    const settled = await runSecondPass(userId, { uploadId: scope?.uploadId });
+    if (settled.length) {
+      const s = bump("second_pass");
+      s.checked = settled.length;
+      s.fixed = settled.filter((o) => o.outcome !== "person").length;
+      s.queued = settled.filter((o) => o.outcome === "person").length;
+    }
+
     await queueQuestions(userId);
 
     await db
@@ -1507,6 +1520,21 @@ export async function applyAnswer(
       .where(eq(readingsTable.id, s.readingId));
     if (answer.startsWith("Discard")) {
       await db.delete(readingsTable).where(eq(readingsTable.id, s.readingId));
+      status = "applied";
+    } else if (answer.startsWith("Use the sheet") && r && s.sheetValue != null) {
+      // The second pass read the sheet again and the person took its number.
+      await db
+        .update(readingsTable)
+        .set({
+          value: s.sheetValue,
+          flags: addFlags(r, {
+            raw_verified: {
+              orig: { value: r.value, refLow: r.refLow, refHigh: r.refHigh },
+              sheet: s.evidenceLine ?? s.sheet ?? "read again by the second pass",
+            },
+          }),
+        })
+        .where(eq(readingsTable.id, r.id));
       status = "applied";
     } else if (answer.startsWith("Note") && r) {
       const value = Number(String(note ?? "").replace(",", "."));

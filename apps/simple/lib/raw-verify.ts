@@ -116,18 +116,31 @@ function findWord(text: string, starts: boolean[], alias: string): number {
 const foldPlain = (s: string) => fold(s).text;
 
 /**
+ * Does this line print one of these names? Accent-, case- and space-blind, and
+ * whole-word only, so `ALP` never matches inside `Alpha 1`. The second pass
+ * needs the question the matcher above answers on its way to a value.
+ */
+export function lineHasAlias(line: string, aliases: string[]): boolean {
+  const { text, starts } = fold(line);
+  return aliases.some((a) => {
+    const folded = foldPlain(a ?? "");
+    return folded.length >= 3 && findWord(text, starts, folded) >= 0;
+  });
+}
+
+/**
  * `(ser, spectrofotometrie)` and `(Mindray BS 480)` are prose, and the `480`
  * inside them is not a result. Blanked out, length preserved so the character
  * positions of everything else survive. A parenthesis holding only numbers
  * (`(4.300.000 - 5.750.000)`) is the reference range and stays.
  */
-const stripProse = (s: string) =>
+export const stripProse = (s: string) =>
   s.replace(/\([^)]*\)/g, (m) =>
     /[a-zA-Z]/.test(m) ? " ".repeat(m.length) : m,
   );
 
 /** Dates and clock times are not results. */
-const stripDates = (s: string) =>
+export const stripDates = (s: string) =>
   s
     .replace(/\b\d{1,2}[./]\d{1,2}[./]\d{2,4}\b/g, (m) => " ".repeat(m.length))
     .replace(/\b\d{1,2}:\d{2}\b/g, (m) => " ".repeat(m.length));
@@ -267,7 +280,11 @@ const UNIT = /^[%/A-Za-z\u00b5\u03bc0-9][%/A-Za-z\u00b5\u03bc0-9^\u00b3\u2076.]*
  * `/mm\u00b3` are units; a bare number is not, and a long word means the
  * stretch is prose and there is no unit to find in it.
  */
-function unitBetween(s: string, from: number, to: number): string | null {
+export function unitBetween(
+  s: string,
+  from: number,
+  to: number,
+): string | null {
   for (const token of s.slice(from, Math.max(from, to)).split(/\s+/)) {
     if (!token) continue;
     const word = /[A-Za-z\u00b5\u03bc]/.test(token);

@@ -14,6 +14,7 @@ import {
   hkbRevisions,
   hkbTerms,
   hkbTests,
+  reviewItems,
 } from "@/db";
 import {
   bandsOf,
@@ -530,7 +531,7 @@ async function interventionsTab(condition: string) {
 async function activityTab() {
   const db = getDb();
   const FEED = 100;
-  const [evidence, minted, interventions, runs] = await Promise.all([
+  const [evidence, minted, interventions, runs, secondPass] = await Promise.all([
     db
       .select()
       .from(hkbEvidence)
@@ -561,6 +562,30 @@ async function activityTab() {
       .select()
       .from(hkbImportRuns)
       .orderBy(desc(hkbImportRuns.ranAt))
+      .limit(FEED),
+    // Phase 24e: what the curator's second pass did with the values a lab
+    // sheet did not settle. A window on the pass, not a queue: the rows it
+    // closed carry the line they were closed on, and the ones it could not
+    // settle say so.
+    db
+      .select({
+        at: sql<Date | null>`coalesce(${reviewItems.resolvedAt}, ${reviewItems.createdAt})`,
+        answer: reviewItems.answer,
+        subject: reviewItems.subject,
+        question: reviewItems.question,
+        status: reviewItems.status,
+      })
+      .from(reviewItems)
+      .where(
+        and(
+          eq(reviewItems.kind, "confirm_value"),
+          or(
+            sql`${reviewItems.answer} like 'second pass%'`,
+            sql`${reviewItems.subject}->>'settledBy' is not null`,
+          ),
+        ),
+      )
+      .orderBy(sql`coalesce(resolved_at, created_at) desc`)
       .limit(FEED),
   ]);
 
@@ -596,6 +621,14 @@ async function activityTab() {
       at: r.createdAt,
       kind: "intervention",
       text: `${r.conditionId} · ${r.name}${r.dose ? ` ${r.dose}` : ""} · grade ${r.grade} (${tierOf(r.grade)})`,
+    })),
+    ...secondPass.map((r) => ({
+      at: r.at ? new Date(r.at) : null,
+      kind: "second pass",
+      text:
+        `${r.subject?.metricCode ?? "?"} · ` +
+        (r.answer?.replace(/^second pass: /, "") ??
+          `left for the person${r.subject?.evidenceLine ? ` — “${r.subject.evidenceLine}”` : ""}`),
     })),
     ...runs.map((r) => ({
       at: r.ranAt,

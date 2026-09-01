@@ -1,0 +1,251 @@
+[
+  {
+    "id": "apolipoprotein_a1-2024-05-13",
+    "metricCode": "apolipoprotein_a1",
+    "metricName": "Apolipoprotein A1",
+    "aliases": [
+      "apolipoprotein A-I",
+      "Apolipoproteina A1",
+      "Apolipoprotein A1",
+      "Apo A-I",
+      "Apo A1",
+      "ApoA1",
+      "apoa1"
+    ],
+    "stored": 169,
+    "unit": "mg/dL",
+    "observedAt": "2024-05-13",
+    "sheet": "BIOCHIMIE S - VALIDAT DE : FLORENTINA ENACHE - ASISTENT MEDICAL\nINTERVAL BIOLOGIC DE REFERINTA /\nANALIZE REZULTATE\nUM\n33. *Capacitatea totala de legare a fierului-CTLF - Subcontractat -Ser - Conform\n(Subcontractate) anexa\nIMUNOLOGIE S - VALIDAT DE : CATY CLAUDIA TIRCOL - MEDIC PRIMAR MEDICINA DE LABORATOR\nANALIZE REZULTATE INTERVAL BIOLOGIC DE REFERINTA / UM\n34. Ag HBs calitativ -Ser - imunocromatografie (MANUAL IMUNOLOGIE) Negativ Negativ\n35. Anti HCV -Ser - imunocromatografie (MANUAL IMUNOLOGIE) Negativ NEGATIV\nSUBCONTRACTAT S - VALIDAT DE : FLORENTINA ENACHE - ASISTENT MEDICAL\nANALIZE REZULTATE INTERVAL BIOLOGIC DE REFERINTA / UM\n36. Apolipoproteina A1** -Ser - (Subcontractat_S) Conform anexa\n37. Apolipoproteina B** -Ser - (Subcontractat_S) Conform anexa\n38. Cortizol seric -Ser - (Subcontractat_S) Conform anexa\n39. Homocisteina** -Ser - (Subcontractat_S) Conform anexa\n40. Insulina -Ser - (Subcontractat_S) Conform anexa\nNota: Analizele si punctele de recoltare marcate cu * sunt neacreditate Renar\nOpiniile si interpretarile nu sunt acoperite de acreditarea RENAR\nAnalizele marcate cu *** sunt lucrate in locatia MEDISIM PLUS - Rm-Valcea\nRezultatele se refera numai la probele analizate\nEste interzisa reproducerea partiala a buletinului\nBULETIN DE ANALIZE MEDICALE\neliberat de S.C. LABORATOARELE SYNLAB S.R.L.\nCIOCANEL RAZVAN\nData Nasterii: 27.02.1987 Cod cerere: 590237687 Data inregistrarii: 14.05.2024\nSex: B Cod pacient: 2788841 Data recoltarii: 13.05.2024 13:26\nData emiterii buletinului: 14.05.2024 17:12\nCNP: 1870227 Recoltat la: Medisim Plus (Dragasani)\nCentru de recoltare al partenerului\nRecomandare: Dr. MEDISIM PLUS Rezultat la: Medisim Plus (Dragasani)\nFirma: MEDISIM PLUS (Vladesti) Valori in afara limitelor admise pentru varsta si sexul\nrespectiv\n* Investigatii neacreditate RENAR\n** Investigatii subcontractate\nDenumire analiza Rezultat UM Interval de referinta\nApolipoproteina A1*\nExecutat la : Synlab BUCURESTI - TUDOR VLADIMIRESCU (lab)\n- Alinity, spectrofotometrie, ser 1.69 g/L 0.95 - 1.86\nCapacitatea totala de legare a fierului-CTLF*\nExecutat la : Synlab BUCURESTI - TUDOR VLADIMIRESCU (lab)\n- Alinity, spectrofotometrie, ser 322.00 μg/dL 225.00 - 535.00\nHomocisteina*\nExecutat la : Synlab BUCURESTI - TUDOR VLADIMIRESCU (lab)\n- Alinity, Metoda CMIA, ser 8.08 μmol/L 5.46 - 16.20\n- NOTA\nUn nivel crescut al homocysteinei este considerat factor de risc pentru ateroscleroza.\nValori fals crescute ale homocisteinei se pot întâlni la pacientii aflati sub tratament cu preparate care contin S-adenozilmetionina, methotrexat (prin depletia de 5-metiltetrahidrofolat), oxid nitric (prin inactivarea metionin-sintetazei),\ncarbamazepin, fenitoin (prin interferarea cu metabolismul folatilor), 6-azauridin triacetat (prin antagonizarea vitaminei B6),",
+    "strikes": 0,
+    "expect": "rematch"
+  },
+  {
+    "id": "crp-2025-12-09",
+    "metricCode": "crp",
+    "metricName": "CRP",
+    "aliases": [
+      "Proteina C reactiva",
+      "C-reactive protein",
+      "C reactive protein",
+      "c reactive protein",
+      "c_reactive_protein",
+      "C-Reactive Protein",
+      "CRP level",
+      "CRP",
+      "PCR"
+    ],
+    "stored": 0.5,
+    "unit": "mg/L",
+    "observedAt": "2025-12-09",
+    "sheet": "CIOCANEL RAZVAN TUDOR M, 38 ani Buletin de analize 25C09E0244 din 09.12.2025\nCNP 1870227385594 DATA NAȘTERII 27.02.1987 RECOLTAT 09.12.2025 08:47\nADRESA Drăgășani, Vâlcea LUCRAT Laboratoarele Bioclinica srl\n00259 Bioclinica Drăgășani CAL Văcărești 300, București\nGENERAT 11.12.2025 12:30\nVALORI BIOLOGICE DE REFERINȚĂ ANTECEDENT\nProteina C reactiv ă 20.11.2024\n< 0,050 mg/dL (≤ 0,330) 0,054\n(≤ 0,500)\n< 0,50 mg/L (≤ 3,30) 0,54\n(≤ 5,00)\nSchimbare interval biologic de referință începând cu 04.06.2025!\n(ser, imunoturbidimetrie)\nHemoleucogram ă 20.11.2024\nHematii 5.600.000 /mm³ (4.300.000 - 5.750.000) 5.280.000\nHemoglobin ă 16,2 g/dL (13,5 - 17,2) 15,5\nHematocrit 49,4 % (39,5 - 50,5) 47,3\nMCV 88,2 fL (80,0 - 99,0) 89,6\nMCH 29,0 pg (27,0 - 33,5) 29,4",
+    "strikes": 0,
+    "expect": "rematch"
+  },
+  {
+    "id": "atypical_lymphocytes_abs-2021-10-14",
+    "metricCode": "atypical_lymphocytes_abs",
+    "metricName": "Atypical Lymphocytes, Absolute",
+    "aliases": [
+      "Atypical Lymphocytes, Absolute",
+      "Atypical Lymphocytes Absolute",
+      "atypical_lymphocytes_absolute",
+      "Limfocite atipice"
+    ],
+    "stored": 0.03,
+    "unit": "10^3/uL",
+    "observedAt": "2021-10-14",
+    "sheet": "Volum trombocitar mediu 9.1 4 - 12\nLargimea distributiei trombocitare 16.0 12 - 19 %\nLimfocite % 44.6 20 - 60 %\nLimfocite # 2.68 0.8 - 4 10^3/ul\nMonocite % 6.5 3 - 12 %\nMonocite # 0.40 0.12 - 1.2 10^3/ul\nNeutrofile % 46.8 40 - 70 %\nNeutrofile # 2.82 2 - 7 10^3/ul\nEozinofile % 1.9 0.5 - 5 %\nEozinofile # 0.11 0.02 - 0.5 10^3/ul\nBazofile % 0.2 0 - 1 %\nBazofile # 0.01 0 - 0.1 10^3/ul\nLimfocite atipice % 0.5 0 - 2 %\nLimfocite atipice # 0.03 0 - 0.2 10^3/ul\nBiochimie - Validat de: Medic de laborator IOANA BINISOR\nANALIZE REZULTATE INTERVAL BIOLOGIC DE REFERINTA / UM\nHemoglobina glicata - Sange (EDTA) - 5.72 Pacient non-diabetic: 4.8-5.6%\nRisc crescut de a dezvolta diabet: 5.7-6.4%\nPacient cu diabet zaharat: >=6.5%\nTinta terapeutica la pacientii diabetici: <=7%\nAlbumina - Ser - 5.39 3.5 - 5.2 / g/dL\nCapacitate totala de legare a fierului 391 228 - 428 / μg/dl\n(CTLF) - Ser -\nCK - Ser - 91.42 0 - 171 / U/L\nRezultatul va fi interpretat de catre medicul curant in context clinic.\nRezultatele buletinului de analize se refera numai la probele supuse analizei.",
+    "strikes": 0,
+    "expect": "rematch"
+  },
+  {
+    "id": "direct_bilirubin-2023-03-17",
+    "metricCode": "direct_bilirubin",
+    "metricName": "Direct Bilirubin",
+    "aliases": [
+      "conjugated bilirubin",
+      "Bilirubina conjugata",
+      "Bilirubina directa",
+      "Direct Bilirubin",
+      "bilirubin direct",
+      "D. Bilirubin",
+      "direct bili"
+    ],
+    "stored": 0.22,
+    "unit": "mg/dL",
+    "observedAt": "2023-03-17",
+    "sheet": "Buletin de analize medicale nr. 37006\nData cerere 17/03/2023 09:59\nDUPLICAT\nNume: CIOCANEL RAZVAN Varsta: 36 Sex: M Medic: FARA TRIMITERE\nC.N.P: 1870227385594 RECOLTAT: Dragasani CONTRACT: Plata\nLocalitate: Ramnicu Valcea Adresa:\nBIOCHIMIE - VALIDAT DE : CATY CLAUDIA TIRCOL - MEDIC LABORATOR\nANALIZE REZULTATE INTERVAL BIOLOGIC DE REFERINTA / UM\nBarbati: 3.6-8.2 mg/dl\n2. *Acid uric seric -Ser - spectrofotometrie (Mindray BS 480) 4.85 mg/dl\nFemei: 2.3-6.1 mg/dl\n3. *Amilazemia -Ser - spectrofotometrie (Mindray BS 480) 80.65 U/L 28 - 100 / U/L\n4. Bilirubina directa -Ser - spectrofotometrie (Mindray BS 480) 0.22 mg/dl 0 - 0.2 / mg/dl\n5. *Bilirubina totala -Ser - spectrofotometrie (Mindray BS 480) 0.89 mg/dl 0.1 - 1.2 / mg/dl\n6. Colesterol seric total -Ser - spectrofotometrie (Mindray BS 480) 165.63 mg/dl 0 - 201.1 / mg/dl\nBarbati: 0.8 - 1.3 mg/dl\nFemei: 0.5 - 0.9 mg/dl\n7. Creatinina serica -Ser - spectrofotometrie (Mindray BS 480) 0.98 mg/dl\nCopii (0 - 4 ani): 0.11 - 0.5\nCopii (5 - 14 ani): 0.11 - 0.85\nBarbati: 11-61 U/l\n8. Gama GT -Ser - spectrofotometrie (Mindray BS 480) 13.55 U/L\nFemei: 9-39 U/l\n9. Glicemie -Ser - spectrofotometrie (Mindray BS 480) 89.39 mg/dl 70 - 115 / mg/dl\nBarbati: >34.8 mg/dl",
+    "strikes": 0,
+    "expect": "rematch"
+  },
+  {
+    "id": "atypical_lymphocytes_abs-2019-07-13",
+    "metricCode": "atypical_lymphocytes_abs",
+    "metricName": "Atypical Lymphocytes, Absolute",
+    "aliases": [
+      "Atypical Lymphocytes, Absolute",
+      "Atypical Lymphocytes Absolute",
+      "atypical_lymphocytes_absolute",
+      "Limfocite atipice"
+    ],
+    "stored": 0.02,
+    "unit": "10^3/uL",
+    "observedAt": "2019-07-13",
+    "sheet": "Pagina: 1 / 3\nBuletin de analize medicale nr: 133708\nPacient: CIOCANEL RAZVAN Telefon: . Data si ora recoltarii: 13/07/2019 09:24\nCNP: 1870227385594 Varsta: 32 (27/02/1987) Sex: M Cod:133708 Ora receptie proba: 13/07/2019 09:24\nTrimis de Dr.: FARA TRIMITERE Email: Valori în afara limitelor admise\nAct identitate: pentru varsta si sexul respectiv 0.00\nNeutrofile # 3.34 2 - 7 10^3/ul\nEozinofile % 1.7 0.5 - 5 %\nEozinofile # 0.11 0.02 - 0.5 10^3/ul\nBazofile % 0.2 0 - 1 %\nBazofile # 0.01 0 - 0.1 10^3/ul\nLimfocite atipice % 0.3 0 - 2 %\nLimfocite atipice # 0.02 0 - 0.2 10^3/ul\nVSH - Westergreen - Sange - 9 0 - 15 / mm/h\nBiochimie - Validat de: Medic de laborator IOANA BINISOR\nANALIZE REZULTATE INTERVAL BIOLOGIC DE REFERINTA / UM\nAcid uric seric * - Ser - 5.41 1.03 - 7 / mg/dl\nspectrofotometrie\nAST / TGO * - Ser - spectrofotometrie 18.86 4 - 46 / UI/l\nALT / TGP * - Ser - spectrofotometrie 11.79 4 - 69 / UI/l\nBilirubina totala * - Ser - 1.10 0.2 - 1.3 / mg/dl\nspectrofotometrie\nBilirubina directa * - Ser - 0.30 0 - 0.5 / mg/dl\nspectrofotometrie\nBilirubina indirecta* - Ser - 0.80 0 - 1.1 / mg/dl",
+    "strikes": 0,
+    "expect": "rematch"
+  },
+  {
+    "id": "total_t3-2026-04-23",
+    "metricCode": "total_t3",
+    "metricName": "Total T3",
+    "aliases": [
+      "triiodothyronine",
+      "Triiodotironina",
+      "Total T3",
+      "T3 total",
+      "TT3"
+    ],
+    "stored": 110,
+    "unit": "ng/dL",
+    "observedAt": "2026-04-23",
+    "sheet": "La limită ....... 150 - 199 mg/dL (1,69 - 2,25 mmol/L)\nCrescut ......... 200 - 499 mg/dL (2,26 - 5,64 mmol/L)\nFoarte crescut... ≥ 500 mg/dL (≥ 5,65 mmol/L)\n(ser, spectrofotometrie)\nColesterol total 09.12.2025\n217 mg/dL (< 200) 200\n5,62 mmol/L (< 5,18) 5,18\nInterpretare:\nIdeal .......... < 200 mg/dL (< 5,18 mmol/L)\nLa limită ...... 200 - 239 mg/dL (5,18 - 6,19 mmol/L)\nCrescut ........ ≥ 240 mg/dL (≥ 6,22 mmol/L)\n(ser, spectrofotometrie)\nFT3 (triiodotironina liber ă) 09.12.2025\n4,17 pg/mL (2,30 - 4,20) 4,43\n6,42 pmol/L (3,54 - 6,47) 6,82\nRezultatele se referă numai la proba analizată. Reproducerea totală sau parțială a buletinului de analize se face numai cu acordul BIOCLINICA. bioclinica.ro\nF01-PG22 Pagina 1 / 5 1.0\nCIOCANEL RAZVAN TUDOR M, 39 ani Buletin de analize 26423E0133 din 23.04.2026\nCNP 1870227385594 DATA NAȘTERII 27.02.1987 RECOLTAT 23.04.2026 08:21\nADRESA Drăgășani, Vâlcea LUCRAT Laboratoarele Bioclinica srl\n00259 Bioclinica Drăgășani CAL Văcărești 300, București\nGENERAT 23.04.2026 19:31\nVALORI BIOLOGICE DE REFERINȚĂ ANTECEDENT\n(ser, chemiluminiscență)\n(ser, chemiluminiscență)\nMagneziu seric 09.12.2025\n2,14 mg/dL (1,60 - 2,60) 2,15\n0,88 mmol/L (0,66 - 1,07) 0,88\n(ser, spectrofotometrie)\nAlbumin ă seric ă 09.12.2025\n4,7 g/dL (3,2 - 4,8) 5,1\n47 g/L (32 - 48) 51\n(ser, spectrofotometrie)\nGGT (gama glutamiltransferaz ă)\n15 U/L (< 73)\n(ser, spectrofotometrie)\nTT3- Triiodotironin ă seric ă total ă 09.12.2025\n1,10 ng/mL (0,60 - 1,81) 1,26\n1,69 nmol/L (0,92 - 2,79) 1,94\n(ser, chemiluminiscență)\nCreatinin ă seric ă 09.12.2025\n0,90 mg/dL (0,73 - 1,18) 0,95\n(0,60 -\n1,10)\n80 μmol/L (65 - 104) 84\n(53 - 97)\nSchimbare interval biologic de referință începând cu 16.01.2026!\nRezultatele se referă numai la proba analizată. Reproducerea totală sau parțială a buletinului de analize se face numai cu acordul BIOCLINICA. bioclinica.ro\nF01-PG22 Pagina 4 / 5 1.0",
+    "strikes": 0,
+    "expect": "rematch"
+  },
+  {
+    "id": "total_t3-2025-12-09",
+    "metricCode": "total_t3",
+    "metricName": "Total T3",
+    "aliases": [
+      "triiodothyronine",
+      "Triiodotironina",
+      "Total T3",
+      "T3 total",
+      "TT3"
+    ],
+    "stored": 126,
+    "unit": "ng/dL",
+    "observedAt": "2025-12-09",
+    "sheet": "(ser, spectrofotometrie)\nFeritin ă\n94,4 ng/mL (22,0 - 322,0)\n207,7 pmol/L (48,4 - 708,4)\nValori fals crescute pot fi asociate unor procese inflamatorii; gradul de creștere variază în funcție de\npatologie: insuficiență cardiacă, boală inflamatorie intestinală, boală cronică renală, afecțiuni oncologice.\nPentru aprecierea corectă a nivelului de fier, se recomandă efectuarea unor teste suplimentare (saturația\ntransferinei).\n(ser, chemiluminiscență)\nTSH (hormon hipofizar tireostimulator bazal) 20.11.2024\n1,824 μUI/mL (0,550 - 4,780) 1,185\n(ser, chemiluminiscență)\nTT3- Triiodotironin ă seric ă total ă\n1,26 ng/mL (0,60 - 1,81)\n1,94 nmol/L (0,92 - 2,79)\n(ser, chemiluminiscență)\nTT4- Tiroxin ă seric ă total ă\n8,1 μg/dL (4,5 - 10,9)\n104,5 nmol/L (58,1 - 140,6)\n(ser, chemiluminiscență)\nAc. anti tireoperoxidaz ă (TPO)\n5,0 UI/mL (≤ 34,0)\n(ser, ECLIA)\nTGO (ASAT) 20.11.2024\n20 U/L (15 - 40) 14\nADRESA Drăgășani, Vâlcea LUCRAT Laboratoarele Bioclinica srl\n00259 Bioclinica Drăgășani CAL Văcărești 300, București\nGENERAT 11.12.2025 12:30\nVALORI BIOLOGICE DE REFERINȚĂ ANTECEDENT\n(ser, spectrofotometrie)\nTGP (ALAT) 20.11.2024\n10 U/L (10 - 40) 11\n(ser, spectrofotometrie)\nFT4 (tiroxina liber ă) 20.11.2024\n1,29 ng/dL (0,89 - 1,76) 1,40\n16,6 pmol/L (11,5 - 22,7) 18,1\n(ser, chemiluminiscență)\nFT3 (triiodotironina liber ă) 20.11.2024\n4,43 pg/mL (2,30 - 4,20) 4,34\n6,82 pmol/L (3,54 - 6,47) 6,68\n(ser, chemiluminiscență)\nAcid uric seric 20.11.2024\n4,9 mg/dL (3,7 - 9,2) 4,7\n292 μmol/L (220 - 547) 280\n(ser, spectrofotometrie)\nCreatinin ă seric ă 20.11.2024\n0,95 mg/dL (0,60 - 1,10) 1,09\n84 μmol/L (53 - 97) 96\n(ser, spectrofotometrie)\nAlbumin ă seric ă",
+    "strikes": 0,
+    "expect": "rematch"
+  },
+  {
+    "id": "total_cholesterol-2022-10-20",
+    "metricCode": "total_cholesterol",
+    "metricName": "Cholesterol, Total",
+    "aliases": [
+      "Colesterol seric total",
+      "Cholesterol, Total",
+      "total cholesterol",
+      "cholesterol_total",
+      "Total Cholesterol",
+      "cholesterol total",
+      "Colesterol total",
+      "cholesterol",
+      "Colesterol",
+      "chol"
+    ],
+    "stored": 170.2,
+    "unit": "mg/dL",
+    "observedAt": "2022-10-20",
+    "sheet": "Buletin de analize medicale nr: 332421\nPacient: CIOCANEL RAZVAN Telefon: .0723595584 Data si ora recoltarii: 20/10/2022 09:11\nCNP: 1870227385594 Varsta: 35 (27/02/1987) Sex: M Cod:332421 Ora receptie proba: 20/10/2022 09:11\nTrimis de Dr.: Email: Valori în afara limitelor admise\nComentarii receptie: Starea probei receptionate este corespunzatoare pentru efectuarea determinarilor solicitate\nBiochimie - Validat de: Medic de laborator IOANA BINISOR\nANALIZE REZULTATE INTERVAL BIOLOGIC DE REFERINTA / UM\nAlbumina - Ser - spectrofotometrie 5.15 3.5 - 5 / g/dL\nCalciu total - Ser - spectrofotometrie 9.68 8.6 - 10 / mg/dl\nColesterol - Ser - spectrofotometrie 170.2 Copii (0- 17 ani):\nNivel optim: < 170 mg/dl\nNivel ridicat: 170 - 199 mg/dl\nNivel foarte ridicat: >= 200 mg/dl\nAdulti(>=18 ani):\nNivel optim: < 200 mg/dl\nNivel ridicat: 200 - 239 mg/dl\nNivel foarte ridicat: >= 240 mg/dl\nColesterol HDL - Ser - 58.39 Normal: >40 mg/dl\nspectrofotometrie Factor protector: >60 mg/dl\nColesterol LDL - Ser - spectrofotometrie 94 Copii (0- 17 ani):\nNivel optim: < 110 mg/dl\nNivel borderline crescut: 110 - 129 mg/dl\nNivel crescut: >= 130 mg/dl\nAdulti(>=18 ani):\nNivel optim: < 100 mg/dl\nNivel optim la limita: 100 - 129 mg/dl\nNivel borederline crescut: 130 - 159 mg/dl\nNivel crescut: 160 - 189 mg/dl\nNivel foarte crescut: >= 190 mg/dl\nColesterol VLDL - Ser - 18 8 - 40 / mg/dl\nFosfor seric - Ser - spectrofotometrie 3.94 2.5 - 4.5 / mg/dl\nGlicemie - Ser - spectrofotometrie 92.9 Normal: 60-99 mg/dL\nGlicemie bazala modificata: 100-125 mg/dl\nDiabet zaharat: >= 126 mg/dl\nLipide totale - Ser - 561 400 - 800 / mg/dl\nRezultatul va fi interpretat de catre medicul curant in context clinic.\nRezultatele buletinului de analize se refera numai la probele supuse analizei.\nCLINICA nu isi asuma responsabilitatea asupra corectitudiinii informatiilor declarate de pacient.\nSe interzice reproducerea integrala sau partiala buletinului de analize in alte scopuri decat cel pentru care a fost eliberat.\nVerificat: Director Laborator:\nFL.5.8.1 Data si ora eliberarii rezultatului 21/10/2022 13:24\nRespectand confidentialitatea pacientilor sai, BINISAN nu solicita acte oficiale de identificare personala.Prin urmare, BINISAN nu-si asuma responsabiitatea asupra corectitudinii informatiior declarate de\nBuletin de analize medicale nr: 332421\nPacient: CIOCANEL RAZVAN Telefon: .0723595584 Data si ora recoltarii: 20/10/2022 09:11\nCNP: 1870227385594 Varsta: 35 (27/02/1987) Sex: M Cod:332421 Ora receptie proba: 20/10/2022 09:11\nTrimis de Dr.: Email: Valori în afara limitelor admise\nTrigliceride - Ser - spectrofotometrie 88.3 Nivel optim: < 150 mg/dl\nNivel borderline crescut: 150-199 mg/dl\nNivel crescut: 200 - 499 mg/dl\nNivel foarte crescut: >= 500 mg/dl\nHemoglobina glicata - Sange (EDTA) - 5.43 Normal: 4.8-5.6%\nRisc crescut de a dezvolta diabet: 5.7-6.5%\nDiabet zaharat: >=6.5%\nTinta terapeutica la pacientii diabetici: <=7%\nRaport Colesterol total/HDL - Ser - 2.91 Risc scazut: 3.3 - 4.4\nRisc mediu: 4.4 - 7.1\nRisc moderat: 7.1 - 11\nRisc crescut: >11\nInsulina INVESTIGATIA ESTE IN LUCRU\nImunologie - Validat de: Medic de laborator IOANA BINISOR\nANALIZE REZULTATE INTERVAL BIOLOGIC DE REFERINTA / UM\nVITAMINA D – 25 HIDROXYVITAMIN D 51.95 >= 30 μg/L Nivel Optim\n– D2 + D3 - Ser - Carenta: < 20 μg/L\nNivel insuficient: 21 - 29 μg/L\nNivel toxic: > 150 μg/L\nProteina C reactiva - Cantitativa - Ser - 0.35 0.01 - 6 mg/dL(IFCC)\nTurbidimetrie",
+    "strikes": 0,
+    "expect": "rematch"
+  },
+  {
+    "id": "total_cholesterol-2024-05-13",
+    "metricCode": "total_cholesterol",
+    "metricName": "Cholesterol, Total",
+    "aliases": [
+      "Colesterol seric total",
+      "Cholesterol, Total",
+      "total cholesterol",
+      "cholesterol_total",
+      "Total Cholesterol",
+      "cholesterol total",
+      "Colesterol total",
+      "cholesterol",
+      "Colesterol",
+      "chol"
+    ],
+    "stored": 201.97,
+    "unit": "mg/dL",
+    "observedAt": "2024-05-13",
+    "sheet": "BIOCHIMIE - VALIDAT DE : CATY CLAUDIA TIRCOL - MEDIC PRIMAR MEDICINA DE LABORATOR\nINTERVAL BIOLOGIC DE REFERINTA /\nANALIZE REZULTATE\nUM\nBarbati: 3.6-8.2 mg/dl\n2. *Acid uric seric -Ser - spectrofotometrie (Mindray BS 480) 5.54 mg/dl\nFemei: 2.3-6.1 mg/dl\nINVESTIGATIA NU ESTE\n3. *Albumina serica\nPROCESATA\n4. Calciu ionic seric -Ser - calcul (Mindray BS 480) 3.86 mg/dl 3.8 - 4.8 / mg/dl\n5. Calciu seric total -Ser - spectrofotometrie (Mindray BS 480) 9.66 mg/dl 8.82 - 10.62 / mg/dl\n6. Colesterol seric total -Ser - spectrofotometrie (Mindray BS 480) 201.97 mg/dl 0 - 201.1 / mg/dl\nBarbati:\n0 - 1 an: 124 -341 U/l\n1-4 ani: 108-317 U/l\n4 -6 ani: 96-297 U/l\n6 -10 ani: 69-325 U/l\n10 -12 ani: 51-332 U/l\n12-16 ani: 50-162 U/l\n16-18 ani: 47-119 U/l\n>18 ani :30-120 U/l\n7. Fosfataza alcalina -Ser - spectrofotometrie (Mindray BS 480) 85.33 U/L\nFemei:\n0 - 1 an: 82 - 383 U/l\n1-4 ani: 104-345 U/l\n4-6 ani:93-309 U/l\n6-10 ani:86-315 U/l\n10-12 ani:42-362 U/l\n12-16 ani:74-390 U/l\n16-18 ani:52-171 U/l\n>18 ani:30-120 U/l\nBarbati: 11-61 U/l\n8. Gama GT -Ser - spectrofotometrie (Mindray BS 480) 18.24 U/L\nFemei: 9-39 U/l\n9. Glicemie -Ser - spectrofotometrie (Mindray BS 480) 95.40 mg/dl 70 - 115 / mg/dl\nBarbati: >34.8 mg/dl\n10. HDL colesterol -Ser - spectrofotometrie (Mindray BS 480) 57.19 mg/dl\nFemei: >44.47 mg/dl\n11. *Hemoglobina glicozilata -Sange - Spectrofotometrie (Mindray\n5.07 % 4.8 - 5.9 / %\nBS 480)\n12. LDL colesterol -Ser - calcul (Mindray BS 480) 122.86 mg/dl 30 - 135 / mg/dl\n13. *Lipide totale -Ser - calcul (Mindray BS 480) 654.20 mg/dl 400 - 800 / mg/dl\nCopii:\n(0 - 1 an): 1.17-2.55 mg/dl\n(1 an -18 ani): 1.46-2.31 mg/dl\n14. *Magneziemie -Ser - spectrofotometrie (Mindray BS 480) 2.22 mg/dl\nAdulti:\nB: 1.77-2.58 mg/dl\nF: 1.87-2.50 mg/dl\nCopii:\n15. Proteine totale serice -Ser - spectrofotometrie (Mindray BS 480) 8.28 g/dL (0 - 6 ani): 4.1-6.3 g/dl\nAdulti: 6.6-8.3 g/dl\n16. Sideremie -Ser - spectrofotometrie (Mindray BS 480) 92.22 ug/dl 45 - 158 / ug/dl\n18. TGP -Ser - spectrofotometrie (Mindray BS 480) 13.52 U/L Copii:\n0-1 an: 8-71 U/L\n1-2 ani: 8-42 U/L\n2-13 ani: 7-30 U/L\nAdolescenti:\nM: 13-18 ani: 7-43 U/L\nF: 13-18 ani: 6-29 U/L\nAdulti:\nM: 9-50 U/L\nF: 7-40 U/L\n19. Trigliceride serice -Ser - spectrofotometrie (Mindray BS 480) 109.71 mg/dl 0 - 203.54 / mg/dl\n20. *VLDL colesterol -Ser - calcul (Mindray BS 480) 21.94 mg/dl 2 - 38 / mg/dl\nINVESTIGATIA NU ESTE\n21. Electroforeza proteinelor serice ***\nPROCESATA\nIMUNOLOGIE - VALIDAT DE : CATY CLAUDIA TIRCOL - MEDIC PRIMAR MEDICINA DE LABORATOR\nANALIZE REZULTATE INTERVAL BIOLOGIC DE REFERINTA / UM\n22. *Feritina -Ser - Chemiluminiscenta (Mindray CL-900i) 115.29 ng/ml 27 - 375 / ng/ml\nBarbati: 1.8 - 4.2 pg/mL\nFemei: 1.8 - 4.2 pg/mL\nFemei insarcinate:\n23. *FT3 -Ser - chemiluminiscenta (Mindray CL-900i) 3.57 pg/mL\n- Trimestrul I: 2.1 - 3.2 pg/mL\n- Trimestrul II: 1.9 - 3.1 pg/mL",
+    "strikes": 0,
+    "expect": "rematch"
+  },
+  {
+    "id": "rbc-2014-03-26",
+    "metricCode": "rbc",
+    "metricName": "Red Blood Cell Count",
+    "aliases": [
+      "Numar total de eritrocite",
+      "Red Blood Cell Count",
+      "Numar eritrocite",
+      "red blood cells",
+      "erythrocytes",
+      "Eritrocite",
+      "red count",
+      "RBC count",
+      "Hematii",
+      "RBC"
+    ],
+    "stored": 5.82,
+    "unit": "M/uL",
+    "observedAt": "2014-03-26",
+    "sheet": "Inregistrat la: *Buc - Receptie Ramnicu Valcea\nDoctor: Tita Mihaela\nInstitutie: Craiova\nValori in afara limitelor admise\npentru varsta si sexul respectiv\nDenumire Rezultat UM Interval de referinta\nLC\nHemograma cu formula leucocitara cu Hb, Ht si\nindici\nSange EDTA / metode: focusare hidrodinamica,\ncitometrie in flux, SLS-Hb\nNumar leucocite 6.81 mii/μL 4 - 10\nNumar eritrocite 5.82 mil./μL 4.3 - 5.7\nHemoglobina {Hb} 16.6 g/dL 13.2 - 17.3\nHematocrit 49.4 % 39 - 49\nVolum eritrocitar mediu {VEM} 84.9 fL 80 - 99\nHemoglobina eritrocitara medie {HEM} 28.5 pg/cell 27 - 34\nConcentratie medie a Hb/eritrocit 33.6 g/dL 32 - 37\nLargimea distributiei eritrocitare 13.1 % 11.6 - 14.8\nNumar trombocite 226 mii/μL 150 - 450\nVolum trombocitar mediu {VTM} 10.7 fL 7.4 - 13\nLargimea distributiei trombocitare 13.3 fL 8 - 16.5\nNeutrofil 49.9 % 45 - 80\nNeutrofil 3.39 mii/μL 2 - 8\nLimfocit 38.9 % 20 - 55",
+    "strikes": 0,
+    "expect": "rematch"
+  },
+  {
+    "id": "synthetic-hemoglobin-x10",
+    "metricCode": "hemoglobin",
+    "metricName": "Hemoglobin",
+    "aliases": [
+      "Hemoglobina",
+      "Hemoglobin"
+    ],
+    "stored": 162,
+    "unit": "g/dL",
+    "observedAt": "2025-12-09",
+    "sheet": "Hemoleucogram ă \t20.11.2024\nHematii  \t5.600.000  /mm³ \t(4.300.000 - 5.750.000) \t5.280.000\nHemoglobin ă \t16,2 g/dL \t(13,5 - 17,2) \t15,5\nHematocrit  \t49,4 % \t(39,5 - 50,5) \t47,3\nMCV \t88,2 fL \t(80,0 - 99,0) \t89,6\nMCH \t29,0 pg \t(27,0 - 33,5) \t29,4\nMCHC \t32,8 g/dL \t(31,5 - 36,0) \t32,8\nRDW \t13,0 % \t(11,5 - 14,5) \t13,7\nTrombocite  \t235.000  /mm³ \t(150.000 - 370.000) \t224.000\nLeucocite  \t5.830  /mm³ \t(3.900 - 10.200) \t4.960\nFormula  leucocitar ă\nNeutrofile  \t3.220  /mm³ \t55,23 % (1.500 - 7.700)/mm³\t2.450\n(42,00 - 77,00)%",
+    "strikes": 0,
+    "expect": "corrected",
+    "note": "synthetic: the same sheet with the stored value shifted one decimal. The sheet prints 16,2 g/dL and 16.2 is inside the hemoglobin BOUNDS, so the second pass fixes it without asking."
+  },
+  {
+    "id": "synthetic-hemoglobin-tie",
+    "metricCode": "hemoglobin",
+    "metricName": "Hemoglobin",
+    "aliases": [
+      "Hemoglobina",
+      "Hemoglobin"
+    ],
+    "stored": 12.4,
+    "unit": "g/dL",
+    "observedAt": "2025-12-09",
+    "sheet": "Hemoleucogram ă \t20.11.2024\nHematii  \t5.600.000  /mm³ \t(4.300.000 - 5.750.000) \t5.280.000\nHemoglobin ă \t16,2 g/dL \t(13,5 - 17,2) \t15,5\nHematocrit  \t49,4 % \t(39,5 - 50,5) \t47,3\nMCV \t88,2 fL \t(80,0 - 99,0) \t89,6\nMCH \t29,0 pg \t(27,0 - 33,5) \t29,4\nMCHC \t32,8 g/dL \t(31,5 - 36,0) \t32,8\nRDW \t13,0 % \t(11,5 - 14,5) \t13,7\nTrombocite  \t235.000  /mm³ \t(150.000 - 370.000) \t224.000\nLeucocite  \t5.830  /mm³ \t(3.900 - 10.200) \t4.960\nFormula  leucocitar ă\nNeutrofile  \t3.220  /mm³ \t55,23 % (1.500 - 7.700)/mm³\t2.450\n(42,00 - 77,00)%",
+    "strikes": 0,
+    "expect": "person",
+    "note": "synthetic: the sheet says 16,2 and we stored 12.4. No decimal shift explains it, so this is the one kind of row a person should see."
+  },
+  {
+    "id": "synthetic-ferritin-missing",
+    "metricCode": "ferritin",
+    "metricName": "Ferritin",
+    "aliases": [
+      "Feritina",
+      "Ferritin"
+    ],
+    "stored": 120,
+    "unit": "ng/mL",
+    "observedAt": "2025-12-09",
+    "sheet": "Hemoleucogram ă \t20.11.2024\nHematii  \t5.600.000  /mm³ \t(4.300.000 - 5.750.000) \t5.280.000\nHemoglobin ă \t16,2 g/dL \t(13,5 - 17,2) \t15,5\nHematocrit  \t49,4 % \t(39,5 - 50,5) \t47,3\nMCV \t88,2 fL \t(80,0 - 99,0) \t89,6\nMCH \t29,0 pg \t(27,0 - 33,5) \t29,4\nMCHC \t32,8 g/dL \t(31,5 - 36,0) \t32,8\nRDW \t13,0 % \t(11,5 - 14,5) \t13,7\nTrombocite  \t235.000  /mm³ \t(150.000 - 370.000) \t224.000\nLeucocite  \t5.830  /mm³ \t(3.900 - 10.200) \t4.960\nFormula  leucocitar ă\nNeutrofile  \t3.220  /mm³ \t55,23 % (1.500 - 7.700)/mm³\t2.450\n(42,00 - 77,00)%",
+    "strikes": 1,
+    "expect": "unverified",
+    "note": "synthetic: ferritin is not on this page at all, and an earlier run already failed to find it. The second strike hides the reading from the engine instead of asking."
+  }
+]
