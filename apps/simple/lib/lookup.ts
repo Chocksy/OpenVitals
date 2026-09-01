@@ -20,12 +20,20 @@ import {
   getDb,
   hkbAnnotations,
   hkbConditions,
+  hkbEvidence,
+  hkbInterventions,
   hkbTerms,
   userConditions,
 } from "@/db";
 import { actionLine, actionsFor, type PlanLine } from "./actions";
 import { chatContext } from "./ai";
-import { termQuery } from "./ask-intent";
+import {
+  CITES_SOURCES,
+  questionKind,
+  termQuery,
+  type QuestionKind,
+} from "./ask-intent";
+import { settlesOf } from "./bubbles";
 import { buildModelInput, profileQuestions, type ModelInput } from "./coverage";
 import { explainKey } from "./explain";
 import { model } from "./extract";
@@ -33,7 +41,8 @@ import { catalogFor } from "./hkb";
 import { FREQUENT, frequencyOf } from "./hpoa";
 import { scoreHypotheses, type HState } from "./hypotheses";
 import { nextMoves, type Move } from "./infogain";
-import { displayNameOf } from "./ledger";
+import { loadGraph } from "./kg";
+import { displayNameOf, metricCodesOf } from "./ledger";
 import { RETEST_WEEKS } from "./projection";
 import { ledgerLine, projectionsFor } from "./projections";
 import { symptomByKey } from "./symptoms";
@@ -201,6 +210,14 @@ export interface AskAnswer {
   actions?: PlanLine[];
   /** what the answer told them to do, as things the buttons can actually do */
   acts?: Acts;
+  /** which question was asked, decided in code by `questionKind` */
+  kind?: QuestionKind;
+  /** the rows the answer cited, after the guard: the "Sources" line */
+  sources?: SourceCandidate[];
+  /** every row the answer was allowed to cite, for `pnpm eval:ask` */
+  sourcesOffered?: SourceCandidate[];
+  /** what each offered test would settle, in the words the prompt used */
+  settlesOffered?: string[];
   /** what the router did with the input: a word, or a question */
   route?: "term" | "question";
 }
@@ -472,7 +489,6 @@ export async function plainSentence(
 
 /* ── "Consider this for me" ───────────────────────────────────────────── */
 
-
 /* ── phase 27: the candidates, and the closed set they are ────────────── */
 
 /** One marker the answer may say to measure, with the wait the engine keeps. */
@@ -486,11 +502,47 @@ export interface TestCandidate {
   selfOrder: boolean;
 }
 
+/**
+ * One row the answer is allowed to cite: an `hkb_evidence` rule or an
+ * `hkb_interventions` row, with the name a person would recognise.
+ *
+ * Phase 28a. "What does the research say?" used to be answered out of the
+ * model's own memory, because the prompt never carried a paper. Now it does,
+ * and the guard is the same one phase 27 put on actions: the model returns
+ * ids, and an id it was not given is dropped rather than printed.
+ */
+export interface SourceCandidate {
+  /** `hkb_evidence.id` or `hkb_interventions.id` */
+  id: string;
+  /** "ATA 2014 hypothyroidism guideline", or the paper's title */
+  name: string;
+  year: number | null;
+  grade: string;
+  kind: "evidence" | "intervention";
+  /** what the row actually says, for the prompt */
+  says: string;
+  /** the sentence the intake kept, for the hover */
+  quote: string | null;
+}
+
+/** One `kg_edges` row as the one line a "why" answer reads it from. */
+export interface MechanismLine {
+  id: string;
+  from: string;
+  to: string;
+  relation: string;
+  /** the graph writes no grade on a few edges; those sort last */
+  grade?: string;
+  mechanism: string;
+}
+
 /** Everything the answer is allowed to name, by id, by code and by key. */
 export interface AskCandidates {
   actions: PlanLine[];
   tests: TestCandidate[];
   questions: { key: string; question: string }[];
+  /** the papers and guidelines a research or prognosis answer may cite */
+  sources: SourceCandidate[];
 }
 
 /** What the answer actually named, with the labels the buttons print. */
@@ -498,6 +550,8 @@ export interface Acts {
   actions: PlanLine[];
   tests: TestCandidate[];
   questions: { key: string; question: string }[];
+  /** the rows the answer cited, in the order it cited them */
+  sources: SourceCandidate[];
   /** every id, code or key the model returned that was never on offer */
   dropped: string[];
 }
@@ -507,11 +561,14 @@ export interface RawActs {
   actions?: string[];
   tests?: { code?: string; weeks?: number }[];
   questions?: string[];
+  sources?: string[];
 }
 
 /** How much of each list the prompt may carry. */
 const MAX_TESTS = 30;
 const MAX_QUESTIONS = 12;
+/** The spec's number: the eight best-graded rows for the named condition. */
+const MAX_SOURCES = 8;
 /** A marker with no entry in `RETEST_WEEKS`: three months, like most of them. */
 const DEFAULT_WEEKS = 12;
 /** Two years. Anything past it is the model inventing a schedule. */
@@ -531,12 +588,14 @@ export function askCandidates({
   measured,
   moves,
   questions,
+  sources = [],
 }: {
   actions: PlanLine[];
   /** every marker code this person has a value for */
   measured: string[];
   moves: Move[];
   questions: { key: string; question: string }[];
+  sources?: SourceCandidate[];
 }): AskCandidates {
   const tests = new Map<string, TestCandidate>();
   const add = (code: string, name: string, selfOrder: boolean) => {
@@ -557,6 +616,7 @@ export function askCandidates({
     actions,
     tests: [...tests.values()],
     questions: questions.slice(0, MAX_QUESTIONS),
+    sources: sources.slice(0, MAX_SOURCES),
   };
 }
 
@@ -607,16 +667,196 @@ export function pickActs(raw: RawActs, c: AskCandidates): Acts {
     else if (!questions.includes(hit)) questions.push(hit);
   }
 
-  return { actions, tests, questions, dropped };
+  const bySource = new Map(c.sources.map((s) => [s.id, s]));
+  const sources: SourceCandidate[] = [];
+  for (const raw_source of raw.sources ?? []) {
+    const id = String(raw_source ?? "");
+    const hit = bySource.get(id);
+    if (!hit) dropped.push(id);
+    else if (!sources.includes(hit)) sources.push(hit);
+  }
+
+  return { actions, tests, questions, sources, dropped };
 }
 
 /** Nothing to act on: the row renders nothing at all. */
 export const noActs = (a?: Acts | null): boolean =>
   !a || (!a.actions.length && !a.tests.length && !a.questions.length);
 
+/* ── phase 28a: the rows a research or prognosis answer reads from ────── */
+
+/** A/B/C/D/E, best first; anything else sorts last. */
+const GRADE_RANK = (g?: string) => {
+  const i = "ABCDE".indexOf((g ?? "").toUpperCase());
+  return i < 0 ? 9 : i;
+};
+
+/** The year in a seed's own sentence: "ATA 2014 hypothyroidism guideline". */
+const yearIn = (s: string): number | null => {
+  const m = /\b(19|20)\d{2}\b/.exec(s ?? "");
+  return m ? Number(m[0]) : null;
+};
+
+/**
+ * One `hkb_evidence` row as a citation.
+ *
+ * The seeds write the source as "Rodondi 2010 JAMA: TSH above 4.5 is …", so
+ * the name is what comes before the colon and the claim is what comes after.
+ * A row with no colon is its own name and its own claim.
+ */
+export function evidenceSource(r: {
+  id: string;
+  source: string | null;
+  grade: string;
+  featureId: string;
+  lrPos: number | string | null;
+  paper?: unknown;
+}): SourceCandidate {
+  const text = (r.source ?? "").trim();
+  const cut = text.indexOf(":");
+  const name = (cut > 0 ? text.slice(0, cut) : text) || r.featureId;
+  const says = cut > 0 ? text.slice(cut + 1).trim() : text;
+  const paper = (r.paper ?? null) as { year?: number; title?: string } | null;
+  return {
+    id: r.id,
+    name: paper?.title ? name || paper.title : name,
+    year: paper?.year ?? yearIn(name),
+    grade: r.grade,
+    kind: "evidence",
+    says: `${explainKey(r.featureId.replace(/^(metric|fact):/, ""))}: ${says}${
+      r.lrPos == null ? "" : ` (LR+ ${r.lrPos})`
+    }`,
+    quote: null,
+  };
+}
+
+/** One `hkb_interventions` row as a citation. */
+export function interventionSource(r: {
+  id: string;
+  name: string;
+  effect: string | null;
+  dose: string | null;
+  grade: string;
+  population: string | null;
+  quote: string | null;
+  paper?: unknown;
+}): SourceCandidate {
+  const paper = (r.paper ?? null) as { year?: number; title?: string } | null;
+  return {
+    id: r.id,
+    name: paper?.title ?? r.name,
+    year: paper?.year ?? null,
+    grade: r.grade,
+    kind: "intervention",
+    says: [r.name, r.dose, r.effect, r.population ? `in ${r.population}` : null]
+      .filter(Boolean)
+      .join(" · "),
+    quote: r.quote,
+  };
+}
+
+/** Best grade first, then the newer paper. Ties keep the database's order. */
+export const rankSources = (rows: SourceCandidate[]): SourceCandidate[] =>
+  [...rows].sort(
+    (a, b) =>
+      GRADE_RANK(a.grade) - GRADE_RANK(b.grade) ||
+      (b.year ?? 0) - (a.year ?? 0),
+  );
+
+/**
+ * Which markers the question actually named.
+ *
+ * "why is my LDL high?" has to reach `ldl_cholesterol` and not `hdl_
+ * cholesterol`, so a code scores one point per word of its own name that is in
+ * the question, and only the best-scoring codes come back. Pure.
+ */
+export function codesNamedIn(question: string, codes: string[]): string[] {
+  const q = ` ${question.toLowerCase().replace(/[^a-z0-9]+/g, " ")} `;
+  const scored = codes.map((code) => ({
+    code,
+    score: code
+      .split("_")
+      .filter((w) => w.length >= 3)
+      .filter((w) => q.includes(` ${w} `)).length,
+  }));
+  const best = Math.max(0, ...scored.map((s) => s.score));
+  return best === 0
+    ? []
+    : scored.filter((s) => s.score === best).map((s) => s.code);
+}
+
+/**
+ * The mechanism edges that touch one of these markers, best grade first.
+ *
+ * The graph already carries a sentence of mechanism on every edge, written for
+ * a person to read. A "why" question is that sentence; nothing else needs to
+ * be generated for it.
+ */
+export function mechanismsFor(
+  graph: { nodes: { id: string; name: string }[]; edges: MechanismLine[] },
+  codes: string[],
+  limit = 6,
+): MechanismLine[] {
+  const ids = new Set(codes.map((c) => `metric:${c}`));
+  const name = new Map(graph.nodes.map((n) => [n.id, n.name]));
+  return graph.edges
+    .filter((e) => ids.has(e.from) || ids.has(e.to))
+    .sort((a, b) => GRADE_RANK(a.grade) - GRADE_RANK(b.grade))
+    .slice(0, limit)
+    .map((e) => ({
+      ...e,
+      from: name.get(e.from) ?? e.from,
+      to: name.get(e.to) ?? e.to,
+    }));
+}
+
+/** "HbA1c: type 2 diabetes 30 % → 92 % if high, → 5 % if normal". */
+export function settlesLine(
+  move: Move,
+  nameOf: (id: string) => string,
+): string {
+  const pct = (p: number) => `${Math.round(p * 100)} %`;
+  const parts = settlesOf(move, nameOf).map(
+    (s) =>
+      `${s.name} ${pct(s.from)} → ${s.outcomes
+        .map((o) => `${pct(o.to)} if ${o.label}`)
+        .join(", ")}`,
+  );
+  return `${move.label}: ${parts.join("; ") || "nothing it would settle"}`;
+}
+
+/** The eight best-graded rows on file for one condition. */
+export async function sourcesFor(
+  conditionId: string | null,
+): Promise<SourceCandidate[]> {
+  if (!conditionId) return [];
+  const db = getDb();
+  const [evidence, interventions] = await Promise.all([
+    db
+      .select()
+      .from(hkbEvidence)
+      .where(eq(hkbEvidence.conditionId, conditionId)),
+    db
+      .select()
+      .from(hkbInterventions)
+      .where(
+        and(
+          eq(hkbInterventions.conditionId, conditionId),
+          eq(hkbInterventions.status, "accepted"),
+        ),
+      ),
+  ]);
+  return rankSources([
+    ...evidence
+      .filter((r) => r.status !== "rejected")
+      .map((r) => evidenceSource({ ...r, lrPos: r.lrPos })),
+    ...interventions.map(interventionSource),
+  ]).slice(0, MAX_SOURCES);
+}
+
 /** The shape `generateObject` is held to. Ids only; no prose in the lists. */
 const actsSchema = z.object({
-  prose: z.string().describe("the six-sentence answer, as one paragraph"),
+  prose: z.string().describe("the answer, as one paragraph"),
   actions: z
     .array(z.string())
     .describe("ids of the actions the paragraph named, copied exactly"),
@@ -631,6 +871,9 @@ const actsSchema = z.object({
   questions: z
     .array(z.string())
     .describe("keys of the questions the paragraph says would help"),
+  sources: z
+    .array(z.string())
+    .describe("ids of the rows in WHAT THE EVIDENCE SAYS the paragraph cited"),
 });
 
 /**
@@ -642,12 +885,9 @@ const actsSchema = z.object({
  * this person — their own plan and the graded intervention rows — and is
  * allowed to name any of them, with the source's own dose, and nothing else.
  */
-export const QUESTION_SYSTEM = `You are this person's doctor, and the kind of friend who answers straight. You have their numbers, the plan already written for them, and the graded interventions on file. Answer the question they just asked.
+export const QUESTION_SYSTEM = `You are this person's doctor, and the kind of friend who answers straight. You have their numbers, the plan already written for them, and the graded interventions on file. Answer the question they just asked, and only that question.
 
-SIX SENTENCES AT MOST, in this order, as ONE paragraph. No greeting, no sign-off, no bullet list, no headings, no line breaks.
-1. What their own numbers say about the question: the values, and whether each one is off, borderline or fine against the band you are given.
-2. What to do: two or three actions, each with its label in brackets and its dose when the source has one.
-3. What to measure and when: name the marker and the number of weeks.
+ONE paragraph. No greeting, no sign-off, no bullet list, no headings, no line breaks. Six sentences at most, and fewer when the shape below says fewer.
 
 EVERY ACTION YOU NAME COMES FROM THE CONTEXT. The sections THEIR PLAN and WHAT THE PAPERS SAY are the only actions that exist. Never invent an action, a supplement, a drug or a dose, and never change a dose that is given. Copy each action's bracketed label exactly as it is printed there: [science, A], [science, C], [opinion], [anecdotal, E].
 
@@ -657,7 +897,47 @@ USE ONLY THE NUMBERS GIVEN. Never invent a value, a probability, a date or a dia
 
 NO FILLER. Never write "talk to your healthcare provider", "consult a professional", "consider", "may help" or "individualised plan". If an action needs a prescriber, say which kind of doctor and what to ask them for.
 
-THEN SAY WHAT YOU JUST NAMED, AS IDS. Alongside the paragraph, list the ids of what it used and nothing else: \`actions\` are the ids printed after "id" in THEIR PLAN and WHAT THE PAPERS SAY, \`tests\` are the codes in MARKERS THEY COULD MEASURE AGAIN with the number of weeks your paragraph gave, \`questions\` are the keys in QUESTIONS THEY COULD ANSWER. Copy every id, code and key exactly as it is printed. The ids are for these lists ONLY: the paragraph never prints an id, and it still carries every action's bracketed label. List every action your paragraph named and nothing your paragraph did not name. An id that is not on those lists is thrown away, so inventing one loses the button.`;
+THEN SAY WHAT YOU JUST NAMED, AS IDS. Alongside the paragraph, list the ids of what it used and nothing else: \`actions\` are the ids printed after "id" in THEIR PLAN and WHAT THE PAPERS SAY, \`tests\` are the codes in MARKERS THEY COULD MEASURE AGAIN with the number of weeks your paragraph gave, \`questions\` are the keys in QUESTIONS THEY COULD ANSWER. Copy every id, code and key exactly as it is printed. The ids are for these lists ONLY: the paragraph never prints an id, and it still carries every action's bracketed label. List every action your paragraph named and nothing your paragraph did not name. An id that is not on those lists is thrown away, so inventing one loses the button. \`sources\` are the ids printed after "id" in WHAT THE EVIDENCE SAYS: list the ones your paragraph read from, and nothing else. Never name a paper, a guideline, an author or a year that is not printed in that section.`;
+
+/**
+ * The shape, per kind. Phase 28a.
+ *
+ * "Will I ever be able to solve this? What does the research say?" came back
+ * as numbers → do this → measure that, i.e. the answer to "how do I fix it?",
+ * because one prompt forced one shape on every question. `questionKind` picks
+ * the shape in code before the model sees the question, and the shape is the
+ * only part of the prompt that changes.
+ */
+export const QUESTION_SHAPES: Record<QuestionKind, string> = {
+  status: `THE SHAPE FOR THIS QUESTION — they asked where they stand.
+TWO OR THREE SENTENCES. Give the values they asked about, each with its unit and whether it is off, borderline or fine against the band you are given, then one sentence on what that means for them. Name no action and no test: they did not ask for one.`,
+
+  howto: `THE SHAPE FOR THIS QUESTION — they asked what to do.
+SIX SENTENCES AT MOST, in this order.
+1. What their own numbers say about the question: the values, and whether each one is off, borderline or fine against the band you are given.
+2. What to do: two or three actions, each with its label in brackets and its dose when the source has one.
+3. What to measure and when: name the marker and the number of weeks.`,
+
+  prognosis: `THE SHAPE FOR THIS QUESTION — they asked how this goes from here.
+FOUR SENTENCES AT MOST, in this order.
+1. What the rows in WHAT THE EVIDENCE SAYS say about the course: reversible, controllable with treatment, or lifelong, and what kind of control is realistic. Read it off what those rows show treatment can and cannot move, and name the paper or guideline with its year.
+2. What in THEIR OWN numbers argues either way.
+3. At most ONE action, with its bracketed label and its dose.
+Never promise a cure and never rule one out further than the rows do. Never open by saying the rows are silent: the rows you are given are what is known here, so answer from what they do show, and say how thin that is when it is thin.`,
+
+  research: `THE SHAPE FOR THIS QUESTION — they asked what the research says.
+TWO OR THREE SENTENCES. Give the strongest rows in WHAT THE EVIDENCE SAYS: what each one found, its grade, the name of the paper or guideline with its year, and the size of the effect when the row has one. Finish with one sentence on how sure the field is: grade A or B is settled, grade C to E is thin, one small trial is one small trial. Name no action: they asked what is known, not what to do.`,
+
+  why: `THE SHAPE FOR THIS QUESTION — they asked why.
+THREE SENTENCES AT MOST. Explain the mechanism from the rows in HOW THESE ARE CONNECTED, in plain words, naming the marker at each end and reading the row's own sentence rather than your own knowledge. Then one sentence on which of those causes their own numbers actually support. Name no action.`,
+
+  "next-test": `THE SHAPE FOR THIS QUESTION — they asked what to measure next.
+THREE SENTENCES AT MOST. Name the one or two best moves from WHAT EACH TEST WOULD SETTLE and say what each would settle, copying the numbers exactly as they are printed there ("HbA1c: type 2 diabetes 30 % → 92 % if high, → 5 % if normal"). Say which one to do first and after how many weeks. Name no action other than the tests themselves.`,
+};
+
+/** The whole system prompt for one kind: the rules, then the shape. */
+export const systemFor = (kind: QuestionKind): string =>
+  `${QUESTION_SYSTEM}\n\n${QUESTION_SHAPES[kind]}`;
 
 /**
  * The one model that answers questions, chosen by `pnpm eval:ask` and set in
@@ -725,17 +1005,29 @@ export async function answerQuestion(
   let actions = await actionsFor(userId, conditionId, 6);
   if (!actions.length && conditionId)
     actions = await actionsFor(userId, null, 6);
+  const kind = questionKind(question);
   const base: AskAnswer = {
     ...named,
     route: "question",
     now,
     actions,
+    kind,
   };
   if (!process.env.OPENROUTER_API_KEY) return base;
 
-  const [context, projections] = await Promise.all([
+  /**
+   * Phase 28a. The prompt only carries the block its kind reads from: papers
+   * for research and prognosis, graph edges for why, the settles-what table
+   * for next-test. A model that is handed no paper cannot cite one, which is
+   * half of the sources guard; `pickActs` is the other half.
+   */
+  const [context, projections, sources, graph] = await Promise.all([
     chatContext(userId).catch(() => ""),
     projectionsFor(userId).catch(() => []),
+    CITES_SOURCES.includes(kind)
+      ? sourcesFor(conditionId).catch(() => [] as SourceCandidate[])
+      : Promise.resolve([] as SourceCandidate[]),
+    kind === "why" ? loadGraph().catch(() => null) : Promise.resolve(null),
   ]);
   const conclusions = scored
     .filter((h) => h.score >= 0.05)
@@ -758,20 +1050,78 @@ export async function answerQuestion(
    * `pickActs` throws away anything else. The prose and the row can then never
    * disagree, which is the whole point of the eval's new checks.
    */
+  const moves = nextMoves(input, catalog);
   const candidates = askCandidates({
     actions,
     measured: Object.keys(input.latest),
-    moves: nextMoves(input, catalog),
+    moves,
     questions: profileQuestions(input).map((q) => ({
       key: q.key,
       question: q.question,
     })),
+    sources,
   });
+
+  /**
+   * The block this kind reads from, and no other. A `howto` answer never sees
+   * a paper row, so it cannot cite one; a `research` answer sees nothing else,
+   * so it has to.
+   */
+  const nameOf = (id: string) => {
+    const hit = scored.find((h) => h.id === id);
+    return hit ? displayNameOf(hit) : id.replace(/_/g, " ");
+  };
+  const spec = conditionId ? catalog.find((h) => h.id === conditionId) : null;
+  const namedCodes = codesNamedIn(question, Object.keys(input.latest));
+  const mechanisms = graph
+    ? mechanismsFor(
+        graph,
+        namedCodes.length ? namedCodes : spec ? metricCodesOf(spec) : [],
+      )
+    : [];
+  /**
+   * The information-gain lines a `next-test` answer is written from, kept so
+   * `pnpm eval:ask` can show the judge what was on offer. Without them the
+   * judge read a correctly copied "PHQ-9 · Depression 33 % → 74 %" as an
+   * invented probability and scored the best answer 0/5.
+   */
+  const settles = moves
+    .filter((m) => m.kind === "test")
+    .slice(0, 5)
+    .map((m) => settlesLine(m, nameOf));
+
+  const kindBlock = CITES_SOURCES.includes(kind)
+    ? `WHAT THE EVIDENCE SAYS (id · name · year · grade · what it found; the ONLY papers you may cite):
+${
+  candidates.sources
+    .map(
+      (s) =>
+        `- id ${s.id} · ${s.name} · ${s.year ?? "no year"} · grade ${s.grade} · ${s.says}`,
+    )
+    .join("\n") || "- no graded row on file for this condition"
+}`
+    : kind === "why"
+      ? `HOW THESE ARE CONNECTED (the graph's own mechanism rows):
+${
+  mechanisms
+    .map(
+      (e) =>
+        `- ${e.from} ${e.relation} ${e.to} (grade ${e.grade}): ${e.mechanism}`,
+    )
+    .join("\n") || "- no mechanism row touches this marker"
+}`
+      : kind === "next-test"
+        ? `WHAT EACH TEST WOULD SETTLE (best information gain first; copy these numbers exactly):
+${
+  settles.map((line) => `- ${line}`).join("\n") ||
+  "- nothing on the table would settle anything"
+}`
+        : "";
 
   const { object } = await generateObject({
     model: askModel(modelId),
     schema: actsSchema,
-    system: QUESTION_SYSTEM,
+    system: systemFor(kind),
     prompt: `THEIR QUESTION: ${question}
 
 WHAT THE ENGINE CONCLUDES ABOUT THEM RIGHT NOW:
@@ -806,13 +1156,19 @@ ${
   "- none"
 }
 
+${kindBlock}
+
 ${context}`,
   });
 
+  const acts = pickActs(object, candidates);
   return {
     ...base,
     reply: object.prose.trim(),
-    acts: pickActs(object, candidates),
+    acts,
+    sources: acts.sources,
+    sourcesOffered: candidates.sources,
+    settlesOffered: settles,
   };
 }
 

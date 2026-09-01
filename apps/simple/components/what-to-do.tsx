@@ -22,6 +22,7 @@ import { Loader2 } from "lucide-react";
 import type { PlanLine } from "@/lib/actions";
 import { toast } from "./motion";
 import { Button } from "./ui-kit";
+import { EvidenceChip } from "./evidence-chip";
 
 const LABEL =
   "t-meta text-[10px] font-bold uppercase tracking-[0.06em] text-neutral-400";
@@ -151,9 +152,11 @@ export function WhatToDo({
                         {line.dose}
                       </span>
                     )}
-                    <span className="t-meta ml-1.5 text-[11px]">
-                      {line.label}
-                    </span>
+                    <EvidenceChip
+                      basis={line.basis}
+                      grade={line.grade}
+                      className="ml-1.5"
+                    />
                     {line.target && (
                       <span className="t-meta ml-1.5 text-[11px]">
                         · {line.target}

@@ -35,6 +35,73 @@ export function askIntent(text: string): AskRoute {
   return OPENERS.test(q) ? "question" : "term";
 }
 
+/* ── phase 28a: which question was it ─────────────────────────────────── */
+
+/**
+ * The six shapes an answer can take.
+ *
+ * "Will I ever be able to solve this? What does the research say?" came back
+ * with numbers → do this → measure that, which is the answer to "how do I fix
+ * it?". One prompt forced one shape on every question, so the question was
+ * ignored. The kind is decided here, in code, before the model sees anything:
+ * the prompt for a `research` question is not the prompt for a `howto` one.
+ */
+export type QuestionKind =
+  | "status"
+  | "howto"
+  | "prognosis"
+  | "research"
+  | "why"
+  | "next-test";
+
+/**
+ * First match wins, and the order is the point.
+ *
+ * "will I ever be able to solve this? what does the research say?" is both a
+ * prognosis and a research question; the course is what they want to know, and
+ * the prognosis shape cites its sources too, so prognosis is tested first.
+ * `why` is tested after both, because "why is this permanent?" is prognosis.
+ */
+const KIND_RULES: [QuestionKind, RegExp][] = [
+  [
+    "next-test",
+    /\b(what|which)\s+(\w+\s+){0,3}(test|tests|marker|markers|panel|labs?|bloods?)\b|\b(test|measure|check)\s+(next|first)\b|\bwhat\s+(should|do)\s+i\s+(measure|test|check)\b|\bwhat\s+to\s+(measure|test)\b|\bnext\s+(test|step)\b/i,
+  ],
+  [
+    "prognosis",
+    /\bwill\s+i\s+ever\b|\bcure[ds]?\b|\bcurable\b|\breverse[ds]?\b|\breversible\b|\bpermanent\b|\bfor\s+life\b|\blifelong\b|\bforever\b|\bgo\s+away\b|\bprognosis\b|\bwhat\s+happens\s+if\b|\bget\s+worse\b|\bsolve\s+this\b/i,
+  ],
+  [
+    "research",
+    /\bresearch\b|\bliterature\b|\bevidence\b|\bstudies\b|\bstudy\b|\btrials?\b|\bpapers?\b|\bscience\b|\bproven\b|\bhow\s+(strong|good|sure)\b/i,
+  ],
+  [
+    "why",
+    /^why\b|\bwhy\s+(is|are|am|do|does|did|would)\b|\bwhat\s+(causes|caused|is\s+causing|drives)\b|\bwhat'?s\s+causing\b/i,
+  ],
+  [
+    "status",
+    /\bwhat'?s?\s+my\b|\bwhat\s+is\s+my\b|\bwhat\s+are\s+my\b|\bhow('s|\s+is|\s+are)\s+my\b|\bam\s+i\s+(ok|okay|fine|healthy|normal)\b|\bis\s+my\s+.*\b(ok|okay|fine|normal|high|low|good|bad)\b|\bdo\s+i\s+have\b/i,
+  ],
+];
+
+/**
+ * The kind of question, from the words alone. Default `howto`, because that is
+ * what somebody who typed a sentence with no other marker usually wants.
+ */
+export function questionKind(text: string): QuestionKind {
+  const q = text.trim();
+  if (!q) return "howto";
+  for (const [kind, re] of KIND_RULES) if (re.test(q)) return kind;
+  return "howto";
+}
+
+/** The kinds whose answers cite papers, so the UI prints a Sources line. */
+export const CITES_SOURCES: QuestionKind[] = ["research", "prognosis"];
+
+/** The kinds that may name an action at all. */
+export const ACTS_KINDS: QuestionKind[] = ["howto", "prognosis"];
+
 /** What the composer was opened with. */
 export interface Opening {
   text: string;

@@ -14,6 +14,16 @@
  */
 import { Sparkles } from "lucide-react";
 import { ActOnIt, type Acts } from "./act-on-it";
+import { LabelledProse } from "./evidence-chip";
+
+/** One paper or guideline the answer cited, with the row's own quote. */
+export interface AskSource {
+  id: string;
+  name: string;
+  year: number | null;
+  grade: string;
+  quote: string | null;
+}
 
 export interface AskMove {
   kind: string;
@@ -60,7 +70,50 @@ export interface Answer {
   route?: "term" | "question";
   /** phase 27: what the answer named, as things the buttons can do */
   acts?: Acts;
+  /** phase 28a: which question was asked, decided in code */
+  kind?: string;
+  /** phase 28a: the papers the answer cited, after the guard */
+  sources?: AskSource[];
   error?: string;
+}
+
+/**
+ * The papers under a research or prognosis answer.
+ *
+ * Phase 28a. "What does the research say?" used to be answered out of the
+ * model's memory, with no way to check it. The rows come from the prompt's own
+ * candidate list and survive `pickActs`, so every name printed here is a row on
+ * file; the hover is the sentence the intake kept, when the row has one.
+ */
+function Sources({ sources }: { sources?: AskSource[] }) {
+  if (!sources?.length) return null;
+  return (
+    <p className="t-meta text-[11px] text-neutral-500">
+      Sources:{" "}
+      {sources.map((s, i) => (
+        <span key={s.id}>
+          {i > 0 ? "; " : ""}
+          {s.quote ? (
+            <span className="ov-term">
+              <button type="button" className="ov-term-trigger hit-40">
+                {s.name}
+              </button>
+              <span role="tooltip" className="ov-term-tip">
+                <span className="ov-term-tip-title">{s.name}</span>
+                <span className="ov-term-tip-line">&ldquo;{s.quote}&rdquo;</span>
+                <span className="ov-term-tip-meta">
+                  {s.year ? `${s.year}. ` : ""}Grade {s.grade}.
+                </span>
+              </span>
+            </span>
+          ) : (
+            s.name
+          )}
+          {s.year ? ` · ${s.year}` : ""} · {s.grade}
+        </span>
+      ))}
+    </p>
+  );
 }
 
 const pct = (p: number) =>
@@ -170,13 +223,14 @@ export function AskAnswer({
         )}
         {answer.reply ? (
           <p className="t-body whitespace-pre-line text-neutral-800">
-            {answer.reply}
+            <LabelledProse text={answer.reply} />
           </p>
         ) : (
           <p className="t-body text-neutral-500">
             No answer came back. Try asking it again.
           </p>
         )}
+        <Sources sources={answer.sources} />
         <ActOnIt acts={answer.acts} onLeave={onLeave} />
         {children}
       </div>
@@ -206,7 +260,7 @@ export function AskAnswer({
 
       {answer.reply && (
         <p className="t-body whitespace-pre-line text-neutral-800">
-          {answer.reply}
+          <LabelledProse text={answer.reply} />
         </p>
       )}
 

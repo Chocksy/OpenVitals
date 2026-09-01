@@ -22,6 +22,9 @@ const EXTRAS = [
   "likelihood_ratio",
   "grade",
   "risk_state",
+  "science",
+  "opinion",
+  "anecdotal",
 ];
 
 describe("the glossary", () => {

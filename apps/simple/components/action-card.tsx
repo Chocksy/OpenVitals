@@ -9,7 +9,8 @@
 import type { ReportAction } from "@/db";
 import { ActionButtons } from "./plan";
 import { Terms } from "./term";
-import { Badge, BasisChip, Card, TierChip } from "./ui-kit";
+import { Badge, Card, TierChip } from "./ui-kit";
+import { EvidenceChip } from "./evidence-chip";
 
 export function ActionCard({
   action,
@@ -32,7 +33,7 @@ export function ActionCard({
         <p className="t-title text-[15px]">{action.title}</p>
         <div className="flex items-center gap-1.5">
           <Badge variant="secondary">weight {action.weight}</Badge>
-          <BasisChip basis={action.basis} />
+          <EvidenceChip basis={action.basis} />
           <TierChip tier={action.tier} />
         </div>
       </div>

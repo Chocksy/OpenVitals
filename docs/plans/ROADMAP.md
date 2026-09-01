@@ -161,12 +161,15 @@ Parked from 25: Discuss answers arrive whole (make `/api/plan/discuss` stream or
 Parked from 26: `hkb_interventions` carries a grade-B "whole system Ayurveda protocol" for hashimoto (the intake graded a small trial B; policy question, not plumbing); `protocol_items` has no dedupe; the ask-eval judge does not see the engine's conclusions block so it under-scores engine probabilities; tooltip flip-below untested live.
 
 | 27 | Answers you can act on: structured answers with an Act-on-it row (add action, add all, plan retest feeding Next draw, answer question, ask-your-doctor copy), closed-set guard, About mode handles statements about an action (already doing → protocol + exercise fact; started/stopped/not for me/did it today) and cards say "You're already doing this since …"; eval:ask gains chip/invented checks; 1240 tests | `4b07bfc`…this |
+| 28a | Answer the question asked: question kinds in code (status/howto/prognosis/research/why/next-test, ordered rules, prognosis beats research), per-kind prompt shapes and candidate sets (evidence + intervention rows, graph edges, information-gain lines), Sources line with the closed-set guard, `<EvidenceChip>` glyphs (● grade / ◐ / ○) replacing every bracket label, one quiet focus ring, RCT grade policy: n < 100 reads C (Ayurveda row regraded by migration 0021, duplicate row removed); eval:ask 12 cases, gemini-3.7-flash 0.78 12/12 clean; 1290 tests | this |
 
-Parked from 27: `next-test` answers list tests without saying what each settles (prompt); five duplicate Selenium protocol rows on the test account predate the idempotency guard; a Turbopack HMR staleness made Discuss open without a subject on the dev server only (watch prod); "Plan retest" cards still link to /insights rather than planning the marker directly.
+Parked from 27: five duplicate Selenium protocol rows on the test account predate the idempotency guard; a Turbopack HMR staleness made Discuss open without a subject on the dev server only (watch prod); "Plan retest" cards still link to /insights rather than planning the marker directly.
+
+Parked from 28a: `why-tired` scores 1/5 (thin fatigue edges in the graph, or the `why` shape); old RCT rows keep their B because `saveInterventions` is insert-only (a re-grade backfill needs n, which old rows never stored); the answer repeats the dose when the action title already has it; dihydromyricetin sits at grade A on the MASLD card, worth the same paper check.
 
 ## In progress
 
-Nothing. Owner pass four.
+Phase 28b mockups (`docs/mockups/home-v3.html`, `elements-v3.html`, `side-by-side.html`, `pages-v3.html`): owner picks the variants, then 28c builds them.
 
 
 ## Next

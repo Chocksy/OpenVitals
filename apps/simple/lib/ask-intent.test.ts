@@ -3,6 +3,7 @@ import {
   askIntent,
   autoAskToken,
   openingMode,
+  questionKind,
   showsBox,
   termQuery,
 } from "./ask-intent";
@@ -179,5 +180,52 @@ describe("autoAskToken", () => {
 
   it("never submits something that is not a question", () => {
     expect(autoAskToken(telling, 1, 0)).toBeNull();
+  });
+});
+
+/**
+ * Phase 28a item 1. "Will I ever be able to solve this? What does the research
+ * say?" was answered with numbers → do this → measure that, i.e. the answer to
+ * "how do I fix it?", because one prompt served every question. The kind is
+ * decided here, in code, and the shape follows it.
+ */
+describe("questionKind", () => {
+  const cases: [string, string][] = [
+    ["what's my cholesterol?", "status"],
+    ["what is my ferritin?", "status"],
+    ["is my iron ok?", "status"],
+    ["am I ok?", "status"],
+    ["do I have Hashimoto's?", "status"],
+    ["what should I do to lower my LDL?", "howto"],
+    ["how do I fix this?", "howto"],
+    ["what should I eat?", "howto"],
+    ["will I ever be able to solve this?", "prognosis"],
+    ["can Hashimoto's be cured?", "prognosis"],
+    ["is this permanent?", "prognosis"],
+    ["is it reversible?", "prognosis"],
+    ["what happens if I do nothing?", "prognosis"],
+    ["what does the research say about selenium?", "research"],
+    ["is there evidence for that?", "research"],
+    ["how strong is the evidence?", "research"],
+    ["what do the studies show?", "research"],
+    ["why is my LDL high?", "why"],
+    ["why am I tired?", "why"],
+    ["what causes high TSH?", "why"],
+    ["what test next?", "next-test"],
+    ["what should I measure next?", "next-test"],
+    ["which blood test would help most?", "next-test"],
+  ];
+  for (const [q, kind] of cases)
+    it(`reads "${q}" as ${kind}`, () => expect(questionKind(q)).toBe(kind));
+
+  it("falls back to howto", () => {
+    expect(questionKind("selenium 200 mcg")).toBe("howto");
+    expect(questionKind("")).toBe("howto");
+  });
+
+  it("prefers the course over the citation when a question asks both", () => {
+    expect(
+      questionKind("will I ever be able to solve this? what does the research say?"),
+    ).toBe("prognosis");
   });
 });

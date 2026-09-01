@@ -20,13 +20,17 @@ import { ClipboardCopy, Loader2 } from "lucide-react";
 import { askHref } from "@/lib/asking";
 import { toast } from "./motion";
 import { Button } from "./ui-kit";
+import { EvidenceChip } from "./evidence-chip";
 
 /** One action off the plan or off the papers, by the id it was offered under. */
 export interface ActAction {
   id: string;
   title: string;
   dose: string | null;
+  /** the bracket label the prose still carries; the chip prints the glyph */
   label: string;
+  basis: string;
+  grade?: string;
   target: string | null;
 }
 
@@ -183,7 +187,7 @@ export function ActOnIt({
                 Add: {a.title}
                 {a.dose ? ` ${a.dose}` : ""}
               </span>
-              <span className="t-meta text-[10px]">{a.label}</span>
+              <EvidenceChip basis={a.basis} grade={a.grade} />
             </button>
           ),
         )}

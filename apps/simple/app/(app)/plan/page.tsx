@@ -33,7 +33,8 @@ import { previewLines } from "@/lib/projections";
 import { horizonShelf, type HorizonItem } from "@/lib/trends";
 import { AdoptHorizon, PlanShell } from "@/components/plan";
 import { Terms } from "@/components/term";
-import { Badge, BasisChip, Card, TierChip } from "@/components/ui-kit";
+import { Badge, Card, TierChip } from "@/components/ui-kit";
+import { EvidenceChip } from "@/components/evidence-chip";
 
 export const dynamic = "force-dynamic";
 
@@ -76,7 +77,7 @@ function TestList({
               {action.title}
             </p>
             <span className="flex items-center gap-1.5">
-              <BasisChip basis={action.basis} />
+              <EvidenceChip basis={action.basis} />
               <TierChip tier={action.tier} />
             </span>
           </div>
@@ -293,8 +294,7 @@ function HorizonShelf({ items }: { items: HorizonItem[] }) {
                 {item.name}
               </p>
               <span className="flex flex-wrap items-center gap-1.5">
-                <BasisChip basis="anecdotal" />
-                <Badge variant="secondary">{item.grade}</Badge>
+                <EvidenceChip basis="anecdotal" grade={item.grade} />
                 <span className="t-meta text-[10px] font-bold uppercase tracking-[0.04em] text-neutral-400">
                   from {item.sourceKind}
                 </span>

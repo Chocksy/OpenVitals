@@ -554,6 +554,9 @@ export function likelihoodRatios(f: Finding): {
 
 const LADDER: Grade[] = ["A", "B", "C", "D", "E"];
 
+/** How many people a randomised trial has to have randomised to earn a B. */
+export const RCT_B_FLOOR = 100;
+
 /** One step down the ladder, and never off the end of it. */
 export const downgrade = (g: Grade, steps = 1): Grade =>
   LADDER[Math.min(LADDER.indexOf(g) + steps, LADDER.length - 1)]!;
@@ -562,15 +565,27 @@ export const downgrade = (g: Grade, steps = 1): Grade =>
 export const worst = (a: Grade, b: Grade): Grade =>
   LADDER.indexOf(a) >= LADDER.indexOf(b) ? a : b;
 
-/** What the paper's own quality says, before anything is taken off it. */
+/**
+ * What the paper's own quality says, before anything is taken off it.
+ *
+ * Phase 28a item 4, from the owner: "whole system Ayurveda protocol" sat on
+ * the Hashimoto's card at grade B, next to selenium. The paper behind it
+ * (PMID 39798266) is a real randomised trial, so "rct" was right, but it
+ * randomised 46 people at one centre for 60 days. A cohort has had to reach
+ * n >= 500 for a B since the first policy; a trial got one for free. It does
+ * not any more: a trial whose size the abstract prints, and which is small,
+ * reads as a small trial. A trial that never printed its n keeps the B,
+ * because an unknown size is not evidence of a tiny one.
+ */
 export function baseGrade(f: Finding): Grade {
-  const n = f.n ?? 0;
+  const known = f.n ?? null;
+  const n = known ?? 0;
   switch (f.studyType) {
     case "meta":
     case "guideline":
       return "A";
     case "rct":
-      return "B";
+      return known != null && known < RCT_B_FLOOR ? "C" : "B";
     case "cohort":
     case "cross_sectional":
       return n >= 500 ? "B" : "C";
@@ -1505,6 +1520,7 @@ const interventionSchema = z.object({
   effectSize: z.string().nullish(),
   direction: z.enum(["up", "down", "none"]),
   population: z.string(),
+  n: z.number().nullish(),
   studyType: z.enum(STUDY_TYPES),
   quote: z.string(),
 });
@@ -1528,7 +1544,9 @@ Rules:
   id when it clearly is the same thing, and null otherwise.
 - \`direction\` is what happened to that marker: "up", "down", or "none" for a
   trial that found nothing.
-- \`effectSize\` is the number with its unit, as the abstract prints it.`;
+- \`effectSize\` is the number with its unit, as the abstract prints it.
+- \`n\` is how many people were randomised or treated, when the abstract prints
+  a number. Null when it does not; never estimate one.`;
 
 export interface InterventionExtractor {
   (
@@ -1580,6 +1598,13 @@ export interface InterventionRow {
  * E: it went looking for case reports and mice on purpose, so a row out of it
  * never claims more than that.
  */
+/** "adults with primary hypothyroidism" plus its size, when there is one. */
+export const withN = (population: string, n?: number | null): string | null => {
+  const who = population?.trim() || "";
+  if (!n || n <= 0) return who || null;
+  return who ? `${who}, n = ${n}` : `n = ${n}`;
+};
+
 export function toInterventions(
   condition: ConditionRef,
   features: Feature[],
@@ -1595,7 +1620,7 @@ export function toInterventions(
     if (!paper || paper.retracted) continue;
     if (!f.intervention?.trim() || !f.quote?.trim()) continue;
 
-    const base = gradeOf({ studyType: f.studyType, n: null } as Finding, {
+    const base = gradeOf({ studyType: f.studyType, n: f.n ?? null } as Finding, {
       citedBy: paper.citedBy,
       year: paper.year,
       resolved: !!paper.doi,
@@ -1629,7 +1654,9 @@ export function toInterventions(
       },
       quote: f.quote.replace(/\s+/g, " ").trim(),
       status: "accepted",
-      population: f.population || null,
+      // the size travels with the population, so an answer can say "one
+      // trial, n = 46" instead of leaving the grade to carry it alone
+      population: withN(f.population, f.n),
     });
   }
   return [...rows.values()];

@@ -13,6 +13,7 @@
  * `lib/glossary.test.ts` walks these keys against the metric catalog in
  * `lib/graph.ts` so a new marker cannot ship without its sentence.
  */
+import { BASIS_TIP } from "./evidence";
 import { VECTORS } from "./vectors";
 
 export interface GlossaryEntry {
@@ -557,6 +558,33 @@ const DRAFTS: Draft[] = [
     what: "How good the evidence behind a line is, from A (large trials agree) down to E (one small study or an anecdote).",
     where: "next to every conclusion and every action",
     why: "A grade E line is printed so you can judge it, never so you can act on it.",
+  },
+  /**
+   * Phase 28a. The three bases the chip's glyph stands for, so the mark after
+   * an action has somewhere to send a person who has not learnt the glyphs.
+   * The sentences come from `lib/evidence.ts`, which is where the chip reads
+   * them, so the tooltip and the glossary can never drift apart.
+   */
+  {
+    id: "science",
+    label: "science",
+    what: `Filled circle: ${BASIS_TIP.science}.`,
+    where: "after an action or a conclusion, with its grade letter",
+    why: "The grade beside it says how good the study was: A is a guideline, E is one report.",
+  },
+  {
+    id: "opinion",
+    label: "opinion",
+    what: `Half circle: ${BASIS_TIP.opinion}.`,
+    where: "after an action nobody has run a trial on",
+    why: "It is worth doing and worth knowing that no study says so.",
+  },
+  {
+    id: "anecdotal",
+    label: "anecdotal",
+    what: `Hollow circle: ${BASIS_TIP.anecdotal}.`,
+    where: "on the horizon shelf, and after a grade D or E row",
+    why: "It is printed so it can be judged, never so it can be acted on.",
   },
   {
     id: "risk_state",

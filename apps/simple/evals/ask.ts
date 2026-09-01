@@ -3,17 +3,19 @@
  *
  *   pnpm --filter simple eval:ask [caseId ...] [--models a,b] [--user email]
  *
- * Principle 6: model choice by score, not by vibes. Eight questions a person
- * actually asked the app, run against this account's real data through the
- * real `answerQuestion`, then checked twice — in code for the things code can
- * see (six sentences, no filler, labelled actions, no action the context never
- * offered) and by a fixed independent judge for the rest.
+ * Principle 6: model choice by score, not by vibes. Twelve questions a person
+ * actually asked the app, of the six kinds `lib/ask-intent.ts` decides between,
+ * run against this account's real data through the real `answerQuestion`, then
+ * checked twice — in code for the things code can see (six sentences, no
+ * filler, an action only when the question asked for one, no action the context
+ * never offered, no paper the context never gave) and by a fixed independent
+ * judge for the rest.
  *
  * The candidates are listed from the OpenRouter models endpoint at run time,
  * so the "strongest under about five dollars a million output tokens" is
  * whatever that is today rather than whatever it was when this was written.
- * Three models at most, eight cases each: twenty-four answers is enough to
- * separate them and cheap enough to re-run.
+ * Three models at most, twelve cases each: enough to separate them and cheap
+ * enough to re-run.
  *
  * Results land in `evals/results/ask-<date>.json`. Exits non-zero when the
  * winner scores under the floor.
@@ -26,6 +28,7 @@ import { eq } from "drizzle-orm";
 import { getDb, pool } from "@/db";
 import { users } from "@/db/auth-schema";
 import { actionsFor } from "@/lib/actions";
+import { ACTS_KINDS, questionKind, type QuestionKind } from "@/lib/ask-intent";
 import { chatContext } from "@/lib/ai";
 import { model } from "@/lib/extract";
 import { answerQuestion, type Acts } from "@/lib/lookup";
@@ -57,6 +60,8 @@ interface AskCase {
 
 interface Scored {
   id: string;
+  /** phase 28a: which shape the question asked for, decided in code */
+  kind: QuestionKind;
   reply: string;
   sentences: number;
   /** every bracketed label the answer printed */
@@ -65,6 +70,8 @@ interface Scored {
   acts?: { actions: string[]; tests: string[]; questions: string[] };
   /** ids the model returned that the engine never offered */
   dropped?: string[];
+  /** phase 28a: the papers the answer cited, after the guard */
+  sources?: string[];
   /** code checks that failed */
   failed: string[];
   judgeScore?: number;
@@ -205,6 +212,7 @@ const norm = (s: string) =>
 function codeChecks(
   reply: string,
   allowed: { titles: string[]; labels: string[] },
+  kind: QuestionKind,
 ): string[] {
   const failed: string[] = [];
   const count = sentencesIn(reply);
@@ -213,9 +221,17 @@ function codeChecks(
   const filler = reply.match(FILLER);
   if (filler) failed.push(`filler: "${filler[0]}"`);
 
+  /**
+   * Phase 28a: only some kinds are allowed to tell anybody to do anything.
+   * "What does the research say?" answered with a labelled action used to
+   * pass this check and fail the question.
+   */
+  const acting = ACTS_KINDS.includes(kind);
   const labels = labelsIn(reply);
-  if (!labels.length && allowed.titles.length)
+  if (acting && !labels.length && allowed.titles.length)
     failed.push("no labelled action");
+  if (!acting && labels.length)
+    failed.push(`a ${kind} answer named an action (${labels.join(", ")})`);
   for (const label of labels)
     if (!allowed.labels.includes(label))
       failed.push(`label ${label} is not one the context gave`);
@@ -225,7 +241,7 @@ function codeChecks(
    * whether any allowed title shares a word with the reply — a weak test on
    * its own, which is why the judge is also asked the same question.
    */
-  if (allowed.titles.length && labels.length) {
+  if (acting && allowed.titles.length && labels.length) {
     const text = norm(reply);
     const named = allowed.titles.some((t) =>
       norm(t)
@@ -270,9 +286,17 @@ function actChecks(
   reply: string,
   acts: Acts | undefined,
   candidates: { id: string; title: string }[],
+  kind: QuestionKind,
 ): string[] {
   if (!acts) return ["no acts came back"];
   const failed: string[] = [];
+  // phase 28a: a status or research answer offers nothing; a prognosis
+  // answer is allowed one action and no more.
+  const room = ACTS_KINDS.includes(kind) ? (kind === "prognosis" ? 1 : 99) : 0;
+  if (acts.actions.length > room)
+    failed.push(
+      `a ${kind} answer offered ${acts.actions.length} action(s), room for ${room}`,
+    );
   if (acts.dropped.length)
     failed.push(
       `invented ${acts.dropped.length} id(s): ${acts.dropped.slice(0, 3).join(", ")}`,
@@ -289,14 +313,16 @@ function actChecks(
 
 const JUDGE_SYSTEM = `You are grading one answer a health app gave to one question from the person whose data it holds.
 
-An "action" here is a treatment, supplement, food, habit or test it tells the person to start. The closing line that names a marker to remeasure and when is not an action and is required: never count it against the answer.
+An "action" here is a treatment, supplement, food, habit or test it tells the person to start. The closing line that names a marker to remeasure and when is not an action and is never counted against the answer; it is only expected of an answer to a question about what to do.
+
+Answers come in six kinds and each kind has its own shape, which is given to you as THE KIND OF QUESTION IT IS. A status answer gives their values and stops. A howto answer gives numbers, then actions, then what to remeasure. A prognosis answer says how the condition goes from here, from the papers, and may name at most one action. A research answer reports the papers and names no action. A why answer explains a mechanism and names no action. A next-test answer names the tests worth doing and what each would settle. An answer that names no action because its kind forbids one is doing the right thing.
 
 Answer in exactly six lines, nothing else:
-numbers: yes|no — it uses that person's own values, with the numbers
+numbers: yes|no — it uses that person's own values, with the numbers. "yes" when the question asked about the literature or about the condition in general rather than about this person's own readings, and the answer stayed on the literature.
 actions: yes|no — every action it names is one of the ALLOWED ACTIONS, with that source's dose where there is one. "yes" when it names no action at all because the list is empty.
 labels: yes|no — every action it names carries a bracketed label. "yes" when it names no action.
 invented: yes|no — it invents a lab value, a dose, a probability or a diagnosis that is not in the context (yes means it DID invent something). A remeasurement interval is not an invented value.
-answers: yes|no — it answers the question that was asked, plainly
+answers: yes|no — it answers the question that was asked, plainly, in the shape that question asked for. "no" when it fell back on the app's template (their numbers, then do this, then measure that) instead of answering what was asked: a question about the research wants what the papers found and how sure the field is, a question about whether this ever goes away wants the course of the condition, a question about why wants the mechanism, a question about what to test next wants what each test would settle.
 worst: <one sentence on the worst thing about it>`;
 
 async function judge(
@@ -304,12 +330,16 @@ async function judge(
   reply: string,
   allowed: string,
   data: string,
+  kind: QuestionKind,
+  sources: string,
+  settles: string,
 ): Promise<{ judgeScore: number; judgeNote: string }> {
   const { text } = await generateText({
     // ponytail: one fixed independent judge, so candidates are comparable.
     model: model(process.env.EVAL_JUDGE_MODEL ?? "openai/gpt-5.6-sol"),
     system: JUDGE_SYSTEM,
     prompt: `THE QUESTION: ${c.q}
+THE KIND OF QUESTION IT IS: ${kind}
 
 WHAT A GOOD ANSWER DOES: ${c.judge}
 
@@ -318,6 +348,12 @@ ${data || "- none"}
 
 ALLOWED ACTIONS (the only ones that exist for this person):
 ${allowed || "- none"}
+
+ALLOWED SOURCES (the only papers and guidelines the answer was given; citing one of these is correct, citing anything else is inventing):
+${sources || "- none"}
+
+WHAT EACH OFFERED TEST WOULD SETTLE (the engine's own numbers, handed to the answer; repeating one of these is correct, not invention):
+${settles || "- none"}
 
 THE ANSWER:
 ${reply}`,
@@ -344,10 +380,18 @@ async function runCase(
   modelId: string,
 ): Promise<Scored> {
   const started = Date.now();
+  const kind = questionKind(c.q);
   try {
     // The judge sees the same numbers the answer was written from, or every
     // value in every answer looks invented to it.
-    const data = (await chatContext(userId).catch(() => "")).slice(0, 6000);
+    /**
+     * The judge is shown the same context the answer was written from. It used
+     * to be cut at 6000 characters, which stopped just before the marker
+     * table, so the judge marked "invented" against real values: it called a
+     * TPO of 320 IU/mL a fabrication in the phase 28a run. The whole thing is
+     * about 11 k, so the cut is now above it.
+     */
+    const data = (await chatContext(userId).catch(() => "")).slice(0, 16000);
     const rows = await actionsFor(userId, c.about ?? null, 6);
     const answer = await answerQuestion(userId, c.q, {
       ...(c.about ? { about: c.about } : {}),
@@ -359,11 +403,12 @@ async function runCase(
       labels: [...new Set((answer.actions ?? rows).map((a) => a.label))],
     };
     const failed = [
-      ...codeChecks(reply, allowed),
+      ...codeChecks(reply, allowed, kind),
       ...actChecks(
         reply,
         answer.acts,
         (answer.actions ?? rows).map((a) => ({ id: a.id, title: a.title })),
+        kind,
       ),
     ];
     const graded = reply
@@ -376,14 +421,23 @@ async function runCase(
             )
             .join("\n"),
           data,
+          kind,
+          (answer.sourcesOffered ?? [])
+            .map((s) => `- ${s.name}${s.year ? ` (${s.year})` : ""} · grade ${s.grade ?? "?"} · ${s.says}`)
+            .join("\n"),
+          (answer.settlesOffered ?? []).map((l) => `- ${l}`).join("\n"),
         ).catch(() => ({ judgeScore: 0, judgeNote: "judge failed" }))
       : { judgeScore: 0, judgeNote: "no answer" };
 
     return {
       id: c.id,
+      kind,
       reply,
       sentences: sentencesIn(reply),
       labels: labelsIn(reply),
+      ...(answer.sources?.length
+        ? { sources: answer.sources.map((s) => `${s.name} ${s.year ?? "?"}`) }
+        : {}),
       ...(answer.acts
         ? {
             acts: {
@@ -401,6 +455,7 @@ async function runCase(
   } catch (e) {
     return {
       id: c.id,
+      kind,
       reply: "",
       sentences: 0,
       labels: [],
@@ -472,7 +527,7 @@ async function main() {
       console.log(
         scored.error
           ? `error: ${scored.error.slice(0, 90)}`
-          : `judge ${scored.judgeScore}/5, ${scored.sentences} sentences, ${
+          : `${scored.kind}, judge ${scored.judgeScore}/5, ${scored.sentences} sentences, ${
               scored.failed.length ? scored.failed.join("; ") : "clean"
             } (${Math.round(scored.latencyMs / 1000)}s)`,
       );
@@ -522,7 +577,8 @@ async function main() {
   console.log(`set AI_ASK_MODEL=${winner.modelId}\n`);
 
   for (const c of winner.cases) {
-    console.log(`── ${c.id}: ${c.reply}`);
+    console.log(`── ${c.id} (${c.kind}): ${c.reply}`);
+    if (c.sources) console.log(`   sources: ${c.sources.join(" | ")}`);
     if (c.acts)
       console.log(
         `   row: ${[...c.acts.actions.map((a) => `add ${a}`), ...c.acts.tests.map((t) => `retest ${t}`), ...c.acts.questions.map((q) => `answer ${q}`)].join(" | ") || "nothing"}`,

@@ -28,7 +28,7 @@
   {
     "id": "why-tired",
     "q": "why am I tired all the time?",
-    "judge": "Does the answer name the markers or conclusions in this person's data that explain tiredness, and either an action from the context or the one test that would settle it?"
+    "judge": "Does the answer explain WHY, naming the markers or conclusions in this person's data that drive tiredness and how they connect, rather than jumping to a list of things to do?"
   },
   {
     "id": "iron-ok",
@@ -39,5 +39,27 @@
     "id": "next-test",
     "q": "what test should I get next?",
     "judge": "Does the answer name a test that the context offers and say what it would settle for this person, rather than a generic panel?"
+  },
+  {
+    "id": "hashimoto-forever",
+    "q": "will i ever be able to solve this? what does the research say?",
+    "about": "hashimoto",
+    "judge": "Does the answer say what the literature says about the COURSE of Hashimoto's (reversible, manageable or lifelong, and what kind of control is realistic), point at what in THIS person's own numbers argues either way, and cite only papers or guidelines printed in WHAT THE EVIDENCE SAYS? At most one thing to do, and no list of actions."
+  },
+  {
+    "id": "hashimoto-research",
+    "q": "what does the research say about hashimoto's?",
+    "about": "hashimoto",
+    "judge": "Does the answer report the strongest graded rows it was given for Hashimoto's (what was found, with the effect or the likelihood ratio where there is one, and the source's name and year), and say how sure the field is (A and B grades versus C to E)? It should tell the person to do nothing, because nobody asked."
+  },
+  {
+    "id": "why-ldl",
+    "q": "why is my LDL high?",
+    "judge": "Does the answer explain the mechanism behind this person's LDL in plain words, using the connections and markers it was given, without turning into a list of things to do?"
+  },
+  {
+    "id": "ferritin-status",
+    "q": "what's my ferritin?",
+    "judge": "Does the answer give this person's own ferritin value with its unit and band and one line on what that means, and stop there, with no plan and no actions?"
   }
 ]

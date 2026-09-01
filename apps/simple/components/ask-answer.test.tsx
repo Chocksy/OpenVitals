@@ -128,6 +128,7 @@ const acts = {
       title: "Selenium 200 µg/day",
       dose: "200 µg · once daily",
       label: "[opinion]",
+      basis: "opinion",
       target: null,
     },
     {
@@ -135,6 +136,8 @@ const acts = {
       title: "Iron bisglycinate",
       dose: "60 mg",
       label: "[science, C]",
+      basis: "science",
+      grade: "C",
       target: null,
     },
   ],
@@ -155,7 +158,8 @@ describe("the Act on it row", () => {
 
   it("prints one Add chip per action, with its dose and its label", () => {
     expect(out).toContain("Add: Selenium 200 µg/day 200 µg · once daily");
-    expect(out).toContain("[opinion]");
+    expect(out).toContain("◐");
+    expect(out).not.toContain("[opinion]");
     expect(out).toContain("Add: Iron bisglycinate 60 mg");
     expect(out.match(/data-act="add"/g)).toHaveLength(2);
   });

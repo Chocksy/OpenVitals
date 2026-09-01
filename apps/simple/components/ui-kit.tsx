@@ -91,26 +91,6 @@ export function Card({
   return <div className={cn("card", className)} {...props} />;
 }
 
-/** science solid, opinion accent, anecdotal dotted. Nothing else hedges. */
-const BASIS_CLASS: Record<string, string> = {
-  science: "border-neutral-900 text-neutral-900",
-  opinion: "border-accent-500 text-accent-600",
-  anecdotal: "border-dashed border-neutral-400 text-neutral-500",
-};
-
-export function BasisChip({ basis }: { basis: string }) {
-  return (
-    <span
-      className={cn(
-        "inline-flex items-center border px-2 py-0.5 t-meta text-[10px] font-bold uppercase tracking-[0.04em]",
-        BASIS_CLASS[basis] ?? BASIS_CLASS.science,
-      )}
-    >
-      {basis}
-    </span>
-  );
-}
-
 /** How settled the evidence behind an action is: established, early, horizon. */
 const TIER_CLASS: Record<string, string> = {
   established: "border-neutral-300 text-neutral-600",

@@ -207,7 +207,9 @@ describe("the arithmetic", () => {
     const table: [Finding["studyType"], number | null, string][] = [
       ["meta", null, "A"],
       ["guideline", null, "A"],
-      ["rct", 40, "B"],
+      ["rct", null, "B"],
+      ["rct", 400, "B"],
+      ["rct", 46, "C"],
       ["cohort", 900, "B"],
       ["cohort", 90, "C"],
       ["cross_sectional", 900, "B"],
@@ -610,6 +612,45 @@ describe("interventions", () => {
     expect(row!.outcomeFeatureId).toBe("metric:tpo_antibodies");
     expect(row!.grade).toBe("B");
     expect(row!.direction).toBe("down");
+  });
+
+  /**
+   * Phase 28a item 4. "Whole system Ayurveda protocol" was offered on the
+   * Hashimoto's card at grade B, beside selenium, off one 46-person
+   * single-centre trial (PMID 39798266). The trial is real; the policy was
+   * wrong to give every "rct" a B whatever its size, and the size never even
+   * reached the grader, because the intervention path hard-coded `n: null`.
+   */
+  it("reads a small trial as a small trial, and says how small", () => {
+    const [small] = toInterventions(
+      CONDITION,
+      FEATURES,
+      [trialPaper],
+      [{ ...finding, n: 46 }],
+      "intervention",
+    );
+    expect(small!.grade).toBe("C");
+    expect(small!.population).toBe("adults with Hashimoto, n = 46");
+
+    const [big] = toInterventions(
+      CONDITION,
+      FEATURES,
+      [trialPaper],
+      [{ ...finding, n: 400 }],
+      "intervention",
+    );
+    expect(big!.grade).toBe("B");
+
+    // an abstract that never printed its size is not evidence of a tiny one
+    const [unknown] = toInterventions(
+      CONDITION,
+      FEATURES,
+      [trialPaper],
+      [finding],
+      "intervention",
+    );
+    expect(unknown!.grade).toBe("B");
+    expect(unknown!.population).toBe("adults with Hashimoto");
   });
 
   it("never lets the horizon search claim more than D or E", () => {

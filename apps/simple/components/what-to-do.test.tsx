@@ -48,7 +48,8 @@ describe("the What to do block", () => {
   it("prints every action with its dose, its label and what it should move", () => {
     expect(out).toContain("Selenium 200 µg/day");
     expect(out).toContain("200 µg · once daily with breakfast");
-    expect(out).toContain("[science]");
+    expect(out).toContain("●");
+    expect(out).not.toContain("[science]");
     expect(out).toContain("measure after 24 weeks");
   });
 

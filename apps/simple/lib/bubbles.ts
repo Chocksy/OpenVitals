@@ -393,7 +393,7 @@ const gainOfTest = (node: GraphNode, moves: Move[]): number =>
   moveOfTest(node, moves)?.gain ?? 0;
 
 /** How far each result of one test would move each condition it touches. */
-function settlesOf(
+export function settlesOf(
   move: Move,
   nameOf: (id: string) => string,
 ): NonNullable<Bubble["settles"]> {

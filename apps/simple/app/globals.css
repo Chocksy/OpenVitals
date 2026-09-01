@@ -489,14 +489,30 @@
   filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.07));
 }
 
-/* Input focus rings — use accent blue */
+/* ── phase 28a item 3: one focus style, and it is quiet ──────────────────
+   The ask box used to answer a click with 2 px of solid ultramarine on a
+   4 px halo, which read as an error state on a page that is mostly white.
+   Focus only has to say "typing goes here": the border darkens one step and
+   a soft glow at 20 % of the accent sits outside it. Keyboard users get the
+   same look through `:focus-visible`, so nothing has two focus rings. */
 input:focus,
 textarea:focus,
-select:focus {
+select:focus,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
   outline: none;
-  box-shadow:
-    0 0 0 2px var(--color-accent-100),
-    0 0 0 4px var(--color-accent-500);
+  border-color: var(--color-neutral-400);
+  box-shadow: 0 0 0 3px
+    color-mix(in srgb, var(--color-accent-500) 20%, transparent);
+}
+
+input,
+textarea,
+select {
+  transition-property: border-color, box-shadow;
+  transition-duration: 150ms;
+  transition-timing-function: ease-out;
 }
 
 ::selection {
