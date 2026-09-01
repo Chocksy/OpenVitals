@@ -9,6 +9,7 @@
 import Link from "next/link";
 import { ChevronRight, FlaskConical } from "lucide-react";
 import { ASK_ID, effectLine, type Ask } from "@/lib/asking";
+import { explainInput, type Finding } from "@/lib/explain";
 import type { Today } from "@/lib/home-data";
 import type { Conclusion, Ledger } from "@/lib/ledger";
 import type { Move } from "@/lib/infogain";
@@ -323,11 +324,11 @@ function EvidenceList({
       <div className={LABEL}>{title}</div>
       <ul className="mt-1 space-y-0.5">
         {lines.map((e) => (
-          <li
-            key={e.rule}
-            className="font-mono text-[11px] tabular-nums text-neutral-600"
-          >
-            {e.input} {e.value} · LR {e.lr} · {e.grade}
+          <li key={e.rule} className="font-body text-[12px] text-neutral-600">
+            {explainInput(e)}{" "}
+            <span className="font-mono text-[11px] tabular-nums text-neutral-400">
+              LR {e.lr} · {e.grade}
+            </span>
           </li>
         ))}
       </ul>
@@ -453,18 +454,14 @@ export function ConclusionCard({
           <span className="font-mono text-[10px] uppercase text-neutral-400">
             For ·{" "}
           </span>
-          {c.for
-            .slice(0, 2)
-            .map((e) => `${e.input} ${e.value}`)
-            .join(", ") || "nothing yet"}
+          {c.for.slice(0, 2).map((e) => explainInput(e)).join(", ") ||
+            "nothing yet"}
           <br />
           <span className="font-mono text-[10px] uppercase text-neutral-400">
             Against ·{" "}
           </span>
-          {c.against
-            .slice(0, 2)
-            .map((e) => `${e.input} ${e.value}`)
-            .join(", ") || "nothing yet"}
+          {c.against.slice(0, 2).map((e) => explainInput(e)).join(", ") ||
+            "nothing yet"}
         </p>
       )}
 
@@ -569,6 +566,43 @@ export function ConclusionCard({
 }
 
 /* ── the improved card and the quiet line ─────────────────────────────── */
+
+/**
+ * "What your genome changed": the three sentences the upload page already
+ * writes, on the ledger for a fortnight after the file landed, with a link to
+ * all of them. The same card carries a document's accepted items.
+ */
+export function FindingsCard({ finding }: { finding: Finding }) {
+  return (
+    <Card className="p-4">
+      <div className="flex items-baseline justify-between gap-3">
+        <div className={LABEL}>{finding.title}</div>
+        <span className="font-mono text-[10px] uppercase tracking-[0.04em] text-neutral-400">
+          {formatDate(finding.at)}
+        </span>
+      </div>
+      <ul className="mt-2 space-y-2">
+        {finding.lines.map((line) => (
+          <li key={line.label}>
+            <span className="mr-2 inline-block border border-accent-200 bg-accent-50 px-1.5 py-px font-mono text-[10px] uppercase tracking-[0.04em] text-accent-600">
+              {line.label}
+            </span>
+            <span className="font-body text-[13px] leading-relaxed text-neutral-700">
+              {line.text}
+            </span>
+          </li>
+        ))}
+      </ul>
+      <Link
+        href={finding.href}
+        className="mt-3 inline-flex items-center gap-1 font-mono text-[11px] text-neutral-400 hover:text-neutral-700"
+      >
+        see all {finding.total}
+        <ChevronRight className="size-3" />
+      </Link>
+    </Card>
+  );
+}
 
 export function ImprovedCard({ improved }: { improved: Ledger["improved"] }) {
   if (!improved.length) return null;

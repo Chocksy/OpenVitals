@@ -5,18 +5,29 @@
  * ponytail: the counters, the score and the attention list moved into
  * `lib/ledger.ts` with the phase-12 rewrite, so this file is one function now.
  */
-import { and, desc, eq, isNotNull } from "drizzle-orm";
+import { and, desc, eq, gte, inArray, isNotNull } from "drizzle-orm";
 import {
   checkinPosts,
+  documentItems,
+  genomeVariants,
   getDb,
   lifeEvents,
   profileFacts,
   profileFactHistory,
   protocolItems,
   readings,
+  uploads,
   type CheckinPost,
 } from "@/db";
 import { buildModelInput } from "./coverage";
+import {
+  documentFinding,
+  genomeFinding,
+  FINDING_DAYS,
+  type AcceptedItem,
+  type Finding,
+} from "./explain";
+import { callGenome } from "./genome";
 import type { MetricRow } from "./data";
 import { tagsOfEvent } from "./facts";
 import { catalogFor } from "./hkb";
@@ -195,4 +206,100 @@ export async function buildToday(userId: string): Promise<Today> {
         }
       : null,
   };
+}
+
+/**
+ * The cards a fresh upload earns: "What your genome changed" for a fortnight
+ * after a genome file, the same for a document. The picking and the window are
+ * in `lib/explain.ts` and tested there; this function only fetches.
+ *
+ * ponytail: one query for the recent uploads, then one query each for what
+ * they carry. Nothing is stored: the card is a view over the upload date.
+ */
+export async function recentFindings(
+  userId: string,
+  today: string,
+): Promise<Finding[]> {
+  const db = getDb();
+  const since = new Date(Date.parse(today) - FINDING_DAYS * 86400000);
+  const recent = await db
+    .select({
+      id: uploads.id,
+      kind: uploads.kind,
+      createdAt: uploads.createdAt,
+      docMeta: uploads.docMeta,
+    })
+    .from(uploads)
+    .where(
+      and(
+        eq(uploads.userId, userId),
+        eq(uploads.status, "done"),
+        isNotNull(uploads.createdAt),
+        gte(uploads.createdAt, since),
+        inArray(uploads.kind, ["genome", "document"]),
+      ),
+    )
+    .orderBy(desc(uploads.createdAt));
+  if (!recent.length) return [];
+
+  const dayOf = (d: Date | null) => (d ?? new Date()).toISOString().slice(0, 10);
+  const out: Finding[] = [];
+
+  const genome = recent.find((u) => u.kind === "genome");
+  if (genome) {
+    const variants = await db
+      .select()
+      .from(genomeVariants)
+      .where(
+        and(
+          eq(genomeVariants.userId, userId),
+          eq(genomeVariants.uploadId, genome.id),
+        ),
+      );
+    const finding = genomeFinding(
+      { id: genome.id, at: dayOf(genome.createdAt) },
+      callGenome(variants),
+      today,
+    );
+    if (finding) out.push(finding);
+  }
+
+  const docs = recent.filter((u) => u.kind === "document");
+  if (docs.length) {
+    const items = await db
+      .select()
+      .from(documentItems)
+      .where(
+        and(
+          eq(documentItems.userId, userId),
+          eq(documentItems.status, "accepted"),
+          inArray(
+            documentItems.uploadId,
+            docs.map((d) => d.id),
+          ),
+        ),
+      );
+    for (const doc of docs) {
+      const mine: AcceptedItem[] = items
+        .filter((i) => i.uploadId === doc.id)
+        .map((i) => {
+          const p = i.payload as Record<string, unknown>;
+          const moved = typeof p.icd10 === "string" ? p.icd10 : undefined;
+          return {
+            kind: i.kind,
+            text: String(p.text ?? p.name ?? i.excerpt ?? ""),
+            ...(moved ? { moved: `${i.kind} · ${moved}` } : {}),
+          };
+        })
+        .filter((i) => i.text.trim() !== "");
+      const finding = documentFinding(
+        { id: doc.id, at: dayOf(doc.createdAt), docType: doc.docMeta?.docType },
+        mine,
+        today,
+      );
+      if (finding) out.push(finding);
+    }
+  }
+
+  return out;
 }

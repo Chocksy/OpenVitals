@@ -21,6 +21,7 @@ import type { RangeBarProps } from "@/components/range-bar";
 import { recordCalibration } from "./calibration";
 import { buildModelInput, type ModelInput } from "./coverage";
 import { eventConfounders } from "./facts";
+import { explainKey } from "./explain";
 import { getMetricRows, type MetricRow, type Point } from "./data";
 import { SYSTEMS } from "./graph";
 import { graphState, worstMember } from "./graph-state";
@@ -855,8 +856,8 @@ export async function buildLedger(
       matters: mattersOf(h),
       for: h.for,
       against: h.against,
-      missing: h.missing.map((x) => x.input),
-      confounded: h.confounded.map((c) => `${c.input} (${c.tag})`),
+      missing: h.missing.map((x) => explainKey(x.input)),
+      confounded: h.confounded.map((c) => `${explainKey(c.input)} (${c.tag})`),
       inputs: [
         ...codes.flatMap((code) => {
           const r = latestReading.get(code);
@@ -865,7 +866,7 @@ export async function buildLedger(
             {
               kind: "reading" as const,
               id: r.id,
-              label: byCode.get(code)?.name ?? pretty(code),
+              label: byCode.get(code)?.name ?? explainKey(code),
               value: `${r.value ?? "?"}${r.unit ? ` ${r.unit}` : ""}`,
               date: r.observedAt,
             },
@@ -878,7 +879,7 @@ export async function buildLedger(
             {
               kind: "fact" as const,
               id: key,
-              label: pretty(key),
+              label: explainKey(key),
               value: Array.isArray(v) ? v.join(", ") : String(v),
             },
           ];

@@ -1,6 +1,19 @@
 import { describe, expect, it } from "vitest";
 import type { MetricRow } from "./data";
-import type { HState, HypothesisResult } from "./hypotheses";
+import { GENOME_CATALOG } from "./genome-catalog";
+import { CATALOG } from "./hkb-catalog";
+import {
+  documentFinding,
+  explainInput,
+  explainKey,
+  genomeEffect,
+  genomeFinding,
+} from "./explain";
+import type {
+  EvidenceRule,
+  HState,
+  HypothesisResult,
+} from "./hypotheses";
 import {
   beliefsOf,
   byRank,
@@ -453,5 +466,206 @@ describe("the risk grammar", () => {
         kind: "risk",
       }),
     ).toBe("Some new score: high");
+  });
+});
+
+/* ── phase 24c: the engine's inputs in English ────────────────────────── */
+
+describe("explainInput", () => {
+  const line = (input: string, value: string, lr = 2) => ({
+    input,
+    value,
+    lr,
+  });
+
+  it("names a metric and keeps its value and unit", () => {
+    expect(explainInput(line("hba1c", "5.6 %"))).toBe("HbA1c 5.6 %");
+    expect(explainInput(line("apolipoprotein_b", "99 mg/dL"))).toBe(
+      "ApoB 99 mg/dL",
+    );
+  });
+
+  it("spells out a derived number", () => {
+    expect(explainInput(line("tgHdl", "2.12"))).toBe(
+      "triglyceride/HDL ratio 2.12",
+    );
+    expect(explainInput(line("homaIr", "3.1"))).toBe("HOMA-IR 3.1");
+  });
+
+  it("gives a fact the label the interview asks it by", () => {
+    expect(explainInput(line("family_history", "no"))).toBe(
+      "Family history: no",
+    );
+    expect(explainInput(line("sym_energy", "Yes"))).toBe(
+      "Tired most days: Yes",
+    );
+  });
+
+  it("says what a genotype does, because a genotype alone says nothing", () => {
+    expect(explainInput(line("genome:tcf7l2", "CT", 1.4))).toBe(
+      "TCF7L2 CT raises the prior ×1.4",
+    );
+    expect(explainInput(line("genome:hla_dq", "no DQ2.5 or DQ8 tag", 0.1))).toBe(
+      "HLA no DQ2.5 or DQ8 tag lowers the prior ×0.1",
+    );
+    expect(explainInput(line("genome:apoe", "e3/e3", 1))).toBe("APOE e3/e3");
+  });
+
+  it("turns a chained hypothesis into a state and a percentage", () => {
+    expect(explainInput(line("hypothesis:insulin_resistance", "0.637"))).toBe(
+      "insulin resistance likely (64 %)",
+    );
+    expect(
+      explainInput(line("hypothesis:hypertension", "0.3"), () =>
+        "High blood pressure",
+      ),
+    ).toBe("High blood pressure possible (30 %)");
+  });
+
+  it("reads a life event off the timeline", () => {
+    expect(explainInput(line("event:pregnancy", "pregnancy, surgery"))).toBe(
+      "pregnancy in your timeline",
+    );
+  });
+
+  it("falls back to the code as words, never as a code", () => {
+    expect(explainInput(line("some_new_marker", "7"))).toBe(
+      "some new marker 7",
+    );
+  });
+});
+
+describe("no FOR / AGAINST string carries an engine token", () => {
+  /** `hypothesis:`, `genome:`, `fact:`, or any underscore-joined code. */
+  const TOKEN = /hypothesis:|genome:|fact:|[a-z0-9]+_[a-z0-9]+/;
+
+  /** The label `resolve` hands the card, for every rule in the catalog. */
+  const labelOf = (input: EvidenceRule["input"]): string =>
+    input.metric ??
+    input.derived ??
+    (input.hypothesis ? `hypothesis:${input.hypothesis}` : null) ??
+    (input.event ? `event:${input.event}` : null) ??
+    input.fact ??
+    "";
+
+  it("holds for every evidence rule the catalog ships", () => {
+    const bad: string[] = [];
+    for (const h of CATALOG)
+      for (const rule of h.evidence) {
+        const input = labelOf(rule.input);
+        if (!input) continue;
+        for (const lr of [rule.lr, rule.lrNeg ?? 1]) {
+          const text = explainInput({ input, value: "0.5", lr });
+          if (TOKEN.test(text)) bad.push(`${input} → ${text}`);
+        }
+      }
+    expect(bad).toEqual([]);
+  });
+
+  it("holds for the labels the missing and discounted lists print", () => {
+    const bad: string[] = [];
+    for (const h of CATALOG)
+      for (const rule of h.evidence) {
+        const input = labelOf(rule.input);
+        if (!input) continue;
+        const text = explainKey(input);
+        if (TOKEN.test(text)) bad.push(`${input} → ${text}`);
+      }
+    expect(bad).toEqual([]);
+  });
+});
+
+describe("the genome card", () => {
+  const rowOf = (id: string) => GENOME_CATALOG.find((r) => r.id === id)!;
+  const called = (id: string, call: string, meaning: string) => ({
+    row: rowOf(id),
+    result: { genotype: "x", call, meaning },
+  });
+
+  /** Three calls that move something, one that does not, in catalog order. */
+  const results = [
+    called("apoe", "e3/e3", "The common pair."),
+    called("hfe", "C282Y homozygous", "The genotype behind haemochromatosis."),
+    called("hla_dq", "no DQ2.5 or DQ8 tag", "Coeliac disease is essentially excluded."),
+    called("tcf7l2", "CT", "About 40 % above background risk."),
+    called("fto", "AA", "Roughly 2.4 kg more body weight."),
+  ];
+  const upload = { id: "u1", at: "2026-08-28" };
+
+  it("lists the three calls with the biggest effect, not the first three", () => {
+    const card = genomeFinding(upload, results, "2026-09-01")!;
+    expect(card.title).toBe("What your genome changed");
+    expect(card.lines.map((l) => l.label)).toEqual([
+      "HFE C282Y homozygous",
+      "HLA no DQ2.5 or DQ8 tag",
+      "FTO AA",
+    ]);
+    expect(card.lines[2]!.text).toBe("Roughly 2.4 kg more body weight.");
+  });
+
+  it("counts every call behind the see-all link, and links to the upload", () => {
+    const card = genomeFinding(upload, results, "2026-09-01")!;
+    expect(card.total).toBe(5);
+    expect(card.href).toBe("/uploads/u1");
+  });
+
+  it("stays for fourteen days and then goes", () => {
+    expect(genomeFinding(upload, results, "2026-08-28")).not.toBeNull();
+    expect(genomeFinding(upload, results, "2026-09-11")).not.toBeNull();
+    expect(genomeFinding(upload, results, "2026-09-12")).toBeNull();
+  });
+
+  it("says nothing when the array called nothing", () => {
+    expect(
+      genomeFinding(upload, [{ row: rowOf("apoe"), result: null }], "2026-09-01"),
+    ).toBeNull();
+  });
+
+  it("scores a call that excludes a condition above one that nudges a prior", () => {
+    const exclude = genomeEffect(rowOf("hla_dq"), {
+      genotype: "x",
+      call: "no DQ2.5 or DQ8 tag",
+      meaning: "",
+    });
+    const nudge = genomeEffect(rowOf("tcf7l2"), {
+      genotype: "x",
+      call: "CT",
+      meaning: "",
+    });
+    const nothing = genomeEffect(rowOf("apoe"), {
+      genotype: "x",
+      call: "e3/e3",
+      meaning: "",
+    });
+    expect(exclude).toBeGreaterThan(nudge);
+    expect(nudge).toBeGreaterThan(nothing);
+    expect(nothing).toBe(0);
+  });
+});
+
+describe("the document card", () => {
+  const upload = { id: "d1", at: "2026-08-30", docType: "discharge" };
+  const items = [
+    { kind: "recommendation", text: "Repeat the ultrasound in a year." },
+    { kind: "finding", text: "Grade 2 hepatic steatosis." },
+    { kind: "diagnosis", text: "Fatty liver disease", moved: "diagnosis · K76.0" },
+    { kind: "medication", text: "Metformin 500 mg" },
+  ];
+
+  it("names the document and reads diagnoses before recommendations", () => {
+    const card = documentFinding(upload, items, "2026-09-01")!;
+    expect(card.title).toBe("What your discharge note changed");
+    expect(card.lines.map((l) => l.text)).toEqual([
+      "Fatty liver disease",
+      "Grade 2 hepatic steatosis.",
+      "Metformin 500 mg",
+    ]);
+    expect(card.lines[0]!.label).toBe("diagnosis · K76.0");
+    expect(card.total).toBe(4);
+  });
+
+  it("keeps quiet when nothing was accepted, and after a fortnight", () => {
+    expect(documentFinding(upload, [], "2026-09-01")).toBeNull();
+    expect(documentFinding(upload, items, "2026-09-14")).toBeNull();
   });
 });

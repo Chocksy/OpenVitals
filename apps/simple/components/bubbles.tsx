@@ -600,7 +600,7 @@ function Detail({
               <ul className="mt-1 space-y-1">
                 {belief.for.map((f) => (
                   <li key={f.rule} className="font-body text-[12px]">
-                    {f.input} {f.value}
+                    {f.text}
                     <span className="ml-1 font-mono text-[11px] text-neutral-400">
                       LR {f.lr} · {f.grade}
                     </span>
@@ -619,7 +619,7 @@ function Detail({
                     key={f.rule}
                     className="font-body text-[12px] text-neutral-500"
                   >
-                    {f.input} {f.value}
+                    {f.text}
                     <span className="ml-1 font-mono text-[11px] text-neutral-400">
                       LR {f.lr} · {f.grade}
                     </span>

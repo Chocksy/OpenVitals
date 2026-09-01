@@ -1,7 +1,12 @@
 import { requireUserId } from "@/lib/auth";
 import { getMetricRows } from "@/lib/data";
 import { getGoals } from "@/lib/daily-data";
-import { buildToday, buildTrend, type TrendMetric } from "@/lib/home-data";
+import {
+  buildToday,
+  buildTrend,
+  recentFindings,
+  type TrendMetric,
+} from "@/lib/home-data";
 import { localDay } from "@/lib/daily";
 import { buildLedger, isLoud } from "@/lib/ledger";
 import { askSurfaces } from "@/lib/asking";
@@ -12,6 +17,7 @@ import {
   Cockpit,
   ConclusionCard,
   EmptyHome,
+  FindingsCard,
   ImprovedCard,
   KeyTrends,
   QuietLine,
@@ -28,14 +34,17 @@ const KEY_TRENDS = 4;
 export default async function Home() {
   const userId = await requireUserId();
 
-  const [ledger, report, rows, goals, catalog, today] = await Promise.all([
-    buildLedger(userId),
-    latestReport(userId),
-    getMetricRows(userId),
-    getGoals(userId),
-    catalogFor(userId),
-    buildToday(userId),
-  ]);
+  const day = localDay();
+  const [ledger, report, rows, goals, catalog, today, findings] =
+    await Promise.all([
+      buildLedger(userId),
+      latestReport(userId),
+      getMetricRows(userId),
+      getGoals(userId),
+      catalogFor(userId),
+      buildToday(userId),
+      recentFindings(userId, day),
+    ]);
 
   if (rows.length === 0) return <EmptyHome />;
 
@@ -118,7 +127,7 @@ export default async function Home() {
     <div className="space-y-8">
       <TodayCard
         today={today}
-        day={localDay()}
+        day={day}
         ask={plan.ask}
         askOptions={plan.ask ? optionsOf(plan.ask.key) : []}
       />
@@ -140,9 +149,12 @@ export default async function Home() {
         </section>
       )}
 
-      {rest.length > 0 && (
+      {(rest.length > 0 || findings.length > 0) && (
         <section className="space-y-2">
           <SectionHeader title="The ledger" />
+          {findings.map((f) => (
+            <FindingsCard key={f.id} finding={f} />
+          ))}
           {loud.map((c) => card(c))}
           <ImprovedCard improved={ledger.improved} />
           {quietTail.map((c) => card(c))}

@@ -11,6 +11,7 @@ import {
   type ActiveEdge,
 } from "@/lib/graph-state";
 import { NODES, SYSTEMS, type Relation, type SystemId } from "@/lib/graph";
+import { loadGenome } from "@/lib/genome";
 import { catalogFor } from "@/lib/hkb";
 import { scoreHypotheses, type Lens } from "@/lib/hypotheses";
 import { nextMoves } from "@/lib/infogain";
@@ -239,7 +240,10 @@ export default async function GraphPage({
 
   // The bubbles: the mockup's picture, over this person's own graph.
   if (!systems) {
-    const catalog = await catalogFor(userId);
+    const [catalog, genome] = await Promise.all([
+      catalogFor(userId),
+      loadGenome(userId),
+    ]);
     const bubbles = buildBubbles({
       graph: loaded,
       state: graph,
@@ -248,6 +252,7 @@ export default async function GraphPage({
       moves: nextMoves(input, catalog, { lens }),
       lens,
       matched: matchedIds,
+      genome,
       showRuledOut,
     });
     const ruledHref = `/graph?${new URLSearchParams({

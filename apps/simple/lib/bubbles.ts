@@ -20,6 +20,11 @@ import {
   type GraphNode,
   type Relation,
 } from "./graph";
+import {
+  explainInput,
+  explainKey,
+  type CalledRow,
+} from "./explain";
 import { evaluateWhen, type GraphState } from "./graph-state";
 import {
   isRiskState,
@@ -127,6 +132,20 @@ export interface BubbleLink {
   source: "graph" | "belief";
 }
 
+/**
+ * One line of evidence for the panel. `text` is the sentence `explainInput`
+ * writes; the panel is a client component, so it is written here on the server
+ * rather than pulling the whole catalog into the browser bundle.
+ */
+export interface EvidenceText {
+  rule: string;
+  input: string;
+  value: string;
+  lr: number;
+  grade: Grade;
+  text: string;
+}
+
 /** Everything the panel prints about one condition, already computed. */
 export interface BubbleBelief {
   id: string;
@@ -140,20 +159,8 @@ export interface BubbleBelief {
   summary: string;
   /** the lens weight 0..3 that sized the bubble */
   weight: number;
-  for: {
-    rule: string;
-    input: string;
-    value: string;
-    lr: number;
-    grade: Grade;
-  }[];
-  against: {
-    rule: string;
-    input: string;
-    value: string;
-    lr: number;
-    grade: Grade;
-  }[];
+  for: EvidenceText[];
+  against: EvidenceText[];
   missing: string[];
   /** the moves that would change this one, best first */
   moves: {
@@ -312,6 +319,8 @@ export interface BubbleOptions {
   lens: Lens;
   /** the ids of the patterns that matched, for `evaluateWhen` */
   matched: Set<string>;
+  /** this person's genome calls, so a gene bubble prints its own sentence */
+  genome?: CalledRow[];
   /** draw the conditions the engine scored and dismissed too */
   showRuledOut?: boolean;
   limit?: number;
@@ -438,6 +447,20 @@ export function buildBubbles(opts: BubbleOptions): BubbleGraph {
     )
     .slice(0, limit);
 
+  /**
+   * The catalog's own sentence about this person's call, which is the best
+   * writing in the app and used to live only on the upload page.
+   */
+  const genomeByFact = new Map(
+    (opts.genome ?? [])
+      .filter((r) => r.result)
+      .map((r) => [r.row.factKey, r.result!.meaning]),
+  );
+  const geneSentence = (node: GraphNode): string | undefined =>
+    node.kind === "gene"
+      ? node.codes?.map((k) => genomeByFact.get(k)).find(Boolean)
+      : undefined;
+
   const nodes: Bubble[] = [];
   const drawn = new Set<string>();
 
@@ -463,7 +486,7 @@ export function buildBubbles(opts: BubbleOptions): BubbleGraph {
       id: node.id,
       kind: KIND_OF[node.kind],
       name: node.name,
-      what: hypothesis?.summary ?? node.note ?? "",
+      what: hypothesis?.summary ?? geneSentence(node) ?? node.note ?? "",
       imp: round2(imp),
       st,
       ...(code ? { code } : {}),
@@ -598,6 +621,28 @@ export function buildBubbles(opts: BubbleOptions): BubbleGraph {
         to: hit!.to,
       }));
 
+  const conditionName = new Map(beliefs.map((b) => [b.id, displayNameOf(b)]));
+  const evidenceText = ({
+    rule,
+    input,
+    value,
+    lr,
+    grade,
+  }: {
+    rule: string;
+    input: string;
+    value: string;
+    lr: number;
+    grade: Grade;
+  }): EvidenceText => ({
+    rule,
+    input,
+    value,
+    lr,
+    grade,
+    text: explainInput({ input, value, lr }, (id) => conditionName.get(id)),
+  });
+
   const panel: BubbleBelief[] = drawnBeliefs.map((b) => ({
     id: b.id,
     name: displayNameOf(b),
@@ -607,21 +652,9 @@ export function buildBubbles(opts: BubbleOptions): BubbleGraph {
     state: b.state,
     summary: b.summary,
     weight: weightOf(b),
-    for: b.for.slice(0, 6).map(({ rule, input, value, lr, grade }) => ({
-      rule,
-      input,
-      value,
-      lr,
-      grade,
-    })),
-    against: b.against.slice(0, 4).map(({ rule, input, value, lr, grade }) => ({
-      rule,
-      input,
-      value,
-      lr,
-      grade,
-    })),
-    missing: b.missing.slice(0, 5).map((x) => x.input),
+    for: b.for.slice(0, 6).map(evidenceText),
+    against: b.against.slice(0, 4).map(evidenceText),
+    missing: b.missing.slice(0, 5).map((x) => explainKey(x.input)),
     moves: movesFor(b.id),
   }));
 

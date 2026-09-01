@@ -2151,7 +2151,9 @@ export const correlationGroupOf = (
  */
 export const MIN_PRIOR = 1e-8;
 
-function stateFor(p: number, confirmed: boolean): HState {
+/** The five bands a posterior reads as. Exported so the pages can say the
+ *  same word about a chained hypothesis that the card says about its own. */
+export function stateFor(p: number, confirmed: boolean): HState {
   if (p < 0.05) return "ruled_out";
   if (p < 0.25) return "unlikely";
   if (p < 0.6) return "possible";
