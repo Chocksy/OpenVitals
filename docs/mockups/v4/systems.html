@@ -1,0 +1,385 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Systems — OpenVitals v4</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,300,0,0"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="v4.css" />
+  </head>
+  <body>
+    <button class="themebtn" onclick="document.documentElement.classList.toggle('dark')">
+      <span class="ms i16">dark_mode</span> Dark
+    </button>
+    <main class="doc">
+      <header class="doc-head">
+        <h1>Systems — state, not links</h1>
+        <p>
+          Twelve instruments on a panel. Each one reads out its own state
+          word in its own colour, the marker driving it, that marker's value
+          and unit, and a 2 px tick for the direction. No chevrons, no
+          underlines, no arrows: the whole tile is tappable and none of it
+          looks like a link.
+        </p>
+      </header>
+      <nav class="crumbs">
+        <a href="index.html">Index</a>
+        <a href="home.html">Home</a>
+        <a href="marker.html">Marker</a>
+        <a class="here" href="systems.html">Systems</a>
+        <a href="shell.html">Shell</a>
+        <a href="app.html">App</a>
+        <a href="blood.html">Blood</a>
+        <a href="plan-draw.html">Plan a draw</a>
+        <a href="genome.html">Genome</a>
+        <a href="chat.html">Chat</a>
+        <a href="explorations.html">Explorations</a>
+      </nav>
+
+
+      <section class="sec">
+        <div class="sec-head"><span class="n">01</span><h2>Desktop · 4 × 3</h2></div>
+        <p class="lede">
+          Five off, six borderline, one never measured. Sex hormones is a
+          visibly empty tile, not a zero and not a hidden row.
+        </p>
+        <div class="screen">
+          <div class="sysgrid">
+            <div class="systile off">
+              <div class="sname">Thyroid</div>
+              <div class="sstate">Off</div>
+              <div class="sval">
+                <div>
+                  <b>320<em>IU/mL</em></b>
+                  <div class="smk">TPO antibodies</div>
+                </div>
+                  <span class="tick down" title="412 on Dec 9 → 320 on Aug 1"></span>
+              </div>
+            </div>
+            <div class="systile off">
+              <div class="sname">Vitamins</div>
+              <div class="sstate">Off</div>
+              <div class="sval">
+                <div>
+                  <b>19<em>ng/mL</em></b>
+                  <div class="smk">Vitamin D</div>
+                </div>
+                  <span class="tick nocmp" title="only one draw carries it"></span>
+              </div>
+            </div>
+            <div class="systile off">
+              <div class="sname">Liver</div>
+              <div class="sstate">Off</div>
+              <div class="sval">
+                <div>
+                  <b>34<em>U/L</em></b>
+                  <div class="smk">ALT</div>
+                </div>
+                  <span class="tick down" title="41 on Dec 9 → 34 on Aug 1"></span>
+              </div>
+            </div>
+            <div class="systile off">
+              <div class="sname">Lipids</div>
+              <div class="sstate">Off</div>
+              <div class="sval">
+                <div>
+                  <b>142<em>mg/dL</em></b>
+                  <div class="smk">LDL cholesterol</div>
+                </div>
+                  <span class="tick down" title="168 on Dec 9 → 142 on Aug 1"></span>
+              </div>
+            </div>
+            <div class="systile off">
+              <div class="sname">Lifestyle</div>
+              <div class="sstate">Off</div>
+              <div class="sval">
+                <div>
+                  <b>128<em>mmHg</em></b>
+                  <div class="smk">Systolic BP</div>
+                </div>
+                  <span class="tick nocmp" title="only one draw carries it"></span>
+              </div>
+            </div>
+            <div class="systile border">
+              <div class="sname">Blood sugar and insulin</div>
+              <div class="sstate">Borderline</div>
+              <div class="sval">
+                <div>
+                  <b>5.6<em>%</em></b>
+                  <div class="smk">HbA1c</div>
+                </div>
+                  <span class="tick nocmp" title="only one draw carries it"></span>
+              </div>
+            </div>
+            <div class="systile border">
+              <div class="sname">Iron</div>
+              <div class="sstate">Borderline</div>
+              <div class="sval">
+                <div>
+                  <b>22<em>ng/mL</em></b>
+                  <div class="smk">Ferritin</div>
+                </div>
+                  <span class="tick nocmp" title="only one draw carries it"></span>
+              </div>
+            </div>
+            <div class="systile border">
+              <div class="sname">Kidneys</div>
+              <div class="sstate">Borderline</div>
+              <div class="sval">
+                <div>
+                  <b>0.95<em>mg/dL</em></b>
+                  <div class="smk">Creatinine</div>
+                </div>
+                  <span class="tick nocmp" title="only one draw carries it"></span>
+              </div>
+            </div>
+            <div class="systile border">
+              <div class="sname">Stress hormones</div>
+              <div class="sstate">Borderline</div>
+              <div class="sval">
+                <div>
+                  <b>16.29<em>mcg/dL</em></b>
+                  <div class="smk">Cortisol</div>
+                </div>
+                  <span class="tick nocmp" title="only one draw carries it"></span>
+              </div>
+            </div>
+            <div class="systile border">
+              <div class="sname">Inflammation</div>
+              <div class="sstate">Borderline</div>
+              <div class="sval">
+                <div>
+                  <b>3.4<em>mg/L</em></b>
+                  <div class="smk">hs-CRP</div>
+                </div>
+                  <span class="tick nocmp" title="only one draw carries it"></span>
+              </div>
+            </div>
+            <div class="systile border">
+              <div class="sname">Blood count</div>
+              <div class="sstate">Borderline</div>
+              <div class="sval">
+                <div>
+                  <b>5.6<em>M/uL</em></b>
+                  <div class="smk">Red cell count</div>
+                </div>
+                  <span class="tick nocmp" title="only one draw carries it"></span>
+              </div>
+            </div>
+            <div class="systile empty">
+              <div class="sname">Sex hormones</div>
+              <div class="sstate">Never measured</div>
+              <div class="sval">
+                <div>
+                  <b>—</b>
+                  <div class="smk">no marker yet</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="sig-legend" style="border-top: 0; margin-top: 21px">
+            <span><span class="tick down"></span> down since the last draw that carried it</span>
+            <span><span class="tick up"></span> up since the last draw that carried it</span>
+            <span><span class="tick nocmp"></span> no second draw carries this marker yet</span>
+          </div>
+        </div>
+        <p class="cap">
+          The tick is only drawn where two draws carry the same marker. TPO
+          (412 → 320), ALT (41 → 34) and LDL (168 → 142) have a second
+          reading on the Dec 9 2025 draw. The other nine have one value, so
+          they get the dashed "no comparison" tick instead of a fake flat
+          line.
+        </p>
+      </section>
+
+      <section class="sec">
+        <div class="sec-head"><span class="n">02</span><h2>390 px · 2 × 6</h2></div>
+        <p class="lede">
+          Same tile, two columns, nothing dropped except the row of legend
+          words, which moves under the grid.
+        </p>
+        <div class="phones">
+          <div>
+            <div class="phone">
+              <div class="statusbar">
+                <span>9:41</span>
+                <span class="rt">
+                  <span class="ms i16">network_cell</span>
+                  <span class="ms i16">wifi</span>
+                  <span class="ms i16">battery_full_alt</span>
+                </span>
+              </div>
+              <div class="screenhead">
+                <h2>Systems</h2>
+                <span class="ms i24">tune</span>
+              </div>
+              <p class="sentence">Five systems are off. Seven are not.</p>
+              <div class="sysgrid two">
+            <div class="systile off">
+              <div class="sname">Thyroid</div>
+              <div class="sstate">Off</div>
+              <div class="sval">
+                <div>
+                  <b>320<em>IU/mL</em></b>
+                  <div class="smk">TPO antibodies</div>
+                </div>
+                  <span class="tick down" title="412 on Dec 9 → 320 on Aug 1"></span>
+              </div>
+            </div>
+            <div class="systile off">
+              <div class="sname">Vitamins</div>
+              <div class="sstate">Off</div>
+              <div class="sval">
+                <div>
+                  <b>19<em>ng/mL</em></b>
+                  <div class="smk">Vitamin D</div>
+                </div>
+                  <span class="tick nocmp" title="only one draw carries it"></span>
+              </div>
+            </div>
+            <div class="systile off">
+              <div class="sname">Liver</div>
+              <div class="sstate">Off</div>
+              <div class="sval">
+                <div>
+                  <b>34<em>U/L</em></b>
+                  <div class="smk">ALT</div>
+                </div>
+                  <span class="tick down" title="41 on Dec 9 → 34 on Aug 1"></span>
+              </div>
+            </div>
+            <div class="systile off">
+              <div class="sname">Lipids</div>
+              <div class="sstate">Off</div>
+              <div class="sval">
+                <div>
+                  <b>142<em>mg/dL</em></b>
+                  <div class="smk">LDL cholesterol</div>
+                </div>
+                  <span class="tick down" title="168 on Dec 9 → 142 on Aug 1"></span>
+              </div>
+            </div>
+            <div class="systile off">
+              <div class="sname">Lifestyle</div>
+              <div class="sstate">Off</div>
+              <div class="sval">
+                <div>
+                  <b>128<em>mmHg</em></b>
+                  <div class="smk">Systolic BP</div>
+                </div>
+                  <span class="tick nocmp" title="only one draw carries it"></span>
+              </div>
+            </div>
+            <div class="systile border">
+              <div class="sname">Blood sugar and insulin</div>
+              <div class="sstate">Borderline</div>
+              <div class="sval">
+                <div>
+                  <b>5.6<em>%</em></b>
+                  <div class="smk">HbA1c</div>
+                </div>
+                  <span class="tick nocmp" title="only one draw carries it"></span>
+              </div>
+            </div>
+            <div class="systile border">
+              <div class="sname">Iron</div>
+              <div class="sstate">Borderline</div>
+              <div class="sval">
+                <div>
+                  <b>22<em>ng/mL</em></b>
+                  <div class="smk">Ferritin</div>
+                </div>
+                  <span class="tick nocmp" title="only one draw carries it"></span>
+              </div>
+            </div>
+            <div class="systile border">
+              <div class="sname">Kidneys</div>
+              <div class="sstate">Borderline</div>
+              <div class="sval">
+                <div>
+                  <b>0.95<em>mg/dL</em></b>
+                  <div class="smk">Creatinine</div>
+                </div>
+                  <span class="tick nocmp" title="only one draw carries it"></span>
+              </div>
+            </div>
+            <div class="systile border">
+              <div class="sname">Stress hormones</div>
+              <div class="sstate">Borderline</div>
+              <div class="sval">
+                <div>
+                  <b>16.29<em>mcg/dL</em></b>
+                  <div class="smk">Cortisol</div>
+                </div>
+                  <span class="tick nocmp" title="only one draw carries it"></span>
+              </div>
+            </div>
+            <div class="systile border">
+              <div class="sname">Inflammation</div>
+              <div class="sstate">Borderline</div>
+              <div class="sval">
+                <div>
+                  <b>3.4<em>mg/L</em></b>
+                  <div class="smk">hs-CRP</div>
+                </div>
+                  <span class="tick nocmp" title="only one draw carries it"></span>
+              </div>
+            </div>
+            <div class="systile border">
+              <div class="sname">Blood count</div>
+              <div class="sstate">Borderline</div>
+              <div class="sval">
+                <div>
+                  <b>5.6<em>M/uL</em></b>
+                  <div class="smk">Red cell count</div>
+                </div>
+                  <span class="tick nocmp" title="only one draw carries it"></span>
+              </div>
+            </div>
+            <div class="systile empty">
+              <div class="sname">Sex hormones</div>
+              <div class="sstate">Never measured</div>
+              <div class="sval">
+                <div>
+                  <b>—</b>
+                  <div class="smk">no marker yet</div>
+                </div>
+              </div>
+            </div>
+              </div>
+              <div class="sig-legend" style="border-top: 0">
+                <span><span class="tick down"></span> down since the last draw</span>
+                <span><span class="tick nocmp"></span> only one draw carries it</span>
+              </div>
+              <div class="tabbar">
+                <a class="on" href="#"><span class="ms i24 fill">home</span>Home</a>
+                <a href="#"><span class="ms i24">monitoring</span>Body</a>
+                <span class="plusslot"><button><span class="ms i24">add</span></button></span>
+                <a href="#"><span class="ms i24">water_drop</span>Blood</a>
+                <a href="#"><span class="ms i24">event_note</span>Plan</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="sec">
+        <div class="sec-head"><span class="n">03</span><h2>Where the numbers come from</h2></div>
+        <p class="cap">
+          All twelve systems and their driving markers are the test user's
+          real data as of Sep 1 2026: TPO 320 IU/mL, vitamin D 19 ng/mL,
+          ALT 34 U/L, LDL 142 mg/dL, systolic 128 mmHg, HbA1c 5.6 %,
+          ferritin 22 ng/mL, creatinine 0.95 mg/dL, cortisol 16.29 mcg/dL,
+          hs-CRP 3.4 mg/L, red cell count 5.6 M/uL, and sex hormones never
+          measured.
+        </p>
+      </section>
+    </main>
+
+  </body>
+</html>

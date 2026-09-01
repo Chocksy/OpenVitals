@@ -169,7 +169,7 @@ Parked from 28a: `why-tired` scores 1/5 (thin fatigue edges in the graph, or the
 
 ## In progress
 
-Phase 28b mockups (`docs/mockups/home-v3.html`, `elements-v3.html`, `side-by-side.html`, `pages-v3.html`): owner picks the variants, then 28c builds them.
+Phase 28b mockups: v3 set (`docs/mockups/home-v3.html`, `elements-v3.html`, `side-by-side.html`, `pages-v3.html`) reviewed by the owner on 2026-09-02; v4 set (`docs/mockups/v4/`, spec `2026-09-02-phase28b4-v4-mockups-spec.md`) applies that feedback: hero B with the Signals panel, uncrowded 390 stack, ruler + history chart, systems as state tiles, Material Symbols icons, rebuilt Apple Health settings, four explorations. Chat/thread research (`2026-09-02-chat-thread-research.md`): stay on `ai` v6, add `ask_threads` + `ask_turns`, recap + 6-turn window + summary every 6 turns; Pi, Hermes, OpenRouter state and memory services rejected. Owner picks from v4, then 28c builds the app and the thread.
 
 
 ## Next

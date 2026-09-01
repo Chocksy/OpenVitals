@@ -1,0 +1,377 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Explorations — OpenVitals v4</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,300,0,0"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="v4.css" />
+  </head>
+  <body>
+    <button class="themebtn" onclick="document.documentElement.classList.toggle('dark')">
+      <span class="ms i16">dark_mode</span> Dark
+    </button>
+    <main class="doc">
+      <header class="doc-head">
+        <h1>Explorations</h1>
+        <p>
+          Four new surfaces in the v4 language. Same honesty rules: every
+          mark is named and dated, every number is either the test user's
+          real data or listed as illustrative.
+        </p>
+      </header>
+      <nav class="crumbs">
+        <a href="index.html">Index</a>
+        <a href="home.html">Home</a>
+        <a href="marker.html">Marker</a>
+        <a href="systems.html">Systems</a>
+        <a href="shell.html">Shell</a>
+        <a href="app.html">App</a>
+        <a href="blood.html">Blood</a>
+        <a href="plan-draw.html">Plan a draw</a>
+        <a href="genome.html">Genome</a>
+        <a href="chat.html">Chat</a>
+        <a class="here" href="explorations.html">Explorations</a>
+      </nav>
+
+
+      <section class="sec">
+        <div class="sec-head"><span class="n">01</span><h2>Day one — the home of a brand-new account</h2></div>
+        <p class="lede">
+          Nothing has been read yet, so the gradient is off and every tile
+          says what it is missing and what would fill it. This is the screen
+          the iOS app opens on, and it is the one the current design does
+          not have.
+        </p>
+        <div class="phones">
+          <div>
+            <div class="phone">
+              <div class="statusbar">
+                <span>9:41</span>
+                <span class="rt">
+                  <span class="ms i16">network_cell</span><span class="ms i16">wifi</span><span class="ms i16">battery_full_alt</span>
+                </span>
+              </div>
+              <div class="screenhead"><h2>Home</h2><span class="ms i24">account_circle</span></div>
+              <div class="stack">
+                <p class="sentence" style="margin: 0">
+                  Nothing read yet. Three things would start this.
+                </p>
+                <div class="hero nodata">
+                  <div class="hero-label">Status</div>
+                  <div class="hero-mid">
+                    <div class="hero-num">—</div>
+                    <div class="hero-word">No markers, no samples</div>
+                  </div>
+                  <div class="hero-count">
+                    <span>the light comes on with the first draw</span>
+                  </div>
+                </div>
+                <div class="plusrow">
+                  <span class="pg"><span class="ms i24">description</span></span>
+                  <div>
+                    <div class="pt">Upload a lab</div>
+                    <div class="ps">A PDF or a photo. About a minute to read.</div>
+                  </div>
+                </div>
+                <div class="plusrow">
+                  <span class="pg"><span class="ms i24">favorite</span></span>
+                  <div>
+                    <div class="pt">Connect Apple Health</div>
+                    <div class="ps">27 types asked for. You pick which ones.</div>
+                  </div>
+                </div>
+                <div class="plusrow">
+                  <span class="pg"><span class="ms i24">quiz</span></span>
+                  <div>
+                    <div class="pt">Answer 3 questions</div>
+                    <div class="ps">Family history, energy, sleep. They move real numbers.</div>
+                  </div>
+                </div>
+                <div class="panel">
+                  <div class="panel-head"><h3>Systems</h3><span class="r">12 · none measured</span></div>
+                  <div class="sysgrid two">
+                    <div class="systile empty">
+                      <div class="sname">Thyroid</div>
+                      <div class="sstate">Never measured</div>
+                      <div class="sval"><div><b>—</b><div class="smk">no marker yet</div></div></div>
+                    </div>
+                    <div class="systile empty">
+                      <div class="sname">Blood sugar</div>
+                      <div class="sstate">Never measured</div>
+                      <div class="sval"><div><b>—</b><div class="smk">no marker yet</div></div></div>
+                    </div>
+                  </div>
+                </div>
+                <div class="ask" style="margin-top: 0">
+                  <span class="ms i16">graphic_eq</span>
+                  <span class="q">Ask anything, even before the first draw</span>
+                  <button class="askbtn">Ask</button>
+                </div>
+              </div>
+              <div class="tabbar">
+                <a class="on" href="#"><span class="ms i24 fill">home</span>Home</a>
+                <a href="#"><span class="ms i24">monitoring</span>Body</a>
+                <span class="plusslot"><button><span class="ms i24">add</span></button></span>
+                <a href="#"><span class="ms i24">water_drop</span>Blood</a>
+                <a href="#"><span class="ms i24">event_note</span>Plan</a>
+              </div>
+            </div>
+            <p class="cap">
+              No fake sparkline, no sample data, no greyed-out chart. An
+              empty system tile is the same tile with nothing in it.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section class="sec">
+        <div class="sec-head"><span class="n">02</span><h2>Draw-day receipt — what came in on Aug 1, and what it moved</h2></div>
+        <p class="lede">
+          Every diamond on the draws timeline is tappable, and this is what
+          it opens: the fifteen results, the three that had a previous
+          value, and the one likelihood that changed word.
+        </p>
+        <div class="screen">
+          <div class="receiptcard">
+            <div class="rhead">
+              <div>
+                <b class="t-num" style="font-size: 21px">Aug 1 2026</b>
+                <div class="t-meta">blood draw · lab · morning</div>
+              </div>
+              <div class="t-meta">15 results</div>
+            </div>
+
+            <div class="panel-head" style="margin: 13px 0 0">
+              <h3>Read</h3><span class="r">1 optimal · 9 normal · 5 off</span>
+            </div>
+            <div class="rline">
+              <span>TPO antibodies</span><span class="d">320 IU/mL</span>
+              <span class="w c-bad">off</span>
+            </div>
+            <div class="rline">
+              <span>ALT</span><span class="d">34 U/L</span>
+              <span class="w c-bad">off</span>
+            </div>
+            <div class="rline">
+              <span>LDL cholesterol</span><span class="d">142 mg/dL</span>
+              <span class="w c-bad">off</span>
+            </div>
+            <div class="rline">
+              <span>Vitamin D</span><span class="d">19 ng/mL</span>
+              <span class="w c-bad">off</span>
+            </div>
+            <div class="rline">
+              <span>Systolic BP</span><span class="d">128 mmHg</span>
+              <span class="w c-bad">off</span>
+            </div>
+            <div class="rline note">
+              <span class="t-meta">
+                10 more, all inside their bands — HbA1c 5.6 % · ferritin
+                22 ng/mL · hs-CRP 3.4 mg/L and seven others.
+              </span>
+            </div>
+
+            <div class="panel-head" style="margin: 21px 0 0">
+              <h3>Changed since the last draw that carried it</h3>
+              <span class="r">3 of 15</span>
+            </div>
+            <div class="rline">
+              <span>TPO antibodies</span>
+              <span class="d">412 → 320</span>
+              <span class="w c-ok">−22 %</span>
+            </div>
+            <div class="rline">
+              <span>LDL cholesterol</span>
+              <span class="d">168 → 142</span>
+              <span class="w c-ok">−15 %</span>
+            </div>
+            <div class="rline">
+              <span>ALT</span>
+              <span class="d">41 → 34</span>
+              <span class="w c-ok">−17 %</span>
+            </div>
+            <div class="rline note">
+              <span class="t-meta">The other twelve have one reading, so there is nothing to compare.</span>
+            </div>
+
+            <div class="panel-head" style="margin: 21px 0 0">
+              <h3>What moved in the ledger</h3><span class="r">1 of 16 rows</span>
+            </div>
+            <div class="rline">
+              <span>Hashimoto's</span>
+              <span class="d">62 % → 95 %</span>
+              <span class="w c-bad">confirmed</span>
+            </div>
+            <div class="rline note">
+              <span class="t-meta">
+                The TPO result carried a likelihood ratio of 4.2 —
+                <span class="glyph sci">● B</span> Wichman 2016.
+              </span>
+            </div>
+
+            <div class="rtot">
+              <span>15 read · 3 compared · 1 verdict changed</span>
+              <span>Aug 1 2026</span>
+            </div>
+            <div class="chips">
+              <button class="chip ink"><span class="ms i16">event_note</span> Plan the retest</button>
+              <button class="chip"><span class="ms i16">description</span> See the file</button>
+              <button class="chip quiet"><span class="ms i16">forum</span> Ask about this draw</button>
+            </div>
+          </div>
+        </div>
+        <p class="cap">
+          The percentages are computed from the two dated values on the same
+          line; nothing is rounded into a claim. "Nothing to compare" is
+          printed rather than hidden.
+        </p>
+      </section>
+
+      <section class="sec">
+        <div class="sec-head"><span class="n">03</span><h2>The doctor one-pager, printable</h2></div>
+        <p class="lede">
+          The "copy for your doctor" chip already exists in the app. This is
+          what it should produce: one page, no colour needed, every number
+          with its unit, its range and its date.
+        </p>
+        <div class="screen">
+          <div class="onepager">
+            <div class="oph">
+              <div>
+                <b>OpenVitals summary</b>
+                <div class="t-meta" style="color: #6b675d">
+                  Test account · 34 y · printed Sep 1 2026
+                </div>
+              </div>
+              <div class="t-meta" style="color: #6b675d">
+                52 markers · 5 draws · last Aug 31 2026
+              </div>
+            </div>
+
+            <h3>Markers outside range</h3>
+            <table>
+              <tr><td>TPO antibodies</td><td class="n">320 IU/mL</td><td class="r">normal 0–34 · Aug 1 2026</td></tr>
+              <tr><td>Vitamin D, 25-OH</td><td class="n">19 ng/mL</td><td class="r">normal 20–100 · Aug 1 2026</td></tr>
+              <tr><td>LDL cholesterol</td><td class="n">142 mg/dL</td><td class="r">optimal under 100 · Aug 1 2026</td></tr>
+              <tr><td>ALT</td><td class="n">34 U/L</td><td class="r">normal 0–33 · Aug 1 2026</td></tr>
+              <tr><td>Systolic blood pressure</td><td class="n">128 mmHg</td><td class="r">normal 90–120 · phone</td></tr>
+              <tr><td>hs-CRP</td><td class="n">3.4 mg/L</td><td class="r">normal under 3.0 · Aug 1 2026</td></tr>
+              <tr><td>Ferritin</td><td class="n">22 ng/mL</td><td class="r">optimal 30–200 · Aug 1 2026</td></tr>
+            </table>
+
+            <h3>Trend, where two draws carry the marker</h3>
+            <table>
+              <tr><td>TPO antibodies</td><td class="n">412 → 320</td><td class="r">Dec 9 2025 → Aug 1 2026</td></tr>
+              <tr><td>LDL cholesterol</td><td class="n">168 → 142</td><td class="r">Dec 9 2025 → Aug 1 2026</td></tr>
+              <tr><td>ALT</td><td class="n">41 → 34</td><td class="r">Dec 9 2025 → Aug 1 2026</td></tr>
+            </table>
+
+            <h3>What the engine concluded</h3>
+            <table>
+              <tr><td>Autoimmune thyroiditis (Hashimoto's)</td><td class="n">95 %</td><td class="r">confirmed · TPO 320, TSH 3.9</td></tr>
+              <tr><td>Insulin resistance</td><td class="n">97 %</td><td class="r">likely · ALT 34, family history</td></tr>
+              <tr><td>Vitamin D deficiency</td><td class="n">86 %</td><td class="r">likely · 19 ng/mL</td></tr>
+              <tr><td>Chronic inflammation</td><td class="n">77 %</td><td class="r">likely · hs-CRP 3.4</td></tr>
+              <tr><td>Iron deficiency</td><td class="n">76 %</td><td class="r">likely · ferritin 22</td></tr>
+            </table>
+
+            <h3>Currently taking</h3>
+            <table>
+              <tr><td>Selenium 200 µg, selenomethionine</td><td class="n">day 24 of 84</td><td class="r">since Aug 12</td></tr>
+              <tr><td>Vitamin D 4 000 IU</td><td class="n">day 31</td><td class="r">since Aug 2</td></tr>
+              <tr><td>Cut added sugar</td><td class="n">11 of 14 d</td><td class="r">since Jun 14</td></tr>
+            </table>
+
+            <h3>Requested draw</h3>
+            <table>
+              <tr><td>Fasting insulin (with fasting glucose)</td><td class="n">Nov 24 2026</td><td class="r">12 h fast</td></tr>
+              <tr><td>HbA1c</td><td class="n">Nov 24 2026</td><td class="r">no prep</td></tr>
+              <tr><td>TSH, free T4</td><td class="n">Nov 24 2026</td><td class="r">no prep</td></tr>
+              <tr><td>TPO antibodies</td><td class="n">Nov 24 2026</td><td class="r">no prep</td></tr>
+            </table>
+
+            <p class="opfoot">
+              Ranges are the laboratory's own where the report carried them.
+              Likelihoods are the engine's, not a diagnosis. Biological age
+              is not printed because it is not computed for this account: the
+              engine is missing ALP.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section class="sec">
+        <div class="sec-head"><span class="n">04</span><h2>Wrist glance</h2></div>
+        <p class="lede">
+          The smallest honest frame: one number, one word, one dated line.
+          The bars are the last seven synced days of the metric named under
+          them, not a decoration.
+        </p>
+        <div class="phones">
+          <div>
+            <div class="watch">
+              <div class="wk">OpenVitals</div>
+              <div class="wn">7</div>
+              <div class="ww">markers off</div>
+              <div class="wf"><span>Aug 1 draw</span><span>Nov 24 next</span></div>
+            </div>
+            <p class="cap">Status. The same number as the hero.</p>
+          </div>
+          <div>
+            <div class="watch">
+              <div class="wk">Resting HR</div>
+              <div class="wn">55</div>
+              <div class="ww">bpm · 3 under your mean</div>
+              <div class="wbar">
+                <s style="--h: 62%"></s><s style="--h: 74%"></s>
+                <s style="--h: 56%"></s><s style="--h: 68%"></s>
+                <s style="--h: 50%"></s><s style="--h: 56%"></s>
+                <s class="hi" style="--h: 44%"></s>
+              </div>
+              <div class="wf"><span>Aug 26 → Sep 1</span><span>mean 58</span></div>
+            </div>
+            <p class="cap">
+              Seven bars, seven synced days, oldest on the left. Today is
+              lime because it is the value in the big number.
+            </p>
+          </div>
+          <div>
+            <div class="watch">
+              <div class="wk">Plan</div>
+              <div class="wn">0</div>
+              <div class="ww">of 17 ticked today</div>
+              <div class="wf"><span>5 day streak</span><span>Sep 1</span></div>
+            </div>
+            <p class="cap">A real zero, on the wrist too.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="sec">
+        <div class="sec-head"><span class="n">05</span><h2>Where the numbers come from</h2></div>
+        <p class="cap">
+          Real: every marker, band and date on the receipt and the
+          one-pager; the Aug 1 2026 draw with 15 results (1 optimal,
+          9 normal, 5 off); the TPO, LDL and ALT pairs against the
+          Dec 9 2025 draw; Hashimoto's moving 62 % → 95 % on the Aug 1
+          antibody result with a likelihood ratio of 4.2; the five
+          likelihoods; the three running protocol items and their start
+          dates; the Nov 24 2026 order sheet; the 27 Apple Health types.
+        </p>
+        <p class="cap">
+          Illustrative, with real shapes and units: the seven resting-HR bar
+          heights on the wrist frame (Aug 26 → Sep 1), which come from the
+          same illustrative daily series as the home signal panel, ending on
+          the real 55 bpm against the real 90-day mean of 58.
+        </p>
+      </section>
+    </main>
+
+  </body>
+</html>

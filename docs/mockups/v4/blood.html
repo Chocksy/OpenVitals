@@ -1,0 +1,359 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Blood — OpenVitals v4</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,300,0,0"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="v4.css" />
+  </head>
+  <body>
+    <button class="themebtn" onclick="document.documentElement.classList.toggle('dark')">
+      <span class="ms i16">dark_mode</span> Dark
+    </button>
+    <main class="doc">
+      <header class="doc-head">
+        <h1>Blood — the page the owner kept</h1>
+        <p>
+          Same structure as v3: draws timeline on top, the filters, the
+          markers grouped by system, the drawer on the right. What changed
+          is the skin — Fibonacci spacing, the five-size type ladder, the
+          spectrum state colours and Material Symbols.
+        </p>
+      </header>
+      <nav class="crumbs">
+        <a href="index.html">Index</a>
+        <a href="home.html">Home</a>
+        <a href="marker.html">Marker</a>
+        <a href="systems.html">Systems</a>
+        <a href="shell.html">Shell</a>
+        <a href="app.html">App</a>
+        <a class="here" href="blood.html">Blood</a>
+        <a href="plan-draw.html">Plan a draw</a>
+        <a href="genome.html">Genome</a>
+        <a href="chat.html">Chat</a>
+        <a href="explorations.html">Explorations</a>
+      </nav>
+
+
+      <section class="sec">
+        <div class="sec-head"><span class="n">01</span><h2>The page</h2></div>
+        <p class="lede">
+          Five draws behind you and one planned. The filters count what the
+          ledger counts: 26 optimal, 19 normal, 7 off, 52 markers with a
+          value.
+        </p>
+        <div class="screen">
+          <div class="topbar">
+            <span class="brand">OpenVitals</span>
+            <nav class="pills">
+              <a href="#"><span class="ms i16">home</span> Home</a>
+              <a href="#"><span class="ms i16">monitoring</span> Body</a>
+              <a class="on" href="#"><span class="ms i16">water_drop</span> Blood</a>
+              <a href="#"><span class="ms i16">event_note</span> Plan</a>
+              <a href="#"><span class="ms i16">hub</span> Graph</a>
+            </nav>
+            <span class="grow"></span>
+            <button class="plusbtn"><span class="ms i24">add</span></button>
+            <span class="avatar">R</span>
+          </div>
+
+          <div class="panel hi">
+            <div class="panel-head">
+              <h3>Draws</h3>
+              <span class="r">5 in the archive · 1 planned</span>
+            </div>
+            <div class="drawline">
+              <div class="axis"></div>
+              <div class="marks">
+                <div class="dmark">
+                  <b>Dec 9 2025</b><i></i>
+                  <span class="n">48</span><span>results · 4 off</span>
+                </div>
+                <div class="dmark">
+                  <b>Feb 1 2026</b><i></i>
+                  <span class="n">1</span><span>TSH</span>
+                </div>
+                <div class="dmark">
+                  <b>Aug 1 2026</b><i></i>
+                  <span class="n">15</span><span>results · 5 off</span>
+                </div>
+                <div class="dmark">
+                  <b>Aug 31 2026</b><i></i>
+                  <span class="n">1</span><span>glucose</span>
+                </div>
+                <div class="dmark planned">
+                  <b>Nov 24 2026</b><i></i>
+                  <span class="n">4</span><span>planned · in 12 wk</span>
+                </div>
+              </div>
+            </div>
+            <p class="t-meta" style="margin: 13px 0 0">
+              Earlier: Jun 24 2016 · 2 results, from a scanned page.
+            </p>
+          </div>
+
+          <div style="height: 13px"></div>
+          <div class="filters">
+            <span class="f on">Off 7</span>
+            <span class="f">Borderline 19</span>
+            <span class="f">Optimal 26</span>
+            <span class="f">All 52</span>
+          </div>
+
+          <div style="height: 13px"></div>
+          <div class="pair">
+            <div style="display: flex; flex-direction: column; gap: 13px">
+              <div class="panel">
+                <div class="panel-head"><h3>Thyroid</h3><span class="r c-bad">off · 2 markers</span></div>
+                <div class="rows">
+                  <div class="mrow off">
+                    <div class="mn">TPO antibodies<small>lab · normal under 34</small></div>
+                    <div class="mv">320<em>IU/mL</em></div>
+                    <div class="mw">off</div>
+                    <div class="minirule" style="--p: 74%">
+                      <i style="--a: 0%; --b: 8%"></i><u></u>
+                    </div>
+                  </div>
+                  <div class="mrow border">
+                    <div class="mn">TSH<small>lab · optimal 0.5–2.5</small></div>
+                    <div class="mv">3.9<em>mIU/L</em></div>
+                    <div class="mw">borderline</div>
+                    <div class="minirule" style="--p: 55%">
+                      <i style="--a: 7%; --b: 36%"></i><u></u>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="panel">
+                <div class="panel-head">
+                  <h3>Liver, lipids, lifestyle</h3><span class="r c-bad">off · 3 markers</span>
+                </div>
+                <div class="rows">
+                  <div class="mrow off">
+                    <div class="mn">ALT<small>lab · normal 0–33</small></div>
+                    <div class="mv">34<em>U/L</em></div>
+                    <div class="mw">off</div>
+                    <div class="minirule" style="--p: 68%">
+                      <i style="--a: 0%; --b: 66%"></i><u></u>
+                    </div>
+                  </div>
+                  <div class="mrow off">
+                    <div class="mn">LDL cholesterol<small>lab · optimal under 100</small></div>
+                    <div class="mv">142<em>mg/dL</em></div>
+                    <div class="mw">off</div>
+                    <div class="minirule" style="--p: 79%">
+                      <i style="--a: 0%; --b: 56%"></i><u></u>
+                    </div>
+                  </div>
+                  <div class="mrow off">
+                    <div class="mn">Systolic BP<small>phone · normal 90–120</small></div>
+                    <div class="mv">128<em>mmHg</em></div>
+                    <div class="mw">off</div>
+                    <div class="minirule" style="--p: 80%">
+                      <i style="--a: 56%; --b: 75%"></i><u></u>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="panel">
+                <div class="panel-head">
+                  <h3>Metabolic, iron, inflammation, vitamins</h3>
+                  <span class="r c-warn">4 markers</span>
+                </div>
+                <div class="rows">
+                  <div class="mrow border">
+                    <div class="mn">HbA1c<small>lab · optimal under 5.4</small></div>
+                    <div class="mv">5.6<em>%</em></div>
+                    <div class="mw">borderline</div>
+                  </div>
+                  <div class="mrow border">
+                    <div class="mn">Ferritin<small>lab · optimal 50–150</small></div>
+                    <div class="mv">22<em>ng/mL</em></div>
+                    <div class="mw">borderline</div>
+                  </div>
+                  <div class="mrow border">
+                    <div class="mn">hs-CRP<small>lab · optimal under 1</small></div>
+                    <div class="mv">3.4<em>mg/L</em></div>
+                    <div class="mw">borderline</div>
+                  </div>
+                  <div class="mrow off">
+                    <div class="mn">Vitamin D<small>lab · optimal 40–80</small></div>
+                    <div class="mv">19<em>ng/mL</em></div>
+                    <div class="mw">off</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="panel">
+                <div class="panel-head">
+                  <h3>Sex hormones</h3><span class="r c-none">never measured</span>
+                </div>
+                <p class="t-body" style="margin: 0">
+                  The twelfth system has no marker with a value. It gets an
+                  empty group, not a zero.
+                </p>
+              </div>
+            </div>
+
+            <!-- ── the drawer ── -->
+            <div class="panel hi">
+              <div class="panel-head">
+                <h3>TPO antibodies <span class="src">· thyroid · drawn Aug 1 2026 · lab</span></h3>
+                <span class="ms i16">close</span>
+              </div>
+              <div class="kpi">
+                <div><b>320</b><span>IU/mL</span></div>
+                <div><b class="c-ok">−92</b><span>since Dec 9 2025</span></div>
+                <div><b>9×</b><span>the ceiling of 34</span></div>
+              </div>
+              <div class="ruler" style="padding-top: 34px">
+                <div class="ruler-track">
+                  <div class="seg" style="flex: 0 0 34%">
+                    <div class="seg-bands">
+                      <div class="band normal" style="--a: 0%; --b: 28.33%"></div>
+                      <div class="band optimal" style="--a: 0%; --b: 7.5%"></div>
+                    </div>
+                  </div>
+                  <div class="brk"></div>
+                  <div class="seg">
+                    <div class="marker off" style="--p: 26.67%">
+                      <span class="mval">320<em>IU/mL</em></span>
+                    </div>
+                    <div class="ghost" style="--g: 88%" data-label="was 412 · Dec 9"></div>
+                  </div>
+                </div>
+                <div class="ruler-scale">
+                  <span>0</span><span class="mid">normal 0–34 · optimal 0–9</span><span>430</span>
+                </div>
+              </div>
+
+              <div style="height: 21px"></div>
+              <div class="hist mini">
+                <div class="hist-head"><h3>History</h3><span class="unit">IU/mL · 2 draws</span></div>
+                <div class="hist-body">
+                  <div class="hist-y">
+        <span style="--y: 0.00%">430</span>
+        <span style="--y: 92.09%">34</span>
+        <span style="--y: 100.00%">0</span>
+                  </div>
+                  <div>
+                    <div class="hist-plot">
+        <div class="hist-band normal" style="--t: 92.09%; --h: 7.91%"></div>
+        <svg viewBox="0 0 1000 100" preserveAspectRatio="none" aria-hidden="true"><polyline points="0.0,4.19 1000.0,25.58" /></svg>
+        <div class="hp was beside" style="--x: 0.00%; --y: 4.19%"><b>412</b><i></i></div>
+        <div class="hp now right" style="--x: 100.00%; --y: 25.58%"><b>320</b><i></i></div>
+                    </div>
+                    <div class="hist-x">
+        <span>Dec 9</span>
+        <span>Aug 1</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div style="height: 21px"></div>
+              <div class="panel-head"><h3>What it feeds</h3></div>
+              <div class="rows">
+                <div class="mrow off">
+                  <div class="mn">Hashimoto's</div><div class="mv">95<em>%</em></div><div class="mw">confirmed</div>
+                </div>
+                <div class="mrow border">
+                  <div class="mn">Chronic inflammation</div><div class="mv">77<em>%</em></div><div class="mw">likely</div>
+                </div>
+              </div>
+
+              <div style="height: 21px"></div>
+              <div class="panel-head"><h3>Retest</h3><span class="r">every 12 wk</span></div>
+              <p class="t-body" style="margin: 0">
+                Last drawn <b>Aug 1</b> · due since <b>Oct 24</b>. Draw it with
+                TSH; they read together.
+              </p>
+              <div class="chips">
+                <button class="chip ink"><span class="ms i16">event_note</span> Plan retest</button>
+                <button class="chip"><span class="ms i16">forum</span> Ask about this</button>
+                <button class="chip quiet"><span class="ms i16">content_copy</span> Copy for your doctor</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <p class="cap">
+          Every value on this page is the test user's real data as of
+          Sep 1 2026. The mini rules under the thyroid, liver and lipid rows
+          place the value against its own band; where the marker has only
+          one draw, no rule is drawn.
+        </p>
+      </section>
+
+      <section class="sec">
+        <div class="sec-head"><span class="n">02</span><h2>390 px</h2></div>
+        <div class="phones">
+          <div>
+            <div class="phone">
+              <div class="statusbar">
+                <span>9:41</span>
+                <span class="rt">
+                  <span class="ms i16">network_cell</span><span class="ms i16">wifi</span><span class="ms i16">battery_full_alt</span>
+                </span>
+              </div>
+              <div class="screenhead"><h2>Blood</h2><span class="ms i24">filter_list</span></div>
+              <div class="stack">
+                <div class="panel">
+                  <div class="drawline">
+                    <div class="axis"></div>
+                    <div class="marks">
+                      <div class="dmark"><b>Dec 9</b><i></i><span class="n">48</span></div>
+                      <div class="dmark"><b>Feb 1</b><i></i><span class="n">1</span></div>
+                      <div class="dmark"><b>Aug 1</b><i></i><span class="n">15</span></div>
+                      <div class="dmark"><b>Aug 31</b><i></i><span class="n">1</span></div>
+                      <div class="dmark planned"><b>Nov 24</b><i></i><span>4</span></div>
+                    </div>
+                  </div>
+                </div>
+                <div class="filters">
+                  <span class="f on">Off 7</span><span class="f">19</span><span class="f">All 52</span>
+                </div>
+                <div class="panel">
+                  <div class="rows">
+                    <div class="mrow off">
+                      <div class="mn">TPO antibodies<small>normal under 34</small></div>
+                      <div class="mv">320<em>IU/mL</em></div><div class="mw">off</div>
+                    </div>
+                    <div class="mrow off">
+                      <div class="mn">Vitamin D<small>optimal 40–80</small></div>
+                      <div class="mv">19<em>ng/mL</em></div><div class="mw">off</div>
+                    </div>
+                    <div class="mrow off">
+                      <div class="mn">LDL cholesterol<small>target 100</small></div>
+                      <div class="mv">142<em>mg/dL</em></div><div class="mw">off</div>
+                    </div>
+                    <div class="mrow off">
+                      <div class="mn">ALT<small>normal 0–33</small></div>
+                      <div class="mv">34<em>U/L</em></div><div class="mw">off</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="tabbar">
+                <a href="#"><span class="ms i24">home</span>Home</a>
+                <a href="#"><span class="ms i24">monitoring</span>Body</a>
+                <span class="plusslot"><button><span class="ms i24">add</span></button></span>
+                <a class="on" href="#"><span class="ms i24 fill">water_drop</span>Blood</a>
+                <a href="#"><span class="ms i24">event_note</span>Plan</a>
+              </div>
+            </div>
+            <p class="cap">The drawer becomes a bottom sheet. Same rows, same order.</p>
+          </div>
+        </div>
+      </section>
+    </main>
+
+  </body>
+</html>

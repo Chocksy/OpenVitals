@@ -1,0 +1,243 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Ask and discuss — OpenVitals v4</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,300,0,0"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="v4.css" />
+  </head>
+  <body>
+    <button class="themebtn" onclick="document.documentElement.classList.toggle('dark')">
+      <span class="ms i16">dark_mode</span> Dark
+    </button>
+    <main class="doc">
+      <header class="doc-head">
+        <h1>Ask and discuss — the chat surface</h1>
+        <p>
+          The surface the chat research track will implement behind: the
+          question line, the state the answer is written from, the streaming
+          answer with evidence glyphs, a Sources line, Act-on-it chips, the
+          follow-up composer, the fold that keeps "question — verdict" for
+          older turns, and the thread history.
+        </p>
+      </header>
+      <nav class="crumbs">
+        <a href="index.html">Index</a>
+        <a href="home.html">Home</a>
+        <a href="marker.html">Marker</a>
+        <a href="systems.html">Systems</a>
+        <a href="shell.html">Shell</a>
+        <a href="app.html">App</a>
+        <a href="blood.html">Blood</a>
+        <a href="plan-draw.html">Plan a draw</a>
+        <a href="genome.html">Genome</a>
+        <a class="here" href="chat.html">Chat</a>
+        <a href="explorations.html">Explorations</a>
+      </nav>
+
+
+      <section class="sec">
+        <div class="sec-head"><span class="n">01</span><h2>A thread</h2></div>
+        <p class="lede">
+          One field, two jobs. A question gets an answer; a statement gets a
+          receipt. Every answer names the card it was written from, so if
+          the card is wrong you can see that in one glance.
+        </p>
+        <div class="screen">
+          <div class="panel hi">
+            <div class="thread">
+              <!-- folded, older turn -->
+              <div class="fold">
+                <b>Should I take selenium?</b>
+                <span>— yes, 200 mcg, 12 weeks</span>
+                <span class="ms i16">expand_more</span>
+              </div>
+
+              <!-- the live turn -->
+              <div>
+                <p class="qline">What would change this?</p>
+                <div class="stateline">
+                  <span class="ms i16">description</span>
+                  Right now: <b>Hashimoto's</b> — confirmed,
+                  <b>95 %</b> · from TPO 320 and TSH 3.9
+                </div>
+                <p class="answer">
+                  Three things. A <b>TPO under 200</b> at the next draw would
+                  say it is working. A <b>TSH above 4.5</b> would move this
+                  from antibodies to treatment, and that is a doctor's call,
+                  not a supplement's. And <b>selenium already high in your
+                  diet</b> (two Brazil nuts is the whole dose) would make the
+                  pill pointless.<span class="cursor"></span>
+                </p>
+                <div class="sources">
+                  <span class="k">Sources</span>
+                  <span><span class="glyph sci">● A</span> Hollowell 2002 · NHANES III</span>
+                  <span><span class="glyph sci">● B</span> Vanderpump 1995 · cohort, n = 2 779</span>
+                  <span><span class="glyph op">◐ opinion</span> clinician podcast, 2024</span>
+                  <span>your Aug 1 draw · TPO 320, TSH 3.9</span>
+                </div>
+                <div class="chips">
+                  <button class="chip ink"><span class="ms i16">event_note</span> Plan retest · TPO, TSH</button>
+                  <button class="chip"><span class="ms i16">add</span> Add selenium 200 mcg</button>
+                  <button class="chip"><span class="ms i16">local_hospital</span> Ask your doctor · copy</button>
+                  <button class="chip quiet"><span class="ms i16">science</span> What test settles it?</button>
+                  <button class="chip quiet"><span class="ms i16">help</span> Why?</button>
+                </div>
+              </div>
+
+              <!-- the engine asks back, and shows the receipt -->
+              <div class="receipt">
+                <p style="margin: 0 0 8px">
+                  One fact would change what I just said, and I do not have
+                  it. <b>Thyroid disease in a parent, brother or sister?</b>
+                </p>
+                <div class="chips" style="margin-top: 0">
+                  <button class="chip">Yes</button>
+                  <button class="chip">No</button>
+                  <button class="chip">Not sure</button>
+                </div>
+              </div>
+
+              <div class="receipt">
+                <p style="margin: 0">
+                  <span class="ms i16 c-ok">check</span>
+                  Recorded: <b>family history · thyroid disease, mother</b>.
+                  Thyroid prior <b>×3</b> — Vanderpump 1995,
+                  <span class="glyph sci">● B</span>. Hashimoto's was already
+                  confirmed at <b>95 %</b>, so it stays there; what moved is
+                  the retest clock, from 12 weeks to <b>8</b>.
+                </p>
+                <div class="chips">
+                  <button class="chip ink"><span class="ms i16">event_note</span> Plan retest · in 8 wk</button>
+                  <button class="chip quiet"><span class="ms i16">undo</span> Undo</button>
+                </div>
+              </div>
+
+              <div class="ask">
+                <span class="ms i16">graphic_eq</span>
+                <span class="q">Ask a follow-up, or tell me something</span>
+                <button class="askbtn">Ask</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <p class="cap">
+          A receipt names the fact, the number it moved, the paper behind the
+          number, and what it did <em>not</em> move. Undo is always the last
+          chip.
+        </p>
+      </section>
+
+      <section class="sec">
+        <div class="sec-head"><span class="n">02</span><h2>A statement, when nothing moves</h2></div>
+        <div class="pair">
+          <div class="screen">
+            <div class="panel hi">
+              <p class="qline">I already train 3 times a week</p>
+              <div class="receipt" style="margin-top: 13px">
+                <p style="margin: 0">
+                  <span class="ms i16 c-ok">check</span>
+                  Recorded: <b>exercise 3–4 days a week</b> · since today ·
+                  I will ask again in 180 days. <b>No likelihood moved:</b>
+                  nothing in the evidence reads this yet. It changes your
+                  plan, not your odds; the two cardio actions now say
+                  "you're already doing this".
+                </p>
+                <div class="chips">
+                  <button class="chip"><span class="ms i16">event_note</span> See the plan</button>
+                  <button class="chip quiet"><span class="ms i16">undo</span> Undo</button>
+                </div>
+              </div>
+              <p class="cap">
+                Saying "nothing moved" out loud is the whole point. The
+                alternative is a number that looks like it came from
+                somewhere.
+              </p>
+            </div>
+          </div>
+
+          <div class="screen">
+            <div class="panel hi">
+              <div class="panel-head">
+                <h3>Everything you asked</h3><span class="r">6 threads</span>
+              </div>
+              <div class="threadlist">
+                <a href="#"><span class="d">Sep 1</span>Should I take selenium?<span class="ms i16">chevron_right</span></a>
+                <a href="#"><span class="d">Sep 1</span>Why is this confirmed and not likely?<span class="ms i16">chevron_right</span></a>
+                <a href="#"><span class="d">Aug 31</span>Is a glucose of 96 fine after a meal?<span class="ms i16">chevron_right</span></a>
+                <a href="#"><span class="d">Aug 12</span>What does a ferritin of 22 actually mean?<span class="ms i16">chevron_right</span></a>
+                <a href="#"><span class="d">Aug 2</span>My vitamin D came back at 19, how much?<span class="ms i16">chevron_right</span></a>
+                <a href="#"><span class="d">Aug 1</span>What is TPO and why is mine 320?<span class="ms i16">chevron_right</span></a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="sec">
+        <div class="sec-head"><span class="n">03</span><h2>390 px · the thread is the screen</h2></div>
+        <div class="phones">
+          <div>
+            <div class="phone">
+              <div class="statusbar">
+                <span>9:41</span>
+                <span class="rt">
+                  <span class="ms i16">network_cell</span><span class="ms i16">wifi</span><span class="ms i16">battery_full_alt</span>
+                </span>
+              </div>
+              <div class="screenhead"><h2>Ask</h2><span class="ms i24">history</span></div>
+              <div class="stack">
+                <div class="fold">
+                  <b>Should I take selenium?</b>
+                  <span>— yes, 12 wk</span>
+                  <span class="ms i16">expand_more</span>
+                </div>
+                <div class="panel hi">
+                  <p class="qline" style="font-size: 15px">What would change this?</p>
+                  <div class="stateline">
+                    <span class="ms i16">description</span>
+                    <b>Hashimoto's</b> — confirmed, <b>95 %</b>
+                  </div>
+                  <p class="answer">
+                    A <b>TPO under 200</b> at the next draw says it is
+                    working. A <b>TSH above 4.5</b> makes it a doctor's call,
+                    not a supplement's.
+                  </p>
+                  <div class="sources">
+                    <span class="k">Sources</span>
+                    <span><span class="glyph sci">● A</span> Hollowell 2002</span>
+                    <span><span class="glyph sci">● B</span> Vanderpump 1995</span>
+                  </div>
+                  <div class="chips">
+                    <button class="chip ink"><span class="ms i16">event_note</span> Plan retest</button>
+                    <button class="chip quiet"><span class="ms i16">science</span> What settles it?</button>
+                  </div>
+                </div>
+                <div class="ask" style="margin-top: 0">
+                  <span class="ms i16">graphic_eq</span>
+                  <span class="q">Ask another</span>
+                  <button class="askbtn">Ask</button>
+                </div>
+              </div>
+              <div class="tabbar">
+                <a class="on" href="#"><span class="ms i24 fill">home</span>Home</a>
+                <a href="#"><span class="ms i24">monitoring</span>Body</a>
+                <span class="plusslot"><button><span class="ms i24">add</span></button></span>
+                <a href="#"><span class="ms i24">water_drop</span>Blood</a>
+                <a href="#"><span class="ms i24">event_note</span>Plan</a>
+              </div>
+            </div>
+            <p class="cap">The pill sits above the tab bar and never scrolls away.</p>
+          </div>
+        </div>
+      </section>
+    </main>
+
+  </body>
+</html>

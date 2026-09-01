@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Genome — OpenVitals v4</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,300,0,0"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="v4.css" />
+  </head>
+  <body>
+    <button class="themebtn" onclick="document.documentElement.classList.toggle('dark')">
+      <span class="ms i16">dark_mode</span> Dark
+    </button>
+    <main class="doc">
+      <header class="doc-head">
+        <h1>Genome</h1>
+        <p>
+          Kept as the owner approved it. A variant moves a starting point
+          and never decides anything on its own, so every card prints the
+          prior it moved, by how much, and which paper says so.
+        </p>
+      </header>
+      <nav class="crumbs">
+        <a href="index.html">Index</a>
+        <a href="home.html">Home</a>
+        <a href="marker.html">Marker</a>
+        <a href="systems.html">Systems</a>
+        <a href="shell.html">Shell</a>
+        <a href="app.html">App</a>
+        <a href="blood.html">Blood</a>
+        <a href="plan-draw.html">Plan a draw</a>
+        <a class="here" href="genome.html">Genome</a>
+        <a href="chat.html">Chat</a>
+        <a href="explorations.html">Explorations</a>
+      </nav>
+
+
+      <section class="sec">
+        <div class="sec-head"><span class="n">01</span><h2>Summary, filters, one card in full</h2></div>
+        <div class="screen">
+          <div class="panel hi">
+            <div class="kpi">
+              <div><b>612</b><span>variants read · one 23andMe file</span></div>
+              <div><b>9</b><span>with a known effect</span></div>
+              <div><b>4</b><span>moved a prior</span></div>
+            </div>
+          </div>
+          <div style="height: 13px"></div>
+          <div class="filters">
+            <span class="f on">Moved something 4</span>
+            <span class="f">Protective 1</span>
+            <span class="f">All 9</span>
+          </div>
+
+          <div style="height: 13px"></div>
+          <div class="gcard">
+            <div class="ghead">
+              <h3>TCF7L2</h3>
+              <span class="rsid">rs7903146</span>
+              <span class="geno">C/T</span>
+              <span class="glyph sci">● A</span>
+              <span class="t-meta">36 % of Europeans carry at least one T</span>
+            </div>
+            <p class="t-body">
+              You carry one copy of the T allele. This is the strongest
+              common variant for type 2 diabetes anyone has found: it changes
+              how much insulin your pancreas releases after a meal, not how
+              your muscles answer it. One copy raises the starting odds by
+              about 40 %.
+            </p>
+            <p class="t-body">
+              What it changes for you: your T2D likelihood started at 38 %
+              rather than 27 % before any blood was read. Your HbA1c of 5.6
+              and your missing fasting insulin are doing the rest of the
+              work.
+            </p>
+            <div class="gmoved">
+              <span class="ms i16">trending_up</span>
+              <span>Type 2 diabetes</span>
+              <span class="x">×1.4</span>
+              <span class="t-meta">per T allele · <span class="glyph sci">● A</span>
+                Grant 2006 · Nat Genet · replicated</span>
+            </div>
+          </div>
+          <p class="cap">
+            A variant shifts a starting point; your numbers decide the rest.
+            If a marker and a variant disagree, the marker wins, because it
+            is what your body is doing today.
+          </p>
+        </div>
+      </section>
+
+      <section class="sec">
+        <div class="sec-head"><span class="n">02</span><h2>The list, including the ones that moved nothing</h2></div>
+        <div class="screen">
+          <div class="pair">
+            <div class="gcard">
+              <div class="ghead">
+                <h3>APOE</h3><span class="rsid">rs429358 · rs7412</span>
+                <span class="geno">ε3/ε4</span><span class="glyph sci">● A</span>
+              </div>
+              <p class="t-body">
+                One ε4 copy. It changes how you clear cholesterol from the
+                blood, which is why it sits next to your LDL of 142 rather
+                than next to anything else.
+              </p>
+              <div class="gmoved">
+                <span class="ms i16">trending_up</span>
+                <span>Cardiovascular risk</span><span class="x">×1.3</span>
+                <span class="t-meta"><span class="glyph sci">● A</span> Bennet 2007 · JAMA</span>
+              </div>
+            </div>
+            <div class="gcard">
+              <div class="ghead">
+                <h3>FTO</h3><span class="rsid">rs9939609</span>
+                <span class="geno">A/T</span><span class="glyph sci">● B</span>
+              </div>
+              <p class="t-body">
+                One A copy, and the effect is small: appetite, not
+                metabolism. It nudges insulin resistance up, which your HbA1c
+                has already overtaken.
+              </p>
+              <div class="gmoved">
+                <span class="ms i16">trending_up</span>
+                <span>Insulin resistance</span><span class="x">×1.2</span>
+                <span class="t-meta">per A allele · <span class="glyph sci">● B</span> Frayling 2007 · Science</span>
+              </div>
+            </div>
+            <div class="gcard">
+              <div class="ghead">
+                <h3>CYP1A2</h3><span class="rsid">rs762551</span>
+                <span class="geno">A/C</span><span class="glyph sci">● B</span>
+              </div>
+              <p class="t-body">
+                You clear caffeine slowly. This moved no likelihood at all.
+                What it changed is a note: your cortisol was drawn at
+                16.29 mcg/dL in the morning, and coffee before a morning draw
+                reads higher on a slow metaboliser.
+              </p>
+              <div class="gmoved">
+                <span class="ms i16">horizontal_rule</span>
+                <span class="c-none">Moved nothing · added a caveat to 2 markers</span>
+                <span class="t-meta"><span class="glyph sci">● B</span> Cornelis 2006 · JAMA</span>
+              </div>
+            </div>
+            <div class="gcard">
+              <div class="ghead">
+                <h3>MTHFR</h3><span class="rsid">rs1801133</span>
+                <span class="geno">C/T</span><span class="glyph sci">● C</span>
+              </div>
+              <p class="t-body">
+                The famous one, and for you it says nothing. The folate
+                effect only appears in people with two T copies; you have
+                one. Even at two copies the evidence is graded C.
+              </p>
+              <div class="gmoved">
+                <span class="ms i16">horizontal_rule</span>
+                <span class="c-none">Moved nothing · needs T/T</span>
+                <span class="t-meta"><span class="glyph sci">● C</span> weak, and often oversold</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="sec">
+        <div class="sec-head"><span class="n">03</span><h2>390 px</h2></div>
+        <div class="phones">
+          <div>
+            <div class="phone">
+              <div class="statusbar">
+                <span>9:41</span>
+                <span class="rt">
+                  <span class="ms i16">network_cell</span><span class="ms i16">wifi</span><span class="ms i16">battery_full_alt</span>
+                </span>
+              </div>
+              <div class="screenhead"><h2>Genome</h2><span class="ms i24">filter_list</span></div>
+              <div class="stack">
+                <div class="filters">
+                  <span class="f on">Moved something 4</span><span class="f">All 9</span>
+                </div>
+                <div class="gcard" style="padding: 13px">
+                  <div class="ghead">
+                    <h3>TCF7L2</h3><span class="geno">C/T</span>
+                    <span class="glyph sci">● A</span>
+                  </div>
+                  <div class="t-meta">rs7903146 · 36 % of Europeans</div>
+                  <p class="t-body">
+                    One T copy. Raises the starting odds for type 2 diabetes
+                    by about 40 %, through insulin release after a meal.
+                  </p>
+                  <div class="gmoved">
+                    <span class="ms i16">trending_up</span>
+                    <span>Type 2 diabetes</span><span class="x">×1.4</span>
+                  </div>
+                </div>
+                <div class="gcard" style="padding: 13px">
+                  <div class="ghead">
+                    <h3>MTHFR</h3><span class="geno">C/T</span>
+                    <span class="glyph sci">● C</span>
+                  </div>
+                  <div class="t-meta">rs1801133 · 31 % of Europeans</div>
+                  <p class="t-body">
+                    For you it says nothing. The effect needs two T copies,
+                    and even then the evidence is graded C.
+                  </p>
+                  <div class="gmoved">
+                    <span class="ms i16">horizontal_rule</span>
+                    <span class="c-none">Moved nothing</span>
+                  </div>
+                </div>
+                <p class="cap" style="margin: 0">
+                  A variant shifts a starting point; your numbers decide the
+                  rest. The card stacks; the frequency joins the rsid line.
+                </p>
+              </div>
+              <div class="tabbar">
+                <a href="#"><span class="ms i24">home</span>Home</a>
+                <a href="#"><span class="ms i24">monitoring</span>Body</a>
+                <span class="plusslot"><button><span class="ms i24">add</span></button></span>
+                <a class="on" href="#"><span class="ms i24 fill">water_drop</span>Blood</a>
+                <a href="#"><span class="ms i24">event_note</span>Plan</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+  </body>
+</html>

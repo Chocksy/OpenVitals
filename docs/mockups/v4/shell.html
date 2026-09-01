@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Shell — OpenVitals v4</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,300,0,0"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="v4.css" />
+  </head>
+  <body>
+    <button class="themebtn" onclick="document.documentElement.classList.toggle('dark')">
+      <span class="ms i16">dark_mode</span> Dark
+    </button>
+    <main class="doc">
+      <header class="doc-head">
+        <h1>Shell — five pills, four tabs, one lime button</h1>
+        <p>
+          The left rail is dropped: it turned the systems into a list of
+          links, which is exactly what they should not look like. Desktop
+          gets top pills. The phone gets tab bar C, with every icon a real
+          Material Symbol at weight 300.
+        </p>
+      </header>
+      <nav class="crumbs">
+        <a href="index.html">Index</a>
+        <a href="home.html">Home</a>
+        <a href="marker.html">Marker</a>
+        <a href="systems.html">Systems</a>
+        <a class="here" href="shell.html">Shell</a>
+        <a href="app.html">App</a>
+        <a href="blood.html">Blood</a>
+        <a href="plan-draw.html">Plan a draw</a>
+        <a href="genome.html">Genome</a>
+        <a href="chat.html">Chat</a>
+        <a href="explorations.html">Explorations</a>
+      </nav>
+
+
+      <section class="sec">
+        <div class="sec-head"><span class="n">01</span><h2>Desktop · top pills</h2></div>
+        <p class="lede">
+          Five destinations. The current page is ink, not lime; the lime is
+          spent on the one control that adds data.
+        </p>
+        <div class="screen">
+          <div class="topbar">
+            <span class="brand">OpenVitals</span>
+            <nav class="pills">
+              <a class="on" href="#"><span class="ms i16">home</span> Home</a>
+              <a href="#"><span class="ms i16">monitoring</span> Body</a>
+              <a href="#"><span class="ms i16">water_drop</span> Blood</a>
+              <a href="#"><span class="ms i16">event_note</span> Plan</a>
+              <a href="#"><span class="ms i16">hub</span> Graph</a>
+            </nav>
+            <span class="grow"></span>
+            <button class="plusbtn" title="Add data"><span class="ms i24">add</span></button>
+            <span class="avatar">R</span>
+          </div>
+          <div class="panel">
+            <div class="panel-head">
+              <h3>Blood · 52 markers with a value</h3>
+              <span class="r">last draw Aug 1 2026</span>
+            </div>
+            <div class="rows">
+              <div class="mrow off">
+                <div class="mn">TPO antibodies<small>thyroid · lab</small></div>
+                <div class="mv">320<em>IU/mL</em></div>
+                <div class="mw">off</div>
+              </div>
+              <div class="mrow off">
+                <div class="mn">Vitamin D<small>vitamins · lab</small></div>
+                <div class="mv">19<em>ng/mL</em></div>
+                <div class="mw">off</div>
+              </div>
+              <div class="mrow border">
+                <div class="mn">HbA1c<small>blood sugar · lab</small></div>
+                <div class="mv">5.6<em>%</em></div>
+                <div class="mw">borderline</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="sec">
+        <div class="sec-head"><span class="n">02</span><h2>390 px · tab bar C, with icons that render</h2></div>
+        <p class="lede">
+          Four destinations and the centre lime "+". home ·
+          monitoring · water_drop · event_note · add, all
+          Material Symbols Rounded at weight 300, optical size 24.
+        </p>
+        <div class="phones">
+          <div>
+            <div class="phone">
+              <div class="statusbar">
+                <span>9:41</span>
+                <span class="rt">
+                  <span class="ms i16">network_cell</span>
+                  <span class="ms i16">wifi</span>
+                  <span class="ms i16">battery_full_alt</span>
+                </span>
+              </div>
+              <div class="screenhead">
+                <h2>Home</h2>
+                <span class="ms i24">account_circle</span>
+              </div>
+              <div class="stack">
+                <p class="sentence" style="margin: 0">
+                  Thyroid is off. Seven markers need a look.
+                </p>
+                <div class="hero warn">
+                  <div class="hero-label">Status</div>
+                  <div class="hero-mid">
+                    <div class="hero-num">7</div>
+                    <div class="hero-word">Attention · 7 markers off</div>
+                  </div>
+                  <div class="hero-count">
+                    <span>26 optimal · 19 normal · 7 off</span><span>Aug 1</span>
+                  </div>
+                </div>
+                <div class="ask" style="margin-top: 0">
+                  <span class="ms i16">graphic_eq</span>
+                  <span class="q">Ask or tell me something</span>
+                  <button class="askbtn">Ask</button>
+                </div>
+              </div>
+              <div class="tabbar">
+                <a class="on" href="#"><span class="ms i24 fill">home</span>Home</a>
+                <a href="#"><span class="ms i24">monitoring</span>Body</a>
+                <span class="plusslot"><button><span class="ms i24">add</span></button></span>
+                <a href="#"><span class="ms i24">water_drop</span>Blood</a>
+                <a href="#"><span class="ms i24">event_note</span>Plan</a>
+              </div>
+            </div>
+            <p class="cap">Graph is a row inside Blood, not a fifth tab.</p>
+          </div>
+
+          <div>
+            <div class="phone">
+              <div class="statusbar">
+                <span>9:41</span>
+                <span class="rt">
+                  <span class="ms i16">network_cell</span>
+                  <span class="ms i16">wifi</span>
+                  <span class="ms i16">battery_full_alt</span>
+                </span>
+              </div>
+              <div class="screenhead">
+                <h2>Add</h2>
+                <span class="ms i24">close</span>
+              </div>
+              <div class="stack">
+                <div class="plusrow">
+                  <span class="pg"><span class="ms i24">photo_camera</span></span>
+                  <div>
+                    <div class="pt">Photo of a lab</div>
+                    <div class="ps">A result page, a strip, a screen. We read the markers.</div>
+                  </div>
+                </div>
+                <div class="plusrow">
+                  <span class="pg"><span class="ms i24">description</span></span>
+                  <div>
+                    <div class="pt">PDF</div>
+                    <div class="ps">A whole panel or a genome export, read in about a minute.</div>
+                  </div>
+                </div>
+                <div class="plusrow">
+                  <span class="pg"><span class="ms i24">graphic_eq</span></span>
+                  <div>
+                    <div class="pt">Ask or tell</div>
+                    <div class="ps">"Should I take selenium?" · "I train 3 times a week"</div>
+                  </div>
+                </div>
+                <div class="plusrow">
+                  <span class="pg"><span class="ms i24">mood</span></span>
+                  <div>
+                    <div class="pt">Log how you feel</div>
+                    <div class="ps">A check-in, dated, kept next to the markers.</div>
+                  </div>
+                </div>
+              </div>
+              <div class="tabbar">
+                <a href="#"><span class="ms i24">home</span>Home</a>
+                <a href="#"><span class="ms i24">monitoring</span>Body</a>
+                <span class="plusslot"><button><span class="ms i24">close</span></button></span>
+                <a href="#"><span class="ms i24">water_drop</span>Blood</a>
+                <a href="#"><span class="ms i24">event_note</span>Plan</a>
+              </div>
+            </div>
+            <p class="cap">
+              The + sheet. Four rows, no upload dialog, no approval gate.
+              The centre button turns into close while the sheet is open.
+            </p>
+          </div>
+        </div>
+      </section>
+    </main>
+
+  </body>
+</html>
