@@ -156,9 +156,13 @@ chart void, if it ever recurs, now shows a skeleton (the signal to chase).
 
 Parked from 25: Discuss answers arrive whole (make `/api/plan/discuss` stream or route through the composer's endpoint); `/api/plan/discuss` is now uncalled by the UI; Term tooltips are pure CSS (can clip at a viewport edge); "You noted: You noted, …" duplication in the stored reply text; unnamed multi-word codes (`fibroscan kpa`) need graph names.
 
+| 26 | Main agent used the app as the test user and fixed what hurt: one-click ask, no ontology header on questions, answers grounded in the plan + graded interventions with labelled doses (model picked by `eval:ask`), Discuss without fake facts, What-to-do blocks with Add/undo/Get actions, Plan inline answers, edge-aware tooltips, honest range bar, test bubbles explain themselves; 1201 tests | `711eee3`…this |
+
+Parked from 26: `hkb_interventions` carries a grade-B "whole system Ayurveda protocol" for hashimoto (the intake graded a small trial B; policy question, not plumbing); `protocol_items` has no dedupe; the ask-eval judge does not see the engine's conclusions block so it under-scores engine probabilities; tooltip flip-below untested live.
+
 ## In progress
 
-Nothing. Owner pass two: the mother test.
+Nothing. Owner pass three.
 
 
 ## Next
