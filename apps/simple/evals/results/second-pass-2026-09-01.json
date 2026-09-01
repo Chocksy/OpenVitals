@@ -1,0 +1,139 @@
+{
+  "ranAt": "2026-09-01T07:24:41.618Z",
+  "model": "google/gemini-3.7-flash",
+  "results": [
+    {
+      "readingId": "apolipoprotein_a1-2024-05-13",
+      "metricCode": "apolipoprotein_a1",
+      "outcome": "rematch",
+      "line": "- Alinity, spectrofotometrie, ser 1.69 g/L 0.95 - 1.86",
+      "note": "the sheet prints 1.69 g/L",
+      "id": "apolipoprotein_a1-2024-05-13",
+      "expect": "rematch",
+      "pass": true
+    },
+    {
+      "readingId": "crp-2025-12-09",
+      "metricCode": "crp",
+      "outcome": "rematch",
+      "line": "< 0,50 mg/L (≤ 3,30) 0,54",
+      "note": "the sheet prints 0.5 mg/L",
+      "id": "crp-2025-12-09",
+      "expect": "rematch",
+      "pass": true
+    },
+    {
+      "readingId": "atypical_lymphocytes_abs-2021-10-14",
+      "metricCode": "atypical_lymphocytes_abs",
+      "outcome": "rematch",
+      "line": "Limfocite atipice # 0.03 0 - 0.2 10^3/ul",
+      "note": "the sheet prints 0.03",
+      "id": "atypical_lymphocytes_abs-2021-10-14",
+      "expect": "rematch",
+      "pass": true
+    },
+    {
+      "readingId": "direct_bilirubin-2023-03-17",
+      "metricCode": "direct_bilirubin",
+      "outcome": "rematch",
+      "line": "4. Bilirubina directa -Ser - spectrofotometrie (Mindray BS 480) 0.22 mg/dl 0 - 0.2 / mg/dl",
+      "note": "the sheet prints 0.22 mg/dl",
+      "id": "direct_bilirubin-2023-03-17",
+      "expect": "rematch",
+      "pass": true
+    },
+    {
+      "readingId": "atypical_lymphocytes_abs-2019-07-13",
+      "metricCode": "atypical_lymphocytes_abs",
+      "outcome": "rematch",
+      "line": "Limfocite atipice # 0.02 0 - 0.2 10^3/ul",
+      "note": "the sheet prints 0.02",
+      "id": "atypical_lymphocytes_abs-2019-07-13",
+      "expect": "rematch",
+      "pass": true
+    },
+    {
+      "readingId": "total_t3-2026-04-23",
+      "metricCode": "total_t3",
+      "outcome": "rematch",
+      "line": "1,10 ng/mL (0,60 - 1,81) 1,26",
+      "note": "the sheet prints 1.1 ng/mL",
+      "id": "total_t3-2026-04-23",
+      "expect": "rematch",
+      "pass": true
+    },
+    {
+      "readingId": "total_t3-2025-12-09",
+      "metricCode": "total_t3",
+      "outcome": "rematch",
+      "line": "1,26 ng/mL (0,60 - 1,81)",
+      "note": "the sheet prints 1.26 ng/mL",
+      "id": "total_t3-2025-12-09",
+      "expect": "rematch",
+      "pass": true
+    },
+    {
+      "readingId": "total_cholesterol-2022-10-20",
+      "metricCode": "total_cholesterol",
+      "outcome": "rematch",
+      "line": "Colesterol - Ser - spectrofotometrie 170.2 Copii (0- 17 ani):",
+      "note": "the sheet prints 170.2",
+      "id": "total_cholesterol-2022-10-20",
+      "expect": "rematch",
+      "pass": true
+    },
+    {
+      "readingId": "total_cholesterol-2024-05-13",
+      "metricCode": "total_cholesterol",
+      "outcome": "rematch",
+      "line": "6. Colesterol seric total -Ser - spectrofotometrie (Mindray BS 480) 201.97 mg/dl 0 - 201.1 / mg/dl",
+      "note": "the sheet prints 201.97 mg/dl",
+      "id": "total_cholesterol-2024-05-13",
+      "expect": "rematch",
+      "pass": true
+    },
+    {
+      "readingId": "rbc-2014-03-26",
+      "metricCode": "rbc",
+      "outcome": "rematch",
+      "line": "Numar eritrocite 5.82 mil./μL 4.3 - 5.7",
+      "note": "the sheet prints 5.82 mil./μL",
+      "id": "rbc-2014-03-26",
+      "expect": "rematch",
+      "pass": true
+    },
+    {
+      "readingId": "synthetic-hemoglobin-x10",
+      "metricCode": "hemoglobin",
+      "outcome": "corrected",
+      "line": "Hemoglobin ă 16,2 g/dL (13,5 - 17,2) 15,5",
+      "sheetValue": 16.2,
+      "value": 16.2,
+      "note": "162 → 16.2 g/dL — “Hemoglobin ă 16,2 g/dL (13,5 - 17,2) 15,5”",
+      "id": "synthetic-hemoglobin-x10",
+      "expect": "corrected",
+      "pass": true
+    },
+    {
+      "readingId": "synthetic-hemoglobin-tie",
+      "metricCode": "hemoglobin",
+      "outcome": "person",
+      "line": "Hemoglobin ă 16,2 g/dL (13,5 - 17,2) 15,5",
+      "sheetValue": 16.2,
+      "note": "the sheet says 16.2, we stored 12.4 — “Hemoglobin ă 16,2 g/dL (13,5 - 17,2) 15,5”",
+      "id": "synthetic-hemoglobin-tie",
+      "expect": "person",
+      "pass": true
+    },
+    {
+      "readingId": "synthetic-ferritin-missing",
+      "metricCode": "ferritin",
+      "outcome": "unverified",
+      "line": null,
+      "note": "not on the sheet in two runs, hidden from the engine",
+      "id": "synthetic-ferritin-missing",
+      "expect": "unverified",
+      "pass": true
+    }
+  ]
+}

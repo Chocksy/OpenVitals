@@ -20,9 +20,15 @@ import {
 } from "@/lib/coverage";
 import { computeGraphState, graphState } from "@/lib/graph-state";
 import { matchPatterns, type PatternMatch } from "@/lib/patterns";
+import { asksFromMoves } from "@/lib/asking";
+import { catalogFor } from "@/lib/hkb";
+import { nextMoves } from "@/lib/infogain";
+import { scoreHypotheses } from "@/lib/hypotheses";
+import { displayNameOf } from "@/lib/ledger";
 import { latestReport } from "@/lib/report";
 import { VECTORS } from "@/lib/vectors";
 import { ReviewItem } from "@/components/client";
+import { AskLink } from "@/components/ask-link";
 import { ActionCard } from "@/components/action-card";
 import { previewLines } from "@/lib/projections";
 import { horizonShelf, type HorizonItem } from "@/lib/trends";
@@ -371,6 +377,28 @@ export default async function PlanPage() {
   );
   const blocked = !input.sex || input.age == null;
 
+  /**
+   * The engine's own questions, as lines. The input for them lives in the
+   * Today card on Home and nowhere else (phase 24a), so this section prints
+   * what each one would move and links there.
+   */
+  const catalog = blocked ? [] : await catalogFor(userId);
+  const names = new Map(
+    scoreHypotheses(input, { catalog }).map((h) => [h.id, displayNameOf(h)]),
+  );
+  const asks = asksFromMoves(
+    nextMoves(input, catalog),
+    (id) => names.get(id) ?? id,
+  );
+  const askFor = (factKey: string | undefined, question: string) =>
+    factKey
+      ? (asks.find((a) => a.key === factKey) ?? {
+          key: factKey,
+          question,
+          moves: [],
+        })
+      : null;
+
   // The trends inbox, with what this person has already adopted marked off.
   const adoptedTexts = (
     await db
@@ -457,14 +485,19 @@ export default async function PlanPage() {
                 Answer these first · {questions.length + checkIns.length}
               </Label>
               <div className="space-y-2">
-                {questions.map((q) => (
-                  <ReviewItem
-                    key={q.id}
-                    id={q.id}
-                    question={q.question}
-                    options={q.options}
-                  />
-                ))}
+                {questions.map((q) => {
+                  const ask = askFor(q.subject?.factKey, q.question);
+                  return ask ? (
+                    <AskLink key={q.id} ask={ask} />
+                  ) : (
+                    <ReviewItem
+                      key={q.id}
+                      id={q.id}
+                      question={q.question}
+                      options={q.options}
+                    />
+                  );
+                })}
                 {checkIns.map((c) => (
                   <ReviewItem
                     key={c.id}

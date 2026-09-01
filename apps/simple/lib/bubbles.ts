@@ -12,6 +12,7 @@
  * off a golden-angle spiral, which is the part of `forceSimulation` the picture
  * actually uses; 300 ticks over ~30 bodies is under a millisecond.
  */
+import { asksFromMoves, type Ask } from "./asking";
 import type { ModelInput } from "./coverage";
 import {
   gradeOfEdge,
@@ -20,12 +21,23 @@ import {
   type Relation,
 } from "./graph";
 import { evaluateWhen, type GraphState } from "./graph-state";
-import type { Grade, HypothesisResult, HState, Lens } from "./hypotheses";
+import {
+  isRiskState,
+  type Grade,
+  type HypothesisResult,
+  type HState,
+  type Lens,
+} from "./hypotheses";
+import { byRank, displayNameOf, titleOf } from "./ledger";
 import type { Move } from "./infogain";
 import type { Graph } from "./kg";
 
-/** The mockup's four outlines. Everything the graph holds maps onto one. */
-export type BubbleKind = "marker" | "cond" | "life" | "gene";
+/**
+ * The outlines. "test" is its own since phase 24a: a test bubble is not a
+ * marker you have, it is a thing worth doing, and it is sized by what it would
+ * settle rather than by what it says about you.
+ */
+export type BubbleKind = "marker" | "cond" | "life" | "gene" | "test";
 
 /** The mockup's fill states, minus `event` and `low` (see the deviations). */
 export type BubbleState =
@@ -60,7 +72,7 @@ const HYPOTHESIS_ALIAS: Record<string, string> = {
 
 const KIND_OF: Record<GraphNode["kind"], BubbleKind> = {
   metric: "marker",
-  test: "marker",
+  test: "test",
   condition: "cond",
   risk: "cond",
   behavior: "life",
@@ -119,6 +131,10 @@ export interface BubbleLink {
 export interface BubbleBelief {
   id: string;
   name: string;
+  /** "Cardiovascular risk: raised" — the same grammar the ledger prints */
+  title: string;
+  /** a risk state, not a disease */
+  risk?: true;
   p: number;
   state: HState;
   summary: string;
@@ -154,6 +170,11 @@ export interface BubbleGraph {
   nodes: Bubble[];
   links: BubbleLink[];
   beliefs: BubbleBelief[];
+  /**
+   * The questions worth answering, one entry per fact key with every condition
+   * each would move. The panel prints them once; the answer is taken on Home.
+   */
+  asks: Ask[];
   /** conditions under 5 %, scored and dismissed, not drawn */
   ruledOut: number;
   /** the mockup's hint line under the stage */
@@ -310,6 +331,38 @@ const conditionState = (p: number): BubbleState =>
 const conditionImportance = (p: number, weight: number) =>
   clamp01(0.15 + p * weight * 0.5);
 
+/**
+ * A test bubble is sized by how much it would settle, not by how much it
+ * matters. The OGTT was the biggest circle on the page for a person whose
+ * type-2 diabetes sits at 9 %, which is the information-gain engine being
+ * right and the picture saying the wrong thing. Same curve as a condition, on
+ * gain relative to the best test on the table.
+ */
+const testImportance = (gain: number, best: number) =>
+  clamp01(0.15 + (best > 0 ? gain / best : 0) * 0.5);
+
+/** A move's name against a test node's, both stripped to letters and digits. */
+const slug = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, "");
+
+/** The best information gain among the moves that name this test node. */
+function gainOfTest(node: GraphNode, moves: Move[]): number {
+  const id = slug(node.id.slice(node.id.indexOf(":") + 1));
+  const name = slug(node.name);
+  let best = 0;
+  for (const m of moves) {
+    if (m.kind !== "test") continue;
+    const label = slug(m.label);
+    const test = m.testId ? slug(m.testId) : "";
+    const hit =
+      label === name ||
+      name.includes(label) ||
+      label.includes(name) ||
+      (!!test && (test === id || id.includes(test) || test.includes(id)));
+    if (hit && m.gain > best) best = m.gain;
+  }
+  return best;
+}
+
 function markerState(m: ModelInput, code: string | undefined): BubbleState {
   const row = code ? m.latest[code] : undefined;
   if (row?.value == null) return "unknown";
@@ -360,13 +413,22 @@ export function buildBubbles(opts: BubbleOptions): BubbleGraph {
 
   /* the graph nodes, hottest first, the well-connected ones breaking ties */
   const candidates = graph.nodes.filter((n) => n.kind !== "system");
-  const rank = (n: GraphNode) =>
-    n.kind === "condition" && hypothesisOf(n)
-      ? conditionImportance(
-          hypothesisOf(n)!.score,
-          weightOf(hypothesisOf(n)!) || 1,
-        )
-      : (importance.get(n.id) ?? 0);
+  const bestGain = Math.max(
+    0,
+    ...candidates
+      .filter((n) => n.kind === "test")
+      .map((n) => gainOfTest(n, moves)),
+  );
+  const impOf = (n: GraphNode): number => {
+    const h = hypothesisOf(n);
+    if (h) return conditionImportance(h.score, weightOf(h) || 1);
+    if (n.kind === "test") {
+      const gain = gainOfTest(n, moves);
+      if (gain > 0) return testImportance(gain, bestGain);
+    }
+    return importance.get(n.id) ?? 0;
+  };
+  const rank = impOf;
   const chosen = [...candidates]
     .sort(
       (a, b) =>
@@ -385,9 +447,7 @@ export function buildBubbles(opts: BubbleOptions): BubbleGraph {
     const code = node.kind === "metric" ? node.codes?.[0] : undefined;
     const row = code ? m.latest[code] : undefined;
     const answer = answerOf(m, node);
-    const imp = hypothesis
-      ? conditionImportance(hypothesis.score, weightOf(hypothesis) || 1)
-      : (importance.get(node.id) ?? 0);
+    const imp = impOf(node);
     const st: BubbleState = hypothesis
       ? conditionState(hypothesis.score)
       : node.kind === "gene"
@@ -540,7 +600,9 @@ export function buildBubbles(opts: BubbleOptions): BubbleGraph {
 
   const panel: BubbleBelief[] = drawnBeliefs.map((b) => ({
     id: b.id,
-    name: b.name,
+    name: displayNameOf(b),
+    title: titleOf({ id: b.id, name: b.name, state: b.state }),
+    ...(isRiskState(b) ? { risk: true as const } : {}),
     p: b.score,
     state: b.state,
     summary: b.summary,
@@ -570,7 +632,32 @@ export function buildBubbles(opts: BubbleOptions): BubbleGraph {
   const dead = links.filter((l) => l.on === false).length;
   const hint = `${known} of ${nodes.length} bubbles known · ${live} edges active for you · ${dead} not for you`;
 
-  return { nodes, links, beliefs: panel, ruledOut, hint };
+  // Same order as the ledger: certainty first, then the lens, diseases before
+  // risk states. The stage still picks its bubbles by `matters`, because size
+  // is belief × lens; only the ranked list follows the cards.
+  panel.sort((a, b) =>
+    byRank(
+      {
+        id: a.id,
+        state: a.state,
+        matters: a.p * a.weight,
+        probability: a.p,
+        title: a.title,
+      },
+      {
+        id: b.id,
+        state: b.state,
+        matters: b.p * b.weight,
+        probability: b.p,
+        title: b.title,
+      },
+    ),
+  );
+
+  const nameOf = new Map(beliefs.map((b) => [b.id, displayNameOf(b)]));
+  const asks = asksFromMoves(moves, (id) => nameOf.get(id) ?? id);
+
+  return { nodes, links, beliefs: panel, asks, ruledOut, hint };
 }
 
 /** The box the picture ended up in, padded, for the client's fit-to-view. */

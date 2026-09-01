@@ -4,6 +4,7 @@ import { getGoals } from "@/lib/daily-data";
 import { buildToday, buildTrend, type TrendMetric } from "@/lib/home-data";
 import { localDay } from "@/lib/daily";
 import { buildLedger, isLoud } from "@/lib/ledger";
+import { askSurfaces } from "@/lib/asking";
 import { latestReport } from "@/lib/report";
 import { catalogFor } from "@/lib/hkb";
 import { PROFILE_QUESTIONS } from "@/lib/vectors";
@@ -52,8 +53,33 @@ export default async function Home() {
     return i === -1 ? undefined : i;
   };
 
-  const optionsOf = (featureId: string) =>
-    PROFILE_QUESTIONS[featureId.replace(/^fact:/, "")]?.options ?? [];
+  const optionsOf = (key: string) => PROFILE_QUESTIONS[key]?.options ?? [];
+
+  /**
+   * One asking surface, decided once for the whole page: the Today card takes
+   * the answer, every card that would have asked the same thing links to it.
+   */
+  const keyOf = (c: (typeof ledger.conclusions)[number]) =>
+    c.question?.featureId.replace(/^fact:/, "");
+  const plan = askSurfaces({
+    due: today.due.map((d) => d.key),
+    gain: ledger.asks,
+    others: ledger.conclusions.flatMap((c) => {
+      const key = keyOf(c);
+      return key ? [{ where: `card:${c.id}`, keys: [key] }] : [];
+    }),
+  });
+  const askOf = (c: (typeof ledger.conclusions)[number]) => {
+    const key = keyOf(c);
+    if (!key || !plan.links.includes(key)) return undefined;
+    return (
+      ledger.asks.find((a) => a.key === key) ?? {
+        key,
+        question: c.question!.label,
+        moves: [],
+      }
+    );
+  };
 
   const { spear } = ledger;
   const rest = ledger.conclusions.filter((c) => c.id !== spear?.id);
@@ -76,29 +102,26 @@ export default async function Home() {
     if (trend) trends.push(trend);
   }
 
-  let questionSeen = false;
-  const card = (c: (typeof rest)[number], isSpear = false) => {
-    const first = !questionSeen && c.question != null;
-    if (first) questionSeen = true;
-    return (
-      <ConclusionCard
-        key={c.id}
-        c={c}
-        spear={isSpear}
-        firstQuestion={first}
-        verdict={verdictOf(c.id)}
-        reportId={report?.id ?? null}
-        actionIndex={c.action ? indexOf(c.action.title) : undefined}
-        questionOptions={
-          c.question ? optionsOf(c.question.featureId) : undefined
-        }
-      />
-    );
-  };
+  const card = (c: (typeof rest)[number], isSpear = false) => (
+    <ConclusionCard
+      key={c.id}
+      c={c}
+      spear={isSpear}
+      verdict={verdictOf(c.id)}
+      reportId={report?.id ?? null}
+      actionIndex={c.action ? indexOf(c.action.title) : undefined}
+      ask={askOf(c)}
+    />
+  );
 
   return (
     <div className="space-y-8">
-      <TodayCard today={today} day={localDay()} />
+      <TodayCard
+        today={today}
+        day={localDay()}
+        ask={plan.ask}
+        askOptions={plan.ask ? optionsOf(plan.ask.key) : []}
+      />
       <Cockpit ledger={ledger} />
 
       <section>

@@ -33,6 +33,7 @@ import {
   type StoredProjection,
 } from "./projections";
 import {
+  isRiskState,
   scoreHypotheses,
   type Grade,
   type HState,
@@ -41,6 +42,7 @@ import {
   type Lens,
 } from "./hypotheses";
 import { nextMoves, type Move } from "./infogain";
+import { asksFromMoves, type Ask } from "./asking";
 import { wakeConditions } from "./wake";
 import { latestReport } from "./report";
 import { queueResearch } from "./research";
@@ -56,6 +58,8 @@ export interface Conclusion {
   rank: number;
   /** "<name>: <state>", or "<metric> <value> <unit>, <status>" for a marker */
   title: string;
+  /** a risk state, not a disease: the card wears a RISK chip and risk words */
+  risk?: true;
   probability?: number;
   state?: HState;
   lenses: Partial<Record<Lens, { w: number; grade: Grade }>>;
@@ -131,6 +135,12 @@ export interface Ledger {
   }[];
   spear?: Conclusion;
   conclusions: Conclusion[];
+  /**
+   * Every question worth asking today, one entry per fact key with the
+   * conditions it would move. The Today card asks the first one; every other
+   * surface prints a line and links back. Phase 24a.
+   */
+  asks: Ask[];
   quiet: {
     unlikely: number;
     ruledOut: number;
@@ -197,6 +207,111 @@ export const mattersOf = (h: HypothesisResult) =>
   round3(h.score * h.lensWeight);
 
 /**
+ * The band a conclusion sits in, which is the first thing the order reads.
+ *
+ * An off marker sits between "possible" and "unlikely": a number outside its
+ * range is a fact, so it beats a condition nobody believes in, and it loses to
+ * a condition somebody does.
+ */
+const BAND: Record<HState, number> = {
+  confirmed: 5,
+  likely: 4,
+  possible: 3,
+  unlikely: 1,
+  ruled_out: 0,
+};
+const MARKER_BAND = 2;
+
+/** Everything `rankKeyOf` needs, which is less than a whole `Conclusion`. */
+export interface Rankable {
+  id: string;
+  state?: HState;
+  /** score × lensWeight for the chosen lens */
+  matters: number;
+  probability?: number;
+  title: string;
+  /** set when the catalog row carries the flag rather than the id */
+  kind?: string;
+}
+
+/**
+ * The order the ledger stands behind: certainty first, the lens second.
+ *
+ * Sorting on `matters` alone put a 49 % "possible" cardiovascular risk score
+ * above a 92.6 % **confirmed** iron deficiency, because the lifespan lens
+ * weights the risk 3× and the deficiency 1×. Arithmetic, and wrong: a thing
+ * we know is true outranks a thing that might be. So the band comes first and
+ * the lens only reorders inside a band. Risk states are not diseases, so they
+ * sort after diseases of the same band whatever the lens says.
+ */
+export const rankKeyOf = (c: Rankable) => ({
+  band: c.state ? BAND[c.state] : MARKER_BAND,
+  /** 0 disease, 1 risk state: lower first */
+  risk: isRiskState(c) ? 1 : 0,
+  matters: c.matters,
+  probability: c.probability ?? 0,
+  title: c.title,
+});
+
+/** `rankKeyOf` as a comparator, which is the only way anything uses it. */
+export function byRank(a: Rankable, b: Rankable): number {
+  const x = rankKeyOf(a);
+  const y = rankKeyOf(b);
+  return (
+    y.band - x.band ||
+    x.risk - y.risk ||
+    y.matters - x.matters ||
+    y.probability - x.probability ||
+    x.title.localeCompare(y.title)
+  );
+}
+
+/**
+ * What a risk state's score is called, because "possible" is the wrong word
+ * for a number about the future. 49 % ASCVD is not "possible atherosclerosis";
+ * it is a raised risk.
+ */
+export const RISK_WORD: Record<HState, string> = {
+  confirmed: "very high",
+  likely: "high",
+  possible: "raised",
+  unlikely: "low",
+  ruled_out: "low",
+};
+
+/**
+ * The short noun a risk state wears, and the word to use when the plain state
+ * word would lie: a screening gap is "overdue", not "raised", and fitness is
+ * "low", not "high".
+ */
+const RISK_TITLE: Record<string, { name: string; word?: string }> = {
+  ascvd_risk: { name: "Cardiovascular risk" },
+  cancer_screening_due: { name: "Screening", word: "overdue" },
+  low_fitness_sarcopenia: { name: "Fitness", word: "low" },
+};
+
+/** "Cardiovascular risk", not "Low fitness and muscle loss", on a card or a line. */
+export const displayNameOf = (h: {
+  id: string;
+  name: string;
+  kind?: string;
+}): string => (isRiskState(h) ? (RISK_TITLE[h.id]?.name ?? h.name) : h.name);
+
+/**
+ * The title a card prints. "Cardiovascular risk: raised", never
+ * "Atherosclerotic risk: possible"; a disease keeps its state word.
+ */
+export const titleOf = (h: {
+  id: string;
+  name: string;
+  state: HState;
+  kind?: string;
+}): string =>
+  isRiskState(h)
+    ? `${displayNameOf(h)}: ${RISK_TITLE[h.id]?.word ?? RISK_WORD[h.state]}`
+    : `${h.name}: ${h.state.replace("_", " ")}`;
+
+/**
  * A condition earns a card when it is at least possible, when a rule fired for
  * it and there is still a test that would move it, or when it changed state
  * since the last snapshot. Everything else is a line in the quiet list.
@@ -208,9 +323,7 @@ export const mattersOf = (h: HypothesisResult) =>
  */
 export const isConclusion = (h: HypothesisResult, changed = false): boolean =>
   h.state !== "ruled_out" &&
-  (isLoud(h.state) ||
-    changed ||
-    (h.for.length > 0 && h.nextTests.length > 0));
+  (isLoud(h.state) || changed || (h.for.length > 0 && h.nextTests.length > 0));
 
 const metricCodesOf = (h: Hypothesis): string[] => [
   ...new Set([
@@ -427,7 +540,6 @@ export function improvedOf(rows: MetricRow[]): Ledger["improved"] {
   return out;
 }
 
-
 /* ── what changed, and whether it was you or us ───────────────────────── */
 
 /** The `hkb_revisions` summaries that name this condition by id or by name. */
@@ -586,31 +698,31 @@ export async function buildLedger(
     events,
     made,
   ] = await Promise.all([
-      buildModelInput(userId),
-      catalogFor(userId),
-      getMetricRows(userId),
-      latestReport(userId),
-      db
-        .select()
-        .from(protocolItems)
-        .where(
-          and(eq(protocolItems.userId, userId), eq(protocolItems.active, true)),
-        ),
-      db
-        .select({
-          id: readings.id,
-          metricCode: readings.metricCode,
-          value: readings.value,
-          unit: readings.unit,
-          observedAt: readings.observedAt,
-        })
-        .from(readings)
-        .where(eq(readings.userId, userId))
-        .orderBy(asc(readings.observedAt)),
-      previousSnapshot(userId),
-      db.select().from(lifeEvents).where(eq(lifeEvents.userId, userId)),
-      projectionsFor(userId),
-    ]);
+    buildModelInput(userId),
+    catalogFor(userId),
+    getMetricRows(userId),
+    latestReport(userId),
+    db
+      .select()
+      .from(protocolItems)
+      .where(
+        and(eq(protocolItems.userId, userId), eq(protocolItems.active, true)),
+      ),
+    db
+      .select({
+        id: readings.id,
+        metricCode: readings.metricCode,
+        value: readings.value,
+        unit: readings.unit,
+        observedAt: readings.observedAt,
+      })
+      .from(readings)
+      .where(eq(readings.userId, userId))
+      .orderBy(asc(readings.observedAt)),
+    previousSnapshot(userId),
+    db.select().from(lifeEvents).where(eq(lifeEvents.userId, userId)),
+    projectionsFor(userId),
+  ]);
 
   // An old draw gets its context from the timeline, not from a question: an
   // illness or a pregnancy that was going on when a marker was drawn discounts
@@ -624,6 +736,8 @@ export async function buildLedger(
 
   const scored = scoreHypotheses(input, { catalog, lens, confounderTags });
   const moves = nextMoves(input, catalog, { lens });
+  const nameOf = new Map(scored.map((h) => [h.id, displayNameOf(h)]));
+  const asks = asksFromMoves(moves, (id) => nameOf.get(id) ?? pretty(id));
 
   // What a person told us since the last snapshot, so a flip can name its
   // cause instead of just its size.
@@ -733,7 +847,8 @@ export async function buildLedger(
       id: h.id,
       kind: "condition",
       rank: 0,
-      title: `${h.name}: ${h.state.replace("_", " ")}`,
+      title: titleOf(h),
+      ...(isRiskState(h) ? { risk: true as const } : {}),
       probability: h.score,
       state: h.state,
       lenses: h.lenses,
@@ -825,12 +940,7 @@ export async function buildLedger(
     });
   }
 
-  conclusions.sort(
-    (a, b) =>
-      b.matters - a.matters ||
-      (b.probability ?? 0) - (a.probability ?? 0) ||
-      a.title.localeCompare(b.title),
-  );
+  conclusions.sort(byRank);
   conclusions.forEach((c, i) => (c.rank = i + 1));
 
   const first = conclusions[0];
@@ -905,13 +1015,14 @@ export async function buildLedger(
       optimal,
       normal,
       off,
-      questions: moves.filter((m) => m.kind === "question").length,
+      questions: asks.length,
       nextDrawWeeks,
       nextDrawCodes,
     },
     systems,
     spear,
     conclusions,
+    asks,
     quiet,
     improved: improvedOf(rows),
     since:

@@ -1,0 +1,128 @@
+import { describe, expect, it } from "vitest";
+import { asksFromMoves, askSurfaces, effectLine, type Ask } from "./asking";
+import type { Move } from "./infogain";
+
+const question = (
+  key: string,
+  label: string,
+  moves: { id: string; from: number; to: number }[],
+): Move => ({
+  kind: "question",
+  featureId: `fact:${key}`,
+  label,
+  cost: 0,
+  outcomes: [],
+  entropyBefore: 1,
+  entropyAfter: 0.5,
+  gain: 0.5,
+  ratio: 0.5,
+  shift: moves.reduce((n, m) => n + Math.abs(m.to - m.from), 0),
+  moves,
+});
+
+const NAMES: Record<string, string> = {
+  insulin_resistance: "Insulin resistance",
+  hypertension: "High blood pressure",
+  masld: "MASLD",
+};
+const nameOf = (id: string) => NAMES[id] ?? id;
+
+describe("asksFromMoves", () => {
+  it("folds one question's per-condition deltas into a single entry", () => {
+    const asks = asksFromMoves(
+      [
+        question("waist_cm", "What is your waist?", [
+          { id: "insulin_resistance", from: 0.64, to: 0.81 },
+          { id: "hypertension", from: 0.35, to: 0.49 },
+          { id: "masld", from: 0.4, to: 0.2 },
+        ]),
+      ],
+      nameOf,
+    );
+    expect(asks).toHaveLength(1);
+    expect(effectLine(asks[0]!.moves)).toBe(
+      "Insulin resistance 64 → 81, High blood pressure 35 → 49, MASLD 40 → 20",
+    );
+  });
+
+  it("dedupes by fact key across moves and keeps the biggest delta", () => {
+    const asks = asksFromMoves(
+      [
+        question("waist_cm", "What is your waist?", [
+          { id: "insulin_resistance", from: 0.64, to: 0.7 },
+        ]),
+        question("waist_cm", "What is your waist?", [
+          { id: "insulin_resistance", from: 0.64, to: 0.81 },
+          { id: "masld", from: 0.4, to: 0.2 },
+        ]),
+      ],
+      nameOf,
+    );
+    expect(asks.map((a) => a.key)).toEqual(["waist_cm"]);
+    expect(asks[0]!.moves).toEqual([
+      {
+        id: "insulin_resistance",
+        name: "Insulin resistance",
+        from: 0.64,
+        to: 0.81,
+      },
+      { id: "masld", name: "MASLD", from: 0.4, to: 0.2 },
+    ]);
+  });
+
+  it("drops tests, and drops a question that moves nothing", () => {
+    const test: Move = { ...question("x", "A test", []), kind: "test" };
+    const dust = question("y", "Barely", [
+      { id: "masld", from: 0.4, to: 0.401 },
+    ]);
+    expect(asksFromMoves([test, dust], nameOf)).toEqual([]);
+  });
+});
+
+describe("askSurfaces", () => {
+  const ask = (key: string): Ask => ({
+    key,
+    question: `${key}?`,
+    moves: [{ id: "masld", name: "MASLD", from: 0.4, to: 0.2 }],
+  });
+
+  /** Home as it renders: the Today card, then four condition cards. */
+  const home = {
+    due: ["bedtime_hour"],
+    gain: [ask("waist_cm"), ask("sym_energy")],
+    others: [
+      { where: "card:insulin_resistance", keys: ["waist_cm"] },
+      { where: "card:hypertension", keys: ["waist_cm"] },
+      { where: "card:masld", keys: ["waist_cm", "sym_energy"] },
+    ],
+  };
+
+  it("takes the answer in one place and links from every other", () => {
+    const plan = askSurfaces(home);
+    expect(plan.ask?.key).toBe("waist_cm");
+    expect(plan.inputs).toEqual(["bedtime_hour", "waist_cm"]);
+    expect(plan.links).toEqual(["waist_cm", "sym_energy"]);
+  });
+
+  it("never renders the same question key in two inputs on a page", () => {
+    const plan = askSurfaces(home);
+    expect(new Set(plan.inputs).size).toBe(plan.inputs.length);
+    for (const key of plan.links)
+      expect(plan.inputs.filter((k) => k === key).length).toBeLessThanOrEqual(
+        1,
+      );
+  });
+
+  it("does not ask twice when the best question is already a due re-ask", () => {
+    const plan = askSurfaces({ ...home, due: ["waist_cm"] });
+    expect(plan.ask?.key).toBe("sym_energy");
+    expect(plan.inputs).toEqual(["waist_cm", "sym_energy"]);
+  });
+
+  it("asks nothing when the engine has nothing to ask", () => {
+    const plan = askSurfaces({ due: [], gain: [], others: [] });
+    expect(plan.ask).toBeUndefined();
+    expect(plan.inputs).toEqual([]);
+    expect(plan.links).toEqual([]);
+  });
+});

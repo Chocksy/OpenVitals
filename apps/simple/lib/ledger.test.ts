@@ -3,12 +3,16 @@ import type { MetricRow } from "./data";
 import type { HState, HypothesisResult } from "./hypotheses";
 import {
   beliefsOf,
+  byRank,
   improvedOf,
   isConclusion,
   isLoud,
   mattersOf,
+  RISK_WORD,
   sinceOf,
+  titleOf,
   type Beliefs,
+  type Rankable,
 } from "./ledger";
 
 /* ── fixtures ─────────────────────────────────────────────────────────── */
@@ -299,9 +303,7 @@ describe("the phase-17 display rule", () => {
           grade: "C",
         },
       ],
-      nextTests: [
-        { test: "a test", cost: 1, expectedShift: 0.2, ratio: 0.2 },
-      ],
+      nextTests: [{ test: "a test", cost: 1, expectedShift: 0.2, ratio: 0.2 }],
     });
     expect(isConclusion(h, false)).toBe(false);
     expect(isConclusion(h, true)).toBe(false);
@@ -309,13 +311,147 @@ describe("the phase-17 display rule", () => {
 
   it("still gives an unlikely one a card when a rule fired and a test would move it", () => {
     const h = hypothesis("hashimoto", 0.2, "unlikely", {
-      for: [
-        { rule: "r", input: "tsh", value: "4.9", lr: 3, grade: "A" },
-      ],
+      for: [{ rule: "r", input: "tsh", value: "4.9", lr: 3, grade: "A" }],
       nextTests: [
         { test: "Anti-TPO", cost: 1, expectedShift: 0.3, ratio: 0.3 },
       ],
     });
     expect(isConclusion(h)).toBe(true);
+  });
+});
+
+/* ── the phase-24a order ──────────────────────────────────────────────── */
+
+/** A conclusion as `byRank` reads one: id, state, matters, probability, title. */
+const card = (
+  id: string,
+  state: HState | undefined,
+  p: number,
+  w: number,
+): Rankable => ({
+  id,
+  state,
+  matters: Math.round(p * w * 1000) / 1000,
+  probability: p,
+  title: state ? titleOf({ id, name: id.replace(/_/g, " "), state }) : id,
+});
+
+describe("byRank", () => {
+  it("puts a confirmed finding above a possible one under every lens", () => {
+    // Ramona: iron deficiency 92.6 % confirmed, weight 1, against a 49 %
+    // cardiovascular risk score the lifespan lens weights 3.
+    const iron = card("iron_deficiency", "confirmed", 0.926, 1);
+    const ascvd = card("ascvd_risk", "possible", 0.49, 3);
+    expect(ascvd.matters).toBeGreaterThan(iron.matters);
+    for (const w of [1, 2, 3])
+      expect(
+        [card("ascvd_risk", "possible", 0.49, w), iron].sort(byRank)[0]!.id,
+      ).toBe("iron_deficiency");
+  });
+
+  it("sorts a risk state after a disease of the same band", () => {
+    const risk = card("ascvd_risk", "possible", 0.43, 3);
+    const disease = card("hypertension", "possible", 0.32, 3);
+    expect(risk.matters).toBeGreaterThan(disease.matters);
+    expect([risk, disease].sort(byRank).map((c) => c.id)).toEqual([
+      "hypertension",
+      "ascvd_risk",
+    ]);
+  });
+
+  it("still lets a risk state outrank a disease of a lower band", () => {
+    const risk = card("ascvd_risk", "likely", 0.7, 3);
+    const disease = card("hypertension", "possible", 0.32, 3);
+    expect([disease, risk].sort(byRank)[0]!.id).toBe("ascvd_risk");
+  });
+
+  it("lets the lens reorder inside a band and nowhere else", () => {
+    const a = card("insulin_resistance", "possible", 0.3, 3);
+    const b = card("masld", "possible", 0.25, 2);
+    expect([b, a].sort(byRank).map((c) => c.id)).toEqual([
+      "insulin_resistance",
+      "masld",
+    ]);
+    // same two conditions, the other lens: weight flips, order flips
+    const a2 = card("insulin_resistance", "possible", 0.3, 1);
+    const b2 = card("masld", "possible", 0.25, 3);
+    expect([a2, b2].sort(byRank).map((c) => c.id)).toEqual([
+      "masld",
+      "insulin_resistance",
+    ]);
+  });
+
+  it("puts an off marker under possible and over unlikely", () => {
+    const marker: Rankable = {
+      id: "marker:ldl_cholesterol",
+      matters: 0,
+      title: "LDL 131 mg/dL, off",
+    };
+    const possible = card("hypertension", "possible", 0.32, 3);
+    const unlikely = card("hashimoto", "unlikely", 0.2, 3);
+    expect([marker, unlikely, possible].sort(byRank).map((c) => c.id)).toEqual([
+      "hypertension",
+      "marker:ldl_cholesterol",
+      "hashimoto",
+    ]);
+  });
+
+  it("falls back to probability and then to the title", () => {
+    const a = card("b_thing", "possible", 0.4, 1);
+    const b = card("a_thing", "possible", 0.4, 1);
+    expect([a, b].sort(byRank).map((c) => c.id)).toEqual([
+      "a_thing",
+      "b_thing",
+    ]);
+  });
+});
+
+describe("the risk grammar", () => {
+  it("maps every state to a risk word", () => {
+    expect(RISK_WORD.possible).toBe("raised");
+    expect(RISK_WORD.likely).toBe("high");
+    expect(RISK_WORD.confirmed).toBe("very high");
+    expect(RISK_WORD.unlikely).toBe("low");
+  });
+
+  it("titles the three risk states, never as a diagnosis", () => {
+    expect(
+      titleOf({
+        id: "ascvd_risk",
+        name: "Atherosclerotic risk",
+        state: "possible",
+      }),
+    ).toBe("Cardiovascular risk: raised");
+    expect(
+      titleOf({
+        id: "cancer_screening_due",
+        name: "Cancer screening overdue",
+        state: "possible",
+      }),
+    ).toBe("Screening: overdue");
+    expect(
+      titleOf({
+        id: "low_fitness_sarcopenia",
+        name: "Low fitness and muscle loss",
+        state: "possible",
+      }),
+    ).toBe("Fitness: low");
+  });
+
+  it("leaves a disease alone", () => {
+    expect(
+      titleOf({ id: "hashimoto", name: "Hashimoto's", state: "confirmed" }),
+    ).toBe("Hashimoto's: confirmed");
+  });
+
+  it("reads the catalog flag as well as the three ids", () => {
+    expect(
+      titleOf({
+        id: "some_new_score",
+        name: "Some new score",
+        state: "likely",
+        kind: "risk",
+      }),
+    ).toBe("Some new score: high");
   });
 });

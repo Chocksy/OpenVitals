@@ -3,10 +3,12 @@ import { CheckCircle2 } from "lucide-react";
 import { requireUserId } from "@/lib/auth";
 import { getDb, metrics as metricsTable, reviewItems } from "@/db";
 import { ReviewItem } from "@/components/client";
+import { AskLink } from "@/components/ask-link";
 
 export const dynamic = "force-dynamic";
 
 const KIND_LABELS: Record<string, string> = {
+  profile_question: "Questions the engine is waiting on",
   unit_unknown: "Units I could not convert",
   merge_metric: "Possible duplicate biomarkers",
   range_impact: "Optimal ranges that change a result",
@@ -22,7 +24,9 @@ export default async function ReviewPage() {
     db
       .select()
       .from(reviewItems)
-      .where(and(eq(reviewItems.userId, userId), eq(reviewItems.status, "open")))
+      .where(
+        and(eq(reviewItems.userId, userId), eq(reviewItems.status, "open")),
+      )
       .orderBy(desc(reviewItems.createdAt)),
     db
       .select({ code: metricsTable.code, name: metricsTable.name })
@@ -61,16 +65,30 @@ export default async function ReviewPage() {
               {KIND_LABELS[kind] ?? kind} · {items.length}
             </h2>
             <div className="space-y-2">
-              {items.map((item) => (
-                <ReviewItem
-                  key={item.id}
-                  id={item.id}
-                  question={item.question}
-                  options={item.options}
-                  detail={item.subject?.detail}
-                  metrics={allMetrics}
-                />
-              ))}
+              {items.map((item) =>
+                /* Phase 24a: the engine's own questions are answered in the
+                   Today card on Home. Here they are a line and a link; the
+                   curator's data calls below still take their answer here. */
+                kind === "profile_question" ? (
+                  <AskLink
+                    key={item.id}
+                    ask={{
+                      key: item.subject?.factKey ?? item.id,
+                      question: item.question,
+                      moves: [],
+                    }}
+                  />
+                ) : (
+                  <ReviewItem
+                    key={item.id}
+                    id={item.id}
+                    question={item.question}
+                    options={item.options}
+                    detail={item.subject?.detail}
+                    metrics={allMetrics}
+                  />
+                ),
+              )}
             </div>
           </section>
         ))

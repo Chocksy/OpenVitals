@@ -19,6 +19,7 @@ import type {
 } from "@/lib/bubbles";
 import type { Relation } from "@/lib/graph";
 import { AskBox } from "./ask-box";
+import { AskLink } from "./ask-link";
 
 /** The mockup's palette, verbatim, except that grey follows the theme. */
 const FILL: Record<BubbleState, string> = {
@@ -37,6 +38,8 @@ const STROKE: Record<BubbleKind, string> = {
   cond: "#fb923c",
   life: "#f472b6",
   gene: "#38bdf8",
+  /** worth testing: a thing to do, not a thing you have */
+  test: "#7c3aed",
 };
 
 /** The line colour says what the edge claims. */
@@ -296,10 +299,12 @@ export function Bubbles({
             <span style={{ color: "var(--color-neutral-900)" }}>marker</span>,{" "}
             <span style={{ color: "#fb923c" }}>condition</span>,{" "}
             <span style={{ color: "#f472b6" }}>lifestyle</span>,{" "}
-            <span style={{ color: "#38bdf8" }}>gene</span>
+            <span style={{ color: "#38bdf8" }}>gene</span>,{" "}
+            <span style={{ color: "#7c3aed" }}>worth testing</span>
           </span>
           <span className="hidden sm:inline">
-            · size = how much it matters for you
+            · condition size = belief × lens; test size = how much it would
+            settle
           </span>
           <span className="hidden sm:inline">
             · line: solid established, dashed probable, dotted speculative;
@@ -370,10 +375,9 @@ function Overview({
   ruledOutHref: string;
   showRuledOut: boolean;
 }) {
-  const questions = graph.beliefs
-    .flatMap((b) => b.moves.map((m) => ({ ...m, of: b.name })))
-    .filter((m) => m.kind === "question")
-    .slice(0, 4);
+  // One entry per question key with every delta it carries, not one per
+  // condition: the waist question used to fill this panel three times.
+  const questions = graph.asks.slice(0, 4);
   return (
     <>
       <div className="card p-3">
@@ -394,13 +398,24 @@ function Overview({
               key={b.id}
               className="flex items-center justify-between gap-2 py-2"
             >
-              <span className="min-w-0 flex-1 truncate font-body text-[13px]">
+              <span
+                className="min-w-0 flex-1 truncate font-body text-[13px]"
+                title={b.title}
+              >
                 {b.name}
               </span>
               <span className="font-display text-[20px] font-light tabular-nums">
                 {pct(b.p)}
               </span>
-              <StateChip state={b.state} />
+              {b.risk ? (
+                <span
+                  className={`${CHIP} border-[var(--color-health-warning-border)] text-[var(--color-health-warning)]`}
+                >
+                  risk
+                </span>
+              ) : (
+                <StateChip state={b.state} />
+              )}
             </div>
           ))}
         </div>
@@ -419,25 +434,9 @@ function Overview({
       {questions.length > 0 && (
         <div className="card p-4">
           <div className={LABEL}>Questions that change the picture</div>
-          <div className="mt-2 space-y-2">
-            {questions.map((q) => (
-              <div
-                key={q.label}
-                className="border-l-2 border-accent-500 bg-accent-50 px-2.5 py-2 font-body text-[13px]"
-              >
-                {q.label}
-                <span className="mt-0.5 block font-mono text-[11px] text-neutral-400">
-                  {q.of} {pct(q.from)} → {pct(q.to)}
-                </span>
-              </div>
-            ))}
-          </div>
-          <Link
-            href="/review"
-            className="mt-2 inline-block font-mono text-[10px] uppercase tracking-[0.06em] text-neutral-400 hover:text-neutral-700"
-          >
-            answer them
-          </Link>
+          {questions.map((q) => (
+            <AskLink key={q.key} ask={q} />
+          ))}
         </div>
       )}
     </>
@@ -578,7 +577,18 @@ function Detail({
             </span>
           </div>
           <div className="mt-2 flex flex-wrap items-center gap-1">
-            <StateChip state={belief.state} />
+            {belief.risk ? (
+              <span
+                className={`${CHIP} border-[var(--color-health-warning-border)] text-[var(--color-health-warning)]`}
+              >
+                risk
+              </span>
+            ) : (
+              <StateChip state={belief.state} />
+            )}
+            <span className="font-body text-[13px] text-neutral-600">
+              {belief.title}
+            </span>
             <span className="font-mono text-[10px] uppercase tracking-[0.06em] text-neutral-400">
               lens weight {belief.weight}
             </span>

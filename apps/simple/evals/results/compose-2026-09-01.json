@@ -1,0 +1,281 @@
+{
+  "ranAt": "2026-09-01T08:25:23.187Z",
+  "model": "google/gemini-3.7-flash",
+  "results": [
+    {
+      "id": "tired_plain",
+      "rules": {
+        "chips": [
+          "sym_energy=Yes"
+        ],
+        "followUp": "energy_when",
+        "failed": []
+      },
+      "model": {
+        "chips": [
+          "sym_energy=Yes"
+        ],
+        "followUp": "energy_when",
+        "failed": []
+      },
+      "pass": true
+    },
+    {
+      "id": "tired_afternoons_coffee",
+      "rules": {
+        "chips": [
+          "coffee_last_hour=16:00",
+          "sym_energy=Yes",
+          "energy_when=Afternoons"
+        ],
+        "followUp": null,
+        "failed": []
+      },
+      "model": {
+        "chips": [
+          "coffee_last_hour=16:00",
+          "sym_energy=Yes",
+          "energy_when=Afternoons",
+          "sym_energy_duration=Under a month"
+        ],
+        "followUp": null,
+        "failed": []
+      },
+      "pass": true
+    },
+    {
+      "id": "home_glucose",
+      "rules": {
+        "chips": [
+          "glucose=98"
+        ],
+        "followUp": "glucose_when",
+        "failed": []
+      },
+      "model": {
+        "chips": [
+          "glucose=98",
+          "glucose_when=Fasting"
+        ],
+        "followUp": "glucose_when",
+        "failed": []
+      },
+      "pass": true
+    },
+    {
+      "id": "bp_and_weight",
+      "rules": {
+        "chips": [
+          "bp_systolic=128",
+          "bp_diastolic=82",
+          "weight=180.779"
+        ],
+        "followUp": null,
+        "failed": []
+      },
+      "model": {
+        "chips": [
+          "bp_systolic=128",
+          "bp_diastolic=82",
+          "weight=180.779"
+        ],
+        "followUp": null,
+        "failed": []
+      },
+      "pass": true
+    },
+    {
+      "id": "snoring_and_sleepy",
+      "rules": {
+        "chips": [
+          "sleep_snoring=Most nights",
+          "sym_sleepiness=Yes",
+          "energy_when=All day"
+        ],
+        "followUp": "sleep_apnoea_witnessed",
+        "failed": []
+      },
+      "model": {
+        "chips": [
+          "sleep_snoring=Most nights",
+          "sym_sleepiness=Yes",
+          "energy_when=All day"
+        ],
+        "followUp": "sleep_apnoea_witnessed",
+        "failed": []
+      },
+      "pass": true
+    },
+    {
+      "id": "bowel_and_cold",
+      "rules": {
+        "chips": [
+          "sym_cold=Yes",
+          "sym_bowel=Constipation"
+        ],
+        "followUp": null,
+        "failed": []
+      },
+      "model": {
+        "chips": [
+          "sym_cold=Yes",
+          "sym_bowel=Constipation"
+        ],
+        "followUp": null,
+        "failed": []
+      },
+      "pass": true
+    },
+    {
+      "id": "timing_only",
+      "rules": {
+        "chips": [
+          "bedtime_hour=23:30",
+          "last_meal_hour=21:00"
+        ],
+        "followUp": null,
+        "failed": []
+      },
+      "model": {
+        "chips": [
+          "bedtime_hour=23:30",
+          "last_meal_hour=21:00"
+        ],
+        "followUp": null,
+        "failed": []
+      },
+      "pass": true
+    },
+    {
+      "id": "surgery_dated",
+      "rules": {
+        "chips": [
+          "post_viral=gallbladder surgery on 12 Aug, back at work now"
+        ],
+        "followUp": null,
+        "failed": []
+      },
+      "model": {
+        "chips": [
+          "post_viral=gallbladder surgery on 12 Aug, back at work now"
+        ],
+        "followUp": null,
+        "failed": []
+      },
+      "pass": true
+    },
+    {
+      "id": "nothing_medical",
+      "rules": {
+        "chips": [],
+        "followUp": null,
+        "failed": []
+      },
+      "model": {
+        "chips": [],
+        "followUp": null,
+        "failed": []
+      },
+      "pass": true
+    },
+    {
+      "id": "sleep_and_hba1c",
+      "rules": {
+        "chips": [
+          "hba1c=5.4",
+          "sleep_duration=360"
+        ],
+        "followUp": "coffee_last_hour",
+        "failed": []
+      },
+      "model": {
+        "chips": [
+          "hba1c=5.4",
+          "sleep_duration=360"
+        ],
+        "followUp": "coffee_last_hour",
+        "failed": []
+      },
+      "pass": true
+    },
+    {
+      "id": "ramona_periods_and_fatigue",
+      "rules": {
+        "chips": [
+          "sym_energy=Yes",
+          "sym_cycle=Heavy"
+        ],
+        "followUp": "energy_when",
+        "failed": []
+      },
+      "model": {
+        "chips": [
+          "sym_energy=Yes",
+          "sym_cycle=Heavy",
+          "sym_energy_duration=Over a month"
+        ],
+        "followUp": "energy_when",
+        "failed": []
+      },
+      "pass": true
+    },
+    {
+      "id": "ramona_quit_smoking_gained",
+      "rules": {
+        "chips": [
+          "sym_weight=Gained",
+          "smoking=Former"
+        ],
+        "followUp": "sym_weight_amount",
+        "failed": []
+      },
+      "model": {
+        "chips": [
+          "sym_weight=Gained",
+          "smoking=Former"
+        ],
+        "followUp": "sym_weight_amount",
+        "failed": []
+      },
+      "pass": true
+    },
+    {
+      "id": "ramona_irregular_and_acne",
+      "rules": {
+        "chips": [
+          "sym_cycle=Irregular",
+          "hirsutism_acne=Yes"
+        ],
+        "followUp": "cycle_length_days",
+        "failed": []
+      },
+      "model": {
+        "chips": [
+          "sym_cycle=Irregular",
+          "hirsutism_acne=Yes"
+        ],
+        "followUp": "cycle_length_days",
+        "failed": []
+      },
+      "pass": true
+    },
+    {
+      "id": "hearsay_sardines",
+      "rules": {
+        "chips": [
+          "CLAIM · sardines → triglycerides"
+        ],
+        "followUp": null,
+        "failed": []
+      },
+      "model": {
+        "chips": [
+          "CLAIM · sardines → triglycerides"
+        ],
+        "followUp": null,
+        "failed": []
+      },
+      "pass": true
+    }
+  ]
+}

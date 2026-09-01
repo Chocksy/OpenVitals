@@ -200,7 +200,30 @@ export interface Hypothesis {
   parentId?: string;
   /** 1 = scored for everyone, 2 = woken for this person only. Phase 17. */
   ring?: number;
+  /**
+   * A risk state rather than a disease: the score is "how much risk", not "how
+   * likely you have it". See `RISK_STATES` for the three the catalog ships and
+   * for why the flag is not a column on `hkb_conditions`. Phase 24a.
+   */
+  kind?: "risk";
 }
+
+/**
+ * The catalog rows that are risk states, with the one-line reason each.
+ *
+ * A const list rather than a `kind` column on `hkb_conditions`, so the catalog
+ * still round-trips through the database unchanged and nothing needs a
+ * migration. A row loaded from anywhere may also carry `kind: "risk"` itself.
+ */
+export const RISK_STATES: Record<string, string> = {
+  ascvd_risk: "a ten-year probability of an event, not a disease you have",
+  cancer_screening_due: "a state of the calendar, not a cancer",
+  low_fitness_sarcopenia: "a fitness percentile, not a diagnosis",
+};
+
+/** True for a risk state: flagged on the row, or one of the three by id. */
+export const isRiskState = (h: { id: string; kind?: string }): boolean =>
+  h.kind === "risk" || h.id in RISK_STATES;
 
 /** The catalog the engine scores: in code below, or the same rows out of
  *  `hkb_conditions` and friends via `lib/hkb.ts`. One shape either way. */
@@ -1690,7 +1713,9 @@ function resolve(
 ): Resolved | null {
   if (input.metric) {
     const row = m.latest[input.metric];
-    if (!row || row.value == null) return null;
+    // `unverified`: the second pass could not find this number on the sheet it
+    // came off. It reads as "not measured", not as evidence.
+    if (!row || row.value == null || row.unverified) return null;
     return {
       label: input.metric,
       value: row.value,

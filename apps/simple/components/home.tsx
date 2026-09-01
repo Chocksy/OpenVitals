@@ -8,12 +8,14 @@
  */
 import Link from "next/link";
 import { ChevronRight, FlaskConical } from "lucide-react";
+import { ASK_ID, effectLine, type Ask } from "@/lib/asking";
 import type { Today } from "@/lib/home-data";
 import type { Conclusion, Ledger } from "@/lib/ledger";
 import type { Move } from "@/lib/infogain";
 import type { TrendMetric } from "@/lib/home-data";
 import type { HState } from "@/lib/hypotheses";
 import { cn, formatDate } from "@/lib/utils";
+import { AskLink } from "./ask-link";
 import { AnswerQuestion, EditFact, StillTrue, WrongValue } from "./client";
 import { PostButton } from "./composer-button";
 import { ActionButtons, GeneratePlan } from "./plan";
@@ -59,12 +61,24 @@ const one = (v: number) => v.toFixed(1);
 /**
  * "Today": the first card in the cockpit, and the shortest one.
  *
- * At most two answers worth re-asking, the last check-in's reply in one line,
- * and nothing else. With nothing due and nothing posted it is one sentence,
- * because a card that always has something to say is a card nobody reads.
+ * At most two answers worth re-asking, the one question the engine would ask
+ * next, the last check-in's reply in one line, and nothing else. Phase 24a
+ * made this the only place in the app that renders an input for a question;
+ * every other surface prints the same question as a line and links here.
  */
-export function TodayCard({ today, day }: { today: Today; day: string }) {
-  const empty = !today.due.length && !today.post;
+export function TodayCard({
+  today,
+  day,
+  ask,
+  askOptions = [],
+}: {
+  today: Today;
+  day: string;
+  /** the single best question by information gain, if there is one */
+  ask?: Ask;
+  askOptions?: string[];
+}) {
+  const empty = !today.due.length && !today.post && !ask;
   return (
     <Card className="p-4">
       <div className="flex items-baseline justify-between gap-3">
@@ -89,6 +103,24 @@ export function TodayCard({ today, day }: { today: Today; day: string }) {
               today={day}
             />
           ))}
+          {ask && (
+            <div
+              id={ASK_ID}
+              className="scroll-mt-24 border-l-2 border-accent-500 bg-accent-50 px-3 py-2"
+            >
+              <p className="font-body text-[13px] text-neutral-800">
+                {ask.question}
+              </p>
+              {ask.moves.length > 0 && (
+                <p className="mt-0.5 font-mono text-[11px] tabular-nums text-neutral-500">
+                  moves {effectLine(ask.moves)}
+                </p>
+              )}
+              <div className="mt-2">
+                <AnswerQuestion factKey={ask.key} options={askOptions} />
+              </div>
+            </div>
+          )}
           {today.post && (
             <p className="font-body text-[13px] leading-relaxed text-neutral-600">
               <span className="font-mono text-[10px] uppercase tracking-[0.04em] text-neutral-400">
@@ -150,22 +182,20 @@ export function Cockpit({ ledger }: { ledger: Ledger }) {
         </Card>
 
         <Card className="p-4">
-          <div className={LABEL}>Open questions</div>
+          <div className={LABEL}>Questions worth answering</div>
           <div className="mt-2 font-display text-[26px] tabular-nums text-neutral-900">
             {counters.questions}
           </div>
-          <p className={WHY}>
-            {counters.questions > 0 ? (
+          {counters.questions > 0 && (
+            <p className={WHY}>
               <a
-                href="#first-question"
+                href={`#${ASK_ID}`}
                 className="underline hover:text-neutral-600"
               >
-                each one changes a conclusion
+                answer the first one
               </a>
-            ) : (
-              "nothing waiting on you"
-            )}
-          </p>
+            </p>
+          )}
         </Card>
 
         <Card className="p-4">
@@ -348,20 +378,20 @@ export function ConclusionCard({
   verdict,
   reportId,
   actionIndex,
-  questionOptions,
+  ask,
   spear = false,
-  firstQuestion = false,
 }: {
   c: Conclusion;
   verdict?: string;
   reportId?: string | null;
   actionIndex?: number;
-  /** the options for `c.question`, resolved from PROFILE_QUESTIONS server-side */
-  questionOptions?: string[];
+  /** this card's question as a line and a link; the input lives on Today */
+  ask?: Ask;
   spear?: boolean;
-  firstQuestion?: boolean;
 }) {
-  const top = c.next[0];
+  // A question move is never a button here: the Today card takes the answer,
+  // so a "(free)" chip repeating the question would be the second asker again.
+  const top = c.next.find((m) => m.kind !== "question");
   return (
     <Card className={cn("p-4", spear && "border-accent-500 p-5")}>
       {spear && (
@@ -373,10 +403,14 @@ export function ConclusionCard({
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div className="flex flex-wrap items-center gap-1.5">
           <Badge variant="outline">{c.rank}</Badge>
-          {c.state && (
-            <Badge variant={STATE_VARIANT[c.state]}>
-              {c.state.replace("_", " ")}
-            </Badge>
+          {c.risk ? (
+            <Badge variant="warning">risk</Badge>
+          ) : (
+            c.state && (
+              <Badge variant={STATE_VARIANT[c.state]}>
+                {c.state.replace("_", " ")}
+              </Badge>
+            )
           )}
           {Object.entries(c.lenses).map(([lens, v]) => (
             <Badge key={lens} variant="secondary">
@@ -480,29 +514,7 @@ export function ConclusionCard({
         </div>
       )}
 
-      {c.question && (
-        <div
-          id={firstQuestion ? "first-question" : undefined}
-          className="mt-3 border-l-2 border-accent-500 bg-accent-50 px-3 py-2"
-        >
-          <p className="font-body text-[13px] text-neutral-800">
-            {c.question.label}
-          </p>
-          <div className="mt-2">
-            <AnswerQuestion
-              factKey={c.question.featureId.replace(/^fact:/, "")}
-              options={questionOptions ?? []}
-              current={
-                c.inputs.find(
-                  (i) =>
-                    i.kind === "fact" &&
-                    i.id === c.question!.featureId.replace(/^fact:/, ""),
-                )?.value
-              }
-            />
-          </div>
-        </div>
-      )}
+      {ask && <AskLink ask={ask} only={c.id} />}
 
       <div className="mt-3 flex flex-wrap items-center gap-2">
         {reportId && c.action && actionIndex != null ? (
