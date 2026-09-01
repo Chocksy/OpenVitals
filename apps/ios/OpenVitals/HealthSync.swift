@@ -23,6 +23,18 @@ struct HKTypeSpec: Identifiable, Hashable {
     let hkUnit: HKUnit?
 
     var id: String { identifier }
+
+    /// The identifier without its `HKQuantityTypeIdentifier` or
+    /// `HKCategoryTypeIdentifier` prefix, which is how `lib/healthkit.ts`
+    /// names a type and how the totals route keys its rows.
+    var shortType: String {
+        for prefix in ["HKQuantityTypeIdentifier", "HKCategoryTypeIdentifier"]
+        where identifier.hasPrefix(prefix) {
+            return String(identifier.dropFirst(prefix.count))
+        }
+        return identifier
+    }
+
     /// The one type that is neither a quantity nor a category. Its samples are
     /// `HKWorkout`, and each one goes on the wire as two flat samples.
     var isWorkout: Bool { identifier == HK.workoutType }
@@ -119,6 +131,15 @@ enum HK {
 
     static var readTypes: Set<HKObjectType> {
         Set(types.compactMap { $0.sampleType as HKObjectType? })
+    }
+
+    /// How often iOS should wake us for a type.
+    ///
+    /// Glucose is the one where minutes matter — a CGM reading an hour late is
+    /// a number about the past. Everything else is a daily total or a nightly
+    /// median, so hourly costs nothing and saves the battery.
+    static func frequency(_ spec: HKTypeSpec) -> HKUpdateFrequency {
+        spec.identifier.hasSuffix("BloodGlucose") ? .immediate : .hourly
     }
 
     // MARK: - workouts
@@ -335,6 +356,79 @@ enum HK {
     }
 }
 
+// MARK: - one line while it runs
+
+/// What a run is doing right now.
+///
+/// A determinate bar would be a lie: an anchored query does not say how many
+/// samples are behind it. What it can say honestly is which type it is on, how
+/// far back it has read, and how many POSTs have landed.
+struct SyncProgress: Equatable {
+    var typeName = ""
+    var pagesDone = 0
+    /// The oldest day this type has read so far, `yyyy-MM-dd`.
+    var oldestDaySeen = ""
+    var batchesSent = 0
+    var batchesFailed = 0
+
+    /// "Sleep · reading 2023-04 · 41 batches sent"
+    var line: String {
+        guard !typeName.isEmpty else { return "" }
+        var parts = [typeName]
+        if !oldestDaySeen.isEmpty {
+            parts.append("reading \(oldestDaySeen.prefix(7))")
+        }
+        parts.append("\(batchesSent) batch\(batchesSent == 1 ? "" : "es") sent")
+        if batchesFailed > 0 { parts.append("\(batchesFailed) failed") }
+        return parts.joined(separator: " · ")
+    }
+
+    /// A new type starts its own count; the run keeps going.
+    mutating func begin(_ name: String) {
+        typeName = name
+        pagesDone = 0
+        oldestDaySeen = ""
+        batchesSent = 0
+        batchesFailed = 0
+    }
+
+    mutating func saw(_ samples: [Api.Sample]) {
+        pagesDone += 1
+        guard let oldest = samples.map(HK.day(of:)).min() else { return }
+        if oldestDaySeen.isEmpty || oldest < oldestDaySeen { oldestDaySeen = oldest }
+    }
+}
+
+// MARK: - a POST that failed once is not a failure
+
+/// Three more tries before a type is called failed.
+///
+/// Most of what killed a resync was one 500 in the middle of forty POSTs. The
+/// batch that comes back on the second try is not an error, and the audit line
+/// says so rather than reading "failed" for the whole type.
+enum Retry {
+    static let delays: [TimeInterval] = [1, 4, 16]
+
+    static func sleep(_ seconds: TimeInterval) async throws {
+        try await Task.sleep(nanoseconds: UInt64(seconds * 1_000_000_000))
+    }
+
+    /// `work` until it stops throwing or the delays run out. Comes back with
+    /// how many retries it took, so a resumed batch can be told from a clean
+    /// one.
+    static func run<T>(nap: (TimeInterval) async throws -> Void = sleep,
+                       work: () async throws -> T) async throws -> (T, Int) {
+        var used = 0
+        while true {
+            do { return (try await work(), used) } catch {
+                guard used < delays.count else { throw error }
+                try await nap(delays[used])
+                used += 1
+            }
+        }
+    }
+}
+
 // MARK: - what the phone remembers
 
 /// The seam the tests use instead of `UserDefaults`. `UserDefaults` already has
@@ -361,6 +455,10 @@ final class SyncState {
         var lastSent: Date?
         var samples: Int = 0
         var lastError: String?
+        /// Batches that failed once and then went through. Optional, so a
+        /// blob written before phase 24f still decodes instead of throwing
+        /// the whole audit line away.
+        var resumed: Int?
     }
 
     private let store: KeyValueStore
@@ -386,11 +484,13 @@ final class SyncState {
     /// A sync that worked: the anchor moves and the count grows. `lastSent` is
     /// only stamped when something was actually sent, so a nightly no-op does
     /// not make an empty type look busy.
-    func commit(_ id: String, anchor: Data?, sent: Int, at: Date) {
+    func commit(_ id: String, anchor: Data?, sent: Int, resumed: Int = 0,
+                at: Date) {
         if let anchor { store.set(anchor, forKey: anchorKey(id)) }
         var s = state(id)
         s.samples += sent
         if sent > 0 { s.lastSent = at }
+        if resumed > 0 { s.resumed = (s.resumed ?? 0) + resumed }
         s.lastError = nil
         put(s, id)
     }
@@ -437,9 +537,19 @@ final class HealthSyncModel: ObservableObject {
     @Published var seenNotUsed: [String] = []
     /// Bumped after every sync so the list redraws from `SyncState`.
     @Published var revision = 0
+    /// The one live line the Sync tab shows while a run is going.
+    @Published var progress = SyncProgress()
+    /// What the server says it holds. Nil until the tab has asked once.
+    @Published var totals: Api.Totals?
 
     let store = HKHealthStore()
-    let state = SyncState()
+    let state: SyncState
+
+    /// The transport seam. The app posts; a test hands over a flaky one and
+    /// counts the tries.
+    var send: ([Api.Sample]) async throws -> Api.SyncResult = Api.sync
+    /// The backoff seam, so the retry tests do not sleep for 21 seconds.
+    var nap: (TimeInterval) async throws -> Void = Retry.sleep
 
     /// One anchored read; the loop repeats while a pass comes back full.
     private let pageSize = 2000
@@ -451,7 +561,17 @@ final class HealthSyncModel: ObservableObject {
 
     var available: Bool { HKHealthStore.isHealthDataAvailable() }
 
-    init() { seenNotUsed = state.seenNotUsed }
+    init(state: SyncState = SyncState()) {
+        self.state = state
+        seenNotUsed = state.seenNotUsed
+    }
+
+    /// What the server holds, which is the only honest count. Quiet on
+    /// failure: a tab with no totals is a tab with no header line, not an
+    /// error the person has to dismiss.
+    func loadTotals() async {
+        totals = try? await Api.totals()
+    }
 
     func requestAuthorization() async {
         guard available else {
@@ -483,8 +603,9 @@ final class HealthSyncModel: ObservableObject {
         }
         guard !busy else { return }
         busy = true
-        defer { busy = false; revision += 1 }
+        defer { busy = false; revision += 1; progress = SyncProgress() }
         var sent = 0
+        var failed: [String] = []
         var unmapped = Set<String>()
         for spec in HK.types {
             do {
@@ -493,11 +614,22 @@ final class HealthSyncModel: ObservableObject {
                 unmapped.formUnion(result.1)
             } catch {
                 state.fail(spec.identifier, error.localizedDescription)
+                failed.append(spec.name)
             }
         }
         seenNotUsed = unmapped.sorted()
         state.seenNotUsed = seenNotUsed
-        status = sent == 0 ? "Nothing new to send." : "Sent \(sent) samples."
+        // A type that failed kept its anchor, so it is not lost — it is next
+        // in line. Saying "failed" and nothing else is what made a resync that
+        // landed twelve thousand readings read as a disaster.
+        var line = sent == 0 ? "Nothing new to send."
+                             : "Sent \(Api.Totals.count(sent)) samples."
+        if !failed.isEmpty {
+            line += " \(failed.count) type\(failed.count == 1 ? "" : "s")"
+                + " will resume next sync: \(failed.joined(separator: ", "))."
+        }
+        status = line
+        await loadTotals()
     }
 
     /// Every anchor dropped, then a full read.
@@ -522,19 +654,20 @@ final class HealthSyncModel: ObservableObject {
     @discardableResult
     func sync(_ spec: HKTypeSpec) async throws -> (Int, [String]) {
         guard let sampleType = spec.sampleType else { return (0, []) }
+        progress.begin(spec.name)
         var anchor = state.anchorData(spec.identifier)
         var held: [Api.Sample] = []
         var sent = 0
         /// Sent, but not yet in the audit line: the anchor they belong to has
         /// not moved yet.
         var uncounted = 0
+        var resumed = 0
         var unmapped: [String] = []
 
         func post(_ samples: [Api.Sample]) async throws {
-            for batch in HK.batches(samples) {
-                let reply = try await Api.sync(batch)
-                unmapped.append(contentsOf: reply.seenNotUsed ?? [])
-            }
+            let batch = try await self.post(samples)
+            unmapped.append(contentsOf: batch.unmapped)
+            resumed += batch.resumed
             sent += samples.count
             uncounted += samples.count
         }
@@ -542,6 +675,7 @@ final class HealthSyncModel: ObservableObject {
         for _ in 0..<maxPages {
             let page = try await read(sampleType, spec: spec, anchor: anchor)
             anchor = page.anchor ?? anchor
+            progress.saw(page.samples)
             let more = page.count >= pageSize
             let ready: [Api.Sample]
             if more {
@@ -559,8 +693,9 @@ final class HealthSyncModel: ObservableObject {
             // rather than leaving it with half a day's total for ever.
             if held.isEmpty {
                 state.commit(spec.identifier, anchor: anchor, sent: uncounted,
-                             at: Date())
+                             resumed: resumed, at: Date())
                 uncounted = 0
+                resumed = 0
             }
             if !more { break }
         }
@@ -572,9 +707,37 @@ final class HealthSyncModel: ObservableObject {
             held = []
             try await post(last)
             state.commit(spec.identifier, anchor: anchor, sent: uncounted,
-                         at: Date())
+                         resumed: resumed, at: Date())
         }
         return (sent, unmapped)
+    }
+
+    /// Every batch of `samples` out, each one retried before it counts as a
+    /// failure.
+    ///
+    /// Throws once a batch has used up its four tries. The caller does not
+    /// commit an anchor after a throw, so those samples come round again on
+    /// the next sync rather than being skipped — which is the whole reason
+    /// this returns rather than swallowing.
+    @discardableResult
+    func post(_ samples: [Api.Sample])
+        async throws -> (unmapped: [String], resumed: Int) {
+        var unmapped: [String] = []
+        var resumed = 0
+        for batch in HK.batches(samples) {
+            do {
+                let (reply, retries) = try await Retry.run(nap: nap) {
+                    try await self.send(batch)
+                }
+                unmapped.append(contentsOf: reply.seenNotUsed ?? [])
+                if retries > 0 { resumed += 1 }
+                progress.batchesSent += 1
+            } catch {
+                progress.batchesFailed += 1
+                throw error
+            }
+        }
+        return (unmapped, resumed)
     }
 
     private func read(_ type: HKSampleType, spec: HKTypeSpec,
@@ -615,7 +778,8 @@ final class HealthSyncModel: ObservableObject {
         guard available else { return }
         for spec in HK.types {
             guard let type = spec.sampleType else { continue }
-            store.enableBackgroundDelivery(for: type, frequency: .hourly) { _, _ in }
+            store.enableBackgroundDelivery(for: type,
+                                          frequency: HK.frequency(spec)) { _, _ in }
         }
     }
 

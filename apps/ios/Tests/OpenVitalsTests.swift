@@ -653,3 +653,334 @@ final class WebViewUserAgentTests: XCTestCase {
         XCTAssertTrue(script.source.contains("width=device-width"))
     }
 }
+
+// MARK: - phase 24f: the Sync tab tells the truth
+
+/// The one live line a run shows. A determinate bar would need a total the
+/// anchored query never gives, so this is what honesty looks like.
+final class SyncProgressTests: XCTestCase {
+    private func sample(_ day: String) -> Api.Sample {
+        Api.Sample(type: "HKQuantityTypeIdentifierStepCount", unit: "count",
+                   value: 1, start: "\(day)T08:00:00+03:00",
+                   end: "\(day)T08:00:00+03:00", sourceBundle: nil)
+    }
+
+    func testTheLineReadsTypeMonthAndBatches() {
+        var p = SyncProgress()
+        p.begin("Sleep")
+        p.saw([sample("2023-04-17")])
+        p.batchesSent = 41
+        XCTAssertEqual(p.line, "Sleep · reading 2023-04 · 41 batches sent")
+    }
+
+    func testOneBatchIsSingular() {
+        var p = SyncProgress()
+        p.begin("Weight")
+        p.batchesSent = 1
+        XCTAssertEqual(p.line, "Weight · 1 batch sent")
+    }
+
+    func testAFailedBatchIsSaidOutLoud() {
+        var p = SyncProgress()
+        p.begin("Glucose")
+        p.saw([sample("2026-08-01")])
+        p.batchesSent = 3
+        p.batchesFailed = 1
+        XCTAssertEqual(p.line, "Glucose · reading 2026-08 · 3 batches sent · 1 failed")
+    }
+
+    /// Pages arrive in anchor order, not date order, so the oldest day is a
+    /// running minimum rather than whatever the last page held.
+    func testTheOldestDaySeenOnlyGoesBackwards() {
+        var p = SyncProgress()
+        p.begin("Steps")
+        p.saw([sample("2024-06-01"), sample("2024-05-30")])
+        XCTAssertEqual(p.oldestDaySeen, "2024-05-30")
+        p.saw([sample("2026-01-01")])
+        XCTAssertEqual(p.oldestDaySeen, "2024-05-30")
+        p.saw([sample("2019-11-02")])
+        XCTAssertEqual(p.oldestDaySeen, "2019-11-02")
+        XCTAssertEqual(p.pagesDone, 3)
+    }
+
+    /// A page with nothing in it still counts as a page and does not blank
+    /// the day already reached.
+    func testAnEmptyPageKeepsTheDay() {
+        var p = SyncProgress()
+        p.begin("Steps")
+        p.saw([sample("2024-05-30")])
+        p.saw([])
+        XCTAssertEqual(p.oldestDaySeen, "2024-05-30")
+        XCTAssertEqual(p.pagesDone, 2)
+    }
+
+    func testANewTypeStartsItsOwnCount() {
+        var p = SyncProgress()
+        p.begin("Steps")
+        p.saw([sample("2024-05-30")])
+        p.batchesSent = 9
+        p.batchesFailed = 2
+        p.begin("Sleep")
+        XCTAssertEqual(p.typeName, "Sleep")
+        XCTAssertEqual(p.batchesSent, 0)
+        XCTAssertEqual(p.batchesFailed, 0)
+        XCTAssertEqual(p.pagesDone, 0)
+        XCTAssertEqual(p.oldestDaySeen, "")
+    }
+
+    func testNoTypeIsNoLine() {
+        XCTAssertEqual(SyncProgress().line, "")
+    }
+}
+
+/// One 500 in the middle of forty POSTs used to fail a whole type. Three more
+/// tries, one second then four then sixteen.
+final class RetryTests: XCTestCase {
+    private struct Boom: Error {}
+
+    func testTheDelaysAreOneFourSixteen() {
+        XCTAssertEqual(Retry.delays, [1, 4, 16])
+    }
+
+    func testAGoodCallIsNotSleptOn() async throws {
+        var slept: [TimeInterval] = []
+        let (value, retries) = try await Retry.run(nap: { slept.append($0) }) { 7 }
+        XCTAssertEqual(value, 7)
+        XCTAssertEqual(retries, 0)
+        XCTAssertTrue(slept.isEmpty)
+    }
+
+    func testABatchThatComesBackOnTheThirdTryIsNotAnError() async throws {
+        var slept: [TimeInterval] = []
+        var tries = 0
+        let (value, retries) = try await Retry.run(nap: { slept.append($0) }) {
+            tries += 1
+            if tries < 3 { throw Boom() }
+            return "landed"
+        }
+        XCTAssertEqual(value, "landed")
+        XCTAssertEqual(retries, 2)
+        XCTAssertEqual(tries, 3)
+        XCTAssertEqual(slept, [1, 4])
+    }
+
+    /// Four attempts in all: the first plus the three retries.
+    func testItGivesUpAfterThreeRetriesAndRethrows() async {
+        var slept: [TimeInterval] = []
+        var tries = 0
+        do {
+            _ = try await Retry.run(nap: { slept.append($0) }) {
+                tries += 1
+                throw Boom()
+            }
+            XCTFail("a batch that never lands must throw")
+        } catch {
+            XCTAssertTrue(error is Boom)
+        }
+        XCTAssertEqual(tries, 4)
+        XCTAssertEqual(slept, [1, 4, 16])
+    }
+}
+
+/// `GET /api/sync/healthkit/totals`: the numbers from the database, so a type
+/// with 776 nights never reads as "7".
+final class TotalsTests: XCTestCase {
+    private let json = """
+    {"readings":12119,"days":3260,"firstDay":"2022-05-29",
+     "lastDay":"2026-08-31","wearableDays":3110,
+     "perType":{
+       "sleep_duration":{"count":776,"first":"2022-05-30",
+                         "last":"2026-08-31","type":"SleepAnalysis"},
+       "glucose":{"count":41,"first":"2026-07-01","last":"2026-08-31",
+                  "type":"BloodGlucose"},
+       "ldl_c":{"count":4,"first":"2024-01-01","last":"2026-01-01",
+                "type":null}}}
+    """
+
+    private func totals() throws -> Api.Totals {
+        try JSONDecoder().decode(Api.Totals.self, from: Data(json.utf8))
+    }
+
+    func testItDecodes() throws {
+        let t = try totals()
+        XCTAssertEqual(t.readings, 12119)
+        XCTAssertEqual(t.days, 3260)
+        XCTAssertEqual(t.firstDay, "2022-05-29")
+        XCTAssertEqual(t.wearableDays, 3110)
+        XCTAssertEqual(t.perType["sleep_duration"]?.count, 776)
+        XCTAssertNil(t.perType["ldl_c"]?.type)
+    }
+
+    /// The header line the audit says the tab should have shown all along.
+    /// The thousands separator is the phone's, not ours, so it is spelled by
+    /// the same formatter rather than pinned to a comma.
+    func testHeadlineGroupsTheThousands() throws {
+        let n = Api.Totals.count
+        XCTAssertEqual(try totals().headline,
+                       "\(n(12119)) readings · \(n(3260)) days"
+                        + " · \(n(3110)) wearable days · since 2022-05-29")
+        XCTAssertNotEqual(n(12119), "12119", "thousands must be grouped")
+        XCTAssertEqual(n(776), "776")
+    }
+
+    func testAPhoneThatNeverSyncedSaysSo() throws {
+        let empty = """
+        {"readings":0,"days":0,"firstDay":null,"lastDay":null,
+         "wearableDays":0,"perType":{}}
+        """
+        let t = try JSONDecoder().decode(Api.Totals.self, from: Data(empty.utf8))
+        XCTAssertEqual(t.headline, "nothing here yet")
+        XCTAssertTrue(t.byType.isEmpty)
+    }
+
+    /// The tab lists HealthKit types; the server counts metric codes. The
+    /// `type` field on each row is the whole bridge, so the phone carries no
+    /// second copy of the mapping table.
+    func testRowsAreFoundByTheHealthKitTypeTheTabLists() throws {
+        let byType = try totals().byType
+        XCTAssertEqual(byType["SleepAnalysis"]?.count, 776)
+        XCTAssertEqual(byType["BloodGlucose"]?.count, 41)
+        XCTAssertNil(byType["StepCount"], "steps land in daily_logs, not readings")
+
+        let sleep = HK.types.first { $0.name == "Sleep" }!
+        XCTAssertEqual(sleep.shortType, "SleepAnalysis")
+        XCTAssertEqual(byType[sleep.shortType]?.count, 776)
+    }
+
+    /// Every type the tab shows names itself the way the server would.
+    func testShortTypeDropsBothPrefixes() {
+        for spec in HK.types {
+            XCTAssertFalse(spec.shortType.hasPrefix("HKQuantityTypeIdentifier"))
+            XCTAssertFalse(spec.shortType.hasPrefix("HKCategoryTypeIdentifier"))
+            XCTAssertFalse(spec.shortType.isEmpty)
+        }
+        XCTAssertEqual(HK.types.first!.shortType, "StepCount")
+        // The workout type has no prefix to drop and keeps its own name.
+        XCTAssertEqual(HK.types.first { $0.isWorkout }?.shortType, "HKWorkout")
+    }
+
+    func testTheURLFollowsTheBase() {
+        XCTAssertEqual(
+            Api.baseURL.appendingPathComponent("api/sync/healthkit/totals").path,
+            "/api/sync/healthkit/totals")
+    }
+}
+
+/// The rule the whole loop hangs on: a batch that never lands leaves the
+/// anchor where it was, so those samples come round again next sync.
+@MainActor
+final class PostAndAnchorTests: XCTestCase {
+    private let spec = HK.types.first { $0.identifier.hasSuffix("StepCount") }!
+
+    private func reply(_ seenNotUsed: String = "[]") -> Api.SyncResult {
+        try! JSONDecoder().decode(
+            Api.SyncResult.self,
+            from: Data(#"{"ok":true,"seenNotUsed":\#(seenNotUsed)}"#.utf8))
+    }
+
+    private func samples(_ n: Int) -> [Api.Sample] {
+        (0..<n).map {
+            Api.Sample(type: spec.identifier, unit: "count", value: 1,
+                       start: "2024-05-\(String(format: "%02d", $0 + 1))T08:00:00+03:00",
+                       end: nil, sourceBundle: nil)
+        }
+    }
+
+    private func model() -> HealthSyncModel {
+        let m = HealthSyncModel(state: SyncState(store: MemoryStore()))
+        m.nap = { _ in }
+        return m
+    }
+
+    func testAFailedBatchNeverMovesTheAnchor() async {
+        let m = model()
+        var tries = 0
+        m.send = { _ in
+            tries += 1
+            throw Api.Failure(status: 500, message: "server said no")
+        }
+        do {
+            _ = try await m.post(samples(3))
+            XCTFail("a batch that never lands must throw")
+        } catch {}
+
+        XCTAssertEqual(tries, 4, "one try and three retries")
+        XCTAssertEqual(m.progress.batchesFailed, 1)
+        XCTAssertEqual(m.progress.batchesSent, 0)
+        // The caller only commits after `post` returns, so nothing moved.
+        XCTAssertNil(m.state.anchorData(spec.identifier))
+        XCTAssertEqual(m.state.state(spec.identifier).samples, 0)
+
+        // And this is what `syncAll` does with the throw.
+        m.state.fail(spec.identifier, "server said no")
+        XCTAssertNil(m.state.anchorData(spec.identifier),
+                     "a failed sync must not move the anchor")
+        XCTAssertEqual(m.state.state(spec.identifier).lastError, "server said no")
+    }
+
+    func testABatchThatResumesIsCountedAsSentNotFailed() async throws {
+        let m = model()
+        var tries = 0
+        m.send = { _ in
+            tries += 1
+            if tries < 3 { throw Api.Failure(status: 502, message: "gateway") }
+            return self.reply(#"["HeartRate"]"#)
+        }
+        let out = try await m.post(samples(2))
+        XCTAssertEqual(out.resumed, 1)
+        XCTAssertEqual(out.unmapped, ["HeartRate"])
+        XCTAssertEqual(m.progress.batchesSent, 1)
+        XCTAssertEqual(m.progress.batchesFailed, 0)
+
+        m.state.commit(spec.identifier, anchor: Data([1]), sent: 2,
+                       resumed: out.resumed, at: Date())
+        XCTAssertEqual(m.state.state(spec.identifier).resumed, 1)
+        XCTAssertNil(m.state.state(spec.identifier).lastError)
+    }
+
+    /// A clean run leaves `resumed` nil, so the audit line says nothing about
+    /// retries that never happened.
+    func testACleanRunSaysNothingAboutRetries() async throws {
+        let m = model()
+        m.send = { _ in self.reply() }
+        let out = try await m.post(samples(2))
+        XCTAssertEqual(out.resumed, 0)
+        m.state.commit(spec.identifier, anchor: Data([1]), sent: 2, at: Date())
+        XCTAssertNil(m.state.state(spec.identifier).resumed)
+    }
+
+    /// The count survives a page boundary the way `samples` does.
+    func testResumedBatchesAccumulate() {
+        let state = SyncState(store: MemoryStore())
+        state.commit(spec.identifier, anchor: Data([1]), sent: 1, resumed: 2,
+                     at: Date())
+        state.commit(spec.identifier, anchor: Data([2]), sent: 1, resumed: 3,
+                     at: Date())
+        XCTAssertEqual(state.state(spec.identifier).resumed, 5)
+    }
+
+    /// A `TypeState` written before phase 24f has no `resumed` key. It has to
+    /// keep decoding, or an upgrade wipes every audit line.
+    func testAnOlderStoredStateStillDecodes() throws {
+        let store = MemoryStore()
+        let old = #"{"samples":2153,"lastSent":760000000}"#
+        store.set(Data(old.utf8), forKey: "hk.state.\(spec.identifier)")
+        let state = SyncState(store: store)
+        XCTAssertEqual(state.state(spec.identifier).samples, 2153)
+        XCTAssertNotNil(state.state(spec.identifier).lastSent)
+        XCTAssertNil(state.state(spec.identifier).resumed)
+    }
+}
+
+/// The owner left the frequency open; glucose is the one where minutes matter.
+final class BackgroundDeliveryTests: XCTestCase {
+    func testGlucoseIsImmediateAndEverythingElseIsHourly() {
+        for spec in HK.types {
+            let wanted: HKUpdateFrequency =
+                spec.name == "Glucose" ? .immediate : .hourly
+            XCTAssertEqual(HK.frequency(spec), wanted, spec.name)
+        }
+        XCTAssertEqual(
+            HK.frequency(HK.types.first { $0.name == "Glucose" }!), .immediate)
+    }
+}

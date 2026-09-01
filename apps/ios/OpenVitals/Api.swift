@@ -219,6 +219,63 @@ enum Api {
 
     /// `lib/compose.ts: Chip`, the shape the capture route returns and takes
     /// back. Sent back verbatim; the server re-checks every field anyway.
+    /// Phase 24f: what the server holds for one metric.
+    struct TypeTotal: Decodable, Equatable {
+        let count: Int
+        let first: String?
+        let last: String?
+        /// The HealthKit type that writes this metric, prefix stripped. The
+        /// server names it so the phone needs no copy of the mapping table.
+        let type: String?
+    }
+
+    /// The truth about a phone's sync, counted on the server rather than
+    /// remembered by the app. A reinstall resets what the app remembers; the
+    /// rows do not go anywhere.
+    struct Totals: Decodable, Equatable {
+        let readings: Int
+        let days: Int
+        let firstDay: String?
+        let lastDay: String?
+        let wearableDays: Int
+        let perType: [String: TypeTotal]
+
+        private static let grouped: NumberFormatter = {
+            let f = NumberFormatter()
+            f.numberStyle = .decimal
+            return f
+        }()
+
+        static func count(_ n: Int) -> String {
+            grouped.string(from: NSNumber(value: n)) ?? String(n)
+        }
+
+        /// "12,119 readings · 3,260 days · since 2022-05-29".
+        var headline: String {
+            guard readings > 0 || wearableDays > 0 else { return "nothing here yet" }
+            var parts = ["\(Self.count(readings)) readings",
+                         "\(Self.count(days)) days"]
+            if wearableDays > 0 {
+                parts.append("\(Self.count(wearableDays)) wearable days")
+            }
+            if let firstDay { parts.append("since \(firstDay)") }
+            return parts.joined(separator: " · ")
+        }
+
+        /// The same rows, findable by the HealthKit type the Sync tab lists.
+        var byType: [String: TypeTotal] {
+            Dictionary(perType.values.compactMap { total in
+                total.type.map { ($0, total) }
+            }, uniquingKeysWith: { a, b in a.count >= b.count ? a : b })
+        }
+    }
+
+    static func totals() async throws -> Totals {
+        let req = URLRequest(
+            url: baseURL.appendingPathComponent("api/sync/healthkit/totals"))
+        return try await send(req)
+    }
+
     struct Chip: Codable, Equatable, Identifiable {
         var kind: String
         var key: String
