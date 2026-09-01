@@ -144,16 +144,13 @@ write, and no LR was invented to make it look busier.
 
 ## In progress
 
-Nothing. Next: owner inputs on prod (sex + birth year fill the bubbles),
-GBD priors CSV, wearables data flowing once the app is installed.
+**Phase 24, the UX audit series** (`2026-09-01-ux-audit.md`): done and
+pushed: 24a certainty-first ranking + one asking surface, 24b phone data
+home, 24e curator second pass (owner's 10 rows settled without a human),
+24f sync truthfulness. Running: 24c findings surface where they act
+(genome sentences, human FOR/AGAINST); then 24d home composition +
+motion (answers animate without a reload).
 
-Queued behind it, owner-ordered (2026-09-01): 16b bubbles as-is (in
-flight), 17b Coolify cutover with scheduled jobs (prep in flight), then
-phase 23 the iOS companion (`2026-09-01-phase23-ios-companion-spec.md`):
-HealthKit for all we can take (server-side mapping, daily aggregation,
-"seen, not used" honesty), and the camera front — photo → vision LLM →
-chips → confirmed facts/meals/supplements, same chip UX as the
-composer, also surfaced as a web photo button.
 
 ## Next
 
