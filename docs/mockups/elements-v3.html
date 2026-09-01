@@ -1,0 +1,1899 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>OpenVitals · Elements v3 — the whole app in the new language</title>
+    <link rel="stylesheet" href="v3.css" />
+  </head>
+  <body>
+    <button class="themebtn" id="themebtn" type="button">Dark</button>
+
+    <div class="doc">
+      <header class="doc-head">
+        <h1>Every element, in the v3 language</h1>
+        <p>
+          Phase 28b-2. Same tokens, same type, same rulers as
+          <a href="home-v3.html">home-v3</a>, now covering every row of data the
+          app actually holds: blood, Apple Health, food, genome, person, engine,
+          plan, knowledge, ask, shell.
+        </p>
+        <p class="t-meta">
+          One rule runs through the whole sheet: <b>no decorative data</b>. Every
+          dot, bar and number below is a thing you can name. The test user's lab
+          values are real (Sep 1 2026). Apple Health numbers are illustrative and
+          listed in the footnote at the end.
+        </p>
+        <nav class="jump">
+          <a href="#s1">1 · Hero</a>
+          <a href="#s2">2 · Body today</a>
+          <a href="#s3">3 · Blood</a>
+          <a href="#s4">4 · Conditions</a>
+          <a href="#s5">5 · Systems</a>
+          <a href="#s6">6 · Plan</a>
+          <a href="#s7">7 · Person</a>
+          <a href="#s8">8 · Ask</a>
+          <a href="#s9">9 · Knowledge</a>
+          <a href="#s10">10 · Shell</a>
+          <a href="#s11">11 · Dark</a>
+        </nav>
+      </header>
+
+      <!-- ═══════════════════════ 1 · HERO ═══════════════════════ -->
+      <section class="sec" id="s1">
+        <div class="sec-head">
+          <span class="n">01</span>
+          <h2>Hero — four ways to open the app</h2>
+        </div>
+        <p class="lede">
+          A and B are from home-v3. B's strip is rebuilt: the dots were
+          decoration, now every mark is named. B2 trades the dot field for a
+          plain sparkline of the same metric. C drops the gradient entirely and
+          leads with a sentence over three tonal tiles that link into the three
+          layers.
+        </p>
+
+        <div class="pair">
+          <!-- ───── A ───── -->
+          <div>
+            <p class="vlabel"><b>A</b> Two gradient tiles</p>
+            <div class="screen">
+              <div class="tiles two">
+                <div class="tile warn">
+                  <div class="tile-label">Status</div>
+                  <div class="tile-mid">
+                    <div class="tile-num">7</div>
+                    <div class="tile-say">Attention · 7 markers off</div>
+                  </div>
+                  <div class="tile-foot">
+                    <span>26 optimal · 19 normal · 7 off</span>
+                    <span>Aug 1 draw</span>
+                  </div>
+                </div>
+                <div class="tile age">
+                  <div class="tile-label">Biological age</div>
+                  <div class="tile-mid">
+                    <div class="tile-num">—</div>
+                    <div class="tile-say">Missing one number: ALP</div>
+                  </div>
+                  <div class="tile-foot"><span>Upload a lab</span></div>
+                </div>
+              </div>
+            </div>
+            <p class="t-meta" style="margin-top: 10px">
+              The real biological age today is <b>not computed</b>: the engine is
+              missing ALP. The empty state is part of the design, not a gap in
+              the mockup.
+            </p>
+          </div>
+
+          <!-- ───── B ───── -->
+          <div>
+            <p class="vlabel"><b>B</b> Wide status tile with the named timeline</p>
+            <div class="screen">
+              <div class="tiles">
+                <div class="tile warn" style="min-height: 316px">
+                  <div class="tile-label">Status</div>
+                  <div class="tile-mid" style="padding-bottom: 0">
+                    <div class="tile-num">7</div>
+                    <div class="tile-say">Attention · 7 markers off</div>
+                  </div>
+                  <div class="strip named">
+                    <span class="series">Resting HR <em>bpm · last 90 days</em></span>
+                    <div class="strip-dots">
+                        <s style="--x: 1.00%; --y: 96%; --d: 3px"></s>
+                        <s style="--x: 2.10%; --y: 96%; --d: 3px"></s>
+                        <s style="--x: 3.20%; --y: 96%; --d: 3px"></s>
+                        <s style="--x: 4.30%; --y: 96%; --d: 3px"></s>
+                        <s style="--x: 5.40%; --y: 96%; --d: 3px"></s>
+                        <s style="--x: 6.51%; --y: 96%; --d: 3px"></s>
+                        <s style="--x: 7.61%; --y: 96%; --d: 3px"></s>
+                        <s style="--x: 8.71%; --y: 96%; --d: 3px"></s>
+                        <s style="--x: 9.81%; --y: 96%; --d: 3px"></s>
+                        <s style="--x: 10.91%; --y: 96%; --d: 3px"></s>
+                        <s style="--x: 12.01%; --y: 96%; --d: 3px"></s>
+                        <s style="--x: 13.11%; --y: 96%; --d: 3px"></s>
+                        <s style="--x: 16.42%; --y: 96%; --d: 3px"></s>
+                        <s style="--x: 17.52%; --y: 96%; --d: 3px"></s>
+                        <s style="--x: 18.62%; --y: 96%; --d: 3px"></s>
+                        <s style="--x: 19.72%; --y: 96%; --d: 3px"></s>
+                        <s style="--x: 20.82%; --y: 96%; --d: 3px"></s>
+                        <s style="--x: 21.92%; --y: 96%; --d: 3px"></s>
+                        <s style="--x: 23.02%; --y: 96%; --d: 3px"></s>
+                        <s style="--x: 24.12%; --y: 96%; --d: 3px"></s>
+                        <s style="--x: 25.22%; --y: 96%; --d: 3px"></s>
+                        <s style="--x: 26.33%; --y: 96%; --d: 3px"></s>
+                        <s style="--x: 27.43%; --y: 96%; --d: 3px"></s>
+                        <s style="--x: 28.53%; --y: 96%; --d: 3px"></s>
+                        <s style="--x: 29.63%; --y: 96%; --d: 3px"></s>
+                        <s style="--x: 30.73%; --y: 96%; --d: 3px"></s>
+                        <s style="--x: 31.83%; --y: 96%; --d: 3px"></s>
+                        <s style="--x: 32.93%; --y: 96%; --d: 3px"></s>
+                        <s style="--x: 34.03%; --y: 96%; --d: 3px"></s>
+                        <s style="--x: 35.13%; --y: 96%; --d: 3px"></s>
+                        <s style="--x: 36.24%; --y: 96%; --d: 3px"></s>
+                        <s style="--x: 37.34%; --y: 96%; --d: 3px"></s>
+                        <s style="--x: 38.44%; --y: 96%; --d: 3px"></s>
+                        <s style="--x: 39.54%; --y: 96%; --d: 3px"></s>
+                        <s style="--x: 40.64%; --y: 96%; --d: 3px"></s>
+                        <s style="--x: 41.74%; --y: 96%; --d: 3px"></s>
+                        <s style="--x: 42.84%; --y: 96%; --d: 3px"></s>
+                        <s style="--x: 43.94%; --y: 96%; --d: 3px"></s>
+                        <s style="--x: 45.04%; --y: 96%; --d: 3px"></s>
+                        <s style="--x: 47.25%; --y: 96%; --d: 3px"></s>
+                        <s style="--x: 48.35%; --y: 96%; --d: 3px"></s>
+                        <s style="--x: 49.45%; --y: 96%; --d: 3px"></s>
+                        <s style="--x: 50.55%; --y: 96%; --d: 3px"></s>
+                        <s style="--x: 51.65%; --y: 96%; --d: 3px"></s>
+                        <s style="--x: 52.75%; --y: 96%; --d: 3px"></s>
+                        <s style="--x: 53.85%; --y: 96%; --d: 3px"></s>
+                        <s style="--x: 54.96%; --y: 96%; --d: 3px"></s>
+                        <s style="--x: 56.06%; --y: 96%; --d: 3px"></s>
+                        <s style="--x: 57.16%; --y: 96%; --d: 3px"></s>
+                        <s style="--x: 58.26%; --y: 96%; --d: 3px"></s>
+                        <s style="--x: 59.36%; --y: 96%; --d: 3px"></s>
+                        <s style="--x: 60.46%; --y: 96%; --d: 3px"></s>
+                        <s style="--x: 61.56%; --y: 96%; --d: 3px"></s>
+                        <s style="--x: 62.66%; --y: 96%; --d: 3px"></s>
+                        <s style="--x: 63.76%; --y: 96%; --d: 3px"></s>
+                        <s style="--x: 64.87%; --y: 96%; --d: 3px"></s>
+                        <s style="--x: 65.97%; --y: 96%; --d: 3px"></s>
+                        <s style="--x: 67.07%; --y: 96%; --d: 3px"></s>
+                        <s style="--x: 68.17%; --y: 96%; --d: 3px"></s>
+                        <s style="--x: 70.37%; --y: 96%; --d: 3px"></s>
+                        <s style="--x: 71.47%; --y: 96%; --d: 3px"></s>
+                        <s style="--x: 72.57%; --y: 96%; --d: 3px"></s>
+                        <s style="--x: 73.67%; --y: 96%; --d: 3px"></s>
+                        <s style="--x: 74.78%; --y: 96%; --d: 3px"></s>
+                        <s style="--x: 75.88%; --y: 96%; --d: 3px"></s>
+                        <s style="--x: 76.98%; --y: 96%; --d: 3px"></s>
+                        <s style="--x: 78.08%; --y: 96%; --d: 3px"></s>
+                        <s style="--x: 79.18%; --y: 96%; --d: 3px"></s>
+                        <s style="--x: 80.28%; --y: 96%; --d: 3px"></s>
+                        <s style="--x: 81.38%; --y: 96%; --d: 3px"></s>
+                        <s style="--x: 82.48%; --y: 96%; --d: 3px"></s>
+                        <s style="--x: 83.58%; --y: 96%; --d: 3px"></s>
+                        <s style="--x: 84.69%; --y: 96%; --d: 3px"></s>
+                        <s style="--x: 85.79%; --y: 96%; --d: 3px"></s>
+                        <s style="--x: 86.89%; --y: 96%; --d: 3px"></s>
+                        <s style="--x: 87.99%; --y: 96%; --d: 3px"></s>
+                        <s style="--x: 89.09%; --y: 96%; --d: 3px"></s>
+                        <s style="--x: 90.19%; --y: 96%; --d: 3px"></s>
+                        <s style="--x: 91.29%; --y: 96%; --d: 3px"></s>
+                        <s style="--x: 92.39%; --y: 96%; --d: 3px"></s>
+                        <s style="--x: 93.49%; --y: 96%; --d: 3px"></s>
+                        <s style="--x: 94.60%; --y: 96%; --d: 3px"></s>
+                        <s style="--x: 95.70%; --y: 96%; --d: 3px"></s>
+                        <s style="--x: 96.80%; --y: 96%; --d: 3px"></s>
+                        <s style="--x: 97.90%; --y: 96%; --d: 3px"></s>
+                        <s style="--x: 99.00%; --y: 96%; --d: 3px"></s>
+                        <s style="--x: 1.00%; --y: 50.0%; --d: 6px; --c: #d7f24b"></s>
+                        <s style="--x: 4.30%; --y: 60.0%; --d: 6px; --c: #d7f24b"></s>
+                        <s style="--x: 7.61%; --y: 40.0%; --d: 6px; --c: #d7f24b"></s>
+                        <s style="--x: 10.91%; --y: 50.0%; --d: 6px; --c: #d7f24b"></s>
+                        <s style="--x: 14.21%; --y: 70.0%; --d: 6px; --c: #d7f24b"></s>
+                        <s style="--x: 17.52%; --y: 50.0%; --d: 6px; --c: #d7f24b"></s>
+                        <s style="--x: 20.82%; --y: 40.0%; --d: 6px; --c: #d7f24b"></s>
+                        <s style="--x: 24.12%; --y: 60.0%; --d: 6px; --c: #d7f24b"></s>
+                        <s style="--x: 27.43%; --y: 50.0%; --d: 6px; --c: #d7f24b"></s>
+                        <s style="--x: 30.73%; --y: 40.0%; --d: 6px; --c: #d7f24b"></s>
+                        <s style="--x: 34.03%; --y: 60.0%; --d: 6px; --c: #d7f24b"></s>
+                        <s style="--x: 37.34%; --y: 50.0%; --d: 6px; --c: #d7f24b"></s>
+                        <s style="--x: 40.64%; --y: 70.0%; --d: 6px; --c: #d7f24b"></s>
+                        <s style="--x: 43.94%; --y: 50.0%; --d: 6px; --c: #d7f24b"></s>
+                        <s style="--x: 47.25%; --y: 40.0%; --d: 6px; --c: #d7f24b"></s>
+                        <s style="--x: 50.55%; --y: 60.0%; --d: 6px; --c: #d7f24b"></s>
+                        <s style="--x: 53.85%; --y: 50.0%; --d: 6px; --c: #d7f24b"></s>
+                        <s style="--x: 57.16%; --y: 40.0%; --d: 6px; --c: #d7f24b"></s>
+                        <s style="--x: 60.46%; --y: 50.0%; --d: 6px; --c: #d7f24b"></s>
+                        <s style="--x: 63.76%; --y: 60.0%; --d: 6px; --c: #d7f24b"></s>
+                        <s style="--x: 67.07%; --y: 60.0%; --d: 6px; --c: #d7f24b"></s>
+                        <s style="--x: 70.37%; --y: 50.0%; --d: 6px; --c: #d7f24b"></s>
+                        <s style="--x: 73.67%; --y: 60.0%; --d: 6px; --c: #d7f24b"></s>
+                        <s style="--x: 76.98%; --y: 40.0%; --d: 6px; --c: #d7f24b"></s>
+                        <s style="--x: 80.28%; --y: 50.0%; --d: 6px; --c: #d7f24b"></s>
+                        <s style="--x: 83.58%; --y: 40.0%; --d: 6px; --c: #d7f24b"></s>
+                        <s style="--x: 86.89%; --y: 30.0%; --d: 6px; --c: #d7f24b"></s>
+                        <s style="--x: 90.19%; --y: 40.0%; --d: 6px; --c: #d7f24b"></s>
+                        <s style="--x: 93.49%; --y: 30.0%; --d: 6px; --c: #d7f24b"></s>
+                        <s style="--x: 96.80%; --y: 20.0%; --d: 6px; --c: #d7f24b"></s>
+                        <s style="--x: 99.00%; --y: 30.0%; --d: 6px; --c: #d7f24b"></s>
+                        <q class="dr" style="--x: 65.97%; --y: 60.0%" data-label="Aug 1 · 15 markers"></q>
+                        <q class="dr right" style="--x: 99.00%; --y: 30.0%" data-label="Aug 31 · 1 marker"></q>
+                      </div>
+                    <div class="strip-axis">
+                      <span>Jun 3</span><span>Jul 18</span><span>today</span>
+                    </div>
+                    <div class="strip-legend">
+                      <span><b>•</b> phone days (86 of 90)</span>
+                      <span><b>◆</b> blood draws (2)</span>
+                      <span><b>—</b> Resting HR</span>
+                    </div>
+                    <div class="floatpill">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="1.8"
+                        stroke-linecap="round" stroke-linejoin="round"
+                        aria-hidden="true">
+                        <path d="M3 7l5.5 5.5L12 9l9 9" />
+                        <path d="M21 15v-6h-6" />
+                      </svg>
+                      <span>
+                        <span class="fp-t">Resting HR improving</span>
+                        <span class="fp-s">58 → 55 bpm, last 30 days</span>
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="pair" style="margin-top: 30px">
+          <!-- ───── B2 ───── -->
+          <div>
+            <p class="vlabel"><b>B2</b> Same tile, sparkline instead of the dot field</p>
+            <div class="screen">
+              <div class="tiles">
+                <div class="tile warn" style="min-height: 300px">
+                  <div class="tile-label">Status</div>
+                  <div class="tile-mid" style="padding-bottom: 0">
+                    <div class="tile-num">7</div>
+                    <div class="tile-say">Attention · 7 markers off</div>
+                  </div>
+                  <div class="strip named">
+                    <span class="series">Resting HR <em>bpm · last 30 days</em></span>
+                    <svg class="sparkstrip" viewBox="0 0 300 46" preserveAspectRatio="none" aria-hidden="true">
+                      <polyline class="sk-line" points="2.0,6.0 12.2,6.0 22.4,14.5 32.6,6.0 42.8,14.5 53.0,6.0 63.2,23.0 73.4,14.5 83.7,6.0 93.9,23.0 104.1,14.5 114.3,23.0 124.5,14.5 134.7,31.5 144.9,23.0 155.1,14.5 165.3,23.0 175.5,31.5 185.7,23.0 195.9,31.5 206.1,23.0 216.3,31.5 226.6,40.0 236.8,31.5 247.0,23.0 257.2,31.5 267.4,40.0 277.6,31.5 287.8,40.0 298.0,31.5" />
+                      <circle class="sk-dot" cx="298.0" cy="31.5" r="3" />
+                      <rect class="sk-dot" x="284.3" y="36.5" width="7" height="7" transform="rotate(45 287.8 40.0)" />
+                    </svg>
+                    <div class="strip-axis">
+                      <span>Aug 3</span><span>Aug 18</span><span>today</span>
+                    </div>
+                    <div class="strip-legend">
+                      <span><b>—</b> Resting HR, one point every 2 days</span>
+                      <span><b>◆</b> Aug 31 draw</span>
+                    </div>
+                    <div class="floatpill">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="1.8"
+                        stroke-linecap="round" stroke-linejoin="round"
+                        aria-hidden="true">
+                        <path d="M3 7l5.5 5.5L12 9l9 9" />
+                        <path d="M21 15v-6h-6" />
+                      </svg>
+                      <span>
+                        <span class="fp-t">Resting HR improving</span>
+                        <span class="fp-s">58 → 55 bpm, last 30 days</span>
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ───── C ───── -->
+          <div>
+            <p class="vlabel"><b>C</b> A sentence, then three tonal tiles</p>
+            <div class="screen">
+              <p class="statement">
+                <b>3 things to fix.</b> Body on track this week.
+              </p>
+              <div class="g3">
+                <a class="tonal" href="#s2">
+                  <span class="tk">Body <span>today</span></span>
+                  <div class="tv">8 412<em>steps</em></div>
+                  <div class="ts t-body">34 min exercise · 7 h 12 sleep</div>
+                </a>
+                <a class="tonal" href="#s3">
+                  <span class="tk">Blood <span>Aug 1</span></span>
+                  <div class="tv">52<em>markers</em></div>
+                  <div class="segbar">
+                    <i class="opt" style="--w: 26"></i>
+                    <i class="nor" style="--w: 19"></i>
+                    <i class="off" style="--w: 7"></i>
+                  </div>
+                  <div class="seglegend">
+                    <span><b>26</b> optimal</span>
+                    <span><b>19</b> normal</span>
+                    <span><b>7</b> off</span>
+                  </div>
+                </a>
+                <a class="tonal" href="#s6">
+                  <span class="tk">Plan <span>Sep 1</span></span>
+                  <div class="tv">0<em>of 17 today</em></div>
+                  <div class="ts t-body">5 day streak · 2 items above 80 %</div>
+                </a>
+              </div>
+              <div class="askpill" style="margin-top: 14px">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" stroke-width="1.6" aria-hidden="true">
+                  <circle cx="12" cy="12" r="9.2" />
+                  <path d="M9.6 9.2a2.5 2.5 0 1 1 3.3 2.4c-.6.2-.9.7-.9 1.3v.6" />
+                  <circle cx="12" cy="16.8" r=".9" fill="currentColor" stroke="none" />
+                </svg>
+                <span>Ask anything, or tell me what changed</span>
+                <button class="askbtn">Ask</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ════════════════════ 2 · BODY TODAY ════════════════════ -->
+      <section class="sec" id="s2">
+        <div class="sec-head">
+          <span class="n">02</span>
+          <h2>Body today — everything the phone sends</h2>
+        </div>
+        <p class="lede">
+          Apple Health is 25 types and a workout feed. It gets the same
+          treatment as blood: big light mono numbers, one ruler shape, a status
+          word in plain English. Nothing here is a gauge or a ring. Values on
+          this row are illustrative (see the footnote); the shapes and units are
+          the real ones.
+        </p>
+
+        <div class="screen">
+          <div class="sub"><h3>The day</h3><span>steps, exercise, stand</span></div>
+          <div class="panel">
+            <div class="g3">
+              <div class="mcell">
+                <div class="mlab">Steps</div>
+                <div class="mnum">8 412</div>
+                <div class="mini" style="--a: 43.6%; --b: 70%; --p: 60.1%; --g: 56.7%; --mk: var(--ok)">
+                  <span class="mb"></span><span class="mg"></span><span class="mp"></span>
+                </div>
+                <div class="t-meta mword">
+                  Above your usual day. <span class="t-num">6 100–9 800</span> is
+                  the middle half of the last 90 days; the hollow dot is the
+                  median, <span class="t-num">7 940</span>.
+                </div>
+              </div>
+              <div class="mcell">
+                <div class="mlab">Exercise</div>
+                <div class="mnum">34<em>min</em></div>
+                <div class="mini" style="--a: 50%; --b: 100%; --p: 56.7%; --g: 46.7%; --mk: var(--ok)">
+                  <span class="mb"></span><span class="mg"></span><span class="mp"></span>
+                </div>
+                <div class="t-meta mword">
+                  Past the <span class="t-num">30 min</span> ring. The run you
+                  logged at 07:12 is all of it.
+                </div>
+              </div>
+              <div class="mcell">
+                <div class="mlab">Stand hours</div>
+                <div class="mnum">9<em>of 12</em></div>
+                <div class="ticks">
+                  <i class="on"></i><i class="on"></i><i class="on"></i><i></i>
+                  <i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i>
+                  <i></i><i class="on"></i><i class="on"></i><i></i>
+                </div>
+                <div class="t-meta mword">
+                  One tick per hour from 08:00. Three sitting hours: 11:00,
+                  16:00, 19:00.
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="sub"><h3>Recovery</h3><span>resting HR, HRV, sleep — each against its own 90 days</span></div>
+          <div class="panel">
+            <div class="g3">
+              <div class="mcell">
+                <div class="mlab">Resting HR</div>
+                <div class="mnum">55<em>bpm</em></div>
+                <svg class="svgbox" viewBox="0 0 420 30" preserveAspectRatio="xMidYMid meet" style="height: 30px" aria-hidden="true"><circle class="run-dot" cx="8.0" cy="11.3" r="3.4" /><circle class="run-dot" cx="39.1" cy="6.0" r="3.4" /><circle class="run-dot" cx="70.2" cy="16.7" r="3.4" /><circle class="run-dot" cx="101.2" cy="11.3" r="3.4" /><circle class="run-dot" cx="132.3" cy="11.3" r="3.4" /><circle class="run-dot" cx="163.4" cy="16.7" r="3.4" /><circle class="run-dot" cx="194.5" cy="22.0" r="3.4" /><circle class="run-dot" cx="225.5" cy="11.3" r="3.4" /><circle class="run-dot" cx="256.6" cy="16.7" r="3.4" /><circle class="run-dot" cx="287.7" cy="16.7" r="3.4" /><circle class="run-dot" cx="318.8" cy="22.0" r="3.4" /><circle class="run-dot" cx="349.8" cy="16.7" r="3.4" /><circle class="run-dot" cx="380.9" cy="11.3" r="3.4" /><circle class="run-dot hi" cx="412.0" cy="16.7" r="4.6" /></svg>
+                <div class="t-meta mword">
+                  <span class="c-ok">better</span> — 3 bpm under the 90-day mean
+                  of <span class="t-num">58</span>.
+                </div>
+              </div>
+              <div class="mcell">
+                <div class="mlab">HRV (SDNN)</div>
+                <div class="mnum">48<em>ms</em></div>
+                <svg class="svgbox" viewBox="0 0 420 30" preserveAspectRatio="xMidYMid meet" style="height: 30px" aria-hidden="true"><circle class="run-dot" cx="8.0" cy="20.2" r="3.4" /><circle class="run-dot" cx="39.1" cy="14.9" r="3.4" /><circle class="run-dot" cx="70.2" cy="7.8" r="3.4" /><circle class="run-dot" cx="101.2" cy="16.7" r="3.4" /><circle class="run-dot" cx="132.3" cy="22.0" r="3.4" /><circle class="run-dot" cx="163.4" cy="11.3" r="3.4" /><circle class="run-dot" cx="194.5" cy="6.0" r="3.4" /><circle class="run-dot" cx="225.5" cy="13.1" r="3.4" /><circle class="run-dot" cx="256.6" cy="18.4" r="3.4" /><circle class="run-dot" cx="287.7" cy="9.6" r="3.4" /><circle class="run-dot" cx="318.8" cy="14.9" r="3.4" /><circle class="run-dot" cx="349.8" cy="20.2" r="3.4" /><circle class="run-dot" cx="380.9" cy="11.3" r="3.4" /><circle class="run-dot hi" cx="412.0" cy="13.1" r="4.6" /></svg>
+                <div class="t-meta mword">
+                  <span class="c-ok">steady</span> — inside the day-to-day swing
+                  of <span class="t-num">43–52 ms</span>.
+                </div>
+              </div>
+              <div class="mcell">
+                <div class="mlab">Sleep</div>
+                <div class="mnum">7<em>h</em> 12<em>min</em></div>
+                <svg class="svgbox" viewBox="0 0 420 30" preserveAspectRatio="xMidYMid meet" style="height: 30px" aria-hidden="true"><circle class="run-dot" cx="8.0" cy="13.5" r="3.4" /><circle class="run-dot" cx="39.1" cy="17.7" r="3.4" /><circle class="run-dot" cx="70.2" cy="10.3" r="3.4" /><circle class="run-dot" cx="101.2" cy="14.5" r="3.4" /><circle class="run-dot" cx="132.3" cy="22.0" r="3.4" /><circle class="run-dot" cx="163.4" cy="6.0" r="3.4" /><circle class="run-dot" cx="194.5" cy="12.4" r="3.4" /><circle class="run-dot" cx="225.5" cy="15.6" r="3.4" /><circle class="run-dot" cx="256.6" cy="16.7" r="3.4" /><circle class="run-dot" cx="287.7" cy="9.2" r="3.4" /><circle class="run-dot" cx="318.8" cy="13.5" r="3.4" /><circle class="run-dot" cx="349.8" cy="18.8" r="3.4" /><circle class="run-dot" cx="380.9" cy="11.3" r="3.4" /><circle class="run-dot hi" cx="412.0" cy="13.5" r="4.6" /></svg>
+                <div class="t-meta mword">
+                  <span class="c-ok">steady</span> — 3 min above the 14-night
+                  mean of <span class="t-num">7 h 09</span>.
+                </div>
+              </div>
+            </div>
+            <p class="t-meta" style="margin: 16px 0 0">
+              Each run is 14 nights, oldest on the left, tonight filled in. Dot
+              height is the value, not a rank.
+            </p>
+          </div>
+
+          <div class="g2" style="margin-top: 16px">
+            <div class="panel">
+              <div class="panel-head">
+                <h3>Workouts</h3>
+                <span class="t-meta">last 7 days · 3 sessions · 137 min</span>
+              </div>
+              <div class="week">
+                <div class="wday">
+                  <div class="wbar rest"><i style="--h: 0%"></i></div>
+                  <span class="wglyph">·</span><span class="wmin">—</span>
+                  <span class="wname">Wed</span>
+                </div>
+                <div class="wday">
+                  <div class="wbar"><i style="--h: 75%"></i></div>
+                  <span class="wglyph">strength</span><span class="wmin">45</span>
+                  <span class="wname">Thu</span>
+                </div>
+                <div class="wday">
+                  <div class="wbar rest"><i style="--h: 0%"></i></div>
+                  <span class="wglyph">·</span><span class="wmin">—</span>
+                  <span class="wname">Fri</span>
+                </div>
+                <div class="wday">
+                  <div class="wbar"><i style="--h: 97%"></i></div>
+                  <span class="wglyph">walk</span><span class="wmin">58</span>
+                  <span class="wname">Sat</span>
+                </div>
+                <div class="wday">
+                  <div class="wbar rest"><i style="--h: 0%"></i></div>
+                  <span class="wglyph">·</span><span class="wmin">—</span>
+                  <span class="wname">Sun</span>
+                </div>
+                <div class="wday">
+                  <div class="wbar rest"><i style="--h: 0%"></i></div>
+                  <span class="wglyph">·</span><span class="wmin">—</span>
+                  <span class="wname">Mon</span>
+                </div>
+                <div class="wday">
+                  <div class="wbar"><i style="--h: 57%"></i></div>
+                  <span class="wglyph">run</span><span class="wmin">34</span>
+                  <span class="wname">today</span>
+                </div>
+              </div>
+              <p class="t-meta" style="margin: 14px 0 0">
+                Bar height is minutes, the tallest bar is Saturday's 58. The word
+                under it is the workout type Apple Health sent, not a guess.
+                <b>3 of 3</b> planned sessions done.
+              </p>
+            </div>
+
+            <div class="panel">
+              <div class="panel-head">
+                <h3>Sleep, 14 nights</h3>
+                <span class="t-meta">mean 7 h 09</span>
+              </div>
+              <div class="nights"><i class="" style="--h: 80.0%"></i><i class="short" style="--h: 75.6%"></i><i class="" style="--h: 83.3%"></i><i class="" style="--h: 78.9%"></i><i class="short" style="--h: 71.1%"></i><i class="" style="--h: 87.8%"></i><i class="" style="--h: 81.1%"></i><i class="" style="--h: 77.8%"></i><i class="short" style="--h: 76.7%"></i><i class="" style="--h: 84.4%"></i><i class="" style="--h: 80.0%"></i><i class="short" style="--h: 74.4%"></i><i class="" style="--h: 82.2%"></i><i class="" style="--h: 80.0%"></i><span class="meanline" style="--m: 76px" data-label="mean 7 h 09"></span></div>
+              <div class="tempband"><span>wrist temperature +0.2 °C vs your baseline — inside the normal ±0.3 °C swing</span></div>
+              <p class="t-meta" style="margin: 12px 0 0">
+                Four nights under 7 h are the amber bars: Aug 20, 23, 27, 30. The
+                hairline is the 14-night mean.
+              </p>
+            </div>
+          </div>
+
+          <div class="sub"><h3>Body</h3><span>weight, body fat, waist — the hollow dot is 90 days ago</span></div>
+          <div class="panel">
+            <div class="g3">
+              <div class="mcell">
+                <div class="mlab">Weight</div>
+                <div class="mnum">78.4<em>kg</em></div>
+                <div class="mini" style="--a: 31.7%; --b: 68.3%; --p: 40%; --g: 60%; --mk: var(--ok)">
+                  <span class="mb"></span><span class="mg"></span><span class="mp"></span>
+                </div>
+                <div class="t-meta mword">
+                  Down <span class="t-num">1.2 kg</span> in 90 days. Band is your
+                  own 90-day range, <span class="t-num">77.9–80.1</span>.
+                </div>
+              </div>
+              <div class="mcell">
+                <div class="mlab">Body fat</div>
+                <div class="mnum">17.8<em>%</em></div>
+                <div class="mini" style="--a: 24%; --b: 68%; --p: 51.2%; --g: 54.4%; --mk: var(--ok)">
+                  <span class="mb"></span><span class="mg"></span><span class="mp"></span>
+                </div>
+                <div class="t-meta mword">
+                  Inside your reference band,
+                  <span class="t-num">11–22 %</span>. Was 18.6 %.
+                </div>
+              </div>
+              <div class="mcell">
+                <div class="mlab">Waist</div>
+                <div class="mnum" style="color: var(--v3-ink-3)">—</div>
+                <div class="mini" style="--a: 0%; --b: 0%; --p: 0%; --g: 0%">
+                  <span class="mb"></span>
+                </div>
+                <div class="t-meta mword">
+                  Never measured by the phone. Waist-to-height
+                  <span class="t-num">1.05</span> in the ledger came from a fact
+                  you typed; it is what the high-blood-pressure row argues from.
+                  <a href="#">Add a measurement</a>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="g2" style="margin-top: 16px">
+            <div class="panel">
+              <div class="panel-head">
+                <h3>VO₂max</h3>
+                <span class="sys-state s-warn">fair</span>
+              </div>
+              <div class="ruler">
+                <div class="ruler-track">
+                  <div class="seg">
+                    <div class="seg-bands">
+                      <span class="band normal" style="--a: 46.7%; --b: 63.3%"></span>
+                      <span class="band optimal" style="--a: 66.7%; --b: 100%"></span>
+                    </div>
+                    <div class="marker" style="--p: 54%; --mk: var(--warn)">
+                      <span class="mval">41.2<em>mL/kg/min</em></span>
+                    </div>
+                  </div>
+                </div>
+                <div class="ruler-ticks"></div>
+                <div class="ruler-scale">
+                  <span>25</span>
+                  <span class="mid">good 39–44 · excellent 45+</span>
+                  <span>55</span>
+                </div>
+              </div>
+              <p class="ruler-say">
+                <b class="t-num">41.2 mL/kg/min</b> —
+                <span class="c-ok">good for your age and sex band</span>, four points short
+                of excellent. The engine wants a submaximal test to confirm it.
+              </p>
+            </div>
+
+            <div class="panel">
+              <div class="panel-head">
+                <h3>Blood pressure, from the phone</h3>
+                <span class="sys-state s-bad">above range</span>
+              </div>
+              <div class="ruler">
+                <div class="ruler-track">
+                  <div class="seg">
+                    <div class="seg-bands">
+                      <span class="band normal" style="--a: 12.5%; --b: 50%"></span>
+                      <span class="band optimal" style="--a: 25%; --b: 43.8%"></span>
+                    </div>
+                    <div class="marker" style="--p: 60%; --mk: var(--bad)">
+                      <span class="mval">128<em>mmHg</em></span>
+                    </div>
+                  </div>
+                </div>
+                <div class="ruler-ticks"></div>
+                <div class="ruler-scale">
+                  <span>80</span>
+                  <span class="mid">normal 90–120 · optimal 100–115</span>
+                  <span>160</span>
+                </div>
+              </div>
+              <p class="ruler-say">
+                <b class="t-num">128 mmHg systolic</b> —
+                <span class="c-bad">above normal (90–120)</span>. Same ruler as
+                any blood marker, so the eye only learns one shape.
+              </p>
+              <p class="t-meta" style="margin: 12px 0 0">
+                Blood glucose has <b>no phone reading</b>. The only value is the
+                single result from the Aug 31 draw, so it lives in Blood, not
+                here.
+              </p>
+            </div>
+          </div>
+
+          <p class="t-meta" style="margin: 18px 4px 0">
+            Last sync 2 min ago · 25 types · <a href="#">what Apple Health sends</a>
+          </p>
+        </div>
+      </section>
+
+      <!-- ══════════════════════ 3 · BLOOD ══════════════════════ -->
+      <section class="sec" id="s3">
+        <div class="sec-head">
+          <span class="n">03</span>
+          <h2>Blood — draws, markers, one marker in full</h2>
+        </div>
+        <p class="lede">
+          Every value on this row is the test user's real data. The marker card
+          is the atom: name, value in big light mono, unit small, a 60 px ruler,
+          a status word. The full ruler only appears when you open one marker.
+        </p>
+
+        <div class="screen">
+          <div class="g2">
+            <div class="panel">
+              <div class="panel-head">
+                <h3>Last draw</h3>
+                <a href="#">Aug 1, 2026</a>
+              </div>
+              <div class="tv" style="font-size: 44px">15<em>results</em></div>
+              <div class="segbar">
+                <i class="opt" style="--w: 1"></i>
+                <i class="nor" style="--w: 9"></i>
+                <i class="off" style="--w: 5"></i>
+              </div>
+              <div class="seglegend">
+                <span><b>1</b> optimal</span>
+                <span><b>9</b> normal</span>
+                <span><b>5</b> off</span>
+              </div>
+              <p class="t-meta" style="margin: 14px 0 0">
+                Across all five draws you have <b>52 markers</b>: 26 optimal, 19
+                normal, 7 off. This bar is the Aug 1 panel only.
+              </p>
+            </div>
+
+            <div class="panel">
+              <div class="panel-head">
+                <h3>Next draw</h3>
+                <a href="#">Plan more</a>
+              </div>
+              <div class="tv" style="font-size: 44px">12<em>weeks</em></div>
+              <div class="chips" style="margin: 14px 0 0; justify-content: flex-start">
+                <span class="chip"><i class="warn"></i>Iron saturation</span>
+                <span class="chip">+ add a marker</span>
+              </div>
+              <p class="t-meta" style="margin: 14px 0 0">
+                One marker planned so far, due <b>Nov 24, 2026</b>. It comes from
+                the iron-deficiency action: <span class="t-num">ferritin up → &gt;50 ng/mL</span>.
+              </p>
+            </div>
+          </div>
+
+          <div class="sub"><h3>Markers</h3><span>every marker as one card · 12 of 52 shown</span></div>
+          <div class="mgrid">
+            <a class="mcard" href="#">
+              <span class="mname">TPO antibodies <span class="src">lab</span></span>
+              <div class="mnum">320<em>IU/mL</em></div>
+              <div class="mini" style="--a: 0%; --b: 7.9%; --p: 74.4%; --mk: var(--bad)">
+                <span class="mb"></span><span class="mp"></span>
+              </div>
+              <div class="t-meta mword"><span class="c-bad">far outside</span> · normal 0–34</div>
+            </a>
+            <a class="mcard" href="#">
+              <span class="mname">HbA1c <span class="src">lab</span></span>
+              <div class="mnum">5.6<em>%</em></div>
+              <div class="mini" style="--a: 0%; --b: 53.3%; --p: 53.3%; --mk: var(--warn)">
+                <span class="mb"></span><span class="mp"></span>
+              </div>
+              <div class="t-meta mword"><span class="c-warn">borderline</span> · normal 4.0–5.6</div>
+            </a>
+            <a class="mcard" href="#">
+              <span class="mname">Vitamin D <span class="src">lab</span></span>
+              <div class="mnum">19<em>ng/mL</em></div>
+              <div class="mini" style="--a: 16.7%; --b: 83.3%; --p: 15.8%; --mk: var(--bad)">
+                <span class="mb"></span><span class="mp"></span>
+              </div>
+              <div class="t-meta mword"><span class="c-bad">low</span> · normal 20–100</div>
+            </a>
+            <a class="mcard" href="#">
+              <span class="mname">ALT <span class="src">lab</span></span>
+              <div class="mnum">34<em>U/L</em></div>
+              <div class="mini" style="--a: 0%; --b: 47.1%; --p: 48.6%; --mk: var(--bad)">
+                <span class="mb"></span><span class="mp"></span>
+              </div>
+              <div class="t-meta mword"><span class="c-bad">just over</span> · normal 0–33</div>
+            </a>
+            <a class="mcard" href="#">
+              <span class="mname">Ferritin <span class="src">lab</span></span>
+              <div class="mnum">22<em>ng/mL</em></div>
+              <div class="mini" style="--a: 6%; --b: 60%; --p: 8.8%; --mk: var(--warn)">
+                <span class="mb"></span><span class="mp"></span>
+              </div>
+              <div class="t-meta mword"><span class="c-warn">borderline</span> · optimal 30–200</div>
+            </a>
+            <a class="mcard" href="#">
+              <span class="mname">LDL cholesterol <span class="src">lab</span></span>
+              <div class="mnum">142<em>mg/dL</em></div>
+              <div class="mini" style="--a: 0%; --b: 28.6%; --p: 58.6%; --mk: var(--bad)">
+                <span class="mb"></span><span class="mp"></span>
+              </div>
+              <div class="t-meta mword"><span class="c-bad">above range</span> · optimal under 100</div>
+            </a>
+            <a class="mcard" href="#">
+              <span class="mname">hs-CRP <span class="src">lab</span></span>
+              <div class="mnum">3.4<em>mg/L</em></div>
+              <div class="mini" style="--a: 0%; --b: 30%; --p: 34%; --mk: var(--warn)">
+                <span class="mb"></span><span class="mp"></span>
+              </div>
+              <div class="t-meta mword"><span class="c-warn">borderline</span> · normal under 3.0</div>
+            </a>
+            <a class="mcard" href="#">
+              <span class="mname">Insulin <span class="src">lab</span></span>
+              <div class="mnum">12<em>µIU/mL</em></div>
+              <div class="mini" style="--a: 6.7%; --b: 83.3%; --p: 40%; --mk: var(--warn)">
+                <span class="mb"></span><span class="mp"></span>
+              </div>
+              <div class="t-meta mword"><span class="c-warn">above optimal</span> · optimal 2–5</div>
+            </a>
+            <a class="mcard" href="#">
+              <span class="mname">Cortisol <span class="src">lab</span></span>
+              <div class="mnum">16.29<em>mcg/dL</em></div>
+              <div class="mini" style="--a: 24%; --b: 73.6%; --p: 65.2%; --mk: var(--warn)">
+                <span class="mb"></span><span class="mp"></span>
+              </div>
+              <div class="t-meta mword"><span class="c-warn">high side of normal</span> · 6–18.4</div>
+            </a>
+            <a class="mcard" href="#">
+              <span class="mname">Creatinine <span class="src">lab</span></span>
+              <div class="mnum">0.95<em>mg/dL</em></div>
+              <div class="mini" style="--a: 21.8%; --b: 77.3%; --p: 40.9%; --mk: var(--warn)">
+                <span class="mb"></span><span class="mp"></span>
+              </div>
+              <div class="t-meta mword"><span class="c-warn">borderline</span> · normal 0.74–1.35</div>
+            </a>
+            <a class="mcard" href="#">
+              <span class="mname">Red cell count <span class="src">lab</span></span>
+              <div class="mnum">5.6<em>M/uL</em></div>
+              <div class="mini" style="--a: 20%; --b: 76%; --p: 64%; --mk: var(--warn)">
+                <span class="mb"></span><span class="mp"></span>
+              </div>
+              <div class="t-meta mword"><span class="c-warn">borderline</span> · normal 4.5–5.9</div>
+            </a>
+            <a class="mcard" href="#">
+              <span class="mname">Systolic BP <span class="src">phone</span></span>
+              <div class="mnum">128<em>mmHg</em></div>
+              <div class="mini" style="--a: 12.5%; --b: 50%; --p: 60%; --mk: var(--bad)">
+                <span class="mb"></span><span class="mp"></span>
+              </div>
+              <div class="t-meta mword"><span class="c-bad">above range</span> · normal 90–120</div>
+            </a>
+          </div>
+
+          <div class="sub"><h3>One marker, opened</h3><span>the full ruler, the dated history, the target pace</span></div>
+          <div class="panel">
+            <div class="panel-head">
+              <h3>TPO antibodies — thyroid <span class="src">lab</span></h3>
+              <span class="sys-state s-bad">far outside</span>
+            </div>
+            <div class="ruler">
+              <div class="ruler-track">
+                <div class="seg" style="flex: 1 1 62%">
+                  <div class="seg-bands">
+                    <span class="band normal" style="--a: 0%; --b: 85%"></span>
+                    <span class="band optimal" style="--a: 0%; --b: 22.5%"></span>
+                    <span class="band pace" style="--a: 85%; --b: 100%"></span>
+                  </div>
+                  <div class="goal" style="--t: 62.5%" data-label="target 100 by Feb 16"></div>
+                </div>
+                <div class="brk" aria-hidden="true"></div>
+                <div class="seg" style="flex: 0 0 30%">
+                  <div class="ghost" style="--g: 86%"></div>
+                  <div class="marker" data-align="start" style="--p: 15.4%; --mk: var(--bad)">
+                    <span class="mval">320<em>IU/mL</em></span>
+                  </div>
+                </div>
+              </div>
+              <div class="ruler-ticks"></div>
+              <div class="ruler-scale">
+                <span>0</span>
+                <span class="mid">normal 0–34 · optimal 0–9</span>
+                <span>430</span>
+              </div>
+            </div>
+            <p class="ruler-say">
+              <b class="t-num">320 IU/mL</b> —
+              <span class="c-bad">nine times the ceiling</span>, down from 412 on
+              Dec 9. The hollow dot is that older reading; the hatched stretch is
+              what selenium is supposed to close by February.
+            </p>
+            <div style="margin-top: 18px"><svg class="svgbox" viewBox="0 0 600 92" style="height: 92px" aria-hidden="true"><line x1="20" y1="70.0" x2="580" y2="70.0" stroke="currentColor" stroke-opacity=".12" stroke-width="1" /><polyline class="spark-line" points="20.0,12.5 323.2,25.3" /><polyline class="spark-line" stroke-dasharray="4 5" stroke-opacity=".45" points="323.2,25.3 580.0,56.0" /><circle class="spark-dot" cx="20.0" cy="12.5" r="4" /><circle class="spark-dot" cx="323.2" cy="25.3" r="5" /><circle cx="580.0" cy="56.0" r="4.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-opacity=".5" /><text x="20.0" y="2.5" font-size="11" fill="currentColor" fill-opacity=".62" text-anchor="middle">412</text><text x="323.2" y="15.3" font-size="11" fill="currentColor" text-anchor="middle">320</text><text x="580.0" y="46.0" font-size="11" fill="currentColor" fill-opacity=".5" text-anchor="middle">target 100</text><text x="20.0" y="88" font-size="10.5" fill="currentColor" fill-opacity=".5" text-anchor="middle">Dec 9, 2025</text><text x="323.2" y="88" font-size="10.5" fill="currentColor" fill-opacity=".5" text-anchor="middle">Aug 1, 2026</text><text x="580.0" y="88" font-size="10.5" fill="currentColor" fill-opacity=".5" text-anchor="middle">Feb 16, 2027</text></svg></div>
+          </div>
+
+          <div class="sub"><h3>Draws</h3><span>5 blood draws, newest first</span></div>
+          <div>
+            <a class="draw" href="#">
+              <span class="ddate">Aug 31, 2026</span>
+              <span class="dn">1 result</span>
+              <span class="chips"><span class="chip"><i class="warn"></i>Glucose</span></span>
+            </a>
+            <a class="draw" href="#">
+              <span class="ddate">Aug 1, 2026</span>
+              <span class="dn">15 results · 5 off · 9 borderline</span>
+              <span class="chips">
+                <span class="chip"><i class="bad"></i>ALT</span>
+                <span class="chip"><i class="bad"></i>Blood Pressure, Systolic</span>
+                <span class="chip"><i class="bad"></i>LDL Cholesterol</span>
+                <span class="chip">+12</span>
+              </span>
+            </a>
+            <a class="draw" href="#">
+              <span class="ddate">Feb 1, 2026</span>
+              <span class="dn">1 result</span>
+              <span class="chips"><span class="chip"><i class="warn"></i>TSH</span></span>
+            </a>
+            <a class="draw" href="#">
+              <span class="ddate">Dec 9, 2025</span>
+              <span class="dn">48 results · 4 off · 10 borderline · pdfjs-check-2025.pdf</span>
+              <span class="chips">
+                <span class="chip"><i class="ok"></i>Albumin</span>
+                <span class="chip"><i class="ok"></i>Free T3</span>
+                <span class="chip"><i class="bad"></i>HDL Cholesterol</span>
+                <span class="chip">+45</span>
+              </span>
+            </a>
+            <a class="draw" href="#">
+              <span class="ddate">Jun 24, 2016</span>
+              <span class="dn">2 results · Razvan - 24.06.2016.pdf</span>
+              <span class="chips"><span class="chip">10 years ago</span></span>
+            </a>
+          </div>
+
+          <div class="dropcard" style="margin-top: 16px">
+            <span class="plus">+</span>
+            <div>
+              <div class="t-title" style="font-size: 16px">Drop a PDF, or photograph a result</div>
+              <p class="t-body" style="margin: 4px 0 0">
+                The same button reads a lab report, a supplement label and a
+                plate of food. Two of your five draws arrived this way; the
+                values land in <b>review</b> before they land in the ledger.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ═══════════════════ 4 · CONDITIONS ═══════════════════ -->
+      <section class="sec" id="s4">
+        <div class="sec-head">
+          <span class="n">04</span>
+          <h2>Conditions — the ledger, and the fifteen rows under it</h2>
+        </div>
+        <p class="lede">
+          One card gets the full treatment. The other thirteen likelihoods become a quiet
+          list you can read in a glance: state word, title, likelihood, the
+          marker driving it. The evidence glyphs replace the bracket labels
+          <span class="t-num">[science]</span> and
+          <span class="t-num">[opinion]</span> the app prints today.
+        </p>
+
+        <div class="screen" style="max-width: 940px">
+          <div class="ledger">
+            <div class="ledger-top">
+              <span class="rank"><i>1</i>CONFIRMED</span>
+              <span class="conf">95<em style="font-size: 14px; font-style: normal; color: var(--v3-ink-3)">%</em></span>
+            </div>
+            <h3>Autoimmune thyroiditis (Hashimoto's)</h3>
+            <p class="lead">
+              Early-stage, confirmed by TPO-Ab <span class="t-num">320</span> and
+              rising TSH <span class="t-num">3.9</span>. Treat the underlying
+              drivers before anyone reaches for levothyroxine: a selenium trial
+              is justified, keep ferritin over 50 and vitamin D at 40–60.
+            </p>
+
+            <div class="fa2" style="margin: 16px 0 18px">
+              <div>
+                <h4>For</h4>
+                <ul>
+                  <li><span>TPO antibodies <b class="t-num">320 IU/mL</b></span><span class="ev sci" title="Randomised trials, grade A"><i>●</i><b>A</b></span></li>
+                  <li><span>Cold intolerance: yes</span><span class="ev op" title="You told us"><i>◐</i>you</span></li>
+                  <li><span>Bowel pattern: constipation</span><span class="ev op" title="You told us"><i>◐</i>you</span></li>
+                </ul>
+              </div>
+              <div>
+                <h4>Against</h4>
+                <ul>
+                  <li><span>Family history: father type 2 diabetes at 58</span><span class="ev an" title="Reported, not measured"><i>○</i>fam</span></li>
+                  <li><span>Free T4 still inside range</span><span class="ev sci" title="Guideline-backed, grade B"><i>●</i><b>B</b></span></li>
+                </ul>
+              </div>
+            </div>
+
+            <div class="ruler">
+              <div class="ruler-track">
+                <div class="seg" style="flex: 1 1 62%">
+                  <div class="seg-bands">
+                    <span class="band normal" style="--a: 0%; --b: 85%"></span>
+                    <span class="band optimal" style="--a: 0%; --b: 22.5%"></span>
+                  </div>
+                </div>
+                <div class="brk" aria-hidden="true"></div>
+                <div class="seg" style="flex: 0 0 30%">
+                  <div class="ghost" style="--g: 86%"></div>
+                  <div class="marker" data-align="start" style="--p: 15.4%; --mk: var(--bad)">
+                    <span class="mval">320<em>IU/mL</em></span>
+                  </div>
+                </div>
+              </div>
+              <div class="ruler-ticks"></div>
+              <div class="ruler-scale">
+                <span>0</span><span class="mid">normal 0–34 · optimal 0–9</span><span>430</span>
+              </div>
+            </div>
+            <p class="ruler-say">
+              <b class="t-num">320 IU/mL</b> —
+              <span class="c-bad">well above normal (0–34)</span>, down from 412
+              on Dec 9.
+            </p>
+
+            <hr class="divider" />
+
+            <div class="panel-head" style="margin-bottom: 2px">
+              <h3 style="font-size: 15px">What to do</h3>
+              <span class="ev an"><i>○</i>hover a glyph for what it means</span>
+            </div>
+            <div class="actions">
+              <div class="act">
+                <span class="act-t">
+                  Selenium 200 µg as selenomethionine, once daily with breakfast
+                  <s>200 µg · capsule · 6 months · TPO down → under 100 IU/mL, measure after 24 weeks</s>
+                </span>
+                <span class="ev op" title="Clinician opinion, no pooled trial"><i>◐</i>opinion</span>
+                <button class="btn lime">Add</button>
+              </div>
+              <div class="act">
+                <span class="act-t">
+                  Repeat TSH with free T4, free T3, anti-TPO and anti-Tg
+                  <s>TSH down → 2.5–3.0 mIU/L, measure after 12 weeks</s>
+                </span>
+                <span class="ev sci" title="Guideline-backed, grade B"><i>●</i><b>B</b></span>
+                <button class="btn">Plan</button>
+              </div>
+              <div class="act">
+                <span class="act-t">
+                  Thyroid ultrasound
+                  <s>no nodules or a documented baseline, after 4 weeks</s>
+                </span>
+                <span class="ev sci" title="Guideline-backed, grade B"><i>●</i><b>B</b></span>
+                <button class="btn">Copy for your doctor</button>
+              </div>
+            </div>
+            <div class="quietrow">
+              <button class="qbtn">Add all 3</button>
+              <button class="qbtn">Not right</button>
+              <button class="qbtn">Discuss</button>
+              <button class="qbtn">Not for me</button>
+              <button class="qbtn">Doctor's note</button>
+            </div>
+          </div>
+
+          <div class="already" style="margin-top: 14px">
+            <i>✓</i>
+            <span>
+              <b>You're already doing this since Aug 12.</b> Selenium is in your
+              protocol, ticked 11 of the last 14 days. The card says so instead
+              of offering to add it twice.
+            </span>
+          </div>
+
+          <div class="sub"><h3>The rest of the ledger</h3><span>compact rows, all thirteen</span></div>
+          <div>
+            <a class="crow" href="#">
+              <span class="cstate c-warn">LIKELY</span>
+              <span class="ctitle">Insulin resistance</span>
+              <span class="cpct">97%</span>
+              <span class="cdrv">ALT 34 U/L, father type 2 diabetes at 58 · matters most for weight</span>
+              <span class="cchev">→</span>
+            </a>
+            <a class="crow" href="#">
+              <span class="cstate c-warn">LIKELY</span>
+              <span class="ctitle">Vitamin D deficiency</span>
+              <span class="cpct">86%</span>
+              <span class="cdrv">Vitamin D 19 ng/mL · matters most for energy</span>
+              <span class="cchev">→</span>
+            </a>
+            <a class="crow" href="#">
+              <span class="cstate c-warn">LIKELY</span>
+              <span class="ctitle">Chronic inflammation</span>
+              <span class="cpct">77%</span>
+              <span class="cdrv">hs-CRP 3.4 mg/L · matters most for lifespan</span>
+              <span class="cchev">→</span>
+            </a>
+            <a class="crow" href="#">
+              <span class="cstate c-warn">LIKELY</span>
+              <span class="ctitle">MASLD (fatty liver)</span>
+              <span class="cpct">76%</span>
+              <span class="cdrv">ALT 34 U/L, insulin resistance likely · matters most for lifespan</span>
+              <span class="cchev">→</span>
+            </a>
+            <a class="crow" href="#">
+              <span class="cstate c-warn">LIKELY</span>
+              <span class="ctitle">Iron deficiency</span>
+              <span class="cpct">76%</span>
+              <span class="cdrv">Ferritin 22 ng/mL, tired most days: yes · matters most for energy</span>
+              <span class="cchev">→</span>
+            </a>
+            <a class="crow" href="#">
+              <span class="cstate c-warn">POSSIBLE</span>
+              <span class="ctitle">Type 2 diabetes</span>
+              <span class="cpct">53%</span>
+              <span class="cdrv">Insulin resistance likely, thirst and urination: yes · lifespan</span>
+              <span class="cchev">→</span>
+            </a>
+            <a class="crow" href="#">
+              <span class="cstate c-warn">POSSIBLE</span>
+              <span class="ctitle">Polycystic ovary syndrome</span>
+              <span class="cpct">53%</span>
+              <span class="cdrv">Menstrual pattern irregular, coarse hair or acne: yes · energy</span>
+              <span class="cchev">→</span>
+            </a>
+            <a class="crow" href="#">
+              <span class="cstate c-warn">POSSIBLE</span>
+              <span class="ctitle">Depression</span>
+              <span class="cpct">33%</span>
+              <span class="cdrv">Tired most days: yes, little interest or pleasure · mood</span>
+              <span class="cchev">→</span>
+            </a>
+            <a class="crow" href="#">
+              <span class="cstate c-warn">RISK</span>
+              <span class="ctitle">Fitness: low</span>
+              <span class="cpct">28%</span>
+              <span class="cdrv">Nothing measured, tired most days: yes · matters most for energy</span>
+              <span class="cchev">→</span>
+            </a>
+            <a class="crow" href="#">
+              <span class="cstate c-warn">RISK</span>
+              <span class="ctitle">Cardiovascular risk: low</span>
+              <span class="cpct">21%</span>
+              <span class="cdrv">LDL cholesterol 142 mg/dL, hs-CRP 3.4 · matters most for lifespan</span>
+              <span class="cchev">→</span>
+            </a>
+            <a class="crow" href="#">
+              <span class="cstate c-bad">UNLIKELY</span>
+              <span class="ctitle">Vitamin B12 deficiency</span>
+              <span class="cpct">14%</span>
+              <span class="cdrv">Tingling or numbness: yes · matters most for mood</span>
+              <span class="cchev">→</span>
+            </a>
+            <a class="crow" href="#">
+              <span class="cstate c-bad">UNLIKELY</span>
+              <span class="ctitle">Small intestinal bacterial overgrowth</span>
+              <span class="cpct">8%</span>
+              <span class="cdrv">Bloating after meals: yes · matters most for energy</span>
+              <span class="cchev">→</span>
+            </a>
+            <a class="crow" href="#">
+              <span class="cstate c-bad">UNLIKELY</span>
+              <span class="ctitle">High blood pressure</span>
+              <span class="cpct">6%</span>
+              <span class="cdrv">Systolic blood pressure 128 mmHg · matters most for lifespan</span>
+              <span class="cchev">→</span>
+            </a>
+          </div>
+          <p class="t-meta" style="margin: 10px 0 0">
+            Sixteen rows in the real ledger: this card, these thirteen, and two
+            system rows ("Liver: 1 marker off", "Thyroid: 1 marker off") that
+            carry a marker instead of a likelihood.
+          </p>
+
+          <div class="sub"><h3>Three ways to print a likelihood</h3><span>same number, 97 %</span></div>
+          <div class="g3">
+            <div class="panel">
+              <div class="mlab">Big number</div>
+              <div class="likebig">97<em>%</em></div>
+              <p class="t-body" style="margin-top: 8px">
+                Reads at any size, sorts by eye down a list, needs no legend. The
+                mono digits already carry the "this is a measurement" tone.
+              </p>
+            </div>
+            <div class="panel">
+              <div class="mlab">Thin ring</div>
+              <svg class="likering" width="88" height="88" viewBox="0 0 88 88" style="margin: 10px 0 4px">
+                <circle class="tr" cx="44" cy="44" r="38" />
+                <circle class="vl" cx="44" cy="44" r="38"
+                  stroke-dasharray="231.6 238.8" />
+                <text x="44" y="49" text-anchor="middle"
+                  font-family="var(--font-mono)" font-size="19"
+                  font-weight="300" fill="currentColor">97%</text>
+              </svg>
+              <p class="t-body" style="margin-top: 4px">
+                Pretty, and the arc says nothing the number does not. It also
+                costs a second element per row in a fourteen-row list.
+              </p>
+            </div>
+            <div class="panel">
+              <div class="mlab">Short bar</div>
+              <div class="likebig" style="font-size: 34px; margin-bottom: 10px">97<em>%</em></div>
+              <div class="likebar2"><i style="--p: 97%"></i></div>
+              <p class="t-body" style="margin-top: 10px">
+                Good when several likelihoods sit next to each other and you want
+                the gap between 97 and 28 to be physical.
+              </p>
+            </div>
+          </div>
+
+          <div class="sub"><h3>A test that would settle it</h3><span>for a condition with nothing measured</span></div>
+          <div class="testcard">
+            <div class="panel-head">
+              <h3>Fitness: low — 28 %, and no measurement behind it</h3>
+              <span class="ev sci"><i>●</i><b>A</b></span>
+            </div>
+            <p class="t-body">
+              The only input is "tired most days: yes". One submaximal test
+              (cost 2 of 5) turns the guess into a number.
+            </p>
+            <div class="settle">
+              <i style="--a: 8%; --b: 82%"></i>
+              <b style="--x: 12%">6 % if VO₂max ≥ 45</b>
+              <u style="--p: 28%" data-label="today, 28 %"></u>
+              <b style="--x: 76%">72 % if under 35</b>
+            </div>
+            <div class="quietrow">
+              <button class="qbtn">Order the test</button>
+              <button class="qbtn">Ask your doctor</button>
+              <button class="qbtn">Not for me</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ═════════════════════ 5 · SYSTEMS ═════════════════════ -->
+      <section class="sec" id="s5">
+        <div class="sec-head">
+          <span class="n">05</span>
+          <h2>Systems — three shapes for the same twelve rows</h2>
+        </div>
+        <p class="lede">
+          Twelve systems, each with the one marker that is driving its state.
+          The app draws twelve donut gauges today; none of them carry a number
+          you can act on. All three variants below drop the gauge and keep the
+          marker.
+        </p>
+
+        <div class="screen">
+          <p class="vlabel"><b>1</b> Pill list — the home-v3 shape</p>
+          <div class="panel">
+            <div class="panel-head"><h3>Systems</h3><a href="#">12 tracked</a></div>
+            <div class="syslist">
+              <a class="sysrow" href="#"><span class="sys-name">Thyroid</span><span class="sys-marker">TPO antibodies</span><span class="sys-val">320<em>IU/mL</em></span><span class="sys-state s-bad">off</span></a>
+              <a class="sysrow" href="#"><span class="sys-name">Vitamins</span><span class="sys-marker">Vitamin D</span><span class="sys-val">19<em>ng/mL</em></span><span class="sys-state s-bad">off</span></a>
+              <a class="sysrow" href="#"><span class="sys-name">Liver</span><span class="sys-marker">ALT</span><span class="sys-val">34<em>U/L</em></span><span class="sys-state s-bad">off</span></a>
+              <a class="sysrow" href="#"><span class="sys-name">Lipids</span><span class="sys-marker">LDL cholesterol</span><span class="sys-val">142<em>mg/dL</em></span><span class="sys-state s-bad">off</span></a>
+              <a class="sysrow" href="#"><span class="sys-name">Lifestyle</span><span class="sys-marker">Systolic blood pressure</span><span class="sys-val">128<em>mmHg</em></span><span class="sys-state s-bad">off</span></a>
+              <a class="sysrow" href="#"><span class="sys-name">Blood sugar and insulin</span><span class="sys-marker">HbA1c</span><span class="sys-val">5.6<em>%</em></span><span class="sys-state s-warn">borderline</span></a>
+              <a class="sysrow" href="#"><span class="sys-name">Iron</span><span class="sys-marker">Ferritin</span><span class="sys-val">22<em>ng/mL</em></span><span class="sys-state s-warn">borderline</span></a>
+              <a class="sysrow" href="#"><span class="sys-name">Kidneys</span><span class="sys-marker">Creatinine</span><span class="sys-val">0.95<em>mg/dL</em></span><span class="sys-state s-warn">borderline</span></a>
+              <a class="sysrow" href="#"><span class="sys-name">Stress hormones</span><span class="sys-marker">Cortisol</span><span class="sys-val">16.29<em>mcg/dL</em></span><span class="sys-state s-warn">borderline</span></a>
+              <a class="sysrow" href="#"><span class="sys-name">Inflammation</span><span class="sys-marker">hs-CRP</span><span class="sys-val">3.4<em>mg/L</em></span><span class="sys-state s-warn">borderline</span></a>
+              <a class="sysrow" href="#"><span class="sys-name">Blood count</span><span class="sys-marker">Red cell count</span><span class="sys-val">5.6<em>M/uL</em></span><span class="sys-state s-warn">borderline</span></a>
+              <a class="sysrow" href="#"><span class="sys-name">Sex hormones</span><span class="sys-marker">never measured</span><span class="sys-val">—</span><span class="sys-state s-none">no data</span></a>
+            </div>
+          </div>
+
+          <div class="g2" style="margin-top: 26px">
+            <div>
+              <p class="vlabel"><b>2</b> Left rail — the inspiration's layout</p>
+              <div class="rail">
+                <a href="#" aria-current="true"><span class="rn">Thyroid</span><span class="rs sys-state s-bad">off</span></a>
+                <a href="#"><span class="rn">Vitamins</span><span class="rs sys-state s-bad">off</span></a>
+                <a href="#"><span class="rn">Liver</span><span class="rs sys-state s-bad">off</span></a>
+                <a href="#"><span class="rn">Lipids</span><span class="rs sys-state s-bad">off</span></a>
+                <a href="#"><span class="rn">Lifestyle</span><span class="rs sys-state s-bad">off</span></a>
+                <a href="#"><span class="rn">Blood sugar and insulin</span><span class="rs sys-state s-warn">borderline</span></a>
+                <a href="#"><span class="rn">Iron</span><span class="rs sys-state s-warn">borderline</span></a>
+                <a href="#"><span class="rn">Kidneys</span><span class="rs sys-state s-warn">borderline</span></a>
+                <a href="#"><span class="rn">Stress hormones</span><span class="rs sys-state s-warn">borderline</span></a>
+                <a href="#"><span class="rn">Inflammation</span><span class="rs sys-state s-warn">borderline</span></a>
+                <a href="#"><span class="rn">Blood count</span><span class="rs sys-state s-warn">borderline</span></a>
+                <a href="#"><span class="rn">Sex hormones</span><span class="rs sys-state s-none">no data</span></a>
+              </div>
+              <p class="t-meta" style="margin-top: 10px">
+                Loses the marker and its value. Works as navigation beside a
+                detail pane, not as the whole story on Home.
+              </p>
+            </div>
+
+            <div>
+              <p class="vlabel"><b>3</b> Small tonal tiles</p>
+              <div class="systiles">
+                <a class="systile bad" href="#"><div class="stn">Thyroid</div><div class="stv">320<em>IU/mL</em></div><div class="sts t-meta">TPO antibodies · off</div></a>
+                <a class="systile bad" href="#"><div class="stn">Vitamins</div><div class="stv">19<em>ng/mL</em></div><div class="sts t-meta">Vitamin D · off</div></a>
+                <a class="systile bad" href="#"><div class="stn">Liver</div><div class="stv">34<em>U/L</em></div><div class="sts t-meta">ALT · off</div></a>
+                <a class="systile bad" href="#"><div class="stn">Lipids</div><div class="stv">142<em>mg/dL</em></div><div class="sts t-meta">LDL · off</div></a>
+                <a class="systile bad" href="#"><div class="stn">Lifestyle</div><div class="stv">128<em>mmHg</em></div><div class="sts t-meta">Systolic BP · off</div></a>
+                <a class="systile warn" href="#"><div class="stn">Blood sugar</div><div class="stv">5.6<em>%</em></div><div class="sts t-meta">HbA1c · borderline</div></a>
+                <a class="systile warn" href="#"><div class="stn">Iron</div><div class="stv">22<em>ng/mL</em></div><div class="sts t-meta">Ferritin · borderline</div></a>
+                <a class="systile warn" href="#"><div class="stn">Kidneys</div><div class="stv">0.95<em>mg/dL</em></div><div class="sts t-meta">Creatinine · borderline</div></a>
+                <a class="systile warn" href="#"><div class="stn">Inflammation</div><div class="stv">3.4<em>mg/L</em></div><div class="sts t-meta">hs-CRP · borderline</div></a>
+              </div>
+              <p class="t-meta" style="margin-top: 10px">
+                Keeps the value, costs three times the vertical space, and the
+                tinted backgrounds put five colours on one screen.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ══════════════════════ 6 · PLAN ══════════════════════ -->
+      <section class="sec" id="s6">
+        <div class="sec-head">
+          <span class="n">06</span>
+          <h2>Plan — what you decided to do, and whether it worked</h2>
+        </div>
+        <p class="lede">
+          Seventeen protocol items, two of them running at 80 %, a five-day
+          streak, and nothing ticked yet today. The dots are habit logs, one per
+          day, not a progress bar.
+        </p>
+
+        <div class="screen">
+          <div class="g2">
+            <div class="panel">
+              <div class="panel-head">
+                <h3>cut added sugar</h3>
+                <span class="ev op" title="Clinician opinion"><i>◐</i>opinion</span>
+              </div>
+              <p class="t-body">HbA1c 5.6 and an insulin of 12: the cheapest lever first.</p>
+              <div class="chips" style="margin: 12px 0 14px; justify-content: flex-start">
+                <span class="chip">daily</span>
+                <span class="chip"><i class="warn"></i>Hemoglobin A1c</span>
+                <span class="chip">since Jun 14</span>
+              </div>
+              <div class="habit"><i class="on"></i><i class="on"></i><i class="on"></i><i class=""></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class=""></i><i class="on"></i><i class="on"></i><i class="on"></i><i class=""></i><i class="on today"></i></div>
+              <div style="display: flex; align-items: center; gap: 14px; margin-top: 14px">
+                <button class="tick">✓ Did it today</button>
+                <span class="t-meta">11 of the last 14 days · <b class="t-num">80 %</b></span>
+              </div>
+            </div>
+
+            <div class="panel">
+              <div class="panel-head">
+                <h3>sardines, 3 tins a week</h3>
+                <span class="ev an" title="Anecdotal, from unknown"><i>○</i>E</span>
+              </div>
+              <p class="t-body">
+                Popular right now. Omega-3, protein, low mercury; people eat
+                three tins a week and say it drops their triglycerides. Nothing
+                pooled says so yet.
+              </p>
+              <div class="chips" style="margin: 12px 0 14px; justify-content: flex-start">
+                <span class="chip">daily</span>
+                <span class="chip">Triglycerides</span>
+                <span class="chip">since Aug 28</span>
+              </div>
+              <div class="habit"><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class=""></i><i class="today"></i></div>
+              <div style="display: flex; align-items: center; gap: 14px; margin-top: 14px">
+                <button class="tick">✓ Did it today</button>
+                <span class="t-meta">never ticked · <b class="t-num">0 %</b></span>
+              </div>
+            </div>
+          </div>
+
+          <div class="g3" style="margin-top: 16px">
+            <div class="panel">
+              <div class="mlab">Today</div>
+              <div class="mnum">0<em>of 17</em></div>
+              <div class="t-meta mword">Sep 1, 2026 · nothing ticked yet</div>
+            </div>
+            <div class="panel">
+              <div class="mlab">Streak</div>
+              <div class="mnum">5<em>days</em></div>
+              <div class="t-meta mword">Longest run since you started</div>
+            </div>
+            <div class="panel">
+              <div class="mlab">Items actually running</div>
+              <div class="mnum">2<em>of 17</em></div>
+              <div class="segbar">
+                <i class="nor" style="--w: 2"></i>
+                <i class="off" style="--w: 15"></i>
+              </div>
+              <div class="t-meta mword">
+                Two above 80 %, fifteen at 0 %. Most of the list has never been
+                ticked once.
+              </div>
+            </div>
+          </div>
+
+          <div class="sub"><h3>Did it work</h3><span>the outcome card, twelve weeks after you started</span></div>
+          <div class="outcome">
+            <div class="panel-head">
+              <h3>Selenium 200 µg — 12 weeks in</h3>
+              <span class="sys-state s-ok">on track</span>
+            </div>
+            <div class="g2" style="gap: 24px; align-items: center">
+              <div>
+                <div class="mnum" style="font-size: 34px">320 → 280<em>IU/mL</em></div>
+                <div class="t-meta mword">
+                  TPO antibodies, Aug 1 → Nov 24. The change you were promised
+                  was <b class="t-num">−15 %</b>; you got
+                  <b class="t-num">−12.5 %</b>.
+                </div>
+              </div>
+              <div class="likebar2" style="height: 14px"><i style="--p: 83%"></i></div>
+            </div>
+            <p class="t-meta" style="margin: 14px 0 0">
+              This card only appears once a retest lands. Until then the action
+              says "measure after 24 weeks" and nothing else.
+            </p>
+          </div>
+
+          <div class="sub"><h3>The retest goal</h3><span>a dated row that feeds the Next draw tile</span></div>
+          <div>
+            <a class="draw" href="#">
+              <span class="ddate">Nov 24, 2026</span>
+              <span class="dn">in 12 weeks · from "Iron 60 mg alternate days"</span>
+              <span class="chips">
+                <span class="chip"><i class="warn"></i>Ferritin</span>
+                <span class="chip"><i class="warn"></i>Iron saturation</span>
+                <span class="chip">target &gt;50 ng/mL</span>
+              </span>
+            </a>
+            <a class="draw" href="#">
+              <span class="ddate">Feb 16, 2027</span>
+              <span class="dn">in 24 weeks · from "Selenium 200 µg"</span>
+              <span class="chips">
+                <span class="chip"><i class="bad"></i>TPO antibodies</span>
+                <span class="chip">target &lt;100 IU/mL</span>
+              </span>
+            </a>
+          </div>
+
+          <div style="margin-top: 20px; display: flex; justify-content: center">
+            <div class="toastpill">
+              <span>3 actions added to your protocol</span>
+              <button>Undo</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ═════════════════════ 7 · PERSON ═════════════════════ -->
+      <section class="sec" id="s7">
+        <div class="sec-head">
+          <span class="n">07</span>
+          <h2>Person — what you told us, and what we still want to know</h2>
+        </div>
+        <p class="lede">
+          Half the ledger's inputs are facts you typed, not markers. They deserve
+          the same care as a lab value: a date, a source, and one tap to change
+          your mind.
+        </p>
+
+        <div class="screen">
+          <div class="g2">
+            <div class="qcard">
+              <div class="qcount">2 of 5 worth answering</div>
+              <p class="qtext">Do you feel colder than the people around you?</p>
+              <div class="quietrow" style="margin-top: 0">
+                <button class="chip press">Yes</button>
+                <button class="chip press">No</button>
+                <button class="chip press">Not sure</button>
+                <button class="qbtn">Skip</button>
+              </div>
+              <p class="t-meta" style="margin: 14px 0 0">
+                Answering moves <b>Autoimmune thyroiditis</b> and
+                <b>Iron deficiency</b>. The engine scores twelve symptom
+                questions; it only asks the ones that would change something.
+              </p>
+            </div>
+
+            <div class="qcard">
+              <div class="qcount">0 worth answering</div>
+              <p class="qtext" style="color: var(--v3-ink-3)">
+                Nothing to ask right now.
+              </p>
+              <p class="t-meta" style="margin: 0">
+                This is the real state today. The tile does not invent a question
+                to fill itself; it points at the thing that would actually help.
+              </p>
+              <div class="quietrow">
+                <button class="chip press">Upload a lab</button>
+                <button class="chip press">How do you feel</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="sub"><h3>You said</h3><span>check-ins, newest first</span></div>
+          <div class="chips" style="justify-content: flex-start">
+            <span class="chip"><i></i>Sep 1 · "1000iu daily actually with vitamin c and vitamin k2"</span>
+            <span class="chip"><i class="ok"></i>Aug 28 · started sardines, 3 tins a week</span>
+            <span class="chip"><i class="ok"></i>Aug 12 · started selenium 200 µg</span>
+          </div>
+
+          <div class="sub"><h3>Facts</h3><span>every one is editable, every one is dated</span></div>
+          <div class="panel">
+            <dl class="kv">
+              <dt>Family history</dt><dd>Father, type 2 diabetes at 58</dd><a class="ed" href="#">edit</a>
+              <dt>Cold intolerance</dt><dd>Yes <span class="src">Sep 1</span></dd><a class="ed" href="#">edit</a>
+              <dt>Bowel pattern</dt><dd>Constipation <span class="src">Sep 1</span></dd><a class="ed" href="#">edit</a>
+              <dt>Tired most days</dt><dd>Yes <span class="src">Aug 30</span></dd><a class="ed" href="#">edit</a>
+              <dt>Tingling or numbness</dt><dd>Yes <span class="src">Aug 30</span></dd><a class="ed" href="#">edit</a>
+              <dt>Menstrual pattern</dt><dd>Irregular <span class="src">Aug 30</span></dd><a class="ed" href="#">edit</a>
+              <dt>Coarse hair or acne</dt><dd>Yes <span class="src">Aug 30</span></dd><a class="ed" href="#">edit</a>
+              <dt>Waist-to-height ratio</dt><dd>1.05 <span class="src">typed</span></dd><a class="ed" href="#">edit</a>
+              <dt>Exercise days per week</dt><dd>3 <span class="src">Aug 30</span></dd><a class="ed" href="#">edit</a>
+            </dl>
+            <p class="t-meta" style="margin: 14px 0 0">
+              Change one and the ledger moves. The old value is kept with its
+              date, so "when did I start saying I was tired" has an answer.
+            </p>
+          </div>
+
+          <div class="sub"><h3>What happened, in order</h3><span>the same dot language as the hero strip</span></div>
+          <div class="panel">
+            <ul class="tline">
+              <li class="big"><s>Sep 1</s> <b>You logged</b> "1000iu daily actually with vitamin c and vitamin k2"</li>
+              <li class="big"><s>Aug 31</s> <b>Blood draw</b> — 1 result, Glucose</li>
+              <li><s>Aug 28</s> Started <b>sardines, 3 tins a week</b></li>
+              <li><s>Aug 12</s> Started <b>selenium 200 µg</b></li>
+              <li class="big"><s>Aug 1</s> <b>Blood draw</b> — 15 results, 5 off</li>
+              <li><s>Jun 14</s> Started <b>cut added sugar</b> and <b>walk after the largest meal</b></li>
+              <li class="big"><s>Feb 1</s> <b>Blood draw</b> — 1 result, TSH</li>
+              <li class="big"><s>Dec 9, 2025</s> <b>Blood draw</b> — 48 results, from pdfjs-check-2025.pdf</li>
+              <li><s>Jun 24, 2016</s> First upload, 2 results</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- ═══════════════════════ 8 · ASK ═══════════════════════ -->
+      <section class="sec" id="s8">
+        <div class="sec-head">
+          <span class="n">08</span>
+          <h2>Ask — four pill states and one answer</h2>
+        </div>
+        <p class="lede">
+          One control, four states, and no second textarea when it is thinking.
+          The answer is prose plus a row of things you can actually press.
+        </p>
+
+        <div class="screen">
+          <div class="g2">
+            <div>
+              <p class="vlabel"><b>1</b> Idle</p>
+              <div class="askpill">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
+                  <circle cx="12" cy="12" r="9.2" />
+                  <path d="M9.6 9.2a2.5 2.5 0 1 1 3.3 2.4c-.6.2-.9.7-.9 1.3v.6" />
+                  <circle cx="12" cy="16.8" r=".9" fill="currentColor" stroke="none" />
+                </svg>
+                <span>Ask anything, or tell me what changed</span>
+                <button class="askbtn">Ask</button>
+              </div>
+            </div>
+            <div>
+              <p class="vlabel"><b>2</b> Typing</p>
+              <div class="askpill typing">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
+                  <circle cx="12" cy="12" r="9.2" />
+                  <path d="M9.6 9.2a2.5 2.5 0 1 1 3.3 2.4c-.6.2-.9.7-.9 1.3v.6" />
+                  <circle cx="12" cy="16.8" r=".9" fill="currentColor" stroke="none" />
+                </svg>
+                <span>Why am I tired all the time<span class="caret"></span></span>
+                <button class="askbtn">Ask</button>
+              </div>
+            </div>
+            <div>
+              <p class="vlabel"><b>3</b> Asking</p>
+              <div class="askpill">
+                <span class="spin"></span>
+                <span>Why am I tired all the time?</span>
+                <button class="askbtn" disabled style="opacity: .5">Asking</button>
+              </div>
+              <p class="t-meta" style="margin-top: 8px">
+                The spinner lives in the pill. The textarea is not duplicated
+                below it while it waits.
+              </p>
+            </div>
+            <div>
+              <p class="vlabel"><b>4</b> Answered</p>
+              <div class="askpill">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
+                  <path d="M4 12.5l5 5L20 6.5" />
+                </svg>
+                <span>Why am I tired all the time?</span>
+                <button class="askbtn">Ask another</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="answer" style="margin-top: 22px">
+            <p class="qline">Why am I tired all the time?</p>
+            <p>
+              Three of your numbers point the same way. TPO antibodies at
+              <b class="t-num">320 IU/mL</b>
+              <span class="ev sci" title="Randomised trials, grade A"><i>●</i><b>A</b></span>
+              with TSH at <b class="t-num">3.9</b> is an immune system working on
+              your thyroid, and tiredness is the first thing that shows.
+              Ferritin at <b class="t-num">22 ng/mL</b>
+              <span class="ev sci" title="Guideline-backed, grade B"><i>●</i><b>B</b></span>
+              means the iron stores are close to empty; fatigue arrives there
+              long before haemoglobin drops. Vitamin D at
+              <b class="t-num">19 ng/mL</b>
+              <span class="ev op" title="Clinician opinion"><i>◐</i>opinion</span>
+              is the cheapest of the three to fix.
+            </p>
+            <p>
+              Sleep is not the problem. Fourteen nights average
+              <b class="t-num">7 h 09</b> and your resting heart rate is coming
+              down, from 58 to 55 bpm in the last month.
+            </p>
+
+            <div class="rightnow">
+              <span>Right now:</span>
+              <b>Autoimmune thyroiditis (Hashimoto's)</b>
+              <span>— confirmed,</span>
+              <span class="pc">95 %</span>
+              <span class="src">and Iron deficiency, likely, 76 %</span>
+            </div>
+
+            <p class="sources">
+              Sources
+              <span class="chip">Wichman 2016 · B</span>
+              <span class="chip">your Aug 1 draw</span>
+              <span class="chip">14 nights of Apple Health</span>
+            </p>
+
+            <div class="actrow">
+              <span class="lbl">Act on it</span>
+              <button class="chip press lime">+ Add selenium 200 µg</button>
+              <button class="chip press">+ Add iron 60 mg alternate days</button>
+              <button class="chip press">Plan retest · ferritin, 12 weeks</button>
+              <button class="chip press">Answer: do you feel colder?</button>
+              <button class="chip press">Ask your doctor · copy</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ════════════════════ 9 · KNOWLEDGE ════════════════════ -->
+      <section class="sec" id="s9">
+        <div class="sec-head">
+          <span class="n">09</span>
+          <h2>Knowledge — claims, genome, food, the graph</h2>
+        </div>
+        <p class="lede">
+          The four freshness classes are the honest part of this app. They are
+          small coloured words, never badges, and they sit before the claim so
+          you read the confidence first.
+        </p>
+
+        <div class="screen">
+          <div class="g2">
+            <div class="claim">
+              <span class="fresh horizon">horizon</span>
+              <h4>Sardines, three tins a week</h4>
+              <p>
+                Popular right now, grade E, anecdotal from an unknown source.
+                Omega-3, protein, low mercury; people eat three tins a week and
+                say it drops their triglycerides. Nothing pooled says so yet.
+              </p>
+              <div class="chips" style="margin-top: 12px; justify-content: flex-start">
+                <span class="chip">Triglycerides</span>
+                <span class="chip">in your protocol since Aug 28</span>
+              </div>
+            </div>
+            <div class="claim">
+              <span class="fresh guideline">guideline</span>
+              <h4>Repeat TSH with free T4, free T3 and antibodies</h4>
+              <p>
+                A TSH above 2.5 that is climbing, or positive thyroid
+                antibodies, changes how the lipid and energy picture should be
+                read. This one is in the guidelines, not in a preprint.
+              </p>
+              <div class="chips" style="margin-top: 12px; justify-content: flex-start">
+                <span class="chip"><i class="bad"></i>TPO antibodies</span>
+                <span class="chip">measure after 12 weeks</span>
+              </div>
+            </div>
+            <div class="claim">
+              <span class="fresh pooled">pooled</span>
+              <h4>Selenium lowers TPO antibodies in antibody-positive Hashimoto's</h4>
+              <p>
+                Meta-analysed across small trials at 200 µg for six months. The
+                effect on how you feel is much less certain than the effect on
+                the number.
+              </p>
+            </div>
+            <div class="claim">
+              <span class="fresh contested">contested</span>
+              <h4>Gluten removal helps antibody-positive thyroiditis</h4>
+              <p>
+                Trials disagree and the ones that show an effect are small and
+                unblinded. The app can offer it as an eight-week trial you run
+                on yourself, and it must say the evidence is split.
+              </p>
+            </div>
+          </div>
+
+          <div class="sub"><h3>Genome</h3><span>one line of what it changes for you</span></div>
+          <div>
+            <div class="gene">
+              <span class="gn">MTHFR</span><span class="gr t-num">rs1801133</span>
+              <span class="gg t-num">C;T</span>
+              <span class="gw">One copy. Slightly slower folate processing; matters only if B12 or folate ever come back low.</span>
+            </div>
+            <div class="gene">
+              <span class="gn">VDR</span><span class="gr t-num">rs2228570</span>
+              <span class="gg t-num">T;T</span>
+              <span class="gw">Vitamin D receptor variant. Sits behind the vitamin D insufficiency card, which is already at 19 ng/mL.</span>
+            </div>
+            <div class="gene">
+              <span class="gn">FTO</span><span class="gr t-num">rs9939609</span>
+              <span class="gg t-num">A;T</span>
+              <span class="gw">Small nudge to appetite. Explains nothing on its own and changes no action.</span>
+            </div>
+            <div class="gene">
+              <span class="gn">APOE</span><span class="gr t-num">rs429358</span>
+              <span class="gg t-num">T;T</span>
+              <span class="gw">Not an ε4 carrier at this position. Relevant to how hard to push LDL 142 down.</span>
+            </div>
+          </div>
+
+          <div class="sub"><h3>Food</h3><span>a photo becomes a row in the day</span></div>
+          <div class="g2">
+            <div class="meal">
+              <div class="thumb"><span>photo</span></div>
+              <div style="min-width: 0">
+                <div class="t-title" style="font-size: 16px">Lunch · 12:40</div>
+                <p class="t-body" style="margin: 4px 0 0">
+                  Grilled salmon, rice, broccoli, olive oil. Added to Aug 31.
+                </p>
+                <div class="chips" style="margin-top: 10px; justify-content: flex-start">
+                  <span class="chip">642 kcal</span>
+                  <span class="chip">41 g protein</span>
+                  <span class="chip">estimate</span>
+                </div>
+              </div>
+            </div>
+            <div class="panel">
+              <div class="panel-head"><h3>The day so far</h3><span class="t-meta">1 840 kcal</span></div>
+              <div class="macro">
+                <div>
+                  <div class="mlab">Protein</div>
+                  <div class="mnum" style="font-size: 22px">104<em>g</em></div>
+                  <div class="bar"><i style="--p: 87%"></i></div>
+                </div>
+                <div>
+                  <div class="mlab">Carbs</div>
+                  <div class="mnum" style="font-size: 22px">186<em>g</em></div>
+                  <div class="bar"><i style="--p: 62%"></i></div>
+                </div>
+                <div>
+                  <div class="mlab">Fat</div>
+                  <div class="mnum" style="font-size: 22px">71<em>g</em></div>
+                  <div class="bar"><i style="--p: 79%"></i></div>
+                </div>
+              </div>
+              <p class="t-meta" style="margin: 14px 0 0">
+                Bars are against the "30 g protein first" action you already
+                have, not against a generic target.
+              </p>
+            </div>
+          </div>
+
+          <div class="sub"><h3>The graph</h3><span>a teaser, sized by likelihood</span></div>
+          <div class="bubbles">
+            <a class="bub bad" href="#" style="--d: 132px">
+              <span class="bt">Insulin resistance</span><span class="bp">97%</span>
+            </a>
+            <a class="bub warn" href="#" style="--d: 124px">
+              <span class="bt">Vitamin D deficiency</span><span class="bp">86%</span>
+            </a>
+            <a class="bub warn" href="#" style="--d: 118px">
+              <span class="bt">Chronic inflammation</span><span class="bp">77%</span>
+            </a>
+            <p class="t-meta" style="max-width: 300px; margin: 0">
+              Diameter is the likelihood, nothing else. Three circles is a
+              teaser; the full graph stays on <span class="t-num">/graph</span>.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ══════════════════════ 10 · SHELL ══════════════════════ -->
+      <section class="sec" id="s10">
+        <div class="sec-head">
+          <span class="n">10</span>
+          <h2>Shell — nav, capture, and 390 px</h2>
+        </div>
+        <p class="lede">
+          The top bar becomes tonal pills on the canvas. The capture button keeps
+          its lime and stays floating, because it is the one thing you press
+          without reading first.
+        </p>
+
+        <div class="screen">
+          <div class="nav">
+            <span class="brand">OpenVitals</span>
+            <a href="#" aria-current="true">Home</a>
+            <a href="#">Body</a>
+            <a href="#">Blood</a>
+            <a href="#">Plan</a>
+            <a href="#">Graph</a>
+            <span class="right">
+              <button class="iconbtn" title="Theme">◐</button>
+              <button class="iconbtn" title="You">T</button>
+            </span>
+          </div>
+
+          <div class="g2" style="margin-top: 24px; align-items: center">
+            <div style="display: flex; align-items: center; gap: 20px">
+              <button class="fab" title="Capture">+</button>
+              <p class="t-body" style="margin: 0">
+                One button for a lab PDF, a supplement label and a plate of food.
+                It is the only lime thing on the screen, which is what makes it
+                the accent.
+              </p>
+            </div>
+            <div>
+              <div class="tabbar">
+                <a href="#" aria-current="true">Home</a>
+                <a href="#">Body</a>
+                <a href="#">Blood</a>
+                <a href="#">Plan</a>
+              </div>
+              <p class="t-meta" style="margin-top: 10px">
+                Four tabs on the phone. Graph moves inside Blood, where the
+                bubbles already live.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <p class="vlabel" style="margin-top: 30px"><b>390</b> Home, stacked in the new order</p>
+        <div class="phones">
+          <div>
+            <div class="phone" id="phone390">
+              <div class="statusbar"><span>9:41</span><span>OpenVitals</span></div>
+              <p class="statement" style="font-size: 28px; margin: 10px 2px 16px">
+                <b>3 things to fix.</b> Body on track this week.
+              </p>
+              <div style="display: grid; gap: 10px">
+                <a class="tonal" href="#">
+                  <span class="tk">Body <span>today</span></span>
+                  <div class="tv" style="font-size: 32px">8 412<em>steps</em></div>
+                  <div class="ts t-body">34 min exercise · 7 h 12 sleep</div>
+                </a>
+                <a class="tonal" href="#">
+                  <span class="tk">Blood <span>Aug 1</span></span>
+                  <div class="tv" style="font-size: 32px">15<em>results</em></div>
+                  <div class="segbar">
+                    <i class="opt" style="--w: 1"></i>
+                    <i class="nor" style="--w: 9"></i>
+                    <i class="off" style="--w: 5"></i>
+                  </div>
+                  <div class="seglegend"><span><b>1</b> opt</span><span><b>9</b> nor</span><span><b>5</b> off</span></div>
+                </a>
+                <a class="crow" href="#" style="grid-template-columns: 78px 1fr auto">
+                  <span class="cstate c-bad">CONFIRMED</span>
+                  <span class="ctitle">Hashimoto's</span>
+                  <span class="cpct">95%</span>
+                </a>
+                <a class="tonal" href="#">
+                  <span class="tk">Plan <span>Sep 1</span></span>
+                  <div class="tv" style="font-size: 32px">0<em>of 17</em></div>
+                  <div class="habit" style="margin-top: 10px"><i class="on"></i><i class="on"></i><i class="on"></i><i class=""></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class=""></i><i class="on"></i><i class="on"></i><i class="on"></i><i class=""></i><i class="on today"></i></div>
+                  <div class="ts t-body">5 day streak</div>
+                </a>
+              </div>
+              <div class="askpill" style="margin-top: 12px">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
+                  <circle cx="12" cy="12" r="9.2" />
+                  <path d="M9.6 9.2a2.5 2.5 0 1 1 3.3 2.4c-.6.2-.9.7-.9 1.3v.6" />
+                  <circle cx="12" cy="16.8" r=".9" fill="currentColor" stroke="none" />
+                </svg>
+                <span>Ask anything</span>
+                <button class="askbtn">Ask</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ══════════════════════ 11 · DARK ══════════════════════ -->
+      <section class="sec" id="s11">
+        <div class="sec-head">
+          <span class="n">11</span>
+          <h2>Dark — one class on &lt;html&gt;</h2>
+        </div>
+        <p class="lede">
+          Press the button top right. Twelve tokens change and nothing else: the
+          ramp keeps its hue, the gradients lose light instead of being
+          redefined, and the lime accent is untouched.
+        </p>
+        <div class="screen dark">
+          <div class="g3">
+            <a class="tonal" href="#">
+              <span class="tk">Body <span>today</span></span>
+              <div class="tv">8 412<em>steps</em></div>
+              <div class="ts t-body">34 min exercise · 7 h 12 sleep</div>
+            </a>
+            <a class="tonal" href="#">
+              <span class="tk">Blood <span>Aug 1</span></span>
+              <div class="tv">15<em>results</em></div>
+              <div class="segbar">
+                <i class="opt" style="--w: 1"></i>
+                <i class="nor" style="--w: 9"></i>
+                <i class="off" style="--w: 5"></i>
+              </div>
+              <div class="seglegend"><span><b>1</b> optimal</span><span><b>9</b> normal</span><span><b>5</b> off</span></div>
+            </a>
+            <a class="tonal" href="#">
+              <span class="tk">Plan <span>Sep 1</span></span>
+              <div class="tv">0<em>of 17</em></div>
+              <div class="ts t-body">5 day streak · 2 items above 80 %</div>
+            </a>
+          </div>
+          <div class="panel" style="margin-top: 14px">
+            <div class="panel-head">
+              <h3>TPO antibodies</h3>
+              <span class="sys-state s-bad">far outside</span>
+            </div>
+            <div class="ruler">
+              <div class="ruler-track">
+                <div class="seg" style="flex: 1 1 62%">
+                  <div class="seg-bands">
+                    <span class="band normal" style="--a: 0%; --b: 85%"></span>
+                    <span class="band optimal" style="--a: 0%; --b: 22.5%"></span>
+                  </div>
+                </div>
+                <div class="brk" aria-hidden="true"></div>
+                <div class="seg" style="flex: 0 0 30%">
+                  <div class="ghost" style="--g: 86%"></div>
+                  <div class="marker" data-align="start" style="--p: 15.4%; --mk: var(--bad)">
+                    <span class="mval">320<em>IU/mL</em></span>
+                  </div>
+                </div>
+              </div>
+              <div class="ruler-ticks"></div>
+              <div class="ruler-scale">
+                <span>0</span><span class="mid">normal 0–34 · optimal 0–9</span><span>430</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div class="foot">
+        <b>Where the numbers come from.</b> Blood values, draw dates, systems,
+        condition names, likelihoods, protocol items, streaks and check-ins are
+        the test user's real data as of <b>Sep 1, 2026</b>.
+        <br /><br />
+        <b>Illustrative, with real shapes and units:</b> steps 8 412, exercise
+        34 min, stand 9 of 12 h, resting HR 55 bpm (58 thirty days ago), HRV
+        48 ms, sleep 7 h 12 (14-night mean 7 h 09), SpO₂ 97 %, VO₂max
+        41.2 mL/kg/min, weight 78.4 kg, body fat 17.8 %, wrist temperature
+        +0.2 °C, 3 workouts in the last 7 days (137 min), the 90-day phone-sync
+        count of 86, the food row (642 kcal lunch, 1 840 kcal day), the four
+        genome genotypes, the two branch percentages on the VO₂max test card,
+        and the Nov 24 selenium outcome (TPO 320 → 280), which is a future
+        retest that has not happened.
+        <br /><br />
+        Biological age is genuinely <b>not computed</b> for this user: the
+        engine is missing ALP. Waist has no Apple Health measurement; the
+        ledger only has the ratio derived from a typed waist. Both empty states
+        are drawn as they are.
+      </div>
+    </div>
+
+    <script>
+      // the only script on the page: one class on <html>
+      var b = document.getElementById("themebtn");
+      b.addEventListener("click", function () {
+        var on = document.documentElement.classList.toggle("dark");
+        b.textContent = on ? "Light" : "Dark";
+      });
+    </script>
+  </body>
+</html>

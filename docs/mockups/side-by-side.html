@@ -1,0 +1,856 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>OpenVitals — Now vs Now+new vs v3</title>
+    <link rel="stylesheet" href="v3.css" />
+  </head>
+  <body>
+    <div class="doc">
+      <header class="doc-head">
+        <h1>Side by side — three paths for the same six elements</h1>
+        <p>
+          Left is the app as it ships today, cropped from real screenshots of
+          the test user in dark mode. Middle keeps that canvas, that type and
+          that spacing, and swaps in only the new parts: the ruler, the evidence
+          glyphs, the system rows, the habit dots. Right is v3: warm grey
+          canvas, tonal panels, big light numbers, one lime accent.
+        </p>
+        <p>
+          Same numbers in all three columns. Markers
+          26&nbsp;·&nbsp;19&nbsp;·&nbsp;7, TPO 320&nbsp;IU/mL, glucose
+          98&nbsp;mg/dL, HbA1c 5.6&nbsp;%, ferritin 22, ALT 34, vitamin&nbsp;D
+          19, LDL 142. Hashimoto's confirmed at 95&nbsp;%.
+        </p>
+        <p class="note">
+          Scale note: the left column is a 1440&nbsp;px screenshot squeezed into
+          a third of the page, so read it for layout and density, not for type
+          size. The middle and right columns render at their real size.
+        </p>
+      </header>
+
+      <!-- ═══════════════════════ ROW 1 · HERO ═══════════════════════ -->
+      <section class="sec" id="r1">
+        <div class="sec-head">
+          <span class="n">01</span>
+          <h2>Hero</h2>
+        </div>
+        <div class="sbs">
+          <div>
+            <p class="colhead"><b>Now</b> shipped</p>
+            <div class="shotwrap">
+              <img
+                class="shot"
+                src="ref/crops/now-hero.png"
+                alt="Current home hero: today, you noted, biological age, markers, questions worth answering, next draw"
+              />
+            </div>
+          </div>
+
+          <div>
+            <p class="colhead"><b>Now + new</b> same canvas</p>
+            <div class="now">
+              <div class="tiles two">
+                <div class="tile warn">
+                  <div class="tile-label">Status</div>
+                  <div class="tile-mid">
+                    <div class="tile-num">3</div>
+                    <div class="tile-say">Attention · 3 things to fix</div>
+                  </div>
+                  <div class="tile-foot">
+                    <span>26 optimal · 19 normal · 7 off</span
+                    ><span>today</span>
+                  </div>
+                </div>
+                <div class="tile">
+                  <div class="tile-label">Next draw</div>
+                  <div class="tile-mid">
+                    <div class="tile-num">12<em>wk</em></div>
+                    <div class="tile-say">Iron saturation planned</div>
+                  </div>
+                  <div class="tile-foot">
+                    <span>last draw Aug 31, 2026</span><span>1 marker</span>
+                  </div>
+                </div>
+              </div>
+              <div class="askpill" style="margin-top: 14px">
+                <span>Ask anything, or tell me what changed</span>
+                <button class="askbtn">Ask</button>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <p class="colhead"><b>v3</b> new surface</p>
+            <div class="screen">
+              <div class="tiles two">
+                <div class="tile warn">
+                  <div class="tile-label">Status</div>
+                  <div class="tile-mid">
+                    <div class="tile-num">3</div>
+                    <div class="tile-say">Attention · 3 things to fix</div>
+                  </div>
+                  <div class="tile-foot">
+                    <span>26 optimal · 19 normal · 7 off</span
+                    ><span>today</span>
+                  </div>
+                </div>
+                <div class="tile age">
+                  <div class="tile-label">Next draw</div>
+                  <div class="tile-mid">
+                    <div class="tile-num">12<em>wk</em></div>
+                    <div class="tile-say">Iron saturation planned</div>
+                  </div>
+                  <div class="tile-foot">
+                    <span>last draw Aug 31, 2026</span><span>1 marker</span>
+                  </div>
+                </div>
+              </div>
+              <div class="askpill" style="margin-top: 14px">
+                <span>Ask anything, or tell me what changed</span>
+                <button class="askbtn">Ask</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <p class="rowfoot">
+          <b>What changes.</b> Today the hero is four bordered boxes of equal
+          weight, and one of them says "biological age: missing ALP". The new
+          hero picks one thing to say and gives it the size. <b>Cost.</b> Middle
+          column is a layout swap in <code>home.tsx</code> only: same tokens,
+          same borders, four cards become two. Right column needs the tile
+          gradients, the grain layer and the warm canvas in
+          <code>globals.css</code> before any of it renders.
+        </p>
+      </section>
+
+      <!-- ═════════════════════ ROW 2 · SYSTEMS ═════════════════════ -->
+      <section class="sec" id="r2">
+        <div class="sec-head">
+          <span class="n">02</span>
+          <h2>Systems</h2>
+        </div>
+        <div class="sbs">
+          <div>
+            <p class="colhead"><b>Now</b> shipped</p>
+            <div class="shotwrap">
+              <img
+                class="shot"
+                src="ref/crops/now-systems.png"
+                alt="Current systems grid: twelve cards with a ring, a driving marker and a status chip"
+              />
+            </div>
+          </div>
+
+          <div>
+            <p class="colhead"><b>Now + new</b> same canvas</p>
+            <div class="now">
+              <div class="panel">
+                <div class="panel-head">
+                  <h3>Systems</h3>
+                  <a href="#">12 tracked</a>
+                </div>
+                <div class="syslist">
+                  <a class="sysrow" href="#"
+                    ><span class="sys-name">Thyroid</span
+                    ><span class="sys-marker">TPO antibodies</span
+                    ><span class="sys-val">320<em>IU/mL</em></span
+                    ><span class="sys-state s-bad">off</span></a
+                  >
+                  <a class="sysrow" href="#"
+                    ><span class="sys-name">Blood sugar</span
+                    ><span class="sys-marker">HbA1c</span
+                    ><span class="sys-val">5.6<em>%</em></span
+                    ><span class="sys-state s-warn">borderline</span></a
+                  >
+                  <a class="sysrow" href="#"
+                    ><span class="sys-name">Vitamins</span
+                    ><span class="sys-marker">Vitamin D</span
+                    ><span class="sys-val">19<em>ng/mL</em></span
+                    ><span class="sys-state s-bad">off</span></a
+                  >
+                  <a class="sysrow" href="#"
+                    ><span class="sys-name">Iron</span
+                    ><span class="sys-marker">Ferritin</span
+                    ><span class="sys-val">22<em>ng/mL</em></span
+                    ><span class="sys-state s-warn">borderline</span></a
+                  >
+                  <a class="sysrow" href="#"
+                    ><span class="sys-name">Liver</span
+                    ><span class="sys-marker">ALT</span
+                    ><span class="sys-val">34<em>U/L</em></span
+                    ><span class="sys-state s-bad">off</span></a
+                  >
+                  <a class="sysrow" href="#"
+                    ><span class="sys-name">Sex hormones</span
+                    ><span class="sys-marker">never measured</span
+                    ><span class="sys-val">—</span
+                    ><span class="sys-state s-none">no data</span></a
+                  >
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <p class="colhead"><b>v3</b> new surface</p>
+            <div class="screen">
+              <div class="panel">
+                <div class="panel-head">
+                  <h3>Systems</h3>
+                  <a href="#">12 tracked</a>
+                </div>
+                <div class="syslist">
+                  <a class="sysrow" href="#"
+                    ><span class="sys-name">Thyroid</span
+                    ><span class="sys-marker">TPO antibodies</span
+                    ><span class="sys-val">320<em>IU/mL</em></span
+                    ><span class="sys-state s-bad">off</span></a
+                  >
+                  <a class="sysrow" href="#"
+                    ><span class="sys-name">Blood sugar</span
+                    ><span class="sys-marker">HbA1c</span
+                    ><span class="sys-val">5.6<em>%</em></span
+                    ><span class="sys-state s-warn">borderline</span></a
+                  >
+                  <a class="sysrow" href="#"
+                    ><span class="sys-name">Vitamins</span
+                    ><span class="sys-marker">Vitamin D</span
+                    ><span class="sys-val">19<em>ng/mL</em></span
+                    ><span class="sys-state s-bad">off</span></a
+                  >
+                  <a class="sysrow" href="#"
+                    ><span class="sys-name">Iron</span
+                    ><span class="sys-marker">Ferritin</span
+                    ><span class="sys-val">22<em>ng/mL</em></span
+                    ><span class="sys-state s-warn">borderline</span></a
+                  >
+                  <a class="sysrow" href="#"
+                    ><span class="sys-name">Liver</span
+                    ><span class="sys-marker">ALT</span
+                    ><span class="sys-val">34<em>U/L</em></span
+                    ><span class="sys-state s-bad">off</span></a
+                  >
+                  <a class="sysrow" href="#"
+                    ><span class="sys-name">Sex hormones</span
+                    ><span class="sys-marker">never measured</span
+                    ><span class="sys-val">—</span
+                    ><span class="sys-state s-none">no data</span></a
+                  >
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <p class="rowfoot">
+          <b>What changes.</b> Twelve equal cards with a decorative ring each
+          become a scannable list: system, the marker that drives it, its value,
+          one status word. The ring never encoded anything a reader could name.
+          <b>Cost.</b> Both new columns are the same component rewrite in
+          <code>home.tsx</code>; the middle one reuses the existing card border
+          and status colours, so it is the cheaper of the two by exactly the
+          cost of the token set.
+        </p>
+      </section>
+
+      <!-- ═══════════════════ ROW 3 · LEDGER CARD ═══════════════════ -->
+      <section class="sec" id="r3">
+        <div class="sec-head">
+          <span class="n">03</span>
+          <h2>One ledger card</h2>
+        </div>
+        <div class="sbs">
+          <div>
+            <p class="colhead"><b>Now</b> shipped</p>
+            <div class="shotwrap">
+              <img
+                class="shot"
+                src="ref/crops/now-ledger.png"
+                alt="Current top condition card: Hashimoto's confirmed, 95 percent, for and against lines, range bar, what to do"
+              />
+            </div>
+          </div>
+
+          <div>
+            <p class="colhead"><b>Now + new</b> same canvas</p>
+            <div class="now">
+              <div class="ledger">
+                <div class="ledger-top">
+                  <span class="rank"><i>1</i>MOST LIKELY</span>
+                  <span class="conf"
+                    >95<em
+                      style="
+                        font-size: 13px;
+                        font-style: normal;
+                        color: var(--v3-ink-3);
+                      "
+                      >%</em
+                    ></span
+                  >
+                </div>
+                <h3>Autoimmune thyroiditis (Hashimoto's) — confirmed</h3>
+                <p class="lead">
+                  TPO antibodies at <span class="t-num">320 IU/mL</span> with
+                  TSH at <span class="t-num">3.9 mIU/L</span> is the picture of
+                  an immune system attacking the thyroid.
+                </p>
+                <div class="forag">
+                  <span class="fa"
+                    ><u>FOR</u> Cold intolerance, bowel pattern</span
+                  >
+                  <span class="fa"
+                    ><u>AGAINST</u> Family history: father type 2 at 58</span
+                  >
+                </div>
+                <div class="ruler">
+                  <div class="ruler-track">
+                    <div class="seg" style="flex: 1 1 62%">
+                      <div class="seg-bands">
+                        <span
+                          class="band normal"
+                          style="--a: 0%; --b: 85%"
+                        ></span>
+                        <span
+                          class="band optimal"
+                          style="--a: 0%; --b: 22.5%"
+                        ></span>
+                      </div>
+                    </div>
+                    <div class="brk" aria-hidden="true"></div>
+                    <div class="seg" style="flex: 0 0 30%">
+                      <div class="ghost" style="--g: 86%"></div>
+                      <div
+                        class="marker"
+                        data-align="start"
+                        style="--p: 15.4%; --mk: var(--bad)"
+                      >
+                        <span class="mval">320<em>IU/mL</em></span>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="ruler-ticks"></div>
+                  <div class="ruler-scale">
+                    <span>0</span
+                    ><span class="mid">normal 0–34 · optimal 0–9</span
+                    ><span>430</span>
+                  </div>
+                </div>
+                <div class="actions" style="margin-top: 14px">
+                  <div class="act">
+                    <span class="act-t"
+                      >Selenium 200 µg/day as selenomethionine
+                      <s>6 months</s></span
+                    >
+                    <span class="ev op" title="Clinician opinion"
+                      ><i>◐</i>opinion</span
+                    >
+                    <button class="btn lime">Add</button>
+                  </div>
+                  <div class="act">
+                    <span class="act-t"
+                      >Repeat TSH with free T4, free T3, anti-TPO and anti-Tg
+                      <s>12 weeks</s></span
+                    >
+                    <span class="ev sci" title="Guideline-backed, grade B"
+                      ><i>●</i><b>B</b></span
+                    >
+                    <button class="btn">Plan</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <p class="colhead"><b>v3</b> new surface</p>
+            <div class="screen">
+              <div class="ledger">
+                <div class="ledger-top">
+                  <span class="rank"><i>1</i>MOST LIKELY</span>
+                  <span class="conf"
+                    >95<em
+                      style="
+                        font-size: 13px;
+                        font-style: normal;
+                        color: var(--v3-ink-3);
+                      "
+                      >%</em
+                    ></span
+                  >
+                </div>
+                <h3>Autoimmune thyroiditis (Hashimoto's) — confirmed</h3>
+                <p class="lead">
+                  TPO antibodies at <span class="t-num">320 IU/mL</span> with
+                  TSH at <span class="t-num">3.9 mIU/L</span> is the picture of
+                  an immune system attacking the thyroid.
+                </p>
+                <div class="forag">
+                  <span class="fa"
+                    ><u>FOR</u> Cold intolerance, bowel pattern</span
+                  >
+                  <span class="fa"
+                    ><u>AGAINST</u> Family history: father type 2 at 58</span
+                  >
+                </div>
+                <div class="ruler">
+                  <div class="ruler-track">
+                    <div class="seg" style="flex: 1 1 62%">
+                      <div class="seg-bands">
+                        <span
+                          class="band normal"
+                          style="--a: 0%; --b: 85%"
+                        ></span>
+                        <span
+                          class="band optimal"
+                          style="--a: 0%; --b: 22.5%"
+                        ></span>
+                      </div>
+                    </div>
+                    <div class="brk" aria-hidden="true"></div>
+                    <div class="seg" style="flex: 0 0 30%">
+                      <div class="ghost" style="--g: 86%"></div>
+                      <div
+                        class="marker"
+                        data-align="start"
+                        style="--p: 15.4%; --mk: var(--bad)"
+                      >
+                        <span class="mval">320<em>IU/mL</em></span>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="ruler-ticks"></div>
+                  <div class="ruler-scale">
+                    <span>0</span
+                    ><span class="mid">normal 0–34 · optimal 0–9</span
+                    ><span>430</span>
+                  </div>
+                </div>
+                <div class="actions" style="margin-top: 14px">
+                  <div class="act">
+                    <span class="act-t"
+                      >Selenium 200 µg/day as selenomethionine
+                      <s>6 months</s></span
+                    >
+                    <span class="ev op" title="Clinician opinion"
+                      ><i>◐</i>opinion</span
+                    >
+                    <button class="btn lime">Add</button>
+                  </div>
+                  <div class="act">
+                    <span class="act-t"
+                      >Repeat TSH with free T4, free T3, anti-TPO and anti-Tg
+                      <s>12 weeks</s></span
+                    >
+                    <span class="ev sci" title="Guideline-backed, grade B"
+                      ><i>●</i><b>B</b></span
+                    >
+                    <button class="btn">Plan</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <p class="rowfoot">
+          <b>What changes.</b> The action row today ends in a bare
+          <span class="t-num">[opinion]</span> in square brackets and an "Add"
+          link that looks like body text. The glyph carries the same fact in one
+          character with a hover, and the primary action becomes the only filled
+          control in the card. <b>Cost.</b> Middle column touches
+          <code>action-card.tsx</code> and the range bar; right column touches
+          the same files plus every surface token the card sits on.
+        </p>
+      </section>
+
+      <!-- ══════════════════ ROW 4 · ONE MARKER ══════════════════ -->
+      <section class="sec" id="r4">
+        <div class="sec-head">
+          <span class="n">04</span>
+          <h2>One marker — range bar vs ruler</h2>
+        </div>
+        <div class="sbs">
+          <div>
+            <p class="colhead"><b>Now</b> shipped</p>
+            <div class="shotwrap">
+              <img
+                class="shot"
+                src="ref/crops/now-marker.png"
+                alt="Current key trends card for glucose: chart, 98 mg per dL, range bar with normal 70 to 99 and optimal 72 to 85"
+              />
+            </div>
+          </div>
+
+          <div>
+            <p class="colhead"><b>Now + new</b> same canvas</p>
+            <div class="now">
+              <div class="panel">
+                <div class="panel-head">
+                  <h3>Glucose — fasting</h3>
+                  <span class="sys-state s-warn">top of normal</span>
+                </div>
+                <div class="ruler">
+                  <div class="ruler-track">
+                    <div class="seg">
+                      <div class="seg-bands">
+                        <span
+                          class="band normal"
+                          style="--a: 33.3%; --b: 81.7%"
+                        ></span>
+                        <span
+                          class="band optimal"
+                          style="--a: 36.7%; --b: 58.3%"
+                        ></span>
+                      </div>
+                      <div class="ghost" style="--g: 41.7%"></div>
+                      <div class="marker" style="--p: 80%; --mk: var(--warn)">
+                        <span class="mval">98<em>mg/dL</em></span>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="ruler-ticks"></div>
+                  <div class="ruler-scale">
+                    <span>50</span
+                    ><span class="mid">normal 70–99 · optimal 72–85</span
+                    ><span>110</span>
+                  </div>
+                </div>
+                <p class="ruler-say">
+                  <b class="t-num">98 mg/dL</b> —
+                  <span class="c-warn">one point under the ceiling</span>, up
+                  from 95 on Aug 1 and 85 in June 2016. Four readings.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <p class="colhead"><b>v3</b> new surface</p>
+            <div class="screen">
+              <div class="panel">
+                <div class="panel-head">
+                  <h3>Glucose — fasting</h3>
+                  <span class="sys-state s-warn">top of normal</span>
+                </div>
+                <div class="ruler">
+                  <div class="ruler-track">
+                    <div class="seg">
+                      <div class="seg-bands">
+                        <span
+                          class="band normal"
+                          style="--a: 33.3%; --b: 81.7%"
+                        ></span>
+                        <span
+                          class="band optimal"
+                          style="--a: 36.7%; --b: 58.3%"
+                        ></span>
+                      </div>
+                      <div class="ghost" style="--g: 41.7%"></div>
+                      <div class="marker" style="--p: 80%; --mk: var(--warn)">
+                        <span class="mval">98<em>mg/dL</em></span>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="ruler-ticks"></div>
+                  <div class="ruler-scale">
+                    <span>50</span
+                    ><span class="mid">normal 70–99 · optimal 72–85</span
+                    ><span>110</span>
+                  </div>
+                </div>
+                <p class="ruler-say">
+                  <b class="t-num">98 mg/dL</b> —
+                  <span class="c-warn">one point under the ceiling</span>, up
+                  from 95 on Aug 1 and 85 in June 2016. Four readings.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <p class="rowfoot">
+          <b>What changes.</b> The shipped range bar prints the value in a
+          floating label above a yellow tick and puts "normal 70–99" and
+          "optimal 72–85" at opposite ends, so the eye has to reassemble the
+          scale. The ruler gives the axis two named ends, the bands as light,
+          the previous reading as a ghost dot, and one coloured phrase in the
+          sentence. <b>Cost.</b> This is the one row where the middle column is
+          almost free: <code>range-bar.tsx</code> is a single component with a
+          single set of props, and swapping it upgrades every screen that uses
+          it at once. Do this row first whatever else gets picked.
+        </p>
+      </section>
+
+      <!-- ════════════════ ROW 5 · PLAN ACTION ════════════════ -->
+      <section class="sec" id="r5">
+        <div class="sec-head">
+          <span class="n">05</span>
+          <h2>Plan action</h2>
+        </div>
+        <div class="sbs">
+          <div>
+            <p class="colhead"><b>Now</b> shipped</p>
+            <div class="shotwrap">
+              <img
+                class="shot"
+                src="ref/crops/now-plan.png"
+                alt="Current protocol rows: cut added sugar and walk 30 minutes, with daily tag, marker chip, green tick blocks and 80 percent"
+              />
+            </div>
+          </div>
+
+          <div>
+            <p class="colhead"><b>Now + new</b> same canvas</p>
+            <div class="now">
+              <div class="panel">
+                <div class="panel-head">
+                  <h3>cut added sugar</h3>
+                  <span class="ev op" title="Clinician opinion"
+                    ><i>◐</i>opinion</span
+                  >
+                </div>
+                <p class="t-body">
+                  HbA1c 5.6 and an insulin of 12: the cheapest lever first.
+                </p>
+                <div
+                  class="chips"
+                  style="margin: 12px 0 14px; justify-content: flex-start"
+                >
+                  <span class="chip">daily</span>
+                  <span class="chip"><i class="warn"></i>Hemoglobin A1c</span>
+                  <span class="chip">since Jun 14</span>
+                </div>
+                <div class="habit">
+                  <i class="on"></i><i class="on"></i><i class="on"></i
+                  ><i class=""></i><i class="on"></i><i class="on"></i
+                  ><i class="on"></i><i class="on"></i><i class=""></i
+                  ><i class="on"></i><i class="on"></i><i class="on"></i
+                  ><i class=""></i><i class="on today"></i>
+                </div>
+                <div
+                  style="
+                    display: flex;
+                    align-items: center;
+                    gap: 14px;
+                    margin-top: 14px;
+                  "
+                >
+                  <button class="tick">✓ Did it today</button>
+                  <span class="t-meta"
+                    >11 of the last 14 days · <b class="t-num">80 %</b></span
+                  >
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <p class="colhead"><b>v3</b> new surface</p>
+            <div class="screen">
+              <div class="panel">
+                <div class="panel-head">
+                  <h3>cut added sugar</h3>
+                  <span class="ev op" title="Clinician opinion"
+                    ><i>◐</i>opinion</span
+                  >
+                </div>
+                <p class="t-body">
+                  HbA1c 5.6 and an insulin of 12: the cheapest lever first.
+                </p>
+                <div
+                  class="chips"
+                  style="margin: 12px 0 14px; justify-content: flex-start"
+                >
+                  <span class="chip">daily</span>
+                  <span class="chip"><i class="warn"></i>Hemoglobin A1c</span>
+                  <span class="chip">since Jun 14</span>
+                </div>
+                <div class="habit">
+                  <i class="on"></i><i class="on"></i><i class="on"></i
+                  ><i class=""></i><i class="on"></i><i class="on"></i
+                  ><i class="on"></i><i class="on"></i><i class=""></i
+                  ><i class="on"></i><i class="on"></i><i class="on"></i
+                  ><i class=""></i><i class="on today"></i>
+                </div>
+                <div
+                  style="
+                    display: flex;
+                    align-items: center;
+                    gap: 14px;
+                    margin-top: 14px;
+                  "
+                >
+                  <button class="tick">✓ Did it today</button>
+                  <span class="t-meta"
+                    >11 of the last 14 days · <b class="t-num">80 %</b></span
+                  >
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <p class="rowfoot">
+          <b>What changes.</b> The shipped row shows 24 green blocks and "80 %"
+          but no way to tick the thing from where you are reading it, and the
+          only action on the card is ARCHIVE. The new card names the start date,
+          shows fourteen days one dot each with today ringed, and puts the tick
+          in the card. <b>Cost.</b> The dots are the same habit-log query the
+          percentage already runs, so the middle column is markup plus one
+          existing mutation wired to a button.
+        </p>
+      </section>
+
+      <!-- ════════════════ ROW 6 · ASK ANSWER ════════════════ -->
+      <section class="sec" id="r6">
+        <div class="sec-head">
+          <span class="n">06</span>
+          <h2>Ask answer</h2>
+        </div>
+        <div class="sbs">
+          <div>
+            <p class="colhead"><b>Now</b> shipped</p>
+            <div class="shotwrap">
+              <img
+                class="shot"
+                src="ref/crops/now-ask.png"
+                alt="Current ask bar at the top of home: ask anything or tell me what changed, with an Ask button"
+              />
+            </div>
+            <p class="t-meta" style="margin-top: 8px">
+              The reference capture has no answered state on screen, so this is
+              the entry point the answer replaces.
+            </p>
+          </div>
+
+          <div>
+            <p class="colhead"><b>Now + new</b> same canvas</p>
+            <div class="now">
+              <div class="askpill">
+                <svg
+                  width="17"
+                  height="17"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.6"
+                  aria-hidden="true"
+                >
+                  <path d="M4 12.5l5 5L20 6.5" />
+                </svg>
+                <span>Why am I tired all the time?</span>
+                <button class="askbtn">Ask another</button>
+              </div>
+              <div class="answer" style="margin-top: 14px">
+                <p>
+                  Three of your numbers point the same way. TPO antibodies at
+                  <b class="t-num">320 IU/mL</b>
+                  <span class="ev sci" title="Randomised trials, grade A"
+                    ><i>●</i><b>A</b></span
+                  >
+                  with TSH at <b class="t-num">3.9</b> is an immune system
+                  working on your thyroid. Ferritin at
+                  <b class="t-num">22 ng/mL</b>
+                  <span class="ev sci" title="Guideline-backed, grade B"
+                    ><i>●</i><b>B</b></span
+                  >
+                  means the iron stores are close to empty.
+                </p>
+                <div class="rightnow">
+                  <span>Right now:</span>
+                  <b>Autoimmune thyroiditis (Hashimoto's)</b>
+                  <span>— confirmed,</span>
+                  <span class="pc">95 %</span>
+                </div>
+                <p class="sources">
+                  Sources <span class="chip">Wichman 2016 · B</span>
+                  <span class="chip">your Aug 1 draw</span>
+                </p>
+                <div class="actrow">
+                  <span class="lbl">Act on it</span>
+                  <button class="chip press lime">+ Add selenium 200 µg</button>
+                  <button class="chip press">
+                    Plan retest · ferritin, 12 weeks
+                  </button>
+                  <button class="chip press">Ask your doctor · copy</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <p class="colhead"><b>v3</b> new surface</p>
+            <div class="screen">
+              <div class="askpill">
+                <svg
+                  width="17"
+                  height="17"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.6"
+                  aria-hidden="true"
+                >
+                  <path d="M4 12.5l5 5L20 6.5" />
+                </svg>
+                <span>Why am I tired all the time?</span>
+                <button class="askbtn">Ask another</button>
+              </div>
+              <div class="answer" style="margin-top: 14px">
+                <p>
+                  Three of your numbers point the same way. TPO antibodies at
+                  <b class="t-num">320 IU/mL</b>
+                  <span class="ev sci" title="Randomised trials, grade A"
+                    ><i>●</i><b>A</b></span
+                  >
+                  with TSH at <b class="t-num">3.9</b> is an immune system
+                  working on your thyroid. Ferritin at
+                  <b class="t-num">22 ng/mL</b>
+                  <span class="ev sci" title="Guideline-backed, grade B"
+                    ><i>●</i><b>B</b></span
+                  >
+                  means the iron stores are close to empty.
+                </p>
+                <div class="rightnow">
+                  <span>Right now:</span>
+                  <b>Autoimmune thyroiditis (Hashimoto's)</b>
+                  <span>— confirmed,</span>
+                  <span class="pc">95 %</span>
+                </div>
+                <p class="sources">
+                  Sources <span class="chip">Wichman 2016 · B</span>
+                  <span class="chip">your Aug 1 draw</span>
+                </p>
+                <div class="actrow">
+                  <span class="lbl">Act on it</span>
+                  <button class="chip press lime">+ Add selenium 200 µg</button>
+                  <button class="chip press">
+                    Plan retest · ferritin, 12 weeks
+                  </button>
+                  <button class="chip press">Ask your doctor · copy</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <p class="rowfoot">
+          <b>What changes.</b> Nothing structural. Phase 27 already ships the
+          prose, the "Right now" row, the sources and the Act-on-it chips; what
+          changes is that the evidence grade rides inline as a glyph instead of
+          a bracket, and the chips get a press state. <b>Cost.</b> The lowest of
+          the six rows in both columns, because the data contract behind it is
+          already built.
+        </p>
+      </section>
+
+      <p class="foot">
+        <b>Where the crops come from.</b> Column one is
+        <code>ref/now-home-dark.png</code> (rows 1, 2, 3, 4, 6) and
+        <code>ref/now-protocol-dark.png</code> (row 5), the test user in dark
+        mode, cut to the section under comparison and not retouched. Column two
+        uses the app's own greys (#0a0a0a canvas, #262626 hairlines, 6 px radii)
+        with the new components dropped in. Column three uses the v3 tokens
+        unchanged. Every number in all three columns is the test user's real
+        value.
+      </p>
+    </div>
+  </body>
+</html>
