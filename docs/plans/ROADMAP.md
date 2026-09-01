@@ -152,9 +152,13 @@ recomputes on every answer (cache if rapid-fire); genome card does not
 re-open when the catalog gains a variant the file carries; the prod
 chart void, if it ever recurs, now shows a skeleton (the signal to chase).
 
+| 25 | Owner review of 24: 25a hotfix (React-safe motion with a no-DOM-mutation lock, bubble taps, Answer links carry the key, re-asks in words, Discuss answer shown, Not-for-me undo, ask box answers questions grounded in the ledger, counter paths) and 25b clarity (55-term glossary with tooltips on every marker, mono-for-numbers type discipline enforced by a render test, systems grid, plain words on Home/Plan/Ask, one ask-or-tell entry) | `1fc83d3`…this |
+
+Parked from 25: Discuss answers arrive whole (make `/api/plan/discuss` stream or route through the composer's endpoint); `/api/plan/discuss` is now uncalled by the UI; Term tooltips are pure CSS (can clip at a viewport edge); "You noted: You noted, …" duplication in the stored reply text; unnamed multi-word codes (`fibroscan kpa`) need graph names.
+
 ## In progress
 
-Nothing. Owner review of the new behaviour next.
+Nothing. Owner pass two: the mother test.
 
 
 ## Next
