@@ -5,6 +5,7 @@ import {
   asksFromMoves,
   askSurfaces,
   effectLine,
+  inlineAsks,
   type Ask,
 } from "./asking";
 import type { Move } from "./infogain";
@@ -163,5 +164,58 @@ describe("askSurfaces", () => {
     expect(plan.ask).toBeUndefined();
     expect(plan.inputs).toEqual([]);
     expect(plan.links).toEqual([]);
+  });
+});
+
+/**
+ * Phase 26 item 7. `/plan`'s "Answer these first" was a one-way trip: the link
+ * landed on Home, you answered there, and Plan never heard about it. Plan is a
+ * legitimate asking surface — the rule is one input per question key per page,
+ * not per app.
+ */
+describe("inlineAsks", () => {
+  const asks: Ask[] = [
+    {
+      key: "waist_cm",
+      question: "What is your waist?",
+      moves: [
+        { id: "insulin_resistance", name: "Insulin resistance", from: 0.64, to: 0.81 },
+      ],
+    },
+  ];
+
+  const open = [
+    { id: "r1", question: "What is your waist?", options: [], factKey: "waist_cm" },
+    { id: "r2", question: "Do you smoke?", options: ["Yes", "No"], factKey: "smoking" },
+  ];
+
+  it("answers every open question where it is asked", () => {
+    const rows = inlineAsks(open, asks);
+    expect(rows.map((r) => r.id)).toEqual(["r1", "r2"]);
+  });
+
+  it("says what answering moves, when the engine knows", () => {
+    const [waist, smoking] = inlineAsks(open, asks);
+    expect(waist!.detail).toBe("Answering moves Insulin resistance 64 → 81");
+    expect(smoking!.detail).toBeUndefined();
+  });
+
+  it("never renders the same question key twice on the page", () => {
+    const rows = inlineAsks(
+      [...open, { id: "r3", question: "What is your waist?", options: [], factKey: "waist_cm" }],
+      asks,
+    );
+    const keys = rows.map((r) => r.factKey).filter(Boolean);
+    expect(new Set(keys).size).toBe(keys.length);
+    expect(rows).toHaveLength(2);
+  });
+
+  it("keeps a question that carries no fact key", () => {
+    const rows = inlineAsks(
+      [{ id: "c1", question: "Did you take it?", options: ["Yes", "No"] }],
+      asks,
+    );
+    expect(rows).toHaveLength(1);
+    expect(rows[0]!.detail).toBeUndefined();
   });
 });

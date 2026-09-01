@@ -98,6 +98,52 @@ export function asksFromMoves(
   return [...by.values()].filter((a) => a.moves.length > 0);
 }
 
+/** One open question, as a page has it before the rule is applied. */
+export interface OpenQuestion {
+  id: string;
+  question: string;
+  options: string[];
+  /** the profile fact key, when the row carries one */
+  factKey?: string;
+}
+
+/** One question a page answers where it is asked. */
+export interface InlineAsk extends OpenQuestion {
+  /** "Answering moves Hashimoto's 62 → 88", when the engine knows */
+  detail?: string;
+}
+
+/**
+ * Phase 26 item 7. `/plan` printed its open questions as links to the Today
+ * card on Home: you clicked "Answer", landed on Home, answered there, and were
+ * left on Home with nothing said about where you had come from.
+ *
+ * The one-input rule was always per page — one place on a page takes an answer
+ * for one question key — so `/plan` takes its own. This is that page's list:
+ * one row per fact key, the first one wins, and each carries the line that
+ * says what answering it moves.
+ */
+export function inlineAsks(open: OpenQuestion[], asks: Ask[]): InlineAsk[] {
+  const by = new Map(asks.map((a) => [a.key, a]));
+  const seen = new Set<string>();
+  const out: InlineAsk[] = [];
+  for (const q of open) {
+    const key = q.factKey;
+    if (key) {
+      if (seen.has(key)) continue;
+      seen.add(key);
+    }
+    const moves = key ? by.get(key)?.moves : undefined;
+    out.push({
+      ...q,
+      ...(moves?.length
+        ? { detail: `Answering moves ${effectLine(moves)}` }
+        : {}),
+    });
+  }
+  return out;
+}
+
 /** Every question a page wants to ask, before the rule is applied. */
 export interface PageAsks {
   /** keys the Today card already takes an answer for: the due re-asks */

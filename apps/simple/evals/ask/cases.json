@@ -1,0 +1,43 @@
+[
+  {
+    "id": "cholesterol",
+    "q": "what's my cholesterol?",
+    "judge": "Does the answer give this person's own cholesterol numbers (total, LDL, HDL or triglycerides) with values, and say plainly whether they are off?"
+  },
+  {
+    "id": "lower-ldl",
+    "q": "what should I do to lower my LDL?",
+    "judge": "Does the answer name two or three concrete things to do that appear in THEIR PLAN or WHAT THE PAPERS SAY, each with its bracketed label, and say what LDL should reach and by when?"
+  },
+  {
+    "id": "t2d-risk",
+    "q": "am I going to get type 2 diabetes?",
+    "judge": "Does the answer give the engine's own probability or state for type 2 diabetes and the markers behind it, without inventing a new risk number?"
+  },
+  {
+    "id": "fix-hashimoto",
+    "q": "how do I fix my Hashimoto's?",
+    "about": "hashimoto",
+    "judge": "Does the answer say where Hashimoto's stands for this person, then name actions that exist in the context with their doses and labels, and what antibody or thyroid marker to remeasure and when?"
+  },
+  {
+    "id": "what-to-eat",
+    "q": "what should I eat?",
+    "judge": "Does the answer tie the food advice to this person's own numbers and name food actions that exist in the context, rather than generic healthy-eating advice?"
+  },
+  {
+    "id": "why-tired",
+    "q": "why am I tired all the time?",
+    "judge": "Does the answer name the markers or conclusions in this person's data that explain tiredness, and either an action from the context or the one test that would settle it?"
+  },
+  {
+    "id": "iron-ok",
+    "q": "is my iron ok?",
+    "judge": "Does the answer give this person's ferritin or iron value against its band and say whether it is fine, without inventing a value?"
+  },
+  {
+    "id": "next-test",
+    "q": "what test should I get next?",
+    "judge": "Does the answer name a test that the context offers and say what it would settle for this person, rather than a generic panel?"
+  }
+]

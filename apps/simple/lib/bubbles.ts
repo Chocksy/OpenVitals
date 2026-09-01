@@ -108,6 +108,23 @@ export interface Bubble {
   value?: string;
   /** the profile answer, when this is a life or gene bubble */
   answer?: string;
+  /**
+   * For a test bubble: what having it done would settle, per condition and per
+   * result. "Cardiovascular risk 43 % → 20 % if 0, → 70 % if over 100" is this
+   * plus `cost` and `howTo`. Phase 26 item 10 — before it, a test bubble's
+   * panel said "Nothing drawn here pushes it" and stopped.
+   */
+  settles?: {
+    id: string;
+    name: string;
+    from: number;
+    outcomes: { label: string; to: number }[];
+  }[];
+  /** the list price in euros, or the 1-4 band when `priced` is not set */
+  cost?: number;
+  priced?: true;
+  /** where the test is done and what to ask for */
+  howTo?: string;
   /** the hypothesis this bubble is, when it is a condition the engine scores */
   belief?: string;
   x: number;
@@ -354,10 +371,10 @@ const testImportance = (gain: number, best: number) =>
 const slug = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, "");
 
 /** The best information gain among the moves that name this test node. */
-function gainOfTest(node: GraphNode, moves: Move[]): number {
+function moveOfTest(node: GraphNode, moves: Move[]): Move | null {
   const id = slug(node.id.slice(node.id.indexOf(":") + 1));
   const name = slug(node.name);
-  let best = 0;
+  let best: Move | null = null;
   for (const m of moves) {
     if (m.kind !== "test") continue;
     const label = slug(m.label);
@@ -367,9 +384,28 @@ function gainOfTest(node: GraphNode, moves: Move[]): number {
       name.includes(label) ||
       label.includes(name) ||
       (!!test && (test === id || id.includes(test) || test.includes(id)));
-    if (hit && m.gain > best) best = m.gain;
+    if (hit && (!best || m.gain > best.gain)) best = m;
   }
   return best;
+}
+
+const gainOfTest = (node: GraphNode, moves: Move[]): number =>
+  moveOfTest(node, moves)?.gain ?? 0;
+
+/** How far each result of one test would move each condition it touches. */
+function settlesOf(
+  move: Move,
+  nameOf: (id: string) => string,
+): NonNullable<Bubble["settles"]> {
+  return move.moves.slice(0, 3).map((hit) => ({
+    id: hit.id,
+    name: nameOf(hit.id),
+    from: hit.from,
+    outcomes: move.outcomes.flatMap((o) => {
+      const to = o.beliefs.find((b) => b.id === hit.id)?.p;
+      return to == null ? [] : [{ label: o.label, to }];
+    }),
+  }));
 }
 
 function markerState(m: ModelInput, code: string | undefined): BubbleState {
@@ -420,8 +456,30 @@ export function buildBubbles(opts: BubbleOptions): BubbleGraph {
   const drawnBeliefIds = new Set(drawnBeliefs.map((b) => b.id));
   const ruledOut = beliefs.filter((b) => b.score < RULED_OUT).length;
 
-  /* the graph nodes, hottest first, the well-connected ones breaking ties */
-  const candidates = graph.nodes.filter((n) => n.kind !== "system");
+  /**
+   * The graph nodes, hottest first, the well-connected ones breaking ties.
+   *
+   * Phase 26 item 10: a test bubble earns its place by being worth doing —
+   * the engine ranked it as a next move — or by hanging off a condition that
+   * is drawn. A test attached to nothing on this stage was a dead end with a
+   * panel that admitted as much.
+   */
+  const linkedToDrawnCondition = (n: GraphNode): boolean =>
+    graph.edges.some((e) => {
+      const other = e.from === n.id ? e.to : e.to === n.id ? e.from : null;
+      if (!other) return false;
+      const node = byId.get(other);
+      const h = node ? hypothesisOf(node) : undefined;
+      return !!h && drawnBeliefIds.has(h.id);
+    });
+
+  const candidates = graph.nodes.filter(
+    (n) =>
+      n.kind !== "system" &&
+      (n.kind !== "test" ||
+        moveOfTest(n, moves) != null ||
+        linkedToDrawnCondition(n)),
+  );
   const bestGain = Math.max(
     0,
     ...candidates
@@ -482,6 +540,7 @@ export function buildBubbles(opts: BubbleOptions): BubbleGraph {
           : answer
             ? "yes"
             : "unknown";
+    const move = node.kind === "test" ? moveOfTest(node, moves) : null;
     nodes.push({
       id: node.id,
       kind: KIND_OF[node.kind],
@@ -489,6 +548,17 @@ export function buildBubbles(opts: BubbleOptions): BubbleGraph {
       what: hypothesis?.summary ?? geneSentence(node) ?? node.note ?? "",
       imp: round2(imp),
       st,
+      ...(move
+        ? {
+            settles: settlesOf(move, (id) => {
+              const b = belief.get(id);
+              return b ? displayNameOf(b) : id;
+            }),
+            cost: move.cost,
+            ...(move.priced ? { priced: true as const } : {}),
+            ...(move.howTo ? { howTo: move.howTo } : {}),
+          }
+        : {}),
       ...(code ? { code } : {}),
       ...(row?.value != null
         ? { value: `${row.value}${row.unit ? ` ${row.unit}` : ""}` }

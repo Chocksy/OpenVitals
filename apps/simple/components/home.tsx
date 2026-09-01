@@ -12,6 +12,7 @@
  */
 import Link from "next/link";
 import { CircleQuestionMark, FlaskConical, TriangleAlert } from "lucide-react";
+import type { PlanLine } from "@/lib/actions";
 import { ASK_HREF, type Ask } from "@/lib/asking";
 import {
   changedLine,
@@ -27,13 +28,13 @@ import type { HState, Grade, Lens } from "@/lib/hypotheses";
 import { cn, formatDate } from "@/lib/utils";
 import { AskLink } from "./ask-link";
 import { EditFact, StillTrue, WrongValue } from "./client";
-import { PostButton } from "./composer-button";
 import { ActionButtons, GeneratePlan } from "./plan";
 import { RangeBar } from "./range-bar";
 import { StatusBadge } from "./status-badge";
 import { Digits, SwapText } from "./motion";
 import { Term, Terms } from "./term";
 import { TodayAsk } from "./today-ask";
+import { WhatToDo } from "./what-to-do";
 import { TrendChart } from "./trend-chart";
 import { Badge, Card } from "./ui-kit";
 
@@ -155,14 +156,16 @@ export function TodayCard({
   );
   return (
     <Card className="t-resize p-4">
-      <div className="flex items-baseline justify-between gap-3">
-        <div className={LABEL}>Today</div>
-        <PostButton />
-      </div>
+      {/*
+        Phase 26 item 11: the "Post" link here said nothing about what it was,
+        and the one line at the top of Home already takes anything a person
+        wants to say. One entry, not two.
+      */}
+      <div className={LABEL}>Today</div>
 
       {empty ? (
         <p className="t-body mt-2 text-neutral-500">
-          Nothing to ask today. Post anything with +.
+          Nothing to ask today. Tell me anything in the line at the top.
         </p>
       ) : (
         <div className="mt-3 space-y-3">
@@ -574,6 +577,8 @@ export function ConclusionCard({
   reportId,
   actionIndex,
   ask,
+  todo,
+  management,
   spear = false,
 }: {
   c: Conclusion;
@@ -582,6 +587,14 @@ export function ConclusionCard({
   actionIndex?: number;
   /** this card's question as a line and a link; the input lives on Today */
   ask?: Ask;
+  /**
+   * The top three things to do about this one (`lib/actions.ts`). Given for a
+   * likely or confirmed card and left off the quiet ones, so a card that is
+   * only possible does not grow a to-do list.
+   */
+  todo?: PlanLine[];
+  /** the catalog's own management text, printed as the doctor's note */
+  management?: string;
   spear?: boolean;
 }) {
   const top = c.next.find((m) => m.kind !== "question");
@@ -722,6 +735,16 @@ export function ConclusionCard({
 
       {ask && <AskLink ask={ask} only={c.id} />}
 
+      {todo && (
+        <WhatToDo
+          conditionId={c.id}
+          conditionName={topicOf(c)}
+          lines={todo}
+          reportId={reportId ?? null}
+          management={management}
+        />
+      )}
+
       <div className="mt-3 flex flex-wrap items-center gap-2">
         {reportId && c.action && actionIndex != null ? (
           <ActionButtons
@@ -729,6 +752,8 @@ export function ConclusionCard({
             actionIndex={actionIndex}
             kind={c.action.kind}
             topic={topicOf(c)}
+            about={c.id}
+            adopt={!todo?.length}
           />
         ) : top ? (
           <Link

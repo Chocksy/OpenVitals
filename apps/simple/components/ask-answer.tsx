@@ -49,6 +49,13 @@ export interface Answer {
   sentence?: string;
   /** the grounded answer, when the box was asked a question */
   reply?: string;
+  /** where the named condition stands for this person, right now */
+  now?: {
+    id: string;
+    name: string;
+    state: string;
+    probability: number;
+  } | null;
   route?: "term" | "question";
   error?: string;
 }
@@ -133,6 +140,39 @@ export function AskAnswer({
       <p className="t-body mt-2 text-[var(--color-health-critical)]">
         {answer.error}
       </p>
+    );
+
+  /**
+   * A question gets the answer and nothing else.
+   *
+   * Every question used to open with the ontology lookup's own header —
+   * "Hashimoto thyroiditis: nothing in your data has been scored against it
+   * yet" — on a person whose Hashimoto's is confirmed one card below, because
+   * the question route still ran the term search and this component still
+   * printed its lead line. The header belongs to the term route. Here the only
+   * thing above the answer is where the named condition actually stands.
+   */
+  if (answer.route === "question")
+    return (
+      <div className="mt-3 space-y-2 border-t border-neutral-100 pt-3">
+        {answer.now && (
+          <p className="t-meta text-[12px]">
+            Right now: {answer.now.name} —{" "}
+            {STATE_WORD[answer.now.state] ?? answer.now.state},{" "}
+            <span className="t-num">{pct(answer.now.probability)}</span>
+          </p>
+        )}
+        {answer.reply ? (
+          <p className="t-body whitespace-pre-line text-neutral-800">
+            {answer.reply}
+          </p>
+        ) : (
+          <p className="t-body text-neutral-500">
+            No answer came back. Try asking it again.
+          </p>
+        )}
+        {children}
+      </div>
     );
 
   if (!answer.term && !answer.reply)

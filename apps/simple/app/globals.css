@@ -1314,3 +1314,48 @@ a.t-tab {
 .card:has(.ov-term) {
   overflow: visible;
 }
+
+/* ── phase 26 item 8: a tooltip that stays inside the window ─────────────
+   The bubble is centred on its word until that would hang it off the screen.
+   `components/term-edges.tsx` measures once on hover or focus and writes
+   `data-edge` / `data-below`; everything below is the CSS that acts on them.
+   The arrow follows, so the bubble still points at the word it explains. */
+.ov-term[data-edge="left"] .ov-term-tip {
+  left: 0;
+  transform: translate(0, 2px) scale(0.96);
+}
+.ov-term[data-edge="left"]:hover .ov-term-tip,
+.ov-term[data-edge="left"]:focus-within .ov-term-tip {
+  transform: translate(0, 0) scale(1);
+}
+.ov-term[data-edge="left"] .ov-term-tip::after {
+  left: min(24px, 50%);
+}
+
+.ov-term[data-edge="right"] .ov-term-tip {
+  left: auto;
+  right: 0;
+  transform: translate(0, 2px) scale(0.96);
+}
+.ov-term[data-edge="right"]:hover .ov-term-tip,
+.ov-term[data-edge="right"]:focus-within .ov-term-tip {
+  transform: translate(0, 0) scale(1);
+}
+.ov-term[data-edge="right"] .ov-term-tip::after {
+  left: auto;
+  right: min(24px, 50%);
+  margin: -4px -4px 0 0;
+}
+
+.ov-term[data-below] .ov-term-tip {
+  bottom: auto;
+  top: calc(100% + 8px);
+}
+.ov-term[data-below] .ov-term-tip::after {
+  top: auto;
+  bottom: 100%;
+  margin: 0 0 -4px -4px;
+}
+.ov-term[data-below][data-edge="right"] .ov-term-tip::after {
+  margin: 0 -4px -4px 0;
+}

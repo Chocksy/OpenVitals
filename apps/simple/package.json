@@ -20,6 +20,7 @@
     "eval:journeys": "tsx --env-file=.env evals/journeys.ts",
     "eval:compose": "tsx --env-file=.env evals/compose.ts",
     "eval:ask-intent": "tsx --env-file=.env evals/ask-intent.ts",
+    "eval:ask": "tsx --env-file=.env evals/ask.ts",
     "eval:trends": "tsx --env-file=.env evals/trends.ts",
     "eval:second-pass": "tsx --env-file=.env evals/second-pass.ts",
     "eval:capture": "tsx --env-file=.env evals/capture.ts",

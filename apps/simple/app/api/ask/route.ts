@@ -17,6 +17,12 @@ interface Body {
   mondoId?: string;
   /** skip the one optional LLM sentence */
   plain?: boolean;
+  /**
+   * The condition a card's "Discuss" is about, carried as an id rather than as
+   * words in the box: the composer's fact reader used to read "About
+   * Autoimmune thyroiditis (Hashimoto's)" as a phenotype the person claimed.
+   */
+  about?: string;
 }
 
 /**
@@ -53,8 +59,8 @@ export async function POST(request: Request) {
     if (q.length < 2)
       return Response.json({ error: "type a word or two" }, { status: 400 });
 
-    if (askIntent(q) === "question") {
-      const answer = await answerQuestion(userId, q);
+    if (body.about || askIntent(q) === "question") {
+      const answer = await answerQuestion(userId, q, { about: body.about });
       return Response.json(answer);
     }
 

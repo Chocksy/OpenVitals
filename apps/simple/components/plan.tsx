@@ -202,12 +202,27 @@ export function ActionButtons({
   actionIndex,
   kind,
   topic,
+  about,
+  adopt = true,
 }: {
   reportId: string;
   actionIndex: number;
   kind: string;
-  /** what this card is about, so Discuss opens with "About <it>: " */
+  /** what this card is about, printed above the box as "About <it>" */
   topic?: string;
+  /**
+   * False when the card already carries a "What to do" block: that block owns
+   * adding, per line and all at once, so a second "Add to protocol" here would
+   * be two buttons for one job.
+   */
+  adopt?: boolean;
+  /**
+   * The condition id, when the card is one. Phase 26: Discuss used to prefill
+   * "About Autoimmune thyroiditis (Hashimoto's): " into the text box, and the
+   * fact reader offered to write that as a phenotype the person had claimed.
+   * The subject travels as an id now, never as words in the box.
+   */
+  about?: string;
 }) {
   const { run, busy, error } = useAction();
   const [state, setState] = useState<"open" | "adopted" | "dismissed">("open");
@@ -249,7 +264,7 @@ export function ActionButtons({
       style={{ "--panel-translate-y": "12px" } as React.CSSProperties}
     >
       <div className="flex flex-wrap items-center gap-2">
-        {isTest ? (
+        {!adopt ? null : isTest ? (
           <Link
             href="/insights"
             className="inline-flex h-8 items-center gap-1.5 rounded-sm border border-neutral-200 bg-neutral-0 px-3 font-display text-[12px] tracking-[0.04em] text-neutral-700 hover:border-neutral-900 hover:bg-neutral-50"
@@ -275,7 +290,12 @@ export function ActionButtons({
         <Button
           size="sm"
           variant="ghost"
-          onClick={() => openComposer(topic ? `About ${topic}: ` : "")}
+          onClick={() =>
+            openComposer("", {
+              ...(about ? { id: about } : {}),
+              label: topic ?? "your plan",
+            })
+          }
         >
           <MessageSquare className="size-3.5" /> Discuss
         </Button>

@@ -22,6 +22,7 @@ import {
   hkbTerms,
   userConditions,
 } from "@/db";
+import { actionLine, actionsFor, type PlanLine } from "./actions";
 import { chatContext } from "./ai";
 import { termQuery } from "./ask-intent";
 import { buildModelInput, type ModelInput } from "./coverage";
@@ -30,6 +31,8 @@ import { catalogFor } from "./hkb";
 import { FREQUENT, frequencyOf } from "./hpoa";
 import { scoreHypotheses, type HState } from "./hypotheses";
 import { nextMoves, type Move } from "./infogain";
+import { displayNameOf } from "./ledger";
+import { ledgerLine, projectionsFor } from "./projections";
 import { symptomByKey } from "./symptoms";
 import { PROFILE_QUESTIONS } from "./vectors";
 import { backgroundFor, ensureRing2, wake } from "./wake";
@@ -181,9 +184,34 @@ export interface AskAnswer {
   sentence?: string;
   /** the grounded reply, when the box was asked a question rather than a word */
   reply?: string;
+  /**
+   * Where the named condition stands for this person, right now: the one row
+   * the question route prints above the answer. Never an ontology header.
+   */
+  now?: {
+    id: string;
+    name: string;
+    state: HState;
+    probability: number;
+  } | null;
+  /** the actions the answer was written from, so the UI can offer them */
+  actions?: PlanLine[];
   /** what the router did with the input: a word, or a question */
   route?: "term" | "question";
 }
+
+/** No word was looked up at all: what Discuss hands the question route. */
+export const emptyAnswer = (): AskAnswer => ({
+  matches: [],
+  term: null,
+  condition: null,
+  woken: null,
+  probability: null,
+  state: null,
+  moves: [],
+  finding: null,
+  canConsider: false,
+});
 
 /**
  * Everything the reply prints, computed from the engine and nothing else.
@@ -439,64 +467,143 @@ export async function plainSentence(
 
 /* ── "Consider this for me" ───────────────────────────────────────────── */
 
-const QUESTION_SYSTEM = `You are the engine behind a personal health app, answering one question from the person whose data you are given.
+/**
+ * The old prompt ended every answer with "reviewing these lab trends with a
+ * healthcare provider is the best way to determine an individualized plan",
+ * because it was told not to prescribe and not to name a dose. That is the
+ * opposite of the owner's standing rule: this app commits, and every claim
+ * carries its label. So the model is handed the actions that already exist for
+ * this person — their own plan and the graded intervention rows — and is
+ * allowed to name any of them, with the source's own dose, and nothing else.
+ */
+export const QUESTION_SYSTEM = `You are this person's doctor, and the kind of friend who answers straight. You have their numbers, the plan already written for them, and the graded interventions on file. Answer the question they just asked.
 
-RULES:
-- 2 to 4 sentences, plain English, no greeting, no sign-off, no bullet list.
-- Use only the numbers and findings in the context. Never invent a value, a probability or a diagnosis.
-- Say what their own data says about the question first; general advice comes second and only when their data supports it.
-- If the context does not answer the question, say plainly what is missing and what would answer it.
-- You are not a doctor: do not prescribe, do not diagnose, do not name a dose.`;
+SIX SENTENCES AT MOST, in this order, as ONE paragraph. No greeting, no sign-off, no bullet list, no headings, no line breaks.
+1. What their own numbers say about the question: the values, and whether each one is off, borderline or fine against the band you are given.
+2. What to do: two or three actions, each with its label in brackets and its dose when the source has one.
+3. What to measure and when: name the marker and the number of weeks.
+
+EVERY ACTION YOU NAME COMES FROM THE CONTEXT. The sections THEIR PLAN and WHAT THE PAPERS SAY are the only actions that exist. Never invent an action, a supplement, a drug or a dose, and never change a dose that is given. Copy each action's bracketed label exactly as it is printed there: [science, A], [science, C], [opinion], [anecdotal, E].
+
+If neither section has anything for this question, say that in one sentence and name the test or the question that would fill the gap. Do not fill the space with general advice.
+
+USE ONLY THE NUMBERS GIVEN. Never invent a value, a probability, a date or a diagnosis, and never contradict the states in WHAT THE ENGINE CONCLUDES.
+
+NO FILLER. Never write "talk to your healthcare provider", "consult a professional", "consider", "may help" or "individualised plan". If an action needs a prescriber, say which kind of doctor and what to ask them for.`;
+
+/**
+ * The one model that answers questions, chosen by `pnpm eval:ask` and set in
+ * `AI_ASK_MODEL`. Falls back to `AI_DEFAULT_MODEL` through `model()`.
+ */
+export const askModel = (id?: string) => model(id ?? process.env.AI_ASK_MODEL);
+
+const actionBlock = (rows: PlanLine[], head: string, empty: string): string =>
+  rows.length
+    ? `${head}\n${rows.map((p) => `- ${actionLine(p)}${p.why ? `\n  why: ${p.why}` : ""}`).join("\n")}`
+    : `${head}\n- ${empty}`;
 
 /**
  * A question, answered from this person's own picture.
  *
- * The engine still decides every number: the lookup runs over the disease the
- * question named (`termQuery`), the conclusions come from `scoreHypotheses`,
- * and "what would move it" is `nextMoves`. The model only writes the prose,
- * and with no key the box still answers with everything below the sentence.
+ * The engine still decides every number: the conclusions come from
+ * `scoreHypotheses`, "right now" is that condition's own live score, and every
+ * action the answer may name is a row from `actionsFor` — this person's plan
+ * first, the graded `hkb_interventions` after. The model writes the prose and
+ * nothing else; with no key the box still answers with the rows below.
+ *
+ * `about` is a condition id handed in by a card's Discuss button. It replaces
+ * the ontology lookup entirely, so the composer never has to put a condition
+ * name in the text box where the fact reader would read it as a phenotype.
  */
+export interface AskOptions {
+  /** the condition id a card's "Discuss" opened the box about */
+  about?: string;
+  /** the candidate model, for `pnpm eval:ask`; otherwise `AI_ASK_MODEL` */
+  modelId?: string;
+}
+
 export async function answerQuestion(
   userId: string,
   question: string,
+  { about, modelId }: AskOptions = {},
 ): Promise<AskAnswer> {
-  const named = await answerAsk(userId, termQuery(question));
-  const base: AskAnswer = { ...named, route: "question" };
-  if (!process.env.OPENROUTER_API_KEY) return base;
-
-  const [context, input, catalog] = await Promise.all([
-    chatContext(userId).catch(() => ""),
+  const named = about
+    ? emptyAnswer()
+    : await answerAsk(userId, termQuery(question));
+  const [input, catalog] = await Promise.all([
     buildModelInput(userId),
     catalogFor(userId),
   ]);
-  const conclusions = scoreHypotheses(input, { catalog })
+  const scored = scoreHypotheses(input, { catalog });
+
+  const conditionId = about ?? named.condition?.id ?? null;
+  const mine = conditionId ? scored.find((h) => h.id === conditionId) : null;
+  const now = mine
+    ? {
+        id: mine.id,
+        name: displayNameOf(mine),
+        state: mine.state,
+        probability: mine.score,
+      }
+    : null;
+
+  /**
+   * The actions the answer is allowed to name. When the question named a
+   * condition that has nothing written for it yet, the rest of the plan is
+   * still theirs and still labelled — "what should I do to lower my LDL?"
+   * answered "neither your plan nor the papers have anything" while three
+   * lipid actions sat on the plan under another condition's name.
+   */
+  let actions = await actionsFor(userId, conditionId, 6);
+  if (!actions.length && conditionId)
+    actions = await actionsFor(userId, null, 6);
+  const base: AskAnswer = {
+    ...named,
+    route: "question",
+    now,
+    actions,
+  };
+  if (!process.env.OPENROUTER_API_KEY) return base;
+
+  const [context, projections] = await Promise.all([
+    chatContext(userId).catch(() => ""),
+    projectionsFor(userId).catch(() => []),
+  ]);
+  const conclusions = scored
     .filter((h) => h.score >= 0.05)
     .slice(0, 8)
     .map(
-      (h) => `${h.name}: ${h.state.replace("_", " ")} (${Math.round(h.score * 100)} %)`,
+      (h) =>
+        `${displayNameOf(h)}: ${h.state.replace("_", " ")} (${Math.round(h.score * 100)} %)`,
     );
 
+  const plan = actions.filter((a) => a.source === "plan");
+  const papers = actions.filter((a) => a.source === "papers");
+  const open = projections
+    .slice(0, 6)
+    .map((p) => `- ${ledgerLine(p)}`)
+    .join("\n");
+
   const { text } = await generateText({
-    model: model(),
+    model: askModel(modelId),
     system: QUESTION_SYSTEM,
     prompt: `THEIR QUESTION: ${question}
 
 WHAT THE ENGINE CONCLUDES ABOUT THEM RIGHT NOW:
 ${conclusions.join("\n") || "nothing is on the table yet"}
 
-WHAT THE LOOKUP FOUND FOR THE THING THEY NAMED:
-${JSON.stringify(
-  {
-    matched: named.term?.name ?? null,
-    ring: named.condition?.ring ?? null,
-    probability: named.probability,
-    state: named.state,
-    prior: named.condition?.prior ?? null,
-    whatWouldMoveIt: named.moves.map((m) => m.label),
-  },
-  null,
-  1,
-)}
+${
+  now
+    ? `RIGHT NOW FOR THE THING THEY ASKED ABOUT:\n- ${now.name}: ${now.state.replace("_", " ")}, ${Math.round(now.probability * 100)} %`
+    : "THEY NAMED NO CONDITION THE ENGINE SCORES."
+}
+
+${actionBlock(plan, "THEIR PLAN (actions already written for them; the index is theirs):", "nothing on their plan touches this")}
+
+${actionBlock(papers, "WHAT THE PAPERS SAY (graded rows on file for this condition):", "no graded intervention on file for this")}
+
+PROJECTIONS ON FILE:
+${open || "- none open"}
 
 ${context}`,
   });

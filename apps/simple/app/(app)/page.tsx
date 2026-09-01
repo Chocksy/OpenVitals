@@ -1,3 +1,4 @@
+import { actionsForAll } from "@/lib/actions";
 import { requireUserId } from "@/lib/auth";
 import { getMetricRows } from "@/lib/data";
 import { getGoals } from "@/lib/daily-data";
@@ -64,6 +65,7 @@ export default async function Home({
   // The model writes one sentence per conclusion into `systems[].verdict`,
   // keyed by the condition id. No sentence yet: fall back to the catalog.
   const summaries = new Map(catalog.map((h) => [h.id, h.summary]));
+  const management = new Map(catalog.map((h) => [h.id, h.management]));
   const written = new Map(
     (report?.body.systems ?? []).map((s) => [s.id, s.verdict || s.eli5]),
   );
@@ -83,6 +85,17 @@ export default async function Home({
    */
   const plan = homeAskPlan(ledger, today.due, want);
   const askOf = (c: Conclusion) => linkedAsk(ledger, plan, c);
+
+  /**
+   * Phase 26 item 6: a card that says a condition is likely or confirmed also
+   * says what to do about it. One query for the whole page, and only for the
+   * loud cards — a "possible" does not need a to-do list.
+   */
+  const loudIds = [ledger.spear, ...ledger.conclusions]
+    .filter((c) => c != null)
+    .filter((c) => c.state === "likely" || c.state === "confirmed")
+    .map((c) => c.id);
+  const todo = await actionsForAll(userId, [...new Set(loudIds)]);
 
   const { spear } = ledger;
   const rest = ledger.conclusions.filter((c) => c.id !== spear?.id);
@@ -173,6 +186,8 @@ export default async function Home({
       reportId={report?.id ?? null}
       actionIndex={c.action ? indexOf(c.action.title) : undefined}
       ask={askOf(c)}
+      todo={todo[c.id]}
+      management={management.get(c.id)}
     />
   );
 

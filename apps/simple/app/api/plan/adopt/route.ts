@@ -1,4 +1,4 @@
-import { eq, inArray } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 import {
   getDb,
   goals,
@@ -33,13 +33,32 @@ export async function POST(req: Request) {
   const userId = await currentUserId();
   if (!userId) return Response.json({ error: "unauthorized" }, { status: 401 });
 
-  const { reportId, actionIndex, interventionId } = (await req.json()) as {
-    reportId?: string;
-    actionIndex?: number;
-    /** the horizon shelf: one popular claim, adopted as an experiment */
-    interventionId?: string;
-  };
+  const { reportId, actionIndex, interventionId, removeIds } =
+    (await req.json()) as {
+      reportId?: string;
+      actionIndex?: number;
+      /** the horizon shelf and the card blocks: one claim, adopted */
+      interventionId?: string;
+      /**
+       * The undo behind every "Added N actions" toast. Phase 26: adding said
+       * nothing and could not be taken back, so nobody trusted the button.
+       */
+      removeIds?: string[];
+    };
   const db = getDb();
+
+  if (removeIds?.length) {
+    await db
+      .delete(protocolItems)
+      .where(
+        and(
+          eq(protocolItems.userId, userId),
+          inArray(protocolItems.id, removeIds),
+        ),
+      );
+    await recordBeliefs(userId);
+    return Response.json({ ok: true, removed: removeIds.length });
+  }
 
   /**
    * A claim off the horizon shelf. It becomes a protocol item like anything
@@ -53,21 +72,34 @@ export async function POST(req: Request) {
       .select()
       .from(hkbInterventions)
       .where(eq(hkbInterventions.id, interventionId));
-    if (!row || row.status !== "horizon")
-      return Response.json({ error: "not found" }, { status: 404 });
+    if (!row) return Response.json({ error: "not found" }, { status: 404 });
     const code = row.outcomeFeatureId?.replace(/^metric:/, "") ?? null;
-    await db.insert(protocolItems).values({
-      userId,
-      text: row.name.slice(0, 300),
-      why: `popular right now, grade ${row.grade}, anecdotal (from ${
-        row.population ?? "unknown"
-      }): ${row.quote ?? ""}`.slice(0, 500),
-      metricCodes: code ? [code] : [],
-      cadence: "daily",
-    });
+    /**
+     * A horizon row is a popular claim and says so. An accepted row is a
+     * graded intervention off a card's "What to do" block, and its label is
+     * its grade — phase 26, where the labels have to survive the adopt.
+     */
+    const why =
+      row.status === "horizon"
+        ? `popular right now, grade ${row.grade}, anecdotal (from ${
+            row.population ?? "unknown"
+          }): ${row.quote ?? ""}`
+        : `grade ${row.grade}${row.dose ? `, ${row.dose}` : ""}${
+            row.effect ? `, ${row.direction} ${row.effect}` : ""
+          } for ${row.conditionId}`;
+    const [item] = await db
+      .insert(protocolItems)
+      .values({
+        userId,
+        text: `${row.name}${row.dose ? ` — ${row.dose}` : ""}`.slice(0, 300),
+        why: why.slice(0, 500),
+        metricCodes: code ? [code] : [],
+        cadence: "daily",
+      })
+      .returning({ id: protocolItems.id });
     await queueResearch(row.conditionId).catch(() => false);
     await recordBeliefs(userId);
-    return Response.json({ ok: true, adopted: row.name });
+    return Response.json({ ok: true, id: item?.id, adopted: row.name });
   }
 
   if (!reportId || typeof actionIndex !== "number")
@@ -83,13 +115,16 @@ export async function POST(req: Request) {
   const action = report.body.actions[actionIndex];
   if (!action) return Response.json({ error: "not found" }, { status: 404 });
 
-  await db.insert(protocolItems).values({
-    userId,
-    text: doseSummary(action).slice(0, 300),
-    why: action.why.slice(0, 500),
-    metricCodes: action.targets.map((t) => t.code),
-    cadence: /week/i.test(action.dose?.schedule ?? "") ? "weekly" : "daily",
-  });
+  const [item] = await db
+    .insert(protocolItems)
+    .values({
+      userId,
+      text: doseSummary(action).slice(0, 300),
+      why: action.why.slice(0, 500),
+      metricCodes: action.targets.map((t) => t.code),
+      cadence: /week/i.test(action.dose?.schedule ?? "") ? "weekly" : "daily",
+    })
+    .returning({ id: protocolItems.id });
 
   for (const [i, f] of action.followUp.entries())
     await db.insert(reviewItems).values({
@@ -146,5 +181,5 @@ export async function POST(req: Request) {
   }
 
   await recordBeliefs(userId);
-  return Response.json({ ok: true });
+  return Response.json({ ok: true, id: item?.id });
 }

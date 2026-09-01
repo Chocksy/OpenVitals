@@ -683,31 +683,77 @@ function Detail({
         </div>
       )}
 
-      <div className="card p-4">
-        <div className={LABEL}>What pushes this</div>
-        {incoming.length ? (
-          incoming.map((l) => (
-            <EdgeRow key={l.id} link={l} other={at.get(l.from)} />
-          ))
-        ) : (
-          <p className="mt-1 font-body text-[12px] text-neutral-400">
-            Nothing drawn here pushes it.
+      {node.settles?.length ? (
+        <div className="card p-4">
+          <div className={LABEL}>What this would settle</div>
+          <ul className="mt-1 space-y-1">
+            {node.settles.map((row) => (
+              <li key={row.id} className="font-body text-[12px]">
+                {row.name}{" "}
+                <span className="font-mono text-[11px] tabular-nums text-neutral-500">
+                  {pct(row.from)}
+                </span>
+                {row.outcomes.map((o) => (
+                  <span key={o.label}>
+                    {" "}
+                    <span className="text-neutral-400">→</span>{" "}
+                    <span className="font-mono text-[11px] tabular-nums">
+                      {pct(o.to)}
+                    </span>{" "}
+                    <span className="text-neutral-500">if {o.label}</span>
+                  </span>
+                ))}
+              </li>
+            ))}
+          </ul>
+          <p className="mt-2 font-mono text-[10px] uppercase tracking-[0.05em] text-neutral-500">
+            {node.cost === 0
+              ? "free"
+              : node.priced
+                ? `€${node.cost}`
+                : `cost band ${node.cost}`}
           </p>
-        )}
-      </div>
+          {node.howTo && (
+            <p className="mt-1 font-body text-[12px] text-neutral-600">
+              {node.howTo}
+            </p>
+          )}
+        </div>
+      ) : null}
 
-      <div className="card p-4">
-        <div className={LABEL}>What this affects</div>
-        {outgoing.length ? (
-          outgoing.map((l) => (
-            <EdgeRow key={l.id} link={l} other={at.get(l.to)} />
-          ))
-        ) : (
-          <p className="mt-1 font-body text-[12px] text-neutral-400">
-            Nothing drawn here follows from it.
-          </p>
-        )}
-      </div>
+      {/*
+        A test that has already said what it would settle does not also need
+        two cards admitting that nothing on this stage points at it.
+      */}
+      {incoming.length || !node.settles?.length ? (
+        <div className="card p-4">
+          <div className={LABEL}>What pushes this</div>
+          {incoming.length ? (
+            incoming.map((l) => (
+              <EdgeRow key={l.id} link={l} other={at.get(l.from)} />
+            ))
+          ) : (
+            <p className="mt-1 font-body text-[12px] text-neutral-400">
+              Nothing drawn here pushes it.
+            </p>
+          )}
+        </div>
+      ) : null}
+
+      {outgoing.length || !node.settles?.length ? (
+        <div className="card p-4">
+          <div className={LABEL}>What this affects</div>
+          {outgoing.length ? (
+            outgoing.map((l) => (
+              <EdgeRow key={l.id} link={l} other={at.get(l.to)} />
+            ))
+          ) : (
+            <p className="mt-1 font-body text-[12px] text-neutral-400">
+              Nothing drawn here follows from it.
+            </p>
+          )}
+        </div>
+      ) : null}
     </>
   );
 }

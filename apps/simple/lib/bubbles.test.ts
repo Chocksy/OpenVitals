@@ -181,3 +181,45 @@ describe("the picture", () => {
     expect(empty.links.every((l) => l.on !== undefined)).toBe(true);
   });
 });
+
+/**
+ * Phase 26 item 10. Tapping the CAC score bubble opened a panel that said
+ * "Nothing drawn here pushes it / follows from it" and stopped: the one thing
+ * a person wants from an unmeasured test is what having it done would settle.
+ */
+describe("test bubbles", () => {
+  const drawn = build(panel());
+  const tests = drawn.nodes.filter((n) => n.kind === "test");
+
+  it("draws no test that is neither worth doing nor tied to a condition", () => {
+    expect(tests.length).toBeGreaterThan(0);
+    for (const t of tests) {
+      const linked = drawn.links.some((l) => l.from === t.id || l.to === t.id);
+      expect(!!t.settles?.length || linked).toBe(true);
+    }
+  });
+
+  it("says what a worth-doing test would settle, and for how much", () => {
+    const settling = tests.filter((t) => t.settles?.length);
+    expect(settling.length).toBeGreaterThan(0);
+    for (const t of settling) {
+      expect(typeof t.cost).toBe("number");
+      for (const row of t.settles!) {
+        expect(row.name).not.toBe("");
+        expect(row.from).toBeGreaterThanOrEqual(0);
+        expect(row.outcomes.length).toBeGreaterThan(0);
+        for (const o of row.outcomes) {
+          expect(o.label).not.toBe("");
+          expect(o.to).toBeGreaterThanOrEqual(0);
+          expect(o.to).toBeLessThanOrEqual(1);
+        }
+      }
+    }
+  });
+
+  it("names a real condition in every row it settles", () => {
+    const ids = new Set(drawn.beliefs.map((b) => b.id));
+    for (const t of tests)
+      for (const row of t.settles ?? []) expect(ids.has(row.id)).toBe(true);
+  });
+});

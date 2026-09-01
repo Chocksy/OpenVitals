@@ -14,7 +14,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Camera, Check, Circle, Loader2, Plus, X } from "lucide-react";
-import { askIntent } from "@/lib/ask-intent";
+import { autoAskToken, openingMode } from "@/lib/ask-intent";
 import { AskAnswer, type Answer } from "./ask-answer";
 import { Button } from "./ui-kit";
 
@@ -30,13 +30,39 @@ const DRAFT_KEY = "composer-draft";
  * of itself, so a module-level slot plus a listener is the whole store: no
  * context, no provider, and nothing written into anyone else's DOM.
  */
-let prefill = "";
-const openers = new Set<(text: string) => void>();
+/**
+ * What a card's "Discuss" is about: a name to print, and — when the card is a
+ * condition the engine scores — the id the answer is grounded in. A plan
+ * action has a name and no condition, and still opens the box as a question.
+ */
+export interface About {
+  id?: string;
+  label: string;
+}
 
-export function openComposer(text?: string) {
-  if (typeof text === "string") {
-    prefill = text;
-    for (const fn of openers) fn(text);
+/**
+ * One opening, with a token so the composer can tell a second open from a
+ * re-render. Phase 26: a prefilled question submits itself, and it does it
+ * exactly once — the token is what makes "once" checkable.
+ */
+export interface ComposerOpening {
+  token: number;
+  text: string;
+  about?: About;
+}
+
+/** Any subject at all puts the box in question mode; the id is optional. */
+const aboutKey = (about?: About | null): string | undefined =>
+  about ? (about.id ?? about.label) : undefined;
+
+let prefill: ComposerOpening | null = null;
+let tokens = 0;
+const openers = new Set<(opening: ComposerOpening) => void>();
+
+export function openComposer(text?: string, about?: About) {
+  if (typeof text === "string" || about) {
+    prefill = { token: ++tokens, text: text ?? "", ...(about ? { about } : {}) };
+    for (const fn of openers) fn(prefill);
   }
   const el = document.getElementById(COMPOSER_ID);
   if (el instanceof HTMLDialogElement && !el.open) el.showModal();
@@ -216,26 +242,51 @@ export function Composer({
   const [reading, setReading] = useState(false);
   /** the grounded answer, when what was typed turned out to be a question */
   const [asked, setAsked] = useState<Answer | null>(null);
+  /** the question the answer on screen belongs to, printed above it */
+  const [question, setQuestion] = useState("");
+  /** the condition a card's "Discuss" opened the box about */
+  const [about, setAbout] = useState<About | null>(null);
+  /** the last opening that was auto-submitted, so it can only happen once */
+  const autoAsked = useRef(0);
 
   // An unsent draft survives a reload; a posted one is cleared.
   useEffect(() => {
     setText(sessionStorage.getItem(DRAFT_KEY) ?? "");
   }, []);
 
-  // Somebody opened the box with words in it: start from those.
+  /**
+   * Somebody opened the box with words in it, or about a condition.
+   *
+   * Phase 26: a question does not wait for a second click. The opening decides
+   * (`openingMode`), the ask fires from here with the opening's own words —
+   * `text` is state and would still be the old value inside this tick — and
+   * the token makes sure one opening only ever posts once.
+   */
   useEffect(() => {
-    const fn = (next: string) => {
+    const fn = (next: ComposerOpening) => {
       setPosted(null);
       setAsked(null);
       setChips([]);
       setError("");
-      setText(next);
+      setText(next.text);
+      setAbout(next.about ?? null);
+      setQuestion("");
+      const mode = openingMode({
+        text: next.text,
+        about: aboutKey(next.about),
+      });
+      const token = autoAskToken(mode, next.token, autoAsked.current);
+      if (token != null) {
+        autoAsked.current = token;
+        void askIt(next.text, next.about?.id);
+      }
     };
     openers.add(fn);
     if (prefill) fn(prefill);
     return () => {
       openers.delete(fn);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   useEffect(() => {
     if (text) sessionStorage.setItem(DRAFT_KEY, text);
@@ -261,8 +312,8 @@ export function Composer({
   // Live chips: 400 ms after the typing stops, and never under six characters.
   useEffect(() => {
     if (posted) return;
-    // A question is not a fact, so nothing is extracted from one.
-    if (text.trim().length < 6 || askIntent(text) === "question") {
+    // A question is not a fact, and neither is a Discuss: nothing is read.
+    if (!openingMode({ text, about: aboutKey(about) }).drafts) {
       setChips([]);
       return;
     }
@@ -276,7 +327,7 @@ export function Composer({
       }
     }, 400);
     return () => clearTimeout(id);
-  }, [text, posted, post]);
+  }, [text, about, posted, post]);
 
   useEffect(() => {
     const el = chipBox.current;
@@ -286,31 +337,41 @@ export function Composer({
     el.classList.add("is-shown");
   }, [chips]);
 
+  /** "Ask another": empty the box, keep the subject, put the cursor back. */
   const reset = () => {
-    prefill = "";
+    prefill = null;
     setText("");
     setChips([]);
     setPosted(null);
     setAsked(null);
+    setQuestion("");
     setError("");
     setOpen(null);
     setPhoto(null);
+    window.setTimeout(() => box.current?.focus(), 0);
   };
 
   /**
-   * The same box answers questions. `askIntent` decides which it was, exactly
-   * as `/api/ask` does, so what the button says and what the server does can
-   * never disagree.
+   * The same box answers questions. `openingMode` decides which it was,
+   * exactly as `/api/ask` does, so what the button says and what the server
+   * does can never disagree.
    */
-  const isQuestion = askIntent(text) === "question";
+  const isQuestion = openingMode({ text, about: aboutKey(about) }).ask;
 
-  const askIt = async () => {
+  const askIt = async (q: string, aboutId?: string) => {
+    const asking = q.trim();
+    if (asking.length < 2 && !aboutId) return;
     setPosting(true);
     setError("");
+    setQuestion(asking);
     const res = await fetch("/api/ask", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ action: "ask", q: text.trim() }),
+      body: JSON.stringify({
+        action: "ask",
+        q: asking,
+        ...(aboutId ? { about: aboutId } : {}),
+      }),
     });
     const data = (await res.json().catch(() => ({}))) as Answer;
     setPosting(false);
@@ -451,20 +512,45 @@ export function Composer({
         </div>
 
         <div className="p-4">
-          <textarea
-            ref={box}
-            autoFocus
-            rows={3}
-            value={text}
-            disabled={!!posted || !!asked}
-            placeholder="a symptom, a habit, a number — or a question"
-            onChange={(e) => {
-              setText(e.target.value);
-              e.target.style.height = "auto";
-              e.target.style.height = `${Math.min(e.target.scrollHeight, 260)}px`;
-            }}
-            className="w-full resize-none border-b border-neutral-200 bg-transparent py-1 font-body text-[15px] leading-relaxed outline-none placeholder:text-neutral-400 focus:border-neutral-400 disabled:text-neutral-500"
-          />
+          {about && (
+            <p className="t-meta mb-2 text-[12px]">
+              About <span className="text-neutral-800">{about.label}</span>
+            </p>
+          )}
+
+          {question && (
+            <p className="t-body mb-2 border-l-2 border-neutral-900 pl-3 text-neutral-800">
+              {question}
+            </p>
+          )}
+
+          {!asked && (
+            <textarea
+              ref={box}
+              autoFocus
+              rows={3}
+              value={text}
+              disabled={!!posted}
+              placeholder={
+                about
+                  ? "What do you want to know about it?"
+                  : "a symptom, a habit, a number — or a question"
+              }
+              onChange={(e) => {
+                setText(e.target.value);
+                e.target.style.height = "auto";
+                e.target.style.height = `${Math.min(e.target.scrollHeight, 260)}px`;
+              }}
+              onKeyDown={(e) => {
+                // Enter sends it. Shift+Enter is still a new line.
+                if (e.key !== "Enter" || e.shiftKey) return;
+                e.preventDefault();
+                if (posting || text.trim().length < 2) return;
+                void (isQuestion ? askIt(text, about?.id) : send());
+              }}
+              className="w-full resize-none border-b border-neutral-200 bg-transparent py-1 font-body text-[15px] leading-relaxed outline-none placeholder:text-neutral-400 focus:border-neutral-400 disabled:text-neutral-500"
+            />
+          )}
 
           <div
             ref={chipBox}
@@ -525,11 +611,6 @@ export function Composer({
                 )}
               </div>
             ))}
-            {isQuestion && text.trim().length >= 6 && !asked && (
-              <span className="t-meta text-[12px] text-neutral-400">
-                That reads like a question. Press Ask.
-              </span>
-            )}
             {!isQuestion &&
               !chips.length &&
               !thinking &&
@@ -715,7 +796,9 @@ export function Composer({
               <Button
                 size="sm"
                 disabled={posting || text.trim().length < 2}
-                onClick={() => void (isQuestion ? askIt() : send())}
+                onClick={() =>
+                  void (isQuestion ? askIt(text, about?.id) : send())
+                }
               >
                 {posting ? <Loader2 className="size-3.5 animate-spin" /> : null}
                 {isQuestion ? "Ask" : "Post"}

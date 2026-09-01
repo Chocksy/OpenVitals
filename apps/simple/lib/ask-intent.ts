@@ -35,6 +35,63 @@ export function askIntent(text: string): AskRoute {
   return OPENERS.test(q) ? "question" : "term";
 }
 
+/** What the composer was opened with. */
+export interface Opening {
+  text: string;
+  /** the condition id a card's "Discuss" is about, when one opened the box */
+  about?: string;
+}
+
+/** What the composer does about it. */
+export interface OpeningMode {
+  /** the box is asking, not telling: the button says Ask */
+  ask: boolean;
+  /** submit on open, with no second click */
+  auto: boolean;
+  /** read the words for facts while they type */
+  drafts: boolean;
+}
+
+/** How many characters make a post worth reading for facts. */
+const DRAFT_FLOOR = 6;
+
+/**
+ * Phase 26, items 1 and 4.
+ *
+ * Typing a question into the top line and pressing Ask used to open the
+ * composer with the words in it and the hint "That reads like a question.
+ * Press Ask." — one thought, two clicks. And "Discuss" put the condition's
+ * name into the same box, where the fact reader read "Autoimmune thyroiditis"
+ * as a phenotype the person had just claimed about themselves.
+ *
+ * Both are the same decision, so it is made once, here, and it is pure:
+ * a question submits itself, a Discuss is a question whatever it looks like,
+ * and neither of them ever runs the fact reader.
+ */
+export function openingMode({ text, about }: Opening): OpeningMode {
+  const q = text.trim();
+  const ask = !!about || askIntent(q) === "question";
+  return {
+    ask,
+    auto: ask && q.length >= 2,
+    drafts: !ask && q.length >= DRAFT_FLOOR,
+  };
+}
+
+/**
+ * Which opening submits itself, given the last one that did.
+ *
+ * The composer is mounted once by the layout and every page re-render runs its
+ * effects again, so "submit on open" without a memory would submit on every
+ * render. Each `openComposer` call carries a token; this returns the token to
+ * remember, or null for "do nothing", and the composer stores what it returns.
+ */
+export const autoAskToken = (
+  mode: OpeningMode,
+  token: number,
+  last: number,
+): number | null => (mode.auto && last !== token ? token : null);
+
 /**
  * The scaffolding a question is built from. Dropping all of it leaves the
  * thing the question is about: "how can I make sure I do not get type 2

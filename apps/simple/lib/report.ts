@@ -1066,14 +1066,26 @@ export function graphFacts(
   };
 }
 
+/**
+ * Phase 26 item 5: "Get actions" on a card that has none.
+ *
+ * The plan is written the same way it always is — same context pack, same
+ * safety net — with one line telling the model which card the person pressed.
+ * ponytail: no second prompt and no scoped schema, because a plan that names
+ * three actions for Hashimoto's is still this person's whole plan.
+ */
+const focusLine = (name: string, id: string) =>
+  `\n\nFOCUS: they asked for this plan from the ${name} card. Write at least three actions for ${id} (${name}) before anything else, each with its dose, its basis label and what it should move by when. The rest of the plan still applies.`;
+
 export async function generateReport(
   userId: string,
   trigger: ReportTrigger,
+  focus?: { id: string; name: string },
 ): Promise<Report> {
   const { rules, context, questions, patterns, graph, input } =
     await buildReportContext(userId);
   const body = await generateFromContext(
-    context,
+    focus ? context + focusLine(focus.name, focus.id) : context,
     rules,
     undefined,
     graphFacts(patterns, graph, input),

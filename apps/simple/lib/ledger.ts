@@ -326,7 +326,8 @@ export const isConclusion = (h: HypothesisResult, changed = false): boolean =>
   h.state !== "ruled_out" &&
   (isLoud(h.state) || changed || (h.for.length > 0 && h.nextTests.length > 0));
 
-const metricCodesOf = (h: Hypothesis): string[] => [
+/** The markers a condition is scored on: how an action is tied to a card. */
+export const metricCodesOf = (h: Hypothesis): string[] => [
   ...new Set([
     ...h.evidence.map((r) => r.input.metric).filter((c): c is string => !!c),
     ...h.discriminators.flatMap((d) => d.codes),
@@ -862,7 +863,9 @@ export async function buildLedger(
        */
       missing: [...new Set(h.missing.map((x) => explainKey(x.input)))],
       confounded: [
-        ...new Set(h.confounded.map((c) => `${explainKey(c.input)} (${c.tag})`)),
+        ...new Set(
+          h.confounded.map((c) => `${explainKey(c.input)} (${c.tag})`),
+        ),
       ],
       inputs: [
         ...codes.flatMap((code) => {

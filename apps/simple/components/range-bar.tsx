@@ -3,10 +3,18 @@
  * where the value sits, where it was, and the goal. Ported from the range bar
  * in docs/mockups/systems-map.html onto the theme tokens.
  *
- * ponytail: no scale library and no measuring. One linear map from the widest
- * number to the narrowest, percentages straight into `left`/`width`.
+ * ponytail: no scale library and no measuring. `components/range-scale.ts`
+ * decides where each number sits and percentages go straight into
+ * `left`/`width`.
+ *
+ * Phase 26 item 9: a value far outside its band no longer flattens the band.
+ * The scale stays linear over the band and twice its width either side and
+ * compresses the rest into a tail with a visible break, and the value is
+ * printed beside its marker always — the old bar carried it in a `title`,
+ * which is to say nowhere a phone can reach.
  */
 import { statusColor, statusOf } from "@/lib/status";
+import { rangeScale } from "./range-scale";
 
 export interface RangeBarProps {
   value: number | null | undefined;
@@ -63,12 +71,23 @@ export function RangeBar({
     num(refLow) || num(refHigh) || num(optimalLow) || num(optimalHigh);
   if (!num(value) || !hasBand || marks.length < 2) return null;
 
-  const low = Math.min(...marks);
-  const high = Math.max(...marks);
-  const pad = (high - low) * 0.12 || Math.abs(value) * 0.1 || 1;
-  const min = low - pad;
-  const span = high + pad - min;
-  const at = (v: number) => ((v - min) / span) * 100;
+  /** The widest band there is: what the scale keeps in shape. */
+  const bandLow = num(optimalLow)
+    ? num(refLow)
+      ? Math.min(optimalLow, refLow)
+      : optimalLow
+    : num(refLow)
+      ? refLow
+      : null;
+  const bandHigh = num(optimalHigh)
+    ? num(refHigh)
+      ? Math.max(optimalHigh, refHigh)
+      : optimalHigh
+    : num(refHigh)
+      ? refHigh
+      : null;
+
+  const { at, breakHigh, breakLow } = rangeScale({ marks, bandLow, bandHigh });
   const pct = (v: number) => `${at(v).toFixed(1)}%`;
 
   /** A band with one open side runs to that edge of the track. */
@@ -86,9 +105,33 @@ export function RangeBar({
   const optimal = band(optimalLow, optimalHigh);
   const dot = statusOf({ value, refLow, refHigh, optimalLow, optimalHigh });
 
+  /** The label hugs the marker, and turns in at either end of the track. */
+  const here = at(value);
+  const anchor =
+    here > 82 ? "translateX(-100%)" : here < 18 ? "none" : "translateX(-50%)";
+
+  /** The axis break: two slashes where the scale stops being to scale. */
+  const AxisBreak = ({ at: x }: { at: number }) => (
+    <span
+      aria-hidden="true"
+      title="the scale is compressed past here"
+      className="t-meta absolute -top-[3px] h-[14px] -translate-x-1/2 select-none text-[11px] leading-[14px] text-neutral-400"
+      style={{ left: `${x.toFixed(1)}%` }}
+    >
+      //
+    </span>
+  );
+
   return (
-    <div className="w-full">
+    <div className="w-full pt-4">
       <div className="relative h-2.5 border border-neutral-200 bg-neutral-100">
+        <span
+          className="t-num absolute -top-[15px] whitespace-nowrap text-[10px] text-neutral-700"
+          style={{ left: pct(value), transform: anchor }}
+        >
+          {trim(value)}
+          {unit ? ` ${unit}` : ""}
+        </span>
         {normal && (
           <span
             className="absolute inset-y-0 bg-[var(--color-health-normal-bg)]"
@@ -118,8 +161,9 @@ export function RangeBar({
         <span
           className={`absolute -top-[4px] h-4 w-[4px] -translate-x-1/2 ${statusColor[dot]}`}
           style={{ left: pct(value) }}
-          title={`${value}${unit ? ` ${unit}` : ""}`}
         />
+        {breakLow != null && <AxisBreak at={breakLow} />}
+        {breakHigh != null && <AxisBreak at={breakHigh} />}
       </div>
       {/* 25b: the words are sans, the numbers are mono. One sentence, one
           voice, and the bands still line up because only digits are tabular. */}
