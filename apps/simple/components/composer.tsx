@@ -14,13 +14,30 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Camera, Check, Circle, Loader2, Plus, X } from "lucide-react";
+import { askIntent } from "@/lib/ask-intent";
+import { AskAnswer, type Answer } from "./ask-answer";
 import { Button } from "./ui-kit";
 
 export const COMPOSER_ID = "composer";
 const DRAFT_KEY = "composer-draft";
 
-/** The mobile bar and anything else that wants the box open calls this. */
-export function openComposer() {
+/**
+ * The one box, opened with words already in it.
+ *
+ * Home's ask line, a card's "Discuss" and the mobile bar all start the same
+ * conversation from a different place, so they pass the opening words here.
+ * The dialog is rendered once by the layout and this module is the only copy
+ * of itself, so a module-level slot plus a listener is the whole store: no
+ * context, no provider, and nothing written into anyone else's DOM.
+ */
+let prefill = "";
+const openers = new Set<(text: string) => void>();
+
+export function openComposer(text?: string) {
+  if (typeof text === "string") {
+    prefill = text;
+    for (const fn of openers) fn(text);
+  }
   const el = document.getElementById(COMPOSER_ID);
   if (el instanceof HTMLDialogElement && !el.open) el.showModal();
 }
@@ -197,10 +214,28 @@ export function Composer({
     at: string | null;
   } | null>(null);
   const [reading, setReading] = useState(false);
+  /** the grounded answer, when what was typed turned out to be a question */
+  const [asked, setAsked] = useState<Answer | null>(null);
 
   // An unsent draft survives a reload; a posted one is cleared.
   useEffect(() => {
     setText(sessionStorage.getItem(DRAFT_KEY) ?? "");
+  }, []);
+
+  // Somebody opened the box with words in it: start from those.
+  useEffect(() => {
+    const fn = (next: string) => {
+      setPosted(null);
+      setAsked(null);
+      setChips([]);
+      setError("");
+      setText(next);
+    };
+    openers.add(fn);
+    if (prefill) fn(prefill);
+    return () => {
+      openers.delete(fn);
+    };
   }, []);
   useEffect(() => {
     if (text) sessionStorage.setItem(DRAFT_KEY, text);
@@ -226,7 +261,8 @@ export function Composer({
   // Live chips: 400 ms after the typing stops, and never under six characters.
   useEffect(() => {
     if (posted) return;
-    if (text.trim().length < 6) {
+    // A question is not a fact, so nothing is extracted from one.
+    if (text.trim().length < 6 || askIntent(text) === "question") {
       setChips([]);
       return;
     }
@@ -251,12 +287,35 @@ export function Composer({
   }, [chips]);
 
   const reset = () => {
+    prefill = "";
     setText("");
     setChips([]);
     setPosted(null);
+    setAsked(null);
     setError("");
     setOpen(null);
     setPhoto(null);
+  };
+
+  /**
+   * The same box answers questions. `askIntent` decides which it was, exactly
+   * as `/api/ask` does, so what the button says and what the server does can
+   * never disagree.
+   */
+  const isQuestion = askIntent(text) === "question";
+
+  const askIt = async () => {
+    setPosting(true);
+    setError("");
+    const res = await fetch("/api/ask", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ action: "ask", q: text.trim() }),
+    });
+    const data = (await res.json().catch(() => ({}))) as Answer;
+    setPosting(false);
+    sessionStorage.removeItem(DRAFT_KEY);
+    setAsked(data);
   };
 
   /** A photo up, chips back. Nothing is written until "Save these" is tapped. */
@@ -380,7 +439,7 @@ export function Composer({
       >
         <div className="flex items-center justify-between border-b border-neutral-200 px-4 py-2.5">
           <h2 className="font-display text-[15px] font-medium tracking-[-0.02em]">
-            What&rsquo;s new?
+            Ask or tell
           </h2>
           <button
             aria-label="Close"
@@ -397,8 +456,8 @@ export function Composer({
             autoFocus
             rows={3}
             value={text}
-            disabled={!!posted}
-            placeholder="a symptom, a habit, a number, something a doctor said…"
+            disabled={!!posted || !!asked}
+            placeholder="a symptom, a habit, a number — or a question"
             onChange={(e) => {
               setText(e.target.value);
               e.target.style.height = "auto";
@@ -466,11 +525,19 @@ export function Composer({
                 )}
               </div>
             ))}
-            {!chips.length && !thinking && text.trim().length >= 6 && (
-              <span className="font-mono text-[10px] uppercase tracking-[0.04em] text-neutral-300">
-                nothing understood yet
+            {isQuestion && text.trim().length >= 6 && !asked && (
+              <span className="t-meta text-[12px] text-neutral-400">
+                That reads like a question. Press Ask.
               </span>
             )}
+            {!isQuestion &&
+              !chips.length &&
+              !thinking &&
+              text.trim().length >= 6 && (
+                <span className="t-meta text-[12px] text-neutral-400">
+                  Nothing understood yet.
+                </span>
+              )}
           </div>
 
           {(reading || photo) && (
@@ -592,6 +659,8 @@ export function Composer({
             </div>
           )}
 
+          {asked && <AskAnswer answer={asked} />}
+
           {posted?.reply && (
             <p className="mt-4 border-l-2 border-neutral-900 pl-3 font-body text-[13px] leading-relaxed text-neutral-700">
               {posted.reply}
@@ -617,7 +686,7 @@ export function Composer({
                 if (file) void readPhoto(file);
               }}
             />
-            {!posted && (
+            {!posted && !asked && (
               <button
                 title="A plate, a supplement label, a lab sheet"
                 disabled={reading}
@@ -627,10 +696,10 @@ export function Composer({
                 <Camera className="size-3.5" /> photo
               </button>
             )}
-            {posted ? (
+            {posted || asked ? (
               <>
                 <Button variant="outline-subtle" size="sm" onClick={reset}>
-                  Write another
+                  {asked ? "Ask another" : "Write another"}
                 </Button>
                 <Button
                   size="sm"
@@ -646,10 +715,10 @@ export function Composer({
               <Button
                 size="sm"
                 disabled={posting || text.trim().length < 2}
-                onClick={() => void send()}
+                onClick={() => void (isQuestion ? askIt() : send())}
               >
                 {posting ? <Loader2 className="size-3.5 animate-spin" /> : null}
-                Post
+                {isQuestion ? "Ask" : "Post"}
               </Button>
             )}
           </div>

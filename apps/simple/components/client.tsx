@@ -89,7 +89,7 @@ export function LoginForm({ google }: { google: boolean }) {
         <p className="text-sm text-[var(--color-health-critical)]">{error}</p>
       )}
       <button
-        className="font-mono text-[11px] uppercase tracking-[0.04em] text-neutral-500 hover:text-neutral-900"
+        className="t-meta text-[12px] text-neutral-500 hover:text-neutral-900"
         onClick={() => setMode(mode === "in" ? "up" : "in")}
       >
         {mode === "in"
@@ -139,7 +139,7 @@ export function UploadButton() {
         />
       </label>
       {state && (
-        <span className="font-mono text-[11px] text-neutral-500">{state}</span>
+        <span className="t-meta text-[12px]">{state}</span>
       )}
     </div>
   );
@@ -226,8 +226,9 @@ export function CheckinButtons({
   );
 }
 
+/** A row's small verbs. Sans: "Wrong value" is a phrase, not a code. */
 const rowAction =
-  "font-mono text-[11px] uppercase tracking-[0.04em] hover:underline disabled:opacity-40 disabled:no-underline";
+  "t-meta text-[12px] hover:underline disabled:opacity-40 disabled:no-underline";
 
 export function DeleteUpload({ id, name }: { id: string; name?: string }) {
   const { run, busy } = useAction();
@@ -267,7 +268,7 @@ export function ReanalyzeUpload({
         {busy ? "Re-analyzing…" : "Re-analyze"}
       </button>
       {error && (
-        <span className="font-mono text-[10px] text-[var(--color-health-critical)]">
+        <span className="t-meta text-[12px] text-[var(--color-health-critical)]">
           {error}
         </span>
       )}
@@ -300,7 +301,7 @@ export function ChangeKind({ id, kind }: { id: string; kind: string }) {
         {busy ? "Re-reading…" : "Re-read as this"}
       </button>
       {error && (
-        <span className="font-mono text-[10px] text-[var(--color-health-critical)]">
+        <span className="t-meta text-[12px] text-[var(--color-health-critical)]">
           {error}
         </span>
       )}
@@ -335,11 +336,9 @@ export function ReviewItem({
   if (options.length === 0)
     return (
       <div className="card p-4">
-        <p className="font-body text-[13px] text-neutral-800">{question}</p>
+        <p className="t-body text-neutral-800">{question}</p>
         {detail && (
-          <p className="mt-1 font-mono text-[10px] text-neutral-400">
-            {detail}
-          </p>
+          <p className="t-meta mt-1 text-[12px]">{detail}</p>
         )}
         <div className="mt-3 flex flex-wrap items-center gap-2">
           <input
@@ -371,9 +370,9 @@ export function ReviewItem({
 
   return (
     <div className="card p-4">
-      <p className="font-body text-[13px] text-neutral-800">{question}</p>
+      <p className="t-body text-neutral-800">{question}</p>
       {detail && (
-        <p className="mt-1 font-mono text-[10px] text-neutral-400">{detail}</p>
+        <p className="t-meta mt-1 text-[12px]">{detail}</p>
       )}
       <div className="mt-3 flex flex-wrap items-center gap-2">
         {options.map((o) => (
@@ -597,18 +596,18 @@ export function StillTrue({
    * repeated; a key is never printed at all.
    */
   const held = question.includes(current) ? null : current;
-  /** "Still yes" reads; "Still non-alcoholic fatty liver disease" does not. */
-  const stillLabel =
-    current.length > 16 ? "Still true" : `Still ${current.toLowerCase()}`;
+  /**
+   * Phase 25b: three words a person uses, and the same three every time.
+   * "Still non-alcoholic fatty liver disease" was never a sentence, and a
+   * label that changes shape per fact is a label you have to read twice.
+   */
 
   return (
     <div className="flex flex-col gap-1.5 border-l-2 border-neutral-200 pl-3">
-      <p className="font-body text-[13px] text-neutral-800" title={original}>
+      <p className="t-body text-neutral-800" title={original}>
         {question}
         {held && (
-          <span className="ml-1.5 font-mono text-[11px] text-neutral-400">
-            · you said {held}
-          </span>
+          <span className="t-meta ml-1.5 text-[12px]">· you said {held}</span>
         )}
       </p>
       {!changing ? (
@@ -621,7 +620,7 @@ export function StillTrue({
               run("/api/facts/revisit", { key: factKey, action: "confirm" })
             }
           >
-            {stillLabel}
+            Still yes
           </Button>
           <Button
             size="sm"
@@ -629,7 +628,7 @@ export function StillTrue({
             disabled={busy}
             onClick={() => setChanging(true)}
           >
-            Changed
+            It changed
           </Button>
           <Button
             size="sm"
@@ -639,18 +638,18 @@ export function StillTrue({
               run("/api/facts/revisit", { key: factKey, action: "skip" })
             }
           >
-            Not now
+            Skip
           </Button>
           {error && (
-            <span className="font-mono text-[10px] text-[var(--color-health-critical)]">
+            <span className="t-meta text-[12px] text-[var(--color-health-critical)]">
               {error}
             </span>
           )}
         </div>
       ) : (
         <div className="flex flex-wrap items-center gap-1.5">
-          <label className="flex items-center gap-1 font-mono text-[10px] text-neutral-500">
-            since when?
+          <label className="t-meta flex items-center gap-1 text-[12px]">
+            Since when?
             <input
               type="date"
               max={today}
@@ -713,7 +712,7 @@ export function WrongValue({ readingId }: { readingId: string }) {
         {busy ? "Asking…" : "Wrong value"}
       </button>
       {error && (
-        <span className="font-mono text-[10px] text-[var(--color-health-critical)]">
+        <span className="t-meta text-[12px] text-[var(--color-health-critical)]">
           {error}
         </span>
       )}
@@ -758,7 +757,7 @@ export function EditFact({
           Save
         </button>
         {error && (
-          <span className="font-mono text-[10px] text-[var(--color-health-critical)]">
+          <span className="t-meta text-[12px] text-[var(--color-health-critical)]">
             {error}
           </span>
         )}

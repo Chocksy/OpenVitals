@@ -19,12 +19,12 @@ export function AskLink({
   const moves = only ? ask.moves.filter((m) => m.id === only) : ask.moves;
   return (
     <div className="mt-3 border-l-2 border-accent-500 bg-accent-50 px-3 py-2">
-      <p className="font-body text-[13px] text-neutral-800">{ask.question}</p>
+      <p className="t-body text-neutral-800">{ask.question}</p>
       <div className="mt-1 flex flex-wrap items-center justify-between gap-2">
-        <span className="font-mono text-[11px] tabular-nums text-neutral-500">
+        <span className="t-meta text-[12px]">
           {moves.length
-            ? `1 answer would move ${effectLine(moves)}`
-            : "1 answer would move this"}
+            ? `Your answer moves ${effectLine(moves)}`
+            : "Your answer moves this"}
         </span>
         <Link
           href={askHref(ask.key)}

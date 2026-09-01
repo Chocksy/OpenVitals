@@ -10,6 +10,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { PillTabs } from "./pill-tabs";
 import { Check, MessageSquare, RefreshCw, Stethoscope } from "lucide-react";
+import { openComposer } from "./composer";
 import { toast } from "./motion";
 import { Button } from "./ui-kit";
 
@@ -158,7 +159,7 @@ export function AdoptHorizon({
 
   if (state)
     return (
-      <span className="inline-flex items-center gap-1 font-mono text-[10px] uppercase tracking-[0.04em] text-[var(--color-health-normal)]">
+      <span className="t-meta inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-[0.04em] text-[var(--color-health-normal)]">
         <Check className="size-3" /> Adopted
       </span>
     );
@@ -184,39 +185,34 @@ export function AdoptHorizon({
   );
 }
 
-const MAX_MESSAGE = 1000;
-
 /** `--panel-close-dur`: how long the exit is given before the row is gone. */
 const EXIT_MS = 350;
-
-const rowAction =
-  "font-mono text-[11px] uppercase tracking-[0.04em] hover:underline disabled:opacity-40 disabled:no-underline";
 
 /**
  * Three buttons and no more. A test or a doctor action cannot be ticked off
  * every day, so it links to the retest plan instead of joining the protocol.
  *
- * Phase 25a. Discuss keeps its reply on screen: the answer used to be written
- * onto the report and the box closed, so on Home — which never renders the
- * report's notes — the person watched "Asking…" and then nothing. "Not for me"
- * says what it did, in the toast, with one tap to take it back.
+ * Phase 25a gave Discuss its own box so the reply stayed on screen. Phase 25b
+ * takes the box away again and hands the words to the composer instead: one
+ * place to ask or tell, with the same memory behind it, wherever you started.
+ * "Not for me" says what it did, in the toast, with one tap to take it back.
  */
 export function ActionButtons({
   reportId,
   actionIndex,
   kind,
+  topic,
 }: {
   reportId: string;
   actionIndex: number;
   kind: string;
+  /** what this card is about, so Discuss opens with "About <it>: " */
+  topic?: string;
 }) {
   const { run, busy, error } = useAction();
   const [state, setState] = useState<"open" | "adopted" | "dismissed">("open");
   /** the exit of `07-panel-reveal.md`, played before the row is gone */
   const [leaving, setLeaving] = useState(false);
-  const [asking, setAsking] = useState(false);
-  const [message, setMessage] = useState("");
-  const [reply, setReply] = useState<{ q: string; a: string } | null>(null);
 
   const dismiss = async () => {
     const res = await run("/api/plan/dismiss", { reportId, actionIndex });
@@ -236,22 +232,9 @@ export function ActionButtons({
     );
   };
 
-  const send = async () => {
-    const text = message.slice(0, MAX_MESSAGE);
-    const res = await run("/api/plan/discuss", {
-      reportId,
-      actionIndex,
-      message: text,
-    });
-    if (!res) return;
-    setReply({ q: text, a: String(res.reply ?? "") });
-    setMessage("");
-    setAsking(false);
-  };
-
   if (state === "adopted")
     return (
-      <span className="inline-flex items-center gap-1 font-mono text-[10px] uppercase tracking-[0.04em] text-[var(--color-health-normal)]">
+      <span className="t-meta inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-[0.04em] text-[var(--color-health-normal)]">
         <Check className="size-3" /> Adopted
       </span>
     );
@@ -292,8 +275,7 @@ export function ActionButtons({
         <Button
           size="sm"
           variant="ghost"
-          disabled={busy}
-          onClick={() => setAsking((v) => !v)}
+          onClick={() => openComposer(topic ? `About ${topic}: ` : "")}
         >
           <MessageSquare className="size-3.5" /> Discuss
         </Button>
@@ -304,41 +286,6 @@ export function ActionButtons({
         )}
       </div>
 
-      {asking && (
-        <div className="space-y-2">
-          <textarea
-            value={message}
-            maxLength={MAX_MESSAGE}
-            rows={3}
-            onChange={(e) => setMessage(e.target.value)}
-            placeholder="Add context, question this, or ask for more"
-            className="w-full resize-y rounded-sm border border-neutral-200 bg-neutral-0 px-3 py-2 font-body text-[13px] text-neutral-800 placeholder:text-neutral-400 focus:border-neutral-900 focus:outline-none"
-          />
-          <Button
-            size="sm"
-            variant="outline-subtle"
-            disabled={busy || !message.trim()}
-            onClick={send}
-          >
-            {busy ? "Asking…" : "Send"}
-          </Button>
-        </div>
-      )}
-
-      {reply && (
-        <div className="space-y-1 border-l-2 border-accent-500 bg-accent-50 px-3 py-2">
-          <p className="font-body text-[12px] text-neutral-500">{reply.q}</p>
-          <p className="font-body text-[13px] leading-relaxed text-neutral-800">
-            {reply.a}
-          </p>
-          <button
-            className={`${rowAction} text-neutral-500 hover:text-neutral-900`}
-            onClick={() => setReply(null)}
-          >
-            close
-          </button>
-        </div>
-      )}
     </div>
   );
 }

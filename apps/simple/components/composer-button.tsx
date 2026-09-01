@@ -12,8 +12,8 @@ import { openComposer } from "./composer";
 export function PostButton({ label = "Post" }: { label?: string }) {
   return (
     <button
-      onClick={openComposer}
-      className="cursor-pointer font-mono text-[11px] uppercase tracking-[0.04em] text-neutral-400 transition-colors hover:text-neutral-900"
+      onClick={() => openComposer()}
+      className="hit-40 t-meta cursor-pointer text-[12px] text-neutral-400 transition-colors hover:text-neutral-900"
     >
       {label}
     </button>

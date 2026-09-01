@@ -128,11 +128,11 @@ function CustomTooltip({
           : "var(--color-neutral-200)",
       }}
     >
-      <p className="text-[11px] text-neutral-500 font-mono">
+      <p className="t-meta text-[11px]">
         {formatChartDate(String(label))}
       </p>
       <p
-        className="mt-0.5 text-sm font-semibold font-mono tabular-nums"
+        className="t-num mt-0.5 text-sm font-semibold"
         style={{
           color: abnormal
             ? "var(--color-health-warning)"
@@ -148,7 +148,7 @@ function CustomTooltip({
       </p>
       {abnormal && (
         <p
-          className="mt-1 flex items-center gap-1 text-[10px] font-semibold uppercase tracking-[0.04em] font-mono"
+          className="t-meta mt-1 flex items-center gap-1 text-[10px] font-semibold uppercase tracking-[0.04em]"
           style={{ color: "var(--color-health-warning)" }}
         >
           <span
@@ -489,7 +489,7 @@ export function TrendChart({
                   borderColor: "var(--color-health-normal-border)",
                 }}
               />
-              <span className="text-[11px] text-neutral-400 font-mono">
+              <span className="t-meta text-[11px]">
                 Standard
               </span>
             </div>
@@ -503,7 +503,7 @@ export function TrendChart({
                   borderColor: "var(--color-health-optimal-border)",
                 }}
               />
-              <span className="text-[11px] text-neutral-400 font-mono">
+              <span className="t-meta text-[11px]">
                 Optimal
               </span>
             </div>
@@ -517,7 +517,7 @@ export function TrendChart({
                   borderColor: "var(--color-accent-500)",
                 }}
               />
-              <span className="text-[11px] text-neutral-400 font-mono">
+              <span className="t-meta text-[11px]">
                 Your goal
               </span>
             </div>

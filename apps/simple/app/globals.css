@@ -1176,3 +1176,141 @@ a.t-tab {
   align-items: center;
   text-decoration: none;
 }
+
+/* ── phase 25b: type discipline ──────────────────────────────────────────
+   Two families, four styles, one rule: monospace is for numbers, units,
+   codes and dates only — never for a sentence. The owner read a card and
+   said "gray mono text and black text and different sizes in the same
+   sentence, hard to follow", and he was right: the effect lines, the
+   "Never measured:" lists and the lens line were all prose set in mono.
+
+   `components/type-discipline.test.tsx` renders Home's cards and fails on
+   any mono element whose text is not a number, a unit, a code or a date. */
+:where(.t-title) {
+  font-family: var(--font-display);
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+
+:where(.t-body) {
+  font-family: var(--font-body);
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--color-neutral-700);
+  text-wrap: pretty;
+}
+
+/* The quiet sans voice: labels, captions, the line under a number. */
+:where(.t-meta) {
+  font-family: var(--font-body);
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--color-neutral-500);
+  text-wrap: pretty;
+}
+
+/* The only monospace on the page. */
+:where(.t-num) {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── phase 25b: the glossary tooltip ─────────────────────────────────────
+   Borrowed from the shadcn tooltip (structure, padding, radius, the arrow)
+   and repainted in this project's tokens. No Radix, no floating-ui and no
+   JavaScript: `:hover` is the mouse, `:focus-within` is the finger. */
+.ov-term {
+  position: relative;
+  display: inline-block;
+}
+
+.ov-term-trigger {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: help;
+  text-decoration: underline dotted;
+  text-underline-offset: 3px;
+  text-decoration-color: var(--color-neutral-400);
+  transition: text-decoration-color 150ms ease-out;
+}
+.ov-term-trigger:hover,
+.ov-term-trigger:focus-visible {
+  text-decoration-color: var(--color-accent-500);
+  outline: none;
+}
+
+.ov-term-tip {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  width: max-content;
+  max-width: min(280px, 70vw);
+  padding: 8px 10px;
+  border-radius: var(--radius-md);
+  background: var(--color-neutral-900);
+  color: var(--color-neutral-0);
+  text-align: left;
+  text-wrap: pretty;
+  box-shadow: var(--shadow-lg);
+  pointer-events: none;
+  opacity: 0;
+  transform: translate(-50%, 2px) scale(0.96);
+  transition-property: opacity, transform;
+  transition-duration: 150ms;
+  transition-timing-function: cubic-bezier(0.2, 0, 0, 1);
+}
+
+/* The shadcn arrow: a rotated square under the bubble. */
+.ov-term-tip::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  width: 8px;
+  height: 8px;
+  margin: -4px 0 0 -4px;
+  background: var(--color-neutral-900);
+  transform: rotate(45deg);
+}
+
+.ov-term:hover .ov-term-tip,
+.ov-term:focus-within .ov-term-tip {
+  opacity: 1;
+  transform: translate(-50%, 0) scale(1);
+}
+
+.ov-term-tip-title {
+  font-family: var(--font-display);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.ov-term-tip-line {
+  font-family: var(--font-body);
+  font-size: 12px;
+  line-height: 1.45;
+}
+.ov-term-tip-meta {
+  font-family: var(--font-body);
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--color-neutral-400);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ov-term-tip { transition: none !important; }
+}
+
+/* `.card` clips its corners, which would cut the tooltip in half. A card
+   that carries a term stops clipping; nothing inside one overflows. */
+.card:has(.ov-term) {
+  overflow: visible;
+}

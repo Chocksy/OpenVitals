@@ -1,7 +1,7 @@
 import { queueQuestions } from "@/lib/ask";
 import { and, desc, eq } from "drizzle-orm";
 import Link from "next/link";
-import { CheckCircle2, Network, Stethoscope } from "lucide-react";
+import { Check, CheckCircle2, Network, Stethoscope } from "lucide-react";
 import {
   getDb,
   insights,
@@ -33,6 +33,7 @@ import { ActionCard } from "@/components/action-card";
 import { previewLines } from "@/lib/projections";
 import { horizonShelf, type HorizonItem } from "@/lib/trends";
 import { AdoptHorizon, PlanShell } from "@/components/plan";
+import { Terms } from "@/components/term";
 import { Badge, BasisChip, Card, TierChip } from "@/components/ui-kit";
 
 export const dynamic = "force-dynamic";
@@ -52,7 +53,7 @@ const STATE_BADGE = {
 
 function Label({ children }: { children: React.ReactNode }) {
   return (
-    <h2 className="mb-2 font-mono text-[10px] font-bold uppercase tracking-[0.06em] text-neutral-400">
+    <h2 className="t-meta mb-2 text-[10px] font-bold uppercase tracking-[0.06em] text-neutral-400">
       {children}
     </h2>
   );
@@ -101,7 +102,7 @@ function CoverageSection({ rows }: { rows: CoverageRow[] }) {
   const tiers = [0, 1, 2] as const;
   return (
     <details className="card p-4">
-      <summary className="cursor-pointer font-mono text-[10px] font-bold uppercase tracking-[0.06em] text-neutral-400 hover:text-neutral-600">
+      <summary className="hit-40 t-meta cursor-pointer text-[10px] font-bold uppercase tracking-[0.06em] text-neutral-400 hover:text-neutral-600">
         What we have and what we do not
       </summary>
       <div className="mt-3 space-y-4">
@@ -110,7 +111,7 @@ function CoverageSection({ rows }: { rows: CoverageRow[] }) {
           if (!group.length) return null;
           return (
             <div key={tier}>
-              <p className="mb-1 font-mono text-[10px] uppercase tracking-[0.06em] text-neutral-400">
+              <p className="t-meta mb-1 text-[10px] font-bold uppercase tracking-[0.06em] text-neutral-400">
                 {TIER_LABELS[tier]}
               </p>
               <div className="card divide-y divide-neutral-100">
@@ -124,7 +125,7 @@ function CoverageSection({ rows }: { rows: CoverageRow[] }) {
                     <span className="flex-1 truncate font-body text-[13px]">
                       {r.vector.name}
                     </span>
-                    <span className="hidden font-mono text-[10px] text-neutral-400 sm:inline">
+                    <span className="t-meta hidden text-[11px] sm:inline">
                       {r.detail}
                     </span>
                     <Badge variant={STATE_BADGE[r.state]}>{r.state}</Badge>
@@ -189,25 +190,34 @@ function PatternCard({
         {stage && <Badge variant="warning">{stage}</Badge>}
       </div>
 
-      <p className="mt-2 font-body text-[13px] text-neutral-700">
-        {pattern.summary}
+      <p className="t-body mt-2 text-neutral-700">
+        <Terms text={pattern.summary} />
       </p>
       {verdict && (
-        <p className="mt-2 font-body text-[13px] text-neutral-800">{verdict}</p>
+        <p className="t-body mt-2 text-neutral-800">
+          <Terms text={verdict} />
+        </p>
       )}
 
-      <ul className="mt-3 space-y-1">
+      {/* "NOT YET" was a status for an admin. What a reader wants to know is
+          which test would settle it, so the list says that once, at the top. */}
+      <p className="t-meta mt-3 text-[12px]">
+        {pattern.effects.escalations.length === 1
+          ? "Test that would confirm it"
+          : "Tests that would confirm it"}
+      </p>
+      <ul className="mt-1 space-y-1">
         {pattern.effects.escalations.map((e) => {
           const done = escalationDone(e.suggest, input, since);
           return (
-            <li
-              key={e.id}
-              className="flex items-start gap-2 font-body text-[13px] text-neutral-700"
-            >
-              <span className="mt-[3px] font-mono text-[10px] uppercase tracking-[0.04em] text-neutral-400">
-                {done ? "done" : "not yet"}
+            <li key={e.id} className="t-body flex items-start gap-2">
+              <span className="mt-[3px] size-3.5 shrink-0 text-[var(--color-health-normal)]">
+                {done ? <Check className="size-3.5" /> : null}
               </span>
-              <span className="flex-1">{e.suggest}</span>
+              <span className="flex-1">
+                <Terms text={e.suggest} />
+                {done && <span className="t-meta text-[12px]"> · done</span>}
+              </span>
             </li>
           );
         })}
@@ -218,25 +228,25 @@ function PatternCard({
           href={`/patterns/${pattern.id}`}
           className="inline-flex h-8 items-center gap-1.5 rounded-sm border border-neutral-200 bg-neutral-0 px-3 font-display text-[12px] tracking-[0.04em] text-neutral-700 hover:border-neutral-900 hover:bg-neutral-50"
         >
-          <Network className="size-3.5" /> The whole pattern
+          <Network className="size-3.5" /> See how this connects
         </Link>
       </div>
 
       <div className="deep mt-3 space-y-2 border-t border-neutral-100 pt-3">
-        <p className="font-body text-[12px] text-neutral-600">
-          <span className="font-mono text-[10px] uppercase text-neutral-400">
+        <p className="t-body text-[12px] text-neutral-600">
+          <span className="t-meta text-[10px] font-bold uppercase tracking-[0.06em] text-neutral-400">
             Why this matched ·{" "}
           </span>
           {reasons.join("; ")}
         </p>
-        <p className="font-body text-[12px] text-neutral-600">
-          <span className="font-mono text-[10px] uppercase text-neutral-400">
+        <p className="t-body text-[12px] text-neutral-600">
+          <span className="t-meta text-[10px] font-bold uppercase tracking-[0.06em] text-neutral-400">
             Contested ·{" "}
           </span>
           {pattern.controversy}
         </p>
-        <p className="font-body text-[12px] text-neutral-600">
-          <span className="font-mono text-[10px] uppercase text-neutral-400">
+        <p className="t-body text-[12px] text-neutral-600">
+          <span className="t-meta text-[10px] font-bold uppercase tracking-[0.06em] text-neutral-400">
             Management ·{" "}
           </span>
           {pattern.management}
@@ -248,11 +258,8 @@ function PatternCard({
                 <Badge variant={CONFIDENCE_BADGE[e.confidence]}>
                   {e.confidence}
                 </Badge>
-                <span className="flex-1 font-body text-[12px] text-neutral-600">
-                  <span className="font-mono text-[11px] text-neutral-500">
-                    {e.id}
-                  </span>{" "}
-                  {e.mechanism}
+                <span className="t-body flex-1 text-[12px] text-neutral-600">
+                  <Terms text={e.mechanism} />
                 </span>
               </div>
             ))}
@@ -289,7 +296,7 @@ function HorizonShelf({ items }: { items: HorizonItem[] }) {
               <span className="flex flex-wrap items-center gap-1.5">
                 <BasisChip basis="anecdotal" />
                 <Badge variant="secondary">{item.grade}</Badge>
-                <span className="font-mono text-[10px] uppercase tracking-[0.04em] text-neutral-400">
+                <span className="t-meta text-[10px] font-bold uppercase tracking-[0.04em] text-neutral-400">
                   from {item.sourceKind}
                 </span>
               </span>
@@ -422,26 +429,23 @@ export default async function PlanPage() {
       {/* 2. Profile strip */}
       <Card className="p-4">
         <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
-          <span className="font-mono text-[11px] uppercase tracking-[0.06em] text-neutral-400">
-            Sex{" "}
-            <span className="text-[13px] normal-case text-neutral-800">
-              {input.sex ?? "—"}
-            </span>
+          <span className="t-meta text-[12px]">
+            Sex <span className="text-[13px] text-neutral-800">{input.sex ?? "—"}</span>
           </span>
-          <span className="font-mono text-[11px] uppercase tracking-[0.06em] text-neutral-400">
+          <span className="t-meta text-[12px]">
             Age{" "}
-            <span className="text-[13px] tabular-nums text-neutral-800">
+            <span className="t-num text-[13px] text-neutral-800">
               {input.age ?? "—"}
             </span>
           </span>
-          <span className="font-mono text-[11px] uppercase tracking-[0.06em] text-neutral-400">
-            {answered} of {tier0.length} facts
+          <span className="t-meta text-[12px]">
+            {answered} of {tier0.length} questions answered
           </span>
         </div>
 
         {patterns.length > 0 && (
           <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-neutral-100 pt-3">
-            <span className="font-mono text-[10px] uppercase tracking-[0.06em] text-neutral-400">
+            <span className="t-meta text-[10px] font-bold uppercase tracking-[0.06em] text-neutral-400">
               Patterns
             </span>
             {patterns.map((m) => (
@@ -537,6 +541,9 @@ export default async function PlanPage() {
           {patterns.length > 0 && (
             <section>
               <Label>Patterns · {patterns.length}</Label>
+              <p className="t-meta mb-2 text-[12px]">
+                Two or more findings that usually travel together.
+              </p>
               <div className="space-y-2">
                 {patterns.map((m) => (
                   <PatternCard
@@ -601,13 +608,13 @@ export default async function PlanPage() {
           {/* 7. The older, narrower plans, out of the way. */}
           {(weekly || lifestyle) && (
             <details className="card p-4">
-              <summary className="cursor-pointer font-mono text-[10px] font-bold uppercase tracking-[0.06em] text-neutral-400 hover:text-neutral-600">
+              <summary className="hit-40 t-meta cursor-pointer text-[10px] font-bold uppercase tracking-[0.06em] text-neutral-400 hover:text-neutral-600">
                 Earlier plans
               </summary>
               <div className="mt-3 space-y-4">
                 {weekly && (
                   <div>
-                    <p className="mb-1 font-mono text-[10px] uppercase tracking-[0.06em] text-neutral-400">
+                    <p className="t-meta mb-1 text-[10px] font-bold uppercase tracking-[0.06em] text-neutral-400">
                       Weekly review · {weekly.adherencePct}% adherence
                     </p>
                     <p className="font-body text-[13px] text-neutral-700">
@@ -627,7 +634,7 @@ export default async function PlanPage() {
                 )}
                 {lifestyle?.items?.length ? (
                   <div>
-                    <p className="mb-1 font-mono text-[10px] uppercase tracking-[0.06em] text-neutral-400">
+                    <p className="t-meta mb-1 text-[10px] font-bold uppercase tracking-[0.06em] text-neutral-400">
                       Lifestyle plan
                     </p>
                     <ul className="space-y-1.5">

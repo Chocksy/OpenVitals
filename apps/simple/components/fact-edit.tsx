@@ -18,7 +18,7 @@ export interface FactEdit {
 // `hit-40` is the pseudo-element from the interface checklist: the label
 // still reads at 10 px, the finger still gets 40.
 const link =
-  "hit-40 inline-flex cursor-pointer items-center font-mono text-[10px] text-neutral-500 underline decoration-dotted hover:text-neutral-900";
+  "hit-40 t-meta inline-flex cursor-pointer items-center text-[12px] underline decoration-dotted hover:text-neutral-900";
 
 const field =
   "border border-neutral-300 bg-neutral-0 px-1 py-0.5 font-mono text-[11px]";
@@ -53,8 +53,8 @@ export function FactEditButtons({
   return (
     <span className="flex flex-wrap items-center gap-2">
       {edit.kind === "changed" ? (
-        <label className="flex items-center gap-1 font-mono text-[10px] text-neutral-500">
-          changed on
+        <label className="t-meta flex items-center gap-1 text-[12px]">
+          Changed on
           <input
             type="date"
             className={field}
@@ -63,7 +63,7 @@ export function FactEditButtons({
           />
         </label>
       ) : (
-        <label className="flex items-center gap-1 font-mono text-[10px] text-neutral-500">
+        <label className="t-meta flex items-center gap-1 text-[12px]">
           the old value never held
           <input
             className={`${field} w-44`}
@@ -73,8 +73,8 @@ export function FactEditButtons({
           />
         </label>
       )}
-      <span className="font-mono text-[10px] text-neutral-400">
-        now pick the new answer
+      <span className="t-meta text-[12px] text-neutral-400">
+        Now pick the new answer
       </span>
       <button className={link} onClick={() => onChange(null)}>
         cancel

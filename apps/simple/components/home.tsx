@@ -5,15 +5,24 @@
  *
  * Server components throughout. The only client parts are the three buttons
  * that write: the inline answer, "Wrong value" and the fact box.
+ *
+ * Phase 25b: two families, four styles, one rule — monospace is for numbers,
+ * units, codes and dates only. Every abbreviation the cards print goes through
+ * `<Term>`, so "what is ALP?" is answered where the question is asked.
  */
 import Link from "next/link";
-import { ChevronRight, FlaskConical } from "lucide-react";
+import { CircleQuestionMark, FlaskConical, TriangleAlert } from "lucide-react";
 import { ASK_HREF, type Ask } from "@/lib/asking";
-import { changedLine, explainInput, type Finding } from "@/lib/explain";
+import {
+  changedLine,
+  explainInput,
+  explainKey,
+  type Finding,
+} from "@/lib/explain";
+import { termFor } from "@/lib/glossary";
 import type { Today } from "@/lib/home-data";
 import type { Conclusion, Ledger } from "@/lib/ledger";
 import type { Move } from "@/lib/infogain";
-import type { TrendMetric } from "@/lib/home-data";
 import type { HState, Grade, Lens } from "@/lib/hypotheses";
 import { cn, formatDate } from "@/lib/utils";
 import { AskLink } from "./ask-link";
@@ -23,9 +32,12 @@ import { ActionButtons, GeneratePlan } from "./plan";
 import { RangeBar } from "./range-bar";
 import { StatusBadge } from "./status-badge";
 import { Digits, SwapText } from "./motion";
+import { Term, Terms } from "./term";
 import { TodayAsk } from "./today-ask";
 import { TrendChart } from "./trend-chart";
 import { Badge, Card } from "./ui-kit";
+
+export { KeyTrends } from "./key-trends";
 
 export function SectionHeader({
   title,
@@ -38,34 +50,37 @@ export function SectionHeader({
 }) {
   return (
     <div className="mb-2 flex items-baseline justify-between gap-3">
-      <h2 className="font-mono text-[10px] font-bold uppercase tracking-[0.06em] text-neutral-400">
-        {title}
-      </h2>
+      <h2 className={LABEL}>{title}</h2>
       {href && (
         <Link
           href={href}
-          className="flex items-center gap-1 font-mono text-[11px] text-neutral-400 transition-colors hover:text-neutral-600"
+          className="t-meta flex items-center gap-1 text-[12px] transition-colors hover:text-neutral-700"
         >
           {linkLabel}
-          <ChevronRight className="size-3" />
+          <span aria-hidden="true">→</span>
         </Link>
       )}
     </div>
   );
 }
 
+/**
+ * The four styles are in `app/globals.css`. Everything here is one of them:
+ * a label is quiet sans, never mono, because "Biological age" is a phrase and
+ * not a code.
+ */
 const LABEL =
-  "font-mono text-[10px] font-bold uppercase tracking-[0.06em] text-neutral-400";
-const WHY = "mt-1 font-mono text-[11px] text-neutral-400";
+  "t-meta text-[10px] font-bold uppercase tracking-[0.06em] text-neutral-400";
+const WHY = "t-meta mt-1 text-[12px] text-neutral-500";
 const one = (v: number) => v.toFixed(1);
 
 /**
- * A small link that reads at 11 px but answers to a 40 px finger.
+ * A small link that reads at 12 px but answers to a 40 px finger.
  * `.hit-40` is the pseudo-element from `surfaces.md`; the width stays the
  * link's own so two of them can never overlap.
  */
 const SMALL_LINK =
-  "hit-40 inline-flex cursor-pointer list-none items-center font-mono text-[11px] uppercase tracking-[0.04em] text-neutral-400 hover:text-neutral-700";
+  "hit-40 inline-flex cursor-pointer list-none items-center gap-1 t-meta text-[12px] text-neutral-500 hover:text-neutral-900";
 
 /**
  * The lens badges said `ENERGY B · WEIGHT A · LIFESPAN A`, which is the
@@ -74,12 +89,10 @@ const SMALL_LINK =
  */
 function lensLine(
   lenses: Partial<Record<Lens, { w: number; grade: Grade }>>,
-): string | null {
+): { lens: string; grade: Grade } | null {
   const best = Object.entries(lenses).sort((a, b) => b[1].w - a[1].w)[0];
-  return best ? `matters most for ${best[0]} (${best[1].grade})` : null;
+  return best ? { lens: best[0], grade: best[1].grade } : null;
 }
-
-/* ── 1. cockpit ───────────────────────────────────────────────────────── */
 
 /**
  * "Today": the first card in the cockpit, and the shortest one.
@@ -88,6 +101,9 @@ function lensLine(
  * next, the last check-in's reply in one line, and nothing else. Phase 24a
  * made this the only place in the app that renders an input for a question;
  * every other surface prints the same question as a line and links here.
+ *
+ * Phase 25b named the three parts in words a person uses: "Still true?",
+ * "One question", "You noted".
  */
 export function TodayCard({
   today,
@@ -115,8 +131,29 @@ export function TodayCard({
       )
     : today.due;
   const askFirst = askKey != null && ask?.key === askKey;
+  const stillTrue = (
+    <>
+      {due.length > 0 && <div className={LABEL}>Still true?</div>}
+      {due.map((d) => (
+        <StillTrue
+          key={d.key}
+          factKey={d.key}
+          question={d.question}
+          original={d.original}
+          options={d.options}
+          current={d.current}
+          today={day}
+        />
+      ))}
+    </>
+  );
+  const oneQuestion = ask && (
+    <div className="space-y-1.5">
+      <div className={LABEL}>One question</div>
+      <TodayAsk ask={ask} options={askOptions} />
+    </div>
+  );
   return (
-    // 01: the card's own box changes when the question it holds changes.
     <Card className="t-resize p-4">
       <div className="flex items-baseline justify-between gap-3">
         <div className={LABEL}>Today</div>
@@ -124,31 +161,32 @@ export function TodayCard({
       </div>
 
       {empty ? (
-        <p className="mt-2 font-body text-[13px] text-neutral-500">
+        <p className="t-body mt-2 text-neutral-500">
           Nothing to ask today. Post anything with +.
         </p>
       ) : (
         <div className="mt-3 space-y-3">
-          {askFirst && ask && <TodayAsk ask={ask} options={askOptions} />}
-          {due.map((d) => (
-            <StillTrue
-              key={d.key}
-              factKey={d.key}
-              question={d.question}
-              original={d.original}
-              options={d.options}
-              current={d.current}
-              today={day}
-            />
-          ))}
-          {!askFirst && ask && <TodayAsk ask={ask} options={askOptions} />}
+          {askFirst ? (
+            <>
+              {oneQuestion}
+              {stillTrue}
+            </>
+          ) : (
+            <>
+              {stillTrue}
+              {oneQuestion}
+            </>
+          )}
           {today.post && (
-            <p className="font-body text-[13px] leading-relaxed text-neutral-600">
-              <span className="font-mono text-[10px] uppercase tracking-[0.04em] text-neutral-400">
-                {today.post.date} ·{" "}
-              </span>
-              {today.post.reply ?? `"${today.post.text}"`}
-            </p>
+            <div className="space-y-1">
+              <div className={LABEL}>You noted</div>
+              <p className="t-body text-neutral-600">
+                <span className="t-num mr-1.5 text-[11px] text-neutral-400">
+                  {today.post.date}
+                </span>
+                {today.post.reply ?? `“${today.post.text}”`}
+              </p>
+            </div>
           )}
         </div>
       )}
@@ -159,9 +197,16 @@ export function TodayCard({
 /**
  * "Since Aug 31: 0 resolved · 0 new · 0 stronger · 0 weaker" was a line of
  * zeros pretending to be news. Nothing moved is not a sentence, so it is not
- * printed; when something did move, only that part is.
+ * printed; when something did move, only that part is — and "since yesterday"
+ * is what a person calls the day before, so that is what it says.
  */
-export function SinceLine({ since }: { since: Ledger["since"] }) {
+export function SinceLine({
+  since,
+  day,
+}: {
+  since: Ledger["since"];
+  day?: string;
+}) {
   if (!since) return null;
   const parts = (
     [
@@ -172,15 +217,51 @@ export function SinceLine({ since }: { since: Ledger["since"] }) {
     ] as const
   ).filter(([, n]) => n > 0);
   if (parts.length === 0) return null;
+  const days =
+    day != null
+      ? Math.round((Date.parse(day) - Date.parse(since.at)) / 86400000)
+      : NaN;
+  const when =
+    days === 0
+      ? "today"
+      : days === 1
+        ? "since yesterday"
+        : `since ${formatDate(since.at)}`;
   return (
-    <p className="font-mono text-[11px] tabular-nums text-neutral-400">
-      Since {formatDate(since.at)}:{" "}
-      {parts.map(([label, n]) => `${n} ${label}`).join(" · ")}
+    <p className="t-meta text-[12px]">
+      {parts.map(([label, n], i) => (
+        <span key={label}>
+          {i > 0 && " · "}
+          <span className="t-num text-neutral-700">{n}</span> {label}
+        </span>
+      ))}
+      {` ${when}`}
     </p>
   );
 }
 
-export function Cockpit({ ledger }: { ledger: Ledger }) {
+/** "ALP, a liver enzyme that also comes from bone, on any basic blood panel" */
+function missingLine(labels: string[]): React.ReactNode {
+  const first = termFor(labels[0] ?? "");
+  if (labels.length === 1 && first) {
+    const what = first.what.replace(/\.$/, "");
+    return (
+      <>
+        Missing one number: <Term code={first.id}>{first.label}</Term>,{" "}
+        {what.charAt(0).toLowerCase()}
+        {what.slice(1)}, {first.where}.{" "}
+      </>
+    );
+  }
+  return (
+    <>
+      Missing <span className="t-num">{labels.length}</span> numbers:{" "}
+      <Terms text={labels.join(", ")} />.{" "}
+    </>
+  );
+}
+
+export function Cockpit({ ledger, day }: { ledger: Ledger; day?: string }) {
   const { bioAge, bioAgeMissing, counters, since } = ledger;
   return (
     <div className="space-y-2">
@@ -189,14 +270,16 @@ export function Cockpit({ ledger }: { ledger: Ledger }) {
           <div className={LABEL}>Biological age</div>
           {bioAge ? (
             <>
-              <div className="mt-1 font-display text-[52px] font-light leading-none tracking-[-0.05em] text-neutral-900">
+              <div className="mt-1 font-display text-[52px] font-light leading-none tracking-[-0.05em] tabular-nums text-neutral-900">
                 {one(bioAge.pheno)}
                 <span className="ml-2 font-display text-[18px] font-normal tracking-normal text-neutral-400">
                   at {bioAge.chrono}
                 </span>
               </div>
               <p className={WHY}>
-                PhenoAge from {bioAge.inputs.length} routine markers
+                <Term code="phenoage">PhenoAge</Term> from{" "}
+                <span className="t-num">{bioAge.inputs.length}</span> routine
+                markers
               </p>
             </>
           ) : (
@@ -205,8 +288,8 @@ export function Cockpit({ ledger }: { ledger: Ledger }) {
                 —
               </div>
               <p className={WHY}>
-                Still missing {bioAgeMissing.join(", ")}.{" "}
-                <Link href="/labs" className="underline hover:text-neutral-600">
+                {missingLine(bioAgeMissing)}
+                <Link href="/labs" className="underline hover:text-neutral-800">
                   Upload a lab
                 </Link>
               </p>
@@ -249,7 +332,7 @@ export function Cockpit({ ledger }: { ledger: Ledger }) {
             <p className={WHY}>
               <a
                 href={ASK_HREF}
-                className="hit-40 inline-flex items-center underline hover:text-neutral-600"
+                className="hit-40 inline-flex items-center underline hover:text-neutral-800"
               >
                 answer the first one
               </a>
@@ -262,18 +345,24 @@ export function Cockpit({ ledger }: { ledger: Ledger }) {
           <div className="mt-2 font-display text-[26px] tabular-nums text-neutral-900">
             {counters.nextDrawWeeks ?? 12} wk
           </div>
+          {/* The codes are the engine's own keys. A person reads names. */}
           <p className={cn(WHY, "truncate")}>
-            {counters.nextDrawCodes.join(", ") || "nothing queued"}
+            {counters.nextDrawCodes.length
+              ? counters.nextDrawCodes.map((code, i) => (
+                  <span key={code}>
+                    {i > 0 && ", "}
+                    <Term code={code}>{explainKey(code)}</Term>
+                  </span>
+                ))
+              : "nothing queued"}
           </p>
         </Card>
       </div>
 
-      <SinceLine since={since} />
+      <SinceLine since={since} day={day} />
     </div>
   );
 }
-
-/* ── 2. systems strip ─────────────────────────────────────────────────── */
 
 /** Same three tones as the graph's importance bar, drawn as a ring. */
 function ringColor(score: number) {
@@ -282,93 +371,118 @@ function ringColor(score: number) {
   return "var(--color-accent-500)";
 }
 
-export function SystemsStrip({ systems }: { systems: Ledger["systems"] }) {
+/** "red" is the engine's word for it. A person says "off". */
+const WORST_WORD = {
+  red: "off",
+  amber: "borderline",
+  green: "good",
+  gray: "no reading",
+} as const;
+
+const WORST_TONE = {
+  red: "critical",
+  amber: "warning",
+  green: "normal",
+  gray: "neutral",
+} as const;
+
+/**
+ * Twelve systems in one scrolling row truncated every name and every value:
+ * "Blood sugar and i…" over "hba1c 5…". So: a grid that wraps, three across
+ * on a phone and six on a desktop, the full system name, the one marker that
+ * drives the colour on its own line with its value and its unit, and the
+ * status in a word. The name is the link, so nothing nests inside anything.
+ */
+export function SystemsGrid({ systems }: { systems: Ledger["systems"] }) {
   const r = 13;
   const circumference = 2 * Math.PI * r;
 
   return (
-    <div className="-mx-4 flex snap-x gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:grid sm:grid-cols-4 sm:overflow-visible sm:px-0 lg:grid-cols-6 xl:grid-cols-12">
-      {systems.map((s) => (
-        <Link
-          key={s.id}
-          href="/graph"
-          className="card flex w-[104px] shrink-0 snap-start flex-col items-center gap-1.5 p-2.5 text-center hover:border-accent-200 sm:w-auto"
-        >
-          <svg width="32" height="32" viewBox="0 0 32 32">
-            <circle
-              cx="16"
-              cy="16"
-              r={r}
-              fill="none"
-              stroke="var(--color-neutral-150)"
-              strokeWidth="3"
-            />
-            <circle
-              cx="16"
-              cy="16"
-              r={r}
-              fill="none"
-              stroke={ringColor(s.score)}
-              strokeWidth="3"
-              strokeDasharray={`${s.score * circumference} ${circumference}`}
-              transform="rotate(-90 16 16)"
-              data-system-arc={s.id}
-              data-circumference={circumference}
-            />
-            {/* A zero in a green ring reads as "empty", not as "healthy".
-                Nothing off gets a tick; every system with a score keeps its
-                number. */}
-            {Math.round(s.score * 100) === 0 ? (
-              <path
-                d="M11 16.2l3.4 3.4L21.4 12"
-                fill="none"
-                stroke="var(--color-health-normal)"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
+    <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 lg:grid-cols-6">
+      {systems.map((s) => {
+        const worst = s.worst;
+        const href = worst ? `/m/${worst.code}` : "/graph";
+        return (
+          <Card
+            key={s.id}
+            className="flex flex-col items-center gap-1.5 p-2.5 text-center"
+          >
+            <Link
+              href={href}
+              className="flex flex-col items-center gap-1.5 hover:opacity-80"
+            >
+              <svg width="32" height="32" viewBox="0 0 32 32">
+                <circle
+                  cx="16"
+                  cy="16"
+                  r={r}
+                  fill="none"
+                  stroke="var(--color-neutral-150)"
+                  strokeWidth="3"
+                />
+                <circle
+                  cx="16"
+                  cy="16"
+                  r={r}
+                  fill="none"
+                  stroke={ringColor(s.score)}
+                  strokeWidth="3"
+                  strokeDasharray={`${s.score * circumference} ${circumference}`}
+                  transform="rotate(-90 16 16)"
+                  data-system-arc={s.id}
+                  data-circumference={circumference}
+                />
+                {Math.round(s.score * 100) === 0 ? (
+                  <path
+                    d="M11 16.2l3.4 3.4L21.4 12"
+                    fill="none"
+                    stroke="var(--color-health-normal)"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                ) : (
+                  <text
+                    x="16"
+                    y="20"
+                    textAnchor="middle"
+                    data-system-score={s.id}
+                    className="fill-neutral-500 tabular-nums"
+                    style={{ fontSize: 10, fontFamily: "var(--font-mono)" }}
+                  >
+                    {Math.round(s.score * 100)}
+                  </text>
+                )}
+              </svg>
+              <span className="t-title text-[12px] leading-tight text-neutral-800">
+                {s.name}
+              </span>
+            </Link>
+
+            {worst ? (
+              <p className="t-meta text-[12px] leading-tight text-neutral-600">
+                <Term code={worst.code}>{explainKey(worst.code)}</Term>{" "}
+                <span className="t-num whitespace-nowrap text-neutral-800">
+                  {worst.value ?? "?"}
+                  {worst.unit ? ` ${worst.unit}` : ""}
+                </span>
+              </p>
             ) : (
-              <text
-                x="16"
-                y="20"
-                textAnchor="middle"
-                data-system-score={s.id}
-                className="fill-neutral-500 font-mono tabular-nums"
-                style={{ fontSize: 10 }}
-              >
-                {Math.round(s.score * 100)}
-              </text>
+              <p className="t-meta text-[12px] leading-tight">never measured</p>
             )}
-          </svg>
-          <span className="line-clamp-2 font-display text-[11px] font-medium leading-tight text-neutral-800">
-            {s.name}
-          </span>
-          <span className="w-full truncate font-mono text-[10px] text-neutral-400">
-            {s.worst
-              ? `${s.worst.code.replace(/_/g, " ")} ${s.worst.value ?? "?"}`
-              : "never measured"}
-          </span>
-          {s.worst && (
-            <StatusBadge
-              status={
-                s.worst.status === "red"
-                  ? "critical"
-                  : s.worst.status === "amber"
-                    ? "warning"
-                    : s.worst.status === "green"
-                      ? "normal"
-                      : "neutral"
-              }
-              label={s.worst.status}
-            />
-          )}
-        </Link>
-      ))}
+
+            {worst && (
+              <StatusBadge
+                status={WORST_TONE[worst.status]}
+                label={WORST_WORD[worst.status]}
+              />
+            )}
+          </Card>
+        );
+      })}
     </div>
   );
 }
-
-/* ── 3 + 4. the conclusion card, spear and ledger ─────────────────────── */
 
 const STATE_VARIANT: Record<HState, "critical" | "warning" | "secondary"> = {
   confirmed: "critical",
@@ -377,6 +491,14 @@ const STATE_VARIANT: Record<HState, "critical" | "warning" | "secondary"> = {
   unlikely: "secondary",
   ruled_out: "secondary",
 };
+
+/**
+ * What "Discuss" opens the composer about. The card's title carries the state
+ * ("Insulin resistance: likely"), and "About Insulin resistance: likely: " is
+ * not a sentence anybody would type.
+ */
+const topicOf = (c: Conclusion) =>
+  c.title.replace(/:\s*(confirmed|likely|possible|unlikely|ruled out)$/i, "");
 
 const moveCost = (m: Move) =>
   m.cost === 0 ? "free" : m.priced ? `€${m.cost}` : `cost ${m.cost}`;
@@ -394,11 +516,12 @@ function EvidenceList({
       <div className={LABEL}>{title}</div>
       <ul className="mt-1 space-y-0.5">
         {lines.map((e) => (
-          <li key={e.rule} className="font-body text-[12px] text-neutral-600">
-            {explainInput(e)}{" "}
-            <span className="font-mono text-[11px] tabular-nums text-neutral-400">
-              LR {e.lr} · {e.grade}
+          <li key={e.rule} className="t-body text-[12px] text-neutral-600">
+            <Terms text={explainInput(e)} />{" "}
+            <span className="t-num text-[11px] text-neutral-400">
+              LR {e.lr}
             </span>
+            <span className="t-meta text-[11px]"> · grade {e.grade}</span>
           </li>
         ))}
       </ul>
@@ -406,12 +529,15 @@ function EvidenceList({
   );
 }
 
-/** The small list behind "Not right?": every reading and fact the card read. */
+/** The small list behind "Something's off?": every reading and fact it read. */
 function NotRight({ inputs }: { inputs: Conclusion["inputs"] }) {
   if (!inputs.length) return null;
   return (
-    <details className="mt-2">
-      <summary className={SMALL_LINK}>Not right?</summary>
+    <details>
+      <summary className={SMALL_LINK}>
+        <TriangleAlert className="size-3.5 text-neutral-400" />
+        Something&rsquo;s off?
+      </summary>
       <div className="mt-2 space-y-1.5 border-l-2 border-neutral-150 pl-3">
         {inputs.map((i) =>
           i.kind === "reading" ? (
@@ -419,10 +545,10 @@ function NotRight({ inputs }: { inputs: Conclusion["inputs"] }) {
               key={`r-${i.id}`}
               className="flex flex-wrap items-center gap-2"
             >
-              <span className="font-body text-[12px] text-neutral-700">
-                {i.label}
+              <span className="t-body text-[12px] text-neutral-700">
+                <Terms text={i.label} />
               </span>
-              <span className="font-mono text-[11px] tabular-nums text-neutral-500">
+              <span className="t-num text-[11px] text-neutral-500">
                 {i.value}
                 {i.date ? ` · ${i.date}` : ""}
               </span>
@@ -458,8 +584,6 @@ export function ConclusionCard({
   ask?: Ask;
   spear?: boolean;
 }) {
-  // A question move is never a button here: the Today card takes the answer,
-  // so a "(free)" chip repeating the question would be the second asker again.
   const top = c.next.find((m) => m.kind !== "question");
   const lens = lensLine(c.lenses);
   return (
@@ -468,7 +592,7 @@ export function ConclusionCard({
       className={cn("t-flip t-resize p-4", spear && "border-accent-500 p-5")}
     >
       {spear && (
-        <div className="mb-2 font-mono text-[10px] font-bold uppercase tracking-[0.06em] text-accent-600">
+        <div className="t-meta mb-2 text-[10px] font-bold uppercase tracking-[0.06em] text-accent-600">
           Start here
         </div>
       )}
@@ -499,7 +623,7 @@ export function ConclusionCard({
 
       <h3
         className={cn(
-          "mt-2 text-balance font-display font-medium tracking-[-0.02em] text-neutral-900",
+          "t-title mt-2 text-neutral-900",
           spear ? "text-[24px]" : "text-[17px]",
         )}
       >
@@ -507,40 +631,47 @@ export function ConclusionCard({
       </h3>
 
       {lens && (
-        <p className="mt-1 font-mono text-[11px] text-neutral-400">
-          {lens}
+        <p className="t-meta mt-1 text-[12px]">
+          matters most for {lens.lens} (
+          <Term code="grade">{`grade ${lens.grade}`}</Term>)
         </p>
       )}
 
       {verdict && (
-        <p className="mt-1.5 font-body text-[13px] leading-relaxed text-neutral-600">
-          {verdict}
+        <p className="t-body mt-1.5 text-neutral-600">
+          <Terms text={verdict} />
         </p>
       )}
 
       {c.changed && (
-        <p className="mt-1.5 font-mono text-[11px] text-neutral-400">
-          {changedLine(c.changed)}
-        </p>
+        <p className="t-meta mt-1.5 text-[12px]">{changedLine(c.changed)}</p>
       )}
 
       {(c.for.length > 0 || c.against.length > 0) && (
-        <p className="mt-2 font-body text-[12px] text-neutral-600">
-          <span className="font-mono text-[10px] uppercase text-neutral-400">
+        <p className="t-body mt-2 text-[12px] text-neutral-600">
+          <span className="t-meta text-[10px] font-bold uppercase tracking-[0.06em] text-neutral-400">
             For ·{" "}
           </span>
-          {c.for
-            .slice(0, 2)
-            .map((e) => explainInput(e))
-            .join(", ") || "nothing yet"}
+          <Terms
+            text={
+              c.for
+                .slice(0, 2)
+                .map((e) => explainInput(e))
+                .join(", ") || "nothing yet"
+            }
+          />
           <br />
-          <span className="font-mono text-[10px] uppercase text-neutral-400">
+          <span className="t-meta text-[10px] font-bold uppercase tracking-[0.06em] text-neutral-400">
             Against ·{" "}
           </span>
-          {c.against
-            .slice(0, 2)
-            .map((e) => explainInput(e))
-            .join(", ") || "nothing yet"}
+          <Terms
+            text={
+              c.against
+                .slice(0, 2)
+                .map((e) => explainInput(e))
+                .join(", ") || "nothing yet"
+            }
+          />
         </p>
       )}
 
@@ -550,10 +681,8 @@ export function ConclusionCard({
         </div>
       )}
 
-      {/* Phase 19: what was written down before the draw, and what the draw
-          said about it. Factual, and the only gamified line on the page. */}
       {c.projection && (
-        <p className="mt-3 flex items-center gap-2 border-l-2 border-accent-500 bg-accent-50 px-3 py-2 font-mono text-[12px] text-neutral-700">
+        <p className="t-body mt-3 flex items-center gap-2 border-l-2 border-accent-500 bg-accent-50 px-3 py-2 text-neutral-700">
           {c.projection.verdict && (
             <Badge
               variant={
@@ -569,7 +698,7 @@ export function ConclusionCard({
                 : c.projection.verdict}
             </Badge>
           )}
-          {c.projection.line}
+          <Terms text={c.projection.line} />
         </p>
       )}
 
@@ -585,7 +714,8 @@ export function ConclusionCard({
             unit={c.rangeBar?.unit}
           />
           <p className={WHY}>
-            {c.trend.code.replace(/_/g, " ")}, {c.trend.points.length} draws
+            <Term code={c.trend.code}>{explainKey(c.trend.code)}</Term>,{" "}
+            <span className="t-num">{c.trend.points.length}</span> draws
           </p>
         </div>
       )}
@@ -598,6 +728,7 @@ export function ConclusionCard({
             reportId={reportId}
             actionIndex={actionIndex}
             kind={c.action.kind}
+            topic={topicOf(c)}
           />
         ) : top ? (
           <Link
@@ -611,40 +742,56 @@ export function ConclusionCard({
         ) : null}
       </div>
 
-      <details className="mt-3">
-        <summary className={SMALL_LINK}>Why</summary>
-        <div className="mt-2 space-y-2 border-t border-neutral-100 pt-2">
-          <EvidenceList title="For" lines={c.for} />
-          <EvidenceList title="Against" lines={c.against} />
-          {c.missing.length > 0 && (
-            <p className="font-mono text-[11px] text-neutral-500">
-              Never measured: {c.missing.join(", ")}
+      {/* One row, two quiet buttons: the two things a reader wants to say. */}
+      <div className="mt-3 flex flex-wrap items-start gap-x-6 gap-y-1">
+        <details>
+          <summary className={SMALL_LINK}>
+            <CircleQuestionMark className="size-3.5 text-neutral-400" />
+            Why?
+          </summary>
+          <div className="mt-2 space-y-2 border-t border-neutral-100 pt-2">
+            <p className="t-meta text-[11px]">
+              <Term code="likelihood_ratio">LR</Term> is how much a finding
+              multiplies the odds; <Term code="grade">grade</Term> is how good
+              the evidence behind it is.
             </p>
-          )}
-          {c.confounded.length > 0 && (
-            <p className="font-mono text-[11px] text-neutral-500">
-              Discounted: {c.confounded.join(", ")}
-            </p>
-          )}
-          {c.next.length > 0 && (
-            <p className="font-mono text-[11px] text-neutral-500">
-              Next:{" "}
-              {c.next
-                .map((m) => `${m.label} (${moveCost(m)}, gain ${m.gain})`)
-                .join(" · ")}
-            </p>
-          )}
-        </div>
-      </details>
+            <EvidenceList title="For" lines={c.for} />
+            <EvidenceList title="Against" lines={c.against} />
+            {c.missing.length > 0 && (
+              <p className="t-meta text-[12px]">
+                Never measured: <Terms text={c.missing.join(", ")} />
+              </p>
+            )}
+            {c.confounded.length > 0 && (
+              <p className="t-meta text-[12px]">
+                Discounted: <Terms text={c.confounded.join(", ")} />
+              </p>
+            )}
+            {c.next.length > 0 && (
+              <p className="t-meta text-[12px]">
+                Next:{" "}
+                {c.next.map((m, i) => (
+                  <span key={m.label}>
+                    {i > 0 && " · "}
+                    <Terms text={m.label} /> (
+                    {m.cost === 0 ? (
+                      "free"
+                    ) : (
+                      <span className="t-num">{moveCost(m)}</span>
+                    )}
+                    )
+                  </span>
+                ))}
+              </p>
+            )}
+          </div>
+        </details>
 
-      <NotRight inputs={c.inputs} />
+        <NotRight inputs={c.inputs} />
+      </div>
     </Card>
   );
 }
-
-/* ── the improved card and the quiet line ─────────────────────────────── */
-
-/* ── 4b. the markers nobody explains, one card per system ─────────────── */
 
 /** Consecutive "marker off" cards, gathered by the system they belong to. */
 export interface MarkerGroup {
@@ -670,12 +817,12 @@ export function MarkersCard({ group }: { group: MarkerGroup }) {
     <Card data-card={group.id} className="t-flip t-resize p-4">
       <details>
         <summary className="flex cursor-pointer list-none items-start justify-between gap-2">
-          <h3 className="text-balance font-display text-[17px] font-medium tracking-[-0.02em] text-neutral-900">
+          <h3 className="t-title text-[17px] text-neutral-900">
             {group.systemName}: {n} marker{n === 1 ? "" : "s"} off
           </h3>
           <span
             aria-label="Where these readings came from"
-            className="hit-40 flex size-10 shrink-0 items-center justify-center font-mono text-[16px] leading-none text-neutral-400 hover:text-neutral-700"
+            className="hit-40 flex size-10 shrink-0 items-center justify-center text-[16px] leading-none text-neutral-400 hover:text-neutral-700"
           >
             …
           </span>
@@ -683,10 +830,10 @@ export function MarkersCard({ group }: { group: MarkerGroup }) {
         <div className="mt-2 space-y-1.5 border-l-2 border-neutral-150 pl-3">
           {group.inputs.map((i) => (
             <div key={i.id} className="flex flex-wrap items-center gap-2">
-              <span className="font-body text-[12px] text-neutral-700">
-                {i.label}
+              <span className="t-body text-[12px] text-neutral-700">
+                <Terms text={i.label} />
               </span>
-              <span className="font-mono text-[11px] tabular-nums text-neutral-500">
+              <span className="t-num text-[11px] text-neutral-500">
                 {i.value}
                 {i.date ? ` · ${i.date}` : ""}
               </span>
@@ -701,10 +848,10 @@ export function MarkersCard({ group }: { group: MarkerGroup }) {
           <li key={m.code}>
             <Link
               href={`/m/${m.code}`}
-              className="inline-flex h-10 items-center gap-1.5 border border-neutral-200 px-2.5 font-mono text-[11px] tabular-nums text-neutral-600 transition-[color,border-color] duration-150 ease-out hover:border-neutral-900 hover:text-neutral-900 active:scale-[0.96]"
+              className="inline-flex h-10 items-center gap-1.5 border border-neutral-200 px-2.5 text-[12px] text-neutral-600 transition-[color,border-color] duration-150 ease-out hover:border-neutral-900 hover:text-neutral-900 active:scale-[0.96]"
             >
-              <span className="font-body">{m.name}</span>
-              {m.value}
+              <span className="t-body text-[12px]">{m.name}</span>
+              <span className="t-num text-[11px]">{m.value}</span>
             </Link>
           </li>
         ))}
@@ -723,28 +870,28 @@ export function FindingsCard({ finding }: { finding: Finding }) {
     <Card className="p-4">
       <div className="flex items-baseline justify-between gap-3">
         <div className={LABEL}>{finding.title}</div>
-        <span className="font-mono text-[10px] uppercase tracking-[0.04em] text-neutral-400">
+        <span className="t-num text-[10px] text-neutral-400">
           {formatDate(finding.at)}
         </span>
       </div>
       <ul className="mt-2 space-y-2">
         {finding.lines.map((line) => (
           <li key={line.label}>
-            <span className="mr-2 inline-block border border-accent-200 bg-accent-50 px-1.5 py-px font-mono text-[10px] uppercase tracking-[0.04em] text-accent-600">
+            <span className="t-meta mr-2 inline-block border border-accent-200 bg-accent-50 px-1.5 py-px text-[10px] font-bold uppercase tracking-[0.04em] text-accent-600">
               {line.label}
             </span>
-            <span className="font-body text-[13px] leading-relaxed text-neutral-700">
-              {line.text}
+            <span className="t-body text-neutral-700">
+              <Terms text={line.text} />
             </span>
           </li>
         ))}
       </ul>
       <Link
         href={finding.href}
-        className="mt-3 inline-flex items-center gap-1 font-mono text-[11px] text-neutral-400 hover:text-neutral-700"
+        className="t-meta mt-3 inline-flex items-center gap-1 text-[12px] hover:text-neutral-900"
       >
         see all {finding.total}
-        <ChevronRight className="size-3" />
+        <span aria-hidden="true">→</span>
       </Link>
     </Card>
   );
@@ -757,14 +904,13 @@ export function ImprovedCard({ improved }: { improved: Ledger["improved"] }) {
       <div className={LABEL}>What improved</div>
       <ul className="mt-2 space-y-1">
         {improved.map((i) => (
-          <li
-            key={i.code}
-            className="font-mono text-[12px] tabular-nums text-neutral-700"
-          >
-            <span className="font-body text-neutral-800">{i.name}</span>{" "}
-            {i.from} → {i.to}
-            {i.unit ? ` ${i.unit}` : ""}{" "}
-            <span className="text-neutral-400">since {i.since}</span>
+          <li key={i.code} className="t-body text-neutral-700">
+            <Term code={i.code}>{i.name}</Term>{" "}
+            <span className="t-num text-neutral-800">
+              {i.from} → {i.to}
+              {i.unit ? ` ${i.unit}` : ""}
+            </span>{" "}
+            <span className="t-meta text-[12px]">since {i.since}</span>
           </li>
         ))}
       </ul>
@@ -786,10 +932,10 @@ function QuietRows({
       {rows.map((r) => (
         <li
           key={r.id}
-          className="flex justify-between gap-2 font-mono text-[11px] tabular-nums text-neutral-500"
+          className="t-meta flex justify-between gap-2 text-[12px]"
         >
           <span className="truncate">{r.name}</span>
-          <span>{quietPct(r.p)}</span>
+          <span className="t-num">{quietPct(r.p)}</span>
         </li>
       ))}
     </ul>
@@ -804,23 +950,22 @@ function QuietRows({
  */
 export function QuietLine({ quiet }: { quiet: Ledger["quiet"] }) {
   if (!quiet.ids.length) return null;
-  const summary = cn(SMALL_LINK, "tracking-[0.06em]");
   return (
     <div className="space-y-2">
       {quiet.unlikely > 0 && (
         <details>
-          <summary className={summary}>
-            {quiet.unlikely} unlikely · show
+          <summary className={SMALL_LINK}>
+            Show {quiet.unlikely} unlikely
           </summary>
           <QuietRows rows={quiet.rows} />
         </details>
       )}
       {quiet.ruledOut > 0 && (
         <details>
-          <summary className={summary}>
-            show ruled out ({quiet.ruledOut})
+          <summary className={SMALL_LINK}>
+            Show {quiet.ruledOut} ruled out
           </summary>
-          <p className="mt-2 font-body text-[12px] text-neutral-400">
+          <p className="t-meta mt-2 text-[12px]">
             Under 5 %. Every one of these was scored and dismissed; the ring-2
             entries are rare diseases something in your data woke for a look.
           </p>
@@ -831,77 +976,11 @@ export function QuietLine({ quiet }: { quiet: Ledger["quiet"] }) {
   );
 }
 
-/* ── 6. key trends ────────────────────────────────────────────────────── */
-
-export function KeyTrends({ trends }: { trends: TrendMetric[] }) {
-  return (
-    <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
-      {trends.map((t) => (
-        <Card key={t.metricCode} className="p-4">
-          <div className="flex items-baseline justify-between gap-2">
-            <Link
-              href={`/m/${t.metricCode}`}
-              className="font-display text-[13px] font-medium text-neutral-800 hover:underline"
-            >
-              {t.metricName}
-            </Link>
-            <span className="font-mono text-[10px] text-neutral-400">
-              {t.points.length} readings
-            </span>
-          </div>
-
-          <TrendChart
-            height={140}
-            data={t.points.map((p) => ({
-              date: p.date,
-              value: p.value,
-              unit: t.unit,
-            }))}
-            referenceRangeLow={t.refLow}
-            referenceRangeHigh={t.refHigh}
-            optimalRangeLow={t.optimalLow}
-            optimalRangeHigh={t.optimalHigh}
-            goalLow={t.goalLow}
-            goalHigh={t.goalHigh}
-            unit={t.unit}
-            status={t.status}
-          />
-
-          <div className="mt-3 flex items-baseline gap-1.5">
-            <span className="font-display text-[26px] font-medium tracking-[-0.03em] text-neutral-900">
-              {Number.isInteger(t.latestValue)
-                ? t.latestValue
-                : t.latestValue.toFixed(1)}
-            </span>
-            {t.unit && (
-              <span className="font-mono text-[11px] text-neutral-400">
-                {t.unit}
-              </span>
-            )}
-          </div>
-          <div className="mt-2">
-            <RangeBar
-              value={t.latestValue}
-              prev={t.prevValue}
-              refLow={t.refLow}
-              refHigh={t.refHigh}
-              optimalLow={t.optimalLow}
-              optimalHigh={t.optimalHigh}
-              goal={t.goalLow ?? t.goalHigh}
-              unit={t.unit}
-            />
-          </div>
-        </Card>
-      ))}
-    </div>
-  );
-}
-
 /** Nothing uploaded yet: one line, one link. */
 export function EmptyHome() {
   return (
     <Card className="border-dashed p-10 text-center">
-      <p className="font-body text-[13px] text-neutral-500">
+      <p className="t-body text-neutral-500">
         No readings yet.{" "}
         <Link href="/labs" className="underline">
           Upload a lab PDF

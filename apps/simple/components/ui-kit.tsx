@@ -54,7 +54,7 @@ export function Button({ className, variant, size, ...props }: ButtonProps) {
 }
 
 const badgeVariants = cva(
-  "inline-flex items-center border px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-[0.04em] transition-colors",
+  "inline-flex items-center border px-2 py-0.5 t-meta text-[10px] font-bold uppercase tracking-[0.04em] transition-colors",
   {
     variants: {
       variant: {
@@ -102,7 +102,7 @@ export function BasisChip({ basis }: { basis: string }) {
   return (
     <span
       className={cn(
-        "inline-flex items-center border px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-[0.04em]",
+        "inline-flex items-center border px-2 py-0.5 t-meta text-[10px] font-bold uppercase tracking-[0.04em]",
         BASIS_CLASS[basis] ?? BASIS_CLASS.science,
       )}
     >
@@ -124,7 +124,7 @@ export function TierChip({ tier }: { tier?: string }) {
   return (
     <span
       className={cn(
-        "inline-flex items-center border px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-[0.04em]",
+        "inline-flex items-center border px-2 py-0.5 t-meta text-[10px] font-bold uppercase tracking-[0.04em]",
         TIER_CLASS[tier] ?? TIER_CLASS.established,
       )}
     >

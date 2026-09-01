@@ -121,19 +121,28 @@ export function RangeBar({
           title={`${value}${unit ? ` ${unit}` : ""}`}
         />
       </div>
-      <div className="mt-1 flex justify-between gap-2 font-mono text-[10px] tabular-nums text-neutral-400">
+      {/* 25b: the words are sans, the numbers are mono. One sentence, one
+          voice, and the bands still line up because only digits are tabular. */}
+      <div className="t-meta mt-1 flex justify-between gap-2 text-[11px]">
         {normal ? (
-          <span>ref {bandLabel(refLow, refHigh)}</span>
+          <span>
+            normal <span className="t-num">{bandLabel(refLow, refHigh)}</span>
+          </span>
         ) : (
           <span />
         )}
         {optimal && (
           <span className="text-[var(--color-health-optimal)]">
-            optimal {bandLabel(optimalLow, optimalHigh)}
+            optimal{" "}
+            <span className="t-num">
+              {bandLabel(optimalLow, optimalHigh)}
+            </span>
           </span>
         )}
         {num(goal) && (
-          <span className="text-accent-500">goal {trim(goal)}</span>
+          <span className="text-accent-500">
+            goal <span className="t-num">{trim(goal)}</span>
+          </span>
         )}
       </div>
     </div>

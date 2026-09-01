@@ -26,13 +26,13 @@ import {
   MarkersCard,
   QuietLine,
   SectionHeader,
-  SystemsStrip,
+  SystemsGrid,
   TodayCard,
   type MarkerGroup,
 } from "@/components/home";
 import { LedgerMotion } from "@/components/ledger-motion";
 import { LedgerList } from "@/components/motion";
-import { AskBox } from "@/components/ask-box";
+import { AskLine } from "@/components/ask-line";
 
 export const dynamic = "force-dynamic";
 
@@ -185,6 +185,8 @@ export default async function Home({
 
   return (
     <div className="space-y-8">
+      <AskLine />
+
       <TodayCard
         today={today}
         day={day}
@@ -192,11 +194,11 @@ export default async function Home({
         askKey={want}
         askOptions={plan.ask ? optionsFor(plan.ask.key) : []}
       />
-      <Cockpit ledger={ledger} />
+      <Cockpit ledger={ledger} day={day} />
 
       <section>
         <SectionHeader title="Systems" href="/graph" linkLabel="Your graph" />
-        <SystemsStrip systems={ledger.systems} />
+        <SystemsGrid systems={ledger.systems} />
       </section>
 
       {spear && (
@@ -223,11 +225,6 @@ export default async function Home({
       )}
 
       <QuietLine quiet={ledger.quiet} />
-
-      <section>
-        <SectionHeader title="Ask" />
-        <AskBox />
-      </section>
 
       {trends.length > 0 && (
         <section>

@@ -23,7 +23,7 @@ const CONFIDENCE_BADGE = {
 
 function Label({ children }: { children: React.ReactNode }) {
   return (
-    <h2 className="mb-2 font-mono text-[10px] font-bold uppercase tracking-[0.06em] text-neutral-400">
+    <h2 className="t-meta mb-2 text-[10px] font-bold uppercase tracking-[0.06em] text-neutral-400">
       {children}
     </h2>
   );
@@ -96,7 +96,7 @@ export default async function PatternPage({
       <div>
         <Link
           href="/graph"
-          className="inline-flex items-center gap-1 font-mono text-[11px] uppercase tracking-[0.04em] text-neutral-400 hover:text-neutral-600"
+          className="inline-flex items-center gap-1 t-meta text-[11px] font-bold uppercase tracking-[0.04em] text-neutral-400 hover:text-neutral-600"
         >
           <ChevronLeft className="size-3" />
           Graph
@@ -111,7 +111,7 @@ export default async function PatternPage({
             <Badge variant="secondary">not matched for you</Badge>
           )}
           {lastReviewed && (
-            <span className="font-mono text-[10px] uppercase tracking-[0.06em] text-neutral-400">
+            <span className="t-meta text-[10px] font-bold uppercase tracking-[0.06em] text-neutral-400">
               last reviewed {lastReviewed}
             </span>
           )}
@@ -123,14 +123,14 @@ export default async function PatternPage({
 
         {matched ? (
           <p className="mt-3 font-body text-[13px] text-neutral-600">
-            <span className="font-mono text-[10px] uppercase text-neutral-400">
+            <span className="t-meta text-[10px] font-bold uppercase text-neutral-400">
               Why this matched ·{" "}
             </span>
             {match?.reasons.join("; ") || "the detector matched"}
           </p>
         ) : (
           <p className="mt-3 font-body text-[13px] text-neutral-600">
-            <span className="font-mono text-[10px] uppercase text-neutral-400">
+            <span className="t-meta text-[10px] font-bold uppercase text-neutral-400">
               What it looks for ·{" "}
             </span>
             {pattern.detects}
@@ -157,24 +157,18 @@ export default async function PatternPage({
       </section>
 
       <section>
-        <Label>Escalations · {pattern.effects.escalations.length}</Label>
+        <Label>
+          Tests that would confirm it · {pattern.effects.escalations.length}
+        </Label>
         <div className="card divide-y divide-neutral-100">
           {pattern.effects.escalations.map((e) => {
             const done = escalationDone(e.suggest, input);
             return (
               <div key={e.id} className="flex items-start gap-3 px-4 py-3">
-                <span
-                  className={`mt-[2px] shrink-0 font-mono text-[10px] uppercase tracking-[0.04em] ${
-                    done
-                      ? "text-[var(--color-health-normal)]"
-                      : "text-neutral-400"
-                  }`}
-                >
-                  {done ? "done" : "not yet"}
-                </span>
                 <div className="flex-1">
-                  <p className="font-body text-[13px] text-neutral-800">
+                  <p className="t-body text-neutral-800">
                     {e.suggest}
+                    {done && <span className="t-meta text-[12px]"> · done</span>}
                   </p>
                   <p className="deep mt-1 font-body text-[12px] text-neutral-500">
                     {e.why} · tier {e.tier} · {e.ref}
@@ -208,7 +202,7 @@ export default async function PatternPage({
                     {NAMES.get(edge.from) ?? edge.from} {edge.relation}{" "}
                     {NAMES.get(edge.to) ?? edge.to}
                   </p>
-                  <span className="font-mono text-[10px] uppercase tracking-[0.04em] text-neutral-400">
+                  <span className="t-meta text-[10px] font-bold uppercase tracking-[0.04em] text-neutral-400">
                     strength {edge.strength}
                   </span>
                 </div>
@@ -216,7 +210,7 @@ export default async function PatternPage({
                   {edge.mechanism}
                   {override?.note ? ` (${override.note})` : ""}
                 </p>
-                <p className="deep mt-1 font-mono text-[11px] text-neutral-500">
+                <p className="t-meta deep mt-1 text-[12px]">
                   {edge.id} · evidence:{" "}
                   {edge.evidence
                     .map(

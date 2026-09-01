@@ -269,7 +269,7 @@ export function TopNav({
         ))}
         <button
           aria-label="Post something"
-          onClick={openComposer}
+          onClick={() => openComposer()}
           className="flex cursor-pointer flex-col items-center justify-center py-1"
         >
           <span className="flex size-9 items-center justify-center rounded-full bg-neutral-900 text-neutral-0">

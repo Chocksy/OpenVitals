@@ -55,7 +55,7 @@ export function TodayAsk({
 
   if (!ask)
     return (
-      <p id={ASK_ID} className="font-body text-[13px] text-neutral-500">
+      <p id={ASK_ID} className="t-body text-neutral-500">
         {onEmpty}
       </p>
     );
@@ -69,12 +69,12 @@ export function TodayAsk({
         // tall, so it moves about half its own height.
         style={{ "--panel-translate-y": "28px" } as React.CSSProperties}
       >
-        <p className="text-pretty font-body text-[13px] text-neutral-800">
+        <p className="t-body text-neutral-800">
           {ask.question}
         </p>
         {ask.moves.length > 0 && (
-          <p className="mt-0.5 font-mono text-[11px] tabular-nums text-neutral-500">
-            moves {effectLine(ask.moves)}
+          <p className="t-meta mt-0.5 text-[12px]">
+            Answering moves {effectLine(ask.moves)}
           </p>
         )}
         <div className="mt-2">
