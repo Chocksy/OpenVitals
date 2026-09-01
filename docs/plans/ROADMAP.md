@@ -160,9 +160,13 @@ Parked from 25: Discuss answers arrive whole (make `/api/plan/discuss` stream or
 
 Parked from 26: `hkb_interventions` carries a grade-B "whole system Ayurveda protocol" for hashimoto (the intake graded a small trial B; policy question, not plumbing); `protocol_items` has no dedupe; the ask-eval judge does not see the engine's conclusions block so it under-scores engine probabilities; tooltip flip-below untested live.
 
+| 27 | Answers you can act on: structured answers with an Act-on-it row (add action, add all, plan retest feeding Next draw, answer question, ask-your-doctor copy), closed-set guard, About mode handles statements about an action (already doing → protocol + exercise fact; started/stopped/not for me/did it today) and cards say "You're already doing this since …"; eval:ask gains chip/invented checks; 1240 tests | `4b07bfc`…this |
+
+Parked from 27: `next-test` answers list tests without saying what each settles (prompt); five duplicate Selenium protocol rows on the test account predate the idempotency guard; a Turbopack HMR staleness made Discuss open without a subject on the dev server only (watch prod); "Plan retest" cards still link to /insights rather than planning the marker directly.
+
 ## In progress
 
-Nothing. Owner pass three.
+Nothing. Owner pass four.
 
 
 ## Next
