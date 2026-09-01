@@ -7,14 +7,18 @@ import { recordBeliefs } from "@/lib/ledger";
 /**
  * "Not for me". The title lands in the `dismissed_actions` fact, which the
  * context pack repeats back to the model so it stops proposing it.
+ *
+ * `undo: true` takes it back out, because a dismissal the person cannot
+ * reverse is a trap: the toast offers one tap and this is what it posts.
  */
 export async function POST(req: Request) {
   const userId = await currentUserId();
   if (!userId) return Response.json({ error: "unauthorized" }, { status: 401 });
 
-  const { reportId, actionIndex } = (await req.json()) as {
+  const { reportId, actionIndex, undo } = (await req.json()) as {
     reportId?: string;
     actionIndex?: number;
+    undo?: boolean;
   };
   if (!reportId || typeof actionIndex !== "number")
     return Response.json({ error: "no action" }, { status: 400 });
@@ -42,11 +46,12 @@ export async function POST(req: Request) {
   const titles = new Set(
     Array.isArray(existing?.value) ? (existing.value as string[]) : [],
   );
-  titles.add(action.title);
+  if (undo) titles.delete(action.title);
+  else titles.add(action.title);
   const value = [...titles];
 
   await writeFact(userId, "dismissed_actions", value, { source: "system" });
 
   await recordBeliefs(userId);
-  return Response.json({ ok: true });
+  return Response.json({ ok: true, dismissed: !undo, title: action.title });
 }

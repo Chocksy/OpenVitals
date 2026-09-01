@@ -12,7 +12,7 @@
  */
 import type { ModelInput } from "./coverage";
 import { symptomByKey } from "./symptoms";
-import { PROFILE_QUESTIONS, type Sex } from "./vectors";
+import { LIST_FACTS, PROFILE_QUESTIONS, type Sex } from "./vectors";
 
 const DAY = 86_400_000;
 
@@ -56,7 +56,12 @@ export const SKIP_DAYS = 30;
 
 export interface DueFact {
   key: string;
-  /** re-ask wording, derived from the value: "Still 16:00?", "Still yes?" */
+  /**
+   * What the row asks, in words. "Still yes? SYM COLD" was the engine talking
+   * to itself, so this is the question the interview asked — a list answer is
+   * re-asked as itself, because "Still: Non-alcoholic fatty liver disease?" is
+   * the whole question.
+   */
   question: string;
   /** the question as the interview first asked it, one tap away */
   original: string;
@@ -145,9 +150,15 @@ const applies = (
 const text = (v: unknown) =>
   Array.isArray(v) ? v.join(", ") : String(v ?? "").trim();
 
-/** "Still 16:00?" for a number or a time, "Still yes?" for an option. */
-const reAsk = (value: string, options: string[]): string =>
-  `Still ${options.length ? value.toLowerCase() : value}?`;
+/**
+ * The re-ask, in the words the person was asked the first time.
+ *
+ * A list of things they were diagnosed with is read back item by item
+ * ("Still: Non-alcoholic fatty liver disease?"); everything else re-asks its
+ * own question, and the surface prints the answer on file next to it.
+ */
+const reAsk = (key: string, question: string, value: string): string =>
+  LIST_FACTS.has(key) ? `Still: ${value}?` : question;
 
 const RANK: Record<DueFact["why"], number> = {
   gain: 0,
@@ -208,7 +219,7 @@ export function dueFacts(
     const options = q.options ?? [];
     out.push({
       key: row.key,
-      question: reAsk(current, options),
+      question: reAsk(row.key, q.question, current),
       original: q.question,
       options,
       current,

@@ -1,5 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { asksFromMoves, askSurfaces, effectLine, type Ask } from "./asking";
+import {
+  ASK_ID,
+  askHref,
+  asksFromMoves,
+  askSurfaces,
+  effectLine,
+  type Ask,
+} from "./asking";
 import type { Move } from "./infogain";
 
 const question = (
@@ -79,6 +86,16 @@ describe("asksFromMoves", () => {
   });
 });
 
+describe("askHref", () => {
+  it("carries the key to the one input, and still anchors", () => {
+    expect(askHref("smoking")).toBe(`/?ask=smoking#${ASK_ID}`);
+    expect(askHref("cycle_phase_at_last_draw")).toContain(
+      "ask=cycle_phase_at_last_draw",
+    );
+    expect(askHref()).toBe(`/#${ASK_ID}`);
+  });
+});
+
 describe("askSurfaces", () => {
   const ask = (key: string): Ask => ({
     key,
@@ -117,6 +134,28 @@ describe("askSurfaces", () => {
     const plan = askSurfaces({ ...home, due: ["waist_cm"] });
     expect(plan.ask?.key).toBe("sym_energy");
     expect(plan.inputs).toEqual(["waist_cm", "sym_energy"]);
+  });
+
+  /**
+   * Phase 25a item 3. "Answer →" under "Do you smoke?" used to land on
+   * `/#today-question`, which asked whatever the engine ranked first. The link
+   * carries the key now, and the key wins the one input.
+   */
+  it("asks the question the link asked for, not the best one", () => {
+    const plan = askSurfaces(home, "sym_energy");
+    expect(plan.ask?.key).toBe("sym_energy");
+    expect(plan.inputs).toEqual(["bedtime_hour", "sym_energy"]);
+  });
+
+  it("falls back to the best question when the wanted key is not on offer", () => {
+    const plan = askSurfaces(home, "not_a_key");
+    expect(plan.ask?.key).toBe("waist_cm");
+  });
+
+  it("never doubles the input when the wanted key is already due", () => {
+    const plan = askSurfaces({ ...home, due: ["waist_cm"] }, "waist_cm");
+    expect(plan.inputs).toEqual(["waist_cm", "sym_energy"]);
+    expect(new Set(plan.inputs).size).toBe(plan.inputs.length);
   });
 
   it("asks nothing when the engine has nothing to ask", () => {

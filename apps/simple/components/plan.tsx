@@ -10,6 +10,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { PillTabs } from "./pill-tabs";
 import { Check, MessageSquare, RefreshCw, Stethoscope } from "lucide-react";
+import { toast } from "./motion";
 import { Button } from "./ui-kit";
 
 const STORAGE_KEY = "planView";
@@ -185,11 +186,20 @@ export function AdoptHorizon({
 
 const MAX_MESSAGE = 1000;
 
+/** `--panel-close-dur`: how long the exit is given before the row is gone. */
+const EXIT_MS = 350;
+
+const rowAction =
+  "font-mono text-[11px] uppercase tracking-[0.04em] hover:underline disabled:opacity-40 disabled:no-underline";
+
 /**
  * Three buttons and no more. A test or a doctor action cannot be ticked off
  * every day, so it links to the retest plan instead of joining the protocol.
- * Discuss opens one box; the reply is written onto the report, so the page
- * refresh below renders it as part of the card's thread.
+ *
+ * Phase 25a. Discuss keeps its reply on screen: the answer used to be written
+ * onto the report and the box closed, so on Home — which never renders the
+ * report's notes — the person watched "Asking…" and then nothing. "Not for me"
+ * says what it did, in the toast, with one tap to take it back.
  */
 export function ActionButtons({
   reportId,
@@ -202,8 +212,42 @@ export function ActionButtons({
 }) {
   const { run, busy, error } = useAction();
   const [state, setState] = useState<"open" | "adopted" | "dismissed">("open");
+  /** the exit of `07-panel-reveal.md`, played before the row is gone */
+  const [leaving, setLeaving] = useState(false);
   const [asking, setAsking] = useState(false);
   const [message, setMessage] = useState("");
+  const [reply, setReply] = useState<{ q: string; a: string } | null>(null);
+
+  const dismiss = async () => {
+    const res = await run("/api/plan/dismiss", { reportId, actionIndex });
+    if (!res) return;
+    setLeaving(true);
+    toast("Hidden from your plan", {
+      label: "undo",
+      run: async () => {
+        setLeaving(false);
+        setState("open");
+        await run("/api/plan/dismiss", { reportId, actionIndex, undo: true });
+      },
+    });
+    window.setTimeout(
+      () => setState((s) => (s === "open" ? "dismissed" : s)),
+      EXIT_MS,
+    );
+  };
+
+  const send = async () => {
+    const text = message.slice(0, MAX_MESSAGE);
+    const res = await run("/api/plan/discuss", {
+      reportId,
+      actionIndex,
+      message: text,
+    });
+    if (!res) return;
+    setReply({ q: text, a: String(res.reply ?? "") });
+    setMessage("");
+    setAsking(false);
+  };
 
   if (state === "adopted")
     return (
@@ -211,17 +255,16 @@ export function ActionButtons({
         <Check className="size-3" /> Adopted
       </span>
     );
-  if (state === "dismissed")
-    return (
-      <span className="font-mono text-[10px] uppercase tracking-[0.04em] text-neutral-400">
-        Not for me
-      </span>
-    );
+  if (state === "dismissed") return null;
 
   const isTest = kind === "test" || kind === "doctor";
 
   return (
-    <div className="space-y-2">
+    <div
+      className="t-panel-slide space-y-2"
+      data-open={!leaving}
+      style={{ "--panel-translate-y": "12px" } as React.CSSProperties}
+    >
       <div className="flex flex-wrap items-center gap-2">
         {isTest ? (
           <Link
@@ -243,15 +286,7 @@ export function ActionButtons({
             Add to protocol
           </Button>
         )}
-        <Button
-          size="sm"
-          variant="ghost"
-          disabled={busy}
-          onClick={async () => {
-            if (await run("/api/plan/dismiss", { reportId, actionIndex }))
-              setState("dismissed");
-          }}
-        >
+        <Button size="sm" variant="ghost" disabled={busy} onClick={dismiss}>
           Not for me
         </Button>
         <Button
@@ -283,20 +318,25 @@ export function ActionButtons({
             size="sm"
             variant="outline-subtle"
             disabled={busy || !message.trim()}
-            onClick={async () => {
-              const res = await run("/api/plan/discuss", {
-                reportId,
-                actionIndex,
-                message: message.slice(0, MAX_MESSAGE),
-              });
-              if (res) {
-                setMessage("");
-                setAsking(false);
-              }
-            }}
+            onClick={send}
           >
             {busy ? "Asking…" : "Send"}
           </Button>
+        </div>
+      )}
+
+      {reply && (
+        <div className="space-y-1 border-l-2 border-accent-500 bg-accent-50 px-3 py-2">
+          <p className="font-body text-[12px] text-neutral-500">{reply.q}</p>
+          <p className="font-body text-[13px] leading-relaxed text-neutral-800">
+            {reply.a}
+          </p>
+          <button
+            className={`${rowAction} text-neutral-500 hover:text-neutral-900`}
+            onClick={() => setReply(null)}
+          >
+            close
+          </button>
         </div>
       )}
     </div>

@@ -3,6 +3,7 @@ import { isAdmin, requireUserId } from "@/lib/auth";
 import { openReviewCount } from "@/lib/curator";
 import { localDay } from "@/lib/daily";
 import { Composer } from "@/components/composer";
+import { Toast } from "@/components/motion";
 import { TopNav } from "@/components/top-nav";
 
 /**
@@ -41,6 +42,9 @@ export default async function AppLayout({
         {children}
       </main>
       <Composer today={localDay()} app={app} />
+      {/* One toast for every page: adopting, dismissing and answering all
+          say what they did in the same place. */}
+      <Toast />
     </>
   );
 }

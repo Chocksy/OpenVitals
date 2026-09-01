@@ -10,6 +10,7 @@
  * reloads, so the person sees cause and effect instead of a flash.
  */
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { ASK_ID, effectLine, type Ask } from "@/lib/asking";
 import { AnswerQuestion } from "./client";
 import { refreshLedger, toast, type LedgerPayload } from "./ledger-motion";
@@ -28,6 +29,7 @@ export function TodayAsk({
   options: string[];
   onEmpty?: string;
 }) {
+  const router = useRouter();
   const [ask, setAsk] = useState<LiveAsk | null>({ ...first, options });
   const [open, setOpen] = useState(true);
 
@@ -39,9 +41,15 @@ export function TodayAsk({
     }, 360);
   };
 
+  /**
+   * The answer is already written. Re-read the ledger for the toast line and
+   * the next question, then ask the server for the page again: the new numbers
+   * arrive as props, and `components/motion.tsx` animates them.
+   */
   const saved = async () => {
     const { ask: next, diff } = await refreshLedger();
     toast(diff?.line ? `Saved · ${diff.line}` : "Saved");
+    router.refresh();
     advance(next);
   };
 

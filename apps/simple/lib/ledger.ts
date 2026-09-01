@@ -856,8 +856,14 @@ export async function buildLedger(
       matters: mattersOf(h),
       for: h.for,
       against: h.against,
-      missing: h.missing.map((x) => explainKey(x.input)),
-      confounded: h.confounded.map((c) => `${explainKey(c.input)} (${c.tag})`),
+      /**
+       * Two rules waiting on the same marker are one thing to measure, so the
+       * "Never measured" line says Testosterone once.
+       */
+      missing: [...new Set(h.missing.map((x) => explainKey(x.input)))],
+      confounded: [
+        ...new Set(h.confounded.map((c) => `${explainKey(c.input)} (${c.tag})`)),
+      ],
       inputs: [
         ...codes.flatMap((code) => {
           const r = latestReading.get(code);

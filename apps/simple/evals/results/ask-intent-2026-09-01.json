@@ -1,0 +1,47 @@
+{
+  "ranAt": "2026-09-01T10:51:28.280Z",
+  "results": [
+    {
+      "id": "term-disease",
+      "route": "term",
+      "term": "haemochromatosis",
+      "failed": [],
+      "pass": true
+    },
+    {
+      "id": "term-two-words",
+      "route": "term",
+      "term": "type 2 diabetes",
+      "failed": [],
+      "pass": true
+    },
+    {
+      "id": "term-symptom",
+      "route": "term",
+      "term": "cold hands feet",
+      "failed": [],
+      "pass": true
+    },
+    {
+      "id": "question-t2d",
+      "route": "question",
+      "term": "type 2 diabetes",
+      "failed": [],
+      "pass": true
+    },
+    {
+      "id": "question-marker",
+      "route": "question",
+      "term": "apob",
+      "failed": [],
+      "pass": true
+    },
+    {
+      "id": "question-risk",
+      "route": "question",
+      "term": "worry fatty liver disease",
+      "failed": [],
+      "pass": true
+    }
+  ]
+}

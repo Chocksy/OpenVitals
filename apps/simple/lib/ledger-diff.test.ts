@@ -124,6 +124,38 @@ describe("ledgerDiff", () => {
   });
 });
 
+/**
+ * Phase 25a item 8. "Questions worth answering" only moved when the Today
+ * question was answered; a Still-true confirm, skip or change left the number
+ * where it was until the next full reload. Every one of those paths now ends
+ * in a server re-render, and the diff is what says the counter moved.
+ */
+describe("the questions counter", () => {
+  const withQuestions = (n: number) => snap([card("ir", 1, 64)], { questions: n });
+
+  it("moves when a still-true confirm takes a question off the list", () => {
+    const d = ledgerDiff(withQuestions(21), withQuestions(20));
+    expect(d.counters).toEqual([{ key: "questions", from: 21, to: 20 }]);
+    expect(moved(d)).toBe(true);
+  });
+
+  it("moves when a changed answer puts a new question on it", () => {
+    const d = ledgerDiff(withQuestions(20), withQuestions(22));
+    expect(d.counters).toEqual([{ key: "questions", from: 20, to: 22 }]);
+  });
+
+  it("says nothing when a skip changed no belief and no count", () => {
+    expect(moved(ledgerDiff(withQuestions(21), withQuestions(21)))).toBe(false);
+  });
+
+  it("reports a counter move even when no card moved", () => {
+    const d = ledgerDiff(withQuestions(21), withQuestions(20));
+    expect(d.numbers).toEqual([]);
+    expect(d.moved).toEqual([]);
+    expect(moved(d)).toBe(true);
+  });
+});
+
 describe("snapshotLedger", () => {
   it("keeps only what can visibly change", () => {
     const ledger = {

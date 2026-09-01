@@ -6,7 +6,7 @@
  */
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
-import { ASK_HREF, effectLine, type Ask } from "@/lib/asking";
+import { askHref, effectLine, type Ask } from "@/lib/asking";
 
 export function AskLink({
   ask,
@@ -27,7 +27,7 @@ export function AskLink({
             : "1 answer would move this"}
         </span>
         <Link
-          href={ASK_HREF}
+          href={askHref(ask.key)}
           className="inline-flex h-10 items-center gap-1 px-1 font-display text-[12px] tracking-[0.04em] text-accent-600 underline transition-colors duration-150 ease-out hover:text-neutral-900 active:scale-[0.96]"
         >
           Answer

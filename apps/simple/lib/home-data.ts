@@ -50,15 +50,37 @@ export const askKeyOf = (c: Conclusion): string | undefined =>
  * have shown. Phase 24a wrote the rule; phase 24d needed both callers to
  * agree, which is why it lives here and not inside the page.
  */
-export function homeAskPlan(ledger: Ledger, due: DueFact[]): AskPlan {
-  return askSurfaces({
-    due: due.map((d) => d.key),
-    gain: ledger.asks,
-    others: ledger.conclusions.flatMap((c) => {
-      const key = askKeyOf(c);
-      return key ? [{ where: `card:${c.id}`, keys: [key] }] : [];
-    }),
-  });
+export function homeAskPlan(
+  ledger: Ledger,
+  due: DueFact[],
+  /** the key a link asked for: `/?ask=smoking` */
+  want?: string,
+): AskPlan {
+  /**
+   * A link can name a question the engine is not currently ranking — every
+   * open review item on /plan links here. So the wanted key joins the gain
+   * list with its catalog wording and no effect line, rather than dropping the
+   * reader on somebody else's question.
+   */
+  const gain =
+    want && PROFILE_QUESTIONS[want] && !ledger.asks.some((a) => a.key === want)
+      ? [
+          { key: want, question: PROFILE_QUESTIONS[want].question, moves: [] },
+          ...ledger.asks,
+        ]
+      : ledger.asks;
+
+  return askSurfaces(
+    {
+      due: due.map((d) => d.key),
+      gain,
+      others: ledger.conclusions.flatMap((c) => {
+        const key = askKeyOf(c);
+        return key ? [{ where: `card:${c.id}`, keys: [key] }] : [];
+      }),
+    },
+    want,
+  );
 }
 
 /** The options that question offers, empty for a free-text one. */

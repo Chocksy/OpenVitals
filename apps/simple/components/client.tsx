@@ -591,13 +591,25 @@ export function StillTrue({
   const save = (value: string) =>
     run("/api/facts", { key: factKey, value, kind: "changed", date });
 
+  /**
+   * The answer on file, said out loud. A list answer is already inside the
+   * question ("Still: Non-alcoholic fatty liver disease?"), so it is not
+   * repeated; a key is never printed at all.
+   */
+  const held = question.includes(current) ? null : current;
+  /** "Still yes" reads; "Still non-alcoholic fatty liver disease" does not. */
+  const stillLabel =
+    current.length > 16 ? "Still true" : `Still ${current.toLowerCase()}`;
+
   return (
     <div className="flex flex-col gap-1.5 border-l-2 border-neutral-200 pl-3">
       <p className="font-body text-[13px] text-neutral-800" title={original}>
         {question}
-        <span className="ml-1.5 font-mono text-[10px] uppercase tracking-[0.04em] text-neutral-400">
-          {factKey.replace(/_/g, " ")}
-        </span>
+        {held && (
+          <span className="ml-1.5 font-mono text-[11px] text-neutral-400">
+            · you said {held}
+          </span>
+        )}
       </p>
       {!changing ? (
         <div className="flex flex-wrap items-center gap-1.5">
@@ -609,7 +621,7 @@ export function StillTrue({
               run("/api/facts/revisit", { key: factKey, action: "confirm" })
             }
           >
-            Still {current.toLowerCase()}
+            {stillLabel}
           </Button>
           <Button
             size="sm"

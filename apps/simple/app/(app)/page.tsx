@@ -31,15 +31,22 @@ import {
   type MarkerGroup,
 } from "@/components/home";
 import { LedgerMotion } from "@/components/ledger-motion";
+import { LedgerList } from "@/components/motion";
 import { AskBox } from "@/components/ask-box";
 
 export const dynamic = "force-dynamic";
 
 const KEY_TRENDS = 4;
 
-export default async function Home() {
+export default async function Home({
+  searchParams,
+}: {
+  /** `?ask=<fact key>`: the question a link somewhere else asked for */
+  searchParams: Promise<{ ask?: string }>;
+}) {
   const userId = await requireUserId();
 
+  const want = (await searchParams).ask;
   const day = localDay();
   const [ledger, report, rows, goals, catalog, today, findings] =
     await Promise.all([
@@ -74,7 +81,7 @@ export default async function Home() {
    * `GET /api/ledger` calls the same function, so the question Today advances
    * to after an answer is the one a reload would have shown.
    */
-  const plan = homeAskPlan(ledger, today.due);
+  const plan = homeAskPlan(ledger, today.due, want);
   const askOf = (c: Conclusion) => linkedAsk(ledger, plan, c);
 
   const { spear } = ledger;
@@ -182,6 +189,7 @@ export default async function Home() {
         today={today}
         day={day}
         ask={plan.ask}
+        askKey={want}
         askOptions={plan.ask ? optionsFor(plan.ask.key) : []}
       />
       <Cockpit ledger={ledger} />
@@ -203,7 +211,7 @@ export default async function Home() {
       )}
 
       {(rest.length > 0 || findings.length > 0) && (
-        <section className="space-y-2" data-ledger>
+        <LedgerList className="space-y-2">
           <SectionHeader title="The ledger" />
           {findings.map((f) => (
             <FindingsCard key={f.id} finding={f} />
@@ -211,7 +219,7 @@ export default async function Home() {
           {collapse(loud).map(row)}
           <ImprovedCard improved={ledger.improved} />
           {collapse(quietTail).map(row)}
-        </section>
+        </LedgerList>
       )}
 
       <QuietLine quiet={ledger.quiet} />

@@ -24,6 +24,22 @@ const num = (v: number | null | undefined): v is number =>
 
 const trim = (v: number) => (Number.isInteger(v) ? String(v) : v.toFixed(1));
 
+/**
+ * A band with one open side reads as the bound it actually has: "optimal under
+ * 20", never "optimal …-20", which looked like a truncated number.
+ */
+const bandLabel = (
+  lo: number | null | undefined,
+  hi: number | null | undefined,
+): string =>
+  num(lo) && num(hi)
+    ? `${trim(lo)}–${trim(hi)}`
+    : num(hi)
+      ? `under ${trim(hi)}`
+      : num(lo)
+        ? `over ${trim(lo)}`
+        : "";
+
 export function RangeBar({
   value,
   prev,
@@ -107,17 +123,13 @@ export function RangeBar({
       </div>
       <div className="mt-1 flex justify-between gap-2 font-mono text-[10px] tabular-nums text-neutral-400">
         {normal ? (
-          <span>
-            ref {num(refLow) ? trim(refLow) : "…"}–
-            {num(refHigh) ? trim(refHigh) : "…"}
-          </span>
+          <span>ref {bandLabel(refLow, refHigh)}</span>
         ) : (
           <span />
         )}
         {optimal && (
           <span className="text-[var(--color-health-optimal)]">
-            optimal {num(optimalLow) ? trim(optimalLow) : "…"}–
-            {num(optimalHigh) ? trim(optimalHigh) : "…"}
+            optimal {bandLabel(optimalLow, optimalHigh)}
           </span>
         )}
         {num(goal) && (

@@ -22,6 +22,8 @@ import {
   hkbTerms,
   userConditions,
 } from "@/db";
+import { chatContext } from "./ai";
+import { termQuery } from "./ask-intent";
 import { buildModelInput, type ModelInput } from "./coverage";
 import { model } from "./extract";
 import { catalogFor } from "./hkb";
@@ -177,6 +179,10 @@ export interface AskAnswer {
   canConsider: boolean;
   /** one plain sentence, when the model wrote one */
   sentence?: string;
+  /** the grounded reply, when the box was asked a question rather than a word */
+  reply?: string;
+  /** what the router did with the input: a word, or a question */
+  route?: "term" | "question";
 }
 
 /**
@@ -432,6 +438,71 @@ export async function plainSentence(
 }
 
 /* ── "Consider this for me" ───────────────────────────────────────────── */
+
+const QUESTION_SYSTEM = `You are the engine behind a personal health app, answering one question from the person whose data you are given.
+
+RULES:
+- 2 to 4 sentences, plain English, no greeting, no sign-off, no bullet list.
+- Use only the numbers and findings in the context. Never invent a value, a probability or a diagnosis.
+- Say what their own data says about the question first; general advice comes second and only when their data supports it.
+- If the context does not answer the question, say plainly what is missing and what would answer it.
+- You are not a doctor: do not prescribe, do not diagnose, do not name a dose.`;
+
+/**
+ * A question, answered from this person's own picture.
+ *
+ * The engine still decides every number: the lookup runs over the disease the
+ * question named (`termQuery`), the conclusions come from `scoreHypotheses`,
+ * and "what would move it" is `nextMoves`. The model only writes the prose,
+ * and with no key the box still answers with everything below the sentence.
+ */
+export async function answerQuestion(
+  userId: string,
+  question: string,
+): Promise<AskAnswer> {
+  const named = await answerAsk(userId, termQuery(question));
+  const base: AskAnswer = { ...named, route: "question" };
+  if (!process.env.OPENROUTER_API_KEY) return base;
+
+  const [context, input, catalog] = await Promise.all([
+    chatContext(userId).catch(() => ""),
+    buildModelInput(userId),
+    catalogFor(userId),
+  ]);
+  const conclusions = scoreHypotheses(input, { catalog })
+    .filter((h) => h.score >= 0.05)
+    .slice(0, 8)
+    .map(
+      (h) => `${h.name}: ${h.state.replace("_", " ")} (${Math.round(h.score * 100)} %)`,
+    );
+
+  const { text } = await generateText({
+    model: model(),
+    system: QUESTION_SYSTEM,
+    prompt: `THEIR QUESTION: ${question}
+
+WHAT THE ENGINE CONCLUDES ABOUT THEM RIGHT NOW:
+${conclusions.join("\n") || "nothing is on the table yet"}
+
+WHAT THE LOOKUP FOUND FOR THE THING THEY NAMED:
+${JSON.stringify(
+  {
+    matched: named.term?.name ?? null,
+    ring: named.condition?.ring ?? null,
+    probability: named.probability,
+    state: named.state,
+    prior: named.condition?.prior ?? null,
+    whatWouldMoveIt: named.moves.map((m) => m.label),
+  },
+  null,
+  1,
+)}
+
+${context}`,
+  });
+
+  return { ...base, reply: text.trim() };
+}
 
 /**
  * Wake what the person typed. A ring-3 name is promoted to ring 2 first, so

@@ -3,6 +3,7 @@ import type { MetricRow } from "./data";
 import { GENOME_CATALOG } from "./genome-catalog";
 import { CATALOG } from "./hkb-catalog";
 import {
+  changedLine,
   documentFinding,
   explainInput,
   explainKey,
@@ -470,6 +471,47 @@ describe("the risk grammar", () => {
 });
 
 /* ── phase 24c: the engine's inputs in English ────────────────────────── */
+
+/* ── phase 25a item 9: three small lies on the cards ──────────────────── */
+
+describe("changedLine", () => {
+  it("does not print a change of state that did not happen", () => {
+    expect(changedLine({ from: "likely", to: "likely", deltaP: 0.08 })).toBe(
+      "+8 pts since yesterday",
+    );
+    expect(changedLine({ from: "likely", to: "likely", deltaP: -0.04 })).toBe(
+      "-4 pts since yesterday",
+    );
+  });
+
+  it("still says what flipped when something flipped", () => {
+    expect(changedLine({ from: "possible", to: "likely", deltaP: 0.21 })).toBe(
+      "was possible → likely (+21 pts)",
+    );
+    expect(changedLine({ to: "possible", deltaP: 0.3 })).toBe(
+      "was not scored → possible (+30 pts)",
+    );
+    expect(changedLine({ from: "ruled_out", to: "possible", deltaP: 0.3 })).toBe(
+      "was ruled out → possible (+30 pts)",
+    );
+  });
+});
+
+describe("explainKey", () => {
+  it("prints a marker the graph does not name as the acronym it is", () => {
+    expect(explainKey("amh")).toBe("AMH");
+    expect(explainKey("shbg")).toBe("SHBG");
+  });
+
+  it("still prefers a name the graph does carry", () => {
+    expect(explainKey("hba1c")).toBe("HbA1c");
+    expect(explainKey("testosterone")).toBe("Testosterone");
+  });
+
+  it("leaves a compound key as words", () => {
+    expect(explainKey("some_unknown_thing")).toBe("some unknown thing");
+  });
+});
 
 describe("explainInput", () => {
   const line = (input: string, value: string, lr = 2) => ({

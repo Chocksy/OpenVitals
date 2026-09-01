@@ -19,6 +19,17 @@ import type { Move } from "./infogain";
 export const ASK_ID = "today-question";
 export const ASK_HREF = `/#${ASK_ID}`;
 
+/**
+ * The link a surface that is not Today prints.
+ *
+ * It carries the key, because `/#today-question` alone was a dead end: the
+ * Today card shows the question it ranked first, so "Answer" under "Do you
+ * smoke?" landed on a card asking about waist size. With the key, Home renders
+ * the question that was clicked first and then goes on with its own list.
+ */
+export const askHref = (key?: string): string =>
+  key ? `/?ask=${encodeURIComponent(key)}#${ASK_ID}` : ASK_HREF;
+
 /** One condition an answer would move, in the units the cards print. */
 export interface AskMove {
   id: string;
@@ -112,11 +123,20 @@ export interface AskPlan {
  * The due re-asks are inputs because the Today card is where they live. The
  * best gain question joins them unless it is already one of them. Everything
  * any other surface wanted becomes a link, whether or not Today is asking it.
+ *
+ * `want` is the key a link asked for (`/?ask=smoking`). It wins the input,
+ * because the person just told us which question they came to answer.
  */
-export function askSurfaces(page: PageAsks): AskPlan {
+export function askSurfaces(page: PageAsks, want?: string): AskPlan {
   const inputs = [...new Set(page.due)];
-  const ask = page.gain.find((a) => !inputs.includes(a.key));
-  if (ask) inputs.push(ask.key);
+  // A key that is already a due re-ask has its input on Today; asking for it
+  // again would put the same question on the card twice.
+  const wanted =
+    want && !inputs.includes(want)
+      ? page.gain.find((a) => a.key === want)
+      : undefined;
+  const ask = wanted ?? page.gain.find((a) => !inputs.includes(a.key));
+  if (ask && !inputs.includes(ask.key)) inputs.push(ask.key);
   return {
     ...(ask ? { ask } : {}),
     inputs,

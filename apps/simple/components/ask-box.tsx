@@ -47,6 +47,9 @@ interface Answer {
   finding: { present: boolean | null; because: string | null } | null;
   canConsider: boolean;
   sentence?: string;
+  /** the grounded answer, when the box was asked a question */
+  reply?: string;
+  route?: "term" | "question";
   error?: string;
 }
 
@@ -112,7 +115,7 @@ export function AskBox({ compact = false }: { compact?: boolean }) {
         <Search className="size-4 shrink-0 text-neutral-400" />
         <input
           className="min-w-0 flex-1 border-b border-neutral-200 bg-transparent py-1.5 font-body text-[14px] outline-none placeholder:text-neutral-400 focus:border-neutral-400"
-          placeholder="Ask about anything — a disease, a symptom, a word"
+          placeholder="Ask about anything — a disease, a symptom, a question"
           value={q}
           onChange={(e) => setQ(e.target.value)}
           onKeyDown={(e) => {
@@ -135,10 +138,16 @@ export function AskBox({ compact = false }: { compact?: boolean }) {
         </p>
       )}
 
-      {answer && !answer.error && !answer.term && (
+      {answer?.reply && (
+        <p className="mt-3 whitespace-pre-line font-body text-[13px] leading-relaxed text-neutral-800">
+          {answer.reply}
+        </p>
+      )}
+
+      {answer && !answer.error && !answer.term && !answer.reply && (
         <p className="mt-3 font-body text-[13px] text-neutral-500">
-          Nothing in HPO or MONDO matches that. Try the disease name, or the
-          symptom in plain words.
+          I don&apos;t know that word. Ask it as a question, or try the disease
+          name.
         </p>
       )}
 

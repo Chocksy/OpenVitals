@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { ModelInput } from "./coverage";
+import { PROFILE_QUESTIONS } from "./vectors";
 import {
   addDays,
   dueFacts,
@@ -69,28 +70,68 @@ describe("what is due today", () => {
     expect(due[0]!.why).toBe("due");
   });
 
-  it("derives the re-ask from the value, and keeps the original question", () => {
+  it("re-asks in the words the interview used, never a key", () => {
     const due = dueFacts(
       input(),
       [row({ key: "coffee_last_hour", value: "16:00", revisitAt: TODAY })],
       {},
       TODAY,
     );
-    expect(due[0]!.question).toBe("Still 16:00?");
+    expect(due[0]!.question).toBe(PROFILE_QUESTIONS.coffee_last_hour!.question);
     expect(due[0]!.original).toContain("last coffee");
     expect(due[0]!.current).toBe("16:00");
     expect(due[0]!.since).toBe("2026-01-01");
   });
 
-  it("lowercases an option in the re-ask", () => {
+  it("asks a symptom as the symptom question, with the answer beside it", () => {
     const due = dueFacts(
       input(),
       [row({ key: "sym_energy", value: "Yes", revisitAt: TODAY })],
       {},
       TODAY,
     );
-    expect(due[0]!.question).toBe("Still yes?");
+    expect(due[0]!.question).toBe("Have you been tired most days for over a month?");
+    expect(due[0]!.question).not.toContain("sym_energy");
     expect(due[0]!.options).toEqual(["No", "Yes"]);
+  });
+
+  it("reads a list answer back as itself", () => {
+    const due = dueFacts(
+      input(),
+      [
+        row({
+          key: "conditions",
+          value: "Non-alcoholic fatty liver disease",
+          revisitAt: TODAY,
+        }),
+      ],
+      {},
+      TODAY,
+    );
+    expect(due[0]!.question).toBe("Still: Non-alcoholic fatty liver disease?");
+  });
+
+  /**
+   * The lock on phase 25a item 4: "Still yes? SYM COLD" and "CONDITIONS" were
+   * on the owner's screen. Every row has to carry wording from the catalog,
+   * and no row may print its own key.
+   */
+  it("never puts a fact key on screen", () => {
+    const keys = Object.keys(PROFILE_QUESTIONS).filter(
+      (k) => revisitDaysOf(k, "Yes") != null,
+    );
+    const rows = keys.map((key) =>
+      row({ key, value: PROFILE_QUESTIONS[key]!.options?.[0] ?? "16:00", revisitAt: TODAY }),
+    );
+    const due = dueFacts(input(), rows, {}, TODAY, rows.length);
+    expect(due.length).toBeGreaterThan(10);
+    for (const d of due) {
+      const catalog = PROFILE_QUESTIONS[d.key]!.question;
+      expect(d.original).toBe(catalog);
+      expect(d.question === catalog || d.question === `Still: ${d.current}?`).toBe(true);
+      expect(d.question).not.toContain(d.key);
+      expect(d.question).not.toMatch(/[a-z]_[a-z]/);
+    }
   });
 
   it("never asks a never-fact on the clock", () => {

@@ -9,7 +9,7 @@
 import Link from "next/link";
 import { ChevronRight, FlaskConical } from "lucide-react";
 import { ASK_HREF, type Ask } from "@/lib/asking";
-import { explainInput, type Finding } from "@/lib/explain";
+import { changedLine, explainInput, type Finding } from "@/lib/explain";
 import type { Today } from "@/lib/home-data";
 import type { Conclusion, Ledger } from "@/lib/ledger";
 import type { Move } from "@/lib/infogain";
@@ -22,6 +22,7 @@ import { PostButton } from "./composer-button";
 import { ActionButtons, GeneratePlan } from "./plan";
 import { RangeBar } from "./range-bar";
 import { StatusBadge } from "./status-badge";
+import { Digits, SwapText } from "./motion";
 import { TodayAsk } from "./today-ask";
 import { TrendChart } from "./trend-chart";
 import { Badge, Card } from "./ui-kit";
@@ -67,39 +68,6 @@ const SMALL_LINK =
   "hit-40 inline-flex cursor-pointer list-none items-center font-mono text-[11px] uppercase tracking-[0.04em] text-neutral-400 hover:text-neutral-700";
 
 /**
- * A number the ledger can replay in place (`02-number-pop-in.md`): one span
- * per character, the last two staggered. Server-rendered at rest; when an
- * answer moves it, `ledger-motion.tsx` swaps the spans and adds
- * `.is-animating`.
- */
-function Digits({
-  text,
-  className,
-  ...rest
-}: { text: string } & React.HTMLAttributes<HTMLSpanElement>) {
-  const chars = [...text];
-  return (
-    <span className={cn("t-digit-group tabular-nums", className)} {...rest}>
-      {chars.map((ch, i) => (
-        <span
-          key={`${i}-${ch}`}
-          className="t-digit"
-          data-stagger={
-            i === chars.length - 2
-              ? "1"
-              : i === chars.length - 1
-                ? "2"
-                : undefined
-          }
-        >
-          {ch}
-        </span>
-      ))}
-    </span>
-  );
-}
-
-/**
  * The lens badges said `ENERGY B · WEIGHT A · LIFESPAN A`, which is the
  * engine's vocabulary, not a person's. One line, the lens that weighs most,
  * with the grade the evidence earned.
@@ -125,15 +93,28 @@ export function TodayCard({
   today,
   day,
   ask,
+  askKey,
   askOptions = [],
 }: {
   today: Today;
   day: string;
   /** the single best question by information gain, if there is one */
   ask?: Ask;
+  /** the key `/?ask=…` asked for: that question is rendered first */
+  askKey?: string;
   askOptions?: string[];
 }) {
   const empty = !today.due.length && !today.post && !ask;
+  /**
+   * A link somewhere else said which question it came to answer, so that one
+   * goes first and the card carries on with its own list underneath.
+   */
+  const due = askKey
+    ? [...today.due].sort(
+        (a, b) => Number(b.key === askKey) - Number(a.key === askKey),
+      )
+    : today.due;
+  const askFirst = askKey != null && ask?.key === askKey;
   return (
     // 01: the card's own box changes when the question it holds changes.
     <Card className="t-resize p-4">
@@ -148,7 +129,8 @@ export function TodayCard({
         </p>
       ) : (
         <div className="mt-3 space-y-3">
-          {today.due.map((d) => (
+          {askFirst && ask && <TodayAsk ask={ask} options={askOptions} />}
+          {due.map((d) => (
             <StillTrue
               key={d.key}
               factKey={d.key}
@@ -159,7 +141,7 @@ export function TodayCard({
               today={day}
             />
           ))}
-          {ask && <TodayAsk ask={ask} options={askOptions} />}
+          {!askFirst && ask && <TodayAsk ask={ask} options={askOptions} />}
           {today.post && (
             <p className="font-body text-[13px] leading-relaxed text-neutral-600">
               <span className="font-mono text-[10px] uppercase tracking-[0.04em] text-neutral-400">
@@ -501,7 +483,7 @@ export function ConclusionCard({
           ) : (
             c.state && (
               <Badge variant={STATE_VARIANT[c.state]} data-state-chip={c.id}>
-                <span className="t-text-swap">{c.state.replace("_", " ")}</span>
+                <SwapText text={c.state.replace("_", " ")} />
               </Badge>
             )
           )}
@@ -538,9 +520,7 @@ export function ConclusionCard({
 
       {c.changed && (
         <p className="mt-1.5 font-mono text-[11px] text-neutral-400">
-          was {c.changed.from?.replace("_", " ") ?? "not scored"} →{" "}
-          {c.changed.to.replace("_", " ")} ({c.changed.deltaP > 0 ? "+" : ""}
-          {Math.round(c.changed.deltaP * 100)} pts)
+          {changedLine(c.changed)}
         </p>
       )}
 

@@ -76,6 +76,13 @@ function genomeSentence(gene: string, call: string, lr: number): string {
   return `${head} ${lr > 1 ? "raises" : "lowers"} the prior ×${round2(lr)}`;
 }
 
+/**
+ * A marker the knowledge graph does not name is still not a variable name on
+ * screen: `amh` and `shbg` are acronyms, so they are printed as acronyms.
+ */
+const acronym = (code: string) =>
+  /^[a-z]{2,5}$/.test(code) ? code.toUpperCase() : pretty(code);
+
 /** The label alone, for the lists that print an input with no value. */
 export function explainKey(input: string): string {
   if (input.startsWith("hypothesis:")) return pretty(input.slice(11));
@@ -87,8 +94,28 @@ export function explainKey(input: string): string {
     DERIVED_NAME[input] ??
     METRIC_NAME.get(input) ??
     FACT_LABEL.get(input) ??
-    pretty(input)
+    acronym(input)
   );
+}
+
+/**
+ * What a card says about its own movement.
+ *
+ * "was likely → likely (+8 pts)" was a sentence about nothing: the state word
+ * did not change, only the number under it did. When the word is the same, say
+ * what actually moved.
+ */
+export function changedLine(changed: {
+  from?: string;
+  to: string;
+  deltaP: number;
+}): string {
+  const pts = `${changed.deltaP > 0 ? "+" : ""}${Math.round(changed.deltaP * 100)}`;
+  const from = changed.from?.replace("_", " ");
+  const to = changed.to.replace("_", " ");
+  return from === to
+    ? `${pts} pts since yesterday`
+    : `was ${from ?? "not scored"} → ${to} (${pts} pts)`;
 }
 
 /** The five shapes `resolve` can hand back, which is all `explainInput` reads. */

@@ -1,5 +1,11 @@
 import { currentUserId } from "@/lib/auth";
-import { answerAsk, considerTerm, plainSentence } from "@/lib/lookup";
+import { askIntent } from "@/lib/ask-intent";
+import {
+  answerAsk,
+  answerQuestion,
+  considerTerm,
+  plainSentence,
+} from "@/lib/lookup";
 import { recordBeliefs } from "@/lib/ledger";
 
 export const maxDuration = 60;
@@ -14,9 +20,12 @@ interface Body {
 }
 
 /**
- * The ask box, trigger 5. Everything in the reply is computed by the engine;
- * the model only ever rewrites it as one sentence, and the box works with the
- * model switched off.
+ * The ask box, trigger 5.
+ *
+ * Two routes, decided by `askIntent`: a word goes to the ontology lookup, a
+ * question goes to the grounded answer. Everything numeric in either reply is
+ * computed by the engine; the model only writes prose, and the box still works
+ * with the model switched off.
  */
 export async function POST(request: Request) {
   const userId = await currentUserId();
@@ -44,7 +53,13 @@ export async function POST(request: Request) {
     if (q.length < 2)
       return Response.json({ error: "type a word or two" }, { status: 400 });
 
+    if (askIntent(q) === "question") {
+      const answer = await answerQuestion(userId, q);
+      return Response.json(answer);
+    }
+
     const answer = await answerAsk(userId, q);
+    answer.route = "term";
     if (!body.plain && answer.term)
       answer.sentence = await plainSentence(q, answer).catch(() => undefined);
     return Response.json(answer);

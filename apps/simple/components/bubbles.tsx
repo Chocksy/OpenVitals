@@ -84,6 +84,12 @@ interface Box {
   h: number;
 }
 
+/**
+ * How far a finger may travel and still count as a tap, in px of screen. The
+ * pan starts past it; the selection happens under it.
+ */
+const TAP = 6;
+
 const parse = (viewBox: string): Box => {
   const [x, y, w, h] = viewBox.split(" ").map(Number);
   return { x: x ?? 0, y: y ?? 0, w: w ?? 1200, h: h ?? 780 };
@@ -106,6 +112,8 @@ export function Bubbles({
   const pointers = useRef(new Map<number, { x: number; y: number }>());
   const pinch = useRef(0);
   const moved = useRef(0);
+  /** the bubble the finger went down on, or null for empty stage */
+  const down = useRef<string | null>(null);
 
   const at = new Map(graph.nodes.map((n) => [n.id, n]));
   const neighbours = new Set<string>();
@@ -142,6 +150,16 @@ export function Bubbles({
   const onPointerDown = (e: React.PointerEvent) => {
     pointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
     moved.current = 0;
+    /**
+     * The tap target is read here and nowhere else. `setPointerCapture` sends
+     * every later pointer event — and the click the browser synthesises — to
+     * the `<svg>`, so a handler on the circle never runs. Reading
+     * `event.target` on the way down is what makes a bubble tappable at all.
+     */
+    down.current =
+      (e.target as Element | null)
+        ?.closest?.("[data-bubble]")
+        ?.getAttribute("data-bubble") ?? null;
     if (pointers.current.size === 2) {
       const [a, b] = [...pointers.current.values()];
       pinch.current = Math.hypot(a!.x - b!.x, a!.y - b!.y);
@@ -172,6 +190,9 @@ export function Bubbles({
     const dx = e.clientX - was.x;
     const dy = e.clientY - was.y;
     moved.current += Math.abs(dx) + Math.abs(dy);
+    // A tap wobbles. Nothing pans until the finger has really travelled, so
+    // "everything moves with it" stops happening to somebody trying to select.
+    if (moved.current <= TAP) return;
     const scale = perPixel();
     setBox((b) => ({ ...b, x: b.x - dx * scale, y: b.y - dy * scale }));
   };
@@ -179,6 +200,10 @@ export function Bubbles({
   const onPointerUp = (e: React.PointerEvent) => {
     pointers.current.delete(e.pointerId);
     if (pointers.current.size < 2) pinch.current = 0;
+    if (moved.current > TAP) return;
+    const hit = down.current;
+    down.current = null;
+    setSelected((s) => (hit == null ? null : s === hit ? null : hit));
   };
 
   const node = selected ? at.get(selected) : null;
@@ -250,22 +275,21 @@ export function Bubbles({
                   strokeWidth={n.kind === "cond" ? 3 : 2}
                   opacity={dim ? 0.25 : 1}
                   className="cursor-pointer"
-                  onClick={() => {
-                    if (moved.current > 4) return;
-                    setSelected((s) => (s === n.id ? null : n.id));
-                  }}
+                  data-bubble={n.id}
                 >
                   <title>{`${n.name}${n.value ? ` · ${n.value}` : ""}`}</title>
                 </circle>
               );
             })}
           </g>
-          <g pointerEvents="none">
+          <g>
             {graph.nodes.map((n) => {
               const dim = selected != null && !neighbours.has(n.id);
               return (
                 <text
                   key={n.id}
+                  data-bubble={n.id}
+                  className="cursor-pointer"
                   x={n.x}
                   y={n.y + (n.imp > 0.55 ? 5 : n.r + 18)}
                   textAnchor="middle"
