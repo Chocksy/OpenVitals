@@ -13,8 +13,9 @@
  * and trigram similarity is what short strings are for. `rankTerms` is pure,
  * so the whole ranking is testable with no database.
  */
-import { generateText } from "ai";
+import { generateObject, generateText } from "ai";
 import { and, eq, sql } from "drizzle-orm";
+import { z } from "zod";
 import {
   getDb,
   hkbAnnotations,
@@ -25,13 +26,15 @@ import {
 import { actionLine, actionsFor, type PlanLine } from "./actions";
 import { chatContext } from "./ai";
 import { termQuery } from "./ask-intent";
-import { buildModelInput, type ModelInput } from "./coverage";
+import { buildModelInput, profileQuestions, type ModelInput } from "./coverage";
+import { explainKey } from "./explain";
 import { model } from "./extract";
 import { catalogFor } from "./hkb";
 import { FREQUENT, frequencyOf } from "./hpoa";
 import { scoreHypotheses, type HState } from "./hypotheses";
 import { nextMoves, type Move } from "./infogain";
 import { displayNameOf } from "./ledger";
+import { RETEST_WEEKS } from "./projection";
 import { ledgerLine, projectionsFor } from "./projections";
 import { symptomByKey } from "./symptoms";
 import { PROFILE_QUESTIONS } from "./vectors";
@@ -196,6 +199,8 @@ export interface AskAnswer {
   } | null;
   /** the actions the answer was written from, so the UI can offer them */
   actions?: PlanLine[];
+  /** what the answer told them to do, as things the buttons can actually do */
+  acts?: Acts;
   /** what the router did with the input: a word, or a question */
   route?: "term" | "question";
 }
@@ -467,6 +472,167 @@ export async function plainSentence(
 
 /* ── "Consider this for me" ───────────────────────────────────────────── */
 
+
+/* ── phase 27: the candidates, and the closed set they are ────────────── */
+
+/** One marker the answer may say to measure, with the wait the engine keeps. */
+export interface TestCandidate {
+  code: string;
+  /** the name a person reads: "Ferritin", "OGTT with insulin" */
+  name: string;
+  /** `RETEST_WEEKS` for this marker, or the default */
+  weeks: number;
+  /** false when only a doctor can order it: cost band 3 or 4 */
+  selfOrder: boolean;
+}
+
+/** Everything the answer is allowed to name, by id, by code and by key. */
+export interface AskCandidates {
+  actions: PlanLine[];
+  tests: TestCandidate[];
+  questions: { key: string; question: string }[];
+}
+
+/** What the answer actually named, with the labels the buttons print. */
+export interface Acts {
+  actions: PlanLine[];
+  tests: TestCandidate[];
+  questions: { key: string; question: string }[];
+  /** every id, code or key the model returned that was never on offer */
+  dropped: string[];
+}
+
+/** The model's half of it, before the guard has been anywhere near it. */
+export interface RawActs {
+  actions?: string[];
+  tests?: { code?: string; weeks?: number }[];
+  questions?: string[];
+}
+
+/** How much of each list the prompt may carry. */
+const MAX_TESTS = 30;
+const MAX_QUESTIONS = 12;
+/** A marker with no entry in `RETEST_WEEKS`: three months, like most of them. */
+const DEFAULT_WEEKS = 12;
+/** Two years. Anything past it is the model inventing a schedule. */
+const MAX_WEEKS = 104;
+
+/**
+ * The closed set, assembled from what the engine already knows.
+ *
+ * Pure. The tests are the information-gain moves first — those are the ones
+ * the engine would spend money on next — and then every marker this person has
+ * a value for, because "measure it again" only means something for a number
+ * that already exists. A move carries the discriminator's own 1–4 band, and
+ * band 3 or 4 is the one thing a person cannot walk into a lab and buy.
+ */
+export function askCandidates({
+  actions,
+  measured,
+  moves,
+  questions,
+}: {
+  actions: PlanLine[];
+  /** every marker code this person has a value for */
+  measured: string[];
+  moves: Move[];
+  questions: { key: string; question: string }[];
+}): AskCandidates {
+  const tests = new Map<string, TestCandidate>();
+  const add = (code: string, name: string, selfOrder: boolean) => {
+    if (!code || tests.has(code) || tests.size >= MAX_TESTS) return;
+    tests.set(code, {
+      code,
+      name,
+      weeks: RETEST_WEEKS[code] ?? DEFAULT_WEEKS,
+      selfOrder,
+    });
+  };
+  for (const m of moves) {
+    if (m.kind !== "test" || !m.featureId.startsWith("metric:")) continue;
+    add(m.featureId.slice("metric:".length), m.label, (m.band ?? 1) <= 2);
+  }
+  for (const code of [...measured].sort()) add(code, explainKey(code), true);
+  return {
+    actions,
+    tests: [...tests.values()],
+    questions: questions.slice(0, MAX_QUESTIONS),
+  };
+}
+
+/**
+ * The guard. Principle 3, as a function: the model chooses from the ids it was
+ * given and the engine owns every button, so anything it returns that was not
+ * on offer is dropped here and counted in `dropped`, which `pnpm eval:ask`
+ * reads as a violation.
+ */
+export function pickActs(raw: RawActs, c: AskCandidates): Acts {
+  const dropped: string[] = [];
+  const byId = new Map(c.actions.map((a) => [a.id, a]));
+  const byCode = new Map(c.tests.map((t) => [t.code, t]));
+  const byKey = new Map(c.questions.map((q) => [q.key, q]));
+
+  const actions: PlanLine[] = [];
+  for (const raw_id of raw.actions ?? []) {
+    const id = String(raw_id ?? "");
+    const hit = byId.get(id);
+    if (!hit) dropped.push(id);
+    else if (!actions.includes(hit)) actions.push(hit);
+  }
+
+  const tests: TestCandidate[] = [];
+  for (const t of raw.tests ?? []) {
+    const code = String(t?.code ?? "");
+    const hit = byCode.get(code);
+    if (!hit) {
+      dropped.push(code);
+      continue;
+    }
+    if (tests.some((x) => x.code === code)) continue;
+    const weeks = Number(t?.weeks);
+    tests.push({
+      ...hit,
+      weeks:
+        Number.isFinite(weeks) && weeks >= 1 && weeks <= MAX_WEEKS
+          ? Math.round(weeks)
+          : hit.weeks,
+    });
+  }
+
+  const questions: { key: string; question: string }[] = [];
+  for (const raw_key of raw.questions ?? []) {
+    const key = String(raw_key ?? "");
+    const hit = byKey.get(key);
+    if (!hit) dropped.push(key);
+    else if (!questions.includes(hit)) questions.push(hit);
+  }
+
+  return { actions, tests, questions, dropped };
+}
+
+/** Nothing to act on: the row renders nothing at all. */
+export const noActs = (a?: Acts | null): boolean =>
+  !a || (!a.actions.length && !a.tests.length && !a.questions.length);
+
+/** The shape `generateObject` is held to. Ids only; no prose in the lists. */
+const actsSchema = z.object({
+  prose: z.string().describe("the six-sentence answer, as one paragraph"),
+  actions: z
+    .array(z.string())
+    .describe("ids of the actions the paragraph named, copied exactly"),
+  tests: z
+    .array(
+      z.object({
+        code: z.string().describe("a marker code from the candidate list"),
+        weeks: z.number().describe("how many weeks to wait before measuring"),
+      }),
+    )
+    .describe("the markers the paragraph says to measure"),
+  questions: z
+    .array(z.string())
+    .describe("keys of the questions the paragraph says would help"),
+});
+
 /**
  * The old prompt ended every answer with "reviewing these lab trends with a
  * healthcare provider is the best way to determine an individualized plan",
@@ -489,7 +655,9 @@ If neither section has anything for this question, say that in one sentence and 
 
 USE ONLY THE NUMBERS GIVEN. Never invent a value, a probability, a date or a diagnosis, and never contradict the states in WHAT THE ENGINE CONCLUDES.
 
-NO FILLER. Never write "talk to your healthcare provider", "consult a professional", "consider", "may help" or "individualised plan". If an action needs a prescriber, say which kind of doctor and what to ask them for.`;
+NO FILLER. Never write "talk to your healthcare provider", "consult a professional", "consider", "may help" or "individualised plan". If an action needs a prescriber, say which kind of doctor and what to ask them for.
+
+THEN SAY WHAT YOU JUST NAMED, AS IDS. Alongside the paragraph, list the ids of what it used and nothing else: \`actions\` are the ids printed after "id" in THEIR PLAN and WHAT THE PAPERS SAY, \`tests\` are the codes in MARKERS THEY COULD MEASURE AGAIN with the number of weeks your paragraph gave, \`questions\` are the keys in QUESTIONS THEY COULD ANSWER. Copy every id, code and key exactly as it is printed. The ids are for these lists ONLY: the paragraph never prints an id, and it still carries every action's bracketed label. List every action your paragraph named and nothing your paragraph did not name. An id that is not on those lists is thrown away, so inventing one loses the button.`;
 
 /**
  * The one model that answers questions, chosen by `pnpm eval:ask` and set in
@@ -499,7 +667,7 @@ export const askModel = (id?: string) => model(id ?? process.env.AI_ASK_MODEL);
 
 const actionBlock = (rows: PlanLine[], head: string, empty: string): string =>
   rows.length
-    ? `${head}\n${rows.map((p) => `- ${actionLine(p)}${p.why ? `\n  why: ${p.why}` : ""}`).join("\n")}`
+    ? `${head}\n${rows.map((p) => `- id ${p.id} · ${actionLine(p)}${p.why ? `\n  why: ${p.why}` : ""}`).join("\n")}`
     : `${head}\n- ${empty}`;
 
 /**
@@ -584,8 +752,25 @@ export async function answerQuestion(
     .map((p) => `- ${ledgerLine(p)}`)
     .join("\n");
 
-  const { text } = await generateText({
+  /**
+   * Phase 27. The buttons under the answer are not parsed out of the prose:
+   * the model returns the ids it used, from these lists and no others, and
+   * `pickActs` throws away anything else. The prose and the row can then never
+   * disagree, which is the whole point of the eval's new checks.
+   */
+  const candidates = askCandidates({
+    actions,
+    measured: Object.keys(input.latest),
+    moves: nextMoves(input, catalog),
+    questions: profileQuestions(input).map((q) => ({
+      key: q.key,
+      question: q.question,
+    })),
+  });
+
+  const { object } = await generateObject({
     model: askModel(modelId),
+    schema: actsSchema,
     system: QUESTION_SYSTEM,
     prompt: `THEIR QUESTION: ${question}
 
@@ -605,10 +790,30 @@ ${actionBlock(papers, "WHAT THE PAPERS SAY (graded rows on file for this conditi
 PROJECTIONS ON FILE:
 ${open || "- none open"}
 
+MARKERS THEY COULD MEASURE AGAIN (code · name · the usual wait, in weeks):
+${
+  candidates.tests
+    .map(
+      (t) =>
+        `- ${t.code} · ${t.name} · ${t.weeks}${t.selfOrder ? "" : " · needs a doctor to order it"}`,
+    )
+    .join("\n") || "- none"
+}
+
+QUESTIONS THEY COULD ANSWER (key · question):
+${
+  candidates.questions.map((q) => `- ${q.key} · ${q.question}`).join("\n") ||
+  "- none"
+}
+
 ${context}`,
   });
 
-  return { ...base, reply: text.trim() };
+  return {
+    ...base,
+    reply: object.prose.trim(),
+    acts: pickActs(object, candidates),
+  };
 }
 
 /**

@@ -3,6 +3,7 @@ import {
   askIntent,
   autoAskToken,
   openingMode,
+  showsBox,
   termQuery,
 } from "./ask-intent";
 
@@ -111,8 +112,48 @@ describe("openingMode", () => {
       drafts: false,
     });
     expect(
-      openingMode({ text: "I want to fix this", about: "hashimoto" }),
+      openingMode({ text: "how do I fix this?", about: "hashimoto" }),
     ).toEqual({ ask: true, auto: true, drafts: false });
+  });
+
+  /**
+   * Phase 27, from the owner. Discuss on the action "Resistance training
+   * 3x/week", typed "i already do this", and the box answered "I don't know
+   * that word": a subject forced the ask route, the statement went to the
+   * ontology lookup, and nothing matched. A statement about a subject is a
+   * statement, and it is read for facts like any other.
+   */
+  it("tells a statement about a subject, and never asks it", () => {
+    for (const text of [
+      "i already do this",
+      "I've been doing this since March",
+      "i stopped last month",
+      "my hands are cold",
+    ])
+      expect(openingMode({ text, about: "resistance-training" })).toEqual({
+        ask: false,
+        auto: false,
+        drafts: true,
+      });
+  });
+});
+
+describe("showsBox", () => {
+  it("shows the box until a question is asked", () => {
+    expect(showsBox({ question: "", answered: false })).toBe(true);
+  });
+
+  it("hides it while the question is in flight, with the answer, and after", () => {
+    expect(showsBox({ question: "why am I tired?", answered: false })).toBe(
+      false,
+    );
+    expect(showsBox({ question: "why am I tired?", answered: true })).toBe(
+      false,
+    );
+  });
+
+  it("brings it back when Ask another clears the question", () => {
+    expect(showsBox({ question: "", answered: false })).toBe(true);
   });
 });
 

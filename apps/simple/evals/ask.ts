@@ -23,12 +23,12 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { generateText } from "ai";
 import { eq } from "drizzle-orm";
-import { getDb } from "@/db";
+import { getDb, pool } from "@/db";
 import { users } from "@/db/auth-schema";
 import { actionsFor } from "@/lib/actions";
 import { chatContext } from "@/lib/ai";
 import { model } from "@/lib/extract";
-import { answerQuestion } from "@/lib/lookup";
+import { answerQuestion, type Acts } from "@/lib/lookup";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 
@@ -61,6 +61,10 @@ interface Scored {
   sentences: number;
   /** every bracketed label the answer printed */
   labels: string[];
+  /** phase 27: what the row under the answer would offer */
+  acts?: { actions: string[]; tests: string[]; questions: string[] };
+  /** ids the model returned that the engine never offered */
+  dropped?: string[];
   /** code checks that failed */
   failed: string[];
   judgeScore?: number;
@@ -234,6 +238,55 @@ function codeChecks(
   return failed;
 }
 
+/**
+ * The first three words of an action's title that are worth matching on: a
+ * dose is written "200 µg/day" by the plan and "200 mcg daily" by an answer,
+ * and neither of those is the name of the thing.
+ */
+const keyWords = (title: string): string[] =>
+  norm(title)
+    .split(" ")
+    .filter((w) => w.length > 3)
+    .slice(0, 3);
+
+/** Does the paragraph name this action at all? */
+const names = (text: string, title: string): boolean => {
+  const words = keyWords(title);
+  return words.length
+    ? words.every((w) => text.includes(w))
+    : text.includes(norm(title));
+};
+
+/**
+ * Phase 27: the buttons have to match the words.
+ *
+ * The answer now returns the ids it used and the engine renders one chip per
+ * id, so two things can go wrong that never could before — the row can offer
+ * something the paragraph never said, and the paragraph can name something the
+ * row does not offer. Both are failures here, and so is any id the guard had
+ * to throw away, because that is the model inventing a button.
+ */
+function actChecks(
+  reply: string,
+  acts: Acts | undefined,
+  candidates: { id: string; title: string }[],
+): string[] {
+  if (!acts) return ["no acts came back"];
+  const failed: string[] = [];
+  if (acts.dropped.length)
+    failed.push(
+      `invented ${acts.dropped.length} id(s): ${acts.dropped.slice(0, 3).join(", ")}`,
+    );
+  const text = norm(reply);
+  for (const a of acts.actions)
+    if (!names(text, a.title))
+      failed.push(`the row offers "${a.title}" and the answer never names it`);
+  for (const c of candidates)
+    if (names(text, c.title) && !acts.actions.some((a) => a.id === c.id))
+      failed.push(`the answer names "${c.title}" and the row does not offer it`);
+  return failed;
+}
+
 const JUDGE_SYSTEM = `You are grading one answer a health app gave to one question from the person whose data it holds.
 
 An "action" here is a treatment, supplement, food, habit or test it tells the person to start. The closing line that names a marker to remeasure and when is not an action and is required: never count it against the answer.
@@ -305,7 +358,14 @@ async function runCase(
       titles: (answer.actions ?? rows).map((a) => a.title),
       labels: [...new Set((answer.actions ?? rows).map((a) => a.label))],
     };
-    const failed = codeChecks(reply, allowed);
+    const failed = [
+      ...codeChecks(reply, allowed),
+      ...actChecks(
+        reply,
+        answer.acts,
+        (answer.actions ?? rows).map((a) => ({ id: a.id, title: a.title })),
+      ),
+    ];
     const graded = reply
       ? await judge(
           c,
@@ -324,6 +384,16 @@ async function runCase(
       reply,
       sentences: sentencesIn(reply),
       labels: labelsIn(reply),
+      ...(answer.acts
+        ? {
+            acts: {
+              actions: answer.acts.actions.map((a) => a.title),
+              tests: answer.acts.tests.map((t) => `${t.code}/${t.weeks}w`),
+              questions: answer.acts.questions.map((q) => q.key),
+            },
+            dropped: answer.acts.dropped,
+          }
+        : {}),
       failed,
       ...graded,
       latencyMs: Date.now() - started,
@@ -430,6 +500,15 @@ async function main() {
         r.cases.reduce((s, c) => s + (c.judgeScore ?? 0), 0) / r.cases.length
       ).toFixed(2),
       clean: `${r.cases.filter((c) => !c.failed.length).length}/${r.cases.length}`,
+      chips: r.cases.reduce(
+        (s, c) =>
+          s +
+          (c.acts
+            ? c.acts.actions.length + c.acts.tests.length + c.acts.questions.length
+            : 0),
+        0,
+      ),
+      invented: r.cases.reduce((s, c) => s + (c.dropped?.length ?? 0), 0),
       "$/M in": r.inPerM == null ? "-" : r.inPerM.toFixed(2),
       "$/M out": r.outPerM == null ? "-" : r.outPerM.toFixed(2),
       seconds: Math.round(
@@ -444,6 +523,10 @@ async function main() {
 
   for (const c of winner.cases) {
     console.log(`── ${c.id}: ${c.reply}`);
+    if (c.acts)
+      console.log(
+        `   row: ${[...c.acts.actions.map((a) => `add ${a}`), ...c.acts.tests.map((t) => `retest ${t}`), ...c.acts.questions.map((q) => `answer ${q}`)].join(" | ") || "nothing"}`,
+      );
     if (c.failed.length) console.log(`   failed: ${c.failed.join("; ")}`);
     if (c.judgeNote) console.log(`   judge: ${c.judgeNote}`);
   }
@@ -465,6 +548,9 @@ async function main() {
   console.log(`\nwrote ${path.relative(process.cwd(), file)}`);
 
   if (winner.score < FLOOR) process.exitCode = 1;
+  // The pool holds the event loop open, and a CLI that never exits is a CLI
+  // nobody puts in a script.
+  await pool().end();
 }
 
 await main();

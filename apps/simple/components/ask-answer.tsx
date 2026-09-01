@@ -13,6 +13,7 @@
  * that `/brain` and the graph still render.
  */
 import { Sparkles } from "lucide-react";
+import { ActOnIt, type Acts } from "./act-on-it";
 
 export interface AskMove {
   kind: string;
@@ -57,6 +58,8 @@ export interface Answer {
     probability: number;
   } | null;
   route?: "term" | "question";
+  /** phase 27: what the answer named, as things the buttons can do */
+  acts?: Acts;
   error?: string;
 }
 
@@ -125,11 +128,14 @@ const isFree = (m: AskMove) => m.cost === 0;
 export function AskAnswer({
   answer,
   onPick,
+  onLeave,
   children,
 }: {
   answer: Answer;
   /** re-ask with another name from the "also matched" list */
   onPick?: (name: string) => void;
+  /** close the box when a chip in the "Act on it" row navigates away */
+  onLeave?: () => void;
   /** "Consider this for me", when the caller offers it */
   children?: React.ReactNode;
 }) {
@@ -171,6 +177,7 @@ export function AskAnswer({
             No answer came back. Try asking it again.
           </p>
         )}
+        <ActOnIt acts={answer.acts} onLeave={onLeave} />
         {children}
       </div>
     );
@@ -202,6 +209,8 @@ export function AskAnswer({
           {answer.reply}
         </p>
       )}
+
+      <ActOnIt acts={answer.acts} onLeave={onLeave} />
 
       {answer.sentence && (
         <p className="t-body flex items-start gap-1.5 italic text-neutral-600">

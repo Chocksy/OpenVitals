@@ -8,7 +8,13 @@ const num = (v: unknown) => {
   return Number.isFinite(n) ? n : null;
 };
 
-/** One goal per metric, so this is an upsert. */
+/**
+ * One goal per metric, so this is an upsert.
+ *
+ * A goal is a target, a date, or both. Phase 27: "Plan retest: HbA1c in 12
+ * weeks" is a date with no number behind it — the answer said when to measure,
+ * not what to reach — and the Next draw tile reads exactly that.
+ */
 export async function POST(req: Request) {
   const userId = await currentUserId();
   if (!userId) return Response.json({ error: "unauthorized" }, { status: 401 });
@@ -17,13 +23,16 @@ export async function POST(req: Request) {
   const metricCode = String(b.metricCode ?? "");
   const targetLow = num(b.targetLow);
   const targetHigh = num(b.targetHigh);
-  if (!metricCode || (targetLow == null && targetHigh == null))
-    return Response.json({ error: "need a target" }, { status: 400 });
+  const due = b.due ? String(b.due) : null;
+  if (!metricCode)
+    return Response.json({ error: "need a marker" }, { status: 400 });
+  if (targetLow == null && targetHigh == null && !due)
+    return Response.json({ error: "need a target or a date" }, { status: 400 });
 
   const set = {
     targetLow,
     targetHigh,
-    due: b.due ? String(b.due) : null,
+    due,
     note: b.note ? String(b.note).slice(0, 300) : null,
     // A new target restarts the clock.
     achievedAt: null,

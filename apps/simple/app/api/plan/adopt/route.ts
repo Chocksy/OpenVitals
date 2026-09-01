@@ -9,6 +9,7 @@ import {
   reviewItems,
   type ReportAction,
 } from "@/db";
+import { adoptBodyOf } from "@/lib/actions";
 import { currentUserId } from "@/lib/auth";
 import { recordBeliefs } from "@/lib/ledger";
 import { queueResearch } from "@/lib/research";
@@ -20,6 +21,26 @@ const firstNumber = (text: string): number | null => {
   const hit = text.replace(/[,\s](?=\d{3}\b)/g, "").match(/\d+(?:\.\d+)?/);
   return hit ? Number(hit[0]) : null;
 };
+
+const DATE = /^\d{4}-\d{2}-\d{2}$/;
+
+/**
+ * The id of the protocol item this action already is, when it is one.
+ *
+ * `lib/ledger.ts` joins the plan to the protocol by "the item's text starts
+ * with the action's title", so the same join answers "have they got this
+ * already?" and adopting twice is one line rather than two.
+ */
+async function onProtocol(userId: string, text: string): Promise<string | null> {
+  const title = text.split(" — ")[0]!;
+  const rows = await getDb()
+    .select({ id: protocolItems.id, text: protocolItems.text })
+    .from(protocolItems)
+    .where(
+      and(eq(protocolItems.userId, userId), eq(protocolItems.active, true)),
+    );
+  return rows.find((r) => r.text.startsWith(title))?.id ?? null;
+}
 
 const doseSummary = (a: ReportAction) =>
   a.dose ? `${a.title} — ${a.dose.amount}, ${a.dose.schedule}` : a.title;
@@ -33,18 +54,38 @@ export async function POST(req: Request) {
   const userId = await currentUserId();
   if (!userId) return Response.json({ error: "unauthorized" }, { status: 401 });
 
-  const { reportId, actionIndex, interventionId, removeIds } =
-    (await req.json()) as {
-      reportId?: string;
-      actionIndex?: number;
-      /** the horizon shelf and the card blocks: one claim, adopted */
-      interventionId?: string;
-      /**
-       * The undo behind every "Added N actions" toast. Phase 26: adding said
-       * nothing and could not be taken back, so nobody trusted the button.
-       */
-      removeIds?: string[];
-    };
+  const body = (await req.json()) as {
+    /**
+     * Phase 27. One chip in an answer knows the action only by the id the
+     * model was given (`plan:<reportId>:<index>`, `int:<id>`), so the id is
+     * a third way to say the same two bodies and `adoptBodyOf` is the only
+     * place that reads it.
+     */
+    id?: string;
+    reportId?: string;
+    actionIndex?: number;
+    /** the horizon shelf and the card blocks: one claim, adopted */
+    interventionId?: string;
+    /**
+     * The undo behind every "Added N actions" toast. Phase 26: adding said
+     * nothing and could not be taken back, so nobody trusted the button.
+     */
+    removeIds?: string[];
+    /**
+     * The day this person says they started doing it, when they said so —
+     * "i already do this, since March". The addendum path writes it; every
+     * other caller leaves it null and the row is dated by `createdAt`.
+     */
+    startedAt?: string;
+  };
+  const startedAt = DATE.test(body.startedAt ?? "") ? body.startedAt! : null;
+  const named = body.id ? adoptBodyOf(body.id) : null;
+  if (body.id && !named)
+    return Response.json({ error: "no action" }, { status: 400 });
+  const { reportId, actionIndex, interventionId, removeIds } = {
+    ...body,
+    ...(named ?? {}),
+  };
   const db = getDb();
 
   if (removeIds?.length) {
@@ -87,11 +128,15 @@ export async function POST(req: Request) {
         : `grade ${row.grade}${row.dose ? `, ${row.dose}` : ""}${
             row.effect ? `, ${row.direction} ${row.effect}` : ""
           } for ${row.conditionId}`;
+    const text = `${row.name}${row.dose ? ` — ${row.dose}` : ""}`.slice(0, 300);
+    const already = await onProtocol(userId, text);
+    if (already)
+      return Response.json({ ok: true, id: already, adopted: row.name });
     const [item] = await db
       .insert(protocolItems)
       .values({
         userId,
-        text: `${row.name}${row.dose ? ` — ${row.dose}` : ""}`.slice(0, 300),
+        text,
         why: why.slice(0, 500),
         metricCodes: code ? [code] : [],
         cadence: "daily",
@@ -115,14 +160,32 @@ export async function POST(req: Request) {
   const action = report.body.actions[actionIndex];
   if (!action) return Response.json({ error: "not found" }, { status: 404 });
 
+  /**
+   * The same action, adopted twice, is one line on the protocol. The addendum
+   * path adopts what a person says they already do, and they can say it after
+   * having pressed Add, so this is the difference between one habit and two.
+   */
+  const text = doseSummary(action).slice(0, 300);
+  const already = await onProtocol(userId, text);
+  if (already) {
+    if (startedAt)
+      await db
+        .update(protocolItems)
+        .set({ startedAt })
+        .where(eq(protocolItems.id, already));
+    await recordBeliefs(userId);
+    return Response.json({ ok: true, id: already, already: true });
+  }
+
   const [item] = await db
     .insert(protocolItems)
     .values({
       userId,
-      text: doseSummary(action).slice(0, 300),
+      text,
       why: action.why.slice(0, 500),
       metricCodes: action.targets.map((t) => t.code),
       cadence: /week/i.test(action.dose?.schedule ?? "") ? "weekly" : "daily",
+      ...(startedAt ? { startedAt } : {}),
     })
     .returning({ id: protocolItems.id });
 

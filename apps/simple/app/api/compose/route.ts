@@ -5,9 +5,11 @@ import {
   beliefsNow,
   followUp,
   heldChips,
+  readActionStatement,
   replyPack,
   understand,
   writeReply,
+  type ActionSubject,
   type Chip,
 } from "@/lib/compose";
 import { buildModelInput, saveFact } from "@/lib/coverage";
@@ -31,6 +33,13 @@ interface Body {
   /** live chips while typing: understand only, write nothing */
   draft?: boolean;
   chips?: Chip[];
+  /**
+   * The plan action a card's Discuss opened the box about. With one of these,
+   * the words are read relative to it as well: "i already do this" about
+   * "Resistance training 3x/week" is an adopt, a start date and an exercise
+   * answer, not a phenotype and never an ontology lookup.
+   */
+  about?: ActionSubject;
   /** answering the one question the engine asked back */
   postId?: string;
   followUpKey?: string;
@@ -243,9 +252,20 @@ export async function POST(req: Request) {
       return Response.json({ error: "write something first" }, { status: 400 });
 
     const m = await buildModelInput(userId);
+    const about = body.about?.title
+      ? {
+          title: String(body.about.title).slice(0, 300),
+          ...(body.about.reportId ? { reportId: body.about.reportId } : {}),
+          ...(typeof body.about.index === "number"
+            ? { index: body.about.index }
+            : {}),
+        }
+      : null;
+    const action = about ? readActionStatement(text, about, m.today) : null;
+
     if (body.draft) {
       const chips = await understand(text, m);
-      return Response.json({ chips, options: optionsFor(chips) });
+      return Response.json({ chips, options: optionsFor(chips), action });
     }
 
     const chips = clean(
@@ -297,6 +317,7 @@ export async function POST(req: Request) {
       ok: true,
       id: post!.id,
       chips,
+      action,
       options: optionsFor(chips),
       held: [...held],
       claims: filed.filter((f) => f != null),

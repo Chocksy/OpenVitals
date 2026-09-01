@@ -48,6 +48,13 @@ export interface Move {
   cost: number;
   /** true when `cost` is euros, so the page prints "€57" and not "cost 2" */
   priced?: boolean;
+  /**
+   * The discriminator's own 1–4 band (1 cheap blood, 2 special blood, 3
+   * imaging or functional, 4 invasive), kept even when a euro price has
+   * replaced `cost`. Phase 27 reads it for the one thing the band actually
+   * decides: whether a person can walk into a lab and order this themselves.
+   */
+  band?: number;
   outcomes: {
     label: string;
     prob: number;
@@ -199,6 +206,7 @@ interface Candidate {
   howTo?: string;
   cost: number;
   priced?: boolean;
+  band?: number;
   /** the conditions that read this feature, for the outcome probability */
   readers: string[];
   outcomes: { label: string; apply: Overlay }[];
@@ -470,6 +478,7 @@ function testCandidates(
       howTo: d.howTo,
       cost: price ?? d.cost,
       priced: price != null,
+      band: d.cost,
       readers,
       spread: d.lrNeg > 0 ? d.lrPos / d.lrNeg : Infinity,
       outcomes: [
@@ -649,6 +658,7 @@ export function nextMoves(
       howTo: c.howTo,
       cost: c.cost,
       ...(c.priced ? { priced: true } : {}),
+      ...(c.band != null ? { band: c.band } : {}),
       outcomes,
       entropyBefore: round3(entropyBefore),
       entropyAfter: round3(entropyAfter),

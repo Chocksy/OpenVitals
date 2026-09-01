@@ -412,15 +412,26 @@ export default async function PlanPage() {
   );
 
   // The trends inbox, with what this person has already adopted marked off.
-  const adoptedTexts = (
-    await db
-      .select({ text: protocolItems.text })
-      .from(protocolItems)
-      .where(
-        and(eq(protocolItems.userId, userId), eq(protocolItems.active, true)),
-      )
-  ).map((r) => r.text);
+  const onProtocol = await db
+    .select({ text: protocolItems.text, startedAt: protocolItems.startedAt })
+    .from(protocolItems)
+    .where(
+      and(eq(protocolItems.userId, userId), eq(protocolItems.active, true)),
+    );
+  const adoptedTexts = onProtocol.map((r) => r.text);
   const horizon = await horizonShelf(adoptedTexts);
+
+  /**
+   * Phase 27 addendum item 3. An action this person already does is not
+   * something to add: `lib/ledger.ts` joins the plan to the protocol by "the
+   * item's text starts with the action's title", and the same join answers it
+   * here, so the card says "you're already doing this" and the report writer
+   * sees it as adopted.
+   */
+  const alreadyOf = (title: string) => {
+    const row = onProtocol.find((r) => r.text.startsWith(title));
+    return row ? { startedAt: row.startedAt } : undefined;
+  };
 
   const actions = body?.actions ?? [];
   const indexed = actions.map((action, index) => ({ action, index }));
@@ -579,6 +590,9 @@ export default async function PlanPage() {
                     index={index}
                     reportId={report.id}
                     projection={previews[action.title]}
+                    {...(alreadyOf(action.title)
+                      ? { already: alreadyOf(action.title) }
+                      : {})}
                   />
                 ))}
               </div>

@@ -1,5 +1,5 @@
 {
-  "ranAt": "2026-09-01T14:15:44.234Z",
+  "ranAt": "2026-09-01T15:58:40.287Z",
   "model": "google/gemini-3.7-flash",
   "results": [
     {
@@ -272,6 +272,21 @@
         "chips": [
           "CLAIM · sardines → triglycerides"
         ],
+        "followUp": null,
+        "failed": []
+      },
+      "pass": true
+    },
+    {
+      "id": "already_doing_action",
+      "action": "Already doing: Resistance training 3x/week (since long-standing)",
+      "rules": {
+        "chips": [],
+        "followUp": null,
+        "failed": []
+      },
+      "model": {
+        "chips": [],
         "followUp": null,
         "failed": []
       },

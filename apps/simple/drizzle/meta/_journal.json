@@ -141,6 +141,13 @@
       "when": 1788202525411,
       "tag": "0019_flat_mongu",
       "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1788274645589,
+      "tag": "0020_keen_dagger",
+      "breakpoints": true
     }
   ]
 }

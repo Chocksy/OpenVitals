@@ -1,5 +1,13 @@
 import { describe, it, expect } from "vitest";
-import { rankTerms, type TermRow } from "./lookup";
+import { adoptBodyOf, type PlanLine } from "./actions";
+import type { Move } from "./infogain";
+import {
+  askCandidates,
+  noActs,
+  pickActs,
+  rankTerms,
+  type TermRow,
+} from "./lookup";
 
 const term = (
   id: string,
@@ -70,5 +78,146 @@ describe("rankTerms", () => {
     ]);
     expect(ranked[0]!.id).toBe("HP:0012378");
     expect(ranked[0]!.ontology).toBe("HP");
+  });
+});
+
+/**
+ * Phase 27. The answer now hands the UI buttons, and a button is only honest
+ * when the thing behind it exists: the model returns ids, and everything it
+ * returns that was never on offer is dropped here rather than rendered.
+ */
+const line = (id: string, title: string): PlanLine => ({
+  id,
+  title,
+  source: id.startsWith("int:") ? "papers" : "plan",
+  dose: null,
+  basis: "science",
+  label: "[science]",
+  why: "because",
+  target: null,
+});
+
+const move = (code: string, label: string, band?: number): Move =>
+  ({
+    kind: "test",
+    featureId: `metric:${code}`,
+    label,
+    cost: 2,
+    ...(band == null ? {} : { band }),
+    outcomes: [],
+    entropyBefore: 1,
+    entropyAfter: 0.5,
+    gain: 0.5,
+    ratio: 0.1,
+    shift: 0.2,
+    moves: [],
+  }) as unknown as Move;
+
+describe("askCandidates", () => {
+  const c = askCandidates({
+    actions: [line("plan:r1:0", "Selenium")],
+    measured: ["ferritin", "hba1c"],
+    moves: [move("ogtt_insulin", "OGTT with insulin", 3), move("ferritin", "Ferritin", 1)],
+    questions: [{ key: "family_history", question: "Anyone in the family?" }],
+  });
+
+  it("keeps the engine's own retest window per marker", () => {
+    expect(c.tests.find((t) => t.code === "hba1c")!.weeks).toBe(12);
+  });
+
+  it("says which tests a person cannot order for themselves", () => {
+    expect(c.tests.find((t) => t.code === "ogtt_insulin")!.selfOrder).toBe(false);
+    expect(c.tests.find((t) => t.code === "ferritin")!.selfOrder).toBe(true);
+  });
+
+  it("names a move's test the way the move names it", () => {
+    expect(c.tests.find((t) => t.code === "ogtt_insulin")!.name).toBe(
+      "OGTT with insulin",
+    );
+  });
+
+  it("carries every measured marker, once", () => {
+    expect(c.tests.filter((t) => t.code === "ferritin")).toHaveLength(1);
+    expect(c.tests.map((t) => t.code)).toContain("hba1c");
+  });
+});
+
+describe("pickActs: the model chooses, the engine owns", () => {
+  const candidates = askCandidates({
+    actions: [line("plan:r1:0", "Selenium"), line("int:abc", "Iron")],
+    measured: ["ferritin"],
+    moves: [],
+    questions: [{ key: "family_history", question: "Anyone in the family?" }],
+  });
+
+  it("keeps only ids that were on offer, and counts the rest", () => {
+    const acts = pickActs(
+      {
+        actions: ["plan:r1:0", "plan:r1:9", "int:nope"],
+        tests: [{ code: "ferritin", weeks: 8 }, { code: "made_up", weeks: 4 }],
+        questions: ["family_history", "invented_key"],
+      },
+      candidates,
+    );
+    expect(acts.actions.map((a) => a.title)).toEqual(["Selenium"]);
+    expect(acts.tests.map((t) => t.code)).toEqual(["ferritin"]);
+    expect(acts.questions.map((q) => q.key)).toEqual(["family_history"]);
+    expect(acts.dropped).toEqual([
+      "plan:r1:9",
+      "int:nope",
+      "made_up",
+      "invented_key",
+    ]);
+  });
+
+  it("takes the model's number of weeks when it is a sane one", () => {
+    const acts = pickActs({ tests: [{ code: "ferritin", weeks: 8 }] }, candidates);
+    expect(acts.tests[0]!.weeks).toBe(8);
+  });
+
+  it("falls back to the engine's window on a mad one", () => {
+    for (const weeks of [0, -3, 500, Number.NaN])
+      expect(
+        pickActs({ tests: [{ code: "ferritin", weeks }] }, candidates).tests[0]!
+          .weeks,
+      ).toBe(12);
+  });
+
+  it("never repeats an id", () => {
+    const acts = pickActs(
+      {
+        actions: ["plan:r1:0", "plan:r1:0"],
+        tests: [{ code: "ferritin", weeks: 8 }, { code: "ferritin", weeks: 4 }],
+        questions: ["family_history", "family_history"],
+      },
+      candidates,
+    );
+    expect(acts.actions).toHaveLength(1);
+    expect(acts.tests).toHaveLength(1);
+    expect(acts.questions).toHaveLength(1);
+  });
+
+  it("is empty when the model returned nothing", () => {
+    const acts = pickActs({}, candidates);
+    expect(noActs(acts)).toBe(true);
+    expect(noActs(undefined)).toBe(true);
+  });
+});
+
+describe("adoptBodyOf", () => {
+  it("reads a plan id back into the adopt call", () => {
+    expect(adoptBodyOf("plan:r1:3")).toEqual({
+      reportId: "r1",
+      actionIndex: 3,
+    });
+  });
+
+  it("reads a papers id back into the adopt call", () => {
+    expect(adoptBodyOf("int:abc")).toEqual({ interventionId: "abc" });
+  });
+
+  it("has nothing to adopt for a plan line with no report behind it", () => {
+    expect(adoptBodyOf("plan::3")).toBeNull();
+    expect(adoptBodyOf("nonsense")).toBeNull();
   });
 });

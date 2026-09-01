@@ -14,11 +14,26 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Camera, Check, Circle, Loader2, Plus, X } from "lucide-react";
-import { autoAskToken, openingMode } from "@/lib/ask-intent";
+import { autoAskToken, openingMode, showsBox } from "@/lib/ask-intent";
+import type { ActionRead, ActionSubject } from "@/lib/compose";
 import { AskAnswer, type Answer } from "./ask-answer";
+import { toast } from "./motion";
 import { Button } from "./ui-kit";
 
 export const COMPOSER_ID = "composer";
+
+/**
+ * What posting an action statement will do, in the words of the button that
+ * already does it. Phase 27 addendum: nothing new is written anywhere — a
+ * stance is a route the app has had since phase 19.
+ */
+const WILL_DO: Record<string, string> = {
+  doing: "Post puts it on your protocol, dated when you started.",
+  started: "Post puts it on your protocol from that day.",
+  stopped: "Post takes it off your plan.",
+  refused: "Post hides it from your plan.",
+  done: "Post puts it on your protocol and ticks today off.",
+};
 const DRAFT_KEY = "composer-draft";
 
 /**
@@ -38,6 +53,13 @@ const DRAFT_KEY = "composer-draft";
 export interface About {
   id?: string;
   label: string;
+  /**
+   * The plan action this card is, when it is one. A condition travels as an
+   * id the engine scores; an action travels as the report row it is, which is
+   * what `/api/plan/adopt` and `/api/plan/dismiss` already take. Phase 27:
+   * "i already do this" is then an adopt, not an ontology lookup.
+   */
+  action?: ActionSubject;
 }
 
 /**
@@ -246,6 +268,8 @@ export function Composer({
   const [question, setQuestion] = useState("");
   /** the condition a card's "Discuss" opened the box about */
   const [about, setAbout] = useState<About | null>(null);
+  /** what the words say about that action: the phase 27 addendum's chip */
+  const [read, setRead] = useState<ActionRead | null>(null);
   /** the last opening that was auto-submitted, so it can only happen once */
   const autoAsked = useRef(0);
 
@@ -267,6 +291,7 @@ export function Composer({
       setPosted(null);
       setAsked(null);
       setChips([]);
+      setRead(null);
       setError("");
       setText(next.text);
       setAbout(next.about ?? null);
@@ -305,6 +330,8 @@ export function Composer({
       id?: string;
       reply?: string;
       followUp?: FollowUp | null;
+      /** what the words said about the plan action the box is about */
+      action?: ActionRead | null;
       error?: string;
     };
   }, []);
@@ -319,8 +346,13 @@ export function Composer({
     }
     const id = setTimeout(async () => {
       setThinking(true);
-      const data = await post({ text, draft: true });
+      const data = await post({
+        text,
+        draft: true,
+        ...(about?.action ? { about: about.action } : {}),
+      });
       setThinking(false);
+      setRead(data.action ?? null);
       if (data.chips) {
         setChips(data.chips);
         setOptions(data.options ?? {});
@@ -344,6 +376,7 @@ export function Composer({
     setChips([]);
     setPosted(null);
     setAsked(null);
+    setRead(null);
     setQuestion("");
     setError("");
     setOpen(null);
@@ -442,10 +475,71 @@ export function Composer({
     router.refresh();
   };
 
+  /**
+   * The confirm behind an action chip. Every line of this is a route that
+   * already existed before phase 27: adopt, dismiss, tick a habit, answer a
+   * profile question. Nothing here invents a write path.
+   */
+  const applyAction = async (r: ActionRead, subject: ActionSubject) => {
+    if (!subject.reportId || typeof subject.index !== "number") return;
+    const at = { reportId: subject.reportId, actionIndex: subject.index };
+    const call = async (url: string, body: unknown) => {
+      const res = await fetch(url, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      return (await res.json().catch(() => ({}))) as {
+        id?: string;
+        error?: string;
+      };
+    };
+
+    if (r.stance === "refused" || r.stance === "stopped") {
+      await call("/api/plan/dismiss", at);
+      toast(
+        r.stance === "stopped" ? "Taken off your plan" : "Hidden from your plan",
+        {
+          label: "undo",
+          run: async () => {
+            await call("/api/plan/dismiss", { ...at, undo: true });
+            router.refresh();
+          },
+        },
+      );
+    } else {
+      const res = await call("/api/plan/adopt", {
+        ...at,
+        ...(r.since ? { startedAt: r.since } : {}),
+      });
+      if (r.stance === "done" && res.id)
+        await call("/api/habits", { itemId: res.id, day: today });
+      toast(
+        r.stance === "done"
+          ? "On your protocol, and ticked off for today"
+          : "On your protocol",
+      );
+    }
+
+    if (r.exerciseDays)
+      await call("/api/facts", {
+        key: "exercise_days_week",
+        value: r.exerciseDays,
+        ...(r.since ? { date: r.since } : {}),
+        note: r.quote,
+      });
+  };
+
   const send = async () => {
     setPosting(true);
     setError("");
-    const data = await post({ text, chips });
+    const data = await post({
+      text,
+      chips,
+      ...(about?.action ? { about: about.action } : {}),
+    });
+    if (data.action && about?.action)
+      await applyAction(data.action, about.action);
     setPosting(false);
     if (data.error) {
       setError(data.error);
@@ -524,7 +618,13 @@ export function Composer({
             </p>
           )}
 
-          {!asked && (
+          {question && posting && !asked && (
+            <p className="t-meta mb-2 flex items-center gap-1.5 text-[12px]">
+              <Loader2 className="size-3.5 animate-spin" /> thinking
+            </p>
+          )}
+
+          {showsBox({ question, answered: !!asked }) && (
             <textarea
               ref={box}
               autoFocus
@@ -613,6 +713,7 @@ export function Composer({
             ))}
             {!isQuestion &&
               !chips.length &&
+              !read &&
               !thinking &&
               text.trim().length >= 6 && (
                 <span className="t-meta text-[12px] text-neutral-400">
@@ -620,6 +721,20 @@ export function Composer({
                 </span>
               )}
           </div>
+
+          {read && !posted && (
+            <div
+              data-action-read={read.stance}
+              className="mt-3 border-l-2 border-accent-500 bg-accent-50 px-3 py-2"
+            >
+              <p className="t-body text-[13px] text-neutral-800">
+                {read.label}
+              </p>
+              <p className="t-meta mt-0.5 text-[11px]">
+                {WILL_DO[read.stance]}
+              </p>
+            </div>
+          )}
 
           {(reading || photo) && (
             <div className="mt-3 border border-neutral-200 bg-neutral-50 p-2">
@@ -740,7 +855,12 @@ export function Composer({
             </div>
           )}
 
-          {asked && <AskAnswer answer={asked} />}
+          {asked && (
+            <AskAnswer
+              answer={asked}
+              onLeave={() => dialog.current?.close()}
+            />
+          )}
 
           {posted?.reply && (
             <p className="mt-4 border-l-2 border-neutral-900 pl-3 font-body text-[13px] leading-relaxed text-neutral-700">

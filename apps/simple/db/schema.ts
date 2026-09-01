@@ -375,6 +375,13 @@ export const protocolItems = pgTable("protocol_items", {
   }),
   cadence: text("cadence").default("daily").notNull(),
   active: boolean("active").default(true).notNull(),
+  /**
+   * Phase 27. The day the person says they started, which is not the day they
+   * told us: "i already do this, since March" adopts the action and dates it
+   * March, so the card can say "you are already doing this ✓ since 2026-03-01"
+   * and the next plan writes "keep going" rather than "start".
+   */
+  startedAt: date("started_at"),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
 });
 

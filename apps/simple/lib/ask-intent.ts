@@ -70,13 +70,42 @@ const DRAFT_FLOOR = 6;
  */
 export function openingMode({ text, about }: Opening): OpeningMode {
   const q = text.trim();
-  const ask = !!about || askIntent(q) === "question";
+  /**
+   * Phase 27, from the owner: Discuss on "Resistance training 3x/week",
+   * typed "i already do this", and got back "I don't know that word. Ask it as
+   * a question, or try the disease name." A subject used to force the ask
+   * route whatever was typed, so a statement went to `/api/ask` with no
+   * condition id, fell through to the ontology lookup, and matched nothing.
+   *
+   * A subject is what the words are ABOUT, not what kind of words they are.
+   * The words decide: a question is asked, a statement is told, and an empty
+   * box with a subject is somebody who pressed Discuss and has not typed yet.
+   */
+  const ask = q ? askIntent(q) === "question" : !!about;
   return {
     ask,
     auto: ask && q.length >= 2,
     drafts: !ask && q.length >= DRAFT_FLOOR,
   };
 }
+
+/**
+ * Does the composer still show the text box?
+ *
+ * Phase 27, item 1: while a question was in flight the question line AND the
+ * textarea both showed, with the same words in both. Once a question has been
+ * submitted the question line owns those words; the box comes back empty when
+ * "Ask another" clears the question.
+ */
+export const showsBox = ({
+  question,
+  answered,
+}: {
+  /** the question on screen, "" before anything has been asked */
+  question: string;
+  /** an answer is up */
+  answered: boolean;
+}): boolean => !question && !answered;
 
 /**
  * Which opening submits itself, given the last one that did.

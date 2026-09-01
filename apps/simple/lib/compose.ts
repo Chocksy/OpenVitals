@@ -1474,3 +1474,143 @@ export const beliefsNow = (m: ModelInput, catalog: Catalog) =>
   Object.fromEntries(
     scoreHypotheses(m, { catalog }).map((r) => [r.id, r.score]),
   );
+
+/* ── phase 27: what a statement about one plan action means ───────────── */
+
+/**
+ * The action a card's Discuss opened the box about.
+ *
+ * A condition has an id the engine scores; a plan action has a report and an
+ * index, which is exactly what `/api/plan/adopt` and `/api/plan/dismiss` take.
+ */
+export interface ActionSubject {
+  title: string;
+  reportId?: string;
+  index?: number;
+  kind?: string;
+}
+
+/** The five things a person says about an action they were told to take. */
+export type ActionStance =
+  | "doing"
+  | "started"
+  | "stopped"
+  | "refused"
+  | "done";
+
+/** What the words meant, and what the confirm will write because of it. */
+export interface ActionRead {
+  stance: ActionStance;
+  /** the chip a person reads before anything is written */
+  label: string;
+  /** the day it started holding, when the words carry one */
+  since?: string;
+  /** why not, for a refusal */
+  reason?: string;
+  /**
+   * The `exercise_days_week` answer this action implies, when the action is a
+   * training one with a weekly frequency in its title. Phase 24b: a user
+   * answer beats the phone's derived one, and "I already do this" about
+   * "Resistance training 3x/week" is a user answer.
+   */
+  exerciseDays?: string;
+  quote: string;
+}
+
+/** "Not for me, my knee is wrecked" → "my knee is wrecked". */
+const reasonIn = (text: string): string | undefined => {
+  const because = text.match(/\b(?:because|cause|cos|since)\s+(.{3,120})/i);
+  if (because) return because[1]!.trim().replace(/[.!]+$/, "");
+  const my = text.match(/\bmy\s+.{3,80}/i);
+  return my ? my[0].trim().replace(/[.!]+$/, "") : undefined;
+};
+
+/** "Resistance training 3x/week" → 3. "walk three times a week" → 3. */
+export const weeklyTimes = (title: string): number | null => {
+  const digits = title.match(/(\d{1,2})\s*(?:x|×|times?)\s*(?:a|per|\/)?\s*week/i);
+  if (digits) return Number(digits[1]);
+  const words = title.match(
+    /\b(one|two|three|four|five|six|seven)\s+times?\s+(?:a|per)\s+week\b/i,
+  );
+  return words ? (WORD_NUMBER[words[1]!.toLowerCase()] ?? null) : null;
+};
+
+/** The four options `exercise_days_week` has, from a number of sessions. */
+export const exerciseOption = (times: number): string =>
+  times <= 0 ? "0" : times <= 2 ? "1–2" : times <= 4 ? "3–4" : "5+";
+
+const IS_EXERCISE =
+  /\b(train|training|exercis|walk|walking|run|running|lift|lifting|gym|cardio|resistance|strength|steps|zone ?2)\b/i;
+
+const REFUSED =
+  /\b(can'?t|cannot|can not|won'?t|will not|not for me|no way|refuse|hate (it|this|that)|not going to)\b/i;
+const STOPPED = /\b(stopped|quit|gave up|given up|no longer|dropped it)\b/i;
+const DONE_TODAY =
+  /\b(did (it|this|that) today|done (it|this|that)? ?today|did (it|this|that) this morning|ticked (it|this) off)\b/i;
+const STARTED = /\b(started|starting|began|begun|just began|kicked off)\b/i;
+const DOING =
+  /\b(already (do|doing|did)|i do (this|that|it)|do (this|that|it) already|(i'?ve |i have )?been doing|i (train|exercise|walk|run|lift)|do (this|that|it) (every|3|三)|keep doing)\b/i;
+
+/**
+ * A statement about one plan action, read by rules and nothing else.
+ *
+ * Pure: no model, no database, no clock past the `today` it is handed. This is
+ * the layer the addendum asks for — Discuss on "Resistance training 3x/week",
+ * typed "i already do this", used to be sent to the ontology lookup and come
+ * back "I don't know that word". A statement about an action is one of five
+ * things, and each of them already has a route that writes it.
+ */
+export function readActionStatement(
+  text: string,
+  subject: ActionSubject,
+  today: string,
+): ActionRead | null {
+  const t = text.trim();
+  if (t.length < 2) return null;
+  const when = whenOf(t, today);
+  const times = weeklyTimes(subject.title);
+  const training = IS_EXERCISE.test(subject.title);
+  const days =
+    training && times != null ? exerciseOption(times) : undefined;
+  const base = { quote: t, ...(when ? { since: when.date } : {}) };
+
+  if (REFUSED.test(t)) {
+    const reason = reasonIn(t);
+    return {
+      ...base,
+      stance: "refused",
+      ...(reason ? { reason } : {}),
+      label: `Not for me: ${subject.title}${reason ? ` — ${reason}` : ""}`,
+    };
+  }
+  if (STOPPED.test(t))
+    return {
+      ...base,
+      stance: "stopped",
+      label: `Stopped: ${subject.title}`,
+    };
+  if (DONE_TODAY.test(t))
+    return {
+      ...base,
+      stance: "done",
+      since: today,
+      label: `Done today: ${subject.title}`,
+      ...(days ? { exerciseDays: days } : {}),
+    };
+  if (STARTED.test(t))
+    return {
+      ...base,
+      stance: "started",
+      since: when?.date ?? today,
+      label: `Started: ${subject.title} on ${when?.date ?? today}`,
+      ...(days ? { exerciseDays: days } : {}),
+    };
+  if (DOING.test(t))
+    return {
+      ...base,
+      stance: "doing",
+      label: `Already doing: ${subject.title} (since ${when?.date ?? "long-standing"})`,
+      ...(days ? { exerciseDays: days } : {}),
+    };
+  return null;
+}

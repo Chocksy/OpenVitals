@@ -16,12 +16,15 @@ export function ActionCard({
   index = 0,
   reportId,
   projection,
+  already,
 }: {
   action: ReportAction;
   index?: number;
   reportId?: string;
   /** what this one action alone would do, before it is adopted (phase 19) */
   projection?: string;
+  /** it is already on the protocol, and since when (phase 27 addendum) */
+  already?: { startedAt: string | null };
 }) {
   return (
     <Card className="p-4">
@@ -117,6 +120,7 @@ export function ActionCard({
             actionIndex={index}
             kind={action.kind}
             topic={action.title}
+            {...(already ? { already } : {})}
           />
         </div>
       )}

@@ -6,10 +6,11 @@
  * says what to do about it, the readings say what improved. The LLM only ever
  * writes the one sentence on a card, and that arrives from the latest report.
  */
-import { and, asc, desc, eq, gt, lt } from "drizzle-orm";
+import { and, asc, desc, eq, gt, isNull, lt } from "drizzle-orm";
 import {
   beliefSnapshots,
   getDb,
+  goals,
   hkbRevisions,
   lifeEvents,
   profileFactHistory,
@@ -683,6 +684,50 @@ const rangeBarOf = (m: MetricRow): RangeBarProps => ({
 });
 
 const DEFAULT_DRAW_WEEKS = 12;
+const DAY_MS = 86_400_000;
+
+/** One planned draw: a goal with a date on it, or an adopted action's target. */
+export interface DrawTarget {
+  code: string;
+  /** how many weeks from today, rounded up; already-due is 0 */
+  weeks: number;
+}
+
+/**
+ * What the Next draw tile says, from the three places a date can come from.
+ *
+ * Phase 27 put "Plan retest: HbA1c in 12 weeks" under every answer, and it
+ * writes a goal with a due date — the same row `/goals` has always had. So the
+ * tile reads the soonest thing that is actually planned: a dated goal first,
+ * then the targets of the actions this person adopted, then, when nothing at
+ * all is planned, the tests the engine would buy next.
+ *
+ * Pure, so the arithmetic is testable without a clock or a database.
+ */
+export function nextDraw(
+  planned: DrawTarget[],
+  adopted: { code: string; weeks: number }[],
+  suggested: string[],
+): { weeks: number; codes: string[] } {
+  const rows = planned.length ? planned : adopted;
+  if (!rows.length)
+    return { weeks: DEFAULT_DRAW_WEEKS, codes: [...new Set(suggested)].slice(0, 4) };
+  return {
+    weeks: Math.min(...rows.map((r) => r.weeks)),
+    codes: [...new Set(rows.map((r) => r.code))].slice(0, 4),
+  };
+}
+
+/** A due date into whole weeks from today, never negative. */
+export const weeksUntil = (due: string, today: string): number =>
+  Math.max(
+    0,
+    Math.round(
+      (new Date(`${due}T00:00:00Z`).getTime() -
+        new Date(`${today}T00:00:00Z`).getTime()) /
+        (7 * DAY_MS),
+    ),
+  );
 
 export async function buildLedger(
   userId: string,
@@ -699,6 +744,7 @@ export async function buildLedger(
     before,
     events,
     made,
+    dated,
   ] = await Promise.all([
     buildModelInput(userId),
     catalogFor(userId),
@@ -724,6 +770,13 @@ export async function buildLedger(
     previousSnapshot(userId),
     db.select().from(lifeEvents).where(eq(lifeEvents.userId, userId)),
     projectionsFor(userId),
+    // The retests somebody actually planned: a goal with a date on it, still
+    // open. `achievedAt` closes one, and a date in the past is a draw that was
+    // missed rather than a draw that is next.
+    db
+      .select({ metricCode: goals.metricCode, due: goals.due })
+      .from(goals)
+      .where(and(eq(goals.userId, userId), isNull(goals.achievedAt))),
   ]);
 
   // An old draw gets its context from the timeline, not from a question: an
@@ -972,20 +1025,23 @@ export async function buildLedger(
   const adopted = actions.filter((a) =>
     protocol.some((p) => p.text.startsWith(a.title)),
   );
-  const drawTargets = adopted.flatMap((a) => a.targets);
-  const nextDrawWeeks = drawTargets.length
-    ? Math.min(...drawTargets.map((t) => t.measureAfterWeeks))
-    : DEFAULT_DRAW_WEEKS;
-  const nextDrawCodes = drawTargets.length
-    ? [...new Set(drawTargets.map((t) => t.code))].slice(0, 4)
-    : [
-        ...new Set(
-          moves
-            .filter((m) => m.kind === "test")
-            .slice(0, 3)
-            .map((m) => m.label),
-        ),
-      ];
+  const draw = nextDraw(
+    dated
+      .filter((g) => g.due != null)
+      .map((g) => ({
+        code: g.metricCode,
+        weeks: weeksUntil(g.due!, input.today),
+      })),
+    adopted.flatMap((a) =>
+      a.targets.map((t) => ({ code: t.code, weeks: t.measureAfterWeeks })),
+    ),
+    moves
+      .filter((m) => m.kind === "test")
+      .slice(0, 3)
+      .map((m) => m.label),
+  );
+  const nextDrawWeeks = draw.weeks;
+  const nextDrawCodes = draw.codes;
 
   const graph = await graphState(input, { top: 60 });
   const importance = new Map(graph.nodes.map((n) => [n.id, n.importance]));

@@ -19,8 +19,10 @@ import { fileURLToPath } from "node:url";
 import { personaToInput } from "@/evals/persona";
 import {
   followUp,
+  readActionStatement,
   understand,
   understandRules,
+  type ActionSubject,
   type Chip,
 } from "@/lib/compose";
 import { loadCatalog } from "@/lib/hkb";
@@ -32,6 +34,12 @@ interface ComposeCase {
   id: string;
   text: string;
   today: string;
+  /**
+   * Phase 27 addendum: the plan action a card's Discuss opened the box about.
+   * The words are then read relative to it as well, and never sent to the
+   * ontology lookup — which is what "i already do this" used to hit.
+   */
+  about?: ActionSubject;
   /** the account this post is written from */
   facts?: Record<string, unknown>;
   readings?: { code: string; value: number; unit?: string; date: string }[];
@@ -48,11 +56,18 @@ interface ComposeCase {
     notKinds?: string[];
     /** the key of the one question asked back, or null for none */
     followUp: string | null;
+    /** what the words said about the action the box is about */
+    action?: {
+      stance: string;
+      label?: string;
+      exerciseDays?: string;
+    } | null;
   };
 }
 
 interface Result {
   id: string;
+  action?: string;
   rules: { chips: string[]; followUp: string | null; failed: string[] };
   model: { chips: string[]; followUp: string | null; failed: string[] };
   pass: boolean;
@@ -113,12 +128,41 @@ async function main() {
       readings: c.readings ?? [],
     });
 
+    /**
+     * The action layer is rules and nothing else, so it runs in the rules pass
+     * and its result is checked there: a statement about an action never needs
+     * a model and never needs the ontology.
+     */
+    const read = c.about
+      ? readActionStatement(c.text, c.about, c.today)
+      : null;
+    const actionFailed: string[] = [];
+    const want = c.expect.action;
+    if (want === null && read)
+      actionFailed.push(`read "${read.label}" and wanted nothing`);
+    if (want) {
+      if (!read) actionFailed.push(`read nothing, wanted ${want.stance}`);
+      else {
+        if (read.stance !== want.stance)
+          actionFailed.push(`stance ${read.stance}, wanted ${want.stance}`);
+        if (want.label && read.label !== want.label)
+          actionFailed.push(`label "${read.label}", wanted "${want.label}"`);
+        if (want.exerciseDays && read.exerciseDays !== want.exerciseDays)
+          actionFailed.push(
+            `exercise ${read.exerciseDays ?? "none"}, wanted ${want.exerciseDays}`,
+          );
+      }
+    }
+
     const ruleChips = understandRules(c.text, m, c.today);
     const ruleAsk = followUp(ruleChips, m, catalog, graph);
     const rules = {
       chips: ruleChips.map(describe),
       followUp: ruleAsk?.key ?? null,
-      failed: check(c, ruleChips, ruleAsk?.key ?? null, { needFollowUp: true }),
+      failed: [
+        ...actionFailed,
+        ...check(c, ruleChips, ruleAsk?.key ?? null, { needFollowUp: true }),
+      ],
     };
 
     const allChips = await understand(c.text, m).catch((e) => {
@@ -145,7 +189,13 @@ async function main() {
     };
 
     const pass = !rules.failed.length && !model.failed.length;
-    results.push({ id: c.id, rules, model, pass });
+    results.push({
+      id: c.id,
+      ...(read ? { action: read.label } : {}),
+      rules,
+      model,
+      pass,
+    });
     console.log(
       `rules ${ruleChips.length} chips, +model ${allChips.length}, ${pass ? "pass" : "FAIL"}`,
     );
@@ -155,7 +205,7 @@ async function main() {
   console.table(
     results.map((r) => ({
       case: r.id,
-      rules: r.rules.chips.join(" ") || "-",
+      rules: r.rules.chips.join(" ") || r.action || "-",
       asked: r.rules.followUp ?? "-",
       added:
         r.model.chips.filter((c) => !r.rules.chips.includes(c)).join(" ") ||

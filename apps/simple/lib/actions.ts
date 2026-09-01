@@ -30,6 +30,14 @@ import { latestReport } from "./report";
 
 /** One thing to do, from whichever source had it, with its label. */
 export interface PlanLine {
+  /**
+   * Phase 27. The name the model is allowed to say this row by, and the whole
+   * adopt call folded into a string: `plan:<reportId>:<index>` is an action off
+   * this person's own report, `int:<interventionId>` is a graded row off the
+   * papers. `adoptBodyOf` turns it back into the body `/api/plan/adopt` takes,
+   * so a chip in the answer and the Add on a card post the same thing.
+   */
+  id: string;
   title: string;
   /** `plan` is this person's own report; `papers` is `hkb_interventions`. */
   source: "plan" | "papers";
@@ -114,6 +122,8 @@ export interface PickOptions {
   actions: ReportAction[];
   /** `hkb_interventions` rows already filtered to this condition */
   interventions: InterventionLine[];
+  /** the report the plan actions are indexes into, for their ids */
+  reportId?: string | null;
   /** how many lines a caller wants; the cards print 3 */
   limit?: number;
   /** null: no condition was named, so every plan action is a candidate */
@@ -133,6 +143,7 @@ export function pickActions({
   codes,
   actions,
   interventions,
+  reportId = null,
   limit = 3,
   anyAction = false,
 }: PickOptions): PlanLine[] {
@@ -149,6 +160,7 @@ export function pickActions({
         a.index - b.index,
     )
     .map<PlanLine>(({ action, index }) => ({
+      id: `plan:${reportId ?? ""}:${index}`,
       title: action.title,
       source: "plan",
       index,
@@ -177,6 +189,7 @@ export function pickActions({
     .map<PlanLine>((r) => {
       const basis = basisOfGrade(r.grade);
       return {
+        id: `int:${r.id}`,
         title: r.name,
         source: "papers",
         interventionId: r.id,
@@ -191,6 +204,26 @@ export function pickActions({
 
   return [...mine, ...papers].slice(0, limit);
 }
+
+/**
+ * The body `/api/plan/adopt` takes for one line, read straight off its id.
+ *
+ * Pure, and the only place that knows the shape of an id: a chip in an answer
+ * has nothing but the id, and this is how it adopts without a second lookup.
+ * A plan id with no report behind it (the `/brain` preview writes those) has
+ * nothing to adopt and says so.
+ */
+export const adoptBodyOf = (
+  id: string,
+): { reportId: string; actionIndex: number } | { interventionId: string } | null => {
+  if (id.startsWith("int:")) {
+    const interventionId = id.slice(4);
+    return interventionId ? { interventionId } : null;
+  }
+  const m = /^plan:([^:]*):(\d+)$/.exec(id);
+  if (!m || !m[1]) return null;
+  return { reportId: m[1], actionIndex: Number(m[2]) };
+};
 
 /** One line for a prompt or a card: title · dose · label · what it should move. */
 export const actionLine = (p: PlanLine): string =>
@@ -234,6 +267,7 @@ export async function actionsFor(
       codes: [],
       actions: report?.body.actions ?? [],
       interventions: [],
+      reportId: report?.id ?? null,
       limit,
       anyAction: true,
     });
@@ -276,6 +310,7 @@ export async function actionsForAll(
       codes: spec ? metricCodesOf(spec) : [],
       actions,
       interventions: rows.filter((r) => r.conditionId === id).map(toLine),
+      reportId: report?.id ?? null,
       limit,
     });
   }

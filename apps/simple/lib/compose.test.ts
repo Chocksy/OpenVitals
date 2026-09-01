@@ -7,11 +7,13 @@ import {
   leftover,
   phenotypeChips,
   plainReply,
+  readActionStatement,
   timeTokens,
   understandRules,
   verifyModelChips,
   whenOf,
   worthModelling,
+  type ActionSubject,
   type Chip,
   type ReplyPack,
 } from "./compose";
@@ -578,5 +580,96 @@ describe("the phase-20 edges", () => {
       expect(edge.evidence[0]!.title.length).toBeGreaterThan(10);
     }
     void sleepy;
+  });
+});
+
+/**
+ * Phase 27 addendum, from the owner: Discuss on the plan action "Resistance
+ * training 3x/week", typed "i already do this", and the box answered "I don't
+ * know that word. Ask it as a question, or try the disease name." A subject
+ * forced the ask route and a statement fell through to the ontology lookup.
+ *
+ * A statement about an action is one of five things, and every one of them has
+ * a route that already writes it.
+ */
+describe("readActionStatement", () => {
+  const training: ActionSubject = {
+    title: "Resistance training 3x/week",
+    reportId: "r1",
+    index: 2,
+  };
+  const today = "2026-09-01";
+  const read = (text: string, subject = training) =>
+    readActionStatement(text, subject, today);
+
+  it("reads the owner's own sentence", () => {
+    const r = read("i already do this")!;
+    expect(r.stance).toBe("doing");
+    expect(r.label).toBe(
+      "Already doing: Resistance training 3x/week (since long-standing)",
+    );
+  });
+
+  it("carries the day it started when the words carry one", () => {
+    const r = read("I've been doing this for two months")!;
+    expect(r.stance).toBe("doing");
+    expect(r.since).toBe("2026-07-03");
+    expect(r.label).toContain("since 2026-07-03");
+  });
+
+  it("reads a start, and dates it today when nothing else is said", () => {
+    const r = read("started last week")!;
+    expect(r.stance).toBe("started");
+    expect(r.since).toBe("2026-08-25");
+    expect(r.label).toBe("Started: Resistance training 3x/week on 2026-08-25");
+  });
+
+  it("reads a stop", () => {
+    expect(read("i stopped in July")!.stance).toBe("stopped");
+    expect(read("quit that months ago")!.stance).toBe("stopped");
+  });
+
+  it("reads a refusal, with the reason when there is one", () => {
+    const r = read("i can't, because my knee is wrecked")!;
+    expect(r.stance).toBe("refused");
+    expect(r.reason).toBe("my knee is wrecked");
+    expect(r.label).toBe(
+      "Not for me: Resistance training 3x/week — my knee is wrecked",
+    );
+  });
+
+  it("reads a tick for today", () => {
+    const r = read("did it today")!;
+    expect(r.stance).toBe("done");
+    expect(r.since).toBe(today);
+  });
+
+  /**
+   * Phase 24b: a user's own answer beats the phone's derived one, and "I
+   * already do this" about an action with a weekly frequency in its title is
+   * a user's own answer.
+   */
+  it("turns a weekly frequency into the exercise answer", () => {
+    expect(read("i already do this")!.exerciseDays).toBe("3–4");
+    expect(
+      read("i already do this", {
+        title: "Walk 5 times a week",
+      })!.exerciseDays,
+    ).toBe("5+");
+    expect(
+      read("i already do this", { title: "Zone 2 cardio 2x/week" })!
+        .exerciseDays,
+    ).toBe("1–2");
+  });
+
+  it("writes no exercise answer for an action that is not training", () => {
+    expect(
+      read("i already do this", { title: "Selenium 200 µg/day" })!.exerciseDays,
+    ).toBeUndefined();
+  });
+
+  it("says nothing about a sentence that is not about the action", () => {
+    expect(read("my hands are cold")).toBeNull();
+    expect(read("")).toBeNull();
   });
 });

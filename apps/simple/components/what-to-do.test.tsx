@@ -17,6 +17,7 @@ import { WhatToDo } from "./what-to-do";
  * the card's only advice was the catalog's shorthand.
  */
 const line = (over: Partial<PlanLine> = {}): PlanLine => ({
+  id: "plan:r1:0",
   title: "Selenium 200 µg/day",
   source: "plan",
   index: 0,

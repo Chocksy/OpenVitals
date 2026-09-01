@@ -203,11 +203,18 @@ export function ActionButtons({
   kind,
   topic,
   about,
+  already,
   adopt = true,
 }: {
   reportId: string;
   actionIndex: number;
   kind: string;
+  /**
+   * This action is already on the protocol, and the day it started, when the
+   * person said one. Phase 27 addendum item 3: "Add to protocol" on something
+   * they told us they already do was the app forgetting the conversation.
+   */
+  already?: { startedAt: string | null };
   /** what this card is about, printed above the box as "About <it>" */
   topic?: string;
   /**
@@ -264,7 +271,14 @@ export function ActionButtons({
       style={{ "--panel-translate-y": "12px" } as React.CSSProperties}
     >
       <div className="flex flex-wrap items-center gap-2">
-        {!adopt ? null : isTest ? (
+        {already ? (
+          <span className="t-meta inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-[0.04em] text-[var(--color-health-normal)]">
+            <Check className="size-3" /> You&rsquo;re already doing this
+            {already.startedAt ? (
+              <span className="t-num text-[10px]"> since {already.startedAt}</span>
+            ) : null}
+          </span>
+        ) : !adopt ? null : isTest ? (
           <Link
             href="/insights"
             className="inline-flex h-8 items-center gap-1.5 rounded-sm border border-neutral-200 bg-neutral-0 px-3 font-display text-[12px] tracking-[0.04em] text-neutral-700 hover:border-neutral-900 hover:bg-neutral-50"
@@ -294,6 +308,21 @@ export function ActionButtons({
             openComposer("", {
               ...(about ? { id: about } : {}),
               label: topic ?? "your plan",
+              /**
+               * Phase 27 addendum: an action travels as the report row it is,
+               * so "i already do this" can adopt it instead of being sent to
+               * the ontology lookup.
+               */
+              ...(topic
+                ? {
+                    action: {
+                      title: topic,
+                      reportId,
+                      index: actionIndex,
+                      kind,
+                    },
+                  }
+                : {}),
             })
           }
         >

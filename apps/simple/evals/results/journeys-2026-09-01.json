@@ -1,5 +1,5 @@
 {
-  "ranAt": "2026-09-01T14:14:51.588Z",
+  "ranAt": "2026-09-01T15:58:04.189Z",
   "kbRevision": 66,
   "results": [
     {
@@ -11941,6 +11941,7 @@
             "label": "Alpha-1 antitrypsin level",
             "howTo": "One tube. It is an acute-phase protein, so a borderline level during an infection is repeated when well.",
             "cost": 1,
+            "band": 1,
             "outcomes": [
               {
                 "label": "positive",
@@ -12333,6 +12334,7 @@
             "label": "Alpha-1 antitrypsin phenotype (Pi typing)",
             "howTo": "Isoelectric focusing or a genotype for S and Z. It is what turns a low level into a diagnosis and tells the family what to test for.",
             "cost": 2,
+            "band": 2,
             "outcomes": [
               {
                 "label": "positive",
@@ -12774,6 +12776,7 @@
             "label": "Morning cortisol",
             "howTo": "Between 8 and 9 in the morning, off any steroid including inhaled and skin preparations. Under 5 is diagnostic, over 15 excludes it.",
             "cost": 1,
+            "band": 1,
             "outcomes": [
               {
                 "label": "positive",
@@ -13157,6 +13160,7 @@
             "label": "ACTH stimulation test",
             "howTo": "250 µg synthetic ACTH, cortisol at 30 and 60 minutes. A peak under 18 µg/dL confirms it. Book it through an endocrinologist.",
             "cost": 2,
+            "band": 2,
             "outcomes": [
               {
                 "label": "positive",
@@ -13652,6 +13656,7 @@
             "howTo": "Before 10 am, fasted, twice on separate days. A single afternoon sample is the commonest reason this gets diagnosed wrongly.",
             "cost": 11.6,
             "priced": true,
+            "band": 1,
             "outcomes": [
               {
                 "label": "positive",
@@ -14034,6 +14039,7 @@
             "label": "Repeat LDL off any treatment",
             "cost": 19.02,
             "priced": true,
+            "band": 1,
             "outcomes": [
               {
                 "label": "positive",
@@ -14416,6 +14422,7 @@
             "label": "Colonoscopy",
             "howTo": "From 45, every ten years if it is clean, and from 40 with a first-degree relative — or ten years before their diagnosis if that is earlier. A faecal immunochemical test every year is the cheaper alternative with almost as much mortality evidence.",
             "cost": 4,
+            "band": 4,
             "outcomes": [
               {
                 "label": "positive",
@@ -14846,6 +14853,7 @@
             "label": "Alpha-galactosidase A activity (dried blood spot)",
             "howTo": "A dried blood spot posted to a metabolic laboratory. Diagnostic in males; in females it can be normal and the GLA gene is what answers the question.",
             "cost": 2,
+            "band": 2,
             "outcomes": [
               {
                 "label": "positive",
@@ -26594,6 +26602,7 @@
             "label": "Bilirubin fractions with a blood count and reticulocytes",
             "howTo": "One draw settles it: split the bilirubin, and check the enzymes, the haemoglobin and the reticulocytes on the same sample. If they are all normal, no imaging is needed.",
             "cost": 1,
+            "band": 1,
             "outcomes": [
               {
                 "label": "positive",
@@ -27717,6 +27726,7 @@
             "howTo": "Fasting, because saturation drifts through the day. Two raised results, not one, before going on to the gene test.",
             "cost": 12.17,
             "priced": true,
+            "band": 1,
             "outcomes": [
               {
                 "label": "positive",
@@ -28137,6 +28147,7 @@
             "howTo": "Fasting, because saturation drifts through the day. Two raised results, not one, before going on to the gene test.",
             "cost": 12.17,
             "priced": true,
+            "band": 1,
             "outcomes": [
               {
                 "label": "positive",
@@ -28553,6 +28564,7 @@
             "howTo": "One tube, once, and it settles it for life. C282Y homozygous is the diagnosis; the other combinations rarely cause overload on their own.",
             "cost": 96.04,
             "priced": true,
+            "band": 2,
             "outcomes": [
               {
                 "label": "positive",
@@ -29013,6 +29025,7 @@
             "howTo": "Fasting, because saturation drifts through the day. Two raised results, not one, before going on to the gene test.",
             "cost": 12.17,
             "priced": true,
+            "band": 1,
             "outcomes": [
               {
                 "label": "positive",
@@ -29451,6 +29464,7 @@
             "howTo": "Fasting, because saturation drifts through the day. Two raised results, not one, before going on to the gene test.",
             "cost": 12.17,
             "priced": true,
+            "band": 1,
             "outcomes": [
               {
                 "label": "positive",
@@ -29880,6 +29894,7 @@
             "howTo": "One tube, once, and it settles it for life. C282Y homozygous is the diagnosis; the other combinations rarely cause overload on their own.",
             "cost": 96.04,
             "priced": true,
+            "band": 2,
             "outcomes": [
               {
                 "label": "positive",
@@ -42315,6 +42330,7 @@
             "howTo": "Progression runs 2–5 % per year while antibody-positive, so a second TSH is the cheapest test there is.",
             "cost": 10.65,
             "priced": true,
+            "band": 1,
             "outcomes": [
               {
                 "label": "positive",
@@ -42713,6 +42729,7 @@
             "howTo": "Draw it with a CRP: inflammation lifts ferritin and hides an empty store.",
             "cost": 10.84,
             "priced": true,
+            "band": 1,
             "outcomes": [
               {
                 "label": "positive",
@@ -55505,6 +55522,7 @@
             "howTo": "Progression runs 2–5 % per year while antibody-positive, so a second TSH is the cheapest test there is.",
             "cost": 10.65,
             "priced": true,
+            "band": 1,
             "outcomes": [
               {
                 "label": "positive",
@@ -55903,6 +55921,7 @@
             "howTo": "Draw it with a CRP: inflammation lifts ferritin and hides an empty store.",
             "cost": 10.84,
             "priced": true,
+            "band": 1,
             "outcomes": [
               {
                 "label": "positive",
@@ -59828,6 +59847,7 @@
             "label": "Bilirubin fractions with a blood count and reticulocytes",
             "howTo": "One draw settles it: split the bilirubin, and check the enzymes, the haemoglobin and the reticulocytes on the same sample. If they are all normal, no imaging is needed.",
             "cost": 1,
+            "band": 1,
             "outcomes": [
               {
                 "label": "positive",
@@ -60343,6 +60363,7 @@
             "howTo": "Draw it with a CRP: inflammation lifts ferritin and hides an empty store.",
             "cost": 10.84,
             "priced": true,
+            "band": 1,
             "outcomes": [
               {
                 "label": "positive",
@@ -60756,6 +60777,7 @@
             "howTo": "An HbA2 above 3.5 % is beta-thalassaemia trait. Worth knowing once, mostly so nobody prescribes you iron forever.",
             "cost": 13.5,
             "priced": true,
+            "band": 2,
             "outcomes": [
               {
                 "label": "positive",
@@ -61158,6 +61180,7 @@
             "howTo": "Only valid while you are still eating gluten. Order total IgA with it: 2 % of coeliacs are IgA-deficient and read as falsely negative.",
             "cost": 37.08,
             "priced": true,
+            "band": 1,
             "outcomes": [
               {
                 "label": "positive",
@@ -61565,6 +61588,7 @@
             "howTo": "A rule-out test, not a rule-in one: 30 % of everybody is positive, but a negative essentially excludes coeliac disease for life.",
             "cost": 188.27,
             "priced": true,
+            "band": 2,
             "outcomes": [
               {
                 "label": "positive",
@@ -74981,6 +75005,7 @@
             "howTo": "Draw it with a CRP: inflammation lifts ferritin and hides an empty store.",
             "cost": 10.84,
             "priced": true,
+            "band": 1,
             "outcomes": [
               {
                 "label": "positive",
@@ -75425,6 +75450,7 @@
             "label": "Repeat LDL off any treatment",
             "cost": 19.02,
             "priced": true,
+            "band": 1,
             "outcomes": [
               {
                 "label": "positive",
@@ -86757,6 +86783,7 @@
             "label": "Bilirubin fractions with a blood count and reticulocytes",
             "howTo": "One draw settles it: split the bilirubin, and check the enzymes, the haemoglobin and the reticulocytes on the same sample. If they are all normal, no imaging is needed.",
             "cost": 1,
+            "band": 1,
             "outcomes": [
               {
                 "label": "positive",
@@ -87131,6 +87158,7 @@
             "howTo": "Once in a life. Ask for the molar unit (nmol/L) if the lab offers it; mass units vary between assays.",
             "cost": 25.67,
             "priced": true,
+            "band": 2,
             "outcomes": [
               {
                 "label": "positive",
@@ -87509,6 +87537,7 @@
             "label": "25-OH vitamin D",
             "cost": 32.33,
             "priced": true,
+            "band": 1,
             "outcomes": [
               {
                 "label": "positive",
@@ -87883,6 +87912,7 @@
             "howTo": "No fast needed. It averages the last three months, so a single bad week does not move it.",
             "cost": 11.22,
             "priced": true,
+            "band": 1,
             "outcomes": [
               {
                 "label": "positive",
@@ -88267,6 +88297,7 @@
             "howTo": "Progression runs 2–5 % per year while antibody-positive, so a second TSH is the cheapest test there is.",
             "cost": 10.65,
             "priced": true,
+            "band": 1,
             "outcomes": [
               {
                 "label": "positive",
@@ -88656,6 +88687,7 @@
             "howTo": "No fast needed. It counts the particles rather than the cholesterol inside them, which is what actually enters the artery wall.",
             "cost": 9.89,
             "priced": true,
+            "band": 1,
             "outcomes": [
               {
                 "label": "positive",
@@ -89030,6 +89062,7 @@
             "howTo": "Never interpret one CRP. Repeat it two weeks after any infection has cleared; the lower of two readings is the one that means anything.",
             "cost": 14.45,
             "priced": true,
+            "band": 1,
             "outcomes": [
               {
                 "label": "positive",
@@ -89409,6 +89442,7 @@
             "howTo": "Once in a lifetime for every adult, per the WHO and US CDC. Two lines on a lab form and one of the two results is curable.",
             "cost": 11.6,
             "priced": true,
+            "band": 1,
             "outcomes": [
               {
                 "label": "positive",
@@ -89790,6 +89824,7 @@
             "label": "7-day home blood pressure average",
             "howTo": "Twice a morning and twice an evening for seven days, sitting, arm supported, after five minutes still. Throw the first day away and average the rest.",
             "cost": 1,
+            "band": 1,
             "outcomes": [
               {
                 "label": "positive",
@@ -90174,6 +90209,7 @@
             "howTo": "Not during an attack: urate often reads normal in the middle of one. Wait two weeks.",
             "cost": 3.99,
             "priced": true,
+            "band": 1,
             "outcomes": [
               {
                 "label": "positive",
@@ -90547,6 +90583,7 @@
             "label": "VO2max estimate from a submaximal test",
             "howTo": "A twelve-minute run, a step test or a watch estimate. Any of them beats not measuring it, which is what almost every clinic does.",
             "cost": 2,
+            "band": 2,
             "outcomes": [
               {
                 "label": "positive",
@@ -90921,6 +90958,7 @@
             "howTo": "Reflects the last three months rather than last night's dinner, which is what you want when the serum is borderline.",
             "cost": 11.41,
             "priced": true,
+            "band": 2,
             "outcomes": [
               {
                 "label": "positive",
@@ -91294,6 +91332,7 @@
             "label": "Coronary calcium score (CAC)",
             "howTo": "A two-minute CT, about 1 mSv. A zero score in a 50-year-old buys years of reassurance; a high score changes the conversation about statins.",
             "cost": 3,
+            "band": 3,
             "outcomes": [
               {
                 "label": "positive",
@@ -91669,6 +91708,7 @@
             "howTo": "Two hours after 75 g of glucose. It catches the people whose fasting numbers look fine and whose post-meal ones do not.",
             "cost": 11.6,
             "priced": true,
+            "band": 2,
             "outcomes": [
               {
                 "label": "positive",
@@ -92044,6 +92084,7 @@
             "howTo": "75 g glucose, insulin at 0 and 120 minutes. Ask for insulin, not glucose alone.",
             "cost": 54.01,
             "priced": true,
+            "band": 2,
             "outcomes": [
               {
                 "label": "positive",
@@ -92434,6 +92475,7 @@
             "howTo": "Before 10 am, fasted, twice on separate days. A single afternoon sample is the commonest reason this gets diagnosed wrongly.",
             "cost": 11.6,
             "priced": true,
+            "band": 1,
             "outcomes": [
               {
                 "label": "positive",
@@ -92808,6 +92850,7 @@
             "label": "STOP-Bang questionnaire",
             "howTo": "Eight yes/no questions, two minutes, free. Three or more is a positive screen.",
             "cost": 1,
+            "band": 1,
             "outcomes": [
               {
                 "label": "positive",
@@ -93180,6 +93223,7 @@
             "label": "Full AUDIT questionnaire",
             "howTo": "Ten questions, free, and better than any blood test. Eight or more means dependence is likely.",
             "cost": 1,
+            "band": 1,
             "outcomes": [
               {
                 "label": "positive",
@@ -104923,6 +104967,7 @@
             "howTo": "No fast needed. It averages the last three months, so a single bad week does not move it.",
             "cost": 11.22,
             "priced": true,
+            "band": 1,
             "outcomes": [
               {
                 "label": "positive",
@@ -105311,6 +105356,7 @@
             "label": "Bilirubin fractions with a blood count and reticulocytes",
             "howTo": "One draw settles it: split the bilirubin, and check the enzymes, the haemoglobin and the reticulocytes on the same sample. If they are all normal, no imaging is needed.",
             "cost": 1,
+            "band": 1,
             "outcomes": [
               {
                 "label": "positive",
@@ -105685,6 +105731,7 @@
             "howTo": "Once in a life. Ask for the molar unit (nmol/L) if the lab offers it; mass units vary between assays.",
             "cost": 25.67,
             "priced": true,
+            "band": 2,
             "outcomes": [
               {
                 "label": "positive",
@@ -106063,6 +106110,7 @@
             "label": "25-OH vitamin D",
             "cost": 32.33,
             "priced": true,
+            "band": 1,
             "outcomes": [
               {
                 "label": "positive",
@@ -106437,6 +106485,7 @@
             "howTo": "Progression runs 2–5 % per year while antibody-positive, so a second TSH is the cheapest test there is.",
             "cost": 10.65,
             "priced": true,
+            "band": 1,
             "outcomes": [
               {
                 "label": "positive",
@@ -106826,6 +106875,7 @@
             "howTo": "Never interpret one CRP. Repeat it two weeks after any infection has cleared; the lower of two readings is the one that means anything.",
             "cost": 14.45,
             "priced": true,
+            "band": 1,
             "outcomes": [
               {
                 "label": "positive",
@@ -107204,6 +107254,7 @@
             "label": "Lipid panel",
             "howTo": "One draw, no fast needed for a modern panel. It reports total, LDL, HDL and triglycerides; the LDL is what the risk rules read, and apoB is the better follow-up when it comes back high.",
             "cost": 1,
+            "band": 1,
             "outcomes": [
               {
                 "label": "positive",
@@ -107583,6 +107634,7 @@
             "label": "Repeat LDL off any treatment",
             "cost": 19.02,
             "priced": true,
+            "band": 1,
             "outcomes": [
               {
                 "label": "positive",
@@ -107957,6 +108009,7 @@
             "label": "Repeat LDL off any treatment",
             "cost": 19.02,
             "priced": true,
+            "band": 1,
             "outcomes": [
               {
                 "label": "positive",
@@ -108332,6 +108385,7 @@
             "label": "FH genetic panel (LDLR, APOB, PCSK9)",
             "howTo": "A mutation confirms it and lets the family be tested. A negative panel does not exclude it: 20–40 % of clinical FH has no identified mutation.",
             "cost": 3,
+            "band": 3,
             "outcomes": [
               {
                 "label": "positive",
@@ -108704,6 +108758,7 @@
             "howTo": "First-morning urine, repeated once within three months. One raised result is not a diagnosis.",
             "cost": 11.6,
             "priced": true,
+            "band": 1,
             "outcomes": [
               {
                 "label": "positive",
@@ -109078,6 +109133,7 @@
             "howTo": "Once in a lifetime for every adult, per the WHO and US CDC. Two lines on a lab form and one of the two results is curable.",
             "cost": 11.6,
             "priced": true,
+            "band": 1,
             "outcomes": [
               {
                 "label": "positive",
@@ -109460,6 +109516,7 @@
             "label": "7-day home blood pressure average",
             "howTo": "Twice a morning and twice an evening for seven days, sitting, arm supported, after five minutes still. Throw the first day away and average the rest.",
             "cost": 1,
+            "band": 1,
             "outcomes": [
               {
                 "label": "positive",
@@ -109845,6 +109902,7 @@
             "howTo": "An HbA2 above 3.5 % is beta-thalassaemia trait. Worth knowing once, mostly so nobody prescribes you iron forever.",
             "cost": 13.5,
             "priced": true,
+            "band": 2,
             "outcomes": [
               {
                 "label": "positive",
@@ -110220,6 +110278,7 @@
             "howTo": "Not during an attack: urate often reads normal in the middle of one. Wait two weeks.",
             "cost": 3.99,
             "priced": true,
+            "band": 1,
             "outcomes": [
               {
                 "label": "positive",
@@ -110594,6 +110653,7 @@
             "label": "VO2max estimate from a submaximal test",
             "howTo": "A twelve-minute run, a step test or a watch estimate. Any of them beats not measuring it, which is what almost every clinic does.",
             "cost": 2,
+            "band": 2,
             "outcomes": [
               {
                 "label": "positive",
@@ -110969,6 +111029,7 @@
             "howTo": "Reflects the last three months rather than last night's dinner, which is what you want when the serum is borderline.",
             "cost": 11.41,
             "priced": true,
+            "band": 2,
             "outcomes": [
               {
                 "label": "positive",
@@ -111344,6 +111405,7 @@
             "howTo": "Two hours after 75 g of glucose. It catches the people whose fasting numbers look fine and whose post-meal ones do not.",
             "cost": 11.6,
             "priced": true,
+            "band": 2,
             "outcomes": [
               {
                 "label": "positive",
@@ -120796,6 +120858,7 @@
             "label": "Baseline serum tryptase",
             "howTo": "Drawn at least 24 hours after any reaction, so it is a baseline and not a spike. A raised baseline is repeated once before it is believed.",
             "cost": 1,
+            "band": 1,
             "outcomes": [
               {
                 "label": "positive",
@@ -122569,6 +122632,7 @@
             "howTo": "Only valid while you are still eating gluten. Order total IgA with it: 2 % of coeliacs are IgA-deficient and read as falsely negative.",
             "cost": 37.08,
             "priced": true,
+            "band": 1,
             "outcomes": [
               {
                 "label": "positive",
@@ -124515,6 +124579,7 @@
             "howTo": "Progression runs 2–5 % per year while antibody-positive, so a second TSH is the cheapest test there is.",
             "cost": 10.65,
             "priced": true,
+            "band": 1,
             "outcomes": [
               {
                 "label": "positive",
@@ -124904,6 +124969,7 @@
             "howTo": "Draw it with a CRP: inflammation lifts ferritin and hides an empty store.",
             "cost": 10.84,
             "priced": true,
+            "band": 1,
             "outcomes": [
               {
                 "label": "positive",
@@ -125292,6 +125358,7 @@
             "howTo": "Once in a life. Ask for the molar unit (nmol/L) if the lab offers it; mass units vary between assays.",
             "cost": 25.67,
             "priced": true,
+            "band": 2,
             "outcomes": [
               {
                 "label": "positive",
@@ -125671,6 +125738,7 @@
             "howTo": "No fast needed. It averages the last three months, so a single bad week does not move it.",
             "cost": 11.22,
             "priced": true,
+            "band": 1,
             "outcomes": [
               {
                 "label": "positive",
@@ -126054,6 +126122,7 @@
             "label": "Bilirubin fractions with a blood count and reticulocytes",
             "howTo": "One draw settles it: split the bilirubin, and check the enzymes, the haemoglobin and the reticulocytes on the same sample. If they are all normal, no imaging is needed.",
             "cost": 1,
+            "band": 1,
             "outcomes": [
               {
                 "label": "positive",
@@ -126427,6 +126496,7 @@
             "label": "25-OH vitamin D",
             "cost": 32.33,
             "priced": true,
+            "band": 1,
             "outcomes": [
               {
                 "label": "positive",
@@ -126801,6 +126871,7 @@
             "howTo": "One extra tube on the next thyroid draw. It never needs repeating once positive.",
             "cost": 13.5,
             "priced": true,
+            "band": 1,
             "outcomes": [
               {
                 "label": "positive",
@@ -127176,6 +127247,7 @@
             "howTo": "Never interpret one CRP. Repeat it two weeks after any infection has cleared; the lower of two readings is the one that means anything.",
             "cost": 14.45,
             "priced": true,
+            "band": 1,
             "outcomes": [
               {
                 "label": "positive",
@@ -127555,6 +127627,7 @@
             "label": "Lipid panel",
             "howTo": "One draw, no fast needed for a modern panel. It reports total, LDL, HDL and triglycerides; the LDL is what the risk rules read, and apoB is the better follow-up when it comes back high.",
             "cost": 1,
+            "band": 1,
             "outcomes": [
               {
                 "label": "positive",
@@ -127934,6 +128007,7 @@
             "label": "Full AUDIT questionnaire",
             "howTo": "Ten questions, free, and better than any blood test. Eight or more means dependence is likely.",
             "cost": 1,
+            "band": 1,
             "outcomes": [
               {
                 "label": "positive",
@@ -128309,6 +128383,7 @@
             "howTo": "Once in a lifetime for every adult, per the WHO and US CDC. Two lines on a lab form and one of the two results is curable.",
             "cost": 11.6,
             "priced": true,
+            "band": 1,
             "outcomes": [
               {
                 "label": "positive",
@@ -128691,6 +128766,7 @@
             "label": "VO2max estimate from a submaximal test",
             "howTo": "A twelve-minute run, a step test or a watch estimate. Any of them beats not measuring it, which is what almost every clinic does.",
             "cost": 2,
+            "band": 2,
             "outcomes": [
               {
                 "label": "positive",
@@ -129065,6 +129141,7 @@
             "label": "7-day home blood pressure average",
             "howTo": "Twice a morning and twice an evening for seven days, sitting, arm supported, after five minutes still. Throw the first day away and average the rest.",
             "cost": 1,
+            "band": 1,
             "outcomes": [
               {
                 "label": "positive",
@@ -129445,6 +129522,7 @@
             "howTo": "Reflects the last three months rather than last night's dinner, which is what you want when the serum is borderline.",
             "cost": 11.41,
             "priced": true,
+            "band": 2,
             "outcomes": [
               {
                 "label": "positive",
@@ -129819,6 +129897,7 @@
             "label": "STOP-Bang questionnaire",
             "howTo": "Eight yes/no questions, two minutes, free. Three or more is a positive screen.",
             "cost": 1,
+            "band": 1,
             "outcomes": [
               {
                 "label": "positive",
@@ -131276,6 +131355,7 @@
             "howTo": "Progression runs 2–5 % per year while antibody-positive, so a second TSH is the cheapest test there is.",
             "cost": 10.65,
             "priced": true,
+            "band": 1,
             "outcomes": [
               {
                 "label": "positive",
@@ -131665,6 +131745,7 @@
             "howTo": "No fast needed. It averages the last three months, so a single bad week does not move it.",
             "cost": 11.22,
             "priced": true,
+            "band": 1,
             "outcomes": [
               {
                 "label": "positive",
@@ -132049,6 +132130,7 @@
             "howTo": "Once in a life. Ask for the molar unit (nmol/L) if the lab offers it; mass units vary between assays.",
             "cost": 25.67,
             "priced": true,
+            "band": 2,
             "outcomes": [
               {
                 "label": "positive",
@@ -132428,6 +132510,7 @@
             "howTo": "Morning draw, days 2–5 of the cycle if there is one.",
             "cost": 13.12,
             "priced": true,
+            "band": 1,
             "outcomes": [
               {
                 "label": "positive",
@@ -132867,6 +132950,7 @@
             "howTo": "Draw it with a CRP: inflammation lifts ferritin and hides an empty store.",
             "cost": 10.84,
             "priced": true,
+            "band": 1,
             "outcomes": [
               {
                 "label": "positive",
@@ -133279,6 +133363,7 @@
             "howTo": "Fasting, and before any supplement: one folic-acid tablet normalises the serum level within a day.",
             "cost": 11.41,
             "priced": true,
+            "band": 1,
             "outcomes": [
               {
                 "label": "positive",
@@ -133677,6 +133762,7 @@
             "howTo": "An HbA2 above 3.5 % is beta-thalassaemia trait. Worth knowing once, mostly so nobody prescribes you iron forever.",
             "cost": 13.5,
             "priced": true,
+            "band": 2,
             "outcomes": [
               {
                 "label": "positive",
@@ -134069,6 +134155,7 @@
             "label": "Repeat B12",
             "cost": 14.45,
             "priced": true,
+            "band": 1,
             "outcomes": [
               {
                 "label": "positive",
@@ -134466,6 +134553,7 @@
             "label": "Repeat B12",
             "cost": 14.45,
             "priced": true,
+            "band": 1,
             "outcomes": [
               {
                 "label": "positive",
@@ -134865,6 +134953,7 @@
             "howTo": "The serological biopsy: it says which part of the stomach is atrophic without an endoscope.",
             "cost": 48.3,
             "priced": true,
+            "band": 2,
             "outcomes": [
               {
                 "label": "positive",
@@ -135321,6 +135410,7 @@
             "label": "Repeat LDL off any treatment",
             "cost": 19.02,
             "priced": true,
+            "band": 1,
             "outcomes": [
               {
                 "label": "positive",
@@ -135712,6 +135802,7 @@
             "label": "Mammography",
             "howTo": "Every two years from 50, and from 40 by preference. With a strong family history it starts at 30, and a genetics referral is what decides whether MRI is added to it.",
             "cost": 3,
+            "band": 3,
             "outcomes": [
               {
                 "label": "positive",
@@ -136102,6 +136193,7 @@
             "howTo": "An HbA2 above 3.5 % is beta-thalassaemia trait. Worth knowing once, mostly so nobody prescribes you iron forever.",
             "cost": 13.5,
             "priced": true,
+            "band": 2,
             "outcomes": [
               {
                 "label": "positive",
@@ -136494,6 +136586,7 @@
             "howTo": "Reflects the last three months rather than last night's dinner, which is what you want when the serum is borderline.",
             "cost": 11.41,
             "priced": true,
+            "band": 2,
             "outcomes": [
               {
                 "label": "positive",
@@ -136885,6 +136978,7 @@
             "label": "Colonoscopy",
             "howTo": "From 45, every ten years if it is clean, and from 40 with a first-degree relative — or ten years before their diagnosis if that is earlier. A faecal immunochemical test every year is the cheaper alternative with almost as much mortality evidence.",
             "cost": 4,
+            "band": 4,
             "outcomes": [
               {
                 "label": "positive",
@@ -137275,6 +137369,7 @@
             "label": "Thyroid ultrasound",
             "howTo": "1 for a heterogeneous, hypoechoic gland, 0 for a normal one. Also baselines nodules.",
             "cost": 3,
+            "band": 3,
             "outcomes": [
               {
                 "label": "positive",
@@ -139515,6 +139610,7 @@
             "label": "Hydrogen and methane breath test",
             "howTo": "Glucose or lactulose after a preparation day, then breath samples every 15-20 minutes for two hours. A 20 ppm rise inside 90 minutes is positive.",
             "cost": 2,
+            "band": 2,
             "outcomes": [
               {
                 "label": "positive",
@@ -147175,6 +147271,7 @@
             "label": "Ceruloplasmin",
             "howTo": "One tube, no preparation. It is an acute-phase protein, so a normal value during an infection does not exclude anything.",
             "cost": 1,
+            "band": 1,
             "outcomes": [
               {
                 "label": "positive",
@@ -147534,6 +147631,7 @@
             "label": "24-hour urine copper",
             "howTo": "A full day's urine in an acid-washed container. Slit-lamp for Kayser-Fleischer rings is booked at the same time.",
             "cost": 2,
+            "band": 2,
             "outcomes": [
               {
                 "label": "positive",

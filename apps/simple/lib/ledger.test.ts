@@ -22,9 +22,11 @@ import {
   isConclusion,
   isLoud,
   mattersOf,
+  nextDraw,
   RISK_WORD,
   sinceOf,
   titleOf,
+  weeksUntil,
   type Beliefs,
   type Rankable,
 } from "./ledger";
@@ -709,5 +711,55 @@ describe("the document card", () => {
   it("keeps quiet when nothing was accepted, and after a fortnight", () => {
     expect(documentFinding(upload, [], "2026-09-01")).toBeNull();
     expect(documentFinding(upload, items, "2026-09-14")).toBeNull();
+  });
+});
+
+/**
+ * Phase 27. "Plan retest: HbA1c in 12 weeks" under an answer writes a goal
+ * with a due date, and the Next draw tile is where a person looks to see that
+ * it landed. So the tile reads what is actually planned first, and only falls
+ * back to what the engine would buy next when nothing is.
+ */
+describe("nextDraw", () => {
+  const today = "2026-09-01";
+
+  it("counts the weeks to a planned retest", () => {
+    expect(weeksUntil("2026-11-24", today)).toBe(12);
+    expect(weeksUntil("2026-09-01", today)).toBe(0);
+  });
+
+  it("never counts a missed draw as weeks away", () => {
+    expect(weeksUntil("2026-06-01", today)).toBe(0);
+  });
+
+  it("leads with the soonest thing that was actually planned", () => {
+    expect(
+      nextDraw(
+        [
+          { code: "hba1c", weeks: 12 },
+          { code: "ferritin", weeks: 8 },
+        ],
+        [{ code: "ldl_cholesterol", weeks: 4 }],
+        ["Fasting insulin"],
+      ),
+    ).toEqual({ weeks: 8, codes: ["hba1c", "ferritin"] });
+  });
+
+  it("falls back to what an adopted action promised to measure", () => {
+    expect(nextDraw([], [{ code: "ldl_cholesterol", weeks: 4 }], ["x"])).toEqual(
+      { weeks: 4, codes: ["ldl_cholesterol"] },
+    );
+  });
+
+  it("says what the engine would buy next when nothing is planned", () => {
+    expect(nextDraw([], [], ["Fasting insulin", "Fasting insulin"])).toEqual({
+      weeks: 12,
+      codes: ["Fasting insulin"],
+    });
+  });
+
+  it("prints at most four markers", () => {
+    const many = ["a", "b", "c", "d", "e"].map((code) => ({ code, weeks: 6 }));
+    expect(nextDraw(many, [], []).codes).toHaveLength(4);
   });
 });

@@ -289,7 +289,7 @@
   },
   {
     "id": "hearsay_sardines",
-    "text": "I heard on a podcast that sardines lower triglycerides \u2014 everyone is eating 3 tins a week",
+    "text": "I heard on a podcast that sardines lower triglycerides — everyone is eating 3 tins a week",
     "today": "2026-08-31",
     "facts": {
       "sex": "female",
@@ -310,6 +310,32 @@
         "phenotype"
       ],
       "followUp": null
+    }
+  },
+  {
+    "id": "already_doing_action",
+    "text": "i already do this",
+    "today": "2026-09-01",
+    "about": {
+      "title": "Resistance training 3x/week",
+      "reportId": "r1",
+      "index": 2
+    },
+    "facts": {
+      "sex": "male",
+      "birth_year": 1985
+    },
+    "expect": {
+      "chips": [],
+      "notKinds": [
+        "phenotype"
+      ],
+      "followUp": null,
+      "action": {
+        "stance": "doing",
+        "label": "Already doing: Resistance training 3x/week (since long-standing)",
+        "exerciseDays": "3–4"
+      }
     }
   }
 ]
