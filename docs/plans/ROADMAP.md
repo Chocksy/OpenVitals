@@ -142,14 +142,19 @@ likelihood ratio for self-reported exercise days against measured
 fitness, so it stays a fact the interview, the composer and the sync all
 write, and no LR was invented to make it look busier.
 
+| 24 | The UX audit series (`2026-09-01-ux-audit.md`): 24a certainty-first ranking + one asking surface; 24b phone data home (draws lab-only, Phone tab, read-time wearable facts, honest Today, human heatmap); 24c findings surface where they act (genome card, sentence FOR/AGAINST); 24d composition + motion (chart void fixed, filler collapsed, in-place answers with pop-in/swap/FLIP/toast, checklist applied); 24e curator second pass (owner 10/10 settled by re-match, Ramona 9/20 settled, 1 true tie, 10 pending a second look); 24f sync truthfulness (server totals, progress, retry, resumed); 1082 web tests, 75 XCTests, 25/25 journeys | `7ea5e36`…this |
+
+Prod follow-through done 2026-09-01: history churn collapsed on the
+owner's account (7 rows), second pass run for Ramona. Parked from the
+series: zinc mg/L ↔ µg/dL conversion (the one "tie" is a unit); the
+`raw_confirmed` flag should clear on re-analyze; `/api/ledger`
+recomputes on every answer (cache if rapid-fire); genome card does not
+re-open when the catalog gains a variant the file carries; the prod
+chart void, if it ever recurs, now shows a skeleton (the signal to chase).
+
 ## In progress
 
-**Phase 24, the UX audit series** (`2026-09-01-ux-audit.md`): done and
-pushed: 24a certainty-first ranking + one asking surface, 24b phone data
-home, 24e curator second pass (owner's 10 rows settled without a human),
-24f sync truthfulness. Running: 24c findings surface where they act
-(genome sentences, human FOR/AGAINST); then 24d home composition +
-motion (answers animate without a reload).
+Nothing. Owner review of the new behaviour next.
 
 
 ## Next
