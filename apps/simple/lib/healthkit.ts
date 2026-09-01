@@ -902,28 +902,18 @@ export function workoutTicks(
 /**
  * Readings that are also the answer to a question the interview asks.
  *
- * `waist_cm`, `resting_hr` and `grip_kg`/`vo2max_est` are tier-0 *facts* in
- * `lib/vectors.ts`, not metric codes, so a watch that measures them has to
- * write both: the reading for the trend line and the fact so the vector stops
- * saying "never measured" and the rules that read `missing(m, ...)` can fire.
+ * `waist_cm`, `resting_hr` and `vo2max_est` are tier-0 *facts* in
+ * `lib/vectors.ts`, not metric codes. Phase 24b: the sync writes the reading
+ * only. These change daily, and a dated fact per sync buried `/history`, so
+ * `overlayPhoneFacts` in `lib/coverage.ts` derives the fact from the trailing
+ * median at read time and nothing is written. The map lives on because
+ * `DERIVED_FROM_READINGS` is its inverse.
  */
 export const FACT_FROM_READING: Record<string, string> = {
   waist_cm: "waist_cm",
   resting_heart_rate: "resting_hr",
   vo2max_est: "vo2max_est",
 };
-
-/** The newest reading per code that also answers a fact, as `key → value`. */
-export function factsFromReadings(
-  readings: DayReading[],
-): { key: string; value: string; day: string }[] {
-  const out = new Map<string, { key: string; value: string; day: string }>();
-  for (const r of [...readings].sort((a, b) => a.day.localeCompare(b.day))) {
-    const key = FACT_FROM_READING[r.code];
-    if (key) out.set(key, { key, value: String(r.value), day: r.day });
-  }
-  return [...out.values()];
-}
 
 /** A gap this long between bleeding days is a new cycle, not the same one. */
 const NEW_CYCLE_GAP = 5;

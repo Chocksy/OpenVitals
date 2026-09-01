@@ -19,7 +19,7 @@ import {
 } from "@/db";
 import { toCountryCode } from "./countries";
 import { CYCLE_FACT, profileAt, writeFact } from "./facts";
-import { localDay } from "./daily";
+import { localDay, shiftDay } from "./daily";
 import { getMetricRows } from "./data";
 import { deriveAll, egfr, slopePerYear, type Slope } from "./derived";
 import { applyPatternTargets } from "./patterns";
@@ -49,6 +49,11 @@ export interface LatestValue {
   prev?: number | null;
   /** Set when a matched pattern moved the optimal band. */
   note?: string;
+  /**
+   * The second pass could not find this reading on its own lab sheet, twice.
+   * The engine skips it: a number nobody can point at is not evidence.
+   */
+  unverified?: boolean;
   /**
    * Least squares through the last five years of this marker, when there are
    * at least three readings in the window. Phase 17: a direction is evidence
@@ -141,6 +146,79 @@ export function optimalFor(
   return bySex ?? fallback;
 }
 
+/* ── phase 24b: facts the phone measures are derived, not written ─────── */
+
+/**
+ * Continuous phone signals that answer a tier-0 question, `fact key → metric
+ * code`. A heart rate changes every day, so writing it as a dated fact on
+ * every sync spammed `profile_fact_history` with a row a day. The reading is
+ * the record; the fact is read off it here.
+ */
+export const DERIVED_FROM_READINGS: Record<string, string> = {
+  resting_hr: "resting_heart_rate",
+  vo2max_est: "vo2max_est",
+  waist_cm: "waist_cm",
+};
+
+/** Days of readings the median is taken over. */
+export const OVERLAY_DAYS = 7;
+
+/** A person's own answer holds the field for this long, whatever the watch says. */
+export const ANSWER_WINS_DAYS = 30;
+
+export function median(values: number[]): number | null {
+  if (!values.length) return null;
+  const sorted = [...values].sort((a, b) => a - b);
+  const mid = Math.floor(sorted.length / 2);
+  const m =
+    sorted.length % 2 ? sorted[mid]! : (sorted[mid - 1]! + sorted[mid]!) / 2;
+  return Math.round(m * 10) / 10;
+}
+
+/** What `profile_facts` says about who answered a key and when. */
+export interface HeldFact {
+  key: string;
+  source: string;
+  answeredAt: Date | string | null;
+}
+
+/**
+ * The phone's answer to a tier-0 question, laid over the profile at read time.
+ *
+ * The trailing 7-day median of the device readings stands in for the fact,
+ * unless the person answered that question themselves in the last 30 days: a
+ * user answer always wins. Nothing is written; the next call recomputes it.
+ */
+export function overlayPhoneFacts(
+  profile: Record<string, unknown>,
+  held: HeldFact[],
+  series: Record<string, { date: string; value: number }[]>,
+  today: string,
+): Record<string, unknown> {
+  const byKey = new Map(held.map((f) => [f.key, f]));
+  const windowFrom = shiftDay(today, -(OVERLAY_DAYS - 1));
+  const out = { ...profile };
+
+  for (const [key, code] of Object.entries(DERIVED_FROM_READINGS)) {
+    const mine = byKey.get(key);
+    if (mine?.source === "user") {
+      const answered =
+        mine.answeredAt instanceof Date
+          ? mine.answeredAt.toISOString().slice(0, 10)
+          : (mine.answeredAt ?? null);
+      if (answered && daysBetweenDates(answered, today) <= ANSWER_WINS_DAYS)
+        continue;
+    }
+    const value = median(
+      (series[code] ?? [])
+        .filter((p) => p.date >= windowFrom && p.date <= today)
+        .map((p) => p.value),
+    );
+    if (value != null) out[key] = String(value);
+  }
+  return out;
+}
+
 /**
  * `getMetricRows` plus `profile_facts`, folded into one plain object.
  *
@@ -163,9 +241,27 @@ export async function buildModelInput(
           .where(eq(profileFacts.userId, userId)),
   ]);
 
-  const profile: Record<string, unknown> = Array.isArray(facts)
+  const stated: Record<string, unknown> = Array.isArray(facts)
     ? Object.fromEntries(facts.map((f) => [f.key, f.value]))
     : facts;
+
+  // The replay path reads the profile as it stood on a day, so it keeps the
+  // written history and nothing is overlaid on top of it.
+  const profile = Array.isArray(facts)
+    ? overlayPhoneFacts(
+        stated,
+        facts,
+        Object.fromEntries(
+          rows.map((m) => [
+            m.code,
+            m.rows
+              .filter((r) => r.source != null && r.value != null)
+              .map((r) => ({ date: r.observedAt, value: r.value! })),
+          ]),
+        ),
+        today,
+      )
+    : stated;
 
   const sex = toSex(profile.sex);
   const age = toAge(profile.birth_year, today);
@@ -192,6 +288,7 @@ export async function buildModelInput(
       refLow: m.latest.refLow,
       refHigh,
       prev: withValue[withValue.length - 2]?.value ?? null,
+      unverified: (m.latest.flags ?? []).includes("unverified"),
       slope: slopePerYear(m.points, today),
     };
   }

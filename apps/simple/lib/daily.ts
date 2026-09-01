@@ -166,3 +166,40 @@ export function csvCell(value: unknown): string {
 export function toCsv(headers: string[], rows: unknown[][]): string {
   return [headers, ...rows].map((r) => r.map(csvCell).join(",")).join("\n");
 }
+
+/* ── phase 24b: whose day is it ───────────────────────────────────────── */
+
+/** The four `daily_logs` columns a phone sync may fill by itself. */
+export const PHONE_COLUMNS: readonly string[] = [
+  "sleepHours",
+  "weightKg",
+  "steps",
+  "exerciseMin",
+];
+
+/**
+ * Did a person put something into this day, as opposed to a watch?
+ *
+ * `wrote` is the sync's own list of the columns it filled (`wearable.wrote`),
+ * so a step count nobody typed does not count as a day the person logged. The
+ * consistency heatmap and the streak are about the person; the phone gets its
+ * own mode on the same grid.
+ */
+export function humanLogged(
+  values: LogValues | undefined | null,
+  wrote: readonly string[] = [],
+): boolean {
+  if (!values) return false;
+  const owned = new Set(wrote);
+  return Object.entries(values).some(
+    ([key, v]) =>
+      v != null &&
+      v !== "" &&
+      !(PHONE_COLUMNS.includes(key) && owned.has(key)),
+  );
+}
+
+/** A day is not over yet: before noon, or with fewer steps than a walk. */
+export function partialDay(hour: number, steps: number | null): boolean {
+  return hour < 12 || (steps ?? 0) < 1000;
+}

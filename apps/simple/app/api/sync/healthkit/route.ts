@@ -38,7 +38,6 @@ import {
   EXERCISE_FACT,
   EXERCISE_WINDOW,
   exerciseDaysWeek,
-  factsFromReadings,
   HK_METRICS,
   mergeDaily,
   mergeNutrition,
@@ -54,6 +53,9 @@ export const maxDuration = 120;
 const MAX_SAMPLES = 20000;
 
 const SOURCE = "healthkit";
+
+/** The system may restate a bucket fact this often and no more. */
+const MONTHLY = 28;
 
 /** A habit these words name is the one a mindful session ticks. */
 const MINDFUL = /mindful|meditat|breath|box breathing/i;
@@ -290,14 +292,17 @@ export async function POST(req: Request) {
   // Waist, resting heart rate and VO2max are tier-0 facts as well as readings,
   // so the watch answering them is what takes those vectors off "never
   // measured".
-  const facts = [
-    ...factsFromReadings(rows),
-    ...Object.entries(agg.facts).map(([key, value]) => ({
-      key,
-      value,
-      day: undefined as string | undefined,
-    })),
-  ];
+  // Phase 24b: the continuous signals (resting heart rate, VO2max, waist) are
+  // NOT written as facts here. They change every day, so `writeFact` closed
+  // and opened a history row every sync and `/history` became a wall of
+  // struck-through heart rates. The reading is the record and
+  // `overlayPhoneFacts` in `lib/coverage.ts` derives the fact at read time.
+  // What is left is the cycle answer, which is a bucket and moves rarely.
+  const facts = Object.entries(agg.facts).map(([key, value]) => ({
+    key,
+    value,
+    day: undefined as string | undefined,
+  }));
   // A sync runs every day and a waist does not move every day: a fact is only
   // written when the answer actually changed, or the history would fill with
   // rows saying the same thing.
@@ -351,7 +356,18 @@ export async function POST(req: Request) {
     const manualHolds =
       row?.source === "user" &&
       (row.revisitAt == null || row.revisitAt > today);
-    if (exercise && !manualHolds && held.get(EXERCISE_FACT) !== exercise) {
+    // A bucket, not a stream: at most one system write every 28 days, so a
+    // week that drifts between "3–4" and "5+" does not write a row a day.
+    const writtenRecently =
+      row?.source === "system" &&
+      row.answeredAt != null &&
+      row.answeredAt.toISOString().slice(0, 10) > shiftDay(today, -MONTHLY);
+    if (
+      exercise &&
+      !manualHolds &&
+      !writtenRecently &&
+      held.get(EXERCISE_FACT) !== exercise
+    ) {
       await writeFact(userId, EXERCISE_FACT, exercise, {
         kind: "changed",
         note: `from ${EXERCISE_WINDOW} days of Apple Health workouts`,

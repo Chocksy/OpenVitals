@@ -65,11 +65,17 @@ export function WearableStrip({
   steps,
   exerciseMin,
   sleepHours,
+  title = "From your phone",
+  partial = false,
 }: {
   wearable: DailyWearable | null;
   steps?: number | null;
   exerciseMin?: number | null;
   sleepHours?: number | null;
+  /** "From your phone" for today, "Yesterday" for the complete day above it. */
+  title?: string;
+  /** Phase 24b: the day is not over. The numbers are what has happened so far. */
+  partial?: boolean;
 }) {
   const w = wearable;
   if (!w) return null;
@@ -96,7 +102,10 @@ export function WearableStrip({
     },
     w?.flights != null && { label: "Flights", value: num(w.flights) },
     owns.has("sleepHours") &&
-      sleepHours != null && { label: "Sleep", value: hm(sleepHours * 60) },
+      sleepHours != null && {
+        label: "Sleep last night",
+        value: hm(sleepHours * 60),
+      },
     w?.standHours != null && {
       label: "Stand",
       value: num(w.standHours),
@@ -114,12 +123,15 @@ export function WearableStrip({
   return (
     <div className="card space-y-3 p-4">
       <div className="flex items-baseline justify-between gap-3">
-        <h2 className={LABEL}>From your phone</h2>
-        {w?.syncedAt && (
-          <span className="font-mono text-[10px] text-neutral-400">
-            {w.source ?? "healthkit"} · synced {w.syncedAt.slice(11, 16)}
-          </span>
-        )}
+        <h2 className={LABEL}>{title}</h2>
+        <span className="font-mono text-[10px] text-neutral-400">
+          {partial && (
+            <span className="text-[var(--color-health-warning)]">so far · </span>
+          )}
+          {w?.syncedAt
+            ? `${w.source ?? "healthkit"} · synced ${w.syncedAt.slice(11, 16)}`
+            : (w?.source ?? "healthkit")}
+        </span>
       </div>
 
       {cells.length > 0 && (

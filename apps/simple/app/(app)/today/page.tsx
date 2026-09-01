@@ -2,11 +2,11 @@ import Link from "next/link";
 import { ChevronLeft, ChevronRight, Flame } from "lucide-react";
 import { requireUserId } from "@/lib/auth";
 import { getToday } from "@/lib/daily-data";
-import { localDay, shiftDay } from "@/lib/daily";
+import { localDay, partialDay, shiftDay } from "@/lib/daily";
 import { formatDate } from "@/lib/utils";
 import { HabitChecklist, QuickNumbers } from "@/components/tracker";
 import { DailySparks } from "@/components/daily-charts";
-import { Heatmap } from "@/components/heatmap";
+import { ConsistencyHeatmap } from "@/components/heatmap";
 import { NutritionLine, WearableStrip } from "@/components/wearable";
 
 export const dynamic = "force-dynamic";
@@ -25,6 +25,10 @@ export default async function TodayPage({
   const view = await getToday(userId, day);
 
   const done = view.habits.filter((h) => h.doneToday).length;
+  // Phase 24b: at 06:18 the day holds 49 steps, and showing that as the day is
+  // a lie of omission. The strip says "so far", and yesterday — a day that is
+  // actually over — goes above it.
+  const partial = day === today && partialDay(new Date().getHours(), view.values.steps ?? null);
   const arrow =
     "card flex size-8 items-center justify-center text-neutral-500 hover:border-accent-200 hover:text-neutral-900";
 
@@ -83,11 +87,21 @@ export default async function TodayPage({
         asks the twelve symptom questions the engine scores.
       </p>
 
+      {partial && view.yesterday && (
+        <WearableStrip
+          title={`Yesterday · ${view.yesterday.day}`}
+          wearable={view.yesterday.wearable}
+          steps={view.yesterday.values.steps}
+          exerciseMin={view.yesterday.values.exerciseMin}
+          sleepHours={view.yesterday.values.sleepHours}
+        />
+      )}
       <WearableStrip
         wearable={view.wearable}
         steps={view.values.steps}
         exerciseMin={view.values.exerciseMin}
         sleepHours={view.values.sleepHours}
+        partial={partial}
       />
       <NutritionLine nutrition={view.nutrition} />
 
@@ -96,7 +110,7 @@ export default async function TodayPage({
       <DailySparks series={view.series} />
 
       <div className="card p-4">
-        <Heatmap days={view.heat} label="Consistency" />
+        <ConsistencyHeatmap days={view.heat} />
       </div>
     </div>
   );

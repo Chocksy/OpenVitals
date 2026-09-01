@@ -1,17 +1,18 @@
 /**
- * One header for the three lab routes. `/labs` is the Draws tab, `/biomarkers`
- * and `/uploads` are the other two, so every old URL keeps working and the tab
- * bar is the same component with a different tab lit.
+ * One header for the four lab routes. `/labs` is the Draws tab, `/biomarkers`,
+ * `/labs/phone` and `/uploads` are the others, so every old URL keeps working
+ * and the tab bar is the same component with a different tab lit.
  */
 import Link from "next/link";
 import { UploadButton } from "./client";
 import { cn } from "@/lib/utils";
 
-export type LabsTab = "biomarkers" | "draws" | "uploads";
+export type LabsTab = "biomarkers" | "draws" | "phone" | "uploads";
 
 const TABS: { id: LabsTab; name: string; href: string }[] = [
   { id: "biomarkers", name: "Biomarkers", href: "/biomarkers" },
   { id: "draws", name: "Draws", href: "/labs" },
+  { id: "phone", name: "Phone", href: "/labs/phone" },
   { id: "uploads", name: "Uploads", href: "/uploads" },
 ];
 

@@ -4,7 +4,6 @@ import {
   cycleFacts,
   dayOf,
   exerciseDaysWeek,
-  factsFromReadings,
   hourOf,
   HK_METRICS,
   HK_TYPES,
@@ -499,55 +498,6 @@ describe("the habit a workout ticks", () => {
         items,
       ),
     ).toEqual([]);
-  });
-});
-
-describe("the readings that are also interview answers", () => {
-  it("hands waist, resting heart rate and VO2max to the fact path", () => {
-    const agg = aggregate([
-      sample({
-        type: "WaistCircumference",
-        value: 0.93,
-        unit: "m",
-        start: at("2026-08-29", "07:00"),
-      }),
-      sample({
-        type: "WaistCircumference",
-        value: 0.92,
-        unit: "m",
-        start: at("2026-08-30", "07:00"),
-      }),
-      sample({
-        type: "RestingHeartRate",
-        value: 54,
-        unit: "count/min",
-        start: at("2026-08-30", "07:00"),
-      }),
-      sample({
-        type: "VO2Max",
-        value: 44.2,
-        unit: "mL/kg·min",
-        start: at("2026-08-30", "19:00"),
-      }),
-      sample({
-        type: "StepCount",
-        value: 900,
-        unit: "count",
-        start: at("2026-08-30", "19:00"),
-      }),
-    ]);
-    expect(factsFromReadings(agg.readings)).toEqual([
-      { key: "waist_cm", value: "92", day: "2026-08-30" },
-      { key: "resting_hr", value: "54", day: "2026-08-30" },
-      { key: "vo2max_est", value: "44.2", day: "2026-08-30" },
-    ]);
-  });
-
-  it("has nothing to say about a reading no question asks for", () => {
-    const agg = aggregate([
-      sample({ type: "HeartRateVariabilitySDNN", value: 48, unit: "ms" }),
-    ]);
-    expect(factsFromReadings(agg.readings)).toEqual([]);
   });
 });
 

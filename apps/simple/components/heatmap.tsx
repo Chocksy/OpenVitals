@@ -1,8 +1,11 @@
+"use client";
+
 /**
  * A GitHub-style year grid and the 30-cell strip that /protocol reuses.
  * ponytail: plain SVG. recharts has no calendar heatmap and one <rect> per day
  * is 12 lines of code.
  */
+import { useState } from "react";
 import { cn } from "@/lib/utils";
 
 const CELL = 11;
@@ -140,6 +143,51 @@ export function Strip({
           }}
         />
       ))}
+    </div>
+  );
+}
+
+/**
+ * The /today grid with its two readings of the same year.
+ *
+ * Phase 24b: the blue wall. The heatmap counted any `daily_logs` row, and a
+ * phone writes one every day, so a year of solid blue said "you logged every
+ * day" when the person had typed nothing. "You" counts habit ticks, numbers
+ * typed, notes and posts; "phone" is the sync coverage, which is a real thing
+ * to want to see and is now labelled as itself.
+ */
+export function ConsistencyHeatmap({
+  days,
+}: {
+  days: { day: string; bucket: number; phone: number }[];
+}) {
+  const [mode, setMode] = useState<"you" | "phone">("you");
+  const shown =
+    mode === "you"
+      ? days
+      : days.map((d) => ({ day: d.day, bucket: d.phone }));
+  const count = shown.filter((d) => d.bucket > 0).length;
+
+  return (
+    <div className="space-y-2">
+      <Heatmap days={shown} label="Consistency" />
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <span className="font-mono text-[10px] tabular-nums text-neutral-400">
+          {count} of {days.length} days ·{" "}
+          {mode === "you" ? "what you did" : "what the phone sent"}
+        </span>
+        <div className="pill-tabs">
+          {(["you", "phone"] as const).map((m) => (
+            <button
+              key={m}
+              onClick={() => setMode(m)}
+              className={cn("pill-tab", m === mode && "pill-tab-active")}
+            >
+              {m}
+            </button>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }

@@ -6,6 +6,7 @@ import {
   profileFacts,
   readings,
   type Metric,
+  type ReadingFlag,
 } from "@/db";
 import { optimalFor, toSex, type OptimalOverrides } from "./coverage";
 import { ensureImported } from "./import-legacy";
@@ -38,6 +39,10 @@ export interface MetricRow {
     unit: string | null;
     refLow: number | null;
     refHigh: number | null;
+    /** Phase 24b: null is a lab draw, `healthkit` is the phone. */
+    source?: string | null;
+    /** Curator breadcrumbs; `unverified` is the one the engine reads. */
+    flags?: ReadingFlag[] | null;
   }[];
   latest: MetricRow["rows"][number];
   status: Status;
@@ -181,6 +186,8 @@ export async function getMetricRows(userId: string): Promise<MetricRow[]> {
       unit: r.unit,
       refLow: r.refLow,
       refHigh: r.refHigh,
+      source: r.source,
+      flags: r.flags,
     });
   }
 
@@ -250,6 +257,8 @@ export interface BiomarkerRow {
   value: string;
   observedAt: string;
   spark: number[];
+  /** Phase 24b: the latest value came from a device, not from a lab sheet. */
+  phone: boolean;
 }
 
 /** Flat row for the /biomarkers list. */
@@ -264,6 +273,7 @@ export function toBiomarkerRow(m: MetricRow): BiomarkerRow {
     value: String(m.latest.value ?? m.latest.valueText ?? "\u2014"),
     observedAt: m.latest.observedAt,
     spark: m.points.slice(-8).map((p) => p.value),
+    phone: m.latest.source != null,
   };
 }
 

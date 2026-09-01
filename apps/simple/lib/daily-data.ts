@@ -2,9 +2,10 @@
  * Queries behind /today, /protocol, /goals, /trends and /labs. Pages stay thin:
  * they call one loader here and render. Everything is scoped to one user.
  */
-import { and, asc, desc, eq, gte, inArray, lte } from "drizzle-orm";
+import { and, asc, desc, eq, gte, inArray, isNull, lte, sql } from "drizzle-orm";
 import {
   getDb,
+  checkinPosts,
   checkins,
   dailyLogs,
   goals,
@@ -24,16 +25,18 @@ import {
   goalGap,
   goalProgress,
   heatmapBucket,
+  humanLogged,
   inGoal,
   lastDays,
   localDay,
+  shiftDay,
   streak,
   type HabitView,
   type LogValues,
 } from "./daily";
 
 export type { HabitView, LogValues } from "./daily";
-import { getMetricRows, type MetricRow } from "./data";
+import { getMetricRows, type MetricRow, type Point } from "./data";
 import { statusOf, type Status } from "./status";
 
 export interface TodayView {
@@ -44,7 +47,21 @@ export interface TodayView {
   nutrition: DailyNutrition | null;
   habits: HabitView[];
   streak: number;
-  heat: { day: string; bucket: number }[];
+  /**
+   * Phase 24b: yesterday, when today is not over. A complete day above the
+   * partial one, so "49 steps" at 06:18 never reads as a finished day.
+   */
+  yesterday: {
+    day: string;
+    values: LogValues;
+    wearable: DailyWearable | null;
+  } | null;
+  /**
+   * `bucket` is what the person did (habits, numbers they typed, notes,
+   * posts); `phone` is the days a sync landed. The heatmap toggles between
+   * them and the streak follows `bucket`.
+   */
+  heat: { day: string; bucket: number; phone: number }[];
   series: {
     day: string;
     sleep: number | null;
@@ -78,7 +95,7 @@ export async function getToday(
   const db = getDb();
   const from = lastDays(HEAT_DAYS, day)[0]!;
 
-  const [logs, items, habits] = await Promise.all([
+  const [logs, items, habits, posts] = await Promise.all([
     db
       .select()
       .from(dailyLogs)
@@ -108,6 +125,10 @@ export async function getToday(
           lte(habitLogs.day, day),
         ),
       ),
+    db
+      .select({ createdAt: checkinPosts.createdAt })
+      .from(checkinPosts)
+      .where(eq(checkinPosts.userId, userId)),
   ]);
 
   const window30 = lastDays(30, day);
@@ -133,18 +154,32 @@ export async function getToday(
     };
   });
 
-  // A day counts toward the streak when anything was logged on it.
-  const active = new Set<string>([
-    ...logs.map((l) => l.day),
-    ...habits.map((h) => h.day),
-  ]);
   const doneCount = new Map<string, number>();
   for (const h of habits) doneCount.set(h.day, (doneCount.get(h.day) ?? 0) + 1);
 
   const byDay = new Map(logs.map((l) => [l.day, l]));
   const heatWindow = lastDays(HEAT_DAYS, day);
+  const postDays = new Set(
+    posts
+      .map((p) => (p.createdAt ? localDay(p.createdAt) : ""))
+      .filter(Boolean),
+  );
+
+  // Phase 24b: a day is "active" because a person did something on it. A
+  // phone that logs 3,260 days in a row would otherwise paint the whole grid
+  // blue and call it a streak.
+  const human = (d: string) => {
+    const l = byDay.get(d);
+    return (
+      (doneCount.get(d) ?? 0) > 0 ||
+      postDays.has(d) ||
+      humanLogged(toValues(l), (l?.wearable as DailyWearable | null)?.wrote)
+    );
+  };
+  const active = new Set(heatWindow.filter(human));
 
   const log = byDay.get(day);
+  const prev = byDay.get(shiftDay(day, -1));
   return {
     day,
     values: toValues(log),
@@ -152,11 +187,22 @@ export async function getToday(
     nutrition: (log?.nutrition as DailyNutrition | null) ?? null,
     habits: habitViews,
     streak: streak(active, day),
+    yesterday: prev
+      ? {
+          day: prev.day,
+          values: toValues(prev),
+          wearable: (prev.wearable as DailyWearable | null) ?? null,
+        }
+      : null,
     heat: heatWindow.map((d) => ({
       day: d,
       bucket: items.length
-        ? heatmapBucket((doneCount.get(d) ?? 0) / items.length)
+        ? Math.max(
+            heatmapBucket((doneCount.get(d) ?? 0) / items.length),
+            active.has(d) ? 1 : 0,
+          )
         : heatmapBucket(active.has(d) ? 1 : 0),
+      phone: heatmapBucket(byDay.get(d)?.wearable ? 1 : 0),
     })),
     series: lastDays(30, day).map((d) => {
       const l = byDay.get(d);
@@ -383,41 +429,37 @@ export interface DrawView {
   }[];
 }
 
-/** One card per blood draw, newest first. */
-export async function getDraws(userId: string): Promise<DrawView[]> {
-  const db = getDb();
-  const rows = await db
-    .select({
-      observedAt: readings.observedAt,
-      metricCode: readings.metricCode,
-      value: readings.value,
-      valueText: readings.valueText,
-      unit: readings.unit,
-      refLow: readings.refLow,
-      refHigh: readings.refHigh,
-      uploadId: readings.uploadId,
-      name: metrics.name,
-      optimalLow: metrics.optimalLow,
-      optimalHigh: metrics.optimalHigh,
-    })
-    .from(readings)
-    .innerJoin(metrics, eq(metrics.code, readings.metricCode))
-    .where(eq(readings.userId, userId))
-    .orderBy(desc(readings.observedAt), asc(metrics.name));
+/** A reading as `groupDraws` needs it: the row plus the band it is judged by. */
+export interface DrawReading {
+  observedAt: string;
+  metricCode: string;
+  value: number | null;
+  valueText: string | null;
+  unit: string | null;
+  refLow: number | null;
+  refHigh: number | null;
+  uploadId: string | null;
+  name: string;
+  optimalLow: number | null;
+  optimalHigh: number | null;
+  /** Null is a lab draw. Anything else is a device and is not a draw. */
+  source?: string | null;
+}
 
-  const uploadIds = [
-    ...new Set(rows.map((r) => r.uploadId).filter((id): id is string => !!id)),
-  ];
-  const files = uploadIds.length
-    ? await db
-        .select({ id: uploads.id, fileName: uploads.fileName })
-        .from(uploads)
-        .where(inArray(uploads.id, uploadIds))
-    : [];
-  const fileById = new Map(files.map((f) => [f.id, f.fileName]));
-
+/**
+ * Readings into one card per day.
+ *
+ * Phase 24b: a draw is blood, so anything that names a source is dropped here
+ * as well as in the query. A year of resting heart rates is a time series and
+ * lives on the Phone tab; it is not 3,266 blood draws.
+ */
+export function groupDraws(
+  rows: DrawReading[],
+  fileById: Map<string, string | null> = new Map(),
+): DrawView[] {
   const byDay = new Map<string, DrawView>();
   for (const r of rows) {
+    if (r.source != null) continue;
     const status = statusOf({
       value: r.value,
       refLow: r.refLow,
@@ -462,6 +504,208 @@ export async function getDraws(userId: string): Promise<DrawView[]> {
     );
 
   return [...byDay.values()];
+}
+
+/** One card per blood draw, newest first. Lab rows only. */
+export async function getDraws(userId: string): Promise<DrawView[]> {
+  const db = getDb();
+  const rows = await db
+    .select({
+      observedAt: readings.observedAt,
+      metricCode: readings.metricCode,
+      value: readings.value,
+      valueText: readings.valueText,
+      unit: readings.unit,
+      refLow: readings.refLow,
+      refHigh: readings.refHigh,
+      uploadId: readings.uploadId,
+      name: metrics.name,
+      optimalLow: metrics.optimalLow,
+      optimalHigh: metrics.optimalHigh,
+    })
+    .from(readings)
+    .innerJoin(metrics, eq(metrics.code, readings.metricCode))
+    .where(and(eq(readings.userId, userId), isNull(readings.source)))
+    .orderBy(desc(readings.observedAt), asc(metrics.name));
+
+  const uploadIds = [
+    ...new Set(rows.map((r) => r.uploadId).filter((id): id is string => !!id)),
+  ];
+  const files = uploadIds.length
+    ? await db
+        .select({ id: uploads.id, fileName: uploads.fileName })
+        .from(uploads)
+        .where(inArray(uploads.id, uploadIds))
+    : [];
+  const fileById = new Map(files.map((f) => [f.id, f.fileName]));
+
+  return groupDraws(rows, fileById);
+}
+
+/* ── phase 24b: the Phone tab ─────────────────────────────────────────── */
+
+/** One wearable signal: its daily line, how long it has run, its band. */
+export interface PhoneMetric {
+  /** The metric code, or the `daily_logs` field for the four activity rows. */
+  code: string;
+  name: string;
+  unit: string | null;
+  /** `/m/<code>` for a real metric; null for the activity rows, which have none. */
+  href: string | null;
+  count: number;
+  since: string;
+  latest: number | null;
+  latestAt: string | null;
+  optimalLow: number | null;
+  optimalHigh: number | null;
+  status: Status;
+  /** "nights" for sleep, "days" for everything else. */
+  noun: string;
+  /** The last 90 days, one point per day, oldest first. */
+  points: Point[];
+}
+
+/** The order the Phone tab reads in: heart, sleep, body, then activity. */
+const PHONE_ORDER = [
+  "resting_heart_rate",
+  "hrv_sdnn",
+  "sleep_duration",
+  "spo2",
+  "respiratory_rate",
+  "walking_hr_avg",
+  "hr_recovery_1min",
+  "vo2max_est",
+  "weight",
+  "body_fat_pct",
+  "waist_cm",
+  "wrist_temp",
+  "glucose",
+  "bp_systolic",
+  "bp_diastolic",
+];
+
+const PHONE_DAYS = 90;
+
+/** The four numbers that live in `daily_logs` rather than in `readings`. */
+const ACTIVITY: { code: string; name: string; unit: string | null }[] = [
+  { code: "steps", name: "Steps", unit: null },
+  { code: "exerciseMin", name: "Exercise", unit: "min" },
+  { code: "activeEnergyKcal", name: "Active energy", unit: "kcal" },
+  { code: "workouts", name: "Workouts", unit: "a day" },
+];
+
+const toPhoneMetric = (
+  base: Omit<PhoneMetric, "count" | "since" | "latest" | "latestAt" | "points">,
+  points: Point[],
+  from: string,
+): PhoneMetric | null => {
+  if (!points.length) return null;
+  const last = points[points.length - 1]!;
+  return {
+    ...base,
+    count: points.length,
+    since: points[0]!.date,
+    latest: last.value,
+    latestAt: last.date,
+    points: points.filter((p) => p.date >= from),
+  };
+};
+
+/**
+ * Every signal the phone sends, as a row with its own daily line.
+ *
+ * Phase 24b: these are time series, not blood draws. The readings half comes
+ * out of `getMetricRows` (device rows only, so a lab weight stays a lab
+ * weight); the activity half comes out of `daily_logs`, where steps, exercise
+ * minutes, active energy and workouts actually live.
+ */
+export async function getPhoneMetrics(userId: string): Promise<PhoneMetric[]> {
+  const from = lastDays(PHONE_DAYS)[0]!;
+  const [rows, daily] = await Promise.all([
+    getMetricRows(userId),
+    getDb()
+      .select({
+        day: dailyLogs.day,
+        steps: dailyLogs.steps,
+        exerciseMin: dailyLogs.exerciseMin,
+        activeEnergyKcal: sql<
+          number | null
+        >`(${dailyLogs.wearable} ->> 'activeEnergyKcal')::real`,
+        workouts: sql<
+          number | null
+        >`jsonb_array_length(${dailyLogs.wearable} -> 'workouts')`,
+      })
+      .from(dailyLogs)
+      .where(
+        and(
+          eq(dailyLogs.userId, userId),
+          sql`${dailyLogs.wearable} is not null`,
+        ),
+      )
+      .orderBy(asc(dailyLogs.day)),
+  ]);
+
+  const out: PhoneMetric[] = [];
+  for (const m of rows) {
+    const points = m.rows
+      .filter((r) => r.source != null && r.value != null)
+      .map((r) => ({ date: r.observedAt, value: r.value! }));
+    const row = toPhoneMetric(
+      {
+        code: m.code,
+        name: m.name,
+        unit: m.unit,
+        href: `/m/${m.code}`,
+        optimalLow: m.optimalLow,
+        optimalHigh: m.optimalHigh,
+        status: "gray",
+        noun: m.code === "sleep_duration" ? "nights" : "days",
+      },
+      points,
+      from,
+    );
+    if (row)
+      out.push({
+        ...row,
+        status: statusOf({
+          value: row.latest,
+          refLow: null,
+          refHigh: null,
+          optimalLow: m.optimalLow,
+          optimalHigh: m.optimalHigh,
+        }),
+      });
+  }
+
+  for (const a of ACTIVITY) {
+    const points = daily
+      .map((d) => ({
+        date: d.day,
+        value: d[a.code as keyof typeof d] as number | null,
+      }))
+      .filter((p): p is Point => p.value != null);
+    const row = toPhoneMetric(
+      {
+        ...a,
+        href: null,
+        optimalLow: null,
+        optimalHigh: null,
+        status: "gray",
+        noun: "days",
+      },
+      points,
+      from,
+    );
+    if (row) out.push(row);
+  }
+
+  const rank = (code: string) => {
+    const i = PHONE_ORDER.indexOf(code);
+    return i === -1 ? PHONE_ORDER.length : i;
+  };
+  return out.sort(
+    (a, b) => rank(a.code) - rank(b.code) || a.name.localeCompare(b.name),
+  );
 }
 
 /** The two small home cards: today's progress and the nearest goals. */

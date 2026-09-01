@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import {
   ResponsiveContainer,
   LineChart,
@@ -44,6 +45,32 @@ interface TrendChartProps {
   /** Home draws the same chart small; /m/[code] keeps the full height. */
   height?: number;
   projection?: TrendProjection | null;
+  /**
+   * Phase 24b: a phone series is a daily line, not a row of dots. 776 nights
+   * of sleep drawn as circles is a caterpillar; the same data as a line with a
+   * 30/90/365/all switch is a trend.
+   */
+  daily?: boolean;
+}
+
+const RANGES: { label: string; days: number | null }[] = [
+  { label: "30d", days: 30 },
+  { label: "90d", days: 90 },
+  { label: "1y", days: 365 },
+  { label: "all", days: null },
+];
+
+/** The points inside the last `days`, counted back from the newest one. */
+export function inRange<T extends { date: string }>(
+  points: T[],
+  days: number | null,
+): T[] {
+  const last = points[points.length - 1]?.date;
+  if (days == null || !last) return points;
+  const from = new Date(new Date(`${last}T00:00:00Z`).getTime() - days * 86_400_000)
+    .toISOString()
+    .slice(0, 10);
+  return points.filter((p) => p.date >= from);
 }
 
 const statusStroke: Record<string, string> = {
@@ -133,7 +160,7 @@ function CustomTooltip({
 }
 
 export function TrendChart({
-  data,
+  data: all,
   referenceRangeLow,
   referenceRangeHigh,
   optimalRangeLow,
@@ -144,7 +171,11 @@ export function TrendChart({
   status = "normal",
   height = 300,
   projection = null,
+  daily = false,
 }: TrendChartProps) {
+  const [days, setDays] = useState<number | null>(90);
+  const data = daily ? inRange(all, days) : all;
+
   if (data.length === 0) {
     return (
       <div
@@ -204,6 +235,21 @@ export function TrendChart({
 
   return (
     <div>
+      {daily && (
+        <div className="mb-2 flex items-center justify-end">
+          <div className="pill-tabs">
+            {RANGES.map((r) => (
+              <button
+                key={r.label}
+                onClick={() => setDays(r.days)}
+                className={`pill-tab${r.days === days ? " pill-tab-active" : ""}`}
+              >
+                {r.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
       <ResponsiveContainer width="100%" height={height}>
         <LineChart
           data={series}
@@ -325,8 +371,8 @@ export function TrendChart({
             dataKey="value"
             isAnimationActive={false}
             stroke={stroke}
-            strokeWidth={2}
-            dot={(props: Record<string, unknown>) => {
+            strokeWidth={daily ? 1.5 : 2}
+            dot={daily ? false : (props: Record<string, unknown>) => {
               const { cx, cy, index } = props as {
                 cx: number;
                 cy: number;

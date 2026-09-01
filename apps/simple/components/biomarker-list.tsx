@@ -85,6 +85,11 @@ export function BiomarkerList({ rows }: { rows: BiomarkerListRow[] }) {
                         derived
                       </span>
                     )}
+                    {m.phone && (
+                      <span className="ml-1.5 font-mono text-[9px] uppercase text-neutral-400">
+                        from your phone
+                      </span>
+                    )}
                   </span>
                   <MiniSparkline
                     data={m.spark}

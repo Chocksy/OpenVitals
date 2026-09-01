@@ -2,6 +2,8 @@ import { describe, it, expect } from "vitest";
 import {
   coverage,
   fireRules,
+  median,
+  overlayPhoneFacts,
   profileQuestions,
   splitListFact,
   type LatestValue,
@@ -246,5 +248,98 @@ describe("splitListFact", () => {
 
   it("returns nothing for an empty answer", () => {
     expect(splitListFact("   ")).toEqual([]);
+  });
+});
+
+describe("facts the phone measures (phase 24b)", () => {
+  const week = [
+    { date: "2026-08-26", value: 52 },
+    { date: "2026-08-27", value: 48 },
+    { date: "2026-08-28", value: 55 },
+    { date: "2026-08-29", value: 51 },
+    { date: "2026-08-30", value: 49 },
+  ];
+
+  it("takes the median of the trailing week", () => {
+    expect(median([52, 48, 55, 51, 49])).toBe(51);
+    expect(median([48, 52])).toBe(50);
+    expect(median([])).toBe(null);
+  });
+
+  it("overlays the median when nothing was ever answered", () => {
+    const out = overlayPhoneFacts(
+      {},
+      [],
+      { resting_heart_rate: week },
+      "2026-08-30",
+    );
+    expect(out.resting_hr).toBe("51");
+  });
+
+  it("ignores readings older than the window", () => {
+    const out = overlayPhoneFacts(
+      {},
+      [],
+      {
+        resting_heart_rate: [
+          { date: "2026-01-01", value: 80 },
+          ...week.slice(0, 2),
+        ],
+      },
+      "2026-08-30",
+    );
+    expect(out.resting_hr).toBe("50");
+  });
+
+  it("yields to an answer the person gave this month", () => {
+    const out = overlayPhoneFacts(
+      { resting_hr: "62" },
+      [
+        {
+          key: "resting_hr",
+          source: "user",
+          answeredAt: new Date("2026-08-20T09:00:00Z"),
+        },
+      ],
+      { resting_heart_rate: week },
+      "2026-08-30",
+    );
+    expect(out.resting_hr).toBe("62");
+  });
+
+  it("takes over from an answer nobody has touched in a year", () => {
+    const out = overlayPhoneFacts(
+      { resting_hr: "62" },
+      [{ key: "resting_hr", source: "user", answeredAt: "2025-08-20" }],
+      { resting_heart_rate: week },
+      "2026-08-30",
+    );
+    expect(out.resting_hr).toBe("51");
+  });
+
+  it("replaces a value the system itself wrote, whatever its date", () => {
+    const out = overlayPhoneFacts(
+      { resting_hr: "54" },
+      [
+        {
+          key: "resting_hr",
+          source: "system",
+          answeredAt: new Date("2026-08-30T06:00:00Z"),
+        },
+      ],
+      { resting_heart_rate: week },
+      "2026-08-30",
+    );
+    expect(out.resting_hr).toBe("51");
+  });
+
+  it("leaves the profile alone when the phone has sent nothing lately", () => {
+    const out = overlayPhoneFacts(
+      { waist_cm: "93" },
+      [],
+      { waist_cm: [{ date: "2026-06-01", value: 88 }] },
+      "2026-08-30",
+    );
+    expect(out.waist_cm).toBe("93");
   });
 });

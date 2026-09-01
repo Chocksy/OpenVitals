@@ -34,6 +34,12 @@ export default async function MetricPage({
   const metric = rows.find((m) => m.code === code);
   if (!metric) notFound();
 
+  // Phase 24b: a marker whose latest reading came from a device is a daily
+  // series. It gets a line and a range switch instead of one dot per draw, and
+  // the table below shows the last 90 days rather than 776 nights of sleep.
+  const phone = metric.rows.some((r) => r.source != null);
+  const tableRows = [...metric.rows].reverse().slice(0, phone ? 90 : undefined);
+
   const ranges = {
     value: metric.latest.value,
     refLow: metric.latest.refLow,
@@ -47,11 +53,11 @@ export default async function MetricPage({
     <div className="space-y-6">
       <div>
         <Link
-          href="/biomarkers"
+          href={phone ? "/labs/phone" : "/biomarkers"}
           className="inline-flex items-center gap-1 font-mono text-[11px] uppercase tracking-[0.04em] text-neutral-400 hover:text-neutral-600"
         >
           <ChevronLeft className="size-3" />
-          Biomarkers
+          {phone ? "Phone" : "Biomarkers"}
         </Link>
         <div className="mt-2 flex flex-wrap items-center gap-3">
           <h1 className="font-display text-[28px] font-medium tracking-[-0.03em]">
@@ -61,6 +67,12 @@ export default async function MetricPage({
           {metric.derived && (
             <span className="font-mono text-[10px] uppercase tracking-[0.06em] text-neutral-400">
               derived, not stored
+            </span>
+          )}
+          {phone && (
+            <span className="font-mono text-[10px] uppercase tracking-[0.06em] text-neutral-400">
+              from your phone · {metric.points.length} days since{" "}
+              {metric.points[0]?.date}
             </span>
           )}
         </div>
@@ -153,6 +165,7 @@ export default async function MetricPage({
           goalHigh={goal?.targetHigh ?? null}
           unit={metric.unit}
           status={status}
+          daily={phone}
           projection={
             projection
               ? {
@@ -211,7 +224,7 @@ export default async function MetricPage({
           </tr>
         </thead>
         <tbody className="divide-y divide-neutral-100">
-          {[...metric.rows].reverse().map((r, i) => (
+          {tableRows.map((r, i) => (
             <tr key={`${r.observedAt}-${i}`}>
               <td className="px-4 py-2 font-mono tabular-nums">
                 {r.observedAt}

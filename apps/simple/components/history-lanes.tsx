@@ -94,12 +94,21 @@ export function HistoryLanes({
 }) {
   const [at, setAt] = useState(snapshots.length - 1);
   const [hover, setHover] = useState<HistoryFact | null>(null);
+  // Phase 24b: the lane is what the person said. A watch that restated the
+  // resting heart rate every morning turned it into a wall of struck-through
+  // numbers, so anything the system derived is off by default.
+  const [showSystem, setShowSystem] = useState(false);
+  const systemCount = facts.filter((f) => f.source === "system").length;
+  const shown = useMemo(
+    () => (showSystem ? facts : facts.filter((f) => f.source !== "system")),
+    [facts, showSystem],
+  );
 
   // The axis is the window the path happened in: facts, actions, projections
   // and snapshots. An HbA1c from 2016 would otherwise squeeze the last two
   // years into a centimetre, so old readings are dropped rather than drawn.
   const anchors = [
-    ...facts.map((f) => f.validFrom),
+    ...shown.map((f) => f.validFrom),
     ...posts.map((p) => p.date),
     ...actions.map((a) => a.from),
     ...markers.flatMap((m) => m.projections.map((p) => p.madeAt)),
@@ -199,7 +208,7 @@ export function HistoryLanes({
         >
           facts
         </text>
-        {facts.map((f, i) => (
+        {shown.map((f, i) => (
           <g
             key={`${f.key}-${f.validFrom}-${i}`}
             opacity={dim(f.validFrom)}
@@ -235,7 +244,7 @@ export function HistoryLanes({
         ))}
 
         {/* the ticks: a day somebody confirmed a fact without changing it */}
-        {facts.flatMap((f, i) =>
+        {shown.flatMap((f, i) =>
           (f.confirmations ?? []).map((day) => (
             <path
               key={`tick-${f.key}-${i}-${day}`}
@@ -403,6 +412,15 @@ export function HistoryLanes({
           );
         })}
       </svg>
+
+      {systemCount > 0 && (
+        <button
+          onClick={() => setShowSystem((v) => !v)}
+          className="font-mono text-[10px] uppercase tracking-[0.06em] text-neutral-400 hover:text-neutral-900"
+        >
+          {showSystem ? "hide" : "show"} phone-derived ({systemCount})
+        </button>
+      )}
 
       {snapshots.length > 1 && (
         <div className="flex flex-wrap items-center gap-3 border-t border-neutral-100 pt-3">

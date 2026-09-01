@@ -6,7 +6,9 @@ import {
   goalGap,
   goalProgress,
   heatmapBucket,
+  humanLogged,
   inGoal,
+  partialDay,
   lastDays,
   rollingAverage,
   shiftDay,
@@ -180,5 +182,40 @@ describe("csv", () => {
 
   it("builds a whole document", () => {
     expect(toCsv(["a", "b"], [[1, "x,y"]])).toBe('a,b\n1,"x,y"');
+  });
+});
+
+describe("whose day is it (phase 24b)", () => {
+  it("is nobody's day when the row is empty or missing", () => {
+    expect(humanLogged(undefined)).toBe(false);
+    expect(humanLogged({})).toBe(false);
+    expect(humanLogged({ sleepHours: null, notes: "" })).toBe(false);
+  });
+
+  it("does not count columns the phone filled itself", () => {
+    expect(
+      humanLogged({ steps: 12000, sleepHours: 7.2 }, [
+        "steps",
+        "sleepHours",
+      ]),
+    ).toBe(false);
+  });
+
+  it("counts the same column when the person typed it", () => {
+    expect(humanLogged({ steps: 12000 }, ["sleepHours"])).toBe(true);
+  });
+
+  it("counts anything a phone cannot write", () => {
+    expect(humanLogged({ mood: 4 }, ["steps"])).toBe(true);
+    expect(humanLogged({ notes: "ran a 10k" }, ["steps"])).toBe(true);
+    expect(humanLogged({ alcoholUnits: 0.5 }, ["steps"])).toBe(true);
+  });
+
+  it("calls a morning or a quiet day partial", () => {
+    expect(partialDay(6, 49)).toBe(true);
+    expect(partialDay(18, 300)).toBe(true);
+    expect(partialDay(18, 12000)).toBe(false);
+    expect(partialDay(6, 12000)).toBe(true);
+    expect(partialDay(23, null)).toBe(true);
   });
 });
