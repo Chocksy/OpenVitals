@@ -169,11 +169,16 @@ Parked from 27: five duplicate Selenium protocol rows on the test account predat
 
 Parked from 28a: `why-tired` scores 1/5 (thin fatigue edges in the graph, or the `why` shape); old RCT rows keep their B because `saveInterventions` is insert-only (a re-grade backfill needs n, which old rows never stored); the answer repeats the dose when the action title already has it; dihydromyricetin sits at grade A on the MASLD card, worth the same paper check.
 
+| 29 | Design system: `system.html` (site map folding 24 routes into Home, Body, Blood, Plan, Graph, + sheet, System, login, chat; tokens with contrast; three button jobs; inputs; state words never a surface; cards; rows; tables; hand-drawn charts; overlays; empty states without dashes; motion; dark) on `system.css`, plus body, plan, graph, login, admin and an extended blood page; history chart rebuilt as one shared component; UI inventory | `1cdd4c4`, `251574e` |
+| 30 | The rewrite, five slices: 30a foundation and shell (globals.css from the system tokens, ui-kit with ink / quiet / text buttons and StateWord, one tab control, five-pill nav with the phone tab bar, composer, login, redirects); 30b Body (Today, Check-in, How you feel, Trends; hand-drawn daily line; packed history lanes); 30c Blood and charts (shared Ruler and HistoryChart everywhere, recharts removed; Draws, Markers, Phone, Uploads, marker page and drawer, upload detail, plan a draw); 30d Plan and Home (system card anatomy, aim lines, dose lines, evidence letters, systems once, hero light; Plan folding protocol, goals, insights, review, patterns); 30e Graph, Chat, System and the sweep (ringed bubbles with placed labels, reasons formatter, chat rows, admin tables, shim and dead code deleted); 1424 tests | `23ff9d6` … this |
+
 Parked from 28c: `MAX_TESTS` (30) in `lib/lookup.ts` fills every offered test from moves before the measured codes, so a Hashimoto's question never offers TSH or TPO and "plan the retest" fails `eval:thread` (fix belongs in `askCandidates`); Coolify needs `OPENAI_API_KEY` and `AI_THREAD_MODEL` for the compaction path; the "One question" block keeps its blue accent (`today-ask.tsx`); glossary tooltips left the rail and chips because a card is one link; a 22 px overflow at 390 from `ov-term` tooltips inside `KeyTrends`.
+
+Parked from 30: bubble positions in `lib/bubbles.ts` still crowd 29 nodes (seven small never-measured circles carry no label); engine codes inside model-written prose (`action.why`, `action.reasoning`) belong to the plan prompt; no per-marker retest cadence, fasting flag or upload size in the schema, so Plan a draw and the upload rows omit them; `globals.css` is 4 600 lines because the transitions.dev block and every element class live in one file; the dev server on the external volume needs `rm -rf .next` before a restart to serve fresh CSS.
 
 ## In progress
 
-Nothing. Next: owner review of the 28c home on the phone.
+Nothing. Next: owner review of the rewritten app on the phone and desktop.
 
 ## Next
 
