@@ -56,6 +56,15 @@ export function PillTabs({
       el.style.transform = `translateX(${tab.offsetLeft}px)`;
       el.style.width = `${tab.offsetWidth}px`;
     }
+    // Under 620 px the row scrolls rather than truncating a label, so the
+    // selected tab is brought into view. A scroll offset, not a DOM change.
+    const wrap = el.parentElement;
+    if (wrap && wrap.scrollWidth > wrap.clientWidth) {
+      wrap.scrollLeft = Math.max(
+        0,
+        tab.offsetLeft - (wrap.clientWidth - tab.offsetWidth) / 2,
+      );
+    }
   };
 
   const activeTab = () =>

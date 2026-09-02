@@ -1,9 +1,12 @@
 "use client";
 
 /**
- * A GitHub-style year grid and the 30-cell strip that /protocol reuses.
- * ponytail: plain SVG. recharts has no calendar heatmap and one <rect> per day
- * is 12 lines of code.
+ * A year grid and the 30-cell strip that /plan reuses.
+ *
+ * Phase 30b restyles both onto the system page's own classes: `.hm` with the
+ * five `--ok` steps (`c0`–`c4`) instead of the accent ramp, and `.strip30`
+ * with its `<s>` cells. The arithmetic is unchanged — one `<rect>` per day,
+ * still plain SVG, still no chart library.
  */
 import { useState } from "react";
 import { cn } from "@/lib/utils";
@@ -27,14 +30,8 @@ const MONTHS = [
   "Dec",
 ];
 
-/** Neutral for nothing, then the accent ramp. */
-export const BUCKET_FILL = [
-  "var(--color-neutral-100)",
-  "var(--color-accent-100)",
-  "var(--color-accent-300)",
-  "var(--color-accent-500)",
-  "var(--color-accent-700)",
-];
+/** The five steps of the grid, as class names the stylesheet owns. */
+const BUCKET = ["c0", "c1", "c2", "c3", "c4"];
 
 const weekday = (day: string) => {
   const [y, m, d] = day.split("-").map(Number) as [number, number, number];
@@ -71,50 +68,37 @@ export function Heatmap({
   }
 
   return (
-    <div className="space-y-1.5">
+    <div className="flex flex-col gap-[var(--s5)]">
       {label && (
-        <div className="flex items-center justify-between">
-          <span className="font-mono text-[10px] font-bold uppercase tracking-[0.06em] text-neutral-400">
-            {label}
-          </span>
-          <span className="flex items-center gap-1 font-mono text-[10px] text-neutral-400">
+        <div className="rowh justify-between">
+          <span className="t-meta">{label}</span>
+          <span className="hmkey">
             less
-            {BUCKET_FILL.map((fill) => (
-              <span
-                key={fill}
-                className="inline-block size-[9px] rounded-[2px]"
-                style={{ backgroundColor: fill }}
-              />
+            {BUCKET.map((step) => (
+              <i key={step} className={`hm-${step}`} />
             ))}
             more
           </span>
         </div>
       )}
-      <div className="overflow-x-auto">
-        <svg width={width} height={top + 7 * STEP} className="block">
+      <div className="hm">
+        <svg width={width} height={top + 7 * STEP}>
           {monthTicks.map((t) => (
-            <text
-              key={`${t.text}-${t.x}`}
-              x={t.x}
-              y={9}
-              fontSize={9}
-              fontFamily="var(--font-mono)"
-              fill="var(--color-neutral-400)"
-            >
+            <text key={`${t.text}-${t.x}`} x={t.x} y={9}>
               {t.text}
             </text>
           ))}
           {days.map((d, i) => (
             <rect
               key={d.day}
+              className={BUCKET[d.bucket] ?? BUCKET[0]}
               x={Math.floor((i + offset) / 7) * STEP}
               y={top + ((i + offset) % 7) * STEP}
               width={CELL}
               height={CELL}
               rx={2}
-              fill={BUCKET_FILL[d.bucket] ?? BUCKET_FILL[0]}
             >
-              <title>{`${d.day}`}</title>
+              <title>{d.day}</title>
             </rect>
           ))}
         </svg>
@@ -132,16 +116,11 @@ export function Strip({
   className?: string;
 }) {
   return (
-    <div className={cn("flex gap-[2px]", className)}>
+    <div className={cn("strip30", className)}>
       {values.map((v, i) => (
-        <span
+        <s
           key={i}
-          className="h-3 w-[5px] rounded-[1px]"
-          style={{
-            backgroundColor: v
-              ? "var(--color-health-normal)"
-              : "var(--color-neutral-150)",
-          }}
+          className={cn(v ? "on" : "", i === values.length - 1 && "today")}
         />
       ))}
     </div>
@@ -149,13 +128,13 @@ export function Strip({
 }
 
 /**
- * The /today grid with its two readings of the same year.
+ * The year grid with its two readings of the same year.
  *
  * Phase 24b: the blue wall. The heatmap counted any `daily_logs` row, and a
- * phone writes one every day, so a year of solid blue said "you logged every
+ * phone writes one every day, so a year of solid colour said "you logged every
  * day" when the person had typed nothing. "You" counts habit ticks, numbers
  * typed, notes and posts; "phone" is the sync coverage, which is a real thing
- * to want to see and is now labelled as itself.
+ * to want to see and is labelled as itself.
  */
 export function ConsistencyHeatmap({
   days,
@@ -164,29 +143,34 @@ export function ConsistencyHeatmap({
 }) {
   const [mode, setMode] = useState<"you" | "phone">("you");
   const shown =
-    mode === "you"
-      ? days
-      : days.map((d) => ({ day: d.day, bucket: d.phone }));
+    mode === "you" ? days : days.map((d) => ({ day: d.day, bucket: d.phone }));
   const count = shown.filter((d) => d.bucket > 0).length;
 
   return (
-    <div className="space-y-2">
-      <Heatmap days={shown} label="Consistency" />
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <span className="font-mono text-[10px] tabular-nums text-neutral-400">
-          {count} of {days.length} days ·{" "}
-          {mode === "you" ? "what you did" : "what the phone sent"}
-        </span>
+    <div className="panel">
+      <div className="rowh mb-[var(--s8)] justify-between">
         <PillTabs
           label="Whose days"
           active={mode}
           tabs={[
-            { id: "you", label: "you" },
-            { id: "phone", label: "phone" },
+            { id: "you", label: "You" },
+            { id: "phone", label: "Phone" },
           ]}
           onSelect={(id) => setMode(id as "you" | "phone")}
         />
+        <span className="t-meta">
+          <span className="t-num">
+            {count} of {days.length}
+          </span>{" "}
+          days · {mode === "you" ? "what you did" : "what the phone sent"}
+        </span>
       </div>
+      <Heatmap days={shown} />
+      <p className="cap">
+        Two readings of the same year. “You” counts habit ticks, numbers typed,
+        notes and posts. “Phone” is sync coverage, which is a real thing to want
+        to see and is labelled as itself.
+      </p>
     </div>
   );
 }

@@ -1,6 +1,7 @@
 /**
- * Queries behind /today, /protocol, /goals, /trends and /labs. Pages stay thin:
- * they call one loader here and render. Everything is scoped to one user.
+ * Queries behind the Body check-in, /protocol, /goals and /labs. Pages stay
+ * thin: they call one loader here and render. Everything is scoped to one
+ * user. The Body page's own day list and trend series live in `body-data.ts`.
  */
 import { and, asc, desc, eq, gte, inArray, isNull, lte, sql } from "drizzle-orm";
 import {
@@ -371,44 +372,6 @@ export async function getGoalFor(userId: string, code: string) {
     .from(goals)
     .where(and(eq(goals.userId, userId), eq(goals.metricCode, code)));
   return g ?? null;
-}
-
-/** Daily logs for the trends page, plus the dates of every lab draw. */
-export async function getTrends(userId: string, days: number) {
-  const db = getDb();
-  const window = lastDays(days);
-  const [logs, draws] = await Promise.all([
-    db
-      .select()
-      .from(dailyLogs)
-      .where(and(eq(dailyLogs.userId, userId), gte(dailyLogs.day, window[0]!)))
-      .orderBy(asc(dailyLogs.day)),
-    db
-      .selectDistinct({ day: readings.observedAt })
-      .from(readings)
-      .where(
-        and(eq(readings.userId, userId), gte(readings.observedAt, window[0]!)),
-      ),
-  ]);
-
-  const byDay = new Map(logs.map((l) => [l.day, l]));
-  return {
-    days: window,
-    rows: window.map((d) => {
-      const l = byDay.get(d);
-      return {
-        day: d,
-        sleepHours: l?.sleepHours ?? null,
-        weightKg: l?.weightKg ?? null,
-        steps: l?.steps ?? null,
-        exerciseMin: l?.exerciseMin ?? null,
-        alcoholUnits: l?.alcoholUnits ?? null,
-        energy: l?.energy ?? null,
-        mood: l?.mood ?? null,
-      };
-    }),
-    draws: draws.map((d) => d.day).filter((d) => window.includes(d)),
-  };
 }
 
 export interface DrawView {

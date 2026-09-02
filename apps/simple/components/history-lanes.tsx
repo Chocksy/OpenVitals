@@ -18,6 +18,7 @@
  * track are drawn.
  */
 import { useMemo, useState } from "react";
+import { ChevronDown } from "lucide-react";
 import { StateWord } from "./ui-kit";
 import { cn } from "@/lib/utils";
 
@@ -72,12 +73,91 @@ export interface HistorySnapshot {
 }
 
 const W = 960;
-const LANE = { facts: 60, actions: 120, markers: 200 };
 const PAD = { left: 96, right: 24, top: 24, bottom: 28 };
+/** One row of labels in each lane, and how many rows a lane may grow to. */
+const ROW = { fact: 13, action: 14 };
+const MAX_ROWS = 4;
+/** Geist Mono at 11 px measures about this per character; the 8 is the gap. */
+const CHAR = 6.2;
+const GAP = 8;
 
 const day = (d: string) => new Date(d).getTime();
-const short = (d: string) => d.slice(2).replace(/-/g, "/");
 const pct = (v: number) => `${Math.round(v * 100)}%`;
+
+const MONTHS = [
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "May",
+  "Jun",
+  "Jul",
+  "Aug",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dec",
+];
+
+/** "2026-01-30" reads as "Jan 30 2026", not as "26/01/30". */
+const short = (d: string) => {
+  const [y, m, dd] = d.slice(0, 10).split("-");
+  const name = MONTHS[Number(m) - 1];
+  return name ? `${name} ${Number(dd)} ${y}` : d;
+};
+
+/**
+ * Lay labels out in rows so none of them lands on top of another.
+ *
+ * Each item claims the span its own text needs at its own date. It goes in
+ * the first row where that span is free; if all `MAX_ROWS` rows are taken at
+ * that date it goes to `overflow`, which the chart prints as one "+N" mark
+ * per date and the disclosure below lists in full.
+ */
+export function packRows<T>(
+  items: T[],
+  spanOf: (item: T) => { from: number; to: number },
+  maxRows = MAX_ROWS,
+): { placed: { item: T; row: number }[]; overflow: T[] } {
+  const rows: { from: number; to: number }[][] = [];
+  const placed: { item: T; row: number }[] = [];
+  const overflow: T[] = [];
+
+  for (const item of items) {
+    const span = spanOf(item);
+    let row = 0;
+    while (row < maxRows) {
+      const taken = (rows[row] ??= []);
+      if (!taken.some((s) => span.from < s.to && s.from < span.to)) {
+        taken.push(span);
+        placed.push({ item, row });
+        break;
+      }
+      row++;
+    }
+    if (row === maxRows) overflow.push(item);
+  }
+  return { placed, overflow };
+}
+
+/** Geist Mono at 9 px, the size the action label is set in. */
+const ACT_CHAR = 5.4;
+
+/** Cut a label to the room it has, with an ellipsis rather than a clip. */
+export const fit = (text: string, room: number, char: number): string => {
+  const max = Math.floor(room / char);
+  if (max <= 1) return "";
+  return text.length <= max ? text : `${text.slice(0, max - 1)}…`;
+};
+
+/** What a collapsed group of labels prints. */
+const labelText = (n: number) => `+${n} more`;
+
+/** The span a label of this text claims, starting at `x`. */
+const labelSpan = (x: number, text: string) => ({
+  from: x,
+  to: x + text.length * CHAR + GAP,
+});
 
 export function HistoryLanes({
   facts,
@@ -141,7 +221,62 @@ export function HistoryLanes({
   const cut = snapshots[at]?.at ?? null;
   const dim = (d: string) => (cut && day(d) > day(cut) ? 0.18 : 1);
 
-  const height = PAD.top + LANE.markers + markers.length * 46 + PAD.bottom;
+  /* ── the lanes, packed so no label lands on another ─────────────────── */
+
+  const factText = (f: HistoryFact) =>
+    `${f.key.replace(/_/g, " ")} ${f.value.slice(0, 18)}`;
+
+  const factPack = packRows(shown, (f) =>
+    labelSpan(x(f.validFrom) + 3, factText(f)),
+  );
+  // An action is a bar from its start to the right edge, so two of them can
+  // never share a row. It is still the same packer: the span is the bar.
+  const actionPack = packRows(actions, (a) => ({
+    from: x(a.from),
+    to: W - PAD.right,
+  }));
+
+  const factRows =
+    Math.max(1, ...factPack.placed.map((p) => p.row + 1)) +
+    (factPack.overflow.length ? 1 : 0);
+  const actionRows =
+    Math.max(1, ...actionPack.placed.map((p) => p.row + 1)) +
+    (actionPack.overflow.length ? 1 : 0);
+
+  const factsTop = PAD.top + 12;
+  /** the band under the fact labels: confirmation ticks and check-in dots */
+  const factTickY = factsTop + factRows * ROW.fact;
+  const actionsTop = factTickY + 26;
+  const markersTop = actionsTop + actionRows * ROW.action + 34;
+  const height = markersTop + markers.length * 46 + PAD.bottom;
+
+  const factRowY = (row: number) => factsTop + row * ROW.fact;
+  const actionRowY = (row: number) => actionsTop + row * ROW.action;
+
+  /**
+   * Overflow collapses to one "+N more" per date in the lane's last row, and
+   * two of those that would collide merge into the earlier one — otherwise
+   * the fix for overlapping labels grows its own overlapping labels.
+   */
+  const overflowMarks = <T,>(items: T[], dateOf: (item: T) => string) => {
+    const byDate = new Map<string, number>();
+    for (const item of items)
+      byDate.set(dateOf(item), (byDate.get(dateOf(item)) ?? 0) + 1);
+    const out: { date: string; n: number }[] = [];
+    for (const [date, n] of [...byDate].sort((a, b) =>
+      a[0].localeCompare(b[0]),
+    )) {
+      const last = out[out.length - 1];
+      const room = last
+        ? x(last.date) + labelText(last.n).length * CHAR + GAP
+        : -Infinity;
+      if (last && x(date) < room) last.n += n;
+      else out.push({ date, n });
+    }
+    return out;
+  };
+  const factOverflow = overflowMarks(factPack.overflow, (f) => f.validFrom);
+  const actionOverflow = overflowMarks(actionPack.overflow, (a) => a.from);
 
   /** What this fact moved, from the snapshots either side of it. */
   const movedBy = useMemo(() => {
@@ -164,7 +299,7 @@ export function HistoryLanes({
     .slice(0, 6);
 
   return (
-    <div className="space-y-3">
+    <div className="lanes flex flex-col gap-[var(--s13)]">
       <svg viewBox={`0 0 ${W} ${height}`} className="w-full">
         {/* the axis */}
         <line
@@ -172,17 +307,19 @@ export function HistoryLanes({
           x2={W - PAD.right}
           y1={PAD.top - 10}
           y2={PAD.top - 10}
-          stroke="var(--color-neutral-200)"
+          className="axis-line"
         />
         {[0, 0.25, 0.5, 0.75, 1].map((f) => {
           const d = new Date(from + f * span).toISOString().slice(0, 10);
+          // The end ticks anchor inward, or "Nov 23 2026" runs off the box.
+          const anchor = f === 0 ? "start" : f === 1 ? "end" : "middle";
           return (
             <text
               key={f}
               x={x(d)}
               y={PAD.top - 16}
-              textAnchor="middle"
-              className="fill-neutral-400 font-mono text-[9px]"
+              textAnchor={anchor}
+              className="tickt"
             >
               {short(d)}
             </text>
@@ -194,21 +331,15 @@ export function HistoryLanes({
             x2={x(cut)}
             y1={PAD.top - 12}
             y2={height - PAD.bottom}
-            stroke="var(--color-accent-500)"
-            strokeWidth={1.5}
-            strokeDasharray="4 3"
+            className="cut"
           />
         )}
 
-        {/* lane 1: facts */}
-        <text
-          x={4}
-          y={LANE.facts}
-          className="fill-neutral-400 font-mono text-[10px]"
-        >
+        {/* lane 1: facts, one per free row */}
+        <text x={4} y={factsTop} className="lane-label">
           facts
         </text>
-        {shown.map((f, i) => (
+        {factPack.placed.map(({ item: f, row }, i) => (
           <g
             key={`${f.key}-${f.validFrom}-${i}`}
             opacity={dim(f.validFrom)}
@@ -218,29 +349,31 @@ export function HistoryLanes({
             <line
               x1={x(f.validFrom)}
               x2={x(f.validFrom)}
-              y1={LANE.facts - 12}
-              y2={LANE.facts + 4}
-              stroke={
-                f.changeKind === "corrected"
-                  ? "var(--color-health-warning)"
-                  : "var(--color-neutral-400)"
-              }
+              y1={factRowY(row) - 9}
+              y2={factRowY(row) + 3}
+              className={cn("fact", f.changeKind === "corrected" && "struck")}
               strokeWidth={2}
               strokeDasharray={f.changeKind === "corrected" ? "3 2" : undefined}
             />
             <text
               x={x(f.validFrom) + 3}
-              y={LANE.facts - 14 + (i % 3) * 9}
-              className={cn(
-                "font-mono text-[9px]",
-                f.changeKind === "corrected"
-                  ? "fill-neutral-400 [text-decoration:line-through]"
-                  : "fill-neutral-600",
-              )}
+              y={factRowY(row)}
+              className={cn("factt", f.changeKind === "corrected" && "struck")}
             >
-              {f.key.replace(/_/g, " ")} {f.value.slice(0, 18)}
+              {factText(f)}
             </text>
           </g>
+        ))}
+        {factOverflow.map(({ date, n }) => (
+          <text
+            key={`fmore-${date}`}
+            x={x(date) + 3}
+            y={factRowY(factRows - 1)}
+            className="more"
+            opacity={dim(date)}
+          >
+            {labelText(n)}
+          </text>
         ))}
 
         {/* the ticks: a day somebody confirmed a fact without changing it */}
@@ -248,10 +381,8 @@ export function HistoryLanes({
           (f.confirmations ?? []).map((day) => (
             <path
               key={`tick-${f.key}-${i}-${day}`}
-              d={`M${x(day) - 3} ${LANE.facts + 8} l3 3 l5 -6`}
-              fill="none"
-              stroke="var(--color-health-normal)"
-              strokeWidth={1.5}
+              d={`M${x(day) - 3} ${factTickY + 4} l3 3 l5 -6`}
+              className="tick"
               opacity={dim(day)}
             >
               <title>{`${f.key.replace(/_/g, " ")} confirmed on ${day}`}</title>
@@ -264,25 +395,21 @@ export function HistoryLanes({
           <circle
             key={`post-${p.id}`}
             cx={x(p.date)}
-            cy={LANE.facts + 16}
+            cy={factTickY + 12}
             r={3}
-            fill="var(--color-accent-500)"
+            className="post"
             opacity={dim(p.date)}
           >
             <title>{`${p.date}: ${p.text.slice(0, 120)} (${p.chips} chips)`}</title>
           </circle>
         ))}
 
-        {/* lane 2: actions and adherence */}
-        <text
-          x={4}
-          y={LANE.actions}
-          className="fill-neutral-400 font-mono text-[10px]"
-        >
+        {/* lane 2: actions and adherence, one bar per row */}
+        <text x={4} y={actionsTop + 8} className="lane-label">
           actions
         </text>
-        {actions.map((a, i) => {
-          const y = LANE.actions - 14 + (i % 3) * 14;
+        {actionPack.placed.map(({ item: a, row }) => {
+          const y = actionRowY(row);
           const x1 = x(a.from);
           const x2 = W - PAD.right;
           return (
@@ -292,27 +419,32 @@ export function HistoryLanes({
                 y={y}
                 width={Math.max(2, x2 - x1)}
                 height={10}
-                fill="var(--color-accent-500)"
+                className="actbar"
                 fillOpacity={0.15 + a.adherence * 0.55}
-                stroke="var(--color-accent-500)"
-                strokeOpacity={0.5}
               />
-              <text
-                x={x1 + 4}
-                y={y + 8}
-                className="fill-neutral-700 font-mono text-[9px]"
-              >
-                {a.text.slice(0, 46)} · {pct(a.adherence)}
+              <text x={x1 + 4} y={y + 8} className="actt">
+                {fit(`${a.text} · ${pct(a.adherence)}`, x2 - x1 - 10, ACT_CHAR)}
               </text>
             </g>
           );
         })}
+        {actionOverflow.map(({ date, n }) => (
+          <text
+            key={`amore-${date}`}
+            x={x(date) + 4}
+            y={actionRowY(actionRows - 1) + 8}
+            className="more"
+            opacity={dim(date)}
+          >
+            {labelText(n)}
+          </text>
+        ))}
 
         {/* lane 3: markers, one row each */}
         <text
           x={4}
-          y={LANE.markers}
-          className="fill-neutral-400 font-mono text-[10px]"
+          y={markersTop}
+          className="lane-label"
         >
           markers
         </text>
@@ -323,7 +455,7 @@ export function HistoryLanes({
             ...marker,
             points: marker.points.filter((p) => day(p.date) >= from),
           };
-          const top0 = LANE.markers + i * 46 - 10;
+          const top0 = markersTop + i * 46 - 10;
           const values = [
             ...m.points.map((p) => p.value),
             ...m.projections.flatMap((p) => [p.low, p.high]),
@@ -337,7 +469,7 @@ export function HistoryLanes({
               <text
                 x={4}
                 y={top0 + 20}
-                className="fill-neutral-500 font-mono text-[9px]"
+                className="actt"
               >
                 {m.code.replace(/_/g, " ")}
               </text>
@@ -348,15 +480,12 @@ export function HistoryLanes({
                     y={y(p.high)}
                     width={Math.max(3, x(p.retestAt) - x(p.madeAt))}
                     height={Math.max(3, y(p.low) - y(p.high))}
-                    fill="var(--color-accent-500)"
-                    fillOpacity={0.16}
-                    stroke="var(--color-accent-500)"
-                    strokeDasharray="2 3"
+                    className="band"
                   />
                   <text
                     x={x(p.madeAt) + 3}
                     y={y(p.high) - 3}
-                    className="fill-[var(--color-accent-600)] font-mono text-[8px]"
+                    className="bandt"
                   >
                     expected {p.expected}
                   </text>
@@ -365,12 +494,12 @@ export function HistoryLanes({
                       x={x(p.resolvedAt) + 4}
                       y={y(p.resolvedValue ?? p.expected) - 6}
                       className={cn(
-                        "font-mono text-[8px]",
+                        "verdict",
                         p.verdict === "worse"
-                          ? "fill-[var(--color-health-critical)]"
+                          ? "off"
                           : p.verdict === "better"
-                            ? "fill-[var(--color-health-normal)]"
-                            : "fill-neutral-500",
+                            ? ""
+                            : "none",
                       )}
                     >
                       {p.verdict === "as_expected" ? "as expected" : p.verdict}
@@ -382,9 +511,7 @@ export function HistoryLanes({
                 d={m.points
                   .map((p, k) => `${k ? "L" : "M"} ${x(p.date)} ${y(p.value)}`)
                   .join(" ")}
-                fill="none"
-                stroke="var(--color-neutral-500)"
-                strokeWidth={1.5}
+                className="mline"
               />
               {m.points.map((p) => (
                 <g key={p.date} opacity={dim(p.date)}>
@@ -392,9 +519,7 @@ export function HistoryLanes({
                     cx={x(p.date)}
                     cy={y(p.value)}
                     r={3}
-                    fill="white"
-                    stroke="var(--color-neutral-600)"
-                    strokeWidth={1.5}
+                    className="mdot"
                   >
                     <title>{`${m.code} ${p.value}${m.unit ? ` ${m.unit}` : ""} on ${p.date}`}</title>
                   </circle>
@@ -402,7 +527,7 @@ export function HistoryLanes({
                     x={x(p.date)}
                     y={y(p.value) + 12}
                     textAnchor="middle"
-                    className="fill-neutral-500 font-mono text-[8px] tabular-nums"
+                    className="mvt"
                   >
                     {p.value}
                   </text>
@@ -413,50 +538,89 @@ export function HistoryLanes({
         })}
       </svg>
 
+      {(factPack.overflow.length > 0 || actionPack.overflow.length > 0) && (
+        <details className="disclose">
+          <summary>
+            {factPack.overflow.length + actionPack.overflow.length} more on
+            crowded dates
+            <ChevronDown className="ic" aria-hidden="true" />
+          </summary>
+          <div className="inner">
+            <div className="rowlist">
+              {factPack.overflow.map((f, i) => (
+                <div className="markerrow said" key={`of-${f.key}-${i}`}>
+                  <div className="nm">
+                    <b>{f.key.replace(/_/g, " ")}</b>
+                    <span>
+                      {f.changeKind} · {f.source}
+                    </span>
+                  </div>
+                  <div className="note">{f.value}</div>
+                  <div className="val">{short(f.validFrom)}</div>
+                  <div className="wd" />
+                </div>
+              ))}
+              {actionPack.overflow.map((a) => (
+                <div className="markerrow said" key={`oa-${a.id}`}>
+                  <div className="nm">
+                    <b>{a.text}</b>
+                    <span>{a.active ? "adopted" : "dropped"}</span>
+                  </div>
+                  <div className="note">{pct(a.adherence)} of the last 30 days</div>
+                  <div className="val">{short(a.from)}</div>
+                  <div className="wd" />
+                </div>
+              ))}
+            </div>
+          </div>
+        </details>
+      )}
+
       {systemCount > 0 && (
         <button
           onClick={() => setShowSystem((v) => !v)}
-          className="font-mono text-[10px] uppercase tracking-[0.06em] text-neutral-400 hover:text-neutral-900"
+          className="b b-text b-sm"
         >
-          {showSystem ? "hide" : "show"} phone-derived ({systemCount})
+          {showSystem ? "Hide" : "Show"} what the phone derived ({systemCount})
         </button>
       )}
 
       {snapshots.length > 1 && (
-        <div className="flex flex-wrap items-center gap-3 border-t border-neutral-100 pt-3">
-          <span className="font-mono text-[10px] uppercase tracking-[0.06em] text-neutral-400">
-            replay
-          </span>
+        <div className="rangewrap">
           <input
+            className="rng"
             type="range"
             min={0}
             max={snapshots.length - 1}
             value={at}
+            aria-label="Replay to a date"
             onChange={(e) => setAt(Number(e.target.value))}
-            className="flex-1"
           />
-          <span className="font-mono text-[11px] text-neutral-600">
-            {snapshots[at]?.at}
-          </span>
+          <span className="rv">{snapshots[at]?.at}</span>
         </div>
       )}
 
-      <div className="flex flex-wrap gap-x-4 gap-y-1">
+      <div className="rowlist">
         {top.map(([id, p]) => (
-          <span key={id} className="font-mono text-[11px] text-neutral-600">
-            {id.replace(/_/g, " ")}{" "}
-            <span className="tabular-nums text-neutral-900">{pct(p)}</span>
-          </span>
+          <div className="markerrow" key={id}>
+            <div className="nm">
+              <b>{id.replace(/_/g, " ")}</b>
+            </div>
+            <div />
+            <div className="val">
+              {pct(p).replace("%", "")}
+              <em>%</em>
+            </div>
+            <div className="wd" />
+          </div>
         ))}
         {!top.length && (
-          <span className="font-mono text-[11px] text-neutral-400">
-            no beliefs recorded on that day
-          </span>
+          <p className="cap">No beliefs were recorded on that day.</p>
         )}
       </div>
 
       {hover && (
-        <p className="font-mono text-[11px] text-neutral-600">
+        <p className="t-meta">
           <StateWord tone={hover.changeKind === "corrected" ? "border" : "none"}>
             {hover.changeKind}
           </StateWord>{" "}
