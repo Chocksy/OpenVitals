@@ -1,10 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { cn } from "@/lib/utils";
+import { PillTabs } from "./pill-tabs";
 
 type Pref = "light" | "system" | "dark";
-const OPTIONS: Pref[] = ["light", "system", "dark"];
+const TABS = [
+  { id: "light", label: "Light" },
+  { id: "system", label: "System" },
+  { id: "dark", label: "Dark" },
+];
 
 declare global {
   interface Window {
@@ -12,7 +16,10 @@ declare global {
   }
 }
 
-/** Three-way theme picker. The inline script in layout.tsx does the resolving. */
+/**
+ * Three-way theme picker, drawn as the one tab control in the app (the
+ * sliding pill). The inline script in `app/layout.tsx` does the resolving.
+ */
 export function ThemeToggle() {
   const [pref, setPref] = useState<Pref>("system");
   useEffect(() => {
@@ -20,30 +27,17 @@ export function ThemeToggle() {
     if (stored === "light" || stored === "dark") setPref(stored);
   }, []);
 
-  function choose(next: Pref) {
+  function choose(next: string) {
     if (next === "system") localStorage.removeItem("theme");
     else localStorage.setItem("theme", next);
-    setPref(next);
+    setPref(next as Pref);
     window.__applyTheme?.();
   }
 
   return (
-    <div className="mt-3 border-t border-neutral-200 pt-2">
-      <p className="mb-1 font-mono text-[10px] uppercase tracking-wider text-neutral-400">
-        Theme
-      </p>
-      <div className="pill-tabs w-full">
-        {OPTIONS.map((o) => (
-          <button
-            key={o}
-            type="button"
-            onClick={() => choose(o)}
-            className={cn("pill-tab flex-1 capitalize", pref === o && "pill-tab-active")}
-          >
-            {o}
-          </button>
-        ))}
-      </div>
+    <div className="theme-row">
+      <span className="grp">Theme</span>
+      <PillTabs tabs={TABS} active={pref} label="Theme" onSelect={choose} />
     </div>
   );
 }

@@ -13,6 +13,7 @@ import {
 } from "recharts";
 import { formatChartDate } from "@/lib/utils";
 import type { HealthStatus } from "@/lib/status";
+import { PillTabs } from "./pill-tabs";
 
 interface TrendChartDataPoint {
   date: string;
@@ -267,17 +268,12 @@ export function TrendChart({
     <div>
       {daily && (
         <div className="mb-2 flex items-center justify-end">
-          <div className="pill-tabs">
-            {RANGES.map((r) => (
-              <button
-                key={r.label}
-                onClick={() => setDays(r.days)}
-                className={`pill-tab${r.days === days ? " pill-tab-active" : ""}`}
-              >
-                {r.label}
-              </button>
-            ))}
-          </div>
+          <PillTabs
+            label="How far back"
+            active={String(days)}
+            tabs={RANGES.map((r) => ({ id: String(r.days), label: r.label }))}
+            onSelect={(id) => setDays(id === "null" ? null : Number(id))}
+          />
         </div>
       )}
       <div
@@ -286,7 +282,7 @@ export function TrendChart({
         style={{ height }}
       >
         <div className="t-skel-skeleton is-pulsing" aria-hidden="true">
-          <div className="skeleton size-full" />
+          <div className="size-full bg-[var(--track)]" />
         </div>
         <div className="t-skel-content">
           <ResponsiveContainer width="100%" height={height}>

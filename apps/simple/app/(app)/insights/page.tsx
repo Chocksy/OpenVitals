@@ -164,7 +164,7 @@ export default async function InsightsPage() {
             <GenerateButton
               kind="weekly"
               label={week ? "Regenerate" : "Generate weekly review"}
-              variant={week ? "ghost" : "default"}
+              job={week ? "text" : "ink"}
             />
           </div>
         </div>
@@ -262,7 +262,7 @@ export default async function InsightsPage() {
             <GenerateButton
               kind="retest"
               label={plan ? "Regenerate" : "Plan next bloodwork"}
-              variant={plan ? "ghost" : "default"}
+              job={plan ? "text" : "ink"}
             />
           </div>
         </div>
@@ -408,7 +408,7 @@ export default async function InsightsPage() {
             <GenerateButton
               kind="lifestyle"
               label={life ? "Regenerate" : "Generate lifestyle plan"}
-              variant={life ? "ghost" : "default"}
+              job={life ? "text" : "ink"}
             />
           </div>
         </div>

@@ -36,7 +36,7 @@ export function AskLine() {
       />
       <Button
         size="sm"
-        variant="ghost"
+        job="text"
         disabled={text.trim().length < 2}
         onClick={hand}
       >

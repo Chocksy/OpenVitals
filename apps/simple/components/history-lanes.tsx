@@ -18,7 +18,7 @@
  * track are drawn.
  */
 import { useMemo, useState } from "react";
-import { Badge } from "./ui-kit";
+import { StateWord } from "./ui-kit";
 import { cn } from "@/lib/utils";
 
 export interface HistoryFact {
@@ -457,11 +457,9 @@ export function HistoryLanes({
 
       {hover && (
         <p className="font-mono text-[11px] text-neutral-600">
-          <Badge
-            variant={hover.changeKind === "corrected" ? "warning" : "info"}
-          >
+          <StateWord tone={hover.changeKind === "corrected" ? "border" : "none"}>
             {hover.changeKind}
-          </Badge>{" "}
+          </StateWord>{" "}
           {hover.key.replace(/_/g, " ")} = {hover.value} ·{" "}
           {movedBy.length
             ? movedBy

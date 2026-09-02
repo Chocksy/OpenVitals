@@ -34,7 +34,7 @@ import { Term, Terms } from "./term";
 import { TodayAsk } from "./today-ask";
 import { WhatToDo } from "./what-to-do";
 import { TrendChart } from "./trend-chart";
-import { Badge, Card } from "./ui-kit";
+import { Card, StateWord, type StateTone } from "./ui-kit";
 
 export { KeyTrends } from "./key-trends";
 
@@ -212,12 +212,12 @@ export function SinceLine({
   );
 }
 
-const STATE_VARIANT: Record<HState, "critical" | "warning" | "secondary"> = {
-  confirmed: "critical",
-  likely: "critical",
-  possible: "warning",
-  unlikely: "secondary",
-  ruled_out: "secondary",
+const STATE_TONE: Record<HState, StateTone> = {
+  confirmed: "off",
+  likely: "off",
+  possible: "border",
+  unlikely: "none",
+  ruled_out: "none",
 };
 
 /**
@@ -337,16 +337,14 @@ export function ConclusionCard({
 
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div className="flex flex-wrap items-center gap-1.5">
-          <Badge variant="outline" className="tabular-nums">
-            {c.rank}
-          </Badge>
+          <StateWord className="tabular-nums">{c.rank}</StateWord>
           {c.risk ? (
-            <Badge variant="warning">risk</Badge>
+            <StateWord tone="border">risk</StateWord>
           ) : (
             c.state && (
-              <Badge variant={STATE_VARIANT[c.state]} data-state-chip={c.id}>
+              <StateWord tone={STATE_TONE[c.state]} data-state-chip={c.id}>
                 <SwapText text={c.state.replace("_", " ")} />
-              </Badge>
+              </StateWord>
             )
           )}
         </div>
@@ -422,19 +420,19 @@ export function ConclusionCard({
       {c.projection && (
         <p className="t-body mt-3 flex items-center gap-2 border-l-2 border-accent-500 bg-accent-50 px-3 py-2 text-neutral-700">
           {c.projection.verdict && (
-            <Badge
-              variant={
+            <StateWord
+              tone={
                 c.projection.verdict === "better"
-                  ? "normal"
+                  ? "on"
                   : c.projection.verdict === "worse"
-                    ? "critical"
-                    : "info"
+                    ? "off"
+                    : "none"
               }
             >
               {c.projection.verdict === "as_expected"
                 ? "as expected"
                 : c.projection.verdict}
-            </Badge>
+            </StateWord>
           )}
           <Terms text={c.projection.line} />
         </p>

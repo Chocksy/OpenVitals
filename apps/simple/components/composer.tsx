@@ -83,7 +83,11 @@ const openers = new Set<(opening: ComposerOpening) => void>();
 
 export function openComposer(text?: string, about?: About) {
   if (typeof text === "string" || about) {
-    prefill = { token: ++tokens, text: text ?? "", ...(about ? { about } : {}) };
+    prefill = {
+      token: ++tokens,
+      text: text ?? "",
+      ...(about ? { about } : {}),
+    };
     for (const fn of openers) fn(prefill);
   }
   const el = document.getElementById(COMPOSER_ID);
@@ -109,22 +113,25 @@ interface FollowUp {
   answer?: string;
 }
 
+/**
+ * The chip is one shape (`.gchip`, system section 11): mono, uppercase, on
+ * the hair border. A guess is dashed and posting draws it solid. The kind
+ * only ever moves the text colour, because the spectrum is never a surface.
+ */
 const KIND_TONE: Record<string, string> = {
-  fact: "border-neutral-400 text-neutral-700",
-  symptom: "border-accent-500 text-accent-600",
-  reading: "border-[var(--color-health-info)] text-[var(--color-health-info)]",
-  event: "border-neutral-300 text-neutral-500",
-  phenotype:
-    "border-[var(--color-health-warning)] text-[var(--color-health-warning)]",
-  // Hearsay: dotted, because it is about the world and writes nothing here.
-  claim: "border-dashed border-neutral-400 text-neutral-500",
+  fact: "text-[var(--ink)]",
+  symptom: "text-[var(--ink)]",
+  reading: "text-[var(--ink)]",
+  event: "text-[var(--ink-2)]",
+  phenotype: "text-[var(--warn)]",
+  // Hearsay: it is about the world and writes nothing here.
+  claim: "text-[var(--ink-3)]",
   // Food off a photo: an estimate, and the chip says so in its own label.
-  nutrition: "border-[var(--color-health-info)] text-neutral-600",
-  unknown: "border-neutral-300 text-neutral-400",
+  nutrition: "text-[var(--ink-2)]",
+  unknown: "text-[var(--ink-3)]",
 };
 
-const field =
-  "border border-neutral-300 bg-neutral-0 px-1.5 py-0.5 font-mono text-[11px]";
+const field = "inp mini";
 
 const pad = (n: number) => String(n).padStart(2, "0");
 
@@ -162,10 +169,8 @@ function ChipEditor({
   onClose: () => void;
 }) {
   return (
-    <div className="mt-1 flex flex-wrap items-center gap-1.5 border border-neutral-200 bg-neutral-50 p-2">
-      <span className="font-mono text-[10px] uppercase tracking-[0.04em] text-neutral-400">
-        {chip.key}
-      </span>
+    <div className="chipedit mt-[var(--s5)]">
+      <span className="c-label self-center">{chip.key}</span>
       {options.length ? (
         <select
           className={field}
@@ -194,8 +199,8 @@ function ChipEditor({
           }
         />
       )}
-      <label className="flex items-center gap-1 font-mono text-[10px] text-neutral-500">
-        from
+      <label className="field">
+        <span>from</span>
         <input
           type="date"
           max={today}
@@ -204,18 +209,14 @@ function ChipEditor({
           onChange={(e) => onChange({ ...chip, date: e.target.value })}
         />
       </label>
-      <button
-        className="cursor-pointer font-mono text-[10px] uppercase text-[var(--color-health-critical)] hover:underline"
-        onClick={onRemove}
-      >
-        remove
-      </button>
-      <button
-        className="cursor-pointer font-mono text-[10px] uppercase text-neutral-500 hover:underline"
-        onClick={onClose}
-      >
-        done
-      </button>
+      <div className="flex items-center gap-[var(--s8)] self-center">
+        <button className="asklink text-[var(--bad)]" onClick={onRemove}>
+          Remove
+        </button>
+        <button className="asklink" onClick={onClose}>
+          Done
+        </button>
+      </div>
     </div>
   );
 }
@@ -498,7 +499,9 @@ export function Composer({
     if (r.stance === "refused" || r.stance === "stopped") {
       await call("/api/plan/dismiss", at);
       toast(
-        r.stance === "stopped" ? "Taken off your plan" : "Hidden from your plan",
+        r.stance === "stopped"
+          ? "Taken off your plan"
+          : "Hidden from your plan",
         {
           label: "undo",
           run: async () => {
@@ -577,9 +580,9 @@ export function Composer({
         aria-label="Post something"
         title="Post a symptom, a habit, a number"
         onClick={() => dialog.current?.showModal()}
-        className={`fixed bottom-6 right-6 z-40 size-14 cursor-pointer items-center justify-center rounded-full bg-neutral-900 text-neutral-0 shadow-lg transition-[background-color,scale] duration-150 ease-out hover:bg-accent-600 active:scale-[0.96] ${app ? "flex" : "hidden md:flex"}`}
+        className={`plusbtn fixed bottom-6 right-6 z-40 size-14 ${app ? "grid" : "hidden"}`}
       >
-        <Plus className="size-6" />
+        <Plus className="ic i24" />
       </button>
 
       <dialog
@@ -590,37 +593,35 @@ export function Composer({
         onClick={(e) => {
           if (e.target === dialog.current) dialog.current?.close();
         }}
-        className="m-auto w-[min(560px,92vw)] rounded-sm border border-neutral-200 bg-neutral-0 p-0 text-neutral-900 backdrop:bg-neutral-900/40"
+        className="sheet m-auto w-[min(560px,92vw)] p-0"
       >
-        <div className="flex items-center justify-between border-b border-neutral-200 px-4 py-2.5">
-          <h2 className="font-display text-[15px] font-medium tracking-[-0.02em]">
-            Ask or tell
-          </h2>
+        <div className="sheet-head">
+          <h3>Ask or tell</h3>
           <button
             aria-label="Close"
-            className="cursor-pointer text-neutral-400 hover:text-neutral-900"
+            className="b b-text b-sm"
             onClick={() => dialog.current?.close()}
           >
-            <X className="size-4" />
+            <X className="ic" />
           </button>
         </div>
 
-        <div className="p-4">
+        <div className="sheet-body">
           {about && (
-            <p className="t-meta mb-2 text-[12px]">
-              About <span className="text-neutral-800">{about.label}</span>
+            <p className="t-meta">
+              About <span className="text-[var(--ink)]">{about.label}</span>
             </p>
           )}
 
           {question && (
-            <p className="t-body mb-2 border-l-2 border-neutral-900 pl-3 text-neutral-800">
+            <p className="t-body border-l-2 border-[var(--ink)] pl-[var(--s13)] text-[var(--ink)]">
               {question}
             </p>
           )}
 
           {question && posting && !asked && (
-            <p className="t-meta mb-2 flex items-center gap-1.5 text-[12px]">
-              <Loader2 className="size-3.5 animate-spin" /> thinking
+            <p className="t-meta flex items-center gap-[var(--s5)]">
+              <Loader2 className="ic spin" /> Thinking
             </p>
           )}
 
@@ -648,17 +649,15 @@ export function Composer({
                 if (posting || text.trim().length < 2) return;
                 void (isQuestion ? askIt(text, about?.id) : send());
               }}
-              className="w-full resize-none border-b border-neutral-200 bg-transparent py-1 font-body text-[15px] leading-relaxed outline-none placeholder:text-neutral-400 focus:border-neutral-400 disabled:text-neutral-500"
+              className="ta resize-none"
             />
           )}
 
           <div
             ref={chipBox}
-            className="t-stagger mt-3 flex min-h-6 flex-wrap items-start gap-1.5"
+            className="t-stagger flex min-h-6 flex-wrap items-start gap-[var(--s8)]"
           >
-            {thinking && (
-              <Loader2 className="size-3.5 animate-spin text-neutral-300" />
-            )}
+            {thinking && <Loader2 className="ic spin text-[var(--ink-3)]" />}
             {chips.map((chip, i) => (
               <div
                 key={`${chip.kind}:${chip.key}`}
@@ -666,9 +665,7 @@ export function Composer({
               >
                 <button
                   onClick={() => setOpen(open === chip.key ? null : chip.key)}
-                  className={`inline-flex h-10 cursor-pointer items-center gap-1.5 border px-2 font-mono text-[10px] uppercase tracking-[0.04em] transition-[color,border-color] duration-150 ease-out active:scale-[0.96] ${
-                    KIND_TONE[chip.kind] ?? KIND_TONE.unknown
-                  } ${posted ? "" : "border-dashed"}`}
+                  className={`gchip ${KIND_TONE[chip.kind] ?? KIND_TONE.unknown} ${posted ? "" : "guess"}`}
                 >
                   {/* 09: a dashed chip is a guess; posting draws it solid and
                       swaps the open circle for a tick in the same slot. */}
@@ -686,10 +683,10 @@ export function Composer({
                   </span>
                   {chip.label}
                   {chip.date !== today && (
-                    <span className="text-neutral-400">· {chip.date}</span>
+                    <span className="text-[var(--ink-3)]">· {chip.date}</span>
                   )}
                   {chip.by === "model" && (
-                    <span className="text-neutral-300">· ai</span>
+                    <span className="text-[var(--ink-3)]">· ai</span>
                   )}
                 </button>
                 {open === chip.key && !posted && chip.kind !== "claim" && (
@@ -716,46 +713,37 @@ export function Composer({
               !read &&
               !thinking &&
               text.trim().length >= 6 && (
-                <span className="t-meta text-[12px] text-neutral-400">
-                  Nothing understood yet.
-                </span>
+                <span className="t-meta">Nothing understood yet.</span>
               )}
           </div>
 
           {read && !posted && (
             <div
               data-action-read={read.stance}
-              className="mt-3 border-l-2 border-accent-500 bg-accent-50 px-3 py-2"
+              className="border-l-2 border-[var(--ink)] pl-[var(--s13)]"
             >
-              <p className="t-body text-[13px] text-neutral-800">
-                {read.label}
-              </p>
-              <p className="t-meta mt-0.5 text-[11px]">
-                {WILL_DO[read.stance]}
-              </p>
+              <p className="t-body text-[var(--ink)]">{read.label}</p>
+              <p className="t-meta">{WILL_DO[read.stance]}</p>
             </div>
           )}
 
           {(reading || photo) && (
-            <div className="mt-3 border border-neutral-200 bg-neutral-50 p-2">
+            <div className="chipedit block">
               {reading ? (
-                <p className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.04em] text-neutral-400">
-                  <Loader2 className="size-3.5 animate-spin" /> reading the
-                  photo
+                <p className="c-label flex items-center gap-[var(--s8)]">
+                  <Loader2 className="ic spin" /> reading the photo
                 </p>
               ) : (
                 photo && (
                   <>
-                    <p className="font-mono text-[10px] uppercase tracking-[0.04em] text-neutral-400">
+                    <p className="c-label">
                       {photo.kind.replace(/_/g, " ")}
                       {photo.chips.length ? " · estimate, tap to fix" : ""}
                     </p>
                     {photo.basis && (
-                      <p className="mt-1 font-body text-[12px] text-neutral-600">
-                        {photo.basis}
-                      </p>
+                      <p className="t-body mt-[var(--s5)]">{photo.basis}</p>
                     )}
-                    <div className="mt-2 flex flex-wrap items-start gap-1.5">
+                    <div className="mt-[var(--s8)] flex flex-wrap items-start gap-[var(--s8)]">
                       {photo.chips.map((chip) => (
                         <div key={`p:${chip.key}`} className="w-full">
                           <button
@@ -766,13 +754,11 @@ export function Composer({
                                   : `p:${chip.key}`,
                               )
                             }
-                            className={`inline-flex cursor-pointer items-center gap-1 border px-2 py-0.5 font-mono text-[10px] uppercase tracking-[0.04em] ${
-                              KIND_TONE[chip.kind] ?? KIND_TONE.unknown
-                            } ${photo.saved ? "" : "border-dashed"}`}
+                            className={`gchip ${KIND_TONE[chip.kind] ?? KIND_TONE.unknown} ${photo.saved ? "" : "guess"}`}
                           >
                             {chip.label}
                             {chip.date !== today && (
-                              <span className="text-neutral-400">
+                              <span className="text-[var(--ink-3)]">
                                 · {chip.date}
                               </span>
                             )}
@@ -806,20 +792,16 @@ export function Composer({
                       ))}
                     </div>
                     {photo.note && (
-                      <p className="mt-2 font-mono text-[10px] uppercase tracking-[0.04em] text-neutral-500">
-                        {photo.note}
-                      </p>
+                      <p className="c-label mt-[var(--s8)]">{photo.note}</p>
                     )}
                     {!!photo.chips.length && (
-                      <div className="mt-2">
+                      <div className="mt-[var(--s8)]">
                         {photo.saved ? (
-                          <span className="font-mono text-[10px] uppercase tracking-[0.04em] text-neutral-400">
-                            saved
-                          </span>
+                          <span className="c-label">saved</span>
                         ) : (
                           <Button
                             size="sm"
-                            variant="outline-subtle"
+                            job="quiet"
                             disabled={posting}
                             onClick={() => void savePhoto()}
                           >
@@ -835,16 +817,16 @@ export function Composer({
           )}
 
           {posted?.followUp && (
-            <div className="mt-4 border-l-2 border-accent-500 bg-accent-50 px-3 py-2">
-              <p className="font-body text-[13px] text-neutral-800">
+            <div className="border-l-2 border-[var(--ink)] pl-[var(--s13)]">
+              <p className="t-body text-[var(--ink)]">
                 {posted.followUp.question}
               </p>
-              <div className="mt-2 flex flex-wrap gap-1.5">
+              <div className="mt-[var(--s8)] flex flex-wrap gap-[var(--s8)]">
                 {(posted.followUp.options ?? []).map((o) => (
                   <Button
                     key={o}
                     size="sm"
-                    variant="outline-subtle"
+                    job="quiet"
                     disabled={posting}
                     onClick={() => void answer(o)}
                   >
@@ -856,15 +838,12 @@ export function Composer({
           )}
 
           {asked && (
-            <AskAnswer
-              answer={asked}
-              onLeave={() => dialog.current?.close()}
-            />
+            <AskAnswer answer={asked} onLeave={() => dialog.current?.close()} />
           )}
 
           {asked?.threadable && (
             <button
-              className="mt-3 font-body text-[12px] text-neutral-500 underline underline-offset-2 hover:text-neutral-900"
+              className="asklink"
               onClick={async () => {
                 const res = await fetch("/api/chat/threads", {
                   method: "POST",
@@ -886,68 +865,64 @@ export function Composer({
           )}
 
           {posted?.reply && (
-            <p className="mt-4 border-l-2 border-neutral-900 pl-3 font-body text-[13px] leading-relaxed text-neutral-700">
+            <p className="t-body border-l-2 border-[var(--ink)] pl-[var(--s13)]">
               {posted.reply}
             </p>
           )}
 
-          {error && (
-            <p className="mt-3 font-mono text-[11px] text-[var(--color-health-critical)]">
-              {error}
-            </p>
-          )}
+          {error && <p className="err">{error}</p>}
+        </div>
 
-          <div className="mt-4 flex items-center justify-end gap-2">
-            <input
-              ref={photoInput}
-              type="file"
-              accept="image/*"
-              capture="environment"
-              className="hidden"
-              onChange={(e) => {
-                const file = e.target.files?.[0];
-                e.target.value = "";
-                if (file) void readPhoto(file);
-              }}
-            />
-            {!posted && !asked && (
-              <button
-                title="A plate, a supplement label, a lab sheet"
-                disabled={reading}
-                onClick={() => photoInput.current?.click()}
-                className="mr-auto flex cursor-pointer items-center gap-1 font-mono text-[10px] uppercase tracking-[0.04em] text-neutral-500 hover:text-neutral-900 disabled:text-neutral-300"
-              >
-                <Camera className="size-3.5" /> photo
-              </button>
-            )}
-            {posted || asked ? (
-              <>
-                <Button variant="outline-subtle" size="sm" onClick={reset}>
-                  {asked ? "Ask another" : "Write another"}
-                </Button>
-                <Button
-                  size="sm"
-                  onClick={() => {
-                    reset();
-                    dialog.current?.close();
-                  }}
-                >
-                  Done
-                </Button>
-              </>
-            ) : (
-              <Button
-                size="sm"
-                disabled={posting || text.trim().length < 2}
-                onClick={() =>
-                  void (isQuestion ? askIt(text, about?.id) : send())
-                }
-              >
-                {posting ? <Loader2 className="size-3.5 animate-spin" /> : null}
-                {isQuestion ? "Ask" : "Post"}
+        <div className="sheet-foot">
+          <input
+            ref={photoInput}
+            type="file"
+            accept="image/*"
+            capture="environment"
+            className="hidden"
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              e.target.value = "";
+              if (file) void readPhoto(file);
+            }}
+          />
+          {!posted && !asked && (
+            <button
+              title="A plate, a supplement label, a lab sheet"
+              disabled={reading}
+              onClick={() => photoInput.current?.click()}
+              className="b b-text"
+            >
+              <Camera className="ic" /> Photo
+            </button>
+          )}
+          <span className="grow" />
+          {posted || asked ? (
+            <>
+              <Button job="quiet" onClick={reset}>
+                {asked ? "Ask another" : "Write another"}
               </Button>
-            )}
-          </div>
+              <Button
+                onClick={() => {
+                  reset();
+                  dialog.current?.close();
+                }}
+              >
+                Done
+              </Button>
+            </>
+          ) : (
+            <Button
+              busy={posting}
+              disabled={posting || text.trim().length < 2}
+              onClick={() =>
+                void (isQuestion ? askIt(text, about?.id) : send())
+              }
+            >
+              {posting ? <Loader2 className="ic spin" /> : null}
+              {isQuestion ? "Ask" : "Post"}
+            </Button>
+          )}
         </div>
       </dialog>
     </>

@@ -33,7 +33,7 @@ export default async function BiomarkersPage() {
   return (
     <div className="space-y-6">
       <LabsHeader
-        active="biomarkers"
+        active="markers"
         subtitle={`${rows.length} tracked markers, newest reading first.`}
       />
       <BiomarkerList rows={sortForBiomarkerList(list) as BiomarkerListRow[]} />

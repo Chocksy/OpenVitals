@@ -1,87 +1,144 @@
 /**
- * The handful of shadcn primitives the ported pages actually use, in one file.
- * Radix is gone: `Button` drops `asChild`/`Slot`, everything else was already
- * plain markup. `class-variance-authority` stays.
- * ponytail: skeleton/card-header/card-footer were never rendered, so they are
- * not here.
+ * The design system's own primitives, phase 30a. One button family with
+ * three jobs, one add control, one state word. Everything else that used to
+ * live here (eight `cva` button variants, seven `Badge` variants, `TierChip`,
+ * `StatusBadge`) is gone: the spectrum is never a surface, so a filled badge
+ * cannot exist, and eight variants for three jobs was the inventory's
+ * loudest inconsistency.
+ *
+ * The classes are `app/globals.css`, copied from `docs/mockups/v4/system.css`
+ * sections 04 (buttons), 06 (state words) and 07 (cards).
  */
 import * as React from "react";
-import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
-const buttonVariants = cva(
-  // Exact properties, never `transition: all` — an unrelated style change must
-  // not ride in for free. 0.96 on press is the checklist's own number.
-  "inline-flex items-center justify-center gap-1.5 whitespace-nowrap font-display text-[14px] leading-[1.25rem] rounded-sm tracking-[0.04em] transition-[color,background-color,border-color,box-shadow,scale] duration-150 ease-out cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-3.5 [&_svg]:shrink-0 active:not-disabled:scale-[0.96]",
-  {
-    variants: {
-      variant: {
-        default: "bg-neutral-900 text-neutral-0 hover:bg-neutral-800",
-        primary: "bg-accent-600 text-white hover:bg-accent-700",
-        destructive: "bg-red-600 text-white hover:bg-red-700",
-        outline:
-          "border border-neutral-900 bg-neutral-0 text-neutral-900 hover:bg-neutral-900 hover:text-neutral-0",
-        "outline-subtle":
-          "border border-neutral-200 bg-neutral-0 text-neutral-700 hover:border-neutral-900 hover:bg-neutral-50",
-        secondary: "bg-neutral-100 text-neutral-700 hover:bg-neutral-200",
-        ghost:
-          "hover:bg-neutral-100 text-neutral-600 hover:text-neutral-900 border-transparent",
-        link: "text-neutral-900 underline-offset-4 hover:underline tracking-normal normal-case font-display font-medium",
-      },
-      size: {
-        default: "h-9 px-4",
-        sm: "h-8 px-3 text-[12px]",
-        lg: "h-10 px-5",
-        icon: "h-9 w-9",
-      },
-    },
-    defaultVariants: { variant: "default", size: "default" },
-  },
-);
+/** ink is the one primary per screen; quiet is bordered; text has no box. */
+export type ButtonJob = "ink" | "quiet" | "text";
+export type ButtonSize = "md" | "sm" | "icon";
 
-export interface ButtonProps
-  extends
-    React.ButtonHTMLAttributes<HTMLButtonElement>,
-    VariantProps<typeof buttonVariants> {}
+const JOB: Record<ButtonJob, string> = {
+  ink: "b-ink",
+  quiet: "b-quiet",
+  text: "b-text",
+};
 
-export function Button({ className, variant, size, ...props }: ButtonProps) {
+export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  job?: ButtonJob;
+  size?: ButtonSize;
+  /** draws the button as working: it keeps its width and stops taking taps */
+  busy?: boolean;
+}
+
+export function Button({
+  className,
+  job = "ink",
+  size = "md",
+  busy,
+  ...props
+}: ButtonProps) {
   return (
     <button
-      className={cn(buttonVariants({ variant, size, className }))}
+      data-busy={busy ? "true" : undefined}
+      className={cn(
+        "b",
+        JOB[job],
+        size === "sm" && "b-sm",
+        size === "icon" && "b-icon",
+        className,
+      )}
       {...props}
     />
   );
 }
 
-const badgeVariants = cva(
-  "inline-flex items-center border px-2 py-0.5 t-meta text-[10px] font-bold uppercase tracking-[0.04em] transition-colors",
-  {
-    variants: {
-      variant: {
-        default: "border-transparent bg-neutral-900 text-neutral-0",
-        secondary: "border-transparent bg-neutral-100 text-neutral-700",
-        outline: "border-neutral-200 text-neutral-700",
-        normal:
-          "bg-[var(--color-health-normal-bg)] text-[var(--color-health-normal)] border-[var(--color-health-normal-border)]",
-        warning:
-          "bg-[var(--color-health-warning-bg)] text-[var(--color-health-warning)] border-[var(--color-health-warning-border)]",
-        critical:
-          "bg-[var(--color-health-critical-bg)] text-[var(--color-health-critical)] border-[var(--color-health-critical-border)]",
-        info: "bg-[var(--color-health-info-bg)] text-[var(--color-health-info)] border-[var(--color-health-info-border)]",
-      },
-    },
-    defaultVariants: { variant: "default" },
-  },
-);
-
-export function Badge({
+/**
+ * The lime +. The one control in the app that puts data in, and there is one
+ * of it per screen: the header on desktop, the middle of the tab bar on the
+ * phone. Lime is never text and never state.
+ */
+export function AddButton({
   className,
-  variant,
+  label = "Add data",
   ...props
-}: React.HTMLAttributes<HTMLDivElement> & VariantProps<typeof badgeVariants>) {
+}: React.ButtonHTMLAttributes<HTMLButtonElement> & { label?: string }) {
   return (
-    <div className={cn(badgeVariants({ variant }), className)} {...props} />
+    <button
+      type="button"
+      aria-label={label}
+      title={label}
+      className={cn("plusbtn", className)}
+      {...props}
+    />
   );
+}
+
+/** The word an action carries when it is spelled out, not iconified. */
+export function AddPill({
+  className,
+  ...props
+}: React.ButtonHTMLAttributes<HTMLButtonElement>) {
+  return <button className={cn("b b-add", className)} {...props} />;
+}
+
+/**
+ * A state is a word in its colour: off is `--bad`, borderline `--warn`,
+ * optimal `--ok`, never-measured `--ink-3`. No fill, no border, no uppercase
+ * mono. The ▲ is the one extra mark and it only rides on `off`.
+ */
+export type StateTone = "off" | "border" | "on" | "none";
+
+const HEALTH_TONE: Record<string, StateTone> = {
+  critical: "off",
+  red: "off",
+  warning: "border",
+  amber: "border",
+  normal: "on",
+  green: "on",
+  info: "none",
+  neutral: "none",
+  gray: "none",
+};
+
+/** Maps the engine's own status words onto the four states. */
+export const toneOf = (status?: string | null): StateTone =>
+  (status && HEALTH_TONE[status]) || "none";
+
+export function StateWord({
+  tone = "none",
+  dot,
+  tri,
+  className,
+  children,
+  ...props
+}: React.HTMLAttributes<HTMLSpanElement> & {
+  tone?: StateTone;
+  /** a filled dot before the word; hollow when nothing was measured */
+  dot?: boolean;
+  /** the coral ▲, only ever on what is off */
+  tri?: boolean;
+}) {
+  return (
+    <span className={cn("state", tone, className)} {...props}>
+      {dot && (
+        <span
+          aria-hidden="true"
+          className={cn("dot", tone === "none" && "hollow")}
+        />
+      )}
+      {children}
+      {tri && tone === "off" && (
+        <span aria-hidden="true" className="tri">
+          ▲
+        </span>
+      )}
+    </span>
+  );
+}
+
+/** How settled the thing behind an action is, as a word, not a chip. */
+export function Tier({ tier }: { tier?: string | null }) {
+  if (!tier) return null;
+  return <span className={cn("tier", tier)}>{tier}</span>;
 }
 
 export function Card({
@@ -89,28 +146,6 @@ export function Card({
   ...props
 }: React.HTMLAttributes<HTMLDivElement>) {
   return <div className={cn("card", className)} {...props} />;
-}
-
-/** How settled the evidence behind an action is: established, early, horizon. */
-const TIER_CLASS: Record<string, string> = {
-  established: "border-neutral-300 text-neutral-600",
-  early:
-    "border-[var(--color-health-warning)] text-[var(--color-health-warning)]",
-  experimental: "border-dashed border-neutral-400 text-neutral-500",
-};
-
-export function TierChip({ tier }: { tier?: string }) {
-  if (!tier) return null;
-  return (
-    <span
-      className={cn(
-        "inline-flex items-center border px-2 py-0.5 t-meta text-[10px] font-bold uppercase tracking-[0.04em]",
-        TIER_CLASS[tier] ?? TIER_CLASS.established,
-      )}
-    >
-      {tier}
-    </span>
-  );
 }
 
 /**

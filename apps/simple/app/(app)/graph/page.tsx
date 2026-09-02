@@ -22,9 +22,8 @@ import { Bubbles } from "@/components/bubbles";
 import { ReviewItem } from "@/components/client";
 import { SystemLinks, type SystemLink } from "@/components/graph-map";
 import { ViewShell } from "@/components/plan";
-import { StatusBadge } from "@/components/status-badge";
 import { PillTabs } from "@/components/pill-tabs";
-import { Badge, Card } from "@/components/ui-kit";
+import { Card, StateWord, type StateTone, toneOf } from "@/components/ui-kit";
 
 export const dynamic = "force-dynamic";
 
@@ -53,11 +52,11 @@ const CONFIDENCE_RANK = {
   speculative: 1,
 } as const;
 
-const CONFIDENCE_BADGE = {
-  established: "normal",
-  probable: "info",
-  speculative: "secondary",
-} as const;
+const CONFIDENCE_TONE: Record<string, StateTone> = {
+  established: "on",
+  probable: "none",
+  speculative: "none",
+};
 
 const systemOf = (nodeId: string): SystemId | undefined =>
   byId.get(nodeId)?.system;
@@ -314,10 +313,9 @@ export default async function GraphPage({
                         {row.unit ? ` ${row.unit}` : ""}
                       </span>
                     </Link>
-                    <StatusBadge
-                      status={healthStatus(row)}
-                      label={healthStatus(row)}
-                    />
+                    <StateWord tone={toneOf(healthStatus(row))} dot>
+                      {healthStatus(row)}
+                    </StateWord>
                   </div>
                 ) : (
                   <p className="mt-auto font-mono text-[10px] uppercase tracking-[0.04em] text-neutral-400">
@@ -347,7 +345,7 @@ export default async function GraphPage({
                   >
                     {m.pattern.name}
                   </Link>
-                  {m.stage && <Badge variant="warning">{m.stage}</Badge>}
+                  {m.stage && <StateWord tone="border">{m.stage}</StateWord>}
                 </div>
                 <p className="mt-2 font-body text-[13px] text-neutral-700">
                   {m.pattern.summary}
@@ -420,9 +418,9 @@ export default async function GraphPage({
           )}
           {graph.activeEdges.map((edge) => (
             <div key={edge.id} className="flex items-start gap-2 px-4 py-2">
-              <Badge variant={CONFIDENCE_BADGE[edge.confidence]}>
+              <StateWord tone={CONFIDENCE_TONE[edge.confidence]}>
                 {edge.confidence}
-              </Badge>
+              </StateWord>
               <span className="flex-1 font-body text-[12px] text-neutral-600">
                 <span className="font-mono text-[11px] text-neutral-500">
                   {edge.id}

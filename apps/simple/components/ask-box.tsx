@@ -68,7 +68,7 @@ export function AskBox({ compact = false }: { compact?: boolean }) {
         />
         <Button
           size="sm"
-          variant="ghost"
+          job="text"
           disabled={busy}
           onClick={() => void ask()}
         >
@@ -87,7 +87,7 @@ export function AskBox({ compact = false }: { compact?: boolean }) {
           {answer.canConsider && answer.term?.ontology === "MONDO" && (
             <Button
               size="sm"
-              variant="outline-subtle"
+              job="quiet"
               disabled={busy}
               onClick={() => void consider()}
             >

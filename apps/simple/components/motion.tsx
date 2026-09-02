@@ -255,14 +255,14 @@ export function Toast() {
       role="status"
       aria-live="polite"
       className={cn(
-        "t-toast fixed inset-x-4 bottom-24 z-50 mx-auto flex w-fit max-w-[92vw] items-center gap-3 rounded-lg bg-neutral-900 px-4 py-2.5 font-mono text-[12px] tabular-nums text-neutral-0 shadow-lg md:bottom-6",
+        "toast t-toast fixed inset-x-4 bottom-24 z-50 mx-auto w-fit max-w-[92vw] md:bottom-6",
         state ? "is-open pointer-events-auto" : "pointer-events-none",
       )}
     >
       <span data-toast-text>{state?.line ?? ""}</span>
       {state?.action && (
         <button
-          className="shrink-0 cursor-pointer font-mono text-[12px] uppercase tracking-[0.06em] text-accent-200 underline hover:text-neutral-0"
+          className="shrink-0 cursor-pointer"
           onClick={() => {
             const run = state.action?.run;
             publish(null);

@@ -189,19 +189,18 @@ export function QuickNumbers({
             <span className="mb-1 block font-mono text-[10px] uppercase tracking-[0.04em] text-neutral-500">
               {p.label}
             </span>
-            <div className="pill-tabs">
+            <div className="rate">
               {[1, 2, 3, 4, 5].map((n) => (
                 <button
                   key={n}
+                  type="button"
+                  aria-pressed={picked[p.key] === n}
                   onClick={() => {
                     setPicked((s) => ({ ...s, [p.key]: n }));
                     set(p.key, n);
                     void flush();
                   }}
-                  className={cn(
-                    "pill-tab font-mono tabular-nums",
-                    picked[p.key] === n && "pill-tab-active",
-                  )}
+                  className="tabular-nums"
                 >
                   {n}
                 </button>
@@ -261,7 +260,7 @@ export function AddProtocolItem({
 
   if (!open)
     return (
-      <Button variant="outline-subtle" onClick={() => setOpen(true)}>
+      <Button job="quiet" onClick={() => setOpen(true)}>
         <Plus /> Add item
       </Button>
     );
@@ -308,7 +307,7 @@ export function AddProtocolItem({
             <option key={m.code} value={m.name} />
           ))}
         </datalist>
-        <Button size="sm" variant="outline-subtle" onClick={addCode}>
+        <Button size="sm" job="quiet" onClick={addCode}>
           <Plus /> Link
         </Button>
         {codes.map((c) => (
@@ -342,7 +341,7 @@ export function AddProtocolItem({
         >
           Add to protocol
         </Button>
-        <Button variant="ghost" onClick={() => setOpen(false)}>
+        <Button job="text" onClick={() => setOpen(false)}>
           Cancel
         </Button>
         {error && (
@@ -393,7 +392,7 @@ export function AdoptButton({
   return (
     <Button
       size="sm"
-      variant="outline-subtle"
+      job="quiet"
       disabled={busy}
       onClick={async () => {
         const ok = await save("/api/protocol", {
@@ -441,13 +440,13 @@ export function GoalForm({
   if (!open)
     return (
       <div className="flex items-center gap-2">
-        <Button size="sm" variant="outline-subtle" onClick={() => setOpen(true)}>
+        <Button size="sm" job="quiet" onClick={() => setOpen(true)}>
           {exists ? "Edit goal" : "Set goal"}
         </Button>
         {exists && (
           <Button
             size="sm"
-            variant="ghost"
+            job="text"
             disabled={busy}
             onClick={() =>
               void save(`/api/goals?code=${metricCode}`, null, "DELETE")
@@ -492,7 +491,7 @@ export function GoalForm({
         >
           Save goal
         </Button>
-        <Button variant="ghost" onClick={() => setOpen(false)}>
+        <Button job="text" onClick={() => setOpen(false)}>
           Cancel
         </Button>
         {error && (
@@ -582,7 +581,7 @@ export function OptimalForm({
       {mine && (
         <Button
           size="sm"
-          variant="ghost"
+          job="text"
           disabled={busy}
           onClick={async () => {
             const ok = await save(
@@ -596,7 +595,7 @@ export function OptimalForm({
           Reset
         </Button>
       )}
-      <Button size="sm" variant="ghost" onClick={() => setOpen(false)}>
+      <Button size="sm" job="text" onClick={() => setOpen(false)}>
         <X />
       </Button>
       {error && (

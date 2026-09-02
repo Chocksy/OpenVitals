@@ -33,7 +33,7 @@ import { previewLines } from "@/lib/projections";
 import { horizonShelf, type HorizonItem } from "@/lib/trends";
 import { AdoptHorizon, PlanShell } from "@/components/plan";
 import { Terms } from "@/components/term";
-import { Badge, Card, TierChip } from "@/components/ui-kit";
+import { Card, StateWord, type StateTone, Tier } from "@/components/ui-kit";
 import { EvidenceChip } from "@/components/evidence-chip";
 
 export const dynamic = "force-dynamic";
@@ -44,12 +44,12 @@ const TIER_LABELS = [
   "Tier 2 · conditional",
 ];
 
-const STATE_BADGE = {
-  current: "normal",
-  stale: "warning",
-  never: "critical",
-  "n/a": "secondary",
-} as const;
+const STATE_TONE: Record<string, StateTone> = {
+  current: "on",
+  stale: "border",
+  never: "off",
+  "n/a": "none",
+};
 
 function Label({ children }: { children: React.ReactNode }) {
   return (
@@ -78,7 +78,7 @@ function TestList({
             </p>
             <span className="flex items-center gap-1.5">
               <EvidenceChip basis={action.basis} />
-              <TierChip tier={action.tier} />
+              <Tier tier={action.tier} />
             </span>
           </div>
           <p className="deep mt-1 font-body text-[12px] text-neutral-500">
@@ -128,7 +128,7 @@ function CoverageSection({ rows }: { rows: CoverageRow[] }) {
                     <span className="t-meta hidden text-[11px] sm:inline">
                       {r.detail}
                     </span>
-                    <Badge variant={STATE_BADGE[r.state]}>{r.state}</Badge>
+                    <StateWord tone={STATE_TONE[r.state]}>{r.state}</StateWord>
                   </div>
                 ))}
               </div>
@@ -158,11 +158,11 @@ function escalationDone(
   );
 }
 
-const CONFIDENCE_BADGE = {
-  established: "normal",
-  probable: "info",
-  speculative: "secondary",
-} as const;
+const CONFIDENCE_TONE: Record<string, StateTone> = {
+  established: "on",
+  probable: "none",
+  speculative: "none",
+};
 
 function PatternCard({
   match,
@@ -187,7 +187,7 @@ function PatternCard({
         >
           {pattern.name}
         </Link>
-        {stage && <Badge variant="warning">{stage}</Badge>}
+        {stage && <StateWord tone="border">{stage}</StateWord>}
       </div>
 
       <p className="t-body mt-2 text-neutral-700">
@@ -255,9 +255,9 @@ function PatternCard({
           <div className="space-y-1">
             {edges.map((e) => (
               <div key={e.id} className="flex items-start gap-2">
-                <Badge variant={CONFIDENCE_BADGE[e.confidence]}>
+                <StateWord tone={CONFIDENCE_TONE[e.confidence]}>
                   {e.confidence}
-                </Badge>
+                </StateWord>
                 <span className="t-body flex-1 text-[12px] text-neutral-600">
                   <Terms text={e.mechanism} />
                 </span>
@@ -471,7 +471,7 @@ export default async function PlanPage() {
                 className="inline-flex items-center gap-1.5 border border-neutral-200 bg-neutral-50 px-2.5 py-1 font-body text-[12px] text-neutral-700 hover:border-neutral-900 hover:text-neutral-900"
               >
                 {m.pattern.name}
-                {m.stage && <Badge variant="warning">{m.stage}</Badge>}
+                {m.stage && <StateWord tone="border">{m.stage}</StateWord>}
               </Link>
             ))}
           </div>

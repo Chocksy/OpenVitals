@@ -14,18 +14,17 @@ import {
 import { DocumentItems } from "@/components/document-items";
 import { GenomeTable } from "@/components/genome-table";
 import { ReadingRows } from "@/components/reading-rows";
-import { StatusBadge } from "@/components/status-badge";
-import type { HealthStatus } from "@/lib/status";
+import { StateWord, type StateTone } from "@/components/ui-kit";
 
 export const dynamic = "force-dynamic";
 
-const badge: Record<string, HealthStatus> = {
-  done: "normal",
-  needs_review: "warning",
-  extracting: "info",
-  pending: "info",
-  failed: "critical",
-  deleted: "neutral",
+const tone: Record<string, StateTone> = {
+  done: "on",
+  needs_review: "border",
+  extracting: "none",
+  pending: "none",
+  failed: "off",
+  deleted: "none",
 };
 
 export default async function UploadPage({
@@ -103,13 +102,15 @@ export default async function UploadPage({
           <h1 className="min-w-0 flex-1 truncate font-display text-[28px] font-medium tracking-[-0.03em]">
             {upload.fileName ?? "(no name)"}
           </h1>
-          <StatusBadge status="neutral" label={upload.source ?? "upload"} />
-          <StatusBadge status="info" label={kind} />
-          <StatusBadge
-            status={badge[status] ?? "neutral"}
-            label={status}
+          <StateWord dot>{upload.source ?? "upload"}</StateWord>
+          <StateWord dot>{kind}</StateWord>
+          <StateWord
+            tone={tone[status]}
+            dot
             className={status === "extracting" ? "animate-pulse" : ""}
-          />
+          >
+            {status}
+          </StateWord>
           {status !== "deleted" && (
             <>
               <ChangeKind id={upload.id} kind={kind} />

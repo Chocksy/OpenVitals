@@ -7,12 +7,11 @@ import { getGoalFor } from "@/lib/daily-data";
 import { goalGap, inGoal } from "@/lib/daily";
 import { formatRange, healthStatus, statusColor, statusOf } from "@/lib/status";
 import { TrendChart } from "@/components/trend-chart";
-import { StatusBadge } from "@/components/status-badge";
 import { RangeBar } from "@/components/range-bar";
 import { GoalForm, OptimalForm } from "@/components/tracker";
 import { projectionsFor } from "@/lib/projections";
 import { projectionLine } from "@/lib/projection";
-import { Badge } from "@/components/ui-kit";
+import { StateWord, toneOf } from "@/components/ui-kit";
 
 export const dynamic = "force-dynamic";
 
@@ -63,7 +62,9 @@ export default async function MetricPage({
           <h1 className="font-display text-[28px] font-medium tracking-[-0.03em]">
             {metric.name}
           </h1>
-          <StatusBadge status={status} label={status} />
+          <StateWord tone={toneOf(status)} dot>
+            {status}
+          </StateWord>
           {metric.derived && (
             <span className="font-mono text-[10px] uppercase tracking-[0.06em] text-neutral-400">
               derived, not stored
@@ -184,19 +185,19 @@ export default async function MetricPage({
           <div className="mt-3 space-y-1 border-t border-neutral-100 pt-3">
             <p className="flex flex-wrap items-center gap-2 font-mono text-[12px] text-neutral-700">
               {projection.verdict && (
-                <Badge
-                  variant={
+                <StateWord
+                  tone={
                     projection.verdict === "better"
-                      ? "normal"
+                      ? "on"
                       : projection.verdict === "worse"
-                        ? "critical"
-                        : "info"
+                        ? "off"
+                        : "none"
                   }
                 >
                   {projection.verdict === "as_expected"
                     ? "as expected"
                     : projection.verdict}
-                </Badge>
+                </StateWord>
               )}
               {projectionLine({ ...projection, unit: metric.unit ?? "" })}
               {projection.resolvedValue != null && (

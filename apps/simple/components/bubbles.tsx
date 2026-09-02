@@ -340,7 +340,7 @@ export function Bubbles({
           <span className="truncate">{graph.hint}</span>
           <button
             onClick={() => setBox(parse(viewBox))}
-            className="ml-auto inline-flex h-10 cursor-pointer items-center border border-neutral-200 bg-card px-3 transition-[color,border-color,scale] duration-150 ease-out hover:text-neutral-700 active:scale-[0.96]"
+            className="ml-auto inline-flex h-10 cursor-pointer items-center border border-neutral-200 bg-[var(--surface-flat)] px-3 transition-[color,border-color,scale] duration-150 ease-out hover:text-neutral-700 active:scale-[0.96]"
           >
             Fit
           </button>

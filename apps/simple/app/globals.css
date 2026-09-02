@@ -1,142 +1,89 @@
 @import "tailwindcss";
 
+/* ══════════════════════════════════════════════════════════════════════
+   OpenVitals — the design system, phase 30a.
+
+   Copied from `docs/mockups/v4/system.css` (which is itself layered on
+   `v4.css`). From phase 29 on, the app copies from the mockup and never
+   the reverse: when this file and `system.css` disagree, `system.css` wins.
+
+   Order: tokens · base · icons · shell · buttons · inputs · state words ·
+   cards and the rail · overlays · empty states · login · type discipline ·
+   the glossary tooltip · the transitions.dev block · home.
+
+   Fonts: Geist Sans and Geist Mono, loaded by `app/layout.tsx`.
+   Icons: lucide, as inline SVG (`components/icon.tsx` is not a thing; the
+   pages import from `lucide-react`).
+
+   Contrast: every ratio in a comment is sRGB, WCAG 2.1, against the surface
+   named beside it. AA for body text is 4.5, AA for 21 px+ and for non-text
+   marks is 3.0.
+   ══════════════════════════════════════════════════════════════════ */
+
 @theme {
   --font-display: var(--font-geist-sans), "Geist Sans", system-ui, sans-serif;
   --font-body: var(--font-geist-sans), "Geist Sans", system-ui, sans-serif;
   --font-mono:
     var(--font-geist-mono), "Geist Mono", "SF Mono", Menlo, monospace;
 
-  /* Primary — Ultramarine Blue */
-  --color-accent-50: #eef1ff;
-  --color-accent-100: #d6dcff;
-  --color-accent-200: #b0baff;
-  --color-accent-300: #8295ff;
-  --color-accent-400: #5a75ff;
-  --color-accent-500: #3162ff;
-  --color-accent-600: #2750d9;
-  --color-accent-700: #1d3db3;
-  --color-accent-800: #142b8c;
-  --color-accent-900: #0c1a5c;
-
-  /* Secondary — Lavender */
-  --color-secondary-50: #f5f5fa;
-  --color-secondary-100: #ebebf5;
-  --color-secondary-200: #d6d6ed;
-  --color-secondary-300: #c2c2e0;
-  --color-secondary-400: #a8a8d0;
-  --color-secondary-500: #8e8ebf;
-
-  /* Neutral palette */
-  --color-neutral-0: #ffffff;
-  --color-neutral-25: #fcfcfc;
-  --color-neutral-50: #fafafa;
-  --color-neutral-100: #f2f2f2;
-  --color-neutral-150: #ebebeb;
-  --color-neutral-200: #e5e5e5;
-  --color-neutral-300: #cccccc;
-  --color-neutral-400: #999999;
-  --color-neutral-500: #737373;
-  --color-neutral-600: #555555;
-  --color-neutral-700: #333333;
-  --color-neutral-800: #1f1f1f;
-  --color-neutral-900: #141414;
-  --color-neutral-950: #0a0a0a;
-
-  /* Semantic shadcn colors */
-  --color-background: #ffffff;
-  --color-foreground: #141414;
-  --color-card: #ffffff;
-  --color-card-foreground: #141414;
-  --color-popover: #ffffff;
-  --color-popover-foreground: #141414;
-  --color-secondary-foreground: #141414;
-  --color-muted: #f2f2f2;
-  --color-muted-foreground: #737373;
-  --color-accent-foreground: #141414;
-  --color-destructive: #dc2626;
-  --color-destructive-foreground: #ffffff;
-  --color-border: #e5e5e5;
-  --color-input: #e5e5e5;
-  --color-ring: #3162ff;
-
-  /* Health semantic — ONLY for data status, never in chrome */
-  --color-health-normal: #16a34a;
-  --color-health-normal-bg: #f0fdf4;
-  --color-health-normal-border: #bbf7d0;
-  --color-health-warning: #d97706;
-  --color-health-warning-bg: #fffbeb;
-  --color-health-warning-border: #fde68a;
-  --color-health-critical: #dc2626;
-  --color-health-critical-bg: #fef2f2;
-  --color-health-critical-border: #fecaca;
-  --color-health-info: #3162ff;
-  --color-health-info-bg: #eef1ff;
-  --color-health-info-border: #d6dcff;
-  --color-health-optimal: #7c3aed;
-  --color-health-optimal-bg: #f5f3ff;
-  --color-health-optimal-border: #ddd6fe;
-
-  /* Testing urgency — aliases to health colors */
-  --color-testing-overdue: var(--color-health-critical);
-  --color-testing-overdue-bg: var(--color-health-critical-bg);
-  --color-testing-due: var(--color-health-warning);
-  --color-testing-due-bg: var(--color-health-warning-bg);
-  --color-testing-upcoming: var(--color-health-info);
-  --color-testing-upcoming-bg: var(--color-health-info-bg);
-  --color-testing-on-track: var(--color-health-normal);
-  --color-testing-on-track-bg: var(--color-health-normal-bg);
-
-  /* Radius — brutalist: 0 everywhere, full only for avatars */
-  --radius-xs: 0.125rem;
-  --radius-sm: 0.25rem;
-  --radius-md: 0.375rem;
-  --radius-lg: 0.5rem;
-  --radius-xl: 0.75rem;
-  --radius-2xl: 1rem;
-  --radius-3xl: 1.5rem;
-  --radius-full: 9999px;
-
-  /* Shadows */
-  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.03);
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
-  --shadow-md:
-    0 4px 6px -1px rgba(0, 0, 0, 0.04), 0 2px 4px -2px rgba(0, 0, 0, 0.03);
-  --shadow-lg:
-    0 10px 15px -3px rgba(0, 0, 0, 0.04), 0 4px 6px -4px rgba(0, 0, 0, 0.02);
-  --shadow-xl:
-    0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.03);
-  --shadow-card: 0 0 0 1px rgba(0, 0, 0, 0.03), 0 2px 4px rgba(0, 0, 0, 0.02);
-  --shadow-card-hover:
-    0 0 0 1px rgba(0, 0, 0, 0.05), 0 4px 12px rgba(0, 0, 0, 0.05);
-
-  /* ── phase 28c: v4 tokens, warmed by August, coloured by Kite ──────────
-     The names follow `docs/mockups/v4/v4.css` so the mockups read as
-     documentation. Spectrum logic: --ok / --warn / --bad colour text, dots
-     and the ▲ glyph, never a surface. The one exception is the navy Status
-     card, which is Kite's. */
+  /* ── the canvas (August) ─────────────────────────────────────────────
+     --canvas      #fdf5ec  the page.  --ink on it: 12.58:1
+     --canvas-deep #f4e9dc  the well behind a control. Carries no small text.
+     --surface     58 % white over the cream → #fefbf7.  --ink on it: 13.16:1
+     --surface-hi  78 % white over the cream → #fffdfb.  --ink on it: 13.38:1 */
   --canvas: #fdf5ec;
   --canvas-deep: #f4e9dc;
   --surface: rgba(255, 255, 255, 0.58);
   --surface-hi: rgba(255, 255, 255, 0.78);
+  /* the flat twin of --surface, for anything that must not blur */
+  --surface-flat: #fefbf7;
+  --track: #ece0d1;
+  --hair: rgba(61, 42, 28, 0.12);
+
+  /* ── the ink ladder ─────────────────────────────────────────────────
+     --ink   #3d2a1c  on canvas 12.58:1 · on surface 13.16:1   AAA
+     --ink-2 #6d5744  on canvas  6.28:1 · on surface  6.57:1   AA
+     --ink-3 #7f6a59  on canvas  4.73:1 · on surface  4.95:1   AA */
   --ink: #3d2a1c;
   --ink-2: #6d5744;
-  /* the mockup's #9c8776 and #b4761b read at 3.2:1 and 3.5:1 on the cream,
-     under AA for 13 px meta text and for the 21 px state word; darkened
-     until both clear 4.5:1, same hue */
   --ink-3: #7f6a59;
+
+  /* ── the spectrum (Kite's green and coral, August's amber) ───────────
+     Never a surface, never a filled badge. Text, dots, ticks, the ▲.
+     --ok   #2b7f3a 4.63:1 · --warn #9a6413 4.62:1 · --bad #c32b45 5.18:1
+     --bad-fill #e74d64 3.45:1 — a glyph or a dot only, never a word. */
   --ok: #2b7f3a;
   --warn: #9a6413;
   --bad: #c32b45;
   --bad-fill: #e74d64;
+  --none: #7f6a59;
+
+  /* ── the one dark surface (Kite's navy) ─────────────────────────────
+     --navy #0f2140 against the cream 14.82:1 · --navy-ink on it 14.31:1
+     the spectrum lightened so it survives the navy:
+     --navy-bad 5.45:1 · --navy-warn 7.39:1 · --navy-ok 7.83:1 */
   --navy: #0f2140;
   --navy-ink: #f4f2ed;
-  /* the spectrum again, lightened for the one dark surface in the app */
+  --navy-ink-2: rgba(244, 242, 237, 0.72);
   --navy-bad: #e3767c;
   --navy-warn: #e0a63c;
   --navy-ok: #8fc46a;
   --sky: #d9e7f7;
 
-  /* Fibonacci space and the four radii */
+  /* ── the one accent, on the one control that adds data ──────────────
+     --lime #d7f24b is never text and never state. --lime-ink on it 12.77:1 */
+  --lime: #d7f24b;
+  --lime-ink: #1d2405;
+
+  /* ── Fibonacci space, four radii, five type sizes ───────────────── */
+  --s3: 3px;
+  --s5: 5px;
+  --s8: 8px;
+  --s13: 13px;
+  --s21: 21px;
+  --s34: 34px;
+  --s55: 55px;
+  /* the phase-28c aliases the home block still spells `--sp-*` */
   --sp-1: 3px;
   --sp-2: 5px;
   --sp-3: 8px;
@@ -148,102 +95,127 @@
   --r-card: 21px;
   --r-hero: 34px;
   --r-pill: 999px;
+  --type-xs: 11px;
+  --type-sm: 13px;
+  --type-md: 15px;
+  --type-lg: 21px;
+  --type-xl: 34px;
+
+  /* the two curves the non-motion elements use. The transitions.dev block
+     further down owns everything that actually animates. */
+  --dur-quick: 150ms;
+  --dur-fast: 250ms;
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+
+  /* ── compat, deleted by the 30e sweep ───────────────────────────────
+     30b–30e still render pages written against the old Tailwind scales.
+     Rather than leave twenty routes with no colour between slices, the old
+     names are kept as aliases onto the ink ladder and the spectrum, so a
+     page that has not been rewritten yet is warm instead of grey. The 30e
+     sweep greps for `neutral-`, `accent-` and `health-` and removes them. */
+  --color-neutral-0: var(--surface-flat);
+  --color-neutral-50: #fbf3ea;
+  --color-neutral-100: var(--canvas-deep);
+  --color-neutral-150: #eadfd1;
+  --color-neutral-200: #e2d5c4;
+  --color-neutral-300: #cbbba6;
+  --color-neutral-400: #9c8776;
+  --color-neutral-500: var(--ink-3);
+  --color-neutral-600: var(--ink-2);
+  --color-neutral-700: var(--ink-2);
+  --color-neutral-800: #4e3927;
+  --color-neutral-900: var(--ink);
+  --color-accent-50: var(--surface-hi);
+  --color-accent-100: var(--canvas-deep);
+  --color-accent-200: #e2d5c4;
+  --color-accent-500: var(--ink);
+  --color-accent-600: var(--ink);
+  --color-accent-700: var(--ink-2);
+  --color-accent-900: var(--ink);
+  --color-health-normal: var(--ok);
+  --color-health-warning: var(--warn);
+  --color-health-critical: var(--bad);
+  --color-health-info: var(--ink-2);
+  --color-health-optimal: var(--ok);
+  --color-health-normal-bg: color-mix(in oklab, var(--ok) 12%, transparent);
+  --color-health-normal-border: color-mix(in oklab, var(--ok) 40%, transparent);
+  --color-health-warning-bg: color-mix(in oklab, var(--warn) 12%, transparent);
+  --color-health-warning-border: color-mix(
+    in oklab,
+    var(--warn) 40%,
+    transparent
+  );
+  --color-health-critical-bg: color-mix(in oklab, var(--bad) 12%, transparent);
+  --color-health-critical-border: color-mix(
+    in oklab,
+    var(--bad) 40%,
+    transparent
+  );
+  --color-health-info-bg: color-mix(in oklab, var(--ink-3) 12%, transparent);
+  --color-health-info-border: var(--hair);
+  --color-health-optimal-bg: color-mix(in oklab, var(--ok) 20%, transparent);
+  --color-health-optimal-border: color-mix(
+    in oklab,
+    var(--ok) 50%,
+    transparent
+  );
 }
 
 :root {
   --top-nav-height: 3.5rem;
 }
 
-/* Dark theme. html[data-theme] is resolved by the inline script in layout.tsx
-   (user choice from localStorage, else the OS preference). */
+/* Dark. `html[data-theme="dark"]` is resolved by the inline script in
+   `app/layout.tsx` (the stored choice, else the OS preference).
+   --ink   #f1efea on --canvas 16.41:1 · on --surface 15.10:1   AAA
+   --ink-2 #b4aea4 on --canvas  8.56:1 · on --surface  7.87:1   AA
+   --ink-3 #979083 on --canvas  5.96:1 · on --surface 5.48:1 · on
+      --surface-hi 5.01:1 — the phase-28c #877f74 read 4.02 there and failed
+      AA at 13 px, so phase 29 lightened it. This is that correction. */
 :root[data-theme="dark"] {
   color-scheme: dark;
-  --color-accent-50: #111a3d;
-  --color-accent-100: #172557;
-  --color-accent-200: #1d3db3;
-  --color-accent-500: #5a75ff;
-  --color-accent-600: #3162ff;
-  --color-accent-700: #2750d9;
-
-  --color-secondary-50: #16161c;
-  --color-secondary-100: #1e1e26;
-  --color-secondary-200: #2b2b38;
-  --color-secondary-300: #3a3a4c;
-
-  --color-neutral-0: #0a0a0a;
-  --color-neutral-25: #0e0e0e;
-  --color-neutral-50: #121212;
-  --color-neutral-100: #1a1a1a;
-  --color-neutral-150: #202020;
-  --color-neutral-200: #262626;
-  --color-neutral-300: #3a3a3a;
-  --color-neutral-400: #7a7a7a;
-  --color-neutral-500: #9a9a9a;
-  --color-neutral-600: #b5b5b5;
-  --color-neutral-700: #d0d0d0;
-  --color-neutral-800: #e6e6e6;
-  --color-neutral-900: #f2f2f2;
-  --color-neutral-950: #fafafa;
-
-  --color-background: #0a0a0a;
-  --color-foreground: #f2f2f2;
-  --color-card: #121212;
-  --color-card-foreground: #f2f2f2;
-  --color-popover: #121212;
-  --color-popover-foreground: #f2f2f2;
-  --color-secondary-foreground: #f2f2f2;
-  --color-muted: #1a1a1a;
-  --color-muted-foreground: #9a9a9a;
-  --color-accent-foreground: #f2f2f2;
-  --color-border: #262626;
-  --color-input: #262626;
-
-  --color-health-normal: #4ade80;
-  --color-health-normal-bg: #0b2416;
-  --color-health-normal-border: #14532d;
-  --color-health-warning: #fbbf24;
-  --color-health-warning-bg: #2a1d05;
-  --color-health-warning-border: #78350f;
-  --color-health-critical: #f87171;
-  --color-health-critical-bg: #2b0d0d;
-  --color-health-critical-border: #7f1d1d;
-  --color-health-info: #8295ff;
-  --color-health-info-bg: #111a3d;
-  --color-health-info-border: #1d3db3;
-  --color-health-optimal: #a78bfa;
-  --color-health-optimal-bg: #1e1436;
-  --color-health-optimal-border: #4c1d95;
-
-  --color-red-50: #2b0d0d;
-  --color-red-100: #7f1d1d;
-  --color-green-50: #0b2416;
-  --color-green-100: #14532d;
-  --color-amber-50: #2a1d05;
-  --color-amber-100: #78350f;
-
-  --shadow-card:
-    0 0 0 1px rgba(255, 255, 255, 0.05), 0 2px 4px rgba(0, 0, 0, 0.4);
-  --shadow-card-hover:
-    0 0 0 1px rgba(255, 255, 255, 0.1), 0 4px 12px rgba(0, 0, 0, 0.5);
-
-  /* phase 28c: the v4 dark column. Navy stays navy; the light layer halves. */
   --canvas: #121110;
   --canvas-deep: #0c0b0a;
   --surface: #1c1a18;
   --surface-hi: #24221f;
+  --surface-flat: #1c1a18;
+  --track: #2c2a26;
   --ink: #f1efea;
   --ink-2: #b4aea4;
-  --ink-3: #877f74;
+  --ink-3: #979083;
+  --hair: rgba(241, 239, 234, 0.11);
   --ok: #8fc46a;
   --warn: #e0a63c;
   --bad: #e3767c;
   --bad-fill: #e3767c;
+  --none: #979083;
   --sky: #1b2b44;
+
+  /* compat, deleted by the 30e sweep */
+  --color-neutral-0: #1c1a18;
+  --color-neutral-50: #161514;
+  --color-neutral-100: #201e1c;
+  --color-neutral-150: #262421;
+  --color-neutral-200: #2c2a26;
+  --color-neutral-300: #3b3835;
+  --color-neutral-400: #7d766c;
+  --color-neutral-500: #979083;
+  --color-neutral-600: #b4aea4;
+  --color-neutral-700: #b4aea4;
+  --color-neutral-800: #d7d3cc;
+  --color-neutral-900: #f1efea;
+  --color-accent-50: #24221f;
+  --color-accent-100: #2c2a26;
+  --color-accent-200: #3b3835;
+  --color-accent-500: #f1efea;
+  --color-accent-600: #f1efea;
+  --color-accent-700: #b4aea4;
+  --color-accent-900: #f1efea;
 }
 
 @layer base {
   * {
-    border-color: var(--color-neutral-200);
+    border-color: var(--hair);
   }
 
   html {
@@ -253,9 +225,9 @@
 
   body {
     font-family: var(--font-body);
-    /* phase 28c: one change warms the whole app. August's cream. */
     background-color: var(--canvas);
-    color: var(--color-neutral-900);
+    color: var(--ink);
+    font-size: var(--type-md);
     line-height: 1.5;
   }
 
@@ -264,305 +236,25 @@
   }
 }
 
-@layer utilities {
-  .card {
-    @apply border overflow-hidden rounded-md;
-    /* phase 28c: August's translucent tile, everywhere `.card` is used. */
-    background: var(--surface);
-  }
-
-  .title {
-    @apply font-medium leading-[100%] tracking-[-.035em] text-balance;
-  }
-
-  .stat-number {
-    font-weight: 300;
-    letter-spacing: -0.04em;
-    line-height: 1;
-  }
-
-  .stat-number-bold {
-    font-weight: 400;
-    letter-spacing: -0.03em;
-    line-height: 1;
-  }
-
-  .glass {
-    background: color-mix(in srgb, var(--color-neutral-0) 95%, transparent);
-  }
-
-  .card-elevated {
-    background: var(--color-neutral-0);
-    border: 1px solid var(--color-neutral-200);
-    transition: border-color 0.15s ease;
-  }
-
-  .card-elevated:hover {
-    border-color: var(--color-neutral-900);
-  }
-
-  .pill-tabs {
-    display: inline-flex;
-    padding: 2px;
-    background-color: var(--color-neutral-100);
-    border: 1px solid var(--color-neutral-200);
-    gap: 1px;
-  }
-
-  .pill-tab {
-    padding: 5px 12px;
-    font-size: 13px;
-    font-weight: 500;
-    color: var(--color-neutral-500);
-    /* Exact properties: `all` let unrelated style changes ride in free. */
-    transition:
-      color 0.15s ease,
-      background-color 0.15s ease,
-      border-color 0.15s ease;
-    cursor: pointer;
-  }
-
-  .pill-tab:hover {
-    color: var(--color-neutral-700);
-  }
-
-  .pill-tab-active {
-    background: var(--color-neutral-0);
-    color: var(--color-neutral-900);
-    border: 1px solid var(--color-neutral-200);
-  }
-
-  .animate-fade-in {
-    animation: fadeIn 0.3s ease-out forwards;
-  }
-
-  .animate-fade-in-up {
-    animation: fadeInUp 0.4s ease-out forwards;
-  }
-
-  .animate-scale-in {
-    animation: scaleIn 0.3s ease-out forwards;
-  }
-
-  /* ─── Sheet animations ─── */
-
-  @keyframes sheet-overlay-in {
-    from {
-      opacity: 0;
-    }
-    to {
-      opacity: 1;
-    }
-  }
-
-  @keyframes sheet-overlay-out {
-    from {
-      opacity: 1;
-    }
-    to {
-      opacity: 0;
-    }
-  }
-
-  @keyframes sheet-slide-in-right {
-    from {
-      transform: translateX(100%);
-    }
-    to {
-      transform: translateX(0);
-    }
-  }
-
-  @keyframes sheet-slide-out-right {
-    from {
-      transform: translateX(0);
-    }
-    to {
-      transform: translateX(100%);
-    }
-  }
-
-  @keyframes sheet-slide-in-left {
-    from {
-      transform: translateX(-100%);
-    }
-    to {
-      transform: translateX(0);
-    }
-  }
-
-  @keyframes sheet-slide-out-left {
-    from {
-      transform: translateX(0);
-    }
-    to {
-      transform: translateX(-100%);
-    }
-  }
-
-  @keyframes sheet-slide-in-top {
-    from {
-      transform: translateY(-100%);
-    }
-    to {
-      transform: translateY(0);
-    }
-  }
-
-  @keyframes sheet-slide-out-top {
-    from {
-      transform: translateY(0);
-    }
-    to {
-      transform: translateY(-100%);
-    }
-  }
-
-  @keyframes sheet-slide-in-bottom {
-    from {
-      transform: translateY(100%);
-    }
-    to {
-      transform: translateY(0);
-    }
-  }
-
-  @keyframes sheet-slide-out-bottom {
-    from {
-      transform: translateY(0);
-    }
-    to {
-      transform: translateY(100%);
-    }
-  }
-
-  @keyframes fadeIn {
-    from {
-      opacity: 0;
-    }
-    to {
-      opacity: 1;
-    }
-  }
-
-  @keyframes fadeInUp {
-    from {
-      opacity: 0;
-      transform: translateY(8px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-
-  @keyframes scaleIn {
-    from {
-      opacity: 0;
-      transform: scale(0.96);
-    }
-    to {
-      opacity: 1;
-      transform: scale(1);
-    }
-  }
-
-  @keyframes spin-yoyo {
-    0% {
-      transform: rotate(0deg);
-    }
-    40% {
-      transform: rotate(360deg);
-    }
-    60% {
-      transform: rotate(270deg);
-    }
-    75% {
-      transform: rotate(330deg);
-    }
-    85% {
-      transform: rotate(300deg);
-    }
-    100% {
-      transform: rotate(360deg);
-    }
-  }
-
-  .animate-spin-yoyo:hover {
-    animation: spin-yoyo 0.9s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-  }
-
-  .stagger-children > * {
-    animation: fadeInUp 0.4s ease-out forwards;
-    opacity: 0;
-  }
-  .stagger-children > *:nth-child(1) {
-    animation-delay: 0ms;
-  }
-  .stagger-children > *:nth-child(2) {
-    animation-delay: 40ms;
-  }
-  .stagger-children > *:nth-child(3) {
-    animation-delay: 80ms;
-  }
-  .stagger-children > *:nth-child(4) {
-    animation-delay: 120ms;
-  }
-  .stagger-children > *:nth-child(5) {
-    animation-delay: 160ms;
-  }
-  .stagger-children > *:nth-child(6) {
-    animation-delay: 200ms;
-  }
-
-  .skeleton {
-    background: linear-gradient(
-      90deg,
-      var(--color-neutral-100) 0%,
-      var(--color-neutral-150) 50%,
-      var(--color-neutral-100) 100%
-    );
-    background-size: 200% 100%;
-    animation: skeleton 1.5s ease-in-out infinite;
-  }
-
-  @keyframes skeleton {
-    0% {
-      background-position: 200% 0;
-    }
-    100% {
-      background-position: -200% 0;
-    }
-  }
-
-  .progress-bar {
-    height: 4px;
-    background: var(--color-neutral-100);
-    overflow: hidden;
-  }
-
-  .progress-bar-fill {
-    height: 100%;
-    background: var(--color-accent-500);
-    transition: width 0.3s ease;
-  }
+/* One focus style, and it is quiet: the ring is ink, never a spectrum
+   colour, because a red ring on a health page reads as a failed value. */
+input:focus,
+textarea:focus,
+select:focus,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: none;
+  box-shadow: inset 0 0 0 2px var(--ink);
 }
-
-/* Infinite scroll animation for empty states */
-@keyframes infinite-scroll-y {
-  0% {
-    transform: translateY(0);
-  }
-  100% {
-    transform: translateY(var(--scroll, -50%));
-  }
+:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
 }
-
-.animate-infinite-scroll-y {
-  animation: infinite-scroll-y 10s linear infinite;
+::selection {
+  background: var(--canvas-deep);
+  color: var(--ink);
 }
-
-/* Custom scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -571,94 +263,1403 @@
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: var(--color-neutral-300);
+  background: var(--track);
   border-radius: 3px;
 }
-::-webkit-scrollbar-thumb:hover {
-  background: var(--color-neutral-400);
-}
 
-/* Recharts customizations */
-.recharts-cartesian-grid-horizontal line,
-.recharts-cartesian-grid-vertical line {
-  stroke: var(--color-neutral-150) !important;
-}
-.recharts-tooltip-wrapper {
-  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.07));
-}
-
-/* ── phase 28a item 3: one focus style, and it is quiet ──────────────────
-   The ask box used to answer a click with 2 px of solid ultramarine on a
-   4 px halo, which read as an error state on a page that is mostly white.
-   Focus only has to say "typing goes here": the border darkens one step and
-   a soft glow at 20 % of the accent sits outside it. Keyboard users get the
-   same look through `:focus-visible`, so nothing has two focus rings. */
-input:focus,
-textarea:focus,
-select:focus,
-input:focus-visible,
-textarea:focus-visible,
-select:focus-visible {
-  outline: none;
-  border-color: var(--color-neutral-400);
-  box-shadow: 0 0 0 3px
-    color-mix(in srgb, var(--color-accent-500) 20%, transparent);
-}
-
-input,
-textarea,
-select {
-  transition-property: border-color, box-shadow;
-  transition-duration: 150ms;
-  transition-timing-function: ease-out;
-}
-
-::selection {
-  background: var(--color-accent-100);
-  color: var(--color-accent-900);
-}
-
-/* ── Simple / Deep, one switch on the page root ──────────────────────── */
+/* Simple / Deep, one switch on the page root. */
 [data-view="simple"] .deep {
   display: none;
 }
 
-/* ── Print styles for health reports ─────────────────────────────────── */
-@media print {
-  body {
-    -webkit-print-color-adjust: exact;
-    print-color-adjust: exact;
-  }
-  nav,
-  header {
-    display: none !important;
-  }
-  main {
-    background: white !important;
-    padding: 0 !important;
-  }
-  .report-content {
-    max-width: 100% !important;
-  }
-  .card {
-    border: none !important;
-    box-shadow: none !important;
-    page-break-inside: avoid;
-  }
-  @page {
-    margin: 1.5cm 2cm;
-    size: A4 portrait;
-  }
-}
-
-/* ── Inside the iOS app ──────────────────────────────────────────────────
-   iOS zooms a focused input whose font-size is under 16 px and never zooms
-   back out. The webview pins the viewport as well; this is the second belt,
-   scoped to `[data-app]`, which only the app UA gets. */
+/* Inside the iOS app: iOS zooms a focused input under 16 px and never zooms
+   back out. `[data-app]` is only set for the webview's user agent. */
 [data-app] input,
 [data-app] textarea,
 [data-app] select {
   font-size: 16px;
+}
+
+/* Everything from here to the glossary tooltip is `@layer components`, so a
+   Tailwind utility on the same element still wins. `.tabbar { display: grid }`
+   as unlayered CSS beat `md:hidden` and put the phone bar on the desktop. */
+@layer components {
+  /* ══ lucide icons: 1.75 stroke, currentColor ═════════════════════════ */
+  .ic {
+    width: 16px;
+    height: 16px;
+    flex: none;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 1.75;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .ic.i20 {
+    width: 20px;
+    height: 20px;
+  }
+  .ic.i24 {
+    width: 24px;
+    height: 24px;
+    stroke-width: 1.6;
+  }
+
+  /* ══ 03 · SHELL ══════════════════════════════════════════════════════ */
+  .topbar {
+    display: flex;
+    align-items: center;
+    gap: var(--s13);
+    min-height: 55px;
+  }
+  .topbar .brand {
+    font-size: var(--type-md);
+    letter-spacing: -0.02em;
+    margin-right: var(--s8);
+    color: var(--ink);
+    text-decoration: none;
+  }
+  .topbar .grow {
+    flex: 1;
+  }
+  .pills {
+    display: flex;
+    gap: var(--s5);
+    background: var(--surface);
+    border-radius: var(--r-pill);
+    padding: var(--s3);
+  }
+  .pills a {
+    display: flex;
+    align-items: center;
+    gap: var(--s5);
+    padding: var(--s5) var(--s13);
+    border-radius: var(--r-pill);
+    font-size: var(--type-sm);
+    color: var(--ink-2);
+    text-decoration: none;
+    transition:
+      background-color var(--dur-quick) var(--ease),
+      color var(--dur-quick) var(--ease);
+  }
+  .pills a:hover {
+    color: var(--ink);
+  }
+  .pills a.on {
+    background: var(--surface-hi);
+    color: var(--ink);
+    box-shadow: 0 1px 2px rgba(23, 22, 20, 0.08);
+  }
+  /* the lime add. The one control that puts data in, and there is one of it. */
+  .plusbtn {
+    display: inline-grid;
+    place-items: center;
+    width: var(--s34);
+    height: var(--s34);
+    border: 0;
+    border-radius: var(--r-pill);
+    background: var(--lime);
+    color: var(--lime-ink);
+    cursor: pointer;
+    transition: background-color var(--dur-quick) var(--ease);
+  }
+  .plusbtn:hover {
+    background: #c9e63c;
+  }
+  .avmenu {
+    position: relative;
+  }
+  .avmenu > summary {
+    list-style: none;
+    cursor: pointer;
+    display: grid;
+    place-items: center;
+    width: var(--s34);
+    height: var(--s34);
+    border-radius: var(--r-pill);
+    background: var(--surface-hi);
+    color: var(--ink-2);
+    font-size: var(--type-sm);
+  }
+  .avmenu > summary::-webkit-details-marker {
+    display: none;
+  }
+  .avpanel {
+    position: absolute;
+    right: 0;
+    top: calc(100% + var(--s8));
+    z-index: 60;
+    width: 244px;
+    border-radius: var(--r-inner);
+    background: var(--surface-flat);
+    box-shadow:
+      0 21px 55px -21px rgba(23, 22, 20, 0.45),
+      inset 0 0 0 1px var(--hair);
+    padding: var(--s8);
+  }
+  .avpanel .who {
+    padding: var(--s5) var(--s8) var(--s8);
+  }
+  .avpanel .who b {
+    display: block;
+    font-size: var(--type-sm);
+    font-weight: 500;
+    color: var(--ink);
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .avpanel .who span {
+    display: block;
+    font-size: var(--type-xs);
+    color: var(--ink-3);
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .avpanel .grp {
+    font-family: var(--font-mono);
+    font-size: var(--type-xs);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    padding: var(--s8) var(--s8) var(--s3);
+  }
+  .avpanel > a,
+  .avpanel > button {
+    display: flex;
+    align-items: center;
+    gap: var(--s8);
+    width: 100%;
+    padding: var(--s5) var(--s8);
+    border: 0;
+    border-radius: var(--s8);
+    background: transparent;
+    color: var(--ink);
+    font-family: inherit;
+    font-size: var(--type-sm);
+    text-align: left;
+    text-decoration: none;
+    cursor: pointer;
+  }
+  .avpanel > a:hover,
+  .avpanel > button:hover {
+    background: var(--canvas-deep);
+  }
+  .avpanel > a .cnt {
+    margin-left: auto;
+    font-family: var(--font-mono);
+    font-size: var(--type-xs);
+    color: var(--warn);
+  }
+  .avpanel hr {
+    border: 0;
+    border-top: 1px solid var(--hair);
+    margin: var(--s8) 0;
+  }
+  .avpanel .ic {
+    color: var(--ink-3);
+  }
+
+  /* the header and the phone bar sit on the canvas at 85 % with a blur */
+  .nav-bar {
+    background: color-mix(in srgb, var(--canvas) 85%, transparent);
+    backdrop-filter: blur(13px);
+  }
+  .tabbar {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    align-items: center;
+    padding: var(--s8) var(--s5);
+    padding-bottom: max(var(--s8), env(safe-area-inset-bottom));
+    border-top: 1px solid var(--hair);
+    box-shadow: 0 -1px 21px -13px rgba(23, 22, 20, 0.5);
+  }
+  .tabbar a {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    text-decoration: none;
+    color: var(--ink-3);
+    font-size: var(--type-xs);
+  }
+  .tabbar a.on {
+    color: var(--ink);
+  }
+  .tabbar .plusslot {
+    display: grid;
+    place-items: center;
+  }
+  .tabbar .plusslot button {
+    width: 44px;
+    height: 44px;
+    border: 0;
+    border-radius: var(--r-pill);
+    background: var(--lime);
+    color: var(--lime-ink);
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+    box-shadow: 0 5px 13px -5px rgba(120, 140, 20, 0.7);
+  }
+  @media (prefers-reduced-transparency: reduce) {
+    .nav-bar {
+      background: var(--canvas);
+      backdrop-filter: none;
+    }
+  }
+
+  /* ══ 04 · BUTTONS — three jobs, one family ═══════════════════════════ */
+  .b {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--s5);
+    min-height: 40px; /* .hit-40 */
+    border: 0;
+    border-radius: var(--r-pill);
+    padding: var(--s8) var(--s21);
+    font-family: inherit;
+    font-size: var(--type-sm);
+    line-height: 1.2;
+    cursor: pointer;
+    white-space: nowrap;
+    text-decoration: none;
+    transition:
+      background-color var(--dur-quick) var(--ease),
+      color var(--dur-quick) var(--ease),
+      box-shadow var(--dur-quick) var(--ease);
+  }
+  .b:active:not(:disabled) {
+    scale: 0.96;
+  }
+  .b [data-slot="icon"],
+  .b > svg {
+    width: 16px;
+    height: 16px;
+    flex: none;
+  }
+  .b-ink {
+    background: var(--ink);
+    color: var(--canvas);
+  }
+  .b-ink:hover:not(:disabled) {
+    background: var(--ink-2);
+  }
+  .b-quiet {
+    background: transparent;
+    color: var(--ink);
+    box-shadow: inset 0 0 0 1px var(--hair);
+  }
+  .b-quiet:hover:not(:disabled) {
+    box-shadow: inset 0 0 0 1px var(--ink-3);
+    background: var(--surface-hi);
+  }
+  .b-text {
+    background: transparent;
+    color: var(--ink-2);
+    padding-inline: var(--s5);
+  }
+  .b-text:hover:not(:disabled) {
+    color: var(--ink);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  /* the lime add, again: a fourth shape, not a fourth job */
+  .b-add {
+    background: var(--lime);
+    color: var(--lime-ink);
+  }
+  .b-add:hover:not(:disabled) {
+    background: #c9e63c;
+  }
+  .b:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+  .b[data-busy="true"] {
+    pointer-events: none;
+  }
+  .b-sm {
+    min-height: 32px;
+    padding: var(--s5) var(--s13);
+    font-size: var(--type-xs);
+  }
+  .b-icon {
+    padding: 0;
+    width: 40px;
+    min-height: 40px;
+  }
+  .spin {
+    animation: spin 900ms linear infinite;
+    transform-origin: 50% 50%;
+  }
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .b {
+      transition: none;
+    }
+    .spin {
+      animation: none;
+    }
+  }
+  @media (max-width: 560px) {
+    .b {
+      white-space: normal;
+    }
+  }
+
+  /* ══ 05 · INPUTS ═════════════════════════════════════════════════════ */
+  .fields {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(238px, 1fr));
+    gap: var(--s21);
+  }
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: var(--s5);
+    min-width: 0;
+  }
+  .field > label:not(.filebox):not(.checkrow) {
+    font-family: var(--font-mono);
+    font-size: var(--type-xs);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+  .field .help {
+    font-size: var(--type-xs);
+    color: var(--ink-3);
+  }
+  .field .err,
+  .err {
+    font-size: var(--type-xs);
+    color: var(--bad);
+  }
+  .inp,
+  .sel,
+  .ta {
+    width: 100%;
+    min-height: 40px;
+    border: 0;
+    border-radius: var(--r-inner);
+    background: var(--surface-hi);
+    box-shadow: inset 0 0 0 1px var(--hair);
+    color: var(--ink);
+    font-family: inherit;
+    font-size: var(--type-md);
+    padding: var(--s8) var(--s13);
+    outline: none;
+  }
+  .ta {
+    min-height: 76px;
+    resize: vertical;
+    line-height: 1.5;
+  }
+  .inp::placeholder,
+  .ta::placeholder {
+    color: var(--ink-3);
+  }
+  .inp:focus,
+  .sel:focus,
+  .ta:focus {
+    box-shadow: inset 0 0 0 2px var(--ink);
+  }
+  .inp.num {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+  }
+  .inp[aria-invalid="true"] {
+    box-shadow: inset 0 0 0 2px var(--bad);
+  }
+  .withunit {
+    position: relative;
+  }
+  .withunit .inp {
+    padding-right: 55px;
+  }
+  .withunit .u {
+    position: absolute;
+    right: var(--s13);
+    top: 50%;
+    transform: translateY(-50%);
+    font-family: var(--font-mono);
+    font-size: var(--type-sm);
+    color: var(--ink-3);
+    pointer-events: none;
+  }
+  .sel {
+    appearance: none;
+    background-image:
+      linear-gradient(45deg, transparent 50%, currentColor 50%),
+      linear-gradient(135deg, currentColor 50%, transparent 50%);
+    background-position:
+      calc(100% - 18px) 18px,
+      calc(100% - 13px) 18px;
+    background-size:
+      5px 5px,
+      5px 5px;
+    background-repeat: no-repeat;
+    padding-right: var(--s34);
+    color: var(--ink);
+  }
+  .searchbox {
+    display: flex;
+    align-items: center;
+    gap: var(--s8);
+    border-radius: var(--r-pill);
+    background: var(--surface-hi);
+    box-shadow: inset 0 0 0 1px var(--hair);
+    padding: var(--s5) var(--s13);
+    min-height: 40px;
+  }
+  .searchbox .ic {
+    color: var(--ink-3);
+  }
+  .searchbox input {
+    flex: 1;
+    min-width: 0;
+    border: 0;
+    background: transparent;
+    outline: none;
+    font-family: inherit;
+    font-size: var(--type-md);
+    color: var(--ink);
+  }
+  .searchbox input:focus {
+    box-shadow: none;
+  }
+  .filebox {
+    display: flex;
+    align-items: center;
+    gap: var(--s13);
+    border-radius: var(--r-inner);
+    background: var(--surface-hi);
+    box-shadow: inset 0 0 0 1px var(--hair);
+    padding: var(--s13);
+    cursor: pointer;
+  }
+  .filebox .pg {
+    display: grid;
+    place-items: center;
+    width: var(--s34);
+    height: var(--s34);
+    border-radius: var(--r-inner);
+    background: var(--canvas-deep);
+    color: var(--ink-2);
+    flex: none;
+  }
+  .filebox b {
+    display: block;
+    font-size: var(--type-sm);
+    font-weight: 400;
+    color: var(--ink);
+  }
+  .filebox span {
+    display: block;
+    font-size: var(--type-xs);
+    color: var(--ink-3);
+  }
+  .rangewrap {
+    display: flex;
+    align-items: center;
+    gap: var(--s13);
+  }
+  input[type="range"].rng {
+    flex: 1;
+    min-width: 0;
+    appearance: none;
+    height: 5px;
+    border-radius: var(--r-pill);
+    background: var(--track);
+    outline: none;
+  }
+  input[type="range"].rng::-webkit-slider-thumb {
+    appearance: none;
+    width: 21px;
+    height: 21px;
+    border-radius: var(--r-pill);
+    background: var(--ink);
+    box-shadow: 0 0 0 4px var(--canvas);
+    cursor: pointer;
+  }
+  input[type="range"].rng::-moz-range-thumb {
+    width: 21px;
+    height: 21px;
+    border: 0;
+    border-radius: var(--r-pill);
+    background: var(--ink);
+    cursor: pointer;
+  }
+  .rangewrap .rv {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+    font-size: var(--type-sm);
+    color: var(--ink);
+    white-space: nowrap;
+  }
+  .checkrow {
+    display: flex;
+    align-items: center;
+    gap: var(--s13);
+    min-height: 40px;
+    cursor: pointer;
+  }
+  .checkrow .box {
+    display: grid;
+    place-items: center;
+    width: var(--s21);
+    height: var(--s21);
+    border-radius: var(--s5);
+    box-shadow: inset 0 0 0 1px var(--hair);
+    color: transparent;
+    flex: none;
+    background: var(--surface-hi);
+  }
+  .checkrow.on .box {
+    background: var(--ink);
+    color: var(--canvas);
+    box-shadow: none;
+  }
+  .checkrow .lb {
+    display: block;
+    font-size: var(--type-sm);
+    color: var(--ink);
+  }
+  .checkrow .cs {
+    display: block;
+    font-size: var(--type-xs);
+    color: var(--ink-3);
+  }
+  /* the 1–5 rating: the sliding pill again, never a second tab style */
+  .rate {
+    display: inline-flex;
+    gap: var(--s3);
+    padding: var(--s3);
+    border-radius: var(--r-pill);
+    background: var(--canvas-deep);
+  }
+  .rate button {
+    min-width: 40px;
+    min-height: 34px;
+    border: 0;
+    border-radius: var(--r-pill);
+    background: transparent;
+    color: var(--ink-2);
+    font-family: var(--font-mono);
+    font-size: var(--type-sm);
+    cursor: pointer;
+  }
+  .rate button[aria-pressed="true"] {
+    background: var(--surface-hi);
+    color: var(--ink);
+    box-shadow: 0 1px 2px rgba(23, 22, 20, 0.08);
+  }
+  /* option chips: idle, selected, busy. Selected is ink, never a spectrum fill */
+  .optchip {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--s5);
+    min-height: 40px;
+    border: 0;
+    border-radius: var(--r-pill);
+    background: var(--surface-hi);
+    box-shadow: inset 0 0 0 1px var(--hair);
+    color: var(--ink);
+    font-family: inherit;
+    font-size: var(--type-sm);
+    padding: var(--s8) var(--s13);
+    cursor: pointer;
+    max-width: 100%;
+    white-space: normal;
+    text-align: left;
+  }
+  .optchip[aria-pressed="true"] {
+    background: var(--ink);
+    color: var(--canvas);
+    box-shadow: none;
+  }
+  .optchip[data-busy="true"] {
+    color: var(--ink-3);
+    pointer-events: none;
+  }
+
+  /* ══ 06 · STATE WORDS, DOTS, GLYPHS, CHIPS ═══════════════════════════ */
+  .state {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--s5);
+    font-size: var(--type-sm);
+    color: var(--st, var(--ink-3));
+    white-space: nowrap;
+  }
+  .state.off {
+    --st: var(--bad);
+  }
+  .state.border {
+    --st: var(--warn);
+  }
+  .state.on {
+    --st: var(--ok);
+  }
+  .state.none {
+    --st: var(--ink-3);
+  }
+  .dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: currentColor;
+    flex: none;
+  }
+  .dot.hollow {
+    background: transparent;
+    box-shadow: inset 0 0 0 1px currentColor;
+  }
+  /* the ▲: only on what is off, only in coral, never on anything else */
+  .tri {
+    color: var(--bad-fill);
+    font-size: 10px;
+    line-height: 1;
+  }
+  /* how settled the thing behind an action is, as a word */
+  .tier {
+    font-family: var(--font-mono);
+    font-size: var(--type-xs);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-2);
+    white-space: nowrap;
+  }
+  .tier.early {
+    color: var(--warn);
+  }
+  .tier.experimental {
+    color: var(--ink-3);
+  }
+  .never {
+    font-size: var(--type-sm);
+    color: var(--ink-3);
+  }
+  .chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--s8);
+    list-style: none;
+  }
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--s5);
+    padding: var(--s5) var(--s13);
+    border-radius: var(--r-pill);
+    background: var(--surface);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    font-size: var(--type-sm);
+    color: var(--ink-2);
+    max-width: 100%;
+    white-space: normal;
+    text-align: left;
+    transition: border-color var(--dur-quick) var(--ease);
+  }
+  :root[data-theme="dark"] .chip {
+    border-color: rgba(255, 255, 255, 0.08);
+  }
+  .chip:hover {
+    border-color: var(--ink-3);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .chip {
+      transition: none;
+    }
+  }
+  /* Spectrum logic, one place. Text and dots only, never a surface. */
+  .tone-bad {
+    color: var(--bad);
+  }
+  .tone-warn {
+    color: var(--warn);
+  }
+  .tone-ok {
+    color: var(--ok);
+  }
+  .tone-none {
+    color: var(--ink-3);
+  }
+
+  /* ══ 07 · CARDS ══════════════════════════════════════════════════════ */
+  /* the translucent tile: it must sit over the canvas, not over nothing */
+  .card {
+    border-radius: var(--r-card);
+    background: var(--surface);
+    backdrop-filter: blur(21px);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    overflow: hidden;
+  }
+  :root[data-theme="dark"] .card {
+    border-color: rgba(255, 255, 255, 0.08);
+  }
+  /* Kite's navy: the one dark surface in the app. */
+  .navycard {
+    position: relative;
+    overflow: hidden;
+    border-radius: var(--r-card);
+    background: var(--navy);
+    color: var(--navy-ink);
+    padding: var(--s13);
+    display: flex;
+    flex-direction: column;
+    gap: var(--s8);
+    min-height: 160px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+  }
+  .navycard .c-label,
+  .navycard .c-line,
+  .navycard .c-word,
+  .navycard .c-counts,
+  .navycard .c-num em,
+  .navycard .tone-none {
+    color: var(--navy-ink-2);
+  }
+  .navycard .tone-bad {
+    color: var(--navy-bad);
+  }
+  .navycard .tone-warn {
+    color: var(--navy-warn);
+  }
+  .navycard .tone-ok {
+    color: var(--navy-ok);
+  }
+  /* the 3 px hue bar: it follows the worst band on the ledger */
+  .c-bar {
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 3px;
+    background: var(--ink-3);
+    transition: background-color var(--reveal-dur, 400ms) ease;
+  }
+  .c-bar.off {
+    background: var(--navy-bad);
+  }
+  .c-bar.border {
+    background: var(--navy-warn);
+  }
+  .c-bar.on {
+    background: var(--navy-ok);
+  }
+  .c-label {
+    font-family: var(--font-mono);
+    font-size: var(--type-xs);
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+  .c-num {
+    font-family: var(--font-mono);
+    font-size: var(--type-xl);
+    font-weight: 200;
+    line-height: 1;
+    letter-spacing: -0.04em;
+    font-variant-numeric: tabular-nums;
+  }
+  .c-num em {
+    font-style: normal;
+    font-size: var(--type-sm);
+    color: var(--ink-3);
+    margin-left: var(--s5);
+    letter-spacing: 0;
+  }
+  .c-counts {
+    font-size: var(--type-sm);
+    color: var(--ink-2);
+  }
+  .c-counts b {
+    font-family: var(--font-mono);
+    font-weight: 400;
+  }
+  .c-title {
+    font-size: var(--type-lg);
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+  }
+  .c-sub {
+    font-size: var(--type-sm);
+    color: var(--ink-3);
+  }
+  .c-word {
+    font-size: var(--type-xs);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+  .c-line {
+    margin-top: auto;
+    font-size: var(--type-sm);
+    line-height: 1.35;
+    color: var(--ink-2);
+  }
+  /* the drawer: the marker on desktop */
+  .drawer {
+    background: var(--surface-hi);
+    backdrop-filter: blur(21px);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    border-radius: var(--r-card);
+    padding: var(--s21);
+    box-shadow: -21px 0 55px -34px rgba(23, 22, 20, 0.5);
+  }
+  :root[data-theme="dark"] .drawer {
+    border-color: rgba(255, 255, 255, 0.08);
+  }
+  .drawer-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--s13);
+    padding-bottom: var(--s13);
+    border-bottom: 1px solid var(--hair);
+    margin-bottom: var(--s13);
+  }
+  .drawer-head h3 {
+    margin: 0;
+    font-size: var(--type-lg);
+    font-weight: 400;
+    letter-spacing: -0.02em;
+  }
+  /* the ConclusionCard */
+  .conc {
+    background: var(--surface);
+    backdrop-filter: blur(21px);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    border-radius: var(--r-card);
+    padding: var(--s21);
+    display: flex;
+    flex-direction: column;
+    gap: var(--s13);
+  }
+  :root[data-theme="dark"] .conc {
+    border-color: rgba(255, 255, 255, 0.08);
+  }
+  .conc-top {
+    display: flex;
+    align-items: baseline;
+    gap: var(--s8);
+    flex-wrap: wrap;
+  }
+  .conc-rank {
+    font-family: var(--font-mono);
+    font-size: var(--type-xs);
+    letter-spacing: 0.1em;
+    color: var(--ink-3);
+  }
+  .conc-name {
+    font-size: var(--type-lg);
+    letter-spacing: -0.025em;
+    margin: 0;
+    font-weight: 400;
+  }
+  .conc-pct {
+    margin-left: auto;
+    white-space: nowrap;
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+    font-size: var(--type-xl);
+    font-weight: 200;
+    letter-spacing: -0.04em;
+    line-height: 1;
+    color: var(--st, var(--ink));
+  }
+  .conc-pct em {
+    font-style: normal;
+    font-size: var(--type-sm);
+    color: var(--ink-3);
+    margin-left: var(--s3);
+  }
+  .conc.off {
+    --st: var(--bad);
+  }
+  .conc.border {
+    --st: var(--warn);
+  }
+  .conc.on {
+    --st: var(--ok);
+  }
+  .conc-prose {
+    margin: 0;
+    font-size: var(--type-sm);
+    line-height: 1.6;
+    color: var(--ink-2);
+    max-width: 66ch;
+    text-wrap: pretty;
+  }
+  .conc-prose b {
+    color: var(--ink);
+    font-weight: 500;
+  }
+  .disclose > summary {
+    list-style: none;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--s5);
+    font-size: var(--type-sm);
+    color: var(--ink-2);
+  }
+  .disclose > summary::-webkit-details-marker {
+    display: none;
+  }
+  .disclose[open] > summary .ic {
+    transform: rotate(180deg);
+  }
+  .disclose .inner {
+    margin-top: var(--s8);
+    padding-left: var(--s13);
+    border-left: 2px solid var(--hair);
+    font-size: var(--type-sm);
+    color: var(--ink-2);
+    line-height: 1.6;
+  }
+  .asklink {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--s5);
+    font-size: var(--type-sm);
+    color: var(--ink-2);
+    background: none;
+    border: 0;
+    padding: 0;
+    cursor: pointer;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    text-decoration-color: var(--hair);
+  }
+  .asklink:hover {
+    color: var(--ink);
+  }
+  /* the rail: Kite's swipe row on the phone, the v4 grid on desktop */
+  .rail-wrap {
+    mask-image: linear-gradient(90deg, #000 calc(100% - 34px), transparent);
+  }
+  .rail {
+    display: flex;
+    gap: var(--s13);
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    padding-block: 2px var(--s3);
+    scrollbar-width: none;
+    list-style: none;
+    margin: 0;
+  }
+  .rail::-webkit-scrollbar {
+    display: none;
+  }
+  .rail > * {
+    flex: 0 0 258px;
+    min-height: 160px;
+    scroll-snap-align: start;
+  }
+
+  /* ══ 11 · SHEETS AND OVERLAYS ════════════════════════════════════════ */
+  .sheet {
+    width: min(560px, 100%);
+    border-radius: var(--r-hero);
+    background: var(--surface-flat);
+    box-shadow:
+      0 34px 55px -34px rgba(23, 22, 20, 0.55),
+      inset 0 0 0 1px var(--hair);
+    overflow: hidden;
+    color: var(--ink);
+  }
+  .sheet::backdrop {
+    background: color-mix(in srgb, var(--navy) 45%, transparent);
+    backdrop-filter: blur(3px);
+  }
+  .sheet-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--s13);
+    padding: var(--s13) var(--s21);
+    border-bottom: 1px solid var(--hair);
+  }
+  .sheet-head h3 {
+    margin: 0;
+    font-size: var(--type-md);
+    font-weight: 500;
+  }
+  .sheet-body {
+    padding: var(--s21);
+    display: flex;
+    flex-direction: column;
+    gap: var(--s13);
+  }
+  .sheet-foot {
+    display: flex;
+    align-items: center;
+    gap: var(--s8);
+    padding: var(--s13) var(--s21) var(--s21);
+  }
+  .sheet-foot .grow {
+    flex: 1;
+  }
+  .chipedit {
+    border-radius: var(--r-inner);
+    background: var(--canvas);
+    padding: var(--s13);
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(148px, 1fr));
+    gap: var(--s8);
+  }
+  /* a guess is a dashed chip; posting draws it solid. Chips only: nothing
+   else in the system has a dashed border. */
+  .gchip {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--s5);
+    border-radius: var(--r-pill);
+    padding: var(--s5) var(--s13);
+    font-family: var(--font-mono);
+    font-size: var(--type-xs);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-2);
+    box-shadow: inset 0 0 0 1px var(--hair);
+    background: transparent;
+    cursor: pointer;
+    max-width: 100%;
+    white-space: normal;
+    text-align: left;
+  }
+  .gchip.guess {
+    border: 1px dashed color-mix(in oklab, var(--ink-3) 70%, transparent);
+    box-shadow: none;
+  }
+  .gchip .ic {
+    width: 12px;
+    height: 12px;
+  }
+  .toast {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--s13);
+    border-radius: var(--r-pill);
+    background: var(--ink);
+    color: var(--canvas);
+    padding: var(--s8) var(--s8) var(--s8) var(--s21);
+    font-size: var(--type-sm);
+    box-shadow: 0 13px 34px -13px rgba(23, 22, 20, 0.55);
+  }
+  .toast button {
+    border: 0;
+    border-radius: var(--r-pill);
+    background: rgba(253, 245, 236, 0.16);
+    color: var(--canvas);
+    font-family: inherit;
+    font-size: var(--type-xs);
+    padding: var(--s5) var(--s13);
+    cursor: pointer;
+  }
+
+  /* ══ 12 · EMPTY STATES — quiet, never dashed ═════════════════════════ */
+  .empty {
+    border-radius: var(--r-card);
+    background: var(--surface);
+    backdrop-filter: blur(21px);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    padding: var(--s21);
+    display: flex;
+    flex-direction: column;
+    gap: var(--s8);
+  }
+  :root[data-theme="dark"] .empty {
+    border-color: rgba(255, 255, 255, 0.08);
+  }
+  .empty .k {
+    font-family: var(--font-mono);
+    font-size: var(--type-xs);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+  .empty p {
+    margin: 0;
+    font-size: var(--type-sm);
+    color: var(--ink-2);
+    max-width: 52ch;
+    text-wrap: pretty;
+  }
+  .empty a {
+    align-self: flex-start;
+    font-size: var(--type-sm);
+    color: var(--ink);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  /* ══ August's light ══════════════════════════════════════════════════
+   Three blurred blobs, and three is the budget. The hue follows the worst
+   band on the ledger. */
+  .lit {
+    position: relative;
+    z-index: 0;
+    isolation: isolate;
+  }
+  .light-layer {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    overflow: hidden;
+    pointer-events: none;
+    mask-image: radial-gradient(80% 85% at 45% 35%, #000, transparent);
+  }
+  .light-layer i {
+    position: absolute;
+    width: 220px;
+    height: 220px;
+    border-radius: 50%;
+    opacity: 0.55;
+    filter: blur(55px);
+    transition: background-color var(--reveal-dur, 400ms) ease;
+  }
+  .light-layer i:nth-child(1) {
+    top: -60px;
+    left: -40px;
+    background: var(--bad-fill);
+  }
+  .light-layer i:nth-child(2) {
+    top: 20px;
+    right: -60px;
+    background: var(--warn);
+  }
+  .light-layer i:nth-child(3) {
+    bottom: -110px;
+    left: 40%;
+    background: var(--sky);
+  }
+  :root[data-theme="dark"] .light-layer i {
+    opacity: 0.28;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .light-layer i {
+      transition: none;
+    }
+  }
+
+  /* ══ the login card: the one page with no shell and no data ══════════ */
+  .logincard {
+    width: min(377px, 100%);
+    border-radius: var(--r-hero);
+    background: var(--surface-hi);
+    backdrop-filter: blur(21px);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 0 34px 55px -34px rgba(23, 22, 20, 0.35);
+    padding: var(--s34);
+  }
+  :root[data-theme="dark"] .logincard {
+    border-color: rgba(255, 255, 255, 0.08);
+  }
+  .loginhead {
+    margin-bottom: var(--s21);
+  }
+  .loginhead .brand {
+    display: block;
+    font-size: var(--type-lg);
+    letter-spacing: -0.03em;
+    margin-bottom: var(--s3);
+  }
+
+  /* ══ the flat fallback ═══════════════════════════════════════════════
+   Under `prefers-reduced-transparency` nothing blurs and every translucent
+   tile becomes its flat twin. The navy stays navy; the lights go. */
+  @media (prefers-reduced-transparency: reduce) {
+    .card,
+    .conc,
+    .drawer,
+    .empty,
+    .chip,
+    .logincard,
+    .home .rail-card,
+    .home .ask-pill {
+      backdrop-filter: none;
+      background: var(--surface-flat);
+    }
+    .home .rail-card.navy,
+    .navycard {
+      background: var(--navy);
+    }
+    .light-layer,
+    .home-light {
+      display: none;
+    }
+  }
+
+  /* ══ type discipline ═════════════════════════════════════════════════
+   Two families, four styles, one rule: monospace is for numbers, units,
+   codes and dates only — never for a sentence. `type-discipline.test.ts`
+   renders Home's cards and fails on any mono element whose text is not a
+   number, a unit, a code or a date. */
+  :where(.t-title) {
+    font-family: var(--font-display);
+    font-weight: 500;
+    letter-spacing: -0.02em;
+    text-wrap: balance;
+  }
+  :where(.t-body) {
+    font-family: var(--font-body);
+    font-size: var(--type-sm);
+    line-height: 1.55;
+    color: var(--ink-2);
+    text-wrap: pretty;
+  }
+  /* the quiet sans voice: labels, captions, the line under a number */
+  :where(.t-meta) {
+    font-family: var(--font-body);
+    font-size: var(--type-sm);
+    line-height: 1.45;
+    color: var(--ink-3);
+    text-wrap: pretty;
+  }
+  /* the only monospace on the page */
+  :where(.t-num) {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ══ the glossary tooltip ════════════════════════════════════════════
+   CSS only, and it flips at the edge. No Radix, no floating-ui and no
+   JavaScript: `:hover` is the mouse, `:focus-within` is the finger.
+   `components/term-edges.tsx` measures once and writes `data-edge` /
+   `data-below`; everything below is the CSS that acts on them. */
+  .ov-term {
+    position: relative;
+    display: inline-block;
+  }
+  .ov-term-trigger {
+    font: inherit;
+    color: inherit;
+    background: none;
+    border: 0;
+    padding: 0;
+    cursor: help;
+    text-decoration: underline dotted;
+    text-underline-offset: 3px;
+    text-decoration-color: var(--ink-3);
+    transition: text-decoration-color var(--dur-quick) ease-out;
+  }
+  .ov-term-trigger:hover,
+  .ov-term-trigger:focus-visible {
+    text-decoration-color: var(--ink);
+    outline: none;
+  }
+  .ov-term-tip {
+    position: absolute;
+    bottom: calc(100% + var(--s8));
+    left: 50%;
+    z-index: 60;
+    display: flex;
+    flex-direction: column;
+    gap: var(--s3);
+    width: max-content;
+    max-width: min(280px, 70vw);
+    padding: var(--s8) var(--s13);
+    border-radius: var(--r-inner);
+    background: var(--ink);
+    color: var(--canvas);
+    text-align: left;
+    text-wrap: pretty;
+    box-shadow: 0 13px 34px -13px rgba(23, 22, 20, 0.55);
+    pointer-events: none;
+    opacity: 0;
+    transform: translate(-50%, 3px) scale(0.98);
+    transition-property: opacity, transform;
+    transition-duration: var(--dur-quick);
+    transition-timing-function: ease-out;
+  }
+  .ov-term-tip::after {
+    content: "";
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    width: 8px;
+    height: 8px;
+    margin: -4px 0 0 -4px;
+    background: var(--ink);
+    transform: rotate(45deg);
+  }
+  .ov-term:hover .ov-term-tip,
+  .ov-term:focus-within .ov-term-tip {
+    opacity: 1;
+    transform: translate(-50%, 0) scale(1);
+  }
+  .ov-term-tip-title {
+    font-family: var(--font-display);
+    font-size: var(--type-sm);
+    font-weight: 500;
+    letter-spacing: -0.01em;
+  }
+  .ov-term-tip-line {
+    font-family: var(--font-body);
+    font-size: var(--type-xs);
+    line-height: 1.5;
+  }
+  .ov-term-tip-meta {
+    font-family: var(--font-body);
+    font-size: var(--type-xs);
+    line-height: 1.4;
+    color: rgba(253, 245, 236, 0.62);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .ov-term-tip {
+      transition: none !important;
+    }
+  }
+  /* `.card` clips its corners, which would cut the tooltip in half. A card
+   that carries a term stops clipping; nothing inside one overflows. */
+  .card:has(.ov-term) {
+    overflow: visible;
+  }
+  .ov-term[data-edge="left"] .ov-term-tip {
+    left: 0;
+    transform: translate(0, 3px) scale(0.98);
+  }
+  .ov-term[data-edge="left"]:hover .ov-term-tip,
+  .ov-term[data-edge="left"]:focus-within .ov-term-tip {
+    transform: translate(0, 0) scale(1);
+  }
+  .ov-term[data-edge="left"] .ov-term-tip::after {
+    left: min(24px, 50%);
+  }
+  .ov-term[data-edge="right"] .ov-term-tip {
+    left: auto;
+    right: 0;
+    transform: translate(0, 3px) scale(0.98);
+  }
+  .ov-term[data-edge="right"]:hover .ov-term-tip,
+  .ov-term[data-edge="right"]:focus-within .ov-term-tip {
+    transform: translate(0, 0) scale(1);
+  }
+  .ov-term[data-edge="right"] .ov-term-tip::after {
+    left: auto;
+    right: min(24px, 50%);
+    margin: -4px -4px 0 0;
+  }
+  .ov-term[data-below] .ov-term-tip {
+    bottom: auto;
+    top: calc(100% + var(--s8));
+  }
+  .ov-term[data-below] .ov-term-tip::after {
+    top: auto;
+    bottom: 100%;
+    margin: 0 0 -4px -4px;
+  }
+  .ov-term[data-below][data-edge="right"] .ov-term-tip::after {
+    margin: 0 -4px -4px 0;
+  }
 }
 
 /* ──────────────────────────────────────────────────────────────────────
@@ -888,10 +1889,10 @@ select {
    project's own tokens so the pill follows the theme. The skill documents
    these as per-theme overrides; nothing in the snippet is renamed. */
 :root {
-  --tabs-text-muted: var(--color-neutral-500);
-  --tabs-text-active: var(--color-accent-500);
-  --tabs-bar-bg: var(--color-neutral-100);
-  --tabs-pill-bg: var(--color-accent-50);
+  --tabs-text-muted: var(--ink-2);
+  --tabs-text-active: var(--ink);
+  --tabs-bar-bg: var(--canvas-deep);
+  --tabs-pill-bg: var(--surface-hi);
 }
 
 /* 01-card-resize.md */
@@ -1372,238 +2373,74 @@ a.t-tab {
   text-decoration: none;
 }
 
-/* ── phase 25b: type discipline ──────────────────────────────────────────
-   Two families, four styles, one rule: monospace is for numbers, units,
-   codes and dates only — never for a sentence. The owner read a card and
-   said "gray mono text and black text and different sizes in the same
-   sentence, hard to follow", and he was right: the effect lines, the
-   "Never measured:" lists and the lens line were all prose set in mono.
+/* ── project extensions to the transitions.dev snippets ─────────────── */
 
-   `components/type-discipline.test.tsx` renders Home's cards and fails on
-   any mono element whose text is not a number, a unit, a code or a date. */
-:where(.t-title) {
-  font-family: var(--font-display);
-  font-weight: 500;
-  letter-spacing: -0.02em;
-  text-wrap: balance;
+/* 16: the snippet's tab is 30 px tall and square-cornered. The system page
+   draws it 34 px on the pill radius, in the sans at 13 px. Same JS, same
+   tokens, the system's shape. */
+.t-tabs {
+  gap: var(--s3);
+  padding: var(--s3);
+  border-radius: var(--r-pill);
+  max-width: 100%;
 }
-
-:where(.t-body) {
-  font-family: var(--font-body);
-  font-size: 13px;
-  line-height: 1.55;
-  color: var(--color-neutral-700);
-  text-wrap: pretty;
+.t-tab {
+  height: 34px;
+  padding: var(--s5) var(--s13);
+  border-radius: var(--r-pill);
+  font-family: inherit;
+  font-size: var(--type-sm);
+  white-space: nowrap;
 }
-
-/* The quiet sans voice: labels, captions, the line under a number. */
-:where(.t-meta) {
-  font-family: var(--font-body);
-  font-size: 13px;
-  line-height: 1.45;
-  color: var(--color-neutral-500);
-  text-wrap: pretty;
+.t-tabs-pill {
+  height: 34px;
+  border-radius: var(--r-pill);
+  box-shadow: 0 1px 2px rgba(23, 22, 20, 0.1);
 }
 
-/* The only monospace on the page. */
-:where(.t-num) {
-  font-family: var(--font-mono);
-  font-variant-numeric: tabular-nums;
-}
-
-/* ── phase 25b: the glossary tooltip ─────────────────────────────────────
-   Borrowed from the shadcn tooltip (structure, padding, radius, the arrow)
-   and repainted in this project's tokens. No Radix, no floating-ui and no
-   JavaScript: `:hover` is the mouse, `:focus-within` is the finger. */
-.ov-term {
-  position: relative;
-  display: inline-block;
-}
-
-.ov-term-trigger {
-  font: inherit;
-  color: inherit;
-  background: none;
-  border: 0;
-  padding: 0;
-  cursor: help;
-  text-decoration: underline dotted;
-  text-underline-offset: 3px;
-  text-decoration-color: var(--color-neutral-400);
-  transition: text-decoration-color 150ms ease-out;
-}
-.ov-term-trigger:hover,
-.ov-term-trigger:focus-visible {
-  text-decoration-color: var(--color-accent-500);
-  outline: none;
-}
-
-.ov-term-tip {
-  position: absolute;
-  bottom: calc(100% + 8px);
-  left: 50%;
-  z-index: 60;
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-  width: max-content;
-  max-width: min(280px, 70vw);
-  padding: 8px 10px;
-  border-radius: var(--radius-md);
-  background: var(--color-neutral-900);
-  color: var(--color-neutral-0);
-  text-align: left;
-  text-wrap: pretty;
-  box-shadow: var(--shadow-lg);
-  pointer-events: none;
-  opacity: 0;
-  transform: translate(-50%, 2px) scale(0.96);
-  transition-property: opacity, transform;
-  transition-duration: 150ms;
-  transition-timing-function: cubic-bezier(0.2, 0, 0, 1);
-}
-
-/* The shadcn arrow: a rotated square under the bubble. */
-.ov-term-tip::after {
-  content: "";
-  position: absolute;
-  top: 100%;
-  left: 50%;
-  width: 8px;
-  height: 8px;
-  margin: -4px 0 0 -4px;
-  background: var(--color-neutral-900);
-  transform: rotate(45deg);
-}
-
-.ov-term:hover .ov-term-tip,
-.ov-term:focus-within .ov-term-tip {
-  opacity: 1;
-  transform: translate(-50%, 0) scale(1);
-}
-
-.ov-term-tip-title {
-  font-family: var(--font-display);
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: -0.01em;
-}
-.ov-term-tip-line {
-  font-family: var(--font-body);
-  font-size: 12px;
-  line-height: 1.45;
-}
-.ov-term-tip-meta {
-  font-family: var(--font-body);
-  font-size: 11px;
-  line-height: 1.4;
-  color: var(--color-neutral-400);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .ov-term-tip {
-    transition: none !important;
-  }
-}
-
-/* `.card` clips its corners, which would cut the tooltip in half. A card
-   that carries a term stops clipping; nothing inside one overflows. */
-.card:has(.ov-term) {
-  overflow: visible;
-}
-
-/* ── phase 26 item 8: a tooltip that stays inside the window ─────────────
-   The bubble is centred on its word until that would hang it off the screen.
-   `components/term-edges.tsx` measures once on hover or focus and writes
-   `data-edge` / `data-below`; everything below is the CSS that acts on them.
-   The arrow follows, so the bubble still points at the word it explains. */
-.ov-term[data-edge="left"] .ov-term-tip {
-  left: 0;
-  transform: translate(0, 2px) scale(0.96);
-}
-.ov-term[data-edge="left"]:hover .ov-term-tip,
-.ov-term[data-edge="left"]:focus-within .ov-term-tip {
-  transform: translate(0, 0) scale(1);
-}
-.ov-term[data-edge="left"] .ov-term-tip::after {
-  left: min(24px, 50%);
-}
-
-.ov-term[data-edge="right"] .ov-term-tip {
-  left: auto;
-  right: 0;
-  transform: translate(0, 2px) scale(0.96);
-}
-.ov-term[data-edge="right"]:hover .ov-term-tip,
-.ov-term[data-edge="right"]:focus-within .ov-term-tip {
-  transform: translate(0, 0) scale(1);
-}
-.ov-term[data-edge="right"] .ov-term-tip::after {
-  left: auto;
-  right: min(24px, 50%);
-  margin: -4px -4px 0 0;
-}
-
-.ov-term[data-below] .ov-term-tip {
-  bottom: auto;
-  top: calc(100% + 8px);
-}
-.ov-term[data-below] .ov-term-tip::after {
-  top: auto;
-  bottom: 100%;
-  margin: 0 0 -4px -4px;
-}
-.ov-term[data-below][data-edge="right"] .ov-term-tip::after {
-  margin: 0 -4px -4px 0;
-}
-
-/* ══ phase 28c: the home ═══════════════════════════════════════════════
+/* ══ the home ════════════════════════════════════════════════════════
    v4's shapes, August's warmth, Kite's rail and colours. Everything here
-   is scoped to `.home` so no other page drifts; the only app-wide changes
-   are `body`'s canvas and `.card`'s surface above. */
+   is scoped to `.home`; the card, the chip and the spectrum tones above
+   are the system's and belong to every page. */
 
 .home {
   display: flex;
   flex-direction: column;
-  gap: var(--sp-6);
+  gap: var(--s34);
   /* the page gutter (`px-3` on the phone), so the rail can bleed exactly
      to the screen edge and no further */
   --bleed: 12px;
 }
 
-/* ── the sentence, over August's light ──────────────────────────────── */
-
 .home-top {
   position: relative;
   display: flex;
   flex-direction: column;
-  gap: var(--sp-5);
+  gap: var(--s21);
 }
 
 .home-sentence {
-  font-size: 21px;
+  font-size: var(--type-lg);
   line-height: 1.25;
   letter-spacing: -0.02em;
   color: var(--ink);
 }
 
 .home-meta {
-  margin-top: var(--sp-2);
-  font-size: 13px;
+  margin-top: var(--s5);
+  font-size: var(--type-sm);
   color: var(--ink-3);
 }
 
-/* August's light: three blurred blobs, and three is the budget. */
+/* August's light again, positioned for the home's own bleed. */
 .home-light {
   position: absolute;
-  inset: calc(var(--sp-6) * -1) calc(var(--bleed) * -1);
+  inset: calc(var(--s34) * -1) calc(var(--bleed) * -1);
   z-index: -1;
   overflow: hidden;
   pointer-events: none;
-  /* one mask, so the blobs fade out instead of ending on the clip edge */
   mask-image: radial-gradient(80% 85% at 45% 35%, #000, transparent);
 }
-
 .home-light .blob {
   position: absolute;
   width: 220px;
@@ -1613,7 +2450,6 @@ a.t-tab {
   filter: blur(55px);
   transition: background-color var(--reveal-dur, 400ms) ease;
 }
-
 .home-light .b1 {
   top: -60px;
   left: -40px;
@@ -1626,144 +2462,119 @@ a.t-tab {
   bottom: -110px;
   left: 40%;
 }
-
 :root[data-theme="dark"] .home-light .blob {
   opacity: 0.28;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .home-light .blob {
-    transition: none;
-  }
-}
-
-/* ── the rail (Kite) ────────────────────────────────────────────────── */
-
 /* The fade lives on the wrapper: a mask on the scroller itself would size
    itself to the scrolled content, not to the screen, and never show. */
 .home .rail-wrap {
-  /* the page already pads; pull the rail back out so it bleeds edge to edge */
   margin-inline: calc(var(--bleed) * -1);
-  mask-image: linear-gradient(90deg, #000 calc(100% - 34px), transparent);
 }
-
 .home .rail {
-  display: flex;
-  gap: var(--sp-4);
-  overflow-x: auto;
-  scroll-snap-type: x mandatory;
   scroll-padding-left: var(--bleed);
   padding-inline: var(--bleed);
-  padding-block: 2px var(--sp-1);
-  scrollbar-width: none;
   overscroll-behavior-x: contain;
-  list-style: none;
 }
-
-.home .rail::-webkit-scrollbar {
-  display: none;
-}
-
 .home .rail > * {
   flex: 0 0 280px;
-  min-height: 160px;
-  scroll-snap-align: start;
 }
 
 .home .rail-card {
   position: relative;
   display: flex;
   flex-direction: column;
-  gap: var(--sp-3);
+  gap: var(--s8);
   height: 100%;
-  padding: var(--sp-4);
+  padding: var(--s13);
   border-radius: var(--r-card);
   background: var(--surface);
   backdrop-filter: blur(21px);
   border: 1px solid rgba(255, 255, 255, 0.5);
   color: var(--ink);
   overflow: hidden;
-  animation: fadeInUp 400ms ease-out backwards;
+  animation: home-card-in 400ms var(--ease) backwards;
   animation-delay: calc(var(--i, 0) * 40ms);
-  transition: border-color 150ms ease;
+  transition: border-color var(--dur-quick) var(--ease);
 }
-
+@keyframes home-card-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
 :root[data-theme="dark"] .home .rail-card {
   border-color: rgba(255, 255, 255, 0.08);
 }
-
 .home .rail-card:hover {
   border-color: var(--ink-3);
 }
-
 .home .rail-card.navy {
   background: var(--navy);
   border-color: rgba(255, 255, 255, 0.12);
   color: var(--navy-ink);
 }
-
 .home .rail-card.navy .c-label,
 .home .rail-card.navy .c-line,
-.home .rail-card.navy .c-word {
-  color: rgba(244, 242, 237, 0.72);
+.home .rail-card.navy .c-word,
+.home .rail-card.navy .tone-none {
+  color: var(--navy-ink-2);
+}
+/* The spectrum, lightened so it reads on Kite's navy. */
+.home .rail-card.navy .tone-bad {
+  color: var(--navy-bad);
+}
+.home .rail-card.navy .tone-warn {
+  color: var(--navy-warn);
+}
+.home .rail-card.navy .tone-ok {
+  color: var(--navy-ok);
 }
 
-/* the 3 px hue bar on the top edge of the Status card */
-.home .c-bar {
-  position: absolute;
-  inset: 0 0 auto 0;
-  height: 3px;
-  background: var(--ink-3);
-  transition: background-color var(--reveal-dur, 400ms) ease;
+/* two lines, then an ellipsis: a card is a glance, the page below is the
+   detail. Never a word cut in half by the card's own edge. */
+.home .c-line {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
 }
 
-.home .c-label {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  font-weight: 500;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--ink-3);
+.chip-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+  flex: none;
 }
-
-.home .c-num {
-  font-family: var(--font-mono);
-  font-size: 34px;
-  font-weight: 200;
-  line-height: 1;
-  letter-spacing: -0.04em;
-  font-variant-numeric: tabular-nums;
+.chip-dot.tone-none {
+  background: transparent;
+  border: 1px solid currentColor;
 }
-
-.home .c-title {
-  font-size: 21px;
-  line-height: 1.2;
-  letter-spacing: -0.02em;
-}
-
-.home .c-sub {
-  font-size: 13px;
-  color: var(--ink-3);
-}
-
-.home .c-word {
-  font-size: 11px;
+.chip-word {
+  font-size: var(--type-xs);
   letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--ink-3);
 }
 
-.home .c-line {
-  margin-top: auto;
-  font-size: 13px;
-  line-height: 1.35;
-  color: var(--ink-2);
-  /* two lines, then an ellipsis: a card is a glance, the page below is the
-     detail. Never a word cut in half by the card's own edge. */
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-  overflow: hidden;
+/* ask, as the v4 pill */
+.home .ask-pill {
+  border-radius: var(--r-pill);
+  background: var(--surface-hi);
+  backdrop-filter: blur(21px);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  padding-inline: var(--s21);
+}
+:root[data-theme="dark"] .home .ask-pill {
+  border-color: rgba(255, 255, 255, 0.08);
+}
+.home .ask-pill input {
+  font-size: var(--type-md);
+  color: var(--ink);
+}
+.home .ask-pill input:focus {
+  box-shadow: none;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1774,19 +2585,9 @@ a.t-tab {
     animation: none;
     transition: none;
   }
-  .home .c-bar {
+  .home-light .blob,
+  .c-bar {
     transition: none;
-  }
-}
-
-@media (prefers-reduced-transparency: reduce) {
-  .home .rail-card,
-  .home .ask-pill {
-    background: var(--surface-hi);
-    backdrop-filter: none;
-  }
-  .home-light {
-    display: none;
   }
 }
 
@@ -1813,129 +2614,47 @@ a.t-tab {
   }
 }
 
-/* ── ask, as the v4 pill ────────────────────────────────────────────── */
-
-.home .ask-pill {
-  border-radius: var(--r-pill);
-  background: var(--surface-hi);
-  backdrop-filter: blur(21px);
-  border: 1px solid rgba(255, 255, 255, 0.5);
-  padding-inline: var(--sp-5);
-}
-
-:root[data-theme="dark"] .home .ask-pill {
-  border-color: rgba(255, 255, 255, 0.08);
-}
-
-.home .ask-pill input {
-  font-size: 15px;
-  color: var(--ink);
-}
-
-/* ── systems as state: the twelve chips the rail cannot show ────────── */
-
-.home .chips {
+/* the theme picker inside the avatar menu: the label above, the one tab
+   control below, both on the menu's own padding */
+.theme-row {
   display: flex;
-  flex-wrap: wrap;
-  gap: var(--sp-3);
-  list-style: none;
+  flex-direction: column;
+  gap: var(--s3);
+  padding: var(--s8) var(--s8) var(--s5);
 }
-
-.home .chip {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--sp-2);
-  padding: var(--sp-2) var(--sp-4);
-  border-radius: var(--r-pill);
-  background: var(--surface);
-  border: 1px solid rgba(255, 255, 255, 0.5);
-  font-size: 13px;
-  color: var(--ink-2);
-  transition: border-color 150ms ease;
-}
-
-:root[data-theme="dark"] .home .chip {
-  border-color: rgba(255, 255, 255, 0.08);
-}
-
-.home .chip:hover {
-  border-color: var(--ink-3);
-}
-
-.home .chip-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: currentColor;
-}
-
-.home .chip-word {
-  font-size: 11px;
-  letter-spacing: 0.04em;
+.theme-row .grp {
+  font-family: var(--font-mono);
+  font-size: var(--type-xs);
+  letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--ink-3);
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .home .chip {
-    transition: none;
-  }
+/* the login page: one card on the cream, centred, with the light behind it */
+.login-page {
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: var(--s34) var(--s21);
 }
 
-/* Spectrum logic, one place. Text and dots only, never a surface. */
-.home .tone-bad {
-  color: var(--bad);
+/* the compact input the chip editor uses: same shape, one step down */
+.inp.mini,
+.sel.mini {
+  min-height: 32px;
+  padding: var(--s3) var(--s8);
+  font-size: var(--type-sm);
 }
-.home .tone-warn {
-  color: var(--warn);
-}
-.home .tone-ok {
-  color: var(--ok);
-}
-.home .tone-none {
+/* a field whose label is a <span> because the <label> wraps the input */
+.field > span:first-child {
+  font-family: var(--font-mono);
+  font-size: var(--type-xs);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
   color: var(--ink-3);
-}
-.home .chip-dot.tone-none {
-  background: transparent;
-  border: 1px solid currentColor;
-}
-.home .rail-card.navy .tone-none {
-  color: rgba(244, 242, 237, 0.72);
-}
-/* The spectrum, lightened so it reads on Kite's navy. */
-.home .rail-card.navy .tone-bad {
-  color: var(--navy-bad);
-}
-.home .rail-card.navy .tone-warn {
-  color: var(--navy-warn);
-}
-.home .rail-card.navy .tone-ok {
-  color: var(--navy-ok);
 }
 
-/* ── phase 28c: the nav on the warm canvas ── */
-.nav-bar {
-  background: color-mix(in srgb, var(--canvas) 85%, transparent);
-  backdrop-filter: blur(13px);
-  border-color: color-mix(in srgb, var(--ink) 12%, transparent);
-}
-.nav-pill {
-  color: var(--ink-3);
-}
-.nav-pill:hover {
-  color: var(--ink);
-}
-.nav-pill-on {
-  background: var(--surface-hi);
-  color: var(--ink);
-}
-.nav-group {
-  background: var(--canvas-deep);
-  border-color: color-mix(in srgb, var(--ink) 10%, transparent);
-}
-@media (prefers-reduced-transparency: reduce) {
-  .nav-bar {
-    background: var(--canvas);
-    backdrop-filter: none;
-  }
+/* the login error is a sentence, not a code, so it takes the body size */
+.logincard .err {
+  font-size: var(--type-sm);
 }

@@ -9,17 +9,17 @@ import { EDGES, NODES, type GraphEdge } from "@/lib/graph";
 import { matchPatterns, PATTERNS } from "@/lib/patterns";
 import { ReviewItem } from "@/components/client";
 import { ViewShell } from "@/components/plan";
-import { Badge, Card } from "@/components/ui-kit";
+import { Card, StateWord, type StateTone } from "@/components/ui-kit";
 
 export const dynamic = "force-dynamic";
 
 const NAMES = new Map(NODES.map((n) => [n.id, n.name]));
 
-const CONFIDENCE_BADGE = {
-  established: "normal",
-  probable: "info",
-  speculative: "secondary",
-} as const;
+const CONFIDENCE_TONE: Record<string, StateTone> = {
+  established: "on",
+  probable: "none",
+  speculative: "none",
+};
 
 function Label({ children }: { children: React.ReactNode }) {
   return (
@@ -106,9 +106,9 @@ export default async function PatternPage({
       <Card className="p-4">
         <div className="flex flex-wrap items-center gap-2">
           {matched ? (
-            <Badge variant="warning">{match?.stage ?? "matched"}</Badge>
+            <StateWord tone="border">{match?.stage ?? "matched"}</StateWord>
           ) : (
-            <Badge variant="secondary">not matched for you</Badge>
+            <StateWord>not matched for you</StateWord>
           )}
           {lastReviewed && (
             <span className="t-meta text-[10px] font-bold uppercase tracking-[0.06em] text-neutral-400">
@@ -195,9 +195,9 @@ export default async function PatternPage({
             return (
               <div key={edge.id} className="px-4 py-3">
                 <div className="flex flex-wrap items-start gap-2">
-                  <Badge variant={CONFIDENCE_BADGE[confidence]}>
+                  <StateWord tone={CONFIDENCE_TONE[confidence]}>
                     {confidence}
-                  </Badge>
+                  </StateWord>
                   <p className="flex-1 font-body text-[13px] text-neutral-800">
                     {NAMES.get(edge.from) ?? edge.from} {edge.relation}{" "}
                     {NAMES.get(edge.to) ?? edge.to}
@@ -247,9 +247,9 @@ export default async function PatternPage({
                 <p className="flex-1 font-body text-[13px] text-neutral-700">
                   {q.text}
                 </p>
-                <Badge variant={answered ? "normal" : "secondary"}>
+                <StateWord tone={answered ? "on" : "none"}>
                   {answered ? "answered" : "not asked yet"}
-                </Badge>
+                </StateWord>
               </Card>
             );
           })}

@@ -111,7 +111,7 @@ export function DocumentItems({
                 <>
                   <Button
                     size="sm"
-                    variant="outline-subtle"
+                    job="quiet"
                     disabled={busy}
                     onClick={() => post({ action: "accept", kind })}
                   >
@@ -119,7 +119,7 @@ export function DocumentItems({
                   </Button>
                   <Button
                     size="sm"
-                    variant="ghost"
+                    job="text"
                     disabled={busy}
                     onClick={() => post({ action: "reject", kind })}
                   >
@@ -194,7 +194,7 @@ export function DocumentItems({
                       <div className="flex gap-2">
                         <Button
                           size="sm"
-                          variant="outline-subtle"
+                          job="quiet"
                           disabled={busy}
                           onClick={() => {
                             let payload: Record<string, unknown>;
@@ -215,7 +215,7 @@ export function DocumentItems({
                         </Button>
                         <Button
                           size="sm"
-                          variant="ghost"
+                          job="text"
                           onClick={() => setEditing(null)}
                         >
                           Cancel

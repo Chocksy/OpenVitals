@@ -12,7 +12,7 @@ import {
 import { requireUserId } from "@/lib/auth";
 import { getMetricRows } from "@/lib/data";
 import { projectionsFor } from "@/lib/projections";
-import { Badge } from "@/components/ui-kit";
+import { StateWord, type StateTone } from "@/components/ui-kit";
 import {
   HistoryLanes,
   type HistoryMarker,
@@ -24,15 +24,14 @@ export const dynamic = "force-dynamic";
 const TD = "px-3 py-1.5 font-mono tabular-nums";
 const TH = "px-3 py-1.5 text-left font-bold";
 
-const KIND_BADGE: Record<string, "secondary" | "info" | "normal" | "warning"> =
-  {
-    fact: "info",
-    post: "normal",
-    corrected: "warning",
-    event: "secondary",
-    upload: "secondary",
-    action: "normal",
-  };
+const KIND_TONE: Record<string, StateTone> = {
+  fact: "none",
+  post: "on",
+  corrected: "border",
+  event: "none",
+  upload: "none",
+  action: "on",
+};
 
 const text = (v: unknown) =>
   Array.isArray(v) ? v.join(", ") : String(v ?? "");
@@ -279,9 +278,7 @@ export default async function HistoryPage() {
               <tr key={`${r.kind}-${i}`}>
                 <td className={TD}>{r.date}</td>
                 <td className={TD}>
-                  <Badge variant={KIND_BADGE[r.kind] ?? "secondary"}>
-                    {r.kind}
-                  </Badge>
+                  <StateWord tone={KIND_TONE[r.kind]}>{r.kind}</StateWord>
                 </td>
                 <td className="px-3 py-1.5">{r.what}</td>
                 <td

@@ -76,7 +76,20 @@ const decode = (s: string) =>
     .replace(/\s+/g, " ")
     .trim();
 
-/** Every element whose class list asks for the monospace family. */
+/**
+ * Every element whose class list asks for the monospace family.
+ *
+ * Phase 30a moved the type discipline out of Tailwind utilities and into the
+ * design system's own classes, so the check follows the new names: `.t-num`
+ * and `font-mono` still count, and so do `.c-num` (a card's big number),
+ * `.conc-pct` (a likelihood) and `.conc-rank` (a rank), which set the mono
+ * family in `globals.css`. `.c-label` is deliberately not here: it is the
+ * system's one-word label voice (STATUS, BODY, BLOOD), never a sentence.
+ */
+const MONO_CLASS =
+  /class="[^"]*\b(?:font-mono|t-num|c-num|conc-pct|conc-rank)\b[^"]*"/;
+
+
 export function monoTexts(html: string): string[] {
   const out: string[] = [];
   const tag = /<(\/?)([a-zA-Z][\w-]*)([^>]*?)(\/?)>/g;
@@ -91,7 +104,7 @@ export function monoTexts(html: string): string[] {
       continue;
     }
     stack.push({
-      mono: /class="[^"]*(?:\bfont-mono\b|\bt-num\b)[^"]*"/.test(full),
+      mono: MONO_CLASS.test(full),
       start: m.index + full.length,
     });
   }
@@ -118,7 +131,9 @@ const MONTH = /^(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)$/;
 
 /** Is this token a number, a unit, a code or a date? */
 function ok(token: string): boolean {
-  const t = token.replace(/[,.;:]+$/, "");
+  // The coral ▲ is a glyph, not a word: it rides on the number it warns
+  // about ("▲3"), so it comes off before the token is judged.
+  const t = token.replace(/^▲/, "").replace(/[,.;:]+$/, "");
   if (!t) return true;
   if (NUMBER.test(t) || RANGE.test(t) || DATE.test(t) || MONEY.test(t) || PUNCT.test(t))
     return true;

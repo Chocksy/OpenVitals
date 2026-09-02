@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Play, RefreshCw, Search, Upload } from "lucide-react";
+import { Mail, Play, RefreshCw, Search, Upload } from "lucide-react";
 import { signIn, signUp } from "@/lib/auth-client";
 import { statusColor, type Status } from "@/lib/status";
 import { cn, fmtCategory } from "@/lib/utils";
@@ -41,62 +41,97 @@ export function LoginForm({ google }: { google: boolean }) {
             name: String(f.get("name") ?? email),
           });
     setBusy(false);
-    if (res.error) setError(res.error.message ?? "Something went wrong");
+    if (res.error)
+      setError(
+        res.error.message ??
+          "That email and password do not match an account. Try again, or make one.",
+      );
     // Full navigation, so the app layout re-runs and the nav shows up.
     else window.location.href = "/";
   }
 
   return (
-    <div className="mx-auto mt-16 max-w-sm space-y-4">
-      <h1 className="font-display text-[28px] font-medium tracking-[-0.03em]">
-        {mode === "in" ? "Sign in" : "Create an account"}
-      </h1>
-      <form onSubmit={submit} className="space-y-3">
-        {mode === "up" && (
-          <input name="name" placeholder="Name" className={INPUT} />
-        )}
-        <input
-          name="email"
-          type="email"
-          required
-          placeholder="Email"
-          className={INPUT}
-        />
-        <input
-          name="password"
-          type="password"
-          required
-          minLength={8}
-          placeholder="Password"
-          className={INPUT}
-        />
-        <Button className="w-full" disabled={busy}>
-          {busy ? "…" : mode === "in" ? "Sign in" : "Sign up"}
-        </Button>
-      </form>
-      {google && (
-        <Button
-          variant="outline-subtle"
-          className="w-full"
-          onClick={() =>
-            signIn.social({ provider: "google", callbackURL: "/" })
-          }
-        >
-          Continue with Google
-        </Button>
-      )}
-      {error && (
-        <p className="text-sm text-[var(--color-health-critical)]">{error}</p>
-      )}
-      <button
-        className="t-meta text-[12px] text-neutral-500 hover:text-neutral-900"
-        onClick={() => setMode(mode === "in" ? "up" : "in")}
-      >
-        {mode === "in"
-          ? "Need an account? Sign up"
-          : "Have an account? Sign in"}
-      </button>
-    </div>
+    <main className="lit login-page">
+      <div className="light-layer" aria-hidden="true">
+        <i />
+        <i />
+        <i />
+      </div>
+      <div className="logincard">
+        <div className="loginhead">
+          <span className="brand">OpenVitals</span>
+          <p className="t-meta">
+            {mode === "in"
+              ? "Welcome back."
+              : "Your labs, your phone, one ledger."}
+          </p>
+        </div>
+        <div className="flex flex-col gap-[var(--s13)]">
+          {google && (
+            <Button
+              job="quiet"
+              type="button"
+              className="w-full"
+              onClick={() =>
+                signIn.social({ provider: "google", callbackURL: "/" })
+              }
+            >
+              <Mail className="ic" />
+              Continue with Google
+            </Button>
+          )}
+          {google && <p className="t-meta text-center">or</p>}
+          <form onSubmit={submit} className="flex flex-col gap-[var(--s13)]">
+            {mode === "up" && (
+              <div className="field">
+                <label htmlFor="login-name">Name</label>
+                <input className="inp" id="login-name" name="name" />
+              </div>
+            )}
+            <div className="field">
+              <label htmlFor="login-email">Email</label>
+              <input
+                className="inp"
+                id="login-email"
+                name="email"
+                type="email"
+                required
+                placeholder="you@example.com"
+              />
+            </div>
+            <div className="field">
+              <label htmlFor="login-password">Password</label>
+              <input
+                className="inp"
+                id="login-password"
+                name="password"
+                type="password"
+                required
+                minLength={8}
+              />
+            </div>
+            {error && <p className="err">{error}</p>}
+            <Button className="w-full" busy={busy} disabled={busy}>
+              {busy
+                ? "One moment…"
+                : mode === "in"
+                  ? "Sign in"
+                  : "Create the account"}
+            </Button>
+          </form>
+          <p className="t-meta text-center">
+            {mode === "in" ? "No account yet? " : "Already have an account? "}
+            <button
+              type="button"
+              className="text-[var(--ink)] underline underline-offset-[3px]"
+              onClick={() => setMode(mode === "in" ? "up" : "in")}
+            >
+              {mode === "in" ? "Make one" : "Sign in"}
+            </button>
+          </p>
+        </div>
+      </div>
+    </main>
   );
 }
 
@@ -138,9 +173,7 @@ export function UploadButton() {
           }}
         />
       </label>
-      {state && (
-        <span className="t-meta text-[12px]">{state}</span>
-      )}
+      {state && <span className="t-meta text-[12px]">{state}</span>}
     </div>
   );
 }
@@ -170,18 +203,18 @@ export function useAction() {
 export function GenerateButton({
   kind,
   label,
-  variant = "default",
+  job = "ink",
 }: {
   kind: string;
   label: string;
-  variant?: "default" | "ghost";
+  job?: "ink" | "text";
 }) {
   const { run, busy, error } = useAction();
   return (
     <span className="inline-flex items-center gap-2">
       <Button
-        variant={variant}
-        size={variant === "ghost" ? "sm" : "default"}
+        job={job}
+        size={job === "text" ? "sm" : "md"}
         disabled={busy}
         onClick={() => run("/api/insights", { kind })}
       >
@@ -213,7 +246,7 @@ export function CheckinButtons({
         <Button
           key={a}
           size="sm"
-          variant={current === a ? "default" : "outline-subtle"}
+          job={current === a ? "ink" : "quiet"}
           disabled={busy}
           onClick={() =>
             run("/api/checkins", { insightId, itemIndex, answer: a })
@@ -337,9 +370,7 @@ export function ReviewItem({
     return (
       <div className="card p-4">
         <p className="t-body text-neutral-800">{question}</p>
-        {detail && (
-          <p className="t-meta mt-1 text-[12px]">{detail}</p>
-        )}
+        {detail && <p className="t-meta mt-1 text-[12px]">{detail}</p>}
         <div className="mt-3 flex flex-wrap items-center gap-2">
           <input
             value={note}
@@ -353,7 +384,7 @@ export function ReviewItem({
           />
           <Button
             size="sm"
-            variant="outline-subtle"
+            job="quiet"
             disabled={busy || !note.trim()}
             onClick={() => run(`/api/review/${id}`, { answer: "text", note })}
           >
@@ -371,9 +402,7 @@ export function ReviewItem({
   return (
     <div className="card p-4">
       <p className="t-body text-neutral-800">{question}</p>
-      {detail && (
-        <p className="t-meta mt-1 text-[12px]">{detail}</p>
-      )}
+      {detail && <p className="t-meta mt-1 text-[12px]">{detail}</p>}
       <div className="mt-3 flex flex-wrap items-center gap-2">
         {options.map((o) => (
           <span key={o} className="inline-flex items-center gap-1.5">
@@ -409,7 +438,7 @@ export function ReviewItem({
               ))}
             <Button
               size="sm"
-              variant="outline-subtle"
+              job="quiet"
               disabled={busy || (needsNote(o) && !note.trim())}
               onClick={() => run(`/api/review/${id}`, { answer: o, note })}
             >
@@ -515,7 +544,7 @@ export function AnswerQuestion({
             <Button
               key={o}
               size="sm"
-              variant="outline-subtle"
+              job="quiet"
               disabled={working}
               onClick={() => void save(o)}
             >
@@ -533,7 +562,7 @@ export function AnswerQuestion({
             />
             <Button
               size="sm"
-              variant="outline-subtle"
+              job="quiet"
               disabled={working || !text.trim()}
               onClick={() => void save(text)}
             >
@@ -614,7 +643,7 @@ export function StillTrue({
         <div className="flex flex-wrap items-center gap-1.5">
           <Button
             size="sm"
-            variant="outline-subtle"
+            job="quiet"
             disabled={busy}
             onClick={() =>
               run("/api/facts/revisit", { key: factKey, action: "confirm" })
@@ -624,7 +653,7 @@ export function StillTrue({
           </Button>
           <Button
             size="sm"
-            variant="ghost"
+            job="text"
             disabled={busy}
             onClick={() => setChanging(true)}
           >
@@ -632,7 +661,7 @@ export function StillTrue({
           </Button>
           <Button
             size="sm"
-            variant="ghost"
+            job="text"
             disabled={busy}
             onClick={() =>
               run("/api/facts/revisit", { key: factKey, action: "skip" })
@@ -663,7 +692,7 @@ export function StillTrue({
               <Button
                 key={o}
                 size="sm"
-                variant="outline-subtle"
+                job="quiet"
                 disabled={busy}
                 onClick={() => save(o)}
               >
@@ -679,7 +708,7 @@ export function StillTrue({
               />
               <Button
                 size="sm"
-                variant="outline-subtle"
+                job="quiet"
                 disabled={busy || !text.trim()}
                 onClick={() => save(text)}
               >

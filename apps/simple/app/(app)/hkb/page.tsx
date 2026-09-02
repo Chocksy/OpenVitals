@@ -34,7 +34,7 @@ import {
   ResearchButton,
   RunImport,
 } from "@/components/hkb-controls";
-import { Badge } from "@/components/ui-kit";
+import { StateWord, type StateTone, Tier } from "@/components/ui-kit";
 
 export const dynamic = "force-dynamic";
 
@@ -54,14 +54,11 @@ const TH = "px-3 py-1.5 text-left font-bold";
 const TD = "px-3 py-1.5 font-mono tabular-nums";
 const TDT = "px-3 py-1.5";
 
-const STATUS_BADGE: Record<
-  string,
-  "secondary" | "info" | "normal" | "warning"
-> = {
-  seed: "secondary",
-  accepted: "normal",
-  proposed: "info",
-  rejected: "warning",
+const STATUS_TONE: Record<string, StateTone> = {
+  seed: "none",
+  accepted: "on",
+  proposed: "none",
+  rejected: "border",
 };
 
 /** The row limit on every table here: this is a review page, not an export. */
@@ -338,11 +335,9 @@ async function evidenceTab(status: string, condition: string) {
                   <td className={TD}>{e.grade}</td>
                   <td className={TD}>
                     <span className="flex flex-col items-start gap-1">
-                      <Badge variant={STATUS_BADGE[e.status] ?? "secondary"}>
-                        {e.status}
-                      </Badge>
+                      <StateWord tone={STATUS_TONE[e.status]}>{e.status}</StateWord>
                       {e.needsLook && (
-                        <Badge variant="warning">needs look</Badge>
+                        <StateWord tone="border">needs look</StateWord>
                       )}
                       <Override
                         id={e.id}
@@ -390,12 +385,6 @@ async function evidenceTab(status: string, condition: string) {
     </Card>
   );
 }
-
-const TIER_BADGE: Record<string, "normal" | "info" | "secondary"> = {
-  established: "normal",
-  early: "info",
-  experimental: "secondary",
-};
 
 /** What the papers say might help, per condition, grade first. */
 async function interventionsTab(condition: string) {
@@ -484,9 +473,7 @@ async function interventionsTab(condition: string) {
             <tr key={r.id}>
               <td className={TD}>{r.conditionId}</td>
               <td className={TD}>
-                <Badge variant={TIER_BADGE[tierOf(r.grade)] ?? "secondary"}>
-                  {tierOf(r.grade)}
-                </Badge>
+                <Tier tier={tierOf(r.grade)} />
                 {r.status === "horizon" && (
                   <span className="ml-1 font-mono text-[10px] text-neutral-400">
                     horizon · {r.population ?? "unknown"}
@@ -675,9 +662,7 @@ async function activityTab() {
                 {row.at?.toISOString().slice(0, 19).replace("T", " ") ?? "—"}
               </td>
               <td className={TD}>
-                <Badge variant={STATUS_BADGE[row.kind] ?? "secondary"}>
-                  {row.kind}
-                </Badge>
+                <StateWord tone={STATUS_TONE[row.kind]}>{row.kind}</StateWord>
               </td>
               <td className="px-3 py-1.5 text-[11px] text-neutral-500">
                 {row.text}

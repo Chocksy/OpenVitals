@@ -195,7 +195,7 @@ export function ActOnIt({
         {left.length > 1 && (
           <Button
             size="sm"
-            variant="outline-subtle"
+            job="quiet"
             data-act="add-all"
             disabled={working}
             onClick={() => void add(left, "all")}

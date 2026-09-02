@@ -125,7 +125,7 @@ export function WhatToDo({
           </p>
           <Button
             size="sm"
-            variant="outline-subtle"
+            job="quiet"
             disabled={working}
             onClick={() => void getActions()}
           >
@@ -170,7 +170,7 @@ export function WhatToDo({
                   ) : (
                     <Button
                       size="sm"
-                      variant="ghost"
+                      job="text"
                       disabled={working}
                       onClick={() => void add([line], line.title)}
                     >
@@ -186,7 +186,7 @@ export function WhatToDo({
             <div className="mt-2">
               <Button
                 size="sm"
-                variant="outline-subtle"
+                job="quiet"
                 disabled={working}
                 onClick={() => void add(left, "all")}
               >

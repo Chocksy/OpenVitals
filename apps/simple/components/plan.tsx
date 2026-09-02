@@ -168,7 +168,7 @@ export function AdoptHorizon({
     <span className="inline-flex items-center gap-2">
       <Button
         size="sm"
-        variant="outline-subtle"
+        job="quiet"
         disabled={busy}
         onClick={async () => {
           if (await run("/api/plan/adopt", { interventionId })) setState(true);
@@ -288,7 +288,7 @@ export function ActionButtons({
         ) : (
           <Button
             size="sm"
-            variant="outline-subtle"
+            job="quiet"
             disabled={busy}
             onClick={async () => {
               if (await run("/api/plan/adopt", { reportId, actionIndex }))
@@ -298,12 +298,12 @@ export function ActionButtons({
             Add to protocol
           </Button>
         )}
-        <Button size="sm" variant="ghost" disabled={busy} onClick={dismiss}>
+        <Button size="sm" job="text" disabled={busy} onClick={dismiss}>
           Not for me
         </Button>
         <Button
           size="sm"
-          variant="ghost"
+          job="text"
           onClick={() =>
             openComposer("", {
               ...(about ? { id: about } : {}),

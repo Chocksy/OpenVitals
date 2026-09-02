@@ -12,7 +12,7 @@ import {
   YAxis,
 } from "recharts";
 import { rollingAverage } from "@/lib/daily";
-import { cn } from "@/lib/utils";
+import { PillTabs } from "./pill-tabs";
 import { MiniSparkline } from "./ui-kit";
 
 export interface TrendRow {
@@ -81,28 +81,18 @@ export function DailyCharts({
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="pill-tabs">
-          {TABS.map((t) => (
-            <button
-              key={t.id}
-              onClick={() => setTabId(t.id)}
-              className={cn("pill-tab", t.id === tabId && "pill-tab-active")}
-            >
-              {t.label}
-            </button>
-          ))}
-        </div>
-        <div className="pill-tabs">
-          {RANGES.map((r) => (
-            <button
-              key={r}
-              onClick={() => setRange(r)}
-              className={cn("pill-tab", r === range && "pill-tab-active")}
-            >
-              {r}d
-            </button>
-          ))}
-        </div>
+        <PillTabs
+          label="Which measure"
+          active={tabId}
+          tabs={TABS.map((t) => ({ id: t.id, label: t.label }))}
+          onSelect={setTabId}
+        />
+        <PillTabs
+          label="How far back"
+          active={String(range)}
+          tabs={RANGES.map((r) => ({ id: String(r), label: `${r}d` }))}
+          onSelect={(id) => setRange(Number(id))}
+        />
       </div>
 
       <div className="card p-4">

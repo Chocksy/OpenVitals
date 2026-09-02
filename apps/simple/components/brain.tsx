@@ -25,7 +25,7 @@ import { cn } from "@/lib/utils";
 import type { AssertionReport } from "@/evals/assert";
 import { ActionCard } from "./action-card";
 import { ViewShell } from "./plan";
-import { Badge, Button, Card } from "./ui-kit";
+import { Button, Card, StateWord, type StateTone } from "./ui-kit";
 
 export interface BrainUser {
   id: string;
@@ -48,20 +48,20 @@ const CONFOUNDER_TAGS = [
   "dehydration",
 ];
 
-const STATE_BADGE = {
-  ruled_out: "secondary",
-  unlikely: "secondary",
-  possible: "info",
-  likely: "warning",
-  confirmed: "critical",
-} as const;
+const STATE_TONE: Record<string, StateTone> = {
+  ruled_out: "none",
+  unlikely: "none",
+  possible: "none",
+  likely: "border",
+  confirmed: "off",
+};
 
-const COVERAGE_BADGE = {
-  current: "normal",
-  stale: "warning",
-  never: "critical",
-  "n/a": "secondary",
-} as const;
+const COVERAGE_TONE: Record<string, StateTone> = {
+  current: "on",
+  stale: "border",
+  never: "off",
+  "n/a": "none",
+};
 
 const TREND = { up: "↑", down: "↓", flat: "→", "n/a": "·" } as const;
 
@@ -313,7 +313,7 @@ export function Brain({
             {busy === "run" ? "Running…" : "Run"}
           </Button>
           <Button
-            variant="outline-subtle"
+            job="quiet"
             size="sm"
             disabled={!run}
             onClick={() => setPinned(run)}
@@ -321,7 +321,7 @@ export function Brain({
             <Pin className="size-3.5" /> Pin
           </Button>
           <Button
-            variant="ghost"
+            job="text"
             size="sm"
             onClick={() => {
               setTrail([]);
@@ -337,7 +337,7 @@ export function Brain({
         {(["engine", "journeys"] as const).map((name) => (
           <Button
             key={name}
-            variant={tab === name ? "default" : "ghost"}
+            job={tab === name ? "ink" : "text"}
             size="sm"
             onClick={() => setTab(name)}
           >
@@ -565,7 +565,7 @@ function ScenarioBar({
               />
               <Button
                 size="sm"
-                variant="outline-subtle"
+                job="quiet"
                 onClick={() =>
                   set({ seed: Math.floor(Math.random() * 100000) })
                 }
@@ -661,8 +661,8 @@ function Pillars({
               <span className="min-w-40 flex-1 font-body text-[13px]">
                 {p.vector.name}
               </span>
-              <Badge variant="outline">{p.grade}</Badge>
-              <Badge variant={COVERAGE_BADGE[p.state]}>{p.state}</Badge>
+              <StateWord>{p.grade}</StateWord>
+              <StateWord tone={COVERAGE_TONE[p.state]}>{p.state}</StateWord>
               <span className="hidden w-28 md:block" title={`${p.distance} bands out`}>
                 <span className="inline-block h-[3px] w-full bg-neutral-150">
                   <span
@@ -679,15 +679,13 @@ function Pillars({
               </span>
               <span className="flex gap-1">
                 {p.lenses.map((l) => (
-                  <Badge key={l} variant="secondary">
-                    {l}
-                  </Badge>
+                  <StateWord key={l}>{l}</StateWord>
                 ))}
               </span>
               {was != null && was !== p.rank && (
-                <Badge variant="info">
+                <StateWord>
                   {was} → {p.rank}
-                </Badge>
+                </StateWord>
               )}
             </div>
           );
@@ -712,7 +710,7 @@ function SimulateForm({
 
   if (!open)
     return (
-      <Button size="sm" variant="outline-subtle" onClick={() => setOpen(true)}>
+      <Button size="sm" job="quiet" onClick={() => setOpen(true)}>
         Simulate
       </Button>
     );
@@ -727,7 +725,7 @@ function SimulateForm({
       />
       <Button
         size="sm"
-        variant="outline-subtle"
+        job="quiet"
         disabled={!Number.isFinite(Number(value)) || value.trim() === ""}
         onClick={() => onSimulate(code, Number(value), test.unit)}
       >
@@ -736,7 +734,7 @@ function SimulateForm({
       {test.typicalPos != null && (
         <Button
           size="sm"
-          variant="ghost"
+          job="text"
           onClick={() => onSimulate(code, test.typicalPos!, test.unit)}
         >
           typical positive ({test.typicalPos})
@@ -745,13 +743,13 @@ function SimulateForm({
       {test.typicalNeg != null && (
         <Button
           size="sm"
-          variant="ghost"
+          job="text"
           onClick={() => onSimulate(code, test.typicalNeg!, test.unit)}
         >
           typical negative ({test.typicalNeg})
         </Button>
       )}
-      <Button size="sm" variant="ghost" onClick={() => setOpen(false)}>
+      <Button size="sm" job="text" onClick={() => setOpen(false)}>
         close
       </Button>
     </span>
@@ -858,20 +856,17 @@ function Hypotheses({
                   <span className="font-mono text-[24px] font-bold tabular-nums">
                     {pct(h.score)}
                   </span>
-                  <Badge variant={STATE_BADGE[h.state]}>
+                  <StateWord tone={STATE_TONE[h.state]}>
                     {h.state.replace("_", " ")}
-                  </Badge>
+                  </StateWord>
                 </div>
               </div>
 
               <div className="mt-2 flex flex-wrap gap-1">
                 {Object.entries(h.lenses).map(([lens, w]) => (
-                  <Badge
-                    key={lens}
-                    variant={lens === run.lens ? "info" : "secondary"}
-                  >
+                  <StateWord key={lens} tone={lens === run.lens ? "on" : "none"}>
                     {lens} w{w.w} {w.grade}
-                  </Badge>
+                  </StateWord>
                 ))}
               </div>
 
@@ -931,7 +926,7 @@ function Hypotheses({
                       <span className="min-w-48 font-body text-[13px]">
                         {t.test}
                       </span>
-                      <Badge variant="outline">cost {t.cost}</Badge>
+                      <StateWord>cost {t.cost}</StateWord>
                       <span className="font-mono text-[11px] tabular-nums text-neutral-500">
                         shift {t.expectedShift.toFixed(3)} · ratio{" "}
                         {t.ratio.toFixed(3)}
@@ -1036,7 +1031,7 @@ function NodeCard({
         <p className="font-body text-[12px] leading-snug">
           {node.chosen ? node.chosen.label : "—"}
         </p>
-        {node.chosen && <Badge variant="outline">{costLabel(node.chosen)}</Badge>}
+        {node.chosen && <StateWord>{costLabel(node.chosen)}</StateWord>}
       </div>
       {node.chosen && (
         <p className="mt-0.5 font-mono text-[10px] tabular-nums text-neutral-400">
@@ -1074,11 +1069,11 @@ function NodeCard({
         <span className="font-mono text-[9px] tabular-nums text-neutral-400">
           mass {pct(node.mass)}
         </span>
-        {node.overBudget && <Badge variant="warning">over the guide</Badge>}
+        {node.overBudget && (
+          <StateWord tone="border">over the guide</StateWord>
+        )}
         {node.stop && (
-          <Badge variant="secondary">
-            {STOP_LABEL[node.stop] ?? node.stop}
-          </Badge>
+          <StateWord>{STOP_LABEL[node.stop] ?? node.stop}</StateWord>
         )}
       </div>
       {node.chosen && (
@@ -1087,7 +1082,7 @@ function NodeCard({
             <Button
               key={o.label}
               size="sm"
-              variant="ghost"
+              job="text"
               onClick={() => onBranch(`${node.chosen!.label} → ${o.label}`, o.apply)}
             >
               {o.label} {pct(o.prob)}
@@ -1236,8 +1231,8 @@ function MoveRow({ move, rank }: { move: Move; rank: number }) {
         {rank}
       </span>
       <span className="min-w-48 flex-1 font-body text-[13px]">{move.label}</span>
-      <Badge variant="secondary">{move.kind}</Badge>
-      <Badge variant="outline">{costLabel(move)}</Badge>
+      <StateWord>{move.kind}</StateWord>
+      <StateWord>{costLabel(move)}</StateWord>
       <span className="font-mono text-[11px] tabular-nums text-neutral-500">
         gain {move.gain.toFixed(3)} · ratio {move.ratio.toFixed(3)}
       </span>
@@ -1281,11 +1276,9 @@ function Path({
         {trail.length > 0 && (
           <div className="flex flex-wrap items-center gap-2">
             {trail.map((t, i) => (
-              <Badge key={`${t.label}-${i}`} variant="info">
-                {t.label}
-              </Badge>
+              <StateWord key={`${t.label}-${i}`}>{t.label}</StateWord>
             ))}
-            <Button size="sm" variant="ghost" onClick={onUndo}>
+            <Button size="sm" job="text" onClick={onUndo}>
               <Undo2 className="size-3.5" /> undo
             </Button>
           </div>
@@ -1332,9 +1325,9 @@ function FactsPanel({
       <Card className="space-y-3 p-4">
         <div className="flex flex-wrap gap-1">
           {Object.entries(run.facts).map(([k, v]) => (
-            <Badge key={k} variant="secondary">
+            <StateWord key={k}>
               {k}: {Array.isArray(v) ? v.join("; ") : String(v)}
-            </Badge>
+            </StateWord>
           ))}
           {!Object.keys(run.facts).length && (
             <span className="font-body text-[13px] text-neutral-500">
@@ -1365,9 +1358,9 @@ function FactsPanel({
             <Label>Tagged draws</Label>
             <div className="flex flex-wrap gap-1">
               {Object.entries(overlay.confounders).map(([c, tags]) => (
-                <Badge key={c} variant="warning">
+                <StateWord key={c} tone="border">
                   {c}: {tags.join(", ")}
-                </Badge>
+                </StateWord>
               ))}
             </div>
           </div>
@@ -1392,7 +1385,7 @@ function FactsPanel({
           </Field>
           <Button
             size="sm"
-            variant="outline-subtle"
+            job="quiet"
             disabled={!key.trim()}
             onClick={() => {
               onFact(key.trim(), value);
@@ -1428,7 +1421,7 @@ function FactsPanel({
           </Field>
           <Button
             size="sm"
-            variant="outline-subtle"
+            job="quiet"
             disabled={!code.trim()}
             onClick={() => {
               onTag(code.trim(), tag);

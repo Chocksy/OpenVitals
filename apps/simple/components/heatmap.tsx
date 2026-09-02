@@ -7,6 +7,7 @@
  */
 import { useState } from "react";
 import { cn } from "@/lib/utils";
+import { PillTabs } from "./pill-tabs";
 
 const CELL = 11;
 const GAP = 2;
@@ -176,17 +177,15 @@ export function ConsistencyHeatmap({
           {count} of {days.length} days ·{" "}
           {mode === "you" ? "what you did" : "what the phone sent"}
         </span>
-        <div className="pill-tabs">
-          {(["you", "phone"] as const).map((m) => (
-            <button
-              key={m}
-              onClick={() => setMode(m)}
-              className={cn("pill-tab", m === mode && "pill-tab-active")}
-            >
-              {m}
-            </button>
-          ))}
-        </div>
+        <PillTabs
+          label="Whose days"
+          active={mode}
+          tabs={[
+            { id: "you", label: "you" },
+            { id: "phone", label: "phone" },
+          ]}
+          onSelect={(id) => setMode(id as "you" | "phone")}
+        />
       </div>
     </div>
   );

@@ -124,7 +124,7 @@ export function Override({
       />
       <Button
         size="sm"
-        variant="ghost"
+        job="text"
         disabled={busy}
         onClick={async () => {
           const ok = await send({
@@ -175,7 +175,7 @@ export function ResearchButton({ conditionId }: { conditionId: string }) {
     <span className="flex items-center gap-2">
       <Button
         size="sm"
-        variant="ghost"
+        job="text"
         disabled={busy}
         onClick={async () => {
           const data = (await post({
@@ -268,7 +268,7 @@ export function ClaimBox() {
         />
         <Button
           size="sm"
-          variant="outline-subtle"
+          job="quiet"
           disabled={busy}
           onClick={send}
         >
@@ -363,7 +363,7 @@ export function RunImport({
     <span className="flex items-center gap-2">
       <Button
         size="sm"
-        variant="outline-subtle"
+        job="quiet"
         disabled={busy}
         onClick={async () => {
           const data = (await post({ action: "import", script })) as {

@@ -5,19 +5,18 @@ import { requireUserId } from "@/lib/auth";
 import { getDb, uploads, readings } from "@/db";
 import { DeleteUpload, ReanalyzeUpload } from "@/components/client";
 import { LabsHeader } from "@/components/labs-header";
-import { StatusBadge } from "@/components/status-badge";
 import { localPath, MIN_RAW_TEXT } from "@/lib/uploads";
-import type { HealthStatus } from "@/lib/status";
+import { StateWord, type StateTone } from "@/components/ui-kit";
 
 export const dynamic = "force-dynamic";
 
-const badge: Record<string, HealthStatus> = {
-  done: "normal",
-  needs_review: "warning",
-  extracting: "info",
-  pending: "info",
-  failed: "critical",
-  deleted: "neutral",
+const tone: Record<string, StateTone> = {
+  done: "on",
+  needs_review: "border",
+  extracting: "none",
+  pending: "none",
+  failed: "off",
+  deleted: "none",
 };
 
 const day = (d: Date | string | null) =>
@@ -163,18 +162,17 @@ export default async function UploadsPage() {
                         {u.pages ? ` · ${u.pages} pages` : ""}
                       </p>
                     </div>
-                    <StatusBadge
-                      status="neutral"
-                      label={u.source ?? "upload"}
-                    />
-                    <StatusBadge status="info" label={u.kind ?? "lab"} />
-                    <StatusBadge
-                      status={badge[u.status ?? "pending"] ?? "neutral"}
-                      label={u.status ?? "pending"}
+                    <StateWord dot>{u.source ?? "upload"}</StateWord>
+                    <StateWord dot>{u.kind ?? "lab"}</StateWord>
+                    <StateWord
+                      tone={tone[u.status ?? "pending"]}
+                      dot
                       className={
                         u.status === "extracting" ? "animate-pulse" : ""
                       }
-                    />
+                    >
+                      {u.status ?? "pending"}
+                    </StateWord>
                     {!gone && (
                       <>
                         <ReanalyzeUpload

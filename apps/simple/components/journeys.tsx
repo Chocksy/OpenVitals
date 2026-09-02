@@ -14,7 +14,7 @@ import { RefreshCw } from "lucide-react";
 import type { Journey, JourneyResult, JourneyStep } from "@/lib/journey";
 import { money } from "@/lib/prices";
 import { cn } from "@/lib/utils";
-import { Badge, Button, Card } from "./ui-kit";
+import { Button, Card, StateWord } from "./ui-kit";
 
 interface StoredRun {
   id: string;
@@ -330,11 +330,13 @@ function StepStrip({
             </p>
             <span className="flex flex-wrap gap-1">
               {step.move.specialPath && (
-                <Badge variant="info">special path</Badge>
+                <StateWord>special path</StateWord>
               )}
-              {step.move.pursue && <Badge variant="warning">follows a signal</Badge>}
+              {step.move.pursue && (
+                <StateWord tone="border">follows a signal</StateWord>
+              )}
               {step.overBudget && (
-                <Badge variant="secondary">over the guide</Badge>
+                <StateWord>over the guide</StateWord>
               )}
             </span>
             <p className="mt-1 font-mono text-[11px] text-neutral-600">
@@ -358,19 +360,19 @@ function StepStrip({
             )}
             {step.verdict && (
               <p className="mt-1">
-                <Badge
-                  variant={
+                <StateWord
+                  tone={
                     step.verdict.verdict === "better"
-                      ? "normal"
+                      ? "on"
                       : step.verdict.verdict === "worse"
-                        ? "critical"
-                        : "info"
+                        ? "off"
+                        : "none"
                   }
                 >
                   {step.verdict.verdict === "as_expected"
                     ? "as expected"
                     : step.verdict.verdict}
-                </Badge>
+                </StateWord>
               </p>
             )}
             {step.woken.map((w) => (
@@ -488,9 +490,9 @@ function Verdict({
   return (
     <Card className="p-3">
       <div className="mb-2 flex items-center gap-2">
-        <Badge variant={result.pass ? "normal" : "critical"}>
+        <StateWord tone={result.pass ? "on" : "off"}>
           {result.pass ? "pass" : "fail"}
-        </Badge>
+        </StateWord>
         <span className="font-mono text-[11px] text-neutral-500">
           {result.steps.length} steps · {money(result.totalEur)} · stop{" "}
           {result.stop} · kb revision {kbRevision ?? "—"}
@@ -625,7 +627,7 @@ export function Journeys() {
           Run
         </Button>
         <Button
-          variant="outline-subtle"
+          job="quiet"
           size="sm"
           disabled={busy !== ""}
           onClick={() => void run(true)}
@@ -732,7 +734,7 @@ export function Journeys() {
               ))}
             </div>
             <Button
-              variant="outline-subtle"
+              job="quiet"
               size="sm"
               disabled={busy !== ""}
               onClick={() => void run(false, true)}
