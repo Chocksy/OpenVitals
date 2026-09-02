@@ -26,6 +26,7 @@ import {
   type CalledRow,
 } from "./explain";
 import { evaluateWhen, type GraphState } from "./graph-state";
+import { sayReason } from "./reasons";
 import {
   isRiskState,
   type Grade,
@@ -130,6 +131,25 @@ export interface Bubble {
   x: number;
   y: number;
   r: number;
+  /**
+   * Where the name is drawn, when there is room for it. `placeLabels` tries
+   * four slots around the circle and leaves these off when every one of them
+   * would land on another label or another bubble; the stage then draws no
+   * label at all, and the name is still on the circle's `<title>` and in the
+   * side panel. A name half on top of another name says less than no name.
+   */
+  label?: string;
+  lx?: number;
+  ly?: number;
+  anchor?: "middle" | "start" | "end";
+}
+
+/** A placed label, in stage units. Exported for the layout test. */
+export interface LabelBox {
+  x0: number;
+  y0: number;
+  x1: number;
+  y1: number;
 }
 
 export interface BubbleLink {
@@ -710,7 +730,13 @@ export function buildBubbles(opts: BubbleOptions): BubbleGraph {
     value,
     lr,
     grade,
-    text: explainInput({ input, value, lr }, (id) => conditionName.get(id)),
+    /* The panel's sub-line goes through the same formatter Hot nodes uses,
+       so one place decides how a marker, a band, a pattern and an edge are
+       said. `explainInput` already writes English, so this is a no-op on
+       everything except the shapes the engine wrote itself. */
+    text: sayReason(
+      explainInput({ input, value, lr }, (id) => conditionName.get(id)),
+    ),
   });
 
   const panel: BubbleBelief[] = drawnBeliefs.map((b) => ({
@@ -760,15 +786,168 @@ export function buildBubbles(opts: BubbleOptions): BubbleGraph {
   const nameOf = new Map(beliefs.map((b) => [b.id, displayNameOf(b)]));
   const asks = asksFromMoves(moves, (id) => nameOf.get(id) ?? id);
 
-  return { nodes, links, beliefs: panel, asks, ruledOut, hint };
+  return {
+    nodes: placeLabels(nodes),
+    links,
+    beliefs: panel,
+    asks,
+    ruledOut,
+    hint,
+  };
 }
 
-/** The box the picture ended up in, padded, for the client's fit-to-view. */
+/* ── labels ─────────────────────────────────────────────────────────────
+ * The stage draws 29 bubbles on a fixed layout, and the names collided:
+ * "Coronary calcium score" sat across "Home sleep study". Nothing here moves
+ * a bubble — the positions are fixed by system so the same condition is in
+ * the same place tomorrow — so the label moves instead, or it goes.
+ * ──────────────────────────────────────────────────────────────────────── */
+
+/** The size `.bubbles text.bl` draws, in stage units. */
+export const LABEL_FONT = 14;
+
+/**
+ * 6.2 px per character at 11 px, carried to whatever size the label is drawn
+ * at. Geist Sans averages a little over half an em; this is that ratio, and
+ * it is deliberately generous, because a label that thinks it is narrower
+ * than it is overlaps its neighbour.
+ */
+const CHAR_EM = 6.2 / 11;
+
+/** How far a label sits off the circle it belongs to. */
+const LABEL_GAP = 6;
+
+/** A name longer than this is cut, so one long node cannot own the stage. */
+const LABEL_MAX = 22;
+
+const labelHeight = LABEL_FONT * 1.15;
+
+export const labelText = (name: string): string =>
+  name.length > LABEL_MAX ? `${name.slice(0, LABEL_MAX - 1)}…` : name;
+
+export const labelWidth = (text: string): number =>
+  text.length * CHAR_EM * LABEL_FONT;
+
+const overlaps = (a: LabelBox, b: LabelBox): boolean =>
+  a.x0 < b.x1 && b.x0 < a.x1 && a.y0 < b.y1 && b.y0 < a.y1;
+
+/** Does the box reach into the circle? Closest point on the box to its centre. */
+const hitsCircle = (
+  box: LabelBox,
+  c: { x: number; y: number; r: number },
+): boolean => {
+  const x = Math.min(Math.max(c.x, box.x0), box.x1);
+  const y = Math.min(Math.max(c.y, box.y0), box.y1);
+  return Math.hypot(c.x - x, c.y - y) < c.r;
+};
+
+/** The four slots, below, above, right, left, in that order. */
+function slots(
+  n: { x: number; y: number; r: number },
+  w: number,
+): { box: LabelBox; lx: number; ly: number; anchor: Bubble["anchor"] }[] {
+  const h = labelHeight;
+  const out = n.r + LABEL_GAP;
+  return [
+    {
+      box: { x0: n.x - w / 2, y0: n.y + out, x1: n.x + w / 2, y1: n.y + out + h },
+      lx: n.x,
+      ly: n.y + out + LABEL_FONT * 0.85,
+      anchor: "middle",
+    },
+    {
+      box: { x0: n.x - w / 2, y0: n.y - out - h, x1: n.x + w / 2, y1: n.y - out },
+      lx: n.x,
+      ly: n.y - out - h * 0.25,
+      anchor: "middle",
+    },
+    {
+      box: { x0: n.x + out, y0: n.y - h / 2, x1: n.x + out + w, y1: n.y + h / 2 },
+      lx: n.x + out,
+      ly: n.y + LABEL_FONT * 0.35,
+      anchor: "start",
+    },
+    {
+      box: { x0: n.x - out - w, y0: n.y - h / 2, x1: n.x - out, y1: n.y + h / 2 },
+      lx: n.x - out,
+      ly: n.y + LABEL_FONT * 0.35,
+      anchor: "end",
+    },
+  ];
+}
+
+/**
+ * Gives every bubble a label slot, or none.
+ *
+ * Pure, and it never touches `x`, `y` or `r`: the stage's geometry is the
+ * server's and pan and zoom are the client's. The biggest bubbles are placed
+ * first, so when the stage is crowded it is the least important name that
+ * goes, not whichever one happened to be last in the array.
+ */
+function layoutLabels(
+  nodes: Bubble[],
+): Map<string, { box: LabelBox; at: Pick<Bubble, "label" | "lx" | "ly" | "anchor"> }> {
+  const out = new Map<
+    string,
+    { box: LabelBox; at: Pick<Bubble, "label" | "lx" | "ly" | "anchor"> }
+  >();
+  const placed: LabelBox[] = [];
+  const order = [...nodes].sort((a, b) => b.imp - a.imp || b.r - a.r);
+
+  for (const n of order) {
+    const text = labelText(n.name);
+    const w = labelWidth(text);
+    for (const slot of slots(n, w)) {
+      if (placed.some((box) => overlaps(box, slot.box))) continue;
+      if (nodes.some((o) => o.id !== n.id && hitsCircle(slot.box, o))) continue;
+      placed.push(slot.box);
+      out.set(n.id, {
+        box: slot.box,
+        at: {
+          label: text,
+          lx: round2(slot.lx),
+          ly: round2(slot.ly),
+          anchor: slot.anchor,
+        },
+      });
+      break;
+    }
+  }
+  return out;
+}
+
+/** The nodes, each with a label slot when one was free. */
+export function placeLabels(nodes: Bubble[]): Bubble[] {
+  const at = layoutLabels(nodes);
+  return nodes.map((n) => ({ ...n, ...at.get(n.id)?.at }));
+}
+
+/** Every box `placeLabels` handed out, for the layout test. */
+export const labelBoxes = (nodes: Bubble[]): LabelBox[] =>
+  [...layoutLabels(nodes).values()].map((p) => p.box);
+
+/**
+ * The box the picture ended up in, padded, for the client's fit-to-view.
+ *
+ * A label placed to the left or the right reaches further than the circle it
+ * belongs to, and the box has to hold it: "Non-HDL cholesterol" sat off the
+ * left edge until this counted it.
+ */
 export function viewBoxOf(nodes: Bubble[], pad = 110): string {
   if (!nodes.length) return `0 0 ${STAGE.w} ${STAGE.h}`;
-  const x0 = Math.min(...nodes.map((n) => n.x - n.r)) - pad;
-  const x1 = Math.max(...nodes.map((n) => n.x + n.r)) + pad;
-  const y0 = Math.min(...nodes.map((n) => n.y - n.r)) - pad;
-  const y1 = Math.max(...nodes.map((n) => n.y + n.r)) + pad;
+  const xs = nodes.flatMap((n) => [n.x - n.r, n.x + n.r]);
+  const ys = nodes.flatMap((n) => [n.y - n.r, n.y + n.r]);
+  for (const n of nodes) {
+    if (!n.label || n.lx == null || n.ly == null) continue;
+    const w = labelWidth(n.label);
+    const left =
+      n.anchor === "start" ? n.lx : n.anchor === "end" ? n.lx - w : n.lx - w / 2;
+    xs.push(left, left + w);
+    ys.push(n.ly - LABEL_FONT, n.ly + LABEL_FONT * 0.3);
+  }
+  const x0 = Math.min(...xs) - pad;
+  const x1 = Math.max(...xs) + pad;
+  const y0 = Math.min(...ys) - pad;
+  const y1 = Math.max(...ys) + pad;
   return `${round2(x0)} ${round2(y0)} ${round2(x1 - x0)} ${round2(y1 - y0)}`;
 }

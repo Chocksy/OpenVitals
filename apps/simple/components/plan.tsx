@@ -5,16 +5,13 @@
  * page root, the Generate button, and the two buttons on every action card.
  * Everything else on the page is server-rendered.
  */
-import { useEffect, useState, useTransition } from "react";
+import { useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { PillTabs } from "./pill-tabs";
 import { Check, MessageSquare, RefreshCw, Stethoscope } from "lucide-react";
 import { openComposer } from "./composer";
 import { toast } from "./motion";
 import { Button } from "./ui-kit";
-
-const STORAGE_KEY = "planView";
 
 /** POST, then re-render the server components. Same shape as client.tsx. */
 function useAction() {
@@ -46,10 +43,12 @@ function useAction() {
 }
 
 /**
- * The page root for every page with two audiences. `data-view` drives one CSS
- * rule in globals.css, so every deep detail is just a `.deep` class on the
- * server-rendered markup. /plan, /graph and /patterns/[id] share the switch
- * and the localStorage key, so the choice follows the reader around.
+ * The page root: a title, a subtitle and the page's own actions.
+ *
+ * The simple/deep switch it used to carry is gone. `plan.html`'s build note
+ * deletes it and the `[data-view="simple"] .deep` rule with it, because a
+ * reader who has to find a toggle before the page tells them why is a reader
+ * the page failed; the long half of each block is a quiet disclosure now.
  */
 export function ViewShell({
   title,
@@ -62,20 +61,8 @@ export function ViewShell({
   actions?: React.ReactNode;
   children: React.ReactNode;
 }) {
-  const [view, setView] = useState<"simple" | "deep">("simple");
-
-  useEffect(() => {
-    const saved = window.localStorage.getItem(STORAGE_KEY);
-    if (saved === "deep") setView("deep");
-  }, []);
-
-  const pick = (next: "simple" | "deep") => {
-    setView(next);
-    window.localStorage.setItem(STORAGE_KEY, next);
-  };
-
   return (
-    <div data-view={view} className="space-y-6">
+    <div className="space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="t-title text-[length:var(--type-xl)] leading-none">
@@ -87,18 +74,7 @@ export function ViewShell({
             </p>
           )}
         </div>
-        <div className="flex items-center gap-2">
-          {actions}
-          <PillTabs
-            label="Detail"
-            active={view}
-            tabs={[
-              { id: "simple", label: "simple" },
-              { id: "deep", label: "deep" },
-            ]}
-            onSelect={(v) => pick(v as "simple" | "deep")}
-          />
-        </div>
+        {actions && <div className="flex items-center gap-2">{actions}</div>}
       </div>
       {children}
     </div>

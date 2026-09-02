@@ -5,6 +5,7 @@
  * reload puts the same chips back on screen without asking the model again.
  */
 import { notFound } from "next/navigation";
+import { ChevronLeft } from "lucide-react";
 import { and, asc, eq } from "drizzle-orm";
 import type { UIMessage } from "ai";
 import { getDb } from "@/db";
@@ -38,16 +39,14 @@ export default async function ThreadPage({
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
+      {/* No title above the thread: a thread is titled by the question it
+          opens with, and `chat.html` prints that question once, as the
+          `.qline` at the top of the thread. */}
       <div>
-        <a
-          href="/chat"
-          className="t-meta text-[11px] text-neutral-400 hover:text-neutral-900"
-        >
-          ← Everything you asked
+        <a href="/chat" className="b b-text b-sm">
+          <ChevronLeft className="ic" aria-hidden="true" />
+          Everything you asked
         </a>
-        <h1 className="mt-1 font-display text-[22px] font-medium tracking-[-0.03em]">
-          {thread.title}
-        </h1>
       </div>
       <Thread
         id={thread.id}

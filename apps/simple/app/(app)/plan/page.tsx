@@ -217,9 +217,7 @@ function Coverage({ rows }: { rows: CoverageRow[] }) {
                   {group.map((r) => (
                     <div
                       key={r.vector.id}
-                      className={`flex items-center gap-3 py-1 ${
-                        r.state === "n/a" ? "deep" : ""
-                      }`}
+                      className="flex items-center gap-3 py-1"
                     >
                       <span className="t-body flex-1 truncate text-[length:var(--type-sm)]">
                         {r.vector.name}
@@ -702,16 +700,19 @@ export default async function PlanPage({
               <p className="conc-prose text-[length:var(--type-md)]">
                 <Terms text={body.eli5} />
               </p>
-              <ul className="deep mt-3 space-y-1 border-t border-[var(--hair)] pt-3">
-                {body.summary.map((line) => (
-                  <li
-                    key={line}
-                    className="t-body text-[length:var(--type-sm)] text-[var(--ink-2)]"
-                  >
-                    <Terms text={line} />
-                  </li>
-                ))}
-              </ul>
+              <details className="disclose mt-3 border-t border-[var(--hair)] pt-3">
+                <summary>The longer version</summary>
+                <ul className="inner space-y-1">
+                  {body.summary.map((line) => (
+                    <li
+                      key={line}
+                      className="t-body text-[length:var(--type-sm)] text-[var(--ink-2)]"
+                    >
+                      <Terms text={line} />
+                    </li>
+                  ))}
+                </ul>
+              </details>
             </div>
           )}
 

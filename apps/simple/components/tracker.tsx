@@ -73,19 +73,19 @@ export function AddProtocolItem({
         value={text}
         onChange={(e) => setText(e.target.value)}
         placeholder="What will you do? e.g. Walk 30 minutes after dinner"
-        className="w-full rounded-sm border border-neutral-200 px-2 py-1.5 font-body text-[14px] focus:border-accent-400 focus:outline-none"
+        className="inp w-full"
       />
       <input
         value={why}
         onChange={(e) => setWhy(e.target.value)}
         placeholder="Why does it matter?"
-        className="w-full rounded-sm border border-neutral-200 px-2 py-1.5 font-body text-[12px] focus:border-accent-400 focus:outline-none"
+        className="inp w-full"
       />
       <div className="flex flex-wrap items-center gap-2">
         <select
           value={cadence}
           onChange={(e) => setCadence(e.target.value)}
-          className="rounded-sm border border-neutral-200 px-2 py-1.5 font-mono text-[12px]"
+          className="sel"
         >
           <option value="daily">daily</option>
           <option value="weekly">weekly</option>
@@ -101,7 +101,7 @@ export function AddProtocolItem({
             }
           }}
           placeholder="Link a biomarker"
-          className="rounded-sm border border-neutral-200 px-2 py-1.5 font-body text-[12px]"
+          className="inp"
         />
         <datalist id="metric-names">
           {metricNames.map((m) => (
@@ -115,7 +115,7 @@ export function AddProtocolItem({
           <button
             key={c}
             onClick={() => setCodes(codes.filter((x) => x !== c))}
-            className="inline-flex items-center gap-1 border border-neutral-200 bg-neutral-50 px-2 py-1 font-body text-[11px] text-neutral-700"
+            className="chip"
           >
             {metricNames.find((m) => m.code === c)?.name ?? c}
             <X className="size-3" />
@@ -146,7 +146,7 @@ export function AddProtocolItem({
           Cancel
         </Button>
         {error && (
-          <span className="text-[12px] text-[var(--color-health-critical)]">
+          <span className="text-[12px] text-[var(--bad)]">
             {error}
           </span>
         )}
@@ -161,7 +161,7 @@ export function ArchiveButton({ id, active }: { id: string; active: boolean }) {
     <button
       disabled={busy}
       onClick={() => void save("/api/protocol", { id, active: !active }, "PATCH")}
-      className="shrink-0 font-mono text-[10px] uppercase tracking-[0.04em] text-neutral-400 hover:text-neutral-900 disabled:opacity-50"
+      className="b b-text b-sm shrink-0"
     >
       {active ? "Archive" : "Restore"}
     </button>

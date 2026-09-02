@@ -18,8 +18,8 @@ export function AskLink({
 }) {
   const moves = only ? ask.moves.filter((m) => m.id === only) : ask.moves;
   return (
-    <div className="mt-3 border-l-2 border-accent-500 bg-accent-50 px-3 py-2">
-      <p className="t-body text-neutral-800">{ask.question}</p>
+    <div className="mt-3 border-l-2 border-[var(--ink)] bg-[var(--surface-hi)] px-3 py-2">
+      <p className="t-body text-[var(--ink)]">{ask.question}</p>
       <div className="mt-1 flex flex-wrap items-center justify-between gap-2">
         <span className="t-meta text-[12px]">
           {moves.length
@@ -28,7 +28,7 @@ export function AskLink({
         </span>
         <Link
           href={askHref(ask.key)}
-          className="inline-flex h-10 items-center gap-1 px-1 font-display text-[12px] tracking-[0.04em] text-accent-600 underline transition-colors duration-150 ease-out hover:text-neutral-900 active:scale-[0.96]"
+          className="inline-flex h-10 items-center gap-1 px-1 font-display text-[12px] tracking-[0.04em] text-[var(--ink)] underline transition-colors duration-150 ease-out hover:text-[var(--ink)] active:scale-[0.96]"
         >
           Answer
           <ArrowRight className="size-3.5" />

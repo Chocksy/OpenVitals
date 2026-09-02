@@ -38,7 +38,7 @@ const weekday = (day: string) => {
   return new Date(y, m - 1, d).getDay();
 };
 
-export function Heatmap({
+function Heatmap({
   days,
   label,
 }: {

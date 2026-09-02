@@ -213,7 +213,7 @@ export const digits = (v: number): string =>
  * A band with one open side reads as the bound it actually has: "under 34",
  * never "…–34", which looked like a truncated number.
  */
-export const bandLabel = (
+const bandLabel = (
   lo: number | null | undefined,
   hi: number | null | undefined,
 ): string =>

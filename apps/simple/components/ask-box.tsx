@@ -10,6 +10,10 @@
  * Phase 25b moved the reader's copy of this to the composer, where telling and
  * asking are the same box. What is left here is the engine window `/brain` and
  * `/graph` render, and it draws the same `<AskAnswer>` the composer does.
+ *
+ * Phase 30e puts it on the system's own `.ask` pill (`system.html` section 05,
+ * drawn by `graph.html` section 01): one field, an icon, and the lime Ask.
+ * Behaviour and the `/api/ask` call are untouched.
  */
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -55,10 +59,11 @@ export function AskBox({ compact = false }: { compact?: boolean }) {
 
   return (
     <section className={compact ? "" : "card p-4"}>
-      <div className="flex items-center gap-2">
-        <Search className="size-4 shrink-0 text-neutral-400" />
+      <div className="ask">
+        <Search className="ic" aria-hidden="true" />
         <input
-          className="t-body min-w-0 flex-1 border-b border-neutral-200 bg-transparent py-1.5 text-[14px] outline-none placeholder:text-neutral-400 focus:border-neutral-400"
+          className="q"
+          aria-label="Ask about anything"
           placeholder="Ask about anything — a disease, a symptom, a question"
           value={q}
           onChange={(e) => setQ(e.target.value)}
@@ -66,14 +71,15 @@ export function AskBox({ compact = false }: { compact?: boolean }) {
             if (e.key === "Enter") void ask();
           }}
         />
-        <Button
-          size="sm"
-          job="text"
+        <button
+          type="button"
+          className="askbtn"
           disabled={busy}
           onClick={() => void ask()}
         >
-          {busy ? <Loader2 className="size-3.5 animate-spin" /> : "Ask"}
-        </Button>
+          {busy ? <Loader2 className="ic spin" aria-hidden="true" /> : null}
+          Ask
+        </button>
       </div>
 
       {answer && (
@@ -91,7 +97,7 @@ export function AskBox({ compact = false }: { compact?: boolean }) {
               disabled={busy}
               onClick={() => void consider()}
             >
-              {busy ? <Loader2 className="size-3.5 animate-spin" /> : null}
+              {busy ? <Loader2 className="ic spin" /> : null}
               Consider this for me
             </Button>
           )}

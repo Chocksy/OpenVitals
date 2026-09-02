@@ -10,7 +10,7 @@
  * SVG with a viewBox, the way `graph-map.tsx` draws its arcs: no chart library.
  */
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { RefreshCw } from "lucide-react";
+import { Check, RefreshCw } from "lucide-react";
 import type { Journey, JourneyResult, JourneyStep } from "@/lib/journey";
 import { money } from "@/lib/prices";
 import { cn } from "@/lib/utils";
@@ -38,24 +38,34 @@ const PAD = { top: 12, right: 130, bottom: 26, left: 34 };
 
 /** The five states, as bands behind the lines. Same cuts as `stateFor`. */
 const BANDS: { from: number; to: number; name: string; fill: string }[] = [
-  { from: 0, to: 5, name: "ruled out", fill: "var(--color-neutral-100)" },
-  { from: 5, to: 25, name: "unlikely", fill: "var(--color-neutral-50)" },
-  { from: 25, to: 60, name: "possible", fill: "var(--color-health-info-bg)" },
-  { from: 60, to: 90, name: "likely", fill: "var(--color-health-warning-bg)" },
+  { from: 0, to: 5, name: "ruled out", fill: "var(--track)" },
+  { from: 5, to: 25, name: "unlikely", fill: "var(--surface-flat)" },
+  {
+    from: 25,
+    to: 60,
+    name: "possible",
+    fill: "color-mix(in oklab, var(--ink-3) 12%, transparent)",
+  },
+  {
+    from: 60,
+    to: 90,
+    name: "likely",
+    fill: "color-mix(in oklab, var(--warn) 20%, transparent)",
+  },
   {
     from: 90,
     to: 100,
     name: "confirmed",
-    fill: "var(--color-health-critical-bg)",
+    fill: "color-mix(in oklab, var(--bad) 20%, transparent)",
   },
 ];
 
 const LINE = [
-  "var(--color-health-info)",
-  "var(--color-health-warning)",
-  "var(--color-health-normal)",
-  "#7c3aed",
-  "#0891b2",
+  "var(--ink)",
+  "var(--warn)",
+  "var(--ok)",
+  "var(--ink-2)",
+  "var(--ink-3)",
 ];
 
 const pctOf = (v: number) => Math.round(v * 100);
@@ -116,11 +126,7 @@ function DiscoveryTrack({
 
   let colour = 0;
   return (
-    <svg
-      viewBox={`0 0 ${W} ${H}`}
-      className="w-full"
-      onMouseLeave={() => onHover(null)}
-    >
+    <svg viewBox={`0 0 ${W} ${H}`} onMouseLeave={() => onHover(null)}>
       {BANDS.map((band) => (
         <g key={band.name}>
           <rect
@@ -133,7 +139,7 @@ function DiscoveryTrack({
           <text
             x={W - PAD.right + 6}
             y={(y(band.to / 100) + y(band.from / 100)) / 2 + 3}
-            className="fill-neutral-400 font-mono text-[9px]"
+            className="tickt"
           >
             {band.name}
           </text>
@@ -155,14 +161,14 @@ function DiscoveryTrack({
             x2={at(i)}
             y1={PAD.top}
             y2={H - PAD.bottom}
-            stroke="var(--color-neutral-200)"
+            className="axis-line"
             strokeWidth={0.5}
           />
           <text
             x={at(i)}
             y={H - PAD.bottom + 14}
             textAnchor="middle"
-            className="fill-neutral-400 font-mono text-[9px]"
+            className="tickt"
           >
             {i}
           </text>
@@ -175,7 +181,7 @@ function DiscoveryTrack({
           x={PAD.left - 6}
           y={y(p / 100) + 3}
           textAnchor="end"
-          className="fill-neutral-400 font-mono text-[9px]"
+          className="tickt"
         >
           {p}
         </text>
@@ -188,8 +194,8 @@ function DiscoveryTrack({
         const stroke = s.isTruth
           ? LINE[colour++ % LINE.length]!
           : s.falseAt != null
-            ? "var(--color-health-critical)"
-            : "var(--color-neutral-300)";
+            ? "var(--bad)"
+            : "var(--ink-3)";
         return (
           <g key={s.id}>
             <path
@@ -209,7 +215,7 @@ function DiscoveryTrack({
                     x={at(i)}
                     y={y(p) - 4}
                     textAnchor="middle"
-                    className="font-mono text-[8px] tabular-nums"
+                    className="mvt"
                     fill={stroke}
                   >
                     {pctOf(p)}
@@ -232,7 +238,7 @@ function DiscoveryTrack({
               <text
                 x={W - PAD.right + 6}
                 y={labelY(s.points[s.points.length - 1]!)}
-                className="font-mono text-[9px]"
+                className="factt"
                 fill={stroke}
               >
                 {s.id}
@@ -250,14 +256,14 @@ function DiscoveryTrack({
               x2={at(step)}
               y1={PAD.top}
               y2={H - PAD.bottom}
-              stroke="var(--color-health-normal)"
+              stroke="var(--ok)"
               strokeWidth={1.5}
               strokeDasharray="4 3"
             />
             <text
               x={at(step) + 4}
               y={PAD.top + 10}
-              className="fill-[var(--color-health-normal)] font-mono text-[9px]"
+              className="verdict"
             >
               {`${id} at ${step}, ${money(result.steps[step - 1]?.cumEur ?? 0)}`}
             </text>
@@ -291,15 +297,13 @@ function StepStrip({
   return (
     <div className="flex gap-2 overflow-x-auto pb-2">
       {result.priorWoken.length > 0 && (
-        <div className="min-w-[220px] shrink-0 rounded-sm border border-neutral-200 p-2">
-          <div className="font-mono text-[10px] text-neutral-400">step 0</div>
-          <p className="mt-1 font-body text-[12px] text-neutral-800">
-            What the account already said
-          </p>
+        <div className="card min-w-[220px] shrink-0 p-2">
+          <div className="t-num text-[length:var(--type-xs)]">step 0</div>
+          <p className="t-body mt-1">What the account already said</p>
           {result.priorWoken.map((w) => (
             <p
               key={w}
-              className="mt-1 font-mono text-[10px] text-[var(--color-health-warning)]"
+              className="t-num mt-1 text-[length:var(--type-xs)] text-[var(--warn)]"
             >
               woke: {w}
             </p>
@@ -314,20 +318,18 @@ function StepStrip({
             onMouseEnter={() => onHover(step.n)}
             onMouseLeave={() => onHover(null)}
             className={cn(
-              "min-w-[220px] shrink-0 rounded-sm border border-neutral-200 p-2",
-              hover === step.n && "border-neutral-900 bg-neutral-50",
+              "card min-w-[220px] shrink-0 p-2",
+              hover === step.n && "ring-1 ring-[var(--ink)]",
             )}
           >
-            <div className="flex items-center justify-between font-mono text-[10px] text-neutral-400">
+            <div className="t-num flex items-center justify-between text-[length:var(--type-xs)]">
               <span>step {step.n}</span>
               <span>
                 {step.costEur === 0 ? "free" : money(step.costEur)} ·{" "}
                 {money(step.cumEur)}
               </span>
             </div>
-            <p className="mt-1 font-body text-[12px] leading-snug text-neutral-800">
-              {step.move.label}
-            </p>
+            <p className="t-body mt-1 leading-snug">{step.move.label}</p>
             <span className="flex flex-wrap gap-1">
               {step.move.specialPath && (
                 <StateWord>special path</StateWord>
@@ -339,21 +341,19 @@ function StepStrip({
                 <StateWord>over the guide</StateWord>
               )}
             </span>
-            <p className="mt-1 font-mono text-[11px] text-neutral-600">
-              → {step.outcome}
-            </p>
+            <p className="t-meta mt-1">→ {step.outcome}</p>
             <ul className="mt-1 space-y-0.5">
               {movements(step, before).map((m) => (
                 <li
                   key={m.id}
-                  className="font-mono text-[10px] text-neutral-500"
+                  className="t-num text-[length:var(--type-xs)]"
                 >
                   {m.id} {pctOf(m.from)} → {pctOf(m.to)}
                 </li>
               ))}
             </ul>
             {step.projection && (
-              <p className="mt-1 font-mono text-[10px] text-[var(--color-accent-600)]">
+              <p className="t-num mt-1 text-[length:var(--type-xs)]">
                 projected {step.projection.expected} ({step.projection.low}–
                 {step.projection.high}) by {step.projection.retestAt}
               </p>
@@ -378,15 +378,13 @@ function StepStrip({
             {step.woken.map((w) => (
               <p
                 key={w}
-                className="mt-1 font-mono text-[10px] text-[var(--color-health-warning)]"
+                className="t-num mt-1 text-[length:var(--type-xs)] text-[var(--warn)]"
               >
                 woke: {w}
               </p>
             ))}
             {step.note && (
-              <p className="mt-1 font-mono text-[10px] text-neutral-400">
-                {step.note}
-              </p>
+              <p className="t-meta mt-1">{step.note}</p>
             )}
           </div>
         );
@@ -489,29 +487,23 @@ function Verdict({
 
   return (
     <Card className="p-3">
-      <div className="mb-2 flex items-center gap-2">
+      <div className="rowh mb-2">
         <StateWord tone={result.pass ? "on" : "off"}>
           {result.pass ? "pass" : "fail"}
         </StateWord>
-        <span className="font-mono text-[11px] text-neutral-500">
+        <span className="t-num">
           {result.steps.length} steps · {money(result.totalEur)} · stop{" "}
           {result.stop} · kb revision {kbRevision ?? "—"}
         </span>
       </div>
       <ul className="space-y-1">
         {lines.map((l) => (
-          <li key={l.label} className="font-mono text-[11px]">
-            <span
-              className={
-                l.ok
-                  ? "text-[var(--color-health-normal)]"
-                  : "text-[var(--color-health-critical)]"
-              }
-            >
+          <li key={l.label} className="flex flex-wrap items-baseline gap-[5px]">
+            <StateWord tone={l.ok ? "on" : "off"}>
               {l.ok ? "yes" : "no"}
-            </span>{" "}
-            <span className="text-neutral-700">{l.label}</span>{" "}
-            <span className="text-neutral-400">— {l.detail}</span>
+            </StateWord>
+            <span className="t-body">{l.label}</span>
+            <span className="t-meta">— {l.detail}</span>
           </li>
         ))}
       </ul>
@@ -599,13 +591,11 @@ export function Journeys() {
 
   return (
     <div className="space-y-4">
-      <Card className="flex flex-wrap items-end gap-3 p-3">
-        <label className="flex flex-1 flex-col gap-1">
-          <span className="font-mono text-[10px] uppercase tracking-[0.06em] text-neutral-400">
-            journey
-          </span>
+      <Card className="rowh items-end p-3">
+        <label className="field flex-1">
+          <span>journey</span>
           <select
-            className="h-8 rounded-sm border border-neutral-200 bg-neutral-0 px-2 font-mono text-[12px]"
+            className="sel"
             value={id}
             onChange={(e) => setId(e.target.value)}
           >
@@ -623,7 +613,7 @@ export function Journeys() {
           </select>
         </label>
         <Button disabled={busy !== ""} onClick={() => void run(false)}>
-          <RefreshCw className={busy === "one" ? "animate-spin" : ""} />
+          <RefreshCw className={busy === "one" ? "spin" : ""} />
           Run
         </Button>
         <Button
@@ -634,36 +624,38 @@ export function Journeys() {
         >
           Run all
         </Button>
-        <label className="flex items-center gap-1 font-mono text-[11px] text-neutral-500">
+        <label className={cn("checkrow", compare && "on")}>
+          <span className="box">
+            <Check className="ic" />
+          </span>
           <input
+            className="sr-only"
             type="checkbox"
             checked={compare}
             onChange={(e) => setCompare(e.target.checked)}
           />
-          compare with previous run
+          <span className="lb">compare with previous run</span>
         </label>
       </Card>
 
       {error && (
-        <p className="font-mono text-[12px] text-[var(--color-health-critical)]">
-          {error}
-        </p>
+        <p className="err">{error}</p>
       )}
 
       {journey && shown && (
         <>
           <Card className="p-3">
-            <h2 className="mb-1 font-mono text-[10px] font-bold uppercase tracking-[0.06em] text-neutral-400">
-              discovery track, 0–100
-            </h2>
-            <DiscoveryTrack
-              result={shown}
-              truth={journey.truth.conditions}
-              hover={hover}
-              onHover={setHover}
-            />
+            <h2 className="c-label mb-1">discovery track, 0–100</h2>
+            <div className="lanes">
+              <DiscoveryTrack
+                result={shown}
+                truth={journey.truth.conditions}
+                hover={hover}
+                onHover={setHover}
+              />
+            </div>
             {compare && previous && (
-              <p className="font-mono text-[10px] text-neutral-500">
+              <p className="t-meta">
                 previous run {new Date(previous.ranAt).toLocaleString()}:{" "}
                 {previous.result.steps.length} steps,{" "}
                 {money(previous.result.totalEur)},{" "}
@@ -678,35 +670,31 @@ export function Journeys() {
           <Verdict journey={journey} result={shown} kbRevision={kbRevision} />
 
           <Card className="space-y-3 p-3">
-            <h2 className="font-mono text-[10px] font-bold uppercase tracking-[0.06em] text-neutral-400">
-              what if
-            </h2>
-            <label className="flex items-center gap-3">
-              <span className="font-mono text-[11px] text-neutral-500">
-                budget{" "}
-                {budget === 0
-                  ? `journey's own (${journey.budget ? money(journey.budget) : "none"})`
-                  : money(budget)}
-              </span>
+            <h2 className="c-label">what if</h2>
+            <label className="rangewrap">
+              <span className="t-meta">budget</span>
               <input
+                className="rng"
                 type="range"
                 min={0}
                 max={300}
                 step={10}
                 value={budget}
                 onChange={(e) => setBudget(Number(e.target.value))}
-                className="flex-1"
               />
+              <span className="rv">
+                {budget === 0
+                  ? `journey's own (${journey.budget ? money(journey.budget) : "none"})`
+                  : money(budget)}
+              </span>
             </label>
 
-            <div className="grid gap-2 md:grid-cols-2">
+            <div className="fields">
               {Object.entries(journey.truth.answers).map(([key, value]) => (
-                <label key={key} className="flex items-center gap-2">
-                  <span className="w-40 shrink-0 truncate font-mono text-[10px] text-neutral-400">
-                    {key}
-                  </span>
+                <label key={key} className="field">
+                  <span className="truncate">{key}</span>
                   <input
-                    className="h-7 flex-1 rounded-sm border border-neutral-200 px-2 font-mono text-[11px]"
+                    className="inp"
                     value={flips[key] ?? value}
                     onChange={(e) =>
                       setFlips({ ...flips, [key]: e.target.value })
@@ -715,13 +703,11 @@ export function Journeys() {
                 </label>
               ))}
               {Object.entries(journey.truth.labs).map(([code, value]) => (
-                <label key={code} className="flex items-center gap-2">
-                  <span className="w-40 shrink-0 truncate font-mono text-[10px] text-neutral-400">
-                    {code}
-                  </span>
+                <label key={code} className="field">
+                  <span className="truncate">{code}</span>
                   <input
                     type="number"
-                    className="h-7 flex-1 rounded-sm border border-neutral-200 px-2 font-mono text-[11px]"
+                    className="inp num"
                     value={labFlips[code] ?? value}
                     onChange={(e) =>
                       setLabFlips({

@@ -106,59 +106,6 @@
   --dur-quick: 150ms;
   --dur-fast: 250ms;
   --ease: cubic-bezier(0.22, 1, 0.36, 1);
-
-  /* ── compat, deleted by the 30e sweep ───────────────────────────────
-     30b–30e still render pages written against the old Tailwind scales.
-     Rather than leave twenty routes with no colour between slices, the old
-     names are kept as aliases onto the ink ladder and the spectrum, so a
-     page that has not been rewritten yet is warm instead of grey. The 30e
-     sweep greps for `neutral-`, `accent-` and `health-` and removes them. */
-  --color-neutral-0: var(--surface-flat);
-  --color-neutral-50: #fbf3ea;
-  --color-neutral-100: var(--canvas-deep);
-  --color-neutral-150: #eadfd1;
-  --color-neutral-200: #e2d5c4;
-  --color-neutral-300: #cbbba6;
-  --color-neutral-400: #9c8776;
-  --color-neutral-500: var(--ink-3);
-  --color-neutral-600: var(--ink-2);
-  --color-neutral-700: var(--ink-2);
-  --color-neutral-800: #4e3927;
-  --color-neutral-900: var(--ink);
-  --color-accent-50: var(--surface-hi);
-  --color-accent-100: var(--canvas-deep);
-  --color-accent-200: #e2d5c4;
-  --color-accent-500: var(--ink);
-  --color-accent-600: var(--ink);
-  --color-accent-700: var(--ink-2);
-  --color-accent-900: var(--ink);
-  --color-health-normal: var(--ok);
-  --color-health-warning: var(--warn);
-  --color-health-critical: var(--bad);
-  --color-health-info: var(--ink-2);
-  --color-health-optimal: var(--ok);
-  --color-health-normal-bg: color-mix(in oklab, var(--ok) 12%, transparent);
-  --color-health-normal-border: color-mix(in oklab, var(--ok) 40%, transparent);
-  --color-health-warning-bg: color-mix(in oklab, var(--warn) 12%, transparent);
-  --color-health-warning-border: color-mix(
-    in oklab,
-    var(--warn) 40%,
-    transparent
-  );
-  --color-health-critical-bg: color-mix(in oklab, var(--bad) 12%, transparent);
-  --color-health-critical-border: color-mix(
-    in oklab,
-    var(--bad) 40%,
-    transparent
-  );
-  --color-health-info-bg: color-mix(in oklab, var(--ink-3) 12%, transparent);
-  --color-health-info-border: var(--hair);
-  --color-health-optimal-bg: color-mix(in oklab, var(--ok) 20%, transparent);
-  --color-health-optimal-border: color-mix(
-    in oklab,
-    var(--ok) 50%,
-    transparent
-  );
 }
 
 :root {
@@ -190,27 +137,6 @@
   --bad-fill: #e3767c;
   --none: #979083;
   --sky: #1b2b44;
-
-  /* compat, deleted by the 30e sweep */
-  --color-neutral-0: #1c1a18;
-  --color-neutral-50: #161514;
-  --color-neutral-100: #201e1c;
-  --color-neutral-150: #262421;
-  --color-neutral-200: #2c2a26;
-  --color-neutral-300: #3b3835;
-  --color-neutral-400: #7d766c;
-  --color-neutral-500: #979083;
-  --color-neutral-600: #b4aea4;
-  --color-neutral-700: #b4aea4;
-  --color-neutral-800: #d7d3cc;
-  --color-neutral-900: #f1efea;
-  --color-accent-50: #24221f;
-  --color-accent-100: #2c2a26;
-  --color-accent-200: #3b3835;
-  --color-accent-500: #f1efea;
-  --color-accent-600: #f1efea;
-  --color-accent-700: #b4aea4;
-  --color-accent-900: #f1efea;
 }
 
 @layer base {
@@ -269,11 +195,6 @@ select:focus-visible {
 ::-webkit-scrollbar-thumb {
   background: var(--track);
   border-radius: 3px;
-}
-
-/* Simple / Deep, one switch on the page root. */
-[data-view="simple"] .deep {
-  display: none;
 }
 
 /* Inside the iOS app: iOS zooms a focused input under 16 px and never zooms
@@ -567,14 +488,6 @@ select:focus-visible {
     color: var(--ink);
     text-decoration: underline;
     text-underline-offset: 3px;
-  }
-  /* the lime add, again: a fourth shape, not a fourth job */
-  .b-add {
-    background: var(--lime);
-    color: var(--lime-ink);
-  }
-  .b-add:hover:not(:disabled) {
-    background: #c9e63c;
   }
   .b:disabled {
     opacity: 0.45;
@@ -984,6 +897,23 @@ select:focus-visible {
   .chip:hover {
     border-color: var(--ink-3);
   }
+  /* The two chip weights `chat.html` uses: one chip per answer carries the
+     thing the reader is most likely to do, and it is the only filled one.
+     `v4.css` lines 1524-1532. */
+  .chip.quiet {
+    background: transparent;
+    border-color: transparent;
+    box-shadow: inset 0 0 0 1px var(--hair);
+    color: var(--ink-3);
+  }
+  .chip.ink {
+    background: var(--ink);
+    border-color: var(--ink);
+    color: var(--canvas);
+  }
+  .chip.ink:hover {
+    border-color: var(--ink);
+  }
   @media (prefers-reduced-motion: reduce) {
     .chip {
       transition: none;
@@ -1014,37 +944,6 @@ select:focus-visible {
   }
   :root[data-theme="dark"] .card {
     border-color: rgba(255, 255, 255, 0.08);
-  }
-  /* Kite's navy: the one dark surface in the app. */
-  .navycard {
-    position: relative;
-    overflow: hidden;
-    border-radius: var(--r-card);
-    background: var(--navy);
-    color: var(--navy-ink);
-    padding: var(--s13);
-    display: flex;
-    flex-direction: column;
-    gap: var(--s8);
-    min-height: 160px;
-    border: 1px solid rgba(255, 255, 255, 0.12);
-  }
-  .navycard .c-label,
-  .navycard .c-line,
-  .navycard .c-word,
-  .navycard .c-counts,
-  .navycard .c-num em,
-  .navycard .tone-none {
-    color: var(--navy-ink-2);
-  }
-  .navycard .tone-bad {
-    color: var(--navy-bad);
-  }
-  .navycard .tone-warn {
-    color: var(--navy-warn);
-  }
-  .navycard .tone-ok {
-    color: var(--navy-ok);
   }
   /* the 3 px hue bar: it follows the worst band on the ledger */
   .c-bar {
@@ -1085,14 +984,6 @@ select:focus-visible {
     color: var(--ink-3);
     margin-left: var(--s5);
     letter-spacing: 0;
-  }
-  .c-counts {
-    font-size: var(--type-sm);
-    color: var(--ink-2);
-  }
-  .c-counts b {
-    font-family: var(--font-mono);
-    font-weight: 400;
   }
   .c-title {
     font-size: var(--type-lg);
@@ -1870,9 +1761,6 @@ select:focus-visible {
     stroke-dasharray: 2 4;
     vector-effect: non-scaling-stroke;
   }
-  .daily-plot svg circle.pt {
-    fill: var(--ink);
-  }
   .daily-draw {
     position: absolute;
     left: var(--x);
@@ -2591,34 +2479,6 @@ select:focus-visible {
     white-space: nowrap;
   }
 
-  /* ── the mini rule inside a marker row ──────────────────────────────── */
-  .minirule {
-    grid-column: 1 / -1;
-    position: relative;
-    height: 5px;
-    border-radius: var(--r-pill);
-    background: var(--track);
-    overflow: hidden;
-  }
-  .minirule i {
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    left: var(--a);
-    width: calc(var(--b) - var(--a));
-    background: color-mix(in oklab, var(--ok) 30%, var(--track));
-  }
-  .minirule u {
-    position: absolute;
-    top: -2px;
-    bottom: -2px;
-    left: var(--p);
-    width: 2px;
-    margin-left: -1px;
-    background: var(--st, var(--ink));
-    text-decoration: none;
-  }
-
   /* ── the sparkline in a marker row ──────────────────────────────────── */
   .spark {
     display: block;
@@ -3059,8 +2919,7 @@ select:focus-visible {
       backdrop-filter: none;
       background: var(--surface-flat);
     }
-    .home .rail-card.navy,
-    .navycard {
+    .home .rail-card.navy {
       background: var(--navy);
     }
     .light-layer,
@@ -3233,6 +3092,357 @@ select:focus-visible {
   }
 }
 
+/* ── 30e: the graph stage, the systems arcs, the wide table, the thread ──
+   Copied by name from `docs/mockups/v4/system.css` (sections 09 tables,
+   10 charts, 11 overlays) and `v4.css` section 13 (chat), which is what
+   `graph.html`, `admin.html` and `chat.html` are drawn on. */
+@layer components {
+  /* the graph stage and its side panel */
+  .stagesplit {
+    display: grid;
+    grid-template-columns: minmax(0, 2.1fr) minmax(0, 1fr);
+    gap: var(--s21);
+    align-items: start;
+  }
+
+  .grid3 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--s13);
+    align-items: start;
+  }
+  .grid4 {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--s13);
+    align-items: start;
+  }
+  .grid3 > *,
+  .grid4 > * {
+    min-width: 0;
+  }
+
+  /* bubbles: the ring is the state, and a spectrum colour is never a fill */
+  .bubbles {
+    background: var(--surface);
+    border-radius: var(--r-card);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    overflow: hidden;
+  }
+  :root[data-theme="dark"] .bubbles {
+    border-color: rgba(255, 255, 255, 0.08);
+  }
+  .bubbles svg {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+  .bubbles .edge {
+    stroke: var(--hair);
+    stroke-width: 1;
+  }
+  .bubbles .edge.hot {
+    stroke: color-mix(in oklab, var(--warn) 55%, transparent);
+    stroke-width: 1.75;
+  }
+  .bubbles circle.bb {
+    fill: var(--surface-flat);
+    stroke: var(--ink-3);
+    stroke-width: 1.25;
+  }
+  .bubbles circle.bb.off {
+    stroke: var(--bad);
+    stroke-width: 2;
+  }
+  .bubbles circle.bb.border {
+    stroke: var(--warn);
+    stroke-width: 1.75;
+  }
+  .bubbles circle.bb.on {
+    stroke: var(--ok);
+  }
+  .bubbles circle.bb.none {
+    stroke: var(--ink-3);
+    stroke-dasharray: 3 3;
+  }
+  .bubbles text.bl {
+    fill: var(--ink);
+    font-family: var(--font-display);
+    font-size: 14px;
+    text-anchor: middle;
+  }
+  .bubbles text.bn {
+    fill: var(--ink-2);
+    font-family: var(--font-mono);
+    font-size: 13px;
+    text-anchor: middle;
+  }
+  .bubbles .stagenote {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--s5) var(--s13);
+    padding: var(--s8) var(--s13);
+    border-top: 1px solid var(--hair);
+    font-size: var(--type-xs);
+    color: var(--ink-3);
+  }
+
+  /* the twelve systems, one arc each */
+  .arc {
+    width: 55px;
+    height: 55px;
+    flex: none;
+  }
+  .arc circle.trk {
+    fill: none;
+    stroke: var(--track);
+    stroke-width: 5;
+  }
+  .arc circle.val {
+    fill: none;
+    stroke: var(--st, var(--ink-3));
+    stroke-width: 5;
+    stroke-linecap: round;
+    transform: rotate(-90deg);
+    transform-origin: 50% 50%;
+  }
+  .arc.off {
+    --st: var(--bad);
+  }
+  .arc.border {
+    --st: var(--warn);
+  }
+  .arc.on {
+    --st: var(--ok);
+  }
+  .arc text {
+    fill: var(--ink);
+    font-family: var(--font-mono);
+    font-size: 13px;
+    text-anchor: middle;
+  }
+
+  .statgrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(148px, 1fr));
+    gap: var(--s13);
+  }
+  .statgrid > div {
+    border-radius: var(--r-inner);
+    background: var(--surface-flat);
+    box-shadow: inset 0 0 0 1px var(--hair);
+    padding: var(--s13);
+    min-width: 0;
+  }
+  .statgrid b {
+    display: block;
+    font-family: var(--font-mono);
+    font-weight: 200;
+    font-size: var(--type-xl);
+    letter-spacing: -0.04em;
+    line-height: 1;
+    color: var(--ink);
+  }
+  .statgrid span {
+    display: block;
+    margin-top: var(--s5);
+    font-size: var(--type-xs);
+    color: var(--ink-3);
+  }
+
+  /* ── the ask pill: one field, two jobs ─────────────────────────────── */
+  .ask {
+    display: flex;
+    align-items: center;
+    gap: var(--s8);
+    padding: var(--s5) var(--s5) var(--s5) var(--s13);
+    border-radius: var(--r-pill);
+    background: var(--surface-hi);
+    box-shadow:
+      0 1px 2px rgba(23, 22, 20, 0.05),
+      0 8px 21px -13px rgba(23, 22, 20, 0.35);
+  }
+  .ask > .ic {
+    color: var(--ink-3);
+    flex: none;
+  }
+  .ask .q {
+    flex: 1;
+    min-width: 0;
+    border: 0;
+    background: transparent;
+    outline: none;
+    resize: none;
+    font: inherit;
+    font-size: var(--type-sm);
+    color: var(--ink);
+  }
+  .ask .q::placeholder {
+    color: var(--ink-3);
+  }
+  .askbtn {
+    flex: none;
+    border: 0;
+    border-radius: var(--r-pill);
+    background: var(--lime);
+    color: var(--lime-ink);
+    font-family: inherit;
+    font-size: var(--type-sm);
+    font-weight: 500;
+    padding: var(--s8) var(--s21);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--s5);
+  }
+  .askbtn:disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
+
+  /* ── the thread ────────────────────────────────────────────────────── */
+  .thread {
+    display: flex;
+    flex-direction: column;
+    gap: var(--s21);
+  }
+  .qline {
+    font-size: var(--type-lg);
+    letter-spacing: -0.03em;
+    color: var(--ink);
+    margin: 0;
+    text-wrap: pretty;
+  }
+  .stateline {
+    display: flex;
+    align-items: center;
+    gap: var(--s5);
+    font-size: var(--type-xs);
+    color: var(--ink-3);
+    margin-top: var(--s8);
+    flex-wrap: wrap;
+  }
+  .stateline b {
+    color: var(--ink);
+    font-weight: 500;
+  }
+  .answer {
+    font-size: var(--type-sm);
+    line-height: 1.6;
+    color: var(--ink-2);
+    margin: var(--s13) 0 0;
+    max-width: 62ch;
+    text-wrap: pretty;
+  }
+  .answer b {
+    color: var(--ink);
+    font-weight: 500;
+  }
+  .sources {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--s5) var(--s13);
+    margin-top: var(--s13);
+    padding-top: var(--s8);
+    border-top: 1px solid var(--hair);
+    font-size: var(--type-xs);
+    color: var(--ink-3);
+  }
+  .sources .k {
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .fold {
+    display: flex;
+    align-items: center;
+    gap: var(--s8);
+    padding: var(--s8) var(--s13);
+    background: var(--surface);
+    border-radius: var(--r-pill);
+    font-size: var(--type-sm);
+    color: var(--ink-3);
+  }
+  .fold > b {
+    color: var(--ink);
+    font-weight: 400;
+  }
+  .fold .ic {
+    margin-left: auto;
+  }
+  .receipt {
+    background: var(--canvas);
+    border-radius: var(--r-inner);
+    padding: var(--s13);
+    font-size: var(--type-sm);
+    color: var(--ink-2);
+  }
+  .receipt b {
+    color: var(--ink);
+    font-weight: 500;
+  }
+  /* thread row */
+  .threadrow {
+    display: grid;
+    grid-template-columns: 55px minmax(0, 1fr) var(--s21);
+    align-items: center;
+    gap: var(--s8);
+    text-decoration: none;
+    color: var(--ink);
+    font-size: var(--type-sm);
+  }
+  .threadrow .d {
+    font-family: var(--font-mono);
+    font-size: var(--type-xs);
+    color: var(--ink-3);
+  }
+  .threadrow .t {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .threadrow .ic {
+    color: var(--ink-3);
+  }
+
+  @media (max-width: 1040px) {
+    .grid3,
+    .grid4 {
+      grid-template-columns: 1fr;
+    }
+  }
+  @media (max-width: 900px) {
+    .stagesplit {
+      grid-template-columns: 1fr;
+    }
+  }
+}
+
+/* The wide table keeps its first column pinned, so a row never loses its
+   name. Unlayered like `.tbl`'s neighbours above: a Tailwind width utility
+   must not win over `min-width: 1200px`. */
+.tbl.wide {
+  min-width: 1200px;
+}
+.tbl.wide th:first-child,
+.tbl.wide td:first-child {
+  position: sticky;
+  left: 0;
+  z-index: 2;
+  background: var(--surface-flat);
+  box-shadow: 1px 0 0 var(--hair);
+}
+.tbl.wide tbody tr:hover td:first-child {
+  background: var(--surface-hi);
+}
+
+/* a system with no reading draws no arc at all; a round cap on a zero-length
+   dash leaves a dot, which would read as a value */
+.arc.none circle.val {
+  display: none;
+}
+
 /* A lucide icon is 16 px wherever it sits. Inside `.lanes` the chart's own
    `<svg>` is full width, and the disclosure's chevron was inheriting that:
    an `<svg>` whose CSS width resolves to `auto` or `100%` stretches to its
@@ -3256,7 +3466,9 @@ svg.ic.i24 {
 .state.border,
 .mrow.border,
 .conc.border,
-.c-bar.border {
+.c-bar.border,
+.arc.border,
+.bubbles circle.bb.border {
   border-width: 0;
 }
 
@@ -3270,6 +3482,13 @@ svg.ic.i24 {
  * reduced-motion block — `components/motion-css.test.ts` counts them.
  * ────────────────────────────────────────────────────────────────────── */
 
+/* The token block is `~/.claude/skills/transitions-dev/_root.css` with the
+   tunables no shipped snippet reads removed by the 30e sweep: 210 declarations
+   became 59, and every one that is left is named by a `var()` below. The
+   snippets themselves are verbatim, `prefers-reduced-motion` guard included.
+   Do not collapse a `transition` into `all`, do not strip `will-change`, do
+   not delete a reduced-motion block — `components/motion-css.test.ts` counts
+   them. */
 :root {
   --resize-dur: 300ms;
   --resize-ease: cubic-bezier(0.22, 1, 0.36, 1);
@@ -3280,44 +3499,15 @@ svg.ic.i24 {
   --digit-ease: cubic-bezier(0.34, 1.45, 0.64, 1);
   --digit-dir-x: 0;
   --digit-dir-y: 1;
-  --badge-slide-dur: 260ms;
-  --badge-pop-dur: 500ms;
-  --badge-pop-close-dur: 180ms;
-  --badge-fade-dur: 400ms;
-  --badge-fade-close-dur: 180ms;
-  --badge-blur: 2px;
-  --badge-offset-x: -8.2px;
-  --badge-offset-y: 12.4px;
-  --badge-slide-ease: cubic-bezier(0.22, 1, 0.36, 1);
-  --badge-pop-ease: cubic-bezier(0.34, 1.36, 0.64, 1);
-  --badge-close-ease: cubic-bezier(0.4, 0, 0.2, 1);
   --text-swap-dur: 150ms;
   --text-swap-translate-y: 4px;
   --text-swap-blur: 2px;
   --text-swap-ease: ease-in-out;
-  --dropdown-open-dur: 250ms;
-  --dropdown-close-dur: 150ms;
-  --dropdown-pre-scale: 0.97;
-  --dropdown-closing-scale: 0.99;
-  --dropdown-ease: cubic-bezier(0.22, 1, 0.36, 1);
-  --modal-open-dur: 250ms;
-  --modal-close-dur: 150ms;
-  --modal-scale: 0.96;
-  --modal-scale-close: 0.96;
-  --modal-ease: cubic-bezier(0.22, 1, 0.36, 1);
   --panel-open-dur: 400ms;
   --panel-close-dur: 350ms;
   --panel-translate-y: 100px;
   --panel-blur: 2px;
   --panel-ease: cubic-bezier(0.22, 1, 0.36, 1);
-  --page-slide-dur: 250ms;
-  --page-fade-dur: 250ms;
-  --page-slide-distance: 8px;
-  --page-blur: 3px;
-  --page-stagger: 0ms;
-  --page-exit-enabled: 1;
-  --page-slide-ease: cubic-bezier(0.22, 1, 0.36, 1);
-  --page-fade-ease: cubic-bezier(0.22, 1, 0.36, 1);
   --icon-swap-dur: 250ms;
   --icon-swap-blur: 2px;
   --icon-swap-start-scale: 0.25;
@@ -3336,151 +3526,29 @@ svg.ic.i24 {
   --check-ease-rotate: cubic-bezier(0.22, 1, 0.36, 1);
   --check-ease-bob: cubic-bezier(0.34, 1.35, 0.64, 1);
   --check-ease-path: cubic-bezier(0.22, 1, 0.36, 1);
-  --avatar-lift: -4px;
-  --avatar-dur: 320ms;
-  --avatar-scale: 1.05;
-  --avatar-falloff: 0.45;
-  --avatar-ease-in: cubic-bezier(0.22, 1, 0.36, 1);
-  --avatar-ease-out: cubic-bezier(0.34, 3.85, 0.64, 1);
-  --shake-distance: 6px;
-  --shake-overshoot: 4px;
-  --shake-dur-a: 80ms;
-  --shake-dur-b: 60ms;
-  --shake-ease: cubic-bezier(0.22, 1, 0.36, 1);
-  --revert-hold: 3000ms;
-  --revert-dur: 280ms;
-  --clear-dur: 1000ms;
-  --clear-out-dur: 400ms;
-  --clear-in-dur: 400ms;
-  --clear-out-fly: 12px;
-  --clear-in-fly: 12px;
-  --clear-out-ease: cubic-bezier(0.22, 1, 0.36, 1);
-  --clear-in-ease: cubic-bezier(0.22, 1, 0.36, 1);
-  --clear-blur: 2px;
-  --glow-delay: 50ms;
-  --glow-peak-at: 0.15;
-  --glow-opacity: 0.42;
-  --glow-spread: 1.5;
   --pulse-dur: 1000ms;
   --pulse-count: 1;
   --pulse-min: 0.5;
   --reveal-dur: 400ms;
   --reveal-blur: 2px;
   --reveal-ease: ease-in-out;
-  --shimmer-dur: 2000ms;
-  --shimmer-base: #7c7c7c;
-  --shimmer-highlight: #0d0d0d;
-  --shimmer-band: 400%;
-  --shimmer-ease: linear;
   --tabs-dur: 250ms;
   --tabs-ease: cubic-bezier(0.22, 1, 0.36, 1);
   --tabs-text-muted: rgba(15, 15, 15, 0.8);
   --tabs-text-active: #0f0f0f;
   --tabs-bar-bg: #f1f1f1;
   --tabs-pill-bg: #ffffff;
-  --tt-in-dur: 150ms;
-  --tt-out-dur: 50ms;
-  --tt-scale: 0.98;
-  --tt-delay: 80ms;
-  --tt-in-ease: ease-out;
-  --tt-out-ease: ease-out;
-  --tt-bg: #ffffff;
-  --tt-fg: #2f2f2f;
   --stagger-dur: 500ms;
   --stagger-distance: 12px;
   --stagger-stagger: 40ms;
   --stagger-blur: 3px;
   --stagger-ease: cubic-bezier(0.22, 1, 0.36, 1);
-  --tilt-perspective: 1000px;
-  --tilt-return: 1000ms;
-  --tilt-return-ease: cubic-bezier(0.22, 1, 0.36, 1);
-  --tilt-follow: 400ms;
-  --tilt-follow-ease: cubic-bezier(0.22, 1, 0.36, 1);
-  --tilt-glare-opacity: 0.32;
-  --tilt-glare-fade: 300ms;
-  --tilt-glare-ease: cubic-bezier(0.22, 1, 0.36, 1);
-  --morph-open-dur: 350ms;
-  --morph-close-dur: 250ms;
-  --morph-ease: cubic-bezier(0.34, 1.25, 0.64, 1);
-  --morph-close-ease: cubic-bezier(0.22, 1, 0.36, 1);
-  --morph-r-closed: 40px;
-  --morph-r-open: 20px;
-  --morph-fade-dur: 200ms;
-  --morph-slide: 40px;
-  --morph-rotate: 45deg;
-  --morph-scale: 0.97;
-  --morph-blur: 2px;
-  --acc-expand: 250ms;
-  --acc-collapse: 250ms;
-  --acc-chevron: 250ms;
-  --acc-ease: cubic-bezier(0.22, 1, 0.36, 1);
   --toast-open: 350ms;
   --toast-close: 250ms;
   --toast-distance: 16px;
   --toast-blur: 2px;
   --toast-scale: 0.97;
   --toast-ease: cubic-bezier(0.22, 1, 0.36, 1);
-  --like-color: #f40051;
-  --like-fill: 150ms;
-  --like-pop: 350ms;
-  --like-pop-ease: cubic-bezier(0.34, 1.96, 0.64, 1);
-  --like-particle-dur: 600ms;
-  --like-particle-dist: 20px;
-  --like-particle-size: 2.5px;
-  --like-ease: cubic-bezier(0.22, 1, 0.36, 1);
-  --learn-shift: 2px;
-  --learn-spread: 8deg;
-  --learn-in: 350ms;
-  --learn-out: 350ms;
-  --learn-ease: cubic-bezier(0.22, 1, 0.36, 1);
-  --check-box: 150ms;
-  --check-draw: 350ms;
-  --check-delay: 0ms;
-  --check-uncheck: 150ms;
-  --check-ease: cubic-bezier(0.22, 1, 0.36, 1);
-  --reel-dur: 1400ms;
-  --reel-cell: 30px;
-  --reel-spin-blur: 3px;
-  --reel-stagger: 90ms;
-  --reel-ease: cubic-bezier(0.16, 1, 0.3, 1);
-  --toggle-dur: 350ms;
-  --toggle-travel: 14.66px;
-  --toggle-ov1: 1px;
-  --toggle-ov2: 0px;
-  --toggle-track: 0ms;
-  --toggle-ease: cubic-bezier(0.34, 1.35, 0.64, 1);
-  --think-hold: 2000ms;
-  --think-swap: 150ms;
-  --think-gap: 50ms;
-  --think-distance: 8px;
-  --think-blur: 2px;
-  --think-shimmer: 2000ms;
-  --think-base: #7c7c7c;
-  --think-highlight: #0d0d0d;
-  --think-ease: ease-in-out;
-  --reason-hold: 840ms;
-  --reason-step: 500ms;
-  --reason-lines: 2;
-  --reason-fade: 28px;
-  --reason-ease: cubic-bezier(0.22, 1, 0.36, 1);
-  --stream-gap: 60ms;
-  --stream-fade: 350ms;
-  --stream-blur: 1px;
-  --stream-ease: cubic-bezier(0.22, 1, 0.36, 1);
-  --matrix-cycle: 1200ms;
-  --matrix-base: #d9d9d9;
-  --matrix-active: #85858f;
-  --matrix-ease: ease-in-out;
-  --stack-open: 350ms;
-  --stack-close: 250ms;
-  --stack-rise: 80px;
-  --stack-blur: 2px;
-  --stack-scale: 0.97;
-  --stack-peek: 12px;
-  --stack-spread-gap: 8px;
-  --stack-depth-scale: 0.06;
-  --stack-depth-fade: 0.4;
-  --stack-ease: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 /* The four colour tunables the tabs snippet exposes, pointed at this
@@ -4065,7 +4133,30 @@ a.t-tab {
   z-index: -1;
   overflow: hidden;
   pointer-events: none;
-  mask-image: radial-gradient(75% 80% at 50% 45%, #000 35%, transparent);
+  /* Three masks, intersected. The radial alone still reads as a rectangle on
+     a wide desktop hero: at the right edge it is only half transparent, and
+     `overflow: hidden` then cuts the blur off square, which is the faint
+     top-right edge the owner kept seeing. The two linear masks take the
+     alpha to zero before the box edge on all four sides, so the light ends
+     in air rather than on a border. */
+  mask-image:
+    radial-gradient(80% 85% at 50% 45%, #000, transparent),
+    linear-gradient(
+      to right,
+      transparent 0%,
+      #000 10%,
+      #000 90%,
+      transparent 100%
+    ),
+    linear-gradient(
+      to bottom,
+      transparent 0%,
+      #000 14%,
+      #000 86%,
+      transparent 100%
+    );
+  mask-composite: intersect;
+  -webkit-mask-composite: source-in;
 }
 .home-light .blob {
   position: absolute;

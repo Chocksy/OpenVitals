@@ -1,73 +1,61 @@
 "use client";
 
 /**
- * The bubbles stage and its side panel, as `docs/mockups/brain-bubbles.html`
- * draws them. The server computed every number and every position
+ * The bubbles stage and its side panel, as `docs/mockups/v4/graph.html`
+ * section 01 draws them. The server computed every number and every position
  * (`lib/bubbles.ts`), so this file only draws, pans, zooms and selects.
  *
  * ponytail: no d3 and no layout here. Pan and pinch are three pointer handlers
  * over one `viewBox`, which is also what makes fit-to-view a one-liner.
+ *
+ * Phase 30e took the colour out of the picture. A bubble is an outline on the
+ * flat surface and its ring is the state; an edge is a hairline. The spectrum
+ * is text, a ring or a dot, never a fill, so the old `FILL` / `STROKE` /
+ * `LINK_COLOR` palettes and the swatch legend are gone: one `.stagenote`
+ * sentence says what a ring and a size mean.
  */
 import { useRef, useState } from "react";
 import Link from "next/link";
+import { askHref, effectLine } from "@/lib/asking";
 import type {
   Bubble,
   BubbleGraph,
-  BubbleKind,
   BubbleLink,
   BubbleState,
 } from "@/lib/bubbles";
-import type { Relation } from "@/lib/graph";
 import { AskBox } from "./ask-box";
-import { AskLink } from "./ask-link";
+import { StateWord, type StateTone } from "./ui-kit";
 
-/** The mockup's palette, verbatim, except that grey follows the theme. */
-const FILL: Record<BubbleState, string> = {
-  high: "#dc2626",
-  amber: "#d97706",
-  ok: "#15803d",
-  yes: "#d97706",
-  gene: "#0369a1",
-  unknown: "var(--color-neutral-200)",
-  faint: "var(--color-neutral-150)",
+/** The ring is the state. `.bubbles circle.bb.<ring>` in `globals.css`. */
+const RING: Record<BubbleState, StateTone> = {
+  high: "off",
+  amber: "border",
+  ok: "on",
+  yes: "border",
+  gene: "none",
+  unknown: "none",
+  faint: "none",
 };
 
-/** The outline says what kind of thing the bubble is. */
-const STROKE: Record<BubbleKind, string> = {
-  marker: "var(--color-neutral-900)",
-  cond: "#fb923c",
-  life: "#f472b6",
-  gene: "#38bdf8",
-  /** worth testing: a thing to do, not a thing you have */
-  test: "#7c3aed",
+/** The word the panel prints for a bubble that is not a scored condition. */
+const STATE_WORD: Record<BubbleState, string> = {
+  high: "off",
+  amber: "borderline",
+  ok: "optimal",
+  yes: "yes",
+  gene: "your genotype",
+  unknown: "never measured",
+  faint: "ruled out",
 };
 
-/** The line colour says what the edge claims. */
-const LINK_COLOR: Record<Relation, string> = {
-  raises: "var(--color-health-critical)",
-  worsens: "var(--color-health-critical)",
-  lowers: "var(--color-health-normal)",
-  treats: "var(--color-health-normal)",
-  indicates: "var(--color-accent-500)",
-  confounds: "var(--color-neutral-400)",
-  requires_test: "var(--color-neutral-400)",
-  modifies_target: "var(--color-neutral-400)",
-};
-
-/** Solid established, dashed probable, dotted speculative. */
-const DASH: Record<BubbleLink["confidence"], string | undefined> = {
-  established: undefined,
-  probable: "6 4",
-  speculative: "2 4",
-};
-
-const CHIP =
-  "inline-flex items-center border px-1.5 py-px font-mono text-[10px] uppercase tracking-[0.05em]";
-const LABEL =
-  "font-mono text-[10px] font-bold uppercase tracking-[0.06em] text-neutral-400";
+/** A ruled-out condition is still drawn, but quietly. */
+const FAINT = 0.45;
 
 const pct = (p: number) =>
   p >= 0.01 ? `${Math.round(p * 100)}%` : `${(p * 100).toPrecision(2)}%`;
+
+const pctNum = (p: number) =>
+  p >= 0.01 ? `${Math.round(p * 100)}` : `${(p * 100).toPrecision(2)}`;
 
 const ARROW: Record<string, string> = {
   raises: "▲",
@@ -76,6 +64,31 @@ const ARROW: Record<string, string> = {
   treats: "▼",
   indicates: "→",
 };
+
+const CONFIDENCE_TONE: Record<string, StateTone> = {
+  established: "on",
+  probable: "none",
+  speculative: "none",
+};
+
+/** One hot node, exactly the row `graph.hot` printed before. */
+export interface HotRow {
+  id: string;
+  /** the node's own name, so a row never prints `metric:glucose` at a reader */
+  name: string;
+  importance: number;
+  reasons: string[];
+}
+
+/** One active edge, exactly the row `graph.activeEdges` printed before. */
+export interface ActiveRow {
+  id: string;
+  /** the two endpoints, named: "Fasting glucose → HbA1c" */
+  name: string;
+  confidence: string;
+  mechanism: string;
+  impact: number;
+}
 
 interface Box {
   x: number;
@@ -100,11 +113,15 @@ export function Bubbles({
   viewBox,
   ruledOutHref,
   showRuledOut,
+  hot,
+  active,
 }: {
   graph: BubbleGraph;
   viewBox: string;
   ruledOutHref: string;
   showRuledOut: boolean;
+  hot: HotRow[];
+  active: ActiveRow[];
 }) {
   const [box, setBox] = useState<Box>(() => parse(viewBox));
   const [selected, setSelected] = useState<string | null>(null);
@@ -190,8 +207,6 @@ export function Bubbles({
     const dx = e.clientX - was.x;
     const dy = e.clientY - was.y;
     moved.current += Math.abs(dx) + Math.abs(dy);
-    // A tap wobbles. Nothing pans until the finger has really travelled, so
-    // "everything moves with it" stops happening to somebody trying to select.
     if (moved.current <= TAP) return;
     const scale = perPixel();
     setBox((b) => ({ ...b, x: b.x - dx * scale, y: b.y - dy * scale }));
@@ -207,14 +222,21 @@ export function Bubbles({
   };
 
   const node = selected ? at.get(selected) : null;
+  const beliefOf = new Map(graph.beliefs.map((b) => [b.id, b]));
 
   return (
-    <div className="grid grid-cols-1 gap-3 lg:grid-cols-[minmax(0,1fr)_380px]">
-      <div className="card relative h-[60vh] min-h-[380px] min-w-0 overflow-hidden lg:h-[calc(100vh-15rem)]">
+    <div className="stagesplit">
+      {/* `graph.html` section 03: on a phone the graph is a scroll, not a
+          canvas. The stage goes; the same nodes are already stacked as the
+          ranked rows in the panel below, with the panel under the one you
+          tapped. Nothing is hidden, it is only drawn as a list. */}
+      <div className="bubbles max-[900px]:hidden">
         <svg
           ref={svg}
-          className="block h-full w-full touch-none select-none"
+          className="touch-none select-none"
           viewBox={`${box.x} ${box.y} ${box.w} ${box.h}`}
+          role="img"
+          aria-label={`${graph.nodes.length} nodes joined by ${graph.links.length} edges`}
           onPointerDown={onPointerDown}
           onPointerMove={onPointerMove}
           onPointerUp={onPointerUp}
@@ -232,16 +254,17 @@ export function Bubbles({
               const dim =
                 selected && !(link.from === selected || link.to === selected);
               const dr = Math.hypot(b.x - a.x, b.y - a.y) * 1.6;
+              /* "hot" is an edge the panel would call strong: grade A, or a
+                 confidence the graph calls established. The mockup draws two
+                 of eight hot, and this is the rule that picks them. */
+              const hotEdge =
+                link.grade === "A" || link.confidence === "established";
               return (
                 <path
                   key={link.id}
+                  className={hotEdge ? "edge hot" : "edge"}
                   d={`M${a.x},${a.y}A${dr},${dr} 0 0,1 ${b.x},${b.y}`}
                   fill="none"
-                  stroke={LINK_COLOR[link.relation]}
-                  strokeWidth={
-                    link.grade === "A" ? 2.2 : link.grade === "B" ? 1.6 : 1
-                  }
-                  strokeDasharray={DASH[link.confidence]}
                   opacity={
                     dim
                       ? 0.08
@@ -257,97 +280,81 @@ export function Bubbles({
               );
             })}
           </g>
-          {/* circles first, then every label, so no bubble covers a name */}
           <g>
             {graph.nodes.map((n) => {
               const dim = selected != null && !neighbours.has(n.id);
+              const belief = n.belief ? beliefOf.get(n.belief) : undefined;
+              /* Inside the bubble: the likelihood for a condition, the
+                 reading's own number for a marker. Nothing decorative. */
+              const inner = belief
+                ? `${pctNum(belief.p)} %`
+                : (n.value?.split(" ")[0] ?? "");
               return (
-                <circle
-                  key={n.id}
-                  cx={n.x}
-                  cy={n.y}
-                  r={n.r}
-                  fill={FILL[n.st]}
-                  fillOpacity={
-                    n.st === "unknown" ? 0.7 : n.st === "faint" ? 0.5 : 0.92
-                  }
-                  stroke={STROKE[n.kind]}
-                  strokeWidth={n.kind === "cond" ? 3 : 2}
-                  opacity={dim ? 0.25 : 1}
-                  className="cursor-pointer"
-                  data-bubble={n.id}
-                >
-                  <title>{`${n.name}${n.value ? ` · ${n.value}` : ""}`}</title>
-                </circle>
-              );
-            })}
-          </g>
-          <g>
-            {graph.nodes.map((n) => {
-              const dim = selected != null && !neighbours.has(n.id);
-              return (
-                <text
+                <g
                   key={n.id}
                   data-bubble={n.id}
                   className="cursor-pointer"
-                  x={n.x}
-                  y={n.y + (n.imp > 0.55 ? 5 : n.r + 18)}
-                  textAnchor="middle"
-                  fontSize={n.imp > 0.5 ? 15 : 12}
-                  fontWeight={n.imp > 0.5 ? 600 : 400}
-                  fill="var(--color-neutral-900)"
-                  stroke="var(--color-card)"
-                  strokeWidth={4}
-                  paintOrder="stroke"
-                  opacity={dim ? 0.3 : 1}
+                  opacity={dim ? 0.25 : n.st === "faint" ? FAINT : 1}
                 >
-                  {n.name.length > 18 ? `${n.name.slice(0, 17)}…` : n.name}
-                </text>
+                  <circle
+                    className={`bb ${RING[n.st]}`}
+                    cx={n.x}
+                    cy={n.y}
+                    r={n.r}
+                    data-bubble={n.id}
+                  >
+                    <title>{`${n.name}${n.value ? ` · ${n.value}` : ""}`}</title>
+                  </circle>
+                  {inner && (
+                    <text className="bn" data-bubble={n.id} x={n.x} y={n.y + 4}>
+                      {inner}
+                    </text>
+                  )}
+                  {/* The server placed this, or found no free slot and left
+                      it off; a name half over another name says less than no
+                      name at all. The circle's `<title>` and the panel still
+                      carry it either way. */}
+                  {n.label && (
+                    <text
+                      className="bl"
+                      data-bubble={n.id}
+                      x={n.lx}
+                      y={n.ly}
+                      /* `.bubbles text.bl` sets `text-anchor: middle` in the
+                         stylesheet, which beats the presentation attribute;
+                         an inline style is what the server's slot needs. */
+                      style={{ textAnchor: n.anchor }}
+                      stroke="var(--surface-flat)"
+                      strokeWidth={4}
+                      paintOrder="stroke"
+                    >
+                      {n.label}
+                    </text>
+                  )}
+                </g>
               );
             })}
           </g>
         </svg>
 
-        <div className="pointer-events-none absolute left-3 top-3 flex max-w-[78%] flex-wrap gap-x-3 gap-y-1 font-body text-[11px] text-neutral-500">
-          <Swatch fill="#dc2626" label="off" />
-          <Swatch fill="#d97706" label="borderline" />
-          <Swatch fill="#15803d" label="optimal" />
-          <Swatch
-            fill="var(--color-neutral-200)"
-            border="var(--color-neutral-400)"
-            label="not measured"
-          />
-          <Swatch fill="#0369a1" label="your genotype" />
+        <div className="stagenote">
           <span>
-            · outline:{" "}
-            <span style={{ color: "var(--color-neutral-900)" }}>marker</span>,{" "}
-            <span style={{ color: "#fb923c" }}>condition</span>,{" "}
-            <span style={{ color: "#f472b6" }}>lifestyle</span>,{" "}
-            <span style={{ color: "#38bdf8" }}>gene</span>,{" "}
-            <span style={{ color: "#7c3aed" }}>worth testing</span>
+            Ring: off · borderline · optimal · never measured. Size: how much it
+            matters in this lens.
           </span>
-          <span className="hidden sm:inline">
-            · condition size = belief × lens; test size = how much it would
-            settle
-          </span>
-          <span className="hidden sm:inline">
-            · line: solid established, dashed probable, dotted speculative;
-            faint = not for you
-          </span>
-        </div>
-
-        <div className="absolute bottom-2 left-3 right-3 flex flex-wrap items-center gap-2 font-mono text-[10px] uppercase tracking-[0.05em] text-neutral-400">
-          <span className="truncate">{graph.hint}</span>
+          <span>{graph.hint}</span>
           <button
+            type="button"
+            className="b b-quiet b-sm"
+            style={{ marginLeft: "auto" }}
             onClick={() => setBox(parse(viewBox))}
-            className="ml-auto inline-flex h-10 cursor-pointer items-center border border-neutral-200 bg-[var(--surface-flat)] px-3 transition-[color,border-color,scale] duration-150 ease-out hover:text-neutral-700 active:scale-[0.96]"
           >
             Fit
           </button>
         </div>
       </div>
 
-      <aside className="space-y-3 lg:max-h-[calc(100vh-15rem)] lg:overflow-auto">
+      <div className="stackv">
         {node ? (
           <Detail
             node={node}
@@ -358,124 +365,186 @@ export function Bubbles({
         ) : (
           <Overview
             graph={graph}
+            hot={hot}
+            active={active}
             ruledOutHref={ruledOutHref}
             showRuledOut={showRuledOut}
           />
         )}
-      </aside>
+      </div>
     </div>
   );
 }
 
-function Swatch({
-  fill,
-  border,
-  label,
-}: {
-  fill: string;
-  border?: string;
-  label: string;
-}) {
-  return (
-    <span className="inline-flex items-center gap-1">
-      <i
-        className="inline-block size-2.5 rounded-full"
-        style={{
-          background: fill,
-          border: border ? `1px solid ${border}` : undefined,
-        }}
-      />
-      {label}
-    </span>
-  );
-}
+/* ── no selection ─────────────────────────────────────────────────────── */
 
 function Overview({
   graph,
+  hot,
+  active,
   ruledOutHref,
   showRuledOut,
 }: {
   graph: BubbleGraph;
+  hot: HotRow[];
+  active: ActiveRow[];
   ruledOutHref: string;
   showRuledOut: boolean;
 }) {
-  // One entry per question key with every delta it carries, not one per
-  // condition: the waist question used to fill this panel three times.
   const questions = graph.asks.slice(0, 4);
   return (
     <>
-      <div className="card p-3">
+      <div className="panel">
+        <div className="panel-head">
+          <h3>Ask about the graph</h3>
+          <span className="r">the same field as everywhere</span>
+        </div>
         <AskBox compact />
+        {questions.length > 0 && (
+          <div className="chips" style={{ marginTop: "var(--s13)" }}>
+            {questions.map((q) => (
+              <Link key={q.key} href={askHref(q.key)} className="chip quiet">
+                <span>
+                  {q.question}
+                  {q.moves.length > 0 && (
+                    <span className="t-meta block">
+                      moves {effectLine(q.moves)}
+                    </span>
+                  )}
+                </span>
+              </Link>
+            ))}
+          </div>
+        )}
       </div>
 
-      <div className="card p-4">
-        <div className={LABEL}>Conditions, ranked for you</div>
-        <div className="mt-1 divide-y divide-neutral-100">
-          {graph.beliefs.length === 0 && (
-            <p className="py-2 font-body text-[13px] text-neutral-500">
-              Nothing is on the table. Upload a lab result or answer a question
-              and this fills in.
-            </p>
-          )}
-          {graph.beliefs.map((b) => (
-            <div
-              key={b.id}
-              className="flex items-center justify-between gap-2 py-2"
-            >
-              <span
-                className="min-w-0 flex-1 truncate font-body text-[13px]"
-                title={b.title}
-              >
-                {b.name}
-              </span>
-              <span className="font-display text-[20px] font-light tabular-nums">
-                {pct(b.p)}
-              </span>
-              {b.risk ? (
-                <span
-                  className={`${CHIP} border-[var(--color-health-warning-border)] text-[var(--color-health-warning)]`}
-                >
-                  risk
-                </span>
-              ) : (
-                <StateChip state={b.state} />
-              )}
-            </div>
-          ))}
+      <div className="panel">
+        <div className="panel-head">
+          <h3>Conditions, ranked for you</h3>
+          <span className="r">{graph.beliefs.length}</span>
         </div>
+        {graph.beliefs.length === 0 ? (
+          <p className="t-body">
+            Nothing is on the table. Upload a lab result or answer a question
+            and this fills in.
+          </p>
+        ) : (
+          <div className="rowlist">
+            {graph.beliefs.map((b) => (
+              <div key={b.id} className="markerrow said">
+                <div className="nm">
+                  <b>{b.name}</b>
+                  {/* `graph.html` prints the markers behind the likelihood,
+                      not the condition's essay: "HbA1c 5.6 %, no fasting
+                      insulin". The evidence rows are that sentence. */}
+                  <span>
+                    {b.for.length
+                      ? b.for
+                          .slice(0, 2)
+                          .map((f) => f.text)
+                          .join(" · ")
+                      : b.title}
+                  </span>
+                </div>
+                <div className="t-meta" style={{ fontSize: 11 }}>
+                  lens weight {b.weight}
+                </div>
+                <div className="val">
+                  {pctNum(b.p)}
+                  <em>%</em>
+                </div>
+                <div className="wd">
+                  <StateWord tone={b.risk ? "border" : stateTone(b.state)}>
+                    {b.risk ? "risk" : b.state.replace("_", " ")}
+                  </StateWord>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
         {graph.ruledOut > 0 && (
-          <Link
-            href={ruledOutHref}
-            className="mt-2 inline-block font-mono text-[10px] uppercase tracking-[0.06em] text-neutral-400 hover:text-neutral-700"
-          >
+          <Link href={ruledOutHref} className="b b-text b-sm">
             {showRuledOut
-              ? "hide ruled out"
-              : `show ruled out (${graph.ruledOut})`}
+              ? "Hide ruled out"
+              : `Show ruled out (${graph.ruledOut})`}
           </Link>
         )}
       </div>
 
-      {questions.length > 0 && (
-        <div className="card p-4">
-          <div className={LABEL}>Questions that change the picture</div>
-          {questions.map((q) => (
-            <AskLink key={q.key} ask={q} />
-          ))}
+      <div className="panel">
+        <div className="panel-head">
+          <h3>Hot nodes</h3>
+          <span className="r">{hot.length}</span>
         </div>
-      )}
+        {hot.length === 0 ? (
+          <p className="t-body">
+            Nothing is hot yet. Upload a lab result and this fills in.
+          </p>
+        ) : (
+          <div className="rowlist">
+            {hot.map((n) => (
+              <div key={n.id} className="markerrow said">
+                <div className="nm">
+                  <b>{n.name}</b>
+                  <span>{n.reasons.join("; ") || "no reason recorded"}</span>
+                </div>
+                <div />
+                <div className="val">{n.importance.toFixed(2)}</div>
+                <div className="wd">
+                  <StateWord tone={n.importance >= 0.6 ? "off" : "border"}>
+                    {n.importance >= 0.6 ? "leading" : "moving"}
+                  </StateWord>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div className="panel">
+        <div className="panel-head">
+          <h3>Active edges</h3>
+          <span className="r">{active.length}</span>
+        </div>
+        {active.length === 0 ? (
+          <p className="t-body">No edge is active for you.</p>
+        ) : (
+          <details className="disclose">
+            <summary>Edges</summary>
+            <div className="inner">
+              <div className="rowlist">
+                {active.map((e) => (
+                  <div key={e.id} className="markerrow said">
+                    <div className="nm">
+                      <b>{e.name}</b>
+                      <span>{e.mechanism}</span>
+                    </div>
+                    <div />
+                    <div className="val">{e.impact}</div>
+                    <div className="wd">
+                      <StateWord tone={CONFIDENCE_TONE[e.confidence] ?? "none"}>
+                        {e.confidence}
+                      </StateWord>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </details>
+        )}
+      </div>
     </>
   );
 }
 
-function StateChip({ state }: { state: string }) {
-  const tone =
-    state === "confirmed" || state === "likely"
-      ? "border-[var(--color-health-critical-border)] text-[var(--color-health-critical)]"
-      : state === "possible"
-        ? "border-[var(--color-health-warning-border)] text-[var(--color-health-warning)]"
-        : "border-neutral-200 text-neutral-500";
-  return <span className={`${CHIP} ${tone}`}>{state.replace("_", " ")}</span>;
+/** The engine's own condition states, on the four spectrum words. */
+function stateTone(state: string): StateTone {
+  if (state === "confirmed" || state === "likely") return "off";
+  if (state === "possible") return "border";
+  return "none";
 }
+
+/* ── one node ─────────────────────────────────────────────────────────── */
 
 function EdgeRow({
   link,
@@ -486,45 +555,32 @@ function EdgeRow({
 }) {
   return (
     <div
-      className={`border-t border-neutral-100 py-2 ${link.on === false ? "opacity-45" : ""}`}
+      className="markerrow said"
+      style={link.on === false ? { opacity: 0.55 } : undefined}
     >
-      <div className="flex items-start justify-between gap-2">
-        <span className="font-body text-[13px]">
-          {ARROW[link.relation] ?? "≈"} <b>{other?.name ?? link.to}</b>{" "}
-          <span className="font-mono text-[10px] uppercase text-neutral-400">
-            {link.relation.replace("_", " ")}
-          </span>
-        </span>
-        <span className="flex shrink-0 gap-1">
-          <span className={`${CHIP} border-neutral-200 text-neutral-500`}>
-            {link.confidence}
-          </span>
-          <span className={`${CHIP} border-neutral-200 text-neutral-500`}>
-            {link.grade}
-          </span>
-        </span>
+      <div className="nm">
+        <b>
+          {ARROW[link.relation] ?? "≈"} {other?.name ?? link.to}
+        </b>
+        <span>{link.relation.replace("_", " ")}</span>
       </div>
-      <p className="mt-1 font-body text-[12px] text-neutral-500">
+      <div className="t-meta" style={{ fontSize: 11 }}>
         {link.mechanism}
-      </p>
+      </div>
+      <div className="val">{link.grade}</div>
+      <div className="wd">
+        <StateWord tone={CONFIDENCE_TONE[link.confidence] ?? "none"}>
+          {link.confidence}
+        </StateWord>
+      </div>
       {link.why && (
-        <p
-          className="mt-0.5 font-mono text-[11px]"
-          style={{
-            color:
-              link.on === false
-                ? "var(--color-neutral-400)"
-                : link.on === null
-                  ? "var(--color-health-warning)"
-                  : "var(--color-health-normal)",
-          }}
-        >
+        <div className="bar t-meta">
           {link.on === false
             ? `not for you: ${link.why}`
             : link.on === null
               ? `unknown: ${link.why}`
               : `for you: ${link.why}`}
-        </p>
+        </div>
       )}
     </div>
   );
@@ -545,215 +601,270 @@ function Detail({
   const outgoing = graph.links.filter((l) => l.from === node.id);
   const belief = graph.beliefs.find((b) => b.id === node.belief);
 
+  /** Every marker code the panel can open, from the evidence behind it. */
+  const nameByCode = new Map<string, string>();
+  for (const n of at.values()) if (n.code) nameByCode.set(n.code, n.name);
+  const behind = [
+    ...new Set([
+      ...(node.code ? [node.code] : []),
+      ...(belief?.for.map((f) => f.input) ?? []),
+    ]),
+  ];
+
   return (
     <>
-      <button
-        onClick={onBack}
-        className="cursor-pointer font-mono text-[10px] uppercase tracking-[0.06em] text-neutral-400 hover:text-neutral-700"
-      >
+      <button type="button" className="b b-text b-sm" onClick={onBack}>
         ← everything
       </button>
-      <div>
-        <h2 className="font-display text-[20px] font-medium tracking-[-0.02em]">
-          {node.name}
-        </h2>
-        <div className="mt-1 flex flex-wrap gap-1">
-          <span className={`${CHIP} border-neutral-200 text-neutral-500`}>
-            {node.kind}
-          </span>
-          {node.value && (
-            <span className={`${CHIP} border-neutral-200 text-neutral-700`}>
-              {node.value}
-            </span>
-          )}
-          {node.answer && (
-            <span className={`${CHIP} border-neutral-200 text-neutral-700`}>
-              {node.answer}
-            </span>
-          )}
-          {!node.value && !node.answer && !belief && (
-            <span className={`${CHIP} border-neutral-200 text-neutral-400`}>
-              not measured
-            </span>
+
+      <div className="panel hi">
+        <div className="panel-head">
+          <h3>{node.name}</h3>
+          <StateWord
+            tone={belief ? stateTone(belief.state) : RING[node.st]}
+            tri={!belief && node.st === "high"}
+          >
+            {belief
+              ? belief.risk
+                ? "risk"
+                : belief.state.replace("_", " ")
+              : STATE_WORD[node.st]}
+          </StateWord>
+        </div>
+
+        <div className="kpi">
+          {belief ? (
+            <>
+              <div>
+                <b>{pctNum(belief.p)}</b>
+                <span>% for you</span>
+              </div>
+              <div>
+                <b>{behind.length}</b>
+                <span>markers behind it</span>
+              </div>
+              <div>
+                <b>{belief.weight}</b>
+                <span>lens weight</span>
+              </div>
+            </>
+          ) : (
+            <>
+              {node.value && (
+                <div>
+                  <b>{node.value.split(" ")[0]}</b>
+                  <span>
+                    {node.value.split(" ").slice(1).join(" ") || node.kind}
+                  </span>
+                </div>
+              )}
+              <div>
+                <b>{node.imp.toFixed(2)}</b>
+                <span>weight in this lens</span>
+              </div>
+            </>
           )}
         </div>
-        {node.what && (
-          <p className="mt-2 font-body text-[13px] text-neutral-600">
-            {node.what}
-          </p>
+
+        {belief && <p className="t-body mt-2">{belief.title}</p>}
+        {node.answer && <p className="t-body mt-2">You said: {node.answer}</p>}
+        {node.what && <p className="t-body mt-2">{node.what}</p>}
+        {!node.value && !node.answer && !belief && (
+          <p className="t-meta mt-2">Never measured.</p>
         )}
-        {node.code && (
-          <Link
-            href={`/blood/m/${node.code}`}
-            className="mt-1 inline-block font-mono text-[11px] text-neutral-400 hover:text-neutral-700"
-          >
-            open {node.code} →
-          </Link>
+
+        {behind.length > 0 && (
+          <div className="rowh mt-3">
+            {behind.map((code) =>
+              nameByCode.has(code) ? (
+                <Link
+                  key={code}
+                  href={`/blood/m/${code}`}
+                  className="b b-quiet b-sm"
+                >
+                  {nameByCode.get(code)}
+                </Link>
+              ) : (
+                <span key={code} className="chip">
+                  {code}
+                </span>
+              ),
+            )}
+          </div>
         )}
       </div>
 
-      {belief && (
-        <div className="card p-4">
-          <div className="font-display text-[38px] font-light leading-none tracking-[-0.04em] tabular-nums">
-            {pct(belief.p)}
-            <span className="ml-2 align-middle font-body text-[13px] text-neutral-500">
-              for you
-            </span>
+      {belief && belief.for.length > 0 && (
+        <div className="panel">
+          <div className="panel-head">
+            <h3>Why</h3>
+            <span className="r">{belief.for.length}</span>
           </div>
-          <div className="mt-2 flex flex-wrap items-center gap-1">
-            {belief.risk ? (
-              <span
-                className={`${CHIP} border-[var(--color-health-warning-border)] text-[var(--color-health-warning)]`}
-              >
-                risk
-              </span>
-            ) : (
-              <StateChip state={belief.state} />
-            )}
-            <span className="font-body text-[13px] text-neutral-600">
-              {belief.title}
-            </span>
-            <span className="font-mono text-[10px] uppercase tracking-[0.06em] text-neutral-400">
-              lens weight {belief.weight}
-            </span>
+          <div className="rowlist">
+            {belief.for.map((f) => (
+              <EvidenceRow key={f.rule} f={f} />
+            ))}
           </div>
+        </div>
+      )}
 
-          {belief.for.length > 0 && (
-            <>
-              <div className={`${LABEL} mt-3`}>Why</div>
-              <ul className="mt-1 space-y-1">
-                {belief.for.map((f) => (
-                  <li key={f.rule} className="font-body text-[12px]">
-                    {f.text}
-                    <span className="ml-1 font-mono text-[11px] text-neutral-400">
-                      LR {f.lr} · {f.grade}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            </>
-          )}
+      {belief && belief.against.length > 0 && (
+        <div className="panel">
+          <div className="panel-head">
+            <h3>Against</h3>
+            <span className="r">{belief.against.length}</span>
+          </div>
+          <div className="rowlist">
+            {belief.against.map((f) => (
+              <EvidenceRow key={f.rule} f={f} />
+            ))}
+          </div>
+        </div>
+      )}
 
-          {belief.against.length > 0 && (
-            <>
-              <div className={`${LABEL} mt-3`}>Against</div>
-              <ul className="mt-1 space-y-1">
-                {belief.against.map((f) => (
-                  <li
-                    key={f.rule}
-                    className="font-body text-[12px] text-neutral-500"
-                  >
-                    {f.text}
-                    <span className="ml-1 font-mono text-[11px] text-neutral-400">
-                      LR {f.lr} · {f.grade}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            </>
-          )}
+      {belief && belief.moves.length > 0 && (
+        <div className="panel">
+          <div className="panel-head">
+            <h3>What would move it</h3>
+            <span className="r">{belief.moves.length}</span>
+          </div>
+          <div className="rowlist">
+            {belief.moves.map((m) => (
+              <div key={m.label} className="markerrow said">
+                <div className="nm">
+                  <b>{m.label}</b>
+                  <span>
+                    {m.kind}
+                    {m.cost > 0
+                      ? ` · ${m.priced ? `€${m.cost}` : `cost band ${m.cost}`}`
+                      : " · free"}
+                  </span>
+                </div>
+                <div className="t-meta" style={{ fontSize: 11 }}>
+                  {pct(m.from)} → {pct(m.to)}
+                </div>
+                <div className="val">
+                  {pctNum(m.to)}
+                  <em>%</em>
+                </div>
+                <div className="wd">
+                  <StateWord tone="none">{m.kind}</StateWord>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
-          {belief.moves.length > 0 && (
-            <>
-              <div className={`${LABEL} mt-3`}>What would move it</div>
-              <ul className="mt-1 space-y-1">
-                {belief.moves.map((m) => (
-                  <li key={m.label} className="font-body text-[12px]">
-                    <span className="font-mono text-[10px] uppercase text-neutral-400">
-                      {m.kind}
-                      {m.cost > 0
-                        ? ` · ${m.priced ? `€${m.cost}` : `cost ${m.cost}`}`
-                        : " · free"}
-                    </span>{" "}
-                    {m.label}
-                    <span className="ml-1 font-mono text-[11px] tabular-nums text-neutral-400">
-                      {pct(m.from)} → {pct(m.to)}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            </>
-          )}
-
-          {belief.missing.length > 0 && (
-            <p className="mt-3 font-mono text-[11px] text-neutral-400">
-              waiting on: {belief.missing.join(", ")}
-            </p>
-          )}
+      {belief && belief.missing.length > 0 && (
+        <div className="panel">
+          <div className="panel-head">
+            <h3>Waiting on</h3>
+            <span className="r">{belief.missing.length}</span>
+          </div>
+          <p className="t-body">{belief.missing.join(", ")}</p>
         </div>
       )}
 
       {node.settles?.length ? (
-        <div className="card p-4">
-          <div className={LABEL}>What this would settle</div>
-          <ul className="mt-1 space-y-1">
+        <div className="panel">
+          <div className="panel-head">
+            <h3>What this would settle</h3>
+            <span className="r">
+              {node.cost === 0
+                ? "free"
+                : node.priced
+                  ? `€${node.cost}`
+                  : `cost band ${node.cost}`}
+            </span>
+          </div>
+          <div className="rowlist">
             {node.settles.map((row) => (
-              <li key={row.id} className="font-body text-[12px]">
-                {row.name}{" "}
-                <span className="font-mono text-[11px] tabular-nums text-neutral-500">
-                  {pct(row.from)}
-                </span>
-                {row.outcomes.map((o) => (
-                  <span key={o.label}>
-                    {" "}
-                    <span className="text-neutral-400">→</span>{" "}
-                    <span className="font-mono text-[11px] tabular-nums">
-                      {pct(o.to)}
-                    </span>{" "}
-                    <span className="text-neutral-500">if {o.label}</span>
+              <div key={row.id} className="markerrow said">
+                <div className="nm">
+                  <b>{row.name}</b>
+                  <span>
+                    {row.outcomes
+                      .map((o) => `${pct(o.to)} if ${o.label}`)
+                      .join(", ")}
                   </span>
-                ))}
-              </li>
+                </div>
+                <div />
+                <div className="val">
+                  {pctNum(row.from)}
+                  <em>%</em>
+                </div>
+                <div className="wd">
+                  <StateWord tone="none">now</StateWord>
+                </div>
+              </div>
             ))}
-          </ul>
-          <p className="mt-2 font-mono text-[10px] uppercase tracking-[0.05em] text-neutral-500">
-            {node.cost === 0
-              ? "free"
-              : node.priced
-                ? `€${node.cost}`
-                : `cost band ${node.cost}`}
-          </p>
-          {node.howTo && (
-            <p className="mt-1 font-body text-[12px] text-neutral-600">
-              {node.howTo}
-            </p>
-          )}
+          </div>
+          {node.howTo && <p className="t-body mt-2">{node.howTo}</p>}
         </div>
       ) : null}
 
-      {/*
-        A test that has already said what it would settle does not also need
-        two cards admitting that nothing on this stage points at it.
-      */}
       {incoming.length || !node.settles?.length ? (
-        <div className="card p-4">
-          <div className={LABEL}>What pushes this</div>
+        <div className="panel">
+          <div className="panel-head">
+            <h3>What pushes this</h3>
+            <span className="r">{incoming.length}</span>
+          </div>
           {incoming.length ? (
-            incoming.map((l) => (
-              <EdgeRow key={l.id} link={l} other={at.get(l.from)} />
-            ))
+            <div className="rowlist">
+              {incoming.map((l) => (
+                <EdgeRow key={l.id} link={l} other={at.get(l.from)} />
+              ))}
+            </div>
           ) : (
-            <p className="mt-1 font-body text-[12px] text-neutral-400">
-              Nothing drawn here pushes it.
-            </p>
+            <p className="t-body">Nothing drawn here pushes it.</p>
           )}
         </div>
       ) : null}
 
       {outgoing.length || !node.settles?.length ? (
-        <div className="card p-4">
-          <div className={LABEL}>What this affects</div>
+        <div className="panel">
+          <div className="panel-head">
+            <h3>What this affects</h3>
+            <span className="r">{outgoing.length}</span>
+          </div>
           {outgoing.length ? (
-            outgoing.map((l) => (
-              <EdgeRow key={l.id} link={l} other={at.get(l.to)} />
-            ))
+            <div className="rowlist">
+              {outgoing.map((l) => (
+                <EdgeRow key={l.id} link={l} other={at.get(l.to)} />
+              ))}
+            </div>
           ) : (
-            <p className="mt-1 font-body text-[12px] text-neutral-400">
-              Nothing drawn here follows from it.
-            </p>
+            <p className="t-body">Nothing drawn here follows from it.</p>
           )}
         </div>
       ) : null}
     </>
+  );
+}
+
+/** One line of evidence: the sentence, the input, its LR and its grade. */
+function EvidenceRow({
+  f,
+}: {
+  f: BubbleGraph["beliefs"][number]["for"][number];
+}) {
+  return (
+    <div className="markerrow said">
+      <div className="nm">
+        <b>{f.text}</b>
+        <span>{f.input}</span>
+      </div>
+      <div className="t-meta" style={{ fontSize: 11 }}>
+        {f.value}
+      </div>
+      <div className="val">
+        {f.lr}
+        <em>LR</em>
+      </div>
+      <div className="wd">
+        <StateWord tone="none">{f.grade}</StateWord>
+      </div>
+    </div>
   );
 }

@@ -1,166 +1,90 @@
-import { and, eq } from "drizzle-orm";
 import Link from "next/link";
-import { getDb, reviewItems } from "@/db";
 import { requireUserId } from "@/lib/auth";
 import { buildModelInput } from "@/lib/coverage";
 import { queueQuestions } from "@/lib/ask";
 import { buildBubbles, viewBoxOf } from "@/lib/bubbles";
-import {
-  computeGraphState,
-  worstMember,
-  type ActiveEdge,
-} from "@/lib/graph-state";
-import { NODES, SYSTEMS, type Relation, type SystemId } from "@/lib/graph";
+import { computeGraphState, worstMember } from "@/lib/graph-state";
+import { NODES, SYSTEMS, type SystemId } from "@/lib/graph";
 import { loadGenome } from "@/lib/genome";
 import { catalogFor } from "@/lib/hkb";
 import { scoreHypotheses, type Lens } from "@/lib/hypotheses";
 import { nextMoves } from "@/lib/infogain";
 import { loadGraph } from "@/lib/kg";
 import { matchPatterns, PATTERNS } from "@/lib/patterns";
+import { sayReason, sayReasons } from "@/lib/reasons";
 import { healthStatus } from "@/lib/status";
-import { Bubbles } from "@/components/bubbles";
-import { ReviewItem } from "@/components/client";
-import { SystemLinks, type SystemLink } from "@/components/graph-map";
+import { Bubbles, type ActiveRow, type HotRow } from "@/components/bubbles";
 import { ViewShell } from "@/components/plan";
 import { PillTabs } from "@/components/pill-tabs";
-import { Card, StateWord, type StateTone, toneOf } from "@/components/ui-kit";
+import { StateWord, toneOf, type StateTone } from "@/components/ui-kit";
 
 export const dynamic = "force-dynamic";
 
+/**
+ * Graph, phase 30e. `docs/mockups/v4/graph.html`.
+ *
+ * Two lenses on one URL. Conditions is the bubble stage and one side panel;
+ * Systems is twelve arcs on a single rule — where each system's driving
+ * marker sits inside its own reference range. Both are the same ledger.
+ *
+ * The blocked screen is gone: `graph.html`'s build cost moves the two missing
+ * facts to Coverage on Plan, so the page draws itself and says what it is
+ * waiting for in one `.empty` tile.
+ */
 const HOT_NODES = 15;
 
-/** The mockup's lens switcher, plus the fourth lens the engine actually has. */
-const LENSES: Lens[] = ["lifespan", "energy", "mood", "weight"];
-
 const byId = new Map(NODES.map((n) => [n.id, n]));
-
-/** Red raises something bad, green helps, grey is neither. */
-const TONE: Record<Relation, SystemLink["tone"]> = {
-  raises: "bad",
-  worsens: "bad",
-  confounds: "bad",
-  lowers: "good",
-  treats: "good",
-  indicates: "good",
-  requires_test: "neutral",
-  modifies_target: "neutral",
-};
-
-const CONFIDENCE_RANK = {
-  established: 3,
-  probable: 2,
-  speculative: 1,
-} as const;
-
-const CONFIDENCE_TONE: Record<string, StateTone> = {
-  established: "on",
-  probable: "none",
-  speculative: "none",
-};
 
 const systemOf = (nodeId: string): SystemId | undefined =>
   byId.get(nodeId)?.system;
 
-function Label({ children }: { children: React.ReactNode }) {
-  return (
-    <h2 className="mb-2 font-mono text-[10px] font-bold uppercase tracking-[0.06em] text-neutral-400">
-      {children}
-    </h2>
-  );
-}
+/** The mockup's lens switcher, plus the fourth lens the engine actually has. */
+const LENSES: Lens[] = ["lifespan", "energy", "mood", "weight"];
 
-/** 0..1 as a track with a filled portion. The ring, flattened. */
-function ImportanceBar({
-  importance,
-  className = "",
-}: {
-  importance: number;
-  className?: string;
-}) {
-  const tone =
-    importance >= 0.6
-      ? "var(--color-health-critical)"
-      : importance >= 0.3
-        ? "var(--color-health-warning)"
-        : "var(--color-accent-500)";
-  return (
-    <span
-      className={`inline-block h-[3px] w-full bg-neutral-150 ${className}`}
-      title={`importance ${importance}`}
-    >
-      <span
-        className="block h-full"
-        style={{
-          width: `${Math.round(importance * 100)}%`,
-          background: tone,
-        }}
-      />
-    </span>
-  );
-}
+/** 2π × 22, the circumference of the arc the mockup draws. */
+const ARC = 138.2;
 
-/** One arc per system pair, tone and confidence; the strongest edge wins. */
-function toLinks(edges: ActiveEdge[]): SystemLink[] {
-  const out = new Map<string, SystemLink>();
-  for (const edge of edges) {
-    const from = systemOf(edge.from);
-    const to = systemOf(edge.to);
-    if (!from || !to || from === to) continue;
-    const tone = TONE[edge.relation];
-    const key = `${from}|${to}|${tone}`;
-    const seen = out.get(key);
-    if (seen && seen.strength >= edge.strength) {
-      if (CONFIDENCE_RANK[edge.confidence] > CONFIDENCE_RANK[seen.confidence])
-        seen.confidence = edge.confidence;
-      continue;
-    }
-    out.set(key, {
-      from,
-      to,
-      tone,
-      confidence: edge.confidence,
-      strength: edge.strength,
-      title: `${edge.id}: ${edge.mechanism}`,
-    });
-  }
-  return [...out.values()];
-}
+/** The four spectrum words, as the systems cards say them. */
+const SYSTEM_WORD: Record<StateTone, string> = {
+  off: "Off",
+  border: "Borderline",
+  on: "Optimal",
+  none: "Never measured",
+};
 
-/** The lens switcher and the link to the systems map, as the mockup places them. */
-function Switcher({
-  lens,
-  systems,
-  ruled,
-}: {
-  lens: Lens;
-  systems: boolean;
-  ruled: boolean;
-}) {
-  const href = (next: Partial<{ lens: Lens; systems: boolean }>) => {
-    const p = new URLSearchParams();
-    const l = next.lens ?? lens;
-    if (l !== "lifespan") p.set("lens", l);
-    if (next.systems ?? systems) p.set("systems", "1");
-    if (ruled) p.set("ruled", "1");
-    return `/graph${p.size ? `?${p}` : ""}`;
+/**
+ * Where a value sits inside a band, 0 to 1, and the sentence that says it.
+ * Nothing is invented: with no band on file the arc is not drawn at all and
+ * the line says so.
+ */
+function place(
+  value: number,
+  low: number | null,
+  high: number | null,
+  named: "reference" | "optimal",
+): { frac: number | null; say: string } {
+  if (low == null && high == null)
+    return { frac: null, say: "no reference range on file" };
+  if (high != null && value > high)
+    return { frac: 1, say: `past the ceiling of ${high}` };
+  if (low != null && value < low)
+    return {
+      frac: low > 0 ? Math.max(value / low, 0) : 0,
+      say: `under the floor of ${low}`,
+    };
+  if (low == null)
+    return {
+      frac: high! > 0 ? value / high! : 0,
+      say: `under the ceiling of ${high}`,
+    };
+  if (high == null) return { frac: 1, say: `over the floor of ${low}` };
+  const frac = (value - low) / (high - low || 1);
+  const band = `${low}–${high}`;
+  const where = frac >= 0.8 ? "top of" : frac <= 0.2 ? "low in" : "mid";
+  return {
+    frac: Math.min(Math.max(frac, 0), 1),
+    say: `${where} ${band}${named === "optimal" ? " optimal" : ""}`,
   };
-  return (
-    <div className="flex flex-wrap items-center gap-3">
-      {/* One pill, not two toggles: the lens is the choice, and the view is
-          a link next to it. Phase 24d. */}
-      <PillTabs
-        label="Lens"
-        active={lens}
-        tabs={LENSES.map((l) => ({ id: l, label: l, href: href({ lens: l }) }))}
-      />
-      <Link
-        href={href({ systems: !systems })}
-        className="hit-40 inline-flex items-center font-mono text-[10px] font-medium uppercase tracking-[0.04em] text-neutral-500 underline decoration-dotted underline-offset-4 transition-colors duration-150 ease-out hover:text-neutral-900"
-      >
-        {systems ? "See the bubbles" : "See the systems"}
-      </Link>
-    </div>
-  );
 }
 
 export default async function GraphPage({
@@ -176,51 +100,64 @@ export default async function GraphPage({
   const showRuledOut = q.ruled === "1";
 
   const userId = await requireUserId();
-  const db = getDb();
 
   let input = await buildModelInput(userId);
   if (!input.sex || input.age == null) {
     await queueQuestions(userId);
     input = await buildModelInput(userId);
   }
-
   const blocked = !input.sex || input.age == null;
-  if (blocked) {
-    const open = await db
-      .select()
-      .from(reviewItems)
-      .where(
-        and(
-          eq(reviewItems.userId, userId),
-          eq(reviewItems.status, "open"),
-          eq(reviewItems.kind, "profile_question"),
-        ),
-      );
-    const firstTwo = open.filter((q) =>
-      ["sex", "birth_year"].includes(q.subject?.factKey ?? ""),
-    );
-    return (
-      <ViewShell title="Your graph" subtitle="Nothing to draw yet">
-        <Card className="p-4">
-          <p className="font-body text-[13px] text-neutral-700">
-            The graph needs sex and age before it can rank anything: every
-            optimal range and half the edges depend on them. Answer these two
-            and it fills in.
+
+  const href = (next: Partial<{ lens: Lens; systems: boolean }>) => {
+    const p = new URLSearchParams();
+    const l = next.lens ?? lens;
+    if (l !== "lifespan") p.set("lens", l);
+    if (next.systems ?? systems) p.set("systems", "1");
+    if (showRuledOut) p.set("ruled", "1");
+    return `/graph${p.size ? `?${p}` : ""}`;
+  };
+
+  const head = (
+    <>
+      <div className="rowh">
+        <PillTabs
+          label="View"
+          active={systems ? "systems" : "conditions"}
+          tabs={[
+            {
+              id: "conditions",
+              label: "Conditions",
+              href: href({ systems: false }),
+            },
+            { id: "systems", label: "Systems", href: href({ systems: true }) },
+          ]}
+        />
+        <PillTabs
+          label="Lens"
+          active={lens}
+          tabs={LENSES.map((l) => ({
+            id: l,
+            label: l,
+            href: href({ lens: l }),
+          }))}
+        />
+        <span className="t-meta">
+          Lens. It filters the graph and the URL, and nothing else.
+        </span>
+      </div>
+      {blocked && (
+        <div className="empty">
+          <span className="k">Waiting on two facts</span>
+          <p>
+            The graph needs your sex and age before it can rank anything: every
+            optimal range and half the edges depend on them. Everything below is
+            drawn without them.
           </p>
-          <div className="mt-3 space-y-2">
-            {firstTwo.map((q) => (
-              <ReviewItem
-                key={q.id}
-                id={q.id}
-                question={q.question}
-                options={q.options}
-              />
-            ))}
-          </div>
-        </Card>
-      </ViewShell>
-    );
-  }
+          <Link href="/plan#answer">Answer them on Plan</Link>
+        </div>
+      )}
+    </>
+  );
 
   const patterns = matchPatterns(input).filter((p) => p.matched);
   const matchedIds = new Set(patterns.map((p) => p.pattern.id));
@@ -228,9 +165,7 @@ export default async function GraphPage({
   const loaded = await loadGraph();
   const graph = computeGraphState(input, { top: HOT_NODES, graph: loaded });
   const importance = new Map(graph.nodes.map((n) => [n.id, n.importance]));
-  const links = toLinks(graph.activeEdges);
 
-  // The bubbles: the mockup's picture, over this person's own graph.
   if (!systems) {
     const [catalog, genome] = await Promise.all([
       catalogFor(userId),
@@ -251,19 +186,36 @@ export default async function GraphPage({
       ...(lens !== "lifespan" ? { lens } : {}),
       ...(showRuledOut ? {} : { ruled: "1" }),
     })}`;
+    const hot: HotRow[] = graph.hot.map((n) => ({
+      id: n.id,
+      name: byId.get(n.id)?.name ?? n.id,
+      importance: n.importance,
+      /* The engine writes itself notes; `sayReason` turns each one into the
+         sentence the panel prints. Server-side, so the browser never carries
+         the catalog. */
+      reasons: sayReasons(n.reasons),
+    }));
+    const active: ActiveRow[] = graph.activeEdges.map((e) => ({
+      id: e.id,
+      /* "through Fasting glucose → HbA1c", not "glucose->hba1c". */
+      name: sayReason(`via ${e.id}`).replace(/^through /, ""),
+      confidence: e.confidence,
+      mechanism: e.mechanism,
+      impact: e.impact,
+    }));
     return (
       <ViewShell
-        title="Your brain"
+        title="Your graph"
         subtitle={`${bubbles.nodes.length} bubbles · ${bubbles.links.length} edges · lens ${lens}`}
-        actions={
-          <Switcher lens={lens} systems={systems} ruled={showRuledOut} />
-        }
       >
+        {head}
         <Bubbles
           graph={bubbles}
           viewBox={viewBoxOf(bubbles.nodes)}
           ruledOutHref={ruledHref}
           showRuledOut={showRuledOut}
+          hot={hot}
+          active={active}
         />
       </ViewShell>
     );
@@ -273,167 +225,158 @@ export default async function GraphPage({
     <ViewShell
       title="Your graph"
       subtitle={`${graph.activeEdges.length} active edges over 12 systems`}
-      actions={<Switcher lens={lens} systems={systems} ruled={showRuledOut} />}
     >
-      <SystemLinks links={links}>
-        <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
-          {SYSTEMS.map((system) => {
-            const score = importance.get(`system:${system.id}`) ?? 0;
-            const worst = worstMember(system.id, input, importance);
-            const row = worst ? input.latest[worst.code] : null;
-            const touching = graph.activeEdges.filter(
-              (e) =>
-                systemOf(e.from) === system.id || systemOf(e.to) === system.id,
-            ).length;
-            return (
-              <Card
-                key={system.id}
-                data-system={system.id}
-                className="flex min-h-[112px] flex-col gap-2 p-3"
+      {head}
+
+      <div className="grid4">
+        {SYSTEMS.map((system) => {
+          const score = importance.get(`system:${system.id}`) ?? 0;
+          const worst = worstMember(system.id, input, importance);
+          const row = worst ? input.latest[worst.code] : null;
+          /* An edge joins two markers or conditions, never two system
+             nodes, so a system is touched when either end belongs to it. */
+          const touching = graph.activeEdges.filter(
+            (e) => systemOf(e.from) === system.id || systemOf(e.to) === system.id,
+          ).length;
+          const tone: StateTone =
+            row && row.value != null ? toneOf(healthStatus(row)) : "none";
+          /* The band the arc measures: the lab's own reference range, and
+             the optimal band only when there is no reference range. */
+          const useRef = row && (row.refLow != null || row.refHigh != null);
+          const seat =
+            row && row.value != null
+              ? place(
+                  row.value,
+                  useRef ? row.refLow : row.optimalLow,
+                  useRef ? row.refHigh : row.optimalHigh,
+                  useRef ? "reference" : "optimal",
+                )
+              : null;
+          return (
+            <div
+              key={system.id}
+              data-system={system.id}
+              className="card"
+              /* `.card` in this app is the translucent tile only; the
+                 mockup's own padding and column rhythm live at the call
+                 site, so two other call sites are free to keep theirs. */
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "flex-start",
+                gap: "var(--s5)",
+                padding: "var(--s13)",
+              }}
+            >
+              <div className="c-label">{system.name}</div>
+              <div
+                className="rowh"
+                style={{ gap: "var(--s13)", flexWrap: "nowrap" }}
               >
-                <div className="flex items-start justify-between gap-2">
-                  <p className="font-display text-[13px] font-medium leading-tight">
-                    {system.name}
-                  </p>
-                  <span className="font-mono text-[10px] tabular-nums text-neutral-400">
-                    {score.toFixed(2)}
-                  </span>
-                </div>
-                <ImportanceBar importance={score} />
-
-                {worst && row ? (
-                  <div className="mt-auto space-y-1">
-                    <Link
-                      href={`/blood/m/${worst.code}`}
-                      className="block truncate font-body text-[12px] text-neutral-700 hover:underline"
-                    >
-                      {worst.node.name}{" "}
-                      <span className="font-mono tabular-nums">
-                        {row.value}
-                        {row.unit ? ` ${row.unit}` : ""}
-                      </span>
-                    </Link>
-                    <StateWord tone={toneOf(healthStatus(row))} dot>
-                      {healthStatus(row)}
-                    </StateWord>
-                  </div>
-                ) : (
-                  <p className="mt-auto font-mono text-[10px] uppercase tracking-[0.04em] text-neutral-400">
-                    never measured
-                  </p>
-                )}
-
-                <p className="font-mono text-[10px] uppercase tracking-[0.04em] text-neutral-400">
-                  {touching} active {touching === 1 ? "edge" : "edges"}
-                </p>
-              </Card>
-            );
-          })}
-        </div>
-      </SystemLinks>
-
-      <section>
-        <Label>Patterns · {patterns.length} matched</Label>
-        {patterns.length ? (
-          <div className="space-y-2">
-            {patterns.map((m) => (
-              <Card key={m.pattern.id} className="p-4">
-                <div className="flex flex-wrap items-start justify-between gap-2">
-                  <Link
-                    href="/plan#patterns"
-                    className="font-display text-[15px] font-medium hover:underline"
+                <svg
+                  className={`arc ${tone}`}
+                  viewBox="0 0 55 55"
+                  aria-hidden="true"
+                >
+                  <circle className="trk" cx="27.5" cy="27.5" r="22" />
+                  {seat?.frac != null && (
+                    <circle
+                      className="val"
+                      cx="27.5"
+                      cy="27.5"
+                      r="22"
+                      strokeDasharray={`${(seat.frac * ARC).toFixed(1)} ${ARC}`}
+                    />
+                  )}
+                  {/* Five digits inside a 44 px ring touch it at 13 px. */}
+                  <text
+                    x="27.5"
+                    y="32"
+                    style={
+                      String(row?.value ?? "").length > 4
+                        ? { fontSize: 11 }
+                        : undefined
+                    }
                   >
+                    {row?.value ?? "—"}
+                  </text>
+                </svg>
+                <div style={{ minWidth: 0 }}>
+                  <StateWord
+                    tone={tone}
+                    tri={tone === "off"}
+                    style={{ fontSize: "var(--type-md)" }}
+                  >
+                    {SYSTEM_WORD[tone]}
+                  </StateWord>
+                  {worst && row && row.value != null ? (
+                    <>
+                      <Link
+                        href={`/blood/m/${worst.code}`}
+                        className="t-meta block"
+                      >
+                        {worst.node.name} · {row.value}
+                        {row.unit ? ` ${row.unit}` : ""}
+                      </Link>
+                      <div className="t-meta" style={{ fontSize: 11 }}>
+                        {seat?.say}
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="t-meta">
+                        no marker has ever had a value
+                      </div>
+                      <div className="t-meta" style={{ fontSize: 11 }}>
+                        {system.headline.join(", ")}
+                      </div>
+                    </>
+                  )}
+                  <div className="t-meta" style={{ fontSize: 11 }}>
+                    weight {score.toFixed(2)} · {touching} active{" "}
+                    {touching === 1 ? "edge" : "edges"}
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      <div className="panel">
+        <div className="panel-head">
+          <h3>Patterns matched</h3>
+          <span className="r">{patterns.length}</span>
+        </div>
+        {patterns.length ? (
+          <div className="rowlist">
+            {patterns.map((m) => (
+              <div key={m.pattern.id}>
+                <div className="rowh">
+                  <Link href="/plan#patterns" className="t-body">
                     {m.pattern.name}
                   </Link>
                   {m.stage && <StateWord tone="border">{m.stage}</StateWord>}
                 </div>
-                <p className="mt-2 font-body text-[13px] text-neutral-700">
-                  {m.pattern.summary}
-                </p>
-                <p className="deep mt-2 font-body text-[12px] text-neutral-500">
-                  {m.reasons.join("; ")}
-                </p>
-              </Card>
+                <p className="t-body mt-1">{m.pattern.summary}</p>
+                <p className="t-meta mt-1">{m.reasons.join("; ")}</p>
+              </div>
             ))}
           </div>
         ) : (
-          <Card className="p-4">
-            <p className="font-body text-[13px] text-neutral-500">
-              No pattern matches your numbers yet.
-            </p>
-          </Card>
+          <p className="t-body">No pattern matches your numbers yet.</p>
         )}
 
         {unmatched.length > 0 && (
-          <div className="mt-3 flex flex-wrap gap-2">
+          <div className="chips mt-3">
             {unmatched.map((p) => (
-              <Link
-                key={p.id}
-                href="/plan#patterns"
-                className="inline-flex items-center border border-neutral-200 bg-neutral-50 px-2.5 py-1 font-body text-[12px] text-neutral-400 hover:border-neutral-300 hover:text-neutral-600"
-              >
+              <Link key={p.id} href="/plan#patterns" className="chip quiet">
                 {p.name}
               </Link>
             ))}
           </div>
         )}
-      </section>
-
-      <section>
-        <Label>Hot nodes · top {Math.min(HOT_NODES, graph.hot.length)}</Label>
-        <div className="card divide-y divide-neutral-100">
-          {graph.hot.length === 0 && (
-            <p className="px-4 py-3 font-body text-[13px] text-neutral-500">
-              Nothing is hot yet. Upload a lab result and this fills in.
-            </p>
-          )}
-          {graph.hot.map((node) => (
-            <div key={node.id} className="px-4 py-2">
-              <div className="flex items-center gap-3">
-                <span className="flex-1 truncate font-mono text-[11px] text-neutral-700">
-                  {node.id}
-                </span>
-                <span className="w-24 shrink-0">
-                  <ImportanceBar importance={node.importance} />
-                </span>
-                <span className="w-9 shrink-0 text-right font-mono text-[10px] tabular-nums text-neutral-400">
-                  {node.importance.toFixed(2)}
-                </span>
-              </div>
-              <p className="deep mt-1 font-body text-[12px] text-neutral-500">
-                {node.reasons.join("; ") || "no reason recorded"}
-              </p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      <section className="deep">
-        <Label>Active edges · {graph.activeEdges.length}</Label>
-        <div className="card divide-y divide-neutral-100">
-          {graph.activeEdges.length === 0 && (
-            <p className="px-4 py-3 font-body text-[13px] text-neutral-500">
-              No edge is active for you.
-            </p>
-          )}
-          {graph.activeEdges.map((edge) => (
-            <div key={edge.id} className="flex items-start gap-2 px-4 py-2">
-              <StateWord tone={CONFIDENCE_TONE[edge.confidence]}>
-                {edge.confidence}
-              </StateWord>
-              <span className="flex-1 font-body text-[12px] text-neutral-600">
-                <span className="font-mono text-[11px] text-neutral-500">
-                  {edge.id}
-                </span>{" "}
-                {edge.mechanism}
-              </span>
-              <span className="shrink-0 font-mono text-[10px] tabular-nums text-neutral-400">
-                impact {edge.impact}
-              </span>
-            </div>
-          ))}
-        </div>
-      </section>
+      </div>
     </ViewShell>
   );
 }

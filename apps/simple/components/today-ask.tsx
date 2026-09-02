@@ -18,7 +18,7 @@ import { refreshLedger, toast, type LedgerPayload } from "./ledger-motion";
 type LiveAsk = Ask & { options: string[] };
 
 const PANEL =
-  "t-panel-slide border-l-2 border-accent-500 bg-accent-50 px-3 py-2";
+  "t-panel-slide border-l-2 border-[var(--ink)] bg-[var(--surface-hi)] px-3 py-2";
 
 export function TodayAsk({
   ask: first,
@@ -55,7 +55,7 @@ export function TodayAsk({
 
   if (!ask)
     return (
-      <p id={ASK_ID} className="t-body text-neutral-500">
+      <p id={ASK_ID} className="t-body text-[var(--ink-3)]">
         {onEmpty}
       </p>
     );
@@ -69,7 +69,7 @@ export function TodayAsk({
         // tall, so it moves about half its own height.
         style={{ "--panel-translate-y": "28px" } as React.CSSProperties}
       >
-        <p className="t-body text-neutral-800">
+        <p className="t-body text-[var(--ink)]">
           {ask.question}
         </p>
         {ask.moves.length > 0 && (

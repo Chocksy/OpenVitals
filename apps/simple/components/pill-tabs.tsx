@@ -102,8 +102,10 @@ export function PillTabs({
           const props = {
             role: "tab",
             "aria-selected": tab.id === active,
-            className:
-              "t-tab font-mono text-[11px] font-medium uppercase tracking-[0.04em]",
+            /* `.t-tab` already carries the system's shape and voice (34 px,
+               the pill radius, the sans at 13 px); the utilities that used to
+               shout it in 11 px uppercase mono are gone with the sweep. */
+            className: "t-tab",
           } as const;
           return tab.href ? (
             <Link

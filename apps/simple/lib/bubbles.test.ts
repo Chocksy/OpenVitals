@@ -2,12 +2,17 @@ import { describe, expect, it } from "vitest";
 import {
   BUBBLE_LIMIT,
   buildBubbles,
+  labelBoxes,
+  labelText,
+  labelWidth,
   layout,
+  placeLabels,
   radiusOf,
   RULED_OUT,
   STAGE,
   viewBoxOf,
   type Body,
+  type Bubble,
 } from "./bubbles";
 import type { LatestValue, ModelInput } from "./coverage";
 import { computeGraphState } from "./graph-state";
@@ -221,5 +226,98 @@ describe("test bubbles", () => {
     const ids = new Set(drawn.beliefs.map((b) => b.id));
     for (const t of tests)
       for (const row of t.settles ?? []) expect(ids.has(row.id)).toBe(true);
+  });
+});
+
+/* ── labels ───────────────────────────────────────────────────────────── */
+
+/**
+ * The lock on phase 30e's second graph fix.
+ *
+ * The stage draws 29 bubbles on a layout that is fixed on purpose, and the
+ * names ran into each other: "Coronary calcium score" across "Home sleep
+ * study", "Insulin resistance" across "Fatty liver". `placeLabels` tries four
+ * slots per bubble and drops the label when none is free. Two labels may
+ * never overlap, and a label may never land on a bubble.
+ */
+describe("label placement", () => {
+  const stage = build(panel()).nodes;
+
+  it("draws a real stage to place labels on", () => {
+    expect(stage.length).toBeGreaterThan(8);
+  });
+
+  it("never overlaps two labels", () => {
+    const boxes = labelBoxes(stage);
+    expect(boxes.length).toBeGreaterThan(0);
+    for (let i = 0; i < boxes.length; i++)
+      for (let j = i + 1; j < boxes.length; j++) {
+        const a = boxes[i]!;
+        const b = boxes[j]!;
+        const hit =
+          a.x0 < b.x1 && b.x0 < a.x1 && a.y0 < b.y1 && b.y0 < a.y1;
+        expect(hit).toBe(false);
+      }
+  });
+
+  it("never lands a label on a bubble", () => {
+    for (const n of placeLabels(stage)) {
+      if (!n.label) continue;
+      const w = labelWidth(n.label);
+      const box = {
+        x0: n.anchor === "start" ? n.lx! : n.anchor === "end" ? n.lx! - w : n.lx! - w / 2,
+        x1: 0,
+        y0: n.ly! - 14,
+        y1: n.ly! + 4,
+      };
+      box.x1 = box.x0 + w;
+      for (const o of stage) {
+        if (o.id === n.id) continue;
+        const x = Math.min(Math.max(o.x, box.x0), box.x1);
+        const y = Math.min(Math.max(o.y, box.y0), box.y1);
+        expect(Math.hypot(o.x - x, o.y - y)).toBeGreaterThanOrEqual(o.r - 1);
+      }
+    }
+  });
+
+  it("leaves the geometry alone", () => {
+    const placed = placeLabels(stage);
+    expect(placed.map((n) => [n.id, n.x, n.y, n.r])).toEqual(
+      stage.map((n) => [n.id, n.x, n.y, n.r]),
+    );
+  });
+
+  it("places most of them, and says so when it cannot", () => {
+    const placed = placeLabels(stage);
+    const named = placed.filter((n) => n.label);
+    expect(named.length / placed.length).toBeGreaterThan(0.5);
+    for (const n of placed) {
+      if (n.label) continue;
+      // a bubble with no label still knows its own name for the panel
+      expect(n.name).not.toBe("");
+    }
+  });
+
+  it("cuts a name rather than letting one node own the stage", () => {
+    expect(labelText("Cardiovascular risk")).toBe("Cardiovascular risk");
+    expect(labelText("Coronary artery calcium score")).toBe(
+      "Coronary artery calci…",
+    );
+    expect(labelWidth("abc")).toBeCloseTo(3 * (6.2 / 11) * 14, 5);
+  });
+
+  it("is the same picture twice", () => {
+    const a = placeLabels(stage).map((n) => [n.id, n.label, n.lx, n.ly]);
+    const b = placeLabels(stage).map((n) => [n.id, n.label, n.lx, n.ly]);
+    expect(a).toEqual(b);
+  });
+
+  it("uses the slot order below, above, right, left", () => {
+    const one: Bubble[] = [
+      { ...stage[0]!, id: "solo", name: "Solo", x: 0, y: 0, r: 20 },
+    ];
+    const [placed] = placeLabels(one);
+    expect(placed!.anchor).toBe("middle");
+    expect(placed!.ly!).toBeGreaterThan(20);
   });
 });

@@ -72,14 +72,6 @@ export function AddButton({
   );
 }
 
-/** The word an action carries when it is spelled out, not iconified. */
-export function AddPill({
-  className,
-  ...props
-}: React.ButtonHTMLAttributes<HTMLButtonElement>) {
-  return <button className={cn("b b-add", className)} {...props} />;
-}
-
 /**
  * A state is a word in its colour: off is `--bad`, borderline `--warn`,
  * optimal `--ok`, never-measured `--ink-3`. No fill, no border, no uppercase

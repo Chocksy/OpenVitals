@@ -12,9 +12,9 @@
  * Shared by the composer (phase 25b's one asking surface) and by the ask box
  * that `/brain` and the graph still render.
  */
-import { Sparkles } from "lucide-react";
+import { ChevronDown, FileText, Sparkles } from "lucide-react";
 import { ActOnIt, type Acts } from "./act-on-it";
-import { LabelledProse } from "./evidence-chip";
+import { EvidenceChip, LabelledProse } from "./evidence-chip";
 
 /** One paper or guideline the answer cited, with the row's own quote. */
 export interface AskSource {
@@ -90,31 +90,42 @@ export interface Answer {
 export function Sources({ sources }: { sources?: AskSource[] }) {
   if (!sources?.length) return null;
   return (
-    <p className="t-meta text-[11px] text-neutral-500">
-      Sources:{" "}
-      {sources.map((s, i) => (
-        <span key={s.id}>
-          {i > 0 ? "; " : ""}
-          {s.quote ? (
-            <span className="ov-term">
-              <button type="button" className="ov-term-trigger hit-40">
-                {s.name}
-              </button>
-              <span role="tooltip" className="ov-term-tip">
-                <span className="ov-term-tip-title">{s.name}</span>
-                <span className="ov-term-tip-line">&ldquo;{s.quote}&rdquo;</span>
-                <span className="ov-term-tip-meta">
-                  {s.year ? `${s.year}. ` : ""}Grade {s.grade}.
+    <div className="sources">
+      <span className="k">Sources</span>
+      {sources.map((s) => {
+        const letter = /^[A-E]$/i.test(s.grade);
+        const glyph = (
+          <EvidenceChip
+            basis={letter ? "science" : s.grade}
+            grade={letter ? s.grade.toUpperCase() : null}
+          />
+        );
+        return (
+          <span key={s.id}>
+            {glyph}{" "}
+            {s.quote ? (
+              <span className="ov-term">
+                <button type="button" className="ov-term-trigger hit-40">
+                  {s.name}
+                </button>
+                <span role="tooltip" className="ov-term-tip">
+                  <span className="ov-term-tip-title">{s.name}</span>
+                  <span className="ov-term-tip-line">
+                    &ldquo;{s.quote}&rdquo;
+                  </span>
+                  <span className="ov-term-tip-meta">
+                    {s.year ? `${s.year}. ` : ""}Grade {s.grade}.
+                  </span>
                 </span>
               </span>
-            </span>
-          ) : (
-            s.name
-          )}
-          {s.year ? ` · ${s.year}` : ""} · {s.grade}
-        </span>
-      ))}
-    </p>
+            ) : (
+              s.name
+            )}
+            {s.year ? ` · ${s.year}` : ""}
+          </span>
+        );
+      })}
+    </div>
   );
 }
 
@@ -198,9 +209,7 @@ export function AskAnswer({
 
   if (answer.error)
     return (
-      <p className="t-body mt-2 text-[var(--color-health-critical)]">
-        {answer.error}
-      </p>
+      <p className="t-body mt-2 text-[var(--bad)]">{answer.error}</p>
     );
 
   /**
@@ -215,22 +224,23 @@ export function AskAnswer({
    */
   if (answer.route === "question")
     return (
-      <div className="mt-3 space-y-2 border-t border-neutral-100 pt-3">
+      <div className="mt-3 space-y-2 border-t border-[var(--hair)] pt-3">
         {answer.now && (
-          <p className="t-meta text-[12px]">
-            Right now: {answer.now.name} —{" "}
-            {STATE_WORD[answer.now.state] ?? answer.now.state},{" "}
-            <span className="t-num">{pct(answer.now.probability)}</span>
-          </p>
+          <div className="stateline">
+            <FileText className="ic" aria-hidden="true" />
+            <span>
+              Right now: {answer.now.name} —{" "}
+              {STATE_WORD[answer.now.state] ?? answer.now.state},{" "}
+              <b className="t-num">{pct(answer.now.probability)}</b>
+            </span>
+          </div>
         )}
         {answer.reply ? (
-          <p className="t-body whitespace-pre-line text-neutral-800">
+          <p className="answer whitespace-pre-line">
             <LabelledProse text={answer.reply} />
           </p>
         ) : (
-          <p className="t-body text-neutral-500">
-            No answer came back. Try asking it again.
-          </p>
+          <p className="t-meta">No answer came back. Try asking it again.</p>
         )}
         <Sources sources={answer.sources} />
         <ActOnIt acts={answer.acts} onLeave={onLeave} />
@@ -240,18 +250,18 @@ export function AskAnswer({
 
   if (!answer.term && !answer.reply)
     return (
-      <p className="t-body mt-3 text-neutral-500">
+      <p className="t-meta mt-3">
         I don&rsquo;t know that word. Ask it as a question, or try the disease
         name.
       </p>
     );
 
   return (
-    <div className="mt-3 space-y-2 border-t border-neutral-100 pt-3">
-      {lead && <p className="t-body text-[14px] text-neutral-900">{lead}</p>}
+    <div className="mt-3 space-y-2 border-t border-[var(--hair)] pt-3">
+      {lead && <p className="answer m-0">{lead}</p>}
 
       {answer.finding && (
-        <p className="t-body text-neutral-600">
+        <p className="t-body">
           {answer.finding.present == null
             ? "You have not answered anything that would say whether you have it."
             : answer.finding.present
@@ -261,7 +271,7 @@ export function AskAnswer({
       )}
 
       {answer.reply && (
-        <p className="t-body whitespace-pre-line text-neutral-800">
+        <p className="answer whitespace-pre-line">
           <LabelledProse text={answer.reply} />
         </p>
       )}
@@ -269,24 +279,20 @@ export function AskAnswer({
       <ActOnIt acts={answer.acts} onLeave={onLeave} />
 
       {answer.sentence && (
-        <p className="t-body flex items-start gap-1.5 italic text-neutral-600">
-          <Sparkles className="mt-[3px] size-3 shrink-0 text-neutral-300" />
+        <p className="t-body flex items-start gap-1.5 italic">
+          <Sparkles className="ic mt-[3px] text-[var(--ink-3)]" aria-hidden="true" />
           {answer.sentence}
         </p>
       )}
 
       {answer.moves.length > 0 && (
         <div>
-          <p className="t-meta text-[10px] font-bold uppercase tracking-[0.06em] text-neutral-400">
-            What would settle it
-          </p>
+          <p className="t-meta">What would settle it</p>
           <ul className="mt-1 space-y-1">
             {answer.moves.slice(0, 3).map((m) => (
               <li key={`${m.kind}:${m.label}`} className="t-body">
                 {m.label}
-                {isFree(m) && (
-                  <span className="t-meta text-[12px]"> · free</span>
-                )}
+                {isFree(m) && <span className="t-meta"> · free</span>}
               </li>
             ))}
           </ul>
@@ -295,33 +301,31 @@ export function AskAnswer({
 
       {children}
 
-      <details>
-        <summary className="hit-40 t-meta inline-flex cursor-pointer list-none items-center text-[12px] hover:text-neutral-900">
+      <details className="disclose">
+        <summary>
           Where this comes from
+          <ChevronDown className="ic" aria-hidden="true" />
         </summary>
-        <div className="mt-2 space-y-1 border-l-2 border-neutral-150 pl-3">
-          <p className="t-meta text-[12px]">{standing(answer)}</p>
+        <div className="inner space-y-1">
+          <p className="t-meta">{standing(answer)}</p>
           {answer.condition?.priorSource && (
-            <p className="t-meta text-[12px]">
-              Base rate: {answer.condition.priorSource}
-            </p>
+            <p className="t-meta">Base rate: {answer.condition.priorSource}</p>
           )}
           {answer.term && (
-            <p className="t-meta text-[12px]">
-              Matched{" "}
-              <span className="t-num text-[11px]">{answer.term.id}</span>
+            <p className="t-meta">
+              Matched <span className="t-num">{answer.term.id}</span>
               {answer.term.via ? ` on “${answer.term.via}”` : ""}
             </p>
           )}
           {answer.matches.length > 1 && (
-            <p className="t-meta text-[12px]">
+            <p className="t-meta">
               Also matched:{" "}
               {answer.matches.slice(1, 5).map((m, i) => (
                 <span key={m.id}>
                   {i > 0 && " · "}
                   {onPick ? (
                     <button
-                      className="cursor-pointer underline decoration-dotted hover:text-neutral-900"
+                      className="cursor-pointer underline decoration-dotted hover:text-[var(--ink)]"
                       onClick={() => onPick(m.name)}
                     >
                       {m.name}

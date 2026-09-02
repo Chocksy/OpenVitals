@@ -239,7 +239,7 @@ export function PatternCard({
                   {measured(e.suggest) && (
                     <span className="t-meta"> · done</span>
                   )}
-                  <span className="deep t-meta text-[length:var(--type-xs)]">
+                  <span className="t-meta text-[length:var(--type-xs)]">
                     {" "}
                     · {e.why} · tier {e.tier} · {e.ref}
                   </span>

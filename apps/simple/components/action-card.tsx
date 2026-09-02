@@ -96,7 +96,7 @@ export function ActionCard({
         </p>
       )}
 
-      <details className="disclose deep">
+      <details className="disclose">
         <summary>Why this one</summary>
         <div className="inner space-y-2">
           {action.reasoning && (

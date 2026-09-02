@@ -10,14 +10,14 @@ import { cn, fmtCategory } from "@/lib/utils";
 import { Button, MiniSparkline, SuccessCheck } from "./ui-kit";
 import { FactEditButtons, type FactEdit } from "./fact-edit";
 
-const INPUT =
-  "w-full border border-neutral-200 bg-neutral-0 px-3 py-2 text-sm rounded-sm";
+/** The system's own text field (`docs/mockups/v4/system.css` section 05). */
+const INPUT = "inp w-full";
 
 const sparkStroke: Record<Status, string> = {
-  red: "var(--color-health-critical)",
-  amber: "var(--color-health-warning)",
-  green: "var(--color-health-normal)",
-  gray: "var(--color-neutral-300)",
+  red: "var(--bad)",
+  amber: "var(--warn)",
+  green: "var(--ok)",
+  gray: "var(--none)",
 };
 
 export function LoginForm({ google }: { google: boolean }) {
@@ -242,7 +242,7 @@ export function ReanalyzeUpload({
         {busy ? "Reanalyzing…" : "Reanalyze"}
       </button>
       {error && (
-        <span className="t-meta text-[12px] text-[var(--color-health-critical)]">
+        <span className="t-meta text-[12px] text-[var(--bad)]">
           {error}
         </span>
       )}
@@ -276,7 +276,7 @@ export function ChangeKind({ id, kind }: { id: string; kind: string }) {
         {busy ? "Re-reading…" : "Re-read as this"}
       </button>
       {error && (
-        <span className="t-meta text-[12px] text-[var(--color-health-critical)]">
+        <span className="t-meta text-[12px] text-[var(--bad)]">
           {error}
         </span>
       )}
@@ -428,7 +428,7 @@ export function RunCurator() {
         {busy ? "Curating…" : "Run curator now"}
       </Button>
       {error && (
-        <span className="text-[12px] text-[var(--color-health-critical)]">
+        <span className="text-[12px] text-[var(--bad)]">
           {error}
         </span>
       )}
@@ -531,7 +531,7 @@ export function AnswerQuestion({
           </>
         )}
         {message && (
-          <span className="text-[12px] text-[var(--color-health-critical)]">
+          <span className="text-[12px] text-[var(--bad)]">
             {message}
           </span>
         )}
@@ -591,8 +591,8 @@ export function StillTrue({
    */
 
   return (
-    <div className="flex flex-col gap-1.5 border-l-2 border-neutral-200 pl-3">
-      <p className="t-body text-neutral-800" title={original}>
+    <div className="flex flex-col gap-1.5 border-l-2 border-[var(--hair)] pl-3">
+      <p className="t-body text-[var(--ink)]" title={original}>
         {question}
         {held && (
           <span className="t-meta ml-1.5 text-[12px]">· you said {held}</span>
@@ -629,7 +629,7 @@ export function StillTrue({
             Skip
           </Button>
           {error && (
-            <span className="t-meta text-[12px] text-[var(--color-health-critical)]">
+            <span className="t-meta text-[12px] text-[var(--bad)]">
               {error}
             </span>
           )}
@@ -643,7 +643,7 @@ export function StillTrue({
               max={today}
               value={date}
               onChange={(e) => setDate(e.target.value)}
-              className="border border-neutral-300 bg-neutral-0 px-1 py-0.5 font-mono text-[11px]"
+              className="inp mini"
             />
           </label>
           {options.length > 0 ? (
@@ -663,7 +663,7 @@ export function StillTrue({
               <input
                 value={text}
                 onChange={(e) => setText(e.target.value)}
-                className="w-28 border border-neutral-300 bg-neutral-0 px-2 py-1 font-mono text-[11px]"
+                className="inp mini w-28"
               />
               <Button
                 size="sm"
@@ -676,7 +676,7 @@ export function StillTrue({
             </>
           )}
           <button
-            className={`${rowAction} text-neutral-500 hover:text-neutral-900`}
+            className={`${rowAction} text-[var(--ink-3)] hover:text-[var(--ink)]`}
             onClick={() => setChanging(false)}
           >
             cancel
@@ -724,14 +724,14 @@ export function WrongValue({ readingId }: { readingId: string }) {
   return (
     <span className="inline-flex items-center gap-2">
       <button
-        className={`${rowAction} text-neutral-500 hover:text-neutral-900`}
+        className={`${rowAction} text-[var(--ink-3)] hover:text-[var(--ink)]`}
         disabled={busy}
         onClick={() => run("/api/not-right", { readingId })}
       >
         {busy ? "Asking…" : "Wrong value"}
       </button>
       {error && (
-        <span className="t-meta text-[12px] text-[var(--color-health-critical)]">
+        <span className="t-meta text-[12px] text-[var(--bad)]">
           {error}
         </span>
       )}
@@ -760,14 +760,14 @@ export function EditFact({
   return (
     <div className="flex flex-col gap-1">
       <div className="flex flex-wrap items-center gap-2">
-        <span className="font-body text-[12px] text-neutral-700">{label}</span>
+        <span className="font-body text-[12px] text-[var(--ink-2)]">{label}</span>
         <input
           value={text}
           onChange={(e) => setText(e.target.value)}
-          className="w-44 border border-neutral-200 bg-neutral-0 px-2 py-1 font-mono text-[11px]"
+          className="inp mini w-44"
         />
         <button
-          className={`${rowAction} text-neutral-500 hover:text-neutral-900`}
+          className={`${rowAction} text-[var(--ink-3)] hover:text-[var(--ink)]`}
           disabled={busy || !text.trim() || text === value}
           onClick={() =>
             run("/api/facts", { key: factKey, value: text, ...(edit ?? {}) })
@@ -776,7 +776,7 @@ export function EditFact({
           Save
         </button>
         {error && (
-          <span className="t-meta text-[12px] text-[var(--color-health-critical)]">
+          <span className="t-meta text-[12px] text-[var(--bad)]">
             {error}
           </span>
         )}

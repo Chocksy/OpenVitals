@@ -9,6 +9,7 @@ import { getDb } from "@/db";
 import { threads } from "@/db/schema";
 import { requireUserId } from "@/lib/auth";
 import { Thread, ThreadList } from "@/components/chat";
+import { plural } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
@@ -24,27 +25,30 @@ export default async function ChatPage() {
   return (
     <div className="mx-auto max-w-3xl space-y-6">
       <div>
-        <h1 className="font-display text-[28px] font-medium tracking-[-0.03em]">
+        <h1 className="t-title text-[length:var(--type-xl)] leading-none">
           Ask
         </h1>
-        <p className="mt-1 font-body text-[13px] text-neutral-500">
+        <p className="t-meta mt-2">
           Questions about your own lab data. Not medical advice.
         </p>
       </div>
 
       <Thread />
 
-      <h2 className="t-meta text-[11px] tracking-[0.08em] text-neutral-400">
-        EVERYTHING YOU ASKED
-      </h2>
-      <ThreadList
-        threads={rows.map((t) => ({
-          id: t.id,
-          title: t.title,
-          about: t.about,
-          lastTurnAt: t.lastTurnAt?.toISOString() ?? null,
-        }))}
-      />
+      <section className="panel">
+        <div className="panel-head">
+          <h3>Everything you asked</h3>
+          <span className="r">{plural(rows.length, "thread")}</span>
+        </div>
+        <ThreadList
+          threads={rows.map((t) => ({
+            id: t.id,
+            title: t.title,
+            about: t.about,
+            lastTurnAt: t.lastTurnAt?.toISOString() ?? null,
+          }))}
+        />
+      </section>
     </div>
   );
 }

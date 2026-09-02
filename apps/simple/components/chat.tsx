@@ -9,6 +9,11 @@
  * arrives as the `offer` tool part, and the chips under it are the same ones
  * the composer already renders, through `ActOnIt` and the same routes.
  *
+ * Phase 30e draws it on `docs/mockups/v4/chat.html`: the question line, the
+ * panel the answer sits in, the receipt a written fact leaves behind, the fold
+ * that keeps "question — verdict" for older turns, and the ask pill above the
+ * tab bar. Nothing about the transport, the routes or the writes moved.
+ *
  * Nothing here decides anything. A chip acts through the engine's own routes;
  * a chip click never goes back through the model.
  */
@@ -16,7 +21,14 @@ import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport, type UIMessage } from "ai";
-import { ChevronRight, Loader2, Send, Trash2 } from "lucide-react";
+import {
+  AudioLines,
+  Check,
+  ChevronDown,
+  ChevronRight,
+  Loader2,
+  Trash2,
+} from "lucide-react";
 import { ActOnIt, type Acts } from "./act-on-it";
 import { Sources, type AskSource } from "./ask-answer";
 import { LabelledProse } from "./evidence-chip";
@@ -60,8 +72,6 @@ const post = (url: string, body: unknown) =>
     body: JSON.stringify(body),
   });
 
-/* ── the list ─────────────────────────────────────────────────────────── */
-
 export function ThreadList({ threads }: { threads: ThreadRow[] }) {
   const router = useRouter();
   const [gone, setGone] = useState<string[]>([]);
@@ -69,8 +79,8 @@ export function ThreadList({ threads }: { threads: ThreadRow[] }) {
 
   if (!left.length)
     return (
-      <div className="card border-dashed p-8 text-center">
-        <p className="t-body text-neutral-500">
+      <div className="empty">
+        <p>
           Nothing yet. Ask a question above and it becomes a thread you can come
           back to.
         </p>
@@ -78,39 +88,47 @@ export function ThreadList({ threads }: { threads: ThreadRow[] }) {
     );
 
   return (
-    <div className="card divide-y divide-neutral-100">
+    <div className="rowlist">
       {left.map((t) => (
-        <div key={t.id} className="flex items-center gap-2 px-3">
-          <a
-            href={`/chat/${t.id}`}
-            className="hit-40 flex min-w-0 flex-1 items-center gap-3 py-2.5"
-          >
-            <span className="t-meta w-14 shrink-0 text-[11px] text-neutral-400">
-              {when(t.lastTurnAt)}
-            </span>
-            <span className="t-body min-w-0 flex-1 truncate text-neutral-800">
-              {t.title}
-            </span>
-            <ChevronRight className="size-4 shrink-0 text-neutral-300" />
+        <div key={t.id} className="flex items-center gap-2">
+          <a href={`/chat/${t.id}`} className="threadrow min-w-0 flex-1">
+            <span className="d">{when(t.lastTurnAt)}</span>
+            <span className="t">{t.title}</span>
+            <ChevronRight className="ic" aria-hidden="true" />
           </a>
-          <button
+          <Button
+            job="text"
+            size="icon"
             aria-label={`Delete ${t.title}`}
-            className="hit-40 shrink-0 text-neutral-300 hover:text-[var(--color-health-critical)]"
+            className="shrink-0"
             onClick={async () => {
               await fetch(`/api/chat/threads?id=${t.id}`, { method: "DELETE" });
               setGone((was) => [...was, t.id]);
               router.refresh();
             }}
           >
-            <Trash2 className="size-4" />
-          </button>
+            <Trash2 className="ic" aria-hidden="true" />
+          </Button>
         </div>
       ))}
     </div>
   );
 }
 
-/* ── the thread ───────────────────────────────────────────────────────── */
+/** The receipt a written fact leaves behind: the green check and the sentence. */
+function Receipt({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="receipt">
+      <p className="m-0 flex items-start gap-1.5">
+        <Check
+          className="ic mt-[3px] text-[var(--ok)]"
+          aria-hidden="true"
+        />
+        <span>{children}</span>
+      </p>
+    </div>
+  );
+}
 
 /**
  * The engine asking back.
@@ -134,19 +152,19 @@ function AskBack({
 
   if (done)
     return (
-      <p className="t-meta mt-2 text-[12px] text-[var(--color-health-normal)]">
-        Recorded: {question.question} — {done}
-      </p>
+      <Receipt>
+        Recorded: {question.question} — <b>{done}</b>
+      </Receipt>
     );
 
   return (
-    <div className="mt-3 border-l-2 border-neutral-150 pl-3">
-      <p className="t-body text-neutral-800">{question.question}</p>
-      <div className="mt-1.5 flex flex-wrap gap-1.5">
+    <div className="receipt mt-3">
+      <p className="m-0">{question.question}</p>
+      <div className="chips mt-2">
         {(options.length ? options : ["Yes", "No", "Not sure"]).map((o) => (
           <button
             key={o}
-            className="inline-flex h-8 items-center gap-1.5 border border-neutral-200 bg-neutral-0 px-2.5 font-display text-[12px] tracking-[0.04em] text-neutral-700 hover:border-neutral-900 hover:bg-neutral-50"
+            className="chip"
             disabled={!!busy}
             onClick={async () => {
               setBusy(o);
@@ -160,7 +178,7 @@ function AskBack({
               onAnswered(`${question.question}: ${o}`);
             }}
           >
-            {busy === o && <Loader2 className="size-3.5 animate-spin" />}
+            {busy === o && <Loader2 className="ic spin" aria-hidden="true" />}
             {o}
           </button>
         ))}
@@ -183,7 +201,7 @@ function Turn({
         const part = raw as ToolPart & { text?: string };
         if (part.type === "text")
           return (
-            <p key={i} className="t-body whitespace-pre-line text-neutral-800">
+            <p key={i} className="answer whitespace-pre-line">
               <LabelledProse text={part.text ?? ""} />
             </p>
           );
@@ -211,17 +229,80 @@ function Turn({
         const receipt = (part.output as { receipt?: string })?.receipt;
         if (!receipt) return null;
         return (
-          <p
-            key={i}
-            className="t-meta mt-2 text-[12px] text-[var(--color-health-normal)]"
-          >
-            {receipt}
-          </p>
+          <div key={i} className="mt-3">
+            <Receipt>{receipt}</Receipt>
+          </div>
         );
       })}
     </>
   );
 }
+
+/** The words a message says, whatever else it carries. */
+const textOf = (m: UIMessage): string =>
+  m.parts
+    .filter((p) => p.type === "text")
+    .map((p) => (p as { text: string }).text)
+    .join("");
+
+/**
+ * The one sentence an older turn folds down to.
+ *
+ * Never invented: it is the first sentence the answer itself wrote, cut at
+ * the first full stop and then at 64 characters, so the fold reads
+ * "question — verdict" without the reader having to open it.
+ */
+function verdict(replies: UIMessage[]): string {
+  const said = replies.map(textOf).join(" ").trim();
+  if (!said) return "";
+  const first = said.split(/(?<=[.!?])\s/)[0] ?? said;
+  const cut = first.replace(/[.!?]+$/, "");
+  return cut.length > 64 ? `${cut.slice(0, 63).trimEnd()}…` : cut;
+}
+
+/** One exchange: what was asked, and everything that came back. */
+interface Exchange {
+  key: string;
+  asked: UIMessage | null;
+  replies: UIMessage[];
+}
+
+/** The messages, grouped into exchanges in the order they arrived. */
+function exchanges(messages: UIMessage[]): Exchange[] {
+  const out: Exchange[] = [];
+  for (const m of messages) {
+    if (m.role === "user" || !out.length)
+      out.push({
+        key: m.id,
+        asked: m.role === "user" ? m : null,
+        replies: m.role === "user" ? [] : [m],
+      });
+    else out[out.length - 1]!.replies.push(m);
+  }
+  return out;
+}
+
+function Answered({
+  turn,
+  onAnswered,
+}: {
+  turn: Exchange;
+  onAnswered: (text: string) => void;
+}) {
+  return (
+    <>
+      {turn.asked && <p className="qline">{textOf(turn.asked)}</p>}
+      {turn.replies.map((m) => (
+        <div key={m.id} className="panel hi">
+          <Turn message={m} onAnswered={onAnswered} />
+        </div>
+      ))}
+    </>
+  );
+}
+
+/** How many exchanges stay open at the bottom of the thread. */
+const OPEN = 2;
 
 export function Thread({
   id,
@@ -269,60 +350,71 @@ export function Thread({
     void sendMessage({ text });
   };
 
+  /**
+   * The fold, and why it is a `<details>`: everything above the last two
+   * answered exchanges is still rendered, still keyed the same, and the
+   * browser hides it. Nothing here touches the DOM.
+   */
+  const turns = exchanges(messages);
+  const answered = turns.filter((t) => t.replies.length);
+  const keepFrom = answered.length > OPEN ? answered[answered.length - OPEN]! : null;
+  const foldTo = keepFrom ? turns.indexOf(keepFrom) : 0;
+
   return (
-    <div className="flex flex-col gap-4">
-      {messages.map((m) => (
-        <div
-          key={m.id}
-          className={m.role === "user" ? "" : "card space-y-2 p-4"}
-        >
-          {m.role === "user" ? (
-            <p className="font-display text-[15px] tracking-[-0.02em] text-neutral-900">
-              {m.parts
-                .filter((p) => p.type === "text")
-                .map((p) => (p as { text: string }).text)
-                .join("")}
-            </p>
-          ) : (
-            <Turn message={m} onAnswered={send} />
-          )}
-        </div>
-      ))}
-
-      {busy && (
-        <p className="t-meta text-[11px] text-neutral-400">Thinking…</p>
-      )}
-      {error && (
-        <p className="t-meta text-[11px] text-[var(--color-health-critical)]">
-          {error.message}
-        </p>
+    <div className="thread">
+      {turns.map((t, i) =>
+        i < foldTo ? (
+          <details key={t.key}>
+            <summary className="fold cursor-pointer list-none">
+              <b>{t.asked ? textOf(t.asked) : "Earlier"}</b>
+              <span>— {verdict(t.replies)}</span>
+              <ChevronDown className="ic" aria-hidden="true" />
+            </summary>
+            <div className="mt-3 flex flex-col gap-3">
+              <Answered turn={t} onAnswered={send} />
+            </div>
+          </details>
+        ) : (
+          <div key={t.key} className="flex flex-col gap-3">
+            <Answered turn={t} onAnswered={send} />
+          </div>
+        ),
       )}
 
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          send(input);
-        }}
-        className="sticky bottom-0 flex items-end gap-2 bg-neutral-0/90 py-2 backdrop-blur"
-      >
-        <textarea
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" && !e.shiftKey) {
-              e.preventDefault();
-              send(input);
-            }
+      {busy && <p className="t-meta">Thinking…</p>}
+      {error && <p className="t-meta text-[var(--bad)]">{error.message}</p>}
+
+      <div className="sticky bottom-[calc(56px+env(safe-area-inset-bottom))] bg-[color-mix(in_srgb,var(--canvas)_85%,transparent)] py-2 backdrop-blur-[13px] md:bottom-0">
+        <form
+          className="ask"
+          onSubmit={(e) => {
+            e.preventDefault();
+            send(input);
           }}
-          rows={2}
-          placeholder="Ask a follow-up, or tell me something"
-          className="w-full resize-none rounded-sm border border-neutral-200 bg-neutral-0 px-3 py-2 font-body text-[13px]"
-        />
-        <Button type="submit" disabled={busy || !input.trim()} className="h-[52px]">
-          <Send />
-          Ask
-        </Button>
-      </form>
+        >
+          <AudioLines className="ic" aria-hidden="true" />
+          <textarea
+            className="q"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                send(input);
+              }
+            }}
+            rows={1}
+            placeholder="Ask a follow-up, or tell me something"
+          />
+          <button
+            type="submit"
+            className="askbtn"
+            disabled={busy || !input.trim()}
+          >
+            Ask
+          </button>
+        </form>
+      </div>
     </div>
   );
 }

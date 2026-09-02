@@ -33,17 +33,17 @@ export function statusOf({
 }
 
 export const statusColor: Record<Status, string> = {
-  red: "bg-[var(--color-health-critical)]",
-  amber: "bg-[var(--color-health-warning)]",
-  green: "bg-[var(--color-health-normal)]",
-  gray: "bg-neutral-300",
+  red: "bg-[var(--bad)]",
+  amber: "bg-[var(--warn)]",
+  green: "bg-[var(--ok)]",
+  gray: "bg-[var(--none)]",
 };
 
 export const statusStroke: Record<Status, string> = {
-  red: "var(--color-health-critical)",
-  amber: "var(--color-health-warning)",
-  green: "var(--color-health-normal)",
-  gray: "var(--color-neutral-300)",
+  red: "var(--bad)",
+  amber: "var(--warn)",
+  green: "var(--ok)",
+  gray: "var(--none)",
 };
 
 /* ------------------------------------------------------------------ *
