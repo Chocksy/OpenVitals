@@ -129,7 +129,7 @@ export function SystemChips({ systems }: { systems: Ledger["systems"] }) {
         return (
           <li key={s.id}>
             <Link
-              href={s.worst ? `/m/${s.worst.code}` : "/graph"}
+              href={s.worst ? `/blood/m/${s.worst.code}` : "/graph"}
               className={cn("chip", tone === "bad" && "tone-bad")}
             >
               <span

@@ -304,7 +304,7 @@ export default async function GraphPage({
                 {worst && row ? (
                   <div className="mt-auto space-y-1">
                     <Link
-                      href={`/m/${worst.code}`}
+                      href={`/blood/m/${worst.code}`}
                       className="block truncate font-body text-[12px] text-neutral-700 hover:underline"
                     >
                       {worst.node.name}{" "}

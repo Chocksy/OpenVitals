@@ -15,6 +15,28 @@ export function formatDate(date: Date | string | null | undefined): string {
   });
 }
 
+/**
+ * The one date the design system prints: "Aug 1" on an axis, "Aug 1 2026"
+ * anywhere a year matters. No comma — `docs/mockups/v4/blood.html` writes
+ * "Dec 9 2025" — and no ISO string, which is a machine's date, not a page's.
+ */
+export function dayLabel(day: string, year = false): string {
+  const d = new Date(`${day.slice(0, 10)}T00:00:00`);
+  if (Number.isNaN(d.getTime())) return day;
+  const month = d.toLocaleDateString("en-US", { month: "short" });
+  return year
+    ? `${month} ${d.getDate()} ${d.getFullYear()}`
+    : `${month} ${d.getDate()}`;
+}
+
+/**
+ * A count and its noun, agreeing: "1 result", "15 results", "1 reading".
+ * Every count on a page goes through it, because "1 results" is the kind of
+ * thing a reader trips over and never trusts again.
+ */
+export const plural = (n: number, one: string, many = `${one}s`): string =>
+  `${n} ${n === 1 ? one : many}`;
+
 /** "12 Mar 24" style label for chart ticks. */
 export function formatChartDate(dateStr: string): string {
   return new Date(dateStr).toLocaleDateString("en-US", {

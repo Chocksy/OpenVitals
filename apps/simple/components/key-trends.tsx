@@ -1,20 +1,24 @@
 "use client";
 
 /**
- * Four charts on a phone is four screens of scrolling before the ledger. On a
- * phone the section shows one chart with a switcher above it; from `lg` up all
- * four are drawn as before, so the desktop loses nothing.
+ * Key trends on Home: the same history chart and the same ruler the marker
+ * page draws, at drawer size.
  *
- * ponytail: no carousel, no measuring. One index in state and a `hidden
- * lg:block` on the charts that are not it.
+ * Four charts on a phone is four screens of scrolling before the ledger, so
+ * on a phone the section shows one chart with a switcher above it; from `lg`
+ * up all four are drawn.
+ *
+ * Phase 30c: recharts is gone. `HistoryChart` is a server component but this
+ * one holds the switcher's state, so it stays a client component and renders
+ * the chart's markup as its child.
  */
 import { useState } from "react";
 import Link from "next/link";
 import type { TrendMetric } from "@/lib/home-data";
+import { HistoryChart } from "./history-chart";
 import { PillTabs } from "./pill-tabs";
-import { RangeBar } from "./range-bar";
+import { Ruler } from "./ruler";
 import { Term } from "./term";
-import { TrendChart } from "./trend-chart";
 import { Card } from "./ui-kit";
 
 export function KeyTrends({ trends }: { trends: TrendMetric[] }) {
@@ -43,7 +47,7 @@ export function KeyTrends({ trends }: { trends: TrendMetric[] }) {
             className={t.metricCode === active ? "p-4" : "hidden p-4 lg:block"}
           >
             <div className="flex items-baseline justify-between gap-2">
-              <span className="t-title text-[13px] text-neutral-800">
+              <span className="t-title text-[13px]">
                 <Term code={t.metricCode}>{t.metricName}</Term>
               </span>
               <span className="t-meta text-[11px]">
@@ -51,50 +55,38 @@ export function KeyTrends({ trends }: { trends: TrendMetric[] }) {
               </span>
             </div>
 
-            <TrendChart
-              height={140}
-              data={t.points.map((p) => ({
-                date: p.date,
-                value: p.value,
-                unit: t.unit,
-              }))}
-              referenceRangeLow={t.refLow}
-              referenceRangeHigh={t.refHigh}
-              optimalRangeLow={t.optimalLow}
-              optimalRangeHigh={t.optimalHigh}
-              goalLow={t.goalLow}
-              goalHigh={t.goalHigh}
-              unit={t.unit}
-              status={t.status}
-            />
-
-            <div className="mt-3 flex items-baseline gap-1.5">
-              <span className="font-display text-[26px] font-medium tracking-[-0.03em] tabular-nums text-neutral-900">
-                {Number.isInteger(t.latestValue)
-                  ? t.latestValue
-                  : t.latestValue.toFixed(1)}
-              </span>
-              {t.unit && (
-                <span className="t-num text-[11px] text-neutral-400">
-                  {t.unit}
-                </span>
-              )}
-            </div>
             <div className="mt-2">
-              <RangeBar
-                value={t.latestValue}
-                prev={t.prevValue}
+              <HistoryChart
+                mini
+                title="History"
+                unit={t.unit}
+                points={t.points}
                 refLow={t.refLow}
                 refHigh={t.refHigh}
                 optimalLow={t.optimalLow}
                 optimalHigh={t.optimalHigh}
-                goal={t.goalLow ?? t.goalHigh}
+                noun="readings"
+              />
+            </div>
+
+            <div className="mt-3">
+              <Ruler
+                value={t.latestValue}
+                prev={t.prevValue}
+                prevDate={t.prevDate}
+                refLow={t.refLow}
+                refHigh={t.refHigh}
+                optimalLow={t.optimalLow}
+                optimalHigh={t.optimalHigh}
+                target={t.goalLow ?? t.goalHigh}
+                targetDate={t.goalDue}
                 unit={t.unit}
               />
             </div>
+
             <Link
-              href={`/m/${t.metricCode}`}
-              className="t-meta mt-2 inline-flex h-10 items-center gap-1 text-[12px] hover:text-neutral-900"
+              href={`/blood/m/${t.metricCode}`}
+              className="t-meta hit-40 mt-2 inline-flex items-center gap-1 text-[12px]"
             >
               Every reading
               <span aria-hidden="true">→</span>

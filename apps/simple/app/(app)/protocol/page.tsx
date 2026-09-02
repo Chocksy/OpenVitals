@@ -44,7 +44,7 @@ export default async function ProtocolPage() {
         {item.metricCodes.map((code) => (
           <Link
             key={code}
-            href={`/m/${code}`}
+            href={`/blood/m/${code}`}
             className="inline-flex items-center border border-neutral-200 bg-neutral-50 px-2 py-1 font-body text-[11px] font-medium text-neutral-700 hover:border-accent-300"
           >
             {nameOf(code)}

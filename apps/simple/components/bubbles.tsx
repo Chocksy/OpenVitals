@@ -584,7 +584,7 @@ function Detail({
         )}
         {node.code && (
           <Link
-            href={`/m/${node.code}`}
+            href={`/blood/m/${node.code}`}
             className="mt-1 inline-block font-mono text-[11px] text-neutral-400 hover:text-neutral-700"
           >
             open {node.code} →

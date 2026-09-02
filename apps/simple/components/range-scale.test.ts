@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { rangeScale } from "./range-scale";
+import { decimalsOf, niceEnd, rangeScale } from "./ruler";
 
 /**
  * Phase 26 item 9. TPO antibodies 320 against an optimal band of 0–34 painted
@@ -89,5 +89,63 @@ describe("the tail keeps a little air", () => {
     const s = rangeScale({ marks: [2, 40, 45], bandLow: 40, bandHigh: 45 });
     expect(s.at(2)).toBeGreaterThan(0.5);
     expect(s.at(2)).toBeLessThan(s.breakLow!);
+  });
+});
+
+/**
+ * Phase 30c, second pass. The padded end of a scale is arithmetic, not a
+ * reading: the owner read "146.72 mg/dL" under a bar and took it for a second
+ * value. An axis end is rounded outward to the nearest preferred number, and
+ * never to more decimals than the marker's own readings carry.
+ */
+describe("the ends an axis prints", () => {
+  it("rounds a high end up to a number a person would say", () => {
+    expect(niceEnd(146.72, "up")).toBe(150);
+    expect(niceEnd(110.08, "up")).toBe(120);
+    expect(niceEnd(243.04, "up")).toBe(250);
+    expect(niceEnd(95.52, "up")).toBe(100);
+  });
+
+  it("rounds a low end down the same way", () => {
+    expect(niceEnd(67.92, "down")).toBe(60);
+    expect(niceEnd(38.48, "down")).toBe(30);
+  });
+
+  it("keeps the rounded end outside the value it came from", () => {
+    for (const v of [146.72, 110.08, 243.04, 95.52, 0.037, 4.48, 9999]) {
+      expect(niceEnd(v, "up")).toBeGreaterThanOrEqual(v);
+      expect(niceEnd(v, "down")).toBeLessThanOrEqual(v);
+    }
+  });
+
+  it("floors at zero, and mirrors below it", () => {
+    expect(niceEnd(0, "up")).toBe(0);
+    expect(niceEnd(0, "down")).toBe(0);
+    expect(niceEnd(-3.2, "down")).toBe(-4);
+    expect(niceEnd(-3.2, "up")).toBe(-3);
+  });
+
+  it("works at every order of magnitude", () => {
+    expect(niceEnd(0.037, "up")).toBe(0.04);
+    expect(niceEnd(0.037, "down")).toBe(0.03);
+    expect(niceEnd(1460, "up")).toBe(1500);
+    expect(niceEnd(0.0009, "up")).toBe(0.001);
+  });
+
+  it("never prints more decimals than the readings themselves use", () => {
+    // mg/dL comes in whole numbers, so its axis does too
+    expect(niceEnd(4.48, "up", 0)).toBe(5);
+    expect(niceEnd(1.15, "up", 0)).toBe(2);
+    expect(niceEnd(4.48, "down", 0)).toBe(4);
+    // one decimal on the readings, one on the end
+    expect(niceEnd(4.48, "up", 1)).toBe(5);
+    expect(niceEnd(0.44, "up", 1)).toBe(0.5);
+  });
+
+  it("reads the decimals off the marker's own numbers", () => {
+    expect(decimalsOf([320, 412, 34])).toBe(0);
+    expect(decimalsOf([3.9, 0.4, 4.5])).toBe(1);
+    expect(decimalsOf([16.29, 6, 18.4])).toBe(2);
+    expect(decimalsOf([null, undefined, Number.NaN])).toBe(0);
   });
 });

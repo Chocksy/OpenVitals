@@ -50,7 +50,7 @@ const priorityStyles: Record<
 function Chip({ code, name }: { code: string; name: string }) {
   return (
     <Link
-      href={`/m/${code}`}
+      href={`/blood/m/${code}`}
       className="inline-flex items-center border border-neutral-200 bg-neutral-50 px-2 py-1 font-body text-[11px] font-medium text-neutral-700 hover:border-accent-300 hover:text-neutral-900"
     >
       {name}
@@ -217,7 +217,7 @@ export default async function InsightsPage() {
                 {week.metricNotes.map((n) => (
                   <Link
                     key={n.code}
-                    href={`/m/${n.code}`}
+                    href={`/blood/m/${n.code}`}
                     className="flex items-baseline gap-3 px-4 py-2.5 hover:bg-neutral-50"
                   >
                     <span className="w-40 shrink-0 truncate font-display text-[12px] font-medium">

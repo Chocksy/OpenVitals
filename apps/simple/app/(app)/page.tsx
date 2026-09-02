@@ -300,7 +300,7 @@ export default async function Home({
         <section>
           <SectionHeader
             title="Key trends"
-            href="/biomarkers"
+            href="/blood?tab=markers"
             linkLabel="All markers"
           />
           <KeyTrends trends={trends} />

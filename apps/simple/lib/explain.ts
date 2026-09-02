@@ -285,7 +285,7 @@ export function genomeFinding(
     kind: "genome",
     title: "What your genome changed",
     at: upload.at,
-    href: `/uploads/${upload.id}`,
+    href: `/blood/uploads/${upload.id}`,
     lines: top.map((r) => ({
       // the short gene the graph uses, so the chip stays a chip: the catalog's
       // own `gene` for the HLA row is a whole sentence.
@@ -352,7 +352,7 @@ export function documentFinding(
     kind: "document",
     title: `What your ${DOC_NAME[upload.docType ?? "other"] ?? "document"} changed`,
     at: upload.at,
-    href: `/uploads/${upload.id}`,
+    href: `/blood/uploads/${upload.id}`,
     lines: top.map(({ item }) => ({
       label: item.moved ?? item.kind,
       text: item.text,

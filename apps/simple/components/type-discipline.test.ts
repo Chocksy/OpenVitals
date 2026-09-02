@@ -300,7 +300,7 @@ const finding = {
   kind: "genome",
   title: "What your genome changed",
   at: "2026-08-25",
-  href: "/uploads/u1",
+  href: "/blood/uploads/u1",
   lines: [
     { label: "TCF7L2 CT", text: "Raises the odds of type 2 diabetes ×1.4." },
   ],

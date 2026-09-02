@@ -214,6 +214,10 @@
 }
 
 @layer base {
+  /* Hidden glossary tips are laid out off the right edge; they must never
+     turn into a sideways scroll on a phone. clip keeps sticky bars working. */
+  html, body { overflow-x: clip; }
+
   * {
     border-color: var(--hair);
   }
@@ -1564,6 +1568,15 @@ select:focus-visible {
   .markerrow .bar {
     grid-column: 1 / -1;
   }
+  /* the whole row is the link: no chevron, no second target */
+  a.markerrow {
+    text-decoration: none;
+    color: inherit;
+  }
+  a.markerrow:hover .nm b {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
   /* a row whose middle column carries a sentence, not a sparkline */
   .markerrow.said {
     grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr) auto 110px;
@@ -1601,6 +1614,33 @@ select:focus-visible {
     .markerrow .wd {
       grid-column: 1 / -1;
       text-align: left;
+    }
+    /* Blood · Markers: on the phone the row is the mockup's compact shape —
+       the name and its source on the left, the value and its word stacked on
+       the right, the rule under both. The sparkline is the first thing to go:
+       96 px of line is a smear at this width and the rule says the same
+       thing with a scale under it. */
+    .markerrow.mk {
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: var(--s3) var(--s13);
+      align-items: start;
+    }
+    .markerrow.mk > .spark,
+    .markerrow.mk > .t-meta {
+      display: none;
+    }
+    .markerrow.mk > .val {
+      grid-column: 2;
+      grid-row: 1;
+    }
+    .markerrow.mk > .wd {
+      grid-column: 2;
+      grid-row: 2;
+      text-align: right;
+    }
+    .markerrow.mk > .nm {
+      grid-column: 1;
+      grid-row: 1 / span 2;
     }
     .markerrow.day .val em {
       min-width: 0;
@@ -1914,6 +1954,860 @@ select:focus-visible {
     height: 0;
     border-top: 1px dashed var(--ink-3);
     background: none;
+  }
+
+  .hist-legend i.ghost {
+    background: var(--surface-flat);
+    box-shadow: 0 0 0 1.5px var(--ink-3);
+  }
+  .hist-legend i.tgt {
+    width: 13px;
+    height: 3px;
+    transform: none;
+    border-radius: 2px;
+    background: var(--ok);
+    box-shadow: none;
+  }
+  .hist-legend u.dot {
+    width: 13px;
+    height: 0;
+    background: none;
+    border-top: 2px dotted var(--ink-3);
+  }
+  .hist-legend u.normal {
+    background: color-mix(in oklab, var(--ok) 13%, var(--track));
+  }
+  .hist-legend u.optimal {
+    background: color-mix(in oklab, var(--ok) 26%, var(--track));
+  }
+  .hist-legend u.hatch {
+    background: repeating-linear-gradient(
+      118deg,
+      color-mix(in oklab, var(--ok) 34%, transparent) 0 3px,
+      transparent 3px 7px
+    );
+  }
+
+  /* ── the ruler: one reading against its own bands ───────────────────
+     `docs/mockups/v4/system.css` section 10 (via `v4.css` section 6). The
+     track is thick, the normal and optimal bands sit inside it, the axis
+     breaks where the scale stops being to scale, the current mark carries a
+     white ring and prints its own value, the "was" mark is hollow and dated,
+     and a target draws a hatched pace zone with its date. Scoped under
+     `.ruler` because `.marker`, `.seg`, `.band` and `.goal` are words the
+     rest of the app also uses. */
+  .ruler {
+    --p: 50%;
+    padding-top: var(--s34);
+  }
+  .ruler-track {
+    position: relative;
+    display: flex;
+    align-items: center;
+    height: 18px;
+  }
+  .ruler .seg {
+    position: relative;
+    height: 18px;
+    border-radius: var(--r-pill);
+    background: var(--track);
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+  .ruler .seg-bands {
+    position: absolute;
+    inset: 0;
+    border-radius: var(--r-pill);
+    overflow: hidden;
+  }
+  .ruler .band {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: var(--a);
+    width: calc(var(--b) - var(--a));
+  }
+  .ruler .band.normal {
+    background: color-mix(in oklab, var(--ok) 16%, var(--track));
+  }
+  .ruler .band.optimal {
+    background: color-mix(in oklab, var(--ok) 36%, var(--track));
+    border-radius: var(--r-pill);
+  }
+  .ruler .band.pace {
+    background: repeating-linear-gradient(
+      118deg,
+      color-mix(in oklab, var(--ok) 46%, transparent) 0 4px,
+      transparent 4px 9px
+    );
+  }
+  .ruler .brk {
+    flex: 0 0 var(--s21);
+    height: 20px;
+    position: relative;
+  }
+  .ruler .brk::before,
+  .ruler .brk::after {
+    content: "";
+    position: absolute;
+    top: 1px;
+    bottom: 1px;
+    width: 2px;
+    border-radius: 2px;
+    background: color-mix(in oklab, var(--track) 70%, var(--ink-3));
+    transform: skewX(-22deg);
+  }
+  .ruler .brk::before {
+    left: 6px;
+  }
+  .ruler .brk::after {
+    left: 13px;
+  }
+  .ruler .mark {
+    position: absolute;
+    top: 50%;
+    left: var(--p);
+    width: 21px;
+    height: 21px;
+    margin: -10.5px 0 0 -10.5px;
+    border-radius: 999px;
+    background: var(--mk, var(--warn));
+    box-shadow: 0 0 0 4px var(--surface-flat),
+      0 5px 13px -4px rgba(23, 22, 20, 0.45);
+    z-index: 2;
+  }
+  .ruler .mark.off {
+    --mk: var(--bad);
+  }
+  .ruler .mark.border {
+    --mk: var(--warn);
+  }
+  .ruler .mark.on {
+    --mk: var(--ok);
+  }
+  .ruler .mark.none {
+    --mk: var(--ink-3);
+  }
+  .ruler .mval {
+    position: absolute;
+    bottom: calc(100% + var(--s13));
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+    font-size: var(--type-md);
+    color: var(--ink);
+    white-space: nowrap;
+  }
+  .ruler .mval em {
+    font-style: normal;
+    font-size: var(--type-xs);
+    color: var(--ink-3);
+    margin-left: var(--s3);
+  }
+  .ruler .mval::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: calc(100% + 3px);
+    width: 1px;
+    height: var(--s8);
+    background: color-mix(in oklab, var(--ink) 24%, transparent);
+  }
+  .ruler .mark[data-align="end"] .mval {
+    left: auto;
+    right: -2px;
+    transform: none;
+  }
+  .ruler .mark[data-align="end"] .mval::after {
+    left: auto;
+    right: 10px;
+  }
+  .ruler .mark[data-align="start"] .mval {
+    left: -2px;
+    right: auto;
+    transform: none;
+  }
+  .ruler .mark[data-align="start"] .mval::after {
+    left: 10px;
+  }
+  .ruler .ghost {
+    position: absolute;
+    top: 50%;
+    left: var(--g);
+    width: 13px;
+    height: 13px;
+    margin: -6.5px 0 0 -6.5px;
+    border-radius: 999px;
+    background: var(--surface-flat);
+    box-shadow: 0 0 0 2px color-mix(in oklab, var(--ink) 26%, transparent);
+    z-index: 1;
+  }
+  .ruler .ghost::after,
+  .ruler .goal::after {
+    content: attr(data-label);
+    position: absolute;
+    top: calc(100% + var(--s5));
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: var(--font-mono);
+    font-size: var(--type-xs);
+    color: var(--ink-3);
+    white-space: nowrap;
+  }
+  .ruler .goal {
+    position: absolute;
+    top: -7px;
+    bottom: -7px;
+    left: var(--t);
+    width: 2px;
+    margin-left: -1px;
+    border-radius: 2px;
+    background: var(--ink);
+    z-index: 2;
+  }
+  .ruler .goal::after {
+    color: var(--ink-2);
+  }
+  /* two labels under the same stretch of track take two lines */
+  .ruler [data-row="2"]::after {
+    top: calc(100% + var(--s21));
+  }
+  /* a label near either end turns in rather than running off the gutter */
+  .ruler [data-align="start"]::after {
+    left: 0;
+    transform: none;
+  }
+  .ruler [data-align="end"]::after {
+    left: auto;
+    right: 0;
+    transform: none;
+  }
+  .ruler-scale {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--s13);
+    margin-top: var(--s34);
+    font-family: var(--font-mono);
+    font-size: var(--type-xs);
+    color: var(--ink-3);
+  }
+  /* --ok on the cream reads 4.63:1 as text but the mid label sits under a
+     band, so it takes the full second ink instead — `system.css` says so. */
+  .ruler-scale .mid {
+    color: var(--ink-2);
+    text-align: center;
+    min-width: 0;
+  }
+  .ruler-say {
+    margin: var(--s13) 0 0;
+    font-size: var(--type-sm);
+    color: var(--ink-2);
+    text-wrap: pretty;
+  }
+  .ruler-say b {
+    font-weight: 500;
+    color: var(--ink);
+  }
+  /* the row-sized ruler: no printed value above the mark, no ghost label */
+  .ruler.row {
+    padding-top: var(--s8);
+  }
+  .ruler.row .ruler-track {
+    height: 8px;
+  }
+  .ruler.row .seg {
+    height: 8px;
+  }
+  .ruler.row .brk {
+    flex-basis: var(--s13);
+    height: 10px;
+  }
+  .ruler.row .mark {
+    width: 10px;
+    height: 10px;
+    margin: -5px 0 0 -5px;
+    box-shadow: 0 0 0 2px var(--surface-flat);
+  }
+  .ruler.row .mval,
+  .ruler.row .ghost::after,
+  .ruler.row .goal::after {
+    display: none;
+  }
+  .ruler.row .ghost {
+    width: 8px;
+    height: 8px;
+    margin: -4px 0 0 -4px;
+  }
+  .ruler.row .ruler-scale {
+    margin-top: var(--s5);
+  }
+  @media (max-width: 560px) {
+    .ruler-scale .mid {
+      display: none;
+    }
+  }
+
+  /* ── the history chart: every draw at its own date and value ────────
+     `v4.css` sections 7 and "phase 29 · the history chart, rebuilt". */
+  .hist {
+    background: var(--surface);
+    border-radius: var(--r-card);
+    padding: var(--s13) var(--s21);
+    container-type: inline-size;
+  }
+  .hist-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--s13);
+    padding-bottom: var(--s13);
+    border-bottom: 1px solid var(--hair);
+  }
+  .hist-head h3 {
+    margin: 0;
+    font-size: var(--type-sm);
+    font-weight: 500;
+    color: var(--ink);
+  }
+  .hist-head .unit {
+    font-family: var(--font-mono);
+    font-size: var(--type-xs);
+    color: var(--ink-3);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .hist-body {
+    display: grid;
+    grid-template-columns: 60px 1fr;
+    gap: var(--s13);
+    padding-top: var(--s21);
+  }
+  .hist-y {
+    position: relative;
+    height: 144px;
+    overflow: visible;
+    font-family: var(--font-mono);
+    font-size: var(--type-xs);
+    line-height: 1.15;
+    color: var(--ink-3);
+    text-align: right;
+  }
+  .hist-y span {
+    position: absolute;
+    right: 0;
+    top: var(--y);
+    transform: translateY(-50%);
+    line-height: 1;
+    white-space: nowrap;
+  }
+  .hist-plot {
+    position: relative;
+    height: 144px;
+    border-bottom: 1px solid var(--hair);
+  }
+  .hist-band {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: var(--t);
+    height: var(--h);
+  }
+  .hist-band.normal {
+    background: color-mix(in oklab, var(--ok) 13%, transparent);
+  }
+  .hist-band.optimal {
+    background: color-mix(in oklab, var(--ok) 26%, transparent);
+  }
+  .hist-band.seg {
+    left: var(--l);
+    right: var(--r);
+  }
+  .hist-band.pace {
+    background: repeating-linear-gradient(
+      118deg,
+      color-mix(in oklab, var(--ok) 34%, transparent) 0 4px,
+      transparent 4px 9px
+    );
+  }
+  /* a band's own name: it slides along the band's top edge to the first
+     slot no diamond and no line segment is sitting in, and drops to the
+     bottom edge when the whole top is busy */
+  .hist-band b {
+    position: absolute;
+    z-index: 2;
+    left: calc(var(--s5) + var(--bx, 0%));
+    top: 2px;
+    font-family: var(--font-mono);
+    font-size: var(--type-xs);
+    font-weight: 400;
+    color: var(--ink);
+    white-space: nowrap;
+  }
+  .hist-band b.low {
+    top: auto;
+    bottom: 2px;
+  }
+  .hist-band.seg b {
+    left: auto;
+    right: var(--s5);
+    top: auto;
+    bottom: calc(100% + 3px);
+  }
+  .hist-plot svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+  }
+  .hist-plot svg polyline {
+    fill: none;
+    stroke: var(--ink);
+    stroke-width: 1.5;
+    vector-effect: non-scaling-stroke;
+  }
+  .hist-plot svg polyline.proj {
+    stroke: var(--ink-3);
+    stroke-width: 1.5;
+    stroke-dasharray: 2 4;
+    stroke-linecap: round;
+  }
+  .hp {
+    position: absolute;
+    left: var(--x);
+    top: var(--y);
+  }
+  .hp i {
+    position: absolute;
+    left: -6px;
+    top: -6px;
+    width: 12px;
+    height: 12px;
+    transform: rotate(45deg);
+    border-radius: 2px;
+    background: var(--surface-flat);
+    box-shadow: 0 0 0 2px var(--ink);
+  }
+  .hp.now i {
+    background: var(--ink);
+  }
+  .hp.plan i {
+    background: var(--surface-flat);
+    box-shadow: 0 0 0 2px var(--ink-3);
+  }
+  .hp.target i {
+    transform: none;
+    width: 16px;
+    height: 3px;
+    left: -8px;
+    top: -1.5px;
+    margin: 0;
+    border-radius: 2px;
+    background: var(--ok);
+    box-shadow: none;
+  }
+  /* the value label sits ABOVE its own diamond, 11 px clear, on the side
+     that has room, so the trend line never runs through the digits */
+  .hp b {
+    position: absolute;
+    top: -11px;
+    left: 0;
+    transform: translateY(-100%);
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+    font-size: var(--type-sm);
+    font-weight: 400;
+    color: var(--ink);
+    white-space: nowrap;
+  }
+  .hp.lft b {
+    left: auto;
+    right: 0;
+  }
+  .hp.was b {
+    color: var(--ink-3);
+    font-size: var(--type-sm);
+  }
+  .hp.now b {
+    color: var(--ink);
+    font-weight: 500;
+  }
+  .hp.plan b {
+    color: var(--ink-3);
+    font-family: var(--font-display);
+    font-size: var(--type-xs);
+  }
+  .hp.target b {
+    color: var(--ok);
+    font-family: var(--font-mono);
+    font-size: var(--type-xs);
+  }
+  .hist-x {
+    position: relative;
+    height: 30px;
+    margin-top: var(--s8);
+    font-family: var(--font-mono);
+    font-size: var(--type-xs);
+    line-height: 1.25;
+    color: var(--ink-3);
+  }
+  .hist-x.has-plan {
+    height: 34px;
+  }
+  .hist-x span {
+    position: absolute;
+    left: var(--x);
+    top: 0;
+    transform: translateX(-50%);
+    white-space: nowrap;
+    text-align: center;
+  }
+  .hist-x span em {
+    display: block;
+    font-style: normal;
+    opacity: 0.8;
+  }
+  .hist-x .first {
+    transform: none;
+  }
+  .hist-x .last {
+    transform: translateX(-100%);
+  }
+  .hist-x .now {
+    color: var(--ink);
+  }
+  .hist-x .tgt {
+    color: var(--ok);
+  }
+  .hist-x .plan {
+    color: var(--ink-3);
+  }
+  @container (max-width: 620px) {
+    .hp.plan b {
+      display: none;
+    }
+  }
+  @container (max-width: 480px) {
+    .hist-x span {
+      font-size: 10px;
+    }
+    .hist-x .mid {
+      display: none;
+    }
+  }
+  /* the drawer size: no y gutter, a shorter plot, and the legend stays,
+     because a mark nobody can name is the defect this chart was fixing */
+  .hist.mini {
+    padding: var(--s8) var(--s13);
+    border-radius: var(--r-inner);
+  }
+  .hist.mini .hist-body {
+    grid-template-columns: 1fr;
+    padding-top: var(--s34);
+  }
+  .hist.mini .hist-plot {
+    height: 55px;
+  }
+  .hist.mini .hp b {
+    font-size: var(--type-xs);
+  }
+  .hist.mini .hist-band b {
+    display: none;
+  }
+  .hist.mini .hist-head {
+    padding-bottom: var(--s8);
+  }
+  .hist.mini .hist-x {
+    height: 16px;
+  }
+  .hist.mini .hist-legend {
+    margin-top: var(--s8);
+    padding-top: var(--s8);
+  }
+
+  /* ── the draw line: every blood draw on one axis ────────────────────── */
+  .drawline {
+    position: relative;
+    padding: var(--s21) 0 var(--s5);
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .drawline::-webkit-scrollbar {
+    display: none;
+  }
+  .drawline .axis {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 34px;
+    height: 1px;
+    background: var(--hair);
+  }
+  .drawline .marks {
+    position: relative;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: var(--s13);
+    min-width: 100%;
+    width: max-content;
+  }
+  .dmark {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--s5);
+    min-width: 0;
+    text-decoration: none;
+    color: inherit;
+  }
+  .dmark i {
+    width: 11px;
+    height: 11px;
+    transform: rotate(45deg);
+    border-radius: 2px;
+    background: var(--ink);
+  }
+  .dmark.planned i {
+    background: var(--surface-flat);
+    box-shadow: 0 0 0 2px var(--ink-3);
+  }
+  .dmark b {
+    font-family: var(--font-mono);
+    font-size: var(--type-xs);
+    font-weight: 400;
+    color: var(--ink-2);
+    white-space: nowrap;
+  }
+  .dmark .n {
+    font-family: var(--font-mono);
+    font-size: var(--type-md);
+    color: var(--ink);
+  }
+  .dmark span {
+    font-size: var(--type-xs);
+    color: var(--ink-3);
+    white-space: nowrap;
+  }
+
+  /* ── the mini rule inside a marker row ──────────────────────────────── */
+  .minirule {
+    grid-column: 1 / -1;
+    position: relative;
+    height: 5px;
+    border-radius: var(--r-pill);
+    background: var(--track);
+    overflow: hidden;
+  }
+  .minirule i {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: var(--a);
+    width: calc(var(--b) - var(--a));
+    background: color-mix(in oklab, var(--ok) 30%, var(--track));
+  }
+  .minirule u {
+    position: absolute;
+    top: -2px;
+    bottom: -2px;
+    left: var(--p);
+    width: 2px;
+    margin-left: -1px;
+    background: var(--st, var(--ink));
+    text-decoration: none;
+  }
+
+  /* ── the sparkline in a marker row ──────────────────────────────────── */
+  .spark {
+    display: block;
+    width: 96px;
+    height: 26px;
+    overflow: visible;
+  }
+  .spark polyline {
+    fill: none;
+    stroke: var(--ink-3);
+    stroke-width: 1.5;
+    stroke-linejoin: round;
+    stroke-linecap: round;
+    vector-effect: non-scaling-stroke;
+  }
+  .spark rect.end {
+    fill: var(--ink);
+  }
+
+  /* ── the upload row ─────────────────────────────────────────────────── */
+  .uprow {
+    display: grid;
+    grid-template-columns: var(--s34) minmax(0, 1fr) auto;
+    gap: var(--s13);
+    align-items: start;
+  }
+  .uprow .pg {
+    display: grid;
+    place-items: center;
+    width: var(--s34);
+    height: var(--s34);
+    border-radius: var(--r-inner);
+    background: var(--canvas-deep);
+    color: var(--ink-2);
+  }
+  .uprow b {
+    display: block;
+    font-size: var(--type-sm);
+    font-weight: 400;
+    color: var(--ink);
+    word-break: break-all;
+  }
+  .uprow .meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--s5) var(--s13);
+    margin-top: var(--s3);
+    font-family: var(--font-mono);
+    font-size: var(--type-xs);
+    color: var(--ink-3);
+  }
+  @media (max-width: 560px) {
+    .uprow {
+      grid-template-columns: var(--s34) minmax(0, 1fr);
+    }
+    .uprow > *:last-child {
+      grid-column: 2;
+    }
+  }
+
+  /* ── the draw builder's row ─────────────────────────────────────────── */
+  .drow {
+    display: grid;
+    grid-template-columns: var(--s21) minmax(0, 1fr) auto;
+    gap: var(--s13);
+    align-items: start;
+    padding: var(--s13) 0;
+    border-bottom: 1px solid var(--hair);
+    width: 100%;
+    text-align: left;
+    background: transparent;
+    border-left: 0;
+    border-right: 0;
+    border-top: 0;
+    cursor: pointer;
+  }
+  .drow:last-child {
+    border-bottom: 0;
+  }
+  .drow .ck {
+    display: grid;
+    place-items: center;
+    width: var(--s21);
+    height: var(--s21);
+    border-radius: var(--s5);
+    background: var(--ink);
+    color: var(--canvas);
+  }
+  .drow .ck.offc {
+    background: transparent;
+    box-shadow: inset 0 0 0 1px var(--hair);
+    color: transparent;
+  }
+  .drow .nm {
+    font-size: var(--type-sm);
+    color: var(--ink);
+  }
+  .drow .dsub {
+    font-size: var(--type-xs);
+    color: var(--ink-3);
+    margin-top: 2px;
+  }
+  .drow .cost {
+    font-family: var(--font-mono);
+    font-size: var(--type-xs);
+    color: var(--ink-3);
+    text-align: right;
+    white-space: nowrap;
+  }
+  .post {
+    font-family: var(--font-mono);
+    font-size: var(--type-xs);
+  }
+  .post .up {
+    color: var(--bad);
+  }
+  .post .dn {
+    color: var(--ok);
+  }
+
+  /* ── the filter row: words, never a second tab style ────────────────── */
+  .filters {
+    display: flex;
+    gap: var(--s8);
+    flex-wrap: wrap;
+  }
+  .filters .f {
+    font-size: var(--type-sm);
+    padding: var(--s5) var(--s13);
+    border-radius: var(--r-pill);
+    background: var(--surface);
+    color: var(--ink-2);
+    border: 0;
+    font-family: inherit;
+    cursor: pointer;
+  }
+  .filters .f.on {
+    background: var(--ink);
+    color: var(--canvas);
+  }
+
+  /* ── tables ─────────────────────────────────────────────────────────── */
+  .tblwrap {
+    overflow-x: auto;
+    border-radius: var(--r-inner);
+  }
+  .tbl {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--type-sm);
+  }
+  .tbl th {
+    text-align: left;
+    font-family: var(--font-mono);
+    font-size: var(--type-xs);
+    font-weight: 400;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    padding: var(--s8) var(--s13);
+    border-bottom: 1px solid var(--ink-3);
+    white-space: nowrap;
+    background: var(--surface-flat);
+  }
+  .tbl td {
+    padding: var(--s8) var(--s13);
+    border-bottom: 1px solid var(--hair);
+    color: var(--ink-2);
+    vertical-align: baseline;
+  }
+  .tbl td.n {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+    color: var(--ink);
+    white-space: nowrap;
+  }
+  .tbl td.k {
+    color: var(--ink);
+  }
+  .tbl tbody tr:hover td {
+    background: var(--surface-hi);
+  }
+
+  /* the mono source line after a title */
+  .src {
+    font-family: var(--font-mono);
+    font-size: var(--type-xs);
+    color: var(--ink-3);
+    letter-spacing: 0.06em;
   }
 
   /* the heatmap year grid */
@@ -3114,6 +4008,14 @@ a.t-tab {
   }
   .t-tabs::-webkit-scrollbar {
     display: none;
+  }
+  /* Four tabs at 13 px of side padding plus the row's own 3 px came to
+     393 px on a 390 px screen: the last tab's right edge sat off the gutter
+     and Body's "Trends" was clipped. The label never shrinks and never
+     truncates, so the padding does. */
+  .t-tab {
+    padding-left: var(--s8);
+    padding-right: var(--s8);
   }
 }
 

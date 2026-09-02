@@ -513,7 +513,7 @@ export interface PhoneMetric {
   code: string;
   name: string;
   unit: string | null;
-  /** `/m/<code>` for a real metric; null for the activity rows, which have none. */
+  /** `/blood/m/<code>` for a real metric; null for the activity rows, which have none. */
   href: string | null;
   count: number;
   since: string;
@@ -618,7 +618,7 @@ export async function getPhoneMetrics(userId: string): Promise<PhoneMetric[]> {
         code: m.code,
         name: m.name,
         unit: m.unit,
-        href: `/m/${m.code}`,
+        href: `/blood/m/${m.code}`,
         optimalLow: m.optimalLow,
         optimalHigh: m.optimalHigh,
         status: "gray",

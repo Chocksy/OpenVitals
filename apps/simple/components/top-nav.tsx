@@ -58,7 +58,7 @@ const system: NavItem[] = [
 /** `/body` and `/blood` own the routes that folded into them. */
 const FOLDED: Record<string, string[]> = {
   "/body": ["/body", "/today", "/feel", "/trends", "/history"],
-  "/blood": ["/blood", "/labs", "/biomarkers", "/uploads", "/m/"],
+  "/blood": ["/blood"],
   "/plan": [
     "/plan",
     "/protocol",

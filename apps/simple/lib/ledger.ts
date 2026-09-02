@@ -18,7 +18,7 @@ import {
   readings,
   type ReportAction,
 } from "@/db";
-import type { RangeBarProps } from "@/components/range-bar";
+import type { RulerProps } from "@/components/ruler";
 import { recordCalibration } from "./calibration";
 import { buildModelInput, type ModelInput } from "./coverage";
 import { eventConfounders } from "./facts";
@@ -84,7 +84,7 @@ export interface Conclusion {
   question?: Move;
   /** the latest report action whose targets name one of this one's codes */
   action?: ReportAction;
-  rangeBar?: RangeBarProps;
+  rangeBar?: RulerProps;
   trend?: { code: string; points: Point[] };
   /**
    * The projection for this conclusion's lead marker, as one line: "On track:
@@ -673,9 +673,10 @@ function projectionFor(
   return { code: p.code, line: ledgerLine(p, unit), verdict: p.verdict };
 }
 
-const rangeBarOf = (m: MetricRow): RangeBarProps => ({
+const rangeBarOf = (m: MetricRow): RulerProps => ({
   value: m.latest.value,
   prev: m.rows.filter((r) => r.value != null).at(-2)?.value ?? null,
+  prevDate: m.rows.filter((r) => r.value != null).at(-2)?.observedAt ?? null,
   refLow: m.latest.refLow,
   refHigh: m.latest.refHigh,
   optimalLow: m.optimalLow,

@@ -650,7 +650,7 @@ describe("the genome card", () => {
   it("counts every call behind the see-all link, and links to the upload", () => {
     const card = genomeFinding(upload, results, "2026-09-01")!;
     expect(card.total).toBe(5);
-    expect(card.href).toBe("/uploads/u1");
+    expect(card.href).toBe("/blood/uploads/u1");
   });
 
   it("stays for fourteen days and then goes", () => {

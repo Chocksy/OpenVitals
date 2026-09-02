@@ -121,8 +121,12 @@ export interface TrendMetric extends Bands {
   points: { date: string; value: number }[];
   latestValue: number;
   prevValue: number | null;
+  /** the day the previous draw landed, so the ruler's hollow mark is dated */
+  prevDate: string | null;
   goalLow: number | null;
   goalHigh: number | null;
+  /** the day the goal is due, so the chart can aim its projection */
+  goalDue: string | null;
 }
 
 const bandsOf = (m: MetricRow): Bands => ({
@@ -138,7 +142,11 @@ const rowStatus = (m: MetricRow): HealthStatus =>
 /** One key-trend chart: the line, its bands and the goal tick. */
 export function buildTrend(
   m: MetricRow,
-  goal?: { targetLow: number | null; targetHigh: number | null } | null,
+  goal?: {
+    targetLow: number | null;
+    targetHigh: number | null;
+    due?: string | null;
+  } | null,
 ): TrendMetric | null {
   if (m.points.length < 3 || m.latest.value == null) return null;
   const values = m.rows.filter((r) => r.value != null);
@@ -150,8 +158,10 @@ export function buildTrend(
     points: m.points,
     latestValue: m.latest.value,
     prevValue: values[values.length - 2]?.value ?? null,
+    prevDate: values[values.length - 2]?.observedAt ?? null,
     goalLow: goal?.targetLow ?? null,
     goalHigh: goal?.targetHigh ?? null,
+    goalDue: goal?.due ?? null,
     ...bandsOf(m),
   };
 }
@@ -524,7 +534,7 @@ export function railCards(
         }: ${counters.nextDrawCodes.map((c) => explainKey(c)).join(", ")}`
       : "Nothing queued",
     tone: counters.off > 0 ? "bad" : "ok",
-    href: "/labs",
+    href: "/blood?tab=draws",
   });
 
   // the spear's own title is already the sentence at the top of the page, so
@@ -564,7 +574,7 @@ export function railCards(
       ...(w.unit ? { sub: w.unit } : {}),
       line: `${explainKey(w.code)} ${WORST_WORD[w.status]}`,
       tone: TONE_OF[w.status],
-      href: `/m/${w.code}`,
+      href: `/blood/m/${w.code}`,
     });
   }
 

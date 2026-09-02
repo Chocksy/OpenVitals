@@ -11,7 +11,7 @@ function GoalCard({ g }: { g: GoalView }) {
   const overdue = g.due && !g.reached && g.due < new Date().toISOString().slice(0, 10);
 
   return (
-    <Link href={`/m/${g.metricCode}`} className="card block p-4 hover:border-accent-200">
+    <Link href={`/blood/m/${g.metricCode}`} className="card block p-4 hover:border-accent-200">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="truncate font-display text-[14px] font-medium">
@@ -87,7 +87,7 @@ export default async function GoalsPage() {
           <p className="font-display text-[15px] font-medium">No goals yet</p>
           <p className="mt-1 font-body text-[13px] text-neutral-500">
             Open a biomarker from{" "}
-            <Link href="/biomarkers" className="underline">
+            <Link href="/blood?tab=markers" className="underline">
               Biomarkers
             </Link>{" "}
             and press &ldquo;Set goal&rdquo;.

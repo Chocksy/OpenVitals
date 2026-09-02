@@ -285,7 +285,7 @@ export default async function AdminPage() {
             {s.minted.map((m) => (
               <tr key={m.code}>
                 <td className={TD}>
-                  <Link href={`/m/${m.code}`} className="hover:underline">
+                  <Link href={`/blood/m/${m.code}`} className="hover:underline">
                     {m.code}
                   </Link>
                 </td>

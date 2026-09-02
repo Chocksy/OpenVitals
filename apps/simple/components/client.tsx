@@ -158,9 +158,9 @@ export function UploadButton() {
 
   return (
     <div className="flex items-center gap-3">
-      <label className="card inline-flex cursor-pointer items-center gap-2 px-4 py-2.5 font-display text-[13px] font-medium transition-[border-color,scale] duration-150 ease-out hover:border-accent-200 active:scale-[0.96]">
-        <Upload className="size-4 text-neutral-500" />
-        {busy ? "Working…" : "Upload a file"}
+      <label className="b b-quiet b-sm cursor-pointer">
+        <Upload className="ic" aria-hidden="true" />
+        {busy ? "Working…" : "Add a file"}
         <input
           type="file"
           accept=".pdf,.txt,.csv,.tsv,.docx,.jpg,.jpeg,.png"
@@ -267,7 +267,7 @@ export function DeleteUpload({ id, name }: { id: string; name?: string }) {
   const { run, busy } = useAction();
   return (
     <button
-      className={`${rowAction} text-[var(--color-health-critical)]`}
+      className="b b-text b-sm text-[var(--bad)]"
       disabled={busy}
       onClick={() => {
         if (window.confirm(`Delete ${name ?? "this upload"} and its readings?`))
@@ -293,12 +293,13 @@ export function ReanalyzeUpload({
   return (
     <span className="inline-flex items-center gap-2">
       <button
-        className={`${rowAction} text-neutral-600 hover:text-neutral-900`}
+        className="b b-quiet b-sm"
         disabled={busy || disabled}
         title={title}
         onClick={() => run(`/api/uploads/${id}/reanalyze`, {})}
       >
-        {busy ? "Re-analyzing…" : "Re-analyze"}
+        <RefreshCw className={busy ? "ic animate-spin" : "ic"} />
+        {busy ? "Reanalyzing…" : "Reanalyze"}
       </button>
       {error && (
         <span className="t-meta text-[12px] text-[var(--color-health-critical)]">
@@ -316,9 +317,10 @@ export function ChangeKind({ id, kind }: { id: string; kind: string }) {
   return (
     <span className="inline-flex items-center gap-2">
       <select
+        id="kind"
         value={want}
         onChange={(e) => setWant(e.target.value)}
-        className="border border-neutral-200 bg-neutral-0 px-2 py-1 font-mono text-[11px]"
+        className="sel"
       >
         {["lab", "genome", "document"].map((k) => (
           <option key={k} value={k}>
@@ -327,7 +329,7 @@ export function ChangeKind({ id, kind }: { id: string; kind: string }) {
         ))}
       </select>
       <button
-        className={`${rowAction} text-neutral-600 hover:text-neutral-900`}
+        className="b b-quiet b-sm"
         disabled={busy || want === kind}
         onClick={() => run(`/api/uploads/${id}/reanalyze`, { kind: want })}
       >

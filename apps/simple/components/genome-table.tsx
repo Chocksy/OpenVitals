@@ -1,71 +1,62 @@
 /**
- * The genome catalog with this person's call on every row. Rows the array does
- * not carry read "not in this array"; nothing outside the catalog is ever
+ * The genome catalog with this person's call on every row, as the system's
+ * own table: `docs/mockups/v4/blood.html` section 05.
+ *
+ * Gene, the rsids it needed, the genotype it read, the evidence grade, what
+ * the call actually moved, and the named source. Rows the array does not
+ * carry read "not in this array"; nothing outside the catalog is ever
  * printed, so a raw file never leaks onto the page.
+ *
+ * A variant shifts a starting point; your numbers decide the rest. When a
+ * marker and a variant disagree the marker wins, because it is what your body
+ * is doing today — so a row that moved nothing says so in words.
  */
 import { movesAnything } from "@/lib/genome-catalog";
 import type { GenomeResult } from "@/lib/genome";
+import { StateWord } from "./ui-kit";
 
 export function GenomeTable({ results }: { results: GenomeResult[] }) {
-  const called = results.filter((r) => r.result).length;
   return (
-    <div className="space-y-2">
-      <p className="font-mono text-[11px] text-neutral-500">
-        {called} of {results.length} catalog rows called from this file
-      </p>
-      <div className="card divide-y divide-neutral-100">
-        {results.map(({ row, result, absent }) => (
-          <div key={row.id} className="px-4 py-3">
-            <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-              <span className="font-display text-[14px] font-medium">
-                {row.gene}
-              </span>
-              <span className="font-mono text-[10px] uppercase tracking-[0.04em] text-neutral-400">
-                {row.rsids.join(", ")} · grade {row.grade}
-              </span>
-              {result ? (
-                <span className="ml-auto border border-accent-200 bg-accent-50 px-2 py-0.5 font-mono text-[11px] text-accent-600">
-                  {result.call}
-                </span>
-              ) : (
-                <span className="ml-auto font-mono text-[11px] text-neutral-400">
-                  not in this array
-                  {absent.length ? ` (${absent.join(", ")})` : ""}
-                </span>
-              )}
-            </div>
-
-            {result && (
-              <p className="mt-1 font-mono text-[10px] text-neutral-500">
-                {result.genotype}
-              </p>
-            )}
-            <p className="mt-1 font-body text-[12px] text-neutral-700">
-              {result ? result.meaning : row.why}
-            </p>
-            <p className="mt-1 font-body text-[11px] text-neutral-500">
-              Why this SNP is here: {row.why}
-            </p>
-            {result && !movesAnything(row, result) ? (
-              <>
-                <p className="mt-0.5 font-body text-[11px] text-neutral-500">
-                  Effect: no effect for you
-                </p>
-                <p className="font-body text-[11px] text-neutral-400">
-                  {row.effect}
-                </p>
-              </>
-            ) : (
-              <p className="mt-0.5 font-body text-[11px] text-neutral-500">
-                Effect: {row.effect}
-              </p>
-            )}
-            <p className="mt-0.5 font-mono text-[10px] text-neutral-400">
-              {row.source}
-            </p>
-          </div>
-        ))}
-      </div>
+    <div className="tblwrap">
+      <table className="tbl">
+        <thead>
+          <tr>
+            <th>Gene</th>
+            <th>rsID</th>
+            <th>Genotype</th>
+            <th>Grade</th>
+            <th>What it moved</th>
+            <th>Source</th>
+          </tr>
+        </thead>
+        <tbody>
+          {results.map(({ row, result, absent }) => {
+            const moved = result ? movesAnything(row, result) : false;
+            return (
+              <tr key={row.id}>
+                <td className="k">{row.gene}</td>
+                <td className="n">{row.rsids.join(" · ")}</td>
+                <td className="n">
+                  {result ? result.call : `not in this array`}
+                </td>
+                <td className="n">{row.grade}</td>
+                <td>
+                  {result ? (
+                    <StateWord tone={moved ? "border" : "none"} dot={moved}>
+                      {moved ? row.effect : `nothing · ${result.meaning}`}
+                    </StateWord>
+                  ) : (
+                    <StateWord tone="none">
+                      no call{absent.length ? ` · ${absent.join(", ")} absent` : ""}
+                    </StateWord>
+                  )}
+                </td>
+                <td>{row.source}</td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
     </div>
   );
 }

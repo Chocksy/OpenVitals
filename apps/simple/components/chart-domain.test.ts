@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { chartDomain, type ChartPoint } from "./chart-domain";
+import { chartDomain, type ChartPoint } from "./history-chart";
 
 /** 45 glucose draws, the shape the spear card hands the chart. */
 const glucose: ChartPoint[] = Array.from({ length: 45 }, (_, i) => ({

@@ -56,15 +56,21 @@ export function PillTabs({
       el.style.transform = `translateX(${tab.offsetLeft}px)`;
       el.style.width = `${tab.offsetWidth}px`;
     }
-    // Under 620 px the row scrolls rather than truncating a label, so the
-    // selected tab is brought into view. A scroll offset, not a DOM change.
+    // Under 620 px the row scrolls rather than truncating a label. It only
+    // scrolls when the selected tab is genuinely out of view: centring it on
+    // mount pushed the row's own start off a 390 px screen, so "Off 7" read
+    // as "f 7". A scroll offset, not a DOM change.
     const wrap = el.parentElement;
-    if (wrap && wrap.scrollWidth > wrap.clientWidth) {
-      wrap.scrollLeft = Math.max(
-        0,
-        tab.offsetLeft - (wrap.clientWidth - tab.offsetWidth) / 2,
-      );
-    }
+    if (!wrap || wrap.scrollWidth <= wrap.clientWidth) return;
+    const pad = 3;
+    const left = tab.offsetLeft - pad;
+    const right = tab.offsetLeft + tab.offsetWidth + pad;
+    const seen = wrap.scrollLeft;
+    if (left >= seen && right <= seen + wrap.clientWidth) return;
+    wrap.scrollLeft =
+      right > seen + wrap.clientWidth
+        ? right - wrap.clientWidth
+        : Math.max(0, left);
   };
 
   const activeTab = () =>

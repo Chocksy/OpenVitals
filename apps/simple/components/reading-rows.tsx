@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useAction } from "./client";
+import { Button, StateWord } from "./ui-kit";
 
 export interface EditableReading {
   id: string;
@@ -16,8 +17,8 @@ export interface EditableReading {
   flags: string[];
 }
 
-const CELL =
-  "border border-neutral-200 bg-neutral-0 px-2 py-1 font-mono text-[12px] tabular-nums focus:border-neutral-900 focus:outline-none";
+/** The system's own input, at row size, with tabular digits. */
+const CELL = "inp num min-h-[34px] px-[var(--s8)] py-[var(--s3)]";
 
 const str = (v: number | null) => (v == null ? "" : String(v));
 
@@ -39,14 +40,14 @@ function Row({ r }: { r: EditableReading }) {
     setF((prev) => ({ ...prev, [k]: v }));
 
   return (
-    <div className="flex flex-wrap items-center gap-2 px-3 py-2">
+    <div className="rowh">
       <div className="min-w-0 flex-1">
-        <p className="truncate font-body text-[13px]">{r.metricName}</p>
+        <p className="t-body truncate">{r.metricName}</p>
         <input
           value={f.metricCode}
           list="known-metrics"
           onChange={(e) => set("metricCode", e.target.value)}
-          className={`${CELL} mt-0.5 w-48 text-neutral-500`}
+          className={`${CELL} mt-[var(--s3)] w-48`}
         />
       </div>
       <input
@@ -82,18 +83,23 @@ function Row({ r }: { r: EditableReading }) {
         onChange={(e) => set("observedAt", e.target.value)}
         className={`${CELL} w-32`}
       />
-      <span className="w-24 truncate font-mono text-[10px] uppercase text-[var(--color-health-warning)]">
-        {r.flags.join(" ")}
-      </span>
-      <button
-        className="font-mono text-[11px] uppercase tracking-[0.04em] text-neutral-600 hover:underline disabled:opacity-30 disabled:no-underline"
+      {r.flags.length > 0 && (
+        <StateWord tone="border" dot>
+          {r.flags.join(" ")}
+        </StateWord>
+      )}
+      <Button
+        size="sm"
+        job="quiet"
         disabled={busy || !dirty}
         onClick={() => run(`/api/readings/${r.id}`, f, "PATCH")}
       >
         Save
-      </button>
-      <button
-        className="font-mono text-[11px] uppercase tracking-[0.04em] text-[var(--color-health-critical)] hover:underline disabled:opacity-30"
+      </Button>
+      <Button
+        size="sm"
+        job="text"
+        className="text-[var(--bad)]"
         disabled={busy}
         onClick={() => {
           if (
@@ -103,12 +109,8 @@ function Row({ r }: { r: EditableReading }) {
         }}
       >
         Discard
-      </button>
-      {error && (
-        <span className="font-mono text-[10px] text-[var(--color-health-critical)]">
-          {error}
-        </span>
-      )}
+      </Button>
+      {error && <span className="t-meta text-[var(--bad)]">{error}</span>}
     </div>
   );
 }
@@ -121,14 +123,10 @@ export function ReadingRows({
   metrics: { code: string; name: string }[];
 }) {
   if (rows.length === 0)
-    return (
-      <p className="card border-dashed p-8 text-center font-body text-[13px] text-neutral-500">
-        No readings for this file.
-      </p>
-    );
+    return <p className="never">No readings for this file.</p>;
 
   return (
-    <div className="card divide-y divide-neutral-100">
+    <div className="rowlist">
       <datalist id="known-metrics">
         {metrics.map((m) => (
           <option key={m.code} value={m.code}>

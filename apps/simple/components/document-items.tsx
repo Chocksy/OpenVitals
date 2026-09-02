@@ -86,25 +86,21 @@ export function DocumentItems({
 
   if (!items.length)
     return (
-      <p className="card border-dashed p-6 text-center font-body text-[13px] text-neutral-500">
-        Nothing was read out of this document.
-      </p>
+      <p className="never">Nothing was read out of this document.</p>
     );
 
   return (
     <div className="space-y-5">
       {error && (
-        <p className="font-mono text-[11px] text-[var(--color-health-critical)]">
-          {error}
-        </p>
+        <p className="t-meta text-[var(--bad)]">{error}</p>
       )}
       {kinds.map((kind) => {
         const mine = items.filter((i) => i.kind === kind);
         const open = mine.filter((i) => i.status === "proposed");
         return (
           <section key={kind} className="space-y-2">
-            <div className="flex flex-wrap items-center gap-3">
-              <h2 className="font-mono text-[10px] font-bold uppercase tracking-[0.06em] text-neutral-400">
+            <div className="rowh">
+              <h2 className="src">
                 {kind} ({mine.length})
               </h2>
               {open.length > 0 && (
@@ -127,58 +123,59 @@ export function DocumentItems({
                   </Button>
                 </>
               )}
-              <span className="font-body text-[11px] text-neutral-400">
-                {KIND_NOTE[kind]}
-              </span>
+              <span className="cap m-0">{KIND_NOTE[kind]}</span>
             </div>
 
-            <div className="card divide-y divide-neutral-100">
+            <div className="rowlist">
               {mine.map((item) => (
-                <div key={item.id} className="px-4 py-3">
-                  <div className="flex flex-wrap items-start gap-3">
+                <div key={item.id}>
+                  <div className="rowh items-start">
                     <div className="min-w-0 flex-1">
-                      <p className="font-body text-[13px] text-neutral-800">
-                        {title(item)}
-                      </p>
-                      <p className="mt-0.5 font-mono text-[10px] uppercase tracking-[0.04em] text-neutral-400">
+                      <p className="t-body">{title(item)}</p>
+                      <p className="src">
                         {[item.status, ...tags(item)].join(" · ")}
                       </p>
                       {item.excerpt && (
-                        <p className="mt-1 border-l-2 border-neutral-200 pl-2 font-body text-[11px] italic text-neutral-500">
-                          “{item.excerpt}”
+                        <p className="disclose">
+                          <span className="inner block italic">
+                            “{item.excerpt}”
+                          </span>
                         </p>
                       )}
                     </div>
                     {item.status === "proposed" && (
                       <div className="flex items-center gap-2">
-                        <button
-                          className="font-mono text-[11px] uppercase tracking-[0.04em] text-neutral-600 hover:underline disabled:opacity-40"
+                        <Button
+                          size="sm"
+                          disabled={busy}
+                          onClick={() =>
+                            post({ action: "accept", itemId: item.id })
+                          }
+                        >
+                          <Check className="ic" /> Accept
+                        </Button>
+                        <Button
+                          size="sm"
+                          job="quiet"
                           disabled={busy}
                           onClick={() => {
                             setEditing(item.id);
                             setDraft(JSON.stringify(item.payload, null, 2));
                           }}
                         >
-                          <Pencil className="inline size-3" /> Edit
-                        </button>
-                        <button
-                          className="font-mono text-[11px] uppercase tracking-[0.04em] text-[var(--color-health-normal)] hover:underline disabled:opacity-40"
-                          disabled={busy}
-                          onClick={() =>
-                            post({ action: "accept", itemId: item.id })
-                          }
-                        >
-                          <Check className="inline size-3" /> Accept
-                        </button>
-                        <button
-                          className="font-mono text-[11px] uppercase tracking-[0.04em] text-[var(--color-health-critical)] hover:underline disabled:opacity-40"
+                          <Pencil className="ic" /> Edit
+                        </Button>
+                        <Button
+                          size="sm"
+                          job="text"
+                          className="text-[var(--bad)]"
                           disabled={busy}
                           onClick={() =>
                             post({ action: "reject", itemId: item.id })
                           }
                         >
-                          <X className="inline size-3" /> Reject
-                        </button>
+                          <X className="ic" /> Reject
+                        </Button>
                       </div>
                     )}
                   </div>
@@ -189,7 +186,7 @@ export function DocumentItems({
                         value={draft}
                         onChange={(e) => setDraft(e.target.value)}
                         rows={Math.min(12, draft.split("\n").length + 1)}
-                        className="w-full border border-neutral-200 bg-neutral-0 p-2 font-mono text-[11px]"
+                        className="ta font-mono text-[length:var(--type-xs)]"
                       />
                       <div className="flex gap-2">
                         <Button

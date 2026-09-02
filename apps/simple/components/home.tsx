@@ -28,12 +28,12 @@ import { cn, formatDate } from "@/lib/utils";
 import { AskLink } from "./ask-link";
 import { EditFact, StillTrue, WrongValue } from "./client";
 import { ActionButtons, GeneratePlan } from "./plan";
-import { RangeBar } from "./range-bar";
+import { Ruler } from "./ruler";
 import { Digits, SwapText } from "./motion";
 import { Term, Terms } from "./term";
 import { TodayAsk } from "./today-ask";
 import { WhatToDo } from "./what-to-do";
-import { TrendChart } from "./trend-chart";
+import { HistoryChart } from "./history-chart";
 import { Card, StateWord, type StateTone } from "./ui-kit";
 
 export { KeyTrends } from "./key-trends";
@@ -413,7 +413,7 @@ export function ConclusionCard({
 
       {c.rangeBar && (
         <div className="mt-3">
-          <RangeBar {...c.rangeBar} />
+          <Ruler {...c.rangeBar} />
         </div>
       )}
 
@@ -440,13 +440,14 @@ export function ConclusionCard({
 
       {spear && c.trend && (
         <div className="mt-3">
-          <TrendChart
-            height={140}
-            data={c.trend.points.map((p) => ({ date: p.date, value: p.value }))}
-            referenceRangeLow={c.rangeBar?.refLow}
-            referenceRangeHigh={c.rangeBar?.refHigh}
-            optimalRangeLow={c.rangeBar?.optimalLow}
-            optimalRangeHigh={c.rangeBar?.optimalHigh}
+          <HistoryChart
+            mini
+            title={explainKey(c.trend.code)}
+            points={c.trend.points}
+            refLow={c.rangeBar?.refLow}
+            refHigh={c.rangeBar?.refHigh}
+            optimalLow={c.rangeBar?.optimalLow}
+            optimalHigh={c.rangeBar?.optimalHigh}
             unit={c.rangeBar?.unit}
           />
           <p className={WHY}>
@@ -595,7 +596,7 @@ export function MarkersCard({ group }: { group: MarkerGroup }) {
         {group.markers.map((m) => (
           <li key={m.code}>
             <Link
-              href={`/m/${m.code}`}
+              href={`/blood/m/${m.code}`}
               className="inline-flex h-10 items-center gap-1.5 border border-neutral-200 px-2.5 text-[12px] text-neutral-600 transition-[color,border-color] duration-150 ease-out hover:border-neutral-900 hover:text-neutral-900 active:scale-[0.96]"
             >
               <span className="t-body text-[12px]">{m.name}</span>
@@ -730,7 +731,7 @@ export function EmptyHome() {
     <Card className="border-dashed p-10 text-center">
       <p className="t-body text-neutral-500">
         No readings yet.{" "}
-        <Link href="/labs" className="underline">
+        <Link href="/blood?tab=uploads" className="underline">
           Upload a lab PDF
         </Link>{" "}
         to get started.

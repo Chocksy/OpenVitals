@@ -6,8 +6,8 @@ import { Check, Plus, Trash2, X } from "lucide-react";
 import { Button } from "./ui-kit";
 import { Strip } from "./heatmap";
 
-const INPUT =
-  "w-full border border-neutral-200 bg-neutral-0 px-2 py-1.5 font-mono text-[13px] tabular-nums rounded-sm focus:border-accent-400 focus:outline-none";
+/** The system's own input; the numbers are tabular so the columns stack. */
+const INPUT = "inp num";
 
 /** POST/PUT then re-render the server components. Same shape as client.tsx. */
 function useSave() {
@@ -260,10 +260,8 @@ export function GoalForm({
     );
 
   const field = (key: keyof typeof form, label: string, type = "number") => (
-    <label className="block">
-      <span className="mb-1 block font-mono text-[10px] uppercase tracking-[0.04em] text-neutral-500">
-        {label}
-      </span>
+    <label className="field">
+      <span className="src block">{label}</span>
       <input
         type={type}
         step="any"
@@ -275,14 +273,14 @@ export function GoalForm({
   );
 
   return (
-    <div className="card space-y-3 p-4">
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+    <div className="panel">
+      <div className="fields">
         {field("targetLow", "Target low")}
         {field("targetHigh", "Target high")}
         {field("due", "By", "date")}
         {field("note", "Note", "text")}
       </div>
-      <div className="flex items-center gap-2">
+      <div className="rowh mt-[var(--s13)]">
         <Button
           disabled={busy}
           onClick={async () => {
@@ -295,11 +293,7 @@ export function GoalForm({
         <Button job="text" onClick={() => setOpen(false)}>
           Cancel
         </Button>
-        {error && (
-          <span className="text-[12px] text-[var(--color-health-critical)]">
-            {error}
-          </span>
-        )}
+        {error && <span className="t-meta text-[var(--bad)]">{error}</span>}
       </div>
     </div>
   );
@@ -316,7 +310,7 @@ export function AdherenceStrip({
   return (
     <div className="flex items-center gap-3">
       <Strip values={values} />
-      <span className="font-mono text-[11px] font-semibold tabular-nums text-neutral-600">
+      <span className="t-num text-[length:var(--type-xs)] text-[var(--ink-2)]">
         {pct}%
       </span>
     </div>
@@ -348,12 +342,9 @@ export function OptimalForm({
 
   if (!open)
     return (
-      <button
-        className="font-mono text-[10px] uppercase tracking-[0.06em] text-neutral-400 hover:text-neutral-900"
-        onClick={() => setOpen(true)}
-      >
+      <Button size="sm" job="text" onClick={() => setOpen(true)}>
         Edit
-      </button>
+      </Button>
     );
 
   return (
@@ -366,7 +357,7 @@ export function OptimalForm({
           value={form[key]}
           placeholder={key}
           onChange={(e) => setForm({ ...form, [key]: e.target.value })}
-          className="w-20 border border-neutral-200 bg-neutral-0 px-2 py-1 font-mono text-[12px] tabular-nums"
+          className="inp num w-24 min-h-[34px] px-[var(--s8)] py-[var(--s3)]"
         />
       ))}
       <Button
@@ -399,11 +390,7 @@ export function OptimalForm({
       <Button size="sm" job="text" onClick={() => setOpen(false)}>
         <X />
       </Button>
-      {error && (
-        <span className="text-[12px] text-[var(--color-health-critical)]">
-          {error}
-        </span>
-      )}
+      {error && <span className="t-meta text-[var(--bad)]">{error}</span>}
     </span>
   );
 }
