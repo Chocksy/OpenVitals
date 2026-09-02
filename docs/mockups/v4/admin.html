@@ -1,0 +1,285 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>System — OpenVitals design system</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <!-- Geist Sans + Geist Mono, the app's own fonts. If the CDN is blocked
+         the stack in system.css falls back to Inter / JetBrains Mono, then to
+         the system UI font and ui-monospace. -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Geist:wght@200..600&family=Geist+Mono:wght@200..500&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="system.css" />
+  </head>
+  <body>
+    <button class="themebtn" id="themebtn" type="button">
+      <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9z"/></svg> <span>Dark</span>
+    </button>
+    <main class="doc">      <header class="doc-head">
+        <h1>System — Brain, HKB, Admin</h1>
+        <p>
+          The three admin pages, restyled and not redesigned. The content is
+          exactly what it is today: the same tabs, the same parameter form, the
+          same hypothesis cards, the same wide tables and the same consoles.
+          These pages are the engine's instrumentation and they are never
+          removed.
+        </p>
+      </header>
+      <nav class="crumbs">
+        <a href="system.html">System</a>
+        <a href="index.html">Index</a>
+        <a href="home.html">Home</a>
+        <a href="body.html">Body</a>
+        <a href="blood.html">Blood</a>
+        <a href="plan.html">Plan</a>
+        <a href="graph.html">Graph</a>
+        <a href="chat.html">Chat</a>
+        <a href="login.html">Login</a>
+        <a class="here" href="admin.html">System pages</a>
+        <a href="marker.html">Marker</a>
+        <a href="systems.html">Systems</a>
+        <a href="shell.html">Shell</a>
+        <a href="app.html">App</a>
+        <a href="plan-draw.html">Plan a draw</a>
+        <a href="genome.html">Genome</a>
+        <a href="explorations.html">Explorations</a>
+      </nav>
+      <section class="sec" id="s01">
+        <div class="sec-head"><span class="n">01</span><h2>Brain</h2></div>
+        <p class="lede">Run the engine on a scenario and watch what it decides. Tabs, a parameter form, the hypothesis cards it produced, and the move tree behind one of them.</p>
+        <div class="screen">
+          <div class="topbar">
+            <span class="brand">OpenVitals</span>
+            <nav class="pills"><a href="#"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg> Home</a><a href="#"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M22 12h-2.48a2 2 0 0 0-1.93 1.46l-2.35 8.36a.25.25 0 0 1-.48 0L9.24 2.18a.25.25 0 0 0-.48 0l-2.35 8.36A2 2 0 0 1 4.49 12H2"/></svg> Body</a><a href="#"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z"/></svg> Blood</a><a href="#"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/></svg> Plan</a><a href="#"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" x2="15.42" y1="13.51" y2="17.49"/><line x1="15.41" x2="8.59" y1="6.51" y2="10.49"/></svg> Graph</a></nav>
+            <span class="grow"></span><span class="t-meta">admin</span><span class="avatar">R</span>
+          </div>
+          <div class="rowh" style="margin-bottom: 13px"><div class="tabs" role="tablist" style="--tab-n: 5; --tab-i: 1"><button class="tab" aria-selected="false">Scenarios</button><button class="tab" aria-selected="true">Hypotheses</button><button class="tab" aria-selected="false">Moves</button><button class="tab" aria-selected="false">Journeys</button><button class="tab" aria-selected="false">Calibration</button></div>
+            <button class="b b-ink b-sm"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><polygon points="6 3 20 12 6 21 6 3"/></svg> Run</button><button class="b b-quiet b-sm"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5 5.5 5.5 0 0 1-5.5 5.5H11"/></svg> Undo last run</button><span class="t-meta">last run curator-0219 · Sep 1 2026 04:12 · 148 claims in, 31 minted</span></div>
+          <div class="panel"><div class="panel-head"><h3>Parameters</h3><span class="r">what the run was given</span></div>
+            <div class="fields">
+              <div class="field"><label>Scenario</label><select class="sel"><option selected>test account · Sep 1 2026</option><option>empty ledger</option><option>one draw only</option></select></div>
+              <div class="field"><label>Prior source</label><select class="sel"><option selected>HKB core ring</option><option>core + edge</option><option>everything</option></select></div>
+              <div class="field"><label>Evidence floor</label><select class="sel"><option>● A only</option><option selected>● B and above</option><option>anything</option></select></div>
+              <div class="field"><label>Symptom weighting</label><select class="sel"><option selected>engine default</option><option>off</option><option>doubled</option></select></div>
+              <div class="field"><label>Genome</label><select class="sel"><option selected>on · 612 variants</option><option>off</option></select></div>
+              <div class="field"><label>Tie-break</label><select class="sel"><option selected>cheapest test first</option><option>biggest move first</option></select></div>
+              <div class="field"><label>Max hypotheses</label><input class="inp num" value="12" /></div>
+              <div class="field"><label>Min likelihood</label><input class="inp num" value="0.05" /></div>
+              <div class="field"><label>Retest horizon (wk)</label><input class="inp num" value="12" /></div>
+              <div class="field"><label>Seed draws</label><input class="inp num" value="5" /></div>
+              <div class="field"><label>Timeout (s)</label><input class="inp num" value="30" /></div>
+              <div class="field"><label>Temperature</label><input class="inp num" value="0.0" /></div>
+            </div>
+          </div>
+          <div style="height: 13px"></div>
+          <div class="grid3">
+            <div class="card">
+              <div class="rowh" style="justify-content: space-between"><span class="c-label">confirmed</span><span class="state off">95 %</span></div>
+              <div class="c-title" style="font-size: var(--type-md)">Autoimmune thyroiditis</div>
+              <div class="t-meta">TPO 320 · TSH 3.9 · family history ×3</div>
+              <div class="c-line">4 moves · <a href="#" style="color: var(--ink)">open the tree</a></div>
+            </div>
+            <div class="card">
+              <div class="rowh" style="justify-content: space-between"><span class="c-label">confirmed</span><span class="state off">97 %</span></div>
+              <div class="c-title" style="font-size: var(--type-md)">Insulin resistance</div>
+              <div class="t-meta">HbA1c 5.6 · FTO A/T ×1.2 · no fasting insulin</div>
+              <div class="c-line">3 moves · <a href="#" style="color: var(--ink)">open the tree</a></div>
+            </div>
+            <div class="card">
+              <div class="rowh" style="justify-content: space-between"><span class="c-label">likely</span><span class="state border">77 %</span></div>
+              <div class="c-title" style="font-size: var(--type-md)">Chronic inflammation</div>
+              <div class="t-meta">hs-CRP 3.4 · TPO 320</div>
+              <div class="c-line">2 moves · <a href="#" style="color: var(--ink)">open the tree</a></div>
+            </div>
+          </div>
+          <div style="height: 13px"></div>
+          <div class="panel"><div class="panel-head"><h3>Move tree · Autoimmune thyroiditis</h3><span class="r">0.50 → 0.95 in four moves</span></div>
+            <div class="lanes"><svg viewBox="0 0 900 210" role="img" aria-label="Four moves from a 0.50 prior to 0.95"><line class="axis-line" x1="168" y1="18" x2="168" y2="184" /><text class="tickt" x="168" y="200" text-anchor="middle">0 %</text><line class="axis-line" x1="343" y1="18" x2="343" y2="184" /><text class="tickt" x="343" y="200" text-anchor="middle">25 %</text><line class="axis-line" x1="518" y1="18" x2="518" y2="184" /><text class="tickt" x="518" y="200" text-anchor="middle">50 %</text><line class="axis-line" x1="693" y1="18" x2="693" y2="184" /><text class="tickt" x="693" y="200" text-anchor="middle">75 %</text><line class="axis-line" x1="868" y1="18" x2="868" y2="184" /><text class="tickt" x="868" y="200" text-anchor="middle">100 %</text><circle class="mdot" cx="518" cy="30" r="4" /><text class="factt" x="160" y="34" text-anchor="end">prior</text><text class="factt" x="527" y="34">0.50 · HKB base rate, adults · ● A Hollowell 2002</text><line class="axis-line" x1="518" y1="30" x2="784" y2="62" stroke="var(--ink-3)" /><circle class="mdot" cx="784" cy="62" r="4" /><text class="factt" x="160" y="66" text-anchor="end">TPO > 34 IU/mL</text><text class="factt" x="775" y="66" text-anchor="end">0.88 · OR 8.4 · ● A Hollowell 2002</text><line class="axis-line" x1="784" y1="62" x2="819" y2="94" stroke="var(--ink-3)" /><circle class="mdot" cx="819" cy="94" r="4" /><text class="factt" x="160" y="98" text-anchor="end">TSH 3.9 mIU/L</text><text class="factt" x="810" y="98" text-anchor="end">0.93 · OR 1.9 given TPO+ · ● B engine rule</text><line class="axis-line" x1="819" y1="94" x2="833" y2="126" stroke="var(--ink-3)" /><circle class="mdot" cx="833" cy="126" r="4" /><text class="factt" x="160" y="130" text-anchor="end">2nd draw carries it</text><text class="factt" x="824" y="130" text-anchor="end">0.95 · rules out a lab error · engine rule</text><line class="axis-line" x1="833" y1="126" x2="833" y2="158" stroke="var(--ink-3)" /><circle class="mdot" cx="833" cy="158" r="4" /><text class="factt" x="160" y="162" text-anchor="end">family history, mother</text><text class="factt" x="824" y="162" text-anchor="end">0.95 · ×3, ceiling reached · ● B Vanderpump 1995</text></svg></div>
+            <p class="cap">Every move prints the number it produced and the row in the knowledge base that produced it. The fourth move changed nothing, and the tree says so rather than dropping it.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="sec" id="s02">
+        <div class="sec-head"><span class="n">02</span><h2>HKB</h2></div>
+        <p class="lede">The knowledge base. Wide tables with a sticky first column, and four controls that write to it.</p>
+        <div class="screen">
+          <div class="rowh" style="margin-bottom: 13px"><div class="tabs" role="tablist" style="--tab-n: 5; --tab-i: 1"><button class="tab" aria-selected="false">Conditions</button><button class="tab" aria-selected="true">Evidence</button><button class="tab" aria-selected="false">Claims</button><button class="tab" aria-selected="false">Rings</button><button class="tab" aria-selected="false">Calibration</button></div>
+            <button class="b b-quiet b-sm"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M10 2v7.31"/><path d="M14 9.3V1.99"/><path d="M8.5 2h7"/><path d="M14 9.3a6.5 6.5 0 1 1-4 0"/><path d="M5.52 16h12.96"/></svg> Research</button><button class="b b-quiet b-sm"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M17 8l-5-5-5 5"/><path d="M12 3v12"/></svg> Run import</button><button class="b b-quiet b-sm"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14a9 3 0 0 0 18 0V5"/><path d="M3 12a9 3 0 0 0 18 0"/></svg> Catalog on</button></div>
+          <div class="panel"><div class="panel-head"><h3>Evidence</h3><span class="r">5 rows shown · 1 284 in the ring · no pagination</span></div>
+            <div class="tblwrap"><table class="tbl wide">
+              <thead><tr><th>Claim</th><th>Exposure</th><th>Outcome</th><th>Design</th><th>n</th><th>Effect</th><th>95 % CI</th><th>Grade</th><th>Source</th><th>Ring</th><th>Added</th><th>Settled</th></tr></thead>
+              <tbody>
+                <tr><td class="k">selenium→TPO</td><td class="">selenium 200 µg/d</td><td class="">TPO antibodies</td><td class="">RCT, 12 wk</td><td class="n">36</td><td class="n">−21 %</td><td class="n">−34 to −7</td><td class="">● B</td><td class="">Gärtner 2002</td><td class="">core</td><td class="n">2026-06-11</td><td class="">yes</td></tr>
+                <tr><td class="k">TPO→Hashimoto's</td><td class="">TPO &gt; 34 IU/mL</td><td class="">autoimmune thyroiditis</td><td class="">cross-sectional</td><td class="n">17 353</td><td class="n">OR 8.4</td><td class="n">6.9 to 10.2</td><td class="">● A</td><td class="">Hollowell 2002</td><td class="">core</td><td class="n">2026-01-04</td><td class="">yes</td></tr>
+                <tr><td class="k">family→thyroid</td><td class="">first-degree relative</td><td class="">autoimmune thyroiditis</td><td class="">cohort, 20 y</td><td class="n">2 779</td><td class="n">RR 3.0</td><td class="n">2.1 to 4.3</td><td class="">● B</td><td class="">Vanderpump 1995</td><td class="">core</td><td class="n">2026-01-04</td><td class="">yes</td></tr>
+                <tr><td class="k">D→autoimmunity</td><td class="">vitamin D &lt; 20 ng/mL</td><td class="">thyroid antibodies</td><td class="">meta-analysis</td><td class="n">20 sets</td><td class="n">OR 1.6</td><td class="n">1.2 to 2.1</td><td class="">● B</td><td class="">Wang 2015</td><td class="">edge</td><td class="n">2026-03-22</td><td class="">no</td></tr>
+                <tr><td class="k">sardines→TG</td><td class="">3 tins a week</td><td class="">triglycerides</td><td class="">anecdote</td><td class="n">—</td><td class="n">—</td><td class="n">—</td><td class="">○ E</td><td class="">forum, 2026</td><td class="">horizon</td><td class="n">2026-08-28</td><td class="">no</td></tr>
+              </tbody></table></div>
+          </div>
+          <div style="height: 13px"></div>
+          <div class="grid2">
+            <div class="panel"><div class="panel-head"><h3>Override</h3><span class="r">writes a claim by hand</span></div>
+              <div class="fields">
+                <div class="field"><label>Claim</label><input class="inp" value="selenium→TPO" /></div>
+                <div class="field"><label>Grade</label><select class="sel"><option>● A</option><option selected>● B</option><option>◐ opinion</option><option>○ E</option></select></div>
+                <div class="field"><label>Ring</label><select class="sel"><option selected>core</option><option>edge</option><option>horizon</option></select></div>
+                <div class="field"><label>Effect</label><input class="inp num" value="-0.21" /></div>
+              </div>
+              <div class="rowh" style="margin-top: 13px"><button class="b b-ink b-sm">Write the override</button><button class="b b-text b-sm">Reset</button></div>
+            </div>
+            <div class="panel"><div class="panel-head"><h3>Settled predictions</h3><span class="r">3 of 4 called right</span></div>
+              <div class="tblwrap"><table class="tbl">
+                <thead><tr><th>Prediction</th><th>Made</th><th>Resolved</th><th>Called</th></tr></thead>
+                <tbody>
+                  <tr><td class="k">ALT under 40 by Aug 1</td><td class="n">2026-06-11</td><td class="n">34 U/L</td><td><span class="state on">right</span></td></tr>
+                  <tr><td class="k">LDL under 130 by Aug 1</td><td class="n">2026-06-11</td><td class="n">142 mg/dL</td><td><span class="state off">wrong</span></td></tr>
+                  <tr><td class="k">TPO under 350 by Aug 1</td><td class="n">2026-06-11</td><td class="n">320 IU/mL</td><td><span class="state on">right</span></td></tr>
+                  <tr><td class="k">HbA1c flat to Aug 1</td><td class="n">2026-06-11</td><td class="n">5.6 %</td><td><span class="state on">right</span></td></tr>
+                </tbody>
+              </table></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="sec" id="s03">
+        <div class="sec-head"><span class="n">03</span><h2>Admin</h2></div>
+        <p class="lede">The state of the data, the runs behind it, and two CSV links. Nothing here is a dashboard for its own sake.</p>
+        <div class="screen">
+          <div class="rowh" style="margin-bottom: 13px"><button class="b b-ink b-sm"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><polygon points="6 3 20 12 6 21 6 3"/></svg> Run the curator</button><button class="b b-quiet b-sm"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg> Readings CSV</button><button class="b b-quiet b-sm"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg> Events CSV</button></div>
+          <div class="panel"><div class="panel-head"><h3>Data state</h3><span class="r">Sep 1 2026</span></div>
+            <div class="statgrid">
+              <div><b>2</b><span>people</span></div>
+              <div><b>52</b><span>markers with a value</span></div>
+              <div><b>5</b><span>draws</span></div>
+              <div><b>612</b><span>genome variants</span></div>
+              <div><b>1 284</b><span>evidence rows</span></div>
+              <div><b>31</b><span>claims minted, last run</span></div>
+              <div><b>17</b><span>protocol items</span></div>
+              <div><b>6</b><span>chat threads</span></div>
+              <div><b>2</b><span>questions worth answering</span></div>
+              <div><b>0</b><span>errors in 24 h</span></div>
+            </div>
+          </div>
+          <div style="height: 13px"></div>
+          <div class="grid2">
+            <div class="panel"><div class="panel-head"><h3>Curator runs</h3><span class="r">last 3</span></div>
+              <div class="tblwrap"><table class="tbl">
+                <thead><tr><th>Run</th><th>Started</th><th>In</th><th>Minted</th><th>Rejected</th><th>State</th></tr></thead>
+                <tbody>
+                  <tr><td class="k">curator-0219</td><td class="n">2026-09-01 04:12</td><td class="n">148</td><td class="n">31</td><td class="n">117</td><td><span class="state on">done</span></td></tr>
+                  <tr><td class="k">curator-0218</td><td class="n">2026-08-31 04:12</td><td class="n">96</td><td class="n">12</td><td class="n">84</td><td><span class="state on">done</span></td></tr>
+                  <tr><td class="k">curator-0217</td><td class="n">2026-08-30 04:12</td><td class="n">0</td><td class="n">0</td><td class="n">0</td><td><span class="state border">no input</span></td></tr>
+                </tbody>
+              </table></div>
+            </div>
+            <div class="panel"><div class="panel-head"><h3>Diagnostics</h3><span class="r">what is not right</span></div>
+              <div class="tblwrap"><table class="tbl">
+                <thead><tr><th>Check</th><th>Count</th><th>State</th></tr></thead>
+                <tbody>
+                  <tr><td class="k">Markers with a value and no reference range</td><td class="n">0</td><td><span class="state on">clear</span></td></tr>
+                  <tr><td class="k">Readings with no draw date</td><td class="n">0</td><td><span class="state on">clear</span></td></tr>
+                  <tr><td class="k">Conditions with no evidence row behind them</td><td class="n">1</td><td><span class="state border">fitness: low</span></td></tr>
+                  <tr><td class="k">Uploads parsed but never reviewed</td><td class="n">1</td><td><span class="state border">photo-strip-aug31</span></td></tr>
+                  <tr><td class="k">Protocol items with a biomarker that no draw carries</td><td class="n">1</td><td><span class="state border">triglycerides</span></td></tr>
+                </tbody>
+              </table></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="sec" id="s04">
+        <div class="sec-head"><span class="n">04</span><h2>390 px</h2></div>
+        <p class="lede">The admin pages are desktop tools, and they say so on a phone rather than pretending to fit. The tables scroll sideways inside their own box; nothing is hidden.</p>
+        <div class="phones"><div><div class="phone">
+              <div class="statusbar">
+                <span>9:41</span>
+                <span class="rt"><span>LTE</span><span>100%</span></span>
+              </div>
+              <div class="screenhead"><h2>HKB</h2><svg class="ic i24" viewBox="0 0 24 24" aria-hidden="true"><line x1="21" x2="14" y1="4" y2="4"/><line x1="10" x2="3" y1="4" y2="4"/><line x1="21" x2="12" y1="12" y2="12"/><line x1="8" x2="3" y1="12" y2="12"/><line x1="21" x2="16" y1="20" y2="20"/><line x1="12" x2="3" y1="20" y2="20"/><line x1="14" x2="14" y1="2" y2="6"/><line x1="8" x2="8" y1="10" y2="14"/><line x1="16" x2="16" y1="18" y2="22"/></svg></div>
+              <div class="stack">
+                <div class="empty"><span class="k">Narrow screen</span><p>The evidence table is 1 200 px wide. It scrolls sideways here and keeps the claim column pinned, so a row never loses its name.</p></div>
+                <div class="panel"><div class="panel-head"><h3>Evidence</h3><span class="r">1 284 rows</span></div>
+                  <div class="tblwrap"><table class="tbl wide"><thead><tr><th>Claim</th><th>Design</th><th>n</th><th>Effect</th><th>Grade</th><th>Ring</th></tr></thead><tbody>
+                    <tr><td class="k">selenium→TPO</td><td>RCT, 12 wk</td><td class="n">36</td><td class="n">−21 %</td><td>● B</td><td>core</td></tr>
+                    <tr><td class="k">TPO→Hashimoto's</td><td>cross-sectional</td><td class="n">17 353</td><td class="n">OR 8.4</td><td>● A</td><td>core</td></tr>
+                    <tr><td class="k">family→thyroid</td><td>cohort, 20 y</td><td class="n">2 779</td><td class="n">RR 3.0</td><td>● B</td><td>core</td></tr>
+                  </tbody></table></div>
+                </div>
+                <div class="statgrid"><div><b>1 284</b><span>evidence rows</span></div><div><b>31</b><span>minted, last run</span></div></div>
+              </div>
+              <div class="tabbar">
+                <a href="#"><svg class="ic i24" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>Home</a>
+                <a href="#"><svg class="ic i24" viewBox="0 0 24 24" aria-hidden="true"><path d="M22 12h-2.48a2 2 0 0 0-1.93 1.46l-2.35 8.36a.25.25 0 0 1-.48 0L9.24 2.18a.25.25 0 0 0-.48 0l-2.35 8.36A2 2 0 0 1 4.49 12H2"/></svg>Body</a>
+                <span class="plusslot"><button aria-label="Add data"><svg class="ic i24" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/><path d="M12 5v14"/></svg></button></span>
+                <a href="#"><svg class="ic i24" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z"/></svg>Blood</a>
+                <a class="on" href="#"><svg class="ic i24" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/></svg>Plan</a>
+              </div>
+            </div><p class="cap">Admin lives behind the avatar menu, so the tab bar keeps the four destinations.</p></div></div>
+      </section>
+
+      <section class="sec" id="s05">
+        <div class="sec-head"><span class="n">05</span><h2>Where the numbers come from</h2></div>
+        <p class="cap">
+          <b>Real:</b> the four evidence rows and their grades, effect sizes
+          and intervals — Gärtner 2002 (RCT, n = 36, −21 %, 95 % CI −34 to −7),
+          Hollowell 2002 (NHANES III, n = 17 353, OR 8.4, 6.9 to 10.2),
+          Vanderpump 1995 (cohort, n = 2 779, RR 3.0, 2.1 to 4.3), Wang 2015
+          (meta-analysis, 20 sets, OR 1.6, 1.2 to 2.1) and the sardines
+          anecdote graded ○ E; the likelihoods 95 %, 97 % and 77 % and the
+          markers behind them; the 612 genome variants; 52 markers with a
+          value; five draws; 17 protocol items; six chat threads; two
+          questions worth answering; the four settled predictions and their
+          resolved values (ALT 34 U/L, LDL 142 mg/dL, TPO 320 IU/mL, HbA1c
+          5.6 %); the diagnostics rows, including “fitness: low” having no
+          evidence row behind it, which is exactly what
+          <code>elements-v3</code> already said about it.
+        </p>
+        <p class="cap">
+          <b>Illustrative:</b> the run ids and timestamps
+          (curator-0217 to 0219), the claim counts per run (148 / 96 / 0 in,
+          31 / 12 / 0 minted), the 1 284 evidence rows and the twelve parameter
+          values on the Brain form. The four-move tree uses the engine's real
+          endpoints, 0.50 to 0.95, and real intermediate arithmetic.
+        </p>
+        <div class="cost">
+          <h3>Build cost</h3>
+          <p><b>Replaces:</b> the chrome of <code>/brain</code> (1 562 lines),
+            <code>/hkb</code> (1 174 lines) and <code>/admin</code>. The tabs
+            become the sliding pill, the ~6 selects and ~6 number inputs become
+            the system's fields, the scenario and hypothesis cards become the
+            tile, the badges become state words, the eleven tables become one
+            table with a sticky first column, and the buttons become ink,
+            quiet and text.</p>
+          <p><b>New:</b> nothing. No feature is added, removed or renamed on
+            these three pages. The move tree gains the likelihood axis it was
+            already implying.</p>
+          <p><b>Deletes:</b> every filled badge, the second tab style, and the
+            per-page ad-hoc table CSS. The pages themselves are never
+            removed.</p>
+        </div>
+      </section>
+    </main>
+    <script>
+      // The only scripts in this folder: the theme toggle and the motion
+      // samples. No framework, no build step, no chart library.
+      (function () {
+        var b = document.getElementById("themebtn");
+        if (!b) return;
+        b.addEventListener("click", function () {
+          var d = document.documentElement;
+          var on = d.getAttribute("data-theme") === "dark";
+          d.setAttribute("data-theme", on ? "light" : "dark");
+          d.classList.toggle("dark", !on);
+          b.querySelector("span").textContent = on ? "Dark" : "Light";
+        });
+      })();
+    </script>
+  </body>
+</html>

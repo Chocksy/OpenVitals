@@ -1,47 +1,56 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="light">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Blood — OpenVitals v4</title>
+    <title>Blood — OpenVitals design system</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <!-- Geist Sans + Geist Mono, the app's own fonts. If the CDN is blocked
+         the stack in system.css falls back to Inter / JetBrains Mono, then to
+         the system UI font and ui-monospace. -->
     <link
-      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,300,0,0"
+      href="https://fonts.googleapis.com/css2?family=Geist:wght@200..600&family=Geist+Mono:wght@200..500&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="v4.css" />
+    <link rel="stylesheet" href="system.css" />
   </head>
   <body>
-    <button class="themebtn" onclick="document.documentElement.classList.toggle('dark')">
-      <span class="ms i16">dark_mode</span> Dark
+    <button class="themebtn" id="themebtn" type="button">
+      <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9z"/></svg> <span>Dark</span>
     </button>
-    <main class="doc">
-      <header class="doc-head">
-        <h1>Blood — the page the owner kept</h1>
+    <main class="doc">      <header class="doc-head">
+        <h1>Blood</h1>
         <p>
-          Same structure as v3: draws timeline on top, the filters, the
-          markers grouped by system, the drawer on the right. What changed
-          is the skin — Fibonacci spacing, the five-size type ladder, the
-          spectrum state colours and Material Symbols.
+          The page the owner kept, on the new tokens, plus everything that used
+          to live on its own URL: the marker list with search, the marker as a
+          drawer and as a phone page, the uploads and the upload detail, and
+          the draw builder. It absorbs <code>/labs</code>,
+          <code>/biomarkers</code>, <code>/labs/phone</code>,
+          <code>/uploads</code>, <code>/uploads/[id]</code>,
+          <code>/m/[code]</code> and <code>/genome</code>.
         </p>
       </header>
       <nav class="crumbs">
+        <a href="system.html">System</a>
         <a href="index.html">Index</a>
         <a href="home.html">Home</a>
+        <a href="body.html">Body</a>
+        <a class="here" href="blood.html">Blood</a>
+        <a href="plan.html">Plan</a>
+        <a href="graph.html">Graph</a>
+        <a href="chat.html">Chat</a>
+        <a href="login.html">Login</a>
+        <a href="admin.html">System pages</a>
         <a href="marker.html">Marker</a>
         <a href="systems.html">Systems</a>
         <a href="shell.html">Shell</a>
         <a href="app.html">App</a>
-        <a class="here" href="blood.html">Blood</a>
         <a href="plan-draw.html">Plan a draw</a>
         <a href="genome.html">Genome</a>
-        <a href="chat.html">Chat</a>
         <a href="explorations.html">Explorations</a>
       </nav>
-
-
-      <section class="sec">
+      <section class="sec" id="s01">
         <div class="sec-head"><span class="n">01</span><h2>The page</h2></div>
         <p class="lede">
           Five draws behind you and one planned. The filters count what the
@@ -52,14 +61,14 @@
           <div class="topbar">
             <span class="brand">OpenVitals</span>
             <nav class="pills">
-              <a href="#"><span class="ms i16">home</span> Home</a>
-              <a href="#"><span class="ms i16">monitoring</span> Body</a>
-              <a class="on" href="#"><span class="ms i16">water_drop</span> Blood</a>
-              <a href="#"><span class="ms i16">event_note</span> Plan</a>
-              <a href="#"><span class="ms i16">hub</span> Graph</a>
+              <a href="#"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg> Home</a>
+              <a href="#"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M22 12h-2.48a2 2 0 0 0-1.93 1.46l-2.35 8.36a.25.25 0 0 1-.48 0L9.24 2.18a.25.25 0 0 0-.48 0l-2.35 8.36A2 2 0 0 1 4.49 12H2"/></svg> Body</a>
+              <a class="on" href="#"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z"/></svg> Blood</a>
+              <a href="#"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/></svg> Plan</a>
+              <a href="#"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" x2="15.42" y1="13.51" y2="17.49"/><line x1="15.41" x2="8.59" y1="6.51" y2="10.49"/></svg> Graph</a>
             </nav>
             <span class="grow"></span>
-            <button class="plusbtn"><span class="ms i24">add</span></button>
+            <button class="plusbtn"><svg class="ic i24" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/><path d="M12 5v14"/></svg></button>
             <span class="avatar">R</span>
           </div>
 
@@ -110,7 +119,7 @@
           <div class="pair">
             <div style="display: flex; flex-direction: column; gap: 13px">
               <div class="panel">
-                <div class="panel-head"><h3>Thyroid</h3><span class="r c-bad">off · 2 markers</span></div>
+                <div class="panel-head"><h3>Thyroid</h3><span class="r"><span class="state off">off</span> · 2 markers</span></div>
                 <div class="rows">
                   <div class="mrow off">
                     <div class="mn">TPO antibodies<small>lab · normal under 34</small></div>
@@ -133,7 +142,7 @@
 
               <div class="panel">
                 <div class="panel-head">
-                  <h3>Liver, lipids, lifestyle</h3><span class="r c-bad">off · 3 markers</span>
+                  <h3>Liver, lipids, lifestyle</h3><span class="r"><span class="state off">off</span> · 3 markers</span>
                 </div>
                 <div class="rows">
                   <div class="mrow off">
@@ -166,7 +175,7 @@
               <div class="panel">
                 <div class="panel-head">
                   <h3>Metabolic, iron, inflammation, vitamins</h3>
-                  <span class="r c-warn">4 markers</span>
+                  <span class="r"><span class="state border">borderline</span> · 4 markers</span>
                 </div>
                 <div class="rows">
                   <div class="mrow border">
@@ -194,7 +203,7 @@
 
               <div class="panel">
                 <div class="panel-head">
-                  <h3>Sex hormones</h3><span class="r c-none">never measured</span>
+                  <h3>Sex hormones</h3><span class="r"><span class="state none">never measured</span></span>
                 </div>
                 <p class="t-body" style="margin: 0">
                   The twelfth system has no marker with a value. It gets an
@@ -207,7 +216,7 @@
             <div class="panel hi">
               <div class="panel-head">
                 <h3>TPO antibodies <span class="src">· thyroid · drawn Aug 1 2026 · lab</span></h3>
-                <span class="ms i16">close</span>
+                <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
               </div>
               <div class="kpi">
                 <div><b>320</b><span>IU/mL</span></div>
@@ -236,23 +245,7 @@
               </div>
 
               <div style="height: 21px"></div>
-              <div class="hist mini">
-                <div class="hist-head"><h3>History</h3><span class="unit">IU/mL · 2 draws</span></div>
-                <div class="hist-body">
-                  <div>
-                    <div class="hist-plot">
-        <div class="hist-band normal" style="--t: 92.09%; --h: 7.91%"></div>
-        <svg viewBox="0 0 1000 100" preserveAspectRatio="none" aria-hidden="true"><polyline points="0.0,4.19 1000.0,25.58" /></svg>
-        <div class="hp was" style="--x: 0.00%; --y: 4.19%"><b>412</b><i></i></div>
-        <div class="hp now lft" style="--x: 100.00%; --y: 25.58%"><b>320</b><i></i></div>
-                    </div>
-                    <div class="hist-x">
-        <span class="first" style="--x: 0%">Dec 9</span>
-        <span class="last" style="--x: 100%">Aug 1</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
+              <div class="hist mini"><div class="hist-head"><h3>History</h3><span class="unit">IU/mL · 2 draws</span></div><div class="hist-body"><div><div class="hist-plot"><div class="hist-band normal" style="--t: 92.44%; --h: 7.56%"></div><svg viewBox="0 0 1000 100" preserveAspectRatio="none" aria-hidden="true"><polyline points="0.0,8.44 1000.0,28.89" /></svg><div class="hp was" style="--x: 0.00%; --y: 8.44%"><b>412</b><i></i></div><div class="hp now lft" style="--x: 100.00%; --y: 28.89%"><b>320</b><i></i></div></div><div class="hist-x"><span class="first" style="--x: 0.00%">Dec 9</span><span class="now last" style="--x: 100.00%">Aug 1</span></div></div></div><div class="hist-legend"><span><i class="hollow"></i> was — Dec 9 2025, 412 IU/mL</span><span><i></i> now — Aug 1 2026, 320 IU/mL</span><span><u class="normal"></u> normal 0–34</span></div></div>
 
               <div style="height: 21px"></div>
               <div class="panel-head"><h3>What it feeds</h3></div>
@@ -272,9 +265,9 @@
                 TSH; they read together.
               </p>
               <div class="chips">
-                <button class="chip ink"><span class="ms i16">event_note</span> Plan retest</button>
-                <button class="chip"><span class="ms i16">forum</span> Ask about this</button>
-                <button class="chip quiet"><span class="ms i16">content_copy</span> Copy for your doctor</button>
+                <button class="b b-ink b-sm"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/></svg> Plan retest</button>
+                <button class="b b-quiet b-sm"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22z"/></svg> Ask about this</button>
+                <button class="b b-text b-sm"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg> Copy for your doctor</button>
               </div>
             </div>
           </div>
@@ -287,18 +280,16 @@
         </p>
       </section>
 
-      <section class="sec">
+      <section class="sec" id="s02">
         <div class="sec-head"><span class="n">02</span><h2>390 px</h2></div>
         <div class="phones">
           <div>
             <div class="phone">
               <div class="statusbar">
                 <span>9:41</span>
-                <span class="rt">
-                  <span class="ms i16">network_cell</span><span class="ms i16">wifi</span><span class="ms i16">battery_full_alt</span>
-                </span>
+<span class="rt"><span>LTE</span><span>100%</span></span>
               </div>
-              <div class="screenhead"><h2>Blood</h2><span class="ms i24">filter_list</span></div>
+              <div class="screenhead"><h2>Blood</h2><svg class="ic i24" viewBox="0 0 24 24" aria-hidden="true"><line x1="21" x2="14" y1="4" y2="4"/><line x1="10" x2="3" y1="4" y2="4"/><line x1="21" x2="12" y1="12" y2="12"/><line x1="8" x2="3" y1="12" y2="12"/><line x1="21" x2="16" y1="20" y2="20"/><line x1="12" x2="3" y1="20" y2="20"/><line x1="14" x2="14" y1="2" y2="6"/><line x1="8" x2="8" y1="10" y2="14"/><line x1="16" x2="16" y1="18" y2="22"/></svg></div>
               <div class="stack">
                 <div class="panel">
                   <div class="drawline">
@@ -337,18 +328,343 @@
                 </div>
               </div>
               <div class="tabbar">
-                <a href="#"><span class="ms i24">home</span>Home</a>
-                <a href="#"><span class="ms i24">monitoring</span>Body</a>
-                <span class="plusslot"><button><span class="ms i24">add</span></button></span>
-                <a class="on" href="#"><span class="ms i24 fill">water_drop</span>Blood</a>
-                <a href="#"><span class="ms i24">event_note</span>Plan</a>
+                <a href="#"><svg class="ic i24" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>Home</a>
+                <a href="#"><svg class="ic i24" viewBox="0 0 24 24" aria-hidden="true"><path d="M22 12h-2.48a2 2 0 0 0-1.93 1.46l-2.35 8.36a.25.25 0 0 1-.48 0L9.24 2.18a.25.25 0 0 0-.48 0l-2.35 8.36A2 2 0 0 1 4.49 12H2"/></svg>Body</a>
+                <span class="plusslot"><button><svg class="ic i24" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/><path d="M12 5v14"/></svg></button></span>
+                <a class="on" href="#"><svg class="ic i24" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z"/></svg>Blood</a>
+                <a href="#"><svg class="ic i24" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/></svg>Plan</a>
               </div>
             </div>
             <p class="cap">The drawer becomes a bottom sheet. Same rows, same order.</p>
           </div>
         </div>
       </section>
-    </main>
+      <section class="sec" id="s03">
+        <div class="sec-head"><span class="n">03</span><h2>Every marker, with search</h2></div>
+        <p class="lede">Fifty-two markers with a value, grouped by system, filtered by one field and one tab row. No pagination: fifty-two rows is the whole list.</p>
+        <div class="panel">
+          <div class="rowh" style="margin-bottom: 13px">
+            <div class="searchbox" style="flex: 1; min-width: 220px"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg><input placeholder="ferritin, TSH, LDL…" value="" /></div>
+            <div class="tabs" role="tablist" style="--tab-n: 4; --tab-i: 0"><button class="tab" aria-selected="true">Off 7</button><button class="tab" aria-selected="false">Borderline 19</button><button class="tab" aria-selected="false">Optimal 26</button><button class="tab" aria-selected="false">All 52</button></div>
+          </div>
+          <div class="sub"><h3>Thyroid</h3><span>2 of 52 shown</span></div>
+          <div class="rowlist">
+            <a class="markerrow said" href="#" style="text-decoration: none; color: inherit">
+              <div class="nm"><b>TPO antibodies</b><span>lab · Aug 1 2026 · was 412 on Dec 9</span></div>
+              <div class="t-meta" style="font-size: 11px"></div>
+              <div class="val">320<em>IU/mL</em></div>
+              <div class="wd"><span class="state off">off</span> <span class="tri">▲</span></div>
+              <div class="bar"><div class="rangebar off" style="--p: 74.42%"><i style="--a: 0.00%; --b: 7.91%"></i><i class="opt" style="--a: 0.00%; --b: 2.09%"></i><u></u></div><div class="rangescale"><span>0</span><span class="mid">normal 0–34 · optimal 0–9</span><span>430 IU/mL</span></div></div>
+            </a>
+            <a class="markerrow said" href="#" style="text-decoration: none; color: inherit">
+              <div class="nm"><b>TSH</b><span>lab · Aug 1 2026</span></div>
+              <div class="t-meta" style="font-size: 11px"></div>
+              <div class="val">3.9<em>mIU/L</em></div>
+              <div class="wd"><span class="state border">borderline</span></div>
+              <div class="bar"><div class="rangebar border" style="--p: 65.00%"><i style="--a: 6.70%; --b: 75.00%"></i><i class="opt" style="--a: 8.30%; --b: 41.70%"></i><u></u></div><div class="rangescale"><span>0</span><span class="mid">normal 0.4–4.5 · optimal 0.5–2.5</span><span>6.0 mIU/L</span></div></div>
+            </a>
+          </div>
+          <div class="sub"><h3>Blood sugar and insulin</h3><span>3 of 52 shown</span></div>
+          <div class="rowlist">
+            <a class="markerrow said" href="#" style="text-decoration: none; color: inherit">
+              <div class="nm"><b>HbA1c</b><span>lab · Aug 1 2026 · unchanged since Dec 9</span></div>
+              <div class="t-meta" style="font-size: 11px"></div>
+              <div class="val">5.6<em>%</em></div>
+              <div class="wd"><span class="state border">borderline</span></div>
+              <div class="bar"><div class="rangebar border" style="--p: 53.30%"><i style="--a: 0.00%; --b: 53.30%"></i><i class="opt" style="--a: 0.00%; --b: 46.70%"></i><u></u></div><div class="rangescale"><span>4.0</span><span class="mid">normal 4.0–5.6 · optimal under 5.4</span><span>7.0 %</span></div></div>
+            </a>
+            <a class="markerrow said" href="#" style="text-decoration: none; color: inherit">
+              <div class="nm"><b>Fasting glucose</b><span>phone strip · Aug 31 2026</span></div>
+              <div class="t-meta" style="font-size: 11px"></div>
+              <div class="val">96<em>mg/dL</em></div>
+              <div class="wd"><span class="state border">borderline</span></div>
+              <div class="bar"><div class="rangebar border" style="--p: 45.00%"><i style="--a: 12.50%; --b: 48.75%"></i><i class="opt" style="--a: 18.75%; --b: 37.50%"></i><u></u></div><div class="rangescale"><span>60</span><span class="mid">normal 70–99 · optimal 75–90</span><span>140 mg/dL</span></div></div>
+            </a>
+            <a class="markerrow said" href="#" style="text-decoration: none; color: inherit">
+              <div class="nm"><b>Fasting insulin</b><span>no draw has ever carried it</span></div>
+              <div class="t-meta" style="font-size: 11px">on the Nov 24 2026 order sheet, with fasting glucose, for HOMA-IR</div>
+              <div class="val">—<em></em></div>
+              <div class="wd"><span class="state none">never measured</span></div>
+              
+            </a>
+          </div>
+          <div class="sub"><h3>Iron and blood count</h3><span>2 of 52 shown</span></div>
+          <div class="rowlist">
+            <a class="markerrow said" href="#" style="text-decoration: none; color: inherit">
+              <div class="nm"><b>Ferritin</b><span>lab · Aug 1 2026</span></div>
+              <div class="t-meta" style="font-size: 11px"></div>
+              <div class="val">22<em>ng/mL</em></div>
+              <div class="wd"><span class="state border">borderline</span></div>
+              <div class="bar"><div class="rangebar border" style="--p: 11.00%"><i style="--a: 7.50%; --b: 75.00%"></i><i class="opt" style="--a: 25.00%; --b: 75.00%"></i><u></u></div><div class="rangescale"><span>0</span><span class="mid">normal 15–150 · optimal 50–150</span><span>200 ng/mL</span></div></div>
+            </a>
+            <a class="markerrow said" href="#" style="text-decoration: none; color: inherit">
+              <div class="nm"><b>Red cell count</b><span>lab · Aug 1 2026</span></div>
+              <div class="t-meta" style="font-size: 11px"></div>
+              <div class="val">5.6<em>M/uL</em></div>
+              <div class="wd"><span class="state border">borderline</span></div>
+              <div class="bar"><div class="rangebar border" style="--p: 70.00%"><i style="--a: 33.30%; --b: 80.00%"></i><i class="opt" style="--a: 40.00%; --b: 66.70%"></i><u></u></div><div class="rangescale"><span>3.5</span><span class="mid">normal 4.5–5.9</span><span>6.5 M/uL</span></div></div>
+            </a>
+          </div>
+          <div class="sub"><h3>Liver, lipids and lifestyle</h3><span>3 of 52 shown</span></div>
+          <div class="rowlist">
+            <a class="markerrow said" href="#" style="text-decoration: none; color: inherit">
+              <div class="nm"><b>ALT</b><span>lab · Aug 1 2026 · was 41 on Dec 9</span></div>
+              <div class="t-meta" style="font-size: 11px"></div>
+              <div class="val">34<em>U/L</em></div>
+              <div class="wd"><span class="state off">off</span> <span class="tri">▲</span></div>
+              <div class="bar"><div class="rangebar off" style="--p: 68.00%"><i style="--a: 0.00%; --b: 66.00%"></i><i class="opt" style="--a: 0.00%; --b: 40.00%"></i><u></u></div><div class="rangescale"><span>0</span><span class="mid">normal 0–33</span><span>50 U/L</span></div></div>
+            </a>
+            <a class="markerrow said" href="#" style="text-decoration: none; color: inherit">
+              <div class="nm"><b>LDL cholesterol</b><span>lab · Aug 1 2026 · was 168 on Dec 9</span></div>
+              <div class="t-meta" style="font-size: 11px"></div>
+              <div class="val">142<em>mg/dL</em></div>
+              <div class="wd"><span class="state off">off</span> <span class="tri">▲</span></div>
+              <div class="bar"><div class="rangebar off" style="--p: 78.90%"><i style="--a: 0.00%; --b: 72.20%"></i><i class="opt" style="--a: 0.00%; --b: 55.60%"></i><u></u></div><div class="rangescale"><span>0</span><span class="mid">optimal under 100</span><span>180 mg/dL</span></div></div>
+            </a>
+            <a class="markerrow said" href="#" style="text-decoration: none; color: inherit">
+              <div class="nm"><b>Systolic blood pressure</b><span>phone · Apple Health · Aug 30 2026</span></div>
+              <div class="t-meta" style="font-size: 11px"></div>
+              <div class="val">128<em>mmHg</em></div>
+              <div class="wd"><span class="state off">off</span> <span class="tri">▲</span></div>
+              <div class="bar"><div class="rangebar off" style="--p: 60.00%"><i style="--a: 12.50%; --b: 50.00%"></i><i class="opt" style="--a: 12.50%; --b: 37.50%"></i><u></u></div><div class="rangescale"><span>80</span><span class="mid">normal 90–120</span><span>160 mmHg</span></div></div>
+            </a>
+          </div>
+          <div class="sub"><h3>Vitamins, inflammation, kidneys, stress</h3><span>4 of 52 shown</span></div>
+          <div class="rowlist">
+            <a class="markerrow said" href="#" style="text-decoration: none; color: inherit">
+              <div class="nm"><b>Vitamin D</b><span>lab · Aug 1 2026</span></div>
+              <div class="t-meta" style="font-size: 11px"></div>
+              <div class="val">19<em>ng/mL</em></div>
+              <div class="wd"><span class="state off">off</span> <span class="tri">▲</span></div>
+              <div class="bar"><div class="rangebar off" style="--p: 19.00%"><i style="--a: 30.00%; --b: 100.00%"></i><i class="opt" style="--a: 40.00%; --b: 80.00%"></i><u></u></div><div class="rangescale"><span>0</span><span class="mid">normal 30–100 · optimal 40–80</span><span>100 ng/mL</span></div></div>
+            </a>
+            <a class="markerrow said" href="#" style="text-decoration: none; color: inherit">
+              <div class="nm"><b>hs-CRP</b><span>lab · Aug 1 2026</span></div>
+              <div class="t-meta" style="font-size: 11px"></div>
+              <div class="val">3.4<em>mg/L</em></div>
+              <div class="wd"><span class="state border">borderline</span></div>
+              <div class="bar"><div class="rangebar border" style="--p: 34.00%"><i style="--a: 0.00%; --b: 30.00%"></i><i class="opt" style="--a: 0.00%; --b: 10.00%"></i><u></u></div><div class="rangescale"><span>0</span><span class="mid">normal under 3 · optimal under 1</span><span>10 mg/L</span></div></div>
+            </a>
+            <a class="markerrow said" href="#" style="text-decoration: none; color: inherit">
+              <div class="nm"><b>Creatinine</b><span>lab · Aug 1 2026</span></div>
+              <div class="t-meta" style="font-size: 11px"></div>
+              <div class="val">0.95<em>mg/dL</em></div>
+              <div class="wd"><span class="state border">borderline</span></div>
+              <div class="bar"><div class="rangebar border" style="--p: 45.80%"><i style="--a: 16.70%; --b: 66.70%"></i><i class="opt" style="--a: 25.00%; --b: 58.30%"></i><u></u></div><div class="rangescale"><span>0.4</span><span class="mid">normal 0.6–1.2</span><span>1.6 mg/dL</span></div></div>
+            </a>
+            <a class="markerrow said" href="#" style="text-decoration: none; color: inherit">
+              <div class="nm"><b>Cortisol</b><span>lab · Aug 1 2026 · morning draw</span></div>
+              <div class="t-meta" style="font-size: 11px"></div>
+              <div class="val">16.29<em>mcg/dL</em></div>
+              <div class="wd"><span class="state border">borderline</span></div>
+              <div class="bar"><div class="rangebar border" style="--p: 65.20%"><i style="--a: 24.00%; --b: 73.60%"></i><i class="opt" style="--a: 24.00%; --b: 60.00%"></i><u></u></div><div class="rangescale"><span>0</span><span class="mid">normal 6–18.4, morning</span><span>25 mcg/dL</span></div></div>
+            </a>
+          </div>
+          <div class="sub"><h3>Sex hormones</h3><span>0 of 52 shown</span></div>
+          <p class="never">No marker in this system has ever had a value. It gets an empty group, not a zero.</p>
+          <p class="cap">Fifteen of the fifty-two are shown here; the other thirty-seven are optimal and sit behind the “All 52” tab. Every row is a link to the marker, and the whole row is the link — there is no chevron and no second target.</p>
+        </div>
+      </section>
 
+      <section class="sec" id="s04">
+        <div class="sec-head"><span class="n">04</span><h2>Uploads</h2></div>
+        <p class="lede">What you gave the app, what it read out, and what is still waiting on you.</p>
+        <div class="panel">
+          <div class="panel-head"><h3>Uploads</h3><span class="r">4 files · 65 readings · 1 needs a check</span></div>
+          <div class="rowlist">
+            <div class="uprow">
+              <span class="pg"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></svg></span>
+              <div><b>bloodwork-2026-08-01.pdf</b><div class="meta"><span>PDF · 1.2 MB · read Aug 1 2026 · 42 s</span><span>15 readings · 5 off</span></div></div>
+              <div class="rowh" style="gap: 5px"><span class="state on">parsed</span><button class="b b-quiet b-sm"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg> Reanalyze</button><button class="b b-text b-sm">Delete</button></div>
+            </div>
+            <div class="uprow">
+              <span class="pg"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></svg></span>
+              <div><b>bloodwork-2025-12-09.pdf</b><div class="meta"><span>PDF · 1.8 MB · read Dec 9 2025 · 61 s</span><span>48 readings · 4 off</span></div></div>
+              <div class="rowh" style="gap: 5px"><span class="state on">parsed</span><button class="b b-quiet b-sm"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg> Reanalyze</button><button class="b b-text b-sm">Delete</button></div>
+            </div>
+            <div class="uprow">
+              <span class="pg"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></svg></span>
+              <div><b>genome-ancestry-raw.txt</b><div class="meta"><span>TXT · 24 MB · read Feb 3 2026 · 3 min 12 s</span><span>612 variants · 9 with an effect · 4 moved a prior</span></div></div>
+              <div class="rowh" style="gap: 5px"><span class="state on">parsed</span><button class="b b-quiet b-sm"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg> Reanalyze</button><button class="b b-text b-sm">Delete</button></div>
+            </div>
+            <div class="uprow">
+              <span class="pg"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></svg></span>
+              <div><b>photo-strip-aug31.jpeg</b><div class="meta"><span>JPEG · 2.1 MB · read Aug 31 2026 · 6 s</span><span>1 reading · glucose 96 mg/dL · from a photo, so check it</span></div></div>
+              <div class="rowh" style="gap: 5px"><span class="state border">needs a check</span><button class="b b-quiet b-sm"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg> Reanalyze</button><button class="b b-text b-sm">Delete</button></div>
+            </div>
+          </div>
+          <div class="rowh" style="margin-top: 13px"><label class="filebox" style="max-width: 320px"><span class="pg"><svg class="ic i20" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M17 8l-5-5-5 5"/><path d="M12 3v12"/></svg></span><span><b>Add a file</b><span>A PDF, a photo, or a genome export.</span></span><input type="file" hidden /></label><button class="b b-text b-sm"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg> Readings CSV</button><button class="b b-text b-sm"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg> Events CSV</button></div>
+        </div>
+      </section>
+
+      <section class="sec" id="s05">
+        <div class="sec-head"><span class="n">05</span><h2>One upload, opened</h2></div>
+        <p class="lede">The detail page: what kind of change it was, the rows it produced, the genes it read, the items it wants you to accept or reject, and the raw text it read them from.</p>
+        <div class="panel">
+          <div class="drawer-head">
+            <h3>genome-ancestry-raw.txt <span class="src">· TXT · 24 MB · read Feb 3 2026</span></h3>
+            <div class="rowh" style="gap: 5px"><span class="state on">parsed</span><button class="b b-quiet b-sm"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg> Reanalyze</button><button class="b b-text b-sm">Delete</button></div>
+          </div>
+          <div class="rowh" style="margin-bottom: 13px">
+            <div class="field" style="max-width: 240px"><label>What kind of change</label><select class="sel"><option selected>a new fact about you</option><option>a correction of an older one</option><option>a one-off reading</option></select></div>
+            <div class="kpi"><div><b>612</b><span>variants read</span></div><div><b>9</b><span>with a known effect</span></div><div><b>4</b><span>moved a prior</span></div></div>
+          </div>
+          <div class="sub" style="margin-top: 0"><h3>Genome</h3><span>nine genes, four that moved something and five that did not</span></div>
+          <div class="tblwrap"><table class="tbl">
+            <thead><tr><th>Gene</th><th>rsID</th><th>Genotype</th><th>Grade</th><th>What it moved</th><th>Source</th></tr></thead>
+            <tbody>
+              <tr><td class="k">TCF7L2</td><td class="n">rs7903146</td><td class="n">C/T</td><td>● A</td><td><span class="state border">Type 2 diabetes ×1.4</span></td><td>Grant 2006 · Nat Genet</td></tr>
+              <tr><td class="k">APOE</td><td class="n">rs429358 · rs7412</td><td class="n">ε3/ε4</td><td>● A</td><td><span class="state border">Cardiovascular risk ×1.3</span></td><td>Bennet 2007 · JAMA</td></tr>
+              <tr><td class="k">FTO</td><td class="n">rs9939609</td><td class="n">A/T</td><td>● B</td><td><span class="state border">Insulin resistance ×1.2</span></td><td>Frayling 2007 · Science</td></tr>
+              <tr><td class="k">HLA-DQ2.5</td><td class="n">rs2187668</td><td class="n">present</td><td>● A</td><td><span class="state border">Coeliac ×6, from a very low base</span></td><td>Romanos 2009</td></tr>
+              <tr><td class="k">CYP1A2</td><td class="n">rs762551</td><td class="n">A/C</td><td>● B</td><td><span class="state none">nothing · added a caveat to 2 markers</span></td><td>Cornelis 2006 · JAMA</td></tr>
+              <tr><td class="k">MTHFR</td><td class="n">rs1801133</td><td class="n">C/T</td><td>● C</td><td><span class="state none">nothing · needs T/T</span></td><td>weak, and often oversold</td></tr>
+              <tr><td class="k">COMT</td><td class="n">rs4680</td><td class="n">A/G</td><td>● C</td><td><span class="state none">nothing</span></td><td>no replicated outcome</td></tr>
+              <tr><td class="k">ACTN3</td><td class="n">rs1815739</td><td class="n">C/T</td><td>○ E</td><td><span class="state none">nothing</span></td><td>sport-science anecdote</td></tr>
+              <tr><td class="k">VDR</td><td class="n">rs2228570</td><td class="n">A/G</td><td>● C</td><td><span class="state none">nothing · vitamin D 19 already decides it</span></td><td>mixed</td></tr>
+            </tbody></table></div>
+          <p class="cap">A variant shifts a starting point; your numbers decide the rest. If a marker and a variant disagree, the marker wins, because it is what your body is doing today.</p>
+          <div class="sub"><h3>Items to accept or reject</h3><span>what the reader thinks it found, before it is written</span></div>
+          <div class="rowlist">
+            <div class="uprow">
+              <span class="pg"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></svg></span>
+              <div><b style="font-weight: 400">Ancestry: 43 % Balkan, 31 % Central European</b><div class="meta"><span>does not feed any likelihood; kept as a note</span></div></div>
+              <div class="rowh" style="gap: 5px"><button class="b b-ink b-sm"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg> Accept</button><button class="b b-quiet b-sm">Edit</button><button class="b b-text b-sm">Reject</button></div>
+            </div>
+            <div class="uprow">
+              <span class="pg"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></svg></span>
+              <div><b style="font-weight: 400">Sex: male</b><div class="meta"><span>already recorded on Jun 14 2026 from the check-in; this agrees</span></div></div>
+              <div class="rowh" style="gap: 5px"><button class="b b-ink b-sm"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg> Accept</button><button class="b b-quiet b-sm">Edit</button><button class="b b-text b-sm">Reject</button></div>
+            </div>
+          </div>
+          <div class="sub"><h3>Reading rows</h3><span>from the Aug 1 PDF, editable before they are written</span></div>
+          <div class="tblwrap"><table class="tbl">
+            <thead><tr><th>Marker</th><th>Value</th><th>Unit</th><th>Ref low</th><th>Ref high</th><th>Drawn</th></tr></thead>
+            <tbody>
+              <tr><td class="k">TPO antibodies</td><td class="n">320</td><td class="n">IU/mL</td><td class="n">0</td><td class="n">34</td><td class="n">2026-08-01</td></tr>
+              <tr><td class="k">TSH</td><td class="n">3.9</td><td class="n">mIU/L</td><td class="n">0.4</td><td class="n">4.5</td><td class="n">2026-08-01</td></tr>
+              <tr><td class="k">HbA1c</td><td class="n">5.6</td><td class="n">%</td><td class="n">4.0</td><td class="n">5.6</td><td class="n">2026-08-01</td></tr>
+              <tr><td class="k">Ferritin</td><td class="n">22</td><td class="n">ng/mL</td><td class="n">15</td><td class="n">150</td><td class="n">2026-08-01</td></tr>
+              <tr><td class="k">ALT</td><td class="n">34</td><td class="n">U/L</td><td class="n">0</td><td class="n">33</td><td class="n">2026-08-01</td></tr>
+            </tbody></table></div>
+          <details class="disclose" style="margin-top: 13px"><summary>Raw text, as read <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary><div class="inner"><pre style="margin: 0; font-family: var(--font-mono); font-size: var(--type-xs); white-space: pre-wrap; color: var(--ink-3)">ANTI-TPO           320    IU/mL    (0 - 34)      H
+TSH                3.90   mIU/L    (0.40 - 4.50)
+HbA1c              5.6    %        (4.0 - 5.6)
+FERRITIN            22    ng/mL    (15 - 150)
+ALT (SGPT)          34    U/L      (0 - 33)      H
+Collected 2026-08-01 08:12  ·  Reported 2026-08-01 16:40</pre></div></details>
+        </div>
+      </section>
+
+      <section class="sec" id="s06">
+        <div class="sec-head"><span class="n">06</span><h2>Plan a draw</h2></div>
+        <p class="lede">The builder, unchanged in content: what is worth it now, what is due by cadence, what can wait, and the order sheet it produces.</p>
+        <div class="grid2">
+          <div class="stackv">
+            <div class="panel"><div class="panel-head"><h3>Worth it now</h3><span class="r">the answer would change something</span></div>
+              <div class="drow"><span class="ck"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span><div><div class="nm">Fasting insulin</div><div class="sub">Insulin resistance <span class="post">97 % → <span class="up">99</span> if ≥ 12 µIU/mL, <span class="dn">41</span> if &lt; 5</span></div></div><div class="cost">€€ · fasting</div></div>
+              <div class="drow" style="border-bottom: 0"><span class="ck"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span><div><div class="nm">HbA1c</div><div class="sub">Type 2 diabetes <span class="post">53 % → <span class="up">92</span> if ≥ 6.5, <span class="dn">5</span> if &lt; 5.7</span></div></div><div class="cost">€ · no prep</div></div>
+            </div>
+            <div class="panel"><div class="panel-head"><h3>Due by cadence</h3><span class="r"><span class="state off">2 overdue</span></span></div>
+              <div class="drow"><span class="ck"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span><div><div class="nm">TSH</div><div class="sub">every 6 wk · last drawn Aug 1 · due Sep 12</div></div><div class="cost">€ · no prep</div></div>
+              <div class="drow"><span class="ck"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span><div><div class="nm">TPO antibodies</div><div class="sub">every 12 wk · last drawn Aug 1 · due Oct 24 · the test of the selenium</div></div><div class="cost">€€ · no prep</div></div>
+              <div class="drow" style="border-bottom: 0"><span class="ck offc"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span><div><div class="nm">hs-CRP</div><div class="sub">every 4 wk · last drawn Aug 1 · <span class="c-bad">due since Aug 29</span></div></div><div class="cost">€ · no prep</div></div>
+            </div>
+            <div class="panel"><div class="panel-head"><h3>Can wait</h3><span class="r">expensive, or would not move the plan</span></div>
+              <div class="drow" style="border-bottom: 0"><span class="ck offc"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span><div><div class="nm">Coronary artery calcium</div><div class="sub">Cardiovascular risk <span class="post">21 % → <span class="up">62</span> if &gt; 100, <span class="dn">5</span> if 0</span> · a scan, not a draw</div></div><div class="cost">€€€</div></div>
+            </div>
+          </div>
+          <div class="panel hi">
+            <div class="panel-head"><h3>Blood work · Nov 24 2026</h3><span class="r">4 markers</span></div>
+            <div class="tabs" role="tablist" style="--tab-n: 3; --tab-i: 2"><button class="tab" aria-selected="false">4 wk · Sep 29</button><button class="tab" aria-selected="false">8 wk · Oct 27</button><button class="tab" aria-selected="true">12 wk · Nov 24</button></div>
+            <div class="rows" style="margin-top: 13px">
+              <div class="mrow"><div class="mn">Fasting insulin<small>with fasting glucose, for HOMA-IR</small></div><div class="mv"></div><div class="mw">€€ · fasting</div></div>
+              <div class="mrow"><div class="mn">HbA1c<small>last read 5.6 % on Aug 1</small></div><div class="mv"></div><div class="mw">€ · no prep</div></div>
+              <div class="mrow"><div class="mn">TSH<small>last read 3.9 mIU/L, antibodies positive</small></div><div class="mv"></div><div class="mw">€ · no prep</div></div>
+              <div class="mrow"><div class="mn">TPO antibodies<small>last read 320 IU/mL · 12 wk of selenium</small></div><div class="mv"></div><div class="mw">€€ · no prep</div></div>
+            </div>
+            <p class="t-body"><b>Fasting:</b> 12 hours, water only, for the insulin. The other three do not care. Morning draw, before 10:00, same as Aug 1, so they compare.</p>
+            <div class="rowh"><button class="b b-ink"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1z"/><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"/><path d="M12 17.5v-11"/></svg> Make the order sheet</button><button class="b b-quiet"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg> Copy for your doctor</button></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="sec" id="s07">
+        <div class="sec-head"><span class="n">07</span><h2>Empty states</h2></div>
+        <p class="lede">Three of them, and none has a dashed border.</p>
+        <div class="grid3">
+          <div class="empty"><span class="k">No draws</span><b style="font-size: var(--type-md); font-weight: 400">No blood draws on file</b><p>The engine can still read your phone, but every likelihood on this page needs at least one draw behind it.</p><a href="#">Plan a draw</a></div>
+          <div class="empty"><span class="k">No uploads</span><b style="font-size: var(--type-md); font-weight: 400">Nothing uploaded yet</b><p>A photo of a lab sheet is enough. The reader takes about a minute on a PDF and six seconds on a photo.</p><a href="#">Add a file</a></div>
+          <div class="empty"><span class="k">Sex hormones</span><b style="font-size: var(--type-md); font-weight: 400">Never measured</b><p>No marker in this system has ever had a value. It is not a zero and it is not hidden.</p><a href="#">Add it to the next draw</a></div>
+        </div>
+      </section>
+
+      <section class="sec" id="s08">
+        <div class="sec-head"><span class="n">08</span><h2>Where the numbers come from</h2></div>
+        <p class="cap">
+          <b>All real, as of Sep 1 2026:</b> 52 markers with a value — 26
+          optimal, 19 normal, 7 off. TPO antibodies 320 IU/mL, normal 0–34,
+          optimal 0–9, 412 on Dec 9 2025. TSH 3.9 mIU/L, normal 0.4–4.5,
+          optimal 0.5–2.5. HbA1c 5.6 %, normal 4.0–5.6, optimal under 5.4.
+          Fasting glucose 96 mg/dL from the Aug 31 2026 photo strip. Ferritin
+          22 ng/mL, normal 15–150, optimal 50–150. Red cell count 5.6 M/uL,
+          normal 4.5–5.9. ALT 34 U/L, normal 0–33, 41 on Dec 9 2025. LDL
+          cholesterol 142 mg/dL, optimal under 100, 168 on Dec 9 2025.
+          Systolic BP 128 mmHg, normal 90–120. Vitamin D 19 ng/mL, normal
+          30–100, optimal 40–80. hs-CRP 3.4 mg/L, optimal under 1. Creatinine
+          0.95 mg/dL, 0.6–1.2. Cortisol 16.29 mcg/dL, morning 6–18.4. Fasting
+          insulin and every sex hormone have never been measured. Draws:
+          Jun 24 2016 (2 results, from a scanned page), Dec 9 2025 (48),
+          Feb 1 2026 (1, TSH), Aug 1 2026 (15), Aug 31 2026 (1, glucose), and
+          Nov 24 2026 planned with 4. Genome: 612 variants read, 9 with a known
+          effect, 4 that moved a prior — TCF7L2 rs7903146 C/T ×1.4 (Grant
+          2006), APOE ε3/ε4 ×1.3 (Bennet 2007), FTO rs9939609 A/T ×1.2
+          (Frayling 2007), HLA-DQ2.5 present ×6 from a very low base (Romanos
+          2009); CYP1A2, MTHFR, COMT, ACTN3 and VDR moved nothing and say so.
+          Cadences: hs-CRP 4 wk, TSH 6 wk, LDL 8 wk, HbA1c and TPO 12 wk.
+          Posterior pairs: insulin resistance 97 → 99 / 41, type 2 diabetes
+          53 → 92 / 5, cardiovascular risk 21 → 62 / 5.
+        </p>
+        <p class="cap">
+          <b>Illustrative:</b> the four file names, sizes and read times, and
+          the ancestry split on the accept/reject rows. Every number inside the
+          files is the real one.
+        </p>
+        <div class="cost">
+          <h3>Build cost</h3>
+          <p><b>Replaces:</b> <code>/labs</code> (LabsHeader, UploadButton, a
+            <code>&lt;details&gt;</code> per draw day, the marker table),
+            <code>/biomarkers</code> (search, per-category sections, status
+            dot, sparkline, RangeBar), <code>/labs/phone</code> (the phone
+            metric list), <code>/uploads</code> and <code>/uploads/[id]</code>
+            (GenomeTable, DocumentItems, ReadingRows, the raw
+            <code>&lt;pre&gt;</code>), <code>/m/[code]</code> (the ruler card,
+            the recharts TrendChart, the readings table, the inline optimal and
+            goal forms) and <code>/genome</code>.</p>
+          <p><b>New:</b> the marker row carries its own range scale, so a bar
+            is readable without opening the marker. A marker with one draw says
+            “one draw” instead of drawing a flat sparkline. The drawer and the
+            phone page are the same component at two widths.</p>
+          <p><b>Deletes:</b> recharts from <code>/m/[code]</code>, two dashed
+            empty states, StatusBadge and the filled health badges, the second
+            tab style, and seven routes.</p>
+        </div>
+      </section>
+    </main>
+    <script>
+      // The only scripts in this folder: the theme toggle and the motion
+      // samples. No framework, no build step, no chart library.
+      (function () {
+        var b = document.getElementById("themebtn");
+        if (!b) return;
+        b.addEventListener("click", function () {
+          var d = document.documentElement;
+          var on = d.getAttribute("data-theme") === "dark";
+          d.setAttribute("data-theme", on ? "light" : "dark");
+          d.classList.toggle("dark", !on);
+          b.querySelector("span").textContent = on ? "Dark" : "Light";
+        });
+      })();
+    </script>
   </body>
 </html>

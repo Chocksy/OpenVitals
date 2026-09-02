@@ -10,7 +10,11 @@
       href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,300,0,0"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="v4.css" />
+    <!-- phase 29: these two pages now load the design system, which imports
+         v4.css and then corrects the tokens to the values in
+         apps/simple/app/globals.css. Structure and content are unchanged;
+         what changes is the cream, and three inks that failed AA. -->
+    <link rel="stylesheet" href="system.css" />
   </head>
   <body>
     <button class="themebtn" onclick="document.documentElement.classList.toggle('dark')">
@@ -301,23 +305,7 @@
                     </div>
                   </div>
                 </div>
-                <div class="hist mini">
-                  <div class="hist-head"><h3>History</h3><span class="unit">IU/mL · 2 draws</span></div>
-                  <div class="hist-body">
-                    <div>
-                      <div class="hist-plot">
-        <div class="hist-band normal" style="--t: 92.09%; --h: 7.91%"></div>
-        <svg viewBox="0 0 1000 100" preserveAspectRatio="none" aria-hidden="true"><polyline points="0.0,4.19 1000.0,25.58" /></svg>
-        <div class="hp was" style="--x: 0.00%; --y: 4.19%"><b>412</b><i></i></div>
-        <div class="hp now lft" style="--x: 100.00%; --y: 25.58%"><b>320</b><i></i></div>
-                      </div>
-                      <div class="hist-x">
-        <span class="first" style="--x: 0%">Dec 9</span>
-        <span class="last" style="--x: 100%">Aug 1</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+                <div class="hist mini"><div class="hist-head"><h3>History</h3><span class="unit">IU/mL · 2 draws</span></div><div class="hist-body"><div><div class="hist-plot"><div class="hist-band normal" style="--t: 92.44%; --h: 7.56%"></div><svg viewBox="0 0 1000 100" preserveAspectRatio="none" aria-hidden="true"><polyline points="0.0,8.44 1000.0,28.89" /></svg><div class="hp was" style="--x: 0.00%; --y: 8.44%"><b>412</b><i></i></div><div class="hp now lft" style="--x: 100.00%; --y: 28.89%"><b>320</b><i></i></div></div><div class="hist-x"><span class="first" style="--x: 0.00%">Dec 9</span><span class="now last" style="--x: 100.00%">Aug 1</span></div></div></div><div class="hist-legend"><span><i class="hollow"></i> was — Dec 9 2025, 412 IU/mL</span><span><i></i> now — Aug 1 2026, 320 IU/mL</span><span><u class="normal"></u> normal 0–34</span></div></div>
                 <div class="panel">
                   <div class="panel-head"><h3>What it feeds</h3></div>
                   <div class="rows">

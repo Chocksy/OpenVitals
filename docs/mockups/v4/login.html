@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Login — OpenVitals design system</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <!-- Geist Sans + Geist Mono, the app's own fonts. If the CDN is blocked
+         the stack in system.css falls back to Inter / JetBrains Mono, then to
+         the system UI font and ui-monospace. -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Geist:wght@200..600&family=Geist+Mono:wght@200..500&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="system.css" />
+  </head>
+  <body>
+    <button class="themebtn" id="themebtn" type="button">
+      <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9z"/></svg> <span>Dark</span>
+    </button>
+    <main class="doc">      <header class="doc-head">
+        <h1>Login</h1>
+        <p>
+          One card on the cream, no shell, no marketing. Sign in, sign up, the
+          Google button when it is configured, and one error line that says
+          what went wrong in words.
+        </p>
+      </header>
+      <nav class="crumbs">
+        <a href="system.html">System</a>
+        <a href="index.html">Index</a>
+        <a href="home.html">Home</a>
+        <a href="body.html">Body</a>
+        <a href="blood.html">Blood</a>
+        <a href="plan.html">Plan</a>
+        <a href="graph.html">Graph</a>
+        <a href="chat.html">Chat</a>
+        <a class="here" href="login.html">Login</a>
+        <a href="admin.html">System pages</a>
+        <a href="marker.html">Marker</a>
+        <a href="systems.html">Systems</a>
+        <a href="shell.html">Shell</a>
+        <a href="app.html">App</a>
+        <a href="plan-draw.html">Plan a draw</a>
+        <a href="genome.html">Genome</a>
+        <a href="explorations.html">Explorations</a>
+      </nav>
+      <section class="sec" id="s01">
+        <div class="sec-head"><span class="n">01</span><h2>Sign in, sign up, and the one error</h2></div>
+        <p class="lede">The card is 377 px wide — the Fibonacci step above 233 — centred on the cream, with the light behind it. Nothing else is on the page.</p>
+        <div class="lit" style="display: flex; flex-wrap: wrap; gap: 34px; justify-content: center; padding: 34px 0">
+          <div class="light-layer"><i></i><i></i><i></i></div>
+        <div class="logincard">
+          <div class="loginhead">
+            <span class="brand">OpenVitals</span>
+            <p class="t-meta" style="margin: 0">Welcome back.</p>
+          </div>
+          <div class="stackv">
+            <button class="b b-quiet" style="width: 100%"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg> Continue with Google</button>
+            <p class="t-meta" style="text-align: center; margin: 0">or</p>
+            <div class="field"><label for="signine">Email</label><input class="inp" id="signine" type="email" value="razvan@example.com" placeholder="you@example.com" /></div>
+            <div class="field"><label for="signinp">Password</label><input class="inp" id="signinp" type="password" value="••••••••••" /></div>
+            <button class="b b-ink" style="width: 100%">Sign in</button>
+            <p class="t-meta" style="text-align: center; margin: 0">
+              No account yet?
+              <a href="#" style="color: var(--ink)">Make one</a>
+            </p>
+          </div>
+        </div>
+        <div class="logincard">
+          <div class="loginhead">
+            <span class="brand">OpenVitals</span>
+            <p class="t-meta" style="margin: 0">Your labs, your phone, one ledger.</p>
+          </div>
+          <div class="stackv">
+            <button class="b b-quiet" style="width: 100%"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg> Continue with Google</button>
+            <p class="t-meta" style="text-align: center; margin: 0">or</p>
+            <div class="field"><label for="signupn">Name</label><input class="inp" id="signupn" value="Razvan" /></div>
+            <div class="field"><label for="signupe">Email</label><input class="inp" id="signupe" type="email" value="" placeholder="you@example.com" /></div>
+            <div class="field"><label for="signupp">Password</label><input class="inp" id="signupp" type="password" value="••••••••••" /></div>
+            <button class="b b-ink" style="width: 100%">Create the account</button>
+            <p class="t-meta" style="text-align: center; margin: 0">
+              Already have an account?
+              <a href="#" style="color: var(--ink)">Sign in</a>
+            </p>
+          </div>
+        </div>
+        <div class="logincard">
+          <div class="loginhead">
+            <span class="brand">OpenVitals</span>
+            <p class="t-meta" style="margin: 0">Welcome back.</p>
+          </div>
+          <div class="stackv">
+            <div class="field"><label for="erre">Email</label><input class="inp" id="erre" type="email" value="razvan@example.com" placeholder="you@example.com" /></div>
+            <div class="field"><label for="errp">Password</label><input class="inp" id="errp" type="password" value="••••••••••" /></div>
+            <p class="err" style="font-size: var(--type-sm)">That email and password do not match an account. Try again, or make one.</p>
+            <button class="b b-ink" style="width: 100%">Sign in</button>
+            <p class="t-meta" style="text-align: center; margin: 0">
+              No account yet?
+              <a href="#" style="color: var(--ink)">Make one</a>
+            </p>
+          </div>
+        </div>
+        </div>
+        <p class="cap">The blobs behind the card are August's light with the neutral hue: there is no ledger yet, so there is no worst band to take a colour from. Under <code>prefers-reduced-transparency</code> they are gone and the card is flat.</p>
+      </section>
+
+      <section class="sec" id="s02">
+        <div class="sec-head"><span class="n">02</span><h2>Dark, and 390 px</h2></div>
+        <div class="grid2">
+          <div class="dark" data-theme="dark" style="background: var(--canvas); border-radius: var(--r-hero); padding: 34px; display: flex; justify-content: center">
+        <div class="logincard">
+          <div class="loginhead">
+            <span class="brand">OpenVitals</span>
+            <p class="t-meta" style="margin: 0">Welcome back.</p>
+          </div>
+          <div class="stackv">
+            <button class="b b-quiet" style="width: 100%"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg> Continue with Google</button>
+            <p class="t-meta" style="text-align: center; margin: 0">or</p>
+            <div class="field"><label for="dke">Email</label><input class="inp" id="dke" type="email" value="razvan@example.com" placeholder="you@example.com" /></div>
+            <div class="field"><label for="dkp">Password</label><input class="inp" id="dkp" type="password" value="••••••••••" /></div>
+            <button class="b b-ink" style="width: 100%">Sign in</button>
+            <p class="t-meta" style="text-align: center; margin: 0">
+              No account yet?
+              <a href="#" style="color: var(--ink)">Make one</a>
+            </p>
+          </div>
+        </div>
+          </div>
+          <div class="phones"><div><div class="phone">
+              <div class="statusbar">
+                <span>9:41</span>
+                <span class="rt"><span>LTE</span><span>100%</span></span>
+              </div>
+              <div class="stack" style="padding-top: 55px">
+                <div class="logincard">
+                  <div class="loginhead">
+                    <span class="brand">OpenVitals</span>
+                    <p class="t-meta" style="margin: 0">Welcome back.</p>
+                  </div>
+                  <div class="stackv">
+                    <button class="b b-quiet" style="width: 100%"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg> Continue with Google</button>
+                    <p class="t-meta" style="text-align: center; margin: 0">or</p>
+                    <div class="field"><label for="phe">Email</label><input class="inp" id="phe" type="email" value="razvan@example.com" placeholder="you@example.com" /></div>
+                    <div class="field"><label for="php">Password</label><input class="inp" id="php" type="password" value="••••••••••" /></div>
+                    <button class="b b-ink" style="width: 100%">Sign in</button>
+                    <p class="t-meta" style="text-align: center; margin: 0">
+                      No account yet?
+                      <a href="#" style="color: var(--ink)">Make one</a>
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div><p class="cap">No tab bar: there is nothing to navigate to yet.</p></div></div>
+        </div>
+      </section>
+
+      <section class="sec" id="s03">
+        <div class="sec-head"><span class="n">03</span><h2>Where the numbers come from</h2></div>
+        <p class="cap">No numbers. This is the only page in the app with no data on it, which is why it is the only page with no mono on it either. The email shown is the test account's.</p>
+        <div class="cost">
+          <h3>Build cost</h3>
+          <p><b>Replaces:</b> <code>/login</code> — the centred card, the
+            name/email/password inputs, the full-width button, the Google
+            button when configured, the mode-toggle link and the inline
+            error.</p>
+          <p><b>New:</b> nothing structural. The card moves onto the cream,
+            the inputs become the system's inputs, the button becomes the one
+            ink button, and the error becomes a sentence instead of a code.</p>
+          <p><b>Deletes:</b> the white page background and the neutral-200
+            border box.</p>
+        </div>
+      </section>
+    </main>
+    <script>
+      // The only scripts in this folder: the theme toggle and the motion
+      // samples. No framework, no build step, no chart library.
+      (function () {
+        var b = document.getElementById("themebtn");
+        if (!b) return;
+        b.addEventListener("click", function () {
+          var d = document.documentElement;
+          var on = d.getAttribute("data-theme") === "dark";
+          d.setAttribute("data-theme", on ? "light" : "dark");
+          d.classList.toggle("dark", !on);
+          b.querySelector("span").textContent = on ? "Dark" : "Light";
+        });
+      })();
+    </script>
+  </body>
+</html>

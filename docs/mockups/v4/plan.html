@@ -1,0 +1,322 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Plan — OpenVitals design system</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <!-- Geist Sans + Geist Mono, the app's own fonts. If the CDN is blocked
+         the stack in system.css falls back to Inter / JetBrains Mono, then to
+         the system UI font and ui-monospace. -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Geist:wght@200..600&family=Geist+Mono:wght@200..500&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="system.css" />
+  </head>
+  <body>
+    <button class="themebtn" id="themebtn" type="button">
+      <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9z"/></svg> <span>Dark</span>
+    </button>
+    <main class="doc">      <header class="doc-head">
+        <h1>Plan</h1>
+        <p>
+          What to do first, what you are already doing, what you are aiming at,
+          the patterns behind it, the tests that would settle something, the
+          questions worth answering, and what earlier plans actually did. It
+          absorbs <code>/protocol</code>, <code>/goals</code>,
+          <code>/insights</code> and <code>/patterns/[id]</code>.
+        </p>
+      </header>
+      <nav class="crumbs">
+        <a href="system.html">System</a>
+        <a href="index.html">Index</a>
+        <a href="home.html">Home</a>
+        <a href="body.html">Body</a>
+        <a href="blood.html">Blood</a>
+        <a class="here" href="plan.html">Plan</a>
+        <a href="graph.html">Graph</a>
+        <a href="chat.html">Chat</a>
+        <a href="login.html">Login</a>
+        <a href="admin.html">System pages</a>
+        <a href="marker.html">Marker</a>
+        <a href="systems.html">Systems</a>
+        <a href="shell.html">Shell</a>
+        <a href="app.html">App</a>
+        <a href="plan-draw.html">Plan a draw</a>
+        <a href="genome.html">Genome</a>
+        <a href="explorations.html">Explorations</a>
+      </nav>
+      <section class="sec" id="s01">
+        <div class="sec-head"><span class="n">01</span><h2>Do this first</h2></div>
+        <p class="lede">One card, ranked. The spear is the loudest thing in the ledger and the one action that would move it.</p>
+        <div class="screen">
+          <div class="topbar">
+            <span class="brand">OpenVitals</span>
+            <nav class="pills"><a href="#"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg> Home</a><a href="#"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M22 12h-2.48a2 2 0 0 0-1.93 1.46l-2.35 8.36a.25.25 0 0 1-.48 0L9.24 2.18a.25.25 0 0 0-.48 0l-2.35 8.36A2 2 0 0 1 4.49 12H2"/></svg> Body</a><a href="#"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z"/></svg> Blood</a><a class="on" href="#"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/></svg> Plan</a><a href="#"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" x2="15.42" y1="13.51" y2="17.49"/><line x1="15.41" x2="8.59" y1="6.51" y2="10.49"/></svg> Graph</a></nav>
+            <span class="grow"></span><button class="plusbtn" aria-label="Add data"><svg class="ic i24" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/><path d="M12 5v14"/></svg></button><span class="avatar">R</span>
+          </div>
+          <p class="sentence">Seven markers are off. Thyroid is the loudest one, and selenium is the cheapest thing that moves it.</p>
+          <div class="conc off">
+            <div class="conc-top">
+              <span class="conc-rank">01</span>
+              <h3 class="conc-name">Autoimmune thyroiditis (Hashimoto's)</h3>
+              <span class="state off">confirmed <span class="tri">▲</span></span>
+              <span class="conc-pct">95<em>%</em></span>
+            </div>
+            <p class="conc-prose">TPO antibodies <b>320 IU/mL</b> on the Aug 1 2026 draw, nine times the ceiling of 34, with a TSH of <b>3.9 mIU/L</b> against an optimal 0.5–2.5. Both were worse on Dec 9 2025 — TPO 412 — so the direction is right and the number is still confirmed.</p>
+            <details class="disclose"><summary>Why this number <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary><div class="inner">A positive TPO with a TSH over 3 puts the prior at 0.88. A second draw carrying the same antibody rules out a lab error and takes it to 0.95. The mother's thyroid disease, recorded Sep 1 2026, is worth ×3 on the prior — but the call was already confirmed, so what moved was the retest clock, from 12 weeks to 8. <span class="glyph sci">● B</span> Vanderpump 1995, cohort, n = 2 779.</div></details>
+            <button class="asklink"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22z"/></svg> Ask about this</button>
+            <div class="sub" style="margin: 8px 0 8px"><h3>What to do</h3><span>one action, with the number it should move</span></div>
+            <div class="rowh">
+              <span class="tier early">early</span><span class="glyph sci">● B</span>
+              <span class="t-body" style="margin: 0">Selenium 200 µg a day for 12 weeks. Gärtner 2002, RCT, n = 36: TPO down about 21 %. Your target is <b>under 100 IU/mL by Feb 16 2027</b>.</span>
+            </div>
+            <div class="rowh">
+              <button class="b b-ink"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/><path d="M12 5v14"/></svg> Adopt selenium 200 µg</button>
+              <button class="b b-quiet"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/></svg> Plan retest · TPO, TSH</button>
+              <button class="b b-text">Dismiss</button>
+            </div>
+          </div>
+        </div>
+        <p class="cap">There is exactly one ink button on this screen. Everything else is quiet or text, so the eye lands on the thing that is worth doing.</p>
+      </section>
+
+      <section class="sec" id="s02">
+        <div class="sec-head"><span class="n">02</span><h2>Already doing</h2></div>
+        <p class="lede">Seventeen items, four of them with any history behind them. Each row prints how much of it was actually done, not how long ago you added it.</p>
+        <div class="panel">
+          <div class="panel-head"><h3>Protocol</h3><span class="r">17 items · 2 above 80 % · 5-day streak · 0 ticked today</span></div>
+          <div class="rowlist">
+            <div class="protorow">
+              <div><b>Selenium 200 µg</b><div class="psub">daily · since Jun 14 2026 · <span class="glyph sci">● B</span> · TPO 320 → under 100</div></div>
+              <div><span class="pct">86 %</span><div class="t-meta" style="text-align: right">24 of 84 days done</div></div>
+              <div class="strip30"><s class="on"></s><s class="on"></s><s class="on"></s><s class="on"></s><s class=""></s><s class="on"></s><s class="on"></s><s class="on"></s><s class="on"></s><s class="on"></s><s class=""></s><s class="on"></s><s class="on"></s><s class="on"></s><s class="on"></s><s class=""></s><s class="on"></s><s class="on"></s><s class="on"></s><s class=""></s><s class="on"></s><s class="on"></s><s class="on"></s><s class="on"></s><s class=""></s><s class="on"></s><s class="on"></s><s class="on"></s><s class="on"></s><s class="today"></s></div>
+            </div>
+            <div class="protorow">
+              <div><b>Cut added sugar</b><div class="psub">daily · since Jun 14 2026 · <span class="glyph op">◐ opinion</span> · HbA1c 5.6 %</div></div>
+              <div><span class="pct">80 %</span><div class="t-meta" style="text-align: right">24 of the last 30 days</div></div>
+              <div class="strip30"><s class="on"></s><s class="on"></s><s class="on"></s><s class="on"></s><s class=""></s><s class="on"></s><s class="on"></s><s class="on"></s><s class="on"></s><s class="on"></s><s class=""></s><s class="on"></s><s class="on"></s><s class="on"></s><s class="on"></s><s class=""></s><s class="on"></s><s class="on"></s><s class="on"></s><s class=""></s><s class="on"></s><s class="on"></s><s class="on"></s><s class="on"></s><s class=""></s><s class="on"></s><s class="on"></s><s class="on"></s><s class="on"></s><s class="today"></s></div>
+            </div>
+            <div class="protorow">
+              <div><b>Vitamin D 4 000 IU</b><div class="psub">daily · since Aug 1 2026 · <span class="glyph sci">● A</span> · D 19 → 40–60 ng/mL</div></div>
+              <div><span class="pct">100 %</span><div class="t-meta" style="text-align: right">31 of 31 days</div></div>
+              
+            </div>
+            <div class="protorow">
+              <div><b>Sardines, 3 tins a week</b><div class="psub">weekly · since Aug 28 2026 · <span class="glyph anec">○ E</span> · triglycerides</div></div>
+              <div><span class="pct">0 %</span><div class="t-meta" style="text-align: right">never ticked</div></div>
+              
+            </div>
+          </div>
+          <div class="rowh" style="margin-top: 13px"><button class="b b-quiet b-sm">Show all 17</button><button class="b b-text b-sm"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/><path d="M12 5v14"/></svg> Add an item</button><span class="t-meta">Fifteen of the seventeen have never been ticked once. That is the real state of the list, and it is why “Do this first” shows one thing.</span></div>
+        </div>
+      </section>
+
+      <section class="sec" id="s03">
+        <div class="sec-head"><span class="n">03</span><h2>Goals</h2></div>
+        <p class="lede">The same card, aimed at a number and a date. A goal without a second reading says so instead of drawing a bar that means nothing.</p>
+        <div class="panel"><div class="rowlist">
+          <div class="goalrow">
+            <div><b>TPO antibodies under 100 IU/mL</b><div class="t-meta">from Selenium 200 µg · due Feb 16 2027 · 29 % of the way from 412 to 100</div></div>
+            <div class="tgt">412 → 320 → target 100</div>
+            <div class="progress"><i style="--p: 29%"></i></div>
+          </div>
+          <div class="goalrow">
+            <div><b>Ferritin above 50 ng/mL</b><div class="t-meta">from Iron 60 mg alternate days · due Nov 24 2026 · one draw only, so the bar is the value against the floor</div></div>
+            <div class="tgt">22 of 50 ng/mL</div>
+            <div class="progress"><i style="--p: 44%"></i></div>
+          </div>
+          <div class="goalrow">
+            <div><b>Vitamin D 40–60 ng/mL</b><div class="t-meta">from Vitamin D 4 000 IU · due Nov 24 2026 · no retest yet, so no progress to draw</div></div>
+            <div class="tgt">19 → target 40</div>
+          </div>
+        </div>
+          <div class="sub"><h3>Reached</h3><span>one, and the card only appeared when the retest landed</span></div>
+          <div class="conc on">
+            <div class="conc-top"><span class="conc-rank">✓</span><h3 class="conc-name">ALT back under 40 U/L</h3><span class="state on">reached Aug 1 2026</span><span class="conc-pct">34<em>U/L</em></span></div>
+            <p class="conc-prose">41 U/L on Dec 9 2025, 34 on Aug 1 2026. The promised change was −10 %; you got <b>−17 %</b>. The card did not exist until the second draw landed; before that the action said “measure after 24 weeks” and nothing else.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="sec" id="s04">
+        <div class="sec-head"><span class="n">04</span><h2>Patterns</h2></div>
+        <p class="lede">What the engine noticed across your own history. A pattern is a claim with a stage, a verdict and the edges that feed it, and it is never a number on its own.</p>
+        <div class="grid2">
+          <div class="conc border">
+            <div class="conc-top"><span class="conc-rank">P1</span><h3 class="conc-name">Sugar down, HbA1c flat</h3><span class="state border">watching</span><span class="conc-pct">2<em>of 3 checks</em></span></div>
+            <p class="conc-prose">You have cut added sugar on 24 of the last 30 days since Jun 14 2026, and HbA1c has not moved: <b>5.6 %</b> on Aug 1, the same as on Dec 9 2025. HbA1c averages three months of red cells, so 11 weeks is early. The pattern stays open until the Nov 24 draw.</p>
+            <div class="rowh"><span class="tier early">early</span><span class="glyph op">◐ opinion</span><button class="b b-text"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg> Edges: HbA1c, fasting insulin, added sugar</button></div>
+          </div>
+          <div class="conc on">
+            <div class="conc-top"><span class="conc-rank">P2</span><h3 class="conc-name">Resting HR falls on training weeks</h3><span class="state on">held</span><span class="conc-pct">3<em>of 3 checks</em></span></div>
+            <p class="conc-prose">On the three weeks with three or more workouts, resting heart rate averaged <b>55 bpm</b>; on the other weeks, <b>58</b>. Same watch, same sleep window. This is your own data against itself, so it is graded as an observation, not as evidence.</p>
+            <div class="rowh"><span class="tier experimental">experimental</span><span class="glyph anec">○ own data</span><button class="b b-text"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg> Edges: resting HR, workouts</button></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="sec" id="s05">
+        <div class="sec-head"><span class="n">05</span><h2>Tests to order</h2></div>
+        <p class="lede">Sorted by whether the answer would change something, not by price. Every row prints the likelihood it moves and both ends of the move.</p>
+        <div class="grid2">
+          <div class="stackv">
+            <div class="panel"><div class="panel-head"><h3>Worth it now</h3><span class="r">the answer would change something</span></div>
+              <div class="drow"><span class="ck"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span><div><div class="nm">Fasting insulin</div><div class="sub">Insulin resistance <span class="post">97 % → <span class="up">99</span> if ≥ 12 µIU/mL, <span class="dn">41</span> if &lt; 5</span></div></div><div class="cost">€€ · fasting</div></div>
+              <div class="drow"><span class="ck"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span><div><div class="nm">HbA1c</div><div class="sub">Type 2 diabetes <span class="post">53 % → <span class="up">92</span> if ≥ 6.5, <span class="dn">5</span> if &lt; 5.7</span></div></div><div class="cost">€ · no prep</div></div>
+              <div class="drow" style="border-bottom: 0"><span class="ck offc"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span><div><div class="nm">Transferrin saturation</div><div class="sub">Iron deficiency <span class="post">76 % → <span class="up">94</span> if &lt; 16 %, <span class="dn">22</span> if ≥ 25 %</span></div></div><div class="cost">€ · no prep</div></div>
+            </div>
+            <div class="panel"><div class="panel-head"><h3>Due by cadence</h3><span class="r c-bad">2 overdue</span></div>
+              <div class="drow"><span class="ck"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span><div><div class="nm">TSH</div><div class="sub">every 6 wk · last drawn Aug 1 · due Sep 12</div></div><div class="cost">€ · no prep</div></div>
+              <div class="drow"><span class="ck"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span><div><div class="nm">TPO antibodies</div><div class="sub">every 12 wk · last drawn Aug 1 · due Oct 24 · the test of the selenium</div></div><div class="cost">€€ · no prep</div></div>
+              <div class="drow"><span class="ck"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span><div><div class="nm">hs-CRP</div><div class="sub">every 4 wk · last drawn Aug 1 · <span class="c-bad">due since Aug 29</span></div></div><div class="cost">€ · no prep</div></div>
+              <div class="drow" style="border-bottom: 0"><span class="ck offc"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span><div><div class="nm">LDL cholesterol</div><div class="sub">every 8 wk · last drawn Dec 9 2025 · <span class="c-bad">due since Feb 3</span></div></div><div class="cost">€ · fasting</div></div>
+            </div>
+          </div>
+          <div class="panel hi">
+            <div class="panel-head"><h3>Next draw</h3><span class="r">the cadence sets the default</span></div>
+            <div class="tabs" role="tablist" style="--tab-n: 3; --tab-i: 2"><button class="tab" aria-selected="false">4 wk · Sep 29</button><button class="tab" aria-selected="false">8 wk · Oct 27</button><button class="tab" aria-selected="true">12 wk · Nov 24</button></div>
+            <p class="t-body">Twelve weeks because TPO is the slowest thing on the list and the selenium needs that long to show. hs-CRP and LDL are already overdue on their own clocks; drawing them earlier means two needles.</p>
+            <div class="kpi"><div><b>12</b><span>weeks</span></div><div><b>4</b><span>markers</span></div><div><b>Nov 24</b><span>2026</span></div></div>
+            <div class="rowh"><button class="b b-ink"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1z"/><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"/><path d="M12 17.5v-11"/></svg> Make the order sheet</button><button class="b b-quiet"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg> Copy for your doctor</button></div>
+            <p class="cap"><b>Fasting:</b> 12 hours, water only, for the insulin. The other three do not care. Morning draw, before 10:00, same as Aug 1, so they compare.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="sec" id="s06">
+        <div class="sec-head"><span class="n">06</span><h2>Answer these</h2></div>
+        <p class="lede">The review queue, folded in. It only shows a question when the answer would move a number, and it prints which number.</p>
+        <div class="panel"><div class="rowlist">
+          <div style="display: grid; gap: 8px"><b style="font-weight: 400; font-size: var(--type-md)">Is your hair falling more than it used to?</b><div class="t-meta">would move Iron deficiency by 6 points, from 76 % to 82 % or to 70 %</div><div class="rowh" style="gap: 8px"><button class="optchip">Yes</button><button class="optchip">No</button><button class="optchip">Not sure</button><button class="b b-text b-sm">Skip</button></div></div>
+          <div style="display: grid; gap: 8px"><b style="font-weight: 400; font-size: var(--type-md)">Do you take any medicine for your thyroid?</b><div class="t-meta">would move Autoimmune thyroiditis from a supplement question to a dose question</div><div class="rowh" style="gap: 8px"><button class="optchip">Yes</button><button class="optchip">No</button><button class="optchip">Not sure</button><button class="b b-text b-sm">Skip</button></div></div>
+        </div>
+          <p class="cap">Two questions today. When there are none, the panel says “Nothing worth asking right now” and does not invent one.</p>
+        </div>
+      </section>
+
+      <section class="sec" id="s07">
+        <div class="sec-head"><span class="n">07</span><h2>Earlier plans, and coverage</h2></div>
+        <p class="lede">What the last weekly review said, and what the engine still cannot see.</p>
+        <div class="grid2">
+          <div class="panel"><div class="panel-head"><h3>Earlier plans</h3><span class="r">weekly review</span></div>
+            <div class="rowlist">
+              <div class="markerrow said"><div class="nm"><b>Week of Aug 24 2026</b><span>4 actions live</span></div><div class="t-meta" style="font-size:11px">sardines added, never ticked</div><div class="val">64<em>%</em></div><div class="wd"><span class="state border">partial</span></div></div>
+              <div class="markerrow said"><div class="nm"><b>Week of Aug 17 2026</b><span>3 actions live</span></div><div class="t-meta" style="font-size:11px">selenium and sugar both held</div><div class="val">83<em>%</em></div><div class="wd"><span class="state on">held</span></div></div>
+              <div class="markerrow said"><div class="nm"><b>Week of Aug 10 2026</b><span>3 actions live</span></div><div class="t-meta" style="font-size:11px">two days missed on holiday</div><div class="val">71<em>%</em></div><div class="wd"><span class="state border">partial</span></div></div>
+            </div>
+          </div>
+          <div class="panel"><div class="panel-head"><h3>Coverage</h3><span class="r">what is still dark</span></div>
+            <div class="rowlist">
+              <div class="markerrow said"><div class="nm"><b>Sex hormones</b><span>no marker with a value, ever</span></div><div class="t-meta" style="font-size:11px">testosterone, SHBG, oestradiol</div><div class="val">0<em>of 3</em></div><div class="wd"><span class="state none">never measured</span></div></div>
+              <div class="markerrow said"><div class="nm"><b>Fasting insulin</b><span>needed for HOMA-IR</span></div><div class="t-meta" style="font-size:11px">on the Nov 24 order sheet</div><div class="val">0<em>of 1</em></div><div class="wd"><span class="state none">never measured</span></div></div>
+              <div class="markerrow said"><div class="nm"><b>Waist</b><span>the iOS Body permission is off</span></div><div class="t-meta" style="font-size:11px">a setting, not a draw</div><div class="val">—</div><div class="wd"><span class="state none">blocked</span></div></div>
+            </div>
+            <p class="cap">Coverage is the honest half of the plan: a likelihood built on a gap is still a guess, and the gap is named.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="sec" id="s08">
+        <div class="sec-head"><span class="n">08</span><h2>390 px</h2></div>
+        <div class="phones">
+          <div><div class="phone">
+              <div class="statusbar">
+                <span>9:41</span>
+                <span class="rt"><span>LTE</span><span>100%</span></span>
+              </div>
+              <div class="screenhead"><h2>Plan</h2><svg class="ic i24" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/><path d="M12 5v14"/></svg></div>
+              <div class="stack">
+                <div class="conc off" style="padding: 13px">
+                  <div class="conc-top"><span class="conc-rank">01</span><h3 class="conc-name" style="font-size: var(--type-md)">Hashimoto's</h3><span class="conc-pct" style="font-size: var(--type-lg)">95<em>%</em></span></div>
+                  <p class="conc-prose">TPO 320 IU/mL, nine times the ceiling. Selenium 200 µg is the cheapest thing that moves it.</p>
+                  <div class="rowh"><button class="b b-ink b-sm"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/><path d="M12 5v14"/></svg> Adopt</button><button class="b b-text b-sm">Why?</button></div>
+                </div>
+                <div class="panel"><div class="panel-head"><h3>Doing</h3><span class="r">0 of 17 today</span></div>
+                  <div class="rows">
+                    <div class="mrow"><div class="mn">Selenium 200 µg<small><span class="glyph sci">● B</span> · TPO → under 100</small></div><div class="mv">86<em>%</em></div><div class="mw">running</div></div>
+                    <div class="mrow"><div class="mn">Cut added sugar<small><span class="glyph op">◐ opinion</span> · HbA1c 5.6</small></div><div class="mv">80<em>%</em></div><div class="mw">24 of 30 d</div></div>
+                    <div class="mrow"><div class="mn">Sardines, 3 tins a week<small><span class="glyph anec">○ E</span> · triglycerides</small></div><div class="mv">0<em>%</em></div><div class="mw">never ticked</div></div>
+                  </div>
+                </div>
+                <div class="panel"><div class="panel-head"><h3>Next draw</h3><span class="r">Nov 24 · in 12 wk</span></div><p class="t-meta" style="margin: 0">HbA1c, fasting insulin, TSH, TPO antibodies</p></div>
+                <div class="panel"><div class="panel-head"><h3>Answer these</h3><span class="r">2</span></div>
+                  <b style="font-weight: 400">Is your hair falling more than it used to?</b>
+                  <div class="t-meta" style="margin: 3px 0 8px">would move Iron deficiency by 6 points</div>
+                  <div class="rowh" style="gap: 5px"><button class="optchip">Yes</button><button class="optchip">No</button><button class="optchip">Not sure</button></div>
+                </div>
+              </div>
+              <div class="tabbar">
+                <a href="#"><svg class="ic i24" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>Home</a>
+                <a href="#"><svg class="ic i24" viewBox="0 0 24 24" aria-hidden="true"><path d="M22 12h-2.48a2 2 0 0 0-1.93 1.46l-2.35 8.36a.25.25 0 0 1-.48 0L9.24 2.18a.25.25 0 0 0-.48 0l-2.35 8.36A2 2 0 0 1 4.49 12H2"/></svg>Body</a>
+                <span class="plusslot"><button aria-label="Add data"><svg class="ic i24" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/><path d="M12 5v14"/></svg></button></span>
+                <a href="#"><svg class="ic i24" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z"/></svg>Blood</a>
+                <a class="on" href="#"><svg class="ic i24" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/></svg>Plan</a>
+              </div>
+            </div><p class="cap">One ink button on the screen, and it is the adopt.</p></div>
+        </div>
+      </section>
+
+      <section class="sec" id="s09">
+        <div class="sec-head"><span class="n">09</span><h2>Where the numbers come from</h2></div>
+        <p class="cap">
+          <b>All real, from the test account as of Sep 1 2026:</b> Hashimoto's
+          confirmed at 95 % from TPO 320 IU/mL (ceiling 34) and TSH 3.9 mIU/L
+          (optimal 0.5–2.5), with TPO 412 on the Dec 9 2025 draw; ALT 41 → 34
+          U/L against a normal 0–33; HbA1c 5.6 % on both draws; ferritin
+          22 ng/mL, optimal 50–150; vitamin D 19 ng/mL, optimal 40–80; 17
+          protocol items with 0 ticked today, a 5-day streak, selenium at 86 %
+          over 84 days, cut added sugar at 80 % over 30, vitamin D at 100 %
+          over 31, sardines at 0 %; cadences hs-CRP 4 wk, TSH 6 wk, LDL 8 wk,
+          HbA1c and TPO 12 wk; the Nov 24 2026 draw with four markers; cost
+          bands € to €€€; the posterior pairs — insulin resistance 97 → 99 / 41,
+          type 2 diabetes 53 → 92 / 5, iron deficiency 76 → 94 / 22; the
+          Feb 16 2027 selenium target of under 100 IU/mL; Gärtner 2002 (RCT,
+          n = 36) and Vanderpump 1995 (cohort, n = 2 779).
+        </p>
+        <p class="cap">
+          <b>Illustrative:</b> the three weekly-review percentages (64, 83, 71)
+          and the resting-heart-rate pattern (55 bpm on training weeks against
+          58 on the others) use the engine's real resting-HR numbers on an
+          illustrative week split. The 30-cell strip is real for its last
+          fourteen cells.
+        </p>
+        <div class="cost">
+          <h3>Build cost</h3>
+          <p><b>Replaces:</b> <code>/plan</code> (ViewShell, the profile strip,
+            “Answer these first”, “What this means”, Patterns, ActionCard, the
+            horizon shelf, Earlier plans, Coverage), <code>/protocol</code>
+            (AddProtocolItem, one card per item, AdherenceStrip, the archived
+            details), <code>/goals</code> (GoalCard grid, Reached),
+            <code>/insights</code> (check-ins, experiments, insight cards with
+            coloured left borders) and <code>/patterns/[id]</code>.</p>
+          <p><b>New:</b> a goal that has no second reading says so instead of
+            drawing a bar; a pattern prints how many checks it has held, not a
+            confidence badge; every test row prints both ends of the move, so
+            “worth it now” is a claim you can check.</p>
+          <p><b>Deletes:</b> the coloured left border on insight cards, three
+            dashed empty states, the simple/deep switch and its
+            <code>data-view</code> CSS, the stage and confidence badges, and
+            four routes.</p>
+        </div>
+      </section>
+    </main>
+    <script>
+      // The only scripts in this folder: the theme toggle and the motion
+      // samples. No framework, no build step, no chart library.
+      (function () {
+        var b = document.getElementById("themebtn");
+        if (!b) return;
+        b.addEventListener("click", function () {
+          var d = document.documentElement;
+          var on = d.getAttribute("data-theme") === "dark";
+          d.setAttribute("data-theme", on ? "light" : "dark");
+          d.classList.toggle("dark", !on);
+          b.querySelector("span").textContent = on ? "Dark" : "Light";
+        });
+      })();
+    </script>
+  </body>
+</html>

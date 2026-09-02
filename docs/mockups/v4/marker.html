@@ -10,7 +10,11 @@
       href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,300,0,0"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="v4.css" />
+    <!-- phase 29: these two pages now load the design system, which imports
+         v4.css and then corrects the tokens to the values in
+         apps/simple/app/globals.css. Structure and content are unchanged;
+         what changes is the cream, and three inks that failed AA. -->
+    <link rel="stylesheet" href="system.css" />
   </head>
   <body>
     <button class="themebtn" onclick="document.documentElement.classList.toggle('dark')">
@@ -96,47 +100,15 @@
 
           <div style="height: 13px"></div>
 
-          <div class="hist">
-            <div class="hist-head">
-              <h3>History — every draw that carried this marker</h3>
-              <span class="unit">IU/mL</span>
-            </div>
-            <div class="hist-body">
-              <div class="hist-y">
-        <span style="--y: 0.00%">430</span>
-        <span style="--y: 92.09%">34</span>
-              </div>
-              <div>
-                <div class="hist-plot">
-        <div class="hist-band normal" style="--t: 92.09%; --h: 7.91%"><b>normal 0–34</b></div>
-        <div class="hist-band optimal" style="--t: 97.91%; --h: 2.09%"></div>
-        <div class="hist-band pace seg" style="--t: 76.74%; --h: 23.26%; --l: 80.65%; --r: 0.00%"><b>target under 100</b></div>
-        <svg viewBox="0 0 1000 100" preserveAspectRatio="none" aria-hidden="true"><polyline points="0.0,4.19 541.5,25.58" /></svg>
-        <div class="hp was" style="--x: 0.00%; --y: 4.19%"><b>412</b><i></i></div>
-        <div class="hp now" style="--x: 54.15%; --y: 25.58%"><b>320</b><i></i></div>
-        <div class="hp plan" style="--x: 80.65%; --y: 100%"><i></i></div>
-                </div>
-                <div class="hist-x has-plan">
-        <span class="first" style="--x: 0%">Dec 9</span>
-        <span class="mid" style="--x: 54.15%">Aug 1</span>
-        <span class="plan" style="--x: 80.65%">Nov 24<em>planned</em></span>
-        <span class="last" style="--x: 100%">Feb 16</span>
-                </div>
-              </div>
-            </div>
-            <div class="hist-legend">
-              <span><i class="hollow"></i> was — Dec 9 2025, 412</span>
-              <span><i></i> now — Aug 1 2026, 320</span>
-              <span><i class="hollow"></i> Nov 24 2026, planned, no value yet</span>
-              <span><u></u> normal 0–34, optimal 0–9</span>
-              <span>hatched: the target, under 100 by Feb 16 2027</span>
-            </div>
-          </div>
+          <div class="hist"><div class="hist-head"><h3>TPO antibodies — every draw, and where the plan is aimed</h3><span class="unit">IU/mL · 2 draws, 1 planned</span></div><div class="hist-body"><div class="hist-y"><span style="--y: 0.00%">450</span><span style="--y: 96.22%">0–34</span></div><div><div class="hist-plot"><div class="hist-band normal" style="--t: 92.44%; --h: 7.56%"></div><div class="hist-band optimal" style="--t: 98.00%; --h: 2.00%"></div><div class="hist-band pace seg" style="--t: 77.78%; --h: 14.67%; --l: 54.15%; --r: 0%"></div><svg viewBox="0 0 1000 100" preserveAspectRatio="none" aria-hidden="true"><polyline points="0.0,8.44 541.5,28.89" /><polyline class="proj" points="541.5,28.89 1000.0,77.78" /></svg><div class="hp was" style="--x: 0.00%; --y: 8.44%"><b>412</b><i></i></div><div class="hp now" style="--x: 54.15%; --y: 28.89%"><b>320</b><i></i></div><div class="hp plan lft" style="--x: 80.65%; --y: 57.14%"><b>planned · no value yet</b><i></i></div><div class="hp target lft" style="--x: 100.00%; --y: 77.78%"><b>target 100</b><i></i></div></div><div class="hist-x has-plan"><span class="first" style="--x: 0.00%">Dec 9</span><span class="now" style="--x: 54.15%">Aug 1</span><span class="plan" style="--x: 80.65%">Nov 24<em>planned</em></span><span class="last tgt" style="--x: 100%">Feb 16<em>target</em></span></div></div></div><div class="hist-legend"><span><i class="hollow"></i> was — Dec 9 2025, 412 IU/mL</span><span><i></i> now — Aug 1 2026, 320 IU/mL</span><span><i class="ghost"></i> planned draw — Nov 24 2026, no value yet</span><span><u class="dot"></u> projection, if the current rate holds</span><span><i class="tgt"></i> target — under 100 IU/mL by Feb 16 2027</span><span><u class="hatch"></u> the stretch the target has to close</span><span><u class="normal"></u> normal 0–34</span><span><u class="optimal"></u> optimal 0–9</span></div></div>
         </div>
         <p class="cap">
-          Two draws carry TPO, so the line has two points and says so. The
-          third diamond is hollow because Nov 24 is a planned draw with no
-          value. Nothing is interpolated between the dates.
+          Two draws carry TPO, so the solid line has two points and says so.
+          Everything after Aug 1 is dotted, because it is a projection and not
+          a reading: the hollow diamond is the Nov 24 draw, which has no value
+          yet and therefore does not sit on the zero line, and the green bar is
+          the target of under 100 by Feb 16 2027. Every mark on the chart is
+          named in the legend, and nothing is interpolated between two draws.
         </p>
       </section>
 
@@ -148,35 +120,7 @@
         </p>
         <div class="pair">
           <div class="screen">
-            <div class="hist">
-              <div class="hist-head">
-                <h3>LDL cholesterol</h3><span class="unit">mg/dL</span>
-              </div>
-              <div class="hist-body">
-                <div class="hist-y">
-        <span style="--y: 0.00%">180</span>
-        <span style="--y: 44.44%">100</span>
-        <span style="--y: 100.00%">0</span>
-                </div>
-                <div>
-                  <div class="hist-plot">
-        <div class="hist-band optimal" style="--t: 44.44%; --h: 55.56%"><b>optimal under 100</b></div>
-        <svg viewBox="0 0 1000 100" preserveAspectRatio="none" aria-hidden="true"><polyline points="0.0,6.67 1000.0,21.11" /></svg>
-        <div class="hp was" style="--x: 0.00%; --y: 6.67%"><b>168</b><i></i></div>
-        <div class="hp now lft" style="--x: 100.00%; --y: 21.11%"><b>142</b><i></i></div>
-                  </div>
-                  <div class="hist-x">
-        <span class="first" style="--x: 0%">Dec 9</span>
-        <span class="last" style="--x: 100%">Aug 1</span>
-                  </div>
-                </div>
-              </div>
-              <div class="hist-legend">
-                <span><i class="hollow"></i> was 168</span>
-                <span><i></i> now 142</span>
-                <span><u></u> optimal under 100</span>
-              </div>
-            </div>
+            <div class="hist"><div class="hist-head"><h3>LDL cholesterol</h3><span class="unit">mg/dL · 2 draws</span></div><div class="hist-body"><div class="hist-y"><span style="--y: 0.00%">180</span><span style="--y: 44.44%">100</span><span style="--y: 100.00%">0</span></div><div><div class="hist-plot"><div class="hist-band optimal" style="--t: 44.44%; --h: 55.56%"><b>optimal under 100</b></div><svg viewBox="0 0 1000 100" preserveAspectRatio="none" aria-hidden="true"><polyline points="0.0,6.67 1000.0,21.11" /></svg><div class="hp was" style="--x: 0.00%; --y: 6.67%"><b>168</b><i></i></div><div class="hp now lft" style="--x: 100.00%; --y: 21.11%"><b>142</b><i></i></div></div><div class="hist-x"><span class="first" style="--x: 0.00%">Dec 9</span><span class="now last" style="--x: 100.00%">Aug 1</span></div></div></div><div class="hist-legend"><span><i class="hollow"></i> was — Dec 9 2025, 168 mg/dL</span><span><i></i> now — Aug 1 2026, 142 mg/dL</span><span><u class="optimal"></u> optimal under 100</span></div></div>
           </div>
           <div class="screen">
             <div class="hist">
@@ -215,9 +159,10 @@
       <section class="sec">
         <div class="sec-head"><span class="n">03</span><h2>History mini — the drawer size</h2></div>
         <p class="lede">
-          The same component at 55 px of plot: band, line, two dated
-          diamonds, first and last date. No legend, no band label, nothing
-          removed that carries meaning.
+          The same component at 55 px of plot: band, line, two dated diamonds,
+          first and last date, and the legend that names all three. The
+          projection, the planned draw and the target are dropped because the
+          drawer is a glance; nothing that is drawn goes unnamed.
         </p>
         <div class="phones">
           <div>
@@ -266,25 +211,7 @@
                   </div>
                 </div>
 
-                <div class="hist mini">
-                  <div class="hist-head">
-                    <h3>History</h3><span class="unit">IU/mL · 2 draws</span>
-                  </div>
-                  <div class="hist-body">
-                    <div>
-                      <div class="hist-plot">
-        <div class="hist-band normal" style="--t: 92.09%; --h: 7.91%"></div>
-        <svg viewBox="0 0 1000 100" preserveAspectRatio="none" aria-hidden="true"><polyline points="0.0,4.19 1000.0,25.58" /></svg>
-        <div class="hp was" style="--x: 0.00%; --y: 4.19%"><b>412</b><i></i></div>
-        <div class="hp now lft" style="--x: 100.00%; --y: 25.58%"><b>320</b><i></i></div>
-                      </div>
-                      <div class="hist-x">
-        <span class="first" style="--x: 0%">Dec 9</span>
-        <span class="last" style="--x: 100%">Aug 1</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+                <div class="hist mini"><div class="hist-head"><h3>History</h3><span class="unit">IU/mL · 2 draws</span></div><div class="hist-body"><div><div class="hist-plot"><div class="hist-band normal" style="--t: 92.44%; --h: 7.56%"></div><svg viewBox="0 0 1000 100" preserveAspectRatio="none" aria-hidden="true"><polyline points="0.0,8.44 1000.0,28.89" /></svg><div class="hp was" style="--x: 0.00%; --y: 8.44%"><b>412</b><i></i></div><div class="hp now lft" style="--x: 100.00%; --y: 28.89%"><b>320</b><i></i></div></div><div class="hist-x"><span class="first" style="--x: 0.00%">Dec 9</span><span class="now last" style="--x: 100.00%">Aug 1</span></div></div></div><div class="hist-legend"><span><i class="hollow"></i> was — Dec 9 2025, 412 IU/mL</span><span><i></i> now — Aug 1 2026, 320 IU/mL</span><span><u class="normal"></u> normal 0–34</span></div></div>
 
                 <div class="panel">
                   <div class="panel-head"><h3>What it feeds</h3></div>

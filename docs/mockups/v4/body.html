@@ -1,0 +1,441 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Body — OpenVitals design system</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <!-- Geist Sans + Geist Mono, the app's own fonts. If the CDN is blocked
+         the stack in system.css falls back to Inter / JetBrains Mono, then to
+         the system UI font and ui-monospace. -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Geist:wght@200..600&family=Geist+Mono:wght@200..500&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="system.css" />
+  </head>
+  <body>
+    <button class="themebtn" id="themebtn" type="button">
+      <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9z"/></svg> <span>Dark</span>
+    </button>
+    <main class="doc">      <header class="doc-head">
+        <h1>Body</h1>
+        <p>
+          One destination for everything the phone knows and everything you
+          answer: today's numbers with their sources, the check-in, how you
+          feel, the trends, and the history lanes. It absorbs
+          <code>/today</code>, <code>/feel</code>, <code>/trends</code> and
+          <code>/history</code>.
+        </p>
+      </header>
+      <nav class="crumbs">
+        <a href="system.html">System</a>
+        <a href="index.html">Index</a>
+        <a href="home.html">Home</a>
+        <a class="here" href="body.html">Body</a>
+        <a href="blood.html">Blood</a>
+        <a href="plan.html">Plan</a>
+        <a href="graph.html">Graph</a>
+        <a href="chat.html">Chat</a>
+        <a href="login.html">Login</a>
+        <a href="admin.html">System pages</a>
+        <a href="marker.html">Marker</a>
+        <a href="systems.html">Systems</a>
+        <a href="shell.html">Shell</a>
+        <a href="app.html">App</a>
+        <a href="plan-draw.html">Plan a draw</a>
+        <a href="genome.html">Genome</a>
+        <a href="explorations.html">Explorations</a>
+      </nav>
+      <section class="sec" id="s01">
+        <div class="sec-head"><span class="n">01</span><h2>Today, and where each number came from</h2></div>
+        <p class="lede">Sep 1 2026. Every row names the type it was read from and the day it landed. A row with no permission says so instead of showing a zero.</p>
+        <div class="screen">
+          <div class="topbar">
+            <span class="brand">OpenVitals</span>
+            <nav class="pills">
+              <a href="#"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg> Home</a><a class="on" href="#"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M22 12h-2.48a2 2 0 0 0-1.93 1.46l-2.35 8.36a.25.25 0 0 1-.48 0L9.24 2.18a.25.25 0 0 0-.48 0l-2.35 8.36A2 2 0 0 1 4.49 12H2"/></svg> Body</a><a href="#"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z"/></svg> Blood</a><a href="#"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/></svg> Plan</a><a href="#"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" x2="15.42" y1="13.51" y2="17.49"/><line x1="15.41" x2="8.59" y1="6.51" y2="10.49"/></svg> Graph</a>
+            </nav>
+            <span class="grow"></span>
+            <button class="plusbtn" aria-label="Add data"><svg class="ic i24" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/><path d="M12 5v14"/></svg></button><span class="avatar">R</span>
+          </div>
+          <div class="rowh" style="margin-bottom: 13px"><div class="tabs" role="tablist" style="--tab-n: 4; --tab-i: 0"><button class="tab" aria-selected="true">Today</button><button class="tab" aria-selected="false">Check-in</button><button class="tab" aria-selected="false">How you feel</button><button class="tab" aria-selected="false">Trends</button></div><span class="t-meta">Apple Health · synced 2 min ago · 24 of 27 types granted</span></div>
+          <div class="panel"><div class="panel-head"><h3>The day</h3><span class="r">Sep 1 2026</span></div>
+            <div class="rowlist">
+              <div class="markerrow said">
+                <div class="nm"><b>Steps</b><span>HKQuantityTypeIdentifierStepCount · iPhone · today</span></div>
+                <div class="t-meta" style="font-size: 11px">above your 90-day median of 7 940</div>
+                <div class="val">8 412<em>steps</em></div>
+                <div class="wd"><span class="state on"></span></div>
+              </div>
+              <div class="markerrow said">
+                <div class="nm"><b>Exercise</b><span>HKQuantityTypeIdentifierAppleExerciseTime · Watch · today</span></div>
+                <div class="t-meta" style="font-size: 11px">the ring closed at 30</div>
+                <div class="val">34<em>min</em></div>
+                <div class="wd"><span class="state on"></span></div>
+              </div>
+              <div class="markerrow said">
+                <div class="nm"><b>Stand hours</b><span>HKCategoryTypeIdentifierAppleStandHour · Watch · today</span></div>
+                <div class="t-meta" style="font-size: 11px">three hours still open</div>
+                <div class="val">9<em>of 12</em></div>
+                <div class="wd"><span class="state border"></span></div>
+              </div>
+              <div class="markerrow said">
+                <div class="nm"><b>Resting heart rate</b><span>HKQuantityTypeIdentifierRestingHeartRate · Watch · today</span></div>
+                <div class="t-meta" style="font-size: 11px">3 bpm under the 90-day mean of 58</div>
+                <div class="val">55<em>bpm</em></div>
+                <div class="wd"><span class="state on"></span></div>
+              </div>
+              <div class="markerrow said">
+                <div class="nm"><b>Heart rate variability</b><span>HKQuantityTypeIdentifierHeartRateVariabilitySDNN · Watch · today</span></div>
+                <div class="t-meta" style="font-size: 11px">inside the day-to-day swing, 43–52 ms</div>
+                <div class="val">48<em>ms</em></div>
+                <div class="wd"><span class="state on"></span></div>
+              </div>
+              <div class="markerrow said">
+                <div class="nm"><b>Sleep</b><span>HKCategoryTypeIdentifierSleepAnalysis · Watch · last night</span></div>
+                <div class="t-meta" style="font-size: 11px">3 min above the 14-night mean of 7 h 09</div>
+                <div class="val">7:12<em>h</em></div>
+                <div class="wd"><span class="state on"></span></div>
+              </div>
+              <div class="markerrow said">
+                <div class="nm"><b>VO₂max</b><span>HKQuantityTypeIdentifierVO2Max · Watch · Aug 30</span></div>
+                <div class="t-meta" style="font-size: 11px">one reading a week, not a day</div>
+                <div class="val">41.2<em>mL/kg/min</em></div>
+                <div class="wd"><span class="state on"></span></div>
+              </div>
+              <div class="markerrow said">
+                <div class="nm"><b>Blood oxygen</b><span>HKQuantityTypeIdentifierOxygenSaturation · Watch · today</span></div>
+                <div class="t-meta" style="font-size: 11px">night average over 6 h 40</div>
+                <div class="val">97<em>%</em></div>
+                <div class="wd"><span class="state on"></span></div>
+              </div>
+              <div class="markerrow said">
+                <div class="nm"><b>Weight</b><span>HKQuantityTypeIdentifierBodyMass · scale · Aug 30</span></div>
+                <div class="t-meta" style="font-size: 11px">read from the scale, not typed</div>
+                <div class="val">78.4<em>kg</em></div>
+                <div class="wd"><span class="state on"></span></div>
+              </div>
+              <div class="markerrow said">
+                <div class="nm"><b>Body fat</b><span>HKQuantityTypeIdentifierBodyFatPercentage · scale · Aug 30</span></div>
+                <div class="t-meta" style="font-size: 11px">the scale's own estimate, ± 2 points</div>
+                <div class="val">17.8<em>%</em></div>
+                <div class="wd"><span class="state on"></span></div>
+              </div>
+              <div class="markerrow said">
+                <div class="nm"><b>Waist</b><span>HKQuantityTypeIdentifierWaistCircumference · permission denied</span></div>
+                <div class="t-meta" style="font-size: 11px">the Body types are off in iOS Health, so this is blank everywhere</div>
+                <div class="val">—<em></em></div>
+                <div class="wd"><span class="state none">never measured</span></div>
+              </div>
+            </div>
+            <div class="rowh" style="margin-top: 13px"><button class="b b-quiet b-sm"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg> Sync now</button><button class="b b-text b-sm"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg> Open iOS Health settings</button></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="sec" id="s02">
+        <div class="sec-head"><span class="n">02</span><h2>The check-in</h2></div>
+        <p class="lede">Habits, the numbers you type, and a note. It is one form, it saves as you go, and every row is dated Sep 1 2026.</p>
+        <div class="grid2">
+          <div class="panel"><div class="panel-head"><h3>Habits</h3><span class="r">0 of 17 ticked · 5-day streak</span></div>
+            <label class="checkrow on"><span class="box"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span><span><span class="lb">Selenium 200 µg</span><span class="cs">daily · 24 of 84 days</span></span></label>
+            <label class="checkrow on"><span class="box"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span><span><span class="lb">Vitamin D 4 000 IU</span><span class="cs">daily · 31 days</span></span></label>
+            <label class="checkrow"><span class="box"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span><span><span class="lb">Cut added sugar</span><span class="cs">daily · 24 of the last 30 days</span></span></label>
+            <label class="checkrow"><span class="box"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span><span><span class="lb">Sardines, 3 tins a week</span><span class="cs">weekly · never ticked</span></span></label>
+            <label class="checkrow on"><span class="box"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span><span><span class="lb">Walk 8 000 steps</span><span class="cs">daily · 8 412 today, ticked by the phone</span></span></label>
+            <p class="cap" style="margin-top: 13px">Twelve more items are behind “Show all 17”. Two of the seventeen have ever been above 80 %.</p>
+          </div>
+          <div class="panel"><div class="panel-head"><h3>Numbers and notes</h3><span class="r">typed, not synced</span></div>
+            <div class="fields">
+              <div class="field"><label for="b1">Weight</label><div class="withunit"><input class="inp num" id="b1" value="78.4" /><span class="u">kg</span></div><span class="help">last from the scale, Aug 30</span></div>
+              <div class="field"><label for="b2">Systolic</label><div class="withunit"><input class="inp num" id="b2" value="128" /><span class="u">mmHg</span></div><span class="help">off · normal 90–120</span></div>
+              <div class="field"><label for="b3">Fasting glucose</label><div class="withunit"><input class="inp num" id="b3" value="96" /><span class="u">mg/dL</span></div><span class="help">the Aug 31 strip read 96</span></div>
+            </div>
+            <div class="fields" style="margin-top: 13px">
+              <div class="field"><label>Energy · 1 to 5</label><div class="rate"><button aria-pressed="false">1</button><button aria-pressed="false">2</button><button aria-pressed="true">3</button><button aria-pressed="false">4</button><button aria-pressed="false">5</button></div></div>
+              <div class="field"><label>Sleep quality · 1 to 5</label><div class="rate"><button aria-pressed="false">1</button><button aria-pressed="false">2</button><button aria-pressed="false">3</button><button aria-pressed="true">4</button><button aria-pressed="false">5</button></div></div>
+            </div>
+            <div class="field" style="margin-top: 13px"><label for="b4">Anything else</label><textarea class="ta" id="b4" placeholder="a symptom, a habit, a number — or a question"></textarea></div>
+            <div class="rowh" style="margin-top: 13px"><button class="b b-ink">Save the check-in</button><button class="b b-text"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg> Photo instead</button></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="sec" id="s03">
+        <div class="sec-head"><span class="n">03</span><h2>How you feel</h2></div>
+        <p class="lede">Twelve questions, one screen, no wizard. The engine scores all twelve and marks the two whose answer would move a number today; the other ten are still answerable, just quieter.</p>
+        <div class="panel">
+          <div class="panel-head"><h3>Twelve questions</h3><span class="r">2 worth answering · 7 answered · 3 open</span></div>
+          <div class="rowlist">
+            <div style="display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 8px 13px">
+              <div><b style="font-weight: 400; font-size: var(--type-md)">Do you feel colder than the people around you?</b><div class="t-meta">moves Autoimmune thyroiditis and Iron deficiency</div></div>
+              <div><span class="state border">worth answering</span></div>
+              <div class="rowh" style="grid-column: 1 / -1; gap: 8px"><button class="optchip" aria-pressed="false">Yes</button><button class="optchip" aria-pressed="false">No</button><button class="optchip" aria-pressed="false">Not sure</button></div>
+            </div>
+            <div style="display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 8px 13px">
+              <div><b style="font-weight: 400; font-size: var(--type-md)">Are you more tired than a year ago?</b><div class="t-meta">moves Autoimmune thyroiditis, Iron deficiency, Fitness</div></div>
+              <div><span class="state border">worth answering</span></div>
+              <div class="rowh" style="grid-column: 1 / -1; gap: 8px"><button class="optchip" aria-pressed="false">Yes</button><button class="optchip" aria-pressed="false">No</button><button class="optchip" aria-pressed="false">Not sure</button></div>
+            </div>
+            <div style="display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 8px 13px">
+              <div><b style="font-weight: 400; font-size: var(--type-md)">Is your hair falling more than it used to?</b><div class="t-meta">would move Iron deficiency by 6 points</div></div>
+              <div><span class="state border">worth answering</span></div>
+              <div class="rowh" style="grid-column: 1 / -1; gap: 8px"><button class="optchip" aria-pressed="false">Yes</button><button class="optchip" aria-pressed="false">No</button><button class="optchip" aria-pressed="false">Not sure</button></div>
+            </div>
+            <div style="display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 8px 13px">
+              <div><b style="font-weight: 400; font-size: var(--type-md)">Do you bruise easily?</b><div class="t-meta">would move nothing today; asked again in 180 days</div></div>
+              <div></div>
+              <div class="rowh" style="grid-column: 1 / -1; gap: 8px"><button class="optchip" aria-pressed="false">Yes</button><button class="optchip" aria-pressed="false">No</button><button class="optchip" aria-pressed="false">Not sure</button></div>
+            </div>
+            <div style="display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 8px 13px">
+              <div><b style="font-weight: 400; font-size: var(--type-md)">Do you get dizzy standing up?</b><div class="t-meta">answered Jun 14 2026</div></div>
+              <div></div>
+              <div class="rowh" style="grid-column: 1 / -1; gap: 8px"><button class="optchip" aria-pressed="false">Yes</button><button class="optchip" aria-pressed="false">No</button><button class="optchip" aria-pressed="false">Not sure</button></div>
+            </div>
+            <div style="display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 8px 13px">
+              <div><b style="font-weight: 400; font-size: var(--type-md)">Do you snore, or has someone told you that you stop breathing?</b><div class="t-meta">answered Jun 14 2026</div></div>
+              <div></div>
+              <div class="rowh" style="grid-column: 1 / -1; gap: 8px"><button class="optchip" aria-pressed="false">Yes</button><button class="optchip" aria-pressed="false">No</button><button class="optchip" aria-pressed="false">Not sure</button></div>
+            </div>
+            <div style="display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 8px 13px">
+              <div><b style="font-weight: 400; font-size: var(--type-md)">Is your mood lower than usual, most days?</b><div class="t-meta">answered Jun 14 2026</div></div>
+              <div></div>
+              <div class="rowh" style="grid-column: 1 / -1; gap: 8px"><button class="optchip" aria-pressed="false">Yes</button><button class="optchip" aria-pressed="false">No</button><button class="optchip" aria-pressed="false">Not sure</button></div>
+            </div>
+            <div style="display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 8px 13px">
+              <div><b style="font-weight: 400; font-size: var(--type-md)">Do your hands or feet tingle?</b><div class="t-meta">would move nothing today</div></div>
+              <div></div>
+              <div class="rowh" style="grid-column: 1 / -1; gap: 8px"><button class="optchip" aria-pressed="false">Yes</button><button class="optchip" aria-pressed="false">No</button><button class="optchip" aria-pressed="false">Not sure</button></div>
+            </div>
+            <div style="display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 8px 13px">
+              <div><b style="font-weight: 400; font-size: var(--type-md)">Do you get heartburn more than twice a week?</b><div class="t-meta">answered Aug 2 2026</div></div>
+              <div></div>
+              <div class="rowh" style="grid-column: 1 / -1; gap: 8px"><button class="optchip" aria-pressed="false">Yes</button><button class="optchip" aria-pressed="false">No</button><button class="optchip" aria-pressed="false">Not sure</button></div>
+            </div>
+            <div style="display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 8px 13px">
+              <div><b style="font-weight: 400; font-size: var(--type-md)">Are your periods heavier than they used to be?</b><div class="t-meta">not asked: sex is recorded as male</div></div>
+              <div></div>
+              <div class="rowh" style="grid-column: 1 / -1; gap: 8px"><span class="never">not asked</span></div>
+            </div>
+            <div style="display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 8px 13px">
+              <div><b style="font-weight: 400; font-size: var(--type-md)">Do you wake to pass urine more than once a night?</b><div class="t-meta">answered Jun 14 2026</div></div>
+              <div></div>
+              <div class="rowh" style="grid-column: 1 / -1; gap: 8px"><button class="optchip" aria-pressed="false">Yes</button><button class="optchip" aria-pressed="false">No</button><button class="optchip" aria-pressed="false">Not sure</button></div>
+            </div>
+            <div style="display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 8px 13px">
+              <div><b style="font-weight: 400; font-size: var(--type-md)">Has your appetite changed?</b><div class="t-meta">answered Aug 28 2026 · fed the sugar action</div></div>
+              <div></div>
+              <div class="rowh" style="grid-column: 1 / -1; gap: 8px"><button class="optchip" aria-pressed="false">Yes</button><button class="optchip" aria-pressed="false">No</button><button class="optchip" aria-pressed="false">Not sure</button></div>
+            </div>
+          </div>
+          <p class="cap">The two marked rows are the only ones the engine would act on today. Answering a quiet one still records a dated fact; it just does not move a likelihood, and the page says so rather than pretending.</p>
+        </div>
+      </section>
+
+      <section class="sec" id="s04">
+        <div class="sec-head"><span class="n">04</span><h2>Trends</h2></div>
+        <p class="lede">The daily series, one at a time, on the same tab control as everything else. Real y in the unit, real x in days, and the draws marked so a step in the line can be read against a draw.</p>
+        <div class="rowh" style="margin-bottom: 13px">
+          <div class="tabs" role="tablist" style="--tab-n: 4; --tab-i: 0"><button class="tab" aria-selected="true">Resting HR</button><button class="tab" aria-selected="false">HRV</button><button class="tab" aria-selected="false">Sleep</button><button class="tab" aria-selected="false">Weight</button></div>
+          <div class="tabs" role="tablist" style="--tab-n: 3; --tab-i: 1"><button class="tab" aria-selected="false">30 d</button><button class="tab" aria-selected="true">90 d</button><button class="tab" aria-selected="false">1 y</button></div>
+        </div>
+        <div class="daily">
+              <div class="daily-head">
+                <h3>Resting heart rate</h3>
+                <span class="unit">bpm · 90 days · Apple Health</span>
+              </div>
+              <div class="daily-body">
+                <div class="daily-y"><span style="--y: 0.0%">62</span><span style="--y: 40.0%">58</span><span style="--y: 100.0%">52</span></div>
+                <div>
+                  <div class="daily-plot">
+                    <svg viewBox="0 0 1000 100" preserveAspectRatio="none" aria-hidden="true">
+                      <polyline class="ref" points="0,40.00 1000,40.00" />
+                      <polyline class="series" points="0.0,10.00 11.2,20.00 22.5,20.00 33.7,20.00 44.9,20.00 56.2,20.00 67.4,20.00 78.7,20.00 89.9,10.00 101.1,10.00 112.4,10.00 123.6,30.00 134.8,30.00 146.1,30.00 157.3,30.00 168.5,30.00 179.8,30.00 191.0,30.00 202.2,30.00 213.5,30.00 224.7,30.00 236.0,30.00 247.2,30.00 258.4,30.00 269.7,10.00 280.9,10.00 292.1,10.00 303.4,30.00 314.6,30.00 325.8,30.00 337.1,40.00 348.3,40.00 359.6,40.00 370.8,50.00 382.0,50.00 393.3,40.00 404.5,40.00 415.7,40.00 427.0,30.00 438.2,30.00 449.4,30.00 460.7,30.00 471.9,30.00 483.1,30.00 494.4,30.00 505.6,30.00 516.9,30.00 528.1,30.00 539.3,30.00 550.6,30.00 561.8,30.00 573.0,40.00 584.3,40.00 595.5,40.00 606.7,40.00 618.0,40.00 629.2,40.00 640.4,40.00 651.7,40.00 662.9,40.00 674.2,30.00 685.4,30.00 696.6,30.00 707.9,30.00 719.1,30.00 730.3,50.00 741.6,50.00 752.8,50.00 764.0,50.00 775.3,50.00 786.5,60.00 797.8,60.00 809.0,70.00 820.2,70.00 831.5,70.00 842.7,70.00 853.9,80.00 865.2,80.00 876.4,70.00 887.6,70.00 898.9,70.00 910.1,70.00 921.3,70.00 932.6,70.00 943.8,70.00 955.1,70.00 966.3,70.00 977.5,70.00 988.8,80.00 1000.0,70.00" />
+                    </svg>
+                    <div class="daily-draw" style="--x: 65.17%"><i></i></div>
+                    <div class="daily-draw" style="--x: 98.88%"><i></i></div>
+                  </div>
+                  <div class="daily-x">
+                    <span class="first" style="--x: 0%">Jun 4</span>
+                    <span style="--x: 50%">Jul 18</span>
+                    <span class="last" style="--x: 100%">Sep 1</span>
+                  </div>
+                </div>
+              </div>
+              <div class="hist-legend">
+                <span><u style="background: var(--ink); height: 2px"></u> one value a day, 86 of 90 days synced</span>
+                <span><u class="dash"></u> 90-day mean, 58 bpm</span>
+                <span><i></i> blood draw — Aug 1 and Aug 31 2026</span>
+              </div>
+            </div>
+        <div class="sub"><h3>Consistency</h3><span>a year of what you did, and what the phone sent</span></div>
+        <div class="panel">
+          <div class="rowh" style="justify-content: space-between; margin-bottom: 8px"><div class="tabs" role="tablist" style="--tab-n: 2; --tab-i: 0"><button class="tab" aria-selected="true">You</button><button class="tab" aria-selected="false">Phone</button></div><span class="t-meta">79 of 365 days · what you did</span></div>
+          <div class="hm"><svg width="689" height="105" viewBox="0 0 689 105"><text x="13" y="9">Sep</text><text x="65" y="9">Oct</text><text x="117" y="9">Nov</text><text x="182" y="9">Dec</text><text x="234" y="9">Jan</text><text x="286" y="9">Feb</text><text x="338" y="9">Mar</text><text x="403" y="9">Apr</text><text x="455" y="9">May</text><text x="520" y="9">Jun</text><text x="572" y="9">Jul</text><text x="624" y="9">Aug</text><rect class="c0" x="0" y="40" width="11" height="11" rx="2"><title>2025-09-02</title></rect><rect class="c0" x="0" y="53" width="11" height="11" rx="2"><title>2025-09-03</title></rect><rect class="c0" x="0" y="66" width="11" height="11" rx="2"><title>2025-09-04</title></rect><rect class="c0" x="0" y="79" width="11" height="11" rx="2"><title>2025-09-05</title></rect><rect class="c0" x="0" y="92" width="11" height="11" rx="2"><title>2025-09-06</title></rect><rect class="c0" x="13" y="14" width="11" height="11" rx="2"><title>2025-09-07</title></rect><rect class="c0" x="13" y="27" width="11" height="11" rx="2"><title>2025-09-08</title></rect><rect class="c0" x="13" y="40" width="11" height="11" rx="2"><title>2025-09-09</title></rect><rect class="c0" x="13" y="53" width="11" height="11" rx="2"><title>2025-09-10</title></rect><rect class="c0" x="13" y="66" width="11" height="11" rx="2"><title>2025-09-11</title></rect><rect class="c0" x="13" y="79" width="11" height="11" rx="2"><title>2025-09-12</title></rect><rect class="c0" x="13" y="92" width="11" height="11" rx="2"><title>2025-09-13</title></rect><rect class="c0" x="26" y="14" width="11" height="11" rx="2"><title>2025-09-14</title></rect><rect class="c0" x="26" y="27" width="11" height="11" rx="2"><title>2025-09-15</title></rect><rect class="c0" x="26" y="40" width="11" height="11" rx="2"><title>2025-09-16</title></rect><rect class="c0" x="26" y="53" width="11" height="11" rx="2"><title>2025-09-17</title></rect><rect class="c0" x="26" y="66" width="11" height="11" rx="2"><title>2025-09-18</title></rect><rect class="c0" x="26" y="79" width="11" height="11" rx="2"><title>2025-09-19</title></rect><rect class="c0" x="26" y="92" width="11" height="11" rx="2"><title>2025-09-20</title></rect><rect class="c0" x="39" y="14" width="11" height="11" rx="2"><title>2025-09-21</title></rect><rect class="c0" x="39" y="27" width="11" height="11" rx="2"><title>2025-09-22</title></rect><rect class="c0" x="39" y="40" width="11" height="11" rx="2"><title>2025-09-23</title></rect><rect class="c0" x="39" y="53" width="11" height="11" rx="2"><title>2025-09-24</title></rect><rect class="c0" x="39" y="66" width="11" height="11" rx="2"><title>2025-09-25</title></rect><rect class="c0" x="39" y="79" width="11" height="11" rx="2"><title>2025-09-26</title></rect><rect class="c0" x="39" y="92" width="11" height="11" rx="2"><title>2025-09-27</title></rect><rect class="c0" x="52" y="14" width="11" height="11" rx="2"><title>2025-09-28</title></rect><rect class="c0" x="52" y="27" width="11" height="11" rx="2"><title>2025-09-29</title></rect><rect class="c0" x="52" y="40" width="11" height="11" rx="2"><title>2025-09-30</title></rect><rect class="c0" x="52" y="53" width="11" height="11" rx="2"><title>2025-10-01</title></rect><rect class="c0" x="52" y="66" width="11" height="11" rx="2"><title>2025-10-02</title></rect><rect class="c0" x="52" y="79" width="11" height="11" rx="2"><title>2025-10-03</title></rect><rect class="c0" x="52" y="92" width="11" height="11" rx="2"><title>2025-10-04</title></rect><rect class="c0" x="65" y="14" width="11" height="11" rx="2"><title>2025-10-05</title></rect><rect class="c0" x="65" y="27" width="11" height="11" rx="2"><title>2025-10-06</title></rect><rect class="c0" x="65" y="40" width="11" height="11" rx="2"><title>2025-10-07</title></rect><rect class="c0" x="65" y="53" width="11" height="11" rx="2"><title>2025-10-08</title></rect><rect class="c0" x="65" y="66" width="11" height="11" rx="2"><title>2025-10-09</title></rect><rect class="c0" x="65" y="79" width="11" height="11" rx="2"><title>2025-10-10</title></rect><rect class="c0" x="65" y="92" width="11" height="11" rx="2"><title>2025-10-11</title></rect><rect class="c0" x="78" y="14" width="11" height="11" rx="2"><title>2025-10-12</title></rect><rect class="c0" x="78" y="27" width="11" height="11" rx="2"><title>2025-10-13</title></rect><rect class="c0" x="78" y="40" width="11" height="11" rx="2"><title>2025-10-14</title></rect><rect class="c0" x="78" y="53" width="11" height="11" rx="2"><title>2025-10-15</title></rect><rect class="c0" x="78" y="66" width="11" height="11" rx="2"><title>2025-10-16</title></rect><rect class="c0" x="78" y="79" width="11" height="11" rx="2"><title>2025-10-17</title></rect><rect class="c0" x="78" y="92" width="11" height="11" rx="2"><title>2025-10-18</title></rect><rect class="c0" x="91" y="14" width="11" height="11" rx="2"><title>2025-10-19</title></rect><rect class="c0" x="91" y="27" width="11" height="11" rx="2"><title>2025-10-20</title></rect><rect class="c0" x="91" y="40" width="11" height="11" rx="2"><title>2025-10-21</title></rect><rect class="c0" x="91" y="53" width="11" height="11" rx="2"><title>2025-10-22</title></rect><rect class="c0" x="91" y="66" width="11" height="11" rx="2"><title>2025-10-23</title></rect><rect class="c0" x="91" y="79" width="11" height="11" rx="2"><title>2025-10-24</title></rect><rect class="c0" x="91" y="92" width="11" height="11" rx="2"><title>2025-10-25</title></rect><rect class="c0" x="104" y="14" width="11" height="11" rx="2"><title>2025-10-26</title></rect><rect class="c0" x="104" y="27" width="11" height="11" rx="2"><title>2025-10-27</title></rect><rect class="c0" x="104" y="40" width="11" height="11" rx="2"><title>2025-10-28</title></rect><rect class="c0" x="104" y="53" width="11" height="11" rx="2"><title>2025-10-29</title></rect><rect class="c0" x="104" y="66" width="11" height="11" rx="2"><title>2025-10-30</title></rect><rect class="c0" x="104" y="79" width="11" height="11" rx="2"><title>2025-10-31</title></rect><rect class="c0" x="104" y="92" width="11" height="11" rx="2"><title>2025-11-01</title></rect><rect class="c0" x="117" y="14" width="11" height="11" rx="2"><title>2025-11-02</title></rect><rect class="c0" x="117" y="27" width="11" height="11" rx="2"><title>2025-11-03</title></rect><rect class="c0" x="117" y="40" width="11" height="11" rx="2"><title>2025-11-04</title></rect><rect class="c0" x="117" y="53" width="11" height="11" rx="2"><title>2025-11-05</title></rect><rect class="c0" x="117" y="66" width="11" height="11" rx="2"><title>2025-11-06</title></rect><rect class="c0" x="117" y="79" width="11" height="11" rx="2"><title>2025-11-07</title></rect><rect class="c0" x="117" y="92" width="11" height="11" rx="2"><title>2025-11-08</title></rect><rect class="c0" x="130" y="14" width="11" height="11" rx="2"><title>2025-11-09</title></rect><rect class="c0" x="130" y="27" width="11" height="11" rx="2"><title>2025-11-10</title></rect><rect class="c0" x="130" y="40" width="11" height="11" rx="2"><title>2025-11-11</title></rect><rect class="c0" x="130" y="53" width="11" height="11" rx="2"><title>2025-11-12</title></rect><rect class="c0" x="130" y="66" width="11" height="11" rx="2"><title>2025-11-13</title></rect><rect class="c0" x="130" y="79" width="11" height="11" rx="2"><title>2025-11-14</title></rect><rect class="c0" x="130" y="92" width="11" height="11" rx="2"><title>2025-11-15</title></rect><rect class="c0" x="143" y="14" width="11" height="11" rx="2"><title>2025-11-16</title></rect><rect class="c0" x="143" y="27" width="11" height="11" rx="2"><title>2025-11-17</title></rect><rect class="c0" x="143" y="40" width="11" height="11" rx="2"><title>2025-11-18</title></rect><rect class="c0" x="143" y="53" width="11" height="11" rx="2"><title>2025-11-19</title></rect><rect class="c0" x="143" y="66" width="11" height="11" rx="2"><title>2025-11-20</title></rect><rect class="c0" x="143" y="79" width="11" height="11" rx="2"><title>2025-11-21</title></rect><rect class="c0" x="143" y="92" width="11" height="11" rx="2"><title>2025-11-22</title></rect><rect class="c0" x="156" y="14" width="11" height="11" rx="2"><title>2025-11-23</title></rect><rect class="c0" x="156" y="27" width="11" height="11" rx="2"><title>2025-11-24</title></rect><rect class="c0" x="156" y="40" width="11" height="11" rx="2"><title>2025-11-25</title></rect><rect class="c0" x="156" y="53" width="11" height="11" rx="2"><title>2025-11-26</title></rect><rect class="c0" x="156" y="66" width="11" height="11" rx="2"><title>2025-11-27</title></rect><rect class="c0" x="156" y="79" width="11" height="11" rx="2"><title>2025-11-28</title></rect><rect class="c0" x="156" y="92" width="11" height="11" rx="2"><title>2025-11-29</title></rect><rect class="c0" x="169" y="14" width="11" height="11" rx="2"><title>2025-11-30</title></rect><rect class="c0" x="169" y="27" width="11" height="11" rx="2"><title>2025-12-01</title></rect><rect class="c0" x="169" y="40" width="11" height="11" rx="2"><title>2025-12-02</title></rect><rect class="c0" x="169" y="53" width="11" height="11" rx="2"><title>2025-12-03</title></rect><rect class="c0" x="169" y="66" width="11" height="11" rx="2"><title>2025-12-04</title></rect><rect class="c0" x="169" y="79" width="11" height="11" rx="2"><title>2025-12-05</title></rect><rect class="c0" x="169" y="92" width="11" height="11" rx="2"><title>2025-12-06</title></rect><rect class="c0" x="182" y="14" width="11" height="11" rx="2"><title>2025-12-07</title></rect><rect class="c0" x="182" y="27" width="11" height="11" rx="2"><title>2025-12-08</title></rect><rect class="c0" x="182" y="40" width="11" height="11" rx="2"><title>2025-12-09</title></rect><rect class="c0" x="182" y="53" width="11" height="11" rx="2"><title>2025-12-10</title></rect><rect class="c0" x="182" y="66" width="11" height="11" rx="2"><title>2025-12-11</title></rect><rect class="c0" x="182" y="79" width="11" height="11" rx="2"><title>2025-12-12</title></rect><rect class="c0" x="182" y="92" width="11" height="11" rx="2"><title>2025-12-13</title></rect><rect class="c0" x="195" y="14" width="11" height="11" rx="2"><title>2025-12-14</title></rect><rect class="c0" x="195" y="27" width="11" height="11" rx="2"><title>2025-12-15</title></rect><rect class="c0" x="195" y="40" width="11" height="11" rx="2"><title>2025-12-16</title></rect><rect class="c0" x="195" y="53" width="11" height="11" rx="2"><title>2025-12-17</title></rect><rect class="c0" x="195" y="66" width="11" height="11" rx="2"><title>2025-12-18</title></rect><rect class="c0" x="195" y="79" width="11" height="11" rx="2"><title>2025-12-19</title></rect><rect class="c0" x="195" y="92" width="11" height="11" rx="2"><title>2025-12-20</title></rect><rect class="c0" x="208" y="14" width="11" height="11" rx="2"><title>2025-12-21</title></rect><rect class="c0" x="208" y="27" width="11" height="11" rx="2"><title>2025-12-22</title></rect><rect class="c0" x="208" y="40" width="11" height="11" rx="2"><title>2025-12-23</title></rect><rect class="c0" x="208" y="53" width="11" height="11" rx="2"><title>2025-12-24</title></rect><rect class="c0" x="208" y="66" width="11" height="11" rx="2"><title>2025-12-25</title></rect><rect class="c0" x="208" y="79" width="11" height="11" rx="2"><title>2025-12-26</title></rect><rect class="c0" x="208" y="92" width="11" height="11" rx="2"><title>2025-12-27</title></rect><rect class="c0" x="221" y="14" width="11" height="11" rx="2"><title>2025-12-28</title></rect><rect class="c0" x="221" y="27" width="11" height="11" rx="2"><title>2025-12-29</title></rect><rect class="c0" x="221" y="40" width="11" height="11" rx="2"><title>2025-12-30</title></rect><rect class="c0" x="221" y="53" width="11" height="11" rx="2"><title>2025-12-31</title></rect><rect class="c0" x="221" y="66" width="11" height="11" rx="2"><title>2026-01-01</title></rect><rect class="c0" x="221" y="79" width="11" height="11" rx="2"><title>2026-01-02</title></rect><rect class="c0" x="221" y="92" width="11" height="11" rx="2"><title>2026-01-03</title></rect><rect class="c0" x="234" y="14" width="11" height="11" rx="2"><title>2026-01-04</title></rect><rect class="c0" x="234" y="27" width="11" height="11" rx="2"><title>2026-01-05</title></rect><rect class="c0" x="234" y="40" width="11" height="11" rx="2"><title>2026-01-06</title></rect><rect class="c0" x="234" y="53" width="11" height="11" rx="2"><title>2026-01-07</title></rect><rect class="c0" x="234" y="66" width="11" height="11" rx="2"><title>2026-01-08</title></rect><rect class="c0" x="234" y="79" width="11" height="11" rx="2"><title>2026-01-09</title></rect><rect class="c0" x="234" y="92" width="11" height="11" rx="2"><title>2026-01-10</title></rect><rect class="c0" x="247" y="14" width="11" height="11" rx="2"><title>2026-01-11</title></rect><rect class="c0" x="247" y="27" width="11" height="11" rx="2"><title>2026-01-12</title></rect><rect class="c0" x="247" y="40" width="11" height="11" rx="2"><title>2026-01-13</title></rect><rect class="c0" x="247" y="53" width="11" height="11" rx="2"><title>2026-01-14</title></rect><rect class="c0" x="247" y="66" width="11" height="11" rx="2"><title>2026-01-15</title></rect><rect class="c0" x="247" y="79" width="11" height="11" rx="2"><title>2026-01-16</title></rect><rect class="c0" x="247" y="92" width="11" height="11" rx="2"><title>2026-01-17</title></rect><rect class="c0" x="260" y="14" width="11" height="11" rx="2"><title>2026-01-18</title></rect><rect class="c0" x="260" y="27" width="11" height="11" rx="2"><title>2026-01-19</title></rect><rect class="c0" x="260" y="40" width="11" height="11" rx="2"><title>2026-01-20</title></rect><rect class="c0" x="260" y="53" width="11" height="11" rx="2"><title>2026-01-21</title></rect><rect class="c0" x="260" y="66" width="11" height="11" rx="2"><title>2026-01-22</title></rect><rect class="c0" x="260" y="79" width="11" height="11" rx="2"><title>2026-01-23</title></rect><rect class="c0" x="260" y="92" width="11" height="11" rx="2"><title>2026-01-24</title></rect><rect class="c0" x="273" y="14" width="11" height="11" rx="2"><title>2026-01-25</title></rect><rect class="c0" x="273" y="27" width="11" height="11" rx="2"><title>2026-01-26</title></rect><rect class="c0" x="273" y="40" width="11" height="11" rx="2"><title>2026-01-27</title></rect><rect class="c0" x="273" y="53" width="11" height="11" rx="2"><title>2026-01-28</title></rect><rect class="c0" x="273" y="66" width="11" height="11" rx="2"><title>2026-01-29</title></rect><rect class="c0" x="273" y="79" width="11" height="11" rx="2"><title>2026-01-30</title></rect><rect class="c0" x="273" y="92" width="11" height="11" rx="2"><title>2026-01-31</title></rect><rect class="c0" x="286" y="14" width="11" height="11" rx="2"><title>2026-02-01</title></rect><rect class="c0" x="286" y="27" width="11" height="11" rx="2"><title>2026-02-02</title></rect><rect class="c0" x="286" y="40" width="11" height="11" rx="2"><title>2026-02-03</title></rect><rect class="c0" x="286" y="53" width="11" height="11" rx="2"><title>2026-02-04</title></rect><rect class="c0" x="286" y="66" width="11" height="11" rx="2"><title>2026-02-05</title></rect><rect class="c0" x="286" y="79" width="11" height="11" rx="2"><title>2026-02-06</title></rect><rect class="c0" x="286" y="92" width="11" height="11" rx="2"><title>2026-02-07</title></rect><rect class="c0" x="299" y="14" width="11" height="11" rx="2"><title>2026-02-08</title></rect><rect class="c0" x="299" y="27" width="11" height="11" rx="2"><title>2026-02-09</title></rect><rect class="c0" x="299" y="40" width="11" height="11" rx="2"><title>2026-02-10</title></rect><rect class="c0" x="299" y="53" width="11" height="11" rx="2"><title>2026-02-11</title></rect><rect class="c0" x="299" y="66" width="11" height="11" rx="2"><title>2026-02-12</title></rect><rect class="c0" x="299" y="79" width="11" height="11" rx="2"><title>2026-02-13</title></rect><rect class="c0" x="299" y="92" width="11" height="11" rx="2"><title>2026-02-14</title></rect><rect class="c0" x="312" y="14" width="11" height="11" rx="2"><title>2026-02-15</title></rect><rect class="c0" x="312" y="27" width="11" height="11" rx="2"><title>2026-02-16</title></rect><rect class="c0" x="312" y="40" width="11" height="11" rx="2"><title>2026-02-17</title></rect><rect class="c0" x="312" y="53" width="11" height="11" rx="2"><title>2026-02-18</title></rect><rect class="c0" x="312" y="66" width="11" height="11" rx="2"><title>2026-02-19</title></rect><rect class="c0" x="312" y="79" width="11" height="11" rx="2"><title>2026-02-20</title></rect><rect class="c0" x="312" y="92" width="11" height="11" rx="2"><title>2026-02-21</title></rect><rect class="c0" x="325" y="14" width="11" height="11" rx="2"><title>2026-02-22</title></rect><rect class="c0" x="325" y="27" width="11" height="11" rx="2"><title>2026-02-23</title></rect><rect class="c0" x="325" y="40" width="11" height="11" rx="2"><title>2026-02-24</title></rect><rect class="c0" x="325" y="53" width="11" height="11" rx="2"><title>2026-02-25</title></rect><rect class="c0" x="325" y="66" width="11" height="11" rx="2"><title>2026-02-26</title></rect><rect class="c0" x="325" y="79" width="11" height="11" rx="2"><title>2026-02-27</title></rect><rect class="c0" x="325" y="92" width="11" height="11" rx="2"><title>2026-02-28</title></rect><rect class="c0" x="338" y="14" width="11" height="11" rx="2"><title>2026-03-01</title></rect><rect class="c0" x="338" y="27" width="11" height="11" rx="2"><title>2026-03-02</title></rect><rect class="c0" x="338" y="40" width="11" height="11" rx="2"><title>2026-03-03</title></rect><rect class="c0" x="338" y="53" width="11" height="11" rx="2"><title>2026-03-04</title></rect><rect class="c0" x="338" y="66" width="11" height="11" rx="2"><title>2026-03-05</title></rect><rect class="c0" x="338" y="79" width="11" height="11" rx="2"><title>2026-03-06</title></rect><rect class="c0" x="338" y="92" width="11" height="11" rx="2"><title>2026-03-07</title></rect><rect class="c0" x="351" y="14" width="11" height="11" rx="2"><title>2026-03-08</title></rect><rect class="c0" x="351" y="27" width="11" height="11" rx="2"><title>2026-03-09</title></rect><rect class="c0" x="351" y="40" width="11" height="11" rx="2"><title>2026-03-10</title></rect><rect class="c0" x="351" y="53" width="11" height="11" rx="2"><title>2026-03-11</title></rect><rect class="c0" x="351" y="66" width="11" height="11" rx="2"><title>2026-03-12</title></rect><rect class="c0" x="351" y="79" width="11" height="11" rx="2"><title>2026-03-13</title></rect><rect class="c0" x="351" y="92" width="11" height="11" rx="2"><title>2026-03-14</title></rect><rect class="c0" x="364" y="14" width="11" height="11" rx="2"><title>2026-03-15</title></rect><rect class="c0" x="364" y="27" width="11" height="11" rx="2"><title>2026-03-16</title></rect><rect class="c0" x="364" y="40" width="11" height="11" rx="2"><title>2026-03-17</title></rect><rect class="c0" x="364" y="53" width="11" height="11" rx="2"><title>2026-03-18</title></rect><rect class="c0" x="364" y="66" width="11" height="11" rx="2"><title>2026-03-19</title></rect><rect class="c0" x="364" y="79" width="11" height="11" rx="2"><title>2026-03-20</title></rect><rect class="c0" x="364" y="92" width="11" height="11" rx="2"><title>2026-03-21</title></rect><rect class="c0" x="377" y="14" width="11" height="11" rx="2"><title>2026-03-22</title></rect><rect class="c0" x="377" y="27" width="11" height="11" rx="2"><title>2026-03-23</title></rect><rect class="c0" x="377" y="40" width="11" height="11" rx="2"><title>2026-03-24</title></rect><rect class="c0" x="377" y="53" width="11" height="11" rx="2"><title>2026-03-25</title></rect><rect class="c0" x="377" y="66" width="11" height="11" rx="2"><title>2026-03-26</title></rect><rect class="c0" x="377" y="79" width="11" height="11" rx="2"><title>2026-03-27</title></rect><rect class="c0" x="377" y="92" width="11" height="11" rx="2"><title>2026-03-28</title></rect><rect class="c0" x="390" y="14" width="11" height="11" rx="2"><title>2026-03-29</title></rect><rect class="c0" x="390" y="27" width="11" height="11" rx="2"><title>2026-03-30</title></rect><rect class="c0" x="390" y="40" width="11" height="11" rx="2"><title>2026-03-31</title></rect><rect class="c0" x="390" y="53" width="11" height="11" rx="2"><title>2026-04-01</title></rect><rect class="c0" x="390" y="66" width="11" height="11" rx="2"><title>2026-04-02</title></rect><rect class="c0" x="390" y="79" width="11" height="11" rx="2"><title>2026-04-03</title></rect><rect class="c0" x="390" y="92" width="11" height="11" rx="2"><title>2026-04-04</title></rect><rect class="c0" x="403" y="14" width="11" height="11" rx="2"><title>2026-04-05</title></rect><rect class="c0" x="403" y="27" width="11" height="11" rx="2"><title>2026-04-06</title></rect><rect class="c0" x="403" y="40" width="11" height="11" rx="2"><title>2026-04-07</title></rect><rect class="c0" x="403" y="53" width="11" height="11" rx="2"><title>2026-04-08</title></rect><rect class="c0" x="403" y="66" width="11" height="11" rx="2"><title>2026-04-09</title></rect><rect class="c0" x="403" y="79" width="11" height="11" rx="2"><title>2026-04-10</title></rect><rect class="c0" x="403" y="92" width="11" height="11" rx="2"><title>2026-04-11</title></rect><rect class="c0" x="416" y="14" width="11" height="11" rx="2"><title>2026-04-12</title></rect><rect class="c0" x="416" y="27" width="11" height="11" rx="2"><title>2026-04-13</title></rect><rect class="c0" x="416" y="40" width="11" height="11" rx="2"><title>2026-04-14</title></rect><rect class="c0" x="416" y="53" width="11" height="11" rx="2"><title>2026-04-15</title></rect><rect class="c0" x="416" y="66" width="11" height="11" rx="2"><title>2026-04-16</title></rect><rect class="c0" x="416" y="79" width="11" height="11" rx="2"><title>2026-04-17</title></rect><rect class="c0" x="416" y="92" width="11" height="11" rx="2"><title>2026-04-18</title></rect><rect class="c0" x="429" y="14" width="11" height="11" rx="2"><title>2026-04-19</title></rect><rect class="c0" x="429" y="27" width="11" height="11" rx="2"><title>2026-04-20</title></rect><rect class="c0" x="429" y="40" width="11" height="11" rx="2"><title>2026-04-21</title></rect><rect class="c0" x="429" y="53" width="11" height="11" rx="2"><title>2026-04-22</title></rect><rect class="c0" x="429" y="66" width="11" height="11" rx="2"><title>2026-04-23</title></rect><rect class="c0" x="429" y="79" width="11" height="11" rx="2"><title>2026-04-24</title></rect><rect class="c0" x="429" y="92" width="11" height="11" rx="2"><title>2026-04-25</title></rect><rect class="c0" x="442" y="14" width="11" height="11" rx="2"><title>2026-04-26</title></rect><rect class="c0" x="442" y="27" width="11" height="11" rx="2"><title>2026-04-27</title></rect><rect class="c0" x="442" y="40" width="11" height="11" rx="2"><title>2026-04-28</title></rect><rect class="c0" x="442" y="53" width="11" height="11" rx="2"><title>2026-04-29</title></rect><rect class="c0" x="442" y="66" width="11" height="11" rx="2"><title>2026-04-30</title></rect><rect class="c0" x="442" y="79" width="11" height="11" rx="2"><title>2026-05-01</title></rect><rect class="c0" x="442" y="92" width="11" height="11" rx="2"><title>2026-05-02</title></rect><rect class="c0" x="455" y="14" width="11" height="11" rx="2"><title>2026-05-03</title></rect><rect class="c0" x="455" y="27" width="11" height="11" rx="2"><title>2026-05-04</title></rect><rect class="c0" x="455" y="40" width="11" height="11" rx="2"><title>2026-05-05</title></rect><rect class="c0" x="455" y="53" width="11" height="11" rx="2"><title>2026-05-06</title></rect><rect class="c0" x="455" y="66" width="11" height="11" rx="2"><title>2026-05-07</title></rect><rect class="c0" x="455" y="79" width="11" height="11" rx="2"><title>2026-05-08</title></rect><rect class="c0" x="455" y="92" width="11" height="11" rx="2"><title>2026-05-09</title></rect><rect class="c0" x="468" y="14" width="11" height="11" rx="2"><title>2026-05-10</title></rect><rect class="c0" x="468" y="27" width="11" height="11" rx="2"><title>2026-05-11</title></rect><rect class="c0" x="468" y="40" width="11" height="11" rx="2"><title>2026-05-12</title></rect><rect class="c0" x="468" y="53" width="11" height="11" rx="2"><title>2026-05-13</title></rect><rect class="c0" x="468" y="66" width="11" height="11" rx="2"><title>2026-05-14</title></rect><rect class="c0" x="468" y="79" width="11" height="11" rx="2"><title>2026-05-15</title></rect><rect class="c0" x="468" y="92" width="11" height="11" rx="2"><title>2026-05-16</title></rect><rect class="c0" x="481" y="14" width="11" height="11" rx="2"><title>2026-05-17</title></rect><rect class="c0" x="481" y="27" width="11" height="11" rx="2"><title>2026-05-18</title></rect><rect class="c0" x="481" y="40" width="11" height="11" rx="2"><title>2026-05-19</title></rect><rect class="c0" x="481" y="53" width="11" height="11" rx="2"><title>2026-05-20</title></rect><rect class="c0" x="481" y="66" width="11" height="11" rx="2"><title>2026-05-21</title></rect><rect class="c0" x="481" y="79" width="11" height="11" rx="2"><title>2026-05-22</title></rect><rect class="c0" x="481" y="92" width="11" height="11" rx="2"><title>2026-05-23</title></rect><rect class="c0" x="494" y="14" width="11" height="11" rx="2"><title>2026-05-24</title></rect><rect class="c0" x="494" y="27" width="11" height="11" rx="2"><title>2026-05-25</title></rect><rect class="c0" x="494" y="40" width="11" height="11" rx="2"><title>2026-05-26</title></rect><rect class="c0" x="494" y="53" width="11" height="11" rx="2"><title>2026-05-27</title></rect><rect class="c0" x="494" y="66" width="11" height="11" rx="2"><title>2026-05-28</title></rect><rect class="c0" x="494" y="79" width="11" height="11" rx="2"><title>2026-05-29</title></rect><rect class="c0" x="494" y="92" width="11" height="11" rx="2"><title>2026-05-30</title></rect><rect class="c0" x="507" y="14" width="11" height="11" rx="2"><title>2026-05-31</title></rect><rect class="c0" x="507" y="27" width="11" height="11" rx="2"><title>2026-06-01</title></rect><rect class="c0" x="507" y="40" width="11" height="11" rx="2"><title>2026-06-02</title></rect><rect class="c0" x="507" y="53" width="11" height="11" rx="2"><title>2026-06-03</title></rect><rect class="c0" x="507" y="66" width="11" height="11" rx="2"><title>2026-06-04</title></rect><rect class="c0" x="507" y="79" width="11" height="11" rx="2"><title>2026-06-05</title></rect><rect class="c0" x="507" y="92" width="11" height="11" rx="2"><title>2026-06-06</title></rect><rect class="c0" x="520" y="14" width="11" height="11" rx="2"><title>2026-06-07</title></rect><rect class="c0" x="520" y="27" width="11" height="11" rx="2"><title>2026-06-08</title></rect><rect class="c0" x="520" y="40" width="11" height="11" rx="2"><title>2026-06-09</title></rect><rect class="c0" x="520" y="53" width="11" height="11" rx="2"><title>2026-06-10</title></rect><rect class="c0" x="520" y="66" width="11" height="11" rx="2"><title>2026-06-11</title></rect><rect class="c0" x="520" y="79" width="11" height="11" rx="2"><title>2026-06-12</title></rect><rect class="c0" x="520" y="92" width="11" height="11" rx="2"><title>2026-06-13</title></rect><rect class="c3" x="533" y="14" width="11" height="11" rx="2"><title>2026-06-14</title></rect><rect class="c3" x="533" y="27" width="11" height="11" rx="2"><title>2026-06-15</title></rect><rect class="c3" x="533" y="40" width="11" height="11" rx="2"><title>2026-06-16</title></rect><rect class="c3" x="533" y="53" width="11" height="11" rx="2"><title>2026-06-17</title></rect><rect class="c0" x="533" y="66" width="11" height="11" rx="2"><title>2026-06-18</title></rect><rect class="c3" x="533" y="79" width="11" height="11" rx="2"><title>2026-06-19</title></rect><rect class="c3" x="533" y="92" width="11" height="11" rx="2"><title>2026-06-20</title></rect><rect class="c3" x="546" y="14" width="11" height="11" rx="2"><title>2026-06-21</title></rect><rect class="c3" x="546" y="27" width="11" height="11" rx="2"><title>2026-06-22</title></rect><rect class="c0" x="546" y="40" width="11" height="11" rx="2"><title>2026-06-23</title></rect><rect class="c3" x="546" y="53" width="11" height="11" rx="2"><title>2026-06-24</title></rect><rect class="c3" x="546" y="66" width="11" height="11" rx="2"><title>2026-06-25</title></rect><rect class="c3" x="546" y="79" width="11" height="11" rx="2"><title>2026-06-26</title></rect><rect class="c3" x="546" y="92" width="11" height="11" rx="2"><title>2026-06-27</title></rect><rect class="c0" x="559" y="14" width="11" height="11" rx="2"><title>2026-06-28</title></rect><rect class="c3" x="559" y="27" width="11" height="11" rx="2"><title>2026-06-29</title></rect><rect class="c3" x="559" y="40" width="11" height="11" rx="2"><title>2026-06-30</title></rect><rect class="c3" x="559" y="53" width="11" height="11" rx="2"><title>2026-07-01</title></rect><rect class="c3" x="559" y="66" width="11" height="11" rx="2"><title>2026-07-02</title></rect><rect class="c0" x="559" y="79" width="11" height="11" rx="2"><title>2026-07-03</title></rect><rect class="c3" x="559" y="92" width="11" height="11" rx="2"><title>2026-07-04</title></rect><rect class="c3" x="572" y="14" width="11" height="11" rx="2"><title>2026-07-05</title></rect><rect class="c3" x="572" y="27" width="11" height="11" rx="2"><title>2026-07-06</title></rect><rect class="c3" x="572" y="40" width="11" height="11" rx="2"><title>2026-07-07</title></rect><rect class="c0" x="572" y="53" width="11" height="11" rx="2"><title>2026-07-08</title></rect><rect class="c3" x="572" y="66" width="11" height="11" rx="2"><title>2026-07-09</title></rect><rect class="c3" x="572" y="79" width="11" height="11" rx="2"><title>2026-07-10</title></rect><rect class="c3" x="572" y="92" width="11" height="11" rx="2"><title>2026-07-11</title></rect><rect class="c3" x="585" y="14" width="11" height="11" rx="2"><title>2026-07-12</title></rect><rect class="c0" x="585" y="27" width="11" height="11" rx="2"><title>2026-07-13</title></rect><rect class="c3" x="585" y="40" width="11" height="11" rx="2"><title>2026-07-14</title></rect><rect class="c3" x="585" y="53" width="11" height="11" rx="2"><title>2026-07-15</title></rect><rect class="c3" x="585" y="66" width="11" height="11" rx="2"><title>2026-07-16</title></rect><rect class="c3" x="585" y="79" width="11" height="11" rx="2"><title>2026-07-17</title></rect><rect class="c0" x="585" y="92" width="11" height="11" rx="2"><title>2026-07-18</title></rect><rect class="c3" x="598" y="14" width="11" height="11" rx="2"><title>2026-07-19</title></rect><rect class="c3" x="598" y="27" width="11" height="11" rx="2"><title>2026-07-20</title></rect><rect class="c3" x="598" y="40" width="11" height="11" rx="2"><title>2026-07-21</title></rect><rect class="c3" x="598" y="53" width="11" height="11" rx="2"><title>2026-07-22</title></rect><rect class="c0" x="598" y="66" width="11" height="11" rx="2"><title>2026-07-23</title></rect><rect class="c3" x="598" y="79" width="11" height="11" rx="2"><title>2026-07-24</title></rect><rect class="c3" x="598" y="92" width="11" height="11" rx="2"><title>2026-07-25</title></rect><rect class="c3" x="611" y="14" width="11" height="11" rx="2"><title>2026-07-26</title></rect><rect class="c3" x="611" y="27" width="11" height="11" rx="2"><title>2026-07-27</title></rect><rect class="c0" x="611" y="40" width="11" height="11" rx="2"><title>2026-07-28</title></rect><rect class="c3" x="611" y="53" width="11" height="11" rx="2"><title>2026-07-29</title></rect><rect class="c3" x="611" y="66" width="11" height="11" rx="2"><title>2026-07-30</title></rect><rect class="c3" x="611" y="79" width="11" height="11" rx="2"><title>2026-07-31</title></rect><rect class="c3" x="611" y="92" width="11" height="11" rx="2"><title>2026-08-01</title></rect><rect class="c0" x="624" y="14" width="11" height="11" rx="2"><title>2026-08-02</title></rect><rect class="c3" x="624" y="27" width="11" height="11" rx="2"><title>2026-08-03</title></rect><rect class="c3" x="624" y="40" width="11" height="11" rx="2"><title>2026-08-04</title></rect><rect class="c3" x="624" y="53" width="11" height="11" rx="2"><title>2026-08-05</title></rect><rect class="c3" x="624" y="66" width="11" height="11" rx="2"><title>2026-08-06</title></rect><rect class="c0" x="624" y="79" width="11" height="11" rx="2"><title>2026-08-07</title></rect><rect class="c3" x="624" y="92" width="11" height="11" rx="2"><title>2026-08-08</title></rect><rect class="c3" x="637" y="14" width="11" height="11" rx="2"><title>2026-08-09</title></rect><rect class="c3" x="637" y="27" width="11" height="11" rx="2"><title>2026-08-10</title></rect><rect class="c3" x="637" y="40" width="11" height="11" rx="2"><title>2026-08-11</title></rect><rect class="c0" x="637" y="53" width="11" height="11" rx="2"><title>2026-08-12</title></rect><rect class="c3" x="637" y="66" width="11" height="11" rx="2"><title>2026-08-13</title></rect><rect class="c3" x="637" y="79" width="11" height="11" rx="2"><title>2026-08-14</title></rect><rect class="c3" x="637" y="92" width="11" height="11" rx="2"><title>2026-08-15</title></rect><rect class="c3" x="650" y="14" width="11" height="11" rx="2"><title>2026-08-16</title></rect><rect class="c0" x="650" y="27" width="11" height="11" rx="2"><title>2026-08-17</title></rect><rect class="c3" x="650" y="40" width="11" height="11" rx="2"><title>2026-08-18</title></rect><rect class="c4" x="650" y="53" width="11" height="11" rx="2"><title>2026-08-19</title></rect><rect class="c4" x="650" y="66" width="11" height="11" rx="2"><title>2026-08-20</title></rect><rect class="c4" x="650" y="79" width="11" height="11" rx="2"><title>2026-08-21</title></rect><rect class="c0" x="650" y="92" width="11" height="11" rx="2"><title>2026-08-22</title></rect><rect class="c4" x="663" y="14" width="11" height="11" rx="2"><title>2026-08-23</title></rect><rect class="c4" x="663" y="27" width="11" height="11" rx="2"><title>2026-08-24</title></rect><rect class="c4" x="663" y="40" width="11" height="11" rx="2"><title>2026-08-25</title></rect><rect class="c4" x="663" y="53" width="11" height="11" rx="2"><title>2026-08-26</title></rect><rect class="c0" x="663" y="66" width="11" height="11" rx="2"><title>2026-08-27</title></rect><rect class="c4" x="663" y="79" width="11" height="11" rx="2"><title>2026-08-28</title></rect><rect class="c4" x="663" y="92" width="11" height="11" rx="2"><title>2026-08-29</title></rect><rect class="c4" x="676" y="14" width="11" height="11" rx="2"><title>2026-08-30</title></rect><rect class="c4" x="676" y="27" width="11" height="11" rx="2"><title>2026-08-31</title></rect><rect class="c0" x="676" y="40" width="11" height="11" rx="2"><title>2026-09-01</title></rect></svg></div>
+          <p class="cap">Two readings of the same year. “You” counts habit ticks, numbers typed, notes and posts. “Phone” is sync coverage, which is a real thing to want to see and is labelled as itself — a watch writes a row every day, and a year of solid green for that would say nothing.</p>
+        </div>
+      </section>
+
+      <section class="sec" id="s05">
+        <div class="sec-head"><span class="n">05</span><h2>History</h2></div>
+        <p class="lede">Facts, actions and markers on one time axis, and a slider that replays what was believed on any day.</p>
+        <div class="panel">
+          <div class="lanes"><svg viewBox="0 0 960 330" role="img" aria-label="Facts, actions and markers on one time axis, Dec 9 2025 to Feb 16 2027"><line class="axis-line" x1="104" y1="300" x2="936" y2="300" /><line class="axis-line" x1="104.0" y1="20" x2="104.0" y2="300" /><line class="axis-line" x1="261.2" y1="20" x2="261.2" y2="300" /><line class="axis-line" x1="462.5" y1="20" x2="462.5" y2="300" /><line class="axis-line" x1="554.5" y1="20" x2="554.5" y2="300" /><line class="axis-line" x1="775.0" y1="20" x2="775.0" y2="300" /><line class="axis-line" x1="936.0" y1="20" x2="936.0" y2="300" /><text class="lane-label" x="8" y="34">FACTS</text><text class="lane-label" x="8" y="114">ACTIONS</text><text class="lane-label" x="8" y="216">MARKERS</text><circle class="fact" cx="462.5" cy="28" r="3.5" /><text class="factt" x="469.5" y="31.5">cold more than others · yes</text><circle class="fact struck" cx="556.4" cy="43" r="3.5" /><text class="factt struck" x="563.4" y="46.5">vitamin D 19 ng/mL · corrected</text><circle class="fact" cx="613.9" cy="58" r="3.5" /><text class="factt" x="620.9" y="61.5">family history · thyroid, mother</text><circle class="fact" cx="613.9" cy="73" r="3.5" /><text class="factt" x="620.9" y="76.5">exercise 3–4 days a week</text><text class="factt" x="462.5" y="102">Selenium 200 µg · 86 %</text><rect class="actbar" x="462.5" y="104" width="151.4" height="9" rx="3" /><rect class="actfill" x="462.5" y="104" width="130.2" height="9" rx="3" /><text class="factt" x="462.5" y="124">Cut added sugar · 80 %</text><rect class="actbar" x="462.5" y="126" width="151.4" height="9" rx="3" /><rect class="actfill" x="462.5" y="126" width="121.2" height="9" rx="3" /><text class="factt" x="554.5" y="146">Vitamin D 4 000 IU · 100 %</text><rect class="actbar" x="554.5" y="148" width="59.4" height="9" rx="3" /><rect class="actfill" x="554.5" y="148" width="59.4" height="9" rx="3" /><text class="factt" x="606.3" y="168">Sardines, 3 tins a week · 0 %</text><rect class="actbar" x="606.3" y="170" width="7.7" height="9" rx="3" /><rect class="actfill" x="606.3" y="170" width="0.0" height="9" rx="3" /><rect class="band" x="554.5" y="232.0" width="220.5" height="20.0" /><text class="factt" x="770.0" y="227.0" text-anchor="end">projected 200–300 IU/mL by Nov 24</text><polyline class="mline" points="104.0,209.6 554.5,228.0" /><circle class="mdot" cx="104.0" cy="209.6" r="4" /><text class="factt" x="111.0" y="203.6">412 IU/mL</text><circle class="mdot" cx="554.5" cy="228.0" r="4" /><text class="factt" x="547.5" y="222.0" text-anchor="end">320 IU/mL</text><line class="axis-line" x1="775.0" y1="272.0" x2="936.0" y2="272.0" stroke="var(--ok)" stroke-dasharray="3 3" /><text class="verdict" x="934.0" y="267.0" text-anchor="end">target under 100 · Feb 16 2027</text><rect x="819.5" y="0" width="116.5" height="300" fill="var(--canvas)" opacity="0.72" /><line x1="819.5" y1="0" x2="819.5" y2="300" stroke="var(--ink)" stroke-width="1.5" /><text class="tickt" x="104.0" y="316" text-anchor="start">Dec 9 2025</text><text class="tickt" x="261.2" y="316" text-anchor="middle">Mar 1 2026</text><text class="tickt" x="462.5" y="316" text-anchor="middle">Jun 14 2026</text><text class="tickt" x="554.5" y="316" text-anchor="middle">Aug 1 2026</text><text class="tickt" x="775.0" y="316" text-anchor="middle">Nov 24 2026</text><text class="tickt" x="936.0" y="316" text-anchor="end">Feb 16 2027</text></svg></div>
+          <div class="rangewrap" style="margin-top: 13px"><input class="rng" type="range" min="0" max="100" value="86" aria-label="Replay to a date" /><span class="rv">Dec 17 2026</span></div>
+          <div class="sub"><h3>What was believed on Aug 1 2026</h3><span>the day the second draw landed</span></div>
+          <div class="rowlist">
+            <div class="markerrow"><div class="nm"><b>Autoimmune thyroiditis</b><span>TPO 320, TSH 3.9</span></div><div></div><div class="val">95<em>%</em></div><div class="wd"><span class="state off">confirmed</span></div></div>
+            <div class="markerrow"><div class="nm"><b>Insulin resistance</b><span>HbA1c 5.6, no fasting insulin</span></div><div></div><div class="val">97<em>%</em></div><div class="wd"><span class="state off">confirmed</span></div></div>
+            <div class="markerrow"><div class="nm"><b>Chronic inflammation</b><span>hs-CRP 3.4</span></div><div></div><div class="val">77<em>%</em></div><div class="wd"><span class="state border">likely</span></div></div>
+            <div class="markerrow"><div class="nm"><b>Iron deficiency</b><span>ferritin 22</span></div><div></div><div class="val">76<em>%</em></div><div class="wd"><span class="state border">likely</span></div></div>
+          </div>
+          <p class="cap">Family history was recorded on Sep 1, a month after this snapshot, so it is not in this list. That is the point of the slider: the beliefs of a day are the beliefs of that day.</p>
+        </div>
+      </section>
+
+      <section class="sec" id="s06">
+        <div class="sec-head"><span class="n">06</span><h2>390 px</h2></div>
+        <p class="lede">Three screens: the day, the check-in, and how you feel. The tab control at the top is the same sliding pill as the desktop.</p>
+        <div class="phones">
+          <div><div class="phone">
+              <div class="statusbar">
+                <span>9:41</span>
+                <span class="rt"><span>LTE</span><span>100%</span></span>
+              </div>
+              <div class="screenhead"><h2>Body</h2><svg class="ic i24" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg></div>
+              <div class="stack">
+                <div class="tabs" style="--tab-n: 4; --tab-i: 0; width: 100%"><button class="tab" aria-selected="true">Today</button><button class="tab" aria-selected="false">Check-in</button><button class="tab" aria-selected="false">Feel</button><button class="tab" aria-selected="false">Trends</button></div>
+                <div class="panel hi"><div class="panel-head"><h3>The day</h3><span class="r">Sep 1</span></div>
+                  <div class="kpi"><div><b>8 412</b><span>steps</span></div><div><b>34</b><span>min exercise</span></div><div><b>9</b><span>of 12 stand h</span></div></div>
+                </div>
+                <div class="panel"><div class="panel-head"><h3>Recovery</h3><span class="r">each against its own 90 days</span></div>
+                  <div class="rows">
+                    <div class="mrow on"><div class="mn">Resting HR<small>3 bpm under the 90-day mean of 58</small></div><div class="mv">55<em>bpm</em></div><div class="mw">better</div></div>
+                    <div class="mrow"><div class="mn">HRV (SDNN)<small>inside the swing, 43–52 ms</small></div><div class="mv">48<em>ms</em></div><div class="mw">steady</div></div>
+                    <div class="mrow"><div class="mn">Sleep<small>3 min above the 14-night mean</small></div><div class="mv">7:12<em>h</em></div><div class="mw">steady</div></div>
+                  </div>
+                </div>
+                <div class="panel"><div class="panel-head"><h3>Body</h3><span class="r">Aug 30</span></div>
+                  <div class="kpi"><div><b>78.4</b><span>kg</span></div><div><b>17.8</b><span>% fat</span></div><div><b>—</b><span>waist, permission off</span></div></div>
+                </div>
+              </div>
+              <div class="tabbar">
+                <a href="#"><svg class="ic i24" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>Home</a>
+                <a class="on" href="#"><svg class="ic i24" viewBox="0 0 24 24" aria-hidden="true"><path d="M22 12h-2.48a2 2 0 0 0-1.93 1.46l-2.35 8.36a.25.25 0 0 1-.48 0L9.24 2.18a.25.25 0 0 0-.48 0l-2.35 8.36A2 2 0 0 1 4.49 12H2"/></svg>Body</a>
+                <span class="plusslot"><button aria-label="Add data"><svg class="ic i24" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/><path d="M12 5v14"/></svg></button></span>
+                <a href="#"><svg class="ic i24" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z"/></svg>Blood</a>
+                <a href="#"><svg class="ic i24" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/></svg>Plan</a>
+              </div>
+            </div><p class="cap">The day, then recovery, then the body. Nothing from a lab.</p></div>
+          <div><div class="phone">
+              <div class="statusbar">
+                <span>9:41</span>
+                <span class="rt"><span>LTE</span><span>100%</span></span>
+              </div>
+              <div class="screenhead"><h2>Check-in</h2><svg class="ic i24" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></div>
+              <div class="stack">
+                <div class="panel"><div class="panel-head"><h3>Habits</h3><span class="r">0 of 17 · 5-day streak</span></div>
+                  <label class="checkrow on"><span class="box"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span><span><span class="lb">Selenium 200 µg</span><span class="cs">daily · 24 of 84 days</span></span></label>
+                  <label class="checkrow on"><span class="box"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span><span><span class="lb">Vitamin D 4 000 IU</span><span class="cs">daily · 31 days</span></span></label>
+                  <label class="checkrow"><span class="box"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span><span><span class="lb">Cut added sugar</span><span class="cs">daily · 24 of the last 30 days</span></span></label>
+                  <label class="checkrow"><span class="box"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span><span><span class="lb">Sardines, 3 tins a week</span><span class="cs">weekly · never ticked</span></span></label>
+                </div>
+                <div class="panel"><div class="panel-head"><h3>Numbers</h3><span class="r">typed</span></div>
+                  <div class="field"><label for="p1">Weight</label><div class="withunit"><input class="inp num" id="p1" value="78.4" /><span class="u">kg</span></div></div>
+                  <div class="field" style="margin-top: 13px"><label>Energy · 1 to 5</label><div class="rate"><button aria-pressed="false">1</button><button aria-pressed="false">2</button><button aria-pressed="true">3</button><button aria-pressed="false">4</button><button aria-pressed="false">5</button></div></div>
+                </div>
+                <button class="b b-ink" style="width: 100%">Save the check-in</button>
+              </div>
+              <div class="tabbar">
+                <a href="#"><svg class="ic i24" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>Home</a>
+                <a class="on" href="#"><svg class="ic i24" viewBox="0 0 24 24" aria-hidden="true"><path d="M22 12h-2.48a2 2 0 0 0-1.93 1.46l-2.35 8.36a.25.25 0 0 1-.48 0L9.24 2.18a.25.25 0 0 0-.48 0l-2.35 8.36A2 2 0 0 1 4.49 12H2"/></svg>Body</a>
+                <span class="plusslot"><button aria-label="Add data"><svg class="ic i24" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/><path d="M12 5v14"/></svg></button></span>
+                <a href="#"><svg class="ic i24" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z"/></svg>Blood</a>
+                <a href="#"><svg class="ic i24" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/></svg>Plan</a>
+              </div>
+            </div><p class="cap">The 1–5 rating is the sliding pill at 40 px a slot.</p></div>
+          <div><div class="phone">
+              <div class="statusbar">
+                <span>9:41</span>
+                <span class="rt"><span>LTE</span><span>100%</span></span>
+              </div>
+              <div class="screenhead"><h2>How you feel</h2><svg class="ic i24" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></div>
+              <div class="stack">
+                <p class="t-meta" style="margin: 0">2 of 12 worth answering</p>
+                <div class="panel"><b style="font-weight: 400">Do you feel colder than the people around you?</b><div class="t-meta" style="margin: 3px 0 8px">moves Autoimmune thyroiditis and Iron deficiency</div><div class="rowh" style="gap: 5px"><button class="optchip" aria-pressed="false">Yes</button><button class="optchip" aria-pressed="false">No</button><button class="optchip" aria-pressed="false">Not sure</button></div><div style="margin-top: 8px"><span class="state border">worth answering</span></div></div>
+                <div class="panel"><b style="font-weight: 400">Are you more tired than a year ago?</b><div class="t-meta" style="margin: 3px 0 8px">moves Autoimmune thyroiditis, Iron deficiency, Fitness</div><div class="rowh" style="gap: 5px"><button class="optchip" aria-pressed="false">Yes</button><button class="optchip" aria-pressed="false">No</button><button class="optchip" aria-pressed="false">Not sure</button></div><div style="margin-top: 8px"><span class="state border">worth answering</span></div></div>
+                <div class="panel"><b style="font-weight: 400">Is your hair falling more than it used to?</b><div class="t-meta" style="margin: 3px 0 8px">would move Iron deficiency by 6 points</div><div class="rowh" style="gap: 5px"><button class="optchip" aria-pressed="false">Yes</button><button class="optchip" aria-pressed="false">No</button><button class="optchip" aria-pressed="false">Not sure</button></div><div style="margin-top: 8px"><span class="state border">worth answering</span></div></div>
+              </div>
+              <div class="tabbar">
+                <a href="#"><svg class="ic i24" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>Home</a>
+                <a class="on" href="#"><svg class="ic i24" viewBox="0 0 24 24" aria-hidden="true"><path d="M22 12h-2.48a2 2 0 0 0-1.93 1.46l-2.35 8.36a.25.25 0 0 1-.48 0L9.24 2.18a.25.25 0 0 0-.48 0l-2.35 8.36A2 2 0 0 1 4.49 12H2"/></svg>Body</a>
+                <span class="plusslot"><button aria-label="Add data"><svg class="ic i24" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/><path d="M12 5v14"/></svg></button></span>
+                <a href="#"><svg class="ic i24" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z"/></svg>Blood</a>
+                <a href="#"><svg class="ic i24" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/></svg>Plan</a>
+              </div>
+            </div><p class="cap">All twelve on one scroll. No wizard, no progress bar.</p></div>
+        </div>
+      </section>
+
+      <section class="sec" id="s07">
+        <div class="sec-head"><span class="n">07</span><h2>Where the numbers come from</h2></div>
+        <p class="cap">
+          <b>Real:</b> 17 protocol items with 0 ticked on Sep 1 2026, a 5-day
+          streak, two items above 80 % (cut added sugar 80 %, selenium 86 %)
+          and fifteen at 0 %; selenium started Jun 14 2026, vitamin D Aug 1
+          2026, sardines Aug 28 2026; systolic BP 128 mmHg against a normal
+          90–120; the Aug 31 2026 glucose strip at 96 mg/dL; TPO 412 IU/mL on
+          Dec 9 2025 and 320 on Aug 1 2026, target under 100 by Feb 16 2027;
+          Hashimoto's 95 %, insulin resistance 97 %, chronic inflammation
+          77 %, iron deficiency 76 %; the twelve symptom questions and which
+          two the engine would act on; the Apple Health permission split,
+          27 types asked for and 24 granted, with the Body group denied.
+        </p>
+        <p class="cap">
+          <b>Illustrative, with real shapes and units:</b> the Apple Health day
+          — 8 412 steps, 34 min exercise, 9 of 12 stand hours, RHR 55 bpm,
+          HRV 48 ms, sleep 7 h 12, VO₂max 41.2 mL/kg/min, SpO₂ 97 %, weight
+          78.4 kg, body fat 17.8 % — and the 90 daily resting-heart-rate
+          values behind the chart. The two printed numbers (58 bpm thirty days
+          ago, 55 today) and the 90-day mean of 58 are the engine's; the shape
+          between them is not. The consistency grid is real from Jun 14 2026
+          and empty before it.
+        </p>
+        <div class="cost">
+          <h3>Build cost</h3>
+          <p><b>Replaces:</b> <code>/today</code> (day-stepper header, streak
+            pill, WearableStrip ×2, NutritionLine, HabitChecklist,
+            QuickNumbers, DailySparks, ConsistencyHeatmap), <code>/feel</code>
+            (progress line, one card per group, FactEditButtons),
+            <code>/trends</code> (DailyCharts on recharts, static pill tabs)
+            and <code>/history</code> (HistoryLanes, the raw event table).</p>
+          <p><b>New:</b> the source column — every phone row now prints the
+            HealthKit type and the day it landed, so a blank waist reads as a
+            denied permission and not as a zero. The twelve questions become
+            one screen instead of a wizard, and each says whether answering
+            would move anything.</p>
+          <p><b>Deletes:</b> recharts (the daily charts are hand-drawn SVG),
+            the static <code>.pill-tabs</code> family, the accent-ramp heatmap
+            fills, the raw event table (the lanes carry it), and four routes.</p>
+        </div>
+      </section>
+    </main>
+    <script>
+      // The only scripts in this folder: the theme toggle and the motion
+      // samples. No framework, no build step, no chart library.
+      (function () {
+        var b = document.getElementById("themebtn");
+        if (!b) return;
+        b.addEventListener("click", function () {
+          var d = document.documentElement;
+          var on = d.getAttribute("data-theme") === "dark";
+          d.setAttribute("data-theme", on ? "light" : "dark");
+          d.classList.toggle("dark", !on);
+          b.querySelector("span").textContent = on ? "Dark" : "Light";
+        });
+      })();
+    </script>
+  </body>
+</html>

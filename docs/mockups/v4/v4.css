@@ -2312,3 +2312,202 @@ details.detail .sig-legend {
   font-family: var(--font-mono);
   font-size: var(--type-sm);
 }
+
+/* ══════════════════════════════════════════════════════════════════════
+   Phase 29 · the history chart, rebuilt.
+
+   Owner, on the version above: "I don't understand this chart, it seems
+   broken." Eight defects and the fix for each, in the shared component, so
+   marker, blood, the app drawer and the design system cannot drift:
+
+   1. every dated mark now prints its date under the axis — the now date was
+      missing entirely;
+   2. the target date is labelled "target" on the axis and named in the
+      legend, instead of appearing as a bare date nobody could place;
+   3. the planned draw no longer sits on the zero line (which read as a value
+      of 0): it rides the projection at its own date, with "planned · no value
+      yet" beside it. No mark is ever drawn at y = 0 unless the value is 0;
+   4. a dotted projection runs from now to the target, so the eye has a path,
+      with the hatched stretch under it;
+   5. at most three y ticks, in the gutter, no tick line entering the plot,
+      and the top tick is the rounded scale max (450) not the data max (430),
+      so its label clears the 412 diamond's label;
+   6. a band labels itself only when it is at least 16 px tall; the 34 band is
+      11 px, so it is labelled in the gutter instead;
+   7. every value label is centred on its own diamond and offset 16 px, which
+      is 8 px of clear space past the 12 px mark;
+   8. one legend, and it names every mark on the chart.
+   ══════════════════════════════════════════════════════════════════ */
+
+.hist-y {
+  line-height: 1.15;
+}
+.hist-y span {
+  white-space: nowrap;
+}
+.hist-y span em {
+  display: block;
+  font-style: normal;
+  font-size: 10px;
+  opacity: 0.85;
+}
+.hist-body {
+  grid-template-columns: 60px 1fr;
+}
+
+/* the value label is centred on its diamond, 16 px clear of it */
+.hp b {
+  top: 0;
+  left: 16px;
+  transform: translateY(-50%);
+}
+.hp.lft b {
+  left: auto;
+  right: 16px;
+}
+.hp.was b {
+  color: var(--ink-3);
+  font-size: var(--type-sm);
+}
+.hp.now b {
+  color: var(--ink);
+  font-weight: 500;
+}
+/* the planned draw: hollow, on the projection, never on the axis */
+.hp.plan i {
+  background: var(--surface);
+  box-shadow: 0 0 0 2px var(--ink-3);
+}
+.hp.plan b {
+  color: var(--ink-3);
+  font-family: var(--font-display);
+  font-size: var(--type-xs);
+}
+/* the target: a flat bar, not a diamond, because it is a line not a reading */
+.hp.target i {
+  transform: none;
+  width: 16px;
+  height: 3px;
+  left: -8px;
+  top: -1.5px;
+  margin: 0;
+  border-radius: 2px;
+  background: var(--ok);
+  box-shadow: none;
+}
+.hp.target b {
+  color: var(--ok);
+  font-family: var(--font-mono);
+  font-size: var(--type-xs);
+}
+.hist-plot svg polyline.proj {
+  stroke: var(--ink-3);
+  stroke-width: 1.5;
+  stroke-dasharray: 2 4;
+  stroke-linecap: round;
+}
+
+/* the x axis carries one label per dated mark */
+.hist-x {
+  height: 30px;
+}
+.hist-x.has-plan {
+  height: 34px;
+}
+.hist-x span em {
+  display: block;
+  font-style: normal;
+  opacity: 0.8;
+}
+.hist-x .now {
+  color: var(--ink);
+}
+.hist-x .tgt {
+  color: var(--ok);
+}
+.hist-x .plan {
+  color: var(--ink-3);
+}
+@container (max-width: 480px) {
+  .hist-x span {
+    font-size: 10px;
+  }
+  .hist-x .mid {
+    display: none;
+  }
+}
+
+/* the legend names every mark, and only the marks that are drawn */
+.hist-legend i.tgt {
+  width: 13px;
+  height: 3px;
+  transform: none;
+  border-radius: 2px;
+  background: var(--ok);
+  box-shadow: none;
+}
+.hist-legend u.dot {
+  width: 13px;
+  height: 0;
+  background: none;
+  border-top: 2px dotted var(--ink-3);
+}
+.hist-legend u.normal {
+  background: color-mix(in oklab, var(--ok) 13%, var(--track));
+}
+.hist-legend u.optimal {
+  background: color-mix(in oklab, var(--ok) 26%, var(--track));
+}
+.hist-legend u.hatch {
+  background: repeating-linear-gradient(
+    118deg,
+    color-mix(in oklab, var(--ok) 34%, transparent) 0 3px,
+    transparent 3px 7px
+  );
+}
+
+/* the drawer size keeps the legend: a mark nobody can name is the defect */
+.hist.mini .hist-legend {
+  display: flex;
+  border-top: 1px solid var(--hair);
+  margin-top: var(--s8);
+  padding-top: var(--s8);
+}
+.hist.mini .hist-x {
+  height: 16px;
+}
+
+/* Round two on the same chart. Centring the value label on its diamond put
+   the trend line straight through the digits, and the gutter's band label ran
+   off the left edge. The label now sits ABOVE its own mark, 11 px clear, on
+   the side that has room; the gutter carries at most three entries and merges
+   two that would collide. */
+.hp b {
+  top: -11px;
+  left: 0;
+  transform: translateY(-100%);
+}
+.hp.lft b {
+  left: auto;
+  right: 0;
+}
+.hist-y span em {
+  display: none;
+}
+.hist-y {
+  overflow: visible;
+}
+
+/* the drawer size needs room above the plot for the value label */
+.hist.mini .hist-body {
+  padding-top: var(--s34);
+}
+
+/* In a half-column the projection's own label crowds the line. The x axis
+   already says "Nov 24 · planned", so the in-plot label drops out below
+   620 px of chart width and nothing is lost. */
+@container (max-width: 620px) {
+  .hp.plan b {
+    display: none;
+  }
+}
