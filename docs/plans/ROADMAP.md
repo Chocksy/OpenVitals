@@ -169,8 +169,10 @@ Parked from 28a: `why-tired` scores 1/5 (thin fatigue edges in the graph, or the
 
 ## In progress
 
-Phase 28b mockups: v3 set (`docs/mockups/home-v3.html`, `elements-v3.html`, `side-by-side.html`, `pages-v3.html`) reviewed by the owner on 2026-09-02; v4 set (`docs/mockups/v4/`, spec `2026-09-02-phase28b4-v4-mockups-spec.md`) applies that feedback: hero B with the Signals panel, uncrowded 390 stack, ruler + history chart, systems as state tiles, Material Symbols icons, rebuilt Apple Health settings, four explorations. Chat/thread research (`2026-09-02-chat-thread-research.md`): stay on `ai` v6, add `ask_threads` + `ask_turns`, recap + 6-turn window + summary every 6 turns; Pi, Hermes, OpenRouter state and memory services rejected. Owner picks from v4, then 28c builds the app and the thread.
+Phase 28c, two Opus agents in flight on 2026-09-02:
 
+- **Thread** (`2026-09-02-phase28c-thread-spec.md`): Ask and Discuss as one thread on `ai` v6 (`ask_threads` + `ask_turns`, migration 0022, OpenAI Responses compaction with `store: false`, OpenRouter fallback, five tools through `pickActs`, `eval:thread`). Needs `OPENAI_API_KEY` and `AI_THREAD_MODEL` in the Coolify env for the compaction path.
+- **Home** (`2026-09-02-phase28c-home-spec.md`): the owner reviewed nine seeded variations on v4 (`docs/mockups/v4/home-variations/`, `home-variations-2/`) and chose v4 as the base, August for warmth (cream canvas, translucent tiles, blurred light behind the hero that follows the worst band) and Kite for the phone top (a snapping rail of landscape cards: Status navy, Body, Blood, Plan, then one card per system with off first, coral ▲ only on what is off) and its colours. Desktop keeps the v4 grid. Pure CSS scroll snap, no new dependencies, the twelve systems repeated as chips below the rail, `railCards` order locked by a test.
 
 ## Next
 

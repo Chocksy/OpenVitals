@@ -1,0 +1,578 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Moss &middot; home variations &middot; OpenVitals v4</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,300,0,0" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT@9..144,300..600,100&amp;family=Instrument+Sans:wght@400;500;600&amp;display=swap" rel="stylesheet" />
+
+    <style>
+
+:root {
+  /* forest floor at dusk */
+  --canvas: #0e1712;
+  --surface: #16241c;
+  --surface-hi: #1d2f25;
+  --line: rgba(238,243,234,0.08);
+  --line-2: rgba(238,243,234,0.14);
+  --ink: #eef3ea;
+  --ink-2: #a8b5a8;
+  --ink-3: #6f7f72;
+  --ink-3t: #8b9a8d;   /* ink-3 lifted for small text, 4.8:1 on surface-hi */
+  --coral: #E74D64;
+  --moss: #7cc36b;
+  --sky: #74A4EB;
+
+  --r-card: 20px;
+  --r-pill: 999px;
+  --s1: 4px; --s2: 8px; --s3: 12px; --s4: 16px; --s6: 24px; --s8: 32px; --s12: 48px;
+
+  --ui: "Instrument Sans", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --serif: "Fraunces", "Iowan Old Style", Georgia, serif;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-font-smoothing: antialiased; }
+body { margin: 0; background: var(--canvas); color: var(--ink);
+  font-family: var(--ui); font-size: 14px; line-height: 1.5;
+  font-variant-numeric: tabular-nums; }
+.ms { font-family: "Material Symbols Rounded"; font-weight: 300; font-style: normal;
+  font-size: 20px; line-height: 1; letter-spacing: normal; text-transform: none;
+  display: inline-block; white-space: nowrap; direction: ltr;
+  -webkit-font-feature-settings: "liga"; font-variation-settings: "FILL" 0, "wght" 300, "opsz" 24; }
+.ms.i16 { font-size: 16px; } .ms.i24 { font-size: 24px; }
+.ms.fill { font-variation-settings: "FILL" 1, "wght" 300, "opsz" 24; }
+
+/* ---------- doc chrome ---------- */
+.doc { max-width: 1100px; margin: 0 auto; padding: var(--s8) var(--s6) 72px; }
+.doc-head h1 { margin: 0 0 var(--s1); font-family: var(--serif); font-size: 36px;
+  font-weight: 400; letter-spacing: -0.01em; font-variation-settings: "SOFT" 100, "opsz" 60; }
+.doc-head p { margin: 0; max-width: 62ch; color: var(--ink-2); font-size: 14px; }
+.crumbs { display: flex; flex-wrap: wrap; gap: var(--s3); margin: var(--s6) 0 var(--s8);
+  font-size: 12px; }
+.crumbs a { color: var(--ink-3t); text-decoration: none; padding: var(--s1) var(--s3);
+  border: 1px solid var(--line); border-radius: var(--r-pill); }
+.crumbs a:hover { color: var(--ink); border-color: var(--line-2); }
+.sec { margin-top: var(--s12); }
+.sec h2 { margin: 0 0 var(--s1); font-size: 12px; font-weight: 600; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--moss); }
+.sec .lede { margin: 0 0 var(--s6); max-width: 66ch; color: var(--ink-2); font-size: 14px; }
+.note { margin-top: var(--s8); padding-top: var(--s6); border-top: 1px solid var(--line);
+  max-width: 74ch; color: var(--ink-2); font-size: 14px; }
+.note b { color: var(--ink); font-weight: 600; }
+.cap { margin: var(--s3) 0 0; font-size: 12px; color: var(--ink-3t); max-width: 78ch; }
+
+/* ---------- screen ---------- */
+.frame { background: var(--surface); border: 1px solid var(--line);
+  border-radius: 28px; padding: var(--s6); }
+.screen { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+  gap: var(--s6); align-items: stretch; }
+.col { display: flex; flex-direction: column; gap: var(--s6); min-width: 0; }
+.screen > .col:first-child > .hero { margin-block: auto; }
+.screen > .sysbar { grid-column: 1 / 3; }
+
+.sentence { margin: 0; font-family: var(--serif); font-size: 30px; font-weight: 400;
+  line-height: 1.2; letter-spacing: -0.005em; color: var(--ink); text-wrap: balance;
+  font-variation-settings: "SOFT" 100, "opsz" 72; }
+
+/* ---------- ring hero ---------- */
+.hero { position: relative; display: flex; flex-direction: column; align-items: center;
+  gap: var(--s3); padding: var(--s6) var(--s4) var(--s4); }
+.hero::before { content: ""; position: absolute; left: 50%; top: 96px; width: 320px;
+  height: 320px; transform: translate(-50%, -50%); pointer-events: none;
+  background: radial-gradient(circle, rgba(231,77,100,0.10) 0%, rgba(231,77,100,0) 70%); }
+.ring { position: relative; width: 232px; height: 232px; }
+.ring svg { width: 100%; height: 100%; display: block; }
+.ring path { fill: none; stroke-width: 12; stroke-linecap: butt; }
+.ring path.ok { stroke: var(--moss); }
+.ring path.nor { stroke: var(--ink-3); opacity: 0.5; }
+.ring path.off { stroke: var(--coral); }
+.ring-mid { position: absolute; inset: 0; display: grid; place-items: center; }
+.ring-num { font-family: var(--serif); font-size: 88px; font-weight: 300; line-height: 1;
+  color: var(--coral); font-variation-settings: "SOFT" 100, "opsz" 144;
+  font-variant-numeric: lining-nums; }
+.hero-word { position: relative; font-size: 15px; color: var(--ink); text-align: center; }
+.hero-word b { font-weight: 600; }
+.hero-count { position: relative; font-size: 12px; color: var(--ink-3t); text-align: center; }
+
+/* ---------- signals ---------- */
+.sig { background: var(--surface-hi); border: 1px solid var(--line);
+  border-radius: var(--r-card); padding: var(--s4) var(--s4) var(--s4); }
+.sig-cap { display: flex; align-items: baseline; flex-wrap: wrap; gap: var(--s2);
+  font-size: 13px; }
+.sig-cap .ms { color: var(--moss); align-self: center; }
+.sig-cap .txt { font-weight: 600; }
+.sig-cap .num { color: var(--ink-2); }
+.sig-cap .series { margin-left: auto; font-size: 11px; color: var(--ink-3t); }
+.sig-body { display: grid; grid-template-columns: 26px minmax(0, 1fr); gap: var(--s3);
+  padding-top: var(--s6); }
+.sig-y { position: relative; height: 160px; font-size: 11px; color: var(--ink-3t);
+  text-align: right; }
+.sig-y span { position: absolute; right: 0; top: var(--y); transform: translateY(-50%); line-height: 1; }
+.sig-plot { min-width: 0; }
+.sig-line { position: relative; height: 160px; container-type: inline-size; }
+.sig-line svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.sig-line polyline { fill: none; }
+.sig-line .line { stroke: var(--sky); stroke-width: 1.75; vector-effect: non-scaling-stroke;
+  stroke-linejoin: round; }
+.sig-line .mean { stroke: var(--ink-3t); stroke-width: 1; stroke-dasharray: 3 5;
+  vector-effect: non-scaling-stroke; }
+.sig-line .area { stroke: none; }
+.sig-draw { position: absolute; left: var(--x); top: 0; bottom: 0; }
+.sig-draw i { position: absolute; left: -5px; bottom: -6px; width: 11px; height: 11px;
+  transform: rotate(45deg); border-radius: 2px; background: var(--coral); }
+.sig-draw b { position: absolute; bottom: calc(100% + 6px); left: 0;
+  transform: translateX(-50%); font-size: 11px; font-weight: 600; white-space: nowrap;
+  color: var(--ink-2); }
+.sig-draw b em { font-style: normal; color: var(--ink-3t); font-weight: 400; }
+.sig-draw.right b { transform: none; left: auto; right: 0; }
+@container (max-width: 460px) { .sig-draw b em { display: none; } }
+.sig-days { position: relative; height: 10px; margin-top: var(--s1); }
+.sig-days s { position: absolute; left: var(--x); top: 3px; width: 2px; height: 2px;
+  border-radius: 50%; background: var(--sky); opacity: 0.6; }
+.sig-axis { display: flex; justify-content: space-between; font-size: 11px; color: var(--ink-3t);
+  margin-top: var(--s1); }
+.sig-legend { display: flex; flex-wrap: wrap; gap: var(--s1) var(--s4); margin-top: var(--s3);
+  padding-top: var(--s3); border-top: 1px solid var(--line); font-size: 11px; color: var(--ink-3t); }
+.sig-legend span { display: inline-flex; align-items: center; gap: var(--s1); }
+.sig-legend u { width: 14px; height: 0; text-decoration: none; border-top: 2px solid var(--sky); }
+.sig-legend u.dash { border-top: 1px dashed var(--ink-3t); }
+.sig-legend s { width: 3px; height: 3px; border-radius: 50%; background: var(--sky);
+  text-decoration: none; }
+.sig-legend i { width: 7px; height: 7px; transform: rotate(45deg); background: var(--coral); }
+.detail { margin-top: var(--s2); }
+.detail summary { display: flex; align-items: center; gap: var(--s1); font-size: 11px;
+  color: var(--ink-3t); cursor: pointer; list-style: none; }
+.detail summary::-webkit-details-marker { display: none; }
+
+/* ---------- ask ---------- */
+.ask { display: flex; align-items: center; gap: var(--s2); background: var(--surface-hi);
+  border: 1px solid var(--line); border-radius: var(--r-pill);
+  padding: var(--s2) var(--s2) var(--s2) var(--s4); }
+.ask .ms { color: var(--ink-3t); }
+.ask .q { flex: 1; min-width: 0; color: var(--ink-3t); font-size: 14px;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.askbtn { border: 0; cursor: pointer; background: var(--moss); color: #0b160f;
+  font-family: var(--ui); font-size: 13px; font-weight: 600; padding: var(--s2) var(--s6);
+  border-radius: var(--r-pill); }
+
+/* ---------- tiles ---------- */
+.three { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--s3); }
+.card { background: var(--surface-hi); border: 1px solid var(--line);
+  border-radius: var(--r-card); padding: var(--s3) var(--s4) var(--s4); min-width: 0; }
+.card-k { display: flex; justify-content: space-between; gap: var(--s2); font-size: 12px;
+  color: var(--ink-3t); }
+.card-v { margin-top: var(--s2); font-size: 28px; font-weight: 500; letter-spacing: -0.02em;
+  white-space: nowrap; }
+.card-v em { font-style: normal; font-size: 12px; font-weight: 400; color: var(--ink-3t);
+  margin-left: var(--s1); letter-spacing: 0; }
+.card-s { margin-top: var(--s1); font-size: 12px; color: var(--ink-2); }
+.split { display: flex; gap: var(--s3); margin-top: var(--s1); flex-wrap: wrap; }
+.split div { display: flex; align-items: baseline; gap: 3px; font-size: 12px; color: var(--ink-2); }
+.split b { font-size: 15px; font-weight: 600; color: var(--ink); }
+.c-ok { color: var(--moss) !important; } .c-bad { color: var(--coral) !important; }
+
+/* ---------- systems ---------- */
+.sysbar { background: var(--surface-hi); border: 1px solid var(--line);
+  border-radius: var(--r-card); padding: var(--s3) var(--s4) var(--s4); }
+.sys-head { display: flex; align-items: baseline; justify-content: space-between;
+  gap: var(--s3); margin-bottom: var(--s3); }
+.sys-head h3 { margin: 0; font-family: var(--serif); font-size: 16px; font-weight: 400;
+  font-variation-settings: "SOFT" 100, "opsz" 24; }
+.sys-head .r { font-size: 11px; color: var(--ink-3t); }
+.pills { display: flex; flex-wrap: wrap; gap: var(--s2); }
+.pill { display: inline-flex; align-items: baseline; gap: var(--s2);
+  background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-pill);
+  padding: 6px var(--s3) 6px 10px; font-size: 13px; color: var(--ink-2); }
+.pill i { width: 8px; height: 8px; border-radius: 50%; flex: none; align-self: center; }
+.pill.off i { background: var(--coral); }
+.pill.ok i { background: var(--moss); }
+.pill.na i { background: none; border: 1px solid var(--ink-3); }
+.pill .pn { color: var(--ink); }
+.pill .pv { color: var(--ink); font-weight: 500; }
+.pill .pv em { font-style: normal; font-weight: 400; color: var(--ink-2); margin-left: 3px;
+  font-size: 12px; }
+.pill .pw { font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase;
+  color: var(--ink-3t); }
+.pill.off { border-color: rgba(231,77,100,0.35); }
+.pill.off .pw { color: var(--coral); }
+
+/* ---------- phone ---------- */
+.phones { display: flex; gap: var(--s6); flex-wrap: wrap; }
+.phone { width: 390px; flex: none; background: var(--canvas); border-radius: 38px;
+  border: 1px solid var(--line-2); overflow: hidden; display: flex; flex-direction: column; }
+.statusbar { display: flex; justify-content: space-between; align-items: center;
+  padding: 10px var(--s6) var(--s1); font-size: 12px; color: var(--ink-2); }
+.statusbar .rt { display: inline-flex; gap: var(--s1); align-items: center; }
+.screenhead { display: flex; align-items: center; justify-content: space-between;
+  padding: var(--s2) var(--s6) var(--s1); }
+.screenhead h2 { margin: 0; font-family: var(--serif); font-size: 22px; font-weight: 400;
+  font-variation-settings: "SOFT" 100, "opsz" 36; }
+.stack { display: flex; flex-direction: column; gap: var(--s4); padding: var(--s3) var(--s4) var(--s6); }
+.stack .sentence { font-size: 22px; }
+.stack .hero { padding: var(--s2) 0 0; }
+.stack .hero::before { top: 76px; width: 260px; height: 260px; }
+.stack .ring { width: 180px; height: 180px; }
+.stack .ring path { stroke-width: 14; }
+.stack .ring-num { font-size: 66px; }
+.stack .sig { padding: var(--s3); }
+.stack .sig-body { padding-top: var(--s6); grid-template-columns: 22px minmax(0, 1fr); gap: var(--s2); }
+.stack .sig-y, .stack .sig-line { height: 120px; }
+.stack .card { padding: var(--s2) var(--s3) var(--s3); }
+.stack .card-v { font-size: 21px; }
+.stack .three { gap: var(--s2); }
+.stack .sys-head { margin-bottom: var(--s2); }
+.tabbar { margin-top: auto; display: grid; grid-template-columns: repeat(5, 1fr);
+  align-items: center; gap: var(--s1); padding: var(--s2) var(--s2) var(--s6);
+  background: var(--surface); border-top: 1px solid var(--line); }
+.tabbar a { display: flex; flex-direction: column; align-items: center; gap: 3px;
+  font-size: 10px; color: var(--ink-3t); text-decoration: none; }
+.tabbar a.on { color: var(--moss); }
+.plusslot { display: flex; justify-content: center; }
+.plusslot button { width: 44px; height: 44px; border: 0; border-radius: 50%;
+  background: var(--moss); color: #0b160f; display: grid; place-items: center; cursor: pointer; }
+
+@media (max-width: 900px) {
+  .doc { padding: var(--s6) 0 var(--s12); max-width: none; }
+  .doc-head, .crumbs, .sec h2, .sec .lede, .cap, .note { padding-left: var(--s3); padding-right: var(--s3); }
+  .frame { border-radius: 0; border-left: 0; border-right: 0; padding: var(--s4) var(--s3); }
+  .screen { grid-template-columns: minmax(0, 1fr); }
+  .screen > .sysbar { grid-column: 1; }
+  .three { grid-template-columns: 1fr; }
+  .phone { width: 100%; max-width: 100%; border-radius: 0; border-left: 0; border-right: 0; }
+  .phones { gap: 0; }
+}
+
+    </style>
+  </head>
+  <body>
+    <main class="doc">
+      <header class="doc-head">
+        <h1>Moss</h1>
+        <p>Forest floor at dusk. Deep moss surfaces, a 52-segment ring for the status, coral for what is off, sky blue for the data, a soft serif for the sentence.</p>
+      </header>
+      <nav class="crumbs">
+        <a href="index.html">The four</a>
+        <a href="../home-variations/index.html">Round one</a>
+        <a href="../home.html">v4 home (current)</a>
+        <a href="06-seismo.html">Seismo</a>
+        <a href="07-board.html">Board</a>
+        <a href="08-moss.html">Moss</a>
+        <a href="09-kite.html">Kite</a>
+      </nav>
+
+      <section class="sec">
+        <h2>Home &middot; desktop</h2>
+        <p class="lede">Every marker in the last draw gets one segment of the ring, so the
+          seven coral ones are countable, not just a colour. The chart is the only sky-blue
+          thing on the screen, and the systems sit under both columns as one wrapping row.</p>
+        <div class="frame"><div class="screen">
+          <div class="col">
+            <p class="sentence">Seven markers are off. Thyroid is the loudest one.</p>
+            <div class="hero">
+              <div class="ring">
+          <svg viewBox="0 0 232 232" aria-hidden="true">
+            <path class="ok" d="M 117.00 16.00 A 100 100 0 0 1 127.06 16.61" />
+            <path class="ok" d="M 129.05 16.85 A 100 100 0 0 1 138.96 18.67" />
+            <path class="ok" d="M 140.90 19.15 A 100 100 0 0 1 150.52 22.15" />
+            <path class="ok" d="M 152.39 22.86 A 100 100 0 0 1 161.58 26.99" />
+            <path class="ok" d="M 163.36 27.92 A 100 100 0 0 1 171.98 33.14" />
+            <path class="ok" d="M 173.63 34.27 A 100 100 0 0 1 181.56 40.49" />
+            <path class="ok" d="M 183.06 41.82 A 100 100 0 0 1 190.18 48.94" />
+            <path class="ok" d="M 191.51 50.44 A 100 100 0 0 1 197.73 58.37" />
+            <path class="ok" d="M 198.86 60.02 A 100 100 0 0 1 204.08 68.64" />
+            <path class="ok" d="M 205.01 70.42 A 100 100 0 0 1 209.14 79.61" />
+            <path class="ok" d="M 209.85 81.48 A 100 100 0 0 1 212.85 91.10" />
+            <path class="ok" d="M 213.33 93.04 A 100 100 0 0 1 215.15 102.95" />
+            <path class="ok" d="M 215.39 104.94 A 100 100 0 0 1 216.00 115.00" />
+            <path class="ok" d="M 216.00 117.00 A 100 100 0 0 1 215.39 127.06" />
+            <path class="ok" d="M 215.15 129.05 A 100 100 0 0 1 213.33 138.96" />
+            <path class="ok" d="M 212.85 140.90 A 100 100 0 0 1 209.85 150.52" />
+            <path class="ok" d="M 209.14 152.39 A 100 100 0 0 1 205.01 161.58" />
+            <path class="ok" d="M 204.08 163.36 A 100 100 0 0 1 198.86 171.98" />
+            <path class="ok" d="M 197.73 173.63 A 100 100 0 0 1 191.51 181.56" />
+            <path class="ok" d="M 190.18 183.06 A 100 100 0 0 1 183.06 190.18" />
+            <path class="ok" d="M 181.56 191.51 A 100 100 0 0 1 173.63 197.73" />
+            <path class="ok" d="M 171.98 198.86 A 100 100 0 0 1 163.36 204.08" />
+            <path class="ok" d="M 161.58 205.01 A 100 100 0 0 1 152.39 209.14" />
+            <path class="ok" d="M 150.52 209.85 A 100 100 0 0 1 140.90 212.85" />
+            <path class="ok" d="M 138.96 213.33 A 100 100 0 0 1 129.05 215.15" />
+            <path class="ok" d="M 127.06 215.39 A 100 100 0 0 1 117.00 216.00" />
+            <path class="nor" d="M 115.00 216.00 A 100 100 0 0 1 104.94 215.39" />
+            <path class="nor" d="M 102.95 215.15 A 100 100 0 0 1 93.04 213.33" />
+            <path class="nor" d="M 91.10 212.85 A 100 100 0 0 1 81.48 209.85" />
+            <path class="nor" d="M 79.61 209.14 A 100 100 0 0 1 70.42 205.01" />
+            <path class="nor" d="M 68.64 204.08 A 100 100 0 0 1 60.02 198.86" />
+            <path class="nor" d="M 58.37 197.73 A 100 100 0 0 1 50.44 191.51" />
+            <path class="nor" d="M 48.94 190.18 A 100 100 0 0 1 41.82 183.06" />
+            <path class="nor" d="M 40.49 181.56 A 100 100 0 0 1 34.27 173.63" />
+            <path class="nor" d="M 33.14 171.98 A 100 100 0 0 1 27.92 163.36" />
+            <path class="nor" d="M 26.99 161.58 A 100 100 0 0 1 22.86 152.39" />
+            <path class="nor" d="M 22.15 150.52 A 100 100 0 0 1 19.15 140.90" />
+            <path class="nor" d="M 18.67 138.96 A 100 100 0 0 1 16.85 129.05" />
+            <path class="nor" d="M 16.61 127.06 A 100 100 0 0 1 16.00 117.00" />
+            <path class="nor" d="M 16.00 115.00 A 100 100 0 0 1 16.61 104.94" />
+            <path class="nor" d="M 16.85 102.95 A 100 100 0 0 1 18.67 93.04" />
+            <path class="nor" d="M 19.15 91.10 A 100 100 0 0 1 22.15 81.48" />
+            <path class="nor" d="M 22.86 79.61 A 100 100 0 0 1 26.99 70.42" />
+            <path class="nor" d="M 27.92 68.64 A 100 100 0 0 1 33.14 60.02" />
+            <path class="nor" d="M 34.27 58.37 A 100 100 0 0 1 40.49 50.44" />
+            <path class="off" d="M 41.82 48.94 A 100 100 0 0 1 48.94 41.82" />
+            <path class="off" d="M 50.44 40.49 A 100 100 0 0 1 58.37 34.27" />
+            <path class="off" d="M 60.02 33.14 A 100 100 0 0 1 68.64 27.92" />
+            <path class="off" d="M 70.42 26.99 A 100 100 0 0 1 79.61 22.86" />
+            <path class="off" d="M 81.48 22.15 A 100 100 0 0 1 91.10 19.15" />
+            <path class="off" d="M 93.04 18.67 A 100 100 0 0 1 102.95 16.85" />
+            <path class="off" d="M 104.94 16.61 A 100 100 0 0 1 115.00 16.00" />
+          </svg>
+          <div class="ring-mid"><div class="ring-num">7</div></div>
+        </div>
+              <div class="hero-word"><b>Attention</b> &middot; 7 markers off</div>
+              <div class="hero-count">26 optimal &middot; 19 normal &middot; 7 off &middot; Aug 1</div>
+            </div>
+          </div>
+          <div class="col">
+            <div class="sig">
+              <div class="sig-cap"><span class="ms i16">trending_down</span>
+                <span class="txt">Resting HR improving</span>
+                <span class="num">58 &rarr; 55 bpm &middot; last 30 days</span>
+                <span class="series">Resting HR &middot; bpm &middot; 90 days</span></div>
+              <div class="sig-body">
+            <div class="sig-y"><span style="--y: 0%">62</span><span style="--y: 40%">58</span><span style="--y: 100%">52</span></div>
+            <div class="sig-plot">
+              <div class="sig-line">
+                <svg viewBox="0 0 1000 100" preserveAspectRatio="none" aria-hidden="true">
+                  <defs><linearGradient id="skyfill-d" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0" stop-color="#74A4EB" stop-opacity="0.22" />
+                    <stop offset="1" stop-color="#74A4EB" stop-opacity="0" />
+                  </linearGradient></defs>
+                  <polygon class="area" fill="url(#skyfill-d)" points="0.0,20.00 11.2,10.00 22.5,10.00 33.7,10.00 44.9,10.00 56.2,10.00 67.4,10.00 78.7,10.00 89.9,20.00 101.1,20.00 112.4,20.00 123.6,30.00 134.8,30.00 146.1,30.00 157.3,30.00 168.5,30.00 179.8,30.00 191.0,30.00 202.2,30.00 213.5,30.00 224.7,30.00 236.0,30.00 247.2,30.00 258.4,30.00 269.7,20.00 280.9,20.00 292.1,20.00 303.4,30.00 314.6,30.00 325.8,30.00 337.1,40.00 348.3,40.00 359.6,40.00 370.8,50.00 382.0,50.00 393.3,40.00 404.5,40.00 415.7,40.00 427.0,30.00 438.2,30.00 449.4,30.00 460.7,30.00 471.9,30.00 483.1,30.00 494.4,30.00 505.6,30.00 516.9,30.00 528.1,30.00 539.3,30.00 550.6,30.00 561.8,30.00 573.0,40.00 584.3,40.00 595.5,40.00 606.7,40.00 618.0,40.00 629.2,40.00 640.4,40.00 651.7,40.00 662.9,40.00 674.2,30.00 685.4,30.00 696.6,30.00 707.9,30.00 719.1,30.00 730.3,40.00 741.6,40.00 752.8,50.00 764.0,50.00 775.3,60.00 786.5,60.00 797.8,60.00 809.0,60.00 820.2,70.00 831.5,70.00 842.7,60.00 853.9,60.00 865.2,60.00 876.4,60.00 887.6,60.00 898.9,60.00 910.1,60.00 921.3,60.00 932.6,60.00 943.8,60.00 955.1,60.00 966.3,60.00 977.5,60.00 988.8,70.00 1000.0,70.00 1000.0,100 0.0,100" />
+                  <polyline class="mean" points="0,40.00 1000,40.00" />
+                  <polyline class="line" points="0.0,20.00 11.2,10.00 22.5,10.00 33.7,10.00 44.9,10.00 56.2,10.00 67.4,10.00 78.7,10.00 89.9,20.00 101.1,20.00 112.4,20.00 123.6,30.00 134.8,30.00 146.1,30.00 157.3,30.00 168.5,30.00 179.8,30.00 191.0,30.00 202.2,30.00 213.5,30.00 224.7,30.00 236.0,30.00 247.2,30.00 258.4,30.00 269.7,20.00 280.9,20.00 292.1,20.00 303.4,30.00 314.6,30.00 325.8,30.00 337.1,40.00 348.3,40.00 359.6,40.00 370.8,50.00 382.0,50.00 393.3,40.00 404.5,40.00 415.7,40.00 427.0,30.00 438.2,30.00 449.4,30.00 460.7,30.00 471.9,30.00 483.1,30.00 494.4,30.00 505.6,30.00 516.9,30.00 528.1,30.00 539.3,30.00 550.6,30.00 561.8,30.00 573.0,40.00 584.3,40.00 595.5,40.00 606.7,40.00 618.0,40.00 629.2,40.00 640.4,40.00 651.7,40.00 662.9,40.00 674.2,30.00 685.4,30.00 696.6,30.00 707.9,30.00 719.1,30.00 730.3,40.00 741.6,40.00 752.8,50.00 764.0,50.00 775.3,60.00 786.5,60.00 797.8,60.00 809.0,60.00 820.2,70.00 831.5,70.00 842.7,60.00 853.9,60.00 865.2,60.00 876.4,60.00 887.6,60.00 898.9,60.00 910.1,60.00 921.3,60.00 932.6,60.00 943.8,60.00 955.1,60.00 966.3,60.00 977.5,60.00 988.8,70.00 1000.0,70.00" />
+                </svg>
+                <div class="sig-draw" style="--x: 65.17%"><b>Aug 1<em> · 15 markers</em></b><i></i></div>
+                <div class="sig-draw right" style="--x: 98.88%"><b>Aug 31<em> · 1 marker</em></b><i></i></div>
+              </div>
+              <div class="sig-days"><s style="--x: 0.00%"></s><s style="--x: 1.12%"></s><s style="--x: 2.25%"></s><s style="--x: 3.37%"></s><s style="--x: 4.49%"></s><s style="--x: 5.62%"></s><s style="--x: 6.74%"></s><s style="--x: 7.87%"></s><s style="--x: 8.99%"></s><s style="--x: 10.11%"></s><s style="--x: 11.24%"></s><s style="--x: 12.36%"></s><s style="--x: 13.48%"></s><s style="--x: 15.73%"></s><s style="--x: 16.85%"></s><s style="--x: 17.98%"></s><s style="--x: 19.10%"></s><s style="--x: 20.22%"></s><s style="--x: 21.35%"></s><s style="--x: 22.47%"></s><s style="--x: 23.60%"></s><s style="--x: 24.72%"></s><s style="--x: 25.84%"></s><s style="--x: 26.97%"></s><s style="--x: 28.09%"></s><s style="--x: 29.21%"></s><s style="--x: 30.34%"></s><s style="--x: 31.46%"></s><s style="--x: 32.58%"></s><s style="--x: 34.83%"></s><s style="--x: 35.96%"></s><s style="--x: 37.08%"></s><s style="--x: 38.20%"></s><s style="--x: 39.33%"></s><s style="--x: 40.45%"></s><s style="--x: 41.57%"></s><s style="--x: 42.70%"></s><s style="--x: 43.82%"></s><s style="--x: 44.94%"></s><s style="--x: 46.07%"></s><s style="--x: 47.19%"></s><s style="--x: 48.31%"></s><s style="--x: 49.44%"></s><s style="--x: 50.56%"></s><s style="--x: 51.69%"></s><s style="--x: 52.81%"></s><s style="--x: 53.93%"></s><s style="--x: 55.06%"></s><s style="--x: 56.18%"></s><s style="--x: 57.30%"></s><s style="--x: 59.55%"></s><s style="--x: 60.67%"></s><s style="--x: 61.80%"></s><s style="--x: 62.92%"></s><s style="--x: 64.04%"></s><s style="--x: 65.17%"></s><s style="--x: 66.29%"></s><s style="--x: 67.42%"></s><s style="--x: 68.54%"></s><s style="--x: 69.66%"></s><s style="--x: 70.79%"></s><s style="--x: 71.91%"></s><s style="--x: 73.03%"></s><s style="--x: 74.16%"></s><s style="--x: 75.28%"></s><s style="--x: 76.40%"></s><s style="--x: 77.53%"></s><s style="--x: 78.65%"></s><s style="--x: 79.78%"></s><s style="--x: 80.90%"></s><s style="--x: 82.02%"></s><s style="--x: 83.15%"></s><s style="--x: 84.27%"></s><s style="--x: 86.52%"></s><s style="--x: 87.64%"></s><s style="--x: 88.76%"></s><s style="--x: 89.89%"></s><s style="--x: 91.01%"></s><s style="--x: 92.13%"></s><s style="--x: 93.26%"></s><s style="--x: 94.38%"></s><s style="--x: 95.51%"></s><s style="--x: 96.63%"></s><s style="--x: 97.75%"></s><s style="--x: 98.88%"></s><s style="--x: 100.00%"></s></div>
+              <div class="sig-axis"><span>Jun 4</span><span>Jul 18</span><span>Sep 1 &middot; today</span></div>
+            </div>
+          </div>
+              <div class="sig-legend">
+                <span><u></u> Resting HR, one value a day (Apple Health)</span>
+                <span><u class="dash"></u> 90-day mean, 58 bpm</span>
+                <span><s></s> phone day, 86 of 90 synced</span>
+                <span><i></i> blood draw &middot; Aug 1 &middot; 15 markers, Aug 31 &middot; 1 marker</span>
+              </div>
+            </div>
+            <div class="ask"><span class="ms i16">graphic_eq</span>
+              <span class="q">Ask anything, or tell me what changed</span><button class="askbtn">Ask</button></div>
+            <div class="three">
+              <div class="card"><div class="card-k">Body <span class="when">today</span></div>
+                <div class="card-v">8 412<em>steps</em></div>
+                <div class="card-s">34 min exercise &middot; 7 h 12 sleep &middot; RHR 55</div></div>
+              <div class="card"><div class="card-k">Blood <span class="when">Aug 1</span></div>
+                <div class="card-v">52<em>markers</em></div>
+                <div class="split"><div><b class="c-ok">26</b><span>optimal</span></div>
+                  <div><b>19</b><span>normal</span></div>
+                  <div><b class="c-bad">7</b><span>off</span></div></div></div>
+              <div class="card"><div class="card-k">Plan <span class="when">Sep 1</span></div>
+                <div class="card-v">0<em>of 17 today</em></div>
+                <div class="card-s">5 day streak &middot; 2 items above 80 %</div></div>
+            </div>
+          </div>
+          <div class="sysbar">
+            <div class="sys-head"><h3>Systems</h3><span class="r">12 tracked &middot; 5 off</span></div>
+            <div class="pills">
+            <span class="pill off"><i></i><span class="pn">Thyroid</span><span class="pv">320<em>IU/mL</em></span><span class="pw">off</span></span>
+            <span class="pill off"><i></i><span class="pn">Vitamins</span><span class="pv">19<em>ng/mL</em></span><span class="pw">off</span></span>
+            <span class="pill off"><i></i><span class="pn">Liver</span><span class="pv">34<em>U/L</em></span><span class="pw">off</span></span>
+            <span class="pill off"><i></i><span class="pn">Lipids</span><span class="pv">142<em>mg/dL</em></span><span class="pw">off</span></span>
+            <span class="pill ok"><i></i><span class="pn">Heart</span><span class="pw">ok</span></span>
+            <span class="pill ok"><i></i><span class="pn">Kidney</span><span class="pw">ok</span></span>
+            <span class="pill ok"><i></i><span class="pn">Blood sugar</span><span class="pw">ok</span></span>
+            <span class="pill ok"><i></i><span class="pn">Inflammation</span><span class="pw">ok</span></span>
+            <span class="pill ok"><i></i><span class="pn">Iron</span><span class="pw">ok</span></span>
+            <span class="pill ok"><i></i><span class="pn">Electrolytes</span><span class="pw">ok</span></span>
+            <span class="pill ok"><i></i><span class="pn">Blood cells</span><span class="pw">ok</span></span>
+            <span class="pill na"><i></i><span class="pn">Sex hormones</span><span class="pw">never measured</span></span>
+            </div>
+          </div>
+        </div></div>
+      </section>
+
+      <section class="sec">
+        <h2>Home &middot; 390 px</h2>
+        <p class="lede">The same numbers stacked: sentence, the ring at 180 px, the signal
+          panel with its legend folded behind one line, Ask, three tiles, and the systems
+          row wrapping to four lines.</p>
+        <div class="phones"><div class="phone">
+          <div class="statusbar"><span>9:41</span><span class="rt">
+            <span class="ms i16">network_cell</span><span class="ms i16">wifi</span>
+            <span class="ms i16">battery_full_alt</span></span></div>
+          <div class="screenhead"><h2>Home</h2><span class="ms i24">account_circle</span></div>
+          <div class="stack">
+            <p class="sentence">Seven markers are off. Thyroid is the loudest one.</p>
+            <div class="hero">
+              <div class="ring">
+          <svg viewBox="0 0 232 232" aria-hidden="true">
+            <path class="ok" d="M 117.00 16.00 A 100 100 0 0 1 127.06 16.61" />
+            <path class="ok" d="M 129.05 16.85 A 100 100 0 0 1 138.96 18.67" />
+            <path class="ok" d="M 140.90 19.15 A 100 100 0 0 1 150.52 22.15" />
+            <path class="ok" d="M 152.39 22.86 A 100 100 0 0 1 161.58 26.99" />
+            <path class="ok" d="M 163.36 27.92 A 100 100 0 0 1 171.98 33.14" />
+            <path class="ok" d="M 173.63 34.27 A 100 100 0 0 1 181.56 40.49" />
+            <path class="ok" d="M 183.06 41.82 A 100 100 0 0 1 190.18 48.94" />
+            <path class="ok" d="M 191.51 50.44 A 100 100 0 0 1 197.73 58.37" />
+            <path class="ok" d="M 198.86 60.02 A 100 100 0 0 1 204.08 68.64" />
+            <path class="ok" d="M 205.01 70.42 A 100 100 0 0 1 209.14 79.61" />
+            <path class="ok" d="M 209.85 81.48 A 100 100 0 0 1 212.85 91.10" />
+            <path class="ok" d="M 213.33 93.04 A 100 100 0 0 1 215.15 102.95" />
+            <path class="ok" d="M 215.39 104.94 A 100 100 0 0 1 216.00 115.00" />
+            <path class="ok" d="M 216.00 117.00 A 100 100 0 0 1 215.39 127.06" />
+            <path class="ok" d="M 215.15 129.05 A 100 100 0 0 1 213.33 138.96" />
+            <path class="ok" d="M 212.85 140.90 A 100 100 0 0 1 209.85 150.52" />
+            <path class="ok" d="M 209.14 152.39 A 100 100 0 0 1 205.01 161.58" />
+            <path class="ok" d="M 204.08 163.36 A 100 100 0 0 1 198.86 171.98" />
+            <path class="ok" d="M 197.73 173.63 A 100 100 0 0 1 191.51 181.56" />
+            <path class="ok" d="M 190.18 183.06 A 100 100 0 0 1 183.06 190.18" />
+            <path class="ok" d="M 181.56 191.51 A 100 100 0 0 1 173.63 197.73" />
+            <path class="ok" d="M 171.98 198.86 A 100 100 0 0 1 163.36 204.08" />
+            <path class="ok" d="M 161.58 205.01 A 100 100 0 0 1 152.39 209.14" />
+            <path class="ok" d="M 150.52 209.85 A 100 100 0 0 1 140.90 212.85" />
+            <path class="ok" d="M 138.96 213.33 A 100 100 0 0 1 129.05 215.15" />
+            <path class="ok" d="M 127.06 215.39 A 100 100 0 0 1 117.00 216.00" />
+            <path class="nor" d="M 115.00 216.00 A 100 100 0 0 1 104.94 215.39" />
+            <path class="nor" d="M 102.95 215.15 A 100 100 0 0 1 93.04 213.33" />
+            <path class="nor" d="M 91.10 212.85 A 100 100 0 0 1 81.48 209.85" />
+            <path class="nor" d="M 79.61 209.14 A 100 100 0 0 1 70.42 205.01" />
+            <path class="nor" d="M 68.64 204.08 A 100 100 0 0 1 60.02 198.86" />
+            <path class="nor" d="M 58.37 197.73 A 100 100 0 0 1 50.44 191.51" />
+            <path class="nor" d="M 48.94 190.18 A 100 100 0 0 1 41.82 183.06" />
+            <path class="nor" d="M 40.49 181.56 A 100 100 0 0 1 34.27 173.63" />
+            <path class="nor" d="M 33.14 171.98 A 100 100 0 0 1 27.92 163.36" />
+            <path class="nor" d="M 26.99 161.58 A 100 100 0 0 1 22.86 152.39" />
+            <path class="nor" d="M 22.15 150.52 A 100 100 0 0 1 19.15 140.90" />
+            <path class="nor" d="M 18.67 138.96 A 100 100 0 0 1 16.85 129.05" />
+            <path class="nor" d="M 16.61 127.06 A 100 100 0 0 1 16.00 117.00" />
+            <path class="nor" d="M 16.00 115.00 A 100 100 0 0 1 16.61 104.94" />
+            <path class="nor" d="M 16.85 102.95 A 100 100 0 0 1 18.67 93.04" />
+            <path class="nor" d="M 19.15 91.10 A 100 100 0 0 1 22.15 81.48" />
+            <path class="nor" d="M 22.86 79.61 A 100 100 0 0 1 26.99 70.42" />
+            <path class="nor" d="M 27.92 68.64 A 100 100 0 0 1 33.14 60.02" />
+            <path class="nor" d="M 34.27 58.37 A 100 100 0 0 1 40.49 50.44" />
+            <path class="off" d="M 41.82 48.94 A 100 100 0 0 1 48.94 41.82" />
+            <path class="off" d="M 50.44 40.49 A 100 100 0 0 1 58.37 34.27" />
+            <path class="off" d="M 60.02 33.14 A 100 100 0 0 1 68.64 27.92" />
+            <path class="off" d="M 70.42 26.99 A 100 100 0 0 1 79.61 22.86" />
+            <path class="off" d="M 81.48 22.15 A 100 100 0 0 1 91.10 19.15" />
+            <path class="off" d="M 93.04 18.67 A 100 100 0 0 1 102.95 16.85" />
+            <path class="off" d="M 104.94 16.61 A 100 100 0 0 1 115.00 16.00" />
+          </svg>
+          <div class="ring-mid"><div class="ring-num">7</div></div>
+        </div>
+              <div class="hero-word"><b>Attention</b> &middot; 7 markers off</div>
+              <div class="hero-count">26 optimal &middot; 19 normal &middot; 7 off &middot; Aug 1</div>
+            </div>
+            <div class="sig">
+              <div class="sig-cap"><span class="ms i16">trending_down</span>
+                <span class="txt">Resting HR improving</span>
+                <span class="num">58 &rarr; 55 bpm &middot; 30 days</span></div>
+              <div class="sig-body">
+            <div class="sig-y"><span style="--y: 0%">62</span><span style="--y: 40%">58</span><span style="--y: 100%">52</span></div>
+            <div class="sig-plot">
+              <div class="sig-line">
+                <svg viewBox="0 0 1000 100" preserveAspectRatio="none" aria-hidden="true">
+                  <defs><linearGradient id="skyfill-p" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0" stop-color="#74A4EB" stop-opacity="0.22" />
+                    <stop offset="1" stop-color="#74A4EB" stop-opacity="0" />
+                  </linearGradient></defs>
+                  <polygon class="area" fill="url(#skyfill-p)" points="0.0,20.00 11.2,10.00 22.5,10.00 33.7,10.00 44.9,10.00 56.2,10.00 67.4,10.00 78.7,10.00 89.9,20.00 101.1,20.00 112.4,20.00 123.6,30.00 134.8,30.00 146.1,30.00 157.3,30.00 168.5,30.00 179.8,30.00 191.0,30.00 202.2,30.00 213.5,30.00 224.7,30.00 236.0,30.00 247.2,30.00 258.4,30.00 269.7,20.00 280.9,20.00 292.1,20.00 303.4,30.00 314.6,30.00 325.8,30.00 337.1,40.00 348.3,40.00 359.6,40.00 370.8,50.00 382.0,50.00 393.3,40.00 404.5,40.00 415.7,40.00 427.0,30.00 438.2,30.00 449.4,30.00 460.7,30.00 471.9,30.00 483.1,30.00 494.4,30.00 505.6,30.00 516.9,30.00 528.1,30.00 539.3,30.00 550.6,30.00 561.8,30.00 573.0,40.00 584.3,40.00 595.5,40.00 606.7,40.00 618.0,40.00 629.2,40.00 640.4,40.00 651.7,40.00 662.9,40.00 674.2,30.00 685.4,30.00 696.6,30.00 707.9,30.00 719.1,30.00 730.3,40.00 741.6,40.00 752.8,50.00 764.0,50.00 775.3,60.00 786.5,60.00 797.8,60.00 809.0,60.00 820.2,70.00 831.5,70.00 842.7,60.00 853.9,60.00 865.2,60.00 876.4,60.00 887.6,60.00 898.9,60.00 910.1,60.00 921.3,60.00 932.6,60.00 943.8,60.00 955.1,60.00 966.3,60.00 977.5,60.00 988.8,70.00 1000.0,70.00 1000.0,100 0.0,100" />
+                  <polyline class="mean" points="0,40.00 1000,40.00" />
+                  <polyline class="line" points="0.0,20.00 11.2,10.00 22.5,10.00 33.7,10.00 44.9,10.00 56.2,10.00 67.4,10.00 78.7,10.00 89.9,20.00 101.1,20.00 112.4,20.00 123.6,30.00 134.8,30.00 146.1,30.00 157.3,30.00 168.5,30.00 179.8,30.00 191.0,30.00 202.2,30.00 213.5,30.00 224.7,30.00 236.0,30.00 247.2,30.00 258.4,30.00 269.7,20.00 280.9,20.00 292.1,20.00 303.4,30.00 314.6,30.00 325.8,30.00 337.1,40.00 348.3,40.00 359.6,40.00 370.8,50.00 382.0,50.00 393.3,40.00 404.5,40.00 415.7,40.00 427.0,30.00 438.2,30.00 449.4,30.00 460.7,30.00 471.9,30.00 483.1,30.00 494.4,30.00 505.6,30.00 516.9,30.00 528.1,30.00 539.3,30.00 550.6,30.00 561.8,30.00 573.0,40.00 584.3,40.00 595.5,40.00 606.7,40.00 618.0,40.00 629.2,40.00 640.4,40.00 651.7,40.00 662.9,40.00 674.2,30.00 685.4,30.00 696.6,30.00 707.9,30.00 719.1,30.00 730.3,40.00 741.6,40.00 752.8,50.00 764.0,50.00 775.3,60.00 786.5,60.00 797.8,60.00 809.0,60.00 820.2,70.00 831.5,70.00 842.7,60.00 853.9,60.00 865.2,60.00 876.4,60.00 887.6,60.00 898.9,60.00 910.1,60.00 921.3,60.00 932.6,60.00 943.8,60.00 955.1,60.00 966.3,60.00 977.5,60.00 988.8,70.00 1000.0,70.00" />
+                </svg>
+                <div class="sig-draw" style="--x: 65.17%"><b>Aug 1<em> · 15 markers</em></b><i></i></div>
+                <div class="sig-draw right" style="--x: 98.88%"><b>Aug 31<em> · 1 marker</em></b><i></i></div>
+              </div>
+              <div class="sig-days"><s style="--x: 0.00%"></s><s style="--x: 1.12%"></s><s style="--x: 2.25%"></s><s style="--x: 3.37%"></s><s style="--x: 4.49%"></s><s style="--x: 5.62%"></s><s style="--x: 6.74%"></s><s style="--x: 7.87%"></s><s style="--x: 8.99%"></s><s style="--x: 10.11%"></s><s style="--x: 11.24%"></s><s style="--x: 12.36%"></s><s style="--x: 13.48%"></s><s style="--x: 15.73%"></s><s style="--x: 16.85%"></s><s style="--x: 17.98%"></s><s style="--x: 19.10%"></s><s style="--x: 20.22%"></s><s style="--x: 21.35%"></s><s style="--x: 22.47%"></s><s style="--x: 23.60%"></s><s style="--x: 24.72%"></s><s style="--x: 25.84%"></s><s style="--x: 26.97%"></s><s style="--x: 28.09%"></s><s style="--x: 29.21%"></s><s style="--x: 30.34%"></s><s style="--x: 31.46%"></s><s style="--x: 32.58%"></s><s style="--x: 34.83%"></s><s style="--x: 35.96%"></s><s style="--x: 37.08%"></s><s style="--x: 38.20%"></s><s style="--x: 39.33%"></s><s style="--x: 40.45%"></s><s style="--x: 41.57%"></s><s style="--x: 42.70%"></s><s style="--x: 43.82%"></s><s style="--x: 44.94%"></s><s style="--x: 46.07%"></s><s style="--x: 47.19%"></s><s style="--x: 48.31%"></s><s style="--x: 49.44%"></s><s style="--x: 50.56%"></s><s style="--x: 51.69%"></s><s style="--x: 52.81%"></s><s style="--x: 53.93%"></s><s style="--x: 55.06%"></s><s style="--x: 56.18%"></s><s style="--x: 57.30%"></s><s style="--x: 59.55%"></s><s style="--x: 60.67%"></s><s style="--x: 61.80%"></s><s style="--x: 62.92%"></s><s style="--x: 64.04%"></s><s style="--x: 65.17%"></s><s style="--x: 66.29%"></s><s style="--x: 67.42%"></s><s style="--x: 68.54%"></s><s style="--x: 69.66%"></s><s style="--x: 70.79%"></s><s style="--x: 71.91%"></s><s style="--x: 73.03%"></s><s style="--x: 74.16%"></s><s style="--x: 75.28%"></s><s style="--x: 76.40%"></s><s style="--x: 77.53%"></s><s style="--x: 78.65%"></s><s style="--x: 79.78%"></s><s style="--x: 80.90%"></s><s style="--x: 82.02%"></s><s style="--x: 83.15%"></s><s style="--x: 84.27%"></s><s style="--x: 86.52%"></s><s style="--x: 87.64%"></s><s style="--x: 88.76%"></s><s style="--x: 89.89%"></s><s style="--x: 91.01%"></s><s style="--x: 92.13%"></s><s style="--x: 93.26%"></s><s style="--x: 94.38%"></s><s style="--x: 95.51%"></s><s style="--x: 96.63%"></s><s style="--x: 97.75%"></s><s style="--x: 98.88%"></s><s style="--x: 100.00%"></s></div>
+              <div class="sig-axis"><span>Jun 4</span><span>Jul 18</span><span>today</span></div>
+            </div>
+          </div>
+              <details class="detail"><summary>Detail <span class="ms i16">expand_more</span></summary>
+                <div class="sig-legend">
+                  <span><u></u> Resting HR, one value a day (Apple Health)</span>
+                  <span><u class="dash"></u> 90-day mean, 58 bpm</span>
+                  <span><s></s> phone day, 86 of 90 synced</span>
+                  <span><i></i> blood draw &middot; Aug 1 &middot; 15 markers, Aug 31 &middot; 1 marker</span>
+                </div></details>
+            </div>
+            <div class="ask"><span class="ms i16">graphic_eq</span>
+              <span class="q">Ask anything, or what changed</span><button class="askbtn">Ask</button></div>
+            <div class="three">
+              <div class="card"><div class="card-k">Body</div><div class="card-v">8 412</div>
+                <div class="card-s">steps &middot; today</div></div>
+              <div class="card"><div class="card-k">Blood</div><div class="card-v">52</div>
+                <div class="card-s">markers &middot; Aug&nbsp;1</div></div>
+              <div class="card"><div class="card-k">Plan</div><div class="card-v">0</div>
+                <div class="card-s">of 17 &middot; today</div></div>
+            </div>
+            <div class="sysbar">
+              <div class="sys-head"><h3>Systems</h3><span class="r">12 tracked &middot; 5 off</span></div>
+              <div class="pills">
+              <span class="pill off"><i></i><span class="pn">Thyroid</span><span class="pv">320<em>IU/mL</em></span><span class="pw">off</span></span>
+            <span class="pill off"><i></i><span class="pn">Vitamins</span><span class="pv">19<em>ng/mL</em></span><span class="pw">off</span></span>
+            <span class="pill off"><i></i><span class="pn">Liver</span><span class="pv">34<em>U/L</em></span><span class="pw">off</span></span>
+            <span class="pill off"><i></i><span class="pn">Lipids</span><span class="pv">142<em>mg/dL</em></span><span class="pw">off</span></span>
+            <span class="pill ok"><i></i><span class="pn">Heart</span><span class="pw">ok</span></span>
+            <span class="pill ok"><i></i><span class="pn">Kidney</span><span class="pw">ok</span></span>
+            <span class="pill ok"><i></i><span class="pn">Blood sugar</span><span class="pw">ok</span></span>
+            <span class="pill ok"><i></i><span class="pn">Inflammation</span><span class="pw">ok</span></span>
+            <span class="pill ok"><i></i><span class="pn">Iron</span><span class="pw">ok</span></span>
+            <span class="pill ok"><i></i><span class="pn">Electrolytes</span><span class="pw">ok</span></span>
+            <span class="pill ok"><i></i><span class="pn">Blood cells</span><span class="pw">ok</span></span>
+            <span class="pill na"><i></i><span class="pn">Sex hormones</span><span class="pw">never measured</span></span>
+              </div>
+            </div>
+          </div>
+          <div class="tabbar">
+            <a class="on" href="#"><span class="ms i24 fill">home</span>Home</a>
+            <a href="#"><span class="ms i24">monitoring</span>Body</a>
+            <span class="plusslot"><button><span class="ms i24">add</span></button></span>
+            <a href="#"><span class="ms i24">water_drop</span>Blood</a>
+            <a href="#"><span class="ms i24">event_note</span>Plan</a>
+          </div>
+        </div></div>
+      </section>
+
+      <section class="sec">
+        <h2>Where the numbers come from</h2>
+        <p class="cap">Real, from the test account: 52 markers with a value
+          (26 optimal &middot; 19 normal &middot; 7 off), TPO 320 IU/mL, vitamin D 19 ng/mL,
+          HbA1c 5.6 %, ALT 34 U/L, LDL 142 mg/dL, twelve systems with sex hormones
+          never measured, draws on Dec 9 2025 (48 results), Feb 1 2026 (1),
+          Aug 1 2026 (15) and Aug 31 2026 (1), 17 protocol items with 0 ticked
+          today and a 5-day streak. Illustrative, with real shapes and units: the
+          Apple Health day (8 412 steps, 34 min exercise, 7 h 12 sleep) and the
+          resting-HR series, 90 daily values whose two printed numbers are the
+          real ones the engine reports, 58 bpm thirty days ago and 55 today,
+          against a 90-day mean of 58. The phone synced on 86 of the 90 days; the
+          four gaps are Jun 17, Jul 4, Jul 26 and Aug 19.</p>
+      </section>
+
+      <p class="note"><b>Moss is good at</b> making the status countable. The ring is 52 arcs, one
+per marker, so 7 coral out of 52 is a quantity you can read at a glance instead of a
+mood, and the coral never has to work alone: the word &ldquo;Attention&rdquo;, the word
+&ldquo;off&rdquo; on every pill and the count line all say it in text. Dark green reads
+as a resting screen rather than a dashboard, and sky blue is reserved for one thing only,
+the data itself. <b>In the app it costs</b> a small generator for the ring (52 arc paths,
+three colour bands) and one gradient behind it, plus a real font budget: Fraunces is a
+variable face with three axes and Instrument Sans adds a second family. The systems row
+is cheap, a flex-wrap of pills with no fixed grid to maintain. <b>On iOS</b> the ring is a
+natural Swift Charts or Canvas drawing and the pills map to a wrapping layout;
+the dark palette needs a light counterpart before ship, the 88 px numeral has to shrink
+under Dynamic Type, and the coral on deep green must be checked against Increase Contrast.</p>
+    </main>
+  </body>
+</html>
