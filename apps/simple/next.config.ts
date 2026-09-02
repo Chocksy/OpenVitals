@@ -21,8 +21,14 @@ const folded = [
   ["/uploads", "/blood?tab=uploads"],
   ["/uploads/:id", "/blood/uploads/:id"],
   ["/m/:code", "/blood/m/:code"],
-  // Plan: /protocol, /goals, /insights, /review and /patterns/:id redirect
-  // once slice 30d gives /plan their tabs; until then the old pages stay live.
+  // Plan (phase 30d). `/review` and `/patterns/:id` land on an anchor rather
+  // than a tab, because both are one section of the page and nothing is
+  // hidden behind JavaScript.
+  ["/protocol", "/plan?tab=protocol"],
+  ["/goals", "/plan?tab=goals"],
+  ["/insights", "/plan?tab=earlier"],
+  ["/review", "/plan#answer"],
+  ["/patterns/:id", "/plan#patterns"],
 ] as const;
 
 const nextConfig: NextConfig = {

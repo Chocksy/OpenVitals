@@ -18,6 +18,8 @@ import {
 } from "@/db";
 import { getMetricRows } from "./data";
 import { localDay } from "./daily";
+import { explainKey } from "./explain";
+import { dayLabel } from "./utils";
 import type { Grade } from "./hypotheses";
 import {
   personalMultipliers,
@@ -330,19 +332,27 @@ export async function resolveProjections(userId: string): Promise<number> {
   return closed;
 }
 
-/** The line the home ledger prints for one marker. */
+/**
+ * The line the home ledger prints for one marker.
+ *
+ * Phase 30d, UX note 3: "On track: hba1c expected 5.26 % by 2026-11-23" put
+ * an engine code and a machine's date on the page. The marker goes through
+ * `explainKey` and the day through `dayLabel`, here and everywhere.
+ */
 export function ledgerLine(p: StoredProjection, unit = ""): string {
   const u = unit ? ` ${unit}` : "";
+  const name = explainKey(p.code);
   if (p.verdict && p.resolvedValue != null)
     return p.verdict === "as_expected"
-      ? `As expected: ${p.code} ${p.resolvedValue}${u}, projected ${p.expected}`
+      ? `As expected: ${name} ${p.resolvedValue}${u}, projected ${p.expected}`
       : p.verdict === "better"
         ? `Better than expected: ${p.resolvedValue}${u} against ${p.expected}`
         : `Worse than expected: ${p.resolvedValue}${u} against ${p.expected}`;
   const due = new Date(p.retestAt) <= new Date(localDay());
+  const when = dayLabel(p.retestAt, true);
   return due
-    ? `Retest due: ${p.code}, projected ${p.expected}${u} by ${p.retestAt}`
-    : `On track: ${p.code} expected ${p.expected}${u} by ${p.retestAt}, retest then`;
+    ? `Retest due: ${name}, projected ${p.expected}${u} by ${when}`
+    : `On track: ${name} expected ${p.expected}${u} by ${when}, retest then`;
 }
 
 /**
@@ -376,7 +386,7 @@ export async function previewLines(
     const delta = p.contributions[0]?.delta;
     if (delta == null) continue;
     out[text] =
-      `this alone: ${delta > 0 ? "+" : ""}${delta} ${code.replace(/_/g, " ")} in ${weeks} weeks, ` +
+      `this alone: ${delta > 0 ? "+" : ""}${delta} ${explainKey(code)} in ${weeks} weeks, ` +
       `grade ${effect.grade} (${effect.source})`;
   }
   return out;

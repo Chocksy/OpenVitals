@@ -1,39 +1,64 @@
+/**
+ * Plan: one page, seven sections.
+ *
+ * Phase 30d, per `docs/mockups/v4/plan.html`. `/protocol`, `/goals`,
+ * `/insights` and `/patterns/[id]` fold in here and redirect; the review
+ * queue that was `/review` is "Answer these". The old URLs carry a `?tab=`,
+ * and a tab here is a place on the page, not a place that hides the rest:
+ * the section the link asked for is printed first and everything else keeps
+ * its order. Nothing is hidden behind JavaScript, so `#answer` and
+ * `#patterns` land on real anchors.
+ */
 import { queueQuestions } from "@/lib/ask";
 import { and, desc, eq } from "drizzle-orm";
 import Link from "next/link";
-import { Check, CheckCircle2, Network, Stethoscope } from "lucide-react";
 import {
   getDb,
   insights,
   protocolItems,
   reviewItems,
   type LifestyleBody,
-  type ReportAction,
   type WeeklyBody,
 } from "@/db";
 import { requireUserId } from "@/lib/auth";
 import {
+  actionsForAll,
+  aimOf,
+  saysSomething,
+  type PlanLine,
+} from "@/lib/actions";
+import {
   buildModelInput,
   coverage,
   type CoverageRow,
-  type ModelInput,
 } from "@/lib/coverage";
 import { computeGraphState, graphState } from "@/lib/graph-state";
-import { matchPatterns, type PatternMatch } from "@/lib/patterns";
+import { matchPatterns } from "@/lib/patterns";
 import { asksFromMoves, inlineAsks } from "@/lib/asking";
+import { bootstrapProtocol, getGoals, getProtocol } from "@/lib/daily-data";
+import { getMetricNames } from "@/lib/data";
 import { catalogFor } from "@/lib/hkb";
 import { nextMoves } from "@/lib/infogain";
 import { scoreHypotheses } from "@/lib/hypotheses";
-import { displayNameOf } from "@/lib/ledger";
+import { displayNameOf, isLoud } from "@/lib/ledger";
 import { latestReport } from "@/lib/report";
-import { VECTORS } from "@/lib/vectors";
-import { ReviewItem } from "@/components/client";
-import { ActionCard } from "@/components/action-card";
 import { previewLines } from "@/lib/projections";
 import { horizonShelf, type HorizonItem } from "@/lib/trends";
+import { VECTORS } from "@/lib/vectors";
+import { dayLabel, plural } from "@/lib/utils";
+import { ReviewItem } from "@/components/client";
+import { ActionCard } from "@/components/action-card";
 import { AdoptHorizon, PlanShell } from "@/components/plan";
+import {
+  FactRow,
+  GoalRow,
+  PatternCard,
+  ProtocolItemRow,
+  TestRow,
+} from "@/components/plan-sections";
+import { AddProtocolItem } from "@/components/tracker";
 import { Terms } from "@/components/term";
-import { Card, StateWord, type StateTone, Tier } from "@/components/ui-kit";
+import { StateWord, type StateTone } from "@/components/ui-kit";
 import { EvidenceChip } from "@/components/evidence-chip";
 
 export const dynamic = "force-dynamic";
@@ -44,315 +69,212 @@ const TIER_LABELS = [
   "Tier 2 · conditional",
 ];
 
-const STATE_TONE: Record<string, StateTone> = {
+const COVERAGE_TONE: Record<string, StateTone> = {
   current: "on",
   stale: "border",
-  never: "off",
+  never: "none",
   "n/a": "none",
 };
 
-function Label({ children }: { children: React.ReactNode }) {
+/** The sections, in the order the page prints them, and their anchors. */
+const SECTIONS = [
+  ["first", "Do this first"],
+  ["protocol", "Already doing"],
+  ["goals", "Goals"],
+  ["patterns", "Patterns"],
+  ["tests", "Tests to order"],
+  ["answer", "Answer these"],
+  ["earlier", "Earlier plans"],
+] as const;
+
+type SectionId = (typeof SECTIONS)[number][0];
+
+function Panel({
+  id,
+  title,
+  right,
+  children,
+}: {
+  id: SectionId;
+  title: string;
+  right?: React.ReactNode;
+  children: React.ReactNode;
+}) {
   return (
-    <h2 className="t-meta mb-2 text-[10px] font-bold uppercase tracking-[0.06em] text-neutral-400">
+    <section id={id} className="panel scroll-mt-24">
+      <div className="panel-head">
+        <h3>{title}</h3>
+        {right && <span className="r">{right}</span>}
+      </div>
       {children}
-    </h2>
-  );
-}
-
-/**
- * Rule-driven tests are the floor of the plan, not the plan: one compact row
- * each, no adopt or dismiss, and a single link to the retest planner.
- */
-function TestList({
-  rows,
-}: {
-  rows: { action: ReportAction; index: number }[];
-}) {
-  return (
-    <div className="card divide-y divide-neutral-100">
-      {rows.map(({ action, index }) => (
-        <div key={`${action.title}-${index}`} className="px-4 py-3">
-          <div className="flex flex-wrap items-start justify-between gap-2">
-            <p className="flex-1 font-body text-[13px] text-neutral-800">
-              {action.title}
-            </p>
-            <span className="flex items-center gap-1.5">
-              <EvidenceChip basis={action.basis} />
-              <Tier tier={action.tier} />
-            </span>
-          </div>
-          <p className="deep mt-1 font-body text-[12px] text-neutral-500">
-            {action.why}
-          </p>
-        </div>
-      ))}
-      <div className="px-4 py-3">
-        <Link
-          href="/insights"
-          className="inline-flex h-8 items-center gap-1.5 rounded-sm border border-neutral-200 bg-neutral-0 px-3 font-display text-[12px] tracking-[0.04em] text-neutral-700 hover:border-neutral-900 hover:bg-neutral-50"
-        >
-          <Stethoscope className="size-3.5" /> Plan retest
-        </Link>
-      </div>
-    </div>
-  );
-}
-
-function CoverageSection({ rows }: { rows: CoverageRow[] }) {
-  const tiers = [0, 1, 2] as const;
-  return (
-    <details className="card p-4">
-      <summary className="hit-40 t-meta cursor-pointer text-[10px] font-bold uppercase tracking-[0.06em] text-neutral-400 hover:text-neutral-600">
-        What we have and what we do not
-      </summary>
-      <div className="mt-3 space-y-4">
-        {tiers.map((tier) => {
-          const group = rows.filter((r) => r.vector.tier === tier);
-          if (!group.length) return null;
-          return (
-            <div key={tier}>
-              <p className="t-meta mb-1 text-[10px] font-bold uppercase tracking-[0.06em] text-neutral-400">
-                {TIER_LABELS[tier]}
-              </p>
-              <div className="card divide-y divide-neutral-100">
-                {group.map((r) => (
-                  <div
-                    key={r.vector.id}
-                    className={`flex items-center gap-3 px-4 py-2 ${
-                      r.state === "n/a" ? "deep text-neutral-400" : ""
-                    }`}
-                  >
-                    <span className="flex-1 truncate font-body text-[13px]">
-                      {r.vector.name}
-                    </span>
-                    <span className="t-meta hidden text-[11px] sm:inline">
-                      {r.detail}
-                    </span>
-                    <StateWord tone={STATE_TONE[r.state]}>{r.state}</StateWord>
-                  </div>
-                ))}
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    </details>
-  );
-}
-
-/**
- * ponytail: an escalation counts as done when a reading whose code is named in
- * the suggestion arrived after the plan was written. No new table for "when
- * did this pattern first match".
- */
-function escalationDone(
-  suggest: string,
-  input: ModelInput,
-  since: string,
-): boolean {
-  const text = suggest.toLowerCase();
-  return Object.entries(input.latest).some(
-    ([code, row]) =>
-      (text.includes(code.replace(/_/g, " ")) || text.includes(code)) &&
-      row.date > since,
-  );
-}
-
-const CONFIDENCE_TONE: Record<string, StateTone> = {
-  established: "on",
-  probable: "none",
-  speculative: "none",
-};
-
-function PatternCard({
-  match,
-  verdict,
-  edges,
-  input,
-  since,
-}: {
-  match: PatternMatch;
-  verdict?: string;
-  edges: ReturnType<typeof computeGraphState>["activeEdges"];
-  input: ModelInput;
-  since: string;
-}) {
-  const { pattern, stage, reasons } = match;
-  return (
-    <Card className="p-4">
-      <div className="flex flex-wrap items-start justify-between gap-2">
-        <Link
-          href={`/patterns/${pattern.id}`}
-          className="font-display text-[15px] font-medium hover:underline"
-        >
-          {pattern.name}
-        </Link>
-        {stage && <StateWord tone="border">{stage}</StateWord>}
-      </div>
-
-      <p className="t-body mt-2 text-neutral-700">
-        <Terms text={pattern.summary} />
-      </p>
-      {verdict && (
-        <p className="t-body mt-2 text-neutral-800">
-          <Terms text={verdict} />
-        </p>
-      )}
-
-      {/* "NOT YET" was a status for an admin. What a reader wants to know is
-          which test would settle it, so the list says that once, at the top. */}
-      <p className="t-meta mt-3 text-[12px]">
-        {pattern.effects.escalations.length === 1
-          ? "Test that would confirm it"
-          : "Tests that would confirm it"}
-      </p>
-      <ul className="mt-1 space-y-1">
-        {pattern.effects.escalations.map((e) => {
-          const done = escalationDone(e.suggest, input, since);
-          return (
-            <li key={e.id} className="t-body flex items-start gap-2">
-              <span className="mt-[3px] size-3.5 shrink-0 text-[var(--color-health-normal)]">
-                {done ? <Check className="size-3.5" /> : null}
-              </span>
-              <span className="flex-1">
-                <Terms text={e.suggest} />
-                {done && <span className="t-meta text-[12px]"> · done</span>}
-              </span>
-            </li>
-          );
-        })}
-      </ul>
-
-      <div className="mt-3">
-        <Link
-          href={`/patterns/${pattern.id}`}
-          className="inline-flex h-8 items-center gap-1.5 rounded-sm border border-neutral-200 bg-neutral-0 px-3 font-display text-[12px] tracking-[0.04em] text-neutral-700 hover:border-neutral-900 hover:bg-neutral-50"
-        >
-          <Network className="size-3.5" /> See how this connects
-        </Link>
-      </div>
-
-      <div className="deep mt-3 space-y-2 border-t border-neutral-100 pt-3">
-        <p className="t-body text-[12px] text-neutral-600">
-          <span className="t-meta text-[10px] font-bold uppercase tracking-[0.06em] text-neutral-400">
-            Why this matched ·{" "}
-          </span>
-          {reasons.join("; ")}
-        </p>
-        <p className="t-body text-[12px] text-neutral-600">
-          <span className="t-meta text-[10px] font-bold uppercase tracking-[0.06em] text-neutral-400">
-            Contested ·{" "}
-          </span>
-          {pattern.controversy}
-        </p>
-        <p className="t-body text-[12px] text-neutral-600">
-          <span className="t-meta text-[10px] font-bold uppercase tracking-[0.06em] text-neutral-400">
-            Management ·{" "}
-          </span>
-          {pattern.management}
-        </p>
-        {edges.length > 0 && (
-          <div className="space-y-1">
-            {edges.map((e) => (
-              <div key={e.id} className="flex items-start gap-2">
-                <StateWord tone={CONFIDENCE_TONE[e.confidence]}>
-                  {e.confidence}
-                </StateWord>
-                <span className="t-body flex-1 text-[12px] text-neutral-600">
-                  <Terms text={e.mechanism} />
-                </span>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-    </Card>
+    </section>
   );
 }
 
 /**
  * "Popular right now — labelled, unproven, measurable."
  *
- * Everything the trends inbox filed, with its labels said out loud: anecdotal,
- * grade E, where it came from. When the marker it names already has graded
- * science behind it, that is printed next to it, because those are two
- * different claims and the shelf must never let them blur.
+ * Phase 30d, UX note 7: this is also where an action with no dose and no
+ * sentence of its own lands. Home will not print "dihydromyricetin ● A · alt
+ * down", because that is a name and a glyph; the shelf will, with its grade
+ * and its label said out loud, which is the whole point of the shelf.
  */
-function HorizonShelf({ items }: { items: HorizonItem[] }) {
+function HorizonShelf({
+  items,
+  parked,
+}: {
+  items: HorizonItem[];
+  parked: PlanLine[];
+}) {
   return (
-    <section>
-      <Label>Popular right now · {items.length}</Label>
-      <p className="mb-2 font-body text-[12px] text-neutral-500">
+    <section className="panel">
+      <div className="panel-head">
+        <h3>Popular right now</h3>
+        <span className="r">{items.length + parked.length}</span>
+      </div>
+      <p className="t-meta mb-3 text-[length:var(--type-sm)]">
         Labelled, unproven, measurable. Nothing here moves a conclusion; it is
         offered so it can be tried and judged.
       </p>
-      <div className="space-y-2">
+      <div className="rowlist">
+        {parked.map((line) => (
+          <div key={line.id} className="markerrow said">
+            <div className="nm">
+              <b>{line.title}</b>
+              <span>
+                no dose and no sentence yet, so it is not on Home
+              </span>
+            </div>
+            <div className="wd">
+              <EvidenceChip basis={line.basis} grade={line.grade} />
+            </div>
+          </div>
+        ))}
         {items.map((item) => (
-          <Card key={item.id} className="p-4">
-            <div className="flex flex-wrap items-start justify-between gap-2">
-              <p className="flex-1 font-body text-[14px] text-neutral-800">
+          <div key={item.id} className="grid gap-2 py-2">
+            <div className="flex flex-wrap items-baseline gap-2">
+              <b className="t-body text-[length:var(--type-sm)]">
                 {item.name}
-              </p>
-              <span className="flex flex-wrap items-center gap-1.5">
-                <EvidenceChip basis="anecdotal" grade={item.grade} />
-                <span className="t-meta text-[10px] font-bold uppercase tracking-[0.04em] text-neutral-400">
-                  from {item.sourceKind}
-                </span>
+              </b>
+              <EvidenceChip basis="anecdotal" grade={item.grade} />
+              <span className="t-meta text-[length:var(--type-xs)]">
+                from {item.sourceKind}
               </span>
             </div>
             {item.quote && (
-              <p className="mt-1 border-l-2 border-neutral-200 pl-2 font-body text-[12px] italic text-neutral-500">
-                “{item.quote}”
+              <p className="t-meta text-[length:var(--type-sm)] italic">
+                &ldquo;{item.quote}&rdquo;
               </p>
             )}
             {item.science.length > 0 && (
-              <p className="mt-2 font-body text-[12px] text-neutral-600">
+              <p className="t-meta text-[length:var(--type-sm)]">
                 the science inside it:{" "}
                 {item.science
                   .map(
                     (s) =>
                       `${s.name} — grade ${s.grade}${
                         s.effect ? `, ${s.effect}` : ""
-                      } for ${s.outcomeFeatureId?.replace(/^metric:/, "") ?? "it"}`,
+                      }`,
                   )
                   .join(" · ")}
               </p>
             )}
-            <p className="mt-1 font-body text-[12px] text-neutral-600">
+            <p className="t-meta text-[length:var(--type-sm)]">
               {item.plan ??
                 "It names no marker this app measures, so there is nothing to judge it by yet."}
             </p>
-            <div className="mt-3">
-              <AdoptHorizon interventionId={item.id} adopted={item.adopted} />
-            </div>
-          </Card>
+            <AdoptHorizon
+              interventionId={item.id}
+              adopted={item.adopted}
+            />
+          </div>
         ))}
       </div>
     </section>
   );
 }
 
-export default async function PlanPage() {
+function Coverage({ rows }: { rows: CoverageRow[] }) {
+  const tiers = [0, 1, 2] as const;
+  return (
+    <section className="panel">
+      <div className="panel-head">
+        <h3>Coverage</h3>
+        <span className="r">what is still dark</span>
+      </div>
+      <details className="disclose">
+        <summary>What we have and what we do not</summary>
+        <div className="inner space-y-3">
+          {tiers.map((tier) => {
+            const group = rows.filter((r) => r.vector.tier === tier);
+            if (!group.length) return null;
+            return (
+              <div key={tier}>
+                <p className="t-meta text-[length:var(--type-xs)]">
+                  {TIER_LABELS[tier]}
+                </p>
+                <div className="rowlist">
+                  {group.map((r) => (
+                    <div
+                      key={r.vector.id}
+                      className={`flex items-center gap-3 py-1 ${
+                        r.state === "n/a" ? "deep" : ""
+                      }`}
+                    >
+                      <span className="t-body flex-1 truncate text-[length:var(--type-sm)]">
+                        {r.vector.name}
+                      </span>
+                      <span className="t-meta hidden text-[length:var(--type-xs)] sm:inline">
+                        {r.detail}
+                      </span>
+                      <StateWord tone={COVERAGE_TONE[r.state]}>
+                        {r.state === "never" ? "never measured" : r.state}
+                      </StateWord>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </details>
+    </section>
+  );
+}
+
+export default async function PlanPage({
+  searchParams,
+}: {
+  /** `?tab=protocol`: which section the link that got here came for */
+  searchParams: Promise<{ tab?: string }>;
+}) {
   const userId = await requireUserId();
   const db = getDb();
+  const want = (await searchParams).tab;
 
   const report = await latestReport(userId);
   if (!report) await queueQuestions(userId);
+  await bootstrapProtocol(userId);
 
-  const [input, open, earlier] = await Promise.all([
-    buildModelInput(userId),
-    db
-      .select()
-      .from(reviewItems)
-      .where(
-        and(eq(reviewItems.userId, userId), eq(reviewItems.status, "open")),
-      ),
-    db
-      .select()
-      .from(insights)
-      .where(eq(insights.userId, userId))
-      .orderBy(desc(insights.createdAt)),
-  ]);
+  const [input, open, earlier, protocol, goals, metricNames] =
+    await Promise.all([
+      buildModelInput(userId),
+      db
+        .select()
+        .from(reviewItems)
+        .where(
+          and(eq(reviewItems.userId, userId), eq(reviewItems.status, "open")),
+        ),
+      db
+        .select()
+        .from(insights)
+        .where(eq(insights.userId, userId))
+        .orderBy(desc(insights.createdAt)),
+      getProtocol(userId),
+      getGoals(userId),
+      getMetricNames(),
+    ]);
+
   const weekly = earlier.find((r) => r.kind === "weekly")?.body as
     | WeeklyBody
     | undefined;
@@ -383,24 +305,13 @@ export default async function PlanPage() {
   );
   const blocked = !input.sex || input.age == null;
 
-  /**
-   * The engine's own questions, as lines. The input for them lives in the
-   * Today card on Home and nowhere else (phase 24a), so this section prints
-   * what each one would move and links there.
-   */
   const catalog = blocked ? [] : await catalogFor(userId);
-  const names = new Map(
-    scoreHypotheses(input, { catalog }).map((h) => [h.id, displayNameOf(h)]),
-  );
+  const scored = blocked ? [] : scoreHypotheses(input, { catalog });
+  const names = new Map(scored.map((h) => [h.id, displayNameOf(h)]));
   const asks = asksFromMoves(
     nextMoves(input, catalog),
     (id) => names.get(id) ?? id,
   );
-  /**
-   * Phase 26 item 7: Plan answers its own questions. Each row says what the
-   * answer would move; the input is right there, and the page re-renders
-   * around it. Home's Today card is still the only place Home asks.
-   */
   const inline = inlineAsks(
     questions.map((q) => ({
       id: q.id,
@@ -411,23 +322,27 @@ export default async function PlanPage() {
     asks,
   );
 
-  // The trends inbox, with what this person has already adopted marked off.
-  const onProtocol = await db
-    .select({ text: protocolItems.text, startedAt: protocolItems.startedAt })
-    .from(protocolItems)
-    .where(
-      and(eq(protocolItems.userId, userId), eq(protocolItems.active, true)),
-    );
+  const onProtocol = protocol.filter((r) => r.active);
+  const archived = protocol.filter((r) => !r.active);
   const adoptedTexts = onProtocol.map((r) => r.text);
   const horizon = await horizonShelf(adoptedTexts);
 
   /**
-   * Phase 27 addendum item 3. An action this person already does is not
-   * something to add: `lib/ledger.ts` joins the plan to the protocol by "the
-   * item's text starts with the action's title", and the same join answers it
-   * here, so the card says "you're already doing this" and the report writer
-   * sees it as adopted.
+   * UX note 7: the rows Home refuses to print, gathered here. The same
+   * `actionsForAll` Home calls, over the loud conditions, minus everything
+   * that says something on its own — which is what Home already showed.
    */
+  const loudIds = scored
+    .filter((h) => isLoud(h.state))
+    .map((h) => h.id)
+    .slice(0, 8);
+  const todo = loudIds.length ? await actionsForAll(userId, loudIds) : {};
+  const seen = new Set<string>();
+  const parked = Object.values(todo)
+    .flat()
+    .filter((l) => !saysSomething(l))
+    .filter((l) => (seen.has(l.id) ? false : (seen.add(l.id), true)));
+
   const alreadyOf = (title: string) => {
     const row = onProtocol.find((r) => r.text.startsWith(title));
     return row ? { startedAt: row.startedAt } : undefined;
@@ -437,49 +352,332 @@ export default async function PlanPage() {
   const indexed = actions.map((action, index) => ({ action, index }));
   const doFirst = indexed.filter((r) => r.action.kind !== "test");
   const tests = indexed.filter((r) => r.action.kind === "test");
-  // What each action would do on its own, shown before it is adopted.
   const previews = await previewLines(doFirst.map((r) => r.action.title));
 
-  return (
-    <PlanShell date={report?.createdAt?.toISOString().slice(0, 10) ?? null}>
-      {/* 2. Profile strip */}
-      <Card className="p-4">
-        <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
-          <span className="t-meta text-[12px]">
-            Sex <span className="text-[13px] text-neutral-800">{input.sex ?? "—"}</span>
-          </span>
-          <span className="t-meta text-[12px]">
-            Age{" "}
-            <span className="t-num text-[13px] text-neutral-800">
-              {input.age ?? "—"}
-            </span>
-          </span>
-          <span className="t-meta text-[12px]">
-            {answered} of {tier0.length} questions answered
-          </span>
-        </div>
+  const nameOf = (code: string) =>
+    metricNames.get(code) ?? code.replace(/_/g, " ");
+  const openGoals = goals.filter((g) => !(g.achievedAt || g.reached));
+  const reached = goals.filter((g) => g.achievedAt || g.reached);
+  const ticked = onProtocol.filter((r) => r.strip30.at(-1) === 1).length;
+  const above80 = onProtocol.filter((r) => r.adherence30 >= 80).length;
+  const askCount = inline.length + checkIns.length;
 
-        {patterns.length > 0 && (
-          <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-neutral-100 pt-3">
-            <span className="t-meta text-[10px] font-bold uppercase tracking-[0.06em] text-neutral-400">
-              Patterns
-            </span>
-            {patterns.map((m) => (
-              <Link
-                key={m.pattern.id}
-                href={`/patterns/${m.pattern.id}`}
-                className="inline-flex items-center gap-1.5 border border-neutral-200 bg-neutral-50 px-2.5 py-1 font-body text-[12px] text-neutral-700 hover:border-neutral-900 hover:text-neutral-900"
-              >
-                {m.pattern.name}
-                {m.stage && <StateWord tone="border">{m.stage}</StateWord>}
-              </Link>
+  const panels: Record<SectionId, React.ReactNode> = {
+    first:
+      doFirst.length > 0 && report ? (
+        <Panel
+          key="first"
+          id="first"
+          title="Do this first"
+          right={plural(doFirst.length, "action")}
+        >
+          <div className="space-y-3">
+            {doFirst.map(({ action, index }) => (
+              <ActionCard
+                key={`${action.title}-${index}`}
+                action={action}
+                index={index}
+                reportId={report.id}
+                aims={action.targets.map((t) => aimOf(t))}
+                {...(previews[action.title]
+                  ? { projection: previews[action.title] }
+                  : {})}
+                {...(alreadyOf(action.title)
+                  ? { already: alreadyOf(action.title) }
+                  : {})}
+              />
+            ))}
+          </div>
+        </Panel>
+      ) : null,
+
+    protocol: (
+      <Panel
+        key="protocol"
+        id="protocol"
+        title="Already doing"
+        right={`${plural(onProtocol.length, "item")} · ${above80} above 80 % · ${ticked} ticked today`}
+      >
+        {onProtocol.length === 0 ? (
+          <div className="empty">
+            <span className="k">No plan</span>
+            <b className="t-title text-[length:var(--type-md)] font-normal">
+              Nothing in your protocol yet
+            </b>
+            <p>
+              Adopt an action from &ldquo;Do this first&rdquo;, or add one by
+              hand. Every item you add prints the 30 days behind it.
+            </p>
+          </div>
+        ) : (
+          <div className="rowlist">
+            {onProtocol.map((item) => (
+              <ProtocolItemRow
+                key={item.id}
+                item={{ ...item, startedAt: item.startedAt ?? null }}
+                nameOf={nameOf}
+              />
             ))}
           </div>
         )}
+        <div className="rowh mt-3">
+          <AddProtocolItem
+            metricNames={[...metricNames].map(([code, name]) => ({
+              code,
+              name,
+            }))}
+          />
+        </div>
+        {archived.length > 0 && (
+          <details className="disclose mt-3">
+            <summary>{plural(archived.length, "archived item")}</summary>
+            <div className="inner">
+              <div className="rowlist">
+                {archived.map((item) => (
+                  <ProtocolItemRow
+                    key={item.id}
+                    item={{ ...item, startedAt: item.startedAt ?? null }}
+                    nameOf={nameOf}
+                  />
+                ))}
+              </div>
+            </div>
+          </details>
+        )}
+      </Panel>
+    ),
+
+    goals: (
+      <Panel
+        key="goals"
+        id="goals"
+        title="Goals"
+        right={plural(openGoals.length, "open goal")}
+      >
+        {goals.length === 0 ? (
+          <div className="empty">
+            <span className="k">No goals</span>
+            <b className="t-title text-[length:var(--type-md)] font-normal">
+              Nothing aimed at a number yet
+            </b>
+            <p>
+              A goal is a marker, a band and a date. Open a marker and set one,
+              and it appears here with the distance still to close.
+            </p>
+            <Link href="/blood?tab=markers">Open your markers</Link>
+          </div>
+        ) : (
+          <div className="rowlist">
+            {openGoals.map((g) => (
+              <GoalRow key={g.id} g={g} />
+            ))}
+          </div>
+        )}
+        {reached.length > 0 && (
+          <>
+            <div className="sub">
+              <h3>Reached</h3>
+              <span>each one appeared when the retest landed</span>
+            </div>
+            <div className="rowlist">
+              {reached.map((g) => (
+                <GoalRow key={g.id} g={g} />
+              ))}
+            </div>
+          </>
+        )}
+      </Panel>
+    ),
+
+    patterns:
+      patterns.length > 0 ? (
+        <Panel
+          key="patterns"
+          id="patterns"
+          title="Patterns"
+          right={plural(patterns.length, "match", "matches")}
+        >
+          <p className="t-meta mb-3 text-[length:var(--type-sm)]">
+            Two or more findings that usually travel together.
+          </p>
+          <div className="space-y-3">
+            {patterns.map((m) => (
+              <PatternCard
+                key={m.pattern.id}
+                match={m}
+                {...(body?.patterns?.find((p) => p.id === m.pattern.id)?.verdict
+                  ? {
+                      verdict: body.patterns.find(
+                        (p) => p.id === m.pattern.id,
+                      )!.verdict,
+                    }
+                  : {})}
+                edges={graph.activeEdges.filter(
+                  (e) => e.when?.pattern === m.pattern.id,
+                )}
+                input={input}
+              />
+            ))}
+          </div>
+        </Panel>
+      ) : null,
+
+    tests:
+      tests.length > 0 ? (
+        <Panel
+          key="tests"
+          id="tests"
+          title="Tests to order"
+          right={plural(tests.length, "test")}
+        >
+          <div className="rowlist">
+            {tests.map(({ action, index }) => (
+              <TestRow
+                key={`${action.title}-${index}`}
+                name={action.title}
+                why={action.why}
+                tier={action.tier}
+                basisChip={<EvidenceChip basis={action.basis} />}
+              />
+            ))}
+          </div>
+          <div className="rowh mt-3">
+            <Link href="/blood?tab=draws" className="b b-quiet b-sm">
+              Plan a draw
+            </Link>
+          </div>
+        </Panel>
+      ) : null,
+
+    answer: (
+      <Panel
+        key="answer"
+        id="answer"
+        title="Answer these"
+        right={askCount || "nothing due"}
+      >
+        {askCount === 0 ? (
+          <div className="empty">
+            <span className="k">Nothing due</span>
+            <b className="t-title text-[length:var(--type-md)] font-normal">
+              No question worth answering
+            </b>
+            <p>
+              The engine only asks when the answer would move a number. It has
+              nothing to ask right now, and that is the real state.
+            </p>
+            <Link href="/">See what it already knows</Link>
+          </div>
+        ) : (
+          <div className="rowlist">
+            {inline.map((q) => (
+              <ReviewItem
+                key={q.id}
+                id={q.id}
+                question={q.question}
+                options={q.options}
+                {...(q.detail ? { detail: q.detail } : {})}
+              />
+            ))}
+            {checkIns.map((c) => (
+              <ReviewItem
+                key={c.id}
+                id={c.id}
+                question={c.question}
+                options={c.options}
+                {...(c.subject?.detail ? { detail: c.subject.detail } : {})}
+              />
+            ))}
+          </div>
+        )}
+      </Panel>
+    ),
+
+    earlier:
+      weekly || lifestyle ? (
+        <Panel
+          key="earlier"
+          id="earlier"
+          title="Earlier plans"
+          right="weekly review"
+        >
+          <div className="rowlist">
+            {weekly && (
+              <FactRow
+                name="Last weekly review"
+                detail={weekly.summary}
+                value={String(weekly.adherencePct)}
+                unit="%"
+                word={weekly.adherencePct >= 80 ? "held" : "partial"}
+                tone={weekly.adherencePct >= 80 ? "on" : "border"}
+              />
+            )}
+            {(weekly?.nextWeek ?? []).map((line) => (
+              <p
+                key={line}
+                className="t-body py-1 text-[length:var(--type-sm)] text-[var(--ink-2)]"
+              >
+                {line}
+              </p>
+            ))}
+            {lifestyle?.items?.map((item, i) => (
+              <p
+                key={i}
+                className="t-body py-1 text-[length:var(--type-sm)] text-[var(--ink-2)]"
+              >
+                <span className="text-[var(--ink)]">{item.text}</span>{" "}
+                {item.why}
+              </p>
+            ))}
+          </div>
+        </Panel>
+      ) : null,
+  };
+
+  const order: SectionId[] = SECTIONS.map(([id]) => id);
+  if (want && order.includes(want as SectionId))
+    order.sort(
+      (a, b) => Number(b === want) - Number(a === want),
+    );
+
+  return (
+    <PlanShell
+      date={
+        report?.createdAt
+          ? dayLabel(report.createdAt.toISOString().slice(0, 10), true)
+          : null
+      }
+    >
+      <div className="panel">
+        <div className="rowh">
+          <span className="t-meta text-[length:var(--type-sm)]">
+            Sex{" "}
+            <span className="text-[var(--ink)]">{input.sex ?? "not said"}</span>
+          </span>
+          <span className="t-meta text-[length:var(--type-sm)]">
+            Age{" "}
+            <span className="t-num text-[var(--ink)]">
+              {input.age ?? "not said"}
+            </span>
+          </span>
+          <span className="t-meta text-[length:var(--type-sm)]">
+            <span className="t-num text-[var(--ink)]">{answered}</span> of{" "}
+            <span className="t-num text-[var(--ink)]">{tier0.length}</span>{" "}
+            questions answered
+          </span>
+          <span className="grow" />
+          <nav className="rowh" aria-label="Jump to a section">
+            {SECTIONS.map(([id, label]) => (
+              <a key={id} href={`#${id}`} className="b b-text b-sm">
+                {label}
+              </a>
+            ))}
+          </nav>
+        </div>
 
         {blocked && (
           <div className="mt-3 space-y-2">
-            <p className="font-body text-[13px] text-neutral-700">
+            <p className="t-body text-[length:var(--type-sm)]">
               Answer these two first; the plan depends on them.
             </p>
             {firstTwo.map((q) => (
@@ -492,188 +690,51 @@ export default async function PlanPage() {
             ))}
           </div>
         )}
-      </Card>
+      </div>
 
       {!blocked && (
         <>
-          {/* 3. Anything waiting for an answer, before anything to read.
-              Questions at the bottom of a long page are questions nobody
-              answers. */}
-          {inline.length + checkIns.length > 0 && (
-            <section>
-              <Label>
-                Answer these first · {inline.length + checkIns.length}
-              </Label>
-              <div className="space-y-2">
-                {inline.map((q) => (
-                  <ReviewItem
-                    key={q.id}
-                    id={q.id}
-                    question={q.question}
-                    options={q.options}
-                    detail={q.detail}
-                  />
-                ))}
-                {checkIns.map((c) => (
-                  <ReviewItem
-                    key={c.id}
-                    id={c.id}
-                    question={c.question}
-                    options={c.options}
-                    detail={c.subject?.detail}
-                  />
-                ))}
-              </div>
-            </section>
-          )}
-
-          {/* 4. ELI5 in simple, the summary lines in deep */}
           {body && (
-            <section>
-              <Label>What this means</Label>
-              <Card className="p-4">
-                <p className="font-body text-[15px] leading-relaxed text-neutral-800">
-                  {body.eli5}
-                </p>
-                <ul className="deep mt-3 space-y-1 border-t border-neutral-100 pt-3">
-                  {body.summary.map((line) => (
-                    <li
-                      key={line}
-                      className="font-body text-[13px] text-neutral-600"
-                    >
-                      {line}
-                    </li>
-                  ))}
-                </ul>
-              </Card>
-            </section>
-          )}
-
-          {/* 4. Do this first */}
-          {patterns.length > 0 && (
-            <section>
-              <Label>Patterns · {patterns.length}</Label>
-              <p className="t-meta mb-2 text-[12px]">
-                Two or more findings that usually travel together.
+            <div className="panel">
+              <div className="panel-head">
+                <h3>What this means</h3>
+              </div>
+              <p className="conc-prose text-[length:var(--type-md)]">
+                <Terms text={body.eli5} />
               </p>
-              <div className="space-y-2">
-                {patterns.map((m) => (
-                  <PatternCard
-                    key={m.pattern.id}
-                    match={m}
-                    verdict={
-                      body?.patterns?.find((p) => p.id === m.pattern.id)
-                        ?.verdict
-                    }
-                    edges={graph.activeEdges.filter(
-                      (e) => e.when?.pattern === m.pattern.id,
-                    )}
-                    input={input}
-                    since={
-                      report?.createdAt?.toISOString().slice(0, 10) ??
-                      input.today
-                    }
-                  />
+              <ul className="deep mt-3 space-y-1 border-t border-[var(--hair)] pt-3">
+                {body.summary.map((line) => (
+                  <li
+                    key={line}
+                    className="t-body text-[length:var(--type-sm)] text-[var(--ink-2)]"
+                  >
+                    <Terms text={line} />
+                  </li>
                 ))}
-              </div>
-            </section>
+              </ul>
+            </div>
           )}
 
-          {doFirst.length > 0 && report && (
-            <section>
-              <Label>Do this first · {doFirst.length}</Label>
-              <div className="space-y-2">
-                {doFirst.map(({ action, index }) => (
-                  <ActionCard
-                    key={`${action.title}-${index}`}
-                    action={action}
-                    index={index}
-                    reportId={report.id}
-                    projection={previews[action.title]}
-                    {...(alreadyOf(action.title)
-                      ? { already: alreadyOf(action.title) }
-                      : {})}
-                  />
-                ))}
-              </div>
-            </section>
-          )}
-
-          {tests.length > 0 && (
-            <section>
-              <Label>Tests to order · {tests.length}</Label>
-              <TestList rows={tests} />
-            </section>
-          )}
-
-          {horizon.length > 0 && <HorizonShelf items={horizon} />}
+          {order.map((id) => panels[id])}
 
           {!report && (
-            <Card className="border-dashed p-10 text-center">
-              <CheckCircle2 className="mx-auto mb-3 size-8 text-neutral-300" />
-              <p className="font-display text-[15px] font-medium">
-                No plan yet
+            <div className="empty">
+              <span className="k">No plan</span>
+              <b className="t-title text-[length:var(--type-md)] font-normal">
+                Nothing to do first
+              </b>
+              <p>
+                Press Generate and the engine writes one from what it already
+                knows. Everything else on this page works without it.
               </p>
-              <p className="mt-1 font-body text-[13px] text-neutral-500">
-                Press Generate. Everything below already works without it.
-              </p>
-            </Card>
+            </div>
           )}
 
-          {/* 7. The older, narrower plans, out of the way. */}
-          {(weekly || lifestyle) && (
-            <details className="card p-4">
-              <summary className="hit-40 t-meta cursor-pointer text-[10px] font-bold uppercase tracking-[0.06em] text-neutral-400 hover:text-neutral-600">
-                Earlier plans
-              </summary>
-              <div className="mt-3 space-y-4">
-                {weekly && (
-                  <div>
-                    <p className="t-meta mb-1 text-[10px] font-bold uppercase tracking-[0.06em] text-neutral-400">
-                      Weekly review · {weekly.adherencePct}% adherence
-                    </p>
-                    <p className="font-body text-[13px] text-neutral-700">
-                      {weekly.summary}
-                    </p>
-                    <ul className="mt-2 space-y-1">
-                      {(weekly.nextWeek ?? []).map((line) => (
-                        <li
-                          key={line}
-                          className="font-body text-[12px] text-neutral-600"
-                        >
-                          {line}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-                {lifestyle?.items?.length ? (
-                  <div>
-                    <p className="t-meta mb-1 text-[10px] font-bold uppercase tracking-[0.06em] text-neutral-400">
-                      Lifestyle plan
-                    </p>
-                    <ul className="space-y-1.5">
-                      {lifestyle.items.map((item, i) => (
-                        <li key={i} className="font-body text-[12px]">
-                          <span className="text-neutral-800">{item.text}</span>{" "}
-                          <span className="text-neutral-500">{item.why}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                ) : null}
-                <Link
-                  href="/insights"
-                  className="inline-flex h-8 items-center rounded-sm border border-neutral-200 bg-neutral-0 px-3 font-display text-[12px] tracking-[0.04em] text-neutral-700 hover:border-neutral-900 hover:bg-neutral-50"
-                >
-                  Open the old insights page
-                </Link>
-              </div>
-            </details>
+          {(horizon.length > 0 || parked.length > 0) && (
+            <HorizonShelf items={horizon} parked={parked} />
           )}
 
-          {/* 8. Coverage */}
-          <CoverageSection rows={cov} />
+          <Coverage rows={cov} />
         </>
       )}
     </PlanShell>

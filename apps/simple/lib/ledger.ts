@@ -673,6 +673,33 @@ function projectionFor(
   return { code: p.code, line: ledgerLine(p, unit), verdict: p.verdict };
 }
 
+/**
+ * The marker whose ruler a conclusion card draws.
+ *
+ * Phase 30d, UX note 2. "Chronic inflammation: likely" argued FOR with
+ * hs-CRP 3.4 mg/L and drew ferritin's ruler underneath it, because
+ * `headline` picks the worst marker the condition is scored on while the FOR
+ * line picks the ones that actually moved the odds. A ruler under a sentence
+ * is read as that sentence's picture, so it may only draw a marker the FOR
+ * line names — and when the FOR line names none of them, the card draws no
+ * ruler at all rather than the wrong one.
+ */
+const RULER_FOR_LINES = 2;
+
+export function rulerLead(
+  codes: string[],
+  byCode: Map<string, MetricRow>,
+  forLines: { input: string }[],
+) {
+  const named = new Set(
+    forLines.slice(0, RULER_FOR_LINES).map((e) => e.input),
+  );
+  return headline(
+    codes.filter((code) => named.has(code)),
+    byCode,
+  );
+}
+
 const rangeBarOf = (m: MetricRow): RulerProps => ({
   value: m.latest.value,
   prev: m.rows.filter((r) => r.value != null).at(-2)?.value ?? null,
@@ -953,7 +980,10 @@ export async function buildLedger(
       action: actions.find((a) =>
         a.targets.some((t) => codes.includes(t.code)),
       ),
-      rangeBar: lead ? rangeBarOf(lead) : undefined,
+      rangeBar: (() => {
+        const shown = rulerLead(codes, byCode, h.for);
+        return shown ? rangeBarOf(shown) : undefined;
+      })(),
       trend:
         lead && lead.points.length >= 3
           ? { code: lead.code, points: lead.points }

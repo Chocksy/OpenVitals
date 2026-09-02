@@ -4053,14 +4053,19 @@ a.t-tab {
   color: var(--ink-3);
 }
 
-/* August's light again, positioned for the home's own bleed. */
+/* August's light again, inside the hero and nowhere else.
+   Phase 30d, UX note 11: the light used to start 34 px above the hero, which
+   put it under the sticky header, and the radial mask was anchored at 35 %
+   of the height, so it never faded at the top — a hard-edged band across the
+   page. It now sits inside `.home-top` and fades to nothing on all four
+   edges, like `.light-layer` in `docs/mockups/v4/system.css`. */
 .home-light {
   position: absolute;
-  inset: calc(var(--s34) * -1) calc(var(--bleed) * -1);
+  inset: 0 calc(var(--bleed) * -1);
   z-index: -1;
   overflow: hidden;
   pointer-events: none;
-  mask-image: radial-gradient(80% 85% at 45% 35%, #000, transparent);
+  mask-image: radial-gradient(75% 80% at 50% 45%, #000 35%, transparent);
 }
 .home-light .blob {
   position: absolute;
@@ -4212,11 +4217,16 @@ a.t-tab {
   }
 }
 
-/* Desktop: the same cards, as the v4 grid. No snap, no mask, no scroll. */
+/* Desktop: the same cards, as the v4 grid. No snap, no mask, no scroll.
+   Phase 30d, UX note 10: Status used to span two rows and the second row was
+   empty, because the systems that would have filled it are printed once, as
+   the state tiles below the ask pill. Status is one row tall, twice as wide,
+   with Body, Blood and Plan beside it; the system cards the rail carries for
+   the phone are not repeated here. */
 @media (min-width: 768px) {
   .home .rail {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: 2fr 1fr 1fr 1fr;
     grid-auto-rows: minmax(160px, auto);
     overflow: visible;
     scroll-snap-type: none;
@@ -4229,9 +4239,29 @@ a.t-tab {
   .home .rail > * {
     flex: initial;
   }
-  .home .rail > li:first-child {
-    grid-column: span 2;
-    grid-row: span 2;
+  .home .rail > li[data-rail="system"] {
+    display: none;
+  }
+}
+/* a test row with no tick column: two tracks, not three. Plan does not know
+   whether a test is on an order sheet yet, and an empty checkbox that means
+   nothing is worse than no checkbox. */
+.drow.plain {
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+/* the systems section: tiles from 768 px, chips on the phone, never both.
+   Scoped to `.chips.systems`, because the ledger's marker cards use plain
+   `.chips` for the markers they collapse and those print at every width. */
+.home .sysgrid {
+  display: none;
+}
+@media (min-width: 768px) {
+  .home .sysgrid {
+    display: grid;
+  }
+  .chips.systems {
+    display: none;
   }
 }
 
@@ -4278,4 +4308,205 @@ a.t-tab {
 /* the login error is a sentence, not a code, so it takes the body size */
 .logincard .err {
   font-size: var(--type-sm);
+}
+
+/* ══ 30d · Plan and Home ═════════════════════════════════════════════
+   The row shapes `docs/mockups/v4/plan.html` draws and `system.css`
+   sections 06 and 08 define: the evidence glyph, the protocol row with its
+   30-cell strip, the goal row with its progress bar, and the systems as
+   state tiles. Copied class for class, so the app and the mockup can be
+   read side by side. */
+
+/* the evidence glyph: the mark, then its grade letter or the word it
+   rests on. Never a bare glyph (phase 30d, UX note 8). */
+.glyph {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font-family: var(--font-mono);
+  font-size: var(--type-xs);
+  color: var(--ink-3);
+  vertical-align: 1px;
+  white-space: nowrap;
+}
+.glyph.sci {
+  color: var(--ok);
+}
+.glyph.op {
+  color: var(--warn);
+}
+.glyph.anec {
+  color: var(--ink-3);
+}
+/* the one legend, once, at the top of the ledger */
+.legend {
+  font-family: var(--font-mono);
+  font-size: var(--type-xs);
+  letter-spacing: 0.04em;
+  color: var(--ink-3);
+}
+
+/* the protocol row: what you decided to do, and the 30 days behind it */
+.protorow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--s5) var(--s13);
+  align-items: start;
+}
+.protorow b {
+  font-size: var(--type-sm);
+  font-weight: 400;
+  color: var(--ink);
+}
+.protorow .psub {
+  font-size: var(--type-xs);
+  color: var(--ink-3);
+}
+.protorow .pct {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--type-md);
+  color: var(--ink);
+  white-space: nowrap;
+}
+
+/* the goal row: the same shape, aimed at a number and a date */
+.goalrow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--s5) var(--s13);
+  align-items: baseline;
+}
+.goalrow .tgt {
+  font-family: var(--font-mono);
+  font-size: var(--type-sm);
+  color: var(--ink-2);
+  white-space: nowrap;
+}
+.progress {
+  grid-column: 1 / -1;
+  height: 5px;
+  border-radius: var(--r-pill);
+  background: var(--track);
+  overflow: hidden;
+}
+.progress i {
+  display: block;
+  height: 100%;
+  width: var(--p);
+  background: var(--ok);
+}
+
+/* the systems, once, as state tiles */
+.sysgrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--s8);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+@media (min-width: 768px) {
+  .sysgrid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: var(--s13);
+  }
+}
+.systile {
+  background: var(--surface);
+  backdrop-filter: blur(21px);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  border-radius: var(--r-card);
+  padding: var(--s13);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s5);
+  min-width: 0;
+  min-height: 118px;
+  color: var(--ink);
+  transition: border-color var(--dur-quick) var(--ease);
+}
+:root[data-theme="dark"] .systile {
+  border-color: rgba(255, 255, 255, 0.08);
+}
+.systile:hover {
+  border-color: var(--ink-3);
+}
+.systile .sname {
+  font-size: var(--type-sm);
+  color: var(--ink-2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.systile .sname,
+.systile .sstate {
+  display: block;
+}
+.systile .sstate {
+  font-size: var(--type-md);
+  color: var(--st, var(--ink));
+  letter-spacing: -0.01em;
+}
+.systile.off {
+  --st: var(--bad);
+}
+.systile.border {
+  --st: var(--warn);
+}
+.systile.on {
+  --st: var(--ok);
+}
+.systile.empty {
+  --st: var(--ink-3);
+  background: transparent;
+  backdrop-filter: none;
+  border-color: transparent;
+  box-shadow: inset 0 0 0 1px var(--hair);
+}
+.systile .sval {
+  margin-top: auto;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--s8);
+}
+.systile .sval b {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-weight: 300;
+  font-size: var(--type-lg);
+  letter-spacing: -0.03em;
+  color: var(--ink);
+}
+.systile .sval b em {
+  font-style: normal;
+  font-size: var(--type-xs);
+  color: var(--ink-3);
+  margin-left: var(--s3);
+}
+.systile .sval > span {
+  min-width: 0;
+}
+.systile .smk {
+  display: block;
+  font-size: var(--type-xs);
+  color: var(--ink-3);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+@media (prefers-reduced-transparency: reduce) {
+  .systile {
+    backdrop-filter: none;
+    background: var(--surface-flat);
+  }
+  .systile.empty {
+    background: transparent;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .systile {
+    transition: none;
+  }
 }

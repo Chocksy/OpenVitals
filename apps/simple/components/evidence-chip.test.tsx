@@ -66,10 +66,20 @@ describe("the tooltip spells the glyph out", () => {
     );
   });
 
-  it("prints the grade letter for science only", () => {
+  /* Phase 30d, UX note 8: a glyph without its letter tells a reader
+     nothing, so the letter is printed wherever there is one. */
+  it("prints the grade letter wherever there is one", () => {
     expect(showsGrade("science", "C")).toBe(true);
-    expect(showsGrade("anecdotal", "D")).toBe(false);
+    expect(showsGrade("anecdotal", "D")).toBe(true);
     expect(showsGrade("science", null)).toBe(false);
+  });
+
+  it("says what a chip with no grade rests on, in a word", () => {
+    const out = renderToStaticMarkup(
+      createElement(EvidenceChip, { basis: "opinion" }),
+    );
+    expect(out).toContain("◐");
+    expect(out).toContain("opinion");
   });
 });
 
@@ -115,6 +125,7 @@ describe("no surface prints a bracket label", () => {
               grade: "B",
               why: "TPO antibodies fall on selenium.",
               target: null,
+              aim: null,
             },
           ],
         }),

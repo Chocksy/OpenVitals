@@ -12,6 +12,7 @@
  */
 import {
   BASIS_GLYPH,
+  BASIS_WORD,
   evidenceTip,
   showsGrade,
   splitLabels,
@@ -19,9 +20,9 @@ import {
 import { cn } from "@/lib/utils";
 
 const BASIS_CLASS: Record<string, string> = {
-  science: "text-neutral-900",
-  opinion: "text-accent-600",
-  anecdotal: "text-neutral-400",
+  science: "glyph sci",
+  opinion: "glyph op",
+  anecdotal: "glyph anec",
 };
 
 export function EvidenceChip({
@@ -34,24 +35,21 @@ export function EvidenceChip({
   className?: string;
 }) {
   const tip = evidenceTip(basis, grade);
+  /* UX note 8: never a bare glyph. The letter when there is one, the word it
+     rests on when there is not, and the sentence in the tooltip either way. */
+  const said = showsGrade(basis, grade)
+    ? grade
+    : (BASIS_WORD[basis] ?? BASIS_WORD.science);
   return (
     <span
-      className={cn(
-        "t-meta inline-flex items-baseline gap-0.5 text-[10px] leading-none tracking-[0.04em]",
-        BASIS_CLASS[basis] ?? BASIS_CLASS.science,
-        className,
-      )}
+      className={cn(BASIS_CLASS[basis] ?? BASIS_CLASS.science, className)}
       title={tip}
       aria-label={tip}
     >
       <span aria-hidden="true">
         {BASIS_GLYPH[basis] ?? BASIS_GLYPH.science}
-      </span>
-      {showsGrade(basis, grade) && (
-        <span aria-hidden="true" className="font-bold">
-          {grade}
-        </span>
-      )}
+      </span>{" "}
+      <span aria-hidden="true">{said}</span>
     </span>
   );
 }

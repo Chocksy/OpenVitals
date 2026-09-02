@@ -24,6 +24,7 @@ import {
   mattersOf,
   nextDraw,
   RISK_WORD,
+  rulerLead,
   sinceOf,
   titleOf,
   weeksUntil,
@@ -761,5 +762,51 @@ describe("nextDraw", () => {
   it("prints at most four markers", () => {
     const many = ["a", "b", "c", "d", "e"].map((code) => ({ code, weeks: 6 }));
     expect(nextDraw(many, [], []).codes).toHaveLength(4);
+  });
+});
+
+
+/* ── the ruler a card draws (phase 30d, UX note 2) ────────────────────── */
+
+describe("rulerLead", () => {
+  const crp: MetricRow = {
+    ...metric("hs_crp", [["2026-08-01", 3.4]]),
+    status: "amber",
+  };
+  const ferritin: MetricRow = {
+    ...metric("ferritin", [["2026-08-01", 22]]),
+    status: "red",
+  };
+  const byCode = new Map<string, MetricRow>([
+    ["hs_crp", crp],
+    ["ferritin", ferritin],
+  ]);
+  const codes = ["hs_crp", "ferritin"];
+
+  it("draws the marker the FOR line names, not the worst one", () => {
+    const lead = rulerLead(codes, byCode, [{ input: "hs_crp" }]);
+    expect(lead?.code).toBe("hs_crp");
+  });
+
+  it("draws nothing when the FOR line names no marker it is scored on", () => {
+    expect(rulerLead(codes, byCode, [{ input: "family_history" }])).toBe(null);
+    expect(rulerLead(codes, byCode, [])).toBe(null);
+  });
+
+  it("reads only the two FOR lines the card actually prints", () => {
+    const lines = [
+      { input: "family_history" },
+      { input: "tired_most_days" },
+      { input: "ferritin" },
+    ];
+    expect(rulerLead(codes, byCode, lines)).toBe(null);
+  });
+
+  it("takes the worst of the markers the FOR line does name", () => {
+    const lead = rulerLead(codes, byCode, [
+      { input: "hs_crp" },
+      { input: "ferritin" },
+    ]);
+    expect(lead?.code).toBe("ferritin");
   });
 });

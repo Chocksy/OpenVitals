@@ -101,6 +101,7 @@ const line = (id: string, title: string): PlanLine => ({
   label: "[science]",
   why: "because",
   target: null,
+  aim: null,
 });
 
 const move = (code: string, label: string, band?: number): Move =>

@@ -3,29 +3,29 @@
 /**
  * "What to do" on a conclusion card.
  *
- * Phase 26, items 5 and 6. The cards said what was wrong and printed the
- * catalog's shorthand for what a doctor would do about it ("Selenium trial
- * justified; keep ferritin >50 and vitamin D 40–60"), and the one button that
- * looked like it would act — "Add to protocol" — silently did nothing on a
- * condition card, because a condition card had no plan action behind it.
+ * Phase 26 gave the card the top three actions for its condition, from the
+ * person's own plan first and the graded intervention rows after. Phase 30d
+ * rewrote what one row prints, from the owner's own reading of Home:
  *
- * So: the top three actions for this condition, from `lib/actions.ts` — the
- * person's own plan first, the graded intervention rows after — each with its
- * dose, its label in brackets, and what it should move by when. Every line has
- * an Add, the block has an Add all, every add says what it did in a toast and
- * offers to take it back. When there is nothing yet, the button says so and
- * asks the plan writer for actions for this condition.
+ * - the title on its own line, and the dose under it once — never glued on
+ *   the end of a title that already says it (UX note 5, `doseLine`);
+ * - the target as a sentence: "aim: TPO antibodies under 100 IU/mL · retest
+ *   in 24 weeks", never "tpo antibodies down → <100 IU/mL" (UX note 6);
+ * - a row with neither a dose nor a sentence of its own does not render here
+ *   at all; it belongs on Plan's horizon shelf (UX note 7, `saysSomething`);
+ * - every glyph carries its grade letter and its tooltip (UX note 8);
+ * - one quiet Add per row and one ink "Add all n" under them, and nothing
+ *   else: the doctor's note and "Something's off?" moved into the card's why
+ *   disclosure, so a card ends with three controls and not seven (UX note 9).
  */
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2 } from "lucide-react";
+import { Loader2, Plus } from "lucide-react";
 import type { PlanLine } from "@/lib/actions";
+import { doseLine, saysSomething } from "@/lib/plan-line";
 import { toast } from "./motion";
 import { Button } from "./ui-kit";
 import { EvidenceChip } from "./evidence-chip";
-
-const LABEL =
-  "t-meta text-[10px] font-bold uppercase tracking-[0.06em] text-neutral-400";
 
 /** What one adopt call answers with, so an undo knows what to remove. */
 interface Added {
@@ -54,15 +54,12 @@ export function WhatToDo({
   conditionName,
   lines,
   reportId,
-  management,
 }: {
   conditionId: string;
   conditionName: string;
   lines: PlanLine[];
   /** the report the plan lines are indexes into */
   reportId: string | null;
-  /** the catalog's own management text, kept as the quieter doctor's note */
-  management?: string;
 }) {
   const router = useRouter();
   const [pending, start] = useTransition();
@@ -112,15 +109,20 @@ export function WhatToDo({
   };
 
   const working = !!busy || pending;
-  const left = lines.filter((l) => !done.includes(l.title));
+  /* UX note 7: a supplement name, a glyph and a direction is not an action. */
+  const shown = lines.filter(saysSomething);
+  const left = shown.filter((l) => !done.includes(l.title));
 
   return (
-    <div className="mt-3 border-t border-neutral-100 pt-3">
-      <div className={LABEL}>What to do</div>
+    <div className="mt-3 border-t border-[var(--hair)] pt-3">
+      <div className="sub" style={{ marginTop: 0 }}>
+        <h3>What to do</h3>
+        <span>each with the number it should move</span>
+      </div>
 
-      {lines.length === 0 ? (
-        <div className="mt-1.5 space-y-2">
-          <p className="t-body text-[12px] text-neutral-500">
+      {shown.length === 0 ? (
+        <div className="mt-2 space-y-2">
+          <p className="t-body text-[length:var(--type-sm)] text-[var(--ink-3)]">
             Nothing has been written for this one yet.
           </p>
           <Button
@@ -137,40 +139,38 @@ export function WhatToDo({
         </div>
       ) : (
         <>
-          <ul className="mt-1.5 space-y-1.5">
-            {lines.map((line) => {
+          <ul className="mt-2 space-y-3">
+            {shown.map((line) => {
               const added = done.includes(line.title);
+              const dose = doseLine(line);
               return (
                 <li
                   key={`${line.source}:${line.title}`}
-                  className="flex flex-wrap items-baseline gap-x-1.5 gap-y-1"
+                  className="flex items-start justify-between gap-3"
                 >
-                  <span className="t-body flex-1 text-[13px] text-neutral-800">
-                    {line.title}
-                    {line.dose && (
-                      <span className="t-num ml-1.5 text-[11px] text-neutral-600">
-                        {line.dose}
+                  <span className="min-w-0 flex-1">
+                    <span className="t-body block text-[length:var(--type-sm)] text-[var(--ink)]">
+                      {line.title}{" "}
+                      <EvidenceChip basis={line.basis} grade={line.grade} />
+                    </span>
+                    {dose && (
+                      <span className="t-meta block text-[length:var(--type-xs)]">
+                        {dose}
                       </span>
                     )}
-                    <EvidenceChip
-                      basis={line.basis}
-                      grade={line.grade}
-                      className="ml-1.5"
-                    />
-                    {line.target && (
-                      <span className="t-meta ml-1.5 text-[11px]">
-                        · {line.target}
+                    {line.aim && (
+                      <span className="t-meta block text-[length:var(--type-xs)]">
+                        {line.aim}
                       </span>
                     )}
                   </span>
                   {added ? (
-                    <span className="t-meta text-[10px] font-bold uppercase tracking-[0.04em] text-[var(--color-health-normal)]">
-                      added
-                    </span>
+                    <span className="state on shrink-0">added</span>
                   ) : (
                     <Button
                       size="sm"
-                      job="text"
+                      job="quiet"
+                      className="shrink-0"
                       disabled={working}
                       onClick={() => void add([line], line.title)}
                     >
@@ -183,36 +183,27 @@ export function WhatToDo({
           </ul>
 
           {left.length > 1 && (
-            <div className="mt-2">
+            <div className="mt-3">
               <Button
                 size="sm"
-                job="quiet"
+                job="ink"
                 disabled={working}
                 onClick={() => void add(left, "all")}
               >
                 {busy === "all" ? (
                   <Loader2 className="size-3.5 animate-spin" />
-                ) : null}
-                Add {left.length} to your protocol
+                ) : (
+                  <Plus className="size-3.5" />
+                )}
+                Add all {left.length}
               </Button>
             </div>
           )}
         </>
       )}
 
-      {management && (
-        <details className="mt-2">
-          <summary className="hit-40 t-meta inline-flex cursor-pointer list-none items-center text-[11px] hover:text-neutral-900">
-            Doctor&rsquo;s note
-          </summary>
-          <p className="t-meta mt-1 border-l-2 border-neutral-150 pl-3 text-[11px]">
-            {management}
-          </p>
-        </details>
-      )}
-
       {error && (
-        <p className="t-meta mt-1.5 text-[11px] text-[var(--color-health-critical)]">
+        <p className="t-meta mt-1.5 text-[length:var(--type-xs)] text-[var(--bad)]">
           {error}
         </p>
       )}

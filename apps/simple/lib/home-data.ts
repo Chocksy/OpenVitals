@@ -516,7 +516,7 @@ export function railCards(
         ? `PhenoAge is waiting on ${bioAgeMissing.join(", ")}`
         : "",
     tone: "none",
-    href: "/today",
+    href: "/body",
   });
 
   const total = counters.off + counters.normal + counters.optimal;
@@ -579,4 +579,49 @@ export function railCards(
   }
 
   return cards;
+}
+
+/**
+ * Every system, once, as the state tile the design system draws.
+ *
+ * Phase 30d, UX note 10: the twelve systems used to appear twice on desktop —
+ * as rail cards and again as chips — and the rail's cards pushed Status into a
+ * two-row block with an empty middle. The rail keeps the system cards on the
+ * phone, where a rail hides what it scrolls past; from 768 px up the systems
+ * are this one section, and it prints all twelve, measured or not.
+ */
+export interface SystemTile {
+  id: string;
+  name: string;
+  /** "off", "borderline", "good", "never measured" */
+  word: string;
+  tone: RailTone;
+  /** the loudest marker in the system, when one was ever measured */
+  value?: string;
+  unit?: string;
+  markerName?: string;
+  href: string;
+}
+
+/** Off first, then borderline, then good; never measured is last. */
+const TILE_RANK = { red: 4, amber: 3, green: 2, gray: 1 } as const;
+
+export function systemTiles(systems: Ledger["systems"]): SystemTile[] {
+  const rank = (s: Ledger["systems"][number]) =>
+    s.worst ? TILE_RANK[s.worst.status] : 0;
+  return [...systems]
+    .sort((a, b) => rank(b) - rank(a) || b.score - a.score)
+    .map((s) => {
+      const w = s.worst;
+      return {
+        id: s.id,
+        name: s.name,
+        word: w ? WORST_WORD[w.status] : "never measured",
+        tone: w ? TONE_OF[w.status] : "none",
+        ...(w?.value != null ? { value: String(w.value) } : {}),
+        ...(w?.unit ? { unit: w.unit } : {}),
+        ...(w ? { markerName: explainKey(w.code) } : {}),
+        href: w ? `/blood/m/${w.code}` : "/graph",
+      };
+    });
 }

@@ -9,7 +9,12 @@
  * chips: `SystemChips` prints every system, measured or not.
  */
 import Link from "next/link";
-import { WORST_WORD, type RailCard, type RailTone } from "@/lib/home-data";
+import {
+  WORST_WORD,
+  type RailCard,
+  type RailTone,
+  type SystemTile,
+} from "@/lib/home-data";
 import type { Ledger } from "@/lib/ledger";
 import { cn } from "@/lib/utils";
 import { Digits } from "./motion";
@@ -38,7 +43,7 @@ const Off = () => (
 function Card({ card, i }: { card: RailCard; i: number }) {
   const tone = `tone-${card.tone}`;
   return (
-    <li>
+    <li data-rail={card.kind}>
       <Link
         href={card.href}
         className={cn("rail-card", card.kind === "status" && "navy")}
@@ -119,10 +124,61 @@ export function HomeLight({ tone }: { tone: RailTone }) {
   );
 }
 
+/**
+ * The twelve systems as state tiles: the section that owns them on desktop.
+ *
+ * Phase 30d, UX note 10. The systems used to be drawn twice above 768 px —
+ * once as rail cards, once as chips — and the rail's extra cards pushed
+ * Status into a two-row block with nothing under it. From 768 px up the rail
+ * carries Status, Body, Blood and Plan only, and this is where the systems
+ * live; below it the phone keeps the rail's cards and the chips repeat them,
+ * because a rail hides what it scrolls past.
+ */
+export function SystemTiles({ tiles }: { tiles: SystemTile[] }) {
+  return (
+    <ul className="sysgrid" aria-label="Every system">
+      {tiles.map((t) => (
+        <li key={t.id} className="contents">
+          <Link
+            href={t.href}
+            className={cn(
+              "systile",
+              t.tone === "bad" && "off",
+              t.tone === "warn" && "border",
+              t.tone === "ok" && "on",
+              t.tone === "none" && "empty",
+            )}
+          >
+            <span className="sname">{t.name}</span>
+            <span className="sstate">
+              {t.word}
+              {t.tone === "bad" && (
+                <span aria-hidden="true" className="tri">
+                  {" "}
+                  ▲
+                </span>
+              )}
+            </span>
+            <span className="sval">
+              <span>
+                <b>
+                  {t.value ?? "—"}
+                  {t.unit && <em>{t.unit}</em>}
+                </b>
+                <span className="smk">{t.markerName ?? "no marker yet"}</span>
+              </span>
+            </span>
+          </Link>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 /** Every system, measured or not. The rail can hide a card; this cannot. */
 export function SystemChips({ systems }: { systems: Ledger["systems"] }) {
   return (
-    <ul className="chips">
+    <ul className="chips systems">
       {systems.map((s) => {
         const status = s.worst?.status;
         const tone = status ? TONE_OF[status] : "none";

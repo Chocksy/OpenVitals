@@ -168,52 +168,6 @@ export function ArchiveButton({ id, active }: { id: string; active: boolean }) {
   );
 }
 
-/** "Add to protocol" on a lifestyle item or a weekly-review action. */
-export function AdoptButton({
-  text,
-  why,
-  metricCodes,
-  sourceInsightId,
-  adopted,
-}: {
-  text: string;
-  why?: string;
-  metricCodes?: string[];
-  sourceInsightId?: string;
-  adopted?: boolean;
-}) {
-  const { save, busy } = useSave();
-  const [done, setDone] = useState(false);
-  if (adopted || done)
-    return (
-      <span className="inline-flex items-center gap-1 font-mono text-[10px] uppercase tracking-[0.04em] text-[var(--color-health-normal)]">
-        <Check className="size-3" /> In protocol
-      </span>
-    );
-  return (
-    <Button
-      size="sm"
-      job="quiet"
-      disabled={busy}
-      onClick={async () => {
-        const ok = await save("/api/protocol", {
-          text,
-          why,
-          metricCodes,
-          sourceInsightId,
-        });
-        if (ok) setDone(true);
-      }}
-    >
-      <Plus /> Add to protocol
-    </Button>
-  );
-}
-
-/* ------------------------------------------------------------------ *
- * Goals
- * ------------------------------------------------------------------ */
-
 export function GoalForm({
   metricCode,
   targetLow,
@@ -299,29 +253,6 @@ export function GoalForm({
   );
 }
 
-/** The 30-day adherence strip with its percentage, used on /protocol. */
-export function AdherenceStrip({
-  pct,
-  values,
-}: {
-  pct: number;
-  values: number[];
-}) {
-  return (
-    <div className="flex items-center gap-3">
-      <Strip values={values} />
-      <span className="t-num text-[length:var(--type-xs)] text-[var(--ink-2)]">
-        {pct}%
-      </span>
-    </div>
-  );
-}
-
-/**
- * The optimal band on a metric page. It shows where the band came from, and
- * lets the person replace it with their own; "Reset" hands the metric back to
- * whatever the app would have chosen.
- */
 export function OptimalForm({
   metricCode,
   low,

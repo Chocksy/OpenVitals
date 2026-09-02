@@ -10,6 +10,7 @@ import {
   optionsFor,
   railCards,
   recentFindings,
+  systemTiles,
   type TrendMetric,
 } from "@/lib/home-data";
 import { localDay } from "@/lib/daily";
@@ -21,6 +22,7 @@ import { catalogFor } from "@/lib/hkb";
 import {
   ConclusionCard,
   EmptyHome,
+  EvidenceLegend,
   FindingsCard,
   ImprovedCard,
   KeyTrends,
@@ -31,7 +33,12 @@ import {
   TodayQuestions,
   type MarkerGroup,
 } from "@/components/home";
-import { HomeLight, HomeRail, SystemChips } from "@/components/home-rail";
+import {
+  HomeLight,
+  HomeRail,
+  SystemChips,
+  SystemTiles,
+} from "@/components/home-rail";
 import { LedgerMotion } from "@/components/ledger-motion";
 import { LedgerList, SwapText } from "@/components/motion";
 import { AskLine } from "@/components/ask-line";
@@ -258,6 +265,17 @@ export default async function Home({
 
       <AskLine />
 
+      {/**
+       * UX note 10: the twelve systems, once. Tiles from 768 px up, where the
+       * rail has already dropped its system cards; chips on the phone, where
+       * the rail keeps them and a rail hides what it scrolls past.
+       */}
+      <section>
+        <SectionHeader title="Systems" href="/graph" linkLabel="Your graph" />
+        <SystemTiles tiles={systemTiles(ledger.systems)} />
+        <SystemChips systems={ledger.systems} />
+      </section>
+
       <TodayQuestions
         today={today}
         day={day}
@@ -265,11 +283,6 @@ export default async function Home({
         askKey={want}
         askOptions={plan.ask ? optionsFor(plan.ask.key) : []}
       />
-
-      <section>
-        <SectionHeader title="Systems" href="/graph" linkLabel="Your graph" />
-        <SystemChips systems={ledger.systems} />
-      </section>
 
       {spear && (
         <section>
@@ -283,8 +296,10 @@ export default async function Home({
       )}
 
       {(rest.length > 0 || findings.length > 0) && (
-        <LedgerList className="space-y-2">
+        <LedgerList className="space-y-3">
           <SectionHeader title="The ledger" />
+          {/* UX note 8: the glyph legend, once, at the top of the ledger. */}
+          <EvidenceLegend />
           {findings.map((f) => (
             <FindingsCard key={f.id} finding={f} />
           ))}

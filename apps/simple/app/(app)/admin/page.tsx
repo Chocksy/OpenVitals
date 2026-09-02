@@ -127,7 +127,7 @@ export default async function AdminPage() {
           </h1>
           <p className="mt-1 font-body text-[13px] text-neutral-500">
             Data state and curator history.{" "}
-            <Link href="/review" className="underline">
+            <Link href="/plan#answer" className="underline">
               {c.open_items} open questions
             </Link>
             .

@@ -24,9 +24,11 @@ import {
   type Basis,
   type ReportAction,
 } from "@/db";
+import { explainKey } from "./explain";
 import { catalogFor } from "./hkb";
 import { metricCodesOf } from "./ledger";
 import { latestReport } from "./report";
+import { aimLine, norm } from "./plan-line";
 
 /** One thing to do, from whichever source had it, with its label. */
 export interface PlanLine {
@@ -55,6 +57,12 @@ export interface PlanLine {
   why: string;
   /** "ferritin up → over 50 ng/mL, measure after 12 weeks" */
   target: string | null;
+  /**
+   * The same target as a sentence a person reads: "aim: TPO antibodies under
+   * 100 IU/mL · retest in 24 weeks". `target` stays the engine's own grammar
+   * because the prompts and the evals read it; `aim` is what a page prints.
+   */
+  aim: string | null;
 }
 
 /** A/B and C are science; D and E are the horizon, and say so. */
@@ -86,6 +94,18 @@ const targetOf = (a: ReportAction): string | null => {
     : null;
 };
 
+/* The words are in `lib/plan-line.ts`, which is client-safe; the marker's
+   real name is looked up here, because `explainKey` reaches the database. */
+
+/** "aim: TPO antibodies under 100 IU/mL · retest in 24 weeks". */
+export const aimOf = (t: ReportAction["targets"][number]): string =>
+  aimLine(explainKey(t.code), t.expect, t.measureAfterWeeks);
+
+const aimOfAction = (a: ReportAction): string | null => {
+  const t = a.targets[0];
+  return t ? aimOf(t) : null;
+};
+
 /** One row of `hkb_interventions`, cut to what this file reads. */
 export interface InterventionLine {
   id: string;
@@ -109,11 +129,21 @@ const interventionTarget = (r: InterventionLine): string | null => {
   }`;
 };
 
-const norm = (s: string) =>
-  s
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, " ")
-    .trim();
+/** A graded row aims at a direction, not at a value the paper promised. */
+const MOVE: Record<string, string> = {
+  up: "higher",
+  down: "lower",
+  none: "no change",
+};
+
+const interventionAim = (r: InterventionLine): string | null => {
+  if (!r.outcomeFeatureId) return null;
+  const name = explainKey(r.outcomeFeatureId.replace(/^metric:/, ""));
+  const move = MOVE[r.direction] ?? r.direction;
+  return `aim: ${name} ${move}${r.effect ? ` (${r.effect})` : ""}${
+    r.duration ? ` · retest after ${r.duration}` : ""
+  }`;
+};
 
 export interface PickOptions {
   /** the metric codes this condition is scored on */
@@ -170,6 +200,7 @@ export function pickActions({
       label: labelOf(action.basis),
       why: action.why,
       target: targetOf(action),
+      aim: aimOfAction(action),
     }));
 
   const seen = new Set(mine.map((p) => norm(p.title)));
@@ -199,6 +230,7 @@ export function pickActions({
         label: labelOf(basis, r.grade),
         why: `what the papers report for this condition, grade ${r.grade}`,
         target: interventionTarget(r),
+        aim: interventionAim(r),
       };
     });
 
@@ -224,6 +256,10 @@ export const adoptBodyOf = (
   if (!m || !m[1]) return null;
   return { reportId: m[1], actionIndex: Number(m[2]) };
 };
+
+/* What a card is allowed to print lives in `lib/plan-line.ts`, because
+   `WhatToDo` is a client component and this file reaches the database. */
+export { doseLine, doseParts, saysSomething } from "./plan-line";
 
 /** One line for a prompt or a card: title · dose · label · what it should move. */
 export const actionLine = (p: PlanLine): string =>

@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Mail, Play, RefreshCw, Search, Upload } from "lucide-react";
+import { Copy, Mail, Play, RefreshCw, Search, Upload } from "lucide-react";
 import { signIn, signUp } from "@/lib/auth-client";
 import { statusColor, type Status } from "@/lib/status";
 import { cn, fmtCategory } from "@/lib/utils";
@@ -200,68 +200,8 @@ export function useAction() {
   return { run, busy: busy || pending, error };
 }
 
-export function GenerateButton({
-  kind,
-  label,
-  job = "ink",
-}: {
-  kind: string;
-  label: string;
-  job?: "ink" | "text";
-}) {
-  const { run, busy, error } = useAction();
-  return (
-    <span className="inline-flex items-center gap-2">
-      <Button
-        job={job}
-        size={job === "text" ? "sm" : "md"}
-        disabled={busy}
-        onClick={() => run("/api/insights", { kind })}
-      >
-        <RefreshCw className={busy ? "animate-spin" : ""} />
-        {busy ? "Analysing your data…" : label}
-      </Button>
-      {error && (
-        <span className="text-[12px] text-[var(--color-health-critical)]">
-          {error}
-        </span>
-      )}
-    </span>
-  );
-}
-
-export function CheckinButtons({
-  insightId,
-  itemIndex,
-  current,
-}: {
-  insightId: string;
-  itemIndex: number;
-  current?: string | null;
-}) {
-  const { run, busy } = useAction();
-  return (
-    <div className="mt-3 flex gap-2">
-      {(["did", "didnt", "skip"] as const).map((a) => (
-        <Button
-          key={a}
-          size="sm"
-          job={current === a ? "ink" : "quiet"}
-          disabled={busy}
-          onClick={() =>
-            run("/api/checkins", { insightId, itemIndex, answer: a })
-          }
-        >
-          {a === "did" ? "Did it" : a === "didnt" ? "Didn't" : "Skip"}
-        </Button>
-      ))}
-    </div>
-  );
-}
-
-/** A row's small verbs. Sans: "Wrong value" is a phrase, not a code. */
 const rowAction =
-  "t-meta text-[12px] hover:underline disabled:opacity-40 disabled:no-underline";
+  "t-meta text-[length:var(--type-xs)] hover:underline disabled:opacity-40 disabled:no-underline";
 
 export function DeleteUpload({ id, name }: { id: string; name?: string }) {
   const { run, busy } = useAction();
@@ -349,6 +289,13 @@ export function ChangeKind({ id, kind }: { id: string; kind: string }) {
  * a small input; a question with no options at all is a free-text fact, so it
  * gets a text box and a Save button; everything else posts straight away.
  */
+/**
+ * One question from the review queue, on the design system's own inputs.
+ *
+ * Phase 30d: the queue folded into Plan's "Answer these", so the row is no
+ * longer a card of its own — it sits in a `.rowlist` inside the panel, the
+ * options are `.optchip`s and the free-text answer is the `.inp`.
+ */
 export function ReviewItem({
   id,
   question,
@@ -368,17 +315,27 @@ export function ReviewItem({
   const needsNote = (o: string) =>
     o.startsWith("Multiply") || o.startsWith("Move") || o.startsWith("Note");
 
+  const head = (
+    <>
+      <b className="t-body text-[length:var(--type-md)] font-normal">
+        {question}
+      </b>
+      {detail && (
+        <div className="t-meta text-[length:var(--type-sm)]">{detail}</div>
+      )}
+    </>
+  );
+
   if (options.length === 0)
     return (
-      <div className="card p-4">
-        <p className="t-body text-neutral-800">{question}</p>
-        {detail && <p className="t-meta mt-1 text-[12px]">{detail}</p>}
-        <div className="mt-3 flex flex-wrap items-center gap-2">
+      <div className="grid gap-2">
+        {head}
+        <div className="rowh" style={{ gap: "var(--s8)" }}>
           <input
             value={note}
             onChange={(e) => setNote(e.target.value)}
             placeholder="Your answer"
-            className={`${INPUT} max-w-sm`}
+            className="inp mini max-w-sm"
             onKeyDown={(e) => {
               if (e.key === "Enter" && note.trim())
                 void run(`/api/review/${id}`, { answer: "text", note });
@@ -393,7 +350,7 @@ export function ReviewItem({
             Save
           </Button>
           {error && (
-            <span className="text-[12px] text-[var(--color-health-critical)]">
+            <span className="t-meta text-[length:var(--type-sm)] text-[var(--bad)]">
               {error}
             </span>
           )}
@@ -402,10 +359,9 @@ export function ReviewItem({
     );
 
   return (
-    <div className="card p-4">
-      <p className="t-body text-neutral-800">{question}</p>
-      {detail && <p className="t-meta mt-1 text-[12px]">{detail}</p>}
-      <div className="mt-3 flex flex-wrap items-center gap-2">
+    <div className="grid gap-2">
+      {head}
+      <div className="rowh" style={{ gap: "var(--s8)" }}>
         {options.map((o) => (
           <span key={o} className="inline-flex items-center gap-1.5">
             {needsNote(o) &&
@@ -416,7 +372,7 @@ export function ReviewItem({
                     onChange={(e) => setNote(e.target.value)}
                     placeholder="metric code"
                     list={`metrics-${id}`}
-                    className="w-44 border border-neutral-200 bg-neutral-0 px-2 py-1 font-mono text-[12px]"
+                    className="inp mini t-num w-44"
                   />
                   <datalist id={`metrics-${id}`}>
                     {metrics.map((m) => (
@@ -433,23 +389,24 @@ export function ReviewItem({
                   placeholder={o.startsWith("Note") ? "your answer" : "factor"}
                   inputMode={o.startsWith("Note") ? "text" : "decimal"}
                   className={cn(
-                    "border border-neutral-200 bg-neutral-0 px-2 py-1 font-mono text-[12px]",
-                    o.startsWith("Note") ? "w-56" : "w-20",
+                    "inp mini",
+                    o.startsWith("Note") ? "w-56" : "t-num w-20",
                   )}
                 />
               ))}
-            <Button
-              size="sm"
-              job="quiet"
+            <button
+              type="button"
+              className="optchip"
+              data-busy={busy ? "true" : undefined}
               disabled={busy || (needsNote(o) && !note.trim())}
               onClick={() => run(`/api/review/${id}`, { answer: o, note })}
             >
               {o}
-            </Button>
+            </button>
           </span>
         ))}
         {error && (
-          <span className="text-[12px] text-[var(--color-health-critical)]">
+          <span className="t-meta text-[length:var(--type-sm)] text-[var(--bad)]">
             {error}
           </span>
         )}
@@ -731,6 +688,37 @@ export function StillTrue({
 }
 
 /** "Wrong value": queues the curator's own confirm_value question. */
+/**
+ * The doctor's note, as one button.
+ *
+ * Phase 30d, UX note 9. A conclusion card ended with seven controls; the
+ * catalog's management text is the one a person actually takes out of the
+ * app, so it moved inside the why disclosure and became a copy.
+ */
+export function CopyNote({
+  text,
+  label = "Copy for your doctor",
+}: {
+  text: string;
+  label?: string;
+}) {
+  const [done, setDone] = useState(false);
+  return (
+    <Button
+      size="sm"
+      job="quiet"
+      onClick={async () => {
+        await navigator.clipboard.writeText(text);
+        setDone(true);
+        window.setTimeout(() => setDone(false), 2000);
+      }}
+    >
+      <Copy className="size-3.5" />
+      {done ? "Copied" : label}
+    </Button>
+  );
+}
+
 export function WrongValue({ readingId }: { readingId: string }) {
   const { run, busy, error } = useAction();
   return (

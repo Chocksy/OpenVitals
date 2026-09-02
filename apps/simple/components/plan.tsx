@@ -78,11 +78,11 @@ export function ViewShell({
     <div data-view={view} className="space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="font-display text-[28px] font-medium tracking-[-0.03em]">
+          <h1 className="t-title text-[length:var(--type-xl)] leading-none">
             {title}
           </h1>
           {subtitle && (
-            <p className="mt-1 font-body text-[13px] text-neutral-500">
+            <p className="t-meta mt-1 text-[length:var(--type-sm)]">
               {subtitle}
             </p>
           )}
@@ -132,7 +132,7 @@ export function GeneratePlan() {
         {busy ? "Writing your plan…" : "Generate"}
       </Button>
       {error && (
-        <span className="text-[12px] text-[var(--color-health-critical)]">
+        <span className="t-meta text-[length:var(--type-sm)] text-[var(--bad)]">
           {error}
         </span>
       )}
@@ -159,7 +159,7 @@ export function AdoptHorizon({
 
   if (state)
     return (
-      <span className="t-meta inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-[0.04em] text-[var(--color-health-normal)]">
+      <span className="state on">
         <Check className="size-3" /> Adopted
       </span>
     );
@@ -177,7 +177,7 @@ export function AdoptHorizon({
         {busy ? "Adopting…" : "Adopt and measure"}
       </Button>
       {error && (
-        <span className="text-[12px] text-[var(--color-health-critical)]">
+        <span className="t-meta text-[length:var(--type-sm)] text-[var(--bad)]">
           {error}
         </span>
       )}
@@ -256,7 +256,7 @@ export function ActionButtons({
 
   if (state === "adopted")
     return (
-      <span className="t-meta inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-[0.04em] text-[var(--color-health-normal)]">
+      <span className="state on">
         <Check className="size-3" /> Adopted
       </span>
     );
@@ -272,17 +272,14 @@ export function ActionButtons({
     >
       <div className="flex flex-wrap items-center gap-2">
         {already ? (
-          <span className="t-meta inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-[0.04em] text-[var(--color-health-normal)]">
+          <span className="state on">
             <Check className="size-3" /> You&rsquo;re already doing this
             {already.startedAt ? (
               <span className="t-num text-[10px]"> since {already.startedAt}</span>
             ) : null}
           </span>
         ) : !adopt ? null : isTest ? (
-          <Link
-            href="/insights"
-            className="inline-flex h-8 items-center gap-1.5 rounded-sm border border-neutral-200 bg-neutral-0 px-3 font-display text-[12px] tracking-[0.04em] text-neutral-700 hover:border-neutral-900 hover:bg-neutral-50"
-          >
+          <Link href="/blood?tab=draws" className="b b-quiet b-sm">
             <Stethoscope className="size-3.5" /> Plan retest
           </Link>
         ) : (
@@ -329,7 +326,7 @@ export function ActionButtons({
           <MessageSquare className="size-3.5" /> Discuss
         </Button>
         {error && (
-          <span className="text-[12px] text-[var(--color-health-critical)]">
+          <span className="t-meta text-[length:var(--type-sm)] text-[var(--bad)]">
             {error}
           </span>
         )}

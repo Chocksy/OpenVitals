@@ -340,7 +340,7 @@ export default async function GraphPage({
               <Card key={m.pattern.id} className="p-4">
                 <div className="flex flex-wrap items-start justify-between gap-2">
                   <Link
-                    href={`/patterns/${m.pattern.id}`}
+                    href="/plan#patterns"
                     className="font-display text-[15px] font-medium hover:underline"
                   >
                     {m.pattern.name}
@@ -369,7 +369,7 @@ export default async function GraphPage({
             {unmatched.map((p) => (
               <Link
                 key={p.id}
-                href={`/patterns/${p.id}`}
+                href="/plan#patterns"
                 className="inline-flex items-center border border-neutral-200 bg-neutral-50 px-2.5 py-1 font-body text-[12px] text-neutral-400 hover:border-neutral-300 hover:text-neutral-600"
               >
                 {p.name}

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { railCards } from "./home-data";
+import { railCards, systemTiles } from "./home-data";
 import type { Ledger } from "./ledger";
 import type { Today } from "./home-data";
 
@@ -123,5 +123,57 @@ describe("railCards", () => {
     );
     expect(bare.map((c) => c.kind)).not.toContain("plan");
     expect(bare[1]!.line).toBe("Nothing due today");
+  });
+});
+
+
+/**
+ * The lock on phase 30d, UX note 10.
+ *
+ * The twelve systems used to be drawn twice above 768 px — as rail cards and
+ * again as chips — while Status spanned an empty second row. The rail keeps
+ * its system cards for the phone; the tiles are the desktop section, and they
+ * print every system, measured or not, worst first and never measured last.
+ */
+describe("systemTiles", () => {
+  const tiles = systemTiles(ledger.systems);
+
+  it("prints every system, measured or not", () => {
+    expect(tiles).toHaveLength(ledger.systems.length);
+    expect(tiles.map((t) => t.name)).toContain("Thyroid");
+  });
+
+  it("puts off first, then borderline, then good, never measured last", () => {
+    expect(tiles.map((t) => t.name)).toEqual([
+      "Kidney",
+      "Liver",
+      "Blood sugar",
+      "Heart",
+      "Thyroid",
+    ]);
+  });
+
+  it("says what a system with no reading is, and links somewhere real", () => {
+    const none = tiles.at(-1)!;
+    expect(none.word).toBe("never measured");
+    expect(none.tone).toBe("none");
+    expect(none.value).toBeUndefined();
+    expect(none.href).toBe("/graph");
+  });
+
+  it("names the marker in words, never its engine code", () => {
+    const liver = tiles.find((t) => t.name === "Liver")!;
+    expect(liver.value).toBe("128");
+    expect(liver.unit).toBe("U/L");
+    expect(liver.markerName).not.toBe("alp");
+    expect(liver.href).toBe("/blood/m/alp");
+  });
+
+  it("takes the tile's word off the ledger's own status", () => {
+    expect(tiles.find((t) => t.name === "Kidney")!.word).toBe("off");
+    expect(tiles.find((t) => t.name === "Blood sugar")!.word).toBe(
+      "borderline",
+    );
+    expect(tiles.find((t) => t.name === "Heart")!.word).toBe("good");
   });
 });

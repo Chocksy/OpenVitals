@@ -48,9 +48,26 @@ export function evidenceTip(basis: string, grade?: string | null): string {
   return `${head}: ${body}.`;
 }
 
-/** The grade letter is only printed for science: D and E are anecdotal. */
-export const showsGrade = (basis: string, grade?: string | null): boolean =>
-  basis === "science" && !!grade;
+/**
+ * The grade letter, whenever there is one.
+ *
+ * Phase 30d, UX note 8: a bare ◐ or ● tells a reader nothing. The letter was
+ * held back for anything that was not science, so a grade-E anecdote and a
+ * grade-A trial wore the same mark. Every glyph now carries its letter, and a
+ * claim with no grade at all says what it rests on in a word instead.
+ */
+export const showsGrade = (_basis: string, grade?: string | null): boolean =>
+  !!grade;
+
+/** What a glyph with no grade says out loud: "opinion", "anecdote". */
+export const BASIS_WORD: Record<string, string> = {
+  science: "study",
+  opinion: "opinion",
+  anecdotal: "anecdote",
+};
+
+/** The one legend, printed once at the top of the ledger. */
+export const EVIDENCE_LEGEND = "● trial · ◐ observational · ○ anecdote";
 
 /** One `[science, A]` the model printed inside its own prose. */
 export interface LabelPiece {

@@ -1,19 +1,31 @@
 /**
- * Home: the cockpit row you read in three seconds, then the ledger of every
- * conclusion in rank order. `docs/mockups/home-options.html`, option B on top
- * of option A, drawn with the kit's own tokens.
+ * Home: one sentence, the rail, the ask, the systems, then the ledger of
+ * every conclusion in rank order.
  *
- * Server components throughout. The only client parts are the three buttons
- * that write: the inline answer, "Wrong value" and the fact box.
+ * Phase 30d rebuilt every card on the design system's own elements
+ * (`docs/mockups/v4/system.html` sections 06, 07, 08 and 12, and
+ * `home.html`), from the owner's reading of the old page in
+ * `docs/plans/2026-09-02-phase30d-home-ux-notes.md`. What changed, and why:
  *
- * Phase 25b: two families, four styles, one rule — monospace is for numbers,
- * units, codes and dates only. Every abbreviation the cards print goes through
- * `<Term>`, so "what is ALP?" is answered where the question is asked.
+ * - the ConclusionCard is `.conc`: rank, name, state word, likelihood, the
+ *   state row, the prose, FOR / AGAINST, the ruler, what to do, one text row
+ *   and one why disclosure (notes 4 and 9);
+ * - the ruler under a card draws the marker its FOR line names, or nothing
+ *   (note 2, the rule itself is in `lib/ledger.ts`);
+ * - the doctor's note and "Something's off?" moved inside the why
+ *   disclosure, so a card ends with three controls and not seven (note 9);
+ * - the evidence legend is printed once, at the top of the ledger (note 8);
+ * - every marker name goes through `explainKey` and every date through
+ *   `dayLabel` (note 3).
+ *
+ * Server components throughout. The only client parts are the ones that
+ * write: the inline answer, "Wrong value", the fact box, the adds and the
+ * copy button.
  */
 import Link from "next/link";
-import { CircleQuestionMark, FlaskConical, TriangleAlert } from "lucide-react";
 import type { PlanLine } from "@/lib/actions";
 import type { Ask } from "@/lib/asking";
+import { EVIDENCE_LEGEND } from "@/lib/evidence";
 import {
   changedLine,
   explainInput,
@@ -24,17 +36,18 @@ import type { Today } from "@/lib/home-data";
 import type { Conclusion, Ledger } from "@/lib/ledger";
 import type { Move } from "@/lib/infogain";
 import type { HState, Grade, Lens } from "@/lib/hypotheses";
-import { cn, formatDate } from "@/lib/utils";
+import { cn, dayLabel, plural } from "@/lib/utils";
 import { AskLink } from "./ask-link";
-import { EditFact, StillTrue, WrongValue } from "./client";
+import { CopyNote, EditFact, StillTrue, WrongValue } from "./client";
 import { ActionButtons, GeneratePlan } from "./plan";
+import { EvidenceChip } from "./evidence-chip";
 import { Ruler } from "./ruler";
 import { Digits, SwapText } from "./motion";
 import { Term, Terms } from "./term";
 import { TodayAsk } from "./today-ask";
 import { WhatToDo } from "./what-to-do";
 import { HistoryChart } from "./history-chart";
-import { Card, StateWord, type StateTone } from "./ui-kit";
+import { StateWord, type StateTone } from "./ui-kit";
 
 export { KeyTrends } from "./key-trends";
 
@@ -48,42 +61,26 @@ export function SectionHeader({
   linkLabel?: string;
 }) {
   return (
-    <div className="mb-2 flex items-baseline justify-between gap-3">
-      <h2 className={LABEL}>{title}</h2>
+    <div className="sub" style={{ marginTop: 0 }}>
+      <h3>{title}</h3>
       {href && (
-        <Link
-          href={href}
-          className="t-meta flex items-center gap-1 text-[12px] transition-colors hover:text-neutral-700"
-        >
-          {linkLabel}
-          <span aria-hidden="true">→</span>
+        <Link href={href} className="ml-auto shrink-0">
+          <span>{linkLabel}</span>
         </Link>
       )}
     </div>
   );
 }
 
-/**
- * The four styles are in `app/globals.css`. Everything here is one of them:
- * a label is quiet sans, never mono, because "Biological age" is a phrase and
- * not a code.
- */
-const LABEL =
-  "t-meta text-[10px] font-bold uppercase tracking-[0.06em] text-neutral-400";
-const WHY = "t-meta mt-1 text-[12px] text-neutral-500";
-
-/**
- * A small link that reads at 12 px but answers to a 40 px finger.
- * `.hit-40` is the pseudo-element from `surfaces.md`; the width stays the
- * link's own so two of them can never overlap.
- */
+/** A quiet link that reads at 13 px and answers to a 40 px finger. */
 const SMALL_LINK =
-  "hit-40 inline-flex cursor-pointer list-none items-center gap-1 t-meta text-[12px] text-neutral-500 hover:text-neutral-900";
+  "hit-40 inline-flex cursor-pointer list-none items-center gap-1 text-[length:var(--type-sm)] text-[var(--ink-2)] hover:text-[var(--ink)]";
 
 /**
  * The lens badges said `ENERGY B · WEIGHT A · LIFESPAN A`, which is the
- * engine's vocabulary, not a person's. One line, the lens that weighs most,
- * with the grade the evidence earned.
+ * engine's vocabulary. Phase 28 cut it to one line; phase 30d fixed the
+ * words, because "matters most for energy (grade A)" is the lens weight and
+ * nobody reads it that way (UX note 4).
  */
 function lensLine(
   lenses: Partial<Record<Lens, { w: number; grade: Grade }>>,
@@ -95,11 +92,9 @@ function lensLine(
 /**
  * The one question, and the answers worth re-asking.
  *
- * Phase 28c moved everything else this card used to carry into the rail: the
- * counters to Status, PhenoAge to Body, the last check-in's reply to Body's
- * line. What stays is the part no other surface has — the input. Phase 24a
- * made this the only place in the app that renders one, and `ASK_HREF` is an
- * anchor into it, so every "answer this" link on a conclusion card lands here.
+ * Phase 24a made this the only place in the app that renders an answer
+ * input, and `ASK_HREF` is an anchor into it, so every "answer this" link on
+ * a conclusion card lands here.
  */
 export function TodayQuestions({
   today,
@@ -117,10 +112,6 @@ export function TodayQuestions({
   askOptions?: string[];
 }) {
   if (!today.due.length && !ask) return null;
-  /**
-   * A link somewhere else said which question it came to answer, so that one
-   * goes first and the card carries on with its own list underneath.
-   */
   const due = askKey
     ? [...today.due].sort(
         (a, b) => Number(b.key === askKey) - Number(a.key === askKey),
@@ -129,7 +120,12 @@ export function TodayQuestions({
   const askFirst = askKey != null && ask?.key === askKey;
   const stillTrue = (
     <>
-      {due.length > 0 && <div className={LABEL}>Still true?</div>}
+      {due.length > 0 && (
+        <div className="panel-head">
+          <h3>Still true?</h3>
+          <span className="r">{due.length}</span>
+        </div>
+      )}
       {due.map((d) => (
         <StillTrue
           key={d.key}
@@ -144,13 +140,15 @@ export function TodayQuestions({
     </>
   );
   const oneQuestion = ask && (
-    <div className="space-y-1.5">
-      <div className={LABEL}>One question</div>
+    <div className="space-y-2">
+      <div className="panel-head">
+        <h3>One question</h3>
+      </div>
       <TodayAsk ask={ask} options={askOptions} />
     </div>
   );
   return (
-    <Card className="t-resize space-y-3 p-4">
+    <div className="panel t-resize space-y-3">
       {askFirst ? (
         <>
           {oneQuestion}
@@ -162,15 +160,13 @@ export function TodayQuestions({
           {oneQuestion}
         </>
       )}
-    </Card>
+    </div>
   );
 }
 
 /**
- * "Since Aug 31: 0 resolved · 0 new · 0 stronger · 0 weaker" was a line of
- * zeros pretending to be news. Nothing moved is not a sentence, so it is not
- * printed; when something did move, only that part is — and "since yesterday"
- * is what a person calls the day before, so that is what it says.
+ * "Since Aug 31: 0 resolved · 0 new" was a line of zeros pretending to be
+ * news. Nothing moved is not a sentence, so it is not printed.
  */
 export function SinceLine({
   since,
@@ -198,13 +194,13 @@ export function SinceLine({
       ? "today"
       : days === 1
         ? "since yesterday"
-        : `since ${formatDate(since.at)}`;
+        : `since ${dayLabel(since.at)}`;
   return (
-    <p className="t-meta text-[12px]">
+    <p className="t-meta text-[length:var(--type-sm)]">
       {parts.map(([label, n], i) => (
         <span key={label}>
           {i > 0 && " · "}
-          <span className="t-num text-neutral-700">{n}</span> {label}
+          <span className="t-num text-[var(--ink-2)]">{n}</span> {label}
         </span>
       ))}
       {` ${when}`}
@@ -220,6 +216,13 @@ const STATE_TONE: Record<HState, StateTone> = {
   ruled_out: "none",
 };
 
+const CONC_TONE: Record<StateTone, string> = {
+  off: "off",
+  border: "border",
+  on: "on",
+  none: "",
+};
+
 /**
  * What "Discuss" opens the composer about. The card's title carries the state
  * ("Insulin resistance: likely"), and "About Insulin resistance: likely: " is
@@ -227,6 +230,9 @@ const STATE_TONE: Record<HState, StateTone> = {
  */
 const topicOf = (c: Conclusion) =>
   c.title.replace(/:\s*(confirmed|likely|possible|unlikely|ruled out)$/i, "");
+
+/** The card's own name, with the state word taken off the end. */
+const nameOf = (c: Conclusion) => topicOf(c);
 
 const moveCost = (m: Move) =>
   m.cost === 0 ? "free" : m.priced ? `€${m.cost}` : `cost ${m.cost}`;
@@ -241,15 +247,18 @@ function EvidenceList({
   if (!lines.length) return null;
   return (
     <div>
-      <div className={LABEL}>{title}</div>
+      <div className="t-meta text-[length:var(--type-xs)]">{title}</div>
       <ul className="mt-1 space-y-0.5">
         {lines.map((e) => (
-          <li key={e.rule} className="t-body text-[12px] text-neutral-600">
+          <li
+            key={e.rule}
+            className="t-body text-[length:var(--type-sm)] text-[var(--ink-2)]"
+          >
             <Terms text={explainInput(e)} />{" "}
-            <span className="t-num text-[11px] text-neutral-400">
+            <span className="t-num text-[length:var(--type-xs)] text-[var(--ink-3)]">
               LR {e.lr}
-            </span>
-            <span className="t-meta text-[11px]"> · grade {e.grade}</span>
+            </span>{" "}
+            <EvidenceChip basis="science" grade={e.grade} />
           </li>
         ))}
       </ul>
@@ -257,28 +266,25 @@ function EvidenceList({
   );
 }
 
-/** The small list behind "Something's off?": every reading and fact it read. */
+/** Every reading and fact the card read, each one editable. */
 function NotRight({ inputs }: { inputs: Conclusion["inputs"] }) {
   if (!inputs.length) return null;
   return (
-    <details>
-      <summary className={SMALL_LINK}>
-        <TriangleAlert className="size-3.5 text-neutral-400" />
-        Something&rsquo;s off?
-      </summary>
-      <div className="mt-2 space-y-1.5 border-l-2 border-neutral-150 pl-3">
+    <details className="disclose">
+      <summary>Something&rsquo;s off?</summary>
+      <div className="inner space-y-1.5">
         {inputs.map((i) =>
           i.kind === "reading" ? (
             <div
               key={`r-${i.id}`}
               className="flex flex-wrap items-center gap-2"
             >
-              <span className="t-body text-[12px] text-neutral-700">
+              <span className="t-body text-[length:var(--type-sm)] text-[var(--ink-2)]">
                 <Terms text={i.label} />
               </span>
-              <span className="t-num text-[11px] text-neutral-500">
+              <span className="t-num text-[length:var(--type-xs)] text-[var(--ink-3)]">
                 {i.value}
-                {i.date ? ` · ${i.date}` : ""}
+                {i.date ? ` · ${dayLabel(i.date, true)}` : ""}
               </span>
               <WrongValue readingId={i.id} />
             </div>
@@ -312,82 +318,74 @@ export function ConclusionCard({
   actionIndex?: number;
   /** this card's question as a line and a link; the input lives on Today */
   ask?: Ask;
-  /**
-   * The top three things to do about this one (`lib/actions.ts`). Given for a
-   * likely or confirmed card and left off the quiet ones, so a card that is
-   * only possible does not grow a to-do list.
-   */
+  /** the top three things to do about this one (`lib/actions.ts`) */
   todo?: PlanLine[];
-  /** the catalog's own management text, printed as the doctor's note */
+  /** the catalog's own management text, copied out of the why disclosure */
   management?: string;
   spear?: boolean;
 }) {
   const top = c.next.find((m) => m.kind !== "question");
   const lens = lensLine(c.lenses);
+  const tone = c.risk ? "border" : c.state ? STATE_TONE[c.state] : "none";
   return (
-    <Card
+    <div
       data-card={c.id}
-      className={cn("t-flip t-resize p-4", spear && "border-accent-500 p-5")}
+      className={cn("conc t-flip t-resize", CONC_TONE[tone])}
     >
-      {spear && (
-        <div className="t-meta mb-2 text-[10px] font-bold uppercase tracking-[0.06em] text-accent-600">
-          Start here
-        </div>
-      )}
-
-      <div className="flex flex-wrap items-start justify-between gap-2">
-        <div className="flex flex-wrap items-center gap-1.5">
-          <StateWord className="tabular-nums">{c.rank}</StateWord>
-          {c.risk ? (
-            <StateWord tone="border">risk</StateWord>
-          ) : (
-            c.state && (
-              <StateWord tone={STATE_TONE[c.state]} data-state-chip={c.id}>
-                <SwapText text={c.state.replace("_", " ")} />
-              </StateWord>
-            )
-          )}
-        </div>
+      <div className="conc-top">
+        <span className="conc-rank">
+          {String(c.rank).padStart(2, "0")}
+        </span>
+        <h3 className="conc-name t-title">{nameOf(c)}</h3>
+        {c.risk ? (
+          <StateWord tone="border">risk</StateWord>
+        ) : (
+          c.state && (
+            <StateWord
+              tone={STATE_TONE[c.state]}
+              tri={STATE_TONE[c.state] === "off"}
+              data-state-chip={c.id}
+            >
+              <SwapText text={c.state.replace("_", " ")} />
+            </StateWord>
+          )
+        )}
         {c.probability != null && (
-          <Digits
-            data-percent={c.id}
-            text={`${Math.round(c.probability * 100)}%`}
-            className="font-display text-[28px] font-medium leading-none tracking-[-0.02em] text-neutral-900"
-          />
+          <span className="conc-pct">
+            <Digits
+              data-percent={c.id}
+              text={String(Math.round(c.probability * 100))}
+            />
+            <em>%</em>
+          </span>
         )}
       </div>
 
-      <h3
-        className={cn(
-          "t-title mt-2 text-neutral-900",
-          spear ? "text-[24px]" : "text-[17px]",
-        )}
-      >
-        {c.title}
-      </h3>
-
+      {/* UX note 4: the lens weight, in words a person reads, with its grade
+          glyph and the tooltip that says what a grade is. */}
       {lens && (
-        <p className="t-meta mt-1 text-[12px]">
-          matters most for {lens.lens} (
-          <Term code="grade">{`grade ${lens.grade}`}</Term>)
+        <p className="t-meta text-[length:var(--type-sm)]">
+          weighs most on {lens.lens} ·{" "}
+          <Term code="grade">evidence {lens.grade}</Term>{" "}
+          <EvidenceChip basis="science" grade={lens.grade} />
         </p>
       )}
 
       {verdict && (
-        <p className="t-body mt-1.5 text-neutral-600">
+        <p className="conc-prose">
           <Terms text={verdict} />
         </p>
       )}
 
       {c.changed && (
-        <p className="t-meta mt-1.5 text-[12px]">{changedLine(c.changed)}</p>
+        <p className="t-meta text-[length:var(--type-sm)]">
+          {changedLine(c.changed)}
+        </p>
       )}
 
       {(c.for.length > 0 || c.against.length > 0) && (
-        <p className="t-body mt-2 text-[12px] text-neutral-600">
-          <span className="t-meta text-[10px] font-bold uppercase tracking-[0.06em] text-neutral-400">
-            For ·{" "}
-          </span>
+        <p className="conc-prose">
+          <span className="t-meta text-[length:var(--type-xs)]">FOR · </span>
           <Terms
             text={
               c.for
@@ -397,8 +395,8 @@ export function ConclusionCard({
             }
           />
           <br />
-          <span className="t-meta text-[10px] font-bold uppercase tracking-[0.06em] text-neutral-400">
-            Against ·{" "}
+          <span className="t-meta text-[length:var(--type-xs)]">
+            AGAINST ·{" "}
           </span>
           <Terms
             text={
@@ -411,14 +409,11 @@ export function ConclusionCard({
         </p>
       )}
 
-      {c.rangeBar && (
-        <div className="mt-3">
-          <Ruler {...c.rangeBar} />
-        </div>
-      )}
+      {/* UX note 2: this is the marker the FOR line names, or nothing. */}
+      {c.rangeBar && <Ruler {...c.rangeBar} />}
 
       {c.projection && (
-        <p className="t-body mt-3 flex items-center gap-2 border-l-2 border-accent-500 bg-accent-50 px-3 py-2 text-neutral-700">
+        <p className="t-body flex items-center gap-2 text-[length:var(--type-sm)] text-[var(--ink-2)]">
           {c.projection.verdict && (
             <StateWord
               tone={
@@ -439,7 +434,7 @@ export function ConclusionCard({
       )}
 
       {spear && c.trend && (
-        <div className="mt-3">
+        <div>
           <HistoryChart
             mini
             title={explainKey(c.trend.code)}
@@ -450,9 +445,9 @@ export function ConclusionCard({
             optimalHigh={c.rangeBar?.optimalHigh}
             unit={c.rangeBar?.unit}
           />
-          <p className={WHY}>
-            <Term code={c.trend.code}>{explainKey(c.trend.code)}</Term>,{" "}
-            <span className="t-num">{c.trend.points.length}</span> draws
+          <p className="t-meta mt-1 text-[length:var(--type-xs)]">
+            <Term code={c.trend.code}>{explainKey(c.trend.code)}</Term> ·{" "}
+            {plural(c.trend.points.length, "draw")}
           </p>
         </div>
       )}
@@ -465,11 +460,11 @@ export function ConclusionCard({
           conditionName={topicOf(c)}
           lines={todo}
           reportId={reportId ?? null}
-          management={management}
         />
       )}
 
-      <div className="mt-3 flex flex-wrap items-center gap-2">
+      {/* UX note 9: one text row. Not for me · Discuss, and nothing else. */}
+      <div className="rowh">
         {reportId && c.action && actionIndex != null ? (
           <ActionButtons
             reportId={reportId}
@@ -480,65 +475,63 @@ export function ConclusionCard({
             adopt={!todo?.length}
           />
         ) : top ? (
-          <Link
-            href="/plan"
-            className="inline-flex h-10 items-center gap-1.5 border border-neutral-200 bg-neutral-0 px-3 font-display text-[12px] tracking-[0.04em] text-neutral-700 transition-[color,background-color,border-color] duration-150 ease-out hover:border-neutral-900 hover:bg-neutral-50 active:scale-[0.96]"
-          >
-            <FlaskConical className="size-3.5" />
+          <Link href="/plan" className="b b-quiet b-sm">
             {top.kind === "test" ? `Order ${top.label}` : top.label} (
             {moveCost(top)})
           </Link>
         ) : null}
       </div>
 
-      {/* One row, two quiet buttons: the two things a reader wants to say. */}
-      <div className="mt-3 flex flex-wrap items-start gap-x-6 gap-y-1">
-        <details>
-          <summary className={SMALL_LINK}>
-            <CircleQuestionMark className="size-3.5 text-neutral-400" />
-            Why?
-          </summary>
-          <div className="mt-2 space-y-2 border-t border-neutral-100 pt-2">
-            <p className="t-meta text-[11px]">
-              <Term code="likelihood_ratio">LR</Term> is how much a finding
-              multiplies the odds; <Term code="grade">grade</Term> is how good
-              the evidence behind it is.
+      {/* UX note 9: the doctor's note and "Something's off?" live in here. */}
+      <details className="disclose">
+        <summary>Why this number</summary>
+        <div className="inner space-y-2">
+          <p className="t-meta text-[length:var(--type-xs)]">
+            <Term code="likelihood_ratio">LR</Term> is how much a finding
+            multiplies the odds; <Term code="grade">grade</Term> is how good
+            the evidence behind it is.
+          </p>
+          <EvidenceList title="For" lines={c.for} />
+          <EvidenceList title="Against" lines={c.against} />
+          {c.missing.length > 0 && (
+            <p className="t-meta text-[length:var(--type-sm)]">
+              Never measured: <Terms text={c.missing.join(", ")} />
             </p>
-            <EvidenceList title="For" lines={c.for} />
-            <EvidenceList title="Against" lines={c.against} />
-            {c.missing.length > 0 && (
-              <p className="t-meta text-[12px]">
-                Never measured: <Terms text={c.missing.join(", ")} />
+          )}
+          {c.confounded.length > 0 && (
+            <p className="t-meta text-[length:var(--type-sm)]">
+              Discounted: <Terms text={c.confounded.join(", ")} />
+            </p>
+          )}
+          {c.next.length > 0 && (
+            <p className="t-meta text-[length:var(--type-sm)]">
+              Next:{" "}
+              {c.next.map((m, i) => (
+                <span key={m.label}>
+                  {i > 0 && " · "}
+                  <Terms text={m.label} /> (
+                  {m.cost === 0 ? (
+                    "free"
+                  ) : (
+                    <span className="t-num">{moveCost(m)}</span>
+                  )}
+                  )
+                </span>
+              ))}
+            </p>
+          )}
+          {management && (
+            <div className="space-y-1">
+              <p className="t-body text-[length:var(--type-sm)] text-[var(--ink-2)]">
+                {management}
               </p>
-            )}
-            {c.confounded.length > 0 && (
-              <p className="t-meta text-[12px]">
-                Discounted: <Terms text={c.confounded.join(", ")} />
-              </p>
-            )}
-            {c.next.length > 0 && (
-              <p className="t-meta text-[12px]">
-                Next:{" "}
-                {c.next.map((m, i) => (
-                  <span key={m.label}>
-                    {i > 0 && " · "}
-                    <Terms text={m.label} /> (
-                    {m.cost === 0 ? (
-                      "free"
-                    ) : (
-                      <span className="t-num">{moveCost(m)}</span>
-                    )}
-                    )
-                  </span>
-                ))}
-              </p>
-            )}
-          </div>
-        </details>
-
-        <NotRight inputs={c.inputs} />
-      </div>
-    </Card>
+              <CopyNote text={management} label="Copy the doctor's note" />
+            </div>
+          )}
+          <NotRight inputs={c.inputs} />
+        </div>
+      </details>
+    </div>
   );
 }
 
@@ -554,82 +547,69 @@ export interface MarkerGroup {
   inputs: Conclusion["inputs"];
 }
 
-/**
- * Five cards that each said "Cholesterol, Total 217 mg/dL, off" over two
- * collapsed stubs were filler: same shape, same two links, no sentence. One
- * card per system says the same thing in one line, and the markers stay one
- * tap from their own page.
- */
+/** One card per system, with the markers as chips one tap from their page. */
 export function MarkersCard({ group }: { group: MarkerGroup }) {
   const n = group.markers.length;
   return (
-    <Card data-card={group.id} className="t-flip t-resize p-4">
-      <details>
-        <summary className="flex cursor-pointer list-none items-start justify-between gap-2">
-          <h3 className="t-title text-[17px] text-neutral-900">
-            {group.systemName}: {n} marker{n === 1 ? "" : "s"} off
-          </h3>
-          <span
-            aria-label="Where these readings came from"
-            className="hit-40 flex size-10 shrink-0 items-center justify-center text-[16px] leading-none text-neutral-400 hover:text-neutral-700"
-          >
-            …
-          </span>
-        </summary>
-        <div className="mt-2 space-y-1.5 border-l-2 border-neutral-150 pl-3">
+    <div data-card={group.id} className="conc t-flip t-resize">
+      <div className="conc-top">
+        <h3 className="conc-name t-title">
+          {group.systemName}: {plural(n, "marker")} off
+        </h3>
+      </div>
+
+      <ul className="chips">
+        {group.markers.map((m) => (
+          <li key={m.code}>
+            <Link href={`/blood/m/${m.code}`} className="chip">
+              {m.name}
+              <span className="t-num text-[length:var(--type-xs)]">
+                {m.value}
+              </span>
+            </Link>
+          </li>
+        ))}
+      </ul>
+
+      <details className="disclose">
+        <summary>Where these readings came from</summary>
+        <div className="inner space-y-1.5">
           {group.inputs.map((i) => (
             <div key={i.id} className="flex flex-wrap items-center gap-2">
-              <span className="t-body text-[12px] text-neutral-700">
+              <span className="t-body text-[length:var(--type-sm)] text-[var(--ink-2)]">
                 <Terms text={i.label} />
               </span>
-              <span className="t-num text-[11px] text-neutral-500">
+              <span className="t-num text-[length:var(--type-xs)] text-[var(--ink-3)]">
                 {i.value}
-                {i.date ? ` · ${i.date}` : ""}
+                {i.date ? ` · ${dayLabel(i.date, true)}` : ""}
               </span>
               {i.kind === "reading" && <WrongValue readingId={i.id} />}
             </div>
           ))}
         </div>
       </details>
-
-      <ul className="mt-2 flex flex-wrap gap-1.5">
-        {group.markers.map((m) => (
-          <li key={m.code}>
-            <Link
-              href={`/blood/m/${m.code}`}
-              className="inline-flex h-10 items-center gap-1.5 border border-neutral-200 px-2.5 text-[12px] text-neutral-600 transition-[color,border-color] duration-150 ease-out hover:border-neutral-900 hover:text-neutral-900 active:scale-[0.96]"
-            >
-              <span className="t-body text-[12px]">{m.name}</span>
-              <span className="t-num text-[11px]">{m.value}</span>
-            </Link>
-          </li>
-        ))}
-      </ul>
-    </Card>
+    </div>
   );
 }
 
 /**
- * "What your genome changed": the three sentences the upload page already
- * writes, on the ledger for a fortnight after the file landed, with a link to
- * all of them. The same card carries a document's accepted items.
+ * "What your genome changed": the sentences the upload page already writes,
+ * on the ledger for a fortnight after the file landed.
  */
 export function FindingsCard({ finding }: { finding: Finding }) {
   return (
-    <Card className="p-4">
-      <div className="flex items-baseline justify-between gap-3">
-        <div className={LABEL}>{finding.title}</div>
-        <span className="t-num text-[10px] text-neutral-400">
-          {formatDate(finding.at)}
-        </span>
+    <div className="panel">
+      <div className="panel-head">
+        <h3>{finding.title}</h3>
+        <span className="r">{dayLabel(finding.at, true)}</span>
       </div>
-      <ul className="mt-2 space-y-2">
+      <ul className="space-y-2">
         {finding.lines.map((line) => (
           <li key={line.label}>
-            <span className="t-meta mr-2 inline-block border border-accent-200 bg-accent-50 px-1.5 py-px text-[10px] font-bold uppercase tracking-[0.04em] text-accent-600">
+            <span className="t-meta mr-2 text-[length:var(--type-xs)]">
               {line.label}
             </span>
-            <span className="t-body text-neutral-700">
+            <span className="t-body text-[length:var(--type-sm)] text-[var(--ink-2)]">
               <Terms text={line.text} />
             </span>
           </li>
@@ -637,33 +617,40 @@ export function FindingsCard({ finding }: { finding: Finding }) {
       </ul>
       <Link
         href={finding.href}
-        className="t-meta mt-3 inline-flex items-center gap-1 text-[12px] hover:text-neutral-900"
+        className={cn(SMALL_LINK, "mt-3")}
       >
         see all {finding.total}
-        <span aria-hidden="true">→</span>
       </Link>
-    </Card>
+    </div>
   );
 }
 
 export function ImprovedCard({ improved }: { improved: Ledger["improved"] }) {
   if (!improved.length) return null;
   return (
-    <Card className="p-4">
-      <div className={LABEL}>What improved</div>
-      <ul className="mt-2 space-y-1">
+    <div className="panel">
+      <div className="panel-head">
+        <h3>What improved</h3>
+        <span className="r">{improved.length}</span>
+      </div>
+      <ul className="space-y-1">
         {improved.map((i) => (
-          <li key={i.code} className="t-body text-neutral-700">
+          <li
+            key={i.code}
+            className="t-body text-[length:var(--type-sm)] text-[var(--ink-2)]"
+          >
             <Term code={i.code}>{i.name}</Term>{" "}
-            <span className="t-num text-neutral-800">
+            <span className="t-num text-[var(--ink)]">
               {i.from} → {i.to}
               {i.unit ? ` ${i.unit}` : ""}
             </span>{" "}
-            <span className="t-meta text-[12px]">since {i.since}</span>
+            <span className="t-meta text-[length:var(--type-xs)]">
+              since {dayLabel(i.since, true)}
+            </span>
           </li>
         ))}
       </ul>
-    </Card>
+    </div>
   );
 }
 
@@ -681,7 +668,7 @@ function QuietRows({
       {rows.map((r) => (
         <li
           key={r.id}
-          className="t-meta flex justify-between gap-2 text-[12px]"
+          className="t-meta flex justify-between gap-2 text-[length:var(--type-sm)]"
         >
           <span className="truncate">{r.name}</span>
           <span className="t-num">{quietPct(r.p)}</span>
@@ -692,53 +679,59 @@ function QuietRows({
 }
 
 /**
- * Two toggles, not one. Unlikely is a thing worth glancing at; ruled out is a
- * thing the engine looked at and dismissed, and after phase 17 most of that
- * list is rare diseases something woke and the arithmetic put back to sleep.
- * Both are closed by default, everywhere.
+ * Two toggles, not one. Unlikely is worth a glance; ruled out is what the
+ * engine looked at and dismissed. Both are closed by default, everywhere.
  */
 export function QuietLine({ quiet }: { quiet: Ledger["quiet"] }) {
   if (!quiet.ids.length) return null;
   return (
     <div className="space-y-2">
       {quiet.unlikely > 0 && (
-        <details>
-          <summary className={SMALL_LINK}>
-            Show {quiet.unlikely} unlikely
-          </summary>
-          <QuietRows rows={quiet.rows} />
+        <details className="disclose">
+          <summary>Show {quiet.unlikely} unlikely</summary>
+          <div className="inner">
+            <QuietRows rows={quiet.rows} />
+          </div>
         </details>
       )}
       {quiet.ruledOut > 0 && (
-        <details>
-          <summary className={SMALL_LINK}>
-            Show {quiet.ruledOut} ruled out
-          </summary>
-          <p className="t-meta mt-2 text-[12px]">
-            Under 5 %. Every one of these was scored and dismissed; the ring-2
-            entries are rare diseases something in your data woke for a look.
-          </p>
-          <QuietRows rows={quiet.ruledOutRows} />
+        <details className="disclose">
+          <summary>Show {quiet.ruledOut} ruled out</summary>
+          <div className="inner">
+            <p className="t-meta text-[length:var(--type-sm)]">
+              Under 5 %. Every one of these was scored and dismissed; the
+              ring-2 entries are rare diseases something in your data woke for
+              a look.
+            </p>
+            <QuietRows rows={quiet.ruledOutRows} />
+          </div>
         </details>
       )}
     </div>
   );
 }
 
-/** Nothing uploaded yet: one line, one link. */
+/** The one legend for the glyphs, at the top of the ledger (UX note 8). */
+export function EvidenceLegend() {
+  return <p className="legend">{EVIDENCE_LEGEND}</p>;
+}
+
+/** Day one: `system.html` section 12. One sentence, one link, no dashes. */
 export function EmptyHome() {
   return (
-    <Card className="border-dashed p-10 text-center">
-      <p className="t-body text-neutral-500">
-        No readings yet.{" "}
-        <Link href="/blood?tab=uploads" className="underline">
-          Upload a lab PDF
-        </Link>{" "}
-        to get started.
+    <div className="empty">
+      <span className="k">Day one</span>
+      <b className="t-title text-[length:var(--type-md)] font-normal">
+        Nothing measured yet
+      </b>
+      <p>
+        Add a lab result, or a photo of one, and the first reading turns this
+        into a ledger. Nothing here is a demo.
       </p>
-      <div className="mt-3 flex justify-center">
+      <Link href="/blood?tab=uploads">Add your first result</Link>
+      <div className="mt-2">
         <GeneratePlan />
       </div>
-    </Card>
+    </div>
   );
 }
