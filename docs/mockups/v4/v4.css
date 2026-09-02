@@ -1068,6 +1068,7 @@ details.detail .sig-legend {
   background: var(--surface);
   border-radius: var(--r-card);
   padding: var(--s13) var(--s21);
+  container-type: inline-size;
 }
 .hist-head {
   display: flex;
@@ -1092,7 +1093,7 @@ details.detail .sig-legend {
 .hist-body {
   display: grid;
   grid-template-columns: 42px 1fr;
-  gap: var(--s8);
+  gap: var(--s13);
   padding-top: var(--s21);
 }
 .hist-y {
@@ -1142,11 +1143,14 @@ details.detail .sig-legend {
 .hist-band.seg b {
   left: auto;
   right: var(--s5);
+  top: auto;
+  bottom: calc(100% + 3px);
 }
 .hist-band b {
   position: absolute;
+  z-index: 2;
   left: var(--s5);
-  bottom: calc(100% + 2px);
+  top: 2px;
   font-family: var(--font-mono);
   font-size: var(--type-xs);
   font-weight: 400;
@@ -1170,7 +1174,7 @@ details.detail .sig-legend {
   stroke: var(--ink-3);
   stroke-dasharray: 3 4;
 }
-/* one dated draw */
+/* ── one dated draw: a diamond at a real (date, value) point ── */
 .hp {
   position: absolute;
   left: var(--x);
@@ -1190,14 +1194,17 @@ details.detail .sig-legend {
 .hp.now i {
   background: var(--ink);
 }
-.hp.planned i {
+/* the planned draw: hollow, sitting ON the x axis, no value to print */
+.hp.plan i {
   box-shadow: 0 0 0 2px var(--ink-3);
 }
+/* the value label always sits BESIDE its own diamond, a fixed 8px off,
+   never stacked above it and never on an axis label */
 .hp b {
   position: absolute;
-  left: 0;
-  bottom: 13px;
-  transform: translateX(-50%);
+  left: 16px;
+  top: -3px;
+  transform: translateY(-100%);
   font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
   font-size: var(--type-sm);
@@ -1205,32 +1212,60 @@ details.detail .sig-legend {
   color: var(--ink);
   white-space: nowrap;
 }
+/* a point in the right third puts its label on the side that has room */
+.hp.lft b {
+  left: auto;
+  right: 16px;
+}
 .hp.was b {
   color: var(--ink-3);
   font-size: var(--type-xs);
 }
-.hp.left b {
-  transform: none;
-  left: -2px;
-}
-/* label beside the point, for a point sitting on the top edge */
-.hp.beside b {
-  transform: none;
-  left: 16px;
-  bottom: -7px;
-}
-.hp.right b {
-  transform: none;
-  left: auto;
-  right: -2px;
-}
+
+/* ── x axis: every label at its own date, not spread by a flexbox ── */
 .hist-x {
-  display: flex;
-  justify-content: space-between;
+  position: relative;
+  height: 14px;
   margin-top: var(--s8);
   font-family: var(--font-mono);
   font-size: var(--type-xs);
+  line-height: 1.25;
   color: var(--ink-3);
+}
+.hist-x span {
+  position: absolute;
+  left: var(--x);
+  top: 0;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  text-align: center;
+}
+.hist-x .first {
+  transform: none;
+}
+.hist-x .last {
+  transform: translateX(-100%);
+}
+.hist-x .plan em {
+  display: block;
+  font-style: normal;
+  opacity: 0.75;
+}
+.hist-x.has-plan {
+  height: 28px;
+}
+@container (max-width: 480px) {
+  .hist-x span {
+    font-size: 10px;
+  }
+  .hist-x .mid {
+    display: none;
+  }
+  .hist-x .plan {
+    transform: translateX(-100%);
+    padding-right: var(--s5);
+    text-align: right;
+  }
 }
 .hist-legend {
   display: flex;
@@ -1258,6 +1293,10 @@ details.detail .sig-legend {
   background: var(--surface);
   box-shadow: 0 0 0 1.5px var(--ink);
 }
+.hist-legend i.ghost {
+  background: var(--surface);
+  box-shadow: 0 0 0 1.5px var(--ink-3);
+}
 .hist-legend u {
   width: 13px;
   height: 8px;
@@ -1265,22 +1304,21 @@ details.detail .sig-legend {
   background: color-mix(in oklab, var(--ok) 26%, transparent);
 }
 
-/* history mini: the same component, drawer size */
+/* history mini: the same component at drawer size. No y ticks, no band
+   label, no legend — first and last date and the two values, nothing else. */
 .hist.mini {
   padding: var(--s8) var(--s13);
   border-radius: var(--r-inner);
 }
 .hist.mini .hist-body {
-  grid-template-columns: 34px 1fr;
-  padding-top: var(--s13);
+  grid-template-columns: 1fr;
+  padding-top: var(--s21);
 }
-.hist.mini .hist-y,
 .hist.mini .hist-plot {
   height: 55px;
 }
 .hist.mini .hp b {
   font-size: var(--type-xs);
-  bottom: 9px;
 }
 .hist.mini .hist-band b {
   display: none;
