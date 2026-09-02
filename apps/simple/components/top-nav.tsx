@@ -119,7 +119,7 @@ export function TopNav({
 
   return (
     <>
-      <header className="sticky top-0 z-50 border-b border-neutral-200 bg-neutral-0">
+      <header className="nav-bar sticky top-0 z-50 border-b">
         <div className="mx-auto h-(--top-nav-height) max-w-[1400px] px-4">
           <div className="flex h-full items-center justify-between gap-4">
             <div className="flex items-center gap-6 md:ml-2">
@@ -131,7 +131,7 @@ export function TopNav({
               </Link>
 
               <nav className="hidden items-center gap-3 md:flex">
-                <div className="flex items-center gap-1 rounded border bg-neutral-100 p-0.5">
+                <div className="nav-group flex items-center gap-1 rounded border p-0.5">
                   {navigation.map((item) => (
                     <Link
                       key={item.name}
@@ -141,8 +141,8 @@ export function TopNav({
                         // 2 px of padding, so the pill inside is 2 px.
                         "flex h-[30px] items-center gap-1.5 rounded-[2px] px-2.5 py-1 font-mono text-[11px] font-medium uppercase tracking-[0.04em] transition-colors duration-150 ease-out",
                         isActive(pathname, item.href)
-                          ? "bg-accent-50 text-accent-500"
-                          : "text-neutral-500 hover:text-neutral-900",
+                          ? "nav-pill-on"
+                          : "nav-pill",
                       )}
                     >
                       <item.icon className="h-3.5 w-3.5" />
@@ -166,8 +166,8 @@ export function TopNav({
                         className={cn(
                           "flex h-[30px] items-center gap-1.5 rounded-[2px] px-2 py-1 font-mono text-[11px] font-medium uppercase tracking-[0.04em] transition-colors duration-150 ease-out",
                           isActive(pathname, item.href)
-                            ? "bg-accent-50 text-accent-500"
-                            : "text-neutral-500 hover:text-neutral-900",
+                            ? "nav-pill-on"
+                            : "nav-pill",
                         )}
                       >
                         <item.icon className="h-3.5 w-3.5" />
@@ -251,7 +251,7 @@ export function TopNav({
 
       {/* Five slots on the phone, and the middle one is the composer: the one
           thing you always want to reach is not a page, it is a sentence. */}
-      <nav className="fixed inset-x-0 bottom-0 z-50 grid grid-cols-5 border-t border-neutral-200 bg-neutral-0 md:hidden">
+      <nav className="nav-bar fixed inset-x-0 bottom-0 z-50 grid grid-cols-5 border-t md:hidden">
         {navigation.slice(0, 2).map((item) => (
           <Link
             key={item.name}
@@ -259,8 +259,8 @@ export function TopNav({
             className={cn(
               "flex flex-col items-center gap-0.5 py-2 font-mono text-[10px] font-medium uppercase tracking-[0.04em] transition-colors",
               isActive(pathname, item.href)
-                ? "bg-accent-50 text-accent-500"
-                : "text-neutral-500",
+                ? "nav-pill-on"
+                : "nav-pill",
             )}
           >
             <item.icon className="size-4" />
@@ -272,7 +272,7 @@ export function TopNav({
           onClick={() => openComposer()}
           className="flex cursor-pointer flex-col items-center justify-center py-1"
         >
-          <span className="flex size-9 items-center justify-center rounded-full bg-neutral-900 text-neutral-0">
+          <span className="flex size-9 items-center justify-center rounded-full bg-[var(--ink)] text-[var(--canvas)]">
             <Plus className="size-5" />
           </span>
         </button>
@@ -283,8 +283,8 @@ export function TopNav({
             className={cn(
               "flex flex-col items-center gap-0.5 py-2 font-mono text-[10px] font-medium uppercase tracking-[0.04em] transition-colors",
               isActive(pathname, item.href)
-                ? "bg-accent-50 text-accent-500"
-                : "text-neutral-500",
+                ? "nav-pill-on"
+                : "nav-pill",
             )}
           >
             <item.icon className="size-4" />

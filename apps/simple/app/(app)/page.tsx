@@ -8,6 +8,7 @@ import {
   homeAskPlan,
   linkedAsk,
   optionsFor,
+  railCards,
   recentFindings,
   type TrendMetric,
 } from "@/lib/home-data";
@@ -18,7 +19,6 @@ import { NODES, SYSTEMS } from "@/lib/graph";
 import { latestReport } from "@/lib/report";
 import { catalogFor } from "@/lib/hkb";
 import {
-  Cockpit,
   ConclusionCard,
   EmptyHome,
   FindingsCard,
@@ -27,12 +27,13 @@ import {
   MarkersCard,
   QuietLine,
   SectionHeader,
-  SystemsGrid,
-  TodayCard,
+  SinceLine,
+  TodayQuestions,
   type MarkerGroup,
 } from "@/components/home";
+import { HomeLight, HomeRail, SystemChips } from "@/components/home-rail";
 import { LedgerMotion } from "@/components/ledger-motion";
-import { LedgerList } from "@/components/motion";
+import { LedgerList, SwapText } from "@/components/motion";
 import { AskLine } from "@/components/ask-line";
 
 export const dynamic = "force-dynamic";
@@ -198,22 +199,76 @@ export default async function Home({
       card(item)
     );
 
+  /**
+   * Phase 28c: the top of the page is one sentence, then the rail. The rail's
+   * order is decided in `railCards`, and `lib/home-data.test.ts` locks it.
+   */
+  const drawDate = rows.reduce(
+    (max, m) => (m.latest.observedAt > max ? m.latest.observedAt : max),
+    "",
+  );
+  const cards = railCards(ledger, today, {
+    actions: actions.length,
+    todo: Object.values(todo).reduce((n, lines) => n + lines.length, 0),
+    ...(drawDate ? { drawDate } : {}),
+  });
+  const moved =
+    ledger.since != null &&
+    ledger.since.new +
+      ledger.since.resolved +
+      ledger.since.stronger +
+      ledger.since.weaker >
+      0;
+  // `titleOf` already ends the title with its state word ("High blood
+  // pressure: possible"), so the tail is coloured in place, not repeated.
+  const cut = spear ? spear.title.lastIndexOf(": ") : -1;
+  const spearHead = spear ? (cut > 0 ? spear.title.slice(0, cut + 1) : spear.title) : "";
+  const spearTail = spear && cut > 0 ? spear.title.slice(cut + 2) : "";
+  const spearTone =
+    spear?.state === "confirmed" || spear?.state === "likely"
+      ? "tone-bad"
+      : spear?.state === "possible"
+        ? "tone-warn"
+        : "tone-none";
+
   return (
-    <div className="space-y-8">
+    <div className="home">
+      <div className="home-top">
+        <HomeLight tone={cards[0]!.tone} />
+        <div>
+          <h1 className="home-sentence">
+            {spear ? (
+              <>
+                <SwapText text={spearHead} />
+                {spearTail && <span className={spearTone}> {spearTail}</span>}
+              </>
+            ) : (
+              "All quiet"
+            )}
+          </h1>
+          <div className="home-meta">
+            {/* when nothing moved the Status card already prints the draw
+                date, so the meta line stays quiet instead of repeating it */}
+            {moved ? <SinceLine since={ledger.since} day={day} /> : null}
+          </div>
+        </div>
+
+        <HomeRail cards={cards} />
+      </div>
+
       <AskLine />
 
-      <TodayCard
+      <TodayQuestions
         today={today}
         day={day}
         ask={plan.ask}
         askKey={want}
         askOptions={plan.ask ? optionsFor(plan.ask.key) : []}
       />
-      <Cockpit ledger={ledger} day={day} />
 
       <section>
         <SectionHeader title="Systems" href="/graph" linkLabel="Your graph" />
-        <SystemsGrid systems={ledger.systems} />
+        <SystemChips systems={ledger.systems} />
       </section>
 
       {spear && (

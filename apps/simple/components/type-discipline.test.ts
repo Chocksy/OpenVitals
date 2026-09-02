@@ -32,16 +32,18 @@ vi.mock("next/navigation", () => ({
 }));
 
 const {
-  Cockpit,
   ConclusionCard,
   FindingsCard,
   ImprovedCard,
   MarkersCard,
   QuietLine,
   SinceLine,
-  SystemsGrid,
-  TodayCard,
+  TodayQuestions,
 } = await import("./home");
+/* Phase 28c: `Cockpit`, `SystemsGrid` and `TodayCard` are gone — the rail and
+   the chips replaced them, so those two surfaces are what the lock reads. */
+const { HomeRail, SystemChips } = await import("./home-rail");
+const { railCards } = await import("@/lib/home-data");
 const { termFor } = await import("@/lib/glossary");
 
 /* ── the checker ──────────────────────────────────────────────────────── */
@@ -304,14 +306,19 @@ const SURFACES: [string, () => string][] = [
       ),
   ],
   [
-    "Cockpit",
-    () => html(createElement(Cockpit, { ledger, day: "2026-09-01" })),
-  ],
-  [
-    "SystemsGrid",
+    "HomeRail",
     () =>
       html(
-        createElement(SystemsGrid, {
+        createElement(HomeRail, {
+          cards: railCards(ledger, today, { todo: 2, actions: 1 }),
+        }),
+      ),
+  ],
+  [
+    "SystemChips",
+    () =>
+      html(
+        createElement(SystemChips, {
           systems: (ledger as never as { systems: never }).systems,
         }),
       ),
@@ -348,8 +355,8 @@ const SURFACES: [string, () => string][] = [
       ),
   ],
   [
-    "TodayCard",
-    () => html(createElement(TodayCard, { today, day: "2026-09-01" })),
+    "TodayQuestions",
+    () => html(createElement(TodayQuestions, { today, day: "2026-09-01" })),
   ],
 ];
 
@@ -391,18 +398,9 @@ describe("monospace is for numbers, units, codes and dates", () => {
 
 describe("every abbreviation on a card has its meaning attached", () => {
   it("marks ALP up wherever the cards print it", () => {
-    const out = html(createElement(Cockpit, { ledger, day: "2026-09-01" }));
+    const out = html(createElement(ConclusionCard, { c: conclusion }));
     expect(out).toContain("ov-term-trigger");
     expect(out).toContain("A liver enzyme that also comes from bone.");
-  });
-
-  it("marks the system's worst marker up", () => {
-    const out = html(
-      createElement(SystemsGrid, {
-        systems: (ledger as never as { systems: never }).systems,
-      }),
-    );
-    expect(out).toContain("ov-term-tip");
     expect(out).toContain("Alkaline phosphatase");
   });
 

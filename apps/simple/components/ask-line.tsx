@@ -23,11 +23,11 @@ export function AskLine() {
   };
 
   return (
-    <div className="card flex items-center gap-2 px-3 py-1.5">
+    <div className="ask-pill flex items-center gap-2 px-3 py-1.5">
       <MessageCircleQuestionMark className="size-4 shrink-0 text-neutral-400" />
       <input
-        className="t-body min-w-0 flex-1 bg-transparent py-1.5 text-[14px] outline-none placeholder:text-neutral-400"
-        placeholder="Ask anything, or tell me what changed"
+        className="t-body min-w-0 flex-1 bg-transparent py-1.5 text-[15px] outline-none placeholder:text-[var(--ink-3)]"
+        placeholder="Ask, or tell me what changed"
         value={text}
         onChange={(e) => setText(e.target.value)}
         onKeyDown={(e) => {

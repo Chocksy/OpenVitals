@@ -108,6 +108,46 @@
   --shadow-card: 0 0 0 1px rgba(0, 0, 0, 0.03), 0 2px 4px rgba(0, 0, 0, 0.02);
   --shadow-card-hover:
     0 0 0 1px rgba(0, 0, 0, 0.05), 0 4px 12px rgba(0, 0, 0, 0.05);
+
+  /* ── phase 28c: v4 tokens, warmed by August, coloured by Kite ──────────
+     The names follow `docs/mockups/v4/v4.css` so the mockups read as
+     documentation. Spectrum logic: --ok / --warn / --bad colour text, dots
+     and the ▲ glyph, never a surface. The one exception is the navy Status
+     card, which is Kite's. */
+  --canvas: #fdf5ec;
+  --canvas-deep: #f4e9dc;
+  --surface: rgba(255, 255, 255, 0.58);
+  --surface-hi: rgba(255, 255, 255, 0.78);
+  --ink: #3d2a1c;
+  --ink-2: #6d5744;
+  /* the mockup's #9c8776 and #b4761b read at 3.2:1 and 3.5:1 on the cream,
+     under AA for 13 px meta text and for the 21 px state word; darkened
+     until both clear 4.5:1, same hue */
+  --ink-3: #7f6a59;
+  --ok: #2b7f3a;
+  --warn: #9a6413;
+  --bad: #c32b45;
+  --bad-fill: #e74d64;
+  --navy: #0f2140;
+  --navy-ink: #f4f2ed;
+  /* the spectrum again, lightened for the one dark surface in the app */
+  --navy-bad: #e3767c;
+  --navy-warn: #e0a63c;
+  --navy-ok: #8fc46a;
+  --sky: #d9e7f7;
+
+  /* Fibonacci space and the four radii */
+  --sp-1: 3px;
+  --sp-2: 5px;
+  --sp-3: 8px;
+  --sp-4: 13px;
+  --sp-5: 21px;
+  --sp-6: 34px;
+  --sp-7: 55px;
+  --r-inner: 13px;
+  --r-card: 21px;
+  --r-hero: 34px;
+  --r-pill: 999px;
 }
 
 :root {
@@ -181,10 +221,25 @@
   --color-amber-50: #2a1d05;
   --color-amber-100: #78350f;
 
-  --shadow-card: 0 0 0 1px rgba(255, 255, 255, 0.05), 0 2px 4px rgba(0, 0, 0, 0.4);
-  --shadow-card-hover: 0 0 0 1px rgba(255, 255, 255, 0.1), 0 4px 12px rgba(0, 0, 0, 0.5);
-}
+  --shadow-card:
+    0 0 0 1px rgba(255, 255, 255, 0.05), 0 2px 4px rgba(0, 0, 0, 0.4);
+  --shadow-card-hover:
+    0 0 0 1px rgba(255, 255, 255, 0.1), 0 4px 12px rgba(0, 0, 0, 0.5);
 
+  /* phase 28c: the v4 dark column. Navy stays navy; the light layer halves. */
+  --canvas: #121110;
+  --canvas-deep: #0c0b0a;
+  --surface: #1c1a18;
+  --surface-hi: #24221f;
+  --ink: #f1efea;
+  --ink-2: #b4aea4;
+  --ink-3: #877f74;
+  --ok: #8fc46a;
+  --warn: #e0a63c;
+  --bad: #e3767c;
+  --bad-fill: #e3767c;
+  --sky: #1b2b44;
+}
 
 @layer base {
   * {
@@ -198,7 +253,8 @@
 
   body {
     font-family: var(--font-body);
-    background-color: var(--color-neutral-50);
+    /* phase 28c: one change warms the whole app. August's cream. */
+    background-color: var(--canvas);
     color: var(--color-neutral-900);
     line-height: 1.5;
   }
@@ -210,7 +266,9 @@
 
 @layer utilities {
   .card {
-    @apply border bg-card overflow-hidden rounded-md;
+    @apply border overflow-hidden rounded-md;
+    /* phase 28c: August's translucent tile, everywhere `.card` is used. */
+    background: var(--surface);
   }
 
   .title {
@@ -289,53 +347,93 @@
   /* ─── Sheet animations ─── */
 
   @keyframes sheet-overlay-in {
-    from { opacity: 0; }
-    to { opacity: 1; }
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
   }
 
   @keyframes sheet-overlay-out {
-    from { opacity: 1; }
-    to { opacity: 0; }
+    from {
+      opacity: 1;
+    }
+    to {
+      opacity: 0;
+    }
   }
 
   @keyframes sheet-slide-in-right {
-    from { transform: translateX(100%); }
-    to { transform: translateX(0); }
+    from {
+      transform: translateX(100%);
+    }
+    to {
+      transform: translateX(0);
+    }
   }
 
   @keyframes sheet-slide-out-right {
-    from { transform: translateX(0); }
-    to { transform: translateX(100%); }
+    from {
+      transform: translateX(0);
+    }
+    to {
+      transform: translateX(100%);
+    }
   }
 
   @keyframes sheet-slide-in-left {
-    from { transform: translateX(-100%); }
-    to { transform: translateX(0); }
+    from {
+      transform: translateX(-100%);
+    }
+    to {
+      transform: translateX(0);
+    }
   }
 
   @keyframes sheet-slide-out-left {
-    from { transform: translateX(0); }
-    to { transform: translateX(-100%); }
+    from {
+      transform: translateX(0);
+    }
+    to {
+      transform: translateX(-100%);
+    }
   }
 
   @keyframes sheet-slide-in-top {
-    from { transform: translateY(-100%); }
-    to { transform: translateY(0); }
+    from {
+      transform: translateY(-100%);
+    }
+    to {
+      transform: translateY(0);
+    }
   }
 
   @keyframes sheet-slide-out-top {
-    from { transform: translateY(0); }
-    to { transform: translateY(-100%); }
+    from {
+      transform: translateY(0);
+    }
+    to {
+      transform: translateY(-100%);
+    }
   }
 
   @keyframes sheet-slide-in-bottom {
-    from { transform: translateY(100%); }
-    to { transform: translateY(0); }
+    from {
+      transform: translateY(100%);
+    }
+    to {
+      transform: translateY(0);
+    }
   }
 
   @keyframes sheet-slide-out-bottom {
-    from { transform: translateY(0); }
-    to { transform: translateY(100%); }
+    from {
+      transform: translateY(0);
+    }
+    to {
+      transform: translateY(100%);
+    }
   }
 
   @keyframes fadeIn {
@@ -574,7 +672,6 @@ select {
  * ────────────────────────────────────────────────────────────────────── */
 
 :root {
-
   --resize-dur: 300ms;
   --resize-ease: cubic-bezier(0.22, 1, 0.36, 1);
   --digit-dur: 500ms;
@@ -800,18 +897,20 @@ select {
 /* 01-card-resize.md */
 .t-resize {
   transition:
-    width  var(--resize-dur) var(--resize-ease),
+    width var(--resize-dur) var(--resize-ease),
     height var(--resize-dur) var(--resize-ease);
   will-change: width, height;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .t-resize { transition: none !important; }
+  .t-resize {
+    transition: none !important;
+  }
 }
 
 /* 02-number-pop-in.md */
 @keyframes t-digit-pop-in {
-  0%   {
+  0% {
     transform: translate(
       calc(var(--digit-distance) * var(--digit-dir-x)),
       calc(var(--digit-distance) * var(--digit-dir-y))
@@ -819,7 +918,11 @@ select {
     opacity: 0;
     filter: blur(var(--digit-blur));
   }
-  100% { transform: translate(0, 0); opacity: 1; filter: blur(0); }
+  100% {
+    transform: translate(0, 0);
+    opacity: 1;
+    filter: blur(0);
+  }
 }
 
 .t-digit-group {
@@ -841,7 +944,9 @@ select {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .t-digit-group .t-digit { animation: none !important; }
+  .t-digit-group .t-digit {
+    animation: none !important;
+  }
 }
 
 /* 04-text-states-swap.md */
@@ -852,8 +957,8 @@ select {
   opacity: 1;
   transition:
     transform var(--text-swap-dur) var(--text-swap-ease),
-    filter    var(--text-swap-dur) var(--text-swap-ease),
-    opacity   var(--text-swap-dur) var(--text-swap-ease);
+    filter var(--text-swap-dur) var(--text-swap-ease),
+    opacity var(--text-swap-dur) var(--text-swap-ease);
   will-change: transform, filter, opacity;
 }
 .t-text-swap.is-exit {
@@ -869,7 +974,9 @@ select {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .t-text-swap { transition: none !important; }
+  .t-text-swap {
+    transition: none !important;
+  }
 }
 
 /* 07-panel-reveal.md */
@@ -880,8 +987,8 @@ select {
   pointer-events: none;
   transition:
     transform var(--panel-close-dur) var(--panel-ease),
-    opacity   var(--panel-close-dur) var(--panel-ease),
-    filter    var(--panel-close-dur) var(--panel-ease);
+    opacity var(--panel-close-dur) var(--panel-ease),
+    filter var(--panel-close-dur) var(--panel-ease);
   will-change: transform, opacity, filter;
 }
 .t-panel-slide[data-open="true"] {
@@ -891,12 +998,14 @@ select {
   pointer-events: auto;
   transition:
     transform var(--panel-open-dur) var(--panel-ease),
-    opacity   var(--panel-open-dur) var(--panel-ease),
-    filter    var(--panel-open-dur) var(--panel-ease);
+    opacity var(--panel-open-dur) var(--panel-ease),
+    filter var(--panel-open-dur) var(--panel-ease);
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .t-panel-slide { transition: none !important; }
+  .t-panel-slide {
+    transition: none !important;
+  }
 }
 
 /* 09-icon-swap.md */
@@ -907,8 +1016,8 @@ select {
 .t-icon-swap .t-icon {
   grid-area: 1 / 1;
   transition:
-    opacity   var(--icon-swap-dur) var(--icon-swap-ease),
-    filter    var(--icon-swap-dur) var(--icon-swap-ease),
+    opacity var(--icon-swap-dur) var(--icon-swap-ease),
+    filter var(--icon-swap-dur) var(--icon-swap-ease),
     transform var(--icon-swap-dur) var(--icon-swap-ease);
   will-change: opacity, filter, transform;
 }
@@ -926,7 +1035,9 @@ select {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .t-icon-swap .t-icon { transition: none !important; }
+  .t-icon-swap .t-icon {
+    transition: none !important;
+  }
 }
 
 /* 10-success-check.md */
@@ -936,7 +1047,10 @@ select {
   opacity: 0;
   will-change: transform, opacity, filter;
 }
-.t-success-check svg { display: block; overflow: visible; }
+.t-success-check svg {
+  display: block;
+  overflow: visible;
+}
 .t-success-check svg path {
   stroke-dasharray: 21;
   stroke-dashoffset: 21;
@@ -944,37 +1058,69 @@ select {
 
 .t-success-check[data-state="in"] {
   animation:
-    t-check-fade   var(--check-opacity-dur) var(--check-ease-opacity) forwards,
-    t-check-rotate var(--check-rotate-dur)  var(--check-ease-rotate)  forwards,
-    t-check-blur   var(--check-blur-dur)    var(--check-ease-out)     forwards,
-    t-check-bob    var(--check-bob-dur)     var(--check-ease-bob)     forwards;
+    t-check-fade var(--check-opacity-dur) var(--check-ease-opacity) forwards,
+    t-check-rotate var(--check-rotate-dur) var(--check-ease-rotate) forwards,
+    t-check-blur var(--check-blur-dur) var(--check-ease-out) forwards,
+    t-check-bob var(--check-bob-dur) var(--check-ease-bob) forwards;
 }
 .t-success-check[data-state="in"] svg path {
-  animation: t-check-draw var(--check-path-dur) var(--check-ease-path) var(--check-path-delay, 0ms) forwards;
+  animation: t-check-draw var(--check-path-dur) var(--check-ease-path)
+    var(--check-path-delay, 0ms) forwards;
 }
 
-@keyframes t-check-fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes t-check-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
 @keyframes t-check-rotate {
-  from { transform: rotate(var(--check-rotate-from)); }
-  to   { transform: rotate(0deg); }
+  from {
+    transform: rotate(var(--check-rotate-from));
+  }
+  to {
+    transform: rotate(0deg);
+  }
 }
 @keyframes t-check-blur {
-  from { filter: blur(var(--check-blur-from)); }
-  to   { filter: blur(0); }
+  from {
+    filter: blur(var(--check-blur-from));
+  }
+  to {
+    filter: blur(0);
+  }
 }
 @keyframes t-check-bob {
-  from { translate: 0 var(--check-y-amount); }
-  to   { translate: 0 0; }
+  from {
+    translate: 0 var(--check-y-amount);
+  }
+  to {
+    translate: 0 0;
+  }
 }
-@keyframes t-check-draw { to { stroke-dashoffset: 0; } }
+@keyframes t-check-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
 
 @media (prefers-reduced-motion: reduce) {
-  .t-success-check { animation: none !important; opacity: 1; }
-  .t-success-check svg path { animation: none !important; stroke-dashoffset: 0 !important; }
+  .t-success-check {
+    animation: none !important;
+    opacity: 1;
+  }
+  .t-success-check svg path {
+    animation: none !important;
+    stroke-dashoffset: 0 !important;
+  }
 }
 
 /* 14-skeleton-reveal.md */
-.t-skel { position: relative; }
+.t-skel {
+  position: relative;
+}
 .t-skel-skeleton,
 .t-skel-content {
   position: absolute;
@@ -987,7 +1133,7 @@ select {
   filter: blur(0);
   transition:
     opacity var(--reveal-dur) var(--reveal-ease),
-    filter  var(--reveal-dur) var(--reveal-ease);
+    filter var(--reveal-dur) var(--reveal-ease);
 }
 .t-skel-content {
   z-index: 2;
@@ -995,7 +1141,7 @@ select {
   filter: blur(var(--reveal-blur));
   transition:
     opacity var(--reveal-dur) var(--reveal-ease),
-    filter  var(--reveal-dur) var(--reveal-ease);
+    filter var(--reveal-dur) var(--reveal-ease);
 }
 .t-skel.is-revealed .t-skel-skeleton {
   opacity: 0;
@@ -1014,15 +1160,23 @@ select {
   animation: t-skel-pulse var(--pulse-dur) ease-in-out var(--pulse-count);
 }
 @keyframes t-skel-pulse {
-  0%, 100% { opacity: 1; }
-  50%      { opacity: var(--pulse-min); }
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: var(--pulse-min);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .t-skel-skeleton, .t-skel-content {
+  .t-skel-skeleton,
+  .t-skel-content {
     transition: none !important;
   }
-  .t-skel-skeleton.is-pulsing > * { animation: none !important; }
+  .t-skel-skeleton.is-pulsing > * {
+    animation: none !important;
+  }
 }
 
 /* 16-tabs-sliding.md */
@@ -1064,14 +1218,17 @@ select {
   transform: translateX(0);
   transition:
     transform var(--tabs-dur) var(--tabs-ease),
-    width     var(--tabs-dur) var(--tabs-ease);
+    width var(--tabs-dur) var(--tabs-ease);
   will-change: transform, width;
   z-index: 0;
   pointer-events: none;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .t-tabs-pill, .t-tab { transition: none !important; }
+  .t-tabs-pill,
+  .t-tab {
+    transition: none !important;
+  }
 }
 
 /* 18-texts-reveal.md */
@@ -1081,12 +1238,14 @@ select {
   transform: translateY(var(--stagger-distance));
   filter: blur(var(--stagger-blur));
   transition:
-    opacity   var(--stagger-dur) var(--stagger-ease),
+    opacity var(--stagger-dur) var(--stagger-ease),
     transform var(--stagger-dur) var(--stagger-ease),
-    filter    var(--stagger-dur) var(--stagger-ease);
+    filter var(--stagger-dur) var(--stagger-ease);
   will-change: transform, opacity, filter;
 }
-.t-stagger-line--2 { transition-delay: var(--stagger-stagger); }
+.t-stagger-line--2 {
+  transition-delay: var(--stagger-stagger);
+}
 
 .t-stagger.is-shown .t-stagger-line {
   opacity: 1;
@@ -1105,7 +1264,9 @@ select {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .t-stagger-line { transition: none !important; }
+  .t-stagger-line {
+    transition: none !important;
+  }
 }
 
 /* 22-toast.md */
@@ -1130,22 +1291,38 @@ select {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .t-toast { transition: none !important; }
+  .t-toast {
+    transition: none !important;
+  }
 }
 
 /* ── project extensions to the snippets above ────────────────────────── */
 
 /* 18: the composer shows one chip per understood thing, so the two lines
    the snippet ships are not enough. Same delay formula, more lines. */
-.t-stagger-line--3 { transition-delay: calc(var(--stagger-stagger) * 2); }
-.t-stagger-line--4 { transition-delay: calc(var(--stagger-stagger) * 3); }
-.t-stagger-line--5 { transition-delay: calc(var(--stagger-stagger) * 4); }
-.t-stagger-line--6 { transition-delay: calc(var(--stagger-stagger) * 5); }
-.t-stagger-line--7 { transition-delay: calc(var(--stagger-stagger) * 6); }
-.t-stagger-line--8 { transition-delay: calc(var(--stagger-stagger) * 7); }
+.t-stagger-line--3 {
+  transition-delay: calc(var(--stagger-stagger) * 2);
+}
+.t-stagger-line--4 {
+  transition-delay: calc(var(--stagger-stagger) * 3);
+}
+.t-stagger-line--5 {
+  transition-delay: calc(var(--stagger-stagger) * 4);
+}
+.t-stagger-line--6 {
+  transition-delay: calc(var(--stagger-stagger) * 5);
+}
+.t-stagger-line--7 {
+  transition-delay: calc(var(--stagger-stagger) * 6);
+}
+.t-stagger-line--8 {
+  transition-delay: calc(var(--stagger-stagger) * 7);
+}
 
 /* A chip is an inline thing; the snippet's lines are blocks. */
-.t-stagger-line.t-stagger-chip { display: inline-block; }
+.t-stagger-line.t-stagger-chip {
+  display: inline-block;
+}
 
 /* 16: the snippet's tab is 30 px tall. The interface checklist wants a
    40 px hit area, so the pseudo-element extends it vertically only —
@@ -1182,7 +1359,9 @@ select {
   will-change: transform;
 }
 @media (prefers-reduced-motion: reduce) {
-  .t-flip { transition: none !important; }
+  .t-flip {
+    transition: none !important;
+  }
 }
 
 /* 16: the snippet styles a `<button>`, which is already inline-block. These
@@ -1322,7 +1501,9 @@ a.t-tab {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .ov-term-tip { transition: none !important; }
+  .ov-term-tip {
+    transition: none !important;
+  }
 }
 
 /* `.card` clips its corners, which would cut the tooltip in half. A card
@@ -1374,4 +1555,387 @@ a.t-tab {
 }
 .ov-term[data-below][data-edge="right"] .ov-term-tip::after {
   margin: 0 -4px -4px 0;
+}
+
+/* ══ phase 28c: the home ═══════════════════════════════════════════════
+   v4's shapes, August's warmth, Kite's rail and colours. Everything here
+   is scoped to `.home` so no other page drifts; the only app-wide changes
+   are `body`'s canvas and `.card`'s surface above. */
+
+.home {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-6);
+  /* the page gutter (`px-3` on the phone), so the rail can bleed exactly
+     to the screen edge and no further */
+  --bleed: 12px;
+}
+
+/* ── the sentence, over August's light ──────────────────────────────── */
+
+.home-top {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-5);
+}
+
+.home-sentence {
+  font-size: 21px;
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+}
+
+.home-meta {
+  margin-top: var(--sp-2);
+  font-size: 13px;
+  color: var(--ink-3);
+}
+
+/* August's light: three blurred blobs, and three is the budget. */
+.home-light {
+  position: absolute;
+  inset: calc(var(--sp-6) * -1) calc(var(--bleed) * -1);
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+  /* one mask, so the blobs fade out instead of ending on the clip edge */
+  mask-image: radial-gradient(80% 85% at 45% 35%, #000, transparent);
+}
+
+.home-light .blob {
+  position: absolute;
+  width: 220px;
+  height: 220px;
+  border-radius: 50%;
+  opacity: 0.55;
+  filter: blur(55px);
+  transition: background-color var(--reveal-dur, 400ms) ease;
+}
+
+.home-light .b1 {
+  top: -60px;
+  left: -40px;
+}
+.home-light .b2 {
+  top: 20px;
+  right: -60px;
+}
+.home-light .b3 {
+  bottom: -110px;
+  left: 40%;
+}
+
+:root[data-theme="dark"] .home-light .blob {
+  opacity: 0.28;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home-light .blob {
+    transition: none;
+  }
+}
+
+/* ── the rail (Kite) ────────────────────────────────────────────────── */
+
+/* The fade lives on the wrapper: a mask on the scroller itself would size
+   itself to the scrolled content, not to the screen, and never show. */
+.home .rail-wrap {
+  /* the page already pads; pull the rail back out so it bleeds edge to edge */
+  margin-inline: calc(var(--bleed) * -1);
+  mask-image: linear-gradient(90deg, #000 calc(100% - 34px), transparent);
+}
+
+.home .rail {
+  display: flex;
+  gap: var(--sp-4);
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scroll-padding-left: var(--bleed);
+  padding-inline: var(--bleed);
+  padding-block: 2px var(--sp-1);
+  scrollbar-width: none;
+  overscroll-behavior-x: contain;
+  list-style: none;
+}
+
+.home .rail::-webkit-scrollbar {
+  display: none;
+}
+
+.home .rail > * {
+  flex: 0 0 280px;
+  min-height: 160px;
+  scroll-snap-align: start;
+}
+
+.home .rail-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+  height: 100%;
+  padding: var(--sp-4);
+  border-radius: var(--r-card);
+  background: var(--surface);
+  backdrop-filter: blur(21px);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  color: var(--ink);
+  overflow: hidden;
+  animation: fadeInUp 400ms ease-out backwards;
+  animation-delay: calc(var(--i, 0) * 40ms);
+  transition: border-color 150ms ease;
+}
+
+:root[data-theme="dark"] .home .rail-card {
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.home .rail-card:hover {
+  border-color: var(--ink-3);
+}
+
+.home .rail-card.navy {
+  background: var(--navy);
+  border-color: rgba(255, 255, 255, 0.12);
+  color: var(--navy-ink);
+}
+
+.home .rail-card.navy .c-label,
+.home .rail-card.navy .c-line,
+.home .rail-card.navy .c-word {
+  color: rgba(244, 242, 237, 0.72);
+}
+
+/* the 3 px hue bar on the top edge of the Status card */
+.home .c-bar {
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 3px;
+  background: var(--ink-3);
+  transition: background-color var(--reveal-dur, 400ms) ease;
+}
+
+.home .c-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+.home .c-num {
+  font-family: var(--font-mono);
+  font-size: 34px;
+  font-weight: 200;
+  line-height: 1;
+  letter-spacing: -0.04em;
+  font-variant-numeric: tabular-nums;
+}
+
+.home .c-title {
+  font-size: 21px;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+
+.home .c-sub {
+  font-size: 13px;
+  color: var(--ink-3);
+}
+
+.home .c-word {
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+.home .c-line {
+  margin-top: auto;
+  font-size: 13px;
+  line-height: 1.35;
+  color: var(--ink-2);
+  /* two lines, then an ellipsis: a card is a glance, the page below is the
+     detail. Never a word cut in half by the card's own edge. */
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home .rail {
+    scroll-behavior: auto;
+  }
+  .home .rail-card {
+    animation: none;
+    transition: none;
+  }
+  .home .c-bar {
+    transition: none;
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .home .rail-card,
+  .home .ask-pill {
+    background: var(--surface-hi);
+    backdrop-filter: none;
+  }
+  .home-light {
+    display: none;
+  }
+}
+
+/* Desktop: the same cards, as the v4 grid. No snap, no mask, no scroll. */
+@media (min-width: 768px) {
+  .home .rail {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-auto-rows: minmax(160px, auto);
+    overflow: visible;
+    scroll-snap-type: none;
+    padding-inline: 0;
+  }
+  .home .rail-wrap {
+    margin-inline: 0;
+    mask-image: none;
+  }
+  .home .rail > * {
+    flex: initial;
+  }
+  .home .rail > li:first-child {
+    grid-column: span 2;
+    grid-row: span 2;
+  }
+}
+
+/* ── ask, as the v4 pill ────────────────────────────────────────────── */
+
+.home .ask-pill {
+  border-radius: var(--r-pill);
+  background: var(--surface-hi);
+  backdrop-filter: blur(21px);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  padding-inline: var(--sp-5);
+}
+
+:root[data-theme="dark"] .home .ask-pill {
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.home .ask-pill input {
+  font-size: 15px;
+  color: var(--ink);
+}
+
+/* ── systems as state: the twelve chips the rail cannot show ────────── */
+
+.home .chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-3);
+  list-style: none;
+}
+
+.home .chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: var(--sp-2) var(--sp-4);
+  border-radius: var(--r-pill);
+  background: var(--surface);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  font-size: 13px;
+  color: var(--ink-2);
+  transition: border-color 150ms ease;
+}
+
+:root[data-theme="dark"] .home .chip {
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.home .chip:hover {
+  border-color: var(--ink-3);
+}
+
+.home .chip-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.home .chip-word {
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home .chip {
+    transition: none;
+  }
+}
+
+/* Spectrum logic, one place. Text and dots only, never a surface. */
+.home .tone-bad {
+  color: var(--bad);
+}
+.home .tone-warn {
+  color: var(--warn);
+}
+.home .tone-ok {
+  color: var(--ok);
+}
+.home .tone-none {
+  color: var(--ink-3);
+}
+.home .chip-dot.tone-none {
+  background: transparent;
+  border: 1px solid currentColor;
+}
+.home .rail-card.navy .tone-none {
+  color: rgba(244, 242, 237, 0.72);
+}
+/* The spectrum, lightened so it reads on Kite's navy. */
+.home .rail-card.navy .tone-bad {
+  color: var(--navy-bad);
+}
+.home .rail-card.navy .tone-warn {
+  color: var(--navy-warn);
+}
+.home .rail-card.navy .tone-ok {
+  color: var(--navy-ok);
+}
+
+/* ── phase 28c: the nav on the warm canvas ── */
+.nav-bar {
+  background: color-mix(in srgb, var(--canvas) 85%, transparent);
+  backdrop-filter: blur(13px);
+  border-color: color-mix(in srgb, var(--ink) 12%, transparent);
+}
+.nav-pill {
+  color: var(--ink-3);
+}
+.nav-pill:hover {
+  color: var(--ink);
+}
+.nav-pill-on {
+  background: var(--surface-hi);
+  color: var(--ink);
+}
+.nav-group {
+  background: var(--canvas-deep);
+  border-color: color-mix(in srgb, var(--ink) 10%, transparent);
+}
+@media (prefers-reduced-transparency: reduce) {
+  .nav-bar {
+    background: var(--canvas);
+    backdrop-filter: none;
+  }
 }

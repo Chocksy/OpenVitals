@@ -23,6 +23,7 @@ import { askSurfaces, type Ask, type AskPlan } from "./asking";
 import { buildModelInput } from "./coverage";
 import {
   documentFinding,
+  explainKey,
   genomeFinding,
   FINDING_DAYS,
   type AcceptedItem,
@@ -372,4 +373,200 @@ export async function recentFindings(
   }
 
   return out;
+}
+
+/* ── the rail (phase 28c) ─────────────────────────────────────────────── */
+
+/** "red" is the engine's word for it. A person says "off". */
+export const WORST_WORD = {
+  red: "off",
+  amber: "borderline",
+  green: "good",
+  gray: "no reading",
+} as const;
+
+/** Spectrum logic: three tones, plus "never measured" and Kite's navy. */
+export type RailTone = "bad" | "warn" | "ok" | "none";
+
+export interface RailCard {
+  kind: "status" | "body" | "blood" | "plan" | "system";
+  label: string;
+  /** the big line: a number (mono, 34 px) or a title (sans, 21 px) */
+  headline: string;
+  big: "num" | "title";
+  /** what sits next to the headline: "at 43", "/ 22 markers", a unit */
+  sub?: string;
+  /** the Status card only: three counters, each with the word for it */
+  counts?: { n: number; word: string; tone: RailTone }[];
+  /** the 13 px line at the bottom */
+  line: string;
+  tone: RailTone;
+  href: string;
+}
+
+/** red first, then amber, then green; ties by score, worst first. */
+const SYSTEM_RANK = { red: 3, amber: 2, gray: 1, green: 0 } as const;
+
+const TONE_OF = {
+  red: "bad",
+  amber: "warn",
+  green: "ok",
+  gray: "none",
+} as const;
+
+/** The first sentence of a reply, so a card never prints a paragraph. */
+const firstSentence = (text: string) =>
+  (text.split(/(?<=[.!?])\s/)[0] ?? text).trim();
+
+/** "2 new, 1 stronger since Aug 31", or "" when nothing moved. */
+function sinceLine(since: Ledger["since"]): string {
+  if (!since) return "";
+  const parts = (
+    [
+      ["resolved", since.resolved],
+      ["new", since.new],
+      ["stronger", since.stronger],
+      ["weaker", since.weaker],
+    ] as const
+  ).filter(([, n]) => n > 0);
+  if (!parts.length) return "";
+  const when = new Date(since.at).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+  });
+  return `${parts.map(([w, n]) => `${n} ${w}`).join(", ")} since ${when}`;
+}
+
+/**
+ * The cards at the top of Home, in the one order the page may print them:
+ * Status, Body, Blood, Plan, then one card per system that has a reading —
+ * red first, then amber, then green, ties by score descending.
+ *
+ * Pure, so `lib/home-data.test.ts` can lock the order. Every number comes off
+ * the ledger or Today; a card with nothing to say drops its line rather than
+ * inventing one.
+ */
+export function railCards(
+  ledger: Ledger,
+  today: Today,
+  opts: {
+    /** how many actions the latest report wrote (the Plan card needs one) */
+    actions?: number;
+    /** how many to-do lines the loud conclusions carry, from `actionsForAll` */
+    todo?: number;
+    /** the newest observation date, for the Status line when nothing moved */
+    drawDate?: string;
+  } = {},
+): RailCard[] {
+  const { bioAge, bioAgeMissing, counters, systems, spear, since } = ledger;
+  const cards: RailCard[] = [];
+
+  const worstTone: RailTone =
+    counters.off > 0
+      ? "bad"
+      : counters.normal > 0
+        ? "warn"
+        : counters.optimal > 0
+          ? "ok"
+          : "none";
+
+  cards.push({
+    kind: "status",
+    label: "Status",
+    headline: "",
+    big: "num",
+    counts: [
+      { n: counters.off, word: "off", tone: "bad" },
+      { n: counters.normal, word: "borderline", tone: "warn" },
+      { n: counters.optimal, word: "optimal", tone: "ok" },
+    ],
+    line:
+      sinceLine(since) ||
+      (opts.drawDate
+        ? `Newest draw ${new Date(opts.drawDate).toLocaleDateString("en-US", {
+            month: "short",
+            day: "numeric",
+          })}`
+        : ""),
+    tone: worstTone,
+    href: "/plan",
+  });
+
+  cards.push({
+    kind: "body",
+    label: "Body",
+    headline: bioAge ? bioAge.pheno.toFixed(1) : "—",
+    big: "num",
+    ...(bioAge ? { sub: `at ${bioAge.chrono}` } : {}),
+    line: bioAge
+      ? today.due[0]?.question ||
+        (today.post?.reply ? firstSentence(today.post.reply) : "") ||
+        "Nothing due today"
+      : bioAgeMissing.length
+        ? `PhenoAge is waiting on ${bioAgeMissing.join(", ")}`
+        : "",
+    tone: "none",
+    href: "/today",
+  });
+
+  const total = counters.off + counters.normal + counters.optimal;
+  cards.push({
+    kind: "blood",
+    label: "Blood",
+    headline: String(counters.off),
+    big: "num",
+    sub: `/ ${total} markers`,
+    line: counters.nextDrawCodes.length
+      ? `Next draw${
+          counters.nextDrawWeeks != null
+            ? ` in ${counters.nextDrawWeeks} wk`
+            : ""
+        }: ${counters.nextDrawCodes.map((c) => explainKey(c)).join(", ")}`
+      : "Nothing queued",
+    tone: counters.off > 0 ? "bad" : "ok",
+    href: "/labs",
+  });
+
+  // the spear's own title is already the sentence at the top of the page, so
+  // the Plan card prints the first action, or nothing but its own name
+  const planTitle = spear?.action?.title;
+  if (planTitle || (opts.actions ?? 0) > 0) {
+    cards.push({
+      kind: "plan",
+      label: "Plan",
+      headline: planTitle ?? "Your plan",
+      big: "title",
+      line: opts.todo
+        ? `${opts.todo} to do`
+        : opts.actions
+          ? `${opts.actions} in your plan`
+          : "",
+      tone: "none",
+      href: "/plan",
+    });
+  }
+
+  const measured = systems
+    .filter((s) => s.worst != null && s.worst.value != null)
+    .sort(
+      (a, b) =>
+        SYSTEM_RANK[b.worst!.status] - SYSTEM_RANK[a.worst!.status] ||
+        b.score - a.score,
+    );
+
+  for (const s of measured) {
+    const w = s.worst!;
+    cards.push({
+      kind: "system",
+      label: s.name,
+      headline: String(w.value),
+      big: "num",
+      ...(w.unit ? { sub: w.unit } : {}),
+      line: `${explainKey(w.code)} ${WORST_WORD[w.status]}`,
+      tone: TONE_OF[w.status],
+      href: `/m/${w.code}`,
+    });
+  }
+
+  return cards;
 }

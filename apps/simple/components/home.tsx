@@ -13,14 +13,13 @@
 import Link from "next/link";
 import { CircleQuestionMark, FlaskConical, TriangleAlert } from "lucide-react";
 import type { PlanLine } from "@/lib/actions";
-import { ASK_HREF, type Ask } from "@/lib/asking";
+import type { Ask } from "@/lib/asking";
 import {
   changedLine,
   explainInput,
   explainKey,
   type Finding,
 } from "@/lib/explain";
-import { termFor } from "@/lib/glossary";
 import type { Today } from "@/lib/home-data";
 import type { Conclusion, Ledger } from "@/lib/ledger";
 import type { Move } from "@/lib/infogain";
@@ -30,7 +29,6 @@ import { AskLink } from "./ask-link";
 import { EditFact, StillTrue, WrongValue } from "./client";
 import { ActionButtons, GeneratePlan } from "./plan";
 import { RangeBar } from "./range-bar";
-import { StatusBadge } from "./status-badge";
 import { Digits, SwapText } from "./motion";
 import { Term, Terms } from "./term";
 import { TodayAsk } from "./today-ask";
@@ -73,7 +71,6 @@ export function SectionHeader({
 const LABEL =
   "t-meta text-[10px] font-bold uppercase tracking-[0.06em] text-neutral-400";
 const WHY = "t-meta mt-1 text-[12px] text-neutral-500";
-const one = (v: number) => v.toFixed(1);
 
 /**
  * A small link that reads at 12 px but answers to a 40 px finger.
@@ -96,17 +93,15 @@ function lensLine(
 }
 
 /**
- * "Today": the first card in the cockpit, and the shortest one.
+ * The one question, and the answers worth re-asking.
  *
- * At most two answers worth re-asking, the one question the engine would ask
- * next, the last check-in's reply in one line, and nothing else. Phase 24a
- * made this the only place in the app that renders an input for a question;
- * every other surface prints the same question as a line and links here.
- *
- * Phase 25b named the three parts in words a person uses: "Still true?",
- * "One question", "You noted".
+ * Phase 28c moved everything else this card used to carry into the rail: the
+ * counters to Status, PhenoAge to Body, the last check-in's reply to Body's
+ * line. What stays is the part no other surface has — the input. Phase 24a
+ * made this the only place in the app that renders one, and `ASK_HREF` is an
+ * anchor into it, so every "answer this" link on a conclusion card lands here.
  */
-export function TodayCard({
+export function TodayQuestions({
   today,
   day,
   ask,
@@ -121,7 +116,7 @@ export function TodayCard({
   askKey?: string;
   askOptions?: string[];
 }) {
-  const empty = !today.due.length && !today.post && !ask;
+  if (!today.due.length && !ask) return null;
   /**
    * A link somewhere else said which question it came to answer, so that one
    * goes first and the card carries on with its own list underneath.
@@ -155,43 +150,17 @@ export function TodayCard({
     </div>
   );
   return (
-    <Card className="t-resize p-4">
-      {/*
-        Phase 26 item 11: the "Post" link here said nothing about what it was,
-        and the one line at the top of Home already takes anything a person
-        wants to say. One entry, not two.
-      */}
-      <div className={LABEL}>Today</div>
-
-      {empty ? (
-        <p className="t-body mt-2 text-neutral-500">
-          Nothing to ask today. Tell me anything in the line at the top.
-        </p>
+    <Card className="t-resize space-y-3 p-4">
+      {askFirst ? (
+        <>
+          {oneQuestion}
+          {stillTrue}
+        </>
       ) : (
-        <div className="mt-3 space-y-3">
-          {askFirst ? (
-            <>
-              {oneQuestion}
-              {stillTrue}
-            </>
-          ) : (
-            <>
-              {stillTrue}
-              {oneQuestion}
-            </>
-          )}
-          {today.post && (
-            <div className="space-y-1">
-              <div className={LABEL}>You noted</div>
-              <p className="t-body text-neutral-600">
-                <span className="t-num mr-1.5 text-[11px] text-neutral-400">
-                  {today.post.date}
-                </span>
-                {today.post.reply ?? `“${today.post.text}”`}
-              </p>
-            </div>
-          )}
-        </div>
+        <>
+          {stillTrue}
+          {oneQuestion}
+        </>
       )}
     </Card>
   );
@@ -240,250 +209,6 @@ export function SinceLine({
       ))}
       {` ${when}`}
     </p>
-  );
-}
-
-/** "ALP, a liver enzyme that also comes from bone, on any basic blood panel" */
-function missingLine(labels: string[]): React.ReactNode {
-  const first = termFor(labels[0] ?? "");
-  if (labels.length === 1 && first) {
-    const what = first.what.replace(/\.$/, "");
-    return (
-      <>
-        Missing one number: <Term code={first.id}>{first.label}</Term>,{" "}
-        {what.charAt(0).toLowerCase()}
-        {what.slice(1)}, {first.where}.{" "}
-      </>
-    );
-  }
-  return (
-    <>
-      Missing <span className="t-num">{labels.length}</span> numbers:{" "}
-      <Terms text={labels.join(", ")} />.{" "}
-    </>
-  );
-}
-
-export function Cockpit({ ledger, day }: { ledger: Ledger; day?: string }) {
-  const { bioAge, bioAgeMissing, counters, since } = ledger;
-  return (
-    <div className="space-y-2">
-      <div className="grid grid-cols-2 gap-2 lg:grid-cols-4">
-        <Card className="p-4 lg:row-span-1">
-          <div className={LABEL}>Biological age</div>
-          {bioAge ? (
-            <>
-              <div className="mt-1 font-display text-[52px] font-light leading-none tracking-[-0.05em] tabular-nums text-neutral-900">
-                {one(bioAge.pheno)}
-                <span className="ml-2 font-display text-[18px] font-normal tracking-normal text-neutral-400">
-                  at {bioAge.chrono}
-                </span>
-              </div>
-              <p className={WHY}>
-                <Term code="phenoage">PhenoAge</Term> from{" "}
-                <span className="t-num">{bioAge.inputs.length}</span> routine
-                markers
-              </p>
-            </>
-          ) : (
-            <>
-              <div className="mt-1 font-display text-[52px] font-light leading-none tracking-[-0.05em] text-neutral-300">
-                —
-              </div>
-              <p className={WHY}>
-                {missingLine(bioAgeMissing)}
-                <Link href="/labs" className="underline hover:text-neutral-800">
-                  Upload a lab
-                </Link>
-              </p>
-            </>
-          )}
-        </Card>
-
-        <Card className="p-4">
-          <div className={LABEL}>Markers</div>
-          <div className="mt-2 flex items-baseline font-display text-[26px] tabular-nums">
-            <Digits
-              data-counter="optimal"
-              text={String(counters.optimal)}
-              className="text-health-normal"
-            />
-            <span className="px-1.5 text-neutral-300">·</span>
-            <Digits
-              data-counter="normal"
-              text={String(counters.normal)}
-              className="text-health-warning"
-            />
-            <span className="px-1.5 text-neutral-300">·</span>
-            <Digits
-              data-counter="off"
-              text={String(counters.off)}
-              className="text-health-critical"
-            />
-          </div>
-          <p className={WHY}>optimal · normal · off</p>
-        </Card>
-
-        <Card className="p-4">
-          <div className={LABEL}>Questions worth answering</div>
-          <Digits
-            data-counter="questions"
-            text={String(counters.questions)}
-            className="mt-2 font-display text-[26px] text-neutral-900"
-          />
-          {counters.questions > 0 && (
-            <p className={WHY}>
-              <a
-                href={ASK_HREF}
-                className="hit-40 inline-flex items-center underline hover:text-neutral-800"
-              >
-                answer the first one
-              </a>
-            </p>
-          )}
-        </Card>
-
-        <Card className="p-4">
-          <div className={LABEL}>Next draw</div>
-          <div className="mt-2 font-display text-[26px] tabular-nums text-neutral-900">
-            {counters.nextDrawWeeks ?? 12} wk
-          </div>
-          {/* The codes are the engine's own keys. A person reads names. */}
-          <p className={cn(WHY, "truncate")}>
-            {counters.nextDrawCodes.length
-              ? counters.nextDrawCodes.map((code, i) => (
-                  <span key={code}>
-                    {i > 0 && ", "}
-                    <Term code={code}>{explainKey(code)}</Term>
-                  </span>
-                ))
-              : "nothing queued"}
-          </p>
-        </Card>
-      </div>
-
-      <SinceLine since={since} day={day} />
-    </div>
-  );
-}
-
-/** Same three tones as the graph's importance bar, drawn as a ring. */
-function ringColor(score: number) {
-  if (score >= 0.6) return "var(--color-health-critical)";
-  if (score >= 0.3) return "var(--color-health-warning)";
-  return "var(--color-accent-500)";
-}
-
-/** "red" is the engine's word for it. A person says "off". */
-const WORST_WORD = {
-  red: "off",
-  amber: "borderline",
-  green: "good",
-  gray: "no reading",
-} as const;
-
-const WORST_TONE = {
-  red: "critical",
-  amber: "warning",
-  green: "normal",
-  gray: "neutral",
-} as const;
-
-/**
- * Twelve systems in one scrolling row truncated every name and every value:
- * "Blood sugar and i…" over "hba1c 5…". So: a grid that wraps, three across
- * on a phone and six on a desktop, the full system name, the one marker that
- * drives the colour on its own line with its value and its unit, and the
- * status in a word. The name is the link, so nothing nests inside anything.
- */
-export function SystemsGrid({ systems }: { systems: Ledger["systems"] }) {
-  const r = 13;
-  const circumference = 2 * Math.PI * r;
-
-  return (
-    <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 lg:grid-cols-6">
-      {systems.map((s) => {
-        const worst = s.worst;
-        const href = worst ? `/m/${worst.code}` : "/graph";
-        return (
-          <Card
-            key={s.id}
-            className="flex flex-col items-center gap-1.5 p-2.5 text-center"
-          >
-            <Link
-              href={href}
-              className="flex flex-col items-center gap-1.5 hover:opacity-80"
-            >
-              <svg width="32" height="32" viewBox="0 0 32 32">
-                <circle
-                  cx="16"
-                  cy="16"
-                  r={r}
-                  fill="none"
-                  stroke="var(--color-neutral-150)"
-                  strokeWidth="3"
-                />
-                <circle
-                  cx="16"
-                  cy="16"
-                  r={r}
-                  fill="none"
-                  stroke={ringColor(s.score)}
-                  strokeWidth="3"
-                  strokeDasharray={`${s.score * circumference} ${circumference}`}
-                  transform="rotate(-90 16 16)"
-                  data-system-arc={s.id}
-                  data-circumference={circumference}
-                />
-                {Math.round(s.score * 100) === 0 ? (
-                  <path
-                    d="M11 16.2l3.4 3.4L21.4 12"
-                    fill="none"
-                    stroke="var(--color-health-normal)"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                ) : (
-                  <text
-                    x="16"
-                    y="20"
-                    textAnchor="middle"
-                    data-system-score={s.id}
-                    className="fill-neutral-500 tabular-nums"
-                    style={{ fontSize: 10, fontFamily: "var(--font-mono)" }}
-                  >
-                    {Math.round(s.score * 100)}
-                  </text>
-                )}
-              </svg>
-              <span className="t-title text-[12px] leading-tight text-neutral-800">
-                {s.name}
-              </span>
-            </Link>
-
-            {worst ? (
-              <p className="t-meta text-[12px] leading-tight text-neutral-600">
-                <Term code={worst.code}>{explainKey(worst.code)}</Term>{" "}
-                <span className="t-num whitespace-nowrap text-neutral-800">
-                  {worst.value ?? "?"}
-                  {worst.unit ? ` ${worst.unit}` : ""}
-                </span>
-              </p>
-            ) : (
-              <p className="t-meta text-[12px] leading-tight">never measured</p>
-            )}
-
-            {worst && (
-              <StatusBadge
-                status={WORST_TONE[worst.status]}
-                label={WORST_WORD[worst.status]}
-              />
-            )}
-          </Card>
-        );
-      })}
-    </div>
   );
 }
 
