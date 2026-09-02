@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Chart hover — OpenVitals design system</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <!-- Geist Sans + Geist Mono, the app's own fonts. If the CDN is blocked
+         the stack in system.css falls back to Inter / JetBrains Mono, then to
+         the system UI font and ui-monospace. -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Geist:wght@200..600&family=Geist+Mono:wght@200..500&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="system.css" />
+  </head>
+  <body>
+    <button class="themebtn" id="themebtn" type="button">
+      <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9z"/></svg> <span>Dark</span>
+    </button>
+    <main class="doc">
+      <header class="doc-head">
+        <h1>Chart hover</h1>
+        <p>
+          Phase 31b. One card, two triggers. Every mark on every chart and
+          every value on every ruler answers the same five questions when you
+          point at it: what day, what number, in what unit, what state that is,
+          and what it was before. Nothing on a chart is a number without a
+          date any more.
+        </p>
+      </header>
+      <nav class="crumbs">
+        <a href="system.html">System</a>
+        <a href="index.html">Index</a>
+        <a href="home.html">Home</a>
+        <a href="body.html">Body</a>
+        <a href="blood.html">Blood</a>
+        <a href="plan.html">Plan</a>
+        <a href="graph.html">Graph</a>
+        <a href="research.html">Research</a>
+        <a href="plan-month.html">Plan · month</a>
+        <a href="genome.html">Genome</a>
+        <a href="ios.html">iOS</a>
+        <a class="here" href="chart-hover.html">Chart hover</a>
+      </nav>
+      <section class="sec" id="s01">
+        <div class="sec-head"><span class="n">01</span><h2>On a history mark</h2></div>
+        <p class="lede">
+          Hover a diamond and the card rises above it, anchored by a stem so
+          you can see which mark it belongs to. The card is a surface, so it is
+          the same translucent tile as everything else; the state word inside
+          it is coloured text, never a fill.
+        </p>
+        <div class="panel">
+          <div class="hist"><div class="hist-head"><h3>TPO antibodies — every draw, and where the plan is aimed</h3><span class="unit">IU/mL · 2 draws, 1 planned</span></div><div class="hist-body"><div class="hist-y"><span style="--y: 0.00%">450</span><span style="--y: 96.22%">0–34</span></div><div><div class="hist-plot"><div class="hist-band normal" style="--t: 92.44%; --h: 7.56%"></div><div class="hist-band optimal" style="--t: 98.00%; --h: 2.00%"></div><div class="hist-band pace seg" style="--t: 77.78%; --h: 14.67%; --l: 54.15%; --r: 0%"></div><svg viewBox="0 0 1000 100" preserveAspectRatio="none" aria-hidden="true"><polyline points="0.0,8.44 541.5,28.89" /><polyline class="proj" points="541.5,28.89 1000.0,77.78" /></svg><div class="hp was" style="--x: 0.00%; --y: 8.44%"><b>412</b><i></i></div><div class="hp now" style="--x: 54.15%; --y: 28.89%"><b>320</b><i></i></div><div class="hp plan lft" style="--x: 80.65%; --y: 57.14%"><b>planned · no value yet</b><i></i></div><div class="hp target lft" style="--x: 100.00%; --y: 77.78%"><b>target 100</b><i></i></div>
+            <div class="hovercard" style="left: 47%; bottom: 78%">
+              <div class="hdate">Sat Aug 1 2026</div>
+              <div class="hval">320<em>IU/mL</em></div>
+              <div class="hrow"><span class="state off">off</span><span class="t-meta" style="font-size: 11px">normal 0–34 · optimal 0–9</span></div>
+              <div class="hwas">was 412 on Dec 9 2025 · −22 %</div>
+            </div>
+          </div><div class="hist-x has-plan"><span class="first" style="--x: 0.00%">Dec 9</span><span class="now" style="--x: 54.15%">Aug 1</span><span class="plan" style="--x: 80.65%">Nov 24<em>planned</em></span><span class="last tgt" style="--x: 100%">Feb 16<em>target</em></span></div></div></div><div class="hist-legend"><span><i class="hollow"></i> was — Dec 9 2025, 412 IU/mL</span><span><i></i> now — Aug 1 2026, 320 IU/mL</span><span><i class="ghost"></i> planned draw — Nov 24 2026, no value yet</span><span><u class="dot"></u> projection, if the current rate holds</span><span><i class="tgt"></i> target — under 100 IU/mL by Feb 16 2027</span><span><u class="hatch"></u> the stretch the target has to close</span><span><u class="normal"></u> normal 0–34</span><span><u class="optimal"></u> optimal 0–9</span></div></div>
+          <p class="cap">
+            The card never covers the mark it explains, and it never covers the
+            x axis: above the midline it flips below the mark and the stem
+            moves to the top edge.
+          </p>
+        </div>
+      </section>
+
+      <section class="sec" id="s02">
+        <div class="sec-head"><span class="n">02</span><h2>On a mark with no value, and on the projection</h2></div>
+        <p class="lede">A planned draw has a date and no number. The card says so in those words rather than showing a blank, and it offers the one thing you can do about it.</p>
+        <div class="grid2">
+          <div class="panel">
+            <div class="hist mini"><div class="hist-head"><h3>Planned draw</h3><span class="unit">IU/mL · no value yet</span></div><div class="hist-body"><div><div class="hist-plot" style="min-height: 200px"><div class="hist-band normal" style="--t: 92.44%; --h: 7.56%"></div><svg viewBox="0 0 1000 100" preserveAspectRatio="none" aria-hidden="true"><polyline class="proj" points="0.0,28.89 1000.0,77.78" /></svg><div class="hp now" style="--x: 0.00%; --y: 28.89%"><b>320</b><i></i></div><div class="hp plan lft" style="--x: 100.00%; --y: 57.14%"><i></i></div>
+              <div class="hovercard below" style="left: 8px; top: 46%">
+                <div class="hdate">Tue Nov 24 2026</div>
+                <div class="hval">no value yet</div>
+                <div class="hrow"><span class="state border">planned</span><span class="t-meta" style="font-size: 11px">12 weeks from today</span></div>
+                <div class="hwas">the projection says 200–300 IU/mL if the rate holds</div>
+              </div>
+            </div><div class="hist-x"><span class="first" style="--x: 0.00%">Aug 1</span><span class="now last" style="--x: 100.00%">Nov 24</span></div></div></div><div class="hist-legend"><span><i></i> now — Aug 1 2026, 320 IU/mL</span><span><i class="ghost"></i> planned draw — Nov 24 2026, no value yet</span><span><u class="dot"></u> projection, if the current rate holds</span></div></div>
+            <p class="cap">A dotted segment is a projection and the card says the word. It never inherits the state word of the mark it starts from.</p>
+          </div>
+          <div class="panel">
+            <div class="panel-head"><h3>What the card always carries</h3><span class="r">5 lines, in this order</span></div>
+            <div class="rowlist">
+              <div class="markerrow said"><div class="nm"><b>The date</b><span>weekday, month, day, year — never “3 months ago”</span></div><div class="t-meta" style="font-size: 11px">mono, --ink-3</div><div></div><div class="wd"><span class="state on">always</span></div></div>
+              <div class="markerrow said"><div class="nm"><b>The value and its unit</b><span>the unit is smaller and quieter, and it is never dropped</span></div><div class="t-meta" style="font-size: 11px">mono, tabular, 21 px</div><div></div><div class="wd"><span class="state on">always</span></div></div>
+              <div class="markerrow said"><div class="nm"><b>The state word</b><span>off, borderline, optimal, never measured</span></div><div class="t-meta" style="font-size: 11px">coloured text, no fill</div><div></div><div class="wd"><span class="state on">always</span></div></div>
+              <div class="markerrow said"><div class="nm"><b>The band it is judged against</b><span>“normal 0–34 · optimal 0–9”, so the state word has a reason</span></div><div class="t-meta" style="font-size: 11px">11 px, --ink-3</div><div></div><div class="wd"><span class="state on">always</span></div></div>
+              <div class="markerrow said"><div class="nm"><b>The was</b><span>the previous value and its date, and the percentage between them</span></div><div class="t-meta" style="font-size: 11px">omitted only when there is no previous value</div><div></div><div class="wd"><span class="state border">when there is one</span></div></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="sec" id="s03">
+        <div class="sec-head"><span class="n">03</span><h2>On a ruler</h2></div>
+        <p class="lede">The ruler has three things to point at: the value, the “was” ghost and the target. Each answers with the same card, and the target's card carries a date instead of a state word, because a target has no state.</p>
+        <div class="panel">
+          <div class="ruler" style="padding-top: 144px">
+            <div class="ruler-track">
+              <div class="seg">
+                <div class="seg-bands">
+                  <div class="band normal" style="--a: 0%; --b: 55.56%"></div>
+                  <div class="band optimal" style="--a: 38.89%; --b: 55.56%"></div>
+                  <div class="band pace" style="--a: 55.56%; --b: 72.78%"></div>
+                </div>
+                <div class="goal" style="--t: 55.56%" data-label="target 100 · Dec 1 2026"></div>
+                <div class="marker off" style="--p: 72.78%"><span class="mval">131<em>mg/dL</em></span></div>
+                <div class="ghost" style="--g: 93.33%" data-label="was 168 · Dec 9 2025"></div>
+                <div class="hovercard" style="left: 66%; bottom: 34px">
+                  <div class="hdate">Sat Aug 1 2026</div>
+                  <div class="hval">131<em>mg/dL</em></div>
+                  <div class="hrow"><span class="state off">off</span><span class="t-meta" style="font-size: 11px">goal band 70–100</span></div>
+                  <div class="hwas">was 168 on Dec 9 2025 · −22 %</div>
+                </div>
+              </div>
+            </div>
+            <div class="ruler-scale"><span>0</span><span class="mid">normal under 100 · goal band 70–100</span><span>180</span></div>
+            <p class="ruler-say"><b>131 mg/dL</b> on Aug 1 2026, down from 168 on Dec 9 2025. The hatched stretch is the 31 mg/dL the plan has to close by <b>Dec 1 2026</b>.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="sec" id="s04">
+        <div class="sec-head"><span class="n">04</span><h2>390 px — tap, not hover</h2></div>
+        <p class="lede">
+          There is no hover on a phone, so the card opens on tap and stays open
+          until you tap somewhere else. It docks under the mark rather than
+          over it, because a finger is already covering the top half of the
+          chart.
+        </p>
+        <div class="phones">
+          <div>
+            <div class="phone">
+              <div class="statusbar"><span>9:41</span><span class="rt"><span>LTE</span><span>100%</span></span></div>
+              <div class="screenhead"><h2>TPO antibodies</h2><svg class="ic i24" viewBox="0 0 24 24" aria-hidden="true"><path d="m18 15-6-6-6 6"/></svg></div>
+              <div class="stack">
+                <div class="panel">
+                  <div class="hist mini"><div class="hist-head"><h3>History</h3><span class="unit">IU/mL · 2 draws</span></div><div class="hist-body"><div><div class="hist-plot" style="min-height: 210px"><div class="hist-band normal" style="--t: 92.44%; --h: 7.56%"></div><svg viewBox="0 0 1000 100" preserveAspectRatio="none" aria-hidden="true"><polyline points="0.0,8.44 1000.0,28.89" /></svg><div class="hp was" style="--x: 0.00%; --y: 8.44%"><b>412</b><i></i></div><div class="hp now lft" style="--x: 100.00%; --y: 28.89%"><i></i></div>
+                    <div class="hovercard below" style="left: 8px; right: 8px; top: 42%; min-width: 0; max-width: none">
+                      <div class="hdate">Sat Aug 1 2026</div>
+                      <div class="hval">320<em>IU/mL</em></div>
+                      <div class="hrow"><span class="state off">off</span><span class="t-meta" style="font-size: 11px">normal 0–34 · optimal 0–9</span></div>
+                      <div class="hwas">was 412 on Dec 9 2025 · −22 %</div>
+                    </div>
+                  </div><div class="hist-x"><span class="first" style="--x: 0.00%">Dec 9</span><span class="now last" style="--x: 100.00%">Aug 1</span></div></div></div><div class="hist-legend"><span><i class="hollow"></i> was — Dec 9 2025, 412 IU/mL</span><span><i></i> now — Aug 1 2026, 320 IU/mL</span><span><u class="normal"></u> normal 0–34</span></div></div>
+                </div>
+                <p class="cap" style="margin: 0">The card spans the plot at 390 rather than sizing to its text, so it never sits half off the screen. The stem moves to whichever mark was tapped.</p>
+              </div>
+              <div class="tabbar">
+                <a href="#"><svg class="ic i24" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>Home</a>
+                <a href="#"><svg class="ic i24" viewBox="0 0 24 24" aria-hidden="true"><path d="M22 12h-2.48a2 2 0 0 0-1.93 1.46l-2.35 8.36a.25.25 0 0 1-.48 0L9.24 2.18a.25.25 0 0 0-.48 0l-2.35 8.36A2 2 0 0 1 4.49 12H2"/></svg>Body</a>
+                <span class="plusslot"><button aria-label="Add data"><svg class="ic i24" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/><path d="M12 5v14"/></svg></button></span>
+                <a class="on" href="#"><svg class="ic i24" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z"/></svg>Blood</a>
+                <a href="#"><svg class="ic i24" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/></svg>Plan</a>
+              </div>
+            </div>
+            <p class="cap">Tapping the mark also focuses it, so the same card opens from the keyboard on desktop.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="sec" id="s05">
+        <div class="sec-head"><span class="n">05</span><h2>Where the numbers come from</h2></div>
+        <p class="cap">
+          <b>All real:</b> TPO antibodies 412 IU/mL on Dec 9 2025 and 320 on
+          Aug 1 2026, normal 0–34, optimal 0–9, target under 100 by
+          Feb 16 2027, with a draw planned for Nov 24 2026 and a projected
+          200–300 IU/mL if the current rate holds; LDL cholesterol 168 mg/dL on
+          Dec 9 2025 and 131 on Aug 1 2026, goal band 70–100 by Dec 1 2026. The
+          −22 % on both cards is the arithmetic between those two pairs. Every
+          date on this page is a real draw date or a real target date.
+        </p>
+        <p class="cap">
+          <b>Nothing here is illustrative.</b> The page adds no data; it adds a
+          way to read data that is already on the charts.
+        </p>
+        <div class="cost">
+          <h3>Build cost</h3>
+          <p>
+            <b>Exists today.</b> All of it, on the data side. The shared Ruler
+            and HistoryChart shipped in phase 30c and each mark already knows
+            its date, its value, its unit, the bands it is judged against and
+            the previous value — that is what the “was” mark and the dated axis
+            are drawn from. The state word comes from the same status function
+            the rows use.
+          </p>
+          <p>
+            <b>Does not exist.</b> The interaction. Both components render
+            static SVG with no pointer handling, no focusable marks and no
+            positioned overlay. There is no shared card component.
+          </p>
+          <p>
+            <b>What the app must gain.</b> One
+            <code>&lt;ChartHover&gt;</code> component holding
+            <code>{date, value, unit, state, band, was}</code>, and, on each
+            mark, a hit area, <code>tabIndex</code>, an
+            <code>aria-label</code> carrying the same five facts as text, and a
+            pointer and focus handler. Flip logic: above the plot's midline the
+            card goes below the mark and the stem flips; within 21 px of an
+            edge the card clamps and the stem slides. On the phone the card
+            spans the plot and closes on the next tap outside it. No endpoint,
+            no table, no migration.
+          </p>
+        </div>
+      </section>
+    </main>
+    <script>
+      // The only script on this page: the theme toggle. No framework, no
+      // build step, no chart library.
+      (function () {
+        var b = document.getElementById("themebtn");
+        if (!b) return;
+        b.addEventListener("click", function () {
+          var d = document.documentElement;
+          var on = d.getAttribute("data-theme") === "dark";
+          d.setAttribute("data-theme", on ? "light" : "dark");
+          d.classList.toggle("dark", !on);
+          b.querySelector("span").textContent = on ? "Dark" : "Light";
+        });
+      })();
+    </script>
+  </body>
+</html>

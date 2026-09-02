@@ -2608,3 +2608,697 @@ html[data-theme="dark"] {
   white-space: nowrap;
 }
 .markerrow.day > .note { text-align: left; justify-self: start; }
+
+/* ══════════════════════════════════════════════════════════════════════
+   Phase 31b — the five new elements, plus the chart hover card.
+
+   Nothing below introduces a new token. Every colour is --ink / --ink-2 /
+   --ink-3 / --hair / --track / the spectrum as text or as a mark, and the
+   only accent is --lime on the one control that adds data. The spectrum is
+   never a surface here either: a paper's grade, a day's dot and a verdict's
+   word are ink or a 5 px mark, never a filled pill.
+   ══════════════════════════════════════════════════════════════════ */
+
+/* ── the verdict row ───────────────────────────────────────────────────
+   Answer first. One condition, the answer as a sentence fragment, the
+   reason on the line under it, and the genes behind it in a disclosure.
+   .verdict.on = excluded / nothing to do. .border = watch it.
+   .off = it moved a prior up. --st is the same channel .conc uses. */
+.verdict {
+  display: grid;
+  grid-template-columns: var(--s5) minmax(0, 1fr) auto;
+  gap: var(--s5) var(--s13);
+  align-items: start;
+  padding: var(--s13) 0;
+  border-bottom: 1px solid var(--hair);
+}
+.rowlist > .verdict:last-child {
+  border-bottom: 0;
+}
+.verdict::before {
+  content: "";
+  grid-row: 1 / 3;
+  width: var(--s3);
+  align-self: stretch;
+  min-height: var(--s21);
+  border-radius: var(--r-pill);
+  background: var(--st, var(--ink-3));
+}
+.verdict.on {
+  --st: var(--ok);
+}
+.verdict.border {
+  --st: var(--warn);
+}
+.verdict.off {
+  --st: var(--bad-fill);
+}
+.verdict.none {
+  --st: var(--track);
+}
+.verdict .vq {
+  font-size: var(--type-md);
+  color: var(--ink);
+  line-height: 1.4;
+}
+.verdict .vq em {
+  font-style: normal;
+  color: var(--st, var(--ink-2));
+}
+.verdict .vsay {
+  grid-column: 2;
+  margin: 0;
+  font-size: var(--type-sm);
+  line-height: 1.6;
+  color: var(--ink-2);
+  max-width: 66ch;
+  text-wrap: pretty;
+}
+.verdict .vsay b {
+  color: var(--ink);
+  font-weight: 500;
+}
+.verdict .vside {
+  grid-column: 3;
+  grid-row: 1 / 3;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--s5);
+  text-align: right;
+}
+.verdict .vx {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--type-lg);
+  color: var(--ink);
+  white-space: nowrap;
+  line-height: 1;
+}
+.verdict .vx.flat {
+  color: var(--ink-3);
+  font-size: var(--type-md);
+}
+@media (max-width: 720px) {
+  .verdict {
+    grid-template-columns: var(--s5) minmax(0, 1fr);
+  }
+  .verdict .vside {
+    grid-column: 2;
+    grid-row: auto;
+    align-items: flex-start;
+    text-align: left;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: baseline;
+  }
+}
+
+/* ── the paper row ─────────────────────────────────────────────────────
+   Title, journal, date, the grade the intake gave it, one sentence of what
+   it found, and what it would move. The last line is the whole point: a
+   paper that moves nothing says so. */
+.paper {
+  display: grid;
+  grid-template-columns: var(--s34) minmax(0, 1fr) auto;
+  gap: var(--s5) var(--s13);
+  align-items: start;
+  padding: var(--s13) 0;
+  border-bottom: 1px solid var(--hair);
+}
+.rowlist > .paper:last-child {
+  border-bottom: 0;
+}
+.paper .pg {
+  grid-row: 1 / 4;
+  display: grid;
+  place-items: center;
+  width: var(--s34);
+  height: var(--s34);
+  border-radius: var(--r-inner);
+  background: var(--canvas-deep);
+  color: var(--ink-2);
+}
+.paper .ptitle {
+  font-size: var(--type-sm);
+  color: var(--ink);
+  line-height: 1.45;
+}
+.paper .pcite {
+  grid-column: 2;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s3) var(--s8);
+  align-items: baseline;
+  font-family: var(--font-mono);
+  font-size: var(--type-xs);
+  color: var(--ink-3);
+}
+.paper .pfound {
+  grid-column: 2;
+  margin: 0;
+  font-size: var(--type-sm);
+  line-height: 1.6;
+  color: var(--ink-2);
+  max-width: 72ch;
+  text-wrap: pretty;
+}
+.paper .pmoves {
+  grid-column: 2;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s5) var(--s8);
+  align-items: baseline;
+  font-size: var(--type-sm);
+  color: var(--ink-2);
+}
+.paper .pmoves .arrow {
+  font-family: var(--font-mono);
+  color: var(--ink-3);
+}
+.paper .pact {
+  grid-column: 3;
+  grid-row: 1 / 3;
+  display: flex;
+  gap: var(--s5);
+  align-items: center;
+}
+@media (max-width: 720px) {
+  .paper {
+    grid-template-columns: var(--s34) minmax(0, 1fr);
+  }
+  .paper .pact {
+    grid-column: 2;
+    grid-row: auto;
+  }
+}
+
+/* ── the month strip ───────────────────────────────────────────────────
+   Seven columns, one cell a day, today outlined the way .strip30 outlines
+   it. Each cell carries up to four 3 px dots: training, supplement, food
+   rule, draw or check-in. The dot colour is the spectrum as a mark, and a
+   mark is the only thing the spectrum is allowed to be here. */
+.month {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: var(--s3);
+}
+.month .dow {
+  font-family: var(--font-mono);
+  font-size: var(--type-xs);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  text-align: center;
+  padding-bottom: var(--s3);
+}
+.month .d {
+  min-height: var(--s55);
+  border-radius: var(--s5);
+  background: var(--surface-flat);
+  box-shadow: inset 0 0 0 1px var(--hair);
+  padding: var(--s5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s3);
+}
+.month .d.pad {
+  background: none;
+  box-shadow: none;
+}
+.month .d.past {
+  background: var(--canvas-deep);
+}
+.month .d.today {
+  box-shadow: inset 0 0 0 1.5px var(--ink);
+}
+.month .d .dn {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--type-xs);
+  color: var(--ink-2);
+  line-height: 1;
+}
+.month .d.today .dn {
+  color: var(--ink);
+}
+.month .d .dots {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  margin-top: auto;
+}
+.month .d .dots i {
+  width: var(--s5);
+  height: var(--s5);
+  border-radius: var(--r-pill);
+  background: var(--ink-3);
+}
+.month .d .dots i.train {
+  background: var(--ok);
+}
+.month .d .dots i.supp {
+  background: var(--ink-2);
+}
+.month .d .dots i.food {
+  background: var(--warn);
+}
+.month .d .dots i.draw {
+  background: var(--bad-fill);
+}
+.month .d .dots i.check {
+  background: none;
+  box-shadow: inset 0 0 0 1.5px var(--ink-3);
+}
+.monthkey {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s5) var(--s13);
+  margin-top: var(--s8);
+  font-size: var(--type-xs);
+  color: var(--ink-3);
+}
+.monthkey span {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s5);
+}
+.monthkey i {
+  width: var(--s5);
+  height: var(--s5);
+  border-radius: var(--r-pill);
+  background: var(--ink-3);
+}
+.monthkey i.train {
+  background: var(--ok);
+}
+.monthkey i.supp {
+  background: var(--ink-2);
+}
+.monthkey i.food {
+  background: var(--warn);
+}
+.monthkey i.draw {
+  background: var(--bad-fill);
+}
+.monthkey i.check {
+  background: none;
+  box-shadow: inset 0 0 0 1.5px var(--ink-3);
+}
+
+/* ── the day column ────────────────────────────────────────────────────
+   What to do today, in the order the day runs. Time on the left in mono,
+   the tick on the right, the "why" underneath in --ink-3. The rail is one
+   hairline; the tick is the .checkrow box at 21 px so the two agree. */
+.daycol {
+  display: flex;
+  flex-direction: column;
+}
+.dayrow {
+  display: grid;
+  grid-template-columns: 62px var(--s21) minmax(0, 1fr) auto;
+  gap: var(--s3) var(--s13);
+  align-items: start;
+  padding: var(--s13) 0;
+  border-bottom: 1px solid var(--hair);
+}
+.daycol .dayrow:last-child {
+  border-bottom: 0;
+}
+.dayrow .at {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--type-sm);
+  color: var(--ink-3);
+  white-space: nowrap;
+  padding-top: 2px;
+}
+.dayrow .box {
+  display: grid;
+  place-items: center;
+  width: var(--s21);
+  height: var(--s21);
+  border-radius: var(--s5);
+  box-shadow: inset 0 0 0 1px var(--hair);
+  color: transparent;
+  background: var(--surface-hi);
+  cursor: pointer;
+  flex: none;
+}
+.dayrow.done .box {
+  background: var(--ink);
+  color: var(--canvas);
+  box-shadow: none;
+}
+.dayrow .what {
+  font-size: var(--type-sm);
+  color: var(--ink);
+  line-height: 1.45;
+}
+.dayrow.done .what {
+  color: var(--ink-2);
+}
+.dayrow .why {
+  grid-column: 3;
+  font-size: var(--type-xs);
+  color: var(--ink-3);
+  line-height: 1.5;
+}
+.dayrow .tag {
+  grid-column: 4;
+  grid-row: 1 / 3;
+  font-family: var(--font-mono);
+  font-size: var(--type-xs);
+  color: var(--ink-3);
+  white-space: nowrap;
+  text-align: right;
+}
+@media (max-width: 720px) {
+  .dayrow {
+    grid-template-columns: 54px var(--s21) minmax(0, 1fr);
+  }
+  .dayrow .tag {
+    grid-column: 3;
+    grid-row: auto;
+    text-align: left;
+  }
+}
+
+/* ── the schedule table ────────────────────────────────────────────────
+   .tbl with a fixed column order: what, dose, when, with what, until. The
+   "when" column is a set of four fixed slots so the eye can scan down it,
+   and a slot that is not used is a hairline dash, not an empty cell. */
+.tbl.sched td.when {
+  white-space: nowrap;
+}
+.slots {
+  display: inline-flex;
+  gap: var(--s3);
+}
+.slots i {
+  width: var(--s13);
+  height: var(--s13);
+  border-radius: var(--s3);
+  background: var(--track);
+  display: grid;
+  place-items: center;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  line-height: 1;
+  color: var(--ink-3);
+}
+.slots i.on {
+  background: var(--ink);
+  color: var(--canvas);
+}
+.tbl.sched td.until {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-2);
+  white-space: nowrap;
+}
+
+/* ── the meal card ─────────────────────────────────────────────────────
+   What a food photo becomes. The photo is a hand-drawn SVG plate here, not
+   a stock image. Every number carries the word "est." because every number
+   on this card came out of one vision call, and the footer says so. */
+.meal {
+  display: grid;
+  grid-template-columns: 89px minmax(0, 1fr);
+  gap: var(--s13);
+  align-items: start;
+}
+.meal .shot {
+  width: 89px;
+  height: 89px;
+  border-radius: var(--r-inner);
+  background: var(--canvas-deep);
+  box-shadow: inset 0 0 0 1px var(--hair);
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+}
+.meal .shot svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+.meal .mhead {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s5) var(--s8);
+  align-items: baseline;
+}
+.meal .mhead b {
+  font-size: var(--type-md);
+  font-weight: 400;
+  color: var(--ink);
+}
+.meal .mhead .when {
+  font-family: var(--font-mono);
+  font-size: var(--type-xs);
+  color: var(--ink-3);
+}
+.meal .items {
+  margin: var(--s8) 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+}
+.meal .items li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: var(--s8);
+  align-items: baseline;
+  padding: var(--s5) 0;
+  border-bottom: 1px solid var(--hair);
+  font-size: var(--type-sm);
+  color: var(--ink);
+}
+.meal .items li:last-child {
+  border-bottom: 0;
+}
+.meal .items .por,
+.meal .items .kc {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--type-xs);
+  color: var(--ink-3);
+  white-space: nowrap;
+}
+.meal .macros {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s8) var(--s13);
+  margin-top: var(--s8);
+}
+.meal .macros div {
+  min-width: 62px;
+}
+.meal .macros b {
+  display: block;
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--type-md);
+  color: var(--ink);
+  line-height: 1.1;
+}
+.meal .macros span {
+  font-size: var(--type-xs);
+  color: var(--ink-3);
+}
+.est {
+  font-family: var(--font-mono);
+  font-size: var(--type-xs);
+  color: var(--ink-3);
+  letter-spacing: 0.04em;
+}
+.meal .mnote {
+  margin: var(--s8) 0 0;
+  font-size: var(--type-xs);
+  color: var(--ink-3);
+  line-height: 1.5;
+}
+@media (max-width: 460px) {
+  .meal {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .meal .shot {
+    width: 100%;
+    height: 144px;
+  }
+}
+
+/* ── the chart hover card ──────────────────────────────────────────────
+   One card, two triggers: hover on desktop, tap on the phone. It always
+   carries the date, the value with its unit, the state word and the "was".
+   It is a surface, so it is --surface-hi and never a spectrum fill. */
+.hovercard {
+  position: absolute;
+  z-index: 6;
+  min-width: 168px;
+  border-radius: var(--r-inner);
+  background: var(--surface-hi);
+  backdrop-filter: blur(21px);
+  box-shadow:
+    inset 0 0 0 1px var(--hair),
+    0 21px 34px -21px rgba(23, 22, 20, 0.45);
+  padding: var(--s8) var(--s13);
+  pointer-events: none;
+}
+.hovercard .hdate {
+  font-family: var(--font-mono);
+  font-size: var(--type-xs);
+  color: var(--ink-3);
+  letter-spacing: 0.04em;
+}
+.hovercard .hval {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--type-lg);
+  color: var(--ink);
+  line-height: 1.15;
+  margin-top: 2px;
+}
+.hovercard .hval em {
+  font-style: normal;
+  font-size: var(--type-xs);
+  color: var(--ink-3);
+  margin-left: var(--s3);
+}
+.hovercard .hwas {
+  font-family: var(--font-mono);
+  font-size: var(--type-xs);
+  color: var(--ink-3);
+  margin-top: var(--s3);
+}
+.hovercard .hrow {
+  display: flex;
+  align-items: center;
+  gap: var(--s8);
+  margin-top: var(--s5);
+}
+/* the stem, so the card is anchored to the mark it explains */
+.hovercard::after {
+  content: "";
+  position: absolute;
+  left: var(--s21);
+  bottom: -5px;
+  width: 9px;
+  height: 9px;
+  transform: rotate(45deg);
+  background: var(--surface-hi);
+  box-shadow:
+    1px 1px 0 0 var(--hair);
+}
+.hovercard.below::after {
+  bottom: auto;
+  top: -5px;
+  box-shadow: -1px -1px 0 0 var(--hair);
+}
+
+/* Under 760 px the hover card stops floating and spans its plot: at 390 a
+   168 px card anchored to a mark at 66 % runs off the screen, and a card that
+   runs off the screen is worse than one that covers a band label. */
+@media (max-width: 760px) {
+  .hovercard {
+    left: var(--s8) !important;
+    right: var(--s8) !important;
+    min-width: 0;
+  }
+}
+
+/* A ruler's floating labels are centred on their mark, so at 390 px a ghost
+   at 93 % ("was 168 · Dec 9 2025") pushes the page 10 px wider than the
+   viewport. Below 760 px they are dropped, because the sentence under the
+   ruler already states both in full — "down from 168 on Dec 9 2025 … by
+   Dec 1 2026" — and a label that widens the page is worse than a label that
+   repeats a sentence. */
+@media (max-width: 760px) {
+  .ghost::after,
+  .goal::after {
+    display: none;
+  }
+}
+
+/* the citation line reads as one sentence, so its parts are separated the way
+   every other meta line in the system is: a middle dot. The grade glyph is
+   exempt because it sits against the journal it grades. */
+.paper .pcite > span + span:not(.glyph)::before {
+  content: "· ";
+  color: var(--ink-3);
+}
+
+/* "no change" was --track, which reads 1.1:1 on the tile: a word nobody can
+   see. The whole point of the row is that "nothing moved" is stated as
+   plainly as "×1.4", so it takes --ink-3 (4.95:1 on --surface) like every
+   other quiet word in the system. */
+.verdict.none {
+  --st: var(--ink-3);
+}
+
+/* The phone frame is 390 px wide inside a 1440 px page, so a viewport media
+   query never fires for it. Inside .phone the three new rows always use their
+   stacked layout. */
+.phone .verdict,
+.phone .paper {
+  grid-template-columns: var(--s5) minmax(0, 1fr);
+}
+.phone .paper {
+  grid-template-columns: var(--s34) minmax(0, 1fr);
+}
+.phone .verdict .vside {
+  grid-column: 2;
+  grid-row: auto;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: baseline;
+  text-align: left;
+}
+.phone .paper .pact {
+  grid-column: 2;
+  grid-row: auto;
+}
+.phone .dayrow {
+  grid-template-columns: 54px var(--s21) minmax(0, 1fr);
+}
+.phone .dayrow .tag {
+  grid-column: 3;
+  grid-row: auto;
+  text-align: left;
+}
+
+/* The card is a card, not a paragraph: past 260 px it stops growing and wraps,
+   so a long "was" line cannot push it over the legend or off the panel. */
+.hovercard {
+  max-width: 260px;
+}
+
+/* The rail scrolls, so a card in it sizes to its number rather than breaking
+   it: "7 234" is one number and a thin space is not a line break. */
+.rail > .card {
+  flex: none;
+  min-width: 140px;
+}
+.rail .c-num {
+  white-space: nowrap;
+}
+
+/* The schedule table scrolls rather than wraps: a row whose "aimed at" cell
+   folds onto four lines leaves the other five cells stranded in white space. */
+.tbl.sched td,
+.tbl.sched th {
+  white-space: nowrap;
+}
+
+/* the stem sits under whichever corner the card was anchored by */
+.hovercard.stem-right::after {
+  left: auto;
+  right: var(--s21);
+}
+/* the item list is a list, not a table: past 520 px the portion and the
+   kilocalories stop drifting away from the food they belong to */
+.meal .items {
+  max-width: 520px;
+}

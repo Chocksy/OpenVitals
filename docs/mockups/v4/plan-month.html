@@ -1,0 +1,480 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Plan · the month — OpenVitals design system</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <!-- Geist Sans + Geist Mono, the app's own fonts. If the CDN is blocked
+         the stack in system.css falls back to Inter / JetBrains Mono, then to
+         the system UI font and ui-monospace. -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Geist:wght@200..600&family=Geist+Mono:wght@200..500&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="system.css" />
+  </head>
+  <body>
+    <button class="themebtn" id="themebtn" type="button">
+      <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9z"/></svg> <span>Dark</span>
+    </button>
+    <main class="doc">
+      <header class="doc-head">
+        <h1>Plan · the month</h1>
+        <p>
+          Phase 31b. The plan as something you can follow on a Thursday.
+          A month you can see, a column that says what to do today and in what
+          order, the rules that hold every day, the supplements as a schedule
+          with a dose and a stop date, and what is coming. Every row on this
+          page traces to a protocol item you adopted, a goal with a due date,
+          or a suggestion that says out loud that you have not adopted it.
+        </p>
+      </header>
+      <nav class="crumbs">
+        <a href="system.html">System</a>
+        <a href="index.html">Index</a>
+        <a href="home.html">Home</a>
+        <a href="body.html">Body</a>
+        <a href="blood.html">Blood</a>
+        <a href="plan.html">Plan</a>
+        <a href="graph.html">Graph</a>
+        <a href="research.html">Research</a>
+        <a class="here" href="plan-month.html">Plan · month</a>
+        <a href="genome.html">Genome</a>
+        <a href="ios.html">iOS</a>
+        <a href="chart-hover.html">Chart hover</a>
+      </nav>
+      <section class="sec" id="s01">
+        <div class="sec-head"><span class="n">01</span><h2>September 2026</h2></div>
+        <p class="lede">
+          One cell a day, today outlined. The dots are what the day asks for,
+          not what you did: training, supplement, food rule, draw, check-in.
+          What you did is the strip under it.
+        </p>
+        <div class="panel">
+          <div class="panel-head"><h3>September 2026</h3><span class="r">today is Thursday Sep 3 · next draw Nov 24</span></div>
+          <div class="month">
+            <div class="dow">Mon</div><div class="dow">Tue</div><div class="dow">Wed</div><div class="dow">Thu</div><div class="dow">Fri</div><div class="dow">Sat</div><div class="dow">Sun</div>
+              <div class="d pad"></div>
+              <div class="d past"><span class="dn">1</span><span class="dots"><i class="supp"></i><i class="food"></i></span></div>
+              <div class="d past"><span class="dn">2</span><span class="dots"><i class="supp"></i></span></div>
+              <div class="d today"><span class="dn">3</span><span class="dots"><i class="train"></i><i class="supp"></i></span></div>
+              <div class="d"><span class="dn">4</span><span class="dots"><i class="supp"></i><i class="food"></i></span></div>
+              <div class="d"><span class="dn">5</span><span class="dots"><i class="train"></i><i class="supp"></i></span></div>
+              <div class="d"><span class="dn">6</span><span class="dots"><i class="supp"></i><i class="food"></i><i class="check"></i></span></div>
+              <div class="d"><span class="dn">7</span><span class="dots"><i class="train"></i><i class="supp"></i></span></div>
+              <div class="d"><span class="dn">8</span><span class="dots"><i class="supp"></i><i class="food"></i></span></div>
+              <div class="d"><span class="dn">9</span><span class="dots"><i class="supp"></i></span></div>
+              <div class="d"><span class="dn">10</span><span class="dots"><i class="train"></i><i class="supp"></i></span></div>
+              <div class="d"><span class="dn">11</span><span class="dots"><i class="supp"></i><i class="food"></i></span></div>
+              <div class="d"><span class="dn">12</span><span class="dots"><i class="train"></i><i class="supp"></i></span></div>
+              <div class="d"><span class="dn">13</span><span class="dots"><i class="supp"></i><i class="food"></i><i class="check"></i></span></div>
+              <div class="d"><span class="dn">14</span><span class="dots"><i class="train"></i><i class="supp"></i></span></div>
+              <div class="d"><span class="dn">15</span><span class="dots"><i class="supp"></i><i class="food"></i></span></div>
+              <div class="d"><span class="dn">16</span><span class="dots"><i class="supp"></i></span></div>
+              <div class="d"><span class="dn">17</span><span class="dots"><i class="train"></i><i class="supp"></i></span></div>
+              <div class="d"><span class="dn">18</span><span class="dots"><i class="supp"></i><i class="food"></i></span></div>
+              <div class="d"><span class="dn">19</span><span class="dots"><i class="train"></i><i class="supp"></i></span></div>
+              <div class="d"><span class="dn">20</span><span class="dots"><i class="supp"></i><i class="food"></i><i class="check"></i></span></div>
+              <div class="d"><span class="dn">21</span><span class="dots"><i class="train"></i><i class="supp"></i></span></div>
+              <div class="d"><span class="dn">22</span><span class="dots"><i class="supp"></i><i class="food"></i></span></div>
+              <div class="d"><span class="dn">23</span><span class="dots"><i class="supp"></i></span></div>
+              <div class="d"><span class="dn">24</span><span class="dots"><i class="train"></i><i class="supp"></i></span></div>
+              <div class="d"><span class="dn">25</span><span class="dots"><i class="supp"></i><i class="food"></i></span></div>
+              <div class="d"><span class="dn">26</span><span class="dots"><i class="train"></i><i class="supp"></i></span></div>
+              <div class="d"><span class="dn">27</span><span class="dots"><i class="supp"></i><i class="food"></i><i class="check"></i></span></div>
+              <div class="d"><span class="dn">28</span><span class="dots"><i class="train"></i><i class="supp"></i></span></div>
+              <div class="d"><span class="dn">29</span><span class="dots"><i class="supp"></i><i class="food"></i></span></div>
+              <div class="d"><span class="dn">30</span><span class="dots"><i class="supp"></i></span></div>
+              <div class="d pad"></div>
+              <div class="d pad"></div>
+              <div class="d pad"></div>
+              <div class="d pad"></div>
+          </div>
+          <div class="monthkey">
+            <span><i class="train"></i> training session</span>
+            <span><i class="supp"></i> supplement due</span>
+            <span><i class="food"></i> food rule with a count</span>
+            <span><i class="draw"></i> blood draw</span>
+            <span><i class="check"></i> check-in due</span>
+          </div>
+          <p class="cap">
+            There is no draw dot in September: the next draw is Nov 24 2026, and
+            the strip refuses to draw a mark for a month that has none. The
+            check-in dot sits on Sundays because that is the cadence the
+            check-in already runs on.
+          </p>
+          <div class="sub"><h3>What you actually did</h3><span>cut added sugar · 24 of the last 30 days · today outlined</span></div>
+          <div class="strip30"><s class="on"></s><s class="on"></s><s class="on"></s><s></s><s class="on"></s><s class="on"></s><s class="on"></s><s class="on"></s><s class="on"></s><s></s><s class="on"></s><s class="on"></s><s class="on"></s><s class="on"></s><s></s><s class="on"></s><s class="on"></s><s class="on"></s><s class="on"></s><s class="on"></s><s></s><s class="on"></s><s class="on"></s><s class="on"></s><s class="on"></s><s></s><s class="on"></s><s class="on"></s><s class="on"></s><s class="on today"></s></div>
+          <p class="cap">Ticking a row in the Today column writes the same day-and-item tick this strip already reads. There is no second store.</p>
+        </div>
+      </section>
+
+      <section class="sec" id="s02">
+        <div class="sec-head"><span class="n">02</span><h2>Today</h2></div>
+        <p class="lede">
+          Thursday Sep 3 2026, in the order the day runs. The time is when it
+          is easiest to do, not an alarm. Each row carries why it is there and
+          where it came from; a row that came from nowhere says
+          “<b>suggested</b>” and offers the one control that adopts it.
+        </p>
+        <div class="panel">
+          <div class="panel-head"><h3>Today</h3><span class="r">Thursday Sep 3 2026 · 2 of 7 done</span></div>
+          <div class="daycol">
+
+            <div class="dayrow done">
+              <span class="at">07:10</span>
+              <span class="box" role="checkbox" aria-checked="true"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+              <span class="what">Ten minutes outside, before the first coffee</span>
+              <span class="why">Your last-coffee hour and your bedtime are both recorded; nothing else about your mornings is. This is a suggestion, not something you adopted.</span>
+              <span class="tag">suggested<br /><button class="b b-add b-sm" style="margin-top: 5px"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/><path d="M12 5v14"/></svg> Add</button></span>
+            </div>
+
+            <div class="dayrow done">
+              <span class="at">08:00</span>
+              <span class="box" role="checkbox" aria-checked="true"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+              <span class="what">Breakfast, then selenium 200 µg</span>
+              <span class="why">With food, and at least four hours away from the iron. Aimed at TPO 320 → under 100 IU/mL by Feb 16 2027; you are 29 % of the way from 412.</span>
+              <span class="tag">protocol · 86 %</span>
+            </div>
+
+            <div class="dayrow">
+              <span class="at">12:30</span>
+              <span class="box" role="checkbox" aria-checked="false"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+              <span class="what">Protein and fibre before the starch, at the largest meal</span>
+              <span class="why">The daily rule, not a one-off. HbA1c 5.6 % has not moved since Dec 9 2025 and the Nov 24 draw is what decides whether this is working.</span>
+              <span class="tag">every day</span>
+            </div>
+
+            <div class="dayrow">
+              <span class="at">13:10</span>
+              <span class="box" role="checkbox" aria-checked="false"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+              <span class="what">Twelve minutes of walking, after that meal</span>
+              <span class="why">Placed after the largest meal, which is where a walk does the most for glucose. Suggested; you have not adopted it, so it counts toward nothing yet.</span>
+              <span class="tag">suggested<br /><button class="b b-add b-sm" style="margin-top: 5px"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/><path d="M12 5v14"/></svg> Add</button></span>
+            </div>
+
+            <div class="dayrow">
+              <span class="at">17:30</span>
+              <span class="box" role="checkbox" aria-checked="false"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+              <span class="what">Resistance session, 45 minutes</span>
+              <span class="why">The third of three this week. On your own three-or-more weeks resting heart rate averaged 55 bpm against 58 on the others — your data, so it is an observation, not evidence.</span>
+              <span class="tag">3rd of 3 this week</span>
+            </div>
+
+            <div class="dayrow">
+              <span class="at">19:30</span>
+              <span class="box" role="checkbox" aria-checked="false"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+              <span class="what">Dinner, then vitamin D 4 000 IU</span>
+              <span class="why">Fat-soluble, so it goes with the largest fat of the day. Vitamin D was 19 ng/mL on Aug 1 2026 against a 40–60 target; there is no retest yet, so there is no progress bar to draw.</span>
+              <span class="tag">protocol · 100 %</span>
+            </div>
+
+            <div class="dayrow">
+              <span class="at">21:00</span>
+              <span class="box" role="checkbox" aria-checked="false"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+              <span class="what">Iron 60 mg, on an empty stomach, with vitamin C</span>
+              <span class="why">Alternate days, and today is an iron day. Ferritin 22 → above 50 ng/mL, due Nov 24 2026. Alternate-day dosing is the point: it is not a rounding of “daily”.</span>
+              <span class="tag">goal · ferritin</span>
+            </div>
+
+          </div>
+          <p class="cap">
+            Two of the seven rows are suggestions with an Add. The other five
+            are yours already, and each one names the number it is aimed at and
+            the date that number is checked.
+          </p>
+        </div>
+      </section>
+
+      <section class="sec" id="s03">
+        <div class="sec-head"><span class="n">03</span><h2>This week, and every day</h2></div>
+        <div class="grid2">
+          <div class="panel">
+            <div class="panel-head"><h3>This week</h3><span class="r">Mon Aug 31 – Sun Sep 6</span></div>
+            <div class="rowlist">
+              <div class="protorow"><div><b>Resistance, three sessions</b><div class="psub">Mon Aug 31 done · Thu Sep 3 today · Sat Sep 5 planned</div></div><span class="pct">2 / 3</span><div class="strip30" style="grid-column: 1 / -1"><s class="on"></s><s></s><s></s><s class="today"></s><s></s><s></s><s></s></div></div>
+              <div class="protorow"><div><b>Sardines, three tins</b><div class="psub">adopted Jun 14 2026 and never once done. The engine keeps printing it because you adopted it, and keeps printing the 0 %.</div></div><span class="pct">0 / 3</span><div class="strip30" style="grid-column: 1 / -1"><s></s><s></s><s></s><s class="today"></s><s></s><s></s><s></s></div></div>
+              <div class="protorow"><div><b>Check-in</b><div class="psub">due Sunday Sep 6 · twelve questions, one screen</div></div><span class="pct">Sun</span></div>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="panel-head"><h3>Every day</h3><span class="r">2 rules · no dose, no date</span></div>
+            <div class="rowlist">
+              <div class="protorow"><div><b>Protein and fibre before the starch</b><div class="psub">at the largest meal · aimed at HbA1c 5.6 %, checked Nov 24 2026</div></div><span class="pct">80 %</span><div class="strip30"><s class="on"></s><s class="on"></s><s class="on"></s><s></s><s class="on"></s><s class="on"></s><s class="on"></s><s class="on"></s><s class="on"></s><s></s><s class="on"></s><s class="on"></s><s class="on"></s><s class="on"></s><s></s><s class="on"></s><s class="on"></s><s class="on"></s><s class="on"></s><s class="on"></s><s></s><s class="on"></s><s class="on"></s><s class="on"></s><s class="on"></s><s></s><s class="on"></s><s class="on"></s><s class="on"></s><s class="on today"></s></div></div>
+              <div class="protorow"><div><b>10 000 steps</b><div class="psub">from the phone, so it needs no tick · 30-day median 8 400</div></div><span class="pct">17 / 30</span><div class="strip30"><s class="on"></s><s></s><s class="on"></s><s class="on"></s><s></s><s></s><s class="on"></s><s class="on"></s><s></s><s class="on"></s><s></s><s class="on"></s><s class="on"></s><s></s><s class="on"></s><s></s><s class="on"></s><s></s><s class="on"></s><s class="on"></s><s></s><s class="on"></s><s></s><s class="on"></s><s></s><s class="on"></s><s></s><s class="on"></s><s></s><s class="today"></s></div></div>
+            </div>
+            <p class="cap" style="margin-top: 13px">
+              The steps row has no tick because Apple Health already answers it.
+              A rule the phone can measure is never a checkbox.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section class="sec" id="s04">
+        <div class="sec-head"><span class="n">04</span><h2>Supplements</h2></div>
+        <p class="lede">
+          Five columns and no prose: what, how much, when, with what, and until
+          when. “Until” is the column the app does not have yet, and it is the
+          one that stops a supplement from running forever.
+        </p>
+        <div class="panel">
+          <div class="tblwrap"><table class="tbl sched">
+            <thead><tr><th>What</th><th>Dose</th><th>When</th><th>With what</th><th>Until</th><th>Aimed at</th></tr></thead>
+            <tbody>
+              <tr>
+                <td class="k">Selenium</td><td class="n">200 µg</td>
+                <td class="when"><span class="slots"><i class="on">M</i><i>N</i><i>E</i><i>B</i></span></td>
+                <td>breakfast · 4 h clear of the iron</td>
+                <td class="until">Feb 16 2027</td>
+                <td>TPO 320 → under 100 IU/mL</td>
+              </tr>
+              <tr>
+                <td class="k">Vitamin D3</td><td class="n">4 000 IU</td>
+                <td class="when"><span class="slots"><i>M</i><i>N</i><i class="on">E</i><i>B</i></span></td>
+                <td>the largest fat of the day</td>
+                <td class="until">Nov 24 2026</td>
+                <td>vitamin D 19 → 40–60 ng/mL</td>
+              </tr>
+              <tr>
+                <td class="k">Iron</td><td class="n">60 mg</td>
+                <td class="when"><span class="slots"><i>M</i><i>N</i><i>E</i><i class="on">B</i></span> <span class="est">alt. days</span></td>
+                <td>empty stomach · vitamin C</td>
+                <td class="until">Nov 24 2026</td>
+                <td>ferritin 22 → above 50 ng/mL</td>
+              </tr>
+              <tr>
+                <td class="k">Sardines</td><td class="n">3 tins / wk</td>
+                <td class="when"><span class="slots"><i>M</i><i class="on">N</i><i>E</i><i>B</i></span> <span class="est">3 days</span></td>
+                <td>a meal, any meal</td>
+                <td class="until">no stop date</td>
+                <td><span class="state none">nothing measured · 0 % since Jun 14 2026</span></td>
+              </tr>
+            </tbody></table></div>
+          <p class="cap">
+            M is morning, N is midday, E is evening, B is bedtime. The sardines
+            row has no stop date and no marker, which is why it has run for
+            eleven weeks at 0 % without anything asking whether it should still
+            be on the list. The “Until” column is what asks.
+          </p>
+        </div>
+      </section>
+
+      <section class="sec" id="s05">
+        <div class="sec-head"><span class="n">05</span><h2>Coming up</h2></div>
+        <div class="grid2">
+          <div class="panel">
+            <div class="panel-head"><h3>Coming up</h3><span class="r">3 things with a date</span></div>
+            <div class="rowlist">
+              <div class="markerrow said"><div class="nm"><b>Blood draw</b><span>Nov 24 2026 · 4 markers · 12 weeks from today</span></div><div class="t-meta" style="font-size: 11px">TSH, hs-CRP, LDL, ferritin</div><div></div><div class="wd"><span class="state border">planned</span></div></div>
+              <div class="markerrow said"><div class="nm"><b>Retest TSH</b><span>due on its own 6-week clock · overdue by 4 weeks</span></div><div class="t-meta" style="font-size: 11px">last read 3.9 mIU/L on Aug 1 2026</div><div></div><div class="wd"><span class="state off">overdue</span></div></div>
+              <div class="markerrow said"><div class="nm"><b>LDL 70–100 mg/dL</b><span>due Dec 1 2026 · 131 today, from 168 on Dec 9 2025</span></div><div class="t-meta" style="font-size: 11px">the Nov 24 draw is the reading that settles it</div><div></div><div class="wd"><span class="state border">on pace</span></div></div>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="panel-head"><h3>LDL, against its goal</h3><span class="r">mg/dL · target band 70–100 by Dec 1 2026</span></div>
+            <div class="ruler" style="padding-top: 34px">
+              <div class="ruler-track">
+                <div class="seg">
+                  <div class="seg-bands">
+                    <div class="band normal" style="--a: 0%; --b: 55.56%"></div>
+                    <div class="band optimal" style="--a: 38.89%; --b: 55.56%"></div>
+                    <div class="band pace" style="--a: 55.56%; --b: 72.78%"></div>
+                  </div>
+                  <div class="goal" style="--t: 55.56%" data-label="target 100 · Dec 1 2026"></div>
+                  <div class="marker off" style="--p: 72.78%"><span class="mval">131<em>mg/dL</em></span></div>
+                  <div class="ghost" style="--g: 93.33%" data-label="was 168 · Dec 9 2025"></div>
+                </div>
+              </div>
+              <div class="ruler-scale"><span>0</span><span class="mid">normal under 100 · goal band 70–100</span><span>180</span></div>
+              <p class="ruler-say"><b>131 mg/dL</b> on Aug 1 2026, down from 168 on Dec 9 2025. The hatched stretch is the 31 mg/dL the plan has to close by <b>Dec 1 2026</b>; at the rate of the last eight months it closes with about three weeks to spare.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="sec" id="s06">
+        <div class="sec-head"><span class="n">06</span><h2>390 px — Today is the screen</h2></div>
+        <div class="phones">
+          <div>
+            <div class="phone">
+              <div class="statusbar"><span>9:41</span><span class="rt"><span>LTE</span><span>100%</span></span></div>
+              <div class="screenhead"><h2>Plan</h2><svg class="ic i24" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/></svg></div>
+              <div class="stack">
+                <div class="tabs" role="tablist" style="--tab-n: 3; --tab-i: 0"><button class="tab" role="tab" aria-selected="true">Today</button><button class="tab" role="tab" aria-selected="false">Month</button><button class="tab" role="tab" aria-selected="false">All</button></div>
+                <p class="sentence" style="margin: 0; font-size: var(--type-md)">Thursday Sep 3. Two of seven done, and the session is the one that matters.</p>
+                <div class="panel">
+                  <div class="daycol">
+                    <div class="dayrow done">
+                      <span class="at">07:10</span>
+                      <span class="box"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+                      <span class="what">Ten minutes outside</span>
+                      <span class="why">before the first coffee</span>
+                      <span class="tag">suggested</span>
+                    </div>
+                    <div class="dayrow done">
+                      <span class="at">08:00</span>
+                      <span class="box"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+                      <span class="what">Selenium 200 µg</span>
+                      <span class="why">with breakfast · TPO 320 → under 100</span>
+                      <span class="tag">86 %</span>
+                    </div>
+                    <div class="dayrow">
+                      <span class="at">12:30</span>
+                      <span class="box"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+                      <span class="what">Protein and fibre first</span>
+                      <span class="why">at the largest meal · HbA1c 5.6 %</span>
+                      <span class="tag">every day</span>
+                    </div>
+                    <div class="dayrow">
+                      <span class="at">17:30</span>
+                      <span class="box"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+                      <span class="what">Resistance, 45 min</span>
+                      <span class="why">3rd of 3 this week · 55 vs 58 bpm</span>
+                      <span class="tag">today</span>
+                    </div>
+                    <div class="dayrow">
+                      <span class="at">19:30</span>
+                      <span class="box"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+                      <span class="what">Vitamin D 4 000 IU</span>
+                      <span class="why">with dinner · 19 → 40–60 ng/mL</span>
+                      <span class="tag">100 %</span>
+                    </div>
+                    <div class="dayrow">
+                      <span class="at">21:00</span>
+                      <span class="box"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+                      <span class="what">Iron 60 mg</span>
+                      <span class="why">empty stomach, vitamin C · alt. days</span>
+                      <span class="tag">ferritin</span>
+                    </div>
+                  </div>
+                </div>
+                <p class="cap" style="margin: 0">The times keep their column, the why drops to one line, and the tag moves under the why. Nothing wraps to a third line at 390.</p>
+              </div>
+              <div class="tabbar">
+                <a href="#"><svg class="ic i24" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>Home</a>
+                <a href="#"><svg class="ic i24" viewBox="0 0 24 24" aria-hidden="true"><path d="M22 12h-2.48a2 2 0 0 0-1.93 1.46l-2.35 8.36a.25.25 0 0 1-.48 0L9.24 2.18a.25.25 0 0 0-.48 0l-2.35 8.36A2 2 0 0 1 4.49 12H2"/></svg>Body</a>
+                <span class="plusslot"><button aria-label="Add data"><svg class="ic i24" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/><path d="M12 5v14"/></svg></button></span>
+                <a href="#"><svg class="ic i24" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z"/></svg>Blood</a>
+                <a class="on" href="#"><svg class="ic i24" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/></svg>Plan</a>
+              </div>
+            </div>
+            <p class="cap">Today is the screen. Month is one tab away and the full plan is two.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="sec" id="s07">
+        <div class="sec-head"><span class="n">07</span><h2>Where the numbers come from</h2></div>
+        <p class="cap">
+          <b>Real:</b> the four adopted protocol items and their adherence —
+          selenium 200 µg at 86 %, cut added sugar at 80 % over 30 days,
+          vitamin D 4 000 IU at 100 %, sardines three tins a week at 0 % since
+          Jun 14 2026; the goals and their due dates — TPO under 100 IU/mL by
+          Feb 16 2027 with 320 today from 412 on Dec 9 2025 and 29 % of the way,
+          ferritin above 50 ng/mL by Nov 24 2026 with 22 today, vitamin D 40–60
+          ng/mL by Nov 24 2026 with 19 today and no retest yet; LDL 131 mg/dL
+          on Aug 1 2026 from 168 on Dec 9 2025 against a 70–100 goal band due
+          Dec 1 2026; HbA1c 5.6 % on Aug 1 2026, unchanged from Dec 9 2025; the
+          planned Nov 24 2026 draw with four markers; the retest cadences
+          hs-CRP 4 weeks, TSH 6 weeks, LDL 8 weeks, HbA1c and TPO 12 weeks, and
+          TSH 3.9 mIU/L last read Aug 1 2026; resting heart rate 55 bpm on
+          three-session weeks against 58 on the others; the 30-cell strip for
+          added sugar, 24 of 30.
+        </p>
+        <p class="cap">
+          <b>Illustrative:</b> every clock time — 07:10, 08:00, 12:30, 13:10,
+          17:30, 19:30, 21:00 — because no protocol item carries a time of day.
+          The training days (Mon, Thu, Sat), the sardine days (Tue, Fri, Sun)
+          and the alternate-day parity of the iron are placements, not stored
+          schedules. The 10 000-step row's 17 of 30 and the 8 400 median are the
+          shape of a real daily series, not a read one. The two suggestions —
+          ten minutes outside, twelve minutes of walking — are labelled
+          “suggested” on the page precisely because nothing in the engine
+          proposed them.
+        </p>
+        <div class="cost">
+          <h3>Build cost</h3>
+          <p>
+            <b>Exists today.</b> <code>protocol_items</code> holds the adopted
+            item, its <code>why</code>, its <code>metricCodes</code>, a
+            <code>cadence</code> text column, <code>active</code> and
+            <code>startedAt</code>. <code>habit_logs</code> holds one tick per
+            item per day, unique on <code>(itemId, day)</code>, written by
+            <code>POST /api/habits</code>, and <code>adherence()</code> in
+            <code>lib/daily.ts</code> already turns those into the 86 %, the
+            80 % and the 30-cell strip this page reuses. <code>goals</code>
+            holds the target band and the <code>due</code> date. The plan's
+            actions carry <code>dose {amount, form, schedule, duration,
+            ceiling}</code>, a <code>timing</code> string,
+            <code>targets[].measureAfterWeeks</code> and
+            <code>followUp[].afterDays</code>, and
+            <code>followUp</code> already mints <code>checkins</code> rows.
+          </p>
+          <p>
+            <b>Does not exist.</b> Seven things, and every one of them is a
+            column that is not there.
+            <b>One:</b> no time of day. <code>protocol_items</code> has no
+            <code>time</code>, <code>hour</code> or <code>slot</code>, and
+            <code>ReportAction.timing</code> is free text that nothing parses.
+            <b>Two:</b> no weekday selector. <code>cadence</code> is a single
+            text column and <code>adopt()</code> only ever writes
+            <code>"weekly"</code> or <code>"daily"</code> into it, by testing
+            the dose string against <code>/week/i</code>. There is no
+            days-of-week array, no RRULE, no bitmask, so “Mon, Thu, Sat” and
+            “alternate days” cannot be stored.
+            <b>Three:</b> no structured dose. Dose is one flattened string,
+            <code>"200 µg · capsule · once daily · for 6 months"</code>. There
+            is no amount, unit or times-per-day.
+            <b>Four:</b> no “with what”. “With food”, “empty stomach” and
+            “4 h clear of the iron” appear in the repo only inside prose
+            strings; there is no column and no enum.
+            <b>Five:</b> no “until”. <code>protocol_items</code> has
+            <code>startedAt</code> and no <code>endsAt</code>;
+            <code>dose.duration</code> is text and is never turned into a date.
+            That is why the sardines row has run eleven weeks at 0 %.
+            <b>Six:</b> no dose-level tick. <code>habit_logs</code> is one
+            boolean per item per day, so it structurally cannot record “two of
+            three doses”.
+            <b>Seven:</b> no occurrence rows. Nothing materialises a
+            (item, day) row ahead of time, so the month strip's dots have
+            nothing to read; a <code>habit_logs</code> row only appears after a
+            tap.
+          </p>
+          <p>
+            <b>What the engine must gain.</b> Columns on
+            <code>protocol_items</code>: <code>slot</code> (morning / midday /
+            evening / bedtime), <code>days_of_week</code>, <code>interval</code>
+            (for alternate days), <code>dose_amount</code>,
+            <code>dose_unit</code>, <code>times_per_day</code>,
+            <code>with_what</code> and <code>ends_at</code>. One generator that
+            expands those into occurrences for a date range — it can stay a
+            pure function over the columns, no table needed, as long as
+            <code>habit_logs</code> gains a <code>slot</code> so a
+            three-dose day can be half done. And one place to put the plan's
+            lines: today they live inside <code>reports.body.actions</code>
+            jsonb, so any per-line state has to go into that blob or into a new
+            table.
+          </p>
+        </div>
+      </section>
+    </main>
+    <script>
+      // The only script on this page: the theme toggle. No framework, no
+      // build step, no chart library.
+      (function () {
+        var b = document.getElementById("themebtn");
+        if (!b) return;
+        b.addEventListener("click", function () {
+          var d = document.documentElement;
+          var on = d.getAttribute("data-theme") === "dark";
+          d.setAttribute("data-theme", on ? "light" : "dark");
+          d.classList.toggle("dark", !on);
+          b.querySelector("span").textContent = on ? "Dark" : "Light";
+        });
+      })();
+    </script>
+  </body>
+</html>

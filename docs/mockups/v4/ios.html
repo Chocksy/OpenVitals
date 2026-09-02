@@ -1,0 +1,437 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>iOS — OpenVitals design system</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <!-- Geist Sans + Geist Mono, the app's own fonts. If the CDN is blocked
+         the stack in system.css falls back to Inter / JetBrains Mono, then to
+         the system UI font and ui-monospace. -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Geist:wght@200..600&family=Geist+Mono:wght@200..500&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="system.css" />
+  </head>
+  <body>
+    <button class="themebtn" id="themebtn" type="button">
+      <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9z"/></svg> <span>Dark</span>
+    </button>
+    <main class="doc">
+      <header class="doc-head">
+        <h1>iOS</h1>
+        <p>
+          Phase 31b. The phone app in the design system, drawn as a native app
+          with exactly the data the engine has. Today is a WKWebView of the
+          website right now; these frames are what it becomes when it stops
+          being one. Two of the six screens already have their endpoint; four
+          do not, and the contract table at the end says which is which.
+        </p>
+      </header>
+      <nav class="crumbs">
+        <a href="system.html">System</a>
+        <a href="index.html">Index</a>
+        <a href="home.html">Home</a>
+        <a href="body.html">Body</a>
+        <a href="blood.html">Blood</a>
+        <a href="plan.html">Plan</a>
+        <a href="graph.html">Graph</a>
+        <a href="research.html">Research</a>
+        <a href="plan-month.html">Plan · month</a>
+        <a href="genome.html">Genome</a>
+        <a class="here" href="ios.html">iOS</a>
+        <a href="chart-hover.html">Chart hover</a>
+      </nav>
+      <section class="sec" id="s01">
+        <div class="sec-head"><span class="n">01</span><h2>Today, Body, Plan</h2></div>
+        <p class="lede">
+          The three read screens. Same sentence, same cards, same state words
+          as the web — native rows, native type scale, no web view and no
+          bridge. The rail becomes a horizontal scroll of the same three cards.
+        </p>
+        <div class="phones">
+
+          <div>
+            <div class="phone">
+              <div class="statusbar"><span>9:41</span><span class="rt"><span>LTE</span><span>100%</span></span></div>
+              <div class="screenhead"><h2>Today</h2><svg class="ic i24" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg></div>
+              <div class="stack">
+                <p class="sentence" style="margin: 0; font-size: var(--type-md)">Seven markers are off. Thyroid is the loudest one.</p>
+                <div class="navycard">
+                  <div class="c-label">Status</div>
+                  <div class="c-num">7</div>
+                  <div class="c-title">Attention · 7 markers off</div>
+                  <div class="c-counts"><span>26 optimal · 19 normal · 7 off</span><br /><span>Aug 1 2026 draw</span></div>
+                </div>
+                <div class="rail">
+                  <div class="card"><div class="c-label">Body</div><div class="c-num">7 234</div><div class="c-line">steps · Sep 2 · Apple Health</div></div>
+                  <div class="card"><div class="c-label">Blood</div><div class="c-num">52</div><div class="c-line">markers · last draw Aug 1 2026</div></div>
+                  <div class="card"><div class="c-label">Plan</div><div class="c-num">2 / 7</div><div class="c-line">done today · resistance at 17:30</div></div>
+                </div>
+                <div class="panel">
+                  <div class="panel-head"><h3>Systems</h3><span class="r">12</span></div>
+                  <div class="chips">
+                    <span class="chip"><span class="state off"><span class="dot"></span></span> Thyroid <span class="tri">▲</span></span>
+                    <span class="chip"><span class="state off"><span class="dot"></span></span> Vitamins <span class="tri">▲</span></span>
+                    <span class="chip"><span class="state off"><span class="dot"></span></span> Lipids <span class="tri">▲</span></span>
+                    <span class="chip"><span class="state border"><span class="dot"></span></span> Blood sugar</span>
+                    <span class="chip"><span class="state border"><span class="dot"></span></span> Iron</span>
+                    <span class="chip"><span class="state none"><span class="dot hollow"></span></span> Sex hormones</span>
+                  </div>
+                </div>
+              </div>
+              <div class="tabbar">
+                <a class="on" href="#"><svg class="ic i24" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>Today</a>
+                <a href="#"><svg class="ic i24" viewBox="0 0 24 24" aria-hidden="true"><path d="M22 12h-2.48a2 2 0 0 0-1.93 1.46l-2.35 8.36a.25.25 0 0 1-.48 0L9.24 2.18a.25.25 0 0 0-.48 0l-2.35 8.36A2 2 0 0 1 4.49 12H2"/></svg>Body</a>
+                <span class="plusslot"><button aria-label="Add data"><svg class="ic i24" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/><path d="M12 5v14"/></svg></button></span>
+                <a href="#"><svg class="ic i24" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3zm0 0v7"/></svg>Meals</a>
+                <a href="#"><svg class="ic i24" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/></svg>Plan</a>
+              </div>
+            </div>
+            <p class="cap">Today. The navy card is the one dark surface on the phone too, and the spectrum on it is the lightened set.</p>
+          </div>
+
+          <div>
+            <div class="phone">
+              <div class="statusbar"><span>9:41</span><span class="rt"><span>LTE</span><span>100%</span></span></div>
+              <div class="screenhead"><h2>Body</h2><svg class="ic i24" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg></div>
+              <div class="stack">
+                <div class="panel">
+                  <div class="panel-head"><h3>Apple Health</h3><span class="r">27 types · last sync 08:12</span></div>
+                  <div class="rows">
+                    <div class="mrow"><div class="mn">Steps<small>StepCount · iPhone · Sep 2</small></div><div class="mv">7 234<em></em></div><div class="mw">under 10 000</div></div>
+                    <div class="mrow on"><div class="mn">Resting heart rate<small>RestingHeartRate · Apple Watch · Sep 2</small></div><div class="mv">55<em>bpm</em></div><div class="mw">optimal</div></div>
+                    <div class="mrow"><div class="mn">Sleep<small>SleepAnalysis · Apple Watch · Sep 2</small></div><div class="mv">6.8<em>h</em></div><div class="mw">short</div></div>
+                    <div class="mrow on"><div class="mn">Exercise time<small>AppleExerciseTime · Apple Watch · Sep 2</small></div><div class="mv">42<em>min</em></div><div class="mw">optimal</div></div>
+                    <div class="mrow on"><div class="mn">Protein<small>DietaryProtein · logged in Health · Sep 2</small></div><div class="mv">88<em>g</em></div><div class="mw">optimal</div></div>
+                  </div>
+                </div>
+                <p class="cap" style="margin: 0">Every row names its HealthKit type and the device that wrote it. A type with nothing in it is listed and says so; it is never dropped.</p>
+              </div>
+              <div class="tabbar">
+                <a href="#"><svg class="ic i24" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>Today</a>
+                <a class="on" href="#"><svg class="ic i24" viewBox="0 0 24 24" aria-hidden="true"><path d="M22 12h-2.48a2 2 0 0 0-1.93 1.46l-2.35 8.36a.25.25 0 0 1-.48 0L9.24 2.18a.25.25 0 0 0-.48 0l-2.35 8.36A2 2 0 0 1 4.49 12H2"/></svg>Body</a>
+                <span class="plusslot"><button aria-label="Add data"><svg class="ic i24" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/><path d="M12 5v14"/></svg></button></span>
+                <a href="#"><svg class="ic i24" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3zm0 0v7"/></svg>Meals</a>
+                <a href="#"><svg class="ic i24" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/></svg>Plan</a>
+              </div>
+            </div>
+            <p class="cap">Body. The same day list the web draws, on the same columns: name, type and source, date, value with unit, state word.</p>
+          </div>
+
+          <div>
+            <div class="phone">
+              <div class="statusbar"><span>9:41</span><span class="rt"><span>LTE</span><span>100%</span></span></div>
+              <div class="screenhead"><h2>Plan</h2><svg class="ic i24" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/></svg></div>
+              <div class="stack">
+                <p class="sentence" style="margin: 0; font-size: var(--type-md)">Thursday Sep 3. Two of seven done.</p>
+                <div class="panel">
+                  <div class="daycol">
+                    <div class="dayrow done"><span class="at">08:00</span><span class="box"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span><span class="what">Selenium 200 µg</span><span class="why">with breakfast · TPO 320 → under 100</span><span class="tag">86 %</span></div>
+                    <div class="dayrow"><span class="at">12:30</span><span class="box"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span><span class="what">Protein and fibre first</span><span class="why">at the largest meal · HbA1c 5.6 %</span><span class="tag">every day</span></div>
+                    <div class="dayrow"><span class="at">17:30</span><span class="box"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span><span class="what">Resistance, 45 min</span><span class="why">3rd of 3 this week</span><span class="tag">today</span></div>
+                    <div class="dayrow"><span class="at">19:30</span><span class="box"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span><span class="what">Vitamin D 4 000 IU</span><span class="why">with dinner · 19 → 40–60 ng/mL</span><span class="tag">100 %</span></div>
+                    <div class="dayrow"><span class="at">21:00</span><span class="box"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span><span class="what">Iron 60 mg</span><span class="why">empty stomach · alternate days</span><span class="tag">ferritin</span></div>
+                  </div>
+                </div>
+                <p class="cap" style="margin: 0">Ticking a row here is the same write as ticking it on the web: one item, one day, one boolean.</p>
+              </div>
+              <div class="tabbar">
+                <a href="#"><svg class="ic i24" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>Today</a>
+                <a href="#"><svg class="ic i24" viewBox="0 0 24 24" aria-hidden="true"><path d="M22 12h-2.48a2 2 0 0 0-1.93 1.46l-2.35 8.36a.25.25 0 0 1-.48 0L9.24 2.18a.25.25 0 0 0-.48 0l-2.35 8.36A2 2 0 0 1 4.49 12H2"/></svg>Body</a>
+                <span class="plusslot"><button aria-label="Add data"><svg class="ic i24" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/><path d="M12 5v14"/></svg></button></span>
+                <a href="#"><svg class="ic i24" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3zm0 0v7"/></svg>Meals</a>
+                <a class="on" href="#"><svg class="ic i24" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/></svg>Plan</a>
+              </div>
+            </div>
+            <p class="cap">Plan. The Today column from <a href="plan-month.html" style="color: var(--ink)">plan-month.html</a>, unchanged.</p>
+          </div>
+
+        </div>
+      </section>
+
+      <section class="sec" id="s02">
+        <div class="sec-head"><span class="n">02</span><h2>Meals — what a food photo becomes</h2></div>
+        <p class="lede">
+          One vision call, four items, and a number on every one of them that
+          says <b>est.</b> The card never totals anything the model wrote; the
+          server adds the items up itself and clamps the result. The footer
+          says the quiet part: this is not a scale.
+        </p>
+        <div class="grid2">
+          <div class="panel">
+            <div class="panel-head"><h3>Lunch</h3><span class="r">Thu Sep 3 2026 · 13:05 · from a photo</span></div>
+            <div class="meal">
+              <div class="shot"><svg viewBox="0 0 89 89" role="img" aria-label="A photograph of the meal, drawn as a plate: two sardine fillets on rye, a tomato half and a pour of olive oil"><circle cx="44.5" cy="46" r="33" fill="var(--surface-flat)" stroke="var(--hair)" stroke-width="1"/><circle cx="44.5" cy="46" r="26" fill="none" stroke="var(--hair)" stroke-width="1"/><rect x="24" y="38" width="27" height="15" rx="3" fill="none" stroke="var(--ink-3)" stroke-width="1.2"/><path d="M26 45c4-3 9-3 13 0-4 3-9 3-13 0z" fill="none" stroke="var(--ink-2)" stroke-width="1.2"/><path d="M36 45c4-3 9-3 13 0-4 3-9 3-13 0z" fill="none" stroke="var(--ink-2)" stroke-width="1.2"/><circle cx="60" cy="41" r="7" fill="none" stroke="var(--ink-3)" stroke-width="1.2"/><path d="M56 41h8M60 37v8" stroke="var(--ink-3)" stroke-width="1"/><path d="M55 57c3-4 8-5 12-3" fill="none" stroke="var(--ink-3)" stroke-width="1.2" stroke-linecap="round"/><path d="M30 60h20" stroke="var(--hair)" stroke-width="1"/></svg></div>
+              <div>
+                <div class="mhead"><b>Sardines on rye, tomato, olive oil</b><span class="when">read in 4 s</span><span class="est">· every number below is an estimate</span></div>
+                <ul class="items">
+                  <li><span>Sardines in olive oil</span><span class="por">1 tin · ~90 g</span><span class="kc">220 kcal est.</span></li>
+                  <li><span>Rye bread</span><span class="por">2 slices · ~60 g</span><span class="kc">140 kcal est.</span></li>
+                  <li><span>Tomato</span><span class="por">1 medium · ~120 g</span><span class="kc">22 kcal est.</span></li>
+                  <li><span>Olive oil</span><span class="por">~1 tsp</span><span class="kc">40 kcal est.</span></li>
+                </ul>
+                <div class="macros">
+                  <div><b>422</b><span>kcal est.</span></div>
+                  <div><b>29 g</b><span>protein est.</span></div>
+                  <div><b>31 g</b><span>carbs est.</span></div>
+                  <div><b>20 g</b><span>fat est.</span></div>
+                </div>
+                <p class="mnote">
+                  Not a scale. Four items came off one photograph, and the app
+                  added them up rather than asking the model for a total. If a
+                  number is wrong, the item is editable and the total follows.
+                </p>
+              </div>
+            </div>
+            <div class="sub"><h3>What it moves</h3><span>three writes, and the app names all three before it makes them</span></div>
+            <div class="rowlist">
+              <div class="markerrow said"><div class="nm"><b>Sardines, three tins a week</b><span>your protocol item, adopted Jun 14 2026, at 0 % ever since</span></div><div class="t-meta" style="font-size: 11px">first tick in eleven weeks</div><div></div><div class="wd"><span class="state on">1 of 3</span></div></div>
+              <div class="markerrow said"><div class="nm"><b>Protein today</b><span>added to the day's nutrition, tagged as an estimate from a photo</span></div><div class="t-meta" style="font-size: 11px">59 g → 88 g</div><div></div><div class="wd"><span class="state on">+29 g</span></div></div>
+              <div class="markerrow said"><div class="nm"><b>Last meal</b><span>13:05 · the fact the engine uses for the eating window</span></div><div class="t-meta" style="font-size: 11px">a fact, not a reading</div><div></div><div class="wd"><span class="state border">13:05</span></div></div>
+            </div>
+            <div class="rowh" style="margin-top: 13px"><button class="b b-add"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg> Save all three</button><button class="b b-quiet">Edit an item</button><button class="b b-text">Discard</button></div>
+          </div>
+          <div>
+            <div class="phone">
+              <div class="statusbar"><span>9:41</span><span class="rt"><span>LTE</span><span>100%</span></span></div>
+              <div class="screenhead"><h2>Meals</h2><svg class="ic i24" viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg></div>
+              <div class="stack">
+                <div class="panel">
+                  <div class="meal">
+                    <div class="shot"><svg viewBox="0 0 89 89" role="img" aria-label="A photograph of the meal, drawn as a plate: two sardine fillets on rye, a tomato half and a pour of olive oil"><circle cx="44.5" cy="46" r="33" fill="var(--surface-flat)" stroke="var(--hair)" stroke-width="1"/><circle cx="44.5" cy="46" r="26" fill="none" stroke="var(--hair)" stroke-width="1"/><rect x="24" y="38" width="27" height="15" rx="3" fill="none" stroke="var(--ink-3)" stroke-width="1.2"/><path d="M26 45c4-3 9-3 13 0-4 3-9 3-13 0z" fill="none" stroke="var(--ink-2)" stroke-width="1.2"/><path d="M36 45c4-3 9-3 13 0-4 3-9 3-13 0z" fill="none" stroke="var(--ink-2)" stroke-width="1.2"/><circle cx="60" cy="41" r="7" fill="none" stroke="var(--ink-3)" stroke-width="1.2"/><path d="M56 41h8M60 37v8" stroke="var(--ink-3)" stroke-width="1"/><path d="M55 57c3-4 8-5 12-3" fill="none" stroke="var(--ink-3)" stroke-width="1.2" stroke-linecap="round"/><path d="M30 60h20" stroke="var(--hair)" stroke-width="1"/></svg></div>
+                    <div>
+                      <div class="mhead"><b>Sardines on rye</b><span class="when">13:05</span></div>
+                      <div class="macros">
+                        <div><b>422</b><span>kcal est.</span></div>
+                        <div><b>29 g</b><span>protein est.</span></div>
+                      </div>
+                      <p class="mnote">4 items · not a scale</p>
+                    </div>
+                  </div>
+                </div>
+                <div class="panel">
+                  <div class="panel-head"><h3>Today</h3><span class="r">2 meals · 1 from a photo</span></div>
+                  <div class="rowlist">
+                    <div class="markerrow said"><div class="nm"><b>Breakfast</b><span>logged in Health · 08:05</span></div><div class="t-meta" style="font-size: 11px">not an estimate</div><div></div><div class="wd"><span class="state on">410 kcal</span></div></div>
+                    <div class="markerrow said"><div class="nm"><b>Lunch</b><span>from a photo · 13:05</span></div><div class="t-meta" style="font-size: 11px">estimate</div><div></div><div class="wd"><span class="state border">422 kcal est.</span></div></div>
+                  </div>
+                </div>
+                <p class="cap" style="margin: 0">A meal from Apple Health carries no “est.”, because a barcode or a weighed entry is not a guess. A meal from a photo always carries it.</p>
+              </div>
+              <div class="tabbar">
+                <a href="#"><svg class="ic i24" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>Today</a>
+                <a href="#"><svg class="ic i24" viewBox="0 0 24 24" aria-hidden="true"><path d="M22 12h-2.48a2 2 0 0 0-1.93 1.46l-2.35 8.36a.25.25 0 0 1-.48 0L9.24 2.18a.25.25 0 0 0-.48 0l-2.35 8.36A2 2 0 0 1 4.49 12H2"/></svg>Body</a>
+                <span class="plusslot"><button aria-label="Add data"><svg class="ic i24" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/><path d="M12 5v14"/></svg></button></span>
+                <a class="on" href="#"><svg class="ic i24" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3zm0 0v7"/></svg>Meals</a>
+                <a href="#"><svg class="ic i24" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/></svg>Plan</a>
+              </div>
+            </div>
+            <p class="cap">Meals. The photo, the items, the estimate label on every number.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="sec" id="s03">
+        <div class="sec-head"><span class="n">03</span><h2>Capture and Settings</h2></div>
+        <p class="lede">The two screens that already exist natively, restyled. Capture is the one lime control on the phone; Settings is the Apple Health permission list the design system already drew.</p>
+        <div class="phones">
+
+          <div>
+            <div class="phone">
+              <div class="statusbar"><span>9:41</span><span class="rt"><span>LTE</span><span>100%</span></span></div>
+              <div class="screenhead"><h2>Add</h2><svg class="ic i24" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></div>
+              <div class="stack">
+                <div class="stackv">
+                  <button class="b b-add" style="width: 100%; justify-content: flex-start"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg> Photo of a lab sheet</button>
+                  <button class="b b-quiet" style="width: 100%; justify-content: flex-start"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3zm0 0v7"/></svg> Photo of food</button>
+                  <button class="b b-quiet" style="width: 100%; justify-content: flex-start"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"/><path d="M16.376 3.622a1 1 0 0 1 3.002 3.002L7.368 18.635a2 2 0 0 1-.855.506l-2.872.838a.5.5 0 0 1-.62-.62l.838-2.872a2 2 0 0 1 .506-.854z"/></svg> Ask or tell</button>
+                  <button class="b b-quiet" style="width: 100%; justify-content: flex-start"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z"/></svg> Log how you feel</button>
+                </div>
+                <div class="panel">
+                  <div class="panel-head"><h3>What it looks like</h3><span class="r">before anything is written</span></div>
+                  <div class="rowlist">
+                    <div class="markerrow said"><div class="nm"><b>A meal</b><span>confidence 0.86 · four items recognised</span></div><div class="t-meta" style="font-size: 11px">estimated</div><div></div><div class="wd"><span class="state border">meal</span></div></div>
+                    <div class="markerrow said"><div class="nm"><b>Chips to confirm</b><span>kcal, protein, carbs, fat, last meal hour</span></div><div class="t-meta" style="font-size: 11px">each one has a switch</div><div></div><div class="wd"><span class="state on">5</span></div></div>
+                  </div>
+                </div>
+                <p class="cap" style="margin: 0">A lab sheet is not confirmed here — it goes to the upload reader and comes back as a read receipt under Blood.</p>
+              </div>
+              <div class="tabbar">
+                <a href="#"><svg class="ic i24" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>Today</a>
+                <a href="#"><svg class="ic i24" viewBox="0 0 24 24" aria-hidden="true"><path d="M22 12h-2.48a2 2 0 0 0-1.93 1.46l-2.35 8.36a.25.25 0 0 1-.48 0L9.24 2.18a.25.25 0 0 0-.48 0l-2.35 8.36A2 2 0 0 1 4.49 12H2"/></svg>Body</a>
+                <span class="plusslot"><button aria-label="Add data"><svg class="ic i24" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/><path d="M12 5v14"/></svg></button></span>
+                <a href="#"><svg class="ic i24" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3zm0 0v7"/></svg>Meals</a>
+                <a href="#"><svg class="ic i24" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/></svg>Plan</a>
+              </div>
+            </div>
+            <p class="cap">Capture. Lime is on “photo of a lab sheet” only, because that is the control that adds the most data.</p>
+          </div>
+
+          <div>
+            <div class="phone">
+              <div class="statusbar"><span>9:41</span><span class="rt"><span>LTE</span><span>100%</span></span></div>
+              <div class="screenhead"><h2>Settings</h2><svg class="ic i24" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/></svg></div>
+              <div class="stack">
+                <div class="panel">
+                  <div class="panel-head"><h3>Apple Health</h3><span class="r">27 types · 5 sending</span></div>
+                  <div class="rowlist">
+                    <div class="checkrow on"><span class="box"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span><span><span class="lb">Steps</span><span class="cs">StepCount · 2 190 days on the server · last sent 08:12</span></span></div>
+                    <div class="checkrow on"><span class="box"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span><span><span class="lb">Resting heart rate</span><span class="cs">RestingHeartRate · 412 readings · last sent 08:12</span></span></div>
+                    <div class="checkrow on"><span class="box"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span><span><span class="lb">Sleep</span><span class="cs">SleepAnalysis · 388 readings · last sent 08:12</span></span></div>
+                    <div class="checkrow"><span class="box"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span><span><span class="lb">Blood glucose</span><span class="cs">BloodGlucose · nothing on the server · syncs the moment it lands</span></span></div>
+                    <div class="checkrow"><span class="box"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span><span><span class="lb">Menstrual flow</span><span class="cs">MenstrualFlow · not applicable · off</span></span></div>
+                  </div>
+                  <div class="rowh" style="margin-top: 13px"><button class="b b-ink b-sm"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg> Sync now</button><button class="b b-text b-sm">Resync everything</button></div>
+                </div>
+                <div class="panel">
+                  <div class="panel-head"><h3>Seen, not used</h3><span class="r">4 types</span></div>
+                  <p class="cap" style="margin: 0">Your phone offered four HealthKit types the engine has no rule for. They are named here rather than silently dropped, and nothing about them is sent.</p>
+                </div>
+              </div>
+              <div class="tabbar">
+                <a href="#"><svg class="ic i24" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>Today</a>
+                <a href="#"><svg class="ic i24" viewBox="0 0 24 24" aria-hidden="true"><path d="M22 12h-2.48a2 2 0 0 0-1.93 1.46l-2.35 8.36a.25.25 0 0 1-.48 0L9.24 2.18a.25.25 0 0 0-.48 0l-2.35 8.36A2 2 0 0 1 4.49 12H2"/></svg>Body</a>
+                <span class="plusslot"><button aria-label="Add data"><svg class="ic i24" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/><path d="M12 5v14"/></svg></button></span>
+                <a href="#"><svg class="ic i24" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3zm0 0v7"/></svg>Meals</a>
+                <a href="#"><svg class="ic i24" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/></svg>Plan</a>
+              </div>
+            </div>
+            <p class="cap">Settings. The permission list, the per-type counts, and the honest “seen, not used”.</p>
+          </div>
+
+        </div>
+      </section>
+
+      <section class="sec" id="s04">
+        <div class="sec-head"><span class="n">04</span><h2>The data contract</h2></div>
+        <p class="lede">Screen, endpoint, fields, and whether that endpoint exists today. Two of six do.</p>
+        <div class="tblwrap"><table class="tbl wide">
+          <thead><tr><th>Screen</th><th>Endpoint</th><th>Method</th><th>Fields it needs</th><th>Exists?</th></tr></thead>
+          <tbody>
+            <tr><td class="k">Today</td><td class="n">/api/ledger</td><td class="n">GET</td><td>sentence, counters (optimal / normal / off), the twelve systems with a state, the spear conclusion, the next draw date</td><td><span class="state border">partly</span> — it returns the model, but it is shaped for the web page and carries no card rail</td></tr>
+            <tr><td class="k">Today</td><td class="n">/api/today</td><td class="n">GET</td><td>the three rail cards: Body's headline number with its date and source, Blood's marker count and last draw, Plan's done-of-total for today</td><td><span class="state off">no</span> — must be added</td></tr>
+            <tr><td class="k">Body</td><td class="n">/api/body</td><td class="n">GET</td><td>one row per HealthKit type: key, name, full identifier, device, date, value, unit, state word, the 90-day note; plus lastSync, typesSeen, typesKnown</td><td><span class="state off">no</span> — the shape exists server-side in <code>lib/body-data.ts</code>, but only as a page loader</td></tr>
+            <tr><td class="k">Body</td><td class="n">/api/sync/healthkit</td><td class="n">POST</td><td>samples: type, unit, value, start, end, sourceBundle — max 20 000 a call</td><td><span class="state on">yes</span> — 27 types, day-boundary batching, anchors committed only after the POST is accepted</td></tr>
+            <tr><td class="k">Body</td><td class="n">/api/sync/healthkit/totals</td><td class="n">GET</td><td>readings, days, firstDay, lastDay, wearableDays, perType</td><td><span class="state on">yes</span> — cached one minute per user</td></tr>
+            <tr><td class="k">Meals</td><td class="n">/api/capture</td><td class="n">POST</td><td>multipart photo, caption, takenAt → kind, basis, confidence, label, chips, estimated</td><td><span class="state on">yes</span> — and it already recognises a meal and estimates per-item macros</td></tr>
+            <tr><td class="k">Meals</td><td class="n">/api/capture</td><td class="n">POST</td><td>json chips, label, at → facts, nutrition, day</td><td><span class="state on">yes</span> — the confirm half of the same route</td></tr>
+            <tr><td class="k">Meals</td><td class="n">/api/meals</td><td class="n">GET</td><td>one row a meal: photo url, time, items with portion and per-item macros, totals, estimated flag, what it ticked</td><td><span class="state off">no</span> — there is no meals table; a photo's items are summed and merged into the day's nutrition, then the items are gone</td></tr>
+            <tr><td class="k">Plan</td><td class="n">/api/plan/today</td><td class="n">GET</td><td>one row per occurrence: slot, time, title, why, source, done, the marker it aims at</td><td><span class="state off">no</span> — needs the schedule columns in <a href="plan-month.html" style="color: var(--ink)">plan-month.html</a>'s build cost</td></tr>
+            <tr><td class="k">Plan</td><td class="n">/api/habits</td><td class="n">POST</td><td>itemId, day, done</td><td><span class="state on">yes</span> — one tick per item per day</td></tr>
+            <tr><td class="k">Settings</td><td class="n">/api/sync/healthkit/totals</td><td class="n">GET</td><td>perType counts, seenNotUsed</td><td><span class="state on">yes</span></td></tr>
+            <tr><td class="k">All</td><td class="n">/api/auth/sign-in/email</td><td class="n">POST</td><td>email, password → a session cookie</td><td><span class="state on">yes</span> — cookie auth, adopted into the shared cookie store by hand; there is no bearer token</td></tr>
+          </tbody></table></div>
+        <p class="cap">
+          Today is the row that matters. It is a <code>WKWebView</code> pointed
+          at the website, with cookies pushed in before the load and harvested
+          back out after every navigation. Making it native is not a styling
+          job: it needs the two GET endpoints above that do not exist.
+        </p>
+      </section>
+
+      <section class="sec" id="s05">
+        <div class="sec-head"><span class="n">05</span><h2>Where the numbers come from</h2></div>
+        <p class="cap">
+          <b>Real:</b> the 27 HealthKit types the phone reads and the five named
+          on the Body frame — StepCount, RestingHeartRate, SleepAnalysis,
+          AppleExerciseTime, DietaryProtein — with the units the phone sends so
+          the server never converts; the two wire-only types the phone
+          synthesises for workouts; the “seen, not used” list, which is a real
+          stored key; the counters 26 optimal / 19 normal / 7 off; the twelve
+          systems and their states, with sex hormones never measured; the
+          Aug 1 2026 draw and its 52 markers; the protocol items and their
+          adherence — selenium 86 %, vitamin D 100 %, sardines 0 % since
+          Jun 14 2026; TPO 320 → under 100 IU/mL, vitamin D 19 → 40–60 ng/mL,
+          ferritin 22 → above 50 ng/mL, HbA1c 5.6 %; the four capture buttons,
+          which are the four things <code>/api/capture</code> and the composer
+          actually accept; the meal pipeline itself — one vision call, per-item
+          name, portion, kcal, protein, carbs and fat, then a server-side sum
+          with a plausibility clamp, then four nutrition chips and a last-meal
+          fact.
+        </p>
+        <p class="cap">
+          <b>Illustrative:</b> the meal. Four items, their portions and their
+          macros — 422 kcal, 29 g protein, 31 g carbs, 20 g fat — are a
+          plausible output of the vision call, not a logged one, and the card
+          labels every one of them “est.” for exactly that reason. So are the
+          day's other numbers on the Body and Today frames: 7 234 steps,
+          55 bpm, 6.8 h, 42 min, 88 g protein, the 2 190 days and 412 readings
+          on the Settings counts, the 0.86 confidence, and the four types in
+          “seen, not used”.
+        </p>
+        <div class="cost">
+          <h3>Build cost</h3>
+          <p>
+            <b>Exists today.</b> The whole write path.
+            <code>POST /api/sync/healthkit</code> takes up to 20 000 samples of
+            <code>{type, unit, value, start, end, sourceBundle}</code>, maps 27
+            types onto readings, daily logs and profile facts, and the Swift
+            side batches on day boundaries, holds the incomplete newest day
+            back, and only commits its anchor after the POST is accepted.
+            <code>GET /api/sync/healthkit/totals</code> already answers the
+            Settings screen. <code>POST /api/capture</code> already does the
+            hard half of Meals: it takes the photo, classifies it, extracts
+            per-item macros, sums them on the server with a clamp, and returns
+            chips with an <code>estimated</code> flag; the JSON half writes them
+            into the day's nutrition. Auth is a session cookie the Swift client
+            adopts by hand. Capture and Settings are already native SwiftUI.
+          </p>
+          <p>
+            <b>Does not exist.</b> The read path.
+            <b>One:</b> Today is a <code>WKWebView</code> of the website. There
+            is no native Today, so there is nothing to restyle — it has to be
+            built, and it needs a Today endpoint that returns the sentence, the
+            counters, the systems and the three rail cards.
+            <code>GET /api/ledger</code> is the closest thing and it is shaped
+            for the web page.
+            <b>Two:</b> there is no <code>/api/body</code>. The day list is
+            computed by a page loader, not an endpoint.
+            <b>Three:</b> there is no meal. A photo's items are summed and
+            merged into the day's nutrition jsonb, and the items, the portions
+            and the photo itself are not kept — so a Meals screen has nothing
+            to list. It needs a <code>meals</code> table with the photo, the
+            time, the items and the totals, and the <code>estimated</code> flag
+            carried through.
+            <b>Four:</b> the capture chip whitelist allows only supplements,
+            medications, last-meal-hour and the four nutrition keys, so
+            “this photo ticks your sardines item” is not a chip the confirm
+            step will accept.
+            <b>Five:</b> there is no Plan-for-today endpoint, and it cannot
+            exist before the schedule columns do.
+          </p>
+          <p>
+            <b>What the engine must gain.</b> Three GET endpoints —
+            <code>/api/today</code>, <code>/api/body</code>,
+            <code>/api/plan/today</code> — each returning the same model its
+            page already builds, so the work is extraction rather than new
+            logic. One <code>meals</code> table
+            (<code>userId, at, photoKey, items jsonb, kcal, proteinG, carbsG,
+            fatG, estimated, tickedItemId</code>) and the file storage to hold
+            the photo. One extra chip kind on the capture whitelist so a meal
+            can tick a protocol item. On the Swift side: delete
+            <code>TodayView</code>'s web view and its cookie-harvesting, and
+            add three native screens against those endpoints.
+          </p>
+        </div>
+      </section>
+    </main>
+    <script>
+      // The only script on this page: the theme toggle. No framework, no
+      // build step, no chart library.
+      (function () {
+        var b = document.getElementById("themebtn");
+        if (!b) return;
+        b.addEventListener("click", function () {
+          var d = document.documentElement;
+          var on = d.getAttribute("data-theme") === "dark";
+          d.setAttribute("data-theme", on ? "light" : "dark");
+          d.classList.toggle("dark", !on);
+          b.querySelector("span").textContent = on ? "Dark" : "Light";
+        });
+      })();
+    </script>
+  </body>
+</html>

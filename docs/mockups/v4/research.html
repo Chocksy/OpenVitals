@@ -1,0 +1,470 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Research — OpenVitals design system</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <!-- Geist Sans + Geist Mono, the app's own fonts. If the CDN is blocked
+         the stack in system.css falls back to Inter / JetBrains Mono, then to
+         the system UI font and ui-monospace. -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Geist:wght@200..600&family=Geist+Mono:wght@200..500&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="system.css" />
+  </head>
+  <body>
+    <button class="themebtn" id="themebtn" type="button">
+      <svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9z"/></svg> <span>Dark</span>
+    </button>
+    <main class="doc">
+      <header class="doc-head">
+        <h1>Research</h1>
+        <p>
+          Phase 31b. What the knowledge base learned lately, filtered to the
+          conditions you actually have and the actions you actually adopted.
+          Every row says what the paper found, and then the line that matters:
+          what it would move for you, in which direction, by how much — or
+          <b>nothing for you</b>, which is the answer most of the time and is
+          printed as plainly as the others.
+        </p>
+      </header>
+      <nav class="crumbs">
+        <a href="system.html">System</a>
+        <a href="index.html">Index</a>
+        <a href="home.html">Home</a>
+        <a href="body.html">Body</a>
+        <a href="blood.html">Blood</a>
+        <a href="plan.html">Plan</a>
+        <a href="graph.html">Graph</a>
+        <a class="here" href="research.html">Research</a>
+        <a href="plan-month.html">Plan · month</a>
+        <a href="genome.html">Genome</a>
+        <a href="ios.html">iOS</a>
+        <a href="chart-hover.html">Chart hover</a>
+      </nav>
+      <section class="sec" id="s01">
+        <div class="sec-head"><span class="n">01</span><h2>New for you</h2></div>
+        <p class="lede">
+          One panel, one row a paper. Title, journal and year, the grade the
+          intake gave it, one sentence of what it found, and what it would
+          move. The panel is sorted by what it moves, not by date: a paper that
+          changes a number you are acting on outranks a newer one that changes
+          nothing.
+        </p>
+        <div class="panel">
+          <div class="panel-head">
+            <h3>New for you</h3>
+            <span class="r">4 papers · 1 moves something · from the Aug 1 2026 run</span>
+          </div>
+          <div class="rowlist">
+
+            <div class="paper">
+              <span class="pg"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></svg></span>
+              <div class="ptitle">Selenium supplementation in autoimmune thyroiditis lowers thyroid peroxidase antibodies</div>
+              <div class="pcite">
+                <span>Gärtner · J Clin Endocrinol Metab · 2002</span>
+                <span class="glyph sci">● A</span>
+                <span>randomised trial · n = 36</span>
+                <span>read Aug 1 2026</span>
+              </div>
+              <p class="pfound">
+                Three months of selenium 200 µg cut TPO antibodies by
+                <b>21 %</b> against placebo, 95 % CI −34 to −7. It moved the
+                antibody and it did not move TSH.
+              </p>
+              <div class="pmoves">
+                <span class="arrow">moves →</span>
+                <span class="state border">Hashimoto's</span>
+                <span>the <b>selenium 200 µg</b> you started Jun 14 2026 keeps its ● A grade, and the TPO target date holds at <b>Feb 16 2027</b></span>
+              </div>
+              <div class="pact">
+                <button class="b b-quiet b-sm"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg> Open</button>
+                <button class="b b-text b-sm">Discuss</button>
+              </div>
+            </div>
+
+            <div class="paper">
+              <span class="pg"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></svg></span>
+              <div class="ptitle">Serum TSH, T4 and thyroid antibodies in the United States population (NHANES III)</div>
+              <div class="pcite">
+                <span>Hollowell · J Clin Endocrinol Metab · 2002</span>
+                <span class="glyph sci">● A</span>
+                <span>cross-sectional · n = 17 353</span>
+                <span>read Aug 1 2026</span>
+              </div>
+              <p class="pfound">
+                A positive TPO antibody carries an odds ratio of <b>8.4</b> for
+                raised TSH, 6.9 to 10.2. It is the rule already behind your
+                95 % on Hashimoto's.
+              </p>
+              <div class="pmoves">
+                <span class="arrow">moves →</span>
+                <span class="state none">nothing for you</span>
+                <span>already counted; re-reading it did not change the rule or the grade</span>
+              </div>
+              <div class="pact">
+                <button class="b b-quiet b-sm"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg> Open</button>
+                <button class="b b-text b-sm">Discuss</button>
+              </div>
+            </div>
+
+            <div class="paper">
+              <span class="pg"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></svg></span>
+              <div class="ptitle">The incidence of thyroid disorders in the community: a twenty-year follow-up of the Whickham survey</div>
+              <div class="pcite">
+                <span>Vanderpump · Clin Endocrinol · 1995</span>
+                <span class="glyph sci">● B</span>
+                <span>cohort · n = 2 779</span>
+                <span>read Aug 1 2026</span>
+              </div>
+              <p class="pfound">
+                Antibodies plus a raised TSH gave a relative risk of
+                <b>3.0</b> for progressing to overt hypothyroidism, 2.1 to 4.3,
+                over twenty years.
+              </p>
+              <div class="pmoves">
+                <span class="arrow">moves →</span>
+                <span class="state none">nothing for you</span>
+                <span>your TSH is 3.9 mIU/L, inside the lab's 0.4–4.5, so the cohort's raised-TSH arm does not apply yet</span>
+              </div>
+              <div class="pact">
+                <button class="b b-quiet b-sm"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg> Open</button>
+                <button class="b b-text b-sm">Discuss</button>
+              </div>
+            </div>
+
+            <div class="paper">
+              <span class="pg"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></svg></span>
+              <div class="ptitle">Association between thyroid autoimmunity and other autoimmune conditions: a meta-analysis</div>
+              <div class="pcite">
+                <span>Wang · 2015</span>
+                <span class="glyph sci">● A</span>
+                <span>meta-analysis · 20 sets</span>
+                <span>read Aug 1 2026</span>
+              </div>
+              <p class="pfound">
+                Thyroid autoimmunity travels with coeliac disease at an odds
+                ratio of <b>1.6</b>, 1.2 to 2.1 — a real but small companion
+                risk.
+              </p>
+              <div class="pmoves">
+                <span class="arrow">moves →</span>
+                <span class="state on">Coeliac disease · down, and off the list</span>
+                <span>the OR 1.6 would have lifted coeliac, but your HLA read no DQ2.5 and no DQ8, so the answer stays <b>essentially excluded</b> and no test is ordered</span>
+              </div>
+              <div class="pact">
+                <button class="b b-quiet b-sm"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg> Open</button>
+                <button class="b b-text b-sm">Discuss</button>
+              </div>
+            </div>
+
+          </div>
+          <p class="cap">
+            Source: the Aug 1 2026 research run for Hashimoto's, through
+            <b>Europe PMC</b>, with abstracts filled in from Semantic Scholar
+            and every DOI checked against Crossref for a retraction. Nothing on
+            this panel came from a newsletter, a podcast or a press release; a
+            claim from one of those lands on Plan's horizon shelf at grade E
+            and never touches a number.
+          </p>
+        </div>
+      </section>
+
+      <section class="sec" id="s02">
+        <div class="sec-head"><span class="n">02</span><h2>The compact version, on Home and on Plan</h2></div>
+        <p class="lede">Three rows and a count. It only appears when at least one paper moved something, because a panel that always says “nothing new” trains the eye to skip it.</p>
+        <div class="grid2">
+          <div class="panel">
+            <div class="panel-head"><h3>New for you</h3><span class="r">1 of 4 moved something</span></div>
+            <div class="rowlist">
+              <div class="markerrow said">
+                <div class="nm"><b>Selenium lowers TPO antibodies by 21 %</b><span>Gärtner · J Clin Endocrinol Metab · 2002 · RCT n = 36</span></div>
+                <div class="t-meta" style="font-size: 11px">keeps selenium 200 µg at ● A</div>
+                <div></div>
+                <div class="wd"><span class="state border">Hashimoto's</span></div>
+              </div>
+              <div class="markerrow said">
+                <div class="nm"><b>Thyroid autoimmunity travels with coeliac, OR 1.6</b><span>Wang · 2015 · meta-analysis, 20 sets</span></div>
+                <div class="t-meta" style="font-size: 11px">your HLA already answers it</div>
+                <div></div>
+                <div class="wd"><span class="state on">excluded</span></div>
+              </div>
+              <div class="markerrow said">
+                <div class="nm"><b>Two more papers moved nothing</b><span>Hollowell 2002 and Vanderpump 1995, both already counted</span></div>
+                <div class="t-meta" style="font-size: 11px">re-read, same rule, same grade</div>
+                <div></div>
+                <div class="wd"><span class="state none">no change</span></div>
+              </div>
+            </div>
+            <div class="rowh" style="margin-top: 13px"><a class="asklink" href="research.html">See all research</a></div>
+          </div>
+          <div class="panel">
+            <div class="panel-head"><h3>Where it sits</h3><span class="r">2 places</span></div>
+            <div class="rowlist">
+              <div class="markerrow said"><div class="nm"><b>Home</b><span>under the ledger, above key trends</span></div><div class="t-meta" style="font-size: 11px">collapses to one line on the phone</div><div></div><div class="wd"><span class="state on">3 rows</span></div></div>
+              <div class="markerrow said"><div class="nm"><b>Plan</b><span>under “do this first”, before “already doing”</span></div><div class="t-meta" style="font-size: 11px">only papers touching an adopted action</div><div></div><div class="wd"><span class="state on">1 row</span></div></div>
+            </div>
+            <p class="cap" style="margin-top: 13px">
+              Neither copy is a second feed. Both read the same rows this page
+              reads and cut them by the same rule: does it touch a condition
+              you have, a marker with a value, or an action you adopted.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section class="sec" id="s03">
+        <div class="sec-head"><span class="n">03</span><h2>Research now, for one condition</h2></div>
+        <p class="lede">
+          The run that already exists on <code>/hkb</code>, aimed at a single
+          condition and shown as a receipt instead of a console. It is slow and
+          it costs tokens, so the button says what it will do before it does
+          it and the last run's date is always on screen.
+        </p>
+        <div class="grid2">
+          <div class="panel">
+            <div class="panel-head"><h3>Research now</h3><span class="r">last run Aug 1 2026 · 90-day cooldown</span></div>
+            <div class="fields">
+              <div class="field"><label>Condition</label>
+                <select class="sel">
+                  <option selected>Hashimoto's thyroiditis · 95 %</option>
+                  <option>Insulin resistance · 97 %</option>
+                  <option>Chronic inflammation · 77 %</option>
+                  <option>Iron deficiency · 76 %</option>
+                  <option>Type 2 diabetes · 53 %</option>
+                  <option>Coeliac disease · excluded</option>
+                </select>
+              </div>
+              <div class="field"><label>Papers to read at most</label><input class="inp" value="40" /></div>
+            </div>
+            <div class="rowh" style="margin-top: 13px">
+              <button class="b b-ink"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg> Research now</button>
+              <span class="t-meta">Europe PMC · about 4 minutes · nothing is written until you accept it</span>
+            </div>
+            <p class="cap" style="margin-top: 13px">
+              Under the 90-day cooldown the button is still live but says
+              “<b>last read 33 days ago</b>” instead of a count, so you can see
+              the cost before you spend it.
+            </p>
+          </div>
+          <div class="panel">
+            <div class="panel-head"><h3>Aug 1 2026 · Hashimoto's</h3><span class="r">the receipt the last run left</span></div>
+            <div class="statgrid">
+              <div><b>212</b><span>hits at Europe PMC</span></div>
+              <div><b>40</b><span>papers read</span></div>
+              <div><b>38</b><span>not retracted</span></div>
+              <div><b>11</b><span>findings extracted</span></div>
+              <div><b>4</b><span>proposed as rules</span></div>
+              <div><b>1</b><span>needs a human look</span></div>
+            </div>
+            <p class="cap" style="margin-top: 13px">
+              The four proposed rules are the four papers in section 01. The one
+              that needs a look is Wang 2015: its coeliac odds ratio is real,
+              but your HLA result overrides it, and the engine will not silently
+              apply a rule it can already see is beaten.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section class="sec" id="s04">
+        <div class="sec-head"><span class="n">04</span><h2>The Research tab on a pattern</h2></div>
+        <p class="lede">Plan's pattern disclosure gains a third tab. Same pattern card, same edges, and now the papers that speak to it — including the ones that say the pattern is too young to judge.</p>
+        <div class="panel">
+          <div class="conc border">
+            <div class="conc-top"><span class="conc-rank">P1</span><h3 class="conc-name">Sugar down, HbA1c flat</h3><span class="state border">watching</span><span class="conc-pct">2<em>of 3 checks</em></span></div>
+            <p class="conc-prose">You have cut added sugar on 24 of the last 30 days since Jun 14 2026, and HbA1c has not moved: <b>5.6 %</b> on Aug 1 2026, the same as on Dec 9 2025. HbA1c averages three months of red cells, so 11 weeks is early. The pattern stays open until the Nov 24 2026 draw.</p>
+            <div class="rowh"><span class="tier early">early</span><span class="glyph op">◐ opinion</span></div>
+          </div>
+          <div class="rowh" style="margin-top: 13px">
+            <div class="tabs" role="tablist" style="--tab-n: 3; --tab-i: 2"><button class="tab" role="tab" aria-selected="false">Why</button><button class="tab" role="tab" aria-selected="false">Edges</button><button class="tab" role="tab" aria-selected="true">Research</button></div>
+            <span class="t-meta">2 papers touch this pattern</span>
+          </div>
+          <div class="rowlist" style="margin-top: 13px">
+            <div class="paper">
+              <span class="pg"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></svg></span>
+              <div class="ptitle">A single copy of the TCF7L2 T allele raises type 2 diabetes odds by about 40 %</div>
+              <div class="pcite"><span>Grant · Nat Genet · 2006</span><span class="glyph sci">● A</span><span>replicated</span><span>read Feb 3 2026</span></div>
+              <p class="pfound">The effect runs through insulin release after a meal, not through how muscle answers insulin. You carry one T copy.</p>
+              <div class="pmoves"><span class="arrow">moves →</span><span class="state border">Type 2 diabetes ×1.4</span><span>on the starting odds only; your HbA1c of 5.6 % and your missing fasting insulin do the rest</span></div>
+            </div>
+            <div class="paper">
+              <span class="pg"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></svg></span>
+              <div class="ptitle">Common variation in the FTO gene and body mass index</div>
+              <div class="pcite"><span>Frayling · Science · 2007</span><span class="glyph sci">● B</span><span>per A allele</span><span>read Feb 3 2026</span></div>
+              <p class="pfound">The effect is on appetite, not on metabolic rate. You carry two A copies, which is the full dose of a small effect.</p>
+              <div class="pmoves"><span class="arrow">moves →</span><span class="state border">Insulin resistance ×1.2 per A</span><span>already overtaken by HbA1c 5.6 %, which is a measurement and beats a starting point</span></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="sec" id="s05">
+        <div class="sec-head"><span class="n">05</span><h2>Nothing new</h2></div>
+        <p class="lede">The honest state most weeks. It names the date it looked and the conditions it looked for, so “nothing new” reads as a result and not as a page that failed to load.</p>
+        <div class="grid2">
+          <div class="empty">
+            <span class="k">Papers</span>
+            <b style="font-size: var(--type-md); font-weight: 400">No new papers since Aug 1 2026</b>
+            <p>Nothing has been published for Hashimoto's, coeliac disease, type 2 diabetes, iron deficiency or chronic inflammation that changes a rule you are scored on. The watch runs again when a condition goes 90 days without a read.</p>
+            <a href="#">Research one now</a>
+          </div>
+          <div class="empty">
+            <span class="k">Guidelines</span>
+            <b style="font-size: var(--type-md); font-weight: 400">No guideline update since Aug 1 2026</b>
+            <p>The guideline watch asks Europe PMC for anything typed as a guideline, published after the last run, on your five conditions. It came back empty on Sep 3 2026.</p>
+            <a href="#">See the last update</a>
+          </div>
+        </div>
+      </section>
+
+      <section class="sec" id="s06">
+        <div class="sec-head"><span class="n">06</span><h2>390 px</h2></div>
+        <div class="phones">
+          <div>
+            <div class="phone">
+              <div class="statusbar"><span>9:41</span><span class="rt"><span>LTE</span><span>100%</span></span></div>
+              <div class="screenhead"><h2>Research</h2><svg class="ic i24" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg></div>
+              <div class="stack">
+                <div class="filters"><span class="f on">Moves something 1</span><span class="f">All 4</span></div>
+                <div class="panel">
+                  <div class="rowlist">
+                    <div class="paper">
+                      <span class="pg"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></svg></span>
+                      <div class="ptitle">Selenium lowers TPO antibodies in autoimmune thyroiditis</div>
+                      <div class="pcite"><span>Gärtner · JCEM · 2002</span><span class="glyph sci">● A</span></div>
+                      <p class="pfound">−21 % against placebo over three months, 95 % CI −34 to −7. n = 36.</p>
+                      <div class="pmoves"><span class="arrow">moves →</span><span class="state border">Hashimoto's</span></div>
+                    </div>
+                    <div class="paper">
+                      <span class="pg"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></svg></span>
+                      <div class="ptitle">Thyroid autoimmunity and other autoimmune conditions</div>
+                      <div class="pcite"><span>Wang · 2015</span><span class="glyph sci">● A</span></div>
+                      <p class="pfound">Coeliac travels with thyroid autoimmunity, OR 1.6 (1.2–2.1).</p>
+                      <div class="pmoves"><span class="arrow">moves →</span><span class="state on">excluded by your HLA</span></div>
+                    </div>
+                  </div>
+                </div>
+                <p class="cap" style="margin: 0">The row stacks: title, then the citation line, then what it found, then what it moves. The Open and Discuss buttons move to a long-press menu.</p>
+              </div>
+              <div class="tabbar">
+                <a class="on" href="#"><svg class="ic i24" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>Home</a>
+                <a href="#"><svg class="ic i24" viewBox="0 0 24 24" aria-hidden="true"><path d="M22 12h-2.48a2 2 0 0 0-1.93 1.46l-2.35 8.36a.25.25 0 0 1-.48 0L9.24 2.18a.25.25 0 0 0-.48 0l-2.35 8.36A2 2 0 0 1 4.49 12H2"/></svg>Body</a>
+                <span class="plusslot"><button aria-label="Add data"><svg class="ic i24" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/><path d="M12 5v14"/></svg></button></span>
+                <a href="#"><svg class="ic i24" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z"/></svg>Blood</a>
+                <a href="#"><svg class="ic i24" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/></svg>Plan</a>
+              </div>
+            </div>
+            <p class="cap">Research is not a fifth destination. It is reached from the Home panel; the tab bar keeps the four.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="sec" id="s07">
+        <div class="sec-head"><span class="n">07</span><h2>Where the numbers come from</h2></div>
+        <p class="cap">
+          <b>Real, and already in the knowledge base:</b> the four papers and
+          their effect sizes and intervals — Gärtner 2002 (RCT, n = 36, −21 %,
+          95 % CI −34 to −7), Hollowell 2002 (NHANES III, n = 17 353, OR 8.4,
+          6.9 to 10.2), Vanderpump 1995 (cohort, n = 2 779, RR 3.0, 2.1 to 4.3)
+          and Wang 2015 (meta-analysis, 20 sets, OR 1.6, 1.2 to 2.1), each with
+          its A/B grade; Grant 2006 (Nat Genet) and Frayling 2007 (Science) on
+          the pattern tab; the likelihoods 95 %, 97 %, 77 %, 76 % and 53 %; TSH
+          3.9 mIU/L against the lab's 0.4–4.5; HbA1c 5.6 % on Aug 1 2026, the
+          same as on Dec 9 2025; TPO 320 IU/mL with a target under 100 by
+          Feb 16 2027; selenium 200 µg started Jun 14 2026; added sugar cut on
+          24 of the last 30 days; the genome calls TCF7L2 C/T, FTO A/A and
+          HLA with no DQ2.5 and no DQ8; the Aug 1 2026 run date and the 90-day
+          cooldown, which is the real <code>RESEARCH_COOLDOWN_DAYS</code>.
+        </p>
+        <p class="cap">
+          <b>Illustrative:</b> the run counters on the Aug 1 receipt (212 hits,
+          40 read, 38 not retracted, 11 extracted, 4 proposed, 1 needs a look)
+          — the shape is the real <code>RunCounts</code>, the values are a
+          plausible run, not a logged one. The Sep 3 2026 “looked and found
+          nothing” date on the two empty tiles is today's date, not a stored
+          watch timestamp, because no watch timestamp is stored.
+        </p>
+        <div class="cost">
+          <h3>Build cost</h3>
+          <p>
+            <b>Exists today.</b> The research run itself:
+            <code>POST /api/hkb</code> with
+            <code>{action: "research", conditionId}</code>
+            (<code>app/api/hkb/route.ts</code>), running
+            <code>researchRun</code> from <code>scripts/hkb-research.ts</code>
+            over Europe PMC (<code>epmc()</code> in <code>lib/research.ts</code>),
+            with Semantic Scholar filling in abstracts and Crossref checking
+            every DOI for a retraction. The papers themselves are already
+            stored: <code>hkb_evidence.paper</code> and
+            <code>hkb_interventions.paper</code> are both the
+            <code>HkbPaper</code> jsonb — <code>pmid</code>, <code>doi</code>,
+            <code>title</code>, <code>year</code>, <code>journal</code>,
+            <code>url</code>, <code>quote</code> — beside a <code>grade</code>
+            of A to E. <code>watchWindow(lastRun, now)</code> already builds a
+            “published since” window and feeds it to the guideline query.
+            <code>hkb_import_runs</code> and <code>hkb_revisions</code> record
+            that a run happened. The <code>/hkb</code> activity tab already
+            unions five tables at render time into one dated list.
+          </p>
+          <p>
+            <b>Does not exist.</b> Four things.
+            <b>One:</b> a publication <i>date</i>. <code>HkbPaper</code> stores
+            <code>year</code> only, and drops the abstract, the authors and the
+            citation count before it writes, so “new since Aug 1” cannot be
+            answered from the stored row — it needs
+            <code>published_at date</code> and <code>abstract text</code> on the
+            paper.
+            <b>Two:</b> a per-person match. <code>hkb_evidence.conditionId</code>
+            is global; the only per-user link is <code>user_conditions</code>.
+            Deciding that a paper is “for you” means joining it to your
+            conditions, your markers with a value, and your adopted
+            <code>protocol_items</code>, and nothing does that join.
+            <b>Three:</b> “what it would move”. <code>buildLedger</code>
+            computes the change a rule makes, but the result is thrown away
+            each request and only <code>belief_snapshots</code>
+            (<code>{p, state}</code> per condition) survives. The line needs the
+            scorer run twice, with and without the new rule, and the delta
+            stored beside the paper.
+            <b>Four:</b> a feed. There is no feed table and no seen/unseen
+            state, and the research queue is a module-level in-process
+            <code>Set</code> in <code>lib/research.ts</code> that dies on
+            restart — the code's own comment says “when there are two
+            [replicas], this becomes a table”. A nightly watch needs that
+            table.
+          </p>
+          <p>
+            <b>What the engine must gain.</b> Two columns
+            (<code>hkb_evidence.paper.published_at</code>,
+            <code>.abstract</code>); one table,
+            <code>research_feed(userId, evidenceId, foundAt, movedConditionId,
+            deltaP, seenAt)</code>; one queue table to replace the in-process
+            <code>Set</code>; and one non-admin route, because
+            <code>/api/hkb</code> is gated on <code>isAdmin()</code> and a user
+            pressing “Research now” is not an admin. PubMed, OpenAlex and
+            bioRxiv are each a new adapter beside <code>epmc()</code>; none of
+            the three is referenced anywhere in the repo today.
+          </p>
+        </div>
+      </section>
+    </main>
+    <script>
+      // The only script on this page: the theme toggle. No framework, no
+      // build step, no chart library.
+      (function () {
+        var b = document.getElementById("themebtn");
+        if (!b) return;
+        b.addEventListener("click", function () {
+          var d = document.documentElement;
+          var on = d.getAttribute("data-theme") === "dark";
+          d.setAttribute("data-theme", on ? "light" : "dark");
+          d.classList.toggle("dark", !on);
+          b.querySelector("span").textContent = on ? "Dark" : "Light";
+        });
+      })();
+    </script>
+  </body>
+</html>

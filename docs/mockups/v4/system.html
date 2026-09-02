@@ -47,6 +47,10 @@
         <a href="app.html">App</a>
         <a href="plan-draw.html">Plan a draw</a>
         <a href="genome.html">Genome</a>
+        <a href="research.html">Research</a>
+        <a href="plan-month.html">Plan · month</a>
+        <a href="ios.html">iOS</a>
+        <a href="chart-hover.html">Chart hover</a>
         <a href="explorations.html">Explorations</a>
       </nav>
       <section class="sec" id="s01">
@@ -761,7 +765,136 @@
       </section>
 
       <section class="sec" id="s15">
-        <div class="sec-head"><span class="n">15</span><h2>Where the numbers come from</h2></div>
+        <div class="sec-head"><span class="n">15</span><h2>Phase 31b elements</h2></div>
+        <p class="lede">Five elements the app did not have, plus the chart hover card. Same tokens, same rules: the spectrum is a word or a 5 px mark and never a surface, navy is still the only dark surface, and lime is still only on the control that adds data.</p>
+
+        <div class="sub" style="margin-top: 0"><h3>The verdict row</h3><span>answer first: one condition, the answer in the heading, the reason in one line</span></div>
+        <div class="panel">
+          <div class="rowlist">
+            <div class="verdict on">
+              <div class="vq">Coeliac disease: <em>essentially excluded</em> · no test needed</div>
+              <p class="vsay">Coeliac needs <b>HLA-DQ2.5 or DQ8</b> and your file read neither. A transglutaminase test would come back negative and would not change this, so the plan does not order one.</p>
+              <div class="vside"><span class="vx">excluded</span><span class="glyph sci">● A</span></div>
+            </div>
+            <div class="verdict border">
+              <div class="vq">Type 2 diabetes: <em>+40 % background risk</em> from one TCF7L2 allele</div>
+              <p class="vsay">It moves the <b>starting odds</b> and nothing else. Your HbA1c of <b>5.6 %</b> and your missing fasting insulin decide the rest.</p>
+              <div class="vside"><span class="vx">×1.4</span><span class="glyph sci">● A</span></div>
+            </div>
+            <div class="verdict none">
+              <div class="vq">Cardiovascular risk: <em>the genome adds nothing</em></div>
+              <p class="vsay">No APOE ε4 copy and a non-carrier at both LPA tags. Your <b>LDL of 131 mg/dL</b> is doing all of the work.</p>
+              <div class="vside"><span class="vx flat">no change</span><span class="glyph sci">● A</span></div>
+            </div>
+          </div>
+          <p class="cap">The 3 px rail on the left is the only colour: <code>--ok</code> when the question is closed, <code>--warn</code> when something moved up, <code>--track</code> when nothing moved. The multiplier is mono and 21 px; “no change” drops to 15 px and <code>--ink-3</code> so it does not read as a number.</p>
+        </div>
+
+        <div class="sub"><h3>The paper row</h3><span>title, citation, grade, what it found, and what it would move</span></div>
+        <div class="panel">
+          <div class="rowlist">
+            <div class="paper">
+              <span class="pg"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></svg></span>
+              <div class="ptitle">Selenium supplementation in autoimmune thyroiditis lowers thyroid peroxidase antibodies</div>
+              <div class="pcite"><span>Gärtner · J Clin Endocrinol Metab · 2002</span><span class="glyph sci">● A</span><span>randomised trial · n = 36</span><span>read Aug 1 2026</span></div>
+              <p class="pfound">Three months of selenium 200 µg cut TPO antibodies by <b>21 %</b> against placebo, 95 % CI −34 to −7.</p>
+              <div class="pmoves"><span class="arrow">moves →</span><span class="state border">Hashimoto's</span><span>your selenium keeps its ● A grade and the TPO target date holds at <b>Feb 16 2027</b></span></div>
+              <div class="pact"><button class="b b-quiet b-sm">Open</button><button class="b b-text b-sm">Discuss</button></div>
+            </div>
+            <div class="paper">
+              <span class="pg"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></svg></span>
+              <div class="ptitle">Serum TSH, T4 and thyroid antibodies in the United States population (NHANES III)</div>
+              <div class="pcite"><span>Hollowell · J Clin Endocrinol Metab · 2002</span><span class="glyph sci">● A</span><span>cross-sectional · n = 17 353</span><span>read Aug 1 2026</span></div>
+              <p class="pfound">A positive TPO antibody carries an odds ratio of <b>8.4</b> for raised TSH, 6.9 to 10.2.</p>
+              <div class="pmoves"><span class="arrow">moves →</span><span class="state none">nothing for you</span><span>already counted; re-reading it changed neither the rule nor the grade</span></div>
+              <div class="pact"><button class="b b-quiet b-sm">Open</button><button class="b b-text b-sm">Discuss</button></div>
+            </div>
+          </div>
+          <p class="cap">The last line is the element. A paper that moves nothing says “nothing for you” in the same place, in the same size, as a paper that moves something — otherwise the row becomes an advertisement.</p>
+        </div>
+
+        <div class="sub"><h3>The month strip and the day column</h3><span>a month you can see, and the order the day runs in</span></div>
+        <div class="grid2">
+          <div class="panel">
+            <div class="panel-head"><h3>Month strip</h3><span class="r">September 2026 · today outlined</span></div>
+            <div class="month">
+              <div class="dow">Mon</div><div class="dow">Tue</div><div class="dow">Wed</div><div class="dow">Thu</div><div class="dow">Fri</div><div class="dow">Sat</div><div class="dow">Sun</div>
+              <div class="d pad"></div>
+              <div class="d past"><span class="dn">1</span><span class="dots"><i class="supp"></i><i class="food"></i></span></div>
+              <div class="d past"><span class="dn">2</span><span class="dots"><i class="supp"></i></span></div>
+              <div class="d today"><span class="dn">3</span><span class="dots"><i class="train"></i><i class="supp"></i></span></div>
+              <div class="d"><span class="dn">4</span><span class="dots"><i class="supp"></i><i class="food"></i></span></div>
+              <div class="d"><span class="dn">5</span><span class="dots"><i class="train"></i><i class="supp"></i></span></div>
+              <div class="d"><span class="dn">6</span><span class="dots"><i class="supp"></i><i class="food"></i><i class="check"></i></span></div>
+              <div class="d"><span class="dn">7</span><span class="dots"><i class="train"></i><i class="supp"></i></span></div>
+              <div class="d"><span class="dn">8</span><span class="dots"><i class="supp"></i><i class="food"></i></span></div>
+              <div class="d"><span class="dn">9</span><span class="dots"><i class="supp"></i></span></div>
+              <div class="d"><span class="dn">10</span><span class="dots"><i class="train"></i><i class="supp"></i></span></div>
+              <div class="d"><span class="dn">11</span><span class="dots"><i class="supp"></i><i class="food"></i></span></div>
+              <div class="d"><span class="dn">12</span><span class="dots"><i class="train"></i><i class="supp"></i></span></div>
+              <div class="d"><span class="dn">13</span><span class="dots"><i class="supp"></i><i class="food"></i><i class="check"></i></span></div>
+            </div>
+            <div class="monthkey"><span><i class="train"></i> training</span><span><i class="supp"></i> supplement</span><span><i class="food"></i> food rule</span><span><i class="draw"></i> draw</span><span><i class="check"></i> check-in</span></div>
+            <p class="cap" style="margin-top: 8px">The dots are what the day asks for. What you did is the 30-cell strip, unchanged from section 10.</p>
+          </div>
+          <div class="panel">
+            <div class="panel-head"><h3>Day column</h3><span class="r">Thursday Sep 3 2026 · 2 of 7 done</span></div>
+            <div class="daycol">
+              <div class="dayrow done"><span class="at">08:00</span><span class="box"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span><span class="what">Breakfast, then selenium 200 µg</span><span class="why">with food, and four hours clear of the iron · TPO 320 → under 100 IU/mL by Feb 16 2027</span><span class="tag">protocol · 86 %</span></div>
+              <div class="dayrow"><span class="at">13:10</span><span class="box"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span><span class="what">Twelve minutes of walking, after the largest meal</span><span class="why">nothing in the engine proposed this, so it counts toward nothing until you add it</span><span class="tag">suggested<br /><button class="b b-add b-sm" style="margin-top: 5px"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/><path d="M12 5v14"/></svg> Add</button></span></div>
+              <div class="dayrow"><span class="at">17:30</span><span class="box"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span><span class="what">Resistance session, 45 minutes</span><span class="why">the third of three this week · 55 bpm on three-session weeks against 58 on the others</span><span class="tag">3rd of 3</span></div>
+            </div>
+            <p class="cap" style="margin-top: 8px">The time is when it is easiest to do, not an alarm. A row with no source says “suggested” and carries the one lime control that adopts it.</p>
+          </div>
+        </div>
+
+        <div class="sub"><h3>The schedule table</h3><span>what, how much, when, with what, until when</span></div>
+        <div class="panel">
+          <div class="tblwrap"><table class="tbl sched">
+            <thead><tr><th>What</th><th>Dose</th><th>When</th><th>With what</th><th>Until</th><th>Aimed at</th></tr></thead>
+            <tbody>
+              <tr><td class="k">Selenium</td><td class="n">200 µg</td><td class="when"><span class="slots"><i class="on">M</i><i>N</i><i>E</i><i>B</i></span></td><td>breakfast · 4 h clear of the iron</td><td class="until">Feb 16 2027</td><td>TPO 320 → under 100 IU/mL</td></tr>
+              <tr><td class="k">Vitamin D3</td><td class="n">4 000 IU</td><td class="when"><span class="slots"><i>M</i><i>N</i><i class="on">E</i><i>B</i></span></td><td>the largest fat of the day</td><td class="until">Nov 24 2026</td><td>vitamin D 19 → 40–60 ng/mL</td></tr>
+              <tr><td class="k">Iron</td><td class="n">60 mg</td><td class="when"><span class="slots"><i>M</i><i>N</i><i>E</i><i class="on">B</i></span> <span class="est">alt. days</span></td><td>empty stomach · vitamin C</td><td class="until">Nov 24 2026</td><td>ferritin 22 → above 50 ng/mL</td></tr>
+            </tbody></table></div>
+          <p class="cap">M, N, E, B are morning, midday, evening and bedtime. The four slots are fixed so the eye can scan the column; an unused slot is a filled track, not an empty cell. “Until” is the column that stops a supplement running forever.</p>
+        </div>
+
+        <div class="sub"><h3>The meal card</h3><span>what a food photo becomes, with “est.” on every number</span></div>
+        <div class="panel">
+          <div class="meal">
+            <div class="shot"><svg viewBox="0 0 89 89" role="img" aria-label="A photograph of the meal, drawn as a plate: two sardine fillets on rye, a tomato half and a pour of olive oil"><circle cx="44.5" cy="46" r="33" fill="var(--surface-flat)" stroke="var(--hair)" stroke-width="1"/><circle cx="44.5" cy="46" r="26" fill="none" stroke="var(--hair)" stroke-width="1"/><rect x="24" y="38" width="27" height="15" rx="3" fill="none" stroke="var(--ink-3)" stroke-width="1.2"/><path d="M26 45c4-3 9-3 13 0-4 3-9 3-13 0z" fill="none" stroke="var(--ink-2)" stroke-width="1.2"/><path d="M36 45c4-3 9-3 13 0-4 3-9 3-13 0z" fill="none" stroke="var(--ink-2)" stroke-width="1.2"/><circle cx="60" cy="41" r="7" fill="none" stroke="var(--ink-3)" stroke-width="1.2"/><path d="M56 41h8M60 37v8" stroke="var(--ink-3)" stroke-width="1"/><path d="M55 57c3-4 8-5 12-3" fill="none" stroke="var(--ink-3)" stroke-width="1.2" stroke-linecap="round"/><path d="M30 60h20" stroke="var(--hair)" stroke-width="1"/></svg></div>
+            <div>
+              <div class="mhead"><b>Sardines on rye, tomato, olive oil</b><span class="when">Thu Sep 3 2026 · 13:05</span><span class="est">· every number below is an estimate</span></div>
+              <ul class="items">
+                <li><span>Sardines in olive oil</span><span class="por">1 tin · ~90 g</span><span class="kc">220 kcal est.</span></li>
+                <li><span>Rye bread</span><span class="por">2 slices · ~60 g</span><span class="kc">140 kcal est.</span></li>
+                <li><span>Tomato</span><span class="por">1 medium · ~120 g</span><span class="kc">22 kcal est.</span></li>
+                <li><span>Olive oil</span><span class="por">~1 tsp</span><span class="kc">40 kcal est.</span></li>
+              </ul>
+              <div class="macros"><div><b>422</b><span>kcal est.</span></div><div><b>29 g</b><span>protein est.</span></div><div><b>31 g</b><span>carbs est.</span></div><div><b>20 g</b><span>fat est.</span></div></div>
+              <p class="mnote">Not a scale. Four items came off one photograph, and the app added them up rather than asking the model for a total. Every item is editable and the total follows.</p>
+            </div>
+          </div>
+          <p class="cap">A meal that arrives from Apple Health carries no “est.”, because a barcode or a weighed entry is not a guess. A meal from a photo always carries it, on every number, in mono at 11 px.</p>
+        </div>
+
+        <div class="sub"><h3>The chart hover card</h3><span>date, value, unit, state word, band, and the was</span></div>
+        <div class="panel">
+          <div class="hist mini"><div class="hist-head"><h3>TPO antibodies</h3><span class="unit">IU/mL · 2 draws</span></div><div class="hist-body"><div><div class="hist-plot" style="min-height: 210px"><div class="hist-band normal" style="--t: 92.44%; --h: 7.56%"></div><svg viewBox="0 0 1000 100" preserveAspectRatio="none" aria-hidden="true"><polyline points="0.0,8.44 1000.0,28.89" /></svg><div class="hp was" style="--x: 0.00%; --y: 8.44%"><b>412</b><i></i></div><div class="hp now lft" style="--x: 100.00%; --y: 28.89%"><i></i></div>
+            <div class="hovercard below stem-right" style="right: 8px; top: 42%">
+              <div class="hdate">Sat Aug 1 2026</div>
+              <div class="hval">320<em>IU/mL</em></div>
+              <div class="hrow"><span class="state off">off</span><span class="t-meta" style="font-size: 11px">normal 0–34 · optimal 0–9</span></div>
+              <div class="hwas">was 412 on Dec 9 2025 · −22 %</div>
+            </div>
+          </div><div class="hist-x"><span class="first" style="--x: 0.00%">Dec 9</span><span class="now last" style="--x: 100.00%">Aug 1</span></div></div></div><div class="hist-legend"><span><i class="hollow"></i> was — Dec 9 2025, 412 IU/mL</span><span><i></i> now — Aug 1 2026, 320 IU/mL</span><span><u class="normal"></u> normal 0–34</span></div></div>
+          <p class="cap">Hover on desktop, tap on the phone, focus from the keyboard. The card is <code>--surface-hi</code> with a stem, so it is a surface and not a spectrum fill; the state word inside it is coloured text. Above the plot's midline it flips below the mark and the stem moves to the top edge. The full behaviour is on <a href="chart-hover.html" style="color: var(--ink)">chart-hover.html</a>.</p>
+        </div>
+      </section>
+
+      <section class="sec" id="s16">
+        <div class="sec-head"><span class="n">16</span><h2>Where the numbers come from</h2></div>
         <p class="cap">
           <b>Real, from the test account as of Sep 1 2026:</b> 52 markers with a
           value — 26 optimal, 19 normal, 7 off; TPO antibodies 412 IU/mL on the
