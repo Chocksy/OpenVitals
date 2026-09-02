@@ -1,11 +1,7 @@
 import { currentUserId } from "@/lib/auth";
 import { askIntent } from "@/lib/ask-intent";
-import {
-  answerAsk,
-  answerQuestion,
-  considerTerm,
-  plainSentence,
-} from "@/lib/lookup";
+import { answerQuestion } from "@/lib/brief";
+import { answerAsk, considerTerm, plainSentence } from "@/lib/lookup";
 import { recordBeliefs } from "@/lib/ledger";
 
 export const maxDuration = 60;
@@ -61,7 +57,8 @@ export async function POST(request: Request) {
 
     if (body.about || askIntent(q) === "question") {
       const answer = await answerQuestion(userId, q, { about: body.about });
-      return Response.json(answer);
+      /** phase 28c: the composer's "Continue this" link needs no other flag. */
+      return Response.json({ ...answer, threadable: true });
     }
 
     const answer = await answerAsk(userId, q);

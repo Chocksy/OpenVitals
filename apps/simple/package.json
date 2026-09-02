@@ -21,6 +21,7 @@
     "eval:compose": "tsx --env-file=.env evals/compose.ts",
     "eval:ask-intent": "tsx --env-file=.env evals/ask-intent.ts",
     "eval:ask": "tsx --env-file=.env evals/ask.ts",
+    "eval:thread": "tsx --env-file=.env evals/thread.ts",
     "eval:trends": "tsx --env-file=.env evals/trends.ts",
     "eval:second-pass": "tsx --env-file=.env evals/second-pass.ts",
     "eval:capture": "tsx --env-file=.env evals/capture.ts",
@@ -32,9 +33,10 @@
     "hkb:policy": "tsx --env-file=.env scripts/hkb-policy.ts"
   },
   "dependencies": {
-    "@ai-sdk/react": "^3.0.269",
-    "@openrouter/ai-sdk-provider": "^2.3.3",
-    "ai": "^6.0.116",
+    "@ai-sdk/openai": "^4.0.56",
+    "@ai-sdk/react": "^4.0.93",
+    "@openrouter/ai-sdk-provider": "^3.0.0",
+    "ai": "^7.0.90",
     "better-auth": "^1.5.5",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",

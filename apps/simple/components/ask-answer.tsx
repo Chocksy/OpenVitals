@@ -74,6 +74,8 @@ export interface Answer {
   kind?: string;
   /** phase 28a: the papers the answer cited, after the guard */
   sources?: AskSource[];
+  /** phase 28c: this answer can become a thread */
+  threadable?: boolean;
   error?: string;
 }
 
@@ -85,7 +87,7 @@ export interface Answer {
  * candidate list and survive `pickActs`, so every name printed here is a row on
  * file; the hover is the sentence the intake kept, when the row has one.
  */
-function Sources({ sources }: { sources?: AskSource[] }) {
+export function Sources({ sources }: { sources?: AskSource[] }) {
   if (!sources?.length) return null;
   return (
     <p className="t-meta text-[11px] text-neutral-500">

@@ -862,6 +862,29 @@ export function Composer({
             />
           )}
 
+          {asked?.threadable && (
+            <button
+              className="mt-3 font-body text-[12px] text-neutral-500 underline underline-offset-2 hover:text-neutral-900"
+              onClick={async () => {
+                const res = await fetch("/api/chat/threads", {
+                  method: "POST",
+                  headers: { "content-type": "application/json" },
+                  body: JSON.stringify({
+                    question,
+                    answer: asked,
+                    ...(about?.id ? { about: about.id } : {}),
+                  }),
+                });
+                const { id } = (await res.json()) as { id?: string };
+                if (!id) return;
+                dialog.current?.close();
+                router.push(`/chat/${id}`);
+              }}
+            >
+              Continue this
+            </button>
+          )}
+
           {posted?.reply && (
             <p className="mt-4 border-l-2 border-neutral-900 pl-3 font-body text-[13px] leading-relaxed text-neutral-700">
               {posted.reply}

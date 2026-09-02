@@ -1323,3 +1323,48 @@ export interface PostFollowUp {
 }
 
 export type CheckinPost = typeof checkinPosts.$inferSelect;
+
+/* ── phase 28c: the thread ────────────────────────────────────────────── */
+
+/** One conversation. The title is the first question, cut at 80 chars. */
+export const threads = pgTable(
+  "threads",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    title: text("title").notNull(),
+    /** the condition id a card's Discuss opened it about, if any */
+    about: text("about"),
+    lastTurnAt: timestamp("last_turn_at", { withTimezone: true }).defaultNow(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+  },
+  (t) => [index("threads_user_idx").on(t.userId, t.lastTurnAt)],
+);
+
+/**
+ * One message. `ui` is the UIMessage the client renders; `model` is the
+ * ModelMessage[] slice the next turn sends. For an assistant turn that is
+ * `response.messages`, the compaction item included; for a user turn it is one
+ * message. Storing the model slice verbatim and replaying it is the whole
+ * compaction mechanism: the provider hands back its own compaction item as a
+ * `custom` content part and reads it again on the next request.
+ */
+export const threadMessages = pgTable(
+  "thread_messages",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    threadId: uuid("thread_id")
+      .notNull()
+      .references(() => threads.id, { onDelete: "cascade" }),
+    role: text("role").notNull(), // "user" | "assistant"
+    ui: jsonb("ui").notNull(),
+    model: jsonb("model").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+  },
+  (t) => [index("thread_messages_thread_idx").on(t.threadId, t.createdAt)],
+);
+
+export type Thread = typeof threads.$inferSelect;
+export type ThreadMessage = typeof threadMessages.$inferSelect;

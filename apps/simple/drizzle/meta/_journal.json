@@ -155,6 +155,13 @@
       "when": 1788285447055,
       "tag": "0021_ayurveda_regrade",
       "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "7",
+      "when": 1788331389274,
+      "tag": "0022_windy_warhawk",
+      "breakpoints": true
     }
   ]
 }

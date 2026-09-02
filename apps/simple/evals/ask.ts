@@ -31,7 +31,8 @@ import { actionsFor } from "@/lib/actions";
 import { ACTS_KINDS, questionKind, type QuestionKind } from "@/lib/ask-intent";
 import { chatContext } from "@/lib/ai";
 import { model } from "@/lib/extract";
-import { answerQuestion, type Acts } from "@/lib/lookup";
+import { answerQuestion } from "@/lib/brief";
+import { type Acts } from "@/lib/lookup";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 
