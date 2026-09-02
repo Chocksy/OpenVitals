@@ -2586,3 +2586,25 @@ html[data-theme="dark"] {
    glyph that repeats a word already printed beside it in --bad, never a word
    on its own. --bad-fill #e74d64 reads 3.45:1 on the cream and 4.30:1 on the
    navy. */
+
+/* Body · The day: the note is a real column, left-aligned; the value
+   right-aligns on the digits with the unit in a fixed slot so the numbers
+   stack; the last column is one word, right-aligned. */
+.markerrow.day {
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr) 168px 112px; /* fixed value track so every row shares the same columns */
+}
+.markerrow.day .note {
+  font-size: var(--type-xs);
+  color: var(--ink-3);
+  text-align: left;
+  min-width: 0;
+}
+.markerrow.day .val em {
+  display: inline-block;
+  min-width: 64px;
+  text-align: left;
+}
+.markerrow.day .wd {
+  white-space: nowrap;
+}
+.markerrow.day > .note { text-align: left; justify-self: start; }
