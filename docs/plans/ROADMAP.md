@@ -163,16 +163,17 @@ Parked from 26: `hkb_interventions` carries a grade-B "whole system Ayurveda pro
 | 27 | Answers you can act on: structured answers with an Act-on-it row (add action, add all, plan retest feeding Next draw, answer question, ask-your-doctor copy), closed-set guard, About mode handles statements about an action (already doing → protocol + exercise fact; started/stopped/not for me/did it today) and cards say "You're already doing this since …"; eval:ask gains chip/invented checks; 1240 tests | `4b07bfc`…this |
 | 28a | Answer the question asked: question kinds in code (status/howto/prognosis/research/why/next-test, ordered rules, prognosis beats research), per-kind prompt shapes and candidate sets (evidence + intervention rows, graph edges, information-gain lines), Sources line with the closed-set guard, `<EvidenceChip>` glyphs (● grade / ◐ / ○) replacing every bracket label, one quiet focus ring, RCT grade policy: n < 100 reads C (Ayurveda row regraded by migration 0021, duplicate row removed); eval:ask 12 cases, gemini-3.7-flash 0.78 12/12 clean; 1290 tests | this |
 
+| 28c | Thread: Ask and Discuss as one thread on `ai` v7 (`threads` + `thread_messages`, migration 0022, `/chat/[id]`, "Continue this", follow-up shape decided in code, five tools through `pickActs`, OpenAI Responses compaction behind `OPENAI_API_KEY` with an OpenRouter 40-message fallback); eval:thread 3 cases, eval:ask 0.83. Home: v4 base warmed by August (cream canvas, translucent tiles, light behind the hero that follows the worst band) with Kite's card rail on the phone (Status navy, Body, Blood, Plan, one card per system, off first, coral ▲ only on what is off) and the v4 grid on desktop; `railCards` order locked by tests; twelve systems as chips; 1310 tests | `74d5b03`, `16c894c` |
+
 Parked from 27: five duplicate Selenium protocol rows on the test account predate the idempotency guard; a Turbopack HMR staleness made Discuss open without a subject on the dev server only (watch prod); "Plan retest" cards still link to /insights rather than planning the marker directly.
 
 Parked from 28a: `why-tired` scores 1/5 (thin fatigue edges in the graph, or the `why` shape); old RCT rows keep their B because `saveInterventions` is insert-only (a re-grade backfill needs n, which old rows never stored); the answer repeats the dose when the action title already has it; dihydromyricetin sits at grade A on the MASLD card, worth the same paper check.
 
+Parked from 28c: `MAX_TESTS` (30) in `lib/lookup.ts` fills every offered test from moves before the measured codes, so a Hashimoto's question never offers TSH or TPO and "plan the retest" fails `eval:thread` (fix belongs in `askCandidates`); Coolify needs `OPENAI_API_KEY` and `AI_THREAD_MODEL` for the compaction path; the "One question" block keeps its blue accent (`today-ask.tsx`); glossary tooltips left the rail and chips because a card is one link; a 22 px overflow at 390 from `ov-term` tooltips inside `KeyTrends`.
+
 ## In progress
 
-Phase 28c, two Opus agents in flight on 2026-09-02:
-
-- **Thread** (`2026-09-02-phase28c-thread-spec.md`): Ask and Discuss as one thread on `ai` v6 (`ask_threads` + `ask_turns`, migration 0022, OpenAI Responses compaction with `store: false`, OpenRouter fallback, five tools through `pickActs`, `eval:thread`). Needs `OPENAI_API_KEY` and `AI_THREAD_MODEL` in the Coolify env for the compaction path.
-- **Home** (`2026-09-02-phase28c-home-spec.md`): the owner reviewed nine seeded variations on v4 (`docs/mockups/v4/home-variations/`, `home-variations-2/`) and chose v4 as the base, August for warmth (cream canvas, translucent tiles, blurred light behind the hero that follows the worst band) and Kite for the phone top (a snapping rail of landscape cards: Status navy, Body, Blood, Plan, then one card per system with off first, coral ▲ only on what is off) and its colours. Desktop keeps the v4 grid. Pure CSS scroll snap, no new dependencies, the twelve systems repeated as chips below the rail, `railCards` order locked by a test.
+Nothing. Next: owner review of the 28c home on the phone.
 
 ## Next
 
