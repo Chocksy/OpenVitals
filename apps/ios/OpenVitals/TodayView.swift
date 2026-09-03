@@ -73,14 +73,15 @@ struct TodayView: View {
         }
     }
 
-    /// "done today · resistance at 17:30". The second half comes from
-    /// `/api/plan/today`; without it the card says only what it can prove.
+    /// "done today · resistance at 17:30". `plan.next` names the thing; the
+    /// hour comes from `/api/plan/today` when that has loaded. Without either
+    /// the card says only what it can prove.
     private func planLine(_ card: Api.Today.PlanCard) -> String {
-        guard let next = plan?.rows.first(where: { !$0.done }) else {
-            return "done today"
-        }
-        let at = next.time.map { " at \($0)" } ?? ""
-        return "done today · \(next.title.lowercased())\(at)"
+        guard let next = card.next ?? plan?.rows.first(where: { !$0.done })?.title
+        else { return "done today" }
+        let at = plan?.rows.first { $0.title == next }?.time
+            .map { " at \($0)" } ?? ""
+        return "done today · \(next.lowercased())\(at)"
     }
 
     private func systems(_ rows: [Api.Today.System]) -> some View {

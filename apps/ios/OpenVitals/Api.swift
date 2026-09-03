@@ -454,8 +454,11 @@ extension Api {
         }
 
         struct PlanCard: Codable, Equatable {
+            /// "0 / 4" — done of total for today.
             let headline: String
             let todo: Int
+            /// The next thing due, when there is one. The card's second clause.
+            let next: String?
         }
 
         struct System: Codable, Equatable, Identifiable {

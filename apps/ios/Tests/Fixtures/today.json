@@ -13,8 +13,8 @@
   },
   "body": {
     "headline": "31.8",
-    "unit": "at 39",
-    "line": "Nothing due today"
+    "unit": "years",
+    "line": "PhenoAge · at 39"
   },
   "blood": {
     "off": 6,
@@ -30,8 +30,9 @@
     }
   },
   "plan": {
-    "headline": "Resistance training twice a week",
-    "todo": 0
+    "headline": "0 / 4",
+    "todo": 4,
+    "next": "Resistance training twice a week"
   },
   "systems": [
     {

@@ -46,6 +46,20 @@ final class ContractTests: XCTestCase {
         XCTAssertFalse(today.plan.headline.isEmpty)
         XCTAssertGreaterThanOrEqual(today.plan.todo, 0)
         XCTAssertFalse(today.body.line.isEmpty)
+        XCTAssertNotNil(today.body.unit)
+    }
+
+    /// The Plan card is a done-of-total and the thing that is next, so the
+    /// phone needs no second request to draw it.
+    func testThePlanCardCountsAndNamesWhatIsNext() throws {
+        let today = try decode("today", as: Api.Today.self)
+        XCTAssertEqual(today.plan.headline, "0 / 4")
+        XCTAssertEqual(today.plan.todo, 4)
+        let next = try XCTUnwrap(today.plan.next)
+        XCTAssertFalse(next.isEmpty)
+        let plan = try decode("plan-today", as: Api.PlanDay.self)
+        XCTAssertEqual(today.plan.todo, plan.total - plan.done)
+        XCTAssertTrue(plan.rows.contains { $0.title == next }, next)
     }
 
     /// The three counters are the whole panel, so they add up to it.
@@ -116,9 +130,10 @@ final class ContractTests: XCTestCase {
         let empty = try XCTUnwrap(body.rows.first { $0.value == nil })
         XCTAssertEqual(empty.word, "never measured")
         XCTAssertFalse(empty.display.isEmpty)
-        // Nothing was written, so there is no writer and no day to print, and
-        // the line collapses to the type rather than to stray separators.
-        XCTAssertEqual(empty.provenance, empty.type)
+        // There is a writer but no reading, so there is no day to print: the
+        // line is the type and the writer, never a stray separator.
+        XCTAssertEqual(empty.provenance, "\(empty.type) · \(empty.source)")
+        XCTAssertFalse(empty.source.isEmpty)
     }
 
     /// Every row that has a reading names its HealthKit type, its day and the
@@ -132,6 +147,8 @@ final class ContractTests: XCTestCase {
             XCTAssertFalse(row.type.isEmpty, row.name)
             XCTAssertFalse(row.when.isEmpty, row.name)
             XCTAssertFalse(row.unit?.isEmpty ?? true, row.name)
+            XCTAssertFalse(row.source.isEmpty, row.name)
+            XCTAssertFalse(row.word.isEmpty, row.name)
             XCTAssertFalse(row.display.isEmpty, row.name)
             XCTAssertTrue(row.provenance.contains(row.type), row.provenance)
             XCTAssertFalse(row.provenance.contains(" ·  · "), row.provenance)
