@@ -1,0 +1,31 @@
+{
+  "day": "2026-09-02",
+  "synced": { "types": 27, "lastAt": "2026-09-03T08:12:00+03:00" },
+  "rows": [
+    { "type": "StepCount", "name": "Steps",
+      "identifier": "HKQuantityTypeIdentifierStepCount", "source": "iPhone",
+      "value": 7234, "unit": "steps", "display": "7 234",
+      "note": "under 10 000 on 21 of the last 30 days",
+      "word": "borderline", "when": "Sep 2" },
+    { "type": "RestingHeartRate", "name": "Resting heart rate",
+      "identifier": "HKQuantityTypeIdentifierRestingHeartRate", "source": "Apple Watch",
+      "value": 55, "unit": "bpm", "display": "55", "note": "",
+      "word": "optimal", "when": "Sep 2" },
+    { "type": "SleepAnalysis", "name": "Sleep",
+      "identifier": "HKCategoryTypeIdentifierSleepAnalysis", "source": "Apple Watch",
+      "value": 6.8, "unit": "h", "display": "6.8", "note": "under 7 h on 11 of the last 30 nights",
+      "word": "off", "when": "Sep 2" },
+    { "type": "AppleExerciseTime", "name": "Exercise time",
+      "identifier": "HKQuantityTypeIdentifierAppleExerciseTime", "source": "Apple Watch",
+      "value": 42, "unit": "min", "display": "42", "note": "",
+      "word": "optimal", "when": "Sep 2" },
+    { "type": "DietaryProtein", "name": "Protein",
+      "identifier": "HKQuantityTypeIdentifierDietaryProtein", "source": "logged in Health",
+      "value": 88, "unit": "g", "display": "88", "note": "",
+      "word": "optimal", "when": "Sep 2" },
+    { "type": "BloodGlucose", "name": "Blood glucose",
+      "identifier": "HKQuantityTypeIdentifierBloodGlucose", "source": "no writer",
+      "value": null, "unit": "mg/dL", "display": "—",
+      "note": "nothing in the last 90 days", "word": "never measured", "when": "—" }
+  ]
+}

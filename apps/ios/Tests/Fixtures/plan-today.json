@@ -1,0 +1,28 @@
+{
+  "day": "2026-09-03",
+  "done": 2,
+  "total": 7,
+  "rows": [
+    { "itemId": "pi_selenium", "time": "08:00", "slot": "breakfast",
+      "title": "Selenium 200 µg", "why": "with breakfast · TPO 320 → under 100",
+      "tag": "protocol", "done": true, "adherence": 0.86 },
+    { "itemId": "pi_steps", "time": null, "slot": null,
+      "title": "10 000 steps", "why": "7 234 yesterday · 10 000 is the aim",
+      "tag": "every day", "done": true, "adherence": null },
+    { "itemId": "pi_protein_first", "time": "12:30", "slot": "midday",
+      "title": "Protein and fibre first", "why": "at the largest meal · HbA1c 5.6 %",
+      "tag": "every day", "done": false, "adherence": null },
+    { "itemId": "pi_sardines", "time": "13:00", "slot": "midday",
+      "title": "Sardines, 1 of 3 this week", "why": "selenium and omega-3 · TPO 320",
+      "tag": "protocol", "done": false, "adherence": 0.0 },
+    { "itemId": "pi_resistance", "time": "17:30", "slot": "afternoon",
+      "title": "Resistance, 45 min", "why": "3rd of 3 this week",
+      "tag": "goal", "done": false, "adherence": null },
+    { "itemId": "pi_vitamin_d", "time": "19:30", "slot": "dinner",
+      "title": "Vitamin D 4 000 IU", "why": "with dinner · 19 → 40–60 ng/mL",
+      "tag": "protocol", "done": false, "adherence": 1.0 },
+    { "itemId": "pi_iron", "time": "21:00", "slot": "evening",
+      "title": "Iron 60 mg", "why": "empty stomach · alternate days · ferritin 22 → above 50",
+      "tag": "protocol", "done": false, "adherence": 0.64 }
+  ]
+}

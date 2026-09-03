@@ -1,0 +1,24 @@
+{
+  "id": "meal_lunch",
+  "time": "13:05",
+  "photo": "/api/uploads/meal_lunch/photo",
+  "label": "Sardines on rye, tomato, olive oil",
+  "items": [
+    { "name": "Sardines in olive oil", "portion": "1 tin · ~90 g", "kcal": 220,
+      "protein_g": 24, "carbs_g": 0, "fat_g": 13, "estimated": true },
+    { "name": "Rye bread", "portion": "2 slices · ~60 g", "kcal": 140,
+      "protein_g": 4, "carbs_g": 26, "fat_g": 1, "estimated": true },
+    { "name": "Tomato", "portion": "1 medium · ~120 g", "kcal": 22,
+      "protein_g": 1, "carbs_g": 5, "fat_g": 0, "estimated": true },
+    { "name": "Olive oil", "portion": "~1 tsp", "kcal": 40,
+      "protein_g": 0, "carbs_g": 0, "fat_g": 6, "estimated": true }
+  ],
+  "totals": { "kcal": 422, "protein_g": 29, "carbs_g": 31, "fat_g": 20,
+              "estimated": true },
+  "moves": [
+    { "what": "Sardines, three tins a week",
+      "line": "your protocol item, adopted Jun 14 2026 · first tick in eleven weeks" },
+    { "what": "Protein today", "line": "59 g → 88 g" },
+    { "what": "Last meal", "line": "13:05 · the fact the engine uses for the eating window" }
+  ]
+}

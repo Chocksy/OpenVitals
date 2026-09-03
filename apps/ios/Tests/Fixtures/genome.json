@@ -1,0 +1,24 @@
+{
+  "file": { "name": "AncestryDNA.txt", "readAt": "2026-05-04" },
+  "verdicts": [
+    { "conditionId": "hashimoto", "name": "Hashimoto's thyroiditis",
+      "direction": "up", "factor": 3.0, "grade": "B",
+      "reason": "HLA-DQ2.5 carrier · carrier ×3", "testNeeded": false,
+      "absent": false },
+    { "conditionId": "coeliac", "name": "Coeliac disease",
+      "direction": "down", "factor": 0.1, "grade": "A",
+      "reason": "no HLA-DQ2.5 and no DQ8 · non-carrier LR 0.1",
+      "testNeeded": false, "absent": true },
+    { "conditionId": "haemochromatosis", "name": "Haemochromatosis",
+      "direction": "none", "factor": 1.0, "grade": "C",
+      "reason": "HFE C282Y not on this chip", "testNeeded": true,
+      "absent": false }
+  ],
+  "genes": [
+    { "verdict": "carrier", "gene": "HLA-DQA1", "call": "DQ2.5", "grade": "B",
+      "moved": "Hashimoto's thyroiditis ×3", "source": "AncestryDNA v2",
+      "rsids": ["rs2187668", "rs7454108"] },
+    { "verdict": "non-carrier", "gene": "HFE", "call": "not read", "grade": "C",
+      "moved": "nothing", "source": "AncestryDNA v2", "rsids": ["rs1800562"] }
+  ]
+}

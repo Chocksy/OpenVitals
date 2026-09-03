@@ -1,0 +1,46 @@
+{
+  "sentence": {
+    "head": "Seven markers are off.",
+    "tail": "Thyroid is the loudest one.",
+    "tone": "bad"
+  },
+  "status": {
+    "off": 7,
+    "borderline": 19,
+    "optimal": 26,
+    "drawDate": "2026-08-01",
+    "since": "5 weeks ago"
+  },
+  "body": {
+    "headline": "7 234",
+    "unit": "steps",
+    "line": "Sep 2 · Apple Health"
+  },
+  "blood": {
+    "off": 7,
+    "total": 52,
+    "nextDraw": {
+      "weeks": 6,
+      "codes": [
+        { "code": "TPO", "name": "Thyroid peroxidase antibodies" },
+        { "code": "LDL", "name": "LDL cholesterol" },
+        { "code": "FERRITIN", "name": "Ferritin" }
+      ]
+    }
+  },
+  "plan": { "headline": "2 / 7", "todo": 5 },
+  "systems": [
+    { "id": "thyroid", "name": "Thyroid", "word": "off", "value": 320, "unit": "IU/mL", "marker": "TPO" },
+    { "id": "vitamins", "name": "Vitamins", "word": "off", "value": 19, "unit": "ng/mL", "marker": "Vitamin D" },
+    { "id": "lipids", "name": "Lipids", "word": "off", "value": 131, "unit": "mg/dL", "marker": "LDL" },
+    { "id": "blood-sugar", "name": "Blood sugar", "word": "borderline", "value": 5.6, "unit": "%", "marker": "HbA1c" },
+    { "id": "iron", "name": "Iron", "word": "borderline", "value": 22, "unit": "ng/mL", "marker": "Ferritin" },
+    { "id": "inflammation", "name": "Inflammation", "word": "good", "value": 0.6, "unit": "mg/L", "marker": "hs-CRP" },
+    { "id": "kidneys", "name": "Kidneys", "word": "good", "value": 98, "unit": "mL/min/1.73m²", "marker": "eGFR" },
+    { "id": "liver", "name": "Liver", "word": "good", "value": 24, "unit": "U/L", "marker": "ALT" },
+    { "id": "blood-count", "name": "Blood count", "word": "good", "value": 14.6, "unit": "g/dL", "marker": "Haemoglobin" },
+    { "id": "minerals", "name": "Minerals", "word": "good", "value": 2.34, "unit": "mmol/L", "marker": "Calcium" },
+    { "id": "heart", "name": "Heart", "word": "good", "value": 55, "unit": "bpm", "marker": "Resting heart rate" },
+    { "id": "sex-hormones", "name": "Sex hormones", "word": "never measured", "value": null, "unit": null, "marker": null }
+  ]
+}

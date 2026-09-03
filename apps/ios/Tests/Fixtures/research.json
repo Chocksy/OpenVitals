@@ -1,0 +1,37 @@
+{
+  "rows": [
+    {
+      "id": "pw_1",
+      "conditionId": "hashimoto",
+      "source": "epmc",
+      "externalId": "40123456",
+      "title": "Selenium supplementation and thyroid peroxidase antibodies: a randomised trial",
+      "journal": "Thyroid",
+      "publishedAt": "2026-07-18",
+      "grade": "B",
+      "finding": "200 µg selenomethionine a day cut TPO antibodies by 31 % over six months.",
+      "abstract": "Randomised, double-blind, 184 adults with autoimmune thyroiditis.",
+      "moves": { "conclusionId": "hashimoto", "name": "Hashimoto's thyroiditis",
+                 "direction": "up", "delta": 0.04 },
+      "foundAt": "2026-09-01T06:00:00+03:00",
+      "seenAt": null,
+      "dismissedAt": null
+    },
+    {
+      "id": "pw_2",
+      "conditionId": "lipids",
+      "source": "epmc",
+      "externalId": "40119911",
+      "title": "Dietary fibre and LDL cholesterol in adults: an updated meta-analysis",
+      "journal": "BMJ",
+      "publishedAt": "2026-06-02",
+      "grade": "A",
+      "finding": "Each 10 g a day of soluble fibre lowered LDL by 5 mg/dL.",
+      "abstract": "Meta-analysis of 41 randomised trials, 6 812 adults.",
+      "moves": null,
+      "foundAt": "2026-09-01T06:00:00+03:00",
+      "seenAt": "2026-09-02T09:14:00+03:00",
+      "dismissedAt": null
+    }
+  ]
+}

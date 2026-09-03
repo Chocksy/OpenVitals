@@ -1,18 +1,19 @@
-/// Capture: a photo goes up, chips come back, one tap confirms.
-///
-/// The same two-step the composer taught. Nothing is written until the person
-/// says so, food numbers are labelled estimates, and a lab sheet or a doctor's
-/// letter is handed to the existing upload pipeline by the server rather than
-/// turned into chips here.
 import PhotosUI
 import SwiftUI
 import UIKit
 
+/// Add. The sheet behind the +, and the one lime control on the phone: lime
+/// sits on "photo of a lab sheet" only, because that is the control that adds
+/// the most data. A lab sheet is not confirmed here — it goes to the upload
+/// reader and comes back as a read receipt under Blood.
 struct CaptureView: View {
+    @Environment(\.dismiss) private var dismiss
     @State private var pick: PhotosPickerItem?
     @State private var image: UIImage?
     @State private var caption = ""
     @State private var camera = false
+    @State private var library = false
+    @State private var words = false
     @State private var busy = false
     @State private var note = ""
     @State private var result: Api.CaptureResult?
@@ -21,76 +22,141 @@ struct CaptureView: View {
     @State private var signIn = false
 
     var body: some View {
-        NavigationStack {
-            Form {
-                Section("Photo") {
-                    if let image {
-                        Image(uiImage: image)
-                            .resizable().scaledToFit().frame(maxHeight: 220)
-                    }
-                    PhotosPicker("Choose a photo", selection: $pick,
-                                 matching: .images)
-                    if UIImagePickerController.isSourceTypeAvailable(.camera) {
-                        Button("Take a photo") { camera = true }
-                    }
-                    TextField("What is it? (optional)", text: $caption)
-                    Button(busy ? "Reading…" : "Read the photo") {
-                        Task { await read() }
-                    }
-                    .disabled(image == nil || busy)
-                }
+        Screen(title: "Add", icon: "xmark", iconLabel: "Close",
+               action: { dismiss() }) {
+            buttons
+            if words { note0 }
+            if let image { shot(image) }
+            if let result { read(result) }
+            if !chips.isEmpty { confirm }
+            if !note.isEmpty { Caption(note) }
+            Caption("A lab sheet is not confirmed here — it goes to the upload "
+                    + "reader and comes back as a read receipt under Blood.")
+        }
+        .onChange(of: pick) { _, item in Task { await load(item) } }
+        .fullScreenCover(isPresented: $camera) { CameraPicker { image = $0; reset() } }
+        .photosPicker(isPresented: $library, selection: $pick, matching: .images)
+        .sheet(isPresented: $signIn) { SignInView() }
+    }
 
-                if let result {
-                    Section("What it looks like") {
-                        LabeledContent("Kind", value: result.kind ?? "unknown")
-                        if let label = result.label, !label.isEmpty {
-                            LabeledContent("Label", value: label)
-                        }
-                        if let basis = result.basis, !basis.isEmpty {
-                            Text(basis).font(.footnote)
-                                .foregroundStyle(.secondary)
-                        }
-                        if result.estimated == true {
-                            Text("Food numbers are estimates and are stored as estimates.")
-                                .font(.footnote).foregroundStyle(.secondary)
-                        }
-                        if let routed = result.routedTo {
-                            Text("Sent to the \(routed) pipeline"
-                                 + (result.note.map { " · \($0)" } ?? ""))
-                                .font(.footnote)
-                        }
-                    }
-                }
+    // MARK: - the four things the engine actually accepts
 
-                if !chips.isEmpty {
-                    Section("Confirm") {
-                        ForEach(chips) { chip in
-                            Toggle(isOn: binding(for: chip)) {
-                                VStack(alignment: .leading, spacing: 2) {
-                                    Text(chip.label)
-                                    Text("\(chip.kind) · \(chip.key) · \(chip.date)")
-                                        .font(.caption)
-                                        .foregroundStyle(.secondary)
-                                }
-                            }
-                        }
-                        Button("Confirm \(keep.count) chip\(keep.count == 1 ? "" : "s")") {
-                            Task { await confirm() }
-                        }
-                        .disabled(keep.isEmpty || busy)
-                    }
-                }
+    private var buttons: some View {
+        VStack(spacing: Design.s8) {
+            Button { open() } label: {
+                Label("Photo of a lab sheet", systemImage: "camera")
+            }
+            .buttonStyle(AddButtonStyle())
 
-                if !note.isEmpty {
-                    Section { Text(note).font(.footnote) }
+            Button { open() } label: {
+                Label("Photo of food", systemImage: "fork.knife")
+            }
+            .buttonStyle(QuietButtonStyle())
+
+            Button { words = true } label: {
+                Label("Ask or tell", systemImage: "square.and.pencil")
+            }
+            .buttonStyle(QuietButtonStyle())
+
+            Button { words = true; caption = "I feel " } label: {
+                Label("Log how you feel", systemImage: "drop")
+            }
+            .buttonStyle(QuietButtonStyle())
+        }
+    }
+
+    private var note0: some View {
+        Panel(title: "In your words", meta: "rides with the photo") {
+            TextField("What is it?", text: $caption, axis: .vertical)
+                .ovType(.sm)
+                .lineLimit(2...5)
+                .padding(Design.s8)
+                .background(Design.surfaceHi)
+                .clipShape(RoundedRectangle(cornerRadius: Design.rInner,
+                                            style: .continuous))
+            Caption("These words are read with the photograph. The full "
+                    + "composer is on the website; it is not one of the phone's "
+                    + "endpoints yet.")
+        }
+    }
+
+    private func shot(_ image: UIImage) -> some View {
+        Panel(title: "Photo", meta: busy ? "reading…" : nil) {
+            Image(uiImage: image)
+                .resizable()
+                .scaledToFit()
+                .frame(maxHeight: 220)
+                .clipShape(RoundedRectangle(cornerRadius: Design.rInner,
+                                            style: .continuous))
+            Button(busy ? "Reading…" : "Read the photo") { Task { await read() } }
+                .buttonStyle(InkButtonStyle())
+                .disabled(busy)
+        }
+    }
+
+    private func read(_ result: Api.CaptureResult) -> some View {
+        Panel(title: "What it looks like", meta: "before anything is written") {
+            VStack(alignment: .leading, spacing: Design.s5) {
+                line("Kind", result.kind ?? "unknown")
+                if let label = result.label, !label.isEmpty { line("Label", label) }
+                if let confidence = result.confidence {
+                    line("Confidence", String(format: "%.2f", confidence))
+                }
+                if let basis = result.basis, !basis.isEmpty { Caption(basis) }
+                if result.estimated == true {
+                    Caption("Every food number below is an estimate and is "
+                            + "stored as one. Not a scale.")
+                }
+                if let routed = result.routedTo {
+                    Caption("Sent to the \(routed) pipeline"
+                            + (result.note.map { " · \($0)" } ?? ""))
                 }
             }
-            .navigationTitle("Capture")
-            .onChange(of: pick) { _, item in Task { await load(item) } }
-            .fullScreenCover(isPresented: $camera) {
-                CameraPicker { image = $0 }
+        }
+    }
+
+    private func line(_ name: String, _ value: String) -> some View {
+        HStack(alignment: .firstTextBaseline) {
+            Text(name).ovType(.sm).foregroundStyle(Design.ink3)
+            Spacer()
+            Text(value).ovType(.sm, weight: .medium).foregroundStyle(Design.ink)
+        }
+    }
+
+    private var confirm: some View {
+        Panel(title: "Confirm",
+              meta: "\(Design.plural(chips.count, "chip", "chips")) · each one has a switch") {
+            VStack(spacing: 0) {
+                ForEach(Array(chips.enumerated()), id: \.element.id) { i, chip in
+                    if i > 0 { Hair().padding(.vertical, Design.s8) }
+                    Toggle(isOn: binding(for: chip)) {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(chip.label)
+                                .ovType(.sm)
+                                .foregroundStyle(Design.ink)
+                            Text("\(chip.kind) · \(chip.key) · \(chip.date)")
+                                .ovType(.xs)
+                                .foregroundStyle(Design.ink3)
+                        }
+                    }
+                    .tint(Design.ok)
+                }
             }
-            .sheet(isPresented: $signIn) { SignInView() }
+            Button("Save \(Design.plural(keep.count, "chip", "chips"))") {
+                Task { await save() }
+            }
+            .buttonStyle(InkButtonStyle())
+            .disabled(keep.isEmpty || busy)
+        }
+    }
+
+    // MARK: - doing it
+
+    private func open() {
+        if UIImagePickerController.isSourceTypeAvailable(.camera) {
+            camera = true
+        } else {
+            library = true
         }
     }
 
@@ -130,8 +196,6 @@ struct CaptureView: View {
                                               takenAt: Date())
             result = reply
             chips = reply.chips ?? []
-            // Everything the model was sure enough to propose starts ticked;
-            // untick is the correction, which is the cheaper gesture.
             keep = Set(chips.map(\.id))
             if chips.isEmpty && reply.routedTo == nil {
                 note = "Nothing to confirm from that photo."
@@ -141,14 +205,13 @@ struct CaptureView: View {
         }
     }
 
-    private func confirm() async {
+    private func save() async {
         busy = true
         defer { busy = false }
         let chosen = chips.filter { keep.contains($0.id) }
         do {
             let reply = try await Api.confirm(
-                chips: chosen, label: result?.label,
-                at: Api.iso(Date()))
+                chips: chosen, label: result?.label, at: Api.iso(Date()))
             note = "Written"
                 + (reply.day.map { " for \($0)" } ?? "")
                 + ((reply.facts?.isEmpty == false)
@@ -161,7 +224,6 @@ struct CaptureView: View {
     }
 }
 
-/// The camera, because SwiftUI still has no native one.
 struct CameraPicker: UIViewControllerRepresentable {
     var onImage: (UIImage) -> Void
     @Environment(\.dismiss) private var dismiss
@@ -195,3 +257,10 @@ struct CameraPicker: UIViewControllerRepresentable {
         }
     }
 }
+
+#if DEBUG
+#Preview("Capture") {
+    CaptureView()
+        .onAppear { UserDefaults.standard.set(true, forKey: "OVFixtures") }
+}
+#endif

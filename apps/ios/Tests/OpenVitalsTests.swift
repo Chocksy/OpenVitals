@@ -3,7 +3,6 @@
 /// every function under test takes plain values or goes through `KeyValueStore`.
 import XCTest
 import HealthKit
-import WebKit
 @testable import OpenVitals
 
 final class InstantTests: XCTestCase {
@@ -622,35 +621,6 @@ final class SignInTests: XCTestCase {
     func testUserAgentTag() {
         XCTAssertEqual(Api.userAgentTag, "OpenVitalsiOS/1")
         XCTAssertTrue(Api.userAgentTag.contains("OpenVitalsiOS"))
-    }
-}
-
-/// The webview half of "one navigation": a real WKWebView, asked what user
-/// agent it actually sends. Naming the API is not the same as it working, and
-/// if this string stops carrying the tag the site quietly grows a nav bar
-/// again inside the app.
-@MainActor
-final class WebViewUserAgentTests: XCTestCase {
-    func testTheWebviewAnnouncesItselfToTheSite() async throws {
-        let view = WKWebView(frame: .zero, configuration: SiteWebView.configuration())
-        await withCheckedContinuation { done in
-            SiteWebView.announce(view) { done.resume() }
-        }
-        let ua = try XCTUnwrap(view.customUserAgent)
-        XCTAssertTrue(ua.hasSuffix(" OpenVitalsiOS/1"), ua)
-        // Still a normal iPhone UA underneath. `applicationNameForUserAgent`
-        // eats the `Mobile/` token; appending to the default does not.
-        XCTAssertTrue(ua.hasPrefix("Mozilla/5.0 (iPhone"), ua)
-        XCTAssertTrue(ua.contains("Mobile/"), ua)
-        XCTAssertTrue(ua.contains("AppleWebKit/"), ua)
-    }
-
-    /// The zoom belt. The script is what stops iOS blowing up a focused input.
-    func testViewportScriptRunsInEveryFrameAndPinsTheScale() {
-        let script = SiteWebView.viewportScript
-        XCTAssertFalse(script.isForMainFrameOnly)
-        XCTAssertTrue(script.source.contains("maximum-scale=1"))
-        XCTAssertTrue(script.source.contains("width=device-width"))
     }
 }
 

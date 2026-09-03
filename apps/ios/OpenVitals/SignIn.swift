@@ -26,14 +26,12 @@ final class Session: ObservableObject {
 
     func signIn(email: String, password: String) async throws {
         try await Api.signIn(email: email, password: password)
-        SiteWebView.push(Api.cookies()) {}
         refresh()
     }
 
     /// The webview store goes first: emptying it while a navigation is still
     /// in flight is how a signed-out app quietly signs itself back in.
     func signOut() async {
-        SiteWebView.forgetCookies()
         await Api.signOut()
         refresh()
     }
