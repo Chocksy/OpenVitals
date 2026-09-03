@@ -811,3 +811,180 @@ final class DesignTests: XCTestCase {
         XCTAssertEqual(dark, UIColor(rgb: 0x121110))
     }
 }
+
+/// Phase 35. The Add sheet is one box, one photo and one Send, and the receipt
+/// it prints is built out of the fields the server sent — never out of a
+/// sentence the phone made up.
+final class CaptureSheetTests: XCTestCase {
+
+    private func chip(_ label: String, key: String = "supplements") -> Api.Chip {
+        Api.Chip(kind: "fact", key: key, label: label, value: .string(label),
+                 date: "2026-09-03", quote: label, confidence: 0.9,
+                 by: "reader", unit: nil)
+    }
+
+    /// Words alone, a photo alone, both, or neither.
+    func testSendNeedsWordsOrAPhoto() {
+        XCTAssertFalse(CaptureView.canSend(text: "", photo: false, busy: false))
+        XCTAssertFalse(CaptureView.canSend(text: " ", photo: false, busy: false))
+        XCTAssertFalse(CaptureView.canSend(text: "a", photo: false, busy: false))
+        XCTAssertTrue(CaptureView.canSend(text: "ok", photo: false, busy: false))
+        XCTAssertTrue(CaptureView.canSend(text: "", photo: true, busy: false))
+        XCTAssertTrue(CaptureView.canSend(text: "lunch", photo: true, busy: false))
+    }
+
+    /// Nothing is sent twice while the first send is still out.
+    func testSendIsClosedWhileItIsSending() {
+        XCTAssertFalse(CaptureView.canSend(text: "ok", photo: true, busy: true))
+    }
+
+    /// `/api/compose` writes as it reads, so its chips are the understood
+    /// facts and its `reply` is the reader's own sentence.
+    func testTheReceiptOfWords() {
+        let composed = Api.Composed(
+            id: "p1", reply: "Selenium is on the list from June 14.",
+            chips: [chip("Selenium 200 µg"), chip("since Jun 14")],
+            error: nil)
+        let receipt = CaptureReceipt.of(composed)
+        XCTAssertEqual(receipt.chips, ["Selenium 200 µg", "since Jun 14"])
+        XCTAssertEqual(receipt.said, "Selenium is on the list from June 14.")
+        XCTAssertTrue(receipt.saved.isEmpty)
+        XCTAssertFalse(receipt.isEmpty)
+    }
+
+    /// A question has one field, and it is the server's words.
+    func testTheReceiptOfAQuestion() {
+        XCTAssertEqual(CaptureReceipt.of(Api.Asked(answer: "About 50 ng/mL.",
+                                                   error: nil)).said,
+                       "About 50 ng/mL.")
+        XCTAssertEqual(CaptureReceipt.of(Api.Asked(answer: nil,
+                                                   error: "type a word or two"))
+                        .said,
+                       "type a word or two")
+    }
+
+    /// A photo: what was read, then what the write says it saved.
+    func testTheReceiptOfAPhoto() {
+        let read = Api.CaptureResult(
+            ok: true, kind: "meal", basis: "four items recognised",
+            confidence: 0.86, label: "Lunch", chips: [chip("422 kcal",
+                                                           key: "kcal")],
+            estimated: true, routedTo: nil, uploadId: nil, count: nil,
+            note: nil, error: nil)
+        let receipt = CaptureReceipt.of(read)
+            .with(Api.ConfirmResult(ok: true, facts: ["kcal"],
+                                    day: "2026-09-03", error: nil))
+        XCTAssertEqual(receipt.chips, ["422 kcal"])
+        XCTAssertEqual(receipt.saved, ["kcal", "2026-09-03"])
+        XCTAssertEqual(receipt.said, "four items recognised")
+    }
+
+    /// A lab sheet carries no chips: it goes to the upload reader, and the
+    /// note the server sends is the whole receipt.
+    func testALabSheetPrintsTheServersOwnNote() {
+        let read = Api.CaptureResult(
+            ok: true, kind: "lab_sheet", basis: "a result page",
+            confidence: nil, label: nil, chips: [], estimated: nil,
+            routedTo: "lab", uploadId: "u1", count: 14,
+            note: "14 markers proposed", error: nil)
+        let receipt = CaptureReceipt.of(read)
+        XCTAssertTrue(receipt.chips.isEmpty)
+        XCTAssertEqual(receipt.said, "14 markers proposed")
+    }
+
+    /// A write that failed says why in the server's words, not the phone's.
+    func testAFailedWriteKeepsTheServersMessage() {
+        let receipt = CaptureReceipt()
+            .with(Api.ConfirmResult(ok: nil, facts: nil, day: nil,
+                                    error: "nothing to write"))
+        XCTAssertEqual(receipt.said, "nothing to write")
+        XCTAssertTrue(receipt.saved.isEmpty)
+    }
+
+    /// Nothing recognisable in the reply: print the body exactly as it came,
+    /// rather than composing a sentence over it.
+    func testAnUnrecognisableReplyIsPrintedVerbatim() {
+        let empty = CaptureReceipt.of(Api.Composed(id: nil, reply: nil,
+                                                   chips: nil, error: nil))
+        XCTAssertTrue(empty.isEmpty)
+        XCTAssertEqual(empty.orRaw(#"{"queued":true}"#).said,
+                       #"{"queued":true}"#)
+        // A receipt that already has something keeps it.
+        let said = CaptureReceipt(said: "written")
+        XCTAssertEqual(said.orRaw("{}").said, "written")
+    }
+
+    /// The one caption in the sheet, and the one placeholder. No route names,
+    /// no developer prose.
+    func testTheSheetNamesNoRoutes() {
+        for line in [CaptureView.caption, CaptureView.placeholder] {
+            for word in ["/api", "compose", "draft", "chip", "endpoint"] {
+                XCTAssertFalse(line.lowercased().contains(word), line)
+            }
+        }
+        XCTAssertEqual(CaptureView.placeholder,
+                       "What happened, what you took, what you ate, "
+                       + "or a question")
+    }
+}
+
+/// Phase 35. The research row on Today is permanent, so the watch is visible
+/// on a week when nothing moved.
+final class ResearchRowTests: XCTestCase {
+
+    private func paper(read: Bool, moves: Api.Paper.Moves? = nil,
+                       dismissed: String? = nil, id: String = "p")
+        -> Api.Paper {
+        Api.Paper(id: id, conditionId: "hashimotos", source: "epmc",
+                  externalId: id, title: "A paper", journal: "Prev Med",
+                  url: nil, publishedAt: "2026-08-27", grade: read ? "B" : nil,
+                  finding: read ? "It found a thing" : nil, abstract: nil,
+                  moves: moves, read: read, foundAt: nil, seenAt: nil,
+                  dismissedAt: dismissed)
+    }
+
+    private let moves = Api.Paper.Moves(conclusionId: "c1", name: "ferritin",
+                                        direction: "up", delta: 0.2)
+
+    func testNothingFoundYet() {
+        XCTAssertEqual(ResearchRow.line([]), "no papers yet")
+    }
+
+    func testFoundAndNotReadYet() {
+        let rows = [paper(read: false, id: "a"), paper(read: false, id: "b")]
+        XCTAssertEqual(ResearchRow.line(rows), "2 papers found · not read yet")
+    }
+
+    func testSomethingMovedSomething() {
+        let rows = [paper(read: false, id: "a"),
+                    paper(read: true, moves: moves, id: "b")]
+        XCTAssertEqual(ResearchRow.line(rows),
+                       "New for you · 1 moved something")
+    }
+
+    /// A dismissed row is not new for you, which is the rule `NewForYou`
+    /// already follows.
+    func testADismissedMoverIsNotNewForYou() {
+        let rows = [paper(read: true, moves: moves,
+                          dismissed: "2026-09-01", id: "a")]
+        XCTAssertEqual(ResearchRow.moved(rows), 0)
+        XCTAssertEqual(ResearchRow.line(rows), "1 paper found")
+    }
+
+    /// Everything read and nothing moving is not "not read yet".
+    func testEverythingReadAndNothingMoving() {
+        let rows = [paper(read: true, id: "a"), paper(read: true, id: "b")]
+        XCTAssertEqual(ResearchRow.line(rows), "2 papers found")
+    }
+
+    /// The fixture account: fifteen rows, none read, none moving.
+    func testTheFixtureAccountReadsAsFoundAndNotReadYet() throws {
+        let url = try XCTUnwrap(ContractTests.fixtureURL("research"))
+        let list = try JSONDecoder().decode(
+            Api.ResearchList.self, from: Data(contentsOf: url))
+        XCTAssertTrue(NewForYou.pick(list.rows).isEmpty)
+        XCTAssertEqual(ResearchRow.line(list.rows),
+                       "\(Design.plural(list.rows.count, "paper", "papers")) "
+                       + "found · not read yet")
+    }
+}

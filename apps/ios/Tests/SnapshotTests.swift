@@ -248,7 +248,7 @@ final class SnapshotTests: XCTestCase {
         try FileManager.default.createDirectory(at: out,
                                                 withIntermediateDirectories: true)
         var written = 0
-        for name in Mock.names {
+        for name in Mock.names + Mock.unrendered {
             for dark in [false, true] {
                 guard let shot = render(Mock.screen(name), width: Mock.width,
                                         dark: dark) else { continue }
@@ -268,7 +268,7 @@ final class SnapshotTests: XCTestCase {
             }
         }
         print("SHOTS wrote \(written) files into \(out.path)")
-        XCTAssertEqual(written, (Mock.names.count
+        XCTAssertEqual(written, (Mock.names.count + Mock.unrendered.count
                                  + GalleryView.sections.count) * 2)
     }
 }

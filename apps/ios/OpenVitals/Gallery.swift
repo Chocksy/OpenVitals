@@ -731,6 +731,13 @@ enum Mock {
     static let names = ["today", "body", "plan", "meals", "capture",
                         "settings", "signin", "blood", "research"]
 
+    /// Phase 35 screens with no reference PNG. The Add sheet the phone now
+    /// shows is not the four rows `docs/mockups/v4/ios.html` draws, and the
+    /// mockups are not this phase's to redraw — so these two are written by
+    /// the screenshot dumper and checked by `CaptureSheetTests`, not by a
+    /// pixel diff against a render that does not exist.
+    static let unrendered = ["capturebox", "captureread"]
+
     /// The goal row is not a phone frame: it is one element of `system.html`
     /// section 08, at the 1194 px it lays out at on the page it belongs to.
     static let goalWidth: CGFloat = 1194
@@ -743,6 +750,8 @@ enum Mock {
         case "plan": plan
         case "meals": meals
         case "capture": capture
+        case "capturebox": captureBox
+        case "captureread": captureRead
         case "settings": settings
         case "blood": blood
         case "research": research
@@ -935,6 +944,64 @@ enum Mock {
 
     // ── Capture ──────────────────────────────────────────────────────
 
+    /// The shipped Add sheet, phase 35: one box, one photo control, one Send,
+    /// and the feel link under them.
+    ///
+    /// There is no reference render for this one. `Tests/References/capture-*`
+    /// comes out of `docs/mockups/v4/ios.html`, which still draws the four
+    /// rows, and the mockups are not this phase's to redraw — so `capture`
+    /// below stays the mirror the pixel test checks, and this is the mirror of
+    /// what the phone actually shows.
+    static var captureBox: some View {
+        phone(0, "Add", icon: "xmark") {
+            VStack(alignment: .leading, spacing: DesignTokens.s13) {
+                Inp(label: "", text: .constant(""),
+                    placeholder: CaptureView.placeholder, lines: 3...8)
+                HStack(spacing: DesignTokens.s13) {
+                    Button { } label: {
+                        Label("Photo", systemImage: "camera")
+                    }
+                    .buttonStyle(.ov(.quiet))
+                    Spacer(minLength: 0)
+                    Button("Send") { }
+                        .buttonStyle(.ovInk)
+                        .opacity(0.45)
+                }
+                Button("Log how you feel") { }
+                    .buttonStyle(.ovText)
+            }
+            Caption(CaptureView.caption)
+        }
+    }
+
+    /// The receipt, in the box's place.
+    static var captureRead: some View {
+        phone(0, "Add", icon: "xmark") {
+            Panel(title: "Read") {
+                Flow {
+                    ForEach(["Selenium 200 µg", "since Jun 14",
+                             "exercise 3–4 d/wk"], id: \.self) { label in
+                        Chip { Text(label) }
+                    }
+                }
+                Caption("Saved · supplements · 2026-09-03")
+                Text("Selenium is on the list from June 14, and the training "
+                     + "days are on the habit row.")
+                    .ovType(.sm, leading: 1.6)
+                    .foregroundStyle(Design.ink2)
+                    .fixedSize(horizontal: false, vertical: true)
+                HStack(spacing: DesignTokens.s13) {
+                    Button("Done") { }.buttonStyle(.ovInk)
+                    Button("Add another") { }.buttonStyle(.ovText)
+                    Spacer(minLength: 0)
+                }
+            }
+            Caption(CaptureView.caption)
+        }
+    }
+
+    /// The mockup's own Capture frame — four rows and the read panel. Kept
+    /// because `testCapture` diffs it against the render of `ios.html`.
     static var capture: some View {
         phone(0, "Add", icon: "xmark") {
             VStack(spacing: DesignTokens.s13) {

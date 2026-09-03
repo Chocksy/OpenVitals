@@ -2,26 +2,82 @@ import PhotosUI
 import SwiftUI
 import UIKit
 
-/// Add. The sheet behind the +, and the one lime control on the phone: lime
-/// sits on "photo of a lab sheet" only, because that is the control that adds
-/// the most data. A lab sheet is not confirmed here — it goes to the upload
-/// reader and comes back as a read receipt under Blood.
+/// What the sheet says back after a send.
+///
+/// Every line in it comes from a field the server sent: the chips it
+/// understood, the fields it wrote, and its own sentence. When a reply holds
+/// none of those, `orRaw` prints the body verbatim rather than letting the
+/// phone compose a sentence the server never said.
+struct CaptureReceipt: Equatable {
+    /// What was understood: one chip per fact, labelled as the reader
+    /// labelled it.
+    var chips: [String] = []
+    /// What was saved: the keys `POST /api/capture` says it wrote, and the
+    /// day it wrote them to.
+    var saved: [String] = []
+    /// The reader's own words: `reply`, `answer`, `note`, `basis`, `error`.
+    var said = ""
+
+    var isEmpty: Bool { chips.isEmpty && saved.isEmpty && said.isEmpty }
+
+    /// Nothing recognisable in the reply, so print exactly what it said.
+    func orRaw(_ raw: String) -> CaptureReceipt {
+        isEmpty ? CaptureReceipt(said: raw) : self
+    }
+
+    /// Words on their own. `/api/compose` reads and writes in one call, so the
+    /// chips that come back are already stored and its `reply` is the answer.
+    static func of(_ composed: Api.Composed) -> CaptureReceipt {
+        CaptureReceipt(chips: (composed.chips ?? []).map(\.label),
+                       said: composed.reply ?? composed.error ?? "")
+    }
+
+    /// A question. `/api/ask` answers in one field.
+    static func of(_ asked: Api.Asked) -> CaptureReceipt {
+        CaptureReceipt(said: asked.answer ?? asked.error ?? "")
+    }
+
+    /// A photograph, read. A lab sheet carries a `note` instead of chips,
+    /// because that one goes to the upload reader.
+    static func of(_ read: Api.CaptureResult) -> CaptureReceipt {
+        CaptureReceipt(chips: (read.chips ?? []).map(\.label),
+                       said: read.note ?? read.basis ?? read.error ?? "")
+    }
+
+    /// The write that follows the read: what the server names as written.
+    func with(_ wrote: Api.ConfirmResult) -> CaptureReceipt {
+        var out = self
+        out.saved = (wrote.facts ?? []) + (wrote.day.map { [$0] } ?? [])
+        if let error = wrote.error, !error.isEmpty { out.said = error }
+        return out
+    }
+}
+
+/// Add. The sheet behind the +: one box, one photo, one Send.
+///
+/// The routing is the engine's, not the person's: a photograph goes to
+/// `/api/capture`, a question to `/api/ask`, and anything else to
+/// `/api/compose`. The sheet never says so — the owner types what happened and
+/// the server decides which reader gets it.
 struct CaptureView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var pick: PhotosPickerItem?
     @State private var image: UIImage?
-    @State private var caption = ""
+    @State private var text = ""
     @State private var camera = false
     @State private var library = false
-    @State private var words = Fixtures.screen == "words"
-    @State private var feel = false
-    @State private var answer = ""
+    @State private var choosing = false
     @State private var busy = false
-    @State private var note = ""
-    @State private var result: Api.CaptureResult?
-    @State private var chips: [Api.Chip] = []
-    @State private var keep: Set<String> = []
+    @State private var receipt: CaptureReceipt?
     @State private var signIn = false
+    @FocusState private var typing: Bool
+
+    static let placeholder =
+        "What happened, what you took, what you ate, or a question"
+
+    static let caption =
+        "Read by the app and kept as facts, meals and supplements. "
+        + "A lab sheet becomes a read receipt under Blood."
 
     var body: some View {
         // `system.html` section 11: the sheet is a 34 px corner, a grabber,
@@ -29,14 +85,10 @@ struct CaptureView: View {
         // title sits under the grabber and the first control touches it.
         Screen(title: "Add", icon: "xmark", iconLabel: "Close",
                action: { dismiss() }) {
-            buttons
-            if words { note0 }
-            if let image { shot(image) }
-            if let result { read(result) }
-            if !chips.isEmpty { confirm }
-            if !note.isEmpty { receipt }
-            Caption("A lab sheet is not confirmed here — it goes to the upload "
-                    + "reader and comes back as a read receipt under Blood.")
+            // The receipt takes the box's place rather than landing under it,
+            // so the answer is where the eye already is.
+            if let receipt { read(receipt) } else { box }
+            Caption(Self.caption)
         }
         .safeAreaPadding(.top, DesignTokens.s21)
         .presentationDragIndicator(.visible)
@@ -44,221 +96,116 @@ struct CaptureView: View {
         .presentationBackground(Design.canvas)
         .interactiveDismissDisabled(busy)
         .onChange(of: pick) { _, item in Task { await load(item) } }
-        .fullScreenCover(isPresented: $camera) { CameraPicker { image = $0; reset() } }
+        .confirmationDialog("Photo", isPresented: $choosing,
+                            titleVisibility: .hidden) {
+            Button("Take a photo") { camera = true }
+            Button("Choose a photo") { library = true }
+        }
+        .fullScreenCover(isPresented: $camera) {
+            CameraPicker { image = $0; receipt = nil }
+        }
         .photosPicker(isPresented: $library, selection: $pick, matching: .images)
         .sheet(isPresented: $signIn) { SignInView() }
     }
 
-    // MARK: - the four things the engine actually accepts
+    // MARK: - one box
 
-    private var buttons: some View {
-        // `.stackv` — the four things `/api/capture` and the composer accept.
-        // Lime is on the lab sheet only: it is the control that adds the most.
-        VStack(spacing: DesignTokens.s13) {
-            Button { open() } label: {
-                Label("Photo of a lab sheet", systemImage: "camera")
-            }
-            .buttonStyle(.ov(.add, wide: true, leading: true))
-
-            Button { open() } label: {
-                Label("Photo of food", systemImage: "fork.knife")
-            }
-            .buttonStyle(.ov(.quiet, wide: true, leading: true))
-
-            Button { words = true } label: {
-                Label("Ask or tell", systemImage: "square.and.pencil")
-            }
-            .buttonStyle(.ov(.quiet, wide: true, leading: true))
-
-            Button { words = true; feel = true; caption = "I feel " } label: {
-                Label("Log how you feel", systemImage: "drop")
-            }
-            .buttonStyle(.ov(.quiet, wide: true, leading: true))
-        }
-    }
-
-    /// Words, on their own.
-    ///
-    /// `POST /api/compose` is the route the web composer posts text to
-    /// (`components/composer.tsx` `post`), and it takes `{ text }` with no
-    /// photograph: `draft: true` reads the words and writes nothing, and the
-    /// same call without it writes the chips it read. A question goes to
-    /// `POST /api/ask` instead, which is the same split `openingMode` makes on
-    /// the web, so what the button says and what the server does agree.
-    private var note0: some View {
-        Panel(title: feel ? "How you feel" : "In your words",
-              meta: Api.isQuestion(caption) ? "a question" : "a statement") {
-            TextField("What is it?", text: $caption, axis: .vertical)
-                .ovType(.sm)
-                .lineLimit(2...5)
-                .padding(Design.s8)
-                .background(Design.surfaceHi)
-                .clipShape(RoundedRectangle(cornerRadius: Design.rInner,
-                                            style: .continuous))
+    private var box: some View {
+        VStack(alignment: .leading, spacing: DesignTokens.s13) {
+            Inp(label: "", text: $text, placeholder: Self.placeholder,
+                lines: 3...8)
+                .focused($typing)
+            if let image { shot(image) }
             HStack(spacing: DesignTokens.s13) {
-                Button(busy ? "Sending…"
-                       : (Api.isQuestion(caption) ? "Ask" : "Send")) {
-                    Task { await send() }
+                Button { photo() } label: {
+                    Label(image == nil ? "Photo" : "Another photo",
+                          systemImage: "camera")
                 }
+                .buttonStyle(.ov(.quiet))
+                Spacer(minLength: 0)
+                Button(busy ? "Sending…" : "Send") { Task { await send() } }
                     .buttonStyle(.ovInk)
                     .disabled(!canSend)
                     .opacity(canSend ? 1 : 0.45)
-                Button("Add a photo") { open() }
-                    .buttonStyle(.ovText)
-                Spacer(minLength: 0)
             }
-            if !answer.isEmpty {
-                Hair()
-                Text(answer).ovType(.sm, leading: 1.6)
-                    .foregroundStyle(Design.ink2)
-                    .fixedSize(horizontal: false, vertical: true)
+            Button("Log how you feel") {
+                text = "I feel "
+                typing = true
             }
-            Caption(image == nil
-                    ? "Words on their own go to /api/compose, the same route "
-                    + "the website's composer posts to. A question goes to "
-                    + "/api/ask instead."
-                    : "The words go with the photograph in one call.")
+            .buttonStyle(.ovText)
         }
     }
 
-    /// Two characters is the floor `/api/ask` itself enforces; `/api/compose`
-    /// reads anything, and an empty box is not words.
+    /// Text or a photograph is enough. Two characters is the floor
+    /// `/api/ask` itself enforces, and an empty box is not words.
+    static func canSend(text: String, photo: Bool, busy: Bool) -> Bool {
+        guard !busy else { return false }
+        if photo { return true }
+        return text.trimmingCharacters(in: .whitespacesAndNewlines).count >= 2
+    }
+
     private var canSend: Bool {
-        !busy && caption.trimmingCharacters(in: .whitespaces).count >= 2
-    }
-
-    /// A question is asked, a statement is composed, and a photograph on the
-    /// table takes precedence because `/api/capture` reads the two together.
-    private func send() async {
-        if image != nil { await read(); return }
-        guard Api.signedIn else { signIn = true; return }
-        busy = true
-        defer { busy = false }
-        let text = caption.trimmingCharacters(in: .whitespaces)
-        do {
-            if Api.isQuestion(text) {
-                let said = try await Api.ask(text)
-                answer = said.answer ?? said.error ?? "No answer came back."
-            } else {
-                // A post writes: `/api/compose` reads the words itself when
-                // the client sends none, so the chips that come back are
-                // already stored and there is nothing left to confirm.
-                let posted = try await Api.compose(text: text)
-                let read = posted.chips ?? []
-                answer = posted.reply ?? posted.error
-                    ?? "Written · \(Design.plural(read.count, "chip", "chips"))"
-                if posted.error == nil {
-                    note = "Written · "
-                        + (read.isEmpty
-                           ? "nothing in that was a fact this app stores"
-                           : read.map(\.label).joined(separator: ", "))
-                }
-            }
-        } catch {
-            answer = error.localizedDescription
-        }
-    }
-
-    /// What the sheet says after a write. It stays open, shows the receipt,
-    /// and offers the one control that closes it.
-    private var receipt: some View {
-        Panel(title: "Receipt", meta: busy ? "writing…" : nil) {
-            Caption(note)
-            Button("Done") { dismiss() }
-                .buttonStyle(.ovInk)
-                .disabled(busy)
-        }
+        Self.canSend(text: text, photo: image != nil, busy: busy)
     }
 
     private func shot(_ image: UIImage) -> some View {
-        Panel(title: "Photo", meta: busy ? "reading…" : nil) {
-            Image(uiImage: image)
-                .resizable()
-                .scaledToFit()
-                .frame(maxHeight: 220)
-                .clipShape(RoundedRectangle(cornerRadius: Design.rInner,
-                                            style: .continuous))
-            Button(busy ? "Reading…" : "Use this photo") {
-                Task { await read() }
-            }
-            .buttonStyle(.ovInk)
-            .disabled(busy)
-            .opacity(busy ? 0.45 : 1)
-        }
+        Image(uiImage: image)
+            .resizable()
+            .scaledToFit()
+            .frame(maxHeight: 160)
+            .clipShape(RoundedRectangle(cornerRadius: Design.rInner,
+                                        style: .continuous))
+            .accessibilityLabel("The photo to send")
     }
 
-    private func read(_ result: Api.CaptureResult) -> some View {
-        Panel(title: "What it looks like", meta: "before anything is written") {
-            VStack(alignment: .leading, spacing: Design.s5) {
-                line("Kind", result.kind ?? "unknown")
-                if let label = result.label, !label.isEmpty { line("Label", label) }
-                if let confidence = result.confidence {
-                    line("Confidence", String(format: "%.2f", confidence))
-                }
-                if let basis = result.basis, !basis.isEmpty { Caption(basis) }
-                if result.estimated == true {
-                    Caption("Every food number below is an estimate and is "
-                            + "stored as one. Not a scale.")
-                }
-                if let routed = result.routedTo {
-                    Caption("Sent to the \(routed) pipeline"
-                            + (result.note.map { " · \($0)" } ?? ""))
-                }
-            }
-        }
-    }
+    // MARK: - the receipt
 
-    private func line(_ name: String, _ value: String) -> some View {
-        HStack(alignment: .firstTextBaseline) {
-            Text(name).ovType(.sm).foregroundStyle(Design.ink3)
-            Spacer()
-            Text(value).ovType(.sm, weight: .medium).foregroundStyle(Design.ink)
-        }
-    }
-
-    private var confirm: some View {
-        Panel(title: "Confirm",
-              meta: "\(Design.plural(chips.count, "chip", "chips")) · each one has a switch") {
-            VStack(spacing: 0) {
-                ForEach(Array(chips.enumerated()), id: \.element.id) { i, chip in
-                    if i > 0 { Hair().padding(.vertical, Design.s8) }
-                    Toggle(isOn: binding(for: chip)) {
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text(chip.label)
-                                .ovType(.sm)
-                                .foregroundStyle(Design.ink)
-                            Text("\(chip.kind) · \(chip.key) · \(chip.date)")
-                                .ovType(.xs)
-                                .foregroundStyle(Design.ink3)
-                        }
+    private func read(_ receipt: CaptureReceipt) -> some View {
+        Panel(title: "Read", meta: busy ? "writing…" : nil) {
+            if !receipt.chips.isEmpty {
+                Flow {
+                    ForEach(receipt.chips, id: \.self) { label in
+                        Chip { Text(label) }
                     }
-                    .tint(Design.ok)
                 }
             }
-            Button("Save \(Design.plural(keep.count, "chip", "chips"))") {
-                Task { await save() }
+            if !receipt.saved.isEmpty {
+                Caption("Saved · \(receipt.saved.joined(separator: " · "))")
             }
-            .buttonStyle(.ovInk)
-            .disabled(keep.isEmpty || busy)
+            if !receipt.said.isEmpty {
+                Text(receipt.said)
+                    .ovType(.sm, leading: 1.6)
+                    .foregroundStyle(Design.ink2)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            HStack(spacing: DesignTokens.s13) {
+                Button("Done") { dismiss() }
+                    .buttonStyle(.ovInk)
+                    .disabled(busy)
+                Button("Add another") { again() }
+                    .buttonStyle(.ovText)
+                    .disabled(busy)
+                Spacer(minLength: 0)
+            }
         }
     }
 
     // MARK: - doing it
 
-    private func open() {
+    private func photo() {
         if UIImagePickerController.isSourceTypeAvailable(.camera) {
-            camera = true
+            choosing = true
         } else {
             library = true
         }
     }
 
-    private func binding(for chip: Api.Chip) -> Binding<Bool> {
-        Binding(
-            get: { keep.contains(chip.id) },
-            set: { on in
-                if on { keep.insert(chip.id) } else { keep.remove(chip.id) }
-            })
+    private func again() {
+        receipt = nil
+        text = ""
+        image = nil
+        pick = nil
+        typing = true
     }
 
     private func load(_ item: PhotosPickerItem?) async {
@@ -266,53 +213,40 @@ struct CaptureView: View {
         if let data = try? await item.loadTransferable(type: Data.self),
            let ui = UIImage(data: data) {
             image = ui
-            reset()
+            receipt = nil
         }
     }
 
-    private func reset() {
-        result = nil
-        chips = []
-        keep = []
-        note = ""
-    }
-
-    private func read() async {
-        guard let image, let data = image.jpegData(compressionQuality: 0.8)
-        else { return }
+    /// One Send, three doors, and the person is told about none of them: a
+    /// photograph goes to `/api/capture` and the chips it reads are written in
+    /// the same breath, a question goes to `/api/ask`, and words go to
+    /// `/api/compose`, which reads and writes in one call.
+    private func send() async {
         guard Api.signedIn else { signIn = true; return }
         busy = true
         defer { busy = false }
-        reset()
+        let words = text.trimmingCharacters(in: .whitespacesAndNewlines)
         do {
-            let reply = try await Api.capture(photo: data, caption: caption,
-                                              takenAt: Date())
-            result = reply
-            chips = reply.chips ?? []
-            keep = Set(chips.map(\.id))
-            if chips.isEmpty && reply.routedTo == nil {
-                note = "Nothing to confirm from that photo."
+            if let image, let data = image.jpegData(compressionQuality: 0.8) {
+                let seen = try await Api.capture(photo: data, caption: words,
+                                                 takenAt: Date())
+                var made = CaptureReceipt.of(seen)
+                let chips = seen.chips ?? []
+                if !chips.isEmpty {
+                    let wrote = try await Api.confirm(
+                        chips: chips, label: seen.label, at: Api.iso(Date()))
+                    made = made.with(wrote)
+                }
+                receipt = made.orRaw(Api.lastReply)
+            } else if Api.isQuestion(words) {
+                receipt = CaptureReceipt.of(try await Api.ask(words))
+                    .orRaw(Api.lastReply)
+            } else {
+                receipt = CaptureReceipt.of(try await Api.compose(text: words))
+                    .orRaw(Api.lastReply)
             }
         } catch {
-            note = error.localizedDescription
-        }
-    }
-
-    private func save() async {
-        busy = true
-        defer { busy = false }
-        let chosen = chips.filter { keep.contains($0.id) }
-        do {
-            let reply = try await Api.confirm(
-                chips: chosen, label: result?.label, at: Api.iso(Date()))
-            note = "Written"
-                + (reply.day.map { " for \($0)" } ?? "")
-                + ((reply.facts?.isEmpty == false)
-                   ? " · facts: \(reply.facts!.joined(separator: ", "))" : "")
-            chips = []
-            keep = []
-        } catch {
-            note = error.localizedDescription
+            receipt = CaptureReceipt(said: error.localizedDescription)
         }
     }
 }

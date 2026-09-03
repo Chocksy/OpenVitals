@@ -184,6 +184,57 @@ struct ResearchView: View {
 /// Today's "New for you": at most three rows that moved something, and
 /// nothing at all when none did. A feed that shows the same rows every day
 /// whether or not they changed anything is a feed nobody reads.
+/// The permanent research row on Today.
+///
+/// "New for you" only ever appears when a paper moved a number, which is why
+/// the watch looked switched off on a quiet week. This row is always drawn: it
+/// says what moved when something did, and how many papers are waiting when
+/// nothing has.
+struct ResearchRow: View {
+    let rows: [Api.Paper]
+    var open: () -> Void
+
+    /// Papers that move a number of yours and have not been dismissed — the
+    /// same set `NewForYou` draws.
+    static func moved(_ rows: [Api.Paper]) -> Int {
+        rows.filter { $0.moves != nil && $0.dismissedAt == nil }.count
+    }
+
+    static func line(_ rows: [Api.Paper]) -> String {
+        let moved = moved(rows)
+        if moved > 0 {
+            return "New for you · \(Design.number(moved)) moved something"
+        }
+        if rows.isEmpty { return "no papers yet" }
+        let unread = rows.filter { !$0.read }.count
+        // Everything read and nothing moving is not "not read yet", so the row
+        // stops at the count rather than saying something untrue.
+        return unread > 0
+            ? "\(Design.plural(unread, "paper", "papers")) found · not read yet"
+            : "\(Design.plural(rows.count, "paper", "papers")) found"
+    }
+
+    var body: some View {
+        Button(action: open) {
+            Panel(title: "Research", meta: Design.number(rows.count)) {
+                HStack(alignment: .firstTextBaseline, spacing: DesignTokens.s8) {
+                    Text(Self.line(rows))
+                        .ovType(.sm)
+                        .foregroundStyle(Design.ink)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .multilineTextAlignment(.leading)
+                    Spacer(minLength: 0)
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 13, weight: .light))
+                        .foregroundStyle(Design.ink3)
+                }
+            }
+        }
+        .buttonStyle(.plain)
+        .accessibilityHint("Opens Research")
+    }
+}
+
 struct NewForYou: View {
     let rows: [Api.Paper]
     var open: (Api.Paper) -> Void

@@ -538,14 +538,21 @@ struct FieldLabel: View {
 
 /// `.inp` — 40 px tall, 13 px radius, `--surface-hi` with a 1 px inset hair.
 /// Focus is a 2 px ink ring; invalid is a 2 px `--bad` ring.
+///
+/// `lines` turns it into `.ta`, the same box with a 76 px floor that grows
+/// with the words. Everything else — the ring, the radius, the surface, the
+/// padding — is the one field the system already draws.
 struct Inp: View {
-    let label: String
+    /// Empty draws no label: the sheet's own title is the label there.
+    var label: String
     @Binding var text: String
     var placeholder = ""
     var secure = false
     var help: String?
     var error: String?
     var mono = false
+    /// `.ta` — how many lines the box may grow to before it scrolls.
+    var lines: ClosedRange<Int>?
     var content: UITextContentType?
     var keyboard: UIKeyboardType = .default
     @FocusState private var focused: Bool
@@ -557,9 +564,12 @@ struct Inp: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: DesignTokens.s5) {
-            FieldLabel(text: label)
+            if !label.isEmpty { FieldLabel(text: label) }
             Group {
-                if secure {
+                if let lines {
+                    TextField(placeholder, text: $text, axis: .vertical)
+                        .lineLimit(lines)
+                } else if secure {
                     SecureField(placeholder, text: $text)
                 } else {
                     TextField(placeholder, text: $text)
@@ -572,7 +582,8 @@ struct Inp: View {
             .focused($focused)
             .padding(.horizontal, DesignTokens.s13)
             .padding(.vertical, DesignTokens.s8)
-            .frame(minHeight: 40)
+            .frame(minHeight: lines == nil ? 40 : 76,
+                   alignment: lines == nil ? .center : .topLeading)
             .background(RoundedRectangle(cornerRadius: DesignTokens.rInner,
                                          style: .continuous)
                 .fill(Design.surfaceHi))

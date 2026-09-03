@@ -14,6 +14,7 @@ struct TodayView: View {
     @State private var error = ""
     @State private var ticking: Set<String> = []
     @State private var settings = Fixtures.sheet == "settings"
+    @State private var research = false
     @Environment(\.openURL) private var openURL
 
     var body: some View {
@@ -22,12 +23,17 @@ struct TodayView: View {
             if let today {
                 sentence(today.sentence)
                 ForEach(today.goals) { goal in card(goal, day: plan?.day) }
+                // The research row is permanent: it sits under the goals, and
+                // under Status when there are none, so the watch is visible
+                // whether or not a paper moved anything.
+                if !today.goals.isEmpty { researchRow }
                 NavyCard(label: "Status",
                          number: Design.number(today.status.off),
                          glyph: today.status.off > 0,
                          title: title(today.status),
                          counts: counts(today.status),
                          tone: today.sentence.tone)
+                if today.goals.isEmpty { researchRow }
                 rail(today)
                 systems(today.systems)
                 if !NewForYou.pick(papers).isEmpty {
@@ -47,6 +53,11 @@ struct TodayView: View {
         }
         .task { await load() }
         .sheet(isPresented: $settings) { SettingsView() }
+        .sheet(isPresented: $research) { ResearchView() }
+    }
+
+    private var researchRow: some View {
+        ResearchRow(rows: papers) { research = true }
     }
 
     // MARK: - the parts
