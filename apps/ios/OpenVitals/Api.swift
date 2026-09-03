@@ -88,6 +88,33 @@ enum Api {
             .contains { isSessionCookie($0.name) }
     }
 
+    /// `-OVCookie <value>` puts one session cookie in the jar before the app
+    /// asks anything. DEBUG only, and compiled out of a release build.
+    ///
+    /// This is the screenshot seam: a run that has to photograph the real
+    /// screens against the local server needs a session, and a simulator
+    /// cannot be typed into from a script. The value is minted against the
+    /// local database and is never a secret this repository carries.
+    @discardableResult
+    static func adoptDebugSession() -> Bool {
+        #if DEBUG
+        guard let value = UserDefaults.standard.string(forKey: "OVCookie"),
+              !value.isEmpty, let host = baseURL.host,
+              let cookie = HTTPCookie(properties: [
+                .name: "better-auth.session_token",
+                .value: value,
+                .domain: host,
+                .path: "/",
+                .expires: Date().addingTimeInterval(7 * 86_400),
+              ]) else { return false }
+        HTTPCookieStorage.shared.setCookie(cookie)
+        trace("adopted a debug session cookie for \(host)")
+        return true
+        #else
+        return false
+        #endif
+    }
+
     static func clearCookies() {
         for cookie in cookies() { HTTPCookieStorage.shared.deleteCookie(cookie) }
     }
@@ -393,7 +420,12 @@ enum Api {
         #endif
     }
 
-    private static func send<T: Decodable>(_ req: URLRequest) async throws -> T {
+    /// `also` names the statuses whose body is still an answer rather than an
+    /// error. `POST /api/research` replies 429 with when it last looked, and
+    /// "it last looked on Aug 1" is an answer, not a failure.
+    private static func send<T: Decodable>(
+        _ req: URLRequest, also: Set<Int> = []
+    ) async throws -> T {
         let (data, response) = try await URLSession.shared.data(for: req)
         let status = (response as? HTTPURLResponse)?.statusCode ?? 0
         let where_ = "\(req.httpMethod ?? "GET") \(req.url?.path ?? "?") \(status)"
@@ -402,7 +434,7 @@ enum Api {
         var decodeError: Error?
         do {
             let decoded = try JSONDecoder().decode(T.self, from: data)
-            if (200..<300).contains(status) {
+            if (200..<300).contains(status) || also.contains(status) {
                 trace("\(where_) ok")
                 return decoded
             }
@@ -502,12 +534,171 @@ extension Api {
             }
         }
 
+        /// One goal, as Today prints it. Phase 34 section 1.
+        ///
+        /// `toGo` is the distance to the nearer edge of the target band in the
+        /// marker's own unit, 0 once the value is inside it and null when the
+        /// marker has never been measured. `onPace` is null when no projection
+        /// exists — a projection nobody made is not a "no" — so the card says
+        /// "no projection yet" rather than inventing a verdict.
+        struct Goal: Codable, Equatable, Identifiable {
+            struct Target: Codable, Equatable {
+                let low: Double?
+                let high: Double?
+                let due: String?
+            }
+
+            struct Move: Codable, Equatable, Identifiable {
+                let title: String
+                let done: Bool
+                var id: String { title }
+            }
+
+            let code: String
+            let name: String
+            let value: Double?
+            let unit: String?
+            let target: Target
+            let toGo: Double?
+            let onPace: Bool?
+            let paceLine: String?
+            let moves: [Move]
+
+            var id: String { code }
+
+            /// "70–100 mg/dL", "under 100 IU/mL", "above 50 ng/mL".
+            var band: String {
+                Design.band(low: target.low, high: target.high,
+                            unit: unit ?? "")
+            }
+
+            /// "31 mg/dL to go", or the word for already being inside it.
+            var toGoLine: String {
+                guard let toGo else { return "never measured" }
+                if toGo <= 0 { return "inside the target" }
+                return "\(Design.number(toGo))"
+                    + (unit.map { " \($0)" } ?? "") + " to go"
+            }
+
+            /// The state word the card wears, from the same four the design
+            /// system allows. A goal with no reading is "never measured".
+            var word: String {
+                guard let toGo else { return "never measured" }
+                if toGo <= 0 { return "optimal" }
+                return onPace == true ? "borderline" : "off"
+            }
+
+            /// What the pace says, in the words the marker page prints. With
+            /// no projection it says so; it never guesses.
+            var pace: String {
+                if toGo != nil, toGo! <= 0 { return "inside the target" }
+                guard onPace != nil else { return "no projection yet" }
+                return paceLine ?? (onPace == true ? "on pace" : "not on pace")
+            }
+        }
+
         let sentence: Sentence
+        let goals: [Goal]
         let status: Status
         let body: BodyCard
         let blood: BloodCard
         let plan: PlanCard
         let systems: [System]
+    }
+
+    /// `GET /api/markers?days=` — every marker with the history behind it.
+    /// Phase 34 section 2. The list is flat, already grouped and sorted the
+    /// way the web Markers tab is, and every row names its system, so the
+    /// phone groups it by reading the rows in order and never re-sorts.
+    struct Markers: Codable, Equatable {
+        struct Band: Codable, Equatable {
+            let low: Double?
+            let high: Double?
+
+            var range: ClosedRange<Double>? {
+                guard let low, let high, high > low else { return nil }
+                return low...high
+            }
+        }
+
+        struct Goal: Codable, Equatable {
+            let low: Double?
+            let high: Double?
+            let due: String?
+
+            var range: ClosedRange<Double>? {
+                guard let low, let high, high > low else { return nil }
+                return low...high
+            }
+        }
+
+        struct Point: Codable, Equatable, Identifiable {
+            let date: String
+            let value: Double
+            var id: String { date }
+        }
+
+        struct Marker: Codable, Equatable, Identifiable {
+            let code: String
+            let name: String
+            let system: String
+            let value: Double?
+            let unit: String?
+            let date: String
+            let word: String
+            let band: Band
+            let optimal: Band
+            let series: [Point]
+            let goal: Goal?
+
+            var id: String { code }
+
+            /// "lab · Aug 1 2026", the second line of the row.
+            var source: String {
+                var parts = ["lab", Design.day(date)]
+                if let goal {
+                    parts.append("goal "
+                        + Design.band(low: goal.low, high: goal.high, unit: "")
+                        + (goal.due.map { " by \(Design.day($0))" } ?? ""))
+                } else if let range = optimal.range {
+                    parts.append("optimal \(Design.number(range.lowerBound))"
+                                 + "–\(Design.number(range.upperBound))")
+                } else if let range = band.range {
+                    parts.append("normal \(Design.number(range.lowerBound))"
+                                 + "–\(Design.number(range.upperBound))")
+                }
+                return parts.joined(separator: " · ")
+            }
+
+            /// Whether this row answers the search box. Code and name both,
+            /// because "LDL" is a name and "ldl_cholesterol" is a code.
+            func matches(_ query: String) -> Bool {
+                let q = query.trimmingCharacters(in: .whitespaces).lowercased()
+                if q.isEmpty { return true }
+                return name.lowercased().contains(q)
+                    || code.lowercased().contains(q)
+                    || system.lowercased().contains(q)
+            }
+        }
+
+        let days: Int
+        let markers: [Marker]
+
+        /// The four filters the Markers tab has, with the counts it prints.
+        /// "no band" and "never measured" are in All and in nothing else,
+        /// because a number nothing can judge is not a state.
+        func count(_ filter: String) -> Int {
+            filter == "All" ? markers.count
+                : markers.filter { $0.word == filter.lowercased() }.count
+        }
+
+        func filtered(_ filter: String, query: String) -> [Marker] {
+            markers
+                .filter { filter == "All" || $0.word == filter.lowercased() }
+                .filter { $0.matches(query) }
+        }
+
+        static let filters = ["Off", "Borderline", "Optimal", "All"]
     }
 
     // MARK: GET /api/body
@@ -780,9 +971,54 @@ extension Api {
         let finding: String?
         let abstract: String?
         let moves: Moves?
-        let foundAt: String
+        /// Whether the intake has read it. False means the row was found and
+        /// nothing has graded it yet, which the row says out loud rather than
+        /// leaving an empty grade slot to be read as "no evidence".
+        let read: Bool
+        let foundAt: String?
         let seenAt: String?
         let dismissedAt: String?
+
+        /// "Prev Med · Aug 27 2026", the citation line.
+        var cite: [String] {
+            [journal, Design.day(publishedAt)].compactMap { $0 }
+                .filter { !$0.isEmpty }
+        }
+
+        /// What it found, or the honest line when nothing has read it.
+        var found: String {
+            if let finding, !finding.isEmpty { return finding }
+            // Why it is not read is one sentence at the top of the screen,
+            // not fifteen copies of itself down the list.
+            return read
+                ? "read, and nothing in it moved a number here"
+                : "found, not read yet"
+        }
+
+        /// A row nothing has read has nothing to say about what it moves, so
+        /// it says nothing rather than repeating itself.
+        var showsMoves: Bool { read }
+
+        /// What it moves: the thing it moves, named. A paper that moves
+        /// nothing says "nothing for you" in the same place, and one nothing
+        /// has read says that instead — the two are not the same answer.
+        var movesWord: String {
+            moves?.name ?? (read ? "nothing for you" : "not read yet")
+        }
+
+        /// The colour that word wears. Up is the coral, down is the green,
+        /// and nothing named is the quiet one.
+        var movesTone: String {
+            guard let moves else { return "none" }
+            return moves.direction == "up" ? "bad" : "ok"
+        }
+
+        /// The second line, when there is one to draw.
+        var movesLine: String {
+            guard let moves else { return "" }
+            let way = moves.direction == "up" ? "up" : "down"
+            return "\(way) \(Design.number(moves.delta))"
+        }
     }
 
     struct ResearchList: Codable, Equatable {
@@ -862,6 +1098,130 @@ extension Api {
         if let canned: ResearchList = Fixtures.canned("research") { return canned }
         return try await send(get("api/research",
                                   query: unseenOnly ? ["unseen": "1"] : [:]))
+    }
+
+    /// `GET /api/markers?days=` — every marker with the history behind it.
+    static func markers(days: Int = 365) async throws -> Markers {
+        if let canned: Markers = Fixtures.canned("markers") { return canned }
+        return try await send(get("api/markers", query: ["days": String(days)]))
+    }
+
+    private static func json(_ path: String, _ method: String,
+                             _ body: [String: Any]?) throws -> URLRequest {
+        var req = URLRequest(url: baseURL.appendingPathComponent(path))
+        req.httpMethod = method
+        req.setValue(userAgentTag, forHTTPHeaderField: "X-OpenVitals-Client")
+        if let body {
+            req.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            req.httpBody = try JSONSerialization.data(withJSONObject: body)
+        }
+        return req
+    }
+
+    /// What `POST /api/goals` gives back: the row it stored, minus the owner.
+    struct Goal: Codable, Equatable {
+        let metricCode: String
+        let targetLow: Double?
+        let targetHigh: Double?
+        let due: String?
+        let note: String?
+    }
+
+    /// One goal per metric, so this is an upsert — the same body the web's own
+    /// `GoalForm` posts, field for field.
+    static func setGoal(code: String, low: Double?, high: Double?,
+                        due: String?, note: String?) async throws -> Goal {
+        var body: [String: Any] = ["metricCode": code]
+        body["targetLow"] = low.map { $0 as Any } ?? NSNull()
+        body["targetHigh"] = high.map { $0 as Any } ?? NSNull()
+        if let due, !due.isEmpty { body["due"] = due }
+        if let note, !note.isEmpty { body["note"] = note }
+        return try await send(try json("api/goals", "POST", body))
+    }
+
+    struct Ok: Codable, Equatable { let ok: Bool? }
+
+    static func removeGoal(code: String) async throws -> Ok {
+        var components = URLComponents(
+            url: baseURL.appendingPathComponent("api/goals"),
+            resolvingAgainstBaseURL: false)
+        components?.queryItems = [URLQueryItem(name: "code", value: code)]
+        var req = URLRequest(url: components?.url
+                             ?? baseURL.appendingPathComponent("api/goals"))
+        req.httpMethod = "DELETE"
+        req.setValue(userAgentTag, forHTTPHeaderField: "X-OpenVitals-Client")
+        return try await send(req)
+    }
+
+    /// `PATCH /api/research/:id` — mark one paper seen when it is opened.
+    static func seePaper(id: String) async throws -> Paper {
+        try await send(try json("api/research/\(id)", "PATCH", ["seen": true]))
+    }
+
+    /// What `POST /api/research` says. A condition inside its ninety-day
+    /// window is not re-read, and the reply says when it last was rather than
+    /// pretending it ran.
+    struct ResearchRun: Codable, Equatable {
+        let ok: Bool?
+        let cooldown: Bool?
+        let lastRun: String?
+        /// The day the search window opened at, which is either the last run
+        /// or the ninety-day floor, whichever is later.
+        let since: String?
+        let conditionId: String?
+        let found: Int?
+        let stored: Int?
+        let moved: Int?
+        let error: String?
+    }
+
+    static func researchNow(conditionId: String) async throws -> ResearchRun {
+        try await send(try json("api/research", "POST",
+                                ["conditionId": conditionId]), also: [429])
+    }
+
+    /// What `POST /api/compose` says back. This is the route the web composer
+    /// posts words to; it takes text on its own, with no photograph.
+    struct Composed: Codable, Equatable {
+        let id: String?
+        let reply: String?
+        let chips: [Chip]?
+        let error: String?
+    }
+
+    /// Words, on their own. `draft: true` reads them and writes nothing.
+    static func compose(text: String, draft: Bool = false) async throws
+        -> Composed {
+        try await send(try json("api/compose", "POST",
+                                ["text": text, "draft": draft]))
+    }
+
+    /// A question, not a statement: the same split `openingMode` makes on the
+    /// web, so what the button says and what the server does agree.
+    struct Asked: Codable, Equatable {
+        let answer: String?
+        let error: String?
+    }
+
+    static func ask(_ question: String) async throws -> Asked {
+        try await send(try json("api/ask", "POST",
+                                ["action": "ask", "q": question]))
+    }
+
+    /// A question mark, or one of the words a question starts with.
+    /// `lib/ask-intent.ts` `askIntent`, ported.
+    static func isQuestion(_ text: String) -> Bool {
+        let q = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        if q.isEmpty { return false }
+        if q.contains("?") { return true }
+        let openers = ["how", "what", "whats", "why", "should", "shall", "can",
+                       "could", "would", "will", "is", "are", "am", "do",
+                       "does", "did", "when", "where", "which", "who", "whom",
+                       "whose", "tell", "explain", "help"]
+        let first = q.lowercased()
+            .split(whereSeparator: { !$0.isLetter && $0 != "\u{2019}" })
+            .first.map(String.init) ?? ""
+        return openers.contains(first)
     }
 
     /// Today, as `YYYY-MM-DD`, in the phone's own zone.

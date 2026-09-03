@@ -28,7 +28,7 @@ final class ContractTests: XCTestCase {
 
     /// The eight files the contract needs, and the one place that lists them.
     static let names = ["today", "body", "plan-today", "habits", "meals",
-                        "meal", "genome", "research"]
+                        "meal", "genome", "research", "markers"]
 
     func testEveryEndpointHasAFixture() {
         for name in Self.names {
@@ -109,6 +109,256 @@ final class ContractTests: XCTestCase {
         XCTAssertNil(blank.value)
         XCTAssertNil(blank.unit)
         XCTAssertNil(blank.reading)
+    }
+
+    // MARK: - GET /api/today, the goals block (phase 34 section 1)
+
+    /// Every goal is a target with a distance to it, and the block is empty
+    /// rather than fabricated when nothing is aimed at anything.
+    func testTheGoalsBlockDecodes() throws {
+        let today = try decode("today", as: Api.Today.self)
+        for goal in today.goals {
+            XCTAssertFalse(goal.code.isEmpty)
+            XCTAssertFalse(goal.name.isEmpty)
+            XCTAssertTrue(goal.target.low != nil || goal.target.high != nil,
+                          goal.code)
+            XCTAssertFalse(goal.band.isEmpty, goal.code)
+            for move in goal.moves { XCTAssertFalse(move.title.isEmpty) }
+        }
+    }
+
+    /// The owner's account has one goal on file: LDL 70–100 by Dec 1 2026,
+    /// 131 today, so 31 mg/dL to go and no projection behind it.
+    func testTheOwnersOneGoalReadsAsItsOwnNumbers() throws {
+        let today = try decode("today", as: Api.Today.self)
+        let goal = try XCTUnwrap(today.goals.first { $0.code == "ldl_cholesterol" })
+        XCTAssertEqual(goal.value, 131)
+        XCTAssertEqual(goal.target.low, 70)
+        XCTAssertEqual(goal.target.high, 100)
+        XCTAssertEqual(goal.toGo, 31)
+        XCTAssertEqual(goal.band, "70–100 mg/dL")
+        XCTAssertEqual(goal.toGoLine, "31 mg/dL to go")
+        XCTAssertEqual(goal.word, "off")
+    }
+
+    /// No projection is not a "no": the card says so in words rather than
+    /// printing a verdict nobody computed.
+    func testAGoalWithNoProjectionSaysSo() throws {
+        let today = try decode("today", as: Api.Today.self)
+        let goal = try XCTUnwrap(today.goals.first { $0.onPace == nil })
+        XCTAssertNil(goal.paceLine)
+        XCTAssertEqual(goal.pace, "no projection yet")
+    }
+
+    /// The sentence is the goals sentence when there are goals, and the
+    /// ledger's own sentence when there are none. Either way it is one of the
+    /// four tones and it never says sick.
+    func testTheSentenceLeadsWithWhatIsBeingMoved() throws {
+        let today = try decode("today", as: Api.Today.self)
+        XCTAssertTrue(["ok", "warn", "bad", "none"].contains(today.sentence.tone))
+        if today.goals.isEmpty {
+            XCTAssertFalse(today.sentence.head.contains("sick"))
+        } else {
+            XCTAssertTrue(today.sentence.head.contains("moving"),
+                          today.sentence.head)
+            XCTAssertTrue(today.goals.allSatisfy {
+                today.sentence.tail.contains($0.name)
+            }, today.sentence.tail)
+        }
+    }
+
+    /// Where the value and the target sit on one track, on the web's own
+    /// scale. A value outside the band is never pinned to the edge.
+    func testTheGoalRulerPutsTheValueAndTheTargetOnOneTrack() throws {
+        let today = try decode("today", as: Api.Today.self)
+        let goal = try XCTUnwrap(today.goals.first)
+        let scale = TodayView.scale(goal)
+        let band = try XCTUnwrap(scale.band)
+        XCTAssertGreaterThan(scale.at, band.upperBound, "131 is over 100")
+        XCTAssertLessThan(scale.at, 1)
+        XCTAssertGreaterThan(band.lowerBound, 0)
+    }
+
+    // MARK: - GET /api/markers (phase 34 section 2)
+
+    func testMarkersDecode() throws {
+        let markers = try decode("markers", as: Api.Markers.self)
+        XCTAssertEqual(markers.days, 365)
+        XCTAssertGreaterThan(markers.markers.count, 100)
+        let words = Set(["off", "borderline", "optimal", "no band",
+                         "never measured"])
+        for marker in markers.markers {
+            XCTAssertTrue(words.contains(marker.word), marker.word)
+            XCTAssertFalse(marker.code.isEmpty)
+            XCTAssertFalse(marker.name.isEmpty)
+            XCTAssertFalse(marker.system.isEmpty)
+            XCTAssertFalse(marker.date.isEmpty)
+        }
+    }
+
+    /// The three counters `/api/today` prints are the three filters Blood
+    /// offers, over the same rows.
+    func testTheStateFiltersCountWhatTodayCounts() throws {
+        let markers = try decode("markers", as: Api.Markers.self)
+        let today = try decode("today", as: Api.Today.self)
+        XCTAssertEqual(markers.count("Off"), today.status.off)
+        XCTAssertEqual(markers.count("Borderline"), today.status.borderline)
+        XCTAssertEqual(markers.count("Optimal"), today.status.optimal)
+        XCTAssertEqual(markers.count("All"), markers.markers.count)
+        // "no band" is in All and in nothing else: a number nothing can judge
+        // is not a state, so it never joins one of the three.
+        XCTAssertGreaterThan(markers.count("All"), today.status.counted)
+    }
+
+    /// The list arrives grouped: the rows of one system are contiguous, so a
+    /// client groups by reading in order and never re-sorts.
+    func testTheRowsOfOneSystemAreContiguous() throws {
+        let markers = try decode("markers", as: Api.Markers.self)
+        var seen: [String] = []
+        for marker in markers.markers where seen.last != marker.system {
+            XCTAssertFalse(seen.contains(marker.system), marker.system)
+            seen.append(marker.system)
+        }
+        XCTAssertGreaterThan(seen.count, 1)
+    }
+
+    /// The search box reads names, codes and systems.
+    func testTheSearchMatchesNameCodeAndSystem() throws {
+        let markers = try decode("markers", as: Api.Markers.self)
+        let ldl = try XCTUnwrap(markers.markers.first { $0.code == "ldl_cholesterol" })
+        XCTAssertTrue(ldl.matches("ldl"))
+        XCTAssertTrue(ldl.matches("LDL Chol"))
+        XCTAssertTrue(ldl.matches("ldl_chol"))
+        XCTAssertTrue(ldl.matches(""))
+        XCTAssertFalse(ldl.matches("ferritin"))
+    }
+
+    /// A marker with a goal says so on its own second line, and the ruler
+    /// carries the target band. The owner has one: LDL.
+    func testTheMarkerWithAGoalCarriesItsTargetBand() throws {
+        let markers = try decode("markers", as: Api.Markers.self)
+        let ldl = try XCTUnwrap(markers.markers.first { $0.goal != nil })
+        XCTAssertEqual(ldl.code, "ldl_cholesterol")
+        XCTAssertTrue(ldl.source.contains("goal 70–100"), ldl.source)
+        let ruler = try XCTUnwrap(ldl.ruler)
+        XCTAssertNotNil(ruler.target)
+        XCTAssertGreaterThanOrEqual(ruler.at, 0)
+        XCTAssertLessThanOrEqual(ruler.at, 1)
+    }
+
+    /// Nothing is drawn where there is nothing to draw: a marker with no band
+    /// and no goal has no ruler, and a marker with no value has none either.
+    func testAMarkerWithNothingToJudgeItHasNoRuler() throws {
+        let markers = try decode("markers", as: Api.Markers.self)
+        for marker in markers.markers where marker.ruler == nil {
+            let bounds = [marker.band.low, marker.band.high,
+                          marker.optimal.low, marker.optimal.high,
+                          marker.goal?.low, marker.goal?.high]
+                .compactMap { $0 }
+            XCTAssertTrue(marker.value == nil || bounds.isEmpty, marker.code)
+        }
+        let blank = try XCTUnwrap(markers.markers.first { $0.value == nil })
+        XCTAssertNil(blank.ruler)
+        XCTAssertTrue(blank.series.isEmpty || blank.series.count >= 1)
+    }
+
+    /// The web's own scale, ported: linear over the band and twice its width
+    /// either side, with everything past that in a short tail.
+    func testTheScaleKeepsTheBandInShape() {
+        // TPO antibodies 320 against a 0–34 band: the band is not squashed
+        // into the first tenth and the mark is not pinned to the edge.
+        let scale = MarkerScale(marks: [320, 412, 0, 34], bandLow: 0,
+                                bandHigh: 34)
+        let band = try? XCTUnwrap(scale.band(0, 34))
+        XCTAssertGreaterThan(band?.upperBound ?? 0, 0.15)
+        XCTAssertLessThan(scale.at(320), 1)
+        XCTAssertGreaterThan(scale.at(320), scale.at(34))
+        XCTAssertLessThan(scale.at(320), scale.at(412))
+    }
+
+    /// With no band there is one straight line and no tail at all.
+    func testAMarkerWithNoBandGetsAStraightScale() {
+        let scale = MarkerScale(marks: [10, 20, 30], bandLow: nil,
+                                bandHigh: nil)
+        XCTAssertEqual(scale.at(20), 0.5, accuracy: 0.001)
+        XCTAssertGreaterThan(scale.at(30), 0.8)
+        XCTAssertLessThan(scale.at(10), 0.2)
+    }
+
+    // ── the ends an axis prints ──────────────────────────────────────
+    //
+    // `components/ruler.tsx` `niceEnd` and `decimalsOf`, and the same six
+    // cases `components/range-scale.test.ts` states. The padded end of a
+    // scale is arithmetic, not a reading: the owner read "146.72 mg/dL" under
+    // a bar and took it for a second value.
+
+    func testAHighEndRoundsUpToANumberAPersonWouldSay() {
+        XCTAssertEqual(MarkerScale.niceEnd(146.72, true), 150)
+        XCTAssertEqual(MarkerScale.niceEnd(110.08, true), 120)
+        XCTAssertEqual(MarkerScale.niceEnd(243.04, true), 250)
+        XCTAssertEqual(MarkerScale.niceEnd(95.52, true), 100)
+    }
+
+    func testALowEndRoundsDownTheSameWay() {
+        XCTAssertEqual(MarkerScale.niceEnd(67.92, false), 60)
+        XCTAssertEqual(MarkerScale.niceEnd(38.48, false), 30)
+    }
+
+    func testTheRoundedEndStaysOutsideTheValueItCameFrom() {
+        for v in [146.72, 110.08, 243.04, 95.52, 0.037, 4.48, 9999] {
+            XCTAssertGreaterThanOrEqual(MarkerScale.niceEnd(v, true), v)
+            XCTAssertLessThanOrEqual(MarkerScale.niceEnd(v, false), v)
+        }
+    }
+
+    func testTheAxisFloorsAtZeroAndMirrorsBelowIt() {
+        XCTAssertEqual(MarkerScale.niceEnd(0, true), 0)
+        XCTAssertEqual(MarkerScale.niceEnd(0, false), 0)
+        XCTAssertEqual(MarkerScale.niceEnd(-3.2, false), -4)
+        XCTAssertEqual(MarkerScale.niceEnd(-3.2, true), -3)
+    }
+
+    func testTheAxisWorksAtEveryOrderOfMagnitude() {
+        XCTAssertEqual(MarkerScale.niceEnd(0.037, true), 0.04, accuracy: 1e-12)
+        XCTAssertEqual(MarkerScale.niceEnd(0.037, false), 0.03, accuracy: 1e-12)
+        XCTAssertEqual(MarkerScale.niceEnd(1460, true), 1500)
+        XCTAssertEqual(MarkerScale.niceEnd(0.0009, true), 0.001, accuracy: 1e-12)
+    }
+
+    func testTheAxisNeverPrintsMoreDecimalsThanTheReadingsUse() {
+        // mg/dL comes in whole numbers, so its axis does too.
+        XCTAssertEqual(MarkerScale.niceEnd(4.48, true, decimals: 0), 5)
+        XCTAssertEqual(MarkerScale.niceEnd(1.15, true, decimals: 0), 2)
+        XCTAssertEqual(MarkerScale.niceEnd(4.48, false, decimals: 0), 4)
+        // One decimal on the readings, one on the end.
+        XCTAssertEqual(MarkerScale.niceEnd(4.48, true, decimals: 1), 5)
+        XCTAssertEqual(MarkerScale.niceEnd(0.44, true, decimals: 1), 0.5,
+                       accuracy: 1e-12)
+    }
+
+    func testTheDecimalsComeOffTheMarkersOwnNumbers() {
+        XCTAssertEqual(MarkerScale.decimalsOf([320, 412, 34]), 0)
+        XCTAssertEqual(MarkerScale.decimalsOf([3.9, 0.4, 4.5]), 1)
+        XCTAssertEqual(MarkerScale.decimalsOf([16.29, 6, 18.4]), 2)
+        XCTAssertEqual(MarkerScale.decimalsOf([nil, nil, Double.nan]), 0)
+    }
+
+    /// What the ruler actually prints: no "146.7 mg/dL" under a bar.
+    func testTheRulerEndsAreSaidNumbers() throws {
+        let markers = try decode("markers", as: Api.Markers.self)
+        let ldl = try XCTUnwrap(markers.markers.first { $0.code == "ldl_cholesterol" })
+        let ruler = try XCTUnwrap(ldl.ruler)
+        XCTAssertEqual(ruler.low, "0")
+        XCTAssertEqual(ruler.high, "150 mg/dL")
+        let today = try decode("today", as: Api.Today.self)
+        let goal = try XCTUnwrap(today.goals.first)
+        XCTAssertEqual(TodayView.scale(goal).high, "150 mg/dL")
+    }
+
+    /// A concentration has no negative half, so the padded floor stops at 0.
+    func testTheFloorNeverGoesBelowZero() {
+        let scale = MarkerScale(marks: [1, 2], bandLow: nil, bandHigh: nil)
+        XCTAssertGreaterThanOrEqual(scale.lo, 0)
     }
 
     // MARK: - GET /api/body
@@ -401,6 +651,51 @@ final class ContractTests: XCTestCase {
         XCTAssertNil(ungraded.finding)
         XCTAssertNil(ungraded.moves)
         XCTAssertNotNil(ungraded.url)
+    }
+
+    /// `read` is the phase 34 field: false means found and not read, which the
+    /// row says out loud. An empty grade slot reads as "no evidence", and the
+    /// two are not the same answer.
+    func testAPaperThatNothingHasReadSaysSo() throws {
+        let list = try decode("research", as: Api.ResearchList.self)
+        let unread = try XCTUnwrap(list.rows.first { !$0.read })
+        XCTAssertNil(unread.grade)
+        XCTAssertNil(unread.finding)
+        XCTAssertEqual(unread.found, "found, not read yet")
+        XCTAssertFalse(unread.showsMoves)
+        XCTAssertEqual(unread.movesLine, "")
+        XCTAssertFalse(unread.cite.isEmpty)
+    }
+
+    /// `read` is exactly "a grade or a finding is on file", which is what the
+    /// web computes. Nothing on the phone re-derives it from anything else.
+    func testReadMeansAGradeOrAFindingIsOnFile() throws {
+        let list = try decode("research", as: Api.ResearchList.self)
+        for paper in list.rows {
+            XCTAssertEqual(paper.read,
+                           paper.grade != nil || paper.finding != nil,
+                           paper.id)
+        }
+    }
+
+    /// "New for you" is hidden when nothing moved anything, which is what this
+    /// account looks like today: fifteen rows, none of them read.
+    func testNewForYouIsEmptyWhenNothingMovedAnything() throws {
+        let list = try decode("research", as: Api.ResearchList.self)
+        XCTAssertEqual(list.rows.filter { $0.moves != nil }.count,
+                       NewForYou.pick(list.rows).count)
+        XCTAssertLessThanOrEqual(NewForYou.pick(list.rows).count, 3)
+    }
+
+    /// A question goes to `/api/ask` and a statement to `/api/compose`, the
+    /// same split `lib/ask-intent.ts` makes on the web.
+    func testTheComposerTellsAQuestionFromAStatement() {
+        XCTAssertTrue(Api.isQuestion("how do I lower my LDL?"))
+        XCTAssertTrue(Api.isQuestion("What should my fasting insulin be"))
+        XCTAssertTrue(Api.isQuestion("ferritin?"))
+        XCTAssertFalse(Api.isQuestion("I feel tired since Monday"))
+        XCTAssertFalse(Api.isQuestion("took 200 µg of selenium"))
+        XCTAssertFalse(Api.isQuestion(""))
     }
 
     // MARK: - the compiled copies

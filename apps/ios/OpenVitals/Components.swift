@@ -313,13 +313,17 @@ struct StateWord: View {
     let word: String
     var dot = false
     var triangle = false
+    /// When the word is not one of the four — "Hashimoto's" on a paper row —
+    /// the tone says which colour it wears.
+    var tone: String?
 
     var body: some View {
         HStack(spacing: DesignTokens.s5) {
             if dot { StateDot(word: word) }
             Text(word)
                 .ovType(.sm)
-                .foregroundStyle(Design.colour(forWord: word))
+                .foregroundStyle(tone.map { Design.colour(forTone: $0) }
+                                 ?? Design.colour(forWord: word))
             if triangle, Design.isOff(word) { Triangle() }
         }
         .accessibilityElement(children: .combine)
@@ -647,6 +651,13 @@ struct MarkerRow: View {
     let value: String
     var unit: String?
     let word: String
+    /// `grid-template-columns: minmax(0, 1fr) 96px auto 76px` — the second
+    /// track. The phone's row is 364 pt, so the slot is 64 by 20 rather than
+    /// the page's 96 by 26; it is a fixed slot either way, so the line can
+    /// never run over the name or the value.
+    var spark: [Double]?
+
+    static let sparkSlot = CGSize(width: 64, height: 20)
 
     var body: some View {
         HStack(alignment: .center, spacing: DesignTokens.s13) {
@@ -659,6 +670,10 @@ struct MarkerRow: View {
             // `grid-template-columns: 1fr auto auto` — the name column takes
             // what is left, and a Spacer beside it would take half of that.
             .frame(maxWidth: .infinity, alignment: .leading)
+            if let spark {
+                Sparkline(values: spark, width: Self.sparkSlot.width,
+                          height: Self.sparkSlot.height)
+            }
             HStack(alignment: .firstTextBaseline, spacing: DesignTokens.s3) {
                 Text(value)
                     .ovType(.lg, weight: .light, mono: true)
@@ -781,7 +796,15 @@ struct PaperRow: View {
     var grade: String?
     let found: String
     let movesWord: String
-    let moves: String
+    var movesTone: String?
+    var moves = ""
+    /// A paper nothing has read says only that; the "moves →" line would be a
+    /// second copy of the same sentence.
+    var showsMoves = true
+    /// `research.html`'s 390 frame drops the two buttons — "the Open and
+    /// Discuss buttons move to a long-press menu" — so the phone's row is the
+    /// row without them and the whole row is the tap target.
+    var actions = true
     var open: (() -> Void)?
     var discuss: (() -> Void)?
 
@@ -808,18 +831,25 @@ struct PaperRow: View {
                 Text(found).ovType(.sm, leading: 1.6)
                     .foregroundStyle(Design.ink2)
                     .fixedSize(horizontal: false, vertical: true)
-                HStack(alignment: .firstTextBaseline, spacing: DesignTokens.s8) {
-                    Text("moves →").ovType(.sm, mono: true)
-                        .foregroundStyle(Design.ink3)
-                    StateWord(word: movesWord)
+                if showsMoves {
+                    HStack(alignment: .firstTextBaseline,
+                           spacing: DesignTokens.s8) {
+                        Text("moves →").ovType(.sm, mono: true)
+                            .foregroundStyle(Design.ink3)
+                        StateWord(word: movesWord, tone: movesTone)
+                    }
                 }
-                Text(moves).ovType(.sm).foregroundStyle(Design.ink2)
-                    .fixedSize(horizontal: false, vertical: true)
-                HStack(spacing: DesignTokens.s5) {
-                    Button("Open") { open?() }
-                        .buttonStyle(.ov(.quiet, small: true))
-                    Button("Discuss") { discuss?() }
-                        .buttonStyle(.ov(.text, small: true))
+                if !moves.isEmpty {
+                    Text(moves).ovType(.sm).foregroundStyle(Design.ink2)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                if actions {
+                    HStack(spacing: DesignTokens.s5) {
+                        Button("Open") { open?() }
+                            .buttonStyle(.ov(.quiet, small: true))
+                        Button("Discuss") { discuss?() }
+                            .buttonStyle(.ov(.text, small: true))
+                    }
                 }
             }
         }
@@ -994,6 +1024,8 @@ struct Strip30: View {
 }
 
 /// `.goalrow` — the target, where the value is now, and the bar between them.
+/// `grid-template-columns: minmax(0, 1fr) auto`, baseline aligned, with the
+/// 5 px progress bar spanning both columns under them.
 struct GoalRow: View {
     let goal: String
     let meta: String
@@ -1002,20 +1034,183 @@ struct GoalRow: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: DesignTokens.s5) {
-            Text(goal).ovType(.sm).foregroundStyle(Design.ink)
-                .fixedSize(horizontal: false, vertical: true)
-            Text(meta).ovType(.sm).foregroundStyle(Design.ink3)
-                .fixedSize(horizontal: false, vertical: true)
-            Text(target).ovType(.xs, mono: true).foregroundStyle(Design.ink2)
+            HStack(alignment: .firstTextBaseline, spacing: DesignTokens.s13) {
+                VStack(alignment: .leading, spacing: DesignTokens.s5) {
+                    Text(goal).ovType(.sm, weight: .semibold)
+                        .foregroundStyle(Design.ink)
+                        .fixedSize(horizontal: false, vertical: true)
+                    Text(meta).ovType(.sm).foregroundStyle(Design.ink3)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                Text(target).ovType(.sm, mono: true)
+                    .foregroundStyle(Design.ink2)
+                    .lineLimit(1)
+                    .fixedSize()
+            }
             GeometryReader { proxy in
                 ZStack(alignment: .leading) {
                     Capsule().fill(Design.track)
-                    Capsule().fill(Design.ink)
+                    Capsule().fill(Design.ok)
                         .frame(width: proxy.size.width * progress)
                 }
             }
-            .frame(height: 8)
+            .frame(height: 5)
         }
+    }
+}
+
+/// The goal card, phase 34 section 1: what this person is moving, how far it
+/// still has to go, and whether it is going to get there.
+///
+/// `.goalrow` says the same things in one line on the web; the phone has the
+/// room for the ruler, so the card is the row with the ruler under it and the
+/// adopted moves below that. Nothing here is invented: with no projection the
+/// pace line says "no projection yet" rather than a verdict nobody computed.
+struct GoalCard: View {
+    struct Move: Identifiable {
+        let id: String
+        let title: String
+        let done: Bool
+        var busy = false
+    }
+
+    let name: String
+    /// "131", the value as it stands.
+    let value: String
+    var unit: String?
+    /// "70–100 mg/dL", the band it is aimed at.
+    let target: String
+    /// "due Dec 1 2026 · 31 mg/dL to go"
+    let meta: String
+    let word: String
+    /// 0…1 along the ruler.
+    var at: Double = 0
+    var normal: ClosedRange<Double>?
+    var optimal: ClosedRange<Double>?
+    var band: ClosedRange<Double>?
+    var low = ""
+    var mid = ""
+    var high = ""
+    let pace: String
+    var moves: [Move] = []
+    var tick: ((Move) -> Void)?
+
+    var body: some View {
+        Panel(title: name, meta: word.uppercased()) {
+            HStack(alignment: .firstTextBaseline, spacing: DesignTokens.s8) {
+                Text(value)
+                    .ovType(.xl, weight: .light, mono: true, leading: 1.1)
+                    .ovTracking(-0.03, .xl)
+                    .foregroundStyle(Design.colour(forWord: word))
+                if let unit, !unit.isEmpty {
+                    Text(unit).ovType(.xs).foregroundStyle(Design.ink3)
+                }
+                Text("→").ovType(.sm, mono: true).foregroundStyle(Design.ink3)
+                Text(target).ovType(.sm, mono: true)
+                    .foregroundStyle(Design.ink)
+                    .fixedSize(horizontal: false, vertical: true)
+                Spacer(minLength: 0)
+            }
+            Ruler(at: at, normal: normal, optimal: optimal, target: band,
+                  word: word, low: low, mid: mid, high: high)
+            Text(meta).ovType(.sm).foregroundStyle(Design.ink2)
+                .fixedSize(horizontal: false, vertical: true)
+            Text(pace).ovType(.sm).foregroundStyle(Design.ink3)
+                .fixedSize(horizontal: false, vertical: true)
+            if !moves.isEmpty {
+                Hair()
+                VStack(alignment: .leading, spacing: DesignTokens.s8) {
+                    ForEach(moves) { move in
+                        Button { tick?(move) } label: {
+                            HStack(alignment: .top,
+                                   spacing: DesignTokens.s13) {
+                                TickBox(on: move.done)
+                                Text(move.title)
+                                    .ovType(.sm, leading: 1.45)
+                                    .foregroundStyle(move.done ? Design.ink2
+                                                     : Design.ink)
+                                    .fixedSize(horizontal: false,
+                                               vertical: true)
+                                Spacer(minLength: 0)
+                            }
+                        }
+                        .buttonStyle(.plain)
+                        .disabled(move.busy || tick == nil)
+                        .opacity(move.busy ? 0.45 : 1)
+                        .accessibilityLabel(move.title)
+                        .accessibilityValue(move.done ? "done" : "not done")
+                    }
+                }
+            }
+        }
+    }
+}
+
+/// `.filters` — one row of pills, the chosen one in ink. The state filter on
+/// Blood and the "moves something" filter on Research are the same control.
+/// It wraps rather than scrolling sideways: four state pills do not fit on
+/// 364 pt, and a filter a person has to scroll to find is a filter nobody
+/// uses.
+struct Filters: View {
+    let names: [String]
+    @Binding var chosen: String
+    var count: (String) -> Int
+
+    var body: some View {
+        Flow {
+            ForEach(names, id: \.self) { name in
+                Button { chosen = name } label: {
+                    Chip(quiet: chosen != name, ink: chosen == name) {
+                        Text(name)
+                        Text(Design.number(count(name)))
+                            .ovType(.xs, mono: true)
+                            .foregroundStyle(chosen == name
+                                             ? Design.canvas : Design.ink3)
+                    }
+                }
+                .buttonStyle(.plain)
+                .accessibilityAddTraits(chosen == name
+                                        ? [.isButton, .isSelected]
+                                        : .isButton)
+            }
+        }
+    }
+}
+
+/// `.searchbox` — the magnifier, one field, and the clear when it has words.
+struct SearchBox: View {
+    @Binding var text: String
+    var placeholder = "ferritin, TSH, LDL…"
+
+    var body: some View {
+        HStack(spacing: DesignTokens.s8) {
+            Image(systemName: "magnifyingglass")
+                .font(.system(size: 14))
+                .foregroundStyle(Design.ink3)
+            TextField(placeholder, text: $text)
+                .ovType(.sm)
+                .foregroundStyle(Design.ink)
+                .autocorrectionDisabled()
+                .textInputAutocapitalization(.never)
+            if !text.isEmpty {
+                Button { text = "" } label: {
+                    Image(systemName: "xmark.circle.fill")
+                        .font(.system(size: 14))
+                        .foregroundStyle(Design.ink3)
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("Clear the search")
+            }
+        }
+        .padding(.horizontal, DesignTokens.s13)
+        .frame(height: 40)
+        .background(RoundedRectangle(cornerRadius: DesignTokens.rInner,
+                                     style: .continuous)
+            .fill(Design.surfaceHi))
+        .overlay(RoundedRectangle(cornerRadius: DesignTokens.rInner,
+                                  style: .continuous)
+            .strokeBorder(Design.hair, lineWidth: Design.hairline))
     }
 }
 
@@ -1047,7 +1242,14 @@ struct Table: View {
     let rows: [[String]]
     /// Column indexes whose cells are numbers.
     var numeric: Set<Int> = []
+    /// A fixed width per column, or 0 for "take what is left". A date column
+    /// left to share the width evenly wraps "Apr 23 2026" onto two lines.
     var widths: [CGFloat]?
+
+    private func width(_ i: Int) -> CGFloat? {
+        guard let w = widths, i < w.count, w[i] > 0 else { return nil }
+        return w[i]
+    }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -1060,7 +1262,7 @@ struct Table: View {
                         .foregroundStyle(Design.ink3)
                         .padding(.horizontal, DesignTokens.s5)
                         .padding(.vertical, DesignTokens.s8)
-                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .track(width(i))
                 }
             }
             Rectangle().fill(Design.ink3).frame(height: Design.hairline)
@@ -1073,13 +1275,21 @@ struct Table: View {
                                              ? Design.ink : Design.ink2)
                             .padding(.horizontal, DesignTokens.s5)
                             .padding(.vertical, DesignTokens.s8)
-                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .track(width(i))
                             .fixedSize(horizontal: false, vertical: true)
                     }
                 }
                 Hair()
             }
         }
+    }
+}
+
+private extension View {
+    /// One CSS grid track: a fixed width, or the leftover share.
+    @ViewBuilder func track(_ width: CGFloat?) -> some View {
+        if let width { frame(width: width, alignment: .leading) }
+        else { frame(maxWidth: .infinity, alignment: .leading) }
     }
 }
 
@@ -1270,6 +1480,9 @@ struct Ruler: View {
     let at: Double
     var normal: ClosedRange<Double>?
     var optimal: ClosedRange<Double>?
+    /// `.band.pace` — the goal band, hatched rather than filled, so a target
+    /// nobody has reached yet cannot be mistaken for a measured band.
+    var target: ClosedRange<Double>?
     var ghost: Double?
     let word: String
     let low: String
@@ -1287,6 +1500,12 @@ struct Ruler: View {
                     }
                     if let optimal {
                         band(optimal, w, Design.ok.opacity(0.36))
+                    }
+                    if let target {
+                        Hatch()
+                            .frame(width: max(0, w * (target.upperBound
+                                                      - target.lowerBound)))
+                            .offset(x: w * target.lowerBound)
                     }
                     if let ghost {
                         Rectangle().fill(Design.ink3.opacity(0.5))
@@ -1320,6 +1539,38 @@ struct Ruler: View {
     }
 }
 
+/// `.band.pace` / `.hist-band.pace` — `repeating-linear-gradient(118deg, ok
+/// 46%, transparent 4px 9px)`. A target is drawn, never filled: the hatch is
+/// what says "not measured, aimed at".
+struct Hatch: View {
+    var colour: Color = Design.ok
+    var opacity: Double = 0.46
+    /// The stripe and the gap, in points, as the CSS states them.
+    var on: CGFloat = 4
+    var off: CGFloat = 5
+
+    var body: some View {
+        Canvas { context, size in
+            let step = on + off
+            // 118 degrees from the x axis, which leans the stripe back.
+            let lean = CGFloat(tan((118 - 90) * Double.pi / 180))
+            let reach = size.height * abs(lean)
+            var x = -reach
+            while x < size.width + reach {
+                var stripe = Path()
+                stripe.move(to: CGPoint(x: x, y: size.height))
+                stripe.addLine(to: CGPoint(x: x + lean * size.height, y: 0))
+                stripe.addLine(to: CGPoint(x: x + lean * size.height + on, y: 0))
+                stripe.addLine(to: CGPoint(x: x + on, y: size.height))
+                stripe.closeSubpath()
+                context.fill(stripe, with: .color(colour.opacity(opacity)))
+                x += step
+            }
+        }
+        .accessibilityHidden(true)
+    }
+}
+
 /// `.spark` — 96 by 26, a 1.5 px `--ink-3` polyline with the last point marked
 /// in ink. Drawn only where a daily series exists: never a fake flat line.
 struct Sparkline: View {
@@ -1329,8 +1580,16 @@ struct Sparkline: View {
 
     var body: some View {
         Canvas { context, size in
-            guard values.count > 1,
-                  let low = values.min(), let high = values.max() else { return }
+            guard let low = values.min(), let high = values.max() else { return }
+            // One draw is one dot: a line needs two points, and a flat line
+            // through one reading is a line nobody measured.
+            guard values.count > 1 else {
+                context.fill(Path(CGRect(x: size.width / 2 - 1.5,
+                                         y: size.height / 2 - 1.5,
+                                         width: 3, height: 3)),
+                             with: .color(Design.ink))
+                return
+            }
             let span = max(high - low, 0.0001)
             var path = Path()
             for (i, value) in values.enumerated() {
@@ -1370,6 +1629,9 @@ struct HistoryChart: View {
     let unit: String
     let points: [Point]
     var normal: ClosedRange<Double>?
+    /// `.hist-band.pace` — a goal is hatched, never filled: a target is aimed
+    /// at and never measured, and the two must not look alike.
+    var hatched = false
     var mini = true
 
     private var plotHeight: CGFloat { mini ? 130 : 210 }
@@ -1382,10 +1644,16 @@ struct HistoryChart: View {
                     let size = proxy.size
                     ZStack(alignment: .topLeading) {
                         if let normal {
-                            Rectangle().fill(Design.ok.opacity(0.16))
-                                .frame(height: size.height
-                                       * (normal.upperBound - normal.lowerBound))
-                                .offset(y: size.height * normal.lowerBound)
+                            Group {
+                                if hatched {
+                                    Hatch(opacity: 0.34)
+                                } else {
+                                    Rectangle().fill(Design.ok.opacity(0.16))
+                                }
+                            }
+                            .frame(height: size.height
+                                   * (normal.upperBound - normal.lowerBound))
+                            .offset(y: size.height * normal.lowerBound)
                         }
                         Path { path in
                             for (i, point) in points.enumerated()
@@ -1604,6 +1872,8 @@ struct Lede: View {
 struct SubHead: View {
     let title: String
     var note: String?
+    /// `margin-top` — 34 on a page, 0 on the first group of a list.
+    var top: CGFloat = DesignTokens.s34
 
     var body: some View {
         VStack(alignment: .leading, spacing: DesignTokens.s5) {
@@ -1618,7 +1888,7 @@ struct SubHead: View {
             }
             Hair()
         }
-        .padding(.top, DesignTokens.s34)
+        .padding(.top, top)
         .padding(.bottom, DesignTokens.s13)
     }
 }

@@ -6,13 +6,18 @@ import UIKit
 /// number that came off a photograph. A meal logged in Health carries no
 /// "est.", because a barcode or a weighed entry is not a guess.
 struct MealsView: View {
+    /// Set when Meals is opened from Body, which is where it lives now: the
+    /// tab bar is Today · Blood · + · Body · Plan and Meals is a section.
+    var close: (() -> Void)?
     @State private var day: Api.MealDay?
     @State private var error = ""
     @State private var pick: PhotosPickerItem?
     @State private var busy = false
 
     var body: some View {
-        Screen(title: "Meals", refresh: { await load() }) {
+        Screen(title: "Meals", icon: close == nil ? nil : "xmark",
+               iconLabel: "Close", action: close,
+               refresh: { await load() }) {
             if let day {
                 ForEach(day.meals) { meal in
                     MealCard(meal: meal)

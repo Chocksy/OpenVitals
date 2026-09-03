@@ -1,18 +1,27 @@
 import SwiftUI
 
-/// Today, native. The sentence, the one navy card, the rail of three, and the
-/// twelve systems as chips. No web view, no cookie harvesting, no bridge.
+/// Today, native. Goals first: the sentence names what this person is moving,
+/// then one card per goal, then Status, the rail of three, the systems, and
+/// the research that moved something.
+///
+/// With no goal on file the sentence falls back to the loudest system —
+/// "Thyroid is the one to move first" — and the goal cards are simply not
+/// there. Nothing is invented: an empty `goals` array draws no card.
 struct TodayView: View {
     @State private var today: Api.Today?
     @State private var plan: Api.PlanDay?
+    @State private var papers: [Api.Paper] = []
     @State private var error = ""
+    @State private var ticking: Set<String> = []
     @State private var settings = Fixtures.sheet == "settings"
+    @Environment(\.openURL) private var openURL
 
     var body: some View {
         Screen(title: "Today", icon: "gearshape", iconLabel: "Settings",
                action: { settings = true }, refresh: { await load() }) {
             if let today {
                 sentence(today.sentence)
+                ForEach(today.goals) { goal in card(goal, day: plan?.day) }
                 NavyCard(label: "Status",
                          number: Design.number(today.status.off),
                          glyph: today.status.off > 0,
@@ -21,6 +30,13 @@ struct TodayView: View {
                          tone: today.sentence.tone)
                 rail(today)
                 systems(today.systems)
+                if !NewForYou.pick(papers).isEmpty {
+                    NewForYou(rows: NewForYou.pick(papers)) { paper in
+                        if let url = paper.url.flatMap(URL.init(string:)) {
+                            openURL(url)
+                        }
+                    }
+                }
             } else if error.isEmpty {
                 Panel { Text("Asking the server…").ovType(.sm).foregroundStyle(Design.ink3) }
             } else {
@@ -40,6 +56,51 @@ struct TodayView: View {
             + Text(" ") + Text(s.tail).foregroundStyle(Design.ink2))
             .ovType(.md)
             .fixedSize(horizontal: false, vertical: true)
+    }
+
+    /// One goal: the value, the band it is aimed at, the ruler with the target
+    /// hatched, how far it still has to go, what the pace says and the adopted
+    /// moves with today's ticks.
+    private func card(_ goal: Api.Today.Goal, day: String?) -> some View {
+        let scale = Self.scale(goal)
+        return GoalCard(
+            name: goal.name,
+            value: Design.number(goal.value),
+            unit: goal.unit,
+            target: goal.band,
+            meta: [goal.target.due.map { "due \(Design.day($0))" },
+                   goal.toGoLine].compactMap { $0 }.joined(separator: " · "),
+            word: goal.word,
+            at: scale.at,
+            band: scale.band,
+            low: scale.low,
+            mid: goal.band,
+            high: scale.high,
+            pace: goal.pace,
+            moves: goal.moves.enumerated().map { i, move in
+                GoalCard.Move(id: "\(goal.code)|\(i)", title: move.title,
+                              done: move.done,
+                              busy: ticking.contains("\(goal.code)|\(i)"))
+            },
+            tick: { move in Task { await tick(goal, move) } })
+    }
+
+    /// Where the value and the target sit on one track. The scale is the web's
+    /// own (`MarkerScale`), read against the target band, which is the only
+    /// band `/api/today` carries for a goal.
+    static func scale(_ goal: Api.Today.Goal)
+        -> (at: Double, band: ClosedRange<Double>?, low: String, high: String) {
+        let marks = [goal.value, goal.target.low, goal.target.high]
+            .compactMap { $0 }
+        guard !marks.isEmpty else { return (0, nil, "", "") }
+        let scale = MarkerScale(marks: marks, bandLow: goal.target.low,
+                                bandHigh: goal.target.high)
+        let ends = scale.ends(marks.map { Optional($0) })
+        return (goal.value.map { scale.at($0) } ?? 0,
+                scale.band(goal.target.low, goal.target.high),
+                ends.low,
+                "\(ends.high) \(goal.unit ?? "")"
+                    .trimmingCharacters(in: .whitespaces))
     }
 
     private func title(_ s: Api.Today.Status) -> String {
@@ -104,9 +165,25 @@ struct TodayView: View {
         } catch {
             self.error = error.localizedDescription
         }
-        // The plan is the card's second line and nothing else. If it fails the
-        // card still stands, with one fewer clause.
+        // The plan is the card's second line and the day a tick is written
+        // for; the research is one panel. If either fails the screen still
+        // stands, with one fewer block.
         plan = try? await Api.planToday()
+        papers = (try? await Api.research())?.rows ?? []
+    }
+
+    /// Ticking a move here is the same write as ticking it on Plan: one item,
+    /// one day, one boolean. The move carries the protocol item's title, so
+    /// the id comes from the plan's own row of the same name — a move with no
+    /// row on the plan today is shown and cannot be ticked.
+    private func tick(_ goal: Api.Today.Goal, _ move: GoalCard.Move) async {
+        guard let plan, let row = plan.rows.first(where: {
+            $0.title == move.title && $0.itemId != nil
+        }), let itemId = row.itemId else { return }
+        ticking.insert(move.id)
+        defer { ticking.remove(move.id) }
+        _ = try? await Api.tick(itemId: itemId, day: plan.day, done: !move.done)
+        await load()
     }
 }
 

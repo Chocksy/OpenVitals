@@ -13,7 +13,9 @@ struct CaptureView: View {
     @State private var caption = ""
     @State private var camera = false
     @State private var library = false
-    @State private var words = false
+    @State private var words = Fixtures.screen == "words"
+    @State private var feel = false
+    @State private var answer = ""
     @State private var busy = false
     @State private var note = ""
     @State private var result: Api.CaptureResult?
@@ -68,17 +70,24 @@ struct CaptureView: View {
             }
             .buttonStyle(.ov(.quiet, wide: true, leading: true))
 
-            Button { words = true; caption = "I feel " } label: {
+            Button { words = true; feel = true; caption = "I feel " } label: {
                 Label("Log how you feel", systemImage: "drop")
             }
             .buttonStyle(.ov(.quiet, wide: true, leading: true))
         }
     }
 
-    /// Words. `/api/capture` reads them with the photograph, so the sheet's
-    /// one ink button says Send and waits until there is something to send.
+    /// Words, on their own.
+    ///
+    /// `POST /api/compose` is the route the web composer posts text to
+    /// (`components/composer.tsx` `post`), and it takes `{ text }` with no
+    /// photograph: `draft: true` reads the words and writes nothing, and the
+    /// same call without it writes the chips it read. A question goes to
+    /// `POST /api/ask` instead, which is the same split `openingMode` makes on
+    /// the web, so what the button says and what the server does agree.
     private var note0: some View {
-        Panel(title: "In your words", meta: "rides with the photo") {
+        Panel(title: feel ? "How you feel" : "In your words",
+              meta: Api.isQuestion(caption) ? "a question" : "a statement") {
             TextField("What is it?", text: $caption, axis: .vertical)
                 .ovType(.sm)
                 .lineLimit(2...5)
@@ -87,7 +96,10 @@ struct CaptureView: View {
                 .clipShape(RoundedRectangle(cornerRadius: Design.rInner,
                                             style: .continuous))
             HStack(spacing: DesignTokens.s13) {
-                Button(busy ? "Sending…" : "Send") { Task { await read() } }
+                Button(busy ? "Sending…"
+                       : (Api.isQuestion(caption) ? "Ask" : "Send")) {
+                    Task { await send() }
+                }
                     .buttonStyle(.ovInk)
                     .disabled(!canSend)
                     .opacity(canSend ? 1 : 0.45)
@@ -95,18 +107,56 @@ struct CaptureView: View {
                     .buttonStyle(.ovText)
                 Spacer(minLength: 0)
             }
-            Caption(canSend
-                    ? "The words go with the photograph in one call."
-                    : "Words ride with a photograph: /api/capture reads the "
-                    + "two together, and there is no endpoint for words on "
-                    + "their own yet. Add a photo and Send wakes up.")
+            if !answer.isEmpty {
+                Hair()
+                Text(answer).ovType(.sm, leading: 1.6)
+                    .foregroundStyle(Design.ink2)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            Caption(image == nil
+                    ? "Words on their own go to /api/compose, the same route "
+                    + "the website's composer posts to. A question goes to "
+                    + "/api/ask instead."
+                    : "The words go with the photograph in one call.")
         }
     }
 
-    /// Words alone have nowhere to go, so Send waits for the photo.
+    /// Two characters is the floor `/api/ask` itself enforces; `/api/compose`
+    /// reads anything, and an empty box is not words.
     private var canSend: Bool {
-        !busy && image != nil
-            && !caption.trimmingCharacters(in: .whitespaces).isEmpty
+        !busy && caption.trimmingCharacters(in: .whitespaces).count >= 2
+    }
+
+    /// A question is asked, a statement is composed, and a photograph on the
+    /// table takes precedence because `/api/capture` reads the two together.
+    private func send() async {
+        if image != nil { await read(); return }
+        guard Api.signedIn else { signIn = true; return }
+        busy = true
+        defer { busy = false }
+        let text = caption.trimmingCharacters(in: .whitespaces)
+        do {
+            if Api.isQuestion(text) {
+                let said = try await Api.ask(text)
+                answer = said.answer ?? said.error ?? "No answer came back."
+            } else {
+                // A post writes: `/api/compose` reads the words itself when
+                // the client sends none, so the chips that come back are
+                // already stored and there is nothing left to confirm.
+                let posted = try await Api.compose(text: text)
+                let read = posted.chips ?? []
+                answer = posted.reply ?? posted.error
+                    ?? "Written · \(Design.plural(read.count, "chip", "chips"))"
+                if posted.error == nil {
+                    note = "Written · "
+                        + (read.isEmpty
+                           ? "nothing in that was a fact this app stores"
+                           : read.map(\.label).joined(separator: ", "))
+                }
+            }
+        } catch {
+            answer = error.localizedDescription
+        }
     }
 
     /// What the sheet says after a write. It stays open, shows the receipt,

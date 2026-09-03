@@ -13,10 +13,14 @@ The first run also needs the browser itself:
 
 What is rendered, all at 3x:
 
-  * the seven phone frames — Today, Body, Plan, Meals, Capture, Settings
-    from `ios.html`, and Sign in from `login.html`. The page is laid out at
+  * the nine phone frames — Today, Body, Plan, Meals, Capture, Settings from
+    `ios.html`, Sign in from `login.html`, and phase 34's two: Blood from
+    `blood.html` and Research from `research.html`. The page is laid out at
     1440 px so `.phone` keeps its real 390 px width, and the clip is the
     phone element itself.
+  * the goal row from `system.html` section 08, at the 1440 px the page is
+    designed for: its three columns overflow at 390 and the render is
+    unreadable, and a reference nobody can read is not a reference.
   * sections 03–15 of `system.html`, the element list the gallery mirrors,
     laid out at 390 px so the section is the width the phone is.
 
@@ -45,11 +49,18 @@ PHONES = [
     ("capture", "ios.html", ".phone", 4, 1440),
     ("settings", "ios.html", ".phone", 5, 1440),
     ("signin", "login.html", ".phone", 0, 1440),
+    # Phase 34: Blood, one marker and Research, each the 390 px frame of its
+    # own page.
+    ("blood", "blood.html", ".phone", 0, 1440),
+    ("research", "research.html", ".phone", 0, 1440),
 ]
 
 SECTIONS = [
     (f"gallery-s{n:02d}", "system.html", f"section#s{n:02d}", 0, 390)
     for n in range(3, 16)
+] + [
+    # The goal row on its own, which is the shape `GoalCard` is built from.
+    ("goalrow", "system.html", "section#s08 .rowlist:has(.goalrow)", 0, 1440),
 ]
 
 DARK = """() => {

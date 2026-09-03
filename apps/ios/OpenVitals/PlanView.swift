@@ -7,6 +7,8 @@ struct PlanView: View {
     @State private var plan: Api.PlanDay?
     @State private var error = ""
     @State private var saving: Set<String> = []
+    @State private var research = Fixtures.screen == "research"
+    @State private var papers: [Api.Paper] = []
 
     var body: some View {
         Screen(title: "Plan", refresh: { await load() }) {
@@ -29,6 +31,7 @@ struct PlanView: View {
                         }
                     }
                 }
+                researchPanel
                 Caption("Ticking a row here is the same write as ticking it on "
                         + "the web: one item, one day, one boolean.")
                 if !error.isEmpty {
@@ -43,6 +46,24 @@ struct PlanView: View {
             }
         }
         .task { await load() }
+        .sheet(isPresented: $research) { ResearchView() }
+    }
+
+    /// Research is reached from here, not from the tab bar: it is four
+    /// destinations plus the +, and a feed is not one of them.
+    @ViewBuilder private var researchPanel: some View {
+        if !papers.isEmpty {
+            Panel(title: "Research",
+                  meta: "\(Design.number(papers.count)) found · "
+                  + "\(Design.number(papers.filter { !$0.read }.count)) "
+                  + "not read yet") {
+                Caption(papers.first(where: { $0.moves != nil }).map {
+                    "The newest one that moves something: \($0.title)"
+                } ?? "Nothing found so far moves a number of yours.")
+                Button("Open research") { research = true }
+                    .buttonStyle(.ov(.quiet, small: true))
+            }
+        }
     }
 
     /// "Thursday Sep 3. Two of seven done."
@@ -59,6 +80,7 @@ struct PlanView: View {
         } catch {
             self.error = error.localizedDescription
         }
+        papers = (try? await Api.research())?.rows ?? []
     }
 
     /// Optimistic: the box fills, the write goes, and a failure puts it back

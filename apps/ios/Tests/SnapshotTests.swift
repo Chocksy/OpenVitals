@@ -146,6 +146,30 @@ final class SnapshotTests: XCTestCase {
               tolerance: Tolerance.settings)
     }
 
+    /// Phase 34: Blood and Research, each against the 390 frame of its own
+    /// mockup page.
+    func testBlood() {
+        check("blood", Mock.blood, width: Mock.width, dark: false,
+              tolerance: Tolerance.blood)
+        check("blood", Mock.blood, width: Mock.width, dark: true,
+              tolerance: Tolerance.blood)
+    }
+
+    func testResearch() {
+        check("research", Mock.research, width: Mock.width, dark: false,
+              tolerance: Tolerance.research)
+        check("research", Mock.research, width: Mock.width, dark: true,
+              tolerance: Tolerance.research)
+    }
+
+    /// The goal row, at the width `system.html` lays it out at.
+    func testGoalRow() {
+        check("goalrow", Mock.goalrow, width: Mock.goalWidth, dark: false,
+              tolerance: Tolerance.goalrow)
+        check("goalrow", Mock.goalrow, width: Mock.goalWidth, dark: true,
+              tolerance: Tolerance.goalrow)
+    }
+
     func testSignIn() {
         check("signin", Mock.signin, width: Mock.width, dark: false,
               tolerance: Tolerance.signin)
@@ -196,7 +220,7 @@ final class SnapshotTests: XCTestCase {
     }
 
     func testEveryScreenHasBothOfItsReferences() {
-        for name in Mock.names {
+        for name in Mock.names + ["goalrow"] {
             XCTAssertTrue(hasReference("\(name)-light"), "\(name)-light")
             XCTAssertTrue(hasReference("\(name)-dark"), "\(name)-dark")
         }
@@ -280,6 +304,19 @@ enum Tolerance {
     /// does not have, and the app carries a server disclosure the mockup does
     /// not. Everything under the head is offset by those rows.
     static let signin = 0.62
+    /// 32.26 % light, 29.10 % dark. The mockup's frame opens on a draw
+    /// timeline — five dated diamonds over an axis — which is a component the
+    /// app does not have and phase 34 did not ask for, so the render is 129 pt
+    /// shorter and every row under it is offset by that much.
+    static let blood = 0.34
+    /// 13.10 % light, 10.18 % dark. The same row with the same words; the
+    /// render is 27 pt shorter across two rows and the tab bar is four SF
+    /// Symbols against four lucide ones.
+    static let research = 0.14
+    /// 14.18 % light, 7.55 % dark. Five points taller than the reference: the
+    /// meta line wraps one word later in CoreText than in WebKit at 13 px
+    /// Geist, which is the same difference the Body caption carries.
+    static let goalrow = 0.16
 
     // ── the gallery ──────────────────────────────────────────────────
     //

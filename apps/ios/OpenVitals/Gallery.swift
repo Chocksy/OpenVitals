@@ -729,7 +729,11 @@ enum Mock {
     static let width: CGFloat = 390
 
     static let names = ["today", "body", "plan", "meals", "capture",
-                        "settings", "signin"]
+                        "settings", "signin", "blood", "research"]
+
+    /// The goal row is not a phone frame: it is one element of `system.html`
+    /// section 08, at the 1194 px it lays out at on the page it belongs to.
+    static let goalWidth: CGFloat = 1194
 
     @ViewBuilder
     static func screen(_ name: String) -> some View {
@@ -740,14 +744,32 @@ enum Mock {
         case "meals": meals
         case "capture": capture
         case "settings": settings
+        case "blood": blood
+        case "research": research
         default: signin
         }
     }
 
     /// `.phone` — 13 px of padding on the canvas, the head and the stack, and
     /// the tab bar 13 px under them.
+    /// `ios.html` draws Today · Body · + · Meals · Plan; `blood.html`,
+    /// `marker.html` and `research.html` draw Home · Body · + · Blood · Plan.
+    /// The mockups disagree with each other, so each frame is checked against
+    /// the bar its own page draws. The shipped bar is neither: phase 34 asked
+    /// for Today · Blood · + · Body · Plan, which is `Shell.tabs`.
+    static let iosBar: [(title: String, icon: String)] = [
+        ("Today", "house"), ("Body", "waveform.path.ecg"),
+        ("Meals", "fork.knife"), ("Plan", "calendar"),
+    ]
+
+    static let bloodBar: [(title: String, icon: String)] = [
+        ("Home", "house"), ("Body", "waveform.path.ecg"),
+        ("Blood", "drop"), ("Plan", "calendar"),
+    ]
+
     private static func phone<Content: View>(
         _ tab: Int, _ title: String, icon: String,
+        bar: [(title: String, icon: String)] = Mock.iosBar,
         @ViewBuilder _ content: () -> Content
     ) -> some View {
         VStack(spacing: 0) {
@@ -757,10 +779,7 @@ enum Mock {
                     content()
                 }
             }
-            TabBar(tab: .constant(tab),
-                   titles: [("Today", "house"), ("Body", "waveform.path.ecg"),
-                            ("Meals", "fork.knife"), ("Plan", "calendar")],
-                   add: {})
+            TabBar(tab: .constant(tab), titles: bar, add: {})
                 .padding(.top, DesignTokens.s13)
         }
         .padding(DesignTokens.s13)
@@ -988,6 +1007,92 @@ enum Mock {
                         + "silently dropped, and nothing about them is sent.")
             }
         }
+    }
+
+    // ── Blood ────────────────────────────────────────────────────────
+    //
+    // `blood.html` section 02. The draw timeline at the top of that frame is
+    // a component the app does not have and phase 34 did not ask for, so the
+    // screen opens on the filters.
+
+    static let bloodRows: [(String, String, String, String, String)] = [
+        ("TPO antibodies", "normal under 34", "320", "IU/mL", "off"),
+        ("Vitamin D", "optimal 40–80", "19", "ng/mL", "off"),
+        ("LDL cholesterol", "goal 70–100 by Dec 1", "131", "mg/dL", "off"),
+        ("ALT", "normal 0–33", "34", "U/L", "off"),
+    ]
+
+    static var blood: some View {
+        phone(2, "Blood", icon: "slider.horizontal.3", bar: bloodBar) {
+            Filters(names: ["Off", "Borderline", "All"],
+                    chosen: .constant("Off")) {
+                ["Off": 7, "Borderline": 19, "All": 52][$0] ?? 0
+            }
+            Panel {
+                VStack(alignment: .leading, spacing: DesignTokens.s13) {
+                    ForEach(bloodRows, id: \.0) { row in
+                        MarkerRow(name: row.0, source: row.1, value: row.2,
+                                  unit: row.3, word: row.4)
+                    }
+                }
+            }
+        }
+    }
+
+    // ── Research ─────────────────────────────────────────────────────
+
+    static var research: some View {
+        phone(0, "Research", icon: "magnifyingglass", bar: bloodBar) {
+            Filters(names: ["Moves something", "All"],
+                    chosen: .constant("Moves something")) {
+                $0 == "All" ? 4 : 1
+            }
+            Panel {
+                VStack(spacing: 0) {
+                    PaperRow(
+                        title: "Selenium lowers TPO antibodies in autoimmune "
+                        + "thyroiditis",
+                        cite: ["Gärtner", "JCEM", "2002"], grade: "● A",
+                        found: "−21 % against placebo over three months, "
+                        + "95 % CI −34 to −7. n = 36.",
+                        movesWord: "Hashimoto's", movesTone: "warn",
+                        actions: false)
+                        .padding(.bottom, DesignTokens.s13)
+                    Hair()
+                    PaperRow(
+                        title: "Thyroid autoimmunity and other autoimmune "
+                        + "conditions",
+                        cite: ["Wang", "2015"], grade: "● A",
+                        found: "Coeliac travels with thyroid autoimmunity, "
+                        + "OR 1.6 (1.2–2.1).",
+                        movesWord: "excluded by your HLA", movesTone: "ok",
+                        actions: false)
+                        .padding(.top, DesignTokens.s13)
+                }
+            }
+            Caption("The row stacks: title, then the citation line, then what "
+                    + "it found, then what it moves. The Open and Discuss "
+                    + "buttons move to a long-press menu.")
+        }
+    }
+
+    // ── the goal row ─────────────────────────────────────────────────
+
+    static var goalrow: some View {
+        RowList(count: 2) { i in
+            i == 0
+                ? GoalRow(goal: "TPO antibodies under 100 IU/mL",
+                          meta: "from Selenium 200 µg · due Feb 16 2027 · "
+                          + "29 % of the way from 412 to 100",
+                          target: "412 → 320 → target 100", progress: 0.29)
+                : GoalRow(goal: "Ferritin above 50 ng/mL",
+                          meta: "from Iron 60 mg alternate days · due "
+                          + "Nov 24 2026 · one draw only, so the bar is the "
+                          + "value against the floor",
+                          target: "22 of 50 ng/mL", progress: 0.44)
+        }
+        .frame(width: goalWidth)
+        .background(Design.surface)
     }
 
     // ── Sign in ──────────────────────────────────────────────────────

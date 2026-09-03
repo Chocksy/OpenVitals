@@ -6,6 +6,7 @@ struct OpenVitalsApp: App {
     @StateObject private var session = Session.shared
 
     init() {
+        Api.adoptDebugSession()
         Api.trace("launch · base \(Api.base) · signed in \(Api.signedIn)")
     }
 
@@ -25,6 +26,7 @@ struct OpenVitalsApp: App {
                 #endif
             }
             .preferredColorScheme(Self.pinned)
+            .task { session.refresh() }
         }
     }
 
@@ -41,17 +43,22 @@ struct OpenVitalsApp: App {
 /// The four screens and the +. A hand-drawn bar rather than `TabView`, because
 /// the + is not a tab: it opens the Capture sheet and the screen under it
 /// stays where it was.
+///
+/// Phase 34 section 2: the bar is Today · Blood · + · Body · Plan, which is
+/// what `blood.html` and `marker.html` draw. Meals moved into Body as a
+/// section rather than becoming a fifth destination.
 struct Shell: View {
     @ObservedObject private var health = HealthSyncModel.shared
     @AppStorage("tab") private var tab = 0
     @State private var capture = Fixtures.sheet == "capture"
+        || Fixtures.screen == "capture" || Fixtures.screen == "words"
     /// Measured, not guessed: the bar tells the screens how much room it takes.
     @State private var barHeight: CGFloat = 0
 
-    private static let tabs: [(title: String, icon: String)] = [
+    static let tabs: [(title: String, icon: String)] = [
         ("Today", "house"),
+        ("Blood", "drop"),
         ("Body", "waveform.path.ecg"),
-        ("Meals", "fork.knife"),
         ("Plan", "calendar"),
     ]
 
@@ -79,8 +86,8 @@ struct Shell: View {
 
     @ViewBuilder private var screen: some View {
         switch tab {
-        case 1: BodyView()
-        case 2: MealsView()
+        case 1: BloodView()
+        case 2: BodyView()
         case 3: PlanView()
         default: TodayView()
         }
