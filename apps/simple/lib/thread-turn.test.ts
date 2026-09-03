@@ -189,3 +189,24 @@ describe("save", () => {
     expect(turnSource).toContain("answered nothing, so nothing saved");
   });
 });
+
+/**
+ * Phase 31a follow-up item 1, the wiring half: a follow-up carries the
+ * thread's subject, and the thread's title is the first question it was asked.
+ */
+describe("a follow-up's subject", () => {
+  it("hands briefFor the thread's first question", () => {
+    expect(turnSource).toContain("isFollowUp ? its.title : undefined");
+  });
+
+  it("decides follow-up once, from the rows already stored", () => {
+    expect(turnSource).toContain("const isFollowUp = stored.length > 0");
+    expect(turnSource).toContain("systemForTurn(brief, isFollowUp)");
+  });
+
+  it("keeps the title as the first question, so the subject is real", () => {
+    expect(titleOf("What is my LDL and how can i improve it?")).toBe(
+      "What is my LDL and how can i improve it?",
+    );
+  });
+});

@@ -30,7 +30,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { ActOnIt, type Acts } from "./act-on-it";
-import { Sources, type AskSource } from "./ask-answer";
+import { answerShape, Sources, type AskSource } from "./ask-answer";
 import { LabelledProse } from "./evidence-chip";
 import { Button } from "./ui-kit";
 
@@ -149,6 +149,18 @@ function AskBack({
 }) {
   const [busy, setBusy] = useState("");
   const [done, setDone] = useState("");
+  const [text, setText] = useState("");
+
+  const save = async (value: string) => {
+    const answer = value.trim();
+    if (!answer) return;
+    setBusy(answer);
+    const res = await post("/api/facts", { key: question.key, value: answer });
+    setBusy("");
+    if (!res.ok) return;
+    setDone(answer);
+    onAnswered(`${question.question}: ${answer}`);
+  };
 
   if (done)
     return (
@@ -160,29 +172,49 @@ function AskBack({
   return (
     <div className="receipt mt-3">
       <p className="m-0">{question.question}</p>
-      <div className="chips mt-2">
-        {(options.length ? options : ["Yes", "No", "Not sure"]).map((o) => (
+      {/**
+       * Phase 31a follow-up: a question with no options is answered in words.
+       * This used to fall through to Yes / No / Not sure, which asked "which
+       * supplements do you take, and at what dose?" as a yes-or-no.
+       */}
+      {answerShape(options) === "options" ? (
+        <div className="chips mt-2">
+          {options.map((o) => (
+            <button
+              key={o}
+              className="chip"
+              disabled={!!busy}
+              onClick={() => void save(o)}
+            >
+              {busy === o && <Loader2 className="ic spin" aria-hidden="true" />}
+              {o}
+            </button>
+          ))}
+        </div>
+      ) : (
+        <form
+          className="mt-2 flex flex-wrap items-center gap-2"
+          onSubmit={(e) => {
+            e.preventDefault();
+            void save(text);
+          }}
+        >
+          <input
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            placeholder="Your answer"
+            className="inp max-w-[260px] flex-1"
+          />
           <button
-            key={o}
+            type="submit"
             className="chip"
-            disabled={!!busy}
-            onClick={async () => {
-              setBusy(o);
-              const res = await post("/api/facts", {
-                key: question.key,
-                value: o,
-              });
-              setBusy("");
-              if (!res.ok) return;
-              setDone(o);
-              onAnswered(`${question.question}: ${o}`);
-            }}
+            disabled={!!busy || !text.trim()}
           >
-            {busy === o && <Loader2 className="ic spin" aria-hidden="true" />}
-            {o}
+            {busy && <Loader2 className="ic spin" aria-hidden="true" />}
+            Save
           </button>
-        ))}
-      </div>
+        </form>
+      )}
     </div>
   );
 }

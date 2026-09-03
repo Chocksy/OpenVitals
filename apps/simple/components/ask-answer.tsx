@@ -16,6 +16,24 @@ import { ChevronDown, FileText, Sparkles } from "lucide-react";
 import { ActOnIt, type Acts } from "./act-on-it";
 import { EvidenceChip, LabelledProse } from "./evidence-chip";
 
+/**
+ * How a question takes its answer.
+ *
+ * Phase 31a follow-up. The ask-back card under a thread answer printed "Which
+ * supplements do you take, and at what dose? Separate with commas." with Yes /
+ * No / Not sure beside it, because an empty option list fell through to a
+ * hardcoded yes-or-no. A question that carries options is answered by picking
+ * one; a question that carries none is answered in words, and the only honest
+ * control for that is a text box. `free: true` in `PROFILE_QUESTIONS` is the
+ * same thing said the other way round, so both arrive here as "no options".
+ *
+ * Pure, so `components/ask-answer.test.tsx` is the whole contract.
+ */
+export const answerShape = (
+  options?: string[] | null,
+): "options" | "text" =>
+  options && options.length > 0 ? "options" : "text";
+
 /** One paper or guideline the answer cited, with the row's own quote. */
 export interface AskSource {
   id: string;

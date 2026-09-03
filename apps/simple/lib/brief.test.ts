@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { factsBlock, kindBlockFor } from "./brief";
+import { factsBlock, kindBlockFor, subjectCodesOf } from "./brief";
 import type { AskCandidates } from "./lookup";
 
 /**
@@ -99,5 +99,54 @@ describe("factsBlock", () => {
         now: { id: "c1", name: "Hashimoto", state: "likely", probability: 0.8 },
       }),
     ).toContain("Hashimoto: likely, 80 %");
+  });
+});
+
+/**
+ * Phase 31a follow-up item 1. "How can I improve it?" names no marker, so the
+ * closed set was filled from the general moves and the answer said there was
+ * no protocol on file for LDL — one turn after answering a question about LDL.
+ */
+describe("subjectCodesOf", () => {
+  const codes = [
+    "ldl_cholesterol",
+    "hdl_cholesterol",
+    "apolipoprotein_b",
+    "ferritin",
+    "hba1c",
+  ];
+
+  it("takes the markers the question itself names", () => {
+    expect(subjectCodesOf("what is my LDL cholesterol?", undefined, codes)).toEqual([
+      "ldl_cholesterol",
+    ]);
+  });
+
+  it("falls back to the thread's first question when this one names none", () => {
+    expect(
+      subjectCodesOf(
+        "how can i improve it?",
+        "What is my LDL and how can i improve it?",
+        codes,
+      ),
+    ).toEqual(["ldl_cholesterol"]);
+  });
+
+  it("lets the current question win over the thread's subject", () => {
+    expect(
+      subjectCodesOf(
+        "and what about my ferritin?",
+        "What is my LDL and how can i improve it?",
+        codes,
+      ),
+    ).toEqual(["ferritin"]);
+  });
+
+  it("names nothing when neither the question nor the subject does", () => {
+    expect(subjectCodesOf("how are things?", "what should I do?", codes)).toEqual(
+      [],
+    );
+    expect(subjectCodesOf("how can i improve it?", "   ", codes)).toEqual([]);
+    expect(subjectCodesOf("how can i improve it?", undefined, codes)).toEqual([]);
   });
 });

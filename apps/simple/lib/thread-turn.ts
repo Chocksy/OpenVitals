@@ -154,13 +154,27 @@ export async function prepareTurn(
   if (!thread) return { error: "no thread", status: 500 };
   const its = thread;
 
-  const brief = await briefFor(userId, text, its.about ?? undefined);
+  /**
+   * Phase 31a follow-up. A thread has a subject, and a follow-up rarely
+   * repeats it: "how can I improve it?" names no marker, so the closed set was
+   * filled from the general moves and the answer said there was no protocol on
+   * file for LDL — one turn after answering about LDL. The thread's title is
+   * the first question it was asked, so that is the subject every later turn
+   * falls back to. The condition half already travelled on `threads.about`.
+   */
   const stored = await db
     .select({ model: threadMessages.model })
     .from(threadMessages)
     .where(eq(threadMessages.threadId, its.id))
     .orderBy(threadMessages.createdAt);
+  const isFollowUp = stored.length > 0;
 
+  const brief = await briefFor(
+    userId,
+    text,
+    its.about ?? undefined,
+    isFollowUp ? its.title : undefined,
+  );
   const { model, providerOptions, compacts } = threadModel(userId);
   const past = stored.flatMap((r) => r.model as ModelMessage[]);
   /**
@@ -181,7 +195,7 @@ export async function prepareTurn(
       /**
        * The thread rules go last, after the data, so they win over the shape.
        */
-      system: `${systemForTurn(brief, past.length > 0)}\n\n${brief.facts}\n${THREAD_RULES}`,
+      system: `${systemForTurn(brief, isFollowUp)}\n\n${brief.facts}\n${THREAD_RULES}`,
       messages: [...history, ...turn],
       tools: threadTools(userId, brief, its.id),
       stopWhen: stepCountIs(4),

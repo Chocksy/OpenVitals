@@ -1,6 +1,9 @@
+import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
+import { PROFILE_QUESTIONS } from "@/lib/vectors";
 
 // The "Act on it" row is a client component and re-reads the page after an
 // add, so it calls `useRouter`. Rendering the answer on its own has no app
@@ -8,7 +11,7 @@ import { describe, expect, it, vi } from "vitest";
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ refresh: () => {} }),
 }));
-import { AskAnswer, leadSentence, type Answer } from "./ask-answer";
+import { answerShape, AskAnswer, leadSentence, type Answer } from "./ask-answer";
 
 /**
  * Phase 26, item 2. Every question answer opened with a lie: the question
@@ -216,5 +219,53 @@ describe("about mode never sends anybody to the dictionary", () => {
     expect(out).not.toContain("I don");
     expect(out).not.toContain("try the disease name");
     expect(out).toContain("No answer came back");
+  });
+});
+
+/**
+ * Phase 31a follow-up item 2. The ask-back card under a thread answer printed
+ * "Which supplements do you take, and at what dose? Separate with commas."
+ * with Yes / No / Not sure beside it: an empty option list fell through to a
+ * hardcoded yes-or-no, so a question asking for words offered three buttons.
+ */
+describe("answerShape", () => {
+  it("gives a question that carries options its chips", () => {
+    expect(answerShape(["Never", "Former", "Current"])).toBe("options");
+    expect(answerShape(["Yes", "No"])).toBe("options");
+  });
+
+  it("gives a question with no options a text box", () => {
+    expect(answerShape([])).toBe("text");
+    expect(answerShape(undefined)).toBe("text");
+    expect(answerShape(null)).toBe("text");
+  });
+
+  it("agrees with every free-text question the interview asks", () => {
+    for (const [key, q] of Object.entries(PROFILE_QUESTIONS)) {
+      const shape = answerShape(q.options);
+      if (q.free) expect([key, shape]).toEqual([key, "text"]);
+      if (q.options?.length) expect([key, shape]).toEqual([key, "options"]);
+    }
+  });
+
+  it("asks for the supplements in words, not as a yes or no", () => {
+    expect(answerShape(PROFILE_QUESTIONS.supplements?.options)).toBe("text");
+  });
+});
+
+describe("the ask-back card", () => {
+  const chat = readFileSync(
+    fileURLToPath(new URL("./chat.tsx", import.meta.url)),
+    "utf8",
+  );
+
+  it("never falls back to yes-or-no for a question with no options", () => {
+    expect(chat).not.toContain('["Yes", "No", "Not sure"]');
+  });
+
+  it("renders the two shapes, and picks between them in one place", () => {
+    expect(chat).toContain('answerShape(options) === "options"');
+    expect(chat).toContain('placeholder="Your answer"');
+    expect(chat).toContain("Save");
   });
 });

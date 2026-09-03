@@ -193,10 +193,33 @@ ${
  * the ontology lookup entirely, so the composer never has to put a condition
  * name in the text box where the fact reader would read it as a phenotype.
  */
+/**
+ * The markers a turn is about: the ones this question names, or failing that
+ * the ones the thread has been about all along.
+ *
+ * Phase 31a follow-up. "How can I improve it?" names no marker, so the closed
+ * set was filled from the general moves and the answer said there was no
+ * protocol on file for LDL — one turn after answering a question about LDL.
+ * A thread has a subject, and `prepareTurn` hands it the first question.
+ *
+ * Pure, so `lib/brief.test.ts` reads it without a database.
+ */
+export function subjectCodesOf(
+  question: string,
+  subject: string | undefined,
+  codes: string[],
+): string[] {
+  const named = codesNamedIn(question, codes);
+  if (named.length || !subject?.trim()) return named;
+  return codesNamedIn(subject, codes);
+}
+
 export async function briefFor(
   userId: string,
   question: string,
   about?: string,
+  /** the first question in this thread, when this one is a follow-up */
+  subject?: string,
 ): Promise<Brief> {
   const named = about
     ? emptyAnswer()
@@ -225,7 +248,11 @@ export async function briefFor(
    * answered "neither your plan nor the papers have anything" while three
    * lipid actions sat on the plan under another condition's name.
    */
-  const namedCodes = codesNamedIn(question, Object.keys(input.latest));
+  const namedCodes = subjectCodesOf(
+    question,
+    subject,
+    Object.keys(input.latest),
+  );
   const spec = conditionId ? catalog.find((h) => h.id === conditionId) : null;
 
   /**
