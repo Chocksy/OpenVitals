@@ -174,11 +174,16 @@ Parked from 28a: `why-tired` scores 1/5 (thin fatigue edges in the graph, or the
 
 Parked from 28c: `MAX_TESTS` (30) in `lib/lookup.ts` fills every offered test from moves before the measured codes, so a Hashimoto's question never offers TSH or TPO and "plan the retest" fails `eval:thread` (fix belongs in `askCandidates`); Coolify needs `OPENAI_API_KEY` and `AI_THREAD_MODEL` for the compaction path; the "One question" block keeps its blue accent (`today-ask.tsx`); glossary tooltips left the rail and chips because a card is one link; a 22 px overflow at 390 from `ov-term` tooltips inside `KeyTrends`.
 
+| 31 | 31a the first evening's ten fixes (threads keep the whole conversation and never replay Gemini thought signatures, errors reach the screen; the ask closed set reserves the marker asked about and the thread subject carries into follow-ups; Answer links re-key the question box; answered profile questions close; goals with two bounds draw as a band; hover titles; gutter; upload state; genome rows lead with the verdict; duplicate trends merge; free-text ask-backs get a text input); 31b designs (research, plan month, genome answer-first, upload read receipt, iOS native, chart hover) approved 2026-09-03 | `5988028`, `7bcacc3`, `f021c9e` |
+| 32 | 32a research watch, the month with schedule columns, genome verdicts and `/blood/genome`, the read receipt, chart hover cards, meals, the API contract with fixtures (migration 0023, add-only); 32b the native iOS app on the design tokens (Today, Body, Meals, Capture, Plan, Settings; WKWebView gone; 103 tests); 1728 web tests | `f5e6b20`, `853e86e` |
+
 Parked from 30: bubble positions in `lib/bubbles.ts` still crowd 29 nodes (seven small never-measured circles carry no label); engine codes inside model-written prose (`action.why`, `action.reasoning`) belong to the plan prompt; no per-marker retest cadence, fasting flag or upload size in the schema, so Plan a draw and the upload rows omit them; `globals.css` is 4 600 lines because the transitions.dev block and every element class live in one file; the dev server on the external volume needs `rm -rf .next` before a restart to serve fresh CSS.
+
+Parked from 32: the OpenRouter key is at its monthly limit (chat, one-shot answers, plan generation and the research intake fail until topped up); the owner's feed holds 15 search-only papers with no grade because nothing read them; `protocol_items` has no interval column (alternate-day iron) and one tick per item-day; a research tab per pattern needs rows keyed on patterns; HFE and LPA absences read "no change" because their catalogue rules carry no negative LR; the two damaged threads from Sep 2 still hold their empty rows; iOS Month tab, Genome and Research screens not drawn yet; the owner has never synced a phone, so Body's fixture comes from the local HealthKit account.
 
 ## In progress
 
-Nothing. Next: owner review of the rewritten app on the phone and desktop.
+32b validation against the web's real fixtures (iOS agent). Next: owner review of research, the month, genome, the read receipt and the native app.
 
 ## Next
 
