@@ -15,6 +15,8 @@ import { sql } from "drizzle-orm";
 import { getDb } from "@/db";
 import { currentUserId } from "@/lib/auth";
 import {
+  DAILY_FIELDS,
+  DAILY_PREFIX,
   shapeTotals,
   WEARABLE_ROW,
   type Totals,
@@ -23,6 +25,15 @@ import {
 
 const TTL = 60_000;
 const cache = new Map<string, { at: number; totals: Totals }>();
+
+/**
+ * The daily fields as rows a `lateral` can walk: one `(field, present)` pair
+ * per field, so one pass over `daily_logs` answers for all of them. Built from
+ * a constant table, which is why `sql.raw` is safe here.
+ */
+const DAILY_VALUES = sql.raw(
+  DAILY_FIELDS.map((f) => `('${f.field}', ${f.present})`).join(", "),
+);
 
 async function totalsFor(userId: string): Promise<Totals> {
   const hit = cache.get(userId);
@@ -42,6 +53,13 @@ async function totalsFor(userId: string): Promise<Totals> {
            count(*)::int
       from daily_logs
      where user_id = ${userId} and wearable is not null
+    union all
+    select ${DAILY_PREFIX}::text || f.field, count(*)::int, min(d.day)::text,
+           max(d.day)::text, count(*)::int
+      from daily_logs d
+      cross join lateral (values ${DAILY_VALUES}) as f(field, present)
+     where d.user_id = ${userId} and d.wearable is not null and f.present
+     group by f.field
   `);
 
   const totals = shapeTotals(result.rows as unknown as TotalsRow[]);

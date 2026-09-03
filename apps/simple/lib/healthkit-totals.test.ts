@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
+import { HK_TYPES, WORKOUT } from "./healthkit";
 import {
+  DAILY_FIELDS,
+  DAILY_PREFIX,
   EMPTY,
   shapeTotals,
   WEARABLE_ROW,
@@ -85,5 +88,71 @@ describe("shapeTotals", () => {
         row(WEARABLE_ROW, 0, null, null, 0),
       ]),
     ).toEqual(EMPTY);
+  });
+
+  /**
+   * The defect this fixes: the Sync tab said "nothing on the server" for
+   * Steps and Active energy on a phone that had synced 412 days of both,
+   * because the daily half of the union only counted days.
+   */
+  it("reports a daily field per type, beside the readings types", () => {
+    const totals = shapeTotals([
+      row(null, 776, "2022-05-30", "2026-08-31", 776),
+      row("sleep_duration", 776, "2022-05-30", "2026-08-31"),
+      row(WEARABLE_ROW, 412, "2025-06-01", "2026-08-31"),
+      row(`${DAILY_PREFIX}steps`, 400, "2025-06-01", "2026-08-30"),
+      row(`${DAILY_PREFIX}activeEnergyKcal`, 388, "2025-06-04", "2026-08-31"),
+    ]);
+    expect(totals.perType.SleepAnalysis).toBeUndefined();
+    expect(totals.perType.sleep_duration.type).toBe("SleepAnalysis");
+    expect(totals.perType.StepCount).toEqual({
+      count: 400,
+      first: "2025-06-01",
+      last: "2026-08-30",
+      type: "StepCount",
+    });
+    expect(totals.perType.ActiveEnergyBurned).toEqual({
+      count: 388,
+      first: "2025-06-04",
+      last: "2026-08-31",
+      type: "ActiveEnergyBurned",
+    });
+    // The roll-up row is untouched by any of it.
+    expect(totals.wearableDays).toBe(412);
+  });
+
+  /** A field the table has never heard of is skipped, not keyed by null. */
+  it("ignores a daily row for a field nothing maps", () => {
+    const totals = shapeTotals([row(`${DAILY_PREFIX}bogus`, 3, "a", "b")]);
+    expect(totals.perType).toEqual({});
+  });
+});
+
+describe("DAILY_FIELDS", () => {
+  /** Every type the phone lists as daily must have a row, or it reads empty. */
+  it("covers every daily type the phone lists", () => {
+    const covered = new Set(DAILY_FIELDS.map((f) => f.type));
+    for (const m of HK_TYPES.filter((m) => m.lands === "daily"))
+      expect(covered.has(m.type), m.type).toBe(true);
+    // Workouts are not in HK_TYPES — they are a list, not a number a day —
+    // and the Sync tab lists them all the same.
+    expect(covered.has(WORKOUT)).toBe(true);
+  });
+
+  it("names each field and type once", () => {
+    expect(new Set(DAILY_FIELDS.map((f) => f.field)).size).toBe(
+      DAILY_FIELDS.length,
+    );
+    expect(new Set(DAILY_FIELDS.map((f) => f.type)).size).toBe(
+      DAILY_FIELDS.length,
+    );
+  });
+
+  /** Nothing here may collide with a metric code, which keys the same map. */
+  it("never collides with a readings metric code", () => {
+    const codes = new Set(
+      HK_TYPES.filter((m) => m.lands === "reading").map((m) => m.key),
+    );
+    for (const f of DAILY_FIELDS) expect(codes.has(f.type)).toBe(false);
   });
 });
