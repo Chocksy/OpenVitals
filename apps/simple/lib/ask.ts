@@ -5,12 +5,15 @@
  * Kept out of `lib/coverage.ts` because it reads the catalog and runs the
  * information-gain engine, and `lib/infogain.ts` already reads coverage.
  */
+import { and, eq, inArray } from "drizzle-orm";
+import { getDb, profileFacts, profileFactHistory, reviewItems } from "@/db";
 import {
   buildModelInput,
   profileQuestions,
   queueFactQuestions,
   type FactQuestion,
 } from "./coverage";
+import { revisitAtFor, settledFacts } from "./revisit";
 import { BEDTIME_FACT, evaluateWhen } from "./graph-state";
 import { catalogFor, loadCatalog } from "./hkb";
 import { CODE_GRAPH, loadGraph, type Graph } from "./kg";
@@ -119,11 +122,80 @@ export function conditionalAsks(
 }
 
 /**
+ * Close every open interview question this person has already answered.
+ *
+ * Phase 31a item 4. A `profile_question` row is written once and `/plan`
+ * prints every open one, so a fact answered anywhere else — the Today card,
+ * the thread's `record_fact`, the interview itself — left its question sitting
+ * in "Answer these" forever. `settledFacts` decides: a value on file and a
+ * re-ask date that has not come round yet closes the row.
+ *
+ * Returns how many rows it closed, so a caller can log it.
+ */
+export async function closeAnsweredQuestions(userId: string): Promise<number> {
+  const db = getDb();
+  const [facts, history, open] = await Promise.all([
+    db.select().from(profileFacts).where(eq(profileFacts.userId, userId)),
+    db
+      .select()
+      .from(profileFactHistory)
+      .where(eq(profileFactHistory.userId, userId)),
+    db
+      .select({ id: reviewItems.id, subject: reviewItems.subject })
+      .from(reviewItems)
+      .where(
+        and(
+          eq(reviewItems.userId, userId),
+          eq(reviewItems.kind, "profile_question"),
+          eq(reviewItems.status, "open"),
+        ),
+      ),
+  ]);
+  if (!open.length) return 0;
+
+  const openFrom = new Map<string, string>();
+  for (const h of history)
+    if (h.changeKind !== "corrected" && h.validTo == null)
+      openFrom.set(h.key, h.validFrom);
+
+  const today = new Date().toISOString().slice(0, 10);
+  const settled = settledFacts(
+    facts.map((f) => {
+      const validFrom =
+        openFrom.get(f.key) ??
+        (f.answeredAt ?? new Date()).toISOString().slice(0, 10);
+      return {
+        key: f.key,
+        value: f.value,
+        validFrom,
+        revisitAt: f.revisitAt ?? revisitAtFor(f.key, validFrom, f.value),
+      };
+    }),
+    today,
+  );
+
+  const stale = open
+    .filter((i) => {
+      const key = i.subject?.factKey ?? i.subject?.key;
+      return !!key && settled.has(key);
+    })
+    .map((i) => i.id);
+  if (!stale.length) return 0;
+
+  await db
+    .update(reviewItems)
+    .set({ status: "answered" })
+    .where(inArray(reviewItems.id, stale));
+  return stale.length;
+}
+
+/**
  * The curator, `/plan` and `/graph` all call this. Interview first, then the
  * symptom items the differential is actually waiting on, then the answers a
  * conditional edge needs.
  */
 export async function queueQuestions(userId: string): Promise<number> {
+  await closeAnsweredQuestions(userId);
   const m = await buildModelInput(userId);
   const interview = await queueFactQuestions(userId, profileQuestions(m));
   const symptoms = await queueFactQuestions(

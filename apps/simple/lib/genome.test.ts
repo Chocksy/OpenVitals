@@ -1,8 +1,13 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { GENOME_CATALOG,
-  movesAnything, normalizeGenotype } from "./genome-catalog";
+import {
+  firstSentence,
+  GENOME_CATALOG,
+  genomeVerdict,
+  movesAnything,
+  normalizeGenotype,
+} from "./genome-catalog";
 import {
   callGenome,
   genomeFacts,
@@ -231,5 +236,88 @@ describe("the catalog rules a genome file feeds", () => {
     expect(
       scoreOf({ "genome:tcf7l2": "TT" }, "type2_diabetes").prior,
     ).toBeCloseTo(cc * 1.96, 3);
+  });
+});
+
+/**
+ * Phase 31a item 9. The table led with "rs429358 · rs7412" and "e2/e3" and put
+ * a likelihood-ratio sentence under "what it moved". The verdict leads now;
+ * the rsids and the genotype are still on the row, behind a disclosure.
+ */
+describe("genomeVerdict", () => {
+  const hla = GENOME_CATALOG.find((r) => r.id === "hla_dq")!;
+  const clear = hla.call({
+    rs2187668: "CC",
+    rs7454108: "TT",
+    rs660895: "AA",
+  })!;
+
+  it("leads with what the gene settles, in one sentence", () => {
+    const v = genomeVerdict({ row: hla, result: clear, absent: [] });
+    expect(v.verdict).toBe(
+      "Coeliac disease is essentially excluded: over 99 % of people with it carry one of these two haplotypes.",
+    );
+    expect(v.verdict).not.toContain("rs");
+  });
+
+  it("keeps the rsids and the genotype on the row for the disclosure", () => {
+    const v = genomeVerdict({ row: hla, result: clear, absent: [] });
+    expect(v.rsids).toEqual(["rs2187668", "rs7454108", "rs660895"]);
+    expect(v.genotype).toBe(clear.genotype);
+    expect(v.call).toBe("no DQ2.5 or DQ8 tag");
+  });
+
+  it("says so in words when the call moves nothing", () => {
+    const v = genomeVerdict({ row: hla, result: clear, absent: [] });
+    if (!v.moved) expect(v.detail).toContain("moves nothing");
+  });
+
+  it("says what an unread row is, not what it would have moved", () => {
+    const v = genomeVerdict({
+      row: hla,
+      result: null,
+      absent: ["rs2187668"],
+    });
+    expect(v.verdict).toBe(
+      "Not read: this array does not carry the markers it needs.",
+    );
+    expect(v.detail).toBe("Missing rs2187668.");
+    expect(v.genotype).toBe(null);
+  });
+});
+
+describe("firstSentence", () => {
+  it("cuts at the first full stop and keeps the rest", () => {
+    expect(firstSentence("One. Two three.")).toEqual(["One.", "Two three."]);
+  });
+
+  it("takes the whole thing when there is only one", () => {
+    expect(firstSentence("Just the one")).toEqual(["Just the one", ""]);
+  });
+});
+
+/**
+ * Phase 31a item 9, the other half: the table itself. Four columns became
+ * three, because on a phone the citation column set the height of every row.
+ */
+describe("the genome table", () => {
+  const src = readFileSync(
+    join(import.meta.dirname, "..", "components", "genome-table.tsx"),
+    "utf8",
+  );
+
+  it("leads every row with the verdict, not the rsids", () => {
+    expect(src).toContain("What it settles");
+    expect(src).not.toContain("What it moved");
+    expect(src).not.toContain("<th>rsID</th>");
+    expect(src).not.toContain("<th>Genotype</th>");
+  });
+
+  it("keeps the rsids, the genotype and the citation behind one disclosure", () => {
+    expect(src).toContain("What it read, and where it comes from");
+    expect(src).toContain("v.rsids.join");
+    expect(src).toContain("v.genotype");
+    expect(src).toContain("{v.source}");
+    expect(src).not.toContain("<th>Source</th>");
   });
 });

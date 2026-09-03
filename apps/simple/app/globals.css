@@ -1929,6 +1929,26 @@ select:focus-visible {
       transparent 4px 9px
     );
   }
+  /* phase 31a item 5: a goal with both bounds is a band on the track, not a
+     tick at one edge of it */
+  .ruler .band.goal-in {
+    background: color-mix(in oklab, var(--ink) 12%, transparent);
+  }
+  /* the band names itself above its own stretch: below the track is where
+     the "was" mark's date lives, and on a phone the two ran into each other */
+  .ruler .goal.wide::after {
+    top: auto;
+    bottom: calc(100% + var(--s5));
+  }
+  .ruler .goal.wide {
+    left: var(--a);
+    width: calc(var(--b) - var(--a));
+    margin-left: 0;
+    background: transparent;
+    border-left: 2px solid var(--ink);
+    border-right: 2px solid var(--ink);
+    border-radius: 2px;
+  }
   .ruler .brk {
     flex: 0 0 var(--s21);
     height: 20px;
@@ -2057,6 +2077,45 @@ select:focus-visible {
   .ruler .goal::after {
     color: var(--ink-2);
   }
+  /* phase 31a item 6: a hover reads the mark out, with no JavaScript. The
+     current mark already prints its value, so this is the date and the state
+     it is in; the label is the element's own `data-hover`. */
+  .ruler .mark::before,
+  .ruler .ghost::before,
+  .ruler .goal::before {
+    content: attr(data-hover);
+    position: absolute;
+    bottom: calc(100% + var(--s8));
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 2px 6px;
+    border-radius: var(--r-inner);
+    background: var(--ink);
+    color: var(--surface-flat);
+    font-family: var(--font-mono);
+    font-size: var(--type-xs);
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 120ms ease-out;
+    z-index: 3;
+  }
+  .ruler .mark:hover::before,
+  .ruler .mark:focus-visible::before,
+  .ruler .ghost:hover::before,
+  .ruler .ghost:focus-visible::before,
+  .ruler .goal:hover::before,
+  .ruler .goal:focus-visible::before {
+    opacity: 1;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .ruler .mark::before,
+    .ruler .ghost::before,
+    .ruler .goal::before {
+      transition: none;
+    }
+  }
+
   /* two labels under the same stretch of track take two lines */
   .ruler [data-row="2"]::after {
     top: calc(100% + var(--s21));
@@ -2134,6 +2193,11 @@ select:focus-visible {
     .ruler-scale .mid {
       display: none;
     }
+    /* no room for the date beside the current value; the summary line above
+       the ruler already carries it */
+    .ruler .goal.wide::after {
+      content: attr(data-short);
+    }
   }
 
   /* ── the history chart: every draw at its own date and value ────────
@@ -2165,10 +2229,15 @@ select:focus-visible {
     letter-spacing: 0.06em;
     text-transform: uppercase;
   }
+  /* phase 31a item 7: the gutter is exactly as wide as the widest tick
+     label it has to hold, plus 8 px of air, counted from the label's own
+     characters in `components/history-chart.tsx`. It used to be a flat 60 px,
+     so a chart with a two-digit scale started 55 px in while its right edge
+     sat flush. */
   .hist-body {
     display: grid;
-    grid-template-columns: 60px 1fr;
-    gap: var(--s13);
+    grid-template-columns: var(--gut, 60px) 1fr;
+    gap: 0;
     padding-top: var(--s21);
   }
   .hist-y {
@@ -2183,7 +2252,7 @@ select:focus-visible {
   }
   .hist-y span {
     position: absolute;
-    right: 0;
+    right: 8px;
     top: var(--y);
     transform: translateY(-50%);
     line-height: 1;
@@ -2206,6 +2275,15 @@ select:focus-visible {
   }
   .hist-band.optimal {
     background: color-mix(in oklab, var(--ok) 26%, transparent);
+  }
+  /* phase 31a item 5: the goal band, when the goal has two bounds */
+  .hist-band.goal {
+    background: color-mix(in oklab, var(--ok) 10%, transparent);
+    border-top: 1px dashed var(--ok);
+    border-bottom: 1px dashed var(--ok);
+  }
+  .hist-band.goal b {
+    color: var(--ok);
   }
   .hist-band.seg {
     left: var(--l);
@@ -2331,6 +2409,35 @@ select:focus-visible {
     font-family: var(--font-mono);
     font-size: var(--type-xs);
   }
+  /* phase 31a item 6: the diamond says what it is on hover, with no
+     JavaScript — the `title` covers the pointer, this covers the eye. */
+  .hp .lbl {
+    position: absolute;
+    bottom: 11px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 2px 6px;
+    border-radius: var(--r-inner);
+    background: var(--ink);
+    color: var(--surface-flat);
+    font-family: var(--font-mono);
+    font-size: var(--type-xs);
+    font-weight: 400;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 120ms ease-out;
+    z-index: 3;
+  }
+  .hp:hover .lbl,
+  .hp:focus-visible .lbl {
+    opacity: 1;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .hp .lbl {
+      transition: none;
+    }
+  }
   .hist-x {
     position: relative;
     height: 30px;
@@ -2393,6 +2500,9 @@ select:focus-visible {
   .hist.mini .hist-body {
     grid-template-columns: 1fr;
     padding-top: var(--s34);
+  }
+  .hist.mini .hist-y {
+    display: none;
   }
   .hist.mini .hist-plot {
     height: 55px;

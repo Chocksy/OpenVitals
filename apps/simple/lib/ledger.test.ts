@@ -640,12 +640,20 @@ describe("the genome card", () => {
   it("lists the three calls with the biggest effect, not the first three", () => {
     const card = genomeFinding(upload, results, "2026-09-01")!;
     expect(card.title).toBe("What your genome changed");
-    expect(card.lines.map((l) => l.label)).toEqual([
-      "HFE C282Y homozygous",
-      "HLA no DQ2.5 or DQ8 tag",
-      "FTO AA",
-    ]);
+    expect(card.lines.map((l) => l.label)).toEqual(["HFE", "HLA", "FTO"]);
     expect(card.lines[2]!.text).toBe("Roughly 2.4 kg more body weight.");
+  });
+
+  /**
+   * Phase 31a item 9. The label used to be "HLA no DQ2.5 or DQ8 tag" — a gene
+   * and a genotype, which is what the array read and not what it settles.
+   */
+  it("leads with the verdict, and keeps the genotype out of the label", () => {
+    const card = genomeFinding(upload, results, "2026-09-01")!;
+    expect(card.lines.map((l) => l.label).join(" ")).not.toMatch(
+      /DQ2\.5|C282Y|AA/,
+    );
+    expect(card.lines[1]!.text).toBe("Coeliac disease is essentially excluded.");
   });
 
   it("counts every call behind the see-all link, and links to the upload", () => {

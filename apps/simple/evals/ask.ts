@@ -57,6 +57,33 @@ interface AskCase {
   q: string;
   about?: string;
   judge: string;
+  /**
+   * Phase 31a item 2. Two checks code can make that the judge should not have
+   * to: how many interventions the row under the answer actually offers, and
+   * words the answer has to contain. "How can I improve my LDL?" said there
+   * were no interventions on file while three sat on Home, and "what should my
+   * fasting insulin be?" has to print the optimal band and the reference
+   * range, not one of them.
+   */
+  minActions?: number;
+  needs?: string[];
+}
+
+/** The per-case checks a case asks for, in code. */
+export function caseChecks(
+  c: { minActions?: number; needs?: string[] },
+  reply: string,
+  acts: Acts | undefined,
+): string[] {
+  const out: string[] = [];
+  if (c.minActions != null) {
+    const n = acts?.actions.length ?? 0;
+    if (n < c.minActions)
+      out.push(`offered ${n} intervention(s), wanted ${c.minActions}`);
+  }
+  for (const want of c.needs ?? [])
+    if (!new RegExp(want, "i").test(reply)) out.push(`never said /${want}/`);
+  return out;
 }
 
 interface Scored {
@@ -404,6 +431,7 @@ async function runCase(
       labels: [...new Set((answer.actions ?? rows).map((a) => a.label))],
     };
     const failed = [
+      ...caseChecks(c, reply, answer.acts),
       ...codeChecks(reply, allowed, kind),
       ...actChecks(
         reply,

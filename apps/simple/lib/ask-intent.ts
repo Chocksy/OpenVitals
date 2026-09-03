@@ -81,7 +81,10 @@ const KIND_RULES: [QuestionKind, RegExp][] = [
   ],
   [
     "status",
-    /\bwhat'?s?\s+my\b|\bwhat\s+is\s+my\b|\bwhat\s+are\s+my\b|\bhow('s|\s+is|\s+are)\s+my\b|\bam\s+i\s+(ok|okay|fine|healthy|normal)\b|\bis\s+my\s+.*\b(ok|okay|fine|normal|high|low|good|bad)\b|\bdo\s+i\s+have\b/i,
+    /* Phase 31a item 2: "what should my fasting insulin be?" asks for a
+       number and its bands, not for a plan. It fell through every rule to
+       `howto`, which answers with actions and never prints the range. */
+    /\bwhat'?s?\s+my\b|\bwhat\s+is\s+my\b|\bwhat\s+are\s+my\b|\bwhat\s+should\s+my\b|\bhow('s|\s+is|\s+are)\s+my\b|\bam\s+i\s+(ok|okay|fine|healthy|normal)\b|\bis\s+my\s+.*\b(ok|okay|fine|normal|high|low|good|bad)\b|\bdo\s+i\s+have\b/i,
   ],
 ];
 

@@ -4,7 +4,10 @@ import {
   MIN_RAW_TEXT,
   pickSource,
   sha256,
+  uploadDate,
   uploadPath,
+  uploadState,
+  UPLOAD_WORD,
 } from "./uploads";
 
 describe("pickSource", () => {
@@ -54,5 +57,63 @@ describe("sha256", () => {
       "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad",
     );
     expect(sha256(Buffer.from("abc"))).toBe(sha256(Buffer.from("abc")));
+  });
+});
+
+/**
+ * Phase 31a item 8. `needs_review` is written once by `lib/import-legacy.ts`
+ * and nothing has ever read it or cleared it, so an upload with nothing wrong
+ * with it printed "needs a check" beside a check nobody could do.
+ */
+describe("uploadState", () => {
+  it("calls a legacy needs_review upload parsed, like any other", () => {
+    expect(uploadState("needs_review")).toBe("parsed");
+    expect(uploadState("done")).toBe("parsed");
+  });
+
+  it("keeps the two states that mean something", () => {
+    expect(uploadState("failed")).toBe("failed");
+    expect(uploadState("extracting")).toBe("reading");
+    expect(uploadState("pending")).toBe("reading");
+  });
+
+  it("says deleted when the row is gone, whatever its status", () => {
+    expect(uploadState("done", true)).toBe("deleted");
+    expect(uploadState("deleted")).toBe("deleted");
+  });
+
+  it("never has a word for a check nobody can do", () => {
+    expect(Object.values(UPLOAD_WORD)).not.toContain("needs a check");
+  });
+});
+
+describe("uploadDate", () => {
+  it("prints the draw date when the file carries one", () => {
+    expect(
+      uploadDate({
+        firstDay: "2026-04-23",
+        lastDay: "2026-04-23",
+        createdAt: "2026-08-02",
+      }),
+    ).toBe("2026-04-23");
+  });
+
+  it("spans the draws when they are not all on one day", () => {
+    expect(uploadDate({ firstDay: "2026-04-23", lastDay: "2026-04-25" })).toBe(
+      "2026-04-23 – 2026-04-25",
+    );
+  });
+
+  it("writes the days the way the surface asks for", () => {
+    expect(
+      uploadDate({ firstDay: "2026-04-23" }, (d) => `day ${d}`),
+    ).toBe("day 2026-04-23");
+  });
+
+  it("falls back to the day it was read, and only then", () => {
+    expect(uploadDate({ firstDay: null, createdAt: "2026-08-02" })).toBe(
+      "2026-08-02",
+    );
+    expect(uploadDate({})).toBe(null);
   });
 });

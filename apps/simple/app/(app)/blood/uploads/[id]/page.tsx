@@ -5,7 +5,14 @@ import { ChevronDown, ChevronLeft } from "lucide-react";
 import { requireUserId } from "@/lib/auth";
 import { documentItems, genomeVariants, getDb, metrics, readings } from "@/db";
 import { callGenome } from "@/lib/genome";
-import { findUpload, localPath, MIN_RAW_TEXT } from "@/lib/uploads";
+import {
+  findUpload,
+  localPath,
+  MIN_RAW_TEXT,
+  uploadState,
+  UPLOAD_WORD,
+  type UploadState,
+} from "@/lib/uploads";
 import { dayLabel, plural } from "@/lib/utils";
 import { ChangeKind, DeleteUpload, ReanalyzeUpload } from "@/components/client";
 import { DocumentItems } from "@/components/document-items";
@@ -22,22 +29,12 @@ export const dynamic = "force-dynamic";
  * items it wants you to accept or reject, and the raw text it read them from.
  * Phase 30c: it absorbs `/uploads/[id]`, which is now a redirect.
  */
-const TONE: Record<string, StateTone> = {
-  done: "on",
-  needs_review: "border",
-  extracting: "none",
-  pending: "none",
+/** Phase 31a item 8: parsed, failed or reading. Nothing else is a state. */
+const TONE: Record<UploadState, StateTone> = {
+  parsed: "on",
+  reading: "none",
   failed: "off",
   deleted: "none",
-};
-
-const WORD: Record<string, string> = {
-  done: "parsed",
-  needs_review: "needs a check",
-  extracting: "reading it now",
-  pending: "waiting",
-  failed: "could not read it",
-  deleted: "deleted",
 };
 
 export default async function UploadPage({
@@ -126,8 +123,8 @@ export default async function UploadPage({
             </span>
           </h3>
           <div className="rowh gap-[var(--s5)]">
-            <StateWord tone={TONE[status] ?? "none"} dot>
-              {WORD[status] ?? status}
+            <StateWord tone={TONE[uploadState(status)]} dot>
+              {UPLOAD_WORD[uploadState(status)]}
             </StateWord>
             {status !== "deleted" && (
               <>

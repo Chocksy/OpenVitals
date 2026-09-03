@@ -1,5 +1,8 @@
+import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
-import { railCards, systemTiles } from "./home-data";
+import { askKeyOf, homeAskPlan, railCards, systemTiles } from "./home-data";
+import type { DueFact } from "./revisit";
 import type { Ledger } from "./ledger";
 import type { Today } from "./home-data";
 
@@ -175,5 +178,78 @@ describe("systemTiles", () => {
       "borderline",
     );
     expect(tiles.find((t) => t.name === "Heart")!.word).toBe("good");
+  });
+});
+
+/**
+ * Phase 31a item 3. "Answer →" on the Insulin resistance card built
+ * `/?ask=sym_thirst#today-question` and nothing happened. Two halves: the box
+ * has to be able to render every key a link on this page can carry, and
+ * `components/home.tsx` has to key the box on the question so a soft
+ * navigation replaces it instead of keeping the old one.
+ */
+describe("every ask a link can carry lands on a rendered box", () => {
+  const withAsks = {
+    ...ledger,
+    asks: [
+      { key: "bp_home", question: "What is your home blood pressure?", moves: [] },
+      { key: "sym_thirst", question: "Are you unusually thirsty?", moves: [] },
+      { key: "waist_cm", question: "What is your waist?", moves: [] },
+    ],
+    conclusions: [
+      {
+        id: "insulin_resistance",
+        question: {
+          featureId: "fact:sym_thirst",
+          label: "Are you unusually thirsty, or urinating much more than usual?",
+        },
+      },
+      {
+        id: "off_table",
+        question: {
+          featureId: "fact:not_in_the_interview",
+          label: "A question only this card asks",
+        },
+      },
+    ],
+  } as unknown as Ledger;
+
+  const due: DueFact[] = [
+    {
+      key: "smoking",
+      question: "Still: Never?",
+      original: "Do you smoke?",
+      options: ["Never", "Former", "Current"],
+      current: "Never",
+      since: "2026-01-01",
+      why: "due",
+    },
+  ];
+
+  const keys = [
+    ...withAsks.asks.map((a) => a.key),
+    ...withAsks.conclusions.map((c) => askKeyOf(c)!),
+    ...due.map((d) => d.key),
+  ];
+
+  it.each(keys)("renders a box for %s", (key) => {
+    const plan = homeAskPlan(withAsks, due, key);
+    expect(plan.ask?.key === key || plan.inputs.includes(key)).toBe(true);
+  });
+
+  it("gives a card-only question the card's own words", () => {
+    const plan = homeAskPlan(withAsks, due, "not_in_the_interview");
+    expect(plan.ask?.question).toBe("A question only this card asks");
+  });
+});
+
+describe("the one input is keyed on its question", () => {
+  const home = readFileSync(
+    fileURLToPath(new URL("../components/home.tsx", import.meta.url)),
+    "utf8",
+  );
+
+  it("remounts TodayAsk when the question changes", () => {
+    expect(home).toContain("<TodayAsk key={ask.key}");
   });
 });

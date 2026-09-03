@@ -9,7 +9,7 @@
  * its order. Nothing is hidden behind JavaScript, so `#answer` and
  * `#patterns` land on real anchors.
  */
-import { queueQuestions } from "@/lib/ask";
+import { closeAnsweredQuestions, queueQuestions } from "@/lib/ask";
 import { and, desc, eq } from "drizzle-orm";
 import Link from "next/link";
 import {
@@ -43,7 +43,7 @@ import { scoreHypotheses } from "@/lib/hypotheses";
 import { displayNameOf, isLoud } from "@/lib/ledger";
 import { latestReport } from "@/lib/report";
 import { previewLines } from "@/lib/projections";
-import { horizonShelf, type HorizonItem } from "@/lib/trends";
+import { horizonShelf, mentionLine, type HorizonItem } from "@/lib/trends";
 import { VECTORS } from "@/lib/vectors";
 import { dayLabel, plural } from "@/lib/utils";
 import { ReviewItem } from "@/components/client";
@@ -159,6 +159,8 @@ function HorizonShelf({
               <EvidenceChip basis="anecdotal" grade={item.grade} />
               <span className="t-meta text-[length:var(--type-xs)]">
                 from {item.sourceKind}
+                {/* Phase 31a item 10: two posts about sardines are one row. */}
+                {item.mentions > 1 ? ` · ${mentionLine(item.mentions)}` : ""}
               </span>
             </div>
             {item.quote && (
@@ -252,6 +254,13 @@ export default async function PlanPage({
 
   const report = await latestReport(userId);
   if (!report) await queueQuestions(userId);
+  /**
+   * Phase 31a item 4. "Answer these" printed the family-history question with
+   * the answer already on file, because the row was queued once and nothing
+   * closed it. `queueQuestions` closes them too, and it only runs before the
+   * first report, so the page closes them itself on every load.
+   */
+  await closeAnsweredQuestions(userId);
   await bootstrapProtocol(userId);
 
   const [input, open, earlier, protocol, goals, metricNames] =

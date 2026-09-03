@@ -238,6 +238,26 @@ export function dueFacts(
     .slice(0, Math.max(0, max));
 }
 
+/**
+ * The answers that are settled today: on file, and not due to be asked again.
+ *
+ * Phase 31a item 4. `/plan` kept "Any heart attack, stroke, diabetes,
+ * dementia or cancer in your parents or siblings?" in "Answer these" long
+ * after it was answered — the row was queued once, and nothing ever closed it.
+ * A key is settled when it has a value and its own clock has not come round:
+ * `family_history` has a 365-day cadence, so the day after it is answered it
+ * is not a question any more.
+ */
+export function settledFacts(rows: RevisitRow[], today: string): Set<string> {
+  const out = new Set<string>();
+  for (const row of rows) {
+    if (text(row.value) === "") continue;
+    const at = row.revisitAt ?? revisitAtFor(row.key, row.validFrom, row.value);
+    if (at == null || at > today) out.add(row.key);
+  }
+  return out;
+}
+
 /** Which of `keys` this person has never answered, so nothing re-asks them. */
 export const unanswered = (m: ModelInput, keys: string[]): string[] =>
   keys.filter((k) => text(m.profile[k]) === "");

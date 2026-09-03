@@ -147,6 +147,55 @@ describe("askCandidates", () => {
     expect(c.tests.filter((t) => t.code === "ferritin")).toHaveLength(1);
     expect(c.tests.map((t) => t.code)).toContain("hba1c");
   });
+
+  /**
+   * Phase 31a item 2. `MAX_TESTS` is 30 and `nextMoves` used to fill every
+   * slot before the marker the question was actually about got one, so "how
+   * can I improve my LDL?" was answered from a closed set with no lipid in it.
+   */
+  describe("the marker the question named", () => {
+    const crowd = Array.from({ length: 40 }, (_, i) =>
+      move(`filler_${i}`, `Filler ${i}`, 1),
+    );
+
+    it("is crowded out when nothing reserves it", () => {
+      const bare = askCandidates({
+        actions: [],
+        measured: ["ldl_cholesterol"],
+        moves: crowd,
+        questions: [],
+      });
+      expect(bare.tests.map((t) => t.code)).not.toContain("ldl_cholesterol");
+    });
+
+    it("takes a slot before the general moves when it is reserved", () => {
+      const reserved = askCandidates({
+        actions: [],
+        measured: ["ldl_cholesterol"],
+        moves: crowd,
+        questions: [],
+        first: ["ldl_cholesterol", "apolipoprotein_b"],
+      });
+      expect(reserved.tests.slice(0, 2).map((t) => t.code)).toEqual([
+        "ldl_cholesterol",
+        "apolipoprotein_b",
+      ]);
+    });
+
+    it("never lists a reserved marker twice", () => {
+      const twice = askCandidates({
+        actions: [],
+        measured: ["ferritin"],
+        moves: [move("ferritin", "Ferritin", 1)],
+        questions: [],
+        first: ["ferritin", "ferritin"],
+      });
+      expect(twice.tests.filter((t) => t.code === "ferritin")).toHaveLength(1);
+      expect(twice.tests.find((t) => t.code === "ferritin")!.name).toBe(
+        "Ferritin",
+      );
+    });
+  });
 });
 
 describe("pickActs: the model chooses, the engine owns", () => {

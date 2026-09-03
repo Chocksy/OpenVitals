@@ -15,6 +15,7 @@ import { NODES } from "./graph";
 import { CATALOG } from "./hkb-catalog";
 import {
   GENOME_CATALOG,
+  genomeVerdict,
   type GenomeCall,
   type GenomeRow,
 } from "./genome-catalog";
@@ -286,12 +287,20 @@ export function genomeFinding(
     title: "What your genome changed",
     at: upload.at,
     href: `/blood/uploads/${upload.id}`,
-    lines: top.map((r) => ({
-      // the short gene the graph uses, so the chip stays a chip: the catalog's
-      // own `gene` for the HLA row is a whole sentence.
-      label: `${explainKey(r.row.factKey)} ${r.result.call}`,
-      text: r.result.meaning,
-    })),
+    /**
+     * Phase 31a item 9: the verdict leads. The label used to be "HLA no DQ2.5
+     * or DQ8 tag" — a gene and a genotype, which is what the array read rather
+     * than what it settles. The genotype moves into the row's own detail.
+     */
+    lines: top.map((r) => {
+      const v = genomeVerdict({ row: r.row, result: r.result, absent: [] });
+      return {
+        // the short gene the graph uses, so the chip stays a chip: the
+        // catalog's own `gene` for the HLA row is a whole sentence.
+        label: explainKey(r.row.factKey),
+        text: v.verdict,
+      };
+    }),
     total: called.length,
   };
 }

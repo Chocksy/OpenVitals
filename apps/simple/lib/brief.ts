@@ -14,7 +14,12 @@
 import { generateObject } from "ai";
 import { CITES_SOURCES, questionKind, termQuery } from "./ask-intent";
 import type { QuestionKind } from "./ask-intent";
-import { actionLine, actionsFor, type PlanLine } from "./actions";
+import {
+  actionLine,
+  actionsFor,
+  actionsForAll,
+  type PlanLine,
+} from "./actions";
 import { chatContext } from "./ai";
 import { buildModelInput, profileQuestions } from "./coverage";
 import { catalogFor } from "./hkb";
@@ -220,7 +225,32 @@ export async function briefFor(
    * answered "neither your plan nor the papers have anything" while three
    * lipid actions sat on the plan under another condition's name.
    */
+  const namedCodes = codesNamedIn(question, Object.keys(input.latest));
+  const spec = conditionId ? catalog.find((h) => h.id === conditionId) : null;
+
+  /**
+   * Phase 31a item 2. "How can I improve my LDL?" names a marker, not a
+   * condition, so `conditionId` is null and the answer used to be written
+   * from six general moves — and said there were no interventions on file for
+   * LDL while three sat on Home under Cardiovascular risk. A marker belongs to
+   * every condition that reads it, so those conditions' rows come first.
+   */
+  const feeds = namedCodes.length
+    ? catalog
+        .filter((h) => metricCodesOf(h).some((c) => namedCodes.includes(c)))
+        .map((h) => h.id)
+    : [];
+
   let actions = await actionsFor(userId, conditionId, 6);
+  if (feeds.length) {
+    const fed = await actionsForAll(userId, feeds, 6);
+    const seen = new Set(actions.map((a) => a.id));
+    for (const line of Object.values(fed).flat())
+      if (!seen.has(line.id)) {
+        seen.add(line.id);
+        actions.push(line);
+      }
+  }
   if (!actions.length && conditionId)
     actions = await actionsFor(userId, null, 6);
   const kind = questionKind(question);
@@ -263,14 +293,24 @@ export async function briefFor(
       question: q.question,
     })),
     sources,
+    /**
+     * The marker they named, then every marker of the conditions it feeds,
+     * before the general moves take the rest of the slots.
+     */
+    first: [
+      ...namedCodes,
+      ...feeds.flatMap((id) => {
+        const h = catalog.find((c) => c.id === id);
+        return h ? metricCodesOf(h) : [];
+      }),
+      ...(spec ? metricCodesOf(spec) : []),
+    ],
   });
 
   const nameOf = (id: string) => {
     const hit = scored.find((h) => h.id === id);
     return hit ? displayNameOf(hit) : id.replace(/_/g, " ");
   };
-  const spec = conditionId ? catalog.find((h) => h.id === conditionId) : null;
-  const namedCodes = codesNamedIn(question, Object.keys(input.latest));
   const mechanisms = graph
     ? mechanismsFor(
         graph,

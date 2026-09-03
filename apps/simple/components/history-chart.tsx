@@ -23,8 +23,16 @@
  * A server component with no chart library: `chartDomain` below is the y
  * scale and `components/chart-domain.test.ts` is its contract.
  */
+import { statusOf } from "@/lib/status";
 import { dayLabel, plural } from "@/lib/utils";
-import { decimalsOf, niceEnd } from "./ruler";
+import {
+  decimalsOf,
+  goalAim,
+  goalWords,
+  markTitle,
+  niceEnd,
+  STATE_WORD,
+} from "./ruler";
 
 /* ── the y domain ───────────────────────────────────────────────────────
  * Moved here from `components/chart-domain.ts` in phase 30c, unchanged.
@@ -133,6 +141,13 @@ export interface HistoryChartProps {
   optimalHigh?: number | null;
   /** the goal, and the day it is due: a bar on the axis, never a diamond */
   target?: number | null;
+  /**
+   * Phase 31a item 5. The LDL goal is 70–100 by Dec 1 2026. With both bounds
+   * the goal draws as a band, the projection aims at the edge the value has
+   * to reach, and the legend names the band. One bound keeps the bar.
+   */
+  targetLow?: number | null;
+  targetHigh?: number | null;
   targetDate?: string | null;
   /** a draw that is planned and has no value yet */
   plannedDate?: string | null;
@@ -151,24 +166,39 @@ export function HistoryChart({
   optimalLow,
   optimalHigh,
   target,
+  targetLow,
+  targetHigh,
   targetDate,
   plannedDate,
   mini,
   noun = "draws",
 }: HistoryChartProps) {
+  const gLow = num(targetLow) ? targetLow : null;
+  const gHigh = num(targetHigh) ? targetHigh : null;
+  const goalBand = gLow != null && gHigh != null && gHigh > gLow;
+
   const domain = chartDomain(points, {
     referenceRangeLow: refLow,
     referenceRangeHigh: refHigh,
     optimalRangeLow: optimalLow,
     optimalRangeHigh: optimalHigh,
-    goalLow: target,
-    goalHigh: target,
+    goalLow: gLow ?? target,
+    goalHigh: gHigh ?? target,
   });
   if (!domain.drawable) return null;
 
   const rows = [...domain.points].sort((a, b) => a.date.localeCompare(b.date));
   const first = rows[0]!;
   const now = rows[rows.length - 1]!;
+
+  /** The edge the plan is aimed at: the nearer bound of a band, or the bar. */
+  const aim = goalBand
+    ? goalAim(now.value, gLow, gHigh)
+    : num(target)
+      ? target
+      : goalAim(now.value, gLow, gHigh);
+  /** "70–100" or "100": the goal in the words the legend and the axis print. */
+  const goalSaid = goalBand ? goalWords(gLow, gHigh) : aim != null ? digits(aim) : "";
 
   /* The y scale: 0 % is the top of the plot, 100 % the bottom. The padded
      ends `chartDomain` returns are arithmetic — 146.72 reads as a second
@@ -182,6 +212,8 @@ export function HistoryChart({
     optimalLow,
     optimalHigh,
     target,
+    gLow,
+    gHigh,
   ]);
   const yMax = niceEnd(domain.yMax, "up", places);
   const yMin = domain.yMin <= 0 ? 0 : niceEnd(domain.yMin, "down", places);
@@ -202,11 +234,11 @@ export function HistoryChart({
   const line = rows.map((p) => `${(x(p.date) / 100) * VB_W},${(y(p.value) / 100) * VB_H}`);
 
   /** The projection: now → the target, at the target's own date. */
-  const projects = num(target) && targetDate != null;
+  const projects = aim != null && targetDate != null;
   const proj = projects
     ? `${(x(now.date) / 100) * VB_W},${(y(now.value) / 100) * VB_H} ${
         (x(targetDate!) / 100) * VB_W
-      },${(y(target!) / 100) * VB_H}`
+      },${(y(aim!) / 100) * VB_H}`
     : null;
 
   /** The planned draw sits on that projection at its own date, never at 0. */
@@ -217,7 +249,7 @@ export function HistoryChart({
     const a = x(now.date);
     const b = x(targetDate!);
     const f = b === a ? 1 : Math.min(1, Math.max(0, (px - a) / (b - a)));
-    return { x: px, y: y(now.value) + (y(target!) - y(now.value)) * f };
+    return { x: px, y: y(now.value) + (y(aim!) - y(now.value)) * f };
   })();
 
   /* ── where a band may write its own name ──────────────────────────────
@@ -243,6 +275,15 @@ export function HistoryChart({
    * Slots are tried left to right; a slot is clear when no mark sits inside
    * it with `CLEAR` px of air, counting the line as well as the diamonds.
    */
+  /**
+   * Phase 31a item 5. A goal band shares an edge with the normal band more
+   * often than not — 70–100 against a reference of 0–100 — so a label placed
+   * only around the diamonds landed straight on top of the one before it.
+   * Every label that has been placed is a box the next one has to miss too,
+   * and a label with nowhere to go is dropped: the legend still names it.
+   */
+  const placed: { left: number; right: number; y: number }[] = [];
+
   const slotFor = (text: string, edge: number, bottomEdge: number) => {
     const w = ((text.length * CHAR_PX + 12) / NOMINAL_W) * 100;
     const padX = (CLEAR / NOMINAL_W) * 100;
@@ -253,11 +294,22 @@ export function HistoryChart({
           m.x > left - padX &&
           m.x < left + w + padX &&
           Math.abs(m.y - at) < padY,
+      ) ||
+      placed.some(
+        (b) =>
+          b.right > left - padX &&
+          b.left < left + w + padX &&
+          Math.abs(b.y - at) < padY,
       );
-    for (let left = 0; left + w <= 100; left += 4)
-      if (!busy(left, edge)) return { left, low: false };
-    for (let left = 0; left + w <= 100; left += 4)
-      if (!busy(left, bottomEdge)) return { left, low: true };
+    for (const [at, low] of [
+      [edge, false],
+      [bottomEdge, true],
+    ] as const)
+      for (let left = 0; left + w <= 100; left += 4)
+        if (!busy(left, at)) {
+          placed.push({ left, right: left + w, y: at });
+          return { left, low };
+        }
     return null;
   };
 
@@ -290,11 +342,19 @@ export function HistoryChart({
   );
 
   /** The hatched stretch the target still has to close, from now to then. */
+  /** The word this reading's own state goes by, for the hover. */
+  const stateOf = (value: number) =>
+    STATE_WORD[statusOf({ value, refLow, refHigh, optimalLow, optimalHigh })];
+
+  const goalStrip = goalBand
+    ? strip(gLow, gHigh, `target ${goalSaid}`)
+    : null;
+
   const pace =
-    projects && Math.abs(target! - now.value) > 0
+    projects && Math.abs(aim! - now.value) > 0
       ? ({
-          "--t": pct(y(Math.max(target!, now.value))),
-          "--h": pct(y(Math.min(target!, now.value)) - y(Math.max(target!, now.value))),
+          "--t": pct(y(Math.max(aim!, now.value))),
+          "--h": pct(y(Math.min(aim!, now.value)) - y(Math.max(aim!, now.value))),
           "--l": pct(x(now.date)),
           "--r": "0%",
         } as React.CSSProperties)
@@ -311,6 +371,17 @@ export function HistoryChart({
       (v, i, all) =>
         all.findIndex((o) => Math.abs(o - v) < ySpan / 20) === i,
     );
+
+  /**
+   * Phase 31a item 7. The gutter is the widest tick label plus 8 px, counted
+   * from the label's own characters — a monospace glyph at 11 px is 6.4 px
+   * wide. The `mini` chart prints no ticks, so it gets no gutter at all.
+   */
+  const gutter = mini
+    ? 0
+    : Math.ceil(
+        Math.max(...ticks.map((v) => digits(v).length)) * CHAR_PX + 8,
+      );
 
   /** A mark in the right third puts its label on the side that has room. */
   const side = (p: number) => (p > 66 ? " lft" : "");
@@ -338,7 +409,10 @@ export function HistoryChart({
         <h3>{title}</h3>
         <span className="unit">{head}</span>
       </div>
-      <div className="hist-body">
+      <div
+        className="hist-body"
+        style={{ "--gut": `${gutter}px` } as React.CSSProperties}
+      >
         {!mini && (
           <div className="hist-y">
             {ticks.map((v) => (
@@ -374,6 +448,20 @@ export function HistoryChart({
                 )}
               </div>
             )}
+            {goalStrip && (
+              <div className="hist-band goal" style={goalStrip.style}>
+                {goalStrip.slot && (
+                  <b
+                    className={goalStrip.slot.low ? "low" : undefined}
+                    style={
+                      { "--bx": pct(goalStrip.slot.left) } as React.CSSProperties
+                    }
+                  >
+                    {goalStrip.text}
+                  </b>
+                )}
+              </div>
+            )}
             {pace && <div className="hist-band pace seg" style={pace} />}
             <svg
               viewBox={`0 0 ${VB_W} ${VB_H}`}
@@ -399,9 +487,12 @@ export function HistoryChart({
                   style={
                     { "--x": pct(px), "--y": pct(y(p.value)) } as React.CSSProperties
                   }
-                  title={`${digits(p.value)}${unit ? ` ${unit}` : ""} · ${dayLabel(p.date, true)}`}
+                  title={markTitle(p.value, unit, p.date, stateOf(p.value))}
                 >
                   {label && <b>{digits(p.value)}</b>}
+                  <b className="lbl">
+                    {markTitle(p.value, unit, p.date, stateOf(p.value))}
+                  </b>
                   <i />
                 </div>
               );
@@ -424,11 +515,16 @@ export function HistoryChart({
                 style={
                   {
                     "--x": pct(x(targetDate!)),
-                    "--y": pct(y(target!)),
+                    "--y": pct(y(aim!)),
                   } as React.CSSProperties
                 }
+                title={`target ${goalSaid}${unit ? ` ${unit}` : ""}${
+                  targetDate ? ` by ${dayLabel(targetDate, true)}` : ""
+                }`}
               >
-                <b>target {digits(target!)}</b>
+                {/* A goal band names itself on the band; only a one-sided
+                    goal needs its number printed on the bar as well. */}
+                {!goalBand && <b>target {goalSaid}</b>}
                 <i />
               </div>
             )}
@@ -508,7 +604,7 @@ export function HistoryChart({
               <u className="dot" /> projection, if the current rate holds
             </span>
             <span>
-              <i className="tgt" /> target — {digits(target!)}
+              <i className="tgt" /> target — {goalSaid}
               {unit ? ` ${unit}` : ""} by {dayLabel(targetDate!, true)}
             </span>
             {pace && (

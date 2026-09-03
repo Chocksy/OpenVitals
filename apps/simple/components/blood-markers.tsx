@@ -246,6 +246,8 @@ export function BloodMarkers({ rows }: { rows: MarkerRow[] }) {
                     optimalLow={m.optimalLow}
                     optimalHigh={m.optimalHigh}
                     target={m.goalLow ?? m.goalHigh}
+                    targetLow={m.goalLow}
+                    targetHigh={m.goalHigh}
                     targetDate={m.goalDue}
                     unit={m.unit}
                   />
@@ -320,6 +322,8 @@ export function BloodMarkers({ rows }: { rows: MarkerRow[] }) {
                 optimalLow={open.optimalLow}
                 optimalHigh={open.optimalHigh}
                 target={open.goalLow ?? open.goalHigh}
+                targetLow={open.goalLow}
+                targetHigh={open.goalHigh}
                 targetDate={open.goalDue}
                 unit={open.unit}
               />
@@ -334,6 +338,8 @@ export function BloodMarkers({ rows }: { rows: MarkerRow[] }) {
                 optimalLow={open.optimalLow}
                 optimalHigh={open.optimalHigh}
                 target={open.goalLow ?? open.goalHigh}
+                targetLow={open.goalLow}
+                targetHigh={open.goalHigh}
                 targetDate={open.goalDue}
                 noun={open.phone ? "readings" : "draws"}
               />

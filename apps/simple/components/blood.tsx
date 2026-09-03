@@ -10,6 +10,12 @@ import Link from "next/link";
 import { CalendarDays, ChevronDown, Download, FileText } from "lucide-react";
 import type { DrawView, PhoneMetric } from "@/lib/daily-data";
 import { formatRange, type Status } from "@/lib/status";
+import {
+  uploadDate,
+  uploadState,
+  UPLOAD_WORD,
+  type UploadState,
+} from "@/lib/uploads";
 import { dayLabel, plural } from "@/lib/utils";
 import { DeleteUpload, ReanalyzeUpload, UploadButton } from "./client";
 import { digits } from "./ruler";
@@ -291,23 +297,12 @@ export interface UploadRow {
   }[];
 }
 
-const UPLOAD_TONE: Record<string, StateTone> = {
-  done: "on",
-  needs_review: "border",
-  extracting: "none",
-  pending: "none",
+/** Phase 31a item 8: three states, and none of them is "needs a check". */
+const UPLOAD_TONE: Record<UploadState, StateTone> = {
+  parsed: "on",
+  reading: "none",
   failed: "off",
   deleted: "none",
-};
-
-/** The engine's own status, in the words the page speaks. */
-const UPLOAD_WORD: Record<string, string> = {
-  done: "parsed",
-  needs_review: "needs a check",
-  extracting: "reading it now",
-  pending: "waiting",
-  failed: "could not read it",
-  deleted: "deleted",
 };
 
 export function BloodUploads({ uploads }: { uploads: UploadRow[] }) {
@@ -319,8 +314,10 @@ export function BloodUploads({ uploads }: { uploads: UploadRow[] }) {
         <h3>Uploads</h3>
         <span className="r">
           {plural(live.length, "file")} ·{" "}
-          {plural(live.reduce((n, u) => n + u.count, 0), "reading")} ·{" "}
-          {live.filter((u) => u.status === "needs_review").length} need a check
+          {plural(
+            live.reduce((n, u) => n + u.count, 0),
+            "reading",
+          )}
         </span>
       </div>
 
@@ -347,9 +344,15 @@ export function BloodUploads({ uploads }: { uploads: UploadRow[] }) {
                   <b>{u.fileName ?? "(no name)"}</b>
                 </Link>
                 <div className="meta">
+                  {/* One date, not two: the draw date when the file carries
+                      one, else the day it was read. */}
                   <span>
                     {(u.kind ?? "lab").toUpperCase()}
-                    {u.createdAt ? ` · read ${dayLabel(u.createdAt, true)}` : ""}
+                    {u.firstDay
+                      ? ` · drawn ${uploadDate(u, (d) => dayLabel(d, true))}`
+                      : u.createdAt
+                        ? ` · read ${dayLabel(u.createdAt, true)}`
+                        : ""}
                     {u.pages ? ` · ${u.pages} pages` : ""}
                   </span>
                   <span>
@@ -357,9 +360,6 @@ export function BloodUploads({ uploads }: { uploads: UploadRow[] }) {
                       ? "deleted, its readings were removed"
                       : plural(u.count, "reading")}
                     {u.flagged > 0 ? ` · ${u.flagged} flagged` : ""}
-                    {u.firstDay
-                      ? ` · ${u.firstDay}${u.lastDay !== u.firstDay ? `–${u.lastDay}` : ""}`
-                      : ""}
                   </span>
                 </div>
                 {u.error && (
@@ -405,8 +405,11 @@ export function BloodUploads({ uploads }: { uploads: UploadRow[] }) {
                 )}
               </div>
               <div className="rowh gap-[var(--s5)]">
-                <StateWord tone={UPLOAD_TONE[u.status] ?? "none"} dot>
-                  {UPLOAD_WORD[u.status] ?? u.status}
+                <StateWord
+                  tone={UPLOAD_TONE[uploadState(u.status, u.deleted)]}
+                  dot
+                >
+                  {UPLOAD_WORD[uploadState(u.status, u.deleted)]}
                 </StateWord>
                 {!u.deleted && (
                   <>

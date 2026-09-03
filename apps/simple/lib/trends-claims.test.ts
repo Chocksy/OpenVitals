@@ -18,7 +18,9 @@ import {
   claimFrom,
   claimId,
   claimLabel,
+  claimSubject,
   markersIn,
+  mentionLine,
   measurementPlan,
   toHorizonRow,
   type Claim,
@@ -206,5 +208,40 @@ describe("a horizon row never scores and never projects", () => {
     expect(p.expected).toBe(180);
     // And it is not `accepted`, so `adoptedActions` never even offers it.
     expect(row.status).not.toBe("accepted");
+  });
+});
+
+/**
+ * Phase 31a item 10. "Popular right now" printed sardines twice, from two of
+ * the owner's own posts about the same thing.
+ */
+describe("claimSubject", () => {
+  it("reads two ways of saying sardines as one subject", () => {
+    expect(claimSubject("sardines")).toBe(claimSubject("Sardines ~3 tins a week"));
+    expect(claimSubject("about 3 tins of sardines per week")).toBe(
+      claimSubject("sardines"),
+    );
+  });
+
+  it("keeps two different things apart", () => {
+    expect(claimSubject("sardines")).not.toBe(claimSubject("creatine"));
+    expect(claimSubject("magnesium glycinate 400 mg")).not.toBe(
+      claimSubject("magnesium threonate"),
+    );
+  });
+
+  it("survives a name that is nothing but a dose", () => {
+    expect(claimSubject("3 tins a week")).toBe("");
+  });
+});
+
+describe("mentionLine", () => {
+  it("says nothing for one mention", () => {
+    expect(mentionLine(1)).toBe("");
+  });
+
+  it("says twice, and then counts", () => {
+    expect(mentionLine(2)).toBe("mentioned twice");
+    expect(mentionLine(3)).toBe("mentioned 3 times");
   });
 });

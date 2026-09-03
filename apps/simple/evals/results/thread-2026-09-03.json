@@ -1,0 +1,105 @@
+{
+  "ranAt": "2026-09-03T07:25:41.904Z",
+  "email": "test-newuser@example.com",
+  "model": "default",
+  "compacts": false,
+  "score": 0,
+  "results": [
+    {
+      "id": "follow-up",
+      "turns": [
+        {
+          "said": "Your LDL cholesterol is 142 mg/dL, which is off compared to the reference upper limit of 130 mg/dL and above the optimal target of under 70 mg/dL. For your plan, do Resistance training 3x/week [opinion] to build muscle and assist lipid clearance. Add 10 000 steps daily plus 10 min walk after largest meal [opinion] alongside High-protein (30 g first) high-fibre meals; protein and fibre at start of every meal [opinion]. Measure LDL cholesterol again in 8 weeks.",
+          "called": [
+            "offer"
+          ],
+          "dropped": [],
+          "receipts": [],
+          "failed": [],
+          "inputTokens": 17404,
+          "outputTokens": 1624,
+          "latencyMs": 13642
+        },
+        {
+          "said": "",
+          "called": [],
+          "dropped": [],
+          "receipts": [],
+          "failed": [
+            "threw"
+          ],
+          "inputTokens": 0,
+          "outputTokens": 0,
+          "latencyMs": 16926,
+          "error": "This request requires more credits, or fewer max_tokens. You requested up to 65536 tokens, but can only afford 60730. To increase, visit https://openrouter.ai/workspaces/default/keys/9c60a556ac28b9564cfe1fd1258a0d6aa72b50a9adb50bcb329895d6dc7ef8e7 and adjust the key's monthly limit"
+        }
+      ],
+      "threadId": "21a44090-961c-41fc-9d47-d7ddfc21daf5",
+      "judgeScore": 0,
+      "judgeNote": "judge failed"
+    },
+    {
+      "id": "tells-us-something",
+      "turns": [
+        {
+          "said": "",
+          "called": [],
+          "dropped": [],
+          "receipts": [],
+          "failed": [
+            "threw"
+          ],
+          "inputTokens": 0,
+          "outputTokens": 0,
+          "latencyMs": 385,
+          "error": "This request requires more credits, or fewer max_tokens. You requested up to 65536 tokens, but can only afford 60730. To increase, visit https://openrouter.ai/workspaces/default/keys/9c60a556ac28b9564cfe1fd1258a0d6aa72b50a9adb50bcb329895d6dc7ef8e7 and adjust the key's monthly limit"
+        }
+      ],
+      "threadId": "9a4bd4a5-f9ba-4bb6-ae8d-2abad758b5a4",
+      "judgeScore": 0,
+      "judgeNote": "nothing was said"
+    },
+    {
+      "id": "second-turn",
+      "turns": [
+        {
+          "said": "",
+          "called": [],
+          "dropped": [],
+          "receipts": [],
+          "failed": [
+            "threw"
+          ],
+          "inputTokens": 0,
+          "outputTokens": 0,
+          "latencyMs": 345,
+          "error": "This request requires more credits, or fewer max_tokens. You requested up to 65536 tokens, but can only afford 60730. To increase, visit https://openrouter.ai/workspaces/default/keys/9c60a556ac28b9564cfe1fd1258a0d6aa72b50a9adb50bcb329895d6dc7ef8e7 and adjust the key's monthly limit"
+        }
+      ],
+      "threadId": "e1172007-a62b-4122-a4e4-33c237369697",
+      "judgeScore": 0,
+      "judgeNote": "nothing was said"
+    },
+    {
+      "id": "acts-on-it",
+      "turns": [
+        {
+          "said": "",
+          "called": [],
+          "dropped": [],
+          "receipts": [],
+          "failed": [
+            "threw"
+          ],
+          "inputTokens": 0,
+          "outputTokens": 0,
+          "latencyMs": 324,
+          "error": "This request requires more credits, or fewer max_tokens. You requested up to 65536 tokens, but can only afford 60730. To increase, visit https://openrouter.ai/workspaces/default/keys/9c60a556ac28b9564cfe1fd1258a0d6aa72b50a9adb50bcb329895d6dc7ef8e7 and adjust the key's monthly limit"
+        }
+      ],
+      "threadId": "ed4cca26-01ed-4ddf-bfee-754a94a0d408",
+      "judgeScore": 0,
+      "judgeNote": "nothing was said"
+    }
+  ]
+}

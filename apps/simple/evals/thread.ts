@@ -67,6 +67,22 @@ const CASES: ThreadCase[] = [
     judge:
       "The middle turn writes the medication down and says so in one sentence without asking permission, and the last turn answers with that medication taken into account.",
   },
+  /**
+   * Phase 31a item 1, in the owner's own words. Both of the threads that
+   * broke on the evening of 2026-09-02 were a question and then a follow-up
+   * about the same thing, and both stored an empty assistant row for the
+   * second turn. A second answer, with words in it, is the whole assertion.
+   */
+  {
+    id: "second-turn",
+    turns: [
+      "What is my LDL and how can i improve it?",
+      "how can i improve it?",
+    ],
+    wants: [[], []],
+    judge:
+      "The second turn answers the follow-up with a real answer of its own, taking the first turn's numbers as read rather than repeating them or failing.",
+  },
   {
     id: "acts-on-it",
     turns: [
@@ -180,11 +196,20 @@ async function runCase(userId: string, c: ThreadCase): Promise<CaseResult> {
         .filter(Boolean)
         .join("\n")
         .trim();
-      await turn.save(res.response.messages, {
-        id: `${c.id}-${i}-a`,
-        role: "assistant",
-        parts: [{ type: "text", text: said }],
-      });
+      /**
+       * Every step's messages, exactly as `app/api/chat/route.ts` saves them.
+       * The eval used to keep only `res.response.messages`, which is the last
+       * step, so the fixture never had the history the app actually stores and
+       * phase 31a item 1 could not be caught here.
+       */
+      await turn.save(
+        res.steps.flatMap((s) => s.response.messages),
+        {
+          id: `${c.id}-${i}-a`,
+          role: "assistant",
+          parts: [{ type: "text", text: said }],
+        },
+      );
 
       const calls = res.steps.flatMap((s) => s.toolCalls);
       const results = res.steps.flatMap((s) => s.toolResults);
@@ -197,16 +222,22 @@ async function runCase(userId: string, c: ThreadCase): Promise<CaseResult> {
         .filter((r): r is string => !!r);
 
       const failed: string[] = [];
+      /** Phase 31a item 1: a turn that says nothing is the bug, not a score. */
+      if (!said) failed.push("said nothing");
       const offers = called.filter((n) => n === "offer").length;
       if (offers !== 1) failed.push(`called offer ${offers} times, wanted 1`);
       if (offer?.dropped?.length)
-        failed.push(`invented ${offer.dropped.length} id(s): ${offer.dropped.join(", ")}`);
+        failed.push(
+          `invented ${offer.dropped.length} id(s): ${offer.dropped.join(", ")}`,
+        );
       for (const want of c.wants[i] ?? [])
         if (!called.includes(want)) failed.push(`never called ${want}`);
       /** A tool that says it refused is a receipt that starts with a refusal. */
       for (const r of results)
         if ((r.output as { ok?: boolean })?.ok === false)
-          failed.push(`${r.toolName} refused: ${(r.output as { receipt: string }).receipt}`);
+          failed.push(
+            `${r.toolName} refused: ${(r.output as { receipt: string }).receipt}`,
+          );
 
       out.turns.push({
         said,

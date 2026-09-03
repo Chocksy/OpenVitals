@@ -6,6 +6,7 @@ import {
   dueFacts,
   revisitAtFor,
   revisitDaysOf,
+  settledFacts,
   SKIP_DAYS,
   type RevisitRow,
 } from "./revisit";
@@ -234,5 +235,56 @@ describe("what is due today", () => {
       row({ key: "not_a_question", value: "x", revisitAt: TODAY }),
     ];
     expect(dueFacts(input(), rows, {}, TODAY)).toEqual([]);
+  });
+});
+
+/**
+ * Phase 31a item 4. `/plan` kept asking for a family history that was already
+ * on file. A fact answered today with a 365-day cadence is settled today.
+ */
+describe("settledFacts", () => {
+  const today = "2026-09-03";
+  const row = (over: Partial<RevisitRow>): RevisitRow => ({
+    key: "family_history",
+    value: ["My father had cancer at 52."],
+    validFrom: today,
+    revisitAt: null,
+    ...over,
+  });
+
+  it("settles a fact answered today, whose clock runs a year", () => {
+    expect(settledFacts([row({})], today).has("family_history")).toBe(true);
+  });
+
+  it("works the cadence out when the column was never written", () => {
+    expect(revisitDaysOf("family_history")).toBe(365);
+    expect(
+      settledFacts([row({ validFrom: "2026-09-03", revisitAt: null })], today),
+    ).toEqual(new Set(["family_history"]));
+  });
+
+  it("re-opens it the day the clock comes round", () => {
+    expect(
+      settledFacts([row({ revisitAt: today })], today).has("family_history"),
+    ).toBe(false);
+    expect(
+      settledFacts([row({ revisitAt: "2027-09-03" })], today).has(
+        "family_history",
+      ),
+    ).toBe(true);
+  });
+
+  it("never settles a key with no answer in it", () => {
+    expect(settledFacts([row({ value: "" })], today).size).toBe(0);
+    expect(settledFacts([row({ value: [] })], today).size).toBe(0);
+  });
+
+  it("settles a fact whose answer is never re-asked", () => {
+    expect(
+      settledFacts(
+        [row({ key: "birth_year", value: 1987, revisitAt: null })],
+        today,
+      ).has("birth_year"),
+    ).toBe(true);
   });
 });

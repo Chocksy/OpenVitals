@@ -63,13 +63,20 @@ export function homeAskPlan(
    * list with its catalog wording and no effect line, rather than dropping the
    * reader on somebody else's question.
    */
-  const gain =
-    want && PROFILE_QUESTIONS[want] && !ledger.asks.some((a) => a.key === want)
-      ? [
-          { key: want, question: PROFILE_QUESTIONS[want].question, moves: [] },
-          ...ledger.asks,
-        ]
-      : ledger.asks;
+  /**
+   * Phase 31a item 3. A card's own question is not always in the interview
+   * table either, so the wording falls back to the label the card printed. A
+   * key the page can name is a key the box has to be able to render, or the
+   * "Answer →" under that card goes nowhere.
+   */
+  const asked =
+    want && !ledger.asks.some((a) => a.key === want)
+      ? (PROFILE_QUESTIONS[want]?.question ??
+        ledger.conclusions.find((c) => askKeyOf(c) === want)?.question?.label)
+      : undefined;
+  const gain = asked
+    ? [{ key: want!, question: asked, moves: [] }, ...ledger.asks]
+    : ledger.asks;
 
   return askSurfaces(
     {

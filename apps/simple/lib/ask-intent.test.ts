@@ -229,3 +229,28 @@ describe("questionKind", () => {
     ).toBe("prognosis");
   });
 });
+
+/**
+ * Phase 31a item 2. "What should my fasting insulin be?" wants the number and
+ * the bands around it. It matched no rule and fell through to `howto`, which
+ * answers with a list of actions and never prints a reference range.
+ */
+describe("a question about what a number should be", () => {
+  it("takes the status shape, not the how-to one", () => {
+    expect(questionKind("what should my fasting insulin be?")).toBe("status");
+    expect(questionKind("What should my LDL be?")).toBe("status");
+    expect(questionKind("what should my HbA1c be, ideally?")).toBe("status");
+  });
+
+  it("leaves the how-to questions where they were", () => {
+    expect(questionKind("how can I improve my LDL?")).toBe("howto");
+    expect(questionKind("what should I do about my LDL?")).toBe("howto");
+  });
+
+  it("still lets an earlier rule win when it should", () => {
+    expect(questionKind("what should I measure next?")).toBe("next-test");
+    expect(questionKind("what should my chances be, will I ever be cured?")).toBe(
+      "prognosis",
+    );
+  });
+});

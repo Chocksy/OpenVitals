@@ -152,11 +152,7 @@ const clean = (v: number) => Number(v.toPrecision(12));
  * a negative end mirrors, so the floor of a scale that dips below zero is as
  * round as its ceiling.
  */
-export function niceEnd(
-  v: number,
-  dir: "up" | "down",
-  decimals = 3,
-): number {
+export function niceEnd(v: number, dir: "up" | "down", decimals = 3): number {
   if (!Number.isFinite(v) || v === 0) return 0;
   if (v < 0) return -niceEnd(-v, dir === "up" ? "down" : "up", decimals);
   const base = 10 ** Math.floor(Math.log10(v));
@@ -166,7 +162,9 @@ export function niceEnd(
       ? (NICE.find((n) => n >= m - EPS) ?? 10) * base
       : [...NICE].reverse().find((n) => n <= m + EPS)! * base;
   const q = 10 ** decimals;
-  return clean(dir === "up" ? Math.ceil(nice * q) / q : Math.floor(nice * q) / q);
+  return clean(
+    dir === "up" ? Math.ceil(nice * q) / q : Math.floor(nice * q) / q,
+  );
 }
 
 /** How many decimals this marker's own numbers use, capped at three. */
@@ -185,6 +183,8 @@ export function decimalsOf(values: (number | null | undefined)[]): number {
 
 export interface RulerProps {
   value: number | null | undefined;
+  /** the day this reading was taken, for the hover */
+  valueDate?: string | null;
   /** the draw before this one, drawn hollow with its date */
   prev?: number | null;
   prevDate?: string | null;
@@ -194,6 +194,14 @@ export interface RulerProps {
   optimalHigh?: number | null;
   /** the goal this marker is aimed at, and the day it is due */
   target?: number | null;
+  /**
+   * Phase 31a item 5. A goal with two bounds is a band, not a point. The LDL
+   * goal is 70–100 by Dec 1 2026 and the ruler drew a tick at 100 labelled
+   * "target 100", which is not the goal that was set. Both bounds draw the
+   * band; one bound keeps the tick.
+   */
+  targetLow?: number | null;
+  targetHigh?: number | null;
   targetDate?: string | null;
   unit?: string | null;
   /** `row` is the 8 px version that rides inside a list row */
@@ -225,7 +233,70 @@ const bandLabel = (
         ? `over ${digits(lo)}`
         : "";
 
-const TONE = { red: "off", amber: "border", green: "on", gray: "none" } as const;
+/**
+ * The number a plan is actually aimed at.
+ *
+ * A one-sided goal is its own bound. A goal with two bounds is aimed at the
+ * edge the value has to reach: the low edge from below, the high edge from
+ * above, and the value itself once it is inside, which is how a reached goal
+ * draws no pace zone at all.
+ */
+export function goalAim(
+  value: number,
+  low: number | null,
+  high: number | null,
+): number | null {
+  if (low != null && high != null)
+    return value < low ? low : value > high ? high : value;
+  return high ?? low ?? null;
+}
+
+/** "70–100", "100", "over 70": the goal in the words the legend prints. */
+export const goalWords = (low: number | null, high: number | null): string =>
+  low != null && high != null
+    ? `${digits(low)}–${digits(high)}`
+    : high != null
+      ? digits(high)
+      : low != null
+        ? `over ${digits(low)}`
+        : "";
+
+const TONE = {
+  red: "off",
+  amber: "border",
+  green: "on",
+  gray: "none",
+} as const;
+
+/** The word a reading's own state goes by, as Blood already prints it. */
+export const STATE_WORD = {
+  red: "off",
+  amber: "borderline",
+  green: "optimal",
+  gray: "no band",
+} as const;
+
+/**
+ * What one mark reads out on hover: "Apr 23 2026 · 131 mg/dL · off".
+ *
+ * Phase 31a item 6. Every mark on a chart carried its number and nothing
+ * else, so the only way to learn when a reading was taken was to count along
+ * the axis. Pure, so the wording is a test rather than a screenshot.
+ */
+export function markTitle(
+  value: number,
+  unit: string | null | undefined,
+  date?: string | null,
+  state?: string | null,
+): string {
+  return [
+    date ? dayLabel(date, true) : null,
+    `${digits(value)}${unit ? ` ${unit}` : ""}`,
+    state ?? null,
+  ]
+    .filter(Boolean)
+    .join(" · ");
+}
 
 interface Seg {
   a: number;
@@ -240,6 +311,7 @@ const pct = (n: number) => `${n.toFixed(2)}%`;
 
 export function Ruler({
   value,
+  valueDate,
   prev,
   prevDate,
   refLow,
@@ -247,6 +319,8 @@ export function Ruler({
   optimalLow,
   optimalHigh,
   target,
+  targetLow,
+  targetHigh,
   targetDate,
   unit,
   size = "full",
@@ -256,6 +330,8 @@ export function Ruler({
     value,
     prev,
     target,
+    targetLow,
+    targetHigh,
     refLow,
     refHigh,
     optimalLow,
@@ -295,9 +371,7 @@ export function Ruler({
     ...(breakHigh != null ? [breakHigh] : []),
     100,
   ];
-  const segs: Seg[] = cuts
-    .slice(0, -1)
-    .map((a, i) => ({ a, b: cuts[i + 1]! }));
+  const segs: Seg[] = cuts.slice(0, -1).map((a, i) => ({ a, b: cuts[i + 1]! }));
   const widest = segs.reduce(
     (best, s, i) => (s.b - s.a > segs[best]!.b - segs[best]!.a ? i : best),
     0,
@@ -329,19 +403,38 @@ export function Ruler({
     } as React.CSSProperties;
   };
 
-  const tone = TONE[statusOf({ value, refLow, refHigh, optimalLow, optimalHigh })];
+  const status = statusOf({ value, refLow, refHigh, optimalLow, optimalHigh });
+  const tone = TONE[status];
+  const state = STATE_WORD[status];
   const here = place(at(value));
   const ghost = num(prev) ? place(at(prev)) : null;
-  const goal = num(target) ? place(at(target)) : null;
+  /**
+   * The goal, one shape or the other. `targetLow` and `targetHigh` are the
+   * goal as it was written; `target` is the single number this took before
+   * phase 31a and still draws a tick.
+   */
+  const gLow = num(targetLow) ? targetLow : null;
+  const gHigh = num(targetHigh) ? targetHigh : null;
+  const band = gLow != null && gHigh != null && gHigh > gLow;
+  const aim = band
+    ? goalAim(value, gLow, gHigh)
+    : num(target)
+      ? target
+      : goalAim(value, gLow, gHigh);
+  const shortLabel = `target ${band ? goalWords(gLow, gHigh) : digits(aim!)}`;
+  const label = `${shortLabel}${
+    targetDate ? ` · ${dayLabel(targetDate, true)}` : ""
+  }`;
+  const goal =
+    aim != null ? place(at(band ? (gLow! + gHigh!) / 2 : aim)) : null;
   /* The target's date and the previous draw's date both hang under the track.
      Within this much of each other they run into one another, so the older of
      the two takes the second line. */
-  const stacked =
-    num(prev) && num(target) && Math.abs(at(prev) - at(target)) < 26;
+  const stacked = num(prev) && aim != null && Math.abs(at(prev) - at(aim)) < 26;
 
   /** The stretch a target still has to close, hatched, from now to then. */
-  const paceLo = num(target) ? Math.min(value, target) : null;
-  const paceHi = num(target) ? Math.max(value, target) : null;
+  const paceLo = aim != null ? Math.min(value, aim) : null;
+  const paceHi = aim != null ? Math.max(value, aim) : null;
 
   const mid = [
     hasBand && (num(refLow) || num(refHigh))
@@ -361,6 +454,7 @@ export function Ruler({
           const normal = bandIn(seg, refLow, refHigh);
           const optimal = bandIn(seg, optimalLow, optimalHigh);
           const pace = paceLo != null ? bandIn(seg, paceLo, paceHi) : null;
+          const goalBand = band ? bandIn(seg, gLow, gHigh) : null;
           return (
             <Fragment key={seg.a}>
               {i > 0 && <div className="brk" aria-hidden="true" />}
@@ -376,15 +470,27 @@ export function Ruler({
                   {normal && <div className="band normal" style={normal} />}
                   {optimal && <div className="band optimal" style={optimal} />}
                   {pace && <div className="band pace" style={pace} />}
+                  {goalBand && (
+                    <div className="band goal-in" style={goalBand} />
+                  )}
                 </div>
                 {goal?.seg === i && (
                   <div
-                    className="goal"
+                    className={band && goalBand ? "goal wide" : "goal"}
                     data-align={edge(goal.local)}
-                    style={{ "--t": pct(goal.local) } as React.CSSProperties}
-                    data-label={`target ${digits(target!)}${
-                      targetDate ? ` · ${dayLabel(targetDate, true)}` : ""
-                    }`}
+                    /* The band's own clipped edges, so it never spills past
+                       a broken axis; a one-sided goal is still one tick. */
+                    style={
+                      band && goalBand
+                        ? goalBand
+                        : ({ "--t": pct(goal.local) } as React.CSSProperties)
+                    }
+                    data-label={label}
+                    /* the phone drops the date: the line above the ruler
+                       already says "target by Dec 1 2026 · 31 to go" */
+                    data-short={shortLabel}
+                    data-hover={`${label}${unit ? ` ${unit}` : ""}`}
+                    title={`${label}${unit ? ` ${unit}` : ""}`}
                   />
                 )}
                 {ghost?.seg === i && (
@@ -396,6 +502,8 @@ export function Ruler({
                     data-label={`was ${digits(prev!)}${
                       prevDate ? ` · ${dayLabel(prevDate)}` : ""
                     }`}
+                    data-hover={markTitle(prev!, unit, prevDate, "the draw before")}
+                    title={markTitle(prev!, unit, prevDate, "the draw before")}
                   />
                 )}
                 {here.seg === i && (
@@ -403,6 +511,8 @@ export function Ruler({
                     className={`mark ${tone}`}
                     data-align={edge(here.local)}
                     style={{ "--p": pct(here.local) } as React.CSSProperties}
+                    data-hover={markTitle(value, unit, valueDate, state)}
+                    title={markTitle(value, unit, valueDate, state)}
                   >
                     <span className="mval">
                       {digits(value)}

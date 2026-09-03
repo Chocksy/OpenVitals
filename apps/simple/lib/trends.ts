@@ -575,9 +575,45 @@ export async function fileClaim(
 
 /* ── the shelf ────────────────────────────────────────────────────────── */
 
+/**
+ * Words a claim's subject is the same without.
+ *
+ * Phase 31a item 10. Two of the owner's own posts named sardines and the
+ * shelf printed two cards, because "sardines" and "sardines, ~3 tins a week"
+ * are two strings. The dose, the frequency and the article are not the
+ * subject; the noun is.
+ */
+const SUBJECT_NOISE =
+  /\b(\d+(\.\d+)?|mg|g|kg|ml|l|iu|mcg|ug|µg|tin|tins|can|cans|serving|servings|portion|portions|tbsp|tsp|cup|cups|daily|weekly|a|an|the|per|week|weeks|day|days|time|times|x|about|around|approx|approximately|of|my|your)\b/g;
+
+/**
+ * The subject two claims share when they are the same claim.
+ *
+ * "sardines", "Sardines ~3 tins a week" and "about 3 tins of sardines per
+ * week" all normalise to "sardine". Pure.
+ */
+export const claimSubject = (name: string): string =>
+  (name ?? "")
+    .toLowerCase()
+    .replace(/[~≈]/g, " ")
+    .replace(/[^a-z0-9\s]+/g, " ")
+    .replace(SUBJECT_NOISE, " ")
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((w) => (w.length > 3 && w.endsWith("s") ? w.slice(0, -1) : w))
+    .sort()
+    .join(" ")
+    .trim();
+
+/** "mentioned twice", "mentioned 3 times"; nothing at all for one mention. */
+export const mentionLine = (n: number): string =>
+  n < 2 ? "" : n === 2 ? "mentioned twice" : `mentioned ${n} times`;
+
 export interface HorizonItem {
   id: string;
   name: string;
+  /** how many claims on the shelf normalise to this same subject */
+  mentions: number;
   conditionId: string;
   outcomeFeatureId: string | null;
   direction: string;
@@ -603,21 +639,35 @@ export const SHELF_LIMIT = 4;
 export async function horizonShelf(
   adoptedTexts: string[] = [],
 ): Promise<HorizonItem[]> {
-  const rows = await getDb()
+  /**
+   * Three times the shelf, then merged, then cut: two posts about the same
+   * thing are one card that says it was mentioned twice, not two cards.
+   */
+  const raw = await getDb()
     .select()
     .from(hkbInterventions)
     .where(eq(hkbInterventions.status, "horizon"))
     .orderBy(desc(hkbInterventions.createdAt))
-    .limit(SHELF_LIMIT);
-  if (!rows.length) return [];
+    .limit(SHELF_LIMIT * 3);
+  if (!raw.length) return [];
+
+  const bySubject = new Map<string, { row: HkbIntervention; n: number }>();
+  for (const r of raw as HkbIntervention[]) {
+    const key = claimSubject(r.name) || r.id;
+    const seen = bySubject.get(key);
+    if (seen) seen.n++;
+    else bySubject.set(key, { row: r, n: 1 });
+  }
+  const rows = [...bySubject.values()].slice(0, SHELF_LIMIT);
 
   const taken = new Set(adoptedTexts.map(normalise));
   const out: HorizonItem[] = [];
-  for (const r of rows as HkbIntervention[]) {
+  for (const { row: r, n } of rows) {
     const code = r.outcomeFeatureId?.replace(/^metric:/, "") ?? null;
     out.push({
       id: r.id,
       name: r.name,
+      mentions: n,
       conditionId: r.conditionId,
       outcomeFeatureId: r.outcomeFeatureId,
       direction: r.direction,

@@ -142,6 +142,56 @@ export async function findUpload(userId: string, id: string) {
 
 /* ── which kind of file is this, and what to do with it ───────────────── */
 
+/**
+ * What an upload's state actually is, in three words.
+ *
+ * Phase 31a item 8. `needs_review` was set by `lib/import-legacy.ts` on the
+ * one legacy import and nothing has ever read it or cleared it, so an upload
+ * with nothing wrong with it printed "needs a check" beside a check nobody
+ * could do. An upload is parsed, or it failed, or it is still being read.
+ * Pure, so `lib/uploads.test.ts` is the whole contract.
+ */
+export type UploadState = "parsed" | "failed" | "reading" | "deleted";
+
+export function uploadState(
+  status: string | null | undefined,
+  deleted = false,
+): UploadState {
+  if (deleted || status === "deleted") return "deleted";
+  if (status === "failed") return "failed";
+  if (status === "extracting" || status === "pending") return "reading";
+  return "parsed";
+}
+
+/** The state in the words the page speaks. */
+export const UPLOAD_WORD: Record<UploadState, string> = {
+  parsed: "parsed",
+  failed: "could not read it",
+  reading: "reading it now",
+  deleted: "deleted",
+};
+
+/**
+ * The one date an upload row prints: the day the blood was drawn when the file
+ * carries one, else the day it was read. Never both — a row with two dates on
+ * it made the reader guess which one the reading actually happened on.
+ */
+export function uploadDate(
+  u: {
+    firstDay?: string | null;
+    lastDay?: string | null;
+    createdAt?: string | null;
+  },
+  /** how the surface writes a day; the default keeps the stored form */
+  fmt: (day: string) => string = (day) => day,
+): string | null {
+  if (u.firstDay)
+    return u.lastDay && u.lastDay !== u.firstDay
+      ? `${fmt(u.firstDay)} – ${fmt(u.lastDay)}`
+      : fmt(u.firstDay);
+  return u.createdAt ? fmt(u.createdAt) : null;
+}
+
 export type UploadKind = "lab" | "genome" | "document";
 
 export const UPLOAD_KINDS: UploadKind[] = ["lab", "genome", "document"];

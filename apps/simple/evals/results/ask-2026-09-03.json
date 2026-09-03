@@ -1,0 +1,313 @@
+{
+  "ranAt": "2026-09-03T07:07:46.375Z",
+  "email": "test-newuser@example.com",
+  "winner": "google/gemini-3.7-flash",
+  "runs": [
+    {
+      "modelId": "google/gemini-3.7-flash",
+      "outPerM": 3.75,
+      "inPerM": 0.75,
+      "cases": [
+        {
+          "id": "cholesterol",
+          "kind": "status",
+          "reply": "Your total cholesterol is 200 mg/dL, sitting at the top of the reference range of up to 200 mg/dL but above the optimal 0 to 180 mg/dL, while your LDL cholesterol is off at 142 mg/dL, above the reference range of 0 to 130 mg/dL and above the optimal 0 to 70 mg/dL. Your HDL cholesterol is borderline at 48 mg/dL, inside the reference range of 40 to 100 mg/dL but below the optimal 50 to 90 mg/dL, alongside triglycerides of 130 mg/dL, inside the reference range of 0 to 150 mg/dL but above the optimal 0 to 100 mg/dL. Together, these numbers indicate elevated circulating atherogenic particles and suboptimal lipid clearance driven by your emerging insulin resistance, even though your overall cardiovascular risk is currently unlikely.",
+          "sentences": 3,
+          "labels": [],
+          "acts": {
+            "actions": [],
+            "tests": [],
+            "questions": []
+          },
+          "dropped": [],
+          "failed": [],
+          "judgeScore": 3,
+          "judgeNote": "It gives unsupported reassurance about cardiovascular risk despite having no risk calculation or evidence for that conclusion.",
+          "latencyMs": 12323
+        },
+        {
+          "id": "lower-ldl",
+          "kind": "howto",
+          "reply": "Your LDL cholesterol is 142 mg/dL, which is off against the reference limit of 130 mg/dL, alongside total cholesterol at 200 mg/dL and triglycerides at 130 mg/dL. To support clearance and metabolic health, start resistance training 3x/week [opinion]. Follow high-protein (30 g first) high-fibre meals with protein and fibre at the start of every meal [opinion]. Incorporate 10 000 steps daily plus a 10 min walk after your largest meal [opinion]. Retest your LDL cholesterol after 8 weeks.",
+          "sentences": 5,
+          "labels": [
+            "[opinion]"
+          ],
+          "acts": {
+            "actions": [
+              "Resistance training 3x/week",
+              "High-protein (30 g first) high-fibre meals; protein and fibre at start of every meal",
+              "10 000 steps daily plus 10 min walk after largest meal"
+            ],
+            "tests": [
+              "ldl_cholesterol/8w"
+            ],
+            "questions": []
+          },
+          "dropped": [],
+          "failed": [],
+          "judgeScore": 4,
+          "judgeNote": "It does not state the LDL target to reach by the 8-week retest.",
+          "latencyMs": 26486
+        },
+        {
+          "id": "t2d-risk",
+          "kind": "howto",
+          "reply": "Your fasting glucose of 98 mg/dL and HbA1c of 5.6% are borderline against standard reference bands and above optimal, while your insulin of 12 uIU/mL and HOMA-IR of 2.84 are off optimal, making type 2 diabetes possible at 53% and insulin resistance likely at 97%. To reverse this, perform resistance training 3x/week [opinion]. Aim for 10 000 steps daily plus 10 min walk after largest meal [opinion]. Consume high-protein (30 g first) high-fibre meals; protein and fibre at start of every meal [opinion]. Measure HbA1c again in 12 weeks.",
+          "sentences": 5,
+          "labels": [
+            "[opinion]"
+          ],
+          "acts": {
+            "actions": [
+              "Resistance training 3x/week",
+              "10 000 steps daily plus 10 min walk after largest meal",
+              "High-protein (30 g first) high-fibre meals; protein and fibre at start of every meal"
+            ],
+            "tests": [
+              "hba1c/12w"
+            ],
+            "questions": []
+          },
+          "dropped": [],
+          "failed": [],
+          "judgeScore": 5,
+          "judgeNote": "“To reverse this” is imprecise because type 2 diabetes is only a modeled possibility here, not an established diagnosis.",
+          "latencyMs": 24787
+        },
+        {
+          "id": "fix-hashimoto",
+          "kind": "howto",
+          "reply": "Your TPO antibodies are critical at 320 IU/mL against the optimal range of 0 to 9 IU/mL, while your TSH is off optimal at 3.9 mIU/L against 0.5 to 2.5 mIU/L, and your Free T4 is normal at 1.1 ng/dL. Take Selenium 200 µg/day as selenomethionine [opinion] at 200 µg once daily with breakfast for 6 months. Ask an endocrinologist for levothyroxine [science, C], or follow a whole system Ayurveda protocol [science, C]. Retest your TSH in 6 weeks and your TPO antibodies in 12 weeks.",
+          "sentences": 4,
+          "labels": [
+            "[opinion]",
+            "[science, C]"
+          ],
+          "acts": {
+            "actions": [
+              "Selenium 200 µg/day as selenomethionine for 6 months",
+              "levothyroxine",
+              "whole system Ayurveda protocol"
+            ],
+            "tests": [
+              "tsh/6w",
+              "tpo_antibodies/12w"
+            ],
+            "questions": []
+          },
+          "dropped": [],
+          "failed": [],
+          "judgeScore": 5,
+          "judgeNote": "It presents levothyroxine and whole-system Ayurveda as interchangeable options without explaining when either would be appropriate.",
+          "latencyMs": 30369
+        },
+        {
+          "id": "what-to-eat",
+          "kind": "howto",
+          "reply": "Your fasting glucose of 98 mg/dL is borderline against the 70 to 99 mg/dL reference range and off its 72 to 85 mg/dL optimal range, while your fasting insulin of 12 uIU/mL and ALT of 34 U/L are off their optimal targets. Base your diet on high-protein (30 g first) high-fibre meals with protein and fibre at the start of every meal [opinion]. Take Vitamin D3 4000 IU daily with largest meal [opinion] at 4000 IU daily and Selenium 200 µg/day as selenomethionine for 6 months [opinion] at 200 µg once daily with breakfast. Retest HbA1c in 12 weeks.",
+          "sentences": 4,
+          "labels": [
+            "[opinion]"
+          ],
+          "acts": {
+            "actions": [
+              "High-protein (30 g first) high-fibre meals; protein and fibre at start of every meal",
+              "Vitamin D3 4000 IU daily with largest meal",
+              "Selenium 200 µg/day as selenomethionine for 6 months"
+            ],
+            "tests": [
+              "hba1c/12w"
+            ],
+            "questions": []
+          },
+          "dropped": [],
+          "failed": [],
+          "judgeScore": 5,
+          "judgeNote": "It dilutes the requested food guidance with two supplement recommendations rather than focusing on what to eat.",
+          "latencyMs": 29436
+        },
+        {
+          "id": "why-tired",
+          "kind": "why",
+          "reply": "There are no mechanism connections on file explaining your fatigue, but completing the PHQ-9 after 12 weeks would help fill this gap.",
+          "sentences": 1,
+          "labels": [],
+          "acts": {
+            "actions": [],
+            "tests": [
+              "phq9_score/12w"
+            ],
+            "questions": []
+          },
+          "dropped": [],
+          "failed": [],
+          "judgeScore": 1,
+          "judgeNote": "It ignores the thyroid, iron, vitamin D, inflammation, and metabolic findings that could explain fatigue and instead recommends an unlabeled, unallowed test.",
+          "latencyMs": 18991
+        },
+        {
+          "id": "iron-ok",
+          "kind": "status",
+          "reply": "Your serum iron is 109 mcg/dL, inside the reference range of 65 to 175 mcg/dL and within the optimal 60 to 170 mcg/dL. However, your ferritin is 22 ng/mL, inside the reference range of 15 to 150 ng/mL but below the optimal 30 to 200 ng/mL. This means that while circulating iron levels are currently fine, your stored iron reserves are running low.",
+          "sentences": 3,
+          "labels": [],
+          "acts": {
+            "actions": [],
+            "tests": [],
+            "questions": []
+          },
+          "dropped": [],
+          "failed": [],
+          "judgeScore": 5,
+          "judgeNote": "It is accurate, but “running low” is slightly stronger than the data’s designation of below optimal yet within the reference range.",
+          "latencyMs": 8650
+        },
+        {
+          "id": "next-test",
+          "kind": "next-test",
+          "reply": "Your two best options are the PHQ-9, which settles Depression 33 % → 74 % if positive, 7 % if negative, and the OGTT, which settles Type 2 diabetes 53 % → 94 % if positive, 18 % if negative. Complete the PHQ-9 first after 12 weeks.",
+          "sentences": 2,
+          "labels": [],
+          "acts": {
+            "actions": [],
+            "tests": [
+              "phq9_score/12w",
+              "ogtt_2h_glucose/12w"
+            ],
+            "questions": []
+          },
+          "dropped": [],
+          "failed": [],
+          "judgeScore": 3,
+          "judgeNote": "It prioritizes a PHQ-9 without depression context and adds an unsupported 12-week delay instead of clearly recommending the metabolically relevant OGTT next.",
+          "latencyMs": 22389
+        },
+        {
+          "id": "hashimoto-forever",
+          "kind": "prognosis",
+          "reply": "The ATA 2014 hypothyroidism guideline and Hollowell 2002 JCEM (NHANES III) indicate that autoimmune thyroiditis is a chronic condition managed by controlling thyroid function rather than permanently eliminating autoimmunity. In your own bloodwork, your TPO antibodies surged to 320 IU/mL and TSH rose to 3.9 mIU/L, though your free T4 remains compensated at 1.1 ng/dL. To target antibody levels, take selenium 200 µg/day as selenomethionine for 6 months [opinion].",
+          "sentences": 3,
+          "labels": [
+            "[opinion]"
+          ],
+          "sources": [
+            "ATA 2014 hypothyroidism guideline 2014",
+            "Hollowell 2002 JCEM (NHANES III) 2002"
+          ],
+          "acts": {
+            "actions": [
+              "Selenium 200 µg/day as selenomethionine for 6 months"
+            ],
+            "tests": [],
+            "questions": []
+          },
+          "dropped": [],
+          "failed": [],
+          "judgeScore": 5,
+          "judgeNote": "It misrepresents the cited sources as establishing a chronic, non-reversible course when the supplied evidence only addresses diagnostic markers and thresholds.",
+          "latencyMs": 21622
+        },
+        {
+          "id": "hashimoto-research",
+          "kind": "research",
+          "reply": "Hollowell 2002 JCEM (NHANES III) established with grade A evidence that TPO antibodies above the assay limit are the defining marker for autoimmune thyroiditis with an LR+ of 10, while Hollowell 2002 JCEM found with grade A evidence that anti-Tg antibodies identify the roughly 10 % of cases that are TPO-negative with an LR+ of 5. Furthermore, Rodondi 2010 JAMA demonstrated with grade A evidence that a TSH above 4.5 indicates subclinical hypothyroidism, most often autoimmune, with an LR+ of 3. These diagnostic antibody markers and hormonal thresholds are settled with grade A evidence.",
+          "sentences": 3,
+          "labels": [],
+          "sources": [
+            "Hollowell 2002 JCEM (NHANES III) 2002",
+            "Hollowell 2002 JCEM 2002",
+            "Rodondi 2010 JAMA 2010"
+          ],
+          "acts": {
+            "actions": [],
+            "tests": [],
+            "questions": []
+          },
+          "dropped": [],
+          "failed": [],
+          "judgeScore": 4,
+          "judgeNote": "It omits the ATA 2014 grade A finding, all grade B findings, and the requested certainty contrast between A/B evidence and C–E evidence.",
+          "latencyMs": 13501
+        },
+        {
+          "id": "why-ldl",
+          "kind": "why",
+          "reply": "Low thyroid hormone reflected by a rising TSH lowers LDL receptor activity in the liver, so LDL cholesterol clears more slowly and the number climbs. Your own numbers support this mechanism, as your TSH has climbed to 3.9 mIU/L alongside TPO antibodies at 320 IU/mL while your LDL cholesterol rose to 142 mg/dL.",
+          "sentences": 2,
+          "labels": [],
+          "acts": {
+            "actions": [],
+            "tests": [],
+            "questions": []
+          },
+          "dropped": [],
+          "failed": [],
+          "judgeScore": 5,
+          "judgeNote": "It overstates “low thyroid hormone” despite the normal free T4 of 1.1 ng/dL, so the thyroid explanation is plausible but not established.",
+          "latencyMs": 15386
+        },
+        {
+          "id": "ferritin-status",
+          "kind": "status",
+          "reply": "Your ferritin is 22 ng/mL, inside the reference range of 15 to 150 ng/mL but below the optimal 30 to 200 ng/mL. This means your iron stores have dropped low, which can limit thyroid peroxidase activity and contribute to fatigue.",
+          "sentences": 2,
+          "labels": [],
+          "acts": {
+            "actions": [],
+            "tests": [],
+            "questions": []
+          },
+          "dropped": [],
+          "failed": [],
+          "judgeScore": 5,
+          "judgeNote": "It adds an unsupported claim that this ferritin level may limit thyroid peroxidase activity and contribute to fatigue.",
+          "latencyMs": 30718
+        },
+        {
+          "id": "improve-ldl",
+          "kind": "howto",
+          "reply": "Your LDL cholesterol is 142 mg/dL, which is off against the reference range of 0 to 130 mg/dL and well above the optimal target of 0 to 70 mg/dL. Do resistance training 3x/week [opinion] to build muscle and enhance clearance. Eat high-protein (30 g first) high-fibre meals with protein and fibre at the start of every meal [opinion]. Aim for 10 000 steps daily plus a 10-minute walk after your largest meal [opinion]. Measure LDL cholesterol in 8 weeks.",
+          "sentences": 5,
+          "labels": [
+            "[opinion]"
+          ],
+          "acts": {
+            "actions": [
+              "Resistance training 3x/week",
+              "High-protein (30 g first) high-fibre meals; protein and fibre at start of every meal",
+              "10 000 steps daily plus 10 min walk after largest meal"
+            ],
+            "tests": [
+              "ldl_cholesterol/8w"
+            ],
+            "questions": []
+          },
+          "dropped": [],
+          "failed": [],
+          "judgeScore": 5,
+          "judgeNote": "The phrase “off against the reference range” is awkward and unclear.",
+          "latencyMs": 13373
+        },
+        {
+          "id": "fasting-insulin-target",
+          "kind": "status",
+          "reply": "Your fasting insulin should optimally sit between 2 and 5 uIU/mL. Your current level is 12 uIU/mL, which is inside the reference range of 2 to 25 uIU/mL but above the optimal 2 to 5 uIU/mL. This elevation means your pancreas must secrete extra insulin to clear blood sugar, making insulin resistance likely.",
+          "sentences": 3,
+          "labels": [],
+          "acts": {
+            "actions": [],
+            "tests": [],
+            "questions": []
+          },
+          "dropped": [],
+          "failed": [],
+          "judgeScore": 5,
+          "judgeNote": "It unnecessarily adds a mechanistic interpretation and says insulin resistance is likely instead of stopping after the requested status.",
+          "latencyMs": 15971
+        }
+      ],
+      "score": 0.86
+    }
+  ]
+}

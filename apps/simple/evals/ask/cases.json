@@ -61,5 +61,20 @@
     "id": "ferritin-status",
     "q": "what's my ferritin?",
     "judge": "Does the answer give this person's own ferritin value with its unit and band and one line on what that means, and stop there, with no plan and no actions?"
+  },
+  {
+    "id": "improve-ldl",
+    "q": "how can I improve my LDL?",
+    "minActions": 2,
+    "judge": "Does the answer name at least two things this person can actually do about their LDL, each one from THEIR PLAN or WHAT THE PAPERS SAY with its bracketed label, instead of saying there is nothing on file?"
+  },
+  {
+    "id": "fasting-insulin-target",
+    "q": "what should my fasting insulin be?",
+    "needs": [
+      "optimal",
+      "reference|standard|lab range"
+    ],
+    "judge": "Does the answer print the optimal band for fasting insulin AND the standard reference range, both with their numbers and unit, and say where this person's own value sits between them?"
   }
 ]

@@ -144,7 +144,15 @@ export function TodayQuestions({
       <div className="panel-head">
         <h3>One question</h3>
       </div>
-      <TodayAsk ask={ask} options={askOptions} />
+      {/**
+       * Phase 31a item 3. `TodayAsk` seeds its state from this prop once, so
+       * on a soft navigation to `/?ask=sym_thirst#today-question` — which is
+       * where every "Answer →" on a card goes, and Home is already the page —
+       * the box kept the question it was already showing and clicking Answer
+       * looked like it did nothing. The key is the question, so a new question
+       * is a new box.
+       */}
+      <TodayAsk key={ask.key} ask={ask} options={askOptions} />
     </div>
   );
   return (
@@ -333,9 +341,7 @@ export function ConclusionCard({
       className={cn("conc t-flip t-resize", CONC_TONE[tone])}
     >
       <div className="conc-top">
-        <span className="conc-rank">
-          {String(c.rank).padStart(2, "0")}
-        </span>
+        <span className="conc-rank">{String(c.rank).padStart(2, "0")}</span>
         <h3 className="conc-name t-title">{nameOf(c)}</h3>
         {c.risk ? (
           <StateWord tone="border">risk</StateWord>
@@ -488,8 +494,8 @@ export function ConclusionCard({
         <div className="inner space-y-2">
           <p className="t-meta text-[length:var(--type-xs)]">
             <Term code="likelihood_ratio">LR</Term> is how much a finding
-            multiplies the odds; <Term code="grade">grade</Term> is how good
-            the evidence behind it is.
+            multiplies the odds; <Term code="grade">grade</Term> is how good the
+            evidence behind it is.
           </p>
           <EvidenceList title="For" lines={c.for} />
           <EvidenceList title="Against" lines={c.against} />
@@ -615,10 +621,7 @@ export function FindingsCard({ finding }: { finding: Finding }) {
           </li>
         ))}
       </ul>
-      <Link
-        href={finding.href}
-        className={cn(SMALL_LINK, "mt-3")}
-      >
+      <Link href={finding.href} className={cn(SMALL_LINK, "mt-3")}>
         see all {finding.total}
       </Link>
     </div>
@@ -699,9 +702,8 @@ export function QuietLine({ quiet }: { quiet: Ledger["quiet"] }) {
           <summary>Show {quiet.ruledOut} ruled out</summary>
           <div className="inner">
             <p className="t-meta text-[length:var(--type-sm)]">
-              Under 5 %. Every one of these was scored and dismissed; the
-              ring-2 entries are rare diseases something in your data woke for
-              a look.
+              Under 5 %. Every one of these was scored and dismissed; the ring-2
+              entries are rare diseases something in your data woke for a look.
             </p>
             <QuietRows rows={quiet.ruledOutRows} />
           </div>

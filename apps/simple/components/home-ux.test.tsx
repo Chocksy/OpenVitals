@@ -134,9 +134,17 @@ describe("the ruler under a card (UX note 1)", () => {
 
   it("dates the previous draw instead of hiding it in a title", () => {
     /* the mark's label is drawn by the CSS from `data-label`, so a phone
-       reads it too; a `title` attribute never was reachable on a phone. */
+       reads it too; a `title` attribute never was reachable on a phone.
+       Phase 31a item 6 adds the title and the CSS-only hover label on top of
+       that, never instead of it: the date is still on the screen without one. */
     expect(raw).toContain('data-label="was 412 · Dec 9"');
-    expect(raw).not.toContain("title=");
+    for (const title of raw.match(/title="[^"]*"/g) ?? [])
+      expect(raw).toContain(title.replace("title=", "data-hover="));
+  });
+
+  it("reads every mark out on hover, with its date and its state", () => {
+    expect(raw).toContain('data-hover="Dec 9 2025 · 412 IU/mL · the draw before"');
+    expect(raw).toContain('data-hover="320 IU/mL · off"');
   });
 
   it("rounds the axis ends: no decimal is ever a reading", () => {

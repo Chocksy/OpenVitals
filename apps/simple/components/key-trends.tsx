@@ -79,6 +79,8 @@ export function KeyTrends({ trends }: { trends: TrendMetric[] }) {
                 optimalLow={t.optimalLow}
                 optimalHigh={t.optimalHigh}
                 target={t.goalLow ?? t.goalHigh}
+                targetLow={t.goalLow}
+                targetHigh={t.goalHigh}
                 targetDate={t.goalDue}
                 unit={t.unit}
               />

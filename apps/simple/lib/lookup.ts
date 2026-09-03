@@ -589,6 +589,7 @@ export function askCandidates({
   moves,
   questions,
   sources = [],
+  first = [],
 }: {
   actions: PlanLine[];
   /** every marker code this person has a value for */
@@ -596,6 +597,15 @@ export function askCandidates({
   moves: Move[];
   questions: { key: string; question: string }[];
   sources?: SourceCandidate[];
+  /**
+   * Phase 31a item 2. The codes the question itself is about: the marker it
+   * names and every marker of the conditions that marker feeds. `MAX_TESTS`
+   * is 30 and `nextMoves` fills it in its own order, so "how can I improve my
+   * LDL?" could be answered by a closed set with no lipid marker in it and
+   * then said, correctly for what it was given, that there was nothing to
+   * measure. These go in before the general moves do.
+   */
+  first?: string[];
 }): AskCandidates {
   const tests = new Map<string, TestCandidate>();
   const add = (code: string, name: string, selfOrder: boolean) => {
@@ -607,6 +617,15 @@ export function askCandidates({
       selfOrder,
     });
   };
+  const asMove = new Map(
+    moves
+      .filter((m) => m.kind === "test" && m.featureId.startsWith("metric:"))
+      .map((m) => [m.featureId.slice("metric:".length), m] as const),
+  );
+  for (const code of first) {
+    const m = asMove.get(code);
+    add(code, m?.label ?? explainKey(code), m ? (m.band ?? 1) <= 2 : true);
+  }
   for (const m of moves) {
     if (m.kind !== "test" || !m.featureId.startsWith("metric:")) continue;
     add(m.featureId.slice("metric:".length), m.label, (m.band ?? 1) <= 2);
@@ -910,7 +929,7 @@ THEN SAY WHAT YOU JUST NAMED, AS IDS. Alongside the paragraph, list the ids of w
  */
 export const QUESTION_SHAPES: Record<QuestionKind, string> = {
   status: `THE SHAPE FOR THIS QUESTION — they asked where they stand.
-TWO OR THREE SENTENCES. Give the values they asked about, each with its unit and whether it is off, borderline or fine against the band you are given, then one sentence on what that means for them. Name no action and no test: they did not ask for one.`,
+TWO OR THREE SENTENCES. Give the values they asked about, each with its unit and whether it is off, borderline or fine against the bands you are given, then one sentence on what that means for them. When a marker has both, print the standard reference range AND the optimal band, each with its numbers: "5.7 uIU/mL, inside the reference range of 3 to 25 but above the optimal 2 to 5". Name no action and no test: they did not ask for one.`,
 
   howto: `THE SHAPE FOR THIS QUESTION — they asked what to do.
 SIX SENTENCES AT MOST, in this order.

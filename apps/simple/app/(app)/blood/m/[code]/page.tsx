@@ -159,6 +159,8 @@ export default async function MarkerPage({
           optimalLow={metric.optimalLow}
           optimalHigh={metric.optimalHigh}
           target={target}
+          targetLow={goal?.targetLow ?? null}
+          targetHigh={goal?.targetHigh ?? null}
           targetDate={goal?.due ?? null}
           unit={unit}
           say={
@@ -181,6 +183,8 @@ export default async function MarkerPage({
         optimalLow={metric.optimalLow}
         optimalHigh={metric.optimalHigh}
         target={target}
+        targetLow={goal?.targetLow ?? null}
+        targetHigh={goal?.targetHigh ?? null}
         targetDate={goal?.due ?? null}
         noun={phone ? "readings" : "draws"}
       />

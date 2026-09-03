@@ -470,6 +470,83 @@ const answers = (
  * A row whose facts no rule reads at all returns true: silence is not
  * evidence of no effect.
  */
+/**
+ * One gene row as the page reads it: the verdict first, the rsids behind it.
+ *
+ * Phase 31a item 9. The table printed "HLA · rs2187668 · rs7454108 · no DQ2.5
+ * or DQ8 tag" and, under "what it moved", a likelihood-ratio sentence — four
+ * pieces of laboratory bookkeeping and no answer. The catalogue already writes
+ * the answer: `meaning` is one plain sentence about this person's own call.
+ * The first sentence of it is the verdict, the rest is the detail, and the
+ * rsids and the genotype go behind a disclosure.
+ *
+ * Pure. `lib/genome.test.ts` is the contract, and the 31b markup binds to it.
+ */
+export interface GenomeVerdict {
+  id: string;
+  gene: string;
+  /** the one line that leads the row: what this gene settles for this person */
+  verdict: string;
+  /** the rest of what the catalogue wrote, and what the call moves */
+  detail: string;
+  rsids: string[];
+  /** the alleles the array read, or null when it did not read them */
+  genotype: string | null;
+  /** the call in the words the profile fact stores it in */
+  call: string | null;
+  grade: Grade;
+  source: string;
+  /** true when the call actually moves a condition the engine scores */
+  moved: boolean;
+}
+
+/** The first sentence of a plain paragraph, and everything after it. */
+export function firstSentence(text: string): [string, string] {
+  const trimmed = (text ?? "").trim();
+  const cut = /(?<=[.!?])\s/.exec(trimmed);
+  return cut
+    ? [trimmed.slice(0, cut.index + 1).trim(), trimmed.slice(cut.index).trim()]
+    : [trimmed, ""];
+}
+
+export function genomeVerdict(r: {
+  row: GenomeRow;
+  result: GenomeCall | null;
+  absent: string[];
+}): GenomeVerdict {
+  const { row, result, absent } = r;
+  const base = {
+    id: row.id,
+    gene: row.gene,
+    rsids: row.rsids,
+    grade: row.grade,
+    source: row.source,
+  };
+
+  if (!result)
+    return {
+      ...base,
+      verdict: "Not read: this array does not carry the markers it needs.",
+      detail: absent.length ? `Missing ${absent.join(", ")}.` : "",
+      genotype: null,
+      call: null,
+      moved: false,
+    };
+
+  const moved = movesAnything(row, result);
+  const [verdict, rest] = firstSentence(result.meaning);
+  return {
+    ...base,
+    verdict,
+    detail: [rest, moved ? row.effect : "It moves nothing on its own."]
+      .filter(Boolean)
+      .join(" "),
+    genotype: result.genotype,
+    call: result.call,
+    moved,
+  };
+}
+
 export function movesAnything(row: GenomeRow, call: GenomeCall): boolean {
   const facts: Record<string, string> = {
     [row.factKey]: call.call,
