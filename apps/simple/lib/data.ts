@@ -41,6 +41,8 @@ export interface MetricRow {
     refHigh: number | null;
     /** Phase 24b: null is a lab draw, `healthkit` is the phone. */
     source?: string | null;
+    /** Phase 32a: who wrote it, as the sample's own bundle identifier. */
+    device?: string | null;
     /** Curator breadcrumbs; `unverified` is the one the engine reads. */
     flags?: ReadingFlag[] | null;
   }[];
@@ -187,6 +189,7 @@ export async function getMetricRows(userId: string): Promise<MetricRow[]> {
       refLow: r.refLow,
       refHigh: r.refHigh,
       source: r.source,
+      device: r.device,
       flags: r.flags,
     });
   }

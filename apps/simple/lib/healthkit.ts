@@ -584,6 +584,13 @@ export interface DayReading {
   unit: string;
   /** How many samples went into it, for the audit line. */
   samples: number;
+  /**
+   * Phase 32a: who wrote it, as the sample's own bundle identifier, taken
+   * from the newest sample in the bucket. `source` on the row stays
+   * "healthkit", which is the pipeline; this is the writer, and the two are
+   * not the same fact.
+   */
+  device?: string | null;
 }
 
 export interface DayDaily {
@@ -626,6 +633,11 @@ export interface Aggregate {
   unmapped: string[];
   /** Samples the table knew but whose value was not plausible. */
   dropped: number;
+  /**
+   * Phase 32a: the bundle that wrote most of this batch, so a day with no
+   * per-reading writer still names one. Null when no sample said.
+   */
+  writer: string | null;
 }
 
 /**
@@ -638,7 +650,12 @@ export interface Aggregate {
  * `how`.
  */
 export function aggregate(samples: Sample[]): Aggregate {
-  const byKey = new Map<string, { m: HkMapping; day: string; xs: number[] }>();
+  const byKey = new Map<
+    string,
+    { m: HkMapping; day: string; xs: number[]; device?: string | null }
+  >();
+  /** How many samples each bundle wrote in this batch, for the day's writer. */
+  const wrote = new Map<string, number>();
   const stages = new Map<string, Record<string, number>>();
   const days = new Set<string>();
   const flowDays = new Set<string>();
@@ -681,6 +698,10 @@ export function aggregate(samples: Sample[]): Aggregate {
       const key = `${m.type}|${day}`;
       const slot = byKey.get(key) ?? { m, day, xs: [] };
       slot.xs.push(minutes);
+      // `ordered` is oldest first, so the last assignment is the newest sample.
+      if (s.sourceBundle) slot.device = s.sourceBundle;
+      if (s.sourceBundle)
+        wrote.set(s.sourceBundle, (wrote.get(s.sourceBundle) ?? 0) + 1);
       byKey.set(key, slot);
       continue;
     }
@@ -693,12 +714,15 @@ export function aggregate(samples: Sample[]): Aggregate {
     const key = `${m.type}|${day}`;
     const slot = byKey.get(key) ?? { m, day, xs: [] };
     slot.xs.push(value);
+    if (s.sourceBundle) slot.device = s.sourceBundle;
+    if (s.sourceBundle)
+      wrote.set(s.sourceBundle, (wrote.get(s.sourceBundle) ?? 0) + 1);
     byKey.set(key, slot);
   }
 
   const readings: DayReading[] = [];
   const daily: DayDaily[] = [];
-  for (const { m, day, xs } of byKey.values()) {
+  for (const { m, day, xs, device } of byKey.values()) {
     if (!xs.length) continue;
     let value = Number(reduceHow(m.how, xs).toPrecision(6));
     if (m.plausible && (value < m.plausible[0] || value > m.plausible[1])) {
@@ -714,6 +738,7 @@ export function aggregate(samples: Sample[]): Aggregate {
         value,
         unit: m.unit ?? "",
         samples: xs.length,
+        ...(device ? { device } : {}),
       });
     else if (m.lands === "daily")
       daily.push({ day, field: m.key, value: Math.round(value * 100) / 100 });
@@ -738,6 +763,8 @@ export function aggregate(samples: Sample[]): Aggregate {
     days: [...days].sort(),
     unmapped: seenNotUsed(samples),
     dropped,
+    writer:
+      [...wrote.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] ?? null,
   };
 }
 

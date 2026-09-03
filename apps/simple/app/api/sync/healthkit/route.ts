@@ -125,6 +125,10 @@ export async function POST(req: Request) {
           unit: r.unit || null,
           observedAt: r.day,
           source: SOURCE,
+          // The pipeline is `source`; this is the writer. Phase 32a: every
+          // phone row carried the same "healthkit" and a reader learned
+          // nothing from it, so the sample's own bundle is kept beside it.
+          device: r.device ?? agg.writer ?? null,
           // "self_reported" is what every non-lab reading already carries, so
           // the curator and /m/[code] treat these the way they treat a number
           // typed into the composer.
@@ -144,6 +148,7 @@ export async function POST(req: Request) {
           valueText: sql`excluded.value_text`,
           unit: sql`excluded.unit`,
           flags: sql`excluded.flags`,
+          device: sql`coalesce(excluded.device, ${readings.device})`,
         },
       });
 
@@ -240,6 +245,9 @@ export async function POST(req: Request) {
             ? { sleepStages: stagesByDay.get(day)! }
             : {}),
           syncedAt: new Date().toISOString(),
+          // The writer of the batch, so a daily number the phone computed
+          // still names who wrote it. Phase 32a.
+          ...(agg.writer ? { device: agg.writer } : {}),
         },
       },
     );

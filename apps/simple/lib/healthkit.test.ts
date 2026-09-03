@@ -609,3 +609,55 @@ describe("the day's food", () => {
     expect(again.kcal).toBe(2100);
   });
 });
+
+/**
+ * Phase 32a. `readings.source` is the pipeline and says "healthkit" on every
+ * phone row, which told a reader nothing about who wrote it. The sample's own
+ * `sourceBundle` is carried through instead, so `/api/body` can name the
+ * writer.
+ */
+describe("who wrote it", () => {
+  /** Resting heart rate lands as a reading, which is the row that gains the column. */
+  const step = (
+    day: string,
+    value: number,
+    sourceBundle?: string | null,
+  ): Sample => ({
+    type: "HKQuantityTypeIdentifierRestingHeartRate",
+    unit: "count/min",
+    value,
+    start: `${day}T09:00:00Z`,
+    ...(sourceBundle !== undefined ? { sourceBundle } : {}),
+  });
+
+  it("keeps the bundle the newest sample of the day named", () => {
+    const agg = aggregate([
+      step("2026-09-01", 58, "com.apple.health"),
+      { ...step("2026-09-01", 61, "com.fitbit.app"), start: "2026-09-01T18:00:00Z" },
+    ]);
+    expect(agg.readings[0]!.device).toBe("com.fitbit.app");
+  });
+
+  it("reads the batch in time order, whatever order it arrived in", () => {
+    const agg = aggregate([
+      { ...step("2026-09-01", 61, "com.fitbit.app"), start: "2026-09-01T18:00:00Z" },
+      step("2026-09-01", 58, "com.apple.health"),
+    ]);
+    expect(agg.readings[0]!.device).toBe("com.fitbit.app");
+  });
+
+  it("names the batch's busiest writer, for a day with no reading of its own", () => {
+    const agg = aggregate([
+      step("2026-09-01", 58, "com.apple.health"),
+      step("2026-09-02", 57, "com.apple.health"),
+      step("2026-09-03", 60, "com.fitbit.app"),
+    ]);
+    expect(agg.writer).toBe("com.apple.health");
+  });
+
+  it("says nothing when no sample said", () => {
+    const agg = aggregate([step("2026-09-01", 58)]);
+    expect(agg.readings[0]!.device).toBeUndefined();
+    expect(agg.writer).toBeNull();
+  });
+});

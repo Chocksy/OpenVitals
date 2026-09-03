@@ -14,7 +14,7 @@
  *
  * Nothing here formats colours or classes; the components do that.
  */
-import { and, asc, eq, gte, isNull, lte, sql } from "drizzle-orm";
+import { and, asc, eq, gte, isNotNull, isNull, lte, sql } from "drizzle-orm";
 import {
   dailyLogs,
   getDb,
@@ -55,7 +55,11 @@ export interface DayRow {
   name: string;
   /** the full HealthKit identifier this row comes from */
   identifier: string;
-  /** what wrote it: the sync's own source string, or null when nothing did */
+  /**
+   * Who wrote it: the sample's own bundle identifier (`com.apple.health`,
+   * `com.dexcom.g7`), or null when nothing said. Phase 32a — this used to be
+   * `source`, which is the pipeline and reads "healthkit" on every phone row.
+   */
   device: string | null;
   /** the day the value is for, or null when there has never been one */
   date: string | null;
@@ -77,6 +81,12 @@ export interface BodyDay {
   source: string | null;
   /** ISO instant of the last sync that touched this day */
   syncedAt: string | null;
+  /**
+   * ISO instant of the newest HealthKit row on the account, whatever day it
+   * is for. Phase 32a: a day the phone has not written today still has a last
+   * sync, and `synced.lastAt` on `/api/body` is that one.
+   */
+  lastSyncAt: string | null;
   /** how many of the types the app can take have ever sent a value */
   typesSeen: number;
   typesKnown: number;
@@ -214,7 +224,7 @@ function readingRow(
     key: m.key,
     name: metric?.name ?? m.name,
     identifier: identifierOf(m.type),
-    device: last?.source ?? null,
+    device: last?.device ?? null,
     date: last?.observedAt ?? null,
     note: last
       ? noteFor(
@@ -247,7 +257,7 @@ function dailyRow(
     key: m.key,
     name: m.name,
     identifier: identifierOf(m.type),
-    device: today.wearable?.source ?? null,
+    device: today.wearable?.device ?? null,
     date: value == null ? null : day,
     note: value == null ? "" : noteFor(value, history, m.unit ?? ""),
     value: value == null ? "—" : digits(value),
@@ -272,7 +282,7 @@ export async function getBodyDay(
   const from = window[0]!;
   const db = getDb();
 
-  const [metrics, logs] = await Promise.all([
+  const [metrics, logs, phoneWrite] = await Promise.all([
     getMetricRows(userId),
     db
       .select()
@@ -285,7 +295,16 @@ export async function getBodyDay(
         ),
       )
       .orderBy(asc(dailyLogs.day)),
+    // The newest HealthKit reading on the account, for `synced.lastAt`. One
+    // scalar, so a day the phone did not touch still knows when it last did.
+    db
+      .select({ at: sql<string | null>`max(${readings.createdAt})` })
+      .from(readings)
+      .where(and(eq(readings.userId, userId), isNotNull(readings.source))),
   ]);
+  const lastPhoneWrite = phoneWrite[0]?.at
+    ? new Date(phoneWrite[0].at).toISOString()
+    : null;
 
   const byCode = new Map(metrics.map((m) => [m.code, m]));
   const byDay = new Map(logs.map((l) => [l.day, l]));
@@ -317,9 +336,31 @@ export async function getBodyDay(
     rows: connected ? rows : [],
     source: today.wearable?.source ?? null,
     syncedAt: today.wearable?.syncedAt ?? null,
+    lastSyncAt: lastSyncOf(logs, lastPhoneWrite),
     typesSeen,
     typesKnown: rows.length,
   };
+}
+
+/**
+ * The newest moment a phone wrote anything, whatever day it wrote it for.
+ *
+ * Two clocks say it: the `syncedAt` a wearable blob carries, and the
+ * `createdAt` of a HealthKit reading. The later of the two is the answer, and
+ * null means no phone has ever written.
+ *
+ * Pure over what `getBodyDay` already fetched, so it costs no query.
+ */
+export function lastSyncOf(
+  logs: { wearable: DailyWearable | null }[],
+  lastPhoneWrite: string | null,
+): string | null {
+  let best: string | null = lastPhoneWrite;
+  for (const l of logs) {
+    const at = l.wearable?.syncedAt;
+    if (at && (best == null || at > best)) best = at;
+  }
+  return best;
 }
 
 /* ── the series behind the trend line ─────────────────────────────────── */

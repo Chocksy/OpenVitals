@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
+import { wordOf, writerOf } from "./api-contract";
 
 /**
  * The lock on the contract in `docs/plans/2026-09-03-phase32-useful-spec.md`
@@ -83,11 +84,30 @@ describe("GET /api/today", () => {
     if (s.since) expect(s.since as string).toMatch(DAY);
   });
 
-  it("gives Body a headline, a unit and a line", () => {
+  it("gives Body a number, its unit and a line naming the day or the source", () => {
     const body = b.body as Record<string, unknown>;
     expect(str(body.headline)).toBe(true);
     expect(str(body.unit)).toBe(true);
     expect(typeof body.line).toBe("string");
+    // A number with no unit is a number nobody can read, and the line is
+    // never left empty when there is a headline to explain.
+    if (body.headline != null) {
+      expect(body.unit, "a Body headline with no unit").not.toBeNull();
+      expect(String(body.line).length).toBeGreaterThan(0);
+    }
+  });
+
+  it("counts the plan and keeps the sentence beside it", () => {
+    const plan = b.plan as Record<string, unknown>;
+    // "0 / 4": a client can add this up; a title is not a count.
+    expect(String(plan.headline)).toMatch(/^\d+ \/ \d+$/);
+    expect(typeof plan.todo).toBe("number");
+    expect(str(plan.next)).toBe(true);
+    const [done, total] = String(plan.headline).split(" / ").map(Number);
+    expect(plan.todo).toBe(total! - done!);
+    // Nothing left to do means nothing to name next.
+    if (plan.todo === 0) expect(plan.next).toBeNull();
+    else expect(plan.next).not.toBeNull();
   });
 
   it("gives Blood a count out of a total, and a draw or null", () => {
@@ -124,11 +144,16 @@ describe("GET /api/today", () => {
 describe("GET /api/body", () => {
   const b = load("body") as Record<string, never>;
 
-  it("is dated and says what synced", () => {
+  it("is dated and says when a phone last wrote", () => {
     expect(b.day as string).toMatch(DAY);
     const s = b.synced as Record<string, unknown>;
     expect(typeof s.types).toBe("number");
     expect(str(s.lastAt)).toBe(true);
+    // The newest write from any phone, not this day's, so a day the phone did
+    // not touch still knows when it last did.
+    if (s.types) expect(s.lastAt, "types synced but no lastAt").not.toBeNull();
+    if (s.lastAt)
+      expect(new Date(s.lastAt as string).toISOString()).toBe(s.lastAt);
   });
 
   it("gives every row a number, its unit and the words beside it", () => {
@@ -149,6 +174,20 @@ describe("GET /api/body", () => {
         expect(typeof r[k], `${String(r.type)}.${k}`).toBe("string");
       expect(num(r.value), String(r.type)).toBe(true);
       if (r.when) expect(r.when as string).toMatch(DAY);
+      // Who wrote it, never the pipeline that carried it, and never blank.
+      expect(String(r.source).length, `${String(r.type)} has no writer`)
+        .toBeGreaterThan(0);
+      expect(r.source, `${String(r.type)} names the pipeline`).not.toBe(
+        "healthkit",
+      );
+      // Every row gets one of the four words; an empty string makes a client
+      // invent the meaning.
+      expect(
+        ["off", "borderline", "good", "never measured"],
+        `${String(r.type)} word`,
+      ).toContain(r.word);
+      if (r.value == null) expect(r.word).toBe("never measured");
+      else expect(r.word).not.toBe("never measured");
     }
   });
 });
@@ -321,4 +360,36 @@ describe("no body smuggles a number as a string", () => {
         ).toBe(true);
       }
     });
+});
+
+describe("who wrote a row, and the word it wears", () => {
+  it("never prints the pipeline, and falls back to the plain word", () => {
+    expect(writerOf(null)).toBe("phone");
+    expect(writerOf("")).toBe("phone");
+    expect(writerOf("   ")).toBe("phone");
+    // "healthkit" is the pipeline that carried it, not who wrote it.
+    expect(writerOf("healthkit")).toBe("phone");
+  });
+
+  it("names the Apple Health family once, however Apple keyed the device", () => {
+    expect(writerOf("com.apple.health")).toBe("Apple Health");
+    expect(writerOf("com.apple.health.6C0B4A2E")).toBe("Apple Health");
+  });
+
+  it("keeps any other writer verbatim", () => {
+    expect(writerOf("com.dexcom.g7")).toBe("com.dexcom.g7");
+  });
+
+  it("gives every row with a value one of the four words", () => {
+    expect(wordOf("red", true)).toBe("off");
+    expect(wordOf("amber", true)).toBe("borderline");
+    expect(wordOf("green", true)).toBe("good");
+    // A type with no band to judge it by is still good, never blank.
+    expect(wordOf("gray", true)).toBe("good");
+  });
+
+  it("says never measured, and only then", () => {
+    for (const s of ["red", "amber", "green", "gray"] as const)
+      expect(wordOf(s, false)).toBe("never measured");
+  });
 });

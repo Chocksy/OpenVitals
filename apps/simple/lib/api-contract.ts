@@ -13,6 +13,7 @@
 import { and, desc, eq } from "drizzle-orm";
 import { getDb, habitLogs, uploads } from "@/db";
 import { getBodyDay } from "@/lib/body-data";
+import type { Status } from "@/lib/status";
 import { localDay } from "@/lib/daily";
 import { getGoals, getProtocol } from "@/lib/daily-data";
 import { occurrences } from "@/lib/plan-line";
@@ -51,7 +52,14 @@ export interface TodayBody {
       codes: { code: string; name: string }[];
     } | null;
   };
-  plan: { headline: string; todo: number };
+  plan: {
+    /** "0 / 4": what is done out of what today asks for */
+    headline: string;
+    /** how many of today's rows are not done */
+    todo: number;
+    /** the next undone row's title, or null when the day is finished */
+    next: string | null;
+  };
   systems: {
     id: string;
     name: string;
@@ -69,7 +77,10 @@ export interface TodayBody {
  * `buildLedger`, `railCards`, `systemTiles` — so the phone and the web can
  * never print different counters for the same day.
  */
-export async function todayBody(userId: string): Promise<TodayBody> {
+export async function todayBody(
+  userId: string,
+  day: string = localDay(),
+): Promise<TodayBody> {
   const [ledger, rows, today, report] = await Promise.all([
     buildLedger(userId),
     getMetricRows(userId),
@@ -110,8 +121,49 @@ export async function todayBody(userId: string): Promise<TodayBody> {
   const tail = spear && cut > 0 ? spear.title.slice(cut + 2) : "";
 
   const body = cardOf("body");
-  const plan = cardOf("plan");
   const total = counters.off + counters.normal + counters.optimal;
+
+  /**
+   * The Body card is a number with its unit, its day and its writer.
+   *
+   * The rail's own Body card is a PhenoAge with "at 39" in the unit slot and
+   * whatever question was due underneath, which is a sentence, not a number
+   * with a unit. When a phone has synced, the card is today's steps — the
+   * number a person recognises — dated and attributed. When none has, it falls
+   * back to PhenoAge, and says so rather than leaving the unit slot to a
+   * chronological age.
+   */
+  const phone = await bodyBody(userId, day);
+  const steps = phone.rows.find((r) => r.type === "steps" && r.value != null);
+  const newest = steps ?? phone.rows.find((r) => r.value != null);
+  const bodyCard = newest
+    ? {
+        headline: newest.display,
+        unit: newest.unit || null,
+        line: [newest.when || phone.day, newest.source]
+          .filter(Boolean)
+          .join(" · "),
+      }
+    : {
+        headline: ledger.bioAge ? ledger.bioAge.pheno.toFixed(1) : null,
+        unit: ledger.bioAge ? "years" : null,
+        line: ledger.bioAge
+          ? `PhenoAge · at ${ledger.bioAge.chrono}`
+          : ledger.bioAgeMissing.length
+            ? `PhenoAge is waiting on ${ledger.bioAgeMissing.join(", ")}`
+            : (body?.line ?? ""),
+      };
+
+  /**
+   * The Plan card counts, and the sentence moves beside it.
+   *
+   * `plan.headline` used to be the first action's title, which a client cannot
+   * add up. It is the done-of-total for today, off the same `planTodayBody`
+   * `/api/plan/today` returns, so the two can never disagree; `plan.next`
+   * keeps the sentence the web rail prints.
+   */
+  const planToday = await planTodayBody(userId, day);
+  const undone = planToday.rows.filter((r) => !r.done);
 
   return {
     sentence: { head, tail, tone: cards[0]?.tone ?? "none" },
@@ -122,11 +174,7 @@ export async function todayBody(userId: string): Promise<TodayBody> {
       drawDate,
       since: ledger.since ? ledger.since.at.slice(0, 10) : null,
     },
-    body: {
-      headline: body && body.headline !== "—" ? body.headline : null,
-      unit: body?.sub ?? null,
-      line: body?.line ?? "",
-    },
+    body: bodyCard,
     blood: {
       off: counters.off,
       total,
@@ -140,7 +188,11 @@ export async function todayBody(userId: string): Promise<TodayBody> {
           }
         : null,
     },
-    plan: { headline: plan?.headline ?? "Your plan", todo: todoCount },
+    plan: {
+      headline: `${planToday.done} / ${planToday.total}`,
+      todo: undone.length,
+      next: undone[0]?.title ?? null,
+    },
     systems: systemTiles(ledger.systems).map((t) => ({
       id: t.id,
       name: t.name,
@@ -177,6 +229,41 @@ export interface BodyBody {
 }
 
 /**
+ * Who wrote a row, in words.
+ *
+ * The phone sends `sourceRevision.source.bundleIdentifier` on every sample —
+ * `com.apple.health` for the Health app itself, `com.dexcom.g7` for a monitor
+ * — and that is the writer. "healthkit" is the pipeline that carried it and
+ * says nothing about who wrote it, so it is never printed here.
+ *
+ * "phone" is the fallback and means exactly what it says: a phone wrote this
+ * and did not name itself.
+ */
+export function writerOf(device: string | null | undefined): string {
+  const bundle = (device ?? "").trim();
+  if (!bundle || bundle === "healthkit") return "phone";
+  // Apple writes device-authored data as `com.apple.health.<device uuid>`.
+  if (/^com\.apple\.health\b/i.test(bundle)) return "Apple Health";
+  return bundle;
+}
+
+/**
+ * The word a row wears.
+ *
+ * The Body page prints nothing for a signal that is fine, because a column of
+ * "good" is a column nobody reads. The contract is not a page: a client that
+ * decodes an empty string has to invent the meaning, so every row with a value
+ * gets one of the four words, and a type with no band to judge it by is
+ * "good".
+ */
+export function wordOf(status: Status, hasValue: boolean): string {
+  if (!hasValue) return "never measured";
+  if (status === "red") return "off";
+  if (status === "amber") return "borderline";
+  return "good";
+}
+
+/**
  * One day of everything the phone knows.
  *
  * `getBodyDay` formats for print — its `value` is the digits and its `date`
@@ -190,19 +277,22 @@ export async function bodyBody(
   const view = await getBodyDay(userId, day);
   return {
     day: view.day,
-    synced: { types: view.typesSeen, lastAt: view.syncedAt },
+    // The newest write from any phone, not this day's: a day the phone has not
+    // touched today still has a last sync, and null means never.
+    synced: { types: view.typesSeen, lastAt: view.lastSyncAt },
     rows: view.rows.map((r) => {
       const n = Number(r.value.replace(/[  \s,]/g, ""));
+      const value = r.value === "—" || !Number.isFinite(n) ? null : n;
       return {
         type: r.key,
         name: r.name,
         identifier: r.identifier,
-        source: r.device ?? "",
-        value: r.value === "—" || !Number.isFinite(n) ? null : n,
+        source: writerOf(r.device),
+        value,
         unit: r.unit,
         display: r.value,
         note: r.note,
-        word: r.word,
+        word: wordOf(r.status, value != null),
         when: r.date ?? "",
       };
     }),

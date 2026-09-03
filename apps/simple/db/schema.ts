@@ -195,6 +195,16 @@ export const readings = pgTable(
      * a device can only ever collide with its own row, never with a draw.
      */
     source: text("source"),
+    /**
+     * Phase 32a: *who* wrote it, as opposed to which pipeline carried it.
+     * `source` is the pipeline ("healthkit") and every phone row has the same
+     * one, which told a reader nothing. This is the sample's own
+     * `sourceRevision.source.bundleIdentifier` — `com.apple.health` for the
+     * Health app, `com.dexcom.g7` for a continuous glucose monitor — kept out
+     * of the dedupe key on purpose: two apps writing the same day are still
+     * one row, and the newest sample names the writer.
+     */
+    device: text("device"),
   },
   (t) => [
     index("readings_user_metric_observed_idx").on(
@@ -364,6 +374,8 @@ export interface DailyNutrition {
 /** What a wearable sync sent for one day that no column holds. */
 export interface DailyWearable {
   source: string;
+  /** Phase 32a: the bundle that wrote most of the day, when the batch said. */
+  device?: string;
   /** The `daily_logs` columns this sync owns, so it may refresh them later. */
   wrote?: string[];
   activeEnergyKcal?: number;
