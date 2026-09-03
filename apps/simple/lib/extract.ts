@@ -1,4 +1,4 @@
-import { generateText } from "ai";
+import { defaultSettingsMiddleware, generateText, wrapLanguageModel } from "ai";
 import { createOpenRouter } from "@openrouter/ai-sdk-provider";
 import { extractTextFromPdf } from "./pdf";
 
@@ -7,7 +7,15 @@ const MIN_TEXT_LENGTH = 50; // Below this, assume scanned/image PDF
 
 export function model(id = process.env.AI_DEFAULT_MODEL ?? "google/gemini-3.7-flash") {
   // ponytail: OpenRouter only. The old worker's AI-gateway fallback is dropped.
-  return createOpenRouter({ apiKey: process.env.OPENROUTER_API_KEY })(id);
+  // Without a cap the provider asks for Gemini's full 65 536 output tokens and
+  // OpenRouter refuses when the key's monthly headroom is below that (402 on
+  // 2026-09-03). No call here writes anything near 8 192 tokens.
+  return wrapLanguageModel({
+    model: createOpenRouter({ apiKey: process.env.OPENROUTER_API_KEY })(id),
+    middleware: defaultSettingsMiddleware({
+      settings: { maxOutputTokens: Number(process.env.AI_MAX_OUTPUT_TOKENS ?? 8192) },
+    }),
+  });
 }
 
 /** Copied verbatim from packages/ai/src/prompts/extract-labs.ts. */
