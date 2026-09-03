@@ -138,6 +138,18 @@ enum Design {
             : String(format: "%.1f", d)
     }
 
+    /// A number the server may not have. The dash says "no number", and no
+    /// zero is ever invented in its place.
+    static func number(_ d: Double?) -> String {
+        d.map { number($0) } ?? "—"
+    }
+
+    /// "605 kcal", "41 g", or the dash on its own. A unit is never printed
+    /// without the number it belongs to.
+    static func amount(_ d: Double?, _ unit: String) -> String {
+        d.map { "\(number($0)) \(unit)" } ?? "—"
+    }
+
     private static let ymd: DateFormatter = {
         let f = DateFormatter()
         f.locale = Locale(identifier: "en_US_POSIX")

@@ -30,8 +30,8 @@ struct MealsView: View {
                                     .ovType(.sm, weight: .medium)
                                     .foregroundStyle(Design.ink)
                                 Spacer()
-                                Text("\(Design.number(day.totals.kcal)) kcal"
-                                     + day.totals.mark)
+                                Text(Design.amount(day.totals.kcal,
+                                                   "kcal" + day.totals.mark))
                                     .ovType(.sm, mono: true)
                                     .foregroundStyle(Design.ink)
                             }
@@ -169,11 +169,11 @@ struct MealCard: View {
         Flow(spacing: Design.s13) {
             Macro(value: Design.number(meal.totals.kcal),
                   name: "kcal" + meal.totals.mark)
-            Macro(value: "\(Design.number(meal.totals.proteinG)) g",
+            Macro(value: Design.amount(meal.totals.proteinG, "g"),
                   name: "protein" + meal.totals.mark)
-            Macro(value: "\(Design.number(meal.totals.carbsG)) g",
+            Macro(value: Design.amount(meal.totals.carbsG, "g"),
                   name: "carbs" + meal.totals.mark)
-            Macro(value: "\(Design.number(meal.totals.fatG)) g",
+            Macro(value: Design.amount(meal.totals.fatG, "g"),
                   name: "fat" + meal.totals.mark)
         }
     }
@@ -209,7 +209,8 @@ struct MealItemRow: View {
             Text(item.portion)
                 .ovType(.xs)
                 .foregroundStyle(Design.ink3)
-            Text("\(Design.number(item.kcal)) kcal\(item.estimated ? " est." : "")")
+            Text(Design.amount(item.kcal,
+                               "kcal\(item.estimated ? " est." : "")"))
                 .ovType(.xs, mono: true)
                 .foregroundStyle(Design.ink2)
         }
@@ -232,7 +233,7 @@ struct MealSummaryRow: View {
             }
             Spacer(minLength: Design.s5)
             VStack(alignment: .trailing, spacing: 2) {
-                Text("\(Design.number(meal.totals.kcal)) kcal\(meal.totals.mark)")
+                Text(Design.amount(meal.totals.kcal, "kcal\(meal.totals.mark)"))
                     .ovType(.sm, mono: true)
                     .foregroundStyle(Design.ink)
                 Text(meal.totals.estimated ? "estimate" : "not an estimate")

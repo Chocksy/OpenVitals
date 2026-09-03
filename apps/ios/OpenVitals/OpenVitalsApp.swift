@@ -5,6 +5,10 @@ struct OpenVitalsApp: App {
     @StateObject private var health = HealthSyncModel.shared
     @StateObject private var session = Session.shared
 
+    init() {
+        Api.trace("launch · base \(Api.base) · signed in \(Api.signedIn)")
+    }
+
     var body: some Scene {
         WindowGroup {
             Group {

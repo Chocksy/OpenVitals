@@ -16,10 +16,12 @@ struct PlanView: View {
                     .foregroundStyle(Design.ink)
                 Panel {
                     VStack(spacing: 0) {
-                        ForEach(Array(plan.rows.enumerated()), id: \.element.id) { i, row in
+                        ForEach(Array(plan.identified.enumerated()),
+                                id: \.element.id) { i, pair in
                             if i > 0 { Hair().padding(.vertical, Design.s8) }
-                            PlanRow(row: row, busy: saving.contains(row.id)) {
-                                await tick(row)
+                            PlanRow(row: pair.row,
+                                    busy: saving.contains(pair.id)) {
+                                await tick(pair.id, pair.row)
                             }
                         }
                     }
@@ -58,12 +60,12 @@ struct PlanView: View {
 
     /// Optimistic: the box fills, the write goes, and a failure puts it back
     /// and says so rather than leaving a tick that was never stored.
-    private func tick(_ row: Api.PlanDay.Row) async {
+    private func tick(_ rowId: String, _ row: Api.PlanDay.Row) async {
         guard let plan, let itemId = row.itemId else { return }
         let wanted = !row.done
-        saving.insert(row.id)
-        defer { saving.remove(row.id) }
-        self.plan = plan.with(row.id, done: wanted)
+        saving.insert(rowId)
+        defer { saving.remove(rowId) }
+        self.plan = plan.with(rowId, done: wanted)
         do {
             _ = try await Api.tick(itemId: itemId, day: plan.day, done: wanted)
             error = ""
@@ -77,8 +79,9 @@ struct PlanView: View {
 extension Api.PlanDay {
     /// The same day with one row's tick moved, and the counter with it.
     func with(_ rowId: String, done: Bool) -> Api.PlanDay {
-        let moved = rows.map { row -> Row in
-            guard row.id == rowId, row.done != done else { return row }
+        let moved = rows.enumerated().map { index, row -> Row in
+            guard Self.rowId(row, at: index) == rowId,
+                  row.done != done else { return row }
             return Row(itemId: row.itemId, time: row.time, slot: row.slot,
                        title: row.title, why: row.why, tag: row.tag,
                        done: done, adherence: row.adherence)

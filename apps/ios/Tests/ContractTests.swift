@@ -157,6 +157,34 @@ final class ContractTests: XCTestCase {
 
     // MARK: - GET /api/plan/today, POST /api/habits
 
+    /// The phone's console said it out loud: two protocol lines can carry the
+    /// same title and no item id, and a list keyed on the title alone drew one
+    /// row and warned about the other.
+    func testTwoPlanRowsWithOneTitleGetDistinctIds() throws {
+        let json = Data(#"""
+        {"day":"2026-09-03","done":0,"total":2,"rows":[
+          {"itemId":null,"time":"08:00","slot":"morning",
+           "title":"Vitamin D3 supplementation","why":"low 25-OH D",
+           "tag":"protocol","done":false,"adherence":null},
+          {"itemId":null,"time":"20:00","slot":"evening",
+           "title":"Vitamin D3 supplementation","why":"low 25-OH D",
+           "tag":"protocol","done":false,"adherence":null}]}
+        """#.utf8)
+        let plan = try JSONDecoder().decode(Api.PlanDay.self, from: json)
+        let ids = plan.identified.map(\.id)
+        XCTAssertEqual(ids.count, 2)
+        XCTAssertEqual(Set(ids).count, 2, "two rows, two ids")
+        XCTAssertFalse(ids.contains("Vitamin D3 supplementation"))
+    }
+
+    /// An item id from the server is the id, position or no position.
+    func testAPlanRowKeepsItsItemId() throws {
+        let plan = try decode("plan-today", as: Api.PlanDay.self)
+        for (index, row) in plan.rows.enumerated() where row.itemId != nil {
+            XCTAssertEqual(Api.PlanDay.rowId(row, at: index), row.itemId)
+        }
+    }
+
     func testPlanTodayDecodes() throws {
         let plan = try decode("plan-today", as: Api.PlanDay.self)
         XCTAssertFalse(plan.day.isEmpty)
@@ -191,11 +219,13 @@ final class ContractTests: XCTestCase {
     /// Ticking a row moves that row and the counter, and nothing else.
     func testTickingOneRowMovesTheCounter() throws {
         let plan = try decode("plan-today", as: Api.PlanDay.self)
-        let first = try XCTUnwrap(plan.rows.first)
+        let first = try XCTUnwrap(plan.identified.first)
         let moved = plan.with(first.id, done: true)
         XCTAssertEqual(moved.done, plan.done + 1)
         XCTAssertEqual(moved.total, plan.total)
-        XCTAssertTrue(try XCTUnwrap(moved.rows.first { $0.id == first.id }).done)
+        XCTAssertTrue(try XCTUnwrap(moved.identified.first {
+            $0.id == first.id
+        }).row.done)
         XCTAssertEqual(moved.rows.count, plan.rows.count)
         XCTAssertEqual(moved.with(first.id, done: false), plan)
     }
@@ -226,7 +256,7 @@ final class ContractTests: XCTestCase {
         for meal in day.meals {
             XCTAssertFalse(meal.id.isEmpty)
             XCTAssertFalse(meal.label.isEmpty)
-            XCTAssertFalse(meal.time.isEmpty)
+            XCTAssertFalse((meal.time ?? "").isEmpty)
             XCTAssertFalse(meal.items.isEmpty, meal.label)
         }
     }
@@ -236,18 +266,47 @@ final class ContractTests: XCTestCase {
     func testTheTotalsAreTheItemsAddedUp() throws {
         let day = try decode("meals", as: Api.MealDay.self)
         for meal in day.meals {
-            XCTAssertEqual(meal.items.map(\.kcal).reduce(0, +), meal.totals.kcal,
+            XCTAssertEqual(sum(meal.items.map(\.kcal)), meal.totals.kcal,
                            meal.label)
-            XCTAssertEqual(meal.items.map(\.proteinG).reduce(0, +),
+            XCTAssertEqual(sum(meal.items.map(\.proteinG)),
                            meal.totals.proteinG, meal.label)
-            XCTAssertEqual(meal.items.map(\.carbsG).reduce(0, +),
+            XCTAssertEqual(sum(meal.items.map(\.carbsG)),
                            meal.totals.carbsG, meal.label)
-            XCTAssertEqual(meal.items.map(\.fatG).reduce(0, +),
+            XCTAssertEqual(sum(meal.items.map(\.fatG)),
                            meal.totals.fatG, meal.label)
         }
-        XCTAssertEqual(day.meals.map(\.totals.kcal).reduce(0, +), day.totals.kcal)
-        XCTAssertEqual(day.meals.map(\.totals.proteinG).reduce(0, +),
+        XCTAssertEqual(sum(day.meals.map(\.totals.kcal)), day.totals.kcal)
+        XCTAssertEqual(sum(day.meals.map(\.totals.proteinG)),
                        day.totals.proteinG)
+    }
+
+    /// The macros the server may leave null add up to what it did send, and
+    /// nothing is zero-filled to make the sum work.
+    private func sum(_ values: [Double?]) -> Double? {
+        let known = values.compactMap { $0 }
+        return known.isEmpty ? nil : known.reduce(0, +)
+    }
+
+    /// The phone hit this against production: a day with no meals answers 200
+    /// with every macro null, and a required `Double` failed the whole screen.
+    func testADayWithNoMealsDecodes() throws {
+        let json = Data(#"""
+        {"day":"2026-09-03","meals":[],
+         "totals":{"kcal":null,"protein_g":null,"carbs_g":null,
+                   "fat_g":null,"estimated":true}}
+        """#.utf8)
+        let day = try JSONDecoder().decode(Api.MealDay.self, from: json)
+        XCTAssertTrue(day.meals.isEmpty)
+        XCTAssertNil(day.totals.kcal)
+    }
+
+    /// A macro the server does not have prints a dash, never a zero.
+    func testANullMacroPrintsADash() throws {
+        let macros = Api.Macros(kcal: nil, proteinG: nil, carbsG: nil,
+                                fatG: nil, estimated: true)
+        XCTAssertEqual(Design.number(macros.kcal), "—")
+        XCTAssertEqual(Design.amount(macros.proteinG, "g"), "—")
+        XCTAssertEqual(Design.amount(Double(41), "g"), "41 g")
     }
 
     /// A read photo's numbers say "est." on every one of them.
@@ -284,9 +343,10 @@ final class ContractTests: XCTestCase {
         let day = try decode("meals", as: Api.MealDay.self)
         XCTAssertEqual(meal, day.meals.first)
         XCTAssertFalse(meal.items.isEmpty)
+        let time = try XCTUnwrap(meal.time)
         XCTAssertEqual(meal.basis,
                        (meal.photo == nil ? "logged in Health" : "from a photo")
-                       + " · \(meal.time)")
+                       + " · \(time)")
     }
 
     // MARK: - GET /api/genome, GET /api/research

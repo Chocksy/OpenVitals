@@ -384,18 +384,42 @@ enum Api {
         return body
     }
 
+    /// One line per call on the debug console: the method, the path, the
+    /// status, and what went wrong. A phone in a pocket is the only place some
+    /// of these fail, and a silent app cannot be read from here.
+    static func trace(_ line: String) {
+        #if DEBUG
+        print("[api] \(line)")
+        #endif
+    }
+
     private static func send<T: Decodable>(_ req: URLRequest) async throws -> T {
         let (data, response) = try await URLSession.shared.data(for: req)
         let status = (response as? HTTPURLResponse)?.statusCode ?? 0
+        let where_ = "\(req.httpMethod ?? "GET") \(req.url?.path ?? "?") \(status)"
         // The routes answer JSON on every path they own, including 401 and 500,
         // so decode first and use the status only for the message.
-        if let decoded = try? JSONDecoder().decode(T.self, from: data),
-           (200..<300).contains(status) {
-            return decoded
+        var decodeError: Error?
+        do {
+            let decoded = try JSONDecoder().decode(T.self, from: data)
+            if (200..<300).contains(status) {
+                trace("\(where_) ok")
+                return decoded
+            }
+        } catch {
+            decodeError = error
         }
         let message = (try? JSONDecoder().decode([String: JSON].self, from: data))?["error"]?.text
             ?? String(data: data.prefix(400), encoding: .utf8)
             ?? "no reply"
+        // A 2xx that would not decode is the app's own fault, not the server's,
+        // and the raw body hides which field is missing. Say the field.
+        if (200..<300).contains(status), let decodeError {
+            trace("\(where_) decode failed: \(decodeError)")
+            throw Failure(status: status,
+                          message: "the reply did not fit: \(decodeError)")
+        }
+        trace("\(where_) failed: \(message.prefix(200))")
         throw Failure(status: status,
                       message: status == 401 ? "not signed in" : message)
     }
@@ -538,6 +562,10 @@ extension Api {
             let done: Bool
             let adherence: Double?
 
+            /// Only ever unique when the server sent an item id. Two protocol
+            /// lines can share a title, an hour and no id at all, so a list
+            /// keys on `PlanDay.identified` instead, which folds the position
+            /// in. Kept for `Identifiable`, not for identity in a `ForEach`.
             var id: String { itemId ?? "\(time ?? slot ?? "")|\(title)" }
 
             /// The right-hand word: the adherence when there is one, else the
@@ -552,6 +580,19 @@ extension Api {
         let done: Int
         let total: Int
         let rows: [Row]
+
+        /// The id a list keys a row on. The item id when the server sent one,
+        /// and otherwise the position with the title, never the bare title:
+        /// two "Vitamin D3 supplementation" rows keyed on the title alone made
+        /// SwiftUI draw one and warn about the other.
+        static func rowId(_ row: Row, at index: Int) -> String {
+            row.itemId ?? "\(index)-\(row.title)"
+        }
+
+        /// Every row with that id, in the order the server sent them.
+        var identified: [(id: String, row: Row)] {
+            rows.enumerated().map { (Self.rowId($1, at: $0), $1) }
+        }
     }
 
     /// `POST /api/habits`. The route answers with the habit row today; `ok` is
@@ -566,10 +607,13 @@ extension Api {
     // MARK: GET/POST /api/meals
 
     struct Macros: Codable, Equatable {
-        let kcal: Double
-        let proteinG: Double
-        let carbsG: Double
-        let fatG: Double
+        /// Every macro is nullable in the contract (`lib/meals.ts: ApiTotals`,
+        /// "never a guess, never a zero-fill"), and a day with no meals answers
+        /// null on all four. A required `Double` here failed the whole screen.
+        let kcal: Double?
+        let proteinG: Double?
+        let carbsG: Double?
+        let fatG: Double?
         /// The contract writes `true` on a photo's numbers. A meal that came
         /// off a scale or a barcode carries `false`, and wears no "est.".
         let estimated: Bool
@@ -584,14 +628,14 @@ extension Api {
 
         init(from decoder: Decoder) throws {
             let c = try decoder.container(keyedBy: CodingKeys.self)
-            kcal = try c.decode(Double.self, forKey: .kcal)
-            proteinG = try c.decode(Double.self, forKey: .proteinG)
-            carbsG = try c.decode(Double.self, forKey: .carbsG)
-            fatG = try c.decode(Double.self, forKey: .fatG)
+            kcal = try c.decodeIfPresent(Double.self, forKey: .kcal)
+            proteinG = try c.decodeIfPresent(Double.self, forKey: .proteinG)
+            carbsG = try c.decodeIfPresent(Double.self, forKey: .carbsG)
+            fatG = try c.decodeIfPresent(Double.self, forKey: .fatG)
             estimated = try c.decodeIfPresent(Bool.self, forKey: .estimated) ?? true
         }
 
-        init(kcal: Double, proteinG: Double, carbsG: Double, fatG: Double,
+        init(kcal: Double?, proteinG: Double?, carbsG: Double?, fatG: Double?,
              estimated: Bool) {
             self.kcal = kcal
             self.proteinG = proteinG
@@ -607,10 +651,10 @@ extension Api {
     struct MealItem: Codable, Equatable, Identifiable {
         let name: String
         let portion: String
-        let kcal: Double
-        let proteinG: Double
-        let carbsG: Double
-        let fatG: Double
+        let kcal: Double?
+        let proteinG: Double?
+        let carbsG: Double?
+        let fatG: Double?
         let estimated: Bool
 
         var id: String { "\(name)|\(portion)" }
@@ -626,10 +670,10 @@ extension Api {
             let c = try decoder.container(keyedBy: CodingKeys.self)
             name = try c.decode(String.self, forKey: .name)
             portion = try c.decode(String.self, forKey: .portion)
-            kcal = try c.decode(Double.self, forKey: .kcal)
-            proteinG = try c.decode(Double.self, forKey: .proteinG)
-            carbsG = try c.decode(Double.self, forKey: .carbsG)
-            fatG = try c.decode(Double.self, forKey: .fatG)
+            kcal = try c.decodeIfPresent(Double.self, forKey: .kcal)
+            proteinG = try c.decodeIfPresent(Double.self, forKey: .proteinG)
+            carbsG = try c.decodeIfPresent(Double.self, forKey: .carbsG)
+            fatG = try c.decodeIfPresent(Double.self, forKey: .fatG)
             estimated = try c.decodeIfPresent(Bool.self, forKey: .estimated) ?? true
         }
     }
@@ -642,16 +686,19 @@ extension Api {
 
     struct Meal: Codable, Equatable, Identifiable {
         let id: String
-        let time: String
+        /// Nullable in the contract: a meal can be logged without a clock time.
+        let time: String?
         let photo: String?
         let label: String
         let items: [MealItem]
         let totals: Macros
         let moves: [MealMove]
 
-        /// "from a photo · 13:05", or "logged in Health · 08:05".
+        /// "from a photo · 13:05", or "logged in Health · 08:05". A meal with
+        /// no clock time says where it came from and stops there.
         var basis: String {
-            (photo == nil ? "logged in Health" : "from a photo") + " · \(time)"
+            let head = photo == nil ? "logged in Health" : "from a photo"
+            return time.map { "\(head) · \($0)" } ?? head
         }
     }
 
