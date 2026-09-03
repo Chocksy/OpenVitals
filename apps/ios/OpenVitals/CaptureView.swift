@@ -22,6 +22,9 @@ struct CaptureView: View {
     @State private var signIn = false
 
     var body: some View {
+        // `system.html` section 11: the sheet is a 34 px corner, a grabber,
+        // then the head, then the body. Without the 21 px inset the "Add"
+        // title sits under the grabber and the first control touches it.
         Screen(title: "Add", icon: "xmark", iconLabel: "Close",
                action: { dismiss() }) {
             buttons
@@ -29,10 +32,15 @@ struct CaptureView: View {
             if let image { shot(image) }
             if let result { read(result) }
             if !chips.isEmpty { confirm }
-            if !note.isEmpty { Caption(note) }
+            if !note.isEmpty { receipt }
             Caption("A lab sheet is not confirmed here — it goes to the upload "
                     + "reader and comes back as a read receipt under Blood.")
         }
+        .safeAreaPadding(.top, DesignTokens.s21)
+        .presentationDragIndicator(.visible)
+        .presentationCornerRadius(DesignTokens.rHero)
+        .presentationBackground(Design.canvas)
+        .interactiveDismissDisabled(busy)
         .onChange(of: pick) { _, item in Task { await load(item) } }
         .fullScreenCover(isPresented: $camera) { CameraPicker { image = $0; reset() } }
         .photosPicker(isPresented: $library, selection: $pick, matching: .images)
@@ -42,29 +50,33 @@ struct CaptureView: View {
     // MARK: - the four things the engine actually accepts
 
     private var buttons: some View {
-        VStack(spacing: Design.s8) {
+        // `.stackv` — the four things `/api/capture` and the composer accept.
+        // Lime is on the lab sheet only: it is the control that adds the most.
+        VStack(spacing: DesignTokens.s13) {
             Button { open() } label: {
                 Label("Photo of a lab sheet", systemImage: "camera")
             }
-            .buttonStyle(AddButtonStyle())
+            .buttonStyle(.ov(.add, wide: true, leading: true))
 
             Button { open() } label: {
                 Label("Photo of food", systemImage: "fork.knife")
             }
-            .buttonStyle(QuietButtonStyle())
+            .buttonStyle(.ov(.quiet, wide: true, leading: true))
 
             Button { words = true } label: {
                 Label("Ask or tell", systemImage: "square.and.pencil")
             }
-            .buttonStyle(QuietButtonStyle())
+            .buttonStyle(.ov(.quiet, wide: true, leading: true))
 
             Button { words = true; caption = "I feel " } label: {
                 Label("Log how you feel", systemImage: "drop")
             }
-            .buttonStyle(QuietButtonStyle())
+            .buttonStyle(.ov(.quiet, wide: true, leading: true))
         }
     }
 
+    /// Words. `/api/capture` reads them with the photograph, so the sheet's
+    /// one ink button says Send and waits until there is something to send.
     private var note0: some View {
         Panel(title: "In your words", meta: "rides with the photo") {
             TextField("What is it?", text: $caption, axis: .vertical)
@@ -74,9 +86,37 @@ struct CaptureView: View {
                 .background(Design.surfaceHi)
                 .clipShape(RoundedRectangle(cornerRadius: Design.rInner,
                                             style: .continuous))
-            Caption("These words are read with the photograph. The full "
-                    + "composer is on the website; it is not one of the phone's "
-                    + "endpoints yet.")
+            HStack(spacing: DesignTokens.s13) {
+                Button(busy ? "Sending…" : "Send") { Task { await read() } }
+                    .buttonStyle(.ovInk)
+                    .disabled(!canSend)
+                    .opacity(canSend ? 1 : 0.45)
+                Button("Add a photo") { open() }
+                    .buttonStyle(.ovText)
+                Spacer(minLength: 0)
+            }
+            Caption(canSend
+                    ? "The words go with the photograph in one call."
+                    : "Words ride with a photograph: /api/capture reads the "
+                    + "two together, and there is no endpoint for words on "
+                    + "their own yet. Add a photo and Send wakes up.")
+        }
+    }
+
+    /// Words alone have nowhere to go, so Send waits for the photo.
+    private var canSend: Bool {
+        !busy && image != nil
+            && !caption.trimmingCharacters(in: .whitespaces).isEmpty
+    }
+
+    /// What the sheet says after a write. It stays open, shows the receipt,
+    /// and offers the one control that closes it.
+    private var receipt: some View {
+        Panel(title: "Receipt", meta: busy ? "writing…" : nil) {
+            Caption(note)
+            Button("Done") { dismiss() }
+                .buttonStyle(.ovInk)
+                .disabled(busy)
         }
     }
 
@@ -88,9 +128,12 @@ struct CaptureView: View {
                 .frame(maxHeight: 220)
                 .clipShape(RoundedRectangle(cornerRadius: Design.rInner,
                                             style: .continuous))
-            Button(busy ? "Reading…" : "Read the photo") { Task { await read() } }
-                .buttonStyle(InkButtonStyle())
-                .disabled(busy)
+            Button(busy ? "Reading…" : "Use this photo") {
+                Task { await read() }
+            }
+            .buttonStyle(.ovInk)
+            .disabled(busy)
+            .opacity(busy ? 0.45 : 1)
         }
     }
 
@@ -145,7 +188,7 @@ struct CaptureView: View {
             Button("Save \(Design.plural(keep.count, "chip", "chips"))") {
                 Task { await save() }
             }
-            .buttonStyle(InkButtonStyle())
+            .buttonStyle(.ovInk)
             .disabled(keep.isEmpty || busy)
         }
     }

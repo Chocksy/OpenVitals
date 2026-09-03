@@ -108,34 +108,45 @@ struct MealCard: View {
     @State private var open = false
 
     var body: some View {
+        // `.meal` on the phone: one column, the shot full width at 144 px,
+        // then the head, the macros and the note.
         Panel {
-            VStack(alignment: .leading, spacing: Design.s13) {
-                HStack(alignment: .top, spacing: Design.s13) {
-                    MealShot(url: meal.photo)
-                    VStack(alignment: .leading, spacing: Design.s5) {
+            // `.meal { grid-template-columns: 89px minmax(0,1fr); gap: 13 }`
+            HStack(alignment: .top, spacing: DesignTokens.s13) {
+                MealShot(url: meal.photo)
+                VStack(alignment: .leading, spacing: 0) {
+                    // `.mhead` — the label, then the time in mono, then the
+                    // "est." that every photo number carries.
+                    HStack(alignment: .firstTextBaseline,
+                           spacing: DesignTokens.s8) {
                         Text(meal.label)
-                            .ovType(.sm, weight: .semibold)
+                            .ovType(.md)
                             .foregroundStyle(Design.ink)
                             .fixedSize(horizontal: false, vertical: true)
                         Text(meal.basis)
-                            .ovType(.xs)
+                            .ovType(.xs, mono: true)
                             .foregroundStyle(Design.ink3)
-                        macros
+                        Spacer(minLength: 0)
                     }
+                    macros.padding(.top, DesignTokens.s8)
+                    Text("\(Design.plural(meal.items.count, "item", "items")) · "
+                         + (meal.totals.estimated ? "not a scale"
+                            : "logged, not guessed"))
+                        .ovType(.xs)
+                        .foregroundStyle(Design.ink3)
+                        .padding(.top, DesignTokens.s8)
                 }
-                Text("\(Design.plural(meal.items.count, "item", "items")) · "
-                     + (meal.totals.estimated ? "not a scale" : "logged, not guessed"))
-                    .ovType(.xs)
-                    .foregroundStyle(Design.ink3)
 
                 DisclosureGroup(isExpanded: $open) {
                     VStack(spacing: 0) {
-                        ForEach(Array(meal.items.enumerated()), id: \.element.id) { i, item in
-                            if i > 0 { Hair().padding(.vertical, Design.s5) }
+                        ForEach(Array(meal.items.enumerated()),
+                                id: \.element.id) { i, item in
                             MealItemRow(item: item)
+                                .padding(.vertical, DesignTokens.s5)
+                            if i < meal.items.count - 1 { Hair() }
                         }
                     }
-                    .padding(.top, Design.s8)
+                    .padding(.top, DesignTokens.s8)
                 } label: {
                     Text(open ? "Hide the items" : "What was on the plate")
                         .ovType(.xs)
@@ -144,14 +155,14 @@ struct MealCard: View {
                 .tint(Design.ink2)
 
                 if !meal.moves.isEmpty {
-                    VStack(alignment: .leading, spacing: Design.s5) {
+                    VStack(alignment: .leading, spacing: DesignTokens.s5) {
                         Text("What it moves")
-                            .ovType(.sm, weight: .semibold)
+                            .ovType(.sm, weight: .medium)
                             .foregroundStyle(Design.ink)
                         ForEach(meal.moves) { move in
                             VStack(alignment: .leading, spacing: 1) {
                                 Text(move.what)
-                                    .ovType(.xs, weight: .medium)
+                                    .ovType(.sm)
                                     .foregroundStyle(Design.ink)
                                 Text(move.line)
                                     .ovType(.xs)
@@ -187,12 +198,13 @@ struct Macro: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             Text(value)
-                .ovType(.md, mono: true)
+                .ovType(.md, mono: true, leading: 1.1)
                 .foregroundStyle(Design.ink)
             Text(name)
                 .ovType(.xs)
                 .foregroundStyle(Design.ink3)
         }
+        .frame(minWidth: 62, alignment: .leading)
         .accessibilityElement(children: .combine)
     }
 }
@@ -250,8 +262,9 @@ struct MealShot: View {
 
     var body: some View {
         ZStack {
+            // `.meal .shot { background: var(--canvas-deep) }`
             RoundedRectangle(cornerRadius: Design.rInner, style: .continuous)
-                .fill(Design.surfaceFlat)
+                .fill(Design.canvasDeep)
             RoundedRectangle(cornerRadius: Design.rInner, style: .continuous)
                 .strokeBorder(Design.hair, lineWidth: 1)
             if let url, let full = full(url) {

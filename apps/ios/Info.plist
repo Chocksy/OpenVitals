@@ -4,7 +4,8 @@
   Everything Xcode can synthesise from INFOPLIST_KEY_* build settings lives
   there, not here. This file exists for the one key that is a dictionary and so
   cannot be a build setting: the transport exception that lets the debug base
-  URL point at a plain-http dev server on the LAN.
+  URL point at a plain-http dev server on the LAN, plus the bundled Geist
+  faces the design system asks for.
 -->
 <plist version="1.0">
 <dict>
@@ -13,6 +14,18 @@
 		<key>NSAllowsLocalNetworking</key>
 		<true/>
 	</dict>
+	<key>UIAppFonts</key>
+	<array>
+		<string>Geist-ExtraLight.ttf</string>
+		<string>Geist-Light.ttf</string>
+		<string>Geist-Regular.ttf</string>
+		<string>Geist-Medium.ttf</string>
+		<string>Geist-SemiBold.ttf</string>
+		<string>GeistMono-ExtraLight.ttf</string>
+		<string>GeistMono-Light.ttf</string>
+		<string>GeistMono-Regular.ttf</string>
+		<string>GeistMono-Medium.ttf</string>
+	</array>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>processing</string>

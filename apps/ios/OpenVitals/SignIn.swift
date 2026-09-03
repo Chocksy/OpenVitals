@@ -37,6 +37,51 @@ final class Session: ObservableObject {
     }
 }
 
+/// `.logincard` on `login.html` — one card on the cream, no shell, no
+/// marketing, and no data, which is why it is the only screen in the app with
+/// no mono number on it. The card is 377 px wide (the Fibonacci step above
+/// 233), 34 px of radius, 34 px of padding, on `--surface-hi`.
+///
+/// Google sign-in is not here on purpose: the owner uses email and password
+/// out of 1Password, and OAuth in an app means a whole browser flow. The
+/// server row is the one thing the mockup does not draw, because a phone that
+/// is not a developer's does not need it; it is folded away.
+struct LoginCard<Content: View>: View {
+    let brand: String
+    let say: String
+    @ViewBuilder var content: Content
+    @Environment(\.accessibilityReduceTransparency) private var flat
+
+    private var shape: RoundedRectangle {
+        RoundedRectangle(cornerRadius: DesignTokens.rHero, style: .continuous)
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            VStack(alignment: .leading, spacing: DesignTokens.s3) {
+                Text(brand)
+                    .ovType(.lg)
+                    .ovTracking(-0.03, .lg)
+                    .foregroundStyle(Design.ink)
+                Text(say).ovType(.sm).foregroundStyle(Design.ink3)
+            }
+            .padding(.bottom, DesignTokens.s21)
+            VStack(alignment: .leading, spacing: DesignTokens.s13) { content }
+        }
+        .padding(DesignTokens.s34)
+        .frame(maxWidth: 377, alignment: .leading)
+        .background {
+            if flat { Design.surfaceFlat }
+            else { Design.surfaceHi.background(.ultraThinMaterial) }
+        }
+        .clipShape(shape)
+        .overlay(shape.strokeBorder(flat ? Design.hair : Design.tileEdge,
+                                    lineWidth: Design.hairline))
+        .shadow(color: Color(red: 0.09, green: 0.086, blue: 0.078).opacity(0.35),
+                radius: 27.5, x: 0, y: 34)
+    }
+}
+
 struct SignInView: View {
     private enum Field { case email, password }
 
@@ -55,64 +100,71 @@ struct SignInView: View {
     }
 
     var body: some View {
-        NavigationStack {
-            Form {
-                Section {
-                    // Return walks the form: email, password, sign in. Two
-                    // fields is exactly where that is worth the focus state.
-                    TextField("Email", text: $email)
-                        .textContentType(.username)
-                        .keyboardType(.emailAddress)
-                        .textInputAutocapitalization(.never)
-                        .autocorrectionDisabled()
-                        .submitLabel(.next)
-                        .focused($focus, equals: .email)
-                        .onSubmit { focus = .password }
-                    SecureField("Password", text: $password)
-                        .textContentType(.password)
-                        .submitLabel(.go)
-                        .focused($focus, equals: .password)
-                        .onSubmit { submit() }
-                } header: {
-                    Text("OpenVitals")
-                } footer: {
-                    Text("The same email and password as the website.")
-                }
-
-                Section {
-                    Button(busy ? "Signing in…" : "Sign in") { submit() }
-                        .disabled(!ready)
-                    if !error.isEmpty {
-                        Text(error)
-                            .font(.footnote)
-                            .foregroundStyle(.red)
-                    }
-                }
-
-                // Folded away, because a phone that is not a developer's does
-                // not need it, and a developer's does.
-                Section {
-                    DisclosureGroup("Server", isExpanded: $showServer) {
-                        TextField("Base URL", text: $base)
-                            .textInputAutocapitalization(.never)
-                            .autocorrectionDisabled()
-                            .keyboardType(.URL)
-                        Button("Use this server") {
-                            Api.base = base
-                            base = Api.base
-                        }
-                        Button("Reset to \(Api.productionBase)") {
-                            Api.base = Api.productionBase
-                            base = Api.base
-                        }
-                    }
-                } footer: {
-                    Text("Signing in to \(Api.base).")
-                }
-            }
-            .navigationTitle("Sign in")
-            .navigationBarTitleDisplayMode(.inline)
+        ScrollView {
+            card.padding(.horizontal, DesignTokens.s13)
+                .padding(.top, DesignTokens.s55)
+                .padding(.bottom, DesignTokens.s34)
+                .frame(maxWidth: .infinity)
         }
+        .background(Design.canvas.ignoresSafeArea())
+    }
+
+    var card: some View {
+        LoginCard(brand: "OpenVitals", say: "Welcome back.") {
+            // Return walks the card: email, password, sign in. Two fields is
+            // exactly where that is worth the focus state.
+            Inp(label: "Email", text: $email,
+                placeholder: "you@example.com",
+                content: .username, keyboard: .emailAddress)
+                .textInputAutocapitalization(.never)
+                .autocorrectionDisabled()
+                .submitLabel(.next)
+                .focused($focus, equals: .email)
+                .onSubmit { focus = .password }
+            Inp(label: "Password", text: $password, secure: true,
+                error: error.isEmpty ? nil : error,
+                content: .password)
+                .submitLabel(.go)
+                .focused($focus, equals: .password)
+                .onSubmit { submit() }
+            Button(busy ? "Signing in…" : "Sign in") { submit() }
+                .buttonStyle(.ov(.ink, wide: true))
+                .disabled(!ready)
+                .opacity(ready ? 1 : 0.45)
+            Text("The same email and password as the website.")
+                .ovType(.sm)
+                .foregroundStyle(Design.ink3)
+                .frame(maxWidth: .infinity, alignment: .center)
+                .multilineTextAlignment(.center)
+            Hair()
+            server
+        }
+    }
+
+    /// Folded away, because a phone that is not a developer's does not need
+    /// it, and a developer's does.
+    private var server: some View {
+        DisclosureGroup(isExpanded: $showServer) {
+            VStack(alignment: .leading, spacing: DesignTokens.s8) {
+                Inp(label: "Base URL", text: $base, mono: true,
+                    keyboard: .URL)
+                    .textInputAutocapitalization(.never)
+                    .autocorrectionDisabled()
+                Button("Use this server") { Api.base = base; base = Api.base }
+                    .buttonStyle(.ov(.quiet, small: true))
+                Button("Reset to \(Api.productionBase)") {
+                    Api.base = Api.productionBase
+                    base = Api.base
+                }
+                .buttonStyle(.ov(.text, small: true))
+            }
+            .padding(.top, DesignTokens.s8)
+        } label: {
+            Text("Signing in to \(Api.base)")
+                .ovType(.sm)
+                .foregroundStyle(Design.ink3)
+        }
+        .tint(Design.ink3)
     }
 
     private func submit() {

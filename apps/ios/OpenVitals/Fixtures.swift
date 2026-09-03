@@ -32,6 +32,15 @@ enum Fixtures {
         on ? UserDefaults.standard.string(forKey: "OVScheme") : nil
     }
 
+    /// `-OVGallery YES` opens the design-system gallery instead of the app.
+    static var gallery: Bool {
+        #if DEBUG
+        return UserDefaults.standard.bool(forKey: "OVGallery")
+        #else
+        return false
+        #endif
+    }
+
     /// `-OVBottom YES` opens every screen at the foot of its scroll, so a
     /// screenshot can prove the last row clears the tab bar.
     static var atBottom: Bool {

@@ -11,6 +11,9 @@ struct SettingsView: View {
     @State private var mustAsk = true
     @State private var confirmResync = false
     @State private var showServer = false
+    #if DEBUG
+    @State private var showGallery = false
+    #endif
 
     private static let stamp: DateFormatter = {
         let f = DateFormatter()
@@ -27,6 +30,9 @@ struct SettingsView: View {
             if !model.seenNotUsed.isEmpty { seenNotUsed }
             server
             account
+            #if DEBUG
+            gallery
+            #endif
         }
         .task {
             mustAsk = await model.needsAsking()
@@ -42,22 +48,21 @@ struct SettingsView: View {
                 if !model.available {
                     Caption("Health data is not available on this device.")
                 }
-                ForEach(Array(HK.types.enumerated()), id: \.element.id) { i, spec in
-                    if i > 0 { Hair().padding(.vertical, Design.s8) }
-                    typeRow(spec)
+                RowList(count: HK.types.count) { i in
+                    typeRow(HK.types[i])
                 }
             }
-            Hair().padding(.top, Design.s5)
-            HStack(spacing: Design.s8) {
+            // `.rowh { margin-top: 13 }` — the ink button, then the text one.
+            HStack(spacing: DesignTokens.s13) {
                 Button(model.busy ? "Syncing…" : "Sync now") {
                     Task { await model.syncAll() }
                 }
-                .buttonStyle(InkButtonStyle())
+                .buttonStyle(.ov(.ink, small: true))
                 .disabled(!model.available || model.busy)
                 Button("Resync everything") { confirmResync = true }
-                    .buttonStyle(TextButtonStyle())
+                    .buttonStyle(.ov(.text, small: true))
                     .disabled(!model.available || model.busy)
-                Spacer()
+                Spacer(minLength: 0)
             }
             Button(mustAsk ? "Allow Health access" : "Review Health access") {
                 Task {
@@ -65,7 +70,7 @@ struct SettingsView: View {
                     mustAsk = await model.needsAsking()
                 }
             }
-            .buttonStyle(QuietButtonStyle())
+            .buttonStyle(.ov(.quiet, small: true))
             .disabled(!model.available)
             if model.busy, !model.progress.line.isEmpty {
                 Caption(model.progress.line)
@@ -97,47 +102,17 @@ struct SettingsView: View {
         return "\(Design.plural(total, "type", "types")) · \(Design.number(sending)) sending"
     }
 
+    /// `.checkrow` — the 21 px box, the type's name, and the one line that
+    /// says what the server holds for it.
     @ViewBuilder
     private func typeRow(_ spec: HKTypeSpec) -> some View {
         let _ = model.revision
         let state = model.state.state(spec.identifier)
         let server = model.totals?.byType[spec.shortType]
         let on = (server?.count ?? 0) > 0
-        HStack(alignment: .top, spacing: Design.s8) {
-            ZStack {
-                RoundedRectangle(cornerRadius: 6, style: .continuous)
-                    .fill(on ? Design.ink : Color.clear)
-                    .frame(width: 18, height: 18)
-                RoundedRectangle(cornerRadius: 6, style: .continuous)
-                    .strokeBorder(on ? Design.ink : Design.hair, lineWidth: 1.5)
-                    .frame(width: 18, height: 18)
-                if on {
-                    Image(systemName: "checkmark")
-                        .font(.system(size: 10, weight: .bold))
-                        .foregroundStyle(Design.canvas)
-                }
-            }
-            VStack(alignment: .leading, spacing: 2) {
-                Text(spec.name)
-                    .ovType(.sm, weight: .medium)
-                    .foregroundStyle(Design.ink)
-                Text(detail(spec, state, server))
-                    .ovType(.xs)
-                    .foregroundStyle(state.lastError == nil ? Design.ink3 : Design.bad)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
-            Spacer(minLength: Design.s5)
-            Text(count(server, state))
-                .ovType(.xs, mono: true)
-                .foregroundStyle(Design.ink3)
-        }
-        .accessibilityElement(children: .combine)
-    }
-
-    private func count(_ server: Api.TypeTotal?,
-                       _ state: SyncState.TypeState) -> String {
-        if let server { return Api.Totals.count(server.count) }
-        return state.samples == 0 ? "—" : Api.Totals.count(state.samples)
+        CheckRow(label: spec.name,
+                 caption: detail(spec, state, server),
+                 on: on)
     }
 
     private func detail(_ spec: HKTypeSpec, _ state: SyncState.TypeState,
@@ -146,6 +121,9 @@ struct SettingsView: View {
             return "\(spec.shortType) · failed (will resume next sync): \(error)"
         }
         var parts = [spec.shortType]
+        if let server, server.count > 0 {
+            parts.append(Api.Totals.count(server.count))
+        }
         if let server, let first = server.first {
             parts.append("server has \(first) to \(server.last ?? first)")
         } else {
@@ -190,12 +168,12 @@ struct SettingsView: View {
                         .clipShape(RoundedRectangle(cornerRadius: Design.rInner,
                                                     style: .continuous))
                     Button("Use this server") { Api.base = base; base = Api.base }
-                        .buttonStyle(QuietButtonStyle())
+                        .buttonStyle(.ovQuiet)
                     Button("Reset to \(Api.productionBase)") {
                         Api.base = Api.productionBase
                         base = Api.base
                     }
-                    .buttonStyle(TextButtonStyle())
+                    .buttonStyle(.ovText)
                 }
                 .padding(.top, Design.s8)
             } label: {
@@ -207,11 +185,25 @@ struct SettingsView: View {
         }
     }
 
+    #if DEBUG
+    /// The design system, section by section, so the phone can be held next
+    /// to the browser. Debug builds only.
+    private var gallery: some View {
+        Panel(title: "Design system", meta: "sections 03–15") {
+            Button("Open the gallery") { showGallery = true }
+                .buttonStyle(.ov(.quiet, small: true))
+            Caption("Every component in every state, in the same order and "
+                    + "with the same sample values as system.html.")
+        }
+        .sheet(isPresented: $showGallery) { GalleryView() }
+    }
+    #endif
+
     private var account: some View {
         Panel(title: "Account",
               meta: session.signedIn ? "signed in" : "signed out") {
             Button("Sign out") { Task { await session.signOut() } }
-                .buttonStyle(QuietButtonStyle())
+                .buttonStyle(.ovQuiet)
             Caption("Email and password only. Google sign-in is on the website.")
         }
     }

@@ -15,14 +15,17 @@ struct PlanView: View {
                     .ovType(.md)
                     .foregroundStyle(Design.ink)
                 Panel {
+                    // `.daycol` — the rows in the order the day runs, one
+                    // hairline between them and none after the last.
                     VStack(spacing: 0) {
                         ForEach(Array(plan.identified.enumerated()),
                                 id: \.element.id) { i, pair in
-                            if i > 0 { Hair().padding(.vertical, Design.s8) }
                             PlanRow(row: pair.row,
                                     busy: saving.contains(pair.id)) {
                                 await tick(pair.id, pair.row)
                             }
+                            .padding(.vertical, DesignTokens.s13)
+                            if i < plan.identified.count - 1 { Hair() }
                         }
                     }
                 }
@@ -91,57 +94,20 @@ extension Api.PlanDay {
     }
 }
 
-/// One occurrence: the hour, the box, the thing, the why, the badge.
+/// One occurrence: `.dayrow`. The hour, the box, the thing, the why, the tag.
 struct PlanRow: View {
     let row: Api.PlanDay.Row
     var busy = false
     let tick: () async -> Void
 
     var body: some View {
-        HStack(alignment: .top, spacing: Design.s8) {
-            Text(row.time ?? "—")
-                .ovType(.xs, mono: true)
-                .foregroundStyle(Design.ink3)
-                .frame(width: 40, alignment: .leading)
-            Button { Task { await tick() } } label: {
-                ZStack {
-                    RoundedRectangle(cornerRadius: 6, style: .continuous)
-                        .fill(row.done ? Design.ink : Color.clear)
-                        .frame(width: 21, height: 21)
-                    RoundedRectangle(cornerRadius: 6, style: .continuous)
-                        .strokeBorder(row.done ? Design.ink : Design.hair, lineWidth: 1.5)
-                        .frame(width: 21, height: 21)
-                    if row.done {
-                        Image(systemName: "checkmark")
-                            .font(.system(size: 12, weight: .bold))
-                            .foregroundStyle(Design.canvas)
-                    }
-                }
-            }
-            .buttonStyle(.plain)
-            .disabled(busy || row.itemId == nil)
-            // A row the report only suggested has no protocol item behind it,
-            // so there is nothing to tick yet and the box says so by fading.
-            .opacity(row.itemId == nil ? 0.4 : 1)
-            .accessibilityLabel(row.title)
-            .accessibilityValue(row.itemId == nil ? "not adopted yet"
-                                : (row.done ? "done" : "not done"))
-            .accessibilityAddTraits(row.done ? [.isButton, .isSelected] : .isButton)
-
-            VStack(alignment: .leading, spacing: 2) {
-                Text(row.title)
-                    .ovType(.sm, weight: .medium)
-                    .foregroundStyle(row.done ? Design.ink3 : Design.ink)
-                Text(row.why)
-                    .ovType(.xs)
-                    .foregroundStyle(Design.ink3)
-                    .fixedSize(horizontal: false, vertical: true)
-                Text(row.badge)
-                    .ovType(.xs, mono: row.adherence != nil)
-                    .foregroundStyle(Design.ink3)
-            }
-            Spacer(minLength: 0)
-        }
+        DayRow(at: row.time ?? "—",
+               what: row.title,
+               why: row.why,
+               tag: row.badge,
+               done: row.done,
+               enabled: !busy && row.itemId != nil,
+               tick: { Task { await tick() } })
     }
 }
 

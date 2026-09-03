@@ -15,11 +15,10 @@ struct BodyView: View {
                refresh: { await sync() }) {
             if let day {
                 Panel(title: "Apple Health", meta: meta(day)) {
-                    VStack(spacing: 0) {
-                        ForEach(Array(day.rows.enumerated()), id: \.element.id) { i, row in
-                            if i > 0 { Hair().padding(.vertical, Design.s8) }
-                            BodyRow(row: row)
-                        }
+                    // `.rows { gap: 13 }` — no hairline between them; the
+                    // columns do the separating.
+                    VStack(alignment: .leading, spacing: DesignTokens.s13) {
+                        ForEach(day.rows) { row in BodyRow(row: row) }
                     }
                 }
                 Caption("Every row names its HealthKit type and the device that "
@@ -64,41 +63,18 @@ struct BodyView: View {
     }
 }
 
-/// One HealthKit type on one day.
+/// One HealthKit type on one day: `.mrow`. Name, type and source, the value
+/// with its unit, and the state word in a 76 px column on the right.
 struct BodyRow: View {
     let row: Api.BodyDay.Row
 
     var body: some View {
-        HStack(alignment: .firstTextBaseline, spacing: Design.s8) {
-            VStack(alignment: .leading, spacing: 2) {
-                Text(row.name)
-                    .ovType(.sm, weight: .medium)
-                    .foregroundStyle(Design.ink)
-                Text(row.provenance)
-                    .ovType(.xs)
-                    .foregroundStyle(Design.ink3)
-                if !row.note.isEmpty {
-                    Text(row.note).ovType(.xs).foregroundStyle(Design.ink3)
-                }
-            }
-            Spacer(minLength: Design.s8)
-            VStack(alignment: .trailing, spacing: 2) {
-                HStack(alignment: .firstTextBaseline, spacing: 3) {
-                    Text(row.display)
-                        .ovType(.md, mono: true)
-                        .foregroundStyle(Design.ink)
-                    if let unit = row.unit, !unit.isEmpty, row.value != nil {
-                        Text(unit).ovType(.xs).foregroundStyle(Design.ink3)
-                    }
-                }
-                if !row.word.isEmpty {
-                    Text(row.word)
-                        .ovType(.xs)
-                        .foregroundStyle(Design.colour(forWord: row.word))
-                }
-            }
-        }
-        .accessibilityElement(children: .combine)
+        MarkerRow(name: row.name,
+                  source: [row.provenance, row.note]
+                      .filter { !$0.isEmpty }.joined(separator: " · "),
+                  value: row.display,
+                  unit: row.value == nil ? nil : row.unit,
+                  word: row.word)
     }
 }
 

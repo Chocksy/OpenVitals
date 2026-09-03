@@ -15,6 +15,7 @@ struct TodayView: View {
                 sentence(today.sentence)
                 NavyCard(label: "Status",
                          number: Design.number(today.status.off),
+                         glyph: today.status.off > 0,
                          title: title(today.status),
                          counts: counts(today.status),
                          tone: today.sentence.tone)
@@ -57,7 +58,7 @@ struct TodayView: View {
 
     private func rail(_ t: Api.Today) -> some View {
         ScrollView(.horizontal, showsIndicators: false) {
-            HStack(alignment: .top, spacing: Design.s8) {
+            HStack(alignment: .top, spacing: DesignTokens.s13) {
                 RailCard(label: "Body",
                          number: t.body.headline ?? "—",
                          line: [t.body.unit, t.body.line]
