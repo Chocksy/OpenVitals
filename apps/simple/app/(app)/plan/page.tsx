@@ -1,5 +1,5 @@
 /**
- * Plan: one page, seven sections.
+ * Plan: one page, ten sections.
  *
  * Phase 30d, per `docs/mockups/v4/plan.html`. `/protocol`, `/goals`,
  * `/insights` and `/patterns/[id]` fold in here and redirect; the review
@@ -8,7 +8,13 @@
  * the section the link asked for is printed first and everything else keeps
  * its order. Nothing is hidden behind JavaScript, so `#answer` and
  * `#patterns` land on real anchors.
+ *
+ * Phase 32a sections 1 and 2 put Today and This month in front of everything
+ * else, per `docs/mockups/v4/plan-month.html`, and add Research, per
+ * `research.html`. The phone's Today · Month · All tabs are the same rule as
+ * every other tab here: three links to three anchors on one page.
  */
+import { Fragment } from "react";
 import { closeAnsweredQuestions, queueQuestions } from "@/lib/ask";
 import { and, desc, eq } from "drizzle-orm";
 import Link from "next/link";
@@ -36,6 +42,8 @@ import { computeGraphState, graphState } from "@/lib/graph-state";
 import { matchPatterns } from "@/lib/patterns";
 import { asksFromMoves, inlineAsks } from "@/lib/asking";
 import { bootstrapProtocol, getGoals, getProtocol } from "@/lib/daily-data";
+import { localDay } from "@/lib/daily";
+import { listWatch, watchConditions, WATCH_DAYS } from "@/lib/research-watch";
 import { getMetricNames } from "@/lib/data";
 import { catalogFor } from "@/lib/hkb";
 import { nextMoves } from "@/lib/infogain";
@@ -49,6 +57,10 @@ import { dayLabel, plural } from "@/lib/utils";
 import { ReviewItem } from "@/components/client";
 import { ActionCard } from "@/components/action-card";
 import { AdoptHorizon, PlanShell } from "@/components/plan";
+import { PlanDay } from "@/components/plan-day";
+import { PlanMonth } from "@/components/plan-month";
+import { ResearchCompact, ResearchSection } from "@/components/research-panel";
+import { PillTabs } from "@/components/pill-tabs";
 import {
   FactRow,
   GoalRow,
@@ -78,11 +90,14 @@ const COVERAGE_TONE: Record<string, StateTone> = {
 
 /** The sections, in the order the page prints them, and their anchors. */
 const SECTIONS = [
+  ["today", "Today"],
+  ["month", "This month"],
   ["first", "Do this first"],
   ["protocol", "Already doing"],
   ["goals", "Goals"],
   ["patterns", "Patterns"],
   ["tests", "Tests to order"],
+  ["research", "Research"],
   ["answer", "Answer these"],
   ["earlier", "Earlier plans"],
 ] as const;
@@ -263,7 +278,7 @@ export default async function PlanPage({
   await closeAnsweredQuestions(userId);
   await bootstrapProtocol(userId);
 
-  const [input, open, earlier, protocol, goals, metricNames] =
+  const [input, open, earlier, protocol, goals, metricNames, papers] =
     await Promise.all([
       buildModelInput(userId),
       db
@@ -280,6 +295,7 @@ export default async function PlanPage({
       getProtocol(userId),
       getGoals(userId),
       getMetricNames(),
+      listWatch(userId),
     ]);
 
   const weekly = earlier.find((r) => r.kind === "weekly")?.body as
@@ -302,6 +318,14 @@ export default async function PlanPage({
   const checkIns = open.filter(
     (i) => i.kind === "check_in" && (i.createdAt ?? now) <= now,
   );
+  /**
+   * The month's check-in dots. A check-in row is dated by the day it was
+   * minted for, so that day is the day it is due; nothing invents a cadence.
+   */
+  const checkDays = open
+    .filter((i) => i.kind === "check_in")
+    .map((i) => localDay(i.createdAt ?? now));
+  const today = localDay();
 
   const tier0 = VECTORS.filter((v) => v.tier === 0 && v.fact);
   const answered = cov.filter(
@@ -311,6 +335,19 @@ export default async function PlanPage({
     ["sex", "birth_year"].includes(q.subject?.factKey ?? ""),
   );
   const blocked = !input.sex || input.age == null;
+
+  /**
+   * Phase 32a section 1. The picker on "Research now" only offers conditions
+   * this person's ledger has at possible or louder, which is the same cut the
+   * watch itself makes, so the page and the run can never disagree.
+   */
+  const conditions = blocked ? [] : await watchConditions(userId);
+  const lastRun =
+    papers
+      .map((p) => p.foundAt?.toISOString().slice(0, 10) ?? "")
+      .filter(Boolean)
+      .sort()
+      .at(-1) ?? null;
 
   const catalog = blocked ? [] : await catalogFor(userId);
   const scored = blocked ? [] : scoreHypotheses(input, { catalog });
@@ -361,6 +398,19 @@ export default async function PlanPage({
   const tests = indexed.filter((r) => r.action.kind === "test");
   const previews = await previewLines(doFirst.map((r) => r.action.title));
 
+  /**
+   * The suggestions the Today column is allowed to print: an action the report
+   * proposed that nobody has adopted. Nothing else is ever "suggested" — the
+   * column does not write rows of its own.
+   */
+  const suggested = doFirst
+    .filter(({ action }) => !alreadyOf(action.title))
+    .map(({ action, index }) => ({
+      title: action.title,
+      why: action.why,
+      index,
+    }));
+
   const nameOf = (code: string) =>
     metricNames.get(code) ?? code.replace(/_/g, " ");
   const openGoals = goals.filter((g) => !(g.achievedAt || g.reached));
@@ -369,7 +419,51 @@ export default async function PlanPage({
   const above80 = onProtocol.filter((r) => r.adherence30 >= 80).length;
   const askCount = inline.length + checkIns.length;
 
+  const dayName = new Date(`${today}T00:00:00`).toLocaleDateString("en-US", {
+    weekday: "long",
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+
   const panels: Record<SectionId, React.ReactNode> = {
+    today: (
+      <PlanDay
+        key="today"
+        day={today}
+        dayName={dayName}
+        items={onProtocol}
+        goals={openGoals.map((g) => ({
+          metricCode: g.metricCode,
+          metricName: g.metricName,
+        }))}
+        suggested={suggested}
+        reportId={report?.id ?? null}
+        nameOf={nameOf}
+      />
+    ),
+
+    month: (
+      <PlanMonth
+        key="month"
+        today={today}
+        items={onProtocol}
+        goals={goals}
+        checkDays={checkDays}
+        nameOf={nameOf}
+      />
+    ),
+
+    research: (
+      <ResearchSection
+        key="research"
+        rows={papers}
+        conditions={conditions}
+        lastRun={lastRun}
+        cooldownDays={WATCH_DAYS}
+      />
+    ),
+
     first:
       doFirst.length > 0 && report ? (
         <Panel
@@ -701,6 +795,23 @@ export default async function PlanPage({
 
       {!blocked && (
         <>
+          {/**
+           * `plan-month.html` section 06: on the phone Today is the screen,
+           * Month is one tab away and the full plan is two. A tab is a place
+           * on the page, so all three are anchors and nothing is hidden.
+           */}
+          <div className="sm:hidden">
+            <PillTabs
+              label="Plan"
+              active={want === "month" ? "month" : want === "all" ? "all" : "today"}
+              tabs={[
+                { id: "today", label: "Today", href: "#today" },
+                { id: "month", label: "Month", href: "#month" },
+                { id: "all", label: "All", href: "#first" },
+              ]}
+            />
+          </div>
+
           {body && (
             <div className="panel">
               <div className="panel-head">
@@ -725,7 +836,14 @@ export default async function PlanPage({
             </div>
           )}
 
-          {order.map((id) => panels[id])}
+          {order.map((id) => (
+            <Fragment key={id}>
+              {panels[id]}
+              {/* the compact three-line panel, only when a paper moved
+                  something; the empty state stays on the Research tab */}
+              {id === "first" && <ResearchCompact rows={papers} />}
+            </Fragment>
+          ))}
 
           {!report && (
             <div className="empty">

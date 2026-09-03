@@ -3,6 +3,8 @@ import { and, eq } from "drizzle-orm";
 import { documentItems, genomeVariants, getDb, uploads } from "@/db";
 import { currentUserId } from "@/lib/auth";
 import { runCurator } from "@/lib/curator";
+import { recordBeliefs } from "@/lib/ledger";
+import { ledgerNow, recordUploadMove } from "@/lib/read-receipt";
 import {
   dropReadings,
   findUpload,
@@ -70,6 +72,11 @@ export async function POST(
         and(eq(genomeVariants.userId, userId), eq(genomeVariants.uploadId, id)),
       );
 
+    // The receipt's "before" is taken here rather than at the top of the
+    // route: the rows this upload owned have just been dropped, so this is the
+    // ledger without the file, which is the same thing the first parse saw.
+    const before = await ledgerNow(userId);
+
     const buffer = file
       ? await readFile(file)
       : Buffer.from(upload.rawText!, "utf8");
@@ -98,10 +105,19 @@ export async function POST(
       .where(eq(uploads.id, id))
       .returning();
 
+    // Same order as `/api/upload`: curator, then beliefs, then the receipt.
+    // The curator runs in the background, so the receipt is recorded in that
+    // continuation and never beside it.
     if (result.kind === "lab")
-      void runCurator(userId, "upload", { uploadId: id }).catch((e) =>
-        console.error("[reanalyze] curator failed:", e),
-      );
+      void runCurator(userId, "upload", { uploadId: id })
+        .then(() => recordBeliefs(userId))
+        .then(() => recordUploadMove(userId, id, before))
+        .catch((e) => console.error("[reanalyze] curator failed:", e));
+    else if (result.kind === "genome")
+      void recordBeliefs(userId)
+        .then(() => recordUploadMove(userId, id, before))
+        .catch((e) => console.error("[reanalyze] genome beliefs failed:", e));
+    else void recordUploadMove(userId, id, before);
 
     return Response.json({ ...row, count: result.count, note: result.note });
   } catch (e) {

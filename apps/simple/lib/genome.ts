@@ -16,12 +16,16 @@ import { eq } from "drizzle-orm";
 import { getDb, genomeVariants } from "@/db";
 import { writeFact } from "./facts";
 import {
+  bestGrade,
   CATALOG_RSIDS,
+  geneMoves,
   GENOME_CATALOG,
   normalizeGenotype,
+  type GeneMove,
   type GenomeCall,
   type GenomeRow,
 } from "./genome-catalog";
+import type { Grade } from "./hypotheses";
 
 export interface ParsedVariant {
   rsid: string;
@@ -161,4 +165,117 @@ export async function loadGenome(userId: string): Promise<GenomeResult[]> {
       position: r.position,
     })),
   );
+}
+
+/* ── one answer per condition ──────────────────────────────────────────── *
+ *
+ * Phase 32a item 3, `docs/mockups/v4/genome.html` sections 01 and 02. The page
+ * answers first: one card per condition the genome actually speaks to. That
+ * needs the matched rule, not a boolean, so `geneMoves` in `lib/genome-catalog.ts`
+ * keeps it and this merges the result across genes.
+ *
+ * Pure: no database, no clock. It reads the catalogue and the calls and
+ * nothing else.
+ */
+
+/** One condition, and what this person's genome did to it. */
+export interface ConditionVerdict {
+  conditionId: string;
+  name: string;
+  direction: "up" | "down" | "none";
+  /** the multiplier or likelihood ratio the matched rule carries, or null */
+  factor: number | null;
+  grade: Grade;
+  /** one plain sentence: why this answer, in the catalogue's own words */
+  reason: string;
+  testNeeded: boolean;
+  /** true when the answer comes from an ABSENCE rather than a call */
+  absent: boolean;
+  /** the catalogue rows that produced it */
+  geneIds: string[];
+}
+
+/**
+ * Every condition the person's calls touch, in catalogue-row order.
+ *
+ * Merge rule, when several genes point at one condition: the direction is up
+ * if any gene pushed it up, else down if any pushed it down, else none; the
+ * factor is the product of the factors that agree with that direction, so two
+ * ×1.2 nudges compose to ×1.44 rather than fighting; the grade is the best of
+ * them (A beats B); the reason names every gene that agreed; `testNeeded` is
+ * true when any of them says so; and `absent` holds only when every down move
+ * came from an absence. A row the array could not call says nothing at all,
+ * so it produces no verdict.
+ */
+export function genomeVerdicts(
+  rows: GenomeRow[],
+  calls: GenomeResult[],
+): ConditionVerdict[] {
+  const byCondition = new Map<string, { v: ConditionVerdict; moves: GeneMove[] }>();
+  const order: string[] = [];
+
+  for (const row of rows) {
+    const result = calls.find((c) => c.row.id === row.id)?.result;
+    if (!result) continue;
+    for (const move of geneMoves(row, result)) {
+      const seen = byCondition.get(move.conditionId);
+      if (!seen) {
+        order.push(move.conditionId);
+        byCondition.set(move.conditionId, {
+          v: { ...move, geneIds: [row.id] },
+          moves: [move],
+        });
+        continue;
+      }
+      seen.moves.push(move);
+      seen.v.geneIds.push(row.id);
+    }
+  }
+
+  return order.map((id) => {
+    const { v, moves } = byCondition.get(id)!;
+    const direction = moves.some((m) => m.direction === "up")
+      ? "up"
+      : moves.some((m) => m.direction === "down")
+        ? "down"
+        : "none";
+    const agree = moves.filter((m) => m.direction === direction);
+    const factors = agree
+      .map((m) => m.factor)
+      .filter((f): f is number => f != null);
+    return {
+      ...v,
+      direction,
+      factor: factors.length ? factors.reduce((a, b) => a * b, 1) : null,
+      grade: bestGrade(
+        agree.map((m) => m.grade),
+        v.grade,
+      ),
+      reason: agree.map((m) => m.reason).join(" "),
+      testNeeded: agree.some((m) => m.testNeeded),
+      absent: direction === "down" && agree.every((m) => m.absent),
+    };
+  });
+}
+
+/** The catalogue rows that moved something, as the gene table asks it. */
+export const movedIds = (verdicts: ConditionVerdict[]): Set<string> =>
+  new Set(
+    verdicts.filter((v) => v.direction !== "none").flatMap((v) => v.geneIds),
+  );
+
+/** `1.4`, `1.96`, `0.1`: a factor without the floating-point tail. */
+export const factorText = (f: number): string => String(Number(f.toFixed(2)));
+
+/**
+ * What one verdict did, in the words the table's "What it moved" column uses:
+ * "Type 2 diabetes ×1.4", "Coeliac disease · LR 0.1 against", or the condition
+ * named as unchanged. Nothing here is invented; the number is the catalogue's.
+ */
+export function movedLine(v: ConditionVerdict): string {
+  if (v.direction === "up" && v.factor != null)
+    return `${v.name} ×${factorText(v.factor)}`;
+  if (v.direction === "down" && v.factor != null)
+    return `${v.name} · LR ${factorText(v.factor)} against`;
+  return `${v.name} unchanged`;
 }

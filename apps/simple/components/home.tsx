@@ -609,18 +609,39 @@ export function FindingsCard({ finding }: { finding: Finding }) {
         <h3>{finding.title}</h3>
         <span className="r">{dayLabel(finding.at, true)}</span>
       </div>
-      <ul className="space-y-2">
-        {finding.lines.map((line) => (
-          <li key={line.label}>
-            <span className="t-meta mr-2 text-[length:var(--type-xs)]">
-              {line.label}
-            </span>
-            <span className="t-body text-[length:var(--type-sm)] text-[var(--ink-2)]">
-              <Terms text={line.text} />
-            </span>
-          </li>
-        ))}
-      </ul>
+      {/* A genome line is an answer with a state word on it, so it reads as a
+          row: the condition, the gene and its call under it, the factor on the
+          right. A document line is still one sentence with its kind beside it. */}
+      {finding.lines.some((line) => line.mark) ? (
+        <div className="rowlist">
+          {finding.lines.map((line) => (
+            <div className="markerrow said" key={line.label}>
+              <div className="nm">
+                <b>{line.label}</b>
+                <span>{line.text}</span>
+              </div>
+              <div />
+              <div />
+              <div className="wd">
+                <StateWord tone={line.tone ?? "none"}>{line.mark}</StateWord>
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <ul className="space-y-2">
+          {finding.lines.map((line) => (
+            <li key={line.label}>
+              <span className="t-meta mr-2 text-[length:var(--type-xs)]">
+                {line.label}
+              </span>
+              <span className="t-body text-[length:var(--type-sm)] text-[var(--ink-2)]">
+                <Terms text={line.text} />
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
       <Link href={finding.href} className={cn(SMALL_LINK, "mt-3")}>
         see all {finding.total}
       </Link>

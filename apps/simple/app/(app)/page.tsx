@@ -14,6 +14,7 @@ import {
   type TrendMetric,
 } from "@/lib/home-data";
 import { localDay } from "@/lib/daily";
+import { listWatch } from "@/lib/research-watch";
 import { buildLedger, isLoud, type Conclusion } from "@/lib/ledger";
 import { snapshotLedger } from "@/lib/ledger-diff";
 import { NODES, SYSTEMS } from "@/lib/graph";
@@ -42,6 +43,7 @@ import {
 import { LedgerMotion } from "@/components/ledger-motion";
 import { LedgerList, SwapText } from "@/components/motion";
 import { AskLine } from "@/components/ask-line";
+import { ResearchCompact } from "@/components/research-panel";
 
 export const dynamic = "force-dynamic";
 
@@ -57,7 +59,7 @@ export default async function Home({
 
   const want = (await searchParams).ask;
   const day = localDay();
-  const [ledger, report, rows, goals, catalog, today, findings] =
+  const [ledger, report, rows, goals, catalog, today, findings, papers] =
     await Promise.all([
       buildLedger(userId),
       latestReport(userId),
@@ -66,6 +68,7 @@ export default async function Home({
       catalogFor(userId),
       buildToday(userId),
       recentFindings(userId, day),
+      listWatch(userId),
     ]);
 
   if (rows.length === 0) return <EmptyHome />;
@@ -308,6 +311,14 @@ export default async function Home({
           {collapse(quietTail).map(row)}
         </LedgerList>
       )}
+
+      {/**
+       * Phase 32a section 1: the compact research panel, under the ledger and
+       * above key trends. `ResearchCompact` draws nothing unless a paper moved
+       * something, because a panel that always says "nothing new" trains the
+       * eye to skip it; the empty state lives on the Research tab.
+       */}
+      <ResearchCompact rows={papers} />
 
       <QuietLine quiet={ledger.quiet} />
 

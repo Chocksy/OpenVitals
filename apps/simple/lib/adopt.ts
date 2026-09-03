@@ -18,6 +18,8 @@ import {
   type ReportAction,
 } from "@/db";
 import { adoptBodyOf } from "@/lib/actions";
+import { localDay } from "@/lib/daily";
+import { addMonths, scheduleOf } from "@/lib/plan-line";
 import { recordBeliefs } from "@/lib/ledger";
 import { queueResearch } from "@/lib/research";
 
@@ -47,6 +49,29 @@ async function onProtocol(userId: string, text: string): Promise<string | null> 
       and(eq(protocolItems.userId, userId), eq(protocolItems.active, true)),
     );
   return rows.find((r) => r.text.startsWith(title))?.id ?? null;
+}
+
+/**
+ * Phase 32a section 2. The plan's own line carries a time of day, a set of
+ * weekdays, an amount, a unit, what to take it with and how long for, and
+ * until now all of it landed in one `cadence` text column that only ever said
+ * "daily" or "weekly". `scheduleOf` reads the same text the row stores, so an
+ * adopted item arrives with its schedule and `plan-month.html` has something
+ * to print. `dose_amount` is `numeric`, which drizzle takes as a string.
+ *
+ * `cadence` is untouched: everything that already reads it still reads it.
+ */
+function scheduleColumns(text: string, startedAt: string | null) {
+  const s = scheduleOf(text);
+  return {
+    timeOfDay: s.timeOfDay,
+    daysOfWeek: s.daysOfWeek,
+    doseAmount: s.doseAmount == null ? null : String(s.doseAmount),
+    doseUnit: s.doseUnit,
+    withWhat: s.withWhat,
+    endsAt:
+      s.months == null ? null : addMonths(startedAt ?? localDay(), s.months),
+  };
 }
 
 const doseSummary = (a: ReportAction) =>
@@ -155,6 +180,7 @@ export async function adopt(
         why: why.slice(0, 500),
         metricCodes: code ? [code] : [],
         cadence: "daily",
+        ...scheduleColumns(text, startedAt),
       })
       .returning({ id: protocolItems.id });
     await queueResearch(row.conditionId).catch(() => false);
@@ -200,6 +226,7 @@ export async function adopt(
       why: action.why.slice(0, 500),
       metricCodes: action.targets.map((t) => t.code),
       cadence: /week/i.test(action.dose?.schedule ?? "") ? "weekly" : "daily",
+      ...scheduleColumns(text, startedAt),
       ...(startedAt ? { startedAt } : {}),
     })
     .returning({ id: protocolItems.id });

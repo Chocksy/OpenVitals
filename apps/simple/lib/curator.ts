@@ -40,6 +40,7 @@ import {
 import { model, stripCodeFences } from "./extract";
 import { inGoal, localDay } from "./daily";
 import { planRawVerify, rawVerifyScope } from "./raw-verify";
+import { runWatchForUser } from "./research-watch";
 import { runSecondPass } from "./second-pass";
 import { BOUNDS, SEX_RANGES } from "./vectors";
 import { conversionFactor, normalizeUnit, round } from "./units";
@@ -58,7 +59,9 @@ export type Check =
   | "implausible_value"
   | "foreign_reading"
   | "goal_check"
-  | "second_pass";
+  | "second_pass"
+  /** phase 32a: the per-person research watch, on the daily pass only */
+  | "research_watch";
 
 /** The subset of a reading the planners need. */
 export interface ReadingLike {
@@ -1352,6 +1355,25 @@ export async function runCurator(
     }
 
     await queueQuestions(userId);
+
+    /**
+     * Phase 32a section 1: the research watch. Only on a full daily pass — an
+     * upload run sees one file and has no business spending a token budget on
+     * Europe PMC — and never fatal: a search that fails must not take the
+     * nightly pass down with it.
+     */
+    if (trigger === "daily" && !scope?.uploadId) {
+      const runs = await runWatchForUser(userId).catch((e) => {
+        console.error("[curator] research watch failed:", e);
+        return [];
+      });
+      if (runs.length) {
+        const w = bump("research_watch");
+        w.checked = runs.length;
+        w.fixed = runs.reduce((n, r) => n + r.stored, 0);
+        w.queued = runs.reduce((n, r) => n + r.moved, 0);
+      }
+    }
 
     await db
       .update(curatorRuns)

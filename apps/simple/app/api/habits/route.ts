@@ -29,5 +29,11 @@ export async function POST(req: Request) {
       set: { done: sql`excluded.done` },
     })
     .returning();
-  return Response.json(row);
+  /**
+   * Phase 32a section 6 writes this route's reply as `{ ok: true }`, and the
+   * native app reads that field. The row it always returned stays beside it:
+   * `components/checkin.tsx` and `components/plan-tick.tsx` read the row back,
+   * and a contract is a promise about what is there, not about what is not.
+   */
+  return Response.json({ ok: true, ...row });
 }

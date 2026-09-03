@@ -21,9 +21,11 @@ import {
 } from "@/lib/capture";
 import type { Chip } from "@/lib/compose";
 import { localDay } from "@/lib/daily";
+import { mealRowFromChips, saveMeal } from "@/lib/meals";
 import { ensureImported } from "@/lib/import-legacy";
 import { recordBeliefs } from "@/lib/ledger";
 import { runCurator } from "@/lib/curator";
+import { ledgerNow, recordUploadMove } from "@/lib/read-receipt";
 import { extOf, processUpload, sha256, writeUpload } from "@/lib/uploads";
 
 export const maxDuration = 120;
@@ -47,12 +49,27 @@ export async function POST(req: Request) {
     const chips = cleanCaptureChips(body?.chips ?? [], today);
     if (!chips.length)
       return Response.json({ error: "nothing to write" }, { status: 400 });
+    // Whatever the client sends — a clock or a whole instant — the entry
+    // keeps the clock only.
+    const at = String(body?.at ?? "").match(/\d{2}:\d{2}/)?.[0] ?? null;
     const wrote = await writeCaptureChips(userId, chips, {
       label: body?.label,
-      // Whatever the client sends — a clock or a whole instant — the entry
-      // keeps the clock only.
-      at: String(body?.at ?? "").match(/\d{2}:\d{2}/)?.[0] ?? null,
+      at,
     });
+    // A confirmed food photo is one meal, not a loose `daily_logs` entry
+    // nobody can point at. `logDay: false`: `writeCaptureChips` summed these
+    // same numbers into the day one line ago, and there is one arithmetic.
+    if (wrote.day) {
+      const row = mealRowFromChips(chips, {
+        day: wrote.day,
+        time: at,
+        label: body?.label ?? "a photo",
+      });
+      if (row)
+        await saveMeal(userId, row, { logDay: false }).catch((e) =>
+          console.error("[capture] the meal row failed:", e),
+        );
+    }
     await recordBeliefs(userId).catch((e) =>
       console.error("[capture] beliefs failed:", e),
     );
@@ -160,6 +177,9 @@ async function handOver(
   );
   await db.update(uploads).set({ blobPath }).where(eq(uploads.id, upload!.id));
 
+  // The read receipt's "before": the ledger with this photo not yet read.
+  const before = await ledgerNow(userId);
+
   try {
     const result = await processUpload(
       userId,
@@ -178,10 +198,15 @@ async function handOver(
         readingsCount: result.kind === "lab" ? result.count : 0,
       })
       .where(eq(uploads.id, upload!.id));
+    // The curator runs in the background here too, so the receipt goes in the
+    // same continuation: recorded beside it, the diff would be read before the
+    // scorer had seen the new readings and would always say nothing moved.
     if (result.kind === "lab")
       void runCurator(userId, "upload", { uploadId: upload!.id })
         .then(() => recordBeliefs(userId))
+        .then(() => recordUploadMove(userId, upload!.id, before))
         .catch((e) => console.error("[capture] curator failed:", e));
+    else void recordUploadMove(userId, upload!.id, before);
     return {
       uploadId: upload!.id,
       kind: result.kind,

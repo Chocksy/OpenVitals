@@ -637,29 +637,37 @@ describe("the genome card", () => {
   ];
   const upload = { id: "u1", at: "2026-08-28" };
 
-  it("lists the three calls with the biggest effect, not the first three", () => {
+  it("lists the three answers that moved most, not the first three", () => {
     const card = genomeFinding(upload, results, "2026-09-01")!;
     expect(card.title).toBe("What your genome changed");
-    expect(card.lines.map((l) => l.label)).toEqual(["HFE", "HLA", "FTO"]);
-    expect(card.lines[2]!.text).toBe("Roughly 2.4 kg more body weight.");
+    expect(card.lines.map((l) => l.label)).toEqual([
+      "Haemochromatosis",
+      "Coeliac disease",
+      "Insulin resistance",
+    ]);
+    expect(card.lines[2]!.text).toBe("FTO, AA");
   });
 
   /**
    * Phase 31a item 9. The label used to be "HLA no DQ2.5 or DQ8 tag" — a gene
    * and a genotype, which is what the array read and not what it settles.
    */
-  it("leads with the verdict, and keeps the genotype out of the label", () => {
+  it("names the condition in the label, and keeps the genotype out of it", () => {
     const card = genomeFinding(upload, results, "2026-09-01")!;
     expect(card.lines.map((l) => l.label).join(" ")).not.toMatch(
       /DQ2\.5|C282Y|AA/,
     );
-    expect(card.lines[1]!.text).toBe("Coeliac disease is essentially excluded.");
+    // Phase 32a item 3: the gene and its call are the sub-line, and the factor
+    // is the state word beside it.
+    expect(card.lines[1]!.label).toBe("Coeliac disease");
+    expect(card.lines[1]!.text).toBe("HLA, no DQ2.5 or DQ8 tag");
+    expect(card.lines[1]!.mark).toBe("excluded");
   });
 
-  it("counts every call behind the see-all link, and links to the upload", () => {
+  it("counts every call behind the see-all link, and links to the genome page", () => {
     const card = genomeFinding(upload, results, "2026-09-01")!;
     expect(card.total).toBe(5);
-    expect(card.href).toBe("/blood/uploads/u1");
+    expect(card.href).toBe("/blood/genome");
   });
 
   it("stays for fourteen days and then goes", () => {

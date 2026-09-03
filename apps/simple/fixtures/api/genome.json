@@ -1,0 +1,226 @@
+{
+  "file": {
+    "name": "genome_Razvan_Ciocanel_v5_Full_20211206122835.txt",
+    "readAt": "2026-08-28"
+  },
+  "verdicts": [
+    {
+      "conditionId": "coeliac_disease",
+      "name": "Coeliac disease",
+      "direction": "down",
+      "factor": 0.1,
+      "grade": "A",
+      "reason": "HLA DR3-DQ2.5 haplotype tag · Coeliac disease is essentially excluded: over 99 % of people with it carry one of these two haplotypes.",
+      "testNeeded": false,
+      "absent": true
+    },
+    {
+      "conditionId": "type2_diabetes",
+      "name": "Type 2 diabetes",
+      "direction": "up",
+      "factor": 1.4,
+      "grade": "A",
+      "reason": "TCF7L2 · One TCF7L2 T allele raises type 2 diabetes risk about 1.4-fold (A).",
+      "testNeeded": true,
+      "absent": false
+    },
+    {
+      "conditionId": "insulin_resistance",
+      "name": "Insulin resistance",
+      "direction": "up",
+      "factor": 1.44,
+      "grade": "B",
+      "reason": "FTO · Two FTO A alleles double that nudge (B).",
+      "testNeeded": true,
+      "absent": false
+    },
+    {
+      "conditionId": "ascvd_risk",
+      "name": "Atherosclerotic risk",
+      "direction": "none",
+      "factor": null,
+      "grade": "A",
+      "reason": "APOE · no rule for Atherosclerotic risk fired on this call (e2/e3).",
+      "testNeeded": false,
+      "absent": false
+    },
+    {
+      "conditionId": "lpa_elevated",
+      "name": "High lipoprotein(a)",
+      "direction": "none",
+      "factor": null,
+      "grade": "A",
+      "reason": "LPA · no rule for High lipoprotein(a) fired on this call (non-carrier).",
+      "testNeeded": false,
+      "absent": false
+    },
+    {
+      "conditionId": "haemochromatosis",
+      "name": "Haemochromatosis",
+      "direction": "none",
+      "factor": null,
+      "grade": "A",
+      "reason": "HFE · no rule for Haemochromatosis fired on this call (no C282Y or H63D).",
+      "testNeeded": false,
+      "absent": false
+    },
+    {
+      "conditionId": "hashimoto",
+      "name": "Autoimmune thyroiditis (Hashimoto's)",
+      "direction": "none",
+      "factor": null,
+      "grade": "A",
+      "reason": "HLA DR3-DQ2.5 haplotype tag · no rule for Autoimmune thyroiditis (Hashimoto's) fired on this call (no DQ2.5 or DQ8 tag).",
+      "testNeeded": false,
+      "absent": false
+    },
+    {
+      "conditionId": "atrophic_gastritis",
+      "name": "Atrophic gastritis",
+      "direction": "none",
+      "factor": null,
+      "grade": "A",
+      "reason": "HLA DR3-DQ2.5 haplotype tag · no rule for Atrophic gastritis fired on this call (no DQ2.5 or DQ8 tag).",
+      "testNeeded": false,
+      "absent": false
+    },
+    {
+      "conditionId": "folate_deficiency",
+      "name": "Folate deficiency",
+      "direction": "none",
+      "factor": null,
+      "grade": "C",
+      "reason": "MTHFR · no rule for Folate deficiency fired on this call (C677T heterozygous).",
+      "testNeeded": false,
+      "absent": false
+    }
+  ],
+  "genes": [
+    {
+      "verdict": "e2/e3: ε2 lowers LDL and lowers dementia risk, and in rare cases carries type III hyperlipoproteinaemia.",
+      "gene": "APOE",
+      "call": "e2/e3",
+      "grade": "A",
+      "moved": false,
+      "source": "Bennet 2007 JAMA (APOE genotype and coronary risk, 82 studies); Farrer 1997 JAMA (APOE and Alzheimer meta-analysis); ClinVar rs429358 / rs7412.",
+      "rsids": [
+        "rs429358",
+        "rs7412"
+      ]
+    },
+    {
+      "verdict": "Neither risk allele.",
+      "gene": "LPA",
+      "call": "non-carrier",
+      "grade": "A",
+      "moved": false,
+      "source": "Clarke 2009 N Engl J Med (PROCARDIS: rs10455872 and rs3798220 with Lp(a) and coronary disease); Kamstrup 2009 JAMA.",
+      "rsids": [
+        "rs10455872",
+        "rs3798220"
+      ]
+    },
+    {
+      "verdict": "Neither common HFE variant, so the usual genetic cause of iron overload is off the table.",
+      "gene": "HFE",
+      "call": "no C282Y or H63D",
+      "grade": "A",
+      "moved": false,
+      "source": "Feder 1996 Nat Genet (HFE discovery); EASL 2022 clinical practice guidelines on haemochromatosis; ClinVar rs1800562 (C282Y), rs1799945 (H63D).",
+      "rsids": [
+        "rs1800562",
+        "rs1799945"
+      ]
+    },
+    {
+      "verdict": "Coeliac disease is essentially excluded: over 99 % of people with it carry one of these two haplotypes.",
+      "gene": "HLA DR3-DQ2.5 haplotype tag",
+      "call": "no DQ2.5 or DQ8 tag",
+      "grade": "A",
+      "moved": true,
+      "source": "Monsuur 2008 PLoS ONE (the rs2187668 T allele tags DQ2.5-DR3, rs7454108 C tags DQ8); Karell 2003 Hum Immunol; NICE NG20 coeliac guidance on HLA testing as a rule-out; Zeitlin 2008 Clin Endocrinol and Jacobson 2008 Clin Immunol for DR3/DR4 and autoimmunity; rs660895 tags DRB1*04:01 (Raychaudhuri 2012 Nat Genet).",
+      "rsids": [
+        "rs2187668",
+        "rs7454108",
+        "rs660895"
+      ]
+    },
+    {
+      "verdict": "1 risk allele: about 40 % above the background risk, and the DPP trial showed lifestyle change erases most of it.",
+      "gene": "TCF7L2",
+      "call": "CT",
+      "grade": "A",
+      "moved": true,
+      "source": "Grant 2006 Nat Genet (deCODE, TCF7L2 and type 2 diabetes); Florez 2006 N Engl J Med (DPP: the risk is preventable by lifestyle).",
+      "rsids": [
+        "rs7903146"
+      ]
+    },
+    {
+      "verdict": "One copy, essentially no effect on homocysteine at normal folate intake.",
+      "gene": "MTHFR",
+      "call": "C677T heterozygous",
+      "grade": "C",
+      "moved": false,
+      "source": "Frosst 1995 Nat Genet (C677T); Clarke 2012 PLoS Med (MTHFR, homocysteine and disease: the effect is small and folate-dependent); ACMG 2013 statement against routine MTHFR testing.",
+      "rsids": [
+        "rs1801133"
+      ]
+    },
+    {
+      "verdict": "Caffeine clears quickly; a morning coffee moves a draw much less.",
+      "gene": "CYP1A2",
+      "call": "fast metaboliser",
+      "grade": "B",
+      "moved": false,
+      "source": "Cornelis 2006 JAMA (CYP1A2 genotype, coffee and myocardial infarction); PharmGKB rs762551 caffeine annotation.",
+      "rsids": [
+        "rs762551"
+      ]
+    },
+    {
+      "verdict": "Lactase switches off after weaning.",
+      "gene": "LCT / MCM6",
+      "call": "lactase non-persistent",
+      "grade": "A",
+      "moved": false,
+      "source": "Enattah 2002 Nat Genet (MCM6 rs4988235 and lactase persistence); Storhaug 2017 Lancet Gastroenterol Hepatol (global prevalence).",
+      "rsids": [
+        "rs4988235"
+      ]
+    },
+    {
+      "verdict": "2 risk alleles: roughly 2.4 kg more body weight on average, through appetite.",
+      "gene": "FTO",
+      "call": "AA",
+      "grade": "B",
+      "moved": true,
+      "source": "Frayling 2007 Science (FTO and BMI); Kilpeläinen 2011 PLoS Med (physical activity attenuates the FTO effect by about 30 %).",
+      "rsids": [
+        "rs9939609"
+      ]
+    },
+    {
+      "verdict": "The common allele; the usual haemolysis triggers are safe on this account.",
+      "gene": "G6PD",
+      "call": "no G6PD A− variant",
+      "grade": "A",
+      "moved": false,
+      "source": "Luzzatto 2020 Blood (G6PD deficiency); ClinVar rs1050828 (Val68Met, the A− allele); WHO G6PD classification.",
+      "rsids": [
+        "rs1050828"
+      ]
+    },
+    {
+      "verdict": "The usual transporter; no statin dose change on genetic grounds.",
+      "gene": "SLCO1B1",
+      "call": "typical",
+      "grade": "A",
+      "moved": false,
+      "source": "SEARCH Collaborative Group 2008 N Engl J Med (SLCO1B1 variants and statin-induced myopathy); CPIC 2022 guideline for statins and SLCO1B1.",
+      "rsids": [
+        "rs4149056"
+      ]
+    }
+  ]
+}

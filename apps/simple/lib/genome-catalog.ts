@@ -548,26 +548,140 @@ export function genomeVerdict(r: {
 }
 
 export function movesAnything(row: GenomeRow, call: GenomeCall): boolean {
+  // One read of `geneMoves`, so the boolean and the per-condition projection
+  // can never disagree. An empty list means no rule anywhere reads this row's
+  // facts, and silence is not evidence of no effect.
+  const moves = geneMoves(row, call);
+  return !moves.length || moves.some((m) => m.direction !== "none");
+}
+
+/* ── what one call moves, and which rule moved it ──────────────────────── *
+ *
+ * Phase 32a item 3. `movesAnything` scanned for a matching rule and then threw
+ * away *which* rule matched, so "Type 2 diabetes ×1.4" had nowhere to come
+ * from except the prose `effect` string. `geneMoves` keeps the match: one
+ * entry per catalogue condition whose rules read this row's facts, with the
+ * direction, the multiplier or likelihood ratio, and the rule's own words.
+ *
+ * Pure, like the rest of this file. `genomeVerdicts` in `lib/genome.ts` merges
+ * these across genes into one answer per condition, and `movesAnything` is now
+ * a thin read of the same projection, so the table and the cards can never
+ * disagree about what moved.
+ */
+
+/** A beats B beats C. Used to pick one grade when several rules fire. */
+const GRADE_RANK: Record<Grade, number> = { A: 0, B: 1, C: 2, D: 3, E: 4 };
+export const bestGrade = (grades: Grade[], fallback: Grade): Grade =>
+  grades.length
+    ? grades.reduce((a, b) => (GRADE_RANK[b] < GRADE_RANK[a] ? b : a))
+    : fallback;
+
+export interface GeneMove {
+  conditionId: string;
+  /** the condition's display name from the HKB catalogue */
+  name: string;
+  direction: "up" | "down" | "none";
+  /** the multiplier or likelihood ratio the matched rule carries, or null */
+  factor: number | null;
+  grade: Grade;
+  /** one plain sentence: why this answer, in the catalogue's own words */
+  reason: string;
+  /** true when the answer comes from an ABSENCE rather than a call */
+  absent: boolean;
+  testNeeded: boolean;
+}
+
+/**
+ * Every catalogue condition whose prior modifiers or evidence rules read one
+ * of this row's facts, with what they did to it.
+ *
+ * A condition whose rules read the fact and did not fire is still returned,
+ * as `direction: "none"`, because "the ε4 rule did not fire" is an answer.
+ * A condition no rule connects to this row is not returned at all, which is
+ * how `movesAnything` still tells "nothing moved" from "nothing reads this".
+ */
+export function geneMoves(row: GenomeRow, call: GenomeCall): GeneMove[] {
   const facts: Record<string, string> = {
     [row.factKey]: call.call,
     ...(call.facts ?? {}),
   };
-  let read = false;
+  const out: GeneMove[] = [];
+
   for (const h of CATALOG) {
+    let read = false;
+    const up: number[] = [];
+    const down: number[] = [];
+    let downFromAbsence = 0;
+    const grades: Grade[] = [];
+    /** the first firing rule's own explanation, when it carries one */
+    let why: string | null = null;
+
     for (const m of h.priors.modifiers) {
       const value = m.when.fact ? facts[m.when.fact] : undefined;
       if (value == null) continue;
       read = true;
-      if (answers(m.when, value)) return true;
+      if (!answers(m.when, value)) continue;
+      if (m.times > 1) up.push(m.times);
+      else if (m.times < 1) down.push(m.times);
+      else continue; // a ×1 is a rule that fired and changed nothing
+      grades.push(m.grade ?? row.grade);
+      why ??= m.why;
     }
+
     for (const e of h.evidence) {
       const value = e.input.fact ? facts[e.input.fact] : undefined;
       if (value == null) continue;
       read = true;
-      // A rule with an lrNeg moves the score on the answer that does not hold
-      // as well, so having the fact at all is enough.
-      if (e.lrNeg != null || answers(e.when, value)) return true;
+      if (answers(e.when, value)) {
+        // the rule holds: its likelihood ratio is the move, and an LR of 1
+        // (the coeliac carrier rule) is a rule that fired and changed nothing
+        if (e.lr > 1) up.push(e.lr);
+        else if (e.lr < 1) down.push(e.lr);
+        else continue;
+        grades.push(e.grade);
+      } else if (e.lrNeg != null && e.lrNeg !== 1) {
+        // the input is present and the rule does NOT hold: the absence is the
+        // finding. "carrier ×3, non-carrier LR 0.1" lands here.
+        if (e.lrNeg > 1) up.push(e.lrNeg);
+        else {
+          down.push(e.lrNeg);
+          downFromAbsence += 1;
+        }
+        grades.push(e.grade);
+      }
     }
+
+    if (!read) continue;
+    // Up wins a tie: a raised starting point is the answer somebody has to act
+    // on, and no catalogue condition today is pushed both ways by one gene.
+    const direction = up.length ? "up" : down.length ? "down" : "none";
+    const factors = direction === "up" ? up : direction === "down" ? down : [];
+    out.push({
+      conditionId: h.id,
+      // the catalogue always names its conditions; the fallback is for a row
+      // whose id ever outlives its name
+      name: h.name || h.id.replace(/_/g, " "),
+      direction,
+      factor: factors.length ? factors.reduce((a, b) => a * b, 1) : null,
+      grade: bestGrade(grades, row.grade),
+      // What fired, in its own words: a prior modifier carries a `why`, an
+      // evidence rule does not, so an evidence match falls back to the
+      // catalogue's plain sentence about this person's call. When nothing
+      // fired the reason says exactly that and names the condition, rather
+      // than borrowing a sentence written about a different one — the HLA row
+      // speaks for three conditions and its `meaning` is about coeliac.
+      reason:
+        direction === "none"
+          ? `${row.gene} · no rule for ${h.name} fired on this call (${call.call}).`
+          : `${row.gene} · ${why ?? firstSentence(call.meaning)[0]}`,
+      absent: direction === "down" && downFromAbsence === down.length,
+      // Only what the catalogue itself says: the rule pushed the condition up
+      // and the condition owns at least one discriminator. Whether the engine
+      // would ORDER that test depends on the person's markers and scores,
+      // which a pure (row, call) function does not have, so this never claims
+      // a specific test.
+      testNeeded: direction === "up" && h.discriminators.length > 0,
+    });
   }
-  return !read;
+  return out;
 }

@@ -15,10 +15,11 @@ import { NODES } from "./graph";
 import { CATALOG } from "./hkb-catalog";
 import {
   GENOME_CATALOG,
-  genomeVerdict,
   type GenomeCall,
   type GenomeRow,
 } from "./genome-catalog";
+import { genomeVerdicts, type ConditionVerdict } from "./genome";
+import { movedVerdicts, verdictWord } from "./genome-view";
 import { stateFor } from "./hypotheses";
 import { VECTORS } from "./vectors";
 
@@ -182,10 +183,13 @@ export function explainInput(
 export const FINDING_DAYS = 14;
 
 export interface FindingLine {
-  /** "TCF7L2 CT", or the item kind for a document */
+  /** the condition a genome answer names, or the item kind for a document */
   label: string;
-  /** the catalog's own sentence about this person's call */
+  /** the gene and its call, or the document item's own sentence */
   text: string;
+  /** the state word a genome answer carries: `×1.4`, `excluded` */
+  mark?: string;
+  tone?: "on" | "border" | "none";
 }
 
 export interface Finding {
@@ -258,10 +262,18 @@ const daysSince = (at: string, today: string) =>
   Math.floor((Date.parse(today) - Date.parse(at)) / 86400000);
 
 /**
- * "What your genome changed": the three calls with the biggest effect on this
- * person, for a fortnight after the file landed.
+ * "What your genome changed": the three answers that moved something, for a
+ * fortnight after the file landed.
  *
- * Ties keep catalog order, so the same file always gives the same three.
+ * Phase 32a item 3. The card used to list the three calls with the biggest
+ * effect, which meant a call that changed nothing could still take a row when
+ * a file was quiet. `genomeVerdicts` now answers per condition, so the card
+ * lists conditions — "a ledger card that lists what did not move is a list of
+ * nothing" — and a file that moved nothing has no card at all.
+ *
+ * Biggest move first, in log space so a likelihood ratio of 0.1 and a prior of
+ * ×1.4 are on one scale. Ties keep catalogue order, so the same file always
+ * gives the same three.
  */
 export function genomeFinding(
   upload: { id: string; at: string },
@@ -276,30 +288,44 @@ export function genomeFinding(
   );
   if (!called.length) return null;
 
-  const top = called
-    .map((r, i) => ({ ...r, i, effect: genomeEffect(r.row, r.result) }))
+  const verdicts = genomeVerdicts(
+    results.map((r) => r.row),
+    results.map((r) => ({ ...r, absent: [] })),
+  );
+  const top = movedVerdicts(verdicts)
+    .map((v, i) => ({
+      v,
+      i,
+      effect: v.factor != null ? Math.abs(Math.log(v.factor)) : 0,
+    }))
     .sort((a, b) => b.effect - a.effect || a.i - b.i)
-    .slice(0, 3);
+    .slice(0, 3)
+    .map(({ v }) => v);
+  if (!top.length) return null;
+
+  /** the gene and the call behind one answer: "TCF7L2, CT". */
+  const behind = (v: ConditionVerdict) =>
+    v.geneIds
+      .map((id) => {
+        const r = called.find((c) => c.row.id === id);
+        return r ? `${explainKey(r.row.factKey)}, ${r.result.call}` : null;
+      })
+      .filter((s): s is string => s != null)
+      .join(" · ");
 
   return {
     id: upload.id,
     kind: "genome",
     title: "What your genome changed",
     at: upload.at,
-    href: `/blood/uploads/${upload.id}`,
+    href: "/blood/genome",
     /**
-     * Phase 31a item 9: the verdict leads. The label used to be "HLA no DQ2.5
-     * or DQ8 tag" — a gene and a genotype, which is what the array read rather
-     * than what it settles. The genotype moves into the row's own detail.
+     * The condition leads, the gene and its call are the sub-line, and the
+     * factor is the state word — `genome.html` section 03.
      */
-    lines: top.map((r) => {
-      const v = genomeVerdict({ row: r.row, result: r.result, absent: [] });
-      return {
-        // the short gene the graph uses, so the chip stays a chip: the
-        // catalog's own `gene` for the HLA row is a whole sentence.
-        label: explainKey(r.row.factKey),
-        text: v.verdict,
-      };
+    lines: top.map((v) => {
+      const { word, tone } = verdictWord(v);
+      return { label: v.name, text: behind(v), mark: word, tone };
     }),
     total: called.length,
   };

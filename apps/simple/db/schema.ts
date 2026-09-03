@@ -13,6 +13,8 @@ import {
   serial,
   unique,
   uniqueIndex,
+  smallint,
+  numeric,
 } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
 import { users } from "./auth-schema";
@@ -64,7 +66,23 @@ export const uploads = pgTable("uploads", {
   // ponytail: the spec wants deleted rows hidden after a day, which needs a
   // timestamp; `created_at` cannot say when the delete happened.
   deletedAt: timestamp("deleted_at", { withTimezone: true }),
+  /**
+   * Phase 32a section 4: the read receipt. The parse path snapshots the ledger
+   * before and after and stores the diff here, so the upload detail page can
+   * say what the file moved without re-scoring, and can say "nothing for you
+   * to do" when it moved nothing.
+   */
+  moved: jsonb("moved").$type<UploadMoved>(),
 });
+
+/** What one file did to the ledger, counted and named. */
+export interface UploadMoved {
+  resolved: number;
+  new: number;
+  stronger: number;
+  weaker: number;
+  lines: { id: string; name: string; from: number | null; to: number | null }[];
+}
 
 export type Upload = typeof uploads.$inferSelect;
 
@@ -382,6 +400,24 @@ export const protocolItems = pgTable("protocol_items", {
    * and the next plan writes "keep going" rather than "start".
    */
   startedAt: date("started_at"),
+  /**
+   * Phase 32a section 2. The plan's own words carry a time of day, a set of
+   * weekdays, an amount, a unit, what to take it with and how long to take it
+   * for, and none of them had a column: `cadence` was one text field that only
+   * ever held "daily" or "weekly". `scheduleOf()` in `lib/plan-line.ts` reads
+   * them off the line, `adopt()` writes them, and `occurrences()` expands them
+   * for a date range. Nothing is materialised; there is no occurrence table.
+   */
+  /** `morning | breakfast | midday | afternoon | dinner | evening | bedtime`, or `HH:MM`. */
+  timeOfDay: text("time_of_day"),
+  /** ISO weekdays, 1 = Monday. Null is every day. */
+  daysOfWeek: smallint("days_of_week").array(),
+  doseAmount: numeric("dose_amount"),
+  doseUnit: text("dose_unit"),
+  /** "with breakfast", "empty stomach · vitamin C". */
+  withWhat: text("with_what"),
+  /** The day it stops, so a supplement cannot run forever. */
+  endsAt: date("ends_at"),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
 });
 
@@ -1368,3 +1404,124 @@ export const threadMessages = pgTable(
 
 export type Thread = typeof threads.$inferSelect;
 export type ThreadMessage = typeof threadMessages.$inferSelect;
+
+/* ── phase 32a: the month, the read receipt, research and meals ───────── */
+
+/**
+ * One paper the research watch found for one person, and what it would move.
+ *
+ * Phase 32a section 1. `hkb_evidence` is global and keeps only a `year`, so
+ * "new since Aug 1 for your conditions" cannot be answered from it. This table
+ * is the per-person feed the mockup's build-cost note asks for: one row per
+ * (user, paper), with the day it was published, the sentence the intake wrote,
+ * and the delta the scorer measured with and without the paper's rule.
+ *
+ * `moves` is null when the intake produced no rule, which is the honest answer
+ * most of the time and prints as "nothing for you".
+ */
+export const paperWatch = pgTable(
+  "paper_watch",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    /** the catalog condition the run was aimed at */
+    conditionId: text("condition_id").notNull(),
+    /** which adapter found it; `epmc` is the only one today */
+    source: text("source").default("epmc").notNull(),
+    /** the DOI, or the PMID when there is no DOI: one paper is one row */
+    externalId: text("external_id").notNull(),
+    title: text("title").notNull(),
+    journal: text("journal"),
+    /** where "Open" goes: the DOI or the Europe PMC article */
+    url: text("url"),
+    publishedAt: date("published_at"),
+    /** A–E, as the intake graded it */
+    grade: text("grade"),
+    /** one sentence of what it found, the intake's own */
+    finding: text("finding"),
+    abstract: text("abstract"),
+    moves: jsonb("moves").$type<PaperMove>(),
+    foundAt: timestamp("found_at", { withTimezone: true }).defaultNow(),
+    seenAt: timestamp("seen_at", { withTimezone: true }),
+    dismissedAt: timestamp("dismissed_at", { withTimezone: true }),
+  },
+  (t) => [
+    unique("paper_watch_user_external_key").on(t.userId, t.externalId),
+    index("paper_watch_user_idx").on(t.userId, t.foundAt),
+  ],
+);
+
+/** What one paper would do to one conclusion, scored with and without it. */
+export interface PaperMove {
+  conclusionId: string;
+  name: string;
+  direction: "up" | "down" | "none";
+  /** the change in probability, as a fraction: 0.04 is four points */
+  delta: number;
+}
+
+export type PaperWatch = typeof paperWatch.$inferSelect;
+
+/**
+ * One meal, as a food photo became it.
+ *
+ * Phase 32a section 6. `daily_logs.nutrition` keeps the day's total and its
+ * entries, and it stays the sum the graph reads; this table keeps the meal
+ * itself — the photo, the items the vision call named, and what it moves — so
+ * the native app can print a meal card instead of a day total.
+ *
+ * Every number here is a model's estimate off a picture and is stored and
+ * printed as one: `estimated` is never dropped.
+ */
+export const meals = pgTable(
+  "meals",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    day: date("day").notNull(),
+    /** `HH:MM` local, when the photo or the client said so */
+    time: text("time"),
+    /** where the photo sits under the existing upload storage, or null */
+    photoKey: text("photo_key"),
+    label: text("label").notNull(),
+    items: jsonb("items").$type<MealItem[]>().notNull(),
+    totals: jsonb("totals").$type<MealTotalsRow>().notNull(),
+    moves: jsonb("moves").$type<MealMove[]>(),
+    /** `capture` (a photo) or `healthkit` (another app's log) */
+    source: text("source").default("capture").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+  },
+  (t) => [index("meals_user_day_idx").on(t.userId, t.day)],
+);
+
+/** One food on the plate, with the portion the reader assumed. */
+export interface MealItem {
+  name: string;
+  portion: string;
+  kcal: number | null;
+  protein_g: number | null;
+  carbs_g: number | null;
+  fat_g: number | null;
+  /** always true off a photo, and never dropped in the UI */
+  estimated: boolean;
+}
+
+export interface MealTotalsRow {
+  kcal: number | null;
+  protein_g: number | null;
+  carbs_g: number | null;
+  fat_g: number | null;
+  estimated: boolean;
+}
+
+/** What the meal touches: "protein and fibre first", "the daily kcal". */
+export interface MealMove {
+  what: string;
+  line: string;
+}
+
+export type Meal = typeof meals.$inferSelect;

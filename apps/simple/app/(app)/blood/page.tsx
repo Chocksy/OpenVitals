@@ -1,7 +1,11 @@
 import { and, asc, desc, eq, gt, isNull, or, sql } from "drizzle-orm";
 import { requireUserId } from "@/lib/auth";
 import { getDb, goals, readings, uploads } from "@/db";
-import { getMetricRows, sortForBiomarkerList, toBiomarkerRow } from "@/lib/data";
+import {
+  getMetricRows,
+  sortForBiomarkerList,
+  toBiomarkerRow,
+} from "@/lib/data";
 import { getDraws, getPhoneMetrics } from "@/lib/daily-data";
 import { localPath, MIN_RAW_TEXT } from "@/lib/uploads";
 import { PillTabs } from "@/components/pill-tabs";
@@ -12,10 +16,7 @@ import {
   type PlannedDraw,
   type UploadRow,
 } from "@/components/blood";
-import {
-  BloodMarkers,
-  type MarkerRow,
-} from "@/components/blood-markers";
+import { BloodMarkers, type MarkerRow } from "@/components/blood-markers";
 
 export const dynamic = "force-dynamic";
 
@@ -162,7 +163,14 @@ export default async function BloodPage({
           ),
         ),
       )
-      .orderBy(desc(uploads.createdAt));
+      // Phase 32a section 3: the genome file first when there is one. It is
+      // read once and answers questions for good, so it does not belong
+      // wherever the calendar happens to put it; the labs keep their own
+      // newest-first order under it.
+      .orderBy(
+        sql`case when ${uploads.kind} = 'genome' then 0 else 1 end`,
+        desc(uploads.createdAt),
+      );
 
     const detail = await db
       .select({
@@ -193,7 +201,9 @@ export default async function BloodPage({
           refLow: r.refLow,
           refHigh: r.refHigh,
           observedAt: r.observedAt,
-          flags: (r.flags ?? []).filter((f): f is string => typeof f === "string"),
+          flags: (r.flags ?? []).filter(
+            (f): f is string => typeof f === "string",
+          ),
         },
       ]);
     }

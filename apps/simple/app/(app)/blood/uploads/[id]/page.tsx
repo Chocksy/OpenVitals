@@ -4,7 +4,8 @@ import { and, asc, eq } from "drizzle-orm";
 import { ChevronDown, ChevronLeft } from "lucide-react";
 import { requireUserId } from "@/lib/auth";
 import { documentItems, genomeVariants, getDb, metrics, readings } from "@/db";
-import { callGenome } from "@/lib/genome";
+import { callGenome, genomeVerdicts } from "@/lib/genome";
+import { movedNothing, receiptLine } from "@/lib/read-receipt";
 import {
   findUpload,
   localPath,
@@ -13,7 +14,7 @@ import {
   UPLOAD_WORD,
   type UploadState,
 } from "@/lib/uploads";
-import { dayLabel, plural } from "@/lib/utils";
+import { cn, dayLabel, plural } from "@/lib/utils";
 import { ChangeKind, DeleteUpload, ReanalyzeUpload } from "@/components/client";
 import { DocumentItems } from "@/components/document-items";
 import { GenomeTable } from "@/components/genome-table";
@@ -28,6 +29,10 @@ export const dynamic = "force-dynamic";
  * What kind of change it was, the rows it produced, the genes it read, the
  * items it wants you to accept or reject, and the raw text it read them from.
  * Phase 30c: it absorbs `/uploads/[id]`, which is now a redirect.
+ *
+ * Phase 32a section 4 puts a read receipt first: what came out of the file,
+ * what it moved, and the one line saying whether there is anything to do. The
+ * date is printed once, in the head, and nowhere else on the page.
  */
 /** Phase 31a item 8: parsed, failed or reading. Nothing else is a state. */
 const TONE: Record<UploadState, StateTone> = {
@@ -99,7 +104,39 @@ export default async function UploadPage({
       : [];
 
   const called = kind === "genome" ? callGenome(variants) : [];
-  const moved = called.filter((r) => r.result).length;
+  /** Computed once here; the gene table below reads the same array. */
+  const verdicts = genomeVerdicts(
+    called.map((r) => r.row),
+    called,
+  );
+  /** A catalogue row this file could actually call. */
+  const withEffect = called.filter((r) => r.result).length;
+  /** A condition the calls pushed either way. */
+  const movedALikelihood = verdicts.filter((v) => v.direction !== "none").length;
+  /** An absence that excludes a condition is the only thing that closes one. */
+  const closedAQuestion = verdicts.filter((v) => v.absent).length;
+
+  /**
+   * The read receipt. `null` means the file was parsed before this phase and
+   * the ledger it walked into cannot be reconstructed, so the page says
+   * nothing rather than claiming nothing moved: an empty receipt and a missing
+   * one are different facts.
+   */
+  const receipt = upload.moved ?? null;
+  const quiet = movedNothing(receipt);
+  const changed = receipt
+    ? receipt.new + receipt.resolved + receipt.stronger + receipt.weaker
+    : 0;
+  /** What moved, named. The counters alone never say which belief it was. */
+  const said = receipt
+    ? [
+        ...receipt.lines.map(
+          (l) => `${l.name} ${l.from ?? "—"} → ${l.to ?? "—"} %`,
+        ),
+        ...(receipt.new ? [`${receipt.new} new on the ledger`] : []),
+        ...(receipt.resolved ? [`${receipt.resolved} settled`] : []),
+      ].join(" · ")
+    : "";
 
   return (
     <div className="stackv gap-[var(--s21)]">
@@ -144,12 +181,13 @@ export default async function UploadPage({
           </div>
         </div>
 
-        <div className="rowh mb-[var(--s13)]">
-          <div className="field max-w-[240px]">
-            <label htmlFor="kind">What kind of change</label>
-            <ChangeKind id={upload.id} kind={kind} />
-          </div>
-          <div className="kpi">
+        <div className="sub mt-0">
+          <h3>Read receipt</h3>
+          <span>what came out of the file, and the one thing it asks of you</span>
+        </div>
+
+        <div className="rowh mb-[var(--s13)] items-stretch">
+          <div className="kpi flex-1">
             {kind === "genome" ? (
               <>
                 <div>
@@ -157,8 +195,16 @@ export default async function UploadPage({
                   <span>variants read</span>
                 </div>
                 <div>
-                  <b>{moved}</b>
+                  <b>{withEffect}</b>
                   <span>with a known effect</span>
+                </div>
+                <div>
+                  <b>{movedALikelihood}</b>
+                  <span>moved a likelihood</span>
+                </div>
+                <div>
+                  <b>{closedAQuestion}</b>
+                  <span>closed a question</span>
                 </div>
               </>
             ) : kind === "document" ? (
@@ -167,19 +213,59 @@ export default async function UploadPage({
                 <span>{items.length === 1 ? "item read" : "items read"}</span>
               </div>
             ) : (
-              <div>
-                <b>{rows.length}</b>
-                <span>{rows.length === 1 ? "reading" : "readings"}</span>
-              </div>
+              <>
+                <div>
+                  <b>{rows.length}</b>
+                  <span>{rows.length === 1 ? "reading" : "readings"}</span>
+                </div>
+                {receipt && (
+                  <>
+                    <div>
+                      <b>{receipt.lines.length}</b>
+                      <span>moved a likelihood</span>
+                    </div>
+                    <div>
+                      <b>{receipt.resolved}</b>
+                      <span>closed a question</span>
+                    </div>
+                  </>
+                )}
+              </>
             )}
           </div>
         </div>
 
+        {/* No receipt at all means the file was read before this phase: the
+            page says nothing rather than claiming nothing moved. */}
+        {receipt && (
+          <div className="rowlist mb-[var(--s13)]">
+            <div className={cn("verdict", quiet ? "on" : "border")}>
+              <div className="vq">{receiptLine(receipt)}</div>
+              <p className="vsay">
+                {quiet
+                  ? "Nothing on your ledger changed when this file was read. No test was added to the plan and no action changed."
+                  : said}
+              </p>
+              <div className="vside">
+                <span className={cn("vx", quiet && "flat")}>
+                  {quiet ? "no action" : `${changed} moved`}
+                </span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        <div className="field mb-[var(--s13)] max-w-[240px]">
+          <label htmlFor="kind">What kind of change</label>
+          <ChangeKind id={upload.id} kind={kind} />
+        </div>
+
+        {/* The date is printed once, in the head; the document's own header
+            keeps only what the head does not already say. */}
         {upload.docMeta && (
           <p className="t-meta">
             {[
               upload.docMeta.docType,
-              upload.docMeta.date,
               upload.docMeta.institution,
               upload.docMeta.specialty,
             ]
@@ -194,14 +280,20 @@ export default async function UploadPage({
             <div className="sub">
               <h3>Genome</h3>
               <span>
-                {moved} of {called.length} catalog rows called from this file
+                {withEffect} of {called.length} catalog rows called from this
+                file
               </span>
             </div>
-            <GenomeTable results={called} />
+            <GenomeTable results={called} verdicts={verdicts} />
             <p className="cap">
               A variant shifts a starting point; your numbers decide the rest.
               If a marker and a variant disagree, the marker wins, because it
-              is what your body is doing today.
+              is what your body is doing today. The full answers, one card per
+              condition, are on{" "}
+              <Link className="asklink" href="/blood/genome">
+                the genome page
+              </Link>
+              .
             </p>
           </>
         ) : kind === "document" ? (

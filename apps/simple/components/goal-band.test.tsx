@@ -123,12 +123,18 @@ describe("the ruler, with a goal that has two bounds", () => {
     expect(pace![1]).toBe(one![1]);
   });
 
-  it("reads every mark out on hover and in a title", () => {
+  it("reads every mark out on hover and to a screen reader", () => {
     expect(raw).toContain('data-hover="Apr 23 2026 · 131 mg/dL · off"');
     expect(raw).toContain(
       'data-hover="Dec 9 2025 · 106 mg/dL · the draw before"',
     );
-    expect(raw).toContain('title="Apr 23 2026 · 131 mg/dL · off"');
+    /* Phase 32a: the `title` is gone. A mark that carries a hover card fired
+       two tooltips at once, so the native one came off and the card's own five
+       facts go to a screen reader as the mark's `aria-label`. */
+    expect(raw).not.toContain('title="Apr 23 2026 · 131 mg/dL · off"');
+    expect(raw).toContain(
+      'aria-label="Thu Apr 23 2026 · 131 mg/dL · off · goal band 70–100 · was 106 on Dec 9 2025 · +24 %"',
+    );
   });
 });
 
@@ -158,10 +164,14 @@ describe("the history chart, with the same goal", () => {
     expect(raw).toContain("mg/dL by Dec 1 2026");
   });
 
-  it("gives every diamond a title and a hover label", () => {
-    expect(raw).toContain('title="Apr 23 2026 · 131 mg/dL · off"');
+  it("gives every diamond a hover label and a spoken one", () => {
+    /* Phase 32a: the `title` came off the diamond that gained a card. */
+    expect(raw).not.toContain('title="Apr 23 2026 · 131 mg/dL · off"');
     expect(raw).toContain('class="lbl"');
     expect(raw).toContain("Dec 9 2025 · 106 mg/dL · off");
+    expect(raw).toContain(
+      'aria-label="Thu Apr 23 2026 · 131 mg/dL · off · normal 0–100 · optimal 0–70 · was 106 on Dec 9 2025 · +24 %"',
+    );
   });
 
   it("keeps a one-sided goal as one bar", () => {

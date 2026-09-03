@@ -1,0 +1,55 @@
+{
+  "day": "2026-08-31",
+  "meals": [
+    {
+      "id": "0f6c1b3a-7d24-4a1e-9c58-2b8f5d0e4a71",
+      "time": "13:05",
+      "photo": null,
+      "label": "grilled salmon, white rice, green beans",
+      "items": [
+        {
+          "name": "grilled salmon",
+          "portion": "150 g",
+          "kcal": 310,
+          "protein_g": 34,
+          "carbs_g": 0,
+          "fat_g": 19,
+          "estimated": true
+        },
+        {
+          "name": "white rice",
+          "portion": "200 g cooked",
+          "kcal": 260,
+          "protein_g": 5,
+          "carbs_g": 57,
+          "fat_g": 1,
+          "estimated": true
+        },
+        {
+          "name": "green beans",
+          "portion": "100 g",
+          "kcal": 35,
+          "protein_g": 2,
+          "carbs_g": 7,
+          "fat_g": 0,
+          "estimated": true
+        }
+      ],
+      "totals": {
+        "kcal": 605,
+        "protein_g": 41,
+        "carbs_g": 64,
+        "fat_g": 20,
+        "estimated": true
+      },
+      "moves": []
+    }
+  ],
+  "totals": {
+    "kcal": 605,
+    "protein_g": 41,
+    "carbs_g": 64,
+    "fat_g": 20,
+    "estimated": true
+  }
+}

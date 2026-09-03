@@ -162,6 +162,13 @@
       "when": 1788331389274,
       "tag": "0022_windy_warhawk",
       "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1788420748198,
+      "tag": "0023_brave_ultimates",
+      "breakpoints": true
     }
   ]
 }

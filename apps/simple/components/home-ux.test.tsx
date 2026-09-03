@@ -33,6 +33,36 @@ vi.mock("next/navigation", () => ({
 const { ConclusionCard, EvidenceLegend } = await import("./home");
 const { Ruler } = await import("./ruler");
 
+/**
+ * Phase 32a. The chart hover card is a hover surface: it is `visibility:
+ * hidden` until the mark it hangs off is hovered or focused, and it carries
+ * the reading's own value by design (`docs/mockups/v4/chart-hover.html`
+ * section 03). Note 1 is about what the ruler *prints*, so the cards come out
+ * before the reader's text is counted.
+ */
+export function withoutCards(html: string): string {
+  let out = "";
+  let i = 0;
+  for (;;) {
+    const at = html.indexOf('<div class="hovercard', i);
+    if (at === -1) return out + html.slice(i);
+    out += html.slice(i, at);
+    const tag = /<(\/?)div\b[^>]*>/g;
+    tag.lastIndex = at;
+    let depth = 0;
+    let end = html.length;
+    let m: RegExpExecArray | null;
+    while ((m = tag.exec(html))) {
+      depth += m[1] ? -1 : 1;
+      if (depth === 0) {
+        end = m.index + m[0].length;
+        break;
+      }
+    }
+    i = end;
+  }
+}
+
 /** Every string a reader would see, with the markup taken out. */
 const text = (html: string) =>
   html
@@ -107,20 +137,7 @@ describe("the ruler under a card (UX note 1)", () => {
       unit: "IU/mL",
     }),
   );
-  const out = text(
-    renderToStaticMarkup(
-      createElement(Ruler, {
-        value: 320,
-        prev: 412,
-        prevDate: "2025-12-09",
-        refLow: 0,
-        refHigh: 34,
-        optimalLow: 0,
-        optimalHigh: 9,
-        unit: "IU/mL",
-      }),
-    ),
-  );
+  const out = text(withoutCards(raw));
 
   it("prints the value once, with its unit", () => {
     expect(out.match(/320/g)).toHaveLength(1);
@@ -143,7 +160,9 @@ describe("the ruler under a card (UX note 1)", () => {
   });
 
   it("reads every mark out on hover, with its date and its state", () => {
-    expect(raw).toContain('data-hover="Dec 9 2025 · 412 IU/mL · the draw before"');
+    expect(raw).toContain(
+      'data-hover="Dec 9 2025 · 412 IU/mL · the draw before"',
+    );
     expect(raw).toContain('data-hover="320 IU/mL · off"');
   });
 

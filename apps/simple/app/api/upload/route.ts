@@ -4,6 +4,7 @@ import { currentUserId } from "@/lib/auth";
 import { ensureImported } from "@/lib/import-legacy";
 import { runCurator } from "@/lib/curator";
 import { recordBeliefs } from "@/lib/ledger";
+import { ledgerNow, recordUploadMove } from "@/lib/read-receipt";
 import { generateReport } from "@/lib/report";
 import { extOf, processUpload, sha256, writeUpload } from "@/lib/uploads";
 
@@ -54,6 +55,11 @@ export async function POST(req: Request) {
     })
     .returning();
 
+  // The read receipt's "before": the ledger as it stands with this file not
+  // yet read. Taken here, ahead of the parse, because it cannot be
+  // reconstructed once the readings are in.
+  const before = await ledgerNow(userId);
+
   try {
     const blobPath = await writeUpload(
       userId,
@@ -82,18 +88,25 @@ export async function POST(req: Request) {
     // A lab sheet moves readings, so the curator runs. A genome file moves
     // facts, so only the beliefs are re-recorded. A document has moved nothing
     // yet: its items are proposed and accepting one is what writes.
+    // The receipt is recorded inside the same continuation the curator runs
+    // in, never beside it: a diff taken before the scorer has seen the new
+    // readings would say "nothing moved" every time.
     if (result.kind === "lab")
       void runCurator(userId, "upload", { uploadId: upload!.id })
         .then(() => recordBeliefs(userId))
+        .then(() => recordUploadMove(userId, upload!.id, before))
         .then(() =>
           generateReport(userId, "upload").catch((e) =>
             console.error("[plan] upload report failed:", e),
           ),
         );
     else if (result.kind === "genome")
-      void recordBeliefs(userId).catch((e) =>
-        console.error("[upload] genome beliefs failed:", e),
-      );
+      void recordBeliefs(userId)
+        .then(() => recordUploadMove(userId, upload!.id, before))
+        .catch((e) => console.error("[upload] genome beliefs failed:", e));
+    // A document writes nothing to the ledger until its items are accepted, so
+    // its receipt is honestly all zeros rather than absent.
+    else void recordUploadMove(userId, upload!.id, before);
 
     return Response.json({
       uploadId: upload!.id,

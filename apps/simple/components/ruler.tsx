@@ -19,6 +19,12 @@
 import { Fragment } from "react";
 import { statusOf } from "@/lib/status";
 import { dayLabel } from "@/lib/utils";
+import {
+  ChartHover,
+  type ChartHoverProps,
+  flipOf,
+  hoverLabel,
+} from "./chart-hover";
 
 /* ── the scale ─────────────────────────────────────────────────────────
  * Moved here from `components/range-scale.ts` in phase 30c, unchanged, so
@@ -261,7 +267,8 @@ export const goalWords = (low: number | null, high: number | null): string =>
         ? `over ${digits(low)}`
         : "";
 
-const TONE = {
+/** The four states, as the design system's own tone words. */
+export const STATE_TONE = {
   red: "off",
   amber: "border",
   green: "on",
@@ -404,7 +411,7 @@ export function Ruler({
   };
 
   const status = statusOf({ value, refLow, refHigh, optimalLow, optimalHigh });
-  const tone = TONE[status];
+  const tone = STATE_TONE[status];
   const state = STATE_WORD[status];
   const here = place(at(value));
   const ghost = num(prev) ? place(at(prev)) : null;
@@ -447,6 +454,58 @@ export function Ruler({
     .filter(Boolean)
     .join(" · ");
 
+  /**
+   * Phase 32a, `docs/mockups/v4/chart-hover.html` section 03. The ruler has
+   * three things to point at — the value, the "was" ghost and the target — and
+   * each answers with the same card. The mark is judged against the goal band
+   * when there is one, and against its own normal and optimal bands when there
+   * is not; the target carries a date instead of a state word, because a
+   * target has no state. The card never flips below on a ruler: an 18 px track
+   * has nothing under it but its own scale row.
+   */
+  const goalBandSaid = band ? `goal band ${goalWords(gLow, gHigh)}` : null;
+  const markCard: ChartHoverProps = {
+    date: valueDate ?? null,
+    value,
+    unit,
+    state,
+    tone,
+    band: goalBandSaid ?? (mid || null),
+    was: num(prev) ? { value: prev, date: prevDate ?? null } : null,
+    stemRight: flipOf(at(value), 100).stemRight,
+  };
+  const ghostCard: ChartHoverProps | null = num(prev)
+    ? {
+        date: prevDate ?? null,
+        value: prev,
+        unit,
+        state:
+          STATE_WORD[
+            statusOf({ value: prev, refLow, refHigh, optimalLow, optimalHigh })
+          ],
+        tone: STATE_TONE[
+          statusOf({ value: prev, refLow, refHigh, optimalLow, optimalHigh })
+        ],
+        band: mid || null,
+        stemRight: flipOf(at(prev), 100).stemRight,
+      }
+    : null;
+  const goalCard: ChartHoverProps | null =
+    aim != null
+      ? {
+          date: targetDate ?? null,
+          value: aim,
+          unit,
+          state: "",
+          tone: "none",
+          /* a two-sided goal says the whole band, because the value line can
+             only carry the edge the plan is aimed at */
+          band: band ? shortLabel : mid || null,
+          stemRight: flipOf(at(band ? (gLow! + gHigh!) / 2 : aim), 100)
+            .stemRight,
+        }
+      : null;
+
   return (
     <div className={size === "row" ? "ruler row" : "ruler"}>
       <div className="ruler-track">
@@ -474,9 +533,16 @@ export function Ruler({
                     <div className="band goal-in" style={goalBand} />
                   )}
                 </div>
-                {goal?.seg === i && (
+                {goal?.seg === i && goalCard && (
                   <div
-                    className={band && goalBand ? "goal wide" : "goal"}
+                    className={
+                      band && goalBand
+                        ? "goal wide hovermark"
+                        : "goal hovermark"
+                    }
+                    tabIndex={0}
+                    role="img"
+                    aria-label={hoverLabel(goalCard)}
                     data-align={edge(goal.local)}
                     /* The band's own clipped edges, so it never spills past
                        a broken axis; a one-sided goal is still one tick. */
@@ -490,34 +556,47 @@ export function Ruler({
                        already says "target by Dec 1 2026 · 31 to go" */
                     data-short={shortLabel}
                     data-hover={`${label}${unit ? ` ${unit}` : ""}`}
-                    title={`${label}${unit ? ` ${unit}` : ""}`}
-                  />
+                  >
+                    <ChartHover {...goalCard} />
+                  </div>
                 )}
-                {ghost?.seg === i && (
+                {ghost?.seg === i && ghostCard && (
                   <div
-                    className="ghost"
+                    className="ghost hovermark"
+                    tabIndex={0}
+                    role="img"
+                    aria-label={hoverLabel(ghostCard)}
                     data-align={edge(ghost.local)}
                     data-row={stacked ? "2" : undefined}
                     style={{ "--g": pct(ghost.local) } as React.CSSProperties}
                     data-label={`was ${digits(prev!)}${
                       prevDate ? ` · ${dayLabel(prevDate)}` : ""
                     }`}
-                    data-hover={markTitle(prev!, unit, prevDate, "the draw before")}
-                    title={markTitle(prev!, unit, prevDate, "the draw before")}
-                  />
+                    data-hover={markTitle(
+                      prev!,
+                      unit,
+                      prevDate,
+                      "the draw before",
+                    )}
+                  >
+                    <ChartHover {...ghostCard} />
+                  </div>
                 )}
                 {here.seg === i && (
                   <div
-                    className={`mark ${tone}`}
+                    className={`mark ${tone} hovermark`}
+                    tabIndex={0}
+                    role="img"
+                    aria-label={hoverLabel(markCard)}
                     data-align={edge(here.local)}
                     style={{ "--p": pct(here.local) } as React.CSSProperties}
                     data-hover={markTitle(value, unit, valueDate, state)}
-                    title={markTitle(value, unit, valueDate, state)}
                   >
                     <span className="mval">
                       {digits(value)}
                       {unit && <em>{unit}</em>}
                     </span>
+                    <ChartHover {...markCard} />
                   </div>
                 )}
               </div>

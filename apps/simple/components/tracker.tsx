@@ -4,10 +4,14 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Check, Plus, Trash2, X } from "lucide-react";
 import { Button } from "./ui-kit";
+import { SLOT_LABEL, SLOTS } from "@/lib/plan-line";
 import { Strip } from "./heatmap";
 
 /** The system's own input; the numbers are tabular so the columns stack. */
 const INPUT = "inp num";
+
+/** Monday first, the way `days_of_week` counts: 1 is Monday. */
+const DAY_NAMES = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
 /** POST/PUT then re-render the server components. Same shape as client.tsx. */
 function useSave() {
@@ -50,6 +54,21 @@ export function AddProtocolItem({
   const [cadence, setCadence] = useState("daily");
   const [codes, setCodes] = useState<string[]>([]);
   const [pick, setPick] = useState("");
+  /**
+   * Phase 32a section 2. `plan-month.html` puts the day in clock order and the
+   * supplements in a table of dose, when, with what and until. An item typed
+   * by hand had none of those, so the month could only ever show the adopted
+   * ones. These are the same six columns `scheduleOf` fills from a plan line.
+   */
+  const [timeOfDay, setTimeOfDay] = useState("");
+  const [days, setDays] = useState<number[]>([]);
+  const [amount, setAmount] = useState("");
+  const [unit, setUnit] = useState("");
+  const [withWhat, setWithWhat] = useState("");
+  const [endsAt, setEndsAt] = useState("");
+
+  const toggleDay = (d: number) =>
+    setDays(days.includes(d) ? days.filter((x) => x !== d) : [...days, d]);
 
   const addCode = () => {
     const hit = metricNames.find(
@@ -122,6 +141,66 @@ export function AddProtocolItem({
           </button>
         ))}
       </div>
+      <div className="flex flex-wrap items-center gap-2">
+        <select
+          value={timeOfDay}
+          onChange={(e) => setTimeOfDay(e.target.value)}
+          className="sel"
+          aria-label="Time of day"
+        >
+          <option value="">no time</option>
+          {SLOTS.map((slot) => (
+            <option key={slot} value={slot}>
+              {SLOT_LABEL[slot].toLowerCase()}
+            </option>
+          ))}
+        </select>
+        <input
+          value={amount}
+          onChange={(e) => setAmount(e.target.value)}
+          inputMode="decimal"
+          placeholder="Dose"
+          aria-label="Dose amount"
+          className={`${INPUT} w-20`}
+        />
+        <input
+          value={unit}
+          onChange={(e) => setUnit(e.target.value)}
+          placeholder="mg"
+          aria-label="Dose unit"
+          className="inp w-20"
+        />
+        <input
+          value={withWhat}
+          onChange={(e) => setWithWhat(e.target.value)}
+          placeholder="With what? e.g. with breakfast"
+          aria-label="With what"
+          className="inp"
+        />
+      </div>
+      <div className="flex flex-wrap items-center gap-2">
+        {DAY_NAMES.map((name, i) => (
+          <button
+            key={name}
+            type="button"
+            aria-pressed={days.includes(i + 1)}
+            onClick={() => toggleDay(i + 1)}
+            className={days.includes(i + 1) ? "chip ink" : "chip"}
+          >
+            {name}
+          </button>
+        ))}
+        <label className="text-[12px] text-[var(--ink-3)]">
+          until{" "}
+          <input
+            type="date"
+            value={endsAt}
+            onChange={(e) => setEndsAt(e.target.value)}
+            aria-label="Until"
+            className={INPUT}
+          />
+        </label>
+      </div>
       <div className="flex items-center gap-2">
         <Button
           disabled={busy || !text.trim()}
@@ -131,11 +210,23 @@ export function AddProtocolItem({
               why,
               cadence,
               metricCodes: codes,
+              timeOfDay: timeOfDay || null,
+              daysOfWeek: days.length ? [...days].sort((a, b) => a - b) : null,
+              doseAmount: amount.trim() === "" ? null : Number(amount),
+              doseUnit: unit.trim() || null,
+              withWhat: withWhat.trim() || null,
+              endsAt: endsAt || null,
             });
             if (ok) {
               setText("");
               setWhy("");
               setCodes([]);
+              setTimeOfDay("");
+              setDays([]);
+              setAmount("");
+              setUnit("");
+              setWithWhat("");
+              setEndsAt("");
               setOpen(false);
             }
           }}

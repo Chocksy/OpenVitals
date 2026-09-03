@@ -4711,3 +4711,696 @@ a.t-tab {
     transition: none;
   }
 }
+
+/* ══════════════════════════════════════════════════════════════════════
+   15 · the six elements phase 31b drew and phase 32a ships
+   `docs/mockups/v4/system.css`, copied by name: the verdict row, the paper
+   row, the month strip and day column, the schedule table, the meal card and
+   the chart hover card. Nothing here introduces a token. Every colour is the
+   ink ladder, the hairline, the track or the spectrum as text or a 5 px mark;
+   the spectrum is never a surface.
+   ══════════════════════════════════════════════════════════════════════ */
+
+/* ── the verdict row ───────────────────────────────────────────────────
+   Answer first. One condition, the answer as a sentence fragment, the
+   reason on the line under it, the genes behind it in a disclosure.
+   .on = excluded / nothing to do. .border = watch it. .off = it moved a
+   prior up. --st is the same channel .conc uses. */
+.verdict {
+  display: grid;
+  grid-template-columns: var(--s5) minmax(0, 1fr) auto;
+  gap: var(--s5) var(--s13);
+  align-items: start;
+  padding: var(--s13) 0;
+  border-bottom: 1px solid var(--hair);
+}
+.rowlist > .verdict:last-child {
+  border-bottom: 0;
+}
+.verdict::before {
+  content: "";
+  grid-row: 1 / 3;
+  width: var(--s3);
+  align-self: stretch;
+  min-height: var(--s21);
+  border-radius: var(--r-pill);
+  background: var(--st, var(--ink-3));
+}
+.verdict.on {
+  --st: var(--ok);
+}
+.verdict.border {
+  --st: var(--warn);
+}
+.verdict.off {
+  --st: var(--bad-fill);
+}
+/* "no change" was --track, which reads 1.1:1 on the tile: a word nobody can
+   see. "Nothing moved" is stated as plainly as "×1.4", so it takes --ink-3. */
+.verdict.none {
+  --st: var(--ink-3);
+}
+.verdict .vq {
+  font-size: var(--type-md);
+  color: var(--ink);
+  line-height: 1.4;
+}
+.verdict .vq em {
+  font-style: normal;
+  color: var(--st, var(--ink-2));
+}
+.verdict .vsay {
+  grid-column: 2;
+  margin: 0;
+  font-size: var(--type-sm);
+  line-height: 1.6;
+  color: var(--ink-2);
+  max-width: 66ch;
+  text-wrap: pretty;
+}
+.verdict .vsay b {
+  color: var(--ink);
+  font-weight: 500;
+}
+.verdict .vside {
+  grid-column: 3;
+  grid-row: 1 / 3;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--s5);
+  text-align: right;
+}
+.verdict .vx {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--type-lg);
+  color: var(--ink);
+  white-space: nowrap;
+  line-height: 1;
+}
+.verdict .vx.flat {
+  color: var(--ink-3);
+  font-size: var(--type-md);
+}
+@media (max-width: 720px) {
+  .verdict {
+    grid-template-columns: var(--s5) minmax(0, 1fr);
+  }
+  .verdict .vside {
+    grid-column: 2;
+    grid-row: auto;
+    text-align: left;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: baseline;
+  }
+}
+
+/* ── the paper row ─────────────────────────────────────────────────────
+   Title, journal, date, the grade the intake gave it, one sentence of what
+   it found, and what it would move. The last line is the whole point: a
+   paper that moves nothing says so. */
+.paper {
+  display: grid;
+  grid-template-columns: var(--s34) minmax(0, 1fr) auto;
+  gap: var(--s5) var(--s13);
+  align-items: start;
+  padding: var(--s13) 0;
+  border-bottom: 1px solid var(--hair);
+}
+.rowlist > .paper:last-child {
+  border-bottom: 0;
+}
+.paper .pg {
+  grid-row: 1 / 4;
+  display: grid;
+  place-items: center;
+  width: var(--s34);
+  height: var(--s34);
+  border-radius: var(--r-inner);
+  background: var(--canvas-deep);
+  color: var(--ink-2);
+}
+.paper .ptitle {
+  font-size: var(--type-sm);
+  color: var(--ink);
+  line-height: 1.45;
+}
+.paper .pcite {
+  grid-column: 2;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s3) var(--s8);
+  align-items: baseline;
+  font-family: var(--font-mono);
+  font-size: var(--type-xs);
+  color: var(--ink-3);
+}
+/* the citation line reads as one sentence, so its parts are separated the way
+   every other meta line is: a middle dot. The grade glyph is exempt because it
+   sits against the journal it grades. */
+.paper .pcite > span + span:not(.glyph)::before {
+  content: "· ";
+  color: var(--ink-3);
+}
+.paper .pfound {
+  grid-column: 2;
+  margin: 0;
+  font-size: var(--type-sm);
+  line-height: 1.6;
+  color: var(--ink-2);
+  max-width: 72ch;
+  text-wrap: pretty;
+}
+.paper .pmoves {
+  grid-column: 2;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s5) var(--s8);
+  align-items: baseline;
+  font-size: var(--type-sm);
+  color: var(--ink-2);
+}
+.paper .pmoves .arrow {
+  font-family: var(--font-mono);
+  color: var(--ink-3);
+}
+.paper .pact {
+  grid-column: 3;
+  grid-row: 1 / 3;
+  display: flex;
+  gap: var(--s5);
+  align-items: center;
+}
+@media (max-width: 720px) {
+  .paper {
+    grid-template-columns: var(--s34) minmax(0, 1fr);
+  }
+  .paper .pact {
+    grid-column: 2;
+    grid-row: auto;
+  }
+}
+
+/* ── the month strip ───────────────────────────────────────────────────
+   Seven columns, one cell a day, today outlined the way .strip30 outlines
+   it. Each cell carries up to four 5 px dots: training, supplement, food
+   rule, draw or check-in. The dot is the spectrum as a mark, and a mark is
+   the only thing the spectrum is allowed to be here. */
+.month {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: var(--s3);
+}
+.month .dow {
+  font-family: var(--font-mono);
+  font-size: var(--type-xs);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  text-align: center;
+  padding-bottom: var(--s3);
+}
+.month .d {
+  min-height: var(--s55);
+  border-radius: var(--s5);
+  background: var(--surface-flat);
+  box-shadow: inset 0 0 0 1px var(--hair);
+  padding: var(--s5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s3);
+}
+.month .d.pad {
+  background: none;
+  box-shadow: none;
+}
+.month .d.past {
+  background: var(--canvas-deep);
+}
+.month .d.today {
+  box-shadow: inset 0 0 0 1.5px var(--ink);
+}
+.month .d .dn {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--type-xs);
+  color: var(--ink-2);
+  line-height: 1;
+}
+.month .d.today .dn {
+  color: var(--ink);
+}
+.month .d .dots {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  margin-top: auto;
+}
+.month .d .dots i,
+.monthkey i {
+  width: var(--s5);
+  height: var(--s5);
+  border-radius: var(--r-pill);
+  background: var(--ink-3);
+}
+.month .d .dots i.train,
+.monthkey i.train {
+  background: var(--ok);
+}
+.month .d .dots i.supp,
+.monthkey i.supp {
+  background: var(--ink-2);
+}
+.month .d .dots i.food,
+.monthkey i.food {
+  background: var(--warn);
+}
+.month .d .dots i.draw,
+.monthkey i.draw {
+  background: var(--bad-fill);
+}
+.month .d .dots i.check,
+.monthkey i.check {
+  background: none;
+  box-shadow: inset 0 0 0 1.5px var(--ink-3);
+}
+.monthkey {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s5) var(--s13);
+  margin-top: var(--s8);
+  font-size: var(--type-xs);
+  color: var(--ink-3);
+}
+.monthkey span {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s5);
+}
+
+/* ── the day column ────────────────────────────────────────────────────
+   What to do today, in the order the day runs. Time on the left in mono,
+   the tick beside it, the "why" underneath in --ink-3. The tick is the
+   .checkrow box at 21 px so the two agree. */
+.daycol {
+  display: flex;
+  flex-direction: column;
+}
+.dayrow {
+  display: grid;
+  grid-template-columns: 62px var(--s21) minmax(0, 1fr) auto;
+  gap: var(--s3) var(--s13);
+  align-items: start;
+  padding: var(--s13) 0;
+  border-bottom: 1px solid var(--hair);
+}
+.daycol .dayrow:last-child {
+  border-bottom: 0;
+}
+.dayrow .at {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--type-sm);
+  color: var(--ink-3);
+  white-space: nowrap;
+  padding-top: 2px;
+}
+.dayrow .box {
+  display: grid;
+  place-items: center;
+  width: var(--s21);
+  height: var(--s21);
+  border-radius: var(--s5);
+  box-shadow: inset 0 0 0 1px var(--hair);
+  color: transparent;
+  background: var(--surface-hi);
+  cursor: pointer;
+  flex: none;
+}
+.dayrow.done .box {
+  background: var(--ink);
+  color: var(--canvas);
+  box-shadow: none;
+}
+.dayrow .what {
+  font-size: var(--type-sm);
+  color: var(--ink);
+  line-height: 1.45;
+}
+.dayrow.done .what {
+  color: var(--ink-2);
+}
+.dayrow .why {
+  grid-column: 3;
+  font-size: var(--type-xs);
+  color: var(--ink-3);
+  line-height: 1.5;
+}
+.dayrow .tag {
+  grid-column: 4;
+  grid-row: 1 / 3;
+  font-family: var(--font-mono);
+  font-size: var(--type-xs);
+  color: var(--ink-3);
+  white-space: nowrap;
+  text-align: right;
+}
+@media (max-width: 720px) {
+  .dayrow {
+    grid-template-columns: 54px var(--s21) minmax(0, 1fr);
+  }
+  .dayrow .tag {
+    grid-column: 3;
+    grid-row: auto;
+    text-align: left;
+  }
+}
+
+/* ── the schedule table ────────────────────────────────────────────────
+   .tbl with a fixed column order: what, dose, when, with what, until. The
+   "when" column is four fixed slots so the eye can scan down it, and a slot
+   that is not used is a track square, not an empty cell. It scrolls rather
+   than wraps: a row whose "aimed at" cell folds onto four lines leaves the
+   other five stranded in white space. */
+.tbl.sched td,
+.tbl.sched th {
+  white-space: nowrap;
+}
+.slots {
+  display: inline-flex;
+  gap: var(--s3);
+}
+.slots i {
+  width: var(--s13);
+  height: var(--s13);
+  border-radius: var(--s3);
+  background: var(--track);
+  display: grid;
+  place-items: center;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  line-height: 1;
+  font-style: normal;
+  color: var(--ink-3);
+}
+.slots i.on {
+  background: var(--ink);
+  color: var(--canvas);
+}
+.tbl.sched td.until {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-2);
+}
+
+/* ── the meal card ─────────────────────────────────────────────────────
+   What a food photo becomes. Every number carries the word "est." because
+   every number on this card came out of one vision call, and the footer
+   says so. */
+.meal {
+  display: grid;
+  grid-template-columns: 89px minmax(0, 1fr);
+  gap: var(--s13);
+  align-items: start;
+}
+.meal .shot {
+  width: 89px;
+  height: 89px;
+  border-radius: var(--r-inner);
+  background: var(--canvas-deep);
+  box-shadow: inset 0 0 0 1px var(--hair);
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+}
+.meal .shot img,
+.meal .shot svg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.meal .mhead {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s5) var(--s8);
+  align-items: baseline;
+}
+.meal .mhead b {
+  font-size: var(--type-md);
+  font-weight: 400;
+  color: var(--ink);
+}
+.meal .mhead .when {
+  font-family: var(--font-mono);
+  font-size: var(--type-xs);
+  color: var(--ink-3);
+}
+.meal .items {
+  margin: var(--s8) 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  max-width: 520px;
+}
+.meal .items li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: var(--s8);
+  align-items: baseline;
+  padding: var(--s5) 0;
+  border-bottom: 1px solid var(--hair);
+  font-size: var(--type-sm);
+  color: var(--ink);
+}
+.meal .items li:last-child {
+  border-bottom: 0;
+}
+.meal .items .por,
+.meal .items .kc {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--type-xs);
+  color: var(--ink-3);
+  white-space: nowrap;
+}
+.meal .macros {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s8) var(--s13);
+  margin-top: var(--s8);
+}
+.meal .macros div {
+  min-width: 62px;
+}
+.meal .macros b {
+  display: block;
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--type-md);
+  color: var(--ink);
+  line-height: 1.1;
+}
+.meal .macros span {
+  font-size: var(--type-xs);
+  color: var(--ink-3);
+}
+.est {
+  font-family: var(--font-mono);
+  font-size: var(--type-xs);
+  color: var(--ink-3);
+  letter-spacing: 0.04em;
+}
+.meal .mnote {
+  margin: var(--s8) 0 0;
+  font-size: var(--type-xs);
+  color: var(--ink-3);
+  line-height: 1.5;
+}
+@media (max-width: 460px) {
+  .meal {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .meal .shot {
+    width: 100%;
+    height: 144px;
+  }
+}
+
+/* ── the chart hover card ──────────────────────────────────────────────
+   One card, two triggers: hover on desktop, keyboard focus everywhere. It
+   always carries the date, the value with its unit, the state word, the band
+   it is judged against and the "was". It is a surface, so it is --surface-hi
+   and never a spectrum fill.
+
+   CSS only. The mark holds the card, the mark is focusable, and the card is
+   revealed by :hover and :focus-visible on the mark. No JavaScript touches
+   the DOM for this: `no-dom-mutation.test.ts` stays green. */
+.hovercard {
+  position: absolute;
+  z-index: 6;
+  min-width: 168px;
+  max-width: 260px;
+  border-radius: var(--r-inner);
+  background: var(--surface-hi);
+  backdrop-filter: blur(21px);
+  box-shadow:
+    inset 0 0 0 1px var(--hair),
+    0 21px 34px -21px rgba(23, 22, 20, 0.45);
+  padding: var(--s8) var(--s13);
+  pointer-events: none;
+  text-align: left;
+  white-space: normal;
+}
+.hovercard .hdate {
+  font-family: var(--font-mono);
+  font-size: var(--type-xs);
+  color: var(--ink-3);
+  letter-spacing: 0.04em;
+}
+.hovercard .hval {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--type-lg);
+  color: var(--ink);
+  line-height: 1.15;
+  margin-top: 2px;
+}
+.hovercard .hval em {
+  font-style: normal;
+  font-size: var(--type-xs);
+  color: var(--ink-3);
+  margin-left: var(--s3);
+}
+.hovercard .hwas {
+  font-family: var(--font-mono);
+  font-size: var(--type-xs);
+  color: var(--ink-3);
+  margin-top: var(--s3);
+}
+.hovercard .hrow {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--s8);
+  margin-top: var(--s5);
+}
+/* the stem, so the card is anchored to the mark it explains */
+.hovercard::after {
+  content: "";
+  position: absolute;
+  left: var(--s21);
+  bottom: -5px;
+  width: 9px;
+  height: 9px;
+  transform: rotate(45deg);
+  background: var(--surface-hi);
+  box-shadow: 1px 1px 0 0 var(--hair);
+}
+.hovercard.below::after {
+  bottom: auto;
+  top: -5px;
+  box-shadow: -1px -1px 0 0 var(--hair);
+}
+/* the stem sits under whichever corner the card was anchored by */
+.hovercard.stem-right::after {
+  left: auto;
+  right: var(--s21);
+}
+/* At 390 px a 260 px card anchored to a mark at 66 % runs off the screen, and
+   a card that runs off the screen is worse than one that covers a band label.
+
+   `system.css` fixes this by pinning the card to `left: 8px; right: 8px`, but
+   in the app every mark is `position: absolute`, so the mark itself is the
+   card's containing block: those two offsets resolve against a 21 px diamond
+   and collapse the card to nothing. The card is clamped to the viewport
+   instead, and the mark's own `side()` class already flips it to the inside
+   edge when it is near the right. */
+@media (max-width: 760px) {
+  .hovercard {
+    min-width: 0;
+    max-width: min(260px, calc(100vw - var(--s34)));
+  }
+}
+
+/* One mark, one tooltip. Phase 31a gave `.hp .lbl` and `.ruler .mark::before`
+   a hover label of their own; the phase 32a card carries the same date and
+   state and four more lines, so on a mark that has a card the older label
+   stays quiet rather than firing beside it. `.lbl` keeps its place in the
+   markup — `goal-band.test.tsx` reads it, and so does anything that turns the
+   card off. */
+.hovermark:hover > .lbl,
+.hovermark:focus-visible > .lbl,
+.hovermark:focus-within > .lbl {
+  opacity: 0;
+}
+/* `.ruler .mark::before` outweighs a bare `.hovermark::before`, so the rule
+   that turns it off has to carry the same weight. */
+.ruler .hovermark::before {
+  content: none;
+}
+
+/* A history mark is a point: `.hp` is absolutely positioned at (--x, --y) with
+   no width and no height, and the diamond is the `<i>` inside it, drawn with a
+   transform. A 0 × 0 element cannot be hovered and shows no focus ring, so the
+   card was reachable only from the keyboard. This is the hit area the mockup's
+   build-cost note asks for: 26 px centred on the point, laid over nothing,
+   costing the layout nothing. */
+.hist-plot .hp.hovermark::before {
+  content: "";
+  position: absolute;
+  inset: -13px;
+  border-radius: var(--r-pill);
+}
+.hist-plot .hp.hovermark:focus-visible::before {
+  box-shadow: 0 0 0 2px color-mix(in oklab, var(--ink) 40%, transparent);
+}
+.hist-plot .hp.hovermark:focus-visible {
+  outline: none;
+}
+/* The ruler's goal and ghost also carry a standing `data-label`. The card says
+   the same thing and four lines more, and a translucent surface does not hide
+   the text under it, so the label steps aside while the card is open rather
+   than printing through it. */
+.ruler .hovermark:hover::after,
+.ruler .hovermark:focus-visible::after,
+.ruler .hovermark:focus-within::after {
+  opacity: 0;
+}
+@media (prefers-reduced-transparency: reduce) {
+  .hovercard {
+    backdrop-filter: none;
+    background: var(--surface-flat);
+  }
+  .hovercard::after {
+    background: var(--surface-flat);
+  }
+}
+
+/* The reveal, and the only mechanism there is: a mark that carries a card is
+   a `.hovermark`, it is focusable, and the card appears on hover or on
+   keyboard focus. No transition, so there is nothing for a reduced-motion
+   guard to turn off; no script, so `no-dom-mutation.test.ts` stays green. */
+.hovermark {
+  cursor: default;
+}
+.hovermark > .hovercard {
+  opacity: 0;
+  visibility: hidden;
+}
+.hovermark:hover > .hovercard,
+.hovermark:focus-visible > .hovercard,
+.hovermark:focus-within > .hovercard {
+  opacity: 1;
+  visibility: visible;
+}
+/* the card must not be clipped by the plot it sits in */
+.hist-plot:has(.hovermark:hover),
+.hist-plot:has(.hovermark:focus-within),
+.ruler-track:has(.hovermark:hover),
+.ruler-track:has(.hovermark:focus-within) {
+  overflow: visible;
+}

@@ -1,0 +1,47 @@
+{
+  "day": "2026-08-31",
+  "done": 0,
+  "total": 4,
+  "rows": [
+    {
+      "itemId": null,
+      "time": null,
+      "slot": null,
+      "title": "Resistance training twice a week",
+      "why": "Pattern insulin_resistance_early is the top system; resistance training is listed first in the management sequence and is the cheapest lever before any supplement.",
+      "tag": "suggested",
+      "done": false,
+      "adherence": null
+    },
+    {
+      "itemId": null,
+      "time": null,
+      "slot": null,
+      "title": "Walk 10 minutes after the largest meal every day",
+      "why": "Management of insulin_resistance_early lists a walk after the largest meal as the third lever; this is sequenced after confirming OGTT but can start immediately.",
+      "tag": "suggested",
+      "done": false,
+      "adherence": null
+    },
+    {
+      "itemId": null,
+      "time": null,
+      "slot": null,
+      "title": "Vitamin D3 4000 IU daily with largest meal",
+      "why": "Vitamin D 32.68 is below 40 and edge vitamin_d->insulin exists; raise before judging testosterone or lipids because user is 39-year-old male with no prior supplements.",
+      "tag": "suggested",
+      "done": false,
+      "adherence": null
+    },
+    {
+      "itemId": null,
+      "time": null,
+      "slot": null,
+      "title": "Protein and fibre at the start of every meal",
+      "why": "Management of insulin_resistance_early lists protein and fibre at the start of meals as second lever; sequenced after training starts because user has zero adherence.",
+      "tag": "suggested",
+      "done": false,
+      "adherence": null
+    }
+  ]
+}

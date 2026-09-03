@@ -26,11 +26,18 @@
 import { statusOf } from "@/lib/status";
 import { dayLabel, plural } from "@/lib/utils";
 import {
+  ChartHover,
+  type ChartHoverProps,
+  flipOf,
+  hoverLabel,
+} from "./chart-hover";
+import {
   decimalsOf,
   goalAim,
   goalWords,
   markTitle,
   niceEnd,
+  STATE_TONE,
   STATE_WORD,
 } from "./ruler";
 
@@ -102,7 +109,10 @@ export function chartDomain(
     points: clean,
     /* the padding never takes the axis below zero for a quantity that has no
        negative half: "−6 IU/mL" is not a number this app can print */
-    yMin: min >= 0 ? Math.max(0, Math.floor(min - padding)) : Math.floor(min - padding),
+    yMin:
+      min >= 0
+        ? Math.max(0, Math.floor(min - padding))
+        : Math.floor(min - padding),
     yMax: Math.ceil(max + padding),
     drawable: true,
   };
@@ -198,7 +208,11 @@ export function HistoryChart({
       ? target
       : goalAim(now.value, gLow, gHigh);
   /** "70–100" or "100": the goal in the words the legend and the axis print. */
-  const goalSaid = goalBand ? goalWords(gLow, gHigh) : aim != null ? digits(aim) : "";
+  const goalSaid = goalBand
+    ? goalWords(gLow, gHigh)
+    : aim != null
+      ? digits(aim)
+      : "";
 
   /* The y scale: 0 % is the top of the plot, 100 % the bottom. The padded
      ends `chartDomain` returns are arithmetic — 146.72 reads as a second
@@ -231,7 +245,9 @@ export function HistoryChart({
   const x = (d: string) => (only ? 50 : ((dayMs(d) - t0) / tSpan) * 100);
 
   const dense = rows.length > DENSE;
-  const line = rows.map((p) => `${(x(p.date) / 100) * VB_W},${(y(p.value) / 100) * VB_H}`);
+  const line = rows.map(
+    (p) => `${(x(p.date) / 100) * VB_W},${(y(p.value) / 100) * VB_H}`,
+  );
 
   /** The projection: now → the target, at the target's own date. */
   const projects = aim != null && targetDate != null;
@@ -329,7 +345,10 @@ export function HistoryChart({
     const tall = ((bottom - top) / 100) * PLOT_H >= 16;
     const slot = tall && !mini ? slotFor(text, top, bottom) : null;
     return {
-      style: { "--t": pct(top), "--h": pct(bottom - top) } as React.CSSProperties,
+      style: {
+        "--t": pct(top),
+        "--h": pct(bottom - top),
+      } as React.CSSProperties,
       slot,
       text,
     };
@@ -345,16 +364,79 @@ export function HistoryChart({
   /** The word this reading's own state goes by, for the hover. */
   const stateOf = (value: number) =>
     STATE_WORD[statusOf({ value, refLow, refHigh, optimalLow, optimalHigh })];
+  const toneOf = (value: number) =>
+    STATE_TONE[statusOf({ value, refLow, refHigh, optimalLow, optimalHigh })];
 
-  const goalStrip = goalBand
-    ? strip(gLow, gHigh, `target ${goalSaid}`)
+  /**
+   * Phase 32a, `docs/mockups/v4/chart-hover.html`. The bands every mark on
+   * this chart is judged against, in the words the card's fourth line prints:
+   * "normal 0–34 · optimal 0–9", so the state word has a reason beside it.
+   */
+  const bandSaid =
+    [
+      num(refLow) || num(refHigh) ? `normal ${bandWords(refLow, refHigh)}` : "",
+      num(optimalLow) || num(optimalHigh)
+        ? `optimal ${bandWords(optimalLow, optimalHigh)}`
+        : "",
+    ]
+      .filter(Boolean)
+      .join(" · ") || null;
+
+  /** One drawn reading's card: its date, its number, its state, its was. */
+  const cardFor = (p: ChartPoint, i: number): ChartHoverProps => {
+    const before = i > 0 ? rows[i - 1]! : null;
+    return {
+      date: p.date,
+      value: p.value,
+      unit,
+      state: stateOf(p.value),
+      tone: toneOf(p.value),
+      band: bandSaid,
+      was: before ? { value: before.value, date: before.date } : null,
+      ...flipOf(x(p.date), y(p.value)),
+    };
+  };
+
+  /** A planned draw has a date and no number, and the card says so in words. */
+  const planCard: ChartHoverProps | null =
+    planOn && plannedDate
+      ? {
+          date: plannedDate,
+          value: null,
+          unit,
+          state: "planned",
+          tone: "border",
+          band: bandSaid,
+          was: { value: now.value, date: now.date },
+          ...flipOf(planOn.x, planOn.y),
+        }
+      : null;
+
+  /** The target carries its date instead of a state word: a target has none. */
+  const targetCard: ChartHoverProps | null = projects
+    ? {
+        date: targetDate ?? null,
+        value: aim!,
+        unit,
+        state: "",
+        tone: "none",
+        /* the goal band already names itself on the band it draws, and the
+           axis under it already says "target": the card carries the bands the
+           number is judged against instead of printing the goal a third time */
+        band: bandSaid,
+        ...flipOf(x(targetDate!), y(aim!)),
+      }
     : null;
+
+  const goalStrip = goalBand ? strip(gLow, gHigh, `target ${goalSaid}`) : null;
 
   const pace =
     projects && Math.abs(aim! - now.value) > 0
       ? ({
           "--t": pct(y(Math.max(aim!, now.value))),
-          "--h": pct(y(Math.min(aim!, now.value)) - y(Math.max(aim!, now.value))),
+          "--h": pct(
+            y(Math.min(aim!, now.value)) - y(Math.max(aim!, now.value)),
+          ),
           "--l": pct(x(now.date)),
           "--r": "0%",
         } as React.CSSProperties)
@@ -368,8 +450,7 @@ export function HistoryChart({
   ]
     .filter((v): v is number => v != null)
     .filter(
-      (v, i, all) =>
-        all.findIndex((o) => Math.abs(o - v) < ySpan / 20) === i,
+      (v, i, all) => all.findIndex((o) => Math.abs(o - v) < ySpan / 20) === i,
     );
 
   /**
@@ -379,9 +460,7 @@ export function HistoryChart({
    */
   const gutter = mini
     ? 0
-    : Math.ceil(
-        Math.max(...ticks.map((v) => digits(v).length)) * CHAR_PX + 8,
-      );
+    : Math.ceil(Math.max(...ticks.map((v) => digits(v).length)) * CHAR_PX + 8);
 
   /** A mark in the right third puts its label on the side that has room. */
   const side = (p: number) => (p > 66 ? " lft" : "");
@@ -429,7 +508,9 @@ export function HistoryChart({
                 {normal.slot && (
                   <b
                     className={normal.slot.low ? "low" : undefined}
-                    style={{ "--bx": pct(normal.slot.left) } as React.CSSProperties}
+                    style={
+                      { "--bx": pct(normal.slot.left) } as React.CSSProperties
+                    }
                   >
                     {normal.text}
                   </b>
@@ -441,7 +522,9 @@ export function HistoryChart({
                 {optimal.slot && (
                   <b
                     className={optimal.slot.low ? "low" : undefined}
-                    style={{ "--bx": pct(optimal.slot.left) } as React.CSSProperties}
+                    style={
+                      { "--bx": pct(optimal.slot.left) } as React.CSSProperties
+                    }
                   >
                     {optimal.text}
                   </b>
@@ -454,7 +537,9 @@ export function HistoryChart({
                   <b
                     className={goalStrip.slot.low ? "low" : undefined}
                     style={
-                      { "--bx": pct(goalStrip.slot.left) } as React.CSSProperties
+                      {
+                        "--bx": pct(goalStrip.slot.left),
+                      } as React.CSSProperties
                     }
                   >
                     {goalStrip.text}
@@ -474,58 +559,77 @@ export function HistoryChart({
 
             {rows.map((p, i) => {
               const isNow = i === rows.length - 1;
-              const isWas = i === rows.length - 2 || (rows.length === 1 && i === 0);
+              const isWas =
+                i === rows.length - 2 || (rows.length === 1 && i === 0);
               if (dense && !isNow && i !== 0) return null;
               const px = x(p.date);
               const cls = isNow ? "now" : i === 0 || isWas ? "was" : "";
               const label =
-                isNow || (!wasCrowded && ((!dense && isWas) || (dense && i === 0)));
+                isNow ||
+                (!wasCrowded && ((!dense && isWas) || (dense && i === 0)));
+              const card = cardFor(p, i);
               return (
                 <div
                   key={`${p.date}-${i}`}
-                  className={`hp ${cls}${side(px)}`}
+                  className={`hp ${cls}${side(px)} hovermark`}
+                  tabIndex={0}
+                  role="img"
+                  aria-label={hoverLabel(card)}
                   style={
-                    { "--x": pct(px), "--y": pct(y(p.value)) } as React.CSSProperties
+                    {
+                      "--x": pct(px),
+                      "--y": pct(y(p.value)),
+                    } as React.CSSProperties
                   }
-                  title={markTitle(p.value, unit, p.date, stateOf(p.value))}
                 >
                   {label && <b>{digits(p.value)}</b>}
                   <b className="lbl">
                     {markTitle(p.value, unit, p.date, stateOf(p.value))}
                   </b>
                   <i />
+                  <ChartHover {...card} />
                 </div>
               );
             })}
 
-            {planOn && (
+            {planOn && planCard && (
               <div
-                className={`hp plan${side(planOn.x)}`}
+                className={`hp plan${side(planOn.x)} hovermark`}
+                tabIndex={0}
+                role="img"
+                aria-label={hoverLabel(planCard)}
                 style={
-                  { "--x": pct(planOn.x), "--y": pct(planOn.y) } as React.CSSProperties
+                  {
+                    "--x": pct(planOn.x),
+                    "--y": pct(planOn.y),
+                  } as React.CSSProperties
                 }
               >
                 <b>planned · no value yet</b>
                 <i />
+                <ChartHover {...planCard} />
               </div>
             )}
-            {projects && (
+            {projects && targetCard && (
               <div
-                className={`hp target${side(x(targetDate!))}`}
+                className={`hp target${side(x(targetDate!))} hovermark`}
+                tabIndex={0}
+                role="img"
+                aria-label={`target ${goalSaid}${unit ? ` ${unit}` : ""}${
+                  targetDate ? ` by ${dayLabel(targetDate, true)}` : ""
+                }`}
                 style={
                   {
                     "--x": pct(x(targetDate!)),
                     "--y": pct(y(aim!)),
                   } as React.CSSProperties
                 }
-                title={`target ${goalSaid}${unit ? ` ${unit}` : ""}${
-                  targetDate ? ` by ${dayLabel(targetDate, true)}` : ""
-                }`}
               >
                 {/* A goal band names itself on the band; only a one-sided
                     goal needs its number printed on the bar as well. */}
                 {!goalBand && <b>target {goalSaid}</b>}
                 <i />
+                <ChartHover {...targetCard} />
               </div>
             )}
           </div>
@@ -582,8 +686,8 @@ export function HistoryChart({
         {dense && rows.length > 2 && (
           <span>
             <u className="line" />{" "}
-            {plural(rows.length, noun.replace(/s$/, ""), noun)} between them, one
-            line
+            {plural(rows.length, noun.replace(/s$/, ""), noun)} between them,
+            one line
           </span>
         )}
         {!dense && rows.length > 2 && (
@@ -594,8 +698,8 @@ export function HistoryChart({
         )}
         {plannedDate && (
           <span>
-            <i className="ghost" /> planned draw — {dayLabel(plannedDate, true)}, no
-            value yet
+            <i className="ghost" /> planned draw — {dayLabel(plannedDate, true)}
+            , no value yet
           </span>
         )}
         {projects && (
@@ -621,7 +725,8 @@ export function HistoryChart({
         )}
         {optimal && (
           <span>
-            <u className="optimal" /> optimal {bandWords(optimalLow, optimalHigh)}
+            <u className="optimal" /> optimal{" "}
+            {bandWords(optimalLow, optimalHigh)}
           </span>
         )}
       </div>
