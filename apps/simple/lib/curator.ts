@@ -17,6 +17,7 @@ import { and, eq, inArray, isNull, sql } from "drizzle-orm";
 import {
   getDb,
   pool,
+  checkinPosts,
   curatorRuns,
   goals as goalsTable,
   metrics as metricsTable,
@@ -38,6 +39,7 @@ import {
   toSex,
 } from "./coverage";
 import { model, stripCodeFences } from "./extract";
+import { rereadPosts } from "./compose";
 import { inGoal, localDay } from "./daily";
 import { planRawVerify, rawVerifyScope } from "./raw-verify";
 import { runWatchForUser } from "./research-watch";
@@ -61,7 +63,9 @@ export type Check =
   | "goal_check"
   | "second_pass"
   /** phase 32a: the per-person research watch, on the daily pass only */
-  | "research_watch";
+  | "research_watch"
+  /** phase 34a: the notes kept while the reader was down, read at last */
+  | "unread_posts";
 
 /** The subset of a reading the planners need. */
 export interface ReadingLike {
@@ -1363,6 +1367,22 @@ export async function runCurator(
      * nightly pass down with it.
      */
     if (trigger === "daily" && !scope?.uploadId) {
+      /**
+       * Phase 34a: the notes that were kept while the reader was down. The
+       * pass reads each one exactly once — `read_state` is the guard — and a
+       * provider that is still down leaves them for tomorrow rather than
+       * burning a failed call per note.
+       */
+      const reread = await rereadPosts(userId).catch((e) => {
+        console.error("[curator] the re-read failed:", e);
+        return { read: 0, stillDown: true };
+      });
+      if (reread.read) {
+        const u = bump("unread_posts");
+        u.checked = reread.read;
+        u.fixed = reread.read;
+      }
+
       const runs = await runWatchForUser(userId).catch((e) => {
         console.error("[curator] research watch failed:", e);
         return [];
@@ -1391,13 +1411,23 @@ export async function runCurator(
   }
 }
 
-/** Every user that has at least one reading. */
+/**
+ * Every user with at least one reading, and everyone with a note still
+ * waiting to be read: phase 34a's re-read is part of the daily pass, and a
+ * person who has only ever written words has no readings to be found by.
+ */
 export async function runCuratorForAllUsers(trigger: Trigger) {
-  const rows = await getDb()
-    .selectDistinct({ userId: readingsTable.userId })
-    .from(readingsTable);
-  for (const { userId } of rows) await runCurator(userId, trigger);
-  return rows.length;
+  const db = getDb();
+  const [measured, writing] = await Promise.all([
+    db.selectDistinct({ userId: readingsTable.userId }).from(readingsTable),
+    db
+      .selectDistinct({ userId: checkinPosts.userId })
+      .from(checkinPosts)
+      .where(eq(checkinPosts.readState, "unread")),
+  ]);
+  const ids = [...new Set([...measured, ...writing].map((r) => r.userId))];
+  for (const userId of ids) await runCurator(userId, trigger);
+  return ids.length;
 }
 
 /* ------------------------------------------------------------------ *

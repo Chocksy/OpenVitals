@@ -36,8 +36,9 @@ import type { Today } from "@/lib/home-data";
 import type { Conclusion, Ledger } from "@/lib/ledger";
 import type { Move } from "@/lib/infogain";
 import type { HState, Grade, Lens } from "@/lib/hypotheses";
-import { cn, dayLabel, plural } from "@/lib/utils";
+import { cn, dayLabel, notesReadLine, plural } from "@/lib/utils";
 import { AskLink } from "./ask-link";
+import { NotesRead } from "./notes-read";
 import { CopyNote, EditFact, StillTrue, WrongValue } from "./client";
 import { ActionButtons, GeneratePlan } from "./plan";
 import { EvidenceChip } from "./evidence-chip";
@@ -111,7 +112,13 @@ export function TodayQuestions({
   askKey?: string;
   askOptions?: string[];
 }) {
-  if (!today.due.length && !ask) return null;
+  /**
+   * Phase 34a: the notes that were kept while the reader was down and have
+   * been read since. One line, and the card is drawn for it alone — a person
+   * with no question due still has to be told their words were read.
+   */
+  const notes = notesReadLine(today.notesRead);
+  if (!today.due.length && !ask && !notes) return null;
   const due = askKey
     ? [...today.due].sort(
         (a, b) => Number(b.key === askKey) - Number(a.key === askKey),
@@ -157,6 +164,7 @@ export function TodayQuestions({
   );
   return (
     <div className="panel t-resize space-y-3">
+      <NotesRead line={notes} />
       {askFirst ? (
         <>
           {oneQuestion}

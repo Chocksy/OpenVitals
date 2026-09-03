@@ -24,19 +24,21 @@
  */
 import { generateObject, generateText } from "ai";
 import { z } from "zod";
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, isNotNull, isNull } from "drizzle-orm";
 import {
   checkinPosts,
   getDb,
   hkbInterventions,
+  lifeEvents,
   profileFactHistory,
+  readings,
   type CheckinPost,
 } from "@/db";
 import { conditionalAsks } from "./ask";
 import { localDay } from "./daily";
 import { type FactQuestion, type ModelInput } from "./coverage";
 import { model } from "./extract";
-import { EVENT_TAGS } from "./facts";
+import { EVENT_TAGS, writeFact } from "./facts";
 import { computeGraphState, parseHour, type ActiveEdge } from "./graph-state";
 import { gradeOfEdge, type GraphEdge } from "./graph";
 import { catalogFor } from "./hkb";
@@ -46,9 +48,16 @@ import { CODE_GRAPH, loadGraph, type Graph } from "./kg";
 import { searchTerms, type RankedTerm } from "./lookup";
 import { applyOverlay } from "./sample";
 import { SYMPTOM_KEYS } from "./symptoms";
-import { claimFrom, claimLabel } from "./trends";
+import {
+  claimFrom,
+  claimLabel,
+  fileClaim,
+  MARKER_CODES,
+  SOURCE_KINDS,
+  type Claim,
+} from "./trends";
 import { convert, normalizeUnit } from "./units";
-import { buildModelInput } from "./coverage";
+import { buildModelInput, saveFact } from "./coverage";
 import { LIST_FACTS, PROFILE_QUESTIONS } from "./vectors";
 
 export interface Chip {
@@ -945,18 +954,61 @@ export function verifyModelChips(
   return out;
 }
 
+/** What one reading of a note produced, and whether the reader actually ran. */
+export interface ComposeRead {
+  chips: Chip[];
+  /** the model layer was asked: there is a key and words worth modelling */
+  modelRan: boolean;
+  /** it was asked and it threw — no quota, 402, 429, provider down */
+  modelFailed: boolean;
+}
+
+/**
+ * The two states a post can be in. `unread` means the reader was down when the
+ * words arrived and the note is waiting for the next pass.
+ */
+export type ReadState = "unread" | "read";
+
+/**
+ * The receipt when the reader could not run. Word for word: the words were
+ * kept, nothing was understood yet, and nothing is claimed about them.
+ */
+export const UNREAD_RECEIPT =
+  "Saved. The reader could not run right now; your words will be read when it is back.";
+
+/**
+ * What the composer tells the caller about a note it just saved.
+ *
+ * `read: false` is the whole point: the phone prints "nothing in that was a
+ * fact this app stores" when it gets an empty chip list, which is a lie when
+ * the reader never ran. With `read` on the body, both clients can tell a note
+ * nothing was found in from a note nobody has read yet.
+ */
+export function composeReceipt(read: Pick<ComposeRead, "modelFailed">): {
+  saved: true;
+  read: boolean;
+  readState: ReadState;
+  /** the receipt the client prints, or null when the reply is the receipt */
+  reply: string | null;
+} {
+  return read.modelFailed
+    ? { saved: true, read: false, readState: "unread", reply: UNREAD_RECEIPT }
+    : { saved: true, read: true, readState: "read", reply: null };
+}
+
 /**
  * Rules, then the ontology, then the model on whatever is left.
  *
  * The model layer is skipped when there is no key, when the rules already ate
  * the sentence, or when the call fails: a composer that stops working because
- * OpenRouter is down is not a composer.
+ * OpenRouter is down is not a composer. A failed call is reported rather than
+ * swallowed — the caller keeps the words for a later read.
  */
-export async function understand(
+export async function understandRead(
   text: string,
   m: ModelInput,
   opts: { model?: boolean } = {},
-): Promise<Chip[]> {
+): Promise<ComposeRead> {
   const today = m.today ?? localDay();
   const chips = understandRules(text, m, today);
   const date = chips[0]?.date ?? whenOf(text, today)?.date ?? today;
@@ -973,7 +1025,7 @@ export async function understand(
     (opts.model ?? true) &&
     !!process.env.OPENROUTER_API_KEY &&
     worthModelling(leftover(text, chips));
-  if (!useModel) return chips;
+  if (!useModel) return { chips, modelRan: false, modelFailed: false };
 
   try {
     const { object } = await generateObject({
@@ -1005,8 +1057,274 @@ export async function understand(
       if (!chips.some((c) => c.key === chip.key)) chips.push(chip);
   } catch (e) {
     console.error("[compose] the model layer failed, rules stand:", e);
+    return { chips, modelRan: true, modelFailed: true };
   }
-  return chips;
+  return { chips, modelRan: true, modelFailed: false };
+}
+
+/** The chips alone, for every caller that does not care who read them. */
+export async function understand(
+  text: string,
+  m: ModelInput,
+  opts: { model?: boolean } = {},
+): Promise<Chip[]> {
+  return (await understandRead(text, m, opts)).chips;
+}
+
+/* ── the write layer: chips into rows ─────────────────────────────────── */
+
+const DATE_ONLY = /^\d{4}-\d{2}-\d{2}$/;
+
+/**
+ * Every chip re-checked before anything is written.
+ *
+ * The browser can edit a chip and the model can invent one, so nothing that
+ * arrives here is trusted: the key has to be one the engine knows, the value
+ * one of that key's options, and the date a date that has happened.
+ */
+export function cleanChips(chips: Chip[], today: string): Chip[] {
+  const out: Chip[] = [];
+  for (const c of chips ?? []) {
+    if (!c?.key || !c.kind) continue;
+    const date =
+      DATE_ONLY.test(String(c.date)) && c.date <= today ? c.date : today;
+    if (c.kind === "reading") {
+      const metric = SELF_METRICS.find((s) => s.code === c.key);
+      const known = metric ?? { code: c.key, unit: c.unit ?? null };
+      const value = Number(c.value);
+      if (!Number.isFinite(value)) continue;
+      if (!metric && c.key !== "bp_systolic" && c.key !== "bp_diastolic")
+        continue;
+      out.push({ ...c, value, date, unit: c.unit ?? known.unit ?? undefined });
+      continue;
+    }
+    if (c.kind === "fact" || c.kind === "symptom") {
+      const q = PROFILE_QUESTIONS[c.key];
+      if (!q) continue;
+      const value = String(c.value ?? "").trim();
+      if (!value) continue;
+      if (q.options?.length && !q.options.includes(value)) continue;
+      out.push({ ...c, value, date });
+      continue;
+    }
+    if (c.kind === "phenotype") {
+      if (!/^HP:\d{7}$/.test(c.key)) continue;
+      out.push({ ...c, value: "present", date });
+      continue;
+    }
+    if (c.kind === "event") {
+      const value = String(c.value ?? "").trim();
+      if (!value) continue;
+      out.push({ ...c, value, date });
+      continue;
+    }
+    // Hearsay. It carries a whole claim, so the claim is re-read here rather
+    // than trusted: the intervention has to be words, and every marker has to
+    // be one of ours. It writes nothing about the person either way.
+    if (c.kind === "claim") {
+      const claim = c.value as Partial<Claim> | null;
+      const intervention = String(claim?.intervention ?? "").trim();
+      if (!intervention) continue;
+      out.push({
+        ...c,
+        date,
+        value: {
+          text: String(claim?.text ?? c.quote ?? "").slice(0, 500),
+          intervention: intervention.slice(0, 120),
+          markers: (claim?.markers ?? []).filter((mk) =>
+            MARKER_CODES.includes(mk),
+          ),
+          direction: claim?.direction === "up" ? "up" : "down",
+          sourceKind: SOURCE_KINDS.includes(
+            claim?.sourceKind as (typeof SOURCE_KINDS)[number],
+          )
+            ? claim!.sourceKind!
+            : "unknown",
+        } satisfies Claim,
+      });
+    }
+  }
+  return out;
+}
+
+/** Chips into rows. Facts always through `saveFact`, so history is never lost. */
+export async function writeChips(
+  userId: string,
+  chips: Chip[],
+  held: Set<string>,
+) {
+  const db = getDb();
+  for (const c of chips) {
+    if (held.has(c.key)) continue;
+    if (c.kind === "fact" || c.kind === "symptom") {
+      await saveFact(userId, c.key, String(c.value), {
+        kind: "changed",
+        date: c.date,
+        note: c.quote,
+      });
+    } else if (c.kind === "phenotype") {
+      await writeFact(userId, `hp:${c.key}`, "present", {
+        kind: "changed",
+        date: c.date,
+        note: c.quote,
+        source: "user",
+      });
+    } else if (c.kind === "reading") {
+      await db.insert(readings).values({
+        userId,
+        metricCode: c.key,
+        value: Number(c.value),
+        valueText: String(c.value),
+        unit: c.unit ?? null,
+        observedAt: c.date,
+        flags: ["self_reported"],
+      });
+      // A claim is about the world, so it writes nothing here. It goes to the
+      // trends inbox instead, at the caller.
+    } else if (c.kind === "event") {
+      await db.insert(lifeEvents).values({
+        userId,
+        kind: c.key,
+        text: String(c.value),
+        startedAt: c.date,
+        endedAt: null,
+        source: "checkin",
+      });
+    }
+  }
+}
+
+/* ── the later read: notes kept while the reader was down ─────────────── */
+
+/** The day a post was written, which is the day its facts start holding. */
+export const postDay = (
+  post: Pick<CheckinPost, "createdAt">,
+  fallback: string,
+): string =>
+  post.createdAt ? post.createdAt.toISOString().slice(0, 10) : fallback;
+
+/**
+ * The posts a re-read has to touch, in the order it touches them.
+ *
+ * Pure, so the one rule that matters is checkable without a database: a post
+ * is re-read exactly once. `read_state` is the whole guard — a post that has
+ * been read is never in this list again, however often the pass runs.
+ */
+export function postsToReread<T extends { readState: string }>(rows: T[]): T[] {
+  return rows.filter((r) => r.readState === "unread");
+}
+
+/**
+ * The chips a re-read adds: the fresh ones, minus the keys already on the post.
+ *
+ * The rules ran when the note was written, so their chips are already there.
+ * The date is the post's own day, never today: a note about yesterday that
+ * waited two days for a working reader is still about yesterday.
+ */
+export function mergeChips(existing: Chip[], fresh: Chip[]): Chip[] {
+  const have = new Set(existing.map((c) => c.key));
+  return fresh.filter((c) => !have.has(c.key));
+}
+
+/**
+ * Read again every note this person wrote while the reader was down.
+ *
+ * The daily pass and `POST /api/compose/reread` both call this. It is
+ * idempotent by `read_state`: a post is picked up while it is `unread`, and
+ * the same statement that writes its chips marks it read. When the reader is
+ * still down the post is left exactly as it was, and the pass stops — a
+ * hundred notes against a dead provider is a hundred failed calls.
+ */
+export async function rereadPosts(
+  userId: string,
+  opts: { limit?: number } = {},
+): Promise<{ read: number; stillDown: boolean }> {
+  const db = getDb();
+  const rows = await db
+    .select()
+    .from(checkinPosts)
+    .where(
+      and(
+        eq(checkinPosts.userId, userId),
+        eq(checkinPosts.readState, "unread"),
+      ),
+    )
+    .orderBy(checkinPosts.createdAt)
+    .limit(opts.limit ?? 20);
+
+  let read = 0;
+  for (const post of postsToReread(rows)) {
+    const m = await buildModelInput(userId);
+    const day = postDay(post, m.today);
+    const asThen: ModelInput = { ...m, today: day };
+    const before = beliefsNow(asThen, await catalogFor(userId));
+
+    const fresh = await understandRead(post.text, asThen);
+    if (fresh.modelFailed) return { read, stillDown: true };
+
+    const existing = (post.chips ?? []) as unknown as Chip[];
+    const added = mergeChips(existing, cleanChips(fresh.chips, day));
+    await writeChips(userId, added, heldChips(added, asThen));
+    // Hearsay found on the second read goes to the same inbox a live one
+    // would have used, and never takes the pass down with it.
+    for (const c of added.filter((x) => x.kind === "claim"))
+      await fileClaim(c.value as Claim, { science: false }).catch((e) =>
+        console.error("[compose] could not file the claim:", e),
+      );
+
+    const chips = [...existing, ...added];
+    const reply = await writeReply(
+      await replyPack(userId, { ...post, chips }, before),
+    );
+    await db
+      .update(checkinPosts)
+      .set({
+        chips: chips.map((c) => ({ ...c, value: c.value as unknown })),
+        reply,
+        readState: "read",
+        readAt: new Date(),
+      })
+      .where(
+        and(eq(checkinPosts.id, post.id), eq(checkinPosts.readState, "unread")),
+      );
+    read++;
+  }
+  return { read, stillDown: false };
+}
+
+/**
+ * How many notes were read since this person last looked, and the statement
+ * that clears the count. The pair is `paper_watch`'s seen/unseen, applied to
+ * the composer: the Today card says it once and then stops saying it.
+ */
+export async function notesReadUnseen(userId: string): Promise<number> {
+  const rows = await getDb()
+    .select({ id: checkinPosts.id })
+    .from(checkinPosts)
+    .where(
+      and(
+        eq(checkinPosts.userId, userId),
+        eq(checkinPosts.readState, "read"),
+        isNotNull(checkinPosts.readAt),
+        isNull(checkinPosts.readSeenAt),
+      ),
+    );
+  return rows.length;
+}
+
+/** Mark every note this person has been told about as seen. */
+export async function markNotesSeen(userId: string): Promise<void> {
+  await getDb()
+    .update(checkinPosts)
+    .set({ readSeenAt: new Date() })
+    .where(
+      and(
+        eq(checkinPosts.userId, userId),
+        eq(checkinPosts.readState, "read"),
+        isNotNull(checkinPosts.readAt),
+        isNull(checkinPosts.readSeenAt),
+      ),
+    );
 }
 
 /* ── the follow-up: at most one question back ─────────────────────────── */
@@ -1491,12 +1809,7 @@ export interface ActionSubject {
 }
 
 /** The five things a person says about an action they were told to take. */
-export type ActionStance =
-  | "doing"
-  | "started"
-  | "stopped"
-  | "refused"
-  | "done";
+export type ActionStance = "doing" | "started" | "stopped" | "refused" | "done";
 
 /** What the words meant, and what the confirm will write because of it. */
 export interface ActionRead {
@@ -1527,7 +1840,9 @@ const reasonIn = (text: string): string | undefined => {
 
 /** "Resistance training 3x/week" → 3. "walk three times a week" → 3. */
 export const weeklyTimes = (title: string): number | null => {
-  const digits = title.match(/(\d{1,2})\s*(?:x|×|times?)\s*(?:a|per|\/)?\s*week/i);
+  const digits = title.match(
+    /(\d{1,2})\s*(?:x|×|times?)\s*(?:a|per|\/)?\s*week/i,
+  );
   if (digits) return Number(digits[1]);
   const words = title.match(
     /\b(one|two|three|four|five|six|seven)\s+times?\s+(?:a|per)\s+week\b/i,
@@ -1570,8 +1885,7 @@ export function readActionStatement(
   const when = whenOf(t, today);
   const times = weeklyTimes(subject.title);
   const training = IS_EXERCISE.test(subject.title);
-  const days =
-    training && times != null ? exerciseOption(times) : undefined;
+  const days = training && times != null ? exerciseOption(times) : undefined;
   const base = { quote: t, ...(when ? { since: when.date } : {}) };
 
   if (REFUSED.test(t)) {

@@ -20,6 +20,7 @@ import {
   type CheckinPost,
 } from "@/db";
 import { askSurfaces, type Ask, type AskPlan } from "./asking";
+import { notesReadUnseen } from "./compose";
 import { buildModelInput } from "./coverage";
 import {
   documentFinding,
@@ -186,6 +187,12 @@ export interface Today {
     reply: string | null;
     chips: number;
   } | null;
+  /**
+   * Phase 34a: how many notes were read since this person last looked. A note
+   * written while the reader was down is saved unread and read by the daily
+   * pass, so the Today card is where they find out it happened.
+   */
+  notesRead: number;
 }
 
 /**
@@ -283,6 +290,7 @@ export async function buildToday(userId: string): Promise<Today> {
   const last = posts[0] as CheckinPost | undefined;
   return {
     due,
+    notesRead: await notesReadUnseen(userId),
     post: last
       ? {
           id: last.id,

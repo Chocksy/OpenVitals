@@ -71,6 +71,7 @@ const today: Today = {
     } as never,
   ],
   post: null,
+  notesRead: 0,
 };
 
 describe("railCards", () => {
@@ -121,7 +122,7 @@ describe("railCards", () => {
   it("drops the Plan card when there is no spear and no action", () => {
     const bare = railCards(
       { ...ledger, spear: undefined } as Ledger,
-      { due: [], post: null },
+      { due: [], post: null, notesRead: 0 },
       {},
     );
     expect(bare.map((c) => c.kind)).not.toContain("plan");

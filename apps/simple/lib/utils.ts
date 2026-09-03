@@ -37,6 +37,16 @@ export function dayLabel(day: string, year = false): string {
 export const plural = (n: number, one: string, many = `${one}s`): string =>
   `${n} ${n === 1 ? one : many}`;
 
+/**
+ * "3 notes read since your last visit", or nothing at all when none were.
+ *
+ * Phase 34a. It lives here, not in `lib/compose.ts`, because the Today card is
+ * a server component in a tree client components import: a printer must not
+ * drag the model layer and the database behind it.
+ */
+export const notesReadLine = (n: number): string | null =>
+  n > 0 ? `${plural(n, "note")} read since your last visit` : null;
+
 /** "12 Mar 24" style label for chart ticks. */
 export function formatChartDate(dateStr: string): string {
   return new Date(dateStr).toLocaleDateString("en-US", {

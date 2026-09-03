@@ -247,6 +247,8 @@ export function Composer({
     id: string;
     reply: string | null;
     followUp: FollowUp | null;
+    /** false when the note is waiting for a reader that can run */
+    read: boolean;
   } | null>(null);
   const [error, setError] = useState("");
   // Phase 23: a photo is its own little flow inside the same box. Its chips
@@ -333,6 +335,14 @@ export function Composer({
       followUp?: FollowUp | null;
       /** what the words said about the plan action the box is about */
       action?: ActionRead | null;
+      /** the words were kept, whatever the reader managed to do with them */
+      saved?: boolean;
+      /**
+       * False when the reader could not run: `reply` is then the receipt that
+       * says so, and the chips on screen are whatever the rules alone found.
+       * The box prints the same one line either way.
+       */
+      read?: boolean;
       error?: string;
     };
   }, []);
@@ -553,6 +563,7 @@ export function Composer({
       id: data.id!,
       reply: data.reply ?? null,
       followUp: data.followUp ?? null,
+      read: data.read !== false,
     });
     router.refresh();
   };

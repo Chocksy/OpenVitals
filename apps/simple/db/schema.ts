@@ -1347,8 +1347,22 @@ export const checkinPosts = pgTable(
     followUp: jsonb("follow_up").$type<PostFollowUp>(),
     reply: text("reply"),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+    /**
+     * Phase 34a: `unread` when the reader could not run — no key, no quota,
+     * provider down — and the words were kept for a later pass. Everything
+     * written while the reader was up is `read`, which is why that is the
+     * default: the column can be added to a live table without a backfill.
+     */
+    readState: text("read_state").default("read").notNull(),
+    /** when the later pass read it; null while it is still unread */
+    readAt: timestamp("read_at", { withTimezone: true }),
+    /** when the person was told it had been read, like `paper_watch.seen_at` */
+    readSeenAt: timestamp("read_seen_at", { withTimezone: true }),
   },
-  (t) => [index("checkin_posts_user_idx").on(t.userId, t.createdAt)],
+  (t) => [
+    index("checkin_posts_user_idx").on(t.userId, t.createdAt),
+    index("checkin_posts_unread_idx").on(t.userId, t.readState),
+  ],
 );
 
 /** Typed loosely here so `db` never imports `lib`; `lib/compose.ts` owns it. */

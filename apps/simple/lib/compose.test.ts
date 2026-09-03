@@ -1,6 +1,11 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import {
   applyChips,
+  composeReceipt,
+  mergeChips,
+  postsToReread,
+  understandRead,
+  UNREAD_RECEIPT,
   edgeSuggestion,
   heldChips,
   followUp,
@@ -22,6 +27,33 @@ import { computeGraphState } from "./graph-state";
 import { CODE_GRAPH } from "./kg";
 import type { RankedTerm } from "./lookup";
 import { CATALOG } from "./hkb-catalog";
+
+/**
+ * The two things `understandRead` reaches out to: the model layer and the
+ * ontology search. Both are stubbed, so the reader's failure is a switch this
+ * file can flip rather than a provider it has to wait for.
+ */
+const ai = vi.hoisted(() => ({ down: false, chips: [] as unknown[] }));
+vi.mock("ai", () => ({
+  generateObject: async () => {
+    if (ai.down) {
+      // What OpenRouter sends back with the key exhausted, in shape: the
+      // production line is `[compose] the model layer failed, rules stand:
+      // Error [AI_APICallError]`.
+      const e = new Error("Provider returned error");
+      e.name = "AI_APICallError";
+      throw e;
+    }
+    return { object: { chips: ai.chips } };
+  },
+  generateText: async () => ({ text: "" }),
+  wrapLanguageModel: ({ model }: { model: unknown }) => model,
+  defaultSettingsMiddleware: () => ({}),
+}));
+vi.mock("@openrouter/ai-sdk-provider", () => ({
+  createOpenRouter: () => () => "stub-model",
+}));
+vi.mock("./lookup", () => ({ searchTerms: async () => [] }));
 
 /** Monday. Every relative date in this file is measured from it. */
 const TODAY = "2026-08-31";
@@ -671,5 +703,139 @@ describe("readActionStatement", () => {
   it("says nothing about a sentence that is not about the action", () => {
     expect(read("my hands are cold")).toBeNull();
     expect(read("")).toBeNull();
+  });
+});
+
+/* ── phase 34a: the reader was down ───────────────────────────────────── */
+
+/**
+ * The defect: the owner wrote "took omega 3, berberine and magnesium today,
+ * ate some duck feet meat, some bread with sausages and some pancakes with
+ * jam", the OpenRouter key was exhausted, the model layer threw, and the
+ * phone printed "nothing in that was a fact this app stores". The words were
+ * gone. A reader that cannot run is not a verdict about what somebody wrote.
+ */
+describe("the model layer fails", () => {
+  const NOTE =
+    "took omega 3, berberine and magnesium today, ate some duck feet meat, some bread with sausages and some pancakes with jam";
+
+  const withKey = async <T>(fn: () => Promise<T>): Promise<T> => {
+    const had = process.env.OPENROUTER_API_KEY;
+    process.env.OPENROUTER_API_KEY = "test-key";
+    try {
+      return await fn();
+    } finally {
+      if (had == null) delete process.env.OPENROUTER_API_KEY;
+      else process.env.OPENROUTER_API_KEY = had;
+    }
+  };
+
+  it("says the reader failed instead of swallowing it", async () => {
+    ai.down = true;
+    const read = await withKey(() => understandRead(NOTE, input()));
+    expect(read.modelRan).toBe(true);
+    expect(read.modelFailed).toBe(true);
+  });
+
+  it("saves the words with the exact receipt, unread", async () => {
+    ai.down = true;
+    const read = await withKey(() => understandRead(NOTE, input()));
+    const receipt = composeReceipt(read);
+    expect(receipt.saved).toBe(true);
+    expect(receipt.read).toBe(false);
+    expect(receipt.readState).toBe("unread");
+    expect(receipt.reply).toBe(
+      "Saved. The reader could not run right now; your words will be read when it is back.",
+    );
+    expect(receipt.reply).toBe(UNREAD_RECEIPT);
+  });
+
+  /**
+   * The lie the phone printed. "Nothing in that was a fact" is only ever true
+   * of a note a reader actually read, so the receipt for a failed read never
+   * carries it and `read: false` is what tells the client to say nothing.
+   */
+  it("never claims nothing in the note was a fact", async () => {
+    ai.down = true;
+    const failed = composeReceipt(
+      await withKey(() => understandRead(NOTE, input())),
+    );
+    expect(failed.reply).not.toContain("nothing in that was a fact");
+    expect(failed.read).toBe(false);
+
+    // The model ran and found nothing: that, and only that, is a client's
+    // cue to say the note held no fact this app stores.
+    ai.down = false;
+    ai.chips = [];
+    const ran = composeReceipt(
+      await withKey(() => understandRead(NOTE, input())),
+    );
+    expect(ran.read).toBe(true);
+    expect(ran.readState).toBe("read");
+    expect(ran.reply).toBeNull();
+  });
+
+  it("keeps whatever the rules alone understood", async () => {
+    ai.down = true;
+    const read = await withKey(() =>
+      understandRead(
+        "weight 84 kg, ate some duck feet meat and some pancakes with jam",
+        input(),
+      ),
+    );
+    expect(read.modelFailed).toBe(true);
+    expect(read.chips.map((c) => c.key)).toContain("weight");
+  });
+
+  it("does not call the model at all without a key", async () => {
+    ai.down = true;
+    const had = process.env.OPENROUTER_API_KEY;
+    delete process.env.OPENROUTER_API_KEY;
+    const read = await understandRead(NOTE, input());
+    if (had != null) process.env.OPENROUTER_API_KEY = had;
+    expect(read.modelRan).toBe(false);
+    expect(read.modelFailed).toBe(false);
+    expect(composeReceipt(read).read).toBe(true);
+  });
+});
+
+/** The later pass: every kept note read exactly once, whatever runs it. */
+describe("the re-read", () => {
+  const post = (id: string, readState: string) => ({ id, readState });
+
+  it("picks up the unread notes and nothing else", () => {
+    const rows = [post("a", "unread"), post("b", "read"), post("c", "unread")];
+    expect(postsToReread(rows).map((p) => p.id)).toEqual(["a", "c"]);
+  });
+
+  it("reads a note once and never twice", () => {
+    let rows = [post("a", "unread"), post("b", "read")];
+    const first = postsToReread(rows);
+    expect(first).toHaveLength(1);
+    // What the pass writes for every note it read.
+    const done = new Set(first.map((p) => p.id));
+    rows = rows.map((r) => (done.has(r.id) ? { ...r, readState: "read" } : r));
+    expect(postsToReread(rows)).toHaveLength(0);
+    // And a third pass over the same rows still has nothing to do.
+    expect(postsToReread(rows)).toHaveLength(0);
+  });
+
+  it("adds only the chips the note did not already carry", () => {
+    const chip = (key: string, date: string): Chip => ({
+      kind: "fact",
+      key,
+      label: key,
+      value: "yes",
+      date,
+      quote: key,
+      confidence: 1,
+      by: "rule",
+    });
+    const existing = [chip("weight", "2026-08-20")];
+    const fresh = [chip("weight", "2026-08-20"), chip("sup_omega3", "2026-08-20")];
+    const added = mergeChips(existing, fresh);
+    expect(added.map((c) => c.key)).toEqual(["sup_omega3"]);
+    // The day the words were written, never the day they were read.
+    expect(added[0]!.date).toBe("2026-08-20");
   });
 });
