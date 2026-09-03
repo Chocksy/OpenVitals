@@ -1,46 +1,134 @@
 {
   "sentence": {
-    "head": "Seven markers are off.",
-    "tail": "Thyroid is the loudest one.",
+    "head": "Insulin resistance:",
+    "tail": "possible",
     "tone": "bad"
   },
   "status": {
-    "off": 7,
-    "borderline": 19,
-    "optimal": 26,
-    "drawDate": "2026-08-01",
-    "since": "5 weeks ago"
+    "off": 6,
+    "borderline": 22,
+    "optimal": 82,
+    "drawDate": "2026-04-23",
+    "since": "2026-09-02"
   },
   "body": {
-    "headline": "7 234",
-    "unit": "steps",
-    "line": "Sep 2 · Apple Health"
+    "headline": "31.8",
+    "unit": "at 39",
+    "line": "Nothing due today"
   },
   "blood": {
-    "off": 7,
-    "total": 52,
+    "off": 6,
+    "total": 110,
     "nextDraw": {
-      "weeks": 6,
+      "weeks": 13,
       "codes": [
-        { "code": "TPO", "name": "Thyroid peroxidase antibodies" },
-        { "code": "LDL", "name": "LDL cholesterol" },
-        { "code": "FERRITIN", "name": "Ferritin" }
+        {
+          "code": "ldl_cholesterol",
+          "name": "LDL cholesterol"
+        }
       ]
     }
   },
-  "plan": { "headline": "2 / 7", "todo": 5 },
+  "plan": {
+    "headline": "Resistance training twice a week",
+    "todo": 0
+  },
   "systems": [
-    { "id": "thyroid", "name": "Thyroid", "word": "off", "value": 320, "unit": "IU/mL", "marker": "TPO" },
-    { "id": "vitamins", "name": "Vitamins", "word": "off", "value": 19, "unit": "ng/mL", "marker": "Vitamin D" },
-    { "id": "lipids", "name": "Lipids", "word": "off", "value": 131, "unit": "mg/dL", "marker": "LDL" },
-    { "id": "blood-sugar", "name": "Blood sugar", "word": "borderline", "value": 5.6, "unit": "%", "marker": "HbA1c" },
-    { "id": "iron", "name": "Iron", "word": "borderline", "value": 22, "unit": "ng/mL", "marker": "Ferritin" },
-    { "id": "inflammation", "name": "Inflammation", "word": "good", "value": 0.6, "unit": "mg/L", "marker": "hs-CRP" },
-    { "id": "kidneys", "name": "Kidneys", "word": "good", "value": 98, "unit": "mL/min/1.73m²", "marker": "eGFR" },
-    { "id": "liver", "name": "Liver", "word": "good", "value": 24, "unit": "U/L", "marker": "ALT" },
-    { "id": "blood-count", "name": "Blood count", "word": "good", "value": 14.6, "unit": "g/dL", "marker": "Haemoglobin" },
-    { "id": "minerals", "name": "Minerals", "word": "good", "value": 2.34, "unit": "mmol/L", "marker": "Calcium" },
-    { "id": "heart", "name": "Heart", "word": "good", "value": 55, "unit": "bpm", "marker": "Resting heart rate" },
-    { "id": "sex-hormones", "name": "Sex hormones", "word": "never measured", "value": null, "unit": null, "marker": null }
+    {
+      "id": "lipids",
+      "name": "Lipids",
+      "word": "off",
+      "value": 50,
+      "unit": "mg/dL",
+      "marker": "HDL cholesterol"
+    },
+    {
+      "id": "metabolic",
+      "name": "Blood sugar and insulin",
+      "word": "borderline",
+      "value": 87,
+      "unit": "mg/dL",
+      "marker": "Fasting glucose"
+    },
+    {
+      "id": "blood",
+      "name": "Blood count",
+      "word": "borderline",
+      "value": 13.1,
+      "unit": "%",
+      "marker": "RDW"
+    },
+    {
+      "id": "vitamins",
+      "name": "Vitamins",
+      "word": "borderline",
+      "value": 472,
+      "unit": "pg/mL",
+      "marker": "Vitamin B12"
+    },
+    {
+      "id": "liver",
+      "name": "Liver",
+      "word": "borderline",
+      "value": 85.33,
+      "unit": "U/L",
+      "marker": "Alkaline phosphatase"
+    },
+    {
+      "id": "thyroid",
+      "name": "Thyroid",
+      "word": "borderline",
+      "value": 4.17,
+      "unit": "pg/mL",
+      "marker": "Free T3"
+    },
+    {
+      "id": "adrenal",
+      "name": "Stress hormones",
+      "word": "borderline",
+      "value": 16.29,
+      "unit": "mcg/dL",
+      "marker": "Cortisol"
+    },
+    {
+      "id": "inflammation",
+      "name": "Inflammation",
+      "word": "good",
+      "value": 0.64,
+      "unit": "mg/L",
+      "marker": "CRP"
+    },
+    {
+      "id": "kidney",
+      "name": "Kidneys",
+      "word": "good",
+      "value": 0.9,
+      "unit": "mg/dL",
+      "marker": "Creatinine"
+    },
+    {
+      "id": "sex_hormones",
+      "name": "Sex hormones",
+      "word": "good",
+      "value": 29,
+      "unit": "pg/mL",
+      "marker": "Estradiol"
+    },
+    {
+      "id": "iron",
+      "name": "Iron",
+      "word": "good",
+      "value": 79.6,
+      "unit": "ng/mL",
+      "marker": "Ferritin"
+    },
+    {
+      "id": "lifestyle",
+      "name": "Lifestyle",
+      "word": "never measured",
+      "value": null,
+      "unit": null,
+      "marker": null
+    }
   ]
 }

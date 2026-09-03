@@ -87,13 +87,15 @@ struct BodyRow: View {
                     Text(row.display)
                         .ovType(.md, mono: true)
                         .foregroundStyle(Design.ink)
-                    if let unit = row.unit, row.value != nil {
+                    if let unit = row.unit, !unit.isEmpty, row.value != nil {
                         Text(unit).ovType(.xs).foregroundStyle(Design.ink3)
                     }
                 }
-                Text(row.word)
-                    .ovType(.xs)
-                    .foregroundStyle(Design.colour(forWord: row.word))
+                if !row.word.isEmpty {
+                    Text(row.word)
+                        .ovType(.xs)
+                        .foregroundStyle(Design.colour(forWord: row.word))
+                }
             }
         }
         .accessibilityElement(children: .combine)

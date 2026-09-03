@@ -1,1 +1,7 @@
-{ "ok": true }
+{
+  "ok": true,
+  "id": "hl_1",
+  "itemId": "pi_selenium",
+  "day": "2026-08-31",
+  "done": true
+}

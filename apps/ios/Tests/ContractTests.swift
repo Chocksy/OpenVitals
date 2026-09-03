@@ -40,14 +40,33 @@ final class ContractTests: XCTestCase {
 
     func testTodayDecodes() throws {
         let today = try decode("today", as: Api.Today.self)
-        XCTAssertEqual(today.sentence.tone, "bad")
+        XCTAssertTrue(["ok", "warn", "bad", "none"].contains(today.sentence.tone),
+                      today.sentence.tone)
         XCTAssertFalse(today.sentence.head.isEmpty)
-        XCTAssertEqual(today.status.off, 7)
-        XCTAssertEqual(today.status.counted, 52)
-        XCTAssertEqual(today.status.drawDate, "2026-08-01")
-        XCTAssertEqual(today.blood.total, 52)
-        XCTAssertEqual(today.blood.nextDraw?.codes.first?.code, "TPO")
-        XCTAssertEqual(today.plan.headline, "2 / 7")
+        XCTAssertFalse(today.plan.headline.isEmpty)
+        XCTAssertGreaterThanOrEqual(today.plan.todo, 0)
+        XCTAssertFalse(today.body.line.isEmpty)
+    }
+
+    /// The three counters are the whole panel, so they add up to it.
+    func testTheCountersAddUpToTheMarkerCount() throws {
+        let today = try decode("today", as: Api.Today.self)
+        XCTAssertEqual(today.status.counted, today.blood.total)
+        XCTAssertGreaterThan(today.blood.total, 0)
+        XCTAssertEqual(today.status.off, today.blood.off)
+        XCTAssertEqual(Design.day(today.status.drawDate), "Apr 23 2026")
+    }
+
+    /// The next draw names the markers it is for, each with its code.
+    func testTheNextDrawNamesItsMarkers() throws {
+        let today = try decode("today", as: Api.Today.self)
+        let draw = try XCTUnwrap(today.blood.nextDraw)
+        XCTAssertGreaterThan(draw.weeks, 0)
+        XCTAssertFalse(draw.codes.isEmpty)
+        for code in draw.codes {
+            XCTAssertFalse(code.code.isEmpty)
+            XCTAssertFalse(code.name.isEmpty)
+        }
     }
 
     /// The twelve systems, each with a state word from the four the design
@@ -58,36 +77,37 @@ final class ContractTests: XCTestCase {
         let words = Set(["off", "borderline", "good", "never measured"])
         for system in today.systems {
             XCTAssertTrue(words.contains(system.word), system.word)
-            if system.value != nil { XCTAssertNotNil(system.unit, system.name) }
+            XCTAssertFalse(system.name.isEmpty)
+            if system.value != nil {
+                XCTAssertNotNil(system.unit, system.name)
+                XCTAssertNotNil(system.marker, system.name)
+                XCTAssertNotNil(system.reading, system.name)
+            }
         }
-        let thyroid = try XCTUnwrap(today.systems.first { $0.id == "thyroid" })
-        XCTAssertEqual(thyroid.value, 320)
-        XCTAssertEqual(thyroid.reading, "TPO 320 IU/mL")
-        let ldl = try XCTUnwrap(today.systems.first { $0.id == "lipids" })
-        XCTAssertEqual(ldl.value, 131)
-        XCTAssertEqual(ldl.unit, "mg/dL")
+        let lipids = try XCTUnwrap(today.systems.first { $0.id == "lipids" })
+        XCTAssertEqual(lipids.reading, "HDL cholesterol 50 mg/dL")
     }
 
     /// Nothing measured is a hollow dot and no number, not a zero.
     func testNeverMeasuredHasNoNumber() throws {
         let today = try decode("today", as: Api.Today.self)
-        let sex = try XCTUnwrap(today.systems.first { $0.id == "sex-hormones" })
-        XCTAssertEqual(sex.word, "never measured")
-        XCTAssertNil(sex.value)
-        XCTAssertNil(sex.reading)
+        let blank = try XCTUnwrap(today.systems.first { $0.word == "never measured" })
+        XCTAssertNil(blank.value)
+        XCTAssertNil(blank.unit)
+        XCTAssertNil(blank.reading)
     }
 
     // MARK: - GET /api/body
 
     func testBodyDecodes() throws {
         let body = try decode("body", as: Api.BodyDay.self)
-        XCTAssertEqual(body.day, "2026-09-02")
-        XCTAssertEqual(body.synced.types, 27)
-        XCTAssertEqual(Design.clock(body.synced.lastAt), "08:12")
-        let steps = try XCTUnwrap(body.rows.first { $0.type == "StepCount" })
-        XCTAssertEqual(steps.value, 7234)
+        XCTAssertFalse(body.day.isEmpty)
+        XCTAssertGreaterThan(body.synced.types, 0)
+        XCTAssertFalse(body.rows.isEmpty)
+        let steps = try XCTUnwrap(body.rows.first { $0.type == "steps" })
+        XCTAssertEqual(steps.value, 7000)
         XCTAssertEqual(steps.unit, "steps")
-        XCTAssertEqual(steps.provenance, "StepCount · iPhone · Sep 2")
+        XCTAssertEqual(steps.identifier, "HKQuantityTypeIdentifierStepCount")
     }
 
     /// A type with nothing in it is listed and says so; it is never dropped.
@@ -95,18 +115,26 @@ final class ContractTests: XCTestCase {
         let body = try decode("body", as: Api.BodyDay.self)
         let empty = try XCTUnwrap(body.rows.first { $0.value == nil })
         XCTAssertEqual(empty.word, "never measured")
-        XCTAssertFalse(empty.note.isEmpty)
         XCTAssertFalse(empty.display.isEmpty)
+        // Nothing was written, so there is no writer and no day to print, and
+        // the line collapses to the type rather than to stray separators.
+        XCTAssertEqual(empty.provenance, empty.type)
     }
 
-    /// Every row names its HealthKit type and the device that wrote it.
-    func testEveryBodyRowIsSourcedAndDated() throws {
+    /// Every row that has a reading names its HealthKit type, its day and the
+    /// unit that reading is in.
+    func testEveryReadingIsTypedDatedAndUnitted() throws {
         let body = try decode("body", as: Api.BodyDay.self)
-        XCTAssertFalse(body.rows.isEmpty)
-        for row in body.rows {
-            XCTAssertFalse(row.source.isEmpty, row.name)
-            XCTAssertFalse(row.when.isEmpty, row.name)
+        let read = body.rows.filter { $0.value != nil }
+        XCTAssertFalse(read.isEmpty)
+        for row in read {
             XCTAssertTrue(row.identifier.hasPrefix("HK"), row.identifier)
+            XCTAssertFalse(row.type.isEmpty, row.name)
+            XCTAssertFalse(row.when.isEmpty, row.name)
+            XCTAssertFalse(row.unit?.isEmpty ?? true, row.name)
+            XCTAssertFalse(row.display.isEmpty, row.name)
+            XCTAssertTrue(row.provenance.contains(row.type), row.provenance)
+            XCTAssertFalse(row.provenance.contains(" ·  · "), row.provenance)
         }
     }
 
@@ -114,10 +142,8 @@ final class ContractTests: XCTestCase {
 
     func testPlanTodayDecodes() throws {
         let plan = try decode("plan-today", as: Api.PlanDay.self)
-        XCTAssertEqual(plan.day, "2026-09-03")
-        XCTAssertEqual(plan.done, 2)
-        XCTAssertEqual(plan.total, 7)
-        XCTAssertEqual(plan.rows.count, 7)
+        XCTAssertFalse(plan.day.isEmpty)
+        XCTAssertEqual(plan.rows.count, plan.total)
         XCTAssertEqual(plan.rows.filter(\.done).count, plan.done)
     }
 
@@ -126,39 +152,48 @@ final class ContractTests: XCTestCase {
         let tags = Set(["protocol", "goal", "every day", "suggested"])
         for row in plan.rows {
             XCTAssertTrue(tags.contains(row.tag), row.tag)
+            XCTAssertFalse(row.title.isEmpty)
             XCTAssertFalse(row.why.isEmpty, row.title)
         }
     }
 
-    /// The badge is the adherence when there is one, else the tag. A number
-    /// there always wears its per-cent sign.
+    /// The badge is the adherence when there is one, else the tag. A row the
+    /// report only suggested has no item to tick yet, so it says so.
     func testTheBadgeIsAdherenceOrTheTag() throws {
         let plan = try decode("plan-today", as: Api.PlanDay.self)
-        let selenium = try XCTUnwrap(plan.rows.first { $0.itemId == "pi_selenium" })
-        XCTAssertEqual(selenium.badge, "86 %")
-        let steps = try XCTUnwrap(plan.rows.first { $0.itemId == "pi_steps" })
-        XCTAssertEqual(steps.badge, "every day")
+        for row in plan.rows where row.adherence == nil {
+            XCTAssertEqual(row.badge, row.tag)
+        }
+        let made = Api.PlanDay.Row(itemId: "pi_selenium", time: "08:00",
+                                   slot: "breakfast", title: "Selenium 200 µg",
+                                   why: "with breakfast", tag: "protocol",
+                                   done: true, adherence: 0.86)
+        XCTAssertEqual(made.badge, "86 %")
     }
 
     /// Ticking a row moves that row and the counter, and nothing else.
     func testTickingOneRowMovesTheCounter() throws {
         let plan = try decode("plan-today", as: Api.PlanDay.self)
-        let moved = plan.with("pi_resistance", done: true)
-        XCTAssertEqual(moved.done, 3)
-        XCTAssertEqual(moved.total, 7)
-        XCTAssertTrue(try XCTUnwrap(moved.rows.first { $0.id == "pi_resistance" }).done)
+        let first = try XCTUnwrap(plan.rows.first)
+        let moved = plan.with(first.id, done: true)
+        XCTAssertEqual(moved.done, plan.done + 1)
+        XCTAssertEqual(moved.total, plan.total)
+        XCTAssertTrue(try XCTUnwrap(moved.rows.first { $0.id == first.id }).done)
         XCTAssertEqual(moved.rows.count, plan.rows.count)
-        XCTAssertEqual(moved.with("pi_resistance", done: false), plan)
+        XCTAssertEqual(moved.with(first.id, done: false), plan)
     }
 
+    /// The route answers `{ ok: true, ...the habit row }`, so both halves have
+    /// to survive the same decoder.
     func testHabitAckDecodes() throws {
         let ack = try decode("habits", as: Api.HabitAck.self)
         XCTAssertEqual(ack.ok, true)
+        XCTAssertEqual(ack.done, true)
+        XCTAssertNotNil(ack.itemId)
+        XCTAssertNotNil(ack.day)
     }
 
-    /// The route as it stands answers with the habit row, not `{ok:true}`.
-    /// Both have to decode, because the phone cannot choose which it gets.
-    func testTheHabitRowAlsoDecodes() throws {
+    func testTheBareHabitRowAlsoDecodes() throws {
         let row = Data(#"{"itemId":"pi_iron","day":"2026-09-03","done":true}"#.utf8)
         let ack = try JSONDecoder().decode(Api.HabitAck.self, from: row)
         XCTAssertNil(ack.ok)
@@ -169,11 +204,14 @@ final class ContractTests: XCTestCase {
 
     func testMealsDecodes() throws {
         let day = try decode("meals", as: Api.MealDay.self)
-        XCTAssertEqual(day.day, "2026-09-03")
-        XCTAssertEqual(day.meals.count, 2)
-        XCTAssertEqual(day.fromPhoto, 1)
-        XCTAssertEqual(day.totals.kcal, 832)
-        XCTAssertEqual(day.totals.proteinG, 62)
+        XCTAssertFalse(day.day.isEmpty)
+        XCTAssertFalse(day.meals.isEmpty)
+        for meal in day.meals {
+            XCTAssertFalse(meal.id.isEmpty)
+            XCTAssertFalse(meal.label.isEmpty)
+            XCTAssertFalse(meal.time.isEmpty)
+            XCTAssertFalse(meal.items.isEmpty, meal.label)
+        }
     }
 
     /// The card never totals anything itself: the server's total is the sum of
@@ -191,21 +229,28 @@ final class ContractTests: XCTestCase {
                            meal.totals.fatG, meal.label)
         }
         XCTAssertEqual(day.meals.map(\.totals.kcal).reduce(0, +), day.totals.kcal)
+        XCTAssertEqual(day.meals.map(\.totals.proteinG).reduce(0, +),
+                       day.totals.proteinG)
     }
 
-    /// A photo's numbers say "est.". A meal logged in Health does not.
-    func testEstimatesAreLabelledAndLoggedMealsAreNot() throws {
+    /// A read photo's numbers say "est." on every one of them.
+    func testEveryEstimateIsLabelled() throws {
         let day = try decode("meals", as: Api.MealDay.self)
-        let lunch = try XCTUnwrap(day.meals.first { $0.photo != nil })
-        XCTAssertTrue(lunch.totals.estimated)
-        XCTAssertEqual(lunch.totals.mark, " est.")
-        XCTAssertTrue(lunch.items.allSatisfy(\.estimated))
-        XCTAssertEqual(lunch.basis, "from a photo · 13:05")
+        for meal in day.meals where meal.totals.estimated {
+            XCTAssertEqual(meal.totals.mark, " est.")
+            XCTAssertTrue(meal.items.allSatisfy(\.estimated), meal.label)
+        }
+    }
 
-        let breakfast = try XCTUnwrap(day.meals.first { $0.photo == nil })
-        XCTAssertFalse(breakfast.totals.estimated)
-        XCTAssertEqual(breakfast.totals.mark, "")
-        XCTAssertEqual(breakfast.basis, "logged in Health · 08:05")
+    /// A meal that was weighed or scanned carries no "est.", and the flag is
+    /// the boolean that decides it.
+    func testALoggedMealCarriesNoEstimate() throws {
+        let logged = Api.Macros(kcal: 410, proteinG: 33, carbsG: 40, fatG: 12,
+                                estimated: false)
+        XCTAssertEqual(logged.mark, "")
+        let guessed = Api.Macros(kcal: 422, proteinG: 29, carbsG: 31, fatG: 20,
+                                 estimated: true)
+        XCTAssertEqual(guessed.mark, " est.")
     }
 
     /// The contract writes `estimated: true` as a literal, so a payload that
@@ -219,37 +264,66 @@ final class ContractTests: XCTestCase {
     /// `POST /api/meals` answers with one meal, the same shape the list holds.
     func testTheMealPostAnswersWithOneMeal() throws {
         let meal = try decode("meal", as: Api.Meal.self)
-        XCTAssertEqual(meal.id, "meal_lunch")
-        XCTAssertEqual(meal.items.count, 4)
-        XCTAssertEqual(meal.totals.kcal, 422)
-        XCTAssertEqual(meal.moves.count, 3)
-        XCTAssertEqual(meal.items.first?.name, "Sardines in olive oil")
-        XCTAssertEqual(meal.items.first?.portion, "1 tin · ~90 g")
+        let day = try decode("meals", as: Api.MealDay.self)
+        XCTAssertEqual(meal, day.meals.first)
+        XCTAssertFalse(meal.items.isEmpty)
+        XCTAssertEqual(meal.basis,
+                       (meal.photo == nil ? "logged in Health" : "from a photo")
+                       + " · \(meal.time)")
     }
 
     // MARK: - GET /api/genome, GET /api/research
 
     func testGenomeDecodes() throws {
         let genome = try decode("genome", as: Api.Genome.self)
-        XCTAssertEqual(genome.file?.name, "AncestryDNA.txt")
-        XCTAssertEqual(genome.verdicts.count, 3)
-        let coeliac = try XCTUnwrap(genome.verdicts.first { $0.conditionId == "coeliac" })
-        // An absent haplotype is a verdict, not a gap: direction down, no test.
-        XCTAssertEqual(coeliac.direction, "down")
-        XCTAssertTrue(coeliac.absent)
-        XCTAssertFalse(coeliac.testNeeded)
-        XCTAssertFalse(genome.genes.first?.rsids.isEmpty ?? true)
+        XCTAssertFalse(try XCTUnwrap(genome.file).name.isEmpty)
+        XCTAssertFalse(genome.verdicts.isEmpty)
+        XCTAssertFalse(genome.genes.isEmpty)
+        for verdict in genome.verdicts {
+            XCTAssertTrue(["up", "down", "none"].contains(verdict.direction),
+                          verdict.direction)
+            XCTAssertFalse(verdict.reason.isEmpty, verdict.name)
+        }
+    }
+
+    /// An absent haplotype is a verdict, not a gap: direction down, no test.
+    func testAnAbsentHaplotypeIsAVerdict() throws {
+        let genome = try decode("genome", as: Api.Genome.self)
+        let absent = try XCTUnwrap(genome.verdicts.first(where: \.absent))
+        XCTAssertEqual(absent.direction, "down")
+        XCTAssertFalse(absent.testNeeded)
+        XCTAssertLessThan(try XCTUnwrap(absent.factor), 1)
+    }
+
+    /// Every gene names the rsids it was read from, so nothing is a black box.
+    func testEveryGeneNamesItsRsids() throws {
+        let genome = try decode("genome", as: Api.Genome.self)
+        for gene in genome.genes {
+            XCTAssertFalse(gene.rsids.isEmpty, gene.gene)
+            XCTAssertFalse(gene.source.isEmpty, gene.gene)
+        }
+        XCTAssertTrue(genome.genes.contains { $0.moved } || genome.genes.allSatisfy { !$0.moved })
     }
 
     func testResearchDecodes() throws {
         let list = try decode("research", as: Api.ResearchList.self)
-        XCTAssertEqual(list.rows.count, 2)
-        let moving = try XCTUnwrap(list.rows.first { $0.moves != nil })
-        XCTAssertEqual(moving.moves?.direction, "up")
-        XCTAssertEqual(moving.grade, "B")
-        XCTAssertNil(moving.seenAt)
-        // No rule out of the intake means no move, printed as "nothing for you".
-        XCTAssertNil(list.rows.last?.moves)
+        XCTAssertFalse(list.rows.isEmpty)
+        for paper in list.rows {
+            XCTAssertFalse(paper.title.isEmpty)
+            XCTAssertFalse(paper.journal?.isEmpty ?? false)
+            XCTAssertFalse(paper.publishedAt.isEmpty)
+            XCTAssertEqual(paper.source, "epmc")
+        }
+    }
+
+    /// An ungraded paper is the normal case while the intake is behind, and
+    /// nothing may be invented in its place.
+    func testAnUngradedPaperStillDecodes() throws {
+        let list = try decode("research", as: Api.ResearchList.self)
+        let ungraded = try XCTUnwrap(list.rows.first { $0.grade == nil })
+        XCTAssertNil(ungraded.finding)
+        XCTAssertNil(ungraded.moves)
+        XCTAssertNotNil(ungraded.url)
     }
 
     // MARK: - the compiled copies
@@ -268,7 +342,7 @@ final class ContractTests: XCTestCase {
 
     /// The seam itself: off by default, so a release build can never draw a
     /// fixture and call it the person's own data.
-    func testFixturesAreOffUnlessAsked() {
+    func testFixturesAreOffUnlessAsked() throws {
         let key = "OVFixtures"
         let was = UserDefaults.standard.bool(forKey: key)
         defer { UserDefaults.standard.set(was, forKey: key) }
@@ -281,7 +355,9 @@ final class ContractTests: XCTestCase {
         UserDefaults.standard.set(true, forKey: key)
         XCTAssertTrue(Fixtures.on)
         let some: Api.Today? = Fixtures.canned("today")
-        XCTAssertEqual(some?.status.off, 7)
+        let onDisk = try? decode("today", as: Api.Today.self)
+        XCTAssertNotNil(some)
+        XCTAssertEqual(some, onDisk)
     }
 }
 

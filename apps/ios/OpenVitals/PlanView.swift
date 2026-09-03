@@ -117,8 +117,12 @@ struct PlanRow: View {
             }
             .buttonStyle(.plain)
             .disabled(busy || row.itemId == nil)
+            // A row the report only suggested has no protocol item behind it,
+            // so there is nothing to tick yet and the box says so by fading.
+            .opacity(row.itemId == nil ? 0.4 : 1)
             .accessibilityLabel(row.title)
-            .accessibilityValue(row.done ? "done" : "not done")
+            .accessibilityValue(row.itemId == nil ? "not adopted yet"
+                                : (row.done ? "done" : "not done"))
             .accessibilityAddTraits(row.done ? [.isButton, .isSelected] : .isButton)
 
             VStack(alignment: .leading, spacing: 2) {

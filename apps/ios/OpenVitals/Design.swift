@@ -385,7 +385,9 @@ struct StateDot: View {
 
     var body: some View {
         let colour = Design.colour(forWord: word)
-        let hollow = word == "never measured" || word == "none"
+        // Nothing measured and nothing said are both a hollow ring: a filled
+        // dot would claim a state the engine never wrote.
+        let hollow = word == "never measured" || word == "none" || word.isEmpty
         Circle()
             .strokeBorder(colour, lineWidth: hollow ? 1.2 : 0)
             .background(Circle().fill(hollow ? Color.clear : colour))

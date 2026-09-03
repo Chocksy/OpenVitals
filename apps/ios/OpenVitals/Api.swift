@@ -504,8 +504,16 @@ extension Api {
             let when: String
 
             var id: String { identifier }
-            /// "StepCount · iPhone · Sep 2" — the type, the writer, the day.
-            var provenance: String { "\(type) · \(source) · \(when)" }
+
+            /// "steps · iPhone · Aug 31 2026" — the type, the writer, the day.
+            /// The route leaves `source` and `when` empty on a type nothing has
+            /// written, so the empty parts are dropped rather than printed as
+            /// stray separators.
+            var provenance: String {
+                [type, source, when.isEmpty ? "" : Design.day(when)]
+                    .filter { !$0.isEmpty }
+                    .joined(separator: " · ")
+            }
         }
 
         let day: String
@@ -665,7 +673,9 @@ extension Api {
             let name: String
             /// "up" | "down" | "none"
             let direction: String
-            let factor: Double
+            /// Null when the rule is a direction and no multiplier, which is
+            /// what "none" verdicts come back as.
+            let factor: Double?
             let grade: String
             let reason: String
             let testNeeded: Bool
@@ -674,11 +684,14 @@ extension Api {
         }
 
         struct Gene: Codable, Equatable, Identifiable {
+            /// The sentence the catalogue writes about this call.
             let verdict: String
             let gene: String
             let call: String
             let grade: String
-            let moved: String
+            /// Whether this gene moved anything in the ledger. The contract
+            /// leaves the type open; the route answers a boolean.
+            let moved: Bool
             let source: String
             let rsids: [String]
             var id: String { gene }
@@ -705,10 +718,16 @@ extension Api {
         let source: String
         let externalId: String
         let title: String
-        let journal: String
+        /// Europe PMC does not always name the journal.
+        let journal: String?
+        /// The paper's own link. Not in the contract; the route sends it and
+        /// Open needs it, so it is decoded rather than dropped.
+        let url: String?
         let publishedAt: String
-        let grade: String
-        let finding: String
+        /// Null until the intake has graded the paper.
+        let grade: String?
+        /// Null until the intake has written its one sentence.
+        let finding: String?
         let abstract: String?
         let moves: Moves?
         let foundAt: String
