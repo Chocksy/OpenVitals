@@ -12,6 +12,7 @@ import Link from "next/link";
 import {
   WORST_WORD,
   type RailCard,
+  type RailGoal,
   type RailTone,
   type SystemTile,
 } from "@/lib/home-data";
@@ -39,6 +40,43 @@ const Off = () => (
     ▲
   </span>
 );
+
+/**
+ * The goals card: `system.html` section 08's goal row, at card size.
+ *
+ * Phase 34 section 1. It is the first thing on the phone rail and sits beside
+ * Status on a desktop, which is grid placement in `globals.css` and no
+ * second markup. Each row is its own link to its own marker, so the card is a
+ * list of links rather than one link over a list, and nothing here computes:
+ * every string was built on the server.
+ */
+function Goals({ card, i }: { card: RailCard; i: number }) {
+  return (
+    <li data-rail="goals">
+      <div className="rail-card" style={{ "--i": i } as React.CSSProperties}>
+        <span className="c-label">{card.label}</span>
+        <div className="railgoals">
+          {(card.goals ?? []).map((g: RailGoal) => (
+            <Link key={g.code} href={`/blood/m/${g.code}`} className="goalrow">
+              <div>
+                <b>
+                  {g.name} {g.said}
+                </b>
+                <div className="c-line">
+                  <span className={`tone-${g.paceTone}`}>{g.pace}</span>
+                </div>
+              </div>
+              <div className="tgt">{g.now}</div>
+              <div className="progress">
+                <i style={{ "--p": `${g.progress}%` } as React.CSSProperties} />
+              </div>
+            </Link>
+          ))}
+        </div>
+      </div>
+    </li>
+  );
+}
 
 function Card({ card, i }: { card: RailCard; i: number }) {
   const tone = `tone-${card.tone}`;
@@ -82,6 +120,7 @@ function Card({ card, i }: { card: RailCard; i: number }) {
         )}
 
         {card.line && <span className="c-line">{card.line}</span>}
+        {card.line2 && <span className="c-line">{card.line2}</span>}
       </Link>
     </li>
   );
@@ -92,11 +131,15 @@ export function HomeRail({ cards }: { cards: RailCard[] }) {
     <div className="rail-wrap">
       <ul
         className="rail"
-        aria-label="Your status, body, blood, plan and systems"
+        aria-label="Your goals, status, body, blood, plan and systems"
       >
-        {cards.map((c, i) => (
-          <Card key={`${c.kind}-${c.label}`} card={c} i={i} />
-        ))}
+        {cards.map((c, i) =>
+          c.kind === "goals" ? (
+            <Goals key="goals" card={c} i={i} />
+          ) : (
+            <Card key={`${c.kind}-${c.label}`} card={c} i={i} />
+          ),
+        )}
       </ul>
     </div>
   );

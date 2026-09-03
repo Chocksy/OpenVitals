@@ -127,6 +127,46 @@ describe("railCards", () => {
     expect(bare.map((c) => c.kind)).not.toContain("plan");
     expect(bare[1]!.line).toBe("Nothing due today");
   });
+
+  /**
+   * Phase 34 section 1. Today opens on what the person is moving, so the
+   * goals card is drawn before Status — and only when there is a goal, so a
+   * rail with none is exactly the rail phase 28c locked above.
+   */
+  const goal = {
+    code: "ldl_cholesterol",
+    name: "LDL cholesterol",
+    said: "70\u2013100",
+    now: "131 mg/dL",
+    progress: 0,
+    pace: "off pace",
+    paceTone: "warn" as const,
+  };
+
+  it("puts the goals before Status when there is one", () => {
+    const withGoals = railCards(ledger, today, {
+      todo: 4,
+      actions: 2,
+      goals: [goal],
+      sentence: "Autoimmune thyroiditis: confirmed",
+    });
+    expect(withGoals[0]!.kind).toBe("goals");
+    expect(withGoals[0]!.goals).toEqual([goal]);
+    expect(withGoals[1]!.kind).toBe("status");
+  });
+
+  it("moves Home's old sentence onto the Status card's second line", () => {
+    const withGoals = railCards(ledger, today, {
+      goals: [goal],
+      sentence: "Autoimmune thyroiditis: confirmed",
+    });
+    expect(withGoals[1]!.line2).toBe("Autoimmune thyroiditis: confirmed");
+    expect(cards[0]!.line2).toBeUndefined();
+  });
+
+  it("draws no goals card when nothing is being moved", () => {
+    expect(cards.map((c) => c.kind)).not.toContain("goals");
+  });
 });
 
 

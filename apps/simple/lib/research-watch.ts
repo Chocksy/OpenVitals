@@ -553,6 +553,17 @@ export interface ApiPaper {
   finding: string | null;
   abstract: string | null;
   moves: PaperMove | null;
+  /**
+   * Whether the intake ever read this paper.
+   *
+   * Phase 34 section 3. A row is written the moment Europe PMC names it, and
+   * the grade and the one-sentence finding are filled in afterwards by the
+   * model. When the key is at its limit the second half never runs, so the row
+   * is a title with nothing behind it, and a client that only checks `grade`
+   * cannot tell "graded E" from "never read". This says it out loud, so the
+   * phone can print "found, not read yet" instead of guessing.
+   */
+  read: boolean;
   foundAt: string | null;
   seenAt: string | null;
   dismissedAt: string | null;
@@ -578,6 +589,7 @@ export function toApiPaper(r: PaperWatch): ApiPaper {
     finding: r.finding,
     abstract: r.abstract,
     moves: r.moves ?? null,
+    read: r.grade != null || r.finding != null,
     foundAt: r.foundAt?.toISOString() ?? null,
     seenAt: r.seenAt?.toISOString() ?? null,
     dismissedAt: r.dismissedAt?.toISOString() ?? null,

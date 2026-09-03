@@ -1,0 +1,3296 @@
+{
+  "days": 365,
+  "markers": [
+    {
+      "code": "ck",
+      "name": "Creatine Kinase",
+      "system": "Cardiac",
+      "value": 91.42,
+      "unit": "U/L",
+      "date": "2021-10-14",
+      "word": "optimal",
+      "band": {
+        "low": 0,
+        "high": 171
+      },
+      "optimal": {
+        "low": null,
+        "high": 200
+      },
+      "series": [
+        {
+          "date": "2021-10-14",
+          "value": 91.42
+        }
+      ],
+      "goal": null
+    },
+    {
+      "code": "abo_blood_group",
+      "name": "ABO Blood Group",
+      "system": "Hematology",
+      "value": null,
+      "unit": "",
+      "date": "2012-08-08",
+      "word": "no band",
+      "band": {
+        "low": null,
+        "high": null
+      },
+      "optimal": {
+        "low": null,
+        "high": null
+      },
+      "series": [],
+      "goal": null
+    },
+    {
+      "code": "granulocyte_absolute",
+      "name": "Absolute Granulocyte Count",
+      "system": "Hematology",
+      "value": 3.4,
+      "unit": "x10^3/uL",
+      "date": "2012-08-08",
+      "word": "optimal",
+      "band": {
+        "low": 0,
+        "high": 9
+      },
+      "optimal": {
+        "low": null,
+        "high": null
+      },
+      "series": [
+        {
+          "date": "2012-08-08",
+          "value": 3.4
+        }
+      ],
+      "goal": null
+    },
+    {
+      "code": "atypical_lymphocytes_abs",
+      "name": "Atypical Lymphocytes, Absolute",
+      "system": "Hematology",
+      "value": 1.62,
+      "unit": "10^3/uL",
+      "date": "2023-03-17",
+      "word": "optimal",
+      "band": {
+        "low": 1,
+        "high": 4
+      },
+      "optimal": {
+        "low": null,
+        "high": null
+      },
+      "series": [
+        {
+          "date": "2023-03-17",
+          "value": 1.62
+        }
+      ],
+      "goal": null
+    },
+    {
+      "code": "basophils_abs",
+      "name": "Basophils (Absolute)",
+      "system": "Hematology",
+      "value": 0.03,
+      "unit": "K/uL",
+      "date": "2026-04-23",
+      "word": "optimal",
+      "band": {
+        "low": null,
+        "high": 200
+      },
+      "optimal": {
+        "low": null,
+        "high": 0.1
+      },
+      "series": [
+        {
+          "date": "2025-12-09",
+          "value": 0.03
+        },
+        {
+          "date": "2026-04-23",
+          "value": 0.03
+        }
+      ],
+      "goal": null
+    },
+    {
+      "code": "basophils_percentage",
+      "name": "Basophils (percentage)",
+      "system": "Hematology",
+      "value": 0.58,
+      "unit": "%",
+      "date": "2026-04-23",
+      "word": "optimal",
+      "band": {
+        "low": null,
+        "high": 1.75
+      },
+      "optimal": {
+        "low": 0,
+        "high": 1
+      },
+      "series": [
+        {
+          "date": "2026-04-23",
+          "value": 0.58
+        }
+      ],
+      "goal": null
+    },
+    {
+      "code": "basophils_pct",
+      "name": "Basophils %",
+      "system": "Hematology",
+      "value": 0.51,
+      "unit": "%",
+      "date": "2025-12-09",
+      "word": "optimal",
+      "band": {
+        "low": null,
+        "high": 1.75
+      },
+      "optimal": {
+        "low": null,
+        "high": null
+      },
+      "series": [
+        {
+          "date": "2025-12-09",
+          "value": 0.51
+        }
+      ],
+      "goal": null
+    },
+    {
+      "code": "corrected_reticulocyte_count",
+      "name": "Corrected Reticulocyte Count",
+      "system": "Hematology",
+      "value": 1.16,
+      "unit": "%",
+      "date": "2016-01-09",
+      "word": "optimal",
+      "band": {
+        "low": 0.5,
+        "high": 2.3
+      },
+      "optimal": {
+        "low": null,
+        "high": null
+      },
+      "series": [
+        {
+          "date": "2015-03-21",
+          "value": 1.28
+        },
+        {
+          "date": "2016-01-09",
+          "value": 1.16
+        }
+      ],
+      "goal": null
+    },
+    {
+      "code": "eosinophils_abs",
+      "name": "Eosinophils (Absolute)",
+      "system": "Hematology",
+      "value": 0.19,
+      "unit": "K/uL",
+      "date": "2026-04-23",
+      "word": "optimal",
+      "band": {
+        "low": 0.02,
+        "high": 0.5
+      },
+      "optimal": {
+        "low": null,
+        "high": null
+      },
+      "series": [
+        {
+          "date": "2025-12-09",
+          "value": 0.17
+        },
+        {
+          "date": "2026-04-23",
+          "value": 0.19
+        }
+      ],
+      "goal": null
+    },
+    {
+      "code": "eosinophils_percentage",
+      "name": "Eosinophils (percentage)",
+      "system": "Hematology",
+      "value": 3.67,
+      "unit": "%",
+      "date": "2026-04-23",
+      "word": "optimal",
+      "band": {
+        "low": 0.5,
+        "high": 5.5
+      },
+      "optimal": {
+        "low": 0.5,
+        "high": 5.5
+      },
+      "series": [
+        {
+          "date": "2026-04-23",
+          "value": 3.67
+        }
+      ],
+      "goal": null
+    },
+    {
+      "code": "eosinophils_pct",
+      "name": "Eosinophils %",
+      "system": "Hematology",
+      "value": 2.92,
+      "unit": "%",
+      "date": "2025-12-09",
+      "word": "optimal",
+      "band": {
+        "low": 0.5,
+        "high": 5.5
+      },
+      "optimal": {
+        "low": null,
+        "high": null
+      },
+      "series": [
+        {
+          "date": "2025-12-09",
+          "value": 2.92
+        }
+      ],
+      "goal": null
+    },
+    {
+      "code": "granulocyte_percentage",
+      "name": "Granulocyte Percentage",
+      "system": "Hematology",
+      "value": 56,
+      "unit": "%",
+      "date": "2012-08-08",
+      "word": "optimal",
+      "band": {
+        "low": 42,
+        "high": 85
+      },
+      "optimal": {
+        "low": null,
+        "high": null
+      },
+      "series": [
+        {
+          "date": "2012-08-08",
+          "value": 56
+        }
+      ],
+      "goal": null
+    },
+    {
+      "code": "hematocrit",
+      "name": "Hematocrit",
+      "system": "Hematology",
+      "value": 46.9,
+      "unit": "%",
+      "date": "2026-04-23",
+      "word": "optimal",
+      "band": {
+        "low": 39.5,
+        "high": 50.5
+      },
+      "optimal": {
+        "low": 38,
+        "high": 48
+      },
+      "series": [
+        {
+          "date": "2025-12-09",
+          "value": 49.4
+        },
+        {
+          "date": "2026-04-23",
+          "value": 46.9
+        }
+      ],
+      "goal": null
+    },
+    {
+      "code": "hemoglobin",
+      "name": "Hemoglobin",
+      "system": "Hematology",
+      "value": 15.6,
+      "unit": "g/dL",
+      "date": "2026-04-23",
+      "word": "optimal",
+      "band": {
+        "low": 13.5,
+        "high": 17.2
+      },
+      "optimal": {
+        "low": 13.8,
+        "high": 17.2
+      },
+      "series": [
+        {
+          "date": "2025-12-09",
+          "value": 16.2
+        },
+        {
+          "date": "2026-04-23",
+          "value": 15.6
+        }
+      ],
+      "goal": null
+    },
+    {
+      "code": "hba",
+      "name": "Hemoglobin A",
+      "system": "Hematology",
+      "value": 97.1,
+      "unit": "%",
+      "date": "2016-01-09",
+      "word": "optimal",
+      "band": {
+        "low": 96.7,
+        "high": 97.8
+      },
+      "optimal": {
+        "low": null,
+        "high": null
+      },
+      "series": [
+        {
+          "date": "2016-01-09",
+          "value": 97.1
+        }
+      ],
+      "goal": null
+    },
+    {
+      "code": "hba2",
+      "name": "Hemoglobin A2",
+      "system": "Hematology",
+      "value": 2.9,
+      "unit": "%",
+      "date": "2016-01-09",
+      "word": "optimal",
+      "band": {
+        "low": 2.2,
+        "high": 3.2
+      },
+      "optimal": {
+        "low": null,
+        "high": null
+      },
+      "series": [
+        {
+          "date": "2016-01-09",
+          "value": 2.9
+        }
+      ],
+      "goal": null
+    },
+    {
+      "code": "immature_reticulocyte_fraction",
+      "name": "Immature Reticulocyte Fraction",
+      "system": "Hematology",
+      "value": 0.062,
+      "unit": "",
+      "date": "2016-01-09",
+      "word": "optimal",
+      "band": {
+        "low": 0.04,
+        "high": 0.23
+      },
+      "optimal": {
+        "low": null,
+        "high": null
+      },
+      "series": [
+        {
+          "date": "2015-03-21",
+          "value": 0.048
+        },
+        {
+          "date": "2016-01-09",
+          "value": 0.062
+        }
+      ],
+      "goal": null
+    },
+    {
+      "code": "lymphocytes_abs",
+      "name": "Lymphocytes (Absolute)",
+      "system": "Hematology",
+      "value": 2.01,
+      "unit": "K/uL",
+      "date": "2025-12-09",
+      "word": "optimal",
+      "band": {
+        "low": 1.1,
+        "high": 4.5
+      },
+      "optimal": {
+        "low": 1.2,
+        "high": 3
+      },
+      "series": [
+        {
+          "date": "2025-12-09",
+          "value": 2.01
+        }
+      ],
+      "goal": null
+    },
+    {
+      "code": "lymphocytes_percentage",
+      "name": "Lymphocytes (percentage)",
+      "system": "Hematology",
+      "value": 40.15,
+      "unit": "%",
+      "date": "2026-04-23",
+      "word": "borderline",
+      "band": {
+        "low": 20,
+        "high": 44
+      },
+      "optimal": {
+        "low": 20,
+        "high": 40
+      },
+      "series": [
+        {
+          "date": "2026-04-23",
+          "value": 40.15
+        }
+      ],
+      "goal": null
+    },
+    {
+      "code": "lymphocytes_pct",
+      "name": "Lymphocytes %",
+      "system": "Hematology",
+      "value": 34.48,
+      "unit": "%",
+      "date": "2025-12-09",
+      "word": "optimal",
+      "band": {
+        "low": 20,
+        "high": 44
+      },
+      "optimal": {
+        "low": null,
+        "high": null
+      },
+      "series": [
+        {
+          "date": "2025-12-09",
+          "value": 34.48
+        }
+      ],
+      "goal": null
+    },
+    {
+      "code": "mch",
+      "name": "MCH",
+      "system": "Hematology",
+      "value": 29.9,
+      "unit": "pg",
+      "date": "2026-04-23",
+      "word": "optimal",
+      "band": {
+        "low": 27,
+        "high": 33.5
+      },
+      "optimal": {
+        "low": 27,
+        "high": 33
+      },
+      "series": [
+        {
+          "date": "2025-12-09",
+          "value": 29
+        },
+        {
+          "date": "2026-04-23",
+          "value": 29.9
+        }
+      ],
+      "goal": null
+    },
+    {
+      "code": "mchc",
+      "name": "MCHC",
+      "system": "Hematology",
+      "value": 33.3,
+      "unit": "g/dL",
+      "date": "2026-04-23",
+      "word": "optimal",
+      "band": {
+        "low": 31.5,
+        "high": 36
+      },
+      "optimal": {
+        "low": 33,
+        "high": 36
+      },
+      "series": [
+        {
+          "date": "2025-12-09",
+          "value": 32.8
+        },
+        {
+          "date": "2026-04-23",
+          "value": 33.3
+        }
+      ],
+      "goal": null
+    },
+    {
+      "code": "mcv",
+      "name": "MCV",
+      "system": "Hematology",
+      "value": 89.7,
+      "unit": "fL",
+      "date": "2026-04-23",
+      "word": "optimal",
+      "band": {
+        "low": 80,
+        "high": 99
+      },
+      "optimal": {
+        "low": 82,
+        "high": 100
+      },
+      "series": [
+        {
+          "date": "2025-12-09",
+          "value": 88.2
+        },
+        {
+          "date": "2026-04-23",
+          "value": 89.7
+        }
+      ],
+      "goal": null
+    },
+    {
+      "code": "mean_reticulocyte_volume",
+      "name": "Mean Reticulocyte Volume",
+      "system": "Hematology",
+      "value": 113,
+      "unit": "fL",
+      "date": "2016-01-09",
+      "word": "optimal",
+      "band": {
+        "low": 92,
+        "high": 116
+      },
+      "optimal": {
+        "low": null,
+        "high": null
+      },
+      "series": [
+        {
+          "date": "2015-03-21",
+          "value": 101
+        },
+        {
+          "date": "2016-01-09",
+          "value": 113
+        }
+      ],
+      "goal": null
+    },
+    {
+      "code": "monocytes_abs",
+      "name": "Monocytes (Absolute)",
+      "system": "Hematology",
+      "value": 0.43,
+      "unit": "K/uL",
+      "date": "2026-04-23",
+      "word": "optimal",
+      "band": {
+        "low": 0.1,
+        "high": 0.9
+      },
+      "optimal": {
+        "low": null,
+        "high": null
+      },
+      "series": [
+        {
+          "date": "2025-12-09",
+          "value": 0.4
+        },
+        {
+          "date": "2026-04-23",
+          "value": 0.43
+        }
+      ],
+      "goal": null
+    },
+    {
+      "code": "monocytes_percentage",
+      "name": "Monocytes (percentage)",
+      "system": "Hematology",
+      "value": 7.66,
+      "unit": "%",
+      "date": "2024-11-20",
+      "word": "optimal",
+      "band": {
+        "low": 2,
+        "high": 9.5
+      },
+      "optimal": {
+        "low": 2,
+        "high": 8
+      },
+      "series": [
+        {
+          "date": "2024-11-20",
+          "value": 7.66
+        }
+      ],
+      "goal": null
+    },
+    {
+      "code": "monocytes_pct",
+      "name": "Monocytes %",
+      "system": "Hematology",
+      "value": 8.3,
+      "unit": "%",
+      "date": "2026-04-23",
+      "word": "optimal",
+      "band": {
+        "low": 2,
+        "high": 9.5
+      },
+      "optimal": {
+        "low": null,
+        "high": null
+      },
+      "series": [
+        {
+          "date": "2025-12-09",
+          "value": 6.86
+        },
+        {
+          "date": "2026-04-23",
+          "value": 8.3
+        }
+      ],
+      "goal": null
+    },
+    {
+      "code": "mpv",
+      "name": "MPV",
+      "system": "Hematology",
+      "value": 10.8,
+      "unit": "fL",
+      "date": "2024-05-13",
+      "word": "optimal",
+      "band": {
+        "low": 9,
+        "high": 13
+      },
+      "optimal": {
+        "low": null,
+        "high": null
+      },
+      "series": [
+        {
+          "date": "2024-05-13",
+          "value": 10.8
+        }
+      ],
+      "goal": null
+    },
+    {
+      "code": "neutrophils_abs",
+      "name": "Neutrophils (Absolute)",
+      "system": "Hematology",
+      "value": 2.45,
+      "unit": "K/uL",
+      "date": "2026-04-23",
+      "word": "optimal",
+      "band": {
+        "low": 1.5,
+        "high": 7.7
+      },
+      "optimal": {
+        "low": 1.8,
+        "high": 4
+      },
+      "series": [
+        {
+          "date": "2025-12-09",
+          "value": 3.22
+        },
+        {
+          "date": "2026-04-23",
+          "value": 2.45
+        }
+      ],
+      "goal": null
+    },
+    {
+      "code": "neutrophils_percentage",
+      "name": "Neutrophils (percentage)",
+      "system": "Hematology",
+      "value": 47.3,
+      "unit": "%",
+      "date": "2026-04-23",
+      "word": "optimal",
+      "band": {
+        "low": 42,
+        "high": 77
+      },
+      "optimal": {
+        "low": 40,
+        "high": 60
+      },
+      "series": [
+        {
+          "date": "2026-04-23",
+          "value": 47.3
+        }
+      ],
+      "goal": null
+    },
+    {
+      "code": "neutrophils_pct",
+      "name": "Neutrophils %",
+      "system": "Hematology",
+      "value": 55.23,
+      "unit": "%",
+      "date": "2025-12-09",
+      "word": "optimal",
+      "band": {
+        "low": 42,
+        "high": 77
+      },
+      "optimal": {
+        "low": null,
+        "high": null
+      },
+      "series": [
+        {
+          "date": "2025-12-09",
+          "value": 55.23
+        }
+      ],
+      "goal": null
+    },
+    {
+      "code": "p_lcr",
+      "name": "P-LCR",
+      "system": "Hematology",
+      "value": 31.6,
+      "unit": "%",
+      "date": "2024-05-13",
+      "word": "optimal",
+      "band": {
+        "low": 13,
+        "high": 43
+      },
+      "optimal": {
+        "low": null,
+        "high": null
+      },
+      "series": [
+        {
+          "date": "2024-05-13",
+          "value": 31.6
+        }
+      ],
+      "goal": null
+    },
+    {
+      "code": "pdw",
+      "name": "PDW",
+      "system": "Hematology",
+      "value": 16.1,
+      "unit": "%",
+      "date": "2024-05-13",
+      "word": "optimal",
+      "band": {
+        "low": 9,
+        "high": 17
+      },
+      "optimal": {
+        "low": null,
+        "high": null
+      },
+      "series": [
+        {
+          "date": "2024-05-13",
+          "value": 16.1
+        }
+      ],
+      "goal": null
+    },
+    {
+      "code": "platelets",
+      "name": "Platelet Count",
+      "system": "Hematology",
+      "value": 236,
+      "unit": "K/uL",
+      "date": "2026-04-23",
+      "word": "optimal",
+      "band": {
+        "low": 150,
+        "high": 370
+      },
+      "optimal": {
+        "low": 150,
+        "high": 250
+      },
+      "series": [
+        {
+          "date": "2025-12-09",
+          "value": 235
+        },
+        {
+          "date": "2026-04-23",
+          "value": 236
+        }
+      ],
+      "goal": null
+    },
+    {
+      "code": "pdw_sd",
+      "name": "Platelet distribution width (SD)",
+      "system": "Hematology",
+      "value": 13.3,
+      "unit": "fL",
+      "date": "2014-03-26",
+      "word": "optimal",
+      "band": {
+        "low": 8,
+        "high": 16.5
+      },
+      "optimal": {
+        "low": null,
+        "high": null
+      },
+      "series": [
+        {
+          "date": "2014-03-26",
+          "value": 13.3
+        }
+      ],
+      "goal": null
+    },
+    {
+      "code": "pct",
+      "name": "Plateletcrit",
+      "system": "Hematology",
+      "value": 0.232,
+      "unit": "%",
+      "date": "2024-05-13",
+      "word": "optimal",
+      "band": {
+        "low": 0.17,
+        "high": 0.35
+      },
+      "optimal": {
+        "low": 0.15,
+        "high": 0.25
+      },
+      "series": [
+        {
+          "date": "2024-05-13",
+          "value": 0.232
+        }
+      ],
+      "goal": null
+    },
+    {
+      "code": "rdw",
+      "name": "RDW",
+      "system": "Hematology",
+      "value": 13.1,
+      "unit": "%",
+      "date": "2026-04-23",
+      "word": "borderline",
+      "band": {
+        "low": 11.5,
+        "high": 14.5
+      },
+      "optimal": {
+        "low": 11,
+        "high": 13
+      },
+      "series": [
+        {
+          "date": "2025-12-09",
+          "value": 13
+        },
+        {
+          "date": "2026-04-23",
+          "value": 13.1
+        }
+      ],
+      "goal": null
+    },
+    {
+      "code": "rdw_sd",
+      "name": "RDW-SD",
+      "system": "Hematology",
+      "value": 45.5,
+      "unit": "fL",
+      "date": "2024-05-13",
+      "word": "off",
+      "band": {
+        "low": 35.1,
+        "high": 43.9
+      },
+      "optimal": {
+        "low": null,
+        "high": null
+      },
+      "series": [
+        {
+          "date": "2024-05-13",
+          "value": 45.5
+        }
+      ],
+      "goal": null
+    },
+    {
+      "code": "rbc",
+      "name": "Red Blood Cell Count",
+      "system": "Hematology",
+      "value": 5.23,
+      "unit": "M/uL",
+      "date": "2026-04-23",
+      "word": "optimal",
+      "band": {
+        "low": 4.3,
+        "high": 5.75
+      },
+      "optimal": {
+        "low": 4.5,
+        "high": 5.5
+      },
+      "series": [
+        {
+          "date": "2025-12-09",
+          "value": 5.6
+        },
+        {
+          "date": "2026-04-23",
+          "value": 5.23
+        }
+      ],
+      "goal": null
+    },
+    {
+      "code": "reticulocytes",
+      "name": "Reticulocyte Count, Absolute",
+      "system": "Hematology",
+      "value": 0.06,
+      "unit": "10^6/uL",
+      "date": "2016-01-09",
+      "word": "optimal",
+      "band": {
+        "low": 0.027,
+        "high": 0.114
+      },
+      "optimal": {
+        "low": 0.02,
+        "high": 0.1
+      },
+      "series": [
+        {
+          "date": "2015-03-21",
+          "value": 0.066
+        },
+        {
+          "date": "2016-01-09",
+          "value": 0.06
+        }
+      ],
+      "goal": null
+    },
+    {
+      "code": "reticulocytes_percent",
+      "name": "Reticulocyte Percentage",
+      "system": "Hematology",
+      "value": 1.12,
+      "unit": "%",
+      "date": "2016-01-09",
+      "word": "optimal",
+      "band": {
+        "low": 0.6,
+        "high": 2.3
+      },
+      "optimal": {
+        "low": 0.5,
+        "high": 2
+      },
+      "series": [
+        {
+          "date": "2015-03-21",
+          "value": 1.16
+        },
+        {
+          "date": "2016-01-09",
+          "value": 1.12
+        }
+      ],
+      "goal": null
+    },
+    {
+      "code": "reticulocytes_high_nuclear_content",
+      "name": "Reticulocytes with High Fluorescence (HFR)",
+      "system": "Hematology",
+      "value": 0,
+      "unit": "%",
+      "date": "2016-01-09",
+      "word": "optimal",
+      "band": {
+        "low": 0,
+        "high": 6
+      },
+      "optimal": {
+        "low": null,
+        "high": null
+      },
+      "series": [
+        {
+          "date": "2015-03-21",
+          "value": 0.8
+        },
+        {
+          "date": "2016-01-09",
+          "value": 0
+        }
+      ],
+      "goal": null
+    },
+    {
+      "code": "reticulocytes_low_nuclear_content",
+      "name": "Reticulocytes with Low Fluorescence (LFR)",
+      "system": "Hematology",
+      "value": 93.8,
+      "unit": "%",
+      "date": "2016-01-09",
+      "word": "optimal",
+      "band": {
+        "low": 76,
+        "high": 95
+      },
+      "optimal": {
+        "low": null,
+        "high": null
+      },
+      "series": [
+        {
+          "date": "2015-03-21",
+          "value": 95.2
+        },
+        {
+          "date": "2016-01-09",
+          "value": 93.8
+        }
+      ],
+      "goal": null
+    },
+    {
+      "code": "reticulocytes_medium_nuclear_content",
+      "name": "Reticulocytes with Medium Fluorescence (MFR)",
+      "system": "Hematology",
+      "value": 6.2,
+      "unit": "%",
+      "date": "2016-01-09",
+      "word": "optimal",
+      "band": {
+        "low": 4,
+        "high": 18
+      },
+      "optimal": {
+        "low": null,
+        "high": null
+      },
+      "series": [
+        {
+          "date": "2015-03-21",
+          "value": 4
+        },
+        {
+          "date": "2016-01-09",
+          "value": 6.2
+        }
+      ],
+      "goal": null
+    },
+    {
+      "code": "rh_blood_group",
+      "name": "Rh Blood Group",
+      "system": "Hematology",
+      "value": null,
+      "unit": "",
+      "date": "2012-08-08",
+      "word": "no band",
+      "band": {
+        "low": null,
+        "high": null
+      },
+      "optimal": {
+        "low": null,
+        "high": null
+      },
+      "series": [],
+      "goal": null
+    },
+    {
+      "code": "wbc",
+      "name": "White Blood Cell Count",
+      "system": "Hematology",
+      "value": 5.18,
+      "unit": "K/uL",
+      "date": "2026-04-23",
+      "word": "optimal",
+      "band": {
+        "low": 3.9,
+        "high": 10.2
+      },
+      "optimal": {
+        "low": 3.5,
+        "high": 6
+      },
+      "series": [
+        {
+          "date": "2025-12-09",
+          "value": 5.83
+        },
+        {
+          "date": "2026-04-23",
+          "value": 5.18
+        }
+      ],
+      "goal": null
+    },
+    {
+      "code": "direct_bilirubin",
+      "name": "Direct Bilirubin",
+      "system": "Hepatic",
+      "value": 0.22,
+      "unit": "mg/dL",
+      "date": "2023-03-17",
+      "word": "off",
+      "band": {
+        "low": 0,
+        "high": 0.2
+      },
+      "optimal": {
+        "low": null,
+        "high": null
+      },
+      "series": [
+        {
+          "date": "2023-03-17",
+          "value": 0.22
+        }
+      ],
+      "goal": null
+    },
+    {
+      "code": "ggt",
+      "name": "GGT",
+      "system": "Hepatic",
+      "value": 15,
+      "unit": "U/L",
+      "date": "2026-04-23",
+      "word": "optimal",
+      "band": {
+        "low": null,
+        "high": 73
+      },
+      "optimal": {
+        "low": 9,
+        "high": 25
+      },
+      "series": [
+        {
+          "date": "2026-04-23",
+          "value": 15
+        }
+      ],
+      "goal": null
+    },
+    {
+      "code": "cortisol",
+      "name": "Cortisol",
+      "system": "Hormone",
+      "value": 16.29,
+      "unit": "mcg/dL",
+      "date": "2025-12-09",
+      "word": "borderline",
+      "band": {
+        "low": 6.2,
+        "high": 19.4
+      },
+      "optimal": {
+        "low": 10,
+        "high": 15
+      },
+      "series": [
+        {
+          "date": "2025-12-09",
+          "value": 16.29
+        }
+      ],
+      "goal": null
+    },
+    {
+      "code": "dhea_s",
+      "name": "DHEA-S",
+      "system": "Hormone",
+      "value": 240.3,
+      "unit": "mcg/dL",
+      "date": "2024-11-20",
+      "word": "borderline",
+      "band": {
+        "low": 88.9,
+        "high": 427
+      },
+      "optimal": {
+        "low": 350,
+        "high": 500
+      },
+      "series": [
+        {
+          "date": "2024-11-20",
+          "value": 214.5
+        },
+        {
+          "date": "2024-11-20",
+          "value": 240.3
+        }
+      ],
+      "goal": null
+    },
+    {
+      "code": "estradiol",
+      "name": "Estradiol",
+      "system": "Hormone",
+      "value": 29,
+      "unit": "pg/mL",
+      "date": "2024-11-20",
+      "word": "optimal",
+      "band": {
+        "low": null,
+        "high": 39.8
+      },
+      "optimal": {
+        "low": 20,
+        "high": 50
+      },
+      "series": [
+        {
+          "date": "2024-11-20",
+          "value": 29
+        }
+      ],
+      "goal": null
+    },
+    {
+      "code": "free_testosterone",
+      "name": "Free Testosterone",
+      "system": "Hormone",
+      "value": 8.38,
+      "unit": "pg/mL",
+      "date": "2024-11-20",
+      "word": "borderline",
+      "band": {
+        "low": 4.81,
+        "high": 22.42
+      },
+      "optimal": {
+        "low": 50,
+        "high": 210
+      },
+      "series": [
+        {
+          "date": "2024-11-20",
+          "value": 8.38
+        }
+      ],
+      "goal": null
+    },
+    {
+      "code": "lh",
+      "name": "LH",
+      "system": "Hormone",
+      "value": 2.63,
+      "unit": "mIU/mL",
+      "date": "2024-11-20",
+      "word": "optimal",
+      "band": {
+        "low": 1.5,
+        "high": 9.3
+      },
+      "optimal": {
+        "low": 1.5,
+        "high": 9.3
+      },
+      "series": [
+        {
+          "date": "2024-11-20",
+          "value": 2.63
+        }
+      ],
+      "goal": null
+    },
+    {
+      "code": "prolactin",
+      "name": "Prolactin",
+      "system": "Hormone",
+      "value": 8.51,
+      "unit": "ng/mL",
+      "date": "2024-11-20",
+      "word": "optimal",
+      "band": {
+        "low": 2.1,
+        "high": 17.7
+      },
+      "optimal": {
+        "low": null,
+        "high": null
+      },
+      "series": [
+        {
+          "date": "2024-11-20",
+          "value": 8.51
+        }
+      ],
+      "goal": null
+    },
+    {
+      "code": "shbg",
+      "name": "SHBG",
+      "system": "Hormone",
+      "value": 24.2,
+      "unit": "nmol/L",
+      "date": "2024-11-20",
+      "word": "optimal",
+      "band": {
+        "low": 10,
+        "high": 57
+      },
+      "optimal": {
+        "low": 20,
+        "high": 60
+      },
+      "series": [
+        {
+          "date": "2024-11-20",
+          "value": 24.2
+        }
+      ],
+      "goal": null
+    },
+    {
+      "code": "testosterone_total",
+      "name": "Testosterone, Total",
+      "system": "Hormone",
+      "value": 360.34,
+      "unit": "ng/dL",
+      "date": "2024-11-20",
+      "word": "borderline",
+      "band": {
+        "low": 197.44,
+        "high": 669.58
+      },
+      "optimal": {
+        "low": 500,
+        "high": 900
+      },
+      "series": [
+        {
+          "date": "2024-11-20",
+          "value": 360.34
+        }
+      ],
+      "goal": null
+    },
+    {
+      "code": "aslo",
+      "name": "ASLO",
+      "system": "Inflammation",
+      "value": 0,
+      "unit": "IU/mL",
+      "date": "2015-03-21",
+      "word": "optimal",
+      "band": {
+        "low": 0,
+        "high": 200
+      },
+      "optimal": {
+        "low": null,
+        "high": null
+      },
+      "series": [
+        {
+          "date": "2014-03-26",
+          "value": 50
+        },
+        {
+          "date": "2015-03-21",
+          "value": 0
+        }
+      ],
+      "goal": null
+    },
+    {
+      "code": "crp",
+      "name": "CRP",
+      "system": "Inflammation",
+      "value": 0.64,
+      "unit": "mg/L",
+      "date": "2026-04-23",
+      "word": "optimal",
+      "band": {
+        "low": 0,
+        "high": 3.3
+      },
+      "optimal": {
+        "low": 0,
+        "high": 1
+      },
+      "series": [
+        {
+          "date": "2025-12-09",
+          "value": 0.5
+        },
+        {
+          "date": "2026-04-23",
+          "value": 0.64
+        }
+      ],
+      "goal": null
+    },
+    {
+      "code": "esr",
+      "name": "ESR",
+      "system": "Inflammation",
+      "value": 9,
+      "unit": "mm/hr",
+      "date": "2019-07-13",
+      "word": "optimal",
+      "band": {
+        "low": 0,
+        "high": 15
+      },
+      "optimal": {
+        "low": null,
+        "high": null
+      },
+      "series": [
+        {
+          "date": "2019-07-13",
+          "value": 9
+        }
+      ],
+      "goal": null
+    },
+    {
+      "code": "fibrinogen",
+      "name": "Fibrinogen",
+      "system": "Inflammation",
+      "value": 284,
+      "unit": "mg/dL",
+      "date": "2015-03-21",
+      "word": "optimal",
+      "band": {
+        "low": 180,
+        "high": 450
+      },
+      "optimal": {
+        "low": null,
+        "high": 300
+      },
+      "series": [
+        {
+          "date": "2014-03-26",
+          "value": 299
+        },
+        {
+          "date": "2015-03-21",
+          "value": 284
+        }
+      ],
+      "goal": null
+    },
+    {
+      "code": "homocysteine",
+      "name": "Homocysteine",
+      "system": "Inflammation",
+      "value": 9.64,
+      "unit": "umol/L",
+      "date": "2026-04-23",
+      "word": "optimal",
+      "band": {
+        "low": 5.46,
+        "high": 16.2
+      },
+      "optimal": {
+        "low": 5,
+        "high": 10
+      },
+      "series": [
+        {
+          "date": "2025-12-09",
+          "value": 8.78
+        },
+        {
+          "date": "2026-04-23",
+          "value": 9.64
+        }
+      ],
+      "goal": null
+    },
+    {
+      "code": "rheumatoid_factor",
+      "name": "Rheumatoid Factor",
+      "system": "Inflammation",
+      "value": 10,
+      "unit": "IU/mL",
+      "date": "2015-03-21",
+      "word": "optimal",
+      "band": {
+        "low": 0,
+        "high": 15
+      },
+      "optimal": {
+        "low": null,
+        "high": 14
+      },
+      "series": [
+        {
+          "date": "2014-03-26",
+          "value": 9
+        },
+        {
+          "date": "2015-03-21",
+          "value": 10
+        }
+      ],
+      "goal": null
+    },
+    {
+      "code": "ferritin",
+      "name": "Ferritin",
+      "system": "Iron study",
+      "value": 79.6,
+      "unit": "ng/mL",
+      "date": "2026-04-23",
+      "word": "optimal",
+      "band": {
+        "low": 22,
+        "high": 322
+      },
+      "optimal": {
+        "low": 50,
+        "high": 300
+      },
+      "series": [
+        {
+          "date": "2025-12-09",
+          "value": 94.4
+        },
+        {
+          "date": "2026-04-23",
+          "value": 79.6
+        }
+      ],
+      "goal": null
+    },
+    {
+      "code": "iron",
+      "name": "Iron",
+      "system": "Iron study",
+      "value": 109,
+      "unit": "mcg/dL",
+      "date": "2025-12-09",
+      "word": "optimal",
+      "band": {
+        "low": 65,
+        "high": 175
+      },
+      "optimal": {
+        "low": 60,
+        "high": 170
+      },
+      "series": [
+        {
+          "date": "2025-12-09",
+          "value": 109
+        }
+      ],
+      "goal": null
+    },
+    {
+      "code": "tibc",
+      "name": "TIBC",
+      "system": "Iron study",
+      "value": 322,
+      "unit": "mcg/dL",
+      "date": "2024-05-13",
+      "word": "optimal",
+      "band": {
+        "low": 225,
+        "high": 535
+      },
+      "optimal": {
+        "low": 250,
+        "high": 450
+      },
+      "series": [
+        {
+          "date": "2024-05-13",
+          "value": 322
+        }
+      ],
+      "goal": null
+    },
+    {
+      "code": "transferrin_saturation",
+      "name": "Transferrin Saturation",
+      "system": "Iron study",
+      "value": 26,
+      "unit": "%",
+      "date": "2021-10-14",
+      "word": "optimal",
+      "band": {
+        "low": 16,
+        "high": 45
+      },
+      "optimal": {
+        "low": 20,
+        "high": 50
+      },
+      "series": [
+        {
+          "date": "2021-10-14",
+          "value": 26
+        }
+      ],
+      "goal": null
+    },
+    {
+      "code": "apolipoprotein_a1",
+      "name": "Apolipoprotein A1",
+      "system": "Lipid",
+      "value": 169,
+      "unit": "mg/dL",
+      "date": "2024-05-13",
+      "word": "optimal",
+      "band": {
+        "low": 95,
+        "high": 186
+      },
+      "optimal": {
+        "low": 140,
+        "high": 180
+      },
+      "series": [
+        {
+          "date": "2024-05-13",
+          "value": 169
+        }
+      ],
+      "goal": null
+    },
+    {
+      "code": "apolipoprotein_b",
+      "name": "Apolipoprotein B",
+      "system": "Lipid",
+      "value": 99,
+      "unit": "mg/dL",
+      "date": "2026-04-23",
+      "word": "borderline",
+      "band": {
+        "low": 55,
+        "high": 140
+      },
+      "optimal": {
+        "low": 0,
+        "high": 80
+      },
+      "series": [
+        {
+          "date": "2026-04-23",
+          "value": 99
+        }
+      ],
+      "goal": null
+    },
+    {
+      "code": "total_cholesterol",
+      "name": "Cholesterol, Total",
+      "system": "Lipid",
+      "value": 217,
+      "unit": "mg/dL",
+      "date": "2026-04-23",
+      "word": "off",
+      "band": {
+        "low": 0,
+        "high": 200
+      },
+      "optimal": {
+        "low": 0,
+        "high": 180
+      },
+      "series": [
+        {
+          "date": "2025-12-09",
+          "value": 200
+        },
+        {
+          "date": "2026-04-23",
+          "value": 217
+        }
+      ],
+      "goal": null
+    },
+    {
+      "code": "hdl_cholesterol",
+      "name": "HDL Cholesterol",
+      "system": "Lipid",
+      "value": 50,
+      "unit": "mg/dL",
+      "date": "2026-04-23",
+      "word": "off",
+      "band": {
+        "low": 60,
+        "high": null
+      },
+      "optimal": {
+        "low": 50,
+        "high": 90
+      },
+      "series": [
+        {
+          "date": "2025-12-09",
+          "value": 44
+        },
+        {
+          "date": "2026-04-23",
+          "value": 50
+        }
+      ],
+      "goal": null
+    },
+    {
+      "code": "ldl_cholesterol",
+      "name": "LDL Cholesterol",
+      "system": "Lipid",
+      "value": 131,
+      "unit": "mg/dL",
+      "date": "2026-04-23",
+      "word": "off",
+      "band": {
+        "low": 0,
+        "high": 100
+      },
+      "optimal": {
+        "low": 0,
+        "high": 70
+      },
+      "series": [
+        {
+          "date": "2025-12-09",
+          "value": 117
+        },
+        {
+          "date": "2026-04-23",
+          "value": 131
+        }
+      ],
+      "goal": {
+        "low": 70,
+        "high": 100,
+        "due": "2026-12-01"
+      }
+    },
+    {
+      "code": "lp_a",
+      "name": "Lipoprotein(a)",
+      "system": "Lipid",
+      "value": 25,
+      "unit": "mg/dL",
+      "date": "2026-04-23",
+      "word": "optimal",
+      "band": {
+        "low": null,
+        "high": 30
+      },
+      "optimal": {
+        "low": null,
+        "high": 75
+      },
+      "series": [
+        {
+          "date": "2026-04-23",
+          "value": 25
+        }
+      ],
+      "goal": null
+    },
+    {
+      "code": "non_hdl_cholesterol",
+      "name": "Non-HDL Cholesterol",
+      "system": "Lipid",
+      "value": 167,
+      "unit": "mg/dL",
+      "date": "2026-04-23",
+      "word": "borderline",
+      "band": {
+        "low": null,
+        "high": null
+      },
+      "optimal": {
+        "low": 0,
+        "high": 130
+      },
+      "series": [
+        {
+          "date": "2025-12-09",
+          "value": 156
+        },
+        {
+          "date": "2026-04-23",
+          "value": 167
+        }
+      ],
+      "goal": null
+    },
+    {
+      "code": "total_lipids",
+      "name": "Total Lipids",
+      "system": "Lipid",
+      "value": 654.2,
+      "unit": "mg/dL",
+      "date": "2024-05-13",
+      "word": "optimal",
+      "band": {
+        "low": 400,
+        "high": 800
+      },
+      "optimal": {
+        "low": null,
+        "high": null
+      },
+      "series": [
+        {
+          "date": "2024-05-13",
+          "value": 654.2
+        }
+      ],
+      "goal": null
+    },
+    {
+      "code": "triglycerides",
+      "name": "Triglycerides",
+      "system": "Lipid",
+      "value": 106,
+      "unit": "mg/dL",
+      "date": "2026-04-23",
+      "word": "borderline",
+      "band": {
+        "low": null,
+        "high": 150
+      },
+      "optimal": {
+        "low": 0,
+        "high": 100
+      },
+      "series": [
+        {
+          "date": "2025-12-09",
+          "value": 145
+        },
+        {
+          "date": "2026-04-23",
+          "value": 106
+        }
+      ],
+      "goal": null
+    },
+    {
+      "code": "vldl_cholesterol",
+      "name": "VLDL Cholesterol",
+      "system": "Lipid",
+      "value": 21.94,
+      "unit": "mg/dL",
+      "date": "2024-05-13",
+      "word": "optimal",
+      "band": {
+        "low": 2,
+        "high": 38
+      },
+      "optimal": {
+        "low": null,
+        "high": null
+      },
+      "series": [
+        {
+          "date": "2024-05-13",
+          "value": 21.94
+        }
+      ],
+      "goal": null
+    },
+    {
+      "code": "albumin",
+      "name": "Albumin",
+      "system": "Metabolic",
+      "value": 4.7,
+      "unit": "g/dL",
+      "date": "2026-04-23",
+      "word": "optimal",
+      "band": {
+        "low": 3.2,
+        "high": 4.8
+      },
+      "optimal": {
+        "low": 4.2,
+        "high": 5
+      },
+      "series": [
+        {
+          "date": "2025-12-09",
+          "value": 5.1
+        },
+        {
+          "date": "2026-04-23",
+          "value": 4.7
+        }
+      ],
+      "goal": null
+    },
+    {
+      "code": "alp",
+      "name": "Alkaline Phosphatase",
+      "system": "Metabolic",
+      "value": 85.33,
+      "unit": "U/L",
+      "date": "2024-05-13",
+      "word": "borderline",
+      "band": {
+        "low": 30,
+        "high": 120
+      },
+      "optimal": {
+        "low": 30,
+        "high": 65
+      },
+      "series": [
+        {
+          "date": "2024-05-13",
+          "value": 85.33
+        }
+      ],
+      "goal": null
+    },
+    {
+      "code": "alt",
+      "name": "ALT",
+      "system": "Metabolic",
+      "value": 10,
+      "unit": "U/L",
+      "date": "2025-12-09",
+      "word": "optimal",
+      "band": {
+        "low": 10,
+        "high": 40
+      },
+      "optimal": {
+        "low": null,
+        "high": 30
+      },
+      "series": [
+        {
+          "date": "2025-12-09",
+          "value": 10
+        }
+      ],
+      "goal": null
+    },
+    {
+      "code": "amylase",
+      "name": "Amylase",
+      "system": "Metabolic",
+      "value": 80.65,
+      "unit": "U/L",
+      "date": "2023-03-17",
+      "word": "optimal",
+      "band": {
+        "low": 28,
+        "high": 100
+      },
+      "optimal": {
+        "low": null,
+        "high": null
+      },
+      "series": [
+        {
+          "date": "2023-03-17",
+          "value": 80.65
+        }
+      ],
+      "goal": null
+    },
+    {
+      "code": "ast",
+      "name": "AST",
+      "system": "Metabolic",
+      "value": 20,
+      "unit": "U/L",
+      "date": "2025-12-09",
+      "word": "optimal",
+      "band": {
+        "low": 15,
+        "high": 40
+      },
+      "optimal": {
+        "low": 10,
+        "high": 25
+      },
+      "series": [
+        {
+          "date": "2025-12-09",
+          "value": 20
+        }
+      ],
+      "goal": null
+    },
+    {
+      "code": "total_bilirubin",
+      "name": "Bilirubin, Total",
+      "system": "Metabolic",
+      "value": 1.06,
+      "unit": "mg/dL",
+      "date": "2012-08-08",
+      "word": "borderline",
+      "band": {
+        "low": 0.2,
+        "high": 1.3
+      },
+      "optimal": {
+        "low": 0.2,
+        "high": 1
+      },
+      "series": [
+        {
+          "date": "2012-08-08",
+          "value": 1.06
+        }
+      ],
+      "goal": null
+    },
+    {
+      "code": "bun",
+      "name": "BUN",
+      "system": "Metabolic",
+      "value": 32.8,
+      "unit": "mg/dL",
+      "date": "2026-04-23",
+      "word": "borderline",
+      "band": {
+        "low": 12.8,
+        "high": 42.8
+      },
+      "optimal": {
+        "low": 7,
+        "high": 20
+      },
+      "series": [
+        {
+          "date": "2026-04-23",
+          "value": 32.8
+        }
+      ],
+      "goal": null
+    },
+    {
+      "code": "calcium",
+      "name": "Calcium",
+      "system": "Metabolic",
+      "value": 9.6,
+      "unit": "mg/dL",
+      "date": "2025-12-09",
+      "word": "optimal",
+      "band": {
+        "low": 8.7,
+        "high": 10.4
+      },
+      "optimal": {
+        "low": 9,
+        "high": 10
+      },
+      "series": [
+        {
+          "date": "2025-12-09",
+          "value": 9.6
+        }
+      ],
+      "goal": null
+    },
+    {
+      "code": "creatinine",
+      "name": "Creatinine",
+      "system": "Metabolic",
+      "value": 0.9,
+      "unit": "mg/dL",
+      "date": "2026-04-23",
+      "word": "optimal",
+      "band": {
+        "low": 0.73,
+        "high": 1.18
+      },
+      "optimal": {
+        "low": 0.8,
+        "high": 1.1
+      },
+      "series": [
+        {
+          "date": "2025-12-09",
+          "value": 0.95
+        },
+        {
+          "date": "2026-04-23",
+          "value": 0.9
+        }
+      ],
+      "goal": null
+    },
+    {
+      "code": "globulin",
+      "name": "Globulin",
+      "system": "Metabolic",
+      "value": 1.3,
+      "unit": "IU/mL",
+      "date": "2026-04-23",
+      "word": "borderline",
+      "band": {
+        "low": null,
+        "high": 4.5
+      },
+      "optimal": {
+        "low": 2.3,
+        "high": 3.5
+      },
+      "series": [
+        {
+          "date": "2026-04-23",
+          "value": 1.3
+        }
+      ],
+      "goal": null
+    },
+    {
+      "code": "glucose",
+      "name": "Glucose",
+      "system": "Metabolic",
+      "value": 87,
+      "unit": "mg/dL",
+      "date": "2026-04-23",
+      "word": "borderline",
+      "band": {
+        "low": 74,
+        "high": 106
+      },
+      "optimal": {
+        "low": 72,
+        "high": 85
+      },
+      "series": [
+        {
+          "date": "2025-12-09",
+          "value": 81
+        },
+        {
+          "date": "2026-04-23",
+          "value": 87
+        }
+      ],
+      "goal": null
+    },
+    {
+      "code": "hba1c",
+      "name": "Hemoglobin A1c",
+      "system": "Metabolic",
+      "value": 5,
+      "unit": "%",
+      "date": "2026-04-23",
+      "word": "optimal",
+      "band": {
+        "low": 4,
+        "high": 6
+      },
+      "optimal": {
+        "low": 4,
+        "high": 5.2
+      },
+      "series": [
+        {
+          "date": "2025-12-09",
+          "value": 5.2
+        },
+        {
+          "date": "2026-04-23",
+          "value": 5
+        }
+      ],
+      "goal": null
+    },
+    {
+      "code": "homa_ir",
+      "name": "HOMA-IR",
+      "system": "Metabolic",
+      "value": 1.22,
+      "unit": "",
+      "date": "2026-04-23",
+      "word": "borderline",
+      "band": {
+        "low": null,
+        "high": null
+      },
+      "optimal": {
+        "low": 0,
+        "high": 1
+      },
+      "series": [
+        {
+          "date": "2025-12-09",
+          "value": 0.84
+        },
+        {
+          "date": "2026-04-23",
+          "value": 1.22
+        }
+      ],
+      "goal": null
+    },
+    {
+      "code": "insulin",
+      "name": "Insulin",
+      "system": "Metabolic",
+      "value": 5.7,
+      "unit": "uIU/mL",
+      "date": "2026-04-23",
+      "word": "borderline",
+      "band": {
+        "low": 3,
+        "high": 25
+      },
+      "optimal": {
+        "low": 2,
+        "high": 5
+      },
+      "series": [
+        {
+          "date": "2025-12-09",
+          "value": 4.2
+        },
+        {
+          "date": "2026-04-23",
+          "value": 5.7
+        }
+      ],
+      "goal": null
+    },
+    {
+      "code": "magnesium",
+      "name": "Magnesium",
+      "system": "Metabolic",
+      "value": 2.14,
+      "unit": "mg/dL",
+      "date": "2026-04-23",
+      "word": "optimal",
+      "band": {
+        "low": 1.6,
+        "high": 2.6
+      },
+      "optimal": {
+        "low": 2,
+        "high": 2.5
+      },
+      "series": [
+        {
+          "date": "2025-12-09",
+          "value": 2.15
+        },
+        {
+          "date": "2026-04-23",
+          "value": 2.14
+        }
+      ],
+      "goal": null
+    },
+    {
+      "code": "potassium",
+      "name": "Potassium",
+      "system": "Metabolic",
+      "value": 4.84,
+      "unit": "mEq/L",
+      "date": "2021-10-14",
+      "word": "borderline",
+      "band": {
+        "low": 3.5,
+        "high": 5.5
+      },
+      "optimal": {
+        "low": 3.7,
+        "high": 4.2
+      },
+      "series": [
+        {
+          "date": "2021-10-14",
+          "value": 4.84
+        }
+      ],
+      "goal": null
+    },
+    {
+      "code": "sodium",
+      "name": "Sodium",
+      "system": "Metabolic",
+      "value": 145.27,
+      "unit": "mEq/L",
+      "date": "2021-10-14",
+      "word": "borderline",
+      "band": {
+        "low": 135,
+        "high": 150
+      },
+      "optimal": {
+        "low": 135,
+        "high": 142
+      },
+      "series": [
+        {
+          "date": "2021-10-14",
+          "value": 145.27
+        }
+      ],
+      "goal": null
+    },
+    {
+      "code": "total_protein",
+      "name": "Total Protein",
+      "system": "Metabolic",
+      "value": 7.9,
+      "unit": "g/dL",
+      "date": "2025-12-09",
+      "word": "borderline",
+      "band": {
+        "low": 5.7,
+        "high": 8.2
+      },
+      "optimal": {
+        "low": 6.5,
+        "high": 7.5
+      },
+      "series": [
+        {
+          "date": "2025-12-09",
+          "value": 7.9
+        }
+      ],
+      "goal": null
+    },
+    {
+      "code": "phosphorus",
+      "name": "Phosphorus",
+      "system": "Mineral",
+      "value": 3.94,
+      "unit": "mg/dL",
+      "date": "2022-10-20",
+      "word": "optimal",
+      "band": {
+        "low": 2.5,
+        "high": 4.5
+      },
+      "optimal": {
+        "low": 2.5,
+        "high": 4.5
+      },
+      "series": [
+        {
+          "date": "2021-12-04",
+          "value": 4.3
+        },
+        {
+          "date": "2022-10-20",
+          "value": 3.94
+        }
+      ],
+      "goal": null
+    },
+    {
+      "code": "uric_acid",
+      "name": "Uric Acid",
+      "system": "Renal",
+      "value": 5.5,
+      "unit": "mg/dL",
+      "date": "2026-04-23",
+      "word": "optimal",
+      "band": {
+        "low": 3.7,
+        "high": 9.2
+      },
+      "optimal": {
+        "low": 3.5,
+        "high": 6
+      },
+      "series": [
+        {
+          "date": "2025-12-09",
+          "value": 4.9
+        },
+        {
+          "date": "2026-04-23",
+          "value": 5.5
+        }
+      ],
+      "goal": null
+    },
+    {
+      "code": "anti_thyroglobulin",
+      "name": "Anti-Thyroglobulin Antibodies",
+      "system": "Thyroid",
+      "value": 0.02,
+      "unit": "IU/mL",
+      "date": "2024-05-13",
+      "word": "optimal",
+      "band": {
+        "low": 0,
+        "high": 3.99
+      },
+      "optimal": {
+        "low": null,
+        "high": null
+      },
+      "series": [
+        {
+          "date": "2024-05-13",
+          "value": 0.02
+        }
+      ],
+      "goal": null
+    },
+    {
+      "code": "free_t3",
+      "name": "Free T3",
+      "system": "Thyroid",
+      "value": 4.17,
+      "unit": "pg/mL",
+      "date": "2026-04-23",
+      "word": "borderline",
+      "band": {
+        "low": 2.3,
+        "high": 4.2
+      },
+      "optimal": {
+        "low": 3,
+        "high": 4
+      },
+      "series": [
+        {
+          "date": "2025-12-09",
+          "value": 4.43
+        },
+        {
+          "date": "2026-04-23",
+          "value": 4.17
+        }
+      ],
+      "goal": null
+    },
+    {
+      "code": "free_t4",
+      "name": "Free T4",
+      "system": "Thyroid",
+      "value": 1.23,
+      "unit": "ng/dL",
+      "date": "2026-04-23",
+      "word": "optimal",
+      "band": {
+        "low": 0.89,
+        "high": 1.76
+      },
+      "optimal": {
+        "low": 1,
+        "high": 1.5
+      },
+      "series": [
+        {
+          "date": "2025-12-09",
+          "value": 1.29
+        },
+        {
+          "date": "2026-04-23",
+          "value": 1.23
+        }
+      ],
+      "goal": null
+    },
+    {
+      "code": "total_t3",
+      "name": "Total T3",
+      "system": "Thyroid",
+      "value": 110,
+      "unit": "ng/dL",
+      "date": "2026-04-23",
+      "word": "optimal",
+      "band": {
+        "low": 60,
+        "high": 181
+      },
+      "optimal": {
+        "low": 80,
+        "high": 180
+      },
+      "series": [
+        {
+          "date": "2025-12-09",
+          "value": 126
+        },
+        {
+          "date": "2026-04-23",
+          "value": 110
+        }
+      ],
+      "goal": null
+    },
+    {
+      "code": "total_t4",
+      "name": "Total T4",
+      "system": "Thyroid",
+      "value": 8.1,
+      "unit": "mcg/dL",
+      "date": "2025-12-09",
+      "word": "optimal",
+      "band": {
+        "low": 4.5,
+        "high": 10.9
+      },
+      "optimal": {
+        "low": 4.5,
+        "high": 12
+      },
+      "series": [
+        {
+          "date": "2025-12-09",
+          "value": 8.1
+        }
+      ],
+      "goal": null
+    },
+    {
+      "code": "tpo_antibodies",
+      "name": "TPO Antibodies",
+      "system": "Thyroid",
+      "value": 5,
+      "unit": "IU/mL",
+      "date": "2025-12-09",
+      "word": "optimal",
+      "band": {
+        "low": null,
+        "high": 34
+      },
+      "optimal": {
+        "low": 0,
+        "high": 9
+      },
+      "series": [
+        {
+          "date": "2025-12-09",
+          "value": 5
+        }
+      ],
+      "goal": null
+    },
+    {
+      "code": "tsh",
+      "name": "TSH",
+      "system": "Thyroid",
+      "value": 1.123,
+      "unit": "mIU/L",
+      "date": "2026-04-23",
+      "word": "optimal",
+      "band": {
+        "low": 0.55,
+        "high": 4.78
+      },
+      "optimal": {
+        "low": 0.5,
+        "high": 2.5
+      },
+      "series": [
+        {
+          "date": "2025-12-09",
+          "value": 1.824
+        },
+        {
+          "date": "2026-04-23",
+          "value": 1.123
+        }
+      ],
+      "goal": null
+    },
+    {
+      "code": "urine_ascorbic_acid",
+      "name": "Ascorbic Acid, Urine",
+      "system": "Vitamin",
+      "value": null,
+      "unit": "mg/dL",
+      "date": "2024-05-13",
+      "word": "no band",
+      "band": {
+        "low": null,
+        "high": null
+      },
+      "optimal": {
+        "low": null,
+        "high": null
+      },
+      "series": [
+        {
+          "date": "2015-03-21",
+          "value": 20
+        }
+      ],
+      "goal": null
+    },
+    {
+      "code": "folic_acid",
+      "name": "Folic Acid (Vitamin B9)",
+      "system": "Vitamin",
+      "value": 15.46,
+      "unit": "ng/mL",
+      "date": "2024-05-13",
+      "word": "optimal",
+      "band": {
+        "low": 3.2,
+        "high": 19.6
+      },
+      "optimal": {
+        "low": 10,
+        "high": 17
+      },
+      "series": [
+        {
+          "date": "2024-05-13",
+          "value": 15.46
+        }
+      ],
+      "goal": null
+    },
+    {
+      "code": "vitamin_b12",
+      "name": "Vitamin B12",
+      "system": "Vitamin",
+      "value": 472,
+      "unit": "pg/mL",
+      "date": "2026-04-23",
+      "word": "borderline",
+      "band": {
+        "low": 197,
+        "high": 771
+      },
+      "optimal": {
+        "low": 500,
+        "high": 900
+      },
+      "series": [
+        {
+          "date": "2025-12-09",
+          "value": 603
+        },
+        {
+          "date": "2026-04-23",
+          "value": 472
+        }
+      ],
+      "goal": null
+    },
+    {
+      "code": "vitamin_d",
+      "name": "Vitamin D",
+      "system": "Vitamin",
+      "value": 32.68,
+      "unit": "ng/mL",
+      "date": "2026-04-23",
+      "word": "borderline",
+      "band": {
+        "low": 30,
+        "high": 100
+      },
+      "optimal": {
+        "low": 40,
+        "high": 60
+      },
+      "series": [
+        {
+          "date": "2025-12-09",
+          "value": 31.77
+        },
+        {
+          "date": "2026-04-23",
+          "value": 32.68
+        }
+      ],
+      "goal": null
+    },
+    {
+      "code": "zinc",
+      "name": "Zinc",
+      "system": "Vitamin",
+      "value": 1.14,
+      "unit": "mcg/dL",
+      "date": "2025-12-09",
+      "word": "optimal",
+      "band": {
+        "low": 0.75,
+        "high": 2.91
+      },
+      "optimal": {
+        "low": 0.7,
+        "high": 1.2
+      },
+      "series": [
+        {
+          "date": "2025-12-09",
+          "value": 1.14
+        }
+      ],
+      "goal": null
+    },
+    {
+      "code": "hcv_antibodies",
+      "name": "Anti-HCV",
+      "system": "Immunology",
+      "value": null,
+      "unit": "",
+      "date": "2024-05-13",
+      "word": "no band",
+      "band": {
+        "low": null,
+        "high": 0.9
+      },
+      "optimal": {
+        "low": null,
+        "high": null
+      },
+      "series": [
+        {
+          "date": "2021-12-04",
+          "value": 0.17
+        }
+      ],
+      "goal": null
+    },
+    {
+      "code": "hbs_antigen",
+      "name": "HBs Antigen",
+      "system": "Immunology",
+      "value": null,
+      "unit": "",
+      "date": "2024-05-13",
+      "word": "no band",
+      "band": {
+        "low": null,
+        "high": 0.9
+      },
+      "optimal": {
+        "low": null,
+        "high": null
+      },
+      "series": [
+        {
+          "date": "2021-12-04",
+          "value": 0.13
+        }
+      ],
+      "goal": null
+    },
+    {
+      "code": "h_pylori_antigen_stool_qualitative",
+      "name": "Helicobacter pylori Antigen, Stool, Qualitative",
+      "system": "Immunology",
+      "value": null,
+      "unit": "",
+      "date": "2023-06-28",
+      "word": "no band",
+      "band": {
+        "low": null,
+        "high": null
+      },
+      "optimal": {
+        "low": null,
+        "high": null
+      },
+      "series": [],
+      "goal": null
+    },
+    {
+      "code": "hbs_ag_screening",
+      "name": "Hepatitis B Surface Antigen (screening)",
+      "system": "Immunology",
+      "value": null,
+      "unit": "",
+      "date": "2014-03-26",
+      "word": "no band",
+      "band": {
+        "low": null,
+        "high": null
+      },
+      "optimal": {
+        "low": null,
+        "high": null
+      },
+      "series": [],
+      "goal": null
+    },
+    {
+      "code": "toxocara_igg",
+      "name": "Toxocara IgG",
+      "system": "Immunology",
+      "value": 2,
+      "unit": "NTU",
+      "date": "2014-03-26",
+      "word": "optimal",
+      "band": {
+        "low": null,
+        "high": 9
+      },
+      "optimal": {
+        "low": null,
+        "high": null
+      },
+      "series": [
+        {
+          "date": "2014-03-26",
+          "value": 2
+        }
+      ],
+      "goal": null
+    },
+    {
+      "code": "toxoplasma_igg",
+      "name": "Toxoplasma IgG",
+      "system": "Immunology",
+      "value": 291.4,
+      "unit": "IU/mL",
+      "date": "2014-07-07",
+      "word": "no band",
+      "band": {
+        "low": null,
+        "high": null
+      },
+      "optimal": {
+        "low": null,
+        "high": null
+      },
+      "series": [
+        {
+          "date": "2014-03-26",
+          "value": 295.5
+        },
+        {
+          "date": "2014-07-07",
+          "value": 291.4
+        }
+      ],
+      "goal": null
+    },
+    {
+      "code": "toxoplasma_igm",
+      "name": "Toxoplasma IgM",
+      "system": "Immunology",
+      "value": 0.208,
+      "unit": "Index",
+      "date": "2014-07-07",
+      "word": "no band",
+      "band": {
+        "low": null,
+        "high": null
+      },
+      "optimal": {
+        "low": null,
+        "high": null
+      },
+      "series": [
+        {
+          "date": "2014-03-26",
+          "value": 0.179
+        },
+        {
+          "date": "2014-07-07",
+          "value": 0.208
+        }
+      ],
+      "goal": null
+    },
+    {
+      "code": "vdrl",
+      "name": "Venereal Disease Research Laboratory (VDRL) Test",
+      "system": "Immunology",
+      "value": null,
+      "unit": "",
+      "date": "2012-08-08",
+      "word": "no band",
+      "band": {
+        "low": null,
+        "high": null
+      },
+      "optimal": {
+        "low": null,
+        "high": null
+      },
+      "series": [],
+      "goal": null
+    },
+    {
+      "code": "specific_gravity",
+      "name": "Specific Gravity",
+      "system": "Urinalysis",
+      "value": 1.01,
+      "unit": "",
+      "date": "2015-03-21",
+      "word": "optimal",
+      "band": {
+        "low": 1.01,
+        "high": 1.03
+      },
+      "optimal": {
+        "low": null,
+        "high": null
+      },
+      "series": [
+        {
+          "date": "2015-03-21",
+          "value": 1.01
+        }
+      ],
+      "goal": null
+    },
+    {
+      "code": "urine_glucose",
+      "name": "Urine Glucose",
+      "system": "Urinalysis",
+      "value": null,
+      "unit": "mg/dL",
+      "date": "2024-05-13",
+      "word": "no band",
+      "band": {
+        "low": 0,
+        "high": 15
+      },
+      "optimal": {
+        "low": null,
+        "high": null
+      },
+      "series": [],
+      "goal": null
+    },
+    {
+      "code": "urine_ph",
+      "name": "Urine pH",
+      "system": "Urinalysis",
+      "value": 5.5,
+      "unit": "",
+      "date": "2024-05-13",
+      "word": "optimal",
+      "band": {
+        "low": 4.8,
+        "high": 7.4
+      },
+      "optimal": {
+        "low": null,
+        "high": null
+      },
+      "series": [
+        {
+          "date": "2024-05-13",
+          "value": 5.5
+        }
+      ],
+      "goal": null
+    },
+    {
+      "code": "urine_protein",
+      "name": "Urine Protein",
+      "system": "Urinalysis",
+      "value": null,
+      "unit": "mg/dL",
+      "date": "2024-05-13",
+      "word": "no band",
+      "band": {
+        "low": 0,
+        "high": 14
+      },
+      "optimal": {
+        "low": null,
+        "high": null
+      },
+      "series": [],
+      "goal": null
+    },
+    {
+      "code": "blood_urine",
+      "name": "Blood, Urine",
+      "system": "Urine",
+      "value": null,
+      "unit": "",
+      "date": "2012-08-08",
+      "word": "no band",
+      "band": {
+        "low": null,
+        "high": null
+      },
+      "optimal": {
+        "low": null,
+        "high": null
+      },
+      "series": [],
+      "goal": null
+    },
+    {
+      "code": "urine_epithelial_cells",
+      "name": "Epithelial Cells, Urine",
+      "system": "Urine",
+      "value": null,
+      "unit": "",
+      "date": "2023-03-17",
+      "word": "no band",
+      "band": {
+        "low": null,
+        "high": null
+      },
+      "optimal": {
+        "low": null,
+        "high": null
+      },
+      "series": [],
+      "goal": null
+    },
+    {
+      "code": "flat_epithelial_cells_urine",
+      "name": "Flat Epithelial Cells in Urine",
+      "system": "Urine",
+      "value": null,
+      "unit": "",
+      "date": "2024-05-13",
+      "word": "no band",
+      "band": {
+        "low": null,
+        "high": null
+      },
+      "optimal": {
+        "low": null,
+        "high": null
+      },
+      "series": [],
+      "goal": null
+    },
+    {
+      "code": "urine_ketones",
+      "name": "Ketones, Urine",
+      "system": "Urine",
+      "value": null,
+      "unit": "",
+      "date": "2024-05-13",
+      "word": "no band",
+      "band": {
+        "low": null,
+        "high": null
+      },
+      "optimal": {
+        "low": null,
+        "high": null
+      },
+      "series": [],
+      "goal": null
+    },
+    {
+      "code": "red_blood_cells_urine_microscopic",
+      "name": "Red Blood Cells in Urine Sediment",
+      "system": "Urine",
+      "value": null,
+      "unit": "",
+      "date": "2024-05-13",
+      "word": "no band",
+      "band": {
+        "low": null,
+        "high": null
+      },
+      "optimal": {
+        "low": null,
+        "high": null
+      },
+      "series": [],
+      "goal": null
+    },
+    {
+      "code": "urine_strip_test",
+      "name": "Urinalysis, Macroscopic",
+      "system": "Urine",
+      "value": null,
+      "unit": "",
+      "date": "2012-08-08",
+      "word": "no band",
+      "band": {
+        "low": null,
+        "high": null
+      },
+      "optimal": {
+        "low": null,
+        "high": null
+      },
+      "series": [],
+      "goal": null
+    },
+    {
+      "code": "urine_bilirubin",
+      "name": "Urine Bilirubin",
+      "system": "Urine",
+      "value": null,
+      "unit": null,
+      "date": "2024-05-13",
+      "word": "no band",
+      "band": {
+        "low": null,
+        "high": null
+      },
+      "optimal": {
+        "low": null,
+        "high": null
+      },
+      "series": [],
+      "goal": null
+    },
+    {
+      "code": "urine_leukocytes",
+      "name": "Urine Leukocytes (Dipstick)",
+      "system": "Urine",
+      "value": null,
+      "unit": "",
+      "date": "2024-05-13",
+      "word": "no band",
+      "band": {
+        "low": null,
+        "high": null
+      },
+      "optimal": {
+        "low": null,
+        "high": null
+      },
+      "series": [],
+      "goal": null
+    },
+    {
+      "code": "urine_nitrites",
+      "name": "Urine Nitrites",
+      "system": "Urine",
+      "value": null,
+      "unit": "",
+      "date": "2024-05-13",
+      "word": "no band",
+      "band": {
+        "low": null,
+        "high": null
+      },
+      "optimal": {
+        "low": null,
+        "high": null
+      },
+      "series": [],
+      "goal": null
+    },
+    {
+      "code": "urine_red_blood_cells",
+      "name": "Urine Red Blood Cells (Dipstick)",
+      "system": "Urine",
+      "value": null,
+      "unit": "ery/uL",
+      "date": "2024-05-13",
+      "word": "no band",
+      "band": {
+        "low": null,
+        "high": null
+      },
+      "optimal": {
+        "low": null,
+        "high": null
+      },
+      "series": [],
+      "goal": null
+    },
+    {
+      "code": "urine_specific_gravity",
+      "name": "Urine Specific Gravity",
+      "system": "Urine",
+      "value": 1.025,
+      "unit": "",
+      "date": "2024-05-13",
+      "word": "optimal",
+      "band": {
+        "low": 1.015,
+        "high": 1.025
+      },
+      "optimal": {
+        "low": 1.015,
+        "high": 1.025
+      },
+      "series": [
+        {
+          "date": "2024-05-13",
+          "value": 1.025
+        }
+      ],
+      "goal": null
+    },
+    {
+      "code": "urine_urobilinogen",
+      "name": "Urobilinogen, Urine",
+      "system": "Urine",
+      "value": 0.1,
+      "unit": "mg/dL",
+      "date": "2024-05-13",
+      "word": "off",
+      "band": {
+        "low": 0.2,
+        "high": 1
+      },
+      "optimal": {
+        "low": 0.1,
+        "high": 1
+      },
+      "series": [
+        {
+          "date": "2024-05-13",
+          "value": 0.1
+        }
+      ],
+      "goal": null
+    }
+  ]
+}

@@ -24,6 +24,7 @@ import { users } from "@/db/auth-schema";
 import {
   bodyBody,
   genomeBody,
+  markersBody,
   planTodayBody,
   todayBody,
 } from "@/lib/api-contract";
@@ -73,6 +74,9 @@ async function main() {
     rows: (await listWatch(owner.id)).map(toApiPaper),
   });
   write("genome", await genomeBody(owner.id));
+  /* Phase 34 section 2. A year is what the Markers tab's own charts draw, and
+     it is what the phone's Blood tab asks for. */
+  write("markers", await markersBody(owner.id, 365));
   write("meals", mealsFixture(day));
 }
 

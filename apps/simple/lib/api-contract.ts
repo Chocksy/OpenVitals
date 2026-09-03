@@ -14,12 +14,18 @@ import { and, desc, eq } from "drizzle-orm";
 import { getDb, habitLogs, uploads } from "@/db";
 import { getBodyDay } from "@/lib/body-data";
 import type { Status } from "@/lib/status";
-import { localDay } from "@/lib/daily";
+import { goalGap, inGoal, localDay } from "@/lib/daily";
 import { getGoals, getProtocol } from "@/lib/daily-data";
 import { occurrences } from "@/lib/plan-line";
-import { getMetricRows } from "@/lib/data";
+import {
+  getMetricRows,
+  sortForBiomarkerList,
+  toBiomarkerRow,
+} from "@/lib/data";
 import {
   buildToday,
+  firstMoveSentence,
+  goalsSentence,
   railCards,
   systemTiles,
   type RailTone,
@@ -28,14 +34,37 @@ import { actionsForAll } from "@/lib/actions";
 import { buildLedger } from "@/lib/ledger";
 import { explainKey } from "@/lib/explain";
 import { latestReport } from "@/lib/report";
+import { projectionLine } from "@/lib/projection";
+import { projectionsFor } from "@/lib/projections";
+import { fmtCategory } from "@/lib/utils";
 import { genomeVerdicts, loadGenome, movedIds } from "@/lib/genome";
 import { genomeVerdict } from "@/lib/genome-catalog";
 import { orderVerdicts } from "@/lib/genome-view";
 
 /* ── GET /api/today ───────────────────────────────────────────────────── */
 
+/**
+ * One goal, as Today prints it. Phase 34 section 1.
+ *
+ * `toGo` is the distance to the nearer edge of the target band, in the
+ * marker's own unit, and is 0 once the value is inside it and null when the
+ * marker has never been measured.
+ */
+export interface TodayGoal {
+  code: string;
+  name: string;
+  value: number | null;
+  unit: string | null;
+  target: { low: number | null; high: number | null; due: string | null };
+  toGo: number | null;
+  onPace: boolean | null;
+  paceLine: string | null;
+  moves: { title: string; done: boolean }[];
+}
+
 export interface TodayBody {
   sentence: { head: string; tail: string; tone: RailTone };
+  goals: TodayGoal[];
   status: {
     off: number;
     borderline: number;
@@ -68,6 +97,84 @@ export interface TodayBody {
     unit: string | null;
     marker: string | null;
   }[];
+}
+
+/**
+ * What this person is moving, and whether it is going to get there.
+ *
+ * A goal is a row in `goals`: a target band, a date, or both. A row with a
+ * date and no number is a planned draw — the Next draw tile is where that
+ * already reads — so only the ones with a number to reach are goals here.
+ * Achieved goals drop out; the order is `getGoals`'s own, nearest date first.
+ *
+ * `onPace` is the app's one real projection (`lib/projection.ts`) read against
+ * the target: what the adopted actions, at the adherence on file, are expected
+ * to do to this marker by its own retest date. True when that expected value
+ * lands inside the target band, false when it does not, and **null when no
+ * projection exists** — nothing adopted moves this marker, or it has never
+ * been measured — because a projection nobody made is not a "no". A goal
+ * already inside its band is on pace by measurement rather than by forecast.
+ *
+ * `paceLine` is the sentence the marker page prints under the same
+ * projection, `projectionLine`, so the phone and the web never word it two
+ * ways. Null when there is no projection.
+ *
+ * `moves` are the adopted protocol items whose own `metric_codes` name this
+ * marker, with today's tick off `habit_logs`. Nothing is inferred from the
+ * text of an action: an item that never named the marker never appears.
+ */
+export async function todayGoals(
+  userId: string,
+  day: string = localDay(),
+): Promise<TodayGoal[]> {
+  const [views, protocol, projections] = await Promise.all([
+    getGoals(userId),
+    getProtocol(userId),
+    projectionsFor(userId),
+  ]);
+
+  const open = views.filter(
+    (g) =>
+      !g.achievedAt && (g.targetLow != null || g.targetHigh != null),
+  );
+  if (!open.length) return [];
+
+  const ticks = await getDb()
+    .select({ itemId: habitLogs.itemId, done: habitLogs.done })
+    .from(habitLogs)
+    .where(and(eq(habitLogs.userId, userId), eq(habitLogs.day, day)));
+  const doneIds = new Set(ticks.filter((t) => t.done).map((t) => t.itemId));
+
+  return open.map((g) => {
+    const projection =
+      projections.find((p) => p.code === g.metricCode && !p.resolvedAt) ??
+      projections.find((p) => p.code === g.metricCode) ??
+      null;
+    const reached = inGoal(g.current, g.targetLow, g.targetHigh);
+    return {
+      code: g.metricCode,
+      name: g.metricName,
+      value: g.current,
+      unit: g.unit,
+      target: { low: g.targetLow, high: g.targetHigh, due: g.due },
+      toGo:
+        g.current == null
+          ? null
+          : Math.round(goalGap(g.current, g.targetLow, g.targetHigh) * 100) /
+            100,
+      onPace: reached
+        ? true
+        : projection
+          ? inGoal(projection.expected, g.targetLow, g.targetHigh)
+          : null,
+      paceLine: projection
+        ? projectionLine({ ...projection, unit: g.unit ?? "" })
+        : null,
+      moves: protocol
+        .filter((p) => p.active && p.metricCodes.includes(g.metricCode))
+        .map((p) => ({ title: p.text, done: doneIds.has(p.id) })),
+    };
+  });
 }
 
 /**
@@ -113,12 +220,6 @@ export async function todayBody(
   // pressure: possible"), so the tail is the state and the head is the rest.
   const { spear, counters } = ledger;
   const cut = spear ? spear.title.lastIndexOf(": ") : -1;
-  const head = spear
-    ? cut > 0
-      ? spear.title.slice(0, cut + 1)
-      : spear.title
-    : "All quiet";
-  const tail = spear && cut > 0 ? spear.title.slice(cut + 2) : "";
 
   const body = cardOf("body");
   const total = counters.off + counters.normal + counters.optimal;
@@ -165,8 +266,38 @@ export async function todayBody(
   const planToday = await planTodayBody(userId, day);
   const undone = planToday.rows.filter((r) => !r.done);
 
+  /**
+   * Goals first. Phase 34 section 1.
+   *
+   * With a goal on file the sentence is what this person is moving and how
+   * much of today is done; the ledger's own sentence — the spear, which is
+   * what "seven markers off" reads as here — moves down to the Status card,
+   * which is where the web rail now prints it.
+   *
+   * With no goal the sentence names the loudest system and says it is the one
+   * to move first. It never says sick: this app can say a marker is off its
+   * band and it cannot diagnose anybody.
+   */
+  const goals = await todayGoals(userId, day);
+  const goalSaid = goalsSentence(goals, {
+    done: planToday.done,
+    total: planToday.total,
+  });
+  const fallback = firstMoveSentence(ledger.systems);
+  const sentence = goalSaid
+    ? {
+        ...goalSaid,
+        tone: (goals.some((g) => g.onPace === false)
+          ? "warn"
+          : goals.some((g) => g.onPace === true)
+            ? "ok"
+            : "none") as RailTone,
+      }
+    : fallback;
+
   return {
-    sentence: { head, tail, tone: cards[0]?.tone ?? "none" },
+    sentence,
+    goals,
     status: {
       off: counters.off,
       borderline: counters.normal,
@@ -210,6 +341,130 @@ export async function todayBody(
 }
 
 /* ── GET /api/body ────────────────────────────────────────────────────── */
+
+/* ── GET /api/markers (phase 34 section 2) ───────────────────────────── */
+
+export interface MarkersBody {
+  /** how many days of history each `series` carries */
+  days: number;
+  markers: {
+    code: string;
+    name: string;
+    /** the system the Markers tab groups it under, in the words it prints */
+    system: string;
+    value: number | null;
+    unit: string | null;
+    date: string;
+    word: string;
+    /** the lab's own reference range */
+    band: { low: number | null; high: number | null };
+    optimal: { low: number | null; high: number | null };
+    series: { date: string; value: number }[];
+    goal: { low: number | null; high: number | null; due: string | null } | null;
+  }[];
+}
+
+/**
+ * The word a marker row wears, exactly as the Markers tab prints it.
+ *
+ * This is not `wordOf`: Blood says "optimal" where the Body page says "good",
+ * and it tells "no band" (a number nothing can judge) apart from "never
+ * measured" (no number at all). The phone's Blood tab is the Markers tab, so
+ * it gets the Markers tab's words.
+ */
+export function markerWord(
+  status: Status,
+  hasValue: boolean,
+): "off" | "borderline" | "optimal" | "no band" | "never measured" {
+  if (status === "red") return "off";
+  if (status === "amber") return "borderline";
+  if (status === "green") return "optimal";
+  return hasValue ? "no band" : "never measured";
+}
+
+/** "vital_sign" -> "Vital sign": a system is a name, so it starts with one. */
+const systemName = (c: string) => {
+  const t = fmtCategory(c);
+  return t.charAt(0).toUpperCase() + t.slice(1);
+};
+
+/** The last `days` of a marker's own history, counted from its newest point. */
+export function seriesOf(
+  points: { date: string; value: number }[],
+  days: number,
+): { date: string; value: number }[] {
+  const last = points[points.length - 1];
+  if (!last) return [];
+  const from = new Date(new Date(last.date).getTime() - days * 86_400_000)
+    .toISOString()
+    .slice(0, 10);
+  return points.filter((p) => p.date >= from);
+}
+
+/**
+ * Every marker with the history behind it. Phase 34 section 2.
+ *
+ * Grouped and sorted the way `/blood?tab=markers` is: `sortForBiomarkerList`
+ * decides the order, then the rows of one system stay together in the order
+ * that sort first met them, which is what the tab's own `Map` does. The list
+ * is flat and every row names its system, so a client groups it by reading
+ * the rows in order and never has to re-sort.
+ *
+ * `days` is counted back from each marker's **own** newest reading, not from
+ * today. Counted from today it empties the series of every marker last drawn
+ * before the window — this account's oldest draws are from 2021 — and a phone
+ * that got an empty series would draw nothing where the web draws a full
+ * history. A marker with one draw still sends that one point.
+ */
+export async function markersBody(
+  userId: string,
+  days = 365,
+): Promise<MarkersBody> {
+  const [metrics, goals] = await Promise.all([
+    getMetricRows(userId),
+    getGoals(userId),
+  ]);
+  const goalByCode = new Map(
+    goals.filter((g) => !g.achievedAt).map((g) => [g.metricCode, g]),
+  );
+  const order = new Map(
+    sortForBiomarkerList(metrics.map(toBiomarkerRow)).map((r, i) => [r.code, i]),
+  );
+  const sorted = [...metrics].sort(
+    (a, b) => (order.get(a.code) ?? 0) - (order.get(b.code) ?? 0),
+  );
+
+  /* One bucket per system, in the order the sort first met it: the same
+     grouping `BloodMarkers` builds, so the phone's sections match the web's. */
+  const groups = new Map<string, typeof sorted>();
+  for (const m of sorted)
+    groups.set(m.category, [...(groups.get(m.category) ?? []), m]);
+
+  return {
+    days,
+    markers: [...groups.values()].flat().map((m) => {
+      const goal = goalByCode.get(m.code);
+      return {
+        code: m.code,
+        name: m.name,
+        system: systemName(m.category),
+        value: m.latest.value,
+        unit: m.latest.unit ?? m.unit,
+        date: m.latest.observedAt,
+        word: markerWord(
+          m.status,
+          m.latest.value != null || m.latest.valueText != null,
+        ),
+        band: { low: m.latest.refLow, high: m.latest.refHigh },
+        optimal: { low: m.optimalLow, high: m.optimalHigh },
+        series: seriesOf(m.points, days),
+        goal: goal
+          ? { low: goal.targetLow, high: goal.targetHigh, due: goal.due }
+          : null,
+      };
+    }),
+  };
+}
 
 export interface BodyBody {
   day: string;

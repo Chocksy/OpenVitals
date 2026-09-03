@@ -1,16 +1,21 @@
 import { actionsForAll } from "@/lib/actions";
+import { planTodayBody, todayGoals } from "@/lib/api-contract";
 import { requireUserId } from "@/lib/auth";
 import { getMetricRows } from "@/lib/data";
 import { getGoals } from "@/lib/daily-data";
 import {
   buildToday,
   buildTrend,
+  firstMoveSentence,
+  goalsSentence,
   homeAskPlan,
   linkedAsk,
   optionsFor,
   railCards,
   recentFindings,
   systemTiles,
+  targetSaid,
+  type RailGoal,
   type TrendMetric,
 } from "@/lib/home-data";
 import { localDay } from "@/lib/daily";
@@ -59,17 +64,29 @@ export default async function Home({
 
   const want = (await searchParams).ask;
   const day = localDay();
-  const [ledger, report, rows, goals, catalog, today, findings, papers] =
-    await Promise.all([
-      buildLedger(userId),
-      latestReport(userId),
-      getMetricRows(userId),
-      getGoals(userId),
-      catalogFor(userId),
-      buildToday(userId),
-      recentFindings(userId, day),
-      listWatch(userId),
-    ]);
+  const [
+    ledger,
+    report,
+    rows,
+    goals,
+    catalog,
+    today,
+    findings,
+    papers,
+    aims,
+    planToday,
+  ] = await Promise.all([
+    buildLedger(userId),
+    latestReport(userId),
+    getMetricRows(userId),
+    getGoals(userId),
+    catalogFor(userId),
+    buildToday(userId),
+    recentFindings(userId, day),
+    listWatch(userId),
+    todayGoals(userId, day),
+    planTodayBody(userId, day),
+  ]);
 
   if (rows.length === 0) return <EmptyHome />;
 
@@ -217,10 +234,58 @@ export default async function Home({
     (max, m) => (m.latest.observedAt > max ? m.latest.observedAt : max),
     "",
   );
+
+  /**
+   * Phase 34 section 1. The rail opens on what this person is moving:
+   * `system.html` section 08's goal row, at card size, first on the phone and
+   * beside Status on a desktop (the grid placement is in `globals.css`). At
+   * most three, which is what fits before a card becomes a list.
+   *
+   * Every string is built here from `todayGoals` and the goal's own progress,
+   * so `HomeRail` stays a printer and does no arithmetic.
+   */
+  const progressOf = new Map(goals.map((g) => [g.metricCode, g.progress]));
+  const railGoals: RailGoal[] = aims.slice(0, 3).map((g) => ({
+    code: g.code,
+    name: g.name,
+    said: targetSaid(g.target.low, g.target.high),
+    now:
+      g.value == null
+        ? "no reading yet"
+        : `${g.value}${g.unit ? ` ${g.unit}` : ""}`,
+    progress: progressOf.get(g.code) ?? 0,
+    pace:
+      g.toGo === 0
+        ? "reached"
+        : g.onPace == null
+          ? "no projection yet"
+          : g.onPace
+            ? "on pace"
+            : "off pace",
+    paceTone: g.toGo === 0 ? "ok" : g.onPace === false ? "warn" : "none",
+  }));
+
+  /**
+   * The sentence, and where the old one went.
+   *
+   * With a goal on file the title is the goals sentence and the ledger's own
+   * sentence — the spear — becomes the Status card's second line, which is
+   * the whole of phase 34 section 1's first paragraph. With no goal the title
+   * names the loudest system as the one to move first.
+   */
+  const spearSaid = spear ? spear.title : "";
+  const goalSaid = goalsSentence(aims, {
+    done: planToday.done,
+    total: planToday.total,
+  });
+  const firstMove = firstMoveSentence(ledger.systems);
+
   const cards = railCards(ledger, today, {
     actions: actions.length,
     todo: Object.values(todo).reduce((n, lines) => n + lines.length, 0),
     ...(drawDate ? { drawDate } : {}),
+    ...(railGoals.length ? { goals: railGoals } : {}),
+    ...(spearSaid ? { sentence: spearSaid } : {}),
   });
   const moved =
     ledger.since != null &&
@@ -231,15 +296,18 @@ export default async function Home({
       0;
   // `titleOf` already ends the title with its state word ("High blood
   // pressure: possible"), so the tail is coloured in place, not repeated.
-  const cut = spear ? spear.title.lastIndexOf(": ") : -1;
-  const spearHead = spear ? (cut > 0 ? spear.title.slice(0, cut + 1) : spear.title) : "";
-  const spearTail = spear && cut > 0 ? spear.title.slice(cut + 2) : "";
-  const spearTone =
-    spear?.state === "confirmed" || spear?.state === "likely"
-      ? "tone-bad"
-      : spear?.state === "possible"
-        ? "tone-warn"
-        : "tone-none";
+  /** The title, in the one order phase 34 allows: goals, then the loudest system. */
+  const title = goalSaid
+    ? {
+        head: goalSaid.head,
+        tail: goalSaid.tail,
+        tone: aims.some((g) => g.onPace === false) ? "tone-warn" : "tone-none",
+      }
+    : {
+        head: firstMove.head,
+        tail: firstMove.tail,
+        tone: `tone-${firstMove.tone}`,
+      };
 
   return (
     <div className="home">
@@ -247,14 +315,8 @@ export default async function Home({
         <HomeLight tone={cards[0]!.tone} />
         <div>
           <h1 className="home-sentence">
-            {spear ? (
-              <>
-                <SwapText text={spearHead} />
-                {spearTail && <span className={spearTone}> {spearTail}</span>}
-              </>
-            ) : (
-              "All quiet"
-            )}
+            <SwapText text={title.head} />
+            {title.tail && <span className={title.tone}> {title.tail}</span>}
           </h1>
           <div className="home-meta">
             {/* when nothing moved the Status card already prints the draw

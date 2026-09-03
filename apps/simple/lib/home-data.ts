@@ -405,8 +405,27 @@ export const WORST_WORD = {
 /** Spectrum logic: three tones, plus "never measured" and Kite's navy. */
 export type RailTone = "bad" | "warn" | "ok" | "none";
 
+/**
+ * One goal, as the rail's own row draws it: `system.html` section 08's
+ * `.goalrow` at card size. Every string here is already in the words the page
+ * prints; the card does no arithmetic of its own.
+ */
+export interface RailGoal {
+  code: string;
+  name: string;
+  /** "under 100", "70–100", "to 45" */
+  said: string;
+  /** "320 IU/mL", or "no reading yet" */
+  now: string;
+  /** 0-100, `goalProgress` from the reading the goal was set at */
+  progress: number;
+  /** "on pace", "off pace", "reached", "no projection yet" */
+  pace: string;
+  paceTone: RailTone;
+}
+
 export interface RailCard {
-  kind: "status" | "body" | "blood" | "plan" | "system";
+  kind: "goals" | "status" | "body" | "blood" | "plan" | "system";
   label: string;
   /** the big line: a number (mono, 34 px) or a title (sans, 21 px) */
   headline: string;
@@ -417,12 +436,135 @@ export interface RailCard {
   counts?: { n: number; word: string; tone: RailTone }[];
   /** the 13 px line at the bottom */
   line: string;
+  /**
+   * The Status card only: the sentence Home used to print as its own title.
+   * Phase 34 section 1 — the goals take the top of the page, so "seven markers
+   * off" goes here rather than disappearing.
+   */
+  line2?: string;
+  /** the Goals card only: one row per goal, at most three */
+  goals?: RailGoal[];
   tone: RailTone;
   href: string;
 }
 
 /** red first, then amber, then green; ties by score, worst first. */
 const SYSTEM_RANK = { red: 3, amber: 2, gray: 1, green: 0 } as const;
+
+/* ── the goals sentence (phase 34 section 1) ──────────────────────────
+ * Today opens on what the person is moving, not on what is wrong. These are
+ * pure so `lib/home-data.test.ts` locks the wording, and so `/api/today` and
+ * the web Home print the same sentence off the same function.
+ */
+
+/** The smallest numbers a sentence prints as words rather than digits. */
+const WORDS = [
+  "no",
+  "one",
+  "two",
+  "three",
+  "four",
+  "five",
+  "six",
+  "seven",
+  "eight",
+  "nine",
+  "ten",
+  "eleven",
+  "twelve",
+] as const;
+
+/** "seven", or "13" once a count stops being a word a reader hears. */
+export const inWords = (n: number): string =>
+  Number.isInteger(n) && n >= 0 && n < WORDS.length ? WORDS[n]! : String(n);
+
+const upperFirst = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+
+/**
+ * "under 100", "70–100", "to 45": a target in the words a person reads.
+ *
+ * Two bounds are a band and keep the en dash. One upper bound is a ceiling to
+ * get under. One lower bound is a number to reach, which is "to", not "over":
+ * the goal is the number, not everything above it.
+ */
+export function targetSaid(
+  low: number | null | undefined,
+  high: number | null | undefined,
+): string {
+  if (low != null && high != null) return `${low}\u2013${high}`;
+  if (high != null) return `under ${high}`;
+  if (low != null) return `to ${low}`;
+  return "";
+}
+
+/** A goal, as much of it as a sentence needs. */
+export interface GoalLine {
+  name: string;
+  target: { low: number | null; high: number | null; due: string | null };
+}
+
+/**
+ * "Three things you are moving: TPO antibodies under 100, LDL cholesterol
+ * 70–100, ferritin to 45. Two of seven done today."
+ *
+ * The marker names are the ones the data carries — nothing here shortens
+ * "TPO antibodies" to "TPO", because the app has no table of nicknames and
+ * inventing one is inventing. At most three are named; the rest are counted,
+ * so the sentence stays a sentence with eleven goals on file.
+ *
+ * Null when there is no goal, which is the caller's signal to fall back.
+ */
+export function goalsSentence(
+  goals: GoalLine[],
+  plan?: { done: number; total: number },
+): { head: string; tail: string } | null {
+  if (!goals.length) return null;
+  const named = goals.slice(0, 3);
+  const rest = goals.length - named.length;
+  const list = named
+    .map((g) => `${g.name} ${targetSaid(g.target.low, g.target.high)}`.trim())
+    .join(", ");
+  const more = rest ? `, and ${inWords(rest)} more` : "";
+  /* "No of four done today" is not English. Zero is "none" when it is the
+     subject of the sentence, and "no" only in front of a noun. */
+  const ticks =
+    plan && plan.total > 0
+      ? ` ${upperFirst(plan.done === 0 ? "none" : inWords(plan.done))} of ${inWords(plan.total)} done today.`
+      : "";
+  return {
+    head: `${upperFirst(inWords(goals.length))} ${goals.length === 1 ? "thing" : "things"} you are moving:`,
+    tail: `${list}${more}.${ticks}`,
+  };
+}
+
+/**
+ * "Thyroid is the one to move first" — the sentence when no goal is set.
+ *
+ * The loudest system is the one with the worst measured marker, ties by the
+ * graph's own importance score: the same order the rail already ranks its
+ * system cards by. It never says sick, because a system with a marker off its
+ * band is not a diagnosis, and because the owner asked it not to.
+ */
+export function firstMoveSentence(systems: Ledger["systems"]): {
+  head: string;
+  tail: string;
+  tone: RailTone;
+} {
+  const measured = [...systems]
+    .filter((s) => s.worst != null && s.worst.value != null)
+    .sort(
+      (a, b) =>
+        SYSTEM_RANK[b.worst!.status] - SYSTEM_RANK[a.worst!.status] ||
+        b.score - a.score,
+    );
+  const loud = measured[0];
+  if (!loud) return { head: "All quiet", tail: "", tone: "none" };
+  return {
+    head: `${loud.name} is the one to move first`,
+    tail: "",
+    tone: TONE_OF[loud.worst!.status],
+  };
+}
 
 const TONE_OF = {
   red: "bad",
@@ -473,6 +615,10 @@ export function railCards(
     todo?: number;
     /** the newest observation date, for the Status line when nothing moved */
     drawDate?: string;
+    /** the goals this person is moving, first card on the rail when there are any */
+    goals?: RailGoal[];
+    /** the sentence Home used to title itself with, now the Status card's second line */
+    sentence?: string;
   } = {},
 ): RailCard[] {
   const { bioAge, bioAgeMissing, counters, systems, spear, since } = ledger;
@@ -486,6 +632,23 @@ export function railCards(
         : counters.optimal > 0
           ? "ok"
           : "none";
+
+  /**
+   * Phase 34 section 1. Goals come first, because Today opens on what the
+   * person is moving. With no goal on file the card is not drawn at all and
+   * the rail is exactly what it was.
+   */
+  if (opts.goals?.length)
+    cards.push({
+      kind: "goals",
+      label: "Goals",
+      headline: "",
+      big: "title",
+      goals: opts.goals,
+      line: "",
+      tone: opts.goals.some((g) => g.paceTone === "warn") ? "warn" : "ok",
+      href: "/plan",
+    });
 
   cards.push({
     kind: "status",
@@ -505,6 +668,7 @@ export function railCards(
             day: "numeric",
           })}`
         : ""),
+    ...(opts.sentence ? { line2: opts.sentence } : {}),
     tone: worstTone,
     href: "/plan",
   });

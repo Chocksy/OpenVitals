@@ -1,9 +1,26 @@
 {
   "sentence": {
-    "head": "Insulin resistance:",
-    "tail": "possible",
-    "tone": "bad"
+    "head": "One thing you are moving:",
+    "tail": "LDL Cholesterol 70–100. None of four done today.",
+    "tone": "none"
   },
+  "goals": [
+    {
+      "code": "ldl_cholesterol",
+      "name": "LDL Cholesterol",
+      "value": 131,
+      "unit": "mg/dL",
+      "target": {
+        "low": 70,
+        "high": 100,
+        "due": "2026-12-01"
+      },
+      "toGo": 31,
+      "onPace": null,
+      "paceLine": null,
+      "moves": []
+    }
+  ],
   "status": {
     "off": 6,
     "borderline": 22,

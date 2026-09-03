@@ -2,7 +2,18 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
-import { wordOf, writerOf } from "./api-contract";
+import {
+  markerWord,
+  seriesOf,
+  wordOf,
+  writerOf,
+} from "./api-contract";
+import {
+  firstMoveSentence,
+  goalsSentence,
+  inWords,
+  targetSaid,
+} from "./home-data";
 
 /**
  * The lock on the contract in `docs/plans/2026-09-03-phase32-useful-spec.md`
@@ -45,7 +56,15 @@ function leaves(value: unknown, at = ""): [string, unknown][] {
 }
 
 describe("the fixtures exist and carry no secret", () => {
-  const NAMES = ["today", "body", "plan-today", "meals", "research", "genome"];
+  const NAMES = [
+    "today",
+    "body",
+    "plan-today",
+    "markers",
+    "meals",
+    "research",
+    "genome",
+  ];
 
   for (const name of NAMES)
     it(`has fixtures/api/${name}.json`, () => {
@@ -94,6 +113,44 @@ describe("GET /api/today", () => {
     if (body.headline != null) {
       expect(body.unit, "a Body headline with no unit").not.toBeNull();
       expect(String(body.line).length).toBeGreaterThan(0);
+    }
+  });
+
+  it("names what the person is moving, and says so in the sentence", () => {
+    const goals = b.goals as Record<string, unknown>[];
+    expect(Array.isArray(goals)).toBe(true);
+    const s = b.sentence as Record<string, unknown>;
+    /* No goal on file: the sentence names the loudest system, never "sick". */
+    if (!goals.length) {
+      expect(String(s.head)).not.toMatch(/\bsick\b/i);
+      expect(String(s.head)).toMatch(/is the one to move first$|^All quiet$/);
+      return;
+    }
+    expect(String(s.head)).toMatch(/you are moving:$/);
+    for (const g of goals) {
+      expect(typeof g.code).toBe("string");
+      expect(typeof g.name).toBe("string");
+      expect(num(g.value), String(g.name)).toBe(true);
+      expect(str(g.unit)).toBe(true);
+      const t = g.target as Record<string, unknown>;
+      expect(num(t.low)).toBe(true);
+      expect(num(t.high)).toBe(true);
+      expect(str(t.due)).toBe(true);
+      if (t.due) expect(t.due as string).toMatch(DAY);
+      /* a goal with no number to reach is a planned draw, not a goal */
+      expect(t.low ?? t.high, `${String(g.name)} has no target`).not.toBeNull();
+      expect(num(g.toGo), String(g.name)).toBe(true);
+      /* never measured, so nothing to close */
+      if (g.value == null) expect(g.toGo).toBeNull();
+      expect([true, false, null]).toContain(g.onPace);
+      expect(str(g.paceLine)).toBe(true);
+      /* a pace with no sentence behind it is a number nobody can check */
+      if (g.onPace != null && g.toGo !== 0)
+        expect(g.paceLine, String(g.name)).not.toBeNull();
+      for (const m of g.moves as Record<string, unknown>[]) {
+        expect(typeof m.title).toBe("string");
+        expect(typeof m.done).toBe("boolean");
+      }
     }
   });
 
@@ -259,6 +316,78 @@ describe("GET /api/meals", () => {
   });
 });
 
+describe("GET /api/markers", () => {
+  const b = load("markers") as Record<string, never>;
+
+  it("says how much history each series carries", () => {
+    expect(typeof b.days).toBe("number");
+    expect(b.days as number).toBeGreaterThan(0);
+  });
+
+  it("gives every marker its number, its unit, its day and its word", () => {
+    const rows = b.markers as Record<string, unknown>[];
+    expect(rows.length).toBeGreaterThan(0);
+    for (const m of rows) {
+      expect(typeof m.code).toBe("string");
+      expect(typeof m.name).toBe("string");
+      expect(typeof m.system).toBe("string");
+      expect(num(m.value), String(m.code)).toBe(true);
+      expect(str(m.unit)).toBe(true);
+      expect(m.date as string).toMatch(DAY);
+      expect(
+        ["off", "borderline", "optimal", "no band", "never measured"],
+        String(m.code),
+      ).toContain(m.word);
+      for (const k of ["band", "optimal"]) {
+        const band = m[k] as Record<string, unknown>;
+        expect(num(band.low), `${String(m.code)}.${k}.low`).toBe(true);
+        expect(num(band.high), `${String(m.code)}.${k}.high`).toBe(true);
+      }
+    }
+  });
+
+  it("dates every point of every series, oldest first", () => {
+    for (const m of b.markers as Record<string, unknown>[]) {
+      const series = m.series as { date: string; value: number }[];
+      expect(Array.isArray(series), String(m.code)).toBe(true);
+      let last = "";
+      for (const p of series) {
+        expect(p.date, String(m.code)).toMatch(DAY);
+        expect(typeof p.value, `${String(m.code)} ${p.date}`).toBe("number");
+        expect(p.date >= last, `${String(m.code)} out of order`).toBe(true);
+        last = p.date;
+      }
+      /* a marker with a value has the draw that produced it in its series */
+      if (m.value != null && series.length)
+        expect(series[series.length - 1]!.date).toBe(m.date);
+    }
+  });
+
+  it("keeps every system's rows together, the way the Markers tab groups them", () => {
+    const seen = new Set<string>();
+    let current = "";
+    for (const m of b.markers as Record<string, unknown>[]) {
+      const system = String(m.system);
+      if (system === current) continue;
+      expect(seen.has(system), `${system} appears twice`).toBe(false);
+      seen.add(system);
+      current = system;
+    }
+    expect(seen.size).toBeGreaterThan(1);
+  });
+
+  it("carries the goal a marker is aimed at, or null", () => {
+    for (const m of b.markers as Record<string, unknown>[]) {
+      const g = m.goal as Record<string, unknown> | null;
+      if (!g) continue;
+      expect(num(g.low)).toBe(true);
+      expect(num(g.high)).toBe(true);
+      expect(str(g.due)).toBe(true);
+      if (g.due) expect(g.due as string).toMatch(DAY);
+    }
+  });
+});
+
 describe("GET /api/research", () => {
   const b = load("research") as Record<string, never>;
 
@@ -275,6 +404,14 @@ describe("GET /api/research", () => {
       expect(str(r.finding)).toBe(true);
       if (r.publishedAt) expect(r.publishedAt as string).toMatch(DAY);
       if (r.grade) expect(["A", "B", "C", "D", "E"]).toContain(r.grade);
+      /**
+       * Phase 34 section 3. A row is written the moment the search names the
+       * paper; the grade and the finding are filled in afterwards. `read` is
+       * the difference, so a phone can say "found, not read yet" instead of
+       * printing a title with nothing under it.
+       */
+      expect(typeof r.read, String(r.title)).toBe("boolean");
+      expect(r.read).toBe(r.grade != null || r.finding != null);
       const m = r.moves as Record<string, unknown> | null;
       // null is the answer most of the time, and it is printed as plainly as
       // the others: "nothing for you".
@@ -337,12 +474,13 @@ describe("no body smuggles a number as a string", () => {
   // `/api/plan/today` and a boolean on every row under it, and the two are
   // both checked by name in their own blocks above.
   const NUMERIC =
-    /^(off|borderline|optimal|total|delta|kcal|protein_g|carbs_g|fat_g|weeks|adherence|factor|value|types)$/;
+    /^(off|borderline|optimal|total|delta|kcal|protein_g|carbs_g|fat_g|weeks|adherence|factor|value|types|low|high|toGo|days|progress)$/;
 
   for (const name of [
     "today",
     "body",
     "plan-today",
+    "markers",
     "meals",
     "research",
     "genome",
@@ -391,5 +529,161 @@ describe("who wrote a row, and the word it wears", () => {
   it("says never measured, and only then", () => {
     for (const s of ["red", "amber", "green", "gray"] as const)
       expect(wordOf(s, false)).toBe("never measured");
+  });
+});
+
+describe("what a goal reads like, and what the sentence says", () => {
+  const goal = (name: string, low: number | null, high: number | null) => ({
+    name,
+    target: { low, high, due: null },
+  });
+
+  it("prints a band, a ceiling and a number to reach", () => {
+    expect(targetSaid(70, 100)).toBe("70–100");
+    expect(targetSaid(null, 100)).toBe("under 100");
+    expect(targetSaid(45, null)).toBe("to 45");
+    expect(targetSaid(null, null)).toBe("");
+  });
+
+  it("counts in words a person hears, and in digits past that", () => {
+    expect(inWords(0)).toBe("no");
+    expect(inWords(3)).toBe("three");
+    expect(inWords(12)).toBe("twelve");
+    expect(inWords(13)).toBe("13");
+  });
+
+  it("names what is being moved, and how much of today is done", () => {
+    const said = goalsSentence(
+      [
+        goal("TPO antibodies", null, 100),
+        goal("LDL cholesterol", 70, 100),
+        goal("Vitamin D", 45, null),
+      ],
+      { done: 2, total: 7 },
+    );
+    expect(said).toEqual({
+      head: "Three things you are moving:",
+      tail:
+        "TPO antibodies under 100, LDL cholesterol 70–100, Vitamin D to 45." +
+        " Two of seven done today.",
+    });
+  });
+
+  it("says none, never 'no', when the day has not started", () => {
+    expect(goalsSentence([goal("Ferritin", 45, null)], { done: 0, total: 4 }))
+      .toEqual({
+        head: "One thing you are moving:",
+        tail: "Ferritin to 45. None of four done today.",
+      });
+  });
+
+  it("names three and counts the rest", () => {
+    const said = goalsSentence(
+      Array.from({ length: 7 }, (_, i) => goal(`M${i}`, null, i)),
+      { done: 1, total: 1 },
+    );
+    expect(said!.head).toBe("Seven things you are moving:");
+    expect(said!.tail).toContain(", and four more.");
+  });
+
+  it("drops the tick count when nothing is due today", () => {
+    expect(
+      goalsSentence([goal("Ferritin", 45, null)], { done: 0, total: 0 })!.tail,
+    ).toBe("Ferritin to 45.");
+  });
+
+  it("has nothing to say with no goal on file", () => {
+    expect(goalsSentence([], { done: 0, total: 3 })).toBeNull();
+  });
+});
+
+describe("the sentence when there is no goal", () => {
+  const system = (
+    id: string,
+    name: string,
+    score: number,
+    worst?: { code: string; value: number | null; unit: string | null; status: string },
+  ) => ({ id, name, score, ...(worst ? { worst } : {}) }) as never;
+
+  it("names the loudest system, and never says sick", () => {
+    const said = firstMoveSentence([
+      system("liver", "Liver", 0.9, {
+        code: "alt",
+        value: 42,
+        unit: "U/L",
+        status: "amber",
+      }),
+      system("thyroid", "Thyroid", 0.4, {
+        code: "tpo_antibodies",
+        value: 320,
+        unit: "IU/mL",
+        status: "red",
+      }),
+    ]);
+    expect(said).toEqual({
+      head: "Thyroid is the one to move first",
+      tail: "",
+      tone: "bad",
+    });
+  });
+
+  it("breaks a tie on the graph's own score", () => {
+    expect(
+      firstMoveSentence([
+        system("liver", "Liver", 0.2, {
+          code: "alt",
+          value: 42,
+          unit: "U/L",
+          status: "red",
+        }),
+        system("lipids", "Lipids", 0.8, {
+          code: "ldl_cholesterol",
+          value: 131,
+          unit: "mg/dL",
+          status: "red",
+        }),
+      ]).head,
+    ).toBe("Lipids is the one to move first");
+  });
+
+  it("says all quiet when nothing was ever measured", () => {
+    expect(firstMoveSentence([system("liver", "Liver", 0)])).toEqual({
+      head: "All quiet",
+      tail: "",
+      tone: "none",
+    });
+  });
+});
+
+describe("the word a marker row wears on the Blood tab", () => {
+  it("uses Blood's own words, not the Body page's", () => {
+    expect(markerWord("red", true)).toBe("off");
+    expect(markerWord("amber", true)).toBe("borderline");
+    expect(markerWord("green", true)).toBe("optimal");
+  });
+
+  it("tells a number nothing can judge from no number at all", () => {
+    expect(markerWord("gray", true)).toBe("no band");
+    expect(markerWord("gray", false)).toBe("never measured");
+  });
+});
+
+describe("how much history one series carries", () => {
+  const points = [
+    { date: "2024-01-01", value: 1 },
+    { date: "2025-06-01", value: 2 },
+    { date: "2025-08-01", value: 3 },
+  ];
+
+  it("counts back from the marker's own newest reading, not from today", () => {
+    expect(seriesOf(points, 365)).toEqual(points.slice(1));
+  });
+
+  it("keeps a marker with one old draw rather than emptying it", () => {
+    expect(seriesOf([points[0]!], 30)).toEqual([points[0]]);
+  });
+
+  it("has nothing to trim when there is nothing on file", () => {
+    expect(seriesOf([], 365)).toEqual([]);
   });
 });

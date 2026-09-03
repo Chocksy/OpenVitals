@@ -11,6 +11,11 @@ const num = (v: unknown) => {
 /**
  * One goal per metric, so this is an upsert.
  *
+ * Phase 34 section 1 asked whether the web only had a form action here. It
+ * did not: this is already JSON in and JSON out, `components/tracker.tsx`'s
+ * `GoalForm` posts it, and the phone posts exactly the same body. The only
+ * change is that the reply no longer echoes the user id back.
+ *
  * A goal is a target, a date, or both. Phase 27: "Plan retest: HbA1c in 12
  * weeks" is a date with no number behind it — the answer said when to measure,
  * not what to reach — and the Next draw tile reads exactly that.
@@ -45,7 +50,10 @@ export async function POST(req: Request) {
       set: { ...set, createdAt: sql`now()` },
     })
     .returning();
-  return Response.json(row);
+  /* Phase 34 section 1: the phone posts this too, and the owner is the
+     session. `toApiPaper` drops the id for the same reason. */
+  const { userId: _mine, ...saved } = row!;
+  return Response.json(saved);
 }
 
 export async function DELETE(req: Request) {

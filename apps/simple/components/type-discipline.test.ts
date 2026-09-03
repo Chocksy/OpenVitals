@@ -330,6 +330,30 @@ const SURFACES: [string, () => string][] = [
       ),
   ],
   [
+    "HomeRail (goals first)",
+    () =>
+      html(
+        createElement(HomeRail, {
+          cards: railCards(ledger, today, {
+            todo: 2,
+            actions: 1,
+            sentence: "Autoimmune thyroiditis: confirmed",
+            goals: [
+              {
+                code: "ldl_cholesterol",
+                name: "LDL cholesterol",
+                said: "70\u2013100",
+                now: "131 mg/dL",
+                progress: 29,
+                pace: "off pace",
+                paceTone: "warn",
+              },
+            ],
+          }),
+        }),
+      ),
+  ],
+  [
     "SystemChips",
     () =>
       html(
