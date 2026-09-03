@@ -108,7 +108,7 @@ interface Scored {
   error?: string;
 }
 
-interface ModelRun {
+export interface ModelRun {
   modelId: string;
   /** dollars per million output tokens, from the models endpoint */
   outPerM: number | null;
@@ -203,7 +203,9 @@ async function candidates(): Promise<Map<string, ORModel | null>> {
 }
 
 /** The models a `--models` flag asked for, with their prices attached. */
-async function named(ids: string[]): Promise<Map<string, ORModel | null>> {
+export async function named(
+  ids: string[],
+): Promise<Map<string, ORModel | null>> {
   let live: ORModel[] = [];
   try {
     const res = await fetch("https://openrouter.ai/api/v1/models");
@@ -335,7 +337,9 @@ function actChecks(
       failed.push(`the row offers "${a.title}" and the answer never names it`);
   for (const c of candidates)
     if (names(text, c.title) && !acts.actions.some((a) => a.id === c.id))
-      failed.push(`the answer names "${c.title}" and the row does not offer it`);
+      failed.push(
+        `the answer names "${c.title}" and the row does not offer it`,
+      );
   return failed;
 }
 
@@ -452,7 +456,10 @@ async function runCase(
           data,
           kind,
           (answer.sourcesOffered ?? [])
-            .map((s) => `- ${s.name}${s.year ? ` (${s.year})` : ""} · grade ${s.grade ?? "?"} · ${s.says}`)
+            .map(
+              (s) =>
+                `- ${s.name}${s.year ? ` (${s.year})` : ""} · grade ${s.grade ?? "?"} · ${s.says}`,
+            )
             .join("\n"),
           (answer.settlesOffered ?? []).map((l) => `- ${l}`).join("\n"),
         ).catch(() => ({ judgeScore: 0, judgeNote: "judge failed" }))
@@ -506,30 +513,41 @@ const scoreOf = (rows: Scored[]): number => {
 };
 
 /** The winner has to be at least this good, or the phase is not done. */
-const FLOOR = 0.7;
+export const FLOOR = 0.7;
 
-async function main() {
-  const argv = process.argv.slice(2);
-  const ids: string[] = [];
-  let only: string[] | null = null;
-  let email = process.env.EVAL_ASK_EMAIL ?? DEFAULT_EMAIL;
-  for (let i = 0; i < argv.length; i++) {
-    const arg = argv[i]!;
-    if (arg === "--models") only = (argv[++i] ?? "").split(",").filter(Boolean);
-    else if (arg.startsWith("--models=")) only = arg.slice(9).split(",");
-    else if (arg === "--user") email = argv[++i] ?? email;
-    else ids.push(arg);
-  }
+/** The twelve questions, or the subset a caller named. */
+export async function askCases(ids: string[] = []): Promise<AskCase[]> {
+  const all = JSON.parse(
+    await readFile(path.join(HERE, "ask", "cases.json"), "utf8"),
+  ) as AskCase[];
+  return all.filter((c) => !ids.length || ids.includes(c.id));
+}
 
-  const cases = (
-    JSON.parse(
-      await readFile(path.join(HERE, "ask", "cases.json"), "utf8"),
-    ) as AskCase[]
-  ).filter((c) => !ids.length || ids.includes(c.id));
+export interface AskRun {
+  email: string;
+  runs: ModelRun[];
+  winner: ModelRun;
+  floor: number;
+}
+
+/**
+ * The whole run, so `evals/models.ts` can have it without a second process.
+ * Everything the CLI does apart from reading argv and closing the pool.
+ */
+export async function runAsk({
+  models: only = null,
+  caseIds = [],
+  email = process.env.EVAL_ASK_EMAIL ?? DEFAULT_EMAIL,
+}: {
+  models?: string[] | null;
+  caseIds?: string[];
+  email?: string;
+} = {}): Promise<AskRun | null> {
+  const ids = caseIds;
+  const cases = await askCases(ids);
   if (!cases.length) {
     console.error("no cases matched", ids.join(", "));
-    process.exitCode = 1;
-    return;
+    return null;
   }
 
   const [user] = await getDb()
@@ -538,8 +556,7 @@ async function main() {
     .where(eq(users.email, email));
   if (!user) {
     console.error(`no account for ${email}`);
-    process.exitCode = 1;
-    return;
+    return null;
   }
 
   const models = only ? await named(only) : await candidates();
@@ -588,7 +605,9 @@ async function main() {
         (s, c) =>
           s +
           (c.acts
-            ? c.acts.actions.length + c.acts.tests.length + c.acts.questions.length
+            ? c.acts.actions.length +
+              c.acts.tests.length +
+              c.acts.questions.length
             : 0),
         0,
       ),
@@ -632,10 +651,33 @@ async function main() {
   );
   console.log(`\nwrote ${path.relative(process.cwd(), file)}`);
 
-  if (winner.score < FLOOR) process.exitCode = 1;
+  return { email, runs, winner, floor: FLOOR };
+}
+
+async function main() {
+  const argv = process.argv.slice(2);
+  const caseIds: string[] = [];
+  let models: string[] | null = null;
+  let email = process.env.EVAL_ASK_EMAIL ?? DEFAULT_EMAIL;
+  for (let i = 0; i < argv.length; i++) {
+    const arg = argv[i]!;
+    if (arg === "--models")
+      models = (argv[++i] ?? "").split(",").filter(Boolean);
+    else if (arg.startsWith("--models=")) models = arg.slice(9).split(",");
+    else if (arg === "--user") email = argv[++i] ?? email;
+    else caseIds.push(arg);
+  }
+
+  const run = await runAsk({ models, caseIds, email });
+  if (!run || run.winner.score < FLOOR) process.exitCode = 1;
   // The pool holds the event loop open, and a CLI that never exits is a CLI
   // nobody puts in a script.
   await pool().end();
 }
 
-await main();
+/** Only when this file is the command; `evals/models.ts` imports it instead. */
+if (
+  process.argv[1] &&
+  path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)
+)
+  await main();

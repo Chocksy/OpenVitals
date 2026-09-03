@@ -14,6 +14,10 @@ vi.mock("ai", () => ({
     ai.last = opts;
     return { text: ai.reply };
   },
+  // `model()` wraps the provider with a default max-output cap; the tests
+  // only care that the wrapped model is what reaches generateText.
+  wrapLanguageModel: ({ model }: { model: unknown }) => model,
+  defaultSettingsMiddleware: () => ({}),
 }));
 vi.mock("@openrouter/ai-sdk-provider", () => ({
   createOpenRouter: () => () => "stub-model",

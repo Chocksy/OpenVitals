@@ -1,7 +1,7 @@
 /**
  * The thread eval: does a conversation stay grounded over three turns?
  *
- *   pnpm --filter simple eval:thread [caseId ...] [--user email]
+ *   pnpm --filter simple eval:thread [caseId ...] [--models a,b,c] [--user email]
  *
  * `pnpm eval:ask` scores one question in isolation. A thread can fail in ways
  * one question cannot: it can invent an id once the closed sets are two turns
@@ -14,6 +14,12 @@
  * That is the point: turn 3 is scored on a prompt that contains what turn 2
  * wrote.
  *
+ * With `--models a,b,c` every named model runs every case, exactly as
+ * `evals/ask.ts` does it: the OpenRouter path for all of them (an OPENAI_API_KEY
+ * in the environment is ignored, or the candidates would not be comparable),
+ * prices off the same models endpoint, and one row per model at the end with
+ * what the run cost at the token counts the SDK returned.
+ *
  * Results land in `evals/results/thread-<date>.json`.
  */
 import { mkdir, writeFile } from "node:fs/promises";
@@ -25,13 +31,14 @@ import { getDb, pool, profileFacts, threads } from "@/db";
 import { users } from "@/db/auth-schema";
 import { model } from "@/lib/extract";
 import { prepareTurn } from "@/lib/thread-turn";
+import { named } from "./ask";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 
 /** The account the questions are asked from, as in `evals/ask.ts`. */
 const DEFAULT_EMAIL = "test-newuser@example.com";
 
-interface ThreadCase {
+export interface ThreadCase {
   id: string;
   /** what a person types, turn by turn */
   turns: string[];
@@ -44,7 +51,7 @@ interface ThreadCase {
  * Three shapes of conversation: a question that becomes a follow-up, a
  * statement of fact mid-thread, and a person acting on what was offered.
  */
-const CASES: ThreadCase[] = [
+export const CASES: ThreadCase[] = [
   {
     id: "follow-up",
     turns: [
@@ -154,7 +161,16 @@ ${c.turns
   };
 }
 
-async function runCase(userId: string, c: ThreadCase): Promise<CaseResult> {
+/**
+ * One case, three turns. `modelId` is the bake-off's override: `prepareTurn`
+ * picks the model the app would use, and a run comparing candidates replaces
+ * it with the named one on the OpenRouter path, provider options and all.
+ */
+async function runCase(
+  userId: string,
+  c: ThreadCase,
+  modelId?: string,
+): Promise<CaseResult> {
   const out: CaseResult = { id: c.id, turns: [] };
   let threadId: string | undefined;
 
@@ -167,6 +183,10 @@ async function runCase(userId: string, c: ThreadCase): Promise<CaseResult> {
       parts: [{ type: "text" as const, text }],
     };
     const turn = await prepareTurn(userId, { threadId, message });
+    if (!("error" in turn) && modelId) {
+      turn.args.model = model(modelId);
+      turn.args.providerOptions = {};
+    }
     if ("error" in turn) {
       out.turns.push({
         said: "",
@@ -285,21 +305,65 @@ const scoreOf = (rows: CaseResult[]): number => {
 };
 
 /** The run has to be at least this good, or the phase is not done. */
-const FLOOR = 0.6;
+export const FLOOR = 0.6;
 
 /** The profile keys the cases make the model write, undone after the run. */
 const WROTE_FACTS = ["medications"];
 
-async function main() {
-  const argv = process.argv.slice(2);
-  const ids: string[] = [];
-  let email = process.env.EVAL_ASK_EMAIL ?? DEFAULT_EMAIL;
-  for (let i = 0; i < argv.length; i++) {
-    const arg = argv[i]!;
-    if (arg === "--user") email = argv[++i] ?? email;
-    else ids.push(arg);
+export interface ThreadModelRun {
+  modelId: string;
+  /** dollars per million tokens, from the same endpoint `evals/ask.ts` reads */
+  inPerM: number | null;
+  outPerM: number | null;
+  results: CaseResult[];
+  score: number;
+  inputTokens: number;
+  outputTokens: number;
+  /** what this run cost, at those prices and those token counts */
+  cost: number | null;
+}
+
+export interface ThreadRun {
+  email: string;
+  compacts: boolean;
+  runs: ThreadModelRun[];
+  /** the best model, or null when nothing cleared the floor */
+  winner: ThreadModelRun | null;
+  floor: number;
+}
+
+const sum = (rows: CaseResult[], f: (t: TurnResult) => number): number =>
+  rows.reduce((n, r) => n + r.turns.reduce((m, t) => m + f(t), 0), 0);
+
+const costOf = (r: {
+  inPerM: number | null;
+  outPerM: number | null;
+  inputTokens: number;
+  outputTokens: number;
+}): number | null =>
+  r.inPerM == null && r.outPerM == null
+    ? null
+    : (r.inputTokens * (r.inPerM ?? 0) + r.outputTokens * (r.outPerM ?? 0)) /
+      1_000_000;
+
+/**
+ * The whole run, so `evals/models.ts` can have it without a second process.
+ * Everything the CLI does apart from reading argv and closing the pool.
+ */
+export async function runThread({
+  models: only = null,
+  caseIds = [],
+  email = process.env.EVAL_ASK_EMAIL ?? DEFAULT_EMAIL,
+}: {
+  models?: string[] | null;
+  caseIds?: string[];
+  email?: string;
+} = {}): Promise<ThreadRun | null> {
+  const cases = CASES.filter((c) => !caseIds.length || caseIds.includes(c.id));
+  if (!cases.length) {
+    console.error("no cases matched", caseIds.join(", "));
+    return null;
   }
-  const cases = CASES.filter((c) => !ids.length || ids.includes(c.id));
 
   const db = getDb();
   const [user] = await db
@@ -308,65 +372,127 @@ async function main() {
     .where(eq(users.email, email));
   if (!user) {
     console.error(`no account for ${email}`);
-    process.exitCode = 1;
-    return;
+    return null;
   }
 
-  const compacts = !!process.env.OPENAI_API_KEY;
+  /**
+   * A bake-off compares models, so every candidate answers on the same path:
+   * OpenRouter, fixed window, no compaction, whatever the environment holds.
+   */
+  const compacts = !only && !!process.env.OPENAI_API_KEY;
+  const priced = only ? await named(only) : null;
   console.log(
     `${cases.length} threads as ${email}, ${
-      compacts
-        ? `OpenAI compaction on, threshold ${process.env.AI_THREAD_COMPACT_THRESHOLD ?? 40_000}`
-        : "no OPENAI_API_KEY: OpenRouter fallback, fixed window, no compaction"
+      only
+        ? `${only.length} model(s) on OpenRouter, any OPENAI_API_KEY ignored`
+        : compacts
+          ? `OpenAI compaction on, threshold ${process.env.AI_THREAD_COMPACT_THRESHOLD ?? 40_000}`
+          : "no OPENAI_API_KEY: OpenRouter fallback, fixed window, no compaction"
     }\n`,
   );
 
-  const results: CaseResult[] = [];
-  for (const c of cases) {
-    console.log(`── ${c.id}`);
-    const r = await runCase(user.id, c);
-    results.push(r);
-    r.turns.forEach((t, i) =>
-      console.log(
-        `· turn ${i + 1} “${c.turns[i]}” → ${t.called.join(", ") || "no tool"}${
-          t.receipts.length ? ` | ${t.receipts.join(" | ")}` : ""
-        } | ${t.failed.length ? t.failed.join("; ") : "clean"} (${t.inputTokens} in, ${Math.round(
-          t.latencyMs / 1000,
-        )}s)`,
-      ),
-    );
-    console.log(`  judge ${r.judgeScore}/3: ${r.judgeNote}\n`);
+  const runs: ThreadModelRun[] = [];
+  for (const modelId of only ?? [null]) {
+    if (modelId) console.log(`══ ${modelId}`);
+    const results: CaseResult[] = [];
+    for (const c of cases) {
+      console.log(`── ${c.id}`);
+      const r = await runCase(user.id, c, modelId ?? undefined);
+      results.push(r);
+      r.turns.forEach((t, i) =>
+        console.log(
+          `· turn ${i + 1} “${c.turns[i]}” → ${t.called.join(", ") || "no tool"}${
+            t.receipts.length ? ` | ${t.receipts.join(" | ")}` : ""
+          } | ${t.failed.length ? t.failed.join("; ") : "clean"} (${t.inputTokens} in, ${Math.round(
+            t.latencyMs / 1000,
+          )}s)`,
+        ),
+      );
+      console.log(`  judge ${r.judgeScore}/3: ${r.judgeNote}\n`);
+    }
+
+    const meta = modelId ? priced?.get(modelId) : null;
+    const row: ThreadModelRun = {
+      modelId: modelId ?? process.env.AI_THREAD_MODEL ?? "default",
+      inPerM: meta?.pricing?.prompt
+        ? Number(meta.pricing.prompt) * 1_000_000
+        : null,
+      outPerM: meta?.pricing?.completion
+        ? Number(meta.pricing.completion) * 1_000_000
+        : null,
+      results,
+      score: scoreOf(results),
+      inputTokens: sum(results, (t) => t.inputTokens),
+      outputTokens: sum(results, (t) => t.outputTokens),
+      cost: null,
+    };
+    row.cost = costOf(row);
+    runs.push(row);
+
+    /**
+     * The threads this run wrote are the person's; the eval cleans up after,
+     * before the next model starts, so every candidate meets the same account.
+     * The facts too: a key that stays answered drops off QUESTIONS THEY COULD
+     * ANSWER, and the next run would have nothing for the model to record.
+     */
+    for (const r of results)
+      if (r.threadId) await db.delete(threads).where(eq(threads.id, r.threadId));
+    for (const key of WROTE_FACTS)
+      await db
+        .delete(profileFacts)
+        .where(and(eq(profileFacts.userId, user.id), eq(profileFacts.key, key)));
   }
 
-  const score = scoreOf(results);
-  console.table(
-    results.map((r) => ({
-      case: r.id,
-      judge: `${r.judgeScore}/3`,
-      failed: r.turns.reduce((n, t) => n + t.failed.length, 0),
-      invented: r.turns.reduce((n, t) => n + t.dropped.length, 0),
-      receipts: r.turns.reduce((n, t) => n + t.receipts.length, 0),
-      "in tokens": r.turns.reduce((n, t) => n + t.inputTokens, 0),
-      "out tokens": r.turns.reduce((n, t) => n + t.outputTokens, 0),
-    })),
-  );
-  console.log(`\nscore: ${score} (floor ${FLOOR})`);
+  if (only) {
+    runs.sort((a, b) => b.score - a.score);
+    console.table(
+      runs.map((r) => ({
+        model: r.modelId,
+        score: r.score,
+        judge: (
+          r.results.reduce((s, c) => s + (c.judgeScore ?? 0), 0) /
+          r.results.length
+        ).toFixed(2),
+        invented: sum(r.results, (t) => t.dropped.length),
+        receipts: sum(r.results, (t) => t.receipts.length),
+        "$/M in": r.inPerM == null ? "-" : r.inPerM.toFixed(2),
+        "$/M out": r.outPerM == null ? "-" : r.outPerM.toFixed(2),
+        "run $": r.cost == null ? "-" : r.cost.toFixed(4),
+      })),
+    );
+  } else {
+    const one = runs[0]!;
+    console.table(
+      one.results.map((r) => ({
+        case: r.id,
+        judge: `${r.judgeScore}/3`,
+        failed: r.turns.reduce((n, t) => n + t.failed.length, 0),
+        invented: r.turns.reduce((n, t) => n + t.dropped.length, 0),
+        receipts: r.turns.reduce((n, t) => n + t.receipts.length, 0),
+        "in tokens": r.turns.reduce((n, t) => n + t.inputTokens, 0),
+        "out tokens": r.turns.reduce((n, t) => n + t.outputTokens, 0),
+      })),
+    );
+    console.log(`\nscore: ${one.score} (floor ${FLOOR})`);
+  }
 
-  for (const r of results)
-    for (const [i, t] of r.turns.entries())
-      console.log(`── ${r.id} turn ${i + 1}: ${t.said || t.error}`);
+  const best = runs[0] ?? null;
+  const winner = best && best.score >= FLOOR ? best : null;
+  if (only)
+    console.log(
+      winner
+        ? `\nwinner: ${winner.modelId} (${winner.score})\nset AI_THREAD_MODEL=${winner.modelId}\n`
+        : `\nno model cleared the floor of ${FLOOR}; best was ${
+            best ? `${best.modelId} (${best.score})` : "nothing"
+          }\n`,
+    );
 
-  /**
-   * The threads this run wrote are the person's; the eval cleans up after.
-   * The facts too: a key that stays answered drops off QUESTIONS THEY COULD
-   * ANSWER, and the next run would have nothing for the model to record.
-   */
-  for (const r of results)
-    if (r.threadId) await db.delete(threads).where(eq(threads.id, r.threadId));
-  for (const key of WROTE_FACTS)
-    await db
-      .delete(profileFacts)
-      .where(and(eq(profileFacts.userId, user.id), eq(profileFacts.key, key)));
+  for (const r of runs)
+    for (const c of r.results)
+      for (const [i, t] of c.turns.entries())
+        console.log(
+          `── ${only ? `${r.modelId} ` : ""}${c.id} turn ${i + 1}: ${t.said || t.error}`,
+        );
 
   const file = path.join(
     HERE,
@@ -374,25 +500,57 @@ async function main() {
     `thread-${new Date().toISOString().slice(0, 10)}.json`,
   );
   await mkdir(path.dirname(file), { recursive: true });
+  const one = runs[0]!;
   await writeFile(
     file,
     JSON.stringify(
-      {
-        ranAt: new Date().toISOString(),
-        email,
-        model: process.env.AI_THREAD_MODEL ?? "default",
-        compacts,
-        score,
-        results,
-      },
+      only
+        ? {
+            ranAt: new Date().toISOString(),
+            email,
+            compacts,
+            winner: winner?.modelId ?? null,
+            runs,
+          }
+        : {
+            ranAt: new Date().toISOString(),
+            email,
+            model: one.modelId,
+            compacts,
+            score: one.score,
+            results: one.results,
+          },
       null,
       2,
     ),
   );
   console.log(`\nwrote ${path.relative(process.cwd(), file)}`);
 
-  if (score < FLOOR) process.exitCode = 1;
+  return { email, compacts, runs, winner, floor: FLOOR };
+}
+
+async function main() {
+  const argv = process.argv.slice(2);
+  const caseIds: string[] = [];
+  let models: string[] | null = null;
+  let email = process.env.EVAL_ASK_EMAIL ?? DEFAULT_EMAIL;
+  for (let i = 0; i < argv.length; i++) {
+    const arg = argv[i]!;
+    if (arg === "--models")
+      models = (argv[++i] ?? "").split(",").filter(Boolean);
+    else if (arg.startsWith("--models=")) models = arg.slice(9).split(",");
+    else if (arg === "--user") email = argv[++i] ?? email;
+    else caseIds.push(arg);
+  }
+
+  const run = await runThread({ models, caseIds, email });
+  if (!run || !run.winner) process.exitCode = 1;
   await pool().end();
 }
 
-await main();
+/** Only when this file is the command; `evals/models.ts` imports it instead. */
+if (
+  process.argv[1] &&
+  path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)
+)
+  await main();
