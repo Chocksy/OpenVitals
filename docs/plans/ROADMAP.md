@@ -179,11 +179,16 @@ Parked from 28c: `MAX_TESTS` (30) in `lib/lookup.ts` fills every offered test fr
 
 Parked from 30: bubble positions in `lib/bubbles.ts` still crowd 29 nodes (seven small never-measured circles carry no label); engine codes inside model-written prose (`action.why`, `action.reasoning`) belong to the plan prompt; no per-marker retest cadence, fasting flag or upload size in the schema, so Plan a draw and the upload rows omit them; `globals.css` is 4 600 lines because the transitions.dev block and every element class live in one file; the dev server on the external volume needs `rm -rf .next` before a restart to serve fresh CSS.
 
+| 33 | The native app as a measured replica: DesignTokens.swift generated from system.css with a drift test, Geist bundled, one component per element, a DEBUG gallery, pixel-diff snapshot tests against the mockup renders with recorded tolerances (today 12.8 %, body 3.8 %, plan 7.7 %, meals 12.2 %, capture 8.0 %, settings 9.9 %); the Add sheet anatomy and send controls, the tab bar radius and shadow, sign-in per login.html; eval:models bake-off tooling | `3190f34`, `f416997` |
+| 34 | Goals first: goals on /api/today with target, to-go, on pace and moves, the sentence names what you are moving; /api/markers with series; research rows carry read; the web Home leads with the goals card. Phone: goal cards, a Blood tab with every marker, sparkline and ruler, the marker screen with the history chart and set a goal, the Research screen, words-only Send; 1765 web and 163 iOS tests | `b118418`, `d0a4a5c`… |
+
 Parked from 32: the OpenRouter key is at its monthly limit (chat, one-shot answers, plan generation and the research intake fail until topped up); the owner's feed holds 15 search-only papers with no grade because nothing read them; `protocol_items` has no interval column (alternate-day iron) and one tick per item-day; a research tab per pattern needs rows keyed on patterns; HFE and LPA absences read "no change" because their catalogue rules carry no negative LR; the two damaged threads from Sep 2 still hold their empty rows; iOS Month tab, Genome and Research screens not drawn yet; the owner has never synced a phone, so Body's fixture comes from the local HealthKit account.
+
+Parked from 33 and 34: gallery sections diff high because the web sections carry desktop-only elements (drawer, ConclusionCard, HKB table, lanes, bubbles); SF Symbols where the design uses lucide; the mockup tab bars disagree on order (ios.html Today · Body · + · Meals · Plan; blood/research Home · Body · + · Blood · Plan; shipped Today · Blood · + · Body · Plan, owner to settle); the goal card's ruler has no lab bands because /api/today goals carry none; research rows stay "found, not read yet" until the OpenRouter key is topped up; 20 MB of snapshot references live in apps/ios/Tests/References; the owner's phone needs one HealthKit sync for Body and Meals to show anything.
 
 ## In progress
 
-Nothing. Next: owner review of research, the month, genome, the read receipt and the native app; top up the OpenRouter key.
+Nothing. Next: owner review of the phone (goals first, Blood, Research); top up the OpenRouter key and run `pnpm eval:models` for the model choice.
 
 ## Next
 
