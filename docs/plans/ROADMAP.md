@@ -183,7 +183,7 @@ Parked from 32: the OpenRouter key is at its monthly limit (chat, one-shot answe
 
 ## In progress
 
-32b validation against the web's real fixtures (iOS agent). Next: owner review of research, the month, genome, the read receipt and the native app.
+Nothing. Next: owner review of research, the month, genome, the read receipt and the native app; top up the OpenRouter key.
 
 ## Next
 
