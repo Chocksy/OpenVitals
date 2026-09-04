@@ -7,7 +7,9 @@ import {
   composeReceipt,
   followUp,
   heldChips,
+  NOTHING_TO_KEEP,
   readActionStatement,
+  replyFallback,
   replyPack,
   understand,
   understandRead,
@@ -119,7 +121,9 @@ export async function POST(req: Request) {
         { ...post, followUp: followUpRow },
         before,
       );
-      const reply = await writeReply(pack);
+      const reply =
+        (await writeReply(pack)).trim() ||
+        replyFallback(chips, { reply: NOTHING_TO_KEEP });
       await db
         .update(checkinPosts)
         .set({ followUp: followUpRow, reply })
@@ -158,7 +162,12 @@ export async function POST(req: Request) {
      * whole, and the post is saved `unread` for the next pass.
      */
     const read = body.chips?.length
-      ? { chips: body.chips, modelRan: false, modelFailed: false }
+      ? {
+          chips: body.chips,
+          modelRan: false,
+          modelFailed: false,
+          worthReading: false,
+        }
       : await understandRead(text, m);
     const receipt = composeReceipt(read);
     const chips = cleanChips(read.chips, m.today);
@@ -223,8 +232,13 @@ export async function POST(req: Request) {
       });
     }
 
+    /**
+     * The paragraph, and the receipt behind it. `writeReply` talks to the same
+     * provider the reader does, so an empty answer is a live failure mode —
+     * never an empty reply on the body.
+     */
     const pack = await replyPack(userId, post!, before);
-    const reply = await writeReply(pack);
+    const reply = (await writeReply(pack)).trim() || replyFallback(chips, receipt);
     await db
       .update(checkinPosts)
       .set({ reply })

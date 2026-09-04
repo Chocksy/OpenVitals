@@ -3,6 +3,9 @@ import {
   applyChips,
   composeReceipt,
   mergeChips,
+  NOTHING_TO_KEEP,
+  replyFallback,
+  writeReply,
   postsToReread,
   understandRead,
   UNREAD_RECEIPT,
@@ -763,16 +766,107 @@ describe("the model layer fails", () => {
     expect(failed.reply).not.toContain("nothing in that was a fact");
     expect(failed.read).toBe(false);
 
-    // The model ran and found nothing: that, and only that, is a client's
-    // cue to say the note held no fact this app stores.
+    // The model ran over words nobody could store anything from: that, and
+    // only that, is a client's cue to say the note held no fact.
     ai.down = false;
     ai.chips = [];
-    const ran = composeReceipt(
-      await withKey(() => understandRead(NOTE, input())),
-    );
+    const ran = composeReceipt(await withKey(() => understandRead("ok", input())));
     expect(ran.read).toBe(true);
     expect(ran.readState).toBe("read");
-    expect(ran.reply).toBeNull();
+    expect(ran.reply).toBe(NOTHING_TO_KEEP);
+    expect(ran.reply).toBe("Nothing to keep from that.");
+  });
+
+  /**
+   * Phase 34b. The second shape of the same morning: the key was exhausted,
+   * the reader came back with nothing rather than an error, and the phone was
+   * told the note held no fact. Zero chips out of a sentence that names three
+   * supplements and four foods is a reader that did not work.
+   */
+  it("saves a note the reader kept nothing from unread, for one more look", async () => {
+    ai.down = false;
+    ai.chips = [];
+    const read = await withKey(() => understandRead(NOTE, input()));
+    expect(read.modelRan).toBe(true);
+    expect(read.modelFailed).toBe(false);
+    expect(read.chips).toHaveLength(0);
+    expect(read.worthReading).toBe(true);
+
+    const receipt = composeReceipt(read);
+    expect(receipt.read).toBe(false);
+    expect(receipt.readState).toBe("unread");
+    expect(receipt.reply).toBe(UNREAD_RECEIPT);
+  });
+
+  /** A reading that kept something is a reading, whatever else it missed. */
+  it("stays read when the reader kept anything at all", async () => {
+    ai.down = false;
+    ai.chips = [];
+    const read = await withKey(() =>
+      understandRead("weight 84 kg, took omega 3 and magnesium today", input()),
+    );
+    expect(read.chips.map((c) => c.key)).toContain("weight");
+    const receipt = composeReceipt(read);
+    expect(receipt.read).toBe(true);
+    expect(receipt.readState).toBe("read");
+    expect(receipt.reply).toContain("Kept: ");
+  });
+
+  /**
+   * The exact sentence, and the two shapes next to it. `STOP` eats "took",
+   * "ate" and "had" as filler, so the note that started this had to be worth
+   * a model call on its verbs alone.
+   */
+  it("sends anything a person took, ate or measured to the model", () => {
+    expect(worthModelling(NOTE)).toBe(true);
+    expect(worthModelling("ate a salad with tuna")).toBe(true);
+    expect(worthModelling("took 2000 IU vitamin D")).toBe(true);
+    expect(worthModelling("took my magnesium")).toBe(true);
+    expect(worthModelling("ok thanks")).toBe(false);
+    expect(worthModelling("ok")).toBe(false);
+    expect(worthModelling("thanks")).toBe(false);
+  });
+
+  /**
+   * The last thing the owner saw was `reply: ""`. Nothing the composer sends
+   * back is ever the empty string: with chips it is what was kept, without
+   * them it is the receipt for the read that happened.
+   */
+  describe("the reply is never empty", () => {
+    const label = (l: string): { label: string } => ({ label: l });
+
+    it("falls back to what was kept", () => {
+      expect(
+        replyFallback([label("Omega-3 · yes"), label("Magnesium · yes")], {
+          reply: NOTHING_TO_KEEP,
+        }),
+      ).toBe("Kept: Omega-3 · yes, Magnesium · yes.");
+    });
+
+    it("falls back to the receipt when nothing was kept", () => {
+      expect(replyFallback([], { reply: UNREAD_RECEIPT })).toBe(UNREAD_RECEIPT);
+      expect(replyFallback([], { reply: NOTHING_TO_KEEP })).toBe(
+        "Nothing to keep from that.",
+      );
+      // Even handed an empty receipt, it says something true.
+      expect(replyFallback([], { reply: "" })).toBe("Nothing to keep from that.");
+    });
+
+    it("is what the route prints when the reply model gives it nothing", async () => {
+      const pack: ReplyPack = {
+        wrote: [],
+        moved: [],
+        edges: [],
+        suggestion: null,
+        said: [],
+      } as unknown as ReplyPack;
+      // The provider is the same one the reader uses: it answers with "".
+      const written = await writeReply(pack);
+      expect(written.trim()).toBe("");
+      expect(written.trim() || replyFallback([], { reply: UNREAD_RECEIPT })).toBe(
+        UNREAD_RECEIPT,
+      );
+    });
   });
 
   it("keeps whatever the rules alone understood", async () => {
@@ -818,6 +912,57 @@ describe("the re-read", () => {
     expect(postsToReread(rows)).toHaveLength(0);
     // And a third pass over the same rows still has nothing to do.
     expect(postsToReread(rows)).toHaveLength(0);
+  });
+
+  /**
+   * Phase 34b. The owner's notes of 3 and 4 September were saved before
+   * `read_state` existed: they say `read`, and they carry no chips, because
+   * the reader's key was exhausted when they were written. The pass has to
+   * pick them up too, and stop after two goes.
+   */
+  describe("notes that came out empty", () => {
+    const NOW = new Date("2026-09-04T09:00:00Z");
+    const days = (n: number) => new Date(NOW.getTime() - n * 86_400_000);
+    const empty = (
+      id: string,
+      createdAt: Date,
+      over: { chips?: unknown[]; readAttempts?: number } = {},
+    ) => ({
+      id,
+      readState: "read",
+      chips: over.chips ?? [],
+      createdAt,
+      readAttempts: over.readAttempts ?? 0,
+    });
+
+    it("picks up an empty read note from the last fourteen days", () => {
+      const rows = [
+        empty("sep3", days(1)),
+        empty("sep4", days(0)),
+        empty("old", days(20)),
+        empty("kept", days(1), { chips: [{ key: "weight" }] }),
+      ];
+      expect(postsToReread(rows, NOW).map((p) => p.id)).toEqual([
+        "sep3",
+        "sep4",
+      ]);
+    });
+
+    it("stops after two goes at the same note", () => {
+      expect(
+        postsToReread([empty("a", days(1), { readAttempts: 1 })], NOW),
+      ).toHaveLength(1);
+      expect(
+        postsToReread([empty("a", days(1), { readAttempts: 2 })], NOW),
+      ).toHaveLength(0);
+      // The cap holds for a note the reader was down for as well.
+      expect(
+        postsToReread(
+          [{ ...empty("b", days(1), { readAttempts: 2 }), readState: "unread" }],
+          NOW,
+        ),
+      ).toHaveLength(0);
+    });
   });
 
   it("adds only the chips the note did not already carry", () => {

@@ -24,7 +24,7 @@
  */
 import { generateObject, generateText } from "ai";
 import { z } from "zod";
-import { and, desc, eq, isNotNull, isNull } from "drizzle-orm";
+import { and, desc, eq, gte, isNotNull, isNull, lt, or } from "drizzle-orm";
 import {
   checkinPosts,
   getDb,
@@ -816,9 +816,28 @@ export function leftover(text: string, chips: Chip[]): string {
 const STOP =
   /^(i|a|an|the|and|but|my|me|is|am|are|was|were|been|be|to|of|in|on|at|for|with|have|has|had|do|does|did|it|its|this|that|so|very|really|just|feel|feeling|felt|think|about|since|today|day|days)$/i;
 
-/** Enough real words left to be worth a model call. */
-export const worthModelling = (rest: string): boolean =>
-  rest.split(/\s+/).filter((w) => w.length > 2 && !STOP.test(w)).length >= 3;
+/**
+ * The verbs a person uses when they name something they took, ate, drank,
+ * felt, did, measured or asked. `STOP` throws "took", "ate" and "had" away as
+ * filler, which is exactly wrong for a supplement and food note: "took omega
+ * 3, berberine and magnesium today" is the sentence the reader must read.
+ */
+const DID =
+  /\b(took|take|takes|taking|taken|ate|eat|eats|eating|eaten|drank|drink|drinks|drinking|drunk|had|have|felt|feel|feels|feeling|did|do|doing|done|ran|run|walked|walking|slept|sleep|sleeping|trained|training|lifted|weigh|weighed|weight|measured|tested|test|checked|started|start|stopped|stop|skipped|skip|added|asked|ask|wondering|wonder|why|how|what|when)\b/i;
+
+/**
+ * Enough real words left to be worth a model call.
+ *
+ * Either three words the stop list does not know, or three words of any kind
+ * that name something taken, eaten, drunk, felt, done, measured or asked. Two
+ * words never go: "ok" and "thanks" are not a health note.
+ */
+export const worthModelling = (rest: string): boolean => {
+  const words = rest.split(/\s+/).filter(Boolean);
+  if (words.filter((w) => w.length > 2 && !STOP.test(w)).length >= 3)
+    return true;
+  return words.length >= 3 && DID.test(rest);
+};
 
 export const COMPOSE_PROMPT = `You are reading one short note a person wrote about their own health, in a health app they own.
 
@@ -961,6 +980,12 @@ export interface ComposeRead {
   modelRan: boolean;
   /** it was asked and it threw — no quota, 402, 429, provider down */
   modelFailed: boolean;
+  /**
+   * The leftover named something taken, eaten, drunk, felt, done, measured or
+   * asked. A reading that kept nothing out of words like these read badly, so
+   * the note is worth one more look rather than a verdict.
+   */
+  worthReading: boolean;
 }
 
 /**
@@ -984,16 +1009,63 @@ export const UNREAD_RECEIPT =
  * the reader never ran. With `read` on the body, both clients can tell a note
  * nothing was found in from a note nobody has read yet.
  */
-export function composeReceipt(read: Pick<ComposeRead, "modelFailed">): {
+export function composeReceipt(
+  read: Pick<
+    ComposeRead,
+    "chips" | "modelRan" | "modelFailed" | "worthReading"
+  >,
+): {
   saved: true;
   read: boolean;
   readState: ReadState;
-  /** the receipt the client prints, or null when the reply is the receipt */
-  reply: string | null;
+  /** the receipt the client prints, never the empty string */
+  reply: string;
 } {
-  return read.modelFailed
-    ? { saved: true, read: false, readState: "unread", reply: UNREAD_RECEIPT }
-    : { saved: true, read: true, readState: "read", reply: null };
+  const unread = {
+    saved: true,
+    read: false,
+    readState: "unread",
+    reply: UNREAD_RECEIPT,
+  } as const;
+  if (read.modelFailed) return unread;
+  /**
+   * The reader ran over words worth reading and kept nothing at all. A
+   * degraded provider answers like that too, so the note waits for a second
+   * look instead of being told it held no fact.
+   */
+  if (read.modelRan && read.worthReading && read.chips.length === 0)
+    return unread;
+  return {
+    saved: true,
+    read: true,
+    readState: "read",
+    reply: read.chips.length ? keptSentence(read.chips) : NOTHING_TO_KEEP,
+  };
+}
+
+/**
+ * The sentence for a note the reader read and found nothing storable in. Said
+ * only about a reading that actually happened.
+ */
+export const NOTHING_TO_KEEP = "Nothing to keep from that.";
+
+/** What was kept, in the chips' own labels: the receipt when prose fails. */
+export const keptSentence = (chips: Pick<Chip, "label">[]): string =>
+  `Kept: ${chips.map((c) => c.label).join(", ")}.`;
+
+/**
+ * The reply a caller prints when the prose model gave it nothing.
+ *
+ * `writeReply` can come back empty — the provider is the same one the reader
+ * uses, and `plainReply` of an empty pack is an empty string. What the person
+ * reads then is what the server actually did with their words, never "".
+ */
+export function replyFallback(
+  chips: Pick<Chip, "label">[],
+  receipt: { reply: string },
+): string {
+  if (chips.length) return keptSentence(chips);
+  return receipt.reply || NOTHING_TO_KEEP;
 }
 
 /**
@@ -1021,11 +1093,11 @@ export async function understandRead(
       if (!chips.some((c) => c.key === chip.key)) chips.push(chip);
   }
 
+  const worthReading = worthModelling(leftover(text, chips));
   const useModel =
-    (opts.model ?? true) &&
-    !!process.env.OPENROUTER_API_KEY &&
-    worthModelling(leftover(text, chips));
-  if (!useModel) return { chips, modelRan: false, modelFailed: false };
+    (opts.model ?? true) && !!process.env.OPENROUTER_API_KEY && worthReading;
+  if (!useModel)
+    return { chips, modelRan: false, modelFailed: false, worthReading };
 
   try {
     const { object } = await generateObject({
@@ -1057,9 +1129,9 @@ export async function understandRead(
       if (!chips.some((c) => c.key === chip.key)) chips.push(chip);
   } catch (e) {
     console.error("[compose] the model layer failed, rules stand:", e);
-    return { chips, modelRan: true, modelFailed: true };
+    return { chips, modelRan: true, modelFailed: true, worthReading };
   }
-  return { chips, modelRan: true, modelFailed: false };
+  return { chips, modelRan: true, modelFailed: false, worthReading };
 }
 
 /** The chips alone, for every caller that does not care who read them. */
@@ -1203,15 +1275,42 @@ export const postDay = (
 ): string =>
   post.createdAt ? post.createdAt.toISOString().slice(0, 10) : fallback;
 
+/** How many times one post may be read again before the pass leaves it alone. */
+export const REREAD_CAP = 2;
+
+/** The window a note with nothing in it is still worth a second look. */
+export const REREAD_DAYS = 14;
+
+/** What `postsToReread` needs off a row, so the rule is testable without a db. */
+interface RereadRow {
+  readState: string;
+  chips?: unknown;
+  createdAt?: Date | null;
+  readAttempts?: number | null;
+}
+
 /**
  * The posts a re-read has to touch, in the order it touches them.
  *
- * Pure, so the one rule that matters is checkable without a database: a post
- * is re-read exactly once. `read_state` is the whole guard — a post that has
- * been read is never in this list again, however often the pass runs.
+ * Pure, so the rules that matter are checkable without a database. Two kinds
+ * of post qualify: one saved `unread` because the reader was down, and one
+ * saved before that state existed whose chips are empty — the owner's notes
+ * of 3 and 4 September, read by a reader with an exhausted key, came out with
+ * `read_state: read` and nothing in them. Fourteen days keeps the second kind
+ * bounded, and `read_attempts` caps every post at two re-reads, so a note the
+ * reader genuinely has nothing to say about is not read forever.
  */
-export function postsToReread<T extends { readState: string }>(rows: T[]): T[] {
-  return rows.filter((r) => r.readState === "unread");
+export function postsToReread<T extends RereadRow>(
+  rows: T[],
+  now: Date = new Date(),
+): T[] {
+  const floor = new Date(now.getTime() - REREAD_DAYS * 86_400_000);
+  return rows.filter((r) => {
+    if ((r.readAttempts ?? 0) >= REREAD_CAP) return false;
+    if (r.readState === "unread") return true;
+    const empty = !(Array.isArray(r.chips) && r.chips.length);
+    return empty && !!r.createdAt && r.createdAt >= floor;
+  });
 }
 
 /**
@@ -1229,24 +1328,30 @@ export function mergeChips(existing: Chip[], fresh: Chip[]): Chip[] {
 /**
  * Read again every note this person wrote while the reader was down.
  *
- * The daily pass and `POST /api/compose/reread` both call this. It is
- * idempotent by `read_state`: a post is picked up while it is `unread`, and
- * the same statement that writes its chips marks it read. When the reader is
- * still down the post is left exactly as it was, and the pass stops — a
- * hundred notes against a dead provider is a hundred failed calls.
+ * The daily pass and `POST /api/compose/reread` both call this. It picks up
+ * every note saved `unread`, plus every note of the last fourteen days that
+ * came out with no chips at all, and `read_attempts` stops each of them after
+ * two goes. When the reader is still down the post is left exactly as it was
+ * and the pass stops — a hundred notes against a dead provider is a hundred
+ * failed calls.
  */
 export async function rereadPosts(
   userId: string,
   opts: { limit?: number } = {},
 ): Promise<{ read: number; stillDown: boolean }> {
   const db = getDb();
+  const since = new Date(Date.now() - REREAD_DAYS * 86_400_000);
   const rows = await db
     .select()
     .from(checkinPosts)
     .where(
       and(
         eq(checkinPosts.userId, userId),
-        eq(checkinPosts.readState, "unread"),
+        lt(checkinPosts.readAttempts, REREAD_CAP),
+        or(
+          eq(checkinPosts.readState, "unread"),
+          gte(checkinPosts.createdAt, since),
+        ),
       ),
     )
     .orderBy(checkinPosts.createdAt)
@@ -1273,9 +1378,11 @@ export async function rereadPosts(
       );
 
     const chips = [...existing, ...added];
-    const reply = await writeReply(
-      await replyPack(userId, { ...post, chips }, before),
-    );
+    const reply =
+      (
+        await writeReply(await replyPack(userId, { ...post, chips }, before))
+      ).trim() ||
+      replyFallback(chips, composeReceipt({ ...fresh, chips }));
     await db
       .update(checkinPosts)
       .set({
@@ -1283,9 +1390,13 @@ export async function rereadPosts(
         reply,
         readState: "read",
         readAt: new Date(),
+        readAttempts: (post.readAttempts ?? 0) + 1,
       })
       .where(
-        and(eq(checkinPosts.id, post.id), eq(checkinPosts.readState, "unread")),
+        and(
+          eq(checkinPosts.id, post.id),
+          lt(checkinPosts.readAttempts, REREAD_CAP),
+        ),
       );
     read++;
   }

@@ -183,6 +183,13 @@
       "when": 1788466890505,
       "tag": "0025_confused_captain_midlands",
       "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "7",
+      "when": 1788509495311,
+      "tag": "0026_small_stingray",
+      "breakpoints": true
     }
   ]
 }

@@ -1,0 +1,1 @@
+ALTER TABLE "checkin_posts" ADD COLUMN "read_attempts" integer DEFAULT 0 NOT NULL;

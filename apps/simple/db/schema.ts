@@ -1358,6 +1358,12 @@ export const checkinPosts = pgTable(
     readAt: timestamp("read_at", { withTimezone: true }),
     /** when the person was told it had been read, like `paper_watch.seen_at` */
     readSeenAt: timestamp("read_seen_at", { withTimezone: true }),
+    /**
+     * How many times a later pass has read this note again. The cap is two:
+     * a note the reader keeps finding nothing in stops costing a call, and a
+     * note written before `read_state` existed still gets its second look.
+     */
+    readAttempts: integer("read_attempts").default(0).notNull(),
   },
   (t) => [
     index("checkin_posts_user_idx").on(t.userId, t.createdAt),
