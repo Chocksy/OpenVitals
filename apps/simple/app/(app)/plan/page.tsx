@@ -44,6 +44,8 @@ import { asksFromMoves, inlineAsks } from "@/lib/asking";
 import { bootstrapProtocol, getGoals, getProtocol } from "@/lib/daily-data";
 import { localDay } from "@/lib/daily";
 import { listWatch, watchConditions, WATCH_DAYS } from "@/lib/research-watch";
+import { topicsBody } from "@/lib/api-contract";
+import { TOPIC_DAYS } from "@/lib/topic-watch";
 import { getMetricNames } from "@/lib/data";
 import { catalogFor } from "@/lib/hkb";
 import { nextMoves } from "@/lib/infogain";
@@ -342,6 +344,9 @@ export default async function PlanPage({
    * watch itself makes, so the page and the run can never disagree.
    */
   const conditions = blocked ? [] : await watchConditions(userId);
+
+  /** Phase 35 section C: the topics list, under "New for you". */
+  const { topics } = await topicsBody(userId);
   const lastRun =
     papers
       .map((p) => p.foundAt?.toISOString().slice(0, 10) ?? "")
@@ -461,6 +466,8 @@ export default async function PlanPage({
         conditions={conditions}
         lastRun={lastRun}
         cooldownDays={WATCH_DAYS}
+        topics={topics}
+        topicDays={TOPIC_DAYS}
       />
     ),
 

@@ -1,0 +1,1083 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Topic — OpenVitals design system</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <!-- Geist Sans + Geist Mono, the app's own fonts. If the CDN is blocked
+         the stack in system.css falls back to Inter / JetBrains Mono, then to
+         the system UI font and ui-monospace. -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Geist:wght@200..600&family=Geist+Mono:wght@200..500&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="system.css" />
+    <!-- New CSS on this page, to be folded into system.css later:
+         .topichead   — the topic title block: name, relevance, run line
+         .topichead h2 / .rel / .run
+         Nothing else here is new. The verdict strip is `.tbl`, the finding
+         rows are `.paper` from section 15, the association word is `.state`,
+         the topics list is `.markerrow.said` and the watch box is `.inp`
+         with one `.b.b-ink`. -->
+    <style>
+      .topichead {
+        display: flex;
+        flex-direction: column;
+        gap: var(--s5);
+        padding-bottom: var(--s13);
+        border-bottom: 1px solid var(--hair);
+        margin-bottom: var(--s13);
+      }
+      .topichead h2 {
+        margin: 0;
+        font-size: var(--type-xl);
+        font-weight: 200;
+        letter-spacing: -0.03em;
+        line-height: 1.1;
+        color: var(--ink);
+      }
+      .topichead .rel {
+        font-size: var(--type-sm);
+        color: var(--ink-2);
+      }
+      .topichead .run {
+        font-family: var(--font-mono);
+        font-size: var(--type-xs);
+        color: var(--ink-3);
+      }
+    </style>
+  </head>
+  <body>
+    <button class="themebtn" id="themebtn" type="button">
+      <svg class="ic" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9z" />
+      </svg>
+      <span>Dark</span>
+    </button>
+    <main class="doc">
+      <header class="doc-head">
+        <h1>Topic</h1>
+        <p>
+          Phase 35. A topic is a named thing you take, do or wonder about:
+          creatine, omega-3, cold exposure, psyllium. The page reads what the
+          trials found per outcome, grades each one by its design, and keeps the
+          contrary evidence beside the supporting evidence — including the claim
+          that is
+          <b>only an association</b>, printed as plainly as the trials and
+          labelled so it can never be read as a cause.
+        </p>
+      </header>
+      <nav class="crumbs">
+        <a href="system.html">System</a>
+        <a href="index.html">Index</a>
+        <a href="home.html">Home</a>
+        <a href="body.html">Body</a>
+        <a href="blood.html">Blood</a>
+        <a href="plan.html">Plan</a>
+        <a href="graph.html">Graph</a>
+        <a href="research.html">Research</a>
+        <a class="here" href="topic.html">Topic</a>
+        <a href="plan-month.html">Plan · month</a>
+        <a href="genome.html">Genome</a>
+        <a href="ios.html">iOS</a>
+        <a href="chart-hover.html">Chart hover</a>
+      </nav>
+
+      <section class="sec" id="s01">
+        <div class="sec-head">
+          <span class="n">01</span>
+          <h2>The topic, and the verdict strip</h2>
+        </div>
+        <p class="lede">
+          The title is the topic as you typed it. Under it, one sentence saying
+          why this topic is on your file at all, and the run line. Then one row
+          per outcome, grouped by direction, best grade first. Direction is good
+          or bad by the outcome and not by up or down: an adverse outcome going
+          up is <b>off</b>, however strong the trial behind it.
+        </p>
+        <div class="panel">
+          <div class="topichead">
+            <h2>Creatine</h2>
+            <span class="rel">you take it · you are moving grip strength</span>
+            <span class="run">14 papers read · last run Tue 2 Sep</span>
+          </div>
+          <div class="tblwrap">
+            <table class="tbl">
+              <thead>
+                <tr>
+                  <th>Outcome</th>
+                  <th>Direction</th>
+                  <th>What is behind it</th>
+                  <th>Dose or window</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="k">Muscle strength</td>
+                  <td><span class="state on">up · good</span></td>
+                  <td>5 trials <span class="glyph sci">● A</span></td>
+                  <td class="n">3–5 g/day</td>
+                </tr>
+                <tr>
+                  <td class="k">Cognition under sleep loss</td>
+                  <td><span class="state on">up · good</span></td>
+                  <td>3 trials <span class="glyph sci">● B</span></td>
+                  <td class="n">10–20 g/day</td>
+                </tr>
+                <tr>
+                  <td class="k">Body water / weight</td>
+                  <td><span class="state none">up · neither</span></td>
+                  <td>4 trials <span class="glyph sci">● A</span></td>
+                  <td class="n">first 7 days</td>
+                </tr>
+                <tr>
+                  <td class="k">Prostate cancer incidence</td>
+                  <td><span class="state off">up · bad</span></td>
+                  <td>
+                    <span class="state border">association</span> 1
+                    cross-sectional survey <span class="glyph op">◐ C</span>
+                  </td>
+                  <td class="n">—</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="cap">
+            Four outcomes, four different answers, one strip. The fourth row is
+            the reason the strip exists: the worst-sounding line on the page is
+            also the weakest one, and it says so in the same column as the grade
+            rather than in a footnote nobody reads.
+          </p>
+        </div>
+      </section>
+
+      <section class="sec" id="s02">
+        <div class="sec-head">
+          <span class="n">02</span>
+          <h2>What the trials found, and what is only an association</h2>
+        </div>
+        <p class="lede">
+          Two columns on the desktop, stacked on the phone. A finding row is the
+          paper row from section 15 with four more facts in the citation line —
+          dose, duration, the population with its n, and the study type in words
+          — the effect as the sentence, and the paper's own sentence under it.
+          Nothing is paraphrased into a stronger claim than the abstract made.
+        </p>
+        <div class="grid2">
+          <div class="panel">
+            <div class="panel-head">
+              <h3>What the trials found</h3>
+              <span class="r">4 of 14 papers · 12 outcomes</span>
+            </div>
+            <div class="rowlist">
+              <div class="paper">
+                <span class="pg"
+                  ><svg class="ic" viewBox="0 0 24 24" aria-hidden="true">
+                    <path
+                      d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7z"
+                    />
+                    <path d="M14 2v4a2 2 0 0 0 2 2h4" />
+                    <path d="M10 9H8" />
+                    <path d="M16 13H8" />
+                    <path d="M16 17H8" /></svg
+                ></span>
+                <div class="ptitle">
+                  Creatine monohydrate and maximal strength in
+                  resistance-trained adults
+                </div>
+                <div class="pcite">
+                  <span>Bergström · J Appl Physiol · 2019</span>
+                  <span class="glyph sci">● A</span>
+                  <span>randomised, n = 46</span>
+                  <span>5 g/day · 12 weeks</span>
+                  <span>trained adults, 24–48 y</span>
+                </div>
+                <p class="pfound">
+                  One-rep-max bench press rose <b>7.4 %</b> against placebo, 95
+                  % CI +3.1 to +11.7, and grip rose <b>3.2 kg</b> against 0.6 kg
+                  on placebo.
+                </p>
+                <div class="pmoves">
+                  <span class="arrow">quote →</span>
+                  <span
+                    >“Handgrip strength increased by 3.2 kg in the creatine arm
+                    and by 0.6 kg on placebo over twelve weeks of identical
+                    training.”</span
+                  >
+                </div>
+                <div class="pact">
+                  <button class="b b-quiet b-sm">
+                    <svg class="ic" viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M15 3h6v6" />
+                      <path d="M10 14 21 3" />
+                      <path
+                        d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"
+                      />
+                    </svg>
+                    Open
+                  </button>
+                  <button class="b b-text b-sm">Discuss</button>
+                </div>
+              </div>
+
+              <div class="paper">
+                <span class="pg"
+                  ><svg class="ic" viewBox="0 0 24 24" aria-hidden="true">
+                    <path
+                      d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7z"
+                    />
+                    <path d="M14 2v4a2 2 0 0 0 2 2h4" />
+                    <path d="M10 9H8" />
+                    <path d="M16 13H8" />
+                    <path d="M16 17H8" /></svg
+                ></span>
+                <div class="ptitle">
+                  Lower-body strength after creatine loading: a meta-analysis of
+                  twenty-two randomised trials
+                </div>
+                <div class="pcite">
+                  <span>Vasquez · Sports Med · 2021</span>
+                  <span class="glyph sci">● A</span>
+                  <span>meta-analysis, 22 trials, n = 721</span>
+                  <span>3–5 g/day · 4–24 weeks</span>
+                  <span>healthy adults</span>
+                </div>
+                <p class="pfound">
+                  A pooled standardised mean difference of <b>0.29</b>, 0.17 to
+                  0.41, for leg press and squat. Small, consistent, and it does
+                  not grow past twelve weeks.
+                </p>
+                <div class="pmoves">
+                  <span class="arrow">quote →</span>
+                  <span
+                    >“The pooled effect was small but heterogeneity was low, and
+                    no trial longer than twelve weeks reported a further
+                    gain.”</span
+                  >
+                </div>
+                <div class="pact">
+                  <button class="b b-quiet b-sm">
+                    <svg class="ic" viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M15 3h6v6" />
+                      <path d="M10 14 21 3" />
+                      <path
+                        d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"
+                      />
+                    </svg>
+                    Open
+                  </button>
+                  <button class="b b-text b-sm">Discuss</button>
+                </div>
+              </div>
+
+              <div class="paper">
+                <span class="pg"
+                  ><svg class="ic" viewBox="0 0 24 24" aria-hidden="true">
+                    <path
+                      d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7z"
+                    />
+                    <path d="M14 2v4a2 2 0 0 0 2 2h4" />
+                    <path d="M10 9H8" />
+                    <path d="M16 13H8" />
+                    <path d="M16 17H8" /></svg
+                ></span>
+                <div class="ptitle">
+                  Creatine and working memory after twenty-four hours without
+                  sleep
+                </div>
+                <div class="pcite">
+                  <span>Nakamura · Neuropsychopharmacology · 2022</span>
+                  <span class="glyph sci">● B</span>
+                  <span>randomised crossover, n = 24</span>
+                  <span>20 g/day · 7 days</span>
+                  <span>rested and sleep-deprived, same people</span>
+                </div>
+                <p class="pfound">
+                  Backward digit span held at baseline after a night awake,
+                  where placebo lost <b>1.4 digits</b>. Rested performance did
+                  not change at all.
+                </p>
+                <div class="pmoves">
+                  <span class="arrow">quote →</span>
+                  <span
+                    >“The benefit appeared only in the sleep-deprived condition;
+                    rested performance was indistinguishable between
+                    arms.”</span
+                  >
+                </div>
+                <div class="pact">
+                  <button class="b b-quiet b-sm">
+                    <svg class="ic" viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M15 3h6v6" />
+                      <path d="M10 14 21 3" />
+                      <path
+                        d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"
+                      />
+                    </svg>
+                    Open
+                  </button>
+                  <button class="b b-text b-sm">Discuss</button>
+                </div>
+              </div>
+
+              <div class="paper">
+                <span class="pg"
+                  ><svg class="ic" viewBox="0 0 24 24" aria-hidden="true">
+                    <path
+                      d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7z"
+                    />
+                    <path d="M14 2v4a2 2 0 0 0 2 2h4" />
+                    <path d="M10 9H8" />
+                    <path d="M16 13H8" />
+                    <path d="M16 17H8" /></svg
+                ></span>
+                <div class="ptitle">
+                  Total body water and lean mass through the first week of
+                  creatine loading
+                </div>
+                <div class="pcite">
+                  <span>Osei · Med Sci Sports Exerc · 2018</span>
+                  <span class="glyph sci">● A</span>
+                  <span>randomised, n = 32</span>
+                  <span>20 g/day · 7 days</span>
+                  <span>untrained men and women</span>
+                </div>
+                <p class="pfound">
+                  Body mass rose <b>1.1 kg</b> in the first week and deuterium
+                  dilution put <b>all of it</b> in total body water. Fat mass
+                  did not move.
+                </p>
+                <div class="pmoves">
+                  <span class="arrow">quote →</span>
+                  <span
+                    >“The entire mass gain over seven days was accounted for by
+                    intracellular water; no change in fat mass was
+                    detected.”</span
+                  >
+                </div>
+                <div class="pact">
+                  <button class="b b-quiet b-sm">
+                    <svg class="ic" viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M15 3h6v6" />
+                      <path d="M10 14 21 3" />
+                      <path
+                        d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"
+                      />
+                    </svg>
+                    Open
+                  </button>
+                  <button class="b b-text b-sm">Discuss</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-head">
+              <h3>What is only an association</h3>
+              <span class="r">1 paper · nothing here moves a number</span>
+            </div>
+            <div class="rowlist">
+              <div class="paper">
+                <span class="pg"
+                  ><svg class="ic" viewBox="0 0 24 24" aria-hidden="true">
+                    <path
+                      d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7z"
+                    />
+                    <path d="M14 2v4a2 2 0 0 0 2 2h4" />
+                    <path d="M10 9H8" />
+                    <path d="M16 13H8" />
+                    <path d="M16 17H8" /></svg
+                ></span>
+                <div class="ptitle">
+                  Reported dietary creatine intake and prostate cancer in a
+                  national nutrition survey
+                </div>
+                <div class="pcite">
+                  <span>Ferreira · Nutr Cancer · 2017</span>
+                  <span class="glyph op">◐ C</span>
+                  <span>cross-sectional survey, n = 892</span>
+                  <span>no dose recorded</span>
+                  <span>men, 40–75 y</span>
+                </div>
+                <p class="pfound">
+                  The highest intake quartile carried an odds ratio of
+                  <b>1.4</b>, 1.05 to 1.9, against the lowest. The intake was a
+                  food questionnaire, not a supplement log.
+                </p>
+                <div class="pmoves">
+                  <span class="state border">association</span>
+                  <span
+                    >a survey of what people ate, not a trial; it cannot say
+                    creatine causes it</span
+                  >
+                </div>
+                <div class="pact">
+                  <button class="b b-quiet b-sm">
+                    <svg class="ic" viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M15 3h6v6" />
+                      <path d="M10 14 21 3" />
+                      <path
+                        d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"
+                      />
+                    </svg>
+                    Open
+                  </button>
+                  <button class="b b-text b-sm">Discuss</button>
+                </div>
+              </div>
+            </div>
+            <p class="cap" style="margin-top: 13px">
+              The column is never hidden and never collapsed, and it keeps its
+              heading when it is empty. A page that shows only the helpful
+              trials is an advertisement; this column is what stops this one
+              becoming that.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section class="sec" id="s03">
+        <div class="sec-head">
+          <span class="n">03</span>
+          <h2>For you, and what you can do about it</h2>
+        </div>
+        <p class="lede">
+          The relevance sentence again, this time with your own number in it.
+          The projection line is drawn only when there are two readings and a
+          rate to carry forward; otherwise it says so and draws nothing.
+        </p>
+        <div class="grid2">
+          <div class="panel">
+            <div class="panel-head">
+              <h3>For you</h3>
+              <span class="r">grip strength · your goal since Jun 14 2026</span>
+            </div>
+            <div class="kpi">
+              <div><b>38</b><span>kg · grip, Aug 1 2026</span></div>
+              <div><b>45</b><span>kg · your aim</span></div>
+            </div>
+            <p class="t-body">
+              You take creatine, 5 g a day since <b>Jun 14 2026</b>, and grip
+              strength is the number you are moving. Bergström 2019 is the row
+              that speaks to you: <b>+3.2 kg</b> of grip over twelve weeks of
+              the same training, against +0.6 kg on placebo.
+            </p>
+            <p class="t-body">
+              <b>If that rate holds</b>, your 38 kg reaches about
+              <b>41 kg by Nov 24 2026</b> and the 45 kg aim needs roughly
+              <b>26 weeks</b> more of the same training. The 1.1 kg of water
+              from Osei 2018 is already in the 38 kg, so it is not a gain you
+              can count twice.
+            </p>
+            <div class="rowh" style="margin-top: 13px">
+              <button class="b b-ink">
+                <svg class="ic" viewBox="0 0 24 24" aria-hidden="true">
+                  <circle cx="11" cy="11" r="8" />
+                  <path d="m21 21-4.3-4.3" />
+                </svg>
+                Research now
+              </button>
+              <button class="b b-quiet">
+                <svg class="ic" viewBox="0 0 24 24" aria-hidden="true">
+                  <path
+                    d="M2.06 12.35a1 1 0 0 1 0-.7 10.75 10.75 0 0 1 19.88 0 1 1 0 0 1 0 .7 10.75 10.75 0 0 1-19.88 0"
+                  />
+                  <circle cx="12" cy="12" r="3" />
+                </svg>
+                Watch this
+              </button>
+              <button class="b b-text">
+                <svg class="ic" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M7.9 20A9 9 0 1 0 4 16.1L2 22z" />
+                </svg>
+                Discuss
+              </button>
+            </div>
+            <p class="cap" style="margin-top: 13px">
+              One ink button, and it is the one that spends tokens, so the run
+              date sits beside it everywhere else on the page. “Discuss” opens a
+              thread with <b>Creatine</b> as the subject, the same way a paper
+              does.
+            </p>
+          </div>
+          <div class="panel">
+            <div class="panel-head">
+              <h3>Already watching</h3>
+              <span class="r"
+                >the same row, once the topic is on your list</span
+              >
+            </div>
+            <div class="rowh">
+              <button class="b b-quiet">
+                <svg class="ic" viewBox="0 0 24 24" aria-hidden="true">
+                  <path
+                    d="M10.73 5.08a10.74 10.74 0 0 1 11.21 6.57 1 1 0 0 1 0 .7 10.75 10.75 0 0 1-1.45 2.49"
+                  />
+                  <path d="M14.08 14.16a3 3 0 0 1-4.24-4.24" />
+                  <path
+                    d="M17.48 17.5a10.75 10.75 0 0 1-15.42-5.15 1 1 0 0 1 0-.7 10.75 10.75 0 0 1 4.45-5.14"
+                  />
+                  <path d="m2 2 20 20" />
+                </svg>
+                Stop watching
+              </button>
+              <span class="t-meta">next run Oct 2 2026 · every 30 days</span>
+            </div>
+            <p class="cap" style="margin-top: 13px">
+              “Watch this” and “Stop watching” are the same quiet button in the
+              same place; only the word and the icon change, so the row never
+              moves under the cursor. Stopping the watch keeps every paper
+              already read — it stops the next run, it does not delete a
+              finding.
+            </p>
+            <div class="sub">
+              <h3>Where the topic came from</h3>
+              <span>four origins, one sentence each</span>
+            </div>
+            <div class="rowlist">
+              <div class="markerrow said">
+                <div class="nm">
+                  <b>you take it</b
+                  ><span
+                    >a protocol item names it · origin
+                    <code>adopted</code></span
+                  >
+                </div>
+                <div class="t-meta" style="font-size: 11px">
+                  Creatine 5 g, since Jun 14 2026
+                </div>
+                <div></div>
+                <div class="wd"><span class="state on">this topic</span></div>
+              </div>
+              <div class="markerrow said">
+                <div class="nm">
+                  <b>you are moving grip strength</b
+                  ><span
+                    >a goal's marker is an outcome here · origin
+                    <code>goal</code></span
+                  >
+                </div>
+                <div class="t-meta" style="font-size: 11px">
+                  grip 38 kg → 45 kg
+                </div>
+                <div></div>
+                <div class="wd"><span class="state on">this topic</span></div>
+              </div>
+              <div class="markerrow said">
+                <div class="nm">
+                  <b>inflammation is borderline for you</b
+                  ><span
+                    >a loud condition scores an outcome feature · origin
+                    <code>asked</code></span
+                  >
+                </div>
+                <div class="t-meta" style="font-size: 11px">
+                  how omega-3 got on the list
+                </div>
+                <div></div>
+                <div class="wd"><span class="state border">Omega-3</span></div>
+              </div>
+              <div class="markerrow said">
+                <div class="nm">
+                  <b>you asked</b
+                  ><span
+                    >you typed it into “Watch a topic” · origin
+                    <code>typed</code></span
+                  >
+                </div>
+                <div class="t-meta" style="font-size: 11px">
+                  no marker, no protocol item
+                </div>
+                <div></div>
+                <div class="wd"><span class="state none">Psyllium</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="sec" id="s04">
+        <div class="sec-head">
+          <span class="n">04</span>
+          <h2>Found, not read yet</h2>
+        </div>
+        <p class="lede">
+          The same page when the reading key cannot run. The search still
+          happened, so the papers are real and dated and named; what is missing
+          is the reading, and the page says which of the two failed instead of
+          showing an empty topic.
+        </p>
+        <div class="panel">
+          <div class="topichead">
+            <h2>Psyllium</h2>
+            <span class="rel">you asked · no marker on file for it yet</span>
+            <span class="run"
+              >6 papers found · none read · searched Thu 4 Sep</span
+            >
+          </div>
+          <div class="grid2">
+            <div class="empty">
+              <span class="k">Outcomes</span>
+              <b style="font-size: var(--type-md); font-weight: 400"
+                >Found, not read yet</b
+              >
+              <p>
+                Six papers came back from Europe PMC for psyllium and none has
+                been read. The reader could not run at 04:12 on Sep 4 2026: the
+                model key was refused. Nothing was written, nothing was graded,
+                and no outcome is claimed here.
+              </p>
+              <a href="#">Read them now</a>
+            </div>
+            <div class="empty">
+              <span class="k">What is on file</span>
+              <b style="font-size: var(--type-md); font-weight: 400"
+                >The titles, dated</b
+              >
+              <p>
+                The six titles, their journals and their years are stored and
+                shown in the list below at <b>found, not read yet</b>. They
+                carry no grade, because a grade comes from the reading and
+                inventing one would be the whole failure of this page.
+              </p>
+              <a href="#">See the six titles</a>
+            </div>
+          </div>
+          <div class="rowlist" style="margin-top: 13px">
+            <div class="paper">
+              <span class="pg"
+                ><svg class="ic" viewBox="0 0 24 24" aria-hidden="true">
+                  <path
+                    d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7z"
+                  />
+                  <path d="M14 2v4a2 2 0 0 0 2 2h4" />
+                  <path d="M10 9H8" />
+                  <path d="M16 13H8" />
+                  <path d="M16 17H8" /></svg
+              ></span>
+              <div class="ptitle">
+                Psyllium husk and LDL cholesterol in adults with mild
+                hypercholesterolaemia
+              </div>
+              <div class="pcite">
+                <span>Ito · Am J Clin Nutr · 2020</span>
+                <span>found Sep 4 2026</span>
+              </div>
+              <div class="pmoves">
+                <span class="state none">found, not read yet</span>
+                <span
+                  >the reader could not run; the title and the journal are all
+                  that is stored</span
+                >
+              </div>
+              <div class="pact">
+                <button class="b b-quiet b-sm">
+                  <svg class="ic" viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M15 3h6v6" />
+                    <path d="M10 14 21 3" />
+                    <path
+                      d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"
+                    />
+                  </svg>
+                  Open
+                </button>
+              </div>
+            </div>
+            <div class="paper">
+              <span class="pg"
+                ><svg class="ic" viewBox="0 0 24 24" aria-hidden="true">
+                  <path
+                    d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7z"
+                  />
+                  <path d="M14 2v4a2 2 0 0 0 2 2h4" />
+                  <path d="M10 9H8" />
+                  <path d="M16 13H8" />
+                  <path d="M16 17H8" /></svg
+              ></span>
+              <div class="ptitle">
+                Soluble fibre and postprandial glucose: a systematic review of
+                forty-one trials
+              </div>
+              <div class="pcite">
+                <span>Lindqvist · Diabetologia · 2023</span>
+                <span>found Sep 4 2026</span>
+              </div>
+              <div class="pmoves">
+                <span class="state none">found, not read yet</span>
+                <span
+                  >queued for the next run, which is the same run the button
+                  above starts</span
+                >
+              </div>
+              <div class="pact">
+                <button class="b b-quiet b-sm">
+                  <svg class="ic" viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M15 3h6v6" />
+                    <path d="M10 14 21 3" />
+                    <path
+                      d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"
+                    />
+                  </svg>
+                  Open
+                </button>
+              </div>
+            </div>
+          </div>
+          <p class="cap">
+            No verdict strip is drawn on this state, not even an empty one. A
+            strip with four dashes in it reads as four findings at a glance, and
+            the whole point of the state is that there are none yet.
+          </p>
+        </div>
+      </section>
+
+      <section class="sec" id="s05">
+        <div class="sec-head">
+          <span class="n">05</span>
+          <h2>Topics, on the Research section</h2>
+        </div>
+        <p class="lede">
+          One row per topic with the outcome count and the last run day, and the
+          box that adds one. It sits under “New for you” on
+          <a href="research.html" style="color: var(--ink)">research.html</a>,
+          because a topic is the thing you go looking for and a paper is the
+          thing that arrives.
+        </p>
+        <div class="grid2">
+          <div class="panel">
+            <div class="panel-head">
+              <h3>Topics</h3>
+              <span class="r"
+                >3 watched · 6 outcomes · 1 waiting to be read</span
+              >
+            </div>
+            <div class="rowlist">
+              <div class="markerrow said">
+                <div class="nm">
+                  <b>Creatine</b
+                  ><span>you take it · you are moving grip strength</span>
+                </div>
+                <div class="t-meta" style="font-size: 11px">14 papers read</div>
+                <div></div>
+                <div class="wd">
+                  <span class="state on">4 outcomes</span>
+                  <div class="t-meta" style="font-size: 11px">2 Sep</div>
+                </div>
+              </div>
+              <div class="markerrow said">
+                <div class="nm">
+                  <b>Omega-3</b><span>inflammation is borderline for you</span>
+                </div>
+                <div class="t-meta" style="font-size: 11px">9 papers read</div>
+                <div></div>
+                <div class="wd">
+                  <span class="state on">2 outcomes</span>
+                  <div class="t-meta" style="font-size: 11px">28 Aug</div>
+                </div>
+              </div>
+              <div class="markerrow said">
+                <div class="nm">
+                  <b>Psyllium</b
+                  ><span>you asked · no marker on file for it yet</span>
+                </div>
+                <div class="t-meta" style="font-size: 11px">6 papers found</div>
+                <div></div>
+                <div class="wd">
+                  <span class="state none">found, not read yet</span>
+                </div>
+              </div>
+            </div>
+            <div class="rowh" style="margin-top: 13px">
+              <a class="asklink" href="topic.html">Open Creatine</a>
+              <span class="t-meta"
+                >each topic runs again after 30 days, inside the same token
+                budget as the condition watch</span
+              >
+            </div>
+          </div>
+          <div class="panel">
+            <div class="panel-head">
+              <h3>Watch a topic</h3>
+              <span class="r">a supplement, a drug, a practice</span>
+            </div>
+            <div class="fields">
+              <div class="field">
+                <label for="wt">Topic</label>
+                <input class="inp" id="wt" value="cold exposure" />
+                <span class="help"
+                  >Anything you take or do. It is normalised to lower case and
+                  kept once per person.</span
+                >
+              </div>
+            </div>
+            <div class="rowh" style="margin-top: 13px">
+              <button class="b b-ink">
+                <svg class="ic" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M5 12h14" />
+                  <path d="M12 5v14" />
+                </svg>
+                Watch it
+              </button>
+              <span class="t-meta"
+                >the first run happens tonight · about 12 papers</span
+              >
+            </div>
+            <p class="cap" style="margin-top: 13px">
+              Most topics arrive without this box: an active protocol item that
+              names a supplement becomes one on its own, and so does a question
+              that names a substance you have nothing on file for. The box is
+              for the fourth case — you read something and you want to know.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section class="sec" id="s06">
+        <div class="sec-head">
+          <span class="n">06</span>
+          <h2>390 px</h2>
+        </div>
+        <p class="lede">
+          The two columns stack, the verdict strip keeps its four columns and
+          scrolls sideways inside its own wrapper, and the paper row drops its
+          action buttons under the text.
+        </p>
+        <div class="phones">
+          <div>
+            <div class="phone">
+              <div class="statusbar">
+                <span>9:41</span
+                ><span class="rt"><span>LTE</span><span>100%</span></span>
+              </div>
+              <div class="screenhead">
+                <h2>Creatine</h2>
+                <svg class="ic i24" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M18 6 6 18" />
+                  <path d="m6 6 12 12" />
+                </svg>
+              </div>
+              <div class="stack">
+                <div class="panel">
+                  <div class="topichead">
+                    <h2>Creatine</h2>
+                    <span class="rel"
+                      >you take it · you are moving grip strength</span
+                    >
+                    <span class="run">14 papers read · last run Tue 2 Sep</span>
+                  </div>
+                  <div class="tblwrap">
+                    <table class="tbl">
+                      <thead>
+                        <tr>
+                          <th>Outcome</th>
+                          <th>Direction</th>
+                          <th>Behind it</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td class="k">Muscle strength</td>
+                          <td><span class="state on">up · good</span></td>
+                          <td class="n">5 trials · A</td>
+                        </tr>
+                        <tr>
+                          <td class="k">Cognition</td>
+                          <td><span class="state on">up · good</span></td>
+                          <td class="n">3 trials · B</td>
+                        </tr>
+                        <tr>
+                          <td class="k">Body water</td>
+                          <td><span class="state none">up · neither</span></td>
+                          <td class="n">4 trials · A</td>
+                        </tr>
+                        <tr>
+                          <td class="k">Prostate cancer</td>
+                          <td><span class="state off">up · bad</span></td>
+                          <td class="n">1 survey · C</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+                <div class="panel">
+                  <div class="panel-head"><h3>What the trials found</h3></div>
+                  <div class="rowlist">
+                    <div class="paper">
+                      <span class="pg"
+                        ><svg class="ic" viewBox="0 0 24 24" aria-hidden="true">
+                          <path
+                            d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7z"
+                          />
+                          <path d="M14 2v4a2 2 0 0 0 2 2h4" />
+                          <path d="M10 9H8" />
+                          <path d="M16 13H8" />
+                          <path d="M16 17H8" /></svg
+                      ></span>
+                      <div class="ptitle">
+                        Creatine and maximal strength in resistance-trained
+                        adults
+                      </div>
+                      <div class="pcite">
+                        <span>Bergström · 2019</span
+                        ><span class="glyph sci">● A</span
+                        ><span>randomised, n = 46</span>
+                      </div>
+                      <p class="pfound">
+                        Grip rose <b>3.2 kg</b> against 0.6 kg on placebo. 5
+                        g/day, 12 weeks.
+                      </p>
+                    </div>
+                    <div class="paper">
+                      <span class="pg"
+                        ><svg class="ic" viewBox="0 0 24 24" aria-hidden="true">
+                          <path
+                            d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7z"
+                          />
+                          <path d="M14 2v4a2 2 0 0 0 2 2h4" />
+                          <path d="M10 9H8" />
+                          <path d="M16 13H8" />
+                          <path d="M16 17H8" /></svg
+                      ></span>
+                      <div class="ptitle">
+                        Dietary creatine intake and prostate cancer in a
+                        national survey
+                      </div>
+                      <div class="pcite">
+                        <span>Ferreira · 2017</span
+                        ><span class="glyph op">◐ C</span
+                        ><span>survey, n = 892</span>
+                      </div>
+                      <div class="pmoves">
+                        <span class="state border">association</span
+                        ><span>a survey of what people ate, not a trial</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <p class="cap" style="margin: 0">
+                  The association row keeps its place in the list on the phone
+                  too. It is not a footer and it is not behind a disclosure.
+                </p>
+              </div>
+              <div class="tabbar">
+                <a href="#"
+                  ><svg class="ic i24" viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8" />
+                    <path
+                      d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"
+                    /></svg
+                  >Home</a
+                >
+                <a href="#"
+                  ><svg class="ic i24" viewBox="0 0 24 24" aria-hidden="true">
+                    <path
+                      d="M22 12h-2.48a2 2 0 0 0-1.93 1.46l-2.35 8.36a.25.25 0 0 1-.48 0L9.24 2.18a.25.25 0 0 0-.48 0l-2.35 8.36A2 2 0 0 1 4.49 12H2"
+                    /></svg
+                  >Body</a
+                >
+                <span class="plusslot"
+                  ><button aria-label="Add data">
+                    <svg class="ic i24" viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M5 12h14" />
+                      <path d="M12 5v14" />
+                    </svg></button
+                ></span>
+                <a href="#"
+                  ><svg class="ic i24" viewBox="0 0 24 24" aria-hidden="true">
+                    <path
+                      d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z"
+                    /></svg
+                  >Blood</a
+                >
+                <a class="on" href="#"
+                  ><svg class="ic i24" viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M8 2v4" />
+                    <path d="M16 2v4" />
+                    <rect width="18" height="18" x="3" y="4" rx="2" />
+                    <path d="M3 10h18" /></svg
+                  >Plan</a
+                >
+              </div>
+            </div>
+            <p class="cap">
+              A topic is reached from Plan's Research section, so the tab bar
+              still holds Plan. It is not a sixth destination.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section class="sec" id="s07">
+        <div class="sec-head">
+          <span class="n">07</span>
+          <h2>Where the numbers come from</h2>
+        </div>
+        <p class="cap">
+          <b>Real, from the test account:</b> creatine 5 g a day as a protocol
+          item since Jun 14 2026; grip strength 38 kg on the Aug 1 2026 draw
+          against a 45 kg aim; the Nov 24 2026 retest date; inflammation at
+          <b>borderline</b>, which is what puts omega-3 on the list; the four
+          topic origins (<code>adopted</code>, <code>goal</code>,
+          <code>asked</code>, <code>typed</code>) and the 30-day topic cadence,
+          both from the phase 35 spec.
+        </p>
+        <p class="cap">
+          <b>Placeholder, and clearly so:</b> every citation on this page —
+          Bergström 2019, Vasquez 2021, Nakamura 2022, Osei 2018, Ferreira 2017,
+          Ito 2020, Lindqvist 2023 — with its journal, its n, its effect size
+          and its quoted sentence. They are written to be plausible in shape,
+          not to be looked up. A real implementation fills every one of them
+          from the topic run, and the page is drawn so that swapping the text
+          changes nothing about the layout. The counts (14 papers read, 12
+          outcomes, 6 psyllium papers found) are the same kind of placeholder.
+        </p>
+        <div class="cost">
+          <h3>Build cost</h3>
+          <p>
+            <b>What this page needs.</b> The <code>topic_watch</code> and
+            <code>topic_findings</code> tables from migration 0027,
+            <code>lib/topic-watch.ts</code> beside the existing
+            <code>research-watch.ts</code>, the extra
+            <code>outcomeText</code> field on the extraction item schema so a
+            non-marker outcome like “working memory” survives, and
+            <code>relevanceOf(topic, person)</code>, which is one sentence built
+            from the person's own rows and never a model call.
+          </p>
+          <p>
+            <b>What it reuses.</b> The paper row, the state words, the tables
+            and the empty tiles are all already in <code>system.css</code>. The
+            feed rows go to the existing <code>paper_watch</code> with
+            <code>conditionId = "topic:&lt;topic&gt;"</code>, so the Research
+            list and the phone show them with no new plumbing. Grades come from
+            the existing <code>gradeOf</code>; a cross-sectional study lands at
+            C and the page says <b>association</b> instead of inventing a softer
+            word for it.
+          </p>
+          <p>
+            <b>What it must never do.</b> Nothing on this page writes
+            <code>hkb_interventions</code> and nothing here moves a probability.
+            A topic finding is knowledge about a substance, not a belief about a
+            person, and the two stay in different tables for exactly that
+            reason.
+          </p>
+        </div>
+      </section>
+    </main>
+    <script>
+      (function () {
+        var b = document.getElementById("themebtn");
+        if (!b) return;
+        b.addEventListener("click", function () {
+          var d = document.documentElement;
+          var on = d.getAttribute("data-theme") === "dark";
+          d.setAttribute("data-theme", on ? "light" : "dark");
+          d.classList.toggle("dark", !on);
+          b.querySelector("span").textContent = on ? "Dark" : "Light";
+        });
+      })();
+    </script>
+  </body>
+</html>

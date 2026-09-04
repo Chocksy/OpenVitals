@@ -27,12 +27,15 @@ import {
   markersBody,
   planTodayBody,
   todayBody,
+  topicBody,
+  topicsBody,
 } from "@/lib/api-contract";
 import type { CaptureExtract } from "@/lib/capture";
 import { localDay } from "@/lib/daily";
 import { dayTotals, mealRowOf, toApiMeal } from "@/lib/meals";
 import type { Meal } from "@/db";
 import { listWatch, toApiPaper } from "@/lib/research-watch";
+import { topicLabels } from "@/lib/topic-watch";
 
 const OUT = path.join(process.cwd(), "fixtures/api");
 
@@ -70,9 +73,15 @@ async function main() {
   write("today", await todayBody(owner.id));
   write("body", await bodyBody(bodyOwner.id, day));
   write("plan-today", await planTodayBody(owner.id, day));
+  const labels = await topicLabels(owner.id);
   write("research", {
-    rows: (await listWatch(owner.id)).map(toApiPaper),
+    rows: (await listWatch(owner.id)).map((r) => toApiPaper(r, labels)),
   });
+  write("research-topics", await topicsBody(owner.id));
+  /* The first topic on the list, whichever it is: a fixture of an empty topic
+     page decodes nothing, and phase 35's whole point is the rows. */
+  const [first] = (await topicsBody(owner.id)).topics;
+  if (first) write("research-topic", await topicBody(owner.id, first.topic));
   write("genome", await genomeBody(owner.id));
   /* Phase 34 section 2. A year is what the Markers tab's own charts draw, and
      it is what the phone's Blood tab asks for. */

@@ -43,6 +43,7 @@ import { rereadPosts } from "./compose";
 import { inGoal, localDay } from "./daily";
 import { planRawVerify, rawVerifyScope } from "./raw-verify";
 import { runWatchForUser } from "./research-watch";
+import { runTopicsForUser, syncTopicsFromProtocol } from "./topic-watch";
 import { runSecondPass } from "./second-pass";
 import { BOUNDS, SEX_RANGES } from "./vectors";
 import { conversionFactor, normalizeUnit, round } from "./units";
@@ -65,7 +66,9 @@ export type Check =
   /** phase 32a: the per-person research watch, on the daily pass only */
   | "research_watch"
   /** phase 34a: the notes kept while the reader was down, read at last */
-  | "unread_posts";
+  | "unread_posts"
+  /** phase 35: the topic watch, after the condition watch on the daily pass */
+  | "topic_watch";
 
 /** The subset of a reading the planners need. */
 export interface ReadingLike {
@@ -1392,6 +1395,24 @@ export async function runCurator(
         w.checked = runs.length;
         w.fixed = runs.reduce((n, r) => n + r.stored, 0);
         w.queued = runs.reduce((n, r) => n + r.moved, 0);
+      }
+
+      /**
+       * Phase 35 section B2: the topic watch, after the condition watch and
+       * under the same budget. The protocol is re-read first, so a supplement
+       * adopted yesterday is a topic tonight without anybody typing it.
+       */
+      const topics = await syncTopicsFromProtocol(userId)
+        .then(() => runTopicsForUser(userId))
+        .catch((e) => {
+          console.error("[curator] topic watch failed:", e);
+          return [];
+        });
+      if (topics.length) {
+        const t = bump("topic_watch");
+        t.checked = topics.length;
+        t.fixed = topics.reduce((n, r) => n + r.stored, 0);
+        t.queued = topics.reduce((n, r) => n + r.outcomes, 0);
       }
     }
 

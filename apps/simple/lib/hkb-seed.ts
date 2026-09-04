@@ -15,6 +15,7 @@ import {
   hkbConditions,
   hkbEvidence,
   hkbFeatures,
+  hkbInterventions,
   hkbPriorModifiers,
   hkbPriors,
   hkbTests,
@@ -22,6 +23,7 @@ import {
 import { sql } from "drizzle-orm";
 import { GENOME_CATALOG } from "./genome-catalog";
 import { CATALOG } from "./hkb-catalog";
+import { interventionRows } from "./hkb-interventions";
 import { EXOME_TEST } from "./infogain";
 import {
   featureIdOf,
@@ -334,9 +336,20 @@ export async function seedHkb(catalog: Catalog = CATALOG) {
   for (const l of rows.links)
     await db.insert(hkbConditionTests).values(l).onConflictDoNothing();
 
+  // What helps, from `lib/hkb-interventions.ts`. Keyed on the seeded id, which
+  // no research run ever mints (those start `int_`), so a re-seed updates its
+  // own rows and never touches a row a paper put there.
+  const interventions = interventionRows();
+  for (const i of interventions)
+    await db
+      .insert(hkbInterventions)
+      .values(i)
+      .onConflictDoUpdate({ target: hkbInterventions.id, set: withoutId(i) });
+
   await recordRevision(
     `seed: ${rows.conditions.length} conditions, ${rows.evidence.length} evidence rows, ` +
-      `${rows.priors.length} priors, ${rows.tests.length} tests`,
+      `${rows.priors.length} priors, ${rows.tests.length} tests, ` +
+      `${interventions.length} interventions`,
   );
 
   return {
@@ -347,6 +360,7 @@ export async function seedHkb(catalog: Catalog = CATALOG) {
     evidence: rows.evidence.length,
     tests: rows.tests.length,
     links: rows.links.length,
+    interventions: interventions.length,
   };
 }
 
@@ -366,7 +380,8 @@ if (
     .then((n) =>
       console.log(
         `[hkb:seed] conditions=${n.conditions} features=${n.features} tests=${n.tests} ` +
-          `priors=${n.priors} modifiers=${n.modifiers} evidence=${n.evidence} links=${n.links}`,
+          `priors=${n.priors} modifiers=${n.modifiers} evidence=${n.evidence} links=${n.links} ` +
+          `interventions=${n.interventions}`,
       ),
     )
     .then(() => pool().end())

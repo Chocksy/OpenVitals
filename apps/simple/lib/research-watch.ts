@@ -506,12 +506,24 @@ export async function runWatchForUser(
 /** The rows the page prints: unseen first, then what moves something. */
 export async function listWatch(
   userId: string,
-  opts: { unseen?: boolean; conditionId?: string; limit?: number } = {},
+  opts: {
+    unseen?: boolean;
+    conditionId?: string;
+    /**
+     * Phase 35 section B2. A topic run files its papers with
+     * `condition_id = "topic:<topic>"`, so the feed prints them with no new
+     * plumbing and the topic page reads its own rows back through here.
+     */
+    topic?: string;
+    limit?: number;
+  } = {},
 ): Promise<PaperWatch[]> {
   const where = [eq(paperWatch.userId, userId), isNull(paperWatch.dismissedAt)];
   if (opts.unseen) where.push(isNull(paperWatch.seenAt));
   if (opts.conditionId)
     where.push(eq(paperWatch.conditionId, opts.conditionId));
+  if (opts.topic)
+    where.push(eq(paperWatch.conditionId, `topic:${opts.topic}`));
   const rows = await getDb()
     .select()
     .from(paperWatch)
@@ -543,6 +555,12 @@ export function sortWatch<
 export interface ApiPaper {
   id: string;
   conditionId: string;
+  /**
+   * What to print for the condition id. A catalog condition has its name
+   * everywhere; a `topic:` row has only the label the person typed, so it
+   * travels on the row.
+   */
+  conditionName: string | null;
   source: string;
   externalId: string;
   title: string;
@@ -575,10 +593,20 @@ export interface ApiPaper {
  * The user id comes off: the caller is the session, and a fixture the phone
  * decodes in its tests has no business carrying somebody's id.
  */
-export function toApiPaper(r: PaperWatch): ApiPaper {
+export function toApiPaper(
+  r: PaperWatch,
+  /**
+   * The label per condition id, for the `topic:` rows. A topic is not in the
+   * catalog, so "topic:cold exposure" has no name anywhere else; the person's
+   * own `topic_watch.label` is the name, and a caller with no map gets the
+   * topic itself rather than a blank.
+   */
+  labels?: Map<string, string>,
+): ApiPaper {
   return {
     id: r.id,
     conditionId: r.conditionId,
+    conditionName: conditionNameOf(r.conditionId, labels),
     source: r.source,
     externalId: r.externalId,
     title: r.title,
@@ -594,6 +622,18 @@ export function toApiPaper(r: PaperWatch): ApiPaper {
     seenAt: r.seenAt?.toISOString() ?? null,
     dismissedAt: r.dismissedAt?.toISOString() ?? null,
   };
+}
+
+/** "topic:cold exposure" is "cold exposure" unless the watch list names it. */
+export function conditionNameOf(
+  conditionId: string,
+  labels?: Map<string, string>,
+): string | null {
+  const named = labels?.get(conditionId);
+  if (named) return named;
+  return conditionId.startsWith("topic:")
+    ? conditionId.slice("topic:".length)
+    : null;
 }
 
 /** Mark one row seen or dismissed. Returns the row, or null when it is not theirs. */

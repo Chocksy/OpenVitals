@@ -478,6 +478,8 @@ export interface InterventionSummary {
   outcomeFeatureId: string | null;
   grade: string;
   paperTitle?: string | null;
+  /** `seed` for the hand-written catalog, `research` for a mined row */
+  source?: string | null;
 }
 
 /** A/B are established, C is early, D and E are the horizon. */
@@ -490,7 +492,13 @@ export const tierOf = (grade: string): NonNullable<ReportAction["tier"]> =>
 
 const GRADE_ORDER = ["A", "B", "C", "D", "E"];
 
-/** The best-graded interventions for the conditions that actually scored. */
+/**
+ * The best-graded interventions for the conditions that actually scored.
+ *
+ * Phase 35: inside a grade, the seeded catalog goes first. `MAX_HELP` is 20 and
+ * a busy person's research rows can fill it, which would leave the prompt with
+ * a mined B and no statin ladder at all.
+ */
 export function helpLines(
   rows: InterventionSummary[],
   hypotheses: HypothesisResult[],
@@ -501,6 +509,7 @@ export function helpLines(
     .sort(
       (a, b) =>
         GRADE_ORDER.indexOf(a.grade) - GRADE_ORDER.indexOf(b.grade) ||
+        Number(b.source === "seed") - Number(a.source === "seed") ||
         a.name.localeCompare(b.name),
     )
     .slice(0, MAX_HELP);
@@ -672,6 +681,7 @@ export async function interventionSummaries(): Promise<InterventionSummary[]> {
     outcomeFeatureId: r.outcomeFeatureId,
     grade: r.grade,
     paperTitle: r.paper?.title ?? null,
+    source: r.source,
   }));
 }
 

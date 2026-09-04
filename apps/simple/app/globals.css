@@ -5448,3 +5448,34 @@ a.t-tab {
 .ruler-track:has(.hovermark:focus-within) {
   overflow: visible;
 }
+
+/* ── the topic head ────────────────────────────────────────────────────
+   `docs/mockups/v4/topic.html`, section 01. The topic as it was typed, the
+   one sentence saying why it is on this file at all, and the run line. The
+   run line is monospaced because it is a date and a count, and those are the
+   two things on the page that must not reflow as they change. */
+.topichead {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s5);
+  padding-bottom: var(--s13);
+  border-bottom: 1px solid var(--hair);
+  margin-bottom: var(--s13);
+}
+.topichead h2 {
+  margin: 0;
+  font-size: var(--type-xl);
+  font-weight: 200;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+  color: var(--ink);
+}
+.topichead .rel {
+  font-size: var(--type-sm);
+  color: var(--ink-2);
+}
+.topichead .run {
+  font-family: var(--font-mono);
+  font-size: var(--type-xs);
+  color: var(--ink-3);
+}

@@ -1,0 +1,155 @@
+{
+  "note": "Europe PMC `core` hits for the topic watch, in the same shape as research-europepmc.json. Six papers: a meta-analysis, a randomised trial, a cross-sectional survey and a letter, plus two off-topic ones (a creatine-kinase paper and one that only mentions creatine in its full text), so the pre-rank, the grading and the association label can all be checked offline. The abstracts are short paraphrases written for this fixture; nothing here is quoted as a real finding anywhere in the app.",
+  "search": {
+    "hitCount": 6,
+    "resultList": {
+      "result": [
+        {
+          "pmid": "30000002",
+          "doi": "10.1007/s40279-021-0002",
+          "title": "Lower-body strength after creatine loading: a meta-analysis of twenty-two randomised trials",
+          "journalTitle": "Sports Med",
+          "pubYear": "2021",
+          "firstPublicationDate": "2021-03-11",
+          "authorString": "Vasquez R, Oduya T.",
+          "citedByCount": 180,
+          "pubTypeList": {
+            "pubType": [
+              "Journal Article",
+              "Meta-Analysis"
+            ]
+          },
+          "abstractText": "Twenty-two randomised trials of creatine monohydrate at 3-5 g/day for four to twenty-four weeks were pooled. The pooled standardised mean difference for leg press and squat was 0.29 (0.17 to 0.41). The pooled effect was small but heterogeneity was low, and no trial longer than twelve weeks reported a further gain in maximal lower-body strength."
+        },
+        {
+          "pmid": "30000001",
+          "doi": "10.1152/japplphysiol.2019.0001",
+          "title": "Creatine monohydrate and maximal strength in resistance-trained adults",
+          "journalTitle": "J Appl Physiol",
+          "pubYear": "2019",
+          "firstPublicationDate": "2019-06-04",
+          "authorString": "Bergstrom J, Aliyev K.",
+          "citedByCount": 96,
+          "pubTypeList": {
+            "pubType": [
+              "Journal Article",
+              "Randomized Controlled Trial"
+            ]
+          },
+          "abstractText": "Forty-six resistance-trained adults aged 24 to 48 were randomised to creatine monohydrate 5 g/day or placebo for twelve weeks of identical training. Handgrip strength increased by 3.2 kg in the creatine arm and by 0.6 kg on placebo over twelve weeks of identical training. One-repetition-maximum bench press rose 7.4 per cent against placebo."
+        },
+        {
+          "pmid": "30000003",
+          "doi": "10.1080/01635581.2017.0003",
+          "title": "Reported dietary creatine intake and prostate cancer in a national nutrition survey",
+          "journalTitle": "Nutr Cancer",
+          "pubYear": "2017",
+          "firstPublicationDate": "2017-09-19",
+          "authorString": "Ferreira L, Novak P.",
+          "citedByCount": 24,
+          "pubTypeList": {
+            "pubType": [
+              "Journal Article"
+            ]
+          },
+          "abstractText": "Three hundred men aged 40 to 75 completed a food frequency questionnaire in a national nutrition survey. The highest quartile of reported dietary creatine intake carried an odds ratio of 1.4 (1.05 to 1.9) for prostate cancer against the lowest quartile. Intake was recorded by questionnaire and not by supplement log, and no causal inference is possible from this design."
+        },
+        {
+          "pmid": "30000004",
+          "doi": "10.1016/j.letter.2020.0004",
+          "title": "Creatine and the kidney: a note of caution",
+          "journalTitle": "Nephrol Dial Transplant",
+          "pubYear": "2020",
+          "firstPublicationDate": "2020-02-02",
+          "authorString": "Okafor N.",
+          "citedByCount": 310,
+          "pubTypeList": {
+            "pubType": [
+              "Letter",
+              "Comment"
+            ]
+          },
+          "abstractText": "We write in response to the recent review of creatine supplementation and renal function, and note that serum creatinine rises on creatine without any change in measured glomerular filtration rate, which is a laboratory artefact rather than a kidney injury."
+        },
+        {
+          "pmid": "30000005",
+          "doi": "10.1016/j.ck.2021.0005",
+          "title": "Serum creatine kinase after high-intensity interval training: a randomised crossover trial",
+          "journalTitle": "Eur J Appl Physiol",
+          "pubYear": "2021",
+          "firstPublicationDate": "2021-07-07",
+          "authorString": "Halvorsen M.",
+          "citedByCount": 44,
+          "pubTypeList": {
+            "pubType": [
+              "Journal Article",
+              "Randomized Controlled Trial"
+            ]
+          },
+          "abstractText": "Serum creatine kinase was measured before and after high-intensity interval training in thirty adults in a randomised crossover design. Peak creatine kinase was reached at twenty-four hours and returned to baseline by seventy-two hours in every arm."
+        },
+        {
+          "pmid": "30000006",
+          "doi": "10.1001/jama.2022.0006",
+          "title": "Sulforaphane and oxidative stress markers after maximal exercise: a double-blind crossover trial",
+          "journalTitle": "JAMA",
+          "pubYear": "2022",
+          "firstPublicationDate": "2022-04-15",
+          "authorString": "Iwu C, Petrov D.",
+          "citedByCount": 61,
+          "pubTypeList": {
+            "pubType": [
+              "Journal Article",
+              "Randomized Controlled Trial"
+            ]
+          },
+          "abstractText": "Twenty-four trained adults took sulforaphane or placebo before a maximal exercise test in a double-blind crossover design. Circulating oxidative stress and muscle damage biomarkers were lower on sulforaphane at two hours; the supplement log and the methods table are reported in full in the supplement."
+        }
+      ]
+    }
+  },
+  "items": [
+    {
+      "paperIndex": 1,
+      "intervention": "Creatine monohydrate",
+      "dose": "3-5 g/day",
+      "duration": "4-24 weeks",
+      "outcomeText": "lower-body maximal strength",
+      "outcomeFeature": null,
+      "effectSize": "SMD 0.29 (0.17 to 0.41)",
+      "direction": "up",
+      "population": "healthy adults",
+      "n": 721,
+      "studyType": "meta",
+      "quote": "The pooled effect was small but heterogeneity was low, and no trial longer than twelve weeks reported a further gain in maximal lower-body strength."
+    },
+    {
+      "paperIndex": 2,
+      "intervention": "Creatine monohydrate",
+      "dose": "5 g/day",
+      "duration": "12 weeks",
+      "outcomeText": "grip strength",
+      "outcomeFeature": "metric:grip_kg",
+      "effectSize": "+3.2 kg vs +0.6 kg",
+      "direction": "up",
+      "population": "trained adults, 24-48 y",
+      "n": 46,
+      "studyType": "rct",
+      "quote": "Handgrip strength increased by 3.2 kg in the creatine arm and by 0.6 kg on placebo over twelve weeks of identical training."
+    },
+    {
+      "paperIndex": 3,
+      "intervention": "Dietary creatine intake",
+      "dose": null,
+      "duration": null,
+      "outcomeText": "prostate cancer incidence",
+      "outcomeFeature": null,
+      "effectSize": "OR 1.4 (1.05 to 1.9)",
+      "direction": "up",
+      "population": "men, 40-75 y",
+      "n": 300,
+      "studyType": "cross_sectional",
+      "quote": "The highest quartile of reported dietary creatine intake carried an odds ratio of 1.4 (1.05 to 1.9) for prostate cancer against the lowest quartile."
+    }
+  ]
+}

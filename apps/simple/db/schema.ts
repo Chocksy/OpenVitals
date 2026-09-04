@@ -1004,6 +1004,12 @@ export const hkbInterventions = pgTable(
     /** accepted | review | rejected */
     status: text("status").default("accepted").notNull(),
     population: text("population"),
+    /** drug | supplement | diet | exercise | sleep | behaviour | procedure */
+    kind: text("kind"),
+    /** one sentence: who should not take it, or what to check first */
+    caution: text("caution"),
+    /** `seed` for the hand-written catalog, `research` for a minted row */
+    source: text("source").default("research").notNull(),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
   },
   (t) => [index("hkb_interventions_condition_idx").on(t.conditionId)],
@@ -1495,6 +1501,86 @@ export interface PaperMove {
 }
 
 export type PaperWatch = typeof paperWatch.$inferSelect;
+
+/**
+ * One topic this person watches: a named thing they take, do, or wonder about.
+ *
+ * Phase 35 section B1. The condition-first watch (`paper_watch`) never asks
+ * about creatine, because creatine is not a condition. A topic is the other
+ * half: `creatine`, `omega-3`, `cold exposure`, `psyllium`. The row is per
+ * person because watching is a person's choice; the findings the run produces
+ * are not (see `topic_findings`), because a trial is a trial for everybody.
+ */
+export const topicWatch = pgTable(
+  "topic_watch",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    /** normalised, lower-case, single-spaced: the key */
+    topic: text("topic").notNull(),
+    /** as the person typed it, or as the protocol item names it */
+    label: text("label").notNull(),
+    /** adopted | goal | asked | typed */
+    origin: text("origin").default("typed").notNull(),
+    lastRunAt: timestamp("last_run_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+  },
+  (t) => [
+    unique("topic_watch_user_topic_key").on(t.userId, t.topic),
+    index("topic_watch_user_idx").on(t.userId, t.createdAt),
+  ],
+);
+
+export type TopicWatch = typeof topicWatch.$inferSelect;
+
+/**
+ * What one paper found about one topic, per outcome.
+ *
+ * Shared across users on purpose: this is knowledge, not a person. Nothing
+ * here writes `hkb_interventions` and nothing here moves a probability — the
+ * engine still only scores rules a human accepted on `/hkb`.
+ *
+ * `outcomeText` is the outcome as the abstract names it ("working memory",
+ * "1RM bench press", "prostate cancer incidence"), so a finding whose outcome
+ * is not a catalog marker survives instead of being dropped.
+ */
+export const topicFindings = pgTable(
+  "topic_findings",
+  {
+    id: text("id").primaryKey(),
+    topic: text("topic").notNull(),
+    /** what was given or done, as the abstract names it */
+    name: text("name").notNull(),
+    dose: text("dose"),
+    duration: text("duration"),
+    /** the outcome in the abstract's own words */
+    outcomeText: text("outcome_text").notNull(),
+    /** the catalog feature it maps to, when it clearly is the same thing */
+    outcomeFeatureId: text("outcome_feature_id"),
+    effect: text("effect"),
+    /** up | down | none */
+    direction: text("direction").notNull(),
+    /** A-E, as `gradeOf` graded the design */
+    grade: text("grade").notNull(),
+    /** one of `STUDY_TYPES`: what makes an association an association */
+    studyType: text("study_type").notNull(),
+    n: integer("n"),
+    population: text("population"),
+    /** the DOI, or the PMID: one paper is one row */
+    paperExternalId: text("paper_external_id").notNull(),
+    paper: jsonb("paper").$type<HkbPaper>(),
+    quote: text("quote").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+  },
+  (t) => [
+    unique("topic_findings_key").on(t.topic, t.paperExternalId, t.outcomeText),
+    index("topic_findings_topic_idx").on(t.topic),
+  ],
+);
+
+export type TopicFinding = typeof topicFindings.$inferSelect;
 
 /**
  * One meal, as a food photo became it.

@@ -409,7 +409,7 @@ async function evidenceTab(status: string, condition: string) {
 /** What the papers say might help, per condition, grade first. */
 async function interventionsTab(condition: string) {
   const db = getDb();
-  const [rows, byCondition] = await Promise.all([
+  const [rows, byCondition, bySource] = await Promise.all([
     db
       .select()
       .from(hkbInterventions)
@@ -432,13 +432,25 @@ async function interventionsTab(condition: string) {
       .from(hkbInterventions)
       .groupBy(hkbInterventions.conditionId)
       .orderBy(asc(hkbInterventions.conditionId)),
+    db
+      .select({
+        source: hkbInterventions.source,
+        n: sql<number>`count(*)::int`,
+      })
+      .from(hkbInterventions)
+      .groupBy(hkbInterventions.source)
+      .orderBy(asc(hkbInterventions.source)),
   ]);
 
   return (
     <Panel title="Interventions" right={shown(rows.length)}>
       <p className="t-meta mb-[var(--s13)]">
         A and B are candidate actions, C is early, D and E are the horizon and
-        only ever offered with a measurement plan.
+        only ever offered with a measurement plan.{" "}
+        {bySource.map((s) => `${s.n} ${s.source}`).join(" · ")}
+        {bySource.length ? "." : ""} The seeded rows are the hand-written
+        catalog in <code>lib/hkb-interventions.ts</code>; the rest were read
+        off papers.
       </p>
       <div className="mb-[var(--s21)] border-b border-[var(--hair)] pb-[var(--s21)]">
         <p className="t-meta mb-[var(--s8)]">
@@ -471,13 +483,14 @@ async function interventionsTab(condition: string) {
               <th>for</th>
               <th>effect</th>
               <th>grade</th>
+              <th>from</th>
               <th>paper</th>
             </tr>
           </thead>
           <tbody>
             {rows.length === 0 && (
               <tr>
-                <td colSpan={8}>
+                <td colSpan={9}>
                   nothing read yet — run the research job on a condition
                 </td>
               </tr>
@@ -504,6 +517,7 @@ async function interventionsTab(condition: string) {
                 <td>
                   <Grade grade={r.grade} />
                 </td>
+                <td className="n">{r.source}</td>
                 <td className="max-w-[460px]">
                   {r.paper && (
                     <a

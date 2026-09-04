@@ -188,7 +188,9 @@ Parked from 33 and 34: gallery sections diff high because the web sections carry
 
 ## In progress
 
-Nothing. Next: owner review of the phone (goals first, Blood, Research); top up the OpenRouter key and run `pnpm eval:models` for the model choice.
+Phase 35, `docs/plans/2026-09-05-phase35-interventions-spec.md`: the seeded interventions catalog (A), the topic watch for supplements like creatine (B), the topic page drawn in `docs/mockups/v4/topic.html` then built (C). Still wanted: top up the OpenRouter key and run `pnpm eval:models` for the model choice.
+
+Backlog the owner named on 2026-09-05 (tracked in CEMS too): rename the product; a logo; stylized meal photos on the phone; `openrouter/auto` for the prose paths; a system layer above conditions (gut, liver, thyroid…) for deeper questions; a mood and adherence design system (mascot, celebrations, streaks) drawn first; wrist-temperature rules (illness early warning, ovulation); VCF parsing for consumer whole-genome files (FH genes, pharmacogenomics).
 
 ## Next
 

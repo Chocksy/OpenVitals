@@ -20,6 +20,14 @@ import {
   watchSince,
   type WatchCondition,
 } from "@/lib/research-watch";
+import {
+  getTopic,
+  runTopic,
+  topicDue,
+  topicLabels,
+  topicSince,
+  TOPIC_DAYS,
+} from "@/lib/topic-watch";
 
 export const maxDuration = 300;
 
@@ -35,7 +43,8 @@ export async function GET(req: Request) {
       ? { conditionId: url.searchParams.get("condition")! }
       : {}),
   });
-  return Response.json({ rows: rows.map(toApiPaper) });
+  const labels = await topicLabels(userId);
+  return Response.json({ rows: rows.map((r) => toApiPaper(r, labels)) });
 }
 
 /**
@@ -51,10 +60,44 @@ export async function POST(req: Request) {
 
   const body = (await req.json().catch(() => null)) as {
     conditionId?: string;
+    topic?: string;
     maxPapers?: number;
   } | null;
+
+  /**
+   * Phase 35 section B2. One topic, run now, the same way one condition is
+   * run now: the same cooldown seen from the other side, and the same
+   * degrading — when the reading key is refused the search still happened, so
+   * the papers are filed and the reply says `read: false` with the reason.
+   */
+  if (body?.topic) {
+    const row = await getTopic(userId, body.topic);
+    if (!row) return Response.json({ error: "not watched" }, { status: 404 });
+    const now = new Date();
+    if (!topicDue(row.lastRunAt, now))
+      return Response.json(
+        {
+          ok: false,
+          cooldown: true,
+          lastRun: row.lastRunAt?.toISOString().slice(0, 10) ?? null,
+          since: topicSince(row.lastRunAt, now),
+          days: TOPIC_DAYS,
+        },
+        { status: 429 },
+      );
+    const max = Number(body.maxPapers);
+    const result = await runTopic(userId, row, {
+      now,
+      ...(Number.isFinite(max) && max > 0
+        ? { maxPapers: Math.min(max, 40) }
+        : {}),
+    });
+    return Response.json({ ok: true, ...result });
+  }
+
   const wanted = body?.conditionId;
-  if (!wanted) return Response.json({ error: "no condition" }, { status: 400 });
+  if (!wanted)
+    return Response.json({ error: "no condition or topic" }, { status: 400 });
 
   const mine = await watchConditions(userId);
   const condition: WatchCondition | undefined = mine.find(

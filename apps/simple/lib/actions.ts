@@ -71,9 +71,22 @@ export const basisOfGrade = (grade: string): Basis =>
 
 const GRADE_ORDER = ["A", "B", "C", "D", "E"];
 
-/** "[science, A]" · "[opinion]" · "[anecdotal, E]" */
-export const labelOf = (basis: Basis, grade?: string | null): string =>
-  grade ? `[${basis}, ${grade}]` : `[${basis}]`;
+/**
+ * "[science, A]" · "[opinion]" · "[anecdotal, E]", and for a seeded row the
+ * word for what is behind it: "[science, A, guideline]" · "[science, B, trial]".
+ * Phase 35: the seeded catalog is guidelines and trials by construction, so it
+ * can say which, where a mined row only knows its grade.
+ */
+export const labelOf = (
+  basis: Basis,
+  grade?: string | null,
+  source?: string | null,
+): string => {
+  if (!grade) return `[${basis}]`;
+  const what =
+    source === "seed" ? `, ${grade === "A" ? "guideline" : "trial"}` : "";
+  return `[${basis}, ${grade}${what}]`;
+};
 
 const doseOf = (a: ReportAction): string | null =>
   a.dose
@@ -117,6 +130,8 @@ export interface InterventionLine {
   direction: string;
   outcomeFeatureId: string | null;
   grade: string;
+  /** `seed` for the hand-written catalog, `research` for a mined row */
+  source?: string | null;
 }
 
 const short = (id: string) => id.replace(/^metric:/, "").replace(/_/g, " ");
@@ -208,6 +223,7 @@ export function pickActions({
     .sort(
       (a, b) =>
         GRADE_ORDER.indexOf(a.grade) - GRADE_ORDER.indexOf(b.grade) ||
+        Number(b.source === "seed") - Number(a.source === "seed") ||
         a.name.localeCompare(b.name),
     )
     .filter((r) => {
@@ -227,8 +243,11 @@ export function pickActions({
         dose: r.dose,
         basis,
         grade: r.grade,
-        label: labelOf(basis, r.grade),
-        why: `what the papers report for this condition, grade ${r.grade}`,
+        label: labelOf(basis, r.grade, r.source),
+        why:
+          r.source === "seed"
+            ? `what the guidelines and meta-analyses report for this condition, grade ${r.grade}`
+            : `what the papers report for this condition, grade ${r.grade}`,
         target: interventionTarget(r),
         aim: interventionAim(r),
       };
@@ -275,6 +294,7 @@ const toLine = (r: {
   direction: string;
   outcomeFeatureId: string | null;
   grade: string;
+  source?: string | null;
 }): InterventionLine => ({
   id: r.id,
   conditionId: r.conditionId,
@@ -285,6 +305,7 @@ const toLine = (r: {
   direction: r.direction,
   outcomeFeatureId: r.outcomeFeatureId,
   grade: r.grade,
+  source: r.source,
 });
 
 /**

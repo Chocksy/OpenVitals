@@ -1,0 +1,161 @@
+{
+  "topic": "creatine",
+  "label": "Creatine",
+  "origin": "adopted",
+  "lastRunAt": "2026-09-02",
+  "relevance": "you take it · you are moving grip strength",
+  "forYou": [
+    "this alone: +3.2 grip strength in 12 weeks, grade C (Creatine monohydrate and maximal strength in resistance-trained adults)"
+  ],
+  "verdicts": [
+    {
+      "outcomeText": "grip strength",
+      "outcomeFeatureId": "metric:grip_kg",
+      "direction": "up",
+      "tone": "on",
+      "grade": "C",
+      "trials": 1,
+      "association": false,
+      "doseRange": "5 g/day"
+    },
+    {
+      "outcomeText": "lower-body maximal strength",
+      "outcomeFeatureId": null,
+      "direction": "up",
+      "tone": "none",
+      "grade": "A",
+      "trials": 1,
+      "association": false,
+      "doseRange": "3-5 g/day"
+    },
+    {
+      "outcomeText": "prostate cancer incidence",
+      "outcomeFeatureId": null,
+      "direction": "up",
+      "tone": "off",
+      "grade": "C",
+      "trials": 1,
+      "association": true,
+      "doseRange": null
+    }
+  ],
+  "trials": [
+    {
+      "id": "tf_creatine_10_1007_s40279_021_0002_lower_body_maximal_strength",
+      "name": "Creatine monohydrate",
+      "dose": "3-5 g/day",
+      "duration": "4-24 weeks",
+      "outcomeText": "lower-body maximal strength",
+      "outcomeFeatureId": null,
+      "effect": "SMD 0.29 (0.17 to 0.41)",
+      "direction": "up",
+      "grade": "A",
+      "studyType": "meta",
+      "design": "meta-analysis, n = 721",
+      "n": 721,
+      "population": "healthy adults, n = 721",
+      "association": false,
+      "paper": {
+        "title": "Lower-body strength after creatine loading: a meta-analysis of twenty-two randomised trials",
+        "journal": "Sports Med",
+        "year": 2021,
+        "url": "https://doi.org/10.1007/s40279-021-0002",
+        "doi": "10.1007/s40279-021-0002",
+        "pmid": "30000002"
+      },
+      "quote": "The pooled effect was small but heterogeneity was low, and no trial longer than twelve weeks reported a further gain in maximal lower-body strength."
+    },
+    {
+      "id": "tf_creatine_10_1152_japplphysiol_2019_0001_grip_strength",
+      "name": "Creatine monohydrate",
+      "dose": "5 g/day",
+      "duration": "12 weeks",
+      "outcomeText": "grip strength",
+      "outcomeFeatureId": "metric:grip_kg",
+      "effect": "+3.2 kg vs +0.6 kg",
+      "direction": "up",
+      "grade": "C",
+      "studyType": "rct",
+      "design": "randomised trial, n = 46",
+      "n": 46,
+      "population": "trained adults, 24-48 y, n = 46",
+      "association": false,
+      "paper": {
+        "title": "Creatine monohydrate and maximal strength in resistance-trained adults",
+        "journal": "J Appl Physiol",
+        "year": 2019,
+        "url": "https://doi.org/10.1152/japplphysiol.2019.0001",
+        "doi": "10.1152/japplphysiol.2019.0001",
+        "pmid": "30000001"
+      },
+      "quote": "Handgrip strength increased by 3.2 kg in the creatine arm and by 0.6 kg on placebo over twelve weeks of identical training."
+    }
+  ],
+  "associations": [
+    {
+      "id": "tf_creatine_10_1080_01635581_2017_0003_prostate_cancer_incidence",
+      "name": "Dietary creatine intake",
+      "dose": null,
+      "duration": null,
+      "outcomeText": "prostate cancer incidence",
+      "outcomeFeatureId": null,
+      "effect": "OR 1.4 (1.05 to 1.9)",
+      "direction": "up",
+      "grade": "C",
+      "studyType": "cross_sectional",
+      "design": "cross-sectional survey, n = 300",
+      "n": 300,
+      "population": "men, 40-75 y, n = 300",
+      "association": true,
+      "paper": {
+        "title": "Reported dietary creatine intake and prostate cancer in a national nutrition survey",
+        "journal": "Nutr Cancer",
+        "year": 2017,
+        "url": "https://doi.org/10.1080/01635581.2017.0003",
+        "doi": "10.1080/01635581.2017.0003",
+        "pmid": "30000003"
+      },
+      "quote": "The highest quartile of reported dietary creatine intake carried an odds ratio of 1.4 (1.05 to 1.9) for prostate cancer against the lowest quartile."
+    }
+  ],
+  "papers": [
+    {
+      "id": "5f9a1c2d-1111-4a2b-9f3c-0d1e2f3a4b5c",
+      "conditionId": "topic:creatine",
+      "conditionName": "Creatine",
+      "source": "epmc",
+      "externalId": "10.1152/japplphysiol.2019.0001",
+      "title": "Creatine monohydrate and maximal strength in resistance-trained adults",
+      "journal": "J Appl Physiol",
+      "url": "https://doi.org/10.1152/japplphysiol.2019.0001",
+      "publishedAt": "2019-06-04",
+      "grade": "C",
+      "finding": "Handgrip strength increased by 3.2 kg in the creatine arm and by 0.6 kg on placebo over twelve weeks of identical training.",
+      "abstract": null,
+      "moves": null,
+      "read": true,
+      "foundAt": "2026-09-02T04:12:00.000Z",
+      "seenAt": null,
+      "dismissedAt": null
+    },
+    {
+      "id": "5f9a1c2d-2222-4a2b-9f3c-0d1e2f3a4b5c",
+      "conditionId": "topic:creatine",
+      "conditionName": "Creatine",
+      "source": "epmc",
+      "externalId": "10.1016/j.letter.2020.0004",
+      "title": "Creatine and the kidney: a note of caution",
+      "journal": "Nephrol Dial Transplant",
+      "url": "https://doi.org/10.1016/j.letter.2020.0004",
+      "publishedAt": "2020-02-02",
+      "grade": null,
+      "finding": null,
+      "abstract": null,
+      "moves": null,
+      "read": false,
+      "foundAt": "2026-09-02T04:12:00.000Z",
+      "seenAt": null,
+      "dismissedAt": null
+    }
+  ]
+}

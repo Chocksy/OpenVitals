@@ -1591,6 +1591,12 @@ export interface InterventionRow {
   quote: string;
   status: string;
   population: string | null;
+  /** drug | supplement | diet | exercise | sleep | behaviour | procedure */
+  kind?: string | null;
+  /** one sentence: who should not, or what to check first */
+  caution?: string | null;
+  /** `seed` for `lib/hkb-interventions.ts`, `research` for a minted row */
+  source?: string;
 }
 
 /**

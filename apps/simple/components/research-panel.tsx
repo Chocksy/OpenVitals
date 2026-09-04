@@ -22,6 +22,7 @@ import type { WatchCondition } from "@/lib/research-watch";
 import { dayLabel, plural } from "@/lib/utils";
 import { EvidenceChip } from "./evidence-chip";
 import { DiscussPaper, ResearchNow } from "./research-now";
+import { WatchTopic } from "./topic-actions";
 import { StateWord, type StateTone } from "./ui-kit";
 
 /** Up on a condition is bad news, down is good, and no rule is neither. */
@@ -104,17 +105,36 @@ export function PaperRow({ row }: { row: PaperWatch }) {
  * The empty state names the day it looked and the conditions it looked for,
  * so "nothing new" reads as a result and not as a page that failed to load.
  */
+/**
+ * One topic on the list, as the Research section prints it. Phase 35 section
+ * C, `topic.html` section 05.
+ */
+export interface TopicRow {
+  topic: string;
+  label: string;
+  relevance: string;
+  outcomes: number;
+  papers: number;
+  found: number;
+  lastRunAt: string | null;
+}
+
 export function ResearchSection({
   rows,
   conditions,
   lastRun,
   cooldownDays,
+  topics = [],
+  topicDays = 30,
 }: {
   rows: PaperWatch[];
   conditions: WatchCondition[];
   /** the newest `found_at` this person has, as `YYYY-MM-DD`, or null */
   lastRun: string | null;
   cooldownDays: number;
+  /** phase 35: the topics this person watches, and the box that adds one */
+  topics?: TopicRow[];
+  topicDays?: number;
 }) {
   const moving = rows.filter((r) => r.moves != null).length;
   const names = conditions.map((c) => c.name);
@@ -161,6 +181,75 @@ export function ResearchSection({
           your ledger already has at possible or louder, and nothing it says
           moves a number until a human accepts the rule.
         </p>
+      </div>
+
+      {/* the topics list and the box that adds one: a topic is the thing you
+          go looking for, and a paper is the thing that arrives */}
+      <div className="grid2">
+        <div className="panel">
+          <div className="panel-head">
+            <h3>Topics</h3>
+            <span className="r">
+              {topics.length} watched ·{" "}
+              {topics.reduce((n, t) => n + t.outcomes, 0)} outcomes ·{" "}
+              {topics.filter((t) => t.papers === 0).length} waiting to be read
+            </span>
+          </div>
+          {topics.length === 0 ? (
+            <p className="cap">
+              No topic on the list yet. An active protocol item that names a
+              supplement becomes one on its own; the box beside this is for the
+              other case — you read something and you want to know.
+            </p>
+          ) : (
+            <div className="rowlist">
+              {topics.map((t) => (
+                <Link
+                  key={t.topic}
+                  className="markerrow said"
+                  href={`/plan/research/${encodeURIComponent(t.topic)}`}
+                >
+                  <div className="nm">
+                    <b>{t.label}</b>
+                    <span>{t.relevance}</span>
+                  </div>
+                  <div className="t-meta text-[11px]">
+                    {t.papers
+                      ? `${plural(t.papers, "paper")} read`
+                      : `${plural(t.found, "paper")} found`}
+                  </div>
+                  <div />
+                  <div className="wd">
+                    {t.outcomes ? (
+                      <StateWord tone="on">
+                        {plural(t.outcomes, "outcome")}
+                      </StateWord>
+                    ) : (
+                      <StateWord tone="none">found, not read yet</StateWord>
+                    )}
+                    {t.lastRunAt && (
+                      <div className="t-meta text-[11px]">
+                        {dayLabel(t.lastRunAt)}
+                      </div>
+                    )}
+                  </div>
+                </Link>
+              ))}
+            </div>
+          )}
+          <p className="cap mt-3">
+            Each topic runs again after {topicDays} days, inside the same token
+            budget as the condition watch.
+          </p>
+        </div>
+
+        <div className="panel">
+          <div className="panel-head">
+            <h3>Watch a topic</h3>
+            <span className="r">a supplement, a drug, a practice</span>
+          </div>
+          <WatchTopic />
+        </div>
       </div>
 
       <div id="research-now" className="panel scroll-mt-24">

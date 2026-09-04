@@ -63,6 +63,8 @@ describe("the fixtures exist and carry no secret", () => {
     "markers",
     "meals",
     "research",
+    "research-topics",
+    "research-topic",
     "genome",
   ];
 
@@ -483,6 +485,8 @@ describe("no body smuggles a number as a string", () => {
     "markers",
     "meals",
     "research",
+    "research-topics",
+    "research-topic",
     "genome",
   ])
     it(`${name}.json`, () => {
@@ -685,5 +689,101 @@ describe("how much history one series carries", () => {
 
   it("has nothing to trim when there is nothing on file", () => {
     expect(seriesOf([], 365)).toEqual([]);
+  });
+});
+
+/* ── GET /api/research/topics ─────────────────────────────────────────── */
+
+describe("GET /api/research/topics", () => {
+  const b = load("research-topics") as Record<string, never>;
+
+  it("is a list of topics, each with its origin and its counts", () => {
+    expect(Array.isArray(b.topics)).toBe(true);
+    for (const t of b.topics as Record<string, never>[]) {
+      expect(typeof t.topic).toBe("string");
+      // the key is normalised; the label is whatever was typed
+      expect(t.topic as string).toBe((t.topic as string).toLowerCase());
+      expect(typeof t.label).toBe("string");
+      expect(["adopted", "goal", "asked", "typed"]).toContain(t.origin);
+      expect(typeof t.relevance).toBe("string");
+      expect(typeof t.outcomes).toBe("number");
+      expect(typeof t.papers).toBe("number");
+      expect(typeof t.found).toBe("number");
+      if (t.lastRunAt) expect(t.lastRunAt as string).toMatch(DAY);
+    }
+  });
+
+  it("never claims an outcome for a topic nothing has read", () => {
+    for (const t of b.topics as Record<string, never>[])
+      if ((t.papers as unknown as number) === 0)
+        expect(t.outcomes as unknown as number).toBe(0);
+  });
+});
+
+describe("GET /api/research/topics/[topic]", () => {
+  const b = load("research-topic") as Record<string, never>;
+
+  it("leads with the topic, its label and why it is on file", () => {
+    expect(typeof b.topic).toBe("string");
+    expect(typeof b.label).toBe("string");
+    expect(typeof b.relevance).toBe("string");
+    if (b.lastRunAt) expect(b.lastRunAt as string).toMatch(DAY);
+    expect(Array.isArray(b.forYou)).toBe(true);
+  });
+
+  it("grades every verdict and says whether it is good, bad or neither", () => {
+    for (const v of b.verdicts as Record<string, never>[]) {
+      expect(typeof v.outcomeText).toBe("string");
+      expect(str(v.outcomeFeatureId)).toBe(true);
+      expect(["up", "down", "none"]).toContain(v.direction);
+      expect(["on", "off", "none"]).toContain(v.tone);
+      expect(["A", "B", "C", "D", "E"]).toContain(v.grade);
+      expect(typeof v.trials).toBe("number");
+      expect(typeof v.association).toBe("boolean");
+      expect(str(v.doseRange)).toBe(true);
+    }
+  });
+
+  /**
+   * The whole point of the split. A trial can say one thing caused another; a
+   * survey cannot, and it says so on its own row rather than in a footnote.
+   */
+  it("keeps the trials and the associations apart, and labels them", () => {
+    for (const f of b.trials as Record<string, never>[]) {
+      expect(f.association).toBe(false);
+      expect(["meta", "guideline", "rct"]).toContain(f.studyType);
+    }
+    for (const f of b.associations as Record<string, never>[]) {
+      expect(f.association).toBe(true);
+      expect(["meta", "guideline", "rct"]).not.toContain(f.studyType);
+    }
+  });
+
+  it("carries the outcome in the abstract's own words, and the quote", () => {
+    for (const f of [
+      ...(b.trials as Record<string, never>[]),
+      ...(b.associations as Record<string, never>[]),
+    ]) {
+      expect(typeof f.outcomeText).toBe("string");
+      expect((f.outcomeText as string).length).toBeGreaterThan(0);
+      expect(typeof f.quote).toBe("string");
+      expect(typeof f.design).toBe("string");
+      expect(["A", "B", "C", "D", "E"]).toContain(f.grade);
+      expect(num(f.n)).toBe(true);
+      const p = f.paper as Record<string, unknown> | null;
+      if (p) {
+        expect(typeof p.title).toBe("string");
+        expect(num(p.year)).toBe(true);
+      }
+    }
+  });
+
+  it("prints the topic's label on every paper row it carries", () => {
+    for (const p of b.papers as Record<string, never>[]) {
+      expect((p.conditionId as string).startsWith("topic:")).toBe(true);
+      expect(typeof p.conditionName).toBe("string");
+      expect(typeof p.read).toBe("boolean");
+      expect(p.read).toBe(p.grade != null || p.finding != null);
+    }
   });
 });

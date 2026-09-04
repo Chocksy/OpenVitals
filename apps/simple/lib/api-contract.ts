@@ -40,6 +40,20 @@ import { fmtCategory } from "@/lib/utils";
 import { genomeVerdicts, loadGenome, movedIds } from "@/lib/genome";
 import { genomeVerdict } from "@/lib/genome-catalog";
 import { orderVerdicts } from "@/lib/genome-view";
+import { previewLines } from "@/lib/projections";
+import { listWatch, toApiPaper, type ApiPaper } from "@/lib/research-watch";
+import {
+  designWords,
+  findingsFor,
+  getTopic,
+  isAssociation,
+  listTopics,
+  relevanceOf,
+  topicCounts,
+  topicPerson,
+  verdictsOf,
+} from "@/lib/topic-watch";
+import type { TopicFinding as TopicFindingRow } from "@/db";
 
 /* ── GET /api/today ───────────────────────────────────────────────────── */
 
@@ -757,5 +771,183 @@ export async function genomeBody(userId: string): Promise<GenomeBody> {
         rsids: g.rsids,
       };
     }),
+  };
+}
+
+/* ── GET /api/research/topics ─────────────────────────────────────────── */
+
+/**
+ * One topic on this person's watch list. Phase 35 section B.
+ *
+ * `outcomes` and `papers` are counts off `topic_findings`, so a topic that
+ * has been searched and not read prints `papers: 0` and says "found, not read
+ * yet" rather than a grade nobody earned.
+ */
+export interface ApiTopic {
+  topic: string;
+  label: string;
+  /** adopted | goal | asked | typed */
+  origin: string;
+  lastRunAt: string | null;
+  relevance: string;
+  outcomes: number;
+  papers: number;
+  /** how many `paper_watch` rows this topic has found, read or not */
+  found: number;
+}
+
+export interface TopicsBody {
+  topics: ApiTopic[];
+}
+
+/** One graded finding: a trial, or an association, in the same shape. */
+export interface ApiFinding {
+  id: string;
+  name: string;
+  dose: string | null;
+  duration: string | null;
+  outcomeText: string;
+  outcomeFeatureId: string | null;
+  effect: string | null;
+  /** up | down | none */
+  direction: string;
+  /** A–E */
+  grade: string;
+  studyType: string;
+  /** "randomised, n = 46" */
+  design: string;
+  n: number | null;
+  population: string | null;
+  /** true when the design can only show two things travelled together */
+  association: boolean;
+  paper: {
+    title: string;
+    journal: string | null;
+    year: number | null;
+    url: string;
+    doi: string | null;
+    pmid: string | null;
+  } | null;
+  quote: string;
+}
+
+/** One line of the verdict strip. */
+export interface ApiVerdict {
+  outcomeText: string;
+  outcomeFeatureId: string | null;
+  direction: string;
+  /** on | off | none: good, bad, or neither, by the outcome */
+  tone: string;
+  grade: string;
+  trials: number;
+  association: boolean;
+  doseRange: string | null;
+}
+
+export interface TopicBody {
+  topic: string;
+  label: string;
+  origin: string;
+  lastRunAt: string | null;
+  relevance: string;
+  /** the projection line, when a marker outcome makes one */
+  forYou: string[];
+  verdicts: ApiVerdict[];
+  trials: ApiFinding[];
+  associations: ApiFinding[];
+  papers: ApiPaper[];
+}
+
+/** A stored finding as the contract prints it. */
+export function toApiFinding(f: TopicFindingRow): ApiFinding {
+  return {
+    id: f.id,
+    name: f.name,
+    dose: f.dose,
+    duration: f.duration,
+    outcomeText: f.outcomeText,
+    outcomeFeatureId: f.outcomeFeatureId,
+    effect: f.effect,
+    direction: f.direction,
+    grade: f.grade,
+    studyType: f.studyType,
+    design: designWords(f.studyType, f.n),
+    n: f.n,
+    population: f.population,
+    association: isAssociation(f.studyType),
+    paper: f.paper
+      ? {
+          title: f.paper.title,
+          journal: f.paper.journal,
+          year: f.paper.year,
+          url: f.paper.url,
+          doi: f.paper.doi,
+          pmid: f.paper.pmid,
+        }
+      : null,
+    quote: f.quote,
+  };
+}
+
+export async function topicsBody(userId: string): Promise<TopicsBody> {
+  const [rows, person] = await Promise.all([
+    listTopics(userId),
+    topicPerson(userId),
+  ]);
+  const counts = await topicCounts(rows.map((r) => r.topic));
+  const found = await Promise.all(
+    rows.map((r) => listWatch(userId, { topic: r.topic, limit: 200 })),
+  );
+
+  return {
+    topics: rows.map((r, i) => {
+      const c = counts.get(r.topic) ?? { outcomes: 0, papers: 0 };
+      return {
+        topic: r.topic,
+        label: r.label,
+        origin: r.origin,
+        lastRunAt: r.lastRunAt?.toISOString().slice(0, 10) ?? null,
+        relevance: relevanceOf(r, person),
+        outcomes: c.outcomes,
+        papers: c.papers,
+        found: found[i]?.length ?? 0,
+      };
+    }),
+  };
+}
+
+export async function topicBody(
+  userId: string,
+  wanted: string,
+): Promise<TopicBody | null> {
+  const row = await getTopic(userId, wanted);
+  if (!row) return null;
+
+  const [findings, papers, person] = await Promise.all([
+    findingsFor(row.topic),
+    listWatch(userId, { topic: row.topic, limit: 200 }),
+    topicPerson(userId),
+  ]);
+
+  const relevance = relevanceOf(row, person, findings);
+  const labels = new Map([[`topic:${row.topic}`, row.label]]);
+  const marked = findings.filter((f) => f.outcomeFeatureId);
+  const preview = marked.length
+    ? await previewLines([...new Set(marked.map((f) => f.name))].slice(0, 4))
+    : {};
+
+  return {
+    topic: row.topic,
+    label: row.label,
+    origin: row.origin,
+    lastRunAt: row.lastRunAt?.toISOString().slice(0, 10) ?? null,
+    relevance,
+    forYou: Object.values(preview),
+    verdicts: verdictsOf(findings),
+    trials: findings.filter((f) => !isAssociation(f.studyType)).map(toApiFinding),
+    associations: findings
+      .filter((f) => isAssociation(f.studyType))
+      .map(toApiFinding),
+    papers: papers.map((p) => toApiPaper(p, labels)),
   };
 }
