@@ -27,4 +27,6 @@ RUN pnpm --filter simple build
 ENV NODE_ENV=production NEXT_TELEMETRY_DISABLED=1 HOSTNAME="0.0.0.0"
 WORKDIR /app/apps/simple
 EXPOSE 3000
-CMD ["sh", "-c", "pnpm db:migrate && pnpm import-legacy && pnpm exec next start -p 3000"]
+# hkb:seed is an idempotent upsert of the in-code catalog (conditions, evidence,
+# interventions); it runs on every start so a catalog change ships with the code.
+CMD ["sh", "-c", "pnpm db:migrate && pnpm import-legacy && (pnpm hkb:seed || echo hkb:seed failed) && pnpm exec next start -p 3000"]
