@@ -423,17 +423,10 @@ enum Api {
     /// `also` names the statuses whose body is still an answer rather than an
     /// error. `POST /api/research` replies 429 with when it last looked, and
     /// "it last looked on Aug 1" is an answer, not a failure.
-    /// The last body a route sent back, verbatim, trimmed to 400 characters.
-    /// The Add receipt prints this when nothing in a reply was a field this
-    /// app knows, so the phone never composes a sentence the server did not
-    /// say.
-    private(set) static var lastReply = ""
-
     private static func send<T: Decodable>(
         _ req: URLRequest, also: Set<Int> = []
     ) async throws -> T {
         let (data, response) = try await URLSession.shared.data(for: req)
-        lastReply = String(data: data.prefix(400), encoding: .utf8) ?? ""
         let status = (response as? HTTPURLResponse)?.statusCode ?? 0
         let where_ = "\(req.httpMethod ?? "GET") \(req.url?.path ?? "?") \(status)"
         // The routes answer JSON on every path they own, including 401 and 500,
@@ -1194,6 +1187,16 @@ extension Api {
         let reply: String?
         let chips: [Chip]?
         let error: String?
+        /// Whether the reader ran. `false` means the words are stored unread
+        /// and will be read at their own date once the reader is back.
+        let read: Bool?
+        /// How many times the reader has tried. Older servers omit it.
+        let readAttempts: Int?
+
+        enum CodingKeys: String, CodingKey {
+            case id, reply, chips, error, read
+            case readAttempts = "read_attempts"
+        }
     }
 
     /// Words, on their own. `draft: true` reads them and writes nothing.

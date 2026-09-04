@@ -5,9 +5,9 @@ import UIKit
 /// What the sheet says back after a send.
 ///
 /// Every line in it comes from a field the server sent: the chips it
-/// understood, the fields it wrote, and its own sentence. When a reply holds
-/// none of those, `orRaw` prints the body verbatim rather than letting the
-/// phone compose a sentence the server never said.
+/// understood, the fields it wrote, and its own sentence. When the server sent
+/// no words at all, the receipt says what the server's own flags say. It never
+/// prints the reply body, so no id, field name or brace ever reaches the eye.
 struct CaptureReceipt: Equatable {
     /// What was understood: one chip per fact, labelled as the reader
     /// labelled it.
@@ -15,33 +15,53 @@ struct CaptureReceipt: Equatable {
     /// What was saved: the keys `POST /api/capture` says it wrote, and the
     /// day it wrote them to.
     var saved: [String] = []
-    /// The reader's own words: `reply`, `answer`, `note`, `basis`, `error`.
+    /// The reader's own words: `reply`, `answer`, `note`, `basis`, `error`,
+    /// or, when it sent none, one of the two sentences below.
     var said = ""
 
     var isEmpty: Bool { chips.isEmpty && saved.isEmpty && said.isEmpty }
 
-    /// Nothing recognisable in the reply, so print exactly what it said.
-    func orRaw(_ raw: String) -> CaptureReceipt {
-        isEmpty ? CaptureReceipt(said: raw) : self
-    }
+    /// The reader did not run: the words are kept and read later.
+    static let unread = "Saved. It will be read when the reader is back."
+    /// The reader ran and kept nothing.
+    static let nothingKept = "Read. Nothing to keep from that."
 
     /// Words on their own. `/api/compose` reads and writes in one call, so the
     /// chips that come back are already stored and its `reply` is the answer.
     static func of(_ composed: Api.Composed) -> CaptureReceipt {
-        CaptureReceipt(chips: (composed.chips ?? []).map(\.label),
-                       said: composed.reply ?? composed.error ?? "")
+        let chips = (composed.chips ?? []).map(\.label)
+        return CaptureReceipt(
+            chips: chips,
+            said: sentence(composed.reply, composed.error)
+                ?? standing(read: composed.read, kept: !chips.isEmpty))
     }
 
     /// A question. `/api/ask` answers in one field.
     static func of(_ asked: Api.Asked) -> CaptureReceipt {
-        CaptureReceipt(said: asked.answer ?? asked.error ?? "")
+        CaptureReceipt(said: sentence(asked.answer, asked.error) ?? "")
     }
 
     /// A photograph, read. A lab sheet carries a `note` instead of chips,
     /// because that one goes to the upload reader.
     static func of(_ read: Api.CaptureResult) -> CaptureReceipt {
         CaptureReceipt(chips: (read.chips ?? []).map(\.label),
-                       said: read.note ?? read.basis ?? read.error ?? "")
+                       said: sentence(read.note, read.basis, read.error) ?? "")
+    }
+
+    /// The first field that holds words. A field that is there but empty is
+    /// not a sentence, so it is not the receipt either.
+    private static func sentence(_ fields: String?...) -> String? {
+        fields.compactMap { $0 }.first {
+            !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        }
+    }
+
+    /// The server sent no words. Say what its flags say and nothing more: the
+    /// chips already speak when there are any, and a server that reported
+    /// neither state gets silence rather than a guess.
+    private static func standing(read: Bool?, kept: Bool) -> String {
+        guard let read, !kept else { return "" }
+        return read ? nothingKept : unread
     }
 
     /// The write that follows the read: what the server names as written.
@@ -237,13 +257,11 @@ struct CaptureView: View {
                         chips: chips, label: seen.label, at: Api.iso(Date()))
                     made = made.with(wrote)
                 }
-                receipt = made.orRaw(Api.lastReply)
+                receipt = made
             } else if Api.isQuestion(words) {
                 receipt = CaptureReceipt.of(try await Api.ask(words))
-                    .orRaw(Api.lastReply)
             } else {
                 receipt = CaptureReceipt.of(try await Api.compose(text: words))
-                    .orRaw(Api.lastReply)
             }
         } catch {
             receipt = CaptureReceipt(said: error.localizedDescription)

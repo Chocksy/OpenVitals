@@ -844,7 +844,7 @@ final class CaptureSheetTests: XCTestCase {
         let composed = Api.Composed(
             id: "p1", reply: "Selenium is on the list from June 14.",
             chips: [chip("Selenium 200 µg"), chip("since Jun 14")],
-            error: nil)
+            error: nil, read: true, readAttempts: 1)
         let receipt = CaptureReceipt.of(composed)
         XCTAssertEqual(receipt.chips, ["Selenium 200 µg", "since Jun 14"])
         XCTAssertEqual(receipt.said, "Selenium is on the list from June 14.")
@@ -901,17 +901,45 @@ final class CaptureSheetTests: XCTestCase {
         XCTAssertTrue(receipt.saved.isEmpty)
     }
 
-    /// Nothing recognisable in the reply: print the body exactly as it came,
-    /// rather than composing a sentence over it.
-    func testAnUnrecognisableReplyIsPrintedVerbatim() {
-        let empty = CaptureReceipt.of(Api.Composed(id: nil, reply: nil,
-                                                   chips: nil, error: nil))
-        XCTAssertTrue(empty.isEmpty)
-        XCTAssertEqual(empty.orRaw(#"{"queued":true}"#).said,
-                       #"{"queued":true}"#)
-        // A receipt that already has something keeps it.
-        let said = CaptureReceipt(said: "written")
-        XCTAssertEqual(said.orRaw("{}").said, "written")
+    private func decoded(_ body: String) throws -> Api.Composed {
+        try JSONDecoder().decode(Api.Composed.self, from: Data(body.utf8))
+    }
+
+    /// The body the owner's phone got on 2026-09-04: read, understood
+    /// nothing, said nothing. The receipt says so in the app's own words and
+    /// never prints the body.
+    func testTheReplyTheOwnerGotSaysNothingWasKept() throws {
+        let body = #"{"ok":true,"id":"82decc5a-3f47-4a3d-9d1a-1f0a2b6c8e55","chips":[],"reply":"","read":true,"read_attempts":1}"#
+        let reply = try decoded(body)
+        XCTAssertEqual(reply.readAttempts, 1)
+        let receipt = CaptureReceipt.of(reply)
+        XCTAssertTrue(receipt.chips.isEmpty)
+        XCTAssertTrue(receipt.saved.isEmpty)
+        XCTAssertEqual(receipt.said, "Read. Nothing to keep from that.")
+        XCTAssertFalse(receipt.said.contains("{"))
+        XCTAssertFalse(receipt.said.contains(#""ok""#))
+    }
+
+    /// The reader could not run: the words are kept, and the receipt says
+    /// they will be read later. `read_attempts` may be missing.
+    func testAnUnreadReplySaysTheWordsAreKept() throws {
+        let body = #"{"ok":true,"id":"3f1c9a20-77b4-4c2e-8f31-9d4e5a7b1c02","chips":[],"reply":"","read":false}"#
+        let reply = try decoded(body)
+        XCTAssertNil(reply.readAttempts)
+        let receipt = CaptureReceipt.of(reply)
+        XCTAssertEqual(receipt.said,
+                       "Saved. It will be read when the reader is back.")
+    }
+
+    /// Chips and no sentence: the chips are the receipt, and the app adds
+    /// none of its own words on top of them.
+    func testChipsWithoutAReplyStandOnTheirOwn() throws {
+        let body = #"""
+        {"ok":true,"id":"b7d2","reply":"","read":true,"chips":[{"kind":"fact","key":"supplements","label":"Magnesium 300 mg","value":"Magnesium 300 mg","date":"2026-09-04","quote":"magnesium 300","confidence":0.9,"by":"reader"}]}
+        """#
+        let receipt = CaptureReceipt.of(try decoded(body))
+        XCTAssertEqual(receipt.chips, ["Magnesium 300 mg"])
+        XCTAssertEqual(receipt.said, "")
     }
 
     /// The one caption in the sheet, and the one placeholder. No route names,
