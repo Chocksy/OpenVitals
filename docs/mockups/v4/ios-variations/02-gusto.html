@@ -1,0 +1,4469 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Gusto — iOS variations — OpenVitals v4</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Geist:wght@200..600&family=Geist+Mono:wght@200..500&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="../system.css" />
+    <style>
+      /* ══ Gusto ═══════════════════════════════════════════════════════════════
+   Seed: MByK9NGOQUSZzaw0eTOOGtCK.  Everything below is system.css plus this
+   block.  The rules that do not move: lime only on the control that adds
+   data, the spectrum is a word or a mark and never a surface, navy is the
+   one dark surface, Fibonacci space, four radii, five type sizes.
+
+   The accent (mulberry) tints rules, ring tracks, the chart's projection
+   and one 6 % surface wash.  It is never a state and never a fill behind
+   text.  #7A3E63 reads 7.21:1 on the cream and 7.55:1 on the surface;
+   #C98BAE reads 6.99:1 on the dark canvas and 5.88:1 on --surface-hi.
+   Motion: one easing (the system curve), one duration family built on the
+   seed's only two digits, 9 and 0 → 90 / 270 / 450 / 900 ms.
+   ══════════════════════════════════════════════════════════════════════ */
+      :root {
+        --gusto: #7a3e63;
+        --gusto-wash: rgba(122, 62, 99, 0.06);
+        --gusto-hair: rgba(122, 62, 99, 0.22);
+        --g90: 90ms;
+        --g270: 270ms;
+        --g450: 450ms;
+        --g900: 900ms;
+      }
+      html[data-theme="dark"],
+      .dark {
+        --gusto: #c98bae;
+        --gusto-wash: rgba(201, 139, 174, 0.08);
+        --gusto-hair: rgba(201, 139, 174, 0.26);
+      }
+
+      /* ── the seed's rhythm: a long block, then one quiet mark ───────────────
+   NGOQUSZ is seven capitals broken by a single lowercase z.  So the page
+   sets --type-xl straight against --type-xs with nothing in between, and
+   uses --type-lg only for a tooltip value. */
+      .big {
+        font-family: var(--font-mono);
+        font-variant-numeric: tabular-nums;
+        font-weight: 200;
+        font-size: var(--type-xl);
+        line-height: 0.92;
+        letter-spacing: -0.03em;
+        color: var(--ink);
+      }
+      .big em {
+        font-style: normal;
+        font-size: var(--type-xs);
+        font-weight: 400;
+        letter-spacing: 0.09em;
+        text-transform: uppercase;
+        color: var(--ink-3);
+        margin-left: var(--s5);
+      }
+      .tick-label {
+        font-size: var(--type-xs);
+        letter-spacing: 0.09em;
+        text-transform: uppercase;
+        color: var(--ink-3);
+      }
+      /* one mulberry hairline under every block heading — the "rule" of Gusto */
+      .gsec {
+        border-top: 1px solid var(--gusto-hair);
+        padding-top: var(--s8);
+        margin-top: var(--s13);
+      }
+      .gsec > .gsec-h {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: var(--s8);
+      }
+      .gsec > .gsec-h b {
+        font-size: var(--type-xs);
+        font-weight: 500;
+        letter-spacing: 0.11em;
+        text-transform: uppercase;
+        color: var(--gusto);
+      }
+      .gsec > .gsec-h span {
+        font-size: var(--type-xs);
+        color: var(--ink-3);
+      }
+
+      /* ── the Direction block ───────────────────────────────────────────────── */
+      .direction {
+        background: var(--gusto-wash);
+        border-radius: var(--r-hero);
+        padding: var(--s21);
+        border: 1px solid var(--gusto-hair);
+      }
+      .direction dl {
+        display: grid;
+        grid-template-columns: 108px minmax(0, 1fr);
+        gap: var(--s8) var(--s13);
+        margin: 0;
+      }
+      .direction dt {
+        font-size: var(--type-xs);
+        letter-spacing: 0.11em;
+        text-transform: uppercase;
+        color: var(--gusto);
+        padding-top: 2px;
+      }
+      .direction dd {
+        margin: 0;
+        font-size: var(--type-sm);
+        color: var(--ink-2);
+      }
+      .direction dd b {
+        color: var(--ink);
+        font-weight: 500;
+      }
+      .direction .seedline {
+        font-family: var(--font-mono);
+        font-size: var(--type-md);
+        letter-spacing: 0.16em;
+        color: var(--ink);
+        word-break: break-all;
+      }
+      .direction .seedline i {
+        font-style: normal;
+        color: var(--gusto);
+        font-weight: 500;
+      }
+
+      /* ── WeekStrip / StreakFlame ───────────────────────────────────────────── */
+      .weekstrip {
+        display: flex;
+        gap: var(--s5);
+        justify-content: space-between;
+        margin-top: var(--s8);
+      }
+      .wd7 {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: var(--s3);
+        font-size: var(--type-xs);
+        color: var(--ink-3);
+      }
+      .wd7 i {
+        width: var(--s21);
+        height: var(--s21);
+        border-radius: var(--r-pill);
+        display: grid;
+        place-items: center;
+        background: var(--track);
+        color: var(--ink-3);
+        font-family: var(--font-mono);
+        font-size: 10px;
+        font-style: normal;
+        transition:
+          background-color var(--g270) var(--ease),
+          color var(--g270) var(--ease);
+      }
+      .wd7.done i {
+        background: var(--ink);
+        color: var(--canvas);
+      }
+      .wd7.today i {
+        background: none;
+        box-shadow: inset 0 0 0 1.5px var(--gusto);
+        color: var(--ink);
+      }
+      .wd7.today.done i {
+        background: var(--ink);
+        box-shadow: inset 0 0 0 1.5px var(--gusto);
+        color: var(--canvas);
+      }
+      .flame {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--s3);
+        border-radius: var(--r-pill);
+        background: var(--surface-hi);
+        box-shadow: inset 0 0 0 1px var(--gusto-hair);
+        padding: 2px var(--s8);
+        font-family: var(--font-mono);
+        font-size: var(--type-xs);
+        color: var(--ink);
+      }
+      .flame .ic {
+        color: var(--warn);
+        animation: g-flicker 2.4s var(--ease) infinite;
+      }
+      .flame.leap {
+        animation: g-leap var(--g450) var(--ease);
+      }
+      .flame.leap .ic {
+        animation: g-flicker 600ms var(--ease) 2;
+      }
+
+      /* ── the double ring: the seed carries three O's, so the two counts that
+      matter share one centre.  Outside: moves.  Inside: calories. ──────── */
+      .gring {
+        width: 118px;
+        height: 118px;
+        flex: none;
+      }
+      .gring circle {
+        fill: none;
+        stroke-linecap: round;
+        transform: rotate(-90deg);
+        transform-origin: 59px 59px;
+      }
+      .gring .trk {
+        stroke: var(--track);
+      }
+      .gring .trk.inner {
+        stroke: var(--gusto-hair);
+      }
+      .gring .outer {
+        stroke: var(--ink);
+        stroke-width: 6;
+        transition: stroke-dashoffset var(--g900) var(--ease);
+      }
+      .gring .inner {
+        stroke: var(--gusto);
+        stroke-width: 6;
+        transition: stroke-dashoffset var(--g900) var(--ease);
+      }
+      .gring .flash {
+        stroke: var(--lime);
+        stroke-width: 6;
+        opacity: 0;
+      }
+      .gring .flash.on {
+        animation: g-flash 650ms var(--ease);
+      }
+      .gringwrap {
+        position: relative;
+        display: grid;
+        place-items: center;
+        flex: none;
+      }
+      .gringtxt {
+        position: absolute;
+        top: 59px;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        text-align: center;
+        line-height: 1;
+      }
+      .gringtxt b {
+        display: block;
+        font-family: var(--font-mono);
+        font-variant-numeric: tabular-nums;
+        font-weight: 200;
+        font-size: 26px;
+        letter-spacing: -0.02em;
+        color: var(--ink);
+      }
+      .gringtxt span {
+        display: block;
+        margin-top: 3px;
+        font-size: 10px;
+        letter-spacing: 0.09em;
+        text-transform: uppercase;
+        color: var(--ink-3);
+      }
+      .gringcap {
+        margin-top: var(--s5);
+        font-family: var(--font-mono);
+        font-size: var(--type-xs);
+        color: var(--gusto);
+        text-align: center;
+      }
+
+
+      /* ── MoveChip ──────────────────────────────────────────────────────────── */
+      .chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--s5);
+      }
+      .movechip {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--s5);
+        border: 0;
+        border-radius: var(--r-pill);
+        background: var(--surface-hi);
+        box-shadow: inset 0 0 0 1px var(--hair);
+        color: var(--ink);
+        font-family: inherit;
+        font-size: var(--type-sm);
+        padding: var(--s5) var(--s13);
+        min-height: 40px;
+        cursor: pointer;
+        text-align: left;
+        transition:
+          background-color var(--g270) var(--ease),
+          color var(--g270) var(--ease);
+      }
+      .movechip .bx {
+        width: var(--s13);
+        height: var(--s13);
+        border-radius: var(--s3);
+        box-shadow: inset 0 0 0 1px var(--gusto-hair);
+        display: grid;
+        place-items: center;
+        flex: none;
+      }
+      .movechip .bx .ic {
+        width: 11px;
+        height: 11px;
+        stroke-dasharray: 21;
+        stroke-dashoffset: 21;
+      }
+      .movechip.on {
+        background: var(--ink);
+        color: var(--canvas);
+        box-shadow: none;
+        animation: g-tick var(--g270) var(--ease);
+      }
+      .movechip.on .bx {
+        box-shadow: inset 0 0 0 1px
+          color-mix(in oklab, var(--canvas) 45%, transparent);
+      }
+      .movechip.on .bx .ic {
+        animation: check-draw var(--g450) var(--ease) var(--g90) forwards;
+      }
+      .movechip .lbl {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        align-items: flex-start;
+      }
+      .movechip .src {
+        font-family: var(--font-mono);
+        font-size: 10px;
+        color: var(--ink-3);
+      }
+      .movechip.on .src {
+        color: color-mix(in oklab, var(--canvas) 72%, transparent);
+      }
+
+      /* ── the Add player ────────────────────────────────────────────────────── */
+      .player {
+        display: flex;
+        align-items: center;
+        gap: var(--s8);
+        flex-wrap: wrap;
+        margin-bottom: var(--s13);
+      }
+      .playbtn {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--s5);
+        border: 0;
+        border-radius: var(--r-pill);
+        background: var(--lime);
+        color: var(--lime-ink);
+        font-family: inherit;
+        font-size: var(--type-sm);
+        font-weight: 500;
+        padding: var(--s8) var(--s21);
+        min-height: 40px;
+        cursor: pointer;
+      }
+      .playbtn:disabled {
+        opacity: 0.5;
+        cursor: default;
+      }
+      .modes {
+        display: flex;
+        gap: var(--s3);
+        background: var(--surface);
+        border-radius: var(--r-pill);
+        padding: var(--s3);
+      }
+      .modes button {
+        border: 0;
+        background: transparent;
+        border-radius: var(--r-pill);
+        font-family: inherit;
+        font-size: var(--type-xs);
+        color: var(--ink-2);
+        padding: var(--s5) var(--s13);
+        min-height: 34px;
+        cursor: pointer;
+      }
+      .modes button[aria-pressed="true"] {
+        background: var(--ink);
+        color: var(--canvas);
+      }
+      .playhint {
+        font-size: var(--type-xs);
+        color: var(--ink-3);
+        font-family: var(--font-mono);
+      }
+      .stage {
+        min-height: 470px;
+      }
+
+      .gfield {
+        border-radius: var(--r-inner);
+        box-shadow: inset 0 0 0 1px var(--hair);
+        background: var(--surface-flat);
+        padding: var(--s13);
+        min-height: 88px;
+        font-size: var(--type-sm);
+        color: var(--ink);
+      }
+      .gfield.empty {
+        color: var(--ink-3);
+      }
+      .gfield .caret {
+        display: inline-block;
+        width: 1px;
+        height: 15px;
+        background: var(--gusto);
+        vertical-align: -3px;
+        animation: g-caret 900ms steps(2) infinite;
+      }
+      .quote {
+        border-left: 2px solid var(--gusto);
+        padding-left: var(--s13);
+        font-size: var(--type-sm);
+        color: var(--ink-2);
+      }
+      .loader3 {
+        display: inline-flex;
+        gap: var(--s3);
+        align-items: center;
+      }
+      .loader3 i {
+        width: var(--s5);
+        height: var(--s5);
+        border-radius: var(--r-pill);
+        background: var(--gusto);
+        animation: g-dot 1200ms var(--ease) infinite;
+      }
+      .loader3 i:nth-child(2) {
+        animation-delay: 150ms;
+      }
+      .loader3 i:nth-child(3) {
+        animation-delay: 300ms;
+      }
+      .chipin {
+        animation: g-in var(--g450) var(--ease) both;
+      }
+
+      /* voice */
+      .mic {
+        width: 64px;
+        height: 64px;
+        border-radius: var(--r-pill);
+        border: 0;
+        background: var(--lime);
+        color: var(--lime-ink);
+        display: grid;
+        place-items: center;
+        cursor: pointer;
+        flex: none;
+      }
+      .mic.live {
+        box-shadow: 0 0 0 0 rgba(215, 242, 75, 0.6);
+        animation: g-pulse 1800ms var(--ease) infinite;
+      }
+      .wave {
+        display: flex;
+        align-items: center;
+        gap: 3px;
+        height: 44px;
+        flex: 1;
+        min-width: 0;
+        overflow: hidden;
+      }
+      .wave i {
+        display: block;
+        width: 3px;
+        border-radius: 2px;
+        background: var(--gusto);
+        height: 20%;
+        animation: g-wave 900ms var(--ease) infinite alternate;
+      }
+      .transcript {
+        font-size: var(--type-sm);
+        color: var(--ink);
+        min-height: 44px;
+      }
+      .transcript span {
+        opacity: 0;
+        animation: g-in var(--g270) var(--ease) forwards;
+      }
+
+      /* photo */
+      .scanshot {
+        position: relative;
+        border-radius: var(--r-inner);
+        overflow: hidden;
+        background: var(--canvas-deep);
+        box-shadow: inset 0 0 0 1px var(--hair);
+        aspect-ratio: 4 / 3;
+      }
+      .scanshot img {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+      .scanline {
+        position: absolute;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: var(--lime);
+        box-shadow: 0 0 13px 3px rgba(215, 242, 75, 0.5);
+        animation: g-scan 1800ms var(--ease) infinite;
+      }
+      .shimmer {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(
+          105deg,
+          transparent 40%,
+          rgba(255, 255, 255, 0.26) 50%,
+          transparent 60%
+        );
+        background-size: 250% 100%;
+        animation: g-shimmer 1800ms linear infinite;
+      }
+      .callout {
+        position: absolute;
+        left: var(--x);
+        top: var(--y);
+        transform: translate(-50%, -50%);
+        display: inline-flex;
+        align-items: center;
+        border-radius: var(--r-pill);
+        background: var(--ink);
+        color: var(--canvas);
+        font-size: var(--type-xs);
+        padding: 3px var(--s8);
+        white-space: nowrap;
+        animation: g-in var(--g450) var(--ease) both;
+        z-index: 2;
+      }
+      .callout u {
+        position: absolute;
+        left: 50%;
+        top: 100%;
+        width: 1px;
+        height: var(--h, 21px);
+        background: var(--canvas);
+        text-decoration: none;
+      }
+      .callout u::after {
+        content: "";
+        position: absolute;
+        left: -2px;
+        top: 100%;
+        width: 5px;
+        height: 5px;
+        border-radius: var(--r-pill);
+        background: var(--canvas);
+      }
+      .callout.up u {
+        top: auto;
+        bottom: 100%;
+      }
+      .callout.up u::after {
+        top: auto;
+        bottom: 100%;
+      }
+
+      /* several photos */
+      .strip {
+        display: flex;
+        gap: var(--s5);
+      }
+      .strip figure {
+        margin: 0;
+        flex: 1;
+        min-width: 0;
+        position: relative;
+        border-radius: var(--s8);
+        overflow: hidden;
+        aspect-ratio: 1 / 1;
+        box-shadow: inset 0 0 0 1px var(--hair);
+        opacity: 0.45;
+        transition: opacity var(--g270) var(--ease);
+      }
+      .strip figure img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+      }
+      .strip figure.active,
+      .strip figure.read {
+        opacity: 1;
+      }
+      .strip figure.active {
+        box-shadow: inset 0 0 0 2px var(--lime);
+      }
+      .strip figure .done {
+        position: absolute;
+        inset: auto 3px 3px auto;
+        width: 16px;
+        height: 16px;
+        border-radius: var(--r-pill);
+        background: var(--ink);
+        color: var(--canvas);
+        display: grid;
+        place-items: center;
+      }
+      .strip figure .done .ic {
+        width: 10px;
+        height: 10px;
+      }
+      .strip figure .sweep {
+        position: absolute;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: var(--lime);
+        animation: g-scan 900ms var(--ease) infinite;
+      }
+
+      /* meal card */
+      .mealcard {
+        animation: g-rise var(--g450) var(--ease) both;
+      }
+      .macrotile {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: var(--s8);
+      }
+      .macrotile > div {
+        border-radius: var(--r-inner);
+        background: var(--surface-flat);
+        box-shadow: inset 0 0 0 1px var(--hair);
+        padding: var(--s8);
+      }
+      .macrotile .ic {
+        color: var(--gusto);
+      }
+      .macrotile b {
+        display: block;
+        white-space: nowrap;
+        margin-top: var(--s3);
+        font-family: var(--font-mono);
+        font-variant-numeric: tabular-nums;
+        font-weight: 300;
+        font-size: var(--type-md);
+        color: var(--ink);
+      }
+      .macrotile span {
+        display: block;
+        font-size: 10px;
+        color: var(--ink-3);
+      }
+      .stepper {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--s5);
+        border-radius: var(--r-pill);
+        box-shadow: inset 0 0 0 1px var(--gusto-hair);
+        padding: 2px var(--s3);
+        flex: none;
+      }
+      .stepper button {
+        width: 30px;
+        height: 30px;
+        border: 0;
+        border-radius: var(--r-pill);
+        background: transparent;
+        color: var(--ink);
+        cursor: pointer;
+        display: grid;
+        place-items: center;
+      }
+      .stepper b {
+        font-family: var(--font-mono);
+        font-size: var(--type-sm);
+        font-weight: 400;
+        min-width: var(--s21);
+        text-align: center;
+      }
+
+      /* ── meal rows and their swipe ─────────────────────────────────────────── */
+      .gmeal {
+        display: grid;
+        grid-template-columns: 55px minmax(0, 1fr);
+        gap: var(--s13);
+        align-items: center;
+      }
+      .gmeal .thumb {
+        width: 55px;
+        height: 55px;
+        border-radius: var(--r-inner);
+        object-fit: cover;
+        box-shadow: inset 0 0 0 1px var(--hair);
+      }
+      .gmeal .thumb.flat {
+        display: grid;
+        place-items: center;
+        background: var(--canvas-deep);
+        color: var(--ink-3);
+      }
+      .gmeal b {
+        display: block;
+        font-size: var(--type-sm);
+        font-weight: 400;
+        color: var(--ink);
+      }
+      .gmeal .line {
+        font-family: var(--font-mono);
+        font-size: var(--type-xs);
+        color: var(--ink-3);
+        margin-top: 2px;
+      }
+      .swiper {
+        position: relative;
+        overflow: hidden;
+        border-radius: var(--r-inner);
+      }
+      /* a swipe row owns its own padding, or .rowlist's padding leaks the
+         Edit / Delete panel out above and below the sliding front */
+      .rowlist > .swiper {
+        padding: 0;
+      }
+      .swiper .front {
+        position: relative;
+        z-index: 2;
+        background: var(--surface-flat);
+        padding: var(--s8);
+        transition: transform var(--g270) var(--ease);
+      }
+      .swiper.open .front {
+        transform: translateX(-124px);
+      }
+      .swiper .back {
+        position: absolute;
+        inset: 0 0 0 auto;
+        display: flex;
+        align-items: stretch;
+      }
+      .swiper .back button {
+        border: 0;
+        font-family: inherit;
+        font-size: var(--type-xs);
+        width: 62px;
+        cursor: pointer;
+        background: var(--canvas-deep);
+        color: var(--ink-2);
+      }
+      .swiper .back button.del {
+        color: var(--bad);
+      }
+
+      /* ── the expectation chart ─────────────────────────────────────────────── */
+      .plotbox {
+        position: relative;
+      }
+      .plotbox svg {
+        display: block;
+        width: 100%;
+        touch-action: none;
+        cursor: crosshair;
+      }
+      .plotbox .axis {
+        fill: none;
+        stroke: var(--hair);
+        stroke-width: 1;
+      }
+      .plotbox .bandrect {
+        fill: var(--gusto-wash);
+      }
+      .plotbox .bandline {
+        stroke: var(--gusto-hair);
+        stroke-width: 1;
+        stroke-dasharray: 2 4;
+      }
+      .plotbox .hist {
+        fill: none;
+        stroke: var(--ink);
+        stroke-width: 1.5;
+      }
+      .plotbox .proj {
+        fill: none;
+        stroke: var(--gusto);
+        stroke-width: 2;
+        stroke-dasharray: 3 4;
+        stroke-linecap: round;
+      }
+      .plotbox .land {
+        fill: var(--gusto);
+      }
+      .plotbox .from {
+        fill: var(--ink);
+      }
+      .plotbox .cursor {
+        stroke: var(--gusto);
+        stroke-width: 1;
+        opacity: 0;
+      }
+      .plotbox .cursor.on {
+        opacity: 1;
+      }
+      .plotbox .xlab {
+        font-family: var(--font-mono);
+        font-size: 9px;
+        fill: var(--ink-3);
+      }
+      .plotbox .ylab {
+        font-family: var(--font-mono);
+        font-size: 9px;
+        fill: var(--ink-3);
+      }
+      .plotbox .hovercard {
+        transition: opacity var(--g90) var(--ease);
+        opacity: 0;
+        min-width: 132px;
+      }
+      .plotbox .hovercard.on {
+        opacity: 1;
+      }
+      .toggles {
+        display: grid;
+        gap: var(--s5);
+      }
+      .tgl {
+        display: grid;
+        grid-template-columns: var(--s21) minmax(0, 1fr) auto;
+        gap: var(--s8);
+        align-items: center;
+        border: 0;
+        background: transparent;
+        font-family: inherit;
+        text-align: left;
+        padding: var(--s5) 0;
+        cursor: pointer;
+        min-height: 40px;
+        color: var(--ink);
+      }
+      .tgl .bx {
+        width: var(--s21);
+        height: var(--s21);
+        border-radius: var(--s5);
+        box-shadow: inset 0 0 0 1px var(--gusto-hair);
+        display: grid;
+        place-items: center;
+        transition: background-color var(--g270) var(--ease);
+      }
+      .tgl[aria-pressed="true"] .bx {
+        background: var(--gusto);
+      }
+      .tgl[aria-pressed="true"] .bx .ic {
+        color: var(--canvas);
+      }
+      .tgl .bx .ic {
+        width: 13px;
+        height: 13px;
+        color: transparent;
+      }
+      .tgl .nm {
+        min-width: 0;
+      }
+      .tgl .nm b {
+        display: block;
+        font-size: var(--type-sm);
+        font-weight: 400;
+      }
+      .tgl .nm span {
+        display: block;
+        font-size: var(--type-xs);
+        color: var(--ink-3);
+      }
+      .tgl .amt {
+        font-family: var(--font-mono);
+        font-size: var(--type-xs);
+        color: var(--ink-3);
+        white-space: nowrap;
+      }
+      .tgl[aria-pressed="true"] .amt {
+        color: var(--gusto);
+      }
+      .gpills {
+        display: flex;
+        gap: var(--s3);
+        background: var(--surface);
+        border-radius: var(--r-pill);
+        padding: var(--s3);
+      }
+      .gpills button {
+        flex: 1;
+        border: 0;
+        background: transparent;
+        border-radius: var(--r-pill);
+        font-family: var(--font-mono);
+        font-size: var(--type-xs);
+        color: var(--ink-2);
+        padding: var(--s5);
+        min-height: 34px;
+        cursor: pointer;
+      }
+      .gpills button[aria-pressed="true"] {
+        background: var(--ink);
+        color: var(--canvas);
+      }
+      .gsay {
+        font-size: var(--type-sm);
+        color: var(--ink-2);
+      }
+      .gsay b {
+        color: var(--ink);
+        font-weight: 500;
+      }
+      .toolarge {
+        color: var(--bad);
+      }
+      .tosmall {
+        color: var(--warn);
+      }
+      .inband {
+        color: var(--ok);
+      }
+
+      /* ── the 1280 website home, from the same parts ────────────────────────── */
+      .webscroll {
+        overflow-x: auto;
+        padding-bottom: var(--s13);
+        width: 100vw;
+        margin-left: calc(50% - 50vw);
+        padding-left: 0;
+        padding-right: 0;
+      }
+      .web {
+        width: 1280px;
+        background: var(--canvas);
+        border-radius: var(--r-hero);
+        padding: var(--s34);
+        box-shadow: 0 21px 55px -34px rgba(23, 22, 20, 0.5);
+      }
+      .webhead {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: var(--s21);
+        border-bottom: 1px solid var(--gusto-hair);
+        padding-bottom: var(--s13);
+      }
+      .webhead .brand {
+        font-size: var(--type-md);
+        font-weight: 500;
+        letter-spacing: -0.01em;
+      }
+      .webnav {
+        display: flex;
+        gap: var(--s21);
+        font-size: var(--type-sm);
+        color: var(--ink-2);
+      }
+      .webnav a {
+        color: inherit;
+        text-decoration: none;
+      }
+      .webnav a.here {
+        color: var(--gusto);
+      }
+      .webgrid {
+        display: grid;
+        grid-template-columns: 340px minmax(0, 1fr) 320px;
+        gap: var(--s21);
+        margin-top: var(--s21);
+        align-items: start;
+      }
+      .webgrid > div {
+        min-width: 0;
+      }
+
+      /* ── keyframes, all on the 90 ms family ────────────────────────────────── */
+      @keyframes g-scan {
+        0% {
+          top: -2%;
+        }
+        55% {
+          top: 100%;
+        }
+        100% {
+          top: 100%;
+        }
+      }
+      @keyframes g-shimmer {
+        to {
+          background-position: -250% 0;
+        }
+      }
+      @keyframes g-dot {
+        0%,
+        60%,
+        100% {
+          opacity: 0.25;
+          transform: translateY(0);
+        }
+        30% {
+          opacity: 1;
+          transform: translateY(-3px);
+        }
+      }
+      @keyframes g-tick {
+        0% {
+          transform: scale(0.96);
+        }
+        60% {
+          transform: scale(1.03);
+        }
+        100% {
+          transform: scale(1);
+        }
+      }
+      @keyframes g-flicker {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.55;
+        }
+      }
+      @keyframes g-leap {
+        0% {
+          transform: translateY(0) scale(1);
+        }
+        45% {
+          transform: translateY(-5px) scale(1.09);
+        }
+        100% {
+          transform: translateY(0) scale(1);
+        }
+      }
+      @keyframes g-flash {
+        0% {
+          opacity: 0;
+        }
+        30% {
+          opacity: 1;
+        }
+        100% {
+          opacity: 0;
+        }
+      }
+      @keyframes g-in {
+        from {
+          opacity: 0;
+          transform: translateY(8px);
+          filter: blur(3px);
+        }
+        to {
+          opacity: 1;
+          transform: none;
+          filter: none;
+        }
+      }
+      @keyframes g-rise {
+        from {
+          opacity: 0;
+          transform: translateY(21px);
+        }
+        to {
+          opacity: 1;
+          transform: none;
+        }
+      }
+      @keyframes g-caret {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0;
+        }
+      }
+      @keyframes g-wave {
+        from {
+          height: 12%;
+        }
+        to {
+          height: 92%;
+        }
+      }
+      @keyframes g-pulse {
+        0% {
+          box-shadow: 0 0 0 0 rgba(215, 242, 75, 0.55);
+        }
+        100% {
+          box-shadow: 0 0 0 16px rgba(215, 242, 75, 0);
+        }
+      }
+      @keyframes check-draw {
+        to {
+          stroke-dashoffset: 0;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .scanline,
+        .shimmer,
+        .loader3 i,
+        .flame .ic,
+        .flame.leap,
+        .chipin,
+        .callout,
+        .movechip.on,
+        .movechip.on .bx .ic,
+        .mealcard,
+        .transcript span,
+        .wave i,
+        .mic.live,
+        .gfield .caret,
+        .strip figure .sweep,
+        .gring .flash.on {
+          animation: none !important;
+        }
+        .movechip.on .bx .ic {
+          stroke-dashoffset: 0;
+        }
+        .chipin,
+        .callout,
+        .mealcard,
+        .transcript span {
+          opacity: 1;
+          transform: none;
+          filter: none;
+        }
+        .wave i {
+          height: 55%;
+        }
+        .gring .outer,
+        .gring .inner,
+        .swiper .front {
+          transition: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <button class="themebtn" id="themebtn" type="button">
+      <svg class="ic" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9z" />
+      </svg>
+      <span>Dark</span>
+    </button>
+
+    <main class="doc">
+      <header class="doc-head">
+        <h1>Gusto</h1>
+        <p>
+          Variation 02 of the phase 36 phone. Seed
+          <code>MByK9NGOQUSZzaw0eTOOGtCK</code>. Same data as
+          <a href="../ios-2.html">ios-2.html</a> — the goals, the sentence, the
+          systems, the plan rows with their basis labels, the meals with the
+          estimate flag, the Apple Health rows — arranged to a different
+          direction. Every claim about motion on this page is a thing you can
+          set off yourself: press Play and the Add flow runs, tap a chip and the
+          rings and the flame answer, toggle a habit and the projection redraws
+          under your finger.
+        </p>
+      </header>
+      <nav class="crumbs">
+        <a href="index.html">Variations index</a>
+        <a href="../ios-2.html">ios-2, the drawing</a>
+        <a href="../system.html">System</a>
+        <a href="../chart-hover.html">Chart hover</a>
+        <a href="../index.html">v4 index</a>
+      </nav>
+
+      <!-- ═══ Direction ══════════════════════════════════════════════════ -->
+      <section class="sec" id="direction">
+        <div class="sec-head">
+          <span class="n">00</span>
+          <h2>Direction</h2>
+        </div>
+        <div class="direction">
+          <p class="seedline">
+            MBy<i>K</i>9N<i>G</i>OQ<i>U</i><i>S</i>Zzaw0eT<i>O</i>OGtCK
+          </p>
+          <dl>
+            <dt>Name</dt>
+            <dd>
+              <b>Gusto.</b> G·U·S·T·O reads straight out of the seed in order,
+              at positions 7, 10, 11, 18 and 19. It is the right word for a
+              screen whose first job is food.
+            </dd>
+
+            <dt>Mood</dt>
+            <dd>
+              Appetite, written down. The screen is hungry: it wants the plate,
+              it names what it saw, and then it tells you what eight more weeks
+              of the same would cost you in mg/dL.
+            </dd>
+
+            <dt>Accent</dt>
+            <dd>
+              <b>Mulberry #7A3E63</b> (#C98BAE in dark) — plum and fig, the
+              colour of what you eat rather than of how you are doing. It tints
+              the block rules, the inner ring, the projection and one 6 %
+              surface wash. Lime is still only the control that adds data; the
+              spectrum is still only a state word. 7.21:1 on the cream, 6.99:1
+              on the dark canvas.
+            </dd>
+
+            <dt>Type</dt>
+            <dd>
+              The seed's rhythm is a seven-capital run (NGOQUSZ) broken by one
+              lowercase z, so the page sets
+              <b>34 px against 11 px with nothing in between</b>: a mono numeral
+              at --type-xl next to a caps label at --type-xs. 15 px carries
+              prose, 13 px carries rows, 21 px appears once, inside the chart
+              tooltip.
+            </dd>
+
+            <dt>Density</dt>
+            <dd>
+              Two digits in twenty-four characters, so punctuation is rare: 8 px
+              inside a part, 13 px between parts, 21 px between blocks, and one
+              hairline instead of a border wherever a hairline will do.
+            </dd>
+
+            <dt>Cards</dt>
+            <dd>
+              No card. A block is a mulberry hairline, a caps label and its
+              contents; 21 px radius survives only where something is genuinely
+              a tile (the macro tiles, the photo, the thumbnails). Everything
+              else is flat on the cream.
+            </dd>
+
+            <dt>Motion</dt>
+            <dd>
+              One easing, the system curve
+              <code>cubic-bezier(0.22, 1, 0.36, 1)</code>. One duration family
+              from the seed's only two digits, 9 and 0:
+              <b>90 / 270 / 450 / 900 ms</b>. Nothing loops except the three
+              states that are waiting on a network call.
+            </dd>
+
+            <dt>The one idea</dt>
+            <dd>
+              <b>The double ring.</b> Three O's sit in the seed (…N<b>G</b>O…
+              and …T<b>OO</b>G…), so the two counts that matter share a single
+              centre: the moves on the outside ring in ink, the calories on the
+              inside ring in mulberry. One glance answers both "did I do it" and
+              "did I eat it". And because <b>TOO</b> hides in the seed too, the
+              expectation chart says its verdict in that word:
+              <span class="toolarge">too high</span>,
+              <span class="tosmall">too low</span>,
+              <span class="inband">in the band</span>.
+            </dd>
+          </dl>
+        </div>
+      </section>
+
+      <!-- ═══ 01 Today ═══════════════════════════════════════════════════ -->
+      <section class="sec" id="s01">
+        <div class="sec-head">
+          <span class="n">01</span>
+          <h2>Today, and the ticks that tick</h2>
+        </div>
+        <p class="lede">
+          Tap any chip. The check draws in over 450 ms, the outer ring fills to
+          the new count, the lime segment flashes once, and when the fifth one
+          lands the week dot fills and the flame leaps to seven. Tap it again
+          and everything goes back, because a tick is a boolean and undoing it
+          is the same write.
+        </p>
+        <div class="phones">
+          <div>
+            <div class="phone">
+              <div class="statusbar">
+                <span>9:41</span
+                ><span class="rt"><span>LTE</span><span>100%</span></span>
+              </div>
+              <div class="screenhead">
+                <h2>Saturday Sep 5</h2>
+                <span class="flame" id="flame">
+                  <svg class="ic" viewBox="0 0 24 24" aria-hidden="true">
+                    <path
+                      d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"
+                    />
+                  </svg>
+                  <b id="flamen" style="font-weight: 400">6</b>
+                </span>
+              </div>
+              <div class="weekstrip" id="week">
+                <span class="wd7 done"><i>1</i>Mon</span>
+                <span class="wd7 done"><i>2</i>Tue</span>
+                <span class="wd7 done"><i>3</i>Wed</span>
+                <span class="wd7"><i>4</i>Thu</span>
+                <span class="wd7 done"><i>4</i>Fri</span>
+                <span class="wd7 today" id="wdtoday"><i>5</i>Sat</span>
+                <span class="wd7"><i>6</i>Sun</span>
+              </div>
+
+              <p
+                class="sentence"
+                style="margin: var(--s13) 0 0; font-size: var(--type-md)"
+              >
+                Seven markers are off. Thyroid is the loudest one.
+              </p>
+
+              <!-- the double ring -->
+              <div class="gsec">
+                <div class="gsec-h">
+                  <b>The day</b><span>2 100 kcal target</span>
+                </div>
+                <div
+                  style="
+                    display: flex;
+                    align-items: center;
+                    gap: var(--s13);
+                    margin-top: var(--s8);
+                  "
+                >
+                  <div class="gringwrap">
+                    <svg
+                      class="gring"
+                      viewBox="0 0 118 118"
+                      role="img"
+                      aria-labelledby="ringlab"
+                    >
+                      <title id="ringlab">
+                        Two of five moves done, 1 497 of 2 100 kcal eaten
+                      </title>
+                      <circle
+                        class="trk"
+                        cx="59"
+                        cy="59"
+                        r="52"
+                        stroke-width="6"
+                      />
+                      <circle
+                        class="outer"
+                        id="ringOuter"
+                        cx="59"
+                        cy="59"
+                        r="52"
+                        stroke-dasharray="326.7"
+                        stroke-dashoffset="196.0"
+                      />
+                      <circle
+                        class="flash"
+                        id="ringFlash"
+                        cx="59"
+                        cy="59"
+                        r="52"
+                        stroke-dasharray="326.7"
+                        stroke-dashoffset="196.0"
+                      />
+                      <circle
+                        class="trk inner"
+                        cx="59"
+                        cy="59"
+                        r="38"
+                        stroke-width="6"
+                      />
+                      <circle
+                        class="inner"
+                        id="ringInner"
+                        cx="59"
+                        cy="59"
+                        r="38"
+                        stroke-dasharray="238.8"
+                        stroke-dashoffset="68.6"
+                      />
+                    </svg>
+                    <div class="gringtxt">
+                      <b id="ringDone">2</b><span>of 5 moves</span>
+                    </div>
+                    <div class="gringcap" id="ringKcal">1 497 / 2 100 kcal</div>
+                  </div>
+                  <div style="min-width: 0">
+                    <p class="big" style="margin: 0">603<em>kcal left</em></p>
+                    <p class="tick-label" style="margin: var(--s8) 0 0">
+                      protein 93 / 120 g
+                    </p>
+                    <p
+                      style="
+                        margin: var(--s5) 0 0;
+                        font-size: var(--type-sm);
+                        color: var(--ink-2);
+                      "
+                      id="ringSay"
+                    >
+                      Two of five done. The evening session is the only one left
+                      this week.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- goals as rows -->
+              <div class="gsec">
+                <div class="gsec-h">
+                  <b>Goals</b><span>3 of 7 · Aug 1 draw</span>
+                </div>
+                <div class="rowlist" style="margin-top: var(--s8)">
+                  <div class="goalrow">
+                    <b style="font-size: var(--type-sm); font-weight: 400"
+                      >Vitamin D</b
+                    >
+                    <span class="tgt">19 → 40–60 ng/mL</span>
+                    <div
+                      class="minirule off"
+                      style="--a: 66%; --b: 100%; --p: 31%"
+                    >
+                      <i></i><u></u>
+                    </div>
+                    <span
+                      style="
+                        grid-column: 1/-1;
+                        font-size: var(--type-xs);
+                        color: var(--ink-3);
+                      "
+                      >21 ng/mL to go · aimed at Feb 2027</span
+                    >
+                  </div>
+                  <div class="goalrow">
+                    <b style="font-size: var(--type-sm); font-weight: 400"
+                      >TPO antibodies</b
+                    >
+                    <span class="tgt">320 → under 100 IU/mL</span>
+                    <div
+                      class="minirule off"
+                      style="--a: 0%; --b: 22%; --p: 71%"
+                    >
+                      <i></i><u></u>
+                    </div>
+                    <span
+                      style="
+                        grid-column: 1/-1;
+                        font-size: var(--type-xs);
+                        color: var(--ink-3);
+                      "
+                      >220 IU/mL to go · down 22 % since Dec</span
+                    >
+                  </div>
+                  <div class="goalrow">
+                    <b style="font-size: var(--type-sm); font-weight: 400"
+                      >LDL cholesterol</b
+                    >
+                    <span class="tgt">131 → 70–100 mg/dL</span>
+                    <div
+                      class="minirule off"
+                      style="--a: 39%; --b: 56%; --p: 73%"
+                    >
+                      <i></i><u></u>
+                    </div>
+                    <span
+                      style="
+                        grid-column: 1/-1;
+                        font-size: var(--type-xs);
+                        color: var(--ink-3);
+                      "
+                      >31 mg/dL to go · the chart below is this one</span
+                    >
+                  </div>
+                </div>
+              </div>
+
+              <!-- moves -->
+              <div class="gsec">
+                <div class="gsec-h">
+                  <b>Today's moves</b><span>tap a chip to tick it</span>
+                </div>
+                <p class="tick-label" style="margin: var(--s13) 0 var(--s5)">
+                  Morning
+                </p>
+                <div class="chips" data-moves>
+                  <button class="movechip on" type="button" data-move>
+                    <span class="bx"
+                      ><svg class="ic" viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M20 6 9 17l-5-5" /></svg
+                    ></span>
+                    Selenium 200 µg
+                  </button>
+                  <button class="movechip on" type="button" data-move>
+                    <span class="bx"
+                      ><svg class="ic" viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M20 6 9 17l-5-5" /></svg
+                    ></span>
+                    <span class="lbl"
+                      >Steps 10 000
+                      <span class="src">Apple Health · 11:32</span></span
+                    >
+                  </button>
+                </div>
+                <p class="tick-label" style="margin: var(--s13) 0 var(--s5)">
+                  Midday
+                </p>
+                <div class="chips" data-moves>
+                  <button class="movechip" type="button" data-move>
+                    <span class="bx"
+                      ><svg class="ic" viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M20 6 9 17l-5-5" /></svg
+                    ></span>
+                    Protein and fibre first
+                  </button>
+                  <button class="movechip" type="button" data-move>
+                    <span class="bx"
+                      ><svg class="ic" viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M20 6 9 17l-5-5" /></svg
+                    ></span>
+                    Walk 15 min after lunch
+                  </button>
+                </div>
+                <p class="tick-label" style="margin: var(--s13) 0 var(--s5)">
+                  Evening
+                </p>
+                <div class="chips" data-moves>
+                  <button class="movechip" type="button" data-move>
+                    <span class="bx"
+                      ><svg class="ic" viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M20 6 9 17l-5-5" /></svg
+                    ></span>
+                    <span class="lbl"
+                      >Resistance, 45 min
+                      <span class="src"
+                        >ticks itself · 0 of 3 this week</span
+                      ></span
+                    >
+                  </button>
+                </div>
+              </div>
+
+              <!-- systems -->
+              <div class="gsec">
+                <div class="gsec-h"><b>Systems</b><span>12</span></div>
+                <div class="chips" style="margin-top: var(--s8)">
+                  <span class="chip"
+                    ><span class="state off"><span class="dot"></span></span>
+                    Thyroid <span class="tri">▲</span></span
+                  >
+                  <span class="chip"
+                    ><span class="state off"><span class="dot"></span></span>
+                    Vitamins <span class="tri">▲</span></span
+                  >
+                  <span class="chip"
+                    ><span class="state off"><span class="dot"></span></span>
+                    Lipids <span class="tri">▲</span></span
+                  >
+                  <span class="chip"
+                    ><span class="state border"><span class="dot"></span></span>
+                    Blood sugar</span
+                  >
+                  <span class="chip"
+                    ><span class="state border"><span class="dot"></span></span>
+                    Iron</span
+                  >
+                  <span class="chip"
+                    ><span class="state none"
+                      ><span class="dot hollow"></span
+                    ></span>
+                    Sex hormones</span
+                  >
+                </div>
+              </div>
+
+              <div class="tabbar" style="margin-top: var(--s21)">
+                <a class="on" href="#s01"
+                  ><svg class="ic" viewBox="0 0 24 24" aria-hidden="true">
+                    <path
+                      d="m3 10 9-7 9 7v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"
+                    /></svg
+                  >Today</a
+                >
+                <a href="#s06"
+                  ><svg class="ic" viewBox="0 0 24 24" aria-hidden="true">
+                    <path
+                      d="M12 3s6 6.5 6 10a6 6 0 0 1-12 0c0-3.5 6-10 6-10z"
+                    /></svg
+                  >Blood</a
+                >
+                <span class="plusslot"
+                  ><button type="button" aria-label="Add">
+                    <svg class="ic" viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M12 5v14M5 12h14" />
+                    </svg></button
+                ></span>
+                <a href="#s04"
+                  ><svg class="ic" viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M3 12h4l3 8 4-16 3 8h4" /></svg
+                  >Body</a
+                >
+                <a href="#s05"
+                  ><svg class="ic" viewBox="0 0 24 24" aria-hidden="true">
+                    <path
+                      d="M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"
+                    /></svg
+                  >Plan</a
+                >
+              </div>
+            </div>
+            <p class="cap">
+              The outer ring is adopted moves and nothing else, so it can never
+              disagree with the Plan screen. The inner ring is the day's
+              calories against the target, so the two numbers that a person
+              checks first sit on one centre instead of in two cards.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ═══ 02 Add, played ═════════════════════════════════════════════ -->
+      <section class="sec" id="s02">
+        <div class="sec-head">
+          <span class="n">02</span>
+          <h2>Add, played</h2>
+        </div>
+        <p class="lede">
+          Four ways in, one waiting state, one receipt. Choose an input and
+          press Play: the sheet runs the whole sequence on a timer inside the
+          frame. Nothing is written until the receipt appears and the receipt
+          always offers Undo.
+        </p>
+        <div class="player">
+          <button class="playbtn" id="play" type="button">
+            <svg class="ic" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="m6 4 14 8-14 8z" />
+            </svg>
+            <span id="playlbl">Play</span>
+          </button>
+          <div class="modes" role="group" aria-label="Input">
+            <button type="button" data-mode="photo" aria-pressed="true">
+              One photo
+            </button>
+            <button type="button" data-mode="photos" aria-pressed="false">
+              Several photos
+            </button>
+            <button type="button" data-mode="text" aria-pressed="false">
+              Typed
+            </button>
+            <button type="button" data-mode="voice" aria-pressed="false">
+              Voice
+            </button>
+          </div>
+          <span class="playhint" id="playhint">one vision call · 7.0 s</span>
+        </div>
+        <div class="phones">
+          <div>
+            <div class="phone">
+              <div class="statusbar">
+                <span>9:41</span
+                ><span class="rt"><span>LTE</span><span>100%</span></span>
+              </div>
+              <div class="screenhead"><h2>Add</h2></div>
+              <div class="stage" id="stage"></div>
+            </div>
+            <p class="cap" id="stagecap">
+              The lime scan line is the one place lime appears outside a
+              control, because the scan is the app adding data.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ═══ 03 The expectation ═════════════════════════════════════════ -->
+      <section class="sec" id="s03">
+        <div class="sec-head">
+          <span class="n">03</span>
+          <h2>What it would cost you</h2>
+        </div>
+        <p class="lede">
+          The quick view after a meal or a tick: the day, then the sentence,
+          then the chart. The arithmetic is <code>lib/projection.ts</code> —
+          each intervention's published effect, weighted by grade (A and B in
+          full, C halved), scaled by your adherence and by how much of the
+          paper's own duration the horizon covers, summed, then clamped by
+          <code>MAX_CHANGE</code> (50 mg/dL for LDL). Toggle a habit or a food
+          rule and the dotted line and the landing number both move. Drag across
+          the plot and the card follows your finger.
+        </p>
+        <div class="phones">
+          <div>
+            <div class="phone">
+              <div class="statusbar">
+                <span>9:41</span
+                ><span class="rt"><span>LTE</span><span>100%</span></span>
+              </div>
+              <div class="screenhead"><h2>LDL cholesterol</h2></div>
+
+              <div class="gsec">
+                <div class="gsec-h">
+                  <b>Saturday, so far</b><span>3 meals · 2 of 5 moves</span>
+                </div>
+                <div class="macrotile" style="margin-top: var(--s8)">
+                  <div>
+                    <svg class="ic" viewBox="0 0 24 24" aria-hidden="true">
+                      <path
+                        d="M12 2a7 7 0 0 1 7 7c0 5-7 13-7 13S5 14 5 9a7 7 0 0 1 7-7z"
+                      />
+                    </svg>
+                    <b>1 497</b><span>kcal of 2 100</span>
+                  </div>
+                  <div>
+                    <svg class="ic" viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M3 12h18M7 8h10M9 16h6" />
+                    </svg>
+                    <b>93 g</b><span>protein of 120</span>
+                  </div>
+                  <div>
+                    <svg class="ic" viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M12 20v-8M6 20v-4M18 20V8" />
+                    </svg>
+                    <b>84 g</b><span>fat · no target</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="gsec">
+                <div class="gsec-h">
+                  <b>The expectation</b><span id="hz-cap">8 weeks</span>
+                </div>
+                <p
+                  class="gsay"
+                  style="margin: var(--s8) 0 var(--s13)"
+                  id="say"
+                >
+                  Keep this eight weeks and LDL lands near
+                  <b id="landsay">102</b> mg/dL, from 131.
+                </p>
+                <div class="plotbox" data-chart>
+                  <svg role="img" aria-labelledby="chartlab">
+                    <title id="chartlab">
+                      LDL cholesterol, measured 131 mg/dL on Aug 1 2026,
+                      projected against the 70–100 goal band
+                    </title>
+                  </svg>
+                  <div class="hovercard below" data-tip>
+                    <div class="hdate">—</div>
+                    <div class="hval">—<em>mg/dL</em></div>
+                    <div class="hrow">
+                      <span class="state off" data-state>off</span
+                      ><span class="t-meta" style="font-size: 11px"
+                        >goal band 70–100</span
+                      >
+                    </div>
+                    <div class="hwas">measured 131 on Aug 1 2026</div>
+                  </div>
+                </div>
+                <div class="gpills" data-hz style="margin-top: var(--s8)">
+                  <button type="button" data-w="4" aria-pressed="false">
+                    4 weeks
+                  </button>
+                  <button type="button" data-w="8" aria-pressed="true">
+                    8 weeks
+                  </button>
+                  <button type="button" data-w="12" aria-pressed="false">
+                    12 weeks
+                  </button>
+                </div>
+                <p
+                  class="t-meta"
+                  style="font-size: 11px; margin: var(--s8) 0 0"
+                  id="bandsay"
+                >
+                  Band 93 – 111 mg/dL. Grade A contributions are allowed to be
+                  30 % wrong, grade B 40 %.
+                </p>
+              </div>
+
+              <div class="gsec">
+                <div class="gsec-h">
+                  <b>What is in it</b><span>tap to include</span>
+                </div>
+                <div
+                  class="toggles"
+                  data-toggles
+                  style="margin-top: var(--s5)"
+                ></div>
+                <p
+                  class="t-meta"
+                  style="font-size: 11px; margin: var(--s8) 0 0"
+                >
+                  Every line is a seeded intervention with a grade, a published
+                  effect and your own adherence. Nothing here is a guess about
+                  the combination: the trials measured these separately, so the
+                  contributions add and the total is then clamped.
+                </p>
+              </div>
+            </div>
+            <p class="cap">
+              The verdict word is the seed's hidden <b>TOO</b>: above the band
+              is <span class="toolarge">too high</span>, under it is
+              <span class="tosmall">too low</span>, inside it is
+              <span class="inband">in the band</span>. It is a coloured word,
+              never a coloured surface.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ═══ 04 Meals ═══════════════════════════════════════════════════ -->
+      <section class="sec" id="s04">
+        <div class="sec-head">
+          <span class="n">04</span>
+          <h2>Meals, and the two verbs that were missing</h2>
+        </div>
+        <p class="lede">
+          Real photographs, credited at the foot of the page. Drag a card left —
+          or press Edit / Delete with a keyboard — and the row slides 124 px to
+          show the two verbs the owner could not reach. The estimate word stays
+          on the meal and never on the day, because one weighed meal in three
+          does not make the day weighed.
+        </p>
+        <div class="phones">
+          <div>
+            <div class="phone">
+              <div class="statusbar">
+                <span>9:41</span
+                ><span class="rt"><span>LTE</span><span>100%</span></span>
+              </div>
+              <div class="screenhead"><h2>Body</h2></div>
+              <div class="gsec">
+                <div class="gsec-h">
+                  <b>Meals</b><span>3 · 1 from a photo</span>
+                </div>
+                <div class="rowlist" style="margin-top: var(--s8)">
+                  <div class="swiper" data-swipe>
+                    <div class="back">
+                      <button type="button">Edit</button>
+                      <button type="button" class="del">Delete</button>
+                    </div>
+                    <div class="front">
+                      <div class="gmeal">
+                        <img
+                          class="thumb"
+                          src="img/02-sardines-rye.jpg"
+                          alt="Sardines on rye bread with onion and capers"
+                        />
+                        <div>
+                          <b>Sardines on rye, onion, capers</b>
+                          <div class="line">
+                            13:05 · 422 kcal · 29 / 31 / 20 ·
+                            <span class="state border">estimate</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="swiper" data-swipe>
+                    <div class="back">
+                      <button type="button">Edit</button>
+                      <button type="button" class="del">Delete</button>
+                    </div>
+                    <div class="front">
+                      <div class="gmeal">
+                        <img
+                          class="thumb"
+                          src="img/02-pork-belly.jpg"
+                          alt="Roasted pork belly in a bowl with cabbage"
+                        />
+                        <div>
+                          <b>Homemade bread, foie gras, pork belly</b>
+                          <div class="line">
+                            11:19 · 795 kcal · 30 / 62 / 48 ·
+                            <span class="state border">estimate</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="swiper" data-swipe>
+                    <div class="back">
+                      <button type="button">Edit</button>
+                      <button type="button" class="del">Delete</button>
+                    </div>
+                    <div class="front">
+                      <div class="gmeal">
+                        <img
+                          class="thumb"
+                          src="img/02-tuna-chilli.jpg"
+                          alt="Tuna with chilli on pasta"
+                        />
+                        <div>
+                          <b>Rio Mare tuna with chilli</b>
+                          <div class="line">
+                            11:29 · 280 kcal · 34 / 0 / 16 ·
+                            <span class="state on">weighed</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div
+                  style="
+                    display: flex;
+                    align-items: baseline;
+                    justify-content: space-between;
+                    gap: var(--s8);
+                    margin-top: var(--s13);
+                  "
+                >
+                  <span class="tick-label">All of it</span>
+                  <span class="big" style="font-size: var(--type-lg)"
+                    >1 497<em>kcal est.</em></span
+                  >
+                </div>
+                <div class="rowlist" style="margin-top: var(--s8)">
+                  <div
+                    class="markerrow said"
+                    style="grid-template-columns: minmax(0, 1fr) auto"
+                  >
+                    <div class="nm"><b>Protein</b><span>93 of 120 g</span></div>
+                    <div class="wd"><span class="state border">78 %</span></div>
+                  </div>
+                  <div
+                    class="markerrow said"
+                    style="grid-template-columns: minmax(0, 1fr) auto"
+                  >
+                    <div class="nm">
+                      <b>Carbs</b
+                      ><span>93 g · no target on file, so no bar</span>
+                    </div>
+                    <div class="wd"><span class="state none">—</span></div>
+                  </div>
+                  <div
+                    class="markerrow said"
+                    style="grid-template-columns: minmax(0, 1fr) auto"
+                  >
+                    <div class="nm">
+                      <b>Fat</b><span>84 g · no target on file, so no bar</span>
+                    </div>
+                    <div class="wd"><span class="state none">—</span></div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="gsec">
+                <div class="gsec-h">
+                  <b>Apple Health</b><span>19 types · last sync 11:32</span>
+                </div>
+                <div class="rowlist" style="margin-top: var(--s8)">
+                  <div
+                    class="markerrow said"
+                    style="grid-template-columns: minmax(0, 1fr) auto"
+                  >
+                    <div class="nm">
+                      <b>Steps</b><span>10 935 · 90-day mean 11 062</span>
+                    </div>
+                    <div class="wd"><span class="state on">good</span></div>
+                  </div>
+                  <div
+                    class="markerrow said"
+                    style="grid-template-columns: minmax(0, 1fr) auto"
+                  >
+                    <div class="nm">
+                      <b>Exercise minutes</b
+                      ><span>43 min · 90-day mean 49 min</span>
+                    </div>
+                    <div class="wd"><span class="state on">good</span></div>
+                  </div>
+                  <div
+                    class="markerrow said"
+                    style="grid-template-columns: minmax(0, 1fr) auto"
+                  >
+                    <div class="nm">
+                      <b>Workouts</b
+                      ><span
+                        >3 sessions · the sync that was missing them is
+                        fixed</span
+                      >
+                    </div>
+                    <div class="wd"><span class="state on">3</span></div>
+                  </div>
+                  <div
+                    class="markerrow said"
+                    style="grid-template-columns: minmax(0, 1fr) auto"
+                  >
+                    <div class="nm">
+                      <b>Sleep</b><span>6.8 h · 90-day mean 7.4 h</span>
+                    </div>
+                    <div class="wd">
+                      <span class="state border">short</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <p class="cap">
+              Photographs: <em>02-sardines-rye</em>, <em>02-pork-belly</em> and
+              <em>02-tuna-chilli</em>, all real and all credited below. A meal
+              with no photograph gets a flat cream tile and a lucide utensils
+              glyph, never a stock picture of somebody else's food.
+            </p>
+          </div>
+
+          <div>
+            <div class="phone">
+              <div class="statusbar">
+                <span>9:41</span
+                ><span class="rt"><span>LTE</span><span>100%</span></span>
+              </div>
+              <div class="screenhead"><h2>Meal</h2></div>
+              <div class="scanshot" style="margin-top: var(--s8)">
+                <img
+                  src="img/02-salad.jpg"
+                  alt="Sardines on salad leaves with bell pepper and black pepper"
+                />
+              </div>
+              <div
+                style="
+                  display: flex;
+                  align-items: flex-start;
+                  justify-content: space-between;
+                  gap: var(--s8);
+                  margin-top: var(--s13);
+                "
+              >
+                <div style="min-width: 0">
+                  <b style="font-size: var(--type-md); font-weight: 400"
+                    >Sardines on greens, bell pepper</b
+                  >
+                  <div
+                    class="line"
+                    style="
+                      font-family: var(--font-mono);
+                      font-size: var(--type-xs);
+                      color: var(--ink-3);
+                      margin-top: 2px;
+                    "
+                  >
+                    19:40 · from a photo
+                  </div>
+                </div>
+                <div class="stepper">
+                  <button type="button" aria-label="Fewer">
+                    <svg class="ic" viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M5 12h14" />
+                    </svg>
+                  </button>
+                  <b>1</b>
+                  <button type="button" aria-label="More">
+                    <svg class="ic" viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M12 5v14M5 12h14" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+              <p class="big" style="margin: var(--s13) 0 0">
+                318<em>kcal · estimate</em>
+              </p>
+              <div class="macrotile" style="margin-top: var(--s13)">
+                <div>
+                  <svg class="ic" viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M3 12h18M7 8h10M9 16h6" /></svg
+                  ><b>27 g</b><span>protein est.</span>
+                </div>
+                <div>
+                  <svg class="ic" viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M12 3v18M5 8h14" /></svg
+                  ><b>9 g</b><span>carbs est.</span>
+                </div>
+                <div>
+                  <svg class="ic" viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M12 20v-8M6 20v-4M18 20V8" /></svg
+                  ><b>21 g</b><span>fat est.</span>
+                </div>
+              </div>
+              <div class="gsec">
+                <div class="gsec-h">
+                  <b>Ingredients</b><span>4 · swipe a row to remove</span>
+                </div>
+                <div class="rowlist" style="margin-top: var(--s8)">
+                  <div class="swiper" data-swipe>
+                    <div class="back">
+                      <button type="button">Edit</button
+                      ><button type="button" class="del">Remove</button>
+                    </div>
+                    <div class="front">
+                      <div>
+                        <b style="font-size: var(--type-sm); font-weight: 400"
+                          >Sardines in olive oil</b
+                        >
+                        <div
+                          class="line"
+                          style="
+                            font-family: var(--font-mono);
+                            font-size: var(--type-xs);
+                            color: var(--ink-3);
+                          "
+                        >
+                          1 tin · ~90 g · 220 kcal est.
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="swiper" data-swipe>
+                    <div class="back">
+                      <button type="button">Edit</button
+                      ><button type="button" class="del">Remove</button>
+                    </div>
+                    <div class="front">
+                      <div>
+                        <b style="font-size: var(--type-sm); font-weight: 400"
+                          >Lettuce and rocket</b
+                        >
+                        <div
+                          class="line"
+                          style="
+                            font-family: var(--font-mono);
+                            font-size: var(--type-xs);
+                            color: var(--ink-3);
+                          "
+                        >
+                          ~80 g · 14 kcal est.
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="swiper" data-swipe>
+                    <div class="back">
+                      <button type="button">Edit</button
+                      ><button type="button" class="del">Remove</button>
+                    </div>
+                    <div class="front">
+                      <div>
+                        <b style="font-size: var(--type-sm); font-weight: 400"
+                          >Bell pepper</b
+                        >
+                        <div
+                          class="line"
+                          style="
+                            font-family: var(--font-mono);
+                            font-size: var(--type-xs);
+                            color: var(--ink-3);
+                          "
+                        >
+                          1 medium · ~120 g · 24 kcal est.
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="swiper" data-swipe>
+                    <div class="back">
+                      <button type="button">Edit</button
+                      ><button type="button" class="del">Remove</button>
+                    </div>
+                    <div class="front">
+                      <div>
+                        <b style="font-size: var(--type-sm); font-weight: 400"
+                          >Olive oil</b
+                        >
+                        <div
+                          class="line"
+                          style="
+                            font-family: var(--font-mono);
+                            font-size: var(--type-xs);
+                            color: var(--ink-3);
+                          "
+                        >
+                          ~1 tbsp · 60 kcal est.
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="gsec">
+                <div class="gsec-h">
+                  <b>Fix results</b><span>tell it what it got wrong</span>
+                </div>
+                <div
+                  class="gfield empty"
+                  style="margin-top: var(--s8); min-height: auto"
+                >
+                  it was two tins, not one
+                </div>
+                <button
+                  class="b b-quiet b-sm"
+                  type="button"
+                  style="margin-top: var(--s8)"
+                >
+                  Read it again
+                </button>
+                <p
+                  class="t-meta"
+                  style="font-size: 11px; margin: var(--s8) 0 0"
+                >
+                  A fix is a second read of the same photograph with your
+                  sentence attached. It replaces the items; it never appends a
+                  second meal.
+                </p>
+              </div>
+              <div class="gsec">
+                <div class="gsec-h">
+                  <b>Logged in Health</b><span>19:41</span>
+                </div>
+                <p
+                  class="t-meta"
+                  style="font-size: 11px; margin: var(--s8) 0 0"
+                >
+                  DietaryEnergyConsumed, DietaryProtein. Deleting the meal
+                  deletes both samples and the tick it put on “sardines, three
+                  tins a week”.
+                </p>
+                <button
+                  class="b b-quiet b-sm"
+                  type="button"
+                  style="margin-top: var(--s13); color: var(--bad)"
+                >
+                  Delete meal
+                </button>
+              </div>
+            </div>
+            <p class="cap">
+              Meal detail. Everything is editable except the time it was read
+              and the word “estimate”, because both are facts about how the
+              number was made rather than facts about the food.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ═══ 05 Plan ════════════════════════════════════════════════════ -->
+      <section class="sec" id="s05">
+        <div class="sec-head">
+          <span class="n">05</span>
+          <h2>Plan: Doing, and Suggested</h2>
+        </div>
+        <p class="lede">
+          A suggested row has no habit behind it, so its tick box would write
+          nowhere. Here the suggested group has no boxes at all and a caption
+          says why in one line. Press Adopt and the row leaves Suggested,
+          arrives in Doing with a box, and appears as a new toggle on the
+          expectation chart above — which is the honest thing, because adopting
+          is exactly what changes the projection.
+        </p>
+        <div class="phones">
+          <div>
+            <div class="phone">
+              <div class="statusbar">
+                <span>9:41</span
+                ><span class="rt"><span>LTE</span><span>100%</span></span>
+              </div>
+              <div class="screenhead"><h2>Plan</h2></div>
+              <p
+                class="sentence"
+                style="margin: var(--s13) 0 0; font-size: var(--type-md)"
+                id="plansay"
+              >
+                Saturday Sep 5. Two of five done.
+              </p>
+
+              <div class="gsec">
+                <div class="gsec-h">
+                  <b>Doing</b><span id="doingn">4 adopted</span>
+                </div>
+                <div
+                  class="rowlist"
+                  id="doing"
+                  style="margin-top: var(--s8)"
+                ></div>
+              </div>
+
+              <div class="gsec">
+                <div class="gsec-h">
+                  <b>Suggested</b><span id="sugn">3 · none adopted</span>
+                </div>
+                <p
+                  class="t-meta"
+                  style="font-size: 11px; margin: var(--s8) 0 var(--s8)"
+                >
+                  These have no tick box. A suggestion is not a habit yet, so
+                  there is nothing for a tick to write to. Adopt one and it
+                  moves up into Doing with a box.
+                </p>
+                <div class="rowlist" id="sug"></div>
+              </div>
+            </div>
+            <p class="cap">
+              Duplicates collapse: the vitamin D suggestion arrived twice from
+              two different reports and is shown once, with the count on the
+              basis line.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ═══ 06 Website home ════════════════════════════════════════════ -->
+      <section class="sec" id="s06">
+        <div class="sec-head">
+          <span class="n">06</span>
+          <h2>The same parts at 1280</h2>
+        </div>
+        <p class="lede">
+          One frame of the web Home, built from the components on this page and
+          nothing else: the week strip, the double ring, the move chips, the
+          expectation chart with its toggles, the meal cards. The chips here
+          tick the same state as the phone's, and the chart is a second instance
+          of the same drawing function, so a change to one is a change to both.
+        </p>
+        <div class="webscroll">
+          <div class="web">
+            <div class="webhead">
+              <span class="brand">OpenVitals</span>
+              <nav class="webnav">
+                <a class="here" href="#s06">Today</a><a href="#s06">Blood</a>
+                <a href="#s06">Body</a><a href="#s06">Plan</a
+                ><a href="#s06">Research</a>
+              </nav>
+              <span class="tick-label">Saturday Sep 5 2026</span>
+            </div>
+            <div class="webgrid">
+              <!-- left: the day -->
+              <div>
+                <div
+                  class="gsec"
+                  style="margin-top: 0; border-top: 0; padding-top: 0"
+                >
+                  <div class="gsec-h">
+                    <b>The day</b><span>2 100 kcal target</span>
+                  </div>
+                  <div
+                    style="
+                      display: flex;
+                      align-items: center;
+                      gap: var(--s13);
+                      margin-top: var(--s13);
+                    "
+                  >
+                    <div class="gringwrap">
+                      <svg
+                        class="gring"
+                        viewBox="0 0 118 118"
+                        aria-hidden="true"
+                      >
+                        <circle
+                          class="trk"
+                          cx="59"
+                          cy="59"
+                          r="52"
+                          stroke-width="6"
+                        />
+                        <circle
+                          class="outer"
+                          id="ringOuter2"
+                          cx="59"
+                          cy="59"
+                          r="52"
+                          stroke-dasharray="326.7"
+                          stroke-dashoffset="196.0"
+                        />
+                        <circle
+                          class="flash"
+                          id="ringFlash2"
+                          cx="59"
+                          cy="59"
+                          r="52"
+                          stroke-dasharray="326.7"
+                          stroke-dashoffset="196.0"
+                        />
+                        <circle
+                          class="trk inner"
+                          cx="59"
+                          cy="59"
+                          r="38"
+                          stroke-width="6"
+                        />
+                        <circle
+                          class="inner"
+                          id="ringInner2"
+                          cx="59"
+                          cy="59"
+                          r="38"
+                          stroke-dasharray="238.8"
+                          stroke-dashoffset="68.6"
+                        />
+                      </svg>
+                      <div class="gringtxt">
+                        <b id="ringDone2">2</b><span>of 5 moves</span>
+                      </div>
+                      <div class="gringcap" id="ringKcal2">1 497 / 2 100 kcal</div>
+                    </div>
+                    <div style="min-width: 0">
+                      <p class="big" style="margin: 0">603<em>kcal left</em></p>
+                      <p class="tick-label" style="margin: var(--s8) 0 0">
+                        protein 93 / 120 g
+                      </p>
+                    </div>
+                  </div>
+                  <div
+                    class="weekstrip"
+                    id="week2"
+                    style="margin-top: var(--s21)"
+                  >
+                    <span class="wd7 done"><i>1</i>Mon</span>
+                    <span class="wd7 done"><i>2</i>Tue</span>
+                    <span class="wd7 done"><i>3</i>Wed</span>
+                    <span class="wd7"><i>4</i>Thu</span>
+                    <span class="wd7 done"><i>4</i>Fri</span>
+                    <span class="wd7 today" id="wdtoday2"><i>5</i>Sat</span>
+                    <span class="wd7"><i>6</i>Sun</span>
+                  </div>
+                </div>
+                <div class="gsec">
+                  <div class="gsec-h">
+                    <b>Today's moves</b><span>tap a chip</span>
+                  </div>
+                  <p class="tick-label" style="margin: var(--s13) 0 var(--s5)">
+                    Morning
+                  </p>
+                  <div class="chips" data-moves>
+                    <button class="movechip on" type="button" data-move>
+                      <span class="bx"
+                        ><svg class="ic" viewBox="0 0 24 24" aria-hidden="true">
+                          <path d="M20 6 9 17l-5-5" /></svg></span
+                      >Selenium 200 µg
+                    </button>
+                    <button class="movechip on" type="button" data-move>
+                      <span class="bx"
+                        ><svg class="ic" viewBox="0 0 24 24" aria-hidden="true">
+                          <path d="M20 6 9 17l-5-5" /></svg></span
+                      ><span class="lbl"
+                        >Steps 10 000<span class="src"
+                          >Apple Health · 11:32</span
+                        ></span
+                      >
+                    </button>
+                  </div>
+                  <p class="tick-label" style="margin: var(--s13) 0 var(--s5)">
+                    Midday
+                  </p>
+                  <div class="chips" data-moves>
+                    <button class="movechip" type="button" data-move>
+                      <span class="bx"
+                        ><svg class="ic" viewBox="0 0 24 24" aria-hidden="true">
+                          <path d="M20 6 9 17l-5-5" /></svg></span
+                      >Protein and fibre first
+                    </button>
+                    <button class="movechip" type="button" data-move>
+                      <span class="bx"
+                        ><svg class="ic" viewBox="0 0 24 24" aria-hidden="true">
+                          <path d="M20 6 9 17l-5-5" /></svg></span
+                      >Walk 15 min after lunch
+                    </button>
+                  </div>
+                  <p class="tick-label" style="margin: var(--s13) 0 var(--s5)">
+                    Evening
+                  </p>
+                  <div class="chips" data-moves>
+                    <button class="movechip" type="button" data-move>
+                      <span class="bx"
+                        ><svg class="ic" viewBox="0 0 24 24" aria-hidden="true">
+                          <path d="M20 6 9 17l-5-5" /></svg></span
+                      ><span class="lbl"
+                        >Resistance, 45 min<span class="src"
+                          >ticks itself · 0 of 3 this week</span
+                        ></span
+                      >
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- middle: the expectation -->
+              <div>
+                <p
+                  class="sentence"
+                  style="margin: 0; font-size: var(--type-lg)"
+                >
+                  Seven markers are off. Thyroid is the loudest one.
+                </p>
+                <div class="gsec">
+                  <div class="gsec-h">
+                    <b>The expectation</b><span>LDL cholesterol · mg/dL</span>
+                  </div>
+                  <p class="gsay" style="margin: var(--s8) 0 var(--s13)">
+                    Keep this eight weeks and LDL lands near
+                    <b id="landsay2">102</b> mg/dL, from 131.
+                  </p>
+                  <div class="plotbox" data-chart>
+                    <svg aria-hidden="true"></svg>
+                    <div class="hovercard below" data-tip>
+                      <div class="hdate">—</div>
+                      <div class="hval">—<em>mg/dL</em></div>
+                      <div class="hrow">
+                        <span class="state off" data-state>off</span
+                        ><span class="t-meta" style="font-size: 11px"
+                          >goal band 70–100</span
+                        >
+                      </div>
+                      <div class="hwas">measured 131 on Aug 1 2026</div>
+                    </div>
+                  </div>
+                  <div
+                    class="gpills"
+                    data-hz
+                    style="margin-top: var(--s13); max-width: 340px"
+                  >
+                    <button type="button" data-w="4" aria-pressed="false">
+                      4 weeks
+                    </button>
+                    <button type="button" data-w="8" aria-pressed="true">
+                      8 weeks
+                    </button>
+                    <button type="button" data-w="12" aria-pressed="false">
+                      12 weeks
+                    </button>
+                  </div>
+                </div>
+                <div class="gsec">
+                  <div class="gsec-h">
+                    <b>What is in it</b><span>tap to include</span>
+                  </div>
+                  <div
+                    class="toggles"
+                    data-toggles
+                    style="margin-top: var(--s5)"
+                  ></div>
+                </div>
+              </div>
+
+              <!-- right: the food -->
+              <div>
+                <div
+                  class="gsec"
+                  style="margin-top: 0; border-top: 0; padding-top: 0"
+                >
+                  <div class="gsec-h">
+                    <b>Today's plates</b><span>3 · 1 from a photo</span>
+                  </div>
+                  <div class="rowlist" style="margin-top: var(--s13)">
+                    <div class="gmeal" style="padding: var(--s8) 0">
+                      <img
+                        class="thumb"
+                        src="img/02-sardines-rye.jpg"
+                        alt="Sardines on rye bread"
+                      />
+                      <div>
+                        <b>Sardines on rye, onion, capers</b>
+                        <div class="line">
+                          13:05 · 422 kcal ·
+                          <span class="state border">estimate</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="gmeal" style="padding: var(--s8) 0">
+                      <img
+                        class="thumb"
+                        src="img/02-pork-belly.jpg"
+                        alt="Roasted pork belly"
+                      />
+                      <div>
+                        <b>Homemade bread, foie gras, pork belly</b>
+                        <div class="line">
+                          11:19 · 795 kcal ·
+                          <span class="state border">estimate</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="gmeal" style="padding: var(--s8) 0">
+                      <img
+                        class="thumb"
+                        src="img/02-tuna-chilli.jpg"
+                        alt="Tuna with chilli"
+                      />
+                      <div>
+                        <b>Rio Mare tuna with chilli</b>
+                        <div class="line">
+                          11:29 · 280 kcal ·
+                          <span class="state on">weighed</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="gsec">
+                  <div class="gsec-h">
+                    <b>What you eat often</b><span>last 30 days</span>
+                  </div>
+                  <div class="rowlist" style="margin-top: var(--s13)">
+                    <div class="gmeal" style="padding: var(--s8) 0">
+                      <img
+                        class="thumb"
+                        src="img/02-sardine-tin.jpg"
+                        alt="Canned sardines in tomato sauce"
+                      />
+                      <div>
+                        <b>Canned sardines</b>
+                        <div class="line">11 times · 190 kcal each</div>
+                      </div>
+                    </div>
+                    <div class="gmeal" style="padding: var(--s8) 0">
+                      <img
+                        class="thumb"
+                        src="img/02-oats.jpg"
+                        alt="Bowl of cooked oatmeal"
+                      />
+                      <div>
+                        <b>Oats</b>
+                        <div class="line">9 times · the soluble fibre line</div>
+                      </div>
+                    </div>
+                    <div class="gmeal" style="padding: var(--s8) 0">
+                      <img
+                        class="thumb"
+                        src="img/02-eggs.jpg"
+                        alt="Boiled eggs on a plate with tomato"
+                      />
+                      <div>
+                        <b>Boiled eggs</b>
+                        <div class="line">8 times · 155 kcal each</div>
+                      </div>
+                    </div>
+                    <div class="gmeal" style="padding: var(--s8) 0">
+                      <img
+                        class="thumb"
+                        src="img/02-sardines-bread.jpg"
+                        alt="Sardines with peppers on homemade bread"
+                      />
+                      <div>
+                        <b>Sardines on homemade bread</b>
+                        <div class="line">4 times · 380 kcal each</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="gsec">
+                  <div class="gsec-h">
+                    <b>Since you were here</b><span>Sep 3 → Sep 5</span>
+                  </div>
+                  <div class="rowlist" style="margin-top: var(--s8)">
+                    <div
+                      class="markerrow said"
+                      style="grid-template-columns: minmax(0, 1fr) auto"
+                    >
+                      <div class="nm">
+                        <b>One paper moved your selenium</b
+                        ><span
+                          >Gärtner 2002 · re-read Sep 4 · the A grade
+                          holds</span
+                        >
+                      </div>
+                      <div class="wd"><span class="state on">moved</span></div>
+                    </div>
+                    <div
+                      class="markerrow said"
+                      style="grid-template-columns: minmax(0, 1fr) auto"
+                    >
+                      <div class="nm">
+                        <b>Three notes read</b
+                        ><span
+                          >two meals and one “slept badly”, kept as facts</span
+                        >
+                      </div>
+                      <div class="wd"><span class="state on">3</span></div>
+                    </div>
+                    <div
+                      class="markerrow said"
+                      style="grid-template-columns: minmax(0, 1fr) auto"
+                    >
+                      <div class="nm">
+                        <b>A projection is due</b
+                        ><span
+                          >vitamin D at 8 weeks · re-draw window opens Oct
+                          1</span
+                        >
+                      </div>
+                      <div class="wd">
+                        <span class="state border">due</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <p class="cap">
+          Nothing on this frame is a web-only component. The three columns are
+          the phone's three blocks laid side by side, which is the whole point:
+          one set of parts, two widths.
+        </p>
+      </section>
+
+      <!-- ═══ 07 Motion ══════════════════════════════════════════════════ -->
+      <section class="sec" id="s07">
+        <div class="sec-head">
+          <span class="n">07</span>
+          <h2>Motion, and the parts</h2>
+        </div>
+        <p class="lede">
+          One easing everywhere:
+          <code>cubic-bezier(0.22, 1, 0.36, 1)</code>. One duration family, 90 /
+          270 / 450 / 900 ms, from the seed's two digits. Everything in the
+          table is on this page and can be triggered by hand.
+        </p>
+        <div class="panel">
+          <div class="panel-head">
+            <h3>What moves</h3>
+            <span class="r">14 rows</span>
+          </div>
+          <div class="rowlist">
+            <div
+              class="markerrow said"
+              style="grid-template-columns: minmax(0, 1fr) auto auto"
+            >
+              <div class="nm">
+                <b>The check draws in</b
+                ><span>MoveChip · stroke-dashoffset 21 → 0</span>
+              </div>
+              <div class="t-meta" style="font-size: 11px">
+                450 ms, 90 ms delay
+              </div>
+              <div class="wd"><span class="state on">tap a chip</span></div>
+            </div>
+            <div
+              class="markerrow said"
+              style="grid-template-columns: minmax(0, 1fr) auto auto"
+            >
+              <div class="nm">
+                <b>The chip presses</b><span>MoveChip · 0.96 → 1.03 → 1</span>
+              </div>
+              <div class="t-meta" style="font-size: 11px">270 ms</div>
+              <div class="wd"><span class="state on">tap down</span></div>
+            </div>
+            <div
+              class="markerrow said"
+              style="grid-template-columns: minmax(0, 1fr) auto auto"
+            >
+              <div class="nm">
+                <b>The outer ring fills</b
+                ><span>DoubleRing · stroke-dashoffset</span>
+              </div>
+              <div class="t-meta" style="font-size: 11px">900 ms</div>
+              <div class="wd">
+                <span class="state on">the tick is accepted</span>
+              </div>
+            </div>
+            <div
+              class="markerrow said"
+              style="grid-template-columns: minmax(0, 1fr) auto auto"
+            >
+              <div class="nm">
+                <b>The lime segment flashes</b
+                ><span>DoubleRing · opacity 0 → 1 → 0</span>
+              </div>
+              <div class="t-meta" style="font-size: 11px">650 ms, once</div>
+              <div class="wd"><span class="state on">the same write</span></div>
+            </div>
+            <div
+              class="markerrow said"
+              style="grid-template-columns: minmax(0, 1fr) auto auto"
+            >
+              <div class="nm">
+                <b>The flame leaps</b><span>StreakFlame · −5 px, ×1.09</span>
+              </div>
+              <div class="t-meta" style="font-size: 11px">450 ms</div>
+              <div class="wd">
+                <span class="state on">the day completes</span>
+              </div>
+            </div>
+            <div
+              class="markerrow said"
+              style="grid-template-columns: minmax(0, 1fr) auto auto"
+            >
+              <div class="nm">
+                <b>The flame breathes</b
+                ><span>StreakFlame · opacity 1 → 0.55</span>
+              </div>
+              <div class="t-meta" style="font-size: 11px">2 400 ms, loops</div>
+              <div class="wd"><span class="state border">streak ≥ 1</span></div>
+            </div>
+            <div
+              class="markerrow said"
+              style="grid-template-columns: minmax(0, 1fr) auto auto"
+            >
+              <div class="nm">
+                <b>The scan line sweeps</b
+                ><span>ScanOverlay · top −2 % → 100 %</span>
+              </div>
+              <div class="t-meta" style="font-size: 11px">1 800 ms, loops</div>
+              <div class="wd">
+                <span class="state border">Play, photo</span>
+              </div>
+            </div>
+            <div
+              class="markerrow said"
+              style="grid-template-columns: minmax(0, 1fr) auto auto"
+            >
+              <div class="nm">
+                <b>The three dots think</b
+                ><span>ReadingLoader · 150 ms apart</span>
+              </div>
+              <div class="t-meta" style="font-size: 11px">1 200 ms, loops</div>
+              <div class="wd">
+                <span class="state border">Send is pressed</span>
+              </div>
+            </div>
+            <div
+              class="markerrow said"
+              style="grid-template-columns: minmax(0, 1fr) auto auto"
+            >
+              <div class="nm">
+                <b>The waveform runs</b
+                ><span>VoiceWave · 28 bars, 12 % → 92 %</span>
+              </div>
+              <div class="t-meta" style="font-size: 11px">
+                900 ms, alternates
+              </div>
+              <div class="wd">
+                <span class="state border">Play, voice</span>
+              </div>
+            </div>
+            <div
+              class="markerrow said"
+              style="grid-template-columns: minmax(0, 1fr) auto auto"
+            >
+              <div class="nm">
+                <b>A kept word arrives</b
+                ><span>chip · 8 px and 3 px of blur</span>
+              </div>
+              <div class="t-meta" style="font-size: 11px">
+                450 ms, 450 ms apart
+              </div>
+              <div class="wd"><span class="state on">one per chip</span></div>
+            </div>
+            <div
+              class="markerrow said"
+              style="grid-template-columns: minmax(0, 1fr) auto auto"
+            >
+              <div class="nm">
+                <b>A callout lands</b
+                ><span>Callout · ink pill, 1 px leader, 5 px dot</span>
+              </div>
+              <div class="t-meta" style="font-size: 11px">
+                450 ms, 540 ms apart
+              </div>
+              <div class="wd"><span class="state on">one per item</span></div>
+            </div>
+            <div
+              class="markerrow said"
+              style="grid-template-columns: minmax(0, 1fr) auto auto"
+            >
+              <div class="nm">
+                <b>The meal card rises</b
+                ><span>MealCard · 21 px, numbers count up</span>
+              </div>
+              <div class="t-meta" style="font-size: 11px">
+                450 ms, count 900 ms
+              </div>
+              <div class="wd">
+                <span class="state on">the total is accepted</span>
+              </div>
+            </div>
+            <div
+              class="markerrow said"
+              style="grid-template-columns: minmax(0, 1fr) auto auto"
+            >
+              <div class="nm">
+                <b>The projection redraws</b
+                ><span>ExpectationChart · point-wise interpolation</span>
+              </div>
+              <div class="t-meta" style="font-size: 11px">450 ms</div>
+              <div class="wd">
+                <span class="state on">a toggle or a pill</span>
+              </div>
+            </div>
+            <div
+              class="markerrow said"
+              style="grid-template-columns: minmax(0, 1fr) auto auto"
+            >
+              <div class="nm">
+                <b>The tooltip follows</b
+                ><span
+                  >ChartTooltip · fades, then tracks with no animation</span
+                >
+              </div>
+              <div class="t-meta" style="font-size: 11px">90 ms in</div>
+              <div class="wd"><span class="state on">pointer down</span></div>
+            </div>
+          </div>
+        </div>
+        <p class="cap" style="margin-top: var(--s21)">
+          <b>Reduced motion.</b> One variant covers all of it: every loop stops
+          and shows its end state, the check appears already drawn, chips and
+          callouts appear at full opacity with no offset or blur, the rings jump
+          to their value, the waveform freezes at 55 %, and the counters land on
+          their number without counting. The Add player still runs — the
+          sequence is information, the animation is not — it simply cuts between
+          its states. Nothing is removed, because none of this motion carries
+          anything the words do not.
+        </p>
+
+        <div class="panel" style="margin-top: var(--s21)">
+          <div class="panel-head">
+            <h3>Component index</h3>
+            <span class="r">what is new here</span>
+          </div>
+          <div class="rowlist">
+            <div
+              class="markerrow said"
+              style="grid-template-columns: minmax(0, 1fr) auto"
+            >
+              <div class="nm">
+                <b>DoubleRing</b
+                ><span
+                  >.gring — two concentric arcs, one centre: moves outside in
+                  ink, calories inside in mulberry, one lime flash segment on
+                  top</span
+                >
+              </div>
+              <div class="wd"><span class="state on">new</span></div>
+            </div>
+            <div
+              class="markerrow said"
+              style="grid-template-columns: minmax(0, 1fr) auto"
+            >
+              <div class="nm">
+                <b>GustoBlock</b
+                ><span
+                  >.gsec — the mulberry hairline, the caps label and its
+                  right-hand count; replaces the card everywhere except a real
+                  tile</span
+                >
+              </div>
+              <div class="wd"><span class="state on">new</span></div>
+            </div>
+            <div
+              class="markerrow said"
+              style="grid-template-columns: minmax(0, 1fr) auto"
+            >
+              <div class="nm">
+                <b>AddPlayer</b
+                ><span
+                  >.stage — four scripts (photo, photos, typed, voice) over one
+                  loader and one receipt</span
+                >
+              </div>
+              <div class="wd"><span class="state on">new</span></div>
+            </div>
+            <div
+              class="markerrow said"
+              style="grid-template-columns: minmax(0, 1fr) auto"
+            >
+              <div class="nm">
+                <b>VoiceWave</b
+                ><span
+                  >.wave — 28 bars, deterministic delays, frozen under reduced
+                  motion</span
+                >
+              </div>
+              <div class="wd"><span class="state on">new</span></div>
+            </div>
+            <div
+              class="markerrow said"
+              style="grid-template-columns: minmax(0, 1fr) auto"
+            >
+              <div class="nm">
+                <b>PhotoStrip</b
+                ><span
+                  >.strip — several photos, each read in turn, a check when it
+                  is done</span
+                >
+              </div>
+              <div class="wd"><span class="state on">new</span></div>
+            </div>
+            <div
+              class="markerrow said"
+              style="grid-template-columns: minmax(0, 1fr) auto"
+            >
+              <div class="nm">
+                <b>ExpectationChart</b
+                ><span
+                  >.plotbox — the projection arithmetic, the goal band, the
+                  pointer tooltip; one function, two instances</span
+                >
+              </div>
+              <div class="wd"><span class="state on">new</span></div>
+            </div>
+            <div
+              class="markerrow said"
+              style="grid-template-columns: minmax(0, 1fr) auto"
+            >
+              <div class="nm">
+                <b>EffectToggle</b
+                ><span
+                  >.tgl — one seeded intervention, its grade, its adherence and
+                  its contribution in mg/dL</span
+                >
+              </div>
+              <div class="wd"><span class="state on">new</span></div>
+            </div>
+            <div
+              class="markerrow said"
+              style="grid-template-columns: minmax(0, 1fr) auto"
+            >
+              <div class="nm">
+                <b>SwipeRow</b
+                ><span
+                  >.swiper — 124 px of travel, Edit and Delete behind;
+                  keyboard-reachable because the buttons are real buttons</span
+                >
+              </div>
+              <div class="wd"><span class="state border">reworked</span></div>
+            </div>
+            <div
+              class="markerrow said"
+              style="grid-template-columns: minmax(0, 1fr) auto"
+            >
+              <div class="nm">
+                <b
+                  >WeekStrip · StreakFlame · MoveChip · MacroTile ·
+                  PortionStepper · AdoptButton · ChartTooltip</b
+                ><span
+                  >carried from ios-2.html, restyled to the mulberry hairline
+                  and the 90 ms family</span
+                >
+              </div>
+              <div class="wd"><span class="state border">carried</span></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ═══ credits ════════════════════════════════════════════════════ -->
+      <section class="sec" id="credits">
+        <div class="sec-head">
+          <span class="n">08</span>
+          <h2>Photograph credits</h2>
+        </div>
+        <p class="lede">
+          Eight real photographs, downloaded from Wikimedia Commons into
+          <code>ios-variations/img/</code>. No stock food, no rendering.
+        </p>
+        <div class="panel">
+          <div class="rowlist">
+            <div
+              class="markerrow said"
+              style="grid-template-columns: minmax(0, 1fr) auto"
+            >
+              <div class="nm">
+                <b>02-sardines-rye.jpg</b
+                ><span
+                  >“Sardines on German three-grain bread, with onion, capers,
+                  and mustard, kimchi on the side — Massachusetts” · Daderot ·
+                  CC0 · Wikimedia Commons</span
+                >
+              </div>
+              <div class="wd"><span class="state on">CC0</span></div>
+            </div>
+            <div
+              class="markerrow said"
+              style="grid-template-columns: minmax(0, 1fr) auto"
+            >
+              <div class="nm">
+                <b>02-salad.jpg</b
+                ><span
+                  >“Salad with smoked sardines, bell peppers, olive oil, and
+                  black pepper — Massachusetts” · Daderot · CC0 ·
+                  Wikimedia Commons</span
+                >
+              </div>
+              <div class="wd"><span class="state on">CC0</span></div>
+            </div>
+            <div
+              class="markerrow said"
+              style="grid-template-columns: minmax(0, 1fr) auto"
+            >
+              <div class="nm">
+                <b>02-sardines-bread.jpg</b
+                ><span
+                  >“Sardines, antipasti, pepperoncini, chili, mustard, and olive
+                  oil on homemade bread, served hot — Massachusetts” · Daderot ·
+                  CC0 · Wikimedia Commons</span
+                >
+              </div>
+              <div class="wd"><span class="state on">CC0</span></div>
+            </div>
+            <div
+              class="markerrow said"
+              style="grid-template-columns: minmax(0, 1fr) auto"
+            >
+              <div class="nm">
+                <b>02-tuna-chilli.jpg</b
+                ><span
+                  >“Tunafish and mixed vegetables in ginger curry sauce atop
+                  rotini, with Ning Chi garlic chili paste and black pepper —
+                  Massachusetts” · Daderot · CC0 · Wikimedia
+                  Commons</span
+                >
+              </div>
+              <div class="wd"><span class="state on">CC0</span></div>
+            </div>
+            <div
+              class="markerrow said"
+              style="grid-template-columns: minmax(0, 1fr) auto"
+            >
+              <div class="nm">
+                <b>02-eggs.jpg</b
+                ><span
+                  >“Boiled eggs on a white plate” · Nana Pearls · CC0 ·
+                  Wikimedia Commons</span
+                >
+              </div>
+              <div class="wd"><span class="state on">CC0</span></div>
+            </div>
+            <div
+              class="markerrow said"
+              style="grid-template-columns: minmax(0, 1fr) auto"
+            >
+              <div class="nm">
+                <b>02-sardine-tin.jpg</b
+                ><span
+                  >“Sardines in olive oil &amp; tomato sauce” · BrokenSphere ·
+                  CC BY 3.0 · Wikimedia Commons</span
+                >
+              </div>
+              <div class="wd"><span class="state border">CC BY</span></div>
+            </div>
+            <div
+              class="markerrow said"
+              style="grid-template-columns: minmax(0, 1fr) auto"
+            >
+              <div class="nm">
+                <b>02-pork-belly.jpg</b
+                ><span
+                  >“Grilled kurobuta pork belly 01” · T.Tseng ·
+                  CC BY 2.0 · Wikimedia Commons</span
+                >
+              </div>
+              <div class="wd"><span class="state border">CC BY</span></div>
+            </div>
+            <div
+              class="markerrow said"
+              style="grid-template-columns: minmax(0, 1fr) auto"
+            >
+              <div class="nm">
+                <b>02-oats.jpg</b
+                ><span
+                  >“Cooked oatmeal in bowl (low angle)” · Bodhi Peace ·
+                  CC BY-SA 4.0 · Wikimedia Commons</span
+                >
+              </div>
+              <div class="wd"><span class="state border">CC BY-SA</span></div>
+            </div>
+          </div>
+        </div>
+        <p class="cap" style="margin-top: var(--s21)">
+          Every file was fetched with the Commons thumbnail endpoint at 1280 px,
+          checked with <code>file</code> (all eight are baseline JPEGs between
+          256 KB and 577 KB) and looked at before it was placed.
+        </p>
+      </section>
+    </main>
+
+    <script>
+      (function () {
+        "use strict";
+        var RM = window.matchMedia("(prefers-reduced-motion: reduce)");
+        function reduced() {
+          return RM.matches;
+        }
+        function $(s, r) {
+          return (r || document).querySelector(s);
+        }
+        function $$(s, r) {
+          return Array.prototype.slice.call(
+            (r || document).querySelectorAll(s),
+          );
+        }
+        function esc(s) {
+          return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;");
+        }
+        var CHECK =
+          '<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>';
+
+        /* ── theme ───────────────────────────────────────────────────────────── */
+        var tb = $("#themebtn");
+        tb.addEventListener("click", function () {
+          var d = document.documentElement;
+          var on = d.getAttribute("data-theme") === "dark";
+          d.setAttribute("data-theme", on ? "light" : "dark");
+          d.classList.toggle("dark", !on);
+          tb.querySelector("span").textContent = on ? "Dark" : "Light";
+        });
+
+        /* ── numbers that count up ───────────────────────────────────────────── */
+        function countTo(el, to, dur, fmt) {
+          fmt =
+            fmt ||
+            function (n) {
+              return String(n);
+            };
+          if (reduced()) {
+            el.textContent = fmt(to);
+            return;
+          }
+          var from = 0,
+            t0 = performance.now();
+          function step(t) {
+            var p = Math.min(1, (t - t0) / dur);
+            var e = 1 - Math.pow(1 - p, 3);
+            el.textContent = fmt(Math.round(from + (to - from) * e));
+            if (p < 1) requestAnimationFrame(step);
+          }
+          requestAnimationFrame(step);
+        }
+        function group(n) {
+          return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+        }
+
+        /* ══ 01 · the ticks, the rings, the flame ════════════════════════════ */
+        var MOVES = 5,
+          KCAL = 1497,
+          KTARGET = 2100;
+        var C_OUT = 2 * Math.PI * 52,
+          C_IN = 2 * Math.PI * 38;
+        var flame = $("#flame"),
+          flamen = $("#flamen");
+
+        function doneCount() {
+          // the phone frame is the source of truth; the web frame mirrors it
+          return $$("#s01 [data-move]").filter(function (b) {
+            return b.classList.contains("on");
+          }).length;
+        }
+        function paintRings(flash) {
+          var d = doneCount(),
+            pct = d / MOVES;
+          ["", "2"].forEach(function (sfx) {
+            var o = document.getElementById("ringOuter" + sfx),
+              i = document.getElementById("ringInner" + sfx),
+              f = document.getElementById("ringFlash" + sfx),
+              n = document.getElementById("ringDone" + sfx),
+              k = document.getElementById("ringKcal" + sfx);
+            if (!o) return;
+            o.setAttribute("stroke-dashoffset", (C_OUT * (1 - pct)).toFixed(1));
+            i.setAttribute(
+              "stroke-dashoffset",
+              (C_IN * (1 - Math.min(1, KCAL / KTARGET))).toFixed(1),
+            );
+            n.textContent = String(d);
+            k.textContent = group(KCAL) + " / " + group(KTARGET) + " kcal";
+            if (flash && !reduced()) {
+              f.setAttribute(
+                "stroke-dashoffset",
+                (C_OUT * (1 - pct)).toFixed(1),
+              );
+              f.classList.remove("on");
+              void f.offsetWidth;
+              f.classList.add("on");
+            }
+          });
+          var say = $("#ringSay");
+          if (say) {
+            say.textContent =
+              d === MOVES
+                ? "All five done. The day is closed and the streak is seven."
+                : d === 0
+                  ? "Nothing ticked yet. Five moves are waiting."
+                  : ["Zero", "One", "Two", "Three", "Four", "Five"][d] +
+                    " of five done. " +
+                    (MOVES - d) +
+                    (MOVES - d === 1 ? " is left." : " are left.");
+          }
+          var ps = $("#plansay");
+          if (ps)
+            ps.textContent =
+              "Saturday Sep 5. " +
+              ["Zero", "One", "Two", "Three", "Four", "Five"][d] +
+              " of five done.";
+          // the streak and the week dot answer only when the day completes
+          var full = d === MOVES;
+          ["#wdtoday", "#wdtoday2"].forEach(function (s) {
+            var el = $(s);
+            if (el) el.classList.toggle("done", full);
+          });
+          var want = full ? 7 : 6;
+          if (flamen.textContent !== String(want)) {
+            flamen.textContent = String(want);
+            if (!reduced()) {
+              flame.classList.remove("leap");
+              void flame.offsetWidth;
+              flame.classList.add("leap");
+            }
+          }
+        }
+        // mirror phone ↔ web by index
+        function moveGroups(scope) {
+          return $$("[data-move]", scope);
+        }
+        document.addEventListener("click", function (ev) {
+          var b = ev.target.closest && ev.target.closest("[data-move]");
+          if (!b) return;
+          var phone = $("#s01"),
+            web = $("#s06");
+          var all = moveGroups(phone),
+            mirror = moveGroups(web);
+          var i = all.indexOf(b);
+          if (i < 0) {
+            i = mirror.indexOf(b);
+          }
+          if (i < 0) return;
+          var now = !all[i].classList.contains("on");
+          all[i].classList.toggle("on", now);
+          if (mirror[i]) mirror[i].classList.toggle("on", now);
+          paintRings(now);
+        });
+        paintRings(false);
+
+        /* ══ 02 · the Add player ═════════════════════════════════════════════ */
+        var stage = $("#stage"),
+          playBtn = $("#play"),
+          playLbl = $("#playlbl"),
+          hint = $("#playhint"),
+          cap = $("#stagecap");
+        var timers = [],
+          mode = "photo";
+        function clearTimers() {
+          timers.forEach(clearTimeout);
+          timers = [];
+        }
+        function at(ms, fn) {
+          timers.push(setTimeout(fn, reduced() ? ms * 0.6 : ms));
+        }
+
+        var KEPT = [
+          "sardines",
+          "olive oil",
+          "rye bread",
+          "190 kcal est.",
+          "22 g protein est.",
+        ];
+        var SENTENCE =
+          "canned sardines in olive oil, one tin, with a slice of rye";
+
+        function sheetFoot() {
+          return (
+            '<p class="t-meta" style="font-size:11px;margin:var(--s13) 0 0">' +
+            "Read by the app and kept as facts, meals and supplements. A lab sheet " +
+            "becomes a read receipt under Blood.</p>"
+          );
+        }
+        function readingRow(label) {
+          return (
+            '<div class="gsec"><div class="gsec-h"><b>Reading</b>' +
+            '<span id="elapsed">0 s so far</span></div>' +
+            '<div style="display:flex;align-items:center;gap:var(--s8);margin-top:var(--s8)">' +
+            '<span class="loader3"><i></i><i></i><i></i></span>' +
+            '<span style="font-size:var(--type-sm);color:var(--ink-2)">' +
+            label +
+            "</span></div>" +
+            '<div class="chips" id="kept" style="margin-top:var(--s13)"></div></div>'
+          );
+        }
+        function tickElapsed() {
+          var n = 0;
+          var id = setInterval(function () {
+            var el = $("#elapsed");
+            if (!el) {
+              clearInterval(id);
+              return;
+            }
+            n += 1;
+            el.textContent = n + " s so far";
+          }, 1000);
+          timers.push(id);
+        }
+        function pushKept(i) {
+          var box = $("#kept");
+          if (!box) return;
+          var s = document.createElement("span");
+          s.className = "chip chipin";
+          s.textContent = KEPT[i];
+          box.appendChild(s);
+        }
+        function receipt(extra) {
+          stage.innerHTML =
+            '<div class="gsec" style="margin-top:var(--s8)">' +
+            '<div class="gsec-h"><b>Kept</b><span>read in 6 s · 11:27</span></div>' +
+            '<div class="chips" style="margin-top:var(--s8)">' +
+            '<span class="chip">sardines · 1 tin</span><span class="chip">rye · 1 slice</span>' +
+            '<span class="chip">190 kcal est.</span><span class="chip">22 g protein est.</span>' +
+            '<span class="chip">last meal 11:27</span></div>' +
+            '<p style="margin:var(--s13) 0 0;font-size:var(--type-sm);color:var(--ink-2)">' +
+            (extra ||
+              "One tin of sardines and a slice of rye, read as a meal. It is " +
+                "the first tick on your sardines item in eleven weeks.") +
+            "</p>" +
+            '<p class="t-meta" style="font-size:11px;margin:var(--s8) 0 0">' +
+            "<b>Kept:</b> a meal, four nutrition chips, a last-meal fact, and one " +
+            "tick on “sardines, three tins a week”.</p>" +
+            '<div style="display:flex;gap:var(--s8);margin-top:var(--s13)">' +
+            '<button class="b b-quiet b-sm" type="button">Undo</button>' +
+            '<button class="b b-quiet b-sm" type="button">Edit what it kept</button></div></div>' +
+            '<p class="t-meta" style="font-size:11px;margin:var(--s13) 0 0">' +
+            "A reply is never empty. If nothing survived the read it says “Nothing " +
+            "to keep from that.” in this same place, and the note stays on file, " +
+            "unread, for one more attempt.</p>";
+          done();
+        }
+        function done() {
+          playBtn.disabled = false;
+          playLbl.textContent = "Play again";
+        }
+
+        /* photo positions are per cent of the 4:3 crop of 02-sardines-rye.jpg */
+        var CALLOUTS = [
+          { t: "Sardines", x: 50, y: 30, up: false, h: 30 },
+          { t: "Rye bread", x: 24, y: 52, up: false, h: 22 },
+          { t: "Onion and capers", x: 72, y: 26, up: false, h: 26 },
+          { t: "Kimchi", x: 52, y: 84, up: true, h: 26 },
+        ];
+
+        function scriptPhoto() {
+          stage.innerHTML =
+            '<div class="scanshot" id="shot" style="margin-top:var(--s8)">' +
+            '<img src="img/02-sardines-rye.jpg" alt="Sardines on rye bread with onion and capers" />' +
+            '<div class="scanline"></div><div class="shimmer"></div></div>' +
+            '<div class="gsec"><div class="gsec-h"><b>Looking</b><span id="elapsed">0 s so far</span></div>' +
+            '<div style="display:flex;align-items:center;gap:var(--s8);margin-top:var(--s8)">' +
+            '<span class="loader3"><i></i><i></i><i></i></span>' +
+            '<span style="font-size:var(--type-sm);color:var(--ink-2)">at the plate</span></div>' +
+            '<p class="t-meta" style="font-size:11px;margin:var(--s13) 0 0">One vision ' +
+            "call. The line sweeps top to bottom in 1 800 ms and repeats until the " +
+            "call returns.</p></div>";
+          tickElapsed();
+          CALLOUTS.forEach(function (c, i) {
+            at(2200 + i * 540, function () {
+              var shot = $("#shot");
+              if (!shot) return;
+              var d = document.createElement("span");
+              d.className = "callout" + (c.up ? " up" : "");
+              d.style.setProperty("--x", c.x + "%");
+              d.style.setProperty("--y", c.y + "%");
+              d.style.setProperty("--h", c.h + "px");
+              d.innerHTML = esc(c.t) + "<u></u>";
+              shot.appendChild(d);
+              if (i === 0) {
+                var sl = $(".scanline", shot),
+                  sh = $(".shimmer", shot);
+                if (sl) sl.remove();
+                if (sh) sh.remove();
+              }
+            });
+          });
+          at(4600, function () {
+            var box = $("#stage .gsec");
+            if (box)
+              box.innerHTML =
+                '<div class="gsec-h"><b>Four items</b><span>confidence 0.86</span></div>' +
+                '<div style="display:flex;align-items:center;gap:var(--s8);margin-top:var(--s8)">' +
+                '<span class="loader3"><i></i><i></i><i></i></span>' +
+                '<span style="font-size:var(--type-sm);color:var(--ink-2)">adding them up on the server</span></div>';
+          });
+          at(5600, function () {
+            mealCard();
+          });
+        }
+
+        function mealCard() {
+          var el = $("#stage .gsec");
+          if (!el) return;
+          el.className = "gsec mealcard";
+          el.innerHTML =
+            '<div class="gsec-h"><b>The meal</b><span>13:05 · from a photo</span></div>' +
+            '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:var(--s8);margin-top:var(--s8)">' +
+            '<b style="font-size:var(--type-md);font-weight:400;min-width:0">Sardines on rye, onion, capers</b>' +
+            '<div class="stepper"><button type="button" aria-label="Fewer">' +
+            '<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/></svg></button>' +
+            '<b>1</b><button type="button" aria-label="More">' +
+            '<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button></div></div>' +
+            '<p class="big" style="margin:var(--s13) 0 0"><span id="kc">0</span><em>kcal · estimate</em></p>' +
+            '<div class="macrotile" style="margin-top:var(--s13)">' +
+            '<div><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12h18M7 8h10M9 16h6"/></svg><b><span id="mp">0</span> g</b><span>protein est.</span></div>' +
+            '<div><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v18M5 8h14"/></svg><b><span id="mc">0</span> g</b><span>carbs est.</span></div>' +
+            '<div><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20v-8M6 20v-4M18 20V8"/></svg><b><span id="mf">0</span> g</b><span>fat est.</span></div></div>' +
+            '<div style="display:flex;gap:var(--s8);margin-top:var(--s13)">' +
+            '<button class="b b-quiet b-sm" type="button">Fix results</button>' +
+            '<button class="b b-lime b-sm" type="button">Done</button></div>' +
+            '<p class="t-meta" style="font-size:11px;margin:var(--s13) 0 0">Every number ' +
+            "carries “est.”, because four items came off one photograph.</p>";
+          countTo($("#kc"), 422, 900);
+          countTo($("#mp"), 29, 900);
+          countTo($("#mc"), 31, 900);
+          countTo($("#mf"), 20, 900);
+          done();
+        }
+
+        function scriptPhotos() {
+          var names = [
+            "02-sardines-rye.jpg",
+            "02-salad.jpg",
+            "02-pork-belly.jpg",
+          ];
+          var alts = [
+            "Sardines on rye bread",
+            "Sardines on salad leaves with bell pepper",
+            "Roasted pork belly in a bowl",
+          ];
+          stage.innerHTML =
+            '<p class="t-meta" style="font-size:11px;margin:var(--s8) 0 var(--s8)">' +
+            "Three photographs, one meal. Each is read in turn and the totals are " +
+            "summed once, on the server.</p>" +
+            '<div class="strip" id="strip">' +
+            names
+              .map(function (n, i) {
+                return (
+                  '<figure><img src="img/' +
+                  n +
+                  '" alt="' +
+                  alts[i] +
+                  '" /></figure>'
+                );
+              })
+              .join("") +
+            "</div>" +
+            readingRow("waiting for the first one");
+          tickElapsed();
+          var figs = $$("#strip figure");
+          [0, 1, 2].forEach(function (i) {
+            at(300 + i * 1600, function () {
+              figs.forEach(function (f, j) {
+                if (j < i) {
+                  f.classList.add("read");
+                }
+              });
+              figs[i].classList.add("active");
+              var s = document.createElement("span");
+              s.className = "sweep";
+              figs[i].appendChild(s);
+              var lab = $("#stage .gsec span[style]");
+              if (lab) lab.textContent = "reading photo " + (i + 1) + " of 3";
+            });
+            at(300 + i * 1600 + 1400, function () {
+              figs[i].classList.remove("active");
+              figs[i].classList.add("read");
+              var sw = $(".sweep", figs[i]);
+              if (sw) sw.remove();
+              var d = document.createElement("span");
+              d.className = "done";
+              d.innerHTML = CHECK;
+              figs[i].appendChild(d);
+              pushKept(i);
+            });
+          });
+          at(5200, function () {
+            pushKept(3);
+          });
+          at(5650, function () {
+            pushKept(4);
+          });
+          at(6300, function () {
+            var el = $("#stage .gsec");
+            if (!el) return;
+            el.className = "gsec mealcard";
+            el.innerHTML =
+              '<div class="gsec-h"><b>One meal, three photographs</b><span>confidence 0.81</span></div>' +
+              '<p class="big" style="margin:var(--s13) 0 0"><span id="kc">0</span><em>kcal · estimate</em></p>' +
+              '<div class="rowlist" style="margin-top:var(--s13)">' +
+              '<div class="markerrow said" style="grid-template-columns:minmax(0,1fr) auto">' +
+              '<div class="nm"><b>Sardines on rye</b><span>4 items · photo 1</span></div>' +
+              '<div class="wd"><span class="state border">422</span></div></div>' +
+              '<div class="markerrow said" style="grid-template-columns:minmax(0,1fr) auto">' +
+              '<div class="nm"><b>Sardines on greens</b><span>4 items · photo 2</span></div>' +
+              '<div class="wd"><span class="state border">318</span></div></div>' +
+              '<div class="markerrow said" style="grid-template-columns:minmax(0,1fr) auto">' +
+              '<div class="nm"><b>Pork belly, cabbage</b><span>3 items · photo 3</span></div>' +
+              '<div class="wd"><span class="state border">540</span></div></div></div>' +
+              '<div style="display:flex;gap:var(--s8);margin-top:var(--s13)">' +
+              '<button class="b b-quiet b-sm" type="button">Fix results</button>' +
+              '<button class="b b-lime b-sm" type="button">Done</button></div>' +
+              '<p class="t-meta" style="font-size:11px;margin:var(--s13) 0 0">Eleven items ' +
+              "off three photographs, summed once with the plausibility clamp. Any " +
+              "one photograph can be removed without re-reading the other two.</p>";
+            countTo($("#kc"), 1280, 900, group);
+            done();
+          });
+        }
+
+        function scriptText() {
+          stage.innerHTML =
+            '<div class="gfield empty" id="fld" style="margin-top:var(--s8)">' +
+            "What happened, what you took, what you ate, or a question</div>" +
+            '<div style="display:flex;align-items:center;justify-content:space-between;gap:var(--s8);margin-top:var(--s13)">' +
+            '<button class="b b-quiet b-sm" type="button">' +
+            '<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.4"/></svg>' +
+            "Photo</button>" +
+            '<button class="b b-sm" id="send" type="button" disabled style="opacity:.45">Send</button></div>' +
+            '<p class="t-meta" style="font-size:11px;margin:var(--s13) 0 0">Log how you feel</p>' +
+            sheetFoot();
+          var fld = $("#fld"),
+            send = $("#send"),
+            i = 0;
+          fld.classList.remove("empty");
+          fld.innerHTML = '<span class="caret"></span>';
+          var typer = setInterval(
+            function () {
+              i += 2;
+              if (i >= SENTENCE.length) {
+                i = SENTENCE.length;
+                clearInterval(typer);
+              }
+              fld.innerHTML =
+                esc(SENTENCE.slice(0, i)) + '<span class="caret"></span>';
+              if (i > 0 && send.disabled) {
+                send.disabled = false;
+                send.style.opacity = "1";
+                send.className = "b b-lime b-sm";
+              }
+            },
+            reduced() ? 6 : 34,
+          );
+          timers.push(typer);
+          at(1500, function () {
+            stage.innerHTML =
+              '<div class="quote" style="margin-top:var(--s8)">“' +
+              esc(SENTENCE) +
+              "”</div>" +
+              readingRow("keeping what it recognises");
+            tickElapsed();
+            KEPT.forEach(function (_, k) {
+              at(400 + k * 450, function () {
+                pushKept(k);
+              });
+            });
+            at(3100, function () {
+              receipt();
+            });
+          });
+        }
+
+        function scriptVoice() {
+          var bars = "";
+          for (var b = 0; b < 28; b++) {
+            bars +=
+              '<i style="animation-delay:' +
+              ((b * 47) % 900) +
+              "ms;animation-duration:" +
+              (700 + ((b * 113) % 500)) +
+              'ms"></i>';
+          }
+          stage.innerHTML =
+            '<div style="display:flex;align-items:center;gap:var(--s13);margin-top:var(--s21)">' +
+            '<button class="mic live" type="button" aria-label="Listening">' +
+            '<svg class="ic i20" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v4"/></svg>' +
+            "</button>" +
+            '<div class="wave">' +
+            bars +
+            "</div></div>" +
+            '<p class="tick-label" style="margin:var(--s13) 0 var(--s8)">Listening</p>' +
+            '<div class="transcript" id="tr"></div>' +
+            sheetFoot();
+          var words = SENTENCE.split(" ");
+          words.forEach(function (w, k) {
+            at(400 + k * 170, function () {
+              var tr = $("#tr");
+              if (!tr) return;
+              var s = document.createElement("span");
+              s.style.animationDelay = "0ms";
+              s.textContent = (k ? " " : "") + w;
+              tr.appendChild(s);
+            });
+          });
+          at(400 + words.length * 170 + 500, function () {
+            stage.innerHTML =
+              '<div class="quote" style="margin-top:var(--s8)">“' +
+              esc(SENTENCE) +
+              '”<div class="t-meta" style="font-size:11px;margin-top:var(--s5)">' +
+              "heard in 2.4 s · tap to correct a word</div></div>" +
+              readingRow("keeping what it recognises");
+            tickElapsed();
+            KEPT.forEach(function (_, k) {
+              at(400 + k * 450, function () {
+                pushKept(k);
+              });
+            });
+            at(3100, function () {
+              receipt(
+                "Spoken, then read. The transcript is kept beside the meal so " +
+                  "you can see what the reader actually heard.",
+              );
+            });
+          });
+        }
+
+        var HINTS = {
+          photo: "one vision call · 7.0 s",
+          photos: "three reads, one sum · 7.5 s",
+          text: "typed, then read · 5.0 s",
+          voice: "spoken, then read · 7.0 s",
+        };
+        var CAPS = {
+          photo:
+            "The lime scan line is the one place lime appears outside a control, " +
+            "because the scan is the app adding data. The callouts are ink pills with " +
+            "a one-pixel leader and a five-pixel dot — never a coloured box, because " +
+            "the spectrum is state and an ingredient has none.",
+          photos:
+            "Several photographs are one meal, not three. Each is read in turn " +
+            "so you can watch the app work, and the totals are summed once with the " +
+            "plausibility clamp.",
+          text:
+            "Send goes lime the moment there is a character. The field then " +
+            "collapses to the sentence you wrote, so the four seconds of reading have " +
+            "something to show.",
+          voice:
+            "The waveform is the receipt for “it is listening”. The transcript " +
+            "lands word by word and then becomes the same quote the typed path " +
+            "produces, so there is one reading state and not two.",
+        };
+
+        function run() {
+          clearTimers();
+          playBtn.disabled = true;
+          playLbl.textContent = "Playing…";
+          stage.innerHTML = "";
+          at(120, function () {
+            if (mode === "photo") scriptPhoto();
+            else if (mode === "photos") scriptPhotos();
+            else if (mode === "text") scriptText();
+            else scriptVoice();
+          });
+        }
+        playBtn.addEventListener("click", run);
+        $$(".modes button").forEach(function (b) {
+          b.addEventListener("click", function () {
+            $$(".modes button").forEach(function (o) {
+              o.setAttribute("aria-pressed", "false");
+            });
+            b.setAttribute("aria-pressed", "true");
+            mode = b.getAttribute("data-mode");
+            hint.textContent = HINTS[mode];
+            cap.textContent = CAPS[mode];
+            clearTimers();
+            restState();
+          });
+        });
+        /* the resting state: the end of the chosen script, so the page is not empty */
+        function restState() {
+          playBtn.disabled = false;
+          playLbl.textContent = "Play";
+          if (mode === "photo") {
+            stage.innerHTML =
+              '<div class="scanshot" style="margin-top:var(--s8)">' +
+              '<img src="img/02-sardines-rye.jpg" alt="Sardines on rye bread with onion and capers" />' +
+              CALLOUTS.map(function (c) {
+                return (
+                  '<span class="callout' +
+                  (c.up ? " up" : "") +
+                  '" style="--x:' +
+                  c.x +
+                  "%;--y:" +
+                  c.y +
+                  "%;--h:" +
+                  c.h +
+                  'px;animation:none">' +
+                  esc(c.t) +
+                  "<u></u></span>"
+                );
+              }).join("") +
+              "</div><div class='gsec'></div>";
+            mealCard();
+            playLbl.textContent = "Play";
+          } else if (mode === "photos") {
+            stage.innerHTML =
+              '<p class="t-meta" style="font-size:11px;margin:var(--s8) 0 var(--s8)">' +
+              'Three photographs, one meal.</p><div class="strip">' +
+              ["02-sardines-rye.jpg", "02-salad.jpg", "02-pork-belly.jpg"]
+                .map(function (n) {
+                  return (
+                    '<figure class="read"><img src="img/' +
+                    n +
+                    '" alt="A photographed plate" />' +
+                    '<span class="done">' +
+                    CHECK +
+                    "</span></figure>"
+                  );
+                })
+                .join("") +
+              "</div>" +
+              '<div class="gsec"><div class="gsec-h"><b>One meal, three photographs</b>' +
+              "<span>confidence 0.81</span></div>" +
+              '<p class="big" style="margin:var(--s13) 0 0">1 280<em>kcal · estimate</em></p>' +
+              '<p class="t-meta" style="font-size:11px;margin:var(--s13) 0 0">Press Play to ' +
+              "watch the three reads land one after the other.</p></div>";
+          } else if (mode === "text") {
+            receipt();
+            playLbl.textContent = "Play";
+          } else {
+            receipt(
+              "Spoken, then read. The transcript is kept beside the meal so you " +
+                "can see what the reader actually heard.",
+            );
+            playLbl.textContent = "Play";
+          }
+        }
+        restState();
+
+        /* ══ swipe rows ══════════════════════════════════════════════════════ */
+        $$("[data-swipe]").forEach(function (row) {
+          var x0 = null;
+          row.addEventListener("pointerdown", function (e) {
+            if (e.target.closest("button")) return;
+            x0 = e.clientX;
+          });
+          row.addEventListener("pointerup", function (e) {
+            if (x0 === null) return;
+            var dx = e.clientX - x0;
+            x0 = null;
+            if (dx < -34) row.classList.add("open");
+            else if (dx > 34) row.classList.remove("open");
+            else row.classList.toggle("open");
+          });
+        });
+
+        /* ══ 03 · the expectation chart ══════════════════════════════════════ */
+        /* lib/projection.ts, transcribed: grade weight × adherence × horizon
+     fraction, summed, then clamped by MAX_CHANGE. */
+        var GRADE_WEIGHT = { A: 1, B: 1, C: 0.5, D: 0, E: 0 };
+        var GRADE_SPREAD = { A: 0.3, B: 0.4, C: 0.7, D: 1, E: 1 };
+        var MAX_CHANGE_LDL = 50;
+        var FROM = 131,
+          BAND = [70, 100],
+          YMIN = 60,
+          YMAX = 145;
+
+        var EFFECTS = [
+          {
+            id: "fibre",
+            name: "Soluble-fibre preload",
+            why: "oat β-glucan 3 g before the meal",
+            kind: "food rule",
+            grade: "A",
+            effect: -11,
+            weeks: 12,
+            adherence: 0.8,
+            on: true,
+          },
+          {
+            id: "sterols",
+            name: "Plant sterols 2 g",
+            why: "with dinner, the largest single effect",
+            kind: "supplement",
+            grade: "A",
+            effect: -13,
+            weeks: 4,
+            adherence: 0.9,
+            on: true,
+          },
+          {
+            id: "oil",
+            name: "Olive oil for butter",
+            why: "saturated fat swapped, not removed",
+            kind: "food rule",
+            grade: "A",
+            effect: -8,
+            weeks: 8,
+            adherence: 0.95,
+            on: true,
+          },
+          {
+            id: "walk",
+            name: "Post-meal 15-minute walk",
+            why: "mostly a glucose move; small on LDL",
+            kind: "habit",
+            grade: "B",
+            effect: -2,
+            weeks: 12,
+            adherence: 0.55,
+            on: true,
+          },
+          {
+            id: "resist",
+            name: "Resistance, 3 × 45 min",
+            why: "ticks itself from Apple Health",
+            kind: "habit",
+            grade: "B",
+            effect: -5,
+            weeks: 12,
+            adherence: 0.67,
+            on: true,
+          },
+          {
+            id: "fish",
+            name: "Oily fish twice a week",
+            why: "your sardines item, 0 % since Jun 14",
+            kind: "food rule",
+            grade: "B",
+            effect: -3,
+            weeks: 12,
+            adherence: 0.7,
+            on: true,
+          },
+        ];
+        var horizon = 8;
+
+        function contribution(e, weeks) {
+          if (!e.on) return 0;
+          var frac = Math.min(1, weeks / e.weeks);
+          return e.effect * GRADE_WEIGHT[e.grade] * e.adherence * frac;
+        }
+        function totalAt(weeks) {
+          var sum = 0;
+          EFFECTS.forEach(function (e) {
+            sum += contribution(e, weeks);
+          });
+          return Math.max(-MAX_CHANGE_LDL, Math.min(MAX_CHANGE_LDL, sum));
+        }
+        function spread(weeks) {
+          var num = 0,
+            den = 0;
+          EFFECTS.forEach(function (e) {
+            var d = Math.abs(contribution(e, weeks));
+            num += d * GRADE_SPREAD[e.grade];
+            den += d;
+          });
+          return den === 0 ? 0 : num / den;
+        }
+        function series(weeks) {
+          var pts = [];
+          for (var w = 0; w <= weeks; w++) pts.push(FROM + totalAt(w));
+          return pts;
+        }
+        var DAY0 = new Date(2026, 8, 5); /* Saturday Sep 5 2026 */
+        var MON = [
+          "Jan",
+          "Feb",
+          "Mar",
+          "Apr",
+          "May",
+          "Jun",
+          "Jul",
+          "Aug",
+          "Sep",
+          "Oct",
+          "Nov",
+          "Dec",
+        ];
+        var DOW = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+        function dateAt(w) {
+          var d = new Date(DAY0.getTime() + w * 7 * 86400000);
+          return d;
+        }
+        function fmtDate(d) {
+          return (
+            DOW[d.getDay()] +
+            " " +
+            MON[d.getMonth()] +
+            " " +
+            d.getDate() +
+            " " +
+            d.getFullYear()
+          );
+        }
+        function verdict(v) {
+          if (v > BAND[1]) return ["too high", "toolarge", "off"];
+          if (v < BAND[0]) return ["too low", "tosmall", "border"];
+          return ["in the band", "inband", "on"];
+        }
+
+        var CHARTS = [];
+        function Chart(root) {
+          var svg = root.querySelector("svg");
+          var tip = root.querySelector("[data-tip]");
+          var self = { root: root, svg: svg, tip: tip, cur: null, w: 0, h: 0 };
+          var PAD = { l: 28, r: 10, t: 12, b: 18 };
+
+          self.layout = function () {
+            self.w = root.clientWidth || 320;
+            self.h = Math.max(150, Math.min(210, Math.round(self.w * 0.52)));
+            svg.setAttribute("viewBox", "0 0 " + self.w + " " + self.h);
+            svg.setAttribute("height", self.h);
+          };
+          self.X = function (w) {
+            return PAD.l + (self.w - PAD.l - PAD.r) * (w / horizon);
+          };
+          self.Y = function (v) {
+            return (
+              PAD.t +
+              (self.h - PAD.t - PAD.b) * (1 - (v - YMIN) / (YMAX - YMIN))
+            );
+          };
+          self.draw = function (pts) {
+            var w = self.w,
+              h = self.h;
+            var d = pts
+              .map(function (v, i) {
+                return (
+                  (i ? "L" : "M") +
+                  self.X(i).toFixed(1) +
+                  " " +
+                  self.Y(v).toFixed(1)
+                );
+              })
+              .join(" ");
+            var last = pts[pts.length - 1];
+            var sp = spread(horizon),
+              delta = Math.abs(totalAt(horizon));
+            var lo = last - sp * delta,
+              hi = last + sp * delta;
+            var bandTop = self.Y(BAND[1]),
+              bandBot = self.Y(BAND[0]);
+            var xs = [];
+            for (var k = 0; k <= horizon; k += horizon >= 12 ? 3 : 2)
+              xs.push(k);
+            svg.innerHTML =
+              "<title>LDL cholesterol, measured 131 mg/dL on Aug 1 2026, projected " +
+              "against the 70–100 goal band</title>" +
+              '<rect class="bandrect" x="' +
+              PAD.l +
+              '" y="' +
+              bandTop.toFixed(1) +
+              '" width="' +
+              (w - PAD.l - PAD.r) +
+              '" height="' +
+              (bandBot - bandTop).toFixed(1) +
+              '"/>' +
+              '<line class="bandline" x1="' +
+              PAD.l +
+              '" x2="' +
+              (w - PAD.r) +
+              '" y1="' +
+              bandTop.toFixed(1) +
+              '" y2="' +
+              bandTop.toFixed(1) +
+              '"/>' +
+              '<line class="bandline" x1="' +
+              PAD.l +
+              '" x2="' +
+              (w - PAD.r) +
+              '" y1="' +
+              bandBot.toFixed(1) +
+              '" y2="' +
+              bandBot.toFixed(1) +
+              '"/>' +
+              '<line class="axis" x1="' +
+              PAD.l +
+              '" x2="' +
+              (w - PAD.r) +
+              '" y1="' +
+              (h - PAD.b) +
+              '" y2="' +
+              (h - PAD.b) +
+              '"/>' +
+              '<path class="proj" d="' +
+              d +
+              '"/>' +
+              '<rect class="land" x="' +
+              (self.X(horizon) - 3).toFixed(1) +
+              '" y="' +
+              (self.Y(last) - 3).toFixed(1) +
+              '" width="6" height="6" ' +
+              'transform="rotate(45 ' +
+              self.X(horizon).toFixed(1) +
+              " " +
+              self.Y(last).toFixed(1) +
+              ')"/>' +
+              '<circle class="from" cx="' +
+              self.X(0).toFixed(1) +
+              '" cy="' +
+              self.Y(FROM).toFixed(1) +
+              '" r="3"/>' +
+              '<line class="cursor" id="" x1="0" x2="0" y1="' +
+              PAD.t +
+              '" y2="' +
+              (h - PAD.b) +
+              '"/>' +
+              '<text class="ylab" x="2" y="' +
+              (self.Y(140) + 3).toFixed(1) +
+              '">140</text>' +
+              '<text class="ylab" x="2" y="' +
+              (self.Y(100) + 3).toFixed(1) +
+              '">100</text>' +
+              '<text class="ylab" x="2" y="' +
+              (self.Y(70) + 3).toFixed(1) +
+              '">70</text>' +
+              xs
+                .map(function (k) {
+                  var dt = dateAt(k);
+                  return (
+                    '<text class="xlab" x="' +
+                    self.X(k).toFixed(1) +
+                    '" y="' +
+                    (h - 5) +
+                    '" text-anchor="' +
+                    (k === 0 ? "start" : k === horizon ? "end" : "middle") +
+                    '">' +
+                    MON[dt.getMonth()] +
+                    " " +
+                    dt.getDate() +
+                    "</text>"
+                  );
+                })
+                .join("");
+            self.pts = pts;
+            self.band = [lo, hi];
+          };
+          self.setCursor = function (x) {
+            var c = svg.querySelector(".cursor");
+            if (!c) return;
+            c.setAttribute("x1", x);
+            c.setAttribute("x2", x);
+            c.classList.add("on");
+          };
+          self.hideCursor = function () {
+            var c = svg.querySelector(".cursor");
+            if (c) c.classList.remove("on");
+            tip.classList.remove("on");
+          };
+          /* the tooltip follows the pointer */
+          function move(e) {
+            if (!self.pts) return;
+            var r = svg.getBoundingClientRect();
+            var px = Math.max(
+              PAD.l,
+              Math.min(self.w - PAD.r, e.clientX - r.left),
+            );
+            var wk = Math.round(
+              ((px - PAD.l) / (self.w - PAD.l - PAD.r)) * horizon,
+            );
+            wk = Math.max(0, Math.min(horizon, wk));
+            var v = self.pts[wk];
+            var x = self.X(wk);
+            self.setCursor(x.toFixed(1));
+            var vd = verdict(v);
+            tip.querySelector(".hdate").textContent =
+              (wk === 0 ? "today · " : "week " + wk + " · ") +
+              fmtDate(dateAt(wk));
+            tip.querySelector(".hval").innerHTML =
+              v.toFixed(0) + "<em>mg/dL</em>";
+            var st = tip.querySelector("[data-state]");
+            st.textContent = vd[0];
+            st.className = "state " + vd[2];
+            tip.querySelector(".hwas").textContent =
+              wk === 0
+                ? "measured on Aug 1 2026"
+                : "from 131 · " + (v - FROM).toFixed(0).replace("-", "\u2212") +
+                  " mg/dL";
+            tip.classList.add("on");
+            var tw = tip.offsetWidth || 150;
+            var left = Math.max(0, Math.min(self.w - tw, x - tw / 2));
+            tip.style.left = left + "px";
+            tip.style.top = Math.min(self.h - 20, self.Y(v) + 12) + "px";
+            tip.style.bottom = "auto";
+          }
+          svg.addEventListener("pointermove", move);
+          svg.addEventListener("pointerdown", move);
+          svg.addEventListener("pointerleave", self.hideCursor);
+          return self;
+        }
+
+        /* animate from one series to the next, point by point */
+        var animId = null;
+        function redraw(animate) {
+          var target = series(horizon);
+          CHARTS.forEach(function (c) {
+            c.layout();
+          });
+          if (
+            !animate ||
+            reduced() ||
+            !CHARTS[0] ||
+            !CHARTS[0].pts ||
+            CHARTS[0].pts.length !== target.length
+          ) {
+            CHARTS.forEach(function (c) {
+              c.draw(target);
+            });
+            paintSay(target);
+            return;
+          }
+          var start = CHARTS[0].pts.slice();
+          var t0 = performance.now();
+          if (animId) cancelAnimationFrame(animId);
+          function step(t) {
+            var p = Math.min(1, (t - t0) / 450);
+            var e = 1 - Math.pow(1 - p, 3);
+            var now = target.map(function (v, i) {
+              return start[i] + (v - start[i]) * e;
+            });
+            CHARTS.forEach(function (c) {
+              c.draw(now);
+            });
+            if (p < 1) animId = requestAnimationFrame(step);
+            else paintSay(target);
+          }
+          animId = requestAnimationFrame(step);
+          paintSay(target);
+        }
+        function paintSay(pts) {
+          var last = pts[pts.length - 1];
+          var sp = spread(horizon),
+            delta = Math.abs(totalAt(horizon));
+          var lo = Math.round(last - sp * delta),
+            hi = Math.round(last + sp * delta);
+          var vd = verdict(last);
+          var words = { 4: "four", 8: "eight", 12: "twelve" }[horizon];
+          var el2 = $("#landsay2");
+          if (el2) el2.textContent = Math.round(last);
+          var say = $("#say");
+          if (say) {
+            say.innerHTML = EFFECTS.some(function (e) {
+              return e.on;
+            })
+              ? "Keep this " +
+                words +
+                ' weeks and LDL lands near <b id="landsay">' +
+                Math.round(last) +
+                '</b> mg/dL, from 131 — <span class="' +
+                vd[1] +
+                '">' +
+                vd[0] +
+                "</span>."
+              : "Nothing is switched on, so nothing is projected. LDL stays at " +
+                '<b id="landsay">131</b> mg/dL, ' +
+                '<span class="toolarge">too high</span>.';
+          }
+          var bs = $("#bandsay");
+          if (bs) {
+            bs.textContent =
+              delta === 0
+                ? "No contributions, so no band."
+                : "Band " +
+                  lo +
+                  " – " +
+                  hi +
+                  " mg/dL. Grade A contributions are " +
+                  "allowed to be 30 % wrong, grade B 40 %. Clamped at " +
+                  MAX_CHANGE_LDL +
+                  " mg/dL of total change.";
+          }
+          var hc = $("#hz-cap");
+          if (hc) hc.textContent = horizon + " weeks";
+        }
+
+        function paintToggles() {
+          $$("[data-toggles]").forEach(function (box) {
+            box.innerHTML = EFFECTS.map(function (e) {
+              var d = contribution(e, horizon);
+              return (
+                '<button class="tgl" type="button" data-eff="' +
+                e.id +
+                '" aria-pressed="' +
+                (e.on ? "true" : "false") +
+                '">' +
+                '<span class="bx">' +
+                CHECK +
+                "</span>" +
+                '<span class="nm"><b>' +
+                esc(e.name) +
+                "</b><span>" +
+                esc(e.kind) +
+                " · grade " +
+                e.grade +
+                " · " +
+                Math.round(e.adherence * 100) +
+                " % adherence · " +
+                esc(e.why) +
+                "</span></span>" +
+                '<span class="amt">' +
+                (d === 0 ? "—" : d.toFixed(1).replace("-", "\u2212")) +
+                " mg/dL</span></button>"
+              );
+            }).join("");
+          });
+        }
+        document.addEventListener("click", function (ev) {
+          var b = ev.target.closest && ev.target.closest("[data-eff]");
+          if (b) {
+            var id = b.getAttribute("data-eff");
+            EFFECTS.forEach(function (e) {
+              if (e.id === id) e.on = !e.on;
+            });
+            paintToggles();
+            redraw(true);
+            return;
+          }
+          var p = ev.target.closest && ev.target.closest("[data-hz] button");
+          if (p) {
+            horizon = parseInt(p.getAttribute("data-w"), 10);
+            $$("[data-hz] button").forEach(function (o) {
+              o.setAttribute(
+                "aria-pressed",
+                o.getAttribute("data-w") === String(horizon) ? "true" : "false",
+              );
+            });
+            paintToggles();
+            redraw(false);
+          }
+        });
+
+        /* ══ 05 · Plan, with Adopt ═══════════════════════════════════════════ */
+        var DOING = [
+          {
+            at: "08:00",
+            t: "Selenium 200 µg",
+            d: "with breakfast, four hours clear of the iron · TPO 320 → under 100 IU/mL",
+            a: 86,
+          },
+          {
+            at: "12:30",
+            t: "Post-meal 15-minute walk",
+            d: "within 30 minutes of your largest meal · HbA1c 5.6 %",
+            a: 0,
+          },
+          {
+            at: "17:30",
+            t: "Resistance, 45 min",
+            d: "3rd of 3 this week · ticks itself from Apple Health",
+            a: 67,
+          },
+          {
+            at: "19:30",
+            t: "Vitamin D 4 000 IU",
+            d: "with dinner · 19 → 40–60 ng/mL",
+            a: 100,
+          },
+        ];
+        var SUG = [
+          {
+            id: "sterols2",
+            t: "Plant sterols 2 g daily",
+            d: "2 g of plant sterols with the largest meal displaces intestinal cholesterol absorption",
+            b: "basis: 3 trials · ● A",
+            eff: null,
+          },
+          {
+            id: "vitd2",
+            t: "Vitamin D3 supplementation",
+            d: "correcting 25-hydroxyvitamin D into 40–60 ng/mL improves peripheral insulin sensitivity",
+            b: "basis: 4 trials · ● A · suggested twice, shown once",
+            eff: null,
+          },
+          {
+            id: "creatine",
+            t: "Creatine monohydrate 3 g daily",
+            d: "raises intramuscular phosphocreatine; the grip-strength effect is small and slow",
+            b: "basis: 1 meta-analysis · ● B",
+            eff: null,
+          },
+        ];
+        function paintPlan() {
+          var doing = $("#doing"),
+            sug = $("#sug");
+          if (!doing) return;
+          doing.innerHTML = DOING.map(function (r) {
+            return (
+              '<div class="markerrow said" style="grid-template-columns:auto minmax(0,1fr) auto;align-items:start">' +
+              '<button class="movechip" type="button" style="min-height:44px;padding:var(--s5) var(--s8)" aria-label="Tick ' +
+              esc(r.t) +
+              '"><span class="bx">' +
+              CHECK +
+              "</span></button>" +
+              '<div class="nm" style="min-width:0"><b>' +
+              esc(r.t) +
+              "</b><span>" +
+              '<span style="font-family:var(--font-mono)">' +
+              r.at +
+              "</span> · " +
+              esc(r.d) +
+              "</span></div>" +
+              '<div class="wd"><span class="state ' +
+              (r.a >= 80 ? "on" : r.a > 0 ? "border" : "off") +
+              '">' +
+              r.a +
+              " %</span></div></div>"
+            );
+          }).join("");
+          $("#doingn").textContent = DOING.length + " adopted";
+          sug.innerHTML = SUG.map(function (r) {
+            return (
+              '<div class="markerrow said" style="grid-template-columns:minmax(0,1fr) auto;align-items:start">' +
+              '<div class="nm" style="min-width:0"><b>' +
+              esc(r.t) +
+              "</b><span>" +
+              esc(r.d) +
+              "</span></div>" +
+              '<div class="wd"><button class="b b-quiet b-sm" type="button" data-adopt="' +
+              r.id +
+              '">Adopt</button></div>' +
+              '<div class="t-meta" style="font-size:11px;grid-column:1/-1">' +
+              esc(r.b) +
+              "</div></div>"
+            );
+          }).join("");
+          $("#sugn").textContent = SUG.length
+            ? SUG.length + " · no tick box"
+            : "0 · all adopted";
+          // ticking a Doing row also ticks the matching move chip? no: one write per
+          // item per day, and Today already owns that write. The box here is the
+          // same control, drawn at 44 px so it can actually be hit.
+          $$("#doing .movechip").forEach(function (b) {
+            b.addEventListener("click", function () {
+              b.classList.toggle("on");
+            });
+          });
+        }
+        document.addEventListener("click", function (ev) {
+          var b = ev.target.closest && ev.target.closest("[data-adopt]");
+          if (!b) return;
+          var id = b.getAttribute("data-adopt");
+          var i = -1;
+          SUG.forEach(function (r, k) {
+            if (r.id === id) i = k;
+          });
+          if (i < 0) return;
+          var row = SUG.splice(i, 1)[0];
+          DOING.push({
+            at: "—",
+            t: row.t,
+            d: "adopted just now · no schedule yet",
+            a: 0,
+          });
+          paintPlan();
+          // adopting a suggestion adds it to the expectation, which is the honest
+          // thing: adopting is exactly what changes the projection
+          if (
+            id === "sterols2" &&
+            !EFFECTS.some(function (e) {
+              return e.id === "sterols2";
+            })
+          ) {
+            EFFECTS.push({
+              id: "sterols2",
+              name: "Plant sterols 2 g (adopted)",
+              why: "adopted from Suggested just now",
+              kind: "supplement",
+              grade: "A",
+              effect: -13,
+              weeks: 4,
+              adherence: 1,
+              on: true,
+            });
+            paintToggles();
+            redraw(true);
+          }
+        });
+        paintPlan();
+
+        /* ══ boot ════════════════════════════════════════════════════════════ */
+        $$("[data-chart]").forEach(function (r) {
+          CHARTS.push(Chart(r));
+        });
+        paintToggles();
+        redraw(false);
+        var rt = null;
+        window.addEventListener("resize", function () {
+          clearTimeout(rt);
+          rt = setTimeout(function () {
+            redraw(false);
+          }, 120);
+        });
+        RM.addEventListener &&
+          RM.addEventListener("change", function () {
+            redraw(false);
+          });
+      })();
+    </script>
+  </body>
+</html>

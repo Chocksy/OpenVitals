@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>iOS variations, phase 36 — OpenVitals v4</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: #ffffff;
+        color: #111;
+        font-family:
+          system-ui,
+          -apple-system,
+          "Helvetica Neue",
+          Arial,
+          sans-serif;
+      }
+      .doc {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 55px 21px 89px;
+      }
+      h1 {
+        margin: 0 0 8px;
+        font-size: 34px;
+        font-weight: 500;
+        letter-spacing: -0.02em;
+      }
+      .lede {
+        margin: 0 0 34px;
+        max-width: 64ch;
+        color: #555;
+        font-size: 15px;
+      }
+      ol {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        background: #111;
+      }
+      a.row {
+        display: flex;
+        align-items: baseline;
+        gap: 13px;
+        background: #fff;
+        padding: 18px 21px;
+        text-decoration: none;
+        color: inherit;
+      }
+      a.row:hover {
+        background: #f3f3f3;
+      }
+      .n {
+        font-family: ui-monospace, "SF Mono", Menlo, monospace;
+        font-size: 12px;
+        color: #888;
+      }
+      .name {
+        font-size: 17px;
+        font-weight: 600;
+        min-width: 120px;
+      }
+      .say {
+        color: #555;
+        font-size: 14px;
+      }
+      .seed {
+        display: block;
+        font-family: ui-monospace, "SF Mono", Menlo, monospace;
+        font-size: 11px;
+        color: #999;
+        margin-top: 4px;
+        word-break: break-all;
+      }
+      .back {
+        margin-top: 34px;
+        font-size: 13px;
+      }
+      .back a {
+        color: #555;
+      }
+      .cap {
+        margin-top: 34px;
+        font-size: 12px;
+        color: #888;
+        max-width: 74ch;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="doc">
+      <h1>The phone as a living prototype</h1>
+      <p class="lede">
+        Phase 36, round two. Four directions on the same phone, from four seed
+        strings. Same data everywhere — the same seven markers off, the same
+        three goals, the same five moves, the same three meals, the same four
+        adopted plan rows — so what you are comparing is direction, not content.
+        Each file is one page with no build step: the Add flow plays on a timer
+        inside the frame, the move chips tick with the ring and the streak
+        answering, the expectation chart redraws when a habit or a food rule is
+        toggled and its tooltip follows the pointer, and a 1280 px website Home
+        is built from the same components. Real food photographs, credited in
+        each page's footer. Light and dark both hold;
+        <code>prefers-reduced-motion</code> is respected.
+      </p>
+      <ol>
+        <li>
+          <a class="row" href="01-dial.html"
+            ><span class="n">01</span>
+            <span>
+              <span class="name">Dial</span>
+              <span class="say"
+                >An instrument you can read from across the room. The seed says
+                nine twice — as a digit and as 3 × 3 — so the phone is a
+                three-column grid, and it hides the word CAL and the letters
+                d·i·a·l. One accent, instrument blue, on the dial track and the
+                projection. One mark, the needle, used four times: the target on
+                a goal scale, the target on a macro bar, the calorie goal on the
+                dial, and the value the projection lands on, which travels with
+                the number counting under it the moment you adopt a habit.</span
+              >
+              <span class="seed">jmH9kKIdVaUqldfYCAlV3xB3</span>
+            </span></a
+          >
+        </li>
+        <li>
+          <a class="row" href="02-gusto.html"
+            ><span class="n">02</span>
+            <span>
+              <span class="name">Gusto</span>
+              <span class="say"
+                >Appetite, written down. GUSTO reads straight out of the seed;
+                mulberry hairlines replace the card, 34 px numerals sit against
+                11 px caps with nothing in between, and the two counts that
+                matter share one centre — moves on the outer ring, calories on
+                the inner. The chart says its verdict in the seed's other hidden
+                word: too high, too low, in the band.</span
+              >
+              <span class="seed">MByK9NGOQUSZzaw0eTOOGtCK</span>
+            </span></a
+          >
+        </li>
+        <li>
+          <a class="row" href="03-titrate.html"
+            ><span class="n">03</span>
+            <span>
+              <span class="name">Titrate</span>
+              <span class="say"
+                >A bench at six in the morning. Verdigris on cream,
+                reagent-bottle labels in tracked mono, a graduated burette rail
+                down the left of the moves that pours as you tick, and a
+                projection drawn as a titration curve rather than a straight
+                line.</span
+              >
+              <span class="seed">0oOKPhT5ADArcO3HEhkIVSvF</span>
+            </span></a
+          >
+        </li>
+        <li>
+          <a class="row" href="04-slope.html"
+            ><span class="n">04</span>
+            <span>
+              <span class="name">Slope</span>
+              <span class="say"
+                >A day is noise; eight weeks is a slope. One blue rake off the
+                system's navy, sheared 7° across the top-left of every card, a
+                week strip that is a seven-point chart rather than seven dots,
+                and a projection that carries its landing number at the end of
+                the line so a food rule moves a number you are already looking
+                at.</span
+              >
+              <span class="seed">n7Z7zX5eRJKljZL6SClpoRpH</span>
+            </span></a
+          >
+        </li>
+      </ol>
+      <p class="back">
+        <a href="../ios-2.html">← ios-2, the drawing these come from</a> ·
+        <a href="../home-variations-2/index.html">Home variations, round two</a>
+        · <a href="../index.html">v4 index</a>
+      </p>
+      <p class="cap">
+        Same real numbers on every variation: LDL 168 mg/dL on Dec 9 2025 and
+        131 on Aug 1 2026 against a 70–100 goal band; TPO 320 IU/mL, vitamin D
+        19 ng/mL, ferritin 22 ng/mL; 52 markers with a value, 7 off; three meals
+        on Saturday Sep 5 totalling 1 497 kcal est. and 93 g of protein against
+        a 120 g target; steps 10 935 against a 90-day mean of 11 062; three
+        workouts this week; a six-day run.
+      </p>
+    </main>
+  </body>
+</html>
