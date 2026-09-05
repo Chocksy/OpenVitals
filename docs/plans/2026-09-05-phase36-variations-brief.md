@@ -73,3 +73,43 @@ compares direction, not content.
 `docs/mockups/v4/ios-variations/index.html` lists the variations with
 the seed, the name, the mood line and a link, in the style of
 `home-variations-2/index.html`.
+
+## Round two (owner, 2026-09-05 afternoon)
+
+"They are quite the same, just some components a little different. Try
+more outlandish ones: bigger charts, pie charts, restructure the
+elements, a human in 3D (male and female) showing organs, an artistic
+sketching view, something that makes it fun. Remember the mascots: some
+kind of sidekick that guides us."
+
+Same data, same rules on lime and the spectrum, same interactivity
+(Play, ticks, the expectation chart, a web Home frame, real photos).
+Each round-two variation gets a seed and a push:
+
+- 05 **Atlas**: the body itself is the home. An SVG figure (male and
+  female, a toggle), layered organs and systems that light by state
+  (thyroid loud, lipids off, iron low), pointer tilt for depth (CSS 3D
+  transforms on the layers), tapping an organ opens its markers. Goals,
+  moves and the expectation chart arranged around the figure.
+- 06 **Sketch**: a drawn notebook. Hand-drawn strokes (SVG with a
+  displacement filter, draw-on with stroke-dasharray), a handwriting
+  face for annotations (Caveat or similar from Google Fonts) beside
+  Geist for the numbers, charts that draw themselves as you watch, meal
+  photos as pasted polaroids, the receipt as a margin note.
+- 07 **Sidekick**: a mascot, in the system's palette, SVG with idle
+  blink and breathing, that lives in the tab bar's add control and
+  comes out for the Add flow (it "reads" the plate, holds the callouts,
+  celebrates a tick, sulks at a missed day gently), and speaks the
+  sentence in a bubble. The owner wanted guidance and mood; the mascot
+  is the guide.
+- 08 **Big charts**: data first. Full-bleed charts, a radial day (a
+  24-hour ring with meals, moves and sleep on it), a donut for macros,
+  the expectation chart as the hero of Today, numbers at 34 px, very
+  little prose.
+
+Defects the owner saw in round one, to avoid: a progress bar whose fill
+is thicker than its track with the needle outside it; a decorative
+index tick sitting on the corner of white cards ("this weird blue thing
+on top of the boxes"); a tick box showing a dot inside; spacing that
+does not follow the Fibonacci scale. No framework is in play: the
+mockups are hand-written CSS on system.css, so every gap is a choice.

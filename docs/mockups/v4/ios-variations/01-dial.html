@@ -5864,14 +5864,9 @@ html[data-theme="dark"],.dark{
 .num{font-family:var(--font-mono);font-variant-numeric:tabular-nums;font-weight:200;
   letter-spacing:-.04em;line-height:1}
 
-/* ── the card language: a hairline box with an index tick ─────────── */
+/* ── the card language: a clean hairline box, nothing on its edge ── */
 .dcard{position:relative;border-radius:var(--r-card);background:var(--surface-flat);
   box-shadow:inset 0 0 0 1px var(--hair);padding:var(--s13)}
-.dcard::before,.dcard::after{content:"";position:absolute;background:var(--dl-2);
-  pointer-events:none}
-.dcard::before{left:var(--s13);top:0;width:var(--s21);height:2px}
-.dcard::after{left:var(--s13);top:0;width:2px;height:var(--s8)}
-.dcard.plain::before,.dcard.plain::after{display:none}
 .dcard h4{margin:0 0 var(--s8);font-family:var(--font-mono);font-size:var(--type-xs);
   letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3);font-weight:400}
 .dwash{background:var(--dl-wash)}
@@ -5893,34 +5888,40 @@ html[data-theme="dark"],.dark{
 /* ── the dial: the one shape this variation repeats ───────────────── */
 .dial{position:relative;flex:none}
 .dial svg{display:block;overflow:visible}
-.dial .trk{fill:none;stroke:var(--track);stroke-width:7;stroke-linecap:round}
-.dial .val{fill:none;stroke:var(--dl);stroke-width:7;stroke-linecap:round;
+.dial .trk{fill:none;stroke:var(--track);stroke-width:5;stroke-linecap:round}
+.dial .val{fill:none;stroke:var(--dl);stroke-width:5;stroke-linecap:round;
   transition:stroke-dashoffset var(--d3) var(--ease),stroke var(--d2) var(--ease)}
 .dial.tick .val{stroke:var(--lime)}
-.dial .ndl{stroke:var(--ink);stroke-width:2;stroke-linecap:round}
+.dial .ndl{stroke:var(--ink);stroke-width:2;stroke-linecap:butt}
 .dial .mid{position:absolute;inset:0;display:flex;flex-direction:column;
-  align-items:center;justify-content:center;gap:1px;text-align:center}
+  align-items:center;justify-content:center;gap:var(--s3);text-align:center}
 .dial .mid b{font-family:var(--font-mono);font-variant-numeric:tabular-nums;
-  font-weight:200;letter-spacing:-.04em;font-size:var(--type-xl);line-height:1;color:var(--ink)}
+  font-weight:200;letter-spacing:-.04em;font-size:var(--type-lg);line-height:1;color:var(--ink)}
+/* 34 px only where the ring is wide enough to hold it: the 144 px web dial. */
+.dial.lg .mid b{font-size:var(--type-xl)}
 .dial .mid span{font-family:var(--font-mono);font-size:10px;letter-spacing:.1em;
   text-transform:uppercase;color:var(--ink-3)}
-.dial.sm .mid b{font-size:var(--type-lg)}
-.dial.sm .trk,.dial.sm .val{stroke-width:5}
 
 /* the 3 × 3: every block on the phone is one, two or three of three */
 .g3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--s8)}
 .g3 .w2{grid-column:span 2}
+/* the line under a gauge is a value, so it keeps its case and never
+   wraps into a second uppercase row on a 390 phone. */
+.gauge + .lab{text-transform:none;letter-spacing:.06em}
 .g3 .w3{grid-column:span 3}
 
-/* ── the scale with a needle: the one mark that means one thing ──── */
-.scale{position:relative;height:var(--s8);border-radius:var(--r-pill);
-  background:var(--track);overflow:visible;margin:var(--s5) 0}
-.scale i{position:absolute;left:0;top:0;bottom:0;width:var(--p,0%);
+/* ── the gauge with a needle: the one mark that means one thing ────
+   Named .gauge, not .scale: system.css already owns .scale (a 21 px
+   type-ladder bar) and its height was landing on this 8 px track. */
+.gauge{position:relative;height:var(--s8);border-radius:var(--r-pill);
+  background:var(--track);overflow:hidden;margin:var(--s5) 0}
+.gauge i{position:absolute;left:0;top:0;height:100%;width:var(--p,0%);
   border-radius:var(--r-pill);background:var(--dl);
   transition:width var(--d3) var(--ease)}
-.scale u{position:absolute;left:var(--t,50%);top:-4px;bottom:-4px;width:2px;
+.gauge u{position:absolute;top:0;height:100%;width:2px;
+  left:clamp(0px,calc(var(--t,50%) - 1px),calc(100% - 2px));
   background:var(--ink);text-decoration:none}
-.scale.band::before{content:"";position:absolute;left:var(--ba,0%);right:var(--bb,0%);
+.gauge.band::before{content:"";position:absolute;left:var(--ba,0%);right:var(--bb,0%);
   top:0;bottom:0;background:var(--dl-wash);border-radius:var(--r-pill)}
 
 /* ── week strip and streak, from ios-2, restated on the dial grid ── */
@@ -5934,7 +5935,7 @@ html[data-theme="dark"],.dark{
 .wd7.done i{background:var(--ink);color:var(--canvas)}
 .wd7.today i{background:none;box-shadow:inset 0 0 0 1.5px var(--dl);color:var(--ink)}
 .flame{display:inline-flex;align-items:center;gap:var(--s3);border-radius:var(--r-pill);
-  background:var(--surface-hi);box-shadow:inset 0 0 0 1px var(--hair);padding:2px var(--s8);
+  background:var(--surface-hi);box-shadow:inset 0 0 0 1px var(--hair);padding:var(--s3) var(--s8);
   font-family:var(--font-mono);font-size:var(--type-xs);color:var(--ink)}
 .flame .ic{color:var(--warn);animation:dl-breathe 2400ms var(--ease) infinite}
 .flame.lit{box-shadow:inset 0 0 0 1px var(--warn)}
@@ -5951,8 +5952,8 @@ html[data-theme="dark"],.dark{
   color var(--d2) var(--ease),box-shadow var(--d2) var(--ease)}
 .movechip .bx{width:var(--s13);height:var(--s13);border-radius:3px;
   box-shadow:inset 0 0 0 1px var(--hair);display:grid;place-items:center;flex:none}
-.movechip .bx .ic{width:11px;height:11px;stroke-dasharray:21;stroke-dashoffset:21}
-.movechip .col{display:flex;flex-direction:column;gap:1px;align-items:flex-start}
+.movechip .bx .ic{width:11px;height:11px;stroke-dasharray:24;stroke-dashoffset:24}
+.movechip .col{display:flex;flex-direction:column;gap:var(--s3);align-items:flex-start}
 .movechip .src{display:inline-flex;align-items:center;gap:3px;font-family:var(--font-mono);
   font-size:10px;color:var(--ink-3)}
 .movechip[aria-pressed="true"]{background:var(--ink);color:var(--canvas);box-shadow:none;
@@ -5962,6 +5963,9 @@ html[data-theme="dark"],.dark{
 .movechip[aria-pressed="true"] .src{color:color-mix(in oklab,var(--canvas) 72%,transparent)}
 @keyframes dl-press{0%{transform:scale(.96)}60%{transform:scale(1.03)}100%{transform:scale(1)}}
 @keyframes dl-check{to{stroke-dashoffset:0}}
+/* system.css sets 21 on .m-check, one unit short of the 22.63 path, so an
+   unrun check leaves a stub that reads as a dot. 24 clears it. */
+.m-check svg path{stroke-dasharray:24;stroke-dashoffset:24}
 
 /* ── the player: the Add flow, run on a timer ─────────────────────── */
 .player{display:flex;flex-wrap:wrap;align-items:center;gap:var(--s8);
@@ -5992,7 +5996,7 @@ html[data-theme="dark"],.dark{
 @keyframes dl-shimmer{to{background-position:-250% 0}}
 .callout{position:absolute;left:var(--x);top:var(--y);transform:translate(-50%,-50%);
   display:inline-flex;align-items:center;border-radius:var(--r-pill);background:var(--ink);
-  color:var(--canvas);font-size:var(--type-xs);padding:3px var(--s8);white-space:nowrap;
+  color:var(--canvas);font-size:var(--type-xs);padding:var(--s3) var(--s8);white-space:nowrap;
   animation:dl-in 270ms var(--ease) both;animation-delay:calc(var(--i) * 520ms)}
 .callout u{position:absolute;left:50%;top:100%;width:1px;height:var(--h,21px);
   background:var(--ink);text-decoration:none}
@@ -6027,10 +6031,10 @@ html[data-theme="dark"],.dark{
 .thumbs figure.now{opacity:1;box-shadow:inset 0 0 0 2px var(--lime)}
 .thumbs figure figcaption{position:absolute;left:0;right:0;bottom:0;
   background:color-mix(in oklab,var(--ink) 78%,transparent);color:var(--canvas);
-  font-family:var(--font-mono);font-size:10px;padding:2px var(--s5);text-align:center}
+  font-family:var(--font-mono);font-size:10px;padding:var(--s3) var(--s5);text-align:center}
 
 .stepper{display:inline-flex;align-items:center;gap:var(--s5);border-radius:var(--r-pill);
-  box-shadow:inset 0 0 0 1px var(--hair);padding:2px var(--s3);flex:none}
+  box-shadow:inset 0 0 0 1px var(--hair);padding:var(--s3);flex:none}
 .stepper button{width:32px;height:32px;border:0;border-radius:var(--r-pill);
   background:transparent;color:var(--ink);cursor:pointer;display:grid;place-items:center}
 .stepper b{font-family:var(--font-mono);font-size:var(--type-sm);font-weight:400;
@@ -6081,7 +6085,7 @@ html[data-theme="dark"],.dark{
 .tg .eff{font-family:var(--font-mono);font-size:var(--type-xs);color:var(--ink-3);
   white-space:nowrap}
 .tg .ttl{display:block}
-.tg .why{display:block;font-size:var(--type-xs);color:var(--ink-3);margin-top:1px}
+.tg .why{display:block;font-size:var(--type-xs);color:var(--ink-3);margin-top:var(--s3)}
 
 /* ── swipe row, meals, plan ───────────────────────────────────────── */
 .mealrow{display:grid;grid-template-columns:var(--s55) minmax(0,1fr) auto;gap:var(--s8);
@@ -6090,7 +6094,7 @@ html[data-theme="dark"],.dark{
   object-fit:cover;box-shadow:inset 0 0 0 1px var(--hair)}
 .mealrow .t{font-size:var(--type-sm);color:var(--ink);line-height:1.3}
 .mealrow .m{font-family:var(--font-mono);font-size:var(--type-xs);color:var(--ink-3);
-  margin-top:2px}
+  margin-top:var(--s3)}
 .swipe{overflow:hidden}
 .swipe .in{display:flex;align-items:center;gap:var(--s8);width:calc(100% + 118px);transition:transform var(--d2) var(--ease)}
 .swipe .in > .mealrow{flex:1;min-width:0}
@@ -6101,18 +6105,18 @@ html[data-theme="dark"],.dark{
   font-size:var(--type-xs);padding:var(--s5) var(--s8);cursor:pointer;border-radius:var(--s8)}
 .swipeact button.del{color:var(--bad)}
 .adoptrow{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:var(--s8);align-items:start}
-.adoptrow .why{display:block;font-size:var(--type-xs);color:var(--ink-3);margin-top:2px;line-height:1.5}
+.adoptrow .why{display:block;font-size:var(--type-xs);color:var(--ink-3);margin-top:var(--s3);line-height:1.5}
 .adoptrow .basis{display:block;font-family:var(--font-mono);font-size:10px;color:var(--ink-3);
   letter-spacing:.06em;margin-top:var(--s5)}
 .planrow{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:var(--s8);
   align-items:start}
 .tickbtn{width:44px;height:44px;border:0;background:transparent;cursor:pointer;
-  display:grid;place-items:center;flex:none;margin:-2px 0 0 -8px}
+  display:grid;place-items:center;flex:none;margin:0 0 0 calc(var(--s8) * -1)}
 .tickbtn i{width:var(--s21);height:var(--s21);border-radius:5px;display:grid;
   place-items:center;box-shadow:inset 0 0 0 1.5px var(--hair);color:transparent;
   transition:background-color var(--d2) var(--ease),box-shadow var(--d2) var(--ease)}
 .tickbtn[aria-pressed="true"] i{background:var(--ink);box-shadow:none;color:var(--canvas)}
-.tickbtn .ic{width:13px;height:13px;stroke-dasharray:21;stroke-dashoffset:21}
+.tickbtn .ic{width:13px;height:13px;stroke-dasharray:24;stroke-dashoffset:24}
 .tickbtn[aria-pressed="true"] .ic{animation:dl-check 270ms var(--ease) forwards}
 .adh{width:55px;height:5px;border-radius:var(--r-pill);background:var(--track);
   overflow:hidden;margin-top:var(--s5)}
@@ -6138,7 +6142,7 @@ html[data-theme="dark"],.dark{
 .mealcards img{display:block;width:100%;height:89px;object-fit:cover}
 .mealcards figcaption{padding:var(--s8)}
 .mealcards .t{font-size:var(--type-sm);color:var(--ink);line-height:1.3}
-.mealcards .m{font-family:var(--font-mono);font-size:10px;color:var(--ink-3);margin-top:3px}
+.mealcards .m{font-family:var(--font-mono);font-size:10px;color:var(--ink-3);margin-top:var(--s3)}
 
 /* ── credits and tables ───────────────────────────────────────────── */
 .tbl{width:100%;border-collapse:collapse;font-size:var(--type-sm)}
@@ -6167,7 +6171,7 @@ html[data-theme="dark"],.dark{
   .callout,.fadein{opacity:1;filter:none;transform:translate(-50%,-50%)}
   .fadein{transform:none}
   .wave i{height:var(--s8)}
-  .dial .val,.expo .proj,.scale i,.swipe .in,.tg .sw::after{transition:none}
+  .dial .val,.expo .proj,.gauge i,.swipe .in,.tg .sw::after{transition:none}
   .scanline{display:none}
 }
     </style>
@@ -6251,8 +6255,8 @@ html[data-theme="dark"],.dark{
               <dt>Accent</dt>
               <dd>
                 <b>Instrument blue #2f5170</b>, one accent, never a word. It
-                tints the dial track, the hairline index ticks, the projection
-                line and the chart wash. Lime stays on the add control and the
+                tints the dial track, the gauge fill, the projection line and
+                the chart wash. Lime stays on the add control and the
                 scan line; the spectrum stays a word or a mark.
               </dd>
             </dl>
@@ -6281,10 +6285,10 @@ html[data-theme="dark"],.dark{
             <dl>
               <dt>Cards</dt>
               <dd>
-                No shadow. A hairline box with an index tick in the top-left
-                corner, the mark an instrument face carries. Radii 21 outside,
-                13 inside. The only fills are the ticked chip (ink) and the dial
-                wash.
+                No shadow, no mark on the edge. A hairline box and nothing
+                else, so the instrument inside it is the only thing to read.
+                Radii 21 outside, 13 inside. The only fills are the ticked chip
+                (ink) and the dial wash.
               </dd>
             </dl>
           </div>
@@ -6428,7 +6432,7 @@ html[data-theme="dark"],.dark{
                           stroke-dashoffset="85.6"
                           transform="rotate(-90 55 55)"
                         />
-                        <line class="ndl" x1="55" y1="4" x2="55" y2="16" />
+                        <line class="ndl" x1="55" y1="5.5" x2="55" y2="10.5" />
                       </svg>
                       <span class="mid"><b>1 497</b><span>of 2 100</span></span>
                     </div>
@@ -6444,14 +6448,14 @@ html[data-theme="dark"],.dark{
                         arc is what the three meals came to.
                       </p>
                       <p class="lab" style="margin: var(--s8) 0 0">
-                        3 meals · 1 from a photo
+                        3 meals · 1 photo
                       </p>
                     </div>
                   </div>
                   <div class="g3" style="margin-top: var(--s13)">
                     <div>
                       <span class="lab">Protein</span>
-                      <div class="scale" style="--p: 78%; --t: 100%">
+                      <div class="gauge" style="--p: 78%; --t: 100%">
                         <i></i><u></u>
                       </div>
                       <span class="lab" style="letter-spacing: 0.06em"
@@ -6460,16 +6464,16 @@ html[data-theme="dark"],.dark{
                     </div>
                     <div>
                       <span class="lab">Carbs</span>
-                      <div class="scale" style="--p: 44%"><i></i></div>
+                      <div class="gauge" style="--p: 44%"><i></i></div>
                       <span class="lab" style="letter-spacing: 0.06em"
-                        >93 g · no target</span
+                        >93 g</span
                       >
                     </div>
                     <div>
                       <span class="lab">Fat</span>
-                      <div class="scale" style="--p: 52%"><i></i></div>
+                      <div class="gauge" style="--p: 52%"><i></i></div>
                       <span class="lab" style="letter-spacing: 0.06em"
-                        >84 g · no target</span
+                        >84 g</span
                       >
                     </div>
                   </div>
@@ -6501,7 +6505,7 @@ html[data-theme="dark"],.dark{
                         >
                       </div>
                       <div
-                        class="scale band"
+                        class="gauge band"
                         style="--p: 31%; --t: 66%; --ba: 66%; --bb: 0%"
                       >
                         <i></i><u></u>
@@ -6529,7 +6533,7 @@ html[data-theme="dark"],.dark{
                         >
                       </div>
                       <div
-                        class="scale band"
+                        class="gauge band"
                         style="--p: 71%; --t: 22%; --ba: 0%; --bb: 78%"
                       >
                         <i></i><u></u>
@@ -6557,7 +6561,7 @@ html[data-theme="dark"],.dark{
                         >
                       </div>
                       <div
-                        class="scale band"
+                        class="gauge band"
                         style="--p: 22%; --t: 50%; --ba: 50%; --bb: 0%"
                       >
                         <i></i><u></u>
@@ -7080,7 +7084,7 @@ html[data-theme="dark"],.dark{
                         <span class="n">1 497</span
                         ><span class="u">/ 2 100 kcal</span>
                       </div>
-                      <div class="scale" style="--p: 71%; --t: 100%">
+                      <div class="gauge" style="--p: 71%; --t: 100%">
                         <i></i><u></u>
                       </div>
                       <span
@@ -7787,7 +7791,7 @@ html[data-theme="dark"],.dark{
                         >93 / 120 g</span
                       >
                     </div>
-                    <div class="scale" style="--p: 78%; --t: 100%">
+                    <div class="gauge" style="--p: 78%; --t: 100%">
                       <i></i><u></u>
                     </div>
                     <div
@@ -7799,10 +7803,10 @@ html[data-theme="dark"],.dark{
                     >
                       <span class="lab">Carbs</span
                       ><span class="lab" style="letter-spacing: 0.06em"
-                        >93 g · no target</span
+                        >93 g</span
                       >
                     </div>
-                    <div class="scale" style="--p: 44%"><i></i></div>
+                    <div class="gauge" style="--p: 44%"><i></i></div>
                     <div
                       style="
                         display: flex;
@@ -7812,10 +7816,10 @@ html[data-theme="dark"],.dark{
                     >
                       <span class="lab">Fat</span
                       ><span class="lab" style="letter-spacing: 0.06em"
-                        >84 g · no target</span
+                        >84 g</span
                       >
                     </div>
-                    <div class="scale" style="--p: 52%"><i></i></div>
+                    <div class="gauge" style="--p: 52%"><i></i></div>
                   </div>
                 </div>
 
@@ -8313,7 +8317,7 @@ html[data-theme="dark"],.dark{
                             stroke-dashoffset="85.6"
                             transform="rotate(-90 55 55)"
                           />
-                          <line class="ndl" x1="55" y1="4" x2="55" y2="16" />
+                          <line class="ndl" x1="55" y1="5.5" x2="55" y2="10.5" />
                         </svg>
                         <span class="mid"
                           ><b>1 497</b><span>of 2 100</span></span
@@ -8557,7 +8561,7 @@ html[data-theme="dark"],.dark{
                 <div
                   style="display: flex; align-items: center; gap: var(--s21)"
                 >
-                  <div class="dial" style="width: 144px; height: 144px">
+                  <div class="dial lg" style="width: 144px; height: 144px">
                     <svg
                       viewBox="0 0 144 144"
                       width="144"
@@ -8575,7 +8579,7 @@ html[data-theme="dark"],.dark{
                         stroke-dashoffset="112.9"
                         transform="rotate(-90 72 72)"
                       />
-                      <line class="ndl" x1="72" y1="4" x2="72" y2="18" />
+                      <line class="ndl" x1="72" y1="7.5" x2="72" y2="12.5" />
                     </svg>
                     <span class="mid"><b>1 497</b><span>of 2 100</span></span>
                   </div>
@@ -8586,7 +8590,7 @@ html[data-theme="dark"],.dark{
                         >93 / 120 g</span
                       >
                     </div>
-                    <div class="scale" style="--p: 78%; --t: 100%">
+                    <div class="gauge" style="--p: 78%; --t: 100%">
                       <i></i><u></u>
                     </div>
                     <div
@@ -8601,7 +8605,7 @@ html[data-theme="dark"],.dark{
                         >93 g</span
                       >
                     </div>
-                    <div class="scale" style="--p: 44%"><i></i></div>
+                    <div class="gauge" style="--p: 44%"><i></i></div>
                     <div
                       style="
                         display: flex;
@@ -8614,7 +8618,7 @@ html[data-theme="dark"],.dark{
                         >84 g</span
                       >
                     </div>
-                    <div class="scale" style="--p: 52%"><i></i></div>
+                    <div class="gauge" style="--p: 52%"><i></i></div>
                   </div>
                 </div>
               </div>
@@ -8702,7 +8706,7 @@ html[data-theme="dark"],.dark{
                       >
                     </div>
                     <div
-                      class="scale band"
+                      class="gauge band"
                       style="--p: 31%; --t: 66%; --ba: 66%; --bb: 0%"
                     >
                       <i></i><u></u>
@@ -8717,7 +8721,7 @@ html[data-theme="dark"],.dark{
                       >
                     </div>
                     <div
-                      class="scale band"
+                      class="gauge band"
                       style="--p: 71%; --t: 22%; --ba: 0%; --bb: 78%"
                     >
                       <i></i><u></u>
@@ -8732,7 +8736,7 @@ html[data-theme="dark"],.dark{
                       >
                     </div>
                     <div
-                      class="scale band"
+                      class="gauge band"
                       style="--p: 22%; --t: 50%; --ba: 50%; --bb: 0%"
                     >
                       <i></i><u></u>
@@ -8933,7 +8937,7 @@ html[data-theme="dark"],.dark{
         <p class="cap">
           The frame is 1280 px wide; it scrolls sideways inside this page rather
           than shrinking, so the desktop density is honest. Every class in it —
-          <code>.dial</code>, <code>.scale</code>, <code>.movechip</code>,
+          <code>.dial</code>, <code>.gauge</code>, <code>.movechip</code>,
           <code>.weekstrip</code>, <code>.expo</code>, <code>.mealcards</code> —
           is the same class the phone uses.
         </p>

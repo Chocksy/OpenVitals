@@ -2324,8 +2324,8 @@ html[data-theme="dark"] .empty {
   }
 }
 .m-check svg path {
-  stroke-dasharray: 21;
-  stroke-dashoffset: 21;
+  stroke-dasharray: 24;
+  stroke-dashoffset: 24;
 }
 .m-check.run svg path {
   animation: check-draw 400ms var(--ease) forwards;

@@ -5885,21 +5885,21 @@ html[data-theme="dark"],.dark{
 /* ── the burette rail: the seed's 0 → o → O, drawn as a graduated column
       down the left of a panel. The fill is the day, poured top to bottom. */
 .burette{position:relative;padding-left:var(--s21)}
-.burette::before{content:"";position:absolute;left:var(--s5);top:2px;bottom:2px;width:1px;
+.burette::before{content:"";position:absolute;left:var(--s5);top:0;bottom:0;width:1px;
   background:var(--tt-line)}
-.burette .fill{position:absolute;left:3px;top:2px;width:5px;border-radius:var(--r-pill);
+.burette .fill{position:absolute;left:var(--s3);top:0;width:5px;border-radius:var(--r-pill);
   background:var(--tt);opacity:.5;height:var(--h,0%);
   transition:height var(--f4) var(--ease)}
 .burette .grad{position:absolute;left:0;width:var(--s13);height:1px;background:var(--tt-line);
-  top:var(--t)}
+  top:var(--t);z-index:1}
 .burette .grad.big{width:var(--s21);background:var(--tt)}
 
 /* ── the play bar ────────────────────────────────────────────────────── */
 .playbar{display:flex;flex-wrap:wrap;align-items:center;gap:var(--s8);
   border-radius:var(--r-pill);background:var(--surface-flat);
   box-shadow:inset 0 0 0 1px var(--hair);padding:var(--s5);margin-bottom:var(--s13)}
-.modes{display:flex;gap:2px;background:var(--canvas-deep);border-radius:var(--r-pill);
-  padding:2px}
+.modes{display:flex;gap:var(--s3);background:var(--canvas-deep);border-radius:var(--r-pill);
+  padding:var(--s3)}
 .modes button{border:0;background:transparent;color:var(--ink-2);font-family:var(--font-mono);
   font-size:10px;letter-spacing:.1em;text-transform:uppercase;padding:var(--s5) var(--s8);
   border-radius:var(--r-pill);cursor:pointer;min-height:28px}
@@ -6000,7 +6000,7 @@ html[data-theme="dark"] .modes button[aria-pressed="true"]{color:#0b1a19}
   font-variant-numeric:tabular-nums;font-weight:300;font-size:var(--type-md);color:var(--ink)}
 .macrotile span{display:block;font-size:10px;color:var(--ink-3)}
 .stepper{display:inline-flex;align-items:center;gap:var(--s5);border-radius:var(--r-pill);
-  box-shadow:inset 0 0 0 1px var(--hair);padding:2px var(--s3);flex:none}
+  box-shadow:inset 0 0 0 1px var(--hair);padding:var(--s3);flex:none}
 .stepper button{width:30px;height:30px;border:0;border-radius:var(--r-pill);
   background:transparent;color:var(--ink);cursor:pointer;display:grid;place-items:center}
 .stepper b{font-family:var(--font-mono);font-size:var(--type-sm);font-weight:400;
@@ -6014,7 +6014,7 @@ html[data-theme="dark"] .modes button[aria-pressed="true"]{color:#0b1a19}
   transition:background-color var(--f2) var(--ease),box-shadow var(--f2) var(--ease)}
 .movechip .bx{width:var(--s13);height:var(--s13);border-radius:var(--s3);
   box-shadow:inset 0 0 0 1px var(--tt-line);display:grid;place-items:center;flex:none}
-.movechip .bx .ic{width:11px;height:11px;stroke-dasharray:21;stroke-dashoffset:21}
+.movechip .bx .ic{width:11px;height:11px;stroke-dasharray:24;stroke-dashoffset:24}
 .movechip.on{background:var(--ink);color:var(--canvas);box-shadow:none;
   animation:tt-tick var(--f3) var(--ease)}
 .movechip.on .bx{box-shadow:inset 0 0 0 1px color-mix(in oklab,var(--canvas) 45%,transparent)}
@@ -6023,6 +6023,9 @@ html[data-theme="dark"] .modes button[aria-pressed="true"]{color:#0b1a19}
 .movechip.on .src{color:color-mix(in oklab,var(--canvas) 72%,transparent)}
 @keyframes tt-tick{0%{transform:scale(.96)}60%{transform:scale(1.03)}100%{transform:scale(1)}}
 @keyframes tt-draw{to{stroke-dashoffset:0}}
+/* system.css sets 21 on .m-check, one unit short of the 22.63 check path,
+   so an undrawn check leaves a stub that reads as a dot. 24 clears it. */
+.m-check svg path{stroke-dasharray:24;stroke-dashoffset:24}
 .flame{display:inline-flex;align-items:center;gap:var(--s3);border-radius:var(--r-pill);
   background:var(--surface-flat);box-shadow:inset 0 0 0 1px var(--hair);padding:3px var(--s8);
   font-family:var(--font-mono);font-size:var(--type-xs);color:var(--ink)}
@@ -6121,7 +6124,7 @@ html[data-theme="dark"] .wd7.today.done i{color:#0b1a19}
 
 /* a three-part row: title, why, state. system.css's .dayrow wants
    .at/.box/.what/.why/.tag and a tick box these rows have no use for. */
-.trow{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px var(--s13);
+.trow{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:var(--s3) var(--s13);
   align-items:baseline;padding:var(--s8) 0;border-bottom:1px solid var(--hair)}
 .rowlist > .trow:last-child{border-bottom:0}
 .trow b{grid-column:1;grid-row:1;font-size:var(--type-sm);font-weight:400;color:var(--ink);min-width:0}
@@ -6140,6 +6143,14 @@ html[data-theme="dark"] .wd7.today.done i{color:#0b1a19}
 .mtable th{font-family:var(--font-mono);font-size:10px;letter-spacing:.12em;
   text-transform:uppercase;color:var(--tt);font-weight:500}
 .mtable td.n{font-family:var(--font-mono);color:var(--ink-2);white-space:nowrap}
+
+/* below 480 v4.css sets .phone{width:100%}, so a .phones flex row whose first
+   column has no definite width collapses to min-content (the s03 phone came
+   out 26 px wide at 390). Stack the columns instead. */
+@media (max-width:480px){
+  .phones{display:block}
+  .phones > div + div{margin-top:var(--s34)}
+}
 
 @media (prefers-reduced-motion:reduce){
   .scanline,.shimmer,.loader3 i,.flame .ic,.dropin,.callout,.movechip.on,
@@ -6461,7 +6472,7 @@ html[data-theme="dark"] .wd7.today.done i{color:#0b1a19}
                           style="
                             display: flex;
                             flex-direction: column;
-                            gap: 2px;
+                            gap: var(--s3);
                             align-items: flex-start;
                           "
                           >Steps 10 000
@@ -6513,7 +6524,7 @@ html[data-theme="dark"] .wd7.today.done i{color:#0b1a19}
                           style="
                             display: flex;
                             flex-direction: column;
-                            gap: 2px;
+                            gap: var(--s3);
                             align-items: flex-start;
                           "
                           >Resistance, 45 min
@@ -6822,7 +6833,7 @@ html[data-theme="dark"] .wd7.today.done i{color:#0b1a19}
                     </svg>
                     <div style="min-width: 0">
                       <p class="lab" style="margin: 0">Eaten today</p>
-                      <p class="num xl" style="margin: 2px 0 0">
+                      <p class="num xl" style="margin: var(--s3) 0 0">
                         1 497<span
                           style="font-size: var(--type-sm); color: var(--ink-3)"
                         >
@@ -6841,7 +6852,7 @@ html[data-theme="dark"] .wd7.today.done i{color:#0b1a19}
                     </div>
                   </div>
                   <div class="macrotile" style="margin-top: var(--s13)">
-                    <div><span>protein</span><b>93 / 120 g</b></div>
+                    <div><span>protein · of 120</span><b>93 g</b></div>
                     <div><span>carbs</span><b>93 g</b></div>
                     <div><span>fat</span><b>84 g</b></div>
                   </div>

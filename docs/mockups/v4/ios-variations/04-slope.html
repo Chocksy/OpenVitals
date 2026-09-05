@@ -5838,7 +5838,7 @@ html[data-theme="dark"] {
     <style>
 /* ══ Slope. Seed n7Z7zX5eRJKljZL6SClpoRpH ═══════════════════════════════
    system.css is the base. This block adds the variation and nothing else:
-   the rake, the seven-point week strip, the played Add flow, the tickable
+   the seven-point week strip, the played Add flow, the tickable
    chips, the expectation chart and the 1280 web frame.
    Rules kept: lime only on the add control, spectrum only as a word or a
    mark, navy the only dark surface, Fibonacci space, radii 13/21/34/pill,
@@ -5858,11 +5858,10 @@ html[data-theme="dark"], .dark{
   --rake-wash:rgba(143,182,228,.09);
 }
 
-/* ── the rake: 55 px of accent at every card's top-left, sheared 7° ──── */
+/* ── cards: a clean hairline box. The rake used to sit a sheared accent bar
+      on the top-left corner, over the card's own hairline and its radius;
+      it is gone. The 7° shear survives where it belongs, in the chart. ── */
 .panel.raked{position:relative;overflow:hidden}
-.panel.raked::before{content:"";position:absolute;left:0;top:0;width:55px;height:3px;
-  background:linear-gradient(97deg,var(--rake),transparent);transform-origin:left center;
-  transform:skewY(-7deg) translateY(1px)}
 
 /* ── WeekStrip, drawn as a seven-point chart ─────────────────────────── */
 .wstrip{position:relative;height:76px;margin-top:var(--s8)}
@@ -5880,7 +5879,7 @@ html[data-theme="dark"], .dark{
 
 /* ── StreakFlame ─────────────────────────────────────────────────────── */
 .flame{display:inline-flex;align-items:center;gap:var(--s3);border-radius:var(--r-pill);
-  background:var(--surface-hi);box-shadow:inset 0 0 0 1px var(--hair);padding:2px var(--s8);
+  background:var(--surface-hi);box-shadow:inset 0 0 0 1px var(--hair);padding:var(--s3) var(--s8);
   font-family:var(--font-mono);font-size:var(--type-xs);color:var(--ink)}
 .flame .ic{width:14px;height:14px;color:var(--ink-3);transition:color var(--d2) var(--ease)}
 .flame.lit .ic{color:var(--warn);animation:sl-flicker 1.4s var(--ease) 3}
@@ -5894,15 +5893,18 @@ html[data-theme="dark"], .dark{
   transition:background-color var(--d1) var(--ease),color var(--d1) var(--ease),transform var(--d1) var(--ease)}
 .mchip .bx{width:var(--s13);height:var(--s13);border-radius:4px;flex:none;display:grid;place-items:center;
   box-shadow:inset 0 0 0 1px var(--hair)}
-.mchip .bx .ic{width:11px;height:11px;stroke-dasharray:21;stroke-dashoffset:21}
+.mchip .bx .ic{width:11px;height:11px;stroke-dasharray:24;stroke-dashoffset:24}
 .mchip.on{background:var(--ink);color:var(--canvas);box-shadow:none;animation:sl-tick var(--d2) var(--ease)}
 .mchip.on .bx{box-shadow:inset 0 0 0 1px color-mix(in oklab,var(--canvas) 45%,transparent)}
 .mchip.on .bx .ic{animation:check-draw var(--d3) var(--ease) 90ms forwards}
 .mchip .src{display:flex;align-items:center;gap:3px;font-family:var(--font-mono);font-size:10px;color:var(--ink-3)}
 .mchip.on .src{color:color-mix(in oklab,var(--canvas) 70%,transparent)}
-.mchip .col{display:flex;flex-direction:column;gap:1px;align-items:flex-start;min-width:0}
+.mchip .col{display:flex;flex-direction:column;gap:var(--s3);align-items:flex-start;min-width:0}
 .mchip:focus-visible{outline:2px solid var(--rake);outline-offset:2px}
 .arc .val{transition:stroke-dashoffset var(--d3) var(--ease)}
+/* system.css sets 21 on .m-check, one unit short of the 22.63 check path,
+   so an undrawn check leaves a stub that reads as a dot. 24 clears it. */
+.m-check svg path{stroke-dasharray:24;stroke-dashoffset:24}
 .arc.raked .val{stroke:var(--rake)}
 
 /* ── the played Add flow ─────────────────────────────────────────────── */
@@ -5922,7 +5924,7 @@ html[data-theme="dark"], .dark{
 .ticker{font-family:var(--font-mono);font-size:var(--type-xs);color:var(--ink-3)}
 .quote{font-size:var(--type-sm);color:var(--ink-2);border-left:2px solid var(--rake);padding-left:var(--s8)}
 .caret::after{content:"";display:inline-block;width:1px;height:1em;background:var(--ink);
-  margin-left:1px;vertical-align:-2px;animation:sl-caret 1.12s steps(2) infinite}
+  vertical-align:-2px;animation:sl-caret 1.12s steps(2) infinite}
 .loader3{display:inline-flex;gap:var(--s3);align-items:center}
 .loader3 i{width:var(--s5);height:var(--s5);border-radius:var(--r-pill);background:var(--ink-3);
   animation:sl-dot var(--d4) var(--ease) infinite}
@@ -5931,7 +5933,7 @@ html[data-theme="dark"], .dark{
 .kept{display:inline-flex;align-items:center;gap:var(--s5);border-radius:var(--r-pill);
   background:var(--surface-hi);box-shadow:inset 0 0 0 1px var(--hair);padding:3px var(--s8);
   font-size:var(--type-xs);color:var(--ink);animation:sl-rise var(--d3) var(--ease) both}
-.wave{display:flex;align-items:center;gap:2px;height:44px}
+.wave{display:flex;align-items:center;gap:var(--s3);height:44px}
 .wave i{flex:1;min-width:2px;background:var(--rake);border-radius:var(--r-pill);height:14%;
   transform-origin:center;animation:sl-wave 1.12s var(--ease) infinite}
 .shot{position:relative;border-radius:var(--r-inner);overflow:hidden;background:var(--canvas-deep);
@@ -5961,7 +5963,7 @@ html[data-theme="dark"], .dark{
 .thumbs .t.done .mk{display:grid;animation:sl-pop var(--d2) var(--ease)}
 .thumbs .t .mk .ic{width:10px;height:10px}
 .stepper{display:inline-flex;align-items:center;gap:var(--s5);border-radius:var(--r-pill);
-  box-shadow:inset 0 0 0 1px var(--hair);padding:2px var(--s3);flex:none}
+  box-shadow:inset 0 0 0 1px var(--hair);padding:var(--s3);flex:none}
 .stepper button{width:28px;height:28px;border:0;border-radius:var(--r-pill);background:transparent;
   color:var(--ink);cursor:pointer;display:grid;place-items:center}
 .stepper b{font-family:var(--font-mono);font-size:var(--type-sm);font-weight:400;min-width:var(--s21);text-align:center}
@@ -6038,11 +6040,9 @@ html[data-theme="dark"], .dark{
 /* ── the direction block ─────────────────────────────────────────────── */
 .dir{border-radius:var(--r-hero);background:var(--surface-flat);box-shadow:inset 0 0 0 1px var(--hair);
   padding:var(--s21);position:relative;overflow:hidden;max-width:74ch}
-.dir::before{content:"";position:absolute;left:0;top:0;width:89px;height:3px;
-  background:linear-gradient(97deg,var(--rake),transparent);transform-origin:left center;transform:skewY(-7deg) translateY(1px)}
 .dir dl{margin:var(--s13) 0 0;display:grid;grid-template-columns:104px minmax(0,1fr);gap:var(--s5) var(--s13)}
 .dir dt{font-family:var(--font-mono);font-size:var(--type-xs);color:var(--rake);text-transform:uppercase;
-  letter-spacing:.06em;padding-top:2px}
+  letter-spacing:.06em;padding-top:var(--s3)}
 .dir dd{margin:0;font-size:var(--type-sm);color:var(--ink-2)}
 .seedstr{font-family:var(--font-mono);font-size:var(--type-sm);color:var(--ink);word-break:break-all}
 .seedstr em{font-style:normal;color:var(--rake);font-weight:500}
@@ -6061,6 +6061,14 @@ html[data-theme="dark"], .dark{
 @keyframes sl-shimmer{to{background-position:-250% 0}}
 @keyframes sl-caret{0%{opacity:1}50%{opacity:0}}
 @keyframes sl-wave{0%,100%{height:14%}50%{height:var(--peak,70%)}}
+/* below 480 v4.css sets .phone{width:100%}, so a .phones flex row whose first
+   column has no definite width collapses to min-content (the s04 phone came
+   out 182 px wide at 390). Stack the columns instead. */
+@media (max-width:480px){
+  .phones{display:block}
+  .phones > div + div{margin-top:var(--s34)}
+}
+
 @media (prefers-reduced-motion:reduce){
   .scanline,.shimmer,.loader3 i,.flame.lit .ic,.flame.lit,.kept,.callout,.mchip.on,
   .mchip.on .bx .ic,.wave i,.caret::after,.thumbs .t.done .mk,.landing .n.moved{animation:none}
@@ -6128,10 +6136,10 @@ html[data-theme="dark"], .dark{
             <dd>
               One blue rake, <span class="t-mono">#3f6ea8</span> in light and
               <span class="t-mono">#8fb6e4</span> in dark, taken off the
-              system's navy so it belongs. It tints four things and nothing
-              else: the 55 px bar at each card's top-left, the projection line,
-              the ring's arc, and the wash under the expectation chart. Lime is
-              still only the add control. The spectrum is still only a word.
+              system's navy so it belongs. It tints three things and nothing
+              else: the projection line, the ring's arc, and the wash under the
+              expectation chart. Lime is still only the add control. The
+              spectrum is still only a word.
             </dd>
             <dt>Type</dt>
             <dd>
@@ -6142,14 +6150,15 @@ html[data-theme="dark"], .dark{
             <dt>Density</dt>
             <dd>
               Seven is the count. Seven day points, seven rows before a rule, 7
-              px of rise on anything that enters, 7° of shear on the rake. Chips
-              are 40 px tall so the whole chip is the tap target — the 21 pt box
-              was the defect.
+              px of rise on anything that enters, 7° of shear on the week line.
+              Chips are 40 px tall so the whole chip is the tap target — the 21
+              pt box was the defect.
             </dd>
             <dt>Cards</dt>
             <dd>
-              No shadow. One hairline, radius 21, and the rake bar leaning the
-              same 7° on every card so the page has one direction of travel.
+              No shadow, no mark on the edge. One hairline, radius 21. The 7°
+              of travel lives in the week line and the projection, not on the
+              card's corner.
             </dd>
             <dt>Motion</dt>
             <dd>

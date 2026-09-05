@@ -2111,7 +2111,7 @@ details.detail .sig-legend {
 .drow .sub {
   font-size: var(--type-xs);
   color: var(--ink-3);
-  margin-top: 2px;
+  margin-top: var(--s3);
 }
 .drow .cost {
   font-family: var(--font-mono);
@@ -2836,7 +2836,7 @@ html[data-theme="dark"] .light-layer i {
   font-family: var(--font-mono);
   font-size: var(--type-xs);
   color: var(--ink-3);
-  margin-top: 2px;
+  margin-top: var(--s3);
 }
 .smap-row .abs {
   font-family: var(--font-mono);
@@ -5687,7 +5687,7 @@ html[data-theme="dark"] {
   font-size: var(--type-lg);
   color: var(--ink);
   line-height: 1.15;
-  margin-top: 2px;
+  margin-top: var(--s3);
 }
 .hovercard .hval em {
   font-style: normal;
@@ -5932,7 +5932,7 @@ html[data-theme="dark"] {
         letter-spacing: 0.11em;
         text-transform: uppercase;
         color: var(--gusto);
-        padding-top: 2px;
+        padding-top: var(--s3);
       }
       .direction dd {
         margin: 0;
@@ -6008,7 +6008,7 @@ html[data-theme="dark"] {
         border-radius: var(--r-pill);
         background: var(--surface-hi);
         box-shadow: inset 0 0 0 1px var(--gusto-hair);
-        padding: 2px var(--s8);
+        padding: var(--s3) var(--s8);
         font-family: var(--font-mono);
         font-size: var(--type-xs);
         color: var(--ink);
@@ -6033,6 +6033,7 @@ html[data-theme="dark"] {
       }
       .gring circle {
         fill: none;
+        stroke-width: 5;
         stroke-linecap: round;
         transform: rotate(-90deg);
         transform-origin: 59px 59px;
@@ -6045,17 +6046,14 @@ html[data-theme="dark"] {
       }
       .gring .outer {
         stroke: var(--ink);
-        stroke-width: 6;
         transition: stroke-dashoffset var(--g900) var(--ease);
       }
       .gring .inner {
         stroke: var(--gusto);
-        stroke-width: 6;
         transition: stroke-dashoffset var(--g900) var(--ease);
       }
       .gring .flash {
         stroke: var(--lime);
-        stroke-width: 6;
         opacity: 0;
       }
       .gring .flash.on {
@@ -6138,8 +6136,8 @@ html[data-theme="dark"] {
       .movechip .bx .ic {
         width: 11px;
         height: 11px;
-        stroke-dasharray: 21;
-        stroke-dashoffset: 21;
+        stroke-dasharray: 24;
+        stroke-dashoffset: 24;
       }
       .movechip.on {
         background: var(--ink);
@@ -6157,7 +6155,7 @@ html[data-theme="dark"] {
       .movechip .lbl {
         display: flex;
         flex-direction: column;
-        gap: 2px;
+        gap: var(--s3);
         align-items: flex-start;
       }
       .movechip .src {
@@ -6481,7 +6479,9 @@ html[data-theme="dark"] {
         font-size: var(--type-md);
         color: var(--ink);
       }
-      .macrotile span {
+      /* direct children only: the value <b> holds its own <span> for the
+         counting digits, and blocking that one broke "29 g" onto two lines. */
+      .macrotile > div > span {
         display: block;
         font-size: 10px;
         color: var(--ink-3);
@@ -6492,7 +6492,7 @@ html[data-theme="dark"] {
         gap: var(--s5);
         border-radius: var(--r-pill);
         box-shadow: inset 0 0 0 1px var(--gusto-hair);
-        padding: 2px var(--s3);
+        padding: var(--s3);
         flex: none;
       }
       .stepper button {
@@ -6544,7 +6544,7 @@ html[data-theme="dark"] {
         font-family: var(--font-mono);
         font-size: var(--type-xs);
         color: var(--ink-3);
-        margin-top: 2px;
+        margin-top: var(--s3);
       }
       .swiper {
         position: relative;
@@ -6743,6 +6743,26 @@ html[data-theme="dark"] {
         color: var(--ink);
         font-weight: 500;
       }
+      /* A plan row is tick box | name | adherence. system.css breaks a
+         .markerrow into stacked full-width cells under 560 px, which put the
+         box on a line of its own above the title. Keep the three columns. */
+      @media (max-width: 560px) {
+        .markerrow.planrow {
+          grid-template-columns: auto minmax(0, 1fr) auto;
+        }
+        .markerrow.planrow > *:nth-child(2) {
+          grid-column: auto;
+        }
+        .markerrow.planrow .wd {
+          grid-column: auto;
+          text-align: right;
+        }
+      }
+      /* the hour runs inline with the note; system.css blocks every span
+         inside .nm, which broke "08:00 · with breakfast" onto two lines. */
+      .markerrow.planrow .nm span span {
+        display: inline;
+      }
       .toolarge {
         color: var(--bad);
       }
@@ -6928,6 +6948,12 @@ html[data-theme="dark"] {
         to {
           stroke-dashoffset: 0;
         }
+      }
+      /* system.css sets 21 on .m-check, one unit short of the 22.63 check path,
+         so an undrawn check leaves a stub that reads as a dot. 24 clears it. */
+      .m-check svg path {
+        stroke-dasharray: 24;
+        stroke-dashoffset: 24;
       }
 
       @media (prefers-reduced-motion: reduce) {
@@ -7854,7 +7880,7 @@ html[data-theme="dark"] {
                       font-family: var(--font-mono);
                       font-size: var(--type-xs);
                       color: var(--ink-3);
-                      margin-top: 2px;
+                      margin-top: var(--s3);
                     "
                   >
                     19:40 · from a photo
@@ -8535,7 +8561,7 @@ html[data-theme="dark"] {
             >
               <div class="nm">
                 <b>The check draws in</b
-                ><span>MoveChip · stroke-dashoffset 21 → 0</span>
+                ><span>MoveChip · stroke-dashoffset 24 → 0</span>
               </div>
               <div class="t-meta" style="font-size: 11px">
                 450 ms, 90 ms delay
@@ -10171,8 +10197,8 @@ html[data-theme="dark"] {
           if (!doing) return;
           doing.innerHTML = DOING.map(function (r) {
             return (
-              '<div class="markerrow said" style="grid-template-columns:auto minmax(0,1fr) auto;align-items:start">' +
-              '<button class="movechip" type="button" style="min-height:44px;padding:var(--s5) var(--s8)" aria-label="Tick ' +
+              '<div class="markerrow said planrow" style="grid-template-columns:auto minmax(0,1fr) auto;align-items:start">' +
+              '<button class="movechip" type="button" style="width:44px;height:44px;min-height:44px;padding:0;justify-content:center" aria-label="Tick ' +
               esc(r.t) +
               '"><span class="bx">' +
               CHECK +
