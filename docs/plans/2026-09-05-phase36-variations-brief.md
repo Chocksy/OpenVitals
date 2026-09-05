@@ -113,3 +113,44 @@ index tick sitting on the corner of white cards ("this weird blue thing
 on top of the boxes"); a tick box showing a dot inside; spacing that
 does not follow the Fibonacci scale. No framework is in play: the
 mockups are hand-written CSS on system.css, so every gap is a choice.
+
+## Round three (owner, 2026-09-05 evening): evolve Ply
+
+"I like Ply the most. Evolve from that and only work on this round-watch
+thing, but differentiate the actions: sleep, meals, moves, workouts by
+colour, shape, size, or something inside the arcs that signals what they
+mean. The Add page needs more variation in its initial state: make the
+photo button clearer, or start in camera mode with buttons to switch to
+text or voice, or make the three equal. No Send until data was entered.
+The donut on the plate page: text sits on top of the plate, no colour,
+no structure; I love the target rails. Use icons, sketched things, or
+AI-generated illustrations to signal things. No credits."
+
+All round-three variations start from `08-ply.html` (copy it, keep its
+Play, ticks, chart, web frame, self-contained build) and change:
+
+1. **The day ring.** Four kinds of arc must read as four kinds without
+   the legend: a colour family per kind within the system (sleep the
+   quiet navy-grey, meals the accent, moves ink, workouts the accent
+   darkened), plus a shape or size rule (sleep as one thick outer band;
+   meals as plates sized by kcal, a small glyph or illustration inside
+   or at the arc; moves as short ticks with a check when done; workouts
+   as a bar whose width is minutes), plus a glyph on every arc long
+   enough to hold one (lucide: moon, utensils, pill, footprints,
+   dumbbell). Tap still opens the card.
+2. **Add, initial state.** Three drawings, one per variation: (a) opens
+   in camera mode with a live viewfinder frame and two small switches
+   for text and voice at the bottom; (b) three equal tiles (camera, mic,
+   keyboard) with one line each; (c) text field first with a large
+   photo tile beside it and the mic inside the field. Send appears only
+   after there is something to send, in lime, and it is the only lime.
+3. **The plate donut.** Labels never sit on the arcs: they go in a
+   legend row under the donut or on leader lines outside it; each macro
+   gets a colour step of the accent family and a glyph (lucide: beef or
+   fish for protein, wheat for carbs, droplet for fat) or a generated
+   spot illustration; the target rails stay exactly as they are.
+4. **Illustrations.** `ios-variations/gen-image.sh "<subject>" out.png`
+   makes a flat spot illustration in the palette (~$0.04 each, cap 12
+   per variation). Use them where a glyph is too small to say the
+   thing: the empty Add state, the four kinds in the ring legend, the
+   macros, an empty meals day. No photo credits anywhere.
