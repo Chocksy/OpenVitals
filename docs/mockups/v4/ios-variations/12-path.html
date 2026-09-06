@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="theme-color" content="#f3f1e9" />
+    <title>Path — OpenVitals iOS</title>
+    <link rel="stylesheet" href="12-path.css" />
+  </head>
+  <body>
+    <header class="mast">
+      <a href="index.html" class="brand"
+        ><span class="brandmark">✳</span> OpenVitals
+        <span class="muted">/</span>
+        <span class="muted">Design study 12</span></a
+      ><button id="theme" class="theme">◐ <span>Change theme</span></button>
+    </header>
+    <main>
+      <section class="intro">
+        <div>
+          <div class="eyebrow">PATH / A MORE PERSONAL HEALTH COMPANION</div>
+          <h1>Small changes.<br /><em>A different trajectory.</em></h1>
+        </div>
+        <div class="intro-note">
+          <span class="tiny-line"></span>
+          <p>
+            You don’t need another dashboard.<br />You need to know what’s worth
+            doing today.
+          </p>
+          <span class="muted"
+            >One connected prototype. Try the tabs,<br />adjust your plan, or
+            log something new.</span
+          >
+        </div>
+      </section>
+      <div class="mobile-switch" aria-label="Preview screens">
+        <button data-preview="0" class="selected">Today</button
+        ><button data-preview="1">Your trajectory</button
+        ><button data-preview="2">Your biology</button>
+      </div>
+      <section class="showcase" aria-label="Interactive iOS prototypes">
+        <article class="study" data-study="0">
+          <div class="study-label">
+            <span>01 / THE NEXT SMALL STEP</span><span>↓</span>
+          </div>
+          <div class="phone" id="phone0"></div>
+          <div class="annotation">
+            <b>Less to read. More to act on.</b>
+            <p>
+              One priority, a small daily rhythm, and the rest when you need it.
+            </p>
+          </div>
+        </article>
+        <article class="study" data-study="1">
+          <div class="study-label">
+            <span>02 / SEE WHAT COULD CHANGE</span><span>↗</span>
+          </div>
+          <div class="phone" id="phone1"></div>
+          <div class="annotation">
+            <b>A plan you can negotiate with.</b>
+            <p>
+              Change the effort. See the possible outcome. Commit to something
+              realistic.
+            </p>
+          </div>
+        </article>
+        <article class="study" data-study="2">
+          <div class="study-label">
+            <span>03 / UNDERSTAND YOUR WHY</span><span>◎</span>
+          </div>
+          <div class="phone" id="phone2"></div>
+          <div class="annotation">
+            <b>Your biology, with a point of view.</b>
+            <p>
+              Blood, body and genes tell one story. Details live behind the
+              explanation.
+            </p>
+          </div>
+        </article>
+      </section>
+      <footer class="footer">
+        <span>OPENVITALS · PATH</span
+        ><span
+          >Interactive design concept · Sample data & illustrative
+          scenarios</span
+        ><a href="#notes">Design & interaction notes ↗</a>
+      </footer>
+      <details id="notes" class="notes">
+        <summary>How this concept works</summary>
+        <div class="notes-grid">
+          <p>
+            <b>Information architecture</b><br />Today: priorities, daily
+            actions and updates. Path: goals, scenario, adopted plan and
+            calendar. You: blood, body, genes, research and sources. Add is
+            always within reach; a contextual question connects each explanation
+            to the assistant.
+          </p>
+          <p>
+            <b>Prediction contract</b><br />Scenario numbers are invented UI
+            fixtures, not a medical model. Real estimates require validated
+            effects, baseline trends, adherence, interactions and uncertainty.
+            Genetics supplies context, never a deterministic response
+            multiplier. A new blood draw verifies any predicted change.
+          </p>
+          <p>
+            <b>Interaction & implementation</b><br />Tabs and details fade in
+            over 220ms; sheets rise over 280ms; habit ticks settle over 180ms.
+            Reduced motion removes all transitions. Controls are at least 44px.
+            All three previews share session state. File, voice, Health and
+            assistant flows are explicitly simulated; nothing leaves the
+            browser.
+          </p>
+        </div>
+      </details>
+    </main>
+    <script src="12-path.js"></script>
+  </body>
+</html>

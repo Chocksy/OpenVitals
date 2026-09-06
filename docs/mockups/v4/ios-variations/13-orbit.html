@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="theme-color" content="#f3f0ea" />
+    <title>Orbit — A whole-person view · OpenVitals</title>
+    <link rel="stylesheet" href="13-orbit.css" />
+  </head>
+  <body>
+    <header class="mast">
+      <a href="index.html" class="brand"
+        ><span data-icon="orbit"></span> openvitals
+        <span class="brand-divider"></span
+        ><span class="subtle">Exploration 13</span></a
+      >
+      <div class="mast-actions">
+        <button id="cycle-toggle" aria-pressed="true">
+          <span data-icon="flower-2"></span
+          ><span>Cycle context <b>on</b></span></button
+        ><button
+          id="theme-toggle"
+          aria-label="Toggle dark mode"
+          aria-pressed="false"
+        >
+          <span data-icon="moon"></span>
+        </button>
+      </div>
+    </header>
+    <main>
+      <section class="intro">
+        <div>
+          <div class="eyebrow">ORBIT / THE WHOLE PICTURE</div>
+          <h1>Your health has<br /><em>a thousand connections.</em></h1>
+        </div>
+        <div class="intro-aside">
+          <p>Let’s make the important ones visible.</p>
+          <div class="intro-key">
+            <span><i class="key-dot copper"></i>Daily life</span
+            ><span><i class="key-dot blue"></i>Biology</span
+            ><span><i class="key-dot rose"></i>Your context</span>
+          </div>
+          <small
+            >Three starting points. One connected, tappable prototype.</small
+          >
+        </div>
+      </section>
+      <div class="preview-tabs" aria-label="Choose a preview">
+        <button data-preview="0" aria-pressed="true">Whole you</button
+        ><button data-preview="1" aria-pressed="false">Your cycle</button
+        ><button data-preview="2" aria-pressed="false">Ask anything</button>
+      </div>
+      <section class="showcase" aria-label="Interactive iOS concept">
+        <article class="study visible" data-study="0">
+          <div class="study-caption">
+            <span>01</span><b>See your whole system</b
+            ><span data-icon="network"></span>
+          </div>
+          <div class="phone" id="orbit0"></div>
+          <div class="design-caption">
+            <b>A map, with a way forward.</b>
+            <p>
+              Tap a connection to see the story. Rings celebrate what you did,
+              not a score for your body.
+            </p>
+          </div>
+        </article>
+        <article class="study" data-study="1">
+          <div class="study-caption">
+            <span>02</span><b>Make room for your rhythm</b
+            ><span data-icon="flower-2"></span>
+          </div>
+          <div class="phone" id="orbit1"></div>
+          <div class="design-caption">
+            <b>Context changes the conversation.</b>
+            <p>
+              Cycle timing sits beside symptoms, trends and lab dates. Optional,
+              personal, never one-size-fits-all.
+            </p>
+          </div>
+        </article>
+        <article class="study" data-study="2">
+          <div class="study-caption">
+            <span>03</span><b>Ask a question that connects it all</b
+            ><span data-icon="message-circle"></span>
+          </div>
+          <div class="phone" id="orbit2"></div>
+          <div class="design-caption">
+            <b>Answers with a visible foundation.</b>
+            <p>
+              See the records used, what they suggest, and what’s still unknown.
+              Then choose a useful next step.
+            </p>
+          </div>
+        </article>
+      </section>
+      <footer>
+        <span>OPENVITALS · ORBIT</span
+        ><span>Sample person & records · Interactive concept</span
+        ><a href="12-path.html"
+          >Previous exploration: Path <span data-icon="arrow-up-right"></span
+        ></a>
+      </footer>
+      <details class="implementation">
+        <summary>Design, data & interaction notes</summary>
+        <div class="notes-grid">
+          <p>
+            <b>A different information architecture</b><br />Whole you connects
+            the domains; Today holds actions and logging; Ask is always
+            available. Details, plan scenarios, original records and connections
+            sit one level deeper. Rings use explicit denominators; the cycle
+            dial represents time, never an achievement goal.
+          </p>
+          <p>
+            <b>Cycle context belongs to the person</b><br />Choose regular
+            tracking, irregular cycles, hormonal contraception, perimenopause,
+            menopause or off. Calendar timing is estimated, ovulation is not
+            inferred, and cycle-based forecasts are suppressed when
+            inappropriate. Lab collection dates retain their own context.
+          </p>
+          <p>
+            <b>Prototype boundaries</b><br />No live AI, file upload, HealthKit
+            or medical prediction engine. Chat responses are scripted from the
+            enabled sample sources. Missing or excluded data stays unknown.
+            Forecasts are invented UI scenarios. All state lasts for this tab
+            session; reset by refreshing.
+          </p>
+          <p>
+            <b>Visual and interaction system</b><br />Lucide 0.577.0 icons,
+            vendored with license. Local Geist and Source Serif. 44px controls,
+            keyboard support, visible focus and reduced-motion alternatives.
+            Rings transition over 500ms, connections over 220ms, panels over
+            240ms. Meal photography reuses the existing variations’ assets.
+          </p>
+          <p>
+            <b>Context references</b><br /><a
+              href="https://womenshealth.gov/menstrual-cycle/your-menstrual-cycle"
+              target="_blank"
+              rel="noopener"
+              >Office on Women’s Health: menstrual cycles ↗</a
+            ><br /><a
+              href="https://womenshealth.gov/menstrual-cycle/premenstrual-syndrome"
+              target="_blank"
+              rel="noopener"
+              >Office on Women’s Health: PMS ↗</a
+            ><br /><a
+              href="https://www.genome.gov/Health/Genomics-and-Medicine/Polygenic-risk-scores"
+              target="_blank"
+              rel="noopener"
+              >NHGRI: genetic risk and its limits ↗</a
+            >
+          </p>
+        </div>
+      </details>
+    </main>
+    <script src="orbit-assets/icons.js"></script>
+    <script src="13-orbit.js"></script>
+  </body>
+</html>
