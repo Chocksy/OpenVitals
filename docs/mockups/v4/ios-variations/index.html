@@ -92,11 +92,35 @@
         color: #888;
         max-width: 74ch;
       }
+      .beyond-round { margin: 0 0 34px; }
+      .beyond-round h2 { font-size: 20px; font-weight: 500; margin: 0 0 8px; }
+      .beyond-round > p { font-size: 13px; color: #555; margin: 0 0 17px; }
+      .beyond-options { display: grid; grid-template-columns: repeat(3, 1fr); gap: 13px; }
+      .beyond-option { color: #173c3a; text-decoration: none; background: #edf3ef; border-radius: 17px; padding: 21px; min-height: 205px; display: flex; flex-direction: column; transition: transform .2s; }
+      .beyond-option:hover { transform: translateY(-3px); }
+      .beyond-option:focus-visible { outline: 3px solid #24786f; outline-offset: 4px; }
+      .beyond-option small { font: 10px ui-monospace, monospace; letter-spacing: .08em; }
+      .beyond-option strong { font-size: 24px; font-weight: 500; letter-spacing: -.04em; margin-top: 34px; }
+      .beyond-option span { font-size: 12px; line-height: 1.6; margin: 8px 0 17px; }
+      .beyond-option b { font-size: 12px; font-weight: 500; margin-top: auto; }
+      .beyond-option.tidal { background: linear-gradient(140deg, #e8f1e9, #add5c9); }
+      .beyond-option.solstice { background: linear-gradient(140deg, #fbf0dc, #eac196); color: #55392c; }
+      .beyond-option.strata { background: linear-gradient(140deg, #eaf0df, #b8c8a7); color: #2f4435; }
+      @media(max-width: 600px) { .beyond-options { grid-template-columns: 1fr; } .beyond-option { min-height: 155px; } .beyond-option strong { margin-top: 17px; } }
+      @media(prefers-reduced-motion: reduce) { .beyond-option { transition: none; } .beyond-option:hover { transform: none; } }
     </style>
   </head>
   <body>
     <main class="doc">
       <h1>The phone as a living prototype</h1>
+      <section class="beyond-round" aria-labelledby="solstice-guide-heading" style="margin-top: 21px">
+        <a class="beyond-option solstice" href="21-solstice-guide.html" style="min-height: 0">
+          <small>21 / SOLSTICE, EVOLVED</small>
+          <strong id="solstice-guide-heading" style="margin-top: 13px">A day taking shape. A little guidance along the way.</strong>
+          <span>Completed days, sleep, goal trajectories, and a timely next step. Try the workout sync and watch the plan respond.</span>
+          <b>Open Solstice daily guide →</b>
+        </a>
+      </section>
       <p class="lede">
         Phase 36, rounds one and two. Eight directions on the same phone, from
         eight seed strings. Same data everywhere — the same seven markers
@@ -111,6 +135,15 @@
         each page's footer. Light and dark both hold;
         <code>prefers-reduced-motion</code> is respected.
       </p>
+      <section class="beyond-round" aria-labelledby="beyond-heading">
+        <h2 id="beyond-heading">New: Tidal, Solstice &amp; Strata</h2>
+        <p>Round six, using design-beyond. Three layouts with purposeful gradients, working capture, daily actions, and editable meals.</p>
+        <div class="beyond-options">
+          <a class="beyond-option tidal" href="18-tidal.html"><small>18 / DAILY RHYTHM</small><strong>Tidal</strong><span>Sea-glass surfaces, a flowing day chart, and one clear next step.</span><b>Explore Tidal →</b></a>
+          <a class="beyond-option solstice" href="19-solstice.html"><small>19 / A LIVING DAY</small><strong>Solstice</strong><span>A warm radial day, illustrated plates, and photo-first capture.</span><b>Explore Solstice →</b></a>
+          <a class="beyond-option strata" href="20-strata.html"><small>20 / YOUR BIOLOGY</small><strong>Strata</strong><span>Mineral gradients, layered health signals, and a longer view.</span><b>Explore Strata →</b></a>
+        </div>
+      </section>
       <ol>
         <li>
           <a class="row" href="15-knot.html"
@@ -409,6 +442,81 @@
                 green-navy with all four arc gradients run end for end.</span
               >
               <span class="seed">E2JYan4N1WH4aHnZR2QeXbUM</span>
+            </span></a
+          >
+        </li>
+        <li>
+          <a class="row" href="16-observatory.html"
+            ><span class="n">16</span>
+            <span>
+              <span class="name">Observatory</span>
+              <span class="say"
+                >Round five, the first of the two ambitious briefs run through
+                the design-beyond critic loop: the phone is an astronomical
+                instrument. Night by default — a navy-black with blue still in
+                it, never pure black — with brass hairlines, Geist Mono on every
+                reading and Instrument Serif on the five words the page needs.
+                The seed carries one digit, a 4, so the face has four scales:
+                the engraved hour rim, the night as the outer arc, the meals as
+                seven generated dishes orbiting at the hour they happened and as
+                large as their calories, and the moves as engraved ticks that
+                light copper when they close, the session drawn as the one move
+                long enough to be an arc. The seed also ends W E S and drops its
+                north, so midnight is the top of the dial and it is not written:
+                the only thing that says where you are is the brass hand at
+                20:10. Adding a meal is taking a reading — the viewfinder is a
+                brass reticle, the scan is the reticle sweeping the frame, and
+                what it finds is labelled in engraved plates on hairline
+                leaders. The projection is a comet: the axis is cut at today so
+                nine months of draws take the left 42 % and the throw takes the
+                right 58 %, the tail thickens into the head and the head is the
+                number it lands on. Blood is six instrument scales, each a rule
+                with its range engraved, the optimal band lit inside the track
+                and the reading as a brass needle. The light theme is parchment
+                and ink with the brass turned to sepia. Broken on purpose: the
+                five-size type ladder, because an instrument face is named in
+                engraving.</span
+              >
+              <span class="seed">xYApK4OVhXxHDCerstZmuWES</span>
+            </span></a
+          >
+        </li>
+        <li>
+          <a class="row" href="17-stilllife.html"
+            ><span class="n">17</span>
+            <span>
+              <span class="name">Still life</span>
+              <span class="say"
+                >Round five, the second ambitious brief: the pictures carry the
+                numbers. Twelve dishes generated at 1024 and cut twice — once
+                against the table's own cream with the real contact shadow kept,
+                once as the plate alone, keyed on the chromaticity that
+                separates white china from cream in shade — so the table is lit
+                in the light theme and charcoal in the dark, with the shadow
+                drawn back in CSS either way. There is not one card on any
+                screen: every division is a hairline at 8 % or the space between
+                two blocks. The plate <em>is</em> the number, its width the
+                square root of the calories, so 412, 462 and 623 kcal come out
+                at 134, 142 and 165 px and the table itself is the chart. Each
+                is labelled the way a museum labels a work: the dish in small
+                caps, the calories where the date would go, and one line of
+                provenance. The seed's most-repeated letter falls at 4, 12 and
+                21, gaps of eight and nine, so the stagger runs 0, 55, 13, 89
+                and 21 px and no two indents repeat; the label is always beside
+                the plate and the eye walks left, right, left. The day is one
+                ink hairline under the pictures carrying a dot per meal at its
+                hour, ticks for the moves and a single sienna mark for now.
+                Adding is a system sheet: a plain field, four text tabs on a
+                rule, and Send only once there is something to send. The camera
+                keeps the real photograph while it reads it, then drops the
+                background, and what joins the table is the cut-out. Cream, ink
+                and one burnt sienna; a state word is set in the serif italic
+                rather than coloured, and lime on the add control is the only
+                thing that is neither. Broken on purpose: the five type sizes.
+                Newsreader runs at 21, 34 and 44 outside the ladder, because a
+                wall label is set rather than sized.</span
+              >
+              <span class="seed">AYufRPjvgvXfHb9w4RsEfJUh</span>
             </span></a
           >
         </li>

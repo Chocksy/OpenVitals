@@ -154,3 +154,23 @@ Play, ticks, chart, web frame, self-contained build) and change:
    per variation). Use them where a glyph is too small to say the
    thing: the empty Add state, the four kinds in the ring legend, the
    macros, an empty meals day. No photo credits anywhere.
+
+## Round five (2026-09-06): the design-beyond loop
+
+Owner brought Anshu Chimala's "How to turn your AI into a world-class
+designer" (Lenny's Newsletter, 2026-09-01). Its process is now the skill
+`~/.claude/skills/design-beyond` (seed strings, ambitious briefs, a Fable
+critic that scores screenshots in a fresh context until 9/10, generated
+imagery, then the cut and the AI-tells checklist). Two ambitious briefs
+run through it, Opus building, Fable judging, at most four rounds each:
+
+- 16 **Observatory** (seed xYApK4OVhXxHDCerstZmuWES): the phone as an
+  astronomical instrument. Dark by default, the day ring a planisphere
+  with brass hairlines, meals as generated dishes orbiting at their hour,
+  the projection a comet's path to the landing number. Every screen an
+  instrument face that still works as the app.
+- 17 **Still life** (seed AYufRPjvgvXfHb9w4RsEfJUh): image-centric like
+  the Morsel screens in the article. Generated cut-out dishes on cream
+  carry the numbers, markers set as museum labels, the day ring a single
+  thin line under the pictures, radical asymmetry and negative space,
+  no cards at all, controls that feel native.
