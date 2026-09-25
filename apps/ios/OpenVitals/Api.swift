@@ -1292,6 +1292,31 @@ extension Api {
         try await send(try json("api/plan/adopt", "POST", ["removeIds": removeIds]))
     }
 
+    /// What `POST /api/protocol` answers: the stored row. Only its id is read.
+    struct AddedItem: Codable, Equatable {
+        let id: String?
+    }
+
+    /// `POST /api/protocol` with `{ text, timeOfDay? }`: an item the person
+    /// wrote. No cadence, so the server makes it daily.
+    static func addItem(text: String, slot: String?) async throws -> AddedItem {
+        var body: [String: Any] = ["text": String(text.prefix(300))]
+        if let slot { body["timeOfDay"] = slot }
+        return try await send(try json("api/protocol", "POST", body))
+    }
+
+    /// `POST /api/plan` answers the whole report row; the plan reload reads
+    /// what it wrote, so nothing of it is decoded.
+    struct Rewritten: Codable, Equatable {}
+
+    /// `POST /api/plan` with `{}`: a new report, so new suggestions. One LLM
+    /// call the route gives 300 seconds, longer than the default 60.
+    static func newSuggestions() async throws -> Rewritten {
+        var req = try json("api/plan", "POST", [:])
+        req.timeoutInterval = 300
+        return try await send(req)
+    }
+
     static func meals(day: String? = nil) async throws -> MealDay {
         if let canned: MealDay = Fixtures.canned("meals") { return canned }
         return try await send(get("api/meals", query: day.map { ["d": $0] } ?? [:]))

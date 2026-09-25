@@ -174,6 +174,101 @@ final class PlanTests: XCTestCase {
         XCTAssertTrue(m.adopting.isEmpty)
     }
 
+    // MARK: add your own, and new suggestions
+
+    func testAddSendsTheTrimmedWordsAndSlotThenClearsAndReloads() async throws {
+        let plan = try canned()
+        let (m, c) = model(plan)
+        let after = adoptedDay(plan, itemId: "pi_mine")
+        m.fetch = { after }
+        var sent: [(String, String?)] = []
+        m.sendAdd = { sent.append(($0, $1)) }
+        m.draft = "  10 minutes of stretching \n"
+        m.slot = "evening"
+        XCTAssertTrue(m.canAdd)
+        await m.add()
+        XCTAssertEqual(sent.map(\.0), ["10 minutes of stretching"])
+        XCTAssertEqual(sent.map(\.1), ["evening"])
+        XCTAssertEqual(m.pill?.kind, .saved)
+        XCTAssertEqual(m.pill?.text, "Added to your plan")
+        XCTAssertEqual(m.pill?.canUndo, false)
+        XCTAssertEqual(m.adopted.count, 6, "the reload brought the new row")
+        XCTAssertEqual(m.draft, "")
+        XCTAssertNil(m.slot)
+        XCTAssertEqual(c.changed, 1)
+        XCTAssertFalse(m.adding)
+    }
+
+    func testAddFailureKeepsTheWordsAndSaysSo() async throws {
+        let (m, c) = model(try canned())
+        m.sendAdd = { _, _ in throw Boom() }
+        m.draft = "walk after dinner"
+        m.slot = "dinner"
+        await m.add()
+        XCTAssertEqual(m.pill?.kind, .failed)
+        XCTAssertEqual(m.draft, "walk after dinner")
+        XCTAssertEqual(m.slot, "dinner")
+        XCTAssertEqual(c.changed, 0)
+        XCTAssertFalse(m.adding)
+    }
+
+    func testBlankWordsAddNothing() async throws {
+        let (m, _) = model(try canned())
+        var sent = 0
+        m.sendAdd = { _, _ in sent += 1 }
+        m.draft = "  \n "
+        XCTAssertFalse(m.canAdd)
+        await m.add()
+        XCTAssertEqual(sent, 0)
+        XCTAssertNil(m.pill)
+    }
+
+    func testNewSuggestionsReloadAndBringBackHiddenCards() async throws {
+        let plan = try canned()
+        let (m, _) = model(plan)
+        let row = try XCTUnwrap(m.suggested.first)
+        m.sendAdopt = { _ in Api.Adopted(ok: true, id: "pi_new", adopted: nil,
+                                          already: nil, removed: nil) }
+        await m.adopt(row)
+        XCTAssertFalse(m.gone.isEmpty)
+        var fetched = 0
+        m.fetch = { fetched += 1; return plan }
+        m.sendSuggest = {}
+        await m.suggest()
+        XCTAssertEqual(fetched, 1, "the plan reloaded")
+        XCTAssertTrue(m.gone.isEmpty)
+        XCTAssertEqual(m.suggested.map(\.id), [row.id])
+        XCTAssertEqual(m.suggestError, "")
+        XCTAssertFalse(m.suggesting)
+    }
+
+    func testNewSuggestionsFailureSaysSo() async throws {
+        let (m, _) = model(try canned())
+        m.sendSuggest = { throw Boom() }
+        await m.suggest()
+        XCTAssertTrue(m.suggestError.hasPrefix("No new suggestions"))
+        XCTAssertFalse(m.suggesting, "it can be tried again")
+    }
+
+    func testNewSuggestionsTwiceFastPostsOnce() async throws {
+        let (m, _) = model(try canned())
+        var posts = 0
+        var release: CheckedContinuation<Void, Never>?
+        m.sendSuggest = {
+            posts += 1
+            await withCheckedContinuation { release = $0 }
+        }
+        let first = Task { await m.suggest() }
+        while release == nil { await Task.yield() }
+        XCTAssertTrue(m.suggesting)
+        await m.suggest()
+        XCTAssertEqual(posts, 1, "the second tap did nothing")
+        release?.resume()
+        await first.value
+        XCTAssertEqual(posts, 1)
+        XCTAssertFalse(m.suggesting)
+    }
+
     func testATickThatFailsRollsBack() async throws {
         let plan = try canned()
         let (m, c) = model(plan)

@@ -7,17 +7,18 @@ import SwiftUI
 // report's own suggestions with an Adopt each, and the way into Research.
 
 extension Notification.Name {
-    /// An adopt, a stored tick or an undo on Plan: Today reads the plan again.
+    /// An adopt, an add, a stored tick or an undo on Plan: Today reads the plan again.
     static let ovPlanChanged = Notification.Name("ovPlanChanged")
 }
 
-/// The pill under the shelves after an adopt. Four things it can say, and
+/// The pill under the shelves after an adopt or an add. Five things it can say, and
 /// only a fresh adopt carries an undo: an action that was already on the
 /// protocol is somebody's older item, and undoing it would delete that.
 struct PlanPill: Equatable {
     enum Kind: Equatable {
         case added(adoptId: String, removeIds: [String])
         case already
+        case saved
         case failed
     }
 
@@ -29,6 +30,7 @@ struct PlanPill: Equatable {
         switch kind {
         case .added: return "Added"
         case .already: return "Already on your plan"
+        case .saved: return "Added to your plan"
         case .failed: return "That did not save"
         }
     }
@@ -42,7 +44,7 @@ struct PlanPill: Equatable {
 // MARK: - the model
 
 /// Everything Plan draws and every write it makes. The view reads it; the
-/// tests swap the five seams and never reach a server.
+/// tests swap the seven seams and never reach a server.
 @Observable
 @MainActor
 final class PlanModel {
@@ -50,6 +52,15 @@ final class PlanModel {
     var papers: [Api.Paper] = []
     var error = ""
     var pill: PlanPill?
+    /// "Add your own": the words and the optional slot, kept here so a
+    /// failed add leaves them as typed.
+    var draft = ""
+    var slot: String?
+    var suggestError = ""
+
+    /// The seven slots `POST /api/protocol` takes (`SLOTS` in `lib/plan-line.ts`).
+    static let slots = ["morning", "breakfast", "midday", "afternoon",
+                        "dinner", "evening", "bedtime"]
 
     /// Row ids with a tick on its way to the server.
     private(set) var saving: Set<String> = []
@@ -61,6 +72,9 @@ final class PlanModel {
     /// keeps it gone.
     private(set) var gone: Set<String> = []
     private(set) var undoing = false
+    private(set) var adding = false
+    /// One `POST /api/plan` at a time: it is an LLM call of a minute or two.
+    private(set) var suggesting = false
     /// Counts the ticks the server stored. The view buzzes `.success` on it.
     private(set) var stored = 0
 
@@ -82,6 +96,14 @@ final class PlanModel {
     var sendUndo: (_ removeIds: [String]) async throws -> Void = {
         _ = try await Api.unadopt(removeIds: $0)
     }
+    /// `POST /api/protocol` with `{ text, timeOfDay? }`.
+    @ObservationIgnored
+    var sendAdd: (_ text: String, _ slot: String?) async throws -> Void = {
+        _ = try await Api.addItem(text: $0, slot: $1)
+    }
+    /// `POST /api/plan` with `{}`.
+    @ObservationIgnored
+    var sendSuggest: () async throws -> Void = { _ = try await Api.newSuggestions() }
     /// Tells Today the plan moved.
     @ObservationIgnored
     var changed: () -> Void = {
@@ -200,6 +222,45 @@ final class PlanModel {
         }
     }
 
+    var canAdd: Bool {
+        !adding && !draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
+
+    /// An item the person wrote onto the protocol, daily. A failure keeps the
+    /// words and the slot so the next tap sends them again.
+    func add() async {
+        guard canAdd else { return }
+        adding = true
+        defer { adding = false }
+        let text = String(draft.trimmingCharacters(in: .whitespacesAndNewlines).prefix(300))
+        do {
+            try await sendAdd(text, slot)
+            draft = ""
+            slot = nil
+            show(.saved)
+            changed()
+            await reload()
+        } catch {
+            show(.failed)
+        }
+    }
+
+    /// A fresh report: its suggestions carry new adoptIds, so the ones
+    /// hidden after adopting no longer need hiding.
+    func suggest() async {
+        guard !suggesting else { return }
+        suggesting = true
+        defer { suggesting = false }
+        suggestError = ""
+        do {
+            try await sendSuggest()
+            gone = []
+            await reload()
+        } catch {
+            suggestError = "No new suggestions: \(error.localizedDescription)"
+        }
+    }
+
     private func show(_ kind: PlanPill.Kind) {
         shown += 1
         pill = PlanPill(n: shown, kind: kind)
@@ -289,9 +350,12 @@ struct PlanView: View {
     private func shelves(_ plan: Api.PlanDay) -> some View {
         ShelfTitle("Today", "in the order it runs")
         today
+        ShelfTitle("Add your own", "anything you want to do daily")
+            .padding(.top, DesignTokens.s21)
+        addCard
+        ShelfTitle("Suggested", "from your last report")
+            .padding(.top, DesignTokens.s21)
         if !model.suggested.isEmpty {
-            ShelfTitle("Suggested", "from your last report")
-                .padding(.top, DesignTokens.s21)
             HShelf {
                 ForEach(Array(model.suggested.enumerated()), id: \.element.id) { i, row in
                     SuggestionCard(row: row,
@@ -304,8 +368,9 @@ struct PlanView: View {
             }
             .motion(Curve.ease.animation(0.32), value: model.suggested.map(\.id))
         }
+        moreCard
         ShelfTitle("Research", "papers on what you have")
-            .padding(.top, model.suggested.isEmpty ? DesignTokens.s21 : 0)
+            .padding(.top, DesignTokens.s21)
         researchCard
         if !model.error.isEmpty {
             Text(model.error).hType(11, .regular, Hy.rose)
@@ -337,6 +402,69 @@ struct PlanView: View {
                 if i < rows.count - 1 {
                     Rectangle().fill(Hy.line).frame(height: 1)
                 }
+            }
+        }
+        .hyCard()
+    }
+
+    /// The words, an optional slot, and Add. The plan is more than the
+    /// report's suggestions: anything typed here is ticked like them.
+    private var addCard: some View {
+        VStack(alignment: .leading, spacing: DesignTokens.s13) {
+            TextField("", text: $model.draft,
+                      prompt: Text("e.g. 10 minutes of stretching").foregroundStyle(Hy.ink3),
+                      axis: .vertical)
+                .font(.grotesk(15))
+                .foregroundStyle(Hy.ink)
+                .tint(Hy.ink)
+                .lineLimit(1...3)
+            ScrollView(.horizontal) {
+                HStack(spacing: DesignTokens.s8) {
+                    ForEach(PlanModel.slots, id: \.self) { slot in
+                        let on = model.slot == slot
+                        // A second tap clears it: no slot is "any time".
+                        Button { model.slot = on ? nil : slot } label: {
+                            Text(slot).hType(13, .semibold, on ? Hy.cream : Hy.ink)
+                                .padding(.horizontal, DesignTokens.s13)
+                                .frame(height: 34)
+                                .background(Capsule().fill(on ? Hy.plum : Hy.paper2))
+                                .contentShape(Capsule())
+                        }
+                        .buttonStyle(.plain)
+                        .motion(Curve.ease.animation(0.2), value: on)
+                        .accessibilityAddTraits(on ? [.isButton, .isSelected] : .isButton)
+                    }
+                }
+            }
+            .scrollIndicators(.hidden)
+            HyAction(title: model.adding ? "Adding…" : "Add") {
+                Task { await model.add() }
+            }
+            .disabled(!model.canAdd)
+        }
+        .hyCard()
+    }
+
+    /// A new report on demand, so an emptied Suggested shelf is not the end.
+    private var moreCard: some View {
+        VStack(alignment: .leading, spacing: DesignTokens.s8) {
+            if model.suggested.isEmpty {
+                Text("Your last report's suggestions are all on your plan.")
+                    .hType(13, .regular, Hy.ink2)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            HyAction(title: model.suggesting ? "Writing new suggestions…"
+                                             : "Get new suggestions",
+                     kind: .secondary) {
+                Task { await model.suggest() }
+            }
+            .disabled(model.suggesting)
+            if model.suggesting {
+                Text("This can take a minute or two.").hType(11, .regular, Hy.ink3)
+            }
+            if !model.suggestError.isEmpty {
+                Text(model.suggestError).hType(11, .regular, Hy.rose)
+                    .fixedSize(horizontal: false, vertical: true)
             }
         }
         .hyCard()
