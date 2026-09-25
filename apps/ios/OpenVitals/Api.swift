@@ -333,12 +333,29 @@ enum Api {
         let count: Int?
         let note: String?
         let error: String?
+        /// A plate's photo, already stored: the confirm names it back so the
+        /// meal keeps its picture.
+        var photoId: String? = nil
+        /// The reader's items as it read them, sent back with the confirm.
+        var items: [CaptureItem]? = nil
+    }
+
+    /// One item on the plate, in the reader's own field names.
+    struct CaptureItem: Codable, Equatable {
+        let name: String
+        let portion: String?
+        let kcal: Double?
+        let proteinG: Double?
+        let carbsG: Double?
+        let fatG: Double?
     }
 
     struct ConfirmBody: Encodable {
         let chips: [Chip]
         let label: String?
         let at: String?
+        var photoId: String? = nil
+        var items: [CaptureItem]? = nil
     }
 
     struct ConfirmResult: Decodable {
@@ -383,12 +400,15 @@ enum Api {
     }
 
     /// `POST /api/capture` as JSON: the person confirmed, so it writes.
-    static func confirm(chips: [Chip], label: String?, at: String?) async throws -> ConfirmResult {
+    static func confirm(chips: [Chip], label: String?, at: String?,
+                        photoId: String? = nil,
+                        items: [CaptureItem]? = nil) async throws -> ConfirmResult {
         var req = URLRequest(url: baseURL.appendingPathComponent("api/capture"))
         req.httpMethod = "POST"
         req.setValue("application/json", forHTTPHeaderField: "Content-Type")
         req.httpBody = try JSONEncoder().encode(
-            ConfirmBody(chips: chips, label: label, at: at))
+            ConfirmBody(chips: chips, label: label, at: at,
+                        photoId: photoId, items: items))
         return try await send(req)
     }
 

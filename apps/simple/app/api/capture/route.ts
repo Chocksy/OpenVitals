@@ -8,6 +8,7 @@
  *  - `application/json` with `chips`: the person confirmed, so the chips are
  *    re-checked here and written through the writers that already exist.
  */
+import { randomUUID } from "node:crypto";
 import { and, eq, ne } from "drizzle-orm";
 import { getDb, uploads } from "@/db";
 import { currentUserId } from "@/lib/auth";
@@ -18,20 +19,37 @@ import {
   routeOf,
   toChips,
   writeCaptureChips,
+  type CaptureExtract,
 } from "@/lib/capture";
 import type { Chip } from "@/lib/compose";
 import { localDay } from "@/lib/daily";
-import { mealRowFromChips, saveMeal } from "@/lib/meals";
+import { mealItemsOf, mealRowFromChips, saveMeal } from "@/lib/meals";
 import { ensureImported } from "@/lib/import-legacy";
 import { recordBeliefs } from "@/lib/ledger";
 import { runCurator } from "@/lib/curator";
 import { ledgerNow, recordUploadMove } from "@/lib/read-receipt";
-import { extOf, processUpload, sha256, writeUpload } from "@/lib/uploads";
+import {
+  extOf,
+  localPath,
+  processUpload,
+  sha256,
+  uploadPath,
+  writeUpload,
+} from "@/lib/uploads";
 
 export const maxDuration = 120;
 
 /** Bigger than this is not a phone photo, it is a mistake. */
 const MAX_BYTES = 20 * 1024 * 1024;
+
+/** A `photoId` is one this route minted with `randomUUID()`, nothing else. */
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/** The extensions a photo can have been written under. */
+const PHOTO_EXTS = ["jpg", "jpeg", "png", "webp", "heic", "heif", "gif"];
+
+/** More than this is not a plate. */
+const MAX_ITEMS = 30;
 
 export async function POST(req: Request) {
   const userId = await currentUserId();
@@ -45,6 +63,8 @@ export async function POST(req: Request) {
       chips?: Chip[];
       label?: string;
       at?: string;
+      photoId?: string;
+      items?: CaptureExtract["items"];
     } | null;
     const chips = cleanCaptureChips(body?.chips ?? [], today);
     if (!chips.length)
@@ -60,10 +80,23 @@ export async function POST(req: Request) {
     // nobody can point at. `logDay: false`: `writeCaptureChips` summed these
     // same numbers into the day one line ago, and there is one arithmetic.
     if (wrote.day) {
+      // The photo the read wrote, found from the server's side only: the path
+      // is rebuilt from this user and the id, never taken from the client.
+      const photoId = String(body?.photoId ?? "");
+      const photoKey = UUID.test(photoId)
+        ? (PHOTO_EXTS.map((ext) =>
+            localPath(uploadPath(userId, photoId, ext)),
+          ).find(Boolean) ?? null)
+        : null;
+      const items = Array.isArray(body?.items)
+        ? mealItemsOf(body.items.slice(0, MAX_ITEMS))
+        : [];
       const row = mealRowFromChips(chips, {
         day: wrote.day,
         time: at,
         label: body?.label ?? "a photo",
+        photoKey,
+        items,
       });
       if (row)
         await saveMeal(userId, row, { logDay: false }).catch((e) =>
@@ -112,6 +145,15 @@ export async function POST(req: Request) {
 
     const chips = toChips(doc, { today, takenAt });
     const totals = doc.kind === "meal" ? mealTotals(doc) : null;
+    // A plate's photo is written now, so the confirm can point the meal at it.
+    // ponytail: a read nobody confirms leaves its file behind. Upgrade path: a
+    // sweep of photo files no meal row points at.
+    const photoId = doc.kind === "meal" ? randomUUID() : null;
+    if (photoId) {
+      // Under an extension the confirm looks for: a nameless file is a JPEG.
+      const ext = PHOTO_EXTS.includes(extOf(fileName)) ? extOf(fileName) : "jpg";
+      await writeUpload(userId, photoId, buffer, ext);
+    }
     return Response.json({
       ok: true,
       kind: doc.kind,
@@ -122,6 +164,7 @@ export async function POST(req: Request) {
       /** Every food number is a guess and says so, here and in the UI. */
       estimated: doc.kind === "meal",
       items: doc.items ?? [],
+      photoId,
     });
   } catch (e) {
     const error = e instanceof Error ? e.message : String(e);

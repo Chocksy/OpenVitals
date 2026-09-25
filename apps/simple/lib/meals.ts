@@ -111,6 +111,28 @@ const num = (v: unknown): number | null => {
 const movesOf = (): MealMove[] => [];
 
 /**
+ * The reader's items in the row's shape. The one mapping: `mealRowOf` calls it
+ * on the extract, and `/api/capture`'s JSON branch on the items the phone sent
+ * back from that same extract. Pure; an item with no name is dropped.
+ */
+export function mealItemsOf(
+  items: CaptureExtract["items"] | null | undefined,
+): MealItem[] {
+  return (items ?? [])
+    .filter((i) => i?.name)
+    .map((i) => ({
+      name: String(i.name),
+      portion: String(i.portion ?? ""),
+      kcal: num(i.kcal),
+      protein_g: num(i.proteinG),
+      carbs_g: num(i.carbsG),
+      fat_g: num(i.fatG),
+      // Off a photograph. Never dropped, here or in the UI.
+      estimated: true,
+    }));
+}
+
+/**
  * One `CaptureExtract` into one row. Pure: the same extract, day and time give
  * the same row for ever, which is what `meals.test.ts` checks with no model
  * and no database in the loop.
@@ -130,18 +152,7 @@ export function mealRowOf(
   const totals = mealTotals(doc);
   if (!totals) return null;
 
-  const items: MealItem[] = (doc.items ?? [])
-    .filter((i) => i?.name)
-    .map((i) => ({
-      name: String(i.name),
-      portion: String(i.portion ?? ""),
-      kcal: num(i.kcal),
-      protein_g: num(i.proteinG),
-      carbs_g: num(i.carbsG),
-      fat_g: num(i.fatG),
-      // Off a photograph. Never dropped, here or in the UI.
-      estimated: true,
-    }));
+  const items = mealItemsOf(doc.items);
 
   const row: MealTotalsRow = {
     kcal: totals.kcal,
@@ -169,9 +180,10 @@ export function mealRowOf(
  *
  * `/api/capture`'s JSON branch never sees the extract again — the client sends
  * back the four nutrition chips it kept or edited, and those are what gets
- * written. So the meal is built from them, and `items` is empty rather than
- * invented: the per-item breakdown did not survive the round trip, and making
- * one up from a total is exactly the arithmetic this app refuses to do.
+ * written, so the totals come from them. `items` are the reader's own, sent
+ * back beside the chips and mapped through `mealItemsOf`; a client that sends
+ * none gets `[]` rather than items invented from a total, which is exactly the
+ * arithmetic this app refuses to do.
  */
 export function mealRowFromChips(
   chips: Chip[],
@@ -180,6 +192,7 @@ export function mealRowFromChips(
     time: string | null;
     label: string;
     photoKey?: string | null;
+    items?: MealItem[];
     source?: string;
   },
 ): NewMeal | null {
@@ -197,7 +210,7 @@ export function mealRowFromChips(
     time: opts.time,
     photoKey: opts.photoKey ?? null,
     label: opts.label.slice(0, 200) || "a photo",
-    items: [],
+    items: opts.items ?? [],
     totals: {
       kcal: of("kcal"),
       protein_g: of("proteinG"),

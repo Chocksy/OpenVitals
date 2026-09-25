@@ -7,6 +7,7 @@ import type { Chip } from "./compose";
 import {
   dayTotals,
   entryOf,
+  mealItemsOf,
   mealPatchSchema,
   mealRowFromChips,
   mealRowOf,
@@ -167,6 +168,40 @@ describe("one photo becomes one row", () => {
   });
 });
 
+describe("the reader's items, one mapping", () => {
+  it("maps each item to the row's names, every one an estimate", () => {
+    expect(mealItemsOf(plate().items)[1]).toEqual({
+      name: "white rice",
+      portion: "200 g cooked",
+      kcal: 260,
+      protein_g: 5,
+      carbs_g: 57,
+      fat_g: 1,
+      estimated: true,
+    });
+  });
+
+  it("drops a nameless item and nulls a number it cannot trust", () => {
+    const sent = [
+      { name: "toast", kcal: -5, proteinG: "4" },
+      { portion: "1 bowl", kcal: 100 },
+      null,
+    ] as unknown as CaptureExtract["items"];
+    expect(mealItemsOf(sent)).toEqual([
+      {
+        name: "toast",
+        portion: "",
+        kcal: null,
+        protein_g: 4,
+        carbs_g: null,
+        fat_g: null,
+        estimated: true,
+      },
+    ]);
+    expect(mealItemsOf(undefined)).toEqual([]);
+  });
+});
+
 describe("the chips a person confirmed become the same row", () => {
   const chips: Chip[] = [
     {
@@ -205,6 +240,29 @@ describe("the chips a person confirmed become the same row", () => {
       fat_g: null,
       estimated: true,
     });
+  });
+
+  it("carries the photo and the reader's items the phone sent back", () => {
+    const row = mealRowFromChips(chips, {
+      day: DAY,
+      time: "13:05",
+      label: "grilled salmon, white rice, green beans",
+      photoKey: "./data/uploads/u/1.jpg",
+      items: mealItemsOf(plate().items),
+    })!;
+    expect(row.photoKey).toBe("./data/uploads/u/1.jpg");
+    expect(row.items).toEqual(
+      mealRowOf(plate(), { day: DAY, time: null, photoKey: null })!.items,
+    );
+    // the totals are still the confirmed chips, not a sum of the items
+    expect(row.totals.kcal).toBe(605);
+    expect(row.totals.carbs_g).toBeNull();
+  });
+
+  it("is today's row for an old client that sends neither", () => {
+    const row = mealRowFromChips(chips, { day: DAY, time: null, label: "x" })!;
+    expect(row.photoKey).toBeNull();
+    expect(row.items).toEqual([]);
   });
 
   it("is nothing when no food chip was confirmed", () => {

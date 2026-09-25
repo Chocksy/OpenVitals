@@ -169,6 +169,9 @@ final class IslandTests: XCTestCase {
         let body: [String: Any] = [
             "ok": true, "kind": "meal", "label": "grilled salmon, white rice, green beans",
             "chips": try JSONSerialization.jsonObject(with: JSONEncoder().encode(chips)),
+            "photoId": "0f6c1b3a-7d24-4a1e-9c58-2b8f5d0e4a71",
+            "items": [["name": "grilled salmon", "portion": "150 g", "kcal": 310,
+                       "proteinG": 34, "carbsG": 0, "fatG": 19, "confidence": 0.7]],
         ]
         return try JSONDecoder().decode(Api.CaptureResult.self,
                                         from: JSONSerialization.data(withJSONObject: body))
@@ -198,10 +201,12 @@ final class IslandTests: XCTestCase {
         let run = run(island)
         let seen = try meal()
         var confirmed: [String] = []
+        var sentBack: (String?, [Api.CaptureItem]?)
         var asked = false
         run.capture = { _, _ in seen }
-        run.confirm = { chips, _ in
+        run.confirm = { chips, _, photoId, items in
             confirmed = chips.map(\.key)
+            sentBack = (photoId, items)
             return try JSONDecoder().decode(Api.ConfirmResult.self,
                                             from: Data(#"{"ok":true,"day":"2026-08-31"}"#.utf8))
         }
@@ -223,6 +228,10 @@ final class IslandTests: XCTestCase {
         XCTAssertEqual(state.result, .init(title: "Grilled salmon, white rice, green beans",
                                            sub: "605 kcal · 41 g protein"))
         XCTAssertEqual(confirmed, ["kcal", "proteinG"])
+        // The meal keeps its photo and the reader's items.
+        XCTAssertEqual(sentBack.0, "0f6c1b3a-7d24-4a1e-9c58-2b8f5d0e4a71")
+        XCTAssertEqual(sentBack.1?.map(\.name), ["grilled salmon"])
+        XCTAssertEqual(sentBack.1?.first?.kcal, 310)
         XCTAssertFalse(asked)
     }
 

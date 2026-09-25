@@ -11,6 +11,7 @@ struct SettingsView: View {
     @ObservedObject private var model = HealthSyncModel.shared
     @ObservedObject private var session = Session.shared
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.openURL) private var openURL
     @State private var base = Api.base
     @State private var mustAsk = true
     @State private var confirmResync = false
@@ -107,11 +108,17 @@ struct SettingsView: View {
                 }
                 .disabled(!model.available || model.busy)
                 HStack(spacing: DesignTokens.s8) {
-                    HyAction(title: mustAsk ? "Allow Health access" : "Review Health access",
+                    // iOS asks once; after that only the Health app changes
+                    // what this app may read.
+                    HyAction(title: mustAsk ? "Allow Health access" : "Change in Health",
                              kind: .secondary) {
-                        Task {
-                            await model.requestAuthorization()
-                            mustAsk = await model.needsAsking()
+                        if mustAsk {
+                            Task {
+                                await model.requestAuthorization()
+                                mustAsk = await model.needsAsking()
+                            }
+                        } else if let url = URL(string: "x-apple-health://") {
+                            openURL(url)
                         }
                     }
                     .disabled(!model.available)
@@ -135,7 +142,8 @@ struct SettingsView: View {
                 }
                 FinePrint("Counted in the database, not by this phone. iOS never "
                      + "reveals which types you granted, so a type with nothing "
-                     + "sent is either empty or not granted.")
+                     + "sent is either empty or not granted. To change access, "
+                     + "open Health, tap your picture, then Apps, then OpenVitals.")
                 FinePrint("A normal sync sends again, whole, every day that changed. "
                      + "Resync forgets its place and reads every year Apple Health "
                      + "holds; the server writes each day over the old one, so "
@@ -159,8 +167,9 @@ struct SettingsView: View {
             + "\(Self.sending(model.totals).map { Design.number($0) } ?? "—") sending"
     }
 
-    /// Every type, one row each: a green tick when the server holds rows for
-    /// it, and the one line that says what it holds.
+    /// Every type, one row each: a green dot when the server holds rows for
+    /// it, and the one line that says what it holds. A dot, not a tick: the
+    /// row reports, it does not toggle.
     private var types: some View {
         SettingsShelf("Every type", "what the server holds") {
             let _ = model.revision
@@ -173,24 +182,15 @@ struct SettingsView: View {
         }
     }
 
-    /// The 21 tick, the type's name, and its line.
+    /// The 8 dot, the type's name, and its line.
     private func typeRow(_ spec: HKTypeSpec) -> some View {
         let state = model.state.state(spec.identifier)
         let server = model.totals?.byType[spec.shortType]
         let on = (server?.count ?? 0) > 0
         return HStack(alignment: .top, spacing: DesignTokens.s13) {
-            ZStack {
-                if on {
-                    Circle().fill(Hy.green)
-                    Image(systemName: "checkmark")
-                        .font(.system(size: 11, weight: .bold))
-                        .foregroundStyle(Hy.cream)
-                } else {
-                    Circle().strokeBorder(Hy.paper3, lineWidth: 1.5)
-                }
-            }
-            .frame(width: 21, height: 21)
-            .padding(.top, 1)
+            Circle().fill(on ? Hy.green : Hy.paper3)
+                .frame(width: 8, height: 8)
+                .padding(.top, 7)
             VStack(alignment: .leading, spacing: 2) {
                 Text(spec.name).hType(15, .medium, Hy.ink)
                 Text(Self.detail(spec.shortType, state, server, stamp: Self.stamp))

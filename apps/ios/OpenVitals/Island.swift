@@ -310,8 +310,10 @@ final class CaptureRun {
     var capture: (_ photo: Data, _ caption: String) async throws -> Api.CaptureResult = {
         try await Api.capture(photo: $0, caption: $1, takenAt: Date())
     }
-    var confirm: (_ chips: [Api.Chip], _ label: String?) async throws -> Api.ConfirmResult = {
-        try await Api.confirm(chips: $0, label: $1, at: Api.iso(Date()))
+    var confirm: (_ chips: [Api.Chip], _ label: String?, _ photoId: String?,
+                  _ items: [Api.CaptureItem]?) async throws -> Api.ConfirmResult = {
+        try await Api.confirm(chips: $0, label: $1, at: Api.iso(Date()),
+                              photoId: $2, items: $3)
     }
     var compose: (_ text: String) async throws -> Api.Composed = { try await Api.compose(text: $0) }
     var ask: (_ question: String) async throws -> Api.Asked = { try await Api.ask($0) }
@@ -430,7 +432,8 @@ final class CaptureRun {
                 }
                 let seen = try await capture(data, payload.text)
                 let chips = seen.chips ?? []
-                let wrote = chips.isEmpty ? nil : try await confirm(chips, seen.label)
+                let wrote = chips.isEmpty
+                    ? nil : try await confirm(chips, seen.label, seen.photoId, seen.items)
                 out = Self.outcome(seen, wrote: wrote)
             } else {
                 out = Self.outcome(try await compose(payload.text))
