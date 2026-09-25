@@ -298,9 +298,13 @@ enum Api {
     }
 
     static func totals() async throws -> Totals {
-        let req = URLRequest(
-            url: baseURL.appendingPathComponent("api/sync/healthkit/totals"))
-        return try await send(req)
+        try await send(totalsRequest)
+    }
+
+    static func cachedTotals() -> Totals? { cached(totalsRequest) }
+
+    private static var totalsRequest: URLRequest {
+        URLRequest(url: baseURL.appendingPathComponent("api/sync/healthkit/totals"))
     }
 
     struct Chip: Codable, Equatable, Identifiable {
@@ -440,6 +444,45 @@ enum Api {
         #endif
     }
 
+    /// Where the last good answer to each GET is kept, so a screen opens on
+    /// what it showed last time instead of on nothing while the server answers.
+    static var cacheDir: URL {
+        FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask)[0]
+            .appendingPathComponent("api", isDirectory: true)
+    }
+
+    /// One file per full URL (path and query), percent-encoded to a name.
+    static func cacheFile(_ req: URLRequest) -> URL? {
+        guard let url = req.url else { return nil }
+        let key = url.path + "?" + (url.query ?? "")
+        guard let name = key.addingPercentEncoding(withAllowedCharacters: .alphanumerics)
+        else { return nil }
+        return cacheDir.appendingPathComponent(name + ".json")
+    }
+
+    /// Keeps a GET's raw body. A fixture run keeps nothing, so a screenshot
+    /// build never leaves canned days behind for the real server's screens.
+    static func store(_ data: Data, for req: URLRequest) {
+        guard (req.httpMethod ?? "GET") == "GET", !Fixtures.on,
+              let file = cacheFile(req) else { return }
+        try? FileManager.default.createDirectory(
+            at: cacheDir, withIntermediateDirectories: true)
+        try? data.write(to: file, options: .atomic)
+    }
+
+    /// The last good answer to this GET, or nil. Never read under fixtures.
+    static func cached<T: Decodable>(_ req: URLRequest) -> T? {
+        guard !Fixtures.on, let file = cacheFile(req),
+              let data = try? Data(contentsOf: file) else { return nil }
+        return try? JSONDecoder().decode(T.self, from: data)
+    }
+
+    /// Sign-out and a server switch: one account's days never show under
+    /// another's.
+    static func clearCache() {
+        try? FileManager.default.removeItem(at: cacheDir)
+    }
+
     /// `also` names the statuses whose body is still an answer rather than an
     /// error. `POST /api/research` replies 429 with when it last looked, and
     /// "it last looked on Aug 1" is an answer, not a failure.
@@ -456,6 +499,7 @@ enum Api {
             let decoded = try JSONDecoder().decode(T.self, from: data)
             if (200..<300).contains(status) || also.contains(status) {
                 trace("\(where_) ok")
+                if (200..<300).contains(status) { store(data, for: req) }
                 return decoded
             }
         } catch {
@@ -846,12 +890,12 @@ extension Api {
 
             var id: String { identifier }
 
-            /// "steps · iPhone · Aug 31 2026" — the type, the writer, the day.
-            /// The route leaves `source` and `when` empty on a type nothing has
+            /// "Apple Health · Aug 31 2026": the writer and the day. The card's
+            /// title already names the type, so its id stays off. The route leaves `source` and `when` empty on a type nothing has
             /// written, so the empty parts are dropped rather than printed as
             /// stray separators.
             var provenance: String {
-                [type, source, when.isEmpty ? "" : Design.day(when)]
+                [source, when.isEmpty ? "" : Design.day(when)]
                     .filter { !$0.isEmpty }
                     .joined(separator: " · ")
             }
@@ -1110,7 +1154,8 @@ extension Api {
         /// The paper's own link. Not in the contract; the route sends it and
         /// Open needs it, so it is decoded rather than dropped.
         let url: String?
-        let publishedAt: String
+        /// Europe PMC leaves the date off some rows.
+        let publishedAt: String?
         /// Null until the intake has graded the paper.
         let grade: String?
         /// Null until the intake has written its one sentence.
@@ -1127,7 +1172,7 @@ extension Api {
 
         /// "Prev Med · Aug 27 2026", the citation line.
         var cite: [String] {
-            [journal, Design.day(publishedAt)].compactMap { $0 }
+            [journal, publishedAt.map(Design.day)].compactMap { $0 }
                 .filter { !$0.isEmpty }
         }
 
@@ -1193,14 +1238,27 @@ extension Api {
         return try await send(get("api/today"))
     }
 
+    // The `cachedX` siblings build the same request as their live call and
+    // answer from disk: the screen draws them first, then the live answer.
+
+    static func cachedToday() -> Today? { cached(get("api/today")) }
+
     static func body(day: String? = nil) async throws -> BodyDay {
         if let canned: BodyDay = Fixtures.canned("body") { return canned }
         return try await send(get("api/body", query: day.map { ["d": $0] } ?? [:]))
     }
 
+    static func cachedBody(day: String? = nil) -> BodyDay? {
+        cached(get("api/body", query: day.map { ["d": $0] } ?? [:]))
+    }
+
     static func planToday(day: String? = nil) async throws -> PlanDay {
         if let canned: PlanDay = Fixtures.canned("plan-today") { return canned }
         return try await send(get("api/plan/today", query: day.map { ["d": $0] } ?? [:]))
+    }
+
+    static func cachedPlanToday(day: String? = nil) -> PlanDay? {
+        cached(get("api/plan/today", query: day.map { ["d": $0] } ?? [:]))
     }
 
     static func tick(itemId: String, day: String, done: Bool) async throws -> HabitAck {
@@ -1237,6 +1295,10 @@ extension Api {
     static func meals(day: String? = nil) async throws -> MealDay {
         if let canned: MealDay = Fixtures.canned("meals") { return canned }
         return try await send(get("api/meals", query: day.map { ["d": $0] } ?? [:]))
+    }
+
+    static func cachedMeals(day: String? = nil) -> MealDay? {
+        cached(get("api/meals", query: day.map { ["d": $0] } ?? [:]))
     }
 
     /// `POST /api/meals` multipart. One photo in, one meal back.
@@ -1302,9 +1364,17 @@ extension Api {
     /// nil). The server clamps `n` to 1–91.
     static func scoreDays(to: String? = nil, n: Int = 91) async throws -> ScoreDays {
         if let canned: ScoreDays = Fixtures.canned("score-days") { return canned }
+        return try await send(scoreDaysRequest(to: to, n: n))
+    }
+
+    static func cachedScoreDays(to: String? = nil, n: Int = 91) -> ScoreDays? {
+        cached(scoreDaysRequest(to: to, n: n))
+    }
+
+    private static func scoreDaysRequest(to: String?, n: Int) -> URLRequest {
         var query = ["n": String(n)]
         if let to { query["to"] = to }
-        return try await send(get("api/score/days", query: query))
+        return get("api/score/days", query: query)
     }
 
     /// `PUT /api/targets`: a number sets the person's own target, nil clears
@@ -1321,16 +1391,26 @@ extension Api {
         return try await send(get("api/genome"))
     }
 
+    static func cachedGenome() -> Genome? { cached(get("api/genome")) }
+
     static func research(unseenOnly: Bool = false) async throws -> ResearchList {
         if let canned: ResearchList = Fixtures.canned("research") { return canned }
         return try await send(get("api/research",
                                   query: unseenOnly ? ["unseen": "1"] : [:]))
     }
 
+    static func cachedResearch(unseenOnly: Bool = false) -> ResearchList? {
+        cached(get("api/research", query: unseenOnly ? ["unseen": "1"] : [:]))
+    }
+
     /// `GET /api/markers?days=` — every marker with the history behind it.
     static func markers(days: Int = 365) async throws -> Markers {
         if let canned: Markers = Fixtures.canned("markers") { return canned }
         return try await send(get("api/markers", query: ["days": String(days)]))
+    }
+
+    static func cachedMarkers(days: Int = 365) -> Markers? {
+        cached(get("api/markers", query: ["days": String(days)]))
     }
 
     private static func json(_ path: String, _ method: String,

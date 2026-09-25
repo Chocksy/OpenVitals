@@ -390,6 +390,20 @@ enum HK {
         return f
     }()
 
+    /// The last `n` local days, today included, `yyyy-MM-dd`: the week a
+    /// first sync sends before it starts on the years behind it.
+    static func recentDays(_ n: Int, now: Date = Date(),
+                           calendar: Calendar = .current) -> Set<String> {
+        let f = DateFormatter()
+        f.locale = Locale(identifier: "en_US_POSIX")
+        f.calendar = calendar
+        f.timeZone = calendar.timeZone
+        f.dateFormat = "yyyy-MM-dd"
+        return Set((0..<n).compactMap {
+            calendar.date(byAdding: .day, value: -$0, to: now).map(f.string(from:))
+        })
+    }
+
     static func dayAfter(_ day: String) -> String? {
         guard let date = dayFormat.date(from: day),
               let next = dayMath.date(byAdding: .day, value: 1, to: date)
@@ -755,7 +769,8 @@ final class HealthSyncModel: ObservableObject {
     /// failure: a tab with no totals is a tab with no header line, not an
     /// error the person has to dismiss.
     func loadTotals() async {
-        totals = try? await Api.totals()
+        if totals == nil { totals = Api.cachedTotals() }
+        if let fresh = try? await Api.totals() { totals = fresh }
     }
 
     func requestAuthorization() async {
@@ -845,7 +860,34 @@ final class HealthSyncModel: ObservableObject {
         let started = epoch
         var outcome = SyncOutcome()
         var unmapped = Set<String>(job == .all || job == .resync ? [] : seenNotUsed)
-        for spec in specs {
+        // A type with no anchor walks from its oldest sample, so after a
+        // reset or a first install this week would land only after years of
+        // every earlier type. Send it first, with no anchor committed.
+        // ponytail: the full walk sends these 7 days again (harmless, the
+        // server overwrites whole days); sharing `sync`'s `done` set would
+        // skip the repeat.
+        var stopped = false
+        let recent = HK.recentDays(7)
+        for spec in specs where state.anchorData(spec.identifier) == nil {
+            guard let sampleType = spec.sampleType else { continue }
+            do {
+                let whole = try await readDays(recent, type: sampleType, spec: spec)
+                let out = try await post(whole)
+                unmapped.formUnion(out.unmapped)
+                guard epoch == started else { throw CancellationError() }
+            } catch is CancellationError {
+                stopped = true
+                break
+            } catch where Retry.signedOut(error) {
+                state.fail(spec.identifier, "Sign in again.")
+                outcome.signedOut = true
+                stopped = true
+                break
+            } catch {
+                state.fail(spec.identifier, error.localizedDescription)
+            }
+        }
+        for spec in specs where !stopped {
             do {
                 let result = try await sync(spec)
                 outcome.sent += result.0

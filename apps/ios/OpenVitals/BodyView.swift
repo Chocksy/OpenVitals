@@ -193,6 +193,7 @@ struct BodyView: View {
     /// failing is the grid's error; the model failing leaves the meals out.
     private func load(again: Bool = false) async {
         if !canned {
+            if day == nil { day = Api.cachedBody() }
             do {
                 day = try await Api.body()
                 error = ""

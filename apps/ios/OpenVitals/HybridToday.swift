@@ -188,6 +188,12 @@ final class TodayModel {
     /// The four reads in parallel. Today failing is the screen's error; the
     /// other three failing leave their shelf as it was.
     func load() async {
+        // Last time's answers first, so the screen never opens empty; the
+        // live reads below replace them, and a failed one leaves them up.
+        if today == nil { today = Api.cachedToday() }
+        if plan == nil { plan = Api.cachedPlanToday() }
+        if meals == nil { meals = Api.cachedMeals() }
+        if days.isEmpty { days = Api.cachedScoreDays(n: 91)?.days ?? [] }
         async let plan = try? await Api.planToday()
         async let meals = try? await Api.meals()
         async let days = try? await Api.scoreDays(n: 91)
@@ -900,9 +906,11 @@ enum DayGrid {
     /// The why line under the strip.
     static func why(open: Bool, run: Int, selected: DayCell?, score: Int?,
                     done: Int, due: Int) -> String {
-        if open { return "\(run)-day run at 65+ · tap a day" }
+        // A score under 65 today breaks the run; "0-day run" reads as a bug.
+        let streak = run > 0 ? "\(run)-day run at 65+" : "No run at 65+ now"
+        if open { return "\(streak) · tap a day" }
         guard let cell = selected else {
-            return "\(run)-day run at 65+ · tap for 13 weeks"
+            return "\(streak) · tap for 13 weeks"
         }
         if cell.isToday {
             let s = score.map(String.init) ?? "—"

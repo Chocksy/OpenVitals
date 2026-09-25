@@ -29,6 +29,19 @@ final class WholeDayTests: XCTestCase {
         XCTAssertEqual(days, ["2026-09-01", "2026-09-02"])
     }
 
+    /// The week a first sync sends ahead of the full walk: today and the six
+    /// local days before it, across a month end.
+    func testRecentDaysAreTheLastWeekInLocalTime() {
+        var cal = Calendar(identifier: .gregorian)
+        cal.timeZone = TimeZone(identifier: "Europe/Bucharest")!
+        // 2026-09-02 01:30 in Bucharest is still 2026-09-01 in UTC.
+        let now = ISO8601DateFormatter().date(from: "2026-09-01T22:30:00Z")!
+        XCTAssertEqual(HK.recentDays(7, now: now, calendar: cal), [
+            "2026-08-27", "2026-08-28", "2026-08-29", "2026-08-30",
+            "2026-08-31", "2026-09-01", "2026-09-02",
+        ])
+    }
+
     /// The server files a night on the morning it ended; the evening it began
     /// is sent whole too, so neither day is left with part of it.
     func testANightAcrossMidnightTouchesBothDays() {

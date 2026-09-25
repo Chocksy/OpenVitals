@@ -66,8 +66,9 @@ final class PlanModel {
 
     @ObservationIgnored
     var fetch: () async throws -> Api.PlanDay = { try await Api.planToday() }
+    /// Nil when the read failed, so the papers already shown stay.
     @ObservationIgnored
-    var fetchPapers: () async -> [Api.Paper] = { (try? await Api.research())?.rows ?? [] }
+    var fetchPapers: () async -> [Api.Paper]? = { (try? await Api.research())?.rows }
     /// `POST /api/habits`.
     @ObservationIgnored
     var send: (_ itemId: String, _ day: String, _ done: Bool) async throws -> Void = {
@@ -123,13 +124,15 @@ final class PlanModel {
     // MARK: reads
 
     func load() async {
+        if plan == nil { plan = Api.cachedPlanToday() }
+        if papers.isEmpty { papers = Api.cachedResearch()?.rows ?? [] }
         do {
             plan = try await fetch()
             error = ""
         } catch {
             self.error = error.localizedDescription
         }
-        papers = await fetchPapers()
+        if let fresh = await fetchPapers() { papers = fresh }
     }
 
     /// The plan again after a write. A failed read leaves the screen as it was.

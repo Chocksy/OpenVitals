@@ -202,6 +202,10 @@ struct ResearchView: View {
     // MARK: - doing it
 
     private func load() async {
+        if !loaded, let last = Api.cachedResearch() {
+            rows = last.rows
+            loaded = true
+        }
         do {
             rows = try await Api.research().rows
             loaded = true
@@ -414,7 +418,7 @@ struct NewForYou: View {
     /// Only what moved a number, newest first, capped at three.
     static func pick(_ rows: [Api.Paper]) -> [Api.Paper] {
         Array(rows.filter { $0.moves != nil && $0.dismissedAt == nil }
-            .sorted { $0.publishedAt > $1.publishedAt }
+            .sorted { ($0.publishedAt ?? "") > ($1.publishedAt ?? "") }
             .prefix(3))
     }
 

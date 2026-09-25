@@ -263,6 +263,7 @@ struct SettingsView: View {
                             Api.base = base
                             base = Api.base
                             model.reset()
+                            Api.clearCache()
                         }
                         Spacer(minLength: 0)
                     }
@@ -270,6 +271,7 @@ struct SettingsView: View {
                         Api.base = Api.productionBase
                         base = Api.base
                         model.reset()
+                        Api.clearCache()
                     }
                 }
                 .padding(.top, DesignTokens.s8)

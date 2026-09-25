@@ -267,6 +267,8 @@ struct BloodView: View {
     }
 
     private func load() async {
+        if markers == nil { markers = Api.cachedMarkers() }
+        if today == nil { today = Api.cachedToday() }
         async let asked = try? await Api.today()
         do {
             let got = try await Api.markers()

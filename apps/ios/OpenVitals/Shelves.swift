@@ -319,7 +319,10 @@ private struct MealThumb: View {
         ZStack(alignment: .bottom) {
             Hy.paper2
             if let url {
+                // Pinned to the tile: a filled photo is wider than it, and the
+                // stack would grow and push the kcal out of the clip.
                 AsyncImage(url: url) { $0.resizable().scaledToFill() } placeholder: { plate }
+                    .frame(width: 42, height: 42)
             } else {
                 plate
             }

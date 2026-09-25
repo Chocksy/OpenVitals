@@ -727,6 +727,7 @@ export interface PlanTodayBody {
     why: string;
     tag: "protocol" | "goal" | "every day" | "suggested";
     done: boolean;
+    /** 0 to 1: the share of the last 30 days it was done. */
     adherence: number | null;
   }[];
 }
@@ -786,7 +787,8 @@ export async function planTodayBody(
       why: item.why ?? "",
       tag,
       done: doneIds.has(o.itemId),
-      adherence: item.adherence30,
+      // `adherence30` is a whole percent; the contract carries a fraction.
+      adherence: item.adherence30 / 100,
     };
   });
 

@@ -473,8 +473,8 @@ final class ContractTests: XCTestCase {
         XCTAssertEqual(empty.word, "never measured")
         XCTAssertFalse(empty.display.isEmpty)
         // There is a writer but no reading, so there is no day to print: the
-        // line is the type and the writer, never a stray separator.
-        XCTAssertEqual(empty.provenance, "\(empty.type) · \(empty.source)")
+        // line is the writer alone, never a stray separator.
+        XCTAssertEqual(empty.provenance, empty.source)
         XCTAssertFalse(empty.source.isEmpty)
     }
 
@@ -492,7 +492,7 @@ final class ContractTests: XCTestCase {
             XCTAssertFalse(row.source.isEmpty, row.name)
             XCTAssertFalse(row.word.isEmpty, row.name)
             XCTAssertFalse(row.display.isEmpty, row.name)
-            XCTAssertTrue(row.provenance.contains(row.type), row.provenance)
+            XCTAssertFalse(row.provenance.contains(row.type), row.provenance)
             XCTAssertFalse(row.provenance.contains(" ·  · "), row.provenance)
         }
     }
@@ -739,7 +739,7 @@ final class ContractTests: XCTestCase {
         for paper in list.rows {
             XCTAssertFalse(paper.title.isEmpty)
             XCTAssertFalse(paper.journal?.isEmpty ?? false)
-            XCTAssertFalse(paper.publishedAt.isEmpty)
+            XCTAssertFalse(paper.publishedAt?.isEmpty ?? false)
             XCTAssertEqual(paper.source, "epmc")
         }
     }

@@ -94,7 +94,7 @@ final class HybridTodayTests: XCTestCase {
         XCTAssertEqual(m.run, 0)
         XCTAssertEqual(DayGrid.why(open: false, run: m.run, selected: nil, score: nil,
                                    done: 0, due: 0),
-                       "0-day run at 65+ · tap for 13 weeks")
+                       "No run at 65+ now · tap for 13 weeks")
 
         // The whole screen draws with nothing in it.
         let view = HybridTodayView(model: m).frame(width: 390, height: 844)
