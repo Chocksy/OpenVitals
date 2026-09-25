@@ -21,6 +21,9 @@ import sys
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 FIXTURES = ROOT / "Tests" / "Fixtures"
 OUT = ROOT / "OpenVitals" / "Fixtures.swift"
+# Test input, not an endpoint's answer: `ScoreTests` reads it from the bundle
+# and the app has no call that could be canned with it.
+SKIP = {"score-vectors"}
 
 HEAD = '''import Foundation
 
@@ -89,6 +92,31 @@ enum Fixtures {
         on && UserDefaults.standard.bool(forKey: "OVBottom")
     }
 
+    /// `-OVCalendar YES` opens Today with the 13 weeks already out, so a
+    /// screenshot reaches the grid with no tap.
+    static var calendar: Bool {
+        on && UserDefaults.standard.bool(forKey: "OVCalendar")
+    }
+
+    /// `-OVFocus YES` opens Today with Focus already out and its top card
+    /// caught mid-swipe, as the prototype's second phone draws it.
+    static var focus: Bool {
+        on && UserDefaults.standard.bool(forKey: "OVFocus")
+    }
+
+    /// `-OVMeal YES` opens Today with the meal sheet out on the first meal,
+    /// a portion stepped and a row swiped open, as the prototype's third
+    /// phone draws it.
+    static var meal: Bool {
+        on && UserDefaults.standard.bool(forKey: "OVMeal")
+    }
+
+    /// `-OVIsland plate` / `receipt` opens the app with the island held
+    /// open over Today, the header moved down under it.
+    static var island: String? {
+        on ? UserDefaults.standard.string(forKey: "OVIsland") : nil
+    }
+
     /// The canned answer for one endpoint, or nil when the app should ask the
     /// server like it always does.
     static func canned<T: Decodable>(_ name: String) -> T? {
@@ -112,7 +140,7 @@ TAIL = """    ]
 
 
 def main() -> int:
-    names = sorted(p.stem for p in FIXTURES.glob("*.json"))
+    names = sorted(p.stem for p in FIXTURES.glob("*.json") if p.stem not in SKIP)
     if not names:
         print(f"no fixtures in {FIXTURES}", file=sys.stderr)
         return 1

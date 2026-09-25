@@ -1,0 +1,548 @@
+[
+  {
+    "name": "prototype",
+    "input": {
+      "sleepHours": 7.5,
+      "moves": {
+        "done": 2,
+        "due": 5
+      },
+      "kcal": 1497,
+      "proteinG": 94,
+      "targets": {
+        "kcal": 1900,
+        "proteinG": 120
+      },
+      "blood": {
+        "green": 4,
+        "amber": 2,
+        "rose": 1
+      },
+      "genes": 63
+    },
+    "expected": {
+      "score": 72,
+      "word": "On track",
+      "life": 77,
+      "blood": 71,
+      "genes": 63,
+      "rows": {
+        "sleep": 100,
+        "moves": 40,
+        "kcal": 90,
+        "protein": 78
+      }
+    }
+  },
+  {
+    "name": "tick 3",
+    "input": {
+      "sleepHours": 7.5,
+      "moves": {
+        "done": 3,
+        "due": 5
+      },
+      "kcal": 1497,
+      "proteinG": 94,
+      "targets": {
+        "kcal": 1900,
+        "proteinG": 120
+      },
+      "blood": {
+        "green": 4,
+        "amber": 2,
+        "rose": 1
+      },
+      "genes": 63
+    },
+    "expected": {
+      "score": 74,
+      "word": "On track",
+      "life": 82,
+      "blood": 71,
+      "genes": 63,
+      "rows": {
+        "sleep": 100,
+        "moves": 60,
+        "kcal": 90,
+        "protein": 78
+      }
+    }
+  },
+  {
+    "name": "tick 4",
+    "input": {
+      "sleepHours": 7.5,
+      "moves": {
+        "done": 4,
+        "due": 5
+      },
+      "kcal": 1497,
+      "proteinG": 94,
+      "targets": {
+        "kcal": 1900,
+        "proteinG": 120
+      },
+      "blood": {
+        "green": 4,
+        "amber": 2,
+        "rose": 1
+      },
+      "genes": 63
+    },
+    "expected": {
+      "score": 76,
+      "word": "On track",
+      "life": 87,
+      "blood": 71,
+      "genes": 63,
+      "rows": {
+        "sleep": 100,
+        "moves": 80,
+        "kcal": 90,
+        "protein": 78
+      }
+    }
+  },
+  {
+    "name": "tick 5",
+    "input": {
+      "sleepHours": 7.5,
+      "moves": {
+        "done": 5,
+        "due": 5
+      },
+      "kcal": 1497,
+      "proteinG": 94,
+      "targets": {
+        "kcal": 1900,
+        "proteinG": 120
+      },
+      "blood": {
+        "green": 4,
+        "amber": 2,
+        "rose": 1
+      },
+      "genes": 63
+    },
+    "expected": {
+      "score": 78,
+      "word": "On track",
+      "life": 92,
+      "blood": 71,
+      "genes": 63,
+      "rows": {
+        "sleep": 100,
+        "moves": 100,
+        "kcal": 90,
+        "protein": 78
+      }
+    }
+  },
+  {
+    "name": "no genome",
+    "input": {
+      "sleepHours": 7.5,
+      "moves": {
+        "done": 2,
+        "due": 5
+      },
+      "kcal": 1497,
+      "proteinG": 94,
+      "targets": {
+        "kcal": 1900,
+        "proteinG": 120
+      },
+      "blood": {
+        "green": 4,
+        "amber": 2,
+        "rose": 1
+      },
+      "genes": null
+    },
+    "expected": {
+      "score": 74,
+      "word": "On track",
+      "life": 77,
+      "blood": 71,
+      "genes": null,
+      "rows": {
+        "sleep": 100,
+        "moves": 40,
+        "kcal": 90,
+        "protein": 78
+      }
+    }
+  },
+  {
+    "name": "no targets",
+    "input": {
+      "sleepHours": 7.5,
+      "moves": {
+        "done": 2,
+        "due": 5
+      },
+      "kcal": 1497,
+      "proteinG": 94,
+      "targets": {
+        "kcal": null,
+        "proteinG": null
+      },
+      "blood": {
+        "green": 4,
+        "amber": 2,
+        "rose": 1
+      },
+      "genes": 63
+    },
+    "expected": {
+      "score": 69,
+      "word": "On track",
+      "life": 70,
+      "blood": 71,
+      "genes": 63,
+      "rows": {
+        "sleep": 100,
+        "moves": 40,
+        "kcal": null,
+        "protein": null
+      }
+    }
+  },
+  {
+    "name": "nothing",
+    "input": {
+      "sleepHours": null,
+      "moves": null,
+      "kcal": null,
+      "proteinG": null,
+      "targets": {
+        "kcal": null,
+        "proteinG": null
+      },
+      "blood": null,
+      "genes": null
+    },
+    "expected": {
+      "score": null,
+      "word": null,
+      "life": null,
+      "blood": null,
+      "genes": null,
+      "rows": {
+        "sleep": null,
+        "moves": null,
+        "kcal": null,
+        "protein": null
+      }
+    }
+  },
+  {
+    "name": "short sleep",
+    "input": {
+      "sleepHours": 5.5,
+      "moves": {
+        "done": 2,
+        "due": 5
+      },
+      "kcal": 1497,
+      "proteinG": 94,
+      "targets": {
+        "kcal": 1900,
+        "proteinG": 120
+      },
+      "blood": {
+        "green": 4,
+        "amber": 2,
+        "rose": 1
+      },
+      "genes": 63
+    },
+    "expected": {
+      "score": 69,
+      "word": "On track",
+      "life": 68,
+      "blood": 71,
+      "genes": 63,
+      "rows": {
+        "sleep": 63,
+        "moves": 40,
+        "kcal": 90,
+        "protein": 78
+      }
+    }
+  },
+  {
+    "name": "over kcal",
+    "input": {
+      "sleepHours": 7.5,
+      "moves": {
+        "done": 2,
+        "due": 5
+      },
+      "kcal": 2200,
+      "proteinG": 94,
+      "targets": {
+        "kcal": 1900,
+        "proteinG": 120
+      },
+      "blood": {
+        "green": 4,
+        "amber": 2,
+        "rose": 1
+      },
+      "genes": 63
+    },
+    "expected": {
+      "score": 70,
+      "word": "On track",
+      "life": 72,
+      "blood": 71,
+      "genes": 63,
+      "rows": {
+        "sleep": 100,
+        "moves": 40,
+        "kcal": 70,
+        "protein": 78
+      }
+    }
+  },
+  {
+    "name": "long sleep",
+    "input": {
+      "sleepHours": 10,
+      "moves": {
+        "done": 2,
+        "due": 5
+      },
+      "kcal": 1497,
+      "proteinG": 94,
+      "targets": {
+        "kcal": 1900,
+        "proteinG": 120
+      },
+      "blood": {
+        "green": 4,
+        "amber": 2,
+        "rose": 1
+      },
+      "genes": 63
+    },
+    "expected": {
+      "score": 70,
+      "word": "On track",
+      "life": 71,
+      "blood": 71,
+      "genes": 63,
+      "rows": {
+        "sleep": 75,
+        "moves": 40,
+        "kcal": 90,
+        "protein": 78
+      }
+    }
+  },
+  {
+    "name": "sleep floor",
+    "input": {
+      "sleepHours": 2,
+      "moves": {
+        "done": 2,
+        "due": 5
+      },
+      "kcal": 1497,
+      "proteinG": 94,
+      "targets": {
+        "kcal": 1900,
+        "proteinG": 120
+      },
+      "blood": {
+        "green": 4,
+        "amber": 2,
+        "rose": 1
+      },
+      "genes": 63
+    },
+    "expected": {
+      "score": 62,
+      "word": "Watch",
+      "life": 52,
+      "blood": 71,
+      "genes": 63,
+      "rows": {
+        "sleep": 0,
+        "moves": 40,
+        "kcal": 90,
+        "protein": 78
+      }
+    }
+  },
+  {
+    "name": "protein over target, life on a half",
+    "input": {
+      "sleepHours": 7.5,
+      "moves": {
+        "done": 2,
+        "due": 5
+      },
+      "kcal": 1497,
+      "proteinG": 150,
+      "targets": {
+        "kcal": 1900,
+        "proteinG": 120
+      },
+      "blood": {
+        "green": 4,
+        "amber": 2,
+        "rose": 1
+      },
+      "genes": 63
+    },
+    "expected": {
+      "score": 75,
+      "word": "On track",
+      "life": 83,
+      "blood": 71,
+      "genes": 63,
+      "rows": {
+        "sleep": 100,
+        "moves": 40,
+        "kcal": 90,
+        "protein": 100
+      }
+    }
+  },
+  {
+    "name": "kcal on the band floor",
+    "input": {
+      "sleepHours": 7.5,
+      "moves": {
+        "done": 2,
+        "due": 5
+      },
+      "kcal": 1600,
+      "proteinG": 94,
+      "targets": {
+        "kcal": 1900,
+        "proteinG": 120
+      },
+      "blood": {
+        "green": 4,
+        "amber": 2,
+        "rose": 1
+      },
+      "genes": 63
+    },
+    "expected": {
+      "score": 73,
+      "word": "On track",
+      "life": 80,
+      "blood": 71,
+      "genes": 63,
+      "rows": {
+        "sleep": 100,
+        "moves": 40,
+        "kcal": 100,
+        "protein": 78
+      }
+    }
+  },
+  {
+    "name": "blood and genes only",
+    "input": {
+      "sleepHours": null,
+      "moves": null,
+      "kcal": null,
+      "proteinG": null,
+      "targets": {
+        "kcal": null,
+        "proteinG": null
+      },
+      "blood": {
+        "green": 4,
+        "amber": 2,
+        "rose": 1
+      },
+      "genes": 63
+    },
+    "expected": {
+      "score": 69,
+      "word": "On track",
+      "life": null,
+      "blood": 71,
+      "genes": 63,
+      "rows": {
+        "sleep": null,
+        "moves": null,
+        "kcal": null,
+        "protein": null
+      }
+    }
+  },
+  {
+    "name": "lifestyle only, Strong",
+    "input": {
+      "sleepHours": 8,
+      "moves": {
+        "done": 5,
+        "due": 5
+      },
+      "kcal": 1800,
+      "proteinG": 120,
+      "targets": {
+        "kcal": 1900,
+        "proteinG": 120
+      },
+      "blood": null,
+      "genes": null
+    },
+    "expected": {
+      "score": 100,
+      "word": "Strong",
+      "life": 100,
+      "blood": null,
+      "genes": null,
+      "rows": {
+        "sleep": 100,
+        "moves": 100,
+        "kcal": 100,
+        "protein": 100
+      }
+    }
+  },
+  {
+    "name": "all rose, Act",
+    "input": {
+      "sleepHours": null,
+      "moves": {
+        "done": 0,
+        "due": 4
+      },
+      "kcal": null,
+      "proteinG": null,
+      "targets": {
+        "kcal": null,
+        "proteinG": null
+      },
+      "blood": {
+        "green": 0,
+        "amber": 0,
+        "rose": 3
+      },
+      "genes": null
+    },
+    "expected": {
+      "score": 0,
+      "word": "Act",
+      "life": 0,
+      "blood": 0,
+      "genes": null,
+      "rows": {
+        "sleep": null,
+        "moves": 0,
+        "kcal": null,
+        "protein": null
+      }
+    }
+  }
+]

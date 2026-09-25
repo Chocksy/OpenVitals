@@ -25,10 +25,7 @@
 		<string>GeistMono-Light.ttf</string>
 		<string>GeistMono-Regular.ttf</string>
 		<string>GeistMono-Medium.ttf</string>
-	</array>
-	<key>UIBackgroundModes</key>
-	<array>
-		<string>processing</string>
+		<string>SpaceGrotesk-Variable.ttf</string>
 	</array>
 </dict>
 </plist>

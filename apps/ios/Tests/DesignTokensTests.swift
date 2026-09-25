@@ -53,7 +53,7 @@ final class DesignTokensTests: XCTestCase {
     func testEveryColourConstantParsesBackToItsCSSValue() {
         let light = declarations(":root")
         let dark = declarations(".dark, html[data-theme=\"dark\"]")
-        XCTAssertEqual(DesignTokens.colours.count, 24)
+        XCTAssertEqual(DesignTokens.colours.count, 47)
         for (name, pair) in DesignTokens.colours {
             XCTAssertEqual(CSSTokens.colour(light[name] ?? ""), pair.light,
                            "light \(name)")
@@ -78,6 +78,14 @@ final class DesignTokensTests: XCTestCase {
             XCTAssertNotNil(css, "\(name)")
             XCTAssertEqual(css ?? .nan, value * 1000,
                            accuracy: 0.0001, "\(name)")
+        }
+    }
+
+    func testEveryCurveConstantParsesBackToItsCSSValue() {
+        let light = declarations(":root")
+        XCTAssertEqual(DesignTokens.curves.count, 7)
+        for (name, value) in DesignTokens.curves {
+            XCTAssertEqual(CSSTokens.bezier(light[name] ?? ""), value, "\(name)")
         }
     }
 
@@ -187,5 +195,15 @@ enum CSSTokens {
 
     static func ms(_ value: String) -> Double? {
         value.hasSuffix("ms") ? Double(value.dropLast(2)) : nil
+    }
+
+    static func bezier(_ value: String) -> DesignTokens.Bezier? {
+        guard value.hasPrefix("cubic-bezier("), value.hasSuffix(")")
+        else { return nil }
+        let n = value.dropFirst(13).dropLast()
+            .split(separator: ",")
+            .compactMap { Double($0.trimmingCharacters(in: .whitespaces)) }
+        guard n.count == 4 else { return nil }
+        return DesignTokens.Bezier(x1: n[0], y1: n[1], x2: n[2], y2: n[3])
     }
 }

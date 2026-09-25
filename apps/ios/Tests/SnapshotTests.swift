@@ -62,6 +62,37 @@ final class SnapshotTests: XCTestCase {
         return PixelDiff.bitmap(image)
     }
 
+    /// A whole screen in a real window, for a view `ImageRenderer` cannot
+    /// draw: it leaves a `ScrollView`'s content blank, and Today's shelves
+    /// are three of them. The run loop turns for 0.4 s so the first layout
+    /// and the `.task`s land before the picture.
+    private func hosted(_ view: some View, width: CGFloat, height: CGFloat,
+                        dark: Bool) -> PixelDiff.Bitmap? {
+        guard let scene = UIApplication.shared.connectedScenes
+            .compactMap({ $0 as? UIWindowScene }).first else { return nil }
+        let window = UIWindow(windowScene: scene)
+        window.frame = CGRect(x: 0, y: 0, width: width, height: height)
+        window.overrideUserInterfaceStyle = dark ? .dark : .light
+        window.rootViewController = UIHostingController(rootView: view)
+        window.isHidden = false
+        defer { window.isHidden = true }
+        window.layoutIfNeeded()
+        RunLoop.main.run(until: Date().addingTimeInterval(0.4))
+        let format = UIGraphicsImageRendererFormat()
+        format.scale = Self.scale
+        let image = UIGraphicsImageRenderer(bounds: window.bounds, format: format).image { _ in
+            window.drawHierarchy(in: window.bounds, afterScreenUpdates: true)
+        }
+        return image.cgImage.map(PixelDiff.bitmap)
+    }
+
+    /// A screen of `Mock.names` or `Mock.unrendered`, the way it draws.
+    private func screenShot(_ name: String, dark: Bool) -> PixelDiff.Bitmap? {
+        name == "hybrid"
+            ? hosted(Mock.hybrid, width: Mock.width, height: Mock.height, dark: dark)
+            : render(Mock.screen(name), width: Mock.width, dark: dark)
+    }
+
     /// One screen or one gallery section, light or dark.
     @discardableResult
     private func check(_ name: String, _ view: some View, width: CGFloat,
@@ -189,6 +220,26 @@ final class SnapshotTests: XCTestCase {
         }
     }
 
+    // ── the hybrid Today, phase 37 ───────────────────────────────────
+    //
+    // No pixel diff against `48-hybrid.html`: the video, the grain and the
+    // fonts differ by design. It must draw, full width, and not blank. It
+    // renders in a window (`hosted`): `ImageRenderer` leaves the shelves out.
+    // ponytail: visual check by eye against the HTML; add a pixel diff of the
+    // header once it is stable.
+
+    func testTheHybridMockDraws() throws {
+        let shot = try XCTUnwrap(screenShot("hybrid", dark: false))
+        XCTAssertEqual(shot.width, Int(Mock.width * Self.scale))
+        XCTAssertEqual(shot.height, Int(Mock.height * Self.scale))
+        let first = Array(shot.pixels.prefix(4))
+        let differing = stride(from: 0, to: shot.pixels.count, by: 4).filter {
+            Array(shot.pixels[$0..<$0 + 4]) != first
+        }.count
+        XCTAssertGreaterThan(differing, shot.width * shot.height / 10,
+                             "the render is (nearly) one colour")
+    }
+
     // ── the diff itself ──────────────────────────────────────────────
 
     func testAnImageComparedWithItselfDiffersOnNothing() throws {
@@ -250,8 +301,7 @@ final class SnapshotTests: XCTestCase {
         var written = 0
         for name in Mock.names + Mock.unrendered {
             for dark in [false, true] {
-                guard let shot = render(Mock.screen(name), width: Mock.width,
-                                        dark: dark) else { continue }
+                guard let shot = screenShot(name, dark: dark) else { continue }
                 PixelDiff.writeImage(shot, to: out.appendingPathComponent(
                     "\(name)-\(dark ? "dark" : "light").png"))
                 written += 1

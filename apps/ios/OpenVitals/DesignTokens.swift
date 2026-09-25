@@ -11,15 +11,19 @@ import UIKit
 enum DesignTokens {
 
     /// sha256 of the system.css this file was generated from.
-    static let cssSHA256 = "e630ca378723a408b145a6d24ea1e3337e86e42c9df588709ea3a383135ebdde"
+    static let cssSHA256 = "d2e8f6255b9c787251d8ca7170f350ee35b1ed71801cd476d8b2eef808c69ed1"
 
     // ── the raw CSS values, the contract the test re-parses ──────────
 
     static let light: [String: String] = [
         "--bad": "#c32b45",
         "--bad-fill": "#e74d64",
+        "--blood": "#c23a5e",
+        "--blood-lt": "#ea6a8d",
         "--canvas": "#fdf5ec",
         "--canvas-deep": "#f4e9dc",
+        "--card": "#fffdf8",
+        "--cream": "#f6eddc",
         "--digit-blur": "3px",
         "--digit-distance": "8px",
         "--digit-dur": "400ms",
@@ -28,17 +32,32 @@ enum DesignTokens {
         "--dur-fast": "250ms",
         "--dur-quick": "150ms",
         "--ease": "cubic-bezier(0.22, 1, 0.36, 1)",
+        "--ease-fly": "cubic-bezier(0.5, 0, 0.75, 0)",
+        "--ease-ispring": "cubic-bezier(0.34, 1.4, 0.64, 1)",
+        "--ease-spring": "cubic-bezier(0.3, 1.35, 0.5, 1)",
         "--flip-dur": "400ms",
         "--font-body": "var(--font-display)",
         "--font-display": "\"Geist\", \"Geist Sans\", \"Inter\", system-ui, -apple-system, \"Helvetica Neue\", Arial, sans-serif",
         "--font-mono": "\"Geist Mono\", \"JetBrains Mono\", ui-monospace, \"SF Mono\", SFMono-Regular, Menlo, monospace",
+        "--gene": "#6c4aa6",
+        "--gene-lt": "#a98ae6",
+        "--h-amber": "#c98512",
+        "--h-amber-soft": "#f6e3bf",
+        "--h-green": "#23995d",
+        "--h-green-soft": "#d9efdf",
+        "--h-lime": "#d6f34a",
+        "--h-rose": "#d2415b",
+        "--h-rose-soft": "#f8dbe0",
         "--hair": "rgba(61, 42, 28, 0.12)",
         "--icon-swap-dur": "200ms",
         "--ink": "#3d2a1c",
         "--ink-2": "#6d5744",
         "--ink-3": "#7f6a59",
+        "--life": "#e4722f",
+        "--life-lt": "#f59257",
         "--lime": "#d7f24b",
         "--lime-ink": "#1d2405",
+        "--mist": "#cdb8d2",
         "--navy": "#0f2140",
         "--navy-bad": "#e3767c",
         "--navy-ink": "#f4f2ed",
@@ -47,6 +66,13 @@ enum DesignTokens {
         "--navy-warn": "#e0a63c",
         "--none": "#7f6a59",
         "--ok": "#2b7f3a",
+        "--paper": "#f3ead8",
+        "--paper-2": "#ebdfc7",
+        "--paper-3": "#dccbad",
+        "--plum": "#2b1033",
+        "--plum-0": "#1e0a24",
+        "--plum-2": "#3d1947",
+        "--plum-3": "#5a2d66",
         "--r-card": "21px",
         "--r-hero": "34px",
         "--r-inner": "13px",
@@ -128,12 +154,51 @@ enum DesignTokens {
     static let badFill = Pair(
         light: Ink(rgb: 0xe74d64, alpha: 1),
         dark: Ink(rgb: 0xe3767c, alpha: 1))
+    static let blood = Pair(
+        light: Ink(rgb: 0xc23a5e, alpha: 1),
+        dark: Ink(rgb: 0xc23a5e, alpha: 1))
+    static let bloodLt = Pair(
+        light: Ink(rgb: 0xea6a8d, alpha: 1),
+        dark: Ink(rgb: 0xea6a8d, alpha: 1))
     static let canvas = Pair(
         light: Ink(rgb: 0xfdf5ec, alpha: 1),
         dark: Ink(rgb: 0x121110, alpha: 1))
     static let canvasDeep = Pair(
         light: Ink(rgb: 0xf4e9dc, alpha: 1),
         dark: Ink(rgb: 0x0c0b0a, alpha: 1))
+    static let card = Pair(
+        light: Ink(rgb: 0xfffdf8, alpha: 1),
+        dark: Ink(rgb: 0xfffdf8, alpha: 1))
+    static let cream = Pair(
+        light: Ink(rgb: 0xf6eddc, alpha: 1),
+        dark: Ink(rgb: 0xf6eddc, alpha: 1))
+    static let gene = Pair(
+        light: Ink(rgb: 0x6c4aa6, alpha: 1),
+        dark: Ink(rgb: 0x6c4aa6, alpha: 1))
+    static let geneLt = Pair(
+        light: Ink(rgb: 0xa98ae6, alpha: 1),
+        dark: Ink(rgb: 0xa98ae6, alpha: 1))
+    static let hAmber = Pair(
+        light: Ink(rgb: 0xc98512, alpha: 1),
+        dark: Ink(rgb: 0xc98512, alpha: 1))
+    static let hAmberSoft = Pair(
+        light: Ink(rgb: 0xf6e3bf, alpha: 1),
+        dark: Ink(rgb: 0xf6e3bf, alpha: 1))
+    static let hGreen = Pair(
+        light: Ink(rgb: 0x23995d, alpha: 1),
+        dark: Ink(rgb: 0x23995d, alpha: 1))
+    static let hGreenSoft = Pair(
+        light: Ink(rgb: 0xd9efdf, alpha: 1),
+        dark: Ink(rgb: 0xd9efdf, alpha: 1))
+    static let hLime = Pair(
+        light: Ink(rgb: 0xd6f34a, alpha: 1),
+        dark: Ink(rgb: 0xd6f34a, alpha: 1))
+    static let hRose = Pair(
+        light: Ink(rgb: 0xd2415b, alpha: 1),
+        dark: Ink(rgb: 0xd2415b, alpha: 1))
+    static let hRoseSoft = Pair(
+        light: Ink(rgb: 0xf8dbe0, alpha: 1),
+        dark: Ink(rgb: 0xf8dbe0, alpha: 1))
     static let hair = Pair(
         light: Ink(rgb: 0x3d2a1c, alpha: 0.12),
         dark: Ink(rgb: 0xf1efea, alpha: 0.11))
@@ -146,12 +211,21 @@ enum DesignTokens {
     static let ink3 = Pair(
         light: Ink(rgb: 0x7f6a59, alpha: 1),
         dark: Ink(rgb: 0x979083, alpha: 1))
+    static let life = Pair(
+        light: Ink(rgb: 0xe4722f, alpha: 1),
+        dark: Ink(rgb: 0xe4722f, alpha: 1))
+    static let lifeLt = Pair(
+        light: Ink(rgb: 0xf59257, alpha: 1),
+        dark: Ink(rgb: 0xf59257, alpha: 1))
     static let lime = Pair(
         light: Ink(rgb: 0xd7f24b, alpha: 1),
         dark: Ink(rgb: 0xd7f24b, alpha: 1))
     static let limeInk = Pair(
         light: Ink(rgb: 0x1d2405, alpha: 1),
         dark: Ink(rgb: 0x1d2405, alpha: 1))
+    static let mist = Pair(
+        light: Ink(rgb: 0xcdb8d2, alpha: 1),
+        dark: Ink(rgb: 0xcdb8d2, alpha: 1))
     static let navy = Pair(
         light: Ink(rgb: 0x0f2140, alpha: 1),
         dark: Ink(rgb: 0x0f2140, alpha: 1))
@@ -176,6 +250,27 @@ enum DesignTokens {
     static let ok = Pair(
         light: Ink(rgb: 0x2b7f3a, alpha: 1),
         dark: Ink(rgb: 0x8fc46a, alpha: 1))
+    static let paper = Pair(
+        light: Ink(rgb: 0xf3ead8, alpha: 1),
+        dark: Ink(rgb: 0xf3ead8, alpha: 1))
+    static let paper2 = Pair(
+        light: Ink(rgb: 0xebdfc7, alpha: 1),
+        dark: Ink(rgb: 0xebdfc7, alpha: 1))
+    static let paper3 = Pair(
+        light: Ink(rgb: 0xdccbad, alpha: 1),
+        dark: Ink(rgb: 0xdccbad, alpha: 1))
+    static let plum = Pair(
+        light: Ink(rgb: 0x2b1033, alpha: 1),
+        dark: Ink(rgb: 0x2b1033, alpha: 1))
+    static let plum0 = Pair(
+        light: Ink(rgb: 0x1e0a24, alpha: 1),
+        dark: Ink(rgb: 0x1e0a24, alpha: 1))
+    static let plum2 = Pair(
+        light: Ink(rgb: 0x3d1947, alpha: 1),
+        dark: Ink(rgb: 0x3d1947, alpha: 1))
+    static let plum3 = Pair(
+        light: Ink(rgb: 0x5a2d66, alpha: 1),
+        dark: Ink(rgb: 0x5a2d66, alpha: 1))
     static let sky = Pair(
         light: Ink(rgb: 0xd9e7f7, alpha: 1),
         dark: Ink(rgb: 0x1b2b44, alpha: 1))
@@ -199,14 +294,30 @@ enum DesignTokens {
     static let colours: [String: Pair] = [
         "--bad": bad,
         "--bad-fill": badFill,
+        "--blood": blood,
+        "--blood-lt": bloodLt,
         "--canvas": canvas,
         "--canvas-deep": canvasDeep,
+        "--card": card,
+        "--cream": cream,
+        "--gene": gene,
+        "--gene-lt": geneLt,
+        "--h-amber": hAmber,
+        "--h-amber-soft": hAmberSoft,
+        "--h-green": hGreen,
+        "--h-green-soft": hGreenSoft,
+        "--h-lime": hLime,
+        "--h-rose": hRose,
+        "--h-rose-soft": hRoseSoft,
         "--hair": hair,
         "--ink": ink,
         "--ink-2": ink2,
         "--ink-3": ink3,
+        "--life": life,
+        "--life-lt": lifeLt,
         "--lime": lime,
         "--lime-ink": limeInk,
+        "--mist": mist,
         "--navy": navy,
         "--navy-bad": navyBad,
         "--navy-ink": navyInk,
@@ -215,6 +326,13 @@ enum DesignTokens {
         "--navy-warn": navyWarn,
         "--none": none,
         "--ok": ok,
+        "--paper": paper,
+        "--paper-2": paper2,
+        "--paper-3": paper3,
+        "--plum": plum,
+        "--plum-0": plum0,
+        "--plum-2": plum2,
+        "--plum-3": plum3,
         "--sky": sky,
         "--surface": surface,
         "--surface-flat": surfaceFlat,
@@ -297,6 +415,33 @@ enum DesignTokens {
         "--tabs-dur": tabsDur,
         "--text-swap-dur": textSwapDur,
         "--toast-dur": toastDur,
+    ]
+
+    // ── curves: every cubic-bezier token, `name` + Curve ─────────────
+
+    struct Bezier: Equatable {
+        let x1: Double
+        let y1: Double
+        let x2: Double
+        let y2: Double
+    }
+
+    static let digitEaseCurve = Bezier(x1: 0.22, y1: 1, x2: 0.36, y2: 1)
+    static let easeCurve = Bezier(x1: 0.22, y1: 1, x2: 0.36, y2: 1)
+    static let easeFlyCurve = Bezier(x1: 0.5, y1: 0, x2: 0.75, y2: 0)
+    static let easeIspringCurve = Bezier(x1: 0.34, y1: 1.4, x2: 0.64, y2: 1)
+    static let easeSpringCurve = Bezier(x1: 0.3, y1: 1.35, x2: 0.5, y2: 1)
+    static let tabsEaseCurve = Bezier(x1: 0.22, y1: 1, x2: 0.36, y2: 1)
+    static let textSwapEaseCurve = Bezier(x1: 0.22, y1: 1, x2: 0.36, y2: 1)
+
+    static let curves: [String: Bezier] = [
+        "--digit-ease": digitEaseCurve,
+        "--ease": easeCurve,
+        "--ease-fly": easeFlyCurve,
+        "--ease-ispring": easeIspringCurve,
+        "--ease-spring": easeSpringCurve,
+        "--tabs-ease": tabsEaseCurve,
+        "--text-swap-ease": textSwapEaseCurve,
     ]
 
     /// The design's own easing curve, `--ease` and its twins.

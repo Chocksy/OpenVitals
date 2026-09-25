@@ -1027,9 +1027,10 @@ export interface WearableBlob {
  * **The client contract: one POST carries whole days.** Every number here is
  * a replacement, not an addition, because the same day arrives again on every
  * resync and adding would double it. That only adds up while a day's samples
- * never straddle two POSTs, which is why `HK.batches` on the phone cuts
- * batches on day boundaries and holds the newest day back until the page that
- * finishes it. A client that sends half a day writes half a day's total.
+ * never straddle two POSTs, which is why the phone uses its anchor only to
+ * find the days that changed, reads those days whole with a date query, and
+ * `HK.batches` cuts on day boundaries. A client that sends half a day writes
+ * half a day's total.
  */
 export function mergeDaily(
   existing: { row: DailyRow; wearable: WearableBlob | null } | null,
@@ -1095,14 +1096,27 @@ const sumOf = (entries: NutritionEntryLike[], key: NutritionKey) => {
  * labelled estimate and the day's total is arithmetic over labelled estimates.
  * A second sync of the same source replaces its own entry rather than adding
  * one, which is what makes re-syncing a day idempotent.
+ *
+ * `mergeSource` is Apple Health's version of that: the phone sends each
+ * dietary type in its own POST, so energy and protein arrive apart. A key in
+ * this entry replaces that key on the source's entry; a key it does not carry
+ * is kept, so protein landing second does not wipe the kcal.
  */
 export function mergeNutrition(
   existing: NutritionBlob | null,
   entry: NutritionEntryLike,
-  { replaceSource = false } = {},
+  { replaceSource = false, mergeSource = false } = {},
 ): NutritionBlob {
+  const own = (existing?.entries ?? []).find((e) => e.source === entry.source);
+  if (mergeSource && own)
+    entry = {
+      ...own,
+      ...Object.fromEntries(
+        Object.entries(entry).filter(([, v]) => v !== undefined),
+      ),
+    } as NutritionEntryLike;
   const kept = (existing?.entries ?? []).filter(
-    (e) => !(replaceSource && e.source === entry.source),
+    (e) => !((replaceSource || mergeSource) && e.source === entry.source),
   );
   const entries = [...kept, entry].sort((a, b) =>
     (a.at ?? "").localeCompare(b.at ?? ""),

@@ -554,6 +554,35 @@ extension Api {
                 var id: String { title }
             }
 
+            /// `lib/projection.ts` for this marker: where it starts, where the
+            /// adopted actions are expected to take it by `retestAt`, and the
+            /// lab readings behind it, oldest first.
+            struct Projection: Codable, Equatable {
+                /// One adopted action and what it is expected to move.
+                struct Lever: Codable, Equatable, Identifiable {
+                    let name: String
+                    let delta: Double
+                    let grade: String
+                    var id: String { name }
+                }
+
+                struct Reading: Codable, Equatable, Identifiable {
+                    let date: String
+                    let value: Double
+                    var id: String { date }
+                }
+
+                let from: Double
+                let fromDate: String
+                let expected: Double
+                let low: Double
+                let high: Double
+                let horizonWeeks: Double
+                let retestAt: String?
+                let levers: [Lever]
+                let history: [Reading]
+            }
+
             let code: String
             let name: String
             let value: Double?
@@ -563,6 +592,9 @@ extension Api {
             let onPace: Bool?
             let paceLine: String?
             let moves: [Move]
+            /// Phase 37: what the Heading shelf draws. Null when nothing
+            /// projects this marker; absent on servers before phase 37.
+            let projection: Projection?
 
             var id: String { code }
 
@@ -604,6 +636,77 @@ extension Api {
         let blood: BloodCard
         let plan: PlanCard
         let systems: [System]
+        /// Phase 37. Absent on servers before it, so optional here.
+        let score: Score?
+        /// Last night. Null when there are no hours.
+        let sleep: Sleep?
+
+        /// The day's score. `input` travels with the result so a tick or a
+        /// portion can be previewed through `Score.of` before the server
+        /// answers; `maxChange` is `MAX_CHANGE`, for lever previews.
+        struct Score: Codable, Equatable {
+            let day: String
+            let input: ScoreInput
+            let result: ScoreResult
+            let targets: Targets
+            /// Active days in a row, as `getToday` counts them.
+            let streak: Int
+            let maxChange: [String: Double]
+        }
+
+        /// `bed`, `wake` and `stages` are empty today: a sync stores minutes
+        /// per stage, not the intervals a hypnogram needs.
+        struct Sleep: Codable, Equatable {
+            struct Stage: Codable, Equatable {
+                /// "awake" | "rem" | "core" | "deep"
+                let stage: String
+                let start: String
+                let end: String
+            }
+
+            let hours: Double?
+            let bed: String?
+            let wake: String?
+            let stages: [Stage]
+        }
+    }
+
+    // MARK: GET /api/score/days, PUT /api/targets
+
+    /// The score per day, oldest first, for the calendar. A day with no data
+    /// has a null score and draws as a future cell does.
+    struct ScoreDays: Codable, Equatable {
+        struct Reason: Codable, Equatable {
+            /// "Sleep 5h 40", "Blood draw: LDL 168 → 131".
+            let text: String
+            /// "Lifestyle" | "Blood"
+            let sub: String
+            /// Score minus the previous day's; null on the first day.
+            let effect: Int?
+        }
+
+        struct Day: Codable, Equatable, Identifiable {
+            let day: String
+            let score: Int?
+            let life: Int?
+            let blood: Int?
+            let genes: Int?
+            /// A lab draw was observed that day.
+            let draw: Bool
+            let reason: Reason?
+            var id: String { day }
+        }
+
+        let days: [Day]
+    }
+
+    /// The food targets the kcal and protein rows are measured against. A
+    /// value the person set wins; `estimated` is true when any field came
+    /// from Mifflin-St Jeor.
+    struct Targets: Codable, Equatable {
+        let kcal: Double?
+        let proteinG: Double?
+        let estimated: Bool
     }
 
     /// `GET /api/markers?days=` — every marker with the history behind it.
@@ -744,6 +847,10 @@ extension Api {
     struct PlanDay: Codable, Equatable {
         struct Row: Codable, Equatable, Identifiable {
             let itemId: String?
+            /// Phase 38. `plan:<reportId>:<actionIndex>` on a suggested row,
+            /// the id `POST /api/plan/adopt` reads back; nil on a row that is
+            /// already on the protocol. Optional so an older server decodes.
+            let adoptId: String?
             let time: String?
             let slot: String?
             let title: String
@@ -881,9 +988,28 @@ extension Api {
         let time: String?
         let photo: String?
         let label: String
+        /// How many of the plate: `items` are one plate, `totals` are already
+        /// times this. Phase 37; a server before it sends none, which is one.
+        let servings: Double
         let items: [MealItem]
         let totals: Macros
         let moves: [MealMove]
+
+        enum CodingKeys: String, CodingKey {
+            case id, time, photo, label, servings, items, totals, moves
+        }
+
+        init(from decoder: Decoder) throws {
+            let c = try decoder.container(keyedBy: CodingKeys.self)
+            id = try c.decode(String.self, forKey: .id)
+            time = try c.decodeIfPresent(String.self, forKey: .time)
+            photo = try c.decodeIfPresent(String.self, forKey: .photo)
+            label = try c.decode(String.self, forKey: .label)
+            servings = try c.decodeIfPresent(Double.self, forKey: .servings) ?? 1
+            items = try c.decode([MealItem].self, forKey: .items)
+            totals = try c.decode(Macros.self, forKey: .totals)
+            moves = try c.decode([MealMove].self, forKey: .moves)
+        }
 
         /// "from a photo · 13:05", or "logged in Health · 08:05". A meal with
         /// no clock time says where it came from and stops there.
@@ -1067,6 +1193,27 @@ extension Api {
         return try await send(req)
     }
 
+    /// What `POST /api/plan/adopt` answers (`lib/adopt.ts`, `AdoptResult`):
+    /// the protocol item the action became, or the one it already was
+    /// (`already`), or how many an undo took off (`removed`).
+    struct Adopted: Codable, Equatable {
+        let ok: Bool?
+        let id: String?
+        let adopted: String?
+        let already: Bool?
+        let removed: Int?
+    }
+
+    /// `POST /api/plan/adopt` with `{ id }`: one suggested row, made real.
+    static func adopt(id: String) async throws -> Adopted {
+        try await send(try json("api/plan/adopt", "POST", ["id": id]))
+    }
+
+    /// The same route with `{ removeIds }`: the "Added · Undo" pill's undo.
+    static func unadopt(removeIds: [String]) async throws -> Adopted {
+        try await send(try json("api/plan/adopt", "POST", ["removeIds": removeIds]))
+    }
+
     static func meals(day: String? = nil) async throws -> MealDay {
         if let canned: MealDay = Fixtures.canned("meals") { return canned }
         return try await send(get("api/meals", query: day.map { ["d": $0] } ?? [:]))
@@ -1087,6 +1234,66 @@ extension Api {
         req.httpBody = multipart(boundary: boundary, photo: photo,
                                  fileName: fileName, fields: fields)
         return try await send(req)
+    }
+
+    /// `PATCH /api/meals/:id`. Only the fields given are sent. `time` is
+    /// `HH:MM`, `servings` 0.5 to 4 in halves, and `items` replaces the list
+    /// (an empty list is a 400: delete the meal instead). The meal comes back
+    /// as it now stands.
+    static func patchMeal(id: String, label: String? = nil, time: String? = nil,
+                          servings: Double? = nil,
+                          items: [MealItem]? = nil) async throws -> Meal {
+        if let canned: Meal = Fixtures.canned("meal") { return canned }
+        var body: [String: Any] = [:]
+        if let label { body["label"] = label }
+        if let time { body["time"] = time }
+        if let servings { body["servings"] = servings }
+        // Every macro goes out as a number or null, never left off: the
+        // route's item shape has no optional fields.
+        if let items {
+            body["items"] = items.map { item -> [String: Any] in
+                ["name": item.name, "portion": item.portion,
+                 "kcal": item.kcal ?? NSNull(),
+                 "protein_g": item.proteinG ?? NSNull(),
+                 "carbs_g": item.carbsG ?? NSNull(),
+                 "fat_g": item.fatG ?? NSNull(),
+                 "estimated": item.estimated]
+            }
+        }
+        return try await send(try json("api/meals/\(id)", "PATCH", body))
+    }
+
+    /// `DELETE /api/meals/:id`: the meal and its photo.
+    static func deleteMeal(id: String) async throws -> Ok {
+        if Fixtures.on { return Ok(ok: true) }
+        return try await send(try json("api/meals/\(id)", "DELETE", nil))
+    }
+
+    /// `POST /api/meals/:id/reread` `{ note }`: the stored photo read again
+    /// with the person's correction (1 to 500 characters). Servings go back to
+    /// 1. A read that finds no plate is a 422 and the meal stays as it was.
+    static func reread(id: String, note: String) async throws -> Meal {
+        if let canned: Meal = Fixtures.canned("meal") { return canned }
+        return try await send(try json("api/meals/\(id)/reread", "POST",
+                                       ["note": note]))
+    }
+
+    /// `GET /api/score/days?to=&n=`: `n` days ending on `to` (today when
+    /// nil). The server clamps `n` to 1–91.
+    static func scoreDays(to: String? = nil, n: Int = 91) async throws -> ScoreDays {
+        if let canned: ScoreDays = Fixtures.canned("score-days") { return canned }
+        var query = ["n": String(n)]
+        if let to { query["to"] = to }
+        return try await send(get("api/score/days", query: query))
+    }
+
+    /// `PUT /api/targets`: a number sets the person's own target, nil clears
+    /// it and the estimate takes over again. Both fields are always sent.
+    static func setTargets(kcal: Double?, proteinG: Double?) async throws -> Targets {
+        if let canned: Today = Fixtures.canned("today"),
+           let targets = canned.score?.targets { return targets }
+        return try await send(try json("api/targets", "PUT", [
+            "kcal": kcal ?? NSNull(), "proteinG": proteinG ?? NSNull()]))
     }
 
     static func genome() async throws -> Genome {

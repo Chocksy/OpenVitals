@@ -33,6 +33,9 @@ struct GalleryView: View {
                     Meta(Face.bundled
                          ? "Geist Sans and Geist Mono are bundled and loaded."
                          : "Geist did not load; this is SF, the fallback.")
+                    NavigationLink("Hybrid Today, on the prototype's day") {
+                        Mock.hybrid
+                    }
                     ForEach(Self.sections, id: \.id) { section in
                         Gallery.section(section.id)
                     }
@@ -736,13 +739,16 @@ enum Mock {
     /// mockups are not this phase's to redraw — so these two are written by
     /// the screenshot dumper and checked by `CaptureSheetTests`, not by a
     /// pixel diff against a render that does not exist.
-    static let unrendered = ["capturebox", "captureread"]
+    /// Phase 37 adds `hybrid`: the new Today on the prototype's day, which
+    /// no pixel diff checks either (the video, the grain and the fonts differ
+    /// from `48-hybrid.html` by design).
+    static let unrendered = ["capturebox", "captureread", "hybrid"]
 
     /// The goal row is not a phone frame: it is one element of `system.html`
     /// section 08, at the 1194 px it lays out at on the page it belongs to.
     static let goalWidth: CGFloat = 1194
 
-    @ViewBuilder
+    @MainActor @ViewBuilder
     static func screen(_ name: String) -> some View {
         switch name {
         case "today": today
@@ -755,6 +761,7 @@ enum Mock {
         case "settings": settings
         case "blood": blood
         case "research": research
+        case "hybrid": hybrid
         default: signin
         }
     }
@@ -1181,6 +1188,194 @@ enum Mock {
         .padding(DesignTokens.s13)
         .frame(width: width)
         .background(Design.canvas)
+    }
+
+    // ── Hybrid Today ─────────────────────────────────────────────────
+    //
+    // Phase 37 task C5. `48-hybrid.html`'s own day: 72 (life 77, blood 71,
+    // genes 63), the three meals, five moves with two done, LDL 131 → 104,
+    // and the 86 days before it off the prototype's seeded generator. The
+    // spec's "What does not ship": this is the only place that data lives.
+
+    /// The phone's height at `width`, for the one mock that fills a screen.
+    static let height: CGFloat = 844
+
+    /// The whole screen at the phone's own size: the header, the shelves.
+    @MainActor
+    static var hybrid: some View {
+        HybridTodayView(model: hybridModel())
+            .frame(width: width, height: height)
+    }
+
+    /// Wed 23 Sep 2026: `START` (Mon 29 Jun) plus `TODAY` (86).
+    static let hybridDay = "2026-09-23"
+
+    /// Sleep 7h 30, moves 2 of 5, 1 497 kcal and 93 g of 1 900 and 120,
+    /// the seven blood rows (4 green, 2 amber, 1 rose), genes 63.
+    static let hybridInput = ScoreInput(
+        sleepHours: 7.5, moves: .init(done: 2, due: 5), kcal: 1497, proteinG: 93,
+        targets: .init(kcal: 1900, proteinG: 120),
+        blood: .init(green: 4, amber: 2, rose: 1), genes: 63)
+
+    @MainActor
+    static func hybridModel() -> TodayModel {
+        typealias Goal = Api.Today.Goal
+        typealias P = Goal.Projection
+        func goal(_ code: String, _ name: String, was: Double, now: Double,
+                  aim: Double, levers: [(String, Double)]) -> Goal {
+            let land = now + levers.reduce(0) { $0 + $1.1 }
+            return Goal(
+                code: code, name: name, value: now, unit: "mg/dL",
+                target: .init(low: nil, high: aim, due: "2026-11-01"),
+                // The prototype tags both amber markers "Borderline" and
+                // prints "next draw Nov 1" on their cards.
+                toGo: now - aim, onPace: true, paceLine: nil,
+                moves: [], projection: P(
+                    from: now, fromDate: "2026-08-01", expected: land,
+                    low: land, high: land, horizonWeeks: 8, retestAt: "2026-11-01",
+                    levers: levers.map { P.Lever(name: $0.0, delta: $0.1, grade: "B") },
+                    history: [.init(date: "2025-12-09", value: was),
+                              .init(date: "2026-08-01", value: now)]))
+        }
+        let today = Api.Today(
+            sentence: .init(head: "One thing you are moving:",
+                            tail: "LDL under 100. Two of five done today.", tone: "warn"),
+            goals: [
+                goal("ldl_cholesterol", "LDL", was: 168, now: 131, aim: 100,
+                     levers: [("Walks", -9), ("Oats", -8), ("Psyllium", -10)]),
+                goal("apolipoprotein_b", "ApoB", was: 112, now: 98, aim: 90,
+                     levers: [("Walks", -3), ("Oats", -3), ("Psyllium", -4)]),
+            ],
+            status: .init(off: 1, borderline: 2, optimal: 4, drawDate: "2026-08-01",
+                          since: nil),
+            body: .init(headline: "36.2", unit: "years", line: "PhenoAge · at 39"),
+            blood: .init(off: 3, total: 7, nextDraw: nil),
+            plan: .init(headline: "2 / 5", todo: 3, next: "Walk after dinner"),
+            systems: [],
+            score: .init(day: hybridDay, input: hybridInput, result: Score.of(hybridInput),
+                         targets: .init(kcal: 1900, proteinG: 120, estimated: false),
+                         streak: 31,
+                         maxChange: ["ldl_cholesterol": 50, "apolipoprotein_b": 40]),
+            sleep: .init(hours: 7.5, bed: "23:05", wake: "6:35", stages: hybridSleep))
+
+        // `MOVES`: n, s, f, and done on the first two.
+        let moves: [(String, String, String, String, Bool)] = [
+            ("Selenium 200 µg", "with breakfast", "thyroid · TPO", "protocol", true),
+            ("Walk after lunch", "15 min", "glucose · LDL", "every day", true),
+            ("Walk after dinner", "15 min before 9 PM", "evening glucose · LDL",
+             "every day", false),
+            ("Psyllium 5 g", "in water before bed", "LDL · soluble fibre", "protocol", false),
+            ("Resistance 20 min", "squats, rows, push-ups", "PhenoAge · muscle",
+             "every day", false),
+        ]
+        let plan = Api.PlanDay(
+            day: hybridDay, done: 2, total: 5,
+            rows: moves.enumerated().map { i, m in
+                .init(itemId: "hybrid-\(i)", adoptId: nil, time: nil, slot: m.1, title: m.0, why: m.2,
+                      tag: m.3, done: m.4, adherence: nil)
+            })
+
+        let meals = try? JSONDecoder().decode(Api.MealDay.self, from: Data(hybridMeals.utf8))
+        return TodayModel(today: today, plan: plan, meals: meals, days: hybridDays())
+    }
+
+    /// `MEALS`, with their rows: 412, 462 and 623 kcal; 14 + 38 + 41 g protein.
+    static let hybridMeals = #"""
+    {"day": "2026-09-23",
+     "totals": {"kcal": 1497, "protein_g": 93, "carbs_g": 142, "fat_g": 62, "estimated": true},
+     "meals": [
+      {"id": "hybrid-oats", "time": "08:15", "photo": null, "label": "Oats with berries",
+       "servings": 1, "moves": [],
+       "totals": {"kcal": 412, "protein_g": 14, "carbs_g": 68, "fat_g": 8, "estimated": true},
+       "items": [
+        {"name": "Rolled oats", "portion": "60 g", "kcal": 228, "protein_g": 8, "carbs_g": 40, "fat_g": 4, "estimated": true},
+        {"name": "Milk, semi-skimmed", "portion": "200 ml", "kcal": 94, "protein_g": 4, "carbs_g": 10, "fat_g": 2, "estimated": true},
+        {"name": "Blueberries", "portion": "80 g", "kcal": 46, "protein_g": 1, "carbs_g": 11, "fat_g": 0, "estimated": true},
+        {"name": "Honey", "portion": "10 g", "kcal": 30, "protein_g": 0, "carbs_g": 7, "fat_g": 0, "estimated": true},
+        {"name": "Walnut, a pinch", "portion": "2 g", "kcal": 14, "protein_g": 1, "carbs_g": 0, "fat_g": 2, "estimated": true}]},
+      {"id": "hybrid-sardines", "time": "13:08", "photo": null, "label": "Sardines on rye",
+       "servings": 1, "moves": [],
+       "totals": {"kcal": 462, "protein_g": 38, "carbs_g": 31, "fat_g": 20, "estimated": true},
+       "items": [
+        {"name": "Sardines in olive oil", "portion": "125 g", "kcal": 250, "protein_g": 31, "carbs_g": 0, "fat_g": 14, "estimated": true},
+        {"name": "Rye bread", "portion": "60 g", "kcal": 150, "protein_g": 5, "carbs_g": 28, "fat_g": 1, "estimated": true},
+        {"name": "Kimchi", "portion": "80 g", "kcal": 20, "protein_g": 2, "carbs_g": 3, "fat_g": 0, "estimated": true},
+        {"name": "Butter", "portion": "6 g", "kcal": 42, "protein_g": 0, "carbs_g": 0, "fat_g": 5, "estimated": true}]},
+      {"id": "hybrid-pork", "time": "19:30", "photo": null, "label": "Pork belly salad",
+       "servings": 1, "moves": [],
+       "totals": {"kcal": 623, "protein_g": 41, "carbs_g": 43, "fat_g": 34, "estimated": true},
+       "items": [
+        {"name": "Pork belly", "portion": "120 g", "kcal": 366, "protein_g": 32, "carbs_g": 0, "fat_g": 26, "estimated": true},
+        {"name": "Baby potatoes", "portion": "150 g", "kcal": 115, "protein_g": 3, "carbs_g": 26, "fat_g": 0, "estimated": true},
+        {"name": "Chickpeas", "portion": "50 g", "kcal": 60, "protein_g": 5, "carbs_g": 10, "fat_g": 1, "estimated": true},
+        {"name": "Mixed leaves", "portion": "60 g", "kcal": 12, "protein_g": 1, "carbs_g": 2, "fat_g": 0, "estimated": true},
+        {"name": "Honey-mustard dressing", "portion": "15 g", "kcal": 70, "protein_g": 0, "carbs_g": 5, "fat_g": 7, "estimated": true}]}]}
+    """#
+
+    /// The hypnogram's rects (x, width, level) on its 232-wide axis, laid on
+    /// 23:05 to 6:35.
+    static var hybridSleep: [Api.Today.Sleep.Stage] {
+        let rects: [(Double, Double, Int)] = [
+            (0, 18, 3), (18, 34, 2), (52, 21, 1), (73, 29, 2), (102, 13, 0),
+            (115, 34, 2), (149, 21, 1), (170, 29, 2), (199, 13, 0), (212, 20, 3),
+        ]
+        let names = ["awake", "rem", "core", "deep"]
+        let bed = Date(timeIntervalSince1970: 1_790_118_300) // 2026-09-22T23:05:00Z
+        let iso = ISO8601DateFormatter()
+        func at(_ x: Double) -> String { iso.string(from: bed + x / 232 * 450 * 60) }
+        return rects.map { .init(stage: names[$0.2], start: at($0.0), end: at($0.0 + $0.1)) }
+    }
+
+    /// `mulberry32`, as JavaScript runs it on 32-bit integers.
+    private static func mulberry32(_ seed: UInt32) -> () -> Double {
+        var a = seed
+        return {
+            a = a &+ 0x6d2b_79f5
+            var t = (a ^ (a >> 15)) &* (1 | a)
+            t = (t &+ ((t ^ (t >> 7)) &* (61 | t))) ^ t
+            return Double(t ^ (t >> 14)) / 4_294_967_296
+        }
+    }
+
+    /// `DAYS`: the 86 days before today, from seeds 435 and 40, the Aug 1
+    /// draw lifting blood 64 → 71. Four days before today is a gap (score
+    /// nil, Review focus 5): an empty cell that stops the run. The seeds are
+    /// drawn for it all the same, so every other day keeps its number.
+    static func hybridDays() -> [Api.ScoreDays.Day] {
+        let up = ["All five moves ticked", "Walked after every meal", "Slept 8h 05",
+                  "Protein 131 g of 120", "Kcal on target, 1 880", "Psyllium before dinner"]
+        let down = ["Slept 5h 40", "No moves ticked", "2 480 kcal, over by 580",
+                    "Protein 64 g of 120", "Dinner at 22:40", "Skipped the walks"]
+        let r = mulberry32(435), pick = mulberry32(40)
+        let today = 86, draw = 33, gap = today - 4
+        let f = DateFormatter()
+        f.locale = Locale(identifier: "en_US_POSIX")
+        f.calendar = DayGrid.calendar
+        f.timeZone = DayGrid.calendar.timeZone
+        f.dateFormat = "yyyy-MM-dd"
+        let start = f.date(from: "2026-06-29")!
+        return (0..<today).map { i in
+            let trend = 64 + 8 * (Double(i) / Double(today - 1))
+            let n = (r() + r() + r() - 1.5) * 12 - (i % 7 >= 5 ? 4 : 0)
+            let life = Score.round(trend + n)
+            let blood = i >= draw ? 71 : 64
+            let score = Score.round(0.4 * Double(life) + 0.45 * Double(blood) + 0.15 * 63)
+            let pts = Score.round(0.4 * (Double(life) - trend))
+            let pool = pts >= 0 ? up : down
+            var reason = Api.ScoreDays.Reason(
+                text: pool[Int(pick() * Double(pool.count))], sub: "Lifestyle", effect: pts)
+            if i == draw {
+                reason = .init(text: "Blood draw: LDL 168 → 131", sub: "Blood",
+                               effect: Score.round(0.45 * 7))
+            }
+            if i == gap {
+                return .init(day: f.string(from: start + Double(i) * 86_400), score: nil,
+                             life: nil, blood: nil, genes: nil, draw: false, reason: nil)
+            }
+            return .init(day: f.string(from: start + Double(i) * 86_400), score: score,
+                         life: life, blood: blood, genes: 63, draw: i == draw,
+                         reason: reason)
+        }
     }
 }
 #endif

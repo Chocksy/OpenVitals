@@ -165,12 +165,19 @@ enum Design {
         return weekday.string(from: date)
     }
 
-    /// "2026-09-03T08:12:00+03:00" → "08:12".
+    /// "2026-09-03T08:12:00+03:00" → "08:12". The server's own stamps carry
+    /// milliseconds ("…T07:18:24.094Z"), which the plain option rejects, so
+    /// the fractional form is tried first.
     static func clock(_ stamp: String?) -> String? {
         guard let stamp else { return nil }
         let iso = ISO8601DateFormatter()
-        iso.formatOptions = [.withInternetDateTime]
-        guard let date = iso.date(from: stamp) else { return nil }
+        iso.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        var date = iso.date(from: stamp)
+        if date == nil {
+            iso.formatOptions = [.withInternetDateTime]
+            date = iso.date(from: stamp)
+        }
+        guard let date else { return nil }
         let f = DateFormatter()
         f.locale = Locale(identifier: "en_US_POSIX")
         f.dateFormat = "HH:mm"
@@ -247,6 +254,68 @@ enum Face {
         return mono
             ? UIFont.monospacedSystemFont(ofSize: points, weight: weight)
             : UIFont.systemFont(ofSize: points, weight: weight)
+    }
+}
+
+extension Face {
+
+    /// The Hybrid's face. One variable file, registered under its default
+    /// instance; the weight is set on the `wght` axis (300…700).
+    static let groteskName = "SpaceGrotesk-Light"
+
+    static func grotesk(_ points: CGFloat, _ weight: UIFont.Weight) -> UIFont {
+        let wght: CGFloat
+        switch weight {
+        case .ultraLight, .thin, .light: wght = 300
+        case .regular: wght = 400
+        case .medium: wght = 500
+        case .semibold: wght = 600
+        default: wght = weight.rawValue > 0 ? 700 : 400
+        }
+        let axis = 0x7767_6874 // 'wght'
+        let descriptor = UIFontDescriptor(fontAttributes: [
+            .name: groteskName,
+            UIFontDescriptor.AttributeName(rawValue: kCTFontVariationAttribute as String):
+                [axis: wght],
+        ])
+        let face = UIFont(descriptor: descriptor, size: points)
+        return face.fontName.hasPrefix("SpaceGrotesk")
+            ? face : UIFont.systemFont(ofSize: points, weight: weight)
+    }
+
+    /// The text style whose Dynamic Type curve a point size follows.
+    static func style(_ points: CGFloat) -> UIFont.TextStyle {
+        switch points {
+        case ..<12: return .caption2
+        case ..<14: return .footnote
+        case ..<16: return .subheadline
+        case ..<18: return .body
+        case ..<24: return .title3
+        default: return .largeTitle
+        }
+    }
+}
+
+extension Font {
+    /// Space Grotesk at `size`, tabular digits, scaled with Dynamic Type the
+    /// way `ovType` scales Geist.
+    static func grotesk(_ size: CGFloat, _ weight: Font.Weight = .regular) -> Font {
+        let ui: UIFont.Weight
+        switch weight {
+        case .ultraLight: ui = .ultraLight
+        case .thin: ui = .thin
+        case .light: ui = .light
+        case .medium: ui = .medium
+        case .semibold: ui = .semibold
+        case .bold: ui = .bold
+        case .heavy: ui = .heavy
+        case .black: ui = .black
+        default: ui = .regular
+        }
+        let base = Face.grotesk(size, ui)
+        let scaled = UIFontMetrics(forTextStyle: Face.style(size))
+            .scaledFont(for: base)
+        return Font(scaled).monospacedDigit()
     }
 }
 

@@ -327,6 +327,37 @@ export async function confirmFact(
   return { revisitAt };
 }
 
+/**
+ * "I no longer set this": the current value goes, its period closes.
+ *
+ * Phase 37: a food target the person cleared falls back to the estimate. The
+ * open history row stops the day before, so `factAt` still answers for the
+ * days it held; a value set and cleared on the same day never held and is
+ * crossed out, the same rule `planEdit` applies to a same-day change.
+ */
+export async function clearFact(
+  userId: string,
+  key: string,
+  today = localDay(),
+): Promise<void> {
+  const db = getDb();
+  const open = (await historyFor(userId, key))
+    .filter((r) => r.changeKind !== "corrected" && r.validTo == null)
+    .at(-1);
+  if (open)
+    await db
+      .update(profileFactHistory)
+      .set(
+        dayBefore(today) < open.validFrom
+          ? { changeKind: "corrected", note: "cleared the day it was set" }
+          : { validTo: dayBefore(today) },
+      )
+      .where(eq(profileFactHistory.id, open.id));
+  await db
+    .delete(profileFacts)
+    .where(and(eq(profileFacts.userId, userId), eq(profileFacts.key, key)));
+}
+
 /** "Not now": the same question, a month later, whatever its own cadence says. */
 export async function skipFact(
   userId: string,

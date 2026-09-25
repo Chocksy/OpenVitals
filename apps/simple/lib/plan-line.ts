@@ -1,3 +1,4 @@
+import { localDay } from "./daily";
 import { dayLabel, plural } from "./utils";
 
 /**
@@ -384,6 +385,34 @@ export interface OccurrenceItem {
   startedAt: string | null;
   endsAt: string | null;
   active: boolean;
+}
+
+/**
+ * A protocol row as `occurrences` reads it. An item counts from the day it was
+ * started, or else the day it was adopted, so a move added this week is not
+ * due on every day before it. `planTodayBody` (today's rows and the score's
+ * moves) and `scoreDays` (every past day) both map through here, so a day has
+ * one set of due moves.
+ */
+export function occurrenceItemOf(p: {
+  id: string;
+  text: string;
+  timeOfDay: string | null;
+  daysOfWeek: number[] | null;
+  startedAt: string | null;
+  endsAt: string | null;
+  active: boolean;
+  createdAt: Date | null;
+}): OccurrenceItem {
+  return {
+    id: p.id,
+    title: p.text,
+    timeOfDay: p.timeOfDay,
+    daysOfWeek: p.daysOfWeek,
+    startedAt: p.startedAt ?? (p.createdAt ? localDay(p.createdAt) : null),
+    endsAt: p.endsAt,
+    active: p.active,
+  };
 }
 
 export interface Occurrence {

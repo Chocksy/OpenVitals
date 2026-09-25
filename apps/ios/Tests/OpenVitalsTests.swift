@@ -236,39 +236,6 @@ final class BatchingTests: XCTestCase {
     func testSmallerThanOneBatch() {
         XCTAssertEqual(HK.batches(samples(3)).map(\.count), [3])
     }
-
-    /// The other cut that used to land mid-day: the 2000-sample page. The
-    /// newest day waits for the page that finishes it.
-    func testTheNewestDayIsHeldBackWhileMorePagesCouldExtendIt() {
-        let page = days([
-            ("2026-09-01", 3), ("2026-09-02", 3), ("2026-09-03", 2),
-        ])
-        let (ready, held) = HK.holdNewestDay(page)
-        XCTAssertEqual(daysIn(ready), ["2026-09-01", "2026-09-02"])
-        XCTAssertEqual(daysIn(held), ["2026-09-03"])
-        XCTAssertEqual(ready.count + held.count, page.count)
-    }
-
-    /// Order on the wire is insertion order, not date order, so "newest" is
-    /// the largest date and not the last element.
-    func testHoldNewestDayReadsDatesNotPositions() {
-        let page = days([("2026-09-05", 2), ("2026-09-01", 2)])
-        let (ready, held) = HK.holdNewestDay(page)
-        XCTAssertEqual(daysIn(held), ["2026-09-05"])
-        XCTAssertEqual(daysIn(ready), ["2026-09-01"])
-    }
-
-    func testAPageOfOneDayHoldsAllOfIt() {
-        let (ready, held) = HK.holdNewestDay(samples(4))
-        XCTAssertTrue(ready.isEmpty)
-        XCTAssertEqual(held.count, 4)
-    }
-
-    func testHoldingBackNothing() {
-        let (ready, held) = HK.holdNewestDay([])
-        XCTAssertTrue(ready.isEmpty)
-        XCTAssertTrue(held.isEmpty)
-    }
 }
 
 /// Phase 23c: a workout goes over as two flat samples rather than a new wire
@@ -725,7 +692,7 @@ final class RetryTests: XCTestCase {
         var tries = 0
         let (value, retries) = try await Retry.run(nap: { slept.append($0) }) {
             tries += 1
-            if tries < 3 { throw Boom() }
+            if tries < 3 { throw URLError(.networkConnectionLost) }
             return "landed"
         }
         XCTAssertEqual(value, "landed")
@@ -741,14 +708,46 @@ final class RetryTests: XCTestCase {
         do {
             _ = try await Retry.run(nap: { slept.append($0) }) {
                 tries += 1
-                throw Boom()
+                throw Api.Failure(status: 503, message: "down")
             }
             XCTFail("a batch that never lands must throw")
         } catch {
-            XCTAssertTrue(error is Boom)
+            XCTAssertEqual((error as? Api.Failure)?.status, 503)
         }
         XCTAssertEqual(tries, 4)
         XCTAssertEqual(slept, [1, 4, 16])
+    }
+
+    /// A 4xx is the request's fault: another try sends the same thing.
+    func testAClientErrorFailsAtOnce() async {
+        for status in [400, 401, 413] {
+            var tries = 0
+            var slept: [TimeInterval] = []
+            do {
+                _ = try await Retry.run(nap: { slept.append($0) }) {
+                    tries += 1
+                    throw Api.Failure(status: status, message: "no")
+                }
+                XCTFail("\(status) must throw")
+            } catch {}
+            XCTAssertEqual(tries, 1, "\(status)")
+            XCTAssertTrue(slept.isEmpty)
+        }
+    }
+
+    func testWhatIsWorthAnotherTry() {
+        XCTAssertTrue(Retry.retryable(URLError(.timedOut)))
+        XCTAssertTrue(Retry.retryable(URLError(.notConnectedToInternet)))
+        XCTAssertTrue(Retry.retryable(Api.Failure(status: 500, message: "")))
+        XCTAssertTrue(Retry.retryable(Api.Failure(status: 502, message: "")))
+        XCTAssertFalse(Retry.retryable(URLError(.cancelled)))
+        XCTAssertFalse(Retry.retryable(Api.Failure(status: 404, message: "")))
+        XCTAssertFalse(Retry.retryable(Api.Failure(status: 401, message: "")))
+        // A 2xx that would not decode is the app's own fault.
+        XCTAssertFalse(Retry.retryable(Api.Failure(status: 200, message: "")))
+        XCTAssertFalse(Retry.retryable(Boom()))
+        XCTAssertTrue(Retry.signedOut(Api.Failure(status: 401, message: "not signed in")))
+        XCTAssertFalse(Retry.signedOut(Api.Failure(status: 403, message: "")))
     }
 }
 

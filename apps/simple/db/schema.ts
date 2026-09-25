@@ -1609,6 +1609,12 @@ export const meals = pgTable(
     items: jsonb("items").$type<MealItem[]>().notNull(),
     totals: jsonb("totals").$type<MealTotalsRow>().notNull(),
     moves: jsonb("moves").$type<MealMove[]>(),
+    /**
+     * Phase 37: how many of the plate the person ate, 0.5 to 4 in halves.
+     * `items` and `totals` stay one plate as read; the meal's numbers are
+     * those times this, in `toApiMeal` and in the day's nutrition.
+     */
+    servings: real("servings").default(1).notNull(),
     /** `capture` (a photo) or `healthkit` (another app's log) */
     source: text("source").default("capture").notNull(),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),

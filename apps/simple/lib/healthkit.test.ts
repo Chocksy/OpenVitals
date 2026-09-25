@@ -608,6 +608,59 @@ describe("the day's food", () => {
     expect(again.entries).toHaveLength(1);
     expect(again.kcal).toBe(2100);
   });
+
+  /**
+   * The phone sends each dietary type in its own POST. With `replaceSource`
+   * the protein POST dropped the kcal the energy POST had just written.
+   */
+  it("keeps kcal when protein arrives in a second Health POST", () => {
+    const health = { label: "logged in Health", source: "healthkit", estimated: false };
+    const capture = mergeNutrition(null, {
+      label: "salmon, rice",
+      source: "capture",
+      estimated: true,
+      kcal: 620,
+    });
+    const energy = mergeNutrition(
+      capture,
+      { ...health, kcal: 1900 },
+      { mergeSource: true },
+    );
+    const protein = mergeNutrition(
+      energy,
+      { ...health, proteinG: 95 },
+      { mergeSource: true },
+    );
+    const own = protein.entries.filter((e) => e.source === "healthkit");
+    expect(own).toHaveLength(1);
+    expect(own[0]).toMatchObject({ kcal: 1900, proteinG: 95 });
+    expect(protein.kcal).toBe(2520);
+    expect(protein.proteinG).toBe(95);
+    expect(protein.entries).toHaveLength(2);
+
+    // A key the POST does carry still replaces, so a resent day never doubles.
+    const again = mergeNutrition(
+      protein,
+      { ...health, kcal: 2000 },
+      { mergeSource: true },
+    );
+    expect(again.kcal).toBe(2620);
+    expect(again.proteinG).toBe(95);
+  });
+
+  /** The route builds the Health entry from what the batch aggregated. */
+  it("aggregates a kcal-only batch into kcal and nothing else", () => {
+    const agg = aggregate([
+      sample({ type: "HKQuantityTypeIdentifierDietaryEnergyConsumed", value: 700, unit: "kcal" }),
+      sample({
+        type: "HKQuantityTypeIdentifierDietaryEnergyConsumed",
+        value: 500,
+        unit: "kcal",
+        start: "2026-08-30T19:00:00+03:00",
+      }),
+    ]);
+    expect(agg.daily).toEqual([{ day: "2026-08-30", field: "kcal", value: 1200 }]);
+  });
 });
 
 /**

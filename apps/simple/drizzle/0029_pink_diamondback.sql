@@ -1,0 +1,1 @@
+ALTER TABLE "meals" ADD COLUMN "servings" real DEFAULT 1 NOT NULL;

@@ -1,8 +1,8 @@
 {
   "sentence": {
     "head": "One thing you are moving:",
-    "tail": "LDL Cholesterol 70–100. None of four done today.",
-    "tone": "none"
+    "tail": "LDL Cholesterol 70–100. One of six done today.",
+    "tone": "warn"
   },
   "goals": [
     {
@@ -16,9 +16,53 @@
         "due": "2026-12-01"
       },
       "toGo": 31,
-      "onPace": null,
-      "paceLine": null,
-      "moves": []
+      "onPace": false,
+      "paceLine": "Expected 118.4 mg/dL (109.6–127.2) by 2026-11-25: Psyllium husk 10 g daily -8.1 (A), Walk 10 minutes after the largest meal -4.5 (B)",
+      "moves": [
+        {
+          "title": "Psyllium husk 10 g daily",
+          "done": true
+        }
+      ],
+      "projection": {
+        "from": 131,
+        "fromDate": "2026-09-02",
+        "expected": 118.4,
+        "low": 109.6,
+        "high": 127.2,
+        "horizonWeeks": 12,
+        "retestAt": "2026-11-25",
+        "levers": [
+          {
+            "name": "Psyllium husk 10 g daily",
+            "delta": -8.1,
+            "grade": "A"
+          },
+          {
+            "name": "Walk 10 minutes after the largest meal",
+            "delta": -4.5,
+            "grade": "B"
+          }
+        ],
+        "history": [
+          {
+            "date": "2021-06-14",
+            "value": 142
+          },
+          {
+            "date": "2023-03-02",
+            "value": 155
+          },
+          {
+            "date": "2024-11-19",
+            "value": 148
+          },
+          {
+            "date": "2026-04-23",
+            "value": 131
+          }
+        ]
+      }
     }
   ],
   "status": {
@@ -47,9 +91,9 @@
     }
   },
   "plan": {
-    "headline": "0 / 4",
-    "todo": 4,
-    "next": "Resistance training twice a week"
+    "headline": "1 / 6",
+    "todo": 5,
+    "next": "Vitamin D3 4000 IU with breakfast"
   },
   "systems": [
     {
@@ -148,5 +192,71 @@
       "unit": null,
       "marker": null
     }
-  ]
+  ],
+  "score": {
+    "day": "2026-08-31",
+    "input": {
+      "sleepHours": 6.75,
+      "moves": {
+        "done": 1,
+        "due": 5
+      },
+      "kcal": 1985,
+      "proteinG": 104,
+      "targets": {
+        "kcal": 2360,
+        "proteinG": 122
+      },
+      "blood": {
+        "green": 82,
+        "amber": 22,
+        "rose": 6
+      },
+      "genes": 75
+    },
+    "result": {
+      "score": 79,
+      "word": "On track",
+      "life": 73,
+      "blood": 85,
+      "genes": 75,
+      "rows": {
+        "sleep": 94,
+        "moves": 20,
+        "kcal": 93,
+        "protein": 85
+      }
+    },
+    "targets": {
+      "kcal": 2360,
+      "proteinG": 122,
+      "estimated": true
+    },
+    "streak": 3,
+    "maxChange": {
+      "hba1c": 1,
+      "ldl_cholesterol": 50,
+      "triglycerides": 80,
+      "hdl_cholesterol": 12,
+      "apolipoprotein_b": 40,
+      "ferritin": 50,
+      "vitamin_d": 25,
+      "tsh": 1.5,
+      "insulin": 8,
+      "homaIr": 2,
+      "glucose": 25,
+      "hs_crp": 2,
+      "alt": 25,
+      "ggt": 30,
+      "uric_acid": 1.5,
+      "bp_systolic": 12,
+      "weight_kg": 8
+    }
+  },
+  "sleep": {
+    "hours": 6.75,
+    "bed": null,
+    "wake": null,
+    "stages": []
+  }
 }

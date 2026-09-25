@@ -26,9 +26,9 @@ final class ContractTests: XCTestCase {
         return try JSONDecoder().decode(T.self, from: Data(contentsOf: url))
     }
 
-    /// The eight files the contract needs, and the one place that lists them.
+    /// The files the contract needs, and the one place that lists them.
     static let names = ["today", "body", "plan-today", "habits", "meals",
-                        "meal", "genome", "research", "markers"]
+                        "meal", "genome", "research", "markers", "score-days"]
 
     func testEveryEndpointHasAFixture() {
         for name in Self.names {
@@ -53,8 +53,8 @@ final class ContractTests: XCTestCase {
     /// phone needs no second request to draw it.
     func testThePlanCardCountsAndNamesWhatIsNext() throws {
         let today = try decode("today", as: Api.Today.self)
-        XCTAssertEqual(today.plan.headline, "0 / 4")
-        XCTAssertEqual(today.plan.todo, 4)
+        XCTAssertEqual(today.plan.headline, "1 / 6")
+        XCTAssertEqual(today.plan.todo, 5)
         let next = try XCTUnwrap(today.plan.next)
         XCTAssertFalse(next.isEmpty)
         let plan = try decode("plan-today", as: Api.PlanDay.self)
@@ -128,7 +128,7 @@ final class ContractTests: XCTestCase {
     }
 
     /// The owner's account has one goal on file: LDL 70–100 by Dec 1 2026,
-    /// 131 today, so 31 mg/dL to go and no projection behind it.
+    /// 131 today, so 31 mg/dL to go and a projection that does not reach it.
     func testTheOwnersOneGoalReadsAsItsOwnNumbers() throws {
         let today = try decode("today", as: Api.Today.self)
         let goal = try XCTUnwrap(today.goals.first { $0.code == "ldl_cholesterol" })
@@ -144,8 +144,13 @@ final class ContractTests: XCTestCase {
     /// No projection is not a "no": the card says so in words rather than
     /// printing a verdict nobody computed.
     func testAGoalWithNoProjectionSaysSo() throws {
-        let today = try decode("today", as: Api.Today.self)
-        let goal = try XCTUnwrap(today.goals.first { $0.onPace == nil })
+        let goal = try JSONDecoder().decode(Api.Today.Goal.self, from: Data(#"""
+        {"code":"ferritin","name":"Ferritin","value":40,"unit":"ng/mL",
+         "target":{"low":50,"high":150,"due":null},"toGo":10,
+         "onPace":null,"paceLine":null,"moves":[],"projection":null}
+        """#.utf8))
+        XCTAssertNil(goal.onPace)
+        XCTAssertNil(goal.projection)
         XCTAssertNil(goal.paceLine)
         XCTAssertEqual(goal.pace, "no projection yet")
     }
@@ -177,6 +182,93 @@ final class ContractTests: XCTestCase {
         XCTAssertGreaterThan(scale.at, band.upperBound, "131 is over 100")
         XCTAssertLessThan(scale.at, 1)
         XCTAssertGreaterThan(band.lowerBound, 0)
+    }
+
+    // MARK: - GET /api/today, the score, sleep and projection (phase 37)
+
+    /// The server's result is what the phone's port computes from the same
+    /// input, so a preview never disagrees with the answer that replaces it.
+    func testTheScoreIsThePortOfItsOwnInput() throws {
+        let today = try decode("today", as: Api.Today.self)
+        let score = try XCTUnwrap(today.score)
+        XCTAssertEqual(Score.of(score.input), score.result)
+        XCTAssertEqual(score.day, "2026-08-31")
+        XCTAssertEqual(score.input.targets.kcal, score.targets.kcal)
+        XCTAssertEqual(score.input.targets.proteinG, score.targets.proteinG)
+        XCTAssertGreaterThanOrEqual(score.streak, 0)
+        XCTAssertEqual(score.maxChange["ldl_cholesterol"], 50)
+    }
+
+    /// Stages are empty until a sync stores intervals; the hours are there.
+    func testLastNightDecodes() throws {
+        let today = try decode("today", as: Api.Today.self)
+        let sleep = try XCTUnwrap(today.sleep)
+        XCTAssertEqual(sleep.hours, 6.75)
+        XCTAssertNil(sleep.bed)
+        XCTAssertNil(sleep.wake)
+        XCTAssertEqual(sleep.stages, [])
+    }
+
+    /// The stage intervals decode once a server sends them.
+    func testASleepWithStagesDecodes() throws {
+        let sleep = try JSONDecoder().decode(Api.Today.Sleep.self, from: Data(#"""
+        {"hours":7.5,"bed":"2026-08-30T23:10:00.000Z","wake":"2026-08-31T06:40:00.000Z",
+         "stages":[{"stage":"deep","start":"2026-08-30T23:20:00.000Z",
+                    "end":"2026-08-31T00:05:00.000Z"}]}
+        """#.utf8))
+        XCTAssertEqual(sleep.stages.first?.stage, "deep")
+        XCTAssertNotNil(Design.clock(sleep.bed))
+    }
+
+    /// The projection the Heading shelf draws: a band around the expected
+    /// value, the levers behind it, and the history oldest first.
+    func testTheGoalCarriesItsProjection() throws {
+        let today = try decode("today", as: Api.Today.self)
+        let goal = try XCTUnwrap(today.goals.first { $0.code == "ldl_cholesterol" })
+        let p = try XCTUnwrap(goal.projection)
+        XCTAssertEqual(p.from, 131)
+        XCTAssertLessThanOrEqual(p.low, p.expected)
+        XCTAssertLessThanOrEqual(p.expected, p.high)
+        XCTAssertEqual(p.levers.count, 2)
+        XCTAssertEqual(p.retestAt, "2026-11-25")
+        XCTAssertEqual(p.history.map(\.date), p.history.map(\.date).sorted())
+        XCTAssertEqual(p.history.last?.value, p.from)
+    }
+
+    /// A server before phase 37 sends none of it, and Today still decodes.
+    func testTodayBeforePhase37StillDecodes() throws {
+        let url = try XCTUnwrap(Self.fixtureURL("today"))
+        var object = try XCTUnwrap(try JSONSerialization.jsonObject(
+            with: Data(contentsOf: url)) as? [String: Any])
+        object["score"] = nil
+        object["sleep"] = nil
+        object["goals"] = (object["goals"] as? [[String: Any]])?.map {
+            var goal = $0
+            goal["projection"] = nil
+            return goal
+        }
+        let today = try JSONDecoder().decode(
+            Api.Today.self, from: JSONSerialization.data(withJSONObject: object))
+        XCTAssertNil(today.score)
+        XCTAssertNil(today.sleep)
+        XCTAssertNil(today.goals.first?.projection)
+    }
+
+    // MARK: - GET /api/score/days (phase 37)
+
+    func testScoreDaysDecode() throws {
+        let days = try decode("score-days", as: Api.ScoreDays.self).days
+        XCTAssertEqual(days.count, 91)
+        XCTAssertEqual(days.map(\.day), days.map(\.day).sorted())
+        XCTAssertNil(days.first?.reason?.effect)
+        for day in days {
+            if day.score == nil { XCTAssertNil(day.reason, day.day) }
+            if let reason = day.reason {
+                XCTAssertFalse(reason.text.isEmpty)
+                XCTAssertTrue(["Lifestyle", "Blood"].contains(reason.sub), reason.sub)
+            }
+        }
+        XCTAssertTrue(days.contains { $0.draw })
     }
 
     // MARK: - GET /api/markers (phase 34 section 2)
@@ -459,7 +551,7 @@ final class ContractTests: XCTestCase {
         for row in plan.rows where row.adherence == nil {
             XCTAssertEqual(row.badge, row.tag)
         }
-        let made = Api.PlanDay.Row(itemId: "pi_selenium", time: "08:00",
+        let made = Api.PlanDay.Row(itemId: "pi_selenium", adoptId: nil, time: "08:00",
                                    slot: "breakfast", title: "Selenium 200 µg",
                                    why: "with breakfast", tag: "protocol",
                                    done: true, adherence: 0.86)
@@ -588,6 +680,15 @@ final class ContractTests: XCTestCase {
     }
 
     /// `POST /api/meals` answers with one meal, the same shape the list holds.
+    /// Servings are one plate unless the person said otherwise, and a
+    /// server before phase 37, which sends none, means one.
+    func testAMealCarriesItsServings() throws {
+        let day = try decode("meals", as: Api.MealDay.self)
+        XCTAssertTrue(day.meals.allSatisfy { $0.servings == 1 })
+        let old = try decode("meal", as: Api.Meal.self)
+        XCTAssertEqual(old.servings, 1)
+    }
+
     func testTheMealPostAnswersWithOneMeal() throws {
         let meal = try decode("meal", as: Api.Meal.self)
         let day = try decode("meals", as: Api.MealDay.self)
@@ -743,6 +844,15 @@ final class DesignTests: XCTestCase {
         // An unparseable day is the server's day, printed as it came.
         XCTAssertEqual(Design.day("not a date"), "not a date")
         XCTAssertEqual(Design.day(nil), "—")
+    }
+
+    /// The server's stamps carry milliseconds; a stamp without them still
+    /// reads, and both print the same minute.
+    func testAClockReadsFractionalSeconds() {
+        let withMillis = Design.clock("2026-09-01T07:18:24.094Z")
+        XCTAssertNotNil(withMillis)
+        XCTAssertEqual(withMillis, Design.clock("2026-09-01T07:18:24Z"))
+        XCTAssertNil(Design.clock("not a stamp"))
     }
 
     func testGroupedNumbers() {

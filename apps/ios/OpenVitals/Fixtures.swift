@@ -65,6 +65,31 @@ enum Fixtures {
         on && UserDefaults.standard.bool(forKey: "OVBottom")
     }
 
+    /// `-OVCalendar YES` opens Today with the 13 weeks already out, so a
+    /// screenshot reaches the grid with no tap.
+    static var calendar: Bool {
+        on && UserDefaults.standard.bool(forKey: "OVCalendar")
+    }
+
+    /// `-OVFocus YES` opens Today with Focus already out and its top card
+    /// caught mid-swipe, as the prototype's second phone draws it.
+    static var focus: Bool {
+        on && UserDefaults.standard.bool(forKey: "OVFocus")
+    }
+
+    /// `-OVMeal YES` opens Today with the meal sheet out on the first meal,
+    /// a portion stepped and a row swiped open, as the prototype's third
+    /// phone draws it.
+    static var meal: Bool {
+        on && UserDefaults.standard.bool(forKey: "OVMeal")
+    }
+
+    /// `-OVIsland plate` / `receipt` opens the app with the island held
+    /// open over Today, the header moved down under it.
+    static var island: String? {
+        on ? UserDefaults.standard.string(forKey: "OVIsland") : nil
+    }
+
     /// The canned answer for one endpoint, or nil when the app should ask the
     /// server like it always does.
     static func canned<T: Decodable>(_ name: String) -> T? {
@@ -3991,6 +4016,7 @@ enum Fixtures {
       "time": "13:05",
       "photo": null,
       "label": "grilled salmon, white rice, green beans",
+      "servings": 1,
       "items": [
         {
           "name": "grilled salmon",
@@ -4042,45 +4068,71 @@ enum Fixtures {
         "plan-today": #"""
 {
   "day": "2026-08-31",
-  "done": 0,
-  "total": 4,
+  "done": 1,
+  "total": 6,
   "rows": [
     {
-      "itemId": null,
+      "itemId": "5b0e6c1a-3f7d-4b8e-9a21-6c4f0d8e2b17",
+      "adoptId": null,
       "time": null,
-      "slot": null,
-      "title": "Resistance training twice a week",
-      "why": "Pattern insulin_resistance_early is the top system; resistance training is listed first in the management sequence and is the cheapest lever before any supplement.",
-      "tag": "suggested",
+      "slot": "breakfast",
+      "title": "Vitamin D3 4000 IU with breakfast",
+      "why": "Vitamin D 32.68 is below 40; take it with the day's first fat.",
+      "tag": "protocol",
       "done": false,
-      "adherence": null
+      "adherence": 0.71
     },
     {
-      "itemId": null,
+      "itemId": "a9d3f2e4-1c6b-4e0a-8f57-2b9e7c1d4a60",
+      "adoptId": null,
       "time": null,
-      "slot": null,
-      "title": "Walk 10 minutes after the largest meal every day",
-      "why": "Management of insulin_resistance_early lists a walk after the largest meal as the third lever; this is sequenced after confirming OGTT but can start immediately.",
-      "tag": "suggested",
-      "done": false,
-      "adherence": null
+      "slot": "breakfast",
+      "title": "Psyllium husk 10 g daily",
+      "why": "LDL 131 is above the 70–100 goal; soluble fibre binds bile acids.",
+      "tag": "goal",
+      "done": true,
+      "adherence": 0.9
     },
     {
-      "itemId": null,
+      "itemId": "e4c81b7f-6a2d-4f39-b0c5-8d17e3a9f2c4",
+      "adoptId": null,
       "time": null,
-      "slot": null,
-      "title": "Vitamin D3 4000 IU daily with largest meal",
-      "why": "Vitamin D 32.68 is below 40 and edge vitamin_d->insulin exists; raise before judging testosterone or lipids because user is 39-year-old male with no prior supplements.",
-      "tag": "suggested",
+      "slot": "midday",
+      "title": "Walk 10 minutes after the largest meal",
+      "why": "Lowers the glucose peak after eating and moves LDL a little.",
+      "tag": "goal",
       "done": false,
-      "adherence": null
+      "adherence": 0.5
     },
     {
-      "itemId": null,
+      "itemId": "71f6a0d2-9e3b-4c85-a4d1-f02b6e8c7a39",
+      "adoptId": null,
+      "time": "18:00",
+      "slot": null,
+      "title": "Resistance training 30 minutes",
+      "why": "Muscle is where glucose goes; the cheapest lever for early insulin resistance.",
+      "tag": "protocol",
+      "done": false,
+      "adherence": 0.33
+    },
+    {
+      "itemId": "c3a7e9b5-0d4f-4a62-9e18-5f2c8b6d1e03",
+      "adoptId": null,
       "time": null,
       "slot": null,
       "title": "Protein and fibre at the start of every meal",
-      "why": "Management of insulin_resistance_early lists protein and fibre at the start of meals as second lever; sequenced after training starts because user has zero adherence.",
+      "why": "Eating them first flattens the glucose curve of the rest of the plate.",
+      "tag": "every day",
+      "done": false,
+      "adherence": null
+    },
+    {
+      "itemId": null,
+      "adoptId": "plan:8f2d4c6e-1b3a-4e7f-9c05-d6a2b8e1f347:3",
+      "time": null,
+      "slot": null,
+      "title": "Magnesium glycinate 200 mg at bedtime",
+      "why": "Magnesium sits low in its band and edge magnesium->sleep_quality exists; cheap to try before judging sleep.",
       "tag": "suggested",
       "done": false,
       "adherence": null
@@ -4364,12 +4416,1141 @@ enum Fixtures {
   ]
 }
 """#,
+        "score-days": #"""
+{
+  "days": [
+    {
+      "day": "2026-06-02",
+      "score": null,
+      "life": null,
+      "blood": null,
+      "genes": null,
+      "draw": false,
+      "reason": null
+    },
+    {
+      "day": "2026-06-03",
+      "score": null,
+      "life": null,
+      "blood": null,
+      "genes": null,
+      "draw": false,
+      "reason": null
+    },
+    {
+      "day": "2026-06-04",
+      "score": null,
+      "life": null,
+      "blood": null,
+      "genes": null,
+      "draw": false,
+      "reason": null
+    },
+    {
+      "day": "2026-06-05",
+      "score": null,
+      "life": null,
+      "blood": null,
+      "genes": null,
+      "draw": false,
+      "reason": null
+    },
+    {
+      "day": "2026-06-06",
+      "score": null,
+      "life": null,
+      "blood": null,
+      "genes": null,
+      "draw": false,
+      "reason": null
+    },
+    {
+      "day": "2026-06-07",
+      "score": null,
+      "life": null,
+      "blood": null,
+      "genes": null,
+      "draw": false,
+      "reason": null
+    },
+    {
+      "day": "2026-06-08",
+      "score": null,
+      "life": null,
+      "blood": null,
+      "genes": null,
+      "draw": false,
+      "reason": null
+    },
+    {
+      "day": "2026-06-09",
+      "score": 52,
+      "life": 35,
+      "blood": 60,
+      "genes": 75,
+      "draw": false,
+      "reason": {
+        "text": "Moves 0 of 2",
+        "sub": "Lifestyle",
+        "effect": null
+      }
+    },
+    {
+      "day": "2026-06-10",
+      "score": 72,
+      "life": 85,
+      "blood": 60,
+      "genes": 75,
+      "draw": false,
+      "reason": {
+        "text": "Moves 2 of 2",
+        "sub": "Lifestyle",
+        "effect": 20
+      }
+    },
+    {
+      "day": "2026-06-11",
+      "score": 78,
+      "life": 100,
+      "blood": 60,
+      "genes": 75,
+      "draw": false,
+      "reason": {
+        "text": "Sleep 7h 00",
+        "sub": "Lifestyle",
+        "effect": 6
+      }
+    },
+    {
+      "day": "2026-06-12",
+      "score": 62,
+      "life": 60,
+      "blood": 60,
+      "genes": 75,
+      "draw": false,
+      "reason": {
+        "text": "1 495 of 2 360 kcal",
+        "sub": "Lifestyle",
+        "effect": -16
+      }
+    },
+    {
+      "day": "2026-06-13",
+      "score": 63,
+      "life": 62,
+      "blood": 60,
+      "genes": 75,
+      "draw": false,
+      "reason": {
+        "text": "Moves 0 of 2",
+        "sub": "Lifestyle",
+        "effect": 1
+      }
+    },
+    {
+      "day": "2026-06-14",
+      "score": 67,
+      "life": 73,
+      "blood": 60,
+      "genes": 75,
+      "draw": false,
+      "reason": {
+        "text": "Moves 2 of 2",
+        "sub": "Lifestyle",
+        "effect": 4
+      }
+    },
+    {
+      "day": "2026-06-15",
+      "score": 67,
+      "life": 72,
+      "blood": 60,
+      "genes": 75,
+      "draw": false,
+      "reason": {
+        "text": "1 195 of 2 360 kcal",
+        "sub": "Lifestyle",
+        "effect": 0
+      }
+    },
+    {
+      "day": "2026-06-16",
+      "score": null,
+      "life": null,
+      "blood": null,
+      "genes": null,
+      "draw": false,
+      "reason": null
+    },
+    {
+      "day": "2026-06-17",
+      "score": 64,
+      "life": 65,
+      "blood": 60,
+      "genes": 75,
+      "draw": false,
+      "reason": {
+        "text": "Protein 64 g",
+        "sub": "Lifestyle",
+        "effect": -3
+      }
+    },
+    {
+      "day": "2026-06-18",
+      "score": 62,
+      "life": 60,
+      "blood": 60,
+      "genes": 75,
+      "draw": false,
+      "reason": {
+        "text": "Moves 1 of 2",
+        "sub": "Lifestyle",
+        "effect": -2
+      }
+    },
+    {
+      "day": "2026-06-19",
+      "score": 67,
+      "life": 73,
+      "blood": 60,
+      "genes": 75,
+      "draw": false,
+      "reason": {
+        "text": "Moves 2 of 2",
+        "sub": "Lifestyle",
+        "effect": 5
+      }
+    },
+    {
+      "day": "2026-06-20",
+      "score": 59,
+      "life": 52,
+      "blood": 60,
+      "genes": 75,
+      "draw": false,
+      "reason": {
+        "text": "Moves 0 of 2",
+        "sub": "Lifestyle",
+        "effect": -8
+      }
+    },
+    {
+      "day": "2026-06-21",
+      "score": 70,
+      "life": 80,
+      "blood": 60,
+      "genes": 75,
+      "draw": false,
+      "reason": {
+        "text": "Moves 2 of 2",
+        "sub": "Lifestyle",
+        "effect": 11
+      }
+    },
+    {
+      "day": "2026-06-22",
+      "score": 65,
+      "life": 68,
+      "blood": 60,
+      "genes": 75,
+      "draw": false,
+      "reason": {
+        "text": "Moves 1 of 2",
+        "sub": "Lifestyle",
+        "effect": -5
+      }
+    },
+    {
+      "day": "2026-06-23",
+      "score": 65,
+      "life": 68,
+      "blood": 60,
+      "genes": 75,
+      "draw": false,
+      "reason": {
+        "text": "1 941 of 2 360 kcal",
+        "sub": "Lifestyle",
+        "effect": 0
+      }
+    },
+    {
+      "day": "2026-06-24",
+      "score": null,
+      "life": null,
+      "blood": null,
+      "genes": null,
+      "draw": false,
+      "reason": null
+    },
+    {
+      "day": "2026-06-25",
+      "score": 59,
+      "life": 52,
+      "blood": 60,
+      "genes": 75,
+      "draw": false,
+      "reason": {
+        "text": "Moves 0 of 2",
+        "sub": "Lifestyle",
+        "effect": -6
+      }
+    },
+    {
+      "day": "2026-06-26",
+      "score": 65,
+      "life": 67,
+      "blood": 60,
+      "genes": 75,
+      "draw": false,
+      "reason": {
+        "text": "Moves 1 of 2",
+        "sub": "Lifestyle",
+        "effect": 6
+      }
+    },
+    {
+      "day": "2026-06-27",
+      "score": 63,
+      "life": 61,
+      "blood": 60,
+      "genes": 75,
+      "draw": false,
+      "reason": {
+        "text": "1 403 of 2 360 kcal",
+        "sub": "Lifestyle",
+        "effect": -2
+      }
+    },
+    {
+      "day": "2026-06-28",
+      "score": 68,
+      "life": 75,
+      "blood": 60,
+      "genes": 75,
+      "draw": false,
+      "reason": {
+        "text": "Moves 2 of 2",
+        "sub": "Lifestyle",
+        "effect": 5
+      }
+    },
+    {
+      "day": "2026-06-29",
+      "score": 67,
+      "life": 72,
+      "blood": 60,
+      "genes": 75,
+      "draw": false,
+      "reason": {
+        "text": "Sleep 6h 15",
+        "sub": "Lifestyle",
+        "effect": -1
+      }
+    },
+    {
+      "day": "2026-06-30",
+      "score": 67,
+      "life": 72,
+      "blood": 60,
+      "genes": 75,
+      "draw": false,
+      "reason": {
+        "text": "Protein 84 g",
+        "sub": "Lifestyle",
+        "effect": 0
+      }
+    },
+    {
+      "day": "2026-07-01",
+      "score": 66,
+      "life": 70,
+      "blood": 60,
+      "genes": 75,
+      "draw": false,
+      "reason": {
+        "text": "Sleep 8h 00",
+        "sub": "Lifestyle",
+        "effect": -1
+      }
+    },
+    {
+      "day": "2026-07-02",
+      "score": 71,
+      "life": 82,
+      "blood": 60,
+      "genes": 75,
+      "draw": false,
+      "reason": {
+        "text": "1 696 of 2 360 kcal",
+        "sub": "Lifestyle",
+        "effect": 5
+      }
+    },
+    {
+      "day": "2026-07-03",
+      "score": 69,
+      "life": 76,
+      "blood": 60,
+      "genes": 75,
+      "draw": false,
+      "reason": {
+        "text": "Sleep 6h 30",
+        "sub": "Lifestyle",
+        "effect": -2
+      }
+    },
+    {
+      "day": "2026-07-04",
+      "score": 61,
+      "life": 56,
+      "blood": 60,
+      "genes": 75,
+      "draw": false,
+      "reason": {
+        "text": "Moves 0 of 2",
+        "sub": "Lifestyle",
+        "effect": -8
+      }
+    },
+    {
+      "day": "2026-07-05",
+      "score": 66,
+      "life": 69,
+      "blood": 60,
+      "genes": 75,
+      "draw": false,
+      "reason": {
+        "text": "Moves 1 of 2",
+        "sub": "Lifestyle",
+        "effect": 5
+      }
+    },
+    {
+      "day": "2026-07-06",
+      "score": 71,
+      "life": 83,
+      "blood": 60,
+      "genes": 75,
+      "draw": false,
+      "reason": {
+        "text": "Moves 2 of 2",
+        "sub": "Lifestyle",
+        "effect": 5
+      }
+    },
+    {
+      "day": "2026-07-07",
+      "score": 66,
+      "life": 69,
+      "blood": 60,
+      "genes": 75,
+      "draw": false,
+      "reason": {
+        "text": "Moves 2 of 3",
+        "sub": "Lifestyle",
+        "effect": -5
+      }
+    },
+    {
+      "day": "2026-07-08",
+      "score": 69,
+      "life": 77,
+      "blood": 60,
+      "genes": 75,
+      "draw": false,
+      "reason": {
+        "text": "Moves 2 of 2",
+        "sub": "Lifestyle",
+        "effect": 3
+      }
+    },
+    {
+      "day": "2026-07-09",
+      "score": 70,
+      "life": 80,
+      "blood": 60,
+      "genes": 75,
+      "draw": false,
+      "reason": {
+        "text": "1 754 of 2 360 kcal",
+        "sub": "Lifestyle",
+        "effect": 1
+      }
+    },
+    {
+      "day": "2026-07-10",
+      "score": 61,
+      "life": 58,
+      "blood": 60,
+      "genes": 75,
+      "draw": false,
+      "reason": {
+        "text": "Moves 1 of 3",
+        "sub": "Lifestyle",
+        "effect": -9
+      }
+    },
+    {
+      "day": "2026-07-11",
+      "score": 76,
+      "life": 94,
+      "blood": 60,
+      "genes": 75,
+      "draw": false,
+      "reason": {
+        "text": "Moves 2 of 2",
+        "sub": "Lifestyle",
+        "effect": 15
+      }
+    },
+    {
+      "day": "2026-07-12",
+      "score": 68,
+      "life": 75,
+      "blood": 60,
+      "genes": 75,
+      "draw": false,
+      "reason": {
+        "text": "Moves 1 of 2",
+        "sub": "Lifestyle",
+        "effect": -8
+      }
+    },
+    {
+      "day": "2026-07-13",
+      "score": 73,
+      "life": 88,
+      "blood": 60,
+      "genes": 75,
+      "draw": false,
+      "reason": {
+        "text": "Moves 2 of 2",
+        "sub": "Lifestyle",
+        "effect": 5
+      }
+    },
+    {
+      "day": "2026-07-14",
+      "score": 73,
+      "life": 86,
+      "blood": 60,
+      "genes": 75,
+      "draw": false,
+      "reason": {
+        "text": "Sleep 8h 15",
+        "sub": "Lifestyle",
+        "effect": 0
+      }
+    },
+    {
+      "day": "2026-07-15",
+      "score": 78,
+      "life": 100,
+      "blood": 60,
+      "genes": 75,
+      "draw": false,
+      "reason": {
+        "text": "Sleep 8h 30",
+        "sub": "Lifestyle",
+        "effect": 5
+      }
+    },
+    {
+      "day": "2026-07-16",
+      "score": 70,
+      "life": 79,
+      "blood": 60,
+      "genes": 75,
+      "draw": false,
+      "reason": {
+        "text": "1 641 of 2 360 kcal",
+        "sub": "Lifestyle",
+        "effect": -8
+      }
+    },
+    {
+      "day": "2026-07-17",
+      "score": 69,
+      "life": 76,
+      "blood": 60,
+      "genes": 75,
+      "draw": false,
+      "reason": {
+        "text": "1 534 of 2 360 kcal",
+        "sub": "Lifestyle",
+        "effect": -1
+      }
+    },
+    {
+      "day": "2026-07-18",
+      "score": 65,
+      "life": 66,
+      "blood": 60,
+      "genes": 75,
+      "draw": false,
+      "reason": {
+        "text": "Moves 1 of 2",
+        "sub": "Lifestyle",
+        "effect": -4
+      }
+    },
+    {
+      "day": "2026-07-19",
+      "score": 73,
+      "life": 88,
+      "blood": 60,
+      "genes": 75,
+      "draw": false,
+      "reason": {
+        "text": "Moves 2 of 2",
+        "sub": "Lifestyle",
+        "effect": 8
+      }
+    },
+    {
+      "day": "2026-07-20",
+      "score": null,
+      "life": null,
+      "blood": null,
+      "genes": null,
+      "draw": false,
+      "reason": null
+    },
+    {
+      "day": "2026-07-21",
+      "score": 80,
+      "life": 81,
+      "blood": 80,
+      "genes": 75,
+      "draw": true,
+      "reason": {
+        "text": "Blood draw: Vitamin D 24 → 38",
+        "sub": "Blood",
+        "effect": 7
+      }
+    },
+    {
+      "day": "2026-07-22",
+      "score": 71,
+      "life": 60,
+      "blood": 80,
+      "genes": 75,
+      "draw": false,
+      "reason": {
+        "text": "1 216 of 2 360 kcal",
+        "sub": "Lifestyle",
+        "effect": -9
+      }
+    },
+    {
+      "day": "2026-07-23",
+      "score": null,
+      "life": null,
+      "blood": null,
+      "genes": null,
+      "draw": false,
+      "reason": null
+    },
+    {
+      "day": "2026-07-24",
+      "score": 74,
+      "life": 66,
+      "blood": 80,
+      "genes": 75,
+      "draw": false,
+      "reason": {
+        "text": "Moves 2 of 3",
+        "sub": "Lifestyle",
+        "effect": 3
+      }
+    },
+    {
+      "day": "2026-07-25",
+      "score": 81,
+      "life": 85,
+      "blood": 80,
+      "genes": 75,
+      "draw": false,
+      "reason": {
+        "text": "Moves 2 of 2",
+        "sub": "Lifestyle",
+        "effect": 7
+      }
+    },
+    {
+      "day": "2026-07-26",
+      "score": 70,
+      "life": 58,
+      "blood": 80,
+      "genes": 75,
+      "draw": false,
+      "reason": {
+        "text": "Moves 1 of 2",
+        "sub": "Lifestyle",
+        "effect": -11
+      }
+    },
+    {
+      "day": "2026-07-27",
+      "score": 77,
+      "life": 75,
+      "blood": 80,
+      "genes": 75,
+      "draw": false,
+      "reason": {
+        "text": "Sleep 8h 00",
+        "sub": "Lifestyle",
+        "effect": 7
+      }
+    },
+    {
+      "day": "2026-07-28",
+      "score": 81,
+      "life": 84,
+      "blood": 80,
+      "genes": 75,
+      "draw": false,
+      "reason": {
+        "text": "Moves 2 of 3",
+        "sub": "Lifestyle",
+        "effect": 4
+      }
+    },
+    {
+      "day": "2026-07-29",
+      "score": 77,
+      "life": 75,
+      "blood": 80,
+      "genes": 75,
+      "draw": false,
+      "reason": {
+        "text": "Moves 1 of 2",
+        "sub": "Lifestyle",
+        "effect": -4
+      }
+    },
+    {
+      "day": "2026-07-30",
+      "score": 83,
+      "life": 90,
+      "blood": 80,
+      "genes": 75,
+      "draw": false,
+      "reason": {
+        "text": "Moves 2 of 2",
+        "sub": "Lifestyle",
+        "effect": 6
+      }
+    },
+    {
+      "day": "2026-07-31",
+      "score": 74,
+      "life": 68,
+      "blood": 80,
+      "genes": 75,
+      "draw": false,
+      "reason": {
+        "text": "Moves 1 of 3",
+        "sub": "Lifestyle",
+        "effect": -9
+      }
+    },
+    {
+      "day": "2026-08-01",
+      "score": 73,
+      "life": 65,
+      "blood": 80,
+      "genes": 75,
+      "draw": false,
+      "reason": {
+        "text": "Moves 1 of 2",
+        "sub": "Lifestyle",
+        "effect": -1
+      }
+    },
+    {
+      "day": "2026-08-02",
+      "score": 77,
+      "life": 75,
+      "blood": 80,
+      "genes": 75,
+      "draw": false,
+      "reason": {
+        "text": "Protein 98 g",
+        "sub": "Lifestyle",
+        "effect": 4
+      }
+    },
+    {
+      "day": "2026-08-03",
+      "score": 81,
+      "life": 85,
+      "blood": 80,
+      "genes": 75,
+      "draw": false,
+      "reason": {
+        "text": "Moves 2 of 2",
+        "sub": "Lifestyle",
+        "effect": 4
+      }
+    },
+    {
+      "day": "2026-08-04",
+      "score": null,
+      "life": null,
+      "blood": null,
+      "genes": null,
+      "draw": false,
+      "reason": null
+    },
+    {
+      "day": "2026-08-05",
+      "score": 80,
+      "life": 81,
+      "blood": 80,
+      "genes": 75,
+      "draw": false,
+      "reason": {
+        "text": "1 755 of 2 360 kcal",
+        "sub": "Lifestyle",
+        "effect": -1
+      }
+    },
+    {
+      "day": "2026-08-06",
+      "score": null,
+      "life": null,
+      "blood": null,
+      "genes": null,
+      "draw": false,
+      "reason": null
+    },
+    {
+      "day": "2026-08-07",
+      "score": 75,
+      "life": 69,
+      "blood": 80,
+      "genes": 75,
+      "draw": false,
+      "reason": {
+        "text": "Moves 2 of 3",
+        "sub": "Lifestyle",
+        "effect": -5
+      }
+    },
+    {
+      "day": "2026-08-08",
+      "score": null,
+      "life": null,
+      "blood": null,
+      "genes": null,
+      "draw": false,
+      "reason": null
+    },
+    {
+      "day": "2026-08-09",
+      "score": 68,
+      "life": 52,
+      "blood": 80,
+      "genes": 75,
+      "draw": false,
+      "reason": {
+        "text": "1 429 of 2 360 kcal",
+        "sub": "Lifestyle",
+        "effect": -7
+      }
+    },
+    {
+      "day": "2026-08-10",
+      "score": 81,
+      "life": 85,
+      "blood": 80,
+      "genes": 75,
+      "draw": false,
+      "reason": {
+        "text": "Moves 2 of 2",
+        "sub": "Lifestyle",
+        "effect": 13
+      }
+    },
+    {
+      "day": "2026-08-11",
+      "score": 76,
+      "life": 73,
+      "blood": 80,
+      "genes": 75,
+      "draw": false,
+      "reason": {
+        "text": "1 469 of 2 360 kcal",
+        "sub": "Lifestyle",
+        "effect": -5
+      }
+    },
+    {
+      "day": "2026-08-12",
+      "score": 65,
+      "life": 45,
+      "blood": 80,
+      "genes": 75,
+      "draw": false,
+      "reason": {
+        "text": "Moves 0 of 2",
+        "sub": "Lifestyle",
+        "effect": -11
+      }
+    },
+    {
+      "day": "2026-08-13",
+      "score": 78,
+      "life": 77,
+      "blood": 80,
+      "genes": 75,
+      "draw": false,
+      "reason": {
+        "text": "2 068 of 2 360 kcal",
+        "sub": "Lifestyle",
+        "effect": 13
+      }
+    },
+    {
+      "day": "2026-08-14",
+      "score": 84,
+      "life": 91,
+      "blood": 80,
+      "genes": 75,
+      "draw": false,
+      "reason": {
+        "text": "Moves 3 of 3",
+        "sub": "Lifestyle",
+        "effect": 6
+      }
+    },
+    {
+      "day": "2026-08-15",
+      "score": 72,
+      "life": 61,
+      "blood": 80,
+      "genes": 75,
+      "draw": false,
+      "reason": {
+        "text": "Moves 1 of 2",
+        "sub": "Lifestyle",
+        "effect": -12
+      }
+    },
+    {
+      "day": "2026-08-16",
+      "score": 78,
+      "life": 76,
+      "blood": 80,
+      "genes": 75,
+      "draw": false,
+      "reason": {
+        "text": "Moves 2 of 2",
+        "sub": "Lifestyle",
+        "effect": 6
+      }
+    },
+    {
+      "day": "2026-08-17",
+      "score": 85,
+      "life": 94,
+      "blood": 80,
+      "genes": 75,
+      "draw": false,
+      "reason": {
+        "text": "2 059 of 2 360 kcal",
+        "sub": "Lifestyle",
+        "effect": 7
+      }
+    },
+    {
+      "day": "2026-08-18",
+      "score": 75,
+      "life": 70,
+      "blood": 80,
+      "genes": 75,
+      "draw": false,
+      "reason": {
+        "text": "Moves 1 of 3",
+        "sub": "Lifestyle",
+        "effect": -10
+      }
+    },
+    {
+      "day": "2026-08-19",
+      "score": null,
+      "life": null,
+      "blood": null,
+      "genes": null,
+      "draw": false,
+      "reason": null
+    },
+    {
+      "day": "2026-08-20",
+      "score": 74,
+      "life": 67,
+      "blood": 80,
+      "genes": 75,
+      "draw": false,
+      "reason": {
+        "text": "1 560 of 2 360 kcal",
+        "sub": "Lifestyle",
+        "effect": -1
+      }
+    },
+    {
+      "day": "2026-08-21",
+      "score": 78,
+      "life": 77,
+      "blood": 80,
+      "genes": 75,
+      "draw": false,
+      "reason": {
+        "text": "2 010 of 2 360 kcal",
+        "sub": "Lifestyle",
+        "effect": 4
+      }
+    },
+    {
+      "day": "2026-08-22",
+      "score": 72,
+      "life": 63,
+      "blood": 80,
+      "genes": 75,
+      "draw": false,
+      "reason": {
+        "text": "1 355 of 2 360 kcal",
+        "sub": "Lifestyle",
+        "effect": -6
+      }
+    },
+    {
+      "day": "2026-08-23",
+      "score": 72,
+      "life": 63,
+      "blood": 80,
+      "genes": 75,
+      "draw": false,
+      "reason": {
+        "text": "1 550 of 2 360 kcal",
+        "sub": "Lifestyle",
+        "effect": 0
+      }
+    },
+    {
+      "day": "2026-08-24",
+      "score": 87,
+      "life": 100,
+      "blood": 80,
+      "genes": 75,
+      "draw": false,
+      "reason": {
+        "text": "Moves 2 of 2",
+        "sub": "Lifestyle",
+        "effect": 15
+      }
+    },
+    {
+      "day": "2026-08-25",
+      "score": 77,
+      "life": 74,
+      "blood": 80,
+      "genes": 75,
+      "draw": false,
+      "reason": {
+        "text": "Protein 61 g",
+        "sub": "Lifestyle",
+        "effect": -10
+      }
+    },
+    {
+      "day": "2026-08-26",
+      "score": 84,
+      "life": 91,
+      "blood": 80,
+      "genes": 75,
+      "draw": false,
+      "reason": {
+        "text": "Sleep 6h 15",
+        "sub": "Lifestyle",
+        "effect": 7
+      }
+    },
+    {
+      "day": "2026-08-27",
+      "score": 77,
+      "life": 75,
+      "blood": 80,
+      "genes": 75,
+      "draw": false,
+      "reason": {
+        "text": "Moves 1 of 2",
+        "sub": "Lifestyle",
+        "effect": -7
+      }
+    },
+    {
+      "day": "2026-08-28",
+      "score": 70,
+      "life": 56,
+      "blood": 80,
+      "genes": 75,
+      "draw": false,
+      "reason": {
+        "text": "1 549 of 2 360 kcal",
+        "sub": "Lifestyle",
+        "effect": -7
+      }
+    },
+    {
+      "day": "2026-08-29",
+      "score": 77,
+      "life": 75,
+      "blood": 80,
+      "genes": 75,
+      "draw": false,
+      "reason": {
+        "text": "Sleep 7h 00",
+        "sub": "Lifestyle",
+        "effect": 7
+      }
+    },
+    {
+      "day": "2026-08-30",
+      "score": 77,
+      "life": 75,
+      "blood": 80,
+      "genes": 75,
+      "draw": false,
+      "reason": {
+        "text": "Sleep 8h 15",
+        "sub": "Lifestyle",
+        "effect": 0
+      }
+    },
+    {
+      "day": "2026-08-31",
+      "score": 76,
+      "life": 73,
+      "blood": 80,
+      "genes": 75,
+      "draw": false,
+      "reason": {
+        "text": "Protein 84 g",
+        "sub": "Lifestyle",
+        "effect": -1
+      }
+    }
+  ]
+}
+"""#,
         "today": #"""
 {
   "sentence": {
     "head": "One thing you are moving:",
-    "tail": "LDL Cholesterol 70–100. None of four done today.",
-    "tone": "none"
+    "tail": "LDL Cholesterol 70–100. One of six done today.",
+    "tone": "warn"
   },
   "goals": [
     {
@@ -4383,9 +5564,53 @@ enum Fixtures {
         "due": "2026-12-01"
       },
       "toGo": 31,
-      "onPace": null,
-      "paceLine": null,
-      "moves": []
+      "onPace": false,
+      "paceLine": "Expected 118.4 mg/dL (109.6–127.2) by 2026-11-25: Psyllium husk 10 g daily -8.1 (A), Walk 10 minutes after the largest meal -4.5 (B)",
+      "moves": [
+        {
+          "title": "Psyllium husk 10 g daily",
+          "done": true
+        }
+      ],
+      "projection": {
+        "from": 131,
+        "fromDate": "2026-09-02",
+        "expected": 118.4,
+        "low": 109.6,
+        "high": 127.2,
+        "horizonWeeks": 12,
+        "retestAt": "2026-11-25",
+        "levers": [
+          {
+            "name": "Psyllium husk 10 g daily",
+            "delta": -8.1,
+            "grade": "A"
+          },
+          {
+            "name": "Walk 10 minutes after the largest meal",
+            "delta": -4.5,
+            "grade": "B"
+          }
+        ],
+        "history": [
+          {
+            "date": "2021-06-14",
+            "value": 142
+          },
+          {
+            "date": "2023-03-02",
+            "value": 155
+          },
+          {
+            "date": "2024-11-19",
+            "value": 148
+          },
+          {
+            "date": "2026-04-23",
+            "value": 131
+          }
+        ]
+      }
     }
   ],
   "status": {
@@ -4414,9 +5639,9 @@ enum Fixtures {
     }
   },
   "plan": {
-    "headline": "0 / 4",
-    "todo": 4,
-    "next": "Resistance training twice a week"
+    "headline": "1 / 6",
+    "todo": 5,
+    "next": "Vitamin D3 4000 IU with breakfast"
   },
   "systems": [
     {
@@ -4515,7 +5740,73 @@ enum Fixtures {
       "unit": null,
       "marker": null
     }
-  ]
+  ],
+  "score": {
+    "day": "2026-08-31",
+    "input": {
+      "sleepHours": 6.75,
+      "moves": {
+        "done": 1,
+        "due": 5
+      },
+      "kcal": 1985,
+      "proteinG": 104,
+      "targets": {
+        "kcal": 2360,
+        "proteinG": 122
+      },
+      "blood": {
+        "green": 82,
+        "amber": 22,
+        "rose": 6
+      },
+      "genes": 75
+    },
+    "result": {
+      "score": 79,
+      "word": "On track",
+      "life": 73,
+      "blood": 85,
+      "genes": 75,
+      "rows": {
+        "sleep": 94,
+        "moves": 20,
+        "kcal": 93,
+        "protein": 85
+      }
+    },
+    "targets": {
+      "kcal": 2360,
+      "proteinG": 122,
+      "estimated": true
+    },
+    "streak": 3,
+    "maxChange": {
+      "hba1c": 1,
+      "ldl_cholesterol": 50,
+      "triglycerides": 80,
+      "hdl_cholesterol": 12,
+      "apolipoprotein_b": 40,
+      "ferritin": 50,
+      "vitamin_d": 25,
+      "tsh": 1.5,
+      "insulin": 8,
+      "homaIr": 2,
+      "glucose": 25,
+      "hs_crp": 2,
+      "alt": 25,
+      "ggt": 30,
+      "uric_acid": 1.5,
+      "bp_systolic": 12,
+      "weight_kg": 8
+    }
+  },
+  "sleep": {
+    "hours": 6.75,
+    "bed": null,
+    "wake": null,
+    "stages": []
+  }
 }
 """#,
     ]

@@ -8,6 +8,8 @@ import {
   wordOf,
   writerOf,
 } from "./api-contract";
+import { adoptBodyOf } from "./actions";
+import { scoreOf, type ScoreInput, type ScoreResult } from "./score";
 import {
   firstMoveSentence,
   goalsSentence,
@@ -66,6 +68,7 @@ describe("the fixtures exist and carry no secret", () => {
     "research-topics",
     "research-topic",
     "genome",
+    "score-days",
   ];
 
   for (const name of NAMES)
@@ -272,9 +275,24 @@ describe("GET /api/plan/today", () => {
       expect(str(r.itemId)).toBe(true);
       expect(str(r.slot)).toBe(true);
       if (r.time) expect(r.time as string).toMatch(CLOCK);
+      expect(str(r.adoptId)).toBe(true);
       // a suggestion has not been adopted, so there is nothing to tick
       if (r.tag === "suggested") expect(r.itemId).toBeNull();
       else expect(r.itemId).not.toBeNull();
+    }
+  });
+
+  it("gives a suggestion the id `/api/plan/adopt` reads back, and nothing else one", () => {
+    for (const r of b.rows as Record<string, unknown>[]) {
+      if (r.tag !== "suggested") {
+        expect(r.adoptId).toBeNull();
+        continue;
+      }
+      expect(r.adoptId as string).toMatch(/^plan:[^:]+:\d+$/);
+      expect(adoptBodyOf(r.adoptId as string)).toMatchObject({
+        reportId: expect.any(String),
+        actionIndex: expect.any(Number),
+      });
     }
   });
 });
@@ -476,7 +494,7 @@ describe("no body smuggles a number as a string", () => {
   // `/api/plan/today` and a boolean on every row under it, and the two are
   // both checked by name in their own blocks above.
   const NUMERIC =
-    /^(off|borderline|optimal|total|delta|kcal|protein_g|carbs_g|fat_g|weeks|adherence|factor|value|types|low|high|toGo|days|progress)$/;
+    /^(off|borderline|optimal|total|delta|kcal|protein_g|carbs_g|fat_g|weeks|adherence|factor|value|types|low|high|toGo|days|progress|score|life|blood|genes|streak|hours|from|expected|horizonWeeks|proteinG|sleepHours|servings|green|amber|rose)$/;
 
   for (const name of [
     "today",
@@ -488,6 +506,7 @@ describe("no body smuggles a number as a string", () => {
     "research-topics",
     "research-topic",
     "genome",
+    "score-days",
   ])
     it(`${name}.json`, () => {
       for (const [at, v] of leaves(load(name))) {
@@ -785,5 +804,116 @@ describe("GET /api/research/topics/[topic]", () => {
       expect(typeof p.read).toBe("boolean");
       expect(p.read).toBe(p.grade != null || p.finding != null);
     }
+  });
+});
+
+describe("GET /api/today, the score (phase 37)", () => {
+  const b = load("today") as Record<string, never>;
+  const score = b.score as Record<string, unknown>;
+
+  it("dates the score and carries a streak and the lever caps", () => {
+    expect(score.day as string).toMatch(DAY);
+    expect(typeof score.streak).toBe("number");
+    const caps = score.maxChange as Record<string, unknown>;
+    expect(Object.keys(caps).length).toBeGreaterThan(0);
+    for (const [k, v] of Object.entries(caps)) expect(typeof v, k).toBe("number");
+  });
+
+  it("is scoreOf over its own input, so the phone's preview starts where the server is", () => {
+    expect(scoreOf(score.input as ScoreInput)).toEqual(score.result as ScoreResult);
+  });
+
+  it("gives targets two numbers or nulls and says whether they are estimates", () => {
+    const t = score.targets as Record<string, unknown>;
+    expect(Object.keys(t).sort()).toEqual(["estimated", "kcal", "proteinG"]);
+    expect(num(t.kcal)).toBe(true);
+    expect(num(t.proteinG)).toBe(true);
+    expect(typeof t.estimated).toBe("boolean");
+    const i = score.input as ScoreInput;
+    expect(i.targets).toEqual({ kcal: t.kcal, proteinG: t.proteinG });
+  });
+
+  it("gives sleep hours and stages, or null", () => {
+    const sleep = b.sleep as Record<string, unknown> | null;
+    if (!sleep) return;
+    expect(num(sleep.hours)).toBe(true);
+    expect(str(sleep.bed)).toBe(true);
+    expect(str(sleep.wake)).toBe(true);
+    for (const st of sleep.stages as Record<string, unknown>[]) {
+      expect(["awake", "rem", "core", "deep"]).toContain(st.stage);
+      expect(typeof st.start).toBe("string");
+      expect(typeof st.end).toBe("string");
+    }
+  });
+
+  it("gives a goal its projection, levers and lab history, or null", () => {
+    for (const g of b.goals as Record<string, unknown>[]) {
+      const p = g.projection as Record<string, unknown> | null;
+      if (p === null) {
+        expect(g.paceLine).toBeNull();
+        continue;
+      }
+      for (const k of ["from", "expected", "low", "high", "horizonWeeks"])
+        expect(typeof p[k], k).toBe("number");
+      expect(p.fromDate as string).toMatch(DAY);
+      if (p.retestAt) expect(p.retestAt as string).toMatch(DAY);
+      expect(p.low as number).toBeLessThanOrEqual(p.high as number);
+      for (const l of p.levers as Record<string, unknown>[]) {
+        expect(typeof l.name).toBe("string");
+        expect(typeof l.delta).toBe("number");
+        expect(["A", "B", "C", "D", "E"]).toContain(l.grade);
+      }
+      const h = p.history as { date: string; value: number }[];
+      for (const pt of h) {
+        expect(pt.date).toMatch(DAY);
+        expect(typeof pt.value).toBe("number");
+      }
+      expect(h.map((x) => x.date)).toEqual([...h.map((x) => x.date)].sort());
+    }
+  });
+});
+
+describe("GET /api/score/days", () => {
+  const b = load("score-days") as { days: Record<string, unknown>[] };
+
+  it("is 91 consecutive days, oldest first", () => {
+    expect(b.days).toHaveLength(91);
+    const dates = b.days.map((d) => d.day as string);
+    for (const d of dates) expect(d).toMatch(DAY);
+    for (let i = 1; i < dates.length; i++) {
+      const gap =
+        (new Date(`${dates[i]}T00:00:00Z`).getTime() -
+          new Date(`${dates[i - 1]}T00:00:00Z`).getTime()) /
+        86_400_000;
+      expect(gap, dates[i]).toBe(1);
+    }
+  });
+
+  it("gives every day numbers or nulls, a draw flag, and a reason only when scored", () => {
+    for (const d of b.days) {
+      for (const k of ["score", "life", "blood", "genes"])
+        expect(num(d[k]), `${String(d.day)}.${k}`).toBe(true);
+      expect(typeof d.draw).toBe("boolean");
+      const r = d.reason as Record<string, unknown> | null;
+      if (d.score == null) {
+        expect(r, String(d.day)).toBeNull();
+        continue;
+      }
+      if (!r) continue;
+      expect(typeof r.text).toBe("string");
+      expect(["Lifestyle", "Blood"]).toContain(r.sub);
+      expect(num(r.effect)).toBe(true);
+      if (r.sub === "Blood") expect(r.text as string).toMatch(/^Blood draw: /);
+    }
+  });
+
+  it("puts an effect on every scored day after the first", () => {
+    const scored = b.days.filter((d) => d.score != null);
+    expect(scored.length).toBeGreaterThan(0);
+    const effects = scored.map(
+      (d) => (d.reason as Record<string, unknown> | null)?.effect,
+    );
+    expect(effects[0]).toBeNull();
+    for (const e of effects.slice(1)) expect(typeof e).toBe("number");
   });
 });

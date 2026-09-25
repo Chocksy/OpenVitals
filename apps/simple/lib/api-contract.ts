@@ -15,12 +15,22 @@ import { getDb, habitLogs, uploads } from "@/db";
 import { getBodyDay } from "@/lib/body-data";
 import type { Status } from "@/lib/status";
 import { goalGap, inGoal, localDay } from "@/lib/daily";
-import { getGoals, getProtocol } from "@/lib/daily-data";
-import { occurrences } from "@/lib/plan-line";
+import { getGoals, getProtocol, getToday } from "@/lib/daily-data";
+import { getMeals } from "@/lib/meals";
+import {
+  genesLayer,
+  scoreOf,
+  type ScoreInput,
+  type ScoreResult,
+} from "@/lib/score";
+import { targetsFor, type Targets } from "@/lib/targets";
+import { occurrenceItemOf, occurrences } from "@/lib/plan-line";
+import { inputOn, labsOf } from "@/lib/score-days";
 import {
   getMetricRows,
   sortForBiomarkerList,
   toBiomarkerRow,
+  type MetricRow,
 } from "@/lib/data";
 import {
   buildToday,
@@ -34,7 +44,7 @@ import { actionsForAll } from "@/lib/actions";
 import { buildLedger } from "@/lib/ledger";
 import { explainKey } from "@/lib/explain";
 import { latestReport } from "@/lib/report";
-import { projectionLine } from "@/lib/projection";
+import { MAX_CHANGE, projectionLine } from "@/lib/projection";
 import { projectionsFor } from "@/lib/projections";
 import { fmtCategory } from "@/lib/utils";
 import { genomeVerdicts, loadGenome, movedIds } from "@/lib/genome";
@@ -74,6 +84,22 @@ export interface TodayGoal {
   onPace: boolean | null;
   paceLine: string | null;
   moves: { title: string; done: boolean }[];
+  /**
+   * Phase 37: the projection the Heading shelf draws. `levers` are its
+   * contributions, one per adopted action; `history` is this marker's lab
+   * readings, oldest first. Null when nothing projects this marker.
+   */
+  projection: {
+    from: number;
+    fromDate: string;
+    expected: number;
+    low: number;
+    high: number;
+    horizonWeeks: number;
+    retestAt: string | null;
+    levers: { name: string; delta: number; grade: string }[];
+    history: { date: string; value: number }[];
+  } | null;
 }
 
 export interface TodayBody {
@@ -111,6 +137,49 @@ export interface TodayBody {
     unit: string | null;
     marker: string | null;
   }[];
+  /**
+   * Phase 37: the day's score. `input` travels with the result so the phone
+   * can preview a tick or a portion through its port of `scoreOf` before the
+   * server answers; `maxChange` is `MAX_CHANGE`, for lever previews.
+   */
+  score: {
+    day: string;
+    input: ScoreInput;
+    result: ScoreResult;
+    targets: Targets;
+    /** `streak()` over the active days `getToday` counts */
+    streak: number;
+    maxChange: Record<string, number>;
+  };
+  /**
+   * Last night, on the morning it ended. `bed`, `wake` and `stages` are
+   * empty today: a sync stores minutes per stage (`wearable.sleepStages`), not
+   * the intervals a hypnogram needs.
+   */
+  sleep: {
+    hours: number | null;
+    bed: string | null;
+    wake: string | null;
+    stages: {
+      stage: "awake" | "rem" | "core" | "deep";
+      start: string;
+      end: string;
+    }[];
+  } | null;
+}
+
+/** `GET /api/score/days`: the score per day, for the calendar. Phase 37. */
+export interface ScoreDays {
+  days: {
+    day: string;
+    score: number | null;
+    life: number | null;
+    blood: number | null;
+    genes: number | null;
+    /** a lab draw was observed that day */
+    draw: boolean;
+    reason: { text: string; sub: string; effect: number | null } | null;
+  }[];
 }
 
 /**
@@ -136,15 +205,21 @@ export interface TodayBody {
  * `moves` are the adopted protocol items whose own `metric_codes` name this
  * marker, with today's tick off `habit_logs`. Nothing is inferred from the
  * text of an action: an item that never named the marker never appears.
+ *
+ * `projection` is the same stored projection `onPace` reads, with its
+ * contributions as levers and the marker's lab draws as its history. `rows`
+ * is `getMetricRows` when the caller already has it.
  */
 export async function todayGoals(
   userId: string,
   day: string = localDay(),
+  rows?: MetricRow[],
 ): Promise<TodayGoal[]> {
-  const [views, protocol, projections] = await Promise.all([
+  const [views, protocol, projections, metrics] = await Promise.all([
     getGoals(userId),
     getProtocol(userId),
     projectionsFor(userId),
+    rows ?? getMetricRows(userId),
   ]);
 
   const open = views.filter(
@@ -187,6 +262,27 @@ export async function todayGoals(
       moves: protocol
         .filter((p) => p.active && p.metricCodes.includes(g.metricCode))
         .map((p) => ({ title: p.text, done: doneIds.has(p.id) })),
+      projection: projection
+        ? {
+            from: projection.from,
+            fromDate: projection.fromDate,
+            expected: projection.expected,
+            low: projection.low,
+            high: projection.high,
+            horizonWeeks: projection.horizonWeeks,
+            retestAt: projection.retestAt ?? null,
+            levers: projection.contributions.map((c) => ({
+              name: c.intervention,
+              delta: c.delta,
+              grade: c.grade,
+            })),
+            history: (
+              metrics.find((m) => m.code === g.metricCode)?.rows ?? []
+            )
+              .filter((r) => r.source == null && r.value != null)
+              .map((r) => ({ date: r.observedAt, value: r.value! })),
+          }
+        : null,
     };
   });
 }
@@ -292,7 +388,7 @@ export async function todayBody(
    * to move first. It never says sick: this app can say a marker is off its
    * band and it cannot diagnose anybody.
    */
-  const goals = await todayGoals(userId, day);
+  const goals = await todayGoals(userId, day, rows);
   const goalSaid = goalsSentence(goals, {
     done: planToday.done,
     total: planToday.total,
@@ -308,6 +404,36 @@ export async function todayBody(
             : "none") as RailTone,
       }
     : fallback;
+
+  /**
+   * The score. Phase 37 task A3.
+   *
+   * Every input is a number another part of this body already stands on:
+   * moves are the adopted rows `planTodayBody` counts (suggestions tick
+   * nothing), food is the meals card's own `dayTotals`, genes is `genesLayer`
+   * over the genome page's verdicts. `inputOn` is the function `daysFrom`
+   * builds every calendar day with, so blood is `bloodAsOf` over the same
+   * metric rows (as of `day`, which the ledger's counters are not) and moves
+   * are `movesOn`: the header and the calendar's last cell cannot disagree.
+   * The Status block keeps the ledger's counters.
+   */
+  const [log, food, genome, targets] = await Promise.all([
+    getToday(userId, day),
+    getMeals(userId, day),
+    genomeBody(userId),
+    targetsFor(userId, day),
+  ]);
+  const adopted = planToday.rows.filter((r) => r.itemId != null);
+  const input: ScoreInput = inputOn(day, {
+    sleepHours: log.values.sleepHours ?? null,
+    dueIds: adopted.map((r) => r.itemId!),
+    ticks: adopted,
+    kcal: food.totals.kcal,
+    proteinG: food.totals.protein_g,
+    targets: { kcal: targets.kcal, proteinG: targets.proteinG },
+    labs: labsOf(rows),
+    genes: genesLayer(genome.file ? genome.verdicts : null),
+  });
 
   return {
     sentence,
@@ -351,6 +477,18 @@ export async function todayBody(
       unit: t.unit ?? null,
       marker: t.markerName ?? null,
     })),
+    score: {
+      day,
+      input,
+      result: scoreOf(input),
+      targets,
+      streak: log.streak,
+      maxChange: MAX_CHANGE,
+    },
+    sleep:
+      input.sleepHours == null
+        ? null
+        : { hours: input.sleepHours, bed: null, wake: null, stages: [] },
   };
 }
 
@@ -577,6 +715,12 @@ export interface PlanTodayBody {
   rows: {
     /** null for a suggested row: nothing has been adopted, so nothing is tickable */
     itemId: string | null;
+    /**
+     * Phase 38. What `/api/plan/adopt` takes as `{ id }` for a suggested row
+     * (`plan:<reportId>:<actionIndex>`, the form `adoptBodyOf` reads); null for
+     * a row that is already on the protocol.
+     */
+    adoptId: string | null;
     time: string | null;
     slot: string | null;
     title: string;
@@ -613,19 +757,7 @@ export async function planTodayBody(
     goals.filter((g) => !g.achievedAt).map((g) => g.metricCode),
   );
 
-  const due = occurrences(
-    active.map((p) => ({
-      id: p.id,
-      title: p.text,
-      timeOfDay: p.timeOfDay,
-      daysOfWeek: p.daysOfWeek,
-      startedAt: p.startedAt,
-      endsAt: p.endsAt,
-      active: p.active,
-    })),
-    day,
-    day,
-  );
+  const due = occurrences(active.map(occurrenceItemOf), day, day);
 
   const ticks = await getDb()
     .select({ itemId: habitLogs.itemId, done: habitLogs.done })
@@ -647,6 +779,7 @@ export async function planTodayBody(
         : "protocol";
     return {
       itemId: o.itemId,
+      adoptId: null,
       time: o.time,
       slot: o.slot,
       title: item.text,
@@ -663,11 +796,13 @@ export async function planTodayBody(
    * the whole reason the tag exists.
    */
   const adopted = active.map((p) => p.text);
-  for (const action of report?.body.actions ?? []) {
+  /* the index counts every action, tests included: it is the one `adopt` reads back */
+  for (const [i, action] of (report?.body.actions ?? []).entries()) {
     if (action.kind === "test") continue;
     if (adopted.some((t) => t.startsWith(action.title))) continue;
     rows.push({
       itemId: null,
+      adoptId: `plan:${report!.id}:${i}`,
       time: null,
       slot: null,
       title: action.title,

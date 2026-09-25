@@ -14,9 +14,11 @@
  * **One POST carries whole days.** Every write below replaces the day it
  * touches rather than adding to it, because a resync sends the same day again
  * and adding would double it. The arithmetic is therefore only right when a
- * day's samples all arrive in the same POST, which is the phone's job:
- * `HK.batches` cuts on day boundaries and holds the newest day back until the
- * page that finishes it. A client that posts half a day stores half a day.
+ * day's samples of one type all arrive in the same POST, which is the
+ * phone's job: its anchor only finds the days that changed, a date query
+ * reads those days whole, and `HK.batches` cuts on day boundaries. A client
+ * that posts half a day stores half a day. Food is the one blob several types
+ * share, so the Health entry merges key by key (`mergeSource`).
  */
 import { and, eq, gte, inArray, lte, sql } from "drizzle-orm";
 import {
@@ -207,7 +209,7 @@ export async function POST(req: Request) {
               ]),
             ),
           },
-          { replaceSource: true },
+          { mergeSource: true },
         )
       : ((was?.nutrition as DailyNutrition | null) ?? null);
 

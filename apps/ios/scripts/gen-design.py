@@ -9,7 +9,7 @@ column. This script reads both, and writes one Swift file that carries:
     These are the contract the unit test re-parses.
   * typed constants: every colour as a light/dark `Color` pair, every
     spacing step, radius and type size as a `CGFloat`, every motion
-    duration as a `TimeInterval`.
+    duration as a `TimeInterval`, every cubic-bezier as a `Bezier`.
 
 Run it after any edit to system.css:
 
@@ -64,6 +64,7 @@ HEX = re.compile(r"^#([0-9a-fA-F]{6})$")
 RGBA = re.compile(r"^rgba?\(([^)]*)\)$")
 PX = re.compile(r"^(-?[0-9.]+)px$")
 MS = re.compile(r"^(-?[0-9.]+)ms$")
+BEZIER = re.compile(r"^cubic-bezier\(([^)]*)\)$")
 
 
 def colour(value: str) -> tuple[int, float] | None:
@@ -95,6 +96,17 @@ def ms(value: str) -> float | None:
     return float(m.group(1)) if m else None
 
 
+def bezier(value: str) -> tuple[float, float, float, float] | None:
+    """The four control numbers of a cubic-bezier() value, else None."""
+    m = BEZIER.match(value)
+    if not m:
+        return None
+    try:
+        parts = tuple(float(p) for p in m.group(1).split(","))
+    except ValueError:
+        return None
+    return parts if len(parts) == 4 else None
+
 def swift_name(token: str) -> str:
     parts = token.lstrip("-").split("-")
     return parts[0] + "".join(p.capitalize() for p in parts[1:])
@@ -124,6 +136,7 @@ def main() -> int:
     colours = [t for t in light if colour(light[t]) is not None]
     spaces = [t for t in light if px(light[t]) is not None]
     durations = [t for t in light if ms(light[t]) is not None]
+    curves = [t for t in light if bezier(light[t]) is not None]
 
     lines: list[str] = []
     w = lines.append
@@ -205,6 +218,25 @@ def main() -> int:
         w(f'        "{token}": {swift_name(token)},')
     w("    ]")
     w("")
+    w("    // ── curves: every cubic-bezier token, `name` + Curve ─────────────")
+    w("")
+    w("    struct Bezier: Equatable {")
+    w("        let x1: Double")
+    w("        let y1: Double")
+    w("        let x2: Double")
+    w("        let y2: Double")
+    w("    }")
+    w("")
+    for token in sorted(curves):
+        x1, y1, x2, y2 = bezier(light[token])
+        w(f"    static let {swift_name(token)}Curve = Bezier("
+          f"x1: {x1:g}, y1: {y1:g}, x2: {x2:g}, y2: {y2:g})")
+    w("")
+    w("    static let curves: [String: Bezier] = [")
+    for token in sorted(curves):
+        w(f'        "{token}": {swift_name(token)}Curve,')
+    w("    ]")
+    w("")
     w("    /// The design's own easing curve, `--ease` and its twins.")
     w("    static let ease = UnitCurve.bezier(")
     w("        startControlPoint: UnitPoint(x: 0.22, y: 1),")
@@ -216,7 +248,8 @@ def main() -> int:
     COPY.parent.mkdir(parents=True, exist_ok=True)
     COPY.write_text(raw)
     print(f"{OUT.relative_to(ROOT)}: {len(colours)} colours, "
-          f"{len(spaces)} lengths, {len(durations)} durations")
+          f"{len(spaces)} lengths, {len(durations)} durations, "
+          f"{len(curves)} curves")
     print(f"{COPY.relative_to(ROOT)}: {len(raw)} bytes")
     return 0
 

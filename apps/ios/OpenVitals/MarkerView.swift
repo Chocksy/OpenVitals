@@ -1,10 +1,11 @@
 import SwiftUI
 
-/// One marker, as `marker.html`'s 390 frame draws it: the state word, the
-/// ruler, the history chart at the drawer size, every draw that carried it,
-/// and the goal.
+/// One marker, in the Hybrid look (phase 38 D2): a system sheet on the
+/// grained card colour, corner 42. It shows what `marker.html`'s 390 frame
+/// shows: the state word, the ruler, the history chart, every draw that
+/// carried it, and the goal.
 ///
-/// The chart draws the goal band when there is a goal, hatched, because a
+/// The chart draws the goal band when there is a goal, dashed, because a
 /// target is aimed at and never measured. Nothing between two draws is
 /// interpolated: one diamond is one draw.
 struct MarkerView: View {
@@ -23,67 +24,101 @@ struct MarkerView: View {
     @State private var said = ""
 
     var body: some View {
-        Screen(title: marker.name, icon: "xmark", iconLabel: "Close",
-               action: { dismiss() }) {
-            head
-            chart
-            readings
-            goalPanel
-            if !said.isEmpty { Caption(said) }
+        ScrollView {
+            VStack(alignment: .leading, spacing: DesignTokens.s13) {
+                top
+                head
+                chart
+                readings
+                goalCard
+                if !said.isEmpty {
+                    Text(said).hType(13, .regular, Hy.ink2)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .padding(.horizontal, DesignTokens.s21)
+                }
+            }
+            .padding(.top, DesignTokens.s21)
+            .padding(.bottom, DesignTokens.s34)
         }
-        .safeAreaPadding(.top, DesignTokens.s21)
+        .scrollIndicators(.hidden)
+        .environment(\.colorScheme, .light)
         .presentationDragIndicator(.visible)
-        .presentationCornerRadius(DesignTokens.rHero)
-        .presentationBackground(Design.canvas)
+        .presentationCornerRadius(42)
+        .presentationBackground { ZStack { Hy.card; GrainTile() } }
         .onAppear { goal = marker.goal; fill(marker.goal) }
     }
 
     // MARK: - the parts
 
-    /// `.panel.hi` — where it came from, the number, the change and the ruler.
-    private var head: some View {
-        Panel(title: "\(marker.system) · \(Design.day(marker.date)) · lab",
-              meta: nil, hi: true) {
-            HStack(alignment: .firstTextBaseline, spacing: DesignTokens.s21) {
-                HStack(alignment: .firstTextBaseline, spacing: DesignTokens.s5) {
-                    Text(Design.number(marker.value))
-                        .ovType(.xl, weight: .light, mono: true, leading: 1.1)
-                        .ovTracking(-0.03, .xl)
-                        .foregroundStyle(Design.ink)
-                    if let unit = marker.unit, !unit.isEmpty,
-                       marker.value != nil {
-                        Text(unit).ovType(.xs).foregroundStyle(Design.ink3)
-                    }
-                }
-                if let delta = marker.delta {
-                    HStack(alignment: .firstTextBaseline,
-                           spacing: DesignTokens.s5) {
-                        Text(delta.value)
-                            .ovType(.lg, weight: .light, mono: true)
-                            .foregroundStyle(Design.ink2)
-                        Text(delta.since).ovType(.xs)
-                            .foregroundStyle(Design.ink3)
-                    }
-                }
-                Spacer(minLength: 0)
-                StateWord(word: marker.word, triangle: true)
+    /// The name and the close.
+    private var top: some View {
+        HStack(alignment: .center, spacing: DesignTokens.s13) {
+            Text(marker.name)
+                .hType(21, .semibold, Hy.ink, tracking: -0.02)
+                .lineLimit(2)
+            Spacer(minLength: 0)
+            Button { dismiss() } label: {
+                Image(systemName: "xmark")
+                    .font(.system(size: 15, weight: .semibold))
+                    .foregroundStyle(Hy.ink)
+                    .frame(width: 44, height: 44)
+                    .background(Circle().fill(Hy.paper2))
             }
-            if let ruler = marker.ruler {
-                Ruler(at: ruler.at, normal: ruler.normal,
-                      optimal: ruler.optimal, target: ruler.target,
-                      ghost: ruler.ghost, word: marker.word,
-                      low: ruler.low, mid: ruler.mid, high: ruler.high)
-            } else {
-                Caption("No band on file for this marker, so there is nothing "
-                        + "to judge the number against.")
-            }
+            .buttonStyle(Pressed(scale: 0.92))
+            .accessibilityLabel("Close")
         }
+        .padding(.horizontal, DesignTokens.s21)
     }
 
-    /// `.hist.mini` — the drawer size. One diamond a draw on a real value
-    /// scale; nothing between two draws is drawn.
+    /// Where it came from, the number, the change, the word and the ruler.
+    private var head: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            CardLabel(text: "\(marker.system) · \(Design.day(marker.date)) · lab",
+                      glyph: BloodView.glyph(marker.system))
+            HStack(alignment: .firstTextBaseline, spacing: DesignTokens.s13) {
+                HStack(alignment: .firstTextBaseline, spacing: DesignTokens.s5) {
+                    Text(Design.number(marker.value))
+                        .hType(55, .semibold, Hy.ink, tracking: -0.04)
+                    if let unit = marker.unit, !unit.isEmpty, marker.value != nil {
+                        Text(unit).hType(13, .regular, Hy.ink2)
+                    }
+                }
+                .lineLimit(1)
+                .minimumScaleFactor(0.7)
+                Spacer(minLength: 0)
+                Text(marker.word.capitalized)
+                    .hType(13, .semibold, HyState.ink(marker.word))
+                    .padding(.vertical, 3)
+                    .padding(.horizontal, DesignTokens.s8)
+                    .background(Capsule().fill(HyState.soft(marker.word)))
+            }
+            .padding(.top, DesignTokens.s8)
+            if let delta = marker.delta {
+                HStack(alignment: .firstTextBaseline, spacing: DesignTokens.s5) {
+                    Text(delta.value).hType(17, .semibold, Hy.ink2)
+                    Text(delta.since).hType(11, .regular, Hy.ink3)
+                }
+            }
+            Group {
+                if let ruler = marker.ruler {
+                    HyRuler(parts: ruler, word: marker.word)
+                } else {
+                    Text("No band on file for this marker, so there is nothing "
+                         + "to judge the number against.")
+                        .hType(13, .regular, Hy.ink2)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            }
+            .padding(.top, DesignTokens.s13)
+        }
+        .hyCard()
+    }
+
+    /// The history, drawn at the drawer size.
     struct Chart {
-        let points: [HistoryChart.Point]
+        /// 0…1 across and down the plot.
+        let points: [(x: Double, y: Double, label: String)]
+        /// The goal as a 0…1 stretch down the plot.
         let band: ClosedRange<Double>?
         let unit: String
     }
@@ -100,10 +135,8 @@ struct MarkerView: View {
         let span = hi - lo == 0 ? 1 : hi - lo
         func y(_ v: Double) -> Double { 1 - (v - lo) / span }
         let plotted = points.enumerated().map { i, point in
-            HistoryChart.Point(
-                x: Double(i) / Double(points.count - 1),
-                y: y(point.value),
-                label: Design.number(point.value))
+            (x: Double(i) / Double(points.count - 1), y: y(point.value),
+             label: Design.number(point.value))
         }
         let band: ClosedRange<Double>? = {
             guard let goal else { return nil }
@@ -121,87 +154,148 @@ struct MarkerView: View {
 
     @ViewBuilder private var chart: some View {
         if let parts = chartParts {
-            HistoryChart(title: "History", unit: parts.unit,
-                         points: parts.points, normal: parts.band,
-                         hatched: true, mini: true)
-            if parts.band != nil {
-                Caption("The shaded stretch is the goal, not a measured band: "
-                        + "it is what this marker is aimed at.")
+            VStack(alignment: .leading, spacing: 0) {
+                CardLabel(text: "History · \(parts.unit)", glyph: "chart.xyaxis.line")
+                HyHistory(chart: parts)
+                    .frame(height: 144)
+                    .padding(.top, DesignTokens.s8)
+                if parts.band != nil {
+                    Text("The dashed stretch is the goal, not a measured band: "
+                         + "it is what this marker is aimed at.")
+                        .hType(11, .regular, Hy.ink2)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .padding(.top, DesignTokens.s13)
+                }
             }
+            .hyCard()
         }
     }
 
-    /// `.tbl` — every draw that carried this marker, newest first.
+    /// Every draw that carried this marker, newest first.
     private var readings: some View {
-        Panel(title: "Readings",
-              meta: "last \(Design.number(days)) days") {
+        VStack(alignment: .leading, spacing: 0) {
+            CardLabel(text: "Readings · last \(Design.number(days)) days",
+                      glyph: "list.bullet")
+                .padding(.bottom, DesignTokens.s5)
             if marker.series.isEmpty {
-                Caption("No draw has ever carried a number for this marker.")
+                Text("No draw has ever carried a number for this marker.")
+                    .hType(13, .regular, Hy.ink2)
+                    .padding(.top, DesignTokens.s5)
             } else {
-                Table(columns: ["Date", "Value", "Reference", "State"],
-                      rows: marker.series.reversed().map { point in
-                          [Design.day(point.date),
-                           "\(Design.number(point.value)) \(marker.unit ?? "")"
-                            .trimmingCharacters(in: .whitespaces),
-                           Design.band(low: marker.band.low,
-                                       high: marker.band.high, unit: "")
-                            .isEmpty ? "—"
-                            : Design.band(low: marker.band.low,
-                                          high: marker.band.high, unit: ""),
-                           point.date == marker.date ? marker.word : ""]
-                      },
-                      numeric: [0, 1],
-                      // "Apr 23 2026" is 11 mono characters and the
-                      // REFERENCE head is nine: an even quarter of 338 pt
-                      // wraps both onto two lines.
-                      widths: [100, 84, 80, 0])
+                let reference = Design.band(low: marker.band.low,
+                                            high: marker.band.high, unit: "")
+                ForEach(Array(marker.series.reversed().enumerated()),
+                        id: \.element.id) { i, point in
+                    if i > 0 { Hy.line.frame(height: 1) }
+                    HStack(alignment: .firstTextBaseline, spacing: DesignTokens.s8) {
+                        Text(Design.day(point.date))
+                            .hType(13, .regular, Hy.ink2)
+                            .frame(width: 96, alignment: .leading)
+                        (Text(Design.number(point.value)).font(.grotesk(15, .semibold))
+                            + Text(" \(marker.unit ?? "")").font(.grotesk(11))
+                                .foregroundColor(Hy.ink2))
+                            .foregroundStyle(Hy.ink)
+                            .lineLimit(1)
+                        Spacer(minLength: 0)
+                        Text(reference.isEmpty ? "—" : reference)
+                            .hType(11, .regular, Hy.ink3)
+                        if point.date == marker.date {
+                            Circle().fill(HyState.ink(marker.word))
+                                .frame(width: 8, height: 8)
+                                .accessibilityLabel(marker.word)
+                        } else {
+                            Color.clear.frame(width: 8, height: 8)
+                        }
+                    }
+                    .frame(minHeight: 44)
+                }
             }
         }
+        .hyCard()
     }
 
     /// Set a goal: the same four fields the web's own form posts.
-    private var goalPanel: some View {
-        Panel(title: "Goal",
-              meta: goal == nil ? "none yet" : Design.day(goal?.due)) {
+    private var goalCard: some View {
+        VStack(alignment: .leading, spacing: DesignTokens.s8) {
+            CardLabel(text: "Goal · " + (goal == nil ? "none yet"
+                                         : goal?.due.map { "due \(Design.day($0))" } ?? "no date"),
+                      glyph: "scope")
             if let goal, !editing {
                 Text(Design.band(low: goal.low, high: goal.high,
                                  unit: marker.unit ?? ""))
-                    .ovType(.md, mono: true).foregroundStyle(Design.ink)
-                if let due = goal.due {
-                    Meta("due \(Design.day(due))")
-                }
+                    .hType(21, .semibold, Hy.ink, tracking: -0.02)
                 HStack(spacing: DesignTokens.s13) {
-                    Button("Change") { editing = true }
-                        .buttonStyle(.ov(.quiet, small: true))
-                    Button("Remove") { Task { await remove() } }
-                        .buttonStyle(.ov(.text, small: true))
-                        .disabled(busy)
+                    Button { editing = true } label: { capsule("Change", fill: Hy.paper2, ink: Hy.ink) }
+                        .buttonStyle(Pressed(scale: 0.94))
+                    Button { Task { await remove() } } label: {
+                        Text("Remove").hType(13, .semibold, Hy.rose)
+                            .frame(height: 44)
+                    }
+                    .buttonStyle(.plain)
+                    .disabled(busy)
                     Spacer(minLength: 0)
                 }
             } else if editing {
-                Inp(label: "Low", text: $low, placeholder: "70",
-                    keyboard: .decimalPad)
-                Inp(label: "High", text: $high, placeholder: "100",
-                    keyboard: .decimalPad)
-                Inp(label: "Due", text: $due, placeholder: "2026-12-01",
-                    help: "yyyy-mm-dd, or leave it empty")
-                Inp(label: "Note", text: $note,
-                    placeholder: "why this number")
+                field("Low", $low, "70", keyboard: .decimalPad)
+                field("High", $high, "100", keyboard: .decimalPad)
+                field("Due", $due, "2026-12-01", help: "yyyy-mm-dd, or leave it empty")
+                field("Note", $note, "why this number")
                 HStack(spacing: DesignTokens.s13) {
-                    Button(busy ? "Saving…" : "Save") { Task { await save() } }
-                        .buttonStyle(.ovInk)
-                        .disabled(busy || !canSave)
-                        .opacity(canSave ? 1 : 0.45)
-                    Button("Cancel") { editing = false; fill(goal) }
-                        .buttonStyle(.ovText)
+                    Button { Task { await save() } } label: {
+                        capsule(busy ? "Saving…" : "Save", fill: Hy.plum, ink: Hy.cream)
+                    }
+                    .buttonStyle(Pressed(scale: 0.94))
+                    .disabled(busy || !canSave)
+                    .opacity(canSave ? 1 : 0.45)
+                    Button { editing = false; fill(goal) } label: {
+                        Text("Cancel").hType(13, .semibold, Hy.ink2).frame(height: 44)
+                    }
+                    .buttonStyle(.plain)
                     Spacer(minLength: 0)
                 }
-                Caption("A goal is a target, a date, or both, and it is the "
-                        + "same row the website writes: one goal per marker.")
+                Text("A goal is a target, a date, or both, and it is the same row "
+                     + "the website writes: one goal per marker.")
+                    .hType(11, .regular, Hy.ink2)
+                    .fixedSize(horizontal: false, vertical: true)
             } else {
-                Caption("Nothing is aimed at this marker yet.")
-                Button("Set a goal") { editing = true }
-                    .buttonStyle(.ovInk)
+                Text("Nothing is aimed at this marker yet.")
+                    .hType(13, .regular, Hy.ink2)
+                Button { editing = true } label: {
+                    capsule("Set a goal", fill: Hy.plum, ink: Hy.cream)
+                }
+                .buttonStyle(Pressed(scale: 0.94))
+            }
+        }
+        .motion(Curve.ease.animation(0.32), value: editing)
+        .hyCard()
+    }
+
+    private func capsule(_ title: String, fill: Color, ink: Color) -> some View {
+        Text(title).hType(15, .semibold, ink)
+            .padding(.horizontal, DesignTokens.s21)
+            .frame(height: 44)
+            .background(Capsule().fill(fill))
+    }
+
+    /// A label in 11 caps over a 44 capsule on paper.
+    private func field(_ label: String, _ text: Binding<String>, _ placeholder: String,
+                       keyboard: UIKeyboardType = .default,
+                       help: String? = nil) -> some View {
+        VStack(alignment: .leading, spacing: 3) {
+            Text(label).textCase(.uppercase)
+                .hType(11, .medium, Hy.ink2, tracking: 0.12)
+            TextField("", text: text,
+                      prompt: Text(placeholder).foregroundColor(Hy.ink3))
+                .font(.grotesk(15))
+                .foregroundStyle(Hy.ink)
+                .keyboardType(keyboard)
+                .autocorrectionDisabled()
+                .textInputAutocapitalization(.never)
+                .padding(.horizontal, DesignTokens.s13)
+                .frame(height: 44)
+                .background(Capsule().fill(Hy.paper))
+            if let help {
+                Text(help).hType(11, .regular, Hy.ink3)
             }
         }
     }
@@ -255,5 +349,53 @@ struct MarkerView: View {
         } catch {
             said = "That did not delete: \(error.localizedDescription)"
         }
+    }
+}
+
+/// The history in the Hybrid look: the goal a dashed plum stretch, a 1.5 ink3
+/// line from draw to draw, and an ink diamond with its number at each draw.
+struct HyHistory: View {
+    let chart: MarkerView.Chart
+
+    var body: some View {
+        Canvas { ctx, size in
+            // The plot sits 8 in from the sides and 21 down from the top, so
+            // an end diamond and the number over the highest one are never cut.
+            let left: CGFloat = 8, top: CGFloat = 21
+            let W = size.width - 2 * left, H = size.height - top - 5
+            func at(_ p: (x: Double, y: Double, label: String)) -> CGPoint {
+                CGPoint(x: left + W * p.x, y: top + H * p.y)
+            }
+            if let band = chart.band {
+                let rect = CGRect(x: 0, y: top + H * band.lowerBound, width: size.width,
+                                  height: H * (band.upperBound - band.lowerBound))
+                let shape = Path(roundedRect: rect, cornerRadius: 8)
+                ctx.fill(shape, with: .color(Hy.greenSoft.opacity(0.6)))
+                ctx.stroke(shape, with: .color(Hy.plum),
+                           style: StrokeStyle(lineWidth: 1.5, dash: [4, 3]))
+            }
+            var line = Path()
+            for (i, p) in chart.points.enumerated() {
+                i == 0 ? line.move(to: at(p)) : line.addLine(to: at(p))
+            }
+            ctx.stroke(line, with: .color(Hy.ink3),
+                       style: StrokeStyle(lineWidth: 1.5, lineCap: .round, lineJoin: .round))
+            for p in chart.points {
+                let c = at(p)
+                var diamond = Path()
+                diamond.move(to: CGPoint(x: c.x, y: c.y - 4.5))
+                diamond.addLine(to: CGPoint(x: c.x + 4.5, y: c.y))
+                diamond.addLine(to: CGPoint(x: c.x, y: c.y + 4.5))
+                diamond.addLine(to: CGPoint(x: c.x - 4.5, y: c.y))
+                diamond.closeSubpath()
+                ctx.fill(diamond, with: .color(Hy.ink))
+                // The number sits above its diamond, kept inside the plot.
+                let x = min(max(c.x, 16), size.width - 16)
+                ctx.draw(Text(p.label).font(.grotesk(11, .semibold)).foregroundColor(Hy.ink),
+                         at: CGPoint(x: x, y: c.y - 8), anchor: .bottom)
+            }
+        }
+        .accessibilityElement()
+        .accessibilityLabel("History: " + chart.points.map(\.label).joined(separator: ", "))
     }
 }

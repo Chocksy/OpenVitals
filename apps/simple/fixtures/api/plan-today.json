@@ -1,44 +1,70 @@
 {
   "day": "2026-08-31",
-  "done": 0,
-  "total": 4,
+  "done": 1,
+  "total": 6,
   "rows": [
     {
-      "itemId": null,
+      "itemId": "5b0e6c1a-3f7d-4b8e-9a21-6c4f0d8e2b17",
+      "adoptId": null,
       "time": null,
-      "slot": null,
-      "title": "Resistance training twice a week",
-      "why": "Pattern insulin_resistance_early is the top system; resistance training is listed first in the management sequence and is the cheapest lever before any supplement.",
-      "tag": "suggested",
+      "slot": "breakfast",
+      "title": "Vitamin D3 4000 IU with breakfast",
+      "why": "Vitamin D 32.68 is below 40; take it with the day's first fat.",
+      "tag": "protocol",
       "done": false,
-      "adherence": null
+      "adherence": 0.71
     },
     {
-      "itemId": null,
+      "itemId": "a9d3f2e4-1c6b-4e0a-8f57-2b9e7c1d4a60",
+      "adoptId": null,
       "time": null,
-      "slot": null,
-      "title": "Walk 10 minutes after the largest meal every day",
-      "why": "Management of insulin_resistance_early lists a walk after the largest meal as the third lever; this is sequenced after confirming OGTT but can start immediately.",
-      "tag": "suggested",
-      "done": false,
-      "adherence": null
+      "slot": "breakfast",
+      "title": "Psyllium husk 10 g daily",
+      "why": "LDL 131 is above the 70–100 goal; soluble fibre binds bile acids.",
+      "tag": "goal",
+      "done": true,
+      "adherence": 0.9
     },
     {
-      "itemId": null,
+      "itemId": "e4c81b7f-6a2d-4f39-b0c5-8d17e3a9f2c4",
+      "adoptId": null,
       "time": null,
-      "slot": null,
-      "title": "Vitamin D3 4000 IU daily with largest meal",
-      "why": "Vitamin D 32.68 is below 40 and edge vitamin_d->insulin exists; raise before judging testosterone or lipids because user is 39-year-old male with no prior supplements.",
-      "tag": "suggested",
+      "slot": "midday",
+      "title": "Walk 10 minutes after the largest meal",
+      "why": "Lowers the glucose peak after eating and moves LDL a little.",
+      "tag": "goal",
       "done": false,
-      "adherence": null
+      "adherence": 0.5
     },
     {
-      "itemId": null,
+      "itemId": "71f6a0d2-9e3b-4c85-a4d1-f02b6e8c7a39",
+      "adoptId": null,
+      "time": "18:00",
+      "slot": null,
+      "title": "Resistance training 30 minutes",
+      "why": "Muscle is where glucose goes; the cheapest lever for early insulin resistance.",
+      "tag": "protocol",
+      "done": false,
+      "adherence": 0.33
+    },
+    {
+      "itemId": "c3a7e9b5-0d4f-4a62-9e18-5f2c8b6d1e03",
+      "adoptId": null,
       "time": null,
       "slot": null,
       "title": "Protein and fibre at the start of every meal",
-      "why": "Management of insulin_resistance_early lists protein and fibre at the start of meals as second lever; sequenced after training starts because user has zero adherence.",
+      "why": "Eating them first flattens the glucose curve of the rest of the plate.",
+      "tag": "every day",
+      "done": false,
+      "adherence": null
+    },
+    {
+      "itemId": null,
+      "adoptId": "plan:8f2d4c6e-1b3a-4e7f-9c05-d6a2b8e1f347:3",
+      "time": null,
+      "slot": null,
+      "title": "Magnesium glycinate 200 mg at bedtime",
+      "why": "Magnesium sits low in its band and edge magnesium->sleep_quality exists; cheap to try before judging sleep.",
       "tag": "suggested",
       "done": false,
       "adherence": null

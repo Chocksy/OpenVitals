@@ -32,6 +32,7 @@ import {
 } from "@/lib/api-contract";
 import type { CaptureExtract } from "@/lib/capture";
 import { localDay } from "@/lib/daily";
+import { scoreDays } from "@/lib/score-days";
 import { dayTotals, mealRowOf, toApiMeal } from "@/lib/meals";
 import type { Meal } from "@/db";
 import { listWatch, toApiPaper } from "@/lib/research-watch";
@@ -87,6 +88,8 @@ async function main() {
      it is what the phone's Blood tab asks for. */
   write("markers", await markersBody(owner.id, 365));
   write("meals", mealsFixture(day));
+  // Phase 37: the calendar behind the score, the same 91 days the route sends.
+  write("score-days", await scoreDays(owner.id, day, 91));
 }
 
 main().then(

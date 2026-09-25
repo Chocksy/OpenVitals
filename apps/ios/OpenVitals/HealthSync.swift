@@ -9,6 +9,7 @@
 /// is computed by `lib/healthkit.ts` on the server.
 import Foundation
 import HealthKit
+import UIKit
 
 // MARK: - the table
 
@@ -181,7 +182,7 @@ enum HK {
     static func workoutSamples(activity: String, minutes: Double, kcal: Double?,
                                start: Date, end: Date, source: String?,
                                zone: TimeZone = .current) -> [Api.Sample] {
-        let f = Api.isoFormatter(zone)
+        let f = formatter(zone)
         let from = f.string(from: start)
         let to = f.string(from: end)
         guard minutes > 0 else { return [] }
@@ -229,7 +230,7 @@ enum HK {
     static func sample(_ spec: HKTypeSpec, value: Double, unit: String? = nil,
                        start: Date, end: Date, source: String?,
                        zone: TimeZone = .current) -> Api.Sample {
-        let f = Api.isoFormatter(zone)
+        let f = formatter(zone)
         let u = unit ?? spec.unit
         return Api.Sample(type: spec.identifier,
                           unit: u.isEmpty ? nil : u,
@@ -338,21 +339,97 @@ enum HK {
         return out
     }
 
-    /// The samples that are safe to send now, and the newest day, held back.
-    ///
-    /// A page is cut by sample count, so its far edge lands mid-day almost
-    /// every time — the same split `batches` fixes, one level up. While more
-    /// pages could still add to the newest day, that day waits for the page
-    /// that finishes it.
-    static func holdNewestDay(_ samples: [Api.Sample])
-        -> (ready: [Api.Sample], held: [Api.Sample]) {
-        guard let newest = samples.map(day(of:)).max() else { return ([], []) }
-        var ready: [Api.Sample] = []
-        var held: [Api.Sample] = []
+    /// One formatter per zone, built once: a sync formats every sample twice,
+    /// and a first sync reads tens of thousands. HealthKit calls back on its
+    /// own threads, hence the lock.
+    private static let formatterLock = NSLock()
+    private static var formatters: [TimeZone: DateFormatter] = [:]
+
+    static func formatter(_ zone: TimeZone) -> DateFormatter {
+        formatterLock.lock()
+        defer { formatterLock.unlock() }
+        if let f = formatters[zone] { return f }
+        let f = Api.isoFormatter(zone)
+        formatters[zone] = f
+        return f
+    }
+
+    // MARK: whole days
+
+    /// The local days these samples change on the server. A night is filed on
+    /// the morning it ended, and the evening it started is touched too, so a
+    /// night across midnight resends both days whole.
+    static func touchedDays(_ samples: [Api.Sample]) -> Set<String> {
+        var days = Set<String>()
         for sample in samples {
-            if day(of: sample) == newest { held.append(sample) } else { ready.append(sample) }
+            days.insert(day(of: sample))
+            if sample.type.hasSuffix("SleepAnalysis") {
+                days.insert(String(sample.start.prefix(10)))
+            }
         }
-        return (ready, held)
+        return days
+    }
+
+    struct DayRange: Equatable {
+        let first: String
+        let last: String
+    }
+
+    private static let dayMath: Calendar = {
+        var c = Calendar(identifier: .gregorian)
+        c.timeZone = TimeZone(identifier: "UTC")!
+        return c
+    }()
+
+    private static let dayFormat: DateFormatter = {
+        let f = DateFormatter()
+        f.locale = Locale(identifier: "en_US_POSIX")
+        f.calendar = dayMath
+        f.timeZone = dayMath.timeZone
+        f.dateFormat = "yyyy-MM-dd"
+        return f
+    }()
+
+    static func dayAfter(_ day: String) -> String? {
+        guard let date = dayFormat.date(from: day),
+              let next = dayMath.date(byAdding: .day, value: 1, to: date)
+        else { return nil }
+        return dayFormat.string(from: next)
+    }
+
+    /// Days as runs of consecutive dates, so one date query reads each run.
+    static func ranges(_ days: Set<String>) -> [DayRange] {
+        var out: [DayRange] = []
+        for day in days.sorted() {
+            if let last = out.last, dayAfter(last.last) == day {
+                out[out.count - 1] = DayRange(first: last.first, last: day)
+            } else {
+                out.append(DayRange(first: day, last: day))
+            }
+        }
+        return out
+    }
+
+    /// The instants a date query reads for a run of days: a day wider on each
+    /// side, because a night ending on the first day began the day before.
+    /// `wholeDays` then keeps only the days asked for.
+    static func window(_ range: DayRange, calendar: Calendar = .current) -> DateInterval? {
+        func midnight(_ day: String) -> Date? {
+            let parts = day.split(separator: "-").compactMap { Int($0) }
+            guard parts.count == 3 else { return nil }
+            return calendar.date(from: DateComponents(year: parts[0], month: parts[1],
+                                                      day: parts[2]))
+        }
+        guard let first = midnight(range.first), let last = midnight(range.last),
+              let start = calendar.date(byAdding: .day, value: -1, to: first),
+              let end = calendar.date(byAdding: .day, value: 2, to: last),
+              start < end
+        else { return nil }
+        return DateInterval(start: start, end: end)
+    }
+
+    static func wholeDays(_ samples: [Api.Sample], in days: Set<String>) -> [Api.Sample] {
+        samples.filter { days.contains(day(of: $0)) }
     }
 }
 
@@ -406,6 +483,10 @@ struct SyncProgress: Equatable {
 /// Most of what killed a resync was one 500 in the middle of forty POSTs. The
 /// batch that comes back on the second try is not an error, and the audit line
 /// says so rather than reading "failed" for the whole type.
+///
+/// Only for the failures a later try can fix: the network, and the server's
+/// own 5xx. A 4xx is the request's fault and fails at once; 401 stops the
+/// whole run and asks for a sign-in.
 enum Retry {
     static let delays: [TimeInterval] = [1, 4, 16]
 
@@ -413,19 +494,119 @@ enum Retry {
         try await Task.sleep(nanoseconds: UInt64(seconds * 1_000_000_000))
     }
 
-    /// `work` until it stops throwing or the delays run out. Comes back with
-    /// how many retries it took, so a resumed batch can be told from a clean
-    /// one.
+    static func retryable(_ error: Error) -> Bool {
+        if let failure = error as? Api.Failure { return failure.status >= 500 }
+        if let url = error as? URLError {
+            return ![.cancelled, .userAuthenticationRequired].contains(url.code)
+        }
+        return false
+    }
+
+    static func signedOut(_ error: Error) -> Bool {
+        (error as? Api.Failure)?.status == 401
+    }
+
+    /// `work` until it stops throwing, the error is not worth another try, or
+    /// the delays run out. Comes back with how many retries it took, so a
+    /// resumed batch can be told from a clean one.
     static func run<T>(nap: (TimeInterval) async throws -> Void = sleep,
                        work: () async throws -> T) async throws -> (T, Int) {
         var used = 0
         while true {
             do { return (try await work(), used) } catch {
-                guard used < delays.count else { throw error }
+                guard used < delays.count, retryable(error) else { throw error }
                 try await nap(delays[used])
                 used += 1
             }
         }
+    }
+}
+
+// MARK: - one run at a time
+
+/// What a sync asks for. Two asks while a run is going fold into one.
+enum SyncJob: Equatable {
+    case types(Set<String>)
+    case all
+    case resync
+
+    func folded(_ other: SyncJob) -> SyncJob {
+        switch (self, other) {
+        case (.resync, _), (_, .resync): return .resync
+        case (.all, _), (_, .all): return .all
+        case (.types(let a), .types(let b)): return .types(a.union(b))
+        }
+    }
+}
+
+/// One run at a time, for every caller: observers, Body, Settings, the
+/// background. An ask while a run goes waits for it; asks while one already
+/// waits fold into that one, and every asker gets the run it joined.
+@MainActor
+final class SyncQueue<Outcome> {
+    private let perform: (SyncJob) async -> Outcome
+    private var last: Task<Outcome, Never>?
+    private var waiting: (job: SyncJob, task: Task<Outcome, Never>)?
+
+    init(perform: @escaping (SyncJob) async -> Outcome) { self.perform = perform }
+
+    @discardableResult
+    func submit(_ job: SyncJob) async -> Outcome {
+        if let waiting {
+            self.waiting = (waiting.job.folded(job), waiting.task)
+            return await waiting.task.value
+        }
+        let before = last
+        let task = Task { @MainActor () -> Outcome in
+            _ = await before?.value
+            let next = self.waiting?.job ?? job
+            self.waiting = nil
+            return await self.perform(next)
+        }
+        waiting = (job, task)
+        last = task
+        return await task.value
+    }
+}
+
+/// What one run came to, for Settings' status line and Body's header.
+struct SyncOutcome: Equatable {
+    var sent = 0
+    var failed: [String] = []
+    var signedOut = false
+    var unavailable = false
+
+    var ok: Bool { failed.isEmpty && !signedOut && !unavailable }
+
+    var line: String {
+        if unavailable { return "Health data is not available on this device." }
+        if signedOut { return "Sign in again." }
+        var line = sent == 0 ? "Nothing new to send."
+                             : "Sent \(Api.Totals.count(sent)) samples."
+        if !failed.isEmpty {
+            line += " \(failed.count) type\(failed.count == 1 ? "" : "s")"
+                + " will resume next sync: \(failed.joined(separator: ", "))."
+        }
+        return line
+    }
+}
+
+/// `beginBackgroundTask` around one run, so a sync the observer woke, or one
+/// the person left mid-way, gets its ~30 s to finish.
+@MainActor
+private final class BackgroundTime {
+    private var id = UIBackgroundTaskIdentifier.invalid
+
+    init() {
+        id = UIApplication.shared.beginBackgroundTask(withName: "health sync") { [weak self] in
+            self?.end()
+        }
+    }
+
+    func end() {
+        guard id != .invalid else { return }
+        UIApplication.shared.endBackgroundTask(id)
+        id = .invalid
     }
 }
 
@@ -554,10 +735,14 @@ final class HealthSyncModel: ObservableObject {
     /// One anchored read; the loop repeats while a pass comes back full.
     private let pageSize = 2000
     /// How many pages one type may take in a single run: 400 000 samples at
-    /// 2000 a page, enough for years of steps. It used to be 25, which was a
-    /// year's worth and no more. A type that ever hits the ceiling has still
-    /// moved its anchor, so the next sync carries on where this one stopped.
+    /// 2000 a page, enough for years of steps. A type that ever hits the
+    /// ceiling has still moved its anchor, so the next sync carries on where
+    /// this one stopped.
     private let maxPages = 200
+    private lazy var queue = SyncQueue<SyncOutcome> { [unowned self] in await self.run($0) }
+    /// Bumped by `reset`, so a run that was going when the account changed
+    /// commits no anchor for the next one.
+    private var epoch = 0
 
     var available: Bool { HKHealthStore.isHealthDataAvailable() }
 
@@ -581,7 +766,7 @@ final class HealthSyncModel: ObservableObject {
         do {
             try await store.requestAuthorization(toShare: [], read: HK.readTypes)
             status = "Health access requested."
-            enableBackgroundDelivery()
+            await launch()
         } catch {
             status = "Health access failed: \(error.localizedDescription)"
         }
@@ -596,118 +781,133 @@ final class HealthSyncModel: ObservableObject {
         return status != .unnecessary
     }
 
-    func syncAll() async {
+    /// At launch (the app delegate, including a launch HealthKit caused in the
+    /// background), after sign-in and after Health access is granted: the
+    /// observers and background delivery, once, when there is someone to send
+    /// for and something we may read.
+    func launch() async {
+        guard !Fixtures.on, Api.signedIn, available, !observing else { return }
+        guard !(await needsAsking()) else { return }
+        enableBackgroundDelivery()
+        startObservers()
+    }
+
+    /// Sign-out and a server change: stop listening and forget every anchor,
+    /// so the next account starts from the beginning.
+    func reset() {
+        epoch += 1
+        for query in observers { store.stop(query) }
+        observers = []
+        observing = false
+        if available { store.disableAllBackgroundDelivery { _, _ in } }
+        for spec in HK.types { state.reset(spec.identifier) }
+        state.seenNotUsed = []
+        seenNotUsed = []
+        status = ""
+        totals = nil
+        revision += 1
+    }
+
+    @discardableResult
+    func syncAll() async -> SyncOutcome { await queue.submit(.all) }
+
+    /// Every anchor dropped, then a full read: every day there is data is
+    /// read whole and sent again. The per-day upsert on the server means a
+    /// day that came through before is written again, not doubled.
+    @discardableResult
+    func resyncEverything() async -> SyncOutcome {
+        status = "Reading all of Apple Health…"
+        return await queue.submit(.resync)
+    }
+
+    /// The one place a run happens; `queue` makes sure it is one at a time.
+    private func run(_ job: SyncJob) async -> SyncOutcome {
         guard available else {
             status = "Health data is not available on this device."
-            return
+            return SyncOutcome(unavailable: true)
         }
-        guard !busy else { return }
+        let background = BackgroundTime()
         busy = true
-        defer { busy = false; revision += 1; progress = SyncProgress() }
-        var sent = 0
-        var failed: [String] = []
-        var unmapped = Set<String>()
-        for spec in HK.types {
+        defer {
+            busy = false
+            revision += 1
+            progress = SyncProgress()
+            background.end()
+        }
+        let specs: [HKTypeSpec]
+        switch job {
+        case .types(let ids): specs = HK.types.filter { ids.contains($0.identifier) }
+        case .all: specs = HK.types
+        case .resync:
+            for spec in HK.types { state.clearAnchor(spec.identifier) }
+            specs = HK.types
+        }
+        let started = epoch
+        var outcome = SyncOutcome()
+        var unmapped = Set<String>(job == .all || job == .resync ? [] : seenNotUsed)
+        for spec in specs {
             do {
                 let result = try await sync(spec)
-                sent += result.0
+                outcome.sent += result.0
                 unmapped.formUnion(result.1)
+            } catch is CancellationError {
+                break
+            } catch where Retry.signedOut(error) {
+                state.fail(spec.identifier, "Sign in again.")
+                outcome.signedOut = true
+                break
             } catch {
+                // A type that failed kept its anchor, so it is not lost: it is
+                // next in line, and the line says so.
                 state.fail(spec.identifier, error.localizedDescription)
-                failed.append(spec.name)
+                outcome.failed.append(spec.name)
             }
         }
+        guard epoch == started else { return outcome }
         seenNotUsed = unmapped.sorted()
         state.seenNotUsed = seenNotUsed
-        // A type that failed kept its anchor, so it is not lost — it is next
-        // in line. Saying "failed" and nothing else is what made a resync that
-        // landed twelve thousand readings read as a disaster.
-        var line = sent == 0 ? "Nothing new to send."
-                             : "Sent \(Api.Totals.count(sent)) samples."
-        if !failed.isEmpty {
-            line += " \(failed.count) type\(failed.count == 1 ? "" : "s")"
-                + " will resume next sync: \(failed.joined(separator: ", "))."
-        }
-        status = line
-        await loadTotals()
+        status = outcome.line
+        if !outcome.signedOut { await loadTotals() }
+        return outcome
     }
 
-    /// Every anchor dropped, then a full read.
-    ///
-    /// For the phone that already synced under the old one-year window this is
-    /// the only way back to 2019: an anchored query will not re-read the past
-    /// on its own. The per-day upsert on the server means the year that came
-    /// through the first time is simply written again, not doubled.
-    func resyncEverything() async {
-        guard !busy else { return }
-        for spec in HK.types { state.clearAnchor(spec.identifier) }
-        status = "Reading all of Apple Health…"
-        await syncAll()
-    }
-
-    /// One type, paged until HealthKit stops filling a page.
-    ///
-    /// The whole job of the loop is that a day leaves the phone in one piece.
-    /// The server replaces a day's totals with whatever one POST adds up to,
-    /// so both cuts that could split a day — the 500-sample batch and the
-    /// 2000-sample page — are made on day boundaries instead.
+    /// One type: the anchored query finds the days that changed, a date query
+    /// reads those days whole, and the anchor moves only once they are sent.
+    /// Each page of new samples is its own step, so a first sync of years
+    /// keeps what it has sent if the phone stops it half way; a day a later
+    /// page touches again is not resent in the same run.
     @discardableResult
     func sync(_ spec: HKTypeSpec) async throws -> (Int, [String]) {
         guard let sampleType = spec.sampleType else { return (0, []) }
+        let started = epoch
         progress.begin(spec.name)
         var anchor = state.anchorData(spec.identifier)
-        var held: [Api.Sample] = []
+        var done = Set<String>()
         var sent = 0
-        /// Sent, but not yet in the audit line: the anchor they belong to has
-        /// not moved yet.
-        var uncounted = 0
-        var resumed = 0
         var unmapped: [String] = []
 
-        func post(_ samples: [Api.Sample]) async throws {
-            let batch = try await self.post(samples)
-            unmapped.append(contentsOf: batch.unmapped)
-            resumed += batch.resumed
-            sent += samples.count
-            uncounted += samples.count
-        }
-
         for _ in 0..<maxPages {
-            let page = try await read(sampleType, spec: spec, anchor: anchor)
-            anchor = page.anchor ?? anchor
+            let page = try await readNew(sampleType, spec: spec, anchor: anchor)
             progress.saw(page.samples)
-            let more = page.count >= pageSize
-            let ready: [Api.Sample]
-            if more {
-                (ready, held) = HK.holdNewestDay(held + page.samples)
-            } else {
-                ready = held + page.samples
-                held = []
+            let days = HK.touchedDays(page.samples).subtracting(done)
+            var whole: [Api.Sample] = []
+            var resumed = 0
+            if !days.isEmpty {
+                whole = try await readDays(days, type: sampleType, spec: spec)
+                let out = try await post(whole)
+                unmapped.append(contentsOf: out.unmapped)
+                resumed = out.resumed
+                done.formUnion(days)
             }
-            try await post(ready)
-            // The anchor only moves once every sample behind it has gone —
-            // including a page that held nothing we send (an idle stand hour,
-            // a sleep value Apple has not defined yet), or reading those again
-            // would be a loop with no way out. While a day is still held back
-            // it stays put, so an interrupted sync re-reads that day whole
-            // rather than leaving it with half a day's total for ever.
-            if held.isEmpty {
-                state.commit(spec.identifier, anchor: anchor, sent: uncounted,
-                             resumed: resumed, at: Date())
-                uncounted = 0
-                resumed = 0
-            }
-            if !more { break }
-        }
-
-        // `maxPages` ran out mid-day: send what is left and move on, or this
-        // type would re-read the same pages on every sync and never progress.
-        if !held.isEmpty {
-            let last = held
-            held = []
-            try await post(last)
-            state.commit(spec.identifier, anchor: anchor, sent: uncounted,
+            // The anchor moves only once every day this page touched is sent,
+            // including a page that held nothing we send, or reading it again
+            // would be a loop with no way out.
+            guard epoch == started else { throw CancellationError() }
+            anchor = page.anchor ?? anchor
+            state.commit(spec.identifier, anchor: anchor, sent: whole.count,
                          resumed: resumed, at: Date())
+            sent += whole.count
+            if page.count < pageSize { break }
         }
         return (sent, unmapped)
     }
@@ -715,10 +915,9 @@ final class HealthSyncModel: ObservableObject {
     /// Every batch of `samples` out, each one retried before it counts as a
     /// failure.
     ///
-    /// Throws once a batch has used up its four tries. The caller does not
-    /// commit an anchor after a throw, so those samples come round again on
-    /// the next sync rather than being skipped — which is the whole reason
-    /// this returns rather than swallowing.
+    /// Throws once a batch has used up its tries. The caller does not commit
+    /// an anchor after a throw, so those days come round again on the next
+    /// sync rather than being skipped.
     @discardableResult
     func post(_ samples: [Api.Sample])
         async throws -> (unmapped: [String], resumed: Int) {
@@ -740,17 +939,14 @@ final class HealthSyncModel: ObservableObject {
         return (unmapped, resumed)
     }
 
-    private func read(_ type: HKSampleType, spec: HKTypeSpec,
-                      anchor anchorData: Data?) async throws
+    /// What is new since the anchor. Only its days are used. No predicate: a
+    /// first sync reads everything HealthKit has, back to the first watch.
+    private func readNew(_ type: HKSampleType, spec: HKTypeSpec,
+                         anchor anchorData: Data?) async throws
         -> (samples: [Api.Sample], anchor: Data?, count: Int) {
         let anchor = anchorData.flatMap {
             try? NSKeyedUnarchiver.unarchivedObject(ofClass: HKQueryAnchor.self, from: $0)
         }
-        // No predicate at all: a first sync reads everything HealthKit has,
-        // back to the first watch the person ever wore. It used to be a year,
-        // which quietly threw away the years that make a trend a trend. The
-        // 500-sample batches are the throttle, and the anchor makes every sync
-        // after the first incremental.
         let page = pageSize
         return try await withCheckedThrowingContinuation { continuation in
             let query = HKAnchoredObjectQuery(
@@ -772,6 +968,33 @@ final class HealthSyncModel: ObservableObject {
         }
     }
 
+    /// Every sample of these local days, whatever the anchor has seen.
+    func readDays(_ days: Set<String>, type: HKSampleType,
+                  spec: HKTypeSpec) async throws -> [Api.Sample] {
+        var out: [Api.Sample] = []
+        for range in HK.ranges(days) {
+            guard let window = HK.window(range) else { continue }
+            let predicate = HKQuery.predicateForSamples(
+                withStart: window.start, end: window.end, options: [])
+            out += try await withCheckedThrowingContinuation { continuation in
+                let query = HKSampleQuery(
+                    sampleType: type, predicate: predicate,
+                    limit: HKObjectQueryNoLimit, sortDescriptors: nil
+                ) { _, raw, error in
+                    if let error {
+                        continuation.resume(throwing: error)
+                        return
+                    }
+                    continuation.resume(returning: (raw ?? []).flatMap {
+                        HK.samples(from: $0, spec: spec)
+                    })
+                }
+                store.execute(query)
+            }
+        }
+        return HK.wholeDays(out, in: days)
+    }
+
     // MARK: - without opening the app
 
     func enableBackgroundDelivery() {
@@ -784,19 +1007,24 @@ final class HealthSyncModel: ObservableObject {
     }
 
     private var observing = false
+    private var observers: [HKObserverQuery] = []
 
+    /// HealthKit wakes the app per type; each wake joins the queue, and its
+    /// `completion` is called on every path, or iOS stops waking the app.
     func startObservers() {
         guard available, !observing else { return }
         observing = true
         for spec in HK.types {
             guard let type = spec.sampleType else { continue }
             let query = HKObserverQuery(sampleType: type, predicate: nil) {
-                [weak self] _, completion, _ in
+                [weak self] _, completion, error in
+                guard error == nil else { completion(); return }
                 Task { @MainActor in
-                    _ = try? await self?.sync(spec)
-                    completion()
+                    defer { completion() }
+                    await self?.queue.submit(.types([spec.identifier]))
                 }
             }
+            observers.append(query)
             store.execute(query)
         }
     }
