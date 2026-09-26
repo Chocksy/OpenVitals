@@ -28,7 +28,8 @@ final class ContractTests: XCTestCase {
 
     /// The files the contract needs, and the one place that lists them.
     static let names = ["today", "body", "plan-today", "habits", "meals",
-                        "meal", "genome", "research", "markers", "score-days"]
+                        "meal", "genome", "research", "markers", "score-days",
+                        "hunches", "hunch"]
 
     func testEveryEndpointHasAFixture() {
         for name in Self.names {

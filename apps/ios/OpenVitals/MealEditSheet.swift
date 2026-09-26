@@ -9,6 +9,8 @@ import SwiftUI
 enum TodaySheet: Equatable {
     case meal(String)
     case targets
+    /// Phase 39: a Worth a look case, by hunch id.
+    case hunch(String)
 }
 
 /// What the food card asks of Today: open a meal, open the targets form.
@@ -103,6 +105,7 @@ struct TodaySheetHost: View {
         GeometryReader { g in
             VStack(spacing: 0) {
                 Spacer(minLength: 0)
+                ScrollViewReader { reader in
                 ScrollView {
                     content
                         .padding(.top, DesignTokens.s13)
@@ -110,10 +113,17 @@ struct TodaySheetHost: View {
                         .padding(.bottom, DesignTokens.s21)
                         .onGeometryChange(for: CGFloat.self, of: { $0.size.height }) { height = $0 }
                 }
+                .task {
+                    // `-OVScreen hunch-how`: the screenshot lands on How we know.
+                    guard case .hunch = sheet, Fixtures.screen == "hunch-how" else { return }
+                    try? await Task.sleep(for: .milliseconds(700))
+                    reader.scrollTo(HowWeKnow.anchor, anchor: .top)
+                }
+                }
                 .scrollIndicators(.hidden)
                 .scrollBounceBehavior(.basedOnSize)
                 .scrollDismissesKeyboard(.interactively)
-                .frame(height: max(0, min(610, height, g.size.height - DesignTokens.s8)))
+                .frame(height: max(0, min(cap, height, g.size.height - DesignTokens.s8)))
                 .grained(Hy.card, radius: 42)
                 .clipShape(RoundedRectangle(cornerRadius: 42, style: .continuous))
                 .contentShape(RoundedRectangle(cornerRadius: 42, style: .continuous))
@@ -124,11 +134,20 @@ struct TodaySheetHost: View {
         .ignoresSafeArea(.container, edges: .bottom)
     }
 
+    /// A case reads long: it takes the screen's height, the meal sheet 610.
+    private var cap: CGFloat {
+        if case .hunch = sheet { return .infinity }
+        return 610
+    }
+
     @ViewBuilder
     private var content: some View {
         switch sheet {
         case .meal(let id): MealEditor(model: model, id: id, staged: staged, close: close)
         case .targets: TargetsForm(model: model, close: close)
+        case .hunch(let id):
+            HunchCaseView(id: id, row: model.today?.hunches?.first { $0.id == id },
+                          desk: model.desk, howOpen: Fixtures.screen == "hunch-how", close: close)
         }
     }
 }

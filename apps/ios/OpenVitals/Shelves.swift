@@ -13,6 +13,8 @@ struct Shelves: View {
     @State private var lastY: CGFloat = 0
     @State private var lag: CGFloat = 0
     @State private var settle: Task<Void, Never>?
+    /// The tab bar's selection: Worth a look's line switches to Blood.
+    @AppStorage("tab") private var tab = 0
 
     var body: some View {
         ScrollView {
@@ -24,11 +26,22 @@ struct Shelves: View {
                     .padding(.top, DesignTokens.s21)
                 HShelf { TodaySoFar(model: model) }
                     .lagging(lag, row: 1)
+                if let hunches = model.today?.hunches, !hunches.isEmpty {
+                    let open = hunches.filter { $0.kind != "good_news" }.count
+                    ShelfTitle("Worth a look", open > 0
+                               ? "\(open) open" + (open < hunches.count ? " · \(hunches.count - open) good news" : "")
+                               : "good news")
+                    // ponytail: three rows here, the rest on Blood behind the line.
+                    WorthALook(rows: Array(hunches.prefix(3)), desk: model.desk,
+                               more: hunches.count, toBlood: { tab = 2 })
+                        .padding(.bottom, DesignTokens.s21)
+                        .lagging(lag, row: 2)
+                }
                 if !model.headings.isEmpty {
                     // `margin-top: 0`: the shelf above ends on its 21 of padding.
                     ShelfTitle("Where it's heading", "if you keep this")
                     HShelf { Heading.Cards(goals: model.headings, model: model) }
-                        .lagging(lag, row: 2)
+                        .lagging(lag, row: 3)
                 }
             }
             // `.scroll { padding-bottom: 110 }`, the tab bar's share included.

@@ -659,6 +659,23 @@ extension Api {
             /// Phase 37: what the Heading shelf draws. Null when nothing
             /// projects this marker; absent on servers before phase 37.
             let projection: Projection?
+            /// Phase 39: least squares over the last three lab draws inside
+            /// 24 months. Null with fewer than three; absent before 39.
+            var recentSlope: Slope? = nil
+            /// Phase 39: that line read on the goal's due date.
+            var landing: Landing? = nil
+
+            struct Slope: Codable, Equatable {
+                let perYear: Double
+                let n: Int
+                let from: String
+                let to: String
+            }
+
+            struct Landing: Codable, Equatable {
+                let date: String
+                let value: Double
+            }
 
             var id: String { code }
 
@@ -704,6 +721,37 @@ extension Api {
         let score: Score?
         /// Last night. Null when there are no hours.
         let sleep: Sleep?
+        /// Phase 39: open hunches first, then unseen good news, at most 5.
+        /// Absent on servers before 39.
+        var hunches: [HunchRow]? = nil
+        /// Phase 39: one word per system, for the header's Heading block.
+        var heading: [HeadingRow]? = nil
+        /// Phase 39: "Last draw N days ago · M of 12 systems · K open".
+        var confidence: Confidence? = nil
+
+        /// One system's direction on the person's own draws.
+        struct HeadingRow: Codable, Equatable, Identifiable {
+            let id: String
+            let name: String
+            /// "toward" | "holding" | "away" | "unmeasured"
+            let word: String
+            let why: String
+        }
+
+        struct Confidence: Codable, Equatable {
+            let lastDraw: String?
+            let days: Int?
+            let measured: Int
+            let total: Int
+            let open: Int
+
+            /// "Last draw 156 days ago · 11 of 12 systems · 4 open".
+            var line: String {
+                let draw = days.map { "Last draw \(Design.plural($0, "day", "days")) ago" }
+                    ?? "No lab draw yet"
+                return "\(draw) · \(measured) of \(total) systems · \(open) open"
+            }
+        }
 
         /// The day's score. `input` travels with the result so a tick or a
         /// portion can be previewed through `Score.of` before the server
@@ -817,6 +865,18 @@ extension Api {
             let optimal: Band
             let series: [Point]
             let goal: Goal?
+            /// Phase 39: the person's own band from the draws before the
+            /// last. Named so because `band` is the lab range.
+            var personalBand: PersonalBand? = nil
+            /// Where the last draw sits on `personalBand`, in spreads.
+            var z: Double? = nil
+            /// The live hunch this marker belongs to, if any.
+            var signal: Signal? = nil
+
+            struct Signal: Codable, Equatable {
+                let kind: String
+                let hunchId: String
+            }
 
             var id: String { code }
 
@@ -866,6 +926,261 @@ extension Api {
         }
 
         static let filters = ["Off", "Borderline", "Optimal", "All"]
+    }
+
+    // MARK: GET /api/hunches, /api/hunches/:id (phase 39)
+
+    /// The person's own band (`lib/personal.ts` `bandOf`): the median and
+    /// spread of the draws before the last. 4 draws make it provisional.
+    struct PersonalBand: Codable, Equatable {
+        let median: Double
+        let sd: Double
+        let n: Int
+        let provisional: Bool
+
+        /// The corridor's edges: 2.5 spreads, as the signals read it.
+        var low: Double { median - 2.5 * sd }
+        var high: Double { median + 2.5 * sd }
+    }
+
+    /// One hunch at a glance: a row on Today's shelf and on Blood.
+    struct HunchRow: Codable, Equatable, Identifiable {
+        struct Number: Codable, Equatable {
+            let value: Double?
+            let unit: String?
+        }
+
+        struct Mini: Codable, Equatable {
+            let band: PersonalBand?
+            /// `[lo, hi]`, either end null.
+            let lab: [Double?]?
+            let last: Double?
+            let goal: [Double?]?
+        }
+
+        struct Action: Codable, Equatable {
+            /// "answer" | "book" | "got_it" | "result"
+            let kind: String
+            let label: String
+        }
+
+        let id: String
+        /// "step" | "cluster" | "drift" | "gap" | "good_news" | "left_band" | "discordance"
+        let kind: String
+        let stamp: String
+        let system: String?
+        /// One plain sentence: the title.
+        let line: String
+        let number: Number
+        let mini: Mini
+        let action: Action
+        /// "open" | "testing" | "closed"
+        let state: String
+    }
+
+    struct HunchesBody: Codable, Equatable {
+        let open: [HunchRow]
+        let goodNews: [HunchRow]
+        let closed: [HunchRow]
+
+        /// Open first, then good news: the rows Blood opens on.
+        var glance: [HunchRow] { open + goodNews }
+    }
+
+    /// The machine-checkable threshold an explanation implies.
+    struct HunchCheck: Decodable, Equatable {
+        let code: String
+        /// "<" | ">" | "between"
+        let op: String
+        let low: Double
+        let high: Double?
+
+        enum CodingKeys: String, CodingKey { case code, op, value }
+
+        init(from decoder: Decoder) throws {
+            let c = try decoder.container(keyedBy: CodingKeys.self)
+            code = try c.decode(String.self, forKey: .code)
+            op = try c.decode(String.self, forKey: .op)
+            if let pair = try? c.decode([Double].self, forKey: .value), pair.count == 2 {
+                low = pair[0]
+                high = pair[1]
+            } else {
+                low = try c.decode(Double.self, forKey: .value)
+                high = nil
+            }
+        }
+
+        /// "over 10", "under 10", "between 3 and 19".
+        var words: String {
+            switch op {
+            case ">": return "over \(Design.number(low))"
+            case "<": return "under \(Design.number(low))"
+            default: return "between \(Design.number(low)) and \(Design.number(high ?? low))"
+            }
+        }
+    }
+
+    /// The case behind a row: `HunchCase` in `lib/api-contract.ts`, which
+    /// extends the row. Every field past the row is optional here, so an
+    /// older server's thinner case still decodes.
+    struct HunchCase: Decodable, Equatable, Identifiable {
+        struct Draw: Codable, Equatable, Identifiable {
+            let date: String
+            let value: Double
+            /// `uploads.file_name`; nil is "imported from the old app".
+            let file: String?
+            var id: String { date }
+        }
+
+        struct BandAt: Codable, Equatable {
+            let date: String
+            let median: Double
+            let sd: Double
+        }
+
+        struct Explanation: Decodable, Equatable, Identifiable {
+            let id: String
+            let text: String
+            let grade: String
+            /// "science" | "opinion" | "anecdotal" | "hypothesis"
+            let basis: String
+            let source: String?
+            let conditionId: String?
+            var weight: Double
+            let predicts: String?
+            let check: HunchCheck?
+        }
+
+        struct Question: Decodable, Equatable {
+            struct Chip: Decodable, Equatable, Identifiable {
+                let id: String
+                let label: String
+                let favours: [String]
+            }
+
+            let text: String
+            let chips: [Chip]
+        }
+
+        struct Test: Decodable, Equatable {
+            let code: String?
+            let name: String
+            let eur: Double
+            let currency: String
+            let price: Double
+            /// No country price: the cost band stands in.
+            let estimated: Bool?
+
+            /// "10 EUR · estimated".
+            var priceLine: String {
+                "\(Design.number(price)) \(currency)" + (estimated == true ? " · estimated" : "")
+            }
+        }
+
+        struct Prediction: Decodable, Equatable {
+            let explanationId: String
+            let text: String
+            let check: HunchCheck?
+        }
+
+        /// A cluster's member: one lane each.
+        struct Lane: Decodable, Equatable, Identifiable {
+            let code: String
+            let name: String
+            let unit: String?
+            let last: Double?
+            let band: PersonalBand?
+            let series: [Draw]
+            let bandAt: [BandAt]
+            var id: String { code }
+        }
+
+        var row: HunchRow
+        var say = ""
+        var series: [Draw] = []
+        var bandAt: [BandAt] = []
+        var explanations: [Explanation] = []
+        var question: Question?
+        var answer: String?
+        var test: Test?
+        var predictions: [Prediction]?
+        var writtenAt: String?
+        var outcome: String?
+        var outcomeLine: String?
+        var rule: [String] = []
+        var unknowns: [String] = []
+        var firedAt: [String] = []
+        var markers: [Lane] = []
+
+        var id: String { row.id }
+
+        /// A case that is only its row: what shows while the full one loads.
+        init(row: HunchRow) { self.row = row }
+
+        enum CodingKeys: String, CodingKey {
+            case say, series, bandAt, explanations, question, answer, test,
+                 predictions, writtenAt, outcome, outcomeLine, rule, unknowns,
+                 firedAt, markers
+        }
+
+        init(from decoder: Decoder) throws {
+            row = try HunchRow(from: decoder)
+            let c = try decoder.container(keyedBy: CodingKeys.self)
+            say = try c.decodeIfPresent(String.self, forKey: .say) ?? ""
+            series = try c.decodeIfPresent([Draw].self, forKey: .series) ?? []
+            bandAt = try c.decodeIfPresent([BandAt].self, forKey: .bandAt) ?? []
+            explanations = try c.decodeIfPresent([Explanation].self, forKey: .explanations) ?? []
+            question = try c.decodeIfPresent(Question.self, forKey: .question)
+            answer = try c.decodeIfPresent(String.self, forKey: .answer)
+            test = try c.decodeIfPresent(Test.self, forKey: .test)
+            predictions = try c.decodeIfPresent([Prediction].self, forKey: .predictions)
+            writtenAt = try c.decodeIfPresent(String.self, forKey: .writtenAt)
+            outcome = try c.decodeIfPresent(String.self, forKey: .outcome)
+            outcomeLine = try c.decodeIfPresent(String.self, forKey: .outcomeLine)
+            rule = try c.decodeIfPresent([String].self, forKey: .rule) ?? []
+            unknowns = try c.decodeIfPresent([String].self, forKey: .unknowns) ?? []
+            firedAt = try c.decodeIfPresent([String].self, forKey: .firedAt) ?? []
+            markers = try c.decodeIfPresent([Lane].self, forKey: .markers) ?? []
+        }
+
+        /// `CHIP_LR` in `lib/hunches.ts`: an answered chip multiplies the
+        /// explanations it favours by 3, then the shares are renormalised.
+        static let chipLR = 3.0
+
+        /// The case with `chip` answered, re-weighted the server's way. The
+        /// bars move on this while the server answers, and a fixture run
+        /// has only this.
+        func answered(_ chip: String) -> HunchCase {
+            var next = self
+            next.answer = chip
+            let favours = Set(question?.chips.first { $0.id == chip }?.favours ?? [])
+            guard !favours.isEmpty else { return next }
+            for i in next.explanations.indices where favours.contains(next.explanations[i].id) {
+                next.explanations[i].weight *= Self.chipLR
+            }
+            let total = next.explanations.map(\.weight).reduce(0, +)
+            if total > 0 {
+                for i in next.explanations.indices { next.explanations[i].weight /= total }
+            }
+            return next
+        }
+
+        /// The case with the test written down on `day`: what a fixture run
+        /// shows, and the preview before the server answers.
+        func written(on day: String) -> HunchCase {
+            var next = self
+            next.writtenAt = day
+            if predictions == nil {
+                next.predictions = explanations.compactMap { e in
+                    e.predicts.map { Prediction(explanationId: e.id, text: $0, check: e.check) }
+                }
+            }
+            next.row = HunchRow(id: row.id, kind: row.kind, stamp: row.stamp, system: row.system,
+                                line: row.line, number: row.number, mini: row.mini,
+                                action: .init(kind: "result", label: "Waiting for the result"),
+                                state: "testing")
+            return next
+        }
     }
 
     // MARK: GET /api/body
@@ -1510,6 +1825,55 @@ extension Api {
     static func researchNow(conditionId: String) async throws -> ResearchRun {
         try await send(try json("api/research", "POST",
                                 ["conditionId": conditionId]), also: [429])
+    }
+
+    // MARK: hunches (phase 39)
+
+    /// `GET /api/hunches`: open, good news, closed.
+    static func hunches() async throws -> HunchesBody {
+        if let canned: HunchesBody = Fixtures.canned("hunches") { return canned }
+        return try await send(get("api/hunches"))
+    }
+
+    static func cachedHunches() -> HunchesBody? { cached(get("api/hunches")) }
+
+    /// `GET /api/hunches/:id`: the case behind a row.
+    static func hunch(id: String) async throws -> HunchCase {
+        if Fixtures.on { return try cannedCase(id) }
+        return try await send(get("api/hunches/\(id)"))
+    }
+
+    /// `POST /api/hunches/:id/answer {chip}`: re-weighted by the server.
+    static func answer(id: String, chip: String) async throws -> HunchCase {
+        if Fixtures.on { return try cannedCase(id).answered(chip) }
+        return try await send(try json("api/hunches/\(id)/answer", "POST", ["chip": chip]))
+    }
+
+    /// `POST /api/hunches/:id/test`: writes the predictions down and plans
+    /// the test on the next draw.
+    static func acceptTest(id: String) async throws -> HunchCase {
+        if Fixtures.on { return try cannedCase(id).written(on: localDay()) }
+        return try await send(try json("api/hunches/\(id)/test", "POST", [:]))
+    }
+
+    /// `POST /api/hunches/:id/seen`: good news, "Got it".
+    static func seen(id: String) async throws -> Ok {
+        if Fixtures.on { return Ok(ok: true) }
+        return try await send(try json("api/hunches/\(id)/seen", "POST", [:]))
+    }
+
+    /// The fixture run has one full case (the iron cluster). Any other row
+    /// opens as its row alone.
+    // ponytail: one canned case; add fixtures per kind if the owner wants
+    // every row's case drawn offline.
+    private static func cannedCase(_ id: String) throws -> HunchCase {
+        if let full: HunchCase = Fixtures.canned("hunch"), full.id == id { return full }
+        let body: HunchesBody? = Fixtures.canned("hunches")
+        let rows = (body.map { $0.open + $0.goodNews + $0.closed } ?? [])
+        guard let row = rows.first(where: { $0.id == id }) else {
+            throw Failure(status: 404, message: "no such hunch")
+        }
+        return HunchCase(row: row)
     }
 
     /// What `POST /api/compose` says back. This is the route the web composer

@@ -664,6 +664,604 @@ enum Fixtures {
   "done": true
 }
 """#,
+        "hunch": #"""
+{
+  "id": "7834db86-7e45-4723-9eba-0a6978bd7ec3",
+  "kind": "cluster",
+  "stamp": "CLUSTER",
+  "system": "iron",
+  "line": "4 iron and vitamin markers moved the worse way together, led by Ferritin.",
+  "number": {
+    "value": 79.6,
+    "unit": "ng/mL"
+  },
+  "mini": {
+    "band": {
+      "median": 113.065,
+      "sd": 15.485757,
+      "n": 4,
+      "provisional": true
+    },
+    "lab": [
+      22,
+      322
+    ],
+    "last": 79.6,
+    "goal": null
+  },
+  "action": {
+    "kind": "answer",
+    "label": "Answer"
+  },
+  "state": "open",
+  "say": "Homocysteine, Ferritin, Vitamin D, Vitamin B12 all sit on the worse side of their own middle on the same draw. One question covers the group.",
+  "series": [
+    {
+      "date": "2021-10-14",
+      "value": 154.48,
+      "file": "Razvan - 14.10.2021.pdf"
+    },
+    {
+      "date": "2023-03-17",
+      "value": 110.84,
+      "file": "Razvan - 17.03.2023.pdf"
+    },
+    {
+      "date": "2024-05-13",
+      "value": 115.29,
+      "file": "Razvan - 13.05.2024.pdf"
+    },
+    {
+      "date": "2025-12-09",
+      "value": 94.4,
+      "file": "Razvan - 09.12.2025.pdf"
+    },
+    {
+      "date": "2026-04-23",
+      "value": 79.6,
+      "file": "Razvan - 23.04.2026.pdf"
+    }
+  ],
+  "bandAt": [
+    {
+      "date": "2026-04-23",
+      "median": 113.065,
+      "sd": 15.485757
+    }
+  ],
+  "explanations": [
+    {
+      "id": "iron_deficiency_cause_gi",
+      "text": "Gut malabsorption can lower the uptake of several nutrients together, including iron, B12, and vitamin D.",
+      "basis": "opinion",
+      "check": {
+        "op": ">",
+        "code": "ttg_iga",
+        "value": 10
+      },
+      "grade": "C",
+      "source": "Grade C",
+      "weight": 0.606,
+      "predicts": "If gut malabsorption can lower the uptake of several nutrients together, including iron, b12, and vitamin d: tTG-IgA with total IgA over 10.",
+      "conditionId": "iron_deficiency_cause_gi"
+    },
+    {
+      "id": "sibo",
+      "text": "Bacterial overgrowth in the small intestine can interfere with normal nutrient and vitamin absorption.",
+      "basis": "opinion",
+      "check": {
+        "op": ">",
+        "code": "breath_h2_peak",
+        "value": 20
+      },
+      "grade": "C",
+      "source": "Rezaie 2017 Am J Gastroenterol (North American Consensus)",
+      "weight": 0.065,
+      "predicts": "If bacterial overgrowth in the small intestine can interfere with normal nutrient and vitamin absorption: tTG-IgA with total IgA under 10.",
+      "conditionId": "sibo"
+    },
+    {
+      "id": "atrophic_gastritis",
+      "text": "Stomach lining changes can reduce stomach acid, impairing the absorption of iron and vitamin B12.",
+      "basis": "opinion",
+      "check": {
+        "op": ">",
+        "code": "intrinsic_factor_antibodies",
+        "value": 0.5
+      },
+      "grade": "C",
+      "source": "Grade C",
+      "weight": 0.026,
+      "predicts": "If stomach lining changes can reduce stomach acid, impairing the absorption of iron and vitamin b12: tTG-IgA with total IgA under 10.",
+      "conditionId": "atrophic_gastritis"
+    },
+    {
+      "id": "outside:1",
+      "text": "A strictly plant-based or restrictive diet can lower your intake of iron, vitamin D, and B12.",
+      "basis": "hypothesis",
+      "check": null,
+      "grade": "E",
+      "source": null,
+      "weight": 0.303,
+      "predicts": "If a strictly plant-based or restrictive diet can lower your intake of iron, vitamin d, and b12: tTG-IgA with total IgA under 10.",
+      "conditionId": null
+    }
+  ],
+  "question": {
+    "text": "Have you noticed ongoing digestive issues or recently adopted a strictly plant-based diet?",
+    "chips": [
+      {
+        "id": "c1",
+        "label": "Frequent bloating or digestive discomfort",
+        "favours": [
+          "sibo",
+          "iron_deficiency_cause_gi"
+        ]
+      },
+      {
+        "id": "c2",
+        "label": "Switched to a plant-based diet",
+        "favours": [
+          "outside:1"
+        ]
+      },
+      {
+        "id": "c3",
+        "label": "Acid reflux or stomach burning",
+        "favours": [
+          "atrophic_gastritis"
+        ]
+      },
+      {
+        "id": "c4",
+        "label": "None of these",
+        "favours": []
+      }
+    ]
+  },
+  "answer": null,
+  "test": {
+    "eur": 10,
+    "code": "ttg_iga",
+    "name": "tTG-IgA with total IgA",
+    "price": 10,
+    "currency": "EUR",
+    "estimated": true
+  },
+  "predictions": null,
+  "writtenAt": null,
+  "outcome": null,
+  "outcomeLine": null,
+  "rule": [
+    "4 markers were drawn on 2026-04-23 and all sit on the worse side of their own middle: homocysteine 9.64 against 8.61; ferritin 79.6 against 113; vitamin_d 32.7 against 40; vitamin_b12 472 against 531.",
+    "homocysteine, ferritin also passed their own rule.",
+    "A cluster reads direction, not size: one question for the group, not one per marker."
+  ],
+  "unknowns": [
+    "Ferritin's own range rests on 4 earlier draws, so it is provisional.",
+    "The rule says the level moved. It does not say why.",
+    "The shares come from the engine where it scores a cause and an even split elsewhere. They are not a diagnosis.",
+    "Explanations marked unproven are not in the knowledge graph.",
+    "The price is an estimate: no lab price is on file for your country."
+  ],
+  "firedAt": [
+    "2026-04-23"
+  ],
+  "markers": [
+    {
+      "code": "homocysteine",
+      "name": "Homocysteine",
+      "unit": "umol/L",
+      "last": 9.64,
+      "band": {
+        "median": 8.605,
+        "sd": 0.5189100000000008,
+        "n": 4,
+        "provisional": true
+      },
+      "series": [
+        {
+          "date": "2023-03-17",
+          "value": 11.23,
+          "file": "Razvan - 17.03.2023.pdf"
+        },
+        {
+          "date": "2024-05-13",
+          "value": 8.08,
+          "file": "Razvan - 13.05.2024.pdf"
+        },
+        {
+          "date": "2024-11-20",
+          "value": 8.43,
+          "file": "Razvan - 20.11.2024.pdf"
+        },
+        {
+          "date": "2025-12-09",
+          "value": 8.78,
+          "file": "Razvan - 09.12.2025.pdf"
+        },
+        {
+          "date": "2026-04-23",
+          "value": 9.64,
+          "file": "Razvan - 23.04.2026.pdf"
+        }
+      ],
+      "bandAt": [
+        {
+          "date": "2026-04-23",
+          "median": 8.605,
+          "sd": 0.5189100000000008
+        }
+      ]
+    },
+    {
+      "code": "ferritin",
+      "name": "Ferritin",
+      "unit": "ng/mL",
+      "last": 79.6,
+      "band": {
+        "median": 113.065,
+        "sd": 15.485757,
+        "n": 4,
+        "provisional": true
+      },
+      "series": [
+        {
+          "date": "2021-10-14",
+          "value": 154.48,
+          "file": "Razvan - 14.10.2021.pdf"
+        },
+        {
+          "date": "2023-03-17",
+          "value": 110.84,
+          "file": "Razvan - 17.03.2023.pdf"
+        },
+        {
+          "date": "2024-05-13",
+          "value": 115.29,
+          "file": "Razvan - 13.05.2024.pdf"
+        },
+        {
+          "date": "2025-12-09",
+          "value": 94.4,
+          "file": "Razvan - 09.12.2025.pdf"
+        },
+        {
+          "date": "2026-04-23",
+          "value": 79.6,
+          "file": "Razvan - 23.04.2026.pdf"
+        }
+      ],
+      "bandAt": [
+        {
+          "date": "2026-04-23",
+          "median": 113.065,
+          "sd": 15.485757
+        }
+      ]
+    },
+    {
+      "code": "vitamin_d",
+      "name": "Vitamin D",
+      "unit": "ng/mL",
+      "last": 32.68,
+      "band": {
+        "median": 39.965,
+        "sd": 14.959434000000002,
+        "n": 8,
+        "provisional": false
+      },
+      "series": [
+        {
+          "date": "2019-07-13",
+          "value": 23.32,
+          "file": "Razvan - 13.07.2019.pdf"
+        },
+        {
+          "date": "2021-10-14",
+          "value": 61.8,
+          "file": "Razvan - 14.10.2021.pdf"
+        },
+        {
+          "date": "2021-12-04",
+          "value": 54.1,
+          "file": "Razvan - 04.12.2021.pdf"
+        },
+        {
+          "date": "2022-10-20",
+          "value": 51.95,
+          "file": "Razvan - 20.10.2022.pdf"
+        },
+        {
+          "date": "2023-03-17",
+          "value": 42.25,
+          "file": "Razvan - 17.03.2023.pdf"
+        },
+        {
+          "date": "2024-05-13",
+          "value": 33.96,
+          "file": "Razvan - 13.05.2024.pdf"
+        },
+        {
+          "date": "2024-11-20",
+          "value": 37.68,
+          "file": "Razvan - 20.11.2024.pdf"
+        },
+        {
+          "date": "2025-12-09",
+          "value": 31.77,
+          "file": "Razvan - 09.12.2025.pdf"
+        },
+        {
+          "date": "2026-04-23",
+          "value": 32.68,
+          "file": "Razvan - 23.04.2026.pdf"
+        }
+      ],
+      "bandAt": [
+        {
+          "date": "2023-03-17",
+          "median": 53.025000000000006,
+          "sd": 7.301804999999995
+        },
+        {
+          "date": "2024-05-13",
+          "median": 51.95,
+          "sd": 14.381220000000003
+        },
+        {
+          "date": "2024-11-20",
+          "median": 47.1,
+          "sd": 14.929782
+        },
+        {
+          "date": "2025-12-09",
+          "median": 42.25,
+          "sd": 14.381220000000003
+        },
+        {
+          "date": "2026-04-23",
+          "median": 39.965,
+          "sd": 14.959434000000002
+        }
+      ]
+    },
+    {
+      "code": "vitamin_b12",
+      "name": "Vitamin B12",
+      "unit": "pg/mL",
+      "last": 472,
+      "band": {
+        "median": 531,
+        "sd": 106.74719999999999,
+        "n": 7,
+        "provisional": false
+      },
+      "series": [
+        {
+          "date": "2021-10-14",
+          "value": 183.7,
+          "file": "Razvan - 14.10.2021.pdf"
+        },
+        {
+          "date": "2021-12-04",
+          "value": 197,
+          "file": "Razvan - 04.12.2021.pdf"
+        },
+        {
+          "date": "2022-10-20",
+          "value": 531,
+          "file": "Razvan - 20.10.2022.pdf"
+        },
+        {
+          "date": "2023-03-17",
+          "value": 534.21,
+          "file": "Razvan - 17.03.2023.pdf"
+        },
+        {
+          "date": "2024-05-13",
+          "value": 898.82,
+          "file": "Razvan - 13.05.2024.pdf"
+        },
+        {
+          "date": "2024-11-20",
+          "value": 522,
+          "file": "Razvan - 20.11.2024.pdf"
+        },
+        {
+          "date": "2025-12-09",
+          "value": 603,
+          "file": "Razvan - 09.12.2025.pdf"
+        },
+        {
+          "date": "2026-04-23",
+          "value": 472,
+          "file": "Razvan - 23.04.2026.pdf"
+        }
+      ],
+      "bandAt": [
+        {
+          "date": "2024-05-13",
+          "median": 364,
+          "sd": 249.97377300000002
+        },
+        {
+          "date": "2024-11-20",
+          "median": 531,
+          "sd": 495.18839999999994
+        },
+        {
+          "date": "2025-12-09",
+          "median": 526.5,
+          "sd": 249.97377300000002
+        },
+        {
+          "date": "2026-04-23",
+          "median": 531,
+          "sd": 106.74719999999999
+        }
+      ]
+    }
+  ]
+}
+"""#,
+        "hunches": #"""
+{
+  "open": [
+    {
+      "id": "7834db86-7e45-4723-9eba-0a6978bd7ec3",
+      "kind": "cluster",
+      "stamp": "CLUSTER",
+      "system": "iron",
+      "line": "4 iron and vitamin markers moved the worse way together, led by Ferritin.",
+      "number": {
+        "value": 79.6,
+        "unit": "ng/mL"
+      },
+      "mini": {
+        "band": {
+          "median": 113.065,
+          "sd": 15.485757,
+          "n": 4,
+          "provisional": true
+        },
+        "lab": [
+          22,
+          322
+        ],
+        "last": 79.6,
+        "goal": null
+      },
+      "action": {
+        "kind": "answer",
+        "label": "Answer"
+      },
+      "state": "open"
+    },
+    {
+      "id": "51a085ab-973e-4144-9224-898b2b5efc8c",
+      "kind": "drift",
+      "stamp": "DRIFT",
+      "system": "lipids",
+      "line": "LDL Cholesterol is moving away from your goal, up 16 mg/dL a year.",
+      "number": {
+        "value": 131,
+        "unit": "mg/dL"
+      },
+      "mini": {
+        "band": {
+          "median": 108.225,
+          "sd": 14.588784000000004,
+          "n": 8,
+          "provisional": false
+        },
+        "lab": [
+          0,
+          100
+        ],
+        "last": 131,
+        "goal": [
+          70,
+          100
+        ]
+      },
+      "action": {
+        "kind": "answer",
+        "label": "Answer"
+      },
+      "state": "open"
+    },
+    {
+      "id": "a7f1a0ab-dc1e-487d-a27c-1334be9c1af0",
+      "kind": "step",
+      "stamp": "STEP",
+      "system": "blood",
+      "line": "Eosinophils (Absolute) moved to a higher level in Nov 2024.",
+      "number": {
+        "value": 0.19,
+        "unit": "K/uL"
+      },
+      "mini": {
+        "band": {
+          "median": 0.11,
+          "sd": 0.029652000000000005,
+          "n": 9,
+          "provisional": false
+        },
+        "lab": [
+          0.02,
+          0.5
+        ],
+        "last": 0.19,
+        "goal": null
+      },
+      "action": {
+        "kind": "answer",
+        "label": "Answer"
+      },
+      "state": "open"
+    },
+    {
+      "id": "8a5e66c2-8e4f-4b45-818c-1e51b04dd7df",
+      "kind": "gap",
+      "stamp": "GAP",
+      "system": "vitamins",
+      "line": "MTHFR C677T heterozygous makes Folic Acid (Vitamin B9) worth a check; last measured May 2024.",
+      "number": {
+        "value": 15.46,
+        "unit": "ng/mL"
+      },
+      "mini": {
+        "band": null,
+        "lab": [
+          3.2,
+          19.6
+        ],
+        "last": 15.46,
+        "goal": null
+      },
+      "action": {
+        "kind": "book",
+        "label": "Book the test"
+      },
+      "state": "open"
+    }
+  ],
+  "goodNews": [
+    {
+      "id": "41319740-bb31-48dc-a79e-e49e658f9054",
+      "kind": "good_news",
+      "stamp": "GOOD NEWS",
+      "system": "inflammation",
+      "line": "CRP is back in your usual range since May 2024.",
+      "number": {
+        "value": 0.64,
+        "unit": "mg/L"
+      },
+      "mini": {
+        "band": {
+          "median": 4,
+          "sd": 4.00302,
+          "n": 9,
+          "provisional": false
+        },
+        "lab": [
+          0,
+          3.3
+        ],
+        "last": 0.64,
+        "goal": null
+      },
+      "action": {
+        "kind": "got_it",
+        "label": "Got it"
+      },
+      "state": "open"
+    }
+  ],
+  "closed": []
+}
+"""#,
         "markers": #"""
 {
   "days": 365,
@@ -690,7 +1288,10 @@ enum Fixtures {
           "value": 91.42
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "abo_blood_group",
@@ -709,7 +1310,10 @@ enum Fixtures {
         "high": null
       },
       "series": [],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "granulocyte_absolute",
@@ -733,7 +1337,10 @@ enum Fixtures {
           "value": 3.4
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "atypical_lymphocytes_abs",
@@ -757,7 +1364,10 @@ enum Fixtures {
           "value": 1.62
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "basophils_abs",
@@ -785,7 +1395,15 @@ enum Fixtures {
           "value": 0.03
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": {
+        "median": 0.02,
+        "sd": 0.014825999999999999,
+        "n": 9,
+        "provisional": false
+      },
+      "z": 0.67,
+      "signal": null
     },
     {
       "code": "basophils_percentage",
@@ -809,7 +1427,10 @@ enum Fixtures {
           "value": 0.58
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "basophils_pct",
@@ -833,7 +1454,15 @@ enum Fixtures {
           "value": 0.51
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": {
+        "median": 0.35,
+        "sd": 0.22238999999999995,
+        "n": 6,
+        "provisional": false
+      },
+      "z": 0.72,
+      "signal": null
     },
     {
       "code": "corrected_reticulocyte_count",
@@ -861,7 +1490,10 @@ enum Fixtures {
           "value": 1.16
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "eosinophils_abs",
@@ -889,7 +1521,18 @@ enum Fixtures {
           "value": 0.19
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": {
+        "median": 0.11,
+        "sd": 0.029652000000000005,
+        "n": 9,
+        "provisional": false
+      },
+      "z": 2.7,
+      "signal": {
+        "kind": "step",
+        "hunchId": "a7f1a0ab-dc1e-487d-a27c-1334be9c1af0"
+      }
     },
     {
       "code": "eosinophils_percentage",
@@ -913,7 +1556,10 @@ enum Fixtures {
           "value": 3.67
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "eosinophils_pct",
@@ -937,7 +1583,15 @@ enum Fixtures {
           "value": 2.92
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": {
+        "median": 1.7,
+        "sd": 0.2965199999999999,
+        "n": 5,
+        "provisional": false
+      },
+      "z": 4.11,
+      "signal": null
     },
     {
       "code": "granulocyte_percentage",
@@ -961,7 +1615,10 @@ enum Fixtures {
           "value": 56
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "hematocrit",
@@ -989,7 +1646,15 @@ enum Fixtures {
           "value": 46.9
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": {
+        "median": 47.349999999999994,
+        "sd": 2.3674999999999997,
+        "n": 10,
+        "provisional": false
+      },
+      "z": -0.19,
+      "signal": null
     },
     {
       "code": "hemoglobin",
@@ -1017,7 +1682,15 @@ enum Fixtures {
           "value": 15.6
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": {
+        "median": 15.8,
+        "sd": 0.79,
+        "n": 10,
+        "provisional": false
+      },
+      "z": -0.25,
+      "signal": null
     },
     {
       "code": "hba",
@@ -1041,7 +1714,10 @@ enum Fixtures {
           "value": 97.1
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "hba2",
@@ -1065,7 +1741,10 @@ enum Fixtures {
           "value": 2.9
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "immature_reticulocyte_fraction",
@@ -1093,7 +1772,10 @@ enum Fixtures {
           "value": 0.062
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "lymphocytes_abs",
@@ -1117,7 +1799,15 @@ enum Fixtures {
           "value": 2.01
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": {
+        "median": 2.34,
+        "sd": 0.48184500000000025,
+        "n": 6,
+        "provisional": false
+      },
+      "z": -0.68,
+      "signal": null
     },
     {
       "code": "lymphocytes_percentage",
@@ -1141,7 +1831,10 @@ enum Fixtures {
           "value": 40.15
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "lymphocytes_pct",
@@ -1165,7 +1858,15 @@ enum Fixtures {
           "value": 34.48
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": {
+        "median": 31.25,
+        "sd": 9.896354999999998,
+        "n": 6,
+        "provisional": false
+      },
+      "z": 0.33,
+      "signal": null
     },
     {
       "code": "mch",
@@ -1193,7 +1894,15 @@ enum Fixtures {
           "value": 29.9
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": {
+        "median": 29.299999999999997,
+        "sd": 1.4649999999999999,
+        "n": 10,
+        "provisional": false
+      },
+      "z": 0.41,
+      "signal": null
     },
     {
       "code": "mchc",
@@ -1221,7 +1930,15 @@ enum Fixtures {
           "value": 33.3
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": {
+        "median": 32.8,
+        "sd": 1.64,
+        "n": 9,
+        "provisional": false
+      },
+      "z": 0.3,
+      "signal": null
     },
     {
       "code": "mcv",
@@ -1249,7 +1966,15 @@ enum Fixtures {
           "value": 89.7
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": {
+        "median": 88.1,
+        "sd": 4.405,
+        "n": 10,
+        "provisional": false
+      },
+      "z": 0.36,
+      "signal": null
     },
     {
       "code": "mean_reticulocyte_volume",
@@ -1277,7 +2002,10 @@ enum Fixtures {
           "value": 113
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "monocytes_abs",
@@ -1305,7 +2033,15 @@ enum Fixtures {
           "value": 0.43
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": {
+        "median": 0.47,
+        "sd": 0.08895600000000008,
+        "n": 9,
+        "provisional": false
+      },
+      "z": -0.45,
+      "signal": null
     },
     {
       "code": "monocytes_percentage",
@@ -1329,7 +2065,10 @@ enum Fixtures {
           "value": 7.66
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "monocytes_pct",
@@ -1357,7 +2096,15 @@ enum Fixtures {
           "value": 8.3
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": {
+        "median": 6.95,
+        "sd": 0.5930400000000005,
+        "n": 8,
+        "provisional": false
+      },
+      "z": 2.28,
+      "signal": null
     },
     {
       "code": "mpv",
@@ -1381,7 +2128,15 @@ enum Fixtures {
           "value": 10.8
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": {
+        "median": 9.3,
+        "sd": 0.4650000000000001,
+        "n": 7,
+        "provisional": false
+      },
+      "z": 3.23,
+      "signal": null
     },
     {
       "code": "neutrophils_abs",
@@ -1409,7 +2164,15 @@ enum Fixtures {
           "value": 2.45
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": {
+        "median": 3.2750000000000004,
+        "sd": 0.42254100000000017,
+        "n": 8,
+        "provisional": false
+      },
+      "z": -1.95,
+      "signal": null
     },
     {
       "code": "neutrophils_percentage",
@@ -1433,7 +2196,10 @@ enum Fixtures {
           "value": 47.3
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "neutrophils_pct",
@@ -1457,7 +2223,15 @@ enum Fixtures {
           "value": 55.23
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": {
+        "median": 51.6,
+        "sd": 2.8169399999999976,
+        "n": 5,
+        "provisional": false
+      },
+      "z": 1.29,
+      "signal": null
     },
     {
       "code": "p_lcr",
@@ -1481,7 +2255,10 @@ enum Fixtures {
           "value": 31.6
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "pdw",
@@ -1505,7 +2282,15 @@ enum Fixtures {
           "value": 16.1
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": {
+        "median": 16.05,
+        "sd": 0.8025000000000001,
+        "n": 6,
+        "provisional": false
+      },
+      "z": 0.06,
+      "signal": null
     },
     {
       "code": "platelets",
@@ -1533,7 +2318,15 @@ enum Fixtures {
           "value": 236
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": {
+        "median": 214.5,
+        "sd": 15.5673,
+        "n": 10,
+        "provisional": false
+      },
+      "z": 1.38,
+      "signal": null
     },
     {
       "code": "pdw_sd",
@@ -1557,7 +2350,10 @@ enum Fixtures {
           "value": 13.3
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "pct",
@@ -1581,7 +2377,15 @@ enum Fixtures {
           "value": 0.232
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": {
+        "median": 0.1935,
+        "sd": 0.009675000000000001,
+        "n": 6,
+        "provisional": false
+      },
+      "z": 3.98,
+      "signal": null
     },
     {
       "code": "rdw",
@@ -1609,7 +2413,15 @@ enum Fixtures {
           "value": 13.1
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": {
+        "median": 13.05,
+        "sd": 0.8895599999999995,
+        "n": 10,
+        "provisional": false
+      },
+      "z": 0.06,
+      "signal": null
     },
     {
       "code": "rdw_sd",
@@ -1633,7 +2445,10 @@ enum Fixtures {
           "value": 45.5
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "rbc",
@@ -1661,7 +2476,15 @@ enum Fixtures {
           "value": 5.23
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": {
+        "median": 5.45,
+        "sd": 0.2725,
+        "n": 10,
+        "provisional": false
+      },
+      "z": -0.81,
+      "signal": null
     },
     {
       "code": "reticulocytes",
@@ -1689,7 +2512,10 @@ enum Fixtures {
           "value": 0.06
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "reticulocytes_percent",
@@ -1717,7 +2543,10 @@ enum Fixtures {
           "value": 1.12
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "reticulocytes_high_nuclear_content",
@@ -1745,7 +2574,10 @@ enum Fixtures {
           "value": 0
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "reticulocytes_low_nuclear_content",
@@ -1773,7 +2605,10 @@ enum Fixtures {
           "value": 93.8
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "reticulocytes_medium_nuclear_content",
@@ -1801,7 +2636,10 @@ enum Fixtures {
           "value": 6.2
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "rh_blood_group",
@@ -1820,7 +2658,10 @@ enum Fixtures {
         "high": null
       },
       "series": [],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "wbc",
@@ -1848,7 +2689,15 @@ enum Fixtures {
           "value": 5.18
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": {
+        "median": 6.285,
+        "sd": 0.644931,
+        "n": 10,
+        "provisional": false
+      },
+      "z": -1.71,
+      "signal": null
     },
     {
       "code": "direct_bilirubin",
@@ -1872,7 +2721,10 @@ enum Fixtures {
           "value": 0.22
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "ggt",
@@ -1896,7 +2748,15 @@ enum Fixtures {
           "value": 15
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": {
+        "median": 16.759999999999998,
+        "sd": 3.476696999999998,
+        "n": 4,
+        "provisional": true
+      },
+      "z": -0.51,
+      "signal": null
     },
     {
       "code": "cortisol",
@@ -1920,7 +2780,15 @@ enum Fixtures {
           "value": 16.29
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": {
+        "median": 16,
+        "sd": 2.81694,
+        "n": 5,
+        "provisional": false
+      },
+      "z": 0.1,
+      "signal": null
     },
     {
       "code": "dhea_s",
@@ -1948,7 +2816,10 @@ enum Fixtures {
           "value": 240.3
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "estradiol",
@@ -1972,7 +2843,10 @@ enum Fixtures {
           "value": 29
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "free_testosterone",
@@ -1996,7 +2870,10 @@ enum Fixtures {
           "value": 8.38
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "lh",
@@ -2020,7 +2897,10 @@ enum Fixtures {
           "value": 2.63
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "prolactin",
@@ -2044,7 +2924,10 @@ enum Fixtures {
           "value": 8.51
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "shbg",
@@ -2068,7 +2951,10 @@ enum Fixtures {
           "value": 24.2
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "testosterone_total",
@@ -2092,7 +2978,10 @@ enum Fixtures {
           "value": 360.34
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "aslo",
@@ -2120,7 +3009,10 @@ enum Fixtures {
           "value": 0
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "crp",
@@ -2148,7 +3040,18 @@ enum Fixtures {
           "value": 0.64
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": {
+        "median": 4,
+        "sd": 4.00302,
+        "n": 9,
+        "provisional": false
+      },
+      "z": -0.84,
+      "signal": {
+        "kind": "good_news",
+        "hunchId": "41319740-bb31-48dc-a79e-e49e658f9054"
+      }
     },
     {
       "code": "esr",
@@ -2172,7 +3075,10 @@ enum Fixtures {
           "value": 9
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "fibrinogen",
@@ -2200,7 +3106,10 @@ enum Fixtures {
           "value": 284
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "homocysteine",
@@ -2228,7 +3137,18 @@ enum Fixtures {
           "value": 9.64
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": {
+        "median": 8.605,
+        "sd": 0.5189100000000008,
+        "n": 4,
+        "provisional": true
+      },
+      "z": 1.99,
+      "signal": {
+        "kind": "cluster",
+        "hunchId": "7834db86-7e45-4723-9eba-0a6978bd7ec3"
+      }
     },
     {
       "code": "rheumatoid_factor",
@@ -2256,7 +3176,10 @@ enum Fixtures {
           "value": 10
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "ferritin",
@@ -2284,7 +3207,18 @@ enum Fixtures {
           "value": 79.6
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": {
+        "median": 113.065,
+        "sd": 15.485757,
+        "n": 4,
+        "provisional": true
+      },
+      "z": -2.16,
+      "signal": {
+        "kind": "cluster",
+        "hunchId": "7834db86-7e45-4723-9eba-0a6978bd7ec3"
+      }
     },
     {
       "code": "iron",
@@ -2308,7 +3242,15 @@ enum Fixtures {
           "value": 109
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": {
+        "median": 112.3,
+        "sd": 13.625093999999995,
+        "n": 7,
+        "provisional": false
+      },
+      "z": -0.24,
+      "signal": null
     },
     {
       "code": "tibc",
@@ -2332,7 +3274,10 @@ enum Fixtures {
           "value": 322
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "transferrin_saturation",
@@ -2356,7 +3301,10 @@ enum Fixtures {
           "value": 26
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "apolipoprotein_a1",
@@ -2380,7 +3328,10 @@ enum Fixtures {
           "value": 169
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "apolipoprotein_b",
@@ -2404,7 +3355,10 @@ enum Fixtures {
           "value": 99
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "total_cholesterol",
@@ -2432,7 +3386,15 @@ enum Fixtures {
           "value": 217
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": {
+        "median": 177.97,
+        "sd": 15.44869199999998,
+        "n": 11,
+        "provisional": false
+      },
+      "z": 2.53,
+      "signal": null
     },
     {
       "code": "hdl_cholesterol",
@@ -2460,7 +3422,15 @@ enum Fixtures {
           "value": 50
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": {
+        "median": 51.345,
+        "sd": 10.667307,
+        "n": 8,
+        "provisional": false
+      },
+      "z": -0.13,
+      "signal": null
     },
     {
       "code": "ldl_cholesterol",
@@ -2492,6 +3462,17 @@ enum Fixtures {
         "low": 70,
         "high": 100,
         "due": "2026-12-01"
+      },
+      "personalBand": {
+        "median": 108.225,
+        "sd": 14.588784000000004,
+        "n": 8,
+        "provisional": false
+      },
+      "z": 1.56,
+      "signal": {
+        "kind": "drift",
+        "hunchId": "51a085ab-973e-4144-9224-898b2b5efc8c"
       }
     },
     {
@@ -2516,7 +3497,10 @@ enum Fixtures {
           "value": 25
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "non_hdl_cholesterol",
@@ -2544,7 +3528,15 @@ enum Fixtures {
           "value": 167
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": {
+        "median": 131.4,
+        "sd": 23.187864,
+        "n": 8,
+        "provisional": false
+      },
+      "z": 1.54,
+      "signal": null
     },
     {
       "code": "total_lipids",
@@ -2568,7 +3560,15 @@ enum Fixtures {
           "value": 654.2
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": {
+        "median": 575.25,
+        "sd": 47.07255,
+        "n": 5,
+        "provisional": false
+      },
+      "z": 1.68,
+      "signal": null
     },
     {
       "code": "triglycerides",
@@ -2596,7 +3596,15 @@ enum Fixtures {
           "value": 106
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": {
+        "median": 89,
+        "sd": 11.96458199999999,
+        "n": 9,
+        "provisional": false
+      },
+      "z": 1.42,
+      "signal": null
     },
     {
       "code": "vldl_cholesterol",
@@ -2620,7 +3628,10 @@ enum Fixtures {
           "value": 21.94
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "albumin",
@@ -2648,7 +3659,15 @@ enum Fixtures {
           "value": 4.7
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": {
+        "median": 5.15,
+        "sd": 0.2950373999999997,
+        "n": 5,
+        "provisional": false
+      },
+      "z": -1.53,
+      "signal": null
     },
     {
       "code": "alp",
@@ -2672,7 +3691,10 @@ enum Fixtures {
           "value": 85.33
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "alt",
@@ -2696,7 +3718,15 @@ enum Fixtures {
           "value": 10
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": {
+        "median": 10.5,
+        "sd": 3.1653509999999994,
+        "n": 8,
+        "provisional": false
+      },
+      "z": -0.16,
+      "signal": null
     },
     {
       "code": "amylase",
@@ -2720,7 +3750,10 @@ enum Fixtures {
           "value": 80.65
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "ast",
@@ -2744,7 +3777,15 @@ enum Fixtures {
           "value": 20
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": {
+        "median": 17.759999999999998,
+        "sd": 2.075640000000003,
+        "n": 8,
+        "provisional": false
+      },
+      "z": 1.08,
+      "signal": null
     },
     {
       "code": "total_bilirubin",
@@ -2768,7 +3809,10 @@ enum Fixtures {
           "value": 1.06
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "bun",
@@ -2792,7 +3836,15 @@ enum Fixtures {
           "value": 32.8
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": {
+        "median": 26.990000000000002,
+        "sd": 2.572310999999999,
+        "n": 4,
+        "provisional": true
+      },
+      "z": 2.26,
+      "signal": null
     },
     {
       "code": "calcium",
@@ -2816,7 +3868,15 @@ enum Fixtures {
           "value": 9.6
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": {
+        "median": 6.885000000000001,
+        "sd": 1.0674720000000009,
+        "n": 7,
+        "provisional": false
+      },
+      "z": 2.54,
+      "signal": null
     },
     {
       "code": "creatinine",
@@ -2844,7 +3904,15 @@ enum Fixtures {
           "value": 0.9
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": {
+        "median": 0.98,
+        "sd": 0.05930400000000005,
+        "n": 5,
+        "provisional": false
+      },
+      "z": -1.35,
+      "signal": null
     },
     {
       "code": "globulin",
@@ -2868,7 +3936,10 @@ enum Fixtures {
           "value": 1.3
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "glucose",
@@ -2896,7 +3967,15 @@ enum Fixtures {
           "value": 87
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": {
+        "median": 87.05,
+        "sd": 7.487129999999995,
+        "n": 11,
+        "provisional": false
+      },
+      "z": -0.01,
+      "signal": null
     },
     {
       "code": "hba1c",
@@ -2924,7 +4003,15 @@ enum Fixtures {
           "value": 5
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": {
+        "median": 5.2,
+        "sd": 0.3187589999999998,
+        "n": 8,
+        "provisional": false
+      },
+      "z": -0.63,
+      "signal": null
     },
     {
       "code": "homa_ir",
@@ -2952,7 +4039,15 @@ enum Fixtures {
           "value": 1.22
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": {
+        "median": 0.895,
+        "sd": 0.25945500000000005,
+        "n": 6,
+        "provisional": false
+      },
+      "z": 1.25,
+      "signal": null
     },
     {
       "code": "insulin",
@@ -2980,7 +4075,15 @@ enum Fixtures {
           "value": 5.7
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": {
+        "median": 4.45,
+        "sd": 1.1860799999999996,
+        "n": 6,
+        "provisional": false
+      },
+      "z": 1.05,
+      "signal": null
     },
     {
       "code": "magnesium",
@@ -3008,7 +4111,15 @@ enum Fixtures {
           "value": 2.14
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": {
+        "median": 2.22,
+        "sd": 0.11100000000000002,
+        "n": 7,
+        "provisional": false
+      },
+      "z": -0.72,
+      "signal": null
     },
     {
       "code": "potassium",
@@ -3032,7 +4143,10 @@ enum Fixtures {
           "value": 4.84
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "sodium",
@@ -3056,7 +4170,10 @@ enum Fixtures {
           "value": 145.27
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "total_protein",
@@ -3080,7 +4197,15 @@ enum Fixtures {
           "value": 7.9
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": {
+        "median": 8.2,
+        "sd": 0.41,
+        "n": 5,
+        "provisional": false
+      },
+      "z": -0.73,
+      "signal": null
     },
     {
       "code": "phosphorus",
@@ -3108,7 +4233,10 @@ enum Fixtures {
           "value": 3.94
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "uric_acid",
@@ -3136,7 +4264,15 @@ enum Fixtures {
           "value": 5.5
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": {
+        "median": 5.155,
+        "sd": 0.4744320000000004,
+        "n": 6,
+        "provisional": false
+      },
+      "z": 0.73,
+      "signal": null
     },
     {
       "code": "anti_thyroglobulin",
@@ -3160,7 +4296,10 @@ enum Fixtures {
           "value": 0.02
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "free_t3",
@@ -3188,7 +4327,10 @@ enum Fixtures {
           "value": 4.17
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "free_t4",
@@ -3216,7 +4358,10 @@ enum Fixtures {
           "value": 1.23
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "total_t3",
@@ -3244,7 +4389,10 @@ enum Fixtures {
           "value": 110
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "total_t4",
@@ -3268,7 +4416,10 @@ enum Fixtures {
           "value": 8.1
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "tpo_antibodies",
@@ -3292,7 +4443,10 @@ enum Fixtures {
           "value": 5
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "tsh",
@@ -3320,7 +4474,10 @@ enum Fixtures {
           "value": 1.123
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "urine_ascorbic_acid",
@@ -3344,7 +4501,10 @@ enum Fixtures {
           "value": 20
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "folic_acid",
@@ -3368,7 +4528,13 @@ enum Fixtures {
           "value": 15.46
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": {
+        "kind": "gap",
+        "hunchId": "8a5e66c2-8e4f-4b45-818c-1e51b04dd7df"
+      }
     },
     {
       "code": "vitamin_b12",
@@ -3396,7 +4562,18 @@ enum Fixtures {
           "value": 472
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": {
+        "median": 531,
+        "sd": 106.74719999999999,
+        "n": 7,
+        "provisional": false
+      },
+      "z": -0.55,
+      "signal": {
+        "kind": "cluster",
+        "hunchId": "7834db86-7e45-4723-9eba-0a6978bd7ec3"
+      }
     },
     {
       "code": "vitamin_d",
@@ -3424,7 +4601,18 @@ enum Fixtures {
           "value": 32.68
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": {
+        "median": 39.965,
+        "sd": 14.959434000000002,
+        "n": 8,
+        "provisional": false
+      },
+      "z": -0.49,
+      "signal": {
+        "kind": "cluster",
+        "hunchId": "7834db86-7e45-4723-9eba-0a6978bd7ec3"
+      }
     },
     {
       "code": "zinc",
@@ -3448,7 +4636,10 @@ enum Fixtures {
           "value": 1.14
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "hcv_antibodies",
@@ -3472,7 +4663,10 @@ enum Fixtures {
           "value": 0.17
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "hbs_antigen",
@@ -3496,7 +4690,10 @@ enum Fixtures {
           "value": 0.13
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "h_pylori_antigen_stool_qualitative",
@@ -3515,7 +4712,10 @@ enum Fixtures {
         "high": null
       },
       "series": [],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "hbs_ag_screening",
@@ -3534,7 +4734,10 @@ enum Fixtures {
         "high": null
       },
       "series": [],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "toxocara_igg",
@@ -3558,7 +4761,10 @@ enum Fixtures {
           "value": 2
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "toxoplasma_igg",
@@ -3586,7 +4792,10 @@ enum Fixtures {
           "value": 291.4
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "toxoplasma_igm",
@@ -3614,7 +4823,10 @@ enum Fixtures {
           "value": 0.208
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "vdrl",
@@ -3633,7 +4845,10 @@ enum Fixtures {
         "high": null
       },
       "series": [],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "specific_gravity",
@@ -3657,7 +4872,10 @@ enum Fixtures {
           "value": 1.01
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "urine_glucose",
@@ -3676,7 +4894,10 @@ enum Fixtures {
         "high": null
       },
       "series": [],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "urine_ph",
@@ -3700,7 +4921,10 @@ enum Fixtures {
           "value": 5.5
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "urine_protein",
@@ -3719,7 +4943,10 @@ enum Fixtures {
         "high": null
       },
       "series": [],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "blood_urine",
@@ -3738,7 +4965,10 @@ enum Fixtures {
         "high": null
       },
       "series": [],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "urine_epithelial_cells",
@@ -3757,7 +4987,10 @@ enum Fixtures {
         "high": null
       },
       "series": [],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "flat_epithelial_cells_urine",
@@ -3776,7 +5009,10 @@ enum Fixtures {
         "high": null
       },
       "series": [],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "urine_ketones",
@@ -3795,7 +5031,10 @@ enum Fixtures {
         "high": null
       },
       "series": [],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "red_blood_cells_urine_microscopic",
@@ -3814,7 +5053,10 @@ enum Fixtures {
         "high": null
       },
       "series": [],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "urine_strip_test",
@@ -3833,7 +5075,10 @@ enum Fixtures {
         "high": null
       },
       "series": [],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "urine_bilirubin",
@@ -3852,7 +5097,10 @@ enum Fixtures {
         "high": null
       },
       "series": [],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "urine_leukocytes",
@@ -3871,7 +5119,10 @@ enum Fixtures {
         "high": null
       },
       "series": [],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "urine_nitrites",
@@ -3890,7 +5141,10 @@ enum Fixtures {
         "high": null
       },
       "series": [],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "urine_red_blood_cells",
@@ -3909,7 +5163,10 @@ enum Fixtures {
         "high": null
       },
       "series": [],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "urine_specific_gravity",
@@ -3933,7 +5190,10 @@ enum Fixtures {
           "value": 1.025
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "urine_urobilinogen",
@@ -3957,7 +5217,10 @@ enum Fixtures {
           "value": 0.1
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     }
   ]
 }
@@ -5610,9 +6873,250 @@ enum Fixtures {
             "value": 131
           }
         ]
+      },
+      "recentSlope": {
+        "perYear": 16.03,
+        "n": 3,
+        "from": "2024-11-20",
+        "to": "2026-04-23"
+      },
+      "landing": {
+        "date": "2026-12-01",
+        "value": 137.3
       }
     }
   ],
+  "hunches": [
+    {
+      "id": "8a5e66c2-8e4f-4b45-818c-1e51b04dd7df",
+      "kind": "gap",
+      "stamp": "GAP",
+      "system": "vitamins",
+      "line": "MTHFR C677T heterozygous makes Folic Acid (Vitamin B9) worth a check; last measured May 2024.",
+      "number": {
+        "value": 15.46,
+        "unit": "ng/mL"
+      },
+      "mini": {
+        "band": null,
+        "lab": [
+          3.2,
+          19.6
+        ],
+        "last": 15.46,
+        "goal": null
+      },
+      "action": {
+        "kind": "book",
+        "label": "Book the test"
+      },
+      "state": "open"
+    },
+    {
+      "id": "7834db86-7e45-4723-9eba-0a6978bd7ec3",
+      "kind": "cluster",
+      "stamp": "CLUSTER",
+      "system": "iron",
+      "line": "4 iron and vitamin markers moved the worse way together, led by Ferritin.",
+      "number": {
+        "value": 79.6,
+        "unit": "ng/mL"
+      },
+      "mini": {
+        "band": {
+          "median": 113.065,
+          "sd": 15.485757,
+          "n": 4,
+          "provisional": true
+        },
+        "lab": [
+          22,
+          322
+        ],
+        "last": 79.6,
+        "goal": null
+      },
+      "action": {
+        "kind": "answer",
+        "label": "Answer"
+      },
+      "state": "open"
+    },
+    {
+      "id": "51a085ab-973e-4144-9224-898b2b5efc8c",
+      "kind": "drift",
+      "stamp": "DRIFT",
+      "system": "lipids",
+      "line": "LDL Cholesterol is moving away from your goal, up 16 mg/dL a year.",
+      "number": {
+        "value": 131,
+        "unit": "mg/dL"
+      },
+      "mini": {
+        "band": {
+          "median": 108.225,
+          "sd": 14.588784000000004,
+          "n": 8,
+          "provisional": false
+        },
+        "lab": [
+          0,
+          100
+        ],
+        "last": 131,
+        "goal": [
+          70,
+          100
+        ]
+      },
+      "action": {
+        "kind": "answer",
+        "label": "Answer"
+      },
+      "state": "open"
+    },
+    {
+      "id": "a7f1a0ab-dc1e-487d-a27c-1334be9c1af0",
+      "kind": "step",
+      "stamp": "STEP",
+      "system": "blood",
+      "line": "Eosinophils (Absolute) moved to a higher level in Nov 2024.",
+      "number": {
+        "value": 0.19,
+        "unit": "K/uL"
+      },
+      "mini": {
+        "band": {
+          "median": 0.11,
+          "sd": 0.029652000000000005,
+          "n": 9,
+          "provisional": false
+        },
+        "lab": [
+          0.02,
+          0.5
+        ],
+        "last": 0.19,
+        "goal": null
+      },
+      "action": {
+        "kind": "answer",
+        "label": "Answer"
+      },
+      "state": "open"
+    },
+    {
+      "id": "41319740-bb31-48dc-a79e-e49e658f9054",
+      "kind": "good_news",
+      "stamp": "GOOD NEWS",
+      "system": "inflammation",
+      "line": "CRP is back in your usual range since May 2024.",
+      "number": {
+        "value": 0.64,
+        "unit": "mg/L"
+      },
+      "mini": {
+        "band": {
+          "median": 4,
+          "sd": 4.00302,
+          "n": 9,
+          "provisional": false
+        },
+        "lab": [
+          0,
+          3.3
+        ],
+        "last": 0.64,
+        "goal": null
+      },
+      "action": {
+        "kind": "got_it",
+        "label": "Got it"
+      },
+      "state": "open"
+    }
+  ],
+  "heading": [
+    {
+      "id": "lipids",
+      "name": "Lipids",
+      "word": "away",
+      "why": "LDL Cholesterol is moving away from your goal, up 16 mg/dL a year."
+    },
+    {
+      "id": "metabolic",
+      "name": "Blood sugar and insulin",
+      "word": "holding",
+      "why": "Nothing moved on your own draws."
+    },
+    {
+      "id": "liver",
+      "name": "Liver",
+      "word": "holding",
+      "why": "Nothing moved on your own draws."
+    },
+    {
+      "id": "kidney",
+      "name": "Kidneys",
+      "word": "holding",
+      "why": "Nothing moved on your own draws."
+    },
+    {
+      "id": "thyroid",
+      "name": "Thyroid",
+      "word": "holding",
+      "why": "Nothing moved on your own draws."
+    },
+    {
+      "id": "sex_hormones",
+      "name": "Sex hormones",
+      "word": "holding",
+      "why": "Nothing moved on your own draws."
+    },
+    {
+      "id": "adrenal",
+      "name": "Stress hormones",
+      "word": "holding",
+      "why": "Nothing moved on your own draws."
+    },
+    {
+      "id": "inflammation",
+      "name": "Inflammation",
+      "word": "toward",
+      "why": "CRP is back in your usual range since May 2024."
+    },
+    {
+      "id": "blood",
+      "name": "Blood count",
+      "word": "away",
+      "why": "Eosinophils (Absolute) moved to a higher level in Nov 2024."
+    },
+    {
+      "id": "iron",
+      "name": "Iron",
+      "word": "away",
+      "why": "4 iron and vitamin markers moved the worse way together, led by Ferritin."
+    },
+    {
+      "id": "vitamins",
+      "name": "Vitamins",
+      "word": "away",
+      "why": "4 iron and vitamin markers moved the worse way together, led by Ferritin."
+    },
+    {
+      "id": "lifestyle",
+      "name": "Lifestyle",
+      "word": "unmeasured",
+      "why": "No lab draw in the last two years."
+    }
+  ],
+  "confidence": {
+    "lastDraw": "2026-04-23",
+    "days": 156,
+    "measured": 11,
+    "total": 12,
+    "open": 4
+  },
   "status": {
     "off": 6,
     "borderline": 22,

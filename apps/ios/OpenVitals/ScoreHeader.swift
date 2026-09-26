@@ -16,7 +16,7 @@ struct ScoreHeader: View {
 
     @Environment(\.islandPush) private var push
     @Environment(\.accessibilityReduceMotion) private var reduce
-    @State private var open = Fixtures.calendar
+    @State private var open = Fixtures.calendar || Fixtures.screen == "heading"
     /// The strip day the why line reads out.
     @State private var picked: String?
     /// The grid day the tooltip is on.
@@ -39,6 +39,11 @@ struct ScoreHeader: View {
                 grid
                     .padding(.top, DesignTokens.s13)
                     .transition(.opacity)
+                if let rows = model.today?.heading, !rows.isEmpty {
+                    HeadingBlock(rows: rows, confidence: model.today?.confidence)
+                        .padding(.top, DesignTokens.s13)
+                        .transition(.opacity)
+                }
             }
             why
         }
@@ -202,6 +207,54 @@ struct ScoreHeader: View {
 }
 
 // MARK: - pieces
+
+/// Phase 39 I6: where each system is heading on the person's own draws, 12
+/// small tiles, and how much the app knows ("Last draw 156 days ago · 11 of
+/// 12 systems · 4 open").
+struct HeadingBlock: View {
+    let rows: [Api.Today.HeadingRow]
+    var confidence: Api.Today.Confidence?
+
+    static func look(_ word: String) -> (arrow: String, ink: Color) {
+        switch word {
+        case "toward": return ("arrow.up.right", Hy.lime)
+        case "holding": return ("arrow.right", Hy.mist)
+        case "away": return ("arrow.down.right", Hy.rose)
+        default: return ("minus", Hy.mist.opacity(0.5))
+        }
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: DesignTokens.s5) {
+            Text("HEADING").hType(10, .semibold, Hy.mist, tracking: 0.1)
+            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 5), count: 4),
+                      spacing: 5) {
+                ForEach(rows) { row in
+                    let look = Self.look(row.word)
+                    VStack(alignment: .leading, spacing: 1) {
+                        Text(row.name).hType(10, .medium, Hy.mist)
+                            .lineLimit(1).minimumScaleFactor(0.6)
+                        HStack(spacing: 3) {
+                            Image(systemName: look.arrow).font(.system(size: 9, weight: .bold))
+                            Text(row.word).lineLimit(1).minimumScaleFactor(0.7)
+                        }
+                        .hType(11, .semibold, look.ink)
+                    }
+                    .padding(.horizontal, 7)
+                    .padding(.vertical, 5)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(RoundedRectangle(cornerRadius: 8).fill(Hy.plum2.opacity(0.6)))
+                    .accessibilityElement(children: .combine)
+                    .accessibilityHint(row.why)
+                }
+            }
+            if let confidence {
+                Text(confidence.line).hType(11, .medium, Hy.mist).lineLimit(1)
+                    .minimumScaleFactor(0.8)
+            }
+        }
+    }
+}
 
 /// The number, its size animated so 55 → 34 is a glide and not a jump.
 /// `min-width` keeps the side column still: 68 at 55, 42 at 34.

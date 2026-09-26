@@ -118,6 +118,8 @@ extension EnvironmentValues {
 @MainActor
 final class TodayModel {
     var today: Api.Today?
+    /// Phase 39: the Worth a look cases opened from Today.
+    let desk = HunchDesk()
     var plan: Api.PlanDay?
     var meals: Api.MealDay?
     var days: [Api.ScoreDays.Day] = []
@@ -1012,6 +1014,7 @@ struct HybridTodayView: View {
         .environment(\.foodActions, FoodActions(
             edit: { id in openSheet(.meal(id)) },
             targets: { openSheet(.targets) }))
+        .environment(\.hunchActions, HunchActions(open: { id in openSheet(.hunch(id)) }))
         .overlayPreferenceValue(TodayAnchors.self) { spots in
             // One reader over the whole screen: the stack and the score
             // resolve here, and Focus, the flights and the confetti draw here.
@@ -1070,6 +1073,13 @@ struct HybridTodayView: View {
             if !model.loaded { await model.load() }
             // `-OVMeal YES`: the prototype's third phone, the sheet open.
             if Fixtures.meal, let id = model.mealList.first?.id { sheet = .meal(id) }
+            // `-OVScreen hunch` / `hunch-how`: the case with the full fixture
+            // behind it (the cluster), How we know folded or open.
+            if Fixtures.screen == "hunch" || Fixtures.screen == "hunch-how",
+               let rows = model.today?.hunches,
+               let row = rows.first(where: { $0.kind == "cluster" }) ?? rows.first {
+                sheet = .hunch(row.id)
+            }
         }
         .sheet(isPresented: $settings) { SettingsView() }
     }

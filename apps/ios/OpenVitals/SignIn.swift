@@ -136,7 +136,7 @@ struct SignInView: View {
         VStack(alignment: .leading, spacing: 0) {
             Text("Sign in").textCase(.uppercase)
                 .hType(11, .medium, Hy.mist, tracking: 0.12)
-            Text("OpenVitals")
+            Text("Halewell")
                 .hType(44, .semibold, Hy.cream, tracking: -0.04)
                 .lineLimit(1)
                 .minimumScaleFactor(0.7)

@@ -1,0 +1,155 @@
+{
+  "open": [
+    {
+      "id": "7834db86-7e45-4723-9eba-0a6978bd7ec3",
+      "kind": "cluster",
+      "stamp": "CLUSTER",
+      "system": "iron",
+      "line": "4 iron and vitamin markers moved the worse way together, led by Ferritin.",
+      "number": {
+        "value": 79.6,
+        "unit": "ng/mL"
+      },
+      "mini": {
+        "band": {
+          "median": 113.065,
+          "sd": 15.485757,
+          "n": 4,
+          "provisional": true
+        },
+        "lab": [
+          22,
+          322
+        ],
+        "last": 79.6,
+        "goal": null
+      },
+      "action": {
+        "kind": "answer",
+        "label": "Answer"
+      },
+      "state": "open"
+    },
+    {
+      "id": "51a085ab-973e-4144-9224-898b2b5efc8c",
+      "kind": "drift",
+      "stamp": "DRIFT",
+      "system": "lipids",
+      "line": "LDL Cholesterol is moving away from your goal, up 16 mg/dL a year.",
+      "number": {
+        "value": 131,
+        "unit": "mg/dL"
+      },
+      "mini": {
+        "band": {
+          "median": 108.225,
+          "sd": 14.588784000000004,
+          "n": 8,
+          "provisional": false
+        },
+        "lab": [
+          0,
+          100
+        ],
+        "last": 131,
+        "goal": [
+          70,
+          100
+        ]
+      },
+      "action": {
+        "kind": "answer",
+        "label": "Answer"
+      },
+      "state": "open"
+    },
+    {
+      "id": "a7f1a0ab-dc1e-487d-a27c-1334be9c1af0",
+      "kind": "step",
+      "stamp": "STEP",
+      "system": "blood",
+      "line": "Eosinophils (Absolute) moved to a higher level in Nov 2024.",
+      "number": {
+        "value": 0.19,
+        "unit": "K/uL"
+      },
+      "mini": {
+        "band": {
+          "median": 0.11,
+          "sd": 0.029652000000000005,
+          "n": 9,
+          "provisional": false
+        },
+        "lab": [
+          0.02,
+          0.5
+        ],
+        "last": 0.19,
+        "goal": null
+      },
+      "action": {
+        "kind": "answer",
+        "label": "Answer"
+      },
+      "state": "open"
+    },
+    {
+      "id": "8a5e66c2-8e4f-4b45-818c-1e51b04dd7df",
+      "kind": "gap",
+      "stamp": "GAP",
+      "system": "vitamins",
+      "line": "MTHFR C677T heterozygous makes Folic Acid (Vitamin B9) worth a check; last measured May 2024.",
+      "number": {
+        "value": 15.46,
+        "unit": "ng/mL"
+      },
+      "mini": {
+        "band": null,
+        "lab": [
+          3.2,
+          19.6
+        ],
+        "last": 15.46,
+        "goal": null
+      },
+      "action": {
+        "kind": "book",
+        "label": "Book the test"
+      },
+      "state": "open"
+    }
+  ],
+  "goodNews": [
+    {
+      "id": "41319740-bb31-48dc-a79e-e49e658f9054",
+      "kind": "good_news",
+      "stamp": "GOOD NEWS",
+      "system": "inflammation",
+      "line": "CRP is back in your usual range since May 2024.",
+      "number": {
+        "value": 0.64,
+        "unit": "mg/L"
+      },
+      "mini": {
+        "band": {
+          "median": 4,
+          "sd": 4.00302,
+          "n": 9,
+          "provisional": false
+        },
+        "lab": [
+          0,
+          3.3
+        ],
+        "last": 0.64,
+        "goal": null
+      },
+      "action": {
+        "kind": "got_it",
+        "label": "Got it"
+      },
+      "state": "open"
+    }
+  ],
+  "closed": []
+}

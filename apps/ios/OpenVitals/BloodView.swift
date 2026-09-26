@@ -15,6 +15,15 @@ struct BloodView: View {
     @State private var query = ""
     @State private var filter = "All"
     @State private var open: Api.Markers.Marker?
+    /// Phase 39: Worth a look, the rows Blood opens on.
+    @State private var hunches: Api.HunchesBody?
+    @State private var desk = HunchDesk()
+    /// The corridor row open in place.
+    @State private var expanded: String?
+    /// The case pushed over the tab ("‹ Blood").
+    @State private var pushed: String?
+    @Namespace private var rows
+    @Environment(\.accessibilityReduceMotion) private var reduce
 
     /// Built by `init()`: reads the server. The tests hand their data in and
     /// never load.
@@ -23,14 +32,40 @@ struct BloodView: View {
     init() { live = true }
 
     /// A screen with its data already in hand: the tests.
-    init(markers: Api.Markers?, today: Api.Today?, error: String = "") {
+    init(markers: Api.Markers?, today: Api.Today?, hunches: Api.HunchesBody? = nil,
+         error: String = "", pushed: String? = nil) {
         _markers = State(initialValue: markers)
         _today = State(initialValue: today)
+        _hunches = State(initialValue: hunches)
+        _pushed = State(initialValue: pushed)
+        // The tests never reach the server: a case opens as its row.
+        let desk = HunchDesk()
+        let rows = hunches.map { $0.open + $0.goodNews + $0.closed } ?? []
+        desk.fetch = { id in
+            guard let row = rows.first(where: { $0.id == id }) else {
+                throw Api.Failure(status: 404, message: "no such hunch")
+            }
+            return Api.HunchCase(row: row)
+        }
+        _desk = State(initialValue: desk)
         _error = State(initialValue: error)
         live = false
     }
 
     var body: some View {
+        ZStack {
+            screen
+            if let pushed {
+                casePage(pushed)
+                    .transition(reduce ? .opacity : .move(edge: .trailing))
+                    .zIndex(1)
+            }
+        }
+        .environment(\.hunchActions, HunchActions(open: push))
+        .preference(key: TabBarHiddenKey.self, value: pushed != nil)
+    }
+
+    private var screen: some View {
         HyScreen(refresh: live ? { await load() } : nil) {
             HyHeader(title: "Blood", value: value, word: Score.word(layer),
                      line: markers.map(Self.line))
@@ -80,6 +115,12 @@ struct BloodView: View {
 
     @ViewBuilder
     private func shelves(_ markers: Api.Markers) -> some View {
+        if let glance = hunches?.glance, !glance.isEmpty {
+            ShelfTitle("Worth a look", "\(hunches?.open.count ?? 0) open · "
+                       + "\(hunches?.goodNews.count ?? 0) good news")
+            WorthALook(rows: glance, desk: desk)
+                .padding(.bottom, DesignTokens.s21)
+        }
         let look = Self.needsALook(markers)
         if !look.isEmpty {
             ShelfTitle("Needs a look", "off and borderline")
@@ -103,10 +144,10 @@ struct BloodView: View {
         search
         chips(markers)
         list(markers)
-        Text("Every row is a lab reading with the date it was drawn and the band "
-             + "it is judged against. A marker with no band is listed under All "
-             + "and judged by nothing, because a number nothing can judge is not "
-             + "a state.")
+        Text("Every row is a lab reading on your own corridor: the band your "
+             + "earlier draws make, with the lab's range as thin lines behind it. "
+             + "Rows outside your band come first, then the ones a hunch is "
+             + "about. Tap a row for its chart and the marker's details.")
             .hType(11, .regular, Hy.ink3)
             .fixedSize(horizontal: false, vertical: true)
             .padding(.horizontal, DesignTokens.s21)
@@ -194,28 +235,62 @@ struct BloodView: View {
                 .hType(13, .regular, Hy.ink2)
                 .hyCard()
         } else {
-            // 132 markers: a system's card is built as it comes into view.
-            LazyVStack(alignment: .leading, spacing: DesignTokens.s13) {
-                ForEach(Self.grouped(rows), id: \.name) { group in
-                    VStack(alignment: .leading, spacing: 0) {
-                        CardLabel(text: "\(group.name) · "
-                                  + "\(Design.number(group.rows.count)) of "
-                                  + Design.number(total(group.name, markers)),
-                                  glyph: Self.glyph(group.name))
-                            .padding(.bottom, DesignTokens.s5)
-                        ForEach(Array(group.rows.enumerated()), id: \.element.id) { j, marker in
-                            if j > 0 { Hy.line.frame(height: 1) }
-                            Button { open = marker } label: { MarkerLine(marker: marker) }
-                                .buttonStyle(.plain)
-                        }
-                    }
-                    .hyCard()
+            // 132 markers: a row is built as it comes into view.
+            LazyVStack(alignment: .leading, spacing: DesignTokens.s5) {
+                ForEach(Self.corridorOrder(rows)) { marker in
+                    CorridorRow(marker: marker, open: expanded == marker.code,
+                                hunch: hunchRow(marker), space: self.rows,
+                                toggle: { toggle(marker.code) },
+                                details: { open = marker },
+                                how: { id in push(id) })
                 }
             }
+            .padding(.horizontal, DesignTokens.s21)
         }
     }
 
+    private func hunchRow(_ marker: Api.Markers.Marker) -> Api.HunchRow? {
+        guard let id = marker.signal?.hunchId, let h = hunches else { return nil }
+        return (h.open + h.goodNews + h.closed).first { $0.id == id }
+    }
+
+    private func toggle(_ code: String) {
+        Motion.animate(Curve.spring.animation(0.56), reduce: reduce) {
+            expanded = expanded == code ? nil : code
+        }
+    }
+
+    private func push(_ id: String) {
+        Motion.animate(Curve.spring.animation(0.52), reduce: reduce) { pushed = id }
+    }
+
+    /// The case as a page over the tab, entered from the trailing edge.
+    private func casePage(_ id: String) -> some View {
+        ScrollView {
+            HunchCaseView(id: id, row: hunches.flatMap { h in
+                              (h.open + h.goodNews + h.closed).first { $0.id == id } },
+                          desk: desk,
+                          back: {
+                              Motion.animate(Curve.spring.animation(0.52), reduce: reduce) { pushed = nil }
+                          })
+                .padding(.horizontal, DesignTokens.s21)
+                .padding(.top, DesignTokens.s8)
+                .padding(.bottom, DesignTokens.s34)
+        }
+        .scrollIndicators(.hidden)
+        .background { ZStack { Hy.paper; GrainTile() }.ignoresSafeArea() }
+    }
+
     // MARK: - the arithmetic
+
+    /// Phase 39 (55): outside the person's own band first (|z| ≥ 2.5), then
+    /// the markers a hunch is about, then the rest, each in the server's order.
+    static func corridorOrder(_ rows: [Api.Markers.Marker]) -> [Api.Markers.Marker] {
+        let outside = { (m: Api.Markers.Marker) in abs(m.z ?? 0) >= 2.5 }
+        return rows.filter(outside)
+            + rows.filter { !outside($0) && $0.signal != nil }
+            + rows.filter { !outside($0) && $0.signal == nil }
+    }
 
     /// Off first, then borderline, each in the server's order.
     static func needsALook(_ markers: Api.Markers) -> [Api.Markers.Marker] {
@@ -269,7 +344,9 @@ struct BloodView: View {
     private func load() async {
         if markers == nil { markers = Api.cachedMarkers() }
         if today == nil { today = Api.cachedToday() }
+        if hunches == nil { hunches = Api.cachedHunches() }
         async let asked = try? await Api.today()
+        async let seen = try? await Api.hunches()
         do {
             let got = try await Api.markers()
             markers = got
@@ -285,6 +362,7 @@ struct BloodView: View {
         }
         // Today failing leaves the header on "—"; the list still draws.
         if let got = await asked { today = got }
+        if let got = await seen { hunches = got }
     }
 }
 
@@ -394,6 +472,133 @@ struct MarkerLine: View {
         .contentShape(Rectangle())
         .accessibilityElement(children: .combine)
         .accessibilityValue(marker.word)
+    }
+}
+
+/// Phase 39 (55): one marker as a slim corridor row. The name and unit, the
+/// glance corridor, the value and where it sits on the person's own band.
+/// A tap opens it in place into the chart, the hunch it belongs to, and the
+/// way to the marker's own sheet.
+struct CorridorRow: View {
+    let marker: Api.Markers.Marker
+    let open: Bool
+    var hunch: Api.HunchRow?
+    let space: Namespace.ID
+    let toggle: () -> Void
+    let details: () -> Void
+    let how: (String) -> Void
+
+    /// "above your band", "below your band", "in your band", "too few draws".
+    static func status(_ m: Api.Markers.Marker) -> (word: String, ink: Color) {
+        guard m.value != nil else { return ("never measured", Hy.ink3) }
+        guard m.personalBand != nil, let z = m.z else { return ("too few draws", Hy.ink3) }
+        if z >= 2.5 { return ("above your band", Hy.blood) }
+        if z <= -2.5 { return ("below your band", Hy.blood) }
+        return ("in your band", Hy.green)
+    }
+
+    private var ink: Color {
+        marker.signal.map { HunchInk.of($0.kind) } ?? Self.status(marker).ink
+    }
+
+    private var lab: [Double?] { [marker.band.low, marker.band.high] }
+    private var goal: [Double?]? { marker.goal.map { [$0.low, $0.high] } }
+
+    var body: some View {
+        let status = Self.status(marker)
+        VStack(alignment: .leading, spacing: DesignTokens.s8) {
+            Button(action: toggle) {
+                HStack(spacing: DesignTokens.s8) {
+                    VStack(alignment: .leading, spacing: 2) {
+                        (Text(marker.name).font(.grotesk(14, .semibold)).foregroundColor(Hy.ink)
+                         + Text(marker.unit.map { "  \($0)" } ?? "").font(.grotesk(10, .medium))
+                            .foregroundColor(Hy.ink3))
+                            .lineLimit(1)
+                        Text(status.word).hType(11, .medium, status.ink)
+                    }
+                    Spacer(minLength: DesignTokens.s5)
+                    // The glance grows into the chart below (matched geometry);
+                    // its slot stays so the value does not jump.
+                    if open || marker.series.count < 2 {
+                        MiniCorridor(band: marker.personalBand, lab: lab, goal: goal,
+                                     last: marker.value, ink: ink)
+                            .opacity(open ? 0 : 1)
+                    } else {
+                        MiniCorridor(band: marker.personalBand, lab: lab, goal: goal,
+                                     last: marker.value,
+                                     previous: marker.series[marker.series.count - 2].value,
+                                     ink: ink)
+                            .matchedGeometryEffect(id: "mini-\(marker.code)", in: space)
+                    }
+                    Text(marker.value.map(Design.digits) ?? "—")
+                        .hType(15, .semibold, Hy.ink)
+                        .lineLimit(1)
+                        .fixedSize()
+                        .frame(minWidth: 40, alignment: .trailing)
+                }
+                .frame(minHeight: 44)
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .accessibilityElement(children: .combine)
+            .accessibilityValue(status.word)
+            .accessibilityHint(open ? "Closes the chart" : "Opens the chart")
+
+            if open { detail.transition(.opacity.combined(with: .scale(scale: 0.98, anchor: .top))) }
+        }
+        .padding(.horizontal, DesignTokens.s13)
+        .padding(.vertical, 6)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .grained(Hy.card, radius: 13, shadow: open ? 0.3 : 0.12)
+    }
+
+    @ViewBuilder
+    private var detail: some View {
+        if marker.series.count > 1 {
+            CorridorChart(draws: marker.series.map { CorridorDraw(date: $0.date, value: $0.value) },
+                          band: marker.personalBand, lab: lab, goal: goal, ink: ink)
+                .frame(height: 150)
+                .matchedGeometryEffect(id: "mini-\(marker.code)", in: space)
+        } else {
+            Text("One draw so far: a corridor needs more.").hType(12, .regular, Hy.ink2)
+        }
+        if let p = marker.personalBand {
+            Text("Your band \(Design.digits(p.low))–\(Design.digits(p.high)) from "
+                 + Design.plural(p.n, "draw", "draws") + (p.provisional ? ", provisional" : "")
+                 + " · lab \(Design.band(low: marker.band.low, high: marker.band.high, unit: marker.unit ?? ""))")
+                .hType(11, .regular, Hy.ink2)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        if let hunch {
+            VStack(alignment: .leading, spacing: 4) {
+                Text(hunch.stamp).hType(10, .bold, HunchInk.of(hunch.kind), tracking: 0.1)
+                Text(hunch.line).hType(13, .semibold, Hy.ink)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            .padding(DesignTokens.s8)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(RoundedRectangle(cornerRadius: 10).fill(Hy.paper2))
+        }
+        HStack(spacing: DesignTokens.s8) {
+            Button(action: details) { link("Marker details") }
+                .buttonStyle(Pressed(scale: 0.94))
+            if let id = marker.signal?.hunchId {
+                Button { how(id) } label: { link("How we know") }
+                    .buttonStyle(Pressed(scale: 0.94))
+            }
+        }
+        .padding(.bottom, DesignTokens.s5)
+    }
+
+    private func link(_ text: String) -> some View {
+        HStack(spacing: 3) {
+            Text(text)
+            Image(systemName: "chevron.right").font(.system(size: 10, weight: .semibold))
+        }
+        .hType(12, .semibold, Hy.ink)
+        .padding(.horizontal, DesignTokens.s13)
+        .frame(height: 30)
+        .background(Capsule().fill(Hy.paper2))
     }
 }
 
