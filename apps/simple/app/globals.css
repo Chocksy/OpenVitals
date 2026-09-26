@@ -20,60 +20,79 @@
    marks is 3.0.
    ══════════════════════════════════════════════════════════════════ */
 
+/* ══ Phase 40a: the Hybrid look ══════════════════════════════════════════
+   The tokens below are the Hybrid block of `docs/mockups/v4/system.css`
+   (phase 37, copied as it stands; system.css itself is not edited here,
+   because the iOS build pins its hash), plus the dark column this phase
+   draws for the web: `docs/plans/2026-09-26-phase40-web-hybrid-spec.md`,
+   "Conflicts settled". The design is `ios-variations/53-web.html`.
+
+   The v4 names the components already read (--canvas, --surface, --ink,
+   --ok …) stay, and point at the Hybrid values, so no component broke when
+   the look changed. `--canvas` is the paper, `--surface` is the card.
+
+   Contrast, WCAG 2.1, sRGB. 53 draws its third ink at #a08fa0, which reads
+   2.5:1 on the paper and fails AA for text, so the app's --ink-3 is the same
+   hue darkened to 4.5:1 (#776379). The same goes for the status words:
+   53's --green / --amber / --rose stay as --h-* for marks, dots and soft
+   fills; the words use --ok / --warn / --bad, the same hues at AA.
+   ══════════════════════════════════════════════════════════════════════ */
+
 @theme {
-  --font-display: var(--font-geist-sans), "Geist Sans", system-ui, sans-serif;
-  --font-body: var(--font-geist-sans), "Geist Sans", system-ui, sans-serif;
+  /* Space Grotesk is display and body (`app/layout.tsx`, next/font/google);
+     numbers keep their own voice (`--font-num`, the same face with tabular
+     figures). Geist Mono stays for codes, rsids and file names only. */
+  --font-display: var(--font-grotesk), "Space Grotesk", system-ui, sans-serif;
+  --font-body: var(--font-grotesk), "Space Grotesk", system-ui, sans-serif;
   --font-mono:
     var(--font-geist-mono), "Geist Mono", "SF Mono", Menlo, monospace;
 
-  /* ── the canvas (August) ─────────────────────────────────────────────
-     --canvas      #fdf5ec  the page.  --ink on it: 12.58:1
-     --canvas-deep #f4e9dc  the well behind a control. Carries no small text.
-     --surface     58 % white over the cream → #fefbf7.  --ink on it: 13.16:1
-     --surface-hi  78 % white over the cream → #fffdfb.  --ink on it: 13.38:1 */
-  --canvas: #fdf5ec;
-  --canvas-deep: #f4e9dc;
-  --surface: rgba(255, 255, 255, 0.58);
-  --surface-hi: rgba(255, 255, 255, 0.78);
+  /* ── the canvas: the paper ───────────────────────────────────────────
+     --canvas      = --paper   #f3ead8  the page.  --ink on it 14.3:1
+     --canvas-deep = --paper-2 #ebdfc7  the well behind a control
+     --surface     = --card    #fffdf8  every card.  --ink on it 17.0:1 */
+  --canvas: var(--paper);
+  --canvas-deep: var(--paper-2);
+  --surface: var(--card);
+  --surface-hi: var(--card);
   /* the flat twin of --surface, for anything that must not blur */
-  --surface-flat: #fefbf7;
-  --track: #ece0d1;
-  --hair: rgba(61, 42, 28, 0.12);
+  --surface-flat: var(--card);
+  --track: var(--paper-2);
+  --hair: rgba(43, 16, 51, 0.12);
 
-  /* ── the ink ladder ─────────────────────────────────────────────────
-     --ink   #3d2a1c  on canvas 12.58:1 · on surface 13.16:1   AAA
-     --ink-2 #6d5744  on canvas  6.28:1 · on surface  6.57:1   AA
-     --ink-3 #7f6a59  on canvas  4.73:1 · on surface  4.95:1   AA */
-  --ink: #3d2a1c;
-  --ink-2: #6d5744;
-  --ink-3: #7f6a59;
+  /* ── the ink ladder, in plum ────────────────────────────────────────
+     --ink   #2b1033  on paper 14.3:1 · on card 17.0:1   AAA
+     --ink-2 #6f5a72  on paper  5.1:1 · on card  6.1:1   AA
+     --ink-3 #776379  on paper  4.5:1 · on card  5.4:1   AA */
+  --ink: #2b1033;
+  --ink-2: #6f5a72;
+  --ink-3: #776379;
 
-  /* ── the spectrum (Kite's green and coral, August's amber) ───────────
-     Never a surface, never a filled badge. Text, dots, ticks, the ▲.
-     --ok   #2b7f3a 4.63:1 · --warn #9a6413 4.62:1 · --bad #c32b45 5.18:1
-     --bad-fill #e74d64 3.45:1 — a glyph or a dot only, never a word. */
-  --ok: #2b7f3a;
-  --warn: #9a6413;
-  --bad: #c32b45;
-  --bad-fill: #e74d64;
-  --none: #7f6a59;
+  /* ── the spectrum, as words ─────────────────────────────────────────
+     53's green, amber and rose, darkened to AA on the paper for text.
+     --ok #1c7646 4.6:1 · --warn #8f5d0b 4.6:1 · --bad #bf304c 4.6:1
+     --bad-fill is 53's rose: a glyph or a dot only, never a word. */
+  --ok: #1c7646;
+  --warn: #8f5d0b;
+  --bad: #bf304c;
+  --bad-fill: #d2415b;
+  --none: #776379;
 
-  /* ── the one dark surface (Kite's navy) ─────────────────────────────
-     --navy #0f2140 against the cream 14.82:1 · --navy-ink on it 14.31:1
-     the spectrum lightened so it survives the navy:
-     --navy-bad 5.45:1 · --navy-warn 7.39:1 · --navy-ok 7.83:1 */
-  --navy: #0f2140;
-  --navy-ink: #f4f2ed;
-  --navy-ink-2: rgba(244, 242, 237, 0.72);
-  --navy-bad: #e3767c;
-  --navy-warn: #e0a63c;
-  --navy-ok: #8fc46a;
-  --sky: #d9e7f7;
+  /* ── the one dark surface: plum (was Kite's navy) ───────────────────
+     The v4 names stay so the status card and the sheets' scrim keep
+     working; they are the header's plum and cream now. */
+  --navy: #2b1033;
+  --navy-ink: #f6eddc;
+  --navy-ink-2: rgba(246, 237, 220, 0.72);
+  --navy-bad: #ea6a8d;
+  --navy-warn: #e8b04a;
+  --navy-ok: #8fd4a8;
+  --sky: #e8def0;
 
   /* ── the one accent, on the one control that adds data ──────────────
-     --lime #d7f24b is never text and never state. --lime-ink on it 12.77:1 */
-  --lime: #d7f24b;
-  --lime-ink: #1d2405;
+     --lime #d6f34a is never text and never state. --lime-ink on it 12.4:1 */
+  --lime: #d6f34a;
+  --lime-ink: #2b1033;
 
   /* ── Fibonacci space, four radii, five type sizes ───────────────── */
   --s3: 3px;
@@ -110,39 +129,109 @@
 
 :root {
   --top-nav-height: 3.5rem;
+
+  /* Hybrid (phase 37), copied from `docs/mockups/v4/system.css`. The names
+     and values are the iOS app's own (`DesignTokens.swift`). */
+  --plum-0: #1e0a24;
+  --plum: #2b1033;
+  --plum-2: #3d1947;
+  --plum-3: #5a2d66;
+  --mist: #cdb8d2;
+  --paper: #f3ead8;
+  --paper-2: #ebdfc7;
+  --paper-3: #dccbad;
+  --card: #fffdf8;
+  --cream: #f6eddc;
+  --life: #e4722f;
+  --life-lt: #f59257;
+  --blood: #c23a5e;
+  --blood-lt: #ea6a8d;
+  --gene: #6c4aa6;
+  --gene-lt: #a98ae6;
+  --h-green: #23995d;
+  --h-green-soft: #d9efdf;
+  --h-amber: #c98512;
+  --h-amber-soft: #f6e3bf;
+  --h-rose: #d2415b;
+  --h-rose-soft: #f8dbe0;
+  --h-lime: #d6f34a;
+  --ease-spring: cubic-bezier(0.3, 1.35, 0.5, 1);
+  --ease-ispring: cubic-bezier(0.34, 1.4, 0.64, 1);
+  --ease-fly: cubic-bezier(0.5, 0, 0.75, 0);
+
+  /* 53's own spellings: the `-l` light steps, the row line, the mark ink */
+  --life-l: var(--life-lt);
+  --blood-l: var(--blood-lt);
+  --gene-l: var(--gene-lt);
+  --line: #eadfcb;
+  /* 53's --ink-3, for marks and rules only (2.5:1 on the paper) */
+  --mark-3: #a08fa0;
+
+  /* the number voice: the body face with tabular figures */
+  --font-num: var(--font-body);
+
+  /* a card sits on the paper with a lit top edge and a soft plum shadow */
+  --hy-lift:
+    0 1px 0 rgba(255, 255, 255, 0.9) inset,
+    0 13px 21px -13px rgba(43, 16, 51, 0.3);
+  --hy-lift-hover:
+    0 1px 0 rgba(255, 255, 255, 0.9) inset,
+    0 21px 34px -21px rgba(43, 16, 51, 0.45);
+  --grain: url("/grain.png");
 }
 
-/* Dark. `html[data-theme="dark"]` is resolved by the inline script in
-   `app/layout.tsx` (the stored choice, else the OS preference).
-   --ink   #f1efea on --canvas 16.41:1 · on --surface 15.10:1   AAA
-   --ink-2 #b4aea4 on --canvas  8.56:1 · on --surface  7.87:1   AA
-   --ink-3 #979083 on --canvas  5.96:1 · on --surface 5.48:1 · on
-      --surface-hi 5.01:1 — the phase-28c #877f74 read 4.02 there and failed
-      AA at 13 px, so phase 29 lightened it. This is that correction. */
+/* Dark: the plum-night column (phase 40, "Conflicts settled"). Hybrid has
+   no dark twin, so the web draws one here and only here.
+   canvas --plum-0 · cards --plum-2 · ink --cream · hairlines --plum-3.
+   --ink   #f6eddc on --plum-0 16.2:1 · on --plum-2 11.9:1   AAA
+   --ink-2 #cdb8d2 on --plum-0 10.4:1 · on --plum-2  7.6:1   AA
+   --ink-3 #b39bb9 on --plum-0  7.7:1 · on --plum-2  5.6:1   AA */
 :root[data-theme="dark"] {
   color-scheme: dark;
-  --canvas: #121110;
-  --canvas-deep: #0c0b0a;
-  --surface: #1c1a18;
-  --surface-hi: #24221f;
-  --surface-flat: #1c1a18;
-  --track: #2c2a26;
-  --ink: #f1efea;
-  --ink-2: #b4aea4;
-  --ink-3: #979083;
-  --hair: rgba(241, 239, 234, 0.11);
-  --ok: #8fc46a;
-  --warn: #e0a63c;
-  --bad: #e3767c;
-  --bad-fill: #e3767c;
-  --none: #979083;
-  --sky: #1b2b44;
+  --paper: #1e0a24;
+  --paper-2: #2a1031;
+  --paper-3: #5a2d66;
+  --card: #3d1947;
+  --canvas-deep: #2a1031;
+  --track: #2a1031;
+  --ink: #f6eddc;
+  --ink-2: #cdb8d2;
+  --ink-3: #b39bb9;
+  --hair: #5a2d66;
+  --line: #5a2d66;
+  --mark-3: #8c6f93;
+  --ok: #8fd4a8;
+  --warn: #e8b04a;
+  --bad: #f28aa3;
+  --bad-fill: #ea6a8d;
+  --none: #b39bb9;
+  --sky: #4d1d58;
+  --navy: #4d1d58;
+  /* the life, blood and gene family, lightened to read on plum */
+  --life: #f59257;
+  --blood: #ea6a8d;
+  --gene: #a98ae6;
+  --h-green: #5cc98c;
+  --h-green-soft: rgba(35, 153, 93, 0.26);
+  --h-amber: #e8b04a;
+  --h-amber-soft: rgba(201, 133, 18, 0.26);
+  --h-rose: #ea6a8d;
+  --h-rose-soft: rgba(234, 106, 141, 0.24);
+  --hy-lift:
+    0 1px 0 rgba(255, 255, 255, 0.05) inset,
+    0 13px 21px -13px rgba(0, 0, 0, 0.6);
+  --hy-lift-hover:
+    0 1px 0 rgba(255, 255, 255, 0.05) inset,
+    0 21px 34px -21px rgba(0, 0, 0, 0.7);
 }
 
 @layer base {
   /* Hidden glossary tips are laid out off the right edge; they must never
      turn into a sideways scroll on a phone. clip keeps sticky bars working. */
-  html, body { overflow-x: clip; }
+  html,
+  body {
+    overflow-x: clip;
+  }
 
   * {
     border-color: var(--hair);
@@ -153,12 +242,23 @@
     -moz-osx-font-smoothing: grayscale;
   }
 
+  /* Phase 40a: the paper, with its grain. The grain is one static PNG
+     (`scripts/grain.ts`, mulberry32(7) as in 53), tiled, so nothing about
+     it moves at runtime. Tabular figures everywhere, as in 53. */
   body {
     font-family: var(--font-body);
     background-color: var(--canvas);
+    background-image: var(--grain);
+    background-size: 128px 128px;
     color: var(--ink);
     font-size: var(--type-md);
     line-height: 1.5;
+    font-feature-settings: "tnum";
+  }
+  /* on the plum night a light grain reads as static; multiplied it stays a
+     texture */
+  :root[data-theme="dark"] body {
+    background-blend-mode: multiply;
   }
 
   .tabular-nums {
@@ -239,18 +339,19 @@ select:focus-visible {
   }
   .topbar .brand {
     font-size: var(--type-md);
+    font-weight: 600;
     letter-spacing: -0.02em;
     margin-right: var(--s8);
-    color: var(--ink);
+    color: var(--cream);
     text-decoration: none;
   }
   .topbar .grow {
     flex: 1;
   }
+  /* the five destinations, on the plum: mist, cream when on (53 .nav) */
   .pills {
     display: flex;
-    gap: var(--s5);
-    background: var(--surface);
+    gap: var(--s3);
     border-radius: var(--r-pill);
     padding: var(--s3);
   }
@@ -261,19 +362,18 @@ select:focus-visible {
     padding: var(--s5) var(--s13);
     border-radius: var(--r-pill);
     font-size: var(--type-sm);
-    color: var(--ink-2);
+    color: var(--mist);
     text-decoration: none;
     transition:
       background-color var(--dur-quick) var(--ease),
       color var(--dur-quick) var(--ease);
   }
   .pills a:hover {
-    color: var(--ink);
+    color: var(--cream);
   }
   .pills a.on {
-    background: var(--surface-hi);
-    color: var(--ink);
-    box-shadow: 0 1px 2px rgba(23, 22, 20, 0.08);
+    background: rgba(246, 237, 220, 0.1);
+    color: var(--cream);
   }
   /* the lime add. The one control that puts data in, and there is one of it. */
   .plusbtn {
@@ -291,6 +391,16 @@ select:focus-visible {
   .plusbtn:hover {
     background: #c9e63c;
   }
+  /* 53's "+ Add": the same lime, as a worded pill in the header */
+  .plusbtn.wide {
+    width: auto;
+    gap: var(--s3);
+    align-items: center;
+    padding: 0 var(--s13) 0 var(--s8);
+    font-family: inherit;
+    font-size: var(--type-sm);
+    font-weight: 600;
+  }
   .avmenu {
     position: relative;
   }
@@ -302,9 +412,11 @@ select:focus-visible {
     width: var(--s34);
     height: var(--s34);
     border-radius: var(--r-pill);
-    background: var(--surface-hi);
-    color: var(--ink-2);
+    background: var(--plum-2);
+    border: 1px solid var(--plum-3);
+    color: var(--cream);
     font-size: var(--type-sm);
+    font-weight: 600;
   }
   .avmenu > summary::-webkit-details-marker {
     display: none;
@@ -318,7 +430,7 @@ select:focus-visible {
     border-radius: var(--r-inner);
     background: var(--surface-flat);
     box-shadow:
-      0 21px 55px -21px rgba(23, 22, 20, 0.45),
+      0 21px 55px -21px rgba(43, 16, 51, 0.45),
       inset 0 0 0 1px var(--hair);
     padding: var(--s8);
   }
@@ -341,7 +453,7 @@ select:focus-visible {
     text-overflow: ellipsis;
   }
   .avpanel .grp {
-    font-family: var(--font-mono);
+    font-family: var(--font-num);
     font-size: var(--type-xs);
     letter-spacing: 0.1em;
     text-transform: uppercase;
@@ -371,7 +483,7 @@ select:focus-visible {
   }
   .avpanel > a .cnt {
     margin-left: auto;
-    font-family: var(--font-mono);
+    font-family: var(--font-num);
     font-size: var(--type-xs);
     color: var(--warn);
   }
@@ -384,10 +496,37 @@ select:focus-visible {
     color: var(--ink-3);
   }
 
-  /* the header and the phone bar sit on the canvas at 85 % with a blur */
+  /* Phase 40a. The header is 53's plum bar: a radial lift at the left, the
+     grain over it, a 34 px rounded foot. On Home it runs flush into the
+     plum hero (`data-flush`). The phone bar is a card on the paper. The
+     plum stays plum in dark mode (--plum is not in the dark column). */
   .nav-bar {
-    background: color-mix(in srgb, var(--canvas) 85%, transparent);
-    backdrop-filter: blur(13px);
+    background: var(--card);
+    box-shadow: var(--hy-lift);
+  }
+  .hy-head {
+    background:
+      var(--grain),
+      radial-gradient(60% 120% at 12% 0%, #4d1d58 0%, transparent 70%),
+      var(--plum);
+    background-size:
+      128px 128px,
+      auto,
+      auto;
+    background-blend-mode: multiply, normal, normal;
+    color: var(--cream);
+    border-radius: 0 0 var(--r-hero) var(--r-hero);
+    box-shadow: 0 13px 21px -13px rgba(43, 16, 51, 0.5);
+  }
+  .hy-head[data-flush] {
+    border-radius: 0;
+    box-shadow: none;
+  }
+  .hy-head .topbar {
+    border-bottom: 1px solid rgba(205, 184, 210, 0.14);
+  }
+  .hy-head:not([data-flush]) .topbar {
+    border-bottom: 0;
   }
   .tabbar {
     display: grid;
@@ -396,7 +535,7 @@ select:focus-visible {
     padding: var(--s8) var(--s5);
     padding-bottom: max(var(--s8), env(safe-area-inset-bottom));
     border-top: 1px solid var(--hair);
-    box-shadow: 0 -1px 21px -13px rgba(23, 22, 20, 0.5);
+    box-shadow: 0 -1px 21px -13px rgba(43, 16, 51, 0.5);
   }
   .tabbar a {
     display: flex;
@@ -408,7 +547,11 @@ select:focus-visible {
     font-size: var(--type-xs);
   }
   .tabbar a.on {
-    color: var(--ink);
+    color: var(--plum);
+    font-weight: 600;
+  }
+  :root[data-theme="dark"] .tabbar a.on {
+    color: var(--cream);
   }
   .tabbar .plusslot {
     display: grid;
@@ -426,12 +569,7 @@ select:focus-visible {
     cursor: pointer;
     box-shadow: 0 5px 13px -5px rgba(120, 140, 20, 0.7);
   }
-  @media (prefers-reduced-transparency: reduce) {
-    .nav-bar {
-      background: var(--canvas);
-      backdrop-filter: none;
-    }
-  }
+  /* the bars are solid now; nothing to take away for reduced transparency */
 
   /* ══ 04 · BUTTONS — three jobs, one family ═══════════════════════════ */
   .b {
@@ -463,12 +601,14 @@ select:focus-visible {
     height: 16px;
     flex: none;
   }
+  /* 53 `.btn`: plum with cream, 600. In dark the ink is cream, so it flips */
   .b-ink {
     background: var(--ink);
-    color: var(--canvas);
+    color: var(--card);
+    font-weight: 600;
   }
   .b-ink:hover:not(:disabled) {
-    background: var(--ink-2);
+    background: color-mix(in srgb, var(--ink) 86%, var(--canvas));
   }
   .b-quiet {
     background: transparent;
@@ -477,7 +617,7 @@ select:focus-visible {
   }
   .b-quiet:hover:not(:disabled) {
     box-shadow: inset 0 0 0 1px var(--ink-3);
-    background: var(--surface-hi);
+    background: var(--card);
   }
   .b-text {
     background: transparent;
@@ -542,7 +682,7 @@ select:focus-visible {
     min-width: 0;
   }
   .field > label:not(.filebox):not(.checkrow) {
-    font-family: var(--font-mono);
+    font-family: var(--font-num);
     font-size: var(--type-xs);
     letter-spacing: 0.08em;
     text-transform: uppercase;
@@ -587,7 +727,7 @@ select:focus-visible {
     box-shadow: inset 0 0 0 2px var(--ink);
   }
   .inp.num {
-    font-family: var(--font-mono);
+    font-family: var(--font-num);
     font-variant-numeric: tabular-nums;
   }
   .inp[aria-invalid="true"] {
@@ -611,7 +751,7 @@ select:focus-visible {
     right: var(--s13);
     top: 50%;
     transform: translateY(-50%);
-    font-family: var(--font-mono);
+    font-family: var(--font-num);
     font-size: var(--type-sm);
     color: var(--ink-3);
     pointer-events: none;
@@ -720,7 +860,7 @@ select:focus-visible {
     cursor: pointer;
   }
   .rangewrap .rv {
-    font-family: var(--font-mono);
+    font-family: var(--font-num);
     font-variant-numeric: tabular-nums;
     font-size: var(--type-sm);
     color: var(--ink);
@@ -774,14 +914,14 @@ select:focus-visible {
     border-radius: var(--r-pill);
     background: transparent;
     color: var(--ink-2);
-    font-family: var(--font-mono);
+    font-family: var(--font-num);
     font-size: var(--type-sm);
     cursor: pointer;
   }
   .rate button[aria-pressed="true"] {
     background: var(--surface-hi);
     color: var(--ink);
-    box-shadow: 0 1px 2px rgba(23, 22, 20, 0.08);
+    box-shadow: 0 1px 2px rgba(43, 16, 51, 0.08);
   }
   /* option chips: idle, selected, busy. Selected is ink, never a spectrum fill */
   .optchip {
@@ -853,7 +993,7 @@ select:focus-visible {
   }
   /* how settled the thing behind an action is, as a word */
   .tier {
-    font-family: var(--font-mono);
+    font-family: var(--font-num);
     font-size: var(--type-xs);
     letter-spacing: 0.08em;
     text-transform: uppercase;
@@ -882,17 +1022,14 @@ select:focus-visible {
     gap: var(--s5);
     padding: var(--s5) var(--s13);
     border-radius: var(--r-pill);
-    background: var(--surface);
-    border: 1px solid rgba(255, 255, 255, 0.5);
+    background: var(--card);
+    border: 1px solid var(--line);
     font-size: var(--type-sm);
     color: var(--ink-2);
     max-width: 100%;
     white-space: normal;
     text-align: left;
     transition: border-color var(--dur-quick) var(--ease);
-  }
-  :root[data-theme="dark"] .chip {
-    border-color: rgba(255, 255, 255, 0.08);
   }
   .chip:hover {
     border-color: var(--ink-3);
@@ -909,7 +1046,7 @@ select:focus-visible {
   .chip.ink {
     background: var(--ink);
     border-color: var(--ink);
-    color: var(--canvas);
+    color: var(--card);
   }
   .chip.ink:hover {
     border-color: var(--ink);
@@ -938,8 +1075,9 @@ select:focus-visible {
   .card {
     border-radius: var(--r-card);
     background: var(--surface);
-    backdrop-filter: blur(21px);
-    border: 1px solid rgba(255, 255, 255, 0.5);
+    /* 40a: the Hybrid card, solid on the paper with a lift */
+    border: 0;
+    box-shadow: var(--hy-lift);
     overflow: hidden;
   }
   :root[data-theme="dark"] .card {
@@ -963,7 +1101,7 @@ select:focus-visible {
     background: var(--navy-ok);
   }
   .c-label {
-    font-family: var(--font-mono);
+    font-family: var(--font-num);
     font-size: var(--type-xs);
     font-weight: 500;
     letter-spacing: 0.1em;
@@ -971,7 +1109,7 @@ select:focus-visible {
     color: var(--ink-3);
   }
   .c-num {
-    font-family: var(--font-mono);
+    font-family: var(--font-num);
     font-size: var(--type-xl);
     font-weight: 200;
     line-height: 1;
@@ -1006,38 +1144,432 @@ select:focus-visible {
     line-height: 1.35;
     color: var(--ink-2);
   }
-  /* the drawer: the marker on desktop */
+  /* ── the Drawer (phase 40a, `components/drawer.tsx`): 53's case panel.
+     A native modal <dialog> on the grained paper. >= 1024 px: 555 px on the
+     right, rounded on its left. Below: a bottom sheet at 89 % with a
+     grabber. In with @starting-style, out with a discrete transition. */
   .drawer {
-    background: var(--surface-hi);
-    backdrop-filter: blur(21px);
-    border: 1px solid rgba(255, 255, 255, 0.5);
-    border-radius: var(--r-card);
-    padding: var(--s21);
-    box-shadow: -21px 0 55px -34px rgba(23, 22, 20, 0.5);
+    position: fixed;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    max-width: none;
+    max-height: none;
+    inset: auto 0 0 0;
+    width: 100%;
+    height: 89dvh;
+    border-radius: var(--r-hero) var(--r-hero) 0 0;
+    background-color: var(--paper);
+    background-image: var(--grain);
+    background-size: 128px 128px;
+    color: var(--ink);
+    box-shadow: 0 -21px 55px -21px rgba(30, 10, 36, 0.5);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: none;
+    transform: translateY(105%);
+    transition:
+      transform 560ms var(--ease),
+      overlay 560ms allow-discrete,
+      display 560ms allow-discrete;
   }
-  :root[data-theme="dark"] .drawer {
-    border-color: rgba(255, 255, 255, 0.08);
+  .drawer[open] {
+    transform: none;
+  }
+  @starting-style {
+    .drawer[open] {
+      transform: translateY(105%);
+    }
+  }
+  .drawer::before {
+    content: "";
+    display: block;
+    width: 34px;
+    height: 5px;
+    border-radius: 3px;
+    background: var(--paper-3);
+    margin: var(--s8) auto 0;
+  }
+  @media (min-width: 1024px) {
+    .drawer {
+      inset: 0 0 0 auto;
+      width: 555px;
+      height: 100dvh;
+      border-radius: var(--r-card) 0 0 var(--r-card);
+      box-shadow: -21px 0 55px -21px rgba(30, 10, 36, 0.5);
+      transform: translateX(105%);
+    }
+    @starting-style {
+      .drawer[open] {
+        transform: translateX(105%);
+      }
+    }
+    .drawer::before {
+      display: none;
+    }
+  }
+  .drawer::-webkit-scrollbar {
+    display: none;
+  }
+  .drawer::backdrop {
+    background: rgba(30, 10, 36, 0.32);
+    backdrop-filter: blur(3px);
+    opacity: 0;
+    transition:
+      opacity 400ms var(--ease),
+      overlay 400ms allow-discrete,
+      display 400ms allow-discrete;
+  }
+  .drawer[open]::backdrop {
+    opacity: 1;
+  }
+  @starting-style {
+    .drawer[open]::backdrop {
+      opacity: 0;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .drawer,
+    .drawer::backdrop {
+      transition: none;
+    }
+  }
+  .drawer-in {
+    padding: var(--s21) var(--s34) var(--s55);
+    display: grid;
+    gap: var(--s21);
+  }
+  @media (max-width: 1023px) {
+    .drawer-in {
+      padding: var(--s13) var(--s21) var(--s55);
+    }
   }
   .drawer-head {
     display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: var(--s13);
-    padding-bottom: var(--s13);
-    border-bottom: 1px solid var(--hair);
-    margin-bottom: var(--s13);
+    align-items: center;
+    gap: var(--s8);
+    font-size: var(--type-xs);
+    color: var(--ink-2);
+  }
+  .drawer-head .grow {
+    flex: 1;
   }
   .drawer-head h3 {
     margin: 0;
     font-size: var(--type-lg);
-    font-weight: 400;
+    font-weight: 600;
     letter-spacing: -0.02em;
   }
+  .drawer-x {
+    width: 34px;
+    height: 34px;
+    flex: none;
+    display: grid;
+    place-items: center;
+    border: 0;
+    border-radius: var(--r-pill);
+    background: var(--card);
+    color: var(--ink);
+    box-shadow: var(--hy-lift);
+    cursor: pointer;
+  }
+  /* ── Stamp (phase 40a, 53 `.ks`): a boxed word in one ink per kind.
+     Space Grotesk caps with tracking; never mono, never moving. */
+  .ks {
+    display: inline-block;
+    font-family: var(--font-body);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    border: 1.5px solid currentColor;
+    border-radius: 5px;
+    padding: 0 var(--s5);
+    line-height: 16px;
+    white-space: nowrap;
+    color: var(--ink-2);
+  }
+  .ks.step,
+  .ks.drift,
+  .ks.left_band,
+  .ks.discordance {
+    color: var(--blood);
+  }
+  .ks.cluster {
+    color: var(--gene);
+  }
+  .ks.gap {
+    color: var(--warn);
+  }
+  .ks.good_news {
+    color: var(--ok);
+  }
+  .ks.belief {
+    color: var(--plum-3);
+  }
+  :root[data-theme="dark"] .ks.belief {
+    color: var(--mist);
+  }
+
+  /* ── DrawAgeRing (53 `.conf .ring`): it draws out once, on load */
+  .age-ring {
+    width: 34px;
+    height: 34px;
+    flex: none;
+    transform: rotate(-90deg);
+  }
+  .age-ring circle {
+    fill: none;
+    stroke-width: 3;
+  }
+  .age-ring .tr {
+    stroke: rgba(246, 237, 220, 0.14);
+  }
+  .age-ring .fl {
+    stroke: var(--h-amber);
+    stroke-linecap: round;
+    animation: hy-ringout 1600ms var(--ease) both 300ms;
+  }
+  @keyframes hy-ringout {
+    from {
+      stroke-dashoffset: 0;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .age-ring .fl {
+      animation: none;
+    }
+  }
+
+  /* ── HeadingTile (53 `.strip div`), on the plum header. A soft fill is
+     allowed here: tiles, stamps and state pills only. */
+  .htile {
+    border-radius: var(--r-inner);
+    padding: var(--s5) var(--s8);
+    background: rgba(246, 237, 220, 0.07);
+    font-size: var(--type-xs);
+    color: var(--mist);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--s5);
+    min-width: 0;
+    animation: hy-tin 600ms var(--ease) both;
+    animation-delay: calc(var(--k, 0) * 40ms);
+  }
+  .htile > span:first-child {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  @keyframes hy-tin {
+    from {
+      opacity: 0;
+      transform: translateY(5px);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .htile {
+      animation: none;
+    }
+  }
+  .htile b {
+    font-weight: 600;
+    font-size: var(--type-sm);
+  }
+  .htile.toward {
+    background: rgba(35, 153, 93, 0.24);
+    color: #bfe8cf;
+  }
+  .htile.away {
+    background: rgba(234, 106, 141, 0.22);
+    color: #f6c2d0;
+  }
+  .htile.holding b {
+    color: var(--cream);
+  }
+  .htile.unmeasured {
+    background: none;
+    box-shadow: inset 0 0 0 1px rgba(205, 184, 210, 0.22);
+    color: rgba(205, 184, 210, 0.75);
+  }
+
+  /* ── the corridor charts (phase 40a, `components/corridor.tsx`) ──────
+     53 `svg.ch` and 55 `svg.mini`, with the web's ink ladder. */
+  svg.cor {
+    display: block;
+    width: 100%;
+    height: auto;
+    overflow: visible;
+    font-family: var(--font-body);
+  }
+  .cor text {
+    font-size: 11px;
+    fill: var(--ink-2);
+  }
+  .cor .v {
+    fill: var(--ink);
+    font-weight: 600;
+  }
+  .cor .tick {
+    stroke: var(--line);
+    stroke-width: 1;
+  }
+  .cor .lab {
+    stroke: var(--mark-3);
+    stroke-width: 1;
+    stroke-dasharray: 3 3;
+  }
+  .cor .band {
+    fill: rgba(194, 58, 94, 0.14);
+  }
+  .cor .band.prov {
+    fill: rgba(194, 58, 94, 0.07);
+    stroke: rgba(194, 58, 94, 0.45);
+    stroke-dasharray: 3 2;
+  }
+  .cor .med {
+    stroke: rgba(194, 58, 94, 0.45);
+    stroke-width: 1;
+    stroke-dasharray: 2 3;
+  }
+  .cor .goal {
+    fill: var(--h-green-soft);
+  }
+  .cor .ln {
+    fill: none;
+    stroke: var(--plum-3);
+    stroke-width: 1.5;
+    stroke-linejoin: round;
+  }
+  :root[data-theme="dark"] .cor .ln {
+    stroke: var(--mist);
+  }
+  .cor .ext {
+    fill: none;
+    stroke: var(--h-amber);
+    stroke-width: 2;
+    stroke-dasharray: 5 5;
+  }
+  .cor .ext.dot {
+    fill: var(--card);
+    stroke-dasharray: none;
+  }
+  .cor .step {
+    stroke: var(--blood);
+    stroke-width: 1;
+    stroke-dasharray: 5 3;
+  }
+  .cor .d {
+    fill: var(--plum);
+    stroke: var(--card);
+    stroke-width: 1.5;
+  }
+  :root[data-theme="dark"] .cor .d {
+    fill: var(--cream);
+  }
+  .cor .d.out {
+    fill: var(--blood);
+  }
+  .cor .gl {
+    fill: var(--ok);
+    font-weight: 600;
+  }
+  .cor .xl {
+    fill: var(--warn);
+    font-weight: 600;
+  }
+  .cor .bl {
+    fill: var(--blood);
+  }
+  .cor.anim .ln {
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+    animation: hy-draw 1300ms var(--ease) forwards 250ms;
+  }
+  .cor.anim .ext,
+  .cor.anim .xl {
+    animation: hy-fade 600ms var(--ease) both 1450ms;
+  }
+  .cor.anim .d {
+    transform-box: fill-box;
+    transform-origin: 50% 50%;
+    animation: hy-pop 420ms var(--ease-ispring) both;
+    animation-delay: calc(250ms + var(--k, 0) * 110ms);
+  }
+  @keyframes hy-draw {
+    to {
+      stroke-dashoffset: 0;
+    }
+  }
+  @keyframes hy-fade {
+    from {
+      opacity: 0;
+    }
+  }
+  @keyframes hy-pop {
+    from {
+      transform: scale(0);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .cor.anim .ln {
+      stroke-dasharray: none;
+      stroke-dashoffset: 0;
+      animation: none;
+    }
+    .cor.anim .ext,
+    .cor.anim .xl,
+    .cor.anim .d {
+      animation: none;
+    }
+  }
+  svg.mini-cor {
+    display: block;
+    flex: none;
+    overflow: visible;
+  }
+  .mini-cor .base {
+    fill: var(--paper-2);
+  }
+  .mini-cor .cz {
+    fill: rgba(90, 45, 102, 0.26);
+  }
+  .mini-cor .cz.prov {
+    fill: rgba(90, 45, 102, 0.1);
+    stroke: var(--plum-3);
+    stroke-width: 1;
+    stroke-dasharray: 3 2;
+  }
+  :root[data-theme="dark"] .mini-cor .cz {
+    fill: rgba(205, 184, 210, 0.3);
+  }
+  .mini-cor .gz {
+    fill: rgba(35, 153, 93, 0.3);
+  }
+  .mini-cor .lab {
+    stroke: var(--ink-3);
+    stroke-width: 1;
+  }
+  .mini-cor .trail {
+    stroke: var(--ink-3);
+    stroke-width: 1.5;
+  }
+  .mini-cor .pv {
+    fill: var(--card);
+    stroke: var(--ink-3);
+    stroke-width: 1.5;
+  }
+  .mini-cor .dt {
+    stroke: var(--card);
+    stroke-width: 2;
+  }
+
   /* the ConclusionCard */
   .conc {
     background: var(--surface);
-    backdrop-filter: blur(21px);
-    border: 1px solid rgba(255, 255, 255, 0.5);
+    /* 40a: the Hybrid card, solid on the paper with a lift */
+    border: 0;
+    box-shadow: var(--hy-lift);
     border-radius: var(--r-card);
     padding: var(--s21);
     display: flex;
@@ -1054,7 +1586,7 @@ select:focus-visible {
     flex-wrap: wrap;
   }
   .conc-rank {
-    font-family: var(--font-mono);
+    font-family: var(--font-num);
     font-size: var(--type-xs);
     letter-spacing: 0.1em;
     color: var(--ink-3);
@@ -1068,7 +1600,7 @@ select:focus-visible {
   .conc-pct {
     margin-left: auto;
     white-space: nowrap;
-    font-family: var(--font-mono);
+    font-family: var(--font-num);
     font-variant-numeric: tabular-nums;
     font-size: var(--type-xl);
     font-weight: 200;
@@ -1172,7 +1704,7 @@ select:focus-visible {
     border-radius: var(--r-hero);
     background: var(--surface-flat);
     box-shadow:
-      0 34px 55px -34px rgba(23, 22, 20, 0.55),
+      0 34px 55px -34px rgba(43, 16, 51, 0.55),
       inset 0 0 0 1px var(--hair);
     overflow: hidden;
     color: var(--ink);
@@ -1225,7 +1757,7 @@ select:focus-visible {
     gap: var(--s5);
     border-radius: var(--r-pill);
     padding: var(--s5) var(--s13);
-    font-family: var(--font-mono);
+    font-family: var(--font-num);
     font-size: var(--type-xs);
     letter-spacing: 0.06em;
     text-transform: uppercase;
@@ -1254,7 +1786,7 @@ select:focus-visible {
     color: var(--canvas);
     padding: var(--s8) var(--s8) var(--s8) var(--s21);
     font-size: var(--type-sm);
-    box-shadow: 0 13px 34px -13px rgba(23, 22, 20, 0.55);
+    box-shadow: 0 13px 34px -13px rgba(43, 16, 51, 0.55);
   }
   .toast button {
     border: 0;
@@ -1271,8 +1803,9 @@ select:focus-visible {
   .empty {
     border-radius: var(--r-card);
     background: var(--surface);
-    backdrop-filter: blur(21px);
-    border: 1px solid rgba(255, 255, 255, 0.5);
+    /* 40a: the Hybrid card, solid on the paper with a lift */
+    border: 0;
+    box-shadow: var(--hy-lift);
     padding: var(--s21);
     display: flex;
     flex-direction: column;
@@ -1282,7 +1815,7 @@ select:focus-visible {
     border-color: rgba(255, 255, 255, 0.08);
   }
   .empty .k {
-    font-family: var(--font-mono);
+    font-family: var(--font-num);
     font-size: var(--type-xs);
     letter-spacing: 0.1em;
     text-transform: uppercase;
@@ -1311,8 +1844,9 @@ select:focus-visible {
     background: var(--surface);
     border-radius: var(--r-card);
     padding: var(--s13) var(--s21);
-    backdrop-filter: blur(21px);
-    border: 1px solid rgba(255, 255, 255, 0.5);
+    /* 40a: the Hybrid card, solid on the paper with a lift */
+    border: 0;
+    box-shadow: var(--hy-lift);
   }
   :root[data-theme="dark"] .panel {
     border-color: rgba(255, 255, 255, 0.08);
@@ -1336,7 +1870,7 @@ select:focus-visible {
   .panel-head .r {
     font-size: var(--type-xs);
     color: var(--ink-3);
-    font-family: var(--font-mono);
+    font-family: var(--font-num);
     font-variant-numeric: tabular-nums;
   }
 
@@ -1438,7 +1972,7 @@ select:focus-visible {
     color: var(--ink-3);
   }
   .markerrow .val {
-    font-family: var(--font-mono);
+    font-family: var(--font-num);
     font-variant-numeric: tabular-nums;
     font-weight: 300;
     font-size: var(--type-lg);
@@ -1605,7 +2139,7 @@ select:focus-visible {
     white-space: normal;
   }
   .mrow .mv {
-    font-family: var(--font-mono);
+    font-family: var(--font-num);
     font-variant-numeric: tabular-nums;
     font-weight: 300;
     font-size: var(--type-lg);
@@ -1645,7 +2179,7 @@ select:focus-visible {
     flex-direction: column;
   }
   .kpi b {
-    font-family: var(--font-mono);
+    font-family: var(--font-num);
     font-variant-numeric: tabular-nums;
     font-weight: 200;
     font-size: var(--type-xl);
@@ -1684,8 +2218,9 @@ select:focus-visible {
    their own fraction of the plot, and the draws are dated diamonds. */
   .daily {
     background: var(--surface);
-    backdrop-filter: blur(21px);
-    border: 1px solid rgba(255, 255, 255, 0.5);
+    /* 40a: the Hybrid card, solid on the paper with a lift */
+    border: 0;
+    box-shadow: var(--hy-lift);
     border-radius: var(--r-card);
     padding: var(--s13) var(--s21);
     container-type: inline-size;
@@ -1707,7 +2242,7 @@ select:focus-visible {
     font-weight: 500;
   }
   .daily-head .unit {
-    font-family: var(--font-mono);
+    font-family: var(--font-num);
     font-size: var(--type-xs);
     letter-spacing: 0.06em;
     text-transform: uppercase;
@@ -1722,7 +2257,7 @@ select:focus-visible {
   .daily-y {
     position: relative;
     height: 128px;
-    font-family: var(--font-mono);
+    font-family: var(--font-num);
     font-variant-numeric: tabular-nums;
     font-size: var(--type-xs);
     color: var(--ink-3);
@@ -1784,7 +2319,7 @@ select:focus-visible {
     position: relative;
     height: 14px;
     margin-top: var(--s8);
-    font-family: var(--font-mono);
+    font-family: var(--font-num);
     font-size: var(--type-xs);
     color: var(--ink-3);
   }
@@ -1980,8 +2515,9 @@ select:focus-visible {
     margin: -10.5px 0 0 -10.5px;
     border-radius: 999px;
     background: var(--mk, var(--warn));
-    box-shadow: 0 0 0 4px var(--surface-flat),
-      0 5px 13px -4px rgba(23, 22, 20, 0.45);
+    box-shadow:
+      0 0 0 4px var(--surface-flat),
+      0 5px 13px -4px rgba(43, 16, 51, 0.45);
     z-index: 2;
   }
   .ruler .mark.off {
@@ -2001,7 +2537,7 @@ select:focus-visible {
     bottom: calc(100% + var(--s13));
     left: 50%;
     transform: translateX(-50%);
-    font-family: var(--font-mono);
+    font-family: var(--font-num);
     font-variant-numeric: tabular-nums;
     font-size: var(--type-md);
     color: var(--ink);
@@ -2058,7 +2594,7 @@ select:focus-visible {
     top: calc(100% + var(--s5));
     left: 50%;
     transform: translateX(-50%);
-    font-family: var(--font-mono);
+    font-family: var(--font-num);
     font-size: var(--type-xs);
     color: var(--ink-3);
     white-space: nowrap;
@@ -2092,7 +2628,7 @@ select:focus-visible {
     border-radius: var(--r-inner);
     background: var(--ink);
     color: var(--surface-flat);
-    font-family: var(--font-mono);
+    font-family: var(--font-num);
     font-size: var(--type-xs);
     white-space: nowrap;
     opacity: 0;
@@ -2135,7 +2671,7 @@ select:focus-visible {
     justify-content: space-between;
     gap: var(--s13);
     margin-top: var(--s34);
-    font-family: var(--font-mono);
+    font-family: var(--font-num);
     font-size: var(--type-xs);
     color: var(--ink-3);
   }
@@ -2223,7 +2759,7 @@ select:focus-visible {
     color: var(--ink);
   }
   .hist-head .unit {
-    font-family: var(--font-mono);
+    font-family: var(--font-num);
     font-size: var(--type-xs);
     color: var(--ink-3);
     letter-spacing: 0.06em;
@@ -2244,7 +2780,7 @@ select:focus-visible {
     position: relative;
     height: 144px;
     overflow: visible;
-    font-family: var(--font-mono);
+    font-family: var(--font-num);
     font-size: var(--type-xs);
     line-height: 1.15;
     color: var(--ink-3);
@@ -2304,7 +2840,7 @@ select:focus-visible {
     z-index: 2;
     left: calc(var(--s5) + var(--bx, 0%));
     top: 2px;
-    font-family: var(--font-mono);
+    font-family: var(--font-num);
     font-size: var(--type-xs);
     font-weight: 400;
     color: var(--ink);
@@ -2380,7 +2916,7 @@ select:focus-visible {
     top: -11px;
     left: 0;
     transform: translateY(-100%);
-    font-family: var(--font-mono);
+    font-family: var(--font-num);
     font-variant-numeric: tabular-nums;
     font-size: var(--type-sm);
     font-weight: 400;
@@ -2406,7 +2942,7 @@ select:focus-visible {
   }
   .hp.target b {
     color: var(--ok);
-    font-family: var(--font-mono);
+    font-family: var(--font-num);
     font-size: var(--type-xs);
   }
   /* phase 31a item 6: the diamond says what it is on hover, with no
@@ -2420,7 +2956,7 @@ select:focus-visible {
     border-radius: var(--r-inner);
     background: var(--ink);
     color: var(--surface-flat);
-    font-family: var(--font-mono);
+    font-family: var(--font-num);
     font-size: var(--type-xs);
     font-weight: 400;
     white-space: nowrap;
@@ -2442,7 +2978,7 @@ select:focus-visible {
     position: relative;
     height: 30px;
     margin-top: var(--s8);
-    font-family: var(--font-mono);
+    font-family: var(--font-num);
     font-size: var(--type-xs);
     line-height: 1.25;
     color: var(--ink-3);
@@ -2572,14 +3108,14 @@ select:focus-visible {
     box-shadow: 0 0 0 2px var(--ink-3);
   }
   .dmark b {
-    font-family: var(--font-mono);
+    font-family: var(--font-num);
     font-size: var(--type-xs);
     font-weight: 400;
     color: var(--ink-2);
     white-space: nowrap;
   }
   .dmark .n {
-    font-family: var(--font-mono);
+    font-family: var(--font-num);
     font-size: var(--type-md);
     color: var(--ink);
   }
@@ -2636,7 +3172,7 @@ select:focus-visible {
     flex-wrap: wrap;
     gap: var(--s5) var(--s13);
     margin-top: var(--s3);
-    font-family: var(--font-mono);
+    font-family: var(--font-num);
     font-size: var(--type-xs);
     color: var(--ink-3);
   }
@@ -2692,14 +3228,14 @@ select:focus-visible {
     margin-top: 2px;
   }
   .drow .cost {
-    font-family: var(--font-mono);
+    font-family: var(--font-num);
     font-size: var(--type-xs);
     color: var(--ink-3);
     text-align: right;
     white-space: nowrap;
   }
   .post {
-    font-family: var(--font-mono);
+    font-family: var(--font-num);
     font-size: var(--type-xs);
   }
   .post .up {
@@ -2742,7 +3278,7 @@ select:focus-visible {
   }
   .tbl th {
     text-align: left;
-    font-family: var(--font-mono);
+    font-family: var(--font-num);
     font-size: var(--type-xs);
     font-weight: 400;
     letter-spacing: 0.1em;
@@ -2760,7 +3296,7 @@ select:focus-visible {
     vertical-align: baseline;
   }
   .tbl td.n {
-    font-family: var(--font-mono);
+    font-family: var(--font-num);
     font-variant-numeric: tabular-nums;
     color: var(--ink);
     white-space: nowrap;
@@ -2773,7 +3309,9 @@ select:focus-visible {
   }
 
   /* the mono source line after a title */
-  .src {
+  /* a file name or a source code: printed exactly, so Geist Mono (40a) */
+  .src,
+  .t-code {
     font-family: var(--font-mono);
     font-size: var(--type-xs);
     color: var(--ink-3);
@@ -2804,14 +3342,14 @@ select:focus-visible {
   }
   .hm text {
     fill: var(--ink-3);
-    font-family: var(--font-mono);
+    font-family: var(--font-num);
     font-size: 9px;
   }
   .hmkey {
     display: flex;
     align-items: center;
     gap: var(--s5);
-    font-family: var(--font-mono);
+    font-family: var(--font-num);
     font-size: var(--type-xs);
     color: var(--ink-3);
   }
@@ -2847,7 +3385,7 @@ select:focus-visible {
   }
   .lanes .lane-label {
     fill: var(--ink-3);
-    font-family: var(--font-mono);
+    font-family: var(--font-num);
     font-size: 10px;
     letter-spacing: 0.08em;
   }
@@ -2857,7 +3395,7 @@ select:focus-visible {
   }
   .lanes .tickt {
     fill: var(--ink-3);
-    font-family: var(--font-mono);
+    font-family: var(--font-num);
     font-size: 10px;
   }
   .lanes .cut {
@@ -2894,7 +3432,7 @@ select:focus-visible {
   }
   .lanes .actt {
     fill: var(--ink-2);
-    font-family: var(--font-mono);
+    font-family: var(--font-num);
     font-size: 9px;
   }
   .lanes .band {
@@ -2904,7 +3442,7 @@ select:focus-visible {
   }
   .lanes .bandt {
     fill: var(--ink-3);
-    font-family: var(--font-mono);
+    font-family: var(--font-num);
     font-size: 8px;
   }
   .lanes .mline {
@@ -2919,11 +3457,11 @@ select:focus-visible {
   }
   .lanes .mvt {
     fill: var(--ink-3);
-    font-family: var(--font-mono);
+    font-family: var(--font-num);
     font-size: 8px;
   }
   .lanes .verdict {
-    font-family: var(--font-mono);
+    font-family: var(--font-num);
     font-size: 9px;
     fill: var(--ok);
   }
@@ -2936,7 +3474,7 @@ select:focus-visible {
   /* what a crowded date could not fit; the disclosure below lists it */
   .lanes .more {
     fill: var(--ink-3);
-    font-family: var(--font-mono);
+    font-family: var(--font-num);
     font-size: 10px;
   }
 
@@ -2994,9 +3532,10 @@ select:focus-visible {
     width: min(377px, 100%);
     border-radius: var(--r-hero);
     background: var(--surface-hi);
-    backdrop-filter: blur(21px);
-    border: 1px solid rgba(255, 255, 255, 0.5);
-    box-shadow: 0 34px 55px -34px rgba(23, 22, 20, 0.35);
+    /* 40a: the Hybrid card, solid on the paper with a lift */
+    border: 0;
+    box-shadow: var(--hy-lift);
+    box-shadow: 0 34px 55px -34px rgba(43, 16, 51, 0.35);
     padding: var(--s34);
   }
   :root[data-theme="dark"] .logincard {
@@ -3020,7 +3559,6 @@ select:focus-visible {
     .panel,
     .daily,
     .conc,
-    .drawer,
     .empty,
     .chip,
     .logincard,
@@ -3066,7 +3604,7 @@ select:focus-visible {
   }
   /* the only monospace on the page */
   :where(.t-num) {
-    font-family: var(--font-mono);
+    font-family: var(--font-num);
     font-variant-numeric: tabular-nums;
   }
 
@@ -3112,7 +3650,7 @@ select:focus-visible {
     color: var(--canvas);
     text-align: left;
     text-wrap: pretty;
-    box-shadow: 0 13px 34px -13px rgba(23, 22, 20, 0.55);
+    box-shadow: 0 13px 34px -13px rgba(43, 16, 51, 0.55);
     pointer-events: none;
     opacity: 0;
     transform: translate(-50%, 3px) scale(0.98);
@@ -3236,7 +3774,8 @@ select:focus-visible {
   .bubbles {
     background: var(--surface);
     border-radius: var(--r-card);
-    border: 1px solid rgba(255, 255, 255, 0.5);
+    border: 0;
+    box-shadow: var(--hy-lift);
     overflow: hidden;
   }
   :root[data-theme="dark"] .bubbles {
@@ -3283,7 +3822,7 @@ select:focus-visible {
   }
   .bubbles text.bn {
     fill: var(--ink-2);
-    font-family: var(--font-mono);
+    font-family: var(--font-num);
     font-size: 13px;
     text-anchor: middle;
   }
@@ -3328,7 +3867,7 @@ select:focus-visible {
   }
   .arc text {
     fill: var(--ink);
-    font-family: var(--font-mono);
+    font-family: var(--font-num);
     font-size: 13px;
     text-anchor: middle;
   }
@@ -3347,7 +3886,7 @@ select:focus-visible {
   }
   .statgrid b {
     display: block;
-    font-family: var(--font-mono);
+    font-family: var(--font-num);
     font-weight: 200;
     font-size: var(--type-xl);
     letter-spacing: -0.04em;
@@ -3370,8 +3909,8 @@ select:focus-visible {
     border-radius: var(--r-pill);
     background: var(--surface-hi);
     box-shadow:
-      0 1px 2px rgba(23, 22, 20, 0.05),
-      0 8px 21px -13px rgba(23, 22, 20, 0.35);
+      0 1px 2px rgba(43, 16, 51, 0.05),
+      0 8px 21px -13px rgba(43, 16, 51, 0.35);
   }
   .ask > .ic {
     color: var(--ink-3);
@@ -3502,7 +4041,7 @@ select:focus-visible {
     font-size: var(--type-sm);
   }
   .threadrow .d {
-    font-family: var(--font-mono);
+    font-family: var(--font-num);
     font-size: var(--type-xs);
     color: var(--ink-3);
   }
@@ -4171,7 +4710,7 @@ a.t-tab {
 .t-tabs-pill {
   height: 34px;
   border-radius: var(--r-pill);
-  box-shadow: 0 1px 2px rgba(23, 22, 20, 0.1);
+  box-shadow: 0 1px 2px rgba(43, 16, 51, 0.1);
 }
 /* A tab never truncates its own label, so under 620 px the row scrolls
    instead — `system.css` section 06. Ten trend measures on a 390 px screen
@@ -4316,8 +4855,9 @@ a.t-tab {
   padding: var(--s13);
   border-radius: var(--r-card);
   background: var(--surface);
-  backdrop-filter: blur(21px);
-  border: 1px solid rgba(255, 255, 255, 0.5);
+  /* 40a: the Hybrid card, solid on the paper with a lift */
+  border: 0;
+  box-shadow: var(--hy-lift);
   color: var(--ink);
   overflow: hidden;
   animation: home-card-in 400ms var(--ease) backwards;
@@ -4389,8 +4929,9 @@ a.t-tab {
 .home .ask-pill {
   border-radius: var(--r-pill);
   background: var(--surface-hi);
-  backdrop-filter: blur(21px);
-  border: 1px solid rgba(255, 255, 255, 0.5);
+  /* 40a: the Hybrid card, solid on the paper with a lift */
+  border: 0;
+  box-shadow: var(--hy-lift);
   padding-inline: var(--s21);
 }
 :root[data-theme="dark"] .home .ask-pill {
@@ -4519,7 +5060,7 @@ a.t-tab {
   padding: var(--s8) var(--s8) var(--s5);
 }
 .theme-row .grp {
-  font-family: var(--font-mono);
+  font-family: var(--font-num);
   font-size: var(--type-xs);
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -4543,7 +5084,7 @@ a.t-tab {
 }
 /* a field whose label is a <span> because the <label> wraps the input */
 .field > span:first-child {
-  font-family: var(--font-mono);
+  font-family: var(--font-num);
   font-size: var(--type-xs);
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -4568,7 +5109,7 @@ a.t-tab {
   display: inline-flex;
   align-items: center;
   gap: 2px;
-  font-family: var(--font-mono);
+  font-family: var(--font-num);
   font-size: var(--type-xs);
   color: var(--ink-3);
   vertical-align: 1px;
@@ -4585,7 +5126,7 @@ a.t-tab {
 }
 /* the one legend, once, at the top of the ledger */
 .legend {
-  font-family: var(--font-mono);
+  font-family: var(--font-num);
   font-size: var(--type-xs);
   letter-spacing: 0.04em;
   color: var(--ink-3);
@@ -4608,7 +5149,7 @@ a.t-tab {
   color: var(--ink-3);
 }
 .protorow .pct {
-  font-family: var(--font-mono);
+  font-family: var(--font-num);
   font-variant-numeric: tabular-nums;
   font-size: var(--type-md);
   color: var(--ink);
@@ -4623,7 +5164,7 @@ a.t-tab {
   align-items: baseline;
 }
 .goalrow .tgt {
-  font-family: var(--font-mono);
+  font-family: var(--font-num);
   font-size: var(--type-sm);
   color: var(--ink-2);
   white-space: nowrap;
@@ -4659,8 +5200,9 @@ a.t-tab {
 }
 .systile {
   background: var(--surface);
-  backdrop-filter: blur(21px);
-  border: 1px solid rgba(255, 255, 255, 0.5);
+  /* 40a: the Hybrid card, solid on the paper with a lift */
+  border: 0;
+  box-shadow: var(--hy-lift);
   border-radius: var(--r-card);
   padding: var(--s13);
   display: flex;
@@ -4717,7 +5259,7 @@ a.t-tab {
   gap: var(--s8);
 }
 .systile .sval b {
-  font-family: var(--font-mono);
+  font-family: var(--font-num);
   font-variant-numeric: tabular-nums;
   font-weight: 300;
   font-size: var(--type-lg);
@@ -4836,7 +5378,7 @@ a.t-tab {
   text-align: right;
 }
 .verdict .vx {
-  font-family: var(--font-mono);
+  font-family: var(--font-num);
   font-variant-numeric: tabular-nums;
   font-size: var(--type-lg);
   color: var(--ink);
@@ -4897,7 +5439,7 @@ a.t-tab {
   flex-wrap: wrap;
   gap: var(--s3) var(--s8);
   align-items: baseline;
-  font-family: var(--font-mono);
+  font-family: var(--font-num);
   font-size: var(--type-xs);
   color: var(--ink-3);
 }
@@ -4927,7 +5469,7 @@ a.t-tab {
   color: var(--ink-2);
 }
 .paper .pmoves .arrow {
-  font-family: var(--font-mono);
+  font-family: var(--font-num);
   color: var(--ink-3);
 }
 .paper .pact {
@@ -4958,7 +5500,7 @@ a.t-tab {
   gap: var(--s3);
 }
 .month .dow {
-  font-family: var(--font-mono);
+  font-family: var(--font-num);
   font-size: var(--type-xs);
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -4987,7 +5529,7 @@ a.t-tab {
   box-shadow: inset 0 0 0 1.5px var(--ink);
 }
 .month .d .dn {
-  font-family: var(--font-mono);
+  font-family: var(--font-num);
   font-variant-numeric: tabular-nums;
   font-size: var(--type-xs);
   color: var(--ink-2);
@@ -5064,7 +5606,7 @@ a.t-tab {
   border-bottom: 0;
 }
 .dayrow .at {
-  font-family: var(--font-mono);
+  font-family: var(--font-num);
   font-variant-numeric: tabular-nums;
   font-size: var(--type-sm);
   color: var(--ink-3);
@@ -5105,7 +5647,7 @@ a.t-tab {
 .dayrow .tag {
   grid-column: 4;
   grid-row: 1 / 3;
-  font-family: var(--font-mono);
+  font-family: var(--font-num);
   font-size: var(--type-xs);
   color: var(--ink-3);
   white-space: nowrap;
@@ -5143,7 +5685,7 @@ a.t-tab {
   background: var(--track);
   display: grid;
   place-items: center;
-  font-family: var(--font-mono);
+  font-family: var(--font-num);
   font-size: 9px;
   line-height: 1;
   font-style: normal;
@@ -5154,7 +5696,7 @@ a.t-tab {
   color: var(--canvas);
 }
 .tbl.sched td.until {
-  font-family: var(--font-mono);
+  font-family: var(--font-num);
   font-variant-numeric: tabular-nums;
   color: var(--ink-2);
 }
@@ -5198,7 +5740,7 @@ a.t-tab {
   color: var(--ink);
 }
 .meal .mhead .when {
-  font-family: var(--font-mono);
+  font-family: var(--font-num);
   font-size: var(--type-xs);
   color: var(--ink-3);
 }
@@ -5225,7 +5767,7 @@ a.t-tab {
 }
 .meal .items .por,
 .meal .items .kc {
-  font-family: var(--font-mono);
+  font-family: var(--font-num);
   font-variant-numeric: tabular-nums;
   font-size: var(--type-xs);
   color: var(--ink-3);
@@ -5242,7 +5784,7 @@ a.t-tab {
 }
 .meal .macros b {
   display: block;
-  font-family: var(--font-mono);
+  font-family: var(--font-num);
   font-variant-numeric: tabular-nums;
   font-size: var(--type-md);
   color: var(--ink);
@@ -5253,7 +5795,7 @@ a.t-tab {
   color: var(--ink-3);
 }
 .est {
-  font-family: var(--font-mono);
+  font-family: var(--font-num);
   font-size: var(--type-xs);
   color: var(--ink-3);
   letter-spacing: 0.04em;
@@ -5289,24 +5831,23 @@ a.t-tab {
   min-width: 168px;
   max-width: 260px;
   border-radius: var(--r-inner);
-  background: var(--surface-hi);
-  backdrop-filter: blur(21px);
+  background: var(--card);
   box-shadow:
     inset 0 0 0 1px var(--hair),
-    0 21px 34px -21px rgba(23, 22, 20, 0.45);
+    0 21px 34px -21px rgba(43, 16, 51, 0.45);
   padding: var(--s8) var(--s13);
   pointer-events: none;
   text-align: left;
   white-space: normal;
 }
 .hovercard .hdate {
-  font-family: var(--font-mono);
+  font-family: var(--font-num);
   font-size: var(--type-xs);
   color: var(--ink-3);
   letter-spacing: 0.04em;
 }
 .hovercard .hval {
-  font-family: var(--font-mono);
+  font-family: var(--font-num);
   font-variant-numeric: tabular-nums;
   font-size: var(--type-lg);
   color: var(--ink);
@@ -5320,7 +5861,7 @@ a.t-tab {
   margin-left: var(--s3);
 }
 .hovercard .hwas {
-  font-family: var(--font-mono);
+  font-family: var(--font-num);
   font-size: var(--type-xs);
   color: var(--ink-3);
   margin-top: var(--s3);
@@ -5475,7 +6016,1283 @@ a.t-tab {
   color: var(--ink-2);
 }
 .topichead .run {
-  font-family: var(--font-mono);
+  font-family: var(--font-num);
   font-size: var(--type-xs);
   color: var(--ink-3);
+}
+
+/* ── Phase 40b: the Hybrid Home (`53-web.html`) ─────────────────────────
+   The plum hero continues the header, flush under it; then the goal hero,
+   the three columns and the Worth a look rail. The case drawer's inside
+   (54's three depths) is below, under `.case`. */
+html:has(.hy-hero) body {
+  overflow-x: clip;
+}
+.hy-hero {
+  /* full bleed out of `main`'s gutter, flush under the sticky header */
+  margin-inline: calc(50% - 50vw);
+  margin-top: -24px;
+  --gut: 12px;
+  padding: 0 max(var(--gut), calc(50vw - 700px + var(--gut))) var(--s21);
+  background:
+    var(--grain),
+    radial-gradient(60% 120% at 12% 0%, #4d1d58 0%, transparent 70%),
+    var(--plum);
+  background-size:
+    128px 128px,
+    auto,
+    auto;
+  background-blend-mode: multiply, normal, normal;
+  color: var(--cream);
+  border-radius: 0 0 var(--r-hero) var(--r-hero);
+  box-shadow: 0 13px 21px -13px rgba(43, 16, 51, 0.5);
+}
+@media (min-width: 768px) {
+  .hy-hero {
+    --gut: 24px;
+    margin-top: -32px;
+  }
+}
+[data-app] .hy-hero {
+  margin-top: -16px;
+  padding-top: var(--s13);
+}
+.hy-hero .hg {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--s13);
+  align-items: end;
+  padding-top: var(--s13);
+}
+.hy-hero .hg small.e {
+  display: block;
+  font-size: var(--type-xs);
+  color: var(--mist);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: var(--s8);
+}
+.hy-hero h1 {
+  font-size: 21px;
+  font-weight: 600;
+  letter-spacing: -0.035em;
+  line-height: 1.05;
+  color: var(--cream);
+}
+.hy-hero h1 em {
+  font-style: normal;
+  color: var(--blood-l);
+}
+.hy-hero .hg p {
+  color: var(--mist);
+  font-size: var(--type-sm);
+  margin-top: var(--s8);
+  max-width: 55ch;
+}
+.hy-hero .strip {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--s5);
+}
+.hy-hero .conf {
+  margin-top: var(--s21);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s8) var(--s13);
+  font-size: var(--type-sm);
+  color: var(--mist);
+  padding-top: var(--s13);
+  border-top: 1px solid rgba(205, 184, 210, 0.14);
+}
+.hy-hero .conf > span:nth-child(2) {
+  flex: 1 1 calc(100% - 55px);
+  min-width: 0;
+}
+.hy-hero .conf b {
+  color: var(--cream);
+  font-weight: 500;
+}
+.hy-hero .conf .sp {
+  display: none;
+}
+.hy-hero .conf .due {
+  margin-left: 47px;
+  border-radius: var(--r-pill);
+  padding: var(--s3) var(--s13);
+  box-shadow: inset 0 0 0 1px rgba(205, 184, 210, 0.3);
+  color: var(--cream);
+  text-decoration: none;
+  transition: background 300ms var(--ease);
+}
+.hy-hero .conf .due:hover {
+  background: rgba(246, 237, 220, 0.08);
+}
+@media (min-width: 1024px) {
+  .hy-hero .hg {
+    grid-template-columns: minmax(0, 1fr) 610px;
+    gap: var(--s34);
+    padding-top: var(--s21);
+  }
+  .hy-hero h1 {
+    font-size: 34px;
+  }
+  .hy-hero .strip {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+  .hy-hero .conf {
+    flex-wrap: nowrap;
+  }
+  .hy-hero .conf > span:nth-child(2) {
+    flex: none;
+  }
+  .hy-hero .conf .sp {
+    display: block;
+    flex: 1;
+  }
+  .hy-hero .conf .due {
+    margin-left: 0;
+  }
+}
+
+/* the section title (53 `.ttl`) */
+.home .ttl {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--s8);
+  margin-bottom: var(--s13);
+}
+.home .ttl h2,
+.home .ttl h3 {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+}
+.home .ttl small {
+  font-size: var(--type-xs);
+  color: var(--ink-2);
+  letter-spacing: 0.02em;
+}
+@media (min-width: 1024px) {
+  .home .hy-ttl {
+    padding-inline: var(--s5);
+  }
+}
+
+/* the cards on Home carry 53's padding: 13 on the phone, 21 on a desk */
+.hy-goal,
+.hy-cols > .card {
+  padding: var(--s13);
+}
+@media (min-width: 768px) {
+  .hy-goal,
+  .hy-cols > .card {
+    padding: var(--s21);
+  }
+}
+
+/* ── the goal hero (53 `.hero`) */
+.hy-goal {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--s13);
+}
+.hy-goal > * {
+  min-width: 0;
+}
+@media (min-width: 1024px) {
+  .hy-goal {
+    grid-template-columns: 300px minmax(0, 1fr);
+    gap: var(--s34);
+  }
+}
+.hy-goal .lbl {
+  font-size: var(--type-xs);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+  font-weight: 500;
+}
+.hy-goal .big {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s8);
+  margin: var(--s8) 0;
+}
+.hy-goal .big b {
+  font-size: 34px;
+  font-weight: 600;
+  letter-spacing: -0.05em;
+  line-height: 1;
+  color: var(--ink);
+}
+@media (min-width: 1024px) {
+  .hy-goal .big b {
+    font-size: 55px;
+  }
+}
+.hy-goal .big small {
+  color: var(--ink-2);
+  font-size: var(--type-sm);
+}
+.hy-goal .facts {
+  margin-top: var(--s13);
+  display: grid;
+  gap: var(--s5);
+  font-size: var(--type-sm);
+  color: var(--ink-2);
+}
+.hy-goal .sent {
+  margin-top: var(--s13);
+  font-size: 15px;
+  line-height: 1.35;
+  color: var(--ink);
+}
+.hy-goal .sent b {
+  font-weight: 600;
+}
+
+/* the state word: a soft pill, like a stamp (allowed: "Conflicts settled") */
+.home .word {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s5);
+  border-radius: var(--r-pill);
+  padding: var(--s3) var(--s8);
+  font-size: var(--type-xs);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.home .word.away {
+  background: var(--h-rose-soft);
+  color: var(--bad);
+}
+.home .word.toward {
+  background: var(--h-green-soft);
+  color: var(--ok);
+}
+.home .word.holding {
+  background: var(--paper-2);
+  color: var(--ink-2);
+}
+.home .word.unmeasured {
+  box-shadow: inset 0 0 0 1px var(--paper-3);
+  color: var(--ink-3);
+}
+
+/* the window toggle (53 `.seg`) */
+.hy-seg {
+  display: inline-flex;
+  margin-top: var(--s13);
+  background: var(--paper-2);
+  border-radius: var(--r-pill);
+  padding: var(--s3);
+}
+.hy-seg button {
+  font-size: var(--type-xs);
+  padding: var(--s3) var(--s13);
+  border: 0;
+  background: none;
+  border-radius: var(--r-pill);
+  color: var(--ink-2);
+  cursor: pointer;
+  transition: background 300ms var(--ease);
+}
+.hy-seg button.on {
+  background: var(--card);
+  color: var(--ink);
+  box-shadow: 0 1px 3px rgba(43, 16, 51, 0.15);
+}
+
+/* the chart legend (53 `.legend`) */
+.hy-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s5) var(--s13);
+  font-size: var(--type-xs);
+  color: var(--ink-2);
+  margin-bottom: var(--s8);
+}
+.hy-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s5);
+}
+.hy-legend i {
+  display: inline-block;
+  width: 21px;
+  height: 8px;
+  border-radius: 3px;
+}
+.hy-legend .lb {
+  background: rgba(194, 58, 94, 0.16);
+}
+.hy-legend .ll {
+  height: 0;
+  border-top: 1px dashed var(--ink-3);
+}
+.hy-legend .lg {
+  background: var(--h-green-soft);
+}
+.hy-legend .lx {
+  height: 0;
+  border-top: 2px dashed var(--h-amber);
+}
+
+/* ── the three levels (53 `.cols`) */
+.hy-cols {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--s21);
+  align-items: start;
+}
+@media (min-width: 1024px) {
+  .hy-cols {
+    grid-template-columns: 1fr 1.25fr 1fr;
+  }
+}
+.hy-cols > * {
+  min-width: 0;
+}
+.hy-cols .lv {
+  font-size: var(--type-xs);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  font-weight: 600;
+}
+.hy-cols .trow {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: var(--s3) var(--s8);
+  padding: var(--s8) 0;
+  border-top: 1px solid var(--line);
+  font-size: var(--type-sm);
+}
+.hy-cols .trow:first-of-type {
+  border-top: 0;
+}
+.hy-cols .trow b {
+  font-weight: 500;
+}
+.hy-cols .trow small {
+  color: var(--ink-2);
+}
+.hy-cols .trk,
+.case .trk {
+  grid-column: 1 / -1;
+  position: relative;
+  height: 5px;
+  border-radius: 3px;
+  background: var(--paper-2);
+  overflow: hidden;
+}
+.hy-cols .trk i,
+.case .trk i {
+  position: absolute;
+  inset: 0 auto 0 0;
+  border-radius: 3px;
+  background: var(--c, var(--life));
+  transition:
+    width 800ms var(--ease-spring),
+    background 400ms var(--ease);
+}
+.hy-cols .foot {
+  margin-top: var(--s13);
+  font-size: var(--type-xs);
+  color: var(--ink-3);
+}
+.hy-cols .foot a,
+.hy-cols .kept .more {
+  color: var(--ink-2);
+}
+.hy-cols .hrow {
+  display: grid;
+  grid-template-columns: 21px 89px auto minmax(0, 1fr);
+  align-items: center;
+  gap: var(--s8);
+  padding: var(--s5) 0;
+  border-top: 1px solid var(--line);
+  font-size: var(--type-sm);
+  color: var(--ink);
+  text-decoration: none;
+}
+.hy-cols .hrow .ar {
+  width: 21px;
+  height: 21px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: var(--type-sm);
+  font-weight: 600;
+}
+.hy-cols .ar.toward {
+  background: var(--h-green-soft);
+  color: var(--ok);
+}
+.hy-cols .ar.away {
+  background: var(--h-rose-soft);
+  color: var(--bad);
+}
+.hy-cols .ar.holding {
+  background: var(--paper-2);
+  color: var(--ink-2);
+}
+.hy-cols .ar.unmeasured {
+  border: 1px dashed var(--paper-3);
+  color: var(--ink-3);
+}
+.hy-cols .hrow .why {
+  color: var(--ink-2);
+  font-size: var(--type-xs);
+  text-align: right;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.hy-cols .hrow.goalrow {
+  background: var(--paper-2);
+  border-radius: var(--r-inner);
+  border: 0;
+  padding: var(--s8);
+  margin-bottom: var(--s5);
+  grid-template-columns: 21px auto minmax(0, 1fr);
+}
+.hy-cols .hrow.goalrow.away {
+  background: var(--h-rose-soft);
+}
+.hy-cols .hrow.goalrow.away .why {
+  color: var(--bad);
+}
+.hy-cols .hrow.goalrow.toward {
+  background: var(--h-green-soft);
+}
+.hy-cols .hrow.goalrow b {
+  font-weight: 600;
+}
+.hy-cols .hrow.u {
+  color: var(--ink-3);
+}
+@media (max-width: 599px) {
+  .hy-cols .hrow {
+    grid-template-columns: 21px minmax(0, 1fr) auto;
+  }
+  .hy-cols .hrow:not(.goalrow) .why {
+    grid-column: 2 / -1;
+    text-align: left;
+    margin-top: -3px;
+  }
+}
+.hy-cols .kept {
+  margin-top: var(--s13);
+  padding-top: var(--s13);
+  border-top: 1px solid var(--line);
+  font-size: var(--type-sm);
+  display: grid;
+  gap: var(--s5);
+}
+.hy-cols .kept small {
+  color: var(--ink-2);
+}
+.hy-cols .kept b {
+  font-weight: 500;
+}
+.hy-cols .kept .more {
+  font-size: var(--type-xs);
+  justify-self: start;
+}
+
+/* the Watch rows (53 `.wrow`) */
+.wlist {
+  display: grid;
+}
+.wrow {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: var(--s3) var(--s8);
+  padding: var(--s8);
+  margin: 0 calc(var(--s8) * -1);
+  width: calc(100% + 16px);
+  border: 0;
+  border-radius: var(--r-inner);
+  background: none;
+  color: var(--ink);
+  font: inherit;
+  font-size: var(--type-sm);
+  text-align: left;
+  cursor: pointer;
+  transition: background 300ms var(--ease);
+}
+.wrow:hover,
+.wrow:focus-visible {
+  background: var(--paper);
+}
+.wrow b {
+  font-weight: 500;
+}
+.wrow small {
+  grid-column: 1 / -1;
+  color: var(--ink-2);
+  font-size: var(--type-xs);
+}
+.wrow .go {
+  color: var(--ink-3);
+}
+.hy-quiet {
+  font-size: var(--type-sm);
+  color: var(--ink-3);
+}
+
+/* ── Worth a look (53 `.rail` / `.hc`): a scroller on the phone, a row on a desk */
+.hrail {
+  display: flex;
+  gap: var(--s13);
+  overflow-x: auto;
+  margin-inline: calc(var(--bleed, 12px) * -1);
+  padding: var(--s3) var(--bleed, 12px) var(--s13);
+  scrollbar-width: none;
+  scroll-snap-type: x mandatory;
+}
+.hrail::-webkit-scrollbar {
+  display: none;
+}
+.hrail .hc {
+  flex: none;
+  width: 233px;
+  scroll-snap-align: start;
+}
+@media (min-width: 1024px) {
+  .hrail {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    overflow: visible;
+    margin-inline: 0;
+    padding-inline: 0;
+  }
+  .hrail .hc {
+    width: auto;
+  }
+}
+.hc {
+  background: var(--card);
+  border: 0;
+  border-radius: var(--r-card);
+  padding: var(--s13);
+  box-shadow: var(--hy-lift);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s8);
+  min-height: 178px;
+  color: var(--ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  position: relative;
+  transition:
+    transform 420ms var(--ease-spring),
+    box-shadow 300ms var(--ease);
+}
+.hc:hover {
+  transform: translateY(-3px);
+}
+.hc.on {
+  box-shadow:
+    0 0 0 2px var(--plum),
+    var(--hy-lift);
+}
+:root[data-theme="dark"] .hc.on {
+  box-shadow:
+    0 0 0 2px var(--mist),
+    var(--hy-lift);
+}
+.hc .h4 {
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+}
+.hc .top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--s5);
+  font-size: var(--type-xs);
+  color: var(--ink-2);
+}
+.hc .state {
+  margin-top: auto;
+  font-size: var(--type-xs);
+  color: var(--ink-2);
+  display: flex;
+  justify-content: space-between;
+  gap: var(--s5);
+}
+.hc .state b {
+  font-weight: 600;
+  color: var(--ink);
+}
+.hc .state b.confirmed {
+  color: var(--ok);
+}
+.hc .state b.testing {
+  color: var(--warn);
+}
+.hc .state b.faded {
+  color: var(--ink-3);
+}
+.hc.closed {
+  opacity: 0.75;
+}
+@media (prefers-reduced-motion: reduce) {
+  .hc,
+  .hy-cols .trk i,
+  .case .trk i {
+    transition: none;
+  }
+  .hc:hover {
+    transform: none;
+  }
+}
+
+/* the phone keeps HomeRail; on a desk the three columns carry its cards */
+@media (min-width: 1024px) {
+  .hy-phone-rail {
+    display: none;
+  }
+}
+
+/* ── the case, inside the Drawer (53 `.case`, 54's depths) */
+.drawer-head .st {
+  border-radius: var(--r-pill);
+  padding: var(--s3) var(--s8);
+  background: var(--paper-2);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--ink-2);
+}
+.drawer-head .st.testing {
+  background: var(--h-amber-soft);
+  color: var(--warn);
+}
+.drawer-head .st.confirmed {
+  background: var(--h-green-soft);
+  color: var(--ok);
+}
+.drawer-head .st.ruled_out {
+  background: var(--h-rose-soft);
+  color: var(--bad);
+}
+.drawer-head .st.faded {
+  color: var(--ink-3);
+}
+.case {
+  display: grid;
+  gap: var(--s21);
+}
+.case h2 {
+  margin: 0;
+  font-size: 21px;
+  font-weight: 600;
+  letter-spacing: -0.035em;
+  line-height: 1.05;
+  color: var(--ink);
+}
+@media (min-width: 1024px) {
+  .case h2 {
+    font-size: 34px;
+  }
+}
+.case .say {
+  font-size: 15px;
+  color: var(--ink-2);
+  margin-top: var(--s8);
+}
+.case h3 {
+  margin: 0 0 var(--s8);
+  font-size: var(--type-sm);
+  font-weight: 600;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0 var(--s8);
+  color: var(--ink);
+}
+.case h3 small {
+  font-weight: 400;
+  color: var(--ink-3);
+  font-size: var(--type-xs);
+}
+.case .case-card {
+  padding: var(--s13);
+}
+@media (min-width: 1024px) {
+  .case .case-card {
+    padding: var(--s21);
+  }
+}
+.case .err {
+  color: var(--bad);
+}
+.case-lanes {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--s13) var(--s21);
+}
+@media (min-width: 600px) {
+  .case-lanes {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+.case-lanes h5 {
+  margin: 0 0 var(--s3);
+  font-size: var(--type-xs);
+  font-weight: 600;
+  display: flex;
+  justify-content: space-between;
+}
+.case-lanes h5 span {
+  font-weight: 400;
+  color: var(--ink-2);
+}
+.case .nob {
+  font-size: var(--type-xs);
+  color: var(--ink-3);
+  margin-top: var(--s5);
+}
+.case .ex {
+  display: grid;
+}
+.case .er {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) 42px;
+  gap: var(--s5);
+  align-items: baseline;
+  padding: var(--s8) 0;
+  font-size: var(--type-sm);
+}
+.case .er .p {
+  text-align: right;
+  font-weight: 600;
+}
+.case .er .trk {
+  grid-column: 2 / -1;
+}
+.case .er .pr {
+  grid-column: 2 / -1;
+  font-size: var(--type-xs);
+  color: var(--ink-2);
+  background: var(--paper);
+  border-left: 2px solid var(--h-amber);
+  padding: var(--s3) var(--s8);
+  border-radius: 0 5px 5px 0;
+  animation: hy-prin 500ms var(--ease) both;
+}
+@keyframes hy-prin {
+  from {
+    opacity: 0;
+    transform: translateX(-8px);
+  }
+}
+.case .qcard p {
+  font-size: 15px;
+}
+.case .qchips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s5);
+  margin-top: var(--s13);
+}
+.case .qchips button {
+  font: inherit;
+  font-size: var(--type-sm);
+  border: 0;
+  border-radius: var(--r-pill);
+  padding: var(--s5) var(--s13);
+  background: var(--paper);
+  color: var(--ink);
+  box-shadow: inset 0 0 0 1px var(--paper-3);
+  cursor: pointer;
+  transition:
+    background 300ms var(--ease),
+    color 300ms var(--ease),
+    transform 300ms var(--ease-spring);
+}
+.case .qchips button:disabled {
+  cursor: default;
+}
+.case .qchips button:disabled:not(.on) {
+  opacity: 0.55;
+}
+.case .qchips button.on {
+  background: var(--plum);
+  color: var(--cream);
+  box-shadow: none;
+  transform: scale(1.04);
+}
+:root[data-theme="dark"] .case .qchips button.on {
+  background: var(--cream);
+  color: var(--plum);
+}
+.case .qn,
+.case .tnote {
+  font-size: var(--type-xs);
+  color: var(--ink-3);
+  margin-top: var(--s8);
+}
+.case .tcard {
+  position: relative;
+  overflow: hidden;
+}
+.case .tt {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s8) var(--s13);
+}
+.case .tt b {
+  font-weight: 600;
+  font-size: 15px;
+  flex: 1;
+}
+.case .tt span {
+  color: var(--ink-2);
+  font-size: var(--type-sm);
+}
+.case .wstamp {
+  position: absolute;
+  right: var(--s13);
+  bottom: var(--s13);
+  padding: 0 var(--s8);
+  border: 3px solid var(--h-amber);
+  color: var(--h-amber);
+  border-radius: 8px;
+  font-size: var(--type-sm);
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  background: color-mix(in srgb, var(--card) 92%, transparent);
+  transform: rotate(-8deg) scale(2.2);
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    transform 520ms var(--ease-ispring),
+    opacity 200ms var(--ease);
+}
+.case .wstamp.on {
+  position: relative;
+  display: inline-block;
+  right: auto;
+  bottom: auto;
+  margin-top: var(--s13);
+  transform: rotate(-8deg) scale(1);
+  opacity: 1;
+}
+.case .gn {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s13);
+  font-size: var(--type-sm);
+  color: var(--ink-2);
+}
+.case .gn p {
+  flex: 1 1 240px;
+}
+.case .out {
+  border-radius: var(--r-card);
+  padding: var(--s13) var(--s21);
+  font-size: var(--type-sm);
+  position: relative;
+  background: var(--paper-2);
+  animation: hy-arr 600ms var(--ease-ispring) both;
+}
+.case .out b {
+  display: block;
+  font-size: 17px;
+  font-weight: 600;
+}
+.case .out.confirmed {
+  background: var(--h-green-soft);
+}
+.case .out.ruled_out {
+  background: var(--h-rose-soft);
+}
+.case .ostamp {
+  position: absolute;
+  right: var(--s13);
+  top: -13px;
+  padding: 0 var(--s8);
+  border: 3px solid currentColor;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  background: color-mix(in srgb, var(--card) 92%, transparent);
+  color: var(--ink-3);
+  transform: rotate(6deg);
+  animation: hy-slam 520ms var(--ease-ispring) both 200ms;
+}
+.case .out.confirmed .ostamp {
+  color: var(--ok);
+}
+.case .out.ruled_out .ostamp {
+  color: var(--bad);
+}
+.case .out.narrowed .ostamp {
+  color: var(--warn);
+}
+@keyframes hy-arr {
+  from {
+    opacity: 0;
+    transform: translateY(-13px) scale(0.96);
+  }
+}
+@keyframes hy-slam {
+  from {
+    transform: rotate(6deg) scale(2.2);
+    opacity: 0;
+  }
+}
+
+/* How we know (54's third depth): five folds */
+.case .hwk h3 {
+  font-size: 17px;
+  margin-bottom: var(--s3);
+}
+.case .hwk-sub {
+  font-size: var(--type-xs);
+  color: var(--ink-3);
+  margin-bottom: var(--s8);
+}
+.case .hfold {
+  border-top: 1px solid var(--line);
+}
+.case .hfold summary {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0 var(--s8);
+  padding: var(--s13) 0;
+  cursor: pointer;
+  list-style: none;
+  font-size: var(--type-sm);
+}
+.case .hfold summary::-webkit-details-marker {
+  display: none;
+}
+.case .hfold summary b {
+  font-weight: 600;
+}
+.case .hfold summary b::before {
+  content: "›";
+  display: inline-block;
+  width: 13px;
+  color: var(--ink-3);
+  transition: transform 300ms var(--ease);
+}
+.case .hfold[open] summary b::before {
+  transform: rotate(90deg);
+}
+.case .hfold summary small {
+  color: var(--ink-3);
+  font-size: var(--type-xs);
+}
+.case .hfold > :not(summary) {
+  margin-bottom: var(--s13);
+}
+.case .rl2,
+.case .unk {
+  display: grid;
+  gap: var(--s5);
+  padding-left: var(--s21);
+  font-size: var(--type-sm);
+  color: var(--ink-2);
+}
+.case .rl2 {
+  list-style: decimal;
+}
+.case .unk {
+  list-style: disc;
+}
+.case .drws {
+  display: grid;
+  font-size: var(--type-sm);
+}
+.case .drw {
+  display: grid;
+  grid-template-columns: 89px 89px minmax(0, 1fr);
+  gap: var(--s8);
+  padding: var(--s5) 0;
+  border-top: 1px solid var(--line);
+  align-items: baseline;
+}
+.case .drw:first-child {
+  border-top: 0;
+}
+.case .drw .dd {
+  color: var(--ink-2);
+}
+.case .drw .dv {
+  font-family: var(--font-num);
+  font-weight: 600;
+}
+.case .drw .dv small {
+  font-weight: 400;
+  color: var(--ink-3);
+}
+.case .drw .df {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s5);
+  min-width: 0;
+  color: var(--ink-3);
+  font-size: var(--type-xs);
+}
+.case .drw .df .src {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.case .drw .df a.src {
+  color: var(--ink-2);
+}
+@media (max-width: 599px) {
+  .case .drw {
+    grid-template-columns: 89px minmax(0, 1fr);
+  }
+  .case .drw .df {
+    grid-column: 1 / -1;
+  }
+}
+.case .evd {
+  padding: var(--s8) 0;
+  border-top: 1px solid var(--line);
+  font-size: var(--type-sm);
+}
+.case .evd:first-of-type {
+  border-top: 0;
+}
+.case .evd .et {
+  display: flex;
+  gap: var(--s8);
+  align-items: baseline;
+}
+.case .evd p {
+  margin-top: var(--s3);
+  font-size: var(--type-xs);
+  color: var(--ink-3);
+  padding-left: var(--s34);
+}
+.case .replay .ctl {
+  display: flex;
+  align-items: center;
+  gap: var(--s13);
+  margin-top: var(--s8);
+}
+.case .replay input[type="range"] {
+  flex: 1;
+  accent-color: var(--plum);
+}
+:root[data-theme="dark"] .case .replay input[type="range"] {
+  accent-color: var(--mist);
+}
+.case .replay .when2 {
+  font-family: var(--font-num);
+  font-size: var(--type-xs);
+  color: var(--ink-2);
+  white-space: nowrap;
+}
+.case .replay .rmsg {
+  margin-top: var(--s8);
+  font-size: var(--type-sm);
+  color: var(--ink-2);
+}
+@media (prefers-reduced-motion: reduce) {
+  .case .er .pr,
+  .case .out,
+  .case .ostamp {
+    animation: none;
+  }
+  .case .wstamp,
+  .case .qchips button,
+  .case .hfold summary b::before {
+    transition: none;
+  }
+}
+
+/* ══ Phase 40c: Blood's Markers tab gains 55's corridor rows ═════════════ */
+.bm-shelf {
+  margin-bottom: var(--s21);
+}
+.bm-shelf > header h2 {
+  margin: 0 0 var(--s8);
+  font-size: var(--type-md);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+.bm-shelf > header h2 small {
+  margin-left: var(--s5);
+  font-size: var(--type-xs);
+  font-weight: 500;
+  color: var(--ink-2);
+}
+.bm-list {
+  display: grid;
+  gap: var(--s8);
+}
+@media (min-width: 1024px) {
+  .bm-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+.bm-row {
+  display: block;
+  width: 100%;
+  text-align: left;
+  font: inherit;
+  color: var(--ink);
+  background: var(--card) var(--grain);
+  border: 0;
+  border-radius: var(--r-card);
+  padding: var(--s13);
+  box-shadow: var(--hy-lift);
+  cursor: pointer;
+  text-decoration: none;
+  transition: transform 200ms var(--ease);
+}
+.bm-row:hover {
+  transform: translateY(-1px);
+}
+.bm-row:focus-visible {
+  outline: 2px solid var(--plum-3);
+  outline-offset: 2px;
+}
+.bm-row.closed {
+  opacity: 0.6;
+}
+.bm-h .hl {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0 var(--s13);
+  align-items: baseline;
+}
+.bm-h .ht {
+  font-size: var(--type-sm);
+  font-weight: 600;
+  line-height: 1.3;
+}
+.bm-h .hn {
+  white-space: nowrap;
+}
+.bm-h .hn b {
+  font-family: var(--font-num);
+  font-size: 21px;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  color: var(--kc);
+}
+.bm-h .hn small,
+.bm-m .nm small,
+.bm-m .val small {
+  margin-left: var(--s3);
+  font-size: var(--type-xs);
+  color: var(--ink-2);
+}
+.bm-h .h2 {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s13);
+  margin-top: var(--s8);
+}
+.bm-h .act {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  max-width: 200px;
+  padding: var(--s5) var(--s13);
+  border-radius: var(--r-inner);
+  background: var(--plum);
+  color: var(--cream);
+  font-size: var(--type-xs);
+  font-weight: 600;
+}
+.bm-h .act small {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--mist);
+}
+.bm-h .act.soft {
+  background: var(--paper);
+  color: var(--ink);
+}
+.bm-h .act.soft small {
+  color: var(--ink-2);
+}
+.bm-m {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(96px, auto);
+  align-items: center;
+  gap: var(--s13);
+  border-radius: var(--r-inner);
+  padding: var(--s8) var(--s13);
+}
+.bm-m .nm b {
+  font-size: var(--type-sm);
+  font-weight: 600;
+}
+.bm-m .nm small {
+  margin: 0;
+  display: block;
+}
+.bm-m .val {
+  text-align: right;
+}
+.bm-m .val b {
+  display: block;
+  font-family: var(--font-num);
+  font-size: var(--type-md);
+  font-weight: 600;
+  color: var(--c);
+}
+.bm-m .val small {
+  margin: 0;
+  color: var(--c);
+}
+.bm-drawer .sheet-body,
+.bm-drawer .sheet-foot {
+  padding: 0;
+}
+.bm-drawer .drawer-head .src {
+  font-size: var(--type-xs);
+  font-weight: 500;
+  color: var(--ink-2);
+}
+@media (prefers-reduced-motion: reduce) {
+  .bm-row {
+    transition: none;
+  }
+}
+/* the lanes are too narrow for the band label; `.nob` under each says it */
+.case-lanes svg.cor text.bl {
+  display: none;
+}
+
+/* 40c: one page title across Body, Blood, Genome, Plan a draw and the
+   marker, the size `/plan` and `/graph` already print (ViewShell) */
+h1.c-title {
+  font-family: var(--font-display);
+  font-size: var(--type-xl);
+  font-weight: 500;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
 }

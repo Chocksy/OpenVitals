@@ -41,6 +41,10 @@ const nextConfig: NextConfig = {
   ),
   turbopack: {
     root: path.join(path.dirname(fileURLToPath(import.meta.url)), "..", ".."),
+    // Phase 40 screenshot harness: dev only, read-only, see `lib/dev-auth.ts`.
+    ...(process.env.OV_DEV_AS && process.env.NODE_ENV !== "production"
+      ? { resolveAlias: { "@/lib/auth": "./lib/dev-auth.ts" } }
+      : {}),
   },
   serverExternalPackages: ["pdfjs-dist", "pg"],
   redirects: async () =>

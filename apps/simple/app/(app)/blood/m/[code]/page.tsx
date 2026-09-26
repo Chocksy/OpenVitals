@@ -15,7 +15,9 @@ const systemName = (c: string) => {
   const t = fmtCategory(c);
   return t.charAt(0).toUpperCase() + t.slice(1);
 };
+import { corridorSeries } from "@/lib/home-hybrid";
 import { HistoryChart } from "@/components/history-chart";
+import { MarkerCorridor } from "@/components/hunch-board";
 import { Ruler, digits } from "@/components/ruler";
 import { GoalForm, OptimalForm } from "@/components/tracker";
 import { StateWord, type StateTone } from "@/components/ui-kit";
@@ -78,6 +80,8 @@ export default async function MarkerPage({
   const status = metric.status;
   const target = goal?.targetHigh ?? goal?.targetLow ?? null;
   const unit = metric.latest.unit ?? metric.unit;
+  // phase 40c: the corridor (your own band before each draw) over the lab draws
+  const cor = phone ? null : corridorSeries(metric);
   const delta =
     metric.latest.value != null && before?.value != null
       ? Math.round((metric.latest.value - before.value) * 100) / 100
@@ -173,6 +177,30 @@ export default async function MarkerPage({
           }
         />
       </div>
+
+      {cor && cor.series.length >= 2 && (
+        <div className="panel">
+          <div className="panel-head">
+            <h3>
+              Your own band{" "}
+              <span className="src">
+                · where each draw sat against the draws before it
+              </span>
+            </h3>
+            <span className="r">{plural(cor.series.length, "draw")}</span>
+          </div>
+          <MarkerCorridor
+            label={`${metric.name}: every lab draw against your own band`}
+            series={cor.series}
+            bandAt={cor.bandAt}
+            lab={cor.lab}
+            goal={
+              goal ? { low: goal.targetLow, high: goal.targetHigh } : null
+            }
+            unit={unit}
+          />
+        </div>
+      )}
 
       <HistoryChart
         title={`${metric.name} — every ${phone ? "reading" : "draw"}, and where the plan is aimed`}

@@ -23,6 +23,7 @@ const BASIS_CLASS: Record<string, string> = {
   science: "glyph sci",
   opinion: "glyph op",
   anecdotal: "glyph anec",
+  hypothesis: "glyph anec",
 };
 
 export function EvidenceChip({

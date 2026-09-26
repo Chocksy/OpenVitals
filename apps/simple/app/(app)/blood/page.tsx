@@ -7,6 +7,8 @@ import {
   toBiomarkerRow,
 } from "@/lib/data";
 import { getDraws, getPhoneMetrics } from "@/lib/daily-data";
+import { hunchesBody } from "@/lib/api-contract";
+import { markerLane } from "@/lib/home-hybrid";
 import { localPath, MIN_RAW_TEXT } from "@/lib/uploads";
 import { PillTabs } from "@/components/pill-tabs";
 import {
@@ -44,9 +46,10 @@ const DRAWER_POINTS = 24;
 export default async function BloodPage({
   searchParams,
 }: {
-  searchParams: Promise<{ tab?: string }>;
+  /** `?hunch=<id>` opens that case on the Markers tab (phase 40c) */
+  searchParams: Promise<{ tab?: string; hunch?: string }>;
 }) {
-  const { tab } = await searchParams;
+  const { tab, hunch } = await searchParams;
   const active: Tab = TABS.some((t) => t.id === tab) ? (tab as Tab) : "draws";
   const userId = await requireUserId();
   const db = getDb();
@@ -82,7 +85,10 @@ export default async function BloodPage({
   }
 
   if (active === "markers") {
-    const metrics = await getMetricRows(userId);
+    const [metrics, hunches] = await Promise.all([
+      getMetricRows(userId),
+      hunchesBody(userId),
+    ]);
     const rows: MarkerRow[] = metrics.map((m) => {
       const flat = toBiomarkerRow(m);
       const values = m.rows.filter((r) => r.value != null);
@@ -111,6 +117,10 @@ export default async function BloodPage({
         goalLow: goal?.targetLow ?? null,
         goalHigh: goal?.targetHigh ?? null,
         goalDue: goal?.due ?? null,
+        lane: markerLane(
+          m,
+          goal ? { low: goal.targetLow, high: goal.targetHigh } : null,
+        ),
       };
     });
     const order = new Map(
@@ -120,7 +130,13 @@ export default async function BloodPage({
       ]),
     );
     rows.sort((a, b) => (order.get(a.code) ?? 0) - (order.get(b.code) ?? 0));
-    body = <BloodMarkers rows={rows} />;
+    body = (
+      <BloodMarkers
+        rows={rows}
+        hunches={{ open: hunches.open, goodNews: hunches.goodNews }}
+        initialHunch={hunch ?? null}
+      />
+    );
   }
 
   if (active === "phone") {

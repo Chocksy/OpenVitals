@@ -1,11 +1,20 @@
 import type { Metadata } from "next";
-import { GeistSans } from "geist/font/sans";
+import { Space_Grotesk } from "next/font/google";
 import { GeistMono } from "geist/font/mono";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 
+/** Phase 40a: Space Grotesk is display and body (53); Geist Mono stays for
+ *  codes, rsids and file names. */
+const grotesk = Space_Grotesk({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-grotesk",
+  display: "swap",
+});
+
 export const metadata: Metadata = {
-  title: "OpenVitals",
+  title: "Halewell",
   description: "Personal biomarker tracker",
 };
 
@@ -32,7 +41,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={cn(GeistSans.variable, GeistMono.variable, "antialiased")}
+      className={cn(grotesk.variable, GeistMono.variable, "antialiased")}
       suppressHydrationWarning
     >
       <head>

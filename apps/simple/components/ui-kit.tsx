@@ -210,3 +210,128 @@ export function MiniSparkline({
     </svg>
   );
 }
+
+/* ── Phase 40a: the Hybrid primitives (53-web) ─────────────────────────── */
+
+/** What a stamp can say. The hunch kinds from `lib/signals.ts`, plus BELIEF
+ *  for a ledger line the engine keeps in mind. */
+export type StampKind =
+  | "step"
+  | "cluster"
+  | "drift"
+  | "gap"
+  | "good_news"
+  | "left_band"
+  | "discordance"
+  | "belief";
+
+const STAMP_WORD: Record<StampKind, string> = {
+  step: "STEP",
+  cluster: "CLUSTER",
+  drift: "DRIFT",
+  gap: "GAP",
+  good_news: "GOOD NEWS",
+  left_band: "OUT OF BAND",
+  discordance: "APART",
+  belief: "BELIEF",
+};
+
+/**
+ * 53's `.ks`: a small boxed word in one ink per kind. Space Grotesk caps
+ * with tracking, not mono (phase 40 "Conflicts settled"). It never moves.
+ * `children` overrides the word, for the server's own `stamp` string.
+ */
+export function Stamp({
+  kind,
+  className,
+  children,
+}: {
+  kind: StampKind | string;
+  className?: string;
+  children?: React.ReactNode;
+}) {
+  return (
+    <span className={cn("ks", kind, className)}>
+      {children ?? STAMP_WORD[kind as StampKind] ?? kind.toUpperCase()}
+    </span>
+  );
+}
+
+/**
+ * The age of the last draw as a ring (53 `.conf .ring`): full on the day of
+ * the draw, empty a `horizon` of days later. It draws out once on load; the
+ * reduced-motion guard is `.age-ring .fl` in globals.css.
+ */
+export function DrawAgeRing({
+  days,
+  horizon = 365,
+  className,
+}: {
+  days: number | null;
+  horizon?: number;
+  className?: string;
+}) {
+  const C = 2 * Math.PI * 14;
+  const fresh = days == null ? 0 : Math.max(0, 1 - days / horizon);
+  return (
+    <svg
+      className={cn("age-ring", className)}
+      viewBox="0 0 34 34"
+      aria-hidden="true"
+      data-fresh={fresh.toFixed(2)}
+    >
+      <circle className="tr" cx="17" cy="17" r="14" />
+      <circle
+        className="fl"
+        cx="17"
+        cy="17"
+        r="14"
+        strokeDasharray={C.toFixed(2)}
+        strokeDashoffset={(C * (1 - fresh)).toFixed(2)}
+      />
+    </svg>
+  );
+}
+
+export type HeadingWord = "toward" | "holding" | "away" | "unmeasured";
+
+export const HEADING_ARROW: Record<HeadingWord, string> = {
+  toward: "↗",
+  holding: "→",
+  away: "↘",
+  unmeasured: "·",
+};
+
+/**
+ * One system's heading, as a tile: the name and an arrow in the word's
+ * colour (53 `.strip div`). A soft fill is allowed here and on stamps and
+ * state pills only (phase 40 "Conflicts settled"). The word itself rides in
+ * the title and for screen readers, so the arrow is never the only signal.
+ */
+export function HeadingTile({
+  name,
+  word,
+  why,
+  className,
+  style,
+}: {
+  name: string;
+  word: HeadingWord;
+  why?: string;
+  className?: string;
+  style?: React.CSSProperties;
+}) {
+  return (
+    <div
+      className={cn("htile", word, className)}
+      title={why ? `${name}: ${why}` : undefined}
+      style={style}
+    >
+      <span>{name}</span>
+      <b aria-hidden="true">{HEADING_ARROW[word]}</b>
+      <span className="sr-only">{word}</span>
+    </div>
+  );
+}
+
+export { Drawer } from "./drawer";

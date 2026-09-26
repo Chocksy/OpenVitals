@@ -27,7 +27,7 @@ Output: {"items":[{"text":"...","why":"...","metricCodes":["..."]}]}`;
  * corePanels / medications / conditions inputs dropped (this app does not track
  * them) and a "dueAt" field added.
  */
-const RETEST_PROMPT = `You are a preventive health analyst for OpenVitals, a personal health tracking app. Your job is to design a focused, practical lab panel for the user's NEXT blood test.
+const RETEST_PROMPT = `You are a preventive health analyst for Halewell, a personal health tracking app. Your job is to design a focused, practical lab panel for the user's NEXT blood test.
 
 CONTEXT YOU RECEIVE:
 1. "retests" — every biomarker the user has tested. Each has: code, name, the last three values with dates, unit, health status (critical/warning/normal), days since last test, standard reference ranges (refLow/refHigh), and when available, evidence-based optimal ranges (optimalLow/optimalHigh) from preventive medicine sources like Peter Attia, Function Health, and the AHA.
@@ -315,7 +315,7 @@ Their most recent AI plans and check-ins:
 ${lines.slice(0, 2).join("\n") || "none"}`;
 }
 
-export const healthChatPrompt = `You are a helpful health data assistant for OpenVitals. You help users understand their health records and lab results.
+export const healthChatPrompt = `You are a helpful health data assistant for Halewell. You help users understand their health records and lab results.
 
 IMPORTANT RULES:
 1. You are NOT a doctor. Never diagnose conditions or prescribe treatments.

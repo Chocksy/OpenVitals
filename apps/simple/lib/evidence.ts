@@ -19,6 +19,8 @@ export const BASIS_GLYPH: Record<string, string> = {
   science: "●",
   opinion: "◐",
   anecdotal: "○",
+  /* phase 40: a hunch explanation the knowledge graph does not hold */
+  hypothesis: "○",
 };
 
 /** What each basis means, in the words the glossary uses. */
@@ -26,6 +28,7 @@ export const BASIS_TIP: Record<string, string> = {
   science: "a study or a guideline says so",
   opinion: "a clinician's judgement, not a study",
   anecdotal: "somebody's experience, not a study",
+  hypothesis: "an idea to test, not in the knowledge graph",
 };
 
 /** What each grade was read off. A and B are settled; D and E are the horizon. */
@@ -64,6 +67,7 @@ export const BASIS_WORD: Record<string, string> = {
   science: "study",
   opinion: "opinion",
   anecdotal: "anecdote",
+  hypothesis: "hypothesis",
 };
 
 /** The one legend, printed once at the top of the ledger. */

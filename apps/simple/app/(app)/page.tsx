@@ -1,5 +1,11 @@
 import { actionsForAll } from "@/lib/actions";
-import { planTodayBody, todayGoals } from "@/lib/api-contract";
+import {
+  genomeBody,
+  planTodayBody,
+  todayBody,
+  todayGoals,
+} from "@/lib/api-contract";
+import { corridorSeries, goalHero, todayLines } from "@/lib/home-hybrid";
 import { requireUserId } from "@/lib/auth";
 import { getMetricRows } from "@/lib/data";
 import { getGoals } from "@/lib/daily-data";
@@ -49,6 +55,13 @@ import { LedgerMotion } from "@/components/ledger-motion";
 import { LedgerList, SwapText } from "@/components/motion";
 import { AskLine } from "@/components/ask-line";
 import { ResearchCompact } from "@/components/research-panel";
+import { GoalHero, HunchBoard, HunchRail } from "@/components/hunch-board";
+import {
+  HeadingCol,
+  HyHero,
+  TodayCol,
+  WatchCol,
+} from "@/components/home-hybrid";
 
 export const dynamic = "force-dynamic";
 
@@ -58,11 +71,13 @@ export default async function Home({
   searchParams,
 }: {
   /** `?ask=<fact key>`: the question a link somewhere else asked for */
-  searchParams: Promise<{ ask?: string }>;
+  /** `?hunch=<id>`: open that hunch's case on load (phase 40b) */
+  searchParams: Promise<{ ask?: string; hunch?: string }>;
 }) {
   const userId = await requireUserId();
 
-  const want = (await searchParams).ask;
+  const params = await searchParams;
+  const want = params.ask;
   const day = localDay();
   const [
     ledger,
@@ -75,6 +90,8 @@ export default async function Home({
     papers,
     aims,
     planToday,
+    hybrid,
+    genome,
   ] = await Promise.all([
     buildLedger(userId),
     latestReport(userId),
@@ -86,6 +103,9 @@ export default async function Home({
     listWatch(userId),
     todayGoals(userId, day),
     planTodayBody(userId, day),
+    // phase 40b: the plum header, the goal hero, Today and the hunches
+    todayBody(userId, day),
+    genomeBody(userId),
   ]);
 
   if (rows.length === 0) return <EmptyHome />;
@@ -309,95 +329,167 @@ export default async function Home({
         tone: `tone-${firstMove.tone}`,
       };
 
+  /**
+   * Phase 40b, 53's hero: the first goal, big. With no goal (or a goal never
+   * measured) the hero is the spear, and "Fix this first" below steps aside.
+   */
+  const firstGoal = hybrid.goals[0];
+  const firstMetric = firstGoal ? byCode.get(firstGoal.code) : undefined;
+  const hero =
+    firstGoal && firstMetric
+      ? goalHero(firstGoal, corridorSeries(firstMetric), day)
+      : null;
+  const retestDue =
+    hybrid.confidence.days != null && hybrid.confidence.days >= 180;
+  const goalRow = hero
+    ? {
+        code: hero.code,
+        name: firstGoal!.name,
+        word: hero.word,
+        why: [hero.slope, hero.gap, retestDue ? "retest due" : null]
+          .filter(Boolean)
+          .join(", "),
+      }
+    : null;
+  /** "The engine keeps in mind": the two loudest beliefs, then genes that moved one. */
+  const beliefs = [spear, ...rest]
+    .filter((c): c is Conclusion => c != null && !!c.state && isLoud(c.state))
+    .slice(0, 2)
+    .map((c) => ({ id: c.id, title: c.title }));
+  const keptGenes = [...genome.genes]
+    .sort((a, b) => Number(b.moved) - Number(a.moved))
+    .slice(0, 2);
+
   return (
-    <div className="home">
-      <div className="home-top">
-        <HomeLight tone={cards[0]!.tone} />
-        <div>
-          <h1 className="home-sentence">
-            <SwapText text={title.head} />
-            {title.tail && <span className={title.tone}> {title.tail}</span>}
-          </h1>
-          <div className="home-meta">
-            {/* when nothing moved the Status card already prints the draw
+    <HunchBoard initial={params.hunch ?? null}>
+      <div className="home">
+        <HyHero
+          day={day}
+          heading={hybrid.heading}
+          confidence={hybrid.confidence}
+        />
+
+        {hero ? (
+          <GoalHero g={hero} />
+        ) : (
+          spear && <section className="hy-spear">{card(spear, true)}</section>
+        )}
+
+        <section className="hy-cols" aria-label="Today, Heading and Watch">
+          <TodayCol lines={todayLines(hybrid.score)} day={day} />
+          <HeadingCol
+            heading={hybrid.heading}
+            lastDraw={hybrid.confidence.lastDraw}
+            goal={goalRow}
+          />
+          <WatchCol rows={hybrid.hunches} beliefs={beliefs} genes={keptGenes} />
+        </section>
+
+        {hybrid.hunches.length > 0 && (
+          <section>
+            <div className="ttl hy-ttl">
+              <h2>Worth a look</h2>
+              <small>
+                {hybrid.hunches.length}{" "}
+                {hybrid.hunches.length === 1 ? "hunch" : "hunches"} ·{" "}
+                {hybrid.confidence.open} open
+              </small>
+            </div>
+            <HunchRail rows={hybrid.hunches} />
+          </section>
+        )}
+
+        <div className="home-top">
+          <HomeLight tone={cards[0]!.tone} />
+          <div>
+            <h2 className="home-sentence">
+              <SwapText text={title.head} />
+              {title.tail && <span className={title.tone}> {title.tail}</span>}
+            </h2>
+            <div className="home-meta">
+              {/* when nothing moved the Status card already prints the draw
                 date, so the meta line stays quiet instead of repeating it */}
-            {moved ? <SinceLine since={ledger.since} day={day} /> : null}
+              {moved ? <SinceLine since={ledger.since} day={day} /> : null}
+            </div>
+          </div>
+
+          {/* phase 40b: the phone's rail; on a desk the three columns carry it */}
+          <div className="hy-phone-rail">
+            <HomeRail cards={cards} />
           </div>
         </div>
 
-        <HomeRail cards={cards} />
-      </div>
+        <AskLine />
 
-      <AskLine />
-
-      {/**
-       * UX note 10: the twelve systems, once. Tiles from 768 px up, where the
-       * rail has already dropped its system cards; chips on the phone, where
-       * the rail keeps them and a rail hides what it scrolls past.
-       */}
-      <section>
-        <SectionHeader title="Systems" href="/graph" linkLabel="Your graph" />
-        <SystemTiles tiles={systemTiles(ledger.systems)} />
-        <SystemChips systems={ledger.systems} />
-      </section>
-
-      <TodayQuestions
-        today={today}
-        day={day}
-        ask={plan.ask}
-        askKey={want}
-        askOptions={plan.ask ? optionsFor(plan.ask.key) : []}
-      />
-
-      {spear && (
+        {/**
+         * UX note 10: the twelve systems, once. Tiles from 768 px up, where the
+         * rail has already dropped its system cards; chips on the phone, where
+         * the rail keeps them and a rail hides what it scrolls past.
+         */}
         <section>
-          <SectionHeader
-            title="Fix this first"
-            href="/plan"
-            linkLabel="Full plan"
-          />
-          {card(spear, true)}
+          <SectionHeader title="Systems" href="/graph" linkLabel="Your graph" />
+          <SystemTiles tiles={systemTiles(ledger.systems)} />
+          <SystemChips systems={ledger.systems} />
         </section>
-      )}
 
-      {(rest.length > 0 || findings.length > 0) && (
-        <LedgerList className="space-y-3">
-          <SectionHeader title="The ledger" />
-          {/* UX note 8: the glyph legend, once, at the top of the ledger. */}
-          <EvidenceLegend />
-          {findings.map((f) => (
-            <FindingsCard key={f.id} finding={f} />
-          ))}
-          {collapse(loud).map(row)}
-          <ImprovedCard improved={ledger.improved} />
-          {collapse(quietTail).map(row)}
-        </LedgerList>
-      )}
+        <TodayQuestions
+          today={today}
+          day={day}
+          ask={plan.ask}
+          askKey={want}
+          askOptions={plan.ask ? optionsFor(plan.ask.key) : []}
+        />
 
-      {/**
-       * Phase 32a section 1: the compact research panel, under the ledger and
-       * above key trends. `ResearchCompact` draws nothing unless a paper moved
-       * something, because a panel that always says "nothing new" trains the
-       * eye to skip it; the empty state lives on the Research tab.
-       */}
-      <ResearchCompact rows={papers} />
+        {spear && hero && (
+          <section>
+            <SectionHeader
+              title="Fix this first"
+              href="/plan"
+              linkLabel="Full plan"
+            />
+            {card(spear, true)}
+          </section>
+        )}
 
-      <QuietLine quiet={ledger.quiet} />
+        {(rest.length > 0 || findings.length > 0) && (
+          <LedgerList className="space-y-3">
+            <SectionHeader title="The ledger" />
+            {/* UX note 8: the glyph legend, once, at the top of the ledger. */}
+            <EvidenceLegend />
+            {findings.map((f) => (
+              <FindingsCard key={f.id} finding={f} />
+            ))}
+            {collapse(loud).map(row)}
+            <ImprovedCard improved={ledger.improved} />
+            {collapse(quietTail).map(row)}
+          </LedgerList>
+        )}
 
-      {trends.length > 0 && (
-        <section>
-          <SectionHeader
-            title="Key trends"
-            href="/blood?tab=markers"
-            linkLabel="All markers"
-          />
-          <KeyTrends trends={trends} />
-        </section>
-      )}
+        {/**
+         * Phase 32a section 1: the compact research panel, under the ledger and
+         * above key trends. `ResearchCompact` draws nothing unless a paper moved
+         * something, because a panel that always says "nothing new" trains the
+         * eye to skip it; the empty state lives on the Research tab.
+         */}
+        <ResearchCompact rows={papers} />
 
-      {/* Last child on purpose: it renders a fixed toast, so anywhere else in
+        <QuietLine quiet={ledger.quiet} />
+
+        {trends.length > 0 && (
+          <section>
+            <SectionHeader
+              title="Key trends"
+              href="/blood?tab=markers"
+              linkLabel="All markers"
+            />
+            <KeyTrends trends={trends} />
+          </section>
+        )}
+
+        {/* Last child on purpose: it renders a fixed toast, so anywhere else in
           a `space-y-8` stack it would push the card under it down. */}
-      <LedgerMotion snapshot={snapshotLedger(ledger)} />
-    </div>
+        <LedgerMotion snapshot={snapshotLedger(ledger)} />
+      </div>
+    </HunchBoard>
   );
 }

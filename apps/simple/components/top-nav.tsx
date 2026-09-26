@@ -87,10 +87,15 @@ export function TopNav({
 
   return (
     <>
-      <header className="nav-bar sticky top-0 z-50">
+      {/* Phase 40a: the plum header from 53. On Home it runs flush into the
+          plum hero below it, so it drops its own rounded foot there. */}
+      <header
+        className="nav-bar hy-head sticky top-0 z-50"
+        data-flush={pathname === "/" ? "true" : undefined}
+      >
         <div className="topbar mx-auto max-w-[1400px] px-4">
           <Link href="/" className="brand">
-            OpenVitals
+            Halewell
           </Link>
 
           <nav className="pills hidden md:flex" aria-label="Destinations">
@@ -112,10 +117,11 @@ export function TopNav({
           <span className="grow" />
 
           <AddButton
-            className="hidden md:inline-grid"
+            className="wide hidden md:inline-flex"
             onClick={() => openComposer()}
           >
-            <Plus className="ic i24" />
+            <Plus className="ic" />
+            Add
           </AddButton>
 
           <details className="avmenu">

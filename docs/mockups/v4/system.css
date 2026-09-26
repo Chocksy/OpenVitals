@@ -128,6 +128,41 @@
   --dur-quick: 150ms;
   --dur-fast: 250ms;
   --ease: cubic-bezier(0.22, 1, 0.36, 1);
+
+  /* Hybrid (phase 37) ─────────────────────────────────────────────────
+     The 48 Hybrid home, from ios-variations/48-hybrid.html. Light only:
+     Today draws this palette in both schemes, so there is no dark twin.
+     --plum is the header and the ink; the layers each carry a light step;
+     the status four are prefixed --h- so the v4 spectrum keeps its names.
+     --h-lime is only the plus, Send and the island. The curves: --ease-spring
+     for cards, bars and counts, --ease-ispring for the island only,
+     --ease-fly for the ticked card on its way to the header. */
+  --plum-0: #1e0a24;
+  --plum: #2b1033;
+  --plum-2: #3d1947;
+  --plum-3: #5a2d66;
+  --mist: #cdb8d2;
+  --paper: #f3ead8;
+  --paper-2: #ebdfc7;
+  --paper-3: #dccbad;
+  --card: #fffdf8;
+  --cream: #f6eddc;
+  --life: #e4722f;
+  --life-lt: #f59257;
+  --blood: #c23a5e;
+  --blood-lt: #ea6a8d;
+  --gene: #6c4aa6;
+  --gene-lt: #a98ae6;
+  --h-green: #23995d;
+  --h-green-soft: #d9efdf;
+  --h-amber: #c98512;
+  --h-amber-soft: #f6e3bf;
+  --h-rose: #d2415b;
+  --h-rose-soft: #f8dbe0;
+  --h-lime: #d6f34a;
+  --ease-spring: cubic-bezier(0.3, 1.35, 0.5, 1);
+  --ease-ispring: cubic-bezier(0.34, 1.4, 0.64, 1);
+  --ease-fly: cubic-bezier(0.5, 0, 0.75, 0);
 }
 
 /* Dark. `.dark` is the v4 pages' toggle class; `[data-theme="dark"]` is the
