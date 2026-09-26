@@ -1,0 +1,2377 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Web · variation 53 · OpenVitals</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --plum-0: #1e0a24;
+        --plum: #2b1033;
+        --plum-2: #3d1947;
+        --plum-3: #5a2d66;
+        --mist: #cdb8d2;
+        --paper: #f3ead8;
+        --paper-2: #ebdfc7;
+        --paper-3: #dccbad;
+        --card: #fffdf8;
+        --cream: #f6eddc;
+        --ink: #2b1033;
+        --ink-2: #6f5a72;
+        --ink-3: #a08fa0;
+        --line: #eadfcb;
+        --life: #e4722f;
+        --blood: #c23a5e;
+        --gene: #6c4aa6;
+        --life-l: #f59257;
+        --blood-l: #ea6a8d;
+        --gene-l: #a98ae6;
+        --green: #23995d;
+        --green-soft: #d9efdf;
+        --amber: #c98512;
+        --amber-soft: #f6e3bf;
+        --rose: #d2415b;
+        --rose-soft: #f8dbe0;
+        --lime: #d6f34a;
+        --s3: 3px;
+        --s5: 5px;
+        --s8: 8px;
+        --s13: 13px;
+        --s21: 21px;
+        --s34: 34px;
+        --s55: 55px;
+        --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+        --spring: cubic-bezier(0.3, 1.35, 0.5, 1);
+        --ispring: cubic-bezier(0.34, 1.4, 0.64, 1);
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--paper-2);
+        background-image: var(--noise);
+        background-size: 128px 128px;
+        color: var(--ink);
+        font:
+          15px/1.4 "Space Grotesk",
+          -apple-system,
+          system-ui,
+          sans-serif;
+        font-feature-settings: "tnum";
+      }
+      button {
+        font: inherit;
+        color: inherit;
+        background: none;
+        border: 0;
+        padding: 0;
+        cursor: pointer;
+        text-align: left;
+      }
+      h1,
+      h2,
+      h3,
+      p {
+        margin: 0;
+      }
+
+      /* ---- page ---- */
+      .doc {
+        width: 1300px;
+        margin: 0 auto;
+        padding: var(--s21) 10px var(--s55);
+      }
+      .doc > header {
+        margin-bottom: var(--s21);
+        display: grid;
+        grid-template-columns: 1fr 1.7fr;
+        gap: var(--s34);
+        align-items: end;
+      }
+      .eyebrow {
+        color: var(--ink-2);
+        font-size: 13px;
+        margin-bottom: var(--s5);
+        letter-spacing: 0.04em;
+      }
+      .doc h1 {
+        font-size: 34px;
+        font-weight: 600;
+        letter-spacing: -0.04em;
+        line-height: 1;
+      }
+      .lede {
+        color: var(--ink-2);
+        font-size: 13px;
+        margin-top: var(--s8);
+        max-width: 50ch;
+      }
+      .direction {
+        background: var(--card);
+        border-radius: 21px;
+        padding: var(--s13) var(--s21);
+        font-size: 13px;
+        display: grid;
+        grid-template-columns: 89px 1fr;
+        gap: var(--s3) var(--s13);
+        color: var(--ink-2);
+        box-shadow: 0 13px 34px -21px rgba(43, 16, 51, 0.35);
+      }
+      .direction b {
+        color: var(--ink);
+        font-weight: 500;
+      }
+      .cap {
+        display: flex;
+        justify-content: space-between;
+        color: var(--ink-2);
+        font-size: 13px;
+        margin: 0 0 var(--s13);
+      }
+      .cap b {
+        color: var(--ink);
+        font-weight: 500;
+      }
+
+      /* ---- frames ---- */
+      .frame {
+        position: relative;
+        overflow: hidden;
+        background-color: var(--paper);
+        background-image: var(--noise);
+        background-size: 128px 128px;
+        box-shadow:
+          0 0 0 1px var(--paper-3),
+          0 55px 89px -34px rgba(43, 16, 51, 0.45);
+      }
+      .frame.w {
+        width: 1280px;
+        border-radius: 21px;
+      }
+      .frame.n {
+        width: 390px;
+        height: 844px;
+        border-radius: 34px;
+        display: flex;
+        flex-direction: column;
+      }
+      .bbar {
+        height: 34px;
+        flex: none;
+        display: flex;
+        align-items: center;
+        gap: var(--s8);
+        padding: 0 var(--s13);
+        background: var(--plum-0);
+        color: var(--mist);
+        font-size: 11px;
+      }
+      .bbar i {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: var(--plum-3);
+      }
+      .bbar span {
+        margin-left: var(--s13);
+        flex: 1;
+        max-width: 377px;
+        background: var(--plum-2);
+        border-radius: 8px;
+        padding: var(--s3) var(--s13);
+      }
+      .n .bbar {
+        justify-content: center;
+      }
+      .n .bbar i {
+        display: none;
+      }
+      .n .bbar span {
+        margin: 0;
+        text-align: center;
+      }
+      .vp {
+        flex: 1;
+        overflow-y: auto;
+        overflow-x: hidden;
+        scrollbar-width: none;
+      }
+      .vp::-webkit-scrollbar {
+        display: none;
+      }
+
+      /* ---- the plum header ---- */
+      .hd {
+        background:
+          radial-gradient(60% 120% at 12% 0%, #4d1d58 0%, transparent 70%),
+          var(--plum);
+        color: var(--cream);
+        border-radius: 0 0 34px 34px;
+        padding: 0 var(--s34) var(--s21);
+        box-shadow: 0 13px 21px -13px rgba(43, 16, 51, 0.5);
+        position: relative;
+      }
+      .nav {
+        height: 55px;
+        display: flex;
+        align-items: center;
+        gap: var(--s21);
+        font-size: 13px;
+        color: var(--mist);
+        border-bottom: 1px solid rgba(205, 184, 210, 0.14);
+      }
+      .nav .logo {
+        color: var(--cream);
+        font-weight: 600;
+        font-size: 15px;
+        letter-spacing: -0.02em;
+        margin-right: var(--s13);
+      }
+      .nav .on {
+        color: var(--cream);
+      }
+      .nav .sp {
+        flex: 1;
+      }
+      .nav .add {
+        background: var(--lime);
+        color: var(--plum);
+        font-weight: 600;
+        border-radius: 999px;
+        padding: var(--s5) var(--s13);
+      }
+      .avatar {
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        background: var(--plum-2);
+        border: 1px solid var(--plum-3);
+        display: grid;
+        place-items: center;
+        font-size: 17px;
+      }
+      .hg {
+        display: grid;
+        grid-template-columns: 1fr 610px;
+        gap: var(--s34);
+        align-items: end;
+        padding-top: var(--s21);
+      }
+      .hg small.e {
+        display: block;
+        font-size: 11px;
+        color: var(--mist);
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        margin-bottom: var(--s8);
+      }
+      .hg h2 {
+        font-size: 34px;
+        font-weight: 600;
+        letter-spacing: -0.035em;
+        line-height: 1.05;
+      }
+      .hg h2 em {
+        font-style: normal;
+        color: var(--blood-l);
+      }
+      .hg p {
+        color: var(--mist);
+        font-size: 13px;
+        margin-top: var(--s8);
+        max-width: 55ch;
+      }
+      .strip {
+        display: grid;
+        grid-template-columns: repeat(6, 1fr);
+        gap: var(--s5);
+      }
+      .strip div {
+        border-radius: 13px;
+        padding: var(--s5) var(--s8);
+        background: rgba(246, 237, 220, 0.07);
+        font-size: 11px;
+        color: var(--mist);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: var(--s5);
+        animation: tin 600ms var(--ease) both;
+        animation-delay: calc(var(--k) * 40ms);
+      }
+      @keyframes tin {
+        from {
+          opacity: 0;
+          transform: translateY(5px);
+        }
+      }
+      .strip div b {
+        font-weight: 600;
+        font-size: 13px;
+      }
+      .strip .toward {
+        background: rgba(35, 153, 93, 0.24);
+        color: #bfe8cf;
+      }
+      .strip .away {
+        background: rgba(234, 106, 141, 0.22);
+        color: #f6c2d0;
+      }
+      .strip .holding b {
+        color: var(--cream);
+      }
+      .strip .unmeasured {
+        background: none;
+        box-shadow: inset 0 0 0 1px rgba(205, 184, 210, 0.22);
+        color: rgba(205, 184, 210, 0.6);
+      }
+      .conf {
+        margin-top: var(--s21);
+        display: flex;
+        align-items: center;
+        gap: var(--s13);
+        font-size: 13px;
+        color: var(--mist);
+        padding-top: var(--s13);
+        border-top: 1px solid rgba(205, 184, 210, 0.14);
+      }
+      .conf b {
+        color: var(--cream);
+        font-weight: 500;
+      }
+      .conf .sp {
+        flex: 1;
+      }
+      .ring {
+        width: 34px;
+        height: 34px;
+        flex: none;
+        transform: rotate(-90deg);
+      }
+      .ring circle {
+        fill: none;
+        stroke-width: 3;
+      }
+      .ring .tr {
+        stroke: rgba(246, 237, 220, 0.14);
+      }
+      .ring .fl {
+        stroke: var(--amber);
+        stroke-linecap: round;
+        animation: ringout 1600ms var(--ease) both 300ms;
+      }
+      @keyframes ringout {
+        from {
+          stroke-dashoffset: 0;
+        }
+      }
+      .conf .due {
+        border-radius: 999px;
+        padding: var(--s3) var(--s13);
+        box-shadow: inset 0 0 0 1px rgba(205, 184, 210, 0.3);
+        color: var(--cream);
+        font-size: 13px;
+      }
+
+      /* ---- body ---- */
+      .bd {
+        padding: var(--s21) var(--s34) var(--s34);
+        display: grid;
+        gap: var(--s21);
+      }
+      .card {
+        background: var(--card);
+        border-radius: 21px;
+        padding: var(--s21);
+        box-shadow:
+          0 1px 0 #fff inset,
+          0 13px 21px -13px rgba(43, 16, 51, 0.3);
+      }
+      .ttl {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        margin-bottom: var(--s13);
+      }
+      .ttl h3 {
+        font-size: 17px;
+        font-weight: 600;
+        letter-spacing: -0.02em;
+      }
+      .ttl small {
+        font-size: 11px;
+        color: var(--ink-2);
+        letter-spacing: 0.02em;
+      }
+
+      /* hero */
+      .hero {
+        display: grid;
+        grid-template-columns: 300px 1fr;
+        gap: var(--s34);
+      }
+      .hero .lbl {
+        font-size: 11px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--ink-2);
+        font-weight: 500;
+      }
+      .hero .big {
+        display: flex;
+        align-items: baseline;
+        gap: var(--s8);
+        margin-top: var(--s8);
+      }
+      .hero .big b {
+        font-size: 55px;
+        font-weight: 600;
+        letter-spacing: -0.05em;
+        line-height: 1;
+      }
+      .hero .big small {
+        color: var(--ink-2);
+        font-size: 13px;
+      }
+      .word {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--s5);
+        border-radius: 999px;
+        padding: var(--s3) var(--s8);
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+      }
+      .word.away {
+        background: var(--rose-soft);
+        color: var(--rose);
+      }
+      .word.toward {
+        background: var(--green-soft);
+        color: var(--green);
+      }
+      .word.holding {
+        background: var(--paper-2);
+        color: var(--ink-2);
+      }
+      .word.unmeasured {
+        box-shadow: inset 0 0 0 1px var(--paper-3);
+        color: var(--ink-3);
+      }
+      .hero .facts {
+        margin-top: var(--s13);
+        display: grid;
+        gap: var(--s5);
+        font-size: 13px;
+        color: var(--ink-2);
+      }
+      .hero .facts b {
+        color: var(--ink);
+        font-weight: 500;
+      }
+      .hero .sent {
+        margin-top: var(--s13);
+        font-size: 15px;
+        line-height: 1.35;
+      }
+      .seg {
+        display: inline-flex;
+        margin-top: var(--s13);
+        background: var(--paper-2);
+        border-radius: 999px;
+        padding: var(--s3);
+      }
+      .seg button {
+        font-size: 11px;
+        padding: var(--s3) var(--s13);
+        border-radius: 999px;
+        color: var(--ink-2);
+        transition: background 300ms var(--ease);
+      }
+      .seg button.on {
+        background: var(--card);
+        color: var(--ink);
+        box-shadow: 0 1px 3px rgba(43, 16, 51, 0.15);
+      }
+      .legend {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--s5) var(--s13);
+        font-size: 11px;
+        color: var(--ink-2);
+        margin-bottom: var(--s8);
+      }
+      .legend span {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--s5);
+      }
+      .legend i {
+        display: inline-block;
+        width: 21px;
+        height: 8px;
+        border-radius: 3px;
+      }
+      .legend .lb {
+        background: rgba(194, 58, 94, 0.16);
+      }
+      .legend .ll {
+        height: 0;
+        border-top: 1px dashed var(--ink-3);
+      }
+      .legend .lg {
+        background: var(--green-soft);
+      }
+      .legend .lx {
+        height: 0;
+        border-top: 2px dashed var(--amber);
+      }
+
+      /* charts */
+      svg.ch {
+        display: block;
+        width: 100%;
+        height: auto;
+        overflow: visible;
+        font-family: inherit;
+      }
+      .ch text {
+        font-size: 11px;
+        fill: var(--ink-2);
+      }
+      .ch .v {
+        fill: var(--ink);
+        font-weight: 600;
+      }
+      .ch .tick {
+        stroke: var(--line);
+        stroke-width: 1;
+      }
+      .ch .lab {
+        stroke: var(--ink-3);
+        stroke-width: 1;
+        stroke-dasharray: 3 3;
+      }
+      .ch .band {
+        fill: rgba(194, 58, 94, 0.14);
+      }
+      .ch .med {
+        stroke: rgba(194, 58, 94, 0.45);
+        stroke-width: 1;
+        stroke-dasharray: 2 3;
+      }
+      .ch .goal {
+        fill: var(--green-soft);
+      }
+      .ch .ln {
+        fill: none;
+        stroke: var(--plum-3);
+        stroke-width: 1.5;
+        stroke-linejoin: round;
+      }
+      .ch .ext {
+        fill: none;
+        stroke: var(--amber);
+        stroke-width: 2;
+        stroke-dasharray: 5 5;
+      }
+      .ch .step {
+        stroke: var(--blood);
+        stroke-width: 1;
+        stroke-dasharray: 5 3;
+      }
+      .ch .d {
+        fill: var(--plum);
+        stroke: var(--card);
+        stroke-width: 1.5;
+      }
+      .ch .d.out {
+        fill: var(--blood);
+      }
+      .ch .gl {
+        fill: var(--green);
+        font-weight: 600;
+      }
+      .ch .xl {
+        fill: var(--amber);
+        font-weight: 600;
+      }
+      .ch .bl {
+        fill: var(--blood);
+      }
+      .anim .ln {
+        stroke-dasharray: 1;
+        stroke-dashoffset: 1;
+        animation: draw 1300ms var(--ease) forwards var(--dl, 250ms);
+      }
+      .anim .ext {
+        opacity: 0;
+        animation: fade 600ms var(--ease) forwards
+          calc(var(--dl, 250ms) + 1200ms);
+      }
+      .anim .band,
+      .anim .goal {
+        transform-box: fill-box;
+        transform-origin: 50% 50%;
+        animation: fill 900ms var(--spring) both var(--dl, 250ms);
+      }
+      .anim .d {
+        transform-box: fill-box;
+        transform-origin: 50% 50%;
+        animation: pop 420ms var(--ispring) both;
+        animation-delay: calc(var(--dl, 250ms) + var(--k) * 110ms);
+      }
+      .anim .v,
+      .anim .gl,
+      .anim .xl,
+      .anim .bl {
+        animation: fade 500ms var(--ease) both calc(var(--dl, 250ms) + 900ms);
+      }
+      @keyframes draw {
+        to {
+          stroke-dashoffset: 0;
+        }
+      }
+      @keyframes fade {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+      @keyframes fill {
+        from {
+          transform: scaleY(0);
+          opacity: 0;
+        }
+      }
+      @keyframes pop {
+        from {
+          transform: scale(0);
+        }
+      }
+
+      /* three levels */
+      .cols {
+        display: grid;
+        grid-template-columns: 1fr 1.25fr 1fr;
+        gap: var(--s21);
+        align-items: start;
+      }
+      .lv {
+        font-size: 11px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--ink-3);
+        font-weight: 600;
+      }
+      .trow {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: var(--s3) var(--s8);
+        padding: var(--s8) 0;
+        border-top: 1px solid var(--line);
+        font-size: 13px;
+      }
+      .trow:first-of-type {
+        border-top: 0;
+      }
+      .trow b {
+        font-weight: 500;
+      }
+      .trow small {
+        color: var(--ink-2);
+      }
+      .trk {
+        grid-column: 1 / -1;
+        position: relative;
+        height: 5px;
+        border-radius: 3px;
+        background: var(--paper-2);
+        overflow: hidden;
+      }
+      .trk i {
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 0;
+        border-radius: 3px;
+        background: var(--c, var(--life));
+        transition:
+          width 800ms var(--spring),
+          background 400ms var(--ease);
+      }
+      .foot {
+        margin-top: var(--s13);
+        font-size: 11px;
+        color: var(--ink-3);
+      }
+      .hrow {
+        display: grid;
+        grid-template-columns: 21px 89px auto 1fr;
+        align-items: center;
+        gap: var(--s8);
+        padding: var(--s5) 0;
+        border-top: 1px solid var(--line);
+        font-size: 13px;
+      }
+      .hrow .ar {
+        width: 21px;
+        height: 21px;
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        font-size: 13px;
+        font-weight: 600;
+      }
+      .hrow .ar.toward {
+        background: var(--green-soft);
+        color: var(--green);
+      }
+      .hrow .ar.away {
+        background: var(--rose-soft);
+        color: var(--rose);
+      }
+      .hrow .ar.holding {
+        background: var(--paper-2);
+        color: var(--ink-2);
+      }
+      .hrow .ar.unmeasured {
+        box-shadow: inset 0 0 0 1px var(--paper-3);
+        border: 1px dashed var(--paper-3);
+      }
+      .hrow .why {
+        color: var(--ink-2);
+        font-size: 11px;
+        text-align: right;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .hrow.goalrow {
+        background: var(--rose-soft);
+        border-radius: 13px;
+        border: 0;
+        padding: var(--s8);
+        margin-bottom: var(--s5);
+        grid-template-columns: 21px 1fr auto;
+      }
+      .hrow.goalrow b {
+        font-weight: 600;
+      }
+      .hrow.u {
+        color: var(--ink-3);
+      }
+      .wrow {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: var(--s3) var(--s8);
+        padding: var(--s8);
+        margin: 0 calc(var(--s8) * -1);
+        border-radius: 13px;
+        font-size: 13px;
+        width: calc(100% + 16px);
+        transition: background 300ms var(--ease);
+      }
+      .wrow:hover {
+        background: var(--paper);
+      }
+      .wrow b {
+        font-weight: 500;
+      }
+      .wrow small {
+        grid-column: 1 / -1;
+        color: var(--ink-2);
+        font-size: 11px;
+      }
+      .wrow .go {
+        color: var(--ink-3);
+      }
+      .kept {
+        margin-top: var(--s13);
+        padding-top: var(--s13);
+        border-top: 1px solid var(--line);
+        font-size: 13px;
+        display: grid;
+        gap: var(--s5);
+      }
+      .kept small {
+        color: var(--ink-2);
+      }
+      .ks {
+        display: inline-block;
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        border: 1.5px solid currentColor;
+        border-radius: 5px;
+        padding: 0 var(--s5);
+        line-height: 16px;
+        white-space: nowrap;
+      }
+      .ks.step,
+      .ks.drift {
+        color: var(--blood);
+      }
+      .ks.cluster {
+        color: var(--gene);
+      }
+      .ks.gap {
+        color: var(--amber);
+      }
+      .ks.good_news {
+        color: var(--green);
+      }
+
+      /* rail */
+      .rail {
+        display: grid;
+        grid-template-columns: repeat(6, 1fr);
+        gap: var(--s13);
+      }
+      .hc {
+        background: var(--card);
+        border-radius: 21px;
+        padding: var(--s13);
+        box-shadow:
+          0 1px 0 #fff inset,
+          0 13px 21px -13px rgba(43, 16, 51, 0.3);
+        display: flex;
+        flex-direction: column;
+        gap: var(--s8);
+        min-height: 178px;
+        transition:
+          transform 420ms var(--spring),
+          box-shadow 300ms var(--ease);
+        position: relative;
+      }
+      .hc:hover {
+        transform: translateY(-3px);
+      }
+      .hc.sel {
+        box-shadow:
+          0 0 0 2px var(--plum),
+          0 13px 21px -13px rgba(43, 16, 51, 0.3);
+      }
+      .hc h4 {
+        margin: 0;
+        font-size: 15px;
+        font-weight: 600;
+        letter-spacing: -0.01em;
+        line-height: 1.2;
+      }
+      .hc .top {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 11px;
+        color: var(--ink-2);
+      }
+      .hc .state {
+        margin-top: auto;
+        font-size: 11px;
+        color: var(--ink-2);
+        display: flex;
+        justify-content: space-between;
+      }
+      .hc .state b {
+        font-weight: 600;
+        color: var(--ink);
+      }
+      .hc .state b.confirmed {
+        color: var(--green);
+      }
+      .hc .state b.ruled_out {
+        color: var(--rose);
+      }
+      .hc .state b.faded {
+        color: var(--ink-3);
+      }
+      .hc.closed {
+        opacity: 0.75;
+      }
+
+      /* ---- drawer (1280) and sheet (390) ---- */
+      .scrim {
+        position: absolute;
+        inset: 0;
+        background: rgba(30, 10, 36, 0.32);
+        backdrop-filter: blur(3px);
+        -webkit-backdrop-filter: blur(3px);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 400ms var(--ease);
+        z-index: 20;
+      }
+      .scrim.on {
+        opacity: 1;
+        pointer-events: auto;
+      }
+      .drawer {
+        position: absolute;
+        z-index: 21;
+        background-color: var(--paper);
+        background-image: var(--noise);
+        background-size: 128px 128px;
+        box-shadow: -21px 0 55px -21px rgba(30, 10, 36, 0.5);
+        transition: transform 560ms var(--ease);
+        overflow-y: auto;
+        scrollbar-width: none;
+      }
+      .drawer::-webkit-scrollbar {
+        display: none;
+      }
+      .w .drawer {
+        top: 0;
+        right: 0;
+        bottom: 0;
+        width: 555px;
+        border-radius: 21px 0 0 21px;
+        transform: translateX(105%);
+      }
+      .n .drawer {
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: 89%;
+        border-radius: 34px 34px 0 0;
+        transform: translateY(105%);
+        box-shadow: 0 -21px 55px -21px rgba(30, 10, 36, 0.5);
+      }
+      .drawer.on {
+        transform: none;
+      }
+      .n .drawer::before {
+        content: "";
+        display: block;
+        width: 34px;
+        height: 5px;
+        border-radius: 3px;
+        background: var(--paper-3);
+        margin: var(--s8) auto 0;
+      }
+      .case {
+        padding: var(--s21) var(--s34) var(--s55);
+        display: grid;
+        gap: var(--s21);
+        position: relative;
+      }
+      .n .case {
+        padding: var(--s13) var(--s21) var(--s55);
+      }
+      .chd {
+        display: flex;
+        align-items: center;
+        gap: var(--s8);
+        font-size: 11px;
+        color: var(--ink-2);
+      }
+      .chd .sp {
+        flex: 1;
+      }
+      .chd .st {
+        border-radius: 999px;
+        padding: var(--s3) var(--s8);
+        background: var(--paper-2);
+        font-weight: 600;
+        letter-spacing: 0.04em;
+        transition: background 400ms var(--ease);
+      }
+      .chd .st.testing {
+        background: var(--amber-soft);
+        color: var(--amber);
+      }
+      .chd .st.confirmed {
+        background: var(--green-soft);
+        color: var(--green);
+      }
+      .chd .st.ruled_out {
+        background: var(--rose-soft);
+        color: var(--rose);
+      }
+      .chd .st.faded {
+        background: var(--paper-2);
+        color: var(--ink-3);
+      }
+      .chd .x {
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        background: var(--card);
+        display: grid;
+        place-items: center;
+        font-size: 17px;
+        text-align: center;
+      }
+      .case h2 {
+        font-size: 34px;
+        font-weight: 600;
+        letter-spacing: -0.035em;
+        line-height: 1.05;
+      }
+      .n .case h2 {
+        font-size: 21px;
+      }
+      .case .say {
+        font-size: 15px;
+        color: var(--ink-2);
+        margin-top: var(--s8);
+      }
+      .case h3 {
+        font-size: 13px;
+        font-weight: 600;
+        margin-bottom: var(--s8);
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+      }
+      .case h3 small {
+        font-weight: 400;
+        color: var(--ink-3);
+        font-size: 11px;
+      }
+      .mini {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: var(--s13) var(--s21);
+      }
+      .mini h5 {
+        margin: 0 0 var(--s3);
+        font-size: 11px;
+        font-weight: 600;
+        display: flex;
+        justify-content: space-between;
+      }
+      .mini h5 span {
+        font-weight: 400;
+        color: var(--ink-2);
+      }
+      .nob {
+        font-size: 11px;
+        color: var(--ink-3);
+        margin-top: var(--s5);
+      }
+      .ex {
+        display: grid;
+        gap: 0;
+      }
+      .er {
+        display: grid;
+        grid-template-columns: 21px 1fr 42px;
+        gap: var(--s5) var(--s5);
+        align-items: baseline;
+        padding: var(--s8) 0;
+        font-size: 13px;
+        will-change: transform;
+      }
+      .er .g {
+        color: var(--plum-3);
+        font-size: 13px;
+      }
+      .er .p {
+        text-align: right;
+        font-weight: 600;
+      }
+      .er .trk {
+        grid-column: 2 / -1;
+      }
+      .er .pr {
+        grid-column: 2 / -1;
+        font-size: 11px;
+        color: var(--ink-2);
+        background: var(--paper);
+        border-left: 2px solid var(--amber);
+        padding: var(--s3) var(--s8);
+        border-radius: 0 5px 5px 0;
+        animation: prin 500ms var(--ease) both;
+        animation-delay: calc(var(--k) * 150ms);
+      }
+      @keyframes prin {
+        from {
+          opacity: 0;
+          transform: translateX(-8px);
+        }
+      }
+      .er.lost {
+        opacity: 0.38;
+        transition: opacity 600ms var(--ease);
+      }
+      .er.won .trk i {
+        --c: var(--green) !important;
+      }
+      .glyphs {
+        font-size: 11px;
+        color: var(--ink-3);
+        margin-top: var(--s5);
+      }
+      .qcard p {
+        font-size: 15px;
+      }
+      .chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--s5);
+        margin-top: var(--s13);
+      }
+      .chips button {
+        font-size: 13px;
+        border-radius: 999px;
+        padding: var(--s5) var(--s13);
+        background: var(--paper);
+        box-shadow: inset 0 0 0 1px var(--paper-3);
+        transition:
+          background 300ms var(--ease),
+          color 300ms var(--ease),
+          transform 300ms var(--spring);
+      }
+      .chips button.on {
+        background: var(--plum);
+        color: var(--cream);
+        box-shadow: none;
+        transform: scale(1.04);
+      }
+      .qn {
+        font-size: 11px;
+        color: var(--ink-3);
+        margin-top: var(--s8);
+      }
+      .tcard {
+        position: relative;
+        overflow: hidden;
+      }
+      .tt {
+        display: flex;
+        align-items: center;
+        gap: var(--s13);
+      }
+      .tt b {
+        font-weight: 600;
+        font-size: 15px;
+        flex: 1;
+      }
+      .tt span {
+        color: var(--ink-2);
+        font-size: 13px;
+      }
+      .btn {
+        border-radius: 999px;
+        padding: var(--s8) var(--s21);
+        font-weight: 600;
+        font-size: 13px;
+        background: var(--plum);
+        color: var(--cream);
+        text-align: center;
+        transition:
+          opacity 300ms var(--ease),
+          transform 300ms var(--spring);
+      }
+      .btn:active {
+        transform: scale(0.96);
+      }
+      .btn.lime {
+        background: var(--lime);
+        color: var(--plum);
+      }
+      .btn[disabled] {
+        opacity: 0.4;
+        cursor: default;
+      }
+      .wstamp {
+        position: absolute;
+        right: var(--s13);
+        bottom: var(--s13);
+        padding: 0 var(--s8);
+        border: 3px solid var(--amber);
+        color: var(--amber);
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        background: rgba(255, 253, 248, 0.92);
+        transform: rotate(-8deg) scale(2.2);
+        opacity: 0;
+        pointer-events: none;
+        transition:
+          transform 520ms var(--ispring),
+          opacity 200ms var(--ease);
+      }
+      .wstamp.on {
+        transform: rotate(-8deg) scale(1);
+        opacity: 1;
+      }
+      .tnote {
+        font-size: 11px;
+        color: var(--ink-3);
+        margin-top: var(--s8);
+      }
+      .play {
+        display: flex;
+        align-items: center;
+        gap: var(--s13);
+      }
+      .play small {
+        font-size: 11px;
+        color: var(--ink-3);
+      }
+      .arrive {
+        display: flex;
+        gap: var(--s8);
+        align-items: center;
+        font-size: 13px;
+        background: var(--card);
+        border-radius: 13px;
+        padding: var(--s8) var(--s13);
+        box-shadow: 0 8px 21px -13px rgba(43, 16, 51, 0.4);
+        animation: arr 600ms var(--ispring) both;
+      }
+      @keyframes arr {
+        from {
+          opacity: 0;
+          transform: translateY(-13px) scale(0.96);
+        }
+      }
+      .arrive i {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--amber);
+        flex: none;
+      }
+      .out {
+        border-radius: 21px;
+        padding: var(--s13) var(--s21);
+        font-size: 13px;
+        position: relative;
+        animation: arr 600ms var(--ispring) both;
+      }
+      .out b {
+        display: block;
+        font-size: 17px;
+        font-weight: 600;
+        margin-bottom: var(--s3);
+      }
+      .out.confirmed {
+        background: var(--green-soft);
+      }
+      .out.ruled_out {
+        background: var(--rose-soft);
+      }
+      .out.faded {
+        background: var(--paper-2);
+      }
+      .ostamp {
+        position: absolute;
+        right: var(--s13);
+        top: -13px;
+        padding: 0 var(--s8);
+        border: 3px solid currentColor;
+        border-radius: 8px;
+        font-size: 15px;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        background: rgba(255, 253, 248, 0.92);
+        transform: rotate(6deg);
+        animation: slam 520ms var(--ispring) both 200ms;
+      }
+      .out.confirmed .ostamp {
+        color: var(--green);
+      }
+      .out.ruled_out .ostamp {
+        color: var(--rose);
+      }
+      .out.faded .ostamp {
+        color: var(--ink-3);
+      }
+      @keyframes slam {
+        from {
+          transform: rotate(6deg) scale(2.2);
+          opacity: 0;
+        }
+      }
+      .gn {
+        font-size: 13px;
+        color: var(--ink-2);
+      }
+
+      /* ---- the 390 frame: same page, stacked ---- */
+      .n .hd {
+        padding: 0 var(--s21) var(--s21);
+      }
+      .n .nav {
+        height: 55px;
+      }
+      .n .nav a,
+      .n .nav .add {
+        display: none;
+      }
+      .n .hg {
+        grid-template-columns: 1fr;
+        gap: var(--s13);
+        padding-top: var(--s13);
+      }
+      .n .hg h2 {
+        font-size: 21px;
+      }
+      .n .strip {
+        grid-template-columns: repeat(3, 1fr);
+      }
+      .n .conf {
+        flex-wrap: wrap;
+        gap: var(--s8);
+      }
+      .n .conf .sp {
+        display: none;
+      }
+      .n .conf > span:nth-child(2) {
+        flex: 1;
+        min-width: 0;
+      }
+      .bd {
+        grid-template-columns: minmax(0, 1fr);
+      }
+      .hero > *,
+      .cols > * {
+        min-width: 0;
+      }
+      .n .conf > span:nth-child(2) {
+        flex-basis: calc(100% - 55px) !important;
+      }
+      .n .conf .due {
+        margin-left: 47px;
+      }
+      .case h3 {
+        flex-wrap: wrap;
+        gap: 0 var(--s8);
+      }
+      .n .bd {
+        padding: var(--s21) var(--s13) var(--s55);
+      }
+      .n .hero {
+        grid-template-columns: 1fr;
+        gap: var(--s13);
+      }
+      .n .hero .big b {
+        font-size: 34px;
+      }
+      .n .cols {
+        grid-template-columns: 1fr;
+      }
+      .n .rail {
+        display: flex;
+        overflow-x: auto;
+        margin: 0 calc(var(--s13) * -1);
+        padding: 0 var(--s13) var(--s13);
+        scrollbar-width: none;
+        scroll-snap-type: x mandatory;
+      }
+      .n .rail .hc {
+        flex: none;
+        width: 233px;
+        scroll-snap-align: start;
+      }
+      .n .card {
+        padding: var(--s13);
+      }
+      .row2 {
+        display: grid;
+        grid-template-columns: 390px 390px 1fr;
+        gap: var(--s34);
+        align-items: start;
+        margin-top: var(--s55);
+      }
+      .notes {
+        font-size: 13px;
+        color: var(--ink-2);
+        display: grid;
+        gap: var(--s8);
+      }
+      .notes b {
+        color: var(--ink);
+        font-weight: 500;
+      }
+      .notes h3 {
+        font-size: 17px;
+        color: var(--ink);
+        font-weight: 600;
+      }
+      .notes li {
+        margin-bottom: var(--s5);
+      }
+      .notes ul {
+        margin: 0;
+        padding-left: var(--s21);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="doc">
+      <header>
+        <div>
+          <div class="eyebrow">Round fifteen · web · variation 53</div>
+          <h1>Web</h1>
+          <p class="lede">
+            The Hybrid home on a desk: three levels as columns, the LDL goal as
+            the hero, hunches as a rail. A hunch opens a drawer with the full
+            case. The 390 frame is the same page stacked.
+          </p>
+        </div>
+        <div class="direction">
+          <b>Levels</b
+          ><span>Today, Heading, Watch. Each carries its own date.</span>
+          <b>Hero</b
+          ><span
+            >LDL against the goal, the draws, your band, the lab line, and the
+            recent slope run on to 1 Dec.</span
+          >
+          <b>Hunches</b
+          ><span
+            >A rail of six. Open one: chart, explanations, one question, one
+            test, predictions written down, then the result.</span
+          >
+          <b>Try</b
+          ><span
+            >Click a hunch card. Answer the question. Accept the test. Play
+            result. <code>?open=iron</code> opens a case on load.</span
+          >
+        </div>
+      </header>
+
+      <div class="cap">
+        <span><b>1280</b> · openvitals.app, signed in</span
+        ><span>click any hunch card or Watch row</span>
+      </div>
+      <div class="frame w" data-f="w"></div>
+
+      <div class="row2">
+        <div>
+          <div class="cap">
+            <span><b>390</b> · the same page, stacked</span><span>scrolls</span>
+          </div>
+          <div class="frame n" data-f="n1"></div>
+        </div>
+        <div>
+          <div class="cap">
+            <span><b>390</b> · a hunch as a sheet</span
+            ><span>tap the dim area to close</span>
+          </div>
+          <div class="frame n" data-f="n2"></div>
+        </div>
+        <div class="notes">
+          <h3>Rules this file follows</h3>
+          <ul>
+            <li>
+              <b>Every number is from DATA.</b> Bands marked "computed" are
+              median and 1.4826 × MAD of the draws before the last (spec A),
+              shown only with 5 or more of them. Homocysteine and ApoB have
+              fewer, so they say so.
+            </li>
+            <li>
+              <b>Three things on every marker chart:</b> the draws, your band as
+              a soft fill, the lab range as thin dashed lines.
+            </li>
+            <li>
+              <b>The LDL line past the last draw</b> is the slope run forward,
+              labelled "if nothing changes". It is arithmetic, not a forecast.
+            </li>
+            <li><b>Glyphs:</b> ● graded A or B, ◐ graded C, ○ a hypothesis.</li>
+            <li>
+              <b>A question reorders, a test decides.</b> Answers move the order
+              of explanations. Only a result closes a case.
+            </li>
+            <li>
+              <b>Play result is a demo.</b> It shows how a case closes
+              (confirmed, ruled out, faded) without inventing a value.
+            </li>
+            <li>
+              <b>Today rows</b> are the phase 37 rows carried from 48 Hybrid,
+              unchanged.
+            </li>
+            <li>Fibonacci gaps; every bar fill is as thick as its track.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // ---------- the data pack (copied verbatim from the round fifteen brief) ----------
+      // prettier-ignore
+      const DATA = {
+        person: { name: "Razvan", age: 39, sex: "m", lastDraw: "2026-04-23", daysSinceDraw: 156,
+                  systemsMeasured: 7, systemsTotal: 12 },
+        goal: { marker: "ldl_cholesterol", label: "LDL", unit: "mg/dL", lo: 70, hi: 100, by: "2026-12-01" },
+        genes: [
+          { gene: "APOE", call: "e2/e3", note: "lower LDL on average", g: "A" },
+          { gene: "TCF7L2", call: "CT", note: "higher diabetes risk", g: "A" },
+          { gene: "FTO", call: "AA", note: "higher BMI tendency, exercise cuts it by a third", g: "B" },
+          { gene: "MTHFR", call: "C677T het", note: "homocysteine depends on folate", g: "C" },
+        ],
+        // [date, value]; unit; lab range; own band = median and spread of the draws before the last
+        series: {
+          ldl:   { label: "LDL", unit: "mg/dL", lab: [0, 130], band: [108.2, 14.6],
+                   pts: [["2015-03-21",103],["2021-10-14",136.1],["2021-12-04",110.5],["2022-10-20",94],["2023-03-17",97.3],["2024-05-13",122.9],["2024-11-20",106],["2025-12-09",117],["2026-04-23",131]],
+                   slope5y: 1.8, slopeRecent: 15.2 },
+          apob:  { label: "ApoB", unit: "mg/dL", lab: [0, 100], pts: [["2023-03-17",82],["2024-05-13",97],["2026-04-23",99]] },
+          hdl:   { label: "HDL", unit: "mg/dL", lab: [40, 200], band: [51.4, 10.7],
+                   pts: [["2015-03-21",39.2],["2021-10-14",61.8],["2021-12-04",50.6],["2022-10-20",58.4],["2023-03-17",52.1],["2024-05-13",57.2],["2024-11-20",43],["2025-12-09",44],["2026-04-23",50]] },
+          eos:   { label: "Eosinophils", unit: "K/µL", lab: [0.0, 0.5], band: [0.11, 0.03],
+                   pts: [["2014-03-26",0.09],["2015-03-21",0.10],["2016-01-09",0.13],["2019-07-13",0.11],["2021-10-14",0.11],["2023-03-17",0.05],["2024-05-13",0.09],["2024-11-20",0.25],["2025-12-09",0.17],["2026-04-23",0.19]],
+                   step: { since: "2024-11-20", priorMax: 0.13 } },
+          ferritin: { label: "Ferritin", unit: "ng/mL", lab: [30, 400], band: [113.1, 15.5],
+                   pts: [["2021-10-14",154.5],["2023-03-17",110.8],["2024-05-13",115.3],["2025-12-09",94.4],["2026-04-23",79.6]], slope5y: -14 },
+          b12:   { label: "Vitamin B12", unit: "pg/mL", lab: [200, 900],
+                   pts: [["2021-10-14",183.7],["2021-12-04",197],["2022-10-20",531],["2023-03-17",534.2],["2024-05-13",898.8],["2024-11-20",522],["2025-12-09",603],["2026-04-23",472]] },
+          vitd:  { label: "Vitamin D", unit: "ng/mL", lab: [30, 100],
+                   pts: [["2019-07-13",23.3],["2021-10-14",61.8],["2021-12-04",54.1],["2022-10-20",52],["2023-03-17",42.3],["2024-05-13",34],["2024-11-20",37.7],["2025-12-09",31.8],["2026-04-23",32.7]], slope5y: -6 },
+          hcy:   { label: "Homocysteine", unit: "µmol/L", lab: [0, 15],
+                   pts: [["2023-03-17",11.2],["2024-05-13",8.1],["2024-11-20",8.4],["2025-12-09",8.8],["2026-04-23",9.6]] },
+          crp:   { label: "CRP", unit: "mg/L", lab: [0, 5],
+                   pts: [["2014-03-26",1.3],["2015-03-21",4],["2021-10-14",6.1],["2021-12-04",4.6],["2022-10-20",3.5],["2023-03-17",15.8],["2024-05-13",8.1],["2024-11-20",0.54],["2025-12-09",0.5],["2026-04-23",0.64]] },
+          hba1c: { label: "HbA1c", unit: "%", lab: [4, 5.7], band: [5.2, 0.31],
+                   pts: [["2016-06-24",5],["2021-10-14",5.72],["2021-12-04",5.53],["2022-10-20",5.43],["2023-03-17",5.2],["2024-05-13",5.07],["2024-11-20",4.8],["2025-12-09",5.2],["2026-04-23",5]] },
+          insulin: { label: "Fasting insulin", unit: "µIU/mL", lab: [2, 25],
+                   pts: [["2021-12-04",8.1],["2022-10-20",4.8],["2023-03-17",2.7],["2024-05-13",3.2],["2024-11-20",4.7],["2025-12-09",4.2],["2026-04-23",5.7]] },
+        },
+        // the hunches the engine would raise (spec B1 kinds); test prices are placeholders
+        hunches: [
+          { id: "eos", kind: "step", title: "Eosinophils moved up a level", system: "Immune", series: "eos",
+            say: "Ten years between 0.05 and 0.13. The last three draws: 0.25, 0.17, 0.19. Still inside the lab range, outside yours.",
+            explanations: [
+              { t: "A new allergy or a change of season", p: 0.45, g: "B" },
+              { t: "A medicine or supplement started around late 2024", p: 0.25, g: "B" },
+              { t: "Gut parasite after travel", p: 0.10, g: "B" },
+              { t: "Noise that will fade", p: 0.20, g: "C" } ],
+            question: "Anything new since autumn 2024: a pet, a move, a medicine, sneezing in spring?",
+            test: { name: "Total IgE", price: 45, currency: "RON" } },
+          { id: "iron", kind: "cluster", title: "Stores running down together", system: "Nutrients", series: ["ferritin","b12","vitd","hcy"],
+            say: "Ferritin −14 a year since 2021, B12 off its 2024 peak, vitamin D halved, homocysteine back up. Four markers, one question: intake or absorption?",
+            explanations: [
+              { t: "Less red meat or supplements stopped", p: 0.50, g: "B" },
+              { t: "Absorption: coeliac or atrophic gastritis", p: 0.08, g: "A" },
+              { t: "Blood loss or donation", p: 0.12, g: "B" },
+              { t: "Folate low with MTHFR het", p: 0.30, g: "C" } ],
+            question: "Did you change how you eat or stop a supplement in 2024?",
+            test: { name: "Folate + transferrin saturation", price: 70, currency: "RON" } },
+          { id: "ldl", kind: "drift", title: "LDL is walking away from your goal", system: "Heart", series: "ldl", goal: true,
+            say: "106, 117, 131 in 17 months: +15 a year. Goal is 100 or under by 1 Dec. ApoB followed it to 99.",
+            explanations: [
+              { t: "More saturated fat in the last year", p: 0.55, g: "A" },
+              { t: "Thyroid running slower", p: 0.05, g: "A" },
+              { t: "Weight up", p: 0.25, g: "A" },
+              { t: "Season and the lab's own swing", p: 0.15, g: "C" } ],
+            question: "Did your weight or how much fatty meat and cheese you eat change since late 2024?",
+            test: { name: "Lipid panel + ApoB in 8 weeks", price: 90, currency: "RON" } },
+          { id: "gap", kind: "gap", title: "Folate never measured", system: "Nutrients", series: "hcy",
+            say: "MTHFR C677T het and homocysteine rising three draws in a row. Folate is the one number that says which way.",
+            explanations: [], question: null, test: { name: "Serum folate", price: 35, currency: "RON" } },
+          { id: "crp", kind: "good_news", title: "Inflammation settled", system: "Immune", series: "crp",
+            say: "CRP was 15.8 in March 2023. Three draws since then under 1.", explanations: [], question: null, test: null },
+          { id: "genes", kind: "good_news", title: "Your genes are outvoted", system: "Metabolic", series: "hba1c",
+            say: "TCF7L2 and FTO both lean toward diabetes. HbA1c went from 5.7 to 5.0 and fasting insulin stays low.",
+            explanations: [], question: null, test: null },
+        ],
+        // heading per system: toward | holding | away | unmeasured
+        heading: [
+          { sys: "Heart", word: "away", why: "LDL +15/yr, ApoB 99" },
+          { sys: "Metabolic", word: "toward", why: "HbA1c 5.0, insulin low" },
+          { sys: "Nutrients", word: "away", why: "ferritin, B12, D down" },
+          { sys: "Immune", word: "holding", why: "CRP < 1, eosinophils up a step" },
+          { sys: "Liver", word: "holding", why: "ALT 10, GGT 15" },
+          { sys: "Kidney", word: "holding", why: "creatinine 0.9" },
+          { sys: "Thyroid", word: "holding", why: "TSH 1.1, fT4 1.23" },
+          { sys: "Hormones", word: "unmeasured", why: "testosterone once, 2024" },
+          { sys: "Bone", word: "unmeasured", why: "" },
+          { sys: "Sleep", word: "unmeasured", why: "no phone sync yet" },
+          { sys: "Fitness", word: "unmeasured", why: "no phone sync yet" },
+          { sys: "Mind", word: "unmeasured", why: "" },
+        ],
+      };
+
+      // Today: the phase 37 rows, carried unchanged from 48-hybrid.html (LIFE.rows)
+      const TODAY = [
+        { n: "Sleep", s: "7h 30 of 7h 30", p: 100, c: "var(--gene-l)" },
+        { n: "Moves", s: "2 of 5 ticked", p: 40, c: "var(--life)" },
+        { n: "Calories", s: "1 497 of 1 900 kcal", p: 90, c: "var(--life-l)" },
+        { n: "Protein", s: "93 of 120 g", p: 78, c: "var(--life-l)" },
+      ];
+
+      // ---------- written by the designer: answers, predictions, demo outcomes ----------
+      // answer chips multiply the explanation shares (then renormalise); order only, never a probability
+      const ANSWERS = {
+        eos: [
+          ["A pet or a move", [2.2, 0.6, 0.8, 0.7]],
+          ["A new medicine", [0.6, 3, 0.8, 0.7]],
+          ["Travel abroad", [0.7, 0.7, 4, 0.8]],
+          ["Nothing new", [0.7, 0.6, 0.9, 2.2]],
+        ],
+        iron: [
+          ["Ate less red meat", [2, 0.8, 0.8, 1]],
+          ["Stopped a supplement", [2.2, 0.8, 0.8, 0.9]],
+          ["Gave blood", [0.6, 0.8, 4, 0.9]],
+          ["No change", [0.4, 2.5, 1.3, 1.5]],
+        ],
+        ldl: [
+          ["More meat and cheese", [2.2, 0.8, 0.8, 0.7]],
+          ["Weight went up", [0.9, 1, 2.6, 0.8]],
+          ["Neither changed", [0.4, 3, 0.5, 2]],
+        ],
+      };
+      const PRED = {
+        eos: [
+          "IgE above the lab range; eosinophils follow the season",
+          "IgE normal; eosinophils fall within 8 weeks of stopping it",
+          "IgE high; a stool test finds it",
+          "IgE normal; the next draw is back in your band",
+        ],
+        iron: [
+          "folate under 6 ng/mL and saturation low; both recover with food",
+          "folate normal, saturation low; tTG-IgA is next",
+          "folate normal, saturation low; ferritin keeps falling",
+          "folate under 6 ng/mL, saturation normal",
+        ],
+        ldl: [
+          "LDL falls toward 100 within 8 weeks of less fatty meat and cheese",
+          "TSH above 4 (last 1.1); LDL does not move with food",
+          "LDL moves with weight, ApoB with it",
+          "LDL back in your band, 94 to 123, with no change at all",
+        ],
+        gap: [
+          "if low: folate explains the homocysteine rise",
+          "if normal: homocysteine stays seen, unexplained; B12 and kidney next",
+        ],
+      };
+      const OUTCOME = {
+        eos: {
+          k: "faded",
+          win: 3,
+          head: "Faded",
+          body: "The next draw came back into your band. Kept on file as seen, unexplained.",
+        },
+        iron: {
+          k: "confirmed",
+          win: 0,
+          head: "Confirmed: intake",
+          body: "The result matched what intake predicted. The engine takes it from here.",
+        },
+        ldl: {
+          k: "confirmed",
+          win: 0,
+          head: "Confirmed: saturated fat",
+          body: "LDL moved the way the saturated fat line predicted. The goal keeps its date.",
+        },
+        gap: {
+          k: "ruled_out",
+          win: -1,
+          head: "Ruled out",
+          body: "Folate came back normal. Homocysteine stays seen, unexplained.",
+        },
+      };
+      const KIND = {
+        step: "STEP",
+        cluster: "CLUSTER",
+        drift: "DRIFT",
+        gap: "GAP",
+        good_news: "GOOD NEWS",
+      };
+      const GL = (g) => (g === "A" || g === "B" ? "●" : g === "C" ? "◐" : "○");
+      const ARROW = { toward: "↗", holding: "→", away: "↘", unmeasured: "" };
+
+      // ---------- helpers ----------
+      function mulberry32(a) {
+        return function () {
+          a |= 0;
+          a = (a + 0x6d2b79f5) | 0;
+          let t = Math.imul(a ^ (a >>> 15), 1 | a);
+          t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+          return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+        };
+      }
+      (() => {
+        const c = document.createElement("canvas");
+        c.width = c.height = 128;
+        const x = c.getContext("2d");
+        const d = x.createImageData(128, 128);
+        const r = mulberry32(7);
+        for (let i = 0; i < d.data.length; i += 4) {
+          const v = 120 + r() * 135;
+          d.data[i] = d.data[i + 1] = d.data[i + 2] = v;
+          d.data[i + 3] = r() < 0.55 ? 34 : 0;
+        }
+        x.putImageData(d, 0, 0);
+        document.documentElement.style.setProperty(
+          "--noise",
+          `url(${c.toDataURL()})`,
+        );
+      })();
+
+      const T = (d) => Date.parse(d + "T00:00:00Z");
+      const YR = 365.25 * 864e5;
+      const MON = [
+        "Jan",
+        "Feb",
+        "Mar",
+        "Apr",
+        "May",
+        "Jun",
+        "Jul",
+        "Aug",
+        "Sep",
+        "Oct",
+        "Nov",
+        "Dec",
+      ];
+      const nice = (v) => {
+        const a = Math.abs(v);
+        const s =
+          a >= 20
+            ? Math.round(v)
+            : a >= 1
+              ? Math.round(v * 10) / 10
+              : Math.round(v * 100) / 100;
+        return String(s);
+      };
+      const dLabel = (d) => {
+        const t = new Date(T(d));
+        return `${t.getUTCDate()} ${MON[t.getUTCMonth()]}`;
+      };
+      const median = (a) => {
+        const s = [...a].sort((x, y) => x - y);
+        const m = s.length >> 1;
+        return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2;
+      };
+      // spec A bandOf: DATA band where given; else median and 1.4826 × MAD of the draws before the last, needs 5
+      function bandFor(key) {
+        const s = DATA.series[key];
+        const prior = s.pts.slice(0, -1).map((p) => p[1]);
+        if (s.band)
+          return { m: s.band[0], sd: s.band[1], n: prior.length, src: "data" };
+        if (prior.length < 5) return { none: true, n: prior.length };
+        const m = median(prior);
+        const mad = median(prior.map((v) => Math.abs(v - m)));
+        return {
+          m,
+          sd: Math.max(1.4826 * mad, 0.05 * m),
+          n: prior.length,
+          src: "computed",
+        };
+      }
+      const extrap = (slope) => {
+        const s = DATA.series.ldl;
+        const [d, v] = s.pts.at(-1);
+        return v + slope * ((T(DATA.goal.by) - T(d)) / YR);
+      };
+
+      // ---------- the marker chart: draws, your band, lab range (+ goal and slope for LDL) ----------
+      let CID = 0;
+      function chart(key, o) {
+        const s = DATA.series[key];
+        const W = o.w,
+          H = o.h,
+          c = o.compact;
+        const P = c
+          ? { l: 3, r: 3, t: 5, b: 5 }
+          : { l: 8, r: o.rp ?? 89, t: 13, b: 21 };
+        let pts = s.pts.map(([d, v]) => ({ d, x: T(d), v }));
+        const early = o.from ? pts.filter((p) => p.x < T(o.from)) : [];
+        if (o.from) pts = pts.filter((p) => p.x >= T(o.from));
+        const b = bandFor(key);
+        const ext =
+          o.slope != null ? { x: T(DATA.goal.by), v: extrap(o.slope) } : null;
+        const x0 = o.from ? T(o.from) : pts[0].x;
+        const x1 = ext ? ext.x : pts.at(-1).x;
+        const xp = (x1 - x0) * 0.03;
+        const X = (x) =>
+          P.l + ((x - x0 + xp) / (x1 - x0 + 2 * xp)) * (W - P.l - P.r);
+        const vals = pts.map((p) => p.v);
+        if (!b.none) vals.push(b.m - b.sd, b.m + b.sd);
+        if (o.goal) vals.push(DATA.goal.lo, DATA.goal.hi);
+        if (ext) vals.push(ext.v);
+        let lo = Math.min(...vals),
+          hi = Math.max(...vals);
+        const r = hi - lo || 1;
+        const labs = s.lab.filter((L) =>
+          L === 0 ? lo < 0.5 * r : L >= lo - 1.5 * r && L <= hi + 1.5 * r,
+        );
+        labs.forEach((L) => {
+          lo = Math.min(lo, L);
+          hi = Math.max(hi, L);
+        });
+        const yp = (hi - lo) * 0.08;
+        lo = Math.max(lo === 0 ? 0 : -Infinity, lo - yp);
+        hi += yp;
+        const Y = (v) => P.t + (1 - (v - lo) / (hi - lo)) * (H - P.t - P.b);
+        const xr = W - P.r;
+        let g = "";
+        const rl = []; // right-hand labels, spaced after
+        // year ticks
+        if (!c) {
+          const y0 = new Date(x0 - xp).getUTCFullYear() + 1,
+            y1 = new Date(x1 + xp).getUTCFullYear();
+          const step =
+            (y1 - y0) / Math.max(1, Math.floor((W - P.l - P.r) / 55)) > 1
+              ? 2
+              : 1;
+          for (let y = y0; y <= y1; y += step) {
+            const x = X(Date.UTC(y, 0, 1));
+            g += `<line class="tick" x1="${x}" x2="${x}" y1="${P.t}" y2="${H - P.b}"/><text x="${x}" y="${H - 5}" text-anchor="middle">${y}</text>`;
+          }
+        }
+        if (o.goal) {
+          const { lo: gl, hi: gh } = DATA.goal;
+          g += `<rect class="goal" x="${P.l}" width="${xr - P.l}" y="${Y(gh)}" height="${Y(gl) - Y(gh)}" rx="5"/>`;
+          if (!c)
+            rl.push({
+              y: (Y(gh) + Y(gl)) / 2,
+              t: `goal ${gl} to ${gh}`,
+              k: "gl",
+            });
+        }
+        if (!b.none) {
+          g += `<rect class="band" x="${P.l}" width="${xr - P.l}" y="${Y(b.m + b.sd)}" height="${Y(b.m - b.sd) - Y(b.m + b.sd)}" rx="3"/>`;
+          g += `<line class="med" x1="${P.l}" x2="${xr}" y1="${Y(b.m)}" y2="${Y(b.m)}"/>`;
+          if (!c && !o.nob)
+            rl.push({
+              y: Y(b.m),
+              t: o.short
+                ? `you ${nice(b.m - b.sd)} to ${nice(b.m + b.sd)}`
+                : `your band ${nice(b.m - b.sd)} to ${nice(b.m + b.sd)}`,
+              k: "bl",
+            });
+        }
+        labs.forEach((L) => {
+          g += `<line class="lab" x1="${P.l}" x2="${xr}" y1="${Y(L)}" y2="${Y(L)}"/>`;
+          if (!c) rl.push({ y: Y(L), t: `lab ${nice(L)}`, k: "" });
+        });
+        if (s.step && !c) {
+          const y = Y(s.step.priorMax);
+          g += `<line class="step" x1="${P.l}" x2="${X(T(s.step.since))}" y1="${y}" y2="${y}"/>`;
+          g += `<text class="bl" x="${P.l + 3}" y="${y - 5}">ten-year ceiling ${s.step.priorMax}</text>`;
+        }
+        const path = pts
+          .map(
+            (p, i) =>
+              `${i ? "L" : "M"}${X(p.x).toFixed(1)} ${Y(p.v).toFixed(1)}`,
+          )
+          .join("");
+        g += `<path class="ln" pathLength="1" d="${path}"/>`;
+        if (ext) {
+          const L = pts.at(-1);
+          g += `<path class="ext" d="M${X(L.x)} ${Y(L.v)}L${X(ext.x)} ${Y(ext.v)}"/>`;
+          g += `<circle class="ext" cx="${X(ext.x)}" cy="${Y(ext.v)}" r="5" style="fill:var(--card)"/>`;
+          if (!c)
+            g += `<text class="xl" x="${X(ext.x) - 8}" y="${Y(ext.v) - 13}" text-anchor="end">if nothing changes · ${Math.round(ext.v)} on ${dLabel(DATA.goal.by)}</text>`;
+        }
+        pts.forEach((p, i) => {
+          const out = !b.none && Math.abs(p.v - b.m) > b.sd;
+          const last = i === pts.length - 1;
+          g += `<circle class="d${out ? " out" : ""}" style="--k:${i}" cx="${X(p.x)}" cy="${Y(p.v)}" r="${c ? (last ? 3 : 2) : last ? 5 : 3.5}"/>`;
+          if (!c && (o.labels ?? 3) > pts.length - 1 - i)
+            g += `<text class="v" x="${X(p.x)}" y="${Y(p.v) - 10}" text-anchor="middle">${nice(p.v)}</text>`;
+        });
+        if (early.length && !c) {
+          const e = early.at(-1);
+          g += `<text x="${P.l + 3}" y="${P.t + 3}">← ${new Date(e.x).getUTCFullYear()} · ${nice(e.v)}</text>`;
+        }
+        // right labels, pushed apart
+        rl.sort((a, z) => a.y - z.y);
+        for (let i = 1; i < rl.length; i++)
+          if (rl[i].y - rl[i - 1].y < 13) rl[i].y = rl[i - 1].y + 13;
+        rl.forEach(
+          (l) =>
+            (g += `<text class="${l.k}" x="${xr + 5}" y="${l.y + 4}">${l.t}</text>`),
+        );
+        return `<svg class="ch${o.anim ? " anim" : ""}" viewBox="0 0 ${W} ${H}" style="--dl:${o.dl ?? 250}ms" aria-label="${s.label} chart">${g}</svg>`;
+      }
+
+      // ---------- state per hunch (shared by all frames) ----------
+      const ST = {};
+      DATA.hunches.forEach((h) => {
+        ST[h.id] = {
+          w: h.explanations.map((e) => e.p),
+          ans: null,
+          acc: false,
+          out: null,
+        };
+      });
+      const openCount = DATA.hunches.filter(
+        (h) => h.kind !== "good_news",
+      ).length;
+      const counts = DATA.heading.reduce(
+        (a, h) => ((a[h.word] = (a[h.word] || 0) + 1), a),
+        {},
+      );
+      const words = [
+        "zero",
+        "one",
+        "two",
+        "three",
+        "four",
+        "five",
+        "six",
+        "seven",
+        "eight",
+        "nine",
+        "ten",
+        "eleven",
+        "twelve",
+      ];
+      const cap = (s) => s[0].toUpperCase() + s.slice(1);
+
+      function stateOf(h) {
+        const s = ST[h.id];
+        if (h.kind === "good_news") return ["good news", "kept"];
+        if (s.out) return [s.out.replace("_", " "), "closed", s.out];
+        if (s.acc) return ["testing", "written down 26 Sep"];
+        if (s.ans) return ["answered", "test next"];
+        return ["open", h.question ? "1 question" : "1 test"];
+      }
+
+      // ---------- page ----------
+      function page(f) {
+        const P = DATA.person;
+        const ldl = DATA.series.ldl;
+        const last = ldl.pts.at(-1)[1];
+        const over = Math.round(last - DATA.goal.hi);
+        const narrow = f !== "w";
+        const away = DATA.heading
+          .filter((h) => h.word === "away")
+          .map((h) => h.sys);
+        const fresh = 1 - P.daysSinceDraw / 365;
+        const C = 2 * Math.PI * 14;
+        return `
+        <div class="bbar"><i></i><i></i><i></i><span>openvitals.app</span></div>
+        <div class="vp">
+        <header class="hd">
+          <nav class="nav"><span class="logo">OpenVitals</span><a class="on">Home</a><a>Blood</a><a>Genes</a><a>Food</a><a>Plan</a><span class="sp"></span><button class="add">+ Add</button><span class="avatar">🧑🏻</span></nav>
+          <div class="hg">
+            <div>
+              <small class="e">Saturday 26 Sep · ${P.name}, ${P.age}</small>
+              <h2>${cap(words[counts.away])} systems heading <em>away</em>, ${words[counts.toward]} toward, ${words[counts.holding]} holding.</h2>
+              <p>${away.join(" and ")} are moving away from your own history. ${cap(words[counts.unmeasured])} systems have no readings yet, so they count as unknown, not fine.</p>
+            </div>
+            <div class="strip">${DATA.heading.map((h, k) => `<div class="${h.word}" style="--k:${k}"><span>${h.sys}</span><b>${ARROW[h.word] || "·"}</b></div>`).join("")}</div>
+          </div>
+          <div class="conf">
+            <svg class="ring" viewBox="0 0 34 34"><circle class="tr" cx="17" cy="17" r="14"/><circle class="fl" cx="17" cy="17" r="14" stroke-dasharray="${C}" stroke-dashoffset="${C * (1 - fresh)}"/></svg>
+            <span>Last draw <b>${P.daysSinceDraw} days ago</b> · <b>${P.systemsMeasured} of ${P.systemsTotal}</b> systems · <b>${openCount} hunches</b> open</span>
+            <span class="sp"></span>
+            <span class="due">Retest due · book a draw</span>
+          </div>
+        </header>
+        <main class="bd">
+          <section class="card hero">
+            <div>
+              <div class="lbl">Goal · ${DATA.goal.label} ${DATA.goal.hi} or under by ${dLabel(DATA.goal.by)}</div>
+              <div class="big"><b>${last}</b><small>${DATA.goal.unit}<br>${over} over the goal</small></div>
+              <span class="word away" style="margin-top:8px">↘ away · +${Math.round(ldl.slopeRecent)}/yr</span>
+              <div class="facts">
+                <span>Last three draws <b>${ldl.pts
+                  .slice(-3)
+                  .map((p) => p[1])
+                  .join(", ")}</b></span>
+                <span>ApoB <b>${DATA.series.apob.pts.at(-1)[1]}</b>, lab line ${DATA.series.apob.lab[1]}</span>
+                <span>Your band <b>${nice(ldl.band[0] - ldl.band[1])} to ${nice(ldl.band[0] + ldl.band[1])}</b>, the lab's <b>under ${ldl.lab[1]}</b></span>
+              </div>
+              <p class="sent" data-sent></p>
+              <div class="seg" data-seg><button class="on" data-sl="recent">Last 17 months</button><button data-sl="5y">Five years</button></div>
+            </div>
+            <div>
+              <div class="legend">
+                <span><i class="lg"></i>goal</span><span><i class="lb"></i>your band</span><span><i class="ll"></i>lab range</span><span><i class="lx"></i>if nothing changes</span>
+              </div>
+              <div data-hero></div>
+            </div>
+          </section>
+          <section class="cols">
+            <div class="card">
+              <div class="ttl"><h3>Today</h3><small>Sat 26 Sep · so far</small></div>
+              ${TODAY.map((r) => `<div class="trow"><b>${r.n}</b><small>${r.s}</small><div class="trk"><i data-w="${r.p}" style="--c:${r.c}"></i></div></div>`).join("")}
+              <p class="foot">Today's rows move by the hour. They do not move the blood.</p>
+            </div>
+            <div class="card">
+              <div class="ttl"><h3>Heading</h3><small>from draws to ${dLabel(P.lastDraw)}</small></div>
+              <div class="hrow goalrow"><span class="ar away">↘</span><span><b>LDL goal</b> · away</span><span class="why" style="color:var(--rose)">+${Math.round(ldl.slopeRecent)}/yr, ${over} over, retest due</span></div>
+              ${DATA.heading
+                .map(
+                  (h) =>
+                    `<div class="hrow${h.word === "unmeasured" ? " u" : ""}"><span class="ar ${h.word}">${ARROW[h.word]}</span><span>${h.sys}</span><span class="word ${h.word}">${h.word === "unmeasured" ? "not measured" : h.word}</span><span class="why">${h.why}</span></div>`,
+                )
+                .join("")}
+            </div>
+            <div class="card">
+              <div class="ttl"><h3>Watch</h3><small>${openCount} open</small></div>
+              <div data-watch></div>
+              <div class="kept">
+                <div class="lv">The engine keeps in mind</div>
+                ${DATA.genes
+                  .slice(0, 2)
+                  .map(
+                    (g) =>
+                      `<span>${GL(g.g)} <b>${g.gene} ${g.call}</b> <small>· ${g.note}</small></span>`,
+                  )
+                  .join("")}
+              </div>
+            </div>
+          </section>
+          <section>
+            <div class="ttl" style="padding:0 ${narrow ? 0 : 5}px"><h3>Worth a look</h3><small>${DATA.hunches.length} hunches · ${openCount} open, ${DATA.hunches.length - openCount} good news</small></div>
+            <div class="rail" data-rail></div>
+          </section>
+        </main>
+        </div>
+        <div class="scrim" data-scrim></div>
+        <aside class="drawer" data-drawer></aside>`;
+      }
+
+      function watchHTML() {
+        return DATA.hunches
+          .filter((h) => h.kind !== "good_news")
+          .map((h) => {
+            const [st, nx] = stateOf(h);
+            const t = h.test
+              ? `${h.test.name}, ${h.test.price} ${h.test.currency}`
+              : "";
+            return `<button class="wrow" data-open="${h.id}"><b><span class="ks ${h.kind}">${KIND[h.kind]}</span> ${h.title}</b><span class="go">›</span><small>${h.system} · ${st}${st === "open" && h.question ? " · 1 question, then " + t : " · " + (nx === "1 test" ? t : nx)}</small></button>`;
+          })
+          .join("");
+      }
+
+      function railHTML(f) {
+        return DATA.hunches
+          .map((h) => {
+            const key = Array.isArray(h.series) ? h.series[0] : h.series;
+            const [st, nx, k] = stateOf(h);
+            return `<button class="hc${ST[h.id].out ? " closed" : ""}" data-open="${h.id}">
+              <div class="top"><span class="ks ${h.kind}">${KIND[h.kind]}</span><span>${h.system}</span></div>
+              <h4>${h.title}</h4>
+              ${chart(key, { w: 200, h: 55, compact: true, goal: h.goal })}
+              <div class="state"><b class="${k || ""}">${st}</b><span>${nx}</span></div>
+            </button>`;
+          })
+          .join("");
+      }
+
+      function heroSet(root, which) {
+        const s = DATA.series.ldl;
+        const slope = which === "5y" ? s.slope5y : s.slopeRecent;
+        const narrow = root.dataset.f !== "w";
+        root.querySelector("[data-hero]").innerHTML = chart("ldl", {
+          w: narrow ? 340 : 820,
+          h: narrow ? 220 : 280,
+          rp: narrow ? 70 : 110,
+          goal: true,
+          slope,
+          from: "2021-06-01",
+          anim: true,
+          short: narrow,
+          labels: narrow ? 2 : 4,
+        });
+        const v = Math.round(extrap(slope));
+        root.querySelector("[data-sent]").innerHTML =
+          which === "5y"
+            ? `On the five-year slope, +${s.slope5y}/yr, LDL lands near <b>${v}</b> on ${dLabel(DATA.goal.by)}. Slower, still over.`
+            : `If nothing changes, LDL lands near <b>${v}</b> on ${dLabel(DATA.goal.by)}, ${v - DATA.goal.hi} over the goal.`;
+        root
+          .querySelectorAll("[data-sl]")
+          .forEach((b) => b.classList.toggle("on", b.dataset.sl === which));
+      }
+
+      function refreshLists() {
+        document.querySelectorAll(".frame").forEach((root) => {
+          root.querySelector("[data-watch]").innerHTML = watchHTML();
+          root.querySelector("[data-rail]").innerHTML = railHTML(
+            root.dataset.f,
+          );
+          const open = root._open;
+          root
+            .querySelectorAll(".hc")
+            .forEach((c) => c.classList.toggle("sel", c.dataset.open === open));
+        });
+      }
+
+      // ---------- the case ----------
+      function caseHTML(h, f) {
+        const s = ST[h.id];
+        const narrow = f !== "w";
+        const W = narrow ? 350 : 487;
+        let charts;
+        if (Array.isArray(h.series)) {
+          charts = `<div class="mini">${h.series
+            .map((k, i) => {
+              const se = DATA.series[k];
+              const b = bandFor(k);
+              const sub = se.slope5y
+                ? `${se.slope5y > 0 ? "+" : "−"}${Math.abs(se.slope5y)}/yr`
+                : se.unit;
+              return `<div><h5>${se.label}<span>${sub}</span></h5>${chart(k, { w: narrow ? 170 : 232, h: 110, rp: 42, anim: true, dl: 250 + i * 120, short: true, labels: 1, nob: true })}<p class="nob">${b.none ? `No band yet: ${b.n} draws before the last, needs 5.` : `Your band ${nice(b.m - b.sd)} to ${nice(b.m + b.sd)}${b.src === "computed" ? ", computed" : ""} · lab ${nice(se.lab[0])} to ${nice(se.lab[1])}`}</p></div>`;
+            })
+            .join("")}</div>`;
+        } else {
+          const b = bandFor(h.series);
+          const se = DATA.series[h.series];
+          charts =
+            chart(h.series, {
+              w: W,
+              h: narrow ? 200 : 230,
+              rp: narrow ? 70 : 110,
+              anim: true,
+              goal: h.goal,
+              slope: h.goal ? se.slopeRecent : null,
+              from: h.goal ? "2021-06-01" : null,
+              short: narrow,
+              labels: narrow ? 1 : 3,
+            }) +
+            (b.none
+              ? `<p class="nob">No band yet: ${b.n} draws before the last, needs 5. Lab line only.</p>`
+              : `<p class="nob">Your band: median ${nice(b.m)} ± ${nice(b.sd)} ${se.unit}, from ${b.n} draws${b.src === "computed" ? " (computed here)" : ""}. Lab range ${nice(se.lab[0])} to ${nice(se.lab[1])}.</p>`);
+        }
+        const order = h.explanations
+          .map((e, i) => i)
+          .sort((a, b) => s.w[b] - s.w[a]);
+        const ex = h.explanations.length
+          ? `<section class="card"><h3>What could explain it <small>share of this hunch, not a diagnosis</small></h3>
+              <div class="ex" data-ex>${order
+                .map(
+                  (i) =>
+                    `<div class="er" data-i="${i}"><span class="g">${GL(h.explanations[i].g)}</span><span>${h.explanations[i].t}</span><span class="p" data-p>${Math.round(s.w[i] * 100)}%</span><div class="trk"><i style="--c:var(--plum-3);width:${s.w[i] * 100}%"></i></div></div>`,
+                )
+                .join("")}</div>
+              <p class="glyphs">● graded A or B · ◐ graded C · ○ a hypothesis</p></section>`
+          : "";
+        const q = h.question
+          ? `<section class="card qcard"><h3>One question splits them <small>free</small></h3><p>${h.question}</p>
+              <div class="chips">${ANSWERS[h.id].map(([t], i) => `<button data-ans="${i}" class="${s.ans === i ? "on" : ""}">${t}</button>`).join("")}</div>
+              <p class="qn" data-qn>${s.ans != null ? "Your answer moved the order. No probability changes until a result comes back." : "An answer moves the order. Only a result closes the case."}</p></section>`
+          : "";
+        const t = h.test
+          ? `<section class="card tcard"><h3>The test that separates them <small>price is a placeholder</small></h3>
+              <div class="tt"><b>${h.test.name}</b><span>${h.test.price} ${h.test.currency}</span><button class="btn" data-accept ${s.acc ? "disabled" : ""}>${s.acc ? "Accepted" : "Accept test"}</button></div>
+              <div data-pred>${s.acc ? predHTML(h) : `<p class="tnote">Accepting writes down, before the result, what each explanation predicts.</p>`}</div>
+              <span class="wstamp${s.acc ? " on" : ""}" data-ws>written down 26 Sep</span></section>
+             <div class="play"><button class="btn lime" data-play ${s.out ? "disabled" : ""}>▶ Play result</button><small>demo: the result arrives and the case closes; no value shown</small></div>
+             <div data-arrive></div>`
+          : `<section class="card gn">${h.kind === "good_news" ? "Nothing to do. Kept on file so the change does not get lost, and so the next draw is read against it." : ""}</section>`;
+        const [st, , k] = stateOf(h);
+        return `<div class="case" data-case="${h.id}">
+          <div class="chd"><span class="ks ${h.kind}">${KIND[h.kind]}</span><span>${h.system}</span><span class="sp"></span><span class="st ${k || (s.acc ? "testing" : "")}" data-st>${st}</span><button class="x" data-close aria-label="Close">×</button></div>
+          <div><h2>${h.title}</h2><p class="say">${h.say}</p></div>
+          <section class="card"><div class="legend">${h.goal ? `<span><i class="lg"></i>goal</span>` : ""}<span><i class="lb"></i>your band</span><span><i class="ll"></i>lab range</span>${h.goal ? `<span><i class="lx"></i>if nothing changes</span>` : ""}</div>${charts}</section>
+          ${ex}${q}${t}
+          <div data-out>${s.out ? outHTML(h) : ""}</div>
+        </div>`;
+      }
+      function predHTML(h) {
+        if (!h.explanations.length)
+          return `<div class="ex" style="margin-top:8px">${PRED[h.id].map((p, k) => `<div class="er"><span class="g">·</span><span class="pr" style="--k:${k};grid-column:2/-1">${p}</span></div>`).join("")}</div>`;
+        return `<p class="tnote">Predictions written under each explanation above.</p>`;
+      }
+      function outHTML(h) {
+        const o = OUTCOME[h.id];
+        return `<div class="out ${o.k}"><span class="ostamp">${o.k.replace("_", " ")}</span><b>${o.head}</b>${o.body}</div>`;
+      }
+      function writePredictions(root, h) {
+        const box = root.querySelector("[data-ex]");
+        if (box)
+          [...box.children].forEach((r, k) => {
+            if (!r.querySelector(".pr"))
+              r.insertAdjacentHTML(
+                "beforeend",
+                `<span class="pr" style="--k:${k}">if so: ${PRED[h.id][r.dataset.i]}</span>`,
+              );
+          });
+      }
+
+      function openCase(root, id) {
+        const h = DATA.hunches.find((x) => x.id === id);
+        root._open = id;
+        const dr = root.querySelector("[data-drawer]");
+        dr.innerHTML = caseHTML(h, root.dataset.f);
+        dr.scrollTop = 0;
+        if (ST[id].acc) writePredictions(dr, h);
+        root.querySelector("[data-scrim]").classList.add("on");
+        requestAnimationFrame(() => dr.classList.add("on"));
+        root
+          .querySelectorAll(".hc")
+          .forEach((c) => c.classList.toggle("sel", c.dataset.open === id));
+      }
+      function closeCase(root) {
+        root._open = null;
+        root.querySelector("[data-drawer]").classList.remove("on");
+        root.querySelector("[data-scrim]").classList.remove("on");
+        root.querySelectorAll(".hc").forEach((c) => c.classList.remove("sel"));
+      }
+
+      // FLIP: rows move to their new order, bars and numbers animate
+      function reorder(box, w) {
+        const rows = [...box.children];
+        const first = new Map(
+          rows.map((r) => [r, r.getBoundingClientRect().top]),
+        );
+        rows
+          .sort((a, b) => w[b.dataset.i] - w[a.dataset.i])
+          .forEach((r) => box.appendChild(r));
+        rows.forEach((r) => {
+          const d = first.get(r) - r.getBoundingClientRect().top;
+          r.style.transition = "none";
+          r.style.transform = d ? `translateY(${d}px)` : "";
+          r.offsetHeight;
+          setTimeout(() => {
+            r.style.transition = "transform 700ms var(--spring)";
+            r.style.transform = "";
+          }, 20);
+          const v = w[r.dataset.i];
+          r.querySelector(".trk i").style.width = v * 100 + "%";
+          countTo(r.querySelector("[data-p]"), Math.round(v * 100));
+        });
+      }
+      function countTo(el, to) {
+        const from = parseInt(el.textContent) || 0;
+        const t0 = Date.now();
+        clearInterval(el._t);
+        el._t = setInterval(() => {
+          const k = Math.min(1, (Date.now() - t0) / 700);
+          el.textContent =
+            Math.round(from + (to - from) * (1 - Math.pow(1 - k, 3))) + "%";
+          if (k === 1) clearInterval(el._t);
+        }, 30);
+      }
+
+      function answer(root, id, i) {
+        const h = DATA.hunches.find((x) => x.id === id);
+        const m = ANSWERS[id][i][1];
+        const raw = h.explanations.map((e, k) => e.p * m[k]);
+        const sum = raw.reduce((a, b) => a + b, 0);
+        ST[id].w = raw.map((v) => v / sum);
+        ST[id].ans = i;
+        const dr = root.querySelector("[data-drawer]");
+        dr.querySelectorAll("[data-ans]").forEach((b) =>
+          b.classList.toggle("on", +b.dataset.ans === i),
+        );
+        dr.querySelector("[data-qn]").textContent =
+          "Your answer moved the order. No probability changes until a result comes back.";
+        reorder(dr.querySelector("[data-ex]"), ST[id].w);
+        if (!ST[id].acc) setSt(dr, "answered", "");
+        refreshLists();
+      }
+      function setSt(dr, t, k) {
+        const el = dr.querySelector("[data-st]");
+        el.textContent = t;
+        el.className = "st " + k;
+      }
+      function accept(root, id) {
+        const h = DATA.hunches.find((x) => x.id === id);
+        if (ST[id].acc) return;
+        ST[id].acc = true;
+        const dr = root.querySelector("[data-drawer]");
+        const b = dr.querySelector("[data-accept]");
+        b.disabled = true;
+        b.textContent = "Accepted";
+        dr.querySelector("[data-pred]").innerHTML = predHTML(h);
+        writePredictions(dr, h);
+        setTimeout(
+          () => dr.querySelector("[data-ws]").classList.add("on"),
+          300,
+        );
+        setSt(dr, "testing", "testing");
+        refreshLists();
+      }
+      function play(root, id) {
+        const h = DATA.hunches.find((x) => x.id === id);
+        if (ST[id].out) return;
+        const dr = root.querySelector("[data-drawer]");
+        const wait = ST[id].acc ? 0 : 900;
+        accept(root, id);
+        dr.querySelector("[data-play]").disabled = true;
+        setTimeout(() => {
+          dr.querySelector("[data-arrive]").innerHTML =
+            `<div class="arrive"><i></i><span><b>${h.test.name}</b> · result in, read against what was written down 26 Sep</span></div>`;
+        }, wait + 200);
+        setTimeout(() => {
+          const o = OUTCOME[id];
+          ST[id].out = o.k;
+          const box = dr.querySelector("[data-ex]");
+          if (box) {
+            const n = h.explanations.length;
+            const w = h.explanations.map((e, k) =>
+              o.win === -1 ? 0 : k === o.win ? 1 : 0,
+            );
+            ST[id].w = o.win === -1 ? ST[id].w : w;
+            if (o.win !== -1) reorder(box, w);
+            [...box.children].forEach((r) => {
+              r.classList.toggle("won", +r.dataset.i === o.win);
+              r.classList.toggle("lost", +r.dataset.i !== o.win);
+            });
+          }
+          dr.querySelector("[data-out]").innerHTML = outHTML(h);
+          setSt(dr, o.k.replace("_", " "), o.k);
+          refreshLists();
+          setTimeout(
+            () =>
+              dr
+                .querySelector("[data-out]")
+                .scrollIntoView({ block: "nearest", behavior: "smooth" }),
+            300,
+          );
+        }, wait + 1500);
+      }
+
+      // ---------- mount ----------
+      document.querySelectorAll(".frame").forEach((root) => {
+        root.innerHTML = page(root.dataset.f);
+        heroSet(root, "recent");
+        root.querySelector("[data-watch]").innerHTML = watchHTML();
+        root.querySelector("[data-rail]").innerHTML = railHTML(root.dataset.f);
+        setTimeout(
+          () =>
+            root
+              .querySelectorAll(".trow [data-w]")
+              .forEach((i) => (i.style.width = i.dataset.w + "%")),
+          300,
+        );
+        root.addEventListener("click", (e) => {
+          const t = e.target.closest("button, [data-scrim]");
+          if (!t) return;
+          const id = root._open;
+          if (t.dataset.open) openCase(root, t.dataset.open);
+          else if (t.hasAttribute("data-scrim") || t.hasAttribute("data-close"))
+            closeCase(root);
+          else if (t.dataset.ans != null) answer(root, id, +t.dataset.ans);
+          else if (t.hasAttribute("data-accept")) accept(root, id);
+          else if (t.hasAttribute("data-play")) play(root, id);
+          else if (t.dataset.sl) heroSet(root, t.dataset.sl);
+        });
+      });
+
+      // ?open=iron opens that case in the 1280 drawer and the 390 sheet; &stage=answered|tested|closed plays it forward
+      const q = new URLSearchParams(location.search);
+      const W = document.querySelector('[data-f="w"]');
+      const N2 = document.querySelector('[data-f="n2"]');
+      const openId = q.get("open");
+      const valid = (id) => DATA.hunches.some((h) => h.id === id);
+      setTimeout(() => {
+        openCase(N2, valid(openId) ? openId : "eos");
+        if (valid(openId)) {
+          openCase(W, openId);
+          const stage = q.get("stage");
+          const h = DATA.hunches.find((x) => x.id === openId);
+          if (stage && h.question) setTimeout(() => answer(W, openId, 0), 1600);
+          if (stage === "tested" || stage === "closed")
+            setTimeout(() => h.test && accept(W, openId), 2600);
+          if (stage === "closed")
+            setTimeout(() => h.test && play(W, openId), 3400);
+        }
+      }, 200);
+    </script>
+  </body>
+</html>

@@ -1,0 +1,3742 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Corridors · iOS variation 55 · OpenVitals</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --plum-0: #1e0a24;
+        --plum: #2b1033;
+        --plum-2: #3d1947;
+        --plum-3: #5a2d66;
+        --mist: #cdb8d2;
+        --paper: #f3ead8;
+        --paper-2: #ebdfc7;
+        --paper-3: #dccbad;
+        --card: #fffdf8;
+        --cream: #f6eddc;
+        --ink: #2b1033;
+        --ink-2: #6f5a72;
+        --ink-3: #a08fa0;
+        --line: #eadfcb;
+        --life: #e4722f;
+        --blood: #c23a5e;
+        --gene: #6c4aa6;
+        --life-l: #f59257;
+        --blood-l: #ea6a8d;
+        --gene-l: #a98ae6;
+        --green: #23995d;
+        --green-soft: #d9efdf;
+        --amber: #c98512;
+        --amber-soft: #f6e3bf;
+        --rose: #d2415b;
+        --rose-soft: #f8dbe0;
+        --lime: #d6f34a;
+        --s3: 3px;
+        --s5: 5px;
+        --s8: 8px;
+        --s13: 13px;
+        --s21: 21px;
+        --s34: 34px;
+        --s55: 55px;
+        --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+        --spring: cubic-bezier(0.3, 1.35, 0.5, 1);
+        --ispring: cubic-bezier(0.34, 1.4, 0.64, 1);
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--paper-2);
+        background-image: var(--noise);
+        background-size: 128px 128px;
+        color: var(--ink);
+        font:
+          15px/1.4 "Space Grotesk",
+          -apple-system,
+          system-ui,
+          sans-serif;
+        font-feature-settings: "tnum";
+      }
+      button {
+        font: inherit;
+        color: inherit;
+        background: none;
+        border: 0;
+        padding: 0;
+        cursor: pointer;
+        -webkit-tap-highlight-color: transparent;
+        text-align: left;
+      }
+      h1,
+      h2,
+      h3,
+      p {
+        margin: 0;
+      }
+      svg {
+        width: 20px;
+        height: 20px;
+        stroke: currentColor;
+        fill: none;
+        stroke-width: 1.8;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+
+      /* ---- page ---- */
+      .doc {
+        max-width: 1290px;
+        margin: 0 auto;
+        padding: var(--s21) var(--s21) var(--s55);
+      }
+      .doc > header {
+        margin-bottom: var(--s21);
+        display: grid;
+        grid-template-columns: 1fr 1.7fr;
+        gap: var(--s34);
+        align-items: end;
+      }
+      .eyebrow {
+        color: var(--ink-2);
+        font-size: 13px;
+        margin-bottom: var(--s5);
+        letter-spacing: 0.04em;
+      }
+      .doc h1 {
+        font-size: 34px;
+        font-weight: 600;
+        letter-spacing: -0.04em;
+        line-height: 1;
+      }
+      .lede {
+        color: var(--ink-2);
+        font-size: 13px;
+        margin-top: var(--s8);
+        max-width: 50ch;
+      }
+      .direction {
+        background: var(--card);
+        border-radius: 21px;
+        padding: var(--s13) var(--s21);
+        font-size: 13px;
+        display: grid;
+        grid-template-columns: 89px 1fr;
+        gap: var(--s3) var(--s13);
+        color: var(--ink-2);
+        box-shadow: 0 13px 34px -21px rgba(43, 16, 51, 0.35);
+      }
+      .direction b {
+        color: var(--ink);
+        font-weight: 500;
+      }
+      .phones {
+        display: flex;
+        gap: var(--s34);
+        justify-content: center;
+        flex-wrap: wrap;
+      }
+      .cap {
+        display: flex;
+        justify-content: space-between;
+        color: var(--ink-2);
+        font-size: 13px;
+        margin-bottom: var(--s13);
+        width: 390px;
+      }
+
+      /* ---- phone ---- */
+      .phone {
+        width: 390px;
+        height: 844px;
+        border-radius: 55px;
+        border: 8px solid #1a0b1d;
+        background-color: var(--paper);
+        background-image: var(--noise);
+        background-size: 128px 128px;
+        box-shadow:
+          0 0 0 1px #3d1947,
+          0 55px 89px -34px rgba(43, 16, 51, 0.55);
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        user-select: none;
+      }
+      .status {
+        height: 55px;
+        flex: none;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        padding: 0 var(--s34) var(--s8);
+        font-size: 14px;
+        font-weight: 600;
+        position: relative;
+      }
+      .status i {
+        position: absolute;
+        left: 50%;
+        top: 13px;
+        width: 120px;
+        height: 34px;
+        border-radius: 21px;
+        background: #0b030d;
+        transform: translateX(-50%);
+      }
+      .hd {
+        flex: none;
+        background:
+          radial-gradient(70% 90% at 15% 0%, #4d1d58 0%, transparent 70%),
+          var(--plum);
+        color: var(--cream);
+        border-radius: 0 0 34px 34px;
+        padding-bottom: var(--s21);
+        position: relative;
+        z-index: 5;
+        box-shadow: 0 13px 21px -13px rgba(43, 16, 51, 0.5);
+      }
+      .hd .in {
+        padding: var(--s8) var(--s21) 0;
+      }
+      .row-a {
+        display: flex;
+        align-items: center;
+        gap: var(--s13);
+      }
+      .num {
+        font-size: 55px;
+        font-weight: 600;
+        letter-spacing: -0.05em;
+        line-height: 1;
+        min-width: 42px;
+      }
+      .side {
+        flex: 1;
+        min-width: 0;
+      }
+      .side small,
+      .hd small.k {
+        display: block;
+        font-size: 11px;
+        color: var(--mist);
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+      .side b {
+        font-size: 17px;
+        font-weight: 600;
+        letter-spacing: -0.01em;
+      }
+      .side em {
+        font-style: normal;
+        color: var(--mist);
+        font-size: 13px;
+      }
+      .pill {
+        display: inline-block;
+        padding: var(--s3) var(--s8);
+        border-radius: 999px;
+        background: rgba(214, 243, 74, 0.16);
+        color: var(--lime);
+        font-size: 11px;
+        font-weight: 600;
+        opacity: 0;
+        transform: translateY(5px);
+        transition:
+          opacity 360ms var(--ease),
+          transform 360ms var(--ease);
+        white-space: nowrap;
+        margin-top: var(--s5);
+      }
+      .pill.on {
+        opacity: 1;
+        transform: none;
+      }
+      .tally {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: var(--s8);
+        margin-top: var(--s13);
+      }
+      .tally div {
+        font-size: 11px;
+        color: var(--mist);
+      }
+      .tally b {
+        display: block;
+        color: var(--cream);
+        font-size: 17px;
+        font-weight: 600;
+      }
+      .tally i {
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        margin-right: var(--s5);
+        background: var(--c);
+      }
+
+      /* ---- body ---- */
+      .scroll {
+        flex: 1;
+        overflow-y: auto;
+        overflow-x: hidden;
+        padding-bottom: 110px;
+        scrollbar-width: none;
+      }
+      .scroll::-webkit-scrollbar {
+        display: none;
+      }
+      .shelf {
+        margin-top: var(--s21);
+      }
+      .shelf > header {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        padding: 0 var(--s21);
+        margin-bottom: var(--s8);
+      }
+      .shelf h2 {
+        font-size: 17px;
+        font-weight: 600;
+        letter-spacing: -0.02em;
+      }
+      .shelf h2 small {
+        font-size: 11px;
+        font-weight: 500;
+        color: var(--ink-2);
+        letter-spacing: 0.02em;
+        margin-left: var(--s5);
+      }
+      .card {
+        background: var(--card);
+        background-image: var(--noise);
+        background-size: 128px 128px;
+        border-radius: 21px;
+        margin: 0 var(--s13);
+        padding: var(--s13);
+        box-shadow:
+          0 1px 0 #fff inset,
+          0 13px 21px -13px rgba(43, 16, 51, 0.3);
+      }
+      .crow {
+        background: var(--card);
+        background-image: var(--noise);
+        background-size: 128px 128px;
+        border-radius: 13px;
+        padding: var(--s8) var(--s13);
+        display: grid;
+        grid-template-columns: 89px 162px 1fr;
+        gap: 0 var(--s8);
+        align-items: center;
+        box-shadow: 0 8px 13px -13px rgba(43, 16, 51, 0.4);
+        transition:
+          transform 620ms var(--spring),
+          box-shadow 400ms var(--ease),
+          opacity 400ms var(--ease);
+        position: relative;
+        cursor: pointer;
+      }
+      .crow.rise {
+        box-shadow:
+          0 0 0 2px var(--rose),
+          0 13px 21px -13px rgba(210, 65, 91, 0.6);
+      }
+      .crow.none {
+        opacity: 0.55;
+      }
+      .crow .nm b {
+        display: block;
+        font-size: 13px;
+        font-weight: 600;
+        line-height: 1.15;
+      }
+      .crow .nm small {
+        font-size: 11px;
+        color: var(--ink-3);
+      }
+      .crow .val {
+        text-align: right;
+      }
+      .crow .val b {
+        display: block;
+        font-size: 17px;
+        font-weight: 600;
+        letter-spacing: -0.02em;
+        line-height: 1.1;
+      }
+      .crow .val small {
+        font-size: 11px;
+        color: var(--ink-2);
+        white-space: nowrap;
+      }
+      .crow .val small.out {
+        color: var(--rose);
+        font-weight: 600;
+      }
+      .chips {
+        grid-column: 1 / -1;
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--s5);
+      }
+      .chips:not(:empty) {
+        margin-top: var(--s5);
+      }
+      .chip {
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: 0.04em;
+        padding: 1px var(--s8);
+        border-radius: 999px;
+        background: var(--bg);
+        color: var(--fg);
+        white-space: nowrap;
+        animation: chipin 520ms var(--ispring) both;
+      }
+      .chip em {
+        font-style: normal;
+        font-weight: 500;
+        letter-spacing: 0;
+      }
+      @keyframes chipin {
+        from {
+          transform: scale(0.4);
+          opacity: 0;
+        }
+      }
+      .k-out {
+        --bg: var(--rose-soft);
+        --fg: var(--rose);
+      }
+      .k-step,
+      .k-drift {
+        --bg: var(--amber-soft);
+        --fg: #8a5a08;
+      }
+      .k-cluster {
+        --bg: #e7def5;
+        --fg: var(--gene);
+      }
+      .k-good {
+        --bg: var(--green-soft);
+        --fg: var(--green);
+      }
+      .k-few {
+        --bg: var(--paper-2);
+        --fg: var(--ink-2);
+      }
+      svg.trk {
+        width: 162px;
+        height: 34px;
+        stroke: none;
+        overflow: visible;
+      }
+      svg.trk .base {
+        fill: var(--paper-2);
+      }
+      svg.trk .lab {
+        stroke: var(--ink-3);
+        stroke-width: 1;
+      }
+      svg.trk .labx {
+        fill: var(--ink-3);
+      }
+      svg.trk .co,
+      svg.trk .ci,
+      svg.trk .md {
+        transition:
+          x 620ms var(--spring),
+          width 620ms var(--spring),
+          opacity 400ms var(--ease);
+      }
+      svg.trk .co {
+        fill: rgba(90, 45, 102, 0.16);
+      }
+      svg.trk .ci {
+        fill: rgba(90, 45, 102, 0.3);
+      }
+      svg.trk .md {
+        fill: var(--plum-3);
+      }
+      svg.trk .pd {
+        fill: var(--ink-3);
+        transition: opacity 400ms var(--ease);
+      }
+      svg.trk .dot {
+        stroke: #fff;
+        stroke-width: 2;
+        fill: var(--dc, var(--ink));
+        transition:
+          cx 620ms var(--spring),
+          fill 400ms var(--ease),
+          opacity 400ms var(--ease);
+      }
+      /* expanded history under a row */
+      .hist {
+        grid-column: 1 / -1;
+        margin-top: var(--s8);
+        border-top: 1px solid var(--line);
+        padding-top: var(--s8);
+      }
+      .hist p {
+        font-size: 11px;
+        color: var(--ink-2);
+        margin-top: var(--s5);
+      }
+      svg.tc {
+        width: 322px;
+        height: 110px;
+        stroke: none;
+        overflow: visible;
+      }
+      svg.tc .rib {
+        fill: rgba(90, 45, 102, 0.16);
+        animation: wipe 1100ms var(--ease) 200ms both;
+      }
+      svg.tc .ribi {
+        fill: rgba(90, 45, 102, 0.28);
+        animation: wipe 1100ms var(--ease) 300ms both;
+      }
+      @keyframes wipe {
+        from {
+          clip-path: inset(0 100% 0 0);
+        }
+        to {
+          clip-path: inset(0 0 0 0);
+        }
+      }
+      svg.tc .ln {
+        fill: none;
+        stroke: var(--ink);
+        stroke-width: 1.5;
+        stroke-dasharray: var(--L);
+        stroke-dashoffset: var(--L);
+        animation: draw 1300ms var(--ease) 100ms forwards;
+      }
+      @keyframes draw {
+        to {
+          stroke-dashoffset: 0;
+        }
+      }
+      svg.tc .labl {
+        stroke: var(--ink-3);
+        stroke-width: 1;
+      }
+      svg.tc text {
+        font-size: 11px;
+        fill: var(--ink-3);
+        stroke: none;
+        font-family: inherit;
+      }
+      svg.tc .pt {
+        stroke: #fff;
+        stroke-width: 1.5;
+        animation: pop 420ms var(--ispring) both;
+      }
+      @keyframes pop {
+        from {
+          transform: scale(0);
+        }
+      }
+      svg.tc .pt,
+      svg.lanes .pt {
+        transform-box: fill-box;
+        transform-origin: center;
+      }
+
+      .scrub {
+        margin-top: var(--s13);
+        position: relative;
+        touch-action: none;
+        cursor: ew-resize;
+      }
+      svg.sc {
+        width: 332px;
+        height: 55px;
+        stroke: none;
+        overflow: visible;
+        display: block;
+      }
+      svg.sc .rail {
+        fill: rgba(246, 237, 220, 0.14);
+      }
+      svg.sc .done {
+        fill: var(--mist);
+        transition: width 520ms var(--spring);
+      }
+      svg.sc .tick {
+        fill: var(--mist);
+      }
+      svg.sc text {
+        fill: var(--mist);
+        font-size: 11px;
+        font-family: inherit;
+      }
+      svg.sc .sig {
+        stroke: var(--plum);
+        stroke-width: 1.5;
+        transition: opacity 400ms var(--ease);
+      }
+      svg.sc .thumb {
+        fill: var(--lime);
+        stroke: var(--plum);
+        stroke-width: 3;
+        transition: cx 520ms var(--spring);
+      }
+      .scrub.drag svg.sc .thumb,
+      .scrub.drag svg.sc .done {
+        transition: none;
+      }
+      .ctl {
+        display: flex;
+        gap: var(--s8);
+        align-items: center;
+        margin-top: var(--s8);
+      }
+      .ctl button {
+        height: 34px;
+        min-width: 34px;
+        padding: 0 var(--s13);
+        border-radius: 999px;
+        background: rgba(246, 237, 220, 0.12);
+        color: var(--cream);
+        font-size: 13px;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: var(--s5);
+        justify-content: center;
+      }
+      .ctl button.play {
+        background: var(--lime);
+        color: var(--plum);
+      }
+      .ctl svg {
+        width: 15px;
+        height: 15px;
+        stroke-width: 2.4;
+      }
+      .ctl span {
+        margin-left: auto;
+        font-size: 11px;
+        color: var(--mist);
+      }
+      .raised {
+        margin: var(--s13) var(--s13) 0;
+        border-radius: 21px;
+        padding: var(--s8) var(--s13);
+        background: var(--plum-2);
+        color: var(--cream);
+        font-size: 13px;
+        min-height: 55px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        gap: var(--s3);
+      }
+      .raised small {
+        font-size: 11px;
+        color: var(--mist);
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+      .raised .rl {
+        display: flex;
+        flex-direction: column;
+        gap: var(--s5);
+      }
+      .raised .rl > span {
+        display: flex;
+        align-items: flex-start;
+        gap: var(--s8);
+      }
+      .raised .rl .chips {
+        margin: 0;
+      }
+      .raised .rl b {
+        font-weight: 600;
+        min-width: 89px;
+      }
+      .raised.flash {
+        animation: flash 900ms var(--ease);
+      }
+      @keyframes flash {
+        0% {
+          box-shadow: 0 0 0 0 rgba(214, 243, 74, 0.8);
+        }
+        100% {
+          box-shadow: 0 0 0 13px rgba(214, 243, 74, 0);
+        }
+      }
+
+      /* tab bar */
+      .tabs {
+        position: absolute;
+        left: var(--s13);
+        right: var(--s13);
+        bottom: var(--s21);
+        display: flex;
+        gap: var(--s8);
+        align-items: center;
+        z-index: 20;
+      }
+      .tabs .tb {
+        flex: 1;
+        height: 62px;
+        border-radius: 999px;
+        background: rgba(255, 253, 248, 0.78);
+        border: 1px solid rgba(43, 16, 51, 0.08);
+        backdrop-filter: blur(21px) saturate(1.4);
+        -webkit-backdrop-filter: blur(21px) saturate(1.4);
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        padding: 5px;
+        box-shadow: 0 13px 34px -13px rgba(43, 16, 51, 0.35);
+      }
+      .tabs .tb button {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 2px;
+        font-size: 11px;
+        color: var(--ink-3);
+        border-radius: 999px;
+      }
+      .tabs .tb button.on {
+        background: var(--paper);
+        color: var(--ink);
+      }
+      .tabs .plus {
+        width: 62px;
+        height: 62px;
+        border-radius: 50%;
+        background: var(--lime);
+        color: var(--plum);
+        display: grid;
+        place-items: center;
+        box-shadow: 0 13px 21px -8px rgba(120, 140, 20, 0.5);
+      }
+      .tabs .plus svg {
+        width: 26px;
+        height: 26px;
+        stroke-width: 2.2;
+      }
+      .homebar {
+        position: absolute;
+        left: 50%;
+        bottom: 8px;
+        width: 134px;
+        height: 5px;
+        border-radius: 3px;
+        background: var(--ink);
+        opacity: 0.35;
+        transform: translateX(-50%);
+        z-index: 60;
+      }
+
+      /* notes */
+      .notes {
+        margin: var(--s55) auto 0;
+        max-width: 80ch;
+        font-size: 13px;
+        color: var(--ink-2);
+      }
+      .notes h2 {
+        font-size: 17px;
+        font-weight: 600;
+        color: var(--ink);
+        margin-bottom: var(--s8);
+      }
+      .notes table {
+        border-collapse: collapse;
+        width: 100%;
+        margin: var(--s8) 0 var(--s34);
+      }
+      .notes td,
+      .notes th {
+        text-align: left;
+        padding: var(--s8) var(--s8) var(--s8) 0;
+        border-bottom: 1px solid var(--paper-3);
+        vertical-align: top;
+      }
+      .notes th {
+        font-weight: 600;
+        color: var(--ink);
+      }
+      .notes td.ok {
+        color: var(--green);
+        font-weight: 600;
+      }
+      .notes td.no {
+        color: var(--rose);
+        font-weight: 600;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::after {
+          animation: none !important;
+          transition: none !important;
+        }
+      }
+      .kst {
+        display: inline-block;
+        border: 1.5px solid currentColor;
+        border-radius: 5px;
+        padding: 1px var(--s5);
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        line-height: 1.3;
+        transform: rotate(-3deg);
+        color: var(--k);
+        white-space: nowrap;
+      }
+      .shut {
+        position: absolute;
+        right: var(--s8);
+        top: 0;
+        border: 3px solid var(--green);
+        color: var(--green);
+        border-radius: 8px;
+        padding: 0 var(--s8);
+        font-size: 17px;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        background: rgba(255, 253, 248, 0.86);
+        transform: rotate(-9deg) scale(2);
+        opacity: 0;
+        pointer-events: none;
+      }
+      .shut.on {
+        animation: slam 520ms var(--spring) forwards;
+      }
+      @keyframes slam {
+        0% {
+          transform: rotate(-9deg) scale(2);
+          opacity: 0;
+        }
+        60% {
+          opacity: 1;
+        }
+        100% {
+          transform: rotate(-9deg) scale(1);
+          opacity: 1;
+        }
+      }
+      .legend2 {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--s5) var(--s13);
+        margin-top: var(--s8);
+        font-size: 11px;
+        color: var(--ink-2);
+      }
+      .legend2 span {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--s5);
+      }
+      .legend2 i {
+        width: 13px;
+        height: 8px;
+        border-radius: 3px;
+        background: rgba(194, 58, 94, 0.18);
+      }
+      .legend2 i.lb {
+        height: 0;
+        border-top: 1px dashed var(--ink-3);
+        border-radius: 0;
+        background: none;
+      }
+      .legend2 i.gl {
+        height: 0;
+        border-top: 2px solid var(--green);
+        border-radius: 0;
+        background: none;
+      }
+      /* explanations as bars */
+      .gl-key {
+        font-size: 11px;
+        color: var(--ink-2);
+        margin-top: var(--s5);
+      }
+      .xl {
+        position: relative;
+        margin-top: var(--s8);
+      }
+      .xr {
+        padding: var(--s8) 0;
+        border-top: 1px solid var(--line);
+        position: relative;
+        background: var(--card);
+      }
+      .xr:first-child {
+        border-top: 0;
+      }
+      .xr .xt {
+        display: grid;
+        grid-template-columns: 17px 1fr auto;
+        gap: var(--s5);
+        align-items: baseline;
+        font-size: 13px;
+        line-height: 1.3;
+      }
+      .xr .g {
+        color: var(--plum);
+        font-size: 13px;
+      }
+      .xr .pc2 {
+        font-weight: 600;
+        font-size: 13px;
+        min-width: 34px;
+        text-align: right;
+      }
+      .xr .xb {
+        margin: var(--s5) 0 0 22px;
+        height: 5px;
+        border-radius: 3px;
+        background: var(--paper-2);
+        position: relative;
+        overflow: hidden;
+      }
+      .xr .xb i {
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: var(--w, 0%);
+        background: var(--plum-3);
+        border-radius: 3px;
+        transition: width 900ms var(--spring);
+      }
+      .xr.lead .xb i {
+        background: var(--blood);
+      }
+      .xr.won .xb i {
+        background: var(--green);
+      }
+      .xr.lost .xt {
+        color: var(--ink-3);
+      }
+
+      /* the question */
+      .qchips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--s5);
+        margin-top: var(--s13);
+      }
+      .qchips button {
+        padding: var(--s5) var(--s13);
+        border-radius: 999px;
+        border: 1.5px solid var(--paper-3);
+        font-size: 13px;
+        color: var(--ink);
+        transition:
+          background 300ms var(--ease),
+          border-color 300ms var(--ease),
+          color 300ms var(--ease),
+          transform 420ms var(--spring);
+      }
+      .qchips button.on {
+        background: var(--plum);
+        border-color: var(--plum);
+        color: var(--cream);
+        transform: scale(1.05);
+      }
+      .qread {
+        font-size: 13px;
+        color: var(--ink-2);
+        margin-top: var(--s8);
+        min-height: 18px;
+      }
+      .qread b {
+        color: var(--ink);
+        font-weight: 600;
+      }
+      /* the test, the predictions, the stamp */
+      .trow {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        gap: var(--s8);
+        margin-top: var(--s8);
+      }
+      .trow b {
+        font-size: 17px;
+        font-weight: 600;
+        letter-spacing: -0.01em;
+      }
+      .trow span {
+        font-size: 13px;
+        color: var(--ink-2);
+        white-space: nowrap;
+      }
+      .tbtn {
+        display: block;
+        width: 100%;
+        margin-top: var(--s13);
+        padding: var(--s13);
+        border-radius: 999px;
+        background: var(--plum);
+        color: var(--cream);
+        font-size: 13px;
+        font-weight: 600;
+        text-align: center;
+        transition: opacity 300ms var(--ease), transform 300ms var(--ease);
+      }
+      .tbtn:active {
+        transform: scale(0.98);
+      }
+      .tbtn[hidden] {
+        display: none;
+      }
+      .tbtn.play {
+        background: var(--lime);
+        color: var(--plum);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: var(--s8);
+        position: relative;
+        overflow: hidden;
+      }
+      .tbtn.play svg {
+        width: 13px;
+        height: 13px;
+        fill: currentColor;
+        stroke: none;
+      }
+      .tbtn.play i {
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 0;
+        background: rgba(43, 16, 51, 0.12);
+      }
+      .tbtn.play.run i {
+        width: 100%;
+        transition: width 1400ms linear;
+      }
+      .preds {
+        margin-top: var(--s8);
+      }
+      .pr {
+        display: grid;
+        grid-template-columns: 21px 1fr;
+        gap: var(--s8);
+        padding: var(--s8) 0;
+        border-top: 1px dashed var(--paper-3);
+        font-size: 13px;
+        line-height: 1.3;
+        animation: writein 560ms var(--ease) both;
+        animation-delay: var(--d);
+      }
+      .instant .pr {
+        animation-duration: 1ms;
+        animation-delay: 0ms;
+      }
+      @keyframes writein {
+        from {
+          opacity: 0;
+          transform: translateX(-13px);
+        }
+      }
+      .pr small {
+        display: block;
+        font-size: 11px;
+        color: var(--ink-2);
+      }
+      .pr .mk2 {
+        width: 21px;
+        height: 21px;
+        border-radius: 50%;
+        border: 1.5px solid var(--paper-3);
+        display: grid;
+        place-items: center;
+        transition:
+          background 300ms var(--ease),
+          border-color 300ms var(--ease),
+          transform 420ms var(--spring);
+      }
+      .pr .mk2 svg {
+        width: 11px;
+        height: 11px;
+        stroke-width: 3;
+        stroke-dasharray: 26;
+        stroke-dashoffset: 26;
+        transition: stroke-dashoffset 420ms var(--ease) 120ms;
+        color: #fff;
+      }
+      .pr.held .mk2 {
+        background: var(--green);
+        border-color: var(--green);
+        transform: scale(1.1);
+      }
+      .pr.failed .mk2 {
+        background: var(--ink-3);
+        border-color: var(--ink-3);
+      }
+      .pr.held .mk2 svg,
+      .pr.failed .mk2 svg {
+        stroke-dashoffset: 0;
+      }
+      .pr.failed > span:last-child {
+        color: var(--ink-3);
+        text-decoration: line-through;
+        text-decoration-color: rgba(160, 143, 160, 0.6);
+      }
+      .pr.untested .mk2 {
+        border-style: dashed;
+      }
+      .wd {
+        position: absolute;
+        right: var(--s13);
+        top: -15px;
+        border: 2.5px solid var(--plum);
+        color: var(--plum);
+        border-radius: 8px;
+        padding: 0 var(--s5);
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        line-height: 1.5;
+        text-transform: uppercase;
+        background: rgba(255, 253, 248, 0.9);
+        transform: rotate(-4deg) scale(2.2);
+        opacity: 0;
+        pointer-events: none;
+      }
+      .wd.on {
+        animation: slam2 520ms var(--spring) forwards 900ms;
+      }
+      .instant .wd.on {
+        animation-duration: 1ms;
+        animation-delay: 0ms;
+      }
+      @keyframes slam2 {
+        0% {
+          transform: rotate(-4deg) scale(2.2);
+          opacity: 0;
+        }
+        60% {
+          opacity: 1;
+        }
+        100% {
+          transform: rotate(-4deg) scale(1);
+          opacity: 1;
+        }
+      }
+      .res {
+        overflow: hidden;
+        max-height: 0;
+        opacity: 0;
+        transition:
+          max-height 700ms var(--ease),
+          opacity 420ms var(--ease),
+          margin 420ms var(--ease);
+      }
+      .res.on {
+        max-height: 300px;
+        opacity: 1;
+        margin-top: var(--s13);
+      }
+      .res .rbox {
+        border-radius: 13px;
+        background: var(--paper);
+        padding: var(--s8) var(--s13);
+      }
+      .res .rl {
+        display: flex;
+        justify-content: space-between;
+        gap: var(--s8);
+        font-size: 13px;
+        padding: var(--s3) 0;
+      }
+      .res .rl b {
+        font-weight: 600;
+      }
+      .res .demo {
+        font-size: 11px;
+        color: var(--ink-2);
+      }
+      .closeline {
+        font-size: 13px;
+        line-height: 1.4;
+        margin-top: var(--s8);
+      }
+      .closeline b {
+        color: var(--green);
+      }
+      .calm {
+        font-size: 13px;
+        color: var(--ink-2);
+        margin-top: var(--s8);
+      }
+/* ================= 55 Corridors ================= */
+.scroll {
+  position: relative;
+}
+.bh {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--s13);
+}
+.bh .side b {
+  display: block;
+  font-size: 21px;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+}
+.bh .side em {
+  display: block;
+  margin-top: var(--s3);
+}
+.today {
+  margin-top: var(--s13);
+  font-size: 11px;
+  color: var(--mist);
+}
+.today b {
+  color: var(--cream);
+  font-weight: 500;
+}
+.shelf h2 small.r {
+  float: right;
+}
+.hlist {
+  margin: 0 var(--s13);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s8);
+}
+.hrow,
+.mrow {
+  background: var(--card);
+  background-image: var(--noise);
+  background-size: 128px 128px;
+  border-radius: 21px;
+  padding: var(--s13);
+  box-shadow:
+    0 1px 0 #fff inset,
+    0 13px 21px -13px rgba(43, 16, 51, 0.3);
+  position: relative;
+  transition: opacity 400ms var(--ease);
+  will-change: transform;
+}
+.mrow {
+  border-radius: 13px;
+  padding: var(--s8) var(--s13);
+  box-shadow: 0 8px 13px -13px rgba(43, 16, 51, 0.4);
+}
+.hrow.seen .hhead {
+  opacity: 0.55;
+}
+.hhead,
+.mhead {
+  cursor: pointer;
+}
+.hl {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0 var(--s13);
+  align-items: baseline;
+}
+.ht {
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.25;
+}
+.hn {
+  white-space: nowrap;
+  text-align: right;
+}
+.hn b {
+  font-size: 21px;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  color: var(--kc);
+}
+.hn small {
+  font-size: 11px;
+  color: var(--ink-2);
+  margin-left: var(--s3);
+}
+.h2 {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s13);
+  margin-top: var(--s8);
+}
+svg.mini {
+  width: 121px;
+  height: 21px;
+  flex: none;
+  overflow: visible;
+  stroke: none;
+}
+svg.mini .base {
+  fill: var(--paper-2);
+}
+svg.mini .cz {
+  fill: rgba(90, 45, 102, 0.26);
+}
+svg.mini .cz.prov {
+  fill: rgba(90, 45, 102, 0.1);
+  stroke: var(--plum-3);
+  stroke-width: 1;
+  stroke-dasharray: 3 2;
+}
+svg.mini .gz {
+  fill: rgba(35, 153, 93, 0.3);
+}
+svg.mini .lab {
+  stroke: var(--ink-3);
+  stroke-width: 1;
+}
+svg.mini .trail {
+  stroke: var(--ink-3);
+  stroke-width: 1.5;
+}
+svg.mini .pv {
+  fill: var(--card);
+  stroke: var(--ink-3);
+  stroke-width: 1.5;
+}
+svg.mini .dt {
+  stroke: #fff;
+  stroke-width: 2;
+}
+.act {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  max-width: 190px;
+  padding: var(--s5) var(--s13);
+  border-radius: 21px;
+  background: var(--plum);
+  color: var(--cream);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.25;
+  transition:
+    background 300ms var(--ease),
+    color 300ms var(--ease),
+    transform 420ms var(--spring);
+}
+.act small {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--mist);
+  white-space: nowrap;
+}
+.act span {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s3);
+}
+.act svg {
+  width: 13px;
+  height: 13px;
+  stroke-width: 2.6;
+}
+.act.soft {
+  background: var(--paper);
+  color: var(--ink);
+}
+.act.soft small {
+  color: var(--ink-2);
+}
+.act.done {
+  background: var(--green-soft);
+  color: var(--green);
+}
+.act.done small {
+  color: var(--green);
+  opacity: 0.8;
+}
+.act.pop {
+  animation: actpop 520ms var(--ispring);
+}
+@keyframes actpop {
+  40% {
+    transform: scale(1.08);
+  }
+}
+/* the slim marker rows */
+.mhead {
+  display: grid;
+  grid-template-columns: 89px 121px 1fr;
+  gap: 0 var(--s8);
+  align-items: center;
+}
+.mhead .nm b {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.15;
+}
+.mhead .nm small {
+  font-size: 11px;
+  color: var(--ink-3);
+}
+.mhead .val {
+  text-align: right;
+}
+.mhead .val b {
+  display: block;
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+.mhead .val small {
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+  color: var(--c);
+}
+.grp {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s5);
+  border-left: 2px solid var(--gene-l);
+  padding-left: var(--s8);
+  margin-left: calc(-1 * var(--s8) - 2px);
+}
+.grp > p {
+  font-size: 11px;
+  color: var(--gene);
+  font-weight: 600;
+}
+.foot {
+  margin: var(--s21) var(--s21) 0;
+  font-size: 11px;
+  color: var(--ink-2);
+  text-align: center;
+}
+
+/* ---- depth 2: the row opened in place ---- */
+.more:empty {
+  display: none;
+}
+.more {
+  margin-top: var(--s13);
+  border-top: 1px solid var(--line);
+  padding-top: var(--s13);
+  animation: morein 520ms var(--ease) both 80ms;
+}
+.instant .more {
+  animation: none;
+}
+@keyframes morein {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+}
+.krow {
+  display: flex;
+  align-items: center;
+  gap: var(--s8);
+  font-size: 11px;
+  color: var(--ink-2);
+}
+.krow .cstate {
+  margin-left: auto;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.d2 .say,
+.msay {
+  font-size: 13px;
+  color: var(--ink-2);
+  line-height: 1.4;
+  margin-top: var(--s8);
+}
+.msay {
+  margin-top: 0;
+}
+.blk {
+  margin-top: var(--s13);
+  padding-top: var(--s13);
+  border-top: 1px solid var(--line);
+  position: relative;
+}
+.blk.first {
+  border-top: 0;
+  padding-top: 0;
+}
+.blk h4 {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+  display: flex;
+  justify-content: space-between;
+  gap: var(--s8);
+}
+.blk h4 span {
+  letter-spacing: 0.02em;
+  text-transform: none;
+  font-weight: 500;
+}
+.blk > p {
+  font-size: 13px;
+  line-height: 1.4;
+  margin-top: var(--s8);
+}
+.d2 .shut {
+  top: -5px;
+}
+svg.tc {
+  display: block;
+  margin-top: var(--s8);
+}
+svg.tc .rib .prov,
+svg.tc .ribi .prov {
+  stroke: var(--plum-3);
+  stroke-width: 1;
+  stroke-dasharray: 3 3;
+}
+svg.tc .goalz {
+  fill: rgba(35, 153, 93, 0.14);
+}
+svg.tc .goall {
+  stroke: var(--green);
+  stroke-width: 1.5;
+}
+svg.tc text.gt {
+  fill: var(--green);
+  font-weight: 600;
+}
+svg.tc .stepl {
+  stroke: var(--blood);
+  stroke-width: 1;
+  stroke-dasharray: 4 3;
+}
+svg.tc text.st {
+  fill: var(--blood);
+  font-weight: 600;
+}
+svg.tc .slopel {
+  stroke: var(--amber);
+  stroke-width: 1.5;
+  stroke-dasharray: 4 3;
+}
+svg.tc text.sl {
+  fill: #8a5a08;
+  font-weight: 600;
+}
+svg.tc.still .rib,
+svg.tc.still .ribi,
+svg.tc.still .ln,
+svg.tc.still .pt {
+  animation: none;
+  stroke-dashoffset: 0;
+}
+.legend2 i.pv {
+  background: rgba(90, 45, 102, 0.1);
+  border: 1px dashed var(--plum-3);
+}
+.legend2 i {
+  background: rgba(90, 45, 102, 0.26);
+}
+.legend2 i.gz {
+  background: rgba(35, 153, 93, 0.3);
+}
+svg.lanes {
+  width: 322px;
+  stroke: none;
+  overflow: visible;
+  display: block;
+  margin-top: var(--s8);
+}
+svg.lanes .lbg {
+  fill: var(--paper);
+}
+svg.lanes .co {
+  fill: rgba(90, 45, 102, 0.14);
+  animation: wipe 900ms var(--ease) both;
+}
+svg.lanes .ci {
+  fill: rgba(90, 45, 102, 0.26);
+  animation: wipe 900ms var(--ease) both;
+}
+svg.lanes .prov {
+  stroke: var(--plum-3);
+  stroke-width: 1;
+  stroke-dasharray: 3 3;
+}
+svg.lanes .labl {
+  stroke: var(--ink-3);
+  stroke-width: 1;
+}
+svg.lanes .ln {
+  fill: none;
+  stroke: var(--ink);
+  stroke-width: 1.5;
+  stroke-dasharray: var(--L);
+  stroke-dashoffset: var(--L);
+  animation: draw 1100ms var(--ease) forwards;
+}
+svg.lanes .thr {
+  stroke: var(--gene);
+  stroke-width: 1;
+  stroke-dasharray: 2 3;
+  opacity: 0.5;
+}
+svg.lanes .thr.last {
+  stroke-width: 2;
+  opacity: 1;
+  stroke-dasharray: none;
+}
+svg.lanes .pt {
+  stroke: #fff;
+  stroke-width: 1.5;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: pop 420ms var(--ispring) both;
+}
+svg.lanes text {
+  font-family: inherit;
+  font-size: 11px;
+  fill: var(--ink-2);
+}
+svg.lanes text.nm,
+svg.lanes text.v {
+  font-size: 13px;
+  font-weight: 600;
+  fill: var(--ink);
+}
+.instant svg.tc .rib,
+.instant svg.tc .ribi,
+.instant svg.tc .ln,
+.instant svg.tc .pt,
+.instant svg.lanes .co,
+.instant svg.lanes .ci,
+.instant svg.lanes .ln,
+.instant svg.lanes .pt {
+  animation: none;
+  stroke-dashoffset: 0;
+}
+.trow small {
+  display: block;
+  font-size: 11px;
+  color: var(--ink-2);
+}
+.howbtn {
+  margin-top: var(--s13);
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s8);
+  padding: var(--s8) var(--s13);
+  border-radius: 13px;
+  background: var(--paper);
+}
+.howbtn b {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+}
+.howbtn small {
+  display: block;
+  font-size: 11px;
+  color: var(--ink-2);
+}
+.howbtn svg {
+  width: 17px;
+  height: 17px;
+  flex: none;
+}
+
+/* ---- depth 3: How we know, pushed ---- */
+.page {
+  position: absolute;
+  inset: 0;
+  z-index: 15;
+  background-color: var(--paper);
+  background-image: var(--noise);
+  background-size: 128px 128px;
+  display: flex;
+  flex-direction: column;
+  transform: translateX(100%);
+  transition: transform 480ms var(--ease);
+  box-shadow: -21px 0 34px -21px rgba(43, 16, 51, 0.4);
+}
+.phone.pushed .page {
+  transform: none;
+}
+.phone .hd,
+.phone .scroll {
+  transition:
+    transform 480ms var(--ease),
+    filter 480ms var(--ease);
+}
+.phone.pushed .hd,
+.phone.pushed .scroll {
+  transform: translateX(-89px);
+  filter: brightness(0.92);
+}
+.phone.instant .page,
+.phone.instant .hd,
+.phone.instant .scroll {
+  transition: none;
+}
+.page .status {
+  color: var(--ink);
+}
+.pnav {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: var(--s8);
+  padding: var(--s5) var(--s21) var(--s8) var(--s13);
+  font-size: 13px;
+  color: var(--ink-2);
+}
+.pback {
+  height: 34px;
+  padding: 0 var(--s13) 0 var(--s5);
+  border-radius: 999px;
+  background: var(--card);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s3);
+  box-shadow: 0 8px 13px -8px rgba(43, 16, 51, 0.4);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+}
+.pback svg {
+  width: 17px;
+  height: 17px;
+}
+.pnav .pt3 {
+  margin-left: auto;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.pbody {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 0 var(--s13) 110px;
+  scrollbar-width: none;
+}
+.pbody::-webkit-scrollbar {
+  display: none;
+}
+.phead {
+  padding: var(--s5) var(--s8) var(--s13);
+}
+.phead h1 {
+  font-size: 21px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  margin-top: var(--s8);
+}
+.phead p {
+  font-size: 13px;
+  color: var(--ink-2);
+  margin-top: var(--s5);
+}
+.acc {
+  background: var(--card);
+  border-radius: 21px;
+  margin-top: var(--s8);
+  box-shadow:
+    0 1px 0 #fff inset,
+    0 13px 21px -13px rgba(43, 16, 51, 0.25);
+}
+.acch {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: var(--s8);
+  padding: var(--s13);
+}
+.acch > span {
+  flex: 1;
+  min-width: 0;
+}
+.acch b {
+  display: block;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.acch small {
+  display: block;
+  font-size: 11px;
+  color: var(--ink-2);
+  margin-top: 2px;
+}
+.acch i {
+  flex: none;
+  width: 21px;
+  height: 21px;
+  display: grid;
+  place-items: center;
+  color: var(--ink-2);
+  transition: transform 420ms var(--spring);
+}
+.acch i svg {
+  width: 17px;
+  height: 17px;
+}
+.acc.open .acch i {
+  transform: rotate(180deg);
+}
+.accb {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 520ms var(--ease);
+}
+.acc.open .accb {
+  grid-template-rows: 1fr;
+}
+.instant .accb {
+  transition: none;
+}
+.acci {
+  overflow: hidden;
+  min-height: 0;
+}
+.acci > div {
+  padding: 0 var(--s13) var(--s13);
+}
+.rl1 {
+  font-size: 13px;
+  line-height: 1.4;
+}
+dl.nums {
+  display: grid;
+  grid-template-columns: 89px 1fr;
+  gap: var(--s5) var(--s8);
+  margin: var(--s8) 0 0;
+  font-size: 13px;
+  line-height: 1.35;
+}
+dl.nums dt {
+  font-size: 11px;
+  color: var(--ink-2);
+  padding-top: 2px;
+}
+dl.nums dd {
+  margin: 0;
+}
+table.t3 {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  margin-top: var(--s8);
+}
+table.t3 th {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--ink-2);
+  text-align: left;
+  padding: 0 var(--s5) var(--s3) 0;
+}
+table.t3 td {
+  padding: var(--s5) var(--s5) var(--s5) 0;
+  border-top: 1px solid var(--line);
+  vertical-align: top;
+}
+table.t3 td.r,
+table.t3 th.r {
+  text-align: right;
+}
+table.t3 tr.now td {
+  font-weight: 600;
+}
+.file {
+  display: flex;
+  gap: var(--s3);
+  align-items: flex-start;
+  font-size: 11px;
+  color: var(--ink);
+  line-height: 1.3;
+}
+.file svg {
+  width: 13px;
+  height: 13px;
+  flex: none;
+  color: var(--ink-3);
+  margin-top: 1px;
+}
+.file small {
+  display: block;
+  color: var(--ink-2);
+}
+.file.old {
+  color: var(--ink-2);
+  font-style: italic;
+}
+.seg {
+  display: flex;
+  gap: var(--s5);
+  flex-wrap: wrap;
+}
+.seg button {
+  font-size: 11px;
+  font-weight: 600;
+  padding: var(--s3) var(--s8);
+  border-radius: 999px;
+  background: var(--paper);
+  color: var(--ink-2);
+}
+.seg button.on {
+  background: var(--plum);
+  color: var(--cream);
+}
+.cap3 {
+  font-size: 11px;
+  color: var(--ink-2);
+  margin-top: var(--s8);
+}
+.ev {
+  padding: var(--s8) 0;
+  border-top: 1px solid var(--line);
+}
+.ev:first-child {
+  border-top: 0;
+  padding-top: 0;
+}
+.ev .et {
+  display: grid;
+  grid-template-columns: 34px 1fr auto;
+  gap: var(--s5);
+  font-size: 13px;
+  line-height: 1.3;
+  align-items: baseline;
+}
+.ev .et .g {
+  color: var(--plum);
+  white-space: nowrap;
+}
+.ev .et em {
+  font-style: normal;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  padding: 0 var(--s5);
+  border-radius: 999px;
+  background: var(--paper);
+  color: var(--ink-2);
+}
+.ev p {
+  font-size: 11px;
+  color: var(--ink-2);
+  margin: var(--s3) 0 0 39px;
+  line-height: 1.35;
+}
+ul.nk {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+ul.nk li {
+  display: grid;
+  grid-template-columns: 21px 1fr;
+  gap: var(--s5);
+  font-size: 13px;
+  line-height: 1.35;
+  padding: var(--s5) 0;
+}
+ul.nk li::before {
+  content: "";
+  width: 11px;
+  height: 11px;
+  margin-top: 3px;
+  border-radius: 50%;
+  border: 1.5px dashed var(--ink-3);
+}
+ul.nk small {
+  display: block;
+  font-size: 11px;
+  color: var(--ink-2);
+}
+
+/* replay: 51's scrubber, on paper */
+.rpw b {
+  display: block;
+  font-size: 21px;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+}
+.rpw small {
+  font-size: 11px;
+  color: var(--ink-2);
+}
+.rpw small.fired {
+  color: var(--blood);
+  font-weight: 600;
+}
+.rrows {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s5);
+  margin-top: var(--s8);
+}
+.rrows .crow {
+  grid-template-columns: 89px 121px 1fr;
+  background: var(--paper);
+  box-shadow: none;
+  padding: var(--s5) var(--s8);
+  cursor: default;
+}
+.rrows svg.trk {
+  width: 121px;
+}
+.rrows .co.prov {
+  stroke: var(--plum-3);
+  stroke-width: 1;
+  stroke-dasharray: 3 2;
+}
+.scrub {
+  margin-top: var(--s8);
+}
+svg.sc {
+  width: 322px;
+  height: 47px;
+}
+svg.sc .rail {
+  fill: var(--paper-2);
+}
+svg.sc .done {
+  fill: var(--plum-3);
+}
+svg.sc .tick {
+  fill: var(--ink-3);
+}
+svg.sc text {
+  fill: var(--ink-3);
+}
+svg.sc .sig {
+  stroke: var(--card);
+}
+svg.sc .thumb {
+  stroke: var(--plum);
+}
+.ctl button {
+  background: var(--paper);
+  color: var(--ink);
+}
+.ctl span {
+  color: var(--ink-2);
+}
+.raised {
+  margin: var(--s8) 0 0;
+  background: var(--paper);
+  color: var(--ink);
+  border-radius: 13px;
+  min-height: 55px;
+}
+.raised small {
+  color: var(--ink-2);
+}
+.raised .rl > span {
+  align-items: center;
+}
+.raised .rl b {
+  min-width: 89px;
+  font-size: 13px;
+}
+.tabs .tb button {
+  position: relative;
+}
+.tabs .badge {
+  position: absolute;
+  top: 3px;
+  left: calc(50% + 5px);
+  min-width: 17px;
+  height: 17px;
+  padding: 0 var(--s5);
+  border-radius: 999px;
+  background: var(--blood);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 17px;
+  text-align: center;
+}
+.hdnote {
+  margin-top: var(--s13);
+}
+      .instant .qchips button,
+      .instant .xr,
+      .instant .xb i,
+      .instant .act {
+        transition: none !important;
+      }
+
+    </style>
+  </head>
+  <body>
+    <main class="doc">
+      <header>
+        <div>
+          <p class="eyebrow">iOS variation 55 · round sixteen · Casebook × Corridor</p>
+          <h1>Corridors</h1>
+          <p class="lede">
+            The hunches live on the Blood tab. It opens on a glance you can read
+            in two seconds: one plain line, one number, one small corridor and
+            one button per hunch, then every marker as a slim corridor row with
+            the ones outside your band on top. Tap a row and it opens in place
+            with the chart, the explanations, the question and the test. Tap
+            How we know and a page slides in with the rule, every draw and its
+            file, the evidence, what is not known and a replay of the finding.
+          </p>
+        </div>
+        <div class="direction">
+          <span>Mood</span
+          ><b
+            >Corridor's lab notebook with Casebook's rubber stamps, folded into
+            three depths: read, open, check the sources.</b
+          >
+          <span>Accent</span
+          ><b
+            >Plum tint for your band (dashed when it is provisional), thin grey
+            lines for the lab, green for the goal zone. Dot inks: berry above
+            your band, amber for a drift, violet for the stores moving together,
+            green for good news. Lime only on Play and the scrub thumb.</b
+          >
+          <span>Type</span
+          ><b>Space Grotesk, 11, 13, 15, 17, 21, 55.</b>
+          <span>Unusual idea</span
+          ><b
+            >Every number has a way down to its file. The glance row, the open
+            chart and the draws table read the same DATA, and the replay forgets
+            every draw after the scrubbed day.</b
+          >
+        </div>
+      </header>
+
+      <section class="phones">
+        <div>
+          <p class="cap"><span data-cap="1"></span><span data-capr="1"></span></p>
+          <div class="phone" id="p1"></div>
+        </div>
+        <div>
+          <p class="cap"><span data-cap="2"></span><span data-capr="2"></span></p>
+          <div class="phone" id="p2"></div>
+        </div>
+        <div>
+          <p class="cap"><span data-cap="3"></span><span data-capr="3"></span></p>
+          <div class="phone" id="p3"></div>
+        </div>
+      </section>
+
+      <section class="notes">
+        <h2>Three depths, one rule each</h2>
+        <table>
+          <tr>
+            <th>Depth</th>
+            <th>What it holds</th>
+            <th>What it leaves out</th>
+          </tr>
+          <tr>
+            <td>1 · Glance</td>
+            <td>
+              The Blood tab. Hunches first: the title as the one plain line, the
+              one number that matters, one mini corridor (your band, the draw
+              before as a hollow dot, the last draw as a solid dot, the lab
+              range as thin ticks) and one button: the question's first answer,
+              "Book the test", or "Got it". Then every marker as a slim row,
+              outside your band on top, the four stores joined by one violet
+              rule. Today keeps one line, "4 things worth a look in your
+              blood", that opens this tab (the badge on Blood).
+            </td>
+            <td>No z-scores, no percentages, no legend, no stamps.</td>
+          </tr>
+          <tr>
+            <td>2 · Open</td>
+            <td>
+              The row opens in place (FLIP, the rows below slide on the 620 ms
+              spring). The stamp, the chart with the band as it stood before
+              each draw, the step or the slope drawn in, the lab range behind;
+              the explanations as bars with ● ◐ ○; the question with every
+              answer (the bars re-order); the test, the predictions written down
+              with the stamp, and Play.
+            </td>
+            <td>Sources and rule arithmetic.</td>
+          </tr>
+          <tr>
+            <td>3 · How we know</td>
+            <td>
+              A pushed page with sections closed by default: the rule that fired
+              with its numbers, a replay of the finding (51's scrubber), every
+              draw with its date, value and source file (the report date when it
+              differs from the draw date, or "imported from the old app"), the
+              evidence per explanation (grade, basis, one line), and what is
+              not known.
+            </td>
+            <td>Laboratory names: none on file, none shown.</td>
+          </tr>
+        </table>
+        <h2>The rules, with the phase 39 findings applied</h2>
+        <table>
+          <tr>
+            <th>Piece</th>
+            <th>Rule</th>
+            <th>Source</th>
+          </tr>
+          <tr>
+            <td>Band</td>
+            <td>
+              Median of the earlier draws, spread = 1.4826 × MAD floored at 5 %
+              of the median. The corridor is median ± 2.5 spreads. From 5
+              earlier draws it is solid; from 4 it is drawn dashed and called
+              provisional, and it can raise a signal only inside a cluster
+              (ferritin, homocysteine). Under 4: lab range only (ApoB).
+            </td>
+            <td>Spec A, finding 1</td>
+          </tr>
+          <tr>
+            <td>Goal marker</td>
+            <td>
+              LDL is read by the least-squares slope of its last three draws
+              inside 24 months (+16.0 a year) and the distance to the goal (31
+              over 100), never by the band: 131 sits inside a band that moved up
+              with it.
+            </td>
+            <td>Finding 2, finding 4</td>
+          </tr>
+          <tr>
+            <td>Cluster</td>
+            <td>
+              Three or more of ferritin, B12, vitamin D and homocysteine on the
+              store-low side of their own middles on the same draw, with at
+              least one past its own threshold (ferritin's drift). B12 and D are
+              well inside their bands on their own.
+            </td>
+            <td>Finding 3</td>
+          </tr>
+          <tr>
+            <td>Step, drift, good news, gap</td>
+            <td>
+              As in 51: step = the last 2 or more draws past the earlier max or
+              min with 3 earlier; drift minimums are placeholders ◐ C; good news
+              = an earlier draw outside, then two back inside on the other side
+              of the middle; gap = homocysteine up three draws in a row with
+              MTHFR het and no folate.
+            </td>
+            <td>Spec B1</td>
+          </tr>
+          <tr>
+            <td>Draw files</td>
+            <td>
+              Draw date to file from SOURCES. A reading with no file for its date
+              would read "imported from the old app"; every draw date in DATA has
+              a file, so that line does not appear here.
+            </td>
+            <td>Brief, round sixteen</td>
+          </tr>
+          <tr>
+            <td>Query</td>
+            <td>
+              <code>?depth=1</code>, <code>?depth=2</code>,
+              <code>?depth=3</code> put all three phones at that depth on three
+              different hunches. With no query the phones show depth 1, 2 and 3.
+            </td>
+            <td></td>
+          </tr>
+        </table>
+        <h2>Checks against DATA (console.assert, also shown here)</h2>
+        <table id="checks">
+          <tr>
+            <th>Check</th>
+            <th>Got</th>
+            <th></th>
+          </tr>
+        </table>
+      </section>
+    </main>
+
+    <script>
+const DATA = {
+  person: { name: "Razvan", age: 39, sex: "m", lastDraw: "2026-04-23", daysSinceDraw: 156,
+            systemsMeasured: 7, systemsTotal: 12 },
+  goal: { marker: "ldl_cholesterol", label: "LDL", unit: "mg/dL", lo: 70, hi: 100, by: "2026-12-01" },
+  genes: [
+    { gene: "APOE", call: "e2/e3", note: "lower LDL on average", g: "A" },
+    { gene: "TCF7L2", call: "CT", note: "higher diabetes risk", g: "A" },
+    { gene: "FTO", call: "AA", note: "higher BMI tendency, exercise cuts it by a third", g: "B" },
+    { gene: "MTHFR", call: "C677T het", note: "homocysteine depends on folate", g: "C" },
+  ],
+  // [date, value]; unit; lab range; own band = median and spread of the draws before the last
+  series: {
+    ldl:   { label: "LDL", unit: "mg/dL", lab: [0, 130], band: [108.2, 14.6],
+             pts: [["2015-03-21",103],["2021-10-14",136.1],["2021-12-04",110.5],["2022-10-20",94],["2023-03-17",97.3],["2024-05-13",122.9],["2024-11-20",106],["2025-12-09",117],["2026-04-23",131]],
+             slope5y: 1.8, slopeRecent: 15.2 },
+    apob:  { label: "ApoB", unit: "mg/dL", lab: [0, 100], pts: [["2023-03-17",82],["2024-05-13",97],["2026-04-23",99]] },
+    hdl:   { label: "HDL", unit: "mg/dL", lab: [40, 200], band: [51.4, 10.7],
+             pts: [["2015-03-21",39.2],["2021-10-14",61.8],["2021-12-04",50.6],["2022-10-20",58.4],["2023-03-17",52.1],["2024-05-13",57.2],["2024-11-20",43],["2025-12-09",44],["2026-04-23",50]] },
+    eos:   { label: "Eosinophils", unit: "K/µL", lab: [0.0, 0.5], band: [0.11, 0.03],
+             pts: [["2014-03-26",0.09],["2015-03-21",0.10],["2016-01-09",0.13],["2019-07-13",0.11],["2021-10-14",0.11],["2023-03-17",0.05],["2024-05-13",0.09],["2024-11-20",0.25],["2025-12-09",0.17],["2026-04-23",0.19]],
+             step: { since: "2024-11-20", priorMax: 0.13 } },
+    ferritin: { label: "Ferritin", unit: "ng/mL", lab: [30, 400], band: [113.1, 15.5],
+             pts: [["2021-10-14",154.5],["2023-03-17",110.8],["2024-05-13",115.3],["2025-12-09",94.4],["2026-04-23",79.6]], slope5y: -14 },
+    b12:   { label: "Vitamin B12", unit: "pg/mL", lab: [200, 900],
+             pts: [["2021-10-14",183.7],["2021-12-04",197],["2022-10-20",531],["2023-03-17",534.2],["2024-05-13",898.8],["2024-11-20",522],["2025-12-09",603],["2026-04-23",472]] },
+    vitd:  { label: "Vitamin D", unit: "ng/mL", lab: [30, 100],
+             pts: [["2019-07-13",23.3],["2021-10-14",61.8],["2021-12-04",54.1],["2022-10-20",52],["2023-03-17",42.3],["2024-05-13",34],["2024-11-20",37.7],["2025-12-09",31.8],["2026-04-23",32.7]], slope5y: -6 },
+    hcy:   { label: "Homocysteine", unit: "µmol/L", lab: [0, 15],
+             pts: [["2023-03-17",11.2],["2024-05-13",8.1],["2024-11-20",8.4],["2025-12-09",8.8],["2026-04-23",9.6]] },
+    crp:   { label: "CRP", unit: "mg/L", lab: [0, 5],
+             pts: [["2014-03-26",1.3],["2015-03-21",4],["2021-10-14",6.1],["2021-12-04",4.6],["2022-10-20",3.5],["2023-03-17",15.8],["2024-05-13",8.1],["2024-11-20",0.54],["2025-12-09",0.5],["2026-04-23",0.64]] },
+    hba1c: { label: "HbA1c", unit: "%", lab: [4, 5.7], band: [5.2, 0.31],
+             pts: [["2016-06-24",5],["2021-10-14",5.72],["2021-12-04",5.53],["2022-10-20",5.43],["2023-03-17",5.2],["2024-05-13",5.07],["2024-11-20",4.8],["2025-12-09",5.2],["2026-04-23",5]] },
+    insulin: { label: "Fasting insulin", unit: "µIU/mL", lab: [2, 25],
+             pts: [["2021-12-04",8.1],["2022-10-20",4.8],["2023-03-17",2.7],["2024-05-13",3.2],["2024-11-20",4.7],["2025-12-09",4.2],["2026-04-23",5.7]] },
+  },
+  // the hunches the engine would raise (spec B1 kinds); test prices are placeholders
+  hunches: [
+    { id: "eos", kind: "step", title: "Eosinophils moved up a level", system: "Immune", series: "eos",
+      say: "Ten years between 0.05 and 0.13. The last three draws: 0.25, 0.17, 0.19. Still inside the lab range, outside yours.",
+      explanations: [
+        { t: "A new allergy or a change of season", p: 0.45, g: "B" },
+        { t: "A medicine or supplement started around late 2024", p: 0.25, g: "B" },
+        { t: "Gut parasite after travel", p: 0.10, g: "B" },
+        { t: "Noise that will fade", p: 0.20, g: "C" } ],
+      question: "Anything new since autumn 2024: a pet, a move, a medicine, sneezing in spring?",
+      test: { name: "Total IgE", price: 45, currency: "RON" } },
+    { id: "iron", kind: "cluster", title: "Stores running down together", system: "Nutrients", series: ["ferritin","b12","vitd","hcy"],
+      say: "Ferritin −14 a year since 2021, B12 off its 2024 peak, vitamin D halved, homocysteine back up. Four markers, one question: intake or absorption?",
+      explanations: [
+        { t: "Less red meat or supplements stopped", p: 0.50, g: "B" },
+        { t: "Absorption: coeliac or atrophic gastritis", p: 0.08, g: "A" },
+        { t: "Blood loss or donation", p: 0.12, g: "B" },
+        { t: "Folate low with MTHFR het", p: 0.30, g: "C" } ],
+      question: "Did you change how you eat or stop a supplement in 2024?",
+      test: { name: "Folate + transferrin saturation", price: 70, currency: "RON" } },
+    { id: "ldl", kind: "drift", title: "LDL is walking away from your goal", system: "Heart", series: "ldl", goal: true,
+      say: "106, 117, 131 in 17 months: +15 a year. Goal is 100 or under by 1 Dec. ApoB followed it to 99.",
+      explanations: [
+        { t: "More saturated fat in the last year", p: 0.55, g: "A" },
+        { t: "Thyroid running slower", p: 0.05, g: "A" },
+        { t: "Weight up", p: 0.25, g: "A" },
+        { t: "Season and the lab's own swing", p: 0.15, g: "C" } ],
+      question: "Did your weight or how much fatty meat and cheese you eat change since late 2024?",
+      test: { name: "Lipid panel + ApoB in 8 weeks", price: 90, currency: "RON" } },
+    { id: "gap", kind: "gap", title: "Folate never measured", system: "Nutrients", series: "hcy",
+      say: "MTHFR C677T het and homocysteine rising three draws in a row. Folate is the one number that says which way.",
+      explanations: [], question: null, test: { name: "Serum folate", price: 35, currency: "RON" } },
+    { id: "crp", kind: "good_news", title: "Inflammation settled", system: "Immune", series: "crp",
+      say: "CRP was 15.8 in March 2023. Three draws since then under 1.", explanations: [], question: null, test: null },
+    { id: "genes", kind: "good_news", title: "Your genes are outvoted", system: "Metabolic", series: "hba1c",
+      say: "TCF7L2 and FTO both lean toward diabetes. HbA1c went from 5.7 to 5.0 and fasting insulin stays low.",
+      explanations: [], question: null, test: null },
+  ],
+  // heading per system: toward | holding | away | unmeasured
+  heading: [
+    { sys: "Heart", word: "away", why: "LDL +15/yr, ApoB 99" },
+    { sys: "Metabolic", word: "toward", why: "HbA1c 5.0, insulin low" },
+    { sys: "Nutrients", word: "away", why: "ferritin, B12, D down" },
+    { sys: "Immune", word: "holding", why: "CRP < 1, eosinophils up a step" },
+    { sys: "Liver", word: "holding", why: "ALT 10, GGT 15" },
+    { sys: "Kidney", word: "holding", why: "creatinine 0.9" },
+    { sys: "Thyroid", word: "holding", why: "TSH 1.1, fT4 1.23" },
+    { sys: "Hormones", word: "unmeasured", why: "testosterone once, 2024" },
+    { sys: "Bone", word: "unmeasured", why: "" },
+    { sys: "Sleep", word: "unmeasured", why: "no phone sync yet" },
+    { sys: "Fitness", word: "unmeasured", why: "no phone sync yet" },
+    { sys: "Mind", word: "unmeasured", why: "" },
+  ],
+};
+const SOURCES = {
+  "2012-08-08": "Razvan - 08.08.2012.pdf", "2014-03-26": "Razvan - 26.03.2014.pdf",
+  "2014-07-07": "Razvan - 07.07.2014.pdf", "2015-03-21": "Razvan - 26.03.2015.pdf",
+  "2016-01-09": "Razvan - 13.01.2016.pdf", "2016-06-24": "Razvan - 24.06.2016.pdf",
+  "2019-07-13": "Razvan - 13.07.2019.pdf", "2021-10-14": "Razvan - 14.10.2021.pdf",
+  "2021-12-04": "Razvan - 04.12.2021.pdf", "2022-10-20": "Razvan - 20.10.2022.pdf",
+  "2023-03-17": "Razvan - 17.03.2023.pdf", "2024-05-13": "Razvan - 13.05.2024.pdf",
+  "2024-11-20": "Razvan - 20.11.2024.pdf", "2025-12-09": "Razvan - 09.12.2025.pdf",
+  "2026-04-23": "Razvan - 23.04.2026.pdf",
+};
+    </script>
+    <script>
+      const I = {
+        home: '<svg viewBox="0 0 24 24"><path d="M3 11 12 4l9 7v9H3z"/><path d="M10 20v-6h4v6"/></svg>',
+        body: '<svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="2.5"/><path d="M9 10h6l1 5h-2v6h-4v-6H8z"/></svg>',
+        drop: '<svg viewBox="0 0 24 24"><path d="M12 3s6 7 6 11a6 6 0 0 1-12 0c0-4 6-11 6-11z"/></svg>',
+        plus: '<svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>',
+        back: '<svg viewBox="0 0 24 24"><path d="m15 6-6 6 6 6"/></svg>',
+        fwd: '<svg viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg>',
+        chev: '<svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg>',
+        play: '<svg viewBox="0 0 24 24"><path d="M7 5v14l12-7z"/></svg>',
+        pause: '<svg viewBox="0 0 24 24"><path d="M8 5v14M16 5v14"/></svg>',
+        check: '<svg viewBox="0 0 24 24"><path d="M5 12.5 9.5 17 19 7.5"/></svg>',
+        x: '<svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg>',
+        doc: '<svg viewBox="0 0 24 24"><path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4M9 12h6M9 16h6"/></svg>',
+      };
+      const PLAY = '<svg viewBox="0 0 24 24"><path d="M7 4.5v15l13-7.5z"/></svg>';
+
+      // ================= pure functions (51 Corridor, spec Part A and B1) =================
+      const DAY = 864e5;
+      const YR = 365.25 * DAY;
+      const T = (s) => Date.parse(s + "T00:00:00Z");
+      const MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+      const fmtDate = (s) => {
+        const d = new Date(T(s));
+        return `${d.getUTCDate()} ${MON[d.getUTCMonth()]} ${d.getUTCFullYear()}`;
+      };
+      const fmtMon = (s) => {
+        const d = new Date(T(s));
+        return `${MON[d.getUTCMonth()]} ${d.getUTCFullYear()}`;
+      };
+      const median = (a) => {
+        const s = [...a].sort((x, y) => x - y),
+          n = s.length;
+        return n % 2 ? s[(n - 1) / 2] : (s[n / 2 - 1] + s[n / 2]) / 2;
+      };
+      function bandOf(prior, min = 5) {
+        if (prior.length < min) return undefined;
+        const v = prior.map((p) => p[1]);
+        const m = median(v);
+        const mad = median(v.map((x) => Math.abs(x - m)));
+        const sd = Math.max(1.4826 * mad, 0.05 * Math.abs(m));
+        return { m, sd, n: prior.length, prov: prior.length < 5, lo: m - 2.5 * sd, hi: m + 2.5 * sd, ilo: m - sd, ihi: m + sd };
+      }
+      // the band a row shows: solid from 5 earlier draws, provisional (dashed) from 4 (finding 1)
+      const bandShown = (pts) => bandOf(pts.slice(0, -1), 4);
+      const zOf = (v, b) => (b ? (v - b.m) / b.sd : undefined);
+      const upTo = (pts, d) => pts.filter((p) => T(p[0]) <= T(d));
+      function stepOf(pts) {
+        let best;
+        for (let k = 2; pts.length - k >= 3; k++) {
+          const prior = pts.slice(0, -k),
+            last = pts.slice(-k).map((p) => p[1]);
+          const mx = Math.max(...prior.map((p) => p[1])),
+            mn = Math.min(...prior.map((p) => p[1]));
+          if (last.every((v) => v > mx)) best = { dir: 1, k, since: pts[pts.length - k][0], prior: mx };
+          else if (last.every((v) => v < mn)) best = { dir: -1, k, since: pts[pts.length - k][0], prior: mn };
+        }
+        return best;
+      }
+      // least squares per year over the last three draws inside 24 months
+      function fit3(pts, today) {
+        const w = pts.filter((p) => T(p[0]) <= T(today) && T(today) - T(p[0]) <= 2 * YR).slice(-3);
+        if (w.length < 3) return undefined;
+        const xs = w.map((p) => T(p[0]) / YR),
+          ys = w.map((p) => p[1]);
+        const mx = xs.reduce((a, b) => a + b) / 3,
+          my = ys.reduce((a, b) => a + b) / 3;
+        let sxy = 0,
+          sxx = 0;
+        xs.forEach((x, i) => {
+          sxy += (x - mx) * (ys[i] - my);
+          sxx += (x - mx) ** 2;
+        });
+        const slope = sxy / sxx;
+        return { slope, w, at: (t) => my + slope * (t / YR - mx) };
+      }
+      const recentSlope = (pts, today) => fit3(pts, today)?.slope;
+      // placeholder drift minimums per year (◐ C, not sourced), from 51
+      const DRIFT_MIN = { ldl: 10, apob: 8, hdl: 6, ferritin: 10, b12: 150, vitd: 8, hcy: 0.5, hba1c: 0.3, insulin: 2 };
+      // the store-low direction for the cluster members
+      const CLUSTER = { ferritin: -1, b12: -1, vitd: -1, hcy: 1 };
+      function goodNewsOf(pts, min = 5) {
+        if (pts.length < 3) return undefined;
+        const zAt = (i) => zOf(pts[i][1], bandOf(pts.slice(0, i), min));
+        const n = pts.length;
+        const a = zAt(n - 2),
+          b = zAt(n - 1);
+        if (a === undefined || b === undefined || Math.abs(a) >= 2.5 || Math.abs(b) >= 2.5) return undefined;
+        for (let i = n - 3; i >= 0; i--) {
+          const z = zAt(i);
+          if (z !== undefined && Math.abs(z) >= 2.5) {
+            const s = Math.sign(z);
+            return Math.sign(a) === -s && Math.sign(b) === -s ? { since: pts[n - 2][0], was: pts[i], wasZ: z } : undefined;
+          }
+        }
+        return undefined;
+      }
+      // every signal for one marker as the rules read it on day d (bands from 5 draws raise; 4 only inside a cluster)
+      function markerAt(key, d) {
+        const s = DATA.series[key];
+        const pts = upTo(s.pts, d);
+        if (!pts.length) return { key, none: true, sig: [] };
+        const last = pts[pts.length - 1];
+        const band = bandOf(pts.slice(0, -1));
+        const z = zOf(last[1], band);
+        const sig = [];
+        if (z !== undefined && Math.abs(z) >= 2.5) sig.push({ kind: "out", z });
+        const st = stepOf(pts);
+        const gn = goodNewsOf(pts);
+        if (gn) sig.push({ kind: "good", ...gn });
+        else if (st) sig.push({ kind: "step", ...st });
+        const sl = recentSlope(pts, d);
+        if (sl !== undefined && DRIFT_MIN[key] && Math.abs(sl) >= DRIFT_MIN[key]) sig.push({ kind: "drift", slope: sl });
+        return { key, pts, last, band, shown: bandShown(pts), z, sig, slope: sl };
+      }
+      // finding 3: a cluster reads direction, not size. Same draw, same side of each own middle, one past its threshold.
+      function clusterDir(d) {
+        const det = Object.keys(CLUSTER).map((k) => {
+          const pts = upTo(DATA.series[k].pts, d);
+          const b = pts.length ? bandShown(pts) : undefined;
+          const last = pts.at(-1);
+          const fresh = !!last && last[0] === d;
+          const side = fresh && !!b && Math.sign(last[1] - b.m) === CLUSTER[k];
+          const r = markerAt(k, d);
+          const past = r.sig.some(
+            (s) => (s.kind === "drift" && Math.sign(s.slope) === CLUSTER[k]) || (s.kind === "step" && s.dir === CLUSTER[k]),
+          );
+          return { k, side, past, last, b, slope: r.slope };
+        });
+        const mem = det.filter((x) => x.side);
+        return { on: mem.length >= 3 && mem.some((x) => x.past), members: mem.map((x) => x.k), det };
+      }
+      // gap: homocysteine up three draws in a row (MTHFR het in DATA.genes, folate never measured)
+      const gapAt = (d) => {
+        const v = upTo(DATA.series.hcy.pts, d).slice(-4).map((p) => p[1]);
+        return v.length === 4 && v[1] > v[0] && v[2] > v[1] && v[3] > v[2];
+      };
+      const DATES = [...new Set(Object.values(DATA.series).flatMap((s) => s.pts.map((p) => p[0])))].sort();
+      const LAST = DATES[DATES.length - 1];
+      const GOALKEY = DATA.hunches.find((h) => h.goal).series;
+      const S = DATA.series;
+
+      // signals on day d for a set of markers, plus the hunch-level ones
+      function sigsAt(keys, d, hid) {
+        const m = new Map();
+        keys.forEach((k) => {
+          const r = markerAt(k, d);
+          if (!r.none) r.sig.forEach((s) => m.set(k + ":" + s.kind, { k, s }));
+        });
+        if (hid === "iron") {
+          const c = clusterDir(d);
+          if (c.on) c.members.forEach((k) => m.set(k + ":cluster", { k, s: { kind: "cluster" } }));
+        }
+        if (hid === "gap" && gapAt(d)) m.set("hcy:gap", { k: "hcy", s: { kind: "gap" } });
+        return m;
+      }
+      const FIRE = {
+        eos: (d) => markerAt("eos", d).sig.some((s) => s.kind === "step"),
+        iron: (d) => clusterDir(d).on,
+        ldl: (d) => markerAt("ldl", d).sig.some((s) => s.kind === "drift"),
+        gap: gapAt,
+        crp: (d) => markerAt("crp", d).sig.some((s) => s.kind === "good"),
+        genes: () => false,
+      };
+      // the first draw of the latest run of draws on which the rule holds (LDL also drifted in 2022)
+      const firedOf = (f) => {
+        let i = DATES.length - 1;
+        while (i >= 0 && !f(DATES[i])) i--;
+        if (i < 0) return null;
+        while (i > 0 && f(DATES[i - 1])) i--;
+        return DATES[i];
+      };
+      const FIRED = Object.fromEntries(Object.entries(FIRE).map(([id, f]) => [id, firedOf(f)]));
+
+      // ================= the hunch pieces written for this file (not DATA) =================
+      const KIND = {
+        step: ["STEP", "var(--blood)"],
+        cluster: ["CLUSTER", "var(--gene)"],
+        drift: ["DRIFT", "var(--amber)"],
+        gap: ["GAP", "var(--plum-3)"],
+        good_news: ["GOOD NEWS", "var(--green)"],
+      };
+      const PRIMARY = { eos: "eos", iron: "ferritin", ldl: "ldl", gap: "hcy", crp: "crp", genes: "hba1c" };
+      const RKEYS = { eos: ["eos"], iron: ["ferritin", "b12", "vitd", "hcy"], ldl: ["ldl", "apob"], gap: ["hcy"], crp: ["crp"], genes: ["hba1c", "insulin"] };
+      const GLY = (g) => (g === "A" || g === "B" ? "●" : g === "C" ? "◐" : "○");
+      const BASIS = (g) => (g === "A" || g === "B" ? "science" : g === "C" ? "opinion" : "anecdotal");
+      // answers: the first one is the glance button; weights are a hypothesis ○ (from 49)
+      const ANSW = {
+        eos: {
+          ask: "New since late 2024?",
+          a: [
+            ["A pet or a move", [2.4, 0.6, 0.8, 0.6]],
+            ["A new medicine", [0.6, 3, 0.8, 0.6]],
+            ["Sneezing in spring", [2.2, 0.7, 0.7, 0.7]],
+            ["Travel abroad", [0.8, 0.8, 4, 0.7]],
+            ["Nothing new", [0.6, 0.4, 0.6, 2.4]],
+          ],
+        },
+        iron: {
+          ask: "Changed how you eat?",
+          a: [
+            ["Ate less meat", [2.2, 0.6, 0.7, 0.9]],
+            ["Stopped a supplement", [2, 0.6, 0.6, 1.4]],
+            ["I gave blood", [0.6, 0.6, 4, 0.8]],
+            ["Nothing changed", [0.4, 2.6, 1.2, 1.4]],
+          ],
+        },
+        ldl: {
+          ask: "Changed since late 2024?",
+          a: [
+            ["More meat and cheese", [2.2, 0.8, 0.8, 0.5]],
+            ["Weight up", [0.8, 0.9, 3, 0.6]],
+            ["Neither", [0.4, 2.5, 0.4, 2.4]],
+          ],
+        },
+      };
+      const TESTWHY = {
+        eos: "Splits an allergy from the rest: IgE rises with an allergy and stays flat with a medicine or noise.",
+        iron: "Folate splits food from folate itself; transferrin saturation splits both from absorption and blood loss.",
+        ldl: "Eight weeks after cutting fatty meat and cheese, the panel says whether food was the lever.",
+        gap: "One number that says which way homocysteine is heading.",
+      };
+      const PRED = {
+        eos: [
+          "Total IgE above the lab range",
+          "IgE normal; eosinophils fall within 8 weeks of stopping it",
+          "IgE high and a stool test finds it",
+          "IgE normal and the next draw back under 0.13",
+        ],
+        iron: [
+          "Folate under 6 ng/mL and saturation under 20\u00a0%",
+          "Folate normal, saturation under 20\u00a0%; then tTG-IgA",
+          "Saturation under 20\u00a0%, folate normal, no change in food",
+          "Folate under 6 ng/mL, saturation normal",
+        ],
+        ldl: [
+          "LDL down more than 10 with weight unchanged",
+          "TSH above the range; LDL flat after the food change",
+          "LDL flat until weight comes down",
+          "LDL back near 108 with no change at all",
+        ],
+        gap: [
+          ["If folate is low", "Homocysteine reads as a folate story: food first, then retest"],
+          ["If folate is normal", "Look at B12 and B6 next"],
+        ],
+      };
+      // demo results: worded against the written line, no invented reading (from 49)
+      const RES = {
+        eos: { lines: [["Total IgE", "above the lab range"]], held: [1, 0, null, 0] },
+        iron: { lines: [["Folate", "under 6 ng/mL"], ["Transferrin saturation", "under 20\u00a0%"]], held: [1, 0, 0, 0] },
+        ldl: { lines: [["LDL at 8 weeks", "down more than 10"], ["Weight", "unchanged"]], held: [1, null, 0, 0] },
+        gap: { lines: [["Folate", "under 6 ng/mL"]], held: [1, 0] },
+      };
+      // one line per explanation for How we know: what the grade rests on (written here, general, no citation invented)
+      const EVID = {
+        eos: [
+          "Allergy and atopy are the most common reason for a raised eosinophil count in adults.",
+          "A drug reaction is the next common reason; the start date against Nov 2024 is the test.",
+          "Worm infections raise eosinophils; travel history decides whether to look.",
+          "Eosinophils swing between draws; a first high draw often returns on its own.",
+        ],
+        iron: [
+          "Ferritin and B12 follow red-meat intake; stopping supplements lowers B12 and D within months.",
+          "Coeliac disease and atrophic gastritis both cut iron and B12 absorption; tTG-IgA screens for the first.",
+          "Each blood donation lowers iron stores; ferritin recovers over months.",
+          "C677T carriers show a small homocysteine rise when folate is low; the size is debated.",
+        ],
+        ldl: [
+          "Saturated fat raises LDL in controlled feeding trials.",
+          "A slow thyroid raises LDL; TSH 1.1 on file makes it less likely.",
+          "LDL rises with weight gain and falls with weight loss.",
+          "LDL runs a little higher in winter, and each lab has its own day-to-day swing.",
+        ],
+      };
+      const NK = {
+        eos: [
+          ["Life events since autumn 2024", "none on file; the question asks for them"],
+          ["Total IgE", "never measured"],
+          ["The answer weights", "a hypothesis ○, not a sourced rule"],
+        ],
+        iron: [
+          ["Folate", "never measured"],
+          ["Ferritin and homocysteine bands", "provisional, 4 earlier draws each"],
+          ["Diet and supplements since 2024", "none on file"],
+          ["Vitamin D by season", "draws not adjusted for the month they were taken"],
+        ],
+        ldl: [
+          ["Weight over the last 17 months", "no phone sync yet"],
+          ["ApoB band", "3 draws, too few for a band"],
+          ["The 15.2 a year in the data pack", "came from a different fit; this page computes its own"],
+        ],
+        gap: [
+          ["Folate", "never measured"],
+          ["Homocysteine band", "provisional, 4 earlier draws"],
+          ["Vitamin B6", "not among the markers read here"],
+        ],
+        crp: [
+          ["What raised CRP to 15.8 in March 2023", "not on file"],
+          ["Whether the next draw stays under 1", "retest not yet due"],
+        ],
+        genes: [
+          ["HOMA-IR", "insulin and glucose from the same morning not read here"],
+          ["Weight and waist", "no phone sync yet"],
+        ],
+      };
+      const SUM = {
+        eos: "Last 3 draws above your earlier max of 0.13",
+        iron: "4 markers on the low-stores side on one draw",
+        ldl: "+16 a year, 31 over the goal",
+        gap: "MTHFR het, homocysteine up 3 draws, no folate",
+        crp: "15.8 in 2023, then 2 draws back inside",
+        genes: "Gene calls against HbA1c and insulin",
+      };
+
+      // ================= checks against DATA =================
+      const checks = [];
+      const check = (name, ok, got) => {
+        console.assert(ok, name, got);
+        checks.push({ name, ok, got });
+      };
+      const near = (a, b, t) => Math.abs(a - b) <= t;
+      const fmtV = (v) =>
+        Math.abs(v) < 1 ? v.toFixed(2) : Math.abs(v) < 10 ? +v.toFixed(2) + "" : Math.abs(v) < 100 ? +v.toFixed(1) + "" : Math.round(v) + "";
+      const show = (k, v) => (k === "hba1c" ? v.toFixed(1) : String(v));
+      {
+        const bl = (k) => bandOf(S[k].pts.slice(0, -1));
+        const f2 = (b) => (b ? `${b.m.toFixed(2)} ± ${b.sd.toFixed(2)} (${b.n})` : "undefined");
+        let b = bl("ldl");
+        check("LDL band ≈ DATA [108.2, 14.6]", b && near(b.m, 108.2, 0.1) && near(b.sd, 14.6, 0.1), f2(b));
+        b = bl("eos");
+        check("Eosinophil band ≈ DATA [0.11, 0.03]", b && near(b.m, 0.11, 0.005) && near(b.sd, 0.03, 0.005), f2(b));
+        b = bl("hba1c");
+        check("HbA1c band ≈ DATA [5.2, 0.31]", b && near(b.m, 5.2, 0.01) && near(b.sd, 0.31, 0.02), f2(b));
+        b = bl("ferritin");
+        check("Ferritin: the 5-draw rule gives no band", b === undefined, f2(b));
+        b = bandShown(S.ferritin.pts);
+        check("Ferritin provisional band from 4 ≈ DATA [113.1, 15.5], drawn dashed", b && b.prov && near(b.m, 113.1, 0.1) && near(b.sd, 15.5, 0.1), f2(b));
+        check("Eosinophil step first fires 2025-12-09, since DATA step.since, prior max 0.13", FIRED.eos === "2025-12-09" && stepOf(S.eos.pts).since === S.eos.step.since && stepOf(S.eos.pts).prior === S.eos.step.priorMax, FIRED.eos);
+        const ez = markerAt("eos", LAST).z;
+        check("Eosinophils 0.19 is outside its band", ez >= 2.5, `z ${ez.toFixed(2)}`);
+        const lz = markerAt("ldl", LAST).z;
+        const sl = recentSlope(S.ldl.pts, LAST);
+        check("LDL 131 sits inside its own band (so the goal and slope read it, finding 2)", Math.abs(lz) < 2.5, `z ${lz.toFixed(2)}`);
+        check("LDL recent slope 16.0 a year (finding 4), within 1.5 of DATA 15.2", near(sl, 16.0, 0.1) && near(sl, S.ldl.slopeRecent, 1.5), `${sl.toFixed(2)} /yr`);
+        check("LDL drift: the current run starts at the last draw (an earlier run in 2022 closed)", FIRED.ldl === LAST, `${FIRED.ldl}; first ever ${DATES.find(FIRE.ldl)}`);
+        const cl = clusterDir(LAST);
+        check("Cluster by direction lights first at the last draw with all four", FIRED.iron === LAST && cl.members.length === 4, `${FIRED.iron} · ${cl.members.join(", ")}`);
+        const bz = ["b12", "vitd"].map((k) => markerAt(k, LAST).z);
+        check("B12 and vitamin D are inside their own bands on their own", bz.every((z) => Math.abs(z) < 2.5), bz.map((z) => z.toFixed(2)).join(", "));
+        check("Gap first fires at the last draw (8.1, 8.4, 8.8, 9.6)", FIRED.gap === LAST, FIRED.gap);
+        check("CRP good news first fires 2025-12-09", FIRED.crp === "2025-12-09", FIRED.crp);
+        const noFile = [...new Set(Object.values(S).flatMap((s) => s.pts.map((p) => p[0])))].filter((d) => !SOURCES[d]);
+        check("Every draw date in DATA has a file in SOURCES", noFile.length === 0, noFile.length ? noFile.join(", ") : "all 13 dates");
+      }
+
+      // ================= drawing =================
+      const W = 121;
+      // one value domain per marker: its draws, every band it ever had (from 4), the lab bounds when close, LDL's goal
+      const DOM = {};
+      for (const [k, s] of Object.entries(S)) {
+        const vs = s.pts.map((p) => p[1]);
+        s.pts.forEach((_, i) => {
+          const b = bandOf(s.pts.slice(0, i), 4);
+          if (b) vs.push(b.lo, b.hi);
+        });
+        if (k === GOALKEY) vs.push(DATA.goal.lo, DATA.goal.hi);
+        let lo = Math.min(...vs),
+          hi = Math.max(...vs);
+        const span = hi - lo;
+        if (s.lab[0] >= lo - 0.35 * span) lo = Math.min(lo, s.lab[0]);
+        if (s.lab[1] <= hi + 0.35 * span) hi = Math.max(hi, s.lab[1]);
+        const pad = (hi - lo) * 0.06;
+        lo = Math.max(0, lo - pad);
+        DOM[k] = [lo, hi + pad];
+      }
+      const X = (k, v, w = W) => {
+        const [a, b] = DOM[k];
+        return Math.max(0, Math.min(w, ((v - a) / (b - a)) * w));
+      };
+
+      // status of a marker on the last draw, in plain words (depth 1)
+      const CL = clusterDir(LAST);
+      function statusOf(k) {
+        const s = S[k],
+          last = s.pts.at(-1)[1];
+        const r = markerAt(k, LAST);
+        if (k === GOALKEY)
+          return { w: `${fmtV(last - DATA.goal.hi)} over goal`, c: "var(--amber)", rank: 4 };
+        if (r.z !== undefined && Math.abs(r.z) >= 2.5)
+          return { w: r.z > 0 ? "above your band" : "below your band", c: "var(--blood)", rank: 5 + Math.abs(r.z) };
+        if (CL.on && CL.members.includes(k))
+          return { w: CLUSTER[k] > 0 ? "high side" : "low side", c: "var(--gene)", rank: 3, grp: true };
+        if (!r.shown) return { w: "too few draws", c: "var(--ink-3)", rank: 0 };
+        const z = zOf(last, r.shown);
+        return { w: "in your band", c: "var(--ink-2)", rank: 1 + Math.abs(z) / 10 };
+      }
+      const HCOL = { eos: "var(--blood)", iron: "var(--gene)", ldl: "var(--amber)", gap: "var(--plum-3)", crp: "var(--green)", genes: "var(--green)" };
+
+      // the mini corridor: your band (or the goal zone), lab ticks, the draw before (hollow) and the last (solid)
+      function mini(k, col) {
+        const s = S[k],
+          pts = s.pts,
+          last = pts.at(-1)[1],
+          prev = pts.at(-2)?.[1];
+        const x = (v) => X(k, v).toFixed(1);
+        let g = `<rect class="base" x="0" y="7" width="${W}" height="8" rx="4"/>`;
+        if (k === GOALKEY) {
+          g += `<rect class="gz" x="${x(DATA.goal.lo)}" y="7" width="${(X(k, DATA.goal.hi) - X(k, DATA.goal.lo)).toFixed(1)}" height="8" rx="4"/>`;
+        } else {
+          const b = bandShown(pts);
+          if (b)
+            g += b.prov
+              ? `<rect class="cz prov" x="${x(b.lo)}" y="7.5" width="${(X(k, b.hi) - X(k, b.lo)).toFixed(1)}" height="7" rx="3.5"/>`
+              : `<rect class="cz" x="${x(b.lo)}" y="7" width="${(X(k, b.hi) - X(k, b.lo)).toFixed(1)}" height="8" rx="4"/>`;
+        }
+        s.lab.forEach((v) => {
+          if (v > 0 && v >= DOM[k][0] && v <= DOM[k][1]) g += `<line class="lab" x1="${x(v)}" x2="${x(v)}" y1="3" y2="19"/>`;
+        });
+        if (prev !== undefined)
+          g += `<line class="trail" x1="${x(prev)}" x2="${x(last)}" y1="11" y2="11"/><circle class="pv" cx="${x(prev)}" cy="11" r="2.5"/>`;
+        g += `<circle class="dt" cx="${x(last)}" cy="11" r="5" fill="${col}"/>`;
+        return `<svg class="mini" viewBox="0 0 ${W} 21" aria-hidden="true">${g}</svg>`;
+      }
+
+      // 51's history chart: the band as it stood before each draw, lab lines, draws; plus the step, slope and goal
+      function chartOf(k, d, o = {}) {
+        const s = S[k];
+        const pts = upTo(s.pts, d);
+        const w = 322,
+          h = 126,
+          top = 13,
+          bot = 105;
+        const tEnd = o.goal ? T(DATA.goal.by) : T(LAST);
+        const t0 = T(s.pts[0][0]) - 60 * DAY,
+          t1 = tEnd + 60 * DAY;
+        const xt = (t) => ((t - t0) / (t1 - t0)) * w;
+        const x = (dd) => xt(T(dd));
+        const [a, b] = DOM[k];
+        const y = (v) => bot - ((Math.max(a, Math.min(b, v)) - a) / (b - a)) * (bot - top);
+        let rib = "",
+          ribi = "";
+        for (let i = 1; i < pts.length; i++) {
+          const band = bandOf(pts.slice(0, i), 4);
+          if (!band) continue;
+          const pc = band.prov ? ' class="prov"' : "";
+          const xa = x(pts[i - 1][0]),
+            xb = i < pts.length - 1 ? x(pts[i][0]) : x(pts[i][0]) + 8;
+          rib += `<rect${pc} x="${xa}" width="${xb - xa}" y="${y(band.hi)}" height="${y(band.lo) - y(band.hi)}"/>`;
+          ribi += `<rect x="${xa}" width="${xb - xa}" y="${y(band.ihi)}" height="${y(band.ilo) - y(band.ihi)}"/>`;
+        }
+        let extra = "";
+        if (o.goal) {
+          const g = DATA.goal;
+          extra += `<rect class="goalz" x="0" width="${w}" y="${y(g.hi)}" height="${y(g.lo) - y(g.hi)}"/>
+            <line class="goall" x1="0" x2="${w}" y1="${y(g.hi)}" y2="${y(g.hi)}"/>
+            <text class="gt" x="3" y="${y(g.hi) + 13}">goal ${g.hi} by ${fmtDate(g.by).replace(/ \d{4}$/, "")}</text>`;
+        }
+        const st = o.step ? stepOf(pts) : undefined;
+        if (st) {
+          const sx = x(st.since) - 5;
+          extra += `<line class="stepl" x1="0" x2="${w}" y1="${y(st.prior)}" y2="${y(st.prior)}"/>
+            <text class="st" x="3" y="${y(st.prior) - 4}">your earlier ${st.dir > 0 ? "max" : "min"} ${st.prior}</text>
+            <line class="labl" x1="${sx}" x2="${sx}" y1="${top}" y2="${bot}" style="stroke-dasharray:1 3"/>
+            <text x="${sx - 3}" y="${top + 8}" text-anchor="end">step, ${fmtMon(st.since)}</text>`;
+        }
+        const f = o.slope ? fit3(pts, d) : undefined;
+        if (f && Math.abs(f.slope) >= (DRIFT_MIN[k] || Infinity)) {
+          const ta = T(f.w[0][0]),
+            tb = o.goal ? tEnd : T(d);
+          const proj = f.at(tb);
+          extra += `<line class="slopel" x1="${xt(ta)}" x2="${xt(tb)}" y1="${y(f.at(ta))}" y2="${y(proj)}"/>
+            <circle cx="${xt(tb)}" cy="${y(proj)}" r="3.5" fill="var(--card)" stroke="var(--amber)" stroke-width="1.5"/>
+            <text class="sl" x="${xt(tb) - 8}" y="${y(proj) - 8}" text-anchor="end">${f.slope > 0 ? "+" : "−"}${Math.abs(f.slope).toFixed(0)} a year${o.goal ? `: near ${Math.round(proj)} on 1 Dec` : ""}</text>`;
+        }
+        const P = pts.map((p) => [x(p[0]), y(p[1])]);
+        let L = 0;
+        for (let i = 1; i < P.length; i++) L += Math.hypot(P[i][0] - P[i - 1][0], P[i][1] - P[i - 1][1]);
+        const lab = s.lab
+          .filter((v) => v >= a && v <= b && v > 0)
+          .map((v) => `<line class="labl" x1="0" x2="${w}" y1="${y(v)}" y2="${y(v)}"/><text x="${w}" y="${y(v) - 3}" text-anchor="end">lab ${v}</text>`)
+          .join("");
+        const yrs = [2014, 2016, 2018, 2020, 2022, 2024, 2026]
+          .filter((yv) => T(`${yv}-01-01`) > t0)
+          .map((yv) => `<text x="${x(`${yv}-01-01`)}" y="${h - 3}" text-anchor="middle">${yv}</text>`)
+          .join("");
+        const col = o.col || "var(--ink)";
+        return `<svg class="tc${o.still ? " still" : ""}" viewBox="0 0 ${w} ${h}" style="width:${w}px;height:${h}px">
+          ${lab}<g class="rib">${rib}</g><g class="ribi">${ribi}</g>${extra}
+          <polyline class="ln" style="--L:${L + 1}" points="${P.map((p) => p.join(",")).join(" ")}"/>
+          ${P.map((p, i) => `<circle class="pt" cx="${p[0]}" cy="${p[1]}" r="${i === P.length - 1 ? 5 : 3}" fill="${i === P.length - 1 ? col : "var(--ink-2)"}" style="animation-delay:${200 + (i / P.length) * 1100}ms"/>`).join("")}
+          ${yrs}</svg>`;
+      }
+
+      // 51's four lanes on one time axis, each with its own band; a thread joins the days all four were drawn
+      function lanes(keys) {
+        const w = 322,
+          lh = 62,
+          gap = 8,
+          top = 21;
+        const d0 = "2021-06-01",
+          d1 = "2026-09-01";
+        const x = (d) => 34 + ((T(d) - T(d0)) / (T(d1) - T(d0))) * (w - 68);
+        const shared = S[keys[0]].pts.map((p) => p[0]).filter((d) => keys.every((k) => S[k].pts.some((p) => p[0] === d)));
+        let svg = "";
+        const pos = {};
+        keys.forEach((k, li) => {
+          const s = S[k];
+          const pts = s.pts.filter((p) => T(p[0]) >= T(d0));
+          const flip = CLUSTER[k] > 0;
+          const band = bandShown(s.pts);
+          const vs = pts.map((p) => p[1]).concat([band.lo, band.hi]);
+          let lo = Math.min(...vs),
+            hi = Math.max(...vs);
+          lo = Math.max(0, lo - (hi - lo) * 0.08);
+          hi += (hi - lo) * 0.08;
+          const y0 = top + li * (lh + gap);
+          const yv = (v) => {
+            const f = (Math.max(lo, Math.min(hi, v)) - lo) / (hi - lo);
+            return flip ? y0 + 21 + f * (lh - 34) : y0 + lh - 13 - f * (lh - 34);
+          };
+          const rect = (a, b, c) => {
+            const ya = yv(a),
+              yb = yv(b);
+            return `<rect class="${c}${band.prov && c === "co" ? " prov" : ""}" x="0" width="${w}" y="${Math.min(ya, yb)}" height="${Math.abs(ya - yb)}" style="animation-delay:${li * 150}ms"/>`;
+          };
+          const P = pts.map((p) => [x(p[0]), yv(p[1])]);
+          pos[k] = Object.fromEntries(pts.map((p, i) => [p[0], P[i]]));
+          let L = 0;
+          for (let i = 1; i < P.length; i++) L += Math.hypot(P[i][0] - P[i - 1][0], P[i][1] - P[i - 1][1]);
+          const last = s.pts.at(-1)[1];
+          svg += `<g>
+            <rect class="lbg" x="0" y="${y0}" width="${w}" height="${lh}" rx="8"/>
+            <clipPath id="cl-${k}-${Math.random().toString(36).slice(2, 7)}"></clipPath>
+            ${rect(band.lo, band.hi, "co")}${rect(band.ilo, band.ihi, "ci")}
+            <polyline class="ln" style="--L:${L + 1};animation-delay:${300 + li * 200}ms" points="${P.map((q) => q.join(",")).join(" ")}"/>
+            ${P.map((q, i) => `<circle class="pt" cx="${q[0]}" cy="${q[1]}" r="${i === P.length - 1 ? 5 : 3}" fill="${i === P.length - 1 ? "var(--gene)" : "var(--ink-2)"}" style="animation-delay:${300 + li * 200 + (i / P.length) * 900}ms"/>`).join("")}
+            <text class="nm" x="8" y="${y0 + 16}">${s.label}</text>
+            <text x="${8 + s.label.length * 7.6 + 5}" y="${y0 + 16}">${s.unit}${flip ? " · drawn upside down" : ""}</text>
+            <text class="v" x="${w - 8}" y="${y0 + 16}" text-anchor="end">${show(k, last)}</text>
+            <text x="${w - 8}" y="${y0 + lh - 5}" text-anchor="end">band from ${band.n} draws${band.prov ? ", provisional" : ""}</text>
+          </g>`;
+        });
+        const yEnd = top + keys.length * (lh + gap) - gap;
+        const threads = shared
+          .map((d, i) => {
+            const last = i === shared.length - 1;
+            const ys = keys.map((k) => pos[k][d][1]);
+            return `<line class="thr${last ? " last" : ""}" x1="${x(d)}" x2="${x(d)}" y1="${last ? Math.min(...ys) : top}" y2="${last ? Math.max(...ys) : yEnd}"/>`;
+          })
+          .join("");
+        const axis = [2022, 2023, 2024, 2025, 2026].map((y) => `<text x="${x(y + "-01-01")}" y="${top - 6}" text-anchor="middle">${y}</text>`).join("");
+        return `<svg class="lanes" viewBox="0 0 ${w} ${yEnd + 21}" style="height:${yEnd + 21}px">${axis}${svg}${threads}
+          <text x="${x(LAST)}" y="${yEnd + 16}" text-anchor="end" style="fill:var(--gene);font-weight:600">${fmtDate(LAST)}: all four on the low-stores side</text></svg>`;
+      }
+
+      // 51's corridor row with live transitions (the replay rows)
+      function chipsFor(k, sigs) {
+        return sigs
+          .map((s) => {
+            if (s.kind === "out") return `<span class="chip k-out">OUTSIDE <em>z ${s.z > 0 ? "+" : "−"}${Math.abs(s.z).toFixed(1)}</em></span>`;
+            if (s.kind === "step") return `<span class="chip k-step">STEP ${s.dir > 0 ? "↑" : "↓"} <em>since ${fmtMon(s.since)}</em></span>`;
+            if (s.kind === "drift") return `<span class="chip k-drift">DRIFT <em>${s.slope > 0 ? "+" : "−"}${Math.abs(s.slope).toFixed(Math.abs(s.slope) < 10 ? 1 : 0)}/yr</em></span>`;
+            if (s.kind === "cluster") return `<span class="chip k-cluster">CLUSTER <em>stores</em></span>`;
+            if (s.kind === "good") return `<span class="chip k-good">GOOD NEWS <em>back since ${fmtMon(s.since)}</em></span>`;
+            if (s.kind === "gap") return `<span class="chip k-few">GAP <em>folate never measured</em></span>`;
+            return "";
+          })
+          .join("");
+      }
+      const dotColor = (r) => {
+        const has = (k) => r.sig.some((s) => s.kind === k);
+        return has("out") ? "var(--blood)" : has("step") || has("drift") ? "var(--amber)" : has("good") ? "var(--green)" : "var(--ink)";
+      };
+      function makeRow(key) {
+        const s = S[key];
+        const el = document.createElement("div");
+        el.className = "crow";
+        el.innerHTML = `
+          <div class="nm"><b>${s.label}</b><small>${s.unit}</small></div>
+          <svg class="trk" viewBox="0 0 ${W} 34">
+            <rect class="base" x="0" y="13" width="${W}" height="8" rx="4"/>
+            ${s.lab.filter((v) => v > 0 && v <= DOM[key][1] && v >= DOM[key][0]).map((v) => `<line class="lab" x1="${X(key, v)}" x2="${X(key, v)}" y1="5" y2="29"/>`).join("")}
+            <rect class="co" y="13.5" height="7" rx="3.5" x="0" width="0"/>
+            <rect class="md" y="13" height="8" width="1.5" x="0"/>
+            <g>${s.pts.map((p) => `<circle class="pd" cx="${X(key, p[1])}" cy="17" r="2.2"/>`).join("")}</g>
+            <circle class="dot" cy="17" r="5.5" style="cx:${X(key, s.pts[0][1])}px"/>
+          </svg>
+          <div class="val"><b></b><small></small></div>`;
+        const q = (c) => el.querySelector(c);
+        const pds = [...el.querySelectorAll(".pd")];
+        function update(r) {
+          const b = r.none ? undefined : r.shown;
+          const co = q(".co");
+          co.classList.toggle("prov", !!b && b.prov);
+          if (b) {
+            co.style.x = X(key, b.lo) + "px";
+            co.style.width = Math.max(0, X(key, b.hi) - X(key, b.lo)) + "px";
+            q(".md").style.x = X(key, b.m) - 0.75 + "px";
+          }
+          co.style.opacity = b ? 1 : 0;
+          q(".md").style.opacity = b ? 1 : 0;
+          const shown = r.none ? 0 : r.pts.length;
+          pds.forEach((p, i) => (p.style.opacity = i < shown - 1 ? 0.6 : 0));
+          const dot = q(".dot");
+          dot.style.opacity = r.none ? 0 : 1;
+          if (!r.none) {
+            dot.style.cx = X(key, r.last[1]) + "px";
+            dot.style.setProperty("--dc", dotColor(r));
+          }
+          q(".val b").textContent = r.none ? "·" : show(key, r.last[1]);
+          const sm = q(".val small");
+          const z = b ? zOf(r.last[1], b) : undefined;
+          sm.className = z !== undefined && Math.abs(z) >= 2.5 && !b.prov ? "out" : "";
+          sm.textContent = r.none ? "no draw yet" : z !== undefined ? `z ${z >= 0 ? "+" : "−"}${Math.abs(z).toFixed(1)}${b.prov ? " · prov." : ""}` : `${r.pts.length} draw${r.pts.length > 1 ? "s" : ""}`;
+        }
+        return { key, el, update };
+      }
+
+      // count without requestAnimationFrame so headless shots land on the number (49)
+      const countTo = (el, from, to, ms, f) => {
+        clearInterval(el._t);
+        if (from === to) return void (el.textContent = f(to));
+        const t0 = Date.now();
+        el._t = setInterval(() => {
+          const k = Math.min(1, (Date.now() - t0) / ms);
+          el.textContent = f(from + (to - from) * (1 - Math.pow(1 - k, 3)));
+          if (k >= 1) clearInterval(el._t);
+        }, 30);
+      };
+      const fileOf = (d) => {
+        const f = SOURCES[d];
+        if (!f) return `<span class="file old">${I.doc}imported from the old app</span>`;
+        const m = f.match(/(\d\d)\.(\d\d)\.(\d{4})/);
+        const iso = m ? `${m[3]}-${m[2]}-${m[1]}` : d;
+        return `<span class="file">${I.doc}<span>${f}${iso !== d ? `<small>report dated ${fmtDate(iso)}</small>` : ""}</span></span>`;
+      };
+      const statusBar = (dark) => `<div class="status"><span>9:41</span><i></i><span>●●● ◔ ▮</span></div>`;
+
+      // ================= one phone =================
+      function mount(p) {
+        const cs = Object.fromEntries(DATA.hunches.map((h) => [h.id, { ans: null, accepted: false, closed: null, win: -1, seen: false, playing: false }]));
+        const hOf = (id) => DATA.hunches.find((h) => h.id === id);
+        const openN = () => DATA.hunches.filter((h) => h.kind !== "good_news" && !cs[h.id].closed).length;
+        const goodN = DATA.hunches.filter((h) => h.kind === "good_news").length;
+        p.innerHTML = `
+          <div class="hd">${statusBar()}<div class="in">
+            <div class="bh"><span class="num" data-n></span>
+              <span class="side"><small>Blood · you against you</small><b>things worth a look</b>
+              <em>${goodN} good news · last draw ${fmtDate(DATA.person.lastDraw).slice(0, -5)}, ${DATA.person.daysSinceDraw} days ago</em></span></div>
+          </div></div>
+          <div class="scroll" data-sc>
+            <section class="shelf"><header><h2>Worth a look<small>tap a row to open it</small></h2></header><div class="hlist" data-hl></div></section>
+            <section class="shelf"><header><h2>Good news</h2></header><div class="hlist" data-gl></div></section>
+            <section class="shelf"><header><h2>Every marker<small>outside your band on top</small></h2></header><div class="hlist" data-ml></div></section>
+            <p class="foot">${DATA.person.systemsMeasured} of ${DATA.person.systemsTotal} systems measured · ${Object.keys(S).length} markers from ${DATES.length} draws</p>
+          </div>
+          <div class="page" data-page>${statusBar()}
+            <div class="pnav"><button class="pback" data-back>${I.back}Blood</button><span class="pt3">How we know</span></div>
+            <div class="pbody" data-pb></div>
+          </div>
+          <div class="tabs"><div class="tb"><button>${I.home}Home</button><button>${I.body}Body</button><button class="on">${I.drop}Blood<span class="badge" data-badge></span></button></div><button class="plus" aria-label="Add">${I.plus}</button></div><div class="homebar"></div>`;
+        const $ = (c) => p.querySelector(c);
+        const sc = $("[data-sc]");
+        const count = () => {
+          $("[data-n]").textContent = openN();
+          $("[data-badge]").textContent = openN();
+        };
+        count();
+
+        // ---- depth 1: glance rows ----
+        const actHTML = (h) => {
+          const c = cs[h.id];
+          if (c.closed) return `<button class="act done" data-act="${h.id}"><small>Closed 26 Sep</small><span>${I.check}${c.closed}</span></button>`;
+          if (h.kind === "good_news")
+            return c.seen
+              ? `<button class="act done" data-act="${h.id}"><small>Seen</small><span>${I.check}Got it</span></button>`
+              : `<button class="act soft" data-act="${h.id}"><small>Nothing to do</small><span>Got it</span></button>`;
+          if (ANSW[h.id])
+            return c.ans == null
+              ? `<button class="act" data-act="${h.id}"><small>${ANSW[h.id].ask}</small><span>${ANSW[h.id].a[0][0]}</span></button>`
+              : `<button class="act done" data-act="${h.id}"><small>Noted</small><span>${I.check}${ANSW[h.id].a[c.ans][0]}</span></button>`;
+          return c.accepted
+            ? `<button class="act done" data-act="${h.id}"><small>Written down 26 Sep</small><span>${I.check}${h.test.name}</span></button>`
+            : `<button class="act" data-act="${h.id}"><small>${h.test.name} · ${h.test.price} ${h.test.currency}</small><span>Book the test</span></button>`;
+        };
+        const hrow = (h) => {
+          const k = PRIMARY[h.id];
+          return `<div class="hrow" data-row="h:${h.id}" style="--kc:${HCOL[h.id]}">
+            <div class="hhead" data-head>
+              <div class="hl"><p class="ht">${h.title}</p><span class="hn"><b>${show(k, S[k].pts.at(-1)[1])}</b><small>${S[k].unit}</small></span></div>
+              <div class="h2">${mini(k, HCOL[h.id])}<span data-ab="${h.id}">${actHTML(h)}</span></div>
+            </div><div class="more" data-more></div></div>`;
+        };
+        $("[data-hl]").innerHTML = DATA.hunches.filter((h) => h.kind !== "good_news").map(hrow).join("");
+        $("[data-gl]").innerHTML = DATA.hunches.filter((h) => h.kind === "good_news").map(hrow).join("");
+        const order = Object.keys(S)
+          .map((k) => ({ k, st: statusOf(k) }))
+          .sort((a, b) => b.st.rank - a.st.rank);
+        const mrow = ({ k, st }) => `<div class="mrow" data-row="m:${k}"><div class="mhead" data-head>
+            <div class="nm"><b>${S[k].label}</b><small>${S[k].unit}</small></div>${mini(k, st.c === "var(--ink-2)" || st.c === "var(--ink-3)" ? "var(--ink)" : st.c)}
+            <div class="val" style="--c:${st.c}"><b>${show(k, S[k].pts.at(-1)[1])}</b><small>${st.w}</small></div></div><div class="more" data-more></div></div>`;
+        let mh = "",
+          inG = false;
+        order.forEach((o, i) => {
+          if (o.st.grp && !inG) {
+            mh += `<div class="grp"><p>Moving together: the stores, same draw, same side</p>`;
+            inG = true;
+          }
+          if (!o.st.grp && inG) {
+            mh += `</div>`;
+            inG = false;
+          }
+          mh += mrow(o);
+        });
+        if (inG) mh += `</div>`;
+        $("[data-ml]").innerHTML = mh;
+        p._order = order.map((o) => o.k);
+
+        // ---- depth 2: explanations, question, test (49) ----
+        const post = (id) => {
+          const H = hOf(id),
+            c = cs[id];
+          let ps = H.explanations.map((e) => e.p);
+          if (c.ans != null) ps = ps.map((q, i) => q * ANSW[id].a[c.ans][1][i]);
+          if (c.closed) ps = ps.map((q, i) => (i === c.win ? 1 : 0));
+          const t = ps.reduce((a, b) => a + b, 0) || 1;
+          return ps.map((q) => q / t);
+        };
+        const rowOf = (ref) => p.querySelector(`[data-row="${ref}"]`);
+        const renderXL = (id, flip) => {
+          const box = rowOf("h:" + id)?.querySelector("[data-xl]");
+          if (!box) return;
+          const H = hOf(id),
+            c = cs[id],
+            ps = post(id);
+          if (!box.children.length)
+            box.innerHTML = H.explanations
+              .map((e, i) => `<div class="xr" data-x="${i}"><div class="xt"><span class="g">${GLY(e.g)}</span><span>${e.t}</span><b class="pc2">0%</b></div><div class="xb"><i></i></div></div>`)
+              .join("");
+          const rows = new Map([...box.children].map((r) => [+r.dataset.x, r]));
+          const first = new Map([...rows].map(([i, r]) => [i, r.offsetTop]));
+          const ord = ps.map((q, i) => i).sort((a, b) => ps[b] - ps[a]);
+          ord.forEach((i) => box.appendChild(rows.get(i)));
+          ord.forEach((i, k) => {
+            const r = rows.get(i),
+              to = Math.round(ps[i] * 100);
+            r.classList.toggle("lead", k === 0 && !c.closed);
+            r.classList.toggle("won", !!c.closed && i === c.win);
+            r.classList.toggle("lost", !!c.closed && i !== c.win);
+            const pc = r.querySelector(".pc2");
+            if (p.classList.contains("instant")) pc.textContent = to + "%";
+            else countTo(pc, parseInt(pc.textContent) || 0, to, 900, (v) => Math.round(v) + "%");
+            if (flip) {
+              const dy = first.get(i) - r.offsetTop;
+              r.style.transition = "none";
+              r.style.transform = `translateY(${dy}px)`;
+              r.style.zIndex = k === 0 ? 2 : 1;
+              r.offsetWidth;
+              r.style.transition = "transform 700ms var(--spring)";
+              r.style.transform = "";
+            }
+            const bar = r.querySelector(".xb i");
+            if (flip || p.classList.contains("instant")) bar.style.setProperty("--w", to + "%");
+            else setTimeout(() => bar.style.setProperty("--w", to + "%"), 400);
+          });
+        };
+        const qread = (id) => {
+          const el = rowOf("h:" + id)?.querySelector("[data-qread]");
+          if (!el) return;
+          const c = cs[id];
+          if (c.ans == null) return void (el.textContent = "A question is free, so it goes before the test.");
+          const ps = post(id),
+            top = ps.indexOf(Math.max(...ps));
+          el.innerHTML = `Now <b>${hOf(id).explanations[top].t.toLowerCase()}</b> leads.`;
+        };
+        const predRows = (id) => {
+          const H = hOf(id);
+          const list = id === "gap" ? PRED.gap : H.explanations.map((e, i) => [`${GLY(e.g)} ${e.t}`, PRED[id][i]]);
+          return list
+            .map(([who, what], i) => `<div class="pr" data-pr="${i}" style="--d:${i * 220}ms"><span class="mk2">${I.check}</span><span>${what}<small>if: ${who}</small></span></div>`)
+            .join("");
+        };
+        const stateTxt = (c) => (c.closed ? `Closed · ${c.closed}` : c.accepted ? "Written down" : "Open");
+        const d2Hunch = (id) => {
+          const H = hOf(id),
+            c = cs[id];
+          const [kw, kc] = KIND[H.kind];
+          const keys = RKEYS[id];
+          const k = PRIMARY[id];
+          const b = bandShown(S[k].pts);
+          let chart;
+          if (H.kind === "cluster") {
+            chart = `<section class="blk first"><h4>Four bands, one direction <span>${S.ferritin.pts.length} to ${S.vitd.pts.length} draws each</span></h4>${lanes(H.series)}
+              <div class="legend2"><span><i></i>your band</span><span><i class="pv"></i>provisional, 4 draws</span><span>violet thread: the days all four were drawn</span></div></section>`;
+          } else {
+            chart = `<section class="blk first"><h4>Your band as it stood <span>${S[k].label} · ${S[k].pts.length} draws</span></h4>
+              ${chartOf(k, LAST, { step: H.kind === "step", slope: H.kind === "drift", goal: !!H.goal, col: HCOL[id] })}
+              <div class="legend2">${b ? `<span><i class="${b.prov ? "pv" : ""}"></i>your band${b.prov ? ", provisional" : ""}, before each draw</span>` : ""}<span><i class="lb"></i>lab ${S[k].lab[0] === 0 ? "under " + S[k].lab[1] : S[k].lab.join(" to ")}</span>${H.goal ? `<span><i class="gz"></i>goal ${DATA.goal.lo} to ${DATA.goal.hi}</span>` : ""}</div></section>`;
+          }
+          const hasX = H.explanations.length > 0;
+          return `<div class="d2">
+            <div class="krow"><span class="kst" style="--k:${kc}">${kw}</span><span>${H.system}</span><span class="cstate" data-cstate>${stateTxt(c)}</span></div>
+            <span class="shut${c.closed ? " on" : ""}" data-shut>${(c.closed || "confirmed").toUpperCase()}</span>
+            <p class="say">${H.say}</p>
+            ${chart}
+            ${hasX ? `<section class="blk"><h4>What could explain it <span>chance</span></h4><p class="gl-key">● grade A or B · ◐ grade C · ○ hypothesis</p><div class="xl" data-xl></div></section>` : ""}
+            ${H.question ? `<section class="blk" data-q><h4>One question splits them <span>free</span></h4><p>${H.question}</p>
+                <div class="qchips">${ANSW[id].a.map(([a], i) => `<button data-qa="${id}:${i}" class="${c.ans === i ? "on" : ""}">${a}</button>`).join("")}</div>
+                <p class="qread" data-qread></p></section>` : ""}
+            ${H.test ? `<section class="blk" data-test><h4>Test that splits them <span></span></h4>
+                <div class="trow"><b>${H.test.name}</b><span>${H.test.price} ${H.test.currency}</span></div>
+                <p>${TESTWHY[id]}</p>
+                <button class="tbtn" data-do="accept:${id}"${c.accepted ? " hidden" : ""}>Take this test and write it down</button>
+                <span class="wd${c.accepted ? " on" : ""}" data-wd>written down 26 Sep</span>
+                <div class="preds" data-preds>${c.accepted ? predRows(id) : ""}</div>
+                <button class="tbtn play" data-do="play:${id}"${c.accepted && !c.closed ? "" : " hidden"}><i></i>${PLAY}<span>Play the result</span></button>
+                <div class="res" data-res></div></section>`
+              : `<section class="blk"><h4>Nothing to test</h4><p class="calm">Good news stays on the tab so a change back shows here first.</p></section>`}
+            <button class="howbtn" data-how="h:${id}"><span><b>How we know</b><small>the rule, ${keys.reduce((a, kk) => a + S[kk].pts.length, 0)} draws with their files${hasX ? ", the evidence" : ""}, a replay</small></span>${I.fwd}</button>
+          </div>`;
+        };
+        const d2Marker = (k) => {
+          const st = statusOf(k),
+            r = markerAt(k, LAST),
+            b = r.shown,
+            s = S[k],
+            last = show(k, s.pts.at(-1)[1]);
+          const f = fit3(s.pts, LAST);
+          const say =
+            k === GOALKEY
+              ? `${last} is ${fmtV(s.pts.at(-1)[1] - DATA.goal.hi)} over your goal of ${DATA.goal.hi} by 1 Dec, and the last three draws climb about ${Math.round(f.slope)} a year.`
+              : st.rank >= 5
+                ? `${last} ${s.unit} sits ${st.w}, built from your ${b.n} earlier draws. It is still inside the lab's range.`
+                : st.grp
+                  ? `${last} is on the ${st.w} of your usual, with ferritin, B12, vitamin D and homocysteine on the same side on the same draw.`
+                  : b
+                    ? `${last} sits inside your band from ${b.n} earlier draws${b.prov ? ", a provisional band" : ""}.`
+                    : `${s.pts.length} draws so far. A band needs 4 earlier draws, so only the lab range shows.`;
+          return `<div class="d2"><p class="msay">${say}</p>
+            <section class="blk"><h4>Your band as it stood <span>${s.pts.length} draws</span></h4>${chartOf(k, LAST, { goal: k === GOALKEY, slope: k === GOALKEY, col: st.c })}</section>
+            <button class="howbtn" data-how="m:${k}"><span><b>How we know</b><small>the band, ${s.pts.length} draws with their files, a replay</small></span>${I.fwd}</button></div>`;
+        };
+
+        // ---- expand in place (FLIP) ----
+        let openRow = null;
+        const expand = (ref, instant) => {
+          const row = rowOf(ref);
+          const all = [...sc.querySelectorAll(".hrow,.mrow,.shelf > header,.grp > p,.foot")];
+          const first = new Map(all.map((e) => [e, e.getBoundingClientRect().top]));
+          if (openRow) {
+            openRow.querySelector("[data-more]").innerHTML = "";
+            openRow.classList.remove("open");
+          }
+          if (openRow === row) openRow = null;
+          else {
+            const [t, id] = ref.split(":");
+            row.querySelector("[data-more]").innerHTML = t === "h" ? d2Hunch(id) : d2Marker(id);
+            row.classList.add("open");
+            openRow = row;
+            if (t === "h") {
+              renderXL(id, false);
+              qread(id);
+            }
+          }
+          if (instant) {
+            if (openRow) sc.scrollTop = row.offsetTop - 13;
+            return;
+          }
+          all.forEach((e) => {
+            const dy = first.get(e) - e.getBoundingClientRect().top;
+            if (Math.abs(dy) > 1) {
+              e.style.transition = "none";
+              e.style.transform = `translateY(${dy}px)`;
+            }
+          });
+          sc.offsetHeight;
+          all.forEach((e) => {
+            e.style.transition = "transform 620ms var(--spring), opacity 400ms var(--ease)";
+            e.style.transform = "";
+          });
+          if (openRow) setTimeout(() => sc.scrollTo({ top: row.offsetTop - 13, behavior: "smooth" }), 120);
+        };
+
+        // ---- the actions ----
+        const refreshAct = (id, pop) => {
+          const box = p.querySelector(`[data-ab="${id}"]`);
+          box.innerHTML = actHTML(hOf(id));
+          if (pop) box.firstChild.classList.add("pop");
+          rowOf("h:" + id).classList.toggle("seen", cs[id].seen);
+          count();
+        };
+        const answer = (id, i) => {
+          const c = cs[id];
+          if (c.closed) return;
+          c.ans = c.ans === i ? null : i;
+          const row = rowOf("h:" + id);
+          row.querySelectorAll("[data-qa]").forEach((b) => b.classList.toggle("on", +b.dataset.qa.split(":")[1] === c.ans));
+          renderXL(id, true);
+          qread(id);
+          refreshAct(id, true);
+        };
+        const accept = (id) => {
+          const c = cs[id];
+          if (c.accepted) return;
+          c.accepted = true;
+          refreshAct(id, true);
+          const row = rowOf("h:" + id);
+          const pr = row.querySelector("[data-preds]");
+          if (!pr) return;
+          row.querySelector(`[data-do="accept:${id}"]`).hidden = true;
+          pr.innerHTML = predRows(id);
+          row.querySelector("[data-wd]").classList.add("on");
+          row.querySelector("[data-cstate]").textContent = stateTxt(c);
+          const n = pr.children.length;
+          const show2 = () => {
+            if (!c.closed) row.querySelector(`[data-do="play:${id}"]`).hidden = false;
+          };
+          if (p.classList.contains("instant")) show2();
+          else setTimeout(show2, n * 220 + 1400);
+        };
+        const play = (id, instant) => {
+          const c = cs[id],
+            R = RES[id];
+          if (c.closed || c.playing) return;
+          c.playing = true;
+          const row = rowOf("h:" + id);
+          const btn = row.querySelector(`[data-do="play:${id}"]`);
+          const land = () => {
+            btn.hidden = true;
+            const res = row.querySelector("[data-res]");
+            res.innerHTML = `<div class="rbox">${R.lines.map(([a, b]) => `<div class="rl"><span>${a}</span><b>${b}</b></div>`).join("")}<span class="demo">Demo result, worded against the line written down. Not a reading.</span></div><p class="closeline" data-cl></p>`;
+            res.classList.add("on");
+            const win = R.held.indexOf(1);
+            const mark = () =>
+              R.held.forEach((h, i) => {
+                const pr = row.querySelector(`[data-pr="${i}"]`);
+                if (!pr) return;
+                pr.classList.add(h === 1 ? "held" : h === 0 ? "failed" : "untested");
+                if (h === 0) pr.querySelector(".mk2").innerHTML = I.x;
+                if (h == null) pr.querySelector("small").textContent += " · not tested";
+              });
+            const close = () => {
+              c.closed = win >= 0 ? "confirmed" : "ruled out";
+              c.win = win;
+              c.playing = false;
+              const H = hOf(id);
+              const what = id === "gap" ? PRED.gap[win][0].toLowerCase() : H.explanations[win].t.toLowerCase();
+              row.querySelector("[data-cl]").innerHTML = `Closed 26 Sep · <b>${c.closed}</b>: ${what}. The engine reads the result from here, and the hit counts toward how often hunches are right.`;
+              row.querySelector("[data-cstate]").textContent = stateTxt(c);
+              renderXL(id, !instant);
+              refreshAct(id, !instant);
+              row.querySelector("[data-shut]").classList.add("on");
+            };
+            if (instant) {
+              mark();
+              close();
+            } else {
+              R.held.forEach((_, i) => setTimeout(() => mark.call(null), 500 + i * 300));
+              setTimeout(close, 500 + R.held.length * 300 + 300);
+            }
+          };
+          if (instant) return land();
+          btn.classList.add("run");
+          btn.querySelector("span").textContent = "The result is on its way…";
+          setTimeout(land, 1400);
+        };
+        const act = (id) => {
+          const H = hOf(id),
+            c = cs[id];
+          if (c.closed) return;
+          if (H.kind === "good_news") {
+            c.seen = !c.seen;
+            return refreshAct(id, true);
+          }
+          if (ANSW[id]) return answer(id, c.ans == null ? 0 : c.ans);
+          if (!c.accepted) accept(id);
+        };
+
+        // ---- depth 3: How we know ----
+        const pb = $("[data-pb]");
+        let replayStop = null;
+        const ruleHunch = (id) => {
+          const dl = (rows) => `<dl class="nums">${rows.map(([a, b]) => `<dt>${a}</dt><dd>${b}</dd>`).join("")}</dl>`;
+          if (id === "eos") {
+            const pts = S.eos.pts,
+              st = stepOf(pts),
+              b = bandOf(pts.slice(0, -1)),
+              z = zOf(pts.at(-1)[1], b);
+            const maxAt = pts.slice(0, -st.k).find((q) => q[1] === st.prior);
+            return `<p class="rl1"><b>Step up.</b> The last ${st.k} draws (${pts.slice(-st.k).map((q) => q[1]).join(", ")}) all sit above your earlier maximum of ${st.prior} (${fmtDate(maxAt[0])}).</p>${dl([
+              ["Rule", "2 or more latest draws past the earlier max or min, with at least 3 earlier draws"],
+              ["First fired", `${fmtDate(FIRED.eos)}, the second draw past the line`],
+              ["Your band", `median ${fmtV(b.m)} ± ${fmtV(b.sd)} from ${b.n} draws (spread = 1.4826 × MAD)`],
+              ["Last draw", `${pts.at(-1)[1]} K/µL, ${z.toFixed(1)} spreads above the middle; a band hunch starts at 2.5`],
+              ["Lab range", `${S.eos.lab[0]} to ${S.eos.lab[1]}: every draw inside it`],
+            ])}`;
+          }
+          if (id === "ldl") {
+            const pts = S.ldl.pts,
+              f = fit3(pts, LAST),
+              b = bandOf(pts.slice(0, -1)),
+              last = pts.at(-1)[1];
+            return `<p class="rl1"><b>Drift away from the goal.</b> Least squares over the last three draws inside 24 months: ${f.w.map((q) => `${q[1]} (${fmtMon(q[0])})`).join(", ")}.</p>${dl([
+              ["Slope", `+${f.slope.toFixed(1)} a year; the LDL minimum is ${DRIFT_MIN.ldl} a year, a placeholder ◐ C`],
+              ["Goal", `${DATA.goal.hi} or under by ${fmtDate(DATA.goal.by)}; ${last} is ${last - DATA.goal.hi} over`],
+              ["If nothing changes", `near ${Math.round(f.at(T(DATA.goal.by)))} on ${fmtDate(DATA.goal.by)}`],
+              ["Your band", `median ${fmtV(b.m)} ± ${fmtV(b.sd)} from ${b.n} draws. ${last} sits inside it (${zOf(last, b).toFixed(1)} spreads) because the band moved up with LDL, so a goal marker is read by its slope and the goal`],
+              ["ApoB", `${S.apob.pts.map((q) => q[1]).join(", ")}: followed it to ${S.apob.pts.at(-1)[1]}, lab under ${S.apob.lab[1]}`],
+            ])}`;
+          }
+          if (id === "iron") {
+            const cl = clusterDir(LAST);
+            return `<p class="rl1"><b>Cluster by direction.</b> Three or more markers on one pathway on the low-stores side of their own middles on the same draw, with at least one past its own threshold.</p>
+              <table class="t3"><tr><th>Marker</th><th class="r">${fmtMon(LAST)}</th><th class="r">your middle</th><th>side</th></tr>
+              ${cl.det.map((x) => `<tr><td>${S[x.k].label}${x.b.prov ? "<br><small style='color:var(--ink-2);font-size:11px'>provisional, 4 draws</small>" : ""}</td><td class="r">${x.last[1]}</td><td class="r">${fmtV(x.b.m)}</td><td>${x.side ? (CLUSTER[x.k] > 0 ? "high" : "low") + " ✓" : "no"}</td></tr>`).join("")}</table>
+              ${dl([
+                ["Past threshold", `ferritin drift ${fit3(S.ferritin.pts, LAST).slope.toFixed(1)} a year (minimum ${DRIFT_MIN.ferritin})`],
+                ["On their own", `B12 and vitamin D sit well inside their bands; only the shared direction raises them`],
+                ["First fired", fmtDate(FIRED.iron)],
+              ])}`;
+          }
+          if (id === "gap") {
+            const b = bandShown(S.hcy.pts);
+            return `<p class="rl1"><b>Gap.</b> A marker the graph ranks high for your genome that was never measured.</p>${dl([
+              ["Gene", `MTHFR ${DATA.genes.find((g) => g.gene === "MTHFR").call}, grade ${DATA.genes.find((g) => g.gene === "MTHFR").g}: ${DATA.genes.find((g) => g.gene === "MTHFR").note}`],
+              ["Homocysteine", `${S.hcy.pts.slice(-4).map((q) => q[1]).join(", ")}: three rises in a row, first on ${fmtDate(FIRED.gap)}`],
+              ["Band", `median ${fmtV(b.m)} ± ${fmtV(b.sd)} from ${b.n} draws, provisional`],
+              ["Folate", "never measured"],
+            ])}`;
+          }
+          if (id === "crp") {
+            const g = goodNewsOf(S.crp.pts),
+              b = bandOf(S.crp.pts.slice(0, -1));
+            return `<p class="rl1"><b>Good news.</b> An earlier draw outside your band, then the last two inside it on the other side of the middle.</p>${dl([
+              ["Outside", `${g.was[1]} on ${fmtDate(g.was[0])}, ${g.wasZ.toFixed(1)} spreads above the band it had then`],
+              ["Back", S.crp.pts.slice(-2).map((q) => `${q[1]} on ${fmtDate(q[0])}`).join("; ")],
+              ["Your band now", `median ${fmtV(b.m)} ± ${fmtV(b.sd)} from ${b.n} draws`],
+              ["First fired", fmtDate(FIRED.crp)],
+            ])}`;
+          }
+          const hb = S.hba1c.pts,
+            b = bandOf(hb.slice(0, -1)),
+            ins = S.insulin.pts.map((q) => q[1]);
+          return `<p class="rl1"><b>Good news against the genes.</b> Two gene calls lean one way and the markers stay the other way. This reading is ours ○, not a raised signal.</p>${dl([
+            ["Genes", DATA.genes.filter((g) => g.gene === "TCF7L2" || g.gene === "FTO").map((g) => `${g.gene} ${g.call} (grade ${g.g}, ${g.note})`).join("; ")],
+            ["HbA1c", `${hb[1][1]} on ${fmtDate(hb[1][0])}, ${hb.at(-1)[1]} on ${fmtDate(hb.at(-1)[0])}; band ${fmtV(b.m)} ± ${fmtV(b.sd)} from ${b.n} draws`],
+            ["Fasting insulin", `${Math.min(...ins)} to ${Math.max(...ins)} across ${ins.length} draws; lab ${S.insulin.lab.join(" to ")}`],
+            ["Fired", "no single draw; the genes read against the last draws"],
+          ])}`;
+        };
+        const ruleMarker = (k) => {
+          const r = markerAt(k, LAST),
+            b = r.shown,
+            s = S[k];
+          const z = b ? zOf(r.last[1], b) : undefined;
+          return `<p class="rl1"><b>${b ? "Your band" : "No band yet"}.</b> ${b ? `Median ${fmtV(b.m)} ± ${fmtV(b.sd)} from the ${b.n} draws before the last${b.prov ? ", provisional: it raises a signal only inside a cluster" : ""}.` : `${s.pts.length - 1} earlier draws; a band needs 4.`}</p>
+            <dl class="nums"><dt>Last draw</dt><dd>${r.last[1]} ${s.unit} on ${fmtDate(r.last[0])}${z !== undefined ? `, ${z >= 0 ? "+" : "−"}${Math.abs(z).toFixed(1)} spreads from the middle` : ""}</dd>
+            <dt>Lab range</dt><dd>${s.lab.join(" to ")} ${s.unit}</dd>
+            <dt>Signals</dt><dd>${r.sig.length ? chipsFor(k, r.sig) : "none on the last draw"}</dd></dl>`;
+        };
+        const drawsHTML = (k) => {
+          const pts = S[k].pts;
+          return `<table class="t3"><tr><th>Date</th><th class="r">${S[k].unit}</th><th>Source file</th></tr>
+            ${pts.map((q, i) => `<tr class="${i === pts.length - 1 ? "now" : ""}"><td>${fmtDate(q[0])}</td><td class="r">${q[1]}</td><td>${fileOf(q[0])}</td></tr>`).join("")}</table>
+            <p class="cap3">${pts.length - 1 >= 4 ? `Your band uses the ${pts.length - 1} draws above the last one.` : `${pts.length - 1} earlier draws: too few for a band.`} File dates are the lab's report dates. Laboratory names are not on file.</p>`;
+        };
+        const mountReplay = (box, keys, prim, hid, idx0) => {
+          const dates = [...new Set(keys.flatMap((k) => S[k].pts.map((q) => q[0])))].sort();
+          const SW = 322,
+            pad = 8;
+          const t0 = T(dates[0]),
+            t1 = T(dates.at(-1));
+          const sx = (d) => pad + ((T(d) - t0) / (t1 - t0)) * (SW - 2 * pad);
+          const sets = dates.map((d) => sigsAt(keys, d, hid));
+          const raised = dates.map((d, i) => [...sets[i].entries()].filter(([kk]) => !i || !sets[i - 1].has(kk)).map(([, v]) => v));
+          const col = { out: "var(--blood)", step: "var(--amber)", drift: "var(--amber)", cluster: "var(--gene-l)", good: "var(--green)", gap: "var(--plum-3)" };
+          const marks = dates.map((d, i) => raised[i].slice(0, 3).map((v, j) => `<circle class="sig" cx="${sx(d)}" cy="${12 - j * 5}" r="3" fill="${col[v.s.kind]}" data-i="${i}"/>`).join("")).join("");
+          const fired = hid && hid[0] !== "m" ? FIRED[hid] : null;
+          let idx = idx0 != null ? idx0 : fired ? dates.indexOf(fired) : dates.length - 1;
+          const years = [...new Set(dates.map((d) => +d.slice(0, 4)))].filter((y, i, a) => a.length < 6 || y % 2 === 0);
+          box.innerHTML = `<div class="rpw"><b data-when></b><small data-sub></small></div>
+            <div data-chart></div>${keys.length > 1 ? `<div class="rrows" data-rows></div>` : ""}
+            <div class="scrub" data-scrub><svg class="sc" viewBox="0 0 ${SW} 47">
+              <rect class="rail" x="${pad}" y="21" width="${SW - 2 * pad}" height="5" rx="2.5"/>
+              <rect class="done" x="${pad}" y="21" height="5" rx="2.5" width="0"/>
+              ${dates.map((d) => `<rect class="tick" x="${sx(d) - 0.75}" y="18" width="1.5" height="11"/>`).join("")}
+              ${marks}
+              ${years.map((y) => `<text x="${Math.min(SW - 13, Math.max(13, sx(y + "-01-01")))}" y="45" text-anchor="middle">${y}</text>`).join("")}
+              <circle class="thumb" cy="23.5" r="8" style="cx:${sx(dates[idx])}px"/></svg></div>
+            <div class="ctl"><button data-prev aria-label="Earlier draw">${I.back}</button><button class="play" data-play>${I.play}Replay</button><button data-next aria-label="Later draw">${I.fwd}</button><span>dots: when a rule fired</span></div>
+            <div class="raised" data-raised></div>`;
+          const q = (c) => box.querySelector(c);
+          const rows = keys.length > 1 ? keys.map(makeRow) : [];
+          rows.forEach((r) => q("[data-rows]").append(r.el));
+          const H = hid && hOf(hid);
+          const paint = (first) => {
+            const d = dates[idx];
+            q("[data-when]").textContent = fmtDate(d);
+            const sub = q("[data-sub]");
+            const isF = d === fired;
+            sub.className = isF ? "fired" : "";
+            sub.textContent = `draw ${idx + 1} of ${dates.length}${isF ? " · the rule fired here" : idx === dates.length - 1 ? " · the last draw" : ""}`;
+            q("[data-chart]").innerHTML = chartOf(prim, d, { step: H?.kind === "step", slope: H?.kind === "drift" || prim === GOALKEY, goal: prim === GOALKEY, col: dotColor(markerAt(prim, d)), still: !first });
+            rows.forEach((r) => r.update(markerAt(r.key, d)));
+            q(".thumb").style.cx = sx(d) + "px";
+            q(".done").style.width = sx(d) - pad + "px";
+            box.querySelectorAll(".sig").forEach((c) => (c.style.opacity = +c.dataset.i <= idx ? 1 : 0.25));
+            const R = raised[idx];
+            const rz = q("[data-raised]");
+            rz.innerHTML = R.length
+              ? `<small>Raised on this draw</small><div class="rl">${[...new Set(R.map((v) => v.k))].map((kk) => `<span><b>${S[kk].label}</b><span class="chips">${chipsFor(kk, R.filter((v) => v.k === kk).map((v) => v.s))}</span></span>`).join("")}</div>`
+              : `<small>Raised on this draw</small><span>Nothing new. The rules stay quiet on this day.</span>`;
+            if (!first && R.length) {
+              rz.classList.remove("flash");
+              void rz.offsetWidth;
+              rz.classList.add("flash");
+            }
+          };
+          paint(true);
+          const go = (i) => {
+            i = Math.max(0, Math.min(dates.length - 1, i));
+            if (i !== idx) {
+              idx = i;
+              paint(false);
+            }
+          };
+          let timer = null;
+          const pbn = q("[data-play]");
+          const stop = () => {
+            clearInterval(timer);
+            timer = null;
+            pbn.innerHTML = `${I.play}Replay`;
+          };
+          q("[data-prev]").onclick = () => (stop(), go(idx - 1));
+          q("[data-next]").onclick = () => (stop(), go(idx + 1));
+          pbn.onclick = () => {
+            if (timer) return stop();
+            if (idx === dates.length - 1) go(0);
+            pbn.innerHTML = `${I.pause}Pause`;
+            timer = setInterval(() => (idx >= dates.length - 1 ? stop() : go(idx + 1)), 1100);
+          };
+          const scr = q("[data-scrub]");
+          const pick = (e) => {
+            const rect = scr.querySelector("svg").getBoundingClientRect();
+            const px = ((e.clientX - rect.left) / rect.width) * SW;
+            let best = 0;
+            dates.forEach((d, i) => {
+              if (Math.abs(sx(d) - px) < Math.abs(sx(dates[best]) - px)) best = i;
+            });
+            go(best);
+          };
+          scr.addEventListener("pointerdown", (e) => {
+            stop();
+            scr.setPointerCapture(e.pointerId);
+            scr.classList.add("drag");
+            pick(e);
+          });
+          scr.addEventListener("pointermove", (e) => scr.classList.contains("drag") && pick(e));
+          scr.addEventListener("pointerup", () => scr.classList.remove("drag"));
+          return stop;
+        };
+        const openHow = (ref, o = {}) => {
+          const [t, id] = ref.split(":");
+          const H = t === "h" ? hOf(id) : null;
+          const keys = H ? RKEYS[id] : [id];
+          const prim = H ? PRIMARY[id] : id;
+          const nDraws = keys.reduce((a, k) => a + S[k].pts.length, 0);
+          const nFiles = keys.reduce((a, k) => a + S[k].pts.filter((q) => SOURCES[q[0]]).length, 0);
+          const secs = [];
+          secs.push(["rule", H ? "The rule that fired" : "How the band is built", H ? SUM[id] : markerAt(id, LAST).shown ? `median and spread of ${markerAt(id, LAST).shown.n} earlier draws` : "too few draws for a band", H ? ruleHunch(id) : ruleMarker(id)]);
+          const fired = H ? FIRED[id] : null;
+          secs.push(["replay", "Replay how this was found", fired ? `fired on ${fmtDate(fired)}; scrub the draws` : "scrub the draws", ""]);
+          secs.push([
+            "draws",
+            "Every draw and its file",
+            `${nDraws} draws · ${nFiles} files${nDraws - nFiles ? ` · ${nDraws - nFiles} imported from the old app` : ""}`,
+            `${keys.length > 1 ? `<div class="seg">${keys.map((k, i) => `<button data-seg="${k}" class="${i === (o.seg || 0) ? "on" : ""}">${S[k].label} · ${S[k].pts.length}</button>`).join("")}</div>` : ""}<div data-draws>${drawsHTML(keys[o.seg || 0])}</div>`,
+          ]);
+          if (H && H.explanations.length) {
+            const n = (g) => H.explanations.filter((e) => GLY(e.g) === g).length;
+            secs.push([
+              "evidence",
+              "Evidence behind each explanation",
+              `${H.explanations.length} explanations: ${["●", "◐", "○"].filter((g) => n(g)).map((g) => `${n(g)} ${g}`).join(", ")}`,
+              H.explanations
+                .map((e, i) => `<div class="ev"><div class="et"><span class="g">${GLY(e.g)} ${e.g}</span><span>${e.t}</span><em>${BASIS(e.g)}</em></div><p>${EVID[id][i]}</p></div>`)
+                .join("") + `<p class="cap3">Grades from the evidence base; the one-line reasons are written for this card. ● A or B is science, ◐ C is opinion, ○ is a hypothesis.</p>`,
+            ]);
+          }
+          const nk = H
+            ? NK[id]
+            : [
+                ...(markerAt(id, LAST).shown?.prov ? [["Band", "provisional, 4 earlier draws"]] : []),
+                ...(!markerAt(id, LAST).shown ? [["Band", `${S[id].pts.length - 1} earlier draws, too few`]] : []),
+                ["Why it moved", "no life events on file yet"],
+              ];
+          secs.push(["unknown", "What is not known", nk[0][0].toLowerCase() + ": " + nk[0][1], `<ul class="nk">${nk.map(([a, b]) => `<li><span>${a}<small>${b}</small></span></li>`).join("")}</ul>`]);
+          const [kw, kc] = H ? KIND[H.kind] : ["MARKER", "var(--ink-2)"];
+          pb.innerHTML = `<header class="phead"><div class="krow"><span class="kst" style="--k:${kc}">${kw}</span><span>${H ? H.system : S[id].unit}</span></div>
+              <h1>${H ? H.title : S[id].label}</h1><p>Where each number on the card comes from. Open a section.</p></header>
+            ${secs.map(([k, title, sum, body]) => `<section class="acc${(o.open || []).includes(k) ? " open" : ""}" data-acc="${k}"><button class="acch" data-acch><span><b>${title}</b><small>${sum}</small></span><i>${I.chev}</i></button><div class="accb"><div class="acci"><div data-accbody>${body}</div></div></div></section>`).join("")}`;
+          if (replayStop) replayStop();
+          replayStop = mountReplay(pb.querySelector('[data-acc="replay"] [data-accbody]'), keys, prim, H ? id : "m:" + id, o.idx);
+          pb.querySelectorAll("[data-seg]").forEach(
+            (b) =>
+              (b.onclick = () => {
+                pb.querySelectorAll("[data-seg]").forEach((x) => x.classList.toggle("on", x === b));
+                pb.querySelector("[data-draws]").innerHTML = drawsHTML(b.dataset.seg);
+              }),
+          );
+          pb.scrollTop = 0;
+          p.classList.add("pushed");
+        };
+
+        // ---- clicks ----
+        p.addEventListener("click", (e) => {
+          const t = e.target;
+          const a = t.closest("[data-act]");
+          if (a) return act(a.dataset.act);
+          const qa = t.closest("[data-qa]");
+          if (qa) {
+            const [id, i] = qa.dataset.qa.split(":");
+            return answer(id, +i);
+          }
+          const d = t.closest("[data-do]");
+          if (d) {
+            const [what, id] = d.dataset.do.split(":");
+            return what === "accept" ? accept(id) : play(id);
+          }
+          const hw = t.closest("[data-how]");
+          if (hw) return openHow(hw.dataset.how, { open: ["rule"] });
+          if (t.closest("[data-back]")) {
+            if (replayStop) replayStop();
+            return p.classList.remove("pushed");
+          }
+          const ah = t.closest("[data-acch]");
+          if (ah) return ah.parentElement.classList.toggle("open");
+          const hd = t.closest("[data-head]");
+          if (hd) return expand(hd.parentElement.dataset.row);
+        });
+
+        const scrollToEl = (el, off = 13) => {
+          const box = el.closest(".pbody") || sc;
+          box.scrollTop += el.getBoundingClientRect().top - box.getBoundingClientRect().top - off;
+        };
+        return { p, cs, expand, act, answer, accept, play, openHow, sc, pb, rowOf, scrollToEl };
+      }
+
+      // ================= the three phones, and ?depth=1|2|3 =================
+      const PH = ["p1", "p2", "p3"].map((id) => mount(document.getElementById(id)));
+      const depth = +new URLSearchParams(location.search).get("depth") || 0;
+      const inst = (ph, f) => {
+        ph.p.classList.add("instant");
+        f();
+        setTimeout(() => ph.p.classList.remove("instant"), 80);
+      };
+      const cap = (i, l, r) => {
+        document.querySelector(`[data-cap="${i}"]`).textContent = l;
+        document.querySelector(`[data-capr="${i}"]`).textContent = r;
+      };
+      const [A, B, C] = PH;
+      if (depth === 1) {
+        cap(1, "01 · Depth 1, the Blood tab", "tap a button · tap a row");
+        inst(B, () => {
+          B.act("eos");
+          B.act("gap");
+          B.act("crp");
+        });
+        cap(2, "02 · Depth 1, after three taps", "answered · booked · seen");
+        inst(C, () => C.scrollToEl(C.p.querySelector("[data-ml]").parentElement, 8));
+        cap(3, "03 · Depth 1, every marker", "outside your band on top");
+      } else if (depth === 2) {
+        inst(A, () => A.expand("h:eos", true));
+        cap(1, "01 · Depth 2, a STEP opened in place", "answer · bars re-order");
+        inst(B, () => {
+          B.expand("h:iron", true);
+          B.answer("iron", 0);
+          B.accept("iron");
+          B.scrollToEl(B.rowOf("h:iron").querySelector("[data-test]"), 34);
+        });
+        cap(2, "02 · Depth 2, the cluster written down", "Play the result");
+        inst(C, () => {
+          C.expand("h:ldl", true);
+          C.answer("ldl", 0);
+          C.accept("ldl");
+          C.play("ldl", true);
+          C.scrollToEl(C.rowOf("h:ldl").querySelector("[data-q]"), 8);
+        });
+        cap(3, "03 · Depth 2, LDL played and closed", "goal read by slope");
+      } else if (depth === 3) {
+        inst(A, () => {
+          A.openHow("h:eos", { open: ["rule", "replay"] });
+          A.scrollToEl(A.pb.querySelector('[data-acc="replay"]'), 8);
+        });
+        cap(1, "01 · Depth 3, the step and its replay", "drag · ‹ › · Replay");
+        inst(B, () => {
+          B.openHow("h:iron", { open: ["draws", "unknown"] });
+          B.scrollToEl(B.pb.querySelector('[data-acc="draws"]'), 8);
+        });
+        cap(2, "03 · Depth 3, draws and their files", "tap a marker");
+        inst(C, () => {
+          C.openHow("h:ldl", { open: ["rule", "evidence"] });
+          C.scrollToEl(C.pb.querySelector('[data-acc="replay"]'), 8);
+        });
+        cap(3, "03 · Depth 3, the evidence", "grade · basis · one line");
+        cap(2, "02 · Depth 3, draws and their files", "tap a marker");
+      } else {
+        cap(1, "01 · The Blood tab, a glance", "tap a button · tap a row");
+        inst(B, () => B.expand("h:eos", true));
+        cap(2, "02 · A row opened in place", "answer · bars re-order");
+        inst(C, () => {
+          C.openHow("h:iron", { open: ["rule", "replay"] });
+          C.scrollToEl(C.pb.querySelector('[data-acc="replay"]'), 8);
+        });
+        cap(3, "03 · How we know, with the replay", "drag · ‹ › · Replay");
+      }
+
+      // ================= visible-text checks =================
+      {
+        const g = A.sc.cloneNode(true);
+        g.querySelectorAll("[data-more], .hn small, .nm small").forEach((m) => (m.innerHTML = "")); // units aside (HbA1c is in %)
+        const glance = depth === 0 || depth === 1 ? g.textContent : "";
+        const bad = glance.match(/.{0,30}(%|\bz\b).{0,10}/);
+        check("Depth 1 glance shows no chance percentages and no z-scores (units aside)", !bad, bad ? bad[0] : depth === 0 || depth === 1 ? "phone 1 glance text" : "skipped at this depth");
+        check("Glance count equals the open hunches (4)", +A.p.querySelector("[data-n]").textContent === DATA.hunches.filter((h) => h.kind !== "good_news").length, A.p.querySelector("[data-n]").textContent);
+        check("Top slim row is Eosinophils (outside its band)", A.p.querySelector(".mrow").dataset.row === "m:eos", A.p.querySelector(".mrow").dataset.row);
+        const txt = document.body.innerText;
+        check("No em dash and no word sick in visible text", !txt.includes("—") && !/\bsick\b/i.test(txt), "");
+      }
+      {
+        const tb = document.getElementById("checks");
+        tb.insertAdjacentHTML("beforeend", checks.map((c) => `<tr><td>${c.name}</td><td>${c.got ?? ""}</td><td class="${c.ok ? "ok" : "no"}">${c.ok ? "pass" : "FAIL"}</td></tr>`).join(""));
+        console.log(`corridors checks: ${checks.filter((c) => c.ok).length}/${checks.length} pass`);
+      }
+
+      // ---- paper grain: one 128 px noise tile (48, 51) ----
+      (() => {
+        let a = 7;
+        const r = () => {
+          a |= 0;
+          a = (a + 0x6d2b79f5) | 0;
+          let t = Math.imul(a ^ (a >>> 15), 1 | a);
+          t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+          return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+        };
+        const c = document.createElement("canvas");
+        c.width = c.height = 128;
+        const x = c.getContext("2d");
+        const d = x.createImageData(128, 128);
+        for (let i = 0; i < d.data.length; i += 4) {
+          const v = 120 + r() * 135;
+          d.data[i] = d.data[i + 1] = d.data[i + 2] = v;
+          d.data[i + 3] = r() < 0.55 ? 34 : 0;
+        }
+        x.putImageData(d, 0, 0);
+        document.documentElement.style.setProperty("--noise", `url(${c.toDataURL()})`);
+      })();
+    </script>
+  </body>
+</html>

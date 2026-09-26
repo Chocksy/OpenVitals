@@ -1,0 +1,2349 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Heading · iOS variation 50 · OpenVitals</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --plum-0: #1e0a24;
+        --plum: #2b1033;
+        --plum-2: #3d1947;
+        --plum-3: #5a2d66;
+        --mist: #cdb8d2;
+        --paper: #f3ead8;
+        --paper-2: #ebdfc7;
+        --paper-3: #dccbad;
+        --card: #fffdf8;
+        --cream: #f6eddc;
+        --ink: #2b1033;
+        --ink-2: #6f5a72;
+        --ink-3: #a08fa0;
+        --line: #eadfcb;
+        --life: #e4722f;
+        --blood: #c23a5e;
+        --gene: #6c4aa6;
+        --life-l: #f59257;
+        --blood-l: #ea6a8d;
+        --gene-l: #a98ae6;
+        --green: #23995d;
+        --green-soft: #d9efdf;
+        --amber: #c98512;
+        --amber-soft: #f6e3bf;
+        --rose: #d2415b;
+        --rose-soft: #f8dbe0;
+        --lime: #d6f34a;
+        --s3: 3px;
+        --s5: 5px;
+        --s8: 8px;
+        --s13: 13px;
+        --s21: 21px;
+        --s34: 34px;
+        --s55: 55px;
+        --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+        --spring: cubic-bezier(0.3, 1.35, 0.5, 1);
+        --ispring: cubic-bezier(0.34, 1.4, 0.64, 1);
+        /* heading words on the plum (light) and on the paper (dark) */
+        --toward-l: #8fdcae;
+        --away-l: #f592a8;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--paper-2);
+        background-image: var(--noise);
+        background-size: 128px 128px;
+        color: var(--ink);
+        font:
+          15px/1.4 "Space Grotesk",
+          -apple-system,
+          system-ui,
+          sans-serif;
+        font-feature-settings: "tnum";
+      }
+      button {
+        font: inherit;
+        color: inherit;
+        background: none;
+        border: 0;
+        padding: 0;
+        cursor: pointer;
+        -webkit-tap-highlight-color: transparent;
+        text-align: left;
+      }
+      h1,
+      h2,
+      h3,
+      p {
+        margin: 0;
+      }
+      svg {
+        width: 20px;
+        height: 20px;
+        stroke: currentColor;
+        fill: none;
+        stroke-width: 1.8;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+
+      /* ---- page ---- */
+      .doc {
+        max-width: 1290px;
+        margin: 0 auto;
+        padding: var(--s21) var(--s21) var(--s55);
+      }
+      .doc > header {
+        margin-bottom: var(--s21);
+        display: grid;
+        grid-template-columns: 1fr 1.7fr;
+        gap: var(--s34);
+        align-items: end;
+      }
+      .eyebrow {
+        color: var(--ink-2);
+        font-size: 13px;
+        margin-bottom: var(--s5);
+        letter-spacing: 0.04em;
+      }
+      .doc h1 {
+        font-size: 34px;
+        font-weight: 600;
+        letter-spacing: -0.04em;
+        line-height: 1;
+      }
+      .lede {
+        color: var(--ink-2);
+        font-size: 13px;
+        margin-top: var(--s8);
+        max-width: 50ch;
+      }
+      .direction {
+        background: var(--card);
+        border-radius: 21px;
+        padding: var(--s13) var(--s21);
+        font-size: 13px;
+        display: grid;
+        grid-template-columns: 89px 1fr;
+        gap: var(--s3) var(--s13);
+        color: var(--ink-2);
+        box-shadow: 0 13px 34px -21px rgba(43, 16, 51, 0.35);
+      }
+      .direction b {
+        color: var(--ink);
+        font-weight: 500;
+      }
+      .phones {
+        display: flex;
+        gap: var(--s34);
+        justify-content: center;
+        flex-wrap: wrap;
+      }
+      .cap {
+        display: flex;
+        justify-content: space-between;
+        color: var(--ink-2);
+        font-size: 13px;
+        margin-bottom: var(--s13);
+        width: 390px;
+      }
+
+      /* ---- phone ---- */
+      .phone {
+        width: 390px;
+        height: 844px;
+        border-radius: 55px;
+        border: 8px solid #1a0b1d;
+        background-color: var(--paper);
+        background-image: var(--noise);
+        background-size: 128px 128px;
+        box-shadow:
+          0 0 0 1px #3d1947,
+          0 55px 89px -34px rgba(43, 16, 51, 0.55);
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        user-select: none;
+      }
+      .status {
+        height: 55px;
+        flex: none;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        padding: 0 var(--s34) var(--s8);
+        font-size: 14px;
+        font-weight: 600;
+        position: relative;
+      }
+      .status i {
+        position: absolute;
+        left: 50%;
+        top: 13px;
+        width: 120px;
+        height: 34px;
+        border-radius: 21px;
+        background: #0b030d;
+        transform: translateX(-50%);
+      }
+
+      /* ---- the plum header ---- */
+      .hd {
+        flex: none;
+        background:
+          radial-gradient(70% 90% at 15% 0%, #4d1d58 0%, transparent 70%),
+          var(--plum);
+        color: var(--cream);
+        border-radius: 0 0 34px 34px;
+        padding-bottom: var(--s21);
+        position: relative;
+        z-index: 5;
+        box-shadow: 0 13px 21px -13px rgba(43, 16, 51, 0.5);
+        cursor: pointer;
+      }
+      .hd .in {
+        padding: var(--s8) var(--s21) 0;
+        position: relative;
+      }
+      .hbg {
+        position: absolute;
+        inset: 0;
+        overflow: hidden;
+        border-radius: 0 0 34px 34px;
+        pointer-events: none;
+      }
+      .amb {
+        position: absolute;
+        inset: -55px;
+        width: calc(100% + 110px);
+        height: calc(100% + 110px);
+        object-fit: cover;
+        pointer-events: none;
+        z-index: -1;
+        opacity: 0;
+        mix-blend-mode: screen;
+        filter: blur(21px) saturate(1.1);
+        transition: opacity 1.4s ease;
+      }
+      .amb.on {
+        opacity: 0.45;
+      }
+      .row-a {
+        display: flex;
+        align-items: center;
+        gap: var(--s13);
+      }
+      .side {
+        flex: 1;
+        min-width: 0;
+      }
+      .side small {
+        display: block;
+        font-size: 11px;
+        color: var(--mist);
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+      .side b {
+        display: block;
+        font-size: 21px;
+        font-weight: 600;
+        letter-spacing: -0.02em;
+        line-height: 1.15;
+        margin-top: var(--s3);
+      }
+      .side em {
+        font-style: normal;
+        color: var(--mist);
+        font-size: 13px;
+      }
+
+      /* the draw's age: a year of freshness, full on the draw day */
+      .age {
+        position: relative;
+        width: 55px;
+        height: 55px;
+        flex: none;
+      }
+      .age svg {
+        width: 55px;
+        height: 55px;
+        transform: rotate(-90deg);
+      }
+      .age circle {
+        stroke-width: 5;
+      }
+      .age .tr {
+        stroke: rgba(246, 237, 220, 0.14);
+      }
+      .age .fl {
+        stroke: var(--cream);
+        transition: stroke-dashoffset 4200ms cubic-bezier(0.45, 0, 0.2, 1);
+      }
+      .age .c {
+        position: absolute;
+        inset: 0;
+        display: grid;
+        place-content: center;
+        text-align: center;
+        line-height: 1;
+      }
+      .age .c b {
+        font-size: 17px;
+        font-weight: 600;
+        letter-spacing: -0.03em;
+      }
+      .age .c small {
+        font-size: 11px;
+        color: var(--mist);
+      }
+
+      /* collapsed: three layers in one row */
+      .layers {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: var(--s13);
+        margin-top: var(--s13);
+        max-height: 55px;
+        transition:
+          opacity 320ms var(--ease),
+          max-height 420ms var(--ease),
+          margin 420ms var(--ease);
+      }
+      .hd.open .layers {
+        opacity: 0;
+        max-height: 0;
+        margin-top: 0;
+        pointer-events: none;
+      }
+      .layers > div {
+        font-size: 11px;
+        color: var(--mist);
+      }
+      .layers span {
+        display: flex;
+        justify-content: space-between;
+      }
+      .layers b {
+        color: var(--cream);
+        font-size: 13px;
+        font-weight: 600;
+      }
+      .bar {
+        position: relative;
+        height: 5px;
+        border-radius: 3px;
+        background: rgba(246, 237, 220, 0.14);
+        margin-top: var(--s5);
+        overflow: hidden;
+      }
+      .bar i {
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: var(--w);
+        background: var(--c);
+        border-radius: 3px;
+        transition: width 900ms var(--spring);
+      }
+      .seg {
+        display: flex;
+        gap: var(--s3);
+        margin-top: var(--s5);
+        height: 5px;
+      }
+      .seg i {
+        flex: 1;
+        border-radius: 3px;
+        background: var(--c);
+      }
+      .seg i.un {
+        background: none;
+        box-shadow: inset 0 0 0 1px rgba(246, 237, 220, 0.3);
+      }
+
+      /* open: the three levels */
+      .hmore {
+        height: 0;
+        overflow: hidden;
+        transition: height 520ms var(--ease);
+      }
+      .lv {
+        margin-top: var(--s8);
+      }
+      .lv > header {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        border-bottom: 1px solid rgba(246, 237, 220, 0.14);
+        padding-bottom: var(--s3);
+        margin-bottom: var(--s5);
+      }
+      .lv > header b {
+        font-size: 11px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        font-weight: 600;
+      }
+      .lv > header b span {
+        color: var(--lime);
+        margin-right: var(--s5);
+      }
+      .lv > header small {
+        font-size: 11px;
+        color: var(--mist);
+      }
+      .hd.open .lv {
+        animation: lvin 560ms var(--spring) both;
+        animation-delay: var(--d);
+      }
+      @keyframes lvin {
+        from {
+          opacity: 0;
+          transform: translateY(13px);
+        }
+      }
+      .trows {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: var(--s8) var(--s21);
+      }
+      .trows div {
+        font-size: 11px;
+        color: var(--mist);
+      }
+      .trows span {
+        display: flex;
+        justify-content: space-between;
+      }
+      .trows b {
+        color: var(--cream);
+        font-weight: 500;
+      }
+      .goal {
+        width: 100%;
+        display: grid;
+        grid-template-columns: 1fr auto;
+        align-items: center;
+        gap: var(--s3) var(--s8);
+        background: rgba(246, 237, 220, 0.07);
+        border-radius: 13px;
+        padding: var(--s8) var(--s13);
+        margin-bottom: var(--s5);
+        transition: background 300ms var(--ease);
+      }
+      .goal:hover,
+      .sys button:hover,
+      .wr:hover {
+        background: rgba(246, 237, 220, 0.12);
+      }
+      .goal b {
+        font-size: 13px;
+        font-weight: 600;
+      }
+      .goal small {
+        font-size: 11px;
+        color: var(--mist);
+        margin-left: var(--s5);
+      }
+      .goal .wd {
+        grid-row: 1 / span 2;
+        grid-column: 2;
+      }
+      .goal em {
+        font-style: normal;
+        font-size: 11px;
+        color: var(--away-l);
+      }
+      .wd {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--s3);
+        font-size: 11px;
+        font-weight: 600;
+        color: var(--c);
+      }
+      .arr {
+        width: 17px;
+        height: 17px;
+        stroke-width: 2.4;
+        color: var(--c);
+        transform: rotate(var(--a));
+      }
+      .hd.open .arr {
+        animation: arrin 700ms var(--ispring) both;
+        animation-delay: calc(420ms + var(--i, 0) * 55ms);
+      }
+      @keyframes arrin {
+        from {
+          transform: translateX(-8px) rotate(0deg) scale(0.4);
+          opacity: 0;
+        }
+      }
+      .sys {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: var(--s5);
+      }
+      .sys button {
+        background: rgba(246, 237, 220, 0.07);
+        border-radius: 13px;
+        padding: var(--s3) var(--s8);
+        display: grid;
+        grid-template-columns: 1fr auto;
+        align-items: center;
+        gap: 0 var(--s3);
+        min-height: 34px;
+        transition: background 300ms var(--ease);
+      }
+      .sys button .nm {
+        display: flex;
+        align-items: center;
+        gap: var(--s5);
+        font-size: 13px;
+        font-weight: 500;
+        white-space: nowrap;
+      }
+      .sys button .nm svg {
+        width: 13px;
+        height: 13px;
+        color: var(--mist);
+        flex: none;
+      }
+      .sys button small {
+        grid-column: 1;
+        font-size: 11px;
+        color: var(--c);
+      }
+      .sys button .arr {
+        grid-row: 1 / span 2;
+        grid-column: 2;
+      }
+      .sys button.un {
+        background: none;
+        box-shadow: inset 0 0 0 1px rgba(246, 237, 220, 0.12);
+      }
+      .sys button.un .nm {
+        color: var(--mist);
+      }
+      .wr {
+        width: 100%;
+        display: grid;
+        grid-template-columns: 34px 1fr auto;
+        gap: var(--s8);
+        align-items: center;
+        padding: var(--s3) var(--s5) var(--s3) 0;
+        border-radius: 8px;
+        font-size: 13px;
+        transition: background 300ms var(--ease);
+      }
+      .wr .ev {
+        font-size: 11px;
+        color: var(--mist);
+        white-space: nowrap;
+      }
+      .wr .ev i {
+        font-style: normal;
+        color: var(--cream);
+      }
+      .wr small {
+        display: block;
+        font-size: 11px;
+        color: var(--mist);
+      }
+      .kind {
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: 0.1em;
+        border: 1.5px solid currentColor;
+        border-radius: 5px;
+        padding: 0 var(--s5);
+        white-space: nowrap;
+      }
+      .wr .kind {
+        color: var(--mist);
+      }
+      .wr .kind.belief {
+        color: var(--gene-l);
+      }
+      .gn {
+        font-size: 11px;
+        color: var(--mist);
+        margin-top: var(--s5);
+      }
+      .gn b {
+        color: var(--toward-l);
+        font-weight: 500;
+      }
+      .why {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: var(--s8);
+        margin-top: var(--s13);
+        font-size: 11px;
+        color: var(--mist);
+      }
+      .why b {
+        color: var(--cream);
+        font-weight: 500;
+        white-space: nowrap;
+        letter-spacing: -0.01em;
+      }
+      .why .chev {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--s3);
+        white-space: nowrap;
+      }
+      .why .chev svg {
+        width: 13px;
+        height: 13px;
+        transition: transform 420ms var(--ease);
+      }
+      .hd.open .why .chev svg {
+        transform: rotate(180deg);
+      }
+
+      /* ---- shelves ---- */
+      .scroll {
+        flex: 1;
+        overflow-y: auto;
+        overflow-x: hidden;
+        padding-bottom: 110px;
+        scrollbar-width: none;
+      }
+      .scroll::-webkit-scrollbar,
+      .hs::-webkit-scrollbar,
+      .dscroll::-webkit-scrollbar {
+        display: none;
+      }
+      .shelf {
+        margin-top: var(--s21);
+      }
+      .shelf > header {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        padding: 0 var(--s21);
+        margin-bottom: var(--s8);
+      }
+      .shelf h2 {
+        font-size: 17px;
+        font-weight: 600;
+        letter-spacing: -0.02em;
+      }
+      .shelf h2 small {
+        font-size: 11px;
+        font-weight: 500;
+        color: var(--ink-2);
+        letter-spacing: 0.02em;
+        margin-left: var(--s5);
+      }
+      .hs {
+        display: flex;
+        gap: var(--s13);
+        overflow-x: auto;
+        scroll-snap-type: x mandatory;
+        scroll-padding: 0 var(--s21);
+        padding: var(--s5) var(--s21) var(--s21);
+        scrollbar-width: none;
+      }
+      .hs > * {
+        scroll-snap-align: start;
+        flex: none;
+      }
+      .tc {
+        width: 258px;
+        background: var(--card);
+        border-radius: 21px;
+        padding: var(--s13);
+        box-shadow:
+          0 1px 0 #fff inset,
+          0 13px 21px -13px rgba(43, 16, 51, 0.3);
+      }
+      .lbl {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: var(--s8);
+        font-size: 11px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--ink-2);
+        font-weight: 500;
+      }
+      .tc h3,
+      .card h3 {
+        font-size: 17px;
+        font-weight: 600;
+        letter-spacing: -0.02em;
+        line-height: 1.2;
+        margin-top: var(--s5);
+      }
+      .say {
+        font-size: 13px;
+        margin-top: var(--s8);
+        line-height: 1.35;
+      }
+      .kind.good {
+        color: var(--green);
+      }
+      .kind.cluster,
+      .kind.drift,
+      .kind.step {
+        color: var(--blood);
+      }
+      .kind.gap {
+        color: var(--amber);
+      }
+
+      /* tab bar */
+      .tabs {
+        position: absolute;
+        left: var(--s13);
+        right: var(--s13);
+        bottom: var(--s21);
+        display: flex;
+        gap: var(--s8);
+        align-items: center;
+        z-index: 20;
+      }
+      .tabs .tb {
+        flex: 1;
+        height: 62px;
+        border-radius: 999px;
+        background: rgba(255, 253, 248, 0.78);
+        border: 1px solid rgba(43, 16, 51, 0.08);
+        backdrop-filter: blur(21px) saturate(1.4);
+        -webkit-backdrop-filter: blur(21px) saturate(1.4);
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        padding: 5px;
+        box-shadow: 0 13px 34px -13px rgba(43, 16, 51, 0.35);
+      }
+      .tabs .tb button {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 2px;
+        font-size: 11px;
+        color: var(--ink-3);
+        border-radius: 999px;
+      }
+      .tabs .tb button.on {
+        background: var(--paper);
+        color: var(--ink);
+      }
+      .tabs .plus {
+        width: 62px;
+        height: 62px;
+        border-radius: 50%;
+        background: var(--lime);
+        color: var(--plum);
+        display: grid;
+        place-items: center;
+        box-shadow: 0 13px 21px -8px rgba(120, 140, 20, 0.5);
+      }
+      .tabs .plus svg {
+        width: 26px;
+        height: 26px;
+        stroke-width: 2.2;
+      }
+      .homebar {
+        position: absolute;
+        left: 50%;
+        bottom: 8px;
+        width: 134px;
+        height: 5px;
+        border-radius: 3px;
+        background: var(--ink);
+        opacity: 0.35;
+        transform: translateX(-50%);
+        z-index: 60;
+      }
+
+      /* ---- the pushed detail: a system or the goal ---- */
+      .det {
+        position: absolute;
+        inset: 0;
+        z-index: 40;
+        background-color: var(--paper);
+        background-image: var(--noise);
+        background-size: 128px 128px;
+        transform: translateX(104%);
+        transition: transform 560ms var(--spring);
+        display: flex;
+        flex-direction: column;
+        box-shadow: -21px 0 34px -21px rgba(43, 16, 51, 0.4);
+      }
+      .det.on {
+        transform: none;
+      }
+      .dtop {
+        flex: none;
+        background:
+          radial-gradient(70% 90% at 85% 0%, #4d1d58 0%, transparent 70%),
+          var(--plum);
+        color: var(--cream);
+        border-radius: 0 0 34px 34px;
+        padding-bottom: var(--s21);
+        box-shadow: 0 13px 21px -13px rgba(43, 16, 51, 0.5);
+      }
+      .dtop .in {
+        padding: var(--s5) var(--s21) 0;
+      }
+      .dback {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--s3);
+        color: var(--mist);
+        font-size: 13px;
+      }
+      .dback svg {
+        width: 17px;
+        height: 17px;
+      }
+      .dtitle {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: var(--s13);
+        margin-top: var(--s8);
+      }
+      .dtitle h2 {
+        font-size: 34px;
+        font-weight: 600;
+        letter-spacing: -0.04em;
+        line-height: 1;
+        display: flex;
+        align-items: center;
+        gap: var(--s8);
+      }
+      .dtitle h2 > svg {
+        width: 26px;
+        height: 26px;
+        color: var(--mist);
+      }
+      .dtitle .wd {
+        font-size: 17px;
+      }
+      .dtitle .wd .arr {
+        width: 26px;
+        height: 26px;
+        animation: arrin 700ms var(--ispring) both 420ms;
+      }
+      .dsub {
+        font-size: 13px;
+        color: var(--mist);
+        margin-top: var(--s8);
+      }
+      .dsub b {
+        color: var(--cream);
+        font-weight: 500;
+      }
+      .dscroll {
+        flex: 1;
+        overflow-y: auto;
+        padding: var(--s21) var(--s21) var(--s55);
+        scrollbar-width: none;
+      }
+      .card {
+        background: var(--card);
+        border-radius: 21px;
+        padding: var(--s13);
+        box-shadow:
+          0 1px 0 #fff inset,
+          0 13px 21px -13px rgba(43, 16, 51, 0.3);
+        margin-bottom: var(--s13);
+        animation: cardin 560ms var(--spring) both;
+        animation-delay: var(--d, 120ms);
+      }
+      @keyframes cardin {
+        from {
+          opacity: 0;
+          transform: translateY(21px);
+        }
+      }
+      .sec {
+        font-size: 11px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--ink-2);
+        font-weight: 600;
+        margin: var(--s8) 0 var(--s8);
+        display: flex;
+        justify-content: space-between;
+      }
+      .sec span:last-child {
+        letter-spacing: 0;
+        text-transform: none;
+        font-weight: 400;
+        color: var(--ink-3);
+      }
+      .mgrid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: var(--s13);
+      }
+      .mgrid .card {
+        margin: 0;
+        padding: var(--s8) var(--s13) var(--s13);
+      }
+      .mv {
+        display: flex;
+        align-items: baseline;
+        gap: var(--s3);
+        margin-top: var(--s3);
+      }
+      .mv b {
+        font-size: 21px;
+        font-weight: 600;
+        letter-spacing: -0.03em;
+        line-height: 1;
+      }
+      .mv small {
+        font-size: 11px;
+        color: var(--ink-2);
+      }
+      .st {
+        font-size: 11px;
+        font-weight: 600;
+        margin-top: var(--s3);
+        color: var(--c);
+      }
+      .mfoot {
+        font-size: 11px;
+        color: var(--ink-3);
+        margin-top: var(--s5);
+        line-height: 1.3;
+      }
+
+      /* charts: hand-drawn SVG */
+      svg.ch {
+        width: 100%;
+        height: auto;
+        display: block;
+        overflow: visible;
+        margin-top: var(--s8);
+      }
+      .ch text {
+        stroke: none;
+        font:
+          500 10px "Space Grotesk",
+          sans-serif;
+      }
+      .ch text:not([fill]) {
+        fill: var(--ink-2);
+        stroke: none;
+      }
+      .ch .ln {
+        stroke-dasharray: 1;
+        stroke-dashoffset: 1;
+        animation: draw 1200ms var(--ease) forwards;
+        animation-delay: var(--d, 260ms);
+      }
+      @keyframes draw {
+        to {
+          stroke-dashoffset: 0;
+        }
+      }
+      .ch .bd {
+        transform-box: fill-box;
+        transform-origin: 50% 50%;
+        animation: bandin 900ms var(--spring) both;
+        animation-delay: var(--d, 120ms);
+      }
+      @keyframes bandin {
+        from {
+          transform: scaleY(0);
+          opacity: 0;
+        }
+      }
+      .ch .dt {
+        transform-box: fill-box;
+        transform-origin: 50% 50%;
+        animation: dotin 420ms var(--ispring) both;
+        animation-delay: var(--d);
+      }
+      @keyframes dotin {
+        from {
+          transform: scale(0);
+        }
+      }
+      .ch .fade {
+        animation: fadein 420ms var(--ease) both;
+        animation-delay: var(--d, 900ms);
+      }
+      @keyframes fadein {
+        from {
+          opacity: 0;
+        }
+      }
+
+      /* goal view */
+      .hero {
+        display: flex;
+        align-items: baseline;
+        gap: var(--s8);
+        margin-top: var(--s8);
+      }
+      .hero b {
+        font-size: 55px;
+        font-weight: 600;
+        letter-spacing: -0.05em;
+        line-height: 1;
+      }
+      .hero small {
+        font-size: 13px;
+        color: var(--mist);
+      }
+      .hpill {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--s5);
+        margin-top: var(--s8);
+        padding: var(--s3) var(--s8);
+        border-radius: 999px;
+        background: rgba(245, 146, 168, 0.16);
+        color: var(--away-l);
+        font-size: 11px;
+        font-weight: 600;
+      }
+      .hpill svg {
+        width: 13px;
+        height: 13px;
+        stroke-width: 2.4;
+        transform: rotate(40deg);
+      }
+      .slopes {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: var(--s8);
+        margin-top: var(--s13);
+      }
+      .slopes > div {
+        background: var(--paper);
+        border-radius: 13px;
+        padding: var(--s8) var(--s13);
+      }
+      .slopes small {
+        display: block;
+        font-size: 11px;
+        color: var(--ink-2);
+      }
+      .slopes b {
+        font-size: 21px;
+        font-weight: 600;
+        letter-spacing: -0.03em;
+      }
+      .slopes b em {
+        font-style: normal;
+        font-size: 11px;
+        font-weight: 400;
+        color: var(--ink-2);
+        letter-spacing: 0;
+      }
+      .slopes svg {
+        width: 34px;
+        height: 13px;
+        float: right;
+        margin-top: var(--s8);
+      }
+      .legend2 {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--s5) var(--s13);
+        margin-top: var(--s8);
+        font-size: 11px;
+        color: var(--ink-2);
+      }
+      .legend2 span {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--s5);
+      }
+      .legend2 i {
+        width: 13px;
+        height: 8px;
+        border-radius: 3px;
+        background: var(--c);
+      }
+      .legend2 i.ln {
+        height: 0;
+        border-top: 2px var(--s, solid) var(--c);
+        border-radius: 0;
+        background: none;
+      }
+      .one {
+        font-size: 15px;
+        line-height: 1.4;
+        margin-top: var(--s13);
+      }
+      .one b {
+        font-weight: 600;
+      }
+      .one .r {
+        color: var(--rose);
+      }
+      .one .p {
+        color: var(--gene);
+      }
+
+      /* explanations */
+      .xr {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: var(--s3) var(--s8);
+        font-size: 13px;
+        margin-top: var(--s8);
+        align-items: baseline;
+      }
+      .xr .g {
+        color: var(--ink-2);
+        font-size: 11px;
+        white-space: nowrap;
+      }
+      .xr .trk {
+        grid-column: 1 / -1;
+        position: relative;
+        height: 5px;
+        border-radius: 3px;
+        background: var(--paper-2);
+        overflow: hidden;
+      }
+      .xr .trk i {
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: var(--w);
+        background: var(--c);
+        border-radius: 3px;
+        animation: grow 900ms var(--spring) both;
+        animation-delay: var(--d);
+      }
+      @keyframes grow {
+        from {
+          width: 0;
+        }
+      }
+      .q {
+        margin-top: var(--s13);
+        padding: var(--s8) var(--s13);
+        border-radius: 13px;
+        background: var(--paper);
+        font-size: 13px;
+      }
+      .q small {
+        display: block;
+        font-size: 11px;
+        color: var(--ink-2);
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        font-weight: 600;
+      }
+      .testb {
+        margin-top: var(--s8);
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: var(--s8) var(--s13);
+        border-radius: 999px;
+        background: var(--plum);
+        color: var(--cream);
+        font-size: 13px;
+        font-weight: 600;
+      }
+      .testb span {
+        color: var(--lime);
+      }
+      .genechip {
+        display: inline-flex;
+        gap: var(--s5);
+        align-items: center;
+        margin-top: var(--s8);
+        padding: var(--s3) var(--s8);
+        border-radius: 999px;
+        background: #e8e0f5;
+        color: var(--gene);
+        font-size: 11px;
+        font-weight: 600;
+      }
+      .plain {
+        font-size: 13px;
+        color: var(--ink-2);
+      }
+
+      /* notes */
+      .notes {
+        margin: var(--s55) auto 0;
+        max-width: 80ch;
+        font-size: 13px;
+        color: var(--ink-2);
+      }
+      .notes h2 {
+        font-size: 17px;
+        font-weight: 600;
+        color: var(--ink);
+        margin-bottom: var(--s8);
+      }
+      .notes table {
+        border-collapse: collapse;
+        width: 100%;
+        margin: var(--s8) 0 var(--s34);
+      }
+      .notes td,
+      .notes th {
+        text-align: left;
+        padding: var(--s8) var(--s8) var(--s8) 0;
+        border-bottom: 1px solid var(--paper-3);
+        vertical-align: top;
+      }
+      .notes th {
+        font-weight: 600;
+        color: var(--ink);
+      }
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::after {
+          animation: none !important;
+          transition: none !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="doc">
+      <header>
+        <div>
+          <p class="eyebrow">iOS variation 50 · round fifteen · heading</p>
+          <h1>Heading</h1>
+          <p class="lede">
+            One clear view. The plum header stops mixing today's habits with a
+            draw from April: tap it and it opens into three levels, each with
+            its own date. Today (the phase 37 rows), Heading (twelve systems as
+            toward, holding, away or unmeasured) and Watch (the open hunches).
+            The number that fades is the draw's age, not the score.
+          </p>
+        </div>
+        <div class="direction">
+          <span>Mood</span
+          ><b
+            >Hybrid's card table: plum header, grained cream, white cards. The
+            header reads like a weather report in three lines.</b
+          >
+          <span>Accent</span
+          ><b
+            >Arrows carry the verdict: light green toward, mist holding, berry
+            away, a dashed ring for unmeasured. Lime only on the level numbers
+            and the test price.</b
+          >
+          <span>Type</span
+          ><b>Space Grotesk, 11, 13, 17, 21, 34, plus 55 for the LDL value.</b>
+          <span>Unusual idea</span
+          ><b
+            >Confidence is a ring that empties over a year from the draw day. At
+            156 days it is a little past half, and the whole view says how sure
+            it is before it says anything else.</b
+          >
+        </div>
+      </header>
+
+      <section class="phones">
+        <div>
+          <p class="cap">
+            <span>01 · Home, header open</span
+            ><span>tap the header · a system · a hunch</span>
+          </p>
+          <div class="phone" id="p1" data-mode="home"></div>
+        </div>
+        <div>
+          <p class="cap">
+            <span>02 · The LDL goal</span><span>two lines to 1 Dec</span>
+          </p>
+          <div class="phone" id="p2" data-mode="goal"></div>
+        </div>
+        <div>
+          <p class="cap">
+            <span>03 · Nutrients, opened</span
+            ><span>your band vs the lab's</span>
+          </p>
+          <div class="phone" id="p3" data-mode="sys:Nutrients"></div>
+        </div>
+      </section>
+
+      <section class="notes">
+        <h2>The three levels</h2>
+        <table>
+          <tr>
+            <th>Level</th>
+            <th>Dated</th>
+            <th>Reads</th>
+            <th>Moves</th>
+          </tr>
+          <tr>
+            <td>Today</td>
+            <td>today, Sat 26 Sep</td>
+            <td>
+              The phase 37 rows, unchanged: sleep, moves, kcal, protein (the
+              same rows as 48 Hybrid). Their mean is the today number, 77.
+            </td>
+            <td>every tick</td>
+          </tr>
+          <tr>
+            <td>Heading</td>
+            <td>draws to 23 Apr</td>
+            <td>
+              The goal first, then twelve systems from DATA.heading as one word
+              and an arrow. Toward tilts up, holding lies flat, away tilts down,
+              unmeasured is a dashed ring and counts against confidence.
+            </td>
+            <td>each draw</td>
+          </tr>
+          <tr>
+            <td>Watch</td>
+            <td>open hunches</td>
+            <td>
+              The four hunches that are not good news, each with the glyph of
+              its leading explanation (● grade A or B, ◐ C, ○ hypothesis), and
+              one engine belief that matters for the goal (APOE e2/e3). The two
+              good-news hunches get one line.
+            </td>
+            <td>each answer or result</td>
+          </tr>
+          <tr>
+            <td>Confidence</td>
+            <td>always</td>
+            <td>
+              "Last draw 156 days ago · 7 of 12 systems · 4 hunches open". The
+              ring is one year: full on the draw day, empty at 365 days. It runs
+              down from full on load over 4.2 s to 1 − 156/365 = 57 %.
+            </td>
+            <td>every day</td>
+          </tr>
+        </table>
+        <h2>The rules this file follows</h2>
+        <table>
+          <tr>
+            <th>Rule</th>
+            <th>What it does</th>
+          </tr>
+          <tr>
+            <td>Numbers from DATA</td>
+            <td>
+              Every reading, band, slope and heading word is the round-fifteen
+              data pack, copied verbatim. Bands missing from DATA are computed
+              here with the spec's bandOf (median, 1.4826 × MAD, floor 5 % of
+              the median, needs 5 prior draws); homocysteine has 4, so it shows
+              "no band yet". The Today rows and the plan's 104 come from 48
+              Hybrid, labelled as such.
+            </td>
+          </tr>
+          <tr>
+            <td>Two lines to 1 Dec</td>
+            <td>
+              Rose dashes: the recent slope (+15.2 a year over the last three
+              draws) extended in a straight line from the 23 Apr draw, 131 +
+              15.2 × 222/365 = 140. It is an extrapolation, and the chart says
+              so. Violet dots: the plan's projection from round fourteen (walks
+              −9, oats −8, psyllium −10 from 131), near 104.
+            </td>
+          </tr>
+          <tr>
+            <td>Your band vs the lab's</td>
+            <td>
+              Every marker chart shows the draws, the own band as a soft violet
+              fill and the lab range as thin lines. A lab bound far off the
+              scale is written at the edge instead of drawn.
+            </td>
+          </tr>
+          <tr>
+            <td>Motion</td>
+            <td>
+              Hybrid's curves. The header opens on the 520 ms ease and the
+              levels arrive on the 560 ms spring, 89 ms apart. The twelve arrows
+              spring from flat to their angle, 55 ms apart. A system slides in
+              from the right on the 560 ms spring; its bands fill, its lines
+              draw in over 1.2 s and its dots pop. Explanation bars grow on the
+              900 ms spring.
+            </td>
+          </tr>
+          <tr>
+            <td>Wording</td>
+            <td>
+              A hunch is "worth a look" and never a diagnosis. Every explanation
+              shows its glyph and grade.
+            </td>
+          </tr>
+        </table>
+      </section>
+    </main>
+
+    <script>
+      const DATA = {
+        person: {
+          name: "Razvan",
+          age: 39,
+          sex: "m",
+          lastDraw: "2026-04-23",
+          daysSinceDraw: 156,
+          systemsMeasured: 7,
+          systemsTotal: 12,
+        },
+        goal: {
+          marker: "ldl_cholesterol",
+          label: "LDL",
+          unit: "mg/dL",
+          lo: 70,
+          hi: 100,
+          by: "2026-12-01",
+        },
+        genes: [
+          { gene: "APOE", call: "e2/e3", note: "lower LDL on average", g: "A" },
+          { gene: "TCF7L2", call: "CT", note: "higher diabetes risk", g: "A" },
+          {
+            gene: "FTO",
+            call: "AA",
+            note: "higher BMI tendency, exercise cuts it by a third",
+            g: "B",
+          },
+          {
+            gene: "MTHFR",
+            call: "C677T het",
+            note: "homocysteine depends on folate",
+            g: "C",
+          },
+        ],
+        // [date, value]; unit; lab range; own band = median and spread of the draws before the last
+        series: {
+          ldl: {
+            label: "LDL",
+            unit: "mg/dL",
+            lab: [0, 130],
+            band: [108.2, 14.6],
+            pts: [
+              ["2015-03-21", 103],
+              ["2021-10-14", 136.1],
+              ["2021-12-04", 110.5],
+              ["2022-10-20", 94],
+              ["2023-03-17", 97.3],
+              ["2024-05-13", 122.9],
+              ["2024-11-20", 106],
+              ["2025-12-09", 117],
+              ["2026-04-23", 131],
+            ],
+            slope5y: 1.8,
+            slopeRecent: 15.2,
+          },
+          apob: {
+            label: "ApoB",
+            unit: "mg/dL",
+            lab: [0, 100],
+            pts: [
+              ["2023-03-17", 82],
+              ["2024-05-13", 97],
+              ["2026-04-23", 99],
+            ],
+          },
+          hdl: {
+            label: "HDL",
+            unit: "mg/dL",
+            lab: [40, 200],
+            band: [51.4, 10.7],
+            pts: [
+              ["2015-03-21", 39.2],
+              ["2021-10-14", 61.8],
+              ["2021-12-04", 50.6],
+              ["2022-10-20", 58.4],
+              ["2023-03-17", 52.1],
+              ["2024-05-13", 57.2],
+              ["2024-11-20", 43],
+              ["2025-12-09", 44],
+              ["2026-04-23", 50],
+            ],
+          },
+          eos: {
+            label: "Eosinophils",
+            unit: "K/µL",
+            lab: [0.0, 0.5],
+            band: [0.11, 0.03],
+            pts: [
+              ["2014-03-26", 0.09],
+              ["2015-03-21", 0.1],
+              ["2016-01-09", 0.13],
+              ["2019-07-13", 0.11],
+              ["2021-10-14", 0.11],
+              ["2023-03-17", 0.05],
+              ["2024-05-13", 0.09],
+              ["2024-11-20", 0.25],
+              ["2025-12-09", 0.17],
+              ["2026-04-23", 0.19],
+            ],
+            step: { since: "2024-11-20", priorMax: 0.13 },
+          },
+          ferritin: {
+            label: "Ferritin",
+            unit: "ng/mL",
+            lab: [30, 400],
+            band: [113.1, 15.5],
+            pts: [
+              ["2021-10-14", 154.5],
+              ["2023-03-17", 110.8],
+              ["2024-05-13", 115.3],
+              ["2025-12-09", 94.4],
+              ["2026-04-23", 79.6],
+            ],
+            slope5y: -14,
+          },
+          b12: {
+            label: "Vitamin B12",
+            unit: "pg/mL",
+            lab: [200, 900],
+            pts: [
+              ["2021-10-14", 183.7],
+              ["2021-12-04", 197],
+              ["2022-10-20", 531],
+              ["2023-03-17", 534.2],
+              ["2024-05-13", 898.8],
+              ["2024-11-20", 522],
+              ["2025-12-09", 603],
+              ["2026-04-23", 472],
+            ],
+          },
+          vitd: {
+            label: "Vitamin D",
+            unit: "ng/mL",
+            lab: [30, 100],
+            pts: [
+              ["2019-07-13", 23.3],
+              ["2021-10-14", 61.8],
+              ["2021-12-04", 54.1],
+              ["2022-10-20", 52],
+              ["2023-03-17", 42.3],
+              ["2024-05-13", 34],
+              ["2024-11-20", 37.7],
+              ["2025-12-09", 31.8],
+              ["2026-04-23", 32.7],
+            ],
+            slope5y: -6,
+          },
+          hcy: {
+            label: "Homocysteine",
+            unit: "µmol/L",
+            lab: [0, 15],
+            pts: [
+              ["2023-03-17", 11.2],
+              ["2024-05-13", 8.1],
+              ["2024-11-20", 8.4],
+              ["2025-12-09", 8.8],
+              ["2026-04-23", 9.6],
+            ],
+          },
+          crp: {
+            label: "CRP",
+            unit: "mg/L",
+            lab: [0, 5],
+            pts: [
+              ["2014-03-26", 1.3],
+              ["2015-03-21", 4],
+              ["2021-10-14", 6.1],
+              ["2021-12-04", 4.6],
+              ["2022-10-20", 3.5],
+              ["2023-03-17", 15.8],
+              ["2024-05-13", 8.1],
+              ["2024-11-20", 0.54],
+              ["2025-12-09", 0.5],
+              ["2026-04-23", 0.64],
+            ],
+          },
+          hba1c: {
+            label: "HbA1c",
+            unit: "%",
+            lab: [4, 5.7],
+            band: [5.2, 0.31],
+            pts: [
+              ["2016-06-24", 5],
+              ["2021-10-14", 5.72],
+              ["2021-12-04", 5.53],
+              ["2022-10-20", 5.43],
+              ["2023-03-17", 5.2],
+              ["2024-05-13", 5.07],
+              ["2024-11-20", 4.8],
+              ["2025-12-09", 5.2],
+              ["2026-04-23", 5],
+            ],
+          },
+          insulin: {
+            label: "Fasting insulin",
+            unit: "µIU/mL",
+            lab: [2, 25],
+            pts: [
+              ["2021-12-04", 8.1],
+              ["2022-10-20", 4.8],
+              ["2023-03-17", 2.7],
+              ["2024-05-13", 3.2],
+              ["2024-11-20", 4.7],
+              ["2025-12-09", 4.2],
+              ["2026-04-23", 5.7],
+            ],
+          },
+        },
+        // the hunches the engine would raise (spec B1 kinds); test prices are placeholders
+        hunches: [
+          {
+            id: "eos",
+            kind: "step",
+            title: "Eosinophils moved up a level",
+            system: "Immune",
+            series: "eos",
+            say: "Ten years between 0.05 and 0.13. The last three draws: 0.25, 0.17, 0.19. Still inside the lab range, outside yours.",
+            explanations: [
+              { t: "A new allergy or a change of season", p: 0.45, g: "B" },
+              {
+                t: "A medicine or supplement started around late 2024",
+                p: 0.25,
+                g: "B",
+              },
+              { t: "Gut parasite after travel", p: 0.1, g: "B" },
+              { t: "Noise that will fade", p: 0.2, g: "C" },
+            ],
+            question:
+              "Anything new since autumn 2024: a pet, a move, a medicine, sneezing in spring?",
+            test: { name: "Total IgE", price: 45, currency: "RON" },
+          },
+          {
+            id: "iron",
+            kind: "cluster",
+            title: "Stores running down together",
+            system: "Nutrients",
+            series: ["ferritin", "b12", "vitd", "hcy"],
+            say: "Ferritin −14 a year since 2021, B12 off its 2024 peak, vitamin D halved, homocysteine back up. Four markers, one question: intake or absorption?",
+            explanations: [
+              { t: "Less red meat or supplements stopped", p: 0.5, g: "B" },
+              {
+                t: "Absorption: coeliac or atrophic gastritis",
+                p: 0.08,
+                g: "A",
+              },
+              { t: "Blood loss or donation", p: 0.12, g: "B" },
+              { t: "Folate low with MTHFR het", p: 0.3, g: "C" },
+            ],
+            question:
+              "Did you change how you eat or stop a supplement in 2024?",
+            test: {
+              name: "Folate + transferrin saturation",
+              price: 70,
+              currency: "RON",
+            },
+          },
+          {
+            id: "ldl",
+            kind: "drift",
+            title: "LDL is walking away from your goal",
+            system: "Heart",
+            series: "ldl",
+            goal: true,
+            say: "106, 117, 131 in 17 months: +15 a year. Goal is 100 or under by 1 Dec. ApoB followed it to 99.",
+            explanations: [
+              { t: "More saturated fat in the last year", p: 0.55, g: "A" },
+              { t: "Thyroid running slower", p: 0.05, g: "A" },
+              { t: "Weight up", p: 0.25, g: "A" },
+              { t: "Season and the lab's own swing", p: 0.15, g: "C" },
+            ],
+            question:
+              "Did your weight or how much fatty meat and cheese you eat change since late 2024?",
+            test: {
+              name: "Lipid panel + ApoB in 8 weeks",
+              price: 90,
+              currency: "RON",
+            },
+          },
+          {
+            id: "gap",
+            kind: "gap",
+            title: "Folate never measured",
+            system: "Nutrients",
+            series: "hcy",
+            say: "MTHFR C677T het and homocysteine rising three draws in a row. Folate is the one number that says which way.",
+            explanations: [],
+            question: null,
+            test: { name: "Serum folate", price: 35, currency: "RON" },
+          },
+          {
+            id: "crp",
+            kind: "good_news",
+            title: "Inflammation settled",
+            system: "Immune",
+            series: "crp",
+            say: "CRP was 15.8 in March 2023. Three draws since then under 1.",
+            explanations: [],
+            question: null,
+            test: null,
+          },
+          {
+            id: "genes",
+            kind: "good_news",
+            title: "Your genes are outvoted",
+            system: "Metabolic",
+            series: "hba1c",
+            say: "TCF7L2 and FTO both lean toward diabetes. HbA1c went from 5.7 to 5.0 and fasting insulin stays low.",
+            explanations: [],
+            question: null,
+            test: null,
+          },
+        ],
+        // heading per system: toward | holding | away | unmeasured
+        heading: [
+          { sys: "Heart", word: "away", why: "LDL +15/yr, ApoB 99" },
+          { sys: "Metabolic", word: "toward", why: "HbA1c 5.0, insulin low" },
+          { sys: "Nutrients", word: "away", why: "ferritin, B12, D down" },
+          {
+            sys: "Immune",
+            word: "holding",
+            why: "CRP < 1, eosinophils up a step",
+          },
+          { sys: "Liver", word: "holding", why: "ALT 10, GGT 15" },
+          { sys: "Kidney", word: "holding", why: "creatinine 0.9" },
+          { sys: "Thyroid", word: "holding", why: "TSH 1.1, fT4 1.23" },
+          {
+            sys: "Hormones",
+            word: "unmeasured",
+            why: "testosterone once, 2024",
+          },
+          { sys: "Bone", word: "unmeasured", why: "" },
+          { sys: "Sleep", word: "unmeasured", why: "no phone sync yet" },
+          { sys: "Fitness", word: "unmeasured", why: "no phone sync yet" },
+          { sys: "Mind", word: "unmeasured", why: "" },
+        ],
+      };
+
+      // ---- the Today level: the phase 37 rows, copied from 48 Hybrid (not part of the blood pack) ----
+      const TODAY_ROWS = [
+        { n: "Sleep", s: "7h 30 of 7h 30", p: 100 },
+        { n: "Moves", s: "2 of 5 ticked", p: 40 },
+        { n: "Calories", s: "1 497 of 1 900", p: 90 },
+        { n: "Protein", s: "93 of 120 g", p: 78 },
+      ];
+      const lifeNow = Math.round(
+        TODAY_ROWS.reduce((a, r) => a + r.p, 0) / TODAY_ROWS.length,
+      );
+      console.assert(lifeNow === 77, "today rows drifted", lifeNow);
+      // the plan's projection, from round fourteen (48 Hybrid levers): 131 − (9 + 8 + 10)
+      const PLAN = { from: 131, lev: { walks: 9, oats: 8, psyllium: 10 } };
+      PLAN.land =
+        PLAN.from - Object.values(PLAN.lev).reduce((a, b) => a + b, 0);
+      console.assert(PLAN.land === 104, "plan landing drifted", PLAN.land);
+
+      const TODAY = "2026-09-26";
+      const DAY = 864e5,
+        YEAR = 365.25 * DAY;
+      const T = (s) => Date.parse(s);
+      const MON = [
+        "Jan",
+        "Feb",
+        "Mar",
+        "Apr",
+        "May",
+        "Jun",
+        "Jul",
+        "Aug",
+        "Sep",
+        "Oct",
+        "Nov",
+        "Dec",
+      ];
+      const dshort = (s) => {
+        const d = new Date(T(s));
+        return `${d.getUTCDate()} ${MON[d.getUTCMonth()]}`;
+      };
+      const mY = (s) => {
+        const d = new Date(T(s));
+        return `${MON[d.getUTCMonth()]} ${d.getUTCFullYear()}`;
+      };
+      const rb = (v, m) => (m >= 100 ? Math.round(v) : m >= 10 ? Math.round(v * 10) / 10 : Math.round(v * 100) / 100);
+      const sgn = (v) => (v > 0 ? "+" : v < 0 ? "−" : "") + Math.abs(v);
+
+      // derived facts, all from DATA
+      const P = DATA.person,
+        G = DATA.goal,
+        LDL = DATA.series.ldl;
+      const lastLDL = LDL.pts.at(-1);
+      console.assert(
+        Math.round((T(TODAY) - T(P.lastDraw)) / DAY) === P.daysSinceDraw,
+        "draw age drifted",
+      );
+      const measured = DATA.heading.filter(
+        (h) => h.word !== "unmeasured",
+      ).length;
+      console.assert(
+        measured === P.systemsMeasured,
+        "systems measured drifted",
+      );
+      const OPEN = DATA.hunches.filter((h) => h.kind !== "good_news");
+      const GOOD = DATA.hunches.filter((h) => h.kind === "good_news");
+      const over = Math.round(lastLDL[1] - G.hi); // 31
+      const yrsToGoal = (T(G.by) - T(lastLDL[0])) / YEAR;
+      const LAND = lastLDL[1] + LDL.slopeRecent * yrsToGoal; // 140.2, straight line from the last draw
+      console.assert(Math.round(LAND) === 140, "extrapolation drifted", LAND);
+      const COUNT = { toward: 0, holding: 0, away: 0, unmeasured: 0 };
+      DATA.heading.forEach((h) => COUNT[h.word]++);
+      const GRADE = (g) =>
+        g === "A" || g === "B" ? "●" : g === "C" ? "◐" : "○";
+      const lead = (h) =>
+        h.explanations.length
+          ? [...h.explanations].sort((a, b) => b.p - a.p)[0].g
+          : h.id === "gap"
+            ? DATA.genes.find((x) => x.gene === "MTHFR").g
+            : "E";
+      const KIND = {
+        step: "STEP",
+        cluster: "CLUSTER",
+        drift: "DRIFT",
+        gap: "GAP",
+        good_news: "GOOD NEWS",
+      };
+
+      // the personal band: DATA's when given, else the spec's bandOf on the draws before the last
+      const bandOf = (key) => {
+        const s = DATA.series[key];
+        if (s.band) return { m: s.band[0], sd: s.band[1], src: "data" };
+        const prior = s.pts.slice(0, -1).map((p) => p[1]);
+        if (prior.length < 5) return { none: true, n: prior.length };
+        const med = (a) => {
+          const b = [...a].sort((x, y) => x - y);
+          const k = b.length >> 1;
+          return b.length % 2 ? b[k] : (b[k - 1] + b[k]) / 2;
+        };
+        const m = med(prior);
+        const mad = med(prior.map((v) => Math.abs(v - m)));
+        return { m, sd: Math.max(1.4826 * mad, 0.05 * m), src: "computed" };
+      };
+
+      // ---- icons ----
+      const I = {
+        chev: '<svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg>',
+        back: '<svg viewBox="0 0 24 24"><path d="m15 6-6 6 6 6"/></svg>',
+        plus: '<svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>',
+        home: '<svg viewBox="0 0 24 24"><path d="M3 11 12 4l9 7v9H3z"/><path d="M10 20v-6h4v6"/></svg>',
+        body: '<svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="2.5"/><path d="M9 10h6l1 5h-2v6h-4v-6H8z"/></svg>',
+        drop: '<svg viewBox="0 0 24 24"><path d="M12 3s6 7 6 11a6 6 0 0 1-12 0c0-4 6-11 6-11z"/></svg>',
+        arrow:
+          '<svg class="arr" viewBox="0 0 24 24"><path d="M4 12h15M13 6l6 6-6 6"/></svg>',
+        ring: '<svg class="arr" viewBox="0 0 24 24"><circle cx="12" cy="12" r="6.5" stroke-dasharray="2 3"/></svg>',
+        dna: '<svg viewBox="0 0 24 24"><path d="M7 3c0 6 10 6 10 12M17 3c0 6-10 6-10 12M7 21c0-3 2-5 5-6M17 21c0-3-2-5-5-6M8 7h8M8 17h8"/></svg>',
+      };
+      const SG = {
+        Heart:
+          '<path d="M12 20s-7-4.5-7-10a4 4 0 0 1 7-2.5A4 4 0 0 1 19 10c0 5.5-7 10-7 10z"/>',
+        Metabolic:
+          '<path d="M12 21a6 6 0 0 0 6-6c0-4-3-6-4-10-2 2-3 4-3 6-1-1-2-2-2-4-2 2-3 5-3 8a6 6 0 0 0 6 6z"/>',
+        Nutrients:
+          '<path d="M5 19c0-9 6-14 15-14 0 9-5 15-14 15"/><path d="M5 19 14 10"/>',
+        Immune: '<path d="M12 3 5 6v6c0 4 3 7 7 9 4-2 7-5 7-9V6z"/>',
+        Liver: '<path d="M4 9c0-3 3-4 8-4s8 1 8 3c0 4-5 9-9 10-4-1-7-5-7-9z"/>',
+        Kidney:
+          '<path d="M10 4C6 4 4 8 4 12s2 8 6 8c3 0 3-3 2-5s1-3 1-5-0-6-3-6z"/><path d="M14 12h6"/>',
+        Thyroid:
+          '<path d="M12 7v10M12 12c-2-5-8-5-8-1s5 6 8 3c3 3 8 1 8-3s-6-4-8 1z"/>',
+        Hormones:
+          '<circle cx="10" cy="14" r="5"/><path d="M14 10l6-6M15 4h5v5"/>',
+        Bone: '<path d="M8.5 8.5l7 7"/><circle cx="6.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="17.5" r="2.5"/>',
+        Sleep: '<path d="M20 15A8 8 0 0 1 9 4a8 8 0 1 0 11 11z"/>',
+        Fitness: '<path d="M6 7v10M3 9v6M18 7v10M21 9v6M6 12h12"/>',
+        Mind: '<path d="M12 3a6 6 0 0 0-6 6c0 3 2 4 2 7h8c0-3 2-4 2-7a6 6 0 0 0-6-6zM10 20h4"/>',
+      };
+      const sg = (s) => `<svg viewBox="0 0 24 24">${SG[s]}</svg>`;
+      // arrow per word: angle, colour on plum, colour on paper
+      const W8 = {
+        toward: { a: "-40deg", l: "var(--toward-l)", d: "var(--green)" },
+        holding: { a: "0deg", l: "var(--mist)", d: "var(--ink-2)" },
+        away: { a: "40deg", l: "var(--away-l)", d: "var(--rose)" },
+        unmeasured: { a: "0deg", l: "rgba(205,184,210,.6)", d: "var(--ink-3)" },
+      };
+      const arrowFor = (w, i = 0) =>
+        (w === "unmeasured" ? I.ring : I.arrow).replace(
+          'class="arr"',
+          `class="arr" style="--a:${W8[w].a};--i:${i}"`,
+        );
+      const SYS_SERIES = {
+        Heart: ["ldl", "apob", "hdl"],
+        Metabolic: ["hba1c", "insulin"],
+        Nutrients: ["ferritin", "b12", "vitd", "hcy"],
+        Immune: ["eos", "crp"],
+      };
+      const SYS_GENES = {
+        Heart: ["APOE"],
+        Metabolic: ["TCF7L2", "FTO"],
+        Nutrients: ["MTHFR"],
+      };
+
+      // ---- paper grain, from 48 ----
+      function mulberry32(a) {
+        return function () {
+          a |= 0;
+          a = (a + 0x6d2b79f5) | 0;
+          let t = Math.imul(a ^ (a >>> 15), 1 | a);
+          t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+          return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+        };
+      }
+      (() => {
+        const c = document.createElement("canvas");
+        c.width = c.height = 128;
+        const x = c.getContext("2d");
+        const d = x.createImageData(128, 128);
+        const r = mulberry32(7);
+        for (let i = 0; i < d.data.length; i += 4) {
+          const v = 120 + r() * 135;
+          d.data[i] = d.data[i + 1] = d.data[i + 2] = v;
+          d.data[i + 3] = r() < 0.55 ? 34 : 0;
+        }
+        x.putImageData(d, 0, 0);
+        document.documentElement.style.setProperty(
+          "--noise",
+          `url(${c.toDataURL()})`,
+        );
+      })();
+
+      // ---- charts ----
+      let uid = 0;
+      const pathOf = (pts) =>
+        pts
+          .map(([x, y], i) => `${i ? "L" : "M"}${x.toFixed(1)},${y.toFixed(1)}`)
+          .join(" ");
+      // a dashed line that draws in: the dashes sit under a mask whose stroke draws
+      const dashedIn = (d, stroke, dash, w, delay) => {
+        const id = "mk" + ++uid;
+        return `<mask id="${id}" maskUnits="userSpaceOnUse" x="-50" y="-50" width="600" height="400"><path class="ln" pathLength="1" d="${d}" stroke="#fff" stroke-width="10" fill="none" style="--d:${delay}ms"/></mask>
+                <path d="${d}" stroke="${stroke}" stroke-width="${w}" stroke-dasharray="${dash}" mask="url(#${id})"/>`;
+      };
+
+      // one marker: draws, own band (soft fill), lab range (thin lines)
+      function markerChart(key, W, H) {
+        const s = DATA.series[key];
+        const b = bandOf(key);
+        const pts = s.pts.map(([d, v]) => [T(d), v]);
+        const vals = pts.map((p) => p[1]);
+        if (!b.none) vals.push(b.m - b.sd, b.m + b.sd);
+        let lo = Math.min(...vals),
+          hi = Math.max(...vals);
+        const reach = Math.max(hi - lo, 0.35 * hi);
+        const labs = s.lab.map((v, i) => ({
+          v,
+          i,
+          on: v > 0 && v >= lo - reach && v <= hi + reach,
+        }));
+        labs.forEach((l) => {
+          if (l.on) {
+            lo = Math.min(lo, l.v);
+            hi = Math.max(hi, l.v);
+          }
+        });
+        const pad = (hi - lo) * 0.12;
+        lo -= pad;
+        hi += pad;
+        const t0 = pts[0][0],
+          t1 = pts.at(-1)[0];
+        const pl = 5,
+          pr = 8,
+          pt = 13,
+          pb = 13;
+        const X = (t) => pl + ((t - t0) / (t1 - t0)) * (W - pl - pr);
+        const Y = (v) => pt + ((hi - v) / (hi - lo)) * (H - pt - pb);
+        let h = `<svg class="ch" viewBox="0 0 ${W} ${H}">`;
+        if (!b.none) {
+          const y1 = Y(b.m + b.sd),
+            y2 = Y(b.m - b.sd);
+          h += `<rect class="bd" x="0" y="${y1.toFixed(1)}" width="${W}" height="${(y2 - y1).toFixed(1)}" rx="3" fill="var(--gene)" fill-opacity=".14" stroke="none"/>`;
+        }
+        labs.forEach((l) => {
+          if (l.on)
+            h += `<line class="fade" style="--d:200ms" x1="0" x2="${W}" y1="${Y(l.v).toFixed(1)}" y2="${Y(l.v).toFixed(1)}" stroke="var(--ink-3)" stroke-width="1"/>
+                  <text class="fade" style="--d:200ms" x="${W}" y="${(Y(l.v) + (l.i ? -3 : 10)).toFixed(1)}" text-anchor="end" fill="var(--ink-3)">lab ${l.v}</text>`;
+          else if (l.v > 0)
+            h += `<text class="fade" style="--d:200ms" x="${W}" y="${l.i ? 8 : H - 1}" text-anchor="end" fill="var(--ink-3)">lab ${l.i ? "to" : "from"} ${l.v} ${l.i ? "↑" : "↓"}</text>`;
+        });
+        const xy = pts.map(([t, v]) => [X(t), Y(v)]);
+        h += `<path class="ln" pathLength="1" d="${pathOf(xy)}" stroke="var(--ink-2)" stroke-width="1.5" style="--d:300ms"/>`;
+        xy.forEach(([x, y], i) => {
+          const last = i === xy.length - 1;
+          h += `<circle class="dt" style="--d:${300 + i * 90}ms" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${last ? 3.5 : 2.5}" fill="${last ? "var(--blood)" : "var(--ink)"}" stroke="${last ? "var(--card)" : "none"}" stroke-width="1.5"/>`;
+        });
+        h += `<text class="fade" x="${pl}" y="${H - 1}">${new Date(t0).getUTCFullYear()}</text>`;
+        h += `</svg>`;
+        return h;
+      }
+
+      // the goal: goal band, own band, lab line, draws, the recent slope extended, the plan's projection
+      function goalChart(W, H) {
+        const t0 = T("2021-07-01"),
+          t1 = T("2026-12-20");
+        const lo = 62,
+          hi = 148;
+        const pl = 5,
+          pr = 34,
+          pt = 21,
+          pb = 21;
+        const tl = T(lastLDL[0]),
+          tb = T(G.by),
+          tn = T(TODAY);
+        // two time scales: the draws on the left, the months since the last draw stretched on the right
+        const S = pl + 0.58 * (W - pl - pr);
+        const X = (t) =>
+          t <= tl ? pl + ((t - t0) / (tl - t0)) * (S - pl) : S + ((t - tl) / (t1 - tl)) * (W - pr - S);
+        const Y = (v) => pt + ((hi - v) / (hi - lo)) * (H - pt - pb);
+        const b = bandOf("ldl");
+        const shown = LDL.pts
+          .filter(([d]) => T(d) >= t0)
+          .map(([d, v]) => [X(T(d)), Y(v), v]);
+        let h = `<svg class="ch" viewBox="0 0 ${W} ${H}">`;
+        // the stretched future zone
+        h += `<rect x="${S}" y="${pt - 8}" width="${W - pr - S}" height="${H - pb - pt + 8}" fill="var(--paper)" stroke="none"/>
+              <text x="${(S + W - pr) / 2}" y="${H - 5}" text-anchor="middle">${dshort(lastLDL[0])} on, stretched</text>`;
+        // year ticks
+        for (let y = 2022; y <= 2025; y++) {
+          const x = X(T(`${y}-01-01`));
+          h += `<line x1="${x}" x2="${x}" y1="${pt}" y2="${H - pb}" stroke="var(--line)" stroke-width="1"/><text x="${x}" y="${H - 5}" text-anchor="middle">${y}</text>`;
+        }
+        // goal band
+        h += `<rect class="bd" x="0" y="${Y(G.hi)}" width="${X(tb)}" height="${Y(G.lo) - Y(G.hi)}" rx="3" fill="var(--green)" fill-opacity=".16" stroke="none"/>
+              <text class="fade" x="${pl + 3}" y="${Y(G.lo) - 5}" style="fill:var(--green)">goal ${G.lo} to ${G.hi}</text>`;
+        // own band
+        h += `<rect class="bd" style="--d:260ms" x="0" y="${Y(b.m + b.sd)}" width="${W - pr}" height="${Y(b.m - b.sd) - Y(b.m + b.sd)}" rx="3" fill="var(--gene)" fill-opacity=".14" stroke="none"/>
+              <text class="fade" x="${S - 3}" y="${Y(b.m - b.sd) - 5}" text-anchor="end" style="fill:var(--gene)">your band ${Math.round(b.m - b.sd)} to ${Math.round(b.m + b.sd)}</text>`;
+        // lab line
+        h += `<line class="fade" style="--d:200ms" x1="0" x2="${W - pr}" y1="${Y(LDL.lab[1])}" y2="${Y(LDL.lab[1])}" stroke="var(--ink-3)" stroke-width="1"/>
+              <text class="fade" style="--d:200ms" x="${W - pr + 3}" y="${Y(LDL.lab[1]) + 3}" fill="var(--ink-3)">lab ${LDL.lab[1]}</text>`;
+        // today and 1 Dec
+        h += `<line x1="${X(tn)}" x2="${X(tn)}" y1="${pt - 8}" y2="${H - pb}" stroke="var(--paper-3)" stroke-width="1.5"/>
+              <text x="${X(tn) - 3}" y="${pt - 11}" text-anchor="end">today</text>
+              <line x1="${X(tb)}" x2="${X(tb)}" y1="${pt - 8}" y2="${H - pb}" stroke="var(--green)" stroke-width="1.5" stroke-dasharray="2 3"/>
+              <text x="${X(tb) + 3}" y="${pt - 11}" style="fill:var(--green)">${dshort(G.by)}</text>`;
+        // draws
+        h += `<path class="ln" pathLength="1" d="${pathOf(shown)}" stroke="var(--ink)" stroke-width="2" style="--d:300ms"/>`;
+        shown.forEach(([x, y, v], i) => {
+          const last = i === shown.length - 1;
+          h += `<circle class="dt" style="--d:${300 + i * 110}ms" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${last ? 4.5 : 3}" fill="${last ? "var(--blood)" : "var(--ink)"}" stroke="var(--card)" stroke-width="1.5"/>`;
+          if (i >= shown.length - 3)
+            h += `<text class="fade" x="${x.toFixed(1)}" y="${(y - 9).toFixed(1)}" text-anchor="middle" style="fill:var(--ink);--d:1100ms">${v}</text>`;
+        });
+        // the recent slope, extended in a straight line from the last draw
+        const e0 = [X(tl), Y(lastLDL[1])],
+          e1 = [X(tb), Y(LAND)];
+        h += dashedIn(pathOf([e0, e1]), "var(--rose)", "5 4", 2.5, 1300);
+        h += `<circle class="dt" style="--d:2200ms" cx="${e1[0]}" cy="${e1[1]}" r="5" fill="var(--card)" stroke="var(--rose)" stroke-width="2.5"/>
+              <text class="fade" style="--d:2200ms;fill:var(--rose)" x="${e1[0] + 8}" y="${e1[1] + 4}">≈${Math.round(LAND)}</text>`;
+        // the plan's projection, from the last known value today to 1 Dec
+        const p0 = [X(tn), Y(PLAN.from)],
+          p1 = [X(tb), Y(PLAN.land)];
+        h += dashedIn(pathOf([e0, p0]), "var(--ink-3)", "1 4", 2, 1500);
+        h += dashedIn(
+          `M${p0[0]},${p0[1]} Q${(p0[0] + p1[0]) / 2 + 8},${p1[1]} ${p1[0]},${p1[1]}`,
+          "var(--gene)",
+          "0.1 5",
+          3,
+          1700,
+        );
+        h += `<circle class="dt" style="--d:2400ms" cx="${p1[0]}" cy="${p1[1]}" r="5" fill="var(--card)" stroke="var(--gene)" stroke-width="2.5"/>
+              <text class="fade" style="--d:2400ms;fill:var(--gene)" x="${p1[0] + 8}" y="${p1[1] + 4}">${PLAN.land}</text>`;
+        h += `</svg>`;
+        return h;
+      }
+
+      // ---- pieces ----
+      const explanations = (h, base = 400) =>
+        [...h.explanations]
+          .sort((a, b) => b.p - a.p)
+          .map(
+            (
+              x,
+              i,
+            ) => `<div class="xr"><span>${x.t}</span><span class="g">${GRADE(x.g)} ${x.g} · ${Math.round(x.p * 100)}%</span>
+                <div class="trk"><i style="--w:${x.p * 100}%;--c:${i ? "var(--gene-l)" : "var(--blood)"};--d:${base + i * 89}ms"></i></div></div>`,
+          )
+          .join("");
+      const testBtn = (t) =>
+        t
+          ? `<button class="testb">${t.name}<span>${t.price} ${t.currency}</span></button>`
+          : "";
+      const hunchCard = (h, d = 200) => `
+        <div class="card" style="--d:${d}ms">
+          <div class="lbl"><span class="kind ${h.kind === "good_news" ? "good" : h.kind}">${KIND[h.kind]}</span><span>${GRADE(lead(h))} ${lead(h)} · worth a look</span></div>
+          <h3>${h.title}</h3>
+          <p class="say">${h.say}</p>
+          ${h.explanations.length ? `<p class="sec" style="margin-top:13px"><span>What could explain it</span><span>written by the engine</span></p>${explanations(h, d + 300)}` : ""}
+          ${h.question ? `<div class="q"><small>One question splits them</small>${h.question}</div>` : ""}
+          ${testBtn(h.test)}
+        </div>`;
+      const statusOf = (key) => {
+        const s = DATA.series[key];
+        const b = bandOf(key);
+        const v = s.pts.at(-1)[1];
+        if (b.none)
+          return {
+            t: `no band yet · ${b.n} draws, needs 5`,
+            c: "var(--ink-3)",
+          };
+        const z = (v - b.m) / b.sd;
+        return z <= -2
+          ? { t: "below your band", c: "var(--rose)" }
+          : z >= 2
+            ? { t: "above your band", c: "var(--rose)" }
+            : { t: "inside your band", c: "var(--green)" };
+      };
+      const markerCard = (key, i) => {
+        const s = DATA.series[key];
+        const b = bandOf(key);
+        const v = s.pts.at(-1)[1];
+        const st = statusOf(key);
+        const band = b.none
+          ? ""
+          : ` · you ${rb(b.m - b.sd, b.m)} to ${rb(b.m + b.sd, b.m)}${b.src === "computed" ? "*" : ""}`;
+        const slope = s.slope5y ? ` · ${sgn(s.slope5y)}/yr` : "";
+        return `<div class="card" style="--d:${120 + i * 55}ms">
+            <div class="lbl"><span>${s.label}</span></div>
+            <div class="mv"><b>${v}</b><small>${s.unit}</small></div>
+            <p class="st" style="--c:${st.c}">${st.t}</p>
+            ${markerChart(key, 140, 76)}
+            <p class="mfoot">lab ${s.lab[0]} to ${s.lab[1]}${band}${slope}</p>
+          </div>`;
+      };
+
+      // ---- the home header ----
+      const ageR = 23,
+        ageC = 2 * Math.PI * ageR;
+      const levels = () => {
+        const today = `<section class="lv" style="--d:60ms">
+            <header><b><span>${lifeNow}</span>Today</b><small>Sat 26 Sep · phone and plates</small></header>
+            <div class="trows">${TODAY_ROWS.map((r) => `<div><span>${r.n}<b>${r.s}</b></span><div class="bar"><i style="--c:var(--life-l);--w:${r.p}%"></i></div></div>`).join("")}</div>
+          </section>`;
+        const goalH = DATA.heading.find((h) => h.sys === "Heart");
+        const heading = `<section class="lv" style="--d:149ms">
+            <header><b><span>${COUNT.away}</span>Heading · away</b><small>from draws to ${dshort(P.lastDraw)}</small></header>
+            <button class="goal" data-open="goal">
+              <span><b>${G.label} goal</b><small>${G.hi} or under by ${dshort(G.by)}</small></span>
+              <span class="wd" style="--c:${W8.away.l}">${arrowFor("away", 0)}away</span>
+              <em>${sgn(Math.round(LDL.slopeRecent))}/yr, ${over} over, retest due</em>
+            </button>
+            <div class="sys">${DATA.heading
+              .map(
+                (
+                  h,
+                  i,
+                ) => `<button class="${h.word === "unmeasured" ? "un" : ""}" data-open="sys:${h.sys}" style="--c:${W8[h.word].l}" aria-label="${h.sys} ${h.word}">
+                  <span class="nm">${sg(h.sys)}${h.sys}</span>${arrowFor(h.word, i + 1)}<small>${h.word}</small></button>`,
+              )
+              .join("")}</div>
+          </section>`;
+        const apoe = DATA.genes.find((g) => g.gene === "APOE");
+        const watch = `<section class="lv" style="--d:238ms">
+            <header><b><span>${OPEN.length}</span>Watch</b><small>open hunches · 1 belief</small></header>
+            ${OPEN.map(
+              (
+                h,
+              ) => `<button class="wr" data-open="${h.goal ? "goal" : "sys:" + h.system}">
+                <span class="ev"><i>${GRADE(lead(h))}</i> ${lead(h)}</span>
+                <span>${h.title}</span>
+                <span class="kind">${KIND[h.kind]}</span></button>`,
+            ).join("")}
+            <button class="wr" data-open="sys:Heart">
+              <span class="ev"><i>${GRADE(apoe.g)}</i> ${apoe.g}</span>
+              <span>${apoe.gene} ${apoe.call}: ${apoe.note}</span>
+              <span class="kind belief">BELIEF</span></button>
+            <p class="gn">Good news: ${GOOD.map((h) => `<b>${h.title.toLowerCase()}</b>`).join(", ")}.</p>
+          </section>`;
+        return today + heading + watch;
+      };
+      const header = () => `
+        <div class="hd" data-hd>
+          <div class="hbg"><video class="amb" src="vid/45-plum.mp4" autoplay muted playsinline aria-hidden="true"></video></div>
+          <div class="status"><span>9:41</span><i></i><span>●●● ◔ ▮</span></div>
+          <div class="in">
+            <div class="row-a">
+              <span class="side"><small>Sat 26 Sep · ${P.name}</small><b>Mostly holding, ${COUNT.away} away</b>
+                <em>${COUNT.toward} toward · ${COUNT.holding} holding · ${COUNT.unmeasured} unmeasured</em></span>
+              <span class="age" title="The draw's age">
+                <svg viewBox="0 0 55 55"><circle class="tr" cx="27.5" cy="27.5" r="${ageR}"/><circle class="fl" data-age cx="27.5" cy="27.5" r="${ageR}" stroke-dasharray="${ageC}" stroke-dashoffset="0"/></svg>
+                <span class="c"><b>${P.daysSinceDraw}</b><small>days</small></span>
+              </span>
+            </div>
+            <div class="layers">
+              <div><span>Today <b>${lifeNow}</b></span><div class="bar"><i style="--c:var(--life-l);--w:${lifeNow}%"></i></div></div>
+              <div><span>Heading <b>${COUNT.away} away</b></span><div class="seg">${DATA.heading.map((h) => `<i class="${h.word === "unmeasured" ? "un" : ""}" style="--c:${W8[h.word].l}"></i>`).join("")}</div></div>
+              <div><span>Watch <b>${OPEN.length} open</b></span><div class="seg">${DATA.hunches.map((h) => `<i style="--c:${h.kind === "good_news" ? "var(--toward-l)" : "var(--amber-soft)"}"></i>`).join("")}</div></div>
+            </div>
+            <div class="hmore" data-hmore><div>${levels()}</div></div>
+            <div class="why"><b>Last draw ${P.daysSinceDraw} days ago · ${P.systemsMeasured} of ${P.systemsTotal} systems · ${OPEN.length} hunches open</b><span class="chev">${I.chev}</span></div>
+          </div>
+        </div>`;
+
+      // ---- the pushed views ----
+      const detGoal = () => {
+        const h = DATA.hunches.find((x) => x.id === "ldl");
+        const b = bandOf("ldl");
+        const first = LDL.pts[0];
+        return `
+          <div class="dtop"><div class="status"><span>9:41</span><i></i><span>●●● ◔ ▮</span></div><div class="in">
+            <button class="dback" data-back>${I.back}Heading</button>
+            <div class="dtitle"><h2>${G.label} goal</h2><span class="wd" style="--c:${W8.away.l}">${arrowFor("away")}away</span></div>
+            <div class="hero"><b>${lastLDL[1]}</b><small>${G.unit} on ${dshort(lastLDL[0])} · goal ${G.hi} or under by ${dshort(G.by)}</small></div>
+            <span class="hpill">${I.arrow.replace('class="arr"', "")}${sgn(Math.round(LDL.slopeRecent))}/yr · ${over} over · retest due</span>
+          </div></div>
+          <div class="dscroll">
+            <div class="card" style="--d:80ms">
+              <div class="lbl"><span>Draws since 2021 · to ${dshort(G.by)}</span><span>${G.unit}</span></div>
+              ${goalChart(306, 196)}
+              <div class="legend2">
+                <span><i style="--c:rgba(35,153,93,.3)"></i>goal</span>
+                <span><i style="--c:rgba(108,74,166,.25)"></i>your band</span>
+                <span><i class="ln" style="--c:var(--ink-3)"></i>lab top</span>
+                <span><i class="ln" style="--c:var(--rose);--s:dashed"></i>if nothing changes (extrapolated)</span>
+                <span><i class="ln" style="--c:var(--gene);--s:dotted"></i>plan's projection</span>
+              </div>
+              <p class="one">If nothing changes, the recent slope carried on in a straight line puts LDL <b class="r">near ${Math.round(LAND)} on ${dshort(G.by)}</b>, while the plan's projection lands <b class="p">near ${PLAN.land}</b>, and only a new draw says which line is real.</p>
+              <div class="slopes">
+                <div><small>Recent slope · last 3 draws</small><b>${sgn(LDL.slopeRecent)} <em>/yr</em></b><svg viewBox="0 0 34 13"><path d="M2 11 32 2" stroke="var(--rose)" stroke-width="2"/></svg></div>
+                <div><small>Five-year slope</small><b>${sgn(LDL.slope5y)} <em>/yr</em></b><svg viewBox="0 0 34 13"><path d="M2 8 32 6.5" stroke="var(--ink-3)" stroke-width="2"/></svg></div>
+              </div>
+              <p class="mfoot">The goal reads the recent slope. Your band ${Math.round(b.m - b.sd)} to ${Math.round(b.m + b.sd)} is the median ${b.m} ± ${b.sd} of the draws before April. One earlier draw, ${first[1]} in ${mY(first[0])}, sits off the left edge.</p>
+            </div>
+            ${hunchCard(h, 260)}
+            <p class="sec"><span>ApoB followed it</span><span>${DATA.series.apob.pts.length} draws</span></p>
+            <div class="mgrid">${markerCard("apob", 0)}${markerCard("hdl", 1)}</div>
+          </div>`;
+      };
+      const detSys = (name) => {
+        const hd = DATA.heading.find((h) => h.sys === name);
+        const keys = SYS_SERIES[name] || [];
+        const hs = DATA.hunches
+          .filter((h) => h.system === name)
+          .sort((a, b) => (a.kind === "good_news") - (b.kind === "good_news"));
+        const genes = (SYS_GENES[name] || []).map((g) =>
+          DATA.genes.find((x) => x.gene === g),
+        );
+        const n = hs.filter((h) => h.kind !== "good_news").length;
+        return `
+          <div class="dtop"><div class="status"><span>9:41</span><i></i><span>●●● ◔ ▮</span></div><div class="in">
+            <button class="dback" data-back>${I.back}Heading</button>
+            <div class="dtitle"><h2>${sg(name)}${name}</h2><span class="wd" style="--c:${W8[hd.word].l}">${arrowFor(hd.word)}${hd.word}</span></div>
+            <p class="dsub"><b>${hd.why || "nothing measured yet"}</b></p>
+            <p class="dsub">${keys.length ? `${keys.length} markers · last draw ${dshort(P.lastDraw)} · ${n} ${n === 1 ? "hunch" : "hunches"} open` : hd.word === "unmeasured" ? "Unmeasured: this system counts against the confidence line" : `Last draw ${dshort(P.lastDraw)} · only the latest values are in this mock`}</p>
+          </div></div>
+          <div class="dscroll">
+            ${keys.length ? `<p class="sec"><span>Markers · your band vs the lab's</span><span>since first draw</span></p><div class="mgrid">${keys.map(markerCard).join("")}</div>` : ""}
+            ${keys.some((k) => bandOf(k).src === "computed") ? `<p class="mfoot">* band computed here from the draws before the last: median ± 1.4826 × MAD.</p>` : ""}
+            ${hs.length ? `<p class="sec" style="margin-top:21px"><span>${hd.word === "away" ? "The hunch behind the arrow" : "Hunches"}</span><span>${hs.length}</span></p>${hs.map((h, i) => hunchCard(h, 300 + i * 89)).join("")}` : ""}
+            ${genes.length ? `<p class="sec"><span>Genes in play</span><span>fixed</span></p>${genes.map((g) => `<span class="genechip">${I.dna.replace("<svg", '<svg style="width:13px;height:13px"')}${g.gene} ${g.call} · ${g.note} · ${GRADE(g.g)} ${g.g}</span>`).join(" ")}` : ""}
+            ${!keys.length && !hs.length ? `<div class="card"><p class="plain">${hd.word === "unmeasured" ? `No draws or phone data for ${name} yet${hd.why ? ` (${hd.why})` : ""}. Until there are, the heading says nothing here, and the confidence line counts it as unseen.` : `Holding on the last draw. The full series is not in this mock's data pack.`}</p></div>` : ""}
+          </div>`;
+      };
+
+      // ---- the good-news shelf under the header ----
+      const goodShelf = () =>
+        GOOD.map(
+          (h) => `<div class="tc">
+            <div class="lbl"><span class="kind good">GOOD NEWS</span><span>${h.system}</span></div>
+            <h3>${h.title}</h3>
+            ${markerChart(h.series, 232, 55)}
+            <p class="say">${h.say}</p></div>`,
+        ).join("");
+
+      // ---- one phone ----
+      function mount(p) {
+        const mode = p.dataset.mode;
+        p.innerHTML = `
+          ${header()}
+          <div class="scroll">
+            <section class="shelf">
+              <header><h2>Also true<small>good news from the draws</small></h2></header>
+              <div class="hs">${goodShelf()}</div>
+            </section>
+          </div>
+          <div class="tabs">
+            <div class="tb"><button class="on">${I.home}Home</button><button>${I.body}Body</button><button>${I.drop}Blood</button></div>
+            <button class="plus" aria-label="Add">${I.plus}</button>
+          </div>
+          <div class="det" data-det></div>
+          <div class="homebar"></div>`;
+        const $ = (s) => p.querySelector(s);
+        const hd = $("[data-hd]"),
+          hmore = $("[data-hmore]"),
+          det = $("[data-det]");
+        let open = false;
+        const setOpen = (on) => {
+          open = on;
+          hd.classList.toggle("open", on);
+          clearTimeout(hmore._t);
+          if (on) {
+            hmore.style.height = hmore.firstElementChild.offsetHeight + "px";
+            // let it follow late font metrics once the ease is done
+            hmore._t = setTimeout(() => open && (hmore.style.height = "auto"), 560);
+          } else {
+            hmore.style.height = hmore.offsetHeight + "px";
+            hmore.offsetWidth;
+            hmore.style.height = "0px";
+          }
+        };
+        const openDet = (what) => {
+          det.innerHTML = what === "goal" ? detGoal() : detSys(what.slice(4));
+          det.scrollTop = 0;
+          det.offsetWidth;
+          det.classList.add("on");
+        };
+        const closeDet = () => {
+          det.classList.remove("on");
+          setTimeout(
+            () => !det.classList.contains("on") && (det.innerHTML = ""),
+            600,
+          );
+        };
+        p.addEventListener("click", (e) => {
+          const o = e.target.closest("[data-open]");
+          if (o) {
+            e.stopPropagation();
+            return openDet(o.dataset.open);
+          }
+          if (e.target.closest("[data-back]")) return closeDet();
+          if (e.target.closest("[data-hd]")) setOpen(!open);
+        });
+        // the draw's age runs down from full, slowly
+        setTimeout(
+          () =>
+            ($("[data-age]").style.strokeDashoffset =
+              ageC * (P.daysSinceDraw / 365)),
+          300,
+        );
+        if (mode === "home") setTimeout(() => setOpen(true), 600);
+        else setTimeout(() => openDet(mode), 200);
+        return { p, setOpen, openDet, closeDet };
+      }
+
+      const PH = [...document.querySelectorAll(".phone")].map(mount);
+
+      document.querySelectorAll("video.amb").forEach((v) => {
+        v.playbackRate = 0.5;
+        v.addEventListener("playing", () => v.classList.add("on"), {
+          once: true,
+        });
+      });
+      if (matchMedia("(prefers-reduced-motion: reduce)").matches)
+        document.querySelectorAll("video.amb").forEach((v) => {
+          v.autoplay = false;
+          v.pause();
+          v.classList.add("on");
+        });
+    </script>
+  </body>
+</html>

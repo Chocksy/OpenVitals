@@ -1,0 +1,2180 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Constellation · iOS variation 52 · OpenVitals</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        /* night, kin to Hybrid's plum-0 */
+        --night-0: #0b0611;
+        --night: #140a1d;
+        --night-2: #21102e;
+        --night-3: #33203f;
+        --star: #fff6e6;
+        --txt: #f6eddc; /* cream, 15:1 on --night */
+        --txt-2: #c9b9cc; /* 9.6:1 */
+        --txt-3: #a695aa; /* 6.4:1, smallest text floor */
+        --hair: rgba(246, 237, 220, 0.14);
+        --vv: #c4b0ff; /* the accent: violet starlight, 9.4:1 */
+        --warm: #ffb27a; /* a star rising above its band */
+        --cool: #8fd0ff; /* a star falling below its band */
+        /* daylight card: Hybrid paper */
+        --paper: #f3ead8;
+        --card: #fffdf8;
+        --ink: #2b1033;
+        --ink-2: #6f5a72;
+        --line: #e4d8c2;
+        --blood: #c23a5e;
+        --gene: #6c4aa6;
+        --green: #23995d;
+        --amber: #b87808;
+        --s3: 3px;
+        --s5: 5px;
+        --s8: 8px;
+        --s13: 13px;
+        --s21: 21px;
+        --s34: 34px;
+        --s55: 55px;
+        /* one easing, one duration family: 240 / 470 / 940 */
+        --ease: cubic-bezier(0.16, 0.84, 0.24, 1);
+        --d1: 240ms;
+        --d2: 470ms;
+        --d3: 940ms;
+        --ispring: cubic-bezier(0.34, 1.4, 0.64, 1);
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: radial-gradient(
+          90% 60% at 50% 0%,
+          #1b0d26 0%,
+          var(--night-0) 70%
+        );
+        color: var(--txt);
+        font:
+          13px/1.4 "Space Grotesk",
+          -apple-system,
+          system-ui,
+          sans-serif;
+        font-variant-numeric: tabular-nums;
+        min-height: 100vh;
+      }
+      button {
+        font: inherit;
+        color: inherit;
+        background: none;
+        border: 0;
+        padding: 0;
+        cursor: pointer;
+        text-align: left;
+        -webkit-tap-highlight-color: transparent;
+      }
+      h1,
+      h2,
+      h3,
+      p {
+        margin: 0;
+      }
+
+      /* ---- page ---- */
+      .doc {
+        max-width: 1290px;
+        margin: 0 auto;
+        padding: var(--s21) var(--s21) var(--s55);
+      }
+      .doc > header {
+        display: grid;
+        grid-template-columns: 300px 1fr;
+        gap: var(--s34);
+        align-items: start;
+        margin-bottom: var(--s21);
+      }
+      .eyebrow {
+        color: var(--txt-3);
+        font-size: 11px;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        margin-bottom: var(--s5);
+      }
+      .doc h1 {
+        font-size: 34px;
+        font-weight: 600;
+        letter-spacing: -0.04em;
+        line-height: 1;
+      }
+      .seed {
+        margin-top: var(--s8);
+        font-size: 21px;
+        letter-spacing: 0.08em;
+        color: var(--vv);
+      }
+      .seed i {
+        font-style: normal;
+        color: var(--txt-3);
+      }
+      .lede {
+        color: var(--txt-2);
+        margin-top: var(--s8);
+      }
+      .direction {
+        display: grid;
+        grid-template-columns: 89px 1fr 89px 1fr;
+        gap: var(--s5) var(--s13);
+        border-top: 1px solid var(--hair);
+        border-bottom: 1px solid var(--hair);
+        padding: var(--s13) 0;
+        color: var(--txt-2);
+      }
+      .direction > span {
+        color: var(--txt-3);
+        font-size: 11px;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        padding-top: 2px;
+      }
+      .direction b {
+        color: var(--txt);
+        font-weight: 500;
+      }
+      .direction .wide {
+        grid-column: 2 / 5;
+      }
+      .phones {
+        display: flex;
+        gap: var(--s34);
+        justify-content: center;
+      }
+      .cap {
+        display: flex;
+        justify-content: space-between;
+        color: var(--txt-2);
+        margin-bottom: var(--s8);
+        width: 390px;
+      }
+      .cap b {
+        color: var(--txt);
+        font-weight: 500;
+      }
+
+      /* ---- phone ---- */
+      .phone {
+        width: 390px;
+        height: 844px;
+        border-radius: 55px;
+        border: 8px solid #07030a;
+        background:
+          radial-gradient(120% 60% at 78% 4%, #2c1542 0%, transparent 60%),
+          radial-gradient(90% 50% at 10% 100%, #1d0f2c 0%, transparent 70%),
+          var(--night);
+        box-shadow:
+          0 0 0 1px #3d1947,
+          0 55px 89px -34px rgba(0, 0, 0, 0.8);
+        position: relative;
+        overflow: hidden;
+        user-select: none;
+      }
+      .status {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 55px;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        padding: 0 var(--s34) var(--s8);
+        font-size: 13px;
+        font-weight: 600;
+        z-index: 60;
+        color: var(--txt);
+        transition: color var(--d2) var(--ease);
+      }
+      .phone.carded .status {
+        color: var(--ink);
+      }
+      .sb {
+        display: flex;
+        gap: var(--s5);
+        align-items: center;
+      }
+      .sb i {
+        display: block;
+        width: 21px;
+        height: 11px;
+        border: 1.5px solid currentColor;
+        border-radius: 3px;
+        position: relative;
+      }
+      .sb i::after {
+        content: "";
+        position: absolute;
+        inset: 1.5px 5px 1.5px 1.5px;
+        background: currentColor;
+        border-radius: 1px;
+      }
+
+      /* ---- island (48 Hybrid timings) ---- */
+      .island {
+        position: absolute;
+        top: 11px;
+        left: 50%;
+        width: 126px;
+        height: 37px;
+        border-radius: 21px;
+        background: #000;
+        color: #fff;
+        transform: translateX(-50%);
+        z-index: 70;
+        overflow: hidden;
+        transition:
+          width 620ms var(--ispring),
+          height 620ms var(--ispring),
+          border-radius 620ms var(--ispring);
+      }
+      .phone.live .island {
+        width: 358px;
+        height: 76px;
+        border-radius: 34px;
+      }
+      .island .compact {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0 var(--s13);
+        transition: opacity 200ms ease;
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--vv);
+      }
+      .phone.live .island .compact {
+        opacity: 0;
+      }
+      .island .expanded {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 358px;
+        height: 76px;
+        padding: var(--s13) var(--s21);
+        display: grid;
+        grid-template-columns: 34px 1fr;
+        gap: var(--s13);
+        align-items: center;
+        opacity: 0;
+        transition: opacity 200ms ease;
+      }
+      .phone.live .island .expanded {
+        opacity: 1;
+        transition-delay: 180ms;
+      }
+      .island .ico {
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        background: #1c1624;
+        display: grid;
+        place-items: center;
+        color: var(--vv);
+        font-size: 16px;
+      }
+      .island .ix b {
+        display: block;
+        font-size: 13px;
+        font-weight: 700;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .island .ix small {
+        display: block;
+        font-size: 11px;
+        color: #b9b3c2;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      /* ---- the sky screen ---- */
+      .skyscreen {
+        position: absolute;
+        inset: 55px 0 0;
+        overflow: hidden auto;
+        scrollbar-width: none;
+      }
+      .skyscreen::-webkit-scrollbar {
+        display: none;
+      }
+      .sk-head {
+        padding: var(--s8) var(--s21) 0;
+        display: flex;
+        align-items: flex-end;
+        gap: var(--s8);
+        min-height: 55px;
+      }
+      .sk-head h2 {
+        font-size: 21px;
+        font-weight: 600;
+        letter-spacing: -0.03em;
+        line-height: 1.1;
+      }
+      .sk-head .meta {
+        font-size: 11px;
+        color: var(--txt-2);
+        margin-top: var(--s3);
+      }
+      .back {
+        width: 0;
+        overflow: hidden;
+        flex: none;
+        height: 34px;
+        border-radius: 17px;
+        display: grid;
+        place-items: center;
+        color: var(--txt);
+        font-size: 21px;
+        line-height: 1;
+        background: rgba(246, 237, 220, 0.08);
+        transition: width var(--d2) var(--ease);
+        align-self: center;
+      }
+      .phone.lit .back {
+        width: 34px;
+      }
+      .seg {
+        margin: var(--s13) var(--s21) 0;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        background: rgba(246, 237, 220, 0.06);
+        border: 1px solid var(--hair);
+        border-radius: 21px;
+        padding: 3px;
+        position: relative;
+        transition: opacity var(--d2) var(--ease);
+      }
+      .seg button {
+        position: relative;
+        z-index: 1;
+        text-align: center;
+        font-weight: 500;
+        padding: var(--s5) 0;
+        color: var(--txt-2);
+        transition: color var(--d1) var(--ease);
+      }
+      .seg button.on {
+        color: var(--night);
+      }
+      .seg .pill {
+        position: absolute;
+        top: 3px;
+        bottom: 3px;
+        left: 3px;
+        width: calc(50% - 3px);
+        border-radius: 18px;
+        background: var(--txt);
+        transition: transform var(--d2) var(--ease);
+      }
+      .seg.lab .pill {
+        transform: translateX(100%);
+      }
+      .phone.lit .seg {
+        opacity: 0;
+        pointer-events: none;
+      }
+      .skywrap {
+        position: relative;
+        margin: var(--s8) 16px 0;
+        height: 380px;
+      }
+      svg.sky {
+        width: 358px;
+        height: 380px;
+        display: block;
+        overflow: visible;
+      }
+      svg.sky text {
+        font-family: "Space Grotesk", system-ui, sans-serif;
+      }
+      svg.sky .core {
+        animation: tw 9s var(--ease) infinite;
+      }
+      @keyframes tw {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.86;
+        }
+      }
+      [data-hit] {
+        cursor: pointer;
+      }
+      .skycap {
+        margin: var(--s5) var(--s21) 0;
+        color: var(--txt-2);
+        min-height: 36px;
+        transition: opacity var(--d2) var(--ease);
+      }
+      .skycap b {
+        color: var(--txt);
+        font-weight: 500;
+      }
+      .list {
+        margin: var(--s13) var(--s21) var(--s34);
+        transition: opacity var(--d2) var(--ease);
+      }
+      .phone.lit .skycap,
+      .phone.lit .list {
+        opacity: 0;
+        pointer-events: none;
+      }
+      .lh {
+        font-size: 11px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--txt-3);
+        padding: var(--s8) 0 var(--s5);
+        border-bottom: 1px solid var(--hair);
+      }
+      .row {
+        display: grid;
+        grid-template-columns: 21px 1fr auto;
+        gap: var(--s8);
+        align-items: center;
+        padding: var(--s8) 0;
+        border-bottom: 1px solid var(--hair);
+        width: 100%;
+      }
+      .row .gl {
+        text-align: center;
+        font-size: 16px;
+        line-height: 1;
+      }
+      .row .tt b {
+        display: block;
+        font-weight: 500;
+        color: var(--txt);
+      }
+      .row .tt small {
+        font-size: 11px;
+        color: var(--txt-3);
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+      .row .rv {
+        color: var(--txt-2);
+        text-align: right;
+      }
+      .row.dim .tt b {
+        color: var(--txt-2);
+      }
+
+      /* ---- the peek sheet (a constellation lit) ---- */
+      .peek {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 20;
+        background: rgba(20, 10, 29, 0.94);
+        backdrop-filter: blur(13px);
+        border-top: 1px solid rgba(196, 176, 255, 0.28);
+        border-radius: 34px 34px 0 0;
+        padding: var(--s21) var(--s21) var(--s34);
+        transform: translateY(105%);
+        transition: transform var(--d3) var(--ease);
+      }
+      .phone.lit .peek {
+        transform: none;
+      }
+      .stamp {
+        display: inline-block;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.16em;
+        padding: 2px var(--s8);
+        border: 1.5px solid currentColor;
+        border-radius: 5px;
+        color: var(--vv);
+      }
+      .peek h3 {
+        font-size: 21px;
+        font-weight: 600;
+        letter-spacing: -0.03em;
+        margin: var(--s8) 0 var(--s5);
+        line-height: 1.15;
+      }
+      .peek p {
+        color: var(--txt-2);
+      }
+      .pk-stars {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: var(--s5);
+        margin: var(--s13) 0;
+      }
+      .pk-stars div {
+        border: 1px solid var(--hair);
+        border-radius: 13px;
+        padding: var(--s8);
+      }
+      .pk-stars small {
+        display: block;
+        font-size: 11px;
+        color: var(--txt-3);
+        white-space: nowrap;
+      }
+      .pk-stars b {
+        display: block;
+        font-size: 16px;
+        font-weight: 600;
+      }
+      .pk-stars em {
+        font-style: normal;
+        font-size: 11px;
+      }
+      .open {
+        width: 100%;
+        text-align: center;
+        font-weight: 600;
+        font-size: 16px;
+        padding: var(--s13);
+        border-radius: 21px;
+        background: var(--vv);
+        color: var(--night);
+      }
+
+      /* ---- the hunch card (daylight) ---- */
+      .card {
+        position: absolute;
+        inset: 0;
+        z-index: 40;
+        background: var(--paper);
+        color: var(--ink);
+        overflow: hidden auto;
+        scrollbar-width: none;
+        clip-path: circle(0px at 50% 50%);
+        visibility: hidden;
+      }
+      .card::-webkit-scrollbar {
+        display: none;
+      }
+      .phone.carded .card {
+        visibility: visible;
+      }
+      .card .in {
+        padding: 55px var(--s21) var(--s55);
+      }
+      .c-top {
+        display: flex;
+        align-items: center;
+        gap: var(--s8);
+        padding-top: var(--s8);
+      }
+      .c-back {
+        height: 34px;
+        padding: 0 var(--s13);
+        border-radius: 17px;
+        background: var(--card);
+        border: 1px solid var(--line);
+        font-weight: 500;
+        color: var(--ink);
+      }
+      .c-top .emb {
+        margin-left: auto;
+        width: 55px;
+        height: 34px;
+      }
+      .card .stamp {
+        color: var(--gene);
+        margin-top: var(--s13);
+      }
+      .card h3 {
+        font-size: 21px;
+        font-weight: 600;
+        letter-spacing: -0.03em;
+        line-height: 1.15;
+        margin: var(--s8) 0 var(--s5);
+      }
+      .card .say {
+        color: var(--ink-2);
+      }
+      .tabs {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: var(--s5);
+        margin: var(--s13) 0 var(--s8);
+      }
+      .tab {
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: 13px;
+        padding: var(--s5) var(--s8);
+        display: grid;
+        grid-template-columns: 13px 1fr;
+        align-items: center;
+        gap: 0 var(--s5);
+        transition:
+          background var(--d1) var(--ease),
+          border-color var(--d1) var(--ease);
+      }
+      .tab .sd {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--ink);
+        grid-row: span 2;
+      }
+      .tab b {
+        font-size: 11px;
+        font-weight: 600;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .tab small {
+        font-size: 11px;
+        color: var(--ink-2);
+      }
+      .tab.on {
+        background: var(--ink);
+        border-color: var(--ink);
+        color: var(--paper);
+      }
+      .tab.on small {
+        color: #d8c8da;
+      }
+      .tab.on .sd {
+        background: var(--vv);
+      }
+      .chartbox {
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: 21px;
+        padding: var(--s13) var(--s13) var(--s8);
+      }
+      .ch-h {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        margin-bottom: var(--s5);
+      }
+      .ch-h b {
+        font-weight: 600;
+      }
+      .ch-h span {
+        color: var(--ink-2);
+      }
+      svg.ch {
+        width: 100%;
+        height: auto;
+        display: block;
+        overflow: visible;
+      }
+      svg.ch text {
+        font-family: "Space Grotesk", system-ui, sans-serif;
+        font-size: 11px;
+        fill: var(--ink-2);
+      }
+      .ch-band {
+        transform-box: fill-box;
+        transform-origin: left center;
+        transform: scaleX(0);
+        transition: transform var(--d3) var(--ease);
+      }
+      .ch-line {
+        transition: stroke-dashoffset var(--d3) var(--ease);
+      }
+      .ch-dot {
+        opacity: 0;
+        transition: opacity var(--d1) var(--ease);
+      }
+      svg.ch.go .ch-band {
+        transform: scaleX(1);
+      }
+      svg.ch.go .ch-line {
+        stroke-dashoffset: 0 !important;
+      }
+      svg.ch.go .ch-dot {
+        opacity: 1;
+      }
+      .legend {
+        display: flex;
+        gap: var(--s13);
+        margin-top: var(--s8);
+        font-size: 11px;
+        color: var(--ink-2);
+        flex-wrap: wrap;
+      }
+      .legend i {
+        display: inline-block;
+        vertical-align: middle;
+        margin-right: var(--s5);
+      }
+      .lg-band {
+        width: 21px;
+        height: 8px;
+        background: rgba(108, 74, 166, 0.22);
+        border-top: 1px solid var(--gene);
+        border-bottom: 1px solid var(--gene);
+      }
+      .lg-lab {
+        width: 21px;
+        border-top: 1px dashed var(--ink-2);
+      }
+      .verdict {
+        margin-top: var(--s8);
+        color: var(--ink);
+      }
+      .sec-h {
+        font-size: 11px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--ink-2);
+        margin: var(--s21) 0 var(--s8);
+        display: flex;
+        justify-content: space-between;
+      }
+      .sec-h em {
+        font-style: normal;
+        letter-spacing: 0;
+        text-transform: none;
+      }
+      .ex {
+        position: relative;
+      }
+      .xr {
+        position: absolute;
+        left: 0;
+        right: 0;
+        height: 47px;
+        display: grid;
+        grid-template-columns: 16px 1fr 34px;
+        grid-template-rows: auto 5px;
+        gap: var(--s3) var(--s8);
+        align-items: center;
+        transition:
+          top var(--d2) var(--ease),
+          opacity var(--d2) var(--ease);
+      }
+      .xr .g {
+        grid-row: span 2;
+        font-size: 13px;
+        color: var(--gene);
+        text-align: center;
+      }
+      .xr .t {
+        font-weight: 500;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .xr .t small {
+        font-weight: 400;
+        color: var(--ink-2);
+        font-size: 11px;
+      }
+      .xr .pc {
+        grid-row: span 2;
+        text-align: right;
+        font-weight: 600;
+      }
+      .xr .tr {
+        height: 5px;
+        border-radius: 3px;
+        background: var(--line);
+        overflow: hidden;
+      }
+      .xr .tr i {
+        display: block;
+        height: 5px;
+        border-radius: 3px;
+        background: var(--gene);
+        transition: width var(--d2) var(--ease);
+      }
+      .xr.hyp .t {
+        color: var(--ink-2);
+      }
+      .xr.out {
+        opacity: 0.45;
+      }
+      .xr.out .t {
+        text-decoration: line-through;
+      }
+      .xr.win .g {
+        color: var(--green);
+      }
+      .xr.win .tr i {
+        background: var(--green);
+      }
+      .q {
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: 21px;
+        padding: var(--s13);
+      }
+      .q p {
+        font-weight: 500;
+      }
+      .chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--s5);
+        margin-top: var(--s8);
+      }
+      .chip {
+        border: 1px solid var(--line);
+        border-radius: 17px;
+        padding: var(--s5) var(--s13);
+        background: var(--paper);
+        transition:
+          background var(--d1) var(--ease),
+          color var(--d1) var(--ease);
+      }
+      .chip.on {
+        background: var(--ink);
+        color: var(--paper);
+        border-color: var(--ink);
+      }
+      .test {
+        position: relative;
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: 21px;
+        padding: var(--s13);
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: var(--s8);
+        align-items: center;
+      }
+      .test b {
+        font-weight: 600;
+      }
+      .test small {
+        display: block;
+        color: var(--ink-2);
+      }
+      .btn {
+        border-radius: 17px;
+        padding: var(--s8) var(--s13);
+        background: var(--ink);
+        color: var(--paper);
+        font-weight: 600;
+      }
+      .btn[disabled] {
+        opacity: 0.4;
+        cursor: default;
+      }
+      .wstamp {
+        position: absolute;
+        right: var(--s13);
+        top: -13px;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.14em;
+        color: var(--blood);
+        border: 2px solid var(--blood);
+        border-radius: 5px;
+        padding: 2px var(--s8);
+        background: var(--card);
+        transform: rotate(-6deg) scale(1.6);
+        opacity: 0;
+        transition:
+          transform var(--d1) var(--ease),
+          opacity var(--d1) var(--ease);
+      }
+      .test.written .wstamp {
+        transform: rotate(-6deg) scale(1);
+        opacity: 1;
+      }
+      .preds {
+        margin-top: var(--s8);
+      }
+      .pr {
+        display: grid;
+        grid-template-columns: 16px 1fr;
+        gap: var(--s8);
+        padding: var(--s8) 0;
+        border-bottom: 1px solid var(--line);
+        opacity: 0;
+        transform: translateY(5px);
+        transition:
+          opacity var(--d2) var(--ease),
+          transform var(--d2) var(--ease);
+      }
+      .pr.shown {
+        opacity: 1;
+        transform: none;
+      }
+      .pr .g {
+        color: var(--gene);
+        text-align: center;
+      }
+      .pr b {
+        font-weight: 500;
+        display: block;
+      }
+      .pr span {
+        color: var(--ink-2);
+      }
+      .pr.win .g {
+        color: var(--green);
+      }
+      .pr.out {
+        opacity: 0.45;
+      }
+      .demo {
+        margin-top: var(--s13);
+        display: flex;
+        gap: var(--s5);
+        align-items: center;
+        flex-wrap: wrap;
+      }
+      .demo .lbl {
+        font-size: 11px;
+        color: var(--ink-2);
+        width: 100%;
+      }
+      .closed {
+        margin-top: var(--s13);
+        border-radius: 21px;
+        padding: var(--s13);
+        background: var(--ink);
+        color: var(--paper);
+        display: none;
+      }
+      .closed.show {
+        display: block;
+        animation: rise var(--d2) var(--ease);
+      }
+      .closed small {
+        color: #d8c8da;
+        display: block;
+        margin-top: var(--s3);
+      }
+      .closed b {
+        font-size: 16px;
+      }
+      @keyframes rise {
+        from {
+          opacity: 0;
+          transform: translateY(8px);
+        }
+      }
+      .fly {
+        position: absolute;
+        z-index: 55;
+        width: 8px;
+        height: 8px;
+        margin: -4px 0 0 -4px;
+        border-radius: 50%;
+        background: var(--star);
+        box-shadow:
+          0 0 8px 3px rgba(196, 176, 255, 0.8),
+          0 0 21px 8px rgba(196, 176, 255, 0.35);
+        transition:
+          transform var(--d3) var(--ease),
+          opacity var(--d1) var(--ease) 700ms;
+        pointer-events: none;
+      }
+
+      /* ---- notes ---- */
+      .notes {
+        display: grid;
+        grid-template-columns: 1.1fr 1fr;
+        gap: var(--s34);
+        margin-top: var(--s34);
+        color: var(--txt-2);
+      }
+      .notes h3 {
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--txt);
+        margin-bottom: var(--s8);
+      }
+      table {
+        border-collapse: collapse;
+        width: 100%;
+      }
+      td,
+      th {
+        text-align: left;
+        padding: var(--s5) var(--s8) var(--s5) 0;
+        border-bottom: 1px solid var(--hair);
+        vertical-align: top;
+      }
+      th {
+        font-weight: 500;
+        color: var(--txt-3);
+        font-size: 11px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+      td.n {
+        text-align: right;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="doc">
+      <header>
+        <div>
+          <div class="eyebrow">iOS variation 52 · round fifteen · hunches</div>
+          <h1>Constellation</h1>
+          <div class="seed">k<i>7</i>Hq<i>2</i>VvLm<i>9</i>TzRc<i>4</i>w</div>
+          <p class="lede">
+            Every marker is a star. A star shines by how far its last draw sits
+            from your own band, never from the lab's. Markers the data ties
+            together are joined. Tap the constellation that lit up.
+          </p>
+        </div>
+        <div class="direction">
+          <span>The read</span>
+          <b class="wide"
+            >16 characters: the owner's 16 draws. 12 letters for 12 systems: 7
+            lowercase are the 7 measured, 5 capitals the 5 still dark. 4 digits
+            for 4 open hunches, and the last digit, 4, tops the brightness scale
+            at z 4. Lm is lumens and Tz is a z: light equals z. k7 is kelvin:
+            colour temperature gives direction. Vv is one letter in two cases:
+            the same sky, seen twice.</b
+          >
+          <span>Mood</span>
+          <b>A clear night where only your own changes shine.</b>
+          <span>Accent</span>
+          <b
+            >Violet starlight #c4b0ff for the lit shape. Warm #ffb27a rises
+            above your band, cool #8fd0ff falls below it.</b
+          >
+          <span>Type</span>
+          <b>Space Grotesk, 11 13 16 21 34, tabular digits.</b>
+          <span>Motion</span>
+          <b
+            >One easing, cubic-bezier(.16,.84,.24,1). 240, 470, 940 ms. Twinkle
+            period 9 s, at 14 %.</b
+          >
+          <span>Cards</span>
+          <b
+            >None in the sky: hairlines only. The hunch card is daylight paper
+            that opens out of the constellation.</b
+          >
+          <span>Unusual</span>
+          <b
+            >Your sky and the lab's sky: same stars, two rulers. The lab's sky
+            is almost black.</b
+          >
+        </div>
+      </header>
+
+      <div class="phones">
+        <div>
+          <div class="cap">
+            <b>1 · The sky</b
+            ><span>toggle the lab's sky, tap The Store Room</span>
+          </div>
+          <div class="phone" id="p1"></div>
+        </div>
+        <div>
+          <div class="cap">
+            <b>2 · A constellation lit</b><span>tap the shape or Open</span>
+          </div>
+          <div class="phone" id="p2"></div>
+        </div>
+        <div>
+          <div class="cap">
+            <b>3 · The hunch card</b><span>answer, accept, play</span>
+          </div>
+          <div class="phone" id="p3"></div>
+        </div>
+      </div>
+
+      <section class="notes">
+        <div>
+          <h3>Every star, from DATA</h3>
+          <table id="startable"></table>
+          <p style="margin-top: 8px">
+            Band = median and 1.4826 × MAD of the draws before the last, floored
+            at 5 % of the median (spec part A). Where DATA gives a band it is
+            used, and the computed one is asserted against it. Ferritin and homocysteine have 4 prior draws and ApoB 2: the spec would wait for 5, so their stars
+            are drawn with a thin ring meaning "thin band".
+          </p>
+        </div>
+        <div>
+          <h3>The rules this file follows</h3>
+          <table>
+            <tr>
+              <th>Rule</th>
+              <th>Here</th>
+            </tr>
+            <tr>
+              <td>Brightness</td>
+              <td>
+                min(|z|, 4) / 4 against your band. In the lab's sky: distance
+                outside the lab range.
+              </td>
+            </tr>
+            <tr>
+              <td>Colour</td>
+              <td>
+                Warm above your band, cool below. Colour is direction, never
+                good or bad.
+              </td>
+            </tr>
+            <tr>
+              <td>Lines</td>
+              <td>
+                Only markers DATA puts in one hunch or one system (heading text
+                for ApoB and insulin). HDL has no system in DATA and stands
+                alone. Genes are fixed stars (hollow diamonds), joined dashed to
+                the marker their note names.
+              </td>
+            </tr>
+            <tr>
+              <td>Cluster</td>
+              <td>
+                Kind <i>cluster</i> lights as a named shape. B12 and D are faint
+                alone (z −0.6, −0.5); the shape is what makes them worth a look.
+              </td>
+            </tr>
+            <tr>
+              <td>Gap</td>
+              <td>
+                Folate, never measured, is a dotted empty ring inside the shape.
+              </td>
+            </tr>
+            <tr>
+              <td>Good news</td>
+              <td>
+                A dim star with a dotted ring at the brightness it once had:
+                dimmed back.
+              </td>
+            </tr>
+            <tr>
+              <td>Glyphs</td>
+              <td>
+                ● grade A or B · ◐ grade C · ○ hypothesis, no prior, no bar.
+              </td>
+            </tr>
+            <tr>
+              <td>Answering</td>
+              <td>
+                Chips multiply the priors by a likelihood and re-normalise: meat
+                [3, .7, .8, 1.2], supplement [2.5, .7, .8, 1.5], nothing [.3,
+                2.5, 1.6, 1.3].
+              </td>
+            </tr>
+            <tr>
+              <td>Island</td>
+              <td>
+                Only for the written-down receipt and the result arriving.
+              </td>
+            </tr>
+            <tr>
+              <td>Lime</td>
+              <td>Not used: nothing on these screens adds data.</td>
+            </tr>
+          </table>
+        </div>
+      </section>
+    </div>
+
+    <script>
+      const DATA = {
+        person: { name: "Razvan", age: 39, sex: "m", lastDraw: "2026-04-23", daysSinceDraw: 156,
+                  systemsMeasured: 7, systemsTotal: 12 },
+        goal: { marker: "ldl_cholesterol", label: "LDL", unit: "mg/dL", lo: 70, hi: 100, by: "2026-12-01" },
+        genes: [
+          { gene: "APOE", call: "e2/e3", note: "lower LDL on average", g: "A" },
+          { gene: "TCF7L2", call: "CT", note: "higher diabetes risk", g: "A" },
+          { gene: "FTO", call: "AA", note: "higher BMI tendency, exercise cuts it by a third", g: "B" },
+          { gene: "MTHFR", call: "C677T het", note: "homocysteine depends on folate", g: "C" },
+        ],
+        // [date, value]; unit; lab range; own band = median and spread of the draws before the last
+        series: {
+          ldl:   { label: "LDL", unit: "mg/dL", lab: [0, 130], band: [108.2, 14.6],
+                   pts: [["2015-03-21",103],["2021-10-14",136.1],["2021-12-04",110.5],["2022-10-20",94],["2023-03-17",97.3],["2024-05-13",122.9],["2024-11-20",106],["2025-12-09",117],["2026-04-23",131]],
+                   slope5y: 1.8, slopeRecent: 15.2 },
+          apob:  { label: "ApoB", unit: "mg/dL", lab: [0, 100], pts: [["2023-03-17",82],["2024-05-13",97],["2026-04-23",99]] },
+          hdl:   { label: "HDL", unit: "mg/dL", lab: [40, 200], band: [51.4, 10.7],
+                   pts: [["2015-03-21",39.2],["2021-10-14",61.8],["2021-12-04",50.6],["2022-10-20",58.4],["2023-03-17",52.1],["2024-05-13",57.2],["2024-11-20",43],["2025-12-09",44],["2026-04-23",50]] },
+          eos:   { label: "Eosinophils", unit: "K/µL", lab: [0.0, 0.5], band: [0.11, 0.03],
+                   pts: [["2014-03-26",0.09],["2015-03-21",0.10],["2016-01-09",0.13],["2019-07-13",0.11],["2021-10-14",0.11],["2023-03-17",0.05],["2024-05-13",0.09],["2024-11-20",0.25],["2025-12-09",0.17],["2026-04-23",0.19]],
+                   step: { since: "2024-11-20", priorMax: 0.13 } },
+          ferritin: { label: "Ferritin", unit: "ng/mL", lab: [30, 400], band: [113.1, 15.5],
+                   pts: [["2021-10-14",154.5],["2023-03-17",110.8],["2024-05-13",115.3],["2025-12-09",94.4],["2026-04-23",79.6]], slope5y: -14 },
+          b12:   { label: "Vitamin B12", unit: "pg/mL", lab: [200, 900],
+                   pts: [["2021-10-14",183.7],["2021-12-04",197],["2022-10-20",531],["2023-03-17",534.2],["2024-05-13",898.8],["2024-11-20",522],["2025-12-09",603],["2026-04-23",472]] },
+          vitd:  { label: "Vitamin D", unit: "ng/mL", lab: [30, 100],
+                   pts: [["2019-07-13",23.3],["2021-10-14",61.8],["2021-12-04",54.1],["2022-10-20",52],["2023-03-17",42.3],["2024-05-13",34],["2024-11-20",37.7],["2025-12-09",31.8],["2026-04-23",32.7]], slope5y: -6 },
+          hcy:   { label: "Homocysteine", unit: "µmol/L", lab: [0, 15],
+                   pts: [["2023-03-17",11.2],["2024-05-13",8.1],["2024-11-20",8.4],["2025-12-09",8.8],["2026-04-23",9.6]] },
+          crp:   { label: "CRP", unit: "mg/L", lab: [0, 5],
+                   pts: [["2014-03-26",1.3],["2015-03-21",4],["2021-10-14",6.1],["2021-12-04",4.6],["2022-10-20",3.5],["2023-03-17",15.8],["2024-05-13",8.1],["2024-11-20",0.54],["2025-12-09",0.5],["2026-04-23",0.64]] },
+          hba1c: { label: "HbA1c", unit: "%", lab: [4, 5.7], band: [5.2, 0.31],
+                   pts: [["2016-06-24",5],["2021-10-14",5.72],["2021-12-04",5.53],["2022-10-20",5.43],["2023-03-17",5.2],["2024-05-13",5.07],["2024-11-20",4.8],["2025-12-09",5.2],["2026-04-23",5]] },
+          insulin: { label: "Fasting insulin", unit: "µIU/mL", lab: [2, 25],
+                   pts: [["2021-12-04",8.1],["2022-10-20",4.8],["2023-03-17",2.7],["2024-05-13",3.2],["2024-11-20",4.7],["2025-12-09",4.2],["2026-04-23",5.7]] },
+        },
+        // the hunches the engine would raise (spec B1 kinds); test prices are placeholders
+        hunches: [
+          { id: "eos", kind: "step", title: "Eosinophils moved up a level", system: "Immune", series: "eos",
+            say: "Ten years between 0.05 and 0.13. The last three draws: 0.25, 0.17, 0.19. Still inside the lab range, outside yours.",
+            explanations: [
+              { t: "A new allergy or a change of season", p: 0.45, g: "B" },
+              { t: "A medicine or supplement started around late 2024", p: 0.25, g: "B" },
+              { t: "Gut parasite after travel", p: 0.10, g: "B" },
+              { t: "Noise that will fade", p: 0.20, g: "C" } ],
+            question: "Anything new since autumn 2024: a pet, a move, a medicine, sneezing in spring?",
+            test: { name: "Total IgE", price: 45, currency: "RON" } },
+          { id: "iron", kind: "cluster", title: "Stores running down together", system: "Nutrients", series: ["ferritin","b12","vitd","hcy"],
+            say: "Ferritin −14 a year since 2021, B12 off its 2024 peak, vitamin D halved, homocysteine back up. Four markers, one question: intake or absorption?",
+            explanations: [
+              { t: "Less red meat or supplements stopped", p: 0.50, g: "B" },
+              { t: "Absorption: coeliac or atrophic gastritis", p: 0.08, g: "A" },
+              { t: "Blood loss or donation", p: 0.12, g: "B" },
+              { t: "Folate low with MTHFR het", p: 0.30, g: "C" } ],
+            question: "Did you change how you eat or stop a supplement in 2024?",
+            test: { name: "Folate + transferrin saturation", price: 70, currency: "RON" } },
+          { id: "ldl", kind: "drift", title: "LDL is walking away from your goal", system: "Heart", series: "ldl", goal: true,
+            say: "106, 117, 131 in 17 months: +15 a year. Goal is 100 or under by 1 Dec. ApoB followed it to 99.",
+            explanations: [
+              { t: "More saturated fat in the last year", p: 0.55, g: "A" },
+              { t: "Thyroid running slower", p: 0.05, g: "A" },
+              { t: "Weight up", p: 0.25, g: "A" },
+              { t: "Season and the lab's own swing", p: 0.15, g: "C" } ],
+            question: "Did your weight or how much fatty meat and cheese you eat change since late 2024?",
+            test: { name: "Lipid panel + ApoB in 8 weeks", price: 90, currency: "RON" } },
+          { id: "gap", kind: "gap", title: "Folate never measured", system: "Nutrients", series: "hcy",
+            say: "MTHFR C677T het and homocysteine rising three draws in a row. Folate is the one number that says which way.",
+            explanations: [], question: null, test: { name: "Serum folate", price: 35, currency: "RON" } },
+          { id: "crp", kind: "good_news", title: "Inflammation settled", system: "Immune", series: "crp",
+            say: "CRP was 15.8 in March 2023. Three draws since then under 1.", explanations: [], question: null, test: null },
+          { id: "genes", kind: "good_news", title: "Your genes are outvoted", system: "Metabolic", series: "hba1c",
+            say: "TCF7L2 and FTO both lean toward diabetes. HbA1c went from 5.7 to 5.0 and fasting insulin stays low.",
+            explanations: [], question: null, test: null },
+        ],
+        // heading per system: toward | holding | away | unmeasured
+        heading: [
+          { sys: "Heart", word: "away", why: "LDL +15/yr, ApoB 99" },
+          { sys: "Metabolic", word: "toward", why: "HbA1c 5.0, insulin low" },
+          { sys: "Nutrients", word: "away", why: "ferritin, B12, D down" },
+          { sys: "Immune", word: "holding", why: "CRP < 1, eosinophils up a step" },
+          { sys: "Liver", word: "holding", why: "ALT 10, GGT 15" },
+          { sys: "Kidney", word: "holding", why: "creatinine 0.9" },
+          { sys: "Thyroid", word: "holding", why: "TSH 1.1, fT4 1.23" },
+          { sys: "Hormones", word: "unmeasured", why: "testosterone once, 2024" },
+          { sys: "Bone", word: "unmeasured", why: "" },
+          { sys: "Sleep", word: "unmeasured", why: "no phone sync yet" },
+          { sys: "Fitness", word: "unmeasured", why: "no phone sync yet" },
+          { sys: "Mind", word: "unmeasured", why: "" },
+        ],
+      };
+
+      /* ================= arithmetic (spec part A) ================= */
+      const MINUS = "−";
+      const sgn = (v, d = 1) => (v < 0 ? MINUS : "+") + Math.abs(v).toFixed(d);
+      const num = (v) => (v < 0 ? MINUS : "") + String(Math.abs(v));
+      const fmt = (v) => {
+        const a = Math.abs(v);
+        const s =
+          a >= 100
+            ? a.toFixed(0)
+            : a >= 10
+              ? String(+a.toFixed(1))
+              : String(+a.toFixed(2));
+        return (v < 0 ? MINUS : "") + s;
+      };
+      const median = (a) => {
+        const s = [...a].sort((x, y) => x - y),
+          n = s.length;
+        return n % 2 ? s[(n - 1) / 2] : (s[n / 2 - 1] + s[n / 2]) / 2;
+      };
+      function bandOf(vals) {
+        const m = median(vals);
+        const mad = median(vals.map((v) => Math.abs(v - m)));
+        return [m, Math.max(1.4826 * mad, 0.05 * Math.abs(m))];
+      }
+      const MON = [
+        "Jan",
+        "Feb",
+        "Mar",
+        "Apr",
+        "May",
+        "Jun",
+        "Jul",
+        "Aug",
+        "Sep",
+        "Oct",
+        "Nov",
+        "Dec",
+      ];
+      const monYr = (d) => MON[+d.slice(5, 7) - 1] + " " + d.slice(0, 4);
+
+      const STAR = {};
+      for (const [key, s] of Object.entries(DATA.series)) {
+        const vals = s.pts.map((p) => p[1]);
+        const prior = vals.slice(0, -1);
+        const last = vals[vals.length - 1];
+        const computed = bandOf(prior);
+        if (s.band) {
+          console.assert(
+            Math.abs(computed[0] - s.band[0]) < 0.1 &&
+              Math.abs(computed[1] - s.band[1]) < 0.2,
+            "band mismatch " + key,
+            computed,
+            s.band,
+          );
+        }
+        const band = s.band || computed;
+        const z = (last - band[0]) / band[1];
+        let peak = 0,
+          peakDate = null;
+        prior.forEach((v, i) => {
+          const zz = Math.abs((v - band[0]) / band[1]);
+          if (zz > peak) {
+            peak = zz;
+            peakDate = s.pts[i][0];
+          }
+        });
+        const [lo, hi] = s.lab;
+        const w = hi - lo;
+        const labD =
+          last > hi ? (last - hi) / w : last < lo ? (lo - last) / w : 0;
+        STAR[key] = {
+          key,
+          s,
+          last,
+          band,
+          z,
+          prior: prior.length,
+          source: s.band ? "DATA" : "computed",
+          b: Math.min(Math.abs(z), 4) / 4,
+          bLab: labD > 0 ? Math.max(0.3, Math.min(1, labD * 8)) : 0,
+          labD,
+          peak,
+          peakDate,
+          thin: prior.length < 5,
+        };
+      }
+      // good news: stars that dimmed back
+      const GOOD = DATA.hunches
+        .filter((h) => h.kind === "good_news")
+        .map((h) => h.series);
+      const OPEN = DATA.hunches.filter((h) => h.kind !== "good_news");
+      const CLUSTER = DATA.hunches.find((h) => h.kind === "cluster");
+      const GAP = DATA.hunches.find((h) => h.kind === "gap");
+      console.assert(OPEN.length === 4, "4 open hunches");
+      console.assert(
+        Math.abs(STAR.ferritin.z + 2.16) < 0.02,
+        "ferritin z",
+        STAR.ferritin.z,
+      );
+
+      /* ================= the chart of the sky ================= */
+      // hand-placed positions in a 358 x 380 sky; lab = label side
+      const POS = {
+        b12: { x: 150, y: 70, lab: "r" },
+        ferritin: { x: 84, y: 124, lab: "l" },
+        vitd: { x: 198, y: 142, lab: "r" },
+        hcy: { x: 124, y: 204, lab: "b" },
+        folate: { x: 50, y: 214, lab: "b" },
+        MTHFR: { x: 200, y: 232, lab: "r" },
+        hdl: { x: 270, y: 44, lab: "l" },
+        ldl: { x: 304, y: 108, lab: "l" },
+        apob: { x: 318, y: 184, lab: "l" },
+        APOE: { x: 268, y: 214, lab: "r" },
+        eos: { x: 300, y: 266, lab: "l" },
+        crp: { x: 292, y: 318, lab: "b" },
+        hba1c: { x: 70, y: 300, lab: "r" },
+        insulin: { x: 134, y: 358, lab: "r" },
+        TCF7L2: { x: 22, y: 350, lab: "r" },
+        FTO: { x: 70, y: 372, lab: "r" },
+      };
+      // marker -> system: from the hunches, plus the heading lines that name ApoB and insulin
+      const SYS = {};
+      DATA.hunches.forEach((h) =>
+        [].concat(h.series).forEach((k) => (SYS[k] = SYS[k] || h.system)),
+      );
+      DATA.heading.forEach((h) => {
+        if (/ApoB/.test(h.why)) SYS.apob = h.sys;
+        if (/insulin/.test(h.why)) SYS.insulin = h.sys;
+      });
+      // links: the cluster as a closed room, then each system as a chain
+      const CL = CLUSTER.series;
+      const LINKS = [];
+      CL.forEach((k, i) =>
+        LINKS.push({ a: k, b: CL[(i + 1) % CL.length], cl: true }),
+      );
+      const bySys = {};
+      Object.keys(DATA.series).forEach((k) => {
+        if (SYS[k] && !CL.includes(k))
+          (bySys[SYS[k]] = bySys[SYS[k]] || []).push(k);
+      });
+      Object.values(bySys).forEach((ks) =>
+        ks.forEach((k, i) => i && LINKS.push({ a: ks[i - 1], b: k })),
+      );
+      // genes: fixed stars joined to what their note or a hunch names
+      const GENELINK = {
+        APOE: "ldl",
+        TCF7L2: "hba1c",
+        FTO: "hba1c",
+        MTHFR: "hcy",
+      };
+      const REGIONS = [
+        { sys: "Nutrients", x: 12, y: 16, a: "start" },
+        { sys: "Heart", x: 346, y: 16, a: "end" },
+        { sys: "Immune", x: 346, y: 250, a: "end" },
+        { sys: "Metabolic", x: 12, y: 268, a: "start" },
+      ];
+      const W = 358,
+        H = 380;
+      const FULL = { cx: W / 2, cy: H / 2, k: 1 };
+      const LITV = { cx: 128, cy: 176, k: 1.4 };
+
+      const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+      const lerp = (a, b, t) => a + (b - a) * t;
+      const E = (t) => 1 - Math.pow(1 - t, 3.4);
+      function tween(ms, fn, done) {
+        const t0 = performance.now();
+        let end = false;
+        const fin = () => {
+          if (end) return;
+          end = true;
+          fn(1);
+          if (done) done();
+        };
+        const f = () => {
+          if (end) return;
+          const t = clamp((performance.now() - t0) / ms, 0, 1);
+          if (t >= 1) return fin();
+          fn(E(t));
+          requestAnimationFrame(f);
+        };
+        requestAnimationFrame(f);
+        setTimeout(fin, ms + 40);
+      }
+
+      function drawSky(ph) {
+        const st = ph.st;
+        const v = st.view;
+        const P = (p) => [
+          (p.x - v.cx) * v.k + W / 2,
+          (p.y - v.cy) * v.k + H / 2,
+        ];
+        const kk = Math.sqrt(v.k);
+        const lab = st.labT; // 0 = your sky, 1 = the lab's sky
+        const lit = st.lit;
+        let o = `<defs>
+          <radialGradient id="gw${ph.id}"><stop offset="0" stop-color="#ffb27a" stop-opacity=".9"/><stop offset=".35" stop-color="#ffb27a" stop-opacity=".32"/><stop offset="1" stop-color="#ffb27a" stop-opacity="0"/></radialGradient>
+          <radialGradient id="gc${ph.id}"><stop offset="0" stop-color="#8fd0ff" stop-opacity=".9"/><stop offset=".35" stop-color="#8fd0ff" stop-opacity=".32"/><stop offset="1" stop-color="#8fd0ff" stop-opacity="0"/></radialGradient>
+          <radialGradient id="gv${ph.id}"><stop offset="0" stop-color="#c4b0ff" stop-opacity=".5"/><stop offset="1" stop-color="#c4b0ff" stop-opacity="0"/></radialGradient>
+        </defs>`;
+        // dust: seeded from the seed string, not data
+        let seed = 0;
+        for (const c of "k7Hq2VvLm9TzRc4w")
+          seed = (seed * 31 + c.charCodeAt(0)) >>> 0;
+        const rnd = () =>
+          (seed = (seed * 1664525 + 1013904223) >>> 0) / 4294967296;
+        for (let i = 0; i < 90; i++) {
+          const x = rnd() * W * 1.2 - W * 0.1,
+            y = rnd() * H * 1.2 - H * 0.1,
+            r = 0.4 + rnd() * 0.6;
+          const [sx, sy] = P({ x, y });
+          o += `<circle cx="${sx.toFixed(1)}" cy="${sy.toFixed(1)}" r="${r}" fill="#fff6e6" opacity="${(0.1 + rnd() * 0.22).toFixed(2)}"/>`;
+        }
+        const fade = (k) =>
+          lit > 0 && !CL.includes(k) && k !== "folate" && k !== "MTHFR"
+            ? 1 - 0.9 * lit
+            : 1;
+        // region labels
+        REGIONS.forEach((r) => {
+          const hd = DATA.heading.find((h) => h.sys === r.sys);
+          const op = (r.sys === "Nutrients" ? 1 : 1 - lit) * (1 - lab * 0.5);
+          if (op < 0.02) return;
+          const [x, y] = P(r);
+          o += `<text x="${x}" y="${y}" text-anchor="${r.a}" font-size="11" letter-spacing="1.3" fill="#a695aa" opacity="${op}">${r.sys.toUpperCase()} · ${hd.word}</text>`;
+        });
+        // system links and gene links, hidden in the lab's sky (the lab reads each marker alone)
+        const lineOp = 1 - lab;
+        LINKS.filter((l) => !l.cl).forEach((l) => {
+          const [x1, y1] = P(POS[l.a]),
+            [x2, y2] = P(POS[l.b]);
+          o += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#f6eddc" stroke-opacity="${0.2 * lineOp * fade(l.a)}" stroke-width="1"/>`;
+        });
+        Object.entries(GENELINK).forEach(([g, m]) => {
+          const [x1, y1] = P(POS[g]),
+            [x2, y2] = P(POS[m]);
+          o += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#c4b0ff" stroke-opacity="${0.3 * lineOp * fade(g)}" stroke-dasharray="2 4" stroke-width="1"/>`;
+        });
+        // the gap: hcy to folate (dotted)
+        {
+          const [x1, y1] = P(POS.hcy),
+            [x2, y2] = P(POS.folate);
+          o += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#c4b0ff" stroke-opacity="${(0.3 + 0.4 * lit) * lineOp}" stroke-dasharray="1 4" stroke-linecap="round" stroke-width="1.5"/>`;
+        }
+        // the cluster: a room drawn edge by edge
+        const cls = LINKS.filter((l) => l.cl);
+        const lp = st.lineP;
+        const pts = cls.map((l) => P(POS[l.a]));
+        if (lineOp > 0.01) {
+          o += `<polygon points="${pts.map((p) => p.join(",")).join(" ")}" fill="url(#gv${ph.id})" opacity="${(0.25 + 0.55 * lit) * lineOp * lp}"/>`;
+        }
+        cls.forEach((l, i) => {
+          const f = clamp(lp * cls.length - i, 0, 1);
+          if (f <= 0) return;
+          const [x1, y1] = P(POS[l.a]),
+            [x2, y2] = P(POS[l.b]);
+          o += `<line x1="${x1}" y1="${y1}" x2="${lerp(x1, x2, f)}" y2="${lerp(y1, y2, f)}" stroke="#c4b0ff" stroke-opacity="${(0.55 + 0.45 * lit) * lineOp * (st.faded ? 0.4 : 1)}" stroke-width="${1.2 + 0.6 * lit}" ${st.faded ? 'stroke-dasharray="3 4"' : ""}/>`;
+        });
+        // constellation name, inside the room
+        {
+          const cx = pts.reduce((a, p) => a + p[0], 0) / pts.length;
+          const cy = pts.reduce((a, p) => a + p[1], 0) / pts.length;
+          ph.centroid = [cx, cy];
+          o += `<text x="${cx}" y="${cy + 4}" text-anchor="middle" font-size="${lit > 0.5 ? 13 : 11}" font-weight="600" letter-spacing="2" fill="#c4b0ff" opacity="${lineOp * lp}">THE STORE ROOM</text>`;
+          if (lit < 0.5)
+            o += `<polygon data-hit="room" points="${pts.map((p) => p.join(",")).join(" ")}" fill="transparent" stroke="none"/>`;
+          else
+            o += `<polygon data-hit="open" points="${pts.map((p) => p.join(",")).join(" ")}" fill="transparent" stroke="none"/>`;
+        }
+        // folate: an empty dotted ring
+        {
+          const [x, y] = P(POS.folate);
+          const op = (0.55 + 0.45 * lit) * lineOp;
+          o += `<circle cx="${x}" cy="${y}" r="${7 * kk}" fill="none" stroke="#c4b0ff" stroke-opacity="${op}" stroke-dasharray="1.5 3" stroke-width="1.3"/>`;
+          o += label(
+            x,
+            y,
+            "b",
+            "Folate",
+            "never measured",
+            "#c4b0ff",
+            op,
+            9 * kk,
+          );
+        }
+        // genes: fixed stars
+        DATA.genes.forEach((g) => {
+          const [x, y] = P(POS[g.gene]);
+          const op = fade(g.gene) * (1 - lab * 0.6) * (fade(g.gene) < 1 ? clamp(1 - 2 * lit, 0, 1) : 1);
+          const r = 3.2 * kk;
+          o += `<rect x="${x - r}" y="${y - r}" width="${2 * r}" height="${2 * r}" transform="rotate(45 ${x} ${y})" fill="none" stroke="#c4b0ff" stroke-width="1.2" opacity="${op}"/>`;
+          const p = { ...POS[g.gene] };
+          const gw = (g.gene.length + g.call.length + 1) * 6.1;
+          if (p.lab === "r" && x + 8 * kk + gw > W + 12) p.lab = "b";
+          const tx =
+            p.lab === "r" ? x + 8 * kk : p.lab === "l" ? x - 8 * kk : x;
+          const ty = p.lab === "b" ? y + 16 * kk : y + 4;
+          const an = p.lab === "r" ? "start" : p.lab === "l" ? "end" : "middle";
+          o += `<text x="${tx}" y="${ty}" text-anchor="${an}" font-size="11" fill="#c9b9cc" opacity="${op}">${g.gene} <tspan fill="#a695aa">${g.call}</tspan></text>`;
+        });
+        // the stars
+        for (const k of Object.keys(DATA.series)) {
+          const S = STAR[k];
+          const p = POS[k];
+          const [x, y] = P(p);
+          const b = lerp(S.b, S.bLab, lab);
+          const op = fade(k);
+          const warm = S.z > 0;
+          const grad =
+            lab > 0.5 ? `gw${ph.id}` : warm ? `gw${ph.id}` : `gc${ph.id}`;
+          const hr = (8 + 30 * b) * kk;
+          if (b > 0.02)
+            o += `<circle cx="${x}" cy="${y}" r="${hr}" fill="url(#${grad})" opacity="${(0.25 + 0.75 * b) * op}"/>`;
+          const cr = (1.4 + 3.4 * b) * kk;
+          if (b > 0.45) {
+            const L = (8 + 18 * b) * kk;
+            o += `<path d="M${x - L} ${y}H${x + L}M${x} ${y - L}V${y + L}" stroke="#fff6e6" stroke-width=".8" stroke-opacity="${0.5 * op}"/>`;
+          }
+          o += `<circle class="core" style="animation-delay:-${(p.x % 9).toFixed(1)}s" cx="${x}" cy="${y}" r="${cr}" fill="#fff6e6" opacity="${(0.55 + 0.45 * b) * op}"/>`;
+          if (S.thin && lab < 0.5)
+            o += `<circle cx="${x}" cy="${y}" r="${cr + 3}" fill="none" stroke="#fff6e6" stroke-opacity="${0.35 * op}" stroke-width=".8"/>`;
+          // dimmed back: dotted ring at the brightness it once had
+          if (GOOD.includes(k) && lab < 0.5) {
+            const gr =
+              (1.4 + (3.4 * Math.min(S.peak, 4)) / 4) * kk +
+              ((8 * Math.min(S.peak, 4)) / 4) * kk +
+              4;
+            o += `<circle cx="${x}" cy="${y}" r="${gr}" fill="none" stroke="#9fe0b5" stroke-opacity="${0.7 * op * (1 - lab)}" stroke-dasharray="1.5 3" stroke-width="1.2"/>`;
+          }
+          const zc =
+            lab > 0.5
+              ? "#c9b9cc"
+              : Math.abs(S.z) < 0.75
+                ? "#c9b9cc"
+                : warm
+                  ? "#ffb27a"
+                  : "#8fd0ff";
+          let sub = `${fmt(S.last)} · z ${sgn(S.z)}`;
+          if (lab > 0.5)
+            sub = `${fmt(S.last)} · lab ${S.s.lab[0]}–${S.s.lab[1]}`;
+          else if (GOOD.includes(k)) sub = `${fmt(S.last)} · dimmed back`;
+          const nameOp = (0.78 + 0.22 * b) * op * (op < 1 ? clamp(1 - 2 * lit, 0, 1) : 1);
+          const gOff = GOOD.includes(k) && lab < 0.5 ? (1.4 + (3.4 * Math.min(S.peak, 4)) / 4) * kk + ((8 * Math.min(S.peak, 4)) / 4) * kk + 8 : 0;
+          o += label(x, y, p.lab, S.s.label, sub, zc, nameOp, Math.max(cr + 6, gOff), k);
+        }
+        ph.svg.innerHTML = o;
+      }
+      function label(x, y, side, name, sub, subc, op, off, key) {
+        const wd = Math.max(name.length, sub.length) * 6.1;
+        if (side === "r" && x + off + wd > W + 12) side = "l";
+        else if (side === "l" && x - off - wd < -12) side = "r";
+        const an = side === "r" ? "start" : side === "l" ? "end" : "middle";
+        const tx = side === "r" ? x + off : side === "l" ? x - off : x;
+        const ty = side === "b" ? y + off + 10 : y - 2;
+        return `<g opacity="${op.toFixed(2)}" ${key ? `data-star="${key}"` : ""}><text x="${tx}" y="${ty}" text-anchor="${an}" font-size="11" font-weight="500" fill="#f6eddc">${name}</text><text x="${tx}" y="${ty + 13}" text-anchor="${an}" font-size="11" fill="${subc}">${sub}</text></g>`;
+      }
+
+      /* ================= the hunch card ================= */
+      const GLYPH = (g) =>
+        g === "A" || g === "B" ? "●" : g === "C" ? "◐" : "○";
+      const EXPL = CLUSTER.explanations.map((e, i) => ({ ...e, i }));
+      EXPL.push({
+        t: "Heavy training this year, which uses more iron",
+        p: null,
+        g: "hyp",
+        i: 4,
+      });
+      const LIKE = {
+        meat: [3, 0.7, 0.8, 1.2],
+        supp: [2.5, 0.7, 0.8, 1.5],
+        none: [0.3, 2.5, 1.6, 1.3],
+      };
+      const ANSWERS = [
+        ["meat", "Ate less red meat"],
+        ["supp", "Stopped a supplement"],
+        ["none", "Nothing changed"],
+      ];
+      const PRED = [
+        [
+          "Transferrin saturation low, folate normal or low.",
+          "Ferritin climbs back after three months of more intake.",
+        ],
+        [
+          "Folate and iron low together while intake stayed the same.",
+          "Next step would be tTG-IgA.",
+        ],
+        [
+          "Transferrin saturation low, folate normal.",
+          "A donation or a blood loss since 2021 you can name.",
+        ],
+        ["Folate under 6 ng/mL.", "Homocysteine falls once folate is taken."],
+        [
+          "Nothing in this test separates it.",
+          "Kept as a hypothesis, no prior.",
+        ],
+      ];
+
+      function chartSVG(key) {
+        const S = STAR[key],
+          s = S.s;
+        const w = 316,
+          h = 176,
+          L = 30,
+          R = 34,
+          T = 16,
+          B = 20;
+        const ts = s.pts.map((p) => Date.parse(p[0]));
+        const vals = s.pts.map((p) => p[1]);
+        const [m, sd] = S.band;
+        const dMax = Math.max(...vals, m + sd),
+          dMin = Math.min(...vals, m - sd);
+        const [labLo, labHi] = s.lab;
+        let lo = Math.min(labLo, dMin);
+        let hi = Math.min(labHi, dMax * 1.3);
+        const labHiOn = labHi <= hi + 1e-9;
+        const pad = (hi - lo) * 0.05;
+        lo -= pad;
+        hi += labHiOn ? pad : 0;
+        const X = (t) =>
+          L + ((t - ts[0]) / (ts[ts.length - 1] - ts[0])) * (w - L - R);
+        const Y = (v) => T + (1 - (v - lo) / (hi - lo)) * (h - T - B);
+        let o = `<svg class="ch" viewBox="0 0 ${w} ${h}">`;
+        // own band: soft fill with edges
+        const by1 = Y(m + sd),
+          by2 = Y(m - sd);
+        o += `<g class="ch-band"><rect x="${L}" y="${by1}" width="${w - L - R}" height="${by2 - by1}" fill="rgba(108,74,166,.2)"/><line x1="${L}" x2="${w - R}" y1="${by1}" y2="${by1}" stroke="#6c4aa6" stroke-width="1"/><line x1="${L}" x2="${w - R}" y1="${by2}" y2="${by2}" stroke="#6c4aa6" stroke-width="1"/></g>`;
+        o += `<text x="${w - R + 4}" y="${by1 + 4}" style="fill:#6c4aa6">${fmt(m + sd)}</text><text x="${w - R + 4}" y="${by2 + 4}" style="fill:#6c4aa6">${fmt(m - sd)}</text>`;
+        o += `<text x="${w - R - 4}" y="${by1 - 5}" text-anchor="end" style="fill:#6c4aa6;font-weight:600">your band</text>`;
+        // lab range: thin dashed lines
+        const labLine = (v, word) => {
+          const y = Y(v);
+          o += `<line x1="${L}" x2="${w - R}" y1="${y}" y2="${y}" stroke="#6f5a72" stroke-dasharray="4 3" stroke-width="1"/>`;
+          o += `<text x="${w - R + 4}" y="${y + 4}">${fmt(v)}</text>`;
+          o += `<text x="${L + 5}" y="${y + (word === "lo" ? -5 : 13)}">lab ${word === "lo" ? "lower" : "upper"} line</text>`;
+        };
+        if (labLo >= lo && labLo > 0) labLine(labLo, "lo");
+        if (labHiOn) labLine(labHi, "hi");
+        else
+          o += `<text x="${w - R}" y="${T - 4}" text-anchor="end">lab upper line ${fmt(labHi)}, above ↑</text>`;
+        // y ticks
+        o += `<text x="${L - 5}" y="${h - B + 4}" text-anchor="end">${fmt(+(lo + pad).toFixed(1))}</text>`;
+        // x years
+        const y0 = s.pts[0][0].slice(0, 4),
+          y1 = s.pts[s.pts.length - 1][0].slice(0, 4);
+        o += `<text x="${L}" y="${h - 4}">${y0}</text><text x="${w - R}" y="${h - 4}" text-anchor="end">${y1}</text>`;
+        // line and dots
+        const d = s.pts
+          .map(
+            (p, i) =>
+              `${i ? "L" : "M"}${X(ts[i]).toFixed(1)} ${Y(p[1]).toFixed(1)}`,
+          )
+          .join("");
+        o += `<path class="ch-line" d="${d}" stroke="#2b1033" stroke-width="1.5" fill="none" stroke-dasharray="900" stroke-dashoffset="900"/>`;
+        s.pts.forEach((p, i) => {
+          const last = i === s.pts.length - 1;
+          const out = last && Math.abs(S.z) >= 1.5;
+          const c = out ? "#c23a5e" : "#2b1033";
+          o += `<g class="ch-dot" style="transition-delay:${200 + i * 80}ms">`;
+          if (last)
+            o += `<circle cx="${X(ts[i])}" cy="${Y(p[1])}" r="7" fill="none" stroke="${c}" stroke-width="1.5"/>`;
+          o += `<circle cx="${X(ts[i])}" cy="${Y(p[1])}" r="${last ? 4 : 3}" fill="${c}"/>`;
+          if (last)
+            o += `<text x="${X(ts[i]) - 10}" y="${Y(p[1]) + (S.z < 0 ? 20 : -11)}" text-anchor="end" style="fill:${c};font-weight:600">${fmt(p[1])}</text>`;
+          o += `</g>`;
+        });
+        return o + `</svg>`;
+      }
+      function verdict(key) {
+        const S = STAR[key],
+          s = S.s;
+        const inLab = S.labD === 0;
+        const [m, sd] = S.band;
+        const where =
+          Math.abs(S.z) < 1
+            ? "inside your own band"
+            : S.z < 0
+              ? "below your own band"
+              : "above your own band";
+        return `${inLab ? "Inside" : "Outside"} the lab's range (${s.lab[0]} to ${s.lab[1]}). ${where[0].toUpperCase() + where.slice(1)} (${fmt(m - sd)} to ${fmt(m + sd)}): <b>z ${sgn(S.z)}</b>${S.thin ? `, from only ${S.prior} earlier draws` : ""}.`;
+      }
+
+      function cardHTML() {
+        const sel = CL[0];
+        return `<div class="in">
+          <div class="c-top"><button class="c-back">‹ Sky</button><svg class="emb" viewBox="30 50 190 170">${
+            `<polygon points="${CL.map((k) => POS[k].x + "," + POS[k].y).join(" ")}" fill="rgba(108,74,166,.12)" stroke="#6c4aa6" stroke-width="5"/>` +
+            CL.map(
+              (k) =>
+                `<circle cx="${POS[k].x}" cy="${POS[k].y}" r="${9 + 14 * STAR[k].b}" fill="#2b1033"/>`,
+            ).join("")
+          }</svg></div>
+          <span class="stamp">CLUSTER · ${CLUSTER.system.toUpperCase()} · THE STORE ROOM</span>
+          <h3>${CLUSTER.title}</h3>
+          <p class="say">${CLUSTER.say}</p>
+          <div class="tabs">${CL.map((k) => `<button class="tab ${k === sel ? "on" : ""}" data-k="${k}"><span class="sd"></span><b>${STAR[k].s.label.replace("Vitamin ", "Vit. ")}</b><small>z ${sgn(STAR[k].z)}</small></button>`).join("")}</div>
+          <div class="chartbox"><div class="ch-h"><b class="ch-n"></b><span class="ch-u"></span></div><div class="ch-w"></div>
+            <div class="legend"><span><i class="lg-band"></i>your band, from your draws</span><span><i class="lg-lab"></i>the lab's range</span></div>
+          </div>
+          <p class="verdict"></p>
+          <div class="sec-h"><span>What could explain it</span><em>● A/B · ◐ C · ○ hypothesis</em></div>
+          <div class="ex" style="height:${EXPL.length * 47}px">${EXPL.map((e) => `<div class="xr ${e.p == null ? "hyp" : ""}" data-i="${e.i}"><span class="g">${GLYPH(e.g)}</span><span class="t">${e.t} <small>${e.p == null ? "hypothesis" : e.g}</small></span><span class="pc">${e.p == null ? "" : Math.round(e.p * 100) + "%"}</span><span class="tr">${e.p == null ? "" : `<i style="width:${e.p * 100}%"></i>`}</span></div>`).join("")}</div>
+          <div class="sec-h"><span>One question first</span><em>free</em></div>
+          <div class="q"><p>${CLUSTER.question}</p><div class="chips">${ANSWERS.map(([k, t]) => `<button class="chip" data-a="${k}">${t}</button>`).join("")}</div></div>
+          <div class="sec-h"><span>The test that separates them</span></div>
+          <div class="test"><div><b>${CLUSTER.test.name}</b><small>${CLUSTER.test.price} ${CLUSTER.test.currency} · one draw, splits intake from folate</small></div><button class="btn acc">Accept</button><span class="wstamp">WRITTEN DOWN 26 SEP</span></div>
+          <div class="preds"></div>
+          <div class="demo"><span class="lbl">Demo: play the result arriving (not a reading)</span>${["confirmed", "ruled out", "faded"].map((t, i) => `<button class="chip ${i ? "" : "on"}" data-o="${t}">${t}</button>`).join("")}<button class="btn play" disabled>Play result</button></div>
+          <div class="closed"></div>
+        </div>`;
+      }
+      function showChart(ph, key, delay = 0) {
+        const c = ph.card;
+        c.querySelectorAll(".tab").forEach((t) =>
+          t.classList.toggle("on", t.dataset.k === key),
+        );
+        const S = STAR[key];
+        c.querySelector(".ch-n").textContent = S.s.label + " · " + S.s.unit;
+        c.querySelector(".ch-u").textContent =
+          `last ${fmt(S.last)} · ${monYr(S.s.pts[S.s.pts.length - 1][0])}`;
+        c.querySelector(".ch-w").innerHTML = chartSVG(key);
+        c.querySelector(".verdict").innerHTML = verdict(key);
+        const svg = c.querySelector("svg.ch");
+        const path = svg.querySelector(".ch-line");
+        const len = path.getTotalLength();
+        path.style.strokeDasharray = len;
+        path.style.strokeDashoffset = len;
+        svg.getBoundingClientRect();
+        setTimeout(() => requestAnimationFrame(() =>
+          requestAnimationFrame(() => svg.classList.add("go")),
+        ), delay);
+      }
+      function layoutEx(ph) {
+        const rows = [...ph.card.querySelectorAll(".xr")];
+        const order = [...ph.post.map((p, i) => ({ p, i }))]
+          .sort((a, b) => b.p - a.p)
+          .map((o) => o.i);
+        order.push(4);
+        rows.forEach((r) => {
+          const i = +r.dataset.i;
+          r.style.top = order.indexOf(i) * 47 + "px";
+          if (i < 4) {
+            r.querySelector(".tr i").style.width = ph.post[i] * 100 + "%";
+            r.querySelector(".pc").textContent =
+              Math.round(ph.post[i] * 100) + "%";
+          }
+        });
+        ph.order = order;
+      }
+      function answer(ph, a) {
+        ph.card
+          .querySelectorAll(".chip[data-a]")
+          .forEach((c) => c.classList.toggle("on", c.dataset.a === a));
+        const raw = EXPL.slice(0, 4).map((e, i) => e.p * LIKE[a][i]);
+        const sum = raw.reduce((x, y) => x + y, 0);
+        ph.post = raw.map((r) => r / sum);
+        layoutEx(ph);
+        if (ph.written) writePreds(ph, false);
+      }
+      function writePreds(ph, anim = true) {
+        const box = ph.card.querySelector(".preds");
+        box.innerHTML = ph.order
+          .map((i) => {
+            const e = EXPL[i];
+            return `<div class="pr ${anim ? "" : "shown"}" data-i="${i}"><span class="g">${GLYPH(e.g)}</span><div><b>If ${(e.t[0].toLowerCase() + e.t.slice(1)).replace(/^absorption: /, "absorption (")}${/^Absorption/.test(e.t) ? ")" : ""}</b><span>${PRED[i].join(" ")}</span></div></div>`;
+          })
+          .join("");
+        if (anim)
+          [...box.children].forEach((el, j) =>
+            setTimeout(() => el.classList.add("shown"), 120 + j * 160),
+          );
+      }
+      function accept(ph) {
+        if (ph.written) return;
+        ph.written = true;
+        ph.card.querySelector(".test").classList.add("written");
+        const b = ph.card.querySelector(".acc");
+        b.textContent = "Accepted";
+        b.disabled = true;
+        ph.card.querySelector(".play").disabled = false;
+        writePreds(ph);
+        island(
+          ph,
+          "✎",
+          "Written down · 26 Sep",
+          `${CLUSTER.test.name} · ${EXPL.length} predictions kept`,
+        );
+      }
+      function play(ph) {
+        if (!ph.written || ph.closed) return;
+        const out = ph.card.querySelector(".chip[data-o].on").dataset.o;
+        ph.closed = true;
+        ph.card.querySelector(".play").disabled = true;
+        island(
+          ph,
+          "✦",
+          "Result in · " + CLUSTER.test.name,
+          "Demo, not a reading · reading it now",
+          1800,
+        );
+        setTimeout(() => {
+          const top = ph.order[0];
+          const rows = [...ph.card.querySelectorAll(".xr")];
+          const prs = [...ph.card.querySelectorAll(".pr")];
+          let head, sub;
+          if (out === "confirmed") {
+            rows.forEach((r) =>
+              r.classList.add(+r.dataset.i === top ? "win" : "out"),
+            );
+            prs.forEach((r) =>
+              r.classList.add(+r.dataset.i === top ? "win" : "out"),
+            );
+            head = "Closed · confirmed";
+            sub = `${EXPL[top].t}. The engine takes it from here, like any other result.`;
+          } else if (out === "ruled out") {
+            rows.forEach((r) => r.classList.add("out"));
+            prs.forEach((r) => r.classList.add("out"));
+            head = "Closed · ruled out";
+            sub = "No explanation held. Kept on the sky as seen, unexplained.";
+          } else {
+            head = "Closed · faded";
+            sub =
+              "The next draw came back into your band. The Store Room dims.";
+          }
+          const c = ph.card.querySelector(".closed");
+          c.innerHTML = `<b>${head}</b><small>${sub} One row for the calibration log.</small>`;
+          c.classList.add("show");
+          ph.card.scrollTo({ top: ph.card.scrollHeight, behavior: "smooth" });
+          if (out === "faded") {
+            ph.st.faded = true;
+            drawSky(ph);
+          }
+          island(
+            ph,
+            out === "confirmed" ? "✓" : "○",
+            head,
+            out === "confirmed" ? EXPL[top].t : sub,
+          );
+        }, 1900);
+      }
+
+      /* ================= the island ================= */
+      function island(ph, ico, t, s, ms = 2600) {
+        const el = ph.el;
+        el.querySelector(".island .ico").textContent = ico;
+        el.querySelector(".island .ix b").textContent = t;
+        el.querySelector(".island .ix small").textContent = s;
+        el.classList.add("live");
+        clearTimeout(ph.it);
+        ph.it = setTimeout(() => el.classList.remove("live"), ms);
+      }
+
+      /* ================= a phone ================= */
+      function mount(id, state) {
+        const el = document.getElementById(id);
+        const ph = {
+          id,
+          el,
+          st: { view: { ...FULL }, labT: 0, lit: 0, lineP: 0, faded: false },
+          post: EXPL.slice(0, 4).map((e) => e.p),
+        };
+        const open = OPEN.length;
+        const dark = DATA.heading
+          .filter((h) => h.word === "unmeasured")
+          .map((h) => h.sys);
+        el.innerHTML = `
+          <div class="island"><div class="compact"><span>✦</span><span>${open}</span></div><div class="expanded"><span class="ico"></span><div class="ix"><b></b><small></small></div></div></div>
+          <div class="status"><span>9:41</span><span class="sb">5G <i></i></span></div>
+          <div class="skyscreen">
+            <div class="sk-head"><button class="back">‹</button><div><h2>Tonight's sky</h2><p class="meta">Last draw ${DATA.person.daysSinceDraw} days ago · ${DATA.person.systemsMeasured} of ${DATA.person.systemsTotal} systems measured · ${open} hunches open</p></div></div>
+            <div class="seg"><span class="pill"></span><button class="on" data-m="you">Your sky</button><button data-m="lab">The lab's sky</button></div>
+            <div class="skywrap"><svg class="sky" viewBox="0 0 ${W} ${H}"></svg></div>
+            <p class="skycap"></p>
+            <div class="list"></div>
+          </div>
+          <div class="peek"></div>
+          <div class="card"></div>`;
+        ph.svg = el.querySelector("svg.sky");
+        ph.card = el.querySelector(".card");
+        // list
+        const rv = (h) => {
+          if (h.kind === "cluster") return `${h.series.length} stars`;
+          if (h.kind === "step") return `z ${sgn(STAR[h.series].z)}`;
+          if (h.kind === "drift")
+            return `${sgn(DATA.series[h.series].slopeRecent)}/yr`;
+          if (h.kind === "gap") return "never measured";
+          return `${fmt(STAR[h.series].last)} now`;
+        };
+        const row = (h, dim) =>
+          `<button class="row ${dim ? "dim" : ""}" data-h="${h.id}"><span class="gl" style="color:${dim ? "#9fe0b5" : h.kind === "cluster" ? "#c4b0ff" : "#f6eddc"}">${dim ? "◌" : h.kind === "gap" ? "◌" : h.kind === "cluster" ? "✦" : "✧"}</span><span class="tt"><small>${h.kind.replace("_", " ")} · ${h.system}</small><b>${h.kind === "cluster" ? "The Store Room: " : ""}${h.title}</b></span><span class="rv">${rv(h)}</span></button>`;
+        el.querySelector(".list").innerHTML =
+          `<div class="lh">Shining tonight · ${open}</div>` +
+          OPEN.map((h) => row(h, false)).join("") +
+          `<div class="lh" style="margin-top:13px">Dimmed back · ${GOOD.length}</div>` +
+          DATA.hunches
+            .filter((h) => h.kind === "good_news")
+            .map((h) => row(h, true))
+            .join("") +
+          `<div class="lh" style="margin-top:13px">Uncharted · ${dark.length}</div><p style="color:#a695aa;padding:8px 0">${dark.join(", ")}: no draws yet, so no stars.</p>`;
+        // peek
+        el.querySelector(".peek").innerHTML =
+          `<span class="stamp">CLUSTER · ${CL.length} STARS · ${CLUSTER.system.toUpperCase()}</span>
+          <h3>The Store Room: ${CLUSTER.title.toLowerCase()}</h3><p>${CLUSTER.say}</p>
+          <div class="pk-stars">${CL.map((k) => `<div><small>${STAR[k].s.label.replace("Vitamin ", "Vit. ")}</small><b>${fmt(STAR[k].last)}</b><em style="color:${STAR[k].z > 0 ? "#ffb27a" : "#8fd0ff"}">z ${sgn(STAR[k].z)} ${STAR[k].z > 0 ? "↑" : "↓"}</em></div>`).join("")}</div>
+          <button class="open">Open the hunch</button>`;
+        ph.card.innerHTML = cardHTML();
+        setCap(ph);
+        // events
+        el.querySelector(".seg").addEventListener("click", (e) => {
+          const b = e.target.closest("button");
+          if (!b) return;
+          const to = b.dataset.m === "lab" ? 1 : 0;
+          el.querySelectorAll(".seg button").forEach((x) =>
+            x.classList.toggle("on", x === b),
+          );
+          el.querySelector(".seg").classList.toggle("lab", to === 1);
+          const from = ph.st.labT;
+          tween(
+            940,
+            (t) => {
+              ph.st.labT = lerp(from, to, t);
+              drawSky(ph);
+            },
+            () => setCap(ph),
+          );
+        });
+        ph.svg.addEventListener("click", (e) => {
+          const h = e.target.closest("[data-hit]");
+          if (!h || ph.st.labT > 0.5) return;
+          if (h.dataset.hit === "room") light(ph);
+          else openCard(ph);
+        });
+        el.querySelector(".list").addEventListener("click", (e) => {
+          const r = e.target.closest("[data-h]");
+          if (r && r.dataset.h === "iron") light(ph);
+        });
+        el.querySelector(".back").addEventListener("click", () => unlight(ph));
+        el.querySelector(".open").addEventListener("click", () => openCard(ph));
+        ph.card
+          .querySelector(".c-back")
+          .addEventListener("click", () => closeCard(ph));
+        ph.card.querySelector(".tabs").addEventListener("click", (e) => {
+          const t = e.target.closest(".tab");
+          if (t) showChart(ph, t.dataset.k);
+        });
+        ph.card.querySelector(".q").addEventListener("click", (e) => {
+          const c = e.target.closest("[data-a]");
+          if (c) answer(ph, c.dataset.a);
+        });
+        ph.card
+          .querySelector(".acc")
+          .addEventListener("click", () => accept(ph));
+        ph.card.querySelector(".demo").addEventListener("click", (e) => {
+          const c = e.target.closest("[data-o]");
+          if (c)
+            ph.card
+              .querySelectorAll("[data-o]")
+              .forEach((x) => x.classList.toggle("on", x === c));
+          if (e.target.closest(".play")) play(ph);
+        });
+        layoutEx(ph);
+        // initial state
+        if (state === "sky") {
+          tween(1400, (t) => {
+            ph.st.lineP = t;
+            drawSky(ph);
+          });
+        } else if (state === "lit") {
+          drawSky(ph);
+          setTimeout(() => light(ph), 300);
+        } else if (state === "card") {
+          ph.st.lineP = 1;
+          ph.st.lit = 1;
+          ph.st.view = { ...LITV };
+          el.classList.add("lit");
+          drawSky(ph);
+          setTimeout(() => openCard(ph), 300);
+        }
+        return ph;
+      }
+      function setCap(ph) {
+        const keys = Object.keys(STAR);
+        const cap = ph.el.querySelector(".skycap");
+        if (ph.st.labT > 0.5) {
+          const out = keys.filter((k) => STAR[k].labD > 0);
+          cap.innerHTML = `Brightness here is distance outside the lab range. <b>${out.length} of ${keys.length}</b> stars show: ${out.map((k) => `${STAR[k].s.label} ${fmt(STAR[k].last)}, over ${STAR[k].s.lab[1]}`).join("; ")}. No shapes: the lab reads each marker alone.`;
+        } else {
+          const bright = keys.filter((k) => Math.abs(STAR[k].z) >= 2);
+          cap.innerHTML = `Brightness is distance from your own band. <b>${bright.length} of ${keys.length}</b> past z 2 (${bright.map((k) => STAR[k].s.label).join(", ")}), and <b>one shape</b> lit. Warm rises, cool falls.`;
+        }
+      }
+      function light(ph) {
+        if (ph.el.classList.contains("lit")) return;
+        ph.el.classList.add("lit");
+        const v0 = { ...ph.st.view };
+        const l0 = ph.st.lineP;
+        tween(940, (t) => {
+          ph.st.view = {
+            cx: lerp(v0.cx, LITV.cx, t),
+            cy: lerp(v0.cy, LITV.cy, t),
+            k: lerp(v0.k, LITV.k, t),
+          };
+          ph.st.lit = t;
+          ph.st.lineP = Math.max(l0, t);
+          drawSky(ph);
+        });
+      }
+      function unlight(ph) {
+        ph.el.classList.remove("lit");
+        const v0 = { ...ph.st.view };
+        tween(940, (t) => {
+          ph.st.view = {
+            cx: lerp(v0.cx, FULL.cx, t),
+            cy: lerp(v0.cy, FULL.cy, t),
+            k: lerp(v0.k, FULL.k, t),
+          };
+          ph.st.lit = 1 - t;
+          drawSky(ph);
+        });
+      }
+      function openCard(ph) {
+        const el = ph.el;
+        if (el.classList.contains("carded")) return;
+        if (!el.classList.contains("lit")) light(ph);
+        const sky = ph.svg.getBoundingClientRect(),
+          pr = el.getBoundingClientRect();
+        const ox = sky.left - pr.left - 8,
+          oy = sky.top - pr.top - 8; // 8 = frame border
+        const [cx, cy] = ph.centroid;
+        const at = `${(ox + cx).toFixed(0)}px ${(oy + cy).toFixed(0)}px`;
+        const card = ph.card;
+        card.style.transition = "none";
+        card.style.clipPath = `circle(0px at ${at})`;
+        el.classList.add("carded");
+        card.scrollTop = 0;
+        // four stars fly to their tabs
+        const v = ph.st.view;
+        card.getBoundingClientRect();
+        CL.forEach((k, i) => {
+          const sx = ox + (POS[k].x - v.cx) * v.k + W / 2,
+            sy = oy + (POS[k].y - v.cy) * v.k + H / 2;
+          const tab = card
+            .querySelectorAll(".tab .sd")
+            [i].getBoundingClientRect();
+          const tx = tab.left - pr.left - 8 + 4,
+            ty = tab.top - pr.top - 8 + 4;
+          const d = document.createElement("i");
+          d.className = "fly";
+          d.style.left = sx + "px";
+          d.style.top = sy + "px";
+          el.appendChild(d);
+          requestAnimationFrame(() =>
+            requestAnimationFrame(() => {
+              d.style.transform = `translate(${tx - sx}px, ${ty - sy}px) scale(.8)`;
+              d.style.opacity = "0";
+            }),
+          );
+          setTimeout(() => d.remove(), 1300);
+        });
+        requestAnimationFrame(() =>
+          requestAnimationFrame(() => {
+            card.style.transition =
+              "clip-path 940ms cubic-bezier(.16,.84,.24,1)";
+            card.style.clipPath = `circle(1000px at ${at})`;
+          }),
+        );
+        showChart(ph, CL[0], 470);
+      }
+      function closeCard(ph) {
+        const card = ph.card;
+        const m = card.style.clipPath.match(/at (.+)\)/);
+        const at = m ? m[1] : "50% 50%";
+        card.style.clipPath = `circle(0px at ${at})`;
+        setTimeout(() => ph.el.classList.remove("carded"), 940);
+      }
+
+      /* ================= notes table ================= */
+      (function () {
+        const t = document.getElementById("startable");
+        let o = `<tr><th>Star</th><th class="n">Last</th><th class="n">Band</th><th>From</th><th class="n">z</th><th class="n">Bright</th></tr>`;
+        for (const k of Object.keys(STAR)) {
+          const S = STAR[k];
+          o += `<tr><td>${S.s.label}${GOOD.includes(k) ? ` <span style="color:#9fe0b5">dimmed back from z ${S.peak.toFixed(1)}, ${monYr(S.peakDate)}</span>` : ""}</td><td class="n">${fmt(S.last)}</td><td class="n">${fmt(S.band[0])} ± ${fmt(S.band[1])}</td><td>${S.source}, ${S.prior} draws</td><td class="n">${sgn(S.z)}</td><td class="n">${Math.round(S.b * 100)}%</td></tr>`;
+        }
+        t.innerHTML = o;
+      })();
+
+      const P1 = mount("p1", "sky");
+      const P2 = mount("p2", "lit");
+      const P3 = mount("p3", "card");
+      // #lab opens phone 1 on the lab's sky; #flow runs answer, accept and play on phone 3
+      if (location.hash === "#lab") setTimeout(() => P1.el.querySelector('[data-m="lab"]').click(), 1500);
+      if (location.hash === "#flow") {
+        setTimeout(() => answer(P3, "none"), 1500);
+        setTimeout(() => accept(P3), 2200);
+        setTimeout(() => play(P3), 3000);
+        setTimeout(() => light(P1), 1500);
+        setTimeout(() => openCard(P2), 1500);
+      }
+    </script>
+  </body>
+</html>

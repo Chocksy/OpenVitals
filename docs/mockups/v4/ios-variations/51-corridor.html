@@ -1,0 +1,2611 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Corridor · iOS variation 51 · OpenVitals</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --plum-0: #1e0a24;
+        --plum: #2b1033;
+        --plum-2: #3d1947;
+        --plum-3: #5a2d66;
+        --mist: #cdb8d2;
+        --paper: #f3ead8;
+        --paper-2: #ebdfc7;
+        --paper-3: #dccbad;
+        --card: #fffdf8;
+        --cream: #f6eddc;
+        --ink: #2b1033;
+        --ink-2: #6f5a72;
+        --ink-3: #a08fa0;
+        --line: #eadfcb;
+        --life: #e4722f;
+        --blood: #c23a5e;
+        --gene: #6c4aa6;
+        --life-l: #f59257;
+        --blood-l: #ea6a8d;
+        --gene-l: #a98ae6;
+        --green: #23995d;
+        --green-soft: #d9efdf;
+        --amber: #c98512;
+        --amber-soft: #f6e3bf;
+        --rose: #d2415b;
+        --rose-soft: #f8dbe0;
+        --lime: #d6f34a;
+        --s3: 3px;
+        --s5: 5px;
+        --s8: 8px;
+        --s13: 13px;
+        --s21: 21px;
+        --s34: 34px;
+        --s55: 55px;
+        --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+        --spring: cubic-bezier(0.3, 1.35, 0.5, 1);
+        --ispring: cubic-bezier(0.34, 1.4, 0.64, 1);
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--paper-2);
+        background-image: var(--noise);
+        background-size: 128px 128px;
+        color: var(--ink);
+        font:
+          15px/1.4 "Space Grotesk",
+          -apple-system,
+          system-ui,
+          sans-serif;
+        font-feature-settings: "tnum";
+      }
+      button {
+        font: inherit;
+        color: inherit;
+        background: none;
+        border: 0;
+        padding: 0;
+        cursor: pointer;
+        -webkit-tap-highlight-color: transparent;
+        text-align: left;
+      }
+      h1,
+      h2,
+      h3,
+      p {
+        margin: 0;
+      }
+      svg {
+        width: 20px;
+        height: 20px;
+        stroke: currentColor;
+        fill: none;
+        stroke-width: 1.8;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+
+      /* ---- page ---- */
+      .doc {
+        max-width: 1290px;
+        margin: 0 auto;
+        padding: var(--s21) var(--s21) var(--s55);
+      }
+      .doc > header {
+        margin-bottom: var(--s21);
+        display: grid;
+        grid-template-columns: 1fr 1.7fr;
+        gap: var(--s34);
+        align-items: end;
+      }
+      .eyebrow {
+        color: var(--ink-2);
+        font-size: 13px;
+        margin-bottom: var(--s5);
+        letter-spacing: 0.04em;
+      }
+      .doc h1 {
+        font-size: 34px;
+        font-weight: 600;
+        letter-spacing: -0.04em;
+        line-height: 1;
+      }
+      .lede {
+        color: var(--ink-2);
+        font-size: 13px;
+        margin-top: var(--s8);
+        max-width: 50ch;
+      }
+      .direction {
+        background: var(--card);
+        border-radius: 21px;
+        padding: var(--s13) var(--s21);
+        font-size: 13px;
+        display: grid;
+        grid-template-columns: 89px 1fr;
+        gap: var(--s3) var(--s13);
+        color: var(--ink-2);
+        box-shadow: 0 13px 34px -21px rgba(43, 16, 51, 0.35);
+      }
+      .direction b {
+        color: var(--ink);
+        font-weight: 500;
+      }
+      .phones {
+        display: flex;
+        gap: var(--s34);
+        justify-content: center;
+        flex-wrap: wrap;
+      }
+      .cap {
+        display: flex;
+        justify-content: space-between;
+        color: var(--ink-2);
+        font-size: 13px;
+        margin-bottom: var(--s13);
+        width: 390px;
+      }
+
+      /* ---- phone ---- */
+      .phone {
+        width: 390px;
+        height: 844px;
+        border-radius: 55px;
+        border: 8px solid #1a0b1d;
+        background-color: var(--paper);
+        background-image: var(--noise);
+        background-size: 128px 128px;
+        box-shadow:
+          0 0 0 1px #3d1947,
+          0 55px 89px -34px rgba(43, 16, 51, 0.55);
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        user-select: none;
+      }
+      .status {
+        height: 55px;
+        flex: none;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        padding: 0 var(--s34) var(--s8);
+        font-size: 14px;
+        font-weight: 600;
+        position: relative;
+      }
+      .status i {
+        position: absolute;
+        left: 50%;
+        top: 13px;
+        width: 120px;
+        height: 34px;
+        border-radius: 21px;
+        background: #0b030d;
+        transform: translateX(-50%);
+      }
+      .hd {
+        flex: none;
+        background:
+          radial-gradient(70% 90% at 15% 0%, #4d1d58 0%, transparent 70%),
+          var(--plum);
+        color: var(--cream);
+        border-radius: 0 0 34px 34px;
+        padding-bottom: var(--s21);
+        position: relative;
+        z-index: 5;
+        box-shadow: 0 13px 21px -13px rgba(43, 16, 51, 0.5);
+      }
+      .hd .in {
+        padding: var(--s8) var(--s21) 0;
+      }
+      .row-a {
+        display: flex;
+        align-items: center;
+        gap: var(--s13);
+      }
+      .num {
+        font-size: 55px;
+        font-weight: 600;
+        letter-spacing: -0.05em;
+        line-height: 1;
+        min-width: 42px;
+      }
+      .side {
+        flex: 1;
+        min-width: 0;
+      }
+      .side small,
+      .hd small.k {
+        display: block;
+        font-size: 11px;
+        color: var(--mist);
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+      .side b {
+        font-size: 17px;
+        font-weight: 600;
+        letter-spacing: -0.01em;
+      }
+      .side em {
+        font-style: normal;
+        color: var(--mist);
+        font-size: 13px;
+      }
+      .pill {
+        display: inline-block;
+        padding: var(--s3) var(--s8);
+        border-radius: 999px;
+        background: rgba(214, 243, 74, 0.16);
+        color: var(--lime);
+        font-size: 11px;
+        font-weight: 600;
+        opacity: 0;
+        transform: translateY(5px);
+        transition:
+          opacity 360ms var(--ease),
+          transform 360ms var(--ease);
+        white-space: nowrap;
+        margin-top: var(--s5);
+      }
+      .pill.on {
+        opacity: 1;
+        transform: none;
+      }
+      .tally {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: var(--s8);
+        margin-top: var(--s13);
+      }
+      .tally div {
+        font-size: 11px;
+        color: var(--mist);
+      }
+      .tally b {
+        display: block;
+        color: var(--cream);
+        font-size: 17px;
+        font-weight: 600;
+      }
+      .tally i {
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        margin-right: var(--s5);
+        background: var(--c);
+      }
+
+      /* ---- body ---- */
+      .scroll {
+        flex: 1;
+        overflow-y: auto;
+        overflow-x: hidden;
+        padding-bottom: 110px;
+        scrollbar-width: none;
+      }
+      .scroll::-webkit-scrollbar {
+        display: none;
+      }
+      .shelf {
+        margin-top: var(--s21);
+      }
+      .shelf > header {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        padding: 0 var(--s21);
+        margin-bottom: var(--s8);
+      }
+      .shelf h2 {
+        font-size: 17px;
+        font-weight: 600;
+        letter-spacing: -0.02em;
+      }
+      .shelf h2 small {
+        font-size: 11px;
+        font-weight: 500;
+        color: var(--ink-2);
+        letter-spacing: 0.02em;
+        margin-left: var(--s5);
+      }
+      .card {
+        background: var(--card);
+        background-image: var(--noise);
+        background-size: 128px 128px;
+        border-radius: 21px;
+        margin: 0 var(--s13);
+        padding: var(--s13);
+        box-shadow:
+          0 1px 0 #fff inset,
+          0 13px 21px -13px rgba(43, 16, 51, 0.3);
+      }
+
+      /* legend */
+      .legend {
+        display: grid;
+        grid-template-columns: 162px 1fr;
+        gap: var(--s8) var(--s13);
+        align-items: center;
+        font-size: 11px;
+        color: var(--ink-2);
+      }
+      .legend svg.trk {
+        grid-row: span 3;
+      }
+      .legend span b {
+        color: var(--ink);
+        font-weight: 600;
+      }
+      .legend i {
+        display: inline-block;
+        vertical-align: middle;
+        margin-right: var(--s5);
+      }
+
+      /* ---- corridor rows ---- */
+      .list {
+        margin: 0 var(--s13);
+        display: flex;
+        flex-direction: column;
+        gap: var(--s5);
+      }
+      .crow {
+        background: var(--card);
+        background-image: var(--noise);
+        background-size: 128px 128px;
+        border-radius: 13px;
+        padding: var(--s8) var(--s13);
+        display: grid;
+        grid-template-columns: 89px 162px 1fr;
+        gap: 0 var(--s8);
+        align-items: center;
+        box-shadow: 0 8px 13px -13px rgba(43, 16, 51, 0.4);
+        transition:
+          transform 620ms var(--spring),
+          box-shadow 400ms var(--ease),
+          opacity 400ms var(--ease);
+        position: relative;
+        cursor: pointer;
+      }
+      .crow.rise {
+        box-shadow:
+          0 0 0 2px var(--rose),
+          0 13px 21px -13px rgba(210, 65, 91, 0.6);
+      }
+      .crow.none {
+        opacity: 0.55;
+      }
+      .crow .nm b {
+        display: block;
+        font-size: 13px;
+        font-weight: 600;
+        line-height: 1.15;
+      }
+      .crow .nm small {
+        font-size: 11px;
+        color: var(--ink-3);
+      }
+      .crow .val {
+        text-align: right;
+      }
+      .crow .val b {
+        display: block;
+        font-size: 17px;
+        font-weight: 600;
+        letter-spacing: -0.02em;
+        line-height: 1.1;
+      }
+      .crow .val small {
+        font-size: 11px;
+        color: var(--ink-2);
+        white-space: nowrap;
+      }
+      .crow .val small.out {
+        color: var(--rose);
+        font-weight: 600;
+      }
+      .chips {
+        grid-column: 1 / -1;
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--s5);
+      }
+      .chips:not(:empty) {
+        margin-top: var(--s5);
+      }
+      .chip {
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: 0.04em;
+        padding: 1px var(--s8);
+        border-radius: 999px;
+        background: var(--bg);
+        color: var(--fg);
+        white-space: nowrap;
+        animation: chipin 520ms var(--ispring) both;
+      }
+      .chip em {
+        font-style: normal;
+        font-weight: 500;
+        letter-spacing: 0;
+      }
+      @keyframes chipin {
+        from {
+          transform: scale(0.4);
+          opacity: 0;
+        }
+      }
+      .k-out {
+        --bg: var(--rose-soft);
+        --fg: var(--rose);
+      }
+      .k-step,
+      .k-drift {
+        --bg: var(--amber-soft);
+        --fg: #8a5a08;
+      }
+      .k-cluster {
+        --bg: #e7def5;
+        --fg: var(--gene);
+      }
+      .k-good {
+        --bg: var(--green-soft);
+        --fg: var(--green);
+      }
+      .k-few {
+        --bg: var(--paper-2);
+        --fg: var(--ink-2);
+      }
+      svg.trk {
+        width: 162px;
+        height: 34px;
+        stroke: none;
+        overflow: visible;
+      }
+      svg.trk .base {
+        fill: var(--paper-2);
+      }
+      svg.trk .lab {
+        stroke: var(--ink-3);
+        stroke-width: 1;
+      }
+      svg.trk .labx {
+        fill: var(--ink-3);
+      }
+      svg.trk .co,
+      svg.trk .ci,
+      svg.trk .md {
+        transition:
+          x 620ms var(--spring),
+          width 620ms var(--spring),
+          opacity 400ms var(--ease);
+      }
+      svg.trk .co {
+        fill: rgba(90, 45, 102, 0.16);
+      }
+      svg.trk .ci {
+        fill: rgba(90, 45, 102, 0.3);
+      }
+      svg.trk .md {
+        fill: var(--plum-3);
+      }
+      svg.trk .pd {
+        fill: var(--ink-3);
+        transition: opacity 400ms var(--ease);
+      }
+      svg.trk .dot {
+        stroke: #fff;
+        stroke-width: 2;
+        fill: var(--dc, var(--ink));
+        transition:
+          cx 620ms var(--spring),
+          fill 400ms var(--ease),
+          opacity 400ms var(--ease);
+      }
+      /* expanded history under a row */
+      .hist {
+        grid-column: 1 / -1;
+        margin-top: var(--s8);
+        border-top: 1px solid var(--line);
+        padding-top: var(--s8);
+      }
+      .hist p {
+        font-size: 11px;
+        color: var(--ink-2);
+        margin-top: var(--s5);
+      }
+      svg.tc {
+        width: 322px;
+        height: 110px;
+        stroke: none;
+        overflow: visible;
+      }
+      svg.tc .rib {
+        fill: rgba(90, 45, 102, 0.16);
+        animation: wipe 1100ms var(--ease) 200ms both;
+      }
+      svg.tc .ribi {
+        fill: rgba(90, 45, 102, 0.28);
+        animation: wipe 1100ms var(--ease) 300ms both;
+      }
+      @keyframes wipe {
+        from {
+          clip-path: inset(0 100% 0 0);
+        }
+        to {
+          clip-path: inset(0 0 0 0);
+        }
+      }
+      svg.tc .ln {
+        fill: none;
+        stroke: var(--ink);
+        stroke-width: 1.5;
+        stroke-dasharray: var(--L);
+        stroke-dashoffset: var(--L);
+        animation: draw 1300ms var(--ease) 100ms forwards;
+      }
+      @keyframes draw {
+        to {
+          stroke-dashoffset: 0;
+        }
+      }
+      svg.tc .labl {
+        stroke: var(--ink-3);
+        stroke-width: 1;
+      }
+      svg.tc text {
+        font-size: 11px;
+        fill: var(--ink-3);
+        stroke: none;
+        font-family: inherit;
+      }
+      svg.tc .pt {
+        stroke: #fff;
+        stroke-width: 1.5;
+        animation: pop 420ms var(--ispring) both;
+      }
+      @keyframes pop {
+        from {
+          transform: scale(0);
+        }
+      }
+      svg.tc .pt,
+      svg.lanes .pt {
+        transform-box: fill-box;
+        transform-origin: center;
+      }
+
+      /* ---- phone 2: scrubber ---- */
+      .when {
+        font-size: 34px;
+        font-weight: 600;
+        letter-spacing: -0.04em;
+        line-height: 1;
+        margin-top: var(--s3);
+      }
+      .when small {
+        font-size: 13px;
+        font-weight: 500;
+        letter-spacing: 0;
+        color: var(--mist);
+        display: block;
+        margin-top: var(--s5);
+      }
+      .scrub {
+        margin-top: var(--s13);
+        position: relative;
+        touch-action: none;
+        cursor: ew-resize;
+      }
+      svg.sc {
+        width: 332px;
+        height: 55px;
+        stroke: none;
+        overflow: visible;
+        display: block;
+      }
+      svg.sc .rail {
+        fill: rgba(246, 237, 220, 0.14);
+      }
+      svg.sc .done {
+        fill: var(--mist);
+        transition: width 520ms var(--spring);
+      }
+      svg.sc .tick {
+        fill: var(--mist);
+      }
+      svg.sc text {
+        fill: var(--mist);
+        font-size: 11px;
+        font-family: inherit;
+      }
+      svg.sc .sig {
+        stroke: var(--plum);
+        stroke-width: 1.5;
+        transition: opacity 400ms var(--ease);
+      }
+      svg.sc .thumb {
+        fill: var(--lime);
+        stroke: var(--plum);
+        stroke-width: 3;
+        transition: cx 520ms var(--spring);
+      }
+      .scrub.drag svg.sc .thumb,
+      .scrub.drag svg.sc .done {
+        transition: none;
+      }
+      .ctl {
+        display: flex;
+        gap: var(--s8);
+        align-items: center;
+        margin-top: var(--s8);
+      }
+      .ctl button {
+        height: 34px;
+        min-width: 34px;
+        padding: 0 var(--s13);
+        border-radius: 999px;
+        background: rgba(246, 237, 220, 0.12);
+        color: var(--cream);
+        font-size: 13px;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: var(--s5);
+        justify-content: center;
+      }
+      .ctl button.play {
+        background: var(--lime);
+        color: var(--plum);
+      }
+      .ctl svg {
+        width: 15px;
+        height: 15px;
+        stroke-width: 2.4;
+      }
+      .ctl span {
+        margin-left: auto;
+        font-size: 11px;
+        color: var(--mist);
+      }
+      .raised {
+        margin: var(--s13) var(--s13) 0;
+        border-radius: 21px;
+        padding: var(--s8) var(--s13);
+        background: var(--plum-2);
+        color: var(--cream);
+        font-size: 13px;
+        min-height: 55px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        gap: var(--s3);
+      }
+      .raised small {
+        font-size: 11px;
+        color: var(--mist);
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+      .raised .rl {
+        display: flex;
+        flex-direction: column;
+        gap: var(--s5);
+      }
+      .raised .rl > span {
+        display: flex;
+        align-items: flex-start;
+        gap: var(--s8);
+      }
+      .raised .rl .chips {
+        margin: 0;
+      }
+      .raised .rl b {
+        font-weight: 600;
+        min-width: 89px;
+      }
+      .raised.flash {
+        animation: flash 900ms var(--ease);
+      }
+      @keyframes flash {
+        0% {
+          box-shadow: 0 0 0 0 rgba(214, 243, 74, 0.8);
+        }
+        100% {
+          box-shadow: 0 0 0 13px rgba(214, 243, 74, 0);
+        }
+      }
+
+      /* ---- phone 3: cluster ---- */
+      .stamp {
+        display: inline-block;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        padding: 2px var(--s8);
+        border: 1.5px solid var(--gene-l);
+        color: var(--gene-l);
+        border-radius: 5px;
+        transform: rotate(-3deg);
+      }
+      .h3t {
+        font-size: 21px;
+        font-weight: 600;
+        letter-spacing: -0.03em;
+        line-height: 1.15;
+        margin-top: var(--s8);
+      }
+      .say {
+        font-size: 13px;
+        color: var(--mist);
+        margin-top: var(--s5);
+      }
+      svg.lanes {
+        width: 322px;
+        height: 377px;
+        stroke: none;
+        overflow: visible;
+        display: block;
+      }
+      svg.lanes .lbg {
+        fill: var(--paper);
+      }
+      svg.lanes .co {
+        fill: rgba(90, 45, 102, 0.14);
+        animation: wipe 900ms var(--ease) both;
+      }
+      svg.lanes .ci {
+        fill: rgba(90, 45, 102, 0.26);
+        animation: wipe 900ms var(--ease) both;
+      }
+      svg.lanes .co.prov,
+      svg.lanes .ci.prov {
+        stroke: var(--plum-3);
+        stroke-width: 1;
+        stroke-dasharray: 3 3;
+      }
+      svg.lanes .labl {
+        stroke: var(--ink-3);
+        stroke-width: 1;
+      }
+      svg.lanes .ln {
+        fill: none;
+        stroke: var(--ink);
+        stroke-width: 1.5;
+        stroke-dasharray: var(--L);
+        stroke-dashoffset: var(--L);
+        animation: draw 1100ms var(--ease) forwards;
+      }
+      svg.lanes .thr {
+        stroke: var(--gene);
+        stroke-width: 1;
+        stroke-dasharray: 2 3;
+        opacity: 0.5;
+      }
+      svg.lanes .thr.last {
+        stroke-width: 2;
+        stroke-dasharray: 377;
+        stroke-dashoffset: 377;
+        opacity: 1;
+        animation: draw 900ms var(--ease) 1500ms forwards;
+      }
+      svg.lanes .pt {
+        stroke: #fff;
+        stroke-width: 1.5;
+        animation: pop 420ms var(--ispring) both;
+      }
+      svg.lanes text {
+        font-family: inherit;
+        font-size: 11px;
+        fill: var(--ink-2);
+      }
+      svg.lanes text.nm {
+        font-size: 13px;
+        font-weight: 600;
+        fill: var(--ink);
+      }
+      svg.lanes text.v {
+        font-size: 13px;
+        font-weight: 600;
+        fill: var(--ink);
+      }
+      .q {
+        font-size: 17px;
+        font-weight: 600;
+        letter-spacing: -0.02em;
+        line-height: 1.25;
+      }
+      .answers {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--s5);
+        margin-top: var(--s13);
+      }
+      .answers button {
+        font-size: 13px;
+        font-weight: 500;
+        padding: var(--s5) var(--s13);
+        border-radius: 999px;
+        border: 1.5px solid var(--paper-3);
+        transition:
+          background 300ms var(--ease),
+          color 300ms var(--ease),
+          border-color 300ms var(--ease);
+      }
+      .answers button.on {
+        background: var(--plum);
+        border-color: var(--plum);
+        color: var(--cream);
+      }
+      .ex {
+        position: relative;
+        margin-top: var(--s13);
+      }
+      .exr {
+        position: absolute;
+        left: 0;
+        right: 0;
+        transition: transform 620ms var(--spring);
+        display: grid;
+        grid-template-columns: 1fr 42px;
+        gap: var(--s3) var(--s8);
+        align-items: center;
+        font-size: 13px;
+      }
+      .exr .g {
+        color: var(--ink-2);
+        font-size: 11px;
+        margin-right: var(--s5);
+      }
+      .exr b {
+        text-align: right;
+        font-weight: 600;
+      }
+      .trk5 {
+        grid-column: 1 / -1;
+        height: 5px;
+        border-radius: 3px;
+        background: var(--paper-2);
+        position: relative;
+        overflow: hidden;
+      }
+      .trk5 i {
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: var(--w);
+        background: var(--c, var(--gene));
+        border-radius: 3px;
+        transition: width 800ms var(--spring);
+      }
+      .note {
+        font-size: 11px;
+        color: var(--ink-2);
+        margin-top: var(--s8);
+      }
+      .test {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--s8);
+        position: relative;
+      }
+      .test b {
+        font-size: 13px;
+      }
+      .test small {
+        display: block;
+        font-size: 11px;
+        color: var(--ink-2);
+      }
+      .test button {
+        font-size: 13px;
+        font-weight: 600;
+        padding: var(--s8) var(--s13);
+        border-radius: 999px;
+        background: var(--plum);
+        color: var(--cream);
+        white-space: nowrap;
+      }
+      .wstamp {
+        position: absolute;
+        right: var(--s8);
+        top: -13px;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--green);
+        border: 1.5px solid var(--green);
+        border-radius: 5px;
+        padding: 2px var(--s8);
+        background: var(--card);
+        transform: rotate(-6deg) scale(2);
+        opacity: 0;
+        transition:
+          transform 420ms var(--ispring),
+          opacity 200ms var(--ease);
+        pointer-events: none;
+      }
+      .wstamp.on {
+        transform: rotate(-6deg) scale(1);
+        opacity: 1;
+      }
+
+      /* tab bar */
+      .tabs {
+        position: absolute;
+        left: var(--s13);
+        right: var(--s13);
+        bottom: var(--s21);
+        display: flex;
+        gap: var(--s8);
+        align-items: center;
+        z-index: 20;
+      }
+      .tabs .tb {
+        flex: 1;
+        height: 62px;
+        border-radius: 999px;
+        background: rgba(255, 253, 248, 0.78);
+        border: 1px solid rgba(43, 16, 51, 0.08);
+        backdrop-filter: blur(21px) saturate(1.4);
+        -webkit-backdrop-filter: blur(21px) saturate(1.4);
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        padding: 5px;
+        box-shadow: 0 13px 34px -13px rgba(43, 16, 51, 0.35);
+      }
+      .tabs .tb button {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 2px;
+        font-size: 11px;
+        color: var(--ink-3);
+        border-radius: 999px;
+      }
+      .tabs .tb button.on {
+        background: var(--paper);
+        color: var(--ink);
+      }
+      .tabs .plus {
+        width: 62px;
+        height: 62px;
+        border-radius: 50%;
+        background: var(--lime);
+        color: var(--plum);
+        display: grid;
+        place-items: center;
+        box-shadow: 0 13px 21px -8px rgba(120, 140, 20, 0.5);
+      }
+      .tabs .plus svg {
+        width: 26px;
+        height: 26px;
+        stroke-width: 2.2;
+      }
+      .homebar {
+        position: absolute;
+        left: 50%;
+        bottom: 8px;
+        width: 134px;
+        height: 5px;
+        border-radius: 3px;
+        background: var(--ink);
+        opacity: 0.35;
+        transform: translateX(-50%);
+        z-index: 60;
+      }
+
+      /* notes */
+      .notes {
+        margin: var(--s55) auto 0;
+        max-width: 80ch;
+        font-size: 13px;
+        color: var(--ink-2);
+      }
+      .notes h2 {
+        font-size: 17px;
+        font-weight: 600;
+        color: var(--ink);
+        margin-bottom: var(--s8);
+      }
+      .notes table {
+        border-collapse: collapse;
+        width: 100%;
+        margin: var(--s8) 0 var(--s34);
+      }
+      .notes td,
+      .notes th {
+        text-align: left;
+        padding: var(--s8) var(--s8) var(--s8) 0;
+        border-bottom: 1px solid var(--paper-3);
+        vertical-align: top;
+      }
+      .notes th {
+        font-weight: 600;
+        color: var(--ink);
+      }
+      .notes td.ok {
+        color: var(--green);
+        font-weight: 600;
+      }
+      .notes td.no {
+        color: var(--rose);
+        font-weight: 600;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::after {
+          animation: none !important;
+          transition: none !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="doc">
+      <header>
+        <div>
+          <p class="eyebrow">iOS variation 51 · round fifteen · data-first</p>
+          <h1>Corridor</h1>
+          <p class="lede">
+            You against you. Every marker is a corridor built from your own
+            earlier draws, with the lab's range as thin lines behind it and the
+            last draw as a dot. Markers that leave their corridor rise to the
+            top. Drag the scrubber back through the draws and watch each hunch
+            light up on the day the rules would have raised it.
+          </p>
+        </div>
+        <div class="direction">
+          <span>Mood</span
+          ><b
+            >A lab notebook kept by one careful person: plain rows, one shape
+            repeated, the same plum header and grained cream as Hybrid.</b
+          >
+          <span>Accent</span
+          ><b
+            >Plum tint for your corridor, thin grey lines for the lab. Rose only
+            for a dot outside your corridor, amber for a step or a drift, violet
+            for a cluster, green for good news. Lime only on the scrub thumb and
+            Play.</b
+          >
+          <span>Type</span
+          ><b
+            >Space Grotesk, five sizes: 11, 13, 17, 21, 34, plus the 55
+            count.</b
+          >
+          <span>Unusual idea</span
+          ><b
+            >The corridor is computed live. Scrub to any draw and the app
+            forgets everything after it: corridors rebuild from the draws
+            before, and signals fire only if the rules would have fired then.</b
+          >
+        </div>
+      </header>
+
+      <section class="phones">
+        <div>
+          <p class="cap">
+            <span>01 · The corridor list</span
+            ><span>tap a row for its history</span>
+          </p>
+          <div class="phone" id="p1"></div>
+        </div>
+        <div>
+          <p class="cap">
+            <span>02 · Scrub the years</span><span>drag · ‹ › · Play</span>
+          </p>
+          <div class="phone" id="p2"></div>
+        </div>
+        <div>
+          <p class="cap">
+            <span>03 · Four corridors, one question</span
+            ><span>answer · write it down</span>
+          </p>
+          <div class="phone" id="p3"></div>
+        </div>
+      </section>
+
+      <section class="notes">
+        <h2>The rules this file runs</h2>
+        <table>
+          <tr>
+            <th>Piece</th>
+            <th>Rule</th>
+            <th>Source</th>
+          </tr>
+          <tr>
+            <td>Corridor</td>
+            <td>
+              Median of the draws before the one shown, sd = 1.4826 × MAD,
+              floored at 5 % of the median. Needs 5 earlier draws, else "not
+              enough draws yet". The dark stripe is median ± 1 sd; the soft
+              corridor is median ± 2.5 sd, the edge where a hunch starts.
+            </td>
+            <td>Spec A, bandOf</td>
+          </tr>
+          <tr>
+            <td>Outside</td>
+            <td>
+              |z| ≥ 2.5 against that corridor. These rows rise to the top.
+            </td>
+            <td>Spec B1.1</td>
+          </tr>
+          <tr>
+            <td>Step</td>
+            <td>
+              The last k ≥ 2 draws all above the earlier maximum or all below
+              the earlier minimum, with at least 3 earlier draws.
+            </td>
+            <td>Spec A, stepOf</td>
+          </tr>
+          <tr>
+            <td>Drift</td>
+            <td>
+              OLS slope over the last three draws inside 24 months of the
+              scrubbed day, past a per-marker minimum. The minimums here are
+              placeholders.
+            </td>
+            <td>Spec A, recentSlope; table ◐ C</td>
+          </tr>
+          <tr>
+            <td>Cluster</td>
+            <td>
+              Ferritin, B12, vitamin D and homocysteine: at least 3 of 4 moving
+              the store-low way over their recent draws, and at least one of
+              them raising its own step or drift.
+            </td>
+            <td>Spec B1.5, my reading ○</td>
+          </tr>
+          <tr>
+            <td>Good news</td>
+            <td>
+              An earlier draw outside the corridor, then the last two draws
+              inside it and on the other side of the median.
+            </td>
+            <td>Spec B1.7, my reading ○</td>
+          </tr>
+          <tr>
+            <td>Row order</td>
+            <td>
+              Outside, then step, then drift, then cluster, then inside, then
+              too few draws, then not drawn yet. Moves with FLIP on every scrub.
+            </td>
+            <td></td>
+          </tr>
+        </table>
+        <h2>Checks against DATA (console.assert, also shown here)</h2>
+        <table id="checks">
+          <tr>
+            <th>Check</th>
+            <th>Got</th>
+            <th></th>
+          </tr>
+        </table>
+      </section>
+    </main>
+
+    <script>
+      const DATA = {
+        person: {
+          name: "Razvan",
+          age: 39,
+          sex: "m",
+          lastDraw: "2026-04-23",
+          daysSinceDraw: 156,
+          systemsMeasured: 7,
+          systemsTotal: 12,
+        },
+        goal: {
+          marker: "ldl_cholesterol",
+          label: "LDL",
+          unit: "mg/dL",
+          lo: 70,
+          hi: 100,
+          by: "2026-12-01",
+        },
+        genes: [
+          { gene: "APOE", call: "e2/e3", note: "lower LDL on average", g: "A" },
+          { gene: "TCF7L2", call: "CT", note: "higher diabetes risk", g: "A" },
+          {
+            gene: "FTO",
+            call: "AA",
+            note: "higher BMI tendency, exercise cuts it by a third",
+            g: "B",
+          },
+          {
+            gene: "MTHFR",
+            call: "C677T het",
+            note: "homocysteine depends on folate",
+            g: "C",
+          },
+        ],
+        // [date, value]; unit; lab range; own band = median and spread of the draws before the last
+        series: {
+          ldl: {
+            label: "LDL",
+            unit: "mg/dL",
+            lab: [0, 130],
+            band: [108.2, 14.6],
+            pts: [
+              ["2015-03-21", 103],
+              ["2021-10-14", 136.1],
+              ["2021-12-04", 110.5],
+              ["2022-10-20", 94],
+              ["2023-03-17", 97.3],
+              ["2024-05-13", 122.9],
+              ["2024-11-20", 106],
+              ["2025-12-09", 117],
+              ["2026-04-23", 131],
+            ],
+            slope5y: 1.8,
+            slopeRecent: 15.2,
+          },
+          apob: {
+            label: "ApoB",
+            unit: "mg/dL",
+            lab: [0, 100],
+            pts: [
+              ["2023-03-17", 82],
+              ["2024-05-13", 97],
+              ["2026-04-23", 99],
+            ],
+          },
+          hdl: {
+            label: "HDL",
+            unit: "mg/dL",
+            lab: [40, 200],
+            band: [51.4, 10.7],
+            pts: [
+              ["2015-03-21", 39.2],
+              ["2021-10-14", 61.8],
+              ["2021-12-04", 50.6],
+              ["2022-10-20", 58.4],
+              ["2023-03-17", 52.1],
+              ["2024-05-13", 57.2],
+              ["2024-11-20", 43],
+              ["2025-12-09", 44],
+              ["2026-04-23", 50],
+            ],
+          },
+          eos: {
+            label: "Eosinophils",
+            unit: "K/µL",
+            lab: [0.0, 0.5],
+            band: [0.11, 0.03],
+            pts: [
+              ["2014-03-26", 0.09],
+              ["2015-03-21", 0.1],
+              ["2016-01-09", 0.13],
+              ["2019-07-13", 0.11],
+              ["2021-10-14", 0.11],
+              ["2023-03-17", 0.05],
+              ["2024-05-13", 0.09],
+              ["2024-11-20", 0.25],
+              ["2025-12-09", 0.17],
+              ["2026-04-23", 0.19],
+            ],
+            step: { since: "2024-11-20", priorMax: 0.13 },
+          },
+          ferritin: {
+            label: "Ferritin",
+            unit: "ng/mL",
+            lab: [30, 400],
+            band: [113.1, 15.5],
+            pts: [
+              ["2021-10-14", 154.5],
+              ["2023-03-17", 110.8],
+              ["2024-05-13", 115.3],
+              ["2025-12-09", 94.4],
+              ["2026-04-23", 79.6],
+            ],
+            slope5y: -14,
+          },
+          b12: {
+            label: "Vitamin B12",
+            unit: "pg/mL",
+            lab: [200, 900],
+            pts: [
+              ["2021-10-14", 183.7],
+              ["2021-12-04", 197],
+              ["2022-10-20", 531],
+              ["2023-03-17", 534.2],
+              ["2024-05-13", 898.8],
+              ["2024-11-20", 522],
+              ["2025-12-09", 603],
+              ["2026-04-23", 472],
+            ],
+          },
+          vitd: {
+            label: "Vitamin D",
+            unit: "ng/mL",
+            lab: [30, 100],
+            pts: [
+              ["2019-07-13", 23.3],
+              ["2021-10-14", 61.8],
+              ["2021-12-04", 54.1],
+              ["2022-10-20", 52],
+              ["2023-03-17", 42.3],
+              ["2024-05-13", 34],
+              ["2024-11-20", 37.7],
+              ["2025-12-09", 31.8],
+              ["2026-04-23", 32.7],
+            ],
+            slope5y: -6,
+          },
+          hcy: {
+            label: "Homocysteine",
+            unit: "µmol/L",
+            lab: [0, 15],
+            pts: [
+              ["2023-03-17", 11.2],
+              ["2024-05-13", 8.1],
+              ["2024-11-20", 8.4],
+              ["2025-12-09", 8.8],
+              ["2026-04-23", 9.6],
+            ],
+          },
+          crp: {
+            label: "CRP",
+            unit: "mg/L",
+            lab: [0, 5],
+            pts: [
+              ["2014-03-26", 1.3],
+              ["2015-03-21", 4],
+              ["2021-10-14", 6.1],
+              ["2021-12-04", 4.6],
+              ["2022-10-20", 3.5],
+              ["2023-03-17", 15.8],
+              ["2024-05-13", 8.1],
+              ["2024-11-20", 0.54],
+              ["2025-12-09", 0.5],
+              ["2026-04-23", 0.64],
+            ],
+          },
+          hba1c: {
+            label: "HbA1c",
+            unit: "%",
+            lab: [4, 5.7],
+            band: [5.2, 0.31],
+            pts: [
+              ["2016-06-24", 5],
+              ["2021-10-14", 5.72],
+              ["2021-12-04", 5.53],
+              ["2022-10-20", 5.43],
+              ["2023-03-17", 5.2],
+              ["2024-05-13", 5.07],
+              ["2024-11-20", 4.8],
+              ["2025-12-09", 5.2],
+              ["2026-04-23", 5],
+            ],
+          },
+          insulin: {
+            label: "Fasting insulin",
+            unit: "µIU/mL",
+            lab: [2, 25],
+            pts: [
+              ["2021-12-04", 8.1],
+              ["2022-10-20", 4.8],
+              ["2023-03-17", 2.7],
+              ["2024-05-13", 3.2],
+              ["2024-11-20", 4.7],
+              ["2025-12-09", 4.2],
+              ["2026-04-23", 5.7],
+            ],
+          },
+        },
+        // the hunches the engine would raise (spec B1 kinds); test prices are placeholders
+        hunches: [
+          {
+            id: "eos",
+            kind: "step",
+            title: "Eosinophils moved up a level",
+            system: "Immune",
+            series: "eos",
+            say: "Ten years between 0.05 and 0.13. The last three draws: 0.25, 0.17, 0.19. Still inside the lab range, outside yours.",
+            explanations: [
+              { t: "A new allergy or a change of season", p: 0.45, g: "B" },
+              {
+                t: "A medicine or supplement started around late 2024",
+                p: 0.25,
+                g: "B",
+              },
+              { t: "Gut parasite after travel", p: 0.1, g: "B" },
+              { t: "Noise that will fade", p: 0.2, g: "C" },
+            ],
+            question:
+              "Anything new since autumn 2024: a pet, a move, a medicine, sneezing in spring?",
+            test: { name: "Total IgE", price: 45, currency: "RON" },
+          },
+          {
+            id: "iron",
+            kind: "cluster",
+            title: "Stores running down together",
+            system: "Nutrients",
+            series: ["ferritin", "b12", "vitd", "hcy"],
+            say: "Ferritin −14 a year since 2021, B12 off its 2024 peak, vitamin D halved, homocysteine back up. Four markers, one question: intake or absorption?",
+            explanations: [
+              { t: "Less red meat or supplements stopped", p: 0.5, g: "B" },
+              {
+                t: "Absorption: coeliac or atrophic gastritis",
+                p: 0.08,
+                g: "A",
+              },
+              { t: "Blood loss or donation", p: 0.12, g: "B" },
+              { t: "Folate low with MTHFR het", p: 0.3, g: "C" },
+            ],
+            question:
+              "Did you change how you eat or stop a supplement in 2024?",
+            test: {
+              name: "Folate + transferrin saturation",
+              price: 70,
+              currency: "RON",
+            },
+          },
+          {
+            id: "ldl",
+            kind: "drift",
+            title: "LDL is walking away from your goal",
+            system: "Heart",
+            series: "ldl",
+            goal: true,
+            say: "106, 117, 131 in 17 months: +15 a year. Goal is 100 or under by 1 Dec. ApoB followed it to 99.",
+            explanations: [
+              { t: "More saturated fat in the last year", p: 0.55, g: "A" },
+              { t: "Thyroid running slower", p: 0.05, g: "A" },
+              { t: "Weight up", p: 0.25, g: "A" },
+              { t: "Season and the lab's own swing", p: 0.15, g: "C" },
+            ],
+            question:
+              "Did your weight or how much fatty meat and cheese you eat change since late 2024?",
+            test: {
+              name: "Lipid panel + ApoB in 8 weeks",
+              price: 90,
+              currency: "RON",
+            },
+          },
+          {
+            id: "gap",
+            kind: "gap",
+            title: "Folate never measured",
+            system: "Nutrients",
+            series: "hcy",
+            say: "MTHFR C677T het and homocysteine rising three draws in a row. Folate is the one number that says which way.",
+            explanations: [],
+            question: null,
+            test: { name: "Serum folate", price: 35, currency: "RON" },
+          },
+          {
+            id: "crp",
+            kind: "good_news",
+            title: "Inflammation settled",
+            system: "Immune",
+            series: "crp",
+            say: "CRP was 15.8 in March 2023. Three draws since then under 1.",
+            explanations: [],
+            question: null,
+            test: null,
+          },
+          {
+            id: "genes",
+            kind: "good_news",
+            title: "Your genes are outvoted",
+            system: "Metabolic",
+            series: "hba1c",
+            say: "TCF7L2 and FTO both lean toward diabetes. HbA1c went from 5.7 to 5.0 and fasting insulin stays low.",
+            explanations: [],
+            question: null,
+            test: null,
+          },
+        ],
+        // heading per system: toward | holding | away | unmeasured
+        heading: [
+          { sys: "Heart", word: "away", why: "LDL +15/yr, ApoB 99" },
+          { sys: "Metabolic", word: "toward", why: "HbA1c 5.0, insulin low" },
+          { sys: "Nutrients", word: "away", why: "ferritin, B12, D down" },
+          {
+            sys: "Immune",
+            word: "holding",
+            why: "CRP < 1, eosinophils up a step",
+          },
+          { sys: "Liver", word: "holding", why: "ALT 10, GGT 15" },
+          { sys: "Kidney", word: "holding", why: "creatinine 0.9" },
+          { sys: "Thyroid", word: "holding", why: "TSH 1.1, fT4 1.23" },
+          {
+            sys: "Hormones",
+            word: "unmeasured",
+            why: "testosterone once, 2024",
+          },
+          { sys: "Bone", word: "unmeasured", why: "" },
+          { sys: "Sleep", word: "unmeasured", why: "no phone sync yet" },
+          { sys: "Fitness", word: "unmeasured", why: "no phone sync yet" },
+          { sys: "Mind", word: "unmeasured", why: "" },
+        ],
+      };
+    </script>
+
+    <script>
+      const I = {
+        home: '<svg viewBox="0 0 24 24"><path d="M3 11 12 4l9 7v9H3z"/><path d="M10 20v-6h4v6"/></svg>',
+        body: '<svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="2.5"/><path d="M9 10h6l1 5h-2v6h-4v-6H8z"/></svg>',
+        drop: '<svg viewBox="0 0 24 24"><path d="M12 3s6 7 6 11a6 6 0 0 1-12 0c0-4 6-11 6-11z"/></svg>',
+        plus: '<svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>',
+        back: '<svg viewBox="0 0 24 24"><path d="m15 6-6 6 6 6"/></svg>',
+        fwd: '<svg viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg>',
+        play: '<svg viewBox="0 0 24 24"><path d="M7 5v14l12-7z"/></svg>',
+        pause: '<svg viewBox="0 0 24 24"><path d="M8 5v14M16 5v14"/></svg>',
+      };
+
+      // ================= pure functions (spec Part A and B1) =================
+      const DAY = 864e5;
+      const YR = 365.25 * DAY;
+      const T = (s) => Date.parse(s + "T00:00:00Z");
+      const MON = [
+        "Jan",
+        "Feb",
+        "Mar",
+        "Apr",
+        "May",
+        "Jun",
+        "Jul",
+        "Aug",
+        "Sep",
+        "Oct",
+        "Nov",
+        "Dec",
+      ];
+      const fmtDate = (s) => {
+        const d = new Date(T(s));
+        return `${d.getUTCDate()} ${MON[d.getUTCMonth()]} ${d.getUTCFullYear()}`;
+      };
+      const fmtMon = (s) => {
+        const d = new Date(T(s));
+        return `${MON[d.getUTCMonth()]} ${d.getUTCFullYear()}`;
+      };
+      const median = (a) => {
+        const s = [...a].sort((x, y) => x - y),
+          n = s.length;
+        return n % 2 ? s[(n - 1) / 2] : (s[n / 2 - 1] + s[n / 2]) / 2;
+      };
+      // band from the given (earlier) draws; undefined below min draws
+      function bandOf(prior, min = 5) {
+        if (prior.length < min) return undefined;
+        const v = prior.map((p) => p[1]);
+        const m = median(v);
+        const mad = median(v.map((x) => Math.abs(x - m)));
+        const sd = Math.max(1.4826 * mad, 0.05 * Math.abs(m));
+        return {
+          m,
+          sd,
+          n: prior.length,
+          lo: m - 2.5 * sd,
+          hi: m + 2.5 * sd,
+          ilo: m - sd,
+          ihi: m + sd,
+        };
+      }
+      const zOf = (v, b) => (b ? (v - b.m) / b.sd : undefined);
+      const upTo = (pts, d) => pts.filter((p) => T(p[0]) <= T(d));
+      // last k >= 2 draws all beyond the earlier max or min, at least 3 earlier draws
+      function stepOf(pts) {
+        let best;
+        for (let k = 2; pts.length - k >= 3; k++) {
+          const prior = pts.slice(0, -k),
+            last = pts.slice(-k).map((p) => p[1]);
+          const mx = Math.max(...prior.map((p) => p[1])),
+            mn = Math.min(...prior.map((p) => p[1]));
+          if (last.every((v) => v > mx))
+            best = { dir: 1, k, since: pts[pts.length - k][0], prior: mx };
+          else if (last.every((v) => v < mn))
+            best = { dir: -1, k, since: pts[pts.length - k][0], prior: mn };
+        }
+        return best;
+      }
+      // OLS slope per year over the last three draws inside 24 months of today
+      function recentSlope(pts, today) {
+        const w = pts
+          .filter((p) => T(p[0]) <= T(today) && T(today) - T(p[0]) <= 2 * YR)
+          .slice(-3);
+        if (w.length < 3) return undefined;
+        const xs = w.map((p) => T(p[0]) / YR),
+          ys = w.map((p) => p[1]);
+        const mx = xs.reduce((a, b) => a + b) / 3,
+          my = ys.reduce((a, b) => a + b) / 3;
+        let sxy = 0,
+          sxx = 0;
+        xs.forEach((x, i) => {
+          sxy += (x - mx) * (ys[i] - my);
+          sxx += (x - mx) ** 2;
+        });
+        return sxy / sxx;
+      }
+      // placeholder drift minimums per year (◐ C, not sourced)
+      const DRIFT_MIN = {
+        ldl: 10,
+        apob: 8,
+        hdl: 6,
+        ferritin: 10,
+        b12: 150,
+        vitd: 8,
+        hcy: 0.5,
+        hba1c: 0.3,
+        insulin: 2,
+      };
+      // the store-low direction for the cluster members
+      const CLUSTER = { ferritin: -1, b12: -1, vitd: -1, hcy: 1 };
+      function goodNewsOf(pts, min = 5) {
+        if (pts.length < 3) return undefined;
+        const zAt = (i) => zOf(pts[i][1], bandOf(pts.slice(0, i), min));
+        const n = pts.length;
+        const a = zAt(n - 2),
+          b = zAt(n - 1);
+        if (
+          a === undefined ||
+          b === undefined ||
+          Math.abs(a) >= 2.5 ||
+          Math.abs(b) >= 2.5
+        )
+          return undefined;
+        for (let i = n - 3; i >= 0; i--) {
+          const z = zAt(i);
+          if (z !== undefined && Math.abs(z) >= 2.5) {
+            const s = Math.sign(z);
+            return Math.sign(a) === -s && Math.sign(b) === -s
+              ? { since: pts[n - 2][0], was: pts[i] }
+              : undefined;
+          }
+        }
+        return undefined;
+      }
+      // every signal for one marker, as the rules would read it on day d
+      function markerAt(key, d) {
+        const s = DATA.series[key];
+        const pts = upTo(s.pts, d);
+        if (!pts.length) return { key, none: true, sig: [] };
+        const last = pts[pts.length - 1];
+        const band = bandOf(pts.slice(0, -1));
+        const z = zOf(last[1], band);
+        const sig = [];
+        if (z !== undefined && Math.abs(z) >= 2.5) sig.push({ kind: "out", z });
+        const st = stepOf(pts);
+        const gn = goodNewsOf(pts);
+        if (gn) sig.push({ kind: "good", ...gn });
+        else if (st) sig.push({ kind: "step", ...st });
+        const sl = recentSlope(pts, d);
+        if (
+          sl !== undefined &&
+          DRIFT_MIN[key] &&
+          Math.abs(sl) >= DRIFT_MIN[key]
+        )
+          sig.push({ kind: "drift", slope: sl });
+        return {
+          key,
+          pts,
+          last,
+          band,
+          z,
+          sig,
+          slope: sl,
+          fresh: last[0] === d,
+        };
+      }
+      function clusterAt(d) {
+        const m = Object.keys(CLUSTER).map((k) => markerAt(k, d));
+        const bad = m.filter((x) => {
+          if (x.none) return false;
+          const st = x.sig.find((s) => s.kind === "step");
+          return (
+            (x.slope !== undefined && Math.sign(x.slope) === CLUSTER[x.key]) ||
+            (st && st.dir === CLUSTER[x.key])
+          );
+        });
+        const lit = bad.some((x) =>
+          x.sig.some(
+            (s) =>
+              (s.kind === "drift" && Math.sign(s.slope) === CLUSTER[x.key]) ||
+              (s.kind === "step" && s.dir === CLUSTER[x.key]),
+          ),
+        );
+        return { on: bad.length >= 3 && lit, members: bad.map((x) => x.key) };
+      }
+      function stateAt(d) {
+        const cl = clusterAt(d);
+        const rows = Object.keys(DATA.series).map((k) => {
+          const r = markerAt(k, d);
+          if (cl.on && cl.members.includes(k)) r.sig.push({ kind: "cluster" });
+          const has = (k2) => r.sig.some((s) => s.kind === k2);
+          r.rank = r.none
+            ? -2
+            : has("out")
+              ? 5 + Math.abs(r.z)
+              : has("step")
+                ? 4
+                : has("drift")
+                  ? 3
+                  : has("cluster")
+                    ? 2
+                    : r.band
+                      ? 1 + (r.z ? Math.abs(r.z) / 10 : 0)
+                      : 0;
+          return r;
+        });
+        rows.sort((a, b) => b.rank - a.rank);
+        return { d, rows, cluster: cl };
+      }
+      const DATES = [
+        ...new Set(
+          Object.values(DATA.series).flatMap((s) => s.pts.map((p) => p[0])),
+        ),
+      ].sort();
+      const LAST = DATES[DATES.length - 1];
+
+      // ================= checks against DATA =================
+      const checks = [];
+      const check = (name, ok, got) => {
+        console.assert(ok, name, got);
+        checks.push({ name, ok, got });
+      };
+      const near = (a, b, t) => Math.abs(a - b) <= t;
+      {
+        const S = DATA.series;
+        const bl = (k) => bandOf(S[k].pts.slice(0, -1));
+        const f2 = (b) =>
+          b ? `${b.m.toFixed(2)} ± ${b.sd.toFixed(2)}` : "undefined";
+        let b = bl("ldl");
+        check(
+          "LDL band at the last draw ≈ DATA.series.ldl.band [108.2, 14.6]",
+          b && near(b.m, 108.2, 0.1) && near(b.sd, 14.6, 0.1),
+          f2(b),
+        );
+        b = bl("hdl");
+        check(
+          "HDL band ≈ [51.4, 10.7]",
+          b && near(b.m, 51.4, 0.1) && near(b.sd, 10.7, 0.1),
+          f2(b),
+        );
+        b = bl("eos");
+        check(
+          "Eosinophils band ≈ [0.11, 0.03]",
+          b && near(b.m, 0.11, 0.005) && near(b.sd, 0.03, 0.005),
+          f2(b),
+        );
+        b = bl("hba1c");
+        check(
+          "HbA1c band ≈ [5.2, 0.31]",
+          b && near(b.m, 5.2, 0.01) && near(b.sd, 0.31, 0.02),
+          f2(b),
+        );
+        b = bl("ferritin");
+        check(
+          "Ferritin: 4 earlier draws, the 5-draw rule says not enough draws yet",
+          b === undefined,
+          f2(b),
+        );
+        b = bandOf(S.ferritin.pts.slice(0, -1), 4);
+        check(
+          "Ferritin with 4 draws allowed ≈ DATA band [113.1, 15.5] (provisional, phone 3)",
+          b && near(b.m, 113.1, 0.1) && near(b.sd, 15.5, 0.1),
+          f2(b),
+        );
+        const stAt = (d) => stepOf(upTo(S.eos.pts, d));
+        check(
+          "Eosinophil step does not fire at 2024-11-20",
+          !stAt("2024-11-20"),
+          JSON.stringify(stAt("2024-11-20") || null),
+        );
+        const s1 = stAt("2025-12-09");
+        check(
+          "Eosinophil step fires at 2025-12-09, since 2024-11-20, prior max 0.13 (DATA.step)",
+          s1 &&
+            s1.dir === 1 &&
+            s1.since === S.eos.step.since &&
+            s1.prior === S.eos.step.priorMax,
+          s1 ? `up since ${s1.since}, prior max ${s1.prior}` : "none",
+        );
+        const firstStep = DATES.find((d) =>
+          markerAt("eos", d).sig.some((s) => s.kind === "step"),
+        );
+        check(
+          "First draw where the eosinophil step fires is 2025-12-09",
+          firstStep === "2025-12-09",
+          firstStep,
+        );
+        const ez = markerAt("eos", LAST).z;
+        check(
+          "Eosinophils last draw 0.19 is outside the corridor, |z| ≥ 2.5",
+          ez >= 2.5,
+          `z ${ez.toFixed(2)}`,
+        );
+        const lz = markerAt("ldl", LAST).z;
+        check(
+          "LDL last draw 131 is inside its corridor",
+          Math.abs(lz) < 2.5,
+          `z ${lz.toFixed(2)}`,
+        );
+        const sl = recentSlope(S.ldl.pts, LAST);
+        check(
+          "LDL recent slope ≈ DATA slopeRecent 15.2 /yr (within 1.5)",
+          near(sl, S.ldl.slopeRecent, 1.5),
+          `${sl.toFixed(1)} /yr`,
+        );
+        check(
+          "LDL drift fires at the last draw, not at 2025-12-09",
+          markerAt("ldl", LAST).sig.some((s) => s.kind === "drift") &&
+            !markerAt("ldl", "2025-12-09").sig.some((s) => s.kind === "drift"),
+          "",
+        );
+        const gAt = DATES.find((d) =>
+          markerAt("crp", d).sig.some((s) => s.kind === "good"),
+        );
+        check(
+          "CRP good news first fires at 2025-12-09 (two draws back under the median after 15.8)",
+          gAt === "2025-12-09",
+          gAt,
+        );
+        const cAt = DATES.find((d) => clusterAt(d).on);
+        check(
+          "Store cluster first lights at the last draw, all four members",
+          cAt === LAST && clusterAt(LAST).members.length === 4,
+          `${cAt} · ${clusterAt(LAST).members.join(", ")}`,
+        );
+        const top = stateAt(LAST).rows[0].key;
+        check(
+          "At the last draw the row on top is Eosinophils",
+          top === "eos",
+          top,
+        );
+      }
+      console.log(
+        `corridor checks: ${checks.filter((c) => c.ok).length}/${checks.length} pass`,
+      );
+
+      // ================= drawing =================
+      const NS = "http://www.w3.org/2000/svg";
+      const fmtV = (v) =>
+        Math.abs(v) < 1
+          ? v.toFixed(2)
+          : Math.abs(v) < 10
+            ? +v.toFixed(2) + ""
+            : Math.abs(v) < 100
+              ? +v.toFixed(1) + ""
+              : Math.round(v) + "";
+      const W = 162;
+      // fixed value domain per marker: its draws and every corridor it ever had, lab bounds when they sit close
+      const DOM = {};
+      for (const [k, s] of Object.entries(DATA.series)) {
+        const vs = s.pts.map((p) => p[1]);
+        s.pts.forEach((_, i) => {
+          const b = bandOf(s.pts.slice(0, i));
+          if (b) vs.push(b.lo, b.hi);
+        });
+        let lo = Math.min(...vs),
+          hi = Math.max(...vs);
+        const span = hi - lo;
+        if (s.lab[0] >= lo - 0.35 * span) lo = Math.min(lo, s.lab[0]);
+        if (s.lab[1] <= hi + 0.35 * span) hi = Math.max(hi, s.lab[1]);
+        const pad = (hi - lo) * 0.06;
+        lo = Math.max(
+          Math.min(...s.pts.map((p) => p[1])) >= 0 ? 0 : -Infinity,
+          lo - pad,
+        );
+        DOM[k] = [lo, hi + pad];
+      }
+      const X = (k, v) => {
+        const [a, b] = DOM[k];
+        return Math.max(0, Math.min(W, ((v - a) / (b - a)) * W));
+      };
+
+      function chipsFor(r) {
+        if (r.none) return `<span class="chip k-few">not drawn yet</span>`;
+        const out = [];
+        for (const s of r.sig) {
+          if (s.kind === "out")
+            out.push(
+              `<span class="chip k-out">OUTSIDE <em>z ${s.z > 0 ? "+" : "−"}${Math.abs(s.z).toFixed(1)}</em></span>`,
+            );
+          if (s.kind === "step")
+            out.push(
+              `<span class="chip k-step">STEP ${s.dir > 0 ? "↑" : "↓"} <em>since ${fmtMon(s.since)}</em></span>`,
+            );
+          if (s.kind === "drift")
+            out.push(
+              `<span class="chip k-drift">DRIFT <em>${s.slope > 0 ? "+" : "−"}${Math.abs(s.slope).toFixed(Math.abs(s.slope) < 10 ? 1 : 0)}/yr</em></span>`,
+            );
+          if (s.kind === "cluster")
+            out.push(
+              `<span class="chip k-cluster">CLUSTER <em>stores</em></span>`,
+            );
+          if (s.kind === "good")
+            out.push(
+              `<span class="chip k-good">GOOD NEWS <em>back since ${fmtMon(s.since)}</em></span>`,
+            );
+        }
+        if (!r.band)
+          out.push(
+            `<span class="chip k-few">not enough draws yet <em>${r.pts.length - 1} of 5 earlier</em></span>`,
+          );
+        return out.join("");
+      }
+      const dotColor = (r) => {
+        const has = (k) => r.sig.some((s) => s.kind === k);
+        return has("out")
+          ? "var(--rose)"
+          : has("step") || has("drift")
+            ? "var(--amber)"
+            : has("good")
+              ? "var(--green)"
+              : "var(--ink)";
+      };
+
+      // one row: builds once, then update(r) moves everything with transitions
+      function makeRow(key) {
+        const s = DATA.series[key];
+        const el = document.createElement("div");
+        el.className = "crow";
+        el.dataset.k = key;
+        const labL =
+          s.lab[0] >= DOM[key][0] && s.lab[0] > 0
+            ? `<line class="lab" x1="${X(key, s.lab[0])}" x2="${X(key, s.lab[0])}" y1="5" y2="29"/>`
+            : s.lab[0] > 0
+              ? `<path class="labx" d="M0 17l5-4v8z"/>`
+              : "";
+        const labH =
+          s.lab[1] <= DOM[key][1]
+            ? `<line class="lab" x1="${X(key, s.lab[1])}" x2="${X(key, s.lab[1])}" y1="5" y2="29"/>`
+            : `<path class="labx" d="M${W} 17l-5-4v8z"/>`;
+        const labLine = `<line class="lab" x1="${s.lab[0] >= DOM[key][0] && s.lab[0] > 0 ? X(key, s.lab[0]) : 0}" x2="${Math.min(W, X(key, s.lab[1]))}" y1="29" y2="29"/>`;
+        el.innerHTML = `
+          <div class="nm"><b>${s.label}</b><small>${s.unit}</small></div>
+          <svg class="trk" viewBox="0 0 ${W} 34">
+            <rect class="base" x="0" y="13" width="${W}" height="8" rx="4"/>
+            ${labL}${labH}${labLine}
+            <rect class="co" y="13" height="8" rx="4" x="0" width="0"/>
+            <rect class="ci" y="13" height="8" x="0" width="0"/>
+            <rect class="md" y="13" height="8" width="1.5" x="0"/>
+            <g class="pds">${s.pts.map((p) => `<circle class="pd" cx="${X(key, p[1])}" cy="17" r="2.2"/>`).join("")}</g>
+            <circle class="dot" cy="17" r="5.5" style="cx:${X(key, s.pts[0][1])}px"/>
+          </svg>
+          <div class="val"><b></b><small></small></div>
+          <div class="chips"></div>`;
+        const q = (c) => el.querySelector(c);
+        const pds = [...el.querySelectorAll(".pd")];
+        let sig = "";
+        function update(r) {
+          el.classList.toggle("none", !!r.none);
+          const b = r.band;
+          const set = (n, a, z) => {
+            n.style.x = X(key, a) + "px";
+            n.style.width = Math.max(0, X(key, z) - X(key, a)) + "px";
+            n.style.opacity = b ? 1 : 0;
+          };
+          if (b) {
+            set(q(".co"), b.lo, b.hi);
+            set(q(".ci"), b.ilo, b.ihi);
+            q(".md").style.x = X(key, b.m) - 0.75 + "px";
+            q(".md").style.opacity = 1;
+          } else {
+            q(".co").style.opacity = 0;
+            q(".ci").style.opacity = 0;
+            q(".md").style.opacity = 0;
+          }
+          const shown = r.none ? 0 : r.pts.length;
+          pds.forEach((p, i) => (p.style.opacity = i < shown - 1 ? 0.6 : 0));
+          const dot = q(".dot");
+          dot.style.opacity = r.none ? 0 : 1;
+          if (!r.none) {
+            dot.style.cx = X(key, r.last[1]) + "px";
+            dot.style.setProperty("--dc", dotColor(r));
+          }
+          q(".val b").textContent = r.none ? "·" : fmtV(r.last[1]);
+          const sm = q(".val small");
+          sm.className = r.z !== undefined && Math.abs(r.z) >= 2.5 ? "out" : "";
+          sm.textContent = r.none
+            ? "no draw"
+            : r.z !== undefined
+              ? `z ${r.z >= 0 ? "+" : "−"}${Math.abs(r.z).toFixed(1)}`
+              : `${r.pts.length} draw${r.pts.length > 1 ? "s" : ""}`;
+          const nsig = r.none
+            ? "none"
+            : r.sig
+                .map(
+                  (x) =>
+                    x.kind +
+                    (x.since || "") +
+                    (x.slope ? x.slope.toFixed(1) : "") +
+                    (x.z ? x.z.toFixed(1) : ""),
+                )
+                .join() + (r.band ? "" : "few" + r.pts.length);
+          if (nsig !== sig) {
+            q(".chips").innerHTML = chipsFor(r);
+            sig = nsig;
+          }
+        }
+        return { key, el, update };
+      }
+
+      // FLIP: remember tops, re-append in the new order, play from the old spot
+      function reorder(list, rows, order) {
+        const first = new Map(
+          rows.map((r) => [r.key, r.el.getBoundingClientRect().top]),
+        );
+        const oldIdx = new Map(
+          [...list.children].map((c, i) => [c.dataset.k, i]),
+        );
+        order.forEach((k) =>
+          list.appendChild(rows.find((r) => r.key === k).el),
+        );
+        rows.forEach((r) => {
+          const dy = first.get(r.key) - r.el.getBoundingClientRect().top;
+          if (Math.abs(dy) > 1) {
+            r.el.style.transition = "none";
+            r.el.style.transform = `translateY(${dy}px)`;
+          }
+        });
+        list.offsetHeight;
+        rows.forEach((r) => {
+          r.el.style.transition = "";
+          r.el.style.transform = "";
+          const ni = order.indexOf(r.key);
+          if (
+            ni < oldIdx.get(r.key) &&
+            r.el.querySelector(".dot").style.getPropertyValue("--dc") ===
+              "var(--rose)"
+          ) {
+            r.el.classList.add("rise");
+            setTimeout(() => r.el.classList.remove("rise"), 1100);
+          }
+        });
+      }
+
+      // history chart for one marker: rolling corridor ribbon, lab lines, draws
+      function historyChart(key, d) {
+        const s = DATA.series[key];
+        const pts = upTo(s.pts, d);
+        const w = 322,
+          h = 110,
+          top = 8,
+          bot = 89;
+        const t0 = T(s.pts[0][0]) - 60 * DAY,
+          t1 = T(LAST) + 60 * DAY;
+        const x = (t) => ((T(t) - t0) / (t1 - t0)) * w;
+        const [a, b] = DOM[key];
+        const y = (v) =>
+          bot - ((Math.max(a, Math.min(b, v)) - a) / (b - a)) * (bot - top);
+        let rib = "",
+          ribi = "";
+        for (let i = 0; i < pts.length; i++) {
+          const band = bandOf(pts.slice(0, i));
+          if (!band) continue;
+          const xa = x(pts[i - 1][0]),
+            xb = i < pts.length - 1 ? x(pts[i][0]) : x(pts[i][0]) + 8;
+          rib += `<rect x="${xa}" width="${xb - xa}" y="${y(band.hi)}" height="${y(band.lo) - y(band.hi)}"/>`;
+          ribi += `<rect x="${xa}" width="${xb - xa}" y="${y(band.ihi)}" height="${y(band.ilo) - y(band.ihi)}"/>`;
+        }
+        const P = pts.map((p) => [x(p[0]), y(p[1])]);
+        let L = 0;
+        for (let i = 1; i < P.length; i++)
+          L += Math.hypot(P[i][0] - P[i - 1][0], P[i][1] - P[i - 1][1]);
+        const lab = s.lab
+          .filter((v) => v >= a && v <= b && v > 0)
+          .map(
+            (v) =>
+              `<line class="labl" x1="0" x2="${w}" y1="${y(v)}" y2="${y(v)}"/><text x="${w}" y="${y(v) - 3}" text-anchor="end">lab ${v}</text>`,
+          )
+          .join("");
+        const yrs = [2014, 2016, 2018, 2020, 2022, 2024, 2026]
+          .filter((yv) => T(`${yv}-01-01`) > t0)
+          .map(
+            (yv) =>
+              `<text x="${x(`${yv}-01-01`)}" y="${h - 3}" text-anchor="middle">${yv}</text>`,
+          )
+          .join("");
+        const r = markerAt(key, d);
+        const col = dotColor(r);
+        return `<svg class="tc" viewBox="0 0 ${w} ${h}">
+          ${lab}<g class="rib">${rib}</g><g class="ribi">${ribi}</g>
+          <polyline class="ln" style="--L:${L + 1}" points="${P.map((p) => p.join(",")).join(" ")}"/>
+          ${P.map((p, i) => `<circle class="pt" cx="${p[0]}" cy="${p[1]}" r="${i === P.length - 1 ? 5 : 3}" fill="${i === P.length - 1 ? col : "var(--ink-2)"}" style="animation-delay:${200 + (i / P.length) * 1100}ms"/>`).join("")}
+          ${yrs}</svg>`;
+      }
+
+      const hdTop = (inner) =>
+        `<div class="hd"><div class="status"><span>9:41</span><i></i><span>●●● ◔ ▮</span></div><div class="in">${inner}</div></div>`;
+      const tabs = `<div class="tabs"><div class="tb"><button>${I.home}Home</button><button>${I.body}Body</button><button class="on">${I.drop}Blood</button></div><button class="plus" aria-label="Add">${I.plus}</button></div><div class="homebar"></div>`;
+
+      function tallyOf(st) {
+        const has = (r, k) => r.sig.some((s) => s.kind === k);
+        const out = st.rows.filter((r) => has(r, "out")).length;
+        const mov = st.rows.filter(
+          (r) =>
+            !has(r, "out") &&
+            (has(r, "step") || has(r, "drift") || has(r, "cluster")),
+        ).length;
+        const few = st.rows.filter(
+          (r) => !r.none && !r.band && !r.sig.length,
+        ).length;
+        const ins = st.rows.filter((r) => !r.none).length - out - mov - few;
+        return { out, mov, ins, few };
+      }
+      const tallyHTML = (t) => `
+        <div><b>${t.out}</b><i style="--c:var(--rose)"></i>outside</div>
+        <div><b>${t.mov}</b><i style="--c:var(--amber)"></i>moving</div>
+        <div><b>${t.ins}</b><i style="--c:var(--mist)"></i>inside</div>
+        <div><b>${t.few}</b><i style="--c:var(--plum-3)"></i>too few</div>`;
+
+      // ================= phone 1: the corridor list =================
+      (function phone1() {
+        const p = document.getElementById("p1");
+        const st = stateAt(LAST);
+        const t = tallyOf(st);
+        const n = Object.keys(DATA.series).length;
+        p.innerHTML = `${hdTop(`
+          <div class="row-a"><span class="num">${t.out}</span>
+            <span class="side"><small>Blood · you against you</small><b>outside your corridor</b> <em>of ${n} markers</em><br>
+            <span class="pill" data-pill>last draw ${fmtDate(DATA.person.lastDraw)} · ${DATA.person.daysSinceDraw} days ago</span></span></div>
+          <div class="tally">${tallyHTML(t)}</div>`)}
+          <div class="scroll">
+            <section class="shelf" style="margin-top:13px">
+              <div class="card legend" data-legend></div>
+            </section>
+            <section class="shelf">
+              <header><h2>Your corridors<small>the far ones on top</small></h2></header>
+              <div class="list" data-list></div>
+            </section>
+          </div>${tabs}`;
+        setTimeout(
+          () => p.querySelector("[data-pill]").classList.add("on"),
+          300,
+        );
+        // legend: a real row (LDL), labelled
+        const lg = makeRow("ldl");
+        const lsvg = lg.el.querySelector("svg.trk");
+        lg.update(markerAt("ldl", LAST));
+        p.querySelector("[data-legend]").innerHTML = "";
+        p.querySelector("[data-legend]").append(lsvg);
+        p.querySelector("[data-legend]").insertAdjacentHTML(
+          "beforeend",
+          `
+          <span><i style="width:13px;height:8px;border-radius:3px;background:rgba(90,45,102,.3)"></i><b>Your corridor</b>, from your earlier draws</span>
+          <span><i style="width:1px;height:13px;background:var(--ink-3)"></i><b>Lab range</b>, the same for everyone</span>
+          <span><i style="width:8px;height:8px;border-radius:50%;background:var(--ink)"></i><b>Last draw</b>; small dots are earlier ones</span>`,
+        );
+        const list = p.querySelector("[data-list]");
+        const rows = st.rows.map((r) => {
+          const row = makeRow(r.key);
+          row.update(r);
+          list.append(row.el);
+          return row;
+        });
+        let open = null;
+        const toggle = (row) => {
+          if (open) {
+            open.el.querySelector(".hist")?.remove();
+          }
+          if (open === row) {
+            open = null;
+            return;
+          }
+          open = row;
+          const r = markerAt(row.key, LAST);
+          const why = r.band
+            ? `Corridor from ${r.band.n} earlier draws: middle ${fmtV(r.band.m)}, spread ${fmtV(r.band.sd)}. This draw sits ${Math.abs(r.z).toFixed(1)} spreads ${r.z >= 0 ? "above" : "below"} the middle.`
+            : `${r.pts.length - 1} earlier draws. A corridor needs 5, so this row shows the lab range only.`;
+          row.el.insertAdjacentHTML(
+            "beforeend",
+            `<div class="hist">${historyChart(row.key, LAST)}<p>${why} The ribbon is the corridor as it stood before each draw.</p></div>`,
+          );
+        };
+        rows.forEach((row) =>
+          row.el.addEventListener("click", () => toggle(row)),
+        );
+        toggle(rows[0]);
+      })();
+
+      // ================= phone 2: the time scrubber =================
+      (function phone2() {
+        const p = document.getElementById("p2");
+        const SW = 332,
+          pad = 8;
+        const t0 = T(DATES[0]),
+          t1 = T(LAST);
+        const sx = (d) => pad + ((T(d) - t0) / (t1 - t0)) * (SW - 2 * pad);
+        // signals raised per draw date: on at d, off at the draw before
+        const keyset = (d) => {
+          const st = stateAt(d);
+          const m = new Map();
+          st.rows.forEach((r) =>
+            r.sig.forEach((s) => m.set(r.key + ":" + s.kind, { r, s })),
+          );
+          return m;
+        };
+        const SETS = DATES.map(keyset);
+        const RAISED = DATES.map((d, i) =>
+          [...SETS[i].entries()]
+            .filter(([k]) => !i || !SETS[i - 1].has(k))
+            .map(([, v]) => v),
+        );
+        const sigCol = {
+          out: "var(--rose)",
+          step: "var(--amber)",
+          drift: "var(--amber)",
+          cluster: "var(--gene-l)",
+          good: "var(--green)",
+        };
+        const years = [2014, 2016, 2018, 2020, 2022, 2024, 2026];
+        const marks = DATES.map((d, i) =>
+          RAISED[i]
+            .map(
+              (v, j) =>
+                `<circle class="sig" cx="${sx(d)}" cy="${13 - j * 5}" r="3" fill="${sigCol[v.s.kind]}" data-i="${i}"/>`,
+            )
+            .join(""),
+        ).join("");
+        let idx = DATES.indexOf("2025-12-09");
+        p.innerHTML = `${hdTop(`
+          <small class="k" data-k></small>
+          <div class="when" data-when></div>
+          <div class="scrub" data-scrub>
+            <svg class="sc" viewBox="0 0 ${SW} 55">
+              <rect class="rail" x="${pad}" y="26" width="${SW - 2 * pad}" height="5" rx="2.5"/>
+              <rect class="done" x="${pad}" y="26" height="5" rx="2.5" width="0"/>
+              ${DATES.map((d) => `<rect class="tick" x="${sx(d) - 0.75}" y="22" width="1.5" height="13"/>`).join("")}
+              ${marks}
+              ${years.map((y) => `<text x="${Math.min(SW - 13, Math.max(13, sx(y + "-01-01")))}" y="52" text-anchor="middle">${y}</text>`).join("")}
+              <circle class="thumb" cy="28.5" r="8" style="cx:${sx(DATES[idx])}px"/>
+            </svg>
+          </div>
+          <div class="ctl"><button data-prev aria-label="Earlier draw">${I.back}</button><button class="play" data-play>${I.play}Play</button><button data-next aria-label="Later draw">${I.fwd}</button><span>dots above: when a signal would have been raised</span></div>`)}
+          <div class="scroll">
+            <div class="raised" data-raised></div>
+            <section class="shelf" style="margin-top:13px">
+              <header><h2>As it stood that day<small data-sub></small></h2></header>
+              <div class="list" data-list></div>
+            </section>
+          </div>${tabs}`;
+        const list = p.querySelector("[data-list]");
+        const keys = Object.keys(DATA.series);
+        const rows = keys.map(makeRow);
+        let st = stateAt(DATES[idx]);
+        st.rows.forEach((r) => {
+          const row = rows.find((x) => x.key === r.key);
+          row.update(r);
+          list.append(row.el);
+        });
+        const q = (c) => p.querySelector(c);
+        function paint(first) {
+          const d = DATES[idx];
+          st = stateAt(d);
+          q("[data-when]").innerHTML =
+            `${fmtDate(d)}<small>${idx === DATES.length - 1 ? "last draw" : ((m) => (m < 24 ? m + " months" : Math.round(m / 12) + " years"))(Math.round((T(LAST) - T(d)) / (YR / 12))) + " before the last draw"}</small>`;
+          q("[data-k]").textContent =
+            `Scrub the history · draw ${idx + 1} of ${DATES.length}`;
+          q(".thumb").style.cx = sx(d) + "px";
+          q(".done").style.width = sx(d) - pad + "px";
+          p.querySelectorAll(".sig").forEach(
+            (c) => (c.style.opacity = +c.dataset.i <= idx ? 1 : 0.25),
+          );
+          const t = tallyOf(st);
+          q("[data-sub]").textContent = `${t.out} outside · ${t.mov} moving`;
+          const R = RAISED[idx];
+          const rz = q("[data-raised]");
+          rz.innerHTML = R.length
+            ? `<small>Raised on this draw</small><div class="rl">${[...new Set(R.map((v) => v.r.key))].map((k) => `<span><b>${DATA.series[k].label}</b><span class="chips">${chipsFor({ ...R.find((v) => v.r.key === k).r, sig: R.filter((v) => v.r.key === k).map((v) => v.s), band: true })}</span></span>`).join("")}</div>`
+            : `<small>Raised on this draw</small><span>Nothing new. The rules stay quiet on this day.</span>`;
+          if (!first && R.length) {
+            rz.classList.remove("flash");
+            void rz.offsetWidth;
+            rz.classList.add("flash");
+          }
+          st.rows.forEach((r) => rows.find((x) => x.key === r.key).update(r));
+          if (!first)
+            reorder(
+              list,
+              rows,
+              st.rows.map((r) => r.key),
+            );
+        }
+        paint(true);
+        const go = (i) => {
+          i = Math.max(0, Math.min(DATES.length - 1, i));
+          if (i !== idx) {
+            idx = i;
+            paint(false);
+          }
+        };
+        q("[data-prev]").onclick = () => {
+          stop();
+          go(idx - 1);
+        };
+        q("[data-next]").onclick = () => {
+          stop();
+          go(idx + 1);
+        };
+        let timer = null;
+        const pb = q("[data-play]");
+        function stop() {
+          clearInterval(timer);
+          timer = null;
+          pb.innerHTML = `${I.play}Play`;
+        }
+        pb.onclick = () => {
+          if (timer) return stop();
+          if (idx === DATES.length - 1) go(0);
+          pb.innerHTML = `${I.pause}Pause`;
+          timer = setInterval(() => {
+            if (idx >= DATES.length - 1) return stop();
+            go(idx + 1);
+          }, 1300);
+        };
+        const sc = q("[data-scrub]");
+        const pick = (e) => {
+          const rect = sc.querySelector("svg").getBoundingClientRect();
+          const px = ((e.clientX - rect.left) / rect.width) * SW;
+          let best = 0;
+          DATES.forEach((d, i) => {
+            if (Math.abs(sx(d) - px) < Math.abs(sx(DATES[best]) - px)) best = i;
+          });
+          go(best);
+        };
+        sc.addEventListener("pointerdown", (e) => {
+          stop();
+          sc.setPointerCapture(e.pointerId);
+          sc.classList.add("drag");
+          pick(e);
+        });
+        sc.addEventListener("pointermove", (e) => {
+          if (sc.classList.contains("drag")) pick(e);
+        });
+        sc.addEventListener("pointerup", () => sc.classList.remove("drag"));
+      })();
+
+      // ================= phone 3: the cluster =================
+      (function phone3() {
+        const p = document.getElementById("p3");
+        const H = DATA.hunches.find((h) => h.kind === "cluster");
+        const keys = H.series;
+        const cl = clusterAt(LAST);
+        p.innerHTML = `${hdTop(`
+          <span class="stamp">CLUSTER · ${H.system.toUpperCase()}</span>
+          <h3 class="h3t">${H.title}</h3>
+          <p class="say">${H.say}</p>`)}
+          <div class="scroll">
+            <section class="shelf" style="margin-top:13px">
+              <div class="card" data-lanes></div>
+            </section>
+            <section class="shelf">
+              <div class="card">
+                <p class="q">${H.question}</p>
+                <div class="answers" data-ans>
+                  <button data-a="meat">Yes, less meat</button>
+                  <button data-a="supp">Stopped a supplement</button>
+                  <button data-a="none">Neither</button>
+                </div>
+                <div class="ex" data-ex></div>
+                <p class="note" data-note>Weights from the engine. Answer to reweigh them.</p>
+              </div>
+            </section>
+            <section class="shelf">
+              <div class="card test"><span><b>${H.test.name}</b><small>one draw separates the top two · ${H.test.price} ${H.test.currency}</small></span><button data-w>Write it down</button><span class="wstamp" data-ws>written down 26 Sep</span></div>
+            </section>
+          </div>${tabs}`;
+
+        // four lanes on one time axis, each with its own corridor; threads join the shared draws
+        const w = 322,
+          lh = 72,
+          gap = 8,
+          top = 21;
+        const d0 = "2021-06-01",
+          d1 = "2026-09-01";
+        const x = (d) => 34 + ((T(d) - T(d0)) / (T(d1) - T(d0))) * (w - 68);
+        const shared = DATA.series[keys[0]].pts
+          .map((p) => p[0])
+          .filter((d) =>
+            keys.every((k) => DATA.series[k].pts.some((p) => p[0] === d)),
+          );
+        let svg = "";
+        const pos = {};
+        keys.forEach((k, li) => {
+          const s = DATA.series[k];
+          const pts = s.pts.filter((p) => T(p[0]) >= T(d0));
+          const flip = CLUSTER[k] > 0;
+          const band = bandOf(s.pts.slice(0, -1), 4);
+          const prov = band.n < 5;
+          const vs = pts.map((p) => p[1]).concat([band.lo, band.hi]);
+          let lo = Math.min(...vs),
+            hi = Math.max(...vs);
+          lo = Math.max(0, lo - (hi - lo) * 0.08);
+          hi += (hi - lo) * 0.08;
+          const y0 = top + li * (lh + gap);
+          const yv = (v) => {
+            const f = (Math.max(lo, Math.min(hi, v)) - lo) / (hi - lo);
+            return flip ? y0 + 23 + f * (lh - 40) : y0 + lh - 17 - f * (lh - 40);
+          };
+          const bandRect = (a, b, c) => {
+            const ya = yv(a),
+              yb = yv(b);
+            return `<rect class="${c}${prov ? " prov" : ""}" x="0" width="${w}" y="${Math.min(ya, yb)}" height="${Math.abs(ya - yb)}" style="animation-delay:${li * 150}ms"/>`;
+          };
+          const labs = s.lab
+            .filter((v) => v > lo && v < hi)
+            .map(
+              (v) =>
+                `<line class="labl" x1="0" x2="${w}" y1="${yv(v)}" y2="${yv(v)}"/><text x="${w - 3}" y="${yv(v) < y0 + 34 || v === s.lab[0] ? yv(v) + 12 : yv(v) - 3}" text-anchor="end">lab ${v}</text>`,
+            )
+            .join("");
+          const P = pts.map((p) => [x(p[0]), yv(p[1])]);
+          pos[k] = Object.fromEntries(pts.map((p, i) => [p[0], P[i]]));
+          let L = 0;
+          for (let i = 1; i < P.length; i++)
+            L += Math.hypot(P[i][0] - P[i - 1][0], P[i][1] - P[i - 1][1]);
+          const last = s.pts[s.pts.length - 1][1];
+          const z = zOf(last, band);
+          svg += `<g>
+            <rect class="lbg" x="0" y="${y0}" width="${w}" height="${lh}" rx="8"/>
+            <clipPath id="c${k}"><rect x="0" y="${y0}" width="${w}" height="${lh}" rx="8"/></clipPath>
+            <g clip-path="url(#c${k})">${bandRect(band.lo, band.hi, "co")}${bandRect(band.ilo, band.ihi, "ci")}${labs}</g>
+            <polyline class="ln" style="--L:${L + 1};animation-delay:${300 + li * 200}ms" points="${P.map((q) => q.join(",")).join(" ")}"/>
+            ${P.map((q, i) => `<circle class="pt" cx="${q[0]}" cy="${q[1]}" r="${i === P.length - 1 ? 5 : 3}" fill="${i === P.length - 1 ? "var(--gene)" : "var(--ink-2)"}" style="animation-delay:${300 + li * 200 + (i / P.length) * 900}ms"/>`).join("")}
+            <text class="nm" x="8" y="${y0 + 16}">${s.label}</text>
+            <text x="${8 + s.label.length * 7.6 + 5}" y="${y0 + 16}">${s.unit}${flip ? " · drawn upside down" : ""}</text>
+            <text class="v" x="${w - 8}" y="${y0 + 16}" text-anchor="end">${fmtV(last)}</text>
+            <text x="8" y="${y0 + lh - 5}">${prov ? `corridor from ${band.n} draws, provisional` : `corridor from ${band.n} draws`} · z ${z >= 0 ? "+" : "−"}${Math.abs(z).toFixed(1)}</text>
+          </g>`;
+        });
+        const yEnd = top + keys.length * (lh + gap) - gap;
+        const threads = shared
+          .map((d, i) => {
+            const last = i === shared.length - 1;
+            const ys = keys.map((k) => pos[k][d][1]);
+            return `<line class="thr${last ? " last" : ""}" x1="${x(d)}" x2="${x(d)}" y1="${last ? Math.min(...ys) : top}" y2="${last ? Math.max(...ys) : yEnd}"/>`;
+          })
+          .join("");
+        const axis = [2022, 2023, 2024, 2025, 2026]
+          .map(
+            (y) =>
+              `<text x="${x(y + "-01-01")}" y="${top - 6}" text-anchor="middle">${y}</text>`,
+          )
+          .join("");
+        const lowSide = keys.every((k) => {
+          const s = DATA.series[k];
+          const b = bandOf(s.pts.slice(0, -1), 4);
+          return (
+            Math.sign(s.pts[s.pts.length - 1][1] - b.m) ===
+            CLUSTER[k]
+          );
+        });
+        check(
+          "Phone 3: all four last draws sit on the store-low side of their own middle",
+          lowSide,
+          keys
+            .map((k) => {
+              const s = DATA.series[k];
+              const b = bandOf(s.pts.slice(0, -1), 4);
+              return `${k} ${fmtV(s.pts[s.pts.length - 1][1])} vs ${fmtV(b.m)}`;
+            })
+            .join(", "),
+        );
+        const L = p.querySelector("[data-lanes]");
+        L.innerHTML = `<svg class="lanes" viewBox="0 0 ${w} ${yEnd + 26}" style="height:${yEnd + 26}px">${axis}${svg.replace(/<g>/, "<g>")}${threads}
+          <text x="${x(LAST)}" y="${yEnd + 18}" text-anchor="end" style="fill:var(--gene);font-weight:600">${fmtDate(LAST)}: all four on the store-low side</text></svg>
+          <p class="note">Threads join the ${shared.length} days all four were drawn. Down means stores lower in every lane.</p>`;
+
+        // explanations: bars re-order when the question is answered (weights ○ hypothesis)
+        const exBox = p.querySelector("[data-ex]");
+        const gly = (g) =>
+          g === "A" || g === "B" ? "●" : g === "C" ? "◐" : "○";
+        const ex = H.explanations.map((e, i) => ({ ...e, i, w: e.p }));
+        const RG = 13;
+        const els = ex.map((e) => {
+          const d = document.createElement("div");
+          d.className = "exr";
+          d.innerHTML = `<span><span class="g">${gly(e.g)} ${e.g}</span>${e.t}</span><b></b><div class="trk5"><i></i></div>`;
+          exBox.append(d);
+          return d;
+        });
+        const LR = {
+          meat: [2.2, 0.8, 0.8, 1],
+          supp: [2.2, 0.8, 0.8, 1.3],
+          none: [0.3, 2.5, 1.5, 1.5],
+        };
+        function draw(ans) {
+          const k = ans ? LR[ans] : [1, 1, 1, 1];
+          ex.forEach((e, i) => (e.w = e.p * k[i]));
+          const tot = ex.reduce((a, e) => a + e.w, 0);
+          const order = [...ex].sort((a, b) => b.w - a.w);
+          let yAt = 0;
+          order.forEach((e, r) => {
+            const d = els[e.i];
+            d.style.transform = `translateY(${yAt}px)`;
+            yAt += d.offsetHeight + RG;
+            exBox.style.height = yAt - RG + "px";
+            d.querySelector("b").textContent =
+              Math.round((e.w / tot) * 100) + "%";
+            d.querySelector("i").style.setProperty(
+              "--w",
+              (e.w / tot) * 100 + "%",
+            );
+            d.querySelector("i").style.setProperty(
+              "--c",
+              r === 0 ? "var(--gene)" : "var(--gene-l)",
+            );
+          });
+          p.querySelector("[data-note]").textContent = ans
+            ? "Reweighed by your answer. The weights per answer are a hypothesis ○, not a sourced rule."
+            : "Weights from the engine. Answer to reweigh them.";
+        }
+        draw(null);
+        p.querySelectorAll("[data-a]").forEach(
+          (b) =>
+            (b.onclick = () => {
+              const on = !b.classList.contains("on");
+              p.querySelectorAll("[data-a]").forEach((x) =>
+                x.classList.remove("on"),
+              );
+              b.classList.toggle("on", on);
+              draw(on ? b.dataset.a : null);
+            }),
+        );
+        p.querySelector("[data-w]").onclick = (e) => {
+          p.querySelector("[data-ws]").classList.add("on");
+          e.currentTarget.textContent = "Written";
+        };
+      })();
+
+      // ================= checks table =================
+      {
+        const tb = document.getElementById("checks");
+        tb.insertAdjacentHTML(
+          "beforeend",
+          checks
+            .map(
+              (c) =>
+                `<tr><td>${c.name}</td><td>${c.got ?? ""}</td><td class="${c.ok ? "ok" : "no"}">${c.ok ? "pass" : "FAIL"}</td></tr>`,
+            )
+            .join(""),
+        );
+        console.log(
+          `corridor checks total: ${checks.filter((c) => c.ok).length}/${checks.length} pass`,
+        );
+      }
+
+      // ---- paper grain: one 128 px noise tile, drawn once, used on cream surfaces only ----
+      (() => {
+        let a = 7;
+        const r = () => {
+          a |= 0;
+          a = (a + 0x6d2b79f5) | 0;
+          let t = Math.imul(a ^ (a >>> 15), 1 | a);
+          t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+          return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+        };
+        const c = document.createElement("canvas");
+        c.width = c.height = 128;
+        const x = c.getContext("2d");
+        const d = x.createImageData(128, 128);
+        for (let i = 0; i < d.data.length; i += 4) {
+          const v = 120 + r() * 135;
+          d.data[i] = d.data[i + 1] = d.data[i + 2] = v;
+          d.data[i + 3] = r() < 0.55 ? 34 : 0;
+        }
+        x.putImageData(d, 0, 0);
+        document.documentElement.style.setProperty(
+          "--noise",
+          `url(${c.toDataURL()})`,
+        );
+      })();
+    </script>
+  </body>
+</html>

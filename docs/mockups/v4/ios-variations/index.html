@@ -92,59 +92,427 @@
         color: #888;
         max-width: 74ch;
       }
-      .beyond-round { margin: 0 0 34px; }
-      .beyond-round h2 { font-size: 20px; font-weight: 500; margin: 0 0 8px; }
-      .beyond-round > p { font-size: 13px; color: #555; margin: 0 0 17px; }
-      .beyond-options { display: grid; grid-template-columns: repeat(3, 1fr); gap: 13px; }
-      .beyond-option { color: #173c3a; text-decoration: none; background: #edf3ef; border-radius: 17px; padding: 21px; min-height: 205px; display: flex; flex-direction: column; transition: transform .2s; }
-      .beyond-option:hover { transform: translateY(-3px); }
-      .beyond-option:focus-visible { outline: 3px solid #24786f; outline-offset: 4px; }
-      .beyond-option small { font: 10px ui-monospace, monospace; letter-spacing: .08em; }
-      .beyond-option strong { font-size: 24px; font-weight: 500; letter-spacing: -.04em; margin-top: 34px; }
-      .beyond-option span { font-size: 12px; line-height: 1.6; margin: 8px 0 17px; }
-      .beyond-option b { font-size: 12px; font-weight: 500; margin-top: auto; }
-      .beyond-option.tidal { background: linear-gradient(140deg, #e8f1e9, #add5c9); }
-      .beyond-option.solstice { background: linear-gradient(140deg, #fbf0dc, #eac196); color: #55392c; }
-      .beyond-option.strata { background: linear-gradient(140deg, #eaf0df, #b8c8a7); color: #2f4435; }
-      @media(max-width: 600px) { .beyond-options { grid-template-columns: 1fr; } .beyond-option { min-height: 155px; } .beyond-option strong { margin-top: 17px; } }
-      @media(prefers-reduced-motion: reduce) { .beyond-option { transition: none; } .beyond-option:hover { transform: none; } }
+      .beyond-round {
+        margin: 0 0 34px;
+      }
+      .beyond-round h2 {
+        font-size: 20px;
+        font-weight: 500;
+        margin: 0 0 8px;
+      }
+      .beyond-round > p {
+        font-size: 13px;
+        color: #555;
+        margin: 0 0 17px;
+      }
+      .beyond-options {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 13px;
+      }
+      .beyond-option {
+        color: #173c3a;
+        text-decoration: none;
+        background: #edf3ef;
+        border-radius: 17px;
+        padding: 21px;
+        min-height: 205px;
+        display: flex;
+        flex-direction: column;
+        transition: transform 0.2s;
+      }
+      .beyond-option:hover {
+        transform: translateY(-3px);
+      }
+      .beyond-option:focus-visible {
+        outline: 3px solid #24786f;
+        outline-offset: 4px;
+      }
+      .beyond-option small {
+        font:
+          10px ui-monospace,
+          monospace;
+        letter-spacing: 0.08em;
+      }
+      .beyond-option strong {
+        font-size: 24px;
+        font-weight: 500;
+        letter-spacing: -0.04em;
+        margin-top: 34px;
+      }
+      .beyond-option span {
+        font-size: 12px;
+        line-height: 1.6;
+        margin: 8px 0 17px;
+      }
+      .beyond-option b {
+        font-size: 12px;
+        font-weight: 500;
+        margin-top: auto;
+      }
+      .beyond-option.tidal {
+        background: linear-gradient(140deg, #e8f1e9, #add5c9);
+      }
+      .beyond-option.solstice {
+        background: linear-gradient(140deg, #fbf0dc, #eac196);
+        color: #55392c;
+      }
+      .beyond-option.strata {
+        background: linear-gradient(140deg, #eaf0df, #b8c8a7);
+        color: #2f4435;
+      }
+      @media (max-width: 600px) {
+        .beyond-options {
+          grid-template-columns: 1fr;
+        }
+        .beyond-option {
+          min-height: 155px;
+        }
+        .beyond-option strong {
+          margin-top: 17px;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .beyond-option {
+          transition: none;
+        }
+        .beyond-option:hover {
+          transform: none;
+        }
+      }
     </style>
   </head>
   <body>
     <main class="doc">
       <h1>The phone as a living prototype</h1>
-      <section class="beyond-round" aria-labelledby="solstice-guide-heading" style="margin-top: 21px">
-        <a class="beyond-option solstice" href="21-solstice-guide.html" style="min-height: 0">
+      <section
+        class="beyond-round"
+        aria-labelledby="solstice-guide-heading"
+        style="margin-top: 21px"
+      >
+        <a
+          class="beyond-option solstice"
+          href="21-solstice-guide.html"
+          style="min-height: 0"
+        >
           <small>21 / SOLSTICE, EVOLVED</small>
-          <strong id="solstice-guide-heading" style="margin-top: 13px">A day taking shape. A little guidance along the way.</strong>
-          <span>Completed days, sleep, goal trajectories, and a timely next step. Try the workout sync and watch the plan respond.</span>
+          <strong id="solstice-guide-heading" style="margin-top: 13px"
+            >A day taking shape. A little guidance along the way.</strong
+          >
+          <span
+            >Completed days, sleep, goal trajectories, and a timely next step.
+            Try the workout sync and watch the plan respond.</span
+          >
           <b>Open Solstice daily guide →</b>
         </a>
       </section>
       <p class="lede">
         Phase 36, rounds one and two. Eight directions on the same phone, from
-        eight seed strings. Same data everywhere — the same seven markers
-        off, the same three goals, the same five moves, the same three meals,
-        the same four adopted plan rows — so what you are comparing is
-        direction, not content.
-        Each file is one page with no build step: the Add flow plays on a timer
-        inside the frame, the move chips tick with the ring and the streak
-        answering, the expectation chart redraws when a habit or a food rule is
-        toggled and its tooltip follows the pointer, and a 1280 px website Home
-        is built from the same components. Real food photographs, credited in
-        each page's footer. Light and dark both hold;
+        eight seed strings. Same data everywhere — the same seven markers off,
+        the same three goals, the same five moves, the same three meals, the
+        same four adopted plan rows — so what you are comparing is direction,
+        not content. Each file is one page with no build step: the Add flow
+        plays on a timer inside the frame, the move chips tick with the ring and
+        the streak answering, the expectation chart redraws when a habit or a
+        food rule is toggled and its tooltip follows the pointer, and a 1280 px
+        website Home is built from the same components. Real food photographs,
+        credited in each page's footer. Light and dark both hold;
         <code>prefers-reduced-motion</code> is respected.
       </p>
       <section class="beyond-round" aria-labelledby="beyond-heading">
         <h2 id="beyond-heading">New: Tidal, Solstice &amp; Strata</h2>
-        <p>Round six, using design-beyond. Three layouts with purposeful gradients, working capture, daily actions, and editable meals.</p>
+        <p>
+          Round six, using design-beyond. Three layouts with purposeful
+          gradients, working capture, daily actions, and editable meals.
+        </p>
         <div class="beyond-options">
-          <a class="beyond-option tidal" href="18-tidal.html"><small>18 / DAILY RHYTHM</small><strong>Tidal</strong><span>Sea-glass surfaces, a flowing day chart, and one clear next step.</span><b>Explore Tidal →</b></a>
-          <a class="beyond-option solstice" href="19-solstice.html"><small>19 / A LIVING DAY</small><strong>Solstice</strong><span>A warm radial day, illustrated plates, and photo-first capture.</span><b>Explore Solstice →</b></a>
-          <a class="beyond-option strata" href="20-strata.html"><small>20 / YOUR BIOLOGY</small><strong>Strata</strong><span>Mineral gradients, layered health signals, and a longer view.</span><b>Explore Strata →</b></a>
+          <a class="beyond-option tidal" href="18-tidal.html"
+            ><small>18 / DAILY RHYTHM</small><strong>Tidal</strong
+            ><span
+              >Sea-glass surfaces, a flowing day chart, and one clear next
+              step.</span
+            ><b>Explore Tidal →</b></a
+          >
+          <a class="beyond-option solstice" href="19-solstice.html"
+            ><small>19 / A LIVING DAY</small><strong>Solstice</strong
+            ><span
+              >A warm radial day, illustrated plates, and photo-first
+              capture.</span
+            ><b>Explore Solstice →</b></a
+          >
+          <a class="beyond-option strata" href="20-strata.html"
+            ><small>20 / YOUR BIOLOGY</small><strong>Strata</strong
+            ><span
+              >Mineral gradients, layered health signals, and a longer
+              view.</span
+            ><b>Explore Strata →</b></a
+          >
         </div>
       </section>
       <ol>
+        <li>
+          <a class="row" href="55-corridors.html"
+            ><span class="n">55</span>
+            <span>
+              <span class="name">Corridors</span>
+              <span class="say">Round sixteen, Casebook × Corridor on the Blood tab. Hunches first as plain lines with one action each, then every marker as a slim corridor. A row opens in place into the case; How we know pushes a page with the rule, every draw and its PDF, the evidence and the replay.</span>
+            </span>
+          </a>
+        </li>
+        <li>
+          <a class="row" href="54-casefile.html"
+            ><span class="n">54</span>
+            <span>
+              <span class="name">Casefile</span>
+              <span class="say">Round sixteen, Casebook × Corridor on Today. A slim Worth a look shelf you read in two seconds and act on in one tap; the case opens as a sheet with the corridor chart; How we know expands inside it: the rule that fired, every draw with its PDF, the evidence, what is not known.</span>
+            </span>
+          </a>
+        </li>
+        <li>
+          <a class="row" href="53-web.html"
+            ><span class="n">53</span>
+            <span>
+              <span class="name">Web</span>
+              <span class="say">Round fifteen, hunches and one clear view, on the web. Today, Heading and Watch as three columns under the plum header, the LDL goal as the hero chart, hunches as a rail; a hunch opens in a drawer with the whole case. A 390 frame of the same page.</span>
+            </span>
+          </a>
+        </li>
+        <li>
+          <a class="row" href="52-constellation.html"
+            ><span class="n">52</span>
+            <span>
+              <span class="name">Constellation</span>
+              <span class="say">Round fifteen, the outlandish one. Every marker a star, brighter the further it sits from your own band; linked markers form constellations, and The Store Room (ferritin, B12, D, homocysteine) lights up and turns into its hunch card.</span>
+            </span>
+          </a>
+        </li>
+        <li>
+          <a class="row" href="51-corridor.html"
+            ><span class="n">51</span>
+            <span>
+              <span class="name">Corridor</span>
+              <span class="say">Round fifteen, you against you. Every marker as a corridor of your own past draws with the lab range behind it. Drag through 14 years: the corridors rebuild from the draws before, and signals light up the day they would have been raised.</span>
+            </span>
+          </a>
+        </li>
+        <li>
+          <a class="row" href="50-heading.html"
+            ><span class="n">50</span>
+            <span>
+              <span class="name">Heading</span>
+              <span class="say">Round fifteen, the clear view. The plum header opens into Today, Heading (twelve systems: toward, holding, away, unmeasured) and Watch, with how sure the picture is. The LDL goal: 131 and walking away, where it lands on 1 Dec if nothing changes.</span>
+            </span>
+          </a>
+        </li>
+        <li>
+          <a class="row" href="49-casebook.html"
+            ><span class="n">49</span>
+            <span>
+              <span class="name">Casebook</span>
+              <span class="say">Round fifteen, hunches as case files on the Hybrid home: a Worth a look shelf, the eosinophil step opened with your band against the lab's, one question that re-orders the explanations, predictions written down before the folate result closes the case.</span>
+            </span>
+          </a>
+        </li>
+        <li>
+          <a class="row" href="48-hybrid.html"
+            ><span class="n">48</span>
+            <span>
+              <span class="name">Hybrid</span>
+              <span class="say">Round fourteen, the recommendation. The Shelves home (dense, for a glance) with Deck II folded in: a Focus button on Do now springs the stack open into Deck II's full-screen table (swipe to tick or skip, stamps, confetti). The plum header opens into 13 weeks; meals edit in a sheet over the home; the Dynamic Island reads plates, signs off each tick and says when the day is done.</span>
+            </span>
+          </a>
+        </li>
+        <li>
+          <a class="row" href="47-widgets-ii.html"
+            ><span class="n">47</span>
+            <span>
+              <span class="name">Widgets II</span>
+              <span class="say">Round thirteen. Widgets in frosted glass on a moving pastel wallpaper (a fal.ai Seedance loop), each titled with its one question: How am I doing, What I ate, Do next, Where blood is going, Last 13 weeks. Every widget zooms open into its detail; a plate opens a meal you resize, fix or delete. Slide Do next to tick: 72 springs to 74.</span>
+            </span>
+          </a>
+        </li>
+        <li>
+          <a class="row" href="46-shelves.html"
+            ><span class="n">46</span>
+            <span>
+              <span class="name">Shelves</span>
+              <span class="say">Round thirteen, from Deck. Three shelves on one scroll (Do now, Today so far, Where it's heading) on cream paper with leaf shadows moving across it. The plum header holds 72, the three layers and the last 21 days. A card you swipe right flies into the score; a plate opens an edit sheet.</span>
+            </span>
+          </a>
+        </li>
+        <li>
+          <a class="row" href="45-deck-ii.html"
+            ><span class="n">45</span>
+            <span>
+              <span class="name">Deck II</span>
+              <span class="say">Rounds thirteen and fourteen, the combined final. Deck's swipe on a living plum table (a fal.ai Seedance loop under grain and light). The score is a permanent header with Streak's five weeks of squares that open into 13. Three piles: Do (swipe to tick), Now, Ahead. The food card opens into an editor (portion, rows, Fix results, Delete), and every change reaches the ring and the score. The Dynamic Island reads the plate after Send, shows a receipt for each tick and says when the Do pile is done.</span>
+            </span>
+          </a>
+        </li>
+        <li>
+          <a class="row" href="44-deck.html"
+            ><span class="n">44</span>
+            <span>
+              <span class="name">Deck</span>
+              <span class="say">Round twelve, fresh. Home is a deck of five cream cards on a plum table, one idea per card: the score, food, the next move, LDL, genes. On the move card the swipe is the answer: right stamps TICK, left SKIP, and card one counts up to the new score when it comes back round. A tab row over the deck keeps the one-glance answer.</span>
+            </span>
+          </a>
+        </li>
+        <li>
+          <a class="row" href="43-poster.html"
+            ><span class="n">43</span>
+            <span>
+              <span class="name">Poster</span>
+              <span class="say">Round twelve, fresh. A Swiss typographic poster: six columns, black on white, signal red only where you act or where the future is drawn. The 72 is set at 208 px and cropped by the phone edge; the next move is a sentence you strike out and the score rolls digit by digit. One chart: LDL 168, 131, dotted to 104. Add is PHOTO / VOICE / TEXT as a full-screen word menu.</span>
+            </span>
+          </a>
+        </li>
+        <li>
+          <a class="row" href="42-widgets.html"
+            ><span class="n">42</span>
+            <span>
+              <span class="name">Widgets</span>
+              <span class="say">Round twelve, fresh. Native Apple: iOS widgets on system grey and a Dynamic Island that grows into a Live Activity reading the plate. The score sits in three Fitness rings (lifestyle, blood, genes); the next move ticks inside its widget and the ring springs forward, 72 to 74.</span>
+            </span>
+          </a>
+        </li>
+        <li>
+          <a class="row" href="41-thread.html"
+            ><span class="n">41</span>
+            <span>
+              <span class="name">Thread</span>
+              <span class="say">Round twelve, fresh. Home is a conversation with the coach: the morning brief with the 72 chip, the plates as sent cards, the LDL projection card, the next move as a message with a Tick. The composer is the Add flow (camera, mic, text; Send only with content). Ticking posts your reply and the coach answers with the new score.</span>
+            </span>
+          </a>
+        </li>
+        <li>
+          <a class="row" href="40-streak.html"
+            ><span class="n">40</span>
+            <span>
+              <span class="name">Streak</span>
+              <span class="say">Round twelve, score family. The score over time is the home: 91 days as a contribution grid in the Matrix hue, today's square large and pulsing under a 128 px 72 and +3 vs last week. Ticking a move recolours today's square live; tapping a past day opens its score and top reason.</span>
+            </span>
+          </a>
+        </li>
+        <li>
+          <a class="row" href="39-garden.html"
+            ><span class="n">39</span>
+            <span>
+              <span class="name">Garden</span>
+              <span class="say">Round twelve, score family. The score as a potted plant: genes are the roots (thickness by value), blood is the stem (seven nodes in their state colour), lifestyle is the leaves. 72 sits on a terracotta plant label. A tick unfurls a leaflet; the LDL node opens a watering-can projection to 104.</span>
+            </span>
+          </a>
+        </li>
+        <li>
+          <a class="row" href="38-gauge.html"
+            ><span class="n">38</span>
+            <span>
+              <span class="name">Gauge</span>
+              <span class="say">Round twelve, score family. A night-drive instrument cluster: one big dial for 72, three sub-dials for the layers, kcal as a fuel gauge, LDL as an odometer rolling 131 to 104. Moves are switch keys; flip one and the needles swing on a spring.</span>
+            </span>
+          </a>
+        </li>
+        <li>
+          <a class="row" href="37-tally.html"
+            ><span class="n">37</span>
+            <span>
+              <span class="name">Tally</span>
+              <span class="say">Round twelve, score family. The score as a bank statement drawn as a waterfall: it opens at 50, every row posts a signed step, and the balance bar lands at 72. A tick posts a new +2 credit that slides in; tap any step to see the records behind it.</span>
+            </span>
+          </a>
+        </li>
+        <li>
+          <a class="row" href="26-matrix.html"
+            ><span class="n">26</span>
+            <span>
+              <span class="name">Matrix</span>
+              <span class="say"
+                >Round ten, read from RonDesignLab's SuperPower Mobile. One
+                score on a gradient that is the verdict: hue 30 (amber) at 0,
+                hue 140 (green) at 100, so 72 lands green-yellow. The number is
+                drawn as a dot matrix, 5 by 7 per glyph, unlit dots left showing
+                at 12 percent so the ceiling stays visible, and under it three
+                ten-dot rows for lifestyle 77, blood 71 and genes 63 with the
+                weights printed. Then bento tiles that lead with a real marker
+                and its unit instead of a domain label: sleep 7:30, LDL 131
+                mg/dl, vitamin D 29 ng/ml, APOE ε3/ε4. Two action tiles take the
+                blood in, a paper stack for the lab PDF and three rings pulsing
+                around a heart for Apple Health; the upload tile opens the sheet
+                over a blurred home. Onion's arithmetic, unchanged.</span
+              >
+            </span>
+          </a>
+        </li>
+        <li>
+          <a class="row" href="25-onion.html"
+            ><span class="n">25</span>
+            <span>
+              <span class="name">Onion</span>
+              <span class="say"
+                >Round nine. Glow's skin with the balance slot earned: three
+                rings, outer to inner, for lifestyle (today's sleep, moves,
+                kcal, protein), blood (markers in range 1, borderline half, off
+                0, the web home's arithmetic) and genes (a fixed weight until
+                the variant panel lands). One score in the centre with its
+                weights printed on the card, PhenoAge under it as the slow line.
+                Tap a ring or a legend chip and the card turns to that layer;
+                the list below becomes the receipt, each entry with what it did
+                to the score. The projection sentence between the card and the
+                actions.</span
+              >
+            </span>
+          </a>
+        </li>
+        <li>
+          <a class="row" href="24-glow.html"
+            ><span class="n">24</span>
+            <span>
+              <span class="name">Glow</span>
+              <span class="say"
+                >Round nine, drawn by Fable from a fintech home the owner liked
+                (a white balance card floating on a blue wash, four round
+                actions, a transactions list, a glass tab bar with the plus
+                beside it) after a look through Dribbble's health search. The
+                card holds energy out of 100 with sleep, kcal and protein under
+                it, a small day trace, and LDL where the card number would be.
+                Four actions: Log meal, Move, Sleep, More. A strip of marker
+                tiles with range bars, then today's meals and moves as rows with
+                the number on the right. The plus and Log meal open the Add
+                sheet (Photo, Text, Voice) over a blurred home. Inter, one blue.
+                Home only for now.</span
+              >
+            </span>
+          </a>
+        </li>
+        <li>
+          <a class="row" href="23-sap.html"
+            ><span class="n">23</span>
+            <span>
+              <span class="name">Sap</span>
+              <span class="say"
+                >Round eight, drawn by Fable after a look at Function,
+                Superpower, Whoop Advanced Labs, Oura, Bevel and Merios: all of
+                them stack biomarker cards and a readiness score; none of them
+                asks how you feel. Sap makes energy the headline: one large
+                number, then the day as a horizontal trace (no ring, no dial)
+                shaped by sleep, the plates at their hour sized by calories, the
+                moves as ticks that light when their row is ticked, and three
+                one-tap check-ins pinned on the line. "What moved it" is
+                arithmetic on the day's own records with a signed contribution
+                each. Add is one field that takes a meal, an energy and a walk
+                in the same sentence and sorts them into typed chips; Send
+                appears only once there is content. Blood reads as the floor
+                under the line: ferritin, vitamin D and TPO first as range rails
+                with one action and its trial count each, a retest date, then
+                LDL as the two draws and a dotted landing that redraws with the
+                levers and the slider. Cool paper, one amber, Bricolage
+                Grotesque for the numbers. One web home from the same
+                functions.</span
+              >
+              <span class="seed">2hw3QdEgISxLj2hq0WVSaPAv</span>
+            </span>
+          </a>
+        </li>
         <li>
           <a class="row" href="22-dusk.html"
             ><span class="n">22</span>
@@ -154,16 +522,16 @@
                 >Round seven, drawn by Fable directly rather than through an
                 Opus builder, starting from Solstice and taking away everything
                 that does not carry a number or an action: the greeting with a
-                name, the headline, the 48 dial ticks, the legend, the
-                "well-fed day" label, the scenario card. The plates sit on the
-                hour they were eaten and are sized by their calories, sleep is
-                one grey band, the moves are dots on an inner ring that light
-                when their row is ticked, the hand at 20:10 is the only accent
-                on the dial. Add opens in the camera with the shutter between
-                Text and Voice; the card rises with the target rails. LDL is the
-                number, the two draws, a dotted landing that redraws as the
-                levers and the consistency slider move, and the sentence. One
-                web home from the same functions.</span
+                name, the headline, the 48 dial ticks, the legend, the "well-fed
+                day" label, the scenario card. The plates sit on the hour they
+                were eaten and are sized by their calories, sleep is one grey
+                band, the moves are dots on an inner ring that light when their
+                row is ticked, the hand at 20:10 is the only accent on the dial.
+                Add opens in the camera with the shutter between Text and Voice;
+                the card rises with the target rails. LDL is the number, the two
+                draws, a dotted landing that redraws as the levers and the
+                consistency slider move, and the sentence. One web home from the
+                same functions.</span
               >
             </span>
           </a>
@@ -177,29 +545,51 @@
                 >Round four, grown out of Orbit. Twenty-four characters again,
                 so a day again, and <b>K·N·o·T</b> reads straight across it at
                 1, 6, 18 and 23. Orbit drew the connections and left them grey;
-                Knot ties them. Tap a node and its line lights with a
-                copper → blue → rose gradient, the other five dim, and that
-                family's card opens underneath in that family's wash.
-                <b>Movement</b> and <b>Sleep</b> open onto Ply's 24-hour ring,
-                folded in rather than given a screen of its own. Five gradient
-                rules and nothing outside them: a radial family wash on a card,
-                an orbit line that fades to nothing at both ends, the lit
-                connection, one conic sweep behind the dial, the core and the
-                day ring, and one linear gradient shared by the projection line
-                and the number it lands on. Glass tab bar, deep-teal dark, and
-                the data is ours — Razvan on Saturday Sep 5, with the cycle ring
-                surviving as his wife's profile because only one of them has a
-                cycle.</span
+                Knot ties them. Tap a node and its line lights with a copper →
+                blue → rose gradient, the other five dim, and that family's card
+                opens underneath in that family's wash. <b>Movement</b> and
+                <b>Sleep</b> open onto Ply's 24-hour ring, folded in rather than
+                given a screen of its own. Five gradient rules and nothing
+                outside them: a radial family wash on a card, an orbit line that
+                fades to nothing at both ends, the lit connection, one conic
+                sweep behind the dial, the core and the day ring, and one linear
+                gradient shared by the projection line and the number it lands
+                on. Glass tab bar, deep-teal dark, and the data is ours — Razvan
+                on Saturday Sep 5, with the cycle ring surviving as his wife's
+                profile because only one of them has a cycle.</span
               >
               <span class="seed">KXL6gNr8ST73dtRvWom3CU7V</span>
             </span></a
           >
         </li>
         <li>
-          <a class="row" href="13-orbit.html"><span class="n">13</span><span><span class="name">Orbit</span> <span class="say">A whole-person view. Explore the connections between blood, genes, food, sleep, movement and optional cycle context. Meaningful completion rings, consistent Lucide icons, and a data-aware chat with source controls and linked records.</span></span></a>
+          <a class="row" href="13-orbit.html"
+            ><span class="n">13</span
+            ><span
+              ><span class="name">Orbit</span>
+              <span class="say"
+                >A whole-person view. Explore the connections between blood,
+                genes, food, sleep, movement and optional cycle context.
+                Meaningful completion rings, consistent Lucide icons, and a
+                data-aware chat with source controls and linked records.</span
+              ></span
+            ></a
+          >
         </li>
         <li>
-          <a class="row" href="12-path.html"><span class="n">12</span><span><span class="name">Path</span> <span class="say">Small changes, a different trajectory. One connected iOS prototype: a focused daily rhythm, adjustable weight and blood-marker scenarios, and a biological story linking blood, body and genes. Explore first, adopt a realistic plan, then verify with a new measurement.</span></span></a>
+          <a class="row" href="12-path.html"
+            ><span class="n">12</span
+            ><span
+              ><span class="name">Path</span>
+              <span class="say"
+                >Small changes, a different trajectory. One connected iOS
+                prototype: a focused daily rhythm, adjustable weight and
+                blood-marker scenarios, and a biological story linking blood,
+                body and genes. Explore first, adopt a realistic plan, then
+                verify with a new measurement.</span
+              ></span
+            ></a
+          >
         </li>
         <li>
           <a class="row" href="01-dial.html"
@@ -284,8 +674,8 @@
                 open underneath with a ruler, a value and the word. The seed
                 hides a·Q·U·A and counts out the day in 7 5 3 2. The projection
                 is wired back into the drawing: adopt plant sterols and the
-                heart stops being oxblood, because in eight weeks it will
-                not be.</span
+                heart stops being oxblood, because in eight weeks it will not
+                be.</span
               >
               <span class="seed">VwuDuqaQ7mUAcQUAR5uX32Np</span>
             </span></a
@@ -341,17 +731,17 @@
               <span class="name">Ply</span>
               <span class="say"
                 >Data first, prose last. The seed is exactly 24 characters, so
-                it is a day: the home screen is a 24-hour ring, four plies
-                deep — sleep, meals, moves, workouts — and you tap an arc for
-                its detail. The word <b>ply</b> sits whole at characters 19 to
-                21. Every other chart is that same circle in another form: a
-                donut cut by the plate with the day's calories in the middle,
-                the week unrolled into seven bars that grow as you tick, the
-                markers as six small multiples with a ruler under each, and
-                the expectation chart as the hero of Today at full frame
-                width. One indigo for the current value, hairline axes, no
-                chart junk. Play any input and the meal lands on the ring as a
-                new arc at the hour it happened.</span
+                it is a day: the home screen is a 24-hour ring, four plies deep
+                — sleep, meals, moves, workouts — and you tap an arc for its
+                detail. The word <b>ply</b> sits whole at characters 19 to 21.
+                Every other chart is that same circle in another form: a donut
+                cut by the plate with the day's calories in the middle, the week
+                unrolled into seven bars that grow as you tick, the markers as
+                six small multiples with a ruler under each, and the expectation
+                chart as the hero of Today at full frame width. One indigo for
+                the current value, hairline axes, no chart junk. Play any input
+                and the meal lands on the ring as a new arc at the hour it
+                happened.</span
               >
               <span class="seed">2uEWkbjMKN1hVfiDjYplyzYH</span>
             </span></a
@@ -363,23 +753,23 @@
             <span>
               <span class="name">Quink</span>
               <span class="say"
-                >Ply with the ink given colour. Twenty-four characters again,
-                so a day again; its loudest letter is <b>K, four times</b>,
-                and four is the number of kinds a day is made of. The ring
-                stops being four greys: sleep is one thick navy-grey band with
-                a moon on it, a meal is the accent and as thick as it has
-                calories with a knife and fork inside, a move is a thin ink
-                tick under a badge — a pill, a pair of feet — that fills the
-                moment you tick the chip, a workout is the accent darkened, a
-                bar as wide as the session is long, with a dumbbell in it. Add
-                opens <b>in camera mode</b>: viewfinder, shutter, the last
-                photo, and two small switches for text and voice; Send does not
-                exist until there is something to send, and then it is the only
-                lime on the phone. The plate donut takes every number off its
-                arcs — a fish, a wheat ear, a drop ride the three steps of the
-                accent family, and the reading happens in a legend underneath
-                — while the target rails stay exactly as they were. Nine drawn
-                spot illustrations carry what a 12 px glyph cannot.</span
+                >Ply with the ink given colour. Twenty-four characters again, so
+                a day again; its loudest letter is <b>K, four times</b>, and
+                four is the number of kinds a day is made of. The ring stops
+                being four greys: sleep is one thick navy-grey band with a moon
+                on it, a meal is the accent and as thick as it has calories with
+                a knife and fork inside, a move is a thin ink tick under a badge
+                — a pill, a pair of feet — that fills the moment you tick the
+                chip, a workout is the accent darkened, a bar as wide as the
+                session is long, with a dumbbell in it. Add opens
+                <b>in camera mode</b>: viewfinder, shutter, the last photo, and
+                two small switches for text and voice; Send does not exist until
+                there is something to send, and then it is the only lime on the
+                phone. The plate donut takes every number off its arcs — a fish,
+                a wheat ear, a drop ride the three steps of the accent family,
+                and the reading happens in a legend underneath — while the
+                target rails stay exactly as they were. Nine drawn spot
+                illustrations carry what a 12 px glyph cannot.</span
               >
               <span class="seed">QpKQhbIRJVKEZiinoHMHuKQk</span>
             </span></a
@@ -394,15 +784,15 @@
                 >Ply again, with the marks rewritten so shape carries the
                 meaning. A rune is a mark you read by its shape, and the seed
                 holds R, U, N and E; its six digits add to 43, the exercise
-                minutes already on file for today. The day ring stops being
-                four arcs of one grey: sleep is a thick outer band with a moon
-                at its start, a meal is a plate as wide as its calories with
-                the utensils in the biggest one, a move is a tick that becomes
-                a drawn check when it closes, a workout is a bar as wide as its
+                minutes already on file for today. The day ring stops being four
+                arcs of one grey: sleep is a thick outer band with a moon at its
+                start, a meal is a plate as wide as its calories with the
+                utensils in the biggest one, a move is a tick that becomes a
+                drawn check when it closes, a workout is a bar as wide as its
                 minutes with a dumbbell on it — so the four kinds read with the
-                colour turned off. Add opens on three equal tiles, camera,
-                voice and text, each with a drawing and one line, and Send does
-                not exist until there is something to send. The donut carries a
+                colour turned off. Add opens on three equal tiles, camera, voice
+                and text, each with a drawing and one line, and Send does not
+                exist until there is something to send. The donut carries a
                 fish, a wheat stalk and a droplet on its arcs and puts every
                 number in a legend row underneath; the target rails are
                 untouched. Ten generated spot illustrations, one accent, both
@@ -428,8 +818,8 @@
                 dumbbell on the session. The legend is those same drawings. Add
                 opens on the field with the photo tile large beside it and the
                 mic inside the field, and there is no Send until there is
-                something to send — then it is the only lime on the page. On
-                the plate no label sits on an arc: a legend row under the donut
+                something to send — then it is the only lime on the page. On the
+                plate no label sits on an arc: a legend row under the donut
                 carries a fish, a wheat sheaf and an oil drop, and the target
                 rails keep their geometry and gain the same three at 21 px.
                 Twelve generated spot illustrations, inlined.</span
