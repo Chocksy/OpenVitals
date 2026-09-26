@@ -18,7 +18,9 @@ export const auth = betterAuth({
     },
   }),
   baseURL,
-  trustedOrigins: [baseURL],
+  // halewell.app serves the same app beside BETTER_AUTH_URL; email sign-in
+  // works on both. ponytail: Google sign-in still returns to BETTER_AUTH_URL.
+  trustedOrigins: [baseURL, "https://halewell.app"],
   emailAndPassword: { enabled: true },
   socialProviders:
     process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET
