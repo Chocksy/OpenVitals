@@ -730,6 +730,61 @@ ${batch.map((m) => m.name).join("\n")}`,
 }
 
 /**
+ * Phase 39 S3: codes that differ only by a suffix meaning the same thing
+ * (`eosinophils_pct` and `eosinophils_percentage`). Deterministic, no model:
+ * a pair is queued as a `merge_metric` review item and merged only on the
+ * owner's yes, by the same `applyAnswer` branch. The target is the catalog
+ * row (not `other`), else the one with more readings. A source the owner
+ * already answered "keep separate" for (`needsReview`) is not asked again.
+ */
+const SUFFIXES = [
+  ["_pct", "_percentage", "_percent"],
+  ["_abs", "_absolute"],
+];
+
+export function planSuffixPairs(
+  metrics: Metric[],
+  readingCount: Map<string, number>,
+): Action[] {
+  const byStem = new Map<string, Metric[]>();
+  for (const m of metrics)
+    SUFFIXES.forEach((group, g) => {
+      const suffix = group.find((x) => m.code.endsWith(x));
+      if (!suffix) return;
+      const stem = `${g}:${m.code.slice(0, -suffix.length)}`;
+      byStem.set(stem, [...(byStem.get(stem) ?? []), m]);
+    });
+  const actions: Action[] = [];
+  for (const group of byStem.values()) {
+    if (group.length < 2) continue;
+    const n = (m: Metric) => readingCount.get(m.code) ?? 0;
+    const [target, ...rest] = [...group].sort(
+      (a, b) =>
+        Number(a.category === "other") - Number(b.category === "other") ||
+        n(b) - n(a) ||
+        a.code.length - b.code.length,
+    );
+    for (const source of rest) {
+      if (source.needsReview) continue;
+      actions.push({
+        type: "queue",
+        check: "metric_identity",
+        kind: "merge_metric",
+        question: `Is "${source.name}" (${source.code}) the same biomarker as "${target!.name}" (${target!.code})?`,
+        options: ["Yes, merge", "No, keep separate"],
+        subject: {
+          key: `${source.code}->${target!.code}`,
+          metricCode: source.code,
+          targetCode: target!.code,
+          detail: `${source.code} (${source.unit ?? "no unit"}, ${n(source)} readings) → ${target!.code} (${target!.unit ?? "no unit"}, ${n(target!)} readings)`,
+        },
+      });
+    }
+  }
+  return actions;
+}
+
+/**
  * Guideline bodies and named authors. A band whose source is one of these is
  * labelled `science`; anything else is somebody's opinion until the model says
  * otherwise. Used for the proposals queued before this app decided ranges on
@@ -1129,6 +1184,15 @@ export async function runCurator(
     const identity = await planMetricIdentity(minted, known);
     bump("metric_identity").checked = minted.length;
     actions.push(...identity);
+    const readingCount = new Map<string, number>();
+    for (const r of history)
+      readingCount.set(r.metricCode, (readingCount.get(r.metricCode) ?? 0) + 1);
+    actions.push(
+      ...planSuffixPairs(
+        allMetrics.filter((m) => withReadings.has(m.code)),
+        readingCount,
+      ),
+    );
 
     /** The newest range this user actually got printed for a metric. */
     const labRange = (code: string) => {
@@ -1415,6 +1479,12 @@ export async function runCurator(
         t.queued = topics.reduce((n, r) => n + r.outcomes, 0);
       }
     }
+
+    // Phase 39: the hunches read the readings this run just settled. After an
+    // upload and in the daily pass; a failure never fails the run.
+    await import("./hunches")
+      .then((h) => h.refreshHunches(userId))
+      .catch((e) => console.error("[curator] hunches refresh failed:", e));
 
     await db
       .update(curatorRuns)

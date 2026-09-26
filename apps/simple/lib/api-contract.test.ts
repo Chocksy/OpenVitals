@@ -3,6 +3,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import {
+  headingOf,
   markerWord,
   seriesOf,
   wordOf,
@@ -69,6 +70,8 @@ describe("the fixtures exist and carry no secret", () => {
     "research-topic",
     "genome",
     "score-days",
+    "hunches",
+    "hunch",
   ];
 
   for (const name of NAMES)
@@ -507,9 +510,13 @@ describe("no body smuggles a number as a string", () => {
     "research-topic",
     "genome",
     "score-days",
+    "hunches",
+    "hunch",
   ])
     it(`${name}.json`, () => {
       for (const [at, v] of leaves(load(name))) {
+        // Phase 39: `recentSlope.from` is the date the fit starts, not a count.
+        if (at.includes("recentSlope.")) continue;
         const key = at
           .split(".")
           .pop()!
@@ -915,5 +922,262 @@ describe("GET /api/score/days", () => {
     );
     expect(effects[0]).toBeNull();
     for (const e of effects.slice(1)) expect(typeof e).toBe("number");
+  });
+});
+
+/* ── phase 39 S7: hunches ─────────────────────────────────────────────── */
+
+const KINDS = ["left_band", "step", "drift", "discordance", "cluster", "gap", "good_news"];
+
+/** The glance every hunch row carries, on the list, on Today and in a case. */
+function checkRow(r: Record<string, unknown>) {
+  expect(r.id as string).toMatch(/^[0-9a-f-]{36}$/);
+  expect(KINDS).toContain(r.kind);
+  expect(typeof r.stamp).toBe("string");
+  expect(str(r.system)).toBe(true);
+  // One plain sentence: no z-score, no percentage.
+  expect(r.line as string).toMatch(/\.$/);
+  expect(r.line as string).not.toMatch(/%|\bz\b/);
+  const n = r.number as Record<string, unknown>;
+  expect(num(n.value)).toBe(true);
+  expect(str(n.unit)).toBe(true);
+  const mini = r.mini as Record<string, unknown>;
+  const band = mini.band as Record<string, unknown> | null;
+  if (band) {
+    for (const k of ["median", "sd", "n"]) expect(typeof band[k], k).toBe("number");
+    expect(typeof band.provisional).toBe("boolean");
+  }
+  for (const k of ["lab", "goal"]) {
+    const pair = mini[k] as unknown[] | null;
+    if (pair) {
+      expect(pair).toHaveLength(2);
+      for (const v of pair) expect(num(v)).toBe(true);
+    }
+  }
+  expect(num(mini.last)).toBe(true);
+  const a = r.action as Record<string, unknown>;
+  expect(["answer", "book", "got_it", "result"]).toContain(a.kind);
+  expect(typeof a.label).toBe("string");
+  expect(["open", "testing", "closed"]).toContain(r.state);
+}
+
+describe("GET /api/hunches", () => {
+  const b = load("hunches") as Record<string, Record<string, unknown>[]>;
+
+  it("splits the rows into open, good news and closed", () => {
+    expect(Object.keys(b).sort()).toEqual(["closed", "goodNews", "open"]);
+    for (const r of [...b.open!, ...b.goodNews!, ...b.closed!]) checkRow(r);
+    for (const r of b.open!) expect(r.kind).not.toBe("good_news");
+    for (const r of b.goodNews!) expect(r.kind).toBe("good_news");
+    for (const r of b.closed!) expect(r.state).toBe("closed");
+  });
+
+  it("offers Got it on good news only", () => {
+    for (const r of [...b.open!, ...b.goodNews!]) {
+      const a = r.action as Record<string, unknown>;
+      expect(a.kind === "got_it", String(r.line)).toBe(r.kind === "good_news");
+    }
+  });
+});
+
+describe("GET /api/hunches/[id]", () => {
+  const c = load("hunch") as Record<string, unknown>;
+
+  it("is a row plus the case", () => {
+    checkRow(c);
+    expect(typeof c.say).toBe("string");
+    for (const k of ["rule", "unknowns"]) {
+      expect(Array.isArray(c[k]), k).toBe(true);
+      for (const l of c[k] as unknown[]) expect(typeof l).toBe("string");
+    }
+    expect((c.rule as string[]).length).toBeGreaterThan(0);
+    for (const d of c.firedAt as string[]) expect(d).toMatch(DAY);
+    if (c.writtenAt) expect(c.writtenAt as string).toMatch(DAY);
+    expect(str(c.outcome)).toBe(true);
+    expect(str(c.outcomeLine)).toBe(true);
+  });
+
+  it("dates every draw, oldest first, and names its file or null", () => {
+    const lanes = [c, ...(c.markers as Record<string, unknown>[])];
+    for (const lane of lanes) {
+      const series = lane.series as Record<string, unknown>[];
+      let last = "";
+      for (const p of series) {
+        expect(p.date as string).toMatch(DAY);
+        expect(typeof p.value).toBe("number");
+        expect(str(p.file)).toBe(true);
+        expect((p.date as string) >= last).toBe(true);
+        last = p.date as string;
+      }
+      for (const b of lane.bandAt as Record<string, unknown>[]) {
+        expect(b.date as string).toMatch(DAY);
+        expect(typeof b.median).toBe("number");
+        expect(typeof b.sd).toBe("number");
+      }
+    }
+  });
+
+  it("gives a cluster one lane per member", () => {
+    const m = c.markers as Record<string, unknown>[];
+    if (c.kind === "cluster") expect(m.length).toBeGreaterThanOrEqual(3);
+    else expect(m).toEqual([]);
+  });
+
+  it("weights the explanations to 1, in code, and checks what they predict", () => {
+    const ex = c.explanations as Record<string, unknown>[];
+    if (!ex.length) return;
+    const sum = ex.reduce((s, e) => s + (e.weight as number), 0);
+    expect(sum).toBeCloseTo(1, 2);
+    for (const e of ex) {
+      expect(["A", "B", "C", "D", "E"]).toContain(e.grade);
+      expect(["science", "opinion", "anecdotal", "hypothesis"]).toContain(e.basis);
+      expect(str(e.predicts)).toBe(true);
+      const ch = e.check as Record<string, unknown> | null;
+      if (ch) expect(["<", ">", "between"]).toContain(ch.op);
+    }
+  });
+
+  it("asks one question with three to five chips, or none", () => {
+    const q = c.question as { text: string; chips: Record<string, unknown>[] } | null;
+    if (!q) return;
+    expect(typeof q.text).toBe("string");
+    expect(q.chips.length).toBeGreaterThanOrEqual(3);
+    expect(q.chips.length).toBeLessThanOrEqual(5);
+    const ids = new Set((c.explanations as { id: string }[]).map((e) => e.id));
+    for (const ch of q.chips)
+      for (const f of ch.favours as string[]) expect(ids.has(f), f).toBe(true);
+  });
+
+  it("prices the test and says when the price is an estimate", () => {
+    const t = c.test as Record<string, unknown> | null;
+    if (!t) return;
+    expect(typeof t.name).toBe("string");
+    expect(typeof t.price).toBe("number");
+    expect(typeof t.eur).toBe("number");
+    expect(typeof t.currency).toBe("string");
+    expect(typeof t.estimated).toBe("boolean");
+  });
+});
+
+describe("GET /api/today, hunches, Heading and confidence (phase 39)", () => {
+  const b = load("today") as Record<string, unknown>;
+
+  it("shelves at most five hunches, open ones before good news", () => {
+    const hs = b.hunches as Record<string, unknown>[];
+    expect(hs.length).toBeLessThanOrEqual(5);
+    hs.forEach(checkRow);
+    const firstGood = hs.findIndex((h) => h.kind === "good_news");
+    if (firstGood >= 0)
+      for (const h of hs.slice(firstGood)) expect(h.kind).toBe("good_news");
+  });
+
+  it("gives every one of the 12 systems a Heading word", () => {
+    const h = b.heading as Record<string, unknown>[];
+    expect(h).toHaveLength(12);
+    for (const r of h) {
+      expect(typeof r.id).toBe("string");
+      expect(typeof r.name).toBe("string");
+      expect(["toward", "holding", "away", "unmeasured"]).toContain(r.word);
+      expect(typeof r.why).toBe("string");
+    }
+  });
+
+  it("carries the confidence line", () => {
+    const c = b.confidence as Record<string, unknown>;
+    if (c.lastDraw) expect(c.lastDraw as string).toMatch(DAY);
+    expect(num(c.days)).toBe(true);
+    for (const k of ["measured", "total", "open"]) expect(typeof c[k], k).toBe("number");
+    expect(c.total).toBe(12);
+  });
+
+  it("gives a goal its recent slope and landing, or null", () => {
+    for (const g of b.goals as Record<string, unknown>[]) {
+      const s = g.recentSlope as Record<string, unknown> | null;
+      if (s) {
+        expect(typeof s.perYear).toBe("number");
+        expect(s.n).toBe(3);
+        expect(s.from as string).toMatch(DAY);
+        expect(s.to as string).toMatch(DAY);
+      }
+      const l = g.landing as Record<string, unknown> | null;
+      if (l) {
+        expect(l.date as string).toMatch(DAY);
+        expect(typeof l.value).toBe("number");
+      }
+    }
+  });
+});
+
+describe("GET /api/markers, the personal band (phase 39)", () => {
+  const b = load("markers") as { markers: Record<string, unknown>[] };
+
+  it("gives a band of the person's own, a z on it, and a live signal, or nulls", () => {
+    for (const m of b.markers) {
+      const band = m.personalBand as Record<string, unknown> | null;
+      if (band) {
+        expect(typeof band.median).toBe("number");
+        expect(band.sd as number).toBeGreaterThan(0);
+        expect(band.n as number).toBeGreaterThanOrEqual(4);
+        expect(typeof m.z, String(m.code)).toBe("number");
+      } else expect(m.z).toBeNull();
+      const sig = m.signal as Record<string, unknown> | null;
+      if (sig) {
+        expect(KINDS).toContain(sig.kind);
+        expect(sig.hunchId as string).toMatch(/^[0-9a-f-]{36}$/);
+      }
+    }
+  });
+});
+
+describe("headingOf", () => {
+  const base = {
+    systemOf: new Map([
+      ["ldl_cholesterol", "lipids"],
+      ["ferritin", "iron"],
+      ["crp", "inflammation"],
+      ["tsh", "thyroid"],
+    ]),
+    lastDraw: "2026-04-23",
+    points: new Map([
+      ["ldl_cholesterol", [{ date: "2026-04-23" }]],
+      ["ferritin", [{ date: "2026-04-23" }]],
+      ["crp", [{ date: "2026-04-23" }]],
+      ["tsh", [{ date: "2023-01-01" }]],
+    ]),
+    hunches: [
+      { kind: "cluster", codes: ["ferritin"], system: "iron", line: "Iron fell." },
+      { kind: "good_news", codes: ["crp"], system: "inflammation", line: "CRP is back." },
+    ],
+    goals: [
+      {
+        code: "ldl_cholesterol",
+        name: "LDL",
+        value: 131,
+        target: { low: null, high: 100 },
+        recentSlope: { perYear: 16 },
+      },
+    ],
+  };
+  const word = (h: ReturnType<typeof headingOf>, id: string) =>
+    h.find((x) => x.id === id)?.word;
+
+  it("reads away, toward, holding and unmeasured", () => {
+    const h = headingOf(base);
+    expect(h).toHaveLength(12);
+    expect(word(h, "lipids")).toBe("away");
+    expect(word(h, "iron")).toBe("away");
+    expect(word(h, "inflammation")).toBe("toward");
+    // TSH last drawn more than two years before the last draw.
+    expect(word(h, "thyroid")).toBe("unmeasured");
+  });
+
+  it("turns a goal moving the right way into toward", () => {
+    const h = headingOf({
+      ...base,
+      hunches: [],
+      goals: [{ ...base.goals[0]!, recentSlope: { perYear: -10 } }],
+    });
+    expect(word(h, "lipids")).toBe("toward");
+    expect(word(h, "iron")).toBe("holding");
   });
 });

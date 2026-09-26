@@ -21,6 +21,8 @@ const EXTRA_CODES = [
   "bp_systolic",
   "bp_diastolic",
   "bmi",
+  // phase 39: the eosinophil step needs somewhere for its causes to land
+  "eosinophils_abs",
 ];
 
 const ids = new Set(NODES.map((n) => n.id));

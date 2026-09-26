@@ -1,0 +1,439 @@
+{
+  "id": "7834db86-7e45-4723-9eba-0a6978bd7ec3",
+  "kind": "cluster",
+  "stamp": "CLUSTER",
+  "system": "iron",
+  "line": "4 iron and vitamin markers moved the worse way together, led by Ferritin.",
+  "number": {
+    "value": 79.6,
+    "unit": "ng/mL"
+  },
+  "mini": {
+    "band": {
+      "median": 113.065,
+      "sd": 15.485757,
+      "n": 4,
+      "provisional": true
+    },
+    "lab": [
+      22,
+      322
+    ],
+    "last": 79.6,
+    "goal": null
+  },
+  "action": {
+    "kind": "answer",
+    "label": "Answer"
+  },
+  "state": "open",
+  "say": "Homocysteine, Ferritin, Vitamin D, Vitamin B12 all sit on the worse side of their own middle on the same draw. One question covers the group.",
+  "series": [
+    {
+      "date": "2021-10-14",
+      "value": 154.48,
+      "file": "Razvan - 14.10.2021.pdf"
+    },
+    {
+      "date": "2023-03-17",
+      "value": 110.84,
+      "file": "Razvan - 17.03.2023.pdf"
+    },
+    {
+      "date": "2024-05-13",
+      "value": 115.29,
+      "file": "Razvan - 13.05.2024.pdf"
+    },
+    {
+      "date": "2025-12-09",
+      "value": 94.4,
+      "file": "Razvan - 09.12.2025.pdf"
+    },
+    {
+      "date": "2026-04-23",
+      "value": 79.6,
+      "file": "Razvan - 23.04.2026.pdf"
+    }
+  ],
+  "bandAt": [
+    {
+      "date": "2026-04-23",
+      "median": 113.065,
+      "sd": 15.485757
+    }
+  ],
+  "explanations": [
+    {
+      "id": "iron_deficiency_cause_gi",
+      "text": "Gut malabsorption can lower the uptake of several nutrients together, including iron, B12, and vitamin D.",
+      "basis": "opinion",
+      "check": {
+        "op": ">",
+        "code": "ttg_iga",
+        "value": 10
+      },
+      "grade": "C",
+      "source": "Grade C",
+      "weight": 0.606,
+      "predicts": "If gut malabsorption can lower the uptake of several nutrients together, including iron, b12, and vitamin d: tTG-IgA with total IgA over 10.",
+      "conditionId": "iron_deficiency_cause_gi"
+    },
+    {
+      "id": "sibo",
+      "text": "Bacterial overgrowth in the small intestine can interfere with normal nutrient and vitamin absorption.",
+      "basis": "opinion",
+      "check": {
+        "op": ">",
+        "code": "breath_h2_peak",
+        "value": 20
+      },
+      "grade": "C",
+      "source": "Rezaie 2017 Am J Gastroenterol (North American Consensus)",
+      "weight": 0.065,
+      "predicts": "If bacterial overgrowth in the small intestine can interfere with normal nutrient and vitamin absorption: tTG-IgA with total IgA under 10.",
+      "conditionId": "sibo"
+    },
+    {
+      "id": "atrophic_gastritis",
+      "text": "Stomach lining changes can reduce stomach acid, impairing the absorption of iron and vitamin B12.",
+      "basis": "opinion",
+      "check": {
+        "op": ">",
+        "code": "intrinsic_factor_antibodies",
+        "value": 0.5
+      },
+      "grade": "C",
+      "source": "Grade C",
+      "weight": 0.026,
+      "predicts": "If stomach lining changes can reduce stomach acid, impairing the absorption of iron and vitamin b12: tTG-IgA with total IgA under 10.",
+      "conditionId": "atrophic_gastritis"
+    },
+    {
+      "id": "outside:1",
+      "text": "A strictly plant-based or restrictive diet can lower your intake of iron, vitamin D, and B12.",
+      "basis": "hypothesis",
+      "check": null,
+      "grade": "E",
+      "source": null,
+      "weight": 0.303,
+      "predicts": "If a strictly plant-based or restrictive diet can lower your intake of iron, vitamin d, and b12: tTG-IgA with total IgA under 10.",
+      "conditionId": null
+    }
+  ],
+  "question": {
+    "text": "Have you noticed ongoing digestive issues or recently adopted a strictly plant-based diet?",
+    "chips": [
+      {
+        "id": "c1",
+        "label": "Frequent bloating or digestive discomfort",
+        "favours": [
+          "sibo",
+          "iron_deficiency_cause_gi"
+        ]
+      },
+      {
+        "id": "c2",
+        "label": "Switched to a plant-based diet",
+        "favours": [
+          "outside:1"
+        ]
+      },
+      {
+        "id": "c3",
+        "label": "Acid reflux or stomach burning",
+        "favours": [
+          "atrophic_gastritis"
+        ]
+      },
+      {
+        "id": "c4",
+        "label": "None of these",
+        "favours": []
+      }
+    ]
+  },
+  "answer": null,
+  "test": {
+    "eur": 10,
+    "code": "ttg_iga",
+    "name": "tTG-IgA with total IgA",
+    "price": 10,
+    "currency": "EUR",
+    "estimated": true
+  },
+  "predictions": null,
+  "writtenAt": null,
+  "outcome": null,
+  "outcomeLine": null,
+  "rule": [
+    "4 markers were drawn on 2026-04-23 and all sit on the worse side of their own middle: homocysteine 9.64 against 8.61; ferritin 79.6 against 113; vitamin_d 32.7 against 40; vitamin_b12 472 against 531.",
+    "homocysteine, ferritin also passed their own rule.",
+    "A cluster reads direction, not size: one question for the group, not one per marker."
+  ],
+  "unknowns": [
+    "Ferritin's own range rests on 4 earlier draws, so it is provisional.",
+    "The rule says the level moved. It does not say why.",
+    "The shares come from the engine where it scores a cause and an even split elsewhere. They are not a diagnosis.",
+    "Explanations marked unproven are not in the knowledge graph.",
+    "The price is an estimate: no lab price is on file for your country."
+  ],
+  "firedAt": [
+    "2026-04-23"
+  ],
+  "markers": [
+    {
+      "code": "homocysteine",
+      "name": "Homocysteine",
+      "unit": "umol/L",
+      "last": 9.64,
+      "band": {
+        "median": 8.605,
+        "sd": 0.5189100000000008,
+        "n": 4,
+        "provisional": true
+      },
+      "series": [
+        {
+          "date": "2023-03-17",
+          "value": 11.23,
+          "file": "Razvan - 17.03.2023.pdf"
+        },
+        {
+          "date": "2024-05-13",
+          "value": 8.08,
+          "file": "Razvan - 13.05.2024.pdf"
+        },
+        {
+          "date": "2024-11-20",
+          "value": 8.43,
+          "file": "Razvan - 20.11.2024.pdf"
+        },
+        {
+          "date": "2025-12-09",
+          "value": 8.78,
+          "file": "Razvan - 09.12.2025.pdf"
+        },
+        {
+          "date": "2026-04-23",
+          "value": 9.64,
+          "file": "Razvan - 23.04.2026.pdf"
+        }
+      ],
+      "bandAt": [
+        {
+          "date": "2026-04-23",
+          "median": 8.605,
+          "sd": 0.5189100000000008
+        }
+      ]
+    },
+    {
+      "code": "ferritin",
+      "name": "Ferritin",
+      "unit": "ng/mL",
+      "last": 79.6,
+      "band": {
+        "median": 113.065,
+        "sd": 15.485757,
+        "n": 4,
+        "provisional": true
+      },
+      "series": [
+        {
+          "date": "2021-10-14",
+          "value": 154.48,
+          "file": "Razvan - 14.10.2021.pdf"
+        },
+        {
+          "date": "2023-03-17",
+          "value": 110.84,
+          "file": "Razvan - 17.03.2023.pdf"
+        },
+        {
+          "date": "2024-05-13",
+          "value": 115.29,
+          "file": "Razvan - 13.05.2024.pdf"
+        },
+        {
+          "date": "2025-12-09",
+          "value": 94.4,
+          "file": "Razvan - 09.12.2025.pdf"
+        },
+        {
+          "date": "2026-04-23",
+          "value": 79.6,
+          "file": "Razvan - 23.04.2026.pdf"
+        }
+      ],
+      "bandAt": [
+        {
+          "date": "2026-04-23",
+          "median": 113.065,
+          "sd": 15.485757
+        }
+      ]
+    },
+    {
+      "code": "vitamin_d",
+      "name": "Vitamin D",
+      "unit": "ng/mL",
+      "last": 32.68,
+      "band": {
+        "median": 39.965,
+        "sd": 14.959434000000002,
+        "n": 8,
+        "provisional": false
+      },
+      "series": [
+        {
+          "date": "2019-07-13",
+          "value": 23.32,
+          "file": "Razvan - 13.07.2019.pdf"
+        },
+        {
+          "date": "2021-10-14",
+          "value": 61.8,
+          "file": "Razvan - 14.10.2021.pdf"
+        },
+        {
+          "date": "2021-12-04",
+          "value": 54.1,
+          "file": "Razvan - 04.12.2021.pdf"
+        },
+        {
+          "date": "2022-10-20",
+          "value": 51.95,
+          "file": "Razvan - 20.10.2022.pdf"
+        },
+        {
+          "date": "2023-03-17",
+          "value": 42.25,
+          "file": "Razvan - 17.03.2023.pdf"
+        },
+        {
+          "date": "2024-05-13",
+          "value": 33.96,
+          "file": "Razvan - 13.05.2024.pdf"
+        },
+        {
+          "date": "2024-11-20",
+          "value": 37.68,
+          "file": "Razvan - 20.11.2024.pdf"
+        },
+        {
+          "date": "2025-12-09",
+          "value": 31.77,
+          "file": "Razvan - 09.12.2025.pdf"
+        },
+        {
+          "date": "2026-04-23",
+          "value": 32.68,
+          "file": "Razvan - 23.04.2026.pdf"
+        }
+      ],
+      "bandAt": [
+        {
+          "date": "2023-03-17",
+          "median": 53.025000000000006,
+          "sd": 7.301804999999995
+        },
+        {
+          "date": "2024-05-13",
+          "median": 51.95,
+          "sd": 14.381220000000003
+        },
+        {
+          "date": "2024-11-20",
+          "median": 47.1,
+          "sd": 14.929782
+        },
+        {
+          "date": "2025-12-09",
+          "median": 42.25,
+          "sd": 14.381220000000003
+        },
+        {
+          "date": "2026-04-23",
+          "median": 39.965,
+          "sd": 14.959434000000002
+        }
+      ]
+    },
+    {
+      "code": "vitamin_b12",
+      "name": "Vitamin B12",
+      "unit": "pg/mL",
+      "last": 472,
+      "band": {
+        "median": 531,
+        "sd": 106.74719999999999,
+        "n": 7,
+        "provisional": false
+      },
+      "series": [
+        {
+          "date": "2021-10-14",
+          "value": 183.7,
+          "file": "Razvan - 14.10.2021.pdf"
+        },
+        {
+          "date": "2021-12-04",
+          "value": 197,
+          "file": "Razvan - 04.12.2021.pdf"
+        },
+        {
+          "date": "2022-10-20",
+          "value": 531,
+          "file": "Razvan - 20.10.2022.pdf"
+        },
+        {
+          "date": "2023-03-17",
+          "value": 534.21,
+          "file": "Razvan - 17.03.2023.pdf"
+        },
+        {
+          "date": "2024-05-13",
+          "value": 898.82,
+          "file": "Razvan - 13.05.2024.pdf"
+        },
+        {
+          "date": "2024-11-20",
+          "value": 522,
+          "file": "Razvan - 20.11.2024.pdf"
+        },
+        {
+          "date": "2025-12-09",
+          "value": 603,
+          "file": "Razvan - 09.12.2025.pdf"
+        },
+        {
+          "date": "2026-04-23",
+          "value": 472,
+          "file": "Razvan - 23.04.2026.pdf"
+        }
+      ],
+      "bandAt": [
+        {
+          "date": "2024-05-13",
+          "median": 364,
+          "sd": 249.97377300000002
+        },
+        {
+          "date": "2024-11-20",
+          "median": 531,
+          "sd": 495.18839999999994
+        },
+        {
+          "date": "2025-12-09",
+          "median": 526.5,
+          "sd": 249.97377300000002
+        },
+        {
+          "date": "2026-04-23",
+          "median": 531,
+          "sd": 106.74719999999999
+        }
+      ]
+    }
+  ]
+}

@@ -1649,3 +1649,89 @@ export interface MealMove {
 }
 
 export type Meal = typeof meals.$inferSelect;
+
+/**
+ * Phase 39: one row per raised signal key, reopened rather than duplicated.
+ * The code finds the signal and chooses the test; the model only proposes
+ * explanations and words the question. `lib/hunches.ts` owns the lifecycle.
+ */
+export const hunches = pgTable(
+  "hunches",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    /** the signal key, e.g. `step:eosinophils_abs` or `cluster:iron` */
+    key: text("key").notNull(),
+    kind: text("kind").notNull(),
+    codes: text("codes").array().notNull(),
+    system: text("system"),
+    /** the last `Signal` that raised it, plus the draw it was read on */
+    signal: jsonb("signal").$type<Record<string, unknown>>().notNull(),
+    explanations: jsonb("explanations").$type<HunchExplanation[]>(),
+    question: jsonb("question").$type<HunchQuestion | null>(),
+    /** the chip id the person tapped */
+    answer: text("answer"),
+    test: jsonb("test").$type<HunchTest | null>(),
+    predictions: jsonb("predictions").$type<HunchPrediction[] | null>(),
+    writtenAt: timestamp("written_at", { withTimezone: true }),
+    /** open | testing | closed */
+    state: text("state").default("open").notNull(),
+    /** confirmed | ruled_out | faded, null while open */
+    outcome: text("outcome"),
+    outcomeLine: text("outcome_line"),
+    /** good news "Got it" */
+    seenAt: timestamp("seen_at", { withTimezone: true }),
+    openedAt: timestamp("opened_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    closedAt: timestamp("closed_at", { withTimezone: true }),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (t) => [unique("hunches_user_key").on(t.userId, t.key)],
+);
+
+export interface HunchExplanation {
+  id: string;
+  text: string;
+  grade: "A" | "B" | "C" | "D" | "E";
+  basis: "science" | "opinion" | "anecdotal" | "hypothesis";
+  source: string | null;
+  conditionId: string | null;
+  weight: number;
+  predicts: string | null;
+  /** code-owned: the threshold this explanation implies, when one is known */
+  check: HunchCheck | null;
+}
+
+export interface HunchCheck {
+  code: string;
+  op: "<" | ">" | "between";
+  value: number | [number, number];
+}
+
+export interface HunchQuestion {
+  text: string;
+  chips: { id: string; label: string; favours: string[] }[];
+}
+
+export interface HunchTest {
+  code: string | null;
+  name: string;
+  eur: number;
+  currency: string;
+  price: number;
+  /** true when no country price exists and the cost band stands in */
+  estimated: boolean;
+}
+
+export interface HunchPrediction {
+  explanationId: string;
+  text: string;
+  check: HunchCheck;
+}
+
+export type Hunch = typeof hunches.$inferSelect;

@@ -222,7 +222,7 @@ export function Brain({
   const [assertions, setAssertions] = useState<AssertionReport | null>(null);
   const [busy, setBusy] = useState<"" | "run" | "plan">("");
   const [error, setError] = useState("");
-  const [tab, setTab] = useState<"engine" | "journeys">("engine");
+  const [tab, setTab] = useState<"engine" | "journeys" | "signals">("engine");
 
   // The overlay follows the scenario, not the tab.
   useEffect(() => {
@@ -339,10 +339,13 @@ export function Brain({
         <PillTabs
           label="Brain view"
           active={tab}
-          onSelect={(id) => setTab(id === "journeys" ? "journeys" : "engine")}
+          onSelect={(id) =>
+            setTab(id === "journeys" || id === "signals" ? id : "engine")
+          }
           tabs={[
             { id: "engine", label: "Engine" },
             { id: "journeys", label: "Journeys" },
+            { id: "signals", label: "Signals" },
           ]}
         />
         <Button size="sm" disabled={busy !== ""} onClick={() => doRun()}>
@@ -379,6 +382,14 @@ export function Brain({
       </div>
 
       {tab === "journeys" && <Journeys />}
+
+      {tab === "signals" && (
+        <Signals
+          users={users}
+          userId={q.userId}
+          onUser={(userId) => set({ userId })}
+        />
+      )}
 
       {tab === "engine" && (
         <>
@@ -1662,5 +1673,219 @@ function PlanPanel({
         )}
       </Card>
     </section>
+  );
+}
+
+/* ── signals (phase 39 S8) ────────────────────────────────────────────── */
+
+interface SignalRow {
+  key: string;
+  kind: string;
+  codes: string[];
+  dir: string | null;
+  since: string | null;
+  numbers: Record<string, number | string | boolean>;
+  rule: string[];
+  why: string | null;
+  firedAt: string[];
+}
+
+interface SignalsView {
+  asOf: string | null;
+  raised: SignalRow[];
+  unraised: SignalRow[];
+  explainedBy: Record<string, string>;
+  hunches: {
+    id: string;
+    key: string;
+    kind: string;
+    state: string;
+    outcome: string | null;
+    outcomeLine: string | null;
+    explanations: number | null;
+    question: string | null;
+    answer: string | null;
+    test: string | null;
+    openedAt: string | null;
+  }[];
+}
+
+/**
+ * The window from finding 4: every rule's hits on one real person, raised
+ * and unraised, before anyone sees them as hunches. Read-only until Refresh,
+ * which runs `refreshHunches` (the model call for new rows included).
+ */
+function Signals({
+  users,
+  userId,
+  onUser,
+}: {
+  users: BrainUser[];
+  userId: string;
+  onUser: (id: string) => void;
+}) {
+  const [view, setView] = useState<SignalsView | null>(null);
+  const [busy, setBusy] = useState("");
+  const [error, setError] = useState("");
+
+  const load = useCallback(
+    async (mode: "signals" | "refresh") => {
+      if (!userId) return;
+      setBusy(mode);
+      setError("");
+      const res = await fetch("/api/brain", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ mode, userId }),
+      });
+      const data = (await res.json().catch(() => ({}))) as SignalsView & {
+        error?: string;
+      };
+      setBusy("");
+      if (!res.ok) setError(data.error ?? `HTTP ${res.status}`);
+      else setView(data);
+    },
+    [userId],
+  );
+
+  useEffect(() => {
+    void load("signals");
+  }, [load]);
+
+  const table = (rows: SignalRow[]) => (
+    <div className="tblwrap">
+      <table className="tbl">
+        <thead>
+          <tr>
+            <th>Kind</th>
+            <th>Codes</th>
+            <th>Rule</th>
+            <th>Why</th>
+            <th>Lab change</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((s) => (
+            <tr key={s.key}>
+              <td className="k">
+                {s.kind}
+                {s.dir ? ` ${s.dir === "up" ? "↑" : "↓"}` : ""}
+              </td>
+              <td>{s.codes.join(", ")}</td>
+              <td>
+                {s.rule.map((l, i) => (
+                  <div key={i} className="t-meta">
+                    {l}
+                  </div>
+                ))}
+                {s.firedAt.length ? (
+                  <div className="t-meta">fired {s.firedAt.join(", ")}</div>
+                ) : null}
+              </td>
+              <td>
+                {s.why ??
+                  (s.numbers.foldedInto
+                    ? `folded into ${s.numbers.foldedInto}`
+                    : s.numbers.benign
+                      ? "benign direction"
+                      : "no cause on the graph")}
+              </td>
+              <td>{s.numbers.labChange ? "yes" : ""}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+
+  return (
+    <div className="space-y-6">
+      <div className="rowh">
+        <Field label="Person">
+          <select
+            className="sel"
+            value={userId}
+            onChange={(e) => onUser(e.target.value)}
+          >
+            {users.map((u) => (
+              <option key={u.id} value={u.id}>
+                {u.email}
+              </option>
+            ))}
+          </select>
+        </Field>
+        <Button
+          size="sm"
+          disabled={busy !== "" || !userId}
+          onClick={() => void load("refresh")}
+        >
+          <RefreshCw className={busy === "refresh" ? "spin" : undefined} />
+          {busy === "refresh" ? "Refreshing…" : "Refresh"}
+        </Button>
+        <span className="t-meta">
+          {view ? `as of ${view.asOf ?? "no lab draw"}` : busy ? "Loading…" : ""}
+        </span>
+      </div>
+
+      {error && <p className="err">{error}</p>}
+
+      {view && (
+        <>
+          <Panel title="Raised" right={`${view.raised.length} signals`}>
+            {table(view.raised)}
+          </Panel>
+          <Panel title="Unraised" right={`${view.unraised.length} signals`}>
+            {table(view.unraised)}
+          </Panel>
+          <Panel title="Hunches" right={`${view.hunches.length} rows`}>
+            <div className="tblwrap">
+              <table className="tbl">
+                <thead>
+                  <tr>
+                    <th>Key</th>
+                    <th>State</th>
+                    <th>Outcome</th>
+                    <th>Explanations</th>
+                    <th>Question</th>
+                    <th>Test</th>
+                    <th>Opened</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {view.hunches.map((h) => (
+                    <tr key={h.id}>
+                      <td className="k">
+                        {h.key}
+                        {view.explainedBy[h.key]
+                          ? ` · ${view.explainedBy[h.key]}`
+                          : ""}
+                      </td>
+                      <td>
+                        <StateWord>{h.state}</StateWord>
+                      </td>
+                      <td>
+                        {h.outcome ?? ""}
+                        {h.outcomeLine ? (
+                          <div className="t-meta">{h.outcomeLine}</div>
+                        ) : null}
+                      </td>
+                      <td className="n">{h.explanations ?? "none yet"}</td>
+                      <td>
+                        {h.question ?? ""}
+                        {h.answer ? (
+                          <div className="t-meta">answered {h.answer}</div>
+                        ) : null}
+                      </td>
+                      <td>{h.test ?? ""}</td>
+                      <td>{h.openedAt ?? ""}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </Panel>
+        </>
+      )}
+    </div>
   );
 }

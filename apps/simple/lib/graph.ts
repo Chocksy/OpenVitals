@@ -248,6 +248,7 @@ const METRICS: [string, string, SystemId][] = [
   ["platelets", "Platelets", "blood"],
   ["mcv", "MCV", "blood"],
   ["rdw", "RDW", "blood"],
+  ["eosinophils_abs", "Eosinophils", "blood"],
   ["ferritin", "Ferritin", "iron"],
   ["transferrin_saturation", "Iron saturation", "iron"],
   ["vitamin_d", "Vitamin D", "vitamins"],
@@ -323,6 +324,25 @@ const OTHERS: GraphNode[] = [
     system: "lifestyle",
   },
   { id: "condition:coeliac", kind: "condition", name: "Coeliac disease" },
+  // phase 39: what the eosinophil step can be explained by
+  {
+    id: "condition:atopy",
+    kind: "condition",
+    name: "A new allergy (hay fever, asthma, eczema, a pet)",
+    system: "blood",
+  },
+  {
+    id: "condition:drug_reaction",
+    kind: "condition",
+    name: "A medicine or supplement reaction",
+    system: "blood",
+  },
+  {
+    id: "condition:parasitic_infection",
+    kind: "condition",
+    name: "A gut parasite (often after travel)",
+    system: "blood",
+  },
 
   { id: "intervention:selenium", kind: "intervention", name: "Selenium" },
   { id: "intervention:vitamin_d3", kind: "intervention", name: "Vitamin D3" },
@@ -1580,6 +1600,43 @@ export const EDGES: GraphEdge[] = [
     "established",
     "Untreated coeliac disease stops iron being absorbed, which is why ferritin under 30 deserves a coeliac screen.",
     [guide("BSG iron deficiency guideline")],
+  ),
+
+  // --- phase 39: the eosinophil step ---------------------------------------
+  e(
+    "condition:atopy",
+    "metric:eosinophils_abs",
+    "raises",
+    2,
+    "established",
+    "Allergic disease is the commonest cause of a mild eosinophil rise in high-income countries; IL-5 from type 2 inflammation keeps them in the blood.",
+    [
+      guide("Kuang 2020 Med Clin North Am (approach to patients with eosinophilia)", 2020),
+      guide("Valent 2012 J Allergy Clin Immunol (consensus on eosinophil disorders)", 2012),
+    ],
+  ),
+  e(
+    "condition:drug_reaction",
+    "metric:eosinophils_abs",
+    "raises",
+    2,
+    "established",
+    "Many medicines and some supplements raise eosinophils as a hypersensitivity reaction, usually within weeks of starting and falling after stopping.",
+    [
+      guide("Kuang 2020 Med Clin North Am (approach to patients with eosinophilia)", 2020),
+    ],
+  ),
+  e(
+    "condition:parasitic_infection",
+    "metric:eosinophils_abs",
+    "raises",
+    1,
+    "established",
+    "Helminths that pass through tissue drive eosinophilia; the first question is travel or a new exposure.",
+    [
+      guide("Kuang 2020 Med Clin North Am (approach to patients with eosinophilia)", 2020),
+      guide("Valent 2012 J Allergy Clin Immunol (consensus on eosinophil disorders)", 2012),
+    ],
   ),
 
   // --- pattern-gated: lean-mass hyper-responder (section 4.2) --------------

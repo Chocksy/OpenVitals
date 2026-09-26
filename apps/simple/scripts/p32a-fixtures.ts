@@ -24,6 +24,8 @@ import { users } from "@/db/auth-schema";
 import {
   bodyBody,
   genomeBody,
+  hunchBody,
+  hunchesBody,
   markersBody,
   planTodayBody,
   todayBody,
@@ -90,6 +92,14 @@ async function main() {
   write("meals", mealsFixture(day));
   // Phase 37: the calendar behind the score, the same 91 days the route sends.
   write("score-days", await scoreDays(owner.id, day, 91));
+  /* Phase 39 S7: the hunch list, and the iron cluster as the one case (it
+     carries the most: member lanes, a question, a test that splits). */
+  const hunches = await hunchesBody(owner.id);
+  write("hunches", hunches);
+  const iron = [...hunches.open, ...hunches.closed].find(
+    (h) => h.kind === "cluster",
+  ) ?? hunches.open[0];
+  if (iron) write("hunch", await hunchBody(owner.id, iron.id));
 }
 
 main().then(

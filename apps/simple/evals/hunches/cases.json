@@ -1,0 +1,10177 @@
+{
+ "note": "Phase 39 eval:hunches. Offline: signals and the code-chosen test only. `causes` and `tests` are frozen from the local graph and hkb on 2026-09-26. The owner persona is the owner's real lab series with names and files removed.",
+ "causes": {
+  "hemoglobin": [
+   {
+    "id": "metric:ferritin",
+    "name": "Ferritin",
+    "dir": "down",
+    "grade": "A",
+    "basis": "science",
+    "source": "BSG iron deficiency guideline",
+    "conditionId": null,
+    "check": null
+   },
+   {
+    "id": "intervention:iron",
+    "name": "Iron",
+    "dir": "up",
+    "grade": "A",
+    "basis": "science",
+    "source": "BSG iron deficiency guideline",
+    "conditionId": null,
+    "check": null
+   },
+   {
+    "id": "iron_deficiency",
+    "name": "Iron deficiency",
+    "dir": null,
+    "grade": "A",
+    "basis": "science",
+    "source": "WHO anaemia thresholds; the band here is already sex-adjusted",
+    "conditionId": "iron_deficiency",
+    "check": {
+     "code": "ferritin",
+     "op": "<",
+     "value": 15
+    }
+   },
+   {
+    "id": "anaemia_other",
+    "name": "Anaemia, not iron",
+    "dir": null,
+    "grade": "A",
+    "basis": "science",
+    "source": "WHO 2011 haemoglobin thresholds",
+    "conditionId": "anaemia_other",
+    "check": {
+     "code": "mcv",
+     "op": "<",
+     "value": 78
+    }
+   }
+  ],
+  "hematocrit": [
+   {
+    "id": "sleep_apnoea",
+    "name": "Obstructive sleep apnoea",
+    "dir": "up",
+    "grade": "B",
+    "basis": "science",
+    "source": "Nocturnal hypoxia raises erythropoietin; a high haematocrit with no other cause is a hint",
+    "conditionId": "sleep_apnoea",
+    "check": {
+     "code": "bmi",
+     "op": ">",
+     "value": 30
+    }
+   }
+  ],
+  "mcv": [
+   {
+    "id": "intervention:alcohol_reduction",
+    "name": "Drinking less",
+    "dir": "down",
+    "grade": "B",
+    "basis": "science",
+    "source": "Lazo 2011 Am J Epidemiol (NHANES)",
+    "conditionId": null,
+    "check": null
+   },
+   {
+    "id": "metric:folic_acid",
+    "name": "Folate",
+    "dir": "up",
+    "grade": "B",
+    "basis": "science",
+    "source": "Refsum 2004 Clin Chem",
+    "conditionId": null,
+    "check": null
+   },
+   {
+    "id": "metric:vitamin_b12",
+    "name": "Vitamin B12",
+    "dir": "up",
+    "grade": "B",
+    "basis": "science",
+    "source": "Refsum 2004 Clin Chem",
+    "conditionId": null,
+    "check": null
+   },
+   {
+    "id": "iron_deficiency",
+    "name": "Iron deficiency",
+    "dir": "down",
+    "grade": "A",
+    "basis": "science",
+    "source": "BSG iron deficiency guideline",
+    "conditionId": "iron_deficiency",
+    "check": {
+     "code": "ferritin",
+     "op": "<",
+     "value": 15
+    }
+   },
+   {
+    "id": "b12_deficiency",
+    "name": "Vitamin B12 deficiency",
+    "dir": "up",
+    "grade": "A",
+    "basis": "science",
+    "source": "Stabler 2013 NEJM",
+    "conditionId": "b12_deficiency",
+    "check": {
+     "code": "vitamin_b12",
+     "op": "<",
+     "value": 200
+    }
+   },
+   {
+    "id": "folate_deficiency",
+    "name": "Folate deficiency",
+    "dir": "up",
+    "grade": "A",
+    "basis": "science",
+    "source": "Green 2017 Nat Rev Dis Primers",
+    "conditionId": "folate_deficiency",
+    "check": {
+     "code": "folic_acid",
+     "op": "<",
+     "value": 4
+    }
+   },
+   {
+    "id": "alcohol_use_disorder",
+    "name": "Alcohol use disorder",
+    "dir": "up",
+    "grade": "B",
+    "basis": "science",
+    "source": "Conigrave 2003 Addiction",
+    "conditionId": "alcohol_use_disorder",
+    "check": {
+     "code": "audit_score",
+     "op": ">",
+     "value": 8
+    }
+   },
+   {
+    "id": "anaemia_other",
+    "name": "Anaemia, not iron",
+    "dir": "down",
+    "grade": "A",
+    "basis": "science",
+    "source": "Weatherall 2010 Blood",
+    "conditionId": "anaemia_other",
+    "check": {
+     "code": "mcv",
+     "op": "<",
+     "value": 78
+    }
+   }
+  ],
+  "rdw": [
+   {
+    "id": "iron_deficiency",
+    "name": "Iron deficiency",
+    "dir": "up",
+    "grade": "B",
+    "basis": "science",
+    "source": "Bessman 1983 Am J Clin Pathol",
+    "conditionId": "iron_deficiency",
+    "check": {
+     "code": "ferritin",
+     "op": "<",
+     "value": 15
+    }
+   }
+  ],
+  "eosinophils_abs": [
+   {
+    "id": "condition:atopy",
+    "name": "A new allergy (hay fever, asthma, eczema, a pet)",
+    "dir": "up",
+    "grade": "A",
+    "basis": "science",
+    "source": "Kuang 2020 Med Clin North Am (approach to patients with eosinophilia)",
+    "conditionId": null,
+    "check": null
+   },
+   {
+    "id": "condition:drug_reaction",
+    "name": "A medicine or supplement reaction",
+    "dir": "up",
+    "grade": "A",
+    "basis": "science",
+    "source": "Kuang 2020 Med Clin North Am (approach to patients with eosinophilia)",
+    "conditionId": null,
+    "check": null
+   },
+   {
+    "id": "condition:parasitic_infection",
+    "name": "A gut parasite (often after travel)",
+    "dir": "up",
+    "grade": "A",
+    "basis": "science",
+    "source": "Kuang 2020 Med Clin North Am (approach to patients with eosinophilia)",
+    "conditionId": null,
+    "check": null
+   }
+  ],
+  "reticulocytes": [
+   {
+    "id": "anaemia_other",
+    "name": "Anaemia, not iron",
+    "dir": "up",
+    "grade": "A",
+    "basis": "science",
+    "source": "Green 2017",
+    "conditionId": "anaemia_other",
+    "check": {
+     "code": "mcv",
+     "op": "<",
+     "value": 78
+    }
+   }
+  ],
+  "ggt": [
+   {
+    "id": "intervention:alcohol_reduction",
+    "name": "Drinking less",
+    "dir": "down",
+    "grade": "A",
+    "basis": "science",
+    "source": "Wood 2018 Lancet",
+    "conditionId": null,
+    "check": null
+   },
+   {
+    "id": "nafld",
+    "name": "Fatty liver",
+    "dir": "up",
+    "grade": "B",
+    "basis": "science",
+    "source": "Lazo 2011 Am J Epidemiol (NHANES)",
+    "conditionId": "nafld",
+    "check": {
+     "code": "triglycerides",
+     "op": ">",
+     "value": 150
+    }
+   },
+   {
+    "id": "alcohol_use_disorder",
+    "name": "Alcohol use disorder",
+    "dir": "up",
+    "grade": "B",
+    "basis": "science",
+    "source": "Conigrave 2003 Addiction",
+    "conditionId": "alcohol_use_disorder",
+    "check": {
+     "code": "audit_score",
+     "op": ">",
+     "value": 8
+    }
+   }
+  ],
+  "testosterone_total": [
+   {
+    "id": "male_hypogonadism",
+    "name": "Male hypogonadism",
+    "dir": "down",
+    "grade": "A",
+    "basis": "science",
+    "source": "Bhasin 2018 J Clin Endocrinol Metab (Endocrine Society guideline)",
+    "conditionId": "male_hypogonadism",
+    "check": {
+     "code": "testosterone_total",
+     "op": "<",
+     "value": 264
+    }
+   }
+  ],
+  "estradiol": [
+   {
+    "id": "perimenopause",
+    "name": "Perimenopause",
+    "dir": "down",
+    "grade": "B",
+    "basis": "science",
+    "source": "Harlow 2012 STRAW+10",
+    "conditionId": "perimenopause",
+    "check": {
+     "code": "fsh",
+     "op": ">",
+     "value": 25
+    }
+   }
+  ],
+  "lh": [
+   {
+    "id": "male_hypogonadism",
+    "name": "Male hypogonadism",
+    "dir": "up",
+    "grade": "A",
+    "basis": "science",
+    "source": "Bhasin 2018",
+    "conditionId": "male_hypogonadism",
+    "check": {
+     "code": "testosterone_total",
+     "op": "<",
+     "value": 264
+    }
+   }
+  ],
+  "cortisol": [
+   {
+    "id": "intervention:sleep_extension",
+    "name": "Sleeping longer",
+    "dir": "down",
+    "grade": "A",
+    "basis": "science",
+    "source": "Cappuccio 2010 Sleep",
+    "conditionId": null,
+    "check": null
+   }
+  ],
+  "free_testosterone": [
+   {
+    "id": "pcos",
+    "name": "Polycystic ovary syndrome",
+    "dir": null,
+    "grade": "A",
+    "basis": "science",
+    "source": "Bizuneh AD 2025 Hum Reprod Update; doi",
+    "conditionId": "pcos",
+    "check": {
+     "code": "amh",
+     "op": ">",
+     "value": 5
+    }
+   }
+  ],
+  "shbg": [
+   {
+    "id": "pcos",
+    "name": "Polycystic ovary syndrome",
+    "dir": "down",
+    "grade": "B",
+    "basis": "science",
+    "source": "Deswal 2018 J Hum Reprod Sci",
+    "conditionId": "pcos",
+    "check": {
+     "code": "amh",
+     "op": ">",
+     "value": 5
+    }
+   }
+  ],
+  "hcv_antibodies": [
+   {
+    "id": "hepatitis_bc",
+    "name": "Hepatitis B or C",
+    "dir": "up",
+    "grade": "A",
+    "basis": "science",
+    "source": "WHO 2024 hepatitis testing guidance",
+    "conditionId": "hepatitis_bc",
+    "check": {
+     "code": "hbs_ag_screening",
+     "op": ">",
+     "value": 0.5
+    }
+   }
+  ],
+  "crp": [
+   {
+    "id": "intervention:omega3",
+    "name": "Omega-3 (EPA/DHA)",
+    "dir": "down",
+    "grade": "B",
+    "basis": "science",
+    "source": "REDUCE-IT 2019 NEJM",
+    "conditionId": null,
+    "check": null
+   },
+   {
+    "id": "behavior:smoking",
+    "name": "Smoking",
+    "dir": "up",
+    "grade": "B",
+    "basis": "science",
+    "source": "Ridker 2023 Lancet",
+    "conditionId": null,
+    "check": null
+   },
+   {
+    "id": "intervention:zone2_cardio",
+    "name": "Zone 2 cardio",
+    "dir": "down",
+    "grade": "A",
+    "basis": "science",
+    "source": "Fedewa 2017 Am J Cardiol",
+    "conditionId": null,
+    "check": null
+   },
+   {
+    "id": "chronic_inflammation",
+    "name": "Chronic inflammation",
+    "dir": "up",
+    "grade": "A",
+    "basis": "science",
+    "source": "ERFC 2010 Lancet",
+    "conditionId": "chronic_inflammation",
+    "check": {
+     "code": "hs_crp",
+     "op": ">",
+     "value": 3
+    }
+   }
+  ],
+  "esr": [
+   {
+    "id": "chronic_inflammation",
+    "name": "Chronic inflammation",
+    "dir": "up",
+    "grade": "B",
+    "basis": "science",
+    "source": "Bray 2016 Can Fam Physician",
+    "conditionId": "chronic_inflammation",
+    "check": {
+     "code": "hs_crp",
+     "op": ">",
+     "value": 3
+    }
+   }
+  ],
+  "homocysteine": [
+   {
+    "id": "metric:folic_acid",
+    "name": "Folate",
+    "dir": "down",
+    "grade": "B",
+    "basis": "science",
+    "source": "Refsum 2004 Clin Chem",
+    "conditionId": null,
+    "check": null
+   },
+   {
+    "id": "metric:vitamin_b12",
+    "name": "Vitamin B12",
+    "dir": "down",
+    "grade": "B",
+    "basis": "science",
+    "source": "Refsum 2004 Clin Chem",
+    "conditionId": null,
+    "check": null
+   },
+   {
+    "id": "b12_deficiency",
+    "name": "Vitamin B12 deficiency",
+    "dir": "up",
+    "grade": "B",
+    "basis": "science",
+    "source": "Stabler 2013 NEJM",
+    "conditionId": "b12_deficiency",
+    "check": {
+     "code": "vitamin_b12",
+     "op": "<",
+     "value": 200
+    }
+   },
+   {
+    "id": "folate_deficiency",
+    "name": "Folate deficiency",
+    "dir": "up",
+    "grade": "B",
+    "basis": "science",
+    "source": "Green 2017 Nat Rev Dis Primers",
+    "conditionId": "folate_deficiency",
+    "check": {
+     "code": "folic_acid",
+     "op": "<",
+     "value": 4
+    }
+   }
+  ],
+  "ferritin": [
+   {
+    "id": "coeliac_disease",
+    "name": "Coeliac disease",
+    "dir": "down",
+    "grade": "A",
+    "basis": "science",
+    "source": "BSG iron deficiency guideline",
+    "conditionId": "coeliac_disease",
+    "check": {
+     "code": "ttg_iga",
+     "op": ">",
+     "value": 10
+    }
+   },
+   {
+    "id": "behavior:coffee_with_iron",
+    "name": "Coffee or tea with the iron dose",
+    "dir": "down",
+    "grade": "B",
+    "basis": "science",
+    "source": "Hurrell 1999 Br J Nutr",
+    "conditionId": null,
+    "check": null
+   },
+   {
+    "id": "intervention:iron",
+    "name": "Iron",
+    "dir": "up",
+    "grade": "A",
+    "basis": "science",
+    "source": "BSG iron deficiency guideline",
+    "conditionId": null,
+    "check": null
+   },
+   {
+    "id": "iron_deficiency",
+    "name": "Iron deficiency",
+    "dir": "down",
+    "grade": "A",
+    "basis": "science",
+    "source": "Guyatt 1992 J Gen Intern Med",
+    "conditionId": "iron_deficiency",
+    "check": {
+     "code": "ferritin",
+     "op": "<",
+     "value": 15
+    }
+   },
+   {
+    "id": "haemochromatosis",
+    "name": "Haemochromatosis",
+    "dir": "up",
+    "grade": "A",
+    "basis": "science",
+    "source": "EASL 2022 Clinical Practice Guidelines on haemochromatosis (J Hepatol)",
+    "conditionId": "haemochromatosis",
+    "check": {
+     "code": "transferrin_saturation",
+     "op": ">",
+     "value": 45
+    }
+   },
+   {
+    "id": "chronic_inflammation",
+    "name": "Chronic inflammation",
+    "dir": "up",
+    "grade": "B",
+    "basis": "science",
+    "source": "Kell 2014 Metallomics",
+    "conditionId": "chronic_inflammation",
+    "check": {
+     "code": "hs_crp",
+     "op": ">",
+     "value": 3
+    }
+   },
+   {
+    "id": "iron_deficiency_cause_gi",
+    "name": "Iron loss or malabsorption from the gut",
+    "dir": "down",
+    "grade": "C",
+    "basis": "opinion",
+    "source": "Grade C",
+    "conditionId": "iron_deficiency_cause_gi",
+    "check": {
+     "code": "ttg_iga",
+     "op": ">",
+     "value": 10
+    }
+   },
+   {
+    "id": "anaemia_other",
+    "name": "Anaemia, not iron",
+    "dir": "up",
+    "grade": "A",
+    "basis": "science",
+    "source": "WHO 2020 ferritin guidance",
+    "conditionId": "anaemia_other",
+    "check": {
+     "code": "mcv",
+     "op": "<",
+     "value": 78
+    }
+   },
+   {
+    "id": "atrophic_gastritis",
+    "name": "Atrophic gastritis",
+    "dir": "down",
+    "grade": "C",
+    "basis": "opinion",
+    "source": "Grade C",
+    "conditionId": "atrophic_gastritis",
+    "check": {
+     "code": "intrinsic_factor_antibodies",
+     "op": ">",
+     "value": 0.5
+    }
+   }
+  ],
+  "transferrin_saturation": [
+   {
+    "id": "intervention:iron",
+    "name": "Iron",
+    "dir": "up",
+    "grade": "A",
+    "basis": "science",
+    "source": "BSG iron deficiency guideline",
+    "conditionId": null,
+    "check": null
+   },
+   {
+    "id": "iron_deficiency",
+    "name": "Iron deficiency",
+    "dir": "down",
+    "grade": "A",
+    "basis": "science",
+    "source": "BSG iron deficiency guideline",
+    "conditionId": "iron_deficiency",
+    "check": {
+     "code": "ferritin",
+     "op": "<",
+     "value": 15
+    }
+   },
+   {
+    "id": "haemochromatosis",
+    "name": "Haemochromatosis",
+    "dir": "up",
+    "grade": "A",
+    "basis": "science",
+    "source": "EASL 2022 guideline",
+    "conditionId": "haemochromatosis",
+    "check": {
+     "code": "transferrin_saturation",
+     "op": ">",
+     "value": 45
+    }
+   }
+  ],
+  "ldl_cholesterol": [
+   {
+    "id": "intervention:carb_reintroduction",
+    "name": "Carbohydrate re-introduction",
+    "dir": "down",
+    "grade": "B",
+    "basis": "science",
+    "source": "Norwitz 2022 Metabolites (lipid energy model)",
+    "conditionId": null,
+    "check": null
+   },
+   {
+    "id": "metric:estradiol",
+    "name": "Estradiol",
+    "dir": "down",
+    "grade": "B",
+    "basis": "science",
+    "source": "Matthews 2009 J Am Coll Cardiol",
+    "conditionId": null,
+    "check": null
+   },
+   {
+    "id": "intervention:levothyroxine",
+    "name": "Levothyroxine",
+    "dir": "down",
+    "grade": "A",
+    "basis": "science",
+    "source": "Rodondi 2010 JAMA",
+    "conditionId": null,
+    "check": null
+   },
+   {
+    "id": "behavior:low_carb_diet",
+    "name": "Low-carb or keto eating",
+    "dir": "up",
+    "grade": "B",
+    "basis": "science",
+    "source": "Norwitz 2022 Metabolites (lipid energy model)",
+    "conditionId": null,
+    "check": null
+   },
+   {
+    "id": "intervention:statin",
+    "name": "Statin",
+    "dir": "down",
+    "grade": "C",
+    "basis": "science",
+    "source": "Lipid management in type 2 diabetes and non-HDL-cholesterol: target all atherogenic lipoproteins",
+    "conditionId": null,
+    "check": null
+   },
+   {
+    "id": "metric:tsh",
+    "name": "TSH",
+    "dir": "up",
+    "grade": "A",
+    "basis": "science",
+    "source": "Rodondi 2010 JAMA",
+    "conditionId": null,
+    "check": null
+   },
+   {
+    "id": "familial_hypercholesterolaemia",
+    "name": "Familial hypercholesterolaemia",
+    "dir": "up",
+    "grade": "A",
+    "basis": "science",
+    "source": "Dutch Lipid Clinic Network criteria",
+    "conditionId": "familial_hypercholesterolaemia",
+    "check": {
+     "code": "ldl_cholesterol",
+     "op": ">",
+     "value": 250
+    }
+   }
+  ],
+  "hdl_cholesterol": [
+   {
+    "id": "metric:triglycerides",
+    "name": "Triglycerides",
+    "dir": "down",
+    "grade": "B",
+    "basis": "science",
+    "source": "DeFronzo 2009 Diabetes (insulin resistance)",
+    "conditionId": null,
+    "check": null
+   },
+   {
+    "id": "intervention:zone2_cardio",
+    "name": "Zone 2 cardio",
+    "dir": "up",
+    "grade": "A",
+    "basis": "science",
+    "source": "Kodama 2007 Arch Intern Med",
+    "conditionId": null,
+    "check": null
+   }
+  ],
+  "triglycerides": [
+   {
+    "id": "intervention:alcohol_reduction",
+    "name": "Drinking less",
+    "dir": "down",
+    "grade": "A",
+    "basis": "science",
+    "source": "GBD alcohol 2018 Lancet",
+    "conditionId": null,
+    "check": null
+   },
+   {
+    "id": "metric:hba1c",
+    "name": "HbA1c",
+    "dir": "up",
+    "grade": "B",
+    "basis": "science",
+    "source": "DeFronzo 2009 Diabetes (insulin resistance)",
+    "conditionId": null,
+    "check": null
+   },
+   {
+    "id": "metric:insulin",
+    "name": "Fasting insulin",
+    "dir": "up",
+    "grade": "B",
+    "basis": "science",
+    "source": "DeFronzo 2009 Diabetes (insulin resistance)",
+    "conditionId": null,
+    "check": null
+   },
+   {
+    "id": "behavior:low_carb_diet",
+    "name": "Low-carb or keto eating",
+    "dir": "down",
+    "grade": "A",
+    "basis": "science",
+    "source": "Bueno 2013 Br J Nutr",
+    "conditionId": null,
+    "check": null
+   },
+   {
+    "id": "intervention:omega3",
+    "name": "Omega-3 (EPA/DHA)",
+    "dir": "down",
+    "grade": "B",
+    "basis": "science",
+    "source": "REDUCE-IT 2019 NEJM",
+    "conditionId": null,
+    "check": null
+   },
+   {
+    "id": "metric:sleep_duration",
+    "name": "Sleep duration",
+    "dir": "up",
+    "grade": "B",
+    "basis": "science",
+    "source": "Kaneita 2008 Sleep (usual sleep duration and serum lipids)",
+    "conditionId": null,
+    "check": null
+   },
+   {
+    "id": "intervention:zone2_cardio",
+    "name": "Zone 2 cardio",
+    "dir": "down",
+    "grade": "A",
+    "basis": "science",
+    "source": "Kodama 2007 Arch Intern Med",
+    "conditionId": null,
+    "check": null
+   },
+   {
+    "id": "nafld",
+    "name": "MASLD (metabolic dysfunction-associated steatotic liver disease)",
+    "dir": "up",
+    "grade": "B",
+    "basis": "science",
+    "source": "EASL-EASD-EASO 2016 NAFLD guideline",
+    "conditionId": "nafld",
+    "check": {
+     "code": "triglycerides",
+     "op": ">",
+     "value": 150
+    }
+   }
+  ],
+  "apolipoprotein_b": [
+   {
+    "id": "intervention:statin",
+    "name": "Statin",
+    "dir": "down",
+    "grade": "A",
+    "basis": "science",
+    "source": "CTT 2010 Lancet",
+    "conditionId": null,
+    "check": null
+   }
+  ],
+  "lp_a": [
+   {
+    "id": "lpa_elevated",
+    "name": "High lipoprotein(a)",
+    "dir": "up",
+    "grade": "A",
+    "basis": "science",
+    "source": "EAS 2022 consensus",
+    "conditionId": "lpa_elevated",
+    "check": {
+     "code": "lp_a",
+     "op": ">",
+     "value": 50
+    }
+   }
+  ],
+  "glucose": [
+   {
+    "id": "behavior:late_meal",
+    "name": "Eating close to bedtime",
+    "dir": "up",
+    "grade": "B",
+    "basis": "science",
+    "source": "Gu 2020 J Clin Endocrinol Metab (metabolic effects of late dinner)",
+    "conditionId": null,
+    "check": null
+   },
+   {
+    "id": "intervention:sleep_extension",
+    "name": "Sleeping longer",
+    "dir": "down",
+    "grade": "B",
+    "basis": "science",
+    "source": "Spiegel 1999 Lancet",
+    "conditionId": null,
+    "check": null
+   },
+   {
+    "id": "insulin_resistance",
+    "name": "Insulin resistance",
+    "dir": "up",
+    "grade": "A",
+    "basis": "science",
+    "source": "ADA Standards of Care",
+    "conditionId": "insulin_resistance",
+    "check": {
+     "code": "hba1c",
+     "op": ">",
+     "value": 5.6
+    }
+   },
+   {
+    "id": "type2_diabetes",
+    "name": "Type 2 diabetes",
+    "dir": "up",
+    "grade": "A",
+    "basis": "science",
+    "source": "ADA Standards of Care",
+    "conditionId": "type2_diabetes",
+    "check": {
+     "code": "hba1c",
+     "op": ">",
+     "value": 6.4
+    }
+   }
+  ],
+  "sodium": [
+   {
+    "id": "addisons",
+    "name": "Primary adrenal insufficiency (Addison's)",
+    "dir": "down",
+    "grade": "B",
+    "basis": "science",
+    "source": "Bancos 2015 Lancet Diabetes Endocrinol",
+    "conditionId": "addisons",
+    "check": {
+     "code": "acth_stim_cortisol",
+     "op": "<",
+     "value": 18
+    }
+   }
+  ],
+  "potassium": [
+   {
+    "id": "addisons",
+    "name": "Primary adrenal insufficiency (Addison's)",
+    "dir": "up",
+    "grade": "B",
+    "basis": "science",
+    "source": "Bancos 2015 Lancet Diabetes Endocrinol",
+    "conditionId": "addisons",
+    "check": {
+     "code": "acth_stim_cortisol",
+     "op": "<",
+     "value": 18
+    }
+   }
+  ],
+  "alt": [
+   {
+    "id": "nafld",
+    "name": "Fatty liver",
+    "dir": "up",
+    "grade": "A",
+    "basis": "science",
+    "source": "Lazo 2011 Am J Epidemiol (NHANES)",
+    "conditionId": "nafld",
+    "check": {
+     "code": "triglycerides",
+     "op": ">",
+     "value": 150
+    }
+   },
+   {
+    "id": "insulin_resistance",
+    "name": "Insulin resistance",
+    "dir": "up",
+    "grade": "B",
+    "basis": "science",
+    "source": "Lazo 2011 (NHANES)",
+    "conditionId": "insulin_resistance",
+    "check": {
+     "code": "hba1c",
+     "op": ">",
+     "value": 5.6
+    }
+   },
+   {
+    "id": "haemochromatosis",
+    "name": "Haemochromatosis",
+    "dir": "up",
+    "grade": "B",
+    "basis": "science",
+    "source": "EASL 2022",
+    "conditionId": "haemochromatosis",
+    "check": {
+     "code": "transferrin_saturation",
+     "op": ">",
+     "value": 45
+    }
+   },
+   {
+    "id": "hepatitis_bc",
+    "name": "Hepatitis B or C",
+    "dir": "up",
+    "grade": "B",
+    "basis": "science",
+    "source": "EASL 2017 hepatitis B guideline",
+    "conditionId": "hepatitis_bc",
+    "check": {
+     "code": "hbs_ag_screening",
+     "op": ">",
+     "value": 0.5
+    }
+   },
+   {
+    "id": "wilson",
+    "name": "Wilson disease",
+    "dir": "up",
+    "grade": "B",
+    "basis": "science",
+    "source": "Ferenci 2007 Liver Int",
+    "conditionId": "wilson",
+    "check": {
+     "code": "ceruloplasmin",
+     "op": "<",
+     "value": 10
+    }
+   },
+   {
+    "id": "a1at_deficiency",
+    "name": "Alpha-1 antitrypsin deficiency",
+    "dir": "up",
+    "grade": "C",
+    "basis": "opinion",
+    "source": "Townsend 2018 Hepatol Commun",
+    "conditionId": "a1at_deficiency",
+    "check": {
+     "code": "aat_phenotype",
+     "op": ">",
+     "value": 0.5
+    }
+   }
+  ],
+  "ast": [
+   {
+    "id": "alcohol_use_disorder",
+    "name": "Alcohol use disorder",
+    "dir": "up",
+    "grade": "B",
+    "basis": "science",
+    "source": "Nyblom 2004 Alcohol Alcohol",
+    "conditionId": "alcohol_use_disorder",
+    "check": {
+     "code": "audit_score",
+     "op": ">",
+     "value": 8
+    }
+   }
+  ],
+  "hba1c": [
+   {
+    "id": "metric:glucose",
+    "name": "Fasting glucose",
+    "dir": "up",
+    "grade": "A",
+    "basis": "science",
+    "source": "ADA Standards of Care",
+    "conditionId": null,
+    "check": null
+   },
+   {
+    "id": "behavior:low_carb_diet",
+    "name": "Low-carb or keto eating",
+    "dir": "down",
+    "grade": "A",
+    "basis": "science",
+    "source": "Bueno 2013 Br J Nutr",
+    "conditionId": null,
+    "check": null
+   },
+   {
+    "id": "intervention:resistance_training",
+    "name": "Resistance training",
+    "dir": "down",
+    "grade": "A",
+    "basis": "science",
+    "source": "Umpierre 2011 JAMA",
+    "conditionId": null,
+    "check": null
+   },
+   {
+    "id": "metric:sleep_duration",
+    "name": "Sleep duration",
+    "dir": "up",
+    "grade": "B",
+    "basis": "science",
+    "source": "Spiegel 1999 Lancet",
+    "conditionId": null,
+    "check": null
+   },
+   {
+    "id": "insulin_resistance",
+    "name": "Insulin resistance",
+    "dir": "up",
+    "grade": "A",
+    "basis": "science",
+    "source": "ADA Standards of Care",
+    "conditionId": "insulin_resistance",
+    "check": {
+     "code": "hba1c",
+     "op": ">",
+     "value": 5.6
+    }
+   },
+   {
+    "id": "type2_diabetes",
+    "name": "Type 2 diabetes",
+    "dir": "down",
+    "grade": "A",
+    "basis": "science",
+    "source": "ADA Standards of Care",
+    "conditionId": "type2_diabetes",
+    "check": {
+     "code": "hba1c",
+     "op": ">",
+     "value": 6.4
+    }
+   }
+  ],
+  "insulin": [
+   {
+    "id": "metric:sleep_duration",
+    "name": "Sleep duration",
+    "dir": "up",
+    "grade": "A",
+    "basis": "science",
+    "source": "Spiegel 1999 Lancet (impact of sleep debt on metabolic function)",
+    "conditionId": null,
+    "check": null
+   },
+   {
+    "id": "insulin_resistance",
+    "name": "Insulin resistance",
+    "dir": "up",
+    "grade": "B",
+    "basis": "science",
+    "source": "DeFronzo 2009 Diabetes",
+    "conditionId": "insulin_resistance",
+    "check": {
+     "code": "hba1c",
+     "op": ">",
+     "value": 5.6
+    }
+   },
+   {
+    "id": "pcos",
+    "name": "Polycystic ovary syndrome",
+    "dir": "up",
+    "grade": "B",
+    "basis": "science",
+    "source": "Diamanti-Kandarakis 2012 Endocr Rev",
+    "conditionId": "pcos",
+    "check": {
+     "code": "amh",
+     "op": ">",
+     "value": 5
+    }
+   }
+  ],
+  "uric_acid": [
+   {
+    "id": "gout_hyperuricaemia",
+    "name": "Gout and high uric acid",
+    "dir": "up",
+    "grade": "A",
+    "basis": "science",
+    "source": "Campion 1987 Am J Med (Normative Aging Study)",
+    "conditionId": "gout_hyperuricaemia",
+    "check": {
+     "code": "uric_acid",
+     "op": ">",
+     "value": 9
+    }
+   }
+  ],
+  "tsh": [
+   {
+    "id": "intervention:levothyroxine",
+    "name": "Levothyroxine",
+    "dir": "down",
+    "grade": "A",
+    "basis": "science",
+    "source": "ATA 2014 hypothyroidism guideline",
+    "conditionId": null,
+    "check": null
+   },
+   {
+    "id": "intervention:myo_inositol_selenium",
+    "name": "Myo-inositol with selenium",
+    "dir": "down",
+    "grade": "B",
+    "basis": "science",
+    "source": "Nordio 2017 Eur Rev Med Pharmacol Sci",
+    "conditionId": null,
+    "check": null
+   },
+   {
+    "id": "hashimoto",
+    "name": "Autoimmune thyroiditis (Hashimoto's)",
+    "dir": "up",
+    "grade": "A",
+    "basis": "science",
+    "source": "Rodondi 2010 JAMA",
+    "conditionId": "hashimoto",
+    "check": {
+     "code": "tpo_antibodies",
+     "op": ">",
+     "value": 34
+    }
+   },
+   {
+    "id": "hypothyroidism",
+    "name": "Hypothyroidism",
+    "dir": "up",
+    "grade": "A",
+    "basis": "science",
+    "source": "Garber 2012 Thyroid (AACE/ATA guideline)",
+    "conditionId": "hypothyroidism",
+    "check": {
+     "code": "tsh",
+     "op": ">",
+     "value": 4.5
+    }
+   },
+   {
+    "id": "hyperthyroidism",
+    "name": "Hyperthyroidism",
+    "dir": "down",
+    "grade": "A",
+    "basis": "science",
+    "source": "Ross 2016 Thyroid (ATA guideline)",
+    "conditionId": "hyperthyroidism",
+    "check": {
+     "code": "tsh",
+     "op": "<",
+     "value": 0.4
+    }
+   }
+  ],
+  "free_t4": [
+   {
+    "id": "metric:ferritin",
+    "name": "Ferritin",
+    "dir": "up",
+    "grade": "B",
+    "basis": "science",
+    "source": "Zimmermann 2007 Am J Clin Nutr",
+    "conditionId": null,
+    "check": null
+   },
+   {
+    "id": "hashimoto",
+    "name": "Autoimmune thyroiditis (Hashimoto's)",
+    "dir": "down",
+    "grade": "A",
+    "basis": "science",
+    "source": "ATA 2014 hypothyroidism guideline",
+    "conditionId": "hashimoto",
+    "check": {
+     "code": "tpo_antibodies",
+     "op": ">",
+     "value": 34
+    }
+   },
+   {
+    "id": "hypothyroidism",
+    "name": "Hypothyroidism",
+    "dir": "down",
+    "grade": "A",
+    "basis": "science",
+    "source": "Garber 2012 Thyroid",
+    "conditionId": "hypothyroidism",
+    "check": {
+     "code": "tsh",
+     "op": ">",
+     "value": 4.5
+    }
+   },
+   {
+    "id": "hyperthyroidism",
+    "name": "Hyperthyroidism",
+    "dir": "up",
+    "grade": "A",
+    "basis": "science",
+    "source": "Ross 2016 Thyroid",
+    "conditionId": "hyperthyroidism",
+    "check": {
+     "code": "tsh",
+     "op": "<",
+     "value": 0.4
+    }
+   }
+  ],
+  "free_t3": [
+   {
+    "id": "hyperthyroidism",
+    "name": "Hyperthyroidism",
+    "dir": "up",
+    "grade": "A",
+    "basis": "science",
+    "source": "Ross 2016 Thyroid",
+    "conditionId": "hyperthyroidism",
+    "check": {
+     "code": "tsh",
+     "op": "<",
+     "value": 0.4
+    }
+   }
+  ],
+  "tpo_antibodies": [
+   {
+    "id": "intervention:gluten_free_diet",
+    "name": "Gluten-free diet",
+    "dir": "down",
+    "grade": "B",
+    "basis": "science",
+    "source": "Krysiak 2019 Exp Clin Endocrinol Diabetes",
+    "conditionId": null,
+    "check": null
+   },
+   {
+    "id": "intervention:selenium",
+    "name": "Selenium",
+    "dir": "down",
+    "grade": "A",
+    "basis": "science",
+    "source": "Wichman 2016 Thyroid",
+    "conditionId": null,
+    "check": null
+   },
+   {
+    "id": "hashimoto",
+    "name": "Hashimoto's thyroiditis",
+    "dir": null,
+    "grade": "A",
+    "basis": "science",
+    "source": "ATA 2014 hypothyroidism guideline",
+    "conditionId": "hashimoto",
+    "check": {
+     "code": "tpo_antibodies",
+     "op": ">",
+     "value": 34
+    }
+   },
+   {
+    "id": "metric:vitamin_d",
+    "name": "Vitamin D",
+    "dir": "down",
+    "grade": "B",
+    "basis": "science",
+    "source": "Kivity 2011 Cell Mol Immunol",
+    "conditionId": null,
+    "check": null
+   }
+  ],
+  "anti_thyroglobulin": [
+   {
+    "id": "hashimoto",
+    "name": "Hashimoto's thyroiditis",
+    "dir": null,
+    "grade": "A",
+    "basis": "science",
+    "source": "ATA 2014 hypothyroidism guideline",
+    "conditionId": "hashimoto",
+    "check": {
+     "code": "tpo_antibodies",
+     "op": ">",
+     "value": 34
+    }
+   }
+  ],
+  "vitamin_d": [
+   {
+    "id": "intervention:vitamin_d3",
+    "name": "Vitamin D3",
+    "dir": "up",
+    "grade": "A",
+    "basis": "science",
+    "source": "Holick 2011 Endocrine Society",
+    "conditionId": null,
+    "check": null
+   },
+   {
+    "id": "vitamin_d_deficiency",
+    "name": "Vitamin D deficiency",
+    "dir": "down",
+    "grade": "A",
+    "basis": "science",
+    "source": "Holick 2011 Endocrine Society guideline",
+    "conditionId": "vitamin_d_deficiency",
+    "check": {
+     "code": "vitamin_d",
+     "op": "<",
+     "value": 20
+    }
+   }
+  ],
+  "vitamin_b12": [
+   {
+    "id": "iron_deficiency_cause_gi",
+    "name": "Iron loss or malabsorption from the gut",
+    "dir": "down",
+    "grade": "B",
+    "basis": "science",
+    "source": "Lahner 2009",
+    "conditionId": "iron_deficiency_cause_gi",
+    "check": {
+     "code": "ttg_iga",
+     "op": ">",
+     "value": 10
+    }
+   },
+   {
+    "id": "b12_deficiency",
+    "name": "Vitamin B12 deficiency",
+    "dir": "down",
+    "grade": "A",
+    "basis": "science",
+    "source": "Stabler 2013 NEJM",
+    "conditionId": "b12_deficiency",
+    "check": {
+     "code": "vitamin_b12",
+     "op": "<",
+     "value": 200
+    }
+   },
+   {
+    "id": "sibo",
+    "name": "Small intestinal bacterial overgrowth",
+    "dir": "down",
+    "grade": "C",
+    "basis": "opinion",
+    "source": "Rezaie 2017 Am J Gastroenterol (North American Consensus)",
+    "conditionId": "sibo",
+    "check": {
+     "code": "breath_h2_peak",
+     "op": ">",
+     "value": 20
+    }
+   }
+  ],
+  "folic_acid": [
+   {
+    "id": "folate_deficiency",
+    "name": "Folate deficiency",
+    "dir": "down",
+    "grade": "A",
+    "basis": "science",
+    "source": "WHO 2015",
+    "conditionId": "folate_deficiency",
+    "check": {
+     "code": "folic_acid",
+     "op": "<",
+     "value": 4
+    }
+   },
+   {
+    "id": "sibo",
+    "name": "Small intestinal bacterial overgrowth",
+    "dir": "up",
+    "grade": "C",
+    "basis": "opinion",
+    "source": "Rezaie 2017 Am J Gastroenterol",
+    "conditionId": "sibo",
+    "check": {
+     "code": "breath_h2_peak",
+     "op": ">",
+     "value": 20
+    }
+   }
+  ]
+ },
+ "tests": [
+  {
+   "id": "fasting_insulin",
+   "name": "Fasting insulin",
+   "featureIds": [
+    "insulin"
+   ],
+   "cost": 1,
+   "costByCountry": {
+    "RO": 12.36
+   }
+  },
+  {
+   "id": "amh",
+   "name": "AMH",
+   "featureIds": [
+    "amh"
+   ],
+   "cost": 2,
+   "costByCountry": {
+    "RO": 45.07
+   }
+  },
+  {
+   "id": "anti_tpo_antibodies",
+   "name": "Anti-TPO antibodies",
+   "featureIds": [
+    "tpo_antibodies"
+   ],
+   "cost": 1,
+   "costByCountry": {
+    "RO": 13.5
+   }
+  },
+  {
+   "id": "total_and_free_testosterone",
+   "name": "Total and free testosterone",
+   "featureIds": [
+    "testosterone",
+    "free_testosterone"
+   ],
+   "cost": 1,
+   "costByCountry": {
+    "RO": 13.12
+   }
+  },
+  {
+   "id": "repeat_b12",
+   "name": "Repeat B12",
+   "featureIds": [
+    "vitamin_b12"
+   ],
+   "cost": 1,
+   "costByCountry": {
+    "RO": 14.45
+   }
+  },
+  {
+   "id": "ferritin",
+   "name": "Ferritin",
+   "featureIds": [
+    "ferritin"
+   ],
+   "cost": 1,
+   "costByCountry": {
+    "RO": 10.84
+   }
+  },
+  {
+   "id": "lh_and_fsh",
+   "name": "LH and FSH",
+   "featureIds": [
+    "lh",
+    "fsh"
+   ],
+   "cost": 1,
+   "costByCountry": {
+    "RO": 11.22
+   }
+  },
+  {
+   "id": "hba1c",
+   "name": "HbA1c",
+   "featureIds": [
+    "hba1c"
+   ],
+   "cost": 1,
+   "costByCountry": {
+    "RO": 11.22
+   }
+  },
+  {
+   "id": "repeat_tsh_in_6_months",
+   "name": "Repeat TSH in 6 months",
+   "featureIds": [
+    "tsh"
+   ],
+   "cost": 1,
+   "costByCountry": {
+    "RO": 10.65
+   }
+  },
+  {
+   "id": "anti_thyroglobulin_antibodies",
+   "name": "Anti-thyroglobulin antibodies",
+   "featureIds": [
+    "anti_thyroglobulin"
+   ],
+   "cost": 1,
+   "costByCountry": {
+    "RO": 15.59
+   }
+  },
+  {
+   "id": "ttg_iga_with_total_iga",
+   "name": "tTG-IgA with total IgA",
+   "featureIds": [
+    "ttg_iga"
+   ],
+   "cost": 1,
+   "costByCountry": {
+    "RO": 37.08
+   }
+  },
+  {
+   "id": "free_t4",
+   "name": "Free T4",
+   "featureIds": [
+    "free_t4"
+   ],
+   "cost": 1,
+   "costByCountry": {
+    "RO": 10.84
+   }
+  },
+  {
+   "id": "full_audit_questionnaire",
+   "name": "Full AUDIT questionnaire",
+   "featureIds": [
+    "audit_score"
+   ],
+   "cost": 1,
+   "costByCountry": null
+  },
+  {
+   "id": "lp_a",
+   "name": "Lp(a)",
+   "featureIds": [
+    "lp_a"
+   ],
+   "cost": 2,
+   "costByCountry": {
+    "RO": 25.67
+   }
+  },
+  {
+   "id": "lp_a_once",
+   "name": "Lp(a) once",
+   "featureIds": [
+    "lp_a"
+   ],
+   "cost": 2,
+   "costByCountry": {
+    "RO": 25.67
+   }
+  },
+  {
+   "id": "repeat_ldl_off_any_treatment",
+   "name": "Repeat LDL off any treatment",
+   "featureIds": [
+    "ldl_cholesterol"
+   ],
+   "cost": 1,
+   "costByCountry": {
+    "RO": 19.02
+   }
+  },
+  {
+   "id": "ggt",
+   "name": "GGT",
+   "featureIds": [
+    "ggt"
+   ],
+   "cost": 1,
+   "costByCountry": {
+    "RO": 4.56
+   }
+  },
+  {
+   "id": "tsh",
+   "name": "TSH",
+   "featureIds": [
+    "tsh"
+   ],
+   "cost": 1,
+   "costByCountry": {
+    "RO": 10.65
+   }
+  },
+  {
+   "id": "25_oh_vitamin_d",
+   "name": "25-OH vitamin D",
+   "featureIds": [
+    "vitamin_d"
+   ],
+   "cost": 1,
+   "costByCountry": {
+    "RO": 32.33
+   }
+  },
+  {
+   "id": "serum_folate",
+   "name": "Serum folate",
+   "featureIds": [
+    "folic_acid"
+   ],
+   "cost": 1,
+   "costByCountry": {
+    "RO": 11.41
+   }
+  },
+  {
+   "id": "uric_acid",
+   "name": "Uric acid",
+   "featureIds": [
+    "uric_acid"
+   ],
+   "cost": 1,
+   "costByCountry": {
+    "RO": 3.99
+   }
+  },
+  {
+   "id": "lh_with_shbg",
+   "name": "LH with SHBG",
+   "featureIds": [
+    "lh",
+    "shbg"
+   ],
+   "cost": 1,
+   "costByCountry": {
+    "RO": 13.88
+   }
+  },
+  {
+   "id": "intrinsic_factor_antibodies",
+   "name": "Intrinsic factor antibodies",
+   "featureIds": [
+    "intrinsic_factor_antibodies"
+   ],
+   "cost": 2,
+   "costByCountry": {
+    "RO": 67.7
+   }
+  },
+  {
+   "id": "free_t4_with_free_t3",
+   "name": "Free T4 with free T3",
+   "featureIds": [
+    "free_t4",
+    "free_t3"
+   ],
+   "cost": 1,
+   "costByCountry": {
+    "RO": 10.84
+   }
+  },
+  {
+   "id": "morning_testosterone_repeated",
+   "name": "Morning testosterone, repeated",
+   "featureIds": [
+    "testosterone_total"
+   ],
+   "cost": 1,
+   "costByCountry": {
+    "RO": 11.6
+   }
+  },
+  {
+   "id": "transferrin_saturation_and_tibc",
+   "name": "Transferrin saturation and TIBC",
+   "featureIds": [
+    "transferrin_saturation"
+   ],
+   "cost": 1,
+   "costByCountry": {
+    "RO": 12.17
+   }
+  },
+  {
+   "id": "hbsag_with_anti_hcv",
+   "name": "HBsAg with anti-HCV",
+   "featureIds": [
+    "hbs_ag_screening",
+    "hcv_antibodies"
+   ],
+   "cost": 1,
+   "costByCountry": {
+    "RO": 11.6
+   }
+  },
+  {
+   "id": "transferrin_saturation_with_ferritin",
+   "name": "Transferrin saturation with ferritin",
+   "featureIds": [
+    "transferrin_saturation",
+    "ferritin"
+   ],
+   "cost": 1,
+   "costByCountry": {
+    "RO": 12.17
+   }
+  },
+  {
+   "id": "apob",
+   "name": "ApoB",
+   "featureIds": [
+    "apolipoprotein_b"
+   ],
+   "cost": 1,
+   "costByCountry": {
+    "RO": 9.89
+   }
+  },
+  {
+   "id": "fsh_with_estradiol_day_2_5",
+   "name": "FSH with estradiol, day 2\u20135",
+   "featureIds": [
+    "fsh",
+    "estradiol"
+   ],
+   "cost": 1,
+   "costByCountry": {
+    "RO": 11.79
+   }
+  },
+  {
+   "id": "repeat_hs_crp_after_2_weeks",
+   "name": "Repeat hs-CRP after 2 weeks",
+   "featureIds": [
+    "hs_crp"
+   ],
+   "cost": 1,
+   "costByCountry": {
+    "RO": 14.45
+   }
+  },
+  {
+   "id": "reticulocyte_count",
+   "name": "Reticulocyte count",
+   "featureIds": [
+    "reticulocytes"
+   ],
+   "cost": 1,
+   "costByCountry": null
+  },
+  {
+   "id": "b12_with_folate",
+   "name": "B12 with folate",
+   "featureIds": [
+    "vitamin_b12",
+    "folic_acid"
+   ],
+   "cost": 1,
+   "costByCountry": {
+    "RO": 14.45
+   }
+  },
+  {
+   "id": "esr",
+   "name": "ESR",
+   "featureIds": [
+    "esr"
+   ],
+   "cost": 1,
+   "costByCountry": {
+    "RO": 3.8
+   }
+  },
+  {
+   "id": "alpha_1_antitrypsin_phenotype_pi_typing",
+   "name": "Alpha-1 antitrypsin phenotype (Pi typing)",
+   "featureIds": [
+    "aat_phenotype"
+   ],
+   "cost": 2,
+   "costByCountry": null
+  },
+  {
+   "id": "sodium_and_potassium",
+   "name": "Sodium and potassium",
+   "featureIds": [
+    "sodium"
+   ],
+   "cost": 1,
+   "costByCountry": null
+  },
+  {
+   "id": "acth_stimulation_test",
+   "name": "ACTH stimulation test",
+   "featureIds": [
+    "acth_stim_cortisol"
+   ],
+   "cost": 2,
+   "costByCountry": null
+  },
+  {
+   "id": "hydrogen_and_methane_breath_test",
+   "name": "Hydrogen and methane breath test",
+   "featureIds": [
+    "breath_h2_peak"
+   ],
+   "cost": 2,
+   "costByCountry": null
+  },
+  {
+   "id": "ceruloplasmin",
+   "name": "Ceruloplasmin",
+   "featureIds": [
+    "ceruloplasmin"
+   ],
+   "cost": 1,
+   "costByCountry": null
+  },
+  {
+   "id": "lipid_panel",
+   "name": "Lipid panel",
+   "featureIds": [
+    "ldl_cholesterol"
+   ],
+   "cost": 1,
+   "costByCountry": null
+  }
+ ],
+ "personas": [
+  {
+   "id": "owner",
+   "note": "The owner's real draws, anonymised. S2 names the five raised signals.",
+   "today": "2026-09-26",
+   "markers": [
+    {
+     "code": "ck",
+     "name": "Creatine Kinase",
+     "unit": "U/L",
+     "system": null,
+     "points": [
+      [
+       "2021-10-14",
+       91.42,
+       0,
+       171,
+       "U/L"
+      ]
+     ]
+    },
+    {
+     "code": "pdw_sd",
+     "name": "Platelet distribution width (SD)",
+     "unit": "fL",
+     "system": null,
+     "points": [
+      [
+       "2014-03-26",
+       13.3,
+       8,
+       16.5,
+       "fL"
+      ]
+     ]
+    },
+    {
+     "code": "wbc",
+     "name": "White Blood Cell Count",
+     "unit": "K/uL",
+     "system": "blood",
+     "points": [
+      [
+       "2012-08-08",
+       6.1,
+       4,
+       10,
+       "K/uL"
+      ],
+      [
+       "2014-03-26",
+       6.81,
+       4,
+       10,
+       "K/uL"
+      ],
+      [
+       "2015-03-21",
+       6.5,
+       4,
+       10,
+       "K/uL"
+      ],
+      [
+       "2016-01-09",
+       6.7,
+       4,
+       10,
+       "K/uL"
+      ],
+      [
+       "2019-07-13",
+       6.47,
+       4,
+       10,
+       "K/uL"
+      ],
+      [
+       "2021-10-14",
+       6.02,
+       4,
+       10,
+       "K/uL"
+      ],
+      [
+       "2023-03-17",
+       4.56,
+       3.5,
+       10,
+       "K/uL"
+      ],
+      [
+       "2024-05-13",
+       7.26,
+       3.5,
+       10,
+       "K/uL"
+      ],
+      [
+       "2024-11-20",
+       4.96,
+       3.9,
+       10.2,
+       "K/uL"
+      ],
+      [
+       "2025-12-09",
+       5.83,
+       3.9,
+       10.2,
+       "K/uL"
+      ],
+      [
+       "2026-04-23",
+       5.18,
+       3.9,
+       10.2,
+       "K/uL"
+      ]
+     ]
+    },
+    {
+     "code": "rbc",
+     "name": "Red Blood Cell Count",
+     "unit": "M/uL",
+     "system": "blood",
+     "points": [
+      [
+       "2012-08-08",
+       5.33,
+       4.2,
+       5.9,
+       "M/uL"
+      ],
+      [
+       "2014-03-26",
+       5.82,
+       4.3,
+       5.7,
+       "M/uL"
+      ],
+      [
+       "2015-03-21",
+       5.46,
+       3.9,
+       5.7,
+       "M/uL"
+      ],
+      [
+       "2016-01-09",
+       5.72,
+       3.9,
+       5.7,
+       "M/uL"
+      ],
+      [
+       "2019-07-13",
+       5.23,
+       4.2,
+       5.9,
+       "M/uL"
+      ],
+      [
+       "2021-10-14",
+       5.61,
+       4.2,
+       5.9,
+       "M/uL"
+      ],
+      [
+       "2023-03-17",
+       5.44,
+       3.8,
+       5.8,
+       "M/uL"
+      ],
+      [
+       "2024-05-13",
+       5.11,
+       3.8,
+       5.8,
+       "M/uL"
+      ],
+      [
+       "2024-11-20",
+       5.28,
+       4.3,
+       5.75,
+       "M/uL"
+      ],
+      [
+       "2025-12-09",
+       5.6,
+       4.3,
+       5.75,
+       "M/uL"
+      ],
+      [
+       "2026-04-23",
+       5.23,
+       4.3,
+       5.75,
+       "M/uL"
+      ]
+     ]
+    },
+    {
+     "code": "hemoglobin",
+     "name": "Hemoglobin",
+     "unit": "g/dL",
+     "system": "blood",
+     "points": [
+      [
+       "2012-08-08",
+       15.7,
+       13.2,
+       17.5,
+       "g/dL"
+      ],
+      [
+       "2014-03-26",
+       16.6,
+       13.2,
+       17.3,
+       "g/dL"
+      ],
+      [
+       "2015-03-21",
+       16.3,
+       13,
+       17.3,
+       "g/dL"
+      ],
+      [
+       "2016-01-09",
+       16.9,
+       13,
+       17.3,
+       "g/dL"
+      ],
+      [
+       "2019-07-13",
+       15.3,
+       12.9,
+       17.5,
+       "g/dL"
+      ],
+      [
+       "2021-10-14",
+       15.9,
+       12.9,
+       17.5,
+       "g/dL"
+      ],
+      [
+       "2023-03-17",
+       15.4,
+       12.6,
+       17.4,
+       "g/dL"
+      ],
+      [
+       "2024-05-13",
+       15.3,
+       12.6,
+       17.4,
+       "g/dL"
+      ],
+      [
+       "2024-11-20",
+       15.5,
+       13.5,
+       17.2,
+       "g/dL"
+      ],
+      [
+       "2025-12-09",
+       16.2,
+       13.5,
+       17.2,
+       "g/dL"
+      ],
+      [
+       "2026-04-23",
+       15.6,
+       13.5,
+       17.2,
+       "g/dL"
+      ]
+     ]
+    },
+    {
+     "code": "hematocrit",
+     "name": "Hematocrit",
+     "unit": "%",
+     "system": null,
+     "points": [
+      [
+       "2012-08-08",
+       46.3,
+       39,
+       56,
+       "%"
+      ],
+      [
+       "2014-03-26",
+       49.4,
+       39,
+       49,
+       "%"
+      ],
+      [
+       "2015-03-21",
+       47.4,
+       39,
+       51,
+       "%"
+      ],
+      [
+       "2016-01-09",
+       50.4,
+       39,
+       51,
+       "%"
+      ],
+      [
+       "2019-07-13",
+       46.7,
+       39,
+       56,
+       "%"
+      ],
+      [
+       "2021-10-14",
+       50.9,
+       39,
+       56,
+       "%"
+      ],
+      [
+       "2023-03-17",
+       47.2,
+       39,
+       50,
+       "%"
+      ],
+      [
+       "2024-05-13",
+       46.6,
+       39,
+       50,
+       "%"
+      ],
+      [
+       "2024-11-20",
+       47.3,
+       39.5,
+       50.5,
+       "%"
+      ],
+      [
+       "2025-12-09",
+       49.4,
+       39.5,
+       50.5,
+       "%"
+      ],
+      [
+       "2026-04-23",
+       46.9,
+       39.5,
+       50.5,
+       "%"
+      ]
+     ]
+    },
+    {
+     "code": "mcv",
+     "name": "MCV",
+     "unit": "fL",
+     "system": "blood",
+     "points": [
+      [
+       "2012-08-08",
+       86.9,
+       80,
+       100,
+       "fL"
+      ],
+      [
+       "2014-03-26",
+       84.9,
+       80,
+       99,
+       "fL"
+      ],
+      [
+       "2015-03-21",
+       87,
+       80,
+       103,
+       "fL"
+      ],
+      [
+       "2016-01-09",
+       88,
+       80,
+       103,
+       "fL"
+      ],
+      [
+       "2019-07-13",
+       89.2,
+       80,
+       100,
+       "fL"
+      ],
+      [
+       "2021-10-14",
+       90.7,
+       80,
+       100,
+       "fL"
+      ],
+      [
+       "2023-03-17",
+       86.8,
+       80,
+       101,
+       "fL"
+      ],
+      [
+       "2024-05-13",
+       91.1,
+       80,
+       101,
+       "fL"
+      ],
+      [
+       "2024-11-20",
+       89.6,
+       80,
+       99,
+       "fL"
+      ],
+      [
+       "2025-12-09",
+       88.2,
+       80,
+       99,
+       "fL"
+      ],
+      [
+       "2026-04-23",
+       89.7,
+       80,
+       99,
+       "fL"
+      ]
+     ]
+    },
+    {
+     "code": "mch",
+     "name": "MCH",
+     "unit": "pg",
+     "system": null,
+     "points": [
+      [
+       "2012-08-08",
+       29.5,
+       27,
+       36,
+       "pg"
+      ],
+      [
+       "2014-03-26",
+       28.5,
+       27,
+       34,
+       "pg"
+      ],
+      [
+       "2015-03-21",
+       29.9,
+       25,
+       33.5,
+       "pg"
+      ],
+      [
+       "2016-01-09",
+       29.6,
+       25,
+       33.5,
+       "pg"
+      ],
+      [
+       "2019-07-13",
+       29.2,
+       27,
+       36,
+       "pg"
+      ],
+      [
+       "2021-10-14",
+       28.3,
+       27,
+       36,
+       "pg"
+      ],
+      [
+       "2023-03-17",
+       28.3,
+       27,
+       35,
+       "pg"
+      ],
+      [
+       "2024-05-13",
+       29.9,
+       27,
+       35,
+       "pg"
+      ],
+      [
+       "2024-11-20",
+       29.4,
+       27,
+       33.5,
+       "pg"
+      ],
+      [
+       "2025-12-09",
+       29,
+       27,
+       33.5,
+       "pg"
+      ],
+      [
+       "2026-04-23",
+       29.9,
+       27,
+       33.5,
+       "pg"
+      ]
+     ]
+    },
+    {
+     "code": "mchc",
+     "name": "MCHC",
+     "unit": "g/dL",
+     "system": null,
+     "points": [
+      [
+       "2014-03-26",
+       33.6,
+       32,
+       37,
+       "g/dL"
+      ],
+      [
+       "2015-03-21",
+       34.5,
+       31,
+       36,
+       "g/dL"
+      ],
+      [
+       "2016-01-09",
+       33.6,
+       31,
+       36,
+       "g/dL"
+      ],
+      [
+       "2019-07-13",
+       32.7,
+       29,
+       37,
+       "g/dL"
+      ],
+      [
+       "2021-10-14",
+       31.2,
+       29,
+       37,
+       "g/dL"
+      ],
+      [
+       "2023-03-17",
+       32.6,
+       32,
+       37,
+       "g/dL"
+      ],
+      [
+       "2024-05-13",
+       32.8,
+       32,
+       37,
+       "g/dL"
+      ],
+      [
+       "2024-11-20",
+       32.8,
+       31.5,
+       36,
+       "g/dL"
+      ],
+      [
+       "2025-12-09",
+       32.8,
+       31.5,
+       36,
+       "g/dL"
+      ],
+      [
+       "2026-04-23",
+       33.3,
+       31.5,
+       36,
+       "g/dL"
+      ]
+     ]
+    },
+    {
+     "code": "rdw",
+     "name": "RDW",
+     "unit": "%",
+     "system": "blood",
+     "points": [
+      [
+       "2012-08-08",
+       13.4,
+       10,
+       16.5,
+       "%"
+      ],
+      [
+       "2014-03-26",
+       13.1,
+       11.6,
+       14.8,
+       "%"
+      ],
+      [
+       "2015-03-21",
+       11.6,
+       10,
+       18,
+       "%"
+      ],
+      [
+       "2016-01-09",
+       12.3,
+       10,
+       18,
+       "%"
+      ],
+      [
+       "2019-07-13",
+       12.5,
+       10,
+       16.5,
+       "%"
+      ],
+      [
+       "2021-10-14",
+       12.8,
+       10,
+       16.5,
+       "%"
+      ],
+      [
+       "2023-03-17",
+       13.8,
+       11.6,
+       14.8,
+       "%"
+      ],
+      [
+       "2024-05-13",
+       13.8,
+       11.6,
+       14.8,
+       "%"
+      ],
+      [
+       "2024-11-20",
+       13.7,
+       11.5,
+       14.5,
+       "%"
+      ],
+      [
+       "2025-12-09",
+       13,
+       11.5,
+       14.5,
+       "%"
+      ],
+      [
+       "2026-04-23",
+       13.1,
+       11.5,
+       14.5,
+       "%"
+      ]
+     ]
+    },
+    {
+     "code": "platelets",
+     "name": "Platelet Count",
+     "unit": "K/uL",
+     "system": "blood",
+     "points": [
+      [
+       "2012-08-08",
+       215,
+       150,
+       400,
+       "K/uL"
+      ],
+      [
+       "2014-03-26",
+       226,
+       150,
+       450,
+       "K/uL"
+      ],
+      [
+       "2015-03-21",
+       200,
+       150,
+       450,
+       "K/uL"
+      ],
+      [
+       "2016-01-09",
+       203,
+       150,
+       450,
+       "K/uL"
+      ],
+      [
+       "2019-07-13",
+       213,
+       150,
+       450,
+       "K/uL"
+      ],
+      [
+       "2021-10-14",
+       237,
+       150,
+       450,
+       "K/uL"
+      ],
+      [
+       "2023-03-17",
+       208,
+       150,
+       450,
+       "K/uL"
+      ],
+      [
+       "2024-05-13",
+       214,
+       150,
+       450,
+       "K/uL"
+      ],
+      [
+       "2024-11-20",
+       224,
+       150,
+       370,
+       "K/uL"
+      ],
+      [
+       "2025-12-09",
+       235,
+       150,
+       370,
+       "K/uL"
+      ],
+      [
+       "2026-04-23",
+       236,
+       150,
+       370,
+       "K/uL"
+      ]
+     ]
+    },
+    {
+     "code": "mpv",
+     "name": "MPV",
+     "unit": "fL",
+     "system": null,
+     "points": [
+      [
+       "2012-08-08",
+       7.3,
+       4,
+       10.4,
+       "fL"
+      ],
+      [
+       "2014-03-26",
+       10.7,
+       7.4,
+       13,
+       "fL"
+      ],
+      [
+       "2015-03-21",
+       9.7,
+       7,
+       15,
+       "fL"
+      ],
+      [
+       "2016-01-09",
+       9.5,
+       7,
+       15,
+       "fL"
+      ],
+      [
+       "2019-07-13",
+       9.3,
+       4,
+       12,
+       "fL"
+      ],
+      [
+       "2021-10-14",
+       9.1,
+       4,
+       12,
+       "fL"
+      ],
+      [
+       "2023-03-17",
+       9.3,
+       9,
+       13,
+       "fL"
+      ],
+      [
+       "2024-05-13",
+       10.8,
+       9,
+       13,
+       "fL"
+      ]
+     ]
+    },
+    {
+     "code": "neutrophils_pct",
+     "name": "Neutrophils %",
+     "unit": "%",
+     "system": null,
+     "points": [
+      [
+       "2016-01-09",
+       49.7,
+       45,
+       80,
+       "%"
+      ],
+      [
+       "2019-07-13",
+       51.6,
+       40,
+       70,
+       "%"
+      ],
+      [
+       "2021-10-14",
+       46.8,
+       40,
+       70,
+       "%"
+      ],
+      [
+       "2023-03-17",
+       52.7,
+       45,
+       80,
+       "%"
+      ],
+      [
+       "2024-05-13",
+       64.8,
+       45,
+       80,
+       "%"
+      ],
+      [
+       "2025-12-09",
+       55.23,
+       42,
+       77,
+       "%"
+      ]
+     ]
+    },
+    {
+     "code": "neutrophils_abs",
+     "name": "Neutrophils (Absolute)",
+     "unit": "K/uL",
+     "system": null,
+     "points": [
+      [
+       "2014-03-26",
+       3.39,
+       2,
+       8,
+       "K/uL"
+      ],
+      [
+       "2016-01-09",
+       3.33,
+       2,
+       8,
+       "K/uL"
+      ],
+      [
+       "2019-07-13",
+       3.34,
+       2,
+       7,
+       "K/uL"
+      ],
+      [
+       "2021-10-14",
+       2.82,
+       2,
+       7,
+       "K/uL"
+      ],
+      [
+       "2023-03-17",
+       2.4,
+       2,
+       8,
+       "K/uL"
+      ],
+      [
+       "2024-05-13",
+       4.71,
+       2,
+       8,
+       "K/uL"
+      ],
+      [
+       "2024-11-20",
+       2.45,
+       1.5,
+       7.7,
+       "K/uL"
+      ],
+      [
+       "2025-12-09",
+       3.22,
+       1.5,
+       7.7,
+       "K/uL"
+      ],
+      [
+       "2026-04-23",
+       2.45,
+       1.5,
+       7.7,
+       "K/uL"
+      ]
+     ]
+    },
+    {
+     "code": "lymphocytes_pct",
+     "name": "Lymphocytes %",
+     "unit": "%",
+     "system": null,
+     "points": [
+      [
+       "2012-08-08",
+       35.9,
+       11,
+       55,
+       "%"
+      ],
+      [
+       "2016-01-09",
+       40.4,
+       20,
+       55,
+       "%"
+      ],
+      [
+       "2019-07-13",
+       19.35,
+       0,
+       2,
+       "%"
+      ],
+      [
+       "2021-10-14",
+       22.55,
+       0,
+       2,
+       "%"
+      ],
+      [
+       "2023-03-17",
+       35.5,
+       20,
+       55,
+       "%"
+      ],
+      [
+       "2024-05-13",
+       27,
+       20,
+       55,
+       "%"
+      ],
+      [
+       "2025-12-09",
+       34.48,
+       20,
+       44,
+       "%"
+      ]
+     ]
+    },
+    {
+     "code": "lymphocytes_abs",
+     "name": "Lymphocytes (Absolute)",
+     "unit": "K/uL",
+     "system": null,
+     "points": [
+      [
+       "2012-08-08",
+       2.2,
+       0.4,
+       4.8,
+       "K/uL"
+      ],
+      [
+       "2014-03-26",
+       2.65,
+       1,
+       4,
+       "K/uL"
+      ],
+      [
+       "2019-07-13",
+       2.48,
+       0.8,
+       4,
+       "K/uL"
+      ],
+      [
+       "2021-10-14",
+       2.68,
+       0.8,
+       4,
+       "K/uL"
+      ],
+      [
+       "2024-05-13",
+       1.96,
+       1,
+       4,
+       "K/uL"
+      ],
+      [
+       "2024-11-20",
+       1.84,
+       1.1,
+       4.5,
+       "K/uL"
+      ],
+      [
+       "2025-12-09",
+       2.01,
+       1.1,
+       4.5,
+       "K/uL"
+      ]
+     ]
+    },
+    {
+     "code": "monocytes_pct",
+     "name": "Monocytes %",
+     "unit": "%",
+     "system": null,
+     "points": [
+      [
+       "2012-08-08",
+       8.1,
+       0,
+       15,
+       "%"
+      ],
+      [
+       "2015-03-21",
+       6.9,
+       1.7,
+       15,
+       "%"
+      ],
+      [
+       "2016-01-09",
+       7,
+       1.7,
+       15,
+       "%"
+      ],
+      [
+       "2019-07-13",
+       8.1,
+       3,
+       12,
+       "%"
+      ],
+      [
+       "2021-10-14",
+       6.5,
+       3,
+       12,
+       "%"
+      ],
+      [
+       "2023-03-17",
+       10.3,
+       0,
+       15,
+       "%"
+      ],
+      [
+       "2024-05-13",
+       6.6,
+       0,
+       15,
+       "%"
+      ],
+      [
+       "2025-12-09",
+       6.86,
+       2,
+       9.5,
+       "%"
+      ],
+      [
+       "2026-04-23",
+       8.3,
+       2,
+       9.5,
+       "%"
+      ]
+     ]
+    },
+    {
+     "code": "monocytes_abs",
+     "name": "Monocytes (Absolute)",
+     "unit": "K/uL",
+     "system": null,
+     "points": [
+      [
+       "2012-08-08",
+       0.5,
+       0,
+       1,
+       "K/uL"
+      ],
+      [
+       "2014-03-26",
+       0.67,
+       0.3,
+       1,
+       "K/uL"
+      ],
+      [
+       "2016-01-09",
+       0.47,
+       0.2,
+       0.8,
+       "K/uL"
+      ],
+      [
+       "2019-07-13",
+       0.53,
+       0.12,
+       1.2,
+       "K/uL"
+      ],
+      [
+       "2021-10-14",
+       0.4,
+       0.12,
+       1.2,
+       "K/uL"
+      ],
+      [
+       "2023-03-17",
+       0.47,
+       0.12,
+       1,
+       "K/uL"
+      ],
+      [
+       "2024-05-13",
+       0.48,
+       0.12,
+       1,
+       "K/uL"
+      ],
+      [
+       "2024-11-20",
+       0.38,
+       0.1,
+       0.9,
+       "K/uL"
+      ],
+      [
+       "2025-12-09",
+       0.4,
+       0.1,
+       0.9,
+       "K/uL"
+      ],
+      [
+       "2026-04-23",
+       0.43,
+       0.1,
+       0.9,
+       "K/uL"
+      ]
+     ]
+    },
+    {
+     "code": "eosinophils_pct",
+     "name": "Eosinophils %",
+     "unit": "%",
+     "system": null,
+     "points": [
+      [
+       "2016-01-09",
+       1.9,
+       0,
+       4,
+       "%"
+      ],
+      [
+       "2019-07-13",
+       1.7,
+       0.5,
+       5,
+       "%"
+      ],
+      [
+       "2021-10-14",
+       1.9,
+       0.5,
+       5,
+       "%"
+      ],
+      [
+       "2023-03-17",
+       1.1,
+       0.5,
+       7,
+       "%"
+      ],
+      [
+       "2024-05-13",
+       1.3,
+       0.5,
+       7,
+       "%"
+      ],
+      [
+       "2025-12-09",
+       2.92,
+       0.5,
+       5.5,
+       "%"
+      ]
+     ]
+    },
+    {
+     "code": "eosinophils_abs",
+     "name": "Eosinophils (Absolute)",
+     "unit": "K/uL",
+     "system": "blood",
+     "points": [
+      [
+       "2014-03-26",
+       0.09,
+       0.05,
+       0.7,
+       "K/uL"
+      ],
+      [
+       "2015-03-21",
+       0.1,
+       0.02,
+       0.7,
+       "K/uL"
+      ],
+      [
+       "2016-01-09",
+       0.13,
+       0.02,
+       0.7,
+       "K/uL"
+      ],
+      [
+       "2019-07-13",
+       0.11,
+       0.02,
+       0.5,
+       "K/uL"
+      ],
+      [
+       "2021-10-14",
+       0.11,
+       0.02,
+       0.5,
+       "K/uL"
+      ],
+      [
+       "2023-03-17",
+       0.05,
+       0,
+       0.7,
+       "K/uL"
+      ],
+      [
+       "2024-05-13",
+       0.09,
+       0,
+       0.7,
+       "K/uL"
+      ],
+      [
+       "2024-11-20",
+       0.25,
+       0.02,
+       0.5,
+       "K/uL"
+      ],
+      [
+       "2025-12-09",
+       0.17,
+       0.02,
+       0.5,
+       "K/uL"
+      ],
+      [
+       "2026-04-23",
+       0.19,
+       0.02,
+       0.5,
+       "K/uL"
+      ]
+     ]
+    },
+    {
+     "code": "basophils_pct",
+     "name": "Basophils %",
+     "unit": "%",
+     "system": null,
+     "points": [
+      [
+       "2015-03-21",
+       0.6,
+       0,
+       2,
+       "%"
+      ],
+      [
+       "2016-01-09",
+       1,
+       0,
+       2,
+       "%"
+      ],
+      [
+       "2019-07-13",
+       0.2,
+       0,
+       1,
+       "%"
+      ],
+      [
+       "2021-10-14",
+       0.2,
+       0,
+       1,
+       "%"
+      ],
+      [
+       "2023-03-17",
+       0.4,
+       0,
+       1,
+       "%"
+      ],
+      [
+       "2024-05-13",
+       0.3,
+       0,
+       1,
+       "%"
+      ],
+      [
+       "2025-12-09",
+       0.51,
+       null,
+       1.75,
+       "%"
+      ]
+     ]
+    },
+    {
+     "code": "basophils_abs",
+     "name": "Basophils (Absolute)",
+     "unit": "K/uL",
+     "system": null,
+     "points": [
+      [
+       "2014-03-26",
+       0.01,
+       null,
+       0.2,
+       "K/uL"
+      ],
+      [
+       "2015-03-21",
+       0.04,
+       0,
+       0.2,
+       "K/uL"
+      ],
+      [
+       "2016-01-09",
+       0.07,
+       0,
+       0.2,
+       "K/uL"
+      ],
+      [
+       "2019-07-13",
+       0.01,
+       0,
+       0.1,
+       "K/uL"
+      ],
+      [
+       "2021-10-14",
+       0.01,
+       0,
+       0.1,
+       "K/uL"
+      ],
+      [
+       "2023-03-17",
+       0.02,
+       0,
+       0.2,
+       "K/uL"
+      ],
+      [
+       "2024-05-13",
+       0.02,
+       0,
+       0.2,
+       "K/uL"
+      ],
+      [
+       "2024-11-20",
+       0.04,
+       null,
+       200,
+       "K/uL"
+      ],
+      [
+       "2025-12-09",
+       0.03,
+       null,
+       200,
+       "K/uL"
+      ],
+      [
+       "2026-04-23",
+       0.03,
+       null,
+       200,
+       "K/uL"
+      ]
+     ]
+    },
+    {
+     "code": "pdw",
+     "name": "PDW",
+     "unit": "%",
+     "system": null,
+     "points": [
+      [
+       "2012-08-08",
+       17.6,
+       12,
+       19,
+       "%"
+      ],
+      [
+       "2015-03-21",
+       16.8,
+       10,
+       40,
+       "%"
+      ],
+      [
+       "2016-01-09",
+       15.8,
+       10,
+       40,
+       "%"
+      ],
+      [
+       "2019-07-13",
+       16.1,
+       12,
+       19,
+       "%"
+      ],
+      [
+       "2021-10-14",
+       16,
+       12,
+       19,
+       "%"
+      ],
+      [
+       "2023-03-17",
+       9.8,
+       9,
+       17,
+       "%"
+      ],
+      [
+       "2024-05-13",
+       16.1,
+       9,
+       17,
+       "%"
+      ]
+     ]
+    },
+    {
+     "code": "pct",
+     "name": "Plateletcrit",
+     "unit": "%",
+     "system": null,
+     "points": [
+      [
+       "2012-08-08",
+       0.15,
+       0.09,
+       1,
+       "%"
+      ],
+      [
+       "2015-03-21",
+       0.195,
+       0.15,
+       0.45,
+       "%"
+      ],
+      [
+       "2016-01-09",
+       0.192,
+       0.15,
+       0.45,
+       "%"
+      ],
+      [
+       "2019-07-13",
+       0.197,
+       0.07,
+       1,
+       "%"
+      ],
+      [
+       "2021-10-14",
+       0.215,
+       0.07,
+       1,
+       "%"
+      ],
+      [
+       "2023-03-17",
+       0.19,
+       0.17,
+       0.35,
+       "%"
+      ],
+      [
+       "2024-05-13",
+       0.232,
+       0.17,
+       0.35,
+       "%"
+      ]
+     ]
+    },
+    {
+     "code": "p_lcr",
+     "name": "P-LCR",
+     "unit": "%",
+     "system": null,
+     "points": [
+      [
+       "2023-03-17",
+       18.9,
+       13,
+       43,
+       "%"
+      ],
+      [
+       "2024-05-13",
+       31.6,
+       13,
+       43,
+       "%"
+      ]
+     ]
+    },
+    {
+     "code": "rdw_sd",
+     "name": "RDW-SD",
+     "unit": "fL",
+     "system": null,
+     "points": [
+      [
+       "2023-03-17",
+       43.5,
+       35.1,
+       43.9,
+       "fL"
+      ],
+      [
+       "2024-05-13",
+       45.5,
+       35.1,
+       43.9,
+       "fL"
+      ]
+     ]
+    },
+    {
+     "code": "granulocyte_absolute",
+     "name": "Absolute Granulocyte Count",
+     "unit": "x10^3/uL",
+     "system": null,
+     "points": [
+      [
+       "2012-08-08",
+       3.4,
+       0,
+       9,
+       "x10^3/uL"
+      ]
+     ]
+    },
+    {
+     "code": "atypical_lymphocytes_abs",
+     "name": "Atypical Lymphocytes, Absolute",
+     "unit": "10^3/uL",
+     "system": null,
+     "points": [
+      [
+       "2016-01-09",
+       2.71,
+       1,
+       4.5,
+       "10^3/uL"
+      ],
+      [
+       "2019-07-13",
+       0.02,
+       0,
+       0.2,
+       "10^3/uL"
+      ],
+      [
+       "2021-10-14",
+       0.03,
+       0,
+       0.2,
+       "10^3/uL"
+      ],
+      [
+       "2023-03-17",
+       1.62,
+       1,
+       4,
+       "10^3/uL"
+      ]
+     ]
+    },
+    {
+     "code": "basophils_percentage",
+     "name": "Basophils (percentage)",
+     "unit": "%",
+     "system": null,
+     "points": [
+      [
+       "2014-03-26",
+       0.1,
+       null,
+       2,
+       "%"
+      ],
+      [
+       "2024-11-20",
+       0.81,
+       null,
+       1.75,
+       "%"
+      ],
+      [
+       "2026-04-23",
+       0.58,
+       null,
+       1.75,
+       "%"
+      ]
+     ]
+    },
+    {
+     "code": "corrected_reticulocyte_count",
+     "name": "Corrected Reticulocyte Count",
+     "unit": "%",
+     "system": null,
+     "points": [
+      [
+       "2015-03-21",
+       1.28,
+       0.5,
+       2.3,
+       "%"
+      ],
+      [
+       "2016-01-09",
+       1.16,
+       0.5,
+       2.3,
+       "%"
+      ]
+     ]
+    },
+    {
+     "code": "eosinophils_percentage",
+     "name": "Eosinophils (percentage)",
+     "unit": "%",
+     "system": null,
+     "points": [
+      [
+       "2014-03-26",
+       1.3,
+       null,
+       7,
+       "%"
+      ],
+      [
+       "2015-03-21",
+       1.5,
+       0,
+       4,
+       "%"
+      ],
+      [
+       "2024-11-20",
+       5.04,
+       0.5,
+       5.5,
+       "%"
+      ],
+      [
+       "2026-04-23",
+       3.67,
+       0.5,
+       5.5,
+       "%"
+      ]
+     ]
+    },
+    {
+     "code": "granulocyte_percentage",
+     "name": "Granulocyte Percentage",
+     "unit": "%",
+     "system": null,
+     "points": [
+      [
+       "2012-08-08",
+       56,
+       42,
+       85,
+       "%"
+      ]
+     ]
+    },
+    {
+     "code": "hba",
+     "name": "Hemoglobin A",
+     "unit": "%",
+     "system": null,
+     "points": [
+      [
+       "2016-01-09",
+       97.1,
+       96.7,
+       97.8,
+       "%"
+      ]
+     ]
+    },
+    {
+     "code": "hba2",
+     "name": "Hemoglobin A2",
+     "unit": "%",
+     "system": null,
+     "points": [
+      [
+       "2016-01-09",
+       2.9,
+       2.2,
+       3.2,
+       "%"
+      ]
+     ]
+    },
+    {
+     "code": "immature_reticulocyte_fraction",
+     "name": "Immature Reticulocyte Fraction",
+     "unit": null,
+     "system": null,
+     "points": [
+      [
+       "2015-03-21",
+       0.048,
+       0.04,
+       0.23,
+       ""
+      ],
+      [
+       "2016-01-09",
+       0.062,
+       0.04,
+       0.23,
+       ""
+      ]
+     ]
+    },
+    {
+     "code": "lymphocytes_percentage",
+     "name": "Lymphocytes (percentage)",
+     "unit": "%",
+     "system": null,
+     "points": [
+      [
+       "2014-03-26",
+       38.9,
+       20,
+       55,
+       "%"
+      ],
+      [
+       "2015-03-21",
+       37,
+       20,
+       55,
+       "%"
+      ],
+      [
+       "2024-11-20",
+       37.09,
+       20,
+       44,
+       "%"
+      ],
+      [
+       "2026-04-23",
+       40.15,
+       20,
+       44,
+       "%"
+      ]
+     ]
+    },
+    {
+     "code": "mean_reticulocyte_volume",
+     "name": "Mean Reticulocyte Volume",
+     "unit": "fL",
+     "system": null,
+     "points": [
+      [
+       "2015-03-21",
+       101,
+       92,
+       116,
+       "fL"
+      ],
+      [
+       "2016-01-09",
+       113,
+       92,
+       116,
+       "fL"
+      ]
+     ]
+    },
+    {
+     "code": "monocytes_percentage",
+     "name": "Monocytes (percentage)",
+     "unit": "%",
+     "system": null,
+     "points": [
+      [
+       "2014-03-26",
+       9.8,
+       null,
+       15,
+       "%"
+      ],
+      [
+       "2024-11-20",
+       7.66,
+       2,
+       9.5,
+       "%"
+      ]
+     ]
+    },
+    {
+     "code": "neutrophils_percentage",
+     "name": "Neutrophils (percentage)",
+     "unit": "%",
+     "system": null,
+     "points": [
+      [
+       "2014-03-26",
+       49.9,
+       45,
+       80,
+       "%"
+      ],
+      [
+       "2015-03-21",
+       54,
+       45,
+       80,
+       "%"
+      ],
+      [
+       "2024-11-20",
+       49.4,
+       42,
+       77,
+       "%"
+      ],
+      [
+       "2026-04-23",
+       47.3,
+       42,
+       77,
+       "%"
+      ]
+     ]
+    },
+    {
+     "code": "reticulocytes",
+     "name": "Reticulocyte Count, Absolute",
+     "unit": "10^6/uL",
+     "system": null,
+     "points": [
+      [
+       "2015-03-21",
+       0.066,
+       0.027,
+       0.114,
+       "10^6/uL"
+      ],
+      [
+       "2016-01-09",
+       0.06,
+       0.027,
+       0.114,
+       "10^6/uL"
+      ]
+     ]
+    },
+    {
+     "code": "reticulocytes_percent",
+     "name": "Reticulocyte Percentage",
+     "unit": "%",
+     "system": null,
+     "points": [
+      [
+       "2015-03-21",
+       1.16,
+       0.6,
+       2.3,
+       "%"
+      ],
+      [
+       "2016-01-09",
+       1.12,
+       0.6,
+       2.3,
+       "%"
+      ]
+     ]
+    },
+    {
+     "code": "reticulocytes_high_nuclear_content",
+     "name": "Reticulocytes with High Fluorescence (HFR)",
+     "unit": "%",
+     "system": null,
+     "points": [
+      [
+       "2015-03-21",
+       0.8,
+       0,
+       6,
+       "%"
+      ],
+      [
+       "2016-01-09",
+       0,
+       0,
+       6,
+       "%"
+      ]
+     ]
+    },
+    {
+     "code": "reticulocytes_low_nuclear_content",
+     "name": "Reticulocytes with Low Fluorescence (LFR)",
+     "unit": "%",
+     "system": null,
+     "points": [
+      [
+       "2015-03-21",
+       95.2,
+       76,
+       95,
+       "%"
+      ],
+      [
+       "2016-01-09",
+       93.8,
+       76,
+       95,
+       "%"
+      ]
+     ]
+    },
+    {
+     "code": "reticulocytes_medium_nuclear_content",
+     "name": "Reticulocytes with Medium Fluorescence (MFR)",
+     "unit": "%",
+     "system": null,
+     "points": [
+      [
+       "2015-03-21",
+       4,
+       4,
+       18,
+       "%"
+      ],
+      [
+       "2016-01-09",
+       6.2,
+       4,
+       18,
+       "%"
+      ]
+     ]
+    },
+    {
+     "code": "direct_bilirubin",
+     "name": "Direct Bilirubin",
+     "unit": "mg/dL",
+     "system": null,
+     "points": [
+      [
+       "2019-07-13",
+       0.3,
+       0,
+       0.5,
+       "mg/dL"
+      ],
+      [
+       "2023-03-17",
+       0.22,
+       0,
+       0.2,
+       "mg/dL"
+      ]
+     ]
+    },
+    {
+     "code": "ggt",
+     "name": "GGT",
+     "unit": "U/L",
+     "system": "liver",
+     "points": [
+      [
+       "2012-08-08",
+       22,
+       10,
+       73,
+       "U/L"
+      ],
+      [
+       "2021-10-14",
+       15.28,
+       10,
+       73,
+       "U/L"
+      ],
+      [
+       "2023-03-17",
+       13.55,
+       11,
+       61,
+       "U/L"
+      ],
+      [
+       "2024-05-13",
+       18.24,
+       11,
+       61,
+       "U/L"
+      ],
+      [
+       "2026-04-23",
+       15,
+       null,
+       73,
+       "U/L"
+      ]
+     ]
+    },
+    {
+     "code": "testosterone_total",
+     "name": "Testosterone, Total",
+     "unit": "ng/dL",
+     "system": null,
+     "points": [
+      [
+       "2024-11-20",
+       360.34,
+       197.44,
+       669.58,
+       "ng/dL"
+      ]
+     ]
+    },
+    {
+     "code": "estradiol",
+     "name": "Estradiol",
+     "unit": "pg/mL",
+     "system": "sex_hormones",
+     "points": [
+      [
+       "2024-11-20",
+       29,
+       null,
+       39.8,
+       "pg/mL"
+      ]
+     ]
+    },
+    {
+     "code": "lh",
+     "name": "LH",
+     "unit": "mIU/mL",
+     "system": "sex_hormones",
+     "points": [
+      [
+       "2024-11-20",
+       2.63,
+       1.5,
+       9.3,
+       "mIU/mL"
+      ]
+     ]
+    },
+    {
+     "code": "cortisol",
+     "name": "Cortisol",
+     "unit": "mcg/dL",
+     "system": "adrenal",
+     "points": [
+      [
+       "2021-10-14",
+       22.8,
+       5.72,
+       19.42,
+       "mcg/dL"
+      ],
+      [
+       "2021-12-04",
+       15.9,
+       5.72,
+       19.42,
+       "mcg/dL"
+      ],
+      [
+       "2022-10-20",
+       16,
+       5,
+       25,
+       "mcg/dL"
+      ],
+      [
+       "2024-05-13",
+       14.1,
+       3.7,
+       19.4,
+       "mcg/dL"
+      ],
+      [
+       "2024-11-20",
+       20.41,
+       5.27,
+       22.45,
+       "mcg/dL"
+      ],
+      [
+       "2025-12-09",
+       16.29,
+       6.2,
+       19.4,
+       "mcg/dL"
+      ]
+     ]
+    },
+    {
+     "code": "dhea_s",
+     "name": "DHEA-S",
+     "unit": "mcg/dL",
+     "system": null,
+     "points": [
+      [
+       "2021-10-14",
+       352,
+       106,
+       464,
+       "mcg/dL"
+      ],
+      [
+       "2024-11-20",
+       227.4,
+       88.9,
+       427,
+       "mcg/dL"
+      ]
+     ]
+    },
+    {
+     "code": "free_testosterone",
+     "name": "Free Testosterone",
+     "unit": "pg/mL",
+     "system": null,
+     "points": [
+      [
+       "2021-10-14",
+       13.24,
+       1,
+       28.28,
+       "pg/mL"
+      ],
+      [
+       "2024-11-20",
+       8.38,
+       4.81,
+       22.42,
+       "pg/mL"
+      ]
+     ]
+    },
+    {
+     "code": "shbg",
+     "name": "SHBG",
+     "unit": "nmol/L",
+     "system": null,
+     "points": [
+      [
+       "2021-10-14",
+       21.4,
+       13.5,
+       71.4,
+       "nmol/L"
+      ],
+      [
+       "2024-11-20",
+       24.2,
+       10,
+       57,
+       "nmol/L"
+      ]
+     ]
+    },
+    {
+     "code": "prolactin",
+     "name": "Prolactin",
+     "unit": "ng/mL",
+     "system": null,
+     "points": [
+      [
+       "2024-11-20",
+       8.51,
+       2.1,
+       17.7,
+       "ng/mL"
+      ]
+     ]
+    },
+    {
+     "code": "toxoplasma_igg",
+     "name": "Toxoplasma IgG",
+     "unit": "IU/mL",
+     "system": null,
+     "points": [
+      [
+       "2014-03-26",
+       295.5,
+       null,
+       null,
+       "IU/mL"
+      ],
+      [
+       "2014-07-07",
+       291.4,
+       null,
+       null,
+       "IU/mL"
+      ]
+     ]
+    },
+    {
+     "code": "toxoplasma_igm",
+     "name": "Toxoplasma IgM",
+     "unit": "Index",
+     "system": null,
+     "points": [
+      [
+       "2014-03-26",
+       0.179,
+       null,
+       null,
+       "Index"
+      ],
+      [
+       "2014-07-07",
+       0.208,
+       null,
+       null,
+       "Index"
+      ]
+     ]
+    },
+    {
+     "code": "toxocara_igg",
+     "name": "Toxocara IgG",
+     "unit": "NTU",
+     "system": null,
+     "points": [
+      [
+       "2014-03-26",
+       2,
+       null,
+       9,
+       "NTU"
+      ]
+     ]
+    },
+    {
+     "code": "hbs_antigen",
+     "name": "HBs Antigen",
+     "unit": null,
+     "system": null,
+     "points": [
+      [
+       "2015-03-21",
+       0.59,
+       null,
+       null,
+       ""
+      ],
+      [
+       "2021-12-04",
+       0.13,
+       null,
+       0.9,
+       ""
+      ]
+     ]
+    },
+    {
+     "code": "hcv_antibodies",
+     "name": "Anti-HCV",
+     "unit": null,
+     "system": null,
+     "points": [
+      [
+       "2015-03-21",
+       0.07,
+       null,
+       null,
+       ""
+      ],
+      [
+       "2021-12-04",
+       0.17,
+       null,
+       0.9,
+       ""
+      ]
+     ]
+    },
+    {
+     "code": "crp",
+     "name": "CRP",
+     "unit": "mg/L",
+     "system": "inflammation",
+     "points": [
+      [
+       "2014-03-26",
+       1.3,
+       null,
+       5,
+       "mg/L"
+      ],
+      [
+       "2015-03-21",
+       4,
+       0,
+       10,
+       "mg/L"
+      ],
+      [
+       "2021-10-14",
+       6.1,
+       0,
+       60,
+       "mg/L"
+      ],
+      [
+       "2021-12-04",
+       4.6,
+       0,
+       6,
+       "mg/L"
+      ],
+      [
+       "2022-10-20",
+       3.5,
+       0.01,
+       6,
+       "mg/L"
+      ],
+      [
+       "2023-03-17",
+       15.8,
+       0,
+       49.9,
+       "mg/L"
+      ],
+      [
+       "2024-05-13",
+       8.1,
+       0,
+       49.9,
+       "mg/L"
+      ],
+      [
+       "2024-11-20",
+       0.54,
+       0,
+       5,
+       "mg/L"
+      ],
+      [
+       "2025-12-09",
+       0.5,
+       null,
+       0.33,
+       "mg/L"
+      ],
+      [
+       "2026-04-23",
+       0.64,
+       0,
+       3.3,
+       "mg/L"
+      ]
+     ]
+    },
+    {
+     "code": "esr",
+     "name": "ESR",
+     "unit": "mm/hr",
+     "system": null,
+     "points": [
+      [
+       "2014-03-26",
+       2,
+       null,
+       15,
+       "mm/hr"
+      ],
+      [
+       "2015-03-21",
+       5,
+       0,
+       15,
+       "mm/hr"
+      ],
+      [
+       "2016-01-09",
+       5,
+       null,
+       13,
+       "mm/hr"
+      ],
+      [
+       "2019-07-13",
+       9,
+       0,
+       15,
+       "mm/hr"
+      ]
+     ]
+    },
+    {
+     "code": "homocysteine",
+     "name": "Homocysteine",
+     "unit": "umol/L",
+     "system": "vitamins",
+     "points": [
+      [
+       "2023-03-17",
+       11.23,
+       5.46,
+       16.2,
+       "umol/L"
+      ],
+      [
+       "2024-05-13",
+       8.08,
+       5.46,
+       16.2,
+       "umol/L"
+      ],
+      [
+       "2024-11-20",
+       8.43,
+       5.46,
+       16.2,
+       "umol/L"
+      ],
+      [
+       "2025-12-09",
+       8.78,
+       5.46,
+       16.2,
+       "umol/L"
+      ],
+      [
+       "2026-04-23",
+       9.64,
+       5.46,
+       16.2,
+       "umol/L"
+      ]
+     ]
+    },
+    {
+     "code": "fibrinogen",
+     "name": "Fibrinogen",
+     "unit": "mg/dL",
+     "system": null,
+     "points": [
+      [
+       "2014-03-26",
+       299,
+       200,
+       400,
+       "mg/dL"
+      ],
+      [
+       "2015-03-21",
+       284,
+       180,
+       450,
+       "mg/dL"
+      ]
+     ]
+    },
+    {
+     "code": "aslo",
+     "name": "ASLO",
+     "unit": "IU/mL",
+     "system": null,
+     "points": [
+      [
+       "2014-03-26",
+       50,
+       null,
+       200,
+       "IU/mL"
+      ],
+      [
+       "2015-03-21",
+       0,
+       0,
+       200,
+       "IU/mL"
+      ]
+     ]
+    },
+    {
+     "code": "rheumatoid_factor",
+     "name": "Rheumatoid Factor",
+     "unit": "IU/mL",
+     "system": null,
+     "points": [
+      [
+       "2014-03-26",
+       9,
+       null,
+       14,
+       "IU/mL"
+      ],
+      [
+       "2015-03-21",
+       10,
+       0,
+       15,
+       "IU/mL"
+      ]
+     ]
+    },
+    {
+     "code": "iron",
+     "name": "Iron",
+     "unit": "mcg/dL",
+     "system": null,
+     "points": [
+      [
+       "2012-08-08",
+       112.3,
+       49,
+       181,
+       "mcg/dL"
+      ],
+      [
+       "2014-07-07",
+       119,
+       59,
+       158,
+       "mcg/dL"
+      ],
+      [
+       "2015-03-21",
+       118.2,
+       65,
+       175,
+       "mcg/dL"
+      ],
+      [
+       "2019-07-13",
+       134.13,
+       49,
+       181,
+       "mcg/dL"
+      ],
+      [
+       "2021-10-14",
+       103.11,
+       49,
+       181,
+       "mcg/dL"
+      ],
+      [
+       "2023-03-17",
+       98.31,
+       45,
+       158,
+       "mcg/dL"
+      ],
+      [
+       "2024-05-13",
+       92.22,
+       45,
+       158,
+       "mcg/dL"
+      ],
+      [
+       "2025-12-09",
+       109,
+       65,
+       175,
+       "mcg/dL"
+      ]
+     ]
+    },
+    {
+     "code": "ferritin",
+     "name": "Ferritin",
+     "unit": "ng/mL",
+     "system": "iron",
+     "points": [
+      [
+       "2021-10-14",
+       154.48,
+       25,
+       350,
+       "ng/mL"
+      ],
+      [
+       "2023-03-17",
+       110.84,
+       27,
+       375,
+       "ng/mL"
+      ],
+      [
+       "2024-05-13",
+       115.29,
+       27,
+       375,
+       "ng/mL"
+      ],
+      [
+       "2025-12-09",
+       94.4,
+       22,
+       322,
+       "ng/mL"
+      ],
+      [
+       "2026-04-23",
+       79.6,
+       22,
+       322,
+       "ng/mL"
+      ]
+     ]
+    },
+    {
+     "code": "tibc",
+     "name": "TIBC",
+     "unit": "mcg/dL",
+     "system": null,
+     "points": [
+      [
+       "2021-10-14",
+       391,
+       228,
+       428,
+       "mcg/dL"
+      ],
+      [
+       "2024-05-13",
+       322,
+       225,
+       535,
+       "mcg/dL"
+      ]
+     ]
+    },
+    {
+     "code": "transferrin_saturation",
+     "name": "Transferrin Saturation",
+     "unit": "%",
+     "system": "iron",
+     "points": [
+      [
+       "2021-10-14",
+       26,
+       16,
+       45,
+       "%"
+      ]
+     ]
+    },
+    {
+     "code": "total_cholesterol",
+     "name": "Cholesterol, Total",
+     "unit": "mg/dL",
+     "system": "lipids",
+     "points": [
+      [
+       "2012-08-08",
+       158,
+       0,
+       240,
+       "mg/dL"
+      ],
+      [
+       "2015-03-21",
+       173,
+       109,
+       202,
+       "mg/dL"
+      ],
+      [
+       "2016-01-09",
+       184,
+       109,
+       202,
+       "mg/dL"
+      ],
+      [
+       "2019-07-13",
+       188.39,
+       0,
+       240,
+       "mg/dL"
+      ],
+      [
+       "2021-10-14",
+       215.71,
+       0,
+       240,
+       "mg/dL"
+      ],
+      [
+       "2021-12-04",
+       177.97,
+       0,
+       240,
+       "mg/dL"
+      ],
+      [
+       "2022-10-20",
+       170.2,
+       null,
+       170,
+       "mg/dL"
+      ],
+      [
+       "2023-03-17",
+       165.63,
+       0,
+       201.1,
+       "mg/dL"
+      ],
+      [
+       "2024-05-13",
+       201.97,
+       0,
+       201.1,
+       "mg/dL"
+      ],
+      [
+       "2024-11-20",
+       172,
+       null,
+       200,
+       "mg/dL"
+      ],
+      [
+       "2025-12-09",
+       200,
+       null,
+       200,
+       "mg/dL"
+      ],
+      [
+       "2026-04-23",
+       217,
+       0,
+       200,
+       "mg/dL"
+      ]
+     ]
+    },
+    {
+     "code": "ldl_cholesterol",
+     "name": "LDL Cholesterol",
+     "unit": "mg/dL",
+     "system": "lipids",
+     "points": [
+      [
+       "2015-03-21",
+       103,
+       0,
+       130,
+       "mg/dL"
+      ],
+      [
+       "2021-10-14",
+       136.14,
+       50,
+       150,
+       "mg/dL"
+      ],
+      [
+       "2021-12-04",
+       110.45,
+       50,
+       150,
+       "mg/dL"
+      ],
+      [
+       "2022-10-20",
+       94,
+       null,
+       100,
+       "mg/dL"
+      ],
+      [
+       "2023-03-17",
+       97.32,
+       30,
+       135,
+       "mg/dL"
+      ],
+      [
+       "2024-05-13",
+       122.86,
+       30,
+       135,
+       "mg/dL"
+      ],
+      [
+       "2024-11-20",
+       106,
+       0,
+       100,
+       "mg/dL"
+      ],
+      [
+       "2025-12-09",
+       117,
+       0,
+       100,
+       "mg/dL"
+      ],
+      [
+       "2026-04-23",
+       131,
+       0,
+       100,
+       "mg/dL"
+      ]
+     ]
+    },
+    {
+     "code": "hdl_cholesterol",
+     "name": "HDL Cholesterol",
+     "unit": "mg/dL",
+     "system": "lipids",
+     "points": [
+      [
+       "2015-03-21",
+       39.2,
+       35.3,
+       79.5,
+       "mg/dL"
+      ],
+      [
+       "2021-10-14",
+       61.84,
+       35,
+       97,
+       "mg/dL"
+      ],
+      [
+       "2021-12-04",
+       50.56,
+       35,
+       97,
+       "mg/dL"
+      ],
+      [
+       "2022-10-20",
+       58.39,
+       40,
+       null,
+       "mg/dL"
+      ],
+      [
+       "2023-03-17",
+       52.13,
+       34.8,
+       null,
+       "mg/dL"
+      ],
+      [
+       "2024-05-13",
+       57.19,
+       34.8,
+       null,
+       "mg/dL"
+      ],
+      [
+       "2024-11-20",
+       43,
+       60,
+       null,
+       "mg/dL"
+      ],
+      [
+       "2025-12-09",
+       44,
+       60,
+       null,
+       "mg/dL"
+      ],
+      [
+       "2026-04-23",
+       50,
+       60,
+       null,
+       "mg/dL"
+      ]
+     ]
+    },
+    {
+     "code": "triglycerides",
+     "name": "Triglycerides",
+     "unit": "mg/dL",
+     "system": "lipids",
+     "points": [
+      [
+       "2015-03-21",
+       156,
+       50,
+       165,
+       "mg/dL"
+      ],
+      [
+       "2019-07-13",
+       143.32,
+       30,
+       200,
+       "mg/dL"
+      ],
+      [
+       "2021-10-14",
+       88.68,
+       30,
+       200,
+       "mg/dL"
+      ],
+      [
+       "2021-12-04",
+       84.81,
+       30,
+       200,
+       "mg/dL"
+      ],
+      [
+       "2022-10-20",
+       88.3,
+       null,
+       150,
+       "mg/dL"
+      ],
+      [
+       "2023-03-17",
+       80.93,
+       0,
+       203.54,
+       "mg/dL"
+      ],
+      [
+       "2024-05-13",
+       109.71,
+       0,
+       203.54,
+       "mg/dL"
+      ],
+      [
+       "2024-11-20",
+       89,
+       null,
+       150,
+       "mg/dL"
+      ],
+      [
+       "2025-12-09",
+       145,
+       null,
+       150,
+       "mg/dL"
+      ],
+      [
+       "2026-04-23",
+       106,
+       null,
+       150,
+       "mg/dL"
+      ]
+     ]
+    },
+    {
+     "code": "vldl_cholesterol",
+     "name": "VLDL Cholesterol",
+     "unit": "mg/dL",
+     "system": null,
+     "points": [
+      [
+       "2021-10-14",
+       17.74,
+       8,
+       40,
+       "mg/dL"
+      ],
+      [
+       "2021-12-04",
+       16.96,
+       8,
+       40,
+       "mg/dL"
+      ],
+      [
+       "2022-10-20",
+       18,
+       8,
+       40,
+       "mg/dL"
+      ],
+      [
+       "2024-05-13",
+       21.94,
+       2,
+       38,
+       "mg/dL"
+      ]
+     ]
+    },
+    {
+     "code": "apolipoprotein_b",
+     "name": "Apolipoprotein B",
+     "unit": "mg/dL",
+     "system": "lipids",
+     "points": [
+      [
+       "2023-03-17",
+       82,
+       49,
+       173,
+       "mg/dL"
+      ],
+      [
+       "2024-05-13",
+       97,
+       49,
+       173,
+       "mg/dL"
+      ],
+      [
+       "2026-04-23",
+       99,
+       55,
+       140,
+       "mg/dL"
+      ]
+     ]
+    },
+    {
+     "code": "lp_a",
+     "name": "Lipoprotein(a)",
+     "unit": "mg/dL",
+     "system": "lipids",
+     "points": [
+      [
+       "2026-04-23",
+       25,
+       null,
+       30,
+       "mg/dL"
+      ]
+     ]
+    },
+    {
+     "code": "non_hdl_cholesterol",
+     "name": "Non-HDL Cholesterol",
+     "unit": "mg/dL",
+     "system": "lipids",
+     "derived": true,
+     "points": [
+      [
+       "2015-03-21",
+       133.8,
+       null,
+       null,
+       "mg/dL"
+      ],
+      [
+       "2021-10-14",
+       153.87,
+       null,
+       null,
+       "mg/dL"
+      ],
+      [
+       "2021-12-04",
+       127.41,
+       null,
+       null,
+       "mg/dL"
+      ],
+      [
+       "2022-10-20",
+       111.81,
+       null,
+       null,
+       "mg/dL"
+      ],
+      [
+       "2023-03-17",
+       113.5,
+       null,
+       null,
+       "mg/dL"
+      ],
+      [
+       "2024-05-13",
+       144.78,
+       null,
+       null,
+       "mg/dL"
+      ],
+      [
+       "2024-11-20",
+       129,
+       null,
+       null,
+       "mg/dL"
+      ],
+      [
+       "2025-12-09",
+       156,
+       null,
+       null,
+       "mg/dL"
+      ],
+      [
+       "2026-04-23",
+       167,
+       null,
+       null,
+       "mg/dL"
+      ]
+     ]
+    },
+    {
+     "code": "apolipoprotein_a1",
+     "name": "Apolipoprotein A1",
+     "unit": "mg/dL",
+     "system": null,
+     "points": [
+      [
+       "2024-05-13",
+       169,
+       95,
+       186,
+       "mg/dL"
+      ]
+     ]
+    },
+    {
+     "code": "total_lipids",
+     "name": "Total Lipids",
+     "unit": "mg/dL",
+     "system": null,
+     "points": [
+      [
+       "2015-03-21",
+       635,
+       500,
+       700,
+       "mg/dL"
+      ],
+      [
+       "2021-10-14",
+       664.04,
+       350,
+       800,
+       "mg/dL"
+      ],
+      [
+       "2021-12-04",
+       575.25,
+       350,
+       800,
+       "mg/dL"
+      ],
+      [
+       "2022-10-20",
+       561,
+       400,
+       800,
+       "mg/dL"
+      ],
+      [
+       "2023-03-17",
+       543.5,
+       400,
+       800,
+       "mg/dL"
+      ],
+      [
+       "2024-05-13",
+       654.2,
+       400,
+       800,
+       "mg/dL"
+      ]
+     ]
+    },
+    {
+     "code": "glucose",
+     "name": "Glucose",
+     "unit": "mg/dL",
+     "system": "metabolic",
+     "points": [
+      [
+       "2012-08-08",
+       82.7,
+       60,
+       110,
+       "mg/dL"
+      ],
+      [
+       "2015-03-21",
+       84,
+       70,
+       105,
+       "mg/dL"
+      ],
+      [
+       "2016-06-24",
+       83,
+       60,
+       99,
+       "mg/dL"
+      ],
+      [
+       "2019-07-13",
+       93.04,
+       60,
+       110,
+       "mg/dL"
+      ],
+      [
+       "2021-10-14",
+       98.54,
+       60,
+       110,
+       "mg/dL"
+      ],
+      [
+       "2021-12-04",
+       87.05,
+       60,
+       110,
+       "mg/dL"
+      ],
+      [
+       "2022-10-20",
+       92.9,
+       60,
+       99,
+       "mg/dL"
+      ],
+      [
+       "2023-03-17",
+       89.39,
+       70,
+       115,
+       "mg/dL"
+      ],
+      [
+       "2024-05-13",
+       95.4,
+       70,
+       115,
+       "mg/dL"
+      ],
+      [
+       "2024-11-20",
+       82,
+       74,
+       106,
+       "mg/dL"
+      ],
+      [
+       "2025-12-09",
+       81,
+       74,
+       106,
+       "mg/dL"
+      ],
+      [
+       "2026-04-23",
+       87,
+       74,
+       106,
+       "mg/dL"
+      ]
+     ]
+    },
+    {
+     "code": "bun",
+     "name": "BUN",
+     "unit": "mg/dL",
+     "system": null,
+     "points": [
+      [
+       "2012-08-08",
+       27.06,
+       19.2,
+       42.8,
+       "mg/dL"
+      ],
+      [
+       "2015-03-21",
+       21.7,
+       15,
+       40,
+       "mg/dL"
+      ],
+      [
+       "2019-07-13",
+       26.92,
+       10,
+       50,
+       "mg/dL"
+      ],
+      [
+       "2023-03-17",
+       30.39,
+       16.81,
+       43.24,
+       "mg/dL"
+      ],
+      [
+       "2026-04-23",
+       32.8,
+       12.8,
+       42.8,
+       "mg/dL"
+      ]
+     ]
+    },
+    {
+     "code": "creatinine",
+     "name": "Creatinine",
+     "unit": "mg/dL",
+     "system": "kidney",
+     "points": [
+      [
+       "2012-08-08",
+       0.94,
+       0.6,
+       1.5,
+       "mg/dL"
+      ],
+      [
+       "2019-07-13",
+       1.03,
+       0,
+       1.5,
+       "mg/dL"
+      ],
+      [
+       "2023-03-17",
+       0.98,
+       0.8,
+       1.3,
+       "mg/dL"
+      ],
+      [
+       "2024-11-20",
+       1.09,
+       0.6,
+       1.1,
+       "mg/dL"
+      ],
+      [
+       "2025-12-09",
+       0.95,
+       0.6,
+       1.1,
+       "mg/dL"
+      ],
+      [
+       "2026-04-23",
+       0.9,
+       0.73,
+       1.18,
+       "mg/dL"
+      ]
+     ]
+    },
+    {
+     "code": "sodium",
+     "name": "Sodium",
+     "unit": "mEq/L",
+     "system": null,
+     "points": [
+      [
+       "2021-10-14",
+       145.27,
+       135,
+       150,
+       "mEq/L"
+      ]
+     ]
+    },
+    {
+     "code": "potassium",
+     "name": "Potassium",
+     "unit": "mEq/L",
+     "system": null,
+     "points": [
+      [
+       "2021-10-14",
+       4.84,
+       3.5,
+       5.5,
+       "mEq/L"
+      ]
+     ]
+    },
+    {
+     "code": "calcium",
+     "name": "Calcium",
+     "unit": "mg/dL",
+     "system": null,
+     "points": [
+      [
+       "2012-08-08",
+       6.425,
+       8.6,
+       10.2,
+       "mg/dL"
+      ],
+      [
+       "2014-07-07",
+       6.885,
+       3.82,
+       4.82,
+       "mg/dL"
+      ],
+      [
+       "2015-03-21",
+       6.165,
+       8.6,
+       10.3,
+       "mg/dL"
+      ],
+      [
+       "2021-10-14",
+       8.8,
+       8.4,
+       10.8,
+       "mg/dL"
+      ],
+      [
+       "2021-12-04",
+       8.75,
+       8.4,
+       10.8,
+       "mg/dL"
+      ],
+      [
+       "2022-10-20",
+       9.68,
+       8.6,
+       10,
+       "mg/dL"
+      ],
+      [
+       "2024-05-13",
+       6.76,
+       3.8,
+       4.8,
+       "mg/dL"
+      ],
+      [
+       "2025-12-09",
+       9.6,
+       8.7,
+       10.4,
+       "mg/dL"
+      ]
+     ]
+    },
+    {
+     "code": "total_protein",
+     "name": "Total Protein",
+     "unit": "g/dL",
+     "system": null,
+     "points": [
+      [
+       "2012-08-08",
+       7.86,
+       6,
+       8.3,
+       "g/dL"
+      ],
+      [
+       "2014-07-07",
+       8.2,
+       6.6,
+       8.7,
+       "g/dL"
+      ],
+      [
+       "2015-03-21",
+       8.34,
+       6.2,
+       8,
+       "g/dL"
+      ],
+      [
+       "2023-03-17",
+       8.19,
+       6.6,
+       8.3,
+       "g/dL"
+      ],
+      [
+       "2024-05-13",
+       8.28,
+       6.6,
+       8.3,
+       "g/dL"
+      ],
+      [
+       "2025-12-09",
+       7.9,
+       5.7,
+       8.2,
+       "g/dL"
+      ]
+     ]
+    },
+    {
+     "code": "albumin",
+     "name": "Albumin",
+     "unit": "g/dL",
+     "system": "liver",
+     "points": [
+      [
+       "2021-10-14",
+       5.39,
+       3.5,
+       5.2,
+       "g/dL"
+      ],
+      [
+       "2021-12-04",
+       4.53,
+       3.5,
+       5.2,
+       "g/dL"
+      ],
+      [
+       "2022-10-20",
+       5.15,
+       3.5,
+       5,
+       "g/dL"
+      ],
+      [
+       "2023-03-17",
+       5.349,
+       3.5,
+       5.3,
+       "g/dL"
+      ],
+      [
+       "2025-12-09",
+       5.1,
+       3.2,
+       4.8,
+       "g/dL"
+      ],
+      [
+       "2026-04-23",
+       4.7,
+       3.2,
+       4.8,
+       "g/dL"
+      ]
+     ]
+    },
+    {
+     "code": "total_bilirubin",
+     "name": "Bilirubin, Total",
+     "unit": "mg/dL",
+     "system": null,
+     "points": [
+      [
+       "2012-08-08",
+       1.06,
+       0.2,
+       1.3,
+       "mg/dL"
+      ]
+     ]
+    },
+    {
+     "code": "alp",
+     "name": "Alkaline Phosphatase",
+     "unit": "U/L",
+     "system": "liver",
+     "points": [
+      [
+       "2012-08-08",
+       77,
+       38,
+       126,
+       "U/L"
+      ],
+      [
+       "2024-05-13",
+       85.33,
+       30,
+       120,
+       "U/L"
+      ]
+     ]
+    },
+    {
+     "code": "alt",
+     "name": "ALT",
+     "unit": "U/L",
+     "system": "liver",
+     "points": [
+      [
+       "2012-08-08",
+       22,
+       1,
+       52,
+       "U/L"
+      ],
+      [
+       "2015-03-21",
+       10,
+       0,
+       40,
+       "U/L"
+      ],
+      [
+       "2019-07-13",
+       11.79,
+       4,
+       69,
+       "U/L"
+      ],
+      [
+       "2021-10-14",
+       9.47,
+       4,
+       69,
+       "U/L"
+      ],
+      [
+       "2021-12-04",
+       4.67,
+       4,
+       69,
+       "U/L"
+      ],
+      [
+       "2023-03-17",
+       7.52,
+       0,
+       45,
+       "U/L"
+      ],
+      [
+       "2024-05-13",
+       13.52,
+       9,
+       50,
+       "U/L"
+      ],
+      [
+       "2024-11-20",
+       11,
+       10,
+       40,
+       "U/L"
+      ],
+      [
+       "2025-12-09",
+       10,
+       10,
+       40,
+       "U/L"
+      ]
+     ]
+    },
+    {
+     "code": "ast",
+     "name": "AST",
+     "unit": "U/L",
+     "system": "liver",
+     "points": [
+      [
+       "2012-08-08",
+       21,
+       5,
+       36,
+       "U/L"
+      ],
+      [
+       "2015-03-21",
+       17,
+       0,
+       37,
+       "U/L"
+      ],
+      [
+       "2019-07-13",
+       18.86,
+       4,
+       46,
+       "U/L"
+      ],
+      [
+       "2021-10-14",
+       18.3,
+       4,
+       46,
+       "U/L"
+      ],
+      [
+       "2021-12-04",
+       14.94,
+       4,
+       46,
+       "U/L"
+      ],
+      [
+       "2023-03-17",
+       17.22,
+       0,
+       35,
+       "U/L"
+      ],
+      [
+       "2024-05-13",
+       19.46,
+       15,
+       40,
+       "U/L"
+      ],
+      [
+       "2024-11-20",
+       14,
+       15,
+       40,
+       "U/L"
+      ],
+      [
+       "2025-12-09",
+       20,
+       15,
+       40,
+       "U/L"
+      ]
+     ]
+    },
+    {
+     "code": "hba1c",
+     "name": "Hemoglobin A1c",
+     "unit": "%",
+     "system": "metabolic",
+     "points": [
+      [
+       "2016-06-24",
+       5,
+       4.8,
+       5.6,
+       "%"
+      ],
+      [
+       "2021-10-14",
+       5.72,
+       5.7,
+       6.4,
+       "%"
+      ],
+      [
+       "2021-12-04",
+       5.53,
+       4.8,
+       5.6,
+       "%"
+      ],
+      [
+       "2022-10-20",
+       5.43,
+       4.8,
+       5.6,
+       "%"
+      ],
+      [
+       "2023-03-17",
+       5.2,
+       4,
+       6,
+       "%"
+      ],
+      [
+       "2024-05-13",
+       5.07,
+       4.8,
+       5.9,
+       "%"
+      ],
+      [
+       "2024-11-20",
+       4.8,
+       4,
+       6,
+       "%"
+      ],
+      [
+       "2025-12-09",
+       5.2,
+       4,
+       6,
+       "%"
+      ],
+      [
+       "2026-04-23",
+       5,
+       4,
+       6,
+       "%"
+      ]
+     ]
+    },
+    {
+     "code": "insulin",
+     "name": "Insulin",
+     "unit": "uIU/mL",
+     "system": "metabolic",
+     "points": [
+      [
+       "2021-12-04",
+       8.12,
+       4.03,
+       23.46,
+       "uIU/mL"
+      ],
+      [
+       "2022-10-20",
+       4.8,
+       2.6,
+       24.9,
+       "uIU/mL"
+      ],
+      [
+       "2023-03-17",
+       2.7,
+       2.7,
+       24.9,
+       "uIU/mL"
+      ],
+      [
+       "2024-05-13",
+       3.2,
+       2.7,
+       24.9,
+       "uIU/mL"
+      ],
+      [
+       "2024-11-20",
+       4.7,
+       3,
+       25,
+       "uIU/mL"
+      ],
+      [
+       "2025-12-09",
+       4.2,
+       3,
+       25,
+       "uIU/mL"
+      ],
+      [
+       "2026-04-23",
+       5.7,
+       3,
+       25,
+       "uIU/mL"
+      ]
+     ]
+    },
+    {
+     "code": "homa_ir",
+     "name": "HOMA-IR",
+     "unit": "",
+     "system": "metabolic",
+     "derived": true,
+     "points": [
+      [
+       "2021-12-04",
+       1.75,
+       null,
+       null,
+       ""
+      ],
+      [
+       "2022-10-20",
+       1.1,
+       null,
+       null,
+       ""
+      ],
+      [
+       "2023-03-17",
+       0.6,
+       null,
+       null,
+       ""
+      ],
+      [
+       "2024-05-13",
+       0.75,
+       null,
+       null,
+       ""
+      ],
+      [
+       "2024-11-20",
+       0.95,
+       null,
+       null,
+       ""
+      ],
+      [
+       "2025-12-09",
+       0.84,
+       null,
+       null,
+       ""
+      ],
+      [
+       "2026-04-23",
+       1.22,
+       null,
+       null,
+       ""
+      ]
+     ]
+    },
+    {
+     "code": "magnesium",
+     "name": "Magnesium",
+     "unit": "mg/dL",
+     "system": null,
+     "points": [
+      [
+       "2012-08-08",
+       2.12,
+       1.6,
+       2.5,
+       "mg/dL"
+      ],
+      [
+       "2014-07-07",
+       2.35,
+       1.58,
+       2.55,
+       "mg/dL"
+      ],
+      [
+       "2019-07-13",
+       2.21,
+       1.6,
+       2.5,
+       "mg/dL"
+      ],
+      [
+       "2021-10-14",
+       2.48,
+       1.6,
+       2.5,
+       "mg/dL"
+      ],
+      [
+       "2024-05-13",
+       2.22,
+       1.77,
+       2.58,
+       "mg/dL"
+      ],
+      [
+       "2024-11-20",
+       2.23,
+       1.6,
+       2.6,
+       "mg/dL"
+      ],
+      [
+       "2025-12-09",
+       2.15,
+       1.6,
+       2.6,
+       "mg/dL"
+      ],
+      [
+       "2026-04-23",
+       2.14,
+       1.6,
+       2.6,
+       "mg/dL"
+      ]
+     ]
+    },
+    {
+     "code": "globulin",
+     "name": "Globulin",
+     "unit": "g/dL",
+     "system": null,
+     "points": [
+      [
+       "2026-04-23",
+       1.3,
+       null,
+       4.5,
+       "IU/mL"
+      ]
+     ]
+    },
+    {
+     "code": "amylase",
+     "name": "Amylase",
+     "unit": "U/L",
+     "system": null,
+     "points": [
+      [
+       "2015-03-21",
+       84,
+       15,
+       100,
+       "U/L"
+      ],
+      [
+       "2023-03-17",
+       80.65,
+       28,
+       100,
+       "U/L"
+      ]
+     ]
+    },
+    {
+     "code": "phosphorus",
+     "name": "Phosphorus",
+     "unit": "mg/dL",
+     "system": null,
+     "points": [
+      [
+       "2019-07-13",
+       3.1,
+       2.5,
+       4.5,
+       "mg/dL"
+      ],
+      [
+       "2021-10-14",
+       2.6,
+       2.5,
+       4.5,
+       "mg/dL"
+      ],
+      [
+       "2021-12-04",
+       4.3,
+       2.5,
+       4.5,
+       "mg/dL"
+      ],
+      [
+       "2022-10-20",
+       3.94,
+       2.5,
+       4.5,
+       "mg/dL"
+      ]
+     ]
+    },
+    {
+     "code": "uric_acid",
+     "name": "Uric Acid",
+     "unit": "mg/dL",
+     "system": "kidney",
+     "points": [
+      [
+       "2012-08-08",
+       5.49,
+       2.5,
+       8.5,
+       "mg/dL"
+      ],
+      [
+       "2019-07-13",
+       5.41,
+       1.03,
+       7,
+       "mg/dL"
+      ],
+      [
+       "2023-03-17",
+       4.85,
+       3.6,
+       8.2,
+       "mg/dL"
+      ],
+      [
+       "2024-05-13",
+       5.54,
+       3.6,
+       8.2,
+       "mg/dL"
+      ],
+      [
+       "2024-11-20",
+       4.7,
+       3.7,
+       9.2,
+       "mg/dL"
+      ],
+      [
+       "2025-12-09",
+       4.9,
+       3.7,
+       9.2,
+       "mg/dL"
+      ],
+      [
+       "2026-04-23",
+       5.5,
+       3.7,
+       9.2,
+       "mg/dL"
+      ]
+     ]
+    },
+    {
+     "code": "tsh",
+     "name": "TSH",
+     "unit": "mIU/L",
+     "system": "thyroid",
+     "points": [
+      [
+       "2024-05-13",
+       1.74,
+       0.35,
+       5.1,
+       "mIU/L"
+      ],
+      [
+       "2024-11-20",
+       1.185,
+       0.55,
+       4.78,
+       "mIU/L"
+      ],
+      [
+       "2025-12-09",
+       1.824,
+       0.55,
+       4.78,
+       "mIU/L"
+      ],
+      [
+       "2026-04-23",
+       1.123,
+       0.55,
+       4.78,
+       "mIU/L"
+      ]
+     ]
+    },
+    {
+     "code": "free_t4",
+     "name": "Free T4",
+     "unit": "ng/dL",
+     "system": "thyroid",
+     "points": [
+      [
+       "2024-05-13",
+       1.26,
+       0.87,
+       1.85,
+       "ng/dL"
+      ],
+      [
+       "2024-11-20",
+       1.4,
+       0.89,
+       1.76,
+       "ng/dL"
+      ],
+      [
+       "2025-12-09",
+       1.29,
+       0.89,
+       1.76,
+       "ng/dL"
+      ],
+      [
+       "2026-04-23",
+       1.23,
+       0.89,
+       1.76,
+       "ng/dL"
+      ]
+     ]
+    },
+    {
+     "code": "free_t3",
+     "name": "Free T3",
+     "unit": "pg/mL",
+     "system": "thyroid",
+     "points": [
+      [
+       "2024-05-13",
+       3.57,
+       1.8,
+       4.2,
+       "pg/mL"
+      ],
+      [
+       "2024-11-20",
+       4.34,
+       2.3,
+       4.2,
+       "pg/mL"
+      ],
+      [
+       "2025-12-09",
+       4.43,
+       2.3,
+       4.2,
+       "pg/mL"
+      ],
+      [
+       "2026-04-23",
+       4.17,
+       2.3,
+       4.2,
+       "pg/mL"
+      ]
+     ]
+    },
+    {
+     "code": "total_t3",
+     "name": "Total T3",
+     "unit": "ng/dL",
+     "system": null,
+     "points": [
+      [
+       "2025-12-09",
+       126,
+       60,
+       181,
+       "ng/dL"
+      ],
+      [
+       "2026-04-23",
+       110,
+       60,
+       181,
+       "ng/dL"
+      ]
+     ]
+    },
+    {
+     "code": "total_t4",
+     "name": "Total T4",
+     "unit": "mcg/dL",
+     "system": null,
+     "points": [
+      [
+       "2025-12-09",
+       8.1,
+       4.5,
+       10.9,
+       "mcg/dL"
+      ]
+     ]
+    },
+    {
+     "code": "tpo_antibodies",
+     "name": "TPO Antibodies",
+     "unit": "IU/mL",
+     "system": "thyroid",
+     "points": [
+      [
+       "2024-05-13",
+       0.22,
+       0,
+       8.99,
+       "IU/mL"
+      ],
+      [
+       "2025-12-09",
+       5,
+       null,
+       34,
+       "IU/mL"
+      ]
+     ]
+    },
+    {
+     "code": "anti_thyroglobulin",
+     "name": "Anti-Thyroglobulin Antibodies",
+     "unit": "IU/mL",
+     "system": "thyroid",
+     "points": [
+      [
+       "2024-05-13",
+       0.02,
+       0,
+       3.99,
+       "IU/mL"
+      ]
+     ]
+    },
+    {
+     "code": "urine_ph",
+     "name": "Urine pH",
+     "unit": null,
+     "system": null,
+     "points": [
+      [
+       "2012-08-08",
+       5,
+       5,
+       9,
+       ""
+      ],
+      [
+       "2015-03-21",
+       5.5,
+       5,
+       7,
+       ""
+      ],
+      [
+       "2023-03-17",
+       6,
+       5.5,
+       7,
+       ""
+      ],
+      [
+       "2024-05-13",
+       5.5,
+       4.8,
+       7.4,
+       ""
+      ]
+     ]
+    },
+    {
+     "code": "specific_gravity",
+     "name": "Specific Gravity",
+     "unit": null,
+     "system": null,
+     "points": [
+      [
+       "2012-08-08",
+       1.02,
+       1.001,
+       1.035,
+       ""
+      ],
+      [
+       "2015-03-21",
+       1.01,
+       1.01,
+       1.03,
+       ""
+      ]
+     ]
+    },
+    {
+     "code": "urine_specific_gravity",
+     "name": "Urine Specific Gravity",
+     "unit": null,
+     "system": null,
+     "points": [
+      [
+       "2023-03-17",
+       1.02,
+       1.015,
+       1.025,
+       ""
+      ],
+      [
+       "2024-05-13",
+       1.025,
+       1.015,
+       1.025,
+       ""
+      ]
+     ]
+    },
+    {
+     "code": "urine_urobilinogen",
+     "name": "Urobilinogen, Urine",
+     "unit": "mg/dL",
+     "system": null,
+     "points": [
+      [
+       "2023-03-17",
+       0.1,
+       0.1,
+       1,
+       "mg/dL"
+      ],
+      [
+       "2024-05-13",
+       0.1,
+       0.2,
+       1,
+       "mg/dL"
+      ]
+     ]
+    },
+    {
+     "code": "vitamin_d",
+     "name": "Vitamin D",
+     "unit": "ng/mL",
+     "system": "vitamins",
+     "points": [
+      [
+       "2019-07-13",
+       23.32,
+       30,
+       100,
+       "ng/mL"
+      ],
+      [
+       "2021-10-14",
+       61.8,
+       30,
+       100,
+       "ng/mL"
+      ],
+      [
+       "2021-12-04",
+       54.1,
+       30,
+       100,
+       "ng/mL"
+      ],
+      [
+       "2022-10-20",
+       51.95,
+       30,
+       null,
+       "ng/mL"
+      ],
+      [
+       "2023-03-17",
+       42.25,
+       30,
+       null,
+       "ng/mL"
+      ],
+      [
+       "2024-05-13",
+       33.96,
+       30,
+       null,
+       "ng/mL"
+      ],
+      [
+       "2024-11-20",
+       37.68,
+       30,
+       100,
+       "ng/mL"
+      ],
+      [
+       "2025-12-09",
+       31.77,
+       30,
+       100,
+       "ng/mL"
+      ],
+      [
+       "2026-04-23",
+       32.68,
+       30,
+       100,
+       "ng/mL"
+      ]
+     ]
+    },
+    {
+     "code": "vitamin_b12",
+     "name": "Vitamin B12",
+     "unit": "pg/mL",
+     "system": "vitamins",
+     "points": [
+      [
+       "2021-10-14",
+       183.7,
+       200,
+       1100,
+       "pg/mL"
+      ],
+      [
+       "2021-12-04",
+       197,
+       200,
+       1100,
+       "pg/mL"
+      ],
+      [
+       "2022-10-20",
+       531,
+       193,
+       982,
+       "pg/mL"
+      ],
+      [
+       "2023-03-17",
+       534.21,
+       180,
+       916,
+       "pg/mL"
+      ],
+      [
+       "2024-05-13",
+       898.82,
+       180,
+       916,
+       "pg/mL"
+      ],
+      [
+       "2024-11-20",
+       522,
+       197,
+       771,
+       "pg/mL"
+      ],
+      [
+       "2025-12-09",
+       603,
+       197,
+       771,
+       "pg/mL"
+      ],
+      [
+       "2026-04-23",
+       472,
+       197,
+       771,
+       "pg/mL"
+      ]
+     ]
+    },
+    {
+     "code": "zinc",
+     "name": "Zinc",
+     "unit": "mcg/dL",
+     "system": null,
+     "points": [
+      [
+       "2024-11-20",
+       0.93,
+       0.75,
+       2.91,
+       "mcg/dL"
+      ],
+      [
+       "2025-12-09",
+       1.14,
+       0.75,
+       2.91,
+       "mcg/dL"
+      ]
+     ]
+    },
+    {
+     "code": "urine_ascorbic_acid",
+     "name": "Ascorbic Acid, Urine",
+     "unit": "mg/dL",
+     "system": null,
+     "points": [
+      [
+       "2015-03-21",
+       20,
+       null,
+       null,
+       "mg/dL"
+      ]
+     ]
+    },
+    {
+     "code": "folic_acid",
+     "name": "Folic Acid (Vitamin B9)",
+     "unit": "ng/mL",
+     "system": "vitamins",
+     "points": [
+      [
+       "2021-10-14",
+       8.15,
+       5.21,
+       20,
+       "ng/mL"
+      ],
+      [
+       "2024-05-13",
+       15.46,
+       3.2,
+       19.6,
+       "ng/mL"
+      ]
+     ]
+    }
+   ],
+   "goals": [
+    {
+     "code": "ldl_cholesterol",
+     "low": 70,
+     "high": 100,
+     "due": "2026-12-01"
+    }
+   ],
+   "facts": {
+    "sex": "male",
+    "genome:apoe": "e2/e3",
+    "genome:lpa": "non-carrier",
+    "genome:hfe": "no C282Y or H63D",
+    "genome:hla_dq": "no DQ2.5 or DQ8 tag",
+    "genome:tcf7l2": "CT",
+    "genome:mthfr": "C677T heterozygous",
+    "genome:fto": "AA",
+    "genome:hla_dr": "no DR3 or DR4 tag",
+    "genome:g6pd": "no G6PD A\u2212 variant"
+   },
+   "expect": {
+    "raised": [
+     "step:eosinophils_abs",
+     "cluster:iron",
+     "drift:ldl_cholesterol",
+     "gap:folic_acid",
+     "good_news:crp"
+    ]
+   }
+  },
+  {
+   "id": "flat",
+   "note": "A flat healthy series must raise nothing.",
+   "today": "2024-03-01",
+   "markers": [
+    {
+     "code": "ldl_cholesterol",
+     "name": "LDL cholesterol",
+     "unit": "mg/dL",
+     "system": "lipids",
+     "points": [
+      [
+       "2020-01-15",
+       100,
+       0,
+       130,
+       "mg/dL"
+      ],
+      [
+       "2020-09-15",
+       103.0,
+       0,
+       130,
+       "mg/dL"
+      ],
+      [
+       "2021-05-15",
+       98.0,
+       0,
+       130,
+       "mg/dL"
+      ],
+      [
+       "2022-01-15",
+       101.0,
+       0,
+       130,
+       "mg/dL"
+      ],
+      [
+       "2022-09-15",
+       97.0,
+       0,
+       130,
+       "mg/dL"
+      ],
+      [
+       "2023-05-15",
+       102.0,
+       0,
+       130,
+       "mg/dL"
+      ],
+      [
+       "2024-01-15",
+       99.0,
+       0,
+       130,
+       "mg/dL"
+      ]
+     ]
+    },
+    {
+     "code": "hdl_cholesterol",
+     "name": "HDL cholesterol",
+     "unit": "mg/dL",
+     "system": "lipids",
+     "points": [
+      [
+       "2020-01-15",
+       55,
+       40,
+       200,
+       "mg/dL"
+      ],
+      [
+       "2020-09-15",
+       56.65,
+       40,
+       200,
+       "mg/dL"
+      ],
+      [
+       "2021-05-15",
+       53.9,
+       40,
+       200,
+       "mg/dL"
+      ],
+      [
+       "2022-01-15",
+       55.55,
+       40,
+       200,
+       "mg/dL"
+      ],
+      [
+       "2022-09-15",
+       53.35,
+       40,
+       200,
+       "mg/dL"
+      ],
+      [
+       "2023-05-15",
+       56.1,
+       40,
+       200,
+       "mg/dL"
+      ],
+      [
+       "2024-01-15",
+       54.45,
+       40,
+       200,
+       "mg/dL"
+      ]
+     ]
+    },
+    {
+     "code": "triglycerides",
+     "name": "Triglycerides",
+     "unit": "mg/dL",
+     "system": "lipids",
+     "points": [
+      [
+       "2020-01-15",
+       90,
+       0,
+       150,
+       "mg/dL"
+      ],
+      [
+       "2020-09-15",
+       92.7,
+       0,
+       150,
+       "mg/dL"
+      ],
+      [
+       "2021-05-15",
+       88.2,
+       0,
+       150,
+       "mg/dL"
+      ],
+      [
+       "2022-01-15",
+       90.9,
+       0,
+       150,
+       "mg/dL"
+      ],
+      [
+       "2022-09-15",
+       87.3,
+       0,
+       150,
+       "mg/dL"
+      ],
+      [
+       "2023-05-15",
+       91.8,
+       0,
+       150,
+       "mg/dL"
+      ],
+      [
+       "2024-01-15",
+       89.1,
+       0,
+       150,
+       "mg/dL"
+      ]
+     ]
+    },
+    {
+     "code": "ferritin",
+     "name": "Ferritin",
+     "unit": "ng/mL",
+     "system": "iron",
+     "points": [
+      [
+       "2020-01-15",
+       110,
+       30,
+       400,
+       "ng/mL"
+      ],
+      [
+       "2020-09-15",
+       113.3,
+       30,
+       400,
+       "ng/mL"
+      ],
+      [
+       "2021-05-15",
+       107.8,
+       30,
+       400,
+       "ng/mL"
+      ],
+      [
+       "2022-01-15",
+       111.1,
+       30,
+       400,
+       "ng/mL"
+      ],
+      [
+       "2022-09-15",
+       106.7,
+       30,
+       400,
+       "ng/mL"
+      ],
+      [
+       "2023-05-15",
+       112.2,
+       30,
+       400,
+       "ng/mL"
+      ],
+      [
+       "2024-01-15",
+       108.9,
+       30,
+       400,
+       "ng/mL"
+      ]
+     ]
+    },
+    {
+     "code": "vitamin_b12",
+     "name": "Vitamin B12",
+     "unit": "pg/mL",
+     "system": "vitamins",
+     "points": [
+      [
+       "2020-01-15",
+       500,
+       200,
+       900,
+       "pg/mL"
+      ],
+      [
+       "2020-09-15",
+       515.0,
+       200,
+       900,
+       "pg/mL"
+      ],
+      [
+       "2021-05-15",
+       490.0,
+       200,
+       900,
+       "pg/mL"
+      ],
+      [
+       "2022-01-15",
+       505.0,
+       200,
+       900,
+       "pg/mL"
+      ],
+      [
+       "2022-09-15",
+       485.0,
+       200,
+       900,
+       "pg/mL"
+      ],
+      [
+       "2023-05-15",
+       510.0,
+       200,
+       900,
+       "pg/mL"
+      ],
+      [
+       "2024-01-15",
+       495.0,
+       200,
+       900,
+       "pg/mL"
+      ]
+     ]
+    },
+    {
+     "code": "vitamin_d",
+     "name": "Vitamin D",
+     "unit": "ng/mL",
+     "system": "vitamins",
+     "points": [
+      [
+       "2020-01-15",
+       40,
+       30,
+       100,
+       "ng/mL"
+      ],
+      [
+       "2020-09-15",
+       41.2,
+       30,
+       100,
+       "ng/mL"
+      ],
+      [
+       "2021-05-15",
+       39.2,
+       30,
+       100,
+       "ng/mL"
+      ],
+      [
+       "2022-01-15",
+       40.4,
+       30,
+       100,
+       "ng/mL"
+      ],
+      [
+       "2022-09-15",
+       38.8,
+       30,
+       100,
+       "ng/mL"
+      ],
+      [
+       "2023-05-15",
+       40.8,
+       30,
+       100,
+       "ng/mL"
+      ],
+      [
+       "2024-01-15",
+       39.6,
+       30,
+       100,
+       "ng/mL"
+      ]
+     ]
+    },
+    {
+     "code": "folic_acid",
+     "name": "Folate",
+     "unit": "ng/mL",
+     "system": "vitamins",
+     "points": [
+      [
+       "2020-01-15",
+       10,
+       3,
+       20,
+       "ng/mL"
+      ],
+      [
+       "2020-09-15",
+       10.3,
+       3,
+       20,
+       "ng/mL"
+      ],
+      [
+       "2021-05-15",
+       9.8,
+       3,
+       20,
+       "ng/mL"
+      ],
+      [
+       "2022-01-15",
+       10.1,
+       3,
+       20,
+       "ng/mL"
+      ],
+      [
+       "2022-09-15",
+       9.7,
+       3,
+       20,
+       "ng/mL"
+      ],
+      [
+       "2023-05-15",
+       10.2,
+       3,
+       20,
+       "ng/mL"
+      ],
+      [
+       "2024-01-15",
+       9.9,
+       3,
+       20,
+       "ng/mL"
+      ]
+     ]
+    },
+    {
+     "code": "homocysteine",
+     "name": "Homocysteine",
+     "unit": "umol/L",
+     "system": "vitamins",
+     "points": [
+      [
+       "2020-01-15",
+       8,
+       0,
+       15,
+       "umol/L"
+      ],
+      [
+       "2020-09-15",
+       8.24,
+       0,
+       15,
+       "umol/L"
+      ],
+      [
+       "2021-05-15",
+       7.84,
+       0,
+       15,
+       "umol/L"
+      ],
+      [
+       "2022-01-15",
+       8.08,
+       0,
+       15,
+       "umol/L"
+      ],
+      [
+       "2022-09-15",
+       7.76,
+       0,
+       15,
+       "umol/L"
+      ],
+      [
+       "2023-05-15",
+       8.16,
+       0,
+       15,
+       "umol/L"
+      ],
+      [
+       "2024-01-15",
+       7.92,
+       0,
+       15,
+       "umol/L"
+      ]
+     ]
+    },
+    {
+     "code": "crp",
+     "name": "CRP",
+     "unit": "mg/L",
+     "system": "inflammation",
+     "points": [
+      [
+       "2020-01-15",
+       0.8,
+       0,
+       5,
+       "mg/L"
+      ],
+      [
+       "2020-09-15",
+       0.824,
+       0,
+       5,
+       "mg/L"
+      ],
+      [
+       "2021-05-15",
+       0.784,
+       0,
+       5,
+       "mg/L"
+      ],
+      [
+       "2022-01-15",
+       0.808,
+       0,
+       5,
+       "mg/L"
+      ],
+      [
+       "2022-09-15",
+       0.776,
+       0,
+       5,
+       "mg/L"
+      ],
+      [
+       "2023-05-15",
+       0.816,
+       0,
+       5,
+       "mg/L"
+      ],
+      [
+       "2024-01-15",
+       0.792,
+       0,
+       5,
+       "mg/L"
+      ]
+     ]
+    },
+    {
+     "code": "eosinophils_abs",
+     "name": "Eosinophils",
+     "unit": "K/uL",
+     "system": "blood",
+     "points": [
+      [
+       "2020-01-15",
+       0.12,
+       0.02,
+       0.5,
+       "K/uL"
+      ],
+      [
+       "2020-09-15",
+       0.124,
+       0.02,
+       0.5,
+       "K/uL"
+      ],
+      [
+       "2021-05-15",
+       0.118,
+       0.02,
+       0.5,
+       "K/uL"
+      ],
+      [
+       "2022-01-15",
+       0.121,
+       0.02,
+       0.5,
+       "K/uL"
+      ],
+      [
+       "2022-09-15",
+       0.116,
+       0.02,
+       0.5,
+       "K/uL"
+      ],
+      [
+       "2023-05-15",
+       0.122,
+       0.02,
+       0.5,
+       "K/uL"
+      ],
+      [
+       "2024-01-15",
+       0.119,
+       0.02,
+       0.5,
+       "K/uL"
+      ]
+     ]
+    },
+    {
+     "code": "hemoglobin",
+     "name": "Haemoglobin",
+     "unit": "g/dL",
+     "system": "blood",
+     "points": [
+      [
+       "2020-01-15",
+       15,
+       13.5,
+       17.2,
+       "g/dL"
+      ],
+      [
+       "2020-09-15",
+       15.45,
+       13.5,
+       17.2,
+       "g/dL"
+      ],
+      [
+       "2021-05-15",
+       14.7,
+       13.5,
+       17.2,
+       "g/dL"
+      ],
+      [
+       "2022-01-15",
+       15.15,
+       13.5,
+       17.2,
+       "g/dL"
+      ],
+      [
+       "2022-09-15",
+       14.55,
+       13.5,
+       17.2,
+       "g/dL"
+      ],
+      [
+       "2023-05-15",
+       15.3,
+       13.5,
+       17.2,
+       "g/dL"
+      ],
+      [
+       "2024-01-15",
+       14.85,
+       13.5,
+       17.2,
+       "g/dL"
+      ]
+     ]
+    },
+    {
+     "code": "hba1c",
+     "name": "HbA1c",
+     "unit": "%",
+     "system": "metabolic",
+     "points": [
+      [
+       "2020-01-15",
+       5.2,
+       4,
+       5.7,
+       "%"
+      ],
+      [
+       "2020-09-15",
+       5.356,
+       4,
+       5.7,
+       "%"
+      ],
+      [
+       "2021-05-15",
+       5.096,
+       4,
+       5.7,
+       "%"
+      ],
+      [
+       "2022-01-15",
+       5.252,
+       4,
+       5.7,
+       "%"
+      ],
+      [
+       "2022-09-15",
+       5.044,
+       4,
+       5.7,
+       "%"
+      ],
+      [
+       "2023-05-15",
+       5.304,
+       4,
+       5.7,
+       "%"
+      ],
+      [
+       "2024-01-15",
+       5.148,
+       4,
+       5.7,
+       "%"
+      ]
+     ]
+    },
+    {
+     "code": "insulin",
+     "name": "Fasting insulin",
+     "unit": "uIU/mL",
+     "system": "metabolic",
+     "points": [
+      [
+       "2020-01-15",
+       5,
+       2,
+       25,
+       "uIU/mL"
+      ],
+      [
+       "2020-09-15",
+       5.15,
+       2,
+       25,
+       "uIU/mL"
+      ],
+      [
+       "2021-05-15",
+       4.9,
+       2,
+       25,
+       "uIU/mL"
+      ],
+      [
+       "2022-01-15",
+       5.05,
+       2,
+       25,
+       "uIU/mL"
+      ],
+      [
+       "2022-09-15",
+       4.85,
+       2,
+       25,
+       "uIU/mL"
+      ],
+      [
+       "2023-05-15",
+       5.1,
+       2,
+       25,
+       "uIU/mL"
+      ],
+      [
+       "2024-01-15",
+       4.95,
+       2,
+       25,
+       "uIU/mL"
+      ]
+     ]
+    },
+    {
+     "code": "glucose",
+     "name": "Fasting glucose",
+     "unit": "mg/dL",
+     "system": "metabolic",
+     "points": [
+      [
+       "2020-01-15",
+       88,
+       70,
+       100,
+       "mg/dL"
+      ],
+      [
+       "2020-09-15",
+       90.64,
+       70,
+       100,
+       "mg/dL"
+      ],
+      [
+       "2021-05-15",
+       86.24,
+       70,
+       100,
+       "mg/dL"
+      ],
+      [
+       "2022-01-15",
+       88.88,
+       70,
+       100,
+       "mg/dL"
+      ],
+      [
+       "2022-09-15",
+       85.36,
+       70,
+       100,
+       "mg/dL"
+      ],
+      [
+       "2023-05-15",
+       89.76,
+       70,
+       100,
+       "mg/dL"
+      ],
+      [
+       "2024-01-15",
+       87.12,
+       70,
+       100,
+       "mg/dL"
+      ]
+     ]
+    },
+    {
+     "code": "tsh",
+     "name": "TSH",
+     "unit": "mIU/L",
+     "system": "thyroid",
+     "points": [
+      [
+       "2020-01-15",
+       1.5,
+       0.4,
+       4.0,
+       "mIU/L"
+      ],
+      [
+       "2020-09-15",
+       1.545,
+       0.4,
+       4.0,
+       "mIU/L"
+      ],
+      [
+       "2021-05-15",
+       1.47,
+       0.4,
+       4.0,
+       "mIU/L"
+      ],
+      [
+       "2022-01-15",
+       1.515,
+       0.4,
+       4.0,
+       "mIU/L"
+      ],
+      [
+       "2022-09-15",
+       1.455,
+       0.4,
+       4.0,
+       "mIU/L"
+      ],
+      [
+       "2023-05-15",
+       1.53,
+       0.4,
+       4.0,
+       "mIU/L"
+      ],
+      [
+       "2024-01-15",
+       1.485,
+       0.4,
+       4.0,
+       "mIU/L"
+      ]
+     ]
+    }
+   ],
+   "goals": [],
+   "facts": {
+    "sex": "male"
+   },
+   "expect": {
+    "raised": []
+   }
+  },
+  {
+   "id": "iron_loss",
+   "note": "Ferritin falling for three years, everything else flat.",
+   "today": "2024-03-01",
+   "markers": [
+    {
+     "code": "ldl_cholesterol",
+     "name": "LDL cholesterol",
+     "unit": "mg/dL",
+     "system": "lipids",
+     "points": [
+      [
+       "2020-01-15",
+       100,
+       0,
+       130,
+       "mg/dL"
+      ],
+      [
+       "2020-09-15",
+       103.0,
+       0,
+       130,
+       "mg/dL"
+      ],
+      [
+       "2021-05-15",
+       98.0,
+       0,
+       130,
+       "mg/dL"
+      ],
+      [
+       "2022-01-15",
+       101.0,
+       0,
+       130,
+       "mg/dL"
+      ],
+      [
+       "2022-09-15",
+       97.0,
+       0,
+       130,
+       "mg/dL"
+      ],
+      [
+       "2023-05-15",
+       102.0,
+       0,
+       130,
+       "mg/dL"
+      ],
+      [
+       "2024-01-15",
+       99.0,
+       0,
+       130,
+       "mg/dL"
+      ]
+     ]
+    },
+    {
+     "code": "hdl_cholesterol",
+     "name": "HDL cholesterol",
+     "unit": "mg/dL",
+     "system": "lipids",
+     "points": [
+      [
+       "2020-01-15",
+       55,
+       40,
+       200,
+       "mg/dL"
+      ],
+      [
+       "2020-09-15",
+       56.65,
+       40,
+       200,
+       "mg/dL"
+      ],
+      [
+       "2021-05-15",
+       53.9,
+       40,
+       200,
+       "mg/dL"
+      ],
+      [
+       "2022-01-15",
+       55.55,
+       40,
+       200,
+       "mg/dL"
+      ],
+      [
+       "2022-09-15",
+       53.35,
+       40,
+       200,
+       "mg/dL"
+      ],
+      [
+       "2023-05-15",
+       56.1,
+       40,
+       200,
+       "mg/dL"
+      ],
+      [
+       "2024-01-15",
+       54.45,
+       40,
+       200,
+       "mg/dL"
+      ]
+     ]
+    },
+    {
+     "code": "triglycerides",
+     "name": "Triglycerides",
+     "unit": "mg/dL",
+     "system": "lipids",
+     "points": [
+      [
+       "2020-01-15",
+       90,
+       0,
+       150,
+       "mg/dL"
+      ],
+      [
+       "2020-09-15",
+       92.7,
+       0,
+       150,
+       "mg/dL"
+      ],
+      [
+       "2021-05-15",
+       88.2,
+       0,
+       150,
+       "mg/dL"
+      ],
+      [
+       "2022-01-15",
+       90.9,
+       0,
+       150,
+       "mg/dL"
+      ],
+      [
+       "2022-09-15",
+       87.3,
+       0,
+       150,
+       "mg/dL"
+      ],
+      [
+       "2023-05-15",
+       91.8,
+       0,
+       150,
+       "mg/dL"
+      ],
+      [
+       "2024-01-15",
+       89.1,
+       0,
+       150,
+       "mg/dL"
+      ]
+     ]
+    },
+    {
+     "code": "vitamin_b12",
+     "name": "Vitamin B12",
+     "unit": "pg/mL",
+     "system": "vitamins",
+     "points": [
+      [
+       "2020-01-15",
+       500,
+       200,
+       900,
+       "pg/mL"
+      ],
+      [
+       "2020-09-15",
+       515.0,
+       200,
+       900,
+       "pg/mL"
+      ],
+      [
+       "2021-05-15",
+       490.0,
+       200,
+       900,
+       "pg/mL"
+      ],
+      [
+       "2022-01-15",
+       505.0,
+       200,
+       900,
+       "pg/mL"
+      ],
+      [
+       "2022-09-15",
+       485.0,
+       200,
+       900,
+       "pg/mL"
+      ],
+      [
+       "2023-05-15",
+       510.0,
+       200,
+       900,
+       "pg/mL"
+      ],
+      [
+       "2024-01-15",
+       495.0,
+       200,
+       900,
+       "pg/mL"
+      ]
+     ]
+    },
+    {
+     "code": "vitamin_d",
+     "name": "Vitamin D",
+     "unit": "ng/mL",
+     "system": "vitamins",
+     "points": [
+      [
+       "2020-01-15",
+       40,
+       30,
+       100,
+       "ng/mL"
+      ],
+      [
+       "2020-09-15",
+       41.2,
+       30,
+       100,
+       "ng/mL"
+      ],
+      [
+       "2021-05-15",
+       39.2,
+       30,
+       100,
+       "ng/mL"
+      ],
+      [
+       "2022-01-15",
+       40.4,
+       30,
+       100,
+       "ng/mL"
+      ],
+      [
+       "2022-09-15",
+       38.8,
+       30,
+       100,
+       "ng/mL"
+      ],
+      [
+       "2023-05-15",
+       40.8,
+       30,
+       100,
+       "ng/mL"
+      ],
+      [
+       "2024-01-15",
+       39.6,
+       30,
+       100,
+       "ng/mL"
+      ]
+     ]
+    },
+    {
+     "code": "folic_acid",
+     "name": "Folate",
+     "unit": "ng/mL",
+     "system": "vitamins",
+     "points": [
+      [
+       "2020-01-15",
+       10,
+       3,
+       20,
+       "ng/mL"
+      ],
+      [
+       "2020-09-15",
+       10.3,
+       3,
+       20,
+       "ng/mL"
+      ],
+      [
+       "2021-05-15",
+       9.8,
+       3,
+       20,
+       "ng/mL"
+      ],
+      [
+       "2022-01-15",
+       10.1,
+       3,
+       20,
+       "ng/mL"
+      ],
+      [
+       "2022-09-15",
+       9.7,
+       3,
+       20,
+       "ng/mL"
+      ],
+      [
+       "2023-05-15",
+       10.2,
+       3,
+       20,
+       "ng/mL"
+      ],
+      [
+       "2024-01-15",
+       9.9,
+       3,
+       20,
+       "ng/mL"
+      ]
+     ]
+    },
+    {
+     "code": "homocysteine",
+     "name": "Homocysteine",
+     "unit": "umol/L",
+     "system": "vitamins",
+     "points": [
+      [
+       "2020-01-15",
+       8,
+       0,
+       15,
+       "umol/L"
+      ],
+      [
+       "2020-09-15",
+       8.24,
+       0,
+       15,
+       "umol/L"
+      ],
+      [
+       "2021-05-15",
+       7.84,
+       0,
+       15,
+       "umol/L"
+      ],
+      [
+       "2022-01-15",
+       8.08,
+       0,
+       15,
+       "umol/L"
+      ],
+      [
+       "2022-09-15",
+       7.76,
+       0,
+       15,
+       "umol/L"
+      ],
+      [
+       "2023-05-15",
+       8.16,
+       0,
+       15,
+       "umol/L"
+      ],
+      [
+       "2024-01-15",
+       7.92,
+       0,
+       15,
+       "umol/L"
+      ]
+     ]
+    },
+    {
+     "code": "crp",
+     "name": "CRP",
+     "unit": "mg/L",
+     "system": "inflammation",
+     "points": [
+      [
+       "2020-01-15",
+       0.8,
+       0,
+       5,
+       "mg/L"
+      ],
+      [
+       "2020-09-15",
+       0.824,
+       0,
+       5,
+       "mg/L"
+      ],
+      [
+       "2021-05-15",
+       0.784,
+       0,
+       5,
+       "mg/L"
+      ],
+      [
+       "2022-01-15",
+       0.808,
+       0,
+       5,
+       "mg/L"
+      ],
+      [
+       "2022-09-15",
+       0.776,
+       0,
+       5,
+       "mg/L"
+      ],
+      [
+       "2023-05-15",
+       0.816,
+       0,
+       5,
+       "mg/L"
+      ],
+      [
+       "2024-01-15",
+       0.792,
+       0,
+       5,
+       "mg/L"
+      ]
+     ]
+    },
+    {
+     "code": "eosinophils_abs",
+     "name": "Eosinophils",
+     "unit": "K/uL",
+     "system": "blood",
+     "points": [
+      [
+       "2020-01-15",
+       0.12,
+       0.02,
+       0.5,
+       "K/uL"
+      ],
+      [
+       "2020-09-15",
+       0.124,
+       0.02,
+       0.5,
+       "K/uL"
+      ],
+      [
+       "2021-05-15",
+       0.118,
+       0.02,
+       0.5,
+       "K/uL"
+      ],
+      [
+       "2022-01-15",
+       0.121,
+       0.02,
+       0.5,
+       "K/uL"
+      ],
+      [
+       "2022-09-15",
+       0.116,
+       0.02,
+       0.5,
+       "K/uL"
+      ],
+      [
+       "2023-05-15",
+       0.122,
+       0.02,
+       0.5,
+       "K/uL"
+      ],
+      [
+       "2024-01-15",
+       0.119,
+       0.02,
+       0.5,
+       "K/uL"
+      ]
+     ]
+    },
+    {
+     "code": "hemoglobin",
+     "name": "Haemoglobin",
+     "unit": "g/dL",
+     "system": "blood",
+     "points": [
+      [
+       "2020-01-15",
+       15,
+       13.5,
+       17.2,
+       "g/dL"
+      ],
+      [
+       "2020-09-15",
+       15.45,
+       13.5,
+       17.2,
+       "g/dL"
+      ],
+      [
+       "2021-05-15",
+       14.7,
+       13.5,
+       17.2,
+       "g/dL"
+      ],
+      [
+       "2022-01-15",
+       15.15,
+       13.5,
+       17.2,
+       "g/dL"
+      ],
+      [
+       "2022-09-15",
+       14.55,
+       13.5,
+       17.2,
+       "g/dL"
+      ],
+      [
+       "2023-05-15",
+       15.3,
+       13.5,
+       17.2,
+       "g/dL"
+      ],
+      [
+       "2024-01-15",
+       14.85,
+       13.5,
+       17.2,
+       "g/dL"
+      ]
+     ]
+    },
+    {
+     "code": "hba1c",
+     "name": "HbA1c",
+     "unit": "%",
+     "system": "metabolic",
+     "points": [
+      [
+       "2020-01-15",
+       5.2,
+       4,
+       5.7,
+       "%"
+      ],
+      [
+       "2020-09-15",
+       5.356,
+       4,
+       5.7,
+       "%"
+      ],
+      [
+       "2021-05-15",
+       5.096,
+       4,
+       5.7,
+       "%"
+      ],
+      [
+       "2022-01-15",
+       5.252,
+       4,
+       5.7,
+       "%"
+      ],
+      [
+       "2022-09-15",
+       5.044,
+       4,
+       5.7,
+       "%"
+      ],
+      [
+       "2023-05-15",
+       5.304,
+       4,
+       5.7,
+       "%"
+      ],
+      [
+       "2024-01-15",
+       5.148,
+       4,
+       5.7,
+       "%"
+      ]
+     ]
+    },
+    {
+     "code": "insulin",
+     "name": "Fasting insulin",
+     "unit": "uIU/mL",
+     "system": "metabolic",
+     "points": [
+      [
+       "2020-01-15",
+       5,
+       2,
+       25,
+       "uIU/mL"
+      ],
+      [
+       "2020-09-15",
+       5.15,
+       2,
+       25,
+       "uIU/mL"
+      ],
+      [
+       "2021-05-15",
+       4.9,
+       2,
+       25,
+       "uIU/mL"
+      ],
+      [
+       "2022-01-15",
+       5.05,
+       2,
+       25,
+       "uIU/mL"
+      ],
+      [
+       "2022-09-15",
+       4.85,
+       2,
+       25,
+       "uIU/mL"
+      ],
+      [
+       "2023-05-15",
+       5.1,
+       2,
+       25,
+       "uIU/mL"
+      ],
+      [
+       "2024-01-15",
+       4.95,
+       2,
+       25,
+       "uIU/mL"
+      ]
+     ]
+    },
+    {
+     "code": "glucose",
+     "name": "Fasting glucose",
+     "unit": "mg/dL",
+     "system": "metabolic",
+     "points": [
+      [
+       "2020-01-15",
+       88,
+       70,
+       100,
+       "mg/dL"
+      ],
+      [
+       "2020-09-15",
+       90.64,
+       70,
+       100,
+       "mg/dL"
+      ],
+      [
+       "2021-05-15",
+       86.24,
+       70,
+       100,
+       "mg/dL"
+      ],
+      [
+       "2022-01-15",
+       88.88,
+       70,
+       100,
+       "mg/dL"
+      ],
+      [
+       "2022-09-15",
+       85.36,
+       70,
+       100,
+       "mg/dL"
+      ],
+      [
+       "2023-05-15",
+       89.76,
+       70,
+       100,
+       "mg/dL"
+      ],
+      [
+       "2024-01-15",
+       87.12,
+       70,
+       100,
+       "mg/dL"
+      ]
+     ]
+    },
+    {
+     "code": "tsh",
+     "name": "TSH",
+     "unit": "mIU/L",
+     "system": "thyroid",
+     "points": [
+      [
+       "2020-01-15",
+       1.5,
+       0.4,
+       4.0,
+       "mIU/L"
+      ],
+      [
+       "2020-09-15",
+       1.545,
+       0.4,
+       4.0,
+       "mIU/L"
+      ],
+      [
+       "2021-05-15",
+       1.47,
+       0.4,
+       4.0,
+       "mIU/L"
+      ],
+      [
+       "2022-01-15",
+       1.515,
+       0.4,
+       4.0,
+       "mIU/L"
+      ],
+      [
+       "2022-09-15",
+       1.455,
+       0.4,
+       4.0,
+       "mIU/L"
+      ],
+      [
+       "2023-05-15",
+       1.53,
+       0.4,
+       4.0,
+       "mIU/L"
+      ],
+      [
+       "2024-01-15",
+       1.485,
+       0.4,
+       4.0,
+       "mIU/L"
+      ]
+     ]
+    },
+    {
+     "code": "ferritin",
+     "name": "Ferritin",
+     "unit": "ng/mL",
+     "system": "iron",
+     "points": [
+      [
+       "2020-01-15",
+       130,
+       30,
+       400,
+       "ng/mL"
+      ],
+      [
+       "2020-09-15",
+       120,
+       30,
+       400,
+       "ng/mL"
+      ],
+      [
+       "2021-05-15",
+       118,
+       30,
+       400,
+       "ng/mL"
+      ],
+      [
+       "2022-01-15",
+       105,
+       30,
+       400,
+       "ng/mL"
+      ],
+      [
+       "2022-09-15",
+       90,
+       30,
+       400,
+       "ng/mL"
+      ],
+      [
+       "2023-05-15",
+       70,
+       30,
+       400,
+       "ng/mL"
+      ],
+      [
+       "2024-01-15",
+       52,
+       30,
+       400,
+       "ng/mL"
+      ]
+     ]
+    }
+   ],
+   "goals": [],
+   "facts": {
+    "sex": "male"
+   },
+   "expect": {
+    "raised": [
+     "step:ferritin"
+    ]
+   }
+  },
+  {
+   "id": "lab_jump",
+   "note": "TSH doubles on a draw whose reference range changed: labelled a lab change, not raised.",
+   "today": "2024-03-01",
+   "markers": [
+    {
+     "code": "ldl_cholesterol",
+     "name": "LDL cholesterol",
+     "unit": "mg/dL",
+     "system": "lipids",
+     "points": [
+      [
+       "2020-01-15",
+       100,
+       0,
+       130,
+       "mg/dL"
+      ],
+      [
+       "2020-09-15",
+       103.0,
+       0,
+       130,
+       "mg/dL"
+      ],
+      [
+       "2021-05-15",
+       98.0,
+       0,
+       130,
+       "mg/dL"
+      ],
+      [
+       "2022-01-15",
+       101.0,
+       0,
+       130,
+       "mg/dL"
+      ],
+      [
+       "2022-09-15",
+       97.0,
+       0,
+       130,
+       "mg/dL"
+      ],
+      [
+       "2023-05-15",
+       102.0,
+       0,
+       130,
+       "mg/dL"
+      ],
+      [
+       "2024-01-15",
+       99.0,
+       0,
+       130,
+       "mg/dL"
+      ]
+     ]
+    },
+    {
+     "code": "hdl_cholesterol",
+     "name": "HDL cholesterol",
+     "unit": "mg/dL",
+     "system": "lipids",
+     "points": [
+      [
+       "2020-01-15",
+       55,
+       40,
+       200,
+       "mg/dL"
+      ],
+      [
+       "2020-09-15",
+       56.65,
+       40,
+       200,
+       "mg/dL"
+      ],
+      [
+       "2021-05-15",
+       53.9,
+       40,
+       200,
+       "mg/dL"
+      ],
+      [
+       "2022-01-15",
+       55.55,
+       40,
+       200,
+       "mg/dL"
+      ],
+      [
+       "2022-09-15",
+       53.35,
+       40,
+       200,
+       "mg/dL"
+      ],
+      [
+       "2023-05-15",
+       56.1,
+       40,
+       200,
+       "mg/dL"
+      ],
+      [
+       "2024-01-15",
+       54.45,
+       40,
+       200,
+       "mg/dL"
+      ]
+     ]
+    },
+    {
+     "code": "triglycerides",
+     "name": "Triglycerides",
+     "unit": "mg/dL",
+     "system": "lipids",
+     "points": [
+      [
+       "2020-01-15",
+       90,
+       0,
+       150,
+       "mg/dL"
+      ],
+      [
+       "2020-09-15",
+       92.7,
+       0,
+       150,
+       "mg/dL"
+      ],
+      [
+       "2021-05-15",
+       88.2,
+       0,
+       150,
+       "mg/dL"
+      ],
+      [
+       "2022-01-15",
+       90.9,
+       0,
+       150,
+       "mg/dL"
+      ],
+      [
+       "2022-09-15",
+       87.3,
+       0,
+       150,
+       "mg/dL"
+      ],
+      [
+       "2023-05-15",
+       91.8,
+       0,
+       150,
+       "mg/dL"
+      ],
+      [
+       "2024-01-15",
+       89.1,
+       0,
+       150,
+       "mg/dL"
+      ]
+     ]
+    },
+    {
+     "code": "ferritin",
+     "name": "Ferritin",
+     "unit": "ng/mL",
+     "system": "iron",
+     "points": [
+      [
+       "2020-01-15",
+       110,
+       30,
+       400,
+       "ng/mL"
+      ],
+      [
+       "2020-09-15",
+       113.3,
+       30,
+       400,
+       "ng/mL"
+      ],
+      [
+       "2021-05-15",
+       107.8,
+       30,
+       400,
+       "ng/mL"
+      ],
+      [
+       "2022-01-15",
+       111.1,
+       30,
+       400,
+       "ng/mL"
+      ],
+      [
+       "2022-09-15",
+       106.7,
+       30,
+       400,
+       "ng/mL"
+      ],
+      [
+       "2023-05-15",
+       112.2,
+       30,
+       400,
+       "ng/mL"
+      ],
+      [
+       "2024-01-15",
+       108.9,
+       30,
+       400,
+       "ng/mL"
+      ]
+     ]
+    },
+    {
+     "code": "vitamin_b12",
+     "name": "Vitamin B12",
+     "unit": "pg/mL",
+     "system": "vitamins",
+     "points": [
+      [
+       "2020-01-15",
+       500,
+       200,
+       900,
+       "pg/mL"
+      ],
+      [
+       "2020-09-15",
+       515.0,
+       200,
+       900,
+       "pg/mL"
+      ],
+      [
+       "2021-05-15",
+       490.0,
+       200,
+       900,
+       "pg/mL"
+      ],
+      [
+       "2022-01-15",
+       505.0,
+       200,
+       900,
+       "pg/mL"
+      ],
+      [
+       "2022-09-15",
+       485.0,
+       200,
+       900,
+       "pg/mL"
+      ],
+      [
+       "2023-05-15",
+       510.0,
+       200,
+       900,
+       "pg/mL"
+      ],
+      [
+       "2024-01-15",
+       495.0,
+       200,
+       900,
+       "pg/mL"
+      ]
+     ]
+    },
+    {
+     "code": "vitamin_d",
+     "name": "Vitamin D",
+     "unit": "ng/mL",
+     "system": "vitamins",
+     "points": [
+      [
+       "2020-01-15",
+       40,
+       30,
+       100,
+       "ng/mL"
+      ],
+      [
+       "2020-09-15",
+       41.2,
+       30,
+       100,
+       "ng/mL"
+      ],
+      [
+       "2021-05-15",
+       39.2,
+       30,
+       100,
+       "ng/mL"
+      ],
+      [
+       "2022-01-15",
+       40.4,
+       30,
+       100,
+       "ng/mL"
+      ],
+      [
+       "2022-09-15",
+       38.8,
+       30,
+       100,
+       "ng/mL"
+      ],
+      [
+       "2023-05-15",
+       40.8,
+       30,
+       100,
+       "ng/mL"
+      ],
+      [
+       "2024-01-15",
+       39.6,
+       30,
+       100,
+       "ng/mL"
+      ]
+     ]
+    },
+    {
+     "code": "folic_acid",
+     "name": "Folate",
+     "unit": "ng/mL",
+     "system": "vitamins",
+     "points": [
+      [
+       "2020-01-15",
+       10,
+       3,
+       20,
+       "ng/mL"
+      ],
+      [
+       "2020-09-15",
+       10.3,
+       3,
+       20,
+       "ng/mL"
+      ],
+      [
+       "2021-05-15",
+       9.8,
+       3,
+       20,
+       "ng/mL"
+      ],
+      [
+       "2022-01-15",
+       10.1,
+       3,
+       20,
+       "ng/mL"
+      ],
+      [
+       "2022-09-15",
+       9.7,
+       3,
+       20,
+       "ng/mL"
+      ],
+      [
+       "2023-05-15",
+       10.2,
+       3,
+       20,
+       "ng/mL"
+      ],
+      [
+       "2024-01-15",
+       9.9,
+       3,
+       20,
+       "ng/mL"
+      ]
+     ]
+    },
+    {
+     "code": "homocysteine",
+     "name": "Homocysteine",
+     "unit": "umol/L",
+     "system": "vitamins",
+     "points": [
+      [
+       "2020-01-15",
+       8,
+       0,
+       15,
+       "umol/L"
+      ],
+      [
+       "2020-09-15",
+       8.24,
+       0,
+       15,
+       "umol/L"
+      ],
+      [
+       "2021-05-15",
+       7.84,
+       0,
+       15,
+       "umol/L"
+      ],
+      [
+       "2022-01-15",
+       8.08,
+       0,
+       15,
+       "umol/L"
+      ],
+      [
+       "2022-09-15",
+       7.76,
+       0,
+       15,
+       "umol/L"
+      ],
+      [
+       "2023-05-15",
+       8.16,
+       0,
+       15,
+       "umol/L"
+      ],
+      [
+       "2024-01-15",
+       7.92,
+       0,
+       15,
+       "umol/L"
+      ]
+     ]
+    },
+    {
+     "code": "crp",
+     "name": "CRP",
+     "unit": "mg/L",
+     "system": "inflammation",
+     "points": [
+      [
+       "2020-01-15",
+       0.8,
+       0,
+       5,
+       "mg/L"
+      ],
+      [
+       "2020-09-15",
+       0.824,
+       0,
+       5,
+       "mg/L"
+      ],
+      [
+       "2021-05-15",
+       0.784,
+       0,
+       5,
+       "mg/L"
+      ],
+      [
+       "2022-01-15",
+       0.808,
+       0,
+       5,
+       "mg/L"
+      ],
+      [
+       "2022-09-15",
+       0.776,
+       0,
+       5,
+       "mg/L"
+      ],
+      [
+       "2023-05-15",
+       0.816,
+       0,
+       5,
+       "mg/L"
+      ],
+      [
+       "2024-01-15",
+       0.792,
+       0,
+       5,
+       "mg/L"
+      ]
+     ]
+    },
+    {
+     "code": "eosinophils_abs",
+     "name": "Eosinophils",
+     "unit": "K/uL",
+     "system": "blood",
+     "points": [
+      [
+       "2020-01-15",
+       0.12,
+       0.02,
+       0.5,
+       "K/uL"
+      ],
+      [
+       "2020-09-15",
+       0.124,
+       0.02,
+       0.5,
+       "K/uL"
+      ],
+      [
+       "2021-05-15",
+       0.118,
+       0.02,
+       0.5,
+       "K/uL"
+      ],
+      [
+       "2022-01-15",
+       0.121,
+       0.02,
+       0.5,
+       "K/uL"
+      ],
+      [
+       "2022-09-15",
+       0.116,
+       0.02,
+       0.5,
+       "K/uL"
+      ],
+      [
+       "2023-05-15",
+       0.122,
+       0.02,
+       0.5,
+       "K/uL"
+      ],
+      [
+       "2024-01-15",
+       0.119,
+       0.02,
+       0.5,
+       "K/uL"
+      ]
+     ]
+    },
+    {
+     "code": "hemoglobin",
+     "name": "Haemoglobin",
+     "unit": "g/dL",
+     "system": "blood",
+     "points": [
+      [
+       "2020-01-15",
+       15,
+       13.5,
+       17.2,
+       "g/dL"
+      ],
+      [
+       "2020-09-15",
+       15.45,
+       13.5,
+       17.2,
+       "g/dL"
+      ],
+      [
+       "2021-05-15",
+       14.7,
+       13.5,
+       17.2,
+       "g/dL"
+      ],
+      [
+       "2022-01-15",
+       15.15,
+       13.5,
+       17.2,
+       "g/dL"
+      ],
+      [
+       "2022-09-15",
+       14.55,
+       13.5,
+       17.2,
+       "g/dL"
+      ],
+      [
+       "2023-05-15",
+       15.3,
+       13.5,
+       17.2,
+       "g/dL"
+      ],
+      [
+       "2024-01-15",
+       14.85,
+       13.5,
+       17.2,
+       "g/dL"
+      ]
+     ]
+    },
+    {
+     "code": "hba1c",
+     "name": "HbA1c",
+     "unit": "%",
+     "system": "metabolic",
+     "points": [
+      [
+       "2020-01-15",
+       5.2,
+       4,
+       5.7,
+       "%"
+      ],
+      [
+       "2020-09-15",
+       5.356,
+       4,
+       5.7,
+       "%"
+      ],
+      [
+       "2021-05-15",
+       5.096,
+       4,
+       5.7,
+       "%"
+      ],
+      [
+       "2022-01-15",
+       5.252,
+       4,
+       5.7,
+       "%"
+      ],
+      [
+       "2022-09-15",
+       5.044,
+       4,
+       5.7,
+       "%"
+      ],
+      [
+       "2023-05-15",
+       5.304,
+       4,
+       5.7,
+       "%"
+      ],
+      [
+       "2024-01-15",
+       5.148,
+       4,
+       5.7,
+       "%"
+      ]
+     ]
+    },
+    {
+     "code": "insulin",
+     "name": "Fasting insulin",
+     "unit": "uIU/mL",
+     "system": "metabolic",
+     "points": [
+      [
+       "2020-01-15",
+       5,
+       2,
+       25,
+       "uIU/mL"
+      ],
+      [
+       "2020-09-15",
+       5.15,
+       2,
+       25,
+       "uIU/mL"
+      ],
+      [
+       "2021-05-15",
+       4.9,
+       2,
+       25,
+       "uIU/mL"
+      ],
+      [
+       "2022-01-15",
+       5.05,
+       2,
+       25,
+       "uIU/mL"
+      ],
+      [
+       "2022-09-15",
+       4.85,
+       2,
+       25,
+       "uIU/mL"
+      ],
+      [
+       "2023-05-15",
+       5.1,
+       2,
+       25,
+       "uIU/mL"
+      ],
+      [
+       "2024-01-15",
+       4.95,
+       2,
+       25,
+       "uIU/mL"
+      ]
+     ]
+    },
+    {
+     "code": "glucose",
+     "name": "Fasting glucose",
+     "unit": "mg/dL",
+     "system": "metabolic",
+     "points": [
+      [
+       "2020-01-15",
+       88,
+       70,
+       100,
+       "mg/dL"
+      ],
+      [
+       "2020-09-15",
+       90.64,
+       70,
+       100,
+       "mg/dL"
+      ],
+      [
+       "2021-05-15",
+       86.24,
+       70,
+       100,
+       "mg/dL"
+      ],
+      [
+       "2022-01-15",
+       88.88,
+       70,
+       100,
+       "mg/dL"
+      ],
+      [
+       "2022-09-15",
+       85.36,
+       70,
+       100,
+       "mg/dL"
+      ],
+      [
+       "2023-05-15",
+       89.76,
+       70,
+       100,
+       "mg/dL"
+      ],
+      [
+       "2024-01-15",
+       87.12,
+       70,
+       100,
+       "mg/dL"
+      ]
+     ]
+    },
+    {
+     "code": "tsh",
+     "name": "TSH",
+     "unit": "mIU/L",
+     "system": "thyroid",
+     "points": [
+      [
+       "2020-01-15",
+       1.5,
+       0.4,
+       4.0,
+       "mIU/L"
+      ],
+      [
+       "2020-09-15",
+       1.55,
+       0.4,
+       4.0,
+       "mIU/L"
+      ],
+      [
+       "2021-05-15",
+       1.45,
+       0.4,
+       4.0,
+       "mIU/L"
+      ],
+      [
+       "2022-01-15",
+       1.52,
+       0.4,
+       4.0,
+       "mIU/L"
+      ],
+      [
+       "2022-09-15",
+       1.48,
+       0.4,
+       4.0,
+       "mIU/L"
+      ],
+      [
+       "2023-05-15",
+       1.5,
+       0.4,
+       4.0,
+       "mIU/L"
+      ],
+      [
+       "2024-01-15",
+       3.2,
+       0.27,
+       4.2,
+       "mIU/L"
+      ]
+     ]
+    }
+   ],
+   "goals": [],
+   "facts": {
+    "sex": "female"
+   },
+   "expect": {
+    "raised": [],
+    "labChange": [
+     "left_band:tsh"
+    ]
+   }
+  },
+  {
+   "id": "coeliac",
+   "note": "Ferritin, B12, vitamin D and folate down together, homocysteine up: one cluster, and the test that splits it is tTG-IgA.",
+   "today": "2024-03-01",
+   "markers": [
+    {
+     "code": "ldl_cholesterol",
+     "name": "LDL cholesterol",
+     "unit": "mg/dL",
+     "system": "lipids",
+     "points": [
+      [
+       "2020-01-15",
+       100,
+       0,
+       130,
+       "mg/dL"
+      ],
+      [
+       "2020-09-15",
+       103.0,
+       0,
+       130,
+       "mg/dL"
+      ],
+      [
+       "2021-05-15",
+       98.0,
+       0,
+       130,
+       "mg/dL"
+      ],
+      [
+       "2022-01-15",
+       101.0,
+       0,
+       130,
+       "mg/dL"
+      ],
+      [
+       "2022-09-15",
+       97.0,
+       0,
+       130,
+       "mg/dL"
+      ],
+      [
+       "2023-05-15",
+       102.0,
+       0,
+       130,
+       "mg/dL"
+      ],
+      [
+       "2024-01-15",
+       99.0,
+       0,
+       130,
+       "mg/dL"
+      ]
+     ]
+    },
+    {
+     "code": "hdl_cholesterol",
+     "name": "HDL cholesterol",
+     "unit": "mg/dL",
+     "system": "lipids",
+     "points": [
+      [
+       "2020-01-15",
+       55,
+       40,
+       200,
+       "mg/dL"
+      ],
+      [
+       "2020-09-15",
+       56.65,
+       40,
+       200,
+       "mg/dL"
+      ],
+      [
+       "2021-05-15",
+       53.9,
+       40,
+       200,
+       "mg/dL"
+      ],
+      [
+       "2022-01-15",
+       55.55,
+       40,
+       200,
+       "mg/dL"
+      ],
+      [
+       "2022-09-15",
+       53.35,
+       40,
+       200,
+       "mg/dL"
+      ],
+      [
+       "2023-05-15",
+       56.1,
+       40,
+       200,
+       "mg/dL"
+      ],
+      [
+       "2024-01-15",
+       54.45,
+       40,
+       200,
+       "mg/dL"
+      ]
+     ]
+    },
+    {
+     "code": "triglycerides",
+     "name": "Triglycerides",
+     "unit": "mg/dL",
+     "system": "lipids",
+     "points": [
+      [
+       "2020-01-15",
+       90,
+       0,
+       150,
+       "mg/dL"
+      ],
+      [
+       "2020-09-15",
+       92.7,
+       0,
+       150,
+       "mg/dL"
+      ],
+      [
+       "2021-05-15",
+       88.2,
+       0,
+       150,
+       "mg/dL"
+      ],
+      [
+       "2022-01-15",
+       90.9,
+       0,
+       150,
+       "mg/dL"
+      ],
+      [
+       "2022-09-15",
+       87.3,
+       0,
+       150,
+       "mg/dL"
+      ],
+      [
+       "2023-05-15",
+       91.8,
+       0,
+       150,
+       "mg/dL"
+      ],
+      [
+       "2024-01-15",
+       89.1,
+       0,
+       150,
+       "mg/dL"
+      ]
+     ]
+    },
+    {
+     "code": "crp",
+     "name": "CRP",
+     "unit": "mg/L",
+     "system": "inflammation",
+     "points": [
+      [
+       "2020-01-15",
+       0.8,
+       0,
+       5,
+       "mg/L"
+      ],
+      [
+       "2020-09-15",
+       0.824,
+       0,
+       5,
+       "mg/L"
+      ],
+      [
+       "2021-05-15",
+       0.784,
+       0,
+       5,
+       "mg/L"
+      ],
+      [
+       "2022-01-15",
+       0.808,
+       0,
+       5,
+       "mg/L"
+      ],
+      [
+       "2022-09-15",
+       0.776,
+       0,
+       5,
+       "mg/L"
+      ],
+      [
+       "2023-05-15",
+       0.816,
+       0,
+       5,
+       "mg/L"
+      ],
+      [
+       "2024-01-15",
+       0.792,
+       0,
+       5,
+       "mg/L"
+      ]
+     ]
+    },
+    {
+     "code": "eosinophils_abs",
+     "name": "Eosinophils",
+     "unit": "K/uL",
+     "system": "blood",
+     "points": [
+      [
+       "2020-01-15",
+       0.12,
+       0.02,
+       0.5,
+       "K/uL"
+      ],
+      [
+       "2020-09-15",
+       0.124,
+       0.02,
+       0.5,
+       "K/uL"
+      ],
+      [
+       "2021-05-15",
+       0.118,
+       0.02,
+       0.5,
+       "K/uL"
+      ],
+      [
+       "2022-01-15",
+       0.121,
+       0.02,
+       0.5,
+       "K/uL"
+      ],
+      [
+       "2022-09-15",
+       0.116,
+       0.02,
+       0.5,
+       "K/uL"
+      ],
+      [
+       "2023-05-15",
+       0.122,
+       0.02,
+       0.5,
+       "K/uL"
+      ],
+      [
+       "2024-01-15",
+       0.119,
+       0.02,
+       0.5,
+       "K/uL"
+      ]
+     ]
+    },
+    {
+     "code": "hemoglobin",
+     "name": "Haemoglobin",
+     "unit": "g/dL",
+     "system": "blood",
+     "points": [
+      [
+       "2020-01-15",
+       15,
+       13.5,
+       17.2,
+       "g/dL"
+      ],
+      [
+       "2020-09-15",
+       15.45,
+       13.5,
+       17.2,
+       "g/dL"
+      ],
+      [
+       "2021-05-15",
+       14.7,
+       13.5,
+       17.2,
+       "g/dL"
+      ],
+      [
+       "2022-01-15",
+       15.15,
+       13.5,
+       17.2,
+       "g/dL"
+      ],
+      [
+       "2022-09-15",
+       14.55,
+       13.5,
+       17.2,
+       "g/dL"
+      ],
+      [
+       "2023-05-15",
+       15.3,
+       13.5,
+       17.2,
+       "g/dL"
+      ],
+      [
+       "2024-01-15",
+       14.85,
+       13.5,
+       17.2,
+       "g/dL"
+      ]
+     ]
+    },
+    {
+     "code": "hba1c",
+     "name": "HbA1c",
+     "unit": "%",
+     "system": "metabolic",
+     "points": [
+      [
+       "2020-01-15",
+       5.2,
+       4,
+       5.7,
+       "%"
+      ],
+      [
+       "2020-09-15",
+       5.356,
+       4,
+       5.7,
+       "%"
+      ],
+      [
+       "2021-05-15",
+       5.096,
+       4,
+       5.7,
+       "%"
+      ],
+      [
+       "2022-01-15",
+       5.252,
+       4,
+       5.7,
+       "%"
+      ],
+      [
+       "2022-09-15",
+       5.044,
+       4,
+       5.7,
+       "%"
+      ],
+      [
+       "2023-05-15",
+       5.304,
+       4,
+       5.7,
+       "%"
+      ],
+      [
+       "2024-01-15",
+       5.148,
+       4,
+       5.7,
+       "%"
+      ]
+     ]
+    },
+    {
+     "code": "insulin",
+     "name": "Fasting insulin",
+     "unit": "uIU/mL",
+     "system": "metabolic",
+     "points": [
+      [
+       "2020-01-15",
+       5,
+       2,
+       25,
+       "uIU/mL"
+      ],
+      [
+       "2020-09-15",
+       5.15,
+       2,
+       25,
+       "uIU/mL"
+      ],
+      [
+       "2021-05-15",
+       4.9,
+       2,
+       25,
+       "uIU/mL"
+      ],
+      [
+       "2022-01-15",
+       5.05,
+       2,
+       25,
+       "uIU/mL"
+      ],
+      [
+       "2022-09-15",
+       4.85,
+       2,
+       25,
+       "uIU/mL"
+      ],
+      [
+       "2023-05-15",
+       5.1,
+       2,
+       25,
+       "uIU/mL"
+      ],
+      [
+       "2024-01-15",
+       4.95,
+       2,
+       25,
+       "uIU/mL"
+      ]
+     ]
+    },
+    {
+     "code": "glucose",
+     "name": "Fasting glucose",
+     "unit": "mg/dL",
+     "system": "metabolic",
+     "points": [
+      [
+       "2020-01-15",
+       88,
+       70,
+       100,
+       "mg/dL"
+      ],
+      [
+       "2020-09-15",
+       90.64,
+       70,
+       100,
+       "mg/dL"
+      ],
+      [
+       "2021-05-15",
+       86.24,
+       70,
+       100,
+       "mg/dL"
+      ],
+      [
+       "2022-01-15",
+       88.88,
+       70,
+       100,
+       "mg/dL"
+      ],
+      [
+       "2022-09-15",
+       85.36,
+       70,
+       100,
+       "mg/dL"
+      ],
+      [
+       "2023-05-15",
+       89.76,
+       70,
+       100,
+       "mg/dL"
+      ],
+      [
+       "2024-01-15",
+       87.12,
+       70,
+       100,
+       "mg/dL"
+      ]
+     ]
+    },
+    {
+     "code": "tsh",
+     "name": "TSH",
+     "unit": "mIU/L",
+     "system": "thyroid",
+     "points": [
+      [
+       "2020-01-15",
+       1.5,
+       0.4,
+       4.0,
+       "mIU/L"
+      ],
+      [
+       "2020-09-15",
+       1.545,
+       0.4,
+       4.0,
+       "mIU/L"
+      ],
+      [
+       "2021-05-15",
+       1.47,
+       0.4,
+       4.0,
+       "mIU/L"
+      ],
+      [
+       "2022-01-15",
+       1.515,
+       0.4,
+       4.0,
+       "mIU/L"
+      ],
+      [
+       "2022-09-15",
+       1.455,
+       0.4,
+       4.0,
+       "mIU/L"
+      ],
+      [
+       "2023-05-15",
+       1.53,
+       0.4,
+       4.0,
+       "mIU/L"
+      ],
+      [
+       "2024-01-15",
+       1.485,
+       0.4,
+       4.0,
+       "mIU/L"
+      ]
+     ]
+    },
+    {
+     "code": "ferritin",
+     "name": "Ferritin",
+     "unit": "ng/mL",
+     "system": "iron",
+     "points": [
+      [
+       "2020-01-15",
+       90,
+       30,
+       400,
+       "ng/mL"
+      ],
+      [
+       "2020-09-15",
+       85,
+       30,
+       400,
+       "ng/mL"
+      ],
+      [
+       "2021-05-15",
+       88,
+       30,
+       400,
+       "ng/mL"
+      ],
+      [
+       "2022-01-15",
+       80,
+       30,
+       400,
+       "ng/mL"
+      ],
+      [
+       "2022-09-15",
+       82,
+       30,
+       400,
+       "ng/mL"
+      ],
+      [
+       "2023-05-15",
+       60,
+       30,
+       400,
+       "ng/mL"
+      ],
+      [
+       "2024-01-15",
+       40,
+       30,
+       400,
+       "ng/mL"
+      ]
+     ]
+    },
+    {
+     "code": "vitamin_b12",
+     "name": "Vitamin B12",
+     "unit": "pg/mL",
+     "system": "vitamins",
+     "points": [
+      [
+       "2020-01-15",
+       450,
+       200,
+       900,
+       "pg/mL"
+      ],
+      [
+       "2020-09-15",
+       440,
+       200,
+       900,
+       "pg/mL"
+      ],
+      [
+       "2021-05-15",
+       460,
+       200,
+       900,
+       "pg/mL"
+      ],
+      [
+       "2022-01-15",
+       430,
+       200,
+       900,
+       "pg/mL"
+      ],
+      [
+       "2022-09-15",
+       445,
+       200,
+       900,
+       "pg/mL"
+      ],
+      [
+       "2023-05-15",
+       380,
+       200,
+       900,
+       "pg/mL"
+      ],
+      [
+       "2024-01-15",
+       300,
+       200,
+       900,
+       "pg/mL"
+      ]
+     ]
+    },
+    {
+     "code": "vitamin_d",
+     "name": "Vitamin D",
+     "unit": "ng/mL",
+     "system": "vitamins",
+     "points": [
+      [
+       "2020-01-15",
+       35,
+       30,
+       100,
+       "ng/mL"
+      ],
+      [
+       "2020-09-15",
+       33,
+       30,
+       100,
+       "ng/mL"
+      ],
+      [
+       "2021-05-15",
+       36,
+       30,
+       100,
+       "ng/mL"
+      ],
+      [
+       "2022-01-15",
+       34,
+       30,
+       100,
+       "ng/mL"
+      ],
+      [
+       "2022-09-15",
+       35,
+       30,
+       100,
+       "ng/mL"
+      ],
+      [
+       "2023-05-15",
+       28,
+       30,
+       100,
+       "ng/mL"
+      ],
+      [
+       "2024-01-15",
+       22,
+       30,
+       100,
+       "ng/mL"
+      ]
+     ]
+    },
+    {
+     "code": "folic_acid",
+     "name": "Folate",
+     "unit": "ng/mL",
+     "system": "vitamins",
+     "points": [
+      [
+       "2020-01-15",
+       9,
+       3,
+       20,
+       "ng/mL"
+      ],
+      [
+       "2020-09-15",
+       8.5,
+       3,
+       20,
+       "ng/mL"
+      ],
+      [
+       "2021-05-15",
+       9.2,
+       3,
+       20,
+       "ng/mL"
+      ],
+      [
+       "2022-01-15",
+       8.8,
+       3,
+       20,
+       "ng/mL"
+      ],
+      [
+       "2022-09-15",
+       9,
+       3,
+       20,
+       "ng/mL"
+      ],
+      [
+       "2023-05-15",
+       6,
+       3,
+       20,
+       "ng/mL"
+      ],
+      [
+       "2024-01-15",
+       4.5,
+       3,
+       20,
+       "ng/mL"
+      ]
+     ]
+    },
+    {
+     "code": "homocysteine",
+     "name": "Homocysteine",
+     "unit": "umol/L",
+     "system": "vitamins",
+     "points": [
+      [
+       "2020-01-15",
+       8,
+       0,
+       15,
+       "umol/L"
+      ],
+      [
+       "2020-09-15",
+       8.2,
+       0,
+       15,
+       "umol/L"
+      ],
+      [
+       "2021-05-15",
+       7.9,
+       0,
+       15,
+       "umol/L"
+      ],
+      [
+       "2022-01-15",
+       8.1,
+       0,
+       15,
+       "umol/L"
+      ],
+      [
+       "2022-09-15",
+       8,
+       0,
+       15,
+       "umol/L"
+      ],
+      [
+       "2023-05-15",
+       10,
+       0,
+       15,
+       "umol/L"
+      ],
+      [
+       "2024-01-15",
+       12.5,
+       0,
+       15,
+       "umol/L"
+      ]
+     ]
+    }
+   ],
+   "goals": [],
+   "facts": {
+    "sex": "female"
+   },
+   "expect": {
+    "raised": [
+     "cluster:iron"
+    ],
+    "test": {
+     "cluster:iron": "ttg_iga"
+    }
+   }
+  }
+ ]
+}

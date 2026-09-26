@@ -104,6 +104,22 @@ async function write(row: {
 }
 
 /**
+ * Phase 39: a hunch's test came back. One row per explanation, with the share
+ * it had when the predictions were written down and whether its prediction
+ * held, so /hkb can print how often hunches were right. Resolver
+ * `hunch:<id>`, so a hunch that is re-read never writes twice.
+ */
+export async function recordHunchCalibration(
+  userId: string,
+  hunchId: string,
+  rows: { conditionId: string; predicted: number; resolved: number }[],
+): Promise<number> {
+  for (const r of rows)
+    await write({ userId, ...r, resolver: `hunch:${hunchId}` });
+  return rows.length;
+}
+
+/**
  * Record every prediction a strong test has now settled.
  *
  * Called from `recordBeliefs`, after the beliefs are recomputed and before the

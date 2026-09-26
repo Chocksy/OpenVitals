@@ -23,7 +23,10 @@
           "value": 91.42
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "abo_blood_group",
@@ -42,7 +45,10 @@
         "high": null
       },
       "series": [],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "granulocyte_absolute",
@@ -66,7 +72,10 @@
           "value": 3.4
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "atypical_lymphocytes_abs",
@@ -90,7 +99,10 @@
           "value": 1.62
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "basophils_abs",
@@ -118,7 +130,15 @@
           "value": 0.03
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": {
+        "median": 0.02,
+        "sd": 0.014825999999999999,
+        "n": 9,
+        "provisional": false
+      },
+      "z": 0.67,
+      "signal": null
     },
     {
       "code": "basophils_percentage",
@@ -142,7 +162,10 @@
           "value": 0.58
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "basophils_pct",
@@ -166,7 +189,15 @@
           "value": 0.51
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": {
+        "median": 0.35,
+        "sd": 0.22238999999999995,
+        "n": 6,
+        "provisional": false
+      },
+      "z": 0.72,
+      "signal": null
     },
     {
       "code": "corrected_reticulocyte_count",
@@ -194,7 +225,10 @@
           "value": 1.16
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "eosinophils_abs",
@@ -222,7 +256,18 @@
           "value": 0.19
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": {
+        "median": 0.11,
+        "sd": 0.029652000000000005,
+        "n": 9,
+        "provisional": false
+      },
+      "z": 2.7,
+      "signal": {
+        "kind": "step",
+        "hunchId": "a7f1a0ab-dc1e-487d-a27c-1334be9c1af0"
+      }
     },
     {
       "code": "eosinophils_percentage",
@@ -246,7 +291,10 @@
           "value": 3.67
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "eosinophils_pct",
@@ -270,7 +318,15 @@
           "value": 2.92
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": {
+        "median": 1.7,
+        "sd": 0.2965199999999999,
+        "n": 5,
+        "provisional": false
+      },
+      "z": 4.11,
+      "signal": null
     },
     {
       "code": "granulocyte_percentage",
@@ -294,7 +350,10 @@
           "value": 56
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "hematocrit",
@@ -322,7 +381,15 @@
           "value": 46.9
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": {
+        "median": 47.349999999999994,
+        "sd": 2.3674999999999997,
+        "n": 10,
+        "provisional": false
+      },
+      "z": -0.19,
+      "signal": null
     },
     {
       "code": "hemoglobin",
@@ -350,7 +417,15 @@
           "value": 15.6
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": {
+        "median": 15.8,
+        "sd": 0.79,
+        "n": 10,
+        "provisional": false
+      },
+      "z": -0.25,
+      "signal": null
     },
     {
       "code": "hba",
@@ -374,7 +449,10 @@
           "value": 97.1
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "hba2",
@@ -398,7 +476,10 @@
           "value": 2.9
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "immature_reticulocyte_fraction",
@@ -426,7 +507,10 @@
           "value": 0.062
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "lymphocytes_abs",
@@ -450,7 +534,15 @@
           "value": 2.01
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": {
+        "median": 2.34,
+        "sd": 0.48184500000000025,
+        "n": 6,
+        "provisional": false
+      },
+      "z": -0.68,
+      "signal": null
     },
     {
       "code": "lymphocytes_percentage",
@@ -474,7 +566,10 @@
           "value": 40.15
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "lymphocytes_pct",
@@ -498,7 +593,15 @@
           "value": 34.48
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": {
+        "median": 31.25,
+        "sd": 9.896354999999998,
+        "n": 6,
+        "provisional": false
+      },
+      "z": 0.33,
+      "signal": null
     },
     {
       "code": "mch",
@@ -526,7 +629,15 @@
           "value": 29.9
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": {
+        "median": 29.299999999999997,
+        "sd": 1.4649999999999999,
+        "n": 10,
+        "provisional": false
+      },
+      "z": 0.41,
+      "signal": null
     },
     {
       "code": "mchc",
@@ -554,7 +665,15 @@
           "value": 33.3
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": {
+        "median": 32.8,
+        "sd": 1.64,
+        "n": 9,
+        "provisional": false
+      },
+      "z": 0.3,
+      "signal": null
     },
     {
       "code": "mcv",
@@ -582,7 +701,15 @@
           "value": 89.7
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": {
+        "median": 88.1,
+        "sd": 4.405,
+        "n": 10,
+        "provisional": false
+      },
+      "z": 0.36,
+      "signal": null
     },
     {
       "code": "mean_reticulocyte_volume",
@@ -610,7 +737,10 @@
           "value": 113
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "monocytes_abs",
@@ -638,7 +768,15 @@
           "value": 0.43
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": {
+        "median": 0.47,
+        "sd": 0.08895600000000008,
+        "n": 9,
+        "provisional": false
+      },
+      "z": -0.45,
+      "signal": null
     },
     {
       "code": "monocytes_percentage",
@@ -662,7 +800,10 @@
           "value": 7.66
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "monocytes_pct",
@@ -690,7 +831,15 @@
           "value": 8.3
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": {
+        "median": 6.95,
+        "sd": 0.5930400000000005,
+        "n": 8,
+        "provisional": false
+      },
+      "z": 2.28,
+      "signal": null
     },
     {
       "code": "mpv",
@@ -714,7 +863,15 @@
           "value": 10.8
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": {
+        "median": 9.3,
+        "sd": 0.4650000000000001,
+        "n": 7,
+        "provisional": false
+      },
+      "z": 3.23,
+      "signal": null
     },
     {
       "code": "neutrophils_abs",
@@ -742,7 +899,15 @@
           "value": 2.45
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": {
+        "median": 3.2750000000000004,
+        "sd": 0.42254100000000017,
+        "n": 8,
+        "provisional": false
+      },
+      "z": -1.95,
+      "signal": null
     },
     {
       "code": "neutrophils_percentage",
@@ -766,7 +931,10 @@
           "value": 47.3
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "neutrophils_pct",
@@ -790,7 +958,15 @@
           "value": 55.23
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": {
+        "median": 51.6,
+        "sd": 2.8169399999999976,
+        "n": 5,
+        "provisional": false
+      },
+      "z": 1.29,
+      "signal": null
     },
     {
       "code": "p_lcr",
@@ -814,7 +990,10 @@
           "value": 31.6
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "pdw",
@@ -838,7 +1017,15 @@
           "value": 16.1
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": {
+        "median": 16.05,
+        "sd": 0.8025000000000001,
+        "n": 6,
+        "provisional": false
+      },
+      "z": 0.06,
+      "signal": null
     },
     {
       "code": "platelets",
@@ -866,7 +1053,15 @@
           "value": 236
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": {
+        "median": 214.5,
+        "sd": 15.5673,
+        "n": 10,
+        "provisional": false
+      },
+      "z": 1.38,
+      "signal": null
     },
     {
       "code": "pdw_sd",
@@ -890,7 +1085,10 @@
           "value": 13.3
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "pct",
@@ -914,7 +1112,15 @@
           "value": 0.232
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": {
+        "median": 0.1935,
+        "sd": 0.009675000000000001,
+        "n": 6,
+        "provisional": false
+      },
+      "z": 3.98,
+      "signal": null
     },
     {
       "code": "rdw",
@@ -942,7 +1148,15 @@
           "value": 13.1
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": {
+        "median": 13.05,
+        "sd": 0.8895599999999995,
+        "n": 10,
+        "provisional": false
+      },
+      "z": 0.06,
+      "signal": null
     },
     {
       "code": "rdw_sd",
@@ -966,7 +1180,10 @@
           "value": 45.5
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "rbc",
@@ -994,7 +1211,15 @@
           "value": 5.23
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": {
+        "median": 5.45,
+        "sd": 0.2725,
+        "n": 10,
+        "provisional": false
+      },
+      "z": -0.81,
+      "signal": null
     },
     {
       "code": "reticulocytes",
@@ -1022,7 +1247,10 @@
           "value": 0.06
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "reticulocytes_percent",
@@ -1050,7 +1278,10 @@
           "value": 1.12
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "reticulocytes_high_nuclear_content",
@@ -1078,7 +1309,10 @@
           "value": 0
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "reticulocytes_low_nuclear_content",
@@ -1106,7 +1340,10 @@
           "value": 93.8
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "reticulocytes_medium_nuclear_content",
@@ -1134,7 +1371,10 @@
           "value": 6.2
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "rh_blood_group",
@@ -1153,7 +1393,10 @@
         "high": null
       },
       "series": [],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "wbc",
@@ -1181,7 +1424,15 @@
           "value": 5.18
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": {
+        "median": 6.285,
+        "sd": 0.644931,
+        "n": 10,
+        "provisional": false
+      },
+      "z": -1.71,
+      "signal": null
     },
     {
       "code": "direct_bilirubin",
@@ -1205,7 +1456,10 @@
           "value": 0.22
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "ggt",
@@ -1229,7 +1483,15 @@
           "value": 15
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": {
+        "median": 16.759999999999998,
+        "sd": 3.476696999999998,
+        "n": 4,
+        "provisional": true
+      },
+      "z": -0.51,
+      "signal": null
     },
     {
       "code": "cortisol",
@@ -1253,7 +1515,15 @@
           "value": 16.29
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": {
+        "median": 16,
+        "sd": 2.81694,
+        "n": 5,
+        "provisional": false
+      },
+      "z": 0.1,
+      "signal": null
     },
     {
       "code": "dhea_s",
@@ -1281,7 +1551,10 @@
           "value": 240.3
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "estradiol",
@@ -1305,7 +1578,10 @@
           "value": 29
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "free_testosterone",
@@ -1329,7 +1605,10 @@
           "value": 8.38
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "lh",
@@ -1353,7 +1632,10 @@
           "value": 2.63
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "prolactin",
@@ -1377,7 +1659,10 @@
           "value": 8.51
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "shbg",
@@ -1401,7 +1686,10 @@
           "value": 24.2
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "testosterone_total",
@@ -1425,7 +1713,10 @@
           "value": 360.34
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "aslo",
@@ -1453,7 +1744,10 @@
           "value": 0
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "crp",
@@ -1481,7 +1775,18 @@
           "value": 0.64
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": {
+        "median": 4,
+        "sd": 4.00302,
+        "n": 9,
+        "provisional": false
+      },
+      "z": -0.84,
+      "signal": {
+        "kind": "good_news",
+        "hunchId": "41319740-bb31-48dc-a79e-e49e658f9054"
+      }
     },
     {
       "code": "esr",
@@ -1505,7 +1810,10 @@
           "value": 9
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "fibrinogen",
@@ -1533,7 +1841,10 @@
           "value": 284
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "homocysteine",
@@ -1561,7 +1872,18 @@
           "value": 9.64
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": {
+        "median": 8.605,
+        "sd": 0.5189100000000008,
+        "n": 4,
+        "provisional": true
+      },
+      "z": 1.99,
+      "signal": {
+        "kind": "cluster",
+        "hunchId": "7834db86-7e45-4723-9eba-0a6978bd7ec3"
+      }
     },
     {
       "code": "rheumatoid_factor",
@@ -1589,7 +1911,10 @@
           "value": 10
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "ferritin",
@@ -1617,7 +1942,18 @@
           "value": 79.6
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": {
+        "median": 113.065,
+        "sd": 15.485757,
+        "n": 4,
+        "provisional": true
+      },
+      "z": -2.16,
+      "signal": {
+        "kind": "cluster",
+        "hunchId": "7834db86-7e45-4723-9eba-0a6978bd7ec3"
+      }
     },
     {
       "code": "iron",
@@ -1641,7 +1977,15 @@
           "value": 109
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": {
+        "median": 112.3,
+        "sd": 13.625093999999995,
+        "n": 7,
+        "provisional": false
+      },
+      "z": -0.24,
+      "signal": null
     },
     {
       "code": "tibc",
@@ -1665,7 +2009,10 @@
           "value": 322
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "transferrin_saturation",
@@ -1689,7 +2036,10 @@
           "value": 26
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "apolipoprotein_a1",
@@ -1713,7 +2063,10 @@
           "value": 169
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "apolipoprotein_b",
@@ -1737,7 +2090,10 @@
           "value": 99
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "total_cholesterol",
@@ -1765,7 +2121,15 @@
           "value": 217
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": {
+        "median": 177.97,
+        "sd": 15.44869199999998,
+        "n": 11,
+        "provisional": false
+      },
+      "z": 2.53,
+      "signal": null
     },
     {
       "code": "hdl_cholesterol",
@@ -1793,7 +2157,15 @@
           "value": 50
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": {
+        "median": 51.345,
+        "sd": 10.667307,
+        "n": 8,
+        "provisional": false
+      },
+      "z": -0.13,
+      "signal": null
     },
     {
       "code": "ldl_cholesterol",
@@ -1825,6 +2197,17 @@
         "low": 70,
         "high": 100,
         "due": "2026-12-01"
+      },
+      "personalBand": {
+        "median": 108.225,
+        "sd": 14.588784000000004,
+        "n": 8,
+        "provisional": false
+      },
+      "z": 1.56,
+      "signal": {
+        "kind": "drift",
+        "hunchId": "51a085ab-973e-4144-9224-898b2b5efc8c"
       }
     },
     {
@@ -1849,7 +2232,10 @@
           "value": 25
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "non_hdl_cholesterol",
@@ -1877,7 +2263,15 @@
           "value": 167
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": {
+        "median": 131.4,
+        "sd": 23.187864,
+        "n": 8,
+        "provisional": false
+      },
+      "z": 1.54,
+      "signal": null
     },
     {
       "code": "total_lipids",
@@ -1901,7 +2295,15 @@
           "value": 654.2
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": {
+        "median": 575.25,
+        "sd": 47.07255,
+        "n": 5,
+        "provisional": false
+      },
+      "z": 1.68,
+      "signal": null
     },
     {
       "code": "triglycerides",
@@ -1929,7 +2331,15 @@
           "value": 106
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": {
+        "median": 89,
+        "sd": 11.96458199999999,
+        "n": 9,
+        "provisional": false
+      },
+      "z": 1.42,
+      "signal": null
     },
     {
       "code": "vldl_cholesterol",
@@ -1953,7 +2363,10 @@
           "value": 21.94
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "albumin",
@@ -1981,7 +2394,15 @@
           "value": 4.7
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": {
+        "median": 5.15,
+        "sd": 0.2950373999999997,
+        "n": 5,
+        "provisional": false
+      },
+      "z": -1.53,
+      "signal": null
     },
     {
       "code": "alp",
@@ -2005,7 +2426,10 @@
           "value": 85.33
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "alt",
@@ -2029,7 +2453,15 @@
           "value": 10
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": {
+        "median": 10.5,
+        "sd": 3.1653509999999994,
+        "n": 8,
+        "provisional": false
+      },
+      "z": -0.16,
+      "signal": null
     },
     {
       "code": "amylase",
@@ -2053,7 +2485,10 @@
           "value": 80.65
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "ast",
@@ -2077,7 +2512,15 @@
           "value": 20
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": {
+        "median": 17.759999999999998,
+        "sd": 2.075640000000003,
+        "n": 8,
+        "provisional": false
+      },
+      "z": 1.08,
+      "signal": null
     },
     {
       "code": "total_bilirubin",
@@ -2101,7 +2544,10 @@
           "value": 1.06
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "bun",
@@ -2125,7 +2571,15 @@
           "value": 32.8
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": {
+        "median": 26.990000000000002,
+        "sd": 2.572310999999999,
+        "n": 4,
+        "provisional": true
+      },
+      "z": 2.26,
+      "signal": null
     },
     {
       "code": "calcium",
@@ -2149,7 +2603,15 @@
           "value": 9.6
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": {
+        "median": 6.885000000000001,
+        "sd": 1.0674720000000009,
+        "n": 7,
+        "provisional": false
+      },
+      "z": 2.54,
+      "signal": null
     },
     {
       "code": "creatinine",
@@ -2177,7 +2639,15 @@
           "value": 0.9
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": {
+        "median": 0.98,
+        "sd": 0.05930400000000005,
+        "n": 5,
+        "provisional": false
+      },
+      "z": -1.35,
+      "signal": null
     },
     {
       "code": "globulin",
@@ -2201,7 +2671,10 @@
           "value": 1.3
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "glucose",
@@ -2229,7 +2702,15 @@
           "value": 87
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": {
+        "median": 87.05,
+        "sd": 7.487129999999995,
+        "n": 11,
+        "provisional": false
+      },
+      "z": -0.01,
+      "signal": null
     },
     {
       "code": "hba1c",
@@ -2257,7 +2738,15 @@
           "value": 5
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": {
+        "median": 5.2,
+        "sd": 0.3187589999999998,
+        "n": 8,
+        "provisional": false
+      },
+      "z": -0.63,
+      "signal": null
     },
     {
       "code": "homa_ir",
@@ -2285,7 +2774,15 @@
           "value": 1.22
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": {
+        "median": 0.895,
+        "sd": 0.25945500000000005,
+        "n": 6,
+        "provisional": false
+      },
+      "z": 1.25,
+      "signal": null
     },
     {
       "code": "insulin",
@@ -2313,7 +2810,15 @@
           "value": 5.7
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": {
+        "median": 4.45,
+        "sd": 1.1860799999999996,
+        "n": 6,
+        "provisional": false
+      },
+      "z": 1.05,
+      "signal": null
     },
     {
       "code": "magnesium",
@@ -2341,7 +2846,15 @@
           "value": 2.14
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": {
+        "median": 2.22,
+        "sd": 0.11100000000000002,
+        "n": 7,
+        "provisional": false
+      },
+      "z": -0.72,
+      "signal": null
     },
     {
       "code": "potassium",
@@ -2365,7 +2878,10 @@
           "value": 4.84
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "sodium",
@@ -2389,7 +2905,10 @@
           "value": 145.27
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "total_protein",
@@ -2413,7 +2932,15 @@
           "value": 7.9
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": {
+        "median": 8.2,
+        "sd": 0.41,
+        "n": 5,
+        "provisional": false
+      },
+      "z": -0.73,
+      "signal": null
     },
     {
       "code": "phosphorus",
@@ -2441,7 +2968,10 @@
           "value": 3.94
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "uric_acid",
@@ -2469,7 +2999,15 @@
           "value": 5.5
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": {
+        "median": 5.155,
+        "sd": 0.4744320000000004,
+        "n": 6,
+        "provisional": false
+      },
+      "z": 0.73,
+      "signal": null
     },
     {
       "code": "anti_thyroglobulin",
@@ -2493,7 +3031,10 @@
           "value": 0.02
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "free_t3",
@@ -2521,7 +3062,10 @@
           "value": 4.17
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "free_t4",
@@ -2549,7 +3093,10 @@
           "value": 1.23
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "total_t3",
@@ -2577,7 +3124,10 @@
           "value": 110
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "total_t4",
@@ -2601,7 +3151,10 @@
           "value": 8.1
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "tpo_antibodies",
@@ -2625,7 +3178,10 @@
           "value": 5
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "tsh",
@@ -2653,7 +3209,10 @@
           "value": 1.123
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "urine_ascorbic_acid",
@@ -2677,7 +3236,10 @@
           "value": 20
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "folic_acid",
@@ -2701,7 +3263,13 @@
           "value": 15.46
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": {
+        "kind": "gap",
+        "hunchId": "8a5e66c2-8e4f-4b45-818c-1e51b04dd7df"
+      }
     },
     {
       "code": "vitamin_b12",
@@ -2729,7 +3297,18 @@
           "value": 472
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": {
+        "median": 531,
+        "sd": 106.74719999999999,
+        "n": 7,
+        "provisional": false
+      },
+      "z": -0.55,
+      "signal": {
+        "kind": "cluster",
+        "hunchId": "7834db86-7e45-4723-9eba-0a6978bd7ec3"
+      }
     },
     {
       "code": "vitamin_d",
@@ -2757,7 +3336,18 @@
           "value": 32.68
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": {
+        "median": 39.965,
+        "sd": 14.959434000000002,
+        "n": 8,
+        "provisional": false
+      },
+      "z": -0.49,
+      "signal": {
+        "kind": "cluster",
+        "hunchId": "7834db86-7e45-4723-9eba-0a6978bd7ec3"
+      }
     },
     {
       "code": "zinc",
@@ -2781,7 +3371,10 @@
           "value": 1.14
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "hcv_antibodies",
@@ -2805,7 +3398,10 @@
           "value": 0.17
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "hbs_antigen",
@@ -2829,7 +3425,10 @@
           "value": 0.13
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "h_pylori_antigen_stool_qualitative",
@@ -2848,7 +3447,10 @@
         "high": null
       },
       "series": [],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "hbs_ag_screening",
@@ -2867,7 +3469,10 @@
         "high": null
       },
       "series": [],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "toxocara_igg",
@@ -2891,7 +3496,10 @@
           "value": 2
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "toxoplasma_igg",
@@ -2919,7 +3527,10 @@
           "value": 291.4
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "toxoplasma_igm",
@@ -2947,7 +3558,10 @@
           "value": 0.208
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "vdrl",
@@ -2966,7 +3580,10 @@
         "high": null
       },
       "series": [],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "specific_gravity",
@@ -2990,7 +3607,10 @@
           "value": 1.01
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "urine_glucose",
@@ -3009,7 +3629,10 @@
         "high": null
       },
       "series": [],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "urine_ph",
@@ -3033,7 +3656,10 @@
           "value": 5.5
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "urine_protein",
@@ -3052,7 +3678,10 @@
         "high": null
       },
       "series": [],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "blood_urine",
@@ -3071,7 +3700,10 @@
         "high": null
       },
       "series": [],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "urine_epithelial_cells",
@@ -3090,7 +3722,10 @@
         "high": null
       },
       "series": [],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "flat_epithelial_cells_urine",
@@ -3109,7 +3744,10 @@
         "high": null
       },
       "series": [],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "urine_ketones",
@@ -3128,7 +3766,10 @@
         "high": null
       },
       "series": [],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "red_blood_cells_urine_microscopic",
@@ -3147,7 +3788,10 @@
         "high": null
       },
       "series": [],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "urine_strip_test",
@@ -3166,7 +3810,10 @@
         "high": null
       },
       "series": [],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "urine_bilirubin",
@@ -3185,7 +3832,10 @@
         "high": null
       },
       "series": [],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "urine_leukocytes",
@@ -3204,7 +3854,10 @@
         "high": null
       },
       "series": [],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "urine_nitrites",
@@ -3223,7 +3876,10 @@
         "high": null
       },
       "series": [],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "urine_red_blood_cells",
@@ -3242,7 +3898,10 @@
         "high": null
       },
       "series": [],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "urine_specific_gravity",
@@ -3266,7 +3925,10 @@
           "value": 1.025
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     },
     {
       "code": "urine_urobilinogen",
@@ -3290,7 +3952,10 @@
           "value": 0.1
         }
       ],
-      "goal": null
+      "goal": null,
+      "personalBand": null,
+      "z": null,
+      "signal": null
     }
   ]
 }

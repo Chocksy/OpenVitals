@@ -412,6 +412,14 @@ const DRAFTS: Draft[] = [
     why: "It goes up with infection and down when the marrow is struggling.",
   },
   {
+    id: "eosinophils_abs",
+    label: "Eosinophils",
+    what: "The white cells that answer allergies and parasites, counted per microlitre.",
+    unit: "K/µL",
+    where: CBC,
+    why: "They rise with allergy, asthma, some drugs and parasites.",
+  },
+  {
     id: "platelets",
     label: "Platelets",
     what: "The cell fragments that make blood clot.",

@@ -8,6 +8,7 @@ import {
   planForeignReadings,
   planOptimalBand,
   planRangeImpact,
+  planSuffixPairs,
   flipsToRed,
   type MetricLike,
   type ReadingLike,
@@ -1178,5 +1179,32 @@ describe("planForeignReadings", () => {
         (a) => a.type === "queue",
       ),
     ).toBe(true);
+  });
+});
+
+describe("planSuffixPairs (phase 39 S3)", () => {
+  const m = (code: string, category = "hematology", needsReview = false) =>
+    ({ code, name: code, category, unit: "%", aliases: null, optimalLow: null, optimalHigh: null, sortOrder: 0, optimalSource: null, needsReview }) as Parameters<typeof planSuffixPairs>[0][number];
+
+  it("queues a _pct/_percentage pair toward the code with more readings, never merging", () => {
+    const got = planSuffixPairs(
+      [m("eosinophils_pct"), m("eosinophils_percentage"), m("eosinophils_abs"), m("wbc")],
+      new Map([["eosinophils_pct", 6], ["eosinophils_percentage", 4]]),
+    );
+    expect(got).toHaveLength(1);
+    expect(got[0]).toMatchObject({
+      type: "queue",
+      kind: "merge_metric",
+      subject: { key: "eosinophils_percentage->eosinophils_pct", metricCode: "eosinophils_percentage", targetCode: "eosinophils_pct" },
+    });
+  });
+
+  it("prefers the catalog row over a minted one, and pairs _abs with _absolute", () => {
+    const got = planSuffixPairs([m("neutrophils_abs", "other"), m("neutrophils_absolute")], new Map([["neutrophils_abs", 9]]));
+    expect(got[0]).toMatchObject({ subject: { metricCode: "neutrophils_abs", targetCode: "neutrophils_absolute" } });
+  });
+
+  it("does not ask again once the owner kept them separate", () => {
+    expect(planSuffixPairs([m("basophils_pct"), m("basophils_percentage", "hematology", true)], new Map([["basophils_pct", 7]]))).toEqual([]);
   });
 });

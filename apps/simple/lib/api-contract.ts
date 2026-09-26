@@ -10,8 +10,36 @@
  * times are `HH:MM`, numbers are numbers, every number carries its unit, and
  * every estimate carries `estimated: true`.
  */
-import { and, desc, eq } from "drizzle-orm";
-import { getDb, habitLogs, uploads } from "@/db";
+import { and, desc, eq, inArray, isNull } from "drizzle-orm";
+import {
+  getDb,
+  habitLogs,
+  readings,
+  uploads,
+  type Hunch,
+  type HunchExplanation,
+  type HunchPrediction,
+  type HunchQuestion,
+  type HunchTest,
+} from "@/db";
+import { SYSTEMS } from "@/lib/graph";
+import { loadGraph } from "@/lib/kg";
+import {
+  hunchOf,
+  hunchRows,
+  primaryOf,
+  refreshHunches,
+} from "@/lib/hunches";
+import {
+  bandOf,
+  fitOf,
+  labPoints,
+  recentSlope,
+  zOf,
+  type Band,
+  type LabPoint,
+} from "@/lib/personal";
+import { fmt, type Signal } from "@/lib/signals";
 import { getBodyDay } from "@/lib/body-data";
 import type { Status } from "@/lib/status";
 import { goalGap, inGoal, localDay } from "@/lib/daily";
@@ -100,6 +128,13 @@ export interface TodayGoal {
     levers: { name: string; delta: number; grade: string }[];
     history: { date: string; value: number }[];
   } | null;
+  /**
+   * Phase 39: least squares over the last three lab draws inside 24 months
+   * (`recentSlope`), and that line read on the goal's due date. Null with
+   * fewer than three draws, or, for `landing`, with no due date.
+   */
+  recentSlope: { perYear: number; n: number; from: string; to: string } | null;
+  landing: { date: string; value: number } | null;
 }
 
 export interface TodayBody {
@@ -166,6 +201,18 @@ export interface TodayBody {
       end: string;
     }[];
   } | null;
+  /** Phase 39: open hunches first, then unseen good news, at most 5 */
+  hunches: HunchRow[];
+  /** Phase 39: one word per system in `SYSTEMS`, for the header's Heading */
+  heading: HeadingRow[];
+  /** Phase 39: "Last draw N days ago · M of 12 systems · K open" */
+  confidence: {
+    lastDraw: string | null;
+    days: number | null;
+    measured: number;
+    total: number;
+    open: number;
+  };
 }
 
 /** `GET /api/score/days`: the score per day, for the calendar. Phase 37. */
@@ -240,6 +287,11 @@ export async function todayGoals(
       projections.find((p) => p.code === g.metricCode) ??
       null;
     const reached = inGoal(g.current, g.targetLow, g.targetHigh);
+    const points = labPoints(
+      metrics.find((m) => m.code === g.metricCode)?.rows ?? [],
+    );
+    const slope = recentSlope(points, day);
+    const at = g.due ? fitOf(points, day)?.at(g.due) : undefined;
     return {
       code: g.metricCode,
       name: g.metricName,
@@ -283,6 +335,13 @@ export async function todayGoals(
               .map((r) => ({ date: r.observedAt, value: r.value! })),
           }
         : null,
+      recentSlope: slope
+        ? { ...slope, perYear: Math.round(slope.perYear * 100) / 100 }
+        : null,
+      landing:
+        at != null && g.due
+          ? { date: g.due, value: Math.round(at * 10) / 10 }
+          : null,
     };
   });
 }
@@ -435,9 +494,12 @@ export async function todayBody(
     genes: genesLayer(genome.file ? genome.verdicts : null),
   });
 
+  const glance = await todayHunches(userId, rows, goals, day);
+
   return {
     sentence,
     goals,
+    ...glance,
     status: {
       off: counters.off,
       borderline: counters.normal,
@@ -513,6 +575,15 @@ export interface MarkersBody {
     optimal: { low: number | null; high: number | null };
     series: { date: string; value: number }[];
     goal: { low: number | null; high: number | null; due: string | null } | null;
+    /**
+     * Phase 39: the person's own band from the draws before the last
+     * (`bandOf`), named `personalBand` because `band` is the lab range above.
+     */
+    personalBand: Band | null;
+    /** where the last draw sits on `personalBand`, in spreads */
+    z: number | null;
+    /** the live hunch this marker belongs to, if any */
+    signal: { kind: Signal["kind"]; hunchId: string } | null;
   }[];
 }
 
@@ -572,9 +643,10 @@ export async function markersBody(
   userId: string,
   days = 365,
 ): Promise<MarkersBody> {
-  const [metrics, goals] = await Promise.all([
+  const [metrics, goals, live] = await Promise.all([
     getMetricRows(userId),
     getGoals(userId),
+    hunchRows(userId).then((hs) => hs.filter((h) => h.state !== "closed")),
   ]);
   const goalByCode = new Map(
     goals.filter((g) => !g.achievedAt).map((g) => [g.metricCode, g]),
@@ -596,6 +668,10 @@ export async function markersBody(
     days,
     markers: [...groups.values()].flat().map((m) => {
       const goal = goalByCode.get(m.code);
+      const points = labPoints(m.rows);
+      const personalBand = bandOf(points, { code: m.code }) ?? null;
+      const last = points[points.length - 1];
+      const hunch = live.find((h) => h.codes.includes(m.code));
       return {
         code: m.code,
         name: m.name,
@@ -612,6 +688,14 @@ export async function markersBody(
         series: seriesOf(m.points, days),
         goal: goal
           ? { low: goal.targetLow, high: goal.targetHigh, due: goal.due }
+          : null,
+        personalBand,
+        z:
+          personalBand && last
+            ? Math.round(zOf(last.value, personalBand) * 100) / 100
+            : null,
+        signal: hunch
+          ? { kind: hunch.kind as Signal["kind"], hunchId: hunch.id }
           : null,
       };
     }),
@@ -1086,5 +1170,516 @@ export async function topicBody(
       .filter((f) => isAssociation(f.studyType))
       .map(toApiFinding),
     papers: papers.map((p) => toApiPaper(p, labels)),
+  };
+}
+
+/* ── GET /api/hunches (phase 39 S7) ──────────────────────────────────── */
+
+type HunchKind = Signal["kind"];
+
+/** One hunch at a glance: a row on Today's shelf and the Blood tab. */
+export interface HunchRow {
+  id: string;
+  kind: HunchKind;
+  /** STEP, CLUSTER, DRIFT, GAP, GOOD NEWS, OUT OF BAND or APART */
+  stamp: string;
+  system: string | null;
+  /** one plain sentence from a code template: no z, no percentages */
+  line: string;
+  number: { value: number | null; unit: string | null };
+  mini: {
+    band: Band | null;
+    lab: [number | null, number | null] | null;
+    last: number | null;
+    goal: [number | null, number | null] | null;
+  };
+  action: { kind: "answer" | "book" | "got_it" | "result"; label: string };
+  state: "open" | "testing" | "closed";
+}
+
+type CaseSeries = {
+  date: string;
+  value: number;
+  file: string | null;
+  /** phase 40 (optional): the upload behind `file`, for `/blood/uploads/[id]` */
+  upload?: string | null;
+}[];
+type BandAt = { date: string; median: number; sd: number }[];
+
+/** `GET /api/hunches/[id]`: the case behind a row. */
+export interface HunchCase extends HunchRow {
+  say: string;
+  /** every lab draw of the lead marker; `file` null = imported from the old app */
+  series: CaseSeries;
+  /** the band as it stood before each draw, for the corridor and the replay */
+  bandAt: BandAt;
+  explanations: HunchExplanation[];
+  question: HunchQuestion | null;
+  answer: string | null;
+  test: HunchTest | null;
+  predictions: HunchPrediction[] | null;
+  writtenAt: string | null;
+  outcome: string | null;
+  outcomeLine: string | null;
+  rule: string[];
+  unknowns: string[];
+  firedAt: string[];
+  /** a cluster's members, one lane each; empty for every other kind */
+  markers: {
+    code: string;
+    name: string;
+    unit: string | null;
+    last: number | null;
+    band: Band | null;
+    series: CaseSeries;
+    bandAt: BandAt;
+  }[];
+}
+
+export interface HunchesBody {
+  open: HunchRow[];
+  goodNews: HunchRow[];
+  closed: HunchRow[];
+}
+
+export interface HeadingRow {
+  id: string;
+  name: string;
+  word: "toward" | "holding" | "away" | "unmeasured";
+  why: string;
+}
+
+const STAMP: Record<HunchKind, string> = {
+  step: "STEP",
+  cluster: "CLUSTER",
+  drift: "DRIFT",
+  gap: "GAP",
+  good_news: "GOOD NEWS",
+  left_band: "OUT OF BAND",
+  discordance: "APART",
+};
+
+const monthOf = (d: string) =>
+  new Date(`${d.slice(0, 10)}T00:00:00Z`).toLocaleString("en-GB", {
+    month: "short",
+    year: "numeric",
+    timeZone: "UTC",
+  });
+
+interface HunchCtx {
+  byCode: Map<string, MetricRow>;
+  points: Map<string, LabPoint[]>;
+  goals: Map<string, { low: number | null; high: number | null }>;
+}
+
+async function hunchCtx(userId: string, rows?: MetricRow[]): Promise<HunchCtx> {
+  const [metrics, goals] = await Promise.all([
+    rows ?? getMetricRows(userId),
+    getGoals(userId),
+  ]);
+  return {
+    byCode: new Map(metrics.map((m) => [m.code, m])),
+    points: new Map(metrics.map((m) => [m.code, labPoints(m.rows)])),
+    goals: new Map(
+      goals
+        .filter(
+          (g) => !g.achievedAt && (g.targetLow != null || g.targetHigh != null),
+        )
+        .map((g) => [g.metricCode, { low: g.targetLow, high: g.targetHigh }]),
+    ),
+  };
+}
+
+/** The glance sentence and the case's `say`, from the signal, in code. */
+export function wordsOf(
+  s: Pick<Signal, "kind" | "codes" | "dir" | "since" | "numbers" | "system">,
+  name: (code: string) => string,
+  unit: (code: string) => string,
+): { line: string; say: string } {
+  const n = s.numbers;
+  const c = primaryOf(s);
+  const nm = name(c);
+  const u = unit(c);
+  const up = s.dir === "up";
+  switch (s.kind) {
+    case "step":
+      return {
+        line: `${nm} moved to a ${up ? "higher" : "lower"} level in ${monthOf(s.since!)}.`,
+        say: `Your last ${n.k} draws all sit ${up ? "above" : "below"} every earlier draw. That is a new level, not one odd result.`,
+      };
+    case "drift": {
+      const rate = `${fmt(Math.abs(Number(n.perYear)))}${u} a year`;
+      const goal = n.goalLow != null || n.goalHigh != null;
+      return {
+        line: goal
+          ? `${nm} is moving away from your goal, ${up ? "up" : "down"} ${rate}.`
+          : `${nm} is ${up ? "rising" : "falling"} ${rate}.`,
+        say:
+          n.landing != null
+            ? `On the line through your last three draws it lands near ${fmt(Number(n.landing))}${u} on ${n.due}.`
+            : `The line through your last three draws points ${up ? "up" : "down"}.`,
+      };
+    }
+    case "cluster": {
+      const group =
+        s.system === "iron"
+          ? "iron and vitamin"
+          : (SYSTEMS.find((x) => x.id === s.system)?.name.toLowerCase() ??
+            String(s.system));
+      return {
+        line: `${s.codes.length} ${group} markers moved the worse way together, led by ${nm}.`,
+        say: `${s.codes.map(name).join(", ")} all sit on the worse side of their own middle on the same draw. One question covers the group.`,
+      };
+    }
+    case "gap":
+      return {
+        line: `${n.gene} ${n.call} makes ${nm} worth a check; ${n.lastSeen === "never" ? "it was never measured" : `last measured ${monthOf(String(n.lastSeen))}`}.`,
+        say: `Your genome makes this marker worth having, and your last three draws did not include it.`,
+      };
+    case "good_news":
+      return {
+        line: `${nm} is back in your usual range since ${monthOf(s.since!)}.`,
+        say: `It was ${fmt(Number(n.was))}${u} on ${n.wasDate}. The ${n.back} draws since are back inside.`,
+      };
+    case "left_band":
+      return {
+        line: `${nm} is ${up ? "above" : "below"} your usual range.`,
+        say: `The last draw sits far outside the range your own earlier draws set.`,
+      };
+    case "discordance":
+      return {
+        line: `${name(s.codes[0]!)} and ${name(s.codes[1]!)} are moving apart.`,
+        say: `The graph says these two move together; on your draws they move apart.`,
+      };
+  }
+}
+
+function actionOf(h: Hunch): HunchRow["action"] {
+  if (h.state === "closed") return { kind: "result", label: "See result" };
+  if (h.kind === "good_news") return { kind: "got_it", label: "Got it" };
+  if (h.state === "testing")
+    return { kind: "result", label: "Waiting for the result" };
+  if (h.question && !h.answer) return { kind: "answer", label: "Answer" };
+  return { kind: "book", label: "Book the test" };
+}
+
+const lastOf = (ctx: HunchCtx, code: string) => {
+  const p = ctx.points.get(code);
+  return p?.[p.length - 1];
+};
+
+function rowOf(h: Hunch, ctx: HunchCtx): HunchRow {
+  const s = h.signal as unknown as Signal;
+  const c = primaryOf(s);
+  const name = (x: string) => ctx.byCode.get(x)?.name ?? x;
+  const unitOf = (x: string) => ctx.byCode.get(x)?.unit ?? null;
+  const last = lastOf(ctx, c);
+  const goal = ctx.goals.get(c);
+  return {
+    id: h.id,
+    kind: h.kind as HunchKind,
+    stamp: STAMP[h.kind as HunchKind] ?? h.kind.toUpperCase(),
+    system: h.system,
+    line: wordsOf(s, name, (x) => (unitOf(x) ? ` ${unitOf(x)}` : "")).line,
+    number: { value: last?.value ?? null, unit: last?.unit ?? unitOf(c) },
+    mini: {
+      band: bandOf(ctx.points.get(c) ?? [], { code: c }) ?? null,
+      lab:
+        last && (last.refLow != null || last.refHigh != null)
+          ? [last.refLow, last.refHigh]
+          : null,
+      last: last?.value ?? null,
+      goal: goal ? [goal.low, goal.high] : null,
+    },
+    action: actionOf(h),
+    state: h.state as HunchRow["state"],
+  };
+}
+
+/** Every draw of one marker, and the band as it stood before each. */
+function corridorOf(
+  code: string,
+  ctx: HunchCtx,
+  files: Map<string, FileOf>,
+): { series: CaseSeries; bandAt: BandAt } {
+  const pts = ctx.points.get(code) ?? [];
+  return {
+    series: pts.map((p) => {
+      const f = files.get(`${code}|${p.date}`);
+      return {
+        date: p.date,
+        value: p.value,
+        file: f?.file ?? null,
+        upload: f?.upload ?? null,
+      };
+    }),
+    bandAt: pts.flatMap((p, i) => {
+      const b = bandOf(pts.slice(0, i + 1), { code });
+      return b ? [{ date: p.date, median: b.median, sd: b.sd }] : [];
+    }),
+  };
+}
+
+type FileOf = { file: string | null; upload: string | null };
+
+/** `readings.upload_id` to `uploads.file_name`, per code and draw day. */
+async function filesOf(userId: string, codes: string[]) {
+  const rows = await getDb()
+    .select({
+      code: readings.metricCode,
+      at: readings.observedAt,
+      file: uploads.fileName,
+      upload: uploads.id,
+    })
+    .from(readings)
+    .leftJoin(uploads, eq(uploads.id, readings.uploadId))
+    .where(
+      and(
+        eq(readings.userId, userId),
+        inArray(readings.metricCode, codes),
+        isNull(readings.source),
+      ),
+    );
+  const out = new Map<string, FileOf>();
+  for (const r of rows) {
+    const k = `${r.code}|${String(r.at).slice(0, 10)}`;
+    if (r.file || !out.has(k))
+      out.set(k, { file: r.file ?? null, upload: r.file ? String(r.upload) : null });
+  }
+  return out;
+}
+
+function caseOf(
+  h: Hunch,
+  ctx: HunchCtx,
+  files: Map<string, FileOf>,
+): HunchCase {
+  const s = h.signal as unknown as Signal;
+  const c = primaryOf(s);
+  const name = (x: string) => ctx.byCode.get(x)?.name ?? x;
+  const unit = (x: string) => {
+    const u = ctx.byCode.get(x)?.unit;
+    return u ? ` ${u}` : "";
+  };
+  const row = rowOf(h, ctx);
+  const expl = h.explanations ?? [];
+  const band = row.mini.band;
+  const unknowns = [
+    band?.provisional
+      ? `${name(c)}'s own range rests on 4 earlier draws, so it is provisional.`
+      : null,
+    !band && s.kind !== "gap"
+      ? `${name(c)} has fewer than 4 earlier draws, so there is no range of your own yet.`
+      : null,
+    s.kind === "step" || s.kind === "cluster" || s.kind === "drift"
+      ? "The rule says the level moved. It does not say why."
+      : null,
+    expl.length
+      ? "The shares come from the engine where it scores a cause and an even split elsewhere. They are not a diagnosis."
+      : null,
+    expl.some((e) => e.grade === "E")
+      ? "Explanations marked unproven are not in the knowledge graph."
+      : null,
+    h.test?.estimated
+      ? "The price is an estimate: no lab price is on file for your country."
+      : null,
+  ].filter((x): x is string => x != null);
+  return {
+    ...row,
+    say: wordsOf(s, name, unit).say,
+    ...corridorOf(c, ctx, files),
+    explanations: expl,
+    question: h.question,
+    answer: h.answer,
+    test: h.test,
+    predictions: h.predictions,
+    writtenAt: h.writtenAt?.toISOString().slice(0, 10) ?? null,
+    outcome: h.outcome,
+    outcomeLine: h.outcomeLine,
+    rule: s.rule ?? [],
+    unknowns,
+    firedAt: s.firedAt ?? [],
+    markers:
+      s.kind === "cluster"
+        ? s.codes.map((code) => ({
+            code,
+            name: name(code),
+            unit: ctx.byCode.get(code)?.unit ?? null,
+            last: lastOf(ctx, code)?.value ?? null,
+            band: bandOf(ctx.points.get(code) ?? [], { code }) ?? null,
+            ...corridorOf(code, ctx, files),
+          }))
+        : [],
+  };
+}
+
+/**
+ * Every hunch the person has, split three ways. The first call for a person
+ * with no rows runs `refreshHunches`; after that the upload path and the
+ * daily pass (`runCurator`) keep them fresh.
+ */
+// ponytail: "no rows" stands in for "never refreshed", so a person with no
+// signal pays one refresh per call; add a refreshed-at column if that shows.
+export async function hunchesBody(userId: string): Promise<HunchesBody> {
+  let hs = await hunchRows(userId);
+  if (!hs.length) {
+    await refreshHunches(userId);
+    hs = await hunchRows(userId);
+  }
+  const ctx = await hunchCtx(userId);
+  const rows = byStory(hs).map((h) => ({ h, row: rowOf(h, ctx) }));
+  return {
+    open: rows
+      .filter((r) => r.h.state !== "closed" && r.h.kind !== "good_news")
+      .map((r) => r.row),
+    goodNews: rows
+      .filter((r) => r.h.state !== "closed" && r.h.kind === "good_news")
+      .map((r) => r.row),
+    closed: rows.filter((r) => r.h.state === "closed").map((r) => r.row),
+  };
+}
+
+export async function hunchBody(
+  userId: string,
+  id: string,
+): Promise<HunchCase | null> {
+  const h = await hunchOf(userId, id);
+  if (!h) return null;
+  const [ctx, files] = await Promise.all([
+    hunchCtx(userId),
+    filesOf(userId, h.codes),
+  ]);
+  return caseOf(h, ctx, files);
+}
+
+/**
+ * The Heading word per system. Pure. A system with no lab draw inside 24
+ * months of the last one is `unmeasured`; a live adverse hunch or a goal
+ * marker moving away makes it `away`; good news or a goal moving toward
+ * makes it `toward`; everything else is `holding`.
+ */
+export function headingOf(input: {
+  systemOf: Map<string, string>;
+  lastDraw: string | null;
+  points: Map<string, { date: string }[]>;
+  hunches: { kind: string; codes: string[]; system: string | null; line: string }[];
+  goals: {
+    code: string;
+    name: string;
+    value: number | null;
+    target: { low: number | null; high: number | null };
+    recentSlope: { perYear: number } | null;
+  }[];
+}): HeadingRow[] {
+  const cutoff = input.lastDraw
+    ? new Date(
+        new Date(`${input.lastDraw}T00:00:00Z`).getTime() - 2 * 365.25 * 86_400_000,
+      )
+        .toISOString()
+        .slice(0, 10)
+    : null;
+  const inSystem = (id: string, code: string) => input.systemOf.get(code) === id;
+  const touches = (id: string, h: (typeof input.hunches)[number]) =>
+    h.system === id || h.codes.some((c) => inSystem(id, c));
+  const wayOf = (g: (typeof input.goals)[number]) => {
+    const s = g.recentSlope?.perYear;
+    if (!s || g.value == null) return null;
+    const { low, high } = g.target;
+    if (high != null && g.value > high) return s < 0 ? "toward" : "away";
+    if (low != null && g.value < low) return s > 0 ? "toward" : "away";
+    return null;
+  };
+  return SYSTEMS.map(({ id, name }) => {
+    const measured =
+      cutoff != null &&
+      [...input.points].some(
+        ([code, pts]) =>
+          inSystem(id, code) && pts.some((p) => p.date >= cutoff),
+      );
+    if (!measured)
+      return { id, name, word: "unmeasured" as const, why: "No lab draw in the last two years." };
+    const bad = input.hunches.find(
+      (h) => h.kind !== "good_news" && h.kind !== "gap" && touches(id, h),
+    );
+    if (bad) return { id, name, word: "away" as const, why: bad.line };
+    const goals = input.goals.filter((g) => inSystem(id, g.code));
+    const away = goals.find((g) => wayOf(g) === "away");
+    if (away)
+      return { id, name, word: "away" as const, why: `${away.name} is moving away from your goal.` };
+    const good = input.hunches.find(
+      (h) => h.kind === "good_news" && touches(id, h),
+    );
+    if (good) return { id, name, word: "toward" as const, why: good.line };
+    const toward = goals.find((g) => wayOf(g) === "toward");
+    if (toward)
+      return { id, name, word: "toward" as const, why: `${toward.name} is moving toward your goal.` };
+    return { id, name, word: "holding" as const, why: "Nothing moved on your own draws." };
+  });
+}
+
+/** Worth a look reads cluster, then drift, then the rest: the strongest story first. */
+const STORY = ["cluster", "drift", "step", "left_band", "discordance", "gap"];
+function byStory(hs: Hunch[]): Hunch[] {
+  const at = (k: string) => STORY.indexOf(k) + 1 || STORY.length + 1;
+  return [...hs].sort((a, b) => at(a.kind) - at(b.kind));
+}
+
+/** Today's hunch shelf, Heading and confidence line. */
+async function todayHunches(
+  userId: string,
+  rows: MetricRow[],
+  goals: TodayGoal[],
+  day: string,
+): Promise<Pick<TodayBody, "hunches" | "heading" | "confidence">> {
+  const [hs, ctx, graph] = await Promise.all([
+    hunchRows(userId),
+    hunchCtx(userId, rows),
+    loadGraph(),
+  ]);
+  const live = hs.filter((h) => h.state !== "closed");
+  const withRow = byStory(live).map((h) => ({ h, row: rowOf(h, ctx) }));
+  const adverse = withRow.filter((x) => x.h.kind !== "good_news");
+  const shelf = [
+    ...adverse,
+    ...withRow.filter((x) => x.h.kind === "good_news" && !x.h.seenAt),
+  ]
+    .slice(0, 5)
+    .map((x) => x.row);
+  const systemOf = new Map(
+    graph.nodes
+      .filter((n) => n.kind === "metric" && n.system)
+      .flatMap((n) => (n.codes ?? []).map((c) => [c, n.system!] as const)),
+  );
+  const lastDraw =
+    [...ctx.points.values()]
+      .map((p) => p[p.length - 1]?.date ?? "")
+      .reduce((a, b) => (b > a ? b : a), "") || null;
+  const heading = headingOf({
+    systemOf,
+    lastDraw,
+    points: ctx.points,
+    hunches: withRow.map((x) => ({
+      kind: x.h.kind,
+      codes: x.h.codes,
+      system: x.h.system,
+      line: x.row.line,
+    })),
+    goals,
+  });
+  return {
+    hunches: shelf,
+    heading,
+    confidence: {
+      lastDraw,
+      days: lastDraw
+        ? Math.round(
+            (Date.parse(`${day}T00:00:00Z`) - Date.parse(`${lastDraw}T00:00:00Z`)) /
+              86_400_000,
+          )
+        : null,
+      measured: heading.filter((x) => x.word !== "unmeasured").length,
+      total: heading.length,
+      open: adverse.length,
+    },
   };
 }
