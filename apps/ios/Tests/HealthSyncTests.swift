@@ -282,6 +282,18 @@ final class ResetTests: XCTestCase {
         _ = HealthSyncModel(state: state)
         XCTAssertEqual(state.anchorData(steps), Data([2]))
     }
+
+    func testSleepIsReadAgainOnceNowTheServerCountsCoveredTime() {
+        let store = MemoryStore()
+        let state = SyncState(store: store)
+        let sleep = "HKCategoryTypeIdentifierSleepAnalysis"
+        state.commit(sleep, anchor: Data([1]), sent: 1, at: Date())
+        _ = HealthSyncModel(state: state)
+        XCTAssertNil(state.anchorData(sleep))
+        state.commit(sleep, anchor: Data([2]), sent: 1, at: Date())
+        _ = HealthSyncModel(state: state)
+        XCTAssertEqual(state.anchorData(sleep), Data([2]))
+    }
 }
 
 /// A locked phone is a wait, not a red line on every type.

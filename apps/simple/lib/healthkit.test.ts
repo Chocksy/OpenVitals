@@ -259,6 +259,67 @@ describe("one day of samples", () => {
     ]);
   });
 
+  /** The Watch's night, stage by stage, as the test above spells it out. */
+  const watchNight = (sourceBundle: string): Sample[] =>
+    [
+      ["asleepCore", "2026-08-29T23:30", "2026-08-30T03:00"],
+      ["asleepDeep", "2026-08-30T03:00", "2026-08-30T04:30"],
+      ["asleepREM", "2026-08-30T04:30", "2026-08-30T06:30"],
+      ["awake", "2026-08-30T06:30", "2026-08-30T06:50"],
+    ].map(([unit, from, to]) => ({
+      type: "SleepAnalysis",
+      unit,
+      value: 1,
+      start: `${from}:00+03:00`,
+      end: `${to}:00+03:00`,
+      sourceBundle,
+    }));
+
+  it("counts a night sent by two apps once, not twice", () => {
+    // 2026-09-27: 6h 46m in Health, 13h 32m here. Every minute was counted
+    // once per app that wrote it.
+    const agg = aggregate([
+      ...watchNight("com.apple.health.watch"),
+      ...watchNight("com.example.sleepcopy"),
+    ]);
+    expect(agg.readings).toHaveLength(1);
+    expect(agg.readings[0]).toMatchObject({
+      day: "2026-08-30",
+      code: "sleep_duration",
+      value: 420,
+      samples: 6,
+    });
+    expect(agg.stages).toEqual([
+      {
+        day: "2026-08-30",
+        stages: { core: 210, deep: 90, rem: 120, awake: 20 },
+      },
+    ]);
+  });
+
+  it("gives plain asleep time only the minutes no Watch stage holds", () => {
+    const agg = aggregate([
+      ...watchNight("com.apple.health.watch"),
+      {
+        type: "SleepAnalysis",
+        unit: "asleepUnspecified",
+        value: 1,
+        start: at("2026-08-29", "23:15"),
+        end: at("2026-08-30", "06:30"),
+        sourceBundle: "com.example.sleepapp",
+      },
+    ]);
+    // 23:15 to 06:30 is 435 minutes covered; the Watch split stays, and the
+    // other app adds the quarter hour before the Watch saw sleep.
+    expect(agg.readings[0]!.value).toBe(435);
+    expect(agg.stages).toEqual([
+      {
+        day: "2026-08-30",
+        stages: { core: 210, deep: 90, rem: 120, asleep: 15, awake: 20 },
+      },
+    ]);
+  });
+
   it("drops a device artefact and says how many", () => {
     const agg = aggregate([
       sample({ type: "RestingHeartRate", value: 300, unit: "count/min" }),

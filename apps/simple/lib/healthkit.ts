@@ -561,6 +561,42 @@ export const STAGE_NAMES: Record<string, string> = {
   inbed: "inBed",
 };
 
+/** Who owns a minute two samples both claim: the deeper stage wins. */
+const STAGE_RANK = ["deep", "rem", "core", "asleep", "awake", "inBed"];
+
+interface SleepSpan {
+  from: number;
+  to: number;
+  stage: string;
+}
+
+/**
+ * Minutes per stage for one night, counting time covered rather than samples
+ * summed. The Watch and an app that copies its night both write the same
+ * minutes; Health shows them once and so does this. Each slice between two
+ * sample edges goes to the highest-ranked stage that covers it.
+ */
+function stageMinutes(spans: SleepSpan[]): Record<string, number> {
+  const edges = [...new Set(spans.flatMap((s) => [s.from, s.to]))].sort(
+    (a, b) => a - b,
+  );
+  const out: Record<string, number> = {};
+  for (let i = 1; i < edges.length; i++) {
+    const [from, to] = [edges[i - 1]!, edges[i]!];
+    const covering = spans.filter((s) => s.from <= from && s.to >= to);
+    if (!covering.length) continue;
+    const stage = covering
+      .map((s) => s.stage)
+      .sort((a, b) => STAGE_RANK.indexOf(a) - STAGE_RANK.indexOf(b))[0]!;
+    out[stage] = (out[stage] ?? 0) + (to - from) / 60000;
+  }
+  return out;
+}
+
+/** The night's sleep: the four asleep stages, never awake or in bed. */
+const asleepMinutes = (stages: Record<string, number>): number =>
+  STAGE_RANK.slice(0, 4).reduce((a, k) => a + (stages[k] ?? 0), 0);
+
 const median = (xs: number[]): number => {
   const s = [...xs].sort((a, b) => a - b);
   const mid = s.length >> 1;
@@ -645,9 +681,9 @@ export interface Aggregate {
  *
  * Pure, and the only place the arithmetic lives: the phone may send the same
  * night twice, in any order, in any unit HealthKit offers, and this comes out
- * the same. `sleepDay` puts a night on the morning it ended, sleep is summed
- * over the asleep stages only, and every other type is reduced by its own
- * `how`.
+ * the same. `sleepDay` puts a night on the morning it ended, sleep is the time
+ * the asleep stages cover (`stageMinutes`), and every other type is reduced
+ * by its own `how`.
  */
 export function aggregate(samples: Sample[]): Aggregate {
   const byKey = new Map<
@@ -656,7 +692,7 @@ export function aggregate(samples: Sample[]): Aggregate {
   >();
   /** How many samples each bundle wrote in this batch, for the day's writer. */
   const wrote = new Map<string, number>();
-  const stages = new Map<string, Record<string, number>>();
+  const nights = new Map<string, SleepSpan[]>();
   const days = new Set<string>();
   const flowDays = new Set<string>();
   let dropped = 0;
@@ -687,12 +723,14 @@ export function aggregate(samples: Sample[]): Aggregate {
       if (!(minutes > 0)) continue;
       if (isSleep) {
         const stage = STAGE_NAMES[String(s.unit ?? "").toLowerCase()] ?? "";
-        const bucket = stages.get(day) ?? {};
         // The stage is carried in `unit` because a category sample has no unit
         // of its own; an app that sends none is counted as plain asleep time.
         const name = stage || "asleep";
-        bucket[name] = Math.round((bucket[name] ?? 0) + minutes);
-        stages.set(day, bucket);
+        const from = Date.parse(s.start);
+        nights.set(day, [
+          ...(nights.get(day) ?? []),
+          { from, to: from + minutes * 60000, stage: name },
+        ]);
         if (name === "awake" || name === "inBed") continue;
       }
       const key = `${m.type}|${day}`;
@@ -720,11 +758,21 @@ export function aggregate(samples: Sample[]): Aggregate {
     byKey.set(key, slot);
   }
 
+  const stages = new Map(
+    [...nights].map(([day, spans]) => [day, stageMinutes(spans)]),
+  );
+
   const readings: DayReading[] = [];
   const daily: DayDaily[] = [];
   for (const { m, day, xs, device } of byKey.values()) {
     if (!xs.length) continue;
-    let value = Number(reduceHow(m.how, xs).toPrecision(6));
+    // Sleep is the time the asleep stages cover, not its samples added up.
+    let value = Number(
+      (m.type === "SleepAnalysis"
+        ? asleepMinutes(stages.get(day) ?? {})
+        : reduceHow(m.how, xs)
+      ).toPrecision(6),
+    );
     if (m.plausible && (value < m.plausible[0] || value > m.plausible[1])) {
       dropped += xs.length;
       continue;
@@ -759,7 +807,12 @@ export function aggregate(samples: Sample[]): Aggregate {
       (a, b) => a.day.localeCompare(b.day) || a.field.localeCompare(b.field),
     ),
     stages: [...stages.entries()]
-      .map(([day, s]) => ({ day, stages: s }))
+      .map(([day, s]) => ({
+        day,
+        stages: Object.fromEntries(
+          Object.entries(s).map(([k, v]) => [k, Math.round(v)]),
+        ),
+      }))
       .sort((a, b) => a.day.localeCompare(b.day)),
     facts,
     days: [...days].sort(),

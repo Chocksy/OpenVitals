@@ -805,6 +805,9 @@ final class HealthSyncModel: ObservableObject {
         // every day they hold on the server is too high until it is resent.
         state.rereadOnce(HK.types.filter(HK.isCumulative).map(\.identifier),
                          version: "sums1")
+        // The server now counts sleep as time covered, so a night two apps
+        // wrote is stored doubled until it is resent.
+        state.rereadOnce(["HKCategoryTypeIdentifierSleepAnalysis"], version: "sleep1")
         seenNotUsed = state.seenNotUsed
     }
 
