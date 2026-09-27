@@ -730,7 +730,9 @@ export function aggregate(samples: Sample[]): Aggregate {
       continue;
     }
     // Steps and stand hours are counts: a count with a decimal point is noise.
-    if (!m.unit) value = Math.round(value);
+    // Exercise minutes too: `exercise_min` is an integer column, and Health's
+    // daily sum can come back as 46.98.
+    if (!m.unit || m.key === "exerciseMin") value = Math.round(value);
     if (m.lands === "reading")
       readings.push({
         day,
@@ -763,8 +765,7 @@ export function aggregate(samples: Sample[]): Aggregate {
     days: [...days].sort(),
     unmapped: seenNotUsed(samples),
     dropped,
-    writer:
-      [...wrote.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] ?? null,
+    writer: [...wrote.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] ?? null,
   };
 }
 

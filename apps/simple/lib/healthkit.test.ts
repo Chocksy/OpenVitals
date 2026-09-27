@@ -174,6 +174,21 @@ describe("one day of samples", () => {
     ]);
   });
 
+  it("keeps exercise minutes whole, because the column is an integer", () => {
+    // Health's daily sum can come back as 46.98; Postgres refuses it.
+    const agg = aggregate([
+      sample({
+        type: "AppleExerciseTime",
+        value: 46.98,
+        unit: "min",
+        start: at("2026-09-26", "00:00"),
+      }),
+    ]);
+    expect(agg.daily).toEqual([
+      { day: "2026-09-26", field: "exerciseMin", value: 47 },
+    ]);
+  });
+
   it("does not care what order the phone sent them in", () => {
     const xs = [
       sample({
@@ -614,7 +629,11 @@ describe("the day's food", () => {
    * the protein POST dropped the kcal the energy POST had just written.
    */
   it("keeps kcal when protein arrives in a second Health POST", () => {
-    const health = { label: "logged in Health", source: "healthkit", estimated: false };
+    const health = {
+      label: "logged in Health",
+      source: "healthkit",
+      estimated: false,
+    };
     const capture = mergeNutrition(null, {
       label: "salmon, rice",
       source: "capture",
@@ -651,7 +670,11 @@ describe("the day's food", () => {
   /** The route builds the Health entry from what the batch aggregated. */
   it("aggregates a kcal-only batch into kcal and nothing else", () => {
     const agg = aggregate([
-      sample({ type: "HKQuantityTypeIdentifierDietaryEnergyConsumed", value: 700, unit: "kcal" }),
+      sample({
+        type: "HKQuantityTypeIdentifierDietaryEnergyConsumed",
+        value: 700,
+        unit: "kcal",
+      }),
       sample({
         type: "HKQuantityTypeIdentifierDietaryEnergyConsumed",
         value: 500,
@@ -659,7 +682,9 @@ describe("the day's food", () => {
         start: "2026-08-30T19:00:00+03:00",
       }),
     ]);
-    expect(agg.daily).toEqual([{ day: "2026-08-30", field: "kcal", value: 1200 }]);
+    expect(agg.daily).toEqual([
+      { day: "2026-08-30", field: "kcal", value: 1200 },
+    ]);
   });
 });
 
@@ -686,14 +711,20 @@ describe("who wrote it", () => {
   it("keeps the bundle the newest sample of the day named", () => {
     const agg = aggregate([
       step("2026-09-01", 58, "com.apple.health"),
-      { ...step("2026-09-01", 61, "com.fitbit.app"), start: "2026-09-01T18:00:00Z" },
+      {
+        ...step("2026-09-01", 61, "com.fitbit.app"),
+        start: "2026-09-01T18:00:00Z",
+      },
     ]);
     expect(agg.readings[0]!.device).toBe("com.fitbit.app");
   });
 
   it("reads the batch in time order, whatever order it arrived in", () => {
     const agg = aggregate([
-      { ...step("2026-09-01", 61, "com.fitbit.app"), start: "2026-09-01T18:00:00Z" },
+      {
+        ...step("2026-09-01", 61, "com.fitbit.app"),
+        start: "2026-09-01T18:00:00Z",
+      },
       step("2026-09-01", 58, "com.apple.health"),
     ]);
     expect(agg.readings[0]!.device).toBe("com.fitbit.app");

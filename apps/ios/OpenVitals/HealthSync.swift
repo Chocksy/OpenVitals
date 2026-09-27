@@ -449,6 +449,20 @@ enum HK {
         samples.filter { days.contains(day(of: $0)) }
     }
 
+    /// `window` cut into runs of at most a year, each starting at the local
+    /// midnight the last one ended on, so no day is split between two.
+    static func years(_ window: DateInterval,
+                      calendar: Calendar = .current) -> [DateInterval] {
+        var out: [DateInterval] = []
+        var start = window.start
+        while start < window.end {
+            let next = calendar.date(byAdding: .year, value: 1, to: start) ?? window.end
+            out.append(DateInterval(start: start, end: min(next, window.end)))
+            start = next
+        }
+        return out
+    }
+
     /// Whether a type is read as Apple's per-day sums rather than raw samples.
     /// Only a statistics query applies Health's source priority, so only it
     /// gives the steps Health shows instead of the iPhone's plus the Watch's.
@@ -975,10 +989,16 @@ final class HealthSyncModel: ObservableObject {
             let window = DateInterval(
                 start: Calendar.current.startOfDay(for: store.earliestPermittedSampleDate()),
                 end: now)
-            let whole = try await readSums(
-                quantity, spec: spec, unit: unit, window: window,
-                predicate: HKQuery.predicateForSamples(withStart: window.start,
-                                                       end: now, options: []))
+            // A year per query: one query over a decade of steps fails inside
+            // HealthKit with "Unable to invalidate interval: no data source
+            // available" (FB11958019); smaller ones do not.
+            var whole: [Api.Sample] = []
+            for year in HK.years(window) {
+                whole += try await readSums(
+                    quantity, spec: spec, unit: unit, window: year,
+                    predicate: HKQuery.predicateForSamples(withStart: year.start,
+                                                           end: year.end, options: []))
+            }
             progress.saw(whole)
             let out = try await post(whole)
             guard epoch == started else { throw CancellationError() }
@@ -1143,7 +1163,11 @@ final class HealthSyncModel: ObservableObject {
                     return
                 }
                 var out: [Api.Sample] = []
-                collection?.enumerateStatistics(from: window.start, to: window.end) {
+                // A second short of the end: the bucket that starts at `end` belongs
+                // to the next window, and holds only the tail of a sample that
+                // crosses midnight.
+                collection?.enumerateStatistics(
+                    from: window.start, to: window.end.addingTimeInterval(-1)) {
                     stats, _ in
                     guard let sum = stats.sumQuantity() else { return }
                     out.append(HK.sample(spec, value: sum.doubleValue(for: unit),

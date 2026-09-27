@@ -135,6 +135,21 @@ final class WholeDayTests: XCTestCase {
 
     /// Steps, energy and food go up as Health's per-day sums, because the
     /// iPhone and the Watch both write the same steps; readings do not.
+    /// A decade of steps in one statistics query fails inside HealthKit, so
+    /// history goes a year at a time, the runs touching and not overlapping.
+    func testHistoryIsReadAYearAtATime() {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(identifier: "Europe/Bucharest")!
+        let start = calendar.date(from: DateComponents(year: 2015, month: 11, day: 3))!
+        let end = calendar.date(from: DateComponents(year: 2026, month: 9, day: 27, hour: 17))!
+        let runs = HK.years(DateInterval(start: start, end: end), calendar: calendar)
+        XCTAssertEqual(runs.count, 11)
+        XCTAssertEqual(runs.first?.start, start)
+        XCTAssertEqual(runs.last?.end, end)
+        for (a, b) in zip(runs, runs.dropFirst()) { XCTAssertEqual(a.end, b.start) }
+        XCTAssertEqual(calendar.component(.hour, from: runs[5].start), 0)
+    }
+
     func testOnlyCumulativeTypesAreReadAsSums() throws {
         func spec(_ id: String) throws -> HKTypeSpec {
             try XCTUnwrap(HK.types.first { $0.identifier.hasSuffix(id) }, id)
