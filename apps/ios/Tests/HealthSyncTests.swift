@@ -269,6 +269,20 @@ final class ResetTests: XCTestCase {
     }
 }
 
+/// A locked phone is a wait, not a red line on every type.
+final class LockedPhoneTests: XCTestCase {
+    func testOnlyTheLockedStoreIsAWait() {
+        XCTAssertTrue(Retry.locked(HKError(.errorDatabaseInaccessible)))
+        // HealthKit hands it over as a plain NSError.
+        XCTAssertTrue(Retry.locked(NSError(
+            domain: HKErrorDomain,
+            code: HKError.Code.errorDatabaseInaccessible.rawValue)))
+        XCTAssertFalse(Retry.locked(HKError(.errorAuthorizationDenied)))
+        XCTAssertFalse(Retry.locked(URLError(.notConnectedToInternet)))
+        XCTAssertFalse(Retry.locked(Api.Failure(status: 500, message: "")))
+    }
+}
+
 /// Body's header reports the Health run, not only the reload.
 final class BodyHealthLineTests: XCTestCase {
     private let at = Date(timeIntervalSince1970: 1_788_246_600)

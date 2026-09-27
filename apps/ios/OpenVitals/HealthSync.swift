@@ -530,6 +530,12 @@ enum Retry {
         (error as? Api.Failure)?.status == 401
     }
 
+    /// A locked phone keeps Health shut. Nothing is wrong; every type would
+    /// fail the same way, so the run waits for the next one.
+    static func locked(_ error: Error) -> Bool {
+        (error as? HKError)?.code == .errorDatabaseInaccessible
+    }
+
     /// `work` until it stops throwing, the error is not worth another try, or
     /// the delays run out. Comes back with how many retries it took, so a
     /// resumed batch can be told from a clean one.
@@ -890,6 +896,7 @@ final class HealthSyncModel: ObservableObject {
         // server overwrites whole days); sharing `sync`'s `done` set would
         // skip the repeat.
         var stopped = false
+        var locked = false
         let recent = HK.recentDays(7)
         for spec in specs where state.anchorData(spec.identifier) == nil {
             guard let sampleType = spec.sampleType else { continue }
@@ -904,6 +911,10 @@ final class HealthSyncModel: ObservableObject {
             } catch where Retry.signedOut(error) {
                 state.fail(spec.identifier, "Sign in again.")
                 outcome.signedOut = true
+                stopped = true
+                break
+            } catch where Retry.locked(error) {
+                locked = true
                 stopped = true
                 break
             } catch {
@@ -921,6 +932,9 @@ final class HealthSyncModel: ObservableObject {
                 state.fail(spec.identifier, "Sign in again.")
                 outcome.signedOut = true
                 break
+            } catch where Retry.locked(error) {
+                locked = true
+                break
             } catch {
                 // A type that failed kept its anchor, so it is not lost: it is
                 // next in line, and the line says so.
@@ -931,7 +945,7 @@ final class HealthSyncModel: ObservableObject {
         guard epoch == started else { return outcome }
         seenNotUsed = unmapped.sorted()
         state.seenNotUsed = seenNotUsed
-        status = outcome.line
+        status = locked ? "Waiting for the phone to be unlocked." : outcome.line
         if !outcome.signedOut { await loadTotals() }
         return outcome
     }
@@ -950,6 +964,28 @@ final class HealthSyncModel: ObservableObject {
         var done = Set<String>()
         var sent = 0
         var unmapped: [String] = []
+
+        // A summed type with no anchor sends every day anyway, so it skips the
+        // raw walk: the anchor is taken first, so a sample written during the
+        // read is the next run's, then one statistics query reads every day.
+        if HK.isCumulative(spec), anchor == nil,
+           let quantity = sampleType as? HKQuantityType, let unit = spec.hkUnit,
+           let fresh = try await anchorNow(sampleType) {
+            let now = Date()
+            let window = DateInterval(
+                start: Calendar.current.startOfDay(for: store.earliestPermittedSampleDate()),
+                end: now)
+            let whole = try await readSums(
+                quantity, spec: spec, unit: unit, window: window,
+                predicate: HKQuery.predicateForSamples(withStart: window.start,
+                                                       end: now, options: []))
+            progress.saw(whole)
+            let out = try await post(whole)
+            guard epoch == started else { throw CancellationError() }
+            state.commit(spec.identifier, anchor: fresh, sent: whole.count,
+                         resumed: out.resumed, at: Date())
+            return (whole.count, out.unmapped)
+        }
 
         for _ in 0..<maxPages {
             let page = try await readNew(sampleType, spec: spec, anchor: anchor)
@@ -1028,6 +1064,29 @@ final class HealthSyncModel: ObservableObject {
                                                       requiringSecureCoding: true)
                 }
                 continuation.resume(returning: (samples, data, raw.count))
+            }
+            store.execute(query)
+        }
+    }
+
+    /// Where the store is now, without reading what came before: the query
+    /// asks only for samples from this instant on, which is next to nothing.
+    private func anchorNow(_ type: HKSampleType) async throws -> Data? {
+        try await withCheckedThrowingContinuation { continuation in
+            let query = HKAnchoredObjectQuery(
+                type: type,
+                predicate: HKQuery.predicateForSamples(withStart: Date(), end: nil,
+                                                       options: []),
+                anchor: nil, limit: HKObjectQueryNoLimit
+            ) { _, _, _, newAnchor, error in
+                if let error {
+                    continuation.resume(throwing: error)
+                    return
+                }
+                continuation.resume(returning: newAnchor.flatMap {
+                    try? NSKeyedArchiver.archivedData(withRootObject: $0,
+                                                      requiringSecureCoding: true)
+                })
             }
             store.execute(query)
         }
