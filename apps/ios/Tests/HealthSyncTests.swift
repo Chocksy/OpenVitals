@@ -133,6 +133,20 @@ final class WholeDayTests: XCTestCase {
         XCTAssertTrue(sets[0].isDisjoint(with: sets[1]))
     }
 
+    /// Steps, energy and food go up as Health's per-day sums, because the
+    /// iPhone and the Watch both write the same steps; readings do not.
+    func testOnlyCumulativeTypesAreReadAsSums() throws {
+        func spec(_ id: String) throws -> HKTypeSpec {
+            try XCTUnwrap(HK.types.first { $0.identifier.hasSuffix(id) }, id)
+        }
+        for id in ["StepCount", "ActiveEnergyBurned", "DietaryProtein"] {
+            XCTAssertTrue(HK.isCumulative(try spec(id)), id)
+        }
+        for id in ["RestingHeartRate", "BodyMass", "SleepAnalysis", HK.workoutType] {
+            XCTAssertFalse(HK.isCumulative(try spec(id)), id)
+        }
+    }
+
     func testTheSampleFormatterIsBuiltOncePerZone() {
         let zone = TimeZone(secondsFromGMT: 3 * 3600)!
         XCTAssertTrue(HK.formatter(zone) === HK.formatter(zone))
@@ -238,6 +252,20 @@ final class ResetTests: XCTestCase {
         XCTAssertEqual(model.state.seenNotUsed, [])
         XCTAssertEqual(model.seenNotUsed, [])
         XCTAssertEqual(model.status, "")
+    }
+
+    func testSummedTypesAreReadAgainOnceAfterTheSwitch() {
+        let store = MemoryStore()
+        let state = SyncState(store: store)
+        let steps = "HKQuantityTypeIdentifierStepCount"
+        let rhr = "HKQuantityTypeIdentifierRestingHeartRate"
+        for id in [steps, rhr] { state.commit(id, anchor: Data([1]), sent: 1, at: Date()) }
+        _ = HealthSyncModel(state: state)
+        XCTAssertNil(state.anchorData(steps))
+        XCTAssertNotNil(state.anchorData(rhr))
+        state.commit(steps, anchor: Data([2]), sent: 1, at: Date())
+        _ = HealthSyncModel(state: state)
+        XCTAssertEqual(state.anchorData(steps), Data([2]))
     }
 }
 

@@ -5,8 +5,11 @@
 /// enum of pure functions so the tests can exercise it without a live store.
 /// `HealthSyncModel` is the live half: anchors, observers, background delivery.
 ///
-/// The phone sends raw samples and no opinions. Every total, median and night
-/// is computed by `lib/healthkit.ts` on the server.
+/// The phone sends raw samples and no opinions, with one exception: a
+/// cumulative type (steps, energy, distance, food) goes up as Apple's own
+/// de-duplicated sum per day, because the iPhone and the Watch both count the
+/// same walk and raw samples from the two overlap. Every other total, median
+/// and night is computed by `lib/healthkit.ts` on the server.
 import Foundation
 import HealthKit
 import UIKit
@@ -445,6 +448,13 @@ enum HK {
     static func wholeDays(_ samples: [Api.Sample], in days: Set<String>) -> [Api.Sample] {
         samples.filter { days.contains(day(of: $0)) }
     }
+
+    /// Whether a type is read as Apple's per-day sums rather than raw samples.
+    /// Only a statistics query applies Health's source priority, so only it
+    /// gives the steps Health shows instead of the iPhone's plus the Watch's.
+    static func isCumulative(_ spec: HKTypeSpec) -> Bool {
+        (spec.sampleType as? HKQuantityType)?.aggregationStyle == .cumulative
+    }
 }
 
 // MARK: - one line while it runs
@@ -712,6 +722,15 @@ final class SyncState {
         store.set(nil, forKey: anchorKey(id))
     }
 
+    /// Drop these anchors once per `version`, so a change in how a type is
+    /// read resends its whole history without anyone tapping Resync.
+    func rereadOnce(_ ids: [String], version: String) {
+        let key = "hk.reread.\(version)"
+        guard store.data(forKey: key) == nil else { return }
+        for id in ids { clearAnchor(id) }
+        store.set(Data([1]), forKey: key)
+    }
+
     var seenNotUsed: [String] {
         get {
             guard let d = store.data(forKey: "hk.seenNotUsed") else { return [] }
@@ -762,6 +781,10 @@ final class HealthSyncModel: ObservableObject {
 
     init(state: SyncState = SyncState()) {
         self.state = state
+        // Summed types used to go up raw, iPhone and Watch added together, so
+        // every day they hold on the server is too high until it is resent.
+        state.rereadOnce(HK.types.filter(HK.isCumulative).map(\.identifier),
+                         version: "sums1")
         seenNotUsed = state.seenNotUsed
     }
 
@@ -1010,7 +1033,8 @@ final class HealthSyncModel: ObservableObject {
         }
     }
 
-    /// Every sample of these local days, whatever the anchor has seen.
+    /// Every sample of these local days, whatever the anchor has seen. A
+    /// cumulative type comes back as one de-duplicated sum per day instead.
     func readDays(_ days: Set<String>, type: HKSampleType,
                   spec: HKTypeSpec) async throws -> [Api.Sample] {
         var out: [Api.Sample] = []
@@ -1018,6 +1042,12 @@ final class HealthSyncModel: ObservableObject {
             guard let window = HK.window(range) else { continue }
             let predicate = HKQuery.predicateForSamples(
                 withStart: window.start, end: window.end, options: [])
+            if HK.isCumulative(spec), let quantity = type as? HKQuantityType,
+               let unit = spec.hkUnit {
+                out += try await readSums(quantity, spec: spec, unit: unit,
+                                          window: window, predicate: predicate)
+                continue
+            }
             out += try await withCheckedThrowingContinuation { continuation in
                 let query = HKSampleQuery(
                     sampleType: type, predicate: predicate,
@@ -1035,6 +1065,36 @@ final class HealthSyncModel: ObservableObject {
             }
         }
         return HK.wholeDays(out, in: days)
+    }
+
+    /// One sample per local day: the sum Health shows, with overlapping
+    /// sources resolved by its priority. No source, because it has several.
+    private func readSums(_ type: HKQuantityType, spec: HKTypeSpec, unit: HKUnit,
+                          window: DateInterval,
+                          predicate: NSPredicate) async throws -> [Api.Sample] {
+        try await withCheckedThrowingContinuation { continuation in
+            let query = HKStatisticsCollectionQuery(
+                quantityType: type, quantitySamplePredicate: predicate,
+                options: .cumulativeSum,
+                anchorDate: Calendar.current.startOfDay(for: window.start),
+                intervalComponents: DateComponents(day: 1))
+            query.initialResultsHandler = { _, collection, error in
+                if let error {
+                    continuation.resume(throwing: error)
+                    return
+                }
+                var out: [Api.Sample] = []
+                collection?.enumerateStatistics(from: window.start, to: window.end) {
+                    stats, _ in
+                    guard let sum = stats.sumQuantity() else { return }
+                    out.append(HK.sample(spec, value: sum.doubleValue(for: unit),
+                                         start: stats.startDate, end: stats.endDate,
+                                         source: nil))
+                }
+                continuation.resume(returning: out)
+            }
+            store.execute(query)
+        }
     }
 
     // MARK: - without opening the app
