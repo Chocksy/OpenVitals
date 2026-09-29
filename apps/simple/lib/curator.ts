@@ -38,7 +38,7 @@ import {
   toAge,
   toSex,
 } from "./coverage";
-import { model, stripCodeFences } from "./extract";
+import { jsonObjectIn, model } from "./extract";
 import { rereadPosts } from "./compose";
 import { inGoal, localDay } from "./daily";
 import { planRawVerify, rawVerifyScope } from "./raw-verify";
@@ -668,6 +668,10 @@ export function applyPatch(r: ReadingLike, patch: Partial<ReadingLike>) {
  * LLM checks (3 + 5)
  * ------------------------------------------------------------------ */
 
+// ponytail: per process. Uploads run in the one web container; a second
+// replica needs a row claimed up front instead.
+const caseRunning = new Set<string>();
+
 const hasKey = () => Boolean(process.env.OPENROUTER_API_KEY);
 
 // ponytail: one batched call each, and at most this many metrics per run. The
@@ -677,7 +681,7 @@ const LLM_BATCH = 25;
 async function askJson<T>(system: string, prompt: string): Promise<T | null> {
   try {
     const { text } = await generateText({ model: model(), system, prompt });
-    return JSON.parse(stripCodeFences(text)) as T;
+    return JSON.parse(jsonObjectIn(text)) as T;
   } catch (e) {
     console.error("[curator] LLM step failed:", e);
     return null;
@@ -1482,14 +1486,19 @@ export async function runCurator(
 
     // Phase 41C: a new draw is a new case. At most once a day per user, under
     // `CASE_BUDGET_USD`, before the hunches so they read what it promoted.
-    if (trigger === "upload")
+    // The run row lands at the end, so three PDFs uploaded together all saw
+    // "due" and paid for three runs; `caseRunning` holds the others back.
+    if (trigger === "upload" && !caseRunning.has(userId)) {
+      caseRunning.add(userId);
       await import("./cases")
         .then(async (c) => {
           if (!(await c.caseRunDue(userId))) return;
           const r = await c.researchCase(userId);
           if (r.failed) console.error(`[curator] case research: ${r.failed}`);
         })
-        .catch((e) => console.error("[curator] case research failed:", e));
+        .catch((e) => console.error("[curator] case research failed:", e))
+        .finally(() => caseRunning.delete(userId));
+    }
 
     // Phase 39: the hunches read the readings this run just settled. After an
     // upload and in the daily pass; a failure never fails the run.

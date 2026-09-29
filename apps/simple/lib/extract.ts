@@ -208,6 +208,15 @@ export function stripCodeFences(text: string): string {
     .trim();
 }
 
+/** The JSON object in a reply that may wrap it in prose ("Ionized calcium is
+ *  ... {"matches":[]}"): first `{` to last `}`. */
+export function jsonObjectIn(text: string): string {
+  const t = stripCodeFences(text);
+  const a = t.indexOf("{");
+  const b = t.lastIndexOf("}");
+  return a >= 0 && b > a ? t.slice(a, b + 1) : t;
+}
+
 export function slugify(s: string): string {
   return (
     s

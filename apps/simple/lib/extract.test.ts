@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from "vitest";
 import {
   stripCodeFences,
+  jsonObjectIn,
   transformAiResponse,
   metricCatalogPrompt,
   slugify,
@@ -54,6 +55,13 @@ describe("stripCodeFences", () => {
 
   it("trims surrounding whitespace", () => {
     expect(stripCodeFences('  \n {"results":[]} \n  ')).toBe('{"results":[]}');
+  });
+});
+
+describe("jsonObjectIn", () => {
+  it("finds the object behind prose and fences", () => {
+    expect(jsonObjectIn('Ionized calcium is the same.\n```json\n{"matches":[]}\n```')).toBe('{"matches":[]}');
+    expect(jsonObjectIn('{"a":{"b":1}}')).toBe('{"a":{"b":1}}');
   });
 });
 
