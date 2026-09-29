@@ -1109,6 +1109,23 @@ extension Api {
             let specialty: String
         }
 
+        /// Phase 42D: what the last case research moved here. `from` and
+        /// `to` are percents; `labels` name the `dois`, in the same order.
+        struct Research: Decodable, Equatable {
+            struct Move: Decodable, Equatable {
+                let conditionId: String
+                let name: String
+                let from: Double
+                let to: Double
+                let dois: [String]
+                let labels: [String]
+            }
+
+            let at: String
+            let papers: Int
+            let moves: [Move]
+        }
+
         struct Question: Decodable, Equatable {
             struct Chip: Decodable, Equatable, Identifiable {
                 let id: String
@@ -1171,6 +1188,7 @@ extension Api {
         var markers: [Lane] = []
         var differential: Differential?
         var bestRead: BestRead?
+        var research: Research?
 
         var id: String { row.id }
 
@@ -1180,7 +1198,7 @@ extension Api {
         enum CodingKeys: String, CodingKey {
             case say, series, bandAt, explanations, question, answer, test,
                  predictions, writtenAt, outcome, outcomeLine, rule, unknowns,
-                 firedAt, markers, differential, bestRead
+                 firedAt, markers, differential, bestRead, research
         }
 
         init(from decoder: Decoder) throws {
@@ -1203,6 +1221,7 @@ extension Api {
             markers = try c.decodeIfPresent([Lane].self, forKey: .markers) ?? []
             differential = try c.decodeIfPresent(Differential.self, forKey: .differential)
             bestRead = try c.decodeIfPresent(BestRead.self, forKey: .bestRead)
+            research = try c.decodeIfPresent(Research.self, forKey: .research)
         }
 
         /// `CHIP_LR` in `lib/hunches.ts`: an answered chip multiplies the

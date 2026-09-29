@@ -71,17 +71,40 @@ final class HunchTests: XCTestCase {
         XCTAssertEqual(sharePct(12), "12%")
     }
 
+    /// Phase 42B: up to ten options; four show and the rest fold behind a row.
+    func testOurReadFoldsAfterFour() {
+        let ids = Array(1...7)
+        XCTAssertEqual(OurRead.visible(ids, expanded: false), [1, 2, 3, 4])
+        XCTAssertEqual(OurRead.visible(ids, expanded: true), ids)
+        XCTAssertEqual(OurRead.visible([1, 2], expanded: false), [1, 2])
+    }
+
+    /// Phase 42D: the research block's two sentences, built from the numbers.
+    func testTheResearchLineIsCode() throws {
+        let c = try decode("hunch", as: Api.HunchCase.self)
+        let r = try XCTUnwrap(c.research)
+        let line = OurRead.researchLine(r)
+        XCTAssertEqual(String(line.characters),
+                       "New research, 29 Sep: Annibale 2001 moved Atrophic gastritis from 12 % to 29 %.")
+        XCTAssertEqual(line.runs.compactMap(\.link).map(\.absoluteString),
+                       ["https://doi.org/10.1016/s0002-9343(01)00883-x"])
+        let quiet = Api.HunchCase.Research(at: "2026-09-29", papers: 12, moves: [])
+        XCTAssertEqual(String(OurRead.researchLine(quiet).characters),
+                       "Checked 12 new papers on 29 Sep. Nothing moved.")
+    }
+
     /// A case from an older server: only the row. Everything past it has a
     /// default.
     func testAThinCaseStillDecodes() throws {
         var row = try json("hunch")
         for key in ["say", "series", "bandAt", "explanations", "question", "answer", "test",
                     "predictions", "writtenAt", "outcome", "outcomeLine", "rule", "unknowns",
-                    "firedAt", "markers", "differential", "bestRead"] { row[key] = nil }
+                    "firedAt", "markers", "differential", "bestRead", "research"] { row[key] = nil }
         let c = try decode(row, as: Api.HunchCase.self)
         XCTAssertEqual(c.row.line, try decode("hunch", as: Api.HunchCase.self).row.line)
         XCTAssertTrue(c.explanations.isEmpty && c.series.isEmpty && c.markers.isEmpty)
         XCTAssertNil(c.differential)
+        XCTAssertNil(c.research)
     }
 
     func testTodayCarriesThePhase39Fields() throws {

@@ -275,6 +275,42 @@ describe("the hunch board (40b)", () => {
     expect(html).toContain('class="orig-legend"');
   });
 
+  it("folds every option after the fourth behind N more (42B)", () => {
+    const d = c.differential!;
+    const options = Array.from({ length: 7 }, (_, i) => ({
+      ...d.options[0]!,
+      id: `opt${i}`,
+    }));
+    const html = renderToStaticMarkup(
+      <CaseView c={{ ...c, differential: { ...d, options } }} onCase={() => {}} />,
+    );
+    expect(html.match(/data-option="/g)).toHaveLength(7);
+    const fold = html.slice(html.indexOf('class="ro-more"'));
+    expect(fold).toContain("<summary>3 more</summary>");
+    expect(fold.match(/data-option="/g)).toHaveLength(3);
+  });
+
+  it("says what new research moved, above the options, in code (42D)", () => {
+    const text = (html: string) =>
+      html.match(/class="ro-research">(.*?)<\/p>/)![1]!.replace(/<[^>]+>/g, "");
+    const html = renderToStaticMarkup(<CaseView c={c} onCase={() => {}} />);
+    expect(html.indexOf('class="ro-research"')).toBeLessThan(html.indexOf("data-option="));
+    expect(text(html)).toBe(
+      "New research, 29 Sep: Annibale 2001 moved Atrophic gastritis from 12 % to 29 %.",
+    );
+    expect(html).toContain('href="https://doi.org/10.1016/s0002-9343(01)00883-x"');
+    const quiet = renderToStaticMarkup(
+      <CaseView
+        c={{ ...c, research: { at: "2026-09-29", papers: 12, moves: [] } }}
+        onCase={() => {}}
+      />,
+    );
+    expect(text(quiet)).toBe("Checked 12 new papers on 29 Sep. Nothing moved.");
+    expect(
+      renderToStaticMarkup(<CaseView c={{ ...c, research: null }} onCase={() => {}} />),
+    ).not.toContain("ro-research");
+  });
+
   it("marks origins with glyphs the basis glyphs do not use (41G)", () => {
     const html = renderToStaticMarkup(<CaseView c={c} onCase={() => {}} />);
     expect(Object.values(ORIGIN_GLYPH)).toEqual(["¶", "◆", "~", "✎"]);

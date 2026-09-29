@@ -24,10 +24,12 @@ import {
   type Basis,
   type ReportAction,
 } from "@/db";
+import { buildModelInput } from "./coverage";
 import { explainKey } from "./explain";
 import { catalogFor } from "./hkb";
+import { TREATMENT_TARGETS, treatedWith } from "./hypotheses";
 import { metricCodesOf } from "./ledger";
-import { latestReport } from "./report";
+import { failedTreatment, latestReport, type FailedTreatment } from "./report";
 import { aimLine, norm } from "./plan-line";
 
 /** One thing to do, from whichever source had it, with its label. */
@@ -41,8 +43,12 @@ export interface PlanLine {
    */
   id: string;
   title: string;
-  /** `plan` is this person's own report; `papers` is `hkb_interventions`. */
-  source: "plan" | "papers";
+  /**
+   * `plan` is this person's own report; `papers` is `hkb_interventions`;
+   * `note` is phase 42A's one line where a failed treatment was dropped,
+   * which has nothing to adopt.
+   */
+  source: "plan" | "papers" | "note";
   /** index into `report.body.actions`, so "Add" can adopt it */
   index?: number;
   /** `hkb_interventions.id`, so "Add" can adopt the claim */
@@ -173,7 +179,58 @@ export interface PickOptions {
   limit?: number;
   /** null: no condition was named, so every plan action is a candidate */
   anyAction?: boolean;
+  /** Phase 42A: treatments that ran and did not move their marker */
+  failed?: FailedTreatment[];
+  /** Phase 42A: the routes of the treatments running today, per marker */
+  active?: { code: string; routes: string[] }[];
+  /** titles the person said "Not for me" to (`dismissed_actions`) */
+  dismissed?: string[];
 }
+
+/** Words that make an action parenteral; no such word reads as oral. */
+const IV_WORDS =
+  /\b(iv|intravenous|infusion|perfuzie|injection|injectable|intramuscular)\b|\bi\.v\.|carboxymaltose|ferinject|venofer/i;
+
+/** Does this action's text give the treatment aimed at `code` on one of `routes`? */
+const gives = (t: { code: string; routes: string[] }, text: string) =>
+  TREATMENT_TARGETS.some((x) => x.code === t.code && x.words.test(text)) &&
+  (t.routes.includes("any") ||
+    t.routes.includes(IV_WORDS.test(text) ? "iv" : "oral"));
+
+const monthOf = (day: string) =>
+  new Date(`${day}T00:00:00Z`).toLocaleString("en-US", {
+    month: "short",
+    year: "numeric",
+    timeZone: "UTC",
+  });
+
+/**
+ * "Oral iron did not raise ferritin (Sep 2024 to Sep 2026). The next step is
+ * finding the cause." Built from the stored treatment and nothing else.
+ */
+export const failedLine = (f: FailedTreatment): PlanLine => {
+  const how = f.routes
+    .filter((r) => r !== "any")
+    .map((r) => (r === "iv" ? "IV" : r))
+    .join(" and ");
+  const what = how ? `${how} ${f.what}` : f.what;
+  const dir = TREATMENT_TARGETS.find((t) => t.code === f.code)?.dir;
+  const span = f.to
+    ? `${monthOf(f.from)} to ${monthOf(f.to)}`
+    : `since ${monthOf(f.from)}`;
+  const title = `${what[0]!.toUpperCase()}${what.slice(1)} did not ${dir === "down" ? "lower" : "raise"} ${explainKey(f.code).toLowerCase()} (${span}). The next step is finding the cause.`;
+  return {
+    id: `note:${f.code}`,
+    title,
+    source: "note",
+    dose: null,
+    basis: "science",
+    label: "",
+    why: "the treatment dates you gave and your draws while on it",
+    target: null,
+    aim: null,
+  };
+};
 
 /**
  * The list, in the one order everything prints it.
@@ -191,12 +248,29 @@ export function pickActions({
   reportId = null,
   limit = 3,
   anyAction = false,
+  failed = [],
+  active = [],
+  dismissed = [],
 }: PickOptions): PlanLine[] {
+  // Phase 42A: a treatment that failed on a route, or runs today, is not a
+  // thing to do. Tests are exempt ("Iron saturation" matches the iron words).
+  const gone = new Set(dismissed.map(norm));
+  let dropped: FailedTreatment | undefined;
+  const keep = (title: string, dose: string | null, kind?: ActionKind) => {
+    if (gone.has(norm(title))) return false;
+    if (kind === "test") return true;
+    const text = `${title} ${dose ?? ""}`;
+    const f = failed.find((t) => gives(t, text));
+    if (f) dropped ??= f;
+    return !f && !active.some((t) => gives(t, text));
+  };
+
   const mine = actions
     .map((action, index) => ({ action, index }))
     .filter(
       ({ action }) =>
-        anyAction || action.targets.some((t) => codes.includes(t.code)),
+        (anyAction || action.targets.some((t) => codes.includes(t.code))) &&
+        keep(action.title, doseOf(action), action.kind),
     )
     .sort(
       (a, b) =>
@@ -219,7 +293,8 @@ export function pickActions({
     }));
 
   const seen = new Set(mine.map((p) => norm(p.title)));
-  const papers = [...interventions]
+  const papers = interventions
+    .filter((r) => keep(r.name, r.dose))
     .sort(
       (a, b) =>
         GRADE_ORDER.indexOf(a.grade) - GRADE_ORDER.indexOf(b.grade) ||
@@ -253,7 +328,8 @@ export function pickActions({
       };
     });
 
-  return [...mine, ...papers].slice(0, limit);
+  const lines = [...mine, ...papers].slice(0, limit);
+  return dropped ? [failedLine(dropped), ...lines] : lines;
 }
 
 /**
@@ -345,9 +421,10 @@ export async function actionsForAll(
   const out: Record<string, PlanLine[]> = {};
   if (!conditionIds.length) return out;
 
-  const [report, catalog, rows] = await Promise.all([
+  const [report, catalog, input, rows] = await Promise.all([
     latestReport(userId),
     catalogFor(userId),
+    buildModelInput(userId),
     getDb()
       .select()
       .from(hkbInterventions)
@@ -360,15 +437,28 @@ export async function actionsForAll(
   ]);
   const actions = report?.body.actions ?? [];
   const specs = new Map(catalog.map((h) => [h.id, h]));
+  const dismissed = input.profile.dismissed_actions;
 
   for (const id of conditionIds) {
     const spec = specs.get(id);
+    const codes = spec ? metricCodesOf(spec) : [];
+    const treated = codes.filter((c) =>
+      TREATMENT_TARGETS.some((t) => t.code === c),
+    );
     out[id] = pickActions({
-      codes: spec ? metricCodesOf(spec) : [],
+      codes,
       actions,
       interventions: rows.filter((r) => r.conditionId === id).map(toLine),
       reportId: report?.id ?? null,
       limit,
+      failed: treated
+        .map((c) => failedTreatment(input, c))
+        .filter((f) => f != null),
+      active: treated.flatMap((code) => {
+        const routes = treatedWith(input, code);
+        return routes ? [{ code, routes: routes.split(", ") }] : [];
+      }),
+      dismissed: Array.isArray(dismissed) ? dismissed.map(String) : [],
     });
   }
   return out;

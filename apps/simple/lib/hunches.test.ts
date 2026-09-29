@@ -1,7 +1,14 @@
 import { describe, expect, it } from "vitest";
 import type { HunchExplanation } from "@/db";
+import { CATALOG } from "./hkb-catalog";
+import { scoreHypotheses } from "./hypotheses";
+import type { Signal } from "./signals";
 import {
+  askFirst,
   causeSignals,
+  checksOf,
+  mergeCauses,
+  otherOf,
   causeTest,
   causesFrom,
   causesOfCondition,
@@ -86,11 +93,13 @@ describe("predictions and the outcome", () => {
   const test = priceTest("folic_acid", TESTS, null, "Folate");
   const preds = predictionsOf(expl, test, "Folate", "ng/mL")!;
 
-  it("writes one prediction per explanation, the rest predict normal", () => {
+  it("writes one prediction per explanation; the rest are not settled by it", () => {
     expect(preds.map((p) => [p.explanationId, p.check.op, p.check.value])).toEqual([
       ["folate", "<", 4], ["coeliac", ">", 4], ["diet", ">", 4],
     ]);
-    expect(preds[0]!.text).toBe("If folate: Folate under 4 ng/mL.");
+    expect(preds[0]!.text).toBe("Folate under 4 ng/mL.");
+    expect(preds[1]!.text).toBe("Not settled by Folate; ttg_iga over 10 would.");
+    expect(preds[2]!.text).toBe("Not settled by Folate.");
   });
 
   it("one match confirms, several narrow, none rules out", () => {
@@ -345,5 +354,165 @@ describe("differentialOf", () => {
   it("drops a test once it is measured", () => {
     const d = differentialOf("x", beliefs, catalog, { known: new Set(["ifab"]) })!;
     expect(d.options[0]!.test).toBeNull();
+  });
+});
+
+describe("42B: a longer differential", () => {
+  type H = import("./hypotheses").Hypothesis;
+  const h = (id: string, p: number): H => ({
+    id,
+    name: id.toUpperCase(),
+    summary: "",
+    priors: {
+      base: 0.05,
+      modifiers: [
+        { when: { hypothesis: "x", above: 0.5 }, times: 2, why: `cause of x`, share: p, grade: "B", source: `Paper ${id}` },
+      ],
+    },
+    evidence: [],
+    discriminators: [],
+    lenses: {},
+    management: "",
+  });
+  const ids = "abcdefghijkl".split("");
+  const catalog: H[] = [{ ...h("x", 0), priors: { base: 0.1, modifiers: [] } }, ...ids.map((id) => h(id, 0.05))];
+  const beliefs = Object.fromEntries([
+    ["x", { p: 0.9 }],
+    ...ids.map((id, i) => [id, { p: 0.9, given: { "hypothesis:x": i < 9 ? 0.06 : 0.005 } }]),
+  ]);
+
+  it("lists up to ten causes and folds anything under 1 % into other", () => {
+    const d = differentialOf("x", beliefs, catalog)!;
+    expect(d.options.map((o) => o.id)).toEqual(ids.slice(0, 9));
+    expect(d.options.every((o) => o.share >= 0.01)).toBe(true);
+    expect(d.other).toBeCloseTo(1 - 9 * 0.06, 3);
+  });
+
+  it("asks the symptom of an option no test settles, unless it is answered", () => {
+    const d = {
+      of: "x", name: "X", p: 0.9, other: 0.3, splitBy: null,
+      options: [
+        { id: "hmb", name: "HMB", p: 0.5, belief: 0.5, share: 0.5, basis: "share" as const, source: "", grade: "B" as const, origin: "catalog" as const, test: null },
+        { id: "ag", name: "AG", p: 0.2, belief: 0.2, share: 0.2, basis: "share" as const, source: "", grade: "B" as const, origin: "catalog" as const, test: { name: "PCA", codes: ["pca"] } },
+      ],
+    };
+    const evidence: EvidenceRow[] = [
+      { conditionId: "hmb", conditionName: "HMB", featureId: "fact:sym_heavy_periods", conditionOn: { equals: "Yes" }, lrPos: 4.3, grade: "B", source: "" },
+    ];
+    expect(askFirst(d, { evidence, facts: {} })).toEqual([{ label: "Heavy periods", favours: ["hmb"] }]);
+    expect(askFirst(d, { evidence, facts: { sym_heavy_periods: "No" } })).toEqual([]);
+  });
+
+  it("lists heavy periods for a woman of 35 with iron deficiency, and not for a man", () => {
+    const score = (sex: "female" | "male") =>
+      Object.fromEntries(
+        scoreHypotheses(
+          { today: "2026-09-29", sex, age: 35, profile: {}, latest: { ferritin: { value: 8, date: "2026-09-01" } }, derived: {} } as never,
+          { catalog: CATALOG },
+        ).map((r) => [r.id, { p: r.score, given: r.mixture ? { [r.mixture.given]: r.mixture.pGiven } : undefined }]),
+      );
+    const d = differentialOf("iron_deficiency", score("female"), CATALOG)!;
+    const hmb = d.options.find((o) => o.id === "heavy_menstrual_bleeding");
+    expect(hmb!.share).toBeGreaterThan(0.05);
+    expect(hmb!.source).toMatch(/67\.4%/);
+    expect(d.other).toBeGreaterThanOrEqual(MIN_OTHER - 1e-9);
+    const him = differentialOf("iron_deficiency", score("male"), CATALOG);
+    expect(him?.options.some((o) => o.id === "heavy_menstrual_bleeding") ?? false).toBe(false);
+  });
+});
+
+describe("42C: one case per problem", () => {
+  const sig = (key: string, kind: Signal["kind"], codes: string[], numbers: Signal["numbers"] = {}): Signal => ({
+    key, kind, codes, system: null, dir: null, since: null, numbers, rule: [], why: null, firedAt: [],
+  });
+  const row = (conditionId: string, code: string): EvidenceRow => ({
+    conditionId, conditionName: conditionId, featureId: `metric:${code}`, conditionOn: { below: 30 }, lrPos: 5, grade: "A", source: "",
+  });
+  const evidence = [row("iron_deficiency", "ferritin"), row("iron_deficiency", "tsat"), row("iron_deficiency", "hemoglobin")];
+
+  it("the cause absorbs a cluster or chronic whose markers it reads, not one it does not", () => {
+    const { raised, merged } = mergeCauses(
+      [
+        sig("cluster:iron", "cluster", ["ferritin", "tsat"]),
+        sig("chronic:ferritin", "chronic", ["ferritin"]),
+        sig("step:ldl", "step", ["ldl"]),
+        sig("gap:ferritin", "gap", ["ferritin"]),
+        sig("cause:iron_deficiency", "cause", ["ferritin"], { conditionId: "iron_deficiency" }),
+      ],
+      evidence,
+    );
+    expect(raised.map((s) => s.key)).toEqual(["step:ldl", "gap:ferritin", "cause:iron_deficiency"]);
+    expect([...merged]).toEqual([
+      ["cluster:iron", "cause:iron_deficiency"],
+      ["chronic:ferritin", "cause:iron_deficiency"],
+    ]);
+    const cause = raised.find((s) => s.kind === "cause")!;
+    expect(cause.codes).toEqual(["ferritin", "tsat"]);
+    expect(cause.numbers.absorbed).toBe("cluster:iron,chronic:ferritin");
+  });
+
+  it("merges nothing without a cause signal", () => {
+    const input = [sig("cluster:iron", "cluster", ["ferritin"])];
+    expect(mergeCauses(input, evidence).raised).toBe(input);
+  });
+
+  it("skips a check whose condition is under 1 %, and the checks it owns", () => {
+    const rows: EvidenceRow[] = [
+      { conditionId: "coeliac_disease", conditionName: "C", featureId: "metric:ttg_iga", conditionOn: { above: 10 }, lrPos: 30, grade: "A", source: "" },
+      { conditionId: "gi_loss", conditionName: "G", featureId: "metric:ttg_iga", conditionOn: { above: 10 }, lrPos: 8, grade: "B", source: "" },
+      { conditionId: "gi_loss", conditionName: "G", featureId: "metric:parietal_cell_antibodies", conditionOn: { above: 0.5 }, lrPos: 6, grade: "B", source: "" },
+    ];
+    expect(checksOf(rows).get("gi_loss")?.code).toBe("ttg_iga");
+    const low = checksOf(rows, { coeliac_disease: { p: 0.004 }, gi_loss: { p: 0.3 } });
+    expect(low.has("coeliac_disease")).toBe(false);
+    expect(low.get("gi_loss")?.code).toBe("parietal_cell_antibodies");
+  });
+
+  it("never orders a test whose markers belong to a condition under 1 %", () => {
+    const rows: EvidenceRow[] = [
+      { conditionId: "coeliac_disease", conditionName: "C", featureId: "metric:ttg_iga", conditionOn: { above: 10 }, lrPos: 30, grade: "A", source: "" },
+      { conditionId: "gi_loss", conditionName: "G", featureId: "metric:pca", conditionOn: { above: 0.5 }, lrPos: 6, grade: "B", source: "" },
+    ];
+    const person = {
+      tests: [
+        { id: "ttg", name: "tTG-IgA", featureIds: ["ttg_iga"], cost: 1, costByCountry: null, lrPos: 20 },
+        { id: "pca", name: "PCA", featureIds: ["pca"], cost: 1, costByCountry: null, lrPos: 5 },
+      ],
+      known: new Set<string>(),
+      country: null,
+      conditionTests: { gi_loss: ["ttg", "pca"] },
+      evidence: rows,
+    };
+    const gi = [{ ...ex("gi_loss", null, "gi_loss"), weight: 1 }];
+    expect(causeTest(gi, { ...person, beliefs: { coeliac_disease: { p: 0.2, state: "possible" } } })?.name).toBe("tTG-IgA");
+    expect(causeTest(gi, { ...person, beliefs: { coeliac_disease: { p: 0.004, state: "ruled_out" } } })?.name).toBe("PCA");
+  });
+
+  it("a cluster or chronic hunch keeps at least MIN_OTHER for none of these", () => {
+    expect(otherOf("cluster")).toBe(MIN_OTHER);
+    expect(otherOf("step")).toBe(0);
+    const w = weightsOf([ex("a"), ex("b")], null, null, otherOf("chronic"));
+    expect(w.reduce((s, e) => s + e.weight, 0)).toBeCloseTo(1 - MIN_OTHER, 3);
+    const small = weightsOf([ex("a", null, "p"), ex("b", null, "q")], { p: { p: 0.2 }, q: { p: 0.1 } }, null, MIN_OTHER);
+    expect(small.map((e) => e.weight)).toEqual([0.2, 0.1]);
+  });
+
+  it("says what settles an explanation the test does not", () => {
+    const expl = [
+      ex("coeliac", { code: "ttg_iga", op: ">", value: 10 }),
+      ex("ag", { code: "pca", op: ">", value: 0.5 }),
+      ex("hmb", null, "hmb"),
+    ];
+    const t = priceTest("ttg_iga", TESTS, null, "tTG-IgA");
+    const preds = predictionsOf(expl, t, "tTG-IgA", "U/mL", {
+      nameOf: (c) => (c === "pca" ? "Parietal cell antibodies" : c),
+      testOf: (id) => (id === "hmb" ? "the heavy-periods question" : null),
+    })!;
+    expect(preds.map((p) => p.text)).toEqual([
+      "tTG-IgA over 10 U/mL.",
+      "Not settled by tTG-IgA; Parietal cell antibodies over 0.50 would.",
+      "Not settled by tTG-IgA; the heavy-periods question would.",
+    ]);
+    expect(preds.every((p) => !/^If /.test(p.text))).toBe(true);
   });
 });

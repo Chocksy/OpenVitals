@@ -4,7 +4,13 @@ import { historyOf } from "./derived";
 import { normalizeName } from "./merge-metrics";
 import {
   bestReadOf,
+  caseSeeds,
   CAUSE_DESIGNS,
+  dailyCaseWhy,
+  movesOf,
+  paperLabel,
+  revisionSummary,
+  type CaseProposal,
   caseOf,
   causeQueries,
   caseQuery,
@@ -36,6 +42,7 @@ import {
   type Hypothesis,
   type HypothesisResult,
 } from "./hypotheses";
+import { changeOf } from "./ledger";
 import { EpmcUnavailable, type Paper } from "./research";
 import type { Signal } from "./signals";
 
@@ -1431,5 +1438,177 @@ describe("reading cycles", () => {
       },
     ] as never);
     expect([...needs.get("c")!].sort()).toEqual(["x", "y", "z"]);
+  });
+});
+
+describe("42D: new papers change beliefs", () => {
+  const due = { dayDue: true, weekDue: true, open: true, seeds: [] };
+
+  it("reads the case again once a week when something is open", () => {
+    expect(dailyCaseWhy(due)).toBe("weekly");
+    expect(dailyCaseWhy({ ...due, weekDue: false })).toBeNull();
+    expect(dailyCaseWhy({ ...due, open: false })).toBeNull();
+  });
+
+  it("runs at once on a watched paper, past the week but never twice a day", () => {
+    const seeded = { ...due, weekDue: false, seeds: ["10.1/new"] };
+    expect(dailyCaseWhy(seeded)).toBe("watch");
+    expect(dailyCaseWhy({ ...seeded, open: false })).toBe("watch");
+    expect(dailyCaseWhy({ ...seeded, dayDue: false })).toBeNull();
+    expect(dailyCaseWhy({ ...due, dayDue: false })).toBeNull();
+  });
+
+  it("seeds only graded DOIs on an option of an open differential", () => {
+    const open = [
+      {
+        signal: {
+          differential: {
+            options: [{ id: "atrophic_gastritis" }, { id: "coeliac_disease" }],
+          },
+        },
+      },
+      { signal: {} },
+    ];
+    expect(
+      caseSeeds(open, [
+        { conditionId: "atrophic_gastritis", externalId: "10.1/a" },
+        { conditionId: "hashimoto", externalId: "10.1/b" },
+        { conditionId: "coeliac_disease", externalId: "pmid-only title" },
+        { conditionId: "coeliac_disease", externalId: "10.1/a" },
+      ]),
+    ).toEqual(["10.1/a"]);
+    expect(caseSeeds([{ signal: {} }], [
+      { conditionId: "atrophic_gastritis", externalId: "10.1/a" },
+    ])).toEqual([]);
+  });
+
+  it("reads the seeded papers first", async () => {
+    const seed = { ...paper, doi: "10.1/seed", title: "Seed" };
+    const read: string[] = [];
+    await runCase(
+      summary,
+      {
+        ask: async () => ({ queries: [], costUsd: 0 }),
+        search: async () => [paper, { ...seed }],
+        read: async (batch) => {
+          read.push(...batch.map((p) => p.doi!));
+          return { items: [], costUsd: 0 };
+        },
+      },
+      { budgetUsd: 1, conditions: [], features: [], seeds: [seed] },
+    );
+    // the cause track found both; the seed leads and is read once
+    expect(read[0]).toBe("10.1/seed");
+    expect(read.filter((d) => d === "10.1/seed")).toHaveLength(1);
+  });
+
+  const proposal = (over: Partial<CaseProposal>): CaseProposal => ({
+    kind: "evidence",
+    origin: "paper",
+    conditionId: "atrophic_gastritis",
+    conditionName: "Atrophic gastritis",
+    featureId: "metric:parietal_cell_antibodies",
+    conditionOn: null,
+    lrPos: 8,
+    lrNeg: null,
+    grade: "B",
+    design: "cohort",
+    n: 300,
+    doi: "10.1016/s0002-9343(01)00883-x",
+    quote: "",
+    source: "Annibale B 2001 Am J Med; doi:10.1016/s0002-9343(01)00883-x",
+    paper: null,
+    decision: "accepted",
+    reason: "",
+    ring2: false,
+    ...over,
+  });
+  const h = (id: string, score: number) => ({ id, name: id, score });
+
+  it("keeps moves of two points or more, from the engine, with their papers", () => {
+    const moves = movesOf(
+      [h("atrophic_gastritis", 0.12), h("hashimoto", 0.5), h("coeliac_disease", 0.27)],
+      [h("atrophic_gastritis", 0.29), h("hashimoto", 0.515), h("coeliac_disease", 0.29)],
+      [proposal({})],
+    );
+    expect(moves.map((m) => m.conditionId)).toEqual([
+      "atrophic_gastritis",
+      "coeliac_disease",
+    ]);
+    expect(moves[0]).toEqual({
+      conditionId: "atrophic_gastritis",
+      name: "atrophic_gastritis",
+      from: 0.12,
+      to: 0.29,
+      dois: ["10.1016/s0002-9343(01)00883-x"],
+      labels: ["Annibale 2001"],
+    });
+    // coeliac moved through another condition's rule: the run's papers
+    expect(moves[1]!.dois).toEqual(["10.1016/s0002-9343(01)00883-x"]);
+  });
+
+  it("moves nothing when the run wrote no scoring rule", () => {
+    const before = [h("atrophic_gastritis", 0.12)];
+    const after = [h("atrophic_gastritis", 0.29)];
+    expect(movesOf(before, after, [])).toEqual([]);
+    expect(movesOf(before, after, [proposal({ decision: "review" })])).toEqual([]);
+    expect(movesOf(before, after, [proposal({ grade: "D" })])).toEqual([]);
+  });
+
+  it("labels a paper by its first author and year, else by its DOI", () => {
+    expect(paperLabel("Rubio-Tapia A 2013 Am J Gastroenterol; doi:10.1/x", "10.1/x")).toBe(
+      "Rubio-Tapia 2013",
+    );
+    expect(paperLabel("anonymous 2025 J; doi:10.1/y", "10.1/y")).toBe("10.1/y");
+    expect(paperLabel(null, "10.1/z")).toBe("10.1/z");
+  });
+
+  it("names the moved condition and the DOI, so the ledger says knowledge", () => {
+    const [move] = movesOf(
+      [h("atrophic_gastritis", 0.12)],
+      [h("atrophic_gastritis", 0.29)],
+      [proposal({})],
+    );
+    const summaryLine = revisionSummary([move!], {
+      rules: 1,
+      modifiers: 0,
+      promoted: 0,
+    });
+    expect(summaryLine).toBe(
+      "atrophic_gastritis: doi:10.1016/s0002-9343(01)00883-x; case research for one user: 1 rules, 0 modifiers, 0 promoted",
+    );
+    const c = changeOf(
+      belief({ id: "atrophic_gastritis", name: "Atrophic gastritis", score: 0.29 }),
+      { p: 0.12, state: "unlikely" },
+      undefined,
+      false,
+      [{ summary: summaryLine }],
+      1,
+      2,
+    );
+    expect(c.kind).toBe("knowledge");
+    expect(c.line).toBe(
+      "Atrophic gastritis 12 % → 29 %: doi:10.1016/s0002-9343(01)00883-x; case research for one user: 1 rules, 0 modifiers, 0 promoted, your data did not change.",
+    );
+    // two moved: the ledger strips the id list for either of them
+    const two = revisionSummary(
+      [move!, { ...move!, conditionId: "coeliac_disease", name: "Coeliac" }],
+      { rules: 1, modifiers: 0, promoted: 0 },
+    );
+    const second = changeOf(
+      belief({ id: "coeliac_disease", name: "Coeliac", score: 0.3 }),
+      { p: 0.1, state: "unlikely" },
+      undefined,
+      false,
+      [{ summary: two }],
+      1,
+      2,
+    );
+    expect(second.kind).toBe("knowledge");
+    expect(second.line).toMatch(/^Coeliac 10 % → 30 %: doi:10\.1016/);
+    // a run that moved nothing keeps the old line
+    expect(revisionSummary([], { rules: 2, modifiers: 1, promoted: 0 })).toBe(
+      "case research for one user: 2 rules, 1 modifiers, 0 promoted",
+    );
   });
 });

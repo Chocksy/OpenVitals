@@ -93,7 +93,7 @@ struct HunchCaseView: View {
             Text(c.say).hType(14, .regular, Hy.ink2)
                 .fixedSize(horizontal: false, vertical: true)
         }
-        if let d = c.differential { OurRead(d: d, specialty: c.bestRead?.specialty) }
+        if let d = c.differential { OurRead(d: d, specialty: c.bestRead?.specialty, research: c.research) }
         chart(c)
     }
 
@@ -210,6 +210,17 @@ func sharePct(_ pct: Double) -> String {
 struct OurRead: View {
     let d: Api.HunchCase.Differential
     var specialty: String?
+    /// Phase 42D: what the last case research moved, above the options.
+    var research: Api.HunchCase.Research?
+
+    /// Phase 42B: the first four options show; the rest wait behind "N more".
+    static let shown = 4
+    @State private var expanded = false
+    @Environment(\.accessibilityReduceMotion) private var reduce
+
+    static func visible<T>(_ options: [T], expanded: Bool) -> [T] {
+        expanded ? options : Array(options.prefix(shown))
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: DesignTokens.s8) {
@@ -218,8 +229,31 @@ struct OurRead: View {
                 Spacer()
                 Text("a differential, not a diagnosis").hType(11, .medium, Hy.ink2)
             }
-            ForEach(Array(d.options.enumerated()), id: \.element.id) { i, o in
+            if let research {
+                Text(Self.researchLine(research)).hType(12, .regular, Hy.ink)
+                    .tint(Hy.plum3)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            ForEach(Array(Self.visible(d.options, expanded: expanded).enumerated()), id: \.element.id) { i, o in
                 option(o, first: i == 0)
+                Rectangle().fill(Hy.line).frame(height: 1)
+            }
+            if d.options.count > Self.shown {
+                Button {
+                    Motion.animate(Curve.ease.animation(0.3), reduce: reduce) { expanded.toggle() }
+                } label: {
+                    HStack {
+                        Text(expanded ? "Show fewer" : "\(d.options.count - Self.shown) more")
+                            .hType(13, .semibold, Hy.ink)
+                        Spacer()
+                        Image(systemName: expanded ? "chevron.up" : "chevron.down")
+                            .font(.system(size: 12, weight: .semibold))
+                            .foregroundStyle(Hy.ink3)
+                    }
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .accessibilityHint(expanded ? "Hides the smaller causes" : "Shows every cause on the list")
                 Rectangle().fill(Hy.line).frame(height: 1)
             }
             HStack {
@@ -239,6 +273,36 @@ struct OurRead: View {
         .grained(Hy.card, radius: 21, shadow: 0.3)
         .accessibilityElement(children: .contain)
         .accessibilityLabel("Our read")
+    }
+
+    /// "2026-09-29" → "29 Sep".
+    static func dayMonth(_ iso: String) -> String {
+        let months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+        let p = iso.split(separator: "-").compactMap { Int($0) }
+        guard p.count == 3, (1...12).contains(p[1]) else { return iso }
+        return "\(p[2]) \(months[p[1] - 1])"
+    }
+
+    /// `ResearchNote` on the web, built from the numbers: "New research,
+    /// 29 Sep: Annibale 2001 moved Atrophic gastritis from 12 % to 29 %.",
+    /// each paper a link, or "Checked 12 new papers on 29 Sep. Nothing moved."
+    static func researchLine(_ r: Api.HunchCase.Research) -> AttributedString {
+        let day = dayMonth(r.at)
+        guard !r.moves.isEmpty else {
+            return AttributedString("Checked \(Design.plural(r.papers, "new paper", "new papers")) on \(day). Nothing moved.")
+        }
+        var out = AttributedString("New research, \(day): ")
+        for (i, m) in r.moves.enumerated() {
+            if i > 0 { out += AttributedString("; ") }
+            for (k, doi) in m.dois.enumerated() {
+                if k > 0 { out += AttributedString(k == m.dois.count - 1 ? " and " : ", ") }
+                var label = AttributedString(k < m.labels.count ? m.labels[k] : doi)
+                label.link = URL(string: "https://doi.org/\(doi)")
+                out += label
+            }
+            out += AttributedString(" moved \(m.name) from \(Design.number(m.from)) % to \(Design.number(m.to)) %")
+        }
+        return out + AttributedString(".")
     }
 
     private func option(_ o: Api.HunchCase.Differential.Option, first: Bool) -> some View {

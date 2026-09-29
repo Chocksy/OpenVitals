@@ -303,6 +303,42 @@ describe("planInsert", () => {
     });
     expect(planInsert([], [a, { ...a }], []).insert).toHaveLength(1);
   });
+
+  it("dedupes inside one batch, keeping the row with a range (42E)", () => {
+    const bare = row({ refLow: null, refHigh: null });
+    const plan = planInsert([bare, row({ value: 8.200001 })], [], []);
+    expect(plan.insert).toHaveLength(1);
+    expect(plan.insert[0]).toMatchObject({ refLow: 10, refHigh: 291 });
+    expect(plan.skipped).toBe(1);
+  });
+
+  it("reads a value within 1e-4 as the same number (42E)", () => {
+    // 8.2 stored through a `real` column comes back as 8.199999809265137
+    const plan = planInsert(
+      [row()],
+      [],
+      [stored("a", { value: 8.199999809265137 })],
+    );
+    expect(plan.insert).toHaveLength(0);
+    expect(
+      planInsert([row({ value: 8.21 })], [], [stored("a")]).insert,
+    ).toHaveLength(1);
+  });
+
+  it("gives a range-less stored twin the fresh row's range (42E)", () => {
+    const plan = planInsert(
+      [row()],
+      [],
+      [stored("a", { refLow: null, refHigh: null })],
+    );
+    expect(plan.insert).toHaveLength(0);
+    expect(plan.ranges).toEqual([{ id: "a", refLow: 10, refHigh: 291 }]);
+    // a twin that already has one is left alone
+    expect(
+      planInsert([row()], [], [stored("a", { refLow: 13, refHigh: 150 })])
+        .ranges,
+    ).toEqual([]);
+  });
 });
 
 describe("sameReport", () => {
@@ -375,6 +411,19 @@ describe("planSupersede", () => {
       ],
       [row(), row({ metricCode: "estrone", value: 16.3 })],
     );
-    expect(plan).toEqual({ drop: ["ferritin"], move: ["selenium"] });
+    expect(plan).toEqual({
+      drop: ["ferritin"],
+      move: ["selenium"],
+      ranges: [],
+    });
+  });
+
+  it("keeps the older row's range when the newer one has none (42E)", () => {
+    const plan = planSupersede(
+      [stored("ferritin", { refLow: 10, refHigh: 291 })],
+      [row({ refLow: null, refHigh: null })],
+    );
+    expect(plan.ranges).toEqual([{ index: 0, refLow: 10, refHigh: 291 }]);
+    expect(planSupersede([stored("ferritin")], [row()]).ranges).toEqual([]);
   });
 });

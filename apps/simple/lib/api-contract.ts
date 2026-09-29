@@ -14,6 +14,7 @@ import { and, desc, eq, inArray, isNull } from "drizzle-orm";
 import {
   getDb,
   habitLogs,
+  hkbImportRuns,
   readings,
   uploads,
   type Hunch,
@@ -31,7 +32,7 @@ import {
   refreshHunches,
   type Differential,
 } from "@/lib/hunches";
-import { specialtyOf } from "@/lib/cases";
+import { specialtyOf, type CaseMove } from "@/lib/cases";
 import { catalogFor } from "@/lib/hkb";
 import type { DocMeta } from "@/db";
 import {
@@ -1236,8 +1237,9 @@ export interface HunchSource {
 }
 
 /**
- * Phase 41E "Our read": a `cause:` hunch's differential, up to three
- * options, what nobody on the list explains, and the test that splits them.
+ * Phase 41E "Our read": a `cause:` hunch's differential, up to ten options
+ * (42B; the apps fold all but four), what nobody on the list explains, and
+ * the test that splits them.
  * Percents are whole numbers (one decimal under 1), shares of the open cause.
  */
 export interface HunchDifferential {
@@ -1252,6 +1254,24 @@ export interface HunchDifferential {
   }[];
   otherPct: number;
   splitTest: string | null;
+}
+
+/**
+ * Phase 42D: what the last case research did to this case. `at` is the day
+ * it ran, `papers` how many it read; each move is a belief of two points or
+ * more, percents as in the differential, with the papers behind it.
+ */
+export interface HunchResearch {
+  at: string;
+  papers: number;
+  moves: {
+    conditionId: string;
+    name: string;
+    from: number;
+    to: number;
+    dois: string[];
+    labels: string[];
+  }[];
 }
 
 /** `GET /api/hunches/[id]`: the case behind a row. */
@@ -1276,6 +1296,8 @@ export interface HunchCase extends HunchRow {
   differential: HunchDifferential | null;
   /** Phase 41E: who confirms the top option ("See: gastroenterologist") */
   bestRead: { specialty: string } | null;
+  /** Phase 42D: the latest case run that moved an option here, else the latest run */
+  research: HunchResearch | null;
   /** a cluster's members, one lane each; empty for every other kind */
   markers: {
     code: string;
@@ -1573,6 +1595,32 @@ export function differentialBody(
 }
 
 /**
+ * The run to show on a case (42D): the newest that moved one of its options,
+ * else the newest, which then says it looked and nothing moved. Runs newest
+ * first. Pure.
+ */
+export function researchOf(
+  runs: { ranAt: Date | null; rows: Record<string, unknown> | null }[],
+  optionIds: string[],
+): HunchResearch | null {
+  const mine = (r: (typeof runs)[number]) =>
+    ((r.rows?.moves as CaseMove[] | undefined) ?? []).filter((m) =>
+      optionIds.includes(m.conditionId),
+    );
+  const run = runs.find((r) => mine(r).length) ?? runs[0];
+  if (!run?.ranAt) return null;
+  return {
+    at: run.ranAt.toISOString().slice(0, 10),
+    papers: Number(run.rows?.papers ?? 0),
+    moves: mine(run).map((m) => ({
+      ...m,
+      from: pctOf(m.from),
+      to: pctOf(m.to),
+    })),
+  };
+}
+
+/**
  * The card's shares when a differential stands: an explanation of a listed
  * option carries that option's share, and one the list does not name carries
  * 0 (it sits in "other"). The card and Our read then say the same thing.
@@ -1596,6 +1644,7 @@ function caseOf(
   ctx: HunchCtx,
   files: Map<string, FileOf>,
   catalog?: { id: string; management: string }[],
+  runs: Parameters<typeof researchOf>[0] = [],
 ): HunchCase {
   const s = h.signal as unknown as Signal;
   const c = primaryOf(s);
@@ -1658,8 +1707,14 @@ function caseOf(
             ),
           }
         : null,
+    research: diff
+      ? researchOf(
+          runs,
+          diff.options.map((o) => o.id),
+        )
+      : null,
     markers:
-      s.kind === "cluster"
+      s.kind === "cluster" || (s.kind === "cause" && s.numbers?.absorbed)
         ? s.codes.map((code) => ({
             code,
             name: name(code),
@@ -1713,12 +1768,26 @@ export async function hunchBody(
         signal: { ...stored.signal, differential: opts.differential },
       }
     : stored;
-  const [ctx, files, catalog] = await Promise.all([
+  const [ctx, files, catalog, runs] = await Promise.all([
     hunchCtx(userId),
     filesOf(userId, h.codes),
     h.kind === "cause" ? catalogFor(userId) : undefined,
+    h.kind === "cause"
+      ? getDb()
+          .select({ ranAt: hkbImportRuns.ranAt, rows: hkbImportRuns.rows })
+          .from(hkbImportRuns)
+          .where(
+            and(
+              eq(hkbImportRuns.script, "case-run"),
+              // a replay's `asOf` runs are not this person's news
+              eq(hkbImportRuns.notes, `${userId}:now`),
+            ),
+          )
+          .orderBy(desc(hkbImportRuns.ranAt))
+          .limit(30)
+      : [],
   ]);
-  return caseOf(h, ctx, files, catalog);
+  return caseOf(h, ctx, files, catalog, runs);
 }
 
 /**
@@ -1813,9 +1882,21 @@ export function headingOf(input: {
   });
 }
 
-/** Worth a look reads cluster, then drift, then the rest: the strongest story first. */
-const STORY = ["cluster", "drift", "step", "left_band", "discordance", "gap"];
-function byStory(hs: Hunch[]): Hunch[] {
+/**
+ * Worth a look reads the open cause first (it holds the story of every marker
+ * it absorbed, phase 42C), then cluster, chronic, drift and the rest.
+ */
+export const STORY = [
+  "cause",
+  "cluster",
+  "chronic",
+  "drift",
+  "step",
+  "left_band",
+  "discordance",
+  "gap",
+];
+export function byStory(hs: Hunch[]): Hunch[] {
   const at = (k: string) => STORY.indexOf(k) + 1 || STORY.length + 1;
   return [...hs].sort((a, b) => at(a.kind) - at(b.kind));
 }

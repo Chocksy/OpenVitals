@@ -15,7 +15,9 @@
  *  3. unresolved legacy `flagged_extractions` whose metric, unit and value
  *     resolve cleanly are imported; the rest are listed with the reason;
  *  4. rows with no upload are linked to the one upload of that user and day;
- *  5. exact duplicates (metric, day, value) go, keeping the row with an upload;
+ *  5. duplicates (metric, day, value to 4 decimals) go, keeping the row with
+ *     an upload, then the one with a lab range; a range only the dropped row
+ *     had is copied onto the kept one first (phase 42E);
  *  6. `uploads.readings_count` is recounted where it drifted.
  *
  * Reads `flagged_extractions` and `import_jobs`, never writes them.
@@ -368,26 +370,44 @@ async function repairUser(
       );
   }
 
-  /* 5. exact duplicates: keep the row with an upload, the newest upload first */
+  /* 5. duplicates: keep the row with an upload, then with a range, the newest
+        upload first. `real` stores 8.2 as 8.1999998, so the value is rounded. */
   const dupes = (
     await c.query(
-      `select id, metric_code, observed_at::text as day, value, value_text, rn
+      `select id, keep, metric_code, observed_at::text as day, value, value_text,
+              ref_low, ref_high
          from (select r.id, r.metric_code, r.observed_at, r.value, r.value_text,
-                      row_number() over (
-                        partition by r.metric_code, r.observed_at, r.value,
-                                     case when r.value is null then r.value_text end
-                        order by (r.upload_id is null), u.created_at desc nulls last,
-                                 r.created_at, r.id) as rn
+                      r.ref_low, r.ref_high,
+                      first_value(r.id) over w as keep,
+                      row_number() over w as rn
                  from readings r left join uploads u on u.id = r.upload_id
-                where r.user_id = $1 and r.source is null) x
+                where r.user_id = $1 and r.source is null
+               window w as (
+                        partition by r.metric_code, r.observed_at,
+                                     round(r.value::numeric, 4),
+                                     case when r.value is null then r.value_text end
+                        order by (r.upload_id is null),
+                                 (r.ref_low is null and r.ref_high is null),
+                                 u.created_at desc nulls last, r.created_at, r.id)) x
         where rn > 1 order by observed_at, metric_code`,
       [userId],
     )
   ).rows;
   for (const d of dupes) {
+    if (d.ref_low != null || d.ref_high != null) {
+      const { rowCount } = await c.query(
+        `update readings set ref_low = $2, ref_high = $3
+          where id = $1 and ref_low is null and ref_high is null`,
+        [d.keep, d.ref_low, d.ref_high],
+      );
+      if (rowCount)
+        change(
+          `${d.day} ${d.metric_code}: range ${d.ref_low ?? ""}..${d.ref_high ?? ""} copied onto ${d.keep}`,
+        );
+    }
     await dropReading(c, d.id);
     change(
-      `${d.day} ${d.metric_code} ${d.value ?? d.value_text}: exact duplicate removed`,
+      `${d.day} ${d.metric_code} ${d.value ?? d.value_text}: duplicate ${d.id} removed, kept ${d.keep}`,
     );
   }
 

@@ -975,6 +975,20 @@ enum Fixtures {
   "bestRead": {
     "specialty": "gastroenterologist"
   },
+  "research": {
+    "at": "2026-09-29",
+    "papers": 12,
+    "moves": [
+      {
+        "conditionId": "atrophic_gastritis",
+        "name": "Atrophic gastritis",
+        "from": 12,
+        "to": 29,
+        "dois": ["10.1016/s0002-9343(01)00883-x"],
+        "labels": ["Annibale 2001"]
+      }
+    ]
+  },
   "markers": []
 }
 """#,

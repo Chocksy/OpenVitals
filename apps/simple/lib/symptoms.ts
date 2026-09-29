@@ -151,6 +151,19 @@ export const SYMPTOMS: Symptom[] = [
       "Rotterdam 2004 consensus: clinical hyperandrogenism (hirsutism or persistent acne) counts the same as a biochemical one, and it is the commonest presenting feature.",
   },
   {
+    // Phase 42B: `sym_cycle`'s options are exclusive, and "Irregular" and
+    // "Heavy" can both be true. This one asks heavy on its own.
+    key: "sym_heavy_periods",
+    item: 9,
+    name: "Heavy periods",
+    question:
+      "Do your periods last more than 7 days, soak a pad or tampon every 1 to 2 hours, or pass clots bigger than a coin?",
+    options: ["No", "Yes", "Not sure"],
+    appliesTo: { sex: "female", maxAge: 55 },
+    source:
+      "NICE NG88 (heavy menstrual bleeding): flooding, clots and duration are the history features the definition rests on.",
+  },
+  {
     key: "sym_joint",
     item: 10,
     name: "Acute painful joint",

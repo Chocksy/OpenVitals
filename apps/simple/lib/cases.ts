@@ -14,9 +14,10 @@
  * is how the blind replay (41D) scores "what the engine would have believed".
  */
 import { createHash } from "node:crypto";
-import { and, eq, inArray, or, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, ne, or, sql } from "drizzle-orm";
 import { z } from "zod";
 import {
+  beliefSnapshots,
   getDb,
   hkbConditionTests,
   hkbConditions,
@@ -27,6 +28,7 @@ import {
   hkbPriors,
   hkbTerms,
   hkbTests,
+  hunches,
   metrics,
   type HunchExplanation,
 } from "@/db";
@@ -56,7 +58,8 @@ import {
   type Hypothesis,
   type HypothesisResult,
 } from "./hypotheses";
-import { dueAgain, recordRun } from "./hkb-import";
+import { dueAgain, lastRun, recordRun } from "./hkb-import";
+import type { Differential } from "./hunches";
 import {
   epmc,
   EpmcUnavailable,
@@ -1856,8 +1859,11 @@ export async function runCase(
     budgetUsd: number;
     conditions: CaseCondition[];
     features: Feature[];
+    /** papers read first: the ones the watch filed for this case (42D) */
+    seeds?: Paper[];
   },
 ): Promise<CaseRun> {
+  const seeds = ctx.seeds ?? [];
   const run: CaseRun = {
     queries: [],
     rejectedQueries: [],
@@ -1880,7 +1886,8 @@ export async function runCase(
     query: r.query.query,
     why: r.why,
   }));
-  if (!run.queries.length && !run.causeQueries.length) return run;
+  if (!run.queries.length && !run.causeQueries.length && !seeds.length)
+    return run;
 
   let main: Paper[];
   try {
@@ -1899,11 +1906,11 @@ export async function runCase(
     console.error(`[cases] ${e.message}`);
     return { ...run, failed: e.message };
   }
-  const seen = new Set(main.map((p) => p.doi?.toLowerCase()));
-  run.papers = [
-    ...main,
-    ...run.causePapers.filter((p) => !seen.has(p.doi?.toLowerCase())),
-  ];
+  const seen = new Set<string>();
+  run.papers = [...seeds, ...main, ...run.causePapers].filter((p) => {
+    const k = p.doi?.toLowerCase();
+    return !k || (!seen.has(k) && !!seen.add(k));
+  });
 
   if (deps.widen) {
     const more = await deps.widen(run.papers, summary);
@@ -2353,6 +2360,8 @@ export interface CaseResult {
   catalogOverlay?: CatalogOverlay;
   /** the paper search could not run: nothing was judged or saved */
   failed?: string;
+  /** the engine's beliefs before and after, two points or more (42D) */
+  moves: CaseMove[];
 }
 
 /** The kind `hkb_features` files a feature under, by its prefix. */
@@ -2374,6 +2383,8 @@ export async function researchCase(
     deps?: CaseDeps;
     /** dated facts laid over the profile, as the blind replay seeds them */
     seed?: Record<string, unknown>;
+    /** DOIs the condition watch filed for this case, read first (42D) */
+    seedDois?: string[];
   } = {},
 ): Promise<CaseResult> {
   const db = getDb();
@@ -2415,6 +2426,11 @@ export async function researchCase(
     // this person's base rate, what a printed proportion is read against
     base: priorFor(h, input).prevalence,
   }));
+  const seeds = opts.seedDois?.length
+    ? await (
+        await import("./research-watch")
+      ).watchedPapers(userId, opts.seedDois)
+    : [];
 
   const run = await runCase(
     summary,
@@ -2427,6 +2443,7 @@ export async function researchCase(
       budgetUsd,
       conditions,
       features,
+      seeds,
     },
   );
 
@@ -2543,6 +2560,7 @@ export async function researchCase(
     accepted: proposals.filter((p) => p.decision === "accepted").length,
     costUsd: +run.costUsd.toFixed(4),
     stopped: run.stopped,
+    moves: [],
     ...(run.failed ? { failed: run.failed } : {}),
   };
 
@@ -2556,6 +2574,13 @@ export async function researchCase(
         ? await promotedHypotheses(promotedRows as ConditionRow[], rows)
         : [],
     };
+    result.moves = movesOf(
+      results,
+      scoreHypotheses(input, {
+        catalog: withOverlay(catalog, result.catalogOverlay),
+      }),
+      proposals,
+    );
     return result;
   }
 
@@ -2565,6 +2590,13 @@ export async function researchCase(
     rows,
     promotedRows.map((r) => r.id),
     result,
+    // the beliefs after the save, off the catalog it grew (42D)
+    async () =>
+      movesOf(
+        results,
+        scoreHypotheses(input, { catalog: await catalogFor(userId) }),
+        proposals,
+      ),
   );
   return result;
 }
@@ -2617,6 +2649,7 @@ async function saveCase(
   rows: { evidence: EvidenceRow[]; modifiers: ModifierRow[] },
   promote: string[],
   result: CaseResult,
+  movesAfter: () => Promise<CaseMove[]>,
 ) {
   const db = getDb();
   const needed = [
@@ -2674,6 +2707,8 @@ async function saveCase(
       .update(hkbConditions)
       .set({ inCatalog: true })
       .where(inArray(hkbConditions.id, promote));
+  forgetCatalog();
+  result.moves = await movesAfter();
   await recordRun(
     "case-run",
     {
@@ -2683,13 +2718,18 @@ async function saveCase(
       accepted: result.accepted,
       promoted: promote.length,
       costMicroUsd: Math.round(result.costUsd * 1e6),
+      // ponytail: the column is typed as counters; the moves ride in the same jsonb
+      moves: result.moves as unknown as number,
     },
     `${userId}:${asOf ?? "now"}`,
   );
-  forgetCatalog();
   if (rows.evidence.length || rows.modifiers.length || promote.length) {
     await recordRevision(
-      `case research for one user: ${rows.evidence.length} rules, ${rows.modifiers.length} modifiers, ${promote.length} promoted`,
+      revisionSummary(result.moves, {
+        rules: rows.evidence.length,
+        modifiers: rows.modifiers.length,
+        promoted: promote.length,
+      }),
     );
     // the open hunches fill again off the grown catalog on the next refresh
     const { forgetExplanations } = await import("./hunches");
@@ -2700,3 +2740,179 @@ async function saveCase(
 /** At most one case run a day per user, for the curator's post-upload pass. */
 export const caseRunDue = (userId: string) =>
   dueAgain("case-run", 1, `${userId}:`);
+
+/* ── what a run moved, and when the daily pass runs one (42D) ─────────── */
+
+/** A belief moved when it changed by at least two points. */
+export const MOVE_POINTS = 0.02;
+
+/** One belief a run moved, and the papers whose rules moved it. */
+export interface CaseMove {
+  conditionId: string;
+  name: string;
+  /** the engine's belief before and after, 0..1 */
+  from: number;
+  to: number;
+  dois: string[];
+  /** "Annibale 2001", one per DOI, in the same order */
+  labels: string[];
+}
+
+/** "Annibale B 2001 Am J Med; doi:…" is "Annibale 2001"; no author, the DOI. */
+export function paperLabel(source: string | null, doi: string): string {
+  const m = source?.match(/^(.+?)\s+(\d{4})\b/);
+  if (!m || m[1] === "anonymous") return doi;
+  return `${m[1]!.replace(/(\s+[A-Z]{1,3}\.?)+$/, "")} ${m[2]}`;
+}
+
+/**
+ * The engine's beliefs before and after a run, as the moves of two points or
+ * more. Code, never the model. Pure. A move carries the DOIs of the rules the
+ * run wrote on that condition; one that moved only through another (a
+ * `requires` child) carries every DOI the run wrote. A run that wrote no
+ * scoring rule moved nothing, whatever else changed meanwhile.
+ */
+export function movesOf(
+  before: Pick<HypothesisResult, "id" | "name" | "score">[],
+  after: Pick<HypothesisResult, "id" | "name" | "score">[],
+  proposals: CaseProposal[],
+): CaseMove[] {
+  const wrote = proposals.filter((p) => p.decision === "accepted" && scores(p));
+  if (!wrote.length) return [];
+  const papersOf = (ps: CaseProposal[]) => {
+    const by = new Map(ps.map((p) => [p.doi, paperLabel(p.source, p.doi)]));
+    return { dois: [...by.keys()], labels: [...by.values()] };
+  };
+  const all = papersOf(wrote);
+  const was = new Map(before.map((h) => [h.id, h.score]));
+  const round = (p: number) => Math.round(p * 1000) / 1000;
+  return after
+    .flatMap((h) => {
+      const from = was.get(h.id) ?? 0;
+      // a hair under two points in floating point is still two points
+      if (Math.abs(h.score - from) < MOVE_POINTS - 1e-9) return [];
+      const own = papersOf(
+        wrote.filter((p) => p.conditionId === h.id || p.causeOf === h.id),
+      );
+      return [
+        {
+          conditionId: h.id,
+          name: h.name,
+          from: round(from),
+          to: round(h.score),
+          ...(own.dois.length ? own : all),
+        },
+      ];
+    })
+    .sort((a, b) => Math.abs(b.to - b.from) - Math.abs(a.to - a.from));
+}
+
+/**
+ * The revision line: the moved condition ids first, then the DOIs, so the
+ * ledger's `changeOf` names what we learned ("knowledge") rather than "the
+ * inputs moved".
+ */
+export function revisionSummary(
+  moves: CaseMove[],
+  n: { rules: number; modifiers: number; promoted: number },
+): string {
+  const line = `case research for one user: ${n.rules} rules, ${n.modifiers} modifiers, ${n.promoted} promoted`;
+  if (!moves.length) return line;
+  const dois = [...new Set(moves.flatMap((m) => m.dois))];
+  return `${moves.map((m) => m.conditionId).join(", ")}: ${dois.map((d) => `doi:${d}`).join(", ")}; ${line}`;
+}
+
+export type DailyCase = "watch" | "weekly" | null;
+
+/**
+ * Why the daily pass reads this person's case today, or null. Pure. One run
+ * a day at most, whatever the reason; a graded paper on an option of an open
+ * differential skips the week; otherwise a person with an open cause or a
+ * likely or confirmed belief is read again once a week.
+ */
+export function dailyCaseWhy(s: {
+  dayDue: boolean;
+  weekDue: boolean;
+  open: boolean;
+  seeds: string[];
+}): DailyCase {
+  if (!s.dayDue) return null;
+  if (s.seeds.length) return "watch";
+  return s.weekDue && s.open ? "weekly" : null;
+}
+
+/**
+ * The DOIs of graded watch rows on an option of an open cause's differential.
+ * `externalIdOf` keys a paper with a DOI by the DOI; a PMID or a title has
+ * nothing a case run can seed. Pure.
+ */
+export function caseSeeds(
+  open: { signal: unknown }[],
+  graded: { conditionId: string; externalId: string }[],
+): string[] {
+  const options = new Set(
+    open.flatMap(
+      (h) =>
+        (
+          h.signal as { differential?: Differential | null }
+        ).differential?.options.map((o) => o.id) ?? [],
+    ),
+  );
+  return [
+    ...new Set(
+      graded
+        .filter(
+          (r) => options.has(r.conditionId) && r.externalId.startsWith("10."),
+        )
+        .map((r) => r.externalId),
+    ),
+  ];
+}
+
+const DAY_MS = 86_400_000;
+
+/** The daily pass's case: whether it runs, and the DOIs it reads first. */
+export async function dailyCase(
+  userId: string,
+): Promise<{ why: DailyCase; seeds: string[] }> {
+  const db = getDb();
+  const [open, [snap], last] = await Promise.all([
+    db
+      .select({ signal: hunches.signal })
+      .from(hunches)
+      .where(
+        and(
+          eq(hunches.userId, userId),
+          eq(hunches.kind, "cause"),
+          ne(hunches.state, "closed"),
+        ),
+      ),
+    db
+      .select({ beliefs: beliefSnapshots.beliefs })
+      .from(beliefSnapshots)
+      .where(eq(beliefSnapshots.userId, userId))
+      .orderBy(desc(beliefSnapshots.computedAt))
+      .limit(1),
+    lastRun("case-run", `${userId}:`),
+  ]);
+  const seeds = open.length
+    ? caseSeeds(
+        open,
+        await (await import("./research-watch")).gradedSince(userId, last),
+      )
+    : [];
+  const loud = Object.values(snap?.beliefs ?? {}).some(
+    (b) => b.state === "likely" || b.state === "confirmed",
+  );
+  const ago = last ? Date.now() - last.getTime() : Infinity;
+  return {
+    // `dueAgain`'s arithmetic, off one read of the last run
+    why: dailyCaseWhy({
+      dayDue: ago > DAY_MS,
+      weekDue: ago > 7 * DAY_MS,
+      open: open.length > 0 || loud,
+      seeds,
+    }),
+    seeds,
+  };
+}

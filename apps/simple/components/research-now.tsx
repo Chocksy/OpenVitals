@@ -13,7 +13,7 @@
  * to that action's notes — so the paper travels as the composer's subject, the
  * same way `ActionButtons` sends an action.
  */
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { MessageSquare, Search } from "lucide-react";
 import { openComposer } from "./composer";
@@ -116,4 +116,28 @@ export function DiscussPaper({ title }: { title: string }) {
       <MessageSquare className="size-3.5" /> Discuss
     </Button>
   );
+}
+
+/**
+ * 42D: the rows the Research tab shows are seen once it opens, the same
+ * `PATCH /api/research/[id]` the phone sends. Never fatal: a row left unseen
+ * shows again tomorrow.
+ */
+export const markSeen = (ids: string[], send: typeof fetch = fetch) =>
+  Promise.all(
+    ids.map((id) =>
+      send(`/api/research/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ seen: true }),
+      }).catch(() => null),
+    ),
+  );
+
+export function SeenOnOpen({ ids }: { ids: string[] }) {
+  const key = ids.join(",");
+  useEffect(() => {
+    if (key) void markSeen(key.split(","));
+  }, [key]);
+  return null;
 }

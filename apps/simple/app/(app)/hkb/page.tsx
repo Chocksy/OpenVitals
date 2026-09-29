@@ -655,7 +655,10 @@ async function activityTab() {
       text: `${r.script}: ${
         r.notes ??
         Object.entries(r.rows ?? {})
-          .map(([k, v]) => `${k}=${v}`)
+          .map(
+            ([k, v]) =>
+              `${k}=${typeof v === "object" && v ? JSON.stringify(v) : v}`,
+          )
           .join(" ")
       }`,
     })),
@@ -1104,7 +1107,10 @@ async function importsTab() {
                   <td className="n">{r.script}</td>
                   <td className="n">
                     {Object.entries(r.rows ?? {})
-                      .map(([k, v]) => `${k}=${v}`)
+                      .map(
+                        ([k, v]) =>
+                          `${k}=${typeof v === "object" && v ? JSON.stringify(v) : v}`,
+                      )
                       .join(" ")}
                   </td>
                   <td>{r.notes ?? ""}</td>

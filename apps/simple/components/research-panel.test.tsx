@@ -172,3 +172,23 @@ describe("the compact panel", () => {
     expect(html).not.toContain("Third");
   });
 });
+
+describe("opening the panel marks its rows seen (42D)", () => {
+  it("PATCHes seen for each unseen row it shows, as the phone does", async () => {
+    const { markSeen } = await import("./research-now");
+    const calls: [string, RequestInit][] = [];
+    const send = (async (url: string, init: RequestInit) => {
+      calls.push([url, init]);
+      return new Response("{}");
+    }) as unknown as typeof fetch;
+    await markSeen(["a", "b"], send);
+    expect(calls.map(([u]) => u)).toEqual([
+      "/api/research/a",
+      "/api/research/b",
+    ]);
+    for (const [, init] of calls) {
+      expect(init.method).toBe("PATCH");
+      expect(JSON.parse(init.body as string)).toEqual({ seen: true });
+    }
+  });
+});

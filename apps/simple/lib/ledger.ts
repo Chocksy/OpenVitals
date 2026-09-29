@@ -557,8 +557,14 @@ const namesIt = (
         r.summary.toLowerCase().includes(h.name.toLowerCase()),
     )
     // The summary starts with the condition id so `namesIt` can find it; the
-    // sentence does not need to say it twice.
-    .map((r) => r.summary.replace(new RegExp(`^${h.id}:\\s*`), ""));
+    // sentence does not need to say it twice. A case run (42D) starts with
+    // every id it moved, comma-separated.
+    .map((r) =>
+      r.summary.replace(
+        new RegExp(`^(?:[\\w-]+, )*${h.id}(?:, [\\w-]+)*:\\s*`),
+        "",
+      ),
+    );
 
 const pct = (p: number) =>
   p >= 0.01 ? `${Math.round(p * 100)} %` : `${(p * 100).toPrecision(2)} %`;

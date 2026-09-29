@@ -137,8 +137,9 @@ const PATCHES: Record<string, Patch> = {
       },
       {
         id: "iron_heavy_periods",
-        input: { fact: "sym_cycle" },
-        when: { equals: "Heavy" },
+        // phase 42B: its own question, since `sym_cycle` can say only one thing
+        input: { fact: "sym_heavy_periods" },
+        when: { equals: "Yes" },
         lr: 3,
         grade: "B",
         source:
@@ -2016,6 +2017,70 @@ const PERIMENOPAUSE: Hypothesis = {
     "The diagnosis is the cycle history, not the blood test. Exclude thyroid disease, iron deficiency and depression, because all three imitate it. Then: resistance training and protein for the bone and muscle loss that accelerates here, and a conversation about hormone therapy, which is the most effective treatment for vasomotor symptoms and is safest started within ten years of the final period.",
 };
 
+/**
+ * Phase 42B: the commonest cause of iron deficiency in a woman who still has
+ * periods, as a cause the differential can list. The two shares are one claim
+ * measured twice, averaged by `shareMixture`. Low intake, blood donation and
+ * pregnancy were searched for too; no abstract printed their share among
+ * people with iron deficiency, so they are not here.
+ */
+const HEAVY_MENSTRUAL_BLEEDING: Hypothesis = {
+  id: "heavy_menstrual_bleeding",
+  name: "Heavy menstrual bleeding",
+  why: "It is the commonest reason a premenopausal woman is iron-deficient, and it is treatable (NICE NG88).",
+  summary:
+    "Periods heavy enough to drain iron faster than food puts it back. Asked, not measured: the answer is the test.",
+  appliesTo: { sex: "female", minAge: 12, maxAge: 55 },
+  priors: {
+    base: 0.272,
+    source:
+      'Fraser 2015 Int J Gynaecol Obstet (doi:10.1016/j.ijgo.2014.09.027), grade B: "Overall, 4506 women responded, of whom 1225 (27.2%) had experienced two or more predefined HMB symptoms within the previous year."',
+    modifiers: [
+      {
+        // `above` is what the case-research rows carry; the mixture reads p
+        when: { hypothesis: "iron_deficiency", above: 0.5 },
+        times: 2.5, // share / base, the direction only
+        why: "Heavy periods, cause of iron_deficiency (B).",
+        grade: "B",
+        source:
+          'Vannella 2008 Aliment Pharmacol Ther (doi:10.1111/j.1365-2036.2008.03741.x): "Menorrhagia was present in 67.4% of premenopausal women."',
+        share: 0.674,
+        population: "premenopausal women with iron deficiency anaemia",
+        unless: [{ fact: "menopause_status", includes: "post" }],
+      },
+      {
+        when: { hypothesis: "iron_deficiency", above: 0.5 },
+        times: 1.9, // share / base, the direction only
+        why: "Heavy periods, cause of iron_deficiency (B).",
+        grade: "B",
+        source:
+          'Annibale 2003 Scand J Gastroenterol (doi:10.1080/00365520310000690): "Heavy menstrual loss was present in 50.8%."',
+        share: 0.508,
+        population: "premenopausal women with iron deficiency anaemia",
+        unless: [{ fact: "menopause_status", includes: "post" }],
+      },
+    ],
+  },
+  evidence: [
+    {
+      id: "hmb_heavy_periods",
+      input: { fact: "sym_heavy_periods" },
+      when: { equals: "Yes" },
+      lr: 4.3,
+      lrNeg: 0.47,
+      grade: "B",
+      source:
+        'Warner 2004 Am J Obstet Gynecol (doi:10.1016/j.ajog.2003.11.015): clots and changing rate "correctly predicts a loss of >80 mL for 76% of women (n=161 patients; sensitivity, 60%; specificity, 86%)", so LR+ 0.60/0.14 and LR- 0.40/0.86. Referral clinics, and the model had ferritin in it too.',
+    },
+  ],
+  discriminators: [],
+  lenses: {
+    energy: { w: 2, grade: "B" },
+  },
+  management:
+    "Iron first, then the bleeding itself: a GP can offer the hormonal coil, tranexamic acid or the pill, and an ultrasound if the history or the exam suggests fibroids or polyps (NICE NG88). A bleeding disorder is worth asking about when the periods have been heavy since the first one.",
+};
+
 const MALE_HYPOGONADISM: Hypothesis = {
   id: "male_hypogonadism",
   name: "Male hypogonadism",
@@ -3131,6 +3196,7 @@ const NEW: Hypothesis[] = [
   HYPOTHYROIDISM,
   HYPERTHYROIDISM,
   PERIMENOPAUSE,
+  HEAVY_MENSTRUAL_BLEEDING,
   MALE_HYPOGONADISM,
   GOUT_HYPERURICAEMIA,
   OSTEOPOROSIS_RISK,

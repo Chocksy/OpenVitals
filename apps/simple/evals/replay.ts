@@ -65,13 +65,17 @@ interface Expect {
    * `minOptions` long, every option has a DOI or a catalog source, the shares
    * and the remainder sum to 1, each belief agrees with its share (the same
    * order, within `agreeWithin` times), and, when `named` is set, one option
-   * whose name matches it carries a test out of `testAnyOf`.
+   * whose name matches it carries a test out of `testAnyOf`. Phase 42B: every
+   * `listed` pattern matches an option with at least `minShare`, and "other"
+   * is at least `minOther`.
    */
   differential?: {
     of: string;
     minOptions: number;
     agreeWithin?: number;
     named?: { pattern: string; testAnyOf: string[] };
+    listed?: { pattern: string; minShare?: number }[];
+    minOther?: number;
   };
 }
 
@@ -504,6 +508,21 @@ function judgeDifferential(
     pass: d.options.length > 0 && ordered && !far.length,
     got: `${d.options.map((o) => `${o.id} belief ${o.belief} vs P(C|X) ${o.p}`).join("; ")}${ordered ? "" : "; order differs"}${far.length ? `; off: ${far.map((o) => o.id).join(", ")}` : ""}`,
   });
+  for (const l of want.listed ?? []) {
+    const re = new RegExp(l.pattern, "i");
+    const hit = d.options.find((o) => re.test(`${o.id} ${o.name}`));
+    out.push({
+      what: `${name}: lists /${l.pattern}/${l.minShare ? ` with a share over ${l.minShare}` : ""}`,
+      pass: !!hit && hit.share > (l.minShare ?? 0),
+      got: hit ? `${hit.id} ${hit.share}` : "not listed",
+    });
+  }
+  if (want.minOther != null)
+    out.push({
+      what: `${name}: other is at least ${want.minOther}`,
+      pass: d.other >= want.minOther - 1e-9,
+      got: `other ${d.other}`,
+    });
   if (want.named) {
     const re = new RegExp(want.named.pattern, "i");
     const hit = d.options.find(

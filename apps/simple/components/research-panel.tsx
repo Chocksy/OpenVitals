@@ -21,7 +21,7 @@ import type { PaperWatch } from "@/db";
 import type { WatchCondition } from "@/lib/research-watch";
 import { dayLabel, plural } from "@/lib/utils";
 import { EvidenceChip } from "./evidence-chip";
-import { DiscussPaper, ResearchNow } from "./research-now";
+import { DiscussPaper, ResearchNow, SeenOnOpen } from "./research-now";
 import { WatchTopic } from "./topic-actions";
 import { StateWord, type StateTone } from "./ui-kit";
 
@@ -172,6 +172,9 @@ export function ResearchSection({
             {rows.map((row) => (
               <PaperRow key={row.id} row={row} />
             ))}
+            <SeenOnOpen
+              ids={rows.filter((r) => r.seenAt == null).map((r) => r.id)}
+            />
           </div>
         )}
 

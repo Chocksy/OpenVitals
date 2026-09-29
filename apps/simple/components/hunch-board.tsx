@@ -505,63 +505,121 @@ const shareText = (w: number) => {
   return `${v >= 1 || v === 0 ? Math.round(v) : v.toFixed(1)}%`;
 };
 
+const MON = "Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec".split(" ");
+/** "2026-09-29" is "29 Sep". */
+const dayMonth = (d: string) =>
+  `${Number(d.slice(8, 10))} ${MON[Number(d.slice(5, 7)) - 1]}`;
+
 /**
- * 41E "Our read": a differential, not one diagnosis. Up to three options
- * with a percent, a one-line reason, their sources and the test that
- * confirms each; then what nobody on the list explains, the test that
- * splits them, and who to see for the top one.
+ * 42D: what the last case research did here, in code from its numbers:
+ * "New research, 29 Sep: Annibale 2001 moved atrophic gastritis from 12 % to
+ * 29 %." with every paper a link, or "Checked 12 new papers on 29 Sep.
+ * Nothing moved."
+ */
+function ResearchNote({ r }: { r: NonNullable<HunchCase["research"]> }) {
+  if (!r.moves.length)
+    return (
+      <p className="ro-research">
+        Checked {r.papers} new {r.papers === 1 ? "paper" : "papers"} on{" "}
+        {dayMonth(r.at)}. Nothing moved.
+      </p>
+    );
+  return (
+    <p className="ro-research">
+      New research, {dayMonth(r.at)}:{" "}
+      {r.moves.map((m, i) => (
+        <span key={m.conditionId}>
+          {i > 0 && "; "}
+          {m.dois.map((doi, k) => (
+            <span key={doi}>
+              {k > 0 && (k === m.dois.length - 1 ? " and " : ", ")}
+              <a
+                href={`https://doi.org/${doi}`}
+                target="_blank"
+                rel="noreferrer"
+              >
+                {m.labels[k] ?? doi}
+              </a>
+            </span>
+          ))}{" "}
+          moved {m.name} from {m.from} % to {m.to} %
+        </span>
+      ))}
+      .
+    </p>
+  );
+}
+
+/** Our read shows this many options; the rest fold behind "N more" (42B). */
+const SHOWN = 4;
+
+/**
+ * 41E "Our read": a differential, not one diagnosis. Every option with a
+ * percent, a one-line reason, their sources and the test that confirms
+ * each, the first four open and the rest behind "N more"; then what nobody
+ * on the list explains, the test that splits them, and who to see for the
+ * top one.
  */
 function OurRead({ c }: { c: HunchCase }) {
   const d = c.differential;
   if (!d || !d.options.length) return null;
+  const option = (o: (typeof d.options)[number], i: number) => (
+    <li key={o.id} data-option={o.id}>
+      <div className="rh">
+        <b>{o.name}</b>
+        <Digits className="p" text={pctText(o.pct)} />
+      </div>
+      <div className="trk">
+        <i style={{ width: `${Math.max(1, o.pct)}%` }} />
+      </div>
+      <p className="rr">{o.reason}</p>
+      {o.sources.length > 0 && (
+        <ul className="rs">
+          {o.sources.map((s, k) => (
+            <li key={k}>
+              <OriginMark origin={s.origin} />
+              <EvidenceChip basis="science" grade={s.grade} />
+              {s.doi ? (
+                <a
+                  href={`https://doi.org/${s.doi}`}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  {s.label}
+                </a>
+              ) : (
+                <span>{s.label}</span>
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
+      {o.confirmTest && (
+        <p className="rt">
+          Confirm with <b>{o.confirmTest}</b>
+        </p>
+      )}
+      {i === 0 && c.bestRead && (
+        <p className="rsee">See: {c.bestRead.specialty}</p>
+      )}
+    </li>
+  );
+  const more = d.options.slice(SHOWN);
   return (
     <section className="card case-card oread" aria-label="Our read">
       <h3>
         Our read <small>a differential, not a diagnosis</small>
       </h3>
-      <ol className="ro">
-        {d.options.map((o, i) => (
-          <li key={o.id} data-option={o.id}>
-            <div className="rh">
-              <b>{o.name}</b>
-              <Digits className="p" text={pctText(o.pct)} />
-            </div>
-            <div className="trk">
-              <i style={{ width: `${Math.max(1, o.pct)}%` }} />
-            </div>
-            <p className="rr">{o.reason}</p>
-            {o.sources.length > 0 && (
-              <ul className="rs">
-                {o.sources.map((s, k) => (
-                  <li key={k}>
-                    <OriginMark origin={s.origin} />
-                    <EvidenceChip basis="science" grade={s.grade} />
-                    {s.doi ? (
-                      <a
-                        href={`https://doi.org/${s.doi}`}
-                        target="_blank"
-                        rel="noreferrer"
-                      >
-                        {s.label}
-                      </a>
-                    ) : (
-                      <span>{s.label}</span>
-                    )}
-                  </li>
-                ))}
-              </ul>
-            )}
-            {o.confirmTest && (
-              <p className="rt">
-                Confirm with <b>{o.confirmTest}</b>
-              </p>
-            )}
-            {i === 0 && c.bestRead && (
-              <p className="rsee">See: {c.bestRead.specialty}</p>
-            )}
-          </li>
-        ))}
-      </ol>
+      {c.research && <ResearchNote r={c.research} />}
+      <ol className="ro">{d.options.slice(0, SHOWN).map(option)}</ol>
+      {more.length > 0 && (
+        <details className="ro-more">
+          <summary>{more.length} more</summary>
+          <ol className="ro" start={SHOWN + 1}>
+            {more.map((o, i) => option(o, i + SHOWN))}
+          </ol>
+        </details>
+      )}
       <div className="ro-other">
         <span>Other or unexplained</span>
         <Digits className="p" text={pctText(d.otherPct)} />
@@ -652,7 +710,7 @@ export function CaseView({
             lab range
           </span>
         </div>
-        {c.kind === "cluster" && c.markers.length ? (
+        {c.markers.length ? (
           <div className="case-lanes">
             {c.markers.map((m) => (
               <div key={m.code}>

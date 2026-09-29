@@ -3,8 +3,10 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import {
+  byStory,
   headingOf,
   markerWord,
+  researchOf,
   seriesOf,
   wordOf,
   writerOf,
@@ -1027,18 +1029,20 @@ describe("GET /api/hunches/[id]", () => {
     }
   });
 
-  it("gives a cluster one lane per member", () => {
+  it("gives a cluster one lane per member, and a cause the markers it absorbed", () => {
     const m = c.markers as Record<string, unknown>[];
     if (c.kind === "cluster") expect(m.length).toBeGreaterThanOrEqual(3);
-    else expect(m).toEqual([]);
+    else if (c.kind !== "cause") expect(m).toEqual([]);
   });
 
   it("weights the explanations to 1, in code, and checks what they predict", () => {
     const ex = c.explanations as Record<string, unknown>[];
     if (!ex.length) return;
     const sum = ex.reduce((s, e) => s + (e.weight as number), 0);
-    // with a differential the weights are its shares, and "other" keeps the rest
-    if (c.differential) expect(sum).toBeLessThanOrEqual(1.0001);
+    // with a differential the weights are its shares, and "other" keeps the
+    // rest; a cluster or chronic hunch keeps one too (42C)
+    if (c.differential || c.kind === "cluster" || c.kind === "chronic")
+      expect(sum).toBeLessThanOrEqual(1.0001);
     else expect(sum).toBeCloseTo(1, 2);
     for (const e of ex) {
       expect(["paper", "catalog", "model", "you"]).toContain(e.origin);
@@ -1050,13 +1054,13 @@ describe("GET /api/hunches/[id]", () => {
     }
   });
 
-  it("reads a cause as a differential of up to three options, plus other", () => {
+  it("reads a cause as a differential of up to ten options, plus other", () => {
     const d = c.differential as Record<string, unknown> | null;
     if (c.kind !== "cause") return expect(d).toBeNull();
     expect(d).not.toBeNull();
     const opts = d!.options as Record<string, unknown>[];
     expect(opts.length).toBeGreaterThan(0);
-    expect(opts.length).toBeLessThanOrEqual(3);
+    expect(opts.length).toBeLessThanOrEqual(10);
     let total = d!.otherPct as number;
     for (const o of opts) {
       expect(typeof o.id).toBe("string");
@@ -1075,6 +1079,21 @@ describe("GET /api/hunches/[id]", () => {
     expect(Math.abs(total - 100)).toBeLessThanOrEqual(2);
     expect(str(d!.splitTest)).toBe(true);
     expect(typeof (c.bestRead as Record<string, unknown>).specialty).toBe("string");
+  });
+
+  it("says what the last case research moved here, or null (42D)", () => {
+    const r = c.research as Record<string, unknown> | null;
+    if (c.kind !== "cause") return expect(r).toBeNull();
+    if (!r) return;
+    expect(r.at as string).toMatch(DAY);
+    expect(typeof r.papers).toBe("number");
+    for (const m of r.moves as Record<string, unknown>[]) {
+      expect(typeof m.conditionId).toBe("string");
+      expect(typeof m.name).toBe("string");
+      expect(typeof m.from).toBe("number");
+      expect(typeof m.to).toBe("number");
+      expect((m.dois as string[]).length).toBe((m.labels as string[]).length);
+    }
   });
 
   it("asks one question with three to five chips, or none", () => {
@@ -1227,5 +1246,64 @@ describe("headingOf", () => {
     });
     expect(word(h, "lipids")).toBe("toward");
     expect(word(h, "iron")).toBe("holding");
+  });
+});
+
+describe("42C: the Watch order", () => {
+  it("puts an open cause first and chronic after cluster", () => {
+    const kinds = ["gap", "step", "chronic", "cluster", "drift", "cause"];
+    const hs = kinds.map((kind) => ({ kind }) as Parameters<typeof byStory>[0][number]);
+    expect(byStory(hs).map((h) => h.kind)).toEqual([
+      "cause",
+      "cluster",
+      "chronic",
+      "drift",
+      "step",
+      "gap",
+    ]);
+  });
+});
+
+describe("researchOf (42D)", () => {
+  const move = (conditionId: string, from: number, to: number) => ({
+    conditionId,
+    name: conditionId,
+    from,
+    to,
+    dois: ["10.1/a"],
+    labels: ["Annibale 2001"],
+  });
+  const run = (day: string, papers: number, moves: unknown[]) => ({
+    ranAt: new Date(`${day}T03:00:00Z`),
+    rows: { papers, moves } as Record<string, unknown>,
+  });
+
+  it("shows the newest run that moved an option of this case, in percents", () => {
+    const r = researchOf(
+      [
+        run("2026-09-29", 8, [move("hashimoto", 0.2, 0.4)]),
+        run("2026-09-22", 12, [move("atrophic_gastritis", 0.12, 0.29)]),
+      ],
+      ["atrophic_gastritis", "coeliac_disease"],
+    );
+    expect(r).toEqual({
+      at: "2026-09-22",
+      papers: 12,
+      moves: [{ ...move("atrophic_gastritis", 12, 29) }],
+    });
+  });
+
+  it("else the newest run, which moved nothing here", () => {
+    expect(
+      researchOf(
+        [run("2026-09-29", 12, [move("hashimoto", 0.2, 0.4)]), run("2026-09-22", 3, [])],
+        ["atrophic_gastritis"],
+      ),
+    ).toEqual({ at: "2026-09-29", papers: 12, moves: [] });
+    // an older run row with no moves at all reads the same
+    expect(
+      researchOf([{ ranAt: new Date("2026-09-01"), rows: { papers: 4 } }], ["x"]),
+    ).toEqual({ at: "2026-09-01", papers: 4, moves: [] });
+    expect(researchOf([], ["x"])).toBeNull();
   });
 });

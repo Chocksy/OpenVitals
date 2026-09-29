@@ -302,7 +302,10 @@ export default async function Home({
 
   const cards = railCards(ledger, today, {
     actions: actions.length,
-    todo: Object.values(todo).reduce((n, lines) => n + lines.length, 0),
+    todo: Object.values(todo).reduce(
+      (n, lines) => n + lines.filter((l) => l.source !== "note").length,
+      0,
+    ),
     ...(drawDate ? { drawDate } : {}),
     ...(railGoals.length ? { goals: railGoals } : {}),
     ...(spearSaid ? { sentence: spearSaid } : {}),

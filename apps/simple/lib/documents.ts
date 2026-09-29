@@ -10,7 +10,7 @@
  * `docxText`, `toItems` and `documentLines` are pure. The rest read or write.
  */
 import { inflateRawSync } from "node:zlib";
-import { and, desc, eq, inArray, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, isNull, sql } from "drizzle-orm";
 import { z } from "zod";
 import {
   documentItems,
@@ -27,6 +27,7 @@ import {
   type DocumentItem,
 } from "@/db";
 import { localDay } from "./daily";
+import { sameValue } from "./data";
 import { writeFact } from "./facts";
 import {
   generateObjectSafe,
@@ -523,19 +524,53 @@ export async function acceptItems(
         metric?.unit && p.unit
           ? (convert(p.value, p.unit, metric.unit, code) ?? p.value)
           : p.value;
-      await db.insert(readings).values({
-        userId,
-        uploadId: item.uploadId,
-        metricCode: code,
-        value,
-        valueText: String(p.value),
-        unit: metric?.unit ?? p.unit ?? null,
-        refLow: p.refLow ?? null,
-        refHigh: p.refHigh ?? null,
-        observedAt: p.date ?? meta?.date ?? localDay(),
-        flags: ["from_document"],
-      });
-      out.readings++;
+      const observedAt: string = p.date ?? meta?.date ?? localDay();
+      const refLow = p.refLow ?? null;
+      const refHigh = p.refHigh ?? null;
+      // Phase 42E: the same draw already on file (a lab upload, or this item
+      // accepted before) is one row. It only gains the range it lacked.
+      const twin = (
+        await db
+          .select()
+          .from(readings)
+          .where(
+            and(
+              eq(readings.userId, userId),
+              eq(readings.metricCode, code),
+              eq(readings.observedAt, observedAt),
+              isNull(readings.source),
+            ),
+          )
+      ).find((r) =>
+        value != null
+          ? sameValue(r.value, value)
+          : r.valueText === String(p.value),
+      );
+      if (twin) {
+        if (
+          twin.refLow == null &&
+          twin.refHigh == null &&
+          (refLow ?? refHigh) != null
+        )
+          await db
+            .update(readings)
+            .set({ refLow, refHigh })
+            .where(eq(readings.id, twin.id));
+      } else {
+        await db.insert(readings).values({
+          userId,
+          uploadId: item.uploadId,
+          metricCode: code,
+          value,
+          valueText: String(p.value),
+          unit: metric?.unit ?? p.unit ?? null,
+          refLow,
+          refHigh,
+          observedAt,
+          flags: ["from_document"],
+        });
+        out.readings++;
+      }
     }
 
     if (item.kind === "diagnosis") {

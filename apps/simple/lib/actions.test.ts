@@ -237,6 +237,100 @@ describe("pickActions", () => {
   });
 });
 
+describe("pickActions and the treatment history (phase 42A)", () => {
+  const ferritin = [
+    {
+      code: "ferritin",
+      direction: "up" as const,
+      expect: "over 50 ng/mL",
+      measureAfterWeeks: 12,
+    },
+  ];
+  const oral = action({
+    title: "Alternate-day oral iron",
+    dose: {
+      amount: "65 mg elemental iron",
+      form: "Ferrous sulfate 200 mg",
+      schedule: "alternate mornings",
+    },
+    targets: ferritin,
+  });
+  const infusion = action({
+    title: "Ferric carboxymaltose infusion",
+    targets: ferritin,
+  });
+  const tsat = action({
+    title: "Iron saturation",
+    kind: "test",
+    targets: ferritin,
+  });
+  const failed = [
+    {
+      code: "ferritin",
+      routes: ["oral"],
+      what: "iron",
+      from: "2024-09-01",
+      to: "2026-09-01",
+    },
+  ];
+
+  it("drops oral iron that failed and says so, in its place", () => {
+    const rows = pickActions({
+      codes: ["ferritin"],
+      actions: [oral],
+      interventions: [paper({ name: "Iron bisglycinate", dose: "25 mg/day" })],
+      failed,
+    });
+    expect(rows).toHaveLength(1);
+    expect(rows[0]!.source).toBe("note");
+    expect(rows[0]!.title).toBe(
+      "Oral iron did not raise ferritin (Sep 2024 to Sep 2026). The next step is finding the cause.",
+    );
+  });
+
+  it("keeps IV iron when only the oral route failed", () => {
+    const rows = pickActions({
+      codes: ["ferritin"],
+      actions: [oral, infusion],
+      interventions: [],
+      failed,
+    });
+    expect(rows.map((r) => r.source)).toEqual(["note", "plan"]);
+    expect(rows[1]!.title).toBe("Ferric carboxymaltose infusion");
+  });
+
+  it("drops what is already running on the same route, with no note", () => {
+    const rows = pickActions({
+      codes: ["ferritin"],
+      actions: [oral, infusion],
+      interventions: [],
+      active: [{ code: "ferritin", routes: ["iv"] }],
+    });
+    expect(rows.map((r) => r.title)).toEqual(["Alternate-day oral iron"]);
+  });
+
+  it("never drops a test, whatever its name says", () => {
+    const rows = pickActions({
+      codes: ["ferritin"],
+      actions: [tsat],
+      interventions: [],
+      failed,
+      active: [{ code: "ferritin", routes: ["iv"] }],
+    });
+    expect(rows.map((r) => r.title)).toEqual(["Iron saturation"]);
+  });
+
+  it("drops what the person said Not for me to", () => {
+    const rows = pickActions({
+      codes: ["tpo_antibodies"],
+      actions: [action()],
+      interventions: [paper({ name: "Myo-inositol" })],
+      dismissed: ["Selenium 200 µg/day"],
+    });
+    expect(rows.map((r) => r.title)).toEqual(["Myo-inositol"]);
+  });
+});
+
 
 /* ── what a target reads like (phase 30d, UX note 6) ──────────────────── */
 

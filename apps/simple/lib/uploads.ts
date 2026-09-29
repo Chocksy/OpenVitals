@@ -28,6 +28,7 @@ import {
   slugify,
 } from "./extract";
 import { looksLikeGenome, saveGenome } from "./genome";
+import { sameValue } from "./data";
 import { canonicalCode } from "./merge-metrics";
 import { convert } from "./units";
 
@@ -98,6 +99,8 @@ export interface StoredRow {
   observedAt: string;
   value: number | null;
   valueText?: string | null;
+  refLow?: number | null;
+  refHigh?: number | null;
   flags?: ReadingFlag[] | null;
 }
 
@@ -111,6 +114,17 @@ export const rowKey = (r: Keyed) =>
 /** Same metric, same day, whatever the number. */
 export const dayKey = (r: Pick<NewRow, "metricCode" | "observedAt">) =>
   `${r.metricCode}|${r.observedAt}`;
+
+/** Same metric, same day, same number within `sameValue`'s tolerance. */
+const sameDraw = (a: Keyed, b: Keyed) =>
+  a.metricCode === b.metricCode &&
+  a.observedAt === b.observedAt &&
+  (a.value != null || b.value != null
+    ? sameValue(a.value, b.value)
+    : (a.valueText ?? "") === (b.valueText ?? ""));
+
+const hasRange = (r: { refLow?: number | null; refHigh?: number | null }) =>
+  r.refLow != null || r.refHigh != null;
 
 export const isAntecedent = (flags: ReadingFlag[] | null | undefined) =>
   (flags ?? []).includes("antecedent");
@@ -176,7 +190,10 @@ export const nearDays = (d: string): string[] =>
 /**
  * Pure: what to write, given what is already stored for these metrics.
  *  - a sheet's own row replaces an antecedent row of the same test and day;
- *  - a row identical on (metric, day, value) to a stored one is skipped;
+ *  - a row identical on (metric, day, value) to a stored one, or to one
+ *    earlier in the same batch, is skipped (values within 1e-4, phase 42E);
+ *    when the stored twin has no lab range and this one does, the range is
+ *    copied onto it (`ranges`) rather than lost;
  *  - an antecedent lands only on a (metric, day) nothing else holds, and not
  *    when the same metric with the same value sits within `ANTECEDENT_NEAR_DAYS`
  *    of it: a sheet that prints the previous value dated by report day instead
@@ -186,32 +203,54 @@ export function planInsert(
   fresh: NewRow[],
   antecedents: NewRow[],
   existing: StoredRow[],
-): { insert: NewRow[]; replace: string[]; skipped: number } {
+): {
+  insert: NewRow[];
+  replace: string[];
+  skipped: number;
+  ranges: { id: string; refLow: number | null; refHigh: number | null }[];
+} {
   const replace = new Set<string>();
+  const ranges: {
+    id: string;
+    refLow: number | null;
+    refHigh: number | null;
+  }[] = [];
   const byDay = new Map<string, StoredRow[]>();
   for (const e of existing)
     byDay.set(dayKey(e), [...(byDay.get(dayKey(e)) ?? []), e]);
 
   const insert: NewRow[] = [];
   const taken = new Set<string>();
-  const written = new Set<string>();
   let skipped = 0;
   for (const r of fresh) {
     const same = byDay.get(dayKey(r)) ?? [];
     for (const e of same) if (isAntecedent(e.flags)) replace.add(e.id);
-    const kept = same.filter((e) => !replace.has(e.id));
-    if (written.has(rowKey(r)) || kept.some((e) => rowKey(e) === rowKey(r))) {
+    const twin = same.find((e) => !replace.has(e.id) && sameDraw(e, r));
+    const again = insert.findIndex((w) => sameDraw(w, r));
+    if (twin || again >= 0) {
       skipped++;
+      if (
+        twin &&
+        !hasRange(twin) &&
+        hasRange(r) &&
+        !ranges.some((x) => x.id === twin.id)
+      )
+        ranges.push({ id: twin.id, refLow: r.refLow, refHigh: r.refHigh });
+      if (again >= 0 && !hasRange(insert[again]!) && hasRange(r))
+        insert[again] = {
+          ...insert[again]!,
+          refLow: r.refLow,
+          refHigh: r.refHigh,
+        };
       continue;
     }
-    written.add(rowKey(r));
     taken.add(dayKey(r));
     insert.push(r);
   }
   const near = (a: NewRow, r: Keyed) =>
     r.metricCode === a.metricCode &&
     r.value != null &&
-    r.value === a.value &&
+    sameValue(r.value, a.value) &&
     Math.abs(dayNo(r.observedAt) - dayNo(a.observedAt)) <= ANTECEDENT_NEAR_DAYS;
   for (const a of antecedents) {
     const held = (byDay.get(dayKey(a)) ?? []).some((e) => !replace.has(e.id));
@@ -225,7 +264,7 @@ export function planInsert(
     taken.add(dayKey(a));
     insert.push(a);
   }
-  return { insert, replace: [...replace], skipped };
+  return { insert, replace: [...replace], skipped, ranges };
 }
 
 /** Share of an older upload's rows the newer one must repeat to be the same report. */
@@ -267,17 +306,46 @@ export function sameReport(
 /**
  * Pure: an older upload of the same report gives up every row the newer one
  * repeats (same test, same day), and hands over the rest, so a value only the
- * older file had is kept, now owned by the newer upload.
+ * older file had is kept, now owned by the newer upload. A dropped row's lab
+ * range goes onto the newer row that has none (`ranges`, by index into
+ * `newer`), so a re-upload never loses the range. Phase 42E.
  */
 export function planSupersede(
   older: StoredRow[],
-  newer: Pick<NewRow, "metricCode" | "observedAt">[],
-): { drop: string[]; move: string[] } {
+  newer: Pick<NewRow, "metricCode" | "observedAt" | "refLow" | "refHigh">[],
+): {
+  drop: string[];
+  move: string[];
+  ranges: { index: number; refLow: number | null; refHigh: number | null }[];
+} {
   const days = new Set(newer.map(dayKey));
   const drop: string[] = [];
   const move: string[] = [];
-  for (const r of older) (days.has(dayKey(r)) ? drop : move).push(r.id);
-  return { drop, move };
+  const ranges: {
+    index: number;
+    refLow: number | null;
+    refHigh: number | null;
+  }[] = [];
+  for (const r of older) {
+    if (!days.has(dayKey(r))) {
+      move.push(r.id);
+      continue;
+    }
+    drop.push(r.id);
+    const index = newer.findIndex(
+      (n, i) =>
+        dayKey(n) === dayKey(r) &&
+        !hasRange(n) &&
+        !ranges.some((x) => x.index === i),
+    );
+    if (index >= 0 && hasRange(r))
+      ranges.push({
+        index,
+        refLow: r.refLow ?? null,
+        refHigh: r.refHigh ?? null,
+      });
+  }
+  return { drop, move, ranges };
 }
 
 /** What the sheet said about itself, kept in `uploads.doc_meta`. */
@@ -353,6 +421,9 @@ export async function saveReadings(
   }
 
   return db.transaction(async (tx) => {
+    // Phase 42E: two saves for one person at once each saw the other's rows
+    // missing and both wrote them. One save per person at a time.
+    await tx.execute(sql`select pg_advisory_xact_lock(hashtext(${userId}))`);
     if (replace) {
       await dropReadings(userId, uploadId, tx);
       await tx
@@ -395,7 +466,9 @@ export async function saveReadings(
         )
       )
         continue;
-      const { drop, move } = planSupersede(rows, fresh);
+      const { drop, move, ranges } = planSupersede(rows, fresh);
+      for (const { index, refLow, refHigh } of ranges)
+        fresh[index] = { ...fresh[index]!, refLow, refHigh };
       await dropIds(tx, userId, drop);
       if (move.length)
         await tx
@@ -425,6 +498,8 @@ export async function saveReadings(
             observedAt: readings.observedAt,
             value: readings.value,
             valueText: readings.valueText,
+            refLow: readings.refLow,
+            refHigh: readings.refHigh,
             flags: readings.flags,
           })
           .from(readings)
@@ -446,6 +521,11 @@ export async function saveReadings(
       : [];
     const plan = planInsert(fresh, antecedents, existing);
     await dropIds(tx, userId, plan.replace);
+    for (const { id, refLow, refHigh } of plan.ranges)
+      await tx
+        .update(readings)
+        .set({ refLow, refHigh })
+        .where(eq(readings.id, id));
     if (plan.insert.length)
       await tx
         .insert(readings)

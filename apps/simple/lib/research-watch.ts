@@ -22,7 +22,7 @@
  * `researchCondition` takes an injectable extractor, so every function below
  * is testable without a model call and without a network.
  */
-import { and, desc, eq, isNull, sql } from "drizzle-orm";
+import { and, desc, eq, gt, inArray, isNotNull, isNull, sql } from "drizzle-orm";
 import { getDb, paperWatch, type PaperMove, type PaperWatch } from "@/db";
 import { buildModelInput } from "@/lib/coverage";
 import { catalogFor } from "@/lib/hkb";
@@ -501,6 +501,65 @@ export async function runWatchForUser(
   return out;
 }
 
+/* ── the watch feeds the case (42D) ───────────────────────────────────── */
+
+/**
+ * The graded rows the watch filed since the last case run, newest first. A
+ * graded row is one the intake read; its own one-rule score may sit under
+ * `MOVE_FLOOR`, and the case run reads it again against the whole case.
+ */
+export async function gradedSince(
+  userId: string,
+  since: Date | null,
+): Promise<{ conditionId: string; externalId: string }[]> {
+  return getDb()
+    .select({
+      conditionId: paperWatch.conditionId,
+      externalId: paperWatch.externalId,
+    })
+    .from(paperWatch)
+    .where(
+      and(
+        eq(paperWatch.userId, userId),
+        isNotNull(paperWatch.grade),
+        ...(since ? [gt(paperWatch.foundAt, since)] : []),
+      ),
+    )
+    .orderBy(desc(paperWatch.foundAt));
+}
+
+/** Filed rows as the papers a case run reads; a row with no abstract has nothing to read. */
+export async function watchedPapers(
+  userId: string,
+  dois: string[],
+): Promise<Paper[]> {
+  const rows = await getDb()
+    .select()
+    .from(paperWatch)
+    .where(
+      and(
+        eq(paperWatch.userId, userId),
+        inArray(
+          paperWatch.externalId,
+          dois.map((d) => d.toLowerCase()),
+        ),
+        isNotNull(paperWatch.abstract),
+      ),
+    );
+  // ponytail: the row keeps no authors, so the label falls back to the DOI
+  return rows.map((r) => ({
+    pmid: null,
+    doi: r.externalId,
+    title: r.title,
+    journal: r.journal,
+    year: r.publishedAt ? Number(String(r.publishedAt).slice(0, 4)) : null,
+    authors: "",
+    citedBy: 0,
+    url: r.url ?? `https://doi.org/${r.externalId}`,
+    abstract: r.abstract!,
+  }));
+}
+
 /* ── reading the feed ─────────────────────────────────────────────────── */
 
 /** The rows the page prints: unseen first, then what moves something. */
@@ -522,8 +581,7 @@ export async function listWatch(
   if (opts.unseen) where.push(isNull(paperWatch.seenAt));
   if (opts.conditionId)
     where.push(eq(paperWatch.conditionId, opts.conditionId));
-  if (opts.topic)
-    where.push(eq(paperWatch.conditionId, `topic:${opts.topic}`));
+  if (opts.topic) where.push(eq(paperWatch.conditionId, `topic:${opts.topic}`));
   const rows = await getDb()
     .select()
     .from(paperWatch)

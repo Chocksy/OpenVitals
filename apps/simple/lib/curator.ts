@@ -1488,12 +1488,18 @@ export async function runCurator(
     // `CASE_BUDGET_USD`, before the hunches so they read what it promoted.
     // The run row lands at the end, so three PDFs uploaded together all saw
     // "due" and paid for three runs; `caseRunning` holds the others back.
-    if (trigger === "upload" && !caseRunning.has(userId)) {
+    // Phase 42D: the daily pass reads the case too, at once when the watch
+    // just filed a graded paper on an open differential's option (that paper
+    // read first), else once a week; the same day guard and the same set.
+    const daily = trigger === "daily" && !scope?.uploadId;
+    if ((trigger === "upload" || daily) && !caseRunning.has(userId)) {
       caseRunning.add(userId);
       await import("./cases")
         .then(async (c) => {
           if (!(await c.caseRunDue(userId))) return;
-          const r = await c.researchCase(userId);
+          const due = daily ? await c.dailyCase(userId) : null;
+          if (due && !due.why) return;
+          const r = await c.researchCase(userId, { seedDois: due?.seeds });
           if (r.failed) console.error(`[curator] case research: ${r.failed}`);
         })
         .catch((e) => console.error("[curator] case research failed:", e))

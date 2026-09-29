@@ -2444,6 +2444,79 @@ export const INTERVENTIONS: SeedIntervention[] = [
       "These findings provide strong evidence that 12 weeks of moderate-intensity aerobic exercise do not alleviate VMS but may result in small improvements in sleep quality, insomnia, and depression in midlife sedentary women.",
   },
 
+  /* ── heavy menstrual bleeding (phase 42B) ──────────────────────────────
+   * The three medical options NICE NG88 lists, each with its Cochrane
+   * review: the hormonal coil, tranexamic acid, the combined pill. */
+  {
+    conditionId: "heavy_menstrual_bleeding",
+    name: "Levonorgestrel intrauterine system (hormonal coil)",
+    kind: "drug",
+    dose: "52 mg levonorgestrel coil, fitted by a GP or clinic",
+    duration: null,
+    outcomeFeatureId: null,
+    effect: "-66.91 mL blood loss per cycle against other medical therapy (95% CI 42.61 to 91.20)",
+    direction: "down",
+    grade: "A",
+    studyType: "meta",
+    population: "25 randomised trials, 2,511 women with heavy menstrual bleeding",
+    caution: "Fitting is a procedure; irregular spotting is common in the first months.",
+    paper: {
+      doi: "10.1002/14651858.CD002126.pub4",
+      pmid: "32529637",
+      title: "Progestogen-releasing intrauterine systems for heavy menstrual bleeding",
+      year: 2020,
+      journal: "Cochrane Database of Systematic Reviews",
+    },
+    quote:
+      "The LNG-IUS may improve HMB, lowering menstrual blood loss according to the alkaline haematin method (mean difference (MD) 66.91 mL, 95% confidence interval (CI) 42.61 to 91.20; 2 studies, 170 women; low-certainty evidence)",
+  },
+  {
+    conditionId: "heavy_menstrual_bleeding",
+    name: "Tranexamic acid",
+    kind: "drug",
+    dose: "tablets on the heavy days of the period only",
+    duration: null,
+    outcomeFeatureId: null,
+    effect: "-53.20 mL blood loss per cycle against placebo (95% CI -62.70 to -43.70)",
+    direction: "down",
+    grade: "A",
+    studyType: "meta",
+    population: "13 randomised trials, 1,312 women with heavy menstrual bleeding",
+    caution: "Not with a past clot or a clotting disorder; it is not a contraceptive.",
+    paper: {
+      doi: "10.1002/14651858.CD000249.pub2",
+      pmid: "29656433",
+      title: "Antifibrinolytics for heavy menstrual bleeding",
+      year: 2018,
+      journal: "Cochrane Database of Systematic Reviews",
+    },
+    quote:
+      "When compared with a placebo, antifibrinolytics were associated with reduced mean blood loss (MD -53.20 mL per cycle, 95% CI -62.70 to -43.70; I² = 8%; 4 RCTs, participants = 565; moderate-quality evidence)",
+  },
+  {
+    conditionId: "heavy_menstrual_bleeding",
+    name: "Combined oral contraceptive pill",
+    kind: "drug",
+    dose: "a combined pill, as prescribed",
+    duration: "6 months",
+    outcomeFeatureId: null,
+    effect: "treatment success in 12 % to 77 % of women against 3 % on placebo",
+    direction: "down",
+    grade: "A",
+    studyType: "meta",
+    population: "8 randomised trials, 805 women with heavy menstrual bleeding",
+    caution: "Not with smoking at older ages or with migraine with aura, because of the clot and stroke risk.",
+    paper: {
+      doi: "10.1002/14651858.CD000154.pub3",
+      pmid: "30742315",
+      title: "Combined hormonal contraceptives for heavy menstrual bleeding",
+      year: 2019,
+      journal: "Cochrane Database of Systematic Reviews",
+    },
+    quote:
+      "Moderate-quality evidence suggests that the combined oral contraceptive pill over six months reduces HMB in women with unacceptable HMB from 12% to 77% (compared to 3% in women taking placebo).",
+  },
+
   /* ── male hypogonadism ─────────────────────────────────────────────────
    * What testosterone actually did in the trials (sexual function, mood; not
    * vitality or walking), what it did not do to the heart, and the list of

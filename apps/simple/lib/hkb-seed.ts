@@ -171,7 +171,13 @@ export function catalogRows(catalog: Catalog = HYPOTHESES): CatalogRows {
       rows.modifiers.push({
         conditionId: h.id,
         featureId: feature(modifierFeature(when)),
-        conditionOn: conditionOnOf(when),
+        // a printed share rides in `condition_on`, where `modifierOf` reads it
+        conditionOn: {
+          ...conditionOnOf(when),
+          ...(m.share != null
+            ? { share: m.share, population: m.population, unless: m.unless }
+            : {}),
+        },
         times: m.times,
         why: m.why,
         grade: m.grade ?? gradeInWhy(m.why),

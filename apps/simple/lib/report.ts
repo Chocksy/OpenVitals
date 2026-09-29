@@ -39,7 +39,9 @@ import { loadGraph, type Graph } from "./kg";
 import { catalogFor } from "./hkb";
 import { isConclusion, mattersOf } from "./ledger";
 import {
+  noResponse,
   scoreHypotheses,
+  TREATMENT_TARGETS,
   type Catalog,
   type HypothesisResult,
 } from "./hypotheses";
@@ -174,6 +176,8 @@ FIRED RULES: every rule in the FIRED RULES section becomes its own "test" action
 
 DISMISSED: never propose anything in the DISMISSED ACTIONS list again.
 
+FAILED TREATMENTS: a "no_response:<marker>" fact means that treatment, on that route, was taken long enough and did not move the marker. Never propose it again on that route; say what the next step is instead.
+
 FACTS ARE NOT ACTIONS: missing interview facts are asked as questions by the app, never as actions; do not write actions like "report your height".
 
 DISCUSSION: the USER CONTEXT AND DISCUSSION section is what this person told you about the actions in the last plan, and what you answered. Treat it as fact about them and carry it into this plan.
@@ -206,15 +210,73 @@ LIMITS: at most 10 actions, at most 3 summary lines, at most 3 questions. Sort n
 
 const num = (v: number | null | undefined) => (v == null ? "-" : String(v));
 
+/**
+ * A treatment that did not move its marker, with the span it ran: what
+ * `no_response:<code>` found, plus the words and dates a person reads back.
+ * Phase 42A: the prompt and the cards both say it from here.
+ */
+export interface FailedTreatment {
+  code: string;
+  /** "oral", "iv", "any" */
+  routes: string[];
+  what: string;
+  from: string;
+  to: string | null;
+}
+
+export function failedTreatment(
+  input: ModelInput,
+  code: string,
+): FailedTreatment | null {
+  const routes = noResponse(input, code)?.split(", ") ?? [];
+  if (!routes.length || routes[0] === "none") return null;
+  const words = TREATMENT_TARGETS.filter((t) => t.code === code);
+  const ran = (input.treatments ?? []).filter(
+    (t) =>
+      words.some((w) => w.words.test(t.what)) &&
+      (routes.includes("any") || routes.includes(t.route)),
+  );
+  if (!ran.length) return null;
+  const ends = ran.map((t) => t.stopped ?? null);
+  return {
+    code,
+    routes,
+    what: ran[0]!.what,
+    from: ran.map((t) => t.started).sort()[0]!,
+    to: ends.includes(null) ? null : (ends as string[]).sort().at(-1)!,
+  };
+}
+
+/** "iron, oral, 2024-09-01 to 2026-09-01": one record of a list fact. */
+const entryLine = (v: unknown): string => {
+  if (v == null || typeof v !== "object") return String(v);
+  const { started, stopped, ...rest } = v as Record<string, unknown>;
+  const span = started
+    ? stopped
+      ? `${started} to ${stopped}`
+      : `since ${started}`
+    : null;
+  return [...Object.values(rest).map(String), span].filter(Boolean).join(", ");
+};
+
 function factLines(input: ModelInput): string {
   const keys = Object.keys(input.profile).sort();
   if (!keys.length) return "- nothing answered yet";
-  return keys
-    .map((k) => {
+  const failed = [...new Set(TREATMENT_TARGETS.map((t) => t.code))]
+    .map((code) => failedTreatment(input, code))
+    .filter((f) => f != null)
+    .map((f) => {
+      const dir = TREATMENT_TARGETS.find((t) => t.code === f.code)!.dir;
+      const how = [f.routes.filter((r) => r !== "any").join(" and "), f.what];
+      return `- no_response:${f.code}: ${how.filter(Boolean).join(" ")} failed to ${dir === "up" ? "raise" : "lower"} ${f.code.replace(/_/g, " ")}`;
+    });
+  return [
+    ...keys.map((k) => {
       const v = input.profile[k];
-      return `- ${k}: ${Array.isArray(v) ? v.join("; ") : String(v)}`;
-    })
-    .join("\n");
+      return `- ${k}: ${Array.isArray(v) ? v.map(entryLine).join("; ") : entryLine(v)}`;
+    }),
+    ...failed,
+  ].join("\n");
 }
 
 /** Metrics grouped by the tier-1 vector they belong to. */

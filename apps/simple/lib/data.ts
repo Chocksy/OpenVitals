@@ -50,6 +50,47 @@ export interface MetricRow {
   status: Status;
 }
 
+/**
+ * One number, give or take how it was stored: 8.2 through a `real` column and
+ * 8.2 parsed off a sheet differ in the eighth digit. Phase 42E.
+ */
+export const sameValue = (a: number | null, b: number | null): boolean =>
+  a === b ||
+  (a != null &&
+    b != null &&
+    Math.abs(a - b) <= 1e-4 * Math.max(Math.abs(a), Math.abs(b)));
+
+const ranged = (r: { refLow: number | null; refHigh: number | null }) =>
+  r.refLow != null || r.refHigh != null;
+
+/**
+ * Pure: one row per draw. Rows come oldest first; a later row on the same day,
+ * from the same source, with the same value is the same draw uploaded twice,
+ * and the one with a lab range wins. Phase 42E: the fallback behind the save
+ * path's own dedupe, so a chart never prints "was 8.2 … 0 %".
+ */
+export function collapseSame<R extends MetricRow["rows"][number]>(
+  rows: R[],
+): R[] {
+  const out: R[] = [];
+  for (const r of rows) {
+    let i = out.length - 1;
+    while (
+      i >= 0 &&
+      out[i]!.observedAt === r.observedAt &&
+      !(
+        (out[i]!.source ?? null) === (r.source ?? null) &&
+        sameValue(out[i]!.value, r.value) &&
+        (r.value != null || out[i]!.valueText === r.valueText)
+      )
+    )
+      i--;
+    if (i < 0 || out[i]!.observedAt !== r.observedAt) out.push(r);
+    else if (!ranged(out[i]!) && ranged(r)) out[i] = r;
+  }
+  return out;
+}
+
 /** value = glucose * insulin / 405, and total cholesterol minus HDL. */
 const DERIVED: Record<
   string,
@@ -207,6 +248,8 @@ export async function getMetricRows(
       flags: r.flags,
     });
   }
+
+  for (const [code, rows] of grouped) grouped.set(code, collapseSame(rows));
 
   const out: MetricRow[] = [];
   for (const [code, rows] of grouped) {

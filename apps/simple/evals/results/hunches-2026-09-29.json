@@ -1,0 +1,110 @@
+[
+  {
+    "id": "owner",
+    "raised": [
+      "cluster:iron",
+      "drift:ldl_cholesterol",
+      "gap:folic_acid",
+      "good_news:crp",
+      "step:eosinophils_abs"
+    ],
+    "unraised": [
+      "good_news:wbc",
+      "step:mchc",
+      "left_band:mpv",
+      "step:neutrophils_pct",
+      "good_news:neutrophils_abs",
+      "good_news:lymphocytes_pct",
+      "step:lymphocytes_abs",
+      "good_news:monocytes_pct",
+      "good_news:monocytes_abs",
+      "left_band:eosinophils_pct",
+      "left_band:eosinophils_abs",
+      "good_news:basophils_abs",
+      "left_band:pct",
+      "drift:homocysteine",
+      "step:iron",
+      "step:ferritin",
+      "drift:ferritin",
+      "left_band:total_cholesterol",
+      "step:non_hdl_cholesterol",
+      "step:bun",
+      "left_band:calcium",
+      "good_news:total_protein"
+    ],
+    "tests": {
+      "step:eosinophils_abs": null,
+      "good_news:crp": null,
+      "drift:ldl_cholesterol": null,
+      "cluster:iron": "ttg_iga",
+      "gap:folic_acid": "folic_acid"
+    },
+    "judged": {},
+    "failed": [],
+    "pass": true
+  },
+  {
+    "id": "flat",
+    "raised": [],
+    "unraised": [],
+    "tests": {},
+    "judged": {},
+    "failed": [],
+    "pass": true
+  },
+  {
+    "id": "iron_loss",
+    "raised": [
+      "step:ferritin"
+    ],
+    "unraised": [
+      "left_band:ferritin",
+      "drift:ferritin"
+    ],
+    "tests": {
+      "step:ferritin": "ttg_iga"
+    },
+    "judged": {},
+    "failed": [],
+    "pass": true
+  },
+  {
+    "id": "lab_jump",
+    "raised": [],
+    "unraised": [
+      "left_band:tsh",
+      "drift:tsh"
+    ],
+    "tests": {},
+    "judged": {},
+    "failed": [],
+    "pass": true
+  },
+  {
+    "id": "coeliac",
+    "raised": [
+      "cluster:iron"
+    ],
+    "unraised": [
+      "left_band:ferritin",
+      "step:ferritin",
+      "drift:ferritin",
+      "left_band:vitamin_b12",
+      "step:vitamin_b12",
+      "left_band:vitamin_d",
+      "step:vitamin_d",
+      "drift:vitamin_d",
+      "left_band:folic_acid",
+      "step:folic_acid",
+      "left_band:homocysteine",
+      "step:homocysteine",
+      "drift:homocysteine"
+    ],
+    "tests": {
+      "cluster:iron": "ttg_iga"
+    },
+    "judged": {},
+    "failed": [],
+    "pass": true
+  }
+]

@@ -1,5 +1,5 @@
 {
-  "note": "Copy to cases.json (gitignored) and key real users by id. Phase 41D. Real users replayed blind, keyed by user id. `seed` lays dated facts over the profile at each asOf (a course not begun by asOf is dropped). Checkpoints hold expectations the future has not answered yet; a fail is a finding, never tuned away. 2026-09-28 (41C round 2): the moves check was 'one of the gastric tests in the top 5 moves', which could not pass because nextMoves ranks free questions above paid tests; it is now 'one of them among the pursue moves, or the chosen test of the cause:iron_deficiency hunch'. No other expectation changed. 2026-09-28 (41F, owner): the atrophic_gastritis belief and the gastric-moves checks are replaced by differential checks. Her true cause is unknown and no stomach test has been done, so the checks test whether the system raises the right question (a short, sourced list of causes with a test that splits them), not a diagnosis. Kept: cause:iron_deficiency raised, and no_response:ferritin = oral.",
+  "note": "Copy to cases.json (gitignored) and key real users by id. Phase 41D. Real users replayed blind, keyed by user id. `seed` lays dated facts over the profile at each asOf (a course not begun by asOf is dropped). Checkpoints hold expectations the future has not answered yet; a fail is a finding, never tuned away. 2026-09-28 (41C round 2): the moves check was 'one of the gastric tests in the top 5 moves', which could not pass because nextMoves ranks free questions above paid tests; it is now 'one of them among the pursue moves, or the chosen test of the cause:iron_deficiency hunch'. No other expectation changed. 2026-09-28 (41F, owner): the atrophic_gastritis belief and the gastric-moves checks are replaced by differential checks. Her true cause is unknown and no stomach test has been done, so the checks test whether the system raises the right question (a short, sourced list of causes with a test that splits them), not a diagnosis. Kept: cause:iron_deficiency raised, and no_response:ferritin = oral. 2026-09-29 (42B): the differential lists up to ten causes; case A's checkpoints add that heavy menstrual bleeding is listed with a share over 5 %, atrophic gastritis stays on the list, and other is at least 10 %.",
   "users": {
     "<user-id>": {
       "name": "case A",
@@ -30,7 +30,17 @@
             "differential": {
               "of": "iron_deficiency",
               "minOptions": 3,
-              "agreeWithin": 2
+              "agreeWithin": 2,
+              "listed": [
+                {
+                  "pattern": "heavy_menstrual_bleeding",
+                  "minShare": 0.05
+                },
+                {
+                  "pattern": "atrophic_gastritis"
+                }
+              ],
+              "minOther": 0.1
             }
           }
         },
@@ -57,7 +67,17 @@
                   "pepsinogen_i",
                   "h_pylori_stool_antigen"
                 ]
-              }
+              },
+              "listed": [
+                {
+                  "pattern": "heavy_menstrual_bleeding",
+                  "minShare": 0.05
+                },
+                {
+                  "pattern": "atrophic_gastritis"
+                }
+              ],
+              "minOther": 0.1
             }
           }
         }

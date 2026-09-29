@@ -109,8 +109,10 @@ export function WhatToDo({
   };
 
   const working = !!busy || pending;
+  /* Phase 42A: a failed treatment's line reads above the list, with no Add. */
+  const notes = lines.filter((l) => l.source === "note");
   /* UX note 7: a supplement name, a glyph and a direction is not an action. */
-  const shown = lines.filter(saysSomething);
+  const shown = lines.filter((l) => l.source !== "note" && saysSomething(l));
   const left = shown.filter((l) => !done.includes(l.title));
 
   return (
@@ -119,6 +121,15 @@ export function WhatToDo({
         <h3>What to do</h3>
         <span>each with the number it should move</span>
       </div>
+
+      {notes.map((n) => (
+        <p
+          key={n.id}
+          className="t-body mt-2 text-[length:var(--type-sm)] text-[var(--ink-2)]"
+        >
+          {n.title}
+        </p>
+      ))}
 
       {shown.length === 0 ? (
         <div className="mt-2 space-y-2">

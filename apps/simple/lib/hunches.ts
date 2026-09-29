@@ -40,6 +40,7 @@ import {
 import { recordHunchCalibration } from "./calibration";
 import { buildModelInput } from "./coverage";
 import { getMetricRows, type MetricRow } from "./data";
+import { loadGenome } from "./genome";
 import { profileAt } from "./facts";
 import { catalogFor, loadCatalog } from "./hkb";
 import {
@@ -53,6 +54,7 @@ import { gradeOfEdge, type SystemId } from "./graph";
 import { loadGraph, type Graph } from "./kg";
 import { labPoints, type LabPoint } from "./personal";
 import { BAND_EUR, CURRENCY, MIN_EUR, PER_EUR } from "./prices";
+import { SYMPTOM_KEYS, symptomByKey } from "./symptoms";
 import {
   fmt,
   signalsOf,
@@ -147,15 +149,72 @@ function dirOf(on: Record<string, unknown>): Dir | null {
   return null;
 }
 
+/** Under this a condition's own test is not worth ordering (phase 42C). */
+const RULED_OUT = 0.01;
+
+/**
+ * Who owns each plain threshold ("ttg_iga >"): the condition with the
+ * strongest rule on it, and whether that condition sits under 1 %.
+ */
+function ownersOf(
+  evidence: EvidenceRow[],
+  beliefs: Record<string, { p: number }> | null | undefined,
+): Map<string, { lr: number; id: string; out: boolean }> {
+  const owner = new Map<string, { lr: number; id: string; out: boolean }>();
+  for (const r of evidence) {
+    const check = r.lrPos > 1 ? checkOf(r) : null;
+    if (!check) continue;
+    const key = `${check.code} ${check.op}`;
+    const was = owner.get(key);
+    if (!was || r.lrPos > was.lr)
+      owner.set(key, {
+        lr: r.lrPos,
+        id: r.conditionId,
+        out: (beliefs?.[r.conditionId]?.p ?? 1) < RULED_OUT,
+      });
+  }
+  return owner;
+}
+
+/**
+ * Markers every threshold of which belongs to a condition under 1 %: tTG-IgA
+ * once coeliac is gone. A test that measures only these is not worth ordering.
+ */
+export function ruledOutCodes(
+  evidence: EvidenceRow[],
+  beliefs: Record<string, { p: number }> | null | undefined,
+): Set<string> {
+  const byCode = new Map<string, boolean>();
+  for (const [key, o] of ownersOf(evidence, beliefs)) {
+    const code = key.split(" ")[0]!;
+    byCode.set(code, (byCode.get(code) ?? true) && o.out);
+  }
+  return new Set([...byCode].filter(([, out]) => out).map(([c]) => c));
+}
+
 /**
  * The strongest plain threshold each condition's evidence names, on any
  * marker: coeliac points at tTG-IgA above 10, not at the ferritin that fell.
+ *
+ * With `beliefs`, a check is skipped when the condition whose test it is sits
+ * under 1 %: the condition itself, or the one with the strongest rule on that
+ * threshold. A person with no DQ2/DQ8 has coeliac near zero, so tTG-IgA is no
+ * longer the gut-loss check either.
  */
-export function checksOf(evidence: EvidenceRow[]): Map<string, Check> {
+export function checksOf(
+  evidence: EvidenceRow[],
+  beliefs?: Record<string, { p: number }> | null,
+): Map<string, Check> {
+  const owners = ownersOf(evidence, beliefs);
   const best = new Map<string, { lr: number; check: Check }>();
   for (const r of evidence) {
     const check = r.lrPos > 1 ? checkOf(r) : null;
     if (!check) continue;
+    if (
+      (beliefs?.[r.conditionId]?.p ?? 1) < RULED_OUT ||
+      owners.get(`${check.code} ${check.op}`)?.out
+    )
+      continue;
     const was = best.get(r.conditionId);
     if (!was || r.lrPos > was.lr)
       best.set(r.conditionId, { lr: r.lrPos, check });
@@ -173,10 +232,11 @@ export function causesFrom(
   graph: Graph,
   evidence: EvidenceRow[],
   codes: string[],
+  beliefs?: Record<string, { p: number }> | null,
 ): Record<string, Cause[]> {
   const nodes = new Map(graph.nodes.map((n) => [n.id, n]));
   const hkbIds = new Set(evidence.map((e) => e.conditionId));
-  const checks = checksOf(evidence);
+  const checks = checksOf(evidence, beliefs);
   const hkbOf = (nodeId: string) => {
     if (!nodeId.startsWith("condition:")) return null;
     const local = nodeId.slice(10);
@@ -286,9 +346,10 @@ export function causesOfCondition(
   evidence: EvidenceRow[],
   conditions: ConditionLink[],
   links: EvidenceRow[] = [],
+  beliefs?: Record<string, { p: number }> | null,
 ): Cause[] {
   const nodes = new Map(graph.nodes.map((n) => [n.id, n]));
-  const checks = checksOf(evidence);
+  const checks = checksOf(evidence, beliefs);
   const hkbIds = new Set(conditions.map((c) => c.id));
   // ponytail: kg `coeliac` is hkb `coeliac_disease`; both node ids count.
   const targets = new Set([
@@ -327,8 +388,8 @@ export function causesOfCondition(
   }
   // `links` are case-research prior modifiers on `hypothesis:<id>`: "22 % of
   // people with <id> had X" makes X a cause to look for. A seeded modifier is
-  // not passed here: those say two conditions cluster, not that one explains
-  // the other.
+  // not passed here unless its reason says "cause of" (a printed share, phase
+  // 42B): the rest say two conditions cluster, not that one explains the other.
   for (const r of [...evidence, ...links]) {
     if (r.featureId !== `hypothesis:${id}` || r.lrPos <= 1) continue;
     add({
@@ -424,6 +485,54 @@ export function causeSignals(
   return out;
 }
 
+/** The kinds a cause hunch absorbs when every marker is one its condition reads. */
+const ABSORBED = new Set(["chronic", "cluster", "step", "drift"]);
+
+/**
+ * Phase 42C: one case per problem. A chronic, cluster, step or drift signal
+ * whose codes are all markers condition X is scored on is X's story, so the
+ * `cause:X` signal absorbs it: the cause signal carries its codes and
+ * `numbers.absorbed` its key, and it leaves the raised list. `merged` maps
+ * each absorbed key to the cause key, for the rows to close. Pure.
+ */
+export function mergeCauses(
+  raised: Signal[],
+  evidence: EvidenceRow[],
+): { raised: Signal[]; merged: Map<string, string> } {
+  const merged = new Map<string, string>();
+  const causes = raised.filter((s) => s.kind === "cause");
+  if (!causes.length) return { raised, merged };
+  const out = raised.map((s) => {
+    if (s.kind !== "cause") return s;
+    const id = String(s.numbers.conditionId);
+    const reads = new Set(
+      evidence
+        .filter((r) => r.conditionId === id && r.featureId.startsWith("metric:"))
+        .map((r) => r.featureId.slice(7)),
+    );
+    const eaten = raised.filter(
+      (o) =>
+        ABSORBED.has(o.kind) &&
+        !merged.has(o.key) &&
+        o.codes.length &&
+        o.codes.every((c) => reads.has(c)),
+    );
+    if (!eaten.length) return s;
+    for (const o of eaten) merged.set(o.key, s.key);
+    return {
+      ...s,
+      codes: [...new Set([...s.codes, ...eaten.flatMap((o) => o.codes)])].sort(),
+      numbers: { ...s.numbers, absorbed: eaten.map((o) => o.key).join(",") },
+      rule: [
+        ...s.rule,
+        ...eaten.map((o) => `absorbs ${o.key}: every marker is one it reads`),
+      ],
+      firedAt: [...new Set([...s.firedAt, ...eaten.flatMap((o) => o.firedAt)])].sort(),
+    };
+  });
+  return { raised: out.filter((s) => !merged.has(s.key)), merged };
+}
+
 const toExplanation = (c: Sourced, text = c.name): HunchExplanation => ({
   origin: c.origin ?? "catalog",
   id: c.id,
@@ -439,17 +548,26 @@ const toExplanation = (c: Sourced, text = c.name): HunchExplanation => ({
 
 /* ── pure: weights, the test, the outcome ──────────────────────────────── */
 
+/** What a hunch keeps for "none of these": a cluster or a chronic one, `MIN_OTHER`. */
+export const otherOf = (kind: string) =>
+  kind === "cluster" || kind === "chronic" ? MIN_OTHER : 0;
+
 /**
  * The share of this hunch each explanation holds. An explanation the engine
  * scores takes its belief; the rest share what is left equally; a tapped
  * chip multiplies what it favours by `CHIP_LR`; then everything sums to 1.
  * A grade-E guess from outside the graph takes half of the top graph
  * explanation, so it never outweighs one the graph names.
+ *
+ * `other` (phase 42C, cluster and chronic hunches) keeps that much for "none
+ * of these", the way the differential does: the weights are scaled down only
+ * when they would leave less, so they no longer have to sum to 1.
  */
 export function weightsOf(
   expl: HunchExplanation[],
   beliefs: Record<string, { p: number }> | null,
   chip?: { favours: string[] } | null,
+  other = 0,
 ): HunchExplanation[] {
   if (!expl.length) return expl;
   const p = (e: HunchExplanation) =>
@@ -465,9 +583,10 @@ export function weightsOf(
         (chip?.favours.includes(e.id) ? CHIP_LR : 1) || 1e-6,
   );
   const sum = raw.reduce((a, b) => a + b, 0);
+  const total = other ? Math.max(sum / (1 - other), 1) : sum;
   return expl.map((e, i) => ({
     ...e,
-    weight: Math.round((raw[i]! / sum) * 1000) / 1000,
+    weight: Math.round((raw[i]! / total) * 1000) / 1000,
   }));
 }
 
@@ -569,24 +688,42 @@ function normalOf(c: Check): Check {
 
 /**
  * B4: what each explanation says the test will show, written before the
- * result. An explanation whose check names the test predicts its threshold;
- * every other one predicts normal on the same marker.
+ * result. An explanation whose check names the test predicts its threshold.
+ * Every other one is "not settled by" it (phase 42C): its code-owned check is
+ * normal on the same marker, so a normal result keeps it in play, but the
+ * words never borrow another cause's range. Its own check, or its condition's
+ * first test (`testOf`), says what would settle it instead.
  */
 export function predictionsOf(
   expl: HunchExplanation[],
   test: HunchTest,
   name: string,
   unit: string | null,
+  other: {
+    nameOf?: (code: string) => string;
+    units?: Record<string, string | null>;
+    testOf?: (conditionId: string) => string | null;
+  } = {},
 ): HunchPrediction[] | null {
   const anchor = expl.find((e) => e.check?.code === test.code)?.check;
   if (!anchor) return null;
-  const u = unit ? ` ${unit}` : "";
+  const u = (x: string | null | undefined) => (x ? ` ${x}` : "");
   return expl.map((e) => {
-    const check = e.check?.code === test.code ? e.check : normalOf(anchor);
+    if (e.check?.code === test.code)
+      return {
+        explanationId: e.id,
+        check: e.check,
+        text: `${name} ${opText(e.check, u(unit))}.`,
+      };
+    const own = e.check
+      ? `${other.nameOf?.(e.check.code) ?? e.check.code} ${opText(e.check, u(other.units?.[e.check.code]))}`
+      : e.conditionId
+        ? other.testOf?.(e.conditionId)
+        : null;
     return {
       explanationId: e.id,
-      check,
-      text: `If ${e.text.replace(/\.$/, "").toLowerCase()}: ${name} ${opText(check, u)}.`,
+      check: normalOf(anchor),
+      text: `Not settled by ${name}${own ? `; ${own} would` : ""}.`,
     };
   });
 }
@@ -759,7 +896,11 @@ export async function personOf(
             like(hkbPriorModifiers.featureId, "hypothesis:%"),
             like(hkbPriorModifiers.why, "%cause of %"),
           ),
-          like(hkbPriorModifiers.why, "%case research%"),
+          // a seeded share (phase 42B) says ", cause of <id>" in its own words
+          or(
+            like(hkbPriorModifiers.why, "%case research%"),
+            like(hkbPriorModifiers.why, "%, cause of %"),
+          ),
           gt(hkbPriorModifiers.times, 1),
         ),
       ),
@@ -853,6 +994,7 @@ export async function personOf(
         graph,
         evidence as EvidenceRow[],
         markers.map((m) => m.code),
+        snap[0]?.beliefs ?? null,
       ),
       today,
     },
@@ -880,7 +1022,14 @@ export async function personOf(
         .filter(([, b]) => SETTLED.has(b.state))
         .map(([id]) => [
           id,
-          causesOfCondition(id, graph, evidence, conds, links),
+          causesOfCondition(
+            id,
+            graph,
+            evidence,
+            conds,
+            links,
+            snap[0]?.beliefs ?? null,
+          ),
         ]),
     ),
     evidence: evidence as EvidenceRow[],
@@ -940,8 +1089,13 @@ You get one SIGNAL (what changed, with the numbers), the PERSON's facts, and a c
 RULES:
 1. Pick two to four explanations from the LIST that best fit this person and this change. Copy each id exactly. For each, write \`text\`: one plain sentence a non-doctor understands, naming the cause and why it fits (at most 20 words, no percentages, no z-scores).
 2. You may add at most two explanations that are not on the LIST in \`outside\`, only when the list misses something common. They are shown as unproven.
-3. Write one \`question\` the person can answer from memory that separates the explanations you picked, with three to five short chips. Each chip's \`favours\` lists the ids (from your picks) that the answer makes more likely. An "outside" explanation is referred to as "outside:1" or "outside:2".
-4. Never give a probability, a threshold, a diagnosis or a test. Code does that.`;
+3. Write one \`question\` the person can answer from memory that separates the explanations you picked, with three to five short chips. Each chip's \`favours\` lists the ids (from your picks) that the answer makes more likely. An "outside" explanation is referred to as "outside:1" or "outside:2". When FIRST CHIPS are given, code shows them first: word the question so they answer it, and write only the other chips.
+4. Never give a probability, a threshold, a diagnosis or a test. Code does that.
+5. Each LIST row carries the share code gives it and its rank. Never contradict them: say "less likely" only of an explanation that ranks below another you picked, never of rank 1.
+6. Speak to the reader as "you". Never "she", "he" or "the person".`;
+
+/** Bumped when `EXPLAIN_PROMPT` changes: open hunches written by an older one fill again. */
+export const EXPLAIN_VERSION = "42c-1";
 
 export interface Explained {
   explanations: HunchExplanation[];
@@ -953,7 +1107,15 @@ export interface Explained {
 export async function explain(
   s: Signal,
   list: Cause[],
-  person: Pick<Person, "facts" | "names">,
+  person: Pick<Person, "facts" | "names"> & Partial<Pick<Person, "beliefs">>,
+  opts: {
+    /** a cause hunch's differential: the shares the model sees */
+    differential?: Differential | null;
+    /** `genome:<id>` fact to the catalog's sentence about that call */
+    meaning?: Record<string, string>;
+    /** chips code puts first, from the question-only options (phase 42B) */
+    first?: { label: string; favours: string[] }[];
+  } = {},
 ): Promise<Explained> {
   const rules = (): Explained => ({
     explanations: list.slice(0, 3).map((c) => toExplanation(c)),
@@ -971,8 +1133,30 @@ export async function explain(
     f.conditions ? `conditions: ${f.conditions}` : null,
     ...Object.entries(f)
       .filter(([k]) => k.startsWith("genome:"))
-      .map(([k, v]) => `${k.slice(7).toUpperCase()} ${v}`),
+      .map(
+        ([k, v]) =>
+          `${k.slice(7).toUpperCase()} ${v}${opts.meaning?.[k] ? ` (${opts.meaning[k]})` : ""}`,
+      ),
   ].filter(Boolean);
+  // the share each row holds, as the case will print it: the differential's
+  // for a cause hunch, else the weights the rules would give
+  const d = opts.differential;
+  const weights = weightsOf(
+    list.map((c) => toExplanation(c)),
+    person.beliefs ?? null,
+    null,
+    otherOf(s.kind),
+  );
+  const shareOf = (c: Cause, i: number) =>
+    d
+      ? (d.options.find((o) => o.id === (c.conditionId ?? c.id))?.share ?? 0)
+      : weights[i]!.weight;
+  const shares = list.map(shareOf);
+  const rankOf = (i: number) =>
+    1 + shares.filter((x) => x > shares[i]!).length;
+  const first = (opts.first ?? []).filter((c) =>
+    c.favours.some((id) => list.some((x) => x.id === id)),
+  );
   try {
     const { object } = await generateObjectSafe({
       schema: explainSchema,
@@ -983,8 +1167,18 @@ export async function explain(
         ``,
         `PERSON: ${about.join("; ")}`,
         ``,
-        `LIST (id | explanation | grade):`,
-        ...list.map((c) => `${c.id} | ${c.name} | ${c.grade}`),
+        `LIST (id | explanation | grade | share | rank):`,
+        ...list.map(
+          (c, i) =>
+            `${c.id} | ${c.name} | ${c.grade} | ${Math.round(shares[i]! * 100)}% | ${rankOf(i)}`,
+        ),
+        ...(first.length
+          ? [
+              ``,
+              `FIRST CHIPS (label | favours):`,
+              ...first.map((c) => `${c.label} | ${c.favours.join(", ")}`),
+            ]
+          : []),
       ].join("\n"),
     });
     const byId = new Map(list.map((c) => [c.id, c]));
@@ -997,7 +1191,10 @@ export async function explain(
       picked.push(toExplanation(c, e.text.trim().slice(0, 200) || c.name));
     }
     for (const c of list)
-      if (picked.length < 2 && !picked.some((p) => p.id === c.id))
+      if (
+        (picked.length < 2 || first.some((f) => f.favours.includes(c.id))) &&
+        !picked.some((p) => p.id === c.id)
+      )
         picked.push(toExplanation(c));
     object.outside.slice(0, 2).forEach((o, i) =>
       picked.push({
@@ -1014,7 +1211,13 @@ export async function explain(
       }),
     );
     const ids = new Set(picked.map((p) => p.id));
-    const chips = (object.question?.chips ?? []).slice(0, 5).map((c, i) => ({
+    const said = (object.question?.chips ?? []).filter(
+      (c) =>
+        !first.some(
+          (f) => f.label.toLowerCase() === c.label.trim().toLowerCase(),
+        ),
+    );
+    const chips = [...first, ...said].slice(0, 5).map((c, i) => ({
       id: `c${i + 1}`,
       label: c.label.trim().slice(0, 60),
       favours: c.favours.map((x) => x.trim()).filter((x) => ids.has(x)),
@@ -1049,8 +1252,11 @@ export function primaryOf(s: Pick<Signal, "codes" | "numbers">): string {
  */
 export function causeTest(
   expl: HunchExplanation[],
-  person: Pick<Person, "conditionTests" | "tests" | "known" | "country">,
+  person: Pick<Person, "conditionTests" | "tests" | "known" | "country"> &
+    Partial<Pick<Person, "evidence" | "beliefs">>,
 ): HunchTest | null {
+  // phase 42C: the same rule as `checksOf`, so the test is one a check names
+  const out = ruledOutCodes(person.evidence ?? [], person.beliefs);
   for (const e of [...expl].sort((a, b) => b.weight - a.weight)) {
     const ids = e.conditionId ? person.conditionTests?.[e.conditionId] : null;
     if (!ids?.length) continue;
@@ -1060,7 +1266,7 @@ export function causeTest(
           ids.includes(t.id) &&
           t.cost <= 2 &&
           t.featureIds.length &&
-          !t.featureIds.every((c) => person.known.has(c)),
+          !t.featureIds.every((c) => person.known.has(c) || out.has(c)),
       )
       .sort((a, b) => (b.lrPos ?? 0) - (a.lrPos ?? 0) || a.cost - b.cost)[0];
     if (pick)
@@ -1114,6 +1320,16 @@ function predictsOf(
         test,
         person.names[test.code] ?? test.name,
         person.units[test.code] ?? null,
+        {
+          nameOf: (code) =>
+            person.names[code] ??
+            person.tests.find((t) => t.featureIds.includes(code))?.name ??
+            code,
+          units: person.units,
+          testOf: (id) =>
+            person.tests.find((t) => t.id === person.conditionTests?.[id]?.[0])
+              ?.name ?? null,
+        },
       )
     : null;
   return expl.map((e) => ({
@@ -1174,7 +1390,9 @@ export interface Differential {
 
 /** The part of the hunch no listed cause takes, however sure the list is. */
 export const MIN_OTHER = 0.1;
-export const DIFFERENTIAL_SIZE = 3;
+export const DIFFERENTIAL_SIZE = 10;
+/** An option under this share after scaling is not listed; it counts in "other". */
+const MIN_LISTED = 0.01;
 
 type BeliefWithGiven = {
   p: number;
@@ -1190,7 +1408,7 @@ const gradeIn = (s: string | undefined): Grade =>
   (s?.match(/\bgrade ([A-E])\b/)?.[1] as Grade | undefined) ?? "C";
 
 /**
- * An open cause as a doctor's differential: up to three causes, each with its
+ * An open cause as a doctor's differential: up to ten causes, each with its
  * share, its source and its own test, the test that splits them, and an
  * "other or unexplained" remainder of at least `MIN_OTHER`, so the list never
  * claims to be complete.
@@ -1278,18 +1496,20 @@ export function differentialOf(
     (h?.discriminators ?? []).filter(
       (d) => !d.codes.every((c) => known.has(c)),
     );
-  const options: DifferentialOption[] = top.map((o) => {
-    const best = open(catalog.find((h) => h.id === o.id)).sort(
-      (a, b) => moves(b, o.p) - moves(a, o.p),
-    )[0];
-    return {
-      ...o,
-      p: +o.p.toFixed(3),
-      belief: +o.belief.toFixed(3),
-      share: +(o.p * scale).toFixed(3),
-      test: best ? { name: best.test, codes: best.codes } : null,
-    };
-  });
+  const options: DifferentialOption[] = top
+    .filter((o) => o.p * scale >= MIN_LISTED)
+    .map((o) => {
+      const best = open(catalog.find((h) => h.id === o.id)).sort(
+        (a, b) => moves(b, o.p) - moves(a, o.p),
+      )[0];
+      return {
+        ...o,
+        p: +o.p.toFixed(3),
+        belief: +o.belief.toFixed(3),
+        share: +(o.p * scale).toFixed(3),
+        test: best ? { name: best.test, codes: best.codes } : null,
+      };
+    });
   const other = +Math.max(
     0,
     1 - options.reduce((s, o) => s + o.share, 0),
@@ -1330,6 +1550,32 @@ export function differentialLine(d: Differential): string {
     ),
     `other ${pc(d.other)}`,
   ].join(", ")}; test that splits them: ${d.splitBy?.name ?? "none"}`;
+}
+
+/**
+ * Phase 42B: the chips a cause hunch asks first. An option with no test to
+ * order is settled by a question, so its symptom (the question its condition
+ * reads) is a chip that favours it, unless the person already answered it.
+ */
+export function askFirst(
+  d: Differential | null,
+  person: Pick<Person, "evidence" | "facts">,
+): { label: string; favours: string[] }[] {
+  const out: { label: string; favours: string[] }[] = [];
+  for (const o of d?.options ?? []) {
+    if (o.test) continue;
+    const r = person.evidence.find(
+      (e) =>
+        e.conditionId === o.id &&
+        e.lrPos > 1 &&
+        SYMPTOM_KEYS.has(e.featureId.replace(/^fact:/, "")),
+    );
+    const key = r?.featureId.replace(/^fact:/, "");
+    const said = key ? person.facts[key] : undefined;
+    if (!key || (said && said !== "Not sure")) continue;
+    out.push({ label: symptomByKey(key)?.name ?? o.name, favours: [o.id] });
+  }
+  return out;
 }
 
 export interface Refreshed {
@@ -1373,17 +1619,25 @@ export async function refreshHunches(
   });
   const signals = signalsOf(person.input);
   const { unraised, asOf } = signals;
-  const raised = [
-    ...signals.raised,
-    ...causeSignals(
-      person.beliefs,
-      person.conditionCauses,
-      person.evidence,
-      person.input.markers.map((m) => m.code),
-      person.conditionNames,
-    ),
-  ];
+  const { raised, merged } = mergeCauses(
+    [
+      ...signals.raised,
+      ...causeSignals(
+        person.beliefs,
+        person.conditionCauses,
+        person.evidence,
+        person.input.markers.map((m) => m.code),
+        person.conditionNames,
+      ),
+    ],
+    person.evidence,
+  );
   const explainedBy: Refreshed["explainedBy"] = {};
+  // the differential orders no test a ruled-out condition owns, as `causeTest`
+  const settled = new Set([
+    ...person.known,
+    ...ruledOutCodes(person.evidence, person.beliefs),
+  ]);
   if (!asOf)
     return {
       asOf,
@@ -1404,6 +1658,8 @@ export async function refreshHunches(
       const expl = weightsOf(
         list.slice(0, 3).map((c) => toExplanation(c)),
         person.beliefs,
+        null,
+        otherOf(s.kind),
       );
       explainedBy[s.key] = "rules";
       const test = testFor(s, expl, person);
@@ -1419,7 +1675,7 @@ export async function refreshHunches(
                 String(s.numbers.conditionId),
                 person.beliefs,
                 opts.catalog,
-                { known: person.known },
+                { known: settled },
               ),
             }
           : {}),
@@ -1476,6 +1732,8 @@ export async function refreshHunches(
       const kept = weightsOf(
         expl.filter((e) => matched.includes(e.id)),
         person.beliefs,
+        null,
+        otherOf(h.kind),
       );
       const next = testFor(h.signal as unknown as Signal, kept, person);
       await db
@@ -1517,7 +1775,7 @@ export async function refreshHunches(
     const differential =
       s.kind === "cause" && catalog
         ? differentialOf(String(s.numbers.conditionId), person.beliefs, catalog, {
-            known: person.known,
+            known: settled,
           })
         : undefined;
     const signal = {
@@ -1562,15 +1820,41 @@ export async function refreshHunches(
           })
           .where(eq(hunches.id, h.id));
     } else if (!done.has(h.key)) {
+      const kept = (h.signal as { explainedWith?: string }).explainedWith;
       await db
         .update(hunches)
-        .set({ signal, codes: s.codes, system: s.system, updatedAt: now })
+        .set({
+          signal: kept ? { ...signal, explainedWith: kept } : signal,
+          codes: s.codes,
+          system: s.system,
+          updatedAt: now,
+        })
         .where(eq(hunches.id, h.id));
     }
   }
 
+  // 2b. Merged: the cause case now tells this one's story (phase 42C).
+  for (const h of existing) {
+    const into = merged.get(h.key);
+    // a test written down keeps its row until the result comes back
+    if (!into || h.state !== "open" || done.has(h.key)) continue;
+    await db
+      .update(hunches)
+      .set({
+        state: "closed",
+        outcome: "merged",
+        outcomeLine: `Folded into the ${String(raised.find((s) => s.key === into)?.numbers.name ?? into)} case.`,
+        closedAt: now,
+        updatedAt: now,
+      })
+      .where(eq(hunches.id, h.id));
+  }
+
   // 3. Faded: the key no longer fires on a newer draw.
-  const firing = new Set([...raised, ...unraised].map((s) => s.key));
+  const firing = new Set([
+    ...[...raised, ...unraised].map((s) => s.key),
+    ...merged.keys(),
+  ]);
   for (const h of existing) {
     if (h.state === "closed" || done.has(h.key) || firing.has(h.key)) continue;
     if (asOf <= asOfOf(h)) continue;
@@ -1594,10 +1878,28 @@ export async function refreshHunches(
     .select()
     .from(hunches)
     .where(and(eq(hunches.userId, userId), eq(hunches.state, "open")));
-  for (const h of open) {
-    if (h.explanations != null) continue;
+  // An older prompt's text fills again too (`EXPLAIN_VERSION`, kept on the
+  // signal, which step 2 carries over).
+  const stale = open.filter(
+    (h) =>
+      h.explanations == null ||
+      (h.signal as { explainedWith?: string }).explainedWith !==
+        EXPLAIN_VERSION,
+  );
+  const meaning = Object.keys(person.facts).some((k) =>
+    k.startsWith("genome:"),
+  )
+    ? Object.fromEntries(
+        (await loadGenome(userId))
+          .filter((r) => r.result)
+          .map((r) => [r.row.factKey, r.result!.meaning]),
+      )
+    : {};
+  for (const h of stale) {
     const s = h.signal as unknown as Signal;
     const quiet = s.kind === "gap" || s.kind === "good_news";
+    const differential =
+      (h.signal as { differential?: Differential }).differential ?? null;
     const got = quiet
       ? ({ explanations: [], question: null, by: "rules" } as Explained)
       : await explain(
@@ -1606,17 +1908,23 @@ export async function refreshHunches(
             ? (person.conditionCauses[String(s.numbers.conditionId)] ?? [])
             : closedList(s, person.input.causes),
           person,
+          { differential, meaning, first: askFirst(differential, person) },
         );
     explainedBy[h.key] = got.by;
-    const explanations = weightsOf(got.explanations, person.beliefs).map(
-      (e) => ({ ...e, predicts: null }),
-    );
+    const explanations = weightsOf(
+      got.explanations,
+      person.beliefs,
+      null,
+      otherOf(s.kind),
+    ).map((e) => ({ ...e, predicts: null }));
     const test = testFor(s, explanations, person);
     await db
       .update(hunches)
       .set({
+        signal: { ...h.signal, explainedWith: EXPLAIN_VERSION },
         explanations: predictsOf(explanations, test, person),
         question: got.question,
+        answer: null,
         test,
         updatedAt: now,
       })
@@ -1672,7 +1980,12 @@ export async function answerHunch(userId: string, id: string, chipId: string) {
   if (!chip) return { error: "no such chip" as const };
   if (h.state !== "open") return { error: "not open" as const };
   const person = await personOf(userId, new Date().toISOString().slice(0, 10));
-  const weighed = weightsOf(h.explanations ?? [], person.beliefs, chip);
+  const weighed = weightsOf(
+    h.explanations ?? [],
+    person.beliefs,
+    chip,
+    otherOf(h.kind),
+  );
   const test = testFor(h.signal as unknown as Signal, weighed, person);
   const explanations = predictsOf(weighed, test, person);
   await getDb()

@@ -2,6 +2,7 @@ import { describe, it, expect, vi } from "vitest";
 import type { ReportAction, ReportBody } from "@/db";
 import type { LatestValue } from "./coverage";
 import type { TrackerSummary } from "./daily-data";
+import { historyOf } from "./derived";
 import type { Rule } from "./vectors";
 
 // The model never runs in tests. `postProcess` is pure, but the mock makes it
@@ -218,6 +219,59 @@ describe("the context pack", () => {
 
   it("queues the pattern's unanswered questions", () => {
     expect(hashimoto.questions.map((q) => q.key)).toContain("pregnancy_plans");
+  });
+
+  it("prints the treatment history as lines and says what failed (42A)", () => {
+    const draws = [
+      { date: "2024-03-01", value: 9, refLow: 13, refHigh: null },
+      { date: "2025-12-09", value: 8.2, refLow: 13, refHigh: null },
+    ];
+    const { context } = buildContextFromInput(
+      {
+        today: "2026-09-29",
+        profile: {
+          treatments: [
+            {
+              what: "iron",
+              route: "oral",
+              started: "2024-09-01",
+              stopped: "2026-09-01",
+            },
+            { what: "iron", route: "iv", started: "2026-09-01" },
+          ],
+        },
+        latest: {
+          ferritin: reading(8.2, {
+            date: "2025-12-09",
+            refLow: 13,
+            history: historyOf(draws, "2026-09-29"),
+          }),
+        },
+        derived: {},
+        treatments: [
+          {
+            what: "iron",
+            route: "oral",
+            started: "2024-09-01",
+            stopped: "2026-09-01",
+            from: "treatments",
+          },
+          {
+            what: "iron",
+            route: "iv",
+            started: "2026-09-01",
+            from: "treatments",
+          },
+        ],
+      },
+      { tracker },
+    );
+    expect(context).toContain(
+      "- treatments: iron, oral, 2024-09-01 to 2026-09-01; iron, iv, since 2026-09-01",
+    );
+    expect(context).toContain(
+      "- no_response:ferritin: oral iron failed to raise ferritin",
+    );
   });
 });
 
