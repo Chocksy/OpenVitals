@@ -1,0 +1,200 @@
+[
+  {
+    "id": "owner",
+    "raised": [
+      "cluster:iron",
+      "drift:ldl_cholesterol",
+      "gap:folic_acid",
+      "good_news:crp",
+      "step:eosinophils_abs"
+    ],
+    "unraised": [
+      "good_news:wbc",
+      "step:mchc",
+      "left_band:mpv",
+      "step:neutrophils_pct",
+      "good_news:neutrophils_abs",
+      "good_news:lymphocytes_pct",
+      "step:lymphocytes_abs",
+      "good_news:monocytes_pct",
+      "good_news:monocytes_abs",
+      "left_band:eosinophils_pct",
+      "left_band:eosinophils_abs",
+      "good_news:basophils_abs",
+      "left_band:pct",
+      "drift:homocysteine",
+      "step:iron",
+      "step:ferritin",
+      "drift:ferritin",
+      "left_band:total_cholesterol",
+      "step:non_hdl_cholesterol",
+      "step:bun",
+      "left_band:calcium",
+      "good_news:total_protein"
+    ],
+    "tests": {
+      "step:eosinophils_abs": null,
+      "good_news:crp": null,
+      "drift:ldl_cholesterol": null,
+      "cluster:iron": "ttg_iga",
+      "gap:folic_acid": "folic_acid"
+    },
+    "judged": {
+      "step:eosinophils_abs": {
+        "by": "model",
+        "explanations": [
+          "A new or worsening allergy, such as hay fever, asthma, eczema or a new pet, commonly raises eosinophils to a steady new level.",
+          "A medicine or supplement started around late 2024 can quietly keep eosinophils slightly higher across several draws.",
+          "A gut parasite, often picked up while travelling, can keep eosinophils modestly raised for months."
+        ],
+        "question": "Around late 2024, what changed for you?",
+        "score": 4,
+        "omission": "Normal biological or lab variation could explain this small shift, especially if all values remain within the reference range."
+      },
+      "good_news:crp": {
+        "by": "model",
+        "explanations": [
+          "Regular easy cardio can lower background inflammation, which might explain CRP staying low across the later draws.",
+          "Fish oil (EPA/DHA) can modestly calm inflammation, so starting it could help keep CRP low afterwards.",
+          "A short-lived infection, such as a cold or flu, likely raised CRP temporarily and then cleared.",
+          "An injury, dental problem or very hard workout just before the draw can briefly push CRP up."
+        ],
+        "question": "What was going on around mid-March 2023, and did you start any new habits afterwards?",
+        "score": 5,
+        "omission": "none"
+      },
+      "drift:ldl_cholesterol": {
+        "by": "model",
+        "explanations": [
+          "Eating low-carb or keto usually means more saturated fat, which can push LDL up steadily over months.",
+          "An underactive thyroid (higher TSH) slows LDL clearance from the blood, so LDL can creep upward.",
+          "An inherited tendency to high LDL could explain a steady climb, though a rise from 106 is less typical.",
+          "More saturated fat, weight gain, or less exercise over the past year could raise LDL without any special cause.",
+          "Stopping or missing a cholesterol-lowering medication or supplement could let LDL drift back up."
+        ],
+        "question": "What changed in your life over the past year or so?",
+        "score": 4,
+        "omission": "Normal biological and laboratory variation, including differences in fasting status, could account for part of the rise."
+      },
+      "cluster:iron": {
+        "by": "model",
+        "explanations": [
+          "A thinned stomach lining absorbs less B12 and iron, which could lower both and push homocysteine up.",
+          "Extra bacteria in the small bowel can use up B12 and impair absorption of iron and vitamin D.",
+          "Low folate raises homocysteine, and your MTHFR variant makes that effect easier to see.",
+          "Slow blood loss or poor absorption in the gut could explain falling ferritin alongside the other nutrients.",
+          "Long-term acid-reducing medicine can lower absorption of B12 and iron, and so could produce this whole pattern.",
+          "A diet lower in meat, greens and fortified foods, or less sun exposure, could lower several of these together."
+        ],
+        "question": "Which of these fits you best over recent months?",
+        "score": 3,
+        "omission": "Normal biological or laboratory variation, including seasonal vitamin D changes, could contribute to this pattern."
+      },
+      "gap:folic_acid": {
+        "by": "model",
+        "explanations": [
+          "Low folate intake or stores is the main thing that lets your MTHFR variant push homocysteine up, so it matters to check.",
+          "Overgrown gut bacteria can disturb how nutrients are absorbed and used, which could affect folate levels, though this is less common.",
+          "Regular alcohol intake can lower folate by reducing absorption and increasing loss."
+        ],
+        "question": "Which best describes your recent eating and digestion?",
+        "score": 4,
+        "omission": "Medications that reduce folate absorption or metabolism."
+      }
+    },
+    "failed": [],
+    "pass": true
+  },
+  {
+    "id": "flat",
+    "raised": [],
+    "unraised": [],
+    "tests": {},
+    "judged": {},
+    "failed": [],
+    "pass": true
+  },
+  {
+    "id": "iron_loss",
+    "raised": [
+      "step:ferritin"
+    ],
+    "unraised": [
+      "left_band:ferritin",
+      "drift:ferritin"
+    ],
+    "tests": {
+      "step:ferritin": "ttg_iga"
+    },
+    "judged": {
+      "step:ferritin": {
+        "by": "model",
+        "explanations": [
+          "Your iron stores may be gradually running down, which fits a steady fall in ferritin from about 120 to 52.",
+          "Slow blood loss or poor iron absorption in the gut could be draining your stores, and this is a common cause in men.",
+          "Coeliac disease can damage the gut lining so iron is absorbed poorly, letting ferritin slide down over months.",
+          "If you take iron supplements with coffee or tea, they can block absorption and stores may not hold up.",
+          "Regular heavy endurance exercise or frequent blood donation can lower iron stores over time."
+        ],
+        "question": "Which of these applies to you around the time your ferritin began to fall?",
+        "score": 5,
+        "omission": "Reduced dietary iron intake or a major diet change."
+      }
+    },
+    "failed": [],
+    "pass": true
+  },
+  {
+    "id": "lab_jump",
+    "raised": [],
+    "unraised": [
+      "left_band:tsh",
+      "drift:tsh"
+    ],
+    "tests": {},
+    "judged": {},
+    "failed": [],
+    "pass": true
+  },
+  {
+    "id": "coeliac",
+    "raised": [
+      "cluster:iron"
+    ],
+    "unraised": [
+      "left_band:ferritin",
+      "step:ferritin",
+      "drift:ferritin",
+      "left_band:vitamin_b12",
+      "step:vitamin_b12",
+      "left_band:vitamin_d",
+      "step:vitamin_d",
+      "drift:vitamin_d",
+      "left_band:folic_acid",
+      "step:folic_acid",
+      "left_band:homocysteine",
+      "step:homocysteine",
+      "drift:homocysteine"
+    ],
+    "tests": {
+      "cluster:iron": "ttg_iga"
+    },
+    "judged": {
+      "cluster:iron": {
+        "by": "model",
+        "explanations": [
+          "Coeliac disease damages the gut lining, so iron, B12, folate and vitamin D are all absorbed poorly together.",
+          "A thinned stomach lining lowers acid and intrinsic factor, reducing absorption of B12 and iron, which can raise homocysteine.",
+          "Bacterial overgrowth in the small bowel can use up or block B12, folate and fat-soluble vitamin D.",
+          "Slow gut blood loss or poor absorption could lower ferritin and the other nutrients together.",
+          "Generally low dietary intake of varied foods (little meat, greens, or sun exposure) could lower all these nutrients together."
+        ],
+        "question": "Do you have any of these long-standing gut or diet features?",
+        "score": 3,
+        "omission": "Low B12 and folate availability can itself raise homocysteine."
+      }
+    },
+    "failed": [],
+    "pass": true
+  }
+]

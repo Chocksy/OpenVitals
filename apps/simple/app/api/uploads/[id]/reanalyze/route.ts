@@ -1,12 +1,14 @@
 import { readFile } from "node:fs/promises";
-import { and, eq } from "drizzle-orm";
-import { documentItems, genomeVariants, getDb, uploads } from "@/db";
+import { eq } from "drizzle-orm";
+import { getDb, uploads } from "@/db";
+import { NEEDS_PASSWORD } from "@/lib/extract";
 import { currentUserId } from "@/lib/auth";
 import { runCurator } from "@/lib/curator";
 import { recordBeliefs } from "@/lib/ledger";
 import { ledgerNow, recordUploadMove } from "@/lib/read-receipt";
 import {
-  dropReadings,
+  failedError,
+  failedStatus,
   findUpload,
   localPath,
   pickSource,
@@ -20,7 +22,12 @@ export const maxDuration = 120;
 /**
  * Read the file again if we still have it, else the text we kept from last
  * time. `kind` in the body overrides the sniff test, which is how the user
- * says "this PDF is a document, not a lab sheet".
+ * says "this PDF is a document, not a lab sheet". `password` opens an
+ * encrypted PDF; it is used for this read and never stored.
+ *
+ * Phase 41: the read comes first. The upload's old rows are replaced inside
+ * the save's transaction only when the new read succeeded, so a failed
+ * re-analyze leaves the upload exactly as it was.
  */
 export async function POST(
   req: Request,
@@ -33,7 +40,10 @@ export async function POST(
   const upload = await findUpload(userId, id);
   if (!upload) return Response.json({ error: "not found" }, { status: 404 });
 
-  const body = (await req.json().catch(() => ({}))) as { kind?: string };
+  const body = (await req.json().catch(() => ({}))) as {
+    kind?: string;
+    password?: string;
+  };
   const want = UPLOAD_KINDS.includes(body.kind as UploadKind)
     ? (body.kind as UploadKind)
     : undefined;
@@ -60,23 +70,11 @@ export async function POST(
     .set({ status: "extracting", error: null })
     .where(eq(uploads.id, id));
 
+  // The receipt's "before" is the ledger with the old parse still in it, so
+  // the receipt says what the re-read changed.
+  const before = await ledgerNow(userId);
+
   try {
-    // Everything the last run wrote for this upload goes first, so a re-read
-    // never doubles up. Accepted document items are dropped with the rest:
-    // what they wrote (readings, facts, evidence) stays, as the audit does.
-    await dropReadings(userId, id);
-    await db.delete(documentItems).where(eq(documentItems.uploadId, id));
-    await db
-      .delete(genomeVariants)
-      .where(
-        and(eq(genomeVariants.userId, userId), eq(genomeVariants.uploadId, id)),
-      );
-
-    // The receipt's "before" is taken here rather than at the top of the
-    // route: the rows this upload owned have just been dropped, so this is the
-    // ledger without the file, which is the same thing the first parse saw.
-    const before = await ledgerNow(userId);
-
     const buffer = file
       ? await readFile(file)
       : Buffer.from(upload.rawText!, "utf8");
@@ -86,6 +84,13 @@ export async function POST(
       buffer,
       upload.fileName ?? (file ? file : "document.txt"),
       want,
+      {
+        password:
+          typeof body.password === "string" && body.password
+            ? body.password
+            : undefined,
+        replace: true,
+      },
     );
 
     const [row] = await db
@@ -121,12 +126,24 @@ export async function POST(
 
     return Response.json({ ...row, count: result.count, note: result.note });
   } catch (e) {
-    const error = e instanceof Error ? e.message : String(e);
+    const reason = e instanceof Error ? e.message : String(e);
     console.error("[reanalyze] failed:", e);
+    // Nothing was replaced, so an upload that had rows keeps its status; the
+    // error says why the re-read did not take.
+    const error = failedError(reason);
     await db
       .update(uploads)
-      .set({ status: "failed", error })
+      .set({
+        status:
+          reason !== NEEDS_PASSWORD && upload.status === "done"
+            ? "done"
+            : failedStatus(reason),
+        error,
+      })
       .where(eq(uploads.id, id));
-    return Response.json({ error }, { status: 500 });
+    return Response.json(
+      { error, ...(reason === NEEDS_PASSWORD ? { needsPassword: true } : {}) },
+      { status: reason === NEEDS_PASSWORD ? 422 : 500 },
+    );
   }
 }

@@ -2,6 +2,8 @@ import { describe, it, expect } from "vitest";
 import {
   decide,
   disagree,
+  judge,
+  promoted,
   mintable,
   numbersIn,
   quoted,
@@ -186,5 +188,55 @@ describe("decide", () => {
       status: "rejected",
       needsLook: false,
     });
+  });
+});
+
+describe("phase 41C: chained rules, modifiers, ring 2", () => {
+  const chained: PolicyInput = {
+    ...clean,
+    conditionId: "atrophic_gastritis",
+    featureId: "hypothesis:hashimoto",
+    targetUnit: null,
+    featureUnit: null,
+    conditionOn: { above: 0.4 },
+    lrPos: 3,
+    lrNeg: null,
+    quote: "Autoimmune gastritis was three times as common (OR 3.0) in thyroiditis.",
+    numbers: [3],
+  };
+
+  it("allows a hypothesis: rule when the quote holds the number", () => {
+    expect(decide(chained)).toBe("accepted");
+  });
+
+  it("rejects a hypothesis: rule or a modifier with no claimed number", () => {
+    expect(judge({ ...chained, numbers: [] }).reason).toMatch(/hypothesis/);
+    expect(
+      decide({ ...clean, modifier: true, numbers: [], lrPos: 2 }),
+    ).toBe("rejected");
+    expect(decide({ ...clean, modifier: true, numbers: [3.8] })).toBe(
+      "accepted",
+    );
+  });
+
+  it("judges a ring-2 row instead of rejecting it for being out of the catalog", () => {
+    expect(decide({ ...clean, conditionInCatalog: false })).toBe("rejected");
+    expect(decide({ ...clean, conditionInCatalog: false, ring2: true })).toBe(
+      "accepted",
+    );
+  });
+
+  it("promotes a ring-2 condition only on an accepted A or B rule", () => {
+    const base = { conditionId: "x", ring2: true } as const;
+    expect([
+      ...promoted([
+        { ...base, grade: "C", decision: "accepted" },
+        { ...base, grade: "A", decision: "rejected" },
+        { conditionId: "ring1", grade: "A", decision: "accepted" },
+      ]),
+    ]).toEqual([]);
+    expect([
+      ...promoted([{ ...base, grade: "B", decision: "accepted" }]),
+    ]).toEqual(["x"]);
   });
 });

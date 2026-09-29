@@ -93,6 +93,7 @@ struct HunchCaseView: View {
             Text(c.say).hType(14, .regular, Hy.ink2)
                 .fixedSize(horizontal: false, vertical: true)
         }
+        if let d = c.differential { OurRead(d: d, specialty: c.bestRead?.specialty) }
         chart(c)
     }
 
@@ -197,6 +198,87 @@ struct HunchCaseView: View {
     }
 }
 
+// MARK: - Our read (phase 41E)
+
+/// "12%", or "0.3%" under one: `pctText` on the web.
+func sharePct(_ pct: Double) -> String {
+    pct < 1 ? "\(Design.number((pct * 10).rounded() / 10))%" : "\(Int(pct.rounded()))%"
+}
+
+/// A cause read as a differential: up to three options with their shares,
+/// the rest as "Other or unexplained", and the test that splits them.
+struct OurRead: View {
+    let d: Api.HunchCase.Differential
+    var specialty: String?
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: DesignTokens.s8) {
+            HStack(alignment: .firstTextBaseline) {
+                Text("OUR READ").hType(11, .semibold, Hy.ink2, tracking: 0.08)
+                Spacer()
+                Text("a differential, not a diagnosis").hType(11, .medium, Hy.ink2)
+            }
+            ForEach(Array(d.options.enumerated()), id: \.element.id) { i, o in
+                option(o, first: i == 0)
+                Rectangle().fill(Hy.line).frame(height: 1)
+            }
+            HStack {
+                Text("Other or unexplained").hType(13, .medium, Hy.ink2)
+                Spacer()
+                Text(sharePct(d.otherPct)).hType(13, .semibold, Hy.ink2)
+            }
+            if let split = d.splitTest {
+                (Text("Test that splits them: ") + Text(split).bold())
+                    .hType(12, .regular, Hy.ink)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            Text(HunchInk.originLegend).hType(11, .regular, Hy.ink3)
+        }
+        .padding(DesignTokens.s13)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .grained(Hy.card, radius: 21, shadow: 0.3)
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel("Our read")
+    }
+
+    private func option(_ o: Api.HunchCase.Differential.Option, first: Bool) -> some View {
+        VStack(alignment: .leading, spacing: 5) {
+            HStack(alignment: .firstTextBaseline) {
+                Text(o.name).hType(14, .semibold, Hy.ink)
+                    .fixedSize(horizontal: false, vertical: true)
+                Spacer()
+                Text(sharePct(o.pct)).hType(17, .semibold, Hy.ink, tracking: -0.02)
+            }
+            GeometryReader { g in
+                ZStack(alignment: .leading) {
+                    Capsule().fill(Hy.paper2)
+                    Capsule().fill(first ? Hy.plum3 : Hy.plum2)
+                        .frame(width: max(4, g.size.width * min(1, o.pct / 100)))
+                }
+            }
+            .frame(height: 5)
+            Text(o.reason).hType(12, .regular, Hy.ink2)
+                .fixedSize(horizontal: false, vertical: true)
+            ForEach(Array(o.sources.enumerated()), id: \.offset) { _, src in
+                HStack(alignment: .top, spacing: 6) {
+                    Text(HunchInk.originGlyph(src.origin)).hType(11, .regular, Hy.ink)
+                        .accessibilityLabel(HunchInk.originWord(src.origin))
+                    Text("Grade \(src.grade) · \(src.label)" + (src.doi.map { " · doi:\($0)" } ?? ""))
+                        .hType(11, .regular, Hy.ink2)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            }
+            if let t = o.confirmTest {
+                Text("Confirm with \(t)").hType(11, .semibold, Hy.ink)
+            }
+            if first, let specialty {
+                Text("See: \(specialty)").hType(11, .semibold, Hy.plum3)
+            }
+        }
+        .padding(.vertical, 3)
+    }
+}
+
 // MARK: - explanations, the question, the test
 
 private struct Evidence: View {
@@ -223,19 +305,22 @@ private struct Evidence: View {
             HStack {
                 Text("WHAT COULD EXPLAIN IT").hType(11, .semibold, Hy.ink2, tracking: 0.08)
                 Spacer()
-                Text("share").hType(11, .medium, Hy.ink2)
+                Text(c.differential == nil ? "share" : "shares from Our read").hType(11, .medium, Hy.ink2)
             }
             Text("● science · ◐ opinion · ○ anecdote or hypothesis")
                 .hType(11, .regular, Hy.ink2)
+            Text("Source: " + HunchInk.originLegend).hType(11, .regular, Hy.ink3)
             ForEach(ranked) { e in
                 VStack(alignment: .leading, spacing: 5) {
                     HStack(alignment: .top, spacing: DesignTokens.s8) {
                         Text(HunchInk.glyph(e.basis)).hType(12, .regular, Hy.ink)
                             .accessibilityLabel(e.basis)
+                        Text(HunchInk.originGlyph(e.origin)).hType(12, .regular, Hy.ink2)
+                            .accessibilityLabel(HunchInk.originWord(e.origin))
                         Text(e.text).hType(13, .medium, Hy.ink)
                             .fixedSize(horizontal: false, vertical: true)
                             .frame(maxWidth: .infinity, alignment: .leading)
-                        Text("\(Int((e.weight * 100).rounded()))%")
+                        Text(c.differential != nil && e.weight == 0 ? "other" : sharePct(e.weight * 100))
                             .hType(13, .semibold, Hy.ink)
                             .contentTransition(.numericText())
                     }
@@ -474,9 +559,9 @@ struct HowWeKnow: View {
         VStack(alignment: .leading, spacing: DesignTokens.s8) {
             ForEach(c.explanations) { e in
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("\(HunchInk.glyph(e.basis)) \(e.text)").hType(13, .medium, Hy.ink)
+                    Text("\(HunchInk.glyph(e.basis)) \(HunchInk.originGlyph(e.origin)) \(e.text)").hType(13, .medium, Hy.ink)
                         .fixedSize(horizontal: false, vertical: true)
-                    Text(["Grade \(e.grade)", e.basis, e.source].compactMap { $0 }
+                    Text(["Grade \(e.grade)", e.basis, HunchInk.originWord(e.origin), e.source].compactMap { $0 }
                         .removingDuplicates().joined(separator: " · "))
                         .hType(11, .regular, Hy.ink2)
                     if let check = e.check {

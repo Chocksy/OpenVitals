@@ -18,7 +18,6 @@
  * are pure and tested, and `evals/capture.ts` runs them over described photos
  * with no model in the loop.
  */
-import { generateObject } from "ai";
 import { z } from "zod";
 import { and, eq, sql } from "drizzle-orm";
 import { dailyLogs, getDb, type DailyNutrition } from "@/db";
@@ -26,7 +25,7 @@ import { asClock, type Chip } from "./compose";
 import { saveFact } from "./coverage";
 import { localDay } from "./daily";
 import { appendListFact } from "./documents";
-import { model } from "./extract";
+import { generateObjectSafe } from "./extract";
 import { mergeNutrition, NUTRITION_KEYS } from "./healthkit";
 
 /* ── the schema the model answers in ──────────────────────────────────── */
@@ -106,14 +105,30 @@ export const mediaTypeOf = (fileName: string): string => {
   return `image/${ext === "jpg" ? "jpeg" : ext}`;
 };
 
-/** One vision call. The only impure function in this file. */
+/**
+ * The photo model. Gemini until the owner picks from `pnpm eval:photos`; food
+ * photos are the one non-OCR call left on it.
+ */
+export const PHOTO_MODEL = "google/gemini-3.7-flash";
+
+/** One vision call. With `photoCall`, the only impure code in this file. */
 export async function classifyPhoto(
   buffer: Buffer,
   fileName: string,
   caption?: string,
 ): Promise<CaptureExtract> {
-  const { object } = await generateObject({
-    model: model(),
+  return (await photoCall(buffer, fileName, caption)).object;
+}
+
+/** `classifyPhoto` with the usage kept, so the photo eval can price it. */
+export function photoCall(
+  buffer: Buffer,
+  fileName: string,
+  caption?: string,
+  modelId = process.env.AI_PHOTO_MODEL ?? PHOTO_MODEL,
+) {
+  return generateObjectSafe({
+    model: modelId,
     schema: captureSchema,
     maxOutputTokens: 4000,
     system: CAPTURE_PROMPT,
@@ -132,7 +147,6 @@ export async function classifyPhoto(
       },
     ],
   });
-  return object;
 }
 
 /* ── the arithmetic, which is the server's ────────────────────────────── */

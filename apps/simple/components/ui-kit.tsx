@@ -223,6 +223,8 @@ export type StampKind =
   | "good_news"
   | "left_band"
   | "discordance"
+  | "chronic"
+  | "cause"
   | "belief";
 
 const STAMP_WORD: Record<StampKind, string> = {
@@ -233,6 +235,8 @@ const STAMP_WORD: Record<StampKind, string> = {
   good_news: "GOOD NEWS",
   left_band: "OUT OF BAND",
   discordance: "APART",
+  chronic: "CHRONIC",
+  cause: "WHY",
   belief: "BELIEF",
 };
 

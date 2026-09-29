@@ -22,7 +22,7 @@
  * date, threshold and ordering below is computed here. The box works with the
  * model switched off.
  */
-import { generateObject, generateText } from "ai";
+import { generateText } from "ai";
 import { z } from "zod";
 import { and, desc, eq, gte, isNotNull, isNull, lt, or } from "drizzle-orm";
 import {
@@ -37,12 +37,17 @@ import {
 import { conditionalAsks } from "./ask";
 import { localDay } from "./daily";
 import { type FactQuestion, type ModelInput } from "./coverage";
-import { model } from "./extract";
-import { EVENT_TAGS, writeFact } from "./facts";
+import { generateObjectSafe, model } from "./extract";
+import { EVENT_TAGS, factAt, writeFact } from "./facts";
 import { computeGraphState, parseHour, type ActiveEdge } from "./graph-state";
 import { gradeOfEdge, type GraphEdge } from "./graph";
 import { catalogFor } from "./hkb";
-import { scoreHypotheses, type Catalog, type Grade } from "./hypotheses";
+import {
+  scoreHypotheses,
+  TREATMENT_TARGETS,
+  type Catalog,
+  type Grade,
+} from "./hypotheses";
 import { nextMoves, QUIET_GAIN } from "./infogain";
 import { CODE_GRAPH, loadGraph, type Graph } from "./kg";
 import { searchTerms, type RankedTerm } from "./lookup";
@@ -720,6 +725,22 @@ export function understandRules(
     });
   }
 
+  // 6b. a treatment started (phase 41B): a treatment word with an intake verb,
+  // so "my iron is low" stays a sentence about a marker. The day is the
+  // note's own date.
+  const treatment = treatmentOf(text);
+  if (treatment)
+    push({
+      kind: "fact",
+      key: "treatments",
+      label: `${treatment.what} (${treatment.route}) since ${date}`,
+      value: { ...treatment, started: date },
+      date,
+      quote: treatment.quote,
+      confidence: 0.8,
+      by: "rule",
+    });
+
   // 7. hearsay. "I heard sardines lower triglycerides" is a sentence about the
   // world, so nothing in it may be written about the person: every chip whose
   // words sit inside the claim's own sentence is dropped, and the claim goes to
@@ -744,6 +765,30 @@ export function understandRules(
     by: "rule",
   });
   return kept;
+}
+
+const INTAKE =
+  /\b(start(?:ed|ing)?|began|begun|taking|take|took|supplement(?:ing)?)\b/i;
+const IV_TREATMENT =
+  /\b(iv|intravenous|infusion|infused|perfuzie|ferinject|venofer|injection|injectable|intramuscular)\b|\bi\.v\./i;
+
+/** A treatment named with an intake verb in the same sentence, or null. */
+export function treatmentOf(
+  text: string,
+): { what: string; route: "oral" | "iv"; quote: string } | null {
+  for (const sentence of text.split(/(?<=[.!?\n])\s*/)) {
+    for (const t of TREATMENT_TARGETS) {
+      const km = t.words.exec(sentence);
+      if (!km || !(INTAKE.test(sentence) || IV_TREATMENT.test(sentence)))
+        continue;
+      return {
+        what: km[0].toLowerCase(),
+        route: IV_TREATMENT.test(sentence) ? "iv" : "oral",
+        quote: km[0],
+      };
+    }
+  }
+  return null;
 }
 
 /** The sentence a match sits in, so a life event keeps its own words. */
@@ -1100,8 +1145,7 @@ export async function understandRead(
     return { chips, modelRan: false, modelFailed: false, worthReading };
 
   try {
-    const { object } = await generateObject({
-      model: model(),
+    const { object } = await generateObjectSafe({
       schema: z.object({
         chips: z.array(
           z.object({
@@ -1170,6 +1214,14 @@ export function cleanChips(chips: Chip[], today: string): Chip[] {
       out.push({ ...c, value, date, unit: c.unit ?? known.unit ?? undefined });
       continue;
     }
+    if (c.kind === "fact" && c.key === "treatments") {
+      const t = c.value as { what?: unknown; route?: unknown } | null;
+      const what = String(t?.what ?? "").trim().slice(0, 80);
+      if (!what) continue;
+      const route = t?.route === "iv" ? "iv" : "oral";
+      out.push({ ...c, value: { what, route, started: date }, date });
+      continue;
+    }
     if (c.kind === "fact" || c.kind === "symptom") {
       const q = PROFILE_QUESTIONS[c.key];
       if (!q) continue;
@@ -1228,7 +1280,16 @@ export async function writeChips(
   const db = getDb();
   for (const c of chips) {
     if (held.has(c.key)) continue;
-    if (c.kind === "fact" || c.kind === "symptom") {
+    if (c.kind === "fact" && c.key === "treatments") {
+      // A list that grows: the new entry joins the ones already written.
+      const was = await factAt(userId, "treatments", localDay());
+      await writeFact(
+        userId,
+        "treatments",
+        [...(Array.isArray(was) ? was : []), c.value],
+        { kind: "changed", note: c.quote },
+      );
+    } else if (c.kind === "fact" || c.kind === "symptom") {
       await saveFact(userId, c.key, String(c.value), {
         kind: "changed",
         date: c.date,

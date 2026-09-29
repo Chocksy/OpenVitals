@@ -30,7 +30,7 @@ import { users } from "@/db/auth-schema";
 import { actionsFor } from "@/lib/actions";
 import { ACTS_KINDS, questionKind, type QuestionKind } from "@/lib/ask-intent";
 import { chatContext } from "@/lib/ai";
-import { model } from "@/lib/extract";
+import { DEFAULT_MODEL, model } from "@/lib/extract";
 import { answerQuestion } from "@/lib/brief";
 import { type Acts } from "@/lib/lookup";
 
@@ -160,7 +160,7 @@ const CHAT_ONLY = /(:|^~|-image|-vision|-codex|-audio|-embed)/;
  * cap, the model the app runs today, and the one prod ran before this phase.
  */
 async function candidates(): Promise<Map<string, ORModel | null>> {
-  const current = process.env.AI_DEFAULT_MODEL ?? "google/gemini-3.7-flash";
+  const current = process.env.AI_DEFAULT_MODEL ?? DEFAULT_MODEL;
   const picked = new Map<string, ORModel | null>();
 
   let live: ORModel[] = [];

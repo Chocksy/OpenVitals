@@ -1,0 +1,2269 @@
+{
+  "ranAt": "2026-09-28T21:26:40.021Z",
+  "email": "test-newuser@example.com",
+  "winner": "openai/gpt-6-luna",
+  "runs": [
+    {
+      "modelId": "openai/gpt-6-luna",
+      "outPerM": 0.5,
+      "inPerM": 0.09999999999999999,
+      "cases": [
+        {
+          "id": "cholesterol",
+          "kind": "status",
+          "reply": "Your total cholesterol was 200 mg/dL, at the reference-range upper limit of 0 to 200 and above the optimal 0 to 180 (borderline); LDL was 142 mg/dL, above the reference range of 0 to 130 and optimal 0 to 70 (off); HDL was 48 mg/dL, within the reference range of 40 to 100 but below the optimal 50 to 90 (borderline); triglycerides were 130 mg/dL, within the reference range of 0 to 150 but above the optimal 0 to 100 (borderline), and non-HDL cholesterol was 156 mg/dL, above the optimal 0 to 130 (off). The clearest concern in these results is LDL, which is above both its reference and optimal bands.",
+          "sentences": 2,
+          "labels": [],
+          "acts": {
+            "actions": [],
+            "tests": [],
+            "questions": []
+          },
+          "dropped": [],
+          "failed": [],
+          "judgeScore": 5,
+          "judgeNote": "It mixes the older total and non-HDL values with newer LDL, HDL, and triglyceride values without noting their different test dates.",
+          "latencyMs": 13217
+        },
+        {
+          "id": "lower-ldl",
+          "kind": "howto",
+          "reply": "Your LDL rose from 117 to 142 mg/dL; 142 is above the reference band\u2019s 130 mg/dL upper limit and the optimal band\u2019s 70 mg/dL upper limit. Use Psyllium fibre [science, A, guideline] at 10 g/day split across meals with water, add Oat beta-glucan [science, A, guideline] at 3 g/day or more (about 70 g of oats), and replace saturated fat with unsaturated fat [science, A, guideline]. Remeasure LDL cholesterol in 8 weeks.",
+          "sentences": 3,
+          "labels": [
+            "[science, A, guideline]"
+          ],
+          "acts": {
+            "actions": [
+              "Psyllium fibre",
+              "Oat beta-glucan",
+              "Replacing saturated fat with unsaturated fat"
+            ],
+            "tests": [
+              "ldl_cholesterol/8w"
+            ],
+            "questions": []
+          },
+          "dropped": [
+            "int:seed_ascvd_risk_psyllium_fibre_metric_ldl_cholesterol",
+            "int:seed_ascvd_risk_oat_beta_glucan_metric_ldl_cholesterol",
+            "int:seed_ascvd_risk_replacing_saturated_fat_with_unsaturated_fat_condition"
+          ],
+          "failed": [
+            "invented 3 id(s): int:seed_ascvd_risk_psyllium_fibre_metric_ldl_cholesterol, int:seed_ascvd_risk_oat_beta_glucan_metric_ldl_cholesterol, int:seed_ascvd_risk_replacing_saturated_fat_with_unsaturated_fat_condition",
+            "the row offers \"Replacing saturated fat with unsaturated fat\" and the answer never names it"
+          ],
+          "judgeScore": 4,
+          "judgeNote": "It does not explicitly state that LDL should reach 70 mg/dL or lower by the 8-week recheck.",
+          "latencyMs": 11386
+        },
+        {
+          "id": "t2d-risk",
+          "kind": "howto",
+          "reply": "Type 2 diabetes is possible (53%), not certain: HbA1c 5.6% is at the reference upper limit (4\u20135.6%) and above the optimal band (4\u20135.2%); glucose 98 mg/dL and insulin 12 uIU/mL are within their reference bands but above their optimal bands, and HOMA-IR 2.84 is above its optimal band (0\u20131). Ask for a 2-hour OGTT with insulin [science] (75g oral glucose challenge with serial draws, once fasting), front-load meal protein and dietary fibre [opinion] (25-30g protein and 10g fibre first with lunch and dinner), and do whole-body progressive resistance training twice weekly [opinion] (45 minutes, 2-3 sessions per week for 12 weeks). Measure OGTT in 8 weeks and HbA1c in 12 weeks.",
+          "sentences": 3,
+          "labels": [
+            "[science]",
+            "[opinion]"
+          ],
+          "acts": {
+            "actions": [
+              "Ask for a 2-hour OGTT with insulin",
+              "Front-load meal protein and dietary fibre",
+              "Whole-body progressive resistance training twice weekly"
+            ],
+            "tests": [
+              "ogtt_2h_glucose/8w",
+              "hba1c/12w"
+            ],
+            "questions": []
+          },
+          "dropped": [],
+          "failed": [],
+          "judgeScore": 5,
+          "judgeNote": "It does not clarify whether the 53% estimate represents current diabetes probability or future progression risk.",
+          "latencyMs": 21480
+        },
+        {
+          "id": "fix-hashimoto",
+          "kind": "howto",
+          "reply": "Your TSH is 3.9 mIU/L\u2014within the 0.4\u20134.5 reference range but above the 0.5\u20132.5 optimal range; free T4 is 1.1 ng/dL, fine within its reference and optimal ranges, while TPO antibodies are 320 IU/mL, high versus 0\u201334 and up from 5. Adjust supplemental selenium to 200 \u00b5g total daily as selenomethionine with breakfast for 6 months [opinion], repeat the thyroid panel [science], and ask an endocrinologist whether levothyroxine is indicated\u2014the listed regimen is 1.6 \u00b5g/kg/day fasting [science, A, guideline]. Measure TSH, free T4, and TPO antibodies in 12 weeks, and remeasure TPO antibodies after 24 weeks of selenium.",
+          "sentences": 3,
+          "labels": [
+            "[opinion]",
+            "[science]",
+            "[science, A, guideline]"
+          ],
+          "acts": {
+            "actions": [
+              "Adjust supplemental selenium to 200 \u00b5g daily total",
+              "Repeat TSH with free T4, free T3 and anti-TPO",
+              "Levothyroxine"
+            ],
+            "tests": [
+              "tsh/12w",
+              "free_t4/12w",
+              "tpo_antibodies/12w"
+            ],
+            "questions": []
+          },
+          "dropped": [
+            "int:seed_hashimoto_levothyroxine_condition"
+          ],
+          "failed": [
+            "invented 1 id(s): int:seed_hashimoto_levothyroxine_condition"
+          ],
+          "judgeScore": 4,
+          "judgeNote": "The repeat thyroid panel omits free T3 and does not specify the allowed single blood draw, so the testing action is incomplete.",
+          "latencyMs": 30939
+        },
+        {
+          "id": "what-to-eat",
+          "kind": "howto",
+          "reply": "Your glucose is 98 mg/dL, within the reference range but above the optimal range; HbA1c is 5.6%, at the reference ceiling and above optimal; insulin is 12 uIU/mL, within reference but above optimal. At lunch and dinner, eat 25\u201330 g of protein and 10 g of fibre first, before carbohydrates [opinion]. Recheck HbA1c in 12 weeks.",
+          "sentences": 3,
+          "labels": [
+            "[opinion]"
+          ],
+          "acts": {
+            "actions": [
+              "Front-load meal protein and dietary fibre"
+            ],
+            "tests": [
+              "hba1c/12w"
+            ],
+            "questions": []
+          },
+          "dropped": [],
+          "failed": [
+            "the row offers \"Front-load meal protein and dietary fibre\" and the answer never names it"
+          ],
+          "judgeScore": 5,
+          "judgeNote": "It gives only macronutrient targets rather than concrete examples of foods that provide the recommended protein and fibre.",
+          "latencyMs": 11796
+        },
+        {
+          "id": "why-tired",
+          "kind": "why",
+          "reply": "There is no mechanism row connecting fatigue to any marker, so the provided evidence does not explain how a marker could cause your tiredness. Your numbers support the engine\u2019s thyroiditis conclusion (TSH 3.9 mIU/L and TPO antibodies 320 IU/mL), and also show insulin 12 uIU/mL, hs-CRP 3.4 mg/L, and vitamin D 19 ng/mL, but they do not establish which, if any, is causing your fatigue.",
+          "sentences": 2,
+          "labels": [],
+          "acts": {
+            "actions": [],
+            "tests": [],
+            "questions": []
+          },
+          "dropped": [],
+          "failed": [],
+          "judgeScore": 4,
+          "judgeNote": "It lists abnormal markers but does not explain the mechanisms connecting them to fatigue, so it fails to answer why the person is tired.",
+          "latencyMs": 12822
+        },
+        {
+          "id": "iron-ok",
+          "kind": "status",
+          "reply": "Your serum iron is 109 mcg/dL, fine: inside the reference range of 65 to 175 and optimal band of 60 to 170. Ferritin is 22 ng/mL, borderline: inside the reference range of 15 to 150 but below the optimal band of 30 to 200. So your circulating iron is fine, but your iron stores are on the low side.",
+          "sentences": 3,
+          "labels": [],
+          "acts": {
+            "actions": [],
+            "tests": [],
+            "questions": []
+          },
+          "dropped": [],
+          "failed": [],
+          "judgeScore": 5,
+          "judgeNote": "The only minor issue is that \u201cborderline\u201d is less precise than explicitly calling ferritin below the optimal range.",
+          "latencyMs": 7203
+        },
+        {
+          "id": "next-test",
+          "kind": "next-test",
+          "reply": "Get HbA1c first, in 12 weeks: Type 2 diabetes 53 % \u2192 99 % if positive, 32 % if negative; Insulin resistance 97 % \u2192 98 % if positive, 97 % if negative.",
+          "sentences": 1,
+          "labels": [],
+          "acts": {
+            "actions": [],
+            "tests": [
+              "hba1c/12w"
+            ],
+            "questions": []
+          },
+          "dropped": [],
+          "failed": [],
+          "judgeScore": 3,
+          "judgeNote": "It recommends an HbA1c test that is not among the allowed actions and gives it no bracketed source label.",
+          "latencyMs": 26548
+        },
+        {
+          "id": "hashimoto-forever",
+          "kind": "prognosis",
+          "reply": "The research here supports control rather than proving a cure: the 2014 ATA guideline says levothyroxine can bring TSH into the reference range, while the 2024 selenium meta-analysis found antibodies fell, but neither establishes that Hashimoto\u2019s is reversed or gone. Your TSH rose from 1.824 to 3.9 mIU/L, free T4 is 1.1 ng/dL, and TPO antibodies rose from 5 to 320 IU/mL; that is a real change to monitor, but these numbers cannot tell whether you will ever be free of it. Your written plan is to adjust supplemental selenium to 200 \u00b5g daily total for 6 months [opinion].",
+          "sentences": 3,
+          "labels": [
+            "[opinion]"
+          ],
+          "sources": [
+            "Selenium Supplementation in Patients with Hashimoto Thyroiditis: A Systematic Review and Meta-Analysis of Randomized Clinical Trials 2024",
+            "Guidelines for the treatment of hypothyroidism: prepared by the American Thyroid Association task force on thyroid hormone replacement 2014"
+          ],
+          "acts": {
+            "actions": [
+              "Adjust supplemental selenium to 200 \u00b5g daily total"
+            ],
+            "tests": [],
+            "questions": []
+          },
+          "dropped": [],
+          "failed": [
+            "the answer names \"Levothyroxine\" and the row does not offer it"
+          ],
+          "judgeScore": 5,
+          "judgeNote": "It could state more directly that Hashimoto\u2019s is generally lifelong but usually manageable, rather than only saying the evidence does not prove a cure.",
+          "latencyMs": 15151
+        },
+        {
+          "id": "hashimoto-research",
+          "kind": "research",
+          "reply": "A 2024 grade A systematic review and meta-analysis of 35 randomized trials (n = 2,358), \u201cSelenium Supplementation in Patients with Hashimoto Thyroiditis: A Systematic Review and Meta-Analysis of Randomized Clinical Trials,\u201d found selenium 200 \u00b5g/day reduced TPO antibodies (SMD -0.96, 95% CI -1.36 to -0.56); a 2023 grade A systematic review and meta-analysis of 12 trials (n = 862), \u201cEffects of vitamin D supplementation on autoantibodies and thyroid function in patients with Hashimoto's thyroiditis: A systematic review and meta-analysis,\u201d found vitamin D reduced TPO antibodies (SMD -1.084, 95% CI -1.624 to -0.545). The 2014 grade A American Thyroid Association guideline, \u201cGuidelines for the treatment of hypothyroidism: prepared by the American Thyroid Association task force on thyroid hormone replacement,\u201d reports that levothyroxine returns TSH to the reference range on a weight-based dose in adults with primary hypothyroidism; overall, this is settled evidence (grade A).",
+          "sentences": 2,
+          "labels": [],
+          "sources": [
+            "Selenium Supplementation in Patients with Hashimoto Thyroiditis: A Systematic Review and Meta-Analysis of Randomized Clinical Trials 2024",
+            "Effects of vitamin D supplementation on autoantibodies and thyroid function in patients with Hashimoto's thyroiditis: A systematic review and meta-analysis 2023",
+            "Guidelines for the treatment of hypothyroidism: prepared by the American Thyroid Association task force on thyroid hormone replacement 2014"
+          ],
+          "acts": {
+            "actions": [],
+            "tests": [],
+            "questions": []
+          },
+          "dropped": [],
+          "failed": [
+            "the answer names \"Levothyroxine\" and the row does not offer it"
+          ],
+          "judgeScore": 4,
+          "judgeNote": "It omits the key grade A/B diagnostic findings and likelihood ratios and fails to contrast strong A/B evidence with weaker C\u2013E evidence.",
+          "latencyMs": 8882
+        },
+        {
+          "id": "why-ldl",
+          "kind": "why",
+          "reply": "When TSH rises, low thyroid hormone activity reduces LDL-receptor activity in the liver, so LDL is cleared more slowly and LDL cholesterol rises. Your TSH increased from 1.824 to 3.9 mIU/L while LDL cholesterol rose from 117 to 142 mg/dL, so your numbers support a thyroid-related contribution, though they do not prove it.",
+          "sentences": 2,
+          "labels": [],
+          "acts": {
+            "actions": [],
+            "tests": [],
+            "questions": []
+          },
+          "dropped": [],
+          "failed": [],
+          "judgeScore": 5,
+          "judgeNote": "It implies low thyroid hormone activity despite normal free T4 and does not mention the concurrent insulin-resistance pattern as another plausible contributor.",
+          "latencyMs": 9414
+        },
+        {
+          "id": "ferritin-status",
+          "kind": "status",
+          "reply": "Your ferritin is 22 ng/mL, within the reference range of 15 to 150 but below the optimal band of 30 to 200. That means it is in range but low relative to the optimal band.",
+          "sentences": 2,
+          "labels": [],
+          "acts": {
+            "actions": [],
+            "tests": [],
+            "questions": []
+          },
+          "dropped": [],
+          "failed": [],
+          "judgeScore": 5,
+          "judgeNote": "No substantive issue; it gives the latest ferritin value, unit, bands, and a concise interpretation without adding a plan.",
+          "latencyMs": 8850
+        },
+        {
+          "id": "improve-ldl",
+          "kind": "howto",
+          "reply": "Your LDL was 117 mg/dL before, within the 0\u2013130 reference band but above the 0\u201370 optimal band; the latest 142 mg/dL is above both, so it is off range. Use Oat beta-glucan 3 g/day or more (about 70 g of oats) [science, A, guideline], Psyllium fibre 10 g/day, split across meals, with water [science, A, guideline], and replace saturated fat with unsaturated fat [science, A, guideline]. Recheck LDL cholesterol in 8 weeks.",
+          "sentences": 3,
+          "labels": [
+            "[science, A, guideline]"
+          ],
+          "acts": {
+            "actions": [
+              "Oat beta-glucan",
+              "Psyllium fibre",
+              "Replacing saturated fat with unsaturated fat"
+            ],
+            "tests": [
+              "ldl_cholesterol/8w"
+            ],
+            "questions": []
+          },
+          "dropped": [
+            "int:seed_ascvd_risk_oat_beta_glucan_metric_ldl_cholesterol",
+            "int:seed_ascvd_risk_psyllium_fibre_metric_ldl_cholesterol",
+            "int:seed_ascvd_risk_replacing_saturated_fat_with_unsaturated_fat_condition"
+          ],
+          "failed": [
+            "invented 3 id(s): int:seed_ascvd_risk_oat_beta_glucan_metric_ldl_cholesterol, int:seed_ascvd_risk_psyllium_fibre_metric_ldl_cholesterol, int:seed_ascvd_risk_replacing_saturated_fat_with_unsaturated_fat_condition",
+            "the row offers \"Replacing saturated fat with unsaturated fat\" and the answer never names it"
+          ],
+          "judgeScore": 5,
+          "judgeNote": "It gives no practical examples of which saturated fats to replace with which unsaturated fats.",
+          "latencyMs": 12783
+        },
+        {
+          "id": "fasting-insulin-target",
+          "kind": "status",
+          "reply": "Your fasting insulin is 12 uIU/mL, fine within the reference range of 2 to 25 but borderline because it is above the optimal band of 2 to 5. The target is 2 to 5 uIU/mL; your earlier 4.2 uIU/mL was within that band, but your latest result is above it.",
+          "sentences": 2,
+          "labels": [],
+          "acts": {
+            "actions": [],
+            "tests": [],
+            "questions": []
+          },
+          "dropped": [],
+          "failed": [],
+          "judgeScore": 5,
+          "judgeNote": "Calling 12 uIU/mL \u201cfine\u201d and \u201cborderline\u201d may understate that it is more than twice the optimal upper limit, though its placement is accurately described.",
+          "latencyMs": 11818
+        }
+      ],
+      "score": 0.8
+    },
+    {
+      "modelId": "meta/muse-spark-1.3",
+      "outPerM": 4.25,
+      "inPerM": 1.25,
+      "cases": [
+        {
+          "id": "cholesterol",
+          "kind": "status",
+          "reply": "Your total cholesterol is 200 mg/dL, borderline at the top of the reference limit of up to 200 mg/dL but above the optimal band of 0 to 180 mg/dL, your LDL is 142 mg/dL, off outside the reference range of 0 to 130 mg/dL and above the optimal band of 0 to 70 mg/dL, and your non-HDL is 156 mg/dL, off above the optimal band of 0 to 130 mg/dL. Your HDL is 48 mg/dL, borderline inside the reference range of 40 to 100 mg/dL but below the optimal band of 50 to 90 mg/dL, and your triglycerides are 130 mg/dL, borderline inside the reference range of 0 to 150 mg/dL but above the optimal band of 0 to 100 mg/dL. Together this is a high-LDL, low-HDL, higher-triglyceride pattern that fits with likely insulin resistance while your overall cardiovascular risk is currently rated as unlikely.",
+          "sentences": 3,
+          "labels": [],
+          "acts": {
+            "actions": [],
+            "tests": [],
+            "questions": []
+          },
+          "dropped": [],
+          "failed": [],
+          "judgeScore": 3,
+          "judgeNote": "It adds unsupported claims of likely insulin resistance and unlikely cardiovascular risk instead of stopping after the cholesterol values and whether they are off.",
+          "latencyMs": 22157
+        },
+        {
+          "id": "lower-ldl",
+          "kind": "howto",
+          "reply": "Your LDL cholesterol is 142 mg/dL, up from 117 mg/dL, which is off against both the reference limit of 130 mg/dL and the optimal limit of 70 mg/dL. Ask your primary care doctor for a moderate-intensity statin prescription of atorvastatin 10-20 mg/day or equivalent [science, A, guideline]. Add psyllium fibre 10 g/day, split across meals, with water [science, A, guideline]. Add oat beta-glucan 3 g/day or more (about 70 g of oats) [science, A, guideline]. Recheck LDL cholesterol in 8 weeks.",
+          "sentences": 5,
+          "labels": [
+            "[science, A, guideline]"
+          ],
+          "acts": {
+            "actions": [
+              "Moderate-intensity statin",
+              "Psyllium fibre",
+              "Oat beta-glucan"
+            ],
+            "tests": [
+              "ldl_cholesterol/8w"
+            ],
+            "questions": []
+          },
+          "dropped": [],
+          "failed": [],
+          "judgeScore": 5,
+          "judgeNote": "It does not explicitly state that LDL should reach below 70 mg/dL by the 8-week recheck.",
+          "latencyMs": 31993
+        },
+        {
+          "id": "t2d-risk",
+          "kind": "howto",
+          "reply": "Your fasting glucose of 98 mg/dL is borderline at the top of the 70-99 range and above the 72-85 optimal, HbA1c of 5.6% is borderline at the top of the 4-5.6 range and above the 4-5.2 optimal, and fasting insulin of 12 uIU/mL with HOMA-IR of 2.84 are off against the 2-5 and 0-1 optimal bands, matching possible type 2 diabetes at 53% with likely insulin resistance at 97%. Do whole-body progressive resistance training twice weekly for 45 minutes of compound resistance exercises (squats, hinges, pushes, pulls) 2-3 sessions per week for 12 weeks [opinion]. Front-load meal protein and dietary fibre with 25-30g protein and 10g fibre first with lunch and dinner for ongoing [opinion]. Ask your primary-care doctor for a 75g oral glucose challenge with serial draws once fasting [science]. Recheck HbA1c in 12 weeks and the 2-hour OGTT with insulin in 8 weeks.",
+          "sentences": 5,
+          "labels": [
+            "[opinion]",
+            "[science]"
+          ],
+          "acts": {
+            "actions": [
+              "Whole-body progressive resistance training twice weekly",
+              "Front-load meal protein and dietary fibre",
+              "Ask for a 2-hour OGTT with insulin"
+            ],
+            "tests": [
+              "hba1c/12w",
+              "ogtt_2h_glucose/8w"
+            ],
+            "questions": []
+          },
+          "dropped": [],
+          "failed": [],
+          "judgeScore": 5,
+          "judgeNote": "It presents a 53% model probability of current type 2 diabetes as if it directly predicts whether the user will develop diabetes.",
+          "latencyMs": 21545
+        },
+        {
+          "id": "fix-hashimoto",
+          "kind": "howto",
+          "reply": "Your TPO antibodies are 320 IU/mL which is off against optimal 0-9 IU/mL, your TSH is 3.9 mIU/L which is off against optimal 0.5-2.5 mIU/L, and your free T4 is 1.1 ng/dL which is fine against optimal 1-1.5 ng/dL. Adjust supplemental selenium to 200 \u00b5g daily total as selenomethionine once daily with breakfast for 6 months [opinion]. Follow the whole system Ayurveda protocol exactly as studied [science, C]. Recheck TPO antibodies in 24 weeks.",
+          "sentences": 4,
+          "labels": [
+            "[opinion]",
+            "[science, C]"
+          ],
+          "acts": {
+            "actions": [
+              "Adjust supplemental selenium to 200 \u00b5g daily total",
+              "whole system Ayurveda protocol"
+            ],
+            "tests": [
+              "tpo_antibodies/24w"
+            ],
+            "questions": []
+          },
+          "dropped": [],
+          "failed": [],
+          "judgeScore": 5,
+          "judgeNote": "The whole-system Ayurveda recommendation is too vague to implement because the protocol\u2019s components and dosing are not specified.",
+          "latencyMs": 27438
+        },
+        {
+          "id": "what-to-eat",
+          "kind": "howto",
+          "reply": "Your fasting glucose of 98 mg/dL is borderline against 70-99 but off against optimal 72-85, HbA1c of 5.6% is borderline against 4-5.6 but off against optimal 4-5.2, fasting insulin of 12 uIU/mL is fine against 2-25 but off against optimal 2-5 with HOMA-IR of 2.84 off against optimal 0-1, and triglycerides of 130 mg/dL are fine against 0-150 but off against optimal 0-100. With lunch and dinner front-load 25-30g protein and 10g fibre first by eating protein and vegetables before carbohydrates for ongoing [opinion]. Take 200 \u00b5g total selenomethionine once daily with breakfast for 6 months [opinion]. Recheck HbA1c in 12 weeks to see glucose control.",
+          "sentences": 4,
+          "labels": [
+            "[opinion]"
+          ],
+          "acts": {
+            "actions": [
+              "Front-load meal protein and dietary fibre",
+              "Adjust supplemental selenium to 200 \u00b5g daily total"
+            ],
+            "tests": [
+              "hba1c/12w"
+            ],
+            "questions": []
+          },
+          "dropped": [],
+          "failed": [
+            "the row offers \"Front-load meal protein and dietary fibre\" and the answer never names it",
+            "the row offers \"Adjust supplemental selenium to 200 \u00b5g daily total\" and the answer never names it"
+          ],
+          "judgeScore": 5,
+          "judgeNote": "It adds a selenium supplement that does not directly answer what the person should eat.",
+          "latencyMs": 28918
+        },
+        {
+          "id": "why-tired",
+          "kind": "why",
+          "reply": "There is no graded intervention on file for why you are tired all the time, so completing the STOP-Bang questionnaire would fill that gap.",
+          "sentences": 1,
+          "labels": [],
+          "acts": {
+            "actions": [],
+            "tests": [
+              "stop_bang/12w"
+            ],
+            "questions": []
+          },
+          "dropped": [],
+          "failed": [],
+          "judgeScore": 1,
+          "judgeNote": "It ignores the person\u2019s thyroid, ferritin, vitamin D, inflammation, and glucose-regulation data and instead recommends an unallowed questionnaire without explaining fatigue.",
+          "latencyMs": 20683
+        },
+        {
+          "id": "iron-ok",
+          "kind": "status",
+          "reply": "Your iron is 109 mcg/dL, inside the reference range of 65 to 175 and inside the optimal band of 60 to 170, and your ferritin is 22 ng/mL, inside the reference range of 15 to 150 but below the optimal band of 30 to 200. Your hemoglobin is 13.1 g/dL, inside the reference range of 12 to 16 and inside the optimal band of 12.1 to 15.1. This means circulating iron and hemoglobin look fine but your iron stores are low, consistent with early depletion.",
+          "sentences": 3,
+          "labels": [],
+          "acts": {
+            "actions": [],
+            "tests": [],
+            "questions": []
+          },
+          "dropped": [],
+          "failed": [],
+          "judgeScore": 4,
+          "judgeNote": "It labels the below-optimal but reference-range ferritin as \u201cearly depletion,\u201d an unsupported diagnosis not present in the context.",
+          "latencyMs": 15802
+        },
+        {
+          "id": "next-test",
+          "kind": "next-test",
+          "reply": "Get HbA1c first after 12 weeks because HbA1c: Type 2 diabetes 53 % \u2192 99 % if positive, 32 % if negative; Insulin resistance 97 % \u2192 98 % if positive, 97 % if negative. Get OGTT next because OGTT: Type 2 diabetes 53 % \u2192 94 % if positive, 18 % if negative.",
+          "sentences": 2,
+          "labels": [],
+          "acts": {
+            "actions": [],
+            "tests": [
+              "hba1c/12w",
+              "ogtt_2h_glucose/12w"
+            ],
+            "questions": []
+          },
+          "dropped": [],
+          "failed": [],
+          "judgeScore": 3,
+          "judgeNote": "It recommends an unallowed HbA1c and reduces the allowed 2-hour OGTT with insulin to a generic OGTT.",
+          "latencyMs": 21368
+        },
+        {
+          "id": "hashimoto-forever",
+          "kind": "prognosis",
+          "reply": "The rows show Hashimoto's as lifelong but controllable with treatment rather than reversible, with the 2014 Guidelines for the treatment of hypothyroidism reporting levothyroxine returns TSH to reference range and the 2024 selenium meta-analysis in 2,358 patients and 2023 vitamin D meta-analysis in 862 patients showing large TPO antibody drops without clearance. Your own numbers cut both ways with free T4 still normal at 1.1 ng/dL but TSH climbing from 1.824 to 3.9 mIU/L and TPO antibodies jumping from 5 to 320 IU/mL against an optimal under 9 IU/mL. Ask your primary-care doctor for levothyroxine at 1.6 \u00b5g/kg/day, taken fasting [science, A, guideline] if TSH keeps rising, with TSH rechecked in 6 weeks.",
+          "sentences": 3,
+          "labels": [
+            "[science, A, guideline]"
+          ],
+          "sources": [
+            "Guidelines for the treatment of hypothyroidism: prepared by the American Thyroid Association task force on thyroid hormone replacement 2014",
+            "Selenium Supplementation in Patients with Hashimoto Thyroiditis: A Systematic Review and Meta-Analysis of Randomized Clinical Trials 2024",
+            "Effects of vitamin D supplementation on autoantibodies and thyroid function in patients with Hashimoto's thyroiditis: A systematic review and meta-analysis 2023"
+          ],
+          "acts": {
+            "actions": [
+              "Levothyroxine"
+            ],
+            "tests": [
+              "tsh/6w"
+            ],
+            "questions": []
+          },
+          "dropped": [],
+          "failed": [],
+          "judgeScore": 5,
+          "judgeNote": "It overstates the antibody meta-analyses as showing \u201cwithout clearance,\u201d which is not established by the evidence summary provided.",
+          "latencyMs": 32532
+        },
+        {
+          "id": "hashimoto-research",
+          "kind": "research",
+          "reply": "In 35 randomised trials with 2,358 Hashimoto thyroiditis patients, 200 \u00b5g/day selenium lowered TPO antibodies by SMD -0.96 (95% CI -1.36 to -0.56) in Selenium Supplementation in Patients with Hashimoto Thyroiditis: A Systematic Review and Meta-Analysis of Randomized Clinical Trials 2024, grade A, and in 12 trials with 862 patients, 1000-4000 IU/day cholecalciferol lowered autoantibodies by SMD -1.084 (95% CI -1.624 to -0.545) in Effects of vitamin D supplementation on autoantibodies and thyroid function in patients with Hashimoto's thyroiditis: A systematic review and meta-analysis 2023, grade A. TPO antibodies above the assay limit are the defining marker with LR+ 10 in Hollowell 2002 JCEM (NHANES III) 2002, grade A, while weight-based levothyroxine 1.6 \u00b5g/kg/day taken fasting brought TSH back into range in Guidelines for the treatment of hypothyroidism: prepared by the American Thyroid Association task force on thyroid hormone replacement 2014, grade A. With several grade A meta-analyses and guidelines this is settled evidence, not thin single-trial data.",
+          "sentences": 3,
+          "labels": [],
+          "sources": [
+            "Selenium Supplementation in Patients with Hashimoto Thyroiditis: A Systematic Review and Meta-Analysis of Randomized Clinical Trials 2024",
+            "Effects of vitamin D supplementation on autoantibodies and thyroid function in patients with Hashimoto's thyroiditis: A systematic review and meta-analysis 2023",
+            "Hollowell 2002 JCEM (NHANES III) 2002",
+            "Guidelines for the treatment of hypothyroidism: prepared by the American Thyroid Association task force on thyroid hormone replacement 2014"
+          ],
+          "acts": {
+            "actions": [],
+            "tests": [],
+            "questions": []
+          },
+          "dropped": [],
+          "failed": [
+            "the answer names \"Levothyroxine\" and the row does not offer it",
+            "the answer names \"Vitamin D (cholecalciferol)\" and the row does not offer it"
+          ],
+          "judgeScore": 5,
+          "judgeNote": "It overstates the evidence as \u201csettled\u201d and omits several supplied grade A diagnostic findings, the grade B symptom evidence, and the contrast with weaker C\u2013E evidence.",
+          "latencyMs": 39706
+        },
+        {
+          "id": "why-ldl",
+          "kind": "why",
+          "reply": "Your connected row says TSH raises LDL cholesterol because low thyroid hormone lowers LDL receptor activity in the liver, so LDL clears more slowly and the number climbs. Your own numbers support that path, with TSH climbing from 1.82 to 3.9 mIU/L alongside LDL rising from 117 to 142 mg/dL with confirmed Hashimoto's.",
+          "sentences": 2,
+          "labels": [],
+          "acts": {
+            "actions": [],
+            "tests": [],
+            "questions": []
+          },
+          "dropped": [],
+          "failed": [],
+          "judgeScore": 4,
+          "judgeNote": "It invents a confirmed Hashimoto\u2019s diagnosis and overstates thyroid dysfunction as the established cause despite normal free T4.",
+          "latencyMs": 16912
+        },
+        {
+          "id": "ferritin-status",
+          "kind": "status",
+          "reply": "Your ferritin is 22 ng/mL, inside the reference range of 15 to 150 ng/mL but below the optimal band of 30 to 200 ng/mL so borderline. It was 94.4 ng/mL on 2025-12-09, which was fine in both bands. That drop to borderline-low means your stored iron is now low even though you are still inside the standard range.",
+          "sentences": 3,
+          "labels": [],
+          "acts": {
+            "actions": [],
+            "tests": [],
+            "questions": []
+          },
+          "dropped": [],
+          "failed": [],
+          "judgeScore": 5,
+          "judgeNote": "It overstates the interpretation by calling iron stores low when ferritin is within the standard reference range, though below the stated optimal band.",
+          "latencyMs": 17218
+        },
+        {
+          "id": "improve-ldl",
+          "kind": "howto",
+          "reply": "Your LDL cholesterol is 142 mg/dL, which is off as it is above both the reference limit of 130 mg/dL and the optimal limit of 70 mg/dL, up from 117 mg/dL, while total cholesterol at 200 mg/dL and triglycerides at 130 mg/dL are borderline. Add psyllium fibre 10 g/day split across meals with water [science, A, guideline]. Add oat beta-glucan 3 g/day or more, about 70 g of oats [science, A, guideline]. Replace saturated fat with unsaturated fat in daily meals [science, A, guideline]. Recheck LDL cholesterol in 8 weeks to see the change.",
+          "sentences": 5,
+          "labels": [
+            "[science, A, guideline]"
+          ],
+          "acts": {
+            "actions": [
+              "Psyllium fibre",
+              "Oat beta-glucan",
+              "Replacing saturated fat with unsaturated fat"
+            ],
+            "tests": [
+              "ldl_cholesterol/8w"
+            ],
+            "questions": []
+          },
+          "dropped": [],
+          "failed": [
+            "the row offers \"Replacing saturated fat with unsaturated fat\" and the answer never names it"
+          ],
+          "judgeScore": 5,
+          "judgeNote": "The saturated-fat replacement advice is less concrete than the two precisely dosed fibre actions.",
+          "latencyMs": 16280
+        },
+        {
+          "id": "fasting-insulin-target",
+          "kind": "status",
+          "reply": "Your fasting insulin is 12 uIU/mL, inside the reference range of 2 to 25 but above the optimal 2 to 5. Your earlier reading was 4.2 uIU/mL, which was fine inside both bands. That rise fits with likely insulin resistance.",
+          "sentences": 3,
+          "labels": [],
+          "acts": {
+            "actions": [],
+            "tests": [],
+            "questions": []
+          },
+          "dropped": [],
+          "failed": [],
+          "judgeScore": 3,
+          "judgeNote": "It goes beyond the requested status answer by inferring likely insulin resistance without a confirmed diagnosis.",
+          "latencyMs": 16020
+        }
+      ],
+      "score": 0.76
+    },
+    {
+      "modelId": "xiaomi/mimo-v2.6-pro",
+      "outPerM": 0.87,
+      "inPerM": 0.435,
+      "cases": [
+        {
+          "id": "cholesterol",
+          "kind": "status",
+          "reply": "LDL cholesterol is 142 mg/dL, above the 0 to 130 reference range and well above the optimal 0 to 70, and non-HDL at 156 mg/dL is above the optimal 0 to 130; total cholesterol 200 mg/dL sits at the top of the under-200 reference but above the optimal under-180, HDL 48 mg/dL is inside the 40 to 100 reference but below the optimal 50 to 90, and triglycerides 130 mg/dL are inside the under-150 reference but above the optimal under-100. LDL, HDL and triglycerides were drawn on 2026-08-01 while total and non-HDL date from 2025-12-09, and your LDL has climbed from 117 to 142 mg/dL since December. That means the picture is off mainly on the LDL-driven side and moving the wrong way, even though cardiovascular risk is still scored unlikely.",
+          "sentences": 3,
+          "labels": [],
+          "acts": {
+            "actions": [],
+            "tests": [],
+            "questions": []
+          },
+          "dropped": [],
+          "failed": [],
+          "judgeScore": 5,
+          "judgeNote": "It adds unsupported reassurance that cardiovascular risk is \u201cscored unlikely,\u201d which is unnecessary for a cholesterol status answer.",
+          "latencyMs": 27456
+        },
+        {
+          "id": "lower-ldl",
+          "kind": "howto",
+          "reply": "Your LDL cholesterol is 142 mg/dL against a reference ceiling of 130 and an optimal target under 70, up from 117 in December, with non-HDL cholesterol at 156 mg/dL against an optimal 130 and triglycerides at 130 mg/dL against an optimal 100. Take psyllium fibre 10 g/day, split across meals with water [science, A, guideline] and oat beta-glucan 3 g/day or more, about 70 g of oats [science, A, guideline]. Swap saturated fat for unsaturated fat at each meal [science, A, guideline], and have your GP re-measure LDL cholesterol and ApoB at 8 weeks. Your cardiovascular risk score sits low at 21%, so food and fibre come first, but if LDL is still above target at that retest, ask your GP for a moderate-intensity statin [science, A, guideline], atorvastatin 10-20 mg/day or equivalent.",
+          "sentences": 4,
+          "labels": [
+            "[science, A, guideline]"
+          ],
+          "acts": {
+            "actions": [
+              "Psyllium fibre",
+              "Oat beta-glucan",
+              "Replacing saturated fat with unsaturated fat",
+              "Moderate-intensity statin"
+            ],
+            "tests": [
+              "ldl_cholesterol/8w",
+              "apolipoprotein_b/8w"
+            ],
+            "questions": []
+          },
+          "dropped": [],
+          "failed": [
+            "the row offers \"Replacing saturated fat with unsaturated fat\" and the answer never names it"
+          ],
+          "judgeScore": 5,
+          "judgeNote": "It adds a fourth action beyond the requested two or three and misleadingly characterizes a 21% cardiovascular risk estimate as low.",
+          "latencyMs": 52364
+        },
+        {
+          "id": "t2d-risk",
+          "kind": "howto",
+          "reply": "You are not there yet, but you are in the grey zone that precedes it: HbA1c 5.6% sits at the very top of the reference band (4\u20135.6) and above your optimal ceiling of 5.2, fasting glucose 98 mg/dL is inside 70\u201399 but above the 72\u201385 optimal, fasting insulin 12 uIU/mL is more than double the 2\u20135 optimal, and HOMA-IR 2.84 is nearly three times the 0\u20131 optimal, which is why insulin resistance reads 97% likely while type 2 diabetes reads only 53% possible and your own projection holds HbA1c at 5.62. Ask your GP or an endocrinologist for a 2-hour OGTT with insulin, a 75g glucose challenge with serial draws [science], since that exposes the dysfunction years before HbA1c moves. Do whole-body progressive resistance training twice weekly, 45 minutes of squats, hinges, pushes and pulls, for 12 weeks [opinion], and at lunch and dinner eat 25\u201330g protein plus 10g fibre first and the starch last [opinion]. Recheck OGTT at 8 weeks and HbA1c at 12 weeks, aiming for 2-hour insulin below 30 uIU/mL and glucose below 85 mg/dL.",
+          "sentences": 4,
+          "labels": [
+            "[science]",
+            "[opinion]"
+          ],
+          "acts": {
+            "actions": [
+              "Ask for a 2-hour OGTT with insulin",
+              "Whole-body progressive resistance training twice weekly",
+              "Front-load meal protein and dietary fibre"
+            ],
+            "tests": [
+              "ogtt_2h_glucose/8w",
+              "hba1c/12w"
+            ],
+            "questions": []
+          },
+          "dropped": [],
+          "failed": [
+            "the row offers \"Front-load meal protein and dietary fibre\" and the answer never names it"
+          ],
+          "judgeScore": 4,
+          "judgeNote": "It invents an HbA1c projection of 5.62 and unsupported OGTT targets of insulin below 30 uIU/mL and glucose below 85 mg/dL.",
+          "latencyMs": 48369
+        },
+        {
+          "id": "fix-hashimoto",
+          "kind": "howto",
+          "reply": "Your numbers point the wrong way: TSH climbed 1.82 to 3.1 to 3.9 mIU/L against a target under 2.5, and TPO antibodies jumped from 5 to 320 IU/mL against a target under 100, so the autoimmune process is active. Free T4 at 1.1 ng/dL is fine, but vitamin D at 19 ng/mL is well off the 40-60 target and low D is a documented driver of antibody load. Take vitamin D cholecalciferol 1000-4000 IU/day with a fatty meal [science, A] and keep selenomethionine at 200 \u00b5g once daily with breakfast for 6 months [opinion]. Because TSH is rising and antibodies are high, ask an endocrinologist for levothyroxine at 1.6 \u00b5g/kg/day taken fasting [science, A] and bring this thyroid panel with you. Recheck TPO antibodies at 12 weeks and TSH with free T4 and free T3 at 12 weeks, which is the same draw that baselines the ultrasound.",
+          "sentences": 5,
+          "labels": [
+            "[science, A]",
+            "[opinion]"
+          ],
+          "acts": {
+            "actions": [
+              "Vitamin D (cholecalciferol)",
+              "Adjust supplemental selenium to 200 \u00b5g daily total",
+              "Levothyroxine",
+              "Repeat TSH with free T4, free T3 and anti-TPO"
+            ],
+            "tests": [],
+            "questions": []
+          },
+          "dropped": [],
+          "failed": [
+            "label [science, A] is not one the context gave",
+            "the row offers \"Adjust supplemental selenium to 200 \u00b5g daily total\" and the answer never names it",
+            "the row offers \"Repeat TSH with free T4, free T3 and anti-TPO\" and the answer never names it",
+            "the answer names \"Thyroid ultrasound once\" and the row does not offer it"
+          ],
+          "judgeScore": 4,
+          "judgeNote": "It adds an unsupported fatty-meal instruction and overstates the case for starting full-dose levothyroxine despite a normal free T4 and TSH still within the reference range.",
+          "latencyMs": 32569
+        },
+        {
+          "id": "what-to-eat",
+          "kind": "howto",
+          "reply": "Your numbers say the plate matters: glucose 98 mg/dL is off the 72-85 mg/dL band, HbA1c 5.6% is off the 4-5.2% band, insulin 12 uIU/mL and HOMA-IR 2.84 are off the 2-5 uIU/mL and 0-1 bands, and triglycerides 130 mg/dL and ferritin 22 ng/mL are off the 0-100 and 30-200 bands. Front-load meal protein and dietary fibre [opinion]: 25-30g protein and 10g fibre first at each solid meal, with lunch and dinner, ongoing. Adjust supplemental selenium to 200 \u00b5g daily total [opinion]: selenomethionine 200 \u00b5g once daily with breakfast, for 6 months. The eating target that follows from those meals is glucose under 85 mg/dL, and the 25-30g protein and 10g fibre-first order at both meals is what carries it. Retest glucose and HbA1c in 12 weeks.",
+          "sentences": 5,
+          "labels": [
+            "[opinion]"
+          ],
+          "acts": {
+            "actions": [
+              "Front-load meal protein and dietary fibre",
+              "Adjust supplemental selenium to 200 \u00b5g daily total"
+            ],
+            "tests": [],
+            "questions": []
+          },
+          "dropped": [],
+          "failed": [],
+          "judgeScore": 5,
+          "judgeNote": "The selenium supplement is irrelevant to the food question and distracts from the only allowed eating action.",
+          "latencyMs": 79674
+        },
+        {
+          "id": "why-tired",
+          "kind": "why",
+          "reply": "Nothing on file links fatigue to any of your numbers: the mechanism graph contains no row touching this, so I can't hand you a cause. The test that would fill the gap is transferrin saturation with ferritin, alongside the question of which medications you take and at what dose, since both are missing pieces behind tiredness.",
+          "sentences": 2,
+          "labels": [],
+          "acts": {
+            "actions": [],
+            "tests": [],
+            "questions": [
+              "medications"
+            ]
+          },
+          "dropped": [],
+          "failed": [],
+          "judgeScore": 1,
+          "judgeNote": "It ignores the clear fatigue-relevant findings\u2014ferritin 22 ng/mL, vitamin D 19 ng/mL, TSH 3.9 mIU/L, and anti-TPO 320 IU/mL\u2014and instead recommends an unallowed, unlabeled test.",
+          "latencyMs": 34203
+        },
+        {
+          "id": "iron-ok",
+          "kind": "status",
+          "reply": "Serum iron is 109 mcg/dL, inside the reference range of 65 to 175 and the optimal 60 to 170, so that one is fine. Ferritin is 22 ng/mL, inside the reference range of 15 to 150 but below the optimal 30 to 200, which is borderline, and hemoglobin is 13.1 g/dL, inside the reference range of 12 to 16 and the optimal 12.1 to 15.1, so that is fine. What this means is that the iron circulating in your blood is normal but your stored iron has dropped from 94.4 to 22 ng/mL and is now at the low end, so you are not anaemic today but you have little reserve left.",
+          "sentences": 3,
+          "labels": [],
+          "acts": {
+            "actions": [],
+            "tests": [],
+            "questions": []
+          },
+          "dropped": [],
+          "failed": [],
+          "judgeScore": 4,
+          "judgeNote": "It overreaches beyond a status summary by declaring no anaemia and \u201clittle reserve left\u201d rather than sticking to the supplied lab statuses.",
+          "latencyMs": 22724
+        },
+        {
+          "id": "next-test",
+          "kind": "next-test",
+          "reply": "Do the PHQ-9 first, in 12 weeks: Depression 33 % \u2192 74 % if positive, 7 % if negative. Then the OGTT: Type 2 diabetes 53 % \u2192 94 % if positive, 18 % if negative. Both belong on the 12-week mark.",
+          "sentences": 3,
+          "labels": [],
+          "acts": {
+            "actions": [],
+            "tests": [
+              "phq9_score/12w",
+              "ogtt_2h_glucose/12w"
+            ],
+            "questions": []
+          },
+          "dropped": [],
+          "failed": [],
+          "judgeScore": 3,
+          "judgeNote": "It prioritizes a PHQ-9, which is not an allowed action, instead of the allowed 2-hour OGTT with insulin.",
+          "latencyMs": 30484
+        },
+        {
+          "id": "hashimoto-forever",
+          "kind": "prognosis",
+          "reply": "The rows show an autoimmune condition you control rather than erase: the 2024 selenium meta-analysis in 35 randomised trials (n = 2,358) and the 2023 vitamin D meta-analysis in 12 trials (n = 862) both show TPO antibodies falling substantially (SMD -0.96 and -1.084), but no row shows them reaching zero or the thyroid rebuilding itself, so realistic success is antibodies driven down and TSH held in range, not a cure. Your own numbers argue both ways: TPO antibodies jumped 5 \u2192 320 IU/mL and TSH climbed 1.82 \u2192 3.9 mIU/L, which is the trend against you, while Free T4 is still 1.1 ng/dL and vitamin D is 19 ng/mL, a deficiency that is fixable and is the largest lever the rows give you on those antibodies. Take Vitamin D (cholecalciferol) 1000-4000 IU/day [science, A, guideline], and remeasure TPO antibodies at 24 weeks.",
+          "sentences": 3,
+          "labels": [
+            "[science, A, guideline]"
+          ],
+          "sources": [
+            "Selenium Supplementation in Patients with Hashimoto Thyroiditis: A Systematic Review and Meta-Analysis of Randomized Clinical Trials 2024",
+            "Effects of vitamin D supplementation on autoantibodies and thyroid function in patients with Hashimoto's thyroiditis: A systematic review and meta-analysis 2023"
+          ],
+          "acts": {
+            "actions": [
+              "Vitamin D (cholecalciferol)"
+            ],
+            "tests": [],
+            "questions": []
+          },
+          "dropped": [],
+          "failed": [],
+          "judgeScore": 5,
+          "judgeNote": "It overstates vitamin D as the \u201clargest lever\u201d and infers irreversibility from studies that did not directly establish the long-term course of Hashimoto\u2019s.",
+          "latencyMs": 103613
+        },
+        {
+          "id": "hashimoto-research",
+          "kind": "research",
+          "reply": "The strongest evidence is a 2024 grade A systematic review and meta-analysis of randomised trials, Selenium Supplementation in Patients with Hashimoto Thyroiditis, which pooled 35 trials and n=2,358 and found selenium 200 \u00b5g/day lowered TPO antibodies with SMD -0.96 (95% CI -1.36 to -0.56). Effects of vitamin D supplementation on autoantibodies and thyroid function in patients with Hashimoto's thyroiditis (2023) is likewise grade A across 12 trials and n=862, with vitamin D 1000-4000 IU/day cutting TPO antibodies by SMD -1.084 (95% CI -1.624 to -0.545), and Guidelines for the treatment of hypothyroidism: prepared by the American Thyroid Association task force on thyroid hormone replacement (2014) is grade A on levothyroxine 1.6 \u00b5g/kg/day taken fasting, bringing TSH back into the reference range in adults with primary hypothyroidism. Those antibody-lowering effects are graded A and built on dozens of trials, so that part of the field is settled, while the diagnostic markers carry strong likelihood ratios (TPO antibodies LR+ 10, anti-Tg LR+ 5) but symptom signs sit at grade B and remain thin.",
+          "sentences": 3,
+          "labels": [],
+          "sources": [
+            "Selenium Supplementation in Patients with Hashimoto Thyroiditis: A Systematic Review and Meta-Analysis of Randomized Clinical Trials 2024",
+            "Effects of vitamin D supplementation on autoantibodies and thyroid function in patients with Hashimoto's thyroiditis: A systematic review and meta-analysis 2023",
+            "Guidelines for the treatment of hypothyroidism: prepared by the American Thyroid Association task force on thyroid hormone replacement 2014"
+          ],
+          "acts": {
+            "actions": [],
+            "tests": [],
+            "questions": []
+          },
+          "dropped": [],
+          "failed": [
+            "the answer names \"Levothyroxine\" and the row does not offer it"
+          ],
+          "judgeScore": 4,
+          "judgeNote": "It overstates the antibody-lowering evidence as \u201csettled\u201d and omits the names and years for the diagnostic and symptom findings, as well as the weakness of grade C\u2013E evidence.",
+          "latencyMs": 35221
+        },
+        {
+          "id": "why-ldl",
+          "kind": "why",
+          "reply": "Low thyroid hormone lowers LDL receptor activity in the liver, so LDL clears more slowly and the number climbs \u2014 that is the TSH to LDL cholesterol link (grade A). On the other side, very low carbohydrate intake can push fat trafficking through VLDL so LDL rises steeply, the low-carb or keto eating to LDL cholesterol link (grade B). Your own numbers back the thyroid route: TSH climbed from 1.82 to 3.9 mIU/L alongside LDL cholesterol climbing from 117 to 142 mg/dL with anti-TPO at 320 IU/mL, while nothing on file shows low-carbohydrate eating.",
+          "sentences": 3,
+          "labels": [],
+          "acts": {
+            "actions": [],
+            "tests": [],
+            "questions": []
+          },
+          "dropped": [],
+          "failed": [],
+          "judgeScore": 4,
+          "judgeNote": "It assigns unsupported grade A/B evidence labels and overstates the thyroid explanation from correlated lab changes despite normal free T4.",
+          "latencyMs": 38372
+        },
+        {
+          "id": "ferritin-status",
+          "kind": "status",
+          "reply": "Your ferritin is 22 ng/mL as of 2026-08-01, inside the reference range of 15 to 150 ng/mL but below the optimal band of 30 to 200 ng/mL, and down sharply from 94.4 ng/mL on 2025-12-09. That puts your iron stores in borderline territory: not deficient by the lab's cutoff, but a genuine fall from where they stood, alongside haemoglobin easing from 16.2 to 13.1 g/dL.",
+          "sentences": 2,
+          "labels": [],
+          "acts": {
+            "actions": [],
+            "tests": [],
+            "questions": []
+          },
+          "dropped": [],
+          "failed": [],
+          "judgeScore": 5,
+          "judgeNote": "It adds unnecessary haemoglobin detail instead of stopping after the ferritin value, band, and brief meaning.",
+          "latencyMs": 29183
+        },
+        {
+          "id": "improve-ldl",
+          "kind": "howto",
+          "reply": "Your LDL cholesterol is 142 mg/dL, above the 0\u2013130 band and well above the optimal 0\u201370, with triglycerides at 130 mg/dL and HDL at 48 mg/dL both sitting borderline against their bands. Take psyllium fibre 10 g/day, split across meals and taken with water [science, A, guideline]. Eat oat beta-glucan at 3 g/day or more, about 70 g of oats [science, A, guideline]. Add plant sterols and stanols 2-3 g/day with a meal [science, A, guideline]. Recheck LDL cholesterol and ApoB in 8 weeks.",
+          "sentences": 5,
+          "labels": [
+            "[science, A, guideline]"
+          ],
+          "acts": {
+            "actions": [
+              "Psyllium fibre",
+              "Oat beta-glucan",
+              "Plant sterols and stanols"
+            ],
+            "tests": [
+              "ldl_cholesterol/8w",
+              "apolipoprotein_b/8w"
+            ],
+            "questions": []
+          },
+          "dropped": [
+            "int:seed_ascvd_risk_psyllium_fibre_metric_ldl_cholesterol",
+            "int:seed_ascvd_risk_oat_beta_glucan_metric_ldl_cholesterol",
+            "int:seed_ascvd_risk_plant_sterols_and_stanols_condition"
+          ],
+          "failed": [
+            "invented 3 id(s): int:seed_ascvd_risk_psyllium_fibre_metric_ldl_cholesterol, int:seed_ascvd_risk_oat_beta_glucan_metric_ldl_cholesterol, int:seed_ascvd_risk_plant_sterols_and_stanols_condition"
+          ],
+          "judgeScore": 5,
+          "judgeNote": "It omits replacing saturated fat with unsaturated fat, a foundational dietary LDL-lowering action.",
+          "latencyMs": 49552
+        },
+        {
+          "id": "fasting-insulin-target",
+          "kind": "status",
+          "reply": "Your fasting insulin is 12 uIU/mL, inside the reference range of 2 to 25 uIU/mL but above the optimal band of 2 to 5 uIU/mL, so it reads fine on the standard scale and off against optimal. It rose from 4.2 uIU/mL at your previous draw, which fits the insulin resistance the engine already puts at 97% likely rather than being explained away by the lab range.",
+          "sentences": 2,
+          "labels": [],
+          "acts": {
+            "actions": [],
+            "tests": [],
+            "questions": []
+          },
+          "dropped": [],
+          "failed": [],
+          "judgeScore": 4,
+          "judgeNote": "It goes beyond the requested status answer by presenting a model probability as established insulin resistance.",
+          "latencyMs": 25268
+        }
+      ],
+      "score": 0.71
+    },
+    {
+      "modelId": "anthropic/claude-sonnet-5.5",
+      "outPerM": 10,
+      "inPerM": 2,
+      "cases": [
+        {
+          "id": "cholesterol",
+          "kind": "status",
+          "reply": "Your LDL cholesterol is 142 mg/dL (August 2026), above the reference limit of 130 and well above the optimal under 70, and it has risen from 117 mg/dL in December 2025. HDL is 48 mg/dL, inside the reference range of 40 to 100 but just under the optimal 50 to 90, and triglycerides are 130 mg/dL, inside the reference range of 0 to 150 but above the optimal 0 to 100. Total cholesterol was 200 mg/dL in December 2025, right at the top of its reference limit of 200 and above the optimal 0 to 180, and non-HDL was 156 mg/dL, above the optimal 0 to 130 (it has no standard reference range); both are 293 days old. The engine rates your cardiovascular risk as unlikely (21 %), but the LDL is the one number clearly off and moving the wrong way.",
+          "sentences": 4,
+          "labels": [],
+          "acts": {
+            "actions": [],
+            "tests": [],
+            "questions": []
+          },
+          "dropped": [],
+          "failed": [],
+          "judgeScore": 5,
+          "judgeNote": "It misleadingly says LDL is the only number clearly off, despite HDL, triglycerides, total cholesterol, and non-HDL all being outside their optimal ranges.",
+          "latencyMs": 12969
+        },
+        {
+          "id": "lower-ldl",
+          "kind": "howto",
+          "reply": "Your LDL was 142 mg/dL on 2026-08-01, up from 117 in December, which is critical against a reference ceiling of 130 and an optimal under 70, while your cardiovascular risk reads unlikely (21 %) and HDL 48 and triglycerides 130 mg/dL are borderline. Three things on file work on this: psyllium fibre, 10 g/day split across meals with water [science, A, guideline], which took LDL down 12.8 mg/dL; oat beta-glucan, 3 g/day or more (about 70 g of oats) [science, A, guideline], which took it down 9.7 mg/dL; and replacing saturated fat with unsaturated fat [science, A, guideline], which has no dose or LDL figure on file. Stacked, the two fibres could plausibly bring you toward the 120s, but that is my addition and not a figure from the papers, so treat it as a guess. Recheck LDL cholesterol in 8 weeks, and add ApoB at the same draw so you can see the particle count as well as the LDL number.",
+          "sentences": 4,
+          "labels": [
+            "[science, A, guideline]"
+          ],
+          "acts": {
+            "actions": [
+              "Psyllium fibre",
+              "Oat beta-glucan",
+              "Replacing saturated fat with unsaturated fat"
+            ],
+            "tests": [
+              "ldl_cholesterol/8w",
+              "apolipoprotein_b/8w"
+            ],
+            "questions": []
+          },
+          "dropped": [],
+          "failed": [],
+          "judgeScore": 2,
+          "judgeNote": "It fabricates LDL reductions of 12.8 and 9.7 mg/dL and an unsupported combined estimate, while also adding an unlabeled, unallowed ApoB test.",
+          "latencyMs": 15156
+        },
+        {
+          "id": "t2d-risk",
+          "kind": "howto",
+          "reply": "Nobody can promise you will or won't, but you are heading that way: the engine puts insulin resistance at likely (97%) and type 2 diabetes at possible (53%), your HbA1c has gone from 5.2 to 5.6% (top of the 4\u20135.6 reference range, above the 5.2 optimal ceiling), fasting glucose is 98 mg/dL (borderline, optimal 72\u201385), and fasting insulin of 12 uIU/mL and HOMA-IR of 2.84 are both off against optimal bands of 2\u20135 and under 1. There are no graded papers on file for this, so everything below comes from your plan: ask your GP for a 2-hour OGTT with insulin, a 75g glucose challenge with serial draws while fasting [science], since it shows insulin resistance years before HbA1c moves. Start front-loading 25-30g of protein and 10g of fibre first at lunch and dinner [opinion], and do whole-body resistance training for 45 minutes, 2-3 sessions per week for 12 weeks [opinion]. Recheck HbA1c and the OGTT in 12 weeks, and your last check-in shows walking after meals and the sugar cut-back both slipped, so getting those habits back is part of the work.",
+          "sentences": 4,
+          "labels": [
+            "[science]",
+            "[opinion]"
+          ],
+          "acts": {
+            "actions": [
+              "Ask for a 2-hour OGTT with insulin",
+              "Front-load meal protein and dietary fibre",
+              "Whole-body progressive resistance training twice weekly"
+            ],
+            "tests": [
+              "hba1c/12w",
+              "ogtt_2h_glucose/12w"
+            ],
+            "questions": []
+          },
+          "dropped": [],
+          "failed": [
+            "the row offers \"Whole-body progressive resistance training twice weekly\" and the answer never names it"
+          ],
+          "judgeScore": 3,
+          "judgeNote": "It tells the user to restart post-meal walking and added-sugar restriction even though neither is an allowed action, and neither carries a bracketed label.",
+          "latencyMs": 17155
+        },
+        {
+          "id": "fix-hashimoto",
+          "kind": "howto",
+          "reply": "Hashimoto's is confirmed (95 %): your TPO antibodies jumped from 5 to 320 IU/mL against a reference of 0 to 34, which is off, and your TSH has climbed from 1.82 to 3.9 mIU/L, which is inside the 0.4 to 4.5 reference but borderline against the 0.5 to 2.5 optimal band, while free T4 at 1.1 ng/dL is fine. Your vitamin D is also low at 19 ng/mL (optimal 40 to 60), and that is worth fixing because it sits alongside the antibody rise. There is no cure, but you can push the antibodies down: take vitamin D (cholecalciferol) at 1000-4000 IU/day [science, A, guideline], which has meta-analysis data for lowering TPO antibodies, and take selenomethionine at 200 \u00b5g total once daily with breakfast for 6 months [opinion], with a target of TPO antibodies under 100 IU/mL. Also book the repeat thyroid blood draw with TSH, free T4, free T3 and anti-TPO [science], so you see whether the TSH keeps rising toward the point where an endocrinologist would need to discuss thyroid hormone treatment with you. Measure TSH and free T4 in 12 weeks, aiming for TSH under 2.5 mIU/L, and TPO antibodies after 24 weeks, once the selenium course has had time to act.",
+          "sentences": 5,
+          "labels": [
+            "[science, A, guideline]",
+            "[opinion]",
+            "[science]"
+          ],
+          "acts": {
+            "actions": [
+              "Adjust supplemental selenium to 200 \u00b5g daily total",
+              "Vitamin D (cholecalciferol)",
+              "Repeat TSH with free T4, free T3 and anti-TPO"
+            ],
+            "tests": [
+              "tsh/12w",
+              "free_t4/12w",
+              "tpo_antibodies/24w"
+            ],
+            "questions": []
+          },
+          "dropped": [],
+          "failed": [
+            "the row offers \"Adjust supplemental selenium to 200 \u00b5g daily total\" and the answer never names it"
+          ],
+          "judgeScore": 4,
+          "judgeNote": "It invents a 95% diagnostic probability and overstates Hashimoto\u2019s as confirmed rather than strongly suggested by the available data.",
+          "latencyMs": 18271
+        },
+        {
+          "id": "what-to-eat",
+          "kind": "howto",
+          "reply": "Your fasting glucose is 98 mg/dL (off the 72-85 optimal band), fasting insulin is 12 uIU/mL (off, optimal 2-5), HbA1c is 5.6% (borderline, at the top of the 4-5.6 range), and LDL is 142 mg/dL (off, optimal under 70), which fits the likely insulin resistance and fatty liver the engine sees. There is no graded paper on file for a specific diet, so I can only give you what's in your plan: at lunch and dinner, eat 25-30g of protein and 10g of fibre (the vegetables) first and the carbohydrate after, and keep doing it [opinion]. The same plan has you take selenium as selenomethionine, 200 \u00b5g total once daily with breakfast for 6 months, for the Hashimoto's antibodies (TPO 320 IU/mL) [opinion]. Recheck HbA1c after 12 weeks to see whether the eating change is moving your glucose.",
+          "sentences": 4,
+          "labels": [
+            "[opinion]"
+          ],
+          "acts": {
+            "actions": [
+              "Front-load meal protein and dietary fibre",
+              "Adjust supplemental selenium to 200 \u00b5g daily total"
+            ],
+            "tests": [
+              "hba1c/12w"
+            ],
+            "questions": []
+          },
+          "dropped": [],
+          "failed": [
+            "the row offers \"Front-load meal protein and dietary fibre\" and the answer never names it",
+            "the row offers \"Adjust supplemental selenium to 200 \u00b5g daily total\" and the answer never names it"
+          ],
+          "judgeScore": 4,
+          "judgeNote": "It invents a likely fatty-liver diagnosis and adds irrelevant selenium advice to a question about food.",
+          "latencyMs": 17518
+        },
+        {
+          "id": "why-tired",
+          "kind": "why",
+          "reply": "No mechanism row on file links tiredness to any of your markers, so I can't show you a chain from the graph and won't borrow one from general knowledge. What your numbers do show is Hashimoto's confirmed (95%) with TPO antibodies going from 5 to 320 IU/mL and TSH from 1.824 to 3.9 mIU/L (free T4 is still normal at 1.1 ng/dL), vitamin D deficiency likely (86%) with vitamin D down from 31.77 to 19 ng/mL, ferritin down from 94.4 to 22 ng/mL, and insulin resistance likely (97%) with insulin up from 4.2 to 12 uIU/mL. The confirmed thyroid autoimmunity is the firmest of these, vitamin D and insulin resistance come next, and the ferritin drop is the one I'd check further with transferrin saturation and ferritin in 12 weeks.",
+          "sentences": 3,
+          "labels": [],
+          "acts": {
+            "actions": [],
+            "tests": [
+              "transferrin_saturation/12w"
+            ],
+            "questions": []
+          },
+          "dropped": [],
+          "failed": [],
+          "judgeScore": 1,
+          "judgeNote": "It does not explain the mechanisms linking the abnormal markers to fatigue, and it invents diagnostic probabilities while recommending an unallowed, unlabeled test.",
+          "latencyMs": 14211
+        },
+        {
+          "id": "iron-ok",
+          "kind": "status",
+          "reply": "Your serum iron was 109 mcg/dL, fine against both the reference range of 65 to 175 and the optimal band of 60 to 170, but that reading is from 2025-12-09, almost ten months old. Your ferritin, the marker of iron stores, was 22 ng/mL on 2026-08-01, inside the reference range of 15 to 150 but below the optimal 30 to 200, and down from 94.4 in December. Your hemoglobin of 13.1 g/dL is still fine (reference 12 to 16, optimal 12.1 to 15.1) but has dropped from 16.2, so your iron is not fully ok: the iron in your blood looked fine when last checked, but your stores are low and have fallen sharply.",
+          "sentences": 3,
+          "labels": [],
+          "acts": {
+            "actions": [],
+            "tests": [],
+            "questions": []
+          },
+          "dropped": [],
+          "failed": [],
+          "judgeScore": 5,
+          "judgeNote": "It slightly overstates ferritin as \u201clow\u201d when it is within the reference range, though it correctly explains that it is below the optimal band.",
+          "latencyMs": 11194
+        },
+        {
+          "id": "next-test",
+          "kind": "next-test",
+          "reply": "Do the OGTT first, the 2-hour OGTT with insulin already in your plan [science], because it settles your open question, whether you have type 2 diabetes: OGTT: Type 2 diabetes 53 % \u2192 94 % if positive, 18 % if negative. Book it for 12 weeks from now, fasting. HbA1c is the second move, on the same 12-week wait: HbA1c: Type 2 diabetes 53 % \u2192 99 % if positive, 32 % if negative, and it barely moves insulin resistance (97 % \u2192 98 % if positive, 97 % if negative).",
+          "sentences": 3,
+          "labels": [
+            "[science]"
+          ],
+          "acts": {
+            "actions": [
+              "Ask for a 2-hour OGTT with insulin"
+            ],
+            "tests": [
+              "ogtt_2h_glucose/12w",
+              "hba1c/12w"
+            ],
+            "questions": []
+          },
+          "dropped": [],
+          "failed": [
+            "a next-test answer named an action ([science])",
+            "a next-test answer offered 1 action(s), room for 0"
+          ],
+          "judgeScore": 3,
+          "judgeNote": "It adds an unlabeled HbA1c as a second test even though it is not an allowed action, and it omits the OGTT\u2019s specified 75 g dose.",
+          "latencyMs": 18917
+        },
+        {
+          "id": "hashimoto-forever",
+          "kind": "prognosis",
+          "reply": "Hashimoto's is a lifelong autoimmune condition that the research shows you can control but not switch off: the 2014 American Thyroid Association guideline shows that if your thyroid fails, hormone replacement on a weight-based dose brings TSH back into the reference range, and the 2023 meta-analysis of 12 trials (n = 862) found vitamin D lowered TPO antibodies (SMD -1.084, 95% CI -1.624 to -0.545), though none of these rows shows the antibodies disappearing or the condition going away. Your numbers cut both ways: the diagnosis is confirmed at 95%, and TPO antibodies jumped from 5 to 320 IU/mL while TSH climbed from 1.82 to 3.9 mIU/L, but free T4 is still normal at 1.1 ng/dL, so the gland is still keeping up, and your vitamin D of 19 ng/mL is a low number you can fix. The one lever with grade A evidence that fits you is vitamin D (cholecalciferol) at 1000-4000 IU/day [science, A, guideline], then recheck TPO antibodies after 12 weeks.",
+          "sentences": 3,
+          "labels": [
+            "[science, A, guideline]"
+          ],
+          "sources": [
+            "Guidelines for the treatment of hypothyroidism: prepared by the American Thyroid Association task force on thyroid hormone replacement 2014",
+            "Effects of vitamin D supplementation on autoantibodies and thyroid function in patients with Hashimoto's thyroiditis: A systematic review and meta-analysis 2023"
+          ],
+          "acts": {
+            "actions": [
+              "Vitamin D (cholecalciferol)"
+            ],
+            "tests": [
+              "tpo_antibodies/12w"
+            ],
+            "questions": []
+          },
+          "dropped": [],
+          "failed": [],
+          "judgeScore": 4,
+          "judgeNote": "The unsupported claim that \u201cthe diagnosis is confirmed at 95%\u201d invents both diagnostic certainty and a probability absent from the evidence.",
+          "latencyMs": 17252
+        },
+        {
+          "id": "hashimoto-research",
+          "kind": "research",
+          "reply": "The strongest evidence on file is about how Hashimoto's is identified: Hollowell 2002 (NHANES III, grade A) found TPO antibodies above the assay limit are the defining marker (LR+ 10), and your 320 IU/mL against a 0 to 34 range is why the engine calls it confirmed at 95 %. The same Hollowell 2002 paper (grade A) found anti-thyroglobulin antibodies catch the roughly 10 % of people who are TPO-negative (LR+ 5), while Rodondi 2010 JAMA (grade A) found a TSH above 4.5 is subclinical hypothyroidism, most often autoimmune (LR+ 3), and the ATA 2014 hypothyroidism guideline (grade A) puts a free T4 under about 0.9 ng/dL with a high TSH as overt failure (LR+ 2). How sure is the field: these rows are grade A, so the way the condition is recognised is settled, and your TSH of 3.9 and free T4 of 1.1 sit below those cut-offs.",
+          "sentences": 3,
+          "labels": [],
+          "sources": [
+            "Hollowell 2002 JCEM (NHANES III) 2002",
+            "Hollowell 2002 JCEM 2002",
+            "Rodondi 2010 JAMA 2010",
+            "ATA 2014 hypothyroidism guideline 2014"
+          ],
+          "acts": {
+            "actions": [],
+            "tests": [],
+            "questions": []
+          },
+          "dropped": [],
+          "failed": [],
+          "judgeScore": 2,
+          "judgeNote": "It invents a 95% confirmation probability and omits the grade A intervention meta-analyses, grade B evidence, and the requested A/B versus C\u2013E certainty comparison.",
+          "latencyMs": 15277
+        },
+        {
+          "id": "why-ldl",
+          "kind": "why",
+          "reply": "The closest mechanism on file runs from TSH to LDL cholesterol: when thyroid hormone runs low, the liver's LDL receptors work less, so LDL clears more slowly and the number climbs. Separately, LDL cholesterol is the cheapest proxy for particle count and sits on the causal path to atherosclerotic heart disease, which is why the number matters. Your numbers back the thyroid route: Hashimoto's is confirmed at 95 %, TPO antibodies went from 5 to 320 IU/mL, TSH climbed from 1.824 to 3.1 to 3.9 mIU/L (still inside the 4.5 reference limit but above the 2.5 optimal), and LDL rose from 117 to 142 mg/dL over the same months. The low-carb route doesn't fit, because it applies to lean, insulin-sensitive people and yours is likely insulin resistance at 97 %. I have no oestrogen data for you, so I can't say whether that row applies.",
+          "sentences": 5,
+          "labels": [],
+          "acts": {
+            "actions": [],
+            "tests": [],
+            "questions": []
+          },
+          "dropped": [],
+          "failed": [],
+          "judgeScore": 4,
+          "judgeNote": "It invents a 95% confirmation of Hashimoto\u2019s and overstates a suggestive thyroid pattern as a confirmed diagnosis.",
+          "latencyMs": 13200
+        },
+        {
+          "id": "ferritin-status",
+          "kind": "status",
+          "reply": "Your latest ferritin is 22 ng/mL (drawn 2026-08-01), which is inside the standard reference range of 15 to 150 ng/mL but below the optimal 30 to 200 ng/mL, so it is borderline low. It has fallen from 94.4 ng/mL on 2025-12-09, which was fine against both bands. That leaves you with thin iron stores, even though your haemoglobin of 13.1 g/dL sits inside its 12 to 16 range.",
+          "sentences": 3,
+          "labels": [],
+          "acts": {
+            "actions": [],
+            "tests": [],
+            "questions": []
+          },
+          "dropped": [],
+          "failed": [],
+          "judgeScore": 5,
+          "judgeNote": "It adds unnecessary historical ferritin and haemoglobin detail instead of stopping after the latest value, bands, and brief meaning.",
+          "latencyMs": 7666
+        },
+        {
+          "id": "improve-ldl",
+          "kind": "howto",
+          "reply": "Your LDL was 142 mg/dL on 2026-08-01, up from 117 in December, and that is off: the reference ceiling is 130 and the optimal is under 70, while your last non-HDL of 156 mg/dL is also above its 130 optimum and your engine-scored cardiovascular risk is unlikely (21 %). Three things on file lower LDL: psyllium fibre 10 g/day, split across meals, with water [science, A, guideline], which took LDL down about 12.8 mg/dL; oat beta-glucan 3 g/day or more (about 70 g of oats) [science, A, guideline], about 9.7 mg/dL; and plant sterols and stanols 2-3 g/day with a meal [science, A, guideline]. Recheck LDL cholesterol in 8 weeks, and add ApoB at the same draw, since it counts the atherogenic particles that LDL alone can miss.",
+          "sentences": 3,
+          "labels": [
+            "[science, A, guideline]"
+          ],
+          "acts": {
+            "actions": [
+              "Psyllium fibre",
+              "Oat beta-glucan",
+              "Plant sterols and stanols"
+            ],
+            "tests": [
+              "ldl_cholesterol/8w",
+              "apolipoprotein_b/8w"
+            ],
+            "questions": []
+          },
+          "dropped": [],
+          "failed": [],
+          "judgeScore": 4,
+          "judgeNote": "It invents precise LDL-lowering effect sizes for psyllium and oat beta-glucan without any supplied source or context.",
+          "latencyMs": 18326
+        },
+        {
+          "id": "fasting-insulin-target",
+          "kind": "status",
+          "reply": "Your fasting insulin was 12 uIU/mL on 2026-08-01, inside the reference range of 2 to 25 but well above the optimal 2 to 5, so that is the band to aim for. It has nearly tripled from 4.2 uIU/mL in December 2025, which was inside the optimal band, and your HOMA-IR went from 0.84 to 2.84 against an optimal 0 to 1. This fits the engine's read that insulin resistance is likely (97%), with type 2 diabetes possible (53%), so a value that looks acceptable on the lab's reference range is a real change for you.",
+          "sentences": 3,
+          "labels": [],
+          "acts": {
+            "actions": [],
+            "tests": [],
+            "questions": []
+          },
+          "dropped": [],
+          "failed": [],
+          "judgeScore": 5,
+          "judgeNote": "It unnecessarily adds insulin-resistance and diabetes probabilities to a straightforward status answer.",
+          "latencyMs": 16406
+        }
+      ],
+      "score": 0.64
+    },
+    {
+      "modelId": "deepseek/deepseek-v4.1-flash",
+      "outPerM": 1.2,
+      "inPerM": 0.3,
+      "cases": [
+        {
+          "id": "cholesterol",
+          "kind": "status",
+          "reply": "The ones you asked about, newest first: LDL cholesterol 142 mg/dL on 2026-08-01, above the reference range of 0 to 130 and well above the optimal 0 to 70; total cholesterol 200 mg/dL, right at the top of the reference range of 0 to 200 but above the optimal 0 to 180; non-HDL cholesterol 156 mg/dL, above the optimal 0 to 130. HDL cholesterol is 48 mg/dL, inside the reference range of 40 to 100 but below the optimal 50 to 90, and triglycerides are 130 mg/dL, inside the reference range of 0 to 150 but above the optimal 0 to 100. That is an LDL-led pattern \u2014 the cholesterol numbers are moving in the opposite direction from your glucose and thyroid markers \u2014 and cardiovascular risk still scores unlikely at 21%.",
+          "sentences": 3,
+          "labels": [],
+          "acts": {
+            "actions": [],
+            "tests": [],
+            "questions": []
+          },
+          "dropped": [],
+          "failed": [],
+          "judgeScore": 4,
+          "judgeNote": "It falsely says cholesterol is moving opposite to glucose and thyroid markers, although those markers also worsened.",
+          "latencyMs": 11569
+        },
+        {
+          "id": "lower-ldl",
+          "kind": "howto",
+          "reply": "Your LDL is 142 mg/dL \u2014 critical against an optimal of 0-70 and up from 117 \u2014 with total cholesterol 200, non-HDL 156, HDL 48 and triglycerides 130 all sitting in warning territory, so the target is a fall of at least 70 mg/dL, not a nudge. Ask your primary care doctor for a moderate-intensity statin, atorvastatin 10-20 mg/day or equivalent [science, A, guideline], and say plainly that you want the lipid panel rechecked in 8 weeks to see if that dose is enough, with a lipid clinic referral if LDL is still above target. Add psyllium fibre 10 g/day split across meals with water [science, A, guideline]. Replace saturated fat with unsaturated fat [science, A, guideline]. Recheck LDL cholesterol and ApoB at 8 weeks.",
+          "sentences": 5,
+          "labels": [
+            "[science, A, guideline]"
+          ],
+          "acts": {
+            "actions": [
+              "Moderate-intensity statin",
+              "Psyllium fibre",
+              "Replacing saturated fat with unsaturated fat"
+            ],
+            "tests": [],
+            "questions": []
+          },
+          "dropped": [],
+          "failed": [
+            "the row offers \"Replacing saturated fat with unsaturated fat\" and the answer never names it"
+          ],
+          "judgeScore": 3,
+          "judgeNote": "It adds an unsupported, unlabeled lipid clinic referral that is not among the allowed actions.",
+          "latencyMs": 12156
+        },
+        {
+          "id": "t2d-risk",
+          "kind": "howto",
+          "reply": "Your fasting glucose has climbed to 98 mg/dL against an optimal 72-85, HbA1c to 5.6 % against an optimal of 5.2 or below, fasting insulin to 12 uIU/mL against an optimal 2-5, and HOMA-IR to 2.84 against optimal under 1 \u2014 every one of those sits in the warning band over its optimal cut, none is in diabetic range, and the engine scores type 2 diabetes as possible at 53 %. Ask your doctor for a 2-hour OGTT with insulin [science], which shows insulin resistance years before HbA1c moves. Start whole-body progressive resistance training twice weekly, 45 minutes of compound work at 2-3 sessions per week for 12 weeks [opinion], because building muscle increases peripheral glucose disposal and pulls liver fat down. Front-load 25-30 g protein and 10 g fibre before the starch at lunch and dinner [opinion] to blunt the post-meal glucose spikes driving that fasting number up. Measure the OGTT 2-hour glucose in 12 weeks, and HbA1c in 12 weeks alongside it, since your projected HbA1c is 5.6 with a retest expected around November 2026. There is no graded intervention on file for type 2 diabetes itself, so the OGTT is the test that settles how far along this actually is.",
+          "sentences": 6,
+          "labels": [
+            "[science]",
+            "[opinion]"
+          ],
+          "acts": {
+            "actions": [
+              "Whole-body progressive resistance training twice weekly",
+              "Front-load meal protein and dietary fibre",
+              "Ask for a 2-hour OGTT with insulin"
+            ],
+            "tests": [
+              "ogtt_2h_glucose/12w",
+              "hba1c/12w"
+            ],
+            "questions": []
+          },
+          "dropped": [],
+          "failed": [],
+          "judgeScore": 4,
+          "judgeNote": "The OGTT action omits the specified 75 g oral glucose challenge, fasting condition, and serial draws.",
+          "latencyMs": 12087
+        },
+        {
+          "id": "fix-hashimoto",
+          "kind": "howto",
+          "reply": "Your TPO antibodies are 320 IU/mL, against an optimal under 9 and your own target of 100, so that is the driver; TSH is 3.9 mIU/L, above your 2.5 target, free T4 at 1.1 ng/dL is fine, and free T3 at 4.43 pg/mL sits above the 4.2 reference ceiling. Start selenomethionine 200 \u00b5g total daily with breakfast for 6 months [opinion], and cholecalciferol 1000-4000 IU/day [science, A, guideline] alongside it since your vitamin D is 19 ng/mL against an optimal 40-60. For the TSH that has climbed from 1.82 to 3.9, the endocrinologist is the one to ask for levothyroxine at 1.6 \u00b5g/kg/day taken fasting [science, A, guideline], because that is a prescriber decision and not a supplement. Repeat TSH with free T4, free T3 and anti-TPO by 12 weeks [science], remeasure TPO antibodies after 24 weeks to see whether the selenium moved them below 100 IU/mL, and get the thyroid ultrasound once [science].",
+          "sentences": 4,
+          "labels": [
+            "[opinion]",
+            "[science, A, guideline]",
+            "[science]"
+          ],
+          "acts": {
+            "actions": [
+              "Adjust supplemental selenium to 200 \u00b5g daily total",
+              "Repeat TSH with free T4, free T3 and anti-TPO",
+              "Thyroid ultrasound once",
+              "Levothyroxine",
+              "Vitamin D (cholecalciferol)"
+            ],
+            "tests": [
+              "tsh/12w",
+              "free_t4/12w",
+              "tpo_antibodies/24w",
+              "thyroid_ultrasound/12w"
+            ],
+            "questions": []
+          },
+          "dropped": [],
+          "failed": [
+            "the row offers \"Adjust supplemental selenium to 200 \u00b5g daily total\" and the answer never names it"
+          ],
+          "judgeScore": 5,
+          "judgeNote": "It overstates the elevated TPO antibodies as \u201cthe driver,\u201d when they indicate autoimmune thyroid activity but do not alone establish the cause of current symptoms.",
+          "latencyMs": 10928
+        },
+        {
+          "id": "what-to-eat",
+          "kind": "howto",
+          "reply": "Your fasting glucose at 98 mg/dL is above the optimal 72\u201385 band and has climbed across your last three draws, HbA1c at 5.6% is over the optimal 5.2%, and fasting insulin at 12 uIU/mL with HOMA-IR 2.84 is well off the optimal 2\u20135 and under-1 ranges, so this is a glucose-and-insulin eating question rather than a calorie one. Front-load meal protein and dietary fibre \u2014 25\u201330 g protein and 10 g fibre eaten first, as solid food meal sequencing, at lunch and dinner, ongoing [opinion] \u2014 which blunts the post-meal glucose spike and the afternoon slump. Measure HbA1c again in 12 weeks; if it has not moved by then, the next step is the 2-hour OGTT with insulin so the post-load number, not just the fasting one, is on the table.",
+          "sentences": 3,
+          "labels": [
+            "[opinion]"
+          ],
+          "acts": {
+            "actions": [
+              "Front-load meal protein and dietary fibre"
+            ],
+            "tests": [],
+            "questions": []
+          },
+          "dropped": [],
+          "failed": [
+            "the answer names \"Ask for a 2-hour OGTT with insulin\" and the row does not offer it"
+          ],
+          "judgeScore": 3,
+          "judgeNote": "It adds an OGTT as a next step without the allowed 75 g fasting protocol or the required [science] label.",
+          "latencyMs": 12124
+        },
+        {
+          "id": "why-tired",
+          "kind": "why",
+          "reply": "There is no mechanism row on file that connects any marker to your tiredness, so no chain can be read from your numbers to that symptom, and nothing in your plan addresses fatigue directly. The test that would fill that gap is transferrin saturation with ferritin, repeated after 12 weeks, since your ferritin is 22 ng/mL against an optimal 30\u2013200 and your hemoglobin fell from 16.2 to 13.1 g/dL. Until that is drawn, the tiredness has no supported explanation in what is on file.",
+          "sentences": 3,
+          "labels": [],
+          "acts": {
+            "actions": [],
+            "tests": [],
+            "questions": []
+          },
+          "dropped": [],
+          "failed": [],
+          "judgeScore": 2,
+          "judgeNote": "It avoids explaining likely fatigue mechanisms from the low ferritin, falling hemoglobin, thyroid autoimmunity, and low vitamin D, then pivots to an unallowed, unlabeled test.",
+          "latencyMs": 8583
+        },
+        {
+          "id": "iron-ok",
+          "kind": "status",
+          "reply": "Your serum iron is 109 mcg/dL, inside the reference range of 65 to 175 and within the optimal 60 to 170, so the circulating iron itself is fine. What is not fine is your storage: ferritin is 22 ng/mL, inside the reference range of 15 to 150 but below the optimal 30 to 200, and it fell from 94.4 ng/mL in December to 22 in August, which is a large drop rather than a steady low. Hemoglobin at 13.1 g/dL sits in the reference range of 12 to 16 and inside the optimal 12.1 to 15.1, so you are not anemic yet, but a ferritin of 22 with a falling hemoglobin means your iron stores are being drawn down and would be the thing to keep watching.",
+          "sentences": 3,
+          "labels": [],
+          "acts": {
+            "actions": [],
+            "tests": [],
+            "questions": []
+          },
+          "dropped": [],
+          "failed": [],
+          "judgeScore": 4,
+          "judgeNote": "It overreaches by declaring \u201cyou are not anemic yet,\u201d a diagnosis not established in the provided context.",
+          "latencyMs": 7732
+        },
+        {
+          "id": "next-test",
+          "kind": "next-test",
+          "reply": "The next test is the 2-hour OGTT, done first, at 12 weeks \u2014 Type 2 diabetes 53 % \u2192 94 % if positive, 18 % if negative. Pair it with HbA1c from the same draw, which settles Type 2 diabetes 53 % \u2192 99 % if positive, 32 % if negative and Insulin resistance 97 % \u2192 98 % if positive, 97 % if negative.",
+          "sentences": 2,
+          "labels": [],
+          "acts": {
+            "actions": [],
+            "tests": [],
+            "questions": []
+          },
+          "dropped": [],
+          "failed": [
+            "the answer names \"Ask for a 2-hour OGTT with insulin\" and the row does not offer it"
+          ],
+          "judgeScore": 3,
+          "judgeNote": "It adds HbA1c despite it not being an allowed action and omits the OGTT\u2019s required 75 g fasting serial-draw details and bracketed label.",
+          "latencyMs": 14500
+        },
+        {
+          "id": "hashimoto-forever",
+          "kind": "prognosis",
+          "reply": "...",
+          "sentences": 1,
+          "labels": [],
+          "sources": [
+            "Selenium Supplementation in Patients with Hashimoto Thyroiditis: A Systematic Review and Meta-Analysis of Randomized Clinical Trials 2024",
+            "Effects of vitamin D supplementation on autoantibodies and thyroid function in patients with Hashimoto's thyroiditis: A systematic review and meta-analysis 2023",
+            "Guidelines for the treatment of hypothyroidism: prepared by the American Thyroid Association task force on thyroid hormone replacement 2014"
+          ],
+          "acts": {
+            "actions": [
+              "Adjust supplemental selenium to 200 \u00b5g daily total"
+            ],
+            "tests": [
+              "tpo_antibodies/24w"
+            ],
+            "questions": []
+          },
+          "dropped": [],
+          "failed": [
+            "no labelled action",
+            "the row offers \"Adjust supplemental selenium to 200 \u00b5g daily total\" and the answer never names it"
+          ],
+          "judgeScore": 3,
+          "judgeNote": "It gives no prognosis, research summary, or interpretation of the person\u2019s thyroid values.",
+          "latencyMs": 6073
+        },
+        {
+          "id": "hashimoto-research",
+          "kind": "research",
+          "reply": "The strongest evidence concerns antibody lowering: selenium 200 \u00b5g/day, from Selenium Supplementation in Patients with Hashimoto Thyroiditis: A Systematic Review and Meta-Analysis of Randomized Clinical Trials (2024), grade A, SMD -0.96 (95% CI -1.36 to -0.56) across 35 randomised trials in 2,358 people, and vitamin D 1000-4000 IU/day, from Effects of vitamin D supplementation on autoantibodies and thyroid function in patients with Hashimoto's thyroiditis (2023), grade A, SMD -1.084 (95% CI -1.624 to -0.545) in 12 trials of 862 people. Diagnosis rests on grade A markers: TPO antibodies above the assay limit (LR+ 10, Hollowell 2002 JCEM, NHANES III), anti-thyroglobulin catching the roughly 10% who are TPO-negative (LR+ 5, Hollowell 2002 JCEM), and TSH above 4.5 as subclinical hypothyroidism, most often autoimmune (LR+ 3, Rodondi 2010 JAMA), with levothyroxine 1.6 \u00b5g/kg/day fasting returning TSH to range on a weight-based dose (grade A, American Thyroid Association 2014). On how sure the field is: these rows are grade A, which is settled, and the only thin entry on file for this condition is the grade C whole system Ayurveda protocol, which is one small body of work, not a basis for anything.",
+          "sentences": 3,
+          "labels": [],
+          "sources": [
+            "Selenium Supplementation in Patients with Hashimoto Thyroiditis: A Systematic Review and Meta-Analysis of Randomized Clinical Trials 2024",
+            "Effects of vitamin D supplementation on autoantibodies and thyroid function in patients with Hashimoto's thyroiditis: A systematic review and meta-analysis 2023",
+            "Hollowell 2002 JCEM (NHANES III) 2002",
+            "Hollowell 2002 JCEM 2002",
+            "Rodondi 2010 JAMA 2010",
+            "Guidelines for the treatment of hypothyroidism: prepared by the American Thyroid Association task force on thyroid hormone replacement 2014"
+          ],
+          "acts": {
+            "actions": [],
+            "tests": [],
+            "questions": []
+          },
+          "dropped": [],
+          "failed": [
+            "the answer names \"Levothyroxine\" and the row does not offer it",
+            "the answer names \"whole system Ayurveda protocol\" and the row does not offer it"
+          ],
+          "judgeScore": 4,
+          "judgeNote": "It omits the grade A free-T4 finding and grade B clinical-sign evidence, then misleadingly calls the grade C Ayurveda entry the only weaker evidence.",
+          "latencyMs": 9980
+        },
+        {
+          "id": "why-ldl",
+          "kind": "why",
+          "reply": "TSH raises LDL cholesterol because low thyroid hormone lowers LDL receptor activity in the liver, so LDL clears more slowly and the number climbs; and levothyroxine lowers LDL cholesterol because restoring thyroid hormone restores that receptor activity, so LDL falls without touching the diet. Your own numbers support the thyroid route: TSH has climbed from 1.82 to 3.9 mIU/L while TPO antibodies sit at 320 IU/mL, which is the pattern those two rows describe, rather than a dietary carbohydrate or oestrogen explanation.",
+          "sentences": 2,
+          "labels": [],
+          "acts": {
+            "actions": [],
+            "tests": [],
+            "questions": []
+          },
+          "dropped": [],
+          "failed": [],
+          "judgeScore": 5,
+          "judgeNote": "It overstates thyroid causality despite normal free T4 and incorrectly frames TSH itself as raising LDL.",
+          "latencyMs": 8444
+        },
+        {
+          "id": "ferritin-status",
+          "kind": "status",
+          "reply": "Your ferritin is 22 ng/mL, inside the reference range of 15 to 150 but below the optimal 30 to 200, and down from 94.4 ng/mL in December. That is borderline-low rather than fine: your iron stores have been drawn down hard in eight months, and 22 ng/mL is the zone where fatigue and hair shedding show up even with a normal haemoglobin, which yours was at 13.1 g/dL. The direction is the part that matters \u2014 a fall of 72 ng/mL while your hs-CRP sits at 3.4 mg/L means the drop is real rather than masked by inflammation.",
+          "sentences": 3,
+          "labels": [],
+          "acts": {
+            "actions": [],
+            "tests": [],
+            "questions": []
+          },
+          "dropped": [],
+          "failed": [],
+          "judgeScore": 5,
+          "judgeNote": "It overstates the meaning of 22 ng/mL by asserting a symptom \u201czone\u201d for fatigue and hair shedding and adds more interpretation than this status question required.",
+          "latencyMs": 43335
+        },
+        {
+          "id": "improve-ldl",
+          "kind": "howto",
+          "reply": "Your LDL is 142 mg/dL, up from 117, above the 130 reference ceiling and far above the optimal 70, while HDL is 48 mg/dL and triglycerides 130 mg/dL are both off their optimal bands. Start psyllium fibre at 10 g/day, split across meals and taken with water [science, A], together with oat beta-glucan at 3 g/day, about 70 g of oats [science, A], and swap saturated fat for unsaturated fat at the same meals [science, A]. The biggest single lever is a moderate-intensity statin, atorvastatin 10-20 mg/day or equivalent [science, A], which drops LDL by about 42 mg/dL; ask your GP or a lipid clinic to start it, and tell them your TPO antibodies are 320 IU/mL and TSH 3.9 mIU/L so the thyroid picture is read alongside it. Retest LDL cholesterol at 8 weeks and ApoB at 8 weeks to confirm the fibre and diet moves are working before the statin decision is finalised.",
+          "sentences": 4,
+          "labels": [
+            "[science, A]"
+          ],
+          "acts": {
+            "actions": [
+              "Psyllium fibre",
+              "Oat beta-glucan",
+              "Replacing saturated fat with unsaturated fat",
+              "Moderate-intensity statin"
+            ],
+            "tests": [
+              "ldl_cholesterol/8w",
+              "apolipoprotein_b/8w"
+            ],
+            "questions": []
+          },
+          "dropped": [],
+          "failed": [
+            "label [science, A] is not one the context gave",
+            "the row offers \"Replacing saturated fat with unsaturated fat\" and the answer never names it"
+          ],
+          "judgeScore": 2,
+          "judgeNote": "It invents a 42 mg/dL statin effect and adds an unallowed, unlabeled instruction to tell the clinician about thyroid results.",
+          "latencyMs": 15317
+        },
+        {
+          "id": "fasting-insulin-target",
+          "kind": "status",
+          "reply": "Your fasting insulin is 12 uIU/mL, inside the reference range of 2 to 25 but above the optimal 2 to 5, so it is off even though it is not flagged as abnormal \u2014 and your HOMA-IR of 2.84 sits outside the optimal 0 to 1 as well. Both are up sharply from 4.2 uIU/mL and 0.84, which is what pushed you from clean insulin sensitivity to a likely insulin resistance read. That matters because your fasting glucose of 98 mg/dL and HbA1c of 5.6 % are still inside their reference ranges, so insulin is the marker moving first here.",
+          "sentences": 3,
+          "labels": [],
+          "acts": {
+            "actions": [],
+            "tests": [],
+            "questions": []
+          },
+          "dropped": [],
+          "failed": [],
+          "judgeScore": 5,
+          "judgeNote": "It goes beyond the requested status by adding an unnecessary, somewhat overstated insulin-resistance interpretation.",
+          "latencyMs": 10535
+        }
+      ],
+      "score": 0.6
+    },
+    {
+      "modelId": "z-ai/glm-5.3-flash",
+      "outPerM": 0.5,
+      "inPerM": 0.15,
+      "cases": [
+        {
+          "id": "cholesterol",
+          "kind": "status",
+          "reply": "Your LDL cholesterol is 142 mg/dL, off both bands \u2014 above the reference range of 0 to 130 and well above the optimal 0 to 70 \u2014 and up from 117 mg/dL in December, so it is the one critical number in your lipid panel. Your HDL is 48 mg/dL, inside the reference range of 40 to 100 but below the optimal 50 to 90 floor; your last total cholesterol was 200 mg/dL, sitting right on the reference ceiling of 200 and above the optimal 0 to 180, from that same December draw; and non-HDL cholesterol, also from December, was 156 mg/dL against an optimal ceiling of 130. The engine still scores your overall cardiovascular risk as unlikely at 21%, but the rising LDL is the number that decides whether that stays true.",
+          "sentences": 3,
+          "labels": [],
+          "acts": {
+            "actions": [],
+            "tests": [],
+            "questions": []
+          },
+          "dropped": [],
+          "failed": [],
+          "judgeScore": 5,
+          "judgeNote": "It misleadingly presents the 21% test-model prior as an overall cardiovascular risk score and adds it to a status-only answer.",
+          "latencyMs": 38034
+        },
+        {
+          "id": "lower-ldl",
+          "kind": "howto",
+          "reply": "Your LDL is 142 mg/dL, up from 117 a year ago, sitting above the 130 reference ceiling and double the 70 mg/dL optimal target \u2014 flagged critical \u2014 while HDL at 48, triglycerides at 130 and hs-CRP at 3.4 mg/L are all above their optimal bands. Start psyllium fibre [science, A] at 10 g/day split across meals with water, which carries a mean LDL drop of 12.8 mg/dL. Add oat beta-glucan [science, A] at 3 g/day or more, about 70 g of oats, worth roughly another 9.7 mg/dL. Add plant sterols and stanols [science, A] at 2-3 g/day taken with a meal on top of the two. Remeasure LDL cholesterol and ApoB in 8 weeks to see how much of the 142 you have pulled down.",
+          "sentences": 5,
+          "labels": [
+            "[science, A]"
+          ],
+          "acts": {
+            "actions": [
+              "Psyllium fibre",
+              "Oat beta-glucan",
+              "Plant sterols and stanols"
+            ],
+            "tests": [
+              "ldl_cholesterol/8w",
+              "apolipoprotein_b/8w"
+            ],
+            "questions": []
+          },
+          "dropped": [],
+          "failed": [
+            "label [science, A] is not one the context gave"
+          ],
+          "judgeScore": 2,
+          "judgeNote": "It omits an LDL goal, truncates every required label, and invents expected LDL reductions of 12.8 and 9.7 mg/dL.",
+          "latencyMs": 33854
+        },
+        {
+          "id": "t2d-risk",
+          "kind": "howto",
+          "reply": "Your own numbers say not yet, but you are trending that way: fasting insulin 12 uIU/mL is more than double the 2\u20135 optimal band, HOMA-IR is 2.84 against an optimal ceiling of 1, HbA1c is 5.6% sitting at the very top of the lab reference range and above the 5.2 optimal ceiling, and fasting glucose 98 mg/dL is still inside the 70\u201399 lab band but above the 72\u201385 optimal band \u2014 so the engine's read is insulin resistance likely (97%) with type 2 diabetes only 'possible' (53%), not confirmed. The projections on file have HbA1c flat at 5.62% as expected, or down to 5.26% by 23 November 2026 on track, which is the difference between drifting and reversing. First, whole-body progressive resistance training [opinion]: 45-minute compound sessions (squats, hinges, pushes, pulls), 2\u20133 times weekly for 12 weeks, targeting fasting insulin under 6 uIU/mL. Second, front-load meal protein and dietary fibre [opinion]: 25\u201330 g protein and 10 g fibre before the rest of lunch and dinner, ongoing, targeting glucose under 85 mg/dL. Third, ask your GP for a 2-hour OGTT with insulin [science] \u2014 a 75 g oral glucose challenge with serial draws \u2014 because insulin resistance shows up on it years before HbA1c moves. Retest the OGTT with insulin at 8 weeks and HbA1c at 12 weeks.",
+          "sentences": 6,
+          "labels": [
+            "[opinion]",
+            "[science]"
+          ],
+          "acts": {
+            "actions": [
+              "Whole-body progressive resistance training twice weekly",
+              "Front-load meal protein and dietary fibre",
+              "Ask for a 2-hour OGTT with insulin"
+            ],
+            "tests": [],
+            "questions": []
+          },
+          "dropped": [],
+          "failed": [],
+          "judgeScore": 4,
+          "judgeNote": "It invents unsupported HbA1c projections and dates, plus a fasting-insulin target under 6 uIU/mL, creating false precision.",
+          "latencyMs": 36406
+        },
+        {
+          "id": "fix-hashimoto",
+          "kind": "howto",
+          "reply": "Your TPO antibodies are critical at 320 IU/mL (target <100), TSH has climbed to 3.9 mIU/L (above the 2.5 optimal), free T4 is still normal at 1.1 ng/dL, and vitamin D is low at 19 ng/mL \u2014 a confirmed Hashimoto's picture that is actively progressing. First, book a doctor (ideally an endocrinologist) to start levothyroxine at 1.6 \u00b5g/kg/day taken fasting, since the guidelines grade it A for this condition and your TSH is well above target [science, A, guideline]. Second, take selenium as selenomethionine at 200 \u00b5g total daily with breakfast for 6 months to help bring the TPO antibodies down [opinion]. Third, take vitamin D (cholecalciferol) at 1000\u20134000 IU/day, graded A for lowering TPO antibodies, which also fixes your deficiency [science, A, guideline]. Get the thyroid ultrasound once to baseline the gland and any nodules \u2014 ask the same doctor to order it [science]. Retest TSH, free T4, free T3 and TPO antibodies in 12 weeks to see whether the levothyroxine dose is right and the antibody effect is starting.",
+          "sentences": 6,
+          "labels": [
+            "[science, A, guideline]",
+            "[opinion]",
+            "[science]"
+          ],
+          "acts": {
+            "actions": [
+              "Adjust supplemental selenium to 200 \u00b5g daily total",
+              "Repeat TSH with free T4, free T3 and anti-TPO",
+              "Thyroid ultrasound once",
+              "Levothyroxine",
+              "Vitamin D (cholecalciferol)"
+            ],
+            "tests": [
+              "tpo_antibodies/12w",
+              "tsh/12w",
+              "free_t4/12w",
+              "thyroid_ultrasound/12w"
+            ],
+            "questions": []
+          },
+          "dropped": [
+            "int:seed_hashimoto_levothyroxine_condition",
+            "int:seed_hashimoto_vitamin_d_cholecalciferol_metric_tpo_antibodies"
+          ],
+          "failed": [
+            "invented 2 id(s): int:seed_hashimoto_levothyroxine_condition, int:seed_hashimoto_vitamin_d_cholecalciferol_metric_tpo_antibodies",
+            "the row offers \"Adjust supplemental selenium to 200 \u00b5g daily total\" and the answer never names it",
+            "the row offers \"Repeat TSH with free T4, free T3 and anti-TPO\" and the answer never names it"
+          ],
+          "judgeScore": 5,
+          "judgeNote": "It overstates the evidence by calling Hashimoto\u2019s \u201cconfirmed\u201d and \u201cactively progressing\u201d when the context says the pattern strongly points toward it.",
+          "latencyMs": 40071
+        },
+        {
+          "id": "what-to-eat",
+          "kind": "howto",
+          "reply": "",
+          "sentences": 0,
+          "labels": [],
+          "failed": [
+            "threw"
+          ],
+          "latencyMs": 144226,
+          "error": "No object generated: the model did not return a response."
+        },
+        {
+          "id": "why-tired",
+          "kind": "why",
+          "reply": "The graph has no mechanism row touching fatigue, and no graded intervention on file explains why you are tired, so I cannot read a tested chain here; the test that would fill the gap is the repeat TSH with free T4, free T3 and anti-TPO in 12 weeks, since your TSH is 3.9 and climbing with TPO antibodies at 320.",
+          "sentences": 1,
+          "labels": [],
+          "acts": {
+            "actions": [
+              "Repeat TSH with free T4, free T3 and anti-TPO"
+            ],
+            "tests": [],
+            "questions": []
+          },
+          "dropped": [],
+          "failed": [
+            "a why answer offered 1 action(s), room for 0"
+          ],
+          "judgeScore": 2,
+          "judgeNote": "It does not explain the likely fatigue mechanisms in the person\u2019s data and instead jumps to an incompletely specified, unlabeled repeat test.",
+          "latencyMs": 18519
+        },
+        {
+          "id": "iron-ok",
+          "kind": "status",
+          "reply": "Your serum iron from December is 109 mcg/dL, fine against both the reference range of 65 to 175 and the optimal 60 to 170, but it is 293 days old. The concern is ferritin, your iron storage marker, which fell from 94.4 ng/mL in December to 22 ng/mL in August: inside the reference range of 15 to 150 but below the optimal floor of 30, so your stored iron is running low even though circulating iron looked normal last time. You have no current iron panel, so what this means is that you are likely trending iron-deficient and the picture needs redrawing.",
+          "sentences": 3,
+          "labels": [],
+          "acts": {
+            "actions": [],
+            "tests": [],
+            "questions": []
+          },
+          "dropped": [],
+          "failed": [],
+          "judgeScore": 4,
+          "judgeNote": "It overstates low-normal ferritin as \u201clikely trending iron-deficient,\u201d an unsupported diagnosis not established by the provided data.",
+          "latencyMs": 12228
+        },
+        {
+          "id": "next-test",
+          "kind": "next-test",
+          "reply": "Do the OGTT first, in 12 weeks: with type 2 diabetes at 53 %, an OGTT settles it to 94 % if positive or 18 % if negative, which is a bigger swing per unit of effort than anything else on your list right now. Pair it with an HbA1c in the same draw at 12 weeks \u2014 that one moves type 2 diabetes 53 % \u2192 99 % if positive, 32 % if negative, and it barely shifts your 97 % insulin-resistance estimate either way, so it's confirmatory rather than decisive. Your retest plan already has HbA1c due around 2026-11-03, so book the OGTT for that same visit and get both numbers in one morning.",
+          "sentences": 3,
+          "labels": [],
+          "acts": {
+            "actions": [
+              "Ask for a 2-hour OGTT with insulin"
+            ],
+            "tests": [
+              "ogtt_2h_glucose/12w",
+              "hba1c/12w"
+            ],
+            "questions": []
+          },
+          "dropped": [],
+          "failed": [
+            "a next-test answer offered 1 action(s), room for 0",
+            "the row offers \"Ask for a 2-hour OGTT with insulin\" and the answer never names it"
+          ],
+          "judgeScore": 3,
+          "judgeNote": "It recommends HbA1c despite it not being an allowed action and omits the required insulin measurements from the allowed 2-hour OGTT with insulin.",
+          "latencyMs": 11058
+        },
+        {
+          "id": "hashimoto-forever",
+          "kind": "prognosis",
+          "reply": "Hashimoto's is lifelong as an autoimmune diagnosis \u2014 the antibodies define it (Hollowell 2002 JCEM, LR+ 10) \u2014 but it is one of the most controllable conditions in medicine: the ATA 2014 guideline (grade A) shows weight-based levothyroxine, 1.6 \u00b5g/kg/day taken fasting, reliably returns TSH to the reference range, and the 2024 selenium meta-analysis (grade A, 35 trials) and 2023 vitamin D meta-analysis (grade A, 12 trials) both show antibody levels can be pulled down, though neither cures the autoimmunity. Your own numbers say it is early and very treatable: your free T4 is still 1.1 ng/dL (normal), so the gland is holding, but TSH has climbed 1.8 \u2192 3.9 mIU/L and TPO antibodies jumped 5 \u2192 320 IU/mL, meaning it is active and needs watching now, not neglect. If the 12-week retest shows TSH higher or free T4 under ~0.9 ng/dL, the step is a prescriber (GP or endocrinologist) for levothyroxine at 1.6 \u00b5g/kg/day fasting \u2014 a normalising, boring fix, not a crisis. Meanwhile the already-written selenium adjustment, 200 \u00b5g selenomethionine daily for 6 months [opinion], targets the antibody surge.",
+          "sentences": 4,
+          "labels": [
+            "[opinion]"
+          ],
+          "sources": [
+            "Selenium Supplementation in Patients with Hashimoto Thyroiditis: A Systematic Review and Meta-Analysis of Randomized Clinical Trials 2024",
+            "Effects of vitamin D supplementation on autoantibodies and thyroid function in patients with Hashimoto's thyroiditis: A systematic review and meta-analysis 2023",
+            "Guidelines for the treatment of hypothyroidism: prepared by the American Thyroid Association task force on thyroid hormone replacement 2014",
+            "Hollowell 2002 JCEM (NHANES III) 2002"
+          ],
+          "acts": {
+            "actions": [
+              "Adjust supplemental selenium to 200 \u00b5g daily total"
+            ],
+            "tests": [],
+            "questions": []
+          },
+          "dropped": [],
+          "failed": [
+            "the row offers \"Adjust supplemental selenium to 200 \u00b5g daily total\" and the answer never names it",
+            "the answer names \"Levothyroxine\" and the row does not offer it"
+          ],
+          "judgeScore": 3,
+          "judgeNote": "It exceeds the prognosis format\u2019s one-action limit by recommending both conditional levothyroxine and selenium, and levothyroxine lacks a bracketed label.",
+          "latencyMs": 19509
+        },
+        {
+          "id": "hashimoto-research",
+          "kind": "research",
+          "reply": "The two strongest rows are grade A meta-analyses: a 2024 systematic review of 35 randomised trials (n = 2,358) found selenium 200 \u00b5g/day lowered TPO antibodies with SMD -0.96 (95% CI -1.36 to -0.56), and a 2023 systematic review of 12 trials (n = 862) found vitamin D 1000-4000 IU/day lowered autoantibodies with SMD -1.084 (95% CI -1.624 to -0.545). For actual thyroid failure, the American Thyroid Association 2014 guideline (grade A) backs levothyroxine 1.6 \u00b5g/kg/day fasting to return TSH to range, and Hollowell's NHANES III data from 2002 (grade A) established TPO antibodies above the assay limit as the defining marker of the disease (LR+ 10). Those top rows are settled; the selenium and vitamin D antibody numbers come mostly from small, heterogeneous trials, and the only other graded intervention on file \u2014 a whole-system Ayurveda protocol \u2014 is grade C, which is thin evidence.",
+          "sentences": 3,
+          "labels": [],
+          "sources": [
+            "Selenium Supplementation in Patients with Hashimoto Thyroiditis: A Systematic Review and Meta-Analysis of Randomized Clinical Trials 2024",
+            "Effects of vitamin D supplementation on autoantibodies and thyroid function in patients with Hashimoto's thyroiditis: A systematic review and meta-analysis 2023",
+            "Guidelines for the treatment of hypothyroidism: prepared by the American Thyroid Association task force on thyroid hormone replacement 2014",
+            "Hollowell 2002 JCEM (NHANES III) 2002"
+          ],
+          "acts": {
+            "actions": [],
+            "tests": [],
+            "questions": []
+          },
+          "dropped": [],
+          "failed": [
+            "the answer names \"Levothyroxine\" and the row does not offer it",
+            "the answer names \"whole system Ayurveda protocol\" and the row does not offer it"
+          ],
+          "judgeScore": 5,
+          "judgeNote": "It overstates the evidence as \u201csettled\u201d despite acknowledging that the supplementation trials were small and heterogeneous.",
+          "latencyMs": 17063
+        },
+        {
+          "id": "why-ldl",
+          "kind": "why",
+          "reply": "Your LDL is high on the clearance side: the mechanism row says low thyroid hormone lowers LDL receptor activity in the liver, so LDL clears more slowly and the number climbs \u2014 TSH at one end, LDL cholesterol at the other. The same row read backwards says restoring thyroid hormone restores that receptor activity, so LDL falls without touching the diet. Your numbers support the thyroid cause: TSH climbed from 1.82 to 3.9 mIU/L while LDL rose from 117 to 142 mg/dL in the same window, with TPO antibodies at 320 IU/mL and Hashimoto's confirmed.",
+          "sentences": 3,
+          "labels": [],
+          "acts": {
+            "actions": [],
+            "tests": [],
+            "questions": []
+          },
+          "dropped": [],
+          "failed": [],
+          "judgeScore": 4,
+          "judgeNote": "It falsely says Hashimoto\u2019s is confirmed and attributes the LDL rise definitively to thyroid dysfunction despite normal free T4 and only suggestive evidence.",
+          "latencyMs": 25975
+        },
+        {
+          "id": "ferritin-status",
+          "kind": "status",
+          "reply": "Your ferritin is 22 ng/mL from the 1 Aug 2026 draw, which sits inside the reference range of 15 to 150 ng/mL but below the optimal band of 30 to 200 ng/mL, and it has fallen steeply from 94.4 ng/mL last December. That puts you at the low end of normal iron stores rather than in a comfortable zone, so the trend down is the part to watch, not the number itself.",
+          "sentences": 2,
+          "labels": [],
+          "acts": {
+            "actions": [],
+            "tests": [],
+            "questions": []
+          },
+          "dropped": [],
+          "failed": [],
+          "judgeScore": 5,
+          "judgeNote": "It slightly overstates the interpretation by calling the decline \u201csteep,\u201d but otherwise gives the requested status clearly and stops.",
+          "latencyMs": 12078
+        },
+        {
+          "id": "improve-ldl",
+          "kind": "howto",
+          "reply": "Your LDL is 142 mg/dL \u2014 up from 117 in December, over the 130 lab ceiling and far from the 70 optimal line \u2014 with HDL at 48 (optimal starts at 50) and triglycerides at 130 (optimal under 100) also off their bands. That jump tracks with fasting insulin at 12 uIU/mL and HOMA-IR at 2.84, both well above their optimal ranges. The graded moves on file for LDL: psyllium fibre, 10 g/day, split across meals, with water [science, A, guideline], worth about -12.8 mg/dL; oat beta-glucan, 3 g/day or more (about 70 g of oats) [science, A, guideline], worth about -9.7 mg/dL; and replacing saturated fat with unsaturated fat [science, A, guideline]. Remeasure LDL cholesterol, with ApoB alongside it, after 8 weeks.",
+          "sentences": 4,
+          "labels": [
+            "[science, A, guideline]"
+          ],
+          "acts": {
+            "actions": [
+              "Psyllium fibre",
+              "Oat beta-glucan",
+              "Replacing saturated fat with unsaturated fat"
+            ],
+            "tests": [
+              "ldl_cholesterol/8w",
+              "apolipoprotein_b/8w"
+            ],
+            "questions": []
+          },
+          "dropped": [
+            "int:seed_ascvd_risk_psyllium_fibre_metric_ldl_cholesterol",
+            "int:seed_ascvd_risk_oat_beta_glucan_metric_ldl_cholesterol",
+            "int:seed_ascvd_risk_replacing_saturated_fat_with_unsaturated_fat_condition"
+          ],
+          "failed": [
+            "invented 3 id(s): int:seed_ascvd_risk_psyllium_fibre_metric_ldl_cholesterol, int:seed_ascvd_risk_oat_beta_glucan_metric_ldl_cholesterol, int:seed_ascvd_risk_replacing_saturated_fat_with_unsaturated_fat_condition"
+          ],
+          "judgeScore": 4,
+          "judgeNote": "It invents precise LDL-lowering effect estimates unsupported by the supplied context.",
+          "latencyMs": 188944
+        },
+        {
+          "id": "fasting-insulin-target",
+          "kind": "status",
+          "reply": "A healthy fasting insulin sits in the optimal band of 2 to 5 uIU/mL, with the standard reference range being 2 to 25 uIU/mL \u2014 your last draw on 2026-08-01 was 12 uIU/mL, inside the reference range of 2 to 25 but above the optimal 2 to 5, whereas your December 2025 reading of 4.2 uIU/mL was fine. That jump to 12 pairs with a HOMA-IR of 2.84 against an optimal of 0 to 1, which is why the engine rates your insulin resistance as likely at 97%, so the number you want is back down into that 2 to 5 band you were in last December.",
+          "sentences": 2,
+          "labels": [],
+          "acts": {
+            "actions": [],
+            "tests": [],
+            "questions": []
+          },
+          "dropped": [],
+          "failed": [],
+          "judgeScore": 5,
+          "judgeNote": "It unnecessarily adds a 97% insulin-resistance likelihood and HOMA-IR interpretation beyond the requested fasting-insulin status.",
+          "latencyMs": 29198
+        }
+      ],
+      "score": 0.56
+    },
+    {
+      "modelId": "google/gemini-3.7-flash",
+      "outPerM": 3.75,
+      "inPerM": 0.75,
+      "cases": [
+        {
+          "id": "cholesterol",
+          "kind": "status",
+          "reply": "Your total cholesterol is 200 mg/dL, at the upper limit of the reference range of up to 200 mg/dL and above the optimal 0 to 180 mg/dL, while your LDL cholesterol is 142 mg/dL, which is off and above the reference range of 0 to 130 mg/dL and above the optimal 0 to 70 mg/dL. Your HDL cholesterol is borderline at 48 mg/dL, inside the reference range of 40 to 100 mg/dL but below the optimal 50 to 90 mg/dL, alongside triglycerides at 130 mg/dL, within the reference range of 0 to 150 mg/dL but above the optimal 0 to 100 mg/dL. This means your circulating atherogenic particles are elevated while protective cholesterol is slightly low, reflecting the broader metabolic and thyroid shifts seen across your profile.",
+          "sentences": 3,
+          "labels": [],
+          "acts": {
+            "actions": [],
+            "tests": [],
+            "questions": []
+          },
+          "dropped": [],
+          "failed": [],
+          "judgeScore": 5,
+          "judgeNote": "It unnecessarily attributes the lipid pattern to broader metabolic and thyroid shifts and refers to atherogenic particles without direct particle testing.",
+          "latencyMs": 14400
+        },
+        {
+          "id": "lower-ldl",
+          "kind": "howto",
+          "reply": "Your LDL cholesterol is 142 mg/dL, which is off against the reference range of 0 to 130 mg/dL. Take 10 g/day of psyllium fibre, split across meals, with water [science, A, guideline]. Consume 3 g/day or more of oat beta-glucan (about 70 g of oats) [science, A, guideline]. Add 2-3 g/day of plant sterols and stanols with a meal [science, A, guideline]. Measure your LDL cholesterol again in 8 weeks.",
+          "sentences": 5,
+          "labels": [
+            "[science, A, guideline]"
+          ],
+          "acts": {
+            "actions": [
+              "Psyllium fibre",
+              "Oat beta-glucan",
+              "Plant sterols and stanols"
+            ],
+            "tests": [
+              "ldl_cholesterol/8w"
+            ],
+            "questions": []
+          },
+          "dropped": [],
+          "failed": [],
+          "judgeScore": 4,
+          "judgeNote": "It does not state the LDL target of below 70 mg/dL to reach by the 8-week recheck.",
+          "latencyMs": 13410
+        },
+        {
+          "id": "t2d-risk",
+          "kind": "howto",
+          "reply": "Your fasting glucose of 98 mg/dL and HbA1c of 5.6% are borderline high against optimal ranges, while your fasting insulin of 12 uIU/mL and HOMA-IR of 2.84 are off track and indicate insulin resistance. Front-load 25 to 30 g of protein and 10 g of fibre first with lunch and dinner [opinion]. Complete 45 minutes of whole-body progressive resistance training across 2 to 3 sessions per week [opinion]. Ask your primary care doctor for a 2-hour OGTT with insulin using a 75 g oral glucose challenge [science]. Retest HbA1c in 12 weeks.",
+          "sentences": 5,
+          "labels": [
+            "[opinion]",
+            "[science]"
+          ],
+          "acts": {
+            "actions": [
+              "Front-load meal protein and dietary fibre",
+              "Whole-body progressive resistance training twice weekly",
+              "Ask for a 2-hour OGTT with insulin"
+            ],
+            "tests": [
+              "hba1c/12w"
+            ],
+            "questions": []
+          },
+          "dropped": [],
+          "failed": [
+            "the row offers \"Front-load meal protein and dietary fibre\" and the answer never names it"
+          ],
+          "judgeScore": 3,
+          "judgeNote": "It omits the engine\u2019s 53% type 2 diabetes probability, so it never plainly answers the question, and its resistance-training instruction does not preserve the full prescribed duration.",
+          "latencyMs": 16754
+        },
+        {
+          "id": "fix-hashimoto",
+          "kind": "howto",
+          "reply": "Your TPO antibodies are off at 320 IU/mL, your TSH is borderline at 3.9 mIU/L, and your Free T4 is fine at 1.1 ng/dL. Take 200 \u00b5g total of selenomethionine once daily with breakfast [opinion]. Add vitamin D (cholecalciferol) at 1000-4000 IU/day [science, A, guideline]. Ask an endocrinologist whether you need levothyroxine at 1.6 \u00b5g/kg/day, taken fasting [science, A, guideline]. Retest your TSH in 6 weeks and TPO antibodies in 12 weeks.",
+          "sentences": 5,
+          "labels": [
+            "[opinion]",
+            "[science, A, guideline]"
+          ],
+          "acts": {
+            "actions": [
+              "Adjust supplemental selenium to 200 \u00b5g daily total",
+              "Vitamin D (cholecalciferol)",
+              "Levothyroxine"
+            ],
+            "tests": [
+              "tsh/6w",
+              "tpo_antibodies/12w"
+            ],
+            "questions": []
+          },
+          "dropped": [],
+          "failed": [
+            "the row offers \"Adjust supplemental selenium to 200 \u00b5g daily total\" and the answer never names it"
+          ],
+          "judgeScore": 5,
+          "judgeNote": "The follow-up plan retests TSH at 6 weeks and omits free T4/free T3, rather than repeating TSH, free T4, free T3, and anti-TPO together at 12 weeks.",
+          "latencyMs": 17559
+        },
+        {
+          "id": "what-to-eat",
+          "kind": "howto",
+          "reply": "Your fasting glucose of 98 mg/dL and HbA1c of 5.6 % are borderline, while your fasting insulin of 12 uIU/mL is off against optimal limits. Front-load meal protein and dietary fibre [opinion] with 25-30g protein and 10g fibre first at lunch and dinner to stabilize blood sugar. In addition, adjust supplemental selenium to 200 \u00b5g daily total [opinion] taking selenomethionine once daily with breakfast. Retest HbA1c in 12 weeks to track your metabolic response.",
+          "sentences": 4,
+          "labels": [
+            "[opinion]"
+          ],
+          "acts": {
+            "actions": [
+              "Front-load meal protein and dietary fibre",
+              "Adjust supplemental selenium to 200 \u00b5g daily total"
+            ],
+            "tests": [
+              "hba1c/12w"
+            ],
+            "questions": []
+          },
+          "dropped": [],
+          "failed": [],
+          "judgeScore": 5,
+          "judgeNote": "It adds a selenium supplement recommendation that is not food and distracts from the otherwise relevant meal advice.",
+          "latencyMs": 15733
+        },
+        {
+          "id": "why-tired",
+          "kind": "why",
+          "reply": "There are no mechanism connections on file linking your tracked markers to fatigue. Your own numbers support confirmed autoimmune thyroiditis with TSH at 3.9 mIU/L and TPO antibodies at 320 IU/mL, likely vitamin D deficiency at 19 ng/mL, and likely insulin resistance with HOMA-IR at 2.84.",
+          "sentences": 2,
+          "labels": [],
+          "acts": {
+            "actions": [],
+            "tests": [],
+            "questions": []
+          },
+          "dropped": [],
+          "failed": [],
+          "judgeScore": 3,
+          "judgeNote": "It labels autoimmune thyroiditis as confirmed without support and never explains how the abnormal markers could cause fatigue.",
+          "latencyMs": 18884
+        },
+        {
+          "id": "iron-ok",
+          "kind": "status",
+          "reply": "Your serum iron is 109 mcg/dL, inside the reference range of 65 to 175 mcg/dL and inside the optimal 60 to 170 mcg/dL, which is fine. Your ferritin is 22 ng/mL, inside the reference range of 15 to 150 ng/mL but below the optimal 30 to 200 ng/mL, which is borderline low. This means that while your circulating iron is adequate, your stored iron reserves have depleted below optimal levels.",
+          "sentences": 3,
+          "labels": [],
+          "acts": {
+            "actions": [],
+            "tests": [],
+            "questions": []
+          },
+          "dropped": [],
+          "failed": [],
+          "judgeScore": 5,
+          "judgeNote": "It slightly overstates the finding by saying iron reserves \u201chave depleted\u201d rather than simply noting that ferritin is below the optimal range.",
+          "latencyMs": 10557
+        },
+        {
+          "id": "next-test",
+          "kind": "next-test",
+          "reply": "An OGTT settles Type 2 diabetes 53 % \u2192 94 % if positive, 18 % if negative, while HbA1c settles Type 2 diabetes 53 % \u2192 99 % if positive, 32 % if negative and Insulin resistance 97 % \u2192 98 % if positive, 97 % if negative. Get the OGTT first after 12 weeks.",
+          "sentences": 2,
+          "labels": [],
+          "acts": {
+            "actions": [],
+            "tests": [
+              "ogtt_2h_glucose/12w",
+              "hba1c/12w"
+            ],
+            "questions": []
+          },
+          "dropped": [],
+          "failed": [],
+          "judgeScore": 3,
+          "judgeNote": "It omits the required fasting 2-hour, 75 g OGTT with serial draws and gives neither test a bracketed source label.",
+          "latencyMs": 18494
+        },
+        {
+          "id": "hashimoto-forever",
+          "kind": "prognosis",
+          "reply": "The American Thyroid Association 2014 guidelines show that hypothyroidism from autoimmune thyroiditis is controllable rather than permanently cured, relying on targeted treatment to return TSH to reference range. In your case, your TPO antibodies have risen to 320 IU/mL and TSH climbed to 3.9 mIU/L, though your free T4 currently remains maintained at 1.1 ng/dL. To help address antibody activity, take Adjust supplemental selenium to 200 \u00b5g daily total [opinion] at 200 \u00b5g total selenomethionine once daily with breakfast.",
+          "sentences": 3,
+          "labels": [
+            "[opinion]"
+          ],
+          "sources": [
+            "Guidelines for the treatment of hypothyroidism: prepared by the American Thyroid Association task force on thyroid hormone replacement 2014"
+          ],
+          "acts": {
+            "actions": [
+              "Adjust supplemental selenium to 200 \u00b5g daily total"
+            ],
+            "tests": [],
+            "questions": []
+          },
+          "dropped": [],
+          "failed": [],
+          "judgeScore": 5,
+          "judgeNote": "It attributes the \u201ccontrollable rather than permanently cured\u201d prognosis to the ATA guideline even though that course claim is not included in the supplied evidence.",
+          "latencyMs": 19187
+        },
+        {
+          "id": "hashimoto-research",
+          "kind": "research",
+          "reply": "A 2024 grade A meta-analysis, Selenium Supplementation in Patients with Hashimoto Thyroiditis: A Systematic Review and Meta-Analysis of Randomized Clinical Trials, found that 200 \u00b5g/day of selenium reduced TPO antibodies with an SMD of -0.96 (95% CI -1.36 to -0.56) across 35 trials, while a 2023 grade A meta-analysis, Effects of vitamin D supplementation on autoantibodies and thyroid function in patients with Hashimoto's thyroiditis: A systematic review and meta-analysis, showed 1000-4000 IU/day of vitamin D reduced TPO antibodies with an SMD of -1.084 (95% CI -1.624 to -0.545). Furthermore, the grade A Guidelines for the treatment of hypothyroidism: prepared by the American Thyroid Association task force on thyroid hormone replacement (2014) established weight-based levothyroxine at 1.6 \u00b5g/kg/day fasting to restore TSH into the reference range. Because these core interventions are backed by grade A systematic reviews and clinical practice guidelines, the field considers this evidence settled.",
+          "sentences": 3,
+          "labels": [],
+          "sources": [
+            "Selenium Supplementation in Patients with Hashimoto Thyroiditis: A Systematic Review and Meta-Analysis of Randomized Clinical Trials 2024",
+            "Effects of vitamin D supplementation on autoantibodies and thyroid function in patients with Hashimoto's thyroiditis: A systematic review and meta-analysis 2023",
+            "Guidelines for the treatment of hypothyroidism: prepared by the American Thyroid Association task force on thyroid hormone replacement 2014"
+          ],
+          "acts": {
+            "actions": [],
+            "tests": [],
+            "questions": []
+          },
+          "dropped": [],
+          "failed": [
+            "the answer names \"Levothyroxine\" and the row does not offer it"
+          ],
+          "judgeScore": 4,
+          "judgeNote": "It overstates the evidence as \u201csettled\u201d while omitting several grade A diagnostic findings, the grade B clinical finding, sample sizes, and the distinction between stronger A/B and weaker C\u2013E evidence.",
+          "latencyMs": 14342
+        },
+        {
+          "id": "why-ldl",
+          "kind": "why",
+          "reply": "TSH raises LDL cholesterol because low thyroid hormone lowers LDL receptor activity in the liver, so LDL clears more slowly and the number climbs. Your results directly support this thyroid mechanism, as your TSH has risen to 3.9 mIU/L alongside TPO antibodies of 320 IU/mL while your LDL cholesterol climbed to 142 mg/dL.",
+          "sentences": 2,
+          "labels": [],
+          "acts": {
+            "actions": [],
+            "tests": [],
+            "questions": []
+          },
+          "dropped": [],
+          "failed": [],
+          "judgeScore": 5,
+          "judgeNote": "It overstates thyroid dysfunction as the directly supported cause even though free T4 is normal and other relevant metabolic abnormalities are present.",
+          "latencyMs": 12592
+        },
+        {
+          "id": "ferritin-status",
+          "kind": "status",
+          "reply": "Your latest ferritin is 22 ng/mL, which is borderline because it sits inside the reference range of 15 to 150 ng/mL but below the optimal 30 to 200 ng/mL. That drop from your previous level of 94.4 ng/mL means your stored iron reserves are becoming depleted.",
+          "sentences": 2,
+          "labels": [],
+          "acts": {
+            "actions": [],
+            "tests": [],
+            "questions": []
+          },
+          "dropped": [],
+          "failed": [],
+          "judgeScore": 5,
+          "judgeNote": "It overstates the implication by saying iron stores are becoming depleted, when the provided classification only establishes that ferritin is below the optimal band but still within the reference range.",
+          "latencyMs": 10565
+        },
+        {
+          "id": "improve-ldl",
+          "kind": "howto",
+          "reply": "Your LDL cholesterol is 142 mg/dL, which is off against the 0 to 130 mg/dL reference range. Take 10 g/day of psyllium fibre, split across meals, with water [science, A, guideline]. Consume 3 g/day or more of oat beta-glucan (about 70 g of oats) [science, A, guideline]. Work on replacing saturated fat with unsaturated fat [science, A, guideline]. Retest LDL cholesterol in 8 weeks.",
+          "sentences": 5,
+          "labels": [
+            "[science, A, guideline]"
+          ],
+          "acts": {
+            "actions": [
+              "Psyllium fibre",
+              "Oat beta-glucan",
+              "Replacing saturated fat with unsaturated fat"
+            ],
+            "tests": [
+              "ldl_cholesterol/8w"
+            ],
+            "questions": []
+          },
+          "dropped": [],
+          "failed": [],
+          "judgeScore": 5,
+          "judgeNote": "The phrase \u201coff against the reference range\u201d is awkward and unclear.",
+          "latencyMs": 13783
+        },
+        {
+          "id": "fasting-insulin-target",
+          "kind": "status",
+          "reply": "Your fasting insulin is 12 uIU/mL, which is off, sitting inside the reference range of 2 to 25 uIU/mL but above the optimal 2 to 5 uIU/mL. This elevation means your body is having to produce extra insulin to manage blood glucose, indicating that insulin resistance is likely.",
+          "sentences": 2,
+          "labels": [],
+          "acts": {
+            "actions": [],
+            "tests": [],
+            "questions": []
+          },
+          "dropped": [],
+          "failed": [],
+          "judgeScore": 5,
+          "judgeNote": "It unnecessarily labels the value \u201coff\u201d and infers likely insulin resistance instead of stopping after the requested status comparison.",
+          "latencyMs": 16174
+        }
+      ],
+      "score": 0.84
+    }
+  ],
+  "note": "gemini-3.7-flash run separately the same day as the baseline"
+}

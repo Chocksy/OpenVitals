@@ -23,7 +23,6 @@
  * extractor is injected exactly the way `researchCondition` injects its own.
  */
 import { and, desc, eq, inArray, sql } from "drizzle-orm";
-import { generateObject } from "ai";
 import { z } from "zod";
 import {
   getDb,
@@ -36,7 +35,7 @@ import {
   type TopicWatch,
 } from "@/db";
 import { getGoals } from "./daily-data";
-import { model } from "./extract";
+import { generateObjectSafe } from "./extract";
 import { matchIntervention } from "./projections";
 import { featuresFor } from "./research";
 import { watchConditions } from "./research-watch";
@@ -385,8 +384,8 @@ export const llmTopics =
           `[${i + 1}] ${p.title} (${p.journal ?? "?"} ${p.year ?? "?"})\n${p.abstract}`,
       )
       .join("\n\n");
-    const { object, usage } = await generateObject({
-      model: model(modelId),
+    const { object, usage } = await generateObjectSafe({
+      model: modelId,
       schema: topicExtraction,
       system: TOPIC_PROMPT,
       prompt:

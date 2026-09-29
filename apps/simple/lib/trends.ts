@@ -23,7 +23,6 @@
  * grade, the status, the retest interval and the direction that counts as
  * better are all decided here, in code.
  */
-import { generateObject } from "ai";
 import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import { z } from "zod";
 import {
@@ -33,7 +32,7 @@ import {
   hkbInterventions,
   type HkbIntervention,
 } from "@/db";
-import { model } from "./extract";
+import { generateObjectSafe } from "./extract";
 import type { Grade } from "./hypotheses";
 import { BETTER_HIGH, BETTER_LOW, RETEST_WEEKS } from "./projection";
 import {
@@ -328,8 +327,7 @@ export async function extractClaim(text: string): Promise<Claim | null> {
   if (!process.env.OPENROUTER_API_KEY) return rules;
 
   try {
-    const { object } = await generateObject({
-      model: model(),
+    const { object } = await generateObjectSafe({
       schema: claimSchema,
       system: CLAIM_PROMPT + markerList(),
       prompt: `THE NOTE:\n${text.slice(0, 2000)}`,

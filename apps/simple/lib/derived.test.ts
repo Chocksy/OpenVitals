@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { egfr, fib4, phenoAge } from "./derived";
+import { egfr, fib4, historyOf, phenoAge } from "./derived";
 
 describe("eGFR, CKD-EPI 2021", () => {
   it("scores a healthy 40-year-old man near 100", () => {
@@ -66,5 +66,30 @@ describe("PhenoAge, Levine 2018", () => {
     const calm = phenoAge(FULL)!;
     const inflamed = phenoAge({ ...FULL, crpMgL: 8, glucoseMmolL: 7 })!;
     expect(inflamed).toBeGreaterThan(calm);
+  });
+});
+
+describe("historyOf (phase 41B)", () => {
+  it("keeps the lowest, the highest, the out-of-range counts and the span", () => {
+    const h = historyOf(
+      [
+        { date: "2024-05-01", value: 6.9, refLow: 13, refHigh: 150 },
+        { date: "2021-05-01", value: 20, refLow: 10, refHigh: 150 },
+        { date: "2026-08-18", value: 8.2, refLow: 13, refHigh: 150 },
+        { date: "2027-01-01", value: 99, refLow: 13, refHigh: 150 },
+      ],
+      "2026-09-01",
+    )!;
+    expect(h).toMatchObject({
+      min: 6.9,
+      minAt: "2024-05-01",
+      max: 20,
+      maxAt: "2021-05-01",
+      n: 3,
+      belowRef: 2,
+      aboveRef: 0,
+    });
+    expect(h.years).toBeCloseTo(5.3, 1);
+    expect(historyOf([], "2026-09-01")).toBeUndefined();
   });
 });

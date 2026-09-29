@@ -161,12 +161,16 @@ export default async function BloodPage({
         flagged: sql<number>`(select count(*)::int from ${readings} r
           where r.upload_id = ${uploadId}
             and (r.flags @> '["foreign_reading"]'::jsonb or r.flags @> '["implausible"]'::jsonb))`,
+        // the file's own draw days: an antecedent row (a previous value the
+        // sheet reprints, phase 41A) is dated back and would stretch the span
         firstDay: sql<
           string | null
-        >`(select min(r.observed_at)::text from ${readings} r where r.upload_id = ${uploadId})`,
+        >`(select min(r.observed_at)::text from ${readings} r where r.upload_id = ${uploadId}
+          and not coalesce(r.flags, '[]'::jsonb) @> '["antecedent"]'::jsonb)`,
         lastDay: sql<
           string | null
-        >`(select max(r.observed_at)::text from ${readings} r where r.upload_id = ${uploadId})`,
+        >`(select max(r.observed_at)::text from ${readings} r where r.upload_id = ${uploadId}
+          and not coalesce(r.flags, '[]'::jsonb) @> '["antecedent"]'::jsonb)`,
       })
       .from(uploads)
       .where(

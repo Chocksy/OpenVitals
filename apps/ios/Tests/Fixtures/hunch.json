@@ -1,25 +1,25 @@
 {
-  "id": "7834db86-7e45-4723-9eba-0a6978bd7ec3",
-  "kind": "cluster",
-  "stamp": "CLUSTER",
-  "system": "iron",
-  "line": "4 iron and vitamin markers moved the worse way together, led by Ferritin.",
+  "id": "1cdc464d-d996-4fc6-804a-d2b8a5311b21",
+  "kind": "cause",
+  "stamp": "WHY",
+  "system": null,
+  "line": "Iron deficiency is confirmed; the question now is why.",
   "number": {
-    "value": 79.6,
+    "value": 8.2,
     "unit": "ng/mL"
   },
   "mini": {
     "band": {
-      "median": 113.065,
-      "sd": 15.485757,
-      "n": 4,
-      "provisional": true
+      "median": 13.45,
+      "sd": 8.043105,
+      "n": 12,
+      "provisional": false
     },
     "lab": [
-      22,
-      322
+      10,
+      291
     ],
-    "last": 79.6,
+    "last": 8.2,
     "goal": null
   },
   "action": {
@@ -27,122 +27,202 @@
     "label": "Answer"
   },
   "state": "open",
-  "say": "Homocysteine, Ferritin, Vitamin D, Vitamin B12 all sit on the worse side of their own middle on the same draw. One question covers the group.",
+  "say": "The belief holds. The causes below could each explain it, and one test splits them.",
   "series": [
     {
-      "date": "2021-10-14",
-      "value": 154.48,
-      "file": "Razvan - 14.10.2021.pdf"
+      "date": "2018-08-08",
+      "value": 9.8,
+      "file": "lab report, 8 Aug 2018",
+      "upload": "06d153c8-d798-4dd7-863f-8667710c8c57"
     },
     {
-      "date": "2023-03-17",
-      "value": 110.84,
-      "file": "Razvan - 17.03.2023.pdf"
+      "date": "2019-01-19",
+      "value": 28.5,
+      "file": "lab report, 19 Jan 2019",
+      "upload": "bc2574ca-639b-4790-a080-b7445b28560d"
+    },
+    {
+      "date": "2019-07-13",
+      "value": 19.3,
+      "file": "lab report, 13 Jul 2019",
+      "upload": "0950efa5-aa17-4645-8891-def43dca6d0c"
+    },
+    {
+      "date": "2021-12-04",
+      "value": 51.75,
+      "file": "lab report, 4 Dec 2021",
+      "upload": "64e0e3e7-e0e2-4a71-9393-7fa23cca7de2"
+    },
+    {
+      "date": "2022-10-20",
+      "value": 16.8,
+      "file": "lab report, 20 Oct 2022",
+      "upload": "92079083-83d1-4b2a-83ef-7cfed2b5491d"
     },
     {
       "date": "2024-05-13",
-      "value": 115.29,
-      "file": "Razvan - 13.05.2024.pdf"
+      "value": 8.45,
+      "file": "lab report, 13 May 2024",
+      "upload": "5344f321-cc52-4a79-8f1e-e8a34116c102"
+    },
+    {
+      "date": "2024-10-10",
+      "value": 24.5,
+      "file": "lab report, 10 Oct 2024",
+      "upload": "0fa7ec65-421e-4af5-96ed-108de4434046"
+    },
+    {
+      "date": "2025-05-28",
+      "value": 6.9,
+      "file": "lab report, 28 May 2025",
+      "upload": "c2f94683-9d70-4c72-8067-b4bed3d6387c"
     },
     {
       "date": "2025-12-09",
-      "value": 94.4,
-      "file": "Razvan - 09.12.2025.pdf"
+      "value": 13.9,
+      "file": "lab report, 9 Dec 2025",
+      "upload": "e4d271b2-add9-4f43-ab04-1c5fba0262bc"
+    },
+    {
+      "date": "2026-03-05",
+      "value": 13,
+      "file": "lab report, 5 Mar 2026",
+      "upload": "ad3d694b-2296-483c-bcb8-014974b4f870"
     },
     {
       "date": "2026-04-23",
-      "value": 79.6,
-      "file": "Razvan - 23.04.2026.pdf"
+      "value": 6.1,
+      "file": "lab report, 23 Apr 2026",
+      "upload": "6dd5ef8c-992d-44c8-9457-e5ded08ee828"
+    },
+    {
+      "date": "2026-07-29",
+      "value": 10.7,
+      "file": "lab report, 29 Jul 2026",
+      "upload": "6cceac64-c887-4f6d-ad08-25a6c671739d"
+    },
+    {
+      "date": "2026-08-18",
+      "value": 8.2,
+      "file": "lab report, 18 Aug 2026",
+      "upload": "6cceac64-c887-4f6d-ad08-25a6c671739d"
     }
   ],
   "bandAt": [
     {
+      "date": "2022-10-20",
+      "median": 23.9,
+      "sd": 13.862309999999999
+    },
+    {
+      "date": "2024-05-13",
+      "median": 19.3,
+      "sd": 13.639919999999998
+    },
+    {
+      "date": "2024-10-10",
+      "median": 18.05,
+      "sd": 13.232205
+    },
+    {
+      "date": "2025-05-28",
+      "median": 19.3,
+      "sd": 13.639919999999998
+    },
+    {
+      "date": "2025-12-09",
+      "median": 18.05,
+      "sd": 13.232205
+    },
+    {
+      "date": "2026-03-05",
+      "median": 16.8,
+      "sd": 11.416019999999998
+    },
+    {
       "date": "2026-04-23",
-      "median": 113.065,
-      "sd": 15.485757
+      "median": 15.350000000000001,
+      "sd": 9.229185000000001
+    },
+    {
+      "date": "2026-07-29",
+      "median": 13.9,
+      "sd": 8.08017
+    },
+    {
+      "date": "2026-08-18",
+      "median": 13.45,
+      "sd": 8.043105
     }
   ],
   "explanations": [
     {
-      "id": "iron_deficiency_cause_gi",
-      "text": "Gut malabsorption can lower the uptake of several nutrients together, including iron, B12, and vitamin D.",
-      "basis": "opinion",
+      "id": "coeliac_disease",
+      "text": "Your genetic markers raise the risk of celiac disease, which limits how well your gut absorbs iron.",
+      "basis": "science",
       "check": {
         "op": ">",
         "code": "ttg_iga",
         "value": 10
       },
-      "grade": "C",
-      "source": "Grade C",
-      "weight": 0.606,
-      "predicts": "If gut malabsorption can lower the uptake of several nutrients together, including iron, b12, and vitamin d: tTG-IgA with total IgA over 10.",
-      "conditionId": "iron_deficiency_cause_gi"
+      "grade": "A",
+      "source": "Rubio-Tapia 2013 ACG guideline",
+      "weight": 0.007,
+      "predicts": "If your genetic markers raise the risk of celiac disease, which limits how well your gut absorbs iron: Tissue Transglutaminase IgA Antibody over 10 RU/mL.",
+      "conditionId": "coeliac_disease",
+      "origin": "catalog"
     },
     {
-      "id": "sibo",
-      "text": "Bacterial overgrowth in the small intestine can interfere with normal nutrient and vitamin absorption.",
-      "basis": "opinion",
+      "id": "iron_deficiency_cause_gi",
+      "text": "Ongoing digestive irritation or reduced gut absorption can lead to lower iron levels over time.",
+      "basis": "science",
       "check": {
         "op": ">",
-        "code": "breath_h2_peak",
-        "value": 20
+        "code": "ttg_iga",
+        "value": 10
       },
-      "grade": "C",
-      "source": "Rezaie 2017 Am J Gastroenterol (North American Consensus)",
-      "weight": 0.065,
-      "predicts": "If bacterial overgrowth in the small intestine can interfere with normal nutrient and vitamin absorption: tTG-IgA with total IgA under 10.",
-      "conditionId": "sibo"
-    },
-    {
-      "id": "atrophic_gastritis",
-      "text": "Stomach lining changes can reduce stomach acid, impairing the absorption of iron and vitamin B12.",
-      "basis": "opinion",
-      "check": {
-        "op": ">",
-        "code": "intrinsic_factor_antibodies",
-        "value": 0.5
-      },
-      "grade": "C",
-      "source": "Grade C",
-      "weight": 0.026,
-      "predicts": "If stomach lining changes can reduce stomach acid, impairing the absorption of iron and vitamin b12: tTG-IgA with total IgA under 10.",
-      "conditionId": "atrophic_gastritis"
+      "grade": "A",
+      "source": "catalog: scored once iron_deficiency holds",
+      "weight": 0.07,
+      "predicts": "If ongoing digestive irritation or reduced gut absorption can lead to lower iron levels over time: Tissue Transglutaminase IgA Antibody over 10 RU/mL.",
+      "conditionId": "iron_deficiency_cause_gi",
+      "origin": "catalog"
     },
     {
       "id": "outside:1",
-      "text": "A strictly plant-based or restrictive diet can lower your intake of iron, vitamin D, and B12.",
+      "text": "Heavy menstrual periods can cause regular blood loss that lowers your body's iron stores.",
       "basis": "hypothesis",
       "check": null,
       "grade": "E",
       "source": null,
-      "weight": 0.303,
-      "predicts": "If a strictly plant-based or restrictive diet can lower your intake of iron, vitamin d, and b12: tTG-IgA with total IgA under 10.",
-      "conditionId": null
+      "weight": 0,
+      "predicts": "If heavy menstrual periods can cause regular blood loss that lowers your body's iron stores: Tissue Transglutaminase IgA Antibody under 10 RU/mL.",
+      "conditionId": null,
+      "origin": "model"
     }
   ],
   "question": {
-    "text": "Have you noticed ongoing digestive issues or recently adopted a strictly plant-based diet?",
+    "text": "Which of these experiences sounds most familiar to you?",
     "chips": [
       {
         "id": "c1",
-        "label": "Frequent bloating or digestive discomfort",
-        "favours": [
-          "sibo",
-          "iron_deficiency_cause_gi"
-        ]
-      },
-      {
-        "id": "c2",
-        "label": "Switched to a plant-based diet",
+        "label": "Heavy menstrual bleeding",
         "favours": [
           "outside:1"
         ]
       },
       {
-        "id": "c3",
-        "label": "Acid reflux or stomach burning",
+        "id": "c2",
+        "label": "Digestive upset after eating gluten",
         "favours": [
-          "atrophic_gastritis"
+          "coeliac_disease"
+        ]
+      },
+      {
+        "id": "c3",
+        "label": "General stomach or bowel changes",
+        "favours": [
+          "iron_deficiency_cause_gi"
         ]
       },
       {
@@ -154,286 +234,79 @@
   },
   "answer": null,
   "test": {
-    "eur": 10,
+    "eur": 37.08,
     "code": "ttg_iga",
     "name": "tTG-IgA with total IgA",
-    "price": 10,
-    "currency": "EUR",
-    "estimated": true
+    "price": 194.98,
+    "currency": "RON",
+    "estimated": false
   },
   "predictions": null,
   "writtenAt": null,
   "outcome": null,
   "outcomeLine": null,
   "rule": [
-    "4 markers were drawn on 2026-04-23 and all sit on the worse side of their own middle: homocysteine 9.64 against 8.61; ferritin 79.6 against 113; vitamin_d 32.7 against 40; vitamin_b12 472 against 531.",
-    "homocysteine, ferritin also passed their own rule.",
-    "A cluster reads direction, not size: one question for the group, not one per marker."
+    "Iron deficiency is confirmed (p 0.93)",
+    "2 causes in the graph and catalog could explain it"
   ],
   "unknowns": [
-    "Ferritin's own range rests on 4 earlier draws, so it is provisional.",
-    "The rule says the level moved. It does not say why.",
-    "The shares come from the engine where it scores a cause and an even split elsewhere. They are not a diagnosis.",
-    "Explanations marked unproven are not in the knowledge graph.",
-    "The price is an estimate: no lab price is on file for your country."
+    "Our read is a differential, not a diagnosis: 64% stays other or unexplained.",
+    "Explanations marked unproven are not in the knowledge graph."
   ],
-  "firedAt": [
-    "2026-04-23"
-  ],
-  "markers": [
-    {
-      "code": "homocysteine",
-      "name": "Homocysteine",
-      "unit": "umol/L",
-      "last": 9.64,
-      "band": {
-        "median": 8.605,
-        "sd": 0.5189100000000008,
-        "n": 4,
-        "provisional": true
+  "firedAt": [],
+  "differential": {
+    "options": [
+      {
+        "id": "atrophic_gastritis",
+        "name": "Atrophic gastritis",
+        "pct": 28,
+        "reason": "A paper counted it in 28% of people with iron deficiency.",
+        "sources": [
+          {
+            "label": "Annibale B 2001 Am J Med",
+            "doi": "10.1016/s0002-9343(01)00883-x",
+            "grade": "C",
+            "origin": "paper"
+          }
+        ],
+        "confirmTest": "Intrinsic factor antibodies"
       },
-      "series": [
-        {
-          "date": "2023-03-17",
-          "value": 11.23,
-          "file": "Razvan - 17.03.2023.pdf"
-        },
-        {
-          "date": "2024-05-13",
-          "value": 8.08,
-          "file": "Razvan - 13.05.2024.pdf"
-        },
-        {
-          "date": "2024-11-20",
-          "value": 8.43,
-          "file": "Razvan - 20.11.2024.pdf"
-        },
-        {
-          "date": "2025-12-09",
-          "value": 8.78,
-          "file": "Razvan - 09.12.2025.pdf"
-        },
-        {
-          "date": "2026-04-23",
-          "value": 9.64,
-          "file": "Razvan - 23.04.2026.pdf"
-        }
-      ],
-      "bandAt": [
-        {
-          "date": "2026-04-23",
-          "median": 8.605,
-          "sd": 0.5189100000000008
-        }
-      ]
-    },
-    {
-      "code": "ferritin",
-      "name": "Ferritin",
-      "unit": "ng/mL",
-      "last": 79.6,
-      "band": {
-        "median": 113.065,
-        "sd": 15.485757,
-        "n": 4,
-        "provisional": true
+      {
+        "id": "iron_deficiency_cause_gi",
+        "name": "Iron loss or malabsorption from the gut",
+        "pct": 7,
+        "reason": "Ongoing digestive irritation or reduced gut absorption can lead to lower iron levels over time.",
+        "sources": [
+          {
+            "label": "In referred iron-deficiency series a gut cause is found in roughly a fifth of unselected adults, more in men (grade C).",
+            "doi": null,
+            "grade": "C",
+            "origin": "catalog"
+          }
+        ],
+        "confirmTest": "tTG-IgA with total IgA"
       },
-      "series": [
-        {
-          "date": "2021-10-14",
-          "value": 154.48,
-          "file": "Razvan - 14.10.2021.pdf"
-        },
-        {
-          "date": "2023-03-17",
-          "value": 110.84,
-          "file": "Razvan - 17.03.2023.pdf"
-        },
-        {
-          "date": "2024-05-13",
-          "value": 115.29,
-          "file": "Razvan - 13.05.2024.pdf"
-        },
-        {
-          "date": "2025-12-09",
-          "value": 94.4,
-          "file": "Razvan - 09.12.2025.pdf"
-        },
-        {
-          "date": "2026-04-23",
-          "value": 79.6,
-          "file": "Razvan - 23.04.2026.pdf"
-        }
-      ],
-      "bandAt": [
-        {
-          "date": "2026-04-23",
-          "median": 113.065,
-          "sd": 15.485757
-        }
-      ]
-    },
-    {
-      "code": "vitamin_d",
-      "name": "Vitamin D",
-      "unit": "ng/mL",
-      "last": 32.68,
-      "band": {
-        "median": 39.965,
-        "sd": 14.959434000000002,
-        "n": 8,
-        "provisional": false
-      },
-      "series": [
-        {
-          "date": "2019-07-13",
-          "value": 23.32,
-          "file": "Razvan - 13.07.2019.pdf"
-        },
-        {
-          "date": "2021-10-14",
-          "value": 61.8,
-          "file": "Razvan - 14.10.2021.pdf"
-        },
-        {
-          "date": "2021-12-04",
-          "value": 54.1,
-          "file": "Razvan - 04.12.2021.pdf"
-        },
-        {
-          "date": "2022-10-20",
-          "value": 51.95,
-          "file": "Razvan - 20.10.2022.pdf"
-        },
-        {
-          "date": "2023-03-17",
-          "value": 42.25,
-          "file": "Razvan - 17.03.2023.pdf"
-        },
-        {
-          "date": "2024-05-13",
-          "value": 33.96,
-          "file": "Razvan - 13.05.2024.pdf"
-        },
-        {
-          "date": "2024-11-20",
-          "value": 37.68,
-          "file": "Razvan - 20.11.2024.pdf"
-        },
-        {
-          "date": "2025-12-09",
-          "value": 31.77,
-          "file": "Razvan - 09.12.2025.pdf"
-        },
-        {
-          "date": "2026-04-23",
-          "value": 32.68,
-          "file": "Razvan - 23.04.2026.pdf"
-        }
-      ],
-      "bandAt": [
-        {
-          "date": "2023-03-17",
-          "median": 53.025000000000006,
-          "sd": 7.301804999999995
-        },
-        {
-          "date": "2024-05-13",
-          "median": 51.95,
-          "sd": 14.381220000000003
-        },
-        {
-          "date": "2024-11-20",
-          "median": 47.1,
-          "sd": 14.929782
-        },
-        {
-          "date": "2025-12-09",
-          "median": 42.25,
-          "sd": 14.381220000000003
-        },
-        {
-          "date": "2026-04-23",
-          "median": 39.965,
-          "sd": 14.959434000000002
-        }
-      ]
-    },
-    {
-      "code": "vitamin_b12",
-      "name": "Vitamin B12",
-      "unit": "pg/mL",
-      "last": 472,
-      "band": {
-        "median": 531,
-        "sd": 106.74719999999999,
-        "n": 7,
-        "provisional": false
-      },
-      "series": [
-        {
-          "date": "2021-10-14",
-          "value": 183.7,
-          "file": "Razvan - 14.10.2021.pdf"
-        },
-        {
-          "date": "2021-12-04",
-          "value": 197,
-          "file": "Razvan - 04.12.2021.pdf"
-        },
-        {
-          "date": "2022-10-20",
-          "value": 531,
-          "file": "Razvan - 20.10.2022.pdf"
-        },
-        {
-          "date": "2023-03-17",
-          "value": 534.21,
-          "file": "Razvan - 17.03.2023.pdf"
-        },
-        {
-          "date": "2024-05-13",
-          "value": 898.82,
-          "file": "Razvan - 13.05.2024.pdf"
-        },
-        {
-          "date": "2024-11-20",
-          "value": 522,
-          "file": "Razvan - 20.11.2024.pdf"
-        },
-        {
-          "date": "2025-12-09",
-          "value": 603,
-          "file": "Razvan - 09.12.2025.pdf"
-        },
-        {
-          "date": "2026-04-23",
-          "value": 472,
-          "file": "Razvan - 23.04.2026.pdf"
-        }
-      ],
-      "bandAt": [
-        {
-          "date": "2024-05-13",
-          "median": 364,
-          "sd": 249.97377300000002
-        },
-        {
-          "date": "2024-11-20",
-          "median": 531,
-          "sd": 495.18839999999994
-        },
-        {
-          "date": "2025-12-09",
-          "median": 526.5,
-          "sd": 249.97377300000002
-        },
-        {
-          "date": "2026-04-23",
-          "median": 531,
-          "sd": 106.74719999999999
-        }
-      ]
-    }
-  ]
+      {
+        "id": "coeliac_disease",
+        "name": "Coeliac disease",
+        "pct": 0.7,
+        "reason": "Your genetic markers raise the risk of celiac disease, which limits how well your gut absorbs iron.",
+        "sources": [
+          {
+            "label": "Annibale B 2001 Am J Med",
+            "doi": "10.1016/s0002-9343(01)00883-x",
+            "grade": "C",
+            "origin": "paper"
+          }
+        ],
+        "confirmTest": "tTG-IgA with total IgA"
+      }
+    ],
+    "otherPct": 64,
+    "splitTest": "tTG-IgA with total IgA"
+  },
+  "bestRead": {
+    "specialty": "gastroenterologist"
+  },
+  "markers": []
 }

@@ -86,12 +86,19 @@ export interface UploadMoved {
 
 export type Upload = typeof uploads.$inferSelect;
 
-/** The header of a medical document, kept next to the file it came from. */
+/**
+ * The header of a medical document, kept next to the file it came from. A
+ * lab sheet (phase 41) keeps `docType: "lab"`, its report number, the tests
+ * still pending, and which newer upload of the same report replaced it.
+ */
 export interface DocMeta {
   docType: string;
   date?: string;
   institution?: string;
   specialty?: string;
+  reportNo?: string;
+  pending?: string[];
+  supersededBy?: string;
 }
 
 /**
@@ -658,9 +665,15 @@ export interface ReportBody {
 export type Report = typeof reports.$inferSelect;
 export type ProfileFact = typeof profileFacts.$inferSelect;
 
-/** A plain tag, or the pre-fix state kept for the audit trail. */
+/**
+ * A plain tag, or the pre-fix state kept for the audit trail. Phase 41 tags:
+ * `antecedent` (read off a later sheet's previous-value column),
+ * `legacy_flagged` (imported by `scripts/repair-readings.ts`).
+ */
 export type ReadingFlag =
   | string
+  /** `< 8,0` on the sheet: the value is a bound, not a measurement. */
+  | { censored: "<" | ">" }
   | { orig: { value: number | null; unit: string | null } }
   /** ref_scale: the lab range was in another decimal scale than the value. */
   | { ref_rescaled: { factor: number; orig: [number | null, number | null] } }
@@ -1705,6 +1718,11 @@ export interface HunchExplanation {
   predicts: string | null;
   /** code-owned: the threshold this explanation implies, when one is known */
   check: HunchCheck | null;
+  /**
+   * Where the explanation came from: a paper case research read (phase 41C),
+   * the seeded catalog or graph, the model's own guess, or the person.
+   */
+  origin?: "paper" | "catalog" | "model" | "you";
 }
 
 export interface HunchCheck {

@@ -14,7 +14,6 @@
  * `researchCondition`'s network and LLM calls is pure and tested offline
  * against `evals/fixtures/hkb/research-europepmc.json`.
  */
-import { generateObject } from "ai";
 import { asc, eq, inArray, sql } from "drizzle-orm";
 import { z } from "zod";
 import {
@@ -28,7 +27,7 @@ import {
   hkbTests,
   kgEdges,
 } from "@/db";
-import { model } from "./extract";
+import { generateObjectSafe } from "./extract";
 import {
   freshnessOf,
   pickConditions,
@@ -211,31 +210,339 @@ interface EpmcHit {
   authorString?: string;
   citedByCount?: number;
   abstractText?: string;
+  firstPublicationDate?: string;
+  journalInfo?: { journal?: { title?: string; medlineAbbreviation?: string } };
+  /** which index answered: Europe PMC, or PubMed standing in for it */
+  servedBy?: "europepmc" | "pubmed";
 }
 
-/** Europe PMC, or nothing at all: a search that fails is not worth a retry. */
+/**
+ * Europe PMC's hits, or an empty list flagged `failed` when the search itself
+ * did not run (a 503, a timeout, no network). An honest "nothing found" has no
+ * flag. Callers that only want hits read it as before; a caller that caches
+ * or judges has to tell the two apart (phase 41F-E-3), so a flagged list is
+ * never stored as the answer.
+ */
+export type EpmcResult = EpmcHit[] & { failed?: string };
+
+export const EPMC_DOWN = "Europe PMC unavailable";
+
+/** Thrown by a caller that cannot go on without the search. */
+export class EpmcUnavailable extends Error {
+  constructor(detail: string) {
+    super(`${EPMC_DOWN}: ${detail}`);
+    this.name = "EpmcUnavailable";
+  }
+}
+
+const failedWith = (why: string): EpmcResult =>
+  Object.assign([] as EpmcHit[], { failed: why });
+
+/**
+ * Europe PMC answers 5xx in bursts under load (three 503s in one replay on
+ * 2026-09-29 while a single query answered 200), so a 5xx, a 429 or a network
+ * error is tried again after each wait. A 4xx is the query's fault and is not.
+ */
+export const EPMC_WAITS = [1000, 4000];
+
+/** A GET with the retry rule above: the response, or why there is none. */
+async function getOk(
+  url: string,
+  fetcher: typeof fetch,
+  waits: number[],
+  before: () => Promise<void> = async () => {},
+): Promise<Response | string> {
+  let why = "";
+  for (let i = 0; i <= waits.length; i++) {
+    if (i > 0) await sleep(waits[i - 1]!);
+    try {
+      await before();
+      const res = await fetcher(url);
+      if (res.ok) return res;
+      why = `HTTP ${res.status}`;
+      if (res.status >= 500 || res.status === 429) continue;
+      break;
+    } catch (e) {
+      why = e instanceof Error ? e.message : String(e);
+    }
+  }
+  return why;
+}
+
+/** Hits per index since the process started, for a run to say who answered. */
+export const SERVED = { europepmc: 0, pubmed: 0 };
+
+/** The index that stands in when Europe PMC does not answer. */
+export type Fallback = (
+  query: string,
+  pageSize: number,
+) => Promise<EpmcHit[] | string>;
+
+/**
+ * Europe PMC first; when it does not answer, the same search on PubMed
+ * (`pubmed`). The list is flagged `failed` only when both are down.
+ */
 export async function epmc(
   query: string,
   resultType: "lite" | "core",
   pageSize = 25,
-): Promise<EpmcHit[]> {
+  fetcher: typeof fetch = fetch,
+  waits: number[] = EPMC_WAITS,
+  fallback: Fallback = (q, n) => pubmed(q, n, { fetcher, waits }),
+): Promise<EpmcResult> {
   const url = `${EPMC}?${new URLSearchParams({
     query,
     format: "json",
     resultType,
     pageSize: String(pageSize),
   })}`;
-  try {
-    const res = await fetch(url);
-    if (!res.ok) return [];
+  const res = await getOk(url, fetcher, waits);
+  if (typeof res !== "string") {
     const data = (await res.json()) as {
       resultList?: { result?: EpmcHit[] };
     };
-    return data.resultList?.result ?? [];
-  } catch (e) {
-    console.error("[research] europe pmc failed:", e);
-    return [];
+    const hits = (data.resultList?.result ?? []).map((h) => ({
+      ...h,
+      servedBy: "europepmc" as const,
+    }));
+    SERVED.europepmc += hits.length;
+    return hits;
   }
+  const alt = await fallback(query, pageSize);
+  if (typeof alt !== "string") {
+    console.error(
+      `[research] ${EPMC_DOWN} (${res}); PubMed answered ${alt.length} hit(s)`,
+    );
+    SERVED.pubmed += alt.length;
+    return alt;
+  }
+  const why = `${res}; PubMed ${alt}`;
+  console.error(`[research] ${EPMC_DOWN}: ${why}`);
+  return failedWith(why);
+}
+
+/* ── PubMed, when Europe PMC is down ──────────────────────────────────── */
+
+const EUTILS = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils";
+
+/** NCBI allows three requests a second without a key; this keeps under it. */
+export const NCBI_GAP_MS = 350;
+let ncbiNext = 0;
+/** Reserves the next free slot at once, so parallel callers queue up too. */
+function ncbiSlot(gapMs: number): Promise<void> {
+  const now = Date.now();
+  const at = Math.max(now, ncbiNext);
+  ncbiNext = at + gapMs;
+  return at > now ? sleep(at - now).then(() => {}) : Promise.resolve();
+}
+
+/**
+ * The Europe PMC syntax this codebase writes, in PubMed's: field prefixes
+ * become field tags, a `FIRST_PDATE` range becomes a `[dp]` range, and the
+ * range's upper day comes back as `maxDate` so the hits can be cut again on
+ * their own dates. ponytail: `sort_cited:y` is dropped, PubMed has no
+ * citation sort, so the order is PubMed's relevance and a strict query's
+ * "most cited first" is lost while Europe PMC is down.
+ */
+export function toPubmed(query: string): {
+  term: string;
+  maxDate: string | null;
+} {
+  let maxDate: string | null = null;
+  const day = (d: string) => d.replace(/-/g, "/");
+  const term = query
+    .replace(/\s*\bsort_cited:y\b/g, "")
+    .replace(
+      /FIRST_PDATE:\[(\d{4}-\d{2}-\d{2}) TO (\d{4}-\d{2}-\d{2})\]/g,
+      (_, from: string, to: string) => {
+        if (!maxDate || to < maxDate) maxDate = to;
+        return `("${day(from)}"[dp] : "${day(to)}"[dp])`;
+      },
+    )
+    .replace(/\bHAS_ABSTRACT:y\b/g, "hasabstract")
+    .replace(/\bEXT_ID:(\d+)/g, "$1[pmid]")
+    .replace(/\bDOI:"([^"]+)"/g, '"$1"[doi]')
+    .replace(/\bPUB_TYPE:"([^"]+)"/g, '"$1"[pt]')
+    .replace(/\bKW:"([^"]+)"/g, '("$1"[mh] OR "$1"[ot])')
+    .replace(/\bTITLE:("[^"]+"|[^\s()"]+)/g, "$1[ti]")
+    .replace(/\bABSTRACT:("[^"]+"|[^\s()"]+)/g, "$1[tiab]")
+    .trim();
+  return { term, maxDate };
+}
+
+const MONTHS = "jan feb mar apr may jun jul aug sep oct nov dec".split(" ");
+
+const unescapeXml = (s: string) =>
+  s
+    .replace(/&#x([0-9a-f]+);/gi, (_, h: string) =>
+      String.fromCodePoint(parseInt(h, 16)),
+    )
+    .replace(/&#(\d+);/g, (_, d: string) => String.fromCodePoint(Number(d)))
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&apos;/g, "'")
+    .replace(/&amp;/g, "&");
+
+/** "2023-11-03" from a `<Year>/<Month>/<Day>` block; null without a month. */
+function dateOf(block: string | undefined): string | null {
+  if (!block) return null;
+  const year = block.match(/<Year>(\d{4})<\/Year>/)?.[1];
+  const m = block.match(/<Month>([^<]+)<\/Month>/)?.[1]?.toLowerCase();
+  if (!year || !m) return null;
+  const month = /^\d+$/.test(m) ? Number(m) : MONTHS.indexOf(m.slice(0, 3)) + 1;
+  if (!month) return null;
+  const d = Number(block.match(/<Day>(\d+)<\/Day>/)?.[1] ?? 1);
+  return `${year}-${String(month).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+}
+
+/**
+ * efetch's XML as Europe PMC hits. The reference list goes first: its
+ * `ArticleId`s are other papers' DOIs. `firstPublicationDate` is the earliest
+ * dated event (the e-pub, the print issue, the day PubMed listed it); a
+ * `RetractionIn` note counts as the retraction type Europe PMC would list.
+ */
+export function parsePubmedXml(xml: string): EpmcHit[] {
+  return [...xml.matchAll(/<PubmedArticle>([\s\S]*?)<\/PubmedArticle>/g)].map(
+    ([, whole]) => {
+      const a = whole!.replace(/<ReferenceList>[\s\S]*?<\/ReferenceList>/g, "");
+      const tag = (name: string, s = a) =>
+        s.match(
+          new RegExp(`<${name}(?:\\s[^>]*)?>([\\s\\S]*?)</${name}>`),
+        )?.[1];
+      const abstract = [
+        ...(tag("Abstract") ?? "").matchAll(
+          /<AbstractText([^>]*)>([\s\S]*?)<\/AbstractText>/g,
+        ),
+      ]
+        .map(([, attrs, text]) => {
+          const label = attrs!.match(/Label="([^"]*)"/)?.[1];
+          return unescapeXml(label ? `${label}: ${text}` : text!);
+        })
+        .join(" ");
+      const types = [
+        ...a.matchAll(/<PublicationType[^>]*>([^<]+)<\/PublicationType>/g),
+      ].map(([, t]) => unescapeXml(t!));
+      if (/RefType="RetractionIn"/.test(a)) types.push("Retracted Publication");
+      const author = tag("Author");
+      const first = author
+        ? (tag("CollectiveName", author) ??
+          [tag("LastName", author), tag("Initials", author)]
+            .filter(Boolean)
+            .join(" "))
+        : "";
+      const many = (a.match(/<Author[\s>]/g) ?? []).length > 1;
+      const journal = tag("Journal") ?? "";
+      const pubDate = tag("PubDate", journal);
+      const dates = [
+        dateOf(tag("ArticleDate")),
+        dateOf(pubDate),
+        ...[
+          ...a.matchAll(
+            /<PubMedPubDate PubStatus="(?:pubmed|entrez)">([\s\S]*?)<\/PubMedPubDate>/g,
+          ),
+        ].map(([, b]) => dateOf(b)),
+      ].filter((d): d is string => !!d);
+      const year =
+        pubDate?.match(/<Year>(\d{4})/)?.[1] ??
+        pubDate?.match(/<MedlineDate>(\d{4})/)?.[1] ??
+        dates.sort()[0]?.slice(0, 4);
+      const doi =
+        a.match(/<ArticleId IdType="doi">([^<]+)<\/ArticleId>/)?.[1] ??
+        a.match(/<ELocationID EIdType="doi"[^>]*>([^<]+)<\/ELocationID>/)?.[1];
+      const title = tag("ArticleTitle") ?? tag("VernacularTitle") ?? "";
+      const abbrev = tag("ISOAbbreviation", journal);
+      const full = tag("Title", journal);
+      return {
+        servedBy: "pubmed" as const,
+        pmid: tag("PMID"),
+        doi: doi ? unescapeXml(doi.trim()) : undefined,
+        title: unescapeXml(title),
+        journalTitle: full ? unescapeXml(full) : undefined,
+        journalInfo: {
+          journal: {
+            title: full ? unescapeXml(full) : undefined,
+            medlineAbbreviation: abbrev ? unescapeXml(abbrev) : undefined,
+          },
+        },
+        pubYear: year,
+        authorString: first
+          ? `${unescapeXml(first)}${many ? ", et al." : "."}`
+          : undefined,
+        citedByCount: 0,
+        abstractText: abstract || undefined,
+        pubTypeList: { pubType: types },
+        firstPublicationDate: dates.sort()[0],
+      };
+    },
+  );
+}
+
+/**
+ * The same search on PubMed: esearch for the ids by relevance, efetch for
+ * the records. Hits in the `EpmcHit` shape, or why there are none. Hits dated
+ * after the query's own upper day are dropped, so a replay's cut holds even
+ * where PubMed's `[dp]` reads a bare year as the whole year.
+ */
+export async function pubmed(
+  query: string,
+  pageSize = 25,
+  opts: { fetcher?: typeof fetch; waits?: number[]; gapMs?: number } = {},
+): Promise<EpmcHit[] | string> {
+  const fetcher = opts.fetcher ?? fetch;
+  const waits = opts.waits ?? EPMC_WAITS;
+  const slot = () => ncbiSlot(opts.gapMs ?? NCBI_GAP_MS);
+  const who = {
+    tool: "openvitals",
+    ...(process.env.ADMIN_EMAIL ? { email: process.env.ADMIN_EMAIL } : {}),
+  };
+  const { term, maxDate } = toPubmed(query);
+  const found = await getOk(
+    `${EUTILS}/esearch.fcgi?${new URLSearchParams({
+      db: "pubmed",
+      retmode: "json",
+      sort: "relevance",
+      retmax: String(pageSize),
+      term,
+      ...who,
+    })}`,
+    fetcher,
+    waits,
+    slot,
+  );
+  if (typeof found === "string") return found;
+  const data = (await found.json()) as {
+    esearchresult?: { idlist?: string[]; ERROR?: string };
+  };
+  if (!data.esearchresult) return "no esearch result";
+  if (data.esearchresult.ERROR && !data.esearchresult.idlist?.length)
+    return data.esearchresult.ERROR;
+  const ids = data.esearchresult.idlist ?? [];
+  if (!ids.length) return [];
+  const got = await getOk(
+    `${EUTILS}/efetch.fcgi?${new URLSearchParams({
+      db: "pubmed",
+      retmode: "xml",
+      id: ids.join(","),
+      ...who,
+    })}`,
+    fetcher,
+    waits,
+    slot,
+  );
+  if (typeof got === "string") return got;
+  const byId = new Map(
+    parsePubmedXml(await got.text()).map((h) => [h.pmid, h]),
+  );
+  return ids
+    .map((id) => byId.get(id))
+    .filter((h): h is EpmcHit => !!h)
+    .filter(
+      (h) =>
+        !maxDate ||
+        !h.firstPublicationDate ||
+        h.firstPublicationDate <= maxDate,
+    );
 }
 
 /**
@@ -353,7 +660,10 @@ export async function semanticScholar(
 }
 
 /** The abstracts Europe PMC's `lite` answer leaves out, 25 ids at a time. */
-export async function withAbstracts(papers: Paper[]): Promise<Paper[]> {
+export async function withAbstracts(
+  papers: Paper[],
+  opts: { strict?: boolean } = {},
+): Promise<Paper[]> {
   const ids = papers.map((p) => p.pmid).filter((id): id is string => !!id);
   const abstracts = new Map<string, string>();
   for (let i = 0; i < ids.length; i += 25) {
@@ -363,6 +673,7 @@ export async function withAbstracts(papers: Paper[]): Promise<Paper[]> {
       "core",
       batch.length,
     );
+    if (core.failed && opts.strict) throw new EpmcUnavailable(core.failed);
     for (const h of core) abstracts.set(h.pmid ?? "", h.abstractText ?? "");
   }
   return papers
@@ -408,9 +719,15 @@ export function titleMatches(a: string, b: string): boolean {
  * DOI resolves to nothing, or to a different title, does not get to propose a
  * likelihood ratio.
  */
-export async function verify(paper: Paper): Promise<Paper | null> {
+export async function verify(
+  paper: Paper,
+  opts: { strict?: boolean } = {},
+): Promise<Paper | null> {
   if (!paper.doi) return null;
-  const [hit] = await epmc(`DOI:"${paper.doi}"`, "lite", 1);
+  const hits = await epmc(`DOI:"${paper.doi}"`, "lite", 1);
+  // strict: a search that did not run is not a DOI that does not resolve
+  if (hits.failed && opts.strict) throw new EpmcUnavailable(hits.failed);
+  const [hit] = hits;
   if (!hit?.title || !titleMatches(paper.title, hit.title)) return null;
   return {
     ...paper,
@@ -495,8 +812,8 @@ export const llmExtract =
           `[${i + 1}] ${p.title} (${p.journal ?? "?"} ${p.year ?? "?"})\n${p.abstract}`,
       )
       .join("\n\n");
-    const { object, usage } = await generateObject({
-      model: model(modelId),
+    const { object, usage } = await generateObjectSafe({
+      model: modelId,
       schema: extractionSchema,
       system: EXTRACT_PROMPT,
       prompt:
@@ -1048,8 +1365,16 @@ export async function researchCondition(
 
 /* ── the database ─────────────────────────────────────────────────────── */
 
-/** The features a condition already reads, plus the ones its tests would write. */
-export async function featuresFor(conditionId: string): Promise<Feature[]> {
+/**
+ * The features a condition already reads, plus the ones its tests would write.
+ * `forCase` (phase 41C) is the case's own features, offered beside them: the
+ * synthetic facts, `hypothesis:` ids and `ever` inputs a person's case reads,
+ * whether or not `hkb_features` carries a row for them yet.
+ */
+export async function featuresFor(
+  conditionId: string,
+  opts: { forCase?: Feature[] } = {},
+): Promise<Feature[]> {
   const db = getDb();
   const [rules, tests, all] = await Promise.all([
     db
@@ -1068,10 +1393,16 @@ export async function featuresFor(conditionId: string): Promise<Feature[]> {
   for (const t of tests)
     for (const code of t.featureIds ?? []) wanted.add(`metric:${code}`);
 
-  return all
+  const own = all
     .filter((f) => wanted.has(f.id))
     .map((f) => ({ id: f.id, name: f.name, unit: f.unit }));
+  const ids = new Set(own.map((f) => f.id));
+  return [...own, ...(opts.forCase ?? []).filter((f) => !ids.has(f.id))];
 }
+
+/** Papers first published up to `asOf`, so a replay cannot read the future. */
+export const upTo = (query: string, asOf?: string) =>
+  asOf ? `${query} AND (FIRST_PDATE:[1900-01-01 TO ${asOf}])` : query;
 
 /**
  * Conditions whose diagnostic criteria are themselves in motion, so the
@@ -1565,8 +1896,8 @@ export const llmInterventions =
           `[${i + 1}] ${p.title} (${p.journal ?? "?"} ${p.year ?? "?"})\n${p.abstract}`,
       )
       .join("\n\n");
-    const { object, usage } = await generateObject({
-      model: model(modelId),
+    const { object, usage } = await generateObjectSafe({
+      model: modelId,
       schema: interventionExtraction,
       system: INTERVENTION_PROMPT,
       prompt:
@@ -1626,11 +1957,14 @@ export function toInterventions(
     if (!paper || paper.retracted) continue;
     if (!f.intervention?.trim() || !f.quote?.trim()) continue;
 
-    const base = gradeOf({ studyType: f.studyType, n: f.n ?? null } as Finding, {
-      citedBy: paper.citedBy,
-      year: paper.year,
-      resolved: !!paper.doi,
-    });
+    const base = gradeOf(
+      { studyType: f.studyType, n: f.n ?? null } as Finding,
+      {
+        citedBy: paper.citedBy,
+        year: paper.year,
+        resolved: !!paper.doi,
+      },
+    );
     const grade =
       kind === "horizon" ? (base === "E" ? "E" : worst(base, "D")) : base;
 
@@ -1872,8 +2206,8 @@ export const llmMechanisms =
           `[${i + 1}] ${p.title} (${p.journal ?? "?"} ${p.year ?? "?"})\n${p.abstract}`,
       )
       .join("\n\n");
-    const { object, usage } = await generateObject({
-      model: model(modelId),
+    const { object, usage } = await generateObjectSafe({
+      model: modelId,
       schema: mechanismExtraction,
       system: MECHANISM_PROMPT,
       prompt:

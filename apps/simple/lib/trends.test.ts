@@ -70,6 +70,17 @@ describe("slopePerYear", () => {
     expect(all).toEqual(recent);
   });
 
+  it("drops every point after asOf: the replay cannot read the future", () => {
+    const asOf = "2024-06-01";
+    expect(slopePerYear(RAMONA_FERRITIN, asOf)).toEqual(
+      slopePerYear(
+        RAMONA_FERRITIN.filter((p) => p.date <= asOf),
+        asOf,
+      ),
+    );
+    expect(slopePerYear(RAMONA_FERRITIN, asOf)!.n).toBe(4);
+  });
+
   it("fits a straight line exactly", () => {
     const slope = slopePerYear(
       [

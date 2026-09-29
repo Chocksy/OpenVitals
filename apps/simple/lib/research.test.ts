@@ -8,6 +8,8 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 import { SYSTEMS, type GraphNode } from "./graph";
 import { FIXTURES } from "./hkb-import";
+import { caseQuery, CAUSE_DESIGNS } from "./cases";
+import { topicQueries } from "./topic-watch";
 import {
   buildQueries,
   CONTESTED,
@@ -23,6 +25,12 @@ import {
   strengthOf,
   toMechanismEdges,
   cleanTitle,
+  epmc,
+  isRetracted,
+  parsePubmedXml,
+  pubmed,
+  toPubmed,
+  upTo,
   conditionOn,
   convertOn,
   dedupe,
@@ -1099,5 +1107,266 @@ describe("the guideline watch", () => {
     expect(
       new Set([paper("1"), paper("1")].map((h) => toGuidelineRow(h).id)).size,
     ).toBe(1);
+  });
+});
+
+describe("epmc when Europe PMC is down", () => {
+  const quiet = () => vi.spyOn(console, "error").mockImplementation(() => {});
+  it("flags a 503 in place of an empty list", async () => {
+    quiet();
+    const r = await epmc(
+      "q",
+      "core",
+      5,
+      (async () => new Response("", { status: 503 })) as typeof fetch,
+      [0, 0],
+      async () => "HTTP 503",
+    );
+    expect(r.length).toBe(0);
+    expect(r.failed).toBe("HTTP 503; PubMed HTTP 503");
+  });
+  it("flags a network failure", async () => {
+    quiet();
+    const r = await epmc(
+      "q",
+      "core",
+      5,
+      (async () => {
+        throw new Error("ECONNRESET");
+      }) as typeof fetch,
+      [0],
+      async () => "ECONNRESET",
+    );
+    expect(r.failed).toBe("ECONNRESET; PubMed ECONNRESET");
+  });
+  it("tries a 5xx again and keeps the answer that follows", async () => {
+    quiet();
+    let n = 0;
+    const r = await epmc(
+      "q",
+      "core",
+      5,
+      (async () =>
+        ++n < 3
+          ? new Response("", { status: 503 })
+          : new Response(
+              JSON.stringify({ resultList: { result: [{ id: "1" }] } }),
+            )) as typeof fetch,
+      [0, 0],
+    );
+    expect(n).toBe(3);
+    expect(r.failed).toBeUndefined();
+    expect(r.length).toBe(1);
+  });
+  it("does not retry a 400", async () => {
+    quiet();
+    let n = 0;
+    const r = await epmc(
+      "q",
+      "core",
+      5,
+      (async () => {
+        n++;
+        return new Response("", { status: 400 });
+      }) as typeof fetch,
+      [0, 0],
+      async () => "HTTP 400",
+    );
+    expect(n).toBe(1);
+    expect(r.failed).toBe("HTTP 400; PubMed HTTP 400");
+  });
+  it("leaves a real answer, even an empty one, unflagged", async () => {
+    const ok = (result: unknown[]) =>
+      (async () =>
+        new Response(
+          JSON.stringify({ resultList: { result } }),
+        )) as typeof fetch;
+    const r = await epmc("q", "core", 5, ok([{ id: "1" }]));
+    expect(r.length).toBe(1);
+    expect(r.failed).toBeUndefined();
+    expect((await epmc("q", "core", 5, ok([]))).failed).toBeUndefined();
+  });
+});
+
+/* ── PubMed standing in for Europe PMC ─────────────────────────────────── */
+
+/** Two efetch records cut down to what the parser reads. */
+const PUBMED_XML = `<?xml version="1.0" ?>
+<PubmedArticleSet>
+<PubmedArticle><MedlineCitation Status="MEDLINE" Owner="NLM"><PMID Version="1">111</PMID>
+<Article PubModel="Print-Electronic"><Journal><JournalIssue CitedMedium="Internet"><PubDate><Year>2023</Year><Month>Nov</Month><Day>03</Day></PubDate></JournalIssue><Title>International journal of molecular sciences</Title><ISOAbbreviation>Int J Mol Sci</ISOAbbreviation></Journal>
+<ArticleTitle>Ferritin &amp; transferrin in HbA<sub>1c</sub> &#x2264; 6 %.</ArticleTitle>
+<ELocationID EIdType="doi" ValidYN="Y">10.1/elocation</ELocationID>
+<Abstract><AbstractText Label="BACKGROUND" NlmCategory="BACKGROUND">Iron &lt;i&gt;matters&lt;/i&gt;.</AbstractText><AbstractText Label="RESULTS">Ferritin below 30 &#xb5;g/L had <i>p</i> &lt; 0.001.</AbstractText></Abstract>
+<AuthorList CompleteYN="Y"><Author ValidYN="Y"><LastName>Skar&#x17c;y&#x144;ska</LastName><ForeName>Ewa</ForeName><Initials>E</Initials></Author><Author ValidYN="Y"><LastName>Mularczyk</LastName><Initials>K</Initials></Author></AuthorList>
+<PublicationTypeList><PublicationType UI="D016428">Journal Article</PublicationType><PublicationType UI="D017418">Meta-Analysis</PublicationType></PublicationTypeList>
+<ArticleDate DateType="Electronic"><Year>2023</Year><Month>10</Month><Day>30</Day></ArticleDate></Article></MedlineCitation>
+<PubmedData><History><PubMedPubDate PubStatus="pubmed"><Year>2023</Year><Month>11</Month><Day>14</Day></PubMedPubDate></History>
+<ArticleIdList><ArticleId IdType="pubmed">111</ArticleId><ArticleId IdType="doi">10.3390/ijms242115937</ArticleId></ArticleIdList>
+<ReferenceList><Reference><Citation>Other paper.</Citation><ArticleIdList><ArticleId IdType="doi">10.9999/not-this-one</ArticleId></ArticleIdList></Reference></ReferenceList></PubmedData></PubmedArticle>
+<PubmedArticle><MedlineCitation><PMID Version="1">222</PMID>
+<Article><Journal><JournalIssue><PubDate><Year>2024</Year></PubDate></JournalIssue><Title>Blood</Title></Journal>
+<ArticleTitle>A retracted cohort.</ArticleTitle>
+<Abstract><AbstractText>Plain abstract.</AbstractText></Abstract>
+<AuthorList><Author><CollectiveName>The Iron Group</CollectiveName></Author></AuthorList>
+<PublicationTypeList><PublicationType UI="D016428">Journal Article</PublicationType></PublicationTypeList></Article>
+<CommentsCorrectionsList><CommentsCorrections RefType="RetractionIn"><RefSource>Blood. 2025</RefSource><PMID Version="1">999</PMID></CommentsCorrections></CommentsCorrectionsList></MedlineCitation>
+<PubmedData><History><PubMedPubDate PubStatus="entrez"><Year>2024</Year><Month>7</Month><Day>2</Day></PubMedPubDate></History>
+<ArticleIdList><ArticleId IdType="pubmed">222</ArticleId></ArticleIdList></PubmedData></PubmedArticle>
+</PubmedArticleSet>`;
+
+/** esearch answers these ids, efetch answers the XML above; every URL kept. */
+function eutils(ids: string[], urls: string[] = []) {
+  return (async (input: string) => {
+    urls.push(String(input));
+    if (String(input).includes("europepmc"))
+      return new Response("", { status: 503 });
+    if (String(input).includes("esearch"))
+      return new Response(
+        JSON.stringify({ esearchresult: { count: String(ids.length), idlist: ids } }),
+      );
+    return new Response(PUBMED_XML);
+  }) as unknown as typeof fetch;
+}
+
+describe("PubMed when Europe PMC is down", () => {
+  const now = new Date("2026-09-29T00:00:00Z");
+  it.each([
+    [
+      "a strict case query",
+      caseQuery('"iron deficiency" AND ("heavy menstrual bleeding" OR "menorrhagia")', "2024-06-01"),
+      '(("iron deficiency"[ti] OR "iron deficiency"[tiab]) AND (("heavy menstrual bleeding"[ti] OR "heavy menstrual bleeding"[tiab]) OR ("menorrhagia"[ti] OR "menorrhagia"[tiab]))) AND (randomized OR "meta-analysis" OR "systematic review" OR cohort OR "cross-sectional" OR "case-control") AND hasabstract NOT "Case Reports"[pt] AND (("1900/01/01"[dp] : "2024/06/01"[dp]))',
+      "2024-06-01",
+    ],
+    [
+      "the cause track",
+      caseQuery(
+        // what causeQueries writes for an open cause
+        'TITLE:"Open condition" AND (TITLE:etiology OR TITLE:aetiology OR TITLE:causes OR TITLE:cause OR TITLE:underlying)',
+        "2025-06-01",
+        true,
+        CAUSE_DESIGNS,
+      ),
+      '("Open condition"[ti] AND (etiology[ti] OR aetiology[ti] OR causes[ti] OR cause[ti] OR underlying[ti])) AND (review OR "systematic review" OR "meta-analysis" OR cohort OR prospective OR retrospective OR "cross-sectional") AND hasabstract NOT "Case Reports"[pt] AND (("1900/01/01"[dp] : "2025/06/01"[dp]))',
+      "2025-06-01",
+    ],
+    [
+      "a likelihood-ratio search",
+      buildQueries("Hypothyroidism", [FEATURES[0]!], now)[0]!,
+      '"Hypothyroidism" AND ("likelihood ratio" OR "sensitivity" OR "specificity" OR "diagnostic accuracy") AND ("TSH") AND ("review"[pt] OR "meta-analysis"[pt] OR "guideline"[pt]) AND (("2011/01/01"[dp] : "2026/12/31"[dp]))',
+      "2026-12-31",
+    ],
+    [
+      "a topic watch, with its keywords and NOTs",
+      topicQueries("creatine", "2021-09-29", now)[0]!.query,
+      '("creatine"[ti] OR ("creatine"[mh] OR "creatine"[ot])) AND (randomized OR "randomised" OR "meta-analysis" OR "systematic review" OR cohort) AND (("2021/09/29"[dp] : "2026/09/29"[dp])) NOT "creatine kinase"[ti] NOT "creatinine"[ti] NOT "creatine phosphokinase"[ti]',
+      "2026-09-29",
+    ],
+    [
+      "two dates: the tighter upper day is the cut",
+      upTo(guidelineQuery("Hypothyroidism", "2020-01-01", now), "2024-06-01"),
+      '"Hypothyroidism" AND ("guideline"[pt] OR "practice guideline"[pt] OR "consensus development conference"[pt]) AND (("2020/01/01"[dp] : "2026/09/29"[dp])) AND (("1900/01/01"[dp] : "2024/06/01"[dp]))',
+      "2024-06-01",
+    ],
+    ["the abstracts batch", "EXT_ID:123 OR EXT_ID:456", "123[pmid] OR 456[pmid]", null],
+    ["a DOI check", 'DOI:"10.1/x"', '"10.1/x"[doi]', null],
+  ])("translates %s", (_name, query, term, maxDate) => {
+    expect(toPubmed(query)).toEqual({ term, maxDate });
+  });
+
+  it("reads efetch XML into the Europe PMC shape, retraction and all", () => {
+    const [a, b] = parsePubmedXml(PUBMED_XML);
+    expect(a).toMatchObject({
+      servedBy: "pubmed",
+      pmid: "111",
+      doi: "10.3390/ijms242115937", // not the reference list's
+      title: "Ferritin & transferrin in HbA<sub>1c</sub> ≤ 6 %.",
+      journalTitle: "International journal of molecular sciences",
+      journalInfo: { journal: { medlineAbbreviation: "Int J Mol Sci" } },
+      pubYear: "2023",
+      authorString: "Skarżyńska E, et al.",
+      firstPublicationDate: "2023-10-30",
+      abstractText:
+        "BACKGROUND: Iron <i>matters</i>. RESULTS: Ferritin below 30 µg/L had <i>p</i> < 0.001.",
+      pubTypeList: { pubType: ["Journal Article", "Meta-Analysis"] },
+    });
+    expect(cleanTitle(a!.title!)).toBe("Ferritin & transferrin in HbA1c ≤ 6 %");
+    expect(b).toMatchObject({
+      pmid: "222",
+      doi: undefined,
+      pubYear: "2024",
+      authorString: "The Iron Group.",
+      firstPublicationDate: "2024-07-02", // a bare year is no day: PubMed's listing is
+    });
+    expect(isRetracted(a!.pubTypeList?.pubType)).toBe(false);
+    expect(isRetracted(b!.pubTypeList?.pubType)).toBe(true);
+  });
+
+  it("answers for Europe PMC, in relevance order, with the NCBI tool and email", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    vi.stubEnv("ADMIN_EMAIL", "admin@example.org");
+    const urls: string[] = [];
+    const fetcher = eutils(["222", "111"], urls);
+    const r = await epmc("TITLE:ferritin", "core", 5, fetcher, [], (q, n) =>
+      pubmed(q, n, { fetcher, waits: [], gapMs: 0 }),
+    );
+    vi.unstubAllEnvs();
+    expect(r.failed).toBeUndefined();
+    expect(r.map((h) => [h.pmid, h.servedBy])).toEqual([
+      ["222", "pubmed"],
+      ["111", "pubmed"],
+    ]);
+    const search = new URL(urls.find((u) => u.includes("esearch"))!);
+    expect(search.searchParams.get("term")).toBe("ferritin[ti]");
+    expect(search.searchParams.get("sort")).toBe("relevance");
+    expect(search.searchParams.get("tool")).toBe("openvitals");
+    expect(search.searchParams.get("email")).toBe("admin@example.org");
+    expect(new URL(urls.at(-1)!).searchParams.get("id")).toBe("222,111");
+  });
+
+  it("keeps the date cut on the hits' own dates", async () => {
+    const fetcher = eutils(["111", "222"]);
+    const opts = { fetcher, waits: [], gapMs: 0 };
+    const cut = await pubmed(upTo("TITLE:ferritin", "2024-06-01"), 5, opts);
+    // 222 says only "2024" in print and was listed on 2024-07-02: after the cut
+    expect((cut as { pmid?: string }[]).map((h) => h.pmid)).toEqual(["111"]);
+    const later = await pubmed(upTo("TITLE:ferritin", "2024-07-02"), 5, opts);
+    expect((later as unknown[]).length).toBe(2);
+  });
+
+  it("is an honest empty answer when PubMed finds nothing", async () => {
+    expect(
+      await pubmed("TITLE:nothing", 5, { fetcher: eutils([]), waits: [], gapMs: 0 }),
+    ).toEqual([]);
+  });
+
+  it("flags the list only when both indexes are down", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    let calls = 0;
+    const down = (async () => {
+      calls++;
+      return new Response("", { status: 503 });
+    }) as unknown as typeof fetch;
+    const r = await epmc("TITLE:ferritin", "core", 5, down, [0], (q, n) =>
+      pubmed(q, n, { fetcher: down, waits: [0], gapMs: 0 }),
+    );
+    expect(r).toHaveLength(0);
+    expect(r.failed).toBe("HTTP 503; PubMed HTTP 503");
+    expect(calls).toBe(4); // two tries each
+  });
+
+  it("spaces NCBI requests to three a second", async () => {
+    const at: number[] = [];
+    const fetcher = (async (input: string) => {
+      at.push(Date.now());
+      return eutils(["111"])(input);
+    }) as unknown as typeof fetch;
+    await Promise.all([
+      pubmed("a", 1, { fetcher, waits: [], gapMs: 60 }),
+      pubmed("b", 1, { fetcher, waits: [], gapMs: 60 }),
+    ]);
+    at.sort((x, y) => x - y);
+    for (let i = 1; i < at.length; i++)
+      expect(at[i]! - at[i - 1]!).toBeGreaterThanOrEqual(55);
   });
 });

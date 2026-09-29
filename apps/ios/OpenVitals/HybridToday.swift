@@ -1073,12 +1073,14 @@ struct HybridTodayView: View {
             if !model.loaded { await model.load() }
             // `-OVMeal YES`: the prototype's third phone, the sheet open.
             if Fixtures.meal, let id = model.mealList.first?.id { sheet = .meal(id) }
-            // `-OVScreen hunch` / `hunch-how`: the case with the full fixture
-            // behind it (the cluster), How we know folded or open.
-            if Fixtures.screen == "hunch" || Fixtures.screen == "hunch-how",
-               let rows = model.today?.hunches,
-               let row = rows.first(where: { $0.kind == "cluster" }) ?? rows.first {
-                sheet = .hunch(row.id)
+            // `-OVScreen hunch` / `hunch-how`: the full fixture case
+            // (`hunch.json`, a cause since 41E), How we know folded or open.
+            if Fixtures.screen == "hunch" || Fixtures.screen == "hunch-how" {
+                let full: Api.HunchCase? = Fixtures.canned("hunch")
+                let rows = model.today?.hunches ?? []
+                if let id = full?.id ?? (rows.first(where: { $0.kind == "cluster" }) ?? rows.first)?.id {
+                    sheet = .hunch(id)
+                }
             }
         }
         .sheet(isPresented: $settings) { SettingsView() }

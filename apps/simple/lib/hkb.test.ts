@@ -1,6 +1,13 @@
 import { describe, it, expect } from "vitest";
 import { catalogRows, testId } from "./hkb-seed";
-import { loadCatalog, rowsToCatalog } from "./hkb";
+import {
+  dependencyCycles,
+  dependencyNeeds,
+  loadCatalog,
+  modifierOf,
+  rowsToCatalog,
+} from "./hkb";
+import { CATALOG } from "./hkb-catalog";
 import { shrunk } from "./hkb-pool";
 import {
   correlationGroupOf,
@@ -137,6 +144,63 @@ describe("rowsToCatalog", () => {
   });
 });
 
+describe("dependency order (phase 41B)", () => {
+  it("has no cycle through requires, evidence or modifiers", () => {
+    const rows = catalogRows(CATALOG);
+    expect(
+      dependencyCycles(
+        dependencyNeeds(rows.conditions, rows.evidence, rows.modifiers),
+      ),
+    ).toEqual([]);
+  });
+
+  it("names a cycle when there is one", () => {
+    const needs = new Map([
+      ["a", new Set(["b"])],
+      ["b", new Set(["a"])],
+    ]);
+    expect(dependencyCycles(needs)).toHaveLength(1);
+  });
+
+  it("fires a hypothesis modifier on an alphabetically earlier condition", async () => {
+    const { scoreHypotheses } = await import("./hypotheses");
+    const catalog = rowsToCatalog(catalogRows(CATALOG));
+    const order = catalog.map((h) => h.id);
+    expect(order.indexOf("hashimoto")).toBeLessThan(
+      order.indexOf("atrophic_gastritis"),
+    );
+    // No printed range on the antibody, so only `hypothesis: hashimoto` can fire.
+    const at = (tpo: number) => ({
+      today: "2026-08-27",
+      profile: {},
+      sex: "female" as const,
+      age: 45,
+      latest: {
+        tpo_antibodies: {
+          value: tpo,
+          unit: null,
+          date: "2026-08-01",
+          status: "red" as const,
+          optimalLow: null,
+          optimalHigh: null,
+          refLow: null,
+          refHigh: null,
+        },
+      },
+      derived: {},
+    });
+    const prior = (tpo: number) =>
+      scoreHypotheses(at(tpo), { catalog }).find(
+        (h) => h.id === "atrophic_gastritis",
+      )?.prior;
+    const hashimoto = scoreHypotheses(at(400), { catalog }).find(
+      (h) => h.id === "hashimoto",
+    )!.score;
+    expect(hashimoto).toBeGreaterThan(0.4);
+    expect(prior(400)).toBeCloseTo(prior(5)! * 3, 5);
+  });
+});
+
 describe("loadCatalog", () => {
   it("falls back to the in-code catalog with no database", async () => {
     const saved = process.env.DATABASE_URL;
@@ -146,5 +210,42 @@ describe("loadCatalog", () => {
     } finally {
       if (saved != null) process.env.DATABASE_URL = saved;
     }
+  });
+});
+
+describe("modifierOf", () => {
+  const row = {
+    featureId: "hypothesis:iron_deficiency",
+    times: 6,
+    why: "hypothesis:iron_deficiency (C; cause of iron_deficiency)",
+    grade: "C",
+    source: "Annibale 2001; doi:10.1/x",
+  };
+  it("leaves a row without a share as a plain multiplier", () => {
+    const m = modifierOf({ ...row, conditionOn: { above: 0.5 } });
+    expect(m).toEqual({
+      when: { hypothesis: "iron_deficiency", above: 0.5 },
+      times: 6,
+      why: row.why,
+    });
+  });
+  it("reads the share, population and exclusion out of condition_on", () => {
+    const m = modifierOf({
+      ...row,
+      conditionOn: {
+        above: 0.5,
+        share: 0.268,
+        population: "patients without gastrointestinal symptoms",
+        unless: [{ fact: "sym_bowel", includes: "yes" }],
+      },
+    });
+    expect(m.when).toEqual({ hypothesis: "iron_deficiency", above: 0.5 });
+    expect(m).toMatchObject({
+      share: 0.268,
+      grade: "C",
+      source: row.source,
+      population: "patients without gastrointestinal symptoms",
+      unless: [{ fact: "sym_bowel", includes: "yes" }],
+    });
   });
 });

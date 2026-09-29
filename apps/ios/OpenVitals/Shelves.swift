@@ -26,6 +26,16 @@ struct Shelves: View {
                     .padding(.top, DesignTokens.s21)
                 HShelf { TodaySoFar(model: model) }
                     .lagging(lag, row: 1)
+                // 41E: an upload whose lab has not sent every result yet.
+                ForEach(model.today?.pending ?? []) { p in
+                    Button { tab = 2 } label: {
+                        Text("◔ " + p.line).hType(12, .semibold, Hy.amber)
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityHint(p.names.joined(separator: ", "))
+                    .padding(.horizontal, DesignTokens.s21)
+                    .padding(.top, DesignTokens.s13)
+                }
                 if let hunches = model.today?.hunches, !hunches.isEmpty {
                     let open = hunches.filter { $0.kind != "good_news" }.count
                     ShelfTitle("Worth a look", open > 0

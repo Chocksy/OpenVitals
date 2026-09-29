@@ -927,7 +927,17 @@ describe("GET /api/score/days", () => {
 
 /* ── phase 39 S7: hunches ─────────────────────────────────────────────── */
 
-const KINDS = ["left_band", "step", "drift", "discordance", "cluster", "gap", "good_news"];
+const KINDS = [
+  "left_band",
+  "step",
+  "drift",
+  "discordance",
+  "cluster",
+  "gap",
+  "good_news",
+  "chronic",
+  "cause",
+];
 
 /** The glance every hunch row carries, on the list, on Today and in a case. */
 function checkRow(r: Record<string, unknown>) {
@@ -1027,14 +1037,44 @@ describe("GET /api/hunches/[id]", () => {
     const ex = c.explanations as Record<string, unknown>[];
     if (!ex.length) return;
     const sum = ex.reduce((s, e) => s + (e.weight as number), 0);
-    expect(sum).toBeCloseTo(1, 2);
+    // with a differential the weights are its shares, and "other" keeps the rest
+    if (c.differential) expect(sum).toBeLessThanOrEqual(1.0001);
+    else expect(sum).toBeCloseTo(1, 2);
     for (const e of ex) {
+      expect(["paper", "catalog", "model", "you"]).toContain(e.origin);
       expect(["A", "B", "C", "D", "E"]).toContain(e.grade);
       expect(["science", "opinion", "anecdotal", "hypothesis"]).toContain(e.basis);
       expect(str(e.predicts)).toBe(true);
       const ch = e.check as Record<string, unknown> | null;
       if (ch) expect(["<", ">", "between"]).toContain(ch.op);
     }
+  });
+
+  it("reads a cause as a differential of up to three options, plus other", () => {
+    const d = c.differential as Record<string, unknown> | null;
+    if (c.kind !== "cause") return expect(d).toBeNull();
+    expect(d).not.toBeNull();
+    const opts = d!.options as Record<string, unknown>[];
+    expect(opts.length).toBeGreaterThan(0);
+    expect(opts.length).toBeLessThanOrEqual(3);
+    let total = d!.otherPct as number;
+    for (const o of opts) {
+      expect(typeof o.id).toBe("string");
+      expect(typeof o.name).toBe("string");
+      expect(typeof o.pct).toBe("number");
+      expect(typeof o.reason).toBe("string");
+      expect(str(o.confirmTest)).toBe(true);
+      for (const s of o.sources as Record<string, unknown>[]) {
+        expect(typeof s.label).toBe("string");
+        expect(str(s.doi)).toBe(true);
+        expect(["A", "B", "C", "D", "E"]).toContain(s.grade);
+        expect(["paper", "catalog"]).toContain(s.origin);
+      }
+      total += o.pct as number;
+    }
+    expect(Math.abs(total - 100)).toBeLessThanOrEqual(2);
+    expect(str(d!.splitTest)).toBe(true);
+    expect(typeof (c.bestRead as Record<string, unknown>).specialty).toBe("string");
   });
 
   it("asks one question with three to five chips, or none", () => {
@@ -1079,6 +1119,14 @@ describe("GET /api/today, hunches, Heading and confidence (phase 39)", () => {
       expect(typeof r.name).toBe("string");
       expect(["toward", "holding", "away", "unmeasured"]).toContain(r.word);
       expect(typeof r.why).toBe("string");
+    }
+  });
+
+  it("lists the uploads with results still pending", () => {
+    for (const p of b.pending as Record<string, unknown>[]) {
+      expect(p.upload as string).toMatch(/^[0-9a-f-]{36}$/);
+      if (p.date) expect(p.date as string).toMatch(DAY);
+      expect((p.names as string[]).length).toBeGreaterThan(0);
     }
   });
 

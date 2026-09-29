@@ -195,18 +195,39 @@ export async function factAt(
   return valueAt(await historyFor(userId, key), date)?.value ?? null;
 }
 
-/** Every fact as it stood on a date: the profile the engine had back then. */
+/**
+ * Facts that were true before anybody typed them: sex, birth year, ancestry
+ * and whatever the genome file says. Their history row starts on the day they
+ * were answered (the backfill caveat in `backfilled`), so a replay dated
+ * before sign-up would otherwise see a person with no sex and no age.
+ */
+export const isTimeless = (key: string, source?: string | null): boolean =>
+  source === "genome" ||
+  key.startsWith("genome:") ||
+  key === "sex" ||
+  key === "birth_year" ||
+  key === "ancestry";
+
+/**
+ * Every fact as it stood on a date: the profile the engine had back then.
+ * `timeless` also keeps the current value of a timeless fact whatever day it
+ * was written (the blind replay, phase 41D).
+ */
 export async function profileAt(
   userId: string,
   date: string,
+  opts: { timeless?: boolean } = {},
 ): Promise<Record<string, unknown>> {
   const rows = await allHistory(userId);
   const byKey = new Map<string, HistoryRow[]>();
-  for (const r of rows)
+  const timeless = new Set<string>();
+  for (const r of rows) {
     byKey.set(r.key, [...(byKey.get(r.key) ?? []), toRow(r)]);
+    if (opts.timeless && isTimeless(r.key, r.source)) timeless.add(r.key);
+  }
   const out: Record<string, unknown> = {};
   for (const [key, list] of byKey) {
-    const held = valueAt(list, date);
+    const held = valueAt(list, timeless.has(key) ? "9999-12-31" : date);
     if (held) out[key] = held.value;
   }
   return out;

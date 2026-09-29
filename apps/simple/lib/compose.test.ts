@@ -17,6 +17,7 @@ import {
   plainReply,
   readActionStatement,
   timeTokens,
+  treatmentOf,
   understandRules,
   verifyModelChips,
   whenOf,
@@ -37,8 +38,8 @@ import { CATALOG } from "./hkb-catalog";
  * file can flip rather than a provider it has to wait for.
  */
 const ai = vi.hoisted(() => ({ down: false, chips: [] as unknown[] }));
-vi.mock("ai", () => ({
-  generateObject: async () => {
+vi.mock("ai", () => {
+  const read = () => {
     if (ai.down) {
       // What OpenRouter sends back with the key exhausted, in shape: the
       // production line is `[compose] the model layer failed, rules stand:
@@ -47,12 +48,20 @@ vi.mock("ai", () => ({
       e.name = "AI_APICallError";
       throw e;
     }
-    return { object: { chips: ai.chips } };
-  },
-  generateText: async () => ({ text: "" }),
-  wrapLanguageModel: ({ model }: { model: unknown }) => model,
-  defaultSettingsMiddleware: () => ({}),
-}));
+    return { chips: ai.chips };
+  };
+  return {
+    generateObject: async () => ({ object: read() }),
+    // the Anthropic path of `generateObjectSafe`: the answer is a submit call
+    generateText: async (opts: { tools?: object }) =>
+      opts.tools
+        ? { toolCalls: [{ toolName: "submit", input: read() }], usage: {} }
+        : { text: "" },
+    tool: (t: unknown) => t,
+    wrapLanguageModel: ({ model }: { model: unknown }) => model,
+    defaultSettingsMiddleware: () => ({}),
+  };
+});
 vi.mock("@openrouter/ai-sdk-provider", () => ({
   createOpenRouter: () => () => "stub-model",
 }));
@@ -770,7 +779,9 @@ describe("the model layer fails", () => {
     // only that, is a client's cue to say the note held no fact.
     ai.down = false;
     ai.chips = [];
-    const ran = composeReceipt(await withKey(() => understandRead("ok", input())));
+    const ran = composeReceipt(
+      await withKey(() => understandRead("ok", input())),
+    );
     expect(ran.read).toBe(true);
     expect(ran.readState).toBe("read");
     expect(ran.reply).toBe(NOTHING_TO_KEEP);
@@ -849,7 +860,9 @@ describe("the model layer fails", () => {
         "Nothing to keep from that.",
       );
       // Even handed an empty receipt, it says something true.
-      expect(replyFallback([], { reply: "" })).toBe("Nothing to keep from that.");
+      expect(replyFallback([], { reply: "" })).toBe(
+        "Nothing to keep from that.",
+      );
     });
 
     it("is what the route prints when the reply model gives it nothing", async () => {
@@ -863,9 +876,9 @@ describe("the model layer fails", () => {
       // The provider is the same one the reader uses: it answers with "".
       const written = await writeReply(pack);
       expect(written.trim()).toBe("");
-      expect(written.trim() || replyFallback([], { reply: UNREAD_RECEIPT })).toBe(
-        UNREAD_RECEIPT,
-      );
+      expect(
+        written.trim() || replyFallback([], { reply: UNREAD_RECEIPT }),
+      ).toBe(UNREAD_RECEIPT);
     });
   });
 
@@ -958,7 +971,12 @@ describe("the re-read", () => {
       // The cap holds for a note the reader was down for as well.
       expect(
         postsToReread(
-          [{ ...empty("b", days(1), { readAttempts: 2 }), readState: "unread" }],
+          [
+            {
+              ...empty("b", days(1), { readAttempts: 2 }),
+              readState: "unread",
+            },
+          ],
           NOW,
         ),
       ).toHaveLength(0);
@@ -977,10 +995,39 @@ describe("the re-read", () => {
       by: "rule",
     });
     const existing = [chip("weight", "2026-08-20")];
-    const fresh = [chip("weight", "2026-08-20"), chip("sup_omega3", "2026-08-20")];
+    const fresh = [
+      chip("weight", "2026-08-20"),
+      chip("sup_omega3", "2026-08-20"),
+    ];
     const added = mergeChips(existing, fresh);
     expect(added.map((c) => c.key)).toEqual(["sup_omega3"]);
     // The day the words were written, never the day they were read.
     expect(added[0]!.date).toBe("2026-08-20");
+  });
+});
+
+describe("treatments chips (phase 41B)", () => {
+  it("reads a started treatment with its route and date", () => {
+    expect(treatmentOf("I started iron tablets")).toMatchObject({
+      what: "iron",
+      route: "oral",
+    });
+    expect(treatmentOf("Had a Ferinject infusion today")).toMatchObject({
+      route: "iv",
+    });
+    const c = chips("started B12 on 2026-08-01").find(
+      (x) => x.key === "treatments",
+    );
+    expect(c).toMatchObject({
+      kind: "fact",
+      value: { what: "b12", route: "oral", started: "2026-08-01" },
+    });
+  });
+
+  it("leaves a sentence about a marker alone", () => {
+    expect(treatmentOf("my iron is low again")).toBeNull();
+    expect(chips("ferritin 8 today").some((x) => x.key === "treatments")).toBe(
+      false,
+    );
   });
 });

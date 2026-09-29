@@ -28,12 +28,15 @@
     "eval:hunches": "tsx --env-file=.env evals/hunches.ts",
     "eval:second-pass": "tsx --env-file=.env evals/second-pass.ts",
     "eval:capture": "tsx --env-file=.env evals/capture.ts",
+    "eval:photos": "tsx --env-file=.env evals/photos.ts",
+    "eval:replay": "tsx --env-file=.env evals/replay.ts",
     "hkb:import": "tsx scripts/hkb-import-ontology.ts",
     "hkb:ring2:build": "tsx scripts/hkb-ring2-build.ts",
     "hkb:research": "tsx --env-file=.env scripts/hkb-research.ts",
     "hkb:import:priors": "tsx scripts/hkb-import-priors.ts",
     "hkb:import:prices": "tsx scripts/hkb-import-prices.ts",
-    "hkb:policy": "tsx --env-file=.env scripts/hkb-policy.ts"
+    "hkb:policy": "tsx --env-file=.env scripts/hkb-policy.ts",
+    "repair:readings": "tsx --env-file=.env scripts/repair-readings.ts"
   },
   "dependencies": {
     "@ai-sdk/openai": "^4.0.56",

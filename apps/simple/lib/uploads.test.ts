@@ -1,13 +1,22 @@
 import { describe, it, expect } from "vitest";
+import type { ExtractedReading } from "./extract";
 import {
+  failedError,
+  failedStatus,
   localPath,
   MIN_RAW_TEXT,
   pickSource,
+  planInsert,
+  planSupersede,
+  sameReport,
   sha256,
+  toRows,
   uploadDate,
   uploadPath,
   uploadState,
   UPLOAD_WORD,
+  type NewRow,
+  type StoredRow,
 } from "./uploads";
 
 describe("pickSource", () => {
@@ -77,6 +86,14 @@ describe("uploadState", () => {
     expect(uploadState("pending")).toBe("reading");
   });
 
+  it("calls a locked PDF failed, with the reason beside it", () => {
+    expect(uploadState("needs_password")).toBe("failed");
+    expect(failedStatus("needs_password")).toBe("needs_password");
+    expect(failedStatus("truncated")).toBe("failed");
+    expect(failedError("needs_password")).toContain("password");
+    expect(failedError("parse_failed")).toBe("parse_failed");
+  });
+
   it("says deleted when the row is gone, whatever its status", () => {
     expect(uploadState("done", true)).toBe("deleted");
     expect(uploadState("deleted")).toBe("deleted");
@@ -105,9 +122,9 @@ describe("uploadDate", () => {
   });
 
   it("writes the days the way the surface asks for", () => {
-    expect(
-      uploadDate({ firstDay: "2026-04-23" }, (d) => `day ${d}`),
-    ).toBe("day 2026-04-23");
+    expect(uploadDate({ firstDay: "2026-04-23" }, (d) => `day ${d}`)).toBe(
+      "day 2026-04-23",
+    );
   });
 
   it("falls back to the day it was read, and only then", () => {
@@ -115,5 +132,249 @@ describe("uploadDate", () => {
       "2026-08-02",
     );
     expect(uploadDate({})).toBe(null);
+  });
+});
+
+/* ── phase 41: what a lab sheet writes ─────────────────────────────────── */
+
+const extracted = (
+  patch: Partial<ExtractedReading> = {},
+): ExtractedReading => ({
+  analyte: "Ferritin",
+  code: "ferritin",
+  value: 8.2,
+  valueText: "8,2",
+  unit: "ng/mL",
+  refLow: 10,
+  refHigh: 291,
+  observedAt: "2026-08-18",
+  ...patch,
+});
+
+const row = (patch: Partial<NewRow> = {}): NewRow => ({
+  metricCode: "ferritin",
+  value: 8.2,
+  valueText: "8,2",
+  unit: "ng/mL",
+  refLow: 10,
+  refHigh: 291,
+  observedAt: "2026-08-18",
+  flags: null,
+  ...patch,
+});
+
+const stored = (id: string, patch: Partial<StoredRow> = {}): StoredRow => ({
+  id,
+  uploadId: "old",
+  metricCode: "ferritin",
+  observedAt: "2026-08-18",
+  value: 8.2,
+  flags: null,
+  ...patch,
+});
+
+describe("toRows", () => {
+  it("turns an antecedent into a row on its own day, flagged", () => {
+    const { row: r, antecedent } = toRows(
+      extracted({
+        antecedent: { value: 10.7, unit: "ng/mL", date: "2026-07-29" },
+      }),
+      "ferritin",
+    );
+    expect(r.observedAt).toBe("2026-08-18");
+    expect(antecedent).toMatchObject({
+      metricCode: "ferritin",
+      value: 10.7,
+      observedAt: "2026-07-29",
+      refLow: 10,
+      refHigh: 291,
+    });
+    expect(antecedent!.flags).toContain("antecedent");
+    // raw-verify would read today's value off the sheet line and "fix" it
+    expect(antecedent!.flags).toContain("raw_confirmed");
+  });
+
+  it("converts an antecedent written in another unit, drops one it cannot", () => {
+    expect(
+      toRows(
+        extracted({
+          code: "ferritin",
+          unit: "ng/mL",
+          antecedent: { value: 10.7, unit: "ug/L", date: "2026-07-29" },
+        }),
+        "ferritin",
+      ).antecedent!.value,
+    ).toBe(10.7);
+    expect(
+      toRows(
+        extracted({
+          antecedent: { value: 23.5, unit: "pmol/L", date: "2026-07-29" },
+        }),
+        "ferritin",
+      ).antecedent,
+    ).toBeNull();
+  });
+
+  it("keeps a censored value's bound in its flags", () => {
+    const { row: r } = toRows(
+      extracted({ analyte: "GGT", value: 7, valueText: "< 7", censored: "<" }),
+      "ggt",
+    );
+    expect(r.value).toBe(7);
+    expect(r.flags).toEqual([{ censored: "<" }]);
+  });
+});
+
+describe("planInsert", () => {
+  it("skips a row identical on metric, day and value", () => {
+    const plan = planInsert([row()], [], [stored("a")]);
+    expect(plan.insert).toHaveLength(0);
+    expect(plan.skipped).toBe(1);
+  });
+
+  it("keeps a row that differs in value: the sheet says what it says", () => {
+    const plan = planInsert([row({ value: 8.3 })], [], [stored("a")]);
+    expect(plan.insert).toHaveLength(1);
+  });
+
+  it("lands an antecedent only on a day nothing holds, never over a real row", () => {
+    const ante = row({
+      value: 10.7,
+      observedAt: "2026-07-29",
+      flags: ["antecedent"],
+    });
+    expect(planInsert([], [ante], []).insert).toEqual([ante]);
+    const held = planInsert(
+      [],
+      [ante],
+      [stored("real", { observedAt: "2026-07-29", value: 10.5 })],
+    );
+    expect(held.insert).toHaveLength(0);
+    expect(held.replace).toHaveLength(0);
+  });
+
+  it("lets the sheet's own row replace an antecedent row of that test and day", () => {
+    const plan = planInsert(
+      [row({ observedAt: "2026-07-29", value: 10.7 })],
+      [],
+      [
+        stored("ante", {
+          observedAt: "2026-07-29",
+          value: 10.7,
+          flags: ["antecedent"],
+        }),
+      ],
+    );
+    expect(plan.replace).toEqual(["ante"]);
+    expect(plan.insert).toHaveLength(1);
+  });
+
+  it("skips an antecedent whose value already sits within three days", () => {
+    const ante = row({
+      metricCode: "zinc",
+      value: 77,
+      observedAt: "2025-12-10",
+      flags: ["antecedent"],
+    });
+    const real = stored("real", {
+      metricCode: "zinc",
+      value: 77,
+      observedAt: "2025-12-09",
+    });
+    expect(planInsert([], [ante], [real]).insert).toHaveLength(0);
+    // the twin can arrive in the same upload, too
+    expect(
+      planInsert([row({ ...real, flags: null })], [ante], []).insert,
+    ).toHaveLength(1);
+    // four days away, or another value, is another draw
+    expect(
+      planInsert([], [ante], [{ ...real, observedAt: "2025-12-06" }]).insert,
+    ).toEqual([ante]);
+    expect(planInsert([], [ante], [{ ...real, value: 78 }]).insert).toEqual([
+      ante,
+    ]);
+  });
+
+  it("does not let two sheets' antecedents for one day both land", () => {
+    const a = row({
+      value: 10.7,
+      observedAt: "2026-07-29",
+      flags: ["antecedent"],
+    });
+    expect(planInsert([], [a, { ...a }], []).insert).toHaveLength(1);
+  });
+});
+
+describe("sameReport", () => {
+  const fresh = [
+    row(),
+    row({ metricCode: "iron", value: 74 }),
+    row({ metricCode: "tsh", value: 1.995 }),
+    row({ metricCode: "lh", value: 2.89 }),
+    row({ metricCode: "estrone", value: 16.3 }),
+  ];
+
+  it("knows the partial report by its number in the old upload's text", () => {
+    expect(
+      sameReport(
+        {
+          rawText: "Buletin de analize 26818E0252 din 18.08.2026",
+          rows: [stored("a", { value: 99 })],
+        },
+        { reportNo: "26818E0252", day: "2026-08-18", rows: fresh },
+      ),
+    ).toBe(true);
+  });
+
+  it("ignores a report number too short to be one", () => {
+    expect(
+      sameReport(
+        { rawText: "page 1", rows: [stored("a", { value: 99 })] },
+        { reportNo: "1", day: "2026-08-18", rows: fresh },
+      ),
+    ).toBe(false);
+  });
+
+  it("knows it by 80 % identical rows on the same collection day", () => {
+    const old = fresh.slice(0, 4).map((r, i) => stored(`o${i}`, r));
+    expect(sameReport({ rows: old }, { day: "2026-08-18", rows: fresh })).toBe(
+      true,
+    );
+    const half = [
+      ...old.slice(0, 2),
+      stored("x", { metricCode: "zinc", value: 1 }),
+      stored("y", { metricCode: "b12", value: 2 }),
+    ];
+    expect(sameReport({ rows: half }, { day: "2026-08-18", rows: fresh })).toBe(
+      false,
+    );
+  });
+
+  it("never matches on another day or on antecedent rows", () => {
+    const old = fresh.map((r, i) =>
+      stored(`o${i}`, { ...r, flags: ["antecedent"] }),
+    );
+    expect(sameReport({ rows: old }, { day: "2026-08-18", rows: fresh })).toBe(
+      false,
+    );
+    expect(
+      sameReport(
+        { rows: fresh.map((r, i) => stored(`o${i}`, r)) },
+        { day: "2026-04-23", rows: fresh },
+      ),
+    ).toBe(false);
+  });
+});
+
+describe("planSupersede", () => {
+  it("drops what the newer upload repeats and hands over what only the older had", () => {
+    const plan = planSupersede(
+      [
+        stored("ferritin"),
+        stored("selenium", { metricCode: "selenium", value: 101 }),
+      ],
+      [row(), row({ metricCode: "estrone", value: 16.3 })],
+    );
+    expect(plan).toEqual({ drop: ["ferritin"], move: ["selenium"] });
   });
 });

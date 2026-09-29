@@ -38,3 +38,7 @@ apps/simple/data/hkb/*
 !apps/simple/data/hkb/prices-ro.csv
 test-parse.*
 .env.prod.local
+
+# real people's replay cases and results: health data, never in a public repo
+apps/simple/evals/replay/cases.json
+apps/simple/evals/results/replay-*.json

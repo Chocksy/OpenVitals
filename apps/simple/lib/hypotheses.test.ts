@@ -2,12 +2,17 @@ import { describe, it, expect } from "vitest";
 import type { LatestValue, ModelInput } from "./coverage";
 import {
   CONFOUNDERS,
+  effectiveLr,
+  EVER_SHRINK,
   HYPOTHESES,
+  noResponse,
+  treatedWith,
   PRIOR_CEILING,
   priorFor,
   scoreHypotheses,
 } from "./hypotheses";
 import { personaToInput } from "@/evals/persona";
+import { historyOf } from "./derived";
 import { CATALOG } from "./hkb-catalog";
 import { NODES } from "./graph";
 import { nextMoves } from "./infogain";
@@ -775,5 +780,314 @@ describe("pcos from the interview alone", () => {
     expect(nextMoves(m, CATALOG).map((mv) => mv.label)).toContain(
       "Total and free testosterone",
     );
+  });
+});
+
+/* ── phase 41B: ever, treatments, one modifier per why ─────────────────── */
+
+describe("phase 41B", () => {
+  type H = (typeof HYPOTHESES)[number];
+
+  const withHistory = (
+    draws: { date: string; value: number; refLow?: number; refHigh?: number }[],
+    today = "2026-08-27",
+  ): LatestValue => {
+    const pts = draws.map((d) => ({
+      date: d.date,
+      value: d.value,
+      refLow: d.refLow ?? null,
+      refHigh: d.refHigh ?? null,
+    }));
+    const last = pts[pts.length - 1]!;
+    return value(last.value, {
+      date: last.date,
+      refLow: last.refLow,
+      refHigh: last.refHigh,
+      history: historyOf(pts, today),
+    });
+  };
+
+  const tiny = (over: Partial<H>): H => ({
+    id: "t",
+    name: "T",
+    summary: "",
+    priors: { base: 0.1, modifiers: [] },
+    evidence: [],
+    discriminators: [],
+    lenses: {},
+    management: "",
+    ...over,
+  });
+
+  it("reads `ever` over the whole window, not the latest draw", () => {
+    const rule = {
+      id: "b12_ever_low",
+      input: { metric: "vitamin_b12" },
+      when: { ever: { below: 200, years: 5 } },
+      lr: 4,
+      grade: "B" as const,
+      source: "test",
+    };
+    const catalog = [tiny({ evidence: [rule] })];
+    const m = input({
+      latest: {
+        vitamin_b12: withHistory([
+          { date: "2022-03-01", value: 172 },
+          { date: "2026-08-01", value: 354 },
+        ]),
+      },
+    });
+    const r = score("t", m, { catalog })!;
+    expect(r.for.map((e) => e.rule)).toEqual(["b12_ever_low"]);
+    // outside the window: missing, not against
+    const old = input({
+      latest: {
+        vitamin_b12: withHistory([
+          { date: "2019-03-01", value: 172 },
+          { date: "2026-08-01", value: 354 },
+        ]),
+      },
+    });
+    expect(score("t", old, { catalog })!.for).toEqual([]);
+    // an ever rule shrinks like grade C unless its source is about the past
+    expect(effectiveLr(4, rule)).toBeCloseTo(4 ** EVER_SHRINK, 5);
+    expect(
+      effectiveLr(4, { ...rule, when: { ever: { below: 200, aboutPast: true } } }),
+    ).toBe(4);
+  });
+
+  it("fires `ever: aboveRef` against each draw's own printed range", () => {
+    const catalog = [
+      tiny({
+        priors: {
+          base: 0.02,
+          modifiers: [
+            {
+              when: {
+                metric: "anti_thyroglobulin",
+                ever: { aboveRef: true, years: 5 },
+              },
+              times: 3,
+              why: "thyroid autoimmunity",
+            },
+            {
+              when: { hypothesis: "nope", above: 0.4 },
+              times: 3,
+              why: "thyroid autoimmunity",
+            },
+          ],
+        },
+      }),
+    ];
+    const m = input({
+      latest: {
+        anti_thyroglobulin: withHistory([
+          { date: "2024-05-13", value: 65.35, refHigh: 3.99 },
+          { date: "2026-08-20", value: 137, refHigh: 4.5 },
+        ]),
+      },
+    });
+    expect(score("t", m, { catalog })!.prior).toBeCloseTo(0.06, 5);
+  });
+
+  it("counts two modifiers with the same why once", () => {
+    const mod = (metric: string) => ({
+      when: { metric, above: 1 },
+      times: 3,
+      why: "same reason",
+    });
+    const catalog = [
+      tiny({
+        priors: { base: 0.02, modifiers: [mod("a_x"), mod("b_x")] },
+      }),
+    ];
+    const m = input({ latest: { a_x: value(5), b_x: value(5) } });
+    expect(score("t", m, { catalog })!.prior).toBeCloseTo(0.06, 5);
+  });
+
+  describe("no_response:ferritin", () => {
+    const pre = [
+      { date: "2023-06-01", value: 17, refLow: 13 },
+      { date: "2024-03-01", value: 19.1, refLow: 13 },
+    ];
+    const iron = {
+      what: "iron bisglycinate",
+      route: "oral",
+      started: "2024-09-01",
+      from: "supplements" as const,
+    };
+    const at = (post: { date: string; value: number; refLow?: number }[]) =>
+      input({
+        today: "2025-06-01",
+        latest: { ferritin: withHistory([...pre, ...post], "2025-06-01") },
+        treatments: [{ ...iron, stopped: "2025-03-20" }],
+      });
+
+    it("fires when ferritin stays low after 200 days of iron", () => {
+      const m = at([{ date: "2025-02-15", value: 9, refLow: 13 }]);
+      expect(noResponse(m, "ferritin")).toBe("oral");
+    });
+
+    it("stays quiet when ferritin rose above pre × 1.2", () => {
+      const m = at([{ date: "2025-02-15", value: 40, refLow: 13 }]);
+      expect(noResponse(m, "ferritin")).toBe("none");
+    });
+
+    it("has no answer before day 90 or without a treatment", () => {
+      expect(noResponse(at([{ date: "2024-10-15", value: 9 }]), "ferritin")).toBeNull();
+      expect(noResponse(input(), "ferritin")).toBeNull();
+    });
+
+    it("reads as a fact a rule can match", () => {
+      const catalog = [
+        tiny({
+          evidence: [
+            {
+              id: "t_nr",
+              input: { fact: "no_response:ferritin" },
+              when: { includes: "oral" },
+              lr: 2,
+              grade: "B",
+              source: "test",
+            },
+          ],
+        }),
+      ];
+      const m = at([{ date: "2025-02-15", value: 9, refLow: 13 }]);
+      expect(score("t", m, { catalog })!.for.map((e) => e.rule)).toEqual(["t_nr"]);
+    });
+
+    it("treated: names the running route", () => {
+      const m = input({
+        today: "2026-09-20",
+        treatments: [{ ...iron, route: "iv", started: "2026-09-10" }],
+      });
+      expect(treatedWith(m, "ferritin")).toBe("iv");
+      expect(treatedWith(m, "vitamin_b12")).toBeNull();
+    });
+  });
+});
+
+/* ── phase 41F: a printed share scores as a mixture ───────────────────── */
+
+describe("share mixture", () => {
+  type H = (typeof HYPOTHESES)[number];
+  const tiny = (over: Partial<H>): H => ({
+    id: "t",
+    name: "T",
+    summary: "",
+    priors: { base: 0.1, modifiers: [] },
+    evidence: [],
+    discriminators: [],
+    lenses: {},
+    management: "",
+    ...over,
+  });
+  // X scores 0.8: even odds times an LR of 4
+  const x = tiny({
+    id: "x",
+    priors: { base: 0.5, modifiers: [] },
+    evidence: [
+      {
+        id: "x_m1",
+        input: { metric: "m1" },
+        when: { above: 1 },
+        lr: 4,
+        grade: "A",
+        source: "test",
+      },
+    ],
+  });
+  const other = { when: { metric: "m2", above: 1 }, times: 2, why: "other" };
+  const shareRule = (grade: "A" | "C", extra = {}) => ({
+    when: { hypothesis: "x", above: 0.5 },
+    times: 6,
+    why: "hypothesis:x (C; case research, cause of x, doi:10.1/t)",
+    share: 0.3,
+    grade,
+    source: "Test 2001; doi:10.1/t",
+    ...extra,
+  });
+  const c = (mods: H["priors"]["modifiers"]) =>
+    tiny({ id: "c", priors: { base: 0.02, modifiers: mods } });
+  const m = input({ latest: { m1: value(5), m2: value(5) } });
+
+  it("mixes P(C | X) and P(C | not X) by p(X), grade A unshrunk", () => {
+    const r = score("c", m, { catalog: [x, c([shareRule("A"), other])] })!;
+    // P(C|X): 0.3 in odds (0.4286) times the other modifier 2 = 0.857 → 0.4615
+    // P(C|not X): 0.02 × 2 = 0.04; p(X) = 0.8
+    expect(r.mixture!.pGiven).toBeCloseTo(0.4615, 2);
+    expect(r.mixture!.pNot).toBeCloseTo(0.04, 5);
+    expect(r.prior).toBeCloseTo(0.4615 * 0.8 + 0.04 * 0.2, 2);
+    expect(r.mixture!.given).toBe("hypothesis:x");
+  });
+
+  it("pulls a grade C share halfway to the base rate in log odds", () => {
+    const r = score("c", m, { catalog: [x, c([shareRule("C"), other])] })!;
+    const logit = (p: number) => Math.log(p / (1 - p));
+    const counted = 1 / (1 + Math.exp(-(logit(0.02) + logit(0.3)) / 2));
+    expect(r.mixture!.counted).toBeCloseTo(counted, 2);
+    const given = (2 * counted) / (1 - counted) / (1 + (2 * counted) / (1 - counted));
+    expect(r.prior).toBeCloseTo(given * 0.8 + 0.04 * 0.2, 2);
+  });
+
+  it("leaves a condition without a share rule exactly as it was", () => {
+    const r = score("c", m, { catalog: [x, c([other])] })!;
+    expect(r.prior).toBeCloseTo(0.04, 6);
+    expect(r.mixture).toBeUndefined();
+  });
+
+  it("does not apply a share to a person outside the study's population", () => {
+    const rule = shareRule("A", {
+      population: "patients without gastrointestinal symptoms",
+      unless: [{ fact: "sym_bloating", includes: "yes" }],
+    });
+    const inside = score("c", m, { catalog: [x, c([rule, other])] })!;
+    expect(inside.mixture!.population).toBe(
+      "patients without gastrointestinal symptoms",
+    );
+    const outside = score(
+      "c",
+      { ...m, profile: { sym_bloating: "Yes" } },
+      { catalog: [x, c([rule, other])] },
+    )!;
+    expect(outside.mixture).toBeUndefined();
+    expect(outside.prior).toBeCloseTo(0.04, 6);
+    expect(outside.mixtureSkipped![0]!.why).toMatch(/sym_bloating says Yes/);
+    // "No" is no symptom: the share applies
+    const no = score(
+      "c",
+      { ...m, profile: { sym_bloating: "No" } },
+      { catalog: [x, c([rule, other])] },
+    )!;
+    expect(no.mixture).toBeDefined();
+  });
+
+  it("reads X at its probability, not through the 0.5 cut", () => {
+    const low = input({ latest: { m2: value(5) } }); // X stays at its base 0.5
+    const r = score("c", low, { catalog: [x, c([shareRule("A"), other])] })!;
+    expect(r.prior).toBeCloseTo(0.4615 * 0.5 + 0.04 * 0.5, 2);
+  });
+
+  it("keeps the evidence on C after the mixture, and reports P(C | X, data)", () => {
+    const cc = {
+      ...c([shareRule("A"), other]),
+      evidence: [
+        {
+          id: "c_m3",
+          input: { metric: "m3" },
+          when: { above: 1 },
+          lr: 3,
+          grade: "A" as const,
+          source: "test",
+        },
+      ],
+    };
+    const r = score("c", { ...m, latest: { ...m.latest, m3: value(5) } }, {
+      catalog: [x, cc],
+    })!;
+    const odds = (p: number) => p / (1 - p);
+    expect(odds(r.score)).toBeCloseTo(odds(r.prior) * 3, 2);
+    expect(odds(r.mixture!.posterior)).toBeCloseTo(odds(0.4615) * 3, 1);
   });
 });

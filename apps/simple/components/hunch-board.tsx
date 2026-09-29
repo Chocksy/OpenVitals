@@ -51,6 +51,8 @@ export const KIND_INK: Record<string, string> = {
   drift: "var(--blood)",
   left_band: "var(--blood)",
   discordance: "var(--blood)",
+  chronic: "var(--blood)",
+  cause: "var(--plum-3)",
   cluster: "var(--gene)",
   gap: "var(--h-amber)",
   good_news: "var(--h-green)",
@@ -448,6 +450,132 @@ export function MarkerCorridor(
   );
 }
 
+/* ── where an explanation came from (41E) ─────────────────────────────── */
+
+type Origin = "paper" | "catalog" | "model" | "you";
+
+export const ORIGIN_GLYPH: Record<Origin, string> = {
+  paper: "¶",
+  catalog: "◆",
+  model: "~",
+  you: "✎",
+};
+
+const ORIGIN_WORD: Record<Origin, string> = {
+  paper: "from a paper case research read",
+  catalog: "from the seeded catalog",
+  model: "the model's own guess, not in the catalog",
+  you: "from you",
+};
+
+/**
+ * One glyph, its meaning in the title: paper ¶, catalog ◆, model ~, you ✎.
+ * Not ● or ○: those are the basis glyphs (science, anecdote) beside it.
+ */
+export function OriginMark({ origin }: { origin?: string | null }) {
+  const o = (origin && origin in ORIGIN_GLYPH ? origin : "catalog") as Origin;
+  return (
+    <span
+      className={cn("orig", o)}
+      title={ORIGIN_WORD[o]}
+      aria-label={ORIGIN_WORD[o]}
+    >
+      {ORIGIN_GLYPH[o]}
+    </span>
+  );
+}
+
+function OriginLegend() {
+  return (
+    <p className="orig-legend">
+      {(Object.keys(ORIGIN_GLYPH) as Origin[]).map((o) => (
+        <span key={o} title={ORIGIN_WORD[o]}>
+          {ORIGIN_GLYPH[o]} {o}
+        </span>
+      ))}
+    </p>
+  );
+}
+
+const pctText = (p: number) => `${p}%`;
+
+/** A weight as the card prints it: whole percent, one decimal under 1. */
+const shareText = (w: number) => {
+  const v = w * 100;
+  return `${v >= 1 || v === 0 ? Math.round(v) : v.toFixed(1)}%`;
+};
+
+/**
+ * 41E "Our read": a differential, not one diagnosis. Up to three options
+ * with a percent, a one-line reason, their sources and the test that
+ * confirms each; then what nobody on the list explains, the test that
+ * splits them, and who to see for the top one.
+ */
+function OurRead({ c }: { c: HunchCase }) {
+  const d = c.differential;
+  if (!d || !d.options.length) return null;
+  return (
+    <section className="card case-card oread" aria-label="Our read">
+      <h3>
+        Our read <small>a differential, not a diagnosis</small>
+      </h3>
+      <ol className="ro">
+        {d.options.map((o, i) => (
+          <li key={o.id} data-option={o.id}>
+            <div className="rh">
+              <b>{o.name}</b>
+              <Digits className="p" text={pctText(o.pct)} />
+            </div>
+            <div className="trk">
+              <i style={{ width: `${Math.max(1, o.pct)}%` }} />
+            </div>
+            <p className="rr">{o.reason}</p>
+            {o.sources.length > 0 && (
+              <ul className="rs">
+                {o.sources.map((s, k) => (
+                  <li key={k}>
+                    <OriginMark origin={s.origin} />
+                    <EvidenceChip basis="science" grade={s.grade} />
+                    {s.doi ? (
+                      <a
+                        href={`https://doi.org/${s.doi}`}
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        {s.label}
+                      </a>
+                    ) : (
+                      <span>{s.label}</span>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            )}
+            {o.confirmTest && (
+              <p className="rt">
+                Confirm with <b>{o.confirmTest}</b>
+              </p>
+            )}
+            {i === 0 && c.bestRead && (
+              <p className="rsee">See: {c.bestRead.specialty}</p>
+            )}
+          </li>
+        ))}
+      </ol>
+      <div className="ro-other">
+        <span>Other or unexplained</span>
+        <Digits className="p" text={pctText(d.otherPct)} />
+      </div>
+      {d.splitTest && (
+        <p className="ro-split">
+          Test that splits them: <b>{d.splitTest}</b>
+        </p>
+      )}
+      <OriginLegend />
+    </section>
+  );
+}
+
 /** The case itself. Exported for its render test. */
 export function CaseView({
   c,
@@ -504,6 +632,8 @@ export function CaseView({
         <h2>{c.line}</h2>
         <p className="say">{c.say}</p>
       </div>
+
+      <OurRead c={c} />
 
       <section className="card case-card">
         <div className="hy-legend">
@@ -582,14 +712,28 @@ export function CaseView({
         <section className="card case-card">
           <h3>
             What could explain it{" "}
-            <small>share of this hunch, not a diagnosis</small>
+            <small>
+              {c.differential
+                ? "shares from Our read"
+                : "share of this hunch, not a diagnosis"}
+            </small>
           </h3>
           <LedgerList className="ex">
             {ordered.map((e) => (
               <div key={e.id} data-card={e.id} className="er t-flip">
-                <EvidenceChip basis={e.basis} grade={e.grade} className="g" />
+                <span className="g">
+                  <OriginMark origin={e.origin} />
+                  <EvidenceChip basis={e.basis} grade={e.grade} />
+                </span>
                 <span>{e.text}</span>
-                <Digits className="p" text={`${Math.round(e.weight * 100)}%`} />
+                <Digits
+                  className="p"
+                  text={
+                    c.differential && e.weight === 0
+                      ? "other"
+                      : shareText(e.weight)
+                  }
+                />
                 <div className="trk">
                   <i style={{ width: `${Math.round(e.weight * 100)}%` }} />
                 </div>
@@ -599,6 +743,7 @@ export function CaseView({
               </div>
             ))}
           </LedgerList>
+          <OriginLegend />
         </section>
       )}
 
@@ -786,6 +931,7 @@ function HowWeKnow({ c }: { c: HunchCase }) {
           c.explanations.map((e) => (
             <div key={e.id} className="evd">
               <div className="et">
+                <OriginMark origin={e.origin} />
                 <EvidenceChip basis={e.basis} grade={e.grade} />
                 <span>{e.text}</span>
               </div>

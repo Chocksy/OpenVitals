@@ -6,7 +6,11 @@
  */
 import Link from "next/link";
 import type { HeadingRow, HunchRow, TodayBody } from "@/lib/api-contract";
-import { headingSentence, type TodayLine } from "@/lib/home-hybrid";
+import {
+  headingSentence,
+  pendingLine,
+  type TodayLine,
+} from "@/lib/home-hybrid";
 import { cn, dayLabel } from "@/lib/utils";
 import { EvidenceChip } from "./evidence-chip";
 import { WatchList } from "./hunch-board";
@@ -24,10 +28,13 @@ export function HyHero({
   day,
   heading,
   confidence,
+  pending = [],
 }: {
   day: string;
   heading: HeadingRow[];
   confidence: TodayBody["confidence"];
+  /** 41E: partial lab sheets, "1 result still pending from 18 Aug" */
+  pending?: TodayBody["pending"];
 }) {
   const s = headingSentence(heading);
   const c = confidence;
@@ -75,6 +82,16 @@ export function HyHero({
           </b>{" "}
           open
         </span>
+        {pending.map((p) => (
+          <Link
+            key={p.upload}
+            href={`/blood/uploads/${p.upload}`}
+            className="pend"
+            title={p.names.join(", ")}
+          >
+            {pendingLine(p)}
+          </Link>
+        ))}
         <span className="sp" />
         <Link href="/blood/plan" className="due">
           {c.days != null && c.days >= 180

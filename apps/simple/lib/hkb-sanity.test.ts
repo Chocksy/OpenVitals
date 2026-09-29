@@ -25,7 +25,7 @@ import { CATALOG } from "./hkb-catalog";
 import {
   discriminatorApplies,
   scoreHypotheses,
-  SYNTHETIC_FACTS,
+  isSyntheticFact,
   type Discriminator,
   type EvidenceRule,
   type Hypothesis,
@@ -51,7 +51,7 @@ const tid = (h: Hypothesis, d: Discriminator) => `${h.id}/${d.test}`;
 /** A `hypotheses.ts` fact is answerable, computed, or read off a file. */
 const answerable = (key: string) =>
   key in PROFILE_QUESTIONS ||
-  SYNTHETIC_FACTS.has(key) ||
+  isSyntheticFact(key) ||
   key.startsWith("genome:") ||
   key.startsWith("hp:");
 

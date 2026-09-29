@@ -16,6 +16,8 @@ interface TextItem {
  */
 export async function extractTextFromPdf(
   buffer: Buffer,
+  /** For an encrypted PDF; pdfjs throws a `PasswordException` without it. */
+  password?: string,
 ): Promise<{ text: string; pages: number }> {
   const pdfjs = await import("pdfjs-dist/legacy/build/pdf.mjs");
   // ponytail: hand pdf.js the worker module instead of a path to it. In Node
@@ -30,6 +32,7 @@ export async function extractTextFromPdf(
     useWorkerFetch: false,
     isEvalSupported: false,
     useSystemFonts: true,
+    ...(password ? { password } : {}),
   }).promise;
 
   let text = "";

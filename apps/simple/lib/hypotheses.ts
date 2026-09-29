@@ -68,6 +68,14 @@ export interface EvidenceRule {
      * missing rather than false. Phase 17, section 4.
      */
     slopePerYear?: { above?: number; below?: number };
+    /**
+     * Any draw in the window, not the latest one: a B12 of 172 in 2021 is a
+     * fact about the person after the supplements made the latest one 354.
+     * Several keys AND together, each true when some draw in the window meets
+     * it. Read off `LatestValue.history`; no draw in the window is missing.
+     * Phase 41B, section 3.
+     */
+    ever?: EverWhen;
   };
   /** likelihood ratio when the condition holds; < 1 argues against. Absent input = no change. */
   lr: number;
@@ -90,6 +98,23 @@ export interface EvidenceRule {
    * engine never applies it twice.
    */
   sources?: { id: string; grade: Grade; lrPos: number; source: string }[];
+}
+
+/** The `ever` clause: some draw in the last `years` (all of them when absent). */
+export interface EverWhen {
+  below?: number;
+  above?: number;
+  /** under the range the lab printed on that draw */
+  belowRef?: boolean;
+  /** over the range the lab printed on that draw, or the marker's default cut-off */
+  aboveRef?: boolean;
+  years?: number;
+  /**
+   * The paper measured the past value itself ("a B12 under 200 at any point"),
+   * so the LR is taken as printed. Without it an `ever` rule is shrunk like a
+   * grade C one, because most papers measured the value at diagnosis.
+   */
+  aboutPast?: boolean;
 }
 
 export interface Discriminator {
@@ -161,12 +186,28 @@ export interface Hypothesis {
         sex?: Sex;
         minAge?: number;
         maxAge?: number;
+        ever?: EverWhen;
       };
       times: number;
       why: string;
-      /** seed-only: written to `hkb_prior_modifiers`, never read by the engine */
+      /**
+       * Written to `hkb_prior_modifiers`. The engine reads it only on a
+       * `share` rule, where it sets the shrink toward the base rate.
+       */
       grade?: Grade;
       source?: string;
+      /**
+       * Phase 41F: a printed share P(this | the `when` input), "19 of 71
+       * people with iron deficiency anaemia had atrophic gastritis". Scored as
+       * a mixture over the input's probability (see `shareMixture`), never
+       * as `times`, which stays on the row for the readers that only need a
+       * direction.
+       */
+      share?: number;
+      /** the population the share was counted in, words from the paper */
+      population?: string;
+      /** facts that put the person outside that population */
+      unless?: { fact: string; includes: string }[];
     }[];
   };
   evidence: EvidenceRule[];
@@ -1603,6 +1644,23 @@ export interface HypothesisResult {
   burdenDaly?: number;
   priorSource?: string;
   why?: string;
+  /**
+   * Phase 41F: the prior came from a printed share, as the mixture
+   * P(C) = P(C | X)·p(X) + P(C | not X)·(1 − p(X)). `given` is P(C | X)
+   * before the evidence; `posterior` is P(C | X) after it, the number a cause
+   * differential reads. `skipped` lists share rules the person is outside of.
+   */
+  mixture?: {
+    given: string;
+    pGiven: number;
+    share: number;
+    counted: number;
+    pNot: number;
+    posterior: number;
+    population?: string;
+    source: string;
+  };
+  mixtureSkipped?: { given: string; why: string }[];
 }
 
 /** How much a claim counts when it is only as good as its grade. */
@@ -1622,9 +1680,21 @@ const GRADE_WEIGHT: Record<Grade, number> = {
  */
 export const GRADE_SHRINK: Partial<Record<Grade, number>> = { C: 0.5 };
 
-/** The likelihood ratio the engine actually multiplies by. */
-export const effectiveLr = (lr: number, rule: EvidenceRule): number =>
-  rule.sources ? lr : lr ** (GRADE_SHRINK[rule.grade] ?? 1);
+/** The shrink an `ever` rule takes unless its paper measured the past value. */
+export const EVER_SHRINK = 0.5;
+
+/**
+ * The likelihood ratio the engine actually multiplies by. An `ever` rule is
+ * shrunk like grade C (once, not twice for a grade C `ever` rule): a paper
+ * that measured B12 at diagnosis says less about a low B12 five years ago.
+ */
+export const effectiveLr = (lr: number, rule: EvidenceRule): number => {
+  const grade = GRADE_SHRINK[rule.grade] ?? 1;
+  const ever = rule.when.ever && !rule.when.ever.aboutPast ? EVER_SHRINK : 1;
+  const exponent = Math.min(grade, ever);
+  // a pooled rule already carries its grade shrink in the number
+  return lr ** (rule.sources ? exponent / grade : exponent);
+};
 
 const round2 = (v: number) => Math.round(v * 100) / 100;
 const round3 = (v: number) => Math.round(v * 1000) / 1000;
@@ -1694,6 +1764,134 @@ const FACT_METRICS: Record<string, string[]> = {
  */
 export const SYNTHETIC_FACTS = new Set(Object.keys(FACT_METRICS));
 
+/**
+ * What a treatment is meant to move, by the words it is written in. `dir` is
+ * the way the marker should go on it: iron raises ferritin, levothyroxine
+ * lowers TSH. Phase 41B, section 4. Codes only; no rule reads these until the
+ * case research (41C) brings one with a paper behind it.
+ */
+export const TREATMENT_TARGETS: {
+  code: string;
+  words: RegExp;
+  dir: "up" | "down";
+}[] = [
+  {
+    code: "ferritin",
+    words:
+      /\biron\b|\bfer(?:rous|ric|um)\b|ferro|bisglycinate|carboxymaltose|ferinject|venofer|fier/i,
+    dir: "up",
+  },
+  {
+    code: "vitamin_b12",
+    words: /\bb-?12\b|cobalamin|methylcobal|cyanocobal|hydroxocobal/i,
+    dir: "up",
+  },
+  {
+    code: "vitamin_d",
+    words:
+      /vitamin\s*d\b|\bvit\.?\s*d\b|\bd3\b|cholecalciferol|colecalciferol/i,
+    dir: "up",
+  },
+  { code: "folic_acid", words: /folate|folic|methylfolate/i, dir: "up" },
+  {
+    code: "tsh",
+    words: /levothyrox|l-thyrox|euthyrox|synthroid|eltroxin/i,
+    dir: "down",
+  },
+];
+
+/** Days a treatment has to run before its target is expected to have moved. */
+export const RESPONSE_DAYS = 90;
+/** The rise over the pre-treatment median that counts as a response at all. */
+export const RESPONSE_RISE = 1.2;
+
+/** `no_response:ferritin`, `treated:ferritin`: facts computed per target code. */
+export const SYNTHETIC_PREFIXES = ["no_response:", "treated:"];
+
+/** A fact the engine computes rather than anybody answering it. */
+export const isSyntheticFact = (key: string): boolean =>
+  SYNTHETIC_FACTS.has(key) || SYNTHETIC_PREFIXES.some((p) => key.startsWith(p));
+
+const DAY_MS = 86_400_000;
+const dayMs = (d: string) => Date.parse(`${d.slice(0, 10)}T00:00:00Z`);
+
+const middle = (xs: number[]): number | null => {
+  if (!xs.length) return null;
+  const s = [...xs].sort((a, b) => a - b);
+  const n = s.length;
+  return n % 2 ? s[(n - 1) / 2]! : (s[n / 2 - 1]! + s[n / 2]!) / 2;
+};
+
+/** The treatments of this person aimed at one marker. */
+const treatmentsFor = (m: ModelInput, code: string) => {
+  const target = TREATMENT_TARGETS.filter((t) => t.code === code);
+  return (m.treatments ?? []).flatMap((tr) => {
+    const hit = target.find((t) => t.words.test(tr.what));
+    return hit ? [{ tr, dir: hit.dir }] : [];
+  });
+};
+
+/**
+ * Did a treatment fail to move its marker? Per treatment that has run at
+ * least `RESPONSE_DAYS`: every draw of the target from day 90 to the day it
+ * stopped sits outside the lab range the bad way, or short of the
+ * pre-treatment median × `RESPONSE_RISE` (divided, for a marker the treatment
+ * lowers). No draw after day 90 is no answer. The value is the failing routes
+ * ("oral", "iv", "oral, iv"; "any" when the route was never said), or "none"
+ * when every treatment that could be judged worked.
+ */
+export function noResponse(m: ModelInput, code: string): string | null {
+  const draws = m.latest[code]?.history?.draws ?? [];
+  const today = dayMs(m.today);
+  const failed: string[] = [];
+  let judged = 0;
+  for (const { tr, dir } of treatmentsFor(m, code)) {
+    const start = dayMs(tr.started);
+    const end = Math.min(tr.stopped ? dayMs(tr.stopped) : today, today);
+    if (!Number.isFinite(start) || end - start < RESPONSE_DAYS * DAY_MS)
+      continue;
+    const on = draws.filter((d) => {
+      const t = dayMs(d.date);
+      return t >= start + RESPONSE_DAYS * DAY_MS && t <= end;
+    });
+    if (!on.length) continue;
+    judged++;
+    const pre = middle(
+      draws.filter((d) => dayMs(d.date) < start).map((d) => d.value),
+    );
+    const stuck = on.every((d) =>
+      dir === "up"
+        ? (d.refLow != null && d.value < d.refLow) ||
+          (pre != null && d.value < pre * RESPONSE_RISE)
+        : (d.refHigh != null && d.value > d.refHigh) ||
+          (pre != null && d.value > pre / RESPONSE_RISE),
+    );
+    if (stuck && !failed.includes(tr.route)) failed.push(tr.route);
+  }
+  if (!judged) return null;
+  return failed.length ? failed.join(", ") : "none";
+}
+
+/** The route of every treatment aimed at `code` that is running today. */
+export function treatedWith(m: ModelInput, code: string): string | null {
+  const routes = treatmentsFor(m, code)
+    .filter(
+      ({ tr }) =>
+        tr.started <= m.today && (!tr.stopped || tr.stopped >= m.today),
+    )
+    .map(({ tr }) => tr.route);
+  return routes.length ? [...new Set(routes)].join(", ") : null;
+}
+
+/** The synthetic facts whose answer is words, not a number. */
+function syntheticText(m: ModelInput, key: string): string | null {
+  if (key.startsWith("no_response:"))
+    return noResponse(m, key.slice("no_response:".length));
+  if (key.startsWith("treated:"))
+    return treatedWith(m, key.slice("treated:".length));
+  return null;
+}
+
 interface Resolved {
   label: string;
   value: number | null;
@@ -1751,6 +1949,12 @@ function resolve(
     return { label: `event:${input.event}`, value: null, text };
   }
   if (input.fact) {
+    if (SYNTHETIC_PREFIXES.some((p) => input.fact!.startsWith(p))) {
+      const text = syntheticText(m, input.fact);
+      return text == null
+        ? null
+        : { label: input.fact, value: null, text, code: input.fact };
+    }
     const synthetic = syntheticFact(m, input.fact);
     if (synthetic != null)
       return {
@@ -1784,7 +1988,13 @@ function resolve(
  */
 function inputKey(rule: EvidenceRule): string {
   const input = rule.input;
-  const trend = rule.when.slopePerYear ? ":slope" : "";
+  // "was ever low" is a second fact about the marker, like a slope: it never
+  // supersedes the latest value and is never superseded by it.
+  const trend = rule.when.slopePerYear
+    ? ":slope"
+    : rule.when.ever
+      ? ":ever"
+      : "";
   if (input.metric) return `metric:${input.metric}${trend}`;
   if (input.derived) return `derived:${input.derived}${trend}`;
   if (input.hypothesis) return `hypothesis:${input.hypothesis}${trend}`;
@@ -1797,8 +2007,14 @@ function holds(
   when: EvidenceRule["when"],
   r: Resolved,
   sex?: Sex | null,
+  today?: string,
 ): boolean | null {
   const checks: boolean[] = [];
+  if (when.ever != null) {
+    const hit = everHolds(when.ever, r.row, today);
+    if (hit == null) return null;
+    checks.push(hit);
+  }
   if (when.sex != null) {
     // A cut written for men says nothing about a person whose sex we have not
     // been told, so it is missing rather than false.
@@ -1854,8 +2070,44 @@ function holds(
   return checks.every(Boolean);
 }
 
+/**
+ * The `ever` clause over the draws in its window. `null` when the marker has
+ * no draw in the window, or a range clause meets draws that printed no range.
+ */
+function everHolds(
+  ever: EverWhen,
+  row: LatestValue | undefined,
+  today?: string,
+): boolean | null {
+  const draws = row?.history?.draws ?? [];
+  const end = dayMs(today ?? row?.date ?? "");
+  const window =
+    ever.years != null && Number.isFinite(end)
+      ? draws.filter(
+          (d) => end - dayMs(d.date) <= ever.years! * 365.25 * DAY_MS,
+        )
+      : draws;
+  if (!window.length) return null;
+  const checks: boolean[] = [];
+  if (ever.below != null)
+    checks.push(window.some((d) => d.value < ever.below!));
+  if (ever.above != null)
+    checks.push(window.some((d) => d.value > ever.above!));
+  if (ever.belowRef) {
+    const ranged = window.filter((d) => d.refLow != null);
+    if (!ranged.length) return null;
+    checks.push(ranged.some((d) => d.value < d.refLow!));
+  }
+  if (ever.aboveRef) {
+    const ranged = window.filter((d) => d.refHigh != null);
+    if (!ranged.length) return null;
+    checks.push(ranged.some((d) => d.value > d.refHigh!));
+  }
+  return checks.length ? checks.every(Boolean) : null;
+}
+
 /** Does this prior modifier apply to this person? */
-function modifierApplies(
+export function modifierApplies(
   mod: Hypothesis["priors"]["modifiers"][number],
   m: ModelInput,
   scores: Map<string, number>,
@@ -1875,7 +2127,7 @@ function modifierApplies(
     return true;
   const r = resolve(keys, m, scores);
   if (!r) return false;
-  return holds(keys, r) === true;
+  return holds(keys, r, m.sex, m.today) === true;
 }
 
 /** The country fact, already stored as ISO-3166 alpha-2 by `saveFact`. */
@@ -2161,6 +2413,134 @@ export function stateFor(p: number, confirmed: boolean): HState {
   return confirmed ? "confirmed" : "likely";
 }
 
+type PriorModifier = Hypothesis["priors"]["modifiers"][number];
+
+/** The input a modifier reads, as a feature id: `hypothesis:iron_deficiency`. */
+const givenOf = (w: PriorModifier["when"]): string =>
+  w.hypothesis
+    ? `hypothesis:${w.hypothesis}`
+    : w.metric
+      ? `metric:${w.metric}`
+      : w.derived
+        ? `derived:${w.derived}`
+        : w.event
+          ? `event:${w.event}`
+          : `fact:${w.fact ?? "?"}`;
+
+/**
+ * A printed share as the prior it implies (phase 41F).
+ *
+ * "19 of 71 people with iron deficiency anaemia had atrophic gastritis" is
+ * P(C | X). Turning it into `times = share / base` and then through the grade
+ * shrink and the six-fold cap threw most of it away: the belief said 12 %
+ * while the cause hunch, reading the same paper, said 61 %. So the prior is
+ * the mixture
+ *
+ *   P(C) = P(C | X)·p(X) + P(C | not X)·(1 − p(X))
+ *
+ * where P(C | not X) is the ordinary modifier path (`pNot`), and P(C | X) is
+ * the share pulled toward this person's base rate by its grade, in log odds
+ * (C keeps half the distance, A and B all of it), then moved by the person's
+ * other modifiers on C, in odds. Several shares on the same X are one claim
+ * measured twice and are averaged in log odds. Shares on different inputs are
+ * not additive, so the one whose input is likeliest speaks (a tie goes to the
+ * larger move). A share whose study left out people like this one (`unless`)
+ * does not apply and is listed in `skipped`.
+ */
+export function shareMixture(
+  h: Hypothesis,
+  m: ModelInput,
+  scores: Map<string, number>,
+  base: number,
+  modifier: number,
+  pNot: number,
+): {
+  prior: number | null;
+  mixture?: Omit<NonNullable<HypothesisResult["mixture"]>, "posterior">;
+  skipped: { given: string; why: string }[];
+} {
+  const skipped: { given: string; why: string }[] = [];
+  const groups = new Map<string, { pX: number; rules: PriorModifier[] }>();
+  for (const mod of h.priors.modifiers) {
+    if (mod.share == null || !(mod.share > 0 && mod.share < 1)) continue;
+    const given = givenOf(mod.when);
+    const outside = mod.unless?.find((u) =>
+      modifierApplies(
+        { when: { fact: u.fact, includes: u.includes }, times: 1, why: "" },
+        m,
+        scores,
+      ),
+    );
+    if (outside) {
+      skipped.push({
+        given,
+        why: `the study counted ${mod.population ?? "a different population"}, and ${outside.fact} says ${factText(m, outside.fact)}`,
+      });
+      continue;
+    }
+    let pX: number | null;
+    if (mod.when.hypothesis) {
+      // the demographics still gate; the probability is read as it is
+      const { hypothesis: _h, above: _a, below: _b, ...rest } = mod.when;
+      pX = modifierApplies({ ...mod, when: rest }, m, scores)
+        ? (scores.get(mod.when.hypothesis) ?? null)
+        : 0;
+    } else pX = modifierApplies(mod, m, scores) ? 1 : 0;
+    if (pX == null) {
+      skipped.push({ given, why: `${given} is not scored before this one` });
+      continue;
+    }
+    const g = groups.get(given) ?? { pX, rules: [] };
+    g.rules.push(mod);
+    groups.set(given, g);
+  }
+  const logit = (p: number) => Math.log(p / (1 - p));
+  const baseP = Math.min(Math.max(base, MIN_PRIOR), 1 - 1e-9);
+  const scored = [...groups.entries()].map(([given, g]) => {
+    const lo =
+      g.rules.reduce((s, r) => {
+        const k = GRADE_SHRINK[r.grade ?? "C"] ?? 1;
+        return s + logit(baseP) + k * (logit(r.share!) - logit(baseP));
+      }, 0) / g.rules.length;
+    const counted = pFromOdds(Math.exp(lo));
+    const pGiven = Math.min(
+      pFromOdds(Math.exp(lo) * modifier),
+      Math.max(counted, PRIOR_CEILING),
+    );
+    return { given, g, counted, pGiven };
+  });
+  const best = scored
+    .filter((s) => s.g.pX > 0)
+    .sort(
+      (a, b) =>
+        b.g.pX - a.g.pX ||
+        Math.abs(logit(b.pGiven) - logit(pNot)) -
+          Math.abs(logit(a.pGiven) - logit(pNot)),
+    )[0];
+  if (!best) return { prior: null, skipped };
+  const pX = best.g.pX;
+  const prior = Math.min(
+    Math.max(best.pGiven * pX + pNot * (1 - pX), MIN_PRIOR),
+    1 - 1e-9,
+  );
+  const first = best.g.rules[0]!;
+  return {
+    prior,
+    mixture: {
+      given: best.given,
+      pGiven: roundP(best.pGiven),
+      share: roundP(
+        best.g.rules.reduce((s, r) => s + r.share!, 0) / best.g.rules.length,
+      ),
+      counted: roundP(best.counted),
+      pNot: roundP(pNot),
+      ...(first.population ? { population: first.population } : {}),
+      source: best.g.rules.map((r) => r.source ?? r.why).join("; "),
+    },
+    skipped,
+  };
+}
+
 export function scoreHypotheses(
   m: ModelInput,
   opts: {
@@ -2186,9 +2566,25 @@ export function scoreHypotheses(
     }
 
     const base = priorFor(h, m);
+    // ponytail: one reason counts once. Modifiers that share their `why` are
+    // one claim with several ways in ("Hashimoto's, or thyroid antibodies
+    // above the range"), so the strongest that holds counts and the rest do
+    // not multiply it again. No column needed, and a seed that never deletes
+    // cannot leave a second copy of the claim counting twice.
+    const byReason = new Map<string, number>();
+    for (const mod of h.priors.modifiers) {
+      // a printed share is a conditional, scored below as a mixture
+      if (mod.share != null) continue;
+      if (!modifierApplies(mod, m, scores)) continue;
+      const was = byReason.get(mod.why);
+      if (
+        was == null ||
+        Math.abs(Math.log(mod.times)) > Math.abs(Math.log(was))
+      )
+        byReason.set(mod.why, mod.times);
+    }
     let modifier = 1;
-    for (const mod of h.priors.modifiers)
-      if (modifierApplies(mod, m, scores)) modifier *= mod.times;
+    for (const times of byReason.values()) modifier *= times;
     // The same ceiling as the interview, for the same reason. Being a woman
     // (x4) whose mother had a thyroid (x3) took the *prior* for hypothyroidism
     // to 60 % before anything at all was measured, and one dry-skin answer
@@ -2199,10 +2595,13 @@ export function scoreHypotheses(
     );
     // The ceiling applies to what the modifiers did, not to what the epidemiology
     // says: a published prevalence stays whatever it was measured to be.
-    const prior = Math.min(
+    const pNot = Math.min(
       Math.max(base.prevalence * modifier, MIN_PRIOR),
       Math.max(base.prevalence, PRIOR_CEILING),
     );
+    // Phase 41F: a share rule makes the prior a mixture over its input.
+    const mix = shareMixture(h, m, scores, base.prevalence, modifier, pNot);
+    const prior = mix.prior ?? pNot;
 
     let odds = prior / (1 - prior);
     const forList: HypothesisResult["for"] = [];
@@ -2239,7 +2638,7 @@ export function scoreHypotheses(
         });
         continue;
       }
-      const hit = holds(rule.when, r, m.sex);
+      const hit = holds(rule.when, r, m.sex, m.today);
       if (hit == null) {
         missing.push({ rule: rule.id, input: r.label });
         continue;
@@ -2485,6 +2884,21 @@ export function scoreHypotheses(
       burdenDaly: h.burdenDaly,
       priorSource: base.source,
       why: h.why,
+      ...(mix.mixture
+        ? {
+            mixture: {
+              ...mix.mixture,
+              // the same evidence, read inside the population: P(C | X, data)
+              posterior: roundP(
+                pFromOdds(
+                  (mix.mixture.pGiven / (1 - mix.mixture.pGiven)) *
+                    (odds / (prior / (1 - prior))),
+                ),
+              ),
+            },
+          }
+        : {}),
+      ...(mix.skipped.length ? { mixtureSkipped: mix.skipped } : {}),
     });
   }
 

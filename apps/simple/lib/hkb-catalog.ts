@@ -1309,6 +1309,36 @@ const ATROPHIC_GASTRITIS: Hypothesis = {
         source:
           "Lahner 2009 World J Gastroenterol: autoimmune gastritis and thyroid autoimmunity overlap.",
       },
+      // Phase 41B: the same claim, read off what a person actually has rather
+      // than a `conditions` answer nobody gives. Same `why`, so the engine
+      // counts the claim once however many of these hold.
+      {
+        when: { hypothesis: "hashimoto", above: 0.4 },
+        times: 3,
+        why: "Autoimmune atrophic gastritis clusters with the other organ-specific autoimmune diseases (B).",
+        grade: "B",
+        source:
+          "Lahner 2009 World J Gastroenterol: autoimmune gastritis and thyroid autoimmunity overlap.",
+      },
+      {
+        when: {
+          metric: "anti_thyroglobulin",
+          ever: { aboveRef: true, years: 5 },
+        },
+        times: 3,
+        why: "Autoimmune atrophic gastritis clusters with the other organ-specific autoimmune diseases (B).",
+        grade: "B",
+        source:
+          "Lahner 2009 World J Gastroenterol: autoimmune gastritis and thyroid autoimmunity overlap.",
+      },
+      {
+        when: { metric: "tpo_antibodies", ever: { aboveRef: true, years: 5 } },
+        times: 3,
+        why: "Autoimmune atrophic gastritis clusters with the other organ-specific autoimmune diseases (B).",
+        grade: "B",
+        source:
+          "Lahner 2009 World J Gastroenterol: autoimmune gastritis and thyroid autoimmunity overlap.",
+      },
     ],
   },
   evidence: [

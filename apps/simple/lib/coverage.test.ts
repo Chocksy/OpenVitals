@@ -6,6 +6,7 @@ import {
   overlayPhoneFacts,
   profileQuestions,
   splitListFact,
+  treatmentsFrom,
   type LatestValue,
   type ModelInput,
 } from "./coverage";
@@ -341,5 +342,36 @@ describe("facts the phone measures (phase 24b)", () => {
       "2026-08-30",
     );
     expect(out.waist_cm).toBe("93");
+  });
+});
+
+describe("treatmentsFrom (phase 41B)", () => {
+  const h = (key: string, value: unknown, validFrom: string, validTo: string | null = null) => ({
+    key, value, validFrom, validTo, changeKind: "changed",
+  });
+
+  it("runs a list item from the first row that lists it to the end of its run", () => {
+    const t = treatmentsFrom(
+      [
+        h("supplements", "Iron bisglycinate, vitamin D3", "2024-09-01", "2025-03-19"),
+        h("supplements", "vitamin D3", "2025-03-20"),
+      ],
+      null,
+      "2026-09-28",
+    );
+    expect(t).toContainEqual({ what: "Iron bisglycinate", route: "oral", started: "2024-09-01", stopped: "2025-03-19", from: "supplements" });
+    expect(t.find((x) => x.what === "vitamin D3")).toMatchObject({ started: "2024-09-01", stopped: null });
+  });
+
+  it("takes the treatments fact as written, and IV words as iv", () => {
+    const t = treatmentsFrom([], [
+      { what: "iron", route: "oral", started: "2024-09-01", stopped: "2026-09-01" },
+      { what: "Ferinject infusion", started: "2026-09-15" },
+      { what: "future", started: "2027-01-01" },
+    ], "2026-09-28");
+    expect(t.map((x) => [x.route, x.started, x.stopped])).toEqual([
+      ["oral", "2024-09-01", "2026-09-01"],
+      ["iv", "2026-09-15", null],
+    ]);
   });
 });

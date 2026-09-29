@@ -7,17 +7,30 @@ import { signalsOf, type SignalsInput } from "./signals";
 /** The eval personas; `owner` is the owner's real draws, anonymised. */
 const cases = JSON.parse(
   readFileSync(
-    path.join(path.dirname(fileURLToPath(import.meta.url)), "../evals/hunches/cases.json"),
+    path.join(
+      path.dirname(fileURLToPath(import.meta.url)),
+      "../evals/hunches/cases.json",
+    ),
     "utf8",
   ),
 );
 const input = (id: string): SignalsInput => {
   const p = cases.personas.find((x: { id: string }) => x.id === id);
   return {
-    markers: p.markers.map((m: { points: [string, number, number | null, number | null, string | null][] }) => ({
-      ...m,
-      points: m.points.map(([date, value, refLow, refHigh, unit]) => ({ date, value, refLow, refHigh, unit })),
-    })),
+    markers: p.markers.map(
+      (m: {
+        points: [string, number, number | null, number | null, string | null][];
+      }) => ({
+        ...m,
+        points: m.points.map(([date, value, refLow, refHigh, unit]) => ({
+          date,
+          value,
+          refLow,
+          refHigh,
+          unit,
+        })),
+      }),
+    ),
     goals: p.goals,
     facts: p.facts,
     causes: cases.causes,
@@ -31,9 +44,13 @@ describe("signalsOf on the owner's real draws", () => {
 
   it("reads as of the last draw and raises exactly the five of S2", () => {
     expect(asOf).toBe("2026-04-23");
-    expect(raised.map((s) => s.key).sort()).toEqual(
-      ["cluster:iron", "drift:ldl_cholesterol", "gap:folic_acid", "good_news:crp", "step:eosinophils_abs"],
-    );
+    expect(raised.map((s) => s.key).sort()).toEqual([
+      "cluster:iron",
+      "drift:ldl_cholesterol",
+      "gap:folic_acid",
+      "good_news:crp",
+      "step:eosinophils_abs",
+    ]);
   });
 
   it("eosinophils: a step up since 2024-11-20, first firing 2025-12-09", () => {
@@ -46,10 +63,17 @@ describe("signalsOf on the owner's real draws", () => {
     const s = get("cluster:iron");
     expect(s.why).toBe("cluster");
     expect(s.firedAt).toEqual(["2026-04-23"]);
-    expect([...s.codes].sort()).toEqual(["ferritin", "homocysteine", "vitamin_b12", "vitamin_d"]);
+    expect([...s.codes].sort()).toEqual([
+      "ferritin",
+      "homocysteine",
+      "vitamin_b12",
+      "vitamin_d",
+    ]);
     expect(String(s.numbers.lit).split(",")[0]).toBe("ferritin");
     // its members fold into it instead of raising one each
-    expect(unraised.find((x) => x.key === "step:ferritin")?.numbers.foldedInto).toBe("cluster:iron");
+    expect(
+      unraised.find((x) => x.key === "step:ferritin")?.numbers.foldedInto,
+    ).toBe("cluster:iron");
   });
 
   it("LDL drifts away from the goal at +16.0 a year", () => {
@@ -59,11 +83,17 @@ describe("signalsOf on the owner's real draws", () => {
   });
 
   it("folate is a gap: MTHFR het and not in the last three draws", () => {
-    expect(get("gap:folic_acid").numbers).toMatchObject({ gene: "MTHFR", lastSeen: "2024-05-13" });
+    expect(get("gap:folic_acid").numbers).toMatchObject({
+      gene: "MTHFR",
+      lastSeen: "2024-05-13",
+    });
   });
 
   it("CRP is good news: out in 2023, back since", () => {
-    expect(get("good_news:crp").numbers).toMatchObject({ was: 15.8, wasDate: "2023-03-17" });
+    expect(get("good_news:crp").numbers).toMatchObject({
+      was: 15.8,
+      wasDate: "2023-03-17",
+    });
   });
 
   it("keeps the rest as unraised, never silently dropped", () => {
@@ -80,7 +110,9 @@ describe("signalsOf guards", () => {
   it("a jump on a new reference range is a lab change, not raised", () => {
     const { raised, unraised } = signalsOf(input("lab_jump"));
     expect(raised).toEqual([]);
-    expect(unraised.find((s) => s.key === "left_band:tsh")?.numbers.labChange).toBe(true);
+    expect(
+      unraised.find((s) => s.key === "left_band:tsh")?.numbers.labChange,
+    ).toBe(true);
   });
 
   it("the same jump with the old range raises", () => {
@@ -93,7 +125,81 @@ describe("signalsOf guards", () => {
   it("a gap closes once the code is in the last three draws", () => {
     const i = input("owner");
     const folate = i.markers.find((m) => m.code === "folic_acid")!;
-    folate.points = [...folate.points, { date: "2026-04-23", value: 9, refLow: 3.2, refHigh: 19.6, unit: "ng/mL" }];
-    expect(signalsOf(i).raised.map((s) => s.key)).not.toContain("gap:folic_acid");
+    folate.points = [
+      ...folate.points,
+      {
+        date: "2026-04-23",
+        value: 9,
+        refLow: 3.2,
+        refHigh: 19.6,
+        unit: "ng/mL",
+      },
+    ];
+    expect(signalsOf(i).raised.map((s) => s.key)).not.toContain(
+      "gap:folic_acid",
+    );
+  });
+});
+
+describe("chronic (phase 41B)", () => {
+  const ferritin = (values: number[]) => ({
+    ...input("owner"),
+    goals: [],
+    facts: {},
+    today: "2026-08-20",
+    markers: [
+      {
+        code: "ferritin",
+        name: "Ferritin",
+        unit: "ng/mL",
+        system: "iron" as const,
+        derived: false,
+        points: values.map((value, i) => ({
+          date: `${2023 + Math.floor(i / 2)}-${i % 2 ? "08" : "02"}-15`,
+          value,
+          refLow: 13,
+          refHigh: 150,
+          unit: "ng/mL",
+        })),
+      },
+    ],
+  });
+
+  it("raises a long run under the lab range the band had learned as normal", () => {
+    const { raised } = signalsOf(ferritin([9, 8.5, 10, 9.2, 8.8, 9.5, 8.2]));
+    const s = raised.find((x) => x.key === "chronic:ferritin");
+    expect(s).toMatchObject({ dir: "down", why: "graph" });
+    expect(s!.numbers).toMatchObject({ out: 7, n: 7, last: 8.2 });
+    expect(raised.some((x) => x.key === "left_band:ferritin")).toBe(false);
+  });
+
+  it("reads ferritin against the WHO floor of 30 where the lab prints lower", () => {
+    // every draw is over the lab's 13 and under 30
+    const { raised } = signalsOf(ferritin([16, 24, 19, 14, 22, 18, 17]));
+    const s = raised.find((x) => x.key === "chronic:ferritin");
+    expect(s!.numbers).toMatchObject({ out: 7, floor: 30 });
+    expect(s!.rule[0]).toContain("under 30 ng/mL");
+    expect(s!.rule[0]).toContain("WHO 2020");
+  });
+
+  it("names no floor when the lab range decided every draw", () => {
+    const s = signalsOf(ferritin([9, 8.5, 10, 9.2, 8.8, 9.5, 8.2])).raised.find(
+      (x) => x.key === "chronic:ferritin",
+    );
+    expect(s!.numbers.floor).toBeUndefined();
+    expect(s!.rule[0]).toContain("the range their own lab printed");
+  });
+
+  it("needs 60 % of the draws out, the last one included", () => {
+    expect(
+      signalsOf(ferritin([20, 9, 25, 8, 22, 9, 30])).raised.some(
+        (x) => x.kind === "chronic",
+      ),
+    ).toBe(false);
+    expect(
+      signalsOf(ferritin([9, 8, 9, 8, 9, 8, 30])).raised.some(
+        (x) => x.kind === "chronic",
+      ),
+    ).toBe(false);
   });
 });

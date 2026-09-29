@@ -6,7 +6,15 @@ import { runCurator } from "@/lib/curator";
 import { recordBeliefs } from "@/lib/ledger";
 import { ledgerNow, recordUploadMove } from "@/lib/read-receipt";
 import { generateReport } from "@/lib/report";
-import { extOf, processUpload, sha256, writeUpload } from "@/lib/uploads";
+import { NEEDS_PASSWORD } from "@/lib/extract";
+import {
+  extOf,
+  failedError,
+  failedStatus,
+  processUpload,
+  sha256,
+  writeUpload,
+} from "@/lib/uploads";
 
 export const maxDuration = 120;
 
@@ -115,12 +123,20 @@ export async function POST(req: Request) {
       note: result.note,
     });
   } catch (e) {
-    const error = e instanceof Error ? e.message : String(e);
+    const reason = e instanceof Error ? e.message : String(e);
     console.error("[upload] failed:", e);
+    // A cut-off or unreadable lab read lands here as `failed` with its reason,
+    // never as a document; a locked PDF waits for its password.
+    const error = failedError(reason);
     await db
       .update(uploads)
-      .set({ status: "failed", error })
+      .set({ status: failedStatus(reason), error })
       .where(eq(uploads.id, upload!.id));
-    return Response.json({ uploadId: upload!.id, error }, { status: 500 });
+    return reason === NEEDS_PASSWORD
+      ? Response.json(
+          { uploadId: upload!.id, error, needsPassword: true },
+          { status: 422 },
+        )
+      : Response.json({ uploadId: upload!.id, error }, { status: 500 });
   }
 }

@@ -37,21 +37,38 @@ final class HunchTests: XCTestCase {
         XCTAssertEqual(drift.number.value, 131)
     }
 
+    /// 41G: origin glyphs stay clear of the basis glyphs (● science, ○ anecdote).
+    func testOriginGlyphs() {
+        XCTAssertEqual(["paper", "catalog", "model", "you", nil].map(HunchInk.originGlyph),
+                       ["¶", "◆", "~", "✎", "◆"])
+        XCTAssertEqual(HunchInk.originLegend, "¶ paper  ◆ catalog  ~ model  ✎ you")
+        for o in ["paper", "catalog", "model", "you"] {
+            XCTAssertFalse(["●", "◐", "○"].contains(HunchInk.originGlyph(o)))
+        }
+    }
+
+    /// Since 41E the canned case is a `cause:` with its differential; since
+    /// 41G every option is engine output from a research overlay (see
+    /// `scripts/p41e-hunch-fixture.ts --research`).
     func testTheCaseDecodes() throws {
         let c = try decode("hunch", as: Api.HunchCase.self)
-        XCTAssertEqual(c.row.kind, "cluster")
-        XCTAssertEqual(c.row.system, "iron")
-        XCTAssertEqual(c.explanations.count, 4)
-        XCTAssertEqual(c.explanations.map(\.weight).reduce(0, +), 1, accuracy: 0.01)
+        XCTAssertEqual(c.row.kind, "cause")
+        XCTAssertEqual(c.row.stamp, "WHY")
+        XCTAssertEqual(c.explanations.count, 3)
+        XCTAssertLessThanOrEqual(c.explanations.map(\.weight).reduce(0, +), 1)
+        XCTAssertEqual(c.explanations.compactMap(\.origin), ["catalog", "catalog", "model"])
         XCTAssertEqual(c.question?.chips.count, 4)
         XCTAssertNil(c.answer)
-        XCTAssertEqual(c.test?.priceLine, "10 EUR · estimated")
+        XCTAssertEqual(c.test?.price, 194.98)
         XCTAssertEqual(c.explanations.first?.check?.words, "over 10")
-        XCTAssertEqual(c.rule.count, 3)
-        XCTAssertEqual(c.unknowns.count, 5)
-        XCTAssertEqual(c.firedAt, ["2026-04-23"])
-        XCTAssertEqual(c.markers.map(\.code), ["homocysteine", "ferritin", "vitamin_d", "vitamin_b12"])
-        XCTAssertEqual(c.series.last?.value, 79.6)
+        XCTAssertEqual(c.series.last?.value, 8.2)
+        let d = try XCTUnwrap(c.differential)
+        XCTAssertEqual(d.options.count, 3)
+        XCTAssertEqual(d.options.map(\.pct).reduce(d.otherPct, +), 100, accuracy: 2)
+        XCTAssertEqual(d.splitTest, "tTG-IgA with total IgA")
+        XCTAssertEqual(c.bestRead?.specialty, "gastroenterologist")
+        XCTAssertEqual(sharePct(0.3), "0.3%")
+        XCTAssertEqual(sharePct(12), "12%")
     }
 
     /// A case from an older server: only the row. Everything past it has a
@@ -60,10 +77,11 @@ final class HunchTests: XCTestCase {
         var row = try json("hunch")
         for key in ["say", "series", "bandAt", "explanations", "question", "answer", "test",
                     "predictions", "writtenAt", "outcome", "outcomeLine", "rule", "unknowns",
-                    "firedAt", "markers"] { row[key] = nil }
+                    "firedAt", "markers", "differential", "bestRead"] { row[key] = nil }
         let c = try decode(row, as: Api.HunchCase.self)
         XCTAssertEqual(c.row.line, try decode("hunch", as: Api.HunchCase.self).row.line)
         XCTAssertTrue(c.explanations.isEmpty && c.series.isEmpty && c.markers.isEmpty)
+        XCTAssertNil(c.differential)
     }
 
     func testTodayCarriesThePhase39Fields() throws {
@@ -71,6 +89,9 @@ final class HunchTests: XCTestCase {
         XCTAssertEqual(today.heading?.count, 12)
         XCTAssertEqual(today.hunches?.count, 5)
         XCTAssertEqual(today.confidence?.line, "Last draw 156 days ago · 11 of 12 systems · 4 open")
+        XCTAssertEqual(today.pending, [])
+        let p = Api.Today.Pending(upload: "u", date: "2026-08-18", names: ["Ferritin"])
+        XCTAssertEqual(p.line, "1 result still pending from 18 Aug")
         let ldl = try XCTUnwrap(today.goals.first { $0.code == "ldl_cholesterol" })
         XCTAssertEqual(ldl.recentSlope?.perYear ?? 0, 16.03, accuracy: 0.01)
         XCTAssertEqual(ldl.landing?.date, "2026-12-01")
@@ -79,7 +100,7 @@ final class HunchTests: XCTestCase {
     /// Old caches and old servers: no phase 39 key anywhere still decodes.
     func testAnOldServerStillDecodes() throws {
         var today = try json("today")
-        for key in ["hunches", "heading", "confidence"] { today[key] = nil }
+        for key in ["hunches", "heading", "confidence", "pending"] { today[key] = nil }
         today["goals"] = (today["goals"] as? [[String: Any]])?.map { goal in
             var g = goal
             g["recentSlope"] = nil
@@ -89,6 +110,7 @@ final class HunchTests: XCTestCase {
         let old = try decode(today, as: Api.Today.self)
         XCTAssertNil(old.hunches)
         XCTAssertNil(old.heading)
+        XCTAssertNil(old.pending)
 
         var markers = try json("markers")
         markers["markers"] = (markers["markers"] as? [[String: Any]])?.map { m in
@@ -116,7 +138,14 @@ final class HunchTests: XCTestCase {
     // MARK: the arithmetic
 
     func testAnAnswerReweightsTheServersWay() throws {
-        let c = try decode("hunch", as: Api.HunchCase.self)
+        let canned = try decode("hunch", as: Api.HunchCase.self)
+        // A differential's shares are the server's: an answer leaves them.
+        let chosen = try XCTUnwrap(canned.question?.chips.first)
+        XCTAssertEqual(canned.answered(chosen.id).explanations, canned.explanations)
+        // Without one, the phase 39 rule: favoured × 3, then back to 1.
+        var c = canned
+        c.differential = nil
+        for i in c.explanations.indices { c.explanations[i].weight = 1 / Double(c.explanations.count) }
         let chip = try XCTUnwrap(c.question?.chips.first)
         let after = c.answered(chip.id)
         XCTAssertEqual(after.answer, chip.id)

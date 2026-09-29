@@ -6,6 +6,7 @@
 import type {
   HeadingRow,
   HunchRow,
+  PendingRow,
   TodayBody,
   TodayGoal,
 } from "./api-contract";
@@ -453,4 +454,19 @@ export function markerLane(
     rank: 1 + Math.abs(z) / 10,
     outside: false,
   };
+}
+
+/**
+ * 41A/E: "1 result still pending from 18 Aug", one line per partial sheet.
+ * The day reads day-first, as the sheet itself prints it.
+ */
+export function pendingLine(p: PendingRow): string {
+  const n = p.names.length;
+  const when = p.date
+    ? ` from ${new Date(`${p.date.slice(0, 10)}T00:00:00Z`).toLocaleDateString(
+        "en-GB",
+        { day: "numeric", month: "short", timeZone: "UTC" },
+      )}`
+    : "";
+  return `${n} ${n === 1 ? "result" : "results"} still pending${when}`;
 }

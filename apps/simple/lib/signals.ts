@@ -27,7 +27,11 @@ export type Kind =
   | "discordance"
   | "cluster"
   | "gap"
-  | "good_news";
+  | "good_news"
+  /** outside the lab range on most draws for years (phase 41B) */
+  | "chronic"
+  /** a likely or confirmed belief whose cause is the open question (phase 41B) */
+  | "cause";
 
 export type Dir = "up" | "down";
 
@@ -224,17 +228,79 @@ export interface MarkerRead {
 }
 
 /**
+ * Guideline cut-offs the chronic rule reads beside each lab's own range: the
+ * low side is `max(refLow, low)`, the high side `min(refHigh, high)`. Only
+ * codes a guideline prints a threshold for; `units` are the ones the number
+ * is in (a draw in another unit keeps its lab range).
+ *
+ * ponytail: one row, typed by hand. Upgrade path: move it to an hkb table
+ * with DOI, quote and grade so `hkb-policy.decide` can add rows from papers.
+ */
+export const CHRONIC_FLOOR: Record<
+  string,
+  {
+    low?: number;
+    high?: number;
+    units: string[];
+    source: string;
+    grade: "A" | "B" | "C";
+  }
+> = {
+  ferritin: {
+    low: 30,
+    units: ["ng/ml", "µg/l", "ug/l", "mcg/l", "μg/l"],
+    source:
+      "WHO 2020 guideline on ferritin: a ferritin above 30 to 50 µg/L excludes iron deficiency",
+    grade: "A",
+  },
+};
+
+/** The guideline floor that applies to this draw, if its unit matches. */
+const floorOf = (code: string, p: Pick<LabPoint, "unit">) => {
+  const f = CHRONIC_FLOOR[code];
+  const unit = (p.unit ?? "").trim().toLowerCase();
+  return f && (!unit || f.units.includes(unit)) ? f : undefined;
+};
+
+/** The range a chronic read uses: the lab's, tightened by the floor. */
+function chronicRange(code: string, p: LabPoint) {
+  const f = floorOf(code, p);
+  const low =
+    f?.low != null ? Math.max(p.refLow ?? -Infinity, f.low) : p.refLow;
+  const high =
+    f?.high != null ? Math.min(p.refHigh ?? Infinity, f.high) : p.refHigh;
+  return {
+    low,
+    high,
+    floored:
+      (f?.low != null && (p.refLow == null || f.low > p.refLow)) ||
+      (f?.high != null && (p.refHigh == null || f.high < p.refHigh)),
+  };
+}
+
+/**
  * A draw that left the person's band (a full one) or, with no full band yet,
  * the lab range. Only the worse way counts when the marker has a worse side.
  * The band wins over the lab range where both exist, because lab ranges
  * change between labs (the owner's CRP range went from 49.9 to 0.33 to 3.3).
  */
-const outAt = (pts: LabPoint[], i: number, code: string): Dir | null => {
+const outAt = (
+  pts: LabPoint[],
+  i: number,
+  code: string,
+  lab = false,
+): Dir | null => {
   const p = pts[i]!;
   const worse = WORSE[code];
-  const b = bandOf(pts.slice(0, i + 1), { code });
+  // `lab`: the lab range only. Eight years of ferritin under 15 teach the
+  // band that under 15 is normal, so a chronic read never asks the band.
+  const b = lab ? undefined : bandOf(pts.slice(0, i + 1), { code });
   let dir: Dir | null = null;
-  if (b && !b.provisional) {
+  if (lab) {
+    const r = chronicRange(code, p);
+    if (r.high != null && p.value > r.high) dir = "up";
+    else if (r.low != null && p.value < r.low) dir = "down";
+  } else if (b && !b.provisional) {
     const z = zOf(p.value, b);
     if (Math.abs(z) >= LEFT_Z) dir = z > 0 ? "up" : "down";
   } else if (p.refHigh != null && p.value > p.refHigh) dir = "up";
@@ -257,6 +323,38 @@ function goodNewsOf(m: MarkerIn, pts: LabPoint[]) {
     return { was: pts[i]!, dir, back, since: pts[i + 1]!.date };
   }
   return undefined;
+}
+
+/** Share of draws outside the lab range the chronic rule needs. */
+export const CHRONIC_SHARE = 0.6;
+/** Draws the chronic rule needs, and the years they have to span. */
+export const CHRONIC_MIN_DRAWS = 4;
+export const CHRONIC_MIN_YEARS = 2;
+
+/**
+ * Outside the lab range the worse way on at least 60 % of at least four
+ * draws spanning two years, the last draw included. Grade C thresholds, to be
+ * judged on /brain like the drift ones. Phase 41B, section 5.
+ */
+export function chronicOf(code: string, pts: LabPoint[]) {
+  const last = pts[pts.length - 1];
+  if (!last || pts.length < CHRONIC_MIN_DRAWS) return undefined;
+  const years = (t(last.date) - t(pts[0]!.date)) / (365.25 * 86_400_000);
+  if (years < CHRONIC_MIN_YEARS) return undefined;
+  const dir = outAt(pts, pts.length - 1, code, true);
+  if (!dir) return undefined;
+  const out = pts.filter((_, i) => outAt(pts, i, code, true) === dir);
+  if (out.length / pts.length < CHRONIC_SHARE) return undefined;
+  // The floor is named only when it decided at least one draw.
+  const f = CHRONIC_FLOOR[code];
+  const byLab = (p: LabPoint) =>
+    dir === "down"
+      ? p.refLow != null && p.value < p.refLow
+      : p.refHigh != null && p.value > p.refHigh;
+  const floor = out.some((p) => chronicRange(code, p).floored && !byLab(p))
+    ? { value: dir === "down" ? f?.low : f?.high, ...f! }
+    : undefined;
+  return { dir, out, years: +years.toFixed(1), first: out[0]!, floor };
 }
 
 /** Every rule on one marker, with the points up to and including `d`. */
@@ -383,6 +481,35 @@ export function readMarker(
           .map((p) => fmt(p.value))
           .join(", ")}.`,
         `A step reads a new level without a spread, so it works where your draws sit close together.`,
+      ],
+    });
+
+  const chronic = chronicOf(m.code, pts);
+  if (chronic)
+    hits.push({
+      ...base,
+      kind: "chronic",
+      dir: chronic.dir,
+      since: chronic.first.date,
+      numbers: {
+        out: chronic.out.length,
+        n: pts.length,
+        years: chronic.years,
+        last: last.value,
+        ...(chronic.dir === "down"
+          ? last.refLow != null
+            ? { refLow: last.refLow }
+            : {}
+          : last.refHigh != null
+            ? { refHigh: last.refHigh }
+            : {}),
+        ...(chronic.floor?.value != null ? { floor: chronic.floor.value } : {}),
+      },
+      rule: [
+        chronic.floor?.value != null
+          ? `${chronic.out.length} of your ${pts.length} draws over ${fmt(chronic.years)} years sat ${chronic.dir === "down" ? "under" : "over"} ${fmt(chronic.floor.value)}${u} or their own lab's range where that is ${chronic.dir === "down" ? "higher" : "lower"}, the last one included (${fmt(last.value)}${u}). ${fmt(chronic.floor.value)}${u} is the guideline line (${chronic.floor.source}; grade ${chronic.floor.grade}).`
+          : `${chronic.out.length} of your ${pts.length} draws over ${fmt(chronic.years)} years sat ${chronic.dir === "down" ? "under" : "over"} the range their own lab printed, the last one included (${fmt(last.value)}${u}).`,
+        `A long run outside the lab range is read against the lab, not your band: your band would have learned it as normal. The rule needs ${Math.round(CHRONIC_SHARE * 100)} % of ${CHRONIC_MIN_DRAWS} or more draws over ${CHRONIC_MIN_YEARS} years (grade C, to be judged on /brain).`,
       ],
     });
 
@@ -539,7 +666,14 @@ export function signalsOf(input: SignalsInput): {
       let why: Signal["why"] = null;
       const worse = WORSE[m.code];
       if (goalCodes.has(m.code)) why = "goal";
-      else if (lc && lastPt.date === asOf && h.kind !== "good_news")
+      // a chronic read is against each draw's own range, so a new lab's
+      // range is not a reason to hold it back
+      else if (
+        lc &&
+        lastPt.date === asOf &&
+        h.kind !== "good_news" &&
+        h.kind !== "chronic"
+      )
         numbers.labChange = true;
       else if (h.kind !== "good_news" && worse && h.dir !== worse)
         numbers.benign = true;

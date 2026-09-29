@@ -275,7 +275,13 @@ export function slopePerYear(
   const window = points
     .filter((p) => {
       const t = new Date(p.date).getTime();
-      return Number.isFinite(t) && Number.isFinite(p.value) && end - t <= TREND_YEARS * YEAR_MS;
+      // a point after `asOf` has not happened yet (the blind replay)
+      return (
+        Number.isFinite(t) &&
+        Number.isFinite(p.value) &&
+        t <= end &&
+        end - t <= TREND_YEARS * YEAR_MS
+      );
     })
     .sort((a, b) => a.date.localeCompare(b.date));
   if (window.length < TREND_MIN_POINTS) return undefined;
@@ -303,3 +309,62 @@ export const slopeText = (slope: Slope, unit?: string | null): string =>
   `${slope.perYear > 0 ? "rising" : slope.perYear < 0 ? "falling" : "flat"}: ` +
   `${slope.perYear > 0 ? "+" : ""}${slope.perYear}${unit ? ` ${unit}` : ""}/yr ` +
   `over ${slope.years} year${slope.years === 1 ? "" : "s"} (${slope.n} draws)`;
+
+/** One lab draw with the range its lab printed, the shape `history` keeps. */
+export interface DrawPoint {
+  date: string;
+  value: number;
+  refLow: number | null;
+  refHigh: number | null;
+}
+
+/**
+ * Every draw of one marker, summed up: the lowest and highest with their
+ * dates, how many sat under and over the range their own lab printed, and the
+ * span in years. `draws` stays on it so an `ever` rule can read a window.
+ * Phase 41B, section 3.
+ */
+export interface History {
+  min: number;
+  minAt: string;
+  max: number;
+  maxAt: string;
+  n: number;
+  belowRef: number;
+  aboveRef: number;
+  years: number;
+  draws: DrawPoint[];
+}
+
+/** The history of one marker up to `asOf`, or undefined with no draw. */
+export function historyOf(
+  draws: DrawPoint[],
+  asOf?: string,
+): History | undefined {
+  const end = asOf ? new Date(asOf).getTime() : Date.now();
+  const kept = draws
+    .filter((d) => Number.isFinite(d.value) && new Date(d.date).getTime() <= end)
+    .sort((a, b) => a.date.localeCompare(b.date));
+  if (!kept.length) return undefined;
+  let lo = kept[0]!;
+  let hi = kept[0]!;
+  for (const d of kept) {
+    if (d.value < lo.value) lo = d;
+    if (d.value > hi.value) hi = d;
+  }
+  const span =
+    new Date(kept[kept.length - 1]!.date).getTime() -
+    new Date(kept[0]!.date).getTime();
+  return {
+    min: lo.value,
+    minAt: lo.date,
+    max: hi.value,
+    maxAt: hi.date,
+    n: kept.length,
+    belowRef: kept.filter((d) => d.refLow != null && d.value < d.refLow).length,
+    aboveRef: kept.filter((d) => d.refHigh != null && d.value > d.refHigh)
+      .length,
+    years: round2(span / YEAR_MS),
+    draws: kept,
+  };
+}

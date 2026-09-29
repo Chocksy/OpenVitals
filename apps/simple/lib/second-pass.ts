@@ -25,7 +25,6 @@
  * everything except the model call is testable without a database.
  */
 import { pathToFileURL } from "node:url";
-import { generateObject } from "ai";
 import { and, eq, inArray } from "drizzle-orm";
 import { z } from "zod";
 import {
@@ -38,7 +37,7 @@ import {
   type ReadingFlag,
 } from "@/db";
 import { users } from "@/db/auth-schema";
-import { model } from "./extract";
+import { generateObjectSafe } from "./extract";
 import {
   agrees,
   aliasesFor,
@@ -282,8 +281,7 @@ RULES:
 
 /** The one model call. Everything else in this file is pure. */
 export async function askSheet(q: SheetQuestion): Promise<SheetAnswer> {
-  const { object } = await generateObject({
-    model: model(),
+  const { object } = await generateObjectSafe({
     schema: sheetAnswerSchema,
     system: sheetPrompt,
     prompt: [

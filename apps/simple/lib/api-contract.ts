@@ -29,7 +29,11 @@ import {
   hunchRows,
   primaryOf,
   refreshHunches,
+  type Differential,
 } from "@/lib/hunches";
+import { specialtyOf } from "@/lib/cases";
+import { catalogFor } from "@/lib/hkb";
+import type { DocMeta } from "@/db";
 import {
   bandOf,
   fitOf,
@@ -203,6 +207,11 @@ export interface TodayBody {
   } | null;
   /** Phase 39: open hunches first, then unseen good news, at most 5 */
   hunches: HunchRow[];
+  /**
+   * Phase 41A/E: lab sheets that still wait on results, one per upload:
+   * "1 result still pending from 18 Aug". Empty when none do.
+   */
+  pending: PendingRow[];
   /** Phase 39: one word per system in `SYSTEMS`, for the header's Heading */
   heading: HeadingRow[];
   /** Phase 39: "Last draw N days ago · M of 12 systems · K open" */
@@ -213,6 +222,14 @@ export interface TodayBody {
     total: number;
     open: number;
   };
+}
+
+/** One partial lab sheet: the names it printed as pending, and its day. */
+export interface PendingRow {
+  upload: string;
+  /** the sheet's collection day, else the upload's */
+  date: string | null;
+  names: string[];
 }
 
 /** `GET /api/score/days`: the score per day, for the calendar. Phase 37. */
@@ -494,12 +511,16 @@ export async function todayBody(
     genes: genesLayer(genome.file ? genome.verdicts : null),
   });
 
-  const glance = await todayHunches(userId, rows, goals, day);
+  const [glance, pending] = await Promise.all([
+    todayHunches(userId, rows, goals, day),
+    pendingOf(userId),
+  ]);
 
   return {
     sentence,
     goals,
     ...glance,
+    pending,
     status: {
       off: counters.off,
       borderline: counters.normal,
@@ -1206,6 +1227,33 @@ type CaseSeries = {
 }[];
 type BandAt = { date: string; median: number; sd: number }[];
 
+/** One source behind a differential option. */
+export interface HunchSource {
+  label: string;
+  doi: string | null;
+  grade: HunchExplanation["grade"];
+  origin: "paper" | "catalog";
+}
+
+/**
+ * Phase 41E "Our read": a `cause:` hunch's differential, up to three
+ * options, what nobody on the list explains, and the test that splits them.
+ * Percents are whole numbers (one decimal under 1), shares of the open cause.
+ */
+export interface HunchDifferential {
+  options: {
+    id: string;
+    name: string;
+    pct: number;
+    /** one line: why this option is on the list */
+    reason: string;
+    sources: HunchSource[];
+    confirmTest: string | null;
+  }[];
+  otherPct: number;
+  splitTest: string | null;
+}
+
 /** `GET /api/hunches/[id]`: the case behind a row. */
 export interface HunchCase extends HunchRow {
   say: string;
@@ -1224,6 +1272,10 @@ export interface HunchCase extends HunchRow {
   rule: string[];
   unknowns: string[];
   firedAt: string[];
+  /** Phase 41E: a `cause:` hunch's differential, else null */
+  differential: HunchDifferential | null;
+  /** Phase 41E: who confirms the top option ("See: gastroenterologist") */
+  bestRead: { specialty: string } | null;
   /** a cluster's members, one lane each; empty for every other kind */
   markers: {
     code: string;
@@ -1257,6 +1309,8 @@ const STAMP: Record<HunchKind, string> = {
   good_news: "GOOD NEWS",
   left_band: "OUT OF BAND",
   discordance: "APART",
+  chronic: "CHRONIC",
+  cause: "WHY",
 };
 
 const monthOf = (d: string) =>
@@ -1350,6 +1404,16 @@ export function wordsOf(
       return {
         line: `${name(s.codes[0]!)} and ${name(s.codes[1]!)} are moving apart.`,
         say: `The graph says these two move together; on your draws they move apart.`,
+      };
+    case "chronic":
+      return {
+        line: `${nm} has been ${up ? "above" : "below"} the lab range on ${n.out} of ${n.n} draws over ${fmt(Number(n.years))} years.`,
+        say: `A long run outside the lab range, the last draw included. Your own band learned it as normal; the lab range did not.`,
+      };
+    case "cause":
+      return {
+        line: `${n.name} is ${n.state}; the question now is why.`,
+        say: `The belief holds. The causes below could each explain it, and one test splits them.`,
       };
   }
 }
@@ -1449,10 +1513,89 @@ async function filesOf(userId: string, codes: string[]) {
   return out;
 }
 
+const pctOf = (share: number) => {
+  const v = share * 100;
+  return v >= 1 || v === 0 ? Math.round(v) : +v.toFixed(1);
+};
+
+const DOI = /doi:\s*([^\s;|]+)/i;
+
+/** "Rubio-Tapia 2013 ACG guideline; doi:10.1/x | catalog: …" as sources. */
+function sourcesOf(o: Differential["options"][number]): HunchSource[] {
+  return o.source
+    .split(" | ")
+    .map((part) => {
+      const raw = part.replace(/^catalog:\s*/, "").trim();
+      const doi = raw.match(DOI)?.[1]?.replace(/[.,)]+$/, "") ?? null;
+      const label = raw
+        .replace(DOI, "")
+        .split(";")[0]!
+        .replace(/[\s,;]+$/, "")
+        .trim();
+      return { label: label || raw, doi, grade: o.grade ?? "C", origin: o.origin };
+    })
+    .filter((x) => x.label);
+}
+
+/** Why an option is on the list, in one line: the explanation's own words when there is one. */
+function reasonOf(
+  o: Differential["options"][number],
+  of: string,
+  expl: HunchExplanation[],
+): string {
+  const said = expl.find((e) => e.conditionId === o.id)?.text;
+  if (said) return said;
+  const x = of.toLowerCase();
+  if (o.basis === "share")
+    return `A paper counted it in ${pctOf(o.p)}% of people with ${x}.`;
+  if (o.basis === "requires") return `The catalog scores it once ${x} holds.`;
+  return `The engine's belief in it, read against ${x}.`;
+}
+
+/**
+ * The stored differential, in the contract's words. Pure. `other` is what
+ * the listed options leave, so the percents add up to 100 give or take a
+ * rounding.
+ */
+export function differentialBody(
+  d: Differential,
+  expl: HunchExplanation[],
+): HunchDifferential {
+  const options = d.options.map((o) => ({
+    id: o.id,
+    name: o.name,
+    pct: pctOf(o.share),
+    reason: reasonOf(o, d.name, expl),
+    sources: sourcesOf(o),
+    confirmTest: o.test?.name ?? null,
+  }));
+  return { options, otherPct: pctOf(d.other), splitTest: d.splitBy?.name ?? null };
+}
+
+/**
+ * The card's shares when a differential stands: an explanation of a listed
+ * option carries that option's share, and one the list does not name carries
+ * 0 (it sits in "other"). The card and Our read then say the same thing.
+ * Every explanation says where it came from; an old row that never stored it
+ * reads as the catalog when it names a condition, else as the model's.
+ */
+function withShares(
+  expl: HunchExplanation[],
+  d: Differential | null,
+): HunchExplanation[] {
+  return expl.map((e) => {
+    const origin = e.origin ?? (e.conditionId ? "catalog" : "model");
+    if (!d) return { ...e, origin };
+    const o = d.options.find((x) => x.id === e.conditionId);
+    return { ...e, origin, weight: o ? o.share : 0 };
+  });
+}
+
 function caseOf(
   h: Hunch,
   ctx: HunchCtx,
   files: Map<string, FileOf>,
+  catalog?: { id: string; management: string }[],
 ): HunchCase {
   const s = h.signal as unknown as Signal;
   const c = primaryOf(s);
@@ -1462,7 +1605,12 @@ function caseOf(
     return u ? ` ${u}` : "";
   };
   const row = rowOf(h, ctx);
-  const expl = h.explanations ?? [];
+  const diff =
+    s.kind === "cause"
+      ? ((s as unknown as { differential?: Differential }).differential ?? null)
+      : null;
+  const expl = withShares(h.explanations ?? [], diff);
+  const top = diff?.options[0];
   const band = row.mini.band;
   const unknowns = [
     band?.provisional
@@ -1474,9 +1622,11 @@ function caseOf(
     s.kind === "step" || s.kind === "cluster" || s.kind === "drift"
       ? "The rule says the level moved. It does not say why."
       : null,
-    expl.length
-      ? "The shares come from the engine where it scores a cause and an even split elsewhere. They are not a diagnosis."
-      : null,
+    diff
+      ? `Our read is a differential, not a diagnosis: ${pctOf(diff.other)}% stays other or unexplained.`
+      : expl.length
+        ? "The shares come from the engine where it scores a cause and an even split elsewhere. They are not a diagnosis."
+        : null,
     expl.some((e) => e.grade === "E")
       ? "Explanations marked unproven are not in the knowledge graph."
       : null,
@@ -1499,6 +1649,15 @@ function caseOf(
     rule: s.rule ?? [],
     unknowns,
     firedAt: s.firedAt ?? [],
+    differential: diff ? differentialBody(diff, h.explanations ?? []) : null,
+    bestRead:
+      top && catalog
+        ? {
+            specialty: specialtyOf(
+              catalog.find((c) => c.id === top.id)?.management,
+            ),
+          }
+        : null,
     markers:
       s.kind === "cluster"
         ? s.codes.map((code) => ({
@@ -1542,14 +1701,51 @@ export async function hunchesBody(userId: string): Promise<HunchesBody> {
 export async function hunchBody(
   userId: string,
   id: string,
+  /** a dry run's differential read in place of the stored one (the fixture
+   *  writer's case research overlay, `scripts/p41e-hunch-fixture.ts`) */
+  opts: { differential?: Differential } = {},
 ): Promise<HunchCase | null> {
-  const h = await hunchOf(userId, id);
-  if (!h) return null;
-  const [ctx, files] = await Promise.all([
+  const stored = await hunchOf(userId, id);
+  if (!stored) return null;
+  const h = opts.differential
+    ? {
+        ...stored,
+        signal: { ...stored.signal, differential: opts.differential },
+      }
+    : stored;
+  const [ctx, files, catalog] = await Promise.all([
     hunchCtx(userId),
     filesOf(userId, h.codes),
+    h.kind === "cause" ? catalogFor(userId) : undefined,
   ]);
-  return caseOf(h, ctx, files);
+  return caseOf(h, ctx, files, catalog);
+}
+
+/**
+ * Lab sheets that printed results as still pending ("în curs de execuție"),
+ * live and not replaced by a later upload of the same report.
+ */
+export async function pendingOf(userId: string): Promise<PendingRow[]> {
+  const rows = await getDb()
+    .select({
+      id: uploads.id,
+      meta: uploads.docMeta,
+      createdAt: uploads.createdAt,
+    })
+    .from(uploads)
+    .where(and(eq(uploads.userId, userId), isNull(uploads.deletedAt)))
+    .orderBy(desc(uploads.createdAt));
+  return rows.flatMap((u) => {
+    const m = u.meta as DocMeta | null;
+    if (!m?.pending?.length || m.supersededBy) return [];
+    return [
+      {
+        upload: String(u.id),
+        date: m.date ?? u.createdAt?.toISOString().slice(0, 10) ?? null,
+        names: m.pending,
+      },
+    ];
+  });
 }
 
 /**

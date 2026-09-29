@@ -728,6 +728,33 @@ extension Api {
         var heading: [HeadingRow]? = nil
         /// Phase 39: "Last draw N days ago · M of 12 systems · K open".
         var confidence: Confidence? = nil
+        /// Phase 41E: uploads with results the lab has not sent yet.
+        var pending: [Pending]? = nil
+
+        /// One upload with results still to come.
+        struct Pending: Codable, Equatable, Identifiable {
+            let upload: String
+            let date: String?
+            let names: [String]
+            var id: String { upload }
+
+            /// "1 result still pending from 18 Aug", as `pendingLine` on the web.
+            var line: String {
+                let n = names.count
+                var when = ""
+                if let date, date.count >= 10 {
+                    let f = DateFormatter()
+                    f.locale = Locale(identifier: "en_GB")
+                    f.timeZone = TimeZone(identifier: "UTC")
+                    f.dateFormat = "yyyy-MM-dd"
+                    if let d = f.date(from: String(date.prefix(10))) {
+                        f.dateFormat = "d MMM"
+                        when = " from \(f.string(from: d))"
+                    }
+                }
+                return "\(n) \(n == 1 ? "result" : "results") still pending\(when)"
+            }
+        }
 
         /// One system's direction on the person's own draws.
         struct HeadingRow: Codable, Equatable, Identifiable {
@@ -1049,6 +1076,37 @@ extension Api {
             var weight: Double
             let predicts: String?
             let check: HunchCheck?
+            /// "paper" | "catalog" | "model" | "you" (phase 41E); nil on an older server.
+            var origin: String? = nil
+        }
+
+        /// Our read (phase 41E): up to three causes with their shares, the
+        /// rest kept as "other", and the one test that splits them.
+        struct Differential: Decodable, Equatable {
+            struct Source: Decodable, Equatable {
+                let label: String
+                let doi: String?
+                let grade: String
+                /// "paper" | "catalog"
+                let origin: String
+            }
+
+            struct Option: Decodable, Equatable, Identifiable {
+                let id: String
+                let name: String
+                let pct: Double
+                let reason: String
+                let sources: [Source]
+                let confirmTest: String?
+            }
+
+            let options: [Option]
+            let otherPct: Double
+            let splitTest: String?
+        }
+
+        struct BestRead: Decodable, Equatable {
+            let specialty: String
         }
 
         struct Question: Decodable, Equatable {
@@ -1111,6 +1169,8 @@ extension Api {
         var unknowns: [String] = []
         var firedAt: [String] = []
         var markers: [Lane] = []
+        var differential: Differential?
+        var bestRead: BestRead?
 
         var id: String { row.id }
 
@@ -1120,7 +1180,7 @@ extension Api {
         enum CodingKeys: String, CodingKey {
             case say, series, bandAt, explanations, question, answer, test,
                  predictions, writtenAt, outcome, outcomeLine, rule, unknowns,
-                 firedAt, markers
+                 firedAt, markers, differential, bestRead
         }
 
         init(from decoder: Decoder) throws {
@@ -1141,6 +1201,8 @@ extension Api {
             unknowns = try c.decodeIfPresent([String].self, forKey: .unknowns) ?? []
             firedAt = try c.decodeIfPresent([String].self, forKey: .firedAt) ?? []
             markers = try c.decodeIfPresent([Lane].self, forKey: .markers) ?? []
+            differential = try c.decodeIfPresent(Differential.self, forKey: .differential)
+            bestRead = try c.decodeIfPresent(BestRead.self, forKey: .bestRead)
         }
 
         /// `CHIP_LR` in `lib/hunches.ts`: an answered chip multiplies the
@@ -1154,7 +1216,8 @@ extension Api {
             var next = self
             next.answer = chip
             let favours = Set(question?.chips.first { $0.id == chip }?.favours ?? [])
-            guard !favours.isEmpty else { return next }
+            // a differential's shares are the server's; an answer does not move them here
+            guard !favours.isEmpty, differential == nil else { return next }
             for i in next.explanations.indices where favours.contains(next.explanations[i].id) {
                 next.explanations[i].weight *= Self.chipLR
             }

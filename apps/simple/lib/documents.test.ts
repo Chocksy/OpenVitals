@@ -74,6 +74,40 @@ describe("toItems", () => {
     expect(item!.excerpt).toBe("LVEF 58 %.");
   });
 
+  it("carries the code accepting it would mint, for a named number with a unit", () => {
+    const [estrone, bare] = toItems(
+      doc({
+        measurements: [
+          {
+            name: "Estrone",
+            value: 16.3,
+            unit: "pg/mL",
+            excerpt: "Estrona 16,3 pg/mL",
+          },
+          { name: "Score", value: 3, excerpt: "score 3" },
+        ],
+      }),
+      known,
+    );
+    expect(estrone!.payload.code).toBeNull();
+    expect(estrone!.payload.mint).toBe("estrone");
+    // no unit: nothing to mint a metric from
+    expect(bare!.payload.mint).toBeNull();
+  });
+
+  it("finds a catalog code by the measurement's own name when there is no guess", () => {
+    const [item] = toItems(
+      doc({
+        measurements: [
+          { name: "ALT", value: 61, unit: "U/L", excerpt: "ALT 61" },
+        ],
+      }),
+      known,
+    );
+    expect(item!.payload.code).toBe("alt");
+    expect(item!.payload.mint).toBeNull();
+  });
+
   it("keeps the code when the catalog knows it", () => {
     const [item] = toItems(
       doc({

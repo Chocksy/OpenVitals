@@ -8,15 +8,25 @@
  * explanations and words a question. Weights, thresholds, the test and the
  * outcome are code.
  */
-import { generateObject } from "ai";
-import { and, desc, eq, inArray } from "drizzle-orm";
+import {
+  and,
+  desc,
+  eq,
+  gt,
+  inArray,
+  like,
+  notInArray,
+  or,
+} from "drizzle-orm";
 import { z } from "zod";
 import {
   beliefSnapshots,
   getDb,
   goals as goalsTable,
+  hkbConditionTests,
   hkbConditions,
   hkbEvidence,
+  hkbPriorModifiers,
   hkbTests,
   hunches,
   profileFacts,
@@ -28,8 +38,17 @@ import {
   type HunchTest,
 } from "@/db";
 import { recordHunchCalibration } from "./calibration";
+import { buildModelInput } from "./coverage";
 import { getMetricRows, type MetricRow } from "./data";
-import { model } from "./extract";
+import { profileAt } from "./facts";
+import { catalogFor, loadCatalog } from "./hkb";
+import {
+  scoreHypotheses,
+  type Catalog,
+  type Discriminator,
+  type Hypothesis,
+} from "./hypotheses";
+import { generateObjectSafe } from "./extract";
 import { gradeOfEdge, type SystemId } from "./graph";
 import { loadGraph, type Graph } from "./kg";
 import { labPoints, type LabPoint } from "./personal";
@@ -54,6 +73,12 @@ const GRAPH_ALIAS: Record<string, string> = { crp: "hs_crp" };
 
 type Grade = HunchExplanation["grade"];
 type Basis = HunchExplanation["basis"];
+type Origin = NonNullable<HunchExplanation["origin"]>;
+/** A cause with where it came from; `Cause` itself lives in signals.ts. */
+type Sourced = Cause & { origin?: Origin };
+
+/** What case research (phase 41C) writes into `review_note`. */
+const PAPER_NOTE = "origin: paper";
 
 /* ── pure: the closed list ─────────────────────────────────────────────── */
 
@@ -65,6 +90,29 @@ export interface EvidenceRow {
   lrPos: number;
   grade: string;
   source: string;
+  /** "paper" for a case-research row; seed and topic-watch rows are catalog */
+  origin?: Origin;
+}
+
+/** The rows a case research dry run hands back, laid over the database's. */
+export interface HunchOverlay {
+  evidence: (Omit<EvidenceRow, "conditionName" | "origin"> & {
+    status?: string;
+  })[];
+  modifiers: {
+    conditionId: string;
+    featureId: string;
+    conditionOn: Record<string, unknown>;
+    times: number;
+    grade?: string | null;
+    source?: string | null;
+    why?: string | null;
+  }[];
+  conditions: {
+    id: string;
+    name: string;
+    requires?: ConditionLink["requires"];
+  }[];
 }
 
 const basisOf = (grade: string): Basis =>
@@ -189,7 +237,8 @@ export function causesFrom(
         source: r.source.split(/[:.]/)[0]!.trim().slice(0, 120) || null,
         conditionId: r.conditionId,
         check: checks.get(r.conditionId) ?? null,
-      });
+        origin: r.origin ?? "catalog",
+      } as Sourced);
     }
     out[code] = [...found.values()];
   }
@@ -216,7 +265,167 @@ export function closedList(
   );
 }
 
-const toExplanation = (c: Cause, text = c.name): HunchExplanation => ({
+/* ── pure: why a settled belief holds (phase 41B) ─────────────────────── */
+
+export interface ConditionLink {
+  id: string;
+  name: string;
+  requires: { condition: string; minState: number } | null;
+}
+
+const GRADES = ["A", "B", "C", "D", "E"];
+
+/**
+ * The causes of one condition: kg edges that raise or worsen its node, hkb
+ * conditions whose evidence reads `hypothesis:<id>` with LR above 1, and
+ * catalog conditions the engine scores only once it holds (`requires`).
+ */
+export function causesOfCondition(
+  id: string,
+  graph: Graph,
+  evidence: EvidenceRow[],
+  conditions: ConditionLink[],
+  links: EvidenceRow[] = [],
+): Cause[] {
+  const nodes = new Map(graph.nodes.map((n) => [n.id, n]));
+  const checks = checksOf(evidence);
+  const hkbIds = new Set(conditions.map((c) => c.id));
+  // ponytail: kg `coeliac` is hkb `coeliac_disease`; both node ids count.
+  const targets = new Set([
+    `condition:${id}`,
+    `condition:${id.replace(/_disease$/, "")}`,
+  ]);
+  const found = new Map<string, Sourced>();
+  const add = (c: Sourced) => {
+    if (c.id === id || c.id.endsWith("_risk")) return;
+    const was = found.get(c.id);
+    if (!was || c.grade < was.grade) found.set(c.id, c);
+  };
+  for (const e of graph.edges) {
+    if (!targets.has(e.to)) continue;
+    if (e.relation !== "raises" && e.relation !== "worsens") continue;
+    const from = nodes.get(e.from);
+    if (!from) continue;
+    const local = from.id.startsWith("condition:") ? from.id.slice(10) : null;
+    const conditionId =
+      local && hkbIds.has(local)
+        ? local
+        : local && hkbIds.has(`${local}_disease`)
+          ? `${local}_disease`
+          : null;
+    add({
+      id: conditionId ?? from.id,
+      name: from.name,
+      dir: null,
+      grade: gradeOfEdge(e),
+      basis: e.basis,
+      source: e.evidence[0]?.title ?? null,
+      conditionId,
+      check: conditionId ? (checks.get(conditionId) ?? null) : null,
+      origin: "catalog",
+    });
+  }
+  // `links` are case-research prior modifiers on `hypothesis:<id>`: "22 % of
+  // people with <id> had X" makes X a cause to look for. A seeded modifier is
+  // not passed here: those say two conditions cluster, not that one explains
+  // the other.
+  for (const r of [...evidence, ...links]) {
+    if (r.featureId !== `hypothesis:${id}` || r.lrPos <= 1) continue;
+    add({
+      id: r.conditionId,
+      name: r.conditionName,
+      dir: null,
+      grade: r.grade,
+      basis: basisOf(r.grade),
+      source: r.source.split(/[:.]/)[0]!.trim().slice(0, 120) || null,
+      conditionId: r.conditionId,
+      check: checks.get(r.conditionId) ?? null,
+      origin: r.origin ?? "catalog",
+    });
+  }
+  for (const c of conditions) {
+    if (c.requires?.condition !== id) continue;
+    const grade =
+      evidence
+        .filter((r) => r.conditionId === c.id && r.lrPos > 1)
+        .map((r) => r.grade)
+        .filter((g) => GRADES.includes(g))
+        .sort()[0] ?? "C";
+    add({
+      id: c.id,
+      name: c.name,
+      dir: null,
+      grade,
+      basis: basisOf(grade),
+      source: `catalog: scored once ${id} holds`,
+      conditionId: c.id,
+      check: checks.get(c.id) ?? null,
+      origin: "catalog",
+    });
+  }
+  return [...found.values()].sort(
+    (a, b) =>
+      a.grade.localeCompare(b.grade) ||
+      Number(!!b.check) - Number(!!a.check) ||
+      a.id.localeCompare(b.id),
+  );
+}
+
+const SETTLED = new Set(["likely", "confirmed"]);
+
+/**
+ * One `cause:<id>` signal per likely or confirmed belief with at least two
+ * causes to split: the belief holds, the open question is why. Its codes are
+ * the person's markers the condition's own evidence reads.
+ */
+export function causeSignals(
+  beliefs: BeliefSnapshotBeliefs | null,
+  causes: Record<string, Cause[]>,
+  evidence: EvidenceRow[],
+  markers: string[],
+  names: Record<string, string>,
+): Signal[] {
+  const have = new Set(markers);
+  const out: Signal[] = [];
+  for (const [id, b] of Object.entries(beliefs ?? {})) {
+    if (!SETTLED.has(b.state) || (causes[id]?.length ?? 0) < 2) continue;
+    const codes = [
+      ...new Set(
+        evidence
+          .filter(
+            (r) => r.conditionId === id && r.featureId.startsWith("metric:"),
+          )
+          .map((r) => r.featureId.slice(7))
+          .filter((c) => have.has(c)),
+      ),
+    ].sort();
+    if (!codes.length) continue;
+    out.push({
+      key: `cause:${id}`,
+      kind: "cause",
+      codes,
+      system: null,
+      dir: null,
+      since: null,
+      numbers: {
+        conditionId: id,
+        name: names[id] ?? id,
+        p: +b.p.toFixed(3),
+        state: b.state,
+      },
+      rule: [
+        `${names[id] ?? id} is ${b.state} (p ${b.p.toFixed(2)})`,
+        `${causes[id]!.length} causes in the graph and catalog could explain it`,
+      ],
+      why: "graph",
+      firedAt: [],
+    });
+  }
+  return out;
+}
+
+const toExplanation = (c: Sourced, text = c.name): HunchExplanation => ({
+  origin: c.origin ?? "catalog",
   id: c.id,
   text,
   grade: (["A", "B", "C", "D", "E"].includes(c.grade) ? c.grade : "C") as Grade,
@@ -268,6 +477,7 @@ export interface TestRow {
   featureIds: string[];
   cost: number;
   costByCountry: Record<string, number> | null;
+  lrPos?: number;
 }
 
 /** The cheapest catalog test that measures `code`, priced for the person. */
@@ -430,37 +640,180 @@ export interface Person {
   beliefs: BeliefSnapshotBeliefs | null;
   /** codes measured on the person's last three draws: their answer is known */
   known: Set<string>;
+  /** phase 41B: the causes of each likely or confirmed belief */
+  conditionCauses: Record<string, Cause[]>;
+  evidence: EvidenceRow[];
+  conditionNames: Record<string, string>;
+  /** test ids per condition, from `hkb_condition_tests` */
+  conditionTests?: Record<string, string[]>;
 }
 
-export async function personOf(userId: string, today: string): Promise<Person> {
+/**
+ * A case-research modifier "cause of <id>" (phase 41C round 3) reads as a
+ * link on `hypothesis:<id>`, whatever its own feature is: the failure of a
+ * treatment is found among people with the condition it treats.
+ */
+export const linkFeature = (featureId: string, why: string | null | undefined) => {
+  const of = why?.match(/cause of (\w+)/)?.[1];
+  return of ? `hypothesis:${of}` : featureId;
+};
+
+/**
+ * Everything the hunch rules read about one person. `asOf` reads them as they
+ * stood on that day (the blind replay, phase 41D): readings up to it, goals
+ * set by then, facts from their history, and beliefs scored on that day's
+ * input rather than the newest snapshot. `beliefs` hands in beliefs the
+ * caller already scored.
+ */
+export async function personOf(
+  userId: string,
+  today: string,
+  opts: {
+    asOf?: string;
+    beliefs?: BeliefSnapshotBeliefs | null;
+    /** a case research dry run's rules and promotions, in memory */
+    overlay?: HunchOverlay | null;
+  } = {},
+): Promise<Person> {
   const db = getDb();
-  const [rows, goalRows, factRows, graph, evidence, testRows, snap] =
-    await Promise.all([
-      getMetricRows(userId),
-      db.select().from(goalsTable).where(eq(goalsTable.userId, userId)),
-      db.select().from(profileFacts).where(eq(profileFacts.userId, userId)),
-      loadGraph(),
-      db
-        .select({
-          conditionId: hkbEvidence.conditionId,
-          conditionName: hkbConditions.name,
-          featureId: hkbEvidence.featureId,
-          conditionOn: hkbEvidence.conditionOn,
-          lrPos: hkbEvidence.lrPos,
-          grade: hkbEvidence.grade,
-          source: hkbEvidence.source,
-        })
-        .from(hkbEvidence)
-        .innerJoin(hkbConditions, eq(hkbConditions.id, hkbEvidence.conditionId))
-        .where(inArray(hkbEvidence.status, ["seed", "accepted"])),
-      db.select().from(hkbTests),
-      db
-        .select({ beliefs: beliefSnapshots.beliefs })
-        .from(beliefSnapshots)
-        .where(eq(beliefSnapshots.userId, userId))
-        .orderBy(desc(beliefSnapshots.computedAt))
-        .limit(1),
-    ]);
+  const asOf = opts.asOf;
+  const [
+    rows,
+    goalRows,
+    factRows,
+    graph,
+    stored,
+    testRows,
+    snap,
+    catalogConds,
+    paperLinks,
+    condTests,
+  ] = await Promise.all([
+    getMetricRows(userId, { asOf }),
+    db
+      .select()
+      .from(goalsTable)
+      .where(eq(goalsTable.userId, userId))
+      .then((gs) =>
+        asOf ? gs.filter((g) => g.createdAt && day(g.createdAt) <= asOf) : gs,
+      ),
+    asOf
+      ? profileAt(userId, asOf, { timeless: true }).then((p) =>
+          Object.entries(p).map(([key, value]) => ({ key, value })),
+        )
+      : db.select().from(profileFacts).where(eq(profileFacts.userId, userId)),
+    loadGraph(),
+    db
+      .select({
+        conditionId: hkbEvidence.conditionId,
+        conditionName: hkbConditions.name,
+        featureId: hkbEvidence.featureId,
+        conditionOn: hkbEvidence.conditionOn,
+        lrPos: hkbEvidence.lrPos,
+        grade: hkbEvidence.grade,
+        source: hkbEvidence.source,
+        reviewNote: hkbEvidence.reviewNote,
+      })
+      .from(hkbEvidence)
+      .innerJoin(hkbConditions, eq(hkbConditions.id, hkbEvidence.conditionId))
+      .where(inArray(hkbEvidence.status, ["seed", "accepted"])),
+    db.select().from(hkbTests),
+    opts.beliefs !== undefined
+      ? [{ beliefs: opts.beliefs }]
+      : asOf
+        ? beliefsAt(userId, asOf).then((beliefs) => [{ beliefs }])
+        : db
+            .select({ beliefs: beliefSnapshots.beliefs })
+            .from(beliefSnapshots)
+            .where(eq(beliefSnapshots.userId, userId))
+            .orderBy(desc(beliefSnapshots.computedAt))
+            .limit(1),
+    db
+      .select({
+        id: hkbConditions.id,
+        name: hkbConditions.name,
+        requires: hkbConditions.requires,
+      })
+      .from(hkbConditions)
+      .where(eq(hkbConditions.inCatalog, true)),
+    // case research's modifiers on a condition's probability: cause links
+    db
+      .select({
+        conditionId: hkbPriorModifiers.conditionId,
+        conditionName: hkbConditions.name,
+        featureId: hkbPriorModifiers.featureId,
+        conditionOn: hkbPriorModifiers.conditionOn,
+        lrPos: hkbPriorModifiers.times,
+        grade: hkbPriorModifiers.grade,
+        source: hkbPriorModifiers.source,
+        why: hkbPriorModifiers.why,
+      })
+      .from(hkbPriorModifiers)
+      .innerJoin(
+        hkbConditions,
+        eq(hkbConditions.id, hkbPriorModifiers.conditionId),
+      )
+      .where(
+        and(
+          or(
+            like(hkbPriorModifiers.featureId, "hypothesis:%"),
+            like(hkbPriorModifiers.why, "%cause of %"),
+          ),
+          like(hkbPriorModifiers.why, "%case research%"),
+          gt(hkbPriorModifiers.times, 1),
+        ),
+      ),
+    db.select().from(hkbConditionTests),
+  ]);
+  // an overlay's promoted conditions count as catalog ones; its rules as papers
+  const overlay = opts.overlay ?? null;
+  const conds: ConditionLink[] = [
+    ...(catalogConds as ConditionLink[]),
+    ...(overlay?.conditions ?? [])
+      .filter((c) => !catalogConds.some((x) => x.id === c.id))
+      .map((c) => ({ id: c.id, name: c.name, requires: c.requires ?? null })),
+  ];
+  const nameOf = (id: string) => conds.find((c) => c.id === id)?.name ?? id;
+  const evidence: EvidenceRow[] = [
+    ...stored.map(({ reviewNote, ...r }) => ({
+      ...r,
+      origin: (reviewNote?.startsWith(PAPER_NOTE)
+        ? "paper"
+        : "catalog") as Origin,
+    })),
+    ...(overlay?.evidence ?? [])
+      .filter((r) => !r.status || r.status === "accepted")
+      .map(({ status: _, ...r }) => ({
+        ...r,
+        conditionName: nameOf(r.conditionId),
+        origin: "paper" as const,
+      })),
+  ];
+  const links: EvidenceRow[] = [
+    ...paperLinks.map(({ why, ...r }) => ({
+      ...r,
+      featureId: linkFeature(r.featureId, why),
+      grade: r.grade ?? "C",
+      source: r.source ?? "",
+      origin: "paper" as const,
+    })),
+    ...(overlay?.modifiers ?? [])
+      .filter(
+        (m) =>
+          linkFeature(m.featureId, m.why).startsWith("hypothesis:") &&
+          m.times > 1,
+      )
+      .map((m) => ({
+        conditionId: m.conditionId,
+        conditionName: nameOf(m.conditionId),
+        featureId: linkFeature(m.featureId, m.why),
+        conditionOn: m.conditionOn,
+        lrPos: m.times,
+        grade: m.grade ?? "C",
+        source: m.source ?? "",
+        origin: "paper" as const,
+      })),
+  ];
   const systemOf = new Map(
     graph.nodes
       .filter((n) => n.kind === "metric")
@@ -515,14 +868,50 @@ export async function personOf(userId: string, today: string): Promise<Person> {
       featureIds: t.featureIds,
       cost: t.cost,
       costByCountry: t.costByCountry,
+      lrPos: t.lrPos,
     })),
+    conditionTests: condTests.reduce<Record<string, string[]>>((acc, l) => {
+      (acc[l.conditionId] ??= []).push(l.testId);
+      return acc;
+    }, {}),
     beliefs: snap[0]?.beliefs ?? null,
+    conditionCauses: Object.fromEntries(
+      Object.entries(snap[0]?.beliefs ?? {})
+        .filter(([, b]) => SETTLED.has(b.state))
+        .map(([id]) => [
+          id,
+          causesOfCondition(id, graph, evidence, conds, links),
+        ]),
+    ),
+    evidence: evidence as EvidenceRow[],
+    conditionNames: Object.fromEntries(conds.map((c) => [c.id, c.name])),
     known: new Set(
       markers
         .filter((m) => m.points.some((p) => last3.has(p.date)))
         .map((m) => m.code),
     ),
   };
+}
+
+/**
+ * The engine's beliefs on a past day, scored on that day's input with the
+ * shared ring-1 catalog: a ring-2 condition woken later is not read.
+ */
+export async function beliefsAt(
+  userId: string,
+  asOf: string,
+  seed: Record<string, unknown> = {},
+): Promise<BeliefSnapshotBeliefs> {
+  const [input, catalog] = await Promise.all([
+    buildModelInput(userId, asOf, seed),
+    loadCatalog(),
+  ]);
+  return Object.fromEntries(
+    scoreHypotheses(input, { catalog }).map((h) => [
+      h.id,
+      { p: h.score, state: h.state },
+    ]),
+  );
 }
 
 /* ── the model: explanations and one question ──────────────────────────── */
@@ -585,8 +974,7 @@ export async function explain(
       .map(([k, v]) => `${k.slice(7).toUpperCase()} ${v}`),
   ].filter(Boolean);
   try {
-    const { object } = await generateObject({
-      model: model(),
+    const { object } = await generateObjectSafe({
       schema: explainSchema,
       system: EXPLAIN_PROMPT,
       prompt: [
@@ -622,6 +1010,7 @@ export async function explain(
         weight: 0,
         predicts: null,
         check: null,
+        origin: "model",
       }),
     );
     const ids = new Set(picked.map((p) => p.id));
@@ -652,8 +1041,40 @@ export function primaryOf(s: Pick<Signal, "codes" | "numbers">): string {
   return lit.find((c) => s.codes.includes(c)) ?? s.codes[0]!;
 }
 
+/**
+ * A cause hunch asks which cause it is, so its test is the one that confirms
+ * the leading cause: going down the explanations by weight, the first whose
+ * condition has a cheap test (special blood at most) not already answered,
+ * the highest LR+ of those, the cheaper on a tie.
+ */
+export function causeTest(
+  expl: HunchExplanation[],
+  person: Pick<Person, "conditionTests" | "tests" | "known" | "country">,
+): HunchTest | null {
+  for (const e of [...expl].sort((a, b) => b.weight - a.weight)) {
+    const ids = e.conditionId ? person.conditionTests?.[e.conditionId] : null;
+    if (!ids?.length) continue;
+    const pick = person.tests
+      .filter(
+        (t) =>
+          ids.includes(t.id) &&
+          t.cost <= 2 &&
+          t.featureIds.length &&
+          !t.featureIds.every((c) => person.known.has(c)),
+      )
+      .sort((a, b) => (b.lrPos ?? 0) - (a.lrPos ?? 0) || a.cost - b.cost)[0];
+    if (pick)
+      return priceTest(pick.featureIds[0]!, [pick], person.country, pick.name);
+  }
+  return null;
+}
+
 function testFor(s: Signal, expl: HunchExplanation[], person: Person) {
   if (s.kind === "good_news") return null;
+  if (s.kind === "cause") {
+    const t = causeTest(expl, person);
+    if (t) return t;
+  }
   if (s.kind === "gap")
     return priceTest(
       s.codes[0]!,
@@ -701,11 +1122,223 @@ function predictsOf(
   }));
 }
 
+/** A hunch as it would be written, for a dry run that writes nothing. */
+export interface DraftHunch {
+  key: string;
+  kind: Signal["kind"];
+  codes: string[];
+  explanations: HunchExplanation[];
+  test: HunchTest | null;
+  /** a `cause:` hunch's differential, when the caller handed in a catalog */
+  differential?: Differential | null;
+}
+
+/* ── the differential ──────────────────────────────────────────────────── */
+
+/** One option of a differential: a cause, its share, where the share comes from. */
+export interface DifferentialOption {
+  id: string;
+  name: string;
+  /** its share of the open cause, after the remainder is set aside */
+  share: number;
+  /** P(cause | the condition) the share was read from, before scaling */
+  p: number;
+  /** the engine's own belief in the cause, P(cause) */
+  belief: number;
+  /**
+   * `share`: a printed share, read as the mixture's P(C | X, data);
+   * `requires`: a catalog condition scored only once X holds, its belief is
+   * already conditional; `belief`: no share, P(C) / p(X) as the estimate.
+   */
+  basis: "share" | "requires" | "belief";
+  /** a DOI line, or the catalog's source line; never the model's word */
+  source: string;
+  /** the best grade behind `source` */
+  grade: Grade;
+  origin: "paper" | "catalog";
+  /** the cheapest informative test for this cause alone */
+  test: { name: string; codes: string[] } | null;
+}
+
+export interface Differential {
+  of: string;
+  name: string;
+  /** the engine's belief in the open condition itself */
+  p: number;
+  options: DifferentialOption[];
+  /** the share nobody on the list explains: other causes, or none found */
+  other: number;
+  /** the one test whose answer moves the list the most, per unit of cost */
+  splitBy: { name: string; codes: string[]; for: string[] } | null;
+}
+
+/** The part of the hunch no listed cause takes, however sure the list is. */
+export const MIN_OTHER = 0.1;
+export const DIFFERENTIAL_SIZE = 3;
+
+type BeliefWithGiven = {
+  p: number;
+  /** P(this | feature, data) keyed by the feature, from `HypothesisResult.mixture` */
+  given?: Record<string, number>;
+};
+
+const shortSource = (s: string) =>
+  s.split(";").slice(0, 2).join(";").trim().slice(0, 160);
+
+/** "… (grade C)." in a catalog source line, else C. */
+const gradeIn = (s: string | undefined): Grade =>
+  (s?.match(/\bgrade ([A-E])\b/)?.[1] as Grade | undefined) ?? "C";
+
+/**
+ * An open cause as a doctor's differential: up to three causes, each with its
+ * share, its source and its own test, the test that splits them, and an
+ * "other or unexplained" remainder of at least `MIN_OTHER`, so the list never
+ * claims to be complete.
+ *
+ * The causes are the catalog's: conditions with a printed share among people
+ * with the condition (a case-research cause rule), conditions scored only once
+ * it holds (`requires`), and conditions whose evidence reads it. A cause's p
+ * is P(C | X): the mixture's posterior for a share rule, the belief itself for
+ * a `requires` condition, P(C) / p(X) otherwise. Several causes may overlap
+ * ("gut loss" holds atrophic gastritis), so the shares are scaled only when
+ * they would leave less than `MIN_OTHER`. Pure.
+ */
+export function differentialOf(
+  conditionId: string,
+  beliefs: Record<string, BeliefWithGiven> | null,
+  catalog: Catalog,
+  opts: { known?: Set<string>; size?: number } = {},
+): Differential | null {
+  const x = beliefs?.[conditionId];
+  const self = catalog.find((h) => h.id === conditionId);
+  if (!x || !self || !beliefs) return null;
+  const feature = `hypothesis:${conditionId}`;
+  const causeOfX = (why: string) =>
+    why.match(/cause of (\w+)/)?.[1] === conditionId;
+
+  const found: Omit<DifferentialOption, "share" | "test">[] = [];
+  for (const h of catalog) {
+    const b = beliefs[h.id];
+    if (h.id === conditionId || !b) continue;
+    const shares = h.priors.modifiers.filter(
+      (m) =>
+        m.share != null && (m.when.hypothesis === conditionId || causeOfX(m.why)),
+    );
+    const given = b.given?.[feature] ?? Object.values(b.given ?? {})[0];
+    const ev = h.evidence.find(
+      (e) => e.input.hypothesis === conditionId && e.lr > 1,
+    );
+    const base = { id: h.id, name: h.name, belief: b.p };
+    if (shares.length)
+      found.push({
+        ...base,
+        p: given ?? Math.min(1, b.p / Math.max(x.p, 1e-6)),
+        basis: given != null ? "share" : "belief",
+        source: shares.map((m) => shortSource(m.source ?? m.why)).join(" | "),
+        grade: shares.map((m) => m.grade ?? "C").sort()[0]!,
+        origin: "paper",
+      });
+    else if (h.requires?.id === conditionId)
+      found.push({
+        ...base,
+        p: b.p,
+        basis: "requires",
+        source: `catalog: ${shortSource(h.priors.source ?? `scored once ${self.name} holds`)}`,
+        grade: gradeIn(h.priors.source),
+        origin: "catalog",
+      });
+    else if (ev)
+      found.push({
+        ...base,
+        p: Math.min(1, b.p / Math.max(x.p, 1e-6)),
+        basis: "belief",
+        source: `catalog: ${shortSource(ev.source)}`,
+        grade: ev.grade,
+        origin: "catalog",
+      });
+  }
+  const top = found
+    .sort((a, b) => b.p - a.p || a.id.localeCompare(b.id))
+    .slice(0, opts.size ?? DIFFERENTIAL_SIZE);
+  const sum = top.reduce((s, o) => s + o.p, 0);
+  const scale = sum > 1 - MIN_OTHER ? (1 - MIN_OTHER) / sum : 1;
+  const known = opts.known ?? new Set<string>();
+  const pOf = (odds: number) => odds / (1 + odds);
+  /** the engine's `nextTests` arithmetic: expected move of p, per cost */
+  const moves = (d: Discriminator, p: number) => {
+    const q = Math.min(Math.max(p, 1e-6), 1 - 1e-6);
+    const odds = q / (1 - q);
+    return (
+      (Math.abs(pOf(odds * d.lrPos) - q) * 0.5 +
+        Math.abs(pOf(odds * d.lrNeg) - q) * 0.5) /
+      d.cost
+    );
+  };
+  const open = (h: Hypothesis | undefined) =>
+    (h?.discriminators ?? []).filter(
+      (d) => !d.codes.every((c) => known.has(c)),
+    );
+  const options: DifferentialOption[] = top.map((o) => {
+    const best = open(catalog.find((h) => h.id === o.id)).sort(
+      (a, b) => moves(b, o.p) - moves(a, o.p),
+    )[0];
+    return {
+      ...o,
+      p: +o.p.toFixed(3),
+      belief: +o.belief.toFixed(3),
+      share: +(o.p * scale).toFixed(3),
+      test: best ? { name: best.test, codes: best.codes } : null,
+    };
+  });
+  const other = +Math.max(
+    0,
+    1 - options.reduce((s, o) => s + o.share, 0),
+  ).toFixed(3);
+  // the test that splits them: the largest expected move it makes on any one
+  // option, per cost. Not a sum: two options that overlap ("gut loss" holds
+  // coeliac) would count one tTG twice.
+  const byTest = new Map<string, { d: Discriminator; gain: number; for: string[] }>();
+  for (const o of options)
+    for (const d of open(catalog.find((h) => h.id === o.id))) {
+      const t = byTest.get(d.test) ?? { d, gain: 0, for: [] };
+      t.gain = Math.max(t.gain, moves(d, o.p));
+      t.for.push(o.id);
+      byTest.set(d.test, t);
+    }
+  const split = [...byTest.values()].sort(
+    (a, b) => b.gain - a.gain || a.d.test.localeCompare(b.d.test),
+  )[0];
+  return {
+    of: conditionId,
+    name: self.name,
+    p: +x.p.toFixed(3),
+    options,
+    other,
+    splitBy: split
+      ? { name: split.d.test, codes: split.d.codes, for: split.for }
+      : null,
+  };
+}
+
+/** "iron deficiency, cause open: GI loss 36 % (doi…), …, other 28 %; test that splits them: …" */
+export function differentialLine(d: Differential): string {
+  const pc = (v: number) => `${Math.round(v * 100)}%`;
+  return `${d.name.toLowerCase()}, cause open: ${[
+    ...d.options.map(
+      (o) =>
+        `${o.name} ${pc(o.share)} (${o.source}${o.test ? `; confirm with ${o.test.name}` : ""})`,
+    ),
+    `other ${pc(d.other)}`,
+  ].join(", ")}; test that splits them: ${d.splitBy?.name ?? "none"}`;
+}
+
 export interface Refreshed {
   asOf: string | null;
   raised: Signal[];
   unraised: Signal[];
   explainedBy: Record<string, "model" | "rules">;
+  /** `dryRun` only: every raised hunch with its rules explanations and test */
+  drafts?: DraftHunch[];
 }
 
 /**
@@ -718,12 +1351,82 @@ export interface Refreshed {
 export async function refreshHunches(
   userId: string,
   today = new Date().toISOString().slice(0, 10),
+  opts: {
+    /** read the person as they stood on this day; `today` becomes it */
+    asOf?: string;
+    /** compute and return the hunches, write nothing, call no model */
+    dryRun?: boolean;
+    beliefs?: BeliefSnapshotBeliefs | null;
+    /** a case research dry run's rules, read as if they were saved */
+    overlay?: HunchOverlay | null;
+    /** the catalog the beliefs were scored on; a dry run's `cause:` drafts
+     *  then carry their differential */
+    catalog?: Catalog;
+  } = {},
 ): Promise<Refreshed> {
   const db = getDb();
-  const person = await personOf(userId, today);
-  const { raised, unraised, asOf } = signalsOf(person.input);
+  if (opts.asOf) today = opts.asOf;
+  const person = await personOf(userId, today, {
+    asOf: opts.asOf,
+    overlay: opts.overlay,
+    ...(opts.beliefs !== undefined ? { beliefs: opts.beliefs } : {}),
+  });
+  const signals = signalsOf(person.input);
+  const { unraised, asOf } = signals;
+  const raised = [
+    ...signals.raised,
+    ...causeSignals(
+      person.beliefs,
+      person.conditionCauses,
+      person.evidence,
+      person.input.markers.map((m) => m.code),
+      person.conditionNames,
+    ),
+  ];
   const explainedBy: Refreshed["explainedBy"] = {};
-  if (!asOf) return { asOf, raised, unraised, explainedBy };
+  if (!asOf)
+    return {
+      asOf,
+      raised,
+      unraised,
+      explainedBy,
+      ...(opts.dryRun ? { drafts: [] } : {}),
+    };
+  if (opts.dryRun) {
+    // The rules fallback, never the model: a replay runs dozens of days.
+    const drafts = raised.map((s): DraftHunch => {
+      const quiet = s.kind === "gap" || s.kind === "good_news";
+      const list = quiet
+        ? []
+        : s.kind === "cause"
+          ? (person.conditionCauses[String(s.numbers.conditionId)] ?? [])
+          : closedList(s, person.input.causes);
+      const expl = weightsOf(
+        list.slice(0, 3).map((c) => toExplanation(c)),
+        person.beliefs,
+      );
+      explainedBy[s.key] = "rules";
+      const test = testFor(s, expl, person);
+      return {
+        key: s.key,
+        kind: s.kind,
+        codes: s.codes,
+        explanations: predictsOf(expl, test, person),
+        test,
+        ...(s.kind === "cause" && opts.catalog
+          ? {
+              differential: differentialOf(
+                String(s.numbers.conditionId),
+                person.beliefs,
+                opts.catalog,
+                { known: person.known },
+              ),
+            }
+          : {}),
+      };
+    });
+    return { asOf, raised, unraised, explainedBy, drafts };
+  }
   const now = new Date();
   const existing = await db
     .select()
@@ -805,9 +1508,23 @@ export async function refreshHunches(
       .where(eq(hunches.id, h.id));
   }
 
-  // 2. One row per raised key.
+  // 2. One row per raised key. A `cause:` row keeps its differential on the
+  // signal (jsonb), so the case reads the same list the refresh computed.
+  const catalog = raised.some((s) => s.kind === "cause")
+    ? (opts.catalog ?? (await catalogFor(userId)))
+    : null;
   for (const s of raised) {
-    const signal = { ...s, asOf } as unknown as Record<string, unknown>;
+    const differential =
+      s.kind === "cause" && catalog
+        ? differentialOf(String(s.numbers.conditionId), person.beliefs, catalog, {
+            known: person.known,
+          })
+        : undefined;
+    const signal = {
+      ...s,
+      asOf,
+      ...(differential ? { differential } : {}),
+    } as unknown as Record<string, unknown>;
     const h = byKey.get(s.key);
     if (!h) {
       await db
@@ -883,7 +1600,13 @@ export async function refreshHunches(
     const quiet = s.kind === "gap" || s.kind === "good_news";
     const got = quiet
       ? ({ explanations: [], question: null, by: "rules" } as Explained)
-      : await explain(s, closedList(s, person.input.causes), person);
+      : await explain(
+          s,
+          s.kind === "cause"
+            ? (person.conditionCauses[String(s.numbers.conditionId)] ?? [])
+            : closedList(s, person.input.causes),
+          person,
+        );
     explainedBy[h.key] = got.by;
     const explanations = weightsOf(got.explanations, person.beliefs).map(
       (e) => ({ ...e, predicts: null }),
@@ -901,6 +1624,33 @@ export async function refreshHunches(
   }
 
   return { asOf, raised, unraised, explainedBy };
+}
+
+/**
+ * After case research saved rules: open hunches lose their explanations, test
+ * and question, so the next refresh fills them again off the grown catalog. A
+ * hunch with a test written down keeps it; a quiet one has nothing to lose.
+ */
+export async function forgetExplanations(userId: string): Promise<number> {
+  const cleared = await getDb()
+    .update(hunches)
+    .set({
+      explanations: null,
+      question: null,
+      answer: null,
+      test: null,
+      predictions: null,
+      updatedAt: new Date(),
+    })
+    .where(
+      and(
+        eq(hunches.userId, userId),
+        eq(hunches.state, "open"),
+        notInArray(hunches.kind, ["gap", "good_news"]),
+      ),
+    )
+    .returning({ id: hunches.id });
+  return cleared.length;
 }
 
 /* ── the person's actions ──────────────────────────────────────────────── */

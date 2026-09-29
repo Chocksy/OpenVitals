@@ -18,10 +18,18 @@ import {
   type ReviewSubject,
 } from "@/db";
 import { toCountryCode } from "./countries";
-import { CYCLE_FACT, profileAt, writeFact } from "./facts";
+import { allHistory, CYCLE_FACT, profileAt, writeFact } from "./facts";
 import { localDay, shiftDay } from "./daily";
 import { getMetricRows } from "./data";
-import { deriveAll, egfr, slopePerYear, type Slope } from "./derived";
+import {
+  deriveAll,
+  egfr,
+  historyOf,
+  slopePerYear,
+  type History,
+  type Slope,
+} from "./derived";
+import { labPoints } from "./personal";
 import { applyPatternTargets } from "./patterns";
 import { statusOf, type Status } from "./status";
 import {
@@ -61,6 +69,25 @@ export interface LatestValue {
    * "TSH is 3.1".
    */
   slope?: Slope;
+  /**
+   * Every lab draw of this marker, not only the latest: min, max, how many
+   * sat outside their own lab's range. What `when.ever` reads. Phase 41B.
+   */
+  history?: History;
+}
+
+/**
+ * Something taken to move a marker, with the days it ran. Out of the
+ * supplement and medication lists' own history, plus the `treatments` fact
+ * for what a list cannot say (a route, an infusion on one day).
+ */
+export interface Treatment {
+  what: string;
+  /** "oral", "iv", or "any" when nobody said */
+  route: string;
+  started: string;
+  stopped?: string | null;
+  from: "supplements" | "medications" | "treatments";
 }
 
 export interface ModelInput {
@@ -86,6 +113,8 @@ export interface ModelInput {
    * eGFR slope and nothing else here has a published slope threshold.
    */
   slopes?: Partial<Record<keyof ModelInput["derived"], Slope>>;
+  /** What this person took and when, for `no_response:` and `treated:`. */
+  treatments?: Treatment[];
 }
 
 export interface CoverageRow {
@@ -219,26 +248,118 @@ export function overlayPhoneFacts(
   return out;
 }
 
+/** Words that make a list entry parenteral: the split absorption turns on. */
+const IV_WORDS =
+  /\b(iv|intravenous|infusion|perfuzie|injection|injectable|intramuscular)\b|\bi\.v\./i;
+
+const routeOf = (what: string, fallback: string) =>
+  IV_WORDS.test(what) ? "iv" : fallback;
+
+/** One list entry, for matching the same item across history rows. */
+const itemKey = (v: string) => v.trim().toLowerCase().replace(/\s+/g, " ");
+
+const listOf = (v: unknown): string[] =>
+  (Array.isArray(v) ? v : typeof v === "string" ? v.split(/[,;\n]/) : [])
+    .map((x) => String(x).trim())
+    .filter(Boolean);
+
+/**
+ * The treatments behind a person's lists. An entry of `supplements` or
+ * `medications` runs from the first history row that lists it to the end of
+ * the last row in the same unbroken run; one that comes back later is a new
+ * treatment. `treatments` entries are taken as written. Pure.
+ *
+ * ponytail: a supplement is oral unless its words say otherwise, which is
+ * what a supplement label almost always means.
+ */
+export function treatmentsFrom(
+  history: {
+    key: string;
+    value: unknown;
+    validFrom: string;
+    validTo: string | null;
+    changeKind: string;
+  }[],
+  treatmentsFact: unknown,
+  today: string,
+): Treatment[] {
+  const out: Treatment[] = [];
+  for (const key of ["supplements", "medications"] as const) {
+    const rows = history
+      .filter(
+        (r) =>
+          r.key === key && r.changeKind !== "corrected" && r.validFrom <= today,
+      )
+      .sort((a, b) => a.validFrom.localeCompare(b.validFrom));
+    const open = new Map<string, Treatment>();
+    for (const r of rows) {
+      const items = new Map(listOf(r.value).map((x) => [itemKey(x), x]));
+      for (const [k, t] of open)
+        if (!items.has(k)) {
+          out.push(t);
+          open.delete(k);
+        }
+      for (const [k, what] of items) {
+        const t = open.get(k) ?? {
+          what,
+          route: routeOf(what, "oral"),
+          started: r.validFrom,
+          from: key,
+        };
+        t.stopped = r.validTo;
+        open.set(k, t);
+      }
+    }
+    out.push(...open.values());
+  }
+  for (const t of Array.isArray(treatmentsFact) ? treatmentsFact : []) {
+    const what = String(t?.what ?? "").trim();
+    const started = String(t?.started ?? "").slice(0, 10);
+    if (!what || !/^\d{4}-\d{2}-\d{2}$/.test(started) || started > today)
+      continue;
+    const route = String(t?.route ?? "").toLowerCase();
+    out.push({
+      what,
+      route: route === "oral" || route === "iv" ? route : routeOf(what, "any"),
+      started,
+      stopped: t?.stopped ? String(t.stopped).slice(0, 10) : null,
+      from: "treatments",
+    });
+  }
+  return out.map((t) => ({
+    ...t,
+    stopped: t.stopped && t.stopped <= today ? t.stopped : null,
+  }));
+}
+
 /**
  * `getMetricRows` plus `profile_facts`, folded into one plain object.
  *
- * `asOf` runs the whole thing as it stood on a day: the facts come out of
- * `profile_fact_history` at that date instead of out of the current view, so
- * the ledger can say why a conclusion looked different then.
+ * `asOf` runs the whole thing as it stood on a day (the blind replay, phase
+ * 41D): readings after it are not read, the facts come out of
+ * `profile_fact_history` at that date (timeless ones, like sex and the genome,
+ * whenever they were written), and a treatment starts to exist on its start
+ * day. `seed` lays facts over that profile, for a case file's dated
+ * treatments.
  */
 export async function buildModelInput(
   userId: string,
   asOf?: string,
+  seed: Record<string, unknown> = {},
 ): Promise<ModelInput> {
   const today = asOf ?? localDay();
-  const [rows, facts] = await Promise.all([
-    getMetricRows(userId),
+  const [rows, facts, history] = await Promise.all([
+    getMetricRows(userId, { asOf }),
     asOf
-      ? profileAt(userId, asOf)
+      ? profileAt(userId, asOf, { timeless: true }).then((p) => ({
+          ...p,
+          ...seed,
+        }))
       : getDb()
           .select()
           .from(profileFacts)
           .where(eq(profileFacts.userId, userId)),
+    allHistory(userId),
   ]);
 
   const stated: Record<string, unknown> = Array.isArray(facts)
@@ -290,6 +411,15 @@ export async function buildModelInput(
       prev: withValue[withValue.length - 2]?.value ?? null,
       unverified: (m.latest.flags ?? []).includes("unverified"),
       slope: slopePerYear(m.points, today),
+      history: historyOf(
+        labPoints(m.rows).map((p) => ({
+          date: p.date,
+          value: p.value,
+          refLow: p.refLow,
+          refHigh: refHighFor(m.code, p.refHigh),
+        })),
+        today,
+      ),
     };
   }
 
@@ -313,6 +443,18 @@ export async function buildModelInput(
   // Patterns can move an optimal band (Hashimoto's ferritin floor, the
   // suspended LDL goal in LMHR), so the ranges every caller sees are already
   // the ones the pattern says apply.
+  const treatments = treatmentsFrom(history, profile.treatments, today);
+  // The fact is one list with every course in it; on a past day the courses
+  // not begun yet are not part of what the person had said.
+  if (asOf && Array.isArray(profile.treatments))
+    profile.treatments = profile.treatments.filter(
+      (t) => String(t?.started ?? "").slice(0, 10) <= today,
+    ).map((t) =>
+      t?.stopped && String(t.stopped).slice(0, 10) > today
+        ? { ...t, stopped: null }
+        : t,
+    );
+
   return applyPatternTargets({
     today,
     profile,
@@ -321,6 +463,7 @@ export async function buildModelInput(
     latest,
     derived,
     ...(egfrSlope ? { slopes: { egfr: egfrSlope } } : {}),
+    ...(treatments.length ? { treatments } : {}),
   });
 }
 

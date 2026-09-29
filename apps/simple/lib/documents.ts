@@ -10,8 +10,7 @@
  * `docxText`, `toItems` and `documentLines` are pure. The rest read or write.
  */
 import { inflateRawSync } from "node:zlib";
-import { generateObject } from "ai";
-import { and, desc, eq, inArray } from "drizzle-orm";
+import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import { z } from "zod";
 import {
   documentItems,
@@ -29,7 +28,13 @@ import {
 } from "@/db";
 import { localDay } from "./daily";
 import { writeFact } from "./facts";
-import { model } from "./extract";
+import {
+  generateObjectSafe,
+  isPasswordError,
+  NEEDS_PASSWORD,
+  slugify,
+} from "./extract";
+import { canonicalCode } from "./merge-metrics";
 import { extractTextFromPdf } from "./pdf";
 import { convert } from "./units";
 
@@ -144,12 +149,18 @@ async function ocr(buffer: Buffer, fileName: string): Promise<string> {
 export async function readDocumentText(
   buffer: Buffer,
   fileName: string,
+  password?: string,
 ): Promise<{ text: string; pages: number | null }> {
   if (/\.docx$/i.test(fileName)) return { text: docxText(buffer), pages: null };
   if (isImage(fileName))
     return { text: await ocr(buffer, fileName), pages: null };
   if (/\.pdf$/i.test(fileName)) {
-    const { text, pages } = await extractTextFromPdf(buffer);
+    // An encrypted PDF is never sent to OCR: the route asks for the password.
+    const { text, pages } = await extractTextFromPdf(buffer, password).catch(
+      (e) => {
+        throw isPasswordError(e) ? new Error(NEEDS_PASSWORD) : e;
+      },
+    );
     if (text.trim().length >= MIN_TEXT_LENGTH) return { text, pages };
     return { text: await ocr(buffer, fileName), pages };
   }
@@ -262,8 +273,7 @@ export async function extractDocument(
   text: string,
   conditions: { name: string; mondoId: string | null }[] = [],
 ): Promise<DocumentExtract> {
-  const { object } = await generateObject({
-    model: model(),
+  const { object } = await generateObjectSafe({
     schema: documentSchema,
     // A long discharge letter with every excerpt quoted runs past the default
     // output budget, and a truncated object is a failed extraction.
@@ -292,8 +302,10 @@ export interface NewItem {
 
 /**
  * The extraction into rows. The only judgement here: a `metricCodeGuess` the
- * catalog has never heard of is dropped, so the item is still proposed but
- * carries no code and can never mint a metric behind the user's back.
+ * catalog has never heard of is not a `code`. A measurement with a name, a
+ * number and a unit instead carries `mint`, the code a new metric would get
+ * (the slug of its name, as a lab sheet's unknown analyte gets), and accepting
+ * it mints that metric. Nothing is minted while the item is only proposed.
  */
 export function toItems(
   doc: DocumentExtract,
@@ -304,12 +316,15 @@ export function toItems(
     out.push({ kind: "finding", payload: { ...f }, excerpt: f.excerpt });
   for (const m of doc.measurements) {
     const guess = m.metricCodeGuess?.trim().toLowerCase();
+    const code = guess && knownCodes.has(guess) ? guess : null;
+    const slug = canonicalCode(slugify(m.name), m.name);
     out.push({
       kind: "measurement",
       payload: {
         ...m,
         metricCodeGuess: guess ?? null,
-        code: guess && knownCodes.has(guess) ? guess : null,
+        code: code ?? (knownCodes.has(slug) ? slug : null),
+        mint: !code && !knownCodes.has(slug) && m.name && m.unit ? slug : null,
       },
       excerpt: m.excerpt,
     });
@@ -332,11 +347,16 @@ export const docMetaOf = (doc: DocumentExtract): DocMeta => ({
   specialty: doc.specialty,
 });
 
-/** Parse, store, and leave everything `proposed`. */
+/**
+ * Parse, store, and leave everything `proposed`. With `replace` (re-analyze),
+ * what the upload wrote last time goes in the same transaction as the new
+ * items land, after the model has answered.
+ */
 export async function saveDocument(
   userId: string,
   uploadId: string,
   text: string,
+  { replace = false }: { replace?: boolean } = {},
 ): Promise<{ items: number; doc: DocumentExtract }> {
   const db = getDb();
   const conditions = await db
@@ -347,14 +367,30 @@ export async function saveDocument(
     (await db.select({ code: metrics.code }).from(metrics)).map((m) => m.code),
   );
   const items = toItems(doc, known);
-  if (items.length)
-    await db
-      .insert(documentItems)
-      .values(items.map((i) => ({ ...i, userId, uploadId })));
-  await db
-    .update(uploads)
-    .set({ docMeta: docMetaOf(doc) })
-    .where(eq(uploads.id, uploadId));
+  await db.transaction(async (tx) => {
+    if (replace) {
+      // Everything the last run wrote for this upload goes, as the re-analyze
+      // route always did. Accepted items are dropped with the rest: the facts
+      // and evidence they wrote stay, as the audit does.
+      await tx
+        .delete(documentItems)
+        .where(eq(documentItems.uploadId, uploadId));
+      await tx.execute(
+        sql`delete from review_items where user_id = ${userId}
+            and subject->>'readingId' in
+                (select id::text from readings where upload_id = ${uploadId})`,
+      );
+      await tx.delete(readings).where(eq(readings.uploadId, uploadId));
+    }
+    if (items.length)
+      await tx
+        .insert(documentItems)
+        .values(items.map((i) => ({ ...i, userId, uploadId })));
+    await tx
+      .update(uploads)
+      .set({ docMeta: docMetaOf(doc) })
+      .where(eq(uploads.id, uploadId));
+  });
   return { items: items.length, doc };
 }
 
@@ -405,7 +441,11 @@ export function matchCondition(
 }
 
 /** Append one value to a list fact without losing what is already there. */
-export async function appendListFact(userId: string, key: string, value: string) {
+export async function appendListFact(
+  userId: string,
+  key: string,
+  value: string,
+) {
   const db = getDb();
   const [row] = await db
     .select()
@@ -463,16 +503,30 @@ export async function acceptItems(
 
   for (const item of rows) {
     const p = item.payload as Record<string, any>;
-    if (item.kind === "measurement" && p.code) {
-      const metric = known.find((m) => m.code === p.code);
+    const code: string | null = p.code ?? p.mint ?? null;
+    if (item.kind === "measurement" && code) {
+      if (!p.code) {
+        // An analyte the catalog has never seen: minted `other`, which the
+        // curator's metric-identity step reads and can merge later.
+        await db
+          .insert(metrics)
+          .values({
+            code,
+            name: p.name || code,
+            category: "other",
+            unit: p.unit,
+          })
+          .onConflictDoNothing();
+      }
+      const metric = known.find((m) => m.code === code);
       const value =
         metric?.unit && p.unit
-          ? (convert(p.value, p.unit, metric.unit, p.code) ?? p.value)
+          ? (convert(p.value, p.unit, metric.unit, code) ?? p.value)
           : p.value;
       await db.insert(readings).values({
         userId,
         uploadId: item.uploadId,
-        metricCode: p.code,
+        metricCode: code,
         value,
         valueText: String(p.value),
         unit: metric?.unit ?? p.unit ?? null,

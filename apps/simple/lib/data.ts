@@ -1,4 +1,4 @@
-import { asc, eq, sql } from "drizzle-orm";
+import { and, asc, eq, lte, sql } from "drizzle-orm";
 import {
   getDb,
   metrics,
@@ -114,8 +114,15 @@ function toRow(
   };
 }
 
-/** Every metric the user has data for, oldest reading first, plus derived rows. */
-export async function getMetricRows(userId: string): Promise<MetricRow[]> {
+/**
+ * Every metric the user has data for, oldest reading first, plus derived rows.
+ * `asOf` keeps only readings observed on or before that day (the blind replay,
+ * phase 41D): a metric first measured later does not exist yet.
+ */
+export async function getMetricRows(
+  userId: string,
+  opts: { asOf?: string } = {},
+): Promise<MetricRow[]> {
   await ensureImported();
   const db = getDb();
   const [defs, all, overrides, sexFact] = await Promise.all([
@@ -123,7 +130,14 @@ export async function getMetricRows(userId: string): Promise<MetricRow[]> {
     db
       .select()
       .from(readings)
-      .where(eq(readings.userId, userId))
+      .where(
+        opts.asOf
+          ? and(
+              eq(readings.userId, userId),
+              lte(readings.observedAt, opts.asOf),
+            )
+          : eq(readings.userId, userId),
+      )
       // Oldest first, and within one day the lab draw last: `latest` is the
       // final row, and a wearable row must never shadow a draw taken the same
       // day. `source` is null for a draw, so "source is null" is false for a

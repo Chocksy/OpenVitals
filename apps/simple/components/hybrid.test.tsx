@@ -9,7 +9,7 @@ import {
   nice,
   pushApart,
 } from "./corridor";
-import { CaseView, HunchRail, WatchList } from "./hunch-board";
+import { CaseView, HunchRail, ORIGIN_GLYPH, OriginMark, WatchList } from "./hunch-board";
 import type { HunchCase, HunchRow } from "@/lib/api-contract";
 import hunch from "../fixtures/api/hunch.json";
 import hunches from "../fixtures/api/hunches.json";
@@ -262,5 +262,32 @@ describe("the hunch board (40b)", () => {
     // every draw from a file links to its upload when the server sent one
     const linked = c.series.filter((p) => p.file && p.upload).length;
     expect(html.match(/href="\/blood\/uploads\//g)?.length ?? 0).toBe(linked);
+  });
+
+  it("opens a cause with Our read: the options, other, the split test (41E)", () => {
+    const html = renderToStaticMarkup(<CaseView c={c} onCase={() => {}} />);
+    const d = c.differential!;
+    expect(html.indexOf("Our read")).toBeLessThan(html.indexOf('data-card="'));
+    expect(html.match(/data-option="/g)).toHaveLength(d.options.length);
+    expect(html).toContain("Other or unexplained");
+    expect(html).toContain(`Test that splits them: <b>${d.splitTest}</b>`);
+    expect(html).toContain(`See: ${c.bestRead!.specialty}`);
+    expect(html).toContain('class="orig-legend"');
+  });
+
+  it("marks origins with glyphs the basis glyphs do not use (41G)", () => {
+    const html = renderToStaticMarkup(<CaseView c={c} onCase={() => {}} />);
+    expect(Object.values(ORIGIN_GLYPH)).toEqual(["¶", "◆", "~", "✎"]);
+    for (const g of Object.values(ORIGIN_GLYPH)) expect("●◐○").not.toContain(g);
+    const legend = html.match(/class="orig-legend">(.*?)<\/p>/)![1]!;
+    expect(legend.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim()).toBe(
+      "¶ paper ◆ catalog ~ model ✎ you",
+    );
+    expect(renderToStaticMarkup(<OriginMark origin="model" />)).toMatch(
+      /title="the model&#x27;s own guess, not in the catalog"[^>]*>~</,
+    );
+    expect(renderToStaticMarkup(<OriginMark origin="paper" />)).toMatch(
+      /title="from a paper case research read"[^>]*>¶</,
+    );
   });
 });

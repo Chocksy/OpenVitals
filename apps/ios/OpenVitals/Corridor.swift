@@ -14,10 +14,10 @@ import SwiftUI
 enum HunchInk {
     static func of(_ kind: String?) -> Color {
         switch kind {
-        case "step", "left_band", "discordance": return Hy.blood
+        case "step", "left_band", "discordance", "chronic": return Hy.blood
         case "cluster": return Hy.gene
         case "drift": return Hy.amber
-        case "gap": return Hy.plum3
+        case "gap", "cause": return Hy.plum3
         case "good_news": return Hy.green
         default: return Hy.ink
         }
@@ -32,6 +32,31 @@ enum HunchInk {
         default: return "○"
         }
     }
+
+    /// Where an explanation came from (phase 41E): ¶ paper, ◆ catalog,
+    /// ~ the model's own guess, ✎ you. Same glyphs as the web's `ORIGIN_GLYPH`;
+    /// not ● or ○, which are the basis glyphs beside them.
+    static func originGlyph(_ origin: String?) -> String {
+        switch origin {
+        case "paper": return "¶"
+        case "model": return "~"
+        case "you": return "✎"
+        default: return "◆"
+        }
+    }
+
+    /// The words behind the glyph, for VoiceOver and the legend.
+    static func originWord(_ origin: String?) -> String {
+        switch origin {
+        case "paper": return "from a paper case research read"
+        case "model": return "the model's own guess, not in the catalog"
+        case "you": return "from you"
+        default: return "from the seeded catalog"
+        }
+    }
+
+    /// "¶ paper  ◆ catalog  ~ model  ✎ you".
+    static let originLegend = "¶ paper  ◆ catalog  ~ model  ✎ you"
 }
 
 // MARK: - the scale

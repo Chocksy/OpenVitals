@@ -505,15 +505,10 @@ select:focus-visible {
     box-shadow: var(--hy-lift);
   }
   .hy-head {
+    /* no grain on the plum: iOS grains cream surfaces only */
     background:
-      var(--grain),
       radial-gradient(60% 120% at 12% 0%, #4d1d58 0%, transparent 70%),
       var(--plum);
-    background-size:
-      128px 128px,
-      auto,
-      auto;
-    background-blend-mode: multiply, normal, normal;
     color: var(--cream);
     border-radius: 0 0 var(--r-hero) var(--r-hero);
     box-shadow: 0 13px 21px -13px rgba(43, 16, 51, 0.5);
@@ -1291,8 +1286,15 @@ select:focus-visible {
   .ks.step,
   .ks.drift,
   .ks.left_band,
-  .ks.discordance {
+  .ks.discordance,
+  .ks.chronic {
     color: var(--blood);
+  }
+  .ks.cause {
+    color: var(--plum-3);
+  }
+  :root[data-theme="dark"] .ks.cause {
+    color: var(--mist);
   }
   .ks.cluster {
     color: var(--gene);
@@ -6034,15 +6036,10 @@ html:has(.hy-hero) body {
   margin-top: -24px;
   --gut: 12px;
   padding: 0 max(var(--gut), calc(50vw - 700px + var(--gut))) var(--s21);
+  /* no grain on the plum: iOS grains cream surfaces only */
   background:
-    var(--grain),
     radial-gradient(60% 120% at 12% 0%, #4d1d58 0%, transparent 70%),
     var(--plum);
-  background-size:
-    128px 128px,
-    auto,
-    auto;
-  background-blend-mode: multiply, normal, normal;
   color: var(--cream);
   border-radius: 0 0 var(--r-hero) var(--r-hero);
   box-shadow: 0 13px 21px -13px rgba(43, 16, 51, 0.5);
@@ -6128,6 +6125,19 @@ html:has(.hy-hero) body {
 .hy-hero .conf .due:hover {
   background: rgba(246, 237, 220, 0.08);
 }
+/* 41E: a partial lab sheet, "1 result still pending from 18 Aug" */
+.hy-hero .conf .pend {
+  margin-left: 47px;
+  color: var(--h-amber);
+  text-decoration: none;
+  white-space: nowrap;
+}
+.hy-hero .conf .pend::before {
+  content: "◔ ";
+}
+.hy-hero .conf .pend:hover {
+  text-decoration: underline;
+}
 @media (min-width: 1024px) {
   .hy-hero .hg {
     grid-template-columns: minmax(0, 1fr) 610px;
@@ -6150,7 +6160,8 @@ html:has(.hy-hero) body {
     display: block;
     flex: 1;
   }
-  .hy-hero .conf .due {
+  .hy-hero .conf .due,
+  .hy-hero .conf .pend {
     margin-left: 0;
   }
 }
@@ -6793,6 +6804,116 @@ html:has(.hy-hero) body {
   padding: var(--s3) var(--s8);
   border-radius: 0 5px 5px 0;
   animation: hy-prin 500ms var(--ease) both;
+}
+/* 41E: where an explanation came from, and Our read (the differential) */
+.case .er .g {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--s3);
+}
+.orig {
+  display: inline-block;
+  width: 1em;
+  text-align: center;
+  color: var(--ink-2);
+  cursor: help;
+}
+.orig.model {
+  color: var(--ink-3);
+}
+.orig.you {
+  color: var(--h-amber);
+}
+.orig-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 var(--s13);
+  margin-top: var(--s8);
+  font-size: var(--type-xs);
+  color: var(--ink-3);
+}
+.case .oread .ro {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+}
+.case .oread .ro > li {
+  display: grid;
+  gap: var(--s5);
+  padding: var(--s13) 0;
+  border-top: 1px solid var(--line);
+}
+.case .oread .ro > li:first-child {
+  border-top: 0;
+  padding-top: var(--s3);
+}
+.case .oread .rh {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--s8);
+  font-size: 15px;
+}
+.case .oread .rh b {
+  font-weight: 600;
+}
+.case .oread .rh .p,
+.case .oread .ro-other .p {
+  font-weight: 600;
+  font-size: var(--type-sm);
+}
+.case .oread .ro > li:first-child .trk i {
+  background: var(--plum-3);
+}
+.case .oread .rr {
+  font-size: var(--type-sm);
+  color: var(--ink-2);
+}
+.case .oread .rs {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--s3);
+  font-size: var(--type-xs);
+  color: var(--ink-2);
+}
+.case .oread .rs li {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s5);
+  min-width: 0;
+}
+.case .oread .rs a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.case .oread .rt,
+.case .oread .rsee {
+  font-size: var(--type-xs);
+  color: var(--ink);
+}
+.case .oread .rsee {
+  justify-self: start;
+  padding: 0 var(--s8);
+  border-radius: var(--r-pill);
+  background: var(--paper);
+  box-shadow: inset 0 0 0 1px var(--paper-3);
+  line-height: 22px;
+}
+.case .oread .ro-other {
+  display: flex;
+  justify-content: space-between;
+  padding: var(--s13) 0 var(--s5);
+  border-top: 1px dashed var(--paper-3);
+  font-size: var(--type-sm);
+  color: var(--ink-2);
+}
+.case .oread .ro-split {
+  font-size: var(--type-sm);
+  color: var(--ink);
 }
 @keyframes hy-prin {
   from {

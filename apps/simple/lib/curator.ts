@@ -1480,6 +1480,17 @@ export async function runCurator(
       }
     }
 
+    // Phase 41C: a new draw is a new case. At most once a day per user, under
+    // `CASE_BUDGET_USD`, before the hunches so they read what it promoted.
+    if (trigger === "upload")
+      await import("./cases")
+        .then(async (c) => {
+          if (!(await c.caseRunDue(userId))) return;
+          const r = await c.researchCase(userId);
+          if (r.failed) console.error(`[curator] case research: ${r.failed}`);
+        })
+        .catch((e) => console.error("[curator] case research failed:", e));
+
     // Phase 39: the hunches read the readings this run just settled. After an
     // upload and in the daily pass; a failure never fails the run.
     await import("./hunches")

@@ -367,6 +367,7 @@ export default async function Home({
           day={day}
           heading={hybrid.heading}
           confidence={hybrid.confidence}
+          pending={hybrid.pending}
         />
 
         {hero ? (

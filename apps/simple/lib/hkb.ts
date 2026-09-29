@@ -181,10 +181,11 @@ const VALUE_KEYS = [
   "aboveOptimal",
   "belowOptimal",
   "slopePerYear",
+  "ever",
 ];
 
 /** `metric:ferritin` → `{ metric: "ferritin" }`. */
-function featureInput(featureId: string): EvidenceRule["input"] {
+export function featureInput(featureId: string): EvidenceRule["input"] {
   const [kind, ...rest] = featureId.split(":");
   const name = rest.join(":");
   if (kind === "metric") return { metric: name };
@@ -195,21 +196,107 @@ function featureInput(featureId: string): EvidenceRule["input"] {
   return { fact: name };
 }
 
+/** A modifier row's `when`: the input it reads, when it reads a value at all. */
+export const modifierWhen = (featureId: string, on: Record<string, unknown>) =>
+  ({
+    ...(VALUE_KEYS.some((k) => k in on) ? featureInput(featureId) : {}),
+    ...on,
+  }) as EvidenceRule["when"] & EvidenceRule["input"];
+
+/**
+ * A modifier row as the engine reads it. A case-research share (phase 41F)
+ * rides in `condition_on` as `share`, with the study's `population` and the
+ * `unless` facts that put a person outside it, so the row needs no new column;
+ * those keys come out of the `when` and onto the modifier. Every other row
+ * reads exactly as before.
+ */
+export function modifierOf(
+  row: Pick<
+    ModifierRow,
+    "featureId" | "conditionOn" | "times" | "why" | "grade" | "source"
+  >,
+): Hypothesis["priors"]["modifiers"][number] {
+  const { share, population, unless, ...on } = row.conditionOn as {
+    share?: unknown;
+    population?: unknown;
+    unless?: unknown;
+  } & Record<string, unknown>;
+  const base = {
+    when: modifierWhen(row.featureId, on),
+    times: row.times,
+    why: row.why,
+  };
+  if (typeof share !== "number") return base;
+  return {
+    ...base,
+    share,
+    ...(row.grade ? { grade: row.grade as Grade } : {}),
+    ...(row.source ? { source: row.source } : {}),
+    ...(typeof population === "string" ? { population } : {}),
+    ...(Array.isArray(unless)
+      ? { unless: unless as { fact: string; includes: string }[] }
+      : {}),
+  };
+}
+
+/**
+ * Who reads whose probability: `requires`, `hypothesis:` evidence and
+ * `hypothesis:` prior modifiers. A modifier counts as much as a rule does:
+ * "Hashimoto raises the prior of atrophic gastritis" read `null` while
+ * atrophic gastritis sorted first, and fired for nobody.
+ */
+export function dependencyNeeds(
+  rows: Pick<ConditionRow, "id" | "requires">[],
+  evidence: Pick<EvidenceRow, "conditionId" | "featureId">[],
+  modifiers: Pick<ModifierRow, "conditionId" | "featureId">[] = [],
+): Map<string, Set<string>> {
+  const needs = new Map<string, Set<string>>();
+  for (const c of rows)
+    needs.set(c.id, new Set(c.requires ? [c.requires.condition] : []));
+  for (const e of [...evidence, ...modifiers])
+    if (e.featureId.startsWith("hypothesis:"))
+      needs.get(e.conditionId)?.add(e.featureId.slice("hypothesis:".length));
+  return needs;
+}
+
+/**
+ * Every cycle in the reading order, each as `a → b → a`. Empty is the only
+ * healthy answer; `lib/hkb.test.ts` fails on anything else, so a cycle is a
+ * red test and never a quiet guess about who goes first.
+ */
+export function dependencyCycles(needs: Map<string, Set<string>>): string[] {
+  const out = new Set<string>();
+  const walk = (id: string, path: string[]) => {
+    const at = path.indexOf(id);
+    if (at !== -1) {
+      const loop = path.slice(at);
+      // one name per cycle, whichever member it was found from
+      const first = loop.indexOf([...loop].sort()[0]!);
+      const turned = [...loop.slice(first), ...loop.slice(0, first)];
+      out.add([...turned, turned[0]].join(" → "));
+      return;
+    }
+    for (const next of needs.get(id) ?? [])
+      if (needs.has(next)) walk(next, [...path, id]);
+  };
+  for (const id of needs.keys()) walk(id, []);
+  return [...out].sort();
+}
+
 /**
  * ponytail: a condition that reads another condition's probability has to be
  * scored after it, and nothing else about the order matters. So: ids in
  * alphabetical order, then anything that depends on a later id moved down.
+ * A cycle cannot be ordered at all; it is logged here and fails the catalog
+ * test, and the queue head goes first only so a request still gets an answer.
  */
 function inDependencyOrder(
   rows: ConditionRow[],
   evidence: EvidenceRow[],
+  modifiers: ModifierRow[] = [],
 ): ConditionRow[] {
-  const needs = new Map<string, Set<string>>();
-  for (const c of rows)
-    needs.set(c.id, new Set(c.requires ? [c.requires.condition] : []));
-  for (const e of evidence)
-    if (e.featureId.startsWith("hypothesis:"))
-      needs.get(e.conditionId)?.add(e.featureId.slice("hypothesis:".length));
+  const needs = dependencyNeeds(rows, evidence, modifiers);
+  const present = new Set(rows.map((r) => r.id));
 
   const out: ConditionRow[] = [];
   const done = new Set<string>();
@@ -217,10 +304,14 @@ function inDependencyOrder(
   while (queue.length) {
     const ready = queue.findIndex((c) =>
       [...(needs.get(c.id) ?? [])].every(
-        (id) => done.has(id) || !rows.some((r) => r.id === id),
+        (id) => done.has(id) || !present.has(id),
       ),
     );
-    // A cycle would leave nothing ready; take the head so the loop still ends.
+    if (ready === -1)
+      console.error(
+        "[hkb] dependency cycle, order is a guess:",
+        dependencyCycles(needs).join("; "),
+      );
     const [next] = queue.splice(ready === -1 ? 0 : ready, 1);
     out.push(next!);
     done.add(next!.id);
@@ -291,18 +382,11 @@ export function rowsToCatalog(rows: CatalogRows, awake?: Set<string>): Catalog {
   const units = new Map(rows.features.map((f) => [f.id, f.unit]));
   const testsById = new Map(rows.tests.map((t) => [t.id, t]));
 
-  const whenOf = (featureId: string, on: Record<string, unknown>) => {
-    const reads = VALUE_KEYS.some((k) => k in on);
-    return {
-      ...(reads ? featureInput(featureId) : {}),
-      ...on,
-    } as EvidenceRule["when"] & EvidenceRule["input"];
-  };
-
   return withNegatives(
     inDependencyOrder(
       rows.conditions.filter((c) => c.inCatalog || awake?.has(c.id)),
       rows.evidence,
+      rows.modifiers,
     ).map((c): Hypothesis => {
       const mine = rows.priors.filter((p) => p.conditionId === c.id);
       const isBase = (p: PriorRow) =>
@@ -364,11 +448,7 @@ export function rowsToCatalog(rows: CatalogRows, awake?: Set<string>): Catalog {
             : {}),
           modifiers: rows.modifiers
             .filter((m) => m.conditionId === c.id)
-            .map((m) => ({
-              when: whenOf(m.featureId, m.conditionOn),
-              times: m.times,
-              why: m.why,
-            })),
+            .map(modifierOf),
         },
         evidence,
         discriminators,

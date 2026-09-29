@@ -7,7 +7,6 @@
  * the call: dose ceilings, one test action per fired rule, at most eight
  * actions. See `postProcess`.
  */
-import { generateObject } from "ai";
 import { desc, eq } from "drizzle-orm";
 import { z } from "zod";
 import {
@@ -34,7 +33,7 @@ import {
   documentSummaries,
   type DocumentSummary,
 } from "./documents";
-import { model } from "./extract";
+import { generateObjectSafe } from "./extract";
 import { computeGraphState, type GraphState } from "./graph-state";
 import { loadGraph, type Graph } from "./kg";
 import { catalogFor } from "./hkb";
@@ -1039,9 +1038,12 @@ export async function generateFromContext(
   modelId?: string,
   graph?: GraphFacts,
 ): Promise<ReportBody> {
-  const { object } = await generateObject({
-    model: model(modelId),
+  const { object } = await generateObjectSafe({
+    model: modelId,
     schema: reportSchema,
+    // Sonnet 5.5 writes a whole plan past the 8192 default (cut at 8192 on
+    // 2026-09-28), and a cut-off plan is no plan
+    maxOutputTokens: 16000,
     system: SYSTEM_PROMPT,
     prompt: context,
   });

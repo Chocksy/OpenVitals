@@ -9,6 +9,7 @@ import {
   longLanding,
   monthsBefore,
   monthsBetween,
+  pendingLine,
   rowState,
   todayLines,
 } from "./home-hybrid";
@@ -219,5 +220,16 @@ describe("markerLane (40c, 55's statusOf)", () => {
   it("is too few draws under four, and nothing with no lab draw", () => {
     expect(markerLane(metric([1, 2]), null)!.word).toBe("too few draws");
     expect(markerLane(metric([]), null)).toBeNull();
+  });
+});
+
+describe("pendingLine (41E)", () => {
+  it("counts the names and dates the upload", () => {
+    expect(pendingLine({ upload: "u", date: "2026-08-18", names: ["Ferritin"] })).toBe(
+      "1 result still pending from 18 Aug",
+    );
+    expect(pendingLine({ upload: "u", date: null, names: ["A", "B"] })).toBe(
+      "2 results still pending",
+    );
   });
 });

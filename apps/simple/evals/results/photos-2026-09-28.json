@@ -1,0 +1,3905 @@
+{
+  "ranAt": "2026-09-28T20:50:18.310Z",
+  "source": "Nutrition5k cafe1, realsense_overhead rgb",
+  "rows": [
+    {
+      "model": "openai/gpt-6-luna",
+      "valid": "20/20",
+      "meal": 20,
+      "named": 0.7570238095238095,
+      "kcalErrPct": 46.443459146379936,
+      "kcalMedianErrPct": 28.915996673135574,
+      "proteinErrG": 11.364999999999998,
+      "carbsErrG": 22.750000000000004,
+      "fatErrG": 7.019999999999999,
+      "costUsd": 0.0066914999999999995,
+      "per100Usd": 0.0334575,
+      "medianLatencyS": 6.522
+    },
+    {
+      "model": "z-ai/glm-5.3-flash",
+      "valid": "20/20",
+      "meal": 20,
+      "named": 0.8736904761904762,
+      "kcalErrPct": 34.6859211365622,
+      "kcalMedianErrPct": 24.112607099143208,
+      "proteinErrG": 7.025,
+      "carbsErrG": 12.1,
+      "fatErrG": 6.45,
+      "costUsd": 0.009095500000000005,
+      "per100Usd": 0.045477500000000025,
+      "medianLatencyS": 12.22
+    },
+    {
+      "model": "xiaomi/mimo-v2.6-pro",
+      "valid": "20/20",
+      "meal": 20,
+      "named": 0.6973809523809523,
+      "kcalErrPct": 44.854192391867684,
+      "kcalMedianErrPct": 33.60131010867947,
+      "proteinErrG": 8.334999999999999,
+      "carbsErrG": 19.279999999999998,
+      "fatErrG": 7.8,
+      "costUsd": 0.01610457,
+      "per100Usd": 0.08052284999999999,
+      "medianLatencyS": 14.497
+    },
+    {
+      "model": "google/gemini-3.7-flash",
+      "valid": "20/20",
+      "meal": 20,
+      "named": 0.865357142857143,
+      "kcalErrPct": 19.44507900545268,
+      "kcalMedianErrPct": 14.396307875539682,
+      "proteinErrG": 6.205,
+      "carbsErrG": 6.13,
+      "fatErrG": 3.63,
+      "costUsd": 0.07602374999999997,
+      "per100Usd": 0.38011874999999984,
+      "medianLatencyS": 6.243
+    },
+    {
+      "model": "openai/gpt-5.6-sol",
+      "valid": "20/20",
+      "meal": 20,
+      "named": 0.789047619047619,
+      "kcalErrPct": 40.195080075445006,
+      "kcalMedianErrPct": 37.55135579293344,
+      "proteinErrG": 7.885,
+      "carbsErrG": 17.110000000000003,
+      "fatErrG": 5.26,
+      "costUsd": 0.10939999999999998,
+      "per100Usd": 0.5469999999999999,
+      "medianLatencyS": 5.9
+    },
+    {
+      "model": "meta/muse-spark-1.3",
+      "valid": "20/20",
+      "meal": 20,
+      "named": 0.7932142857142856,
+      "kcalErrPct": 24.655265953985086,
+      "kcalMedianErrPct": 17.796610169491526,
+      "proteinErrG": 6.925,
+      "carbsErrG": 12.069999999999999,
+      "fatErrG": 5.550000000000001,
+      "costUsd": 0.14179425000000004,
+      "per100Usd": 0.7089712500000002,
+      "medianLatencyS": 10.649
+    },
+    {
+      "model": "anthropic/claude-sonnet-5.5",
+      "valid": "20/20",
+      "meal": 20,
+      "named": 0.849047619047619,
+      "kcalErrPct": 46.81758904021488,
+      "kcalMedianErrPct": 38.51481338976531,
+      "proteinErrG": 7.905000000000001,
+      "carbsErrG": 15.080000000000002,
+      "fatErrG": 7.689999999999998,
+      "costUsd": 0.15534,
+      "per100Usd": 0.7767000000000001,
+      "medianLatencyS": 3.431
+    },
+    {
+      "model": "anthropic/claude-opus-5.5",
+      "valid": "20/20",
+      "meal": 20,
+      "named": 0.8520238095238095,
+      "kcalErrPct": 49.861845789886345,
+      "kcalMedianErrPct": 43.1878306878307,
+      "proteinErrG": 9.245000000000001,
+      "carbsErrG": 14.86,
+      "fatErrG": 8.589999999999998,
+      "costUsd": 0.33754000000000006,
+      "per100Usd": 1.6877000000000004,
+      "medianLatencyS": 6.094
+    },
+    {
+      "model": "x-ai/grok-4.6",
+      "valid": "20/20",
+      "meal": 20,
+      "named": 0.8057142857142857,
+      "kcalErrPct": 41.79990820404032,
+      "kcalMedianErrPct": 26.599634369287024,
+      "proteinErrG": 6.885,
+      "carbsErrG": 13.450000000000003,
+      "fatErrG": 6.5699999999999985,
+      "costUsd": 0.37590399999999996,
+      "per100Usd": 1.8795199999999999,
+      "medianLatencyS": 38.408
+    }
+  ],
+  "runs": [
+    {
+      "model": "openai/gpt-5.6-sol",
+      "cases": [
+        {
+          "id": "dish_1565725095",
+          "ok": true,
+          "kind": "meal",
+          "named": 0.75,
+          "main": [
+            "cherry tomatoes",
+            "olives",
+            "carrot",
+            "bell peppers"
+          ],
+          "said": "cherry tomatoes, shredded carrot, sliced green bell pepper, sliced red bell pepper; cherry tomatoes; shredded carrot; green bell pepper; red bell pepper",
+          "kcal": 76,
+          "kcalErrPct": 37.55135579293344,
+          "proteinErrG": 0.10000000000000009,
+          "carbsErrG": 2.1999999999999993,
+          "fatErrG": 4.1,
+          "inputTokens": 837,
+          "outputTokens": 366,
+          "latencyMs": 7276
+        },
+        {
+          "id": "dish_1562602860",
+          "ok": true,
+          "kind": "meal",
+          "named": 0.5,
+          "main": [
+            "strawberries",
+            "milk",
+            "greek yogurt",
+            "watermelon"
+          ],
+          "said": "watermelon chunks, strawberries, blueberries, blackberries, cottage cheese; watermelon; strawberries; blueberries; blackberries; cottage cheese",
+          "kcal": 177,
+          "kcalErrPct": 7.142857142857151,
+          "proteinErrG": 3.8000000000000007,
+          "carbsErrG": 0.1999999999999993,
+          "fatErrG": 0.40000000000000036,
+          "inputTokens": 837,
+          "outputTokens": 397,
+          "latencyMs": 5628
+        },
+        {
+          "id": "dish_1558721636",
+          "ok": true,
+          "kind": "meal",
+          "named": 0.75,
+          "main": [
+            "carrot",
+            "corn on the cob",
+            "cantaloupe",
+            "cherry tomatoes"
+          ],
+          "said": "sliced cooked carrots, corn on the cob, cherry tomatoes, orange melon pieces; sliced cooked carrots; corn on the cob; cherry tomatoes; orange melon pieces",
+          "kcal": 145,
+          "kcalErrPct": 11.097486204782339,
+          "proteinErrG": 0.5999999999999996,
+          "carbsErrG": 2.799999999999997,
+          "fatErrG": 1.6,
+          "inputTokens": 837,
+          "outputTokens": 343,
+          "latencyMs": 5611
+        },
+        {
+          "id": "dish_1561060531",
+          "ok": true,
+          "kind": "meal",
+          "named": 0.75,
+          "main": [
+            "bok choy",
+            "brussels sprouts",
+            "cheese pizza",
+            "pineapple"
+          ],
+          "said": "a small piece of lasagna, pineapple chunks, Brussels sprouts, and steamed bok choy; lasagna; pineapple chunks; Brussels sprouts; steamed bok choy",
+          "kcal": 250,
+          "kcalErrPct": 54.225786551511426,
+          "proteinErrG": 6.3,
+          "carbsErrG": 11.7,
+          "fatErrG": 2.9000000000000004,
+          "inputTokens": 837,
+          "outputTokens": 325,
+          "latencyMs": 5772
+        },
+        {
+          "id": "dish_1563208459",
+          "ok": true,
+          "kind": "meal",
+          "named": 0.25,
+          "main": [
+            "raspberries",
+            "yam",
+            "sweet potato",
+            "chicken apple sausage"
+          ],
+          "said": "six small browned meatballs, raspberries, roasted mixed vegetables (orange and yellow root-vegetable pieces with onion); small browned meatballs; raspberries; roasted mixed root vegetables and onion",
+          "kcal": 442,
+          "kcalErrPct": 136.99731903485255,
+          "proteinErrG": 16.1,
+          "carbsErrG": 24.5,
+          "fatErrG": 11,
+          "inputTokens": 837,
+          "outputTokens": 536,
+          "latencyMs": 9314
+        },
+        {
+          "id": "dish_1562691613",
+          "ok": true,
+          "kind": "meal",
+          "named": 0.5,
+          "main": [
+            "egg whites",
+            "broccoli",
+            "yam",
+            "sweet potato"
+          ],
+          "said": "broccoli, cauliflower, roasted carrot pieces, roasted potato pieces; broccoli; cauliflower; roasted carrots; roasted potatoes",
+          "kcal": 235,
+          "kcalErrPct": 9.967243799719238,
+          "proteinErrG": 3.1999999999999993,
+          "carbsErrG": 12.299999999999997,
+          "fatErrG": 2.1,
+          "inputTokens": 837,
+          "outputTokens": 379,
+          "latencyMs": 5900
+        },
+        {
+          "id": "dish_1568313676",
+          "ok": true,
+          "kind": "meal",
+          "named": 0.8,
+          "main": [
+            "mixed greens",
+            "avocado",
+            "chicken",
+            "mushroom",
+            "onions"
+          ],
+          "said": "mixed leafy greens, chopped chicken breast, avocado, red onion; mixed leafy greens; chopped chicken breast; avocado; red onion",
+          "kcal": 282,
+          "kcalErrPct": 52.43243243243243,
+          "proteinErrG": 9.5,
+          "carbsErrG": 3.0999999999999996,
+          "fatErrG": 4.9,
+          "inputTokens": 837,
+          "outputTokens": 301,
+          "latencyMs": 5066
+        },
+        {
+          "id": "dish_1559838402",
+          "ok": true,
+          "kind": "meal",
+          "named": 1,
+          "main": [
+            "sweet potato",
+            "yam",
+            "berries"
+          ],
+          "said": "roasted potatoes, roasted sweet potato, strawberries, raspberries, one blackberry, bacon; roasted potatoes; roasted sweet potato; strawberries; raspberries; blackberry; bacon",
+          "kcal": 346,
+          "kcalErrPct": 55.29622980251345,
+          "proteinErrG": 3.8,
+          "carbsErrG": 9.799999999999997,
+          "fatErrG": 8.2,
+          "inputTokens": 837,
+          "outputTokens": 432,
+          "latencyMs": 6341
+        },
+        {
+          "id": "dish_1560801829",
+          "ok": true,
+          "kind": "meal",
+          "named": 0.6666666666666666,
+          "main": [
+            "squash",
+            "pepperoni pizza",
+            "cauliflower"
+          ],
+          "said": "pepperoni pizza, roasted potato pieces, cauliflower florets, roasted eggplant piece; pepperoni pizza; roasted potatoes; cauliflower; roasted eggplant",
+          "kcal": 445,
+          "kcalErrPct": 73.2191514207863,
+          "proteinErrG": 5.800000000000001,
+          "carbsErrG": 22.7,
+          "fatErrG": 8.5,
+          "inputTokens": 837,
+          "outputTokens": 384,
+          "latencyMs": 5929
+        },
+        {
+          "id": "dish_1565724588",
+          "ok": true,
+          "kind": "meal",
+          "named": 1,
+          "main": [
+            "zucchini",
+            "broccoli",
+            "roasted potatoes",
+            "chayote squash"
+          ],
+          "said": "cooked broccoli, sautéed yellow squash and zucchini, browned potato pieces; cooked broccoli; sautéed yellow squash and zucchini; browned potato pieces",
+          "kcal": 300,
+          "kcalErrPct": 12.485939257592806,
+          "proteinErrG": 2,
+          "carbsErrG": 9.100000000000001,
+          "fatErrG": 0.3000000000000007,
+          "inputTokens": 837,
+          "outputTokens": 513,
+          "latencyMs": 8114
+        },
+        {
+          "id": "dish_1566416388",
+          "ok": true,
+          "kind": "meal",
+          "named": 1,
+          "main": [
+            "roasted potatoes",
+            "eggplant",
+            "green beans"
+          ],
+          "said": "green beans, roasted potatoes, roasted eggplant; green beans; roasted potatoes; roasted eggplant",
+          "kcal": 450,
+          "kcalErrPct": 73.14351673720664,
+          "proteinErrG": 5.8,
+          "carbsErrG": 32.1,
+          "fatErrG": 6.800000000000001,
+          "inputTokens": 837,
+          "outputTokens": 356,
+          "latencyMs": 6387
+        },
+        {
+          "id": "dish_1559845018",
+          "ok": true,
+          "kind": "meal",
+          "named": 1,
+          "main": [
+            "almonds",
+            "mandarin oranges",
+            "potatoes"
+          ],
+          "said": "almonds, roasted potato pieces, one mandarin orange; almonds; roasted potato pieces; mandarin orange",
+          "kcal": 475,
+          "kcalErrPct": 57.07671957671959,
+          "proteinErrG": 1.8000000000000007,
+          "carbsErrG": 28.3,
+          "fatErrG": 6.899999999999999,
+          "inputTokens": 837,
+          "outputTokens": 260,
+          "latencyMs": 4793
+        },
+        {
+          "id": "dish_1559233144",
+          "ok": true,
+          "kind": "meal",
+          "named": 1,
+          "main": [
+            "garden salad",
+            "scrambled eggs",
+            "bacon"
+          ],
+          "said": "scrambled eggs, bacon, spinach salad with shredded carrot; scrambled eggs; bacon; spinach salad with shredded carrot",
+          "kcal": 480,
+          "kcalErrPct": 20.572720422004515,
+          "proteinErrG": 5.300000000000001,
+          "carbsErrG": 5.3,
+          "fatErrG": 5.300000000000001,
+          "inputTokens": 837,
+          "outputTokens": 239,
+          "latencyMs": 4269
+        },
+        {
+          "id": "dish_1561751897",
+          "ok": true,
+          "kind": "meal",
+          "named": 1,
+          "main": [
+            "brown rice",
+            "salmon"
+          ],
+          "said": "seared salmon, cooked mixed rice, leafy greens; seared salmon; cooked mixed rice; leafy greens",
+          "kcal": 379,
+          "kcalErrPct": 7.062146892655368,
+          "proteinErrG": 4,
+          "carbsErrG": 11.2,
+          "fatErrG": 1,
+          "inputTokens": 837,
+          "outputTokens": 294,
+          "latencyMs": 4958
+        },
+        {
+          "id": "dish_1560367926",
+          "ok": true,
+          "kind": "meal",
+          "named": 0.5,
+          "main": [
+            "fish",
+            "pizza"
+          ],
+          "said": "one slice of pizza with cheese, tomato sauce, red pepper, jalapeño and olives; one fried chicken wing with green onion; vegetable and olive pizza; fried chicken wing",
+          "kcal": 450,
+          "kcalErrPct": 10.159118727050185,
+          "proteinErrG": 2.1999999999999993,
+          "carbsErrG": 2,
+          "fatErrG": 0,
+          "inputTokens": 837,
+          "outputTokens": 251,
+          "latencyMs": 4130
+        },
+        {
+          "id": "dish_1563551006",
+          "ok": true,
+          "kind": "meal",
+          "named": 1,
+          "main": [
+            "scrambled eggs",
+            "roasted potatoes",
+            "country rice"
+          ],
+          "said": "scrambled eggs with shredded cheese, bacon strips, diced fried potatoes, and a small serving of fried rice with vegetables; scrambled eggs with shredded cheese; bacon; diced fried potatoes; vegetable fried rice",
+          "kcal": 680,
+          "kcalErrPct": 90.10343863572827,
+          "proteinErrG": 14.3,
+          "carbsErrG": 27.4,
+          "fatErrG": 14.899999999999999,
+          "inputTokens": 837,
+          "outputTokens": 350,
+          "latencyMs": 5641
+        },
+        {
+          "id": "dish_1565021185",
+          "ok": true,
+          "kind": "meal",
+          "named": 0.6,
+          "main": [
+            "waffles",
+            "turnips",
+            "egg whites",
+            "sausage",
+            "tofu"
+          ],
+          "said": "waffles, scrambled eggs, browned sausage pieces, white creamy topping; waffles; scrambled eggs; browned sausage pieces; white creamy topping",
+          "kcal": 740,
+          "kcalErrPct": 53.68639667705089,
+          "proteinErrG": 7.100000000000001,
+          "carbsErrG": 20.9,
+          "fatErrG": 15.600000000000001,
+          "inputTokens": 837,
+          "outputTokens": 569,
+          "latencyMs": 9300
+        },
+        {
+          "id": "dish_1558376984",
+          "ok": true,
+          "kind": "meal",
+          "named": 1,
+          "main": [
+            "almonds",
+            "sausage",
+            "grapes"
+          ],
+          "said": "apple, almonds, red grapes, sliced sausage, leafy greens with thin carrot strips; apple; almonds; red grapes; sliced sausage; leafy greens with carrot strips",
+          "kcal": 712,
+          "kcalErrPct": 5.999702248027386,
+          "proteinErrG": 20.4,
+          "carbsErrG": 26.8,
+          "fatErrG": 2.3999999999999986,
+          "inputTokens": 837,
+          "outputTokens": 433,
+          "latencyMs": 6795
+        },
+        {
+          "id": "dish_1562602687",
+          "ok": true,
+          "kind": "meal",
+          "named": 1,
+          "main": [
+            "brussels sprouts",
+            "sausage",
+            "hash browns",
+            "scrambled eggs"
+          ],
+          "said": "scrambled eggs, shredded fried potatoes, Brussels sprouts, sliced sausage links; scrambled eggs; shredded fried potatoes; Brussels sprouts; sausage links, sliced",
+          "kcal": 810,
+          "kcalErrPct": 12.281674521763241,
+          "proteinErrG": 4.199999999999999,
+          "carbsErrG": 21.799999999999997,
+          "fatErrG": 0.29999999999999716,
+          "inputTokens": 837,
+          "outputTokens": 331,
+          "latencyMs": 5238
+        },
+        {
+          "id": "dish_1565118096",
+          "ok": true,
+          "kind": "meal",
+          "named": 0.7142857142857143,
+          "main": [
+            "chicken breast",
+            "tuna",
+            "cheese pizza",
+            "cherry tomatoes",
+            "bell peppers",
+            "carrot",
+            "pineapple"
+          ],
+          "said": "two small cheese-topped flatbread or pizza slices, seasoned rice, shredded carrots, mixed sliced red and green bell peppers with cucumber, pineapple chunks, and small pieces of cooked chicken; cheese-topped flatbread or pizza slices; seasoned rice; shredded carrots; mixed red and green bell peppers with cucumber; pineapple chunks; cooked chicken pieces",
+          "kcal": 810,
+          "kcalErrPct": 23.400365630712987,
+          "proteinErrG": 41.400000000000006,
+          "carbsErrG": 68,
+          "fatErrG": 8,
+          "inputTokens": 837,
+          "outputTokens": 533,
+          "latencyMs": 8197
+        }
+      ]
+    },
+    {
+      "model": "openai/gpt-6-luna",
+      "cases": [
+        {
+          "id": "dish_1565725095",
+          "ok": true,
+          "kind": "meal",
+          "named": 0.75,
+          "main": [
+            "cherry tomatoes",
+            "olives",
+            "carrot",
+            "bell peppers"
+          ],
+          "said": "A bowl of shredded carrots, chopped tomatoes, and sliced green bell pepper.; Shredded carrots; Tomatoes; Green bell pepper",
+          "kcal": 95,
+          "kcalErrPct": 21.939194741166805,
+          "proteinErrG": 0.8999999999999999,
+          "carbsErrG": 2.8000000000000007,
+          "fatErrG": 4.1,
+          "inputTokens": 837,
+          "outputTokens": 207,
+          "latencyMs": 2935
+        },
+        {
+          "id": "dish_1562602860",
+          "ok": true,
+          "kind": "meal",
+          "named": 0.5,
+          "main": [
+            "strawberries",
+            "milk",
+            "greek yogurt",
+            "watermelon"
+          ],
+          "said": "Watermelon, strawberries, blackberries, and cottage cheese on a plate.; Watermelon; Strawberries; Blackberries; Cottage cheese",
+          "kcal": 169,
+          "kcalErrPct": 2.3002421307506125,
+          "proteinErrG": 2.8000000000000007,
+          "carbsErrG": 0.1999999999999993,
+          "fatErrG": 0.5999999999999996,
+          "inputTokens": 837,
+          "outputTokens": 457,
+          "latencyMs": 6162
+        },
+        {
+          "id": "dish_1558721636",
+          "ok": true,
+          "kind": "meal",
+          "named": 1,
+          "main": [
+            "carrot",
+            "corn on the cob",
+            "cantaloupe",
+            "cherry tomatoes"
+          ],
+          "said": "Carrot slices, cherry tomatoes, corn on the cob, and orange melon pieces.; Carrot; Cherry tomatoes; Corn on the cob; Orange melon, possibly cantaloupe",
+          "kcal": 179,
+          "kcalErrPct": 9.748620478234216,
+          "proteinErrG": 0.40000000000000036,
+          "carbsErrG": 5.200000000000003,
+          "fatErrG": 0.6000000000000001,
+          "inputTokens": 837,
+          "outputTokens": 582,
+          "latencyMs": 7890
+        },
+        {
+          "id": "dish_1561060531",
+          "ok": true,
+          "kind": "meal",
+          "named": 0.75,
+          "main": [
+            "bok choy",
+            "brussels sprouts",
+            "cheese pizza",
+            "pineapple"
+          ],
+          "said": "A browned rectangular piece of food, yellow fruit chunks, small green sprouts, and pale green stalks with leaves.; Baked fish with browned topping (estimated); Pineapple chunks; Brussels sprouts; Bok choy",
+          "kcal": 248,
+          "kcalErrPct": 52.99198025909932,
+          "proteinErrG": 17.3,
+          "carbsErrG": 3.3000000000000007,
+          "fatErrG": 3.9000000000000004,
+          "inputTokens": 837,
+          "outputTokens": 651,
+          "latencyMs": 9163
+        },
+        {
+          "id": "dish_1563208459",
+          "ok": true,
+          "kind": "meal",
+          "named": 0.75,
+          "main": [
+            "raspberries",
+            "yam",
+            "sweet potato",
+            "chicken apple sausage"
+          ],
+          "said": "Small browned round pieces, orange and pale vegetable chunks, and raspberries on a plate; Small browned round pieces (possibly falafel); Roasted orange and pale vegetable chunks (possibly sweet potato, carrot, and potato); Raspberries",
+          "kcal": 436,
+          "kcalErrPct": 133.78016085790884,
+          "proteinErrG": 7.1,
+          "carbsErrG": 41.5,
+          "fatErrG": 8,
+          "inputTokens": 837,
+          "outputTokens": 567,
+          "latencyMs": 8991
+        },
+        {
+          "id": "dish_1562691613",
+          "ok": true,
+          "kind": "meal",
+          "named": 0.75,
+          "main": [
+            "egg whites",
+            "broccoli",
+            "yam",
+            "sweet potato"
+          ],
+          "said": "Broccoli, cauliflower, rice, orange roasted vegetables, and browned potato pieces; Broccoli; Cauliflower; Cooked rice; Roasted sweet potato; Roasted potato",
+          "kcal": 330,
+          "kcalErrPct": 54.42208703790361,
+          "proteinErrG": 3.1999999999999993,
+          "carbsErrG": 34.3,
+          "fatErrG": 0.10000000000000009,
+          "inputTokens": 837,
+          "outputTokens": 463,
+          "latencyMs": 6769
+        },
+        {
+          "id": "dish_1568313676",
+          "ok": true,
+          "kind": "meal",
+          "named": 0.8,
+          "main": [
+            "mixed greens",
+            "avocado",
+            "chicken",
+            "mushroom",
+            "onions"
+          ],
+          "said": "Mixed leafy greens, cubed chicken, avocado, red onion, and what appears to be shredded cheese; Mixed leafy greens; Cooked chicken breast, cubed; Avocado; Red onion; Shredded cheese",
+          "kcal": 292,
+          "kcalErrPct": 57.83783783783784,
+          "proteinErrG": 11.5,
+          "carbsErrG": 0.9000000000000004,
+          "fatErrG": 6.9,
+          "inputTokens": 837,
+          "outputTokens": 521,
+          "latencyMs": 6314
+        },
+        {
+          "id": "dish_1559838402",
+          "ok": true,
+          "kind": "meal",
+          "named": 1,
+          "main": [
+            "sweet potato",
+            "yam",
+            "berries"
+          ],
+          "said": "Strawberries, raspberries, a blackberry, roasted pale and orange vegetables, and a browned strip of meat on a plate.; Strawberries; Raspberries; Blackberry; Roasted pale vegetables, possibly potato; Roasted orange vegetables, possibly squash or sweet potato; Browned meat strip, possibly bacon",
+          "kcal": 251,
+          "kcalErrPct": 12.657091561938952,
+          "proteinErrG": 4.8,
+          "carbsErrG": 12.200000000000003,
+          "fatErrG": 7.2,
+          "inputTokens": 837,
+          "outputTokens": 725,
+          "latencyMs": 9461
+        },
+        {
+          "id": "dish_1560801829",
+          "ok": true,
+          "kind": "meal",
+          "named": 0.6666666666666666,
+          "main": [
+            "squash",
+            "pepperoni pizza",
+            "cauliflower"
+          ],
+          "said": "A slice of pizza with tomato, melted cheese and pepperoni, cauliflower, roasted potato pieces, and a small dark vegetable piece.; Pizza with tomato, melted cheese and pepperoni; Cauliflower; Roasted potato pieces; Dark vegetable piece, possibly eggplant",
+          "kcal": 485,
+          "kcalErrPct": 88.78941222265475,
+          "proteinErrG": 8.8,
+          "carbsErrG": 25.7,
+          "fatErrG": 10.5,
+          "inputTokens": 837,
+          "outputTokens": 482,
+          "latencyMs": 6085
+        },
+        {
+          "id": "dish_1565724588",
+          "ok": true,
+          "kind": "meal",
+          "named": 1,
+          "main": [
+            "zucchini",
+            "broccoli",
+            "roasted potatoes",
+            "chayote squash"
+          ],
+          "said": "Broccoli, browned potato pieces, and yellow squash/zucchini pieces; Broccoli; Cooked potato pieces; Yellow squash/zucchini pieces",
+          "kcal": 325,
+          "kcalErrPct": 21.859767529058875,
+          "proteinErrG": 3,
+          "carbsErrG": 18.1,
+          "fatErrG": 2.3000000000000007,
+          "inputTokens": 837,
+          "outputTokens": 382,
+          "latencyMs": 5441
+        },
+        {
+          "id": "dish_1566416388",
+          "ok": true,
+          "kind": "meal",
+          "named": 0.6666666666666666,
+          "main": [
+            "roasted potatoes",
+            "eggplant",
+            "green beans"
+          ],
+          "said": "Green beans, roasted potato chunks, and browned chicken-like pieces; Green beans; Roasted potatoes; Browned chicken pieces",
+          "kcal": 507,
+          "kcalErrPct": 95.0750288572528,
+          "proteinErrG": 29.8,
+          "carbsErrG": 16.1,
+          "fatErrG": 7.800000000000001,
+          "inputTokens": 837,
+          "outputTokens": 470,
+          "latencyMs": 6345
+        },
+        {
+          "id": "dish_1559845018",
+          "ok": true,
+          "kind": "meal",
+          "named": 1,
+          "main": [
+            "almonds",
+            "mandarin oranges",
+            "potatoes"
+          ],
+          "said": "Almonds, roasted potato pieces, and a small orange or mandarin on a plate.; Almonds; Roasted potato pieces; Small orange or mandarin",
+          "kcal": 478,
+          "kcalErrPct": 58.068783068783084,
+          "proteinErrG": 0.8000000000000007,
+          "carbsErrG": 33.3,
+          "fatErrG": 3.8999999999999986,
+          "inputTokens": 837,
+          "outputTokens": 432,
+          "latencyMs": 6522
+        },
+        {
+          "id": "dish_1559233144",
+          "ok": true,
+          "kind": "meal",
+          "named": 0.6666666666666666,
+          "main": [
+            "garden salad",
+            "scrambled eggs",
+            "bacon"
+          ],
+          "said": "Scrambled eggs, bacon, spinach, and shredded carrot.; Scrambled eggs; Bacon; Spinach; Shredded carrot",
+          "kcal": 331,
+          "kcalErrPct": 16.85506154232605,
+          "proteinErrG": 4.699999999999999,
+          "carbsErrG": 0.2999999999999998,
+          "fatErrG": 4.699999999999999,
+          "inputTokens": 837,
+          "outputTokens": 365,
+          "latencyMs": 4380
+        },
+        {
+          "id": "dish_1561751897",
+          "ok": true,
+          "kind": "meal",
+          "named": 1,
+          "main": [
+            "brown rice",
+            "salmon"
+          ],
+          "said": "Cooked salmon, rice, leafy greens; Cooked salmon; Cooked rice; Leafy greens",
+          "kcal": 312,
+          "kcalErrPct": 11.864406779661017,
+          "proteinErrG": 10,
+          "carbsErrG": 9.2,
+          "fatErrG": 4,
+          "inputTokens": 837,
+          "outputTokens": 351,
+          "latencyMs": 5121
+        },
+        {
+          "id": "dish_1560367926",
+          "ok": true,
+          "kind": "meal",
+          "named": 0.5,
+          "main": [
+            "fish",
+            "pizza"
+          ],
+          "said": "A slice of vegetable-topped pizza and a small portion of cooked chicken.; Vegetable-topped pizza (cheese, tomato, green pepper, red pepper, and olives); Cooked chicken, possibly with sauce",
+          "kcal": 440,
+          "kcalErrPct": 7.711138310893513,
+          "proteinErrG": 6.800000000000001,
+          "carbsErrG": 7,
+          "fatErrG": 2,
+          "inputTokens": 837,
+          "outputTokens": 405,
+          "latencyMs": 6072
+        },
+        {
+          "id": "dish_1563551006",
+          "ok": true,
+          "kind": "meal",
+          "named": 1,
+          "main": [
+            "scrambled eggs",
+            "roasted potatoes",
+            "country rice"
+          ],
+          "said": "A plate with rice, bacon, scrambled eggs, shredded cheese, and diced potatoes.; Rice, lightly browned/seasoned; Bacon; Scrambled eggs; Shredded cheese; Diced potatoes",
+          "kcal": 740,
+          "kcalErrPct": 106.87727145652784,
+          "proteinErrG": 16.3,
+          "carbsErrG": 43.4,
+          "fatErrG": 14.899999999999999,
+          "inputTokens": 837,
+          "outputTokens": 445,
+          "latencyMs": 5587
+        },
+        {
+          "id": "dish_1565021185",
+          "ok": true,
+          "kind": "meal",
+          "named": 0.4,
+          "main": [
+            "waffles",
+            "turnips",
+            "egg whites",
+            "sausage",
+            "tofu"
+          ],
+          "said": "Waffles with small round browned pieces, a chunky yellow-brown mixture, white topping, and browned potato-like pieces.; Waffles; Small round browned pieces, possibly sausage or meatballs; Chunky yellow-brown mixture, possibly vegetables; White topping, possibly soft cheese or cream; Browned potato-like pieces",
+          "kcal": 1040,
+          "kcalErrPct": 115.99169262720666,
+          "proteinErrG": 8.100000000000001,
+          "carbsErrG": 76.9,
+          "fatErrG": 24.6,
+          "inputTokens": 837,
+          "outputTokens": 620,
+          "latencyMs": 7841
+        },
+        {
+          "id": "dish_1558376984",
+          "ok": true,
+          "kind": "meal",
+          "named": 0.3333333333333333,
+          "main": [
+            "almonds",
+            "sausage",
+            "grapes"
+          ],
+          "said": "An apple, almonds, small red tomatoes, brown dried fruit, and leafy greens on a plate.; Apple; Almonds; Small red tomatoes; Dried dates; Leafy greens",
+          "kcal": 478,
+          "kcalErrPct": 28.83727854697038,
+          "proteinErrG": 33.4,
+          "carbsErrG": 47.8,
+          "fatErrG": 26.6,
+          "inputTokens": 837,
+          "outputTokens": 528,
+          "latencyMs": 7911
+        },
+        {
+          "id": "dish_1562602687",
+          "ok": true,
+          "kind": "meal",
+          "named": 0.75,
+          "main": [
+            "brussels sprouts",
+            "sausage",
+            "hash browns",
+            "scrambled eggs"
+          ],
+          "said": "White rice, scrambled eggs, Brussels sprouts, and sausage pieces; White rice; Scrambled eggs; Brussels sprouts; Sausage pieces",
+          "kcal": 930,
+          "kcalErrPct": 28.915996673135574,
+          "proteinErrG": 11.2,
+          "carbsErrG": 31.799999999999997,
+          "fatErrG": 5.700000000000003,
+          "inputTokens": 837,
+          "outputTokens": 513,
+          "latencyMs": 7683
+        },
+        {
+          "id": "dish_1565118096",
+          "ok": true,
+          "kind": "meal",
+          "named": 0.8571428571428571,
+          "main": [
+            "chicken breast",
+            "tuna",
+            "cheese pizza",
+            "cherry tomatoes",
+            "bell peppers",
+            "carrot",
+            "pineapple"
+          ],
+          "said": "Cheese-and-tomato pizza, rice, diced chicken, shredded carrot, tomato, cucumber, green pepper, and pineapple; Cheese-and-tomato pizza; Cooked rice; Diced chicken; Shredded carrot; Tomato; Cucumber; Green pepper; Pineapple",
+          "kcal": 641,
+          "kcalErrPct": 2.346130408287626,
+          "proteinErrG": 46.400000000000006,
+          "carbsErrG": 45,
+          "fatErrG": 2,
+          "inputTokens": 837,
+          "outputTokens": 869,
+          "latencyMs": 10436
+        }
+      ]
+    },
+    {
+      "model": "meta/muse-spark-1.3",
+      "cases": [
+        {
+          "id": "dish_1565725095",
+          "ok": true,
+          "kind": "meal",
+          "named": 0.75,
+          "main": [
+            "cherry tomatoes",
+            "olives",
+            "carrot",
+            "bell peppers"
+          ],
+          "said": "cherry tomatoes, shredded carrots, sliced green and red bell peppers in a metal bowl; cherry tomatoes; shredded carrots; sliced green bell pepper; sliced red bell pepper",
+          "kcal": 69,
+          "kcalErrPct": 43.30320460147905,
+          "proteinErrG": 0.10000000000000009,
+          "carbsErrG": 4.199999999999999,
+          "fatErrG": 4.1,
+          "inputTokens": 1561,
+          "outputTokens": 1247,
+          "latencyMs": 9343
+        },
+        {
+          "id": "dish_1562602860",
+          "ok": true,
+          "kind": "meal",
+          "named": 0.5,
+          "main": [
+            "strawberries",
+            "milk",
+            "greek yogurt",
+            "watermelon"
+          ],
+          "said": "diced watermelon, sliced strawberries, blackberries and blueberries, grey chia pudding on a white plate; diced watermelon; sliced strawberries; blackberries and blueberries; chia pudding",
+          "kcal": 152,
+          "kcalErrPct": 7.99031476997578,
+          "proteinErrG": 6.199999999999999,
+          "carbsErrG": 0.1999999999999993,
+          "fatErrG": 1.4000000000000004,
+          "inputTokens": 1561,
+          "outputTokens": 1135,
+          "latencyMs": 9845
+        },
+        {
+          "id": "dish_1558721636",
+          "ok": true,
+          "kind": "meal",
+          "named": 0.75,
+          "main": [
+            "carrot",
+            "corn on the cob",
+            "cantaloupe",
+            "cherry tomatoes"
+          ],
+          "said": "sliced carrots, corn on the cob, cherry tomatoes, orange melon chunks; sliced carrots; corn on the cob; cherry tomatoes; orange melon chunks",
+          "kcal": 127,
+          "kcalErrPct": 22.13366033108522,
+          "proteinErrG": 0.5999999999999996,
+          "carbsErrG": 8.799999999999997,
+          "fatErrG": 1.6,
+          "inputTokens": 1561,
+          "outputTokens": 1033,
+          "latencyMs": 11212
+        },
+        {
+          "id": "dish_1561060531",
+          "ok": true,
+          "kind": "meal",
+          "named": 0.75,
+          "main": [
+            "bok choy",
+            "brussels sprouts",
+            "cheese pizza",
+            "pineapple"
+          ],
+          "said": "cheese lasagna slice, pineapple cubes, brussels sprouts, cooked bok choy; cheese lasagna slice; pineapple cubes; roasted brussels sprouts; cooked bok choy",
+          "kcal": 201,
+          "kcalErrPct": 23.99753238741518,
+          "proteinErrG": 2.3,
+          "carbsErrG": 1.6999999999999993,
+          "fatErrG": 2.9000000000000004,
+          "inputTokens": 1561,
+          "outputTokens": 1124,
+          "latencyMs": 9330
+        },
+        {
+          "id": "dish_1563208459",
+          "ok": true,
+          "kind": "meal",
+          "named": 0.75,
+          "main": [
+            "raspberries",
+            "yam",
+            "sweet potato",
+            "chicken apple sausage"
+          ],
+          "said": "mini pancakes, diced roasted sweet potato, raspberries; mini pancakes; diced roasted sweet potato; raspberries",
+          "kcal": 286,
+          "kcalErrPct": 53.35120643431635,
+          "proteinErrG": 0.9000000000000004,
+          "carbsErrG": 30.5,
+          "fatErrG": 2,
+          "inputTokens": 1561,
+          "outputTokens": 1247,
+          "latencyMs": 12462
+        },
+        {
+          "id": "dish_1562691613",
+          "ok": true,
+          "kind": "meal",
+          "named": 0.75,
+          "main": [
+            "egg whites",
+            "broccoli",
+            "yam",
+            "sweet potato"
+          ],
+          "said": "roasted broccoli, cubed roasted sweet potato and potato, white mashed cauliflower; roasted broccoli; roasted sweet potato cubes; mashed cauliflower; roasted potato pieces",
+          "kcal": 285,
+          "kcalErrPct": 33.36452971455312,
+          "proteinErrG": 5.199999999999999,
+          "carbsErrG": 13.299999999999997,
+          "fatErrG": 6.1,
+          "inputTokens": 1561,
+          "outputTokens": 1312,
+          "latencyMs": 13204
+        },
+        {
+          "id": "dish_1568313676",
+          "ok": true,
+          "kind": "meal",
+          "named": 0.8,
+          "main": [
+            "mixed greens",
+            "avocado",
+            "chicken",
+            "mushroom",
+            "onions"
+          ],
+          "said": "mixed leaf salad with diced chicken, red onion and avocado; mixed salad leaves; diced grilled chicken breast; red onion slices; avocado",
+          "kcal": 221,
+          "kcalErrPct": 19.45945945945946,
+          "proteinErrG": 4.5,
+          "carbsErrG": 0.9000000000000004,
+          "fatErrG": 1.9000000000000004,
+          "inputTokens": 1561,
+          "outputTokens": 1236,
+          "latencyMs": 11821
+        },
+        {
+          "id": "dish_1559838402",
+          "ok": true,
+          "kind": "meal",
+          "named": 1,
+          "main": [
+            "sweet potato",
+            "yam",
+            "berries"
+          ],
+          "said": "roasted potatoes and sweet potatoes, sliced strawberries, raspberries, blackberry, bacon; roasted potatoes and sweet potatoes; sliced strawberries; raspberries; blackberry; cooked bacon",
+          "kcal": 314,
+          "kcalErrPct": 40.93357271095152,
+          "proteinErrG": 5.8,
+          "carbsErrG": 5.200000000000003,
+          "fatErrG": 10.2,
+          "inputTokens": 1561,
+          "outputTokens": 1615,
+          "latencyMs": 12318
+        },
+        {
+          "id": "dish_1560801829",
+          "ok": true,
+          "kind": "meal",
+          "named": 1,
+          "main": [
+            "squash",
+            "pepperoni pizza",
+            "cauliflower"
+          ],
+          "said": "pepperoni pizza slice, cauliflower florets, roasted yellow squash, roasted zucchini piece; pepperoni pizza; cauliflower florets; roasted yellow squash; roasted zucchini; mashed cauliflower",
+          "kcal": 292,
+          "kcalErrPct": 13.662903853639557,
+          "proteinErrG": 0.8000000000000007,
+          "carbsErrG": 2.6999999999999993,
+          "fatErrG": 2.5,
+          "inputTokens": 1561,
+          "outputTokens": 1446,
+          "latencyMs": 10009
+        },
+        {
+          "id": "dish_1565724588",
+          "ok": true,
+          "kind": "meal",
+          "named": 1,
+          "main": [
+            "zucchini",
+            "broccoli",
+            "roasted potatoes",
+            "chayote squash"
+          ],
+          "said": "steamed broccoli, roasted yellow squash and zucchini, roasted diced potatoes; steamed broccoli; roasted yellow squash and zucchini; roasted diced potatoes",
+          "kcal": 290,
+          "kcalErrPct": 8.736407949006379,
+          "proteinErrG": 1,
+          "carbsErrG": 10.100000000000001,
+          "fatErrG": 1.3000000000000007,
+          "inputTokens": 1561,
+          "outputTokens": 1074,
+          "latencyMs": 10649
+        },
+        {
+          "id": "dish_1566416388",
+          "ok": true,
+          "kind": "meal",
+          "named": 1,
+          "main": [
+            "roasted potatoes",
+            "eggplant",
+            "green beans"
+          ],
+          "said": "green beans, roasted potatoes, roasted eggplant; green beans; roasted potatoes; roasted eggplant",
+          "kcal": 272,
+          "kcalErrPct": 4.655636783378232,
+          "proteinErrG": 1.7999999999999998,
+          "carbsErrG": 7.100000000000001,
+          "fatErrG": 2.1999999999999993,
+          "inputTokens": 1561,
+          "outputTokens": 1159,
+          "latencyMs": 10214
+        },
+        {
+          "id": "dish_1559845018",
+          "ok": true,
+          "kind": "meal",
+          "named": 0.6666666666666666,
+          "main": [
+            "almonds",
+            "mandarin oranges",
+            "potatoes"
+          ],
+          "said": "almonds, diced apple pieces, whole mandarin orange on white plate; almonds; chopped apple pieces; mandarin orange",
+          "kcal": 267,
+          "kcalErrPct": 11.7063492063492,
+          "proteinErrG": 3.1999999999999993,
+          "carbsErrG": 1.3000000000000007,
+          "fatErrG": 3.1000000000000014,
+          "inputTokens": 1561,
+          "outputTokens": 1495,
+          "latencyMs": 16883
+        },
+        {
+          "id": "dish_1559233144",
+          "ok": true,
+          "kind": "meal",
+          "named": 0.6666666666666666,
+          "main": [
+            "garden salad",
+            "scrambled eggs",
+            "bacon"
+          ],
+          "said": "scrambled eggs, bacon, spinach leaves with shredded carrots; scrambled eggs; cooked bacon; raw spinach with shredded carrots",
+          "kcal": 413,
+          "kcalErrPct": 3.742778196433051,
+          "proteinErrG": 1.3000000000000007,
+          "carbsErrG": 3.3,
+          "fatErrG": 1.3000000000000007,
+          "inputTokens": 1561,
+          "outputTokens": 883,
+          "latencyMs": 9012
+        },
+        {
+          "id": "dish_1561751897",
+          "ok": true,
+          "kind": "meal",
+          "named": 1,
+          "main": [
+            "brown rice",
+            "salmon"
+          ],
+          "said": "cooked salmon, brown rice, rocket leaves; cooked salmon; brown rice; rocket leaves",
+          "kcal": 291,
+          "kcalErrPct": 17.796610169491526,
+          "proteinErrG": 7,
+          "carbsErrG": 0.20000000000000018,
+          "fatErrG": 3,
+          "inputTokens": 1561,
+          "outputTokens": 1043,
+          "latencyMs": 10138
+        },
+        {
+          "id": "dish_1560367926",
+          "ok": true,
+          "kind": "meal",
+          "named": 0.5,
+          "main": [
+            "fish",
+            "pizza"
+          ],
+          "said": "slice of pizza with peppers and olives, piece of cooked chicken; pizza slice with cheese, red peppers, jalapenos and olives; roasted chicken thigh",
+          "kcal": 470,
+          "kcalErrPct": 15.055079559363524,
+          "proteinErrG": 4.800000000000001,
+          "carbsErrG": 16,
+          "fatErrG": 4,
+          "inputTokens": 1561,
+          "outputTokens": 742,
+          "latencyMs": 8341
+        },
+        {
+          "id": "dish_1563551006",
+          "ok": true,
+          "kind": "meal",
+          "named": 1,
+          "main": [
+            "scrambled eggs",
+            "roasted potatoes",
+            "country rice"
+          ],
+          "said": "fried rice, bacon, scrambled eggs with shredded cheese, diced potatoes; fried rice; bacon; scrambled eggs with shredded cheddar cheese; diced home fries potatoes",
+          "kcal": 545,
+          "kcalErrPct": 52.362314788929275,
+          "proteinErrG": 9.3,
+          "carbsErrG": 8.399999999999999,
+          "fatErrG": 9.899999999999999,
+          "inputTokens": 1561,
+          "outputTokens": 1078,
+          "latencyMs": 11683
+        },
+        {
+          "id": "dish_1565021185",
+          "ok": true,
+          "kind": "meal",
+          "named": 0.6,
+          "main": [
+            "waffles",
+            "turnips",
+            "egg whites",
+            "sausage",
+            "tofu"
+          ],
+          "said": "waffles, scrambled eggs with vegetables, white cheese, sliced sausage, roasted potatoes; waffles; scrambled eggs with vegetables; white cheese; sliced cooked sausage; roasted potatoes",
+          "kcal": 970,
+          "kcalErrPct": 101.45379023883696,
+          "proteinErrG": 11.100000000000001,
+          "carbsErrG": 53.9,
+          "fatErrG": 25.6,
+          "inputTokens": 1561,
+          "outputTokens": 1116,
+          "latencyMs": 9232
+        },
+        {
+          "id": "dish_1558376984",
+          "ok": true,
+          "kind": "meal",
+          "named": 0.6666666666666666,
+          "main": [
+            "almonds",
+            "sausage",
+            "grapes"
+          ],
+          "said": "whole apple, almonds, red grapes, halved roasted chestnuts, cooked leafy greens on a plate; whole apple; almonds; red grapes; roasted chestnuts, halved; cooked leafy greens",
+          "kcal": 565,
+          "kcalErrPct": 15.885067738573774,
+          "proteinErrG": 31.4,
+          "carbsErrG": 51.8,
+          "fatErrG": 21.6,
+          "inputTokens": 1561,
+          "outputTokens": 1522,
+          "latencyMs": 15051
+        },
+        {
+          "id": "dish_1562602687",
+          "ok": true,
+          "kind": "meal",
+          "named": 1,
+          "main": [
+            "brussels sprouts",
+            "sausage",
+            "hash browns",
+            "scrambled eggs"
+          ],
+          "said": "scrambled eggs, shredded hash brown potatoes, roasted brussels sprouts, sliced sausage; scrambled eggs; shredded hash brown potatoes; roasted brussels sprouts; sliced cooked sausage",
+          "kcal": 700,
+          "kcalErrPct": 2.9664541169947296,
+          "proteinErrG": 3.8000000000000007,
+          "carbsErrG": 0.7999999999999972,
+          "fatErrG": 1.2999999999999972,
+          "inputTokens": 1561,
+          "outputTokens": 1120,
+          "latencyMs": 9843
+        },
+        {
+          "id": "dish_1565118096",
+          "ok": true,
+          "kind": "meal",
+          "named": 0.7142857142857143,
+          "main": [
+            "chicken breast",
+            "tuna",
+            "cheese pizza",
+            "cherry tomatoes",
+            "bell peppers",
+            "carrot",
+            "pineapple"
+          ],
+          "said": "cheese pizza slices, shredded carrots, pineapple chunks, sliced tomatoes and green vegetables, shredded tuna; cheese pizza; shredded carrots; pineapple chunks; sliced tomato and green vegetables; shredded tuna",
+          "kcal": 660,
+          "kcalErrPct": 0.5484460694698389,
+          "proteinErrG": 37.400000000000006,
+          "carbsErrG": 21,
+          "fatErrG": 5,
+          "inputTokens": 1561,
+          "outputTokens": 1554,
+          "latencyMs": 21948
+        }
+      ]
+    },
+    {
+      "model": "google/gemini-3.7-flash",
+      "cases": [
+        {
+          "id": "dish_1565725095",
+          "ok": true,
+          "kind": "meal",
+          "named": 0.75,
+          "main": [
+            "cherry tomatoes",
+            "olives",
+            "carrot",
+            "bell peppers"
+          ],
+          "said": "shredded carrots, cherry tomatoes, sliced bell peppers; shredded carrots; cherry tomatoes; sliced bell peppers",
+          "kcal": 43,
+          "kcalErrPct": 64.66721446179129,
+          "proteinErrG": 1.1,
+          "carbsErrG": 9.2,
+          "fatErrG": 5.1,
+          "inputTokens": 2017,
+          "outputTokens": 522,
+          "latencyMs": 4833
+        },
+        {
+          "id": "dish_1562602860",
+          "ok": true,
+          "kind": "meal",
+          "named": 0.5,
+          "main": [
+            "strawberries",
+            "milk",
+            "greek yogurt",
+            "watermelon"
+          ],
+          "said": "chia seed pudding, strawberries, watermelon, blackberries, blueberries; chia seed pudding; strawberries; watermelon; blackberries and blueberries",
+          "kcal": 143,
+          "kcalErrPct": 13.438256658595634,
+          "proteinErrG": 6.199999999999999,
+          "carbsErrG": 1.8000000000000007,
+          "fatErrG": 0.40000000000000036,
+          "inputTokens": 2017,
+          "outputTokens": 801,
+          "latencyMs": 6463
+        },
+        {
+          "id": "dish_1558721636",
+          "ok": true,
+          "kind": "meal",
+          "named": 1,
+          "main": [
+            "carrot",
+            "corn on the cob",
+            "cantaloupe",
+            "cherry tomatoes"
+          ],
+          "said": "sliced carrots, corn on the cob rounds, cherry tomatoes, cantaloupe melon slices; sliced carrots; corn on the cob slices; cherry tomatoes; cantaloupe melon slices",
+          "kcal": 135,
+          "kcalErrPct": 17.228694052728386,
+          "proteinErrG": 0.40000000000000036,
+          "carbsErrG": 4.799999999999997,
+          "fatErrG": 1.6,
+          "inputTokens": 2017,
+          "outputTokens": 752,
+          "latencyMs": 6342
+        },
+        {
+          "id": "dish_1561060531",
+          "ok": true,
+          "kind": "meal",
+          "named": 0.75,
+          "main": [
+            "bok choy",
+            "brussels sprouts",
+            "cheese pizza",
+            "pineapple"
+          ],
+          "said": "baked lasagna or pasta bake, diced pineapple, Brussels sprouts, bok choy; baked lasagna or pasta bake; pineapple chunks; Brussels sprouts; steamed bok choy",
+          "kcal": 290,
+          "kcalErrPct": 78.90191239975324,
+          "proteinErrG": 6.3,
+          "carbsErrG": 7.699999999999999,
+          "fatErrG": 8.9,
+          "inputTokens": 2017,
+          "outputTokens": 621,
+          "latencyMs": 6623
+        },
+        {
+          "id": "dish_1563208459",
+          "ok": true,
+          "kind": "meal",
+          "named": 1,
+          "main": [
+            "raspberries",
+            "yam",
+            "sweet potato",
+            "chicken apple sausage"
+          ],
+          "said": "sliced sausage, roasted sweet potato cubes, fresh raspberries; sliced sausage; roasted sweet potato cubes; fresh raspberries",
+          "kcal": 225,
+          "kcalErrPct": 20.64343163538874,
+          "proteinErrG": 2.0999999999999996,
+          "carbsErrG": 3.5,
+          "fatErrG": 5,
+          "inputTokens": 2017,
+          "outputTokens": 614,
+          "latencyMs": 7197
+        },
+        {
+          "id": "dish_1562691613",
+          "ok": true,
+          "kind": "meal",
+          "named": 0.75,
+          "main": [
+            "egg whites",
+            "broccoli",
+            "yam",
+            "sweet potato"
+          ],
+          "said": "roasted broccoli, white fish flakes, roasted sweet potato and potato chunks; roasted broccoli; cooked white fish; roasted sweet potato and potato cubes",
+          "kcal": 185,
+          "kcalErrPct": 13.430042115114643,
+          "proteinErrG": 6.800000000000001,
+          "carbsErrG": 11.700000000000003,
+          "fatErrG": 0.10000000000000009,
+          "inputTokens": 2017,
+          "outputTokens": 512,
+          "latencyMs": 5321
+        },
+        {
+          "id": "dish_1568313676",
+          "ok": true,
+          "kind": "meal",
+          "named": 0.8,
+          "main": [
+            "mixed greens",
+            "avocado",
+            "chicken",
+            "mushroom",
+            "onions"
+          ],
+          "said": "mixed green salad with diced chicken breast, sliced red onion, and avocado; mixed greens (lettuce, spinach, frisée); diced chicken breast; red onion; avocado slice",
+          "kcal": 165,
+          "kcalErrPct": 10.81081081081081,
+          "proteinErrG": 0.5,
+          "carbsErrG": 3.9000000000000004,
+          "fatErrG": 0.09999999999999964,
+          "inputTokens": 2017,
+          "outputTokens": 498,
+          "latencyMs": 6243
+        },
+        {
+          "id": "dish_1559838402",
+          "ok": true,
+          "kind": "meal",
+          "named": 1,
+          "main": [
+            "sweet potato",
+            "yam",
+            "berries"
+          ],
+          "said": "roasted sweet potatoes and potatoes, fresh mixed berries (strawberries, raspberries, blackberry), cooked bacon strip; roasted potatoes and sweet potatoes; fresh mixed berries (strawberries, raspberries, blackberry); cooked bacon",
+          "kcal": 215,
+          "kcalErrPct": 3.500897666068228,
+          "proteinErrG": 2.8,
+          "carbsErrG": 12.200000000000003,
+          "fatErrG": 3.2,
+          "inputTokens": 2017,
+          "outputTokens": 403,
+          "latencyMs": 5096
+        },
+        {
+          "id": "dish_1560801829",
+          "ok": true,
+          "kind": "meal",
+          "named": 1,
+          "main": [
+            "squash",
+            "pepperoni pizza",
+            "cauliflower"
+          ],
+          "said": "pepperoni pizza slice, steamed cauliflower florets, roasted squash pieces; Pepperoni pizza slice; Steamed cauliflower; Roasted squash chunks",
+          "kcal": 255,
+          "kcalErrPct": 0.7395873880887417,
+          "proteinErrG": 1.1999999999999993,
+          "carbsErrG": 0.3000000000000007,
+          "fatErrG": 0.5,
+          "inputTokens": 2017,
+          "outputTokens": 431,
+          "latencyMs": 5404
+        },
+        {
+          "id": "dish_1565724588",
+          "ok": true,
+          "kind": "meal",
+          "named": 1,
+          "main": [
+            "zucchini",
+            "broccoli",
+            "roasted potatoes",
+            "chayote squash"
+          ],
+          "said": "steamed broccoli, sautéed yellow squash and zucchini, roasted potatoes; steamed broccoli; sautéed yellow squash and zucchini; roasted potatoes",
+          "kcal": 210,
+          "kcalErrPct": 21.259842519685034,
+          "proteinErrG": 0,
+          "carbsErrG": 3.8999999999999986,
+          "fatErrG": 5.300000000000001,
+          "inputTokens": 2017,
+          "outputTokens": 523,
+          "latencyMs": 4642
+        },
+        {
+          "id": "dish_1566416388",
+          "ok": true,
+          "kind": "meal",
+          "named": 1,
+          "main": [
+            "roasted potatoes",
+            "eggplant",
+            "green beans"
+          ],
+          "said": "green beans, cooked eggplant, roasted potatoes; green beans; cooked eggplant; roasted potatoes",
+          "kcal": 230,
+          "kcalErrPct": 11.504424778761054,
+          "proteinErrG": 0.20000000000000018,
+          "carbsErrG": 0.8999999999999986,
+          "fatErrG": 3.1999999999999993,
+          "inputTokens": 2017,
+          "outputTokens": 359,
+          "latencyMs": 4490
+        },
+        {
+          "id": "dish_1559845018",
+          "ok": true,
+          "kind": "meal",
+          "named": 1,
+          "main": [
+            "almonds",
+            "mandarin oranges",
+            "potatoes"
+          ],
+          "said": "almonds, roasted potatoes, clementine; almonds; roasted potatoes; clementine",
+          "kcal": 340,
+          "kcalErrPct": 12.433862433862442,
+          "proteinErrG": 1.1999999999999993,
+          "carbsErrG": 5.300000000000001,
+          "fatErrG": 1.8999999999999986,
+          "inputTokens": 2017,
+          "outputTokens": 646,
+          "latencyMs": 6358
+        },
+        {
+          "id": "dish_1559233144",
+          "ok": true,
+          "kind": "meal",
+          "named": 1,
+          "main": [
+            "garden salad",
+            "scrambled eggs",
+            "bacon"
+          ],
+          "said": "scrambled eggs, bacon strips, spinach and carrot salad; scrambled eggs; bacon strips; spinach and carrot salad",
+          "kcal": 355,
+          "kcalErrPct": 10.82642552122583,
+          "proteinErrG": 2.6999999999999993,
+          "carbsErrG": 0.2999999999999998,
+          "fatErrG": 2.6999999999999993,
+          "inputTokens": 2017,
+          "outputTokens": 566,
+          "latencyMs": 5195
+        },
+        {
+          "id": "dish_1561751897",
+          "ok": true,
+          "kind": "meal",
+          "named": 1,
+          "main": [
+            "brown rice",
+            "salmon"
+          ],
+          "said": "cooked salmon fillet with small amount of rice and leafy greens garnish; cooked salmon fillet; brown rice garnish; herb / leafy greens garnish",
+          "kcal": 289,
+          "kcalErrPct": 18.361581920903955,
+          "proteinErrG": 8,
+          "carbsErrG": 3.8,
+          "fatErrG": 2,
+          "inputTokens": 2017,
+          "outputTokens": 536,
+          "latencyMs": 6360
+        },
+        {
+          "id": "dish_1560367926",
+          "ok": true,
+          "kind": "meal",
+          "named": 0.5,
+          "main": [
+            "fish",
+            "pizza"
+          ],
+          "said": "slice of pizza with peppers and olives, cooked sauced chicken; vegetable pizza slice; cooked seasoned chicken",
+          "kcal": 400,
+          "kcalErrPct": 2.08078335373317,
+          "proteinErrG": 3.8000000000000007,
+          "carbsErrG": 14,
+          "fatErrG": 3,
+          "inputTokens": 2017,
+          "outputTokens": 322,
+          "latencyMs": 3344
+        },
+        {
+          "id": "dish_1563551006",
+          "ok": true,
+          "kind": "meal",
+          "named": 1,
+          "main": [
+            "scrambled eggs",
+            "roasted potatoes",
+            "country rice"
+          ],
+          "said": "scrambled eggs with shredded cheese, bacon strip, diced breakfast potatoes, and fried rice; scrambled eggs with shredded cheddar; bacon strip; diced breakfast potatoes; fried rice",
+          "kcal": 365,
+          "kcalErrPct": 2.0408163265306154,
+          "proteinErrG": 0.3000000000000007,
+          "carbsErrG": 1.3999999999999986,
+          "fatErrG": 2.1000000000000014,
+          "inputTokens": 2017,
+          "outputTokens": 651,
+          "latencyMs": 5453
+        },
+        {
+          "id": "dish_1565021185",
+          "ok": true,
+          "kind": "meal",
+          "named": 0.4,
+          "main": [
+            "waffles",
+            "turnips",
+            "egg whites",
+            "sausage",
+            "tofu"
+          ],
+          "said": "waffles, sliced sausage, vegetable scramble topped with white cheese, roasted potatoes; waffles; sliced sausage; vegetable scramble with cheese; roasted potatoes",
+          "kcal": 595,
+          "kcalErrPct": 23.572170301142265,
+          "proteinErrG": 3.8999999999999986,
+          "carbsErrG": 18.9,
+          "fatErrG": 5.600000000000001,
+          "inputTokens": 2017,
+          "outputTokens": 1033,
+          "latencyMs": 9203
+        },
+        {
+          "id": "dish_1558376984",
+          "ok": true,
+          "kind": "meal",
+          "named": 1,
+          "main": [
+            "almonds",
+            "sausage",
+            "grapes"
+          ],
+          "said": "apple, almonds, red grapes, sliced sausage, cooked spinach; apple; almonds; red grapes; sliced sausage; cooked spinach",
+          "kcal": 575,
+          "kcalErrPct": 14.396307875539682,
+          "proteinErrG": 26.4,
+          "carbsErrG": 15.8,
+          "fatErrG": 7.600000000000001,
+          "inputTokens": 2017,
+          "outputTokens": 785,
+          "latencyMs": 6656
+        },
+        {
+          "id": "dish_1562602687",
+          "ok": true,
+          "kind": "meal",
+          "named": 1,
+          "main": [
+            "brussels sprouts",
+            "sausage",
+            "hash browns",
+            "scrambled eggs"
+          ],
+          "said": "scrambled eggs, hash browns, sliced sausage, Brussels sprouts; scrambled eggs; hash browns; sliced sausage; cooked Brussels sprouts",
+          "kcal": 580,
+          "kcalErrPct": 19.600776268367063,
+          "proteinErrG": 3.8000000000000007,
+          "carbsErrG": 1.2000000000000028,
+          "fatErrG": 13.299999999999997,
+          "inputTokens": 2017,
+          "outputTokens": 685,
+          "latencyMs": 6057
+        },
+        {
+          "id": "dish_1565118096",
+          "ok": true,
+          "kind": "meal",
+          "named": 0.8571428571428571,
+          "main": [
+            "chicken breast",
+            "tuna",
+            "cheese pizza",
+            "cherry tomatoes",
+            "bell peppers",
+            "carrot",
+            "pineapple"
+          ],
+          "said": "cheese pizza slice, flaked tuna, shredded carrots, sliced bell peppers and tomatoes, chopped fruit; Cheese pizza; Canned tuna or chicken; Shredded carrots; Sliced bell peppers and tomatoes; Chopped fruit",
+          "kcal": 463,
+          "kcalErrPct": 29.463741620962825,
+          "proteinErrG": 46.400000000000006,
+          "carbsErrG": 2,
+          "fatErrG": 1,
+          "inputTokens": 2017,
+          "outputTokens": 945,
+          "latencyMs": 8180
+        }
+      ]
+    },
+    {
+      "model": "anthropic/claude-sonnet-5.5",
+      "cases": [
+        {
+          "id": "dish_1565725095",
+          "ok": true,
+          "kind": "meal",
+          "named": 0.75,
+          "main": [
+            "cherry tomatoes",
+            "olives",
+            "carrot",
+            "bell peppers"
+          ],
+          "said": "raw vegetable salad in a steel bowl: cherry tomatoes, shredded carrot, green pepper pieces, red pepper strips; cherry tomatoes; shredded carrot; green pepper pieces; red pepper strips",
+          "kcal": 62,
+          "kcalErrPct": 49.055053410024655,
+          "proteinErrG": 0.10000000000000009,
+          "carbsErrG": 5.199999999999999,
+          "fatErrG": 4.1,
+          "inputTokens": 1698,
+          "outputTokens": 432,
+          "latencyMs": 3472
+        },
+        {
+          "id": "dish_1562602860",
+          "ok": true,
+          "kind": "meal",
+          "named": 0.5,
+          "main": [
+            "strawberries",
+            "milk",
+            "greek yogurt",
+            "watermelon"
+          ],
+          "said": "chia pudding with two blackberries, strawberries, watermelon chunks and a few blueberries on a white plate; chia pudding; strawberries; watermelon chunks; blackberries; blueberries",
+          "kcal": 239,
+          "kcalErrPct": 44.67312348668282,
+          "proteinErrG": 3.1999999999999993,
+          "carbsErrG": 12.2,
+          "fatErrG": 4.4,
+          "inputTokens": 1698,
+          "outputTokens": 477,
+          "latencyMs": 3404
+        },
+        {
+          "id": "dish_1558721636",
+          "ok": true,
+          "kind": "meal",
+          "named": 1,
+          "main": [
+            "carrot",
+            "corn on the cob",
+            "cantaloupe",
+            "cherry tomatoes"
+          ],
+          "said": "sliced carrots, two pieces of corn on the cob, cherry tomatoes, orange melon or cantaloupe pieces on a white plate; sliced carrots; corn on the cob pieces; cherry tomatoes; cantaloupe or melon pieces",
+          "kcal": 167,
+          "kcalErrPct": 2.3911710606989613,
+          "proteinErrG": 0.40000000000000036,
+          "carbsErrG": 1.2000000000000028,
+          "fatErrG": 0.6000000000000001,
+          "inputTokens": 1698,
+          "outputTokens": 445,
+          "latencyMs": 3431
+        },
+        {
+          "id": "dish_1561060531",
+          "ok": true,
+          "kind": "meal",
+          "named": 1,
+          "main": [
+            "bok choy",
+            "brussels sprouts",
+            "cheese pizza",
+            "pineapple"
+          ],
+          "said": "baked cheese and tomato slice (lasagna or pizza-like), pineapple chunks, roasted Brussels sprouts, bok choy pieces with a green onion; cheese and tomato baked slice (lasagna/pizza-like); pineapple chunks; roasted Brussels sprouts; bok choy; green onion",
+          "kcal": 415,
+          "kcalErrPct": 156.01480567550897,
+          "proteinErrG": 12.3,
+          "carbsErrG": 25.7,
+          "fatErrG": 11.9,
+          "inputTokens": 1698,
+          "outputTokens": 522,
+          "latencyMs": 3549
+        },
+        {
+          "id": "dish_1563208459",
+          "ok": true,
+          "kind": "meal",
+          "named": 0.75,
+          "main": [
+            "raspberries",
+            "yam",
+            "sweet potato",
+            "chicken apple sausage"
+          ],
+          "said": "roasted sweet potato and other root vegetable cubes, fresh raspberries, small round baked patties or muffin-like rounds on a white plate; roasted sweet potato and root vegetable cubes; raspberries; small round baked patties (possibly mini muffins or savory cakes)",
+          "kcal": 356,
+          "kcalErrPct": 90.88471849865952,
+          "proteinErrG": 2.0999999999999996,
+          "carbsErrG": 33.5,
+          "fatErrG": 5,
+          "inputTokens": 1698,
+          "outputTokens": 387,
+          "latencyMs": 3287
+        },
+        {
+          "id": "dish_1562691613",
+          "ok": true,
+          "kind": "meal",
+          "named": 1,
+          "main": [
+            "egg whites",
+            "broccoli",
+            "yam",
+            "sweet potato"
+          ],
+          "said": "roasted broccoli, roasted sweet potato cubes, roasted potato pieces, scrambled or soft white egg (or white fish/cheese), a small smear of sauce on a white plate; roasted broccoli; roasted sweet potato cubes; roasted potato pieces; white soft egg or white fish (unclear); creamy sauce",
+          "kcal": 440,
+          "kcalErrPct": 105.89611605053815,
+          "proteinErrG": 6.800000000000001,
+          "carbsErrG": 14.299999999999997,
+          "fatErrG": 17.1,
+          "inputTokens": 1698,
+          "outputTokens": 493,
+          "latencyMs": 3394
+        },
+        {
+          "id": "dish_1568313676",
+          "ok": true,
+          "kind": "meal",
+          "named": 0.8,
+          "main": [
+            "mixed greens",
+            "avocado",
+            "chicken",
+            "mushroom",
+            "onions"
+          ],
+          "said": "mixed green salad with cubed tofu or chicken, red onion slices and avocado on a white square plate; mixed salad greens (lettuce, spinach, frisée); cubed white protein (tofu or chicken breast); red onion slices; avocado",
+          "kcal": 189,
+          "kcalErrPct": 2.1621621621621623,
+          "proteinErrG": 9.5,
+          "carbsErrG": 1.0999999999999996,
+          "fatErrG": 4.9,
+          "inputTokens": 1698,
+          "outputTokens": 438,
+          "latencyMs": 3273
+        },
+        {
+          "id": "dish_1559838402",
+          "ok": true,
+          "kind": "meal",
+          "named": 1,
+          "main": [
+            "sweet potato",
+            "yam",
+            "berries"
+          ],
+          "said": "roasted potato and sweet potato cubes, strawberries, raspberries, a blackberry, and a strip of bacon on a white square plate; roasted potato and sweet potato cubes; strawberries; raspberries; blackberry; bacon strip",
+          "kcal": 287,
+          "kcalErrPct": 28.815080789946133,
+          "proteinErrG": 2.8,
+          "carbsErrG": 5.799999999999997,
+          "fatErrG": 4.2,
+          "inputTokens": 1698,
+          "outputTokens": 503,
+          "latencyMs": 3955
+        },
+        {
+          "id": "dish_1560801829",
+          "ok": true,
+          "kind": "meal",
+          "named": 1,
+          "main": [
+            "squash",
+            "pepperoni pizza",
+            "cauliflower"
+          ],
+          "said": "pepperoni pizza slices, two roasted potato or squash wedges, cauliflower florets, a piece of roasted eggplant; pepperoni pizza; roasted potato/squash wedges; cauliflower florets; roasted eggplant",
+          "kcal": 510,
+          "kcalErrPct": 98.52082522382251,
+          "proteinErrG": 7.800000000000001,
+          "carbsErrG": 33.7,
+          "fatErrG": 9.5,
+          "inputTokens": 1698,
+          "outputTokens": 438,
+          "latencyMs": 3555
+        },
+        {
+          "id": "dish_1565724588",
+          "ok": true,
+          "kind": "meal",
+          "named": 1,
+          "main": [
+            "zucchini",
+            "broccoli",
+            "roasted potatoes",
+            "chayote squash"
+          ],
+          "said": "steamed broccoli, roasted potato chunks, and cooked yellow squash and zucchini pieces on a white square plate; broccoli, steamed; roasted potato chunks; cooked yellow squash and zucchini",
+          "kcal": 290,
+          "kcalErrPct": 8.736407949006379,
+          "proteinErrG": 2,
+          "carbsErrG": 10.100000000000001,
+          "fatErrG": 2.3000000000000007,
+          "inputTokens": 1698,
+          "outputTokens": 351,
+          "latencyMs": 2815
+        },
+        {
+          "id": "dish_1566416388",
+          "ok": true,
+          "kind": "meal",
+          "named": 1,
+          "main": [
+            "roasted potatoes",
+            "eggplant",
+            "green beans"
+          ],
+          "said": "green beans and roasted potato cubes with some roasted eggplant pieces on a white plate; green beans; roasted potato cubes; roasted eggplant pieces",
+          "kcal": 360,
+          "kcalErrPct": 38.51481338976531,
+          "proteinErrG": 2.8,
+          "carbsErrG": 19.1,
+          "fatErrG": 0.8000000000000007,
+          "inputTokens": 1698,
+          "outputTokens": 326,
+          "latencyMs": 2772
+        },
+        {
+          "id": "dish_1559845018",
+          "ok": true,
+          "kind": "meal",
+          "named": 1,
+          "main": [
+            "almonds",
+            "mandarin oranges",
+            "potatoes"
+          ],
+          "said": "almonds, roasted potato chunks, one small orange (mandarin or clementine) on a white plate; almonds; roasted potato chunks; small orange (mandarin/clementine)",
+          "kcal": 405,
+          "kcalErrPct": 33.928571428571445,
+          "proteinErrG": 0.1999999999999993,
+          "carbsErrG": 16.3,
+          "fatErrG": 3.8999999999999986,
+          "inputTokens": 1698,
+          "outputTokens": 353,
+          "latencyMs": 2770
+        },
+        {
+          "id": "dish_1559233144",
+          "ok": true,
+          "kind": "meal",
+          "named": 1,
+          "main": [
+            "garden salad",
+            "scrambled eggs",
+            "bacon"
+          ],
+          "said": "scrambled eggs, bacon strips, spinach salad with shredded carrot and a little tomato, on a white square plate; scrambled eggs; bacon; spinach salad with shredded carrot",
+          "kcal": 415,
+          "kcalErrPct": 4.245164531524736,
+          "proteinErrG": 1.3000000000000007,
+          "carbsErrG": 2.3,
+          "fatErrG": 0.3000000000000007,
+          "inputTokens": 1698,
+          "outputTokens": 361,
+          "latencyMs": 2727
+        },
+        {
+          "id": "dish_1561751897",
+          "ok": true,
+          "kind": "meal",
+          "named": 0.5,
+          "main": [
+            "brown rice",
+            "salmon"
+          ],
+          "said": "pan-seared salmon pieces (one topped with toasted grains or seeds) with a few arugula leaves on a white square plate; part of another plate with a grain dish is visible at the left edge; pan-seared salmon fillet pieces; toasted grain/seed topping; arugula leaves",
+          "kcal": 373,
+          "kcalErrPct": 5.367231638418079,
+          "proteinErrG": 2,
+          "carbsErrG": 1.2000000000000002,
+          "fatErrG": 3,
+          "inputTokens": 1698,
+          "outputTokens": 376,
+          "latencyMs": 3808
+        },
+        {
+          "id": "dish_1560367926",
+          "ok": true,
+          "kind": "meal",
+          "named": 0.5,
+          "main": [
+            "fish",
+            "pizza"
+          ],
+          "said": "pizza slice with cheese, red pepper, olives and jalapeño slices, and a portion of sauced meat (looks like glazed chicken) on a white plate; Pizza slice with cheese, red pepper, olives, jalapeño; Sauced meat (possibly glazed chicken piece)",
+          "kcal": 600,
+          "kcalErrPct": 46.87882496940025,
+          "proteinErrG": 11.8,
+          "carbsErrG": 6,
+          "fatErrG": 6,
+          "inputTokens": 1698,
+          "outputTokens": 325,
+          "latencyMs": 3648
+        },
+        {
+          "id": "dish_1563551006",
+          "ok": true,
+          "kind": "meal",
+          "named": 1,
+          "main": [
+            "scrambled eggs",
+            "roasted potatoes",
+            "country rice"
+          ],
+          "said": "scrambled eggs topped with shredded cheddar, bacon strip, diced fried potatoes, seasoned rice on a white plate; scrambled eggs; shredded cheddar cheese; bacon strip; diced fried potatoes; seasoned rice (fried-rice style)",
+          "kcal": 690,
+          "kcalErrPct": 92.89907743919487,
+          "proteinErrG": 11.3,
+          "carbsErrG": 31.4,
+          "fatErrG": 15.899999999999999,
+          "inputTokens": 1698,
+          "outputTokens": 487,
+          "latencyMs": 3386
+        },
+        {
+          "id": "dish_1565021185",
+          "ok": true,
+          "kind": "meal",
+          "named": 0.8,
+          "main": [
+            "waffles",
+            "turnips",
+            "egg whites",
+            "sausage",
+            "tofu"
+          ],
+          "said": "waffles, sliced sausage rounds, scrambled eggs or tofu scramble with vegetables and white cheese pieces, roasted potato chunks; waffles; sliced sausage rounds; savory scramble with vegetables (egg or tofu); white cheese pieces; roasted potato chunks",
+          "kcal": 850,
+          "kcalErrPct": 76.53167185877466,
+          "proteinErrG": 6.100000000000001,
+          "carbsErrG": 44.9,
+          "fatErrG": 19.6,
+          "inputTokens": 1698,
+          "outputTokens": 493,
+          "latencyMs": 3802
+        },
+        {
+          "id": "dish_1558376984",
+          "ok": true,
+          "kind": "meal",
+          "named": 0.6666666666666666,
+          "main": [
+            "almonds",
+            "sausage",
+            "grapes"
+          ],
+          "said": "apple, almonds, red grapes, cooked brown pieces (possibly roasted chestnuts or mushrooms), a few spinach leaves; apple; almonds; red grapes; cooked brown pieces (unclear, possibly roasted chestnuts or mushrooms); spinach leaves",
+          "kcal": 429,
+          "kcalErrPct": 36.13220187583743,
+          "proteinErrG": 35.4,
+          "carbsErrG": 29.8,
+          "fatErrG": 27.6,
+          "inputTokens": 1698,
+          "outputTokens": 527,
+          "latencyMs": 3612
+        },
+        {
+          "id": "dish_1562602687",
+          "ok": true,
+          "kind": "meal",
+          "named": 1,
+          "main": [
+            "brussels sprouts",
+            "sausage",
+            "hash browns",
+            "scrambled eggs"
+          ],
+          "said": "scrambled eggs, shredded hash browns, roasted Brussels sprouts, sliced sausage pieces on a white plate; Scrambled eggs; Shredded hash browns; Roasted Brussels sprouts; Sausage pieces",
+          "kcal": 760,
+          "kcalErrPct": 5.350706958691437,
+          "proteinErrG": 0.8000000000000007,
+          "carbsErrG": 6.799999999999997,
+          "fatErrG": 2.700000000000003,
+          "inputTokens": 1698,
+          "outputTokens": 416,
+          "latencyMs": 3023
+        },
+        {
+          "id": "dish_1565118096",
+          "ok": true,
+          "kind": "meal",
+          "named": 0.7142857142857143,
+          "main": [
+            "chicken breast",
+            "tuna",
+            "cheese pizza",
+            "cherry tomatoes",
+            "bell peppers",
+            "carrot",
+            "pineapple"
+          ],
+          "said": "cheese quesadilla or folded tortilla with melted cheese and red sauce, shredded chicken or tuna, shredded carrot, sliced green and red peppers, pineapple chunks, small cubes of tofu or chicken; cheese quesadilla with red sauce; shredded chicken (or tuna); shredded carrot; sliced red and green peppers; pineapple chunks; small cubes (tofu or chicken)",
+          "kcal": 595,
+          "kcalErrPct": 9.354052407068858,
+          "proteinErrG": 39.400000000000006,
+          "carbsErrG": 1,
+          "fatErrG": 10,
+          "inputTokens": 1698,
+          "outputTokens": 592,
+          "latencyMs": 4050
+        }
+      ]
+    },
+    {
+      "model": "anthropic/claude-opus-5.5",
+      "cases": [
+        {
+          "id": "dish_1565725095",
+          "ok": true,
+          "kind": "meal",
+          "named": 0.75,
+          "main": [
+            "cherry tomatoes",
+            "olives",
+            "carrot",
+            "bell peppers"
+          ],
+          "said": "Stainless steel bowl holding cherry tomatoes, shredded carrot, sliced green pepper and some red pepper strips. No dressing visible.; Cherry tomatoes; Shredded carrot; Green bell pepper, sliced; Red bell pepper strips",
+          "kcal": 64,
+          "kcalErrPct": 47.41166803615448,
+          "proteinErrG": 0.10000000000000009,
+          "carbsErrG": 5.199999999999999,
+          "fatErrG": 4.1,
+          "inputTokens": 1698,
+          "outputTokens": 449,
+          "latencyMs": 5682
+        },
+        {
+          "id": "dish_1562602860",
+          "ok": true,
+          "kind": "meal",
+          "named": 0.5,
+          "main": [
+            "strawberries",
+            "milk",
+            "greek yogurt",
+            "watermelon"
+          ],
+          "said": "white square plate with cubed watermelon, halved strawberries, a few blueberries, chia seed pudding, and blackberries; watermelon, cubed; strawberries, halved; blueberries; blackberries; chia seed pudding",
+          "kcal": 223,
+          "kcalErrPct": 34.98789346246974,
+          "proteinErrG": 3.1999999999999993,
+          "carbsErrG": 9.2,
+          "fatErrG": 4.4,
+          "inputTokens": 1698,
+          "outputTokens": 495,
+          "latencyMs": 6094
+        },
+        {
+          "id": "dish_1558721636",
+          "ok": true,
+          "kind": "meal",
+          "named": 1,
+          "main": [
+            "carrot",
+            "corn on the cob",
+            "cantaloupe",
+            "cherry tomatoes"
+          ],
+          "said": "sliced carrots, cherry/grape tomatoes, two short rounds of corn on the cob, orange melon chunks (looks like cantaloupe) on a white square plate; Sliced carrots; Cherry/grape tomatoes; Corn on the cob; Cantaloupe melon",
+          "kcal": 134,
+          "kcalErrPct": 17.84181483752299,
+          "proteinErrG": 0.5999999999999996,
+          "carbsErrG": 4.799999999999997,
+          "fatErrG": 1.6,
+          "inputTokens": 1698,
+          "outputTokens": 749,
+          "latencyMs": 8925
+        },
+        {
+          "id": "dish_1561060531",
+          "ok": true,
+          "kind": "meal",
+          "named": 1,
+          "main": [
+            "bok choy",
+            "brussels sprouts",
+            "cheese pizza",
+            "pineapple"
+          ],
+          "said": "square of cheese-topped pizza or flatbread with tomato sauce, pineapple chunks, roasted Brussels sprouts, bok choy, on a white square plate; cheese and tomato pizza/flatbread slice; pineapple chunks; roasted Brussels sprouts; bok choy",
+          "kcal": 385,
+          "kcalErrPct": 137.5077112893276,
+          "proteinErrG": 9.3,
+          "carbsErrG": 25.7,
+          "fatErrG": 9.9,
+          "inputTokens": 1698,
+          "outputTokens": 458,
+          "latencyMs": 6250
+        },
+        {
+          "id": "dish_1563208459",
+          "ok": true,
+          "kind": "meal",
+          "named": 1,
+          "main": [
+            "raspberries",
+            "yam",
+            "sweet potato",
+            "chicken apple sausage"
+          ],
+          "said": "White square plate on a glass table holding five small round browned patties (look like mini sausage or chicken patties), fresh raspberries, and roasted cubes of sweet potato and potato.; small round patties (possibly chicken or turkey sausage); raspberries; roasted sweet potato and potato cubes",
+          "kcal": 426,
+          "kcalErrPct": 128.41823056300268,
+          "proteinErrG": 12.1,
+          "carbsErrG": 19.5,
+          "fatErrG": 14,
+          "inputTokens": 1698,
+          "outputTokens": 387,
+          "latencyMs": 5280
+        },
+        {
+          "id": "dish_1562691613",
+          "ok": true,
+          "kind": "meal",
+          "named": 1,
+          "main": [
+            "egg whites",
+            "broccoli",
+            "yam",
+            "sweet potato"
+          ],
+          "said": "Roasted broccoli, roasted sweet potato cubes, a few roasted potato chunks, flaked white fish (or scrambled egg white/cottage-type) with black pepper, a small dab of creamy sauce on a white square plate; Roasted broccoli; Roasted sweet potato cubes; Roasted potato chunks; Flaked white fish (possibly cod), soft white protein; Creamy sauce / dressing",
+          "kcal": 400,
+          "kcalErrPct": 87.17828731867104,
+          "proteinErrG": 14.8,
+          "carbsErrG": 10.299999999999997,
+          "fatErrG": 11.1,
+          "inputTokens": 1698,
+          "outputTokens": 536,
+          "latencyMs": 6825
+        },
+        {
+          "id": "dish_1568313676",
+          "ok": true,
+          "kind": "meal",
+          "named": 0.8,
+          "main": [
+            "mixed greens",
+            "avocado",
+            "chicken",
+            "mushroom",
+            "onions"
+          ],
+          "said": "mixed salad greens (spinach, frisée, red leaf lettuce), cubed tofu or chicken, sliced red onion, avocado slices, on a white square plate; mixed salad greens; cubed tofu (possibly chicken); red onion, sliced; avocado slices",
+          "kcal": 205,
+          "kcalErrPct": 10.81081081081081,
+          "proteinErrG": 9.5,
+          "carbsErrG": 1.0999999999999996,
+          "fatErrG": 6.9,
+          "inputTokens": 1698,
+          "outputTokens": 436,
+          "latencyMs": 5611
+        },
+        {
+          "id": "dish_1559838402",
+          "ok": true,
+          "kind": "meal",
+          "named": 1,
+          "main": [
+            "sweet potato",
+            "yam",
+            "berries"
+          ],
+          "said": "white square plate with roasted potato cubes and roasted sweet potato cubes, strawberries, raspberries, one blackberry, and a strip of bacon; roasted potato cubes; roasted sweet potato cubes; strawberries; raspberries; blackberry; bacon",
+          "kcal": 303,
+          "kcalErrPct": 35.9964093357271,
+          "proteinErrG": 2.8,
+          "carbsErrG": 1.7999999999999972,
+          "fatErrG": 7.2,
+          "inputTokens": 1698,
+          "outputTokens": 561,
+          "latencyMs": 6446
+        },
+        {
+          "id": "dish_1560801829",
+          "ok": true,
+          "kind": "meal",
+          "named": 0.6666666666666666,
+          "main": [
+            "squash",
+            "pepperoni pizza",
+            "cauliflower"
+          ],
+          "said": "white square plate with a piece of pepperoni pizza, two roasted potato pieces, two cauliflower florets, one piece of roasted eggplant; pepperoni pizza; roasted potato; cauliflower; roasted eggplant",
+          "kcal": 380,
+          "kcalErrPct": 47.91747761775011,
+          "proteinErrG": 2.8000000000000007,
+          "carbsErrG": 13.7,
+          "fatErrG": 6.5,
+          "inputTokens": 1698,
+          "outputTokens": 435,
+          "latencyMs": 5529
+        },
+        {
+          "id": "dish_1565724588",
+          "ok": true,
+          "kind": "meal",
+          "named": 1,
+          "main": [
+            "zucchini",
+            "broccoli",
+            "roasted potatoes",
+            "chayote squash"
+          ],
+          "said": "steamed broccoli, sautéed yellow squash and zucchini, roasted potato chunks on a white square plate; steamed broccoli; sautéed yellow squash and zucchini; roasted potatoes",
+          "kcal": 307,
+          "kcalErrPct": 15.110611173603306,
+          "proteinErrG": 1,
+          "carbsErrG": 7.100000000000001,
+          "fatErrG": 0.3000000000000007,
+          "inputTokens": 1698,
+          "outputTokens": 369,
+          "latencyMs": 5187
+        },
+        {
+          "id": "dish_1566416388",
+          "ok": true,
+          "kind": "meal",
+          "named": 1,
+          "main": [
+            "roasted potatoes",
+            "eggplant",
+            "green beans"
+          ],
+          "said": "green beans, roasted potato cubes, roasted aubergine (eggplant) pieces, on a white square plate; green beans, steamed/boiled; roasted potato cubes; roasted aubergine (eggplant) pieces",
+          "kcal": 330,
+          "kcalErrPct": 26.97191227395153,
+          "proteinErrG": 1.7999999999999998,
+          "carbsErrG": 9.100000000000001,
+          "fatErrG": 1.8000000000000007,
+          "inputTokens": 1698,
+          "outputTokens": 439,
+          "latencyMs": 6012
+        },
+        {
+          "id": "dish_1559845018",
+          "ok": true,
+          "kind": "meal",
+          "named": 1,
+          "main": [
+            "almonds",
+            "mandarin oranges",
+            "potatoes"
+          ],
+          "said": "almonds, roasted potato cubes, one mandarin orange on a white square plate; almonds; roasted potatoes; mandarin orange",
+          "kcal": 433,
+          "kcalErrPct": 43.1878306878307,
+          "proteinErrG": 0.8000000000000007,
+          "carbsErrG": 18.3,
+          "fatErrG": 4.899999999999999,
+          "inputTokens": 1698,
+          "outputTokens": 335,
+          "latencyMs": 4965
+        },
+        {
+          "id": "dish_1559233144",
+          "ok": true,
+          "kind": "meal",
+          "named": 1,
+          "main": [
+            "garden salad",
+            "scrambled eggs",
+            "bacon"
+          ],
+          "said": "scrambled eggs, bacon strips, spinach salad with shredded carrot and a little red pepper/tomato, on a square white plate; scrambled eggs; bacon; spinach salad with shredded carrot and red pepper/tomato, apparently undressed",
+          "kcal": 450,
+          "kcalErrPct": 13.03692539562923,
+          "proteinErrG": 5.300000000000001,
+          "carbsErrG": 2.3,
+          "fatErrG": 3.3000000000000007,
+          "inputTokens": 1698,
+          "outputTokens": 395,
+          "latencyMs": 5576
+        },
+        {
+          "id": "dish_1561751897",
+          "ok": true,
+          "kind": "meal",
+          "named": 0.5,
+          "main": [
+            "brown rice",
+            "salmon"
+          ],
+          "said": "Two pieces of pan-seared, skin-on salmon on a few arugula leaves, topped with a toasted crumbly grain or crispy topping, on a white square plate. At the left edge, only partly in view, a second plate holds a brown grain dish.; Pan-seared salmon fillet, skin on; Arugula / rocket leaves; Toasted grain or crispy crumb topping; Brown grain dish (side plate, partly visible)",
+          "kcal": 613,
+          "kcalErrPct": 73.1638418079096,
+          "proteinErrG": 10,
+          "carbsErrG": 36.2,
+          "fatErrG": 9,
+          "inputTokens": 1698,
+          "outputTokens": 731,
+          "latencyMs": 9644
+        },
+        {
+          "id": "dish_1560367926",
+          "ok": true,
+          "kind": "meal",
+          "named": 0.5,
+          "main": [
+            "fish",
+            "pizza"
+          ],
+          "said": "white square plate with a slice of pizza topped with cheese, red pepper, jalapeño slices and black olives, and a piece of glazed/barbecue-style chicken with green onion; pizza slice with cheese, red pepper, jalapeño and black olives; glazed/barbecue chicken piece",
+          "kcal": 590,
+          "kcalErrPct": 44.430844553243574,
+          "proteinErrG": 13.8,
+          "carbsErrG": 5,
+          "fatErrG": 5,
+          "inputTokens": 1698,
+          "outputTokens": 324,
+          "latencyMs": 4884
+        },
+        {
+          "id": "dish_1563551006",
+          "ok": true,
+          "kind": "meal",
+          "named": 1,
+          "main": [
+            "scrambled eggs",
+            "roasted potatoes",
+            "country rice"
+          ],
+          "said": "Square white plate: scrambled eggs topped with shredded cheddar cheese, two strips of bacon, diced fried potatoes (home fries), and a mound of what looks like fried rice or a seasoned grain/hash.; Scrambled eggs; Shredded cheddar cheese; Bacon; Home fries (diced fried potatoes); Fried rice or seasoned grain hash",
+          "kcal": 730,
+          "kcalErrPct": 104.08163265306123,
+          "proteinErrG": 14.3,
+          "carbsErrG": 30.4,
+          "fatErrG": 19.9,
+          "inputTokens": 1698,
+          "outputTokens": 519,
+          "latencyMs": 6414
+        },
+        {
+          "id": "dish_1565021185",
+          "ok": true,
+          "kind": "meal",
+          "named": 0.8,
+          "main": [
+            "waffles",
+            "turnips",
+            "egg whites",
+            "sausage",
+            "tofu"
+          ],
+          "said": "Square white plate with waffle pieces, sliced sausage rounds, a scramble with what looks like egg or tofu, broccoli and peppers, white crumbled cheese (possibly feta or goat cheese), and roasted potato chunks.; Waffles; Sliced sausage rounds; Scramble (egg or tofu) with broccoli and peppers; White crumbled cheese; Roasted potato chunks",
+          "kcal": 920,
+          "kcalErrPct": 91.06957424714433,
+          "proteinErrG": 10.100000000000001,
+          "carbsErrG": 37.9,
+          "fatErrG": 26.6,
+          "inputTokens": 1698,
+          "outputTokens": 551,
+          "latencyMs": 6778
+        },
+        {
+          "id": "dish_1558376984",
+          "ok": true,
+          "kind": "meal",
+          "named": 0.6666666666666666,
+          "main": [
+            "almonds",
+            "sausage",
+            "grapes"
+          ],
+          "said": "A pale blue plate with a whole red apple, a pile of whole almonds, red grapes, several brown pieces that look like halved dried figs, and a few spinach leaves with a little shredded topping.; Apple, whole; Almonds, whole; Red grapes; Dried figs (possibly), halved; Spinach leaves",
+          "kcal": 538,
+          "kcalErrPct": 19.904719368765825,
+          "proteinErrG": 33.4,
+          "carbsErrG": 54.8,
+          "fatErrG": 23.6,
+          "inputTokens": 1698,
+          "outputTokens": 868,
+          "latencyMs": 9557
+        },
+        {
+          "id": "dish_1562602687",
+          "ok": true,
+          "kind": "meal",
+          "named": 1,
+          "main": [
+            "brussels sprouts",
+            "sausage",
+            "hash browns",
+            "scrambled eggs"
+          ],
+          "said": "hash browns, scrambled eggs, roasted Brussels sprouts, sliced smoked sausage on a white square plate; hash browns; scrambled eggs; roasted Brussels sprouts; smoked sausage, sliced",
+          "kcal": 760,
+          "kcalErrPct": 5.350706958691437,
+          "proteinErrG": 1.8000000000000007,
+          "carbsErrG": 3.799999999999997,
+          "fatErrG": 2.700000000000003,
+          "inputTokens": 1698,
+          "outputTokens": 420,
+          "latencyMs": 5244
+        },
+        {
+          "id": "dish_1565118096",
+          "ok": true,
+          "kind": "meal",
+          "named": 0.8571428571428571,
+          "main": [
+            "chicken breast",
+            "tuna",
+            "cheese pizza",
+            "cherry tomatoes",
+            "bell peppers",
+            "carrot",
+            "pineapple"
+          ],
+          "said": "Square white plate: two wedges of a cheese quesadilla or flatbread with tomato sauce and melted cheese, shredded chicken or tuna, a few cubes of tofu or chicken, grated carrot, sliced red and green peppers, pineapple chunks; Cheese quesadilla / flatbread with tomato sauce; Shredded chicken or tuna; Diced tofu or chicken cubes; Grated carrot; Sliced red and green bell peppers; Pineapple chunks",
+          "kcal": 572,
+          "kcalErrPct": 12.858013406459474,
+          "proteinErrG": 37.400000000000006,
+          "carbsErrG": 1,
+          "fatErrG": 9,
+          "inputTokens": 1698,
+          "outputTokens": 628,
+          "latencyMs": 7640
+        }
+      ]
+    },
+    {
+      "model": "x-ai/grok-4.6",
+      "cases": [
+        {
+          "id": "dish_1565725095",
+          "ok": true,
+          "kind": "meal",
+          "named": 0.75,
+          "main": [
+            "cherry tomatoes",
+            "olives",
+            "carrot",
+            "bell peppers"
+          ],
+          "said": "stainless steel mixing bowl holding mixed raw chopped vegetables: red cherry tomatoes, shredded orange carrots, sliced green bell pepper, and pale green cucumber slices; cherry tomatoes; shredded carrots; sliced green bell pepper; sliced cucumber",
+          "kcal": 42,
+          "kcalErrPct": 65.48890714872637,
+          "proteinErrG": 1.1,
+          "carbsErrG": 9.2,
+          "fatErrG": 4.1,
+          "inputTokens": 1213,
+          "outputTokens": 2235,
+          "latencyMs": 32571
+        },
+        {
+          "id": "dish_1562602860",
+          "ok": true,
+          "kind": "meal",
+          "named": 0.5,
+          "main": [
+            "strawberries",
+            "milk",
+            "greek yogurt",
+            "watermelon"
+          ],
+          "said": "White square plate holding chopped red fruit (watermelon cubes and strawberry pieces), a few blueberries, blackberries, and a grey mound with visible white specks that looks like chia pudding, plus a red juice smear.; watermelon cubes; strawberries; blueberries; blackberries; chia pudding",
+          "kcal": 145,
+          "kcalErrPct": 12.227602905569002,
+          "proteinErrG": 5.199999999999999,
+          "carbsErrG": 0.1999999999999993,
+          "fatErrG": 0.40000000000000036,
+          "inputTokens": 1213,
+          "outputTokens": 2453,
+          "latencyMs": 34231
+        },
+        {
+          "id": "dish_1558721636",
+          "ok": true,
+          "kind": "meal",
+          "named": 0.75,
+          "main": [
+            "carrot",
+            "corn on the cob",
+            "cantaloupe",
+            "cherry tomatoes"
+          ],
+          "said": "white square plate holding sliced orange carrots, two yellow tomato halves, five small red cherry tomatoes, and irregular pale-orange melon chunks; sliced carrots; yellow tomato halves; cherry tomatoes; cantaloupe chunks",
+          "kcal": 91,
+          "kcalErrPct": 44.20600858369099,
+          "proteinErrG": 1.5999999999999996,
+          "carbsErrG": 13.799999999999997,
+          "fatErrG": 1.6,
+          "inputTokens": 1213,
+          "outputTokens": 2637,
+          "latencyMs": 37909
+        },
+        {
+          "id": "dish_1561060531",
+          "ok": true,
+          "kind": "meal",
+          "named": 0.75,
+          "main": [
+            "bok choy",
+            "brussels sprouts",
+            "cheese pizza",
+            "pineapple"
+          ],
+          "said": "white square plate holding cubed pineapple, roasted brussels sprouts, cooked bok choy pieces, and a rectangular baked slice with melted cheese, tomato sauce and a pink meat layer; pineapple chunks; roasted brussels sprouts; bok choy; lasagna slice",
+          "kcal": 367,
+          "kcalErrPct": 126.40345465761875,
+          "proteinErrG": 11.3,
+          "carbsErrG": 19.7,
+          "fatErrG": 9.9,
+          "inputTokens": 1213,
+          "outputTokens": 2655,
+          "latencyMs": 39475
+        },
+        {
+          "id": "dish_1563208459",
+          "ok": true,
+          "kind": "meal",
+          "named": 1,
+          "main": [
+            "raspberries",
+            "yam",
+            "sweet potato",
+            "chicken apple sausage"
+          ],
+          "said": "white square plate with six small round browned patties, mixed cubed roasted orange and yellow vegetables, and a cluster of raspberries; sausage patties; roasted sweet potato cubes; raspberries",
+          "kcal": 516,
+          "kcalErrPct": 176.6756032171582,
+          "proteinErrG": 17.1,
+          "carbsErrG": 17.5,
+          "fatErrG": 22,
+          "inputTokens": 1213,
+          "outputTokens": 3002,
+          "latencyMs": 45333
+        },
+        {
+          "id": "dish_1562691613",
+          "ok": true,
+          "kind": "meal",
+          "named": 0.75,
+          "main": [
+            "egg whites",
+            "broccoli",
+            "yam",
+            "sweet potato"
+          ],
+          "said": "Square white plate with green broccoli florets (some browned), orange roasted cubes, paler roasted cubes, and a pile of white lumpy/creamy food.; broccoli; roasted sweet potato; roasted pale cubes (potato or similar); white mash (potato or cauliflower)",
+          "kcal": 337,
+          "kcalErrPct": 57.69770706598035,
+          "proteinErrG": 4.199999999999999,
+          "carbsErrG": 24.299999999999997,
+          "fatErrG": 7.1,
+          "inputTokens": 1213,
+          "outputTokens": 4097,
+          "latencyMs": 65964
+        },
+        {
+          "id": "dish_1568313676",
+          "ok": true,
+          "kind": "meal",
+          "named": 0.8,
+          "main": [
+            "mixed greens",
+            "avocado",
+            "chicken",
+            "mushroom",
+            "onions"
+          ],
+          "said": "white square plate of mixed salad greens (spinach, lettuce, frisée), sliced red onion, cubed grilled chicken, avocado piece; mixed salad greens; red onion slices; grilled chicken cubes; avocado",
+          "kcal": 210,
+          "kcalErrPct": 13.513513513513514,
+          "proteinErrG": 3.5,
+          "carbsErrG": 1.9000000000000004,
+          "fatErrG": 1.9000000000000004,
+          "inputTokens": 1213,
+          "outputTokens": 2229,
+          "latencyMs": 31963
+        },
+        {
+          "id": "dish_1559838402",
+          "ok": true,
+          "kind": "meal",
+          "named": 1,
+          "main": [
+            "sweet potato",
+            "yam",
+            "berries"
+          ],
+          "said": "white square plate holding strawberries, raspberries, one blackberry, orange cubes, pale yellowish cubes and brown cooked strips; strawberries; raspberries; blackberry; roasted sweet potato; roasted potato; cooked bacon",
+          "kcal": 264,
+          "kcalErrPct": 18.49192100538599,
+          "proteinErrG": 4.8,
+          "carbsErrG": 1.2000000000000028,
+          "fatErrG": 5.2,
+          "inputTokens": 1213,
+          "outputTokens": 4041,
+          "latencyMs": 59590
+        },
+        {
+          "id": "dish_1560801829",
+          "ok": true,
+          "kind": "meal",
+          "named": 0.6666666666666666,
+          "main": [
+            "squash",
+            "pepperoni pizza",
+            "cauliflower"
+          ],
+          "said": "white square plate holding roasted potato chunks, cauliflower florets, a dark roasted vegetable piece, and a square of pepperoni pizza with melted cheese; roasted potato chunks; cauliflower florets; roasted zucchini piece; pepperoni pizza",
+          "kcal": 386,
+          "kcalErrPct": 50.253016738030375,
+          "proteinErrG": 2.8000000000000007,
+          "carbsErrG": 20.7,
+          "fatErrG": 5.5,
+          "inputTokens": 1213,
+          "outputTokens": 2437,
+          "latencyMs": 37086
+        },
+        {
+          "id": "dish_1565724588",
+          "ok": true,
+          "kind": "meal",
+          "named": 1,
+          "main": [
+            "zucchini",
+            "broccoli",
+            "roasted potatoes",
+            "chayote squash"
+          ],
+          "said": "white square plate holding cooked broccoli florets, sliced cooked yellow squash and zucchini, and cubed browned potatoes; broccoli florets; yellow squash and zucchini; roasted potato cubes",
+          "kcal": 242,
+          "kcalErrPct": 9.261342332208471,
+          "proteinErrG": 1,
+          "carbsErrG": 7.100000000000001,
+          "fatErrG": 6.300000000000001,
+          "inputTokens": 1213,
+          "outputTokens": 2663,
+          "latencyMs": 37104
+        },
+        {
+          "id": "dish_1566416388",
+          "ok": true,
+          "kind": "meal",
+          "named": 0.6666666666666666,
+          "main": [
+            "roasted potatoes",
+            "eggplant",
+            "green beans"
+          ],
+          "said": "white square plate holding a pile of cooked green beans plus roasted cubed pieces that look like potatoes; green beans; roasted potatoes",
+          "kcal": 345,
+          "kcalErrPct": 32.74336283185842,
+          "proteinErrG": 0.7999999999999998,
+          "carbsErrG": 5.100000000000001,
+          "fatErrG": 1.8000000000000007,
+          "inputTokens": 1213,
+          "outputTokens": 2881,
+          "latencyMs": 42843
+        },
+        {
+          "id": "dish_1559845018",
+          "ok": true,
+          "kind": "meal",
+          "named": 1,
+          "main": [
+            "almonds",
+            "mandarin oranges",
+            "potatoes"
+          ],
+          "said": "white plate holding a pile of brown almonds, several golden roasted potato chunks, one whole unpeeled tangerine, and a tiny pale-yellow morsel; almonds; roasted potato chunks; tangerine; small yellow morsel",
+          "kcal": 338,
+          "kcalErrPct": 11.772486772486781,
+          "proteinErrG": 2.1999999999999993,
+          "carbsErrG": 11.3,
+          "fatErrG": 1.1000000000000014,
+          "inputTokens": 1213,
+          "outputTokens": 1972,
+          "latencyMs": 28413
+        },
+        {
+          "id": "dish_1559233144",
+          "ok": true,
+          "kind": "meal",
+          "named": 0.6666666666666666,
+          "main": [
+            "garden salad",
+            "scrambled eggs",
+            "bacon"
+          ],
+          "said": "white square plate holding a mound of scrambled eggs, several strips of cooked bacon, baby spinach leaves and shredded carrot; scrambled eggs; cooked bacon; baby spinach; shredded carrot",
+          "kcal": 406,
+          "kcalErrPct": 1.984426023612152,
+          "proteinErrG": 3.3000000000000007,
+          "carbsErrG": 1.2999999999999998,
+          "fatErrG": 1.6999999999999993,
+          "inputTokens": 1213,
+          "outputTokens": 2367,
+          "latencyMs": 38541
+        },
+        {
+          "id": "dish_1561751897",
+          "ok": true,
+          "kind": "meal",
+          "named": 1,
+          "main": [
+            "brown rice",
+            "salmon"
+          ],
+          "said": "White square plate holding two pieces of cooked salmon (skin visible, pink interior on one piece) with a few green leafy vegetables and a small scattering of grain-like particles on the lower piece; partial view of a second plate with brown grains at left edge.; cooked salmon; green leafy vegetables (arugula-like); cooked grains (rice-like)",
+          "kcal": 333,
+          "kcalErrPct": 5.932203389830509,
+          "proteinErrG": 3,
+          "carbsErrG": 3.8,
+          "fatErrG": 1,
+          "inputTokens": 1213,
+          "outputTokens": 3122,
+          "latencyMs": 47913
+        },
+        {
+          "id": "dish_1560367926",
+          "ok": true,
+          "kind": "meal",
+          "named": 0.5,
+          "main": [
+            "fish",
+            "pizza"
+          ],
+          "said": "white square plate holding one pizza slice topped with melted cheese, red pepper strips, black olives and jalapeño slices, plus a separate piece of browned cooked meat with small green vegetable pieces; pizza slice with cheese, red peppers, olives and jalapeños; cooked chicken with green vegetables",
+          "kcal": 400,
+          "kcalErrPct": 2.08078335373317,
+          "proteinErrG": 9.8,
+          "carbsErrG": 13,
+          "fatErrG": 6,
+          "inputTokens": 1213,
+          "outputTokens": 1626,
+          "latencyMs": 23885
+        },
+        {
+          "id": "dish_1563551006",
+          "ok": true,
+          "kind": "meal",
+          "named": 1,
+          "main": [
+            "scrambled eggs",
+            "roasted potatoes",
+            "country rice"
+          ],
+          "said": "white square plate with a pile of fried rice mixed with vegetables, one cooked bacon strip, scrambled eggs, shredded orange cheese, and cubed browned potatoes; fried rice with vegetables; bacon; scrambled eggs; shredded cheddar cheese; fried diced potatoes",
+          "kcal": 723,
+          "kcalErrPct": 102.12468549063462,
+          "proteinErrG": 16.3,
+          "carbsErrG": 33.4,
+          "fatErrG": 16.9,
+          "inputTokens": 1213,
+          "outputTokens": 2939,
+          "latencyMs": 38408
+        },
+        {
+          "id": "dish_1565021185",
+          "ok": true,
+          "kind": "meal",
+          "named": 0.6,
+          "main": [
+            "waffles",
+            "turnips",
+            "egg whites",
+            "sausage",
+            "tofu"
+          ],
+          "said": "white square plate with golden waffle pieces, round sliced cooked sausages, roasted brown potato chunks, and a yellow scramble mixed with green vegetables plus large white cheese pieces; waffles; sliced sausages; roasted potato chunks; egg scramble with vegetables and cheese",
+          "kcal": 740,
+          "kcalErrPct": 53.68639667705089,
+          "proteinErrG": 5.100000000000001,
+          "carbsErrG": 30.9,
+          "fatErrG": 13.600000000000001,
+          "inputTokens": 1213,
+          "outputTokens": 2686,
+          "latencyMs": 38744
+        },
+        {
+          "id": "dish_1558376984",
+          "ok": true,
+          "kind": "meal",
+          "named": 1,
+          "main": [
+            "almonds",
+            "sausage",
+            "grapes"
+          ],
+          "said": "A light-blue plate holding one whole red apple, a pile of whole almonds, a cluster of red grapes, several round slices of cooked sausage, and a small serving of cooked dark leafy greens with orange shreds.; red apple; almonds; red grapes; cooked sausage slices; cooked leafy greens",
+          "kcal": 550,
+          "kcalErrPct": 18.118207533124913,
+          "proteinErrG": 28.4,
+          "carbsErrG": 18.8,
+          "fatErrG": 11.600000000000001,
+          "inputTokens": 1213,
+          "outputTokens": 2321,
+          "latencyMs": 30040
+        },
+        {
+          "id": "dish_1562602687",
+          "ok": true,
+          "kind": "meal",
+          "named": 1,
+          "main": [
+            "brussels sprouts",
+            "sausage",
+            "hash browns",
+            "scrambled eggs"
+          ],
+          "said": "white square plate holding shredded browned potatoes, cooked Brussels sprouts, yellow scrambled eggs, and browned sausage pieces; hash brown potatoes; Brussels sprouts; scrambled eggs; breakfast sausages",
+          "kcal": 770,
+          "kcalErrPct": 6.736900471305797,
+          "proteinErrG": 0.8000000000000007,
+          "carbsErrG": 7.799999999999997,
+          "fatErrG": 1.7000000000000028,
+          "inputTokens": 1213,
+          "outputTokens": 2553,
+          "latencyMs": 37254
+        },
+        {
+          "id": "dish_1565118096",
+          "ok": true,
+          "kind": "meal",
+          "named": 0.7142857142857143,
+          "main": [
+            "chicken breast",
+            "tuna",
+            "cheese pizza",
+            "cherry tomatoes",
+            "bell peppers",
+            "carrot",
+            "pineapple"
+          ],
+          "said": "two triangular slices of cheese pizza with tomato sauce and melted cheese; a pile of shredded pale cooked meat; a pile of grated orange carrots; mixed cut pieces of green pepper, red tomato or pepper, and yellow cubes; cheese pizza; shredded chicken; grated carrots; mixed peppers, tomato and yellow cubes",
+          "kcal": 831,
+          "kcalErrPct": 26.599634369287024,
+          "proteinErrG": 15.400000000000006,
+          "carbsErrG": 28,
+          "fatErrG": 12,
+          "inputTokens": 1213,
+          "outputTokens": 3648,
+          "latencyMs": 50061
+        }
+      ]
+    },
+    {
+      "model": "z-ai/glm-5.3-flash",
+      "cases": [
+        {
+          "id": "dish_1565725095",
+          "ok": true,
+          "kind": "meal",
+          "named": 0.75,
+          "main": [
+            "cherry tomatoes",
+            "olives",
+            "carrot",
+            "bell peppers"
+          ],
+          "said": "Stainless steel bowl on a stovetop containing whole cherry tomatoes, grated/shredded carrot, sliced green bell pepper, and thin red bell pepper strips. No dressing or other components clearly visible.; cherry tomatoes; grated carrot; green bell pepper, sliced; red bell pepper strips",
+          "kcal": 56,
+          "kcalErrPct": 53.98520953163517,
+          "proteinErrG": 1.1,
+          "carbsErrG": 5.199999999999999,
+          "fatErrG": 5.1,
+          "inputTokens": 621,
+          "outputTokens": 738,
+          "latencyMs": 11414
+        },
+        {
+          "id": "dish_1562602860",
+          "ok": true,
+          "kind": "meal",
+          "named": 0.5,
+          "main": [
+            "strawberries",
+            "milk",
+            "greek yogurt",
+            "watermelon"
+          ],
+          "said": "White plate with diced watermelon, whole strawberries, a few blueberries, a portion of grey chia pudding, and blackberries; diced watermelon; strawberries (whole); blueberries; chia pudding; blackberries",
+          "kcal": 181,
+          "kcalErrPct": 9.56416464891042,
+          "proteinErrG": 5.199999999999999,
+          "carbsErrG": 10.2,
+          "fatErrG": 0.40000000000000036,
+          "inputTokens": 621,
+          "outputTokens": 363,
+          "latencyMs": 6131
+        },
+        {
+          "id": "dish_1558721636",
+          "ok": true,
+          "kind": "meal",
+          "named": 1,
+          "main": [
+            "carrot",
+            "corn on the cob",
+            "cantaloupe",
+            "cherry tomatoes"
+          ],
+          "said": "A white diamond-shaped plate holding: a pile of round carrot slices, two thick cross-cut rounds of sweetcorn on the cob, three cherry tomatoes, and several orange melon chunks (appears to be cantaloupe).; Carrot slices (raw); Sweetcorn on the cob, cut rounds; Cherry tomatoes; Cantaloupe melon chunks",
+          "kcal": 118,
+          "kcalErrPct": 27.651747394236665,
+          "proteinErrG": 0.5999999999999996,
+          "carbsErrG": 9.799999999999997,
+          "fatErrG": 0.6000000000000001,
+          "inputTokens": 621,
+          "outputTokens": 1140,
+          "latencyMs": 30115
+        },
+        {
+          "id": "dish_1561060531",
+          "ok": true,
+          "kind": "meal",
+          "named": 1,
+          "main": [
+            "bok choy",
+            "brussels sprouts",
+            "cheese pizza",
+            "pineapple"
+          ],
+          "said": "White square plate with: diced pineapple chunks; pale green leafy vegetable pieces that look like steamed bok choy or cabbage; several halved roasted brussels sprouts; one small rectangular slice of cheese pizza with melted cheese and tomato sauce.; pineapple chunks; steamed bok choy or cabbage; roasted brussels sprouts; cheese pizza slice (thin, rectangular)",
+          "kcal": 280,
+          "kcalErrPct": 72.73288093769278,
+          "proteinErrG": 4.3,
+          "carbsErrG": 13.7,
+          "fatErrG": 4.9,
+          "inputTokens": 621,
+          "outputTokens": 809,
+          "latencyMs": 12220
+        },
+        {
+          "id": "dish_1563208459",
+          "ok": true,
+          "kind": "meal",
+          "named": 1,
+          "main": [
+            "raspberries",
+            "yam",
+            "sweet potato",
+            "chicken apple sausage"
+          ],
+          "said": "white plate with sliced sausage rounds, cubed orange roasted vegetables (sweet potato or squash) with some darker pieces, and fresh raspberries; sausage slices; roasted sweet potato/squash cubes; raspberries",
+          "kcal": 356,
+          "kcalErrPct": 90.88471849865952,
+          "proteinErrG": 4.1,
+          "carbsErrG": 15.5,
+          "fatErrG": 11,
+          "inputTokens": 621,
+          "outputTokens": 274,
+          "latencyMs": 4932
+        },
+        {
+          "id": "dish_1562691613",
+          "ok": true,
+          "kind": "meal",
+          "named": 1,
+          "main": [
+            "egg whites",
+            "broccoli",
+            "yam",
+            "sweet potato"
+          ],
+          "said": "white plate with roasted broccoli florets, roasted orange-fleshed vegetable chunks, roasted potato chunks with skin, and seasoned cooked egg whites; partially visible second plate at left edge; roasted broccoli florets (some charred); roasted sweet potato chunks; roasted potato chunks with skin; cooked egg whites with black pepper",
+          "kcal": 255,
+          "kcalErrPct": 19.32615816565279,
+          "proteinErrG": 4.800000000000001,
+          "carbsErrG": 12.299999999999997,
+          "fatErrG": 1.9,
+          "inputTokens": 621,
+          "outputTokens": 623,
+          "latencyMs": 14023
+        },
+        {
+          "id": "dish_1568313676",
+          "ok": true,
+          "kind": "meal",
+          "named": 0.8,
+          "main": [
+            "mixed greens",
+            "avocado",
+            "chicken",
+            "mushroom",
+            "onions"
+          ],
+          "said": "White plate with mixed leafy salad greens (green and red lettuce leaves), several slices of red onion, diced cooked chicken pieces with light browning, and what looks like sliced avocado; photo is dark and slightly blurry.; mixed salad leaves (green and red lettuce); grilled chicken breast, diced; red onion, sliced rings; avocado, sliced",
+          "kcal": 238,
+          "kcalErrPct": 28.64864864864865,
+          "proteinErrG": 5.5,
+          "carbsErrG": 0.9000000000000004,
+          "fatErrG": 3.9000000000000004,
+          "inputTokens": 621,
+          "outputTokens": 733,
+          "latencyMs": 18404
+        },
+        {
+          "id": "dish_1559838402",
+          "ok": true,
+          "kind": "meal",
+          "named": 1,
+          "main": [
+            "sweet potato",
+            "yam",
+            "berries"
+          ],
+          "said": "white plate with strawberries, raspberries, one blackberry, roasted cubed sweet potato and roasted potato pieces, and a strip of bacon; strawberries (about 3, sliced); raspberries (about 12); blackberry (1); roasted sweet potato cubes; roasted white potato pieces; bacon strip",
+          "kcal": 248,
+          "kcalErrPct": 11.31059245960502,
+          "proteinErrG": 1.7999999999999998,
+          "carbsErrG": 2.200000000000003,
+          "fatErrG": 5.2,
+          "inputTokens": 621,
+          "outputTokens": 421,
+          "latencyMs": 6693
+        },
+        {
+          "id": "dish_1560801829",
+          "ok": true,
+          "kind": "meal",
+          "named": 0.6666666666666666,
+          "main": [
+            "squash",
+            "pepperoni pizza",
+            "cauliflower"
+          ],
+          "said": "white plate with a small piece of pepperoni pizza, two roasted potato/vegetable chunks, cauliflower florets, and a piece of dark roasted vegetable (possibly aubergine or mushroom); pepperoni pizza (small square slice, half-eaten); roasted potato chunks; cauliflower florets; roasted dark vegetable (aubergine or mushroom)",
+          "kcal": 172,
+          "kcalErrPct": 33.04787855196574,
+          "proteinErrG": 4.199999999999999,
+          "carbsErrG": 6.300000000000001,
+          "fatErrG": 3.5,
+          "inputTokens": 621,
+          "outputTokens": 368,
+          "latencyMs": 6039
+        },
+        {
+          "id": "dish_1565724588",
+          "ok": true,
+          "kind": "meal",
+          "named": 1,
+          "main": [
+            "zucchini",
+            "broccoli",
+            "roasted potatoes",
+            "chayote squash"
+          ],
+          "said": "A white square plate holding steamed broccoli florets, pieces of yellow summer squash with what looks like a little zucchini, and chunks of roasted potato with browned edges.; broccoli (steamed florets); yellow summer squash (cooked pieces); roasted potato chunks",
+          "kcal": 270,
+          "kcalErrPct": 1.2373453318335252,
+          "proteinErrG": 2,
+          "carbsErrG": 13.100000000000001,
+          "fatErrG": 6.300000000000001,
+          "inputTokens": 621,
+          "outputTokens": 553,
+          "latencyMs": 22431
+        },
+        {
+          "id": "dish_1566416388",
+          "ok": true,
+          "kind": "meal",
+          "named": 1,
+          "main": [
+            "roasted potatoes",
+            "eggplant",
+            "green beans"
+          ],
+          "said": "white plate with cooked green beans, roasted potato chunks, and what appears to be fried eggplant with onion; green beans; roasted potatoes; fried eggplant with onion",
+          "kcal": 315,
+          "kcalErrPct": 21.200461716044643,
+          "proteinErrG": 1.7999999999999998,
+          "carbsErrG": 12.100000000000001,
+          "fatErrG": 0.8000000000000007,
+          "inputTokens": 621,
+          "outputTokens": 276,
+          "latencyMs": 3712
+        },
+        {
+          "id": "dish_1559845018",
+          "ok": true,
+          "kind": "meal",
+          "named": 1,
+          "main": [
+            "almonds",
+            "mandarin oranges",
+            "potatoes"
+          ],
+          "said": "White plate with a pile of roasted skin-on almonds, a portion of roasted potato wedges/chunks, and one whole small citrus fruit (mandarin/clementine). Plate photographed on a frame/board setup.; Roasted skin-on almonds; Roasted potato wedges; Mandarin/clementine",
+          "kcal": 520,
+          "kcalErrPct": 71.95767195767198,
+          "proteinErrG": 1.8000000000000007,
+          "carbsErrG": 21.3,
+          "fatErrG": 8.899999999999999,
+          "inputTokens": 621,
+          "outputTokens": 790,
+          "latencyMs": 26306
+        },
+        {
+          "id": "dish_1559233144",
+          "ok": true,
+          "kind": "meal",
+          "named": 1,
+          "main": [
+            "garden salad",
+            "scrambled eggs",
+            "bacon"
+          ],
+          "said": "white plate with scrambled eggs, cooked bacon strips, and a spinach salad with shredded carrot and what appears to be tomato; scrambled eggs; bacon; spinach salad; shredded carrot; tomato (possible)",
+          "kcal": 320,
+          "kcalErrPct": 19.618186385330326,
+          "proteinErrG": 6.699999999999999,
+          "carbsErrG": 3.3,
+          "fatErrG": 7.699999999999999,
+          "inputTokens": 621,
+          "outputTokens": 338,
+          "latencyMs": 5090
+        },
+        {
+          "id": "dish_1561751897",
+          "ok": true,
+          "kind": "meal",
+          "named": 1,
+          "main": [
+            "brown rice",
+            "salmon"
+          ],
+          "said": "White square plate holding two pieces of pan-fried salmon with charred skin, a few arugula leaves, and some brown rice grains on and around the fish. A second plate is partly visible at the bottom left, appearing to contain brown rice or bulgur.; pan-fried salmon, skin on (2 pieces); arugula leaves; brown rice (on and under the salmon); brown rice or bulgur on second plate, partially visible at bottom left",
+          "kcal": 393,
+          "kcalErrPct": 11.016949152542372,
+          "proteinErrG": 7,
+          "carbsErrG": 17.2,
+          "fatErrG": 1,
+          "inputTokens": 621,
+          "outputTokens": 1469,
+          "latencyMs": 26638
+        },
+        {
+          "id": "dish_1560367926",
+          "ok": true,
+          "kind": "meal",
+          "named": 0.5,
+          "main": [
+            "fish",
+            "pizza"
+          ],
+          "said": "White plate with one slice of pizza topped with red pepper, black olives, jalapeño slices and melted cheese, plus a smaller piece of what appears to be a pizza crust edge with topping; pizza slice with red pepper, olives, jalapeño, cheese; pizza edge with topping (small piece)",
+          "kcal": 310,
+          "kcalErrPct": 24.112607099143208,
+          "proteinErrG": 12.2,
+          "carbsErrG": 8,
+          "fatErrG": 9,
+          "inputTokens": 621,
+          "outputTokens": 166,
+          "latencyMs": 3635
+        },
+        {
+          "id": "dish_1563551006",
+          "ok": true,
+          "kind": "meal",
+          "named": 1,
+          "main": [
+            "scrambled eggs",
+            "roasted potatoes",
+            "country rice"
+          ],
+          "said": "White plate with a mound of browned seasoned rice, two strips of cooked bacon, scrambled egg topped with orange shredded cheese, and cubed pan-fried potatoes, with more of the orange shreds scattered over the potatoes; fried rice (seasoned browned rice, small bits of vegetable/egg visible); bacon, cooked strips; scrambled egg; shredded cheddar cheese (orange shreds on the egg; similar shreds over the potatoes could also be carrot); diced home-fried potatoes",
+          "kcal": 585,
+          "kcalErrPct": 63.54487000279564,
+          "proteinErrG": 8.3,
+          "carbsErrG": 22.4,
+          "fatErrG": 8.899999999999999,
+          "inputTokens": 621,
+          "outputTokens": 1667,
+          "latencyMs": 25032
+        },
+        {
+          "id": "dish_1565021185",
+          "ok": true,
+          "kind": "meal",
+          "named": 0.4,
+          "main": [
+            "waffles",
+            "turnips",
+            "egg whites",
+            "sausage",
+            "tofu"
+          ],
+          "said": "Plate with two waffle pieces, about eight small cooked sausage slices, scrambled egg mixed with greens and yellow peppers, chunks of soft white cheese, and roasted potato pieces.; waffle; small sausage slices; scrambled egg with greens and peppers; soft white cheese (e.g. brie or camembert); roasted potatoes",
+          "kcal": 900,
+          "kcalErrPct": 86.91588785046729,
+          "proteinErrG": 7.100000000000001,
+          "carbsErrG": 41.9,
+          "fatErrG": 24.6,
+          "inputTokens": 621,
+          "outputTokens": 430,
+          "latencyMs": 8475
+        },
+        {
+          "id": "dish_1558376984",
+          "ok": true,
+          "kind": "meal",
+          "named": 1,
+          "main": [
+            "almonds",
+            "sausage",
+            "grapes"
+          ],
+          "said": "A white plate with a whole red apple, a pile of whole almonds, about 10 red grapes, several slices of cooked sausage, and some cooked leafy greens (spinach-like) with shreds of carrot.; apple, whole (assumed ~180 g); almonds, whole (assumed ~30 g); red grapes (assumed ~50 g, ~10 grapes); sausage slices, cooked (assumed ~60 g); cooked leafy greens with carrot (assumed ~50 g)",
+          "kcal": 520,
+          "kcalErrPct": 22.58448712222719,
+          "proteinErrG": 29.4,
+          "carbsErrG": 16.8,
+          "fatErrG": 14.600000000000001,
+          "inputTokens": 621,
+          "outputTokens": 391,
+          "latencyMs": 7252
+        },
+        {
+          "id": "dish_1562602687",
+          "ok": true,
+          "kind": "meal",
+          "named": 1,
+          "main": [
+            "brussels sprouts",
+            "sausage",
+            "hash browns",
+            "scrambled eggs"
+          ],
+          "said": "White plate on a glass table with a pile of cooked shredded potato (hash browns), scrambled eggs, roasted brussels sprouts, and several small dark sausages.; Hash browns (shredded potato, pan-fried); Scrambled eggs (looks like it may include cheese); Brussels sprouts (roasted); Small sausages (appear to be breakfast/smoked sausages)",
+          "kcal": 810,
+          "kcalErrPct": 12.281674521763241,
+          "proteinErrG": 1.1999999999999993,
+          "carbsErrG": 6.799999999999997,
+          "fatErrG": 5.700000000000003,
+          "inputTokens": 621,
+          "outputTokens": 1257,
+          "latencyMs": 13341
+        },
+        {
+          "id": "dish_1565118096",
+          "ok": true,
+          "kind": "meal",
+          "named": 0.8571428571428571,
+          "main": [
+            "chicken breast",
+            "tuna",
+            "cheese pizza",
+            "cherry tomatoes",
+            "bell peppers",
+            "carrot",
+            "pineapple"
+          ],
+          "said": "White plate on a glass table: two thin slices of cheese pizza; a mound of shredded chicken with a few strands of grated carrot mixed in; a pile of grated carrot; sliced tomato; green bell pepper strips; pale yellow chunks (look like pineapple, possibly boiled potato or squash).; cheese pizza (thin crust); shredded chicken (possibly with a little dressing); grated carrot; tomato slices; green bell pepper strips; yellow chunks (best guess: pineapple; could be boiled potato or squash)",
+          "kcal": 577,
+          "kcalErrPct": 12.096282754418034,
+          "proteinErrG": 31.400000000000006,
+          "carbsErrG": 3,
+          "fatErrG": 5,
+          "inputTokens": 621,
+          "outputTokens": 1659,
+          "latencyMs": 17990
+        }
+      ]
+    },
+    {
+      "model": "xiaomi/mimo-v2.6-pro",
+      "cases": [
+        {
+          "id": "dish_1565725095",
+          "ok": true,
+          "kind": "meal",
+          "named": 0.75,
+          "main": [
+            "cherry tomatoes",
+            "olives",
+            "carrot",
+            "bell peppers"
+          ],
+          "said": "halved cherry tomatoes, shredded carrot, sliced green bell pepper in a metal bowl; cherry tomatoes, halved; shredded carrot; sliced green bell pepper",
+          "kcal": 70,
+          "kcalErrPct": 42.481511914543965,
+          "proteinErrG": 1.1,
+          "carbsErrG": 4.199999999999999,
+          "fatErrG": 4.1,
+          "inputTokens": 549,
+          "outputTokens": 313,
+          "latencyMs": 13546
+        },
+        {
+          "id": "dish_1562602860",
+          "ok": true,
+          "kind": "meal",
+          "named": 0.25,
+          "main": [
+            "strawberries",
+            "milk",
+            "greek yogurt",
+            "watermelon"
+          ],
+          "said": "sliced strawberries, a scoop of porridge/oatmeal (white, grainy), a few blackberries on top; sliced strawberries; porridge/oatmeal (white, grainy mound); blackberries",
+          "kcal": 165,
+          "kcalErrPct": 0.12106537530265657,
+          "proteinErrG": 5.199999999999999,
+          "carbsErrG": 11.2,
+          "fatErrG": 2.5999999999999996,
+          "inputTokens": 549,
+          "outputTokens": 570,
+          "latencyMs": 14306
+        },
+        {
+          "id": "dish_1558721636",
+          "ok": true,
+          "kind": "meal",
+          "named": 0.75,
+          "main": [
+            "carrot",
+            "corn on the cob",
+            "cantaloupe",
+            "cherry tomatoes"
+          ],
+          "said": "white square plate with sliced raw carrots, yellow tomato halves, cherry tomatoes, and cantaloupe chunks; sliced raw carrots (rounds and half-moons); yellow tomato halves; cherry tomatoes; cantaloupe chunks",
+          "kcal": 106,
+          "kcalErrPct": 35.009196811771915,
+          "proteinErrG": 1.5999999999999996,
+          "carbsErrG": 10.799999999999997,
+          "fatErrG": 1.6,
+          "inputTokens": 549,
+          "outputTokens": 594,
+          "latencyMs": 19759
+        },
+        {
+          "id": "dish_1561060531",
+          "ok": true,
+          "kind": "meal",
+          "named": 0.5,
+          "main": [
+            "bok choy",
+            "brussels sprouts",
+            "cheese pizza",
+            "pineapple"
+          ],
+          "said": "pineapple chunks, light green cooked vegetable stems (celery or bok choy), sautéed green vegetable (zucchini or green pepper), small square of baked lasagna / cheese-topped pasta bake; pineapple chunks; light green cooked vegetable stems (celery or bok choy); sautéed green vegetable (zucchini or green pepper); baked lasagna / cheese-topped pasta bake",
+          "kcal": 303,
+          "kcalErrPct": 86.92165330043183,
+          "proteinErrG": 5.3,
+          "carbsErrG": 6.699999999999999,
+          "fatErrG": 9.9,
+          "inputTokens": 549,
+          "outputTokens": 796,
+          "latencyMs": 20376
+        },
+        {
+          "id": "dish_1563208459",
+          "ok": true,
+          "kind": "meal",
+          "named": 0.75,
+          "main": [
+            "raspberries",
+            "yam",
+            "sweet potato",
+            "chicken apple sausage"
+          ],
+          "said": "White square plate with 4 small round golden-brown baked balls, a pile of fresh raspberries, diced roasted orange cubes (sweet potato), diced roasted yellow cubes (squash or potato), and 2-3 small dark brown chunks (dried fruit, possibly dates).; Small round baked balls (cookie/bliss ball style), 4 pieces (~80 g); Raspberries; Roasted sweet potato cubes; Roasted squash or potato cubes (yellow); Small dark brown chunks (dried fruit, e.g. dates)",
+          "kcal": 585,
+          "kcalErrPct": 213.67292225201072,
+          "proteinErrG": 2.0999999999999996,
+          "carbsErrG": 80.5,
+          "fatErrG": 10,
+          "inputTokens": 549,
+          "outputTokens": 671,
+          "latencyMs": 15264
+        },
+        {
+          "id": "dish_1562691613",
+          "ok": true,
+          "kind": "meal",
+          "named": 0.75,
+          "main": [
+            "egg whites",
+            "broccoli",
+            "yam",
+            "sweet potato"
+          ],
+          "said": "steamed broccoli florets, diced roasted squash (or sweet potato), white chunks that look like cauliflower florets or pieces of white fish — served on a square white plate; a second empty plate is partly visible at left; broccoli florets; diced roasted squash or sweet potato; white chunks — cauliflower florets or cooked white fish (unclear)",
+          "kcal": 170,
+          "kcalErrPct": 20.449227889564806,
+          "proteinErrG": 4.800000000000001,
+          "carbsErrG": 9.700000000000003,
+          "fatErrG": 1.1,
+          "inputTokens": 549,
+          "outputTokens": 521,
+          "latencyMs": 13082
+        },
+        {
+          "id": "dish_1568313676",
+          "ok": true,
+          "kind": "meal",
+          "named": 0.8,
+          "main": [
+            "mixed greens",
+            "avocado",
+            "chicken",
+            "mushroom",
+            "onions"
+          ],
+          "said": "Mixed salad greens (lettuce, spinach, radicchio) with sliced red onion, cubed cooked chicken breast, and a few slices of avocado/green pepper on a white plate; Mixed salad greens (lettuce, spinach, red chicory); Cubed cooked chicken breast; Sliced red onion; Avocado slices; Dressing (slight sheen on leaves; amount assumed)",
+          "kcal": 296,
+          "kcalErrPct": 60,
+          "proteinErrG": 9.5,
+          "carbsErrG": 0.9000000000000004,
+          "fatErrG": 8.9,
+          "inputTokens": 549,
+          "outputTokens": 962,
+          "latencyMs": 21766
+        },
+        {
+          "id": "dish_1559838402",
+          "ok": true,
+          "kind": "meal",
+          "named": 0.3333333333333333,
+          "main": [
+            "sweet potato",
+            "yam",
+            "berries"
+          ],
+          "said": "strawberries (halved, about 3), raspberries (about 6), blackberries (about 2), cantaloupe cubes, pineapple chunks, 2 strips bacon; strawberries, halved; raspberries; blackberries; cantaloupe cubes; pineapple chunks; bacon",
+          "kcal": 188,
+          "kcalErrPct": 15.619389587073613,
+          "proteinErrG": 2.8,
+          "carbsErrG": 19.200000000000003,
+          "fatErrG": 4.2,
+          "inputTokens": 549,
+          "outputTokens": 559,
+          "latencyMs": 10534
+        },
+        {
+          "id": "dish_1560801829",
+          "ok": true,
+          "kind": "meal",
+          "named": 0.6666666666666666,
+          "main": [
+            "squash",
+            "pepperoni pizza",
+            "cauliflower"
+          ],
+          "said": "Roasted potato wedges, cauliflower florets, a dark roasted vegetable piece (looks like a mushroom), and a thick-crust pepperoni pizza slice with melted cheese; Roasted potato wedges; Cauliflower florets (steamed/roasted); Roasted vegetable piece (mushroom?); Pepperoni pizza slice, thick crust with cheese",
+          "kcal": 410,
+          "kcalErrPct": 59.595173219151434,
+          "proteinErrG": 5.800000000000001,
+          "carbsErrG": 17.7,
+          "fatErrG": 7.5,
+          "inputTokens": 549,
+          "outputTokens": 607,
+          "latencyMs": 11841
+        },
+        {
+          "id": "dish_1565724588",
+          "ok": true,
+          "kind": "meal",
+          "named": 0.5,
+          "main": [
+            "zucchini",
+            "broccoli",
+            "roasted potatoes",
+            "chayote squash"
+          ],
+          "said": "steamed broccoli florets, sliced yellow squash (sautéed), visible oil/gloss on vegetables; steamed broccoli florets; sliced yellow squash (cooked); oil or butter used in cooking",
+          "kcal": 186,
+          "kcalErrPct": 30.25871766029246,
+          "proteinErrG": 3,
+          "carbsErrG": 23.9,
+          "fatErrG": 2.6999999999999993,
+          "inputTokens": 549,
+          "outputTokens": 417,
+          "latencyMs": 8429
+        },
+        {
+          "id": "dish_1566416388",
+          "ok": true,
+          "kind": "meal",
+          "named": 1,
+          "main": [
+            "roasted potatoes",
+            "eggplant",
+            "green beans"
+          ],
+          "said": "green beans, roasted potato chunks, roasted aubergine/eggplant chunks; green beans; roasted potatoes; roasted aubergine (eggplant)",
+          "kcal": 310,
+          "kcalErrPct": 19.276644863409015,
+          "proteinErrG": 0.7999999999999998,
+          "carbsErrG": 9.100000000000001,
+          "fatErrG": 0.8000000000000007,
+          "inputTokens": 549,
+          "outputTokens": 593,
+          "latencyMs": 13084
+        },
+        {
+          "id": "dish_1559845018",
+          "ok": true,
+          "kind": "meal",
+          "named": 1,
+          "main": [
+            "almonds",
+            "mandarin oranges",
+            "potatoes"
+          ],
+          "said": "almonds, roasted potato chunks, whole mandarin orange; Almonds; Roasted potato chunks; Mandarin orange",
+          "kcal": 440,
+          "kcalErrPct": 45.502645502645514,
+          "proteinErrG": 1.8000000000000007,
+          "carbsErrG": 17.3,
+          "fatErrG": 5.899999999999999,
+          "inputTokens": 549,
+          "outputTokens": 818,
+          "latencyMs": 18118
+        },
+        {
+          "id": "dish_1559233144",
+          "ok": true,
+          "kind": "meal",
+          "named": 1,
+          "main": [
+            "garden salad",
+            "scrambled eggs",
+            "bacon"
+          ],
+          "said": "scrambled eggs, cooked bacon strips, tomato slices, salad greens (spinach and arugula/rocket) with shredded carrot; scrambled eggs; cooked bacon; tomato slices; salad greens (spinach and rocket); shredded carrot",
+          "kcal": 424,
+          "kcalErrPct": 6.505903039437322,
+          "proteinErrG": 0.3000000000000007,
+          "carbsErrG": 3.3,
+          "fatErrG": 0.3000000000000007,
+          "inputTokens": 549,
+          "outputTokens": 697,
+          "latencyMs": 13223
+        },
+        {
+          "id": "dish_1561751897",
+          "ok": true,
+          "kind": "meal",
+          "named": 1,
+          "main": [
+            "brown rice",
+            "salmon"
+          ],
+          "said": "White square plate with two pieces of glazed/roasted salmon, a small scoop of brown rice (partly pink-tinged), a few green leaves (arugula/rocket), and one small dark piece beneath the rice (possibly roasted eggplant or seaweed); glazed salmon, two pieces; brown rice; arugula / rocket leaves; small dark cooked piece (possibly roasted eggplant or seaweed)",
+          "kcal": 363,
+          "kcalErrPct": 2.5423728813559325,
+          "proteinErrG": 9,
+          "carbsErrG": 18.2,
+          "fatErrG": 2,
+          "inputTokens": 549,
+          "outputTokens": 847,
+          "latencyMs": 18385
+        },
+        {
+          "id": "dish_1560367926",
+          "ok": true,
+          "kind": "meal",
+          "named": 0.5,
+          "main": [
+            "fish",
+            "pizza"
+          ],
+          "said": "Slice of pizza topped with tomato sauce, melted cheese, red pepper strips, sliced jalapeño and black olives; plus one scoop of an orange-brown saucy dish with sliced green onions (looks like chicken in a creamy or curried sauce — not certain); Pizza slice with red pepper, jalapeño and black olives; Orange-brown saucy dish with green onions (possibly chicken in sauce)",
+          "kcal": 350,
+          "kcalErrPct": 14.320685434516525,
+          "proteinErrG": 2.1999999999999993,
+          "carbsErrG": 16,
+          "fatErrG": 4,
+          "inputTokens": 549,
+          "outputTokens": 426,
+          "latencyMs": 12016
+        },
+        {
+          "id": "dish_1563551006",
+          "ok": true,
+          "kind": "meal",
+          "named": 0.6666666666666666,
+          "main": [
+            "scrambled eggs",
+            "roasted potatoes",
+            "country rice"
+          ],
+          "said": "scrambled eggs, shredded cheddar cheese, bacon strips, diced home fries with onion, and a scoop of a cheesy potato-type casserole (unclear, possibly biscuit or hash brown casserole); scrambled eggs; shredded cheddar cheese (on eggs); bacon, fried; diced home fries potatoes with onion; cheesy potato casserole scoop (unclear, possibly biscuit or hash brown casserole)",
+          "kcal": 680,
+          "kcalErrPct": 90.10343863572827,
+          "proteinErrG": 18.3,
+          "carbsErrG": 17.4,
+          "fatErrG": 17.9,
+          "inputTokens": 549,
+          "outputTokens": 899,
+          "latencyMs": 18625
+        },
+        {
+          "id": "dish_1565021185",
+          "ok": true,
+          "kind": "meal",
+          "named": 0.6,
+          "main": [
+            "waffles",
+            "turnips",
+            "egg whites",
+            "sausage",
+            "tofu"
+          ],
+          "said": "waffles (2, square Belgian style), sliced sausage rounds (about 10 coins), scrambled eggs with peppers/onions in a brown sauce or chutney, white dollops (cream cheese or sour cream), roasted potato wedges; waffles; sliced sausage rounds; scrambled eggs with peppers and onions in a brown sauce; white dollops (cream cheese or sour cream); roasted potato wedges",
+          "kcal": 970,
+          "kcalErrPct": 101.45379023883696,
+          "proteinErrG": 10.100000000000001,
+          "carbsErrG": 44.9,
+          "fatErrG": 28.6,
+          "inputTokens": 549,
+          "outputTokens": 839,
+          "latencyMs": 15812
+        },
+        {
+          "id": "dish_1558376984",
+          "ok": true,
+          "kind": "meal",
+          "named": 0.6666666666666666,
+          "main": [
+            "almonds",
+            "sausage",
+            "grapes"
+          ],
+          "said": "Apple, almonds, dates, red grapes, and a small sprig of green leaves (basil or similar) on a light blue plate; Apple (whole, medium, with skin); Almonds (whole, raw/roasted); Dried dates; Red seedless grapes; Fresh green leaves (basil, garnish)",
+          "kcal": 446,
+          "kcalErrPct": 33.60131010867947,
+          "proteinErrG": 37.4,
+          "carbsErrG": 45.8,
+          "fatErrG": 29.6,
+          "inputTokens": 549,
+          "outputTokens": 763,
+          "latencyMs": 14777
+        },
+        {
+          "id": "dish_1562602687",
+          "ok": true,
+          "kind": "meal",
+          "named": 0.75,
+          "main": [
+            "brussels sprouts",
+            "sausage",
+            "hash browns",
+            "scrambled eggs"
+          ],
+          "said": "scrambled eggs, fried rice vermicelli noodles with vegetables, cooked brussels sprouts, sliced fried sausage pieces; Scrambled eggs; Fried rice vermicelli noodles with vegetables; Cooked brussels sprouts; Sliced fried sausage",
+          "kcal": 690,
+          "kcalErrPct": 4.35264762960909,
+          "proteinErrG": 0.1999999999999993,
+          "carbsErrG": 14.799999999999997,
+          "fatErrG": 9.299999999999997,
+          "inputTokens": 549,
+          "outputTokens": 487,
+          "latencyMs": 12386
+        },
+        {
+          "id": "dish_1565118096",
+          "ok": true,
+          "kind": "meal",
+          "named": 0.7142857142857143,
+          "main": [
+            "chicken breast",
+            "tuna",
+            "cheese pizza",
+            "cherry tomatoes",
+            "bell peppers",
+            "carrot",
+            "pineapple"
+          ],
+          "said": "Cheese-stuffed flatbread/pita halves (2 halves, cut), shredded tuna (or chicken) mixed with shredded carrot, pile of shredded raw carrot, sliced red and green bell pepper, pineapple chunks; Cheese-stuffed flatbread/pita, 2 halves (1 whole pita); Shredded tuna (or chicken) mixed with shredded carrot; Shredded raw carrot; Sliced red and green bell pepper; Pineapple chunks",
+          "kcal": 556,
+          "kcalErrPct": 15.295551492992074,
+          "proteinErrG": 45.400000000000006,
+          "carbsErrG": 14,
+          "fatErrG": 5,
+          "inputTokens": 549,
+          "outputTokens": 642,
+          "latencyMs": 14497
+        }
+      ]
+    }
+  ]
+}

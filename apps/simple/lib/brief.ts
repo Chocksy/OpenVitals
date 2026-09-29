@@ -11,7 +11,6 @@
  * `generateObject` call; the thread route adds `streamText` with tools. What
  * the model may name is identical either way, which is the point.
  */
-import { generateObject } from "ai";
 import { CITES_SOURCES, questionKind, termQuery } from "./ask-intent";
 import type { QuestionKind } from "./ask-intent";
 import {
@@ -22,6 +21,7 @@ import {
 } from "./actions";
 import { chatContext } from "./ai";
 import { buildModelInput, profileQuestions } from "./coverage";
+import { generateObjectSafe } from "./extract";
 import { catalogFor } from "./hkb";
 import { scoreHypotheses } from "./hypotheses";
 import { nextMoves } from "./infogain";
@@ -32,7 +32,6 @@ import {
   actsSchema,
   answerAsk,
   askCandidates,
-  askModel,
   codesNamedIn,
   emptyAnswer,
   mechanismsFor,
@@ -401,8 +400,8 @@ export async function answerQuestion(
   };
   if (!process.env.OPENROUTER_API_KEY) return base;
 
-  const { object } = await generateObject({
-    model: askModel(modelId),
+  const { object } = await generateObjectSafe({
+    model: modelId ?? process.env.AI_ASK_MODEL,
     schema: actsSchema,
     system: brief.system,
     prompt: `THEIR QUESTION: ${question}\n\n${brief.facts}`,

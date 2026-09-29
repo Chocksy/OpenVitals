@@ -47,6 +47,18 @@ export interface PolicyInput {
   /** Europe PMC's `retracted` flag, or a Crossref retraction update. */
   retracted?: boolean;
   conditionInCatalog: boolean;
+  /**
+   * The condition is a ring-2 row (phase 41C). Its rules are judged like any
+   * other instead of being rejected for being out of the catalog; whether the
+   * condition itself is promoted is `promoted`'s call over the whole run.
+   */
+  ring2?: boolean;
+  /**
+   * A prior modifier rather than a likelihood ratio (phase 41C). `lrPos` then
+   * carries its `times`. Like a `hypothesis:` feature, it is only allowed when
+   * the quote holds one of the claimed numbers.
+   */
+  modifier?: boolean;
   /** The likelihood ratios already verified on the same key. */
   peers?: number[];
 }
@@ -163,24 +175,62 @@ const extreme = (lr: number | null) =>
   lr != null && Number.isFinite(lr) && (lr > 100 || lr < 0.01);
 
 export function decide(p: PolicyInput): Decision {
-  if (p.retracted) return "rejected";
-  if (!p.conditionInCatalog) return "rejected";
-  if (!p.featureId && !mintable(p)) return "rejected";
-  if (!unitFits(p)) return "held";
-  if (!thresholdPlausible(p)) return "held";
+  return judge(p).decision;
+}
+
+/** `decide`, with the one line that says which check settled it. */
+export function judge(p: PolicyInput): { decision: Decision; reason: string } {
+  const say = (decision: Decision, reason: string) => ({ decision, reason });
+  if (p.retracted) return say("rejected", "retracted paper");
+  if (!p.conditionInCatalog && !p.ring2)
+    return say("rejected", "condition not in the catalog");
+  if (!p.featureId && !mintable(p))
+    return say("rejected", "feature neither mapped nor mintable");
+  if (!unitFits(p)) return say("held", "unit will not convert");
+  if (!thresholdPlausible(p))
+    return say("held", "threshold outside what the marker can take");
 
   const claimed = (p.numbers ?? []).filter(
     (n): n is number => n != null && Number.isFinite(n),
   );
-  if (!numbersIn(p.quote).length) return "rejected";
+  if (!numbersIn(p.quote).length) return say("rejected", "quote has no number");
   if (claimed.length && !claimed.some((n) => quoted(n, p.quote)))
-    return "rejected";
+    return say("rejected", "claimed numbers are not in the quote");
+  // A chained rule or a prior modifier is only as good as the number the
+  // paper printed for it: without a claimed number there is nothing to check.
+  const chained = p.featureId?.startsWith("hypothesis:") || p.modifier;
+  if (chained && !claimed.some((n) => quoted(n, p.quote)))
+    return say(
+      "rejected",
+      `${p.modifier ? "modifier" : "hypothesis: rule"} without its number in the quote`,
+    );
 
-  if (disagree([p.lrPos, ...(p.peers ?? [])])) return "review";
+  if (disagree([p.lrPos, ...(p.peers ?? [])]))
+    return say("review", "disagrees with a verified row by more than 3x");
   if (p.grade !== "A" && (extreme(p.lrPos) || extreme(p.lrNeg)))
-    return "review";
+    return say("review", "extreme LR outside a grade A source");
 
-  return "accepted";
+  return say("accepted", "passed every check");
+}
+
+/**
+ * The ring-2 conditions a run promotes (phase 41C): those with at least one
+ * grade A or B rule accepted in the same run. A condition with only C rules
+ * stays dormant, and its rules with it.
+ */
+export function promoted(
+  judged: { conditionId: string; ring2?: boolean; grade: Grade; decision: Decision }[],
+): Set<string> {
+  return new Set(
+    judged
+      .filter(
+        (j) =>
+          j.ring2 &&
+          j.decision === "accepted" &&
+          (j.grade === "A" || j.grade === "B"),
+      )
+      .map((j) => j.conditionId),
+  );
 }
 
 /** The row status a decision writes, and whether the admin gets a chip. */
