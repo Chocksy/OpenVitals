@@ -1,0 +1,2041 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Cadence · iOS variation 33 · OpenVitals</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --page: #eef0f4;
+        --ios: #f2f2f7;
+        --card: #ffffff;
+        --ink: #1c1c1e;
+        --ink-2: #6b6b70;
+        --ink-3: #a1a1a6;
+        --line: #e6e6eb;
+        --sep: rgba(60, 60, 67, 0.14);
+        --beat: #2f6d8f;
+        --beat-2: #7ba3ba;
+        --event: #b4553f;
+        --event-2: #d59a89;
+        --brand: #2f6d8f;
+        --s4: 4px;
+        --s8: 8px;
+        --s12: 12px;
+        --s16: 16px;
+        --s22: 22px;
+        --s34: 34px;
+        --s55: 55px;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--page);
+        color: var(--ink);
+        font:
+          15px/1.4 Inter,
+          -apple-system,
+          BlinkMacSystemFont,
+          system-ui,
+          sans-serif;
+        font-variant-numeric: tabular-nums;
+      }
+      button {
+        font: inherit;
+        color: inherit;
+        background: none;
+        border: 0;
+        padding: 0;
+        cursor: pointer;
+        text-align: left;
+        -webkit-tap-highlight-color: transparent;
+      }
+      h1,
+      h2,
+      h3,
+      p {
+        margin: 0;
+      }
+      svg.i {
+        width: 20px;
+        height: 20px;
+        stroke: currentColor;
+        fill: none;
+        stroke-width: 1.7;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+      svg text {
+        font-family:
+          Inter,
+          -apple-system,
+          system-ui,
+          sans-serif;
+        font-variant-numeric: tabular-nums;
+      }
+
+      /* ---------- page ---------- */
+      .doc {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: var(--s55) var(--s22);
+      }
+      .doc > header {
+        margin-bottom: var(--s34);
+        max-width: 60ch;
+      }
+      .eyebrow {
+        color: #98a0ae;
+        font-size: 13px;
+        margin-bottom: var(--s4);
+      }
+      .doc h1 {
+        font-size: 34px;
+        font-weight: 600;
+        letter-spacing: -0.03em;
+      }
+      .lede {
+        color: #5b6474;
+        margin-top: var(--s8);
+      }
+      .phones {
+        display: flex;
+        gap: var(--s55);
+        justify-content: center;
+        flex-wrap: wrap;
+      }
+      .cap {
+        color: #9aa2af;
+        font-size: 12.5px;
+        margin-bottom: var(--s12);
+        width: 390px;
+      }
+
+      /* ---------- phone ---------- */
+      .phone {
+        width: 390px;
+        height: 844px;
+        border-radius: 55px;
+        border: 8px solid #1c1f24;
+        background: var(--ios);
+        box-shadow: 0 34px 55px -34px rgba(15, 20, 32, 0.45);
+        position: relative;
+        overflow: hidden;
+      }
+      .status {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 0;
+        height: 50px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0 26px 0 32px;
+        font-size: 14.5px;
+        font-weight: 600;
+        letter-spacing: -0.01em;
+        z-index: 7;
+        pointer-events: none;
+      }
+      .status i {
+        position: absolute;
+        left: 50%;
+        top: 9px;
+        width: 96px;
+        height: 27px;
+        border-radius: 14px;
+        background: #17191d;
+        transform: translateX(-50%);
+      }
+      .status .rt {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+      }
+      .status svg {
+        display: block;
+        height: 10.5px;
+        width: auto;
+      }
+      .status .bt {
+        height: 11.5px;
+      }
+
+      .nav {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 0;
+        height: 88px;
+        padding: 50px var(--s16) 0;
+        background: rgba(250, 250, 252, 0.9);
+        backdrop-filter: blur(22px);
+        -webkit-backdrop-filter: saturate(180%) blur(22px);
+        border-bottom: 0.5px solid var(--sep);
+        z-index: 6;
+        display: flex;
+        align-items: center;
+        gap: var(--s4);
+      }
+      .nav > * {
+        height: 38px;
+        display: flex;
+        align-items: center;
+      }
+      .nav .ttl {
+        font-size: 16px;
+        font-weight: 600;
+        letter-spacing: -0.01em;
+        flex: 1;
+        justify-content: center;
+      }
+      .nav .av {
+        border-radius: 50%;
+      }
+      .nav .back {
+        gap: 1px;
+        color: var(--brand);
+        font-size: 16px;
+        white-space: nowrap;
+      }
+      .nav .back svg.i {
+        width: 17px;
+        height: 17px;
+        stroke-width: 2.2;
+      }
+      .nav .act {
+        color: var(--brand);
+      }
+      .screen {
+        position: absolute;
+        inset: 0;
+        overflow-y: auto;
+        padding: 96px var(--s16) 116px;
+        scrollbar-width: none;
+      }
+      .screen::-webkit-scrollbar {
+        display: none;
+      }
+
+      .lt {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: var(--s12);
+        padding: 0 var(--s4) 2px;
+        min-height: 44px;
+      }
+      .lt h2 {
+        font-size: 30px;
+        font-weight: 700;
+        letter-spacing: -0.03em;
+        line-height: 1.1;
+      }
+      .lt p {
+        color: var(--ink-3);
+        font-size: 13.5px;
+        margin-top: 3px;
+      }
+      .nav .av {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        background: #e4e6ef;
+        display: grid;
+        place-items: center;
+        font-size: 12.5px;
+        font-weight: 700;
+        letter-spacing: 0.02em;
+        color: #676f86;
+        flex: none;
+      }
+
+      .ghead {
+        margin: 13px var(--s4) 6px;
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+      }
+      .ghead b {
+        font-size: 10.5px;
+        font-weight: 600;
+        letter-spacing: 0.07em;
+        text-transform: uppercase;
+        color: var(--ink-3);
+      }
+      .ghead .rt {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+      }
+      .ghead em {
+        font-style: normal;
+        font-size: 11.5px;
+        font-weight: 400;
+        color: var(--ink-3);
+        opacity: 0.75;
+      }
+      .ghead svg.beat {
+        display: block;
+        width: 62px;
+        height: 11px;
+        overflow: visible;
+      }
+      .stamp {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        font-size: 12.5px;
+        font-weight: 600;
+        color: var(--acc);
+      }
+      .stamp span {
+        font-weight: 500;
+        color: var(--ink-3);
+      }
+      .card {
+        background: var(--card);
+        border-radius: 14px;
+        padding: 10px var(--s16) 12px;
+        box-shadow: 0 0.5px 1px rgba(15, 20, 32, 0.06);
+      }
+      .card + .card {
+        margin-top: var(--s8);
+      }
+      .ch {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        width: 100%;
+        font-size: 12.5px;
+        font-weight: 600;
+        color: var(--ink-2);
+        letter-spacing: -0.005em;
+      }
+      .chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 11.5px;
+        font-weight: 500;
+        color: var(--ink-3);
+        border-radius: 7px;
+        padding: 2px 2px 2px 0;
+      }
+      .chip svg {
+        width: 7px;
+        height: 4.5px;
+        display: block;
+        fill: currentColor;
+        opacity: 0.85;
+      }
+      .meta {
+        font-size: 11.5px;
+        font-weight: 500;
+        color: var(--ink-3);
+      }
+      .cap2 {
+        margin-top: 7px;
+        font-size: 12px;
+        color: var(--ink-3);
+      }
+      .chart {
+        display: block;
+        width: 100%;
+        margin-top: 2px;
+        touch-action: none;
+      }
+
+      .lrow {
+        display: flex;
+        align-items: center;
+        gap: var(--s12);
+        padding: 10px 0;
+        border-top: 0.5px solid var(--sep);
+      }
+      .lrow:first-child {
+        border-top: 0;
+      }
+      .lrow .ph {
+        width: 38px;
+        height: 38px;
+        border-radius: 9px;
+        overflow: hidden;
+        flex: none;
+        background: var(--line);
+      }
+      .lrow .ph img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+      }
+      .lrow .t {
+        flex: 1;
+        min-width: 0;
+      }
+      .lrow .t b {
+        display: block;
+        font-size: 14px;
+        font-weight: 600;
+      }
+      .lrow .t small {
+        color: var(--ink-3);
+        font-size: 11.5px;
+      }
+      .lrow .v {
+        font-size: 14px;
+        font-weight: 700;
+        white-space: nowrap;
+      }
+      .drow {
+        display: grid;
+        grid-template-columns: 12px 1fr 82px 54px;
+        align-items: center;
+        gap: 0 10px;
+        padding: 11px 0;
+        border-top: 0.5px solid var(--sep);
+      }
+      .drow:first-child {
+        border-top: 0;
+      }
+      .drow i {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--event);
+        display: block;
+      }
+      .drow.est i {
+        background: #fff;
+        border: 1.5px solid var(--event-2);
+      }
+      .drow b {
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--ink-2);
+      }
+      .drow small {
+        display: block;
+        font-size: 11.5px;
+        color: var(--ink-3);
+      }
+      .drow .n {
+        text-align: right;
+        font-size: 15px;
+        font-weight: 700;
+      }
+      .drow .n u {
+        text-decoration: none;
+        font-size: 11px;
+        font-weight: 600;
+        color: var(--ink-3);
+        margin-left: 3px;
+      }
+      .drow .dl {
+        text-align: right;
+        font-size: 12.5px;
+        font-weight: 600;
+        color: var(--ink-2);
+      }
+      .drow .dl.z {
+        color: var(--ink-3);
+        font-weight: 500;
+      }
+      .drow.est b,
+      .drow.est .n {
+        color: var(--ink-3);
+      }
+      .lrow .v u {
+        text-decoration: none;
+        font-size: 11.5px;
+        font-weight: 600;
+        color: var(--ink-2);
+        margin-left: 3px;
+      }
+      .rowtop {
+        margin-top: var(--s8);
+        border-top: 0.5px solid var(--sep);
+      }
+      .sm {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1px;
+        background: var(--sep);
+        border-radius: 14px;
+        overflow: hidden;
+      }
+      .sm > div {
+        background: var(--card);
+        padding: 8px 10px 6px;
+      }
+      .sm small {
+        display: block;
+        font-size: 10px;
+        font-weight: 600;
+        letter-spacing: 0.03em;
+        text-transform: uppercase;
+        color: var(--ink-3);
+      }
+      .say {
+        margin: var(--s16) var(--s4) 0;
+        font-size: 13.5px;
+        line-height: 1.45;
+        color: var(--ink-2);
+      }
+      .lev {
+        display: flex;
+        align-items: center;
+        gap: var(--s12);
+        padding: 11px 0;
+        border-top: 0.5px solid var(--sep);
+      }
+      .lev:first-child {
+        border-top: 0;
+      }
+      .lev .chip2 {
+        width: 24px;
+        flex: none;
+        display: grid;
+        place-items: center;
+        color: var(--ink-2);
+      }
+      .lev .chip2 svg.i {
+        width: 18px;
+        height: 18px;
+      }
+      .lev .t {
+        flex: 1;
+        min-width: 0;
+      }
+      .lev .t b {
+        display: block;
+        font-size: 13.5px;
+        font-weight: 600;
+      }
+      .lev .t small {
+        color: var(--ink-3);
+        font-size: 11.5px;
+      }
+      .lev .d {
+        font-size: 14px;
+        font-weight: 700;
+        white-space: nowrap;
+      }
+      .lev .d u {
+        text-decoration: none;
+        font-size: 11px;
+        font-weight: 600;
+        color: var(--ink-2);
+        margin-left: 3px;
+      }
+      .sumrow {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        margin-top: var(--s12);
+        padding-top: var(--s12);
+        border-top: 0.5px solid var(--sep);
+        font-size: 13px;
+        font-weight: 600;
+      }
+      .sumrow em {
+        font-style: normal;
+        color: var(--ink-2);
+        font-weight: 600;
+      }
+
+      .tabbar {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: 80px;
+        padding-top: 9px;
+        background: rgba(250, 250, 252, 0.9);
+        backdrop-filter: blur(24px);
+        -webkit-backdrop-filter: saturate(180%) blur(24px);
+        border-top: 0.5px solid var(--sep);
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        z-index: 6;
+      }
+      .tabbar button {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 3px;
+        font-size: 10px;
+        font-weight: 500;
+        color: var(--ink-3);
+      }
+      .tabbar button.on {
+        color: var(--brand);
+      }
+      .tabbar button svg.i {
+        width: 24px;
+        height: 24px;
+        stroke-width: 1.7;
+      }
+      .homebar {
+        position: absolute;
+        left: 50%;
+        bottom: 6px;
+        width: 139px;
+        height: 5px;
+        border-radius: 2.5px;
+        background: #0f1420;
+        opacity: 0.24;
+        transform: translateX(-50%);
+        z-index: 7;
+      }
+
+      /* ---------- notes: data only ---------- */
+      .notes {
+        margin: var(--s34) auto 0;
+        width: 835px;
+        max-width: 100%;
+        display: grid;
+        grid-template-columns: 390px 390px;
+        gap: var(--s55);
+        padding-top: var(--s16);
+        border-top: 1px solid #dfe3ea;
+        font-family:
+          ui-monospace,
+          SFMono-Regular,
+          "SF Mono",
+          Menlo,
+          monospace;
+        font-size: 11px;
+        line-height: 1.55;
+        color: #8b93a1;
+      }
+      .notes h2 {
+        font-size: 10px;
+        font-weight: 500;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: #aab1bd;
+        margin: 0 0 var(--s8);
+      }
+      .notes h2:first-child {
+        margin-top: 0;
+      }
+      .notes table {
+        border-collapse: collapse;
+        width: 100%;
+        font-variant-numeric: tabular-nums;
+        font-size: 11px;
+      }
+      .notes p {
+        margin: 0;
+        line-height: 1.5;
+      }
+      .notes th {
+        font-weight: 400;
+        color: #b3bac5;
+        font-size: 10.5px;
+        padding: 0 0 5px;
+        border-bottom: 0.5px solid var(--sep);
+        white-space: nowrap;
+      }
+      .notes td {
+        padding: 4px 0;
+        border-bottom: 0;
+        color: #7d8695;
+        white-space: nowrap;
+      }
+      .notes th + th,
+      .notes td + td {
+        padding-left: var(--s16);
+      }
+      .notes .n {
+        text-align: right;
+      }
+      .notes tr.sum td {
+        border-top: 0.5px solid var(--sep);
+        color: #5c6473;
+        font-weight: 600;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        * {
+          animation: none !important;
+          transition: none !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="doc">
+      <header>
+        <h1>Cadence</h1>
+        <p class="lede">
+          Drag the cursor on any chart. The big number is the readout.
+        </p>
+      </header>
+
+      <section class="phones">
+        <div>
+          <p class="cap">Summary</p>
+          <div class="phone" id="p1"></div>
+        </div>
+        <div>
+          <p class="cap">LDL cholesterol</p>
+          <div class="phone" id="p2"></div>
+        </div>
+      </section>
+
+      <section class="notes">
+        <div>
+          <h2>Score, 9 Sep 2026</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>Layer</th>
+                <th class="n">Value</th>
+                <th class="n">Weight</th>
+                <th class="n">Contribution</th>
+              </tr>
+            </thead>
+            <tbody id="t-score"></tbody>
+          </table>
+        </div>
+        <div>
+          <h2>LDL, 9 Dec 2025 to 4 Nov 2026</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>Item</th>
+                <th class="n">mg/dL</th>
+                <th class="n">Change</th>
+              </tr>
+            </thead>
+            <tbody id="t-ldl"></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+
+    <script>
+      "use strict";
+
+      /* ================= data, from 25-onion ================= */
+      const LIFE = {
+        w: 0.4,
+        rows: [
+          { n: "Sleep", today: "7h 30m", target: "7h 30m", p: 100 },
+          { n: "Moves", today: "2", target: "5", p: 40 },
+          { n: "Calories", today: "1 497", target: "1 900", p: 90 },
+          { n: "Protein", today: "93 g", target: "120 g", p: 78 },
+        ],
+      };
+      const BLOOD = {
+        w: 0.45,
+        rows: [
+          {
+            n: "Vitamin D",
+            v: 29,
+            u: "ng/mL",
+            aim: "40–60",
+            x: 12,
+            st: "rose",
+          },
+          {
+            n: "LDL",
+            v: 131,
+            u: "mg/dL",
+            aim: "under 100",
+            x: 84,
+            st: "amber",
+          },
+          { n: "ApoB", v: 98, u: "mg/dL", aim: "under 90", x: 80, st: "amber" },
+          {
+            n: "hs-CRP",
+            v: 0.6,
+            u: "mg/L",
+            aim: "under 1.0",
+            x: 30,
+            st: "green",
+          },
+          { n: "HbA1c", v: 5.3, u: "%", aim: "under 5.7", x: 45, st: "green" },
+          {
+            n: "Ferritin",
+            v: 64,
+            u: "ng/mL",
+            aim: "30–300",
+            x: 50,
+            st: "green",
+          },
+          { n: "TPO", v: 18, u: "IU/mL", aim: "under 35", x: 35, st: "green" },
+        ],
+      };
+      const GENES = {
+        w: 0.15,
+        rows: [
+          { n: "APOE", call: "ε3/ε4", p: 45 },
+          { n: "LPA rs10455872", call: "not carried", p: 100 },
+          { n: "MTHFR C677T", call: "heterozygous", p: 60 },
+          { n: "FTO rs9939609", call: "one copy", p: 45 },
+        ],
+      };
+      const PT = { green: 1, amber: 0.5, rose: 0 };
+      const pct = (rows) =>
+        Math.round(rows.reduce((a, r) => a + r.p, 0) / rows.length);
+      const life = pct(LIFE.rows); // 77
+      const blood = Math.round(
+        (BLOOD.rows.reduce((a, r) => a + PT[r.st], 0) / BLOOD.rows.length) *
+          100,
+      ); // 71
+      const genes = pct(GENES.rows); // 63
+      const score = Math.round(
+        LIFE.w * life + BLOOD.w * blood + GENES.w * genes,
+      );
+      console.assert(score === 72, "score arithmetic drifted", score);
+
+      const LOG = [
+        {
+          src: "img/08-pork-belly.jpg",
+          n: "Pork belly, salad",
+          s: "7:30 PM Dinner",
+          v: "623",
+          u: "kcal",
+        },
+        {
+          src: "img/08-sardines-rye.jpg",
+          n: "Sardines on rye",
+          s: "1:08 PM Lunch, 38 g protein",
+          v: "462",
+          u: "kcal",
+        },
+        {
+          src: "img/08-oats.jpg",
+          n: "Oats with berries",
+          s: "8:15 AM Breakfast",
+          v: "412",
+          u: "kcal",
+        },
+      ];
+      const MEALS = [
+        { n: "Oats", kcal: 412, c: "#9dbccd" },
+        { n: "Sardines on rye", kcal: 462, c: "#679cb8" },
+        { n: "Pork belly, salad", kcal: 623, c: "#2f6d8f" },
+      ];
+      const KCAL_TARGET = 1900;
+      const KCAL_TODAY = MEALS.reduce((a, m) => a + m.kcal, 0);
+      console.assert(KCAL_TODAY === 1497, "energy drifted", KCAL_TODAY);
+      const PROTEIN = 93,
+        PROTEIN_TARGET = 120;
+      const IN_RANGE = BLOOD.rows.filter((r) => r.st === "green").length;
+
+      const SCORE14 = [64, 66, 65, 68, 67, 69, 68, 70, 69, 71, 70, 69, 70, 72];
+      const DAY14 = [
+        "27 Aug",
+        "28 Aug",
+        "29 Aug",
+        "30 Aug",
+        "31 Aug",
+        "1 Sep",
+        "2 Sep",
+        "3 Sep",
+        "4 Sep",
+        "5 Sep",
+        "6 Sep",
+        "7 Sep",
+        "8 Sep",
+        "9 Sep",
+      ];
+      const SLEEP7 = [6.2, 7.1, 6.8, 7.6, 7.0, 6.9, 7.5];
+      const SLEEP_DAYS = ["3 Sep", "4 Sep", "5 Sep", "6 Sep", "7 Sep", "8 Sep", "9 Sep"];
+      const SLEEP_DOW = ["Thu", "Fri", "Sat", "Sun", "Mon", "Tue", "Wed"];
+      const SLEEP_TARGET = 7.5;
+      const SLEEP_SHORT = SLEEP7.filter((v) => v < SLEEP_TARGET).length;
+
+      const LEVERS = [
+        { g: "bowl", n: "Oats, 3 g beta-glucan", s: "6 of 7 days", d: 6 },
+        { g: "walk", n: "Walk after lunch", s: "4 of 7 days", d: 4 },
+        { g: "leaf", n: "Saturated fat under 15 g", s: "5 of 7 days", d: 11 },
+        { g: "fish", n: "Sardines twice a week", s: "2 of 2", d: 6 },
+      ];
+      const LEVER_SUM = LEVERS.reduce((a, l) => a + l.d, 0);
+      console.assert(131 - LEVER_SUM === 104, "levers drifted", LEVER_SUM);
+
+      const MINI = [
+        {
+          n: "Energy",
+          u: "kcal",
+          c: "var(--beat)",
+          fmt: "int",
+          d: [
+            1720, 1890, 1640, 1980, 1550, 1810, 1700, 1930, 1620, 1770, 1850,
+            1590, 1680, 1497,
+          ],
+        },
+        {
+          n: "Protein",
+          u: "g",
+          c: "var(--beat-2)",
+          fmt: "int",
+          d: [88, 102, 95, 110, 84, 97, 91, 105, 99, 87, 94, 101, 96, 93],
+        },
+        {
+          n: "Moves",
+          u: "of 5",
+          c: "var(--beat)",
+          fmt: "int",
+          d: [3, 4, 2, 5, 3, 4, 3, 2, 4, 5, 3, 2, 3, 2],
+        },
+        {
+          n: "Steps",
+          u: "k",
+          c: "var(--beat-2)",
+          fmt: "one",
+          d: [
+            7.1, 8.4, 5.9, 9.2, 6.6, 7.8, 7.2, 8.9, 6.1, 7.5, 8.2, 5.8, 6.9,
+            6.4,
+          ],
+        },
+      ];
+
+      /* ================= the chart grammar =================
+         Every plot on both screens goes through plot(). It owns the axis
+         weight, the gridline logic, the label size and colour, the fill
+         treatment, the hero and its leader. Series draw inside it. */
+      const G = {
+        w: 310, // 374 phone - 32 screen inset - 32 card padding
+        band: 54, // the hero band above every plot
+        pad: { l: 38, r: 22, b: 20 },
+        grid: { stroke: "var(--line)", width: 1 },
+        axis: { stroke: "var(--sep)", width: 1 },
+        label: { size: 9.5, fill: "var(--ink-3)", weight: 500 },
+        hero: { size: 30, unit: 0.38, fill: "var(--ink)" },
+        sub: { size: 10.5, fill: "var(--ink-3)", weight: 500 },
+        lead: { stroke: "var(--ink-3)", width: 1, opacity: 0.55 },
+        line: 1.8,
+        fillOpacity: 0.09,
+        dot: 5,
+        ticks: 3,
+      };
+      let uid = 0;
+      const nid = (p) => p + "-" + ++uid;
+      const R = (n, d) => Math.round(n * 10 ** (d || 0)) / 10 ** (d || 0);
+      const esc = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;");
+      const num = (v) => String(v).replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+      const FMT = {
+        int: (v) => num(Math.round(v)),
+        one: (v) => v.toFixed(1),
+        k: (v) =>
+          v >= 1000 ? (v / 1000).toFixed(1) + "k" : String(Math.round(v)),
+        hm: (v) =>
+          Math.floor(v) +
+          ":" +
+          String(Math.round((v % 1) * 60)).padStart(2, "0"),
+      };
+
+      /* one tick rule for every plot: nice steps, aim for G.ticks lines */
+      function ticksFor(min, max, marks) {
+        const bases = [1, 2, 2.5, 5];
+        const skip = (marks || []).map((m) => m.v);
+        let best = null;
+        for (const b of bases)
+          for (let p = -2; p <= 3; p++) {
+            const step = b * Math.pow(10, p);
+            let out = [];
+            for (
+              let v = Math.ceil(min / step) * step;
+              v < max - 1e-9;
+              v += step
+            )
+              if (v > min + 1e-9) out.push(+v.toFixed(6));
+            out = out.filter((v) => skip.every((m) => Math.abs(m - v) > 1e-6));
+            if (!out.length || out.length > 5) continue;
+            const d = Math.abs(out.length - G.ticks);
+            if (!best || d < best.d || (d === best.d && out.length > best.out.length))
+              best = { d: d, out: out };
+          }
+        return best ? best.out : [];
+      }
+
+      const sign = (d, f) => (d >= 0 ? "\u2191" : "\u2193") + f(Math.abs(d));
+      const deltaAt = (pts, i, f, base) => {
+        const j = base === "first" ? 0 : i - 1;
+        if (i === j) return "";
+        return sign(pts[i][2] - pts[j][2], f);
+      };
+
+      const txt = (x, y, s, o) =>
+        '<text x="' +
+        R(x, 1) +
+        '" y="' +
+        R(y, 1) +
+        '" font-size="' +
+        (o.size || G.label.size) +
+        '" font-weight="' +
+        (o.weight || G.label.weight) +
+        '" fill="' +
+        (o.fill || G.label.fill) +
+        '"' +
+        (o.anchor ? ' text-anchor="' + o.anchor + '"' : "") +
+        (o.cls ? ' class="' + o.cls + '"' : "") +
+        ">" +
+        s +
+        "</text>";
+
+
+      /*  cfg:
+          h        plot height
+          min,max  y domain (or x domain when orient is "x")
+          orient   "y" (gridlines horizontal) or "x" (gridlines vertical)
+          fmtY     y label formatter
+          marks    extra reference lines [{v,label,dash}]
+          xLabels  [{v,t}] in domain units of the x scale
+          xn       number of x steps for indexed series
+          series   function(sc) -> svg string, drawn under the hero
+          hero     {val,unit,sub,x,y}  x,y in px, the point the number names
+          accent   the one colour of the card
+          pts      [[x,y,value,label]] to make the plot scrubbable
+      */
+      function plot(cfg) {
+        const w = cfg.w || G.w,
+          h = cfg.h,
+          band = cfg.band === undefined ? G.band : cfg.band,
+          L = cfg.l === undefined ? G.pad.l : cfg.l,
+          Rr = cfg.r === undefined ? G.pad.r : cfg.r,
+          B = cfg.b === undefined ? G.pad.b : cfg.b;
+        const ph = h - band - B,
+          pw = w - L - Rr,
+          base = band + ph;
+        const hs = cfg.heroSize || G.hero.size;
+        const scale = (v, lo, hi, a, b) => a + ((v - lo) / (hi - lo)) * (b - a);
+        const Y = (v) => scale(v, cfg.min, cfg.max, base, band);
+        const Xd = (v) => scale(v, cfg.xmin || 0, cfg.xmax || 1, L, w - Rr);
+        const Xi = (i) =>
+          cfg.xn > 1 ? L + (i / (cfg.xn - 1)) * pw : L + pw / 2;
+        const sc = {
+          X: Xi,
+          Xd: Xd,
+          Y: Y,
+          L: L,
+          R: w - Rr,
+          pw: pw,
+          ph: ph,
+          top: band,
+          base: base,
+          w: w,
+          h: h,
+        };
+
+        let s = "";
+        /* the beat: seven days, banded, repeated. Only daily plots get it. */
+        if (cfg.weeks) {
+          const nW = Math.ceil(cfg.xn / 7);
+          const half = pw / (cfg.xn - 1) / 2;
+          for (let k = 0; k < nW; k++) {
+            const a = Math.max(L, Xi(k * 7) - half),
+              b = Math.min(w - Rr, Xi(Math.min(cfg.xn - 1, k * 7 + 6)) + half);
+            if (k)
+              s +=
+                '<line x1="' + R(a, 1) + '" y1="' + band + '" x2="' + R(a, 1) +
+                '" y2="' + R(base, 1) +
+                '" stroke="var(--ink-3)" stroke-width="1" opacity=".3" stroke-dasharray="2 3"/>';
+          }
+        }
+        const gl = (x1, y1, x2, y2, dash) =>
+          '<line x1="' +
+          R(x1, 1) +
+          '" y1="' +
+          R(y1, 1) +
+          '" x2="' +
+          R(x2, 1) +
+          '" y2="' +
+          R(y2, 1) +
+          '" stroke="' +
+          G.grid.stroke +
+          '" stroke-width="' +
+          G.grid.width +
+          '"' +
+          (dash ? ' stroke-dasharray="3 3"' : "") +
+          "/>";
+
+        if (cfg.orient === "x") {
+          (cfg.xticks || ticksFor(cfg.xmin, cfg.xmax)).forEach((t) => {
+            const v = t.v === undefined ? t : t.v;
+            s += gl(Xd(v), band, Xd(v), base);
+            s += txt(Xd(v), base + 13, t.t === undefined ? FMT.int(v) : t.t, {
+              anchor: "middle",
+            });
+          });
+        } else {
+          ticksFor(cfg.min, cfg.max, cfg.marks).forEach((t) => {
+            s += gl(L, Y(t), w - Rr, Y(t));
+            s += txt(L - 6, Y(t) + 3.2, (cfg.fmtY || FMT.int)(t), {
+              anchor: "end",
+            });
+          });
+          (cfg.marks || []).forEach((m) => {
+            s +=
+              '<line x1="' + L + '" y1="' + R(Y(m.v), 1) + '" x2="' +
+              R(w - Rr, 1) + '" y2="' + R(Y(m.v), 1) +
+              '" stroke="var(--ink-3)" stroke-width="1" stroke-dasharray="3 3" opacity=".5"/>';
+            s += txt(L - 6, Y(m.v) + 3.2, (cfg.fmtY || FMT.int)(m.v), {
+              anchor: "end",
+              fill: "var(--ink-2)",
+            });
+            if (m.label)
+              s += txt(L + 4, Y(m.v) - 5, m.label, { fill: "var(--ink-2)" });
+          });
+          (cfg.xLabels || []).forEach((l) => {
+            const px = cfg.xn ? Xi(l.i) : Xd(l.v);
+            s += txt(px, base + 13, l.t, {
+              anchor:
+                px <= L + 2 ? "start" : px >= w - Rr - 2 ? "end" : "middle",
+              fill: l.em ? "var(--ink-2)" : undefined,
+              weight: l.em ? 700 : undefined,
+            });
+          });
+        }
+
+        if (cfg.forecast) {
+          const f = cfg.forecast,
+            N = 14;
+          let up = "",
+            dn = "";
+          for (let i = 0; i <= N; i++) {
+            const t = i / N,
+              cx = f.x0 + (f.x1 - f.x0) * t,
+              cy = f.y0 + (f.y1 - f.y0) * t,
+              hw = f.half * Math.sqrt(t);
+            up += (i ? "L" : "M") + R(cx, 1) + "," + R(cy - hw, 1) + " ";
+            dn = "L" + R(cx, 1) + "," + R(cy + hw, 1) + " " + dn;
+          }
+          const cp = nid("c");
+          s +=
+            '<defs><clipPath id="' + cp + '"><rect x="' + L + '" y="' + band +
+            '" width="' + R(pw, 1) + '" height="' + R(ph, 1) + '"/></clipPath></defs>' +
+            '<g clip-path="url(#' + cp + ')">' +
+            '<path d="' + up + dn + 'Z" fill="' + cfg.accent +
+            '" fill-opacity=".1" stroke="' + cfg.accent +
+            '" stroke-opacity=".3" stroke-width="1" stroke-linejoin="round"/>' +
+            '<circle cx="' + R(f.x1, 1) + '" cy="' + R(f.y1, 1) +
+            '" r="3.4" fill="' + cfg.accent + '" opacity=".7"/></g>' +
+            txt(f.x1, f.y1 - 12, f.label, {
+              anchor: "middle",
+              fill: "var(--ink-2)",
+            });
+        }
+
+        s += cfg.series(sc);
+
+        /* one dot rule, and it is visible as one rule: nothing on a series
+           is ringed except the sample the hero names. */
+
+        /* the hero: the number, the date under it, a hairline leader down to
+           the point, and the ring on the point. Same offset every time. */
+        const hx = cfg.hero.x,
+          hy = cfg.hero.y;
+        s +=
+          '<g class="heroG">' +
+          '<line class="hcol" x1="' +
+          R(hx, 1) +
+          '" y1="' +
+          band +
+          '" x2="' +
+          R(hx, 1) +
+          '" y2="' +
+          R(hy - 8, 1) +
+          '" stroke="' +
+          G.lead.stroke +
+          '" stroke-width="1" opacity="' +
+          G.lead.opacity +
+          '"/>' +
+          '<circle class="hdot" cx="' +
+          R(hx, 1) +
+          '" cy="' +
+          R(hy, 1) +
+          '" r="' +
+          G.dot +
+          '" fill="#fff" stroke="' +
+          cfg.accent +
+          '" stroke-width="2.4"/>' +
+          '<text class="hnum" x="' +
+          L +
+          '" y="' +
+          (band - 22) +
+          '" text-anchor="start" font-size="' +
+          hs +
+          '" font-weight="700" letter-spacing="-0.025em" fill="' +
+          G.hero.fill +
+          '">' +
+          cfg.hero.val +
+          (cfg.hero.unit
+            ? '<tspan dx="5" font-size="' +
+              R(hs * G.hero.unit, 1) +
+              '" font-weight="600" fill="var(--ink-3)" letter-spacing="0">' +
+              esc(cfg.hero.unit) +
+              "</tspan>"
+            : "") +
+          "</text>" +
+          '<text class="hsub" x="' + L + '" y="' + (band - 8) +
+          '" font-size="' + G.sub.size + '" font-weight="' + G.sub.weight +
+          '" fill="' + G.sub.fill + '"><tspan class="hdate">' +
+          esc(cfg.hero.sub || "") + '</tspan><tspan class="hdel" dx="9"' +
+          ' font-size="12" font-weight="700" fill="var(--ink-2)">' +
+          esc(cfg.hero.delta || "") + "</tspan></text>" +
+          "</g>";
+
+        return (
+          '<svg class="chart' +
+          (cfg.pts ? " scrub" : "") +
+          '" viewBox="0 0 ' +
+          w +
+          " " +
+          h +
+          '" height="' +
+          h +
+          '" preserveAspectRatio="none" role="img" aria-label="' +
+          esc(cfg.aria) +
+          '"' +
+          (cfg.pts
+            ? " data-pts='" +
+              JSON.stringify(cfg.pts) +
+              "' data-unit=\"" +
+              esc(cfg.hero.unit || "") +
+              '" data-fmt="' +
+              (cfg.fmt || "int") +
+              '" data-hs="' +
+              hs +
+              '" data-l="' +
+              L +
+              '" data-r="' +
+              Rr +
+              '" data-band="' +
+              band +
+              '" data-dbase="' +
+              (cfg.deltaBase || "prev") +
+              '"'
+            : "") +
+          ">" +
+          s +
+          "</svg>"
+        );
+      }
+
+      /* One curve for every series: monotone cubic (Fritsch-Carlson).
+         Between two samples the curve is monotone, so the number of turns
+         in the drawing equals the number of turns in the data. */
+      const linePath = (pts) => {
+        const n = pts.length;
+        if (n < 3)
+          return pts.map((p, i) => (i ? "L" : "M") + p[0] + "," + p[1]).join(" ");
+        const dx = [],
+          d = [],
+          m = [];
+        for (let i = 0; i < n - 1; i++) {
+          dx[i] = pts[i + 1][0] - pts[i][0];
+          d[i] = (pts[i + 1][1] - pts[i][1]) / dx[i];
+        }
+        m[0] = d[0];
+        m[n - 1] = d[n - 2];
+        for (let i = 1; i < n - 1; i++)
+          m[i] = d[i - 1] * d[i] <= 0 ? 0 : (d[i - 1] + d[i]) / 2;
+        for (let i = 0; i < n - 1; i++) {
+          if (d[i] === 0) {
+            m[i] = m[i + 1] = 0;
+            continue;
+          }
+          const a = m[i] / d[i],
+            b = m[i + 1] / d[i],
+            h = Math.hypot(a, b);
+          if (h > 3) {
+            m[i] = ((3 * a) / h) * d[i];
+            m[i + 1] = ((3 * b) / h) * d[i];
+          }
+        }
+        let s2 = "M" + pts[0][0] + "," + pts[0][1];
+        for (let i = 0; i < n - 1; i++)
+          s2 +=
+            "C" + R(pts[i][0] + dx[i] / 3, 1) + "," +
+            R(pts[i][1] + (m[i] * dx[i]) / 3, 1) + " " +
+            R(pts[i + 1][0] - dx[i] / 3, 1) + "," +
+            R(pts[i + 1][1] - (m[i + 1] * dx[i]) / 3, 1) + " " +
+            R(pts[i + 1][0], 1) + "," + R(pts[i + 1][1], 1);
+        return s2;
+      };
+
+      /* ---- a line series, used by score, sleep and LDL ---- */
+      /* one series treatment: a line, and nothing under it */
+      function lineSeries(pts, accent) {
+        return (
+          '<path d="' +
+          linePath(pts) +
+          '" fill="none" stroke="' +
+          accent +
+          '" stroke-width="' +
+          G.line +
+          '" stroke-linejoin="round" stroke-linecap="round"/>'
+        );
+      }
+
+      /* ================= the charts ================= */
+      function scoreChart() {
+        const acc = "var(--beat)";
+        const h = 198,
+          min = 60,
+          max = 78;
+        const w = G.w,
+          L = G.pad.l,
+          Rr = G.pad.r,
+          band = G.band,
+          B = G.pad.b;
+        const ph = h - band - B,
+          pw = w - L - Rr;
+        const X = (i) => R(L + (i / (SCORE14.length - 1)) * pw, 1);
+        const Y = (v) => R(band + ph - ((v - min) / (max - min)) * ph, 1);
+        const pts = SCORE14.map((v, i) => [X(i), Y(v), v, DAY14[i]]);
+        return plot({
+          h: h,
+          min: min,
+          max: max,
+          xn: SCORE14.length,
+          weeks: true,
+          xLabels: [
+            { i: 3, t: "27 Aug – 2 Sep" },
+            { i: 10, t: "3 – 9 Sep" },
+          ],
+          accent: acc,
+          aria: "Health score over fourteen days, 64 rising to 72",
+          pts: pts,
+          fmt: "int",
+          hero: {
+            val: String(score),
+            unit: "of 100",
+            sub: "9 Sep",
+            delta: deltaAt(pts, 13, FMT.int),
+            x: pts[13][0],
+            y: pts[13][1],
+          },
+          series: (sc) => lineSeries(pts, acc),
+        });
+      }
+
+      function sleepChart() {
+        const acc = "var(--beat)";
+        const h = 228,
+          min = 5.75,
+          max = 8;
+        const w = G.w,
+          L = G.pad.l,
+          Rr = G.pad.r,
+          band = G.band,
+          B = G.pad.b;
+        const ph = h - band - B,
+          pw = w - L - Rr;
+        const X = (i) => R(L + (i / (SLEEP7.length - 1)) * pw, 1);
+        const Y = (v) => R(band + ph - ((v - min) / (max - min)) * ph, 1);
+        const pts = SLEEP7.map((v, i) => [X(i), Y(v), v, SLEEP_DAYS[i]]);
+        return plot({
+          h: h,
+          min: min,
+          max: max,
+          xn: SLEEP7.length,
+          weeks: true,
+          accent: acc,
+          fmtY: FMT.hm,
+          marks: [{ v: SLEEP_TARGET, label: "target" }],
+          aria: "Time asleep over seven nights against a seven hour thirty target",
+          xLabels: SLEEP_DOW.map((d, i) => ({
+            i: i,
+            t: d,
+            em: i === 2 || i === 3,
+          })),
+          pts: pts,
+          fmt: "hm",
+          hero: {
+            val: FMT.hm(SLEEP7[6]),
+            unit: "h",
+            sub: "9 Sep",
+            delta: deltaAt(pts, 6, FMT.hm),
+            x: pts[6][0],
+            y: pts[6][1],
+          },
+          series: (sc) => lineSeries(pts, acc),
+        });
+      }
+
+      const MON = [
+        "Dec",
+        "Jan",
+        "Feb",
+        "Mar",
+        "Apr",
+        "May",
+        "Jun",
+        "Jul",
+        "Aug",
+        "Sep",
+        "Oct",
+        "Nov",
+      ];
+      const D1 = 0.27,
+        D2 = 8.0,
+        D3 = 11.1;
+      const V1 = 168,
+        V2 = 131,
+        V3 = 104;
+      const CONE = 8;
+      const dateOf = (m) => {
+        const mi = Math.max(0, Math.min(11, Math.floor(m)));
+        const day = Math.max(1, Math.min(28, Math.round((m - mi) * 30) + 1));
+        return day + " " + MON[mi];
+      };
+      const valAt = (m) => V1 + ((m - D1) / (D2 - D1)) * (V2 - V1);
+
+      function ldlChart(o) {
+        const acc = "var(--event)";
+        const h = o.h,
+          min = 80,
+          max = 184,
+          mMax = 12;
+        const L = G.pad.l,
+          Rr = G.pad.r,
+          band = G.band,
+          B = G.pad.b;
+        const ph = h - band - B,
+          pw = G.w - L - Rr;
+        const X = (m) => R(L + (m / mMax) * pw, 1);
+        const Y = (v) => R(band + ph - ((v - min) / (max - min)) * ph, 1);
+        const pts = [];
+        const N = Math.round((D2 - D1) / 0.13);
+        for (let i = 0; i <= N; i++) {
+          const m = D1 + ((D2 - D1) * i) / N;
+          pts.push([X(m), Y(valAt(m)), Math.round(valAt(m)), dateOf(m)]);
+        }
+        return plot({
+          h: h,
+          min: min,
+          max: max,
+          r: Rr,
+          accent: acc,
+          marks: [{ v: 100, label: "aim" }],
+          aria: "LDL cholesterol: 168 measured December 2025, 131 measured August 2026, estimated near 104 in November",
+          xLabels: [
+            { v: 0, t: "Dec 25" },
+            { v: 3, t: "Mar" },
+            { v: 6, t: "Jun" },
+            { v: 9, t: "Sep" },
+            { v: 12, t: "Dec 26" },
+          ],
+          xmin: 0,
+          xmax: mMax,
+          pts: pts,
+          fmt: "int",
+          deltaBase: "first",
+          hero: {
+            val: "131",
+            unit: "mg/dL",
+            sub: "1 Aug",
+            delta: "\u2193" + 37,
+            x: X(D2),
+            y: Y(V2),
+          },
+          forecast: {
+            x0: X(D2),
+            y0: Y(V2),
+            x1: X(D3),
+            y1: Y(V3),
+            half: Math.abs(Y(V3 - CONE) - Y(V3)),
+            label: "est.",
+          },
+          series: (sc) =>
+            lineSeries(pts, acc) +
+            '<circle cx="' + X(D1) + '" cy="' + Y(V1) +
+            '" r="3.4" fill="' + acc + '"/>' +
+            '<circle cx="' + X(D2) + '" cy="' + Y(V2) +
+            '" r="3.4" fill="' + acc + '"/>',
+        });
+      }
+
+      function nutritionChart() {
+        const acc = "var(--beat)";
+        const h = 150,
+          band = G.band,
+          B = 22,
+          L = 0,
+          Rr = 0;
+        const ph = h - band - B;
+        const X = (v) => R((v / KCAL_TARGET) * G.w, 1);
+        const barY = band + 6,
+          bh = 26,
+          pY = band + 58,
+          pbh = 12;
+        return plot({
+          h: h,
+          l: L,
+          r: Rr,
+          b: B,
+          orient: "x",
+          xmin: 0,
+          xmax: KCAL_TARGET,
+          min: 0,
+          max: KCAL_TARGET,
+          accent: acc,
+          aria: "Energy today by meal against a 1900 kcal target, and protein against 120 grams",
+          hero: {
+            val: num(KCAL_TODAY),
+            unit: "kcal",
+            sub: "9 Sep",
+            x: X(KCAL_TODAY),
+            y: barY + bh / 2,
+          },
+          series: () => {
+            let s =
+              '<rect x="0" y="' +
+              barY +
+              '" width="' +
+              G.w +
+              '" height="' +
+              bh +
+              '" rx="6" fill="var(--line)"/>';
+            let acc2 = 0;
+            MEALS.forEach((m) => {
+              const x = X(acc2),
+                wd = X(m.kcal);
+              s +=
+                '<rect x="' +
+                x +
+                '" y="' +
+                barY +
+                '" width="' +
+                R(wd - 1.5, 1) +
+                '" height="' +
+                bh +
+                '" rx="6" fill="' +
+                m.c +
+                '"/>' +
+                txt(x + wd / 2 - 1, barY + bh / 2 + 4, m.kcal, {
+                  anchor: "middle",
+                  size: 11,
+                  weight: 700,
+                  fill: "#fff",
+                });
+              acc2 += m.kcal;
+            });
+            s +=
+              txt(0, pY - 6, "Protein", {
+                size: 10,
+                weight: 600,
+                fill: "var(--ink-2)",
+              }) +
+              txt(G.w, pY - 6, "93 of 120 g", { anchor: "end" }) +
+              '<rect x="0" y="' +
+              pY +
+              '" width="' +
+              G.w +
+              '" height="' +
+              pbh +
+              '" rx="6" fill="var(--line)"/>' +
+              '<rect x="0" y="' +
+              pY +
+              '" width="' +
+              R((G.w * PROTEIN) / PROTEIN_TARGET, 1) +
+              '" height="' +
+              pbh +
+              '" rx="6" fill="var(--beat-2)"/>';
+            return s;
+          },
+        });
+      }
+
+      const STATE = {
+        green: "var(--ink-3)",
+        amber: "var(--event-2)",
+        rose: "var(--event)",
+      };
+      function rangeChart() {
+        const acc = "var(--event)";
+        const rowH = 30,
+          band = G.band,
+          B = 22,
+          L = 86,
+          Rr = 62;
+        const h = BLOOD.rows.length * rowH + band + B + 10;
+        const X = (v) => R(L + ((G.w - Rr - L) * v) / 100, 1);
+        const bandL = X(20),
+          bandR = X(75);
+        return plot({
+          h: h,
+          l: L,
+          r: Rr,
+          b: B,
+          orient: "x",
+          xmin: 0,
+          xmax: 100,
+          min: 0,
+          max: 100,
+          xticks: [
+            { v: 10, t: "low" },
+            { v: 47.5, t: "in range" },
+            { v: 87, t: "high" },
+          ],
+          accent: acc,
+          aria: "Seven blood markers placed against their aim, four in range",
+          hero: {
+            val: IN_RANGE + " of 7",
+            unit: "",
+            sub: "1 Aug",
+            x: (bandL + bandR) / 2,
+            y: band + 2,
+          },
+          series: () => {
+            let s =
+              '<rect x="' +
+              bandL +
+              '" y="' +
+              (band + 2) +
+              '" width="' +
+              R(bandR - bandL, 1) +
+              '" height="' +
+              (BLOOD.rows.length * rowH + 4) +
+              '" rx="6" fill="var(--ink-3)" opacity=".08"/>' +
+              '<line x1="' + bandL + '" y1="' + (band + 2) + '" x2="' + bandR +
+              '" y2="' + (band + 2) + '" stroke="var(--ink-3)" stroke-width="1" opacity=".45"/>';
+            BLOOD.rows.forEach((r, i) => {
+              const cy = band + 24 + i * rowH;
+              const col = STATE[r.st];
+              s +=
+                txt(0, cy + 1, esc(r.n), {
+                  size: 11.5,
+                  weight: 600,
+                  fill: "var(--ink)",
+                }) +
+                txt(0, cy + 12, "aim " + esc(r.aim), {}) +
+                '<line x1="' +
+                L +
+                '" y1="' +
+                cy +
+                '" x2="' +
+                (G.w - Rr) +
+                '" y2="' +
+                cy +
+                '" stroke="var(--line)" stroke-width="3" stroke-linecap="round"/>' +
+                '<circle cx="' +
+                X(r.x) +
+                '" cy="' +
+                cy +
+                '" r="5.5" fill="' +
+                col +
+                '" stroke="#fff" stroke-width="2"/>' +
+                txt(G.w, cy + 1, r.v, {
+                  size: 12.5,
+                  weight: 700,
+                  fill: col,
+                  anchor: "end",
+                }) +
+                txt(G.w, cy + 12, esc(r.u), { anchor: "end" });
+            });
+            return s;
+          },
+        });
+      }
+
+      function genesChart() {
+        const acc = "var(--event)";
+        const rowH = 26,
+          band = G.band,
+          B = 22,
+          L = 112,
+          Rr = 26;
+        const h = GENES.rows.length * rowH + band + B;
+        const X = (v) => R(L + ((G.w - Rr - L) * v) / 100, 1);
+        return plot({
+          h: h,
+          l: L,
+          r: Rr,
+          b: B,
+          orient: "x",
+          xmin: 0,
+          xmax: 100,
+          min: 0,
+          max: 100,
+          accent: acc,
+          aria: "Four variants scored out of one hundred, where one hundred is no added risk",
+          hero: {
+            val: "ε3/ε4",
+            unit: "",
+            sub: "Mar 2026",
+            x: X(GENES.rows[0].p),
+            y: band + 13,
+          },
+          series: () => {
+            let s = "";
+            GENES.rows.forEach((r, i) => {
+              const y = band + 6 + i * rowH;
+              s +=
+                txt(0, y + 11, esc(r.n), {
+                  size: 10.5,
+                  weight: 600,
+                  fill: "var(--ink)",
+                }) +
+                '<rect x="' +
+                L +
+                '" y="' +
+                (y + 2) +
+                '" width="' +
+                R(G.w - Rr - L, 1) +
+                '" height="10" rx="5" fill="var(--line)"/>' +
+                '<rect x="' +
+                L +
+                '" y="' +
+                (y + 2) +
+                '" width="' +
+                R(((G.w - Rr - L) * r.p) / 100, 1) +
+                '" height="10" rx="5" fill="' +
+                acc +
+                '"/>' +
+                txt(G.w, y + 11, r.p, {
+                  size: 11,
+                  weight: 700,
+                  fill: "var(--ink)",
+                  anchor: "end",
+                });
+            });
+            return s;
+          },
+        });
+      }
+
+      function miniChart(m) {
+        const w = 146,
+          h = 92,
+          band = 40,
+          L = 34,
+          Rr = 6,
+          B = 16;
+        const lo = Math.min.apply(null, m.d),
+          hi = Math.max.apply(null, m.d);
+        const pad = (hi - lo) * 0.2 || 1;
+        const min = lo - pad,
+          max = hi + pad;
+        const ph = h - band - B,
+          pw = w - L - Rr;
+        const X = (i) => R(L + (i / (m.d.length - 1)) * pw, 1);
+        const Y = (v) => R(band + ph - ((v - min) / (max - min)) * ph, 1);
+        const pts = m.d.map((v, i) => [X(i), Y(v), v, DAY14[i]]);
+        return plot({
+          w: w,
+          h: h,
+          l: L,
+          r: Rr,
+          b: B,
+          band: band,
+          min: min,
+          max: max,
+          xn: m.d.length,
+          weeks: true,
+          accent: m.c,
+          heroSize: 17,
+          fmtY: FMT[m.fmt],
+          aria: m.n + " over fourteen days",
+          xLabels: [
+            { i: 3, t: "27 Aug" },
+            { i: 10, t: "9 Sep" },
+          ],
+          pts: pts,
+          fmt: m.fmt,
+          hero: {
+            val: FMT[m.fmt](m.d[13]),
+            unit: m.u,
+            sub: "9 Sep",
+            delta: deltaAt(pts, 13, FMT[m.fmt]),
+            x: pts[13][0],
+            y: pts[13][1],
+          },
+          series: (sc) => lineSeries(pts, m.c),
+        });
+      }
+
+      /* ================= chrome ================= */
+      const I = {
+        chevL:
+          '<svg class="i" viewBox="0 0 24 24"><path d="m14.5 5.5-6.5 6.5 6.5 6.5"/></svg>',
+        star:
+          '<svg class="i" viewBox="0 0 24 24"><path d="M7.6 5.5h8.8v13.9l-4.4-3.4-4.4 3.4z"/></svg>',
+        caret: '<svg viewBox="0 0 8 5" aria-hidden="true"><path d="M0 0h8L4 5z"/></svg>',
+        /* one family: same 24 grid, same 6.5-to-19 optical box, one stroke */
+        today:
+          '<svg class="i" viewBox="0 0 24 24"><path d="M6.5 13.4V19M12 6.5V19M17.5 10.4V19"/></svg>',
+        rhythm:
+          '<svg class="i" viewBox="0 0 24 24"><path d="M4.5 14.6h3L10 6.5l3.1 12 2.2-3.9h4.2"/></svg>',
+        labs: '<svg class="i" viewBox="0 0 24 24"><path d="M9.7 6.5h4.6M10.3 6.5v8.6a1.9 1.9 0 0 0 3.8 0V6.5"/></svg>',
+        me: '<svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="9.4" r="2.9"/><path d="M6.9 19a5.2 5.2 0 0 1 10.2 0"/></svg>',
+        bowl: '<svg class="i" viewBox="0 0 24 24"><path d="M3.6 11.4h16.8a8.4 8.4 0 0 1-16.8 0zM9.6 7.8c0-1.8 1.8-1.8 1.8-3.6M14.4 7.8c0-1.8 1.8-1.8 1.8-3.6"/></svg>',
+        walk: '<svg class="i" viewBox="0 0 24 24"><circle cx="13.2" cy="4.6" r="1.6"/><path d="m10.2 20.4 2-5.8 3 2.9v2.9M8.4 12.2l2.9-2.9 2.9 1 2 2.9M11.3 9.3l-1 4.8-2.9 2"/></svg>',
+        fish: '<svg class="i" viewBox="0 0 24 24"><path d="M3.6 12s3.9-4.8 8.6-4.8S20.4 12 20.4 12s-3.9 4.8-8.6 4.8S3.6 12 3.6 12z"/><path d="M15.6 10.8h.01"/></svg>',
+        leaf: '<svg class="i" viewBox="0 0 24 24"><path d="M19.5 4.5c-10.6 0-15.4 4.8-15.4 11.5 0 1.9 1 3.8 1 3.8s1.9-8.6 14.4-11.5"/><path d="M5.1 19.8c7.7 0 14.4-4.8 14.4-15.3"/></svg>',
+      };
+
+      const statusBar =
+        '<div class="status"><span>9:41</span><i></i><span class="rt">' +
+        '<svg viewBox="0 0 17 11" aria-hidden="true"><rect x="0" y="7.4" width="2.9" height="3.6" rx="1" fill="currentColor"/><rect x="4.6" y="5.3" width="2.9" height="5.7" rx="1" fill="currentColor"/><rect x="9.2" y="3" width="2.9" height="8" rx="1" fill="currentColor"/><rect x="13.8" y=".6" width="2.9" height="10.4" rx="1" fill="currentColor"/></svg>' +
+        '<svg viewBox="0 0 16 11" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M1.4 4a9.4 9.4 0 0 1 13.2 0"/><path d="M4 6.7a5.9 5.9 0 0 1 8 0"/><path d="M6.4 9.3a2.4 2.4 0 0 1 3.2 0"/></g></svg>' +
+        '<svg class="bt" viewBox="0 0 27 12" aria-hidden="true"><rect x=".5" y=".5" width="22.6" height="11" rx="3.4" fill="none" stroke="currentColor" stroke-opacity=".36"/><rect x="2.4" y="2.4" width="14.4" height="7.2" rx="2" fill="currentColor"/><path d="M24.7 4.2c1 .5 1 3.1 0 3.6z" fill="currentColor" fill-opacity=".36"/></svg>' +
+        "</span></div>";
+      const homeBar = '<div class="homebar"></div>';
+      const tabBar = (on) =>
+        '<nav class="tabbar">' +
+        [
+          ["Today", I.today],
+          ["Rhythm", I.rhythm],
+          ["Labs", I.labs],
+          ["Me", I.me],
+        ]
+          .map(
+            (t, i) =>
+              '<button class="' +
+              (i === on ? "on" : "") +
+              '">' +
+              t[1] +
+              t[0] +
+              "</button>",
+          )
+          .join("") +
+        "</nav>";
+
+      const chip = (t) =>
+        '<span class="chip">' + t + I.caret + "</span>";
+      const card = (o) =>
+        '<div class="card" style="--acc:' +
+        o.acc +
+        '"><div class="ch"><span>' +
+        o.name +
+        "</span>" +
+        (o.chip ? chip(o.chip) : '<span class="meta">' + o.meta + "</span>") +
+        "</div>" +
+        o.chart +
+        (o.cap ? '<p class="cap2">' + o.cap + "</p>" : "") +
+        (o.after || "") +
+        "</div>";
+      const ghead = (a) => '<div class="ghead"><b>' + a + "</b></div>";
+      const mealRow = (r) =>
+        '<div class="lrow"><span class="ph"><img src="' +
+        r.src +
+        '" alt=""></span><span class="t"><b>' +
+        esc(r.n) +
+        "</b><small>" +
+        esc(r.s) +
+        '</small></span><span class="v">' +
+        r.v +
+        "<u>" +
+        r.u +
+        "</u></span></div>";
+
+      /* ================= screens ================= */
+      function summaryScreen() {
+        let s =
+          statusBar +
+          '<header class="nav"><span class="ttl"></span><span class="av">RC</span></header><div class="screen">';
+        s +=
+          '<div class="lt"><div><h2>Today</h2><p>Wednesday 9 September</p></div></div>';
+
+        s += ghead("Every day");
+        s += card({
+          acc: "var(--beat)",
+          name: "Health score",
+          chip: "14 days",
+          chart: scoreChart(),
+          cap: "Up 2 since Monday.",
+        });
+        s += card({
+          acc: "var(--beat)",
+          name: "Time asleep",
+          chip: "7 nights",
+          chart: sleepChart(),
+          cap: SLEEP_SHORT + " nights under target.",
+        });
+        s += card({
+          acc: "var(--beat)",
+          name: "Energy and protein",
+          chip: "Today",
+          chart: nutritionChart(),
+          cap: "403 kcal and 27 g of protein left.",
+          after: '<div class="rowtop">' + LOG.map(mealRow).join("") + "</div>",
+        });
+        s +=
+          '<div class="sm">' +
+          MINI.map(
+            (m) =>
+              "<div><small>" + esc(m.n) + "</small>" + miniChart(m) + "</div>",
+          ).join("") +
+          "</div>";
+
+        s += ghead("Every draw");
+        s += card({
+          acc: "var(--event)",
+          name: "LDL cholesterol",
+          meta: "2 draws · next 1 Nov",
+          chart: ldlChart({ h: 190 }),
+          cap: "Down 37 since the first panel.",
+        });
+        s += card({
+          acc: "var(--event)",
+          name: "Seven markers",
+          meta: "Same draw",
+          chart: rangeChart(),
+          cap: "Vitamin D is the only one outside range.",
+        });
+        s += card({
+          acc: "var(--event)",
+          name: "Variants",
+          meta: "Read once, Mar 2026",
+          chart: genesChart(),
+          cap: "ε4 doubles what saturated fat costs.",
+        });
+        s +=
+          '<p class="say">Keep this eight weeks and LDL lands near 104, from 131.</p>';
+        s += "</div>" + tabBar(0) + homeBar;
+        return s;
+      }
+
+      function ldlScreen() {
+        let s =
+          statusBar +
+          '<header class="nav"><button class="back">' +
+          I.chevL +
+          'Labs</button><span class="ttl"></span><button class="act">' +
+          I.star +
+          '</button></header><div class="screen">';
+        s +=
+          '<div class="lt"><div><h2>LDL cholesterol</h2><p>Two draws, 236 days apart</p></div></div>';
+
+        s += ghead("Every draw");
+        s += card({
+          acc: "var(--event)",
+          name: "Trend",
+          meta: "12 months",
+          chart: ldlChart({ h: 319 }),
+        });
+        s +=
+          '<div class="card">' +
+          [
+            ["9 Dec 2025", "First panel, the baseline", "168", "\u2014", ""],
+            ["1 Aug 2026", "236 days later", "131", "\u219337", ""],
+            ["4 Nov 2026", "Estimate, 96 to 112", "104", "\u219327", " est"],
+          ]
+            .map(
+              (r) =>
+                '<div class="drow' + r[4] + '"><i></i><span><b>' + r[0] +
+                "</b><small>" + r[1] + '</small></span><span class="n">' +
+                r[2] + "<u>mg/dL</u></span>" +
+                '<span class="dl' + (r[3] === "\u2014" ? " z" : "") + '">' + r[3] +
+                "</span></div>",
+            )
+            .join("") +
+          "</div>";
+
+        s += ghead("Every day");
+        s +=
+          '<div class="card">' +
+          LEVERS.map(
+            (l) =>
+              '<div class="lev"><span class="chip2">' +
+              I[l.g] +
+              '</span><span class="t"><b>' +
+              esc(l.n) +
+              "</b><small>" +
+              esc(l.s) +
+              '</small></span><span class="d">−' +
+              l.d +
+              "<u>mg/dL</u></span></div>",
+          ).join("") +
+          '<div class="sumrow"><span>All four, eight weeks</span><span>131 − ' +
+          LEVER_SUM +
+          " = 104 <em>mg/dL</em></span></div></div>";
+        s +=
+          '<p class="say">A draw replaces the estimate with a measurement.</p>';
+        s += "</div>" + tabBar(2) + homeBar;
+        return s;
+      }
+
+      /* ================= scrub: the hero is the readout ================= */
+      function wire(svg) {
+        const pts = JSON.parse(svg.dataset.pts);
+        const fmt = FMT[svg.dataset.fmt] || FMT.int;
+        const unit = svg.dataset.unit || "";
+        const vw = svg.viewBox.baseVal.width;
+        const col = svg.querySelector(".hcol"),
+          dot = svg.querySelector(".hdot"),
+          hn = svg.querySelector(".hnum"),
+          hd = svg.querySelector(".hdate"),
+          hx = svg.querySelector(".hdel");
+        const base = svg.dataset.dbase || "prev";
+        const home = pts.length - 1;
+        function set(i) {
+          const p = pts[i];
+          col.setAttribute("x1", p[0]);
+          col.setAttribute("x2", p[0]);
+          col.setAttribute("y2", p[1] - 8);
+          dot.setAttribute("cx", p[0]);
+          dot.setAttribute("cy", p[1]);
+          hn.firstChild.nodeValue = fmt(p[2]);
+          if (hd) hd.textContent = p[3];
+          if (hx) hx.textContent = deltaAt(pts, i, fmt, base);
+        }
+        const at = (e) => {
+          const r = svg.getBoundingClientRect();
+          const x = ((e.clientX - r.left) / r.width) * vw;
+          let best = 0;
+          for (let i = 1; i < pts.length; i++)
+            if (Math.abs(pts[i][0] - x) < Math.abs(pts[best][0] - x)) best = i;
+          set(best);
+        };
+        svg.addEventListener("pointerdown", (e) => {
+          try {
+            svg.setPointerCapture(e.pointerId);
+          } catch (_) {}
+          at(e);
+        });
+        svg.addEventListener("pointermove", (e) => {
+          if (e.buttons) at(e);
+        });
+        svg.addEventListener("pointerup", () => set(home));
+        svg.addEventListener("pointercancel", () => set(home));
+      }
+
+      /* ================= foot notes: data only ================= */
+      const row = (cells) =>
+        "<tr>" +
+        cells
+          .map((c) => "<td" + (c[1] ? ' class="n"' : "") + ">" + c[0] + "</td>")
+          .join("") +
+        "</tr>";
+      document.getElementById("t-score").innerHTML =
+        row([["Lifestyle", 0], [life, 1], ["0.40", 1], [(LIFE.w * life).toFixed(1), 1]]) +
+        row([["Blood", 0], [blood, 1], ["0.45", 1], [(BLOOD.w * blood).toFixed(1), 1]]) +
+        row([["Genes", 0], [genes, 1], ["0.15", 1], [(GENES.w * genes).toFixed(1), 1]]) +
+        '<tr class="sum"><td>Score</td><td class="n"></td><td class="n">1.00</td><td class="n">' +
+        score + "</td></tr>";
+      document.getElementById("t-ldl").innerHTML =
+        row([["Draw, 9 Dec 2025", 0], ["168", 1], ["", 1]]) +
+        row([["Draw, 1 Aug 2026", 0], ["131", 1], ["\u221237", 1]]) +
+        LEVERS.map((l) =>
+          row([[l.n + ", " + l.s, 0], ["", 1], ["\u2212" + l.d, 1]]),
+        ).join("") +
+        '<tr class="sum"><td>Estimate, 4 Nov 2026</td><td class="n">104</td><td class="n">\u2212' +
+        LEVER_SUM +
+        "</td></tr>";
+
+      /* ================= mount ================= */
+      document.getElementById("p1").innerHTML = summaryScreen();
+      document.getElementById("p2").innerHTML = ldlScreen();
+      document.querySelectorAll(".chart.scrub").forEach(wire);
+    </script>
+  </body>
+</html>

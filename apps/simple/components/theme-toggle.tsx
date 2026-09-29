@@ -21,14 +21,14 @@ declare global {
  * sliding pill). The inline script in `app/layout.tsx` does the resolving.
  */
 export function ThemeToggle() {
-  const [pref, setPref] = useState<Pref>("system");
+  const [pref, setPref] = useState<Pref>("light");
   useEffect(() => {
     const stored = localStorage.getItem("theme");
-    if (stored === "light" || stored === "dark") setPref(stored);
+    if (stored === "system" || stored === "dark") setPref(stored);
   }, []);
 
   function choose(next: string) {
-    if (next === "system") localStorage.removeItem("theme");
+    if (next === "light") localStorage.removeItem("theme");
     else localStorage.setItem("theme", next);
     setPref(next as Pref);
     window.__applyTheme?.();

@@ -1,0 +1,1367 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Hazard · iOS variation 36 · OpenVitals</title>
+    <style>
+      :root {
+        --page: #e9edf1;
+        --ink: #232c36;
+        --ink-2: #5b6472;
+        --ink-3: #8a919b;
+        --ink-4: #aeb2bb;
+
+        /* ---- source tokens, book-app-design-neubrutalism ---- */
+        --ground: #ffb547;
+        --ground-2: #ff9800;
+        --paper: #ffffff;
+        --edge: #131313;
+        --fg: #131313;
+        --fg-2: #4a4a4a;
+        --purple: #9747ff;
+        --purple-2: #b183f5;
+        --cyan: #1bf1ff;
+        --cyan-2: #66e9f5;
+        --yellow: #feed01;
+        --drop: #131313;
+        --drop-soft: #131313;
+
+        --bw: 3px;
+        --off: 6px;
+        --s6: 6px;
+        --s10: 10px;
+        --s14: 14px;
+        --s20: 20px;
+        --s28: 28px;
+        --s40: 40px;
+
+        --display: "Arial Black", "Arial Bold", Haettenschweiler, Impact,
+          system-ui, sans-serif;
+        --body:
+          "Helvetica Neue", Helvetica, Arial, system-ui, -apple-system,
+          sans-serif;
+      }
+
+      /* frame 3: the source is a light orange kit, so the inversion is the
+         one that has to be invented. Black ground, white edges, the three
+         accents held at full saturation, and the drop shadow turns purple. */
+      .dark {
+        --ground: #131313;
+        --ground-2: #000000;
+        --paper: #17171a;
+        --edge: #ffffff;
+        --fg: #f6f6f6;
+        --fg-2: #b6b6bb;
+        --purple: #b86cff;
+        --purple-2: #c790ff;
+        --drop: #9747ff;
+        --drop-soft: #9747ff;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--page);
+        color: var(--ink);
+        font:
+          13.5px/1.45 -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          system-ui,
+          sans-serif;
+        font-feature-settings: "tnum";
+        -webkit-font-smoothing: antialiased;
+      }
+      h1,
+      h2,
+      h3,
+      h4,
+      p {
+        margin: 0;
+      }
+      button {
+        font: inherit;
+        color: inherit;
+        background: none;
+        border: 0;
+        padding: 0;
+        cursor: pointer;
+      }
+
+      /* ---------- page chrome (house) ---------- */
+      .doc {
+        max-width: 1360px;
+        margin: 0 auto;
+        padding: var(--s40) var(--s20);
+      }
+      .doc > header {
+        margin-bottom: var(--s28);
+        max-width: 66ch;
+      }
+      .eyebrow {
+        color: var(--ink-3);
+        font-size: 11.5px;
+        font-weight: 600;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        margin-bottom: 8px;
+      }
+      .doc h1 {
+        font-size: 32px;
+        font-weight: 700;
+        letter-spacing: -0.035em;
+        line-height: 1.12;
+      }
+      .doc h1 em {
+        font-style: normal;
+        color: var(--ink-3);
+      }
+      .lede {
+        color: var(--ink-2);
+        margin-top: 10px;
+        font-size: 15px;
+        line-height: 1.5;
+      }
+      .phones {
+        display: flex;
+        gap: var(--s40);
+        justify-content: center;
+        flex-wrap: wrap;
+      }
+      .cap {
+        display: block;
+        width: 393px;
+        margin-bottom: var(--s14);
+      }
+      .cap b {
+        display: block;
+        font-size: 13px;
+        font-weight: 600;
+        letter-spacing: -0.01em;
+        color: var(--ink);
+      }
+      .cap b i {
+        font-style: normal;
+        color: var(--ink-4);
+        margin-right: 8px;
+        font-variant-numeric: tabular-nums;
+      }
+      .cap span {
+        display: block;
+        margin-top: 3px;
+        font-size: 12px;
+        color: var(--ink-3);
+        line-height: 1.4;
+      }
+      .notes {
+        margin: var(--s40) auto 0;
+        max-width: 880px;
+        font-size: 13px;
+        color: var(--ink-2);
+      }
+      .notes > summary {
+        cursor: pointer;
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--ink);
+        padding: 12px 0;
+        border-top: 1px solid #d5dae0;
+      }
+      .notes h2 {
+        font-size: 14px;
+        font-weight: 700;
+        letter-spacing: -0.015em;
+        color: var(--ink);
+        margin: 24px 0 8px;
+      }
+      .notes table {
+        border-collapse: collapse;
+        width: 100%;
+      }
+      .notes td,
+      .notes th {
+        text-align: left;
+        padding: 9px 18px 9px 0;
+        vertical-align: top;
+        font-weight: 400;
+      }
+      .notes th {
+        padding-top: 0;
+        font-size: 11.5px;
+        color: var(--ink-3);
+        border-bottom: 1px solid #cfd5dc;
+      }
+      .notes td {
+        border-top: 1px solid #dfe4e9;
+      }
+      .notes td:first-child {
+        color: var(--ink);
+        font-weight: 600;
+        width: 210px;
+      }
+      .doc > footer {
+        margin: var(--s28) auto 0;
+        max-width: 880px;
+        font-size: 12px;
+        color: var(--ink-3);
+        line-height: 1.5;
+      }
+
+      /* ---------- phone ---------- */
+      .phone {
+        width: 393px;
+        height: 852px;
+        border-radius: 54px;
+        border: 11px solid #11161d;
+        background: var(--ground);
+        color: var(--fg);
+        box-shadow:
+          0 0 0 1px #2b2e35,
+          0 0 0 2px #545a64,
+          0 26px 56px -26px rgba(20, 26, 34, 0.6);
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        font-family: var(--body);
+      }
+
+      /* the loose orange doodle that runs behind every source screen */
+      .doodle {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: 0;
+      }
+      .doodle path {
+        fill: none;
+        stroke: var(--ground-2);
+        stroke-width: 7;
+        stroke-linecap: round;
+        opacity: 1;
+      }
+      .dark .doodle path {
+        stroke: #2a2a2a;
+        opacity: 1;
+      }
+
+      /* ---------- status bar ---------- */
+      .sbar {
+        position: relative;
+        z-index: 2;
+        height: 46px;
+        flex: none;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 8px 26px 0;
+        font-family: var(--display);
+        font-size: 13px;
+        letter-spacing: 0.02em;
+        color: var(--fg);
+      }
+      .sbar .sig {
+        display: flex;
+        gap: 4px;
+        align-items: center;
+      }
+      .sbar .sig i {
+        display: block;
+        width: 4px;
+        background: var(--fg);
+        border-radius: 1px;
+      }
+      .sbar .bat {
+        width: 22px;
+        height: 11px;
+        border: 2px solid var(--fg);
+        border-radius: 2px;
+        position: relative;
+      }
+      .sbar .bat::after {
+        content: "";
+        position: absolute;
+        inset: 1.5px;
+        right: 5px;
+        background: var(--fg);
+      }
+
+      /* ---------- scroll body ---------- */
+      .scroll {
+        position: relative;
+        z-index: 1;
+        flex: 1;
+        overflow: hidden;
+        padding: 0 16px 112px;
+      }
+
+      /* ---------- app bar ---------- */
+      .appbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        height: 48px;
+      }
+      .burger {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+        width: 34px;
+      }
+      .burger i {
+        height: 5px;
+        background: var(--edge);
+        border-radius: 2px;
+      }
+      .burger i:nth-child(1) {
+        width: 100%;
+      }
+      .burger i:nth-child(2) {
+        width: 74%;
+      }
+      .burger i:nth-child(3) {
+        width: 100%;
+        margin-left: 26%;
+      }
+      .wordmark {
+        font-family: var(--display);
+        font-size: 27px;
+        line-height: 1;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        color: var(--fg);
+        text-shadow: 2px 2px 0 var(--cyan);
+      }
+      .dark .wordmark {
+        text-shadow: 2px 2px 0 var(--purple);
+      }
+      .ava {
+        width: 40px;
+        height: 40px;
+        border: var(--bw) solid var(--edge);
+        background: var(--cyan);
+        display: grid;
+        place-items: center;
+        box-shadow: 4px 4px 0 var(--drop);
+      }
+      .ava svg {
+        width: 22px;
+        height: 22px;
+        fill: none;
+        stroke: var(--edge);
+        stroke-width: 2.4;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+
+      /* ---------- hard-edge primitives ---------- */
+      .slab {
+        border: var(--bw) solid var(--edge);
+        background: var(--paper);
+        box-shadow: var(--off) var(--off) 0 var(--drop);
+        border-radius: 0;
+        position: relative;
+      }
+      .rowpill {
+        margin-top: 8px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 12px;
+        font-family: var(--display);
+        font-size: 11px;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--fg);
+      }
+      .rowpill svg {
+        width: 18px;
+        height: 18px;
+        flex: none;
+        fill: none;
+        stroke: var(--edge);
+        stroke-width: 2.4;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+      .rowpill b {
+        margin-left: auto;
+        background: var(--yellow);
+        border: 2px solid var(--edge);
+        padding: 2px 7px;
+        font-size: 10px;
+        letter-spacing: 0.04em;
+      }
+
+      /* ---------- group chips ---------- */
+      .chips {
+        display: flex;
+        gap: 7px;
+        margin-top: 8px;
+        overflow: hidden;
+      }
+      .chip {
+        flex: none;
+        border: var(--bw) solid var(--edge);
+        background: var(--paper);
+        color: var(--fg);
+        padding: 6px 9px;
+        font-family: var(--display);
+        font-size: 10px;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        box-shadow: 3px 3px 0 var(--drop);
+        white-space: nowrap;
+      }
+      .chip.on {
+        background: var(--cyan);
+      }
+      .chip u {
+        text-decoration: none;
+        color: var(--purple);
+        margin-left: 4px;
+      }
+      .chip.on u {
+        color: var(--fg);
+      }
+
+      /* ---------- washi band: the taped section header ---------- */
+      .band {
+        margin: 9px 0 7px;
+        position: relative;
+        height: 34px;
+      }
+      .band .tape {
+        position: absolute;
+        left: -4px;
+        top: 0;
+        height: 34px;
+        display: flex;
+        align-items: center;
+        padding: 0 14px;
+        background: var(--cyan);
+        border: var(--bw) solid var(--edge);
+        box-shadow: 4px 4px 0 var(--drop);
+        transform: rotate(-1.6deg);
+        font-family: var(--display);
+        font-size: 14px;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--fg);
+      }
+      .band .tape.alt {
+        background: var(--purple);
+        color: #fff;
+      }
+      .band .tape.warn {
+        background: var(--yellow);
+      }
+      .band .more {
+        position: absolute;
+        right: 0;
+        top: 9px;
+        font-family: var(--display);
+        font-size: 10px;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        color: var(--fg);
+        border-bottom: 3px solid var(--purple);
+        padding-bottom: 1px;
+      }
+
+      /* ---------- the status slab ---------- */
+      .status {
+        margin-top: 11px;
+        padding: 0;
+        overflow: hidden;
+      }
+      .status .top {
+        display: flex;
+        align-items: flex-end;
+        gap: 12px;
+        padding: 8px 14px 7px;
+      }
+      .status .huge {
+        font-family: var(--display);
+        font-size: 56px;
+        line-height: 0.86;
+        letter-spacing: -0.04em;
+        color: var(--fg);
+        position: relative;
+      }
+      .status .huge {
+        background-image: linear-gradient(
+          var(--yellow),
+          var(--yellow)
+        );
+        background-size: 100% 13px;
+        background-position: 0 84%;
+        background-repeat: no-repeat;
+      }
+      .status .said {
+        padding-bottom: 4px;
+      }
+      .status .said h3 {
+        font-family: var(--display);
+        font-size: 15px;
+        line-height: 1.05;
+        letter-spacing: 0.01em;
+        text-transform: uppercase;
+        color: var(--fg);
+      }
+      .status .said p {
+        margin-top: 4px;
+        font-size: 11px;
+        line-height: 1.3;
+        color: var(--fg-2);
+        max-width: 150px;
+      }
+      .status .foot {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        border-top: var(--bw) solid var(--edge);
+        background: var(--cyan);
+        padding: 7px 14px;
+      }
+      .dark .status .foot {
+        background: var(--cyan);
+      }
+      .status .foot span {
+        font-family: var(--display);
+        font-size: 10.5px;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        color: #131313;
+      }
+      .status .foot .blob {
+        margin-left: auto;
+      }
+
+      /* the irregular sticker the source puts behind its genre labels */
+      .blob {
+        background: var(--yellow);
+        border: 2.5px solid #131313;
+        border-radius: 48% 52% 40% 60% / 58% 44% 56% 42%;
+        padding: 3px 11px;
+        font-family: var(--display);
+        font-size: 10px;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        color: #131313;
+        white-space: nowrap;
+        display: inline-block;
+      }
+      .blob.go {
+        background: var(--cyan);
+      }
+      .blob.hot {
+        background: var(--yellow);
+        box-shadow: inset 0 4px 0 -1px #131313;
+      }
+
+      /* ---------- goal rail ---------- */
+      .rail {
+        display: flex;
+        gap: 12px;
+        overflow: hidden;
+        padding: 2px 0 6px;
+      }
+      .goal {
+        flex: none;
+        width: 168px;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+      }
+      .goal .gtop {
+        padding: 8px 10px 7px;
+        flex: 1;
+      }
+      .goal .gname {
+        font-family: var(--display);
+        font-size: 12px;
+        line-height: 1.1;
+        letter-spacing: 0.01em;
+        text-transform: uppercase;
+        color: var(--purple);
+        min-height: 22px;
+      }
+      .goal .gnow {
+        margin-top: 6px;
+        display: flex;
+        align-items: baseline;
+        gap: 4px;
+      }
+      .goal .gnow b {
+        font-family: var(--display);
+        font-size: 30px;
+        line-height: 0.9;
+        letter-spacing: -0.03em;
+        color: var(--fg);
+      }
+      .goal .gnow i {
+        font-style: normal;
+        font-size: 10px;
+        font-weight: 700;
+        color: var(--fg-2);
+      }
+      .goal .gtar {
+        margin-top: 5px;
+        font-family: var(--display);
+        font-size: 9.5px;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        color: var(--fg);
+      }
+      .goal .gtar em {
+        font-style: normal;
+        color: var(--purple);
+      }
+      .goal .gbar {
+        margin-top: 6px;
+        height: 12px;
+        border: 2.5px solid var(--edge);
+        background: var(--paper);
+        position: relative;
+        overflow: hidden;
+      }
+      .goal .gbar i {
+        position: absolute;
+        inset: 0 auto 0 0;
+        background: var(--cyan);
+        border-right: 2.5px solid var(--edge);
+      }
+      .goal .gbar.miss i {
+        background: var(--yellow);
+        background-image: repeating-linear-gradient(
+          -45deg,
+          #131313 0 2px,
+          transparent 2px 7px
+        );
+      }
+      .goal .gfoot {
+        border-top: var(--bw) solid var(--edge);
+        background: var(--paper);
+        padding: 6px 9px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .goal .gfoot small {
+        font-family: var(--display);
+        font-size: 9px;
+        letter-spacing: 0.03em;
+        text-transform: uppercase;
+        color: var(--fg-2);
+        margin-left: auto;
+        text-align: right;
+        line-height: 1.15;
+      }
+
+      /* ---------- the 52 board ---------- */
+      .board {
+        padding: 9px;
+        display: grid;
+        grid-template-columns: repeat(13, 1fr);
+        gap: 3px;
+      }
+      .cell {
+        aspect-ratio: 1;
+        border: 2px solid var(--edge);
+        background: var(--paper);
+      }
+      .cell.opt {
+        background: var(--cyan);
+      }
+      .cell.off {
+        background: var(--yellow);
+        background-image: repeating-linear-gradient(
+          -45deg,
+          #131313 0 2px,
+          transparent 2px 6px
+        );
+      }
+      .cell.never {
+        background: transparent;
+        background-image: linear-gradient(
+          -45deg,
+          transparent 44%,
+          var(--edge) 44% 56%,
+          transparent 56%
+        );
+      }
+      .legend {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .legend span {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        font-family: var(--display);
+        font-size: 9.5px;
+        color: var(--fg);
+      }
+      .legend i {
+        width: 11px;
+        height: 11px;
+        border: 2px solid var(--edge);
+        display: block;
+      }
+
+      /* ---------- empty state ---------- */
+      .poster {
+        margin-top: 9px;
+        background: var(--edge);
+        border: var(--bw) solid var(--edge);
+        box-shadow: var(--off) var(--off) 0 var(--purple);
+        padding: 11px 14px 11px;
+      }
+      .dark .poster {
+        background: #000;
+        box-shadow: var(--off) var(--off) 0 var(--cyan);
+      }
+      .poster h3 {
+        font-family: var(--display);
+        font-size: 23px;
+        line-height: 0.98;
+        letter-spacing: -0.01em;
+        text-transform: uppercase;
+        color: var(--yellow);
+      }
+      .poster h3 em {
+        font-style: normal;
+        color: var(--cyan);
+        display: block;
+      }
+      .poster p {
+        margin-top: 7px;
+        font-size: 11.5px;
+        line-height: 1.4;
+        color: #e4e4e4;
+        max-width: 270px;
+      }
+      .poster .pin {
+        position: absolute;
+      }
+      .picks {
+        margin-top: 8px;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+      .pick {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        padding: 4px 10px;
+      }
+      .pick .pv {
+        font-family: var(--display);
+        font-size: 16px;
+        line-height: 1;
+        letter-spacing: -0.02em;
+        color: var(--fg);
+        min-width: 46px;
+      }
+      .pick .pn {
+        font-family: var(--display);
+        font-size: 10px;
+        letter-spacing: 0.03em;
+        text-transform: uppercase;
+        color: var(--purple);
+        line-height: 1.12;
+      }
+      .pick .pn u {
+        display: block;
+        text-decoration: none;
+        color: var(--fg-2);
+        font-size: 8.5px;
+        margin-top: 1px;
+      }
+      .pick .pset {
+        margin-left: auto;
+        background: var(--edge);
+        color: var(--ground);
+        border: 2.5px solid var(--edge);
+        padding: 5px 9px;
+        font-family: var(--display);
+        font-size: 9px;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        white-space: nowrap;
+      }
+      .dark .pick .pset {
+        background: var(--purple);
+        color: #fff;
+        border-color: var(--edge);
+      }
+      .cta {
+        margin-top: 8px;
+        background: var(--purple);
+        border: var(--bw) solid var(--edge);
+        box-shadow: var(--off) var(--off) 0 var(--drop);
+        color: #fff;
+        text-align: center;
+        padding: 9px 10px;
+        font-family: var(--display);
+        font-size: 16px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      /* ---------- tab bar with the notch ---------- */
+      .tabs {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: 96px;
+        z-index: 5;
+        pointer-events: none;
+      }
+      .tabs .barsvg {
+        position: absolute;
+        inset: auto 0 0 0;
+        width: 100%;
+        height: 96px;
+        display: block;
+      }
+      .tabs .items {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 26px;
+        height: 44px;
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr 1fr;
+        align-items: center;
+        padding: 0 22px;
+      }
+      .tabs .items .slot {
+        display: grid;
+        place-items: center;
+      }
+      .tabs .items .slot:nth-child(2) {
+        margin-right: 34px;
+      }
+      .tabs .items .slot:nth-child(3) {
+        margin-left: 34px;
+      }
+      .tabs svg.ic {
+        width: 25px;
+        height: 25px;
+        fill: none;
+        stroke: #131313;
+        stroke-width: 2.4;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+      .tabs .fab {
+        position: absolute;
+        left: 50%;
+        bottom: 38px;
+        transform: translateX(-50%);
+        width: 62px;
+        height: 62px;
+        border-radius: 50%;
+        background: var(--purple);
+        border: var(--bw) solid var(--edge);
+        display: grid;
+        place-items: center;
+      }
+      .dark .tabs .fab {
+        background: var(--cyan);
+      }
+      .tabs .fab svg {
+        width: 30px;
+        height: 30px;
+        fill: none;
+        stroke: #131313;
+        stroke-width: 3.4;
+        stroke-linecap: round;
+      }
+      .dark .tabs .fab svg {
+        stroke: #131313;
+      }
+      .tabs .lbl {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 10px;
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr 1fr;
+        padding: 0 22px;
+        font-family: var(--display);
+        font-size: 8px;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: #131313;
+        text-align: center;
+      }
+      .tabs .lbl span:nth-child(2) {
+        margin-right: 34px;
+      }
+      .tabs .lbl span:nth-child(3) {
+        margin-left: 34px;
+      }
+      .tabs .lbl span.on {
+        color: #fff;
+      }
+      .tabs .items .slot.on svg.ic {
+        stroke: #ffffff;
+        stroke-width: 2.8;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="doc">
+      <header>
+        <p class="eyebrow">Variation 36 · Hazard</p>
+        <h1>
+          Seven markers are shouting.<br /><em
+            >So the screen shouts back.</em
+          >
+        </h1>
+        <p class="lede">
+          A neubrutalist book-shelf kit lent this one everything it owns: a flat
+          orange ground, 3&nbsp;px black rules on every edge, a 6&nbsp;px hard
+          shadow that never blurs, and display type set in a black condensed
+          face at sizes the rest of the folder would call rude. The genre
+          stickers become the four bands. The shelf rail becomes the goals. Off
+          is drawn as hazard tape, because on this screen nothing whispers.
+        </p>
+      </header>
+
+      <section class="phones">
+        <div>
+          <p class="cap">
+            <b><i>01</i>Today, with four goals on file</b>
+            <span
+              >Status slab, then the goals on a shelf rail, then all 52 as
+              stickers.</span
+            >
+          </p>
+          <div class="phone" id="p1"></div>
+        </div>
+        <div>
+          <p class="cap">
+            <b><i>02</i>Today, with no goal on file</b>
+            <span
+              >Nothing is greyed. The slab is replaced by a black poster and
+              three markers volunteering for the job.</span
+            >
+          </p>
+          <div class="phone" id="p2"></div>
+        </div>
+        <div>
+          <p class="cap">
+            <b><i>03</i>The same screen, inverted</b>
+            <span
+              >The source kit is a light orange one, so the third frame is the
+              dark invention: black ground, white rules, the shadow turned
+              purple.</span
+            >
+          </p>
+          <div class="phone dark" id="p3"></div>
+        </div>
+      </section>
+
+      <details class="notes">
+        <summary>Notes and the numbers on the screen</summary>
+
+        <h2>The draw, 1 Aug 2026</h2>
+        <table>
+          <tr>
+            <th>Band</th>
+            <th>Count</th>
+            <th>Drawn as</th>
+          </tr>
+          <tr>
+            <td>Optimal</td>
+            <td>26 of 52</td>
+            <td>cyan sticker, black rule</td>
+          </tr>
+          <tr>
+            <td>Normal</td>
+            <td>19 of 52</td>
+            <td>paper sticker, black rule</td>
+          </tr>
+          <tr>
+            <td>Off</td>
+            <td>7 of 52</td>
+            <td>yellow sticker under black hazard hatching</td>
+          </tr>
+          <tr>
+            <td>Never measured</td>
+            <td>0 of 52</td>
+            <td>empty sticker, single black slash</td>
+          </tr>
+        </table>
+
+        <h2>Goals</h2>
+        <table>
+          <tr>
+            <th>Marker</th>
+            <th>Now</th>
+            <th>Target</th>
+            <th>To go</th>
+            <th>Pace</th>
+          </tr>
+          <tr>
+            <td>TPO antibodies</td>
+            <td>320 IU/mL</td>
+            <td>under 100</td>
+            <td>220</td>
+            <td>behind</td>
+          </tr>
+          <tr>
+            <td>Vitamin D</td>
+            <td>19 ng/mL</td>
+            <td>40 to 60</td>
+            <td>21</td>
+            <td>on pace</td>
+          </tr>
+          <tr>
+            <td>Ferritin</td>
+            <td>22 ng/mL</td>
+            <td>above 50</td>
+            <td>28</td>
+            <td>on pace</td>
+          </tr>
+          <tr>
+            <td>HbA1c</td>
+            <td>5.6 %</td>
+            <td>under 5.4</td>
+            <td>0.2</td>
+            <td>on pace</td>
+          </tr>
+        </table>
+
+        <h2>Groups on the panel</h2>
+        <table>
+          <tr>
+            <th>Group</th>
+            <th>Markers</th>
+            <th>Off</th>
+          </tr>
+          <tr>
+            <td>Thyroid</td>
+            <td>6</td>
+            <td>2</td>
+          </tr>
+          <tr>
+            <td>Vitamins</td>
+            <td>9</td>
+            <td>1</td>
+          </tr>
+          <tr>
+            <td>Iron</td>
+            <td>5</td>
+            <td>1</td>
+          </tr>
+          <tr>
+            <td>Metabolic</td>
+            <td>8</td>
+            <td>1</td>
+          </tr>
+          <tr>
+            <td>Lipids</td>
+            <td>7</td>
+            <td>1</td>
+          </tr>
+          <tr>
+            <td>Liver and kidney</td>
+            <td>9</td>
+            <td>1</td>
+          </tr>
+          <tr>
+            <td>Blood count</td>
+            <td>8</td>
+            <td>0</td>
+          </tr>
+        </table>
+
+        <h2>Colour rule</h2>
+        <p>
+          Three accents, each with one job and no second job. Cyan is in range.
+          Yellow under hatching is out of range. Purple is the only thing you
+          can press: marker names, the section link, the add button, the goal
+          call to action. Nothing else is coloured, which is what keeps a
+          four-colour screen legible.
+        </p>
+      </details>
+
+      <footer>
+        OpenVitals · iOS home-screen variation 36 · sample person, sample panel.
+        Reference values are the app's own display bands, not clinical advice.
+        Visual system derived from
+        <em>book app design - neubrutalism</em> on EpicPxls
+        (https://www.epicpxls.com/items/book-app-design-neubrutalism).
+      </footer>
+    </main>
+
+    <script>
+      /* ---------------- data ---------------- */
+      const BANDS = { optimal: 26, normal: 19, off: 7, never: 0 };
+      const GROUPS = [
+        ["Thyroid", 6, 2],
+        ["Vitamins", 9, 1],
+        ["Iron", 5, 1],
+        ["Metabolic", 8, 1],
+        ["Lipids", 7, 1],
+        ["Liver + kidney", 9, 1],
+        ["Blood count", 8, 0],
+      ];
+      const GOALS = [
+        {
+          name: "TPO antibodies",
+          now: "320",
+          unit: "IU/mL",
+          target: "under 100",
+          togo: "220 IU/mL to go",
+          pct: 24,
+          pace: "behind",
+        },
+        {
+          name: "Vitamin D",
+          now: "19",
+          unit: "ng/mL",
+          target: "40 to 60",
+          togo: "21 ng/mL to go",
+          pct: 48,
+          pace: "on pace",
+        },
+        {
+          name: "Ferritin",
+          now: "22",
+          unit: "ng/mL",
+          target: "above 50",
+          togo: "28 ng/mL to go",
+          pct: 44,
+          pace: "on pace",
+        },
+        {
+          name: "HbA1c",
+          now: "5.6",
+          unit: "%",
+          target: "under 5.4",
+          togo: "0.2 % to go",
+          pct: 86,
+          pace: "on pace",
+        },
+      ];
+
+      console.assert(
+        BANDS.optimal + BANDS.normal + BANDS.off + BANDS.never === 52,
+        "bands must sum to 52",
+      );
+      console.assert(
+        GROUPS.reduce((a, g) => a + g[1], 0) === 52,
+        "groups must sum to 52",
+      );
+      console.assert(
+        GROUPS.reduce((a, g) => a + g[2], 0) === BANDS.off,
+        "group off-counts must sum to 7",
+      );
+
+      /* ---------------- icons: 2.4px strokes, no fills ---------------- */
+      const I = {
+        user: '<svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.4"/><path d="M5.5 20a6.5 6.5 0 0 1 13 0"/></svg>',
+        vial: '<svg viewBox="0 0 24 24"><path d="M9 3h6M10 3v11.5a2.5 2.5 0 0 0 5 0V3M9.5 11h5"/></svg>',
+        home: '<svg class="ic" viewBox="0 0 24 24"><path d="M4 11 12 4.6 20 11v8a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1z"/></svg>',
+        body: '<svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="6" r="2.6"/><path d="M5.8 20a6.2 6.2 0 0 1 12.4 0M12 8.8V14"/></svg>',
+        meals:
+          '<svg class="ic" viewBox="0 0 24 24"><path d="M6 3v8a2 2 0 0 0 4 0V3M8 11v10M17 3c-1.6 1.2-2.2 3-2.2 5 0 1.6.8 2.6 2.2 2.8V21"/></svg>',
+        plan: '<svg class="ic" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16"/><path d="M8.5 12.5l2.2 2.2 4.5-4.6"/></svg>',
+        plus: '<svg viewBox="0 0 24 24"><path d="M12 5.5v13M5.5 12h13"/></svg>',
+      };
+
+      /* ---------------- pieces ---------------- */
+      const doodle = () => `
+        <svg class="doodle" viewBox="0 0 393 852" preserveAspectRatio="none" aria-hidden="true">
+          <path d="M-14 128 C 70 60, 150 196, 236 120 S 372 74, 420 150"/>
+          <path d="M-10 436 C 84 384, 130 500, 214 452 S 356 420, 412 486"/>
+          <path d="M-12 690 C 96 640, 138 758, 240 704 S 368 676, 414 736"/>
+        </svg>`;
+
+      const sbar = () => `
+        <div class="sbar">
+          <span>9:41</span>
+          <span class="sig">
+            <i style="height:5px"></i><i style="height:8px"></i><i style="height:11px"></i><i style="height:14px"></i>
+            <span class="bat" style="margin-left:8px"></span>
+          </span>
+        </div>`;
+
+      const appbar = (title) => `
+        <div class="appbar">
+          <span class="burger"><i></i><i></i><i></i></span>
+          <span class="wordmark">${title}</span>
+          <span class="ava">${I.user}</span>
+        </div>`;
+
+      const drawpill = () => `
+        <div class="slab rowpill">
+          ${I.vial}
+          <span>Last draw &middot; Aug 1 2026</span>
+          <b>32 days</b>
+        </div>`;
+
+      const chips = () => `
+        <div class="chips">
+          ${GROUPS.map(
+            (g, i) =>
+              `<div class="chip${i === 0 ? " on" : ""}">${g[0]}<u>${g[1]}</u></div>`,
+          ).join("")}
+        </div>`;
+
+      const band = (text, cls, more) => `
+        <div class="band">
+          <span class="tape ${cls || ""}">${text}</span>
+          ${more ? `<span class="more">${more}</span>` : ""}
+        </div>`;
+
+      // the four bands, keyed once, in the band row above the board
+      const legend = () => `
+        <div class="band">
+          <span class="tape alt">The 52 &middot; Aug 1</span>
+          <span class="more" style="border:0;padding:0;top:11px">
+            <span class="legend">
+              <span><i style="background:var(--cyan)"></i>26</span>
+              <span><i style="background:var(--paper)"></i>19</span>
+              <span><i class="cell off"></i>7</span>
+              <span><i class="cell never"></i>0</span>
+            </span>
+          </span>
+        </div>`;
+
+      const status = () => `
+        <div class="slab status">
+          <div class="top">
+            <div class="huge">07</div>
+            <div class="said">
+              <h3>Markers<br />out of range</h3>
+              <p>26 optimal, 19 normal, 0 never measured.</p>
+            </div>
+          </div>
+          <div class="foot">
+            <span>52 tracked</span>
+            <span class="blob">Thyroid worst</span>
+          </div>
+        </div>`;
+
+      const goalcard = (g) => {
+        const miss = g.pace === "behind";
+        return `
+        <div class="slab goal">
+          <div class="gtop">
+            <div class="gname">${g.name}</div>
+            <div class="gnow"><b>${g.now}</b><i>${g.unit}</i></div>
+            <div class="gtar">Target <em>${g.target}</em></div>
+            <div class="gbar${miss ? " miss" : ""}"><i style="width:${g.pct}%"></i></div>
+          </div>
+          <div class="gfoot">
+            <span class="blob ${miss ? "hot" : "go"}">${g.pace}</span>
+            <small>${g.togo}</small>
+          </div>
+        </div>`;
+      };
+
+      const rail = () =>
+        `<div class="rail">${GOALS.map(goalcard).join("")}</div>`;
+
+      const board = () => {
+        const order = [
+          ...Array(BANDS.optimal).fill("opt"),
+          ...Array(BANDS.normal).fill("norm"),
+          ...Array(BANDS.off).fill("off"),
+          ...Array(BANDS.never).fill("never"),
+        ];
+        return `
+        <div class="slab board">
+          ${order.map((c) => `<div class="cell ${c}"></div>`).join("")}
+        </div>`;
+      };
+
+      const poster = () => `
+        <div class="poster">
+          <h3>Pick one.<em>Name a number.</em></h3>
+          <p>
+            All 52 are still measured. A goal decides which one gets the big type.
+          </p>
+        </div>`;
+
+      const picks = () => `
+        <div class="picks">
+          <div class="slab pick">
+            <span class="pv">320</span>
+            <span class="pn">TPO antibodies<u>Thyroid &middot; 3.2&times; ceiling</u></span>
+            <span class="pset">Set target</span>
+          </div>
+          <div class="slab pick">
+            <span class="pv">19</span>
+            <span class="pn">Vitamin D<u>Vitamins &middot; 21 below floor</u></span>
+            <span class="pset">Set target</span>
+          </div>
+          <div class="slab pick">
+            <span class="pv">22</span>
+            <span class="pn">Ferritin<u>Iron &middot; 28 below floor</u></span>
+            <span class="pset">Set target</span>
+          </div>
+        </div>
+        <div class="cta">Start a goal</div>`;
+
+      const tabs = () => `
+        <div class="tabs">
+          <svg class="barsvg" viewBox="0 0 393 96" preserveAspectRatio="none" aria-hidden="true">
+            <path d="M0 24 H130 A67 67 0 0 0 263 24 H393 V96 H0 Z" fill="#9747ff"/>
+            <path d="M0 24 H130 A67 67 0 0 0 263 24 H393" fill="none" stroke="#131313" stroke-width="3"/>
+          </svg>
+          <div class="fab">${I.plus}</div>
+          <div class="items">
+            <span class="slot on">${I.home}</span>
+            <span class="slot">${I.body}</span>
+            <span class="slot">${I.meals}</span>
+            <span class="slot">${I.plan}</span>
+          </div>
+          <div class="lbl">
+            <span class="on">Today</span><span>Body</span><span>Meals</span><span>Plan</span>
+          </div>
+        </div>`;
+
+      /* ---------------- screen ---------------- */
+      const home = (hasGoals) => `
+        ${doodle()}
+        ${sbar()}
+        <div class="scroll">
+          ${appbar("Today")}
+          ${drawpill()}
+          ${chips()}
+          ${
+            hasGoals
+              ? `${status()}
+                 ${band("Goals in play", "", "All 4")}
+                 ${rail()}`
+              : `${poster()}
+                 ${band("Furthest out", "warn", "All 52")}
+                 ${picks()}`
+          }
+          ${legend()}
+          ${board()}
+        </div>
+        ${tabs()}`;
+
+      document.getElementById("p1").innerHTML = home(true);
+      document.getElementById("p2").innerHTML = home(false);
+      document.getElementById("p3").innerHTML = home(true);
+    </script>
+  </body>
+</html>

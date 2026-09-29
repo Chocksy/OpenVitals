@@ -1,0 +1,4629 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Deck II · iOS variation 45 · OpenVitals</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --plum-0: #1e0a24;
+        --plum: #2b1033;
+        --plum-2: #3d1947;
+        --plum-3: #5a2d66;
+        --mist: #cdb8d2;
+        --cream: #f6eddc;
+        --cream-2: #ecdfc8;
+        --cream-3: #e0d0b4;
+        --ink: #2b1033;
+        --ink-2: #6f5a72;
+        --ink-3: #a08fa0;
+        --line: #e2d3bb;
+        --life: #e4722f;
+        --blood: #c23a5e;
+        --gene: #6c4aa6;
+        --green: #23995d;
+        --green-soft: #d9efdf;
+        --amber: #c98512;
+        --amber-soft: #f6e3bf;
+        --rose: #d2415b;
+        --rose-soft: #f7d9dc;
+        --lime: #d6f34a;
+        --r: 34px;
+        --s3: 3px;
+        --s5: 5px;
+        --s8: 8px;
+        --s13: 13px;
+        --s21: 21px;
+        --s34: 34px;
+        --s55: 55px;
+        --cw: 314px;
+        --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+        --spring: cubic-bezier(0.3, 1.35, 0.5, 1);
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--plum-0);
+        color: var(--cream);
+        font:
+          15px/1.4 "Space Grotesk",
+          -apple-system,
+          system-ui,
+          sans-serif;
+        font-feature-settings: "tnum";
+      }
+      button {
+        font: inherit;
+        color: inherit;
+        background: none;
+        border: 0;
+        padding: 0;
+        cursor: pointer;
+        -webkit-tap-highlight-color: transparent;
+        text-align: left;
+      }
+      input,
+      textarea {
+        font: inherit;
+        color: inherit;
+      }
+      h1,
+      h2,
+      p {
+        margin: 0;
+      }
+      svg {
+        width: 20px;
+        height: 20px;
+        stroke: currentColor;
+        fill: none;
+        stroke-width: 1.8;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+
+      /* ---- page ---- */
+      .doc {
+        max-width: 1300px;
+        margin: 0 auto;
+        padding: var(--s55) var(--s21);
+      }
+      .doc > header {
+        margin-bottom: var(--s34);
+        display: grid;
+        grid-template-columns: 1fr 1.25fr;
+        gap: var(--s34);
+        align-items: end;
+      }
+      .eyebrow {
+        color: var(--mist);
+        font-size: 13px;
+        margin-bottom: var(--s5);
+        letter-spacing: 0.04em;
+      }
+      .doc h1 {
+        font-size: 55px;
+        font-weight: 600;
+        letter-spacing: -0.04em;
+        line-height: 1;
+      }
+      .lede {
+        color: var(--mist);
+        margin-top: var(--s13);
+        max-width: 52ch;
+      }
+      .direction {
+        border: 1px solid var(--plum-3);
+        border-radius: 21px;
+        padding: var(--s13) var(--s21);
+        font-size: 13px;
+        display: grid;
+        grid-template-columns: 96px 1fr;
+        gap: var(--s5) var(--s13);
+        color: var(--mist);
+      }
+      .direction b {
+        color: var(--cream);
+        font-weight: 500;
+      }
+      .phones {
+        display: flex;
+        gap: var(--s34);
+        justify-content: center;
+        flex-wrap: wrap;
+      }
+      .cap {
+        display: flex;
+        justify-content: space-between;
+        color: var(--mist);
+        font-size: 13px;
+        margin-bottom: var(--s13);
+        width: 390px;
+      }
+
+      /* ---- phone ---- */
+      .phone {
+        width: 390px;
+        height: 844px;
+        border-radius: 55px;
+        border: 8px solid #120614;
+        background:
+          radial-gradient(80% 45% at 50% 62%, #53225e 0%, transparent 70%),
+          radial-gradient(60% 30% at 90% 100%, #4a1a3a 0%, transparent 70%),
+          var(--plum);
+        box-shadow:
+          0 0 0 1px #3d1947,
+          0 55px 89px -34px rgba(0, 0, 0, 0.7);
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        user-select: none;
+      }
+      /* ambient: a light that drifts across the table */
+      .glow {
+        position: absolute;
+        width: 520px;
+        height: 520px;
+        left: -140px;
+        top: 260px;
+        border-radius: 50%;
+        background: radial-gradient(
+          closest-side,
+          rgba(214, 150, 226, 0.22),
+          rgba(214, 150, 226, 0.06) 55%,
+          transparent
+        );
+        pointer-events: none;
+        animation: drift 21s ease-in-out infinite alternate;
+        z-index: 0;
+      }
+      .glow.b {
+        left: 120px;
+        top: 520px;
+        width: 380px;
+        height: 380px;
+        background: radial-gradient(
+          closest-side,
+          rgba(228, 114, 47, 0.13),
+          transparent
+        );
+        animation-duration: 34s;
+        animation-direction: alternate-reverse;
+      }
+      @keyframes drift {
+        from {
+          transform: translate(-34px, -21px) scale(0.92);
+        }
+        to {
+          transform: translate(144px, 89px) scale(1.12);
+        }
+      }
+      .status {
+        height: 55px;
+        flex: none;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        padding: 0 var(--s34) var(--s8);
+        font-size: 14px;
+        font-weight: 600;
+        position: relative;
+        z-index: 2;
+      }
+      /* ---- the Dynamic Island (Widgets II timings, Deck II's type) ----
+         true black like the hardware; cream type, lime for progress,
+         the Matrix-hue square for the score */
+      .island {
+        --isp: cubic-bezier(0.34, 1.4, 0.64, 1);
+        position: absolute;
+        top: 11px;
+        left: 50%;
+        width: 126px;
+        height: 37px;
+        border-radius: 21px;
+        background: #000;
+        color: var(--cream);
+        transform: translateX(-50%);
+        z-index: 50;
+        overflow: hidden;
+        transition:
+          width 620ms var(--isp),
+          height 620ms var(--isp),
+          border-radius 620ms var(--isp);
+        box-shadow: 0 8px 21px -8px rgba(0, 0, 0, 0.6);
+        pointer-events: none;
+      }
+      .phone.isl-on .island {
+        width: 358px;
+        height: 84px;
+        border-radius: 34px;
+      }
+      .phone.isl-on .island[data-k="tick"],
+      .phone.isl-on .island[data-k="done"] {
+        height: 68px;
+      }
+      .island .sq {
+        display: block;
+        width: 13px;
+        height: 13px;
+        border-radius: 3px;
+        background: var(--c, var(--cream));
+        box-shadow: 0 0 8px -1px var(--c, transparent);
+        transition: background 600ms var(--ease);
+      }
+      .island .compact {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0 var(--s13) 0 var(--s13);
+        transition: opacity 200ms ease;
+      }
+      .island .compact b {
+        font-size: 15px;
+        font-weight: 600;
+        letter-spacing: -0.01em;
+      }
+      .phone.isl-on .island .compact {
+        opacity: 0;
+      }
+      .island .expanded {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 358px;
+        padding: var(--s13) var(--s21);
+        opacity: 0;
+        transition: opacity 200ms ease;
+      }
+      .phone.isl-on .island .expanded {
+        opacity: 1;
+        transition-delay: 180ms;
+      }
+      .island .xrow {
+        display: grid;
+        grid-template-columns: 44px 1fr auto;
+        gap: var(--s13);
+        align-items: center;
+        height: 44px;
+      }
+      .island[data-k="tick"] .xrow,
+      .island[data-k="done"] .xrow {
+        height: 42px;
+      }
+      .island .thumb {
+        width: 44px;
+        height: 44px;
+        border-radius: var(--s13);
+        overflow: hidden;
+        position: relative;
+        background: var(--plum-2);
+        display: grid;
+        place-items: center;
+      }
+      .island .thumb img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+      }
+      .island .thumb svg {
+        width: 21px;
+        height: 21px;
+        stroke-width: 2;
+      }
+      .island[data-k="plate"] .thumb::after {
+        content: "";
+        position: absolute;
+        left: 0;
+        right: 0;
+        height: 13px;
+        top: -13px;
+        background: linear-gradient(
+          180deg,
+          transparent,
+          rgba(214, 243, 74, 0.75),
+          transparent
+        );
+        animation: scan 1300ms ease-in-out infinite;
+      }
+      .island.done .thumb::after {
+        display: none;
+      }
+      @keyframes scan {
+        to {
+          top: 44px;
+        }
+      }
+      .island[data-k="tick"] .thumb {
+        border-radius: 50%;
+        background: var(--lime);
+        color: var(--plum);
+        width: 42px;
+        height: 42px;
+      }
+      .island[data-k="done"] .thumb {
+        border-radius: 50%;
+        background: var(--plum-2);
+        width: 42px;
+        height: 42px;
+      }
+      .island[data-k="done"] .thumb .sq {
+        width: 21px;
+        height: 21px;
+        border-radius: 5px;
+      }
+      .island .tx {
+        min-width: 0;
+      }
+      .island .tx b {
+        display: block;
+        font-size: 15px;
+        font-weight: 600;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .island .tx small {
+        display: block;
+        font-size: 13px;
+        color: var(--mist);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .island .tx small em {
+        font-style: normal;
+        color: var(--lime);
+      }
+      .island .trail {
+        width: 34px;
+        height: 34px;
+        position: relative;
+      }
+      .island .trail svg {
+        width: 34px;
+        height: 34px;
+        transform: rotate(-90deg);
+      }
+      .island .trail .pc {
+        position: absolute;
+        inset: 0;
+        display: grid;
+        place-items: center;
+        font-size: 11px;
+        font-weight: 600;
+      }
+      .island .trail .ok {
+        position: absolute;
+        inset: 0;
+        border-radius: 50%;
+        background: var(--lime);
+        color: var(--plum);
+        display: grid;
+        place-items: center;
+        transform: scale(0);
+        transition: transform 520ms var(--isp);
+      }
+      .island .trail .ok svg {
+        width: 18px;
+        height: 18px;
+        transform: none;
+        stroke-width: 3;
+      }
+      .island.done .trail .ok {
+        transform: scale(1);
+      }
+      .island .tsc {
+        display: flex;
+        align-items: center;
+        gap: var(--s8);
+      }
+      .island .tsc b {
+        font-size: 28px;
+        font-weight: 600;
+        letter-spacing: -0.03em;
+        line-height: 1;
+      }
+      .island .xbar {
+        margin-top: var(--s8);
+        height: 5px;
+        border-radius: 3px;
+        background: var(--plum-2);
+        overflow: hidden;
+      }
+      .island .xbar i {
+        display: block;
+        height: 5px;
+        width: 0;
+        border-radius: 3px;
+        background: var(--lime);
+      }
+      .island:not([data-k="plate"]) .xbar {
+        display: none;
+      }
+      /* a plate that just landed in the food card */
+      .plates button.land {
+        animation: land 620ms cubic-bezier(0.34, 1.4, 0.64, 1) both;
+      }
+      @keyframes land {
+        from {
+          transform: translateY(-34px) scale(0.6);
+          opacity: 0;
+        }
+      }
+      .screen {
+        flex: 1;
+        padding: var(--s5) var(--s21) 0;
+        position: relative;
+        z-index: 1;
+      }
+
+      /* ---- greeting: the date and the name, nothing else ---- */
+      .greet {
+        display: flex;
+        align-items: center;
+        gap: var(--s8);
+        height: 34px;
+      }
+      .greet span {
+        flex: 1;
+        font-size: 13px;
+        color: var(--mist);
+      }
+      .greet span b {
+        color: var(--cream);
+        font-weight: 600;
+        font-size: 17px;
+        margin-right: var(--s5);
+      }
+      .avatar {
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        background: var(--plum-2);
+        border: 1px solid var(--plum-3);
+        display: grid;
+        place-items: center;
+        font-size: 17px;
+      }
+
+      /* ---- the score header: permanent, cream, tap to open 13 weeks ---- */
+      .hdr {
+        margin-top: var(--s8);
+        background: var(--cream);
+        background-image: var(
+          --noise
+        ); /* paper grain on the cream surfaces only */
+        background-size: 128px 128px;
+        color: var(--ink);
+        border-radius: 26px;
+        padding: var(--s13) var(--s13) var(--s8);
+        box-shadow:
+          0 1px 0 rgba(255, 255, 255, 0.6) inset,
+          0 21px 34px -21px rgba(10, 2, 12, 0.7);
+        cursor: pointer;
+        position: relative;
+        z-index: 15;
+      }
+      .hrow {
+        display: grid;
+        grid-template-columns: auto 1fr auto;
+        gap: var(--s13);
+        align-items: center;
+      }
+      .hnum {
+        display: flex;
+        align-items: flex-end;
+        gap: var(--s3);
+      }
+      .odo {
+        display: inline-flex;
+        font-size: 55px;
+        font-weight: 600;
+        letter-spacing: -0.05em;
+        height: 1em;
+        line-height: 1;
+        overflow: hidden;
+      }
+      .odo .dg {
+        display: block;
+        height: 1em;
+        overflow: hidden;
+      }
+      .odo .strip {
+        display: flex;
+        flex-direction: column;
+        transition: transform 1100ms var(--spring);
+      }
+      .odo .strip span {
+        display: block;
+        height: 1em;
+        line-height: 1;
+      }
+      .hnum small {
+        font-size: 11px;
+        color: var(--ink-3);
+        margin-bottom: var(--s5);
+      }
+      .hmeta {
+        display: flex;
+        flex-direction: column;
+        gap: var(--s5);
+        align-items: flex-start;
+        min-width: 0;
+      }
+      .hmeta b {
+        font-size: 17px;
+        font-weight: 600;
+        letter-spacing: -0.01em;
+        line-height: 1;
+      }
+      .pill {
+        display: inline-flex;
+        gap: var(--s3);
+        padding: var(--s3) var(--s8);
+        border-radius: 999px;
+        font-size: 11px;
+        font-weight: 600;
+        background: var(--green-soft);
+        color: var(--green);
+        white-space: nowrap;
+      }
+      .pill.pop {
+        animation: pillpop 600ms var(--spring);
+      }
+      @keyframes pillpop {
+        40% {
+          transform: scale(1.12);
+        }
+      }
+      .mini {
+        display: grid;
+        grid-template-columns: repeat(5, 8px);
+        grid-template-rows: repeat(7, 8px);
+        grid-auto-flow: column;
+        gap: 3px;
+        transition:
+          opacity 320ms var(--ease),
+          transform 420ms var(--ease);
+      }
+      .mc {
+        width: 8px;
+        height: 8px;
+        border-radius: 2px;
+        background: var(--c);
+        transition: background 600ms var(--ease);
+        position: relative;
+      }
+      .mc.future {
+        background: none;
+        box-shadow: inset 0 0 0 1px var(--line);
+      }
+      .mc.today {
+        z-index: 1;
+        box-shadow: 0 0 0 1.5px var(--cream);
+        animation: beat 2.4s var(--ease) 1.4s infinite;
+      }
+      .mc.today::before,
+      .cell.today::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        border-radius: inherit;
+        box-shadow: 0 0 0 0 var(--c);
+        animation: ring 2.4s var(--ease) 1.4s infinite;
+      }
+      @keyframes beat {
+        0%,
+        100% {
+          transform: scale(1.3);
+        }
+        12% {
+          transform: scale(1.6);
+        }
+      }
+      @keyframes ring {
+        0% {
+          box-shadow: 0 0 0 0 var(--c);
+          opacity: 0.7;
+        }
+        70%,
+        100% {
+          box-shadow: 0 0 0 8px var(--c);
+          opacity: 0;
+        }
+      }
+      .flash {
+        animation: flash 1.6s var(--ease) !important;
+      }
+      @keyframes flash {
+        0%,
+        40%,
+        80% {
+          transform: scale(1.3);
+          filter: none;
+        }
+        20%,
+        60% {
+          transform: scale(2.2);
+          filter: brightness(1.4) saturate(1.3);
+          box-shadow: 0 0 0 3px var(--lime);
+        }
+      }
+      .hdr.open .mini {
+        opacity: 0;
+        transform: scale(0.6);
+        pointer-events: none;
+      }
+      .bar3 {
+        margin-top: var(--s8);
+        height: 5px;
+        border-radius: 3px;
+        background: var(--cream-2);
+        box-shadow: 0 0 0 1px var(--line) inset;
+        display: flex;
+        overflow: hidden;
+      }
+      .bar3 i {
+        height: 100%;
+        width: var(--w);
+        background: var(--c);
+        transition: width 900ms var(--ease);
+      }
+      .bar3 i + i {
+        box-shadow: 1.5px 0 0 var(--cream) inset;
+      }
+      .lg3 {
+        display: flex;
+        align-items: center;
+        gap: var(--s13);
+        margin-top: var(--s5);
+        font-size: 11px;
+        color: var(--ink-2);
+      }
+      .lg3 > span {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--s3);
+      }
+      .lg3 i {
+        width: 8px;
+        height: 8px;
+        border-radius: 2px;
+        background: var(--c);
+      }
+      .lg3 b {
+        color: var(--ink);
+        font-weight: 600;
+      }
+      .lg3 .chev {
+        margin-left: auto;
+        color: var(--ink-3);
+        display: inline-flex;
+        align-items: center;
+        gap: var(--s3);
+      }
+      .lg3 .chev svg {
+        width: 15px;
+        height: 15px;
+        transition: transform 420ms var(--ease);
+      }
+      .hdr.open .lg3 .chev svg {
+        transform: rotate(180deg);
+      }
+      .more {
+        height: 0;
+        overflow: hidden;
+        transition: height 520ms var(--ease);
+      }
+      .more.shown {
+        overflow: visible;
+      }
+      .more-in {
+        padding-top: var(--s13);
+      }
+      .hmhead {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: var(--s8);
+        font-size: 11px;
+        color: var(--ink-2);
+      }
+      .hmhead .lbl {
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        font-weight: 600;
+      }
+      .hmhead .stk {
+        color: var(--ink);
+        font-weight: 600;
+        font-size: 13px;
+      }
+      .hm {
+        position: relative;
+        display: grid;
+        grid-template-columns: 13px repeat(13, 17px);
+        grid-template-rows: 13px repeat(7, 17px);
+        column-gap: 5px;
+        row-gap: 5px;
+        justify-content: center;
+      }
+      .hm .mo,
+      .hm .dw {
+        font-size: 10px;
+        color: var(--ink-3);
+        white-space: nowrap;
+        line-height: 13px;
+      }
+      .hm .dw {
+        line-height: 17px;
+      }
+      .cell {
+        width: 17px;
+        height: 17px;
+        border-radius: 5px;
+        background: var(--c);
+        position: relative;
+        transition:
+          background 600ms var(--ease),
+          opacity 320ms var(--ease),
+          transform 320ms var(--ease);
+        animation: cpop 420ms var(--ease) both;
+        animation-delay: var(--d);
+      }
+      @keyframes cpop {
+        from {
+          transform: scale(0.3);
+          opacity: 0;
+        }
+      }
+      .cell.future {
+        background: none;
+        box-shadow: inset 0 0 0 1px var(--line);
+      }
+      .cell.draw::after {
+        content: "";
+        position: absolute;
+        inset: 5.5px;
+        border-radius: 50%;
+        background: var(--cream);
+      }
+      .cell.today {
+        z-index: 2;
+        transform: scale(1.3);
+        box-shadow: 0 0 0 1.5px var(--cream);
+        display: grid;
+        place-items: center;
+        font-size: 8px;
+        font-weight: 700;
+        color: #fff;
+        animation: beat 2.4s var(--ease) 1.4s infinite;
+      }
+      .hm.sel .cell:not(.on):not(.future) {
+        opacity: 0.28;
+      }
+      .hm.sel .cell.on:not(.today) {
+        transform: scale(1.25);
+        box-shadow:
+          0 0 0 2px var(--cream),
+          0 0 0 3.5px var(--ink);
+        z-index: 1;
+      }
+      .tip {
+        position: absolute;
+        z-index: 5;
+        width: 212px;
+        background: var(--plum-0);
+        color: var(--cream);
+        border-radius: 13px;
+        padding: var(--s13);
+        box-shadow: 0 21px 34px -13px rgba(10, 2, 12, 0.6);
+        pointer-events: none;
+        animation: tipin 320ms var(--ease);
+      }
+      @keyframes tipin {
+        from {
+          opacity: 0;
+          transform: translateY(5px);
+        }
+      }
+      .tip::after {
+        content: "";
+        position: absolute;
+        left: var(--ax);
+        width: 10px;
+        height: 10px;
+        background: var(--plum-0);
+        transform: translateX(-50%) rotate(45deg);
+      }
+      .tip.up::after {
+        bottom: -5px;
+      }
+      .tip.dn::after {
+        top: -5px;
+      }
+      .tip .d {
+        font-size: 11px;
+        color: var(--mist);
+      }
+      .tip .s {
+        display: flex;
+        align-items: baseline;
+        gap: var(--s8);
+        margin-top: 2px;
+      }
+      .tip .s b {
+        font-size: 34px;
+        font-weight: 600;
+        letter-spacing: -0.04em;
+        line-height: 1;
+      }
+      .tip .s i {
+        width: 10px;
+        height: 10px;
+        border-radius: 3px;
+        background: var(--c);
+        align-self: center;
+      }
+      .tip .s span {
+        font-size: 13px;
+        font-weight: 600;
+      }
+      .tip .r {
+        margin-top: var(--s8);
+        padding-top: var(--s8);
+        border-top: 1px solid rgba(246, 237, 220, 0.14);
+        font-size: 12.5px;
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: var(--s8);
+        align-items: start;
+      }
+      .tip .r small {
+        display: block;
+        font-size: 10px;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--mist);
+      }
+      .tip .r em {
+        font-style: normal;
+        font-weight: 700;
+      }
+      .tip .p {
+        margin-top: var(--s5);
+        font-size: 11px;
+        color: var(--mist);
+      }
+      .legend {
+        margin-top: var(--s8);
+        display: flex;
+        align-items: center;
+        gap: var(--s3);
+        font-size: 10.5px;
+        color: var(--ink-3);
+      }
+      .legend i {
+        width: 10px;
+        height: 10px;
+        border-radius: 3px;
+      }
+      .legend .gap {
+        flex: 1;
+      }
+      .legend .dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 3px;
+        background: var(--ink-3);
+        position: relative;
+      }
+      .legend .dot::after {
+        content: "";
+        position: absolute;
+        inset: 3px;
+        border-radius: 50%;
+        background: var(--cream);
+      }
+
+      /* ---- the three piles ---- */
+      .seg {
+        margin-top: var(--s13);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: var(--s5);
+        font-size: 13px;
+        color: var(--mist);
+        position: relative;
+        z-index: 3;
+      }
+      .seg > i {
+        font-style: normal;
+        opacity: 0.5;
+      }
+      .seg button {
+        padding: var(--s5) var(--s13);
+        border-radius: 999px;
+        display: inline-flex;
+        gap: var(--s5);
+        align-items: center;
+        transition:
+          background 360ms var(--ease),
+          color 360ms var(--ease);
+      }
+      .seg button.on {
+        background: rgba(246, 237, 220, 0.14);
+        color: var(--cream);
+        font-weight: 600;
+      }
+      .seg button em {
+        font-style: normal;
+        font-size: 11px;
+        min-width: 17px;
+        height: 17px;
+        border-radius: 9px;
+        background: var(--lime);
+        color: var(--plum);
+        display: inline-grid;
+        place-items: center;
+        font-weight: 700;
+        transition: transform 420ms var(--spring);
+      }
+      .seg button em.zero {
+        transform: scale(0);
+      }
+      .table {
+        position: relative;
+        margin: var(--s5) calc(-1 * var(--s21)) 0;
+        height: 425px;
+        transition: opacity 420ms var(--ease);
+      }
+      .hdr.open ~ .table {
+        opacity: 0.55;
+      }
+      .track {
+        position: absolute;
+        left: 0;
+        top: 0;
+        display: flex;
+        gap: var(--s13);
+        transition: transform 560ms var(--spring);
+      }
+      .track.drag {
+        transition: none;
+      }
+      .pile {
+        width: var(--cw);
+        height: 425px;
+        position: relative;
+        transition:
+          opacity 420ms var(--ease),
+          filter 420ms var(--ease);
+      }
+      .pile:not(.on) {
+        opacity: 0.5;
+        filter: saturate(0.6);
+        cursor: pointer;
+      }
+      .pile:not(.on) .card {
+        pointer-events: none !important;
+      }
+      .float {
+        position: absolute;
+        inset: 0;
+      }
+      .pile.on .float {
+        animation: idle 5.5s ease-in-out infinite;
+      }
+      @keyframes idle {
+        0%,
+        100% {
+          transform: translateY(0) rotate(0);
+        }
+        50% {
+          transform: translateY(-3px) rotate(0.25deg);
+        }
+      }
+      .card {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 21px;
+        height: 404px;
+        border-radius: var(--r);
+        background: var(--cream);
+        background-image: var(--noise);
+        background-size: 128px 128px;
+        color: var(--ink);
+        padding: var(--s21);
+        transform-origin: 50% 0;
+        transition:
+          transform 480ms var(--spring),
+          opacity 360ms var(--ease),
+          filter 360ms var(--ease);
+        box-shadow:
+          0 1px 0 rgba(255, 255, 255, 0.6) inset,
+          0 21px 34px -13px rgba(10, 2, 12, 0.55);
+        touch-action: none;
+        cursor: grab;
+        overflow: hidden;
+      }
+      .card.behind {
+        filter: brightness(0.86) saturate(0.8);
+      }
+      .card.drag {
+        transition: none;
+        cursor: grabbing;
+      }
+      .idx {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 11px;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--ink-2);
+        font-weight: 500;
+      }
+      .idx svg {
+        width: 15px;
+        height: 15px;
+      }
+      .stamp {
+        position: absolute;
+        top: 55px;
+        padding: var(--s3) var(--s13);
+        border: 3px solid currentColor;
+        border-radius: 8px;
+        font-size: 34px;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        opacity: 0;
+        pointer-events: none;
+        z-index: 2;
+      }
+      .stamp.tick {
+        left: var(--s21);
+        color: var(--green);
+        transform: rotate(-14deg);
+      }
+      .stamp.skip {
+        right: var(--s21);
+        color: var(--rose);
+        transform: rotate(14deg);
+      }
+
+      /* Do: a move */
+      .target {
+        margin: var(--s13) auto 0;
+        width: 110px;
+        height: 110px;
+        border-radius: 50%;
+        border: 2px dashed var(--cream-3);
+        display: grid;
+        place-items: center;
+        position: relative;
+        cursor: pointer;
+      }
+      .target::before {
+        content: "";
+        position: absolute;
+        inset: 8px;
+        border-radius: 50%;
+        background: var(--ink);
+        box-shadow: 0 13px 21px -8px rgba(43, 16, 51, 0.5);
+      }
+      .target svg {
+        position: relative;
+        width: 34px;
+        height: 34px;
+        color: var(--cream);
+        stroke-width: 1.6;
+      }
+      .target .pulse {
+        position: absolute;
+        inset: 8px;
+        border-radius: 50%;
+        border: 2px solid var(--ink);
+        animation: pulse 2.1s var(--ease) infinite;
+      }
+      @keyframes pulse {
+        from {
+          transform: scale(1);
+          opacity: 0.6;
+        }
+        to {
+          transform: scale(1.25);
+          opacity: 0;
+        }
+      }
+      .move-name {
+        text-align: center;
+        margin-top: var(--s13);
+        font-size: 28px;
+        font-weight: 600;
+        letter-spacing: -0.03em;
+        line-height: 1.05;
+      }
+      .move-sub {
+        text-align: center;
+        font-size: 13px;
+        color: var(--ink-2);
+        margin-top: var(--s5);
+        min-height: 36px;
+      }
+      .hint {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: var(--s8);
+        font-size: 11px;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        font-weight: 600;
+      }
+      .hint .l {
+        color: var(--rose);
+      }
+      .hint .r {
+        color: var(--green);
+      }
+      .hint .m {
+        color: var(--ink-3);
+        letter-spacing: 0.04em;
+        text-transform: none;
+        font-weight: 500;
+      }
+      .chips {
+        display: flex;
+        justify-content: space-between;
+        margin-top: var(--s13);
+        padding-top: var(--s13);
+        border-top: 1px solid var(--line);
+      }
+      .chip {
+        width: 52px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: var(--s5);
+        font-size: 10.5px;
+        color: var(--ink-2);
+        text-align: center;
+        line-height: 1.1;
+      }
+      .chip span {
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        border: 2px solid var(--cream-3);
+        display: grid;
+        place-items: center;
+        transition:
+          background 300ms var(--ease),
+          border-color 300ms var(--ease);
+      }
+      .chip svg {
+        width: 17px;
+        height: 17px;
+        stroke-width: 2.4;
+        stroke-dasharray: 22.6;
+        stroke-dashoffset: 22.6;
+        transition: stroke-dashoffset 420ms var(--ease) 120ms;
+      }
+      .chip.done span {
+        background: var(--green);
+        border-color: var(--green);
+        color: #fff;
+      }
+      .chip.done svg {
+        stroke-dashoffset: 0;
+      }
+      .chip.now span {
+        border-color: var(--ink);
+      }
+      .chip.now {
+        color: var(--ink);
+        font-weight: 600;
+      }
+      .chip.skip span {
+        border-style: dashed;
+        border-color: var(--rose);
+      }
+
+      /* Do: the log prompt */
+      .ask {
+        margin-top: var(--s21);
+        font-size: 28px;
+        font-weight: 600;
+        letter-spacing: -0.03em;
+        line-height: 1.05;
+      }
+      .ask-sub {
+        margin-top: var(--s8);
+        font-size: 13px;
+        color: var(--ink-2);
+      }
+      .ask-sub b {
+        color: var(--ink);
+        font-weight: 600;
+      }
+      .ways {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: var(--s8);
+        margin-top: var(--s21);
+      }
+      .ways button {
+        background: var(--cream-2);
+        border-radius: 21px;
+        padding: var(--s13);
+        display: flex;
+        flex-direction: column;
+        gap: var(--s8);
+        font-size: 13px;
+        font-weight: 600;
+      }
+      .ways button small {
+        display: block;
+        font-size: 11px;
+        font-weight: 400;
+        color: var(--ink-2);
+      }
+      .fixlink {
+        margin-top: var(--s13);
+        display: flex;
+        align-items: center;
+        gap: var(--s8);
+        padding: var(--s8);
+        border-radius: 21px;
+        border: 1px solid var(--line);
+        width: 100%;
+        font-size: 13px;
+      }
+      .fixlink img {
+        width: 34px;
+        height: 34px;
+        border-radius: 8px;
+        object-fit: cover;
+        pointer-events: none;
+      }
+      .fixlink span {
+        flex: 1;
+      }
+      .fixlink small {
+        display: block;
+        font-size: 11px;
+        color: var(--ink-2);
+      }
+      .fixlink svg {
+        width: 15px;
+        height: 15px;
+        color: var(--ink-3);
+        transform: rotate(-90deg);
+      }
+
+      /* Do: empty */
+      .empty {
+        position: absolute;
+        inset: 21px 0 0;
+        border-radius: var(--r);
+        border: 1.5px dashed rgba(246, 237, 220, 0.25);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        padding: var(--s34) var(--s21) 0;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 600ms var(--ease) 200ms;
+      }
+      .pile.none .empty {
+        opacity: 1;
+        pointer-events: auto;
+      }
+      .disc {
+        width: 144px;
+        height: 144px;
+        border-radius: 50%;
+        background: #f8f3e3 url(img/45-empty.png) -65px -64px / 273px 273px
+          no-repeat;
+        box-shadow: 0 21px 34px -13px rgba(10, 2, 12, 0.6);
+        animation: bob 4.2s ease-in-out infinite;
+      }
+      @keyframes bob {
+        0%,
+        100% {
+          transform: translateY(0) rotate(-2deg);
+        }
+        50% {
+          transform: translateY(-8px) rotate(2deg);
+        }
+      }
+      .empty b {
+        margin-top: var(--s21);
+        font-size: 28px;
+        font-weight: 600;
+        letter-spacing: -0.03em;
+        line-height: 1.05;
+      }
+      .empty small {
+        margin-top: var(--s8);
+        font-size: 13px;
+        color: var(--mist);
+      }
+      .empty .chips {
+        border-color: rgba(246, 237, 220, 0.14);
+        width: 100%;
+        margin-top: var(--s21);
+      }
+      .empty .chip {
+        color: var(--mist);
+      }
+      .empty .chip span {
+        border-color: rgba(246, 237, 220, 0.3);
+      }
+      .confetti {
+        position: absolute;
+        left: 50%;
+        top: 40%;
+        width: 0;
+        height: 0;
+        z-index: 40;
+        pointer-events: none;
+      }
+      .confetti i {
+        position: absolute;
+        width: 8px;
+        height: 13px;
+        border-radius: 2px;
+        background: var(--c);
+        box-shadow: 0 1px 2px rgba(10, 2, 12, 0.3);
+        animation: fall 1.8s cubic-bezier(0.2, 0.6, 0.4, 1) forwards;
+        animation-delay: var(--dl);
+        opacity: 0;
+      }
+      @keyframes fall {
+        0% {
+          opacity: 1;
+          transform: translate(0, 0) rotate(0) scale(0.6);
+        }
+        30% {
+          opacity: 1;
+          transform: translate(calc(var(--dx) * 0.6), var(--dy))
+            rotate(calc(var(--r) * 0.4)) scale(1);
+        }
+        100% {
+          opacity: 0;
+          transform: translate(var(--dx), calc(var(--dy) + 460px))
+            rotate(var(--r)) scale(1);
+        }
+      }
+
+      /* Now: food */
+      .ftop {
+        display: grid;
+        grid-template-columns: 110px 1fr;
+        gap: var(--s13);
+        align-items: center;
+        margin-top: var(--s13);
+      }
+      .kc {
+        position: relative;
+        width: 110px;
+        height: 110px;
+      }
+      .kc svg {
+        width: 110px;
+        height: 110px;
+        transform: rotate(-90deg);
+      }
+      .kc circle {
+        stroke-width: 8;
+      }
+      .kc .tr {
+        stroke: var(--cream-3);
+      }
+      .kc .fl {
+        stroke: var(--life);
+        stroke-linecap: round;
+        transition: stroke-dashoffset 900ms var(--ease);
+      }
+      .kc .c {
+        position: absolute;
+        inset: 0;
+        display: grid;
+        place-content: center;
+        text-align: center;
+      }
+      .kc .c b {
+        font-size: 21px;
+        font-weight: 600;
+        letter-spacing: -0.03em;
+        line-height: 1.05;
+      }
+      .kc .c small {
+        font-size: 10.5px;
+        color: var(--ink-2);
+      }
+      .mac > div {
+        padding: var(--s5) 0;
+      }
+      .mac small {
+        display: flex;
+        justify-content: space-between;
+        font-size: 11px;
+        color: var(--ink-2);
+      }
+      .mac small b {
+        color: var(--ink);
+        font-weight: 600;
+      }
+      .mac small b.over {
+        color: var(--rose);
+      }
+      .rail {
+        height: 5px;
+        border-radius: 3px;
+        background: var(--cream-3);
+        margin-top: var(--s3);
+        overflow: hidden;
+        display: flex;
+      }
+      .rail i {
+        display: block;
+        height: 100%;
+        width: var(--w);
+        background: var(--c);
+        transition: width 700ms var(--ease);
+        flex: none;
+      }
+      .left {
+        font-size: 11px;
+        color: var(--ink-2);
+      }
+      .left b {
+        font-size: 17px;
+        color: var(--ink);
+        font-weight: 600;
+      }
+      .plates {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: var(--s8);
+        margin-top: var(--s21);
+      }
+      .plates.n4 {
+        grid-template-columns: repeat(4, 1fr);
+      }
+      .plates.n4 img {
+        height: 76px;
+      }
+      .plates button {
+        display: block;
+        transition:
+          transform 480ms var(--ease),
+          opacity 480ms var(--ease);
+      }
+      .plates img {
+        width: 100%;
+        height: 89px;
+        object-fit: cover;
+        border-radius: 21px;
+        display: block;
+        pointer-events: none;
+      }
+      .plates span {
+        display: block;
+        margin-top: var(--s5);
+        font-size: 11px;
+        color: var(--ink-2);
+        line-height: 1.3;
+      }
+      .plates span b {
+        display: block;
+        font-size: 13px;
+        color: var(--ink);
+        font-weight: 600;
+      }
+      .foot {
+        margin-top: var(--s13);
+        font-size: 11px;
+        color: var(--ink-3);
+        display: flex;
+        align-items: center;
+        gap: var(--s5);
+      }
+      .foot svg {
+        width: 13px;
+        height: 13px;
+      }
+
+      /* Now: sleep */
+      .big {
+        margin-top: var(--s21);
+        font-size: 55px;
+        font-weight: 600;
+        letter-spacing: -0.05em;
+        line-height: 1;
+      }
+      .big small {
+        display: block;
+        font-size: 13px;
+        letter-spacing: 0;
+        font-weight: 400;
+        color: var(--ink-2);
+        margin-top: var(--s8);
+      }
+      .big small b {
+        color: var(--green);
+        font-weight: 600;
+      }
+      .still {
+        position: absolute;
+        right: var(--s13);
+        top: 34px;
+        width: 110px;
+        height: 110px;
+        background: url(img/45-sleep.png) -73px -68px / 250px 250px no-repeat;
+        mix-blend-mode: multiply;
+        animation: bob 5.5s ease-in-out infinite;
+      }
+      .hyp {
+        width: 100%;
+        height: 89px;
+        margin-top: var(--s21);
+        display: block;
+        overflow: visible;
+      }
+      .hyp text {
+        font:
+          500 10.5px "Space Grotesk",
+          sans-serif;
+        fill: var(--ink-3);
+        stroke: none;
+      }
+      .rows3 {
+        margin-top: var(--s13);
+      }
+      .rows3 div {
+        display: flex;
+        justify-content: space-between;
+        padding: var(--s8) 0;
+        border-top: 1px solid var(--line);
+        font-size: 13px;
+      }
+      .rows3 div span {
+        color: var(--ink-2);
+      }
+      .rows3 div b {
+        font-weight: 600;
+      }
+
+      /* Now: markers */
+      .mk {
+        padding: var(--s13) 0;
+        border-top: 1px solid var(--line);
+      }
+      .mk:first-of-type {
+        margin-top: var(--s13);
+      }
+      .mk .h {
+        display: flex;
+        align-items: baseline;
+        gap: var(--s8);
+      }
+      .mk .h b {
+        font-size: 17px;
+        font-weight: 600;
+      }
+      .mk .h em {
+        font-style: normal;
+        font-size: 13px;
+        color: var(--ink-2);
+      }
+      .tag {
+        margin-left: auto;
+        padding: var(--s3) var(--s8);
+        border-radius: 999px;
+        font-size: 11px;
+        font-weight: 600;
+        white-space: nowrap;
+      }
+      .tag.amber {
+        background: var(--amber-soft);
+        color: var(--amber);
+      }
+      .tag.rose {
+        background: var(--rose-soft);
+        color: var(--rose);
+      }
+      .tag.green {
+        background: var(--green-soft);
+        color: var(--green);
+      }
+      .range {
+        margin-top: var(--s8);
+        height: 8px;
+        border-radius: 5px;
+        position: relative;
+        background: linear-gradient(
+          90deg,
+          var(--cream-3) 0 30%,
+          var(--green-soft) 30% 62%,
+          var(--cream-3) 62%
+        );
+        overflow: hidden;
+      }
+      .range i {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        width: 13px;
+        border-radius: 5px;
+        left: clamp(0px, calc(var(--x) - 6px), calc(100% - 13px));
+        background: var(--c);
+      }
+      .mk small {
+        display: block;
+        margin-top: var(--s5);
+        font-size: 11px;
+        color: var(--ink-3);
+      }
+      .okrow {
+        padding-top: var(--s13);
+        border-top: 1px solid var(--line);
+        font-size: 13px;
+        color: var(--ink-2);
+      }
+      .okrow b {
+        color: var(--green);
+        font-weight: 600;
+      }
+
+      /* Ahead */
+      .lead {
+        margin-top: var(--s13);
+        display: flex;
+        align-items: baseline;
+        gap: var(--s8);
+      }
+      .lead b {
+        font-size: 55px;
+        font-weight: 600;
+        letter-spacing: -0.05em;
+        line-height: 1;
+      }
+      .lead em {
+        font-style: normal;
+        font-size: 13px;
+        color: var(--ink-2);
+      }
+      .chart {
+        width: 100%;
+        height: 136px;
+        margin-top: var(--s8);
+        display: block;
+        overflow: visible;
+      }
+      .chart text {
+        font:
+          500 11px "Space Grotesk",
+          sans-serif;
+        fill: var(--ink-2);
+        stroke: none;
+      }
+      .chart text.v {
+        font-weight: 600;
+        fill: var(--ink);
+        font-size: 13px;
+      }
+      .say {
+        margin-top: var(--s8);
+        font-size: 17px;
+        line-height: 1.3;
+        letter-spacing: -0.01em;
+      }
+      .say b {
+        font-weight: 600;
+        color: var(--blood);
+      }
+      .say small {
+        display: block;
+        margin-top: var(--s5);
+        font-size: 13px;
+        color: var(--ink-2);
+        letter-spacing: 0;
+      }
+      .vial {
+        position: absolute;
+        right: var(--s34);
+        top: 55px;
+        width: 34px;
+        height: 104px;
+        background: url(img/45-draw.png) -94px -104px / 307px 307px no-repeat;
+        mix-blend-mode: multiply;
+        animation: tilt 3.4s ease-in-out infinite;
+        transform-origin: 50% 90%;
+      }
+      @keyframes tilt {
+        0%,
+        100% {
+          transform: rotate(-5deg);
+        }
+        50% {
+          transform: rotate(5deg);
+        }
+      }
+      .days {
+        display: inline-flex;
+        margin-top: var(--s8);
+        padding: var(--s3) var(--s8);
+        border-radius: 999px;
+        background: var(--cream-2);
+        font-size: 13px;
+        font-weight: 600;
+      }
+      .cal {
+        margin-top: var(--s13);
+        width: 100%;
+        height: 48px;
+        border-radius: 999px;
+        background: var(--ink);
+        color: var(--cream);
+        text-align: center;
+        font-weight: 600;
+        font-size: 15px;
+        transition: background 320ms var(--ease);
+      }
+      .cal.on {
+        background: var(--green);
+      }
+
+      /* ---- the food edit view ---- */
+      .edit {
+        position: absolute;
+        inset: 0;
+        z-index: 30;
+        background: var(--cream);
+        color: var(--ink);
+        transform: translateY(105%);
+        transition: transform 560ms var(--spring);
+        overflow-y: auto;
+        scrollbar-width: none;
+        border-radius: 47px;
+      }
+      .edit::-webkit-scrollbar {
+        display: none;
+      }
+      .phone.editing .edit {
+        transform: none;
+      }
+      .edit.crumple {
+        animation: crumple 900ms cubic-bezier(0.5, 0, 0.8, 0.4) forwards;
+        overflow: hidden;
+      }
+      @keyframes crumple {
+        0% {
+          clip-path: polygon(
+            0 0,
+            25% 0,
+            50% 0,
+            75% 0,
+            100% 0,
+            100% 25%,
+            100% 50%,
+            100% 75%,
+            100% 100%,
+            75% 100%,
+            50% 100%,
+            25% 100%,
+            0 100%,
+            0 75%,
+            0 50%,
+            0 25%
+          );
+          transform: none;
+          filter: none;
+        }
+        35% {
+          clip-path: polygon(
+            8% 6%,
+            27% 13%,
+            49% 3%,
+            70% 14%,
+            94% 5%,
+            86% 27%,
+            97% 49%,
+            84% 72%,
+            93% 95%,
+            72% 86%,
+            50% 97%,
+            27% 85%,
+            6% 94%,
+            15% 72%,
+            3% 50%,
+            14% 26%
+          );
+          transform: scale(0.62) rotate(-8deg);
+          filter: brightness(0.92) contrast(1.1);
+        }
+        60% {
+          clip-path: polygon(
+            30% 26%,
+            40% 34%,
+            50% 22%,
+            61% 33%,
+            74% 26%,
+            67% 40%,
+            78% 50%,
+            66% 60%,
+            73% 74%,
+            60% 67%,
+            50% 78%,
+            39% 66%,
+            26% 74%,
+            34% 60%,
+            22% 50%,
+            33% 40%
+          );
+          transform: scale(0.5) rotate(40deg);
+        }
+        100% {
+          clip-path: polygon(
+            30% 26%,
+            40% 34%,
+            50% 22%,
+            61% 33%,
+            74% 26%,
+            67% 40%,
+            78% 50%,
+            66% 60%,
+            73% 74%,
+            60% 67%,
+            50% 78%,
+            39% 66%,
+            26% 74%,
+            34% 60%,
+            22% 50%,
+            33% 40%
+          );
+          transform: translate(160px, 520px) scale(0.12) rotate(300deg);
+          opacity: 0.6;
+        }
+      }
+      .hero {
+        position: relative;
+        height: 170px;
+        overflow: hidden;
+        border-radius: 47px 47px 21px 21px;
+      }
+      .hero img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+        animation: kb 21s ease-in-out infinite alternate;
+      }
+      @keyframes kb {
+        from {
+          transform: scale(1.04) translate(0, 0);
+        }
+        to {
+          transform: scale(1.16) translate(-13px, 5px);
+        }
+      }
+      .hero::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(
+          180deg,
+          rgba(30, 10, 36, 0.45),
+          transparent 45%
+        );
+      }
+      .hero .x {
+        position: absolute;
+        left: var(--s21);
+        top: 55px;
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        background: rgba(30, 10, 36, 0.5);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        color: var(--cream);
+        display: grid;
+        place-items: center;
+        z-index: 2;
+      }
+      .hero .x svg {
+        width: 17px;
+        height: 17px;
+      }
+      .live {
+        position: absolute;
+        right: var(--s21);
+        top: 55px;
+        z-index: 2;
+        padding: var(--s5) var(--s13);
+        border-radius: 999px;
+        background: rgba(30, 10, 36, 0.55);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        color: var(--cream);
+        font-size: 11px;
+        display: flex;
+        gap: var(--s8);
+        align-items: center;
+      }
+      .live b {
+        font-size: 13px;
+        font-weight: 600;
+      }
+      .live i {
+        width: 8px;
+        height: 8px;
+        border-radius: 2px;
+        background: var(--c);
+        transition: background 600ms var(--ease);
+      }
+      .eb {
+        padding: var(--s13) var(--s21) var(--s55);
+      }
+      .nm {
+        display: flex;
+        align-items: center;
+        gap: var(--s8);
+      }
+      .nm input {
+        flex: 1;
+        min-width: 0;
+        border: 0;
+        background: none;
+        outline: none;
+        font-size: 28px;
+        font-weight: 600;
+        letter-spacing: -0.03em;
+        padding: 0;
+        border-bottom: 1.5px dashed transparent;
+      }
+      .nm input:focus {
+        border-bottom-color: var(--cream-3);
+      }
+      .nm svg {
+        width: 17px;
+        height: 17px;
+        color: var(--ink-3);
+        flex: none;
+      }
+      .when {
+        display: flex;
+        gap: var(--s8);
+        align-items: center;
+        margin-top: var(--s3);
+        font-size: 13px;
+        color: var(--ink-2);
+      }
+      .when input {
+        border: 0;
+        background: var(--cream-2);
+        border-radius: 8px;
+        padding: 1px var(--s5);
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--ink);
+      }
+      .por {
+        margin-top: var(--s13);
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: var(--s13);
+        align-items: center;
+      }
+      .step {
+        display: flex;
+        align-items: center;
+        background: var(--cream-2);
+        border-radius: 999px;
+        padding: var(--s3);
+      }
+      .step button {
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        background: var(--cream);
+        display: grid;
+        place-items: center;
+        box-shadow: 0 1px 3px rgba(43, 16, 51, 0.15);
+      }
+      .step button svg {
+        width: 17px;
+        height: 17px;
+        stroke-width: 2.2;
+      }
+      .step b {
+        min-width: 55px;
+        text-align: center;
+        font-size: 17px;
+        font-weight: 600;
+      }
+      .step b.bump {
+        animation: pillpop 420ms var(--spring);
+      }
+      .kk {
+        text-align: right;
+      }
+      .kk b {
+        font-size: 34px;
+        font-weight: 600;
+        letter-spacing: -0.04em;
+        line-height: 1;
+      }
+      .kk small {
+        display: block;
+        font-size: 11px;
+        color: var(--ink-2);
+      }
+      .tiles {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: var(--s8);
+        margin-top: var(--s13);
+      }
+      .tiles > div {
+        background: var(--cream-2);
+        border-radius: 21px;
+        padding: var(--s13);
+      }
+      .tiles small {
+        display: block;
+        font-size: 11px;
+        color: var(--ink-2);
+      }
+      .tiles b {
+        font-size: 21px;
+        font-weight: 600;
+        letter-spacing: -0.02em;
+      }
+      .tiles b em {
+        font-style: normal;
+        font-size: 11px;
+        font-weight: 400;
+        color: var(--ink-2);
+      }
+      .tiles .rail {
+        margin-top: var(--s5);
+        background: var(--cream-3);
+      }
+      .tiles .day {
+        display: block;
+        font-size: 10.5px;
+        margin-top: var(--s3);
+        color: var(--ink-2);
+      }
+      .tiles .day.over {
+        color: var(--rose);
+        font-weight: 600;
+      }
+      .ih {
+        display: flex;
+        justify-content: space-between;
+        margin-top: var(--s21);
+        font-size: 11px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--ink-2);
+        font-weight: 600;
+      }
+      .ih span:last-child {
+        letter-spacing: 0;
+        text-transform: none;
+        font-weight: 400;
+        color: var(--ink-3);
+      }
+      .ing {
+        position: relative;
+        overflow: hidden;
+        border-bottom: 1px solid var(--line);
+        transition:
+          height 320ms var(--ease),
+          opacity 320ms var(--ease);
+        height: 47px;
+      }
+      .ing.gone {
+        height: 0;
+        opacity: 0;
+        border-width: 0;
+      }
+      .ing .rm {
+        position: absolute;
+        right: 0;
+        top: 0;
+        bottom: 0;
+        width: 89px;
+        background: var(--rose);
+        color: #fff;
+        font-size: 13px;
+        font-weight: 600;
+        text-align: center;
+      }
+      .ing .fg {
+        position: relative;
+        height: 100%;
+        background: var(--cream);
+        display: grid;
+        grid-template-columns: 1fr auto 55px;
+        gap: var(--s8);
+        align-items: center;
+        transition: transform 320ms var(--ease);
+        touch-action: pan-y;
+        cursor: grab;
+      }
+      .ing .fg.drag {
+        transition: none;
+      }
+      .ing .fg span {
+        font-size: 13px;
+        font-weight: 500;
+        line-height: 1.2;
+      }
+      .ing .fg span small {
+        display: block;
+        font-size: 11px;
+        color: var(--ink-3);
+        font-weight: 400;
+      }
+      .amt {
+        padding: var(--s3) var(--s8);
+        border-radius: 8px;
+        background: var(--cream-2);
+        font-size: 13px;
+        font-weight: 600;
+      }
+      .amt input {
+        width: 55px;
+        border: 0;
+        background: none;
+        outline: none;
+        font-weight: 600;
+        font-size: 13px;
+        padding: 0;
+      }
+      .ing .fg .k {
+        text-align: right;
+        font-size: 13px;
+        font-weight: 600;
+      }
+      .ing.fixed .fg {
+        animation: fixed 1.2s var(--ease);
+      }
+      @keyframes fixed {
+        0%,
+        60% {
+          background: var(--green-soft);
+        }
+      }
+      .fix {
+        margin-top: var(--s21);
+        border-radius: 21px;
+        border: 2px dashed var(--cream-3);
+        padding: var(--s13);
+      }
+      .fix label {
+        display: block;
+        font-size: 11px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--ink-2);
+        font-weight: 600;
+      }
+      .fix textarea {
+        width: 100%;
+        border: 0;
+        background: none;
+        resize: none;
+        outline: none;
+        font-size: 15px;
+        height: 42px;
+        margin-top: var(--s5);
+      }
+      .fix .row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: var(--s8);
+      }
+      .fix .row small {
+        font-size: 11px;
+        color: var(--ink-3);
+      }
+      .fix .go {
+        padding: var(--s8) var(--s21);
+        border-radius: 999px;
+        background: var(--lime);
+        color: var(--plum);
+        font-weight: 600;
+        font-size: 13px;
+      }
+      .fix .go[hidden] {
+        display: none;
+      }
+      .fix.reading textarea {
+        background: linear-gradient(
+            90deg,
+            transparent,
+            rgba(214, 243, 74, 0.5),
+            transparent
+          )
+          0 0 / 50% 100% no-repeat;
+        animation: shimmer 900ms linear infinite;
+      }
+      @keyframes shimmer {
+        from {
+          background-position: -100% 0;
+        }
+        to {
+          background-position: 200% 0;
+        }
+      }
+      .del {
+        margin-top: var(--s21);
+        width: 100%;
+        height: 48px;
+        border-radius: 999px;
+        border: 1.5px solid var(--rose);
+        color: var(--rose);
+        text-align: center;
+        font-weight: 600;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: var(--s8);
+      }
+      .del svg {
+        width: 17px;
+        height: 17px;
+      }
+      .confirm {
+        margin-top: var(--s21);
+        border-radius: 21px;
+        background: var(--rose-soft);
+        padding: var(--s13);
+        font-size: 13px;
+        animation: tipin 320ms var(--ease);
+      }
+      .confirm .row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: var(--s8);
+        margin-top: var(--s13);
+      }
+      .confirm button {
+        height: 42px;
+        border-radius: 999px;
+        text-align: center;
+        font-weight: 600;
+        background: var(--cream);
+      }
+      .confirm button.yes {
+        background: var(--rose);
+        color: #fff;
+      }
+
+      /* ---- tab bar ---- */
+      .tabs {
+        position: absolute;
+        left: var(--s13);
+        right: var(--s13);
+        bottom: var(--s21);
+        display: flex;
+        gap: var(--s8);
+        align-items: center;
+        z-index: 20;
+      }
+      .tabs .bar {
+        flex: 1;
+        height: 62px;
+        border-radius: 999px;
+        background: rgba(30, 10, 36, 0.72);
+        border: 1px solid rgba(246, 237, 220, 0.1);
+        backdrop-filter: blur(21px);
+        -webkit-backdrop-filter: blur(21px);
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        padding: 5px;
+      }
+      .tabs .bar button {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 2px;
+        font-size: 11px;
+        color: var(--mist);
+        border-radius: 999px;
+      }
+      .tabs .bar button.on {
+        background: rgba(246, 237, 220, 0.12);
+        color: var(--cream);
+      }
+      .tabs .plus {
+        width: 62px;
+        height: 62px;
+        border-radius: 50%;
+        background: var(--lime);
+        color: var(--plum);
+        display: grid;
+        place-items: center;
+        box-shadow: 0 13px 21px -8px rgba(214, 243, 74, 0.4);
+      }
+      .tabs .plus svg {
+        width: 26px;
+        height: 26px;
+        stroke-width: 2.2;
+      }
+      .home {
+        position: absolute;
+        left: 50%;
+        bottom: 8px;
+        width: 134px;
+        height: 5px;
+        border-radius: 3px;
+        background: var(--cream);
+        opacity: 0.4;
+        transform: translateX(-50%);
+        z-index: 40;
+      }
+      .phone.editing .home {
+        background: var(--ink);
+      }
+      .finger {
+        position: absolute;
+        width: 55px;
+        height: 55px;
+        border-radius: 50%;
+        background: rgba(43, 16, 51, 0.28);
+        border: 2px solid rgba(43, 16, 51, 0.55);
+        box-shadow: 0 0 0 5px rgba(246, 237, 220, 0.35);
+        pointer-events: none;
+        z-index: 38;
+        display: none;
+      }
+
+      /* ---- add sheet (from 44) ---- */
+      .veil {
+        position: absolute;
+        inset: 0;
+        background: rgba(30, 10, 36, 0.55);
+        backdrop-filter: blur(13px);
+        -webkit-backdrop-filter: blur(13px);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 320ms var(--ease);
+        z-index: 25;
+      }
+      .sheet {
+        position: absolute;
+        left: var(--s8);
+        right: var(--s8);
+        bottom: var(--s8);
+        background: var(--cream);
+        color: var(--ink);
+        border-radius: 42px;
+        padding: var(--s21);
+        transform: translateY(110%);
+        transition: transform 480ms var(--spring);
+        z-index: 35;
+      }
+      .phone.open .veil {
+        opacity: 1;
+        pointer-events: auto;
+      }
+      .phone.open .sheet {
+        transform: none;
+      }
+      .sheet .grab {
+        width: 34px;
+        height: 5px;
+        border-radius: 3px;
+        background: var(--cream-3);
+        margin: 0 auto var(--s13);
+      }
+      .sheet h2 {
+        font-size: 21px;
+        font-weight: 600;
+        letter-spacing: -0.02em;
+      }
+      .sheet p {
+        color: var(--ink-2);
+        font-size: 13px;
+        margin: var(--s3) 0 var(--s13);
+      }
+      .modes {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: var(--s8);
+      }
+      .modes button {
+        background: var(--cream-2);
+        border-radius: 21px;
+        padding: var(--s13);
+        display: flex;
+        flex-direction: column;
+        gap: var(--s8);
+        border: 2px solid transparent;
+      }
+      .modes button.on {
+        border-color: var(--ink);
+      }
+      .modes b {
+        font-size: 15px;
+        font-weight: 600;
+      }
+      .modes small {
+        display: block;
+        font-size: 11px;
+        color: var(--ink-2);
+      }
+      .well {
+        margin-top: var(--s13);
+        min-height: 89px;
+        border-radius: 21px;
+        border: 2px dashed var(--cream-3);
+        padding: var(--s13);
+        font-size: 13px;
+        color: var(--ink-2);
+        display: flex;
+        align-items: center;
+        gap: var(--s13);
+      }
+      .well img {
+        width: 62px;
+        height: 62px;
+        border-radius: 13px;
+        object-fit: cover;
+      }
+      .well textarea {
+        width: 100%;
+        border: 0;
+        background: none;
+        font-size: 15px;
+        color: var(--ink);
+        resize: none;
+        outline: none;
+        height: 55px;
+      }
+      .wave {
+        display: flex;
+        align-items: center;
+        gap: var(--s3);
+        height: 34px;
+      }
+      .wave i {
+        width: 3px;
+        border-radius: 2px;
+        background: var(--ink);
+        animation: wv 700ms var(--ease) infinite alternate;
+      }
+      @keyframes wv {
+        from {
+          height: 5px;
+        }
+        to {
+          height: 34px;
+        }
+      }
+      .send {
+        margin-top: var(--s13);
+        width: 100%;
+        height: 55px;
+        border-radius: 999px;
+        background: var(--lime);
+        color: var(--plum);
+        font-weight: 600;
+        text-align: center;
+        font-size: 17px;
+      }
+      .send[hidden] {
+        display: none;
+      }
+
+      /* ---- notes ---- */
+      .notes {
+        margin: var(--s55) auto 0;
+        max-width: 80ch;
+        font-size: 13px;
+        color: var(--mist);
+      }
+      .notes h2 {
+        font-size: 17px;
+        font-weight: 600;
+        color: var(--cream);
+        margin-bottom: var(--s8);
+      }
+      .notes table {
+        border-collapse: collapse;
+        width: 100%;
+        margin: var(--s8) 0 var(--s34);
+      }
+      .notes td,
+      .notes th {
+        text-align: left;
+        padding: var(--s8) var(--s8) var(--s8) 0;
+        border-bottom: 1px solid var(--plum-3);
+        vertical-align: top;
+      }
+      .notes th {
+        font-weight: 600;
+        color: var(--cream);
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .glow,
+        .pile.on .float,
+        .target .pulse,
+        .mc.today,
+        .mc.today::before,
+        .cell.today,
+        .cell.today::before,
+        .cell,
+        .disc,
+        .still,
+        .vial,
+        .hero img,
+        .wave i {
+          animation: none !important;
+        }
+        .confetti {
+          display: none;
+        }
+        .card,
+        .track,
+        .odo .strip,
+        .bar3 i,
+        .more,
+        .kc .fl,
+        .rail i,
+        .edit {
+          transition-duration: 1ms !important;
+        }
+        .edit.crumple {
+          animation-duration: 1ms;
+        }
+        .island,
+        .island *,
+        .island *::after {
+          animation: none !important;
+          transition-duration: 1ms !important;
+          transition-delay: 0ms !important;
+        }
+        .plates button.land {
+          animation: none;
+        }
+      }
+      /* ambient clip from gen-video.sh (fal.ai Seedance): plays once on open, then rests on its last frame */
+      .phone {
+        isolation: isolate;
+      }
+      .amb {
+        position: absolute;
+        inset: -55px;
+        width: calc(100% + 110px);
+        height: calc(100% + 110px);
+        object-fit: cover;
+        pointer-events: none;
+        z-index: -1;
+        opacity: 0;
+        mix-blend-mode: screen;
+        filter: blur(21px) saturate(1.1);
+        transition: opacity 1.4s ease;
+      }
+      .amb.on {
+        opacity: 0.45;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="doc">
+      <header>
+        <div>
+          <p class="eyebrow">
+            iOS variation 45 · round thirteen · the combined final
+          </p>
+          <h1>Deck II</h1>
+          <p class="lede">
+            Deck kept its swipe and lost its five boxes. The score is pinned on
+            top as a cream header with the last five weeks as squares; today's
+            square changes with every tick. Under it three piles split by what
+            you can do with a card: Do, Now, Ahead. The food card opens into an
+            editor, and every change there reaches the ring and the score.
+          </p>
+        </div>
+        <div class="direction">
+          <span>Mood</span
+          ><b
+            >The same plum table after dark, now awake: paper grain on the cream
+            cards, a light drifts across, the top card breathes.</b
+          >
+          <span>Accent</span
+          ><b
+            >Cream cards on plum; tangerine, berry and violet for the three
+            layers; the day squares in Matrix's red-to-green hue. Lime only for
+            the plus, Send, Fix and the Do count.</b
+          >
+          <span>Type</span
+          ><b>Space Grotesk: 11, 13, 17, 21, 28, 34 and the 55 score.</b>
+          <span>Gestures</span
+          ><b
+            >Sideways is always the card's own answer: on Do right ticks and
+            left skips; on Now and Ahead either side sends the card to the back
+            of its pile. Piles change with the label or a tap (or drag) on the
+            neighbour stack peeking at the edge, so a tick can never turn into a
+            page turn.</b
+          >
+          <span>Unusual idea</span
+          ><b
+            >The header is the calendar. Tap it and the five-week strip grows
+            into 13 weeks with a tooltip per day; empty the Do pile and confetti
+            falls while today's square flashes.</b
+          >
+        </div>
+      </header>
+
+      <section class="phones">
+        <div>
+          <p class="cap">
+            <span>01 · Home, the island reading a plate</span><span>swipe right ticks</span>
+          </p>
+          <div class="phone" id="p1"></div>
+        </div>
+        <div>
+          <p class="cap">
+            <span>02 · Lunch opened, portion 1.5×</span
+            ><span>swipe a row left to remove</span>
+          </p>
+          <div class="phone" id="p2" data-mode="edit"></div>
+        </div>
+        <div>
+          <p class="cap">
+            <span>03 · Header open, 13 weeks</span
+            ><span>Ahead pile behind</span>
+          </p>
+          <div class="phone" id="p3" data-mode="weeks"></div>
+        </div>
+      </section>
+
+      <section class="notes">
+        <h2>The score, in the header</h2>
+        <table>
+          <tr>
+            <th>Layer</th>
+            <th>Today</th>
+            <th>Weight</th>
+            <th>Moves</th>
+          </tr>
+          <tr>
+            <td>Lifestyle</td>
+            <td>sleep 100, moves 40, kcal 90, protein 78 → 77</td>
+            <td>0.40</td>
+            <td>every tick, meal fix or deletion</td>
+          </tr>
+          <tr>
+            <td>Blood</td>
+            <td>4 in range, 2 borderline, 1 off → 71</td>
+            <td>0.45</td>
+            <td>each draw</td>
+          </tr>
+          <tr>
+            <td>Genes</td>
+            <td>45, 100, 60, 45 → 62.5, rounds to 63</td>
+            <td>0.15</td>
+            <td>never</td>
+          </tr>
+          <tr>
+            <td>Score</td>
+            <td>
+              0.40 × 77 + 0.45 × 71 + 0.15 × 63 = 30.8 + 31.95 + 9.45 = 72
+            </td>
+            <td></td>
+            <td>live</td>
+          </tr>
+          <tr>
+            <td>Each tick</td>
+            <td>
+              moves 40 → 60 → 80 → 100; life 77 → 82 → 87 → 92; score 72 → 74 →
+              76 → 78
+            </td>
+            <td></td>
+            <td>swipe right</td>
+          </tr>
+          <tr>
+            <td>Food edits</td>
+            <td>
+              kcal row: 100 inside 1 600 to 1 900, minus 1 per 10 kcal outside
+              (1 497 → 90). Protein row: grams of 120 (93 → 78). Lunch at 1.5×:
+              1 728 kcal → 100, protein 112 → 93, life 83, score 75.
+            </td>
+            <td></td>
+            <td>portion, rows, fix, delete</td>
+          </tr>
+          <tr>
+            <td>Last week</td>
+            <td>
+              Mean of Mon 14 to Sun 20 Sep from Streak's seeded days = 69, so +3
+            </td>
+            <td></td>
+            <td></td>
+          </tr>
+        </table>
+        <h2>The rules</h2>
+        <table>
+          <tr>
+            <th>Rule</th>
+            <th>What it does</th>
+          </tr>
+          <tr>
+            <td>Score header</td>
+            <td>
+              Always on top. The number rolls digit by digit, the state word and
+              the week delta follow, the thin bar shows each layer's share. The
+              five-week strip is Streak's seeded days in Matrix's hue; today's
+              square pulses and takes the live score's colour.
+            </td>
+          </tr>
+          <tr>
+            <td>Three piles</td>
+            <td>
+              Do: what you can act on (three open moves, a log prompt with a
+              link to fix dinner). Now: food, sleep, markers as they stand
+              (whatever BLOOD has off or borderline). Ahead: LDL landing, the
+              PhenoAge trend, the Nov 1 draw.
+            </td>
+          </tr>
+          <tr>
+            <td>Sideways answers</td>
+            <td>
+              Past 89 px the card flies. Do: right is TICK, left is SKIP (the
+              log card: DONE, LATER). Now and Ahead: either way sends it to the
+              back. Under 89 px it springs back.
+            </td>
+          </tr>
+          <tr>
+            <td>Empty Do</td>
+            <td>
+              Cream confetti from the pile, today's square flashes, a teacup
+              still bobs on the table with the chips to bring a skipped move
+              back.
+            </td>
+          </tr>
+          <tr>
+            <td>Food editor</td>
+            <td>
+              Tap a meal. Name inline, time, portion in 0.5× steps, macro tiles
+              whose rails show the day against target, ingredient rows (tap the
+              amount, swipe left to remove), Fix results ("it was two cans"
+              doubles the tin), Delete with a confirm that crumples the sheet.
+              The pill on the photo shows the day's kcal and the score live.
+            </td>
+          </tr>
+          <tr>
+            <td>Dynamic Island</td>
+            <td>
+              The one place system feedback happens, true black like the
+              hardware. At rest a compact pill: today's square in Matrix's hue
+              and the score in cream. Send in the Add sheet grows it (Widgets
+              II's spring, 620 ms): the photo thumb with a lime scan, the items
+              it finds one by one, a lime ring and bar; then it shrinks and the
+              meal drops into Now while the ring counts. Every swipe-right tick
+              shows a receipt ("Walk after dinner · +2 · 74", 2.6 s); an empty Do
+              pile shows "All done today" with the streak beside the confetti.
+              One activity at a time: a tick during a read waits its turn.
+            </td>
+          </tr>
+          <tr>
+            <td>Motion</td>
+            <td>
+              Stack spring (0.3, 1.35, 0.5, 1) at 480 ms, throw 420 ms, header
+              roll 1.1 s, counts 700 ms. Paper grain on the cream cards only, a
+              blurred Seedance clip that plays once and rests, a drifting light,
+              a 5.5 s idle float, three generated stills (teacup, sleeping cat,
+              vial) animated in CSS. All off with reduced motion.
+            </td>
+          </tr>
+        </table>
+      </section>
+    </main>
+
+    <script>
+      const I = {
+        chev: '<svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg>',
+        x: '<svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg>',
+        plus: '<svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>',
+        minus: '<svg viewBox="0 0 24 24"><path d="M5 12h14"/></svg>',
+        pen: '<svg viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="m13 7 4 4"/></svg>',
+        trash:
+          '<svg viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg>',
+        cam: '<svg viewBox="0 0 24 24"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>',
+        walk: '<svg viewBox="0 0 24 24"><circle cx="13" cy="4" r="1.5"/><path d="m10 21 2-6 3 3v3M8 12l3-3 3 1 2 3M11 9l-1 5-3 2"/></svg>',
+        moon: '<svg viewBox="0 0 24 24"><path d="M20 15A8 8 0 0 1 9 4a8 8 0 1 0 11 11z"/></svg>',
+        home: '<svg viewBox="0 0 24 24"><path d="M3 11 12 4l9 7v9H3z"/><path d="M10 20v-6h4v6"/></svg>',
+        body: '<svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="2.5"/><path d="M9 10h6l1 5h-2v6h-4v-6H8z"/></svg>',
+        drop: '<svg viewBox="0 0 24 24"><path d="M12 3s6 7 6 11a6 6 0 0 1-12 0c0-4 6-11 6-11z"/></svg>',
+        pill: '<svg viewBox="0 0 24 24"><rect x="3" y="9" width="18" height="6" rx="3" transform="rotate(-45 12 12)"/><path d="m9 9 6 6"/></svg>',
+        check:
+          '<svg viewBox="0 0 24 24"><path d="M5 12.5 9.5 17 19 7.5"/></svg>',
+        leaf: '<svg viewBox="0 0 24 24"><path d="M5 19c0-9 6-14 15-14 0 9-5 15-14 15"/><path d="M5 19 14 10"/></svg>',
+        dumb: '<svg viewBox="0 0 24 24"><path d="M6 7v10M3 9v6M18 7v10M21 9v6M6 12h12"/></svg>',
+        fork: '<svg viewBox="0 0 24 24"><path d="M7 3v8a2 2 0 0 0 4 0V3M9 11v10M17 3c-2 2-2 6 0 8v10"/></svg>',
+        trend:
+          '<svg viewBox="0 0 24 24"><path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/></svg>',
+        cal: '<svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/></svg>',
+        text: '<svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h10M4 18h7"/></svg>',
+        mic: '<svg viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>',
+        list: '<svg viewBox="0 0 24 24"><path d="M9 6h11M9 12h11M9 18h11M4 6h.01M4 12h.01M4 18h.01"/></svg>',
+      };
+
+      // ---- the three layers (verbatim from 25-onion) ----
+      const LIFE = {
+        w: 0.4,
+        rows: [
+          { n: "Sleep", s: "7h 30 of 7h 30", p: 100 },
+          { n: "Moves", s: "2 of 5 ticked", p: 40 },
+          { n: "Calories", s: "1 497 of 1 900 kcal", p: 90 },
+          { n: "Protein", s: "93 of 120 g", p: 78 },
+        ],
+      };
+      const BLOOD = {
+        w: 0.45,
+        rows: [
+          { n: "Vitamin D", s: "29 ng/mL · aim 40 to 60", x: 12, st: "rose" },
+          { n: "LDL", s: "131 mg/dL · aim under 100", x: 84, st: "amber" },
+          { n: "ApoB", s: "98 mg/dL · aim under 90", x: 80, st: "amber" },
+          { n: "hs-CRP", s: "0.6 mg/L", x: 30, st: "green" },
+          { n: "HbA1c", s: "5.3 %", x: 45, st: "green" },
+          { n: "Ferritin", s: "64 ng/mL", x: 50, st: "green" },
+          { n: "TPO", s: "18 IU/mL", x: 35, st: "green" },
+        ],
+      };
+      const GENES = {
+        w: 0.15,
+        rows: [
+          { n: "APOE ε3/ε4", s: "LDL responds more to saturated fat", p: 45 },
+          { n: "LPA rs10455872", s: "not carried", p: 100 },
+          { n: "MTHFR C677T", s: "heterozygous · folate form matters", p: 60 },
+          { n: "FTO rs9939609", s: "one copy · appetite", p: 45 },
+        ],
+      };
+      const pct = (rows) =>
+        Math.round(rows.reduce((a, r) => a + r.p, 0) / rows.length);
+      const life = pct(LIFE.rows); // 77
+      const blood = Math.round(
+        (BLOOD.rows.reduce(
+          (a, r) => a + { green: 1, amber: 0.5, rose: 0 }[r.st],
+          0,
+        ) /
+          BLOOD.rows.length) *
+          100,
+      ); // 71
+      const genes = pct(GENES.rows); // 63 (62.5 rounds up; score still 72)
+      const score = Math.round(
+        LIFE.w * life + BLOOD.w * blood + GENES.w * genes,
+      ); // 72
+      console.assert(score === 72, "score arithmetic drifted", score);
+
+      // ---- the receipt (verbatim from 25-onion) ----
+      const LOG = [
+        {
+          layer: "life",
+          ic: "img",
+          src: "img/08-pork-belly.jpg",
+          n: "Pork belly, salad",
+          s: "7:30 PM · 623 kcal · fat past the day's share",
+          d: -1,
+        },
+        {
+          layer: "life",
+          ic: "green-bg",
+          g: "walk",
+          n: "Walk after lunch",
+          s: "1:45 PM · 15 min · ticked",
+          d: 2,
+        },
+        {
+          layer: "life",
+          ic: "img",
+          src: "img/08-sardines-rye.jpg",
+          n: "Sardines on rye, kimchi",
+          s: "1:08 PM · 462 kcal · 38 g protein",
+          d: 1,
+        },
+        {
+          layer: "life",
+          ic: "gene-bg",
+          g: "pill",
+          n: "Selenium 200 µg",
+          s: "8:20 AM · ticked",
+          d: 0,
+        },
+        {
+          layer: "life",
+          ic: "img",
+          src: "img/08-oats.jpg",
+          n: "Oats with berries",
+          s: "8:15 AM · 412 kcal · 3 g beta-glucan",
+          d: 1,
+        },
+        {
+          layer: "life",
+          ic: "rose-bg",
+          g: "moon",
+          n: "Sleep",
+          s: "Last night · 7h 30",
+          d: 3,
+        },
+        {
+          layer: "blood",
+          ic: "blood-bg",
+          g: "drop",
+          n: "LDL 168 → 131",
+          s: "Aug 1 draw · off to borderline",
+          d: 6,
+        },
+        {
+          layer: "blood",
+          ic: "blood-bg",
+          g: "drop",
+          n: "Vitamin D 34 → 29",
+          s: "Aug 1 draw · borderline to off",
+          d: -4,
+        },
+        {
+          layer: "blood",
+          ic: "blood-bg",
+          g: "drop",
+          n: "Next draw",
+          s: "Nov 1 · LDL, ApoB, vitamin D",
+          d: null,
+        },
+        {
+          layer: "genes",
+          ic: "gene-bg",
+          g: "dna",
+          n: "Panel read once",
+          s: "Mar 2026 · four variants weighed",
+          d: null,
+        },
+      ];
+
+      // ---- meals with their rows (sums match the LOG: 412, 462, 623; protein 14 + 38 + 41 = 93) ----
+      const MEALS = [
+        {
+          src: "img/08-oats.jpg",
+          n: "Oats with berries",
+          when: "Breakfast",
+          t: "08:15",
+          ings: [
+            { n: "Rolled oats", a: 60, u: "g", k: 228, P: 8, C: 40, F: 4 },
+            {
+              n: "Milk, semi-skimmed",
+              a: 200,
+              u: "ml",
+              k: 94,
+              P: 4,
+              C: 10,
+              F: 2,
+            },
+            { n: "Blueberries", a: 80, u: "g", k: 46, P: 1, C: 11, F: 0 },
+            { n: "Honey", a: 10, u: "g", k: 30, P: 0, C: 7, F: 0 },
+            { n: "Walnut, a pinch", a: 2, u: "g", k: 14, P: 1, C: 0, F: 2 },
+          ],
+        },
+        {
+          src: "img/08-sardines-rye.jpg",
+          n: "Sardines on rye",
+          when: "Lunch",
+          t: "13:08",
+          ings: [
+            {
+              n: "Sardines in olive oil",
+              note: "1 tin",
+              a: 125,
+              u: "g",
+              k: 250,
+              P: 31,
+              C: 0,
+              F: 14,
+              tin: true,
+            },
+            {
+              n: "Rye bread",
+              note: "2 slices",
+              a: 60,
+              u: "g",
+              k: 150,
+              P: 5,
+              C: 28,
+              F: 1,
+            },
+            { n: "Kimchi", a: 80, u: "g", k: 20, P: 2, C: 3, F: 0 },
+            { n: "Butter", a: 6, u: "g", k: 42, P: 0, C: 0, F: 5 },
+          ],
+        },
+        {
+          src: "img/08-pork-belly.jpg",
+          n: "Pork belly salad",
+          when: "Dinner",
+          t: "19:30",
+          ings: [
+            { n: "Pork belly", a: 120, u: "g", k: 366, P: 32, C: 0, F: 26 },
+            { n: "Baby potatoes", a: 150, u: "g", k: 115, P: 3, C: 26, F: 0 },
+            { n: "Chickpeas", a: 50, u: "g", k: 60, P: 5, C: 10, F: 1 },
+            { n: "Mixed leaves", a: 60, u: "g", k: 12, P: 1, C: 2, F: 0 },
+            {
+              n: "Honey-mustard dressing",
+              a: 15,
+              u: "g",
+              k: 70,
+              P: 0,
+              C: 5,
+              F: 7,
+            },
+          ],
+        },
+      ];
+      const TARGET = 1900;
+      const TGT = { P: 120, C: 210, F: 60 };
+      const mealSum = (m, key) =>
+        m.ings.reduce((a, g) => a + g[key], 0) * m.portion;
+      const KCAL = MEALS.reduce(
+        (a, m) => a + m.ings.reduce((b, g) => b + g.k, 0),
+        0,
+      );
+      console.assert(KCAL === 1497, "kcal drifted", KCAL);
+
+      // five moves, two ticked (selenium and the lunch walk, as in the LOG)
+      const MOVES = [
+        {
+          n: "Selenium 200 µg",
+          sh: "Selenium",
+          s: "with breakfast · ticked 8:20 AM",
+          g: "pill",
+          done: true,
+        },
+        {
+          n: "Walk after lunch",
+          sh: "Lunch walk",
+          s: "15 min · ticked 1:45 PM",
+          g: "walk",
+          done: true,
+        },
+        {
+          n: "Walk after dinner",
+          sh: "Dinner walk",
+          s: "15 min before 9 PM · flattens the evening curve",
+          g: "walk",
+          done: false,
+        },
+        {
+          n: "Psyllium 5 g",
+          sh: "Psyllium",
+          s: "in water before bed · soluble fibre for LDL",
+          g: "leaf",
+          done: false,
+        },
+        {
+          n: "Resistance 20 min",
+          sh: "Lift",
+          s: "squats, rows, push-ups · any time today",
+          g: "dumb",
+          done: false,
+        },
+      ];
+
+      // ---- what the island reads after Send (the photo in the Add sheet, the voice line, a typed line) ----
+      const tileSrc = (g) =>
+        `data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120"><rect width="120" height="120" fill="#ecdfc8"/><g transform="translate(36 36) scale(2)" fill="none" stroke="#2b1033" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">${I[g].replace(/<\/?svg[^>]*>/g, "")}</g></svg>`)}`;
+      const READS = {
+        dinner: {
+          src: "img/08-pork-belly.jpg",
+          looking: "Reading your plate…",
+          items: ["pork belly", "potatoes", "chickpeas", "leaves"],
+          title: "Pork belly salad",
+          result: "623 kcal · 41 g protein · logged 19:30",
+        },
+        photo: {
+          src: "img/08-salad.jpg",
+          looking: "Reading your plate…",
+          items: ["lettuce", "creamy dressing", "pistachio crumb", "bacon bits"],
+          meal: {
+            n: "Side salad",
+            ings: [
+              { n: "Iceberg lettuce", a: 80, u: "g", k: 11, P: 1, C: 2, F: 0 },
+              { n: "Creamy dressing", a: 20, u: "g", k: 90, P: 0, C: 1, F: 10 },
+              { n: "Pistachio crumb", a: 8, u: "g", k: 45, P: 2, C: 2, F: 4 },
+              { n: "Bacon bits", a: 10, u: "g", k: 45, P: 3, C: 0, F: 4 },
+            ],
+          },
+        },
+        voice: {
+          g: "mic",
+          looking: "Reading what you said…",
+          items: ["red wine", "dark chocolate"],
+          meal: {
+            n: "Red wine, dark chocolate",
+            ings: [
+              { n: "Red wine", note: "a glass", a: 150, u: "ml", k: 125, P: 0, C: 4, F: 0 },
+              { n: "Dark chocolate 85%", note: "a square", a: 10, u: "g", k: 60, P: 1, C: 2, F: 5 },
+            ],
+          },
+        },
+      };
+      const readText = (line) => {
+        const parts = line
+          .split(/,| and | with /i)
+          .map((x) => x.trim().replace(/^(a|an|one)\s+/i, ""))
+          .filter(Boolean)
+          .slice(0, 4);
+        const name = line.trim().replace(/\.$/, "");
+        return {
+          g: "text",
+          looking: "Reading your note…",
+          items: parts.map((x) => x.toLowerCase()),
+          meal: {
+            n: name.charAt(0).toUpperCase() + name.slice(1, 34),
+            ings: parts.map((x) => ({ n: x.charAt(0).toUpperCase() + x.slice(1), note: "estimate", a: 1, u: "serving", k: 90, P: 2, C: 10, F: 4 })),
+          },
+        };
+      };
+      const CI = 2 * Math.PI * 14;
+
+      // ---- live arithmetic: moves, kcal and protein feed the lifestyle layer ----
+      const dayOf = (st, key) =>
+        st.meals.reduce((a, m) => a + mealSum(m, key), 0);
+      const kcalP = (k) =>
+        Math.max(
+          0,
+          Math.round(
+            k < 1600
+              ? 100 - (1600 - k) / 10
+              : k > 1900
+                ? 100 - (k - 1900) / 10
+                : 100,
+          ),
+        );
+      const protP = (g) => Math.min(100, Math.round((g / 120) * 100));
+      const lifeOf = (st) => {
+        const done = st.moves.filter((m) => m.done).length;
+        const p = {
+          Moves: (done / st.moves.length) * 100,
+          Calories: kcalP(dayOf(st, "k")),
+          Protein: protP(dayOf(st, "P")),
+        };
+        return pct(LIFE.rows.map((r) => (r.n in p ? { ...r, p: p[r.n] } : r)));
+      };
+      const scoreOf = (st) =>
+        Math.round(LIFE.w * lifeOf(st) + BLOOD.w * blood + GENES.w * genes);
+      const word = (s) =>
+        s >= 80 ? "Strong" : s >= 65 ? "On track" : s >= 50 ? "Watch" : "Act";
+      const fmt = (n) =>
+        String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+
+      // ---- the 90 days before today (verbatim from 40-streak) ----
+      // Grid starts Mon 29 Jun 2026; today is Wed 23 Sep 2026, index 86.
+      const START = new Date(2026, 5, 29);
+      const TODAY = 86;
+      const DRAW = 33; // Sat 1 Aug
+      function mulberry32(a) {
+        return function () {
+          a |= 0;
+          a = (a + 0x6d2b79f5) | 0;
+          let t = Math.imul(a ^ (a >>> 15), 1 | a);
+          t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+          return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+        };
+      }
+      const UP = [
+        ["All five moves ticked", "moves 100"],
+        ["Walked after every meal", "3 walks, 45 min"],
+        ["Slept 8h 05", "in bed by 22:50"],
+        ["Protein 131 g of 120", "sardines twice"],
+        ["Kcal on target, 1 880", "of 1 900"],
+        ["Psyllium before dinner", "soluble fibre, day 5"],
+      ];
+      const DOWN = [
+        ["Slept 5h 40", "in bed at 1:10"],
+        ["No moves ticked", "moves 0 of 5"],
+        ["2 480 kcal, over by 580", "birthday dinner"],
+        ["Protein 64 g of 120", "no fish or eggs"],
+        ["Dinner at 22:40", "fat past the day's share"],
+        ["Skipped the walks", "rain all day"],
+      ];
+      const DAYS = (() => {
+        const r = mulberry32(435);
+        const pick = mulberry32(40);
+        const out = [];
+        for (let i = 0; i < TODAY; i++) {
+          const dow = i % 7;
+          const trend = 64 + 8 * (i / (TODAY - 1));
+          const n = (r() + r() + r() - 1.5) * 12 - (dow >= 5 ? 4 : 0);
+          const L = Math.round(trend + n);
+          const B = i >= DRAW ? 71 : 64;
+          const s = Math.round(LIFE.w * L + BLOOD.w * B + GENES.w * genes);
+          const pts = Math.round(LIFE.w * (L - trend));
+          const pool = pts >= 0 ? UP : DOWN;
+          let why = pool[Math.floor(pick() * pool.length)];
+          let eff = pts;
+          if (i === DRAW) {
+            why = ["Blood draw: LDL 168 → 131", "blood layer 64 → 71"];
+            eff = Math.round(BLOOD.w * (71 - 64));
+          }
+          out.push({
+            i,
+            L,
+            B,
+            s,
+            why,
+            eff,
+            date: new Date(START.getTime() + i * 864e5),
+          });
+        }
+        return out;
+      })();
+      const lastWeek = Math.round(
+        DAYS.slice(TODAY - 9, TODAY - 2).reduce((a, d) => a + d.s, 0) / 7,
+      ); // Mon 14 to Sun 20 Sep
+      console.assert(lastWeek === 69, "last week drifted", lastWeek);
+      console.assert(score - lastWeek === 3, "delta drifted", score - lastWeek);
+      const hue = (s) => 30 + (s / 100) * 110;
+      const light = (s) => Math.max(34, Math.min(90, 90 - (s - 55) * 2.4));
+      const col = (s) =>
+        `hsl(${hue(s).toFixed(1)} 68% ${light(s).toFixed(1)}%)`;
+      const streakAt = (today) => {
+        let n = today >= 65 ? 1 : 0;
+        if (!n) return 0;
+        for (let i = TODAY - 1; i >= 0 && DAYS[i].s >= 65; i--) n++;
+        return n;
+      };
+      const fmtD = (d) =>
+        d.toLocaleDateString("en-GB", {
+          weekday: "short",
+          day: "numeric",
+          month: "short",
+        });
+      const MON = [
+        "Jan",
+        "Feb",
+        "Mar",
+        "Apr",
+        "May",
+        "Jun",
+        "Jul",
+        "Aug",
+        "Sep",
+        "Oct",
+        "Nov",
+        "Dec",
+      ];
+
+      // ---- ambient grain: one 128 px noise tile, drawn once ----
+      (() => {
+        const c = document.createElement("canvas");
+        c.width = c.height = 128;
+        const x = c.getContext("2d");
+        const d = x.createImageData(128, 128);
+        const r = mulberry32(7);
+        for (let i = 0; i < d.data.length; i += 4) {
+          const v = 120 + r() * 135;
+          d.data[i] = d.data[i + 1] = d.data[i + 2] = v;
+          d.data[i + 3] = r() < 0.55 ? 34 : 0;
+        }
+        x.putImageData(d, 0, 0);
+        document.documentElement.style.setProperty(
+          "--noise",
+          `url(${c.toDataURL()})`,
+        );
+      })();
+
+      // count without requestAnimationFrame so headless shots land on the number
+      const countTo = (el, from, to, ms = 700, f = fmt) => {
+        if (!el) return;
+        clearInterval(el._t);
+        if (from === to) return void (el.textContent = f(to));
+        const t0 = Date.now();
+        el._t = setInterval(() => {
+          const k = Math.min(1, (Date.now() - t0) / ms);
+          const e = 1 - Math.pow(1 - k, 3);
+          el.textContent = f(from + (to - from) * e);
+          if (k >= 1) clearInterval(el._t);
+        }, 30);
+      };
+
+      // ---- markup pieces ----
+      const idx = (label, g, right = "") =>
+        `<div class="idx"><span>${label}</span><span style="display:flex;gap:5px;align-items:center">${right}${I[g]}</span></div>`;
+
+      const miniGrid = (s) => {
+        let h = "";
+        for (let i = 56; i < 91; i++) {
+          if (i > TODAY) h += `<i class="mc future"></i>`;
+          else if (i === TODAY)
+            h += `<i class="mc today" style="--c:${col(s)}"></i>`;
+          else h += `<i class="mc" style="--c:${col(DAYS[i].s)}"></i>`;
+        }
+        return h;
+      };
+      const bigGrid = (s) => {
+        let h = "<span></span>";
+        for (let w = 0; w < 13; w++) {
+          const d0 = new Date(START.getTime() + w * 7 * 864e5);
+          let lab = "";
+          for (let k = 0; k < 7; k++) {
+            const d = new Date(d0.getTime() + k * 864e5);
+            if (d.getDate() === 1) lab = MON[d.getMonth()];
+          }
+          h += `<span class="mo" style="grid-column:${w + 2};grid-row:1">${lab}</span>`;
+        }
+        ["M", "", "W", "", "F", "", "S"].forEach((l, k) => {
+          h += `<span class="dw" style="grid-column:1;grid-row:${k + 2}">${l}</span>`;
+        });
+        for (let i = 0; i < 91; i++) {
+          const w = Math.floor(i / 7),
+            k = i % 7;
+          const pos = `grid-column:${w + 2};grid-row:${k + 2};--d:${i * 5}ms`;
+          if (i > TODAY)
+            h += `<span class="cell future" style="${pos}"></span>`;
+          else if (i === TODAY)
+            h += `<span class="cell today" data-i="${i}" style="${pos};--c:${col(s)}">${s}</span>`;
+          else
+            h += `<span class="cell${i === DRAW ? " draw" : ""}" data-i="${i}" style="${pos};--c:${col(DAYS[i].s)}"></span>`;
+        }
+        return h;
+      };
+
+      const chipsRow = (st) => {
+        const cur = st.moves.findIndex((m) => !m.done && !m.skip);
+        return `<div class="chips">${st.moves
+          .map(
+            (x, i) =>
+              `<button class="chip ${x.done ? "done" : ""} ${i === cur ? "now" : ""} ${x.skip ? "skip" : ""}" data-chip="${i}"><span>${I.check}</span>${x.sh}</button>`,
+          )
+          .join("")}</div>`;
+      };
+
+      // Do: one move
+      const moveCard = (st, i) => {
+        const m = st.moves[i];
+        m.done = true;
+        const gain = scoreOf(st);
+        m.done = false;
+        return `
+          ${idx("Do · a move", m.g)}
+          <div class="target" data-do="tick"><i class="pulse"></i>${I[m.g]}</div>
+          <p class="move-name">${m.n}</p>
+          <p class="move-sub">${m.s}</p>
+          <div class="hint"><span class="l">← skip</span><span class="m">+${gain - scoreOf(st)} to the score</span><span class="r">tick →</span></div>
+          ${chipsRow(st)}`;
+      };
+      // Do: the log prompt
+      const logCard = (st) => {
+        const di = st.meals.findIndex((m) => m.when === "Dinner");
+        const d = st.meals[di];
+        return `
+          ${idx("Do · log", "fork")}
+          <p class="ask">Anything after dinner?</p>
+          <p class="ask-sub">A drink, a late snack, a second plate. One line is enough.</p>
+          <div class="ways">
+            <button data-add="photo">${I.cam}<span>Photo<small>the plate</small></span></button>
+            <button data-add="voice">${I.mic}<span>Voice<small>say it</small></span></button>
+            <button data-add="text">${I.text}<span>Text<small>a line</small></span></button>
+          </div>
+          ${
+            d
+              ? `<button class="fixlink" data-meal="${di}"><img src="${d.src}" alt=""><span>Dinner looks off?<small>${d.n} · ${d.t.replace(/^0/, "")} · ${fmt(mealSum(d, "k"))} kcal · fix it</small></span>${I.chev}</button>`
+              : ""
+          }
+          <div class="hint" style="margin-top:13px"><span class="l">← later</span><span class="r">nothing more →</span></div>`;
+      };
+
+      // Now: food
+      const R = 49,
+        CK = 2 * Math.PI * R;
+      const foodCard = (st, from) => {
+        const K = dayOf(st, "k");
+        const f0 = from == null ? K : from;
+        const mac = [
+          ["Protein", "P", "var(--life)"],
+          ["Carbs", "C", "var(--amber)"],
+          ["Fat", "F", "var(--blood)"],
+        ]
+          .map(([n, key, c]) => {
+            const v = Math.round(dayOf(st, key));
+            const over = v > TGT[key];
+            return `<div><small>${n}<b class="${over ? "over" : ""}">${v} <span style="color:var(--ink-3);font-weight:400">of ${TGT[key]} g</span></b></small><div class="rail"><i style="--w:${Math.min(100, (v / TGT[key]) * 100)}%;--c:${over ? "var(--rose)" : c}"></i></div></div>`;
+          })
+          .join("");
+        return `
+          ${idx("Now · food today", "fork")}
+          <div class="ftop">
+            <div class="kc">
+              <svg viewBox="0 0 110 110"><circle class="tr" cx="55" cy="55" r="${R}"/><circle class="fl" cx="55" cy="55" r="${R}" stroke-dasharray="${CK}" stroke-dashoffset="${CK * (1 - Math.min(1, f0 / TARGET))}" data-to="${CK * (1 - Math.min(1, K / TARGET))}"/></svg>
+              <div class="c"><b data-k data-from="${Math.round(f0)}" data-kto="${Math.round(K)}">${fmt(f0)}</b><small>of 1 900 kcal</small></div>
+            </div>
+            <div class="mac">
+              <p class="left"><b>${fmt(Math.abs(TARGET - K))}</b> kcal ${K <= TARGET ? "left" : "over"}</p>
+              ${mac}
+            </div>
+          </div>
+          <div class="plates${st.meals.length > 3 ? " n4" : ""}">
+            ${st.meals.map((m, i) => `<button data-meal="${i}"><img src="${m.src}" alt="${m.n}"><span><b>${fmt(mealSum(m, "k"))} kcal</b>${m.n} · ${m.t.replace(/^0/, "")}</span></button>`).join("")}
+          </div>
+          <p class="foot">${I.pen} Tap a meal to change the portion, fix it or delete it.</p>`;
+      };
+
+      // Now: sleep
+      const sleepCard = () => {
+        // 23:10 to 06:40, x from 22:00 (0) to 08:00 (300); stages: 0 awake, 1 REM, 2 light, 3 deep
+        const X = (h) => ((h - 22) / 10) * 300;
+        const S = [
+          [23.17, 23.5, 2],
+          [23.5, 24.4, 3],
+          [24.4, 25.1, 2],
+          [25.1, 25.5, 1],
+          [25.5, 26.2, 3],
+          [26.2, 27.0, 2],
+          [27.0, 27.6, 1],
+          [27.6, 27.7, 0],
+          [27.7, 28.5, 2],
+          [28.5, 29.2, 1],
+          [29.2, 29.9, 2],
+          [29.9, 30.67, 1],
+        ];
+        const Y = [4, 22, 40, 58];
+        const C = [
+          "var(--rose)",
+          "var(--gene)",
+          "var(--mist)",
+          "var(--plum-3)",
+        ];
+        return `
+          ${idx("Now · sleep, last night", "moon")}
+          <i class="still" aria-hidden="true"></i>
+          <p class="big">7h 30<small>of 7h 30 · <b>on target</b></small></p>
+          <svg class="hyp" viewBox="0 0 300 89" preserveAspectRatio="none">
+            ${["awake", "REM", "light", "deep"].map((l, k) => `<text x="0" y="${Y[k] + 11}">${l}</text>`).join("")}
+            ${S.map(([a, b, s]) => `<rect x="${X(a)}" y="${Y[s]}" width="${Math.max(2, X(b) - X(a) - 1)}" height="13" rx="3" fill="${C[s]}" stroke="none"/>`).join("")}
+            <text x="${X(23.17)}" y="88">23:10</text><text x="${X(27)}" y="88" text-anchor="middle">3:00</text><text x="${X(30.67)}" y="88" text-anchor="end">6:40</text>
+          </svg>
+          <div class="rows3">
+            <div><span>Deep</span><b>1h 55</b></div>
+            <div><span>Woke once</span><b>3:35, 6 min</b></div>
+            <div><span>Tonight</span><b>lights out by 23:30</b></div>
+          </div>`;
+      };
+
+      // Now: markers, whatever BLOOD has off or borderline
+      const markersCard = () => {
+        const RANK = { rose: 0, amber: 1 };
+        const off = BLOOD.rows
+          .filter((r) => r.st !== "green")
+          .sort((a, b) => RANK[a.st] - RANK[b.st]);
+        const ok = BLOOD.rows.filter((r) => r.st === "green");
+        return `
+          ${idx("Now · markers, Aug 1 draw", "drop")}
+          ${off
+            .map((r) => {
+              const [v, aim] = r.s.split(" · ");
+              const [num, ...unit] = v.split(" ");
+              return `<div class="mk"><div class="h"><b>${r.n}</b><em>${num} ${unit.join(" ")}</em><span class="tag ${r.st}">${r.st === "rose" ? "Off" : "Borderline"}</span></div>
+                <div class="range"><i style="--x:${r.x}%;--c:var(--${r.st})"></i></div><small>${aim || ""}</small></div>`;
+            })
+            .join("")}
+          <p class="okrow"><b>${ok.length} in range</b> · ${ok.map((r) => r.n).join(", ")}<br>Blood layer ${blood} × .45 until the next draw.</p>`;
+      };
+
+      // Ahead: LDL landing (from 44, re-scaled)
+      const X = (d) => 21 + (d / 344) * 262;
+      const Y = (v) => 8 + ((180 - v) / 90) * 112;
+      const ldlCard = (st) => `
+        ${idx("Ahead · LDL", "trend")}
+        <div class="lead"><b>104</b><em>mg/dL by Nov 18, from 131</em></div>
+        <svg class="chart" viewBox="0 0 300 150">
+          <defs><clipPath id="CLIP${st.id}"><rect x="0" y="0" height="150" width="300"><animate attributeName="width" from="${X(235)}" to="300" dur="1.4s" begin="0.4s" fill="freeze"/></rect></clipPath></defs>
+          <rect x="${X(0)}" y="${Y(100)}" width="${X(344) - X(0)}" height="${Y(90) - Y(100)}" fill="var(--green-soft)" stroke="none"/>
+          <line x1="${X(0)}" x2="${X(344)}" y1="${Y(100)}" y2="${Y(100)}" stroke="var(--green)" stroke-width="1" stroke-dasharray="3 3"/>
+          <text x="${X(0)}" y="${Y(100) + 13}" fill="var(--green)">aim under 100</text>
+          <line x1="${X(288)}" x2="${X(288)}" y1="${Y(172)}" y2="${Y(90)}" stroke="var(--cream-3)" stroke-width="1"/>
+          <text x="${X(288)}" y="${Y(172)}" text-anchor="middle" dy="-2">today</text>
+          <path d="M${X(0)},${Y(168)} L${X(235)},${Y(131)}" stroke="var(--ink)" stroke-width="2.5"/>
+          <g clip-path="url(#CLIP${st.id})">
+            <path d="M${X(235)},${Y(131)} Q${X(300)},${Y(106)} ${X(344)},${Y(104)}" stroke="var(--blood)" stroke-width="3" stroke-dasharray="0.1 7"/>
+            <circle cx="${X(344)}" cy="${Y(104)}" r="7" fill="var(--cream)" stroke="var(--blood)" stroke-width="2.5"/>
+            <text class="v" x="${X(344)}" y="${Y(104) - 13}" text-anchor="end" fill="var(--blood)">104</text>
+          </g>
+          <circle cx="${X(0)}" cy="${Y(168)}" r="5" fill="var(--ink)" stroke="none"/>
+          <circle cx="${X(235)}" cy="${Y(131)}" r="5" fill="var(--ink)" stroke="none"/>
+          <text class="v" x="${X(0) + 8}" y="${Y(168) + 18}">168</text>
+          <text class="v" x="${X(235)}" y="${Y(131) - 13}" text-anchor="middle">131</text>
+          <text x="${X(0)}" y="148">Dec 9</text>
+          <text x="${X(235)}" y="148" text-anchor="middle">Aug 1</text>
+          <text x="${X(344)}" y="148" text-anchor="end">Nov 18</text>
+        </svg>
+        <p class="say">Keep this eight weeks and <b>LDL lands near 104</b>, from 131.<small>The walks, the oats and psyllium carry most of it.</small></p>`;
+
+      // Ahead: PhenoAge trend (the two draws, then the model's line to the next one)
+      const phenoCard = () => {
+        const px = (d) => 21 + (d / 327) * 262; // days from Dec 9 to Nov 1 (327)
+        const py = (v) => 21 + ((39.5 - v) / 4) * 89;
+        return `
+          ${idx("Ahead · PhenoAge", "body")}
+          <div class="lead"><b>36.2</b><em>years at 39 · Aug 1 draw</em></div>
+          <svg class="chart" viewBox="0 0 300 150">
+            <line x1="${px(0)}" x2="${px(327)}" y1="${py(39)}" y2="${py(39)}" stroke="var(--ink-3)" stroke-dasharray="3 3" stroke-width="1"/>
+            <text x="${px(327)}" y="${py(39) - 5}" text-anchor="end">your age, 39</text>
+            <rect x="${px(0)}" y="${py(39)}" width="${px(327) - px(0)}" height="${py(35.5) - py(39)}" fill="var(--green-soft)" stroke="none" opacity=".6"/>
+            <path d="M${px(0)},${py(37.1)} L${px(235)},${py(36.2)}" stroke="var(--ink)" stroke-width="2.5"/>
+            <path d="M${px(235)},${py(36.2)} L${px(327)},${py(35.8)}" stroke="var(--gene)" stroke-width="3" stroke-dasharray="0.1 7"/>
+            <circle cx="${px(0)}" cy="${py(37.1)}" r="5" fill="var(--ink)" stroke="none"/>
+            <circle cx="${px(235)}" cy="${py(36.2)}" r="5" fill="var(--ink)" stroke="none"/>
+            <circle cx="${px(327)}" cy="${py(35.8)}" r="7" fill="var(--cream)" stroke="var(--gene)" stroke-width="2.5"/>
+            <text class="v" x="${px(0) + 8}" y="${py(37.1) + 21}">37.1</text>
+            <text class="v" x="${px(235)}" y="${py(36.2) + 21}" text-anchor="middle">36.2</text>
+            <text class="v" x="${px(327)}" y="${py(35.8) + 21}" text-anchor="end" fill="var(--gene)">35.8</text>
+            <text x="${px(0)}" y="148">Dec 9</text>
+            <text x="${px(235)}" y="148" text-anchor="middle">Aug 1</text>
+            <text x="${px(327)}" y="148" text-anchor="end">Nov 1</text>
+          </svg>
+          <p class="say">2.8 years under your age, and <b style="color:var(--gene)">heading for 35.8</b> at the next draw.<small>If LDL and CRP hold. The trend is two points; the third decides it.</small></p>`;
+      };
+
+      // Ahead: next draw
+      const drawCard = (st) => `
+        ${idx("Ahead · next draw", "cal")}
+        <i class="vial" aria-hidden="true"></i>
+        <p class="big">Nov 1<small>Saturday, fasting, before 10:00</small></p>
+        <span class="days">in 39 days</span>
+        <div class="rows3">
+          <div><span>LDL</span><b>131 now, on the way to 104</b></div>
+          <div><span>ApoB</span><b>98, follows LDL</b></div>
+          <div><span>Vitamin D</span><b>29, aim 40 to 60</b></div>
+        </div>
+        <button class="cal${st.cal ? " on" : ""}" data-do="cal">${st.cal ? "In your calendar" : "Add to calendar"}</button>`;
+
+      // ---- phone shell ----
+      const shell = () => `
+        <video class="amb" src="vid/45-plum.mp4" autoplay muted playsinline aria-hidden="true"></video>
+        <i class="glow"></i><i class="glow b"></i>
+        <div class="status"><span>9:41</span><span>●●● ◔ ▮</span></div>
+        <div class="island" data-island data-k="">
+          <div class="compact"><i class="sq" data-isq></i><b data-isc>72</b></div>
+          <div class="expanded">
+            <div class="xrow">
+              <span class="thumb" data-ith></span>
+              <span class="tx"><b class="xt"></b><small class="xs"></small></span>
+              <span data-itr></span>
+            </div>
+            <div class="xbar"><i></i></div>
+          </div>
+        </div>
+        <div class="screen">
+          <div class="greet"><span><b>Razvan</b>Wed 23 Sep</span><span class="avatar" style="flex:none">🧑🏻</span></div>
+          <div class="hdr" data-hdr>
+            <div class="hrow">
+              <div class="hnum"><span class="odo" data-odo></span><small>of 100</small></div>
+              <div class="hmeta"><b data-word></b><span class="pill" data-delta></span></div>
+              <div class="mini" data-mini></div>
+            </div>
+            <div class="bar3"><i data-seg="L" style="--c:var(--life)"></i><i style="--c:var(--blood);--w:${BLOOD.w * blood}%"></i><i style="--c:var(--gene);--w:${GENES.w * genes}%"></i></div>
+            <div class="lg3">
+              <span><i style="--c:var(--life)"></i>Life <b data-lv></b></span>
+              <span><i style="--c:var(--blood)"></i>Blood <b>${blood}</b></span>
+              <span><i style="--c:var(--gene)"></i>Genes <b>${genes}</b></span>
+              <span class="chev"><span data-wk>5 weeks</span>${I.chev}</span>
+            </div>
+            <div class="more" data-more><div class="more-in">
+              <div class="hmhead"><span class="lbl">Last 13 weeks</span><span class="stk" data-stk></span></div>
+              <div class="hm" data-hm></div>
+              <div class="legend"><span>60</span>${[60, 64, 68, 72, 76].map((s) => `<i style="background:${col(s)}"></i>`).join("")}<span>76</span><span class="gap"></span><span class="dot"></span><span>blood draw · tap a day</span></div>
+            </div></div>
+          </div>
+          <div class="seg">
+            <button data-pile="0">Do <em data-count></em></button><i>·</i>
+            <button data-pile="1">Now</button><i>·</i>
+            <button data-pile="2">Ahead</button>
+          </div>
+          <div class="table">
+            <div class="track">
+              ${["do", "now", "ahead"]
+                .map(
+                  (k, i) => `<div class="pile" data-p="${i}"><div class="float">
+                    ${k === "do" ? `<div class="empty"><i class="disc"></i><b>Nothing left to do</b><small data-emptyline></small><div data-emptychips style="width:100%"></div></div>` : ""}
+                  </div></div>`,
+                )
+                .join("")}
+            </div>
+          </div>
+        </div>
+        <i class="finger"></i>
+        <div class="tabs">
+          <div class="bar">
+            <button class="on">${I.home}Home</button>
+            <button>${I.body}Body</button>
+            <button>${I.drop}Blood</button>
+          </div>
+          <button class="plus" data-do="open" aria-label="Add">${I.plus}</button>
+        </div>
+        <div class="veil" data-do="close"></div>
+        <div class="sheet">
+          <div class="grab"></div>
+          <h2>Add to today</h2>
+          <p>One thing or several. We sort it into meals and moves.</p>
+          <div class="modes">
+            <button data-mode="photo">${I.cam}<span><b>Photo</b><small>plate or label</small></span></button>
+            <button data-mode="voice">${I.mic}<span><b>Voice</b><small>just say it</small></span></button>
+            <button data-mode="text">${I.text}<span><b>Text</b><small>a line is enough</small></span></button>
+          </div>
+          <div class="well">Pick one. Send shows once there is something to send.</div>
+          <button class="send" hidden data-do="send">Send</button>
+        </div>
+        <div class="edit" data-edit></div>
+        <div class="home"></div>`;
+
+      const PK = ["do", "now", "ahead"];
+
+      function mount(p) {
+        const st = {
+          id: p.id,
+          moves: MOVES.map((m) => ({ ...m })),
+          meals: MEALS.map((m) => ({
+            ...m,
+            portion: 1,
+            ings: m.ings.map((g) => ({ ...g })),
+          })),
+          logDone: false,
+          doOrder: ["m0", "m1", "m2", "m3", "m4", "log"],
+          order: {
+            do: [],
+            now: ["food", "sleep", "markers"],
+            ahead: ["ldl", "pheno", "draw"],
+          },
+          els: { do: new Map(), now: new Map(), ahead: new Map() },
+          pile: 0,
+          open: false,
+          cal: false,
+          shownScore: null,
+          edit: null,
+        };
+        console.assert(scoreOf(st) === 72, "live score drifted", scoreOf(st));
+        p.innerHTML = shell();
+        const $ = (s) => p.querySelector(s);
+        const $$ = (s) => [...p.querySelectorAll(s)];
+        const piles = $$(".pile");
+        const track = $(".track");
+        const hdr = $("[data-hdr]");
+
+        // ---- header ----
+        const odo = $("[data-odo]");
+        const setOdo = (n) => {
+          const s = String(n);
+          if (odo.children.length !== s.length) {
+            odo.innerHTML = [...s]
+              .map(
+                () =>
+                  `<span class="dg"><span class="strip">${[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map((d) => `<span>${d}</span>`).join("")}</span></span>`,
+              )
+              .join("");
+            odo.offsetWidth;
+          }
+          [...s].forEach(
+            (d, i) =>
+              (odo.children[i].firstChild.style.transform =
+                `translateY(${-d * 10}%)`),
+          );
+        };
+        const updHeader = (flash) => {
+          const s = scoreOf(st),
+            L = lifeOf(st);
+          const changed = st.shownScore !== null && s !== st.shownScore;
+          setOdo(s);
+          st.shownScore = s;
+          $("[data-word]").textContent = word(s);
+          const d = s - lastWeek;
+          const dl = $("[data-delta]");
+          dl.textContent = `${d >= 0 ? "+" : "−"}${Math.abs(d)} vs last week`;
+          if (changed) {
+            dl.classList.remove("pop");
+            void dl.offsetWidth;
+            dl.classList.add("pop");
+          }
+          $('[data-seg="L"]').style.setProperty("--w", LIFE.w * L + "%");
+          $("[data-lv]").textContent = L;
+          $$(".mc.today, .cell.today").forEach((c) => {
+            c.style.setProperty("--c", col(s));
+            if (c.classList.contains("cell")) c.textContent = s;
+            if (changed || flash) {
+              c.classList.remove("flash");
+              void c.offsetWidth;
+              c.classList.add("flash");
+              setTimeout(() => c.classList.remove("flash"), 1700);
+            }
+          });
+          $("[data-stk]").textContent = `${streakAt(s)}-day streak at 65+`;
+          $("[data-isc]").textContent = s;
+          $("[data-isq]").style.setProperty("--c", col(s));
+          const left = st.order.do.length;
+          const cnt = $("[data-count]");
+          cnt.textContent = left || "";
+          cnt.classList.toggle("zero", !left);
+          const live = $("[data-live]");
+          if (live) {
+            countTo(live.querySelector("[data-ls]"), +live.dataset.s, s, 700);
+            live.dataset.s = s;
+            live.querySelector("i").style.setProperty("--c", col(s));
+            const k = live.querySelector("[data-lk]");
+            countTo(k, +k.dataset.v, dayOf(st, "k"), 700);
+            k.dataset.v = dayOf(st, "k");
+          }
+        };
+        $("[data-mini]").innerHTML = miniGrid(score);
+
+        const moreEl = $("[data-more]");
+        const hm = $("[data-hm]");
+        const setOpen = (on) => {
+          st.open = on;
+          hdr.classList.toggle("open", on);
+          $("[data-wk]").textContent = on ? "13 weeks" : "5 weeks";
+          moreEl.classList.remove("shown");
+          if (on) {
+            hm.innerHTML = bigGrid(scoreOf(st));
+            moreEl.style.height = moreEl.firstElementChild.offsetHeight + "px";
+            setTimeout(() => st.open && moreEl.classList.add("shown"), 540);
+          } else {
+            tip(null);
+            moreEl.style.height = "0px";
+          }
+        };
+        const tip = (i) => {
+          hm.querySelector(".tip")?.remove();
+          hm.querySelectorAll(".cell.on").forEach((c) =>
+            c.classList.remove("on"),
+          );
+          if (i == null) return hm.classList.remove("sel");
+          const cell = hm.querySelector(`[data-i="${i}"]`);
+          cell.classList.add("on");
+          hm.classList.add("sel");
+          const isToday = i === TODAY;
+          const s = isToday ? scoreOf(st) : DAYS[i].s;
+          const done = st.moves.filter((m) => m.done).length;
+          const D = isToday
+            ? {
+                L: lifeOf(st),
+                B: blood,
+                why: [
+                  `Moves ${done} of 5 ticked`,
+                  done < 5 ? "tick the next one for +2" : "all five done",
+                ],
+                eff: null,
+                date: new Date(2026, 8, 23),
+              }
+            : DAYS[i];
+          const el = document.createElement("div");
+          el.className = "tip";
+          el.style.setProperty("--c", col(s));
+          el.innerHTML = `
+            <div class="d">${fmtD(D.date)}${isToday ? " · today" : ""}</div>
+            <div class="s"><i></i><b>${s}</b><span>${word(s)}</span></div>
+            <div class="r"><span><small>Top reason</small>${D.why[0]}<br><span style="color:var(--mist)">${D.why[1]}</span></span>${D.eff == null ? "" : `<em style="color:${D.eff >= 0 ? "#9fe0b4" : "#ff8fa8"}">${D.eff >= 0 ? "+" : "−"}${Math.abs(D.eff)}</em>`}</div>
+            <div class="p">Life ${D.L} · Blood ${D.B} · Genes ${genes}</div>`;
+          hm.appendChild(el);
+          const W = hm.clientWidth;
+          const cx = cell.offsetLeft + cell.offsetWidth / 2;
+          const left = Math.max(0, Math.min(W - 212, cx - 106));
+          el.style.left = left + "px";
+          el.style.setProperty("--ax", cx - left + "px");
+          if (i % 7 >= 3) {
+            el.classList.add("up");
+            el.style.top = cell.offsetTop - el.offsetHeight - 13 + "px";
+          } else {
+            el.classList.add("dn");
+            el.style.top = cell.offsetTop + cell.offsetHeight + 13 + "px";
+          }
+        };
+
+        // ---- piles ----
+        const BODY = {
+          food: () => foodCard(st),
+          sleep: sleepCard,
+          markers: markersCard,
+          ldl: () => ldlCard(st),
+          pheno: phenoCard,
+          draw: () => drawCard(st),
+          log: () => logCard(st),
+        };
+        const bodyOf = (id) =>
+          id[0] === "m" && id !== "markers" ? moveCard(st, +id[1]) : BODY[id]();
+        const makeCard = (pk, id) => {
+          const c = document.createElement("div");
+          c.className = "card";
+          c.dataset.id = id;
+          const isDo = pk === "do";
+          const tk = id === "log" ? ["DONE", "LATER"] : ["TICK", "SKIP"];
+          c.innerHTML = `${isDo ? `<span class="stamp tick">${tk[0]}</span><span class="stamp skip">${tk[1]}</span>` : ""}<div class="body">${bodyOf(id)}</div>`;
+          c.style.opacity = 0;
+          c.style.transform = "translateY(-34px) scale(0.85)";
+          piles[PK.indexOf(pk)].querySelector(".float").appendChild(c);
+          st.els[pk].set(id, c);
+          return c;
+        };
+        const fill = (pk, id) => {
+          const c = st.els[pk].get(id);
+          if (c) c.querySelector(".body").innerHTML = bodyOf(id);
+        };
+        const layout = (pk) => {
+          st.order[pk].forEach((id, d) => {
+            const c = st.els[pk].get(id);
+            c.style.transform =
+              d === 0 ? "" : `translateY(${-10 * d}px) scale(${1 - 0.05 * d})`;
+            c.style.opacity = d < 3 ? 1 : 0;
+            c.style.zIndex = 10 - d;
+            c.style.pointerEvents = d === 0 ? "" : "none";
+            c.classList.toggle("behind", d > 0);
+            c.querySelectorAll(".stamp").forEach((s) => (s.style.opacity = 0));
+          });
+        };
+        const doIds = () =>
+          st.doOrder.filter((id) =>
+            id === "log"
+              ? !st.logDone
+              : !st.moves[+id[1]].done && !st.moves[+id[1]].skip,
+          );
+        const renderDo = () => {
+          const ids = doIds();
+          for (const [id, c] of st.els.do)
+            if (!ids.includes(id)) (c.remove(), st.els.do.delete(id));
+          ids.forEach((id) =>
+            st.els.do.has(id) ? fill("do", id) : makeCard("do", id),
+          );
+          st.order.do = ids;
+          piles[0].classList.toggle("none", !ids.length);
+          const done = st.moves.filter((m) => m.done).length,
+            sk = st.moves.filter((m) => m.skip).length;
+          $("[data-emptyline]").textContent =
+            `${done} of 5 ticked${sk ? ` · ${sk} skipped, tap its chip to bring it back` : " · the rest is eating and sleeping"}`;
+          $("[data-emptychips]").innerHTML = chipsRow(st);
+          setTimeout(() => layout("do"), 20);
+        };
+        const setPile = (i) => {
+          st.pile = i;
+          track.style.transform = `translateX(${30 - i * (314 + 13)}px)`;
+          piles.forEach((pl, k) => pl.classList.toggle("on", k === i));
+          $$("[data-pile]").forEach((b) =>
+            b.classList.toggle("on", +b.dataset.pile === i),
+          );
+          if (i === 2 && st.order.ahead[0] === "ldl") {
+            const a = st.els.ahead.get("ldl").querySelector("animate");
+            a && a.beginElement && a.beginElement();
+          }
+        };
+
+        // ---- food card refresh: the ring and the number count from where they were ----
+        const refreshFood = () => {
+          const c = st.els.now.get("food");
+          const prev = c.querySelector("[data-k]");
+          const from = prev ? +prev.dataset.kto : dayOf(st, "k");
+          c.querySelector(".body").innerHTML = foodCard(st, from);
+          const fl = c.querySelector(".fl"),
+            b = c.querySelector("[data-k]");
+          setTimeout(
+            () => fl.setAttribute("stroke-dashoffset", fl.dataset.to),
+            30,
+          );
+          countTo(b, from, dayOf(st, "k"), 800);
+          if (st.els.do.has("log")) fill("do", "log");
+        };
+
+        // ---- answers ----
+        const answer = (id, dir) => {
+          if (id === "log") {
+            if (dir > 0) st.logDone = true;
+            else
+              st.doOrder.push(
+                st.doOrder.splice(st.doOrder.indexOf("log"), 1)[0],
+              );
+            return;
+          }
+          const m = st.moves[+id[1]];
+          if (dir > 0) m.done = true;
+          else m.skip = true;
+        };
+        // ---- the Dynamic Island: one activity at a time, then the compact pill ----
+        const isl = $("[data-island]");
+        const ix = { t: 0, iv: 0, plate: false, q: null };
+        const islShow = (k, lead, title, sub, trail) => {
+          clearTimeout(ix.t);
+          clearInterval(ix.iv);
+          isl.dataset.k = k;
+          isl.classList.remove("done");
+          $("[data-ith]").innerHTML = lead;
+          isl.querySelector(".xt").textContent = title;
+          isl.querySelector(".xs").innerHTML = sub;
+          $("[data-itr]").innerHTML = trail;
+          p.classList.add("isl-on");
+        };
+        const islHide = (ms) => {
+          ix.t = setTimeout(() => p.classList.remove("isl-on"), ms);
+        };
+        // a receipt waits while a plate is being read
+        const islRun = (fn) => (ix.plate ? (ix.q = fn) : fn());
+        const scoreTrail = (from, to) =>
+          `<span class="tsc"><i class="sq" style="--c:${col(to)}"></i><b data-itn>${from}</b></span>`;
+        const receipt = (m, from, to) =>
+          islRun(() => {
+            const s = scoreOf(st);
+            islShow(
+              "tick",
+              I[m.g],
+              m.n,
+              `ticked · <em>+${to - from}</em> to the score`,
+              scoreTrail(from, s),
+            );
+            countTo($("[data-itn]"), from, s, 700);
+            islHide(2600);
+          });
+        const allDone = () =>
+          islRun(() => {
+            const s = scoreOf(st);
+            const done = st.moves.filter((m) => m.done).length;
+            islShow(
+              "done",
+              `<i class="sq" style="--c:${col(s)}"></i>`,
+              "All done today",
+              `${done} of 5 ticked · streak <em>${streakAt(s)}</em>`,
+              scoreTrail(s, s),
+            );
+            islHide(3400);
+          });
+        // reading: thumb, detected items one by one, lime progress (Widgets II's curve)
+        const readPlate = (R, T = 7000) => {
+          ix.plate = true;
+          islShow(
+            "plate",
+            R.src ? `<img src="${R.src}" alt="">` : I[R.g],
+            R.looking,
+            "looking",
+            `<span class="trail"><svg viewBox="0 0 34 34"><circle cx="17" cy="17" r="14" stroke="var(--plum-2)" stroke-width="3.5"/><circle class="xring" cx="17" cy="17" r="14" stroke="var(--lime)" stroke-width="3.5" stroke-dasharray="${CI}" stroke-dashoffset="${CI}"/></svg><span class="pc">0</span><span class="ok">${I.check}</span></span>`,
+          );
+          const bar = isl.querySelector(".xbar i"),
+            ring = isl.querySelector(".xring"),
+            pc = isl.querySelector(".pc"),
+            xs = isl.querySelector(".xs");
+          bar.style.width = "0%";
+          const t0 = Date.now();
+          const items = R.items;
+          ix.iv = setInterval(() => {
+            const k = Math.min(1, (Date.now() - t0) / T);
+            const e = k < 0.5 ? k * 1.3 : 0.65 + (k - 0.5) * 0.7;
+            const v = Math.min(1, e);
+            bar.style.width = `${(v * 100).toFixed(1)}%`;
+            ring.style.strokeDashoffset = CI * (1 - v);
+            pc.textContent = Math.round(v * 100);
+            const n = Math.min(items.length, Math.floor(k * (items.length + 1)));
+            if (n)
+              xs.innerHTML = items
+                .slice(0, n)
+                .map((x, i) => (i === n - 1 ? `<em>${x}</em>` : x))
+                .join(" · ");
+            if (k < 1) return;
+            clearInterval(ix.iv);
+            isl.classList.add("done");
+            pc.textContent = "";
+            const M = R.meal;
+            const kc = M ? M.ings.reduce((a, g) => a + g.k, 0) : 0;
+            const pr = M ? M.ings.reduce((a, g) => a + g.P, 0) : 0;
+            isl.querySelector(".xt").textContent = M ? M.n : R.title;
+            xs.innerHTML = M
+              ? `${fmt(kc)} kcal · ${pr} g protein · <em>added</em>`
+              : R.result;
+            ix.t = setTimeout(() => {
+              p.classList.remove("isl-on");
+              // the pill is back; the meal lands, then any waiting receipt runs
+              setTimeout(() => {
+                ix.plate = false;
+                if (M) land(R, M);
+                const q = ix.q;
+                ix.q = null;
+                if (q) setTimeout(q, M ? 1300 : 0);
+              }, 620);
+            }, 2600);
+          }, 60);
+        };
+        const land = (R, M) => {
+          st.meals.push({
+            src: R.src || tileSrc(R.g),
+            when: "Snack",
+            t: "20:40",
+            portion: 1,
+            ...M,
+            ings: M.ings.map((g) => ({ ...g })),
+          });
+          if (p.classList.contains("editing")) closeEdit();
+          st.order.now = ["food", ...st.order.now.filter((x) => x !== "food")];
+          layout("now");
+          setPile(1);
+          const had = st.order.do.length;
+          if (!st.logDone) {
+            st.logDone = true;
+            renderDo();
+          }
+          setTimeout(() => {
+            refreshFood();
+            const pl = st.els.now.get("food").querySelectorAll("[data-meal]");
+            pl[pl.length - 1].classList.add("land");
+            updHeader();
+            if (had && !st.order.do.length) celebrate();
+          }, 340);
+        };
+
+        const celebrate = () => {
+          const box = document.createElement("div");
+          box.className = "confetti";
+          const r = mulberry32(45);
+          const C = [
+            "#f6eddc",
+            "#ecdfc8",
+            "#e0d0b4",
+            "#fff8ea",
+            "#cdb8d2",
+            "#d6f34a",
+          ];
+          box.innerHTML = Array.from({ length: 42 }, (_, i) => {
+            const dx = (r() - 0.5) * 340,
+              dy = -89 - r() * 233,
+              rot = (r() - 0.5) * 900;
+            return `<i style="--c:${C[i % C.length]};--dx:${dx.toFixed(0)}px;--dy:${dy.toFixed(0)}px;--r:${rot.toFixed(0)}deg;--dl:${(r() * 180).toFixed(0)}ms;width:${5 + Math.round(r() * 5)}px"></i>`;
+          }).join("");
+          p.appendChild(box);
+          setTimeout(() => box.remove(), 2200);
+          updHeader(true);
+          allDone();
+        };
+
+        let busy = false;
+        const fly = (dir) => {
+          if (busy) return;
+          const pk = PK[st.pile];
+          const id = st.order[pk][0];
+          if (!id) return;
+          busy = true;
+          const c = st.els[pk].get(id);
+          const had = st.order.do.length;
+          const s0 = scoreOf(st);
+          if (pk === "do") answer(id, dir);
+          if (pk === "do" && dir > 0 && id !== "log" && doIds().length)
+            receipt(st.moves[+id[1]], s0, scoreOf(st));
+          c.classList.remove("drag");
+          c.style.transition =
+            "transform 420ms var(--ease), opacity 420ms var(--ease)";
+          c.style.transform = `translate(${dir * 480}px, 55px) rotate(${dir * 28}deg)`;
+          c.style.opacity = 0;
+          if (pk === "do") updHeader();
+          setTimeout(() => {
+            c.style.transition = "";
+            if (pk === "do") {
+              renderDo();
+              updHeader();
+              if (had && !st.order.do.length) celebrate();
+            } else {
+              st.order[pk].push(st.order[pk].shift());
+              layout(pk);
+              if (pk === "ahead" && st.order.ahead[0] === "ldl") setPile(2);
+            }
+            busy = false;
+          }, 420);
+        };
+
+        // ---- drag: the top card, or the neighbour stack at the edge ----
+        let drag = null,
+          edge = null,
+          moved = false;
+        const stampFor = (dx) => {
+          if (st.pile !== 0 || !st.order.do.length) return;
+          const c = st.els.do.get(st.order.do[0]);
+          const a = Math.min(1, Math.abs(dx) / 89);
+          c.querySelector(".stamp.tick").style.opacity = dx > 0 ? a : 0;
+          c.querySelector(".stamp.skip").style.opacity = dx < 0 ? a : 0;
+        };
+        const pose = (c, dx, dy) =>
+          (c.style.transform = `translate(${dx}px, ${dy * 0.3}px) rotate(${dx / 17}deg)`);
+        $(".table").addEventListener("pointerdown", (e) => {
+          const pl = e.target.closest(".pile");
+          if (!pl) return;
+          const k = +pl.dataset.p;
+          if (k !== st.pile) {
+            edge = { x: e.clientX, k };
+            track.classList.add("drag");
+            return;
+          }
+          const pk = PK[k];
+          const id = st.order[pk][0];
+          if (busy || !id) return;
+          const c = st.els[pk].get(id);
+          if (
+            !c.contains(e.target) ||
+            e.target.closest(".chip, input, textarea")
+          )
+            return;
+          drag = { x: e.clientX, y: e.clientY, c };
+          moved = false;
+          c.classList.add("drag");
+        });
+        window.addEventListener("pointermove", (e) => {
+          if (edge) {
+            const dx = e.clientX - edge.x;
+            if (Math.abs(dx) > 5) moved = true;
+            track.style.transform = `translateX(${30 - st.pile * 327 + dx}px)`;
+            return;
+          }
+          if (!drag) return;
+          const dx = e.clientX - drag.x,
+            dy = e.clientY - drag.y;
+          if (Math.abs(dx) > 5 || Math.abs(dy) > 5) moved = true;
+          pose(drag.c, dx, dy);
+          stampFor(dx);
+        });
+        window.addEventListener("pointerup", (e) => {
+          if (edge) {
+            track.classList.remove("drag");
+            const dx = e.clientX - edge.x;
+            const k =
+              Math.abs(dx) < 8
+                ? edge.k
+                : Math.max(0, Math.min(2, st.pile - Math.sign(dx)));
+            edge = null;
+            setPile(k);
+            return;
+          }
+          if (!drag) return;
+          const dx = e.clientX - drag.x;
+          const c = drag.c;
+          drag = null;
+          c.classList.remove("drag");
+          if (Math.abs(dx) > 89) fly(Math.sign(dx));
+          else layout(PK[st.pile]);
+        });
+
+        // ---- the food editor ----
+        const ed = $("[data-edit]");
+        const mealNums = (m) => ({
+          k: mealSum(m, "k"),
+          P: mealSum(m, "P"),
+          C: mealSum(m, "C"),
+          F: mealSum(m, "F"),
+        });
+        const others = (key) =>
+          dayOf(st, key) - mealSum(st.meals[st.edit], key);
+        const ingRow = (g, j, m) => `
+          <div class="ing" data-ing="${j}"><button class="rm" data-rm="${j}">Remove</button>
+            <div class="fg"><span>${g.n}<small>${g.note ? g.note + " · " : ""}${Math.round(g.P * m.portion)} g protein</small></span>
+            <button class="amt" data-amt="${j}">${fmt(g.a * m.portion)} ${g.u}</button><b class="k" data-ik="${j}">${fmt(g.k * m.portion)}</b></div></div>`;
+        const tile = (n, key, c, m) => {
+          const v = mealSum(m, key),
+            o = others(key),
+            day = o + v,
+            over = day > TGT[key];
+          return `<div><small>${n}</small><b data-em="${key}">${fmt(v)}</b><b><em> g</em></b>
+            <div class="rail"><i data-ro="${key}" style="--w:${Math.min(100, (o / TGT[key]) * 100)}%;--c:var(--ink-3)"></i><i data-rm2="${key}" style="--w:${Math.max(0, Math.min(100, (day / TGT[key]) * 100) - Math.min(100, (o / TGT[key]) * 100))}%;--c:${over ? "var(--rose)" : c}"></i></div>
+            <span class="day ${over ? "over" : ""}" data-ed="${key}">day ${fmt(day)} of ${TGT[key]}</span></div>`;
+        };
+        const renderEdit = () => {
+          const m = st.meals[st.edit];
+          const s = scoreOf(st);
+          ed.innerHTML = `
+            <div class="hero"><img src="${m.src}" alt="${m.n}">
+              <button class="x" data-do="closeedit" aria-label="Close">${I.x}</button>
+              <span class="live" data-live data-s="${s}"><i style="--c:${col(s)}"></i>Today <b data-lk data-v="${dayOf(st, "k")}">${fmt(dayOf(st, "k"))}</b> kcal · score <b data-ls>${s}</b></span>
+            </div>
+            <div class="eb">
+              <div class="nm"><input value="${m.n}" data-name aria-label="Meal name">${I.pen}</div>
+              <div class="when">${m.when} at <input type="time" value="${m.t}" data-time> · read from the photo</div>
+              <div class="por">
+                <div class="step"><button data-do="por-" aria-label="Less">${I.minus}</button><b data-por>${m.portion.toFixed(1)}×</b><button data-do="por+" aria-label="More">${I.plus}</button></div>
+                <div class="kk"><b data-ek>${fmt(mealSum(m, "k"))}</b><small>kcal · was ${fmt(m.ings.reduce((a, g) => a + g.k, 0))} at 1×</small></div>
+              </div>
+              <div class="tiles" data-tiles>
+                ${tile("Protein", "P", "var(--life)", m)}${tile("Carbs", "C", "var(--amber)", m)}${tile("Fat", "F", "var(--blood)", m)}
+              </div>
+              <div class="ih"><span>Ingredients</span><span>tap an amount · swipe left to remove</span></div>
+              <div data-ings>${m.ings.map((g, j) => ingRow(g, j, m)).join("")}</div>
+              <div class="fix"><label>Fix results</label><textarea data-fix placeholder="Say what's off: it was two cans"></textarea>
+                <div class="row"><small data-fixnote>We read the photo again with your note.</small><button class="go" data-do="fix" hidden>Fix</button></div></div>
+              <div data-delwrap><button class="del" data-do="del">${I.trash}Delete meal</button></div>
+            </div>`;
+          const ta = ed.querySelector("[data-fix]");
+          ta.addEventListener(
+            "input",
+            () => (ed.querySelector("[data-do=fix]").hidden = !ta.value.trim()),
+          );
+          ed.querySelector("[data-name]").addEventListener("input", (e) => {
+            m.n = e.target.value;
+            refreshFood();
+          });
+          ed.querySelector("[data-time]").addEventListener("change", (e) => {
+            m.t = e.target.value;
+            refreshFood();
+          });
+        };
+        // update numbers in place so they count
+        const recount = (prev) => {
+          const m = st.meals[st.edit];
+          const now = mealNums(m);
+          countTo(ed.querySelector("[data-ek]"), prev.k, now.k, 700);
+          ["P", "C", "F"].forEach((key) => {
+            countTo(
+              ed.querySelector(`[data-em="${key}"]`),
+              prev[key],
+              now[key],
+              700,
+            );
+            const o = others(key),
+              day = o + now[key],
+              over = day > TGT[key];
+            const ow = Math.min(100, (o / TGT[key]) * 100);
+            ed.querySelector(`[data-ro="${key}"]`).style.setProperty(
+              "--w",
+              ow + "%",
+            );
+            const mi = ed.querySelector(`[data-rm2="${key}"]`);
+            mi.style.setProperty(
+              "--w",
+              Math.max(0, Math.min(100, (day / TGT[key]) * 100) - ow) + "%",
+            );
+            if (over) mi.style.setProperty("--c", "var(--rose)");
+            const de = ed.querySelector(`[data-ed="${key}"]`);
+            de.textContent = `day ${fmt(day)} of ${TGT[key]}`;
+            de.classList.toggle("over", over);
+          });
+          m.ings.forEach((g, j) => {
+            const k = ed.querySelector(`[data-ik="${j}"]`);
+            if (!k) return;
+            countTo(k, +k.textContent.replace(/\s/g, ""), g.k * m.portion, 700);
+            const a = ed.querySelector(`[data-amt="${j}"]`);
+            if (a && !a.querySelector("input"))
+              a.textContent = `${fmt(g.a * m.portion)} ${g.u}`;
+          });
+          refreshFood();
+          updHeader();
+        };
+        const openEdit = (i) => {
+          st.edit = i;
+          ed.classList.remove("crumple");
+          ed.scrollTop = 0;
+          renderEdit();
+          p.classList.add("editing");
+        };
+        const closeEdit = () => {
+          p.classList.remove("editing");
+          st.edit = null;
+        };
+        const setPortion = (v) => {
+          const m = st.meals[st.edit];
+          const prev = mealNums(m);
+          m.portion = Math.max(0.5, Math.min(4, v));
+          const b = ed.querySelector("[data-por]");
+          b.textContent = m.portion.toFixed(1) + "×";
+          b.classList.remove("bump");
+          void b.offsetWidth;
+          b.classList.add("bump");
+          recount(prev);
+        };
+        const removeIng = (j) => {
+          const m = st.meals[st.edit];
+          const prev = mealNums(m);
+          const row = ed.querySelector(`[data-ing="${j}"]`);
+          row.classList.add("gone");
+          m.ings.splice(j, 1);
+          recount(prev);
+          setTimeout(() => {
+            ed.querySelector("[data-ings]").innerHTML = m.ings
+              .map((g, k) => ingRow(g, k, m))
+              .join("");
+          }, 340);
+        };
+        const editAmt = (j) => {
+          const m = st.meals[st.edit];
+          const g = m.ings[j];
+          const btn = ed.querySelector(`[data-amt="${j}"]`);
+          btn.innerHTML = `<input type="number" step="5" min="0" value="${Math.round(g.a * m.portion)}"> ${g.u}`;
+          const inp = btn.querySelector("input");
+          inp.focus();
+          inp.select();
+          const done = () => {
+            const v = Math.max(0, +inp.value || 0) / m.portion;
+            const prev = mealNums(m);
+            const f = g.a ? v / g.a : 1;
+            ["k", "P", "C", "F"].forEach((key) => (g[key] *= f));
+            g.a = v;
+            btn.textContent = `${fmt(g.a * m.portion)} ${g.u}`;
+            recount(prev);
+          };
+          inp.addEventListener("blur", done, { once: true });
+          inp.addEventListener(
+            "keydown",
+            (e) => e.key === "Enter" && inp.blur(),
+          );
+        };
+        const applyFix = () => {
+          const m = st.meals[st.edit];
+          const box = ed.querySelector(".fix");
+          const ta = ed.querySelector("[data-fix]");
+          const text = ta.value.toLowerCase();
+          box.classList.add("reading");
+          ed.querySelector("[data-do=fix]").hidden = true;
+          ed.querySelector("[data-fixnote]").textContent = "Reading it again…";
+          setTimeout(() => {
+            box.classList.remove("reading");
+            const j = m.ings.findIndex((g) => g.tin);
+            const two = /(two|2|double)/.test(text) && /(can|tin)/.test(text);
+            if (two && j >= 0 && m.ings[j].note === "1 tin") {
+              const prev = mealNums(m);
+              const g = m.ings[j];
+              ["a", "k", "P", "C", "F"].forEach((key) => (g[key] *= 2));
+              g.note = "2 tins";
+              ed.querySelector("[data-ings]").innerHTML = m.ings
+                .map((x, k) => ingRow(x, k, m))
+                .join("");
+              ed.querySelector(`[data-ing="${j}"]`).classList.add("fixed");
+              ed.querySelector("[data-fixnote]").textContent =
+                "Fixed: sardines 1 tin → 2 tins.";
+              recount(prev);
+            } else {
+              ed.querySelector("[data-fixnote]").textContent =
+                "Noted. The rows change when the read comes back.";
+            }
+            ta.value = "";
+          }, 1100);
+        };
+        const askDelete = () => {
+          const m = st.meals[st.edit];
+          ed.querySelector("[data-delwrap]").innerHTML =
+            `<div class="confirm"><b>Delete ${m.n}?</b> ${fmt(mealSum(m, "k"))} kcal leave today and the score counts again.
+            <div class="row"><button data-do="keep">Keep it</button><button class="yes" data-do="delyes">Delete</button></div></div>`;
+          ed.querySelector(".confirm").scrollIntoView({ block: "nearest" });
+        };
+        const doDelete = () => {
+          const i = st.edit;
+          ed.classList.add("crumple");
+          setTimeout(() => {
+            st.meals.splice(i, 1);
+            p.classList.remove("editing");
+            st.edit = null;
+            ed.style.transition = "none";
+            ed.classList.remove("crumple");
+            ed.offsetWidth;
+            ed.style.transition = "";
+            refreshFood();
+            updHeader();
+          }, 900);
+        };
+        // ingredient rows: swipe left to remove
+        let rowDrag = null;
+        ed.addEventListener("pointerdown", (e) => {
+          const fg = e.target.closest(".fg");
+          if (!fg || e.target.closest(".amt")) return;
+          rowDrag = { x: e.clientX, fg, base: fg._open ? -89 : 0, dx: 0 };
+          fg.classList.add("drag");
+        });
+        window.addEventListener("pointermove", (e) => {
+          if (!rowDrag) return;
+          rowDrag.dx = Math.min(0, rowDrag.base + e.clientX - rowDrag.x);
+          rowDrag.fg.style.transform = `translateX(${rowDrag.dx}px)`;
+        });
+        window.addEventListener("pointerup", () => {
+          if (!rowDrag) return;
+          const { fg, dx } = rowDrag;
+          rowDrag = null;
+          fg.classList.remove("drag");
+          if (dx < -160) return removeIng(+fg.parentNode.dataset.ing);
+          fg._open = dx < -34;
+          fg.style.transform = fg._open ? "translateX(-89px)" : "";
+        });
+
+        // ---- clicks ----
+        p.addEventListener(
+          "click",
+          (e) => {
+            if (moved) {
+              moved = false;
+              e.stopPropagation();
+              return;
+            }
+            const t = e.target;
+            const chip = t.closest("[data-chip]");
+            if (chip) {
+              const m = st.moves[+chip.dataset.chip];
+              const s0 = scoreOf(st);
+              m.done = !m.done;
+              m.skip = false;
+              renderDo();
+              updHeader();
+              if (m.done) receipt(m, s0, scoreOf(st));
+              return;
+            }
+            const pb = t.closest("[data-pile]");
+            if (pb) return setPile(+pb.dataset.pile);
+            const cell = t.closest(".cell[data-i]");
+            if (cell) {
+              const i = +cell.dataset.i;
+              return tip(cell.classList.contains("on") ? null : i);
+            }
+            if (t.closest("[data-hdr]")) {
+              if (hm.querySelector(".tip")) return tip(null);
+              return setOpen(!st.open);
+            }
+            const meal = t.closest("[data-meal]");
+            if (meal) return openEdit(+meal.dataset.meal);
+            const add = t.closest("[data-add]");
+            if (add) {
+              p.classList.add("open");
+              return addMode(add.dataset.add);
+            }
+            const rm = t.closest("[data-rm]");
+            if (rm) return removeIng(+rm.dataset.rm);
+            const amt = t.closest("[data-amt]");
+            if (amt)
+              return amt.querySelector("input") || editAmt(+amt.dataset.amt);
+            const mode = t.closest("[data-mode]");
+            if (mode && mode.closest(".sheet"))
+              return addMode(mode.dataset.mode);
+            const b = t.closest("[data-do]");
+            if (!b) return;
+            const d = b.dataset.do;
+            if (d === "tick") fly(1);
+            if (d === "open") p.classList.add("open");
+            if (d === "close") {
+              p.classList.remove("open");
+              addMode(null);
+            }
+            if (d === "send") {
+              const on = $(".sheet .modes .on");
+              const kind = on ? on.dataset.mode : "photo";
+              const ta = well.querySelector("textarea");
+              const R =
+                kind === "text" ? readText(ta ? ta.value : "") : READS[kind];
+              p.classList.remove("open");
+              setTimeout(() => addMode(null), 400);
+              readPlate(R);
+            }
+            if (d === "cal") {
+              st.cal = !st.cal;
+              fill("ahead", "draw");
+            }
+            if (d === "closeedit") closeEdit();
+            if (d === "por+") setPortion(st.meals[st.edit].portion + 0.5);
+            if (d === "por-") setPortion(st.meals[st.edit].portion - 0.5);
+            if (d === "fix") applyFix();
+            if (d === "del") askDelete();
+            if (d === "keep")
+              ed.querySelector("[data-delwrap]").innerHTML =
+                `<button class="del" data-do="del">${I.trash}Delete meal</button>`;
+            if (d === "delyes") doDelete();
+          },
+          true,
+        );
+
+        // ---- add sheet: Send only after content ----
+        const well = $(".well"),
+          send = $(".send");
+        let vt;
+        const addMode = (mode) => {
+          clearTimeout(vt);
+          send.hidden = true;
+          $$(".sheet [data-mode]").forEach((b) =>
+            b.classList.toggle("on", b.dataset.mode === mode),
+          );
+          if (!mode)
+            well.innerHTML =
+              "Pick one. Send shows once there is something to send.";
+          if (mode === "photo") {
+            well.innerHTML = `<img src="img/08-salad.jpg" alt=""><span><b style="color:var(--ink)">1 photo</b><br>Read on Send</span>`;
+            send.hidden = false;
+          }
+          if (mode === "voice") {
+            well.innerHTML = `<span class="wave">${Array.from({ length: 21 }, (_, i) => `<i style="animation-delay:${(i * 89) % 700}ms"></i>`).join("")}</span><span>Listening…</span>`;
+            vt = setTimeout(() => {
+              well.innerHTML = `<span style="color:var(--ink)">"A glass of red wine and a square of dark chocolate."</span>`;
+              send.hidden = false;
+            }, 1400);
+          }
+          if (mode === "text") {
+            well.innerHTML = `<textarea placeholder="Glass of red wine…"></textarea>`;
+            const t = well.querySelector("textarea");
+            t.addEventListener("input", () => (send.hidden = !t.value.trim()));
+            t.focus();
+          }
+        };
+
+        // ---- first paint ----
+        st.order.now.forEach((id) => makeCard("now", id));
+        st.order.ahead.forEach((id) => makeCard("ahead", id));
+        renderDo();
+        setTimeout(() => (layout("now"), layout("ahead")), 20);
+        odo.innerHTML = "";
+        setOdo(0);
+        setTimeout(() => updHeader(), 120);
+        setPile(0);
+
+        return {
+          st,
+          setPile,
+          setOpen,
+          tip,
+          openEdit,
+          setPortion,
+          fly,
+          updHeader,
+          readPlate,
+        };
+      }
+
+      const api = {};
+      for (const p of document.querySelectorAll(".phone")) api[p.id] = mount(p);
+      window.DECK = api;
+
+      // phone 1: the island reads the dinner photo on load (slow, so a still catches it mid-read)
+      api.p1.readPlate(READS.dinner, 15000);
+
+      // phone 2: lunch opened mid-edit, portion 1.5×, a note typed, a row half swiped
+      {
+        const a = api.p2;
+        a.setPile(1);
+        a.openEdit(1);
+        setTimeout(() => {
+          a.setPortion(1.5);
+          const ed = document.querySelector("#p2 [data-edit]");
+          const ta = ed.querySelector("[data-fix]");
+          ta.value = "it was two cans";
+          ed.querySelector("[data-do=fix]").hidden = false;
+          const fg = ed.querySelector('[data-ing="2"] .fg');
+          fg._open = true;
+          fg.style.transform = "translateX(-89px)";
+        }, 700);
+      }
+      // phone 3: header open with a day's tooltip, Ahead pile behind
+      {
+        const a = api.p3;
+        a.setPile(2);
+        setTimeout(() => {
+          a.setOpen(true);
+          setTimeout(() => a.tip(DRAW), 700);
+        }, 400);
+      }
+      // ambient video plays once on open, slowed and blurred, then holds its last frame
+      document.querySelectorAll("video.amb").forEach((v) => {
+        v.playbackRate = 0.5;
+        v.addEventListener("playing", () => v.classList.add("on"), {
+          once: true,
+        });
+      });
+      // ambient video holds still for reduced motion
+      if (matchMedia("(prefers-reduced-motion: reduce)").matches)
+        document.querySelectorAll("video.amb").forEach((v) => {
+          v.autoplay = false;
+          v.pause();
+          v.classList.add("on");
+        });
+    </script>
+  </body>
+</html>

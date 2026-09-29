@@ -1,0 +1,2065 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Widgets · iOS variation 42 · OpenVitals</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;600;700;800;900&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        /* iOS system palette, light */
+        --sys-bg: #f2f2f7;
+        --sys-bg-2: #e5e5ea;
+        --card: #ffffff;
+        --ink: #000000;
+        --ink-2: #3c3c43;
+        --ink-3: #8e8e93;
+        --ink-4: #c7c7cc;
+        --sep: rgba(60, 60, 67, 0.12);
+        --blue: #007aff;
+        --green: #34c759;
+        --orange: #ff9500;
+        --red: #ff3b30;
+        --indigo: #5856d6;
+        --yellow: #ffcc00;
+        /* Apple Fitness ring colours, on black */
+        --r-life: #fa114f;
+        --r-blood: #a6ff00;
+        --r-gene: #19d3f3;
+        /* OpenVitals: lime is the add control */
+        --lime: #c8f560;
+        --r: 21px;
+        --s3: 3px;
+        --s5: 5px;
+        --s8: 8px;
+        --s13: 13px;
+        --s21: 21px;
+        --s34: 34px;
+        --s55: 55px;
+        --spring: cubic-bezier(0.34, 1.4, 0.64, 1);
+        --round:
+          ui-rounded, "SF Pro Rounded", "Nunito", system-ui, -apple-system,
+          sans-serif;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: #ffffff;
+        color: var(--ink);
+        font: 15px/1.35 var(--round);
+        font-feature-settings: "tnum";
+        -webkit-font-smoothing: antialiased;
+      }
+      button,
+      input {
+        font: inherit;
+        color: inherit;
+        background: none;
+        border: 0;
+        padding: 0;
+        cursor: pointer;
+        -webkit-tap-highlight-color: transparent;
+        text-align: left;
+      }
+      h1,
+      h2,
+      p {
+        margin: 0;
+      }
+      svg {
+        width: 20px;
+        height: 20px;
+        stroke: currentColor;
+        fill: none;
+        stroke-width: 2;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+
+      /* ---- page ---- */
+      .doc {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: var(--s55) var(--s21);
+      }
+      .doc > header {
+        margin-bottom: var(--s21);
+        max-width: 66ch;
+      }
+      .eyebrow {
+        color: var(--ink-3);
+        font-size: 13px;
+        font-weight: 600;
+        margin-bottom: var(--s5);
+      }
+      .doc h1 {
+        font-size: 34px;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+      }
+      .lede {
+        color: var(--ink-2);
+        margin-top: var(--s8);
+      }
+      .direction {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: var(--s8);
+        margin: 0 auto var(--s34);
+        max-width: 835px;
+      }
+      .direction div {
+        background: var(--sys-bg);
+        border-radius: var(--s13);
+        padding: var(--s13);
+        font-size: 13px;
+        color: var(--ink-2);
+      }
+      .direction b {
+        display: block;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        color: var(--ink-3);
+        margin-bottom: var(--s3);
+      }
+      .phones {
+        display: flex;
+        gap: var(--s55);
+        justify-content: center;
+        flex-wrap: wrap;
+      }
+      .cap {
+        display: flex;
+        justify-content: space-between;
+        color: var(--ink-3);
+        font-size: 13px;
+        font-weight: 600;
+        margin-bottom: var(--s13);
+        width: 390px;
+      }
+
+      /* ---- phone ---- */
+      .phone {
+        width: 390px;
+        height: 844px;
+        border-radius: 55px;
+        border: 8px solid #1c1c1e;
+        background: var(--sys-bg);
+        box-shadow: 0 34px 55px -34px rgba(0, 0, 0, 0.45);
+        position: relative;
+        overflow: hidden;
+      }
+      .status {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 55px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 3px var(--s34) 0 42px;
+        font-size: 16px;
+        font-weight: 700;
+        z-index: 25;
+        transition: opacity 240ms ease;
+      }
+      .status .sys {
+        display: flex;
+        gap: var(--s5);
+        align-items: center;
+      }
+      .status .sys svg {
+        width: 18px;
+        height: 12px;
+        stroke: none;
+        fill: currentColor;
+      }
+      .status .sys svg.batt {
+        width: 26px;
+      }
+      .phone.live .status {
+        opacity: 0;
+      }
+      .screen {
+        position: absolute;
+        inset: 0;
+        overflow-y: auto;
+        padding: 108px var(--s21) 130px;
+        scrollbar-width: none;
+      }
+      .screen::-webkit-scrollbar {
+        display: none;
+      }
+
+      /* ---- the Dynamic Island ---- */
+      .island {
+        position: absolute;
+        top: 11px;
+        left: 50%;
+        width: 126px;
+        height: 37px;
+        border-radius: 21px;
+        background: #000;
+        color: #fff;
+        transform: translateX(-50%);
+        z-index: 30;
+        overflow: hidden;
+        transition:
+          width 620ms var(--spring),
+          height 620ms var(--spring),
+          border-radius 620ms var(--spring);
+        box-shadow: 0 8px 21px -8px rgba(0, 0, 0, 0.5);
+      }
+      .phone.live .island {
+        width: 358px;
+        height: 84px;
+        border-radius: 34px;
+      }
+      .island .compact {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0 var(--s13);
+        transition: opacity 200ms ease;
+      }
+      .island .compact svg {
+        width: 21px;
+        height: 21px;
+        stroke: none;
+      }
+      .island .compact b {
+        font-size: 14px;
+        font-weight: 800;
+        color: var(--r-life);
+      }
+      .phone.live .island .compact {
+        opacity: 0;
+      }
+      .island .expanded {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 358px;
+        height: 84px;
+        padding: var(--s13) var(--s21);
+        opacity: 0;
+        transition: opacity 200ms ease;
+      }
+      .phone.live .island .expanded {
+        opacity: 1;
+        transition-delay: 180ms;
+      }
+      .xrow {
+        display: grid;
+        grid-template-columns: 44px 1fr 34px;
+        gap: var(--s13);
+        align-items: center;
+        height: 44px;
+      }
+      .xrow .thumb {
+        width: 44px;
+        height: 44px;
+        border-radius: var(--s13);
+        overflow: hidden;
+        position: relative;
+        background: #1c1c1e;
+      }
+      .xrow .thumb img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+      }
+      .xrow .thumb::after {
+        /* the scan line sweeping the plate */
+        content: "";
+        position: absolute;
+        left: 0;
+        right: 0;
+        height: 13px;
+        top: -13px;
+        background: linear-gradient(
+          180deg,
+          transparent,
+          rgba(200, 245, 96, 0.75),
+          transparent
+        );
+        animation: scan 1300ms ease-in-out infinite;
+      }
+      .island.done .xrow .thumb::after {
+        display: none;
+      }
+      @keyframes scan {
+        to {
+          top: 44px;
+        }
+      }
+      .xrow .tx {
+        min-width: 0;
+      }
+      .xrow .tx b {
+        display: block;
+        font-size: 15px;
+        font-weight: 800;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .xrow .tx small {
+        display: block;
+        font-size: 12px;
+        font-weight: 600;
+        color: #8e8e93;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .xrow .tx small em {
+        font-style: normal;
+        color: var(--lime);
+      }
+      .xrow .trail {
+        width: 34px;
+        height: 34px;
+        position: relative;
+      }
+      .xrow .trail svg {
+        width: 34px;
+        height: 34px;
+        transform: rotate(-90deg);
+      }
+      .xrow .trail .pc {
+        position: absolute;
+        inset: 0;
+        display: grid;
+        place-items: center;
+        font-size: 10px;
+        font-weight: 800;
+      }
+      .xrow .trail .ok {
+        position: absolute;
+        inset: 0;
+        border-radius: 50%;
+        background: var(--green);
+        display: grid;
+        place-items: center;
+        transform: scale(0);
+        transition: transform 520ms var(--spring);
+      }
+      .xrow .trail .ok svg {
+        width: 18px;
+        height: 18px;
+        transform: none;
+        stroke: #fff;
+        stroke-width: 3;
+      }
+      .island.done .trail .ok {
+        transform: scale(1);
+      }
+      .xbar {
+        margin-top: var(--s8);
+        height: 5px;
+        border-radius: 3px;
+        background: #2c2c2e;
+        overflow: hidden;
+      }
+      .xbar i {
+        display: block;
+        height: 5px;
+        width: 0;
+        border-radius: 3px;
+        background: var(--lime);
+      }
+      .island.done .xbar i {
+        background: var(--green);
+      }
+
+      /* ---- widgets ---- */
+      .grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: var(--s13);
+      }
+      .w {
+        background: var(--card);
+        border-radius: var(--r);
+        padding: var(--s13);
+        position: relative;
+        overflow: hidden;
+        transition: transform 300ms var(--spring);
+      }
+      .w:active {
+        transform: scale(0.97);
+      }
+      .w.l,
+      .w.m {
+        grid-column: span 2;
+      }
+      .w.s,
+      .w.m {
+        height: 150px;
+      }
+      .wh {
+        display: flex;
+        align-items: center;
+        gap: var(--s5);
+        font-size: 13px;
+        font-weight: 800;
+        height: 18px;
+      }
+      .wh svg {
+        width: 15px;
+        height: 15px;
+        stroke-width: 2.4;
+      }
+      .wh .r {
+        margin-left: auto;
+        font-weight: 700;
+        color: var(--ink-3);
+      }
+      .num {
+        font-weight: 800;
+        letter-spacing: -0.02em;
+        line-height: 1;
+      }
+      .unit {
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--ink-3);
+        letter-spacing: 0;
+      }
+
+      /* large: the score, Activity rings on black */
+      .w.l {
+        background: #000;
+        color: #fff;
+        padding: var(--s21);
+      }
+      .score-top {
+        display: grid;
+        grid-template-columns: 152px 1fr;
+        gap: var(--s21);
+        align-items: center;
+      }
+      .rings {
+        width: 152px;
+        height: 152px;
+        display: block;
+      }
+      .rings .trk {
+        fill: none;
+        stroke-width: 17;
+      }
+      .rings .arc {
+        fill: none;
+        stroke-width: 17;
+        stroke-linecap: round;
+        transition: stroke-dashoffset 1000ms var(--spring);
+      }
+      .rings .arw {
+        stroke: #000;
+        stroke-width: 2.6;
+        fill: none;
+      }
+      .score-side .k {
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: #8e8e93;
+      }
+      .score-side .num {
+        font-size: 55px;
+        margin-top: var(--s3);
+      }
+      .score-side .num .unit {
+        font-size: 17px;
+        color: #636366;
+      }
+      .score-side .ph {
+        margin-top: var(--s8);
+        font-size: 13px;
+        font-weight: 700;
+        color: #aeaeb2;
+        line-height: 1.3;
+      }
+      .score-side .ph em {
+        font-style: normal;
+        color: var(--r-blood);
+      }
+      .legend3 {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: var(--s8);
+        margin-top: var(--s13);
+      }
+      .legend3 div {
+        font-size: 12px;
+        font-weight: 800;
+        color: var(--c);
+        letter-spacing: 0.02em;
+        text-transform: uppercase;
+      }
+      .legend3 .num {
+        display: block;
+        font-size: 21px;
+        margin-top: var(--s3);
+      }
+      .legend3 .num .unit {
+        font-size: 12px;
+        color: var(--c);
+        opacity: 0.75;
+      }
+      .w.l .foot {
+        margin-top: var(--s13);
+        padding-top: var(--s8);
+        border-top: 1px solid #2c2c2e;
+        display: flex;
+        justify-content: space-between;
+        font-size: 12px;
+        font-weight: 700;
+        color: #8e8e93;
+      }
+
+      /* medium: kcal */
+      .kcal {
+        display: grid;
+        grid-template-columns: 128px 1fr;
+        gap: var(--s21);
+        margin-top: var(--s8);
+      }
+      .kcal .num {
+        font-size: 34px;
+        display: block;
+      }
+      .kcal .of {
+        display: block;
+        margin-top: var(--s3);
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--ink-3);
+      }
+      .track {
+        height: 8px;
+        border-radius: 5px;
+        background: var(--sys-bg);
+        overflow: hidden;
+        margin-top: var(--s13);
+      }
+      .track i {
+        display: block;
+        height: 8px;
+        border-radius: 5px;
+        background: var(--c);
+        width: var(--w);
+      }
+      .kcal .left {
+        display: block;
+        margin-top: var(--s5);
+        font-size: 12px;
+        font-weight: 800;
+        color: var(--orange);
+      }
+      .macros {
+        display: flex;
+        flex-direction: column;
+        gap: var(--s8);
+      }
+      .mac {
+        font-size: 12px;
+        font-weight: 800;
+      }
+      .mac div {
+        display: flex;
+        justify-content: space-between;
+      }
+      .mac div span:last-child {
+        color: var(--ink-3);
+      }
+      .mac div span.over {
+        color: var(--red);
+      }
+      .mac .track {
+        height: 5px;
+        margin-top: var(--s3);
+      }
+      .mac .track i {
+        height: 5px;
+      }
+
+      /* small: next move */
+      .move .wh {
+        color: var(--green);
+      }
+      .pips {
+        margin-left: auto;
+        display: flex;
+        gap: var(--s3);
+      }
+      .pips button {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--sys-bg-2);
+        transition: background 240ms ease;
+      }
+      .pips button.on {
+        background: var(--green);
+      }
+      .mv {
+        margin-top: var(--s8);
+        height: 58px;
+        transition:
+          opacity 260ms ease,
+          filter 260ms ease,
+          transform 260ms ease;
+      }
+      .mv.out {
+        opacity: 0;
+        filter: blur(5px);
+        transform: translateY(-5px);
+      }
+      .mv b {
+        display: block;
+        font-size: 17px;
+        font-weight: 800;
+        line-height: 1.15;
+        letter-spacing: -0.01em;
+      }
+      .mv small {
+        display: block;
+        margin-top: var(--s3);
+        font-size: 12px;
+        font-weight: 700;
+        color: var(--ink-3);
+      }
+      .tick {
+        position: absolute;
+        left: var(--s13);
+        right: var(--s13);
+        bottom: var(--s13);
+        height: 34px;
+        border-radius: 999px;
+        background: rgba(52, 199, 89, 0.14);
+        color: #1f8f3d;
+        display: flex;
+        align-items: center;
+        gap: var(--s8);
+        padding: 0 var(--s13) 0 var(--s5);
+        font-size: 13px;
+        font-weight: 800;
+      }
+      .tick .ck {
+        width: 24px;
+        height: 24px;
+        flex: none;
+      }
+      .tick .ck circle {
+        fill: #fff;
+        stroke: var(--green);
+        stroke-width: 2;
+        transition:
+          fill 220ms ease,
+          stroke 220ms ease;
+      }
+      .tick .ck path {
+        stroke: #fff;
+        stroke-width: 2.6;
+        stroke-dasharray: 1 2;
+        stroke-dashoffset: 1;
+        opacity: 0; /* no leftover dot before the draw */
+      }
+      .tick.done .ck circle {
+        fill: var(--green);
+      }
+      .tick.done .ck path {
+        opacity: 1;
+        stroke-dashoffset: 0;
+        transition:
+          stroke-dashoffset 360ms ease 120ms,
+          opacity 0s 120ms;
+      }
+      .tick .gain {
+        margin-left: auto;
+        font-size: 12px;
+        color: var(--green);
+      }
+      .tick[disabled] {
+        background: var(--sys-bg);
+        color: var(--ink-3);
+        cursor: default;
+      }
+
+      /* small: LDL */
+      .ldl .wh {
+        color: var(--ink);
+      }
+      .ldl .wh svg {
+        color: var(--green);
+      }
+      .flag {
+        margin-left: auto;
+        font-size: 11px;
+        font-weight: 800;
+        color: #c46f00;
+        background: rgba(255, 149, 0, 0.14);
+        border-radius: 999px;
+        padding: 1px var(--s8);
+      }
+      .ldl .num {
+        font-size: 34px;
+        margin-top: var(--s5);
+      }
+      .ldl svg.spark {
+        display: block;
+        width: 133px;
+        height: 34px;
+        margin-top: var(--s5);
+        stroke-width: 2.4;
+      }
+      .ldl .to {
+        font-size: 12px;
+        font-weight: 800;
+        color: var(--green);
+        margin-top: var(--s3);
+      }
+      .ldl .to span {
+        color: var(--ink-3);
+      }
+
+      /* medium: meals */
+      .meals {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: var(--s8);
+        margin-top: var(--s8);
+      }
+      .meal .ph {
+        height: 72px;
+        border-radius: var(--s13);
+        overflow: hidden;
+        position: relative;
+        background: var(--sys-bg);
+      }
+      .meal .ph img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+      }
+      .meal .ph .reading {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(
+          100deg,
+          transparent 30%,
+          rgba(255, 255, 255, 0.55) 50%,
+          transparent 70%
+        );
+        background-size: 250% 100%;
+        animation: shimmer 1300ms linear infinite;
+        opacity: 0;
+        transition: opacity 240ms ease;
+      }
+      .phone.reading-pork .meal.pork .reading {
+        opacity: 1;
+      }
+      @keyframes shimmer {
+        from {
+          background-position: 100% 0;
+        }
+        to {
+          background-position: -50% 0;
+        }
+      }
+      .meal .cap2 {
+        display: flex;
+        justify-content: space-between;
+        margin-top: var(--s5);
+        font-size: 12px;
+        font-weight: 800;
+      }
+      .meal .cap2 span:first-child {
+        color: var(--ink-3);
+      }
+      .meals-w .wh svg {
+        color: var(--orange);
+      }
+
+      /* medium: forecast, a smart stack */
+      .fc .wh svg {
+        color: var(--green);
+      }
+      .fc p {
+        margin-top: var(--s8);
+        font-size: 17px;
+        font-weight: 800;
+        line-height: 1.25;
+        letter-spacing: -0.01em;
+        max-width: 250px;
+      }
+      .fc p em {
+        font-style: normal;
+        color: var(--green);
+      }
+      .fc small {
+        display: block;
+        margin-top: var(--s8);
+        font-size: 12px;
+        font-weight: 700;
+        color: var(--ink-3);
+      }
+      .stackdots {
+        position: absolute;
+        right: var(--s8);
+        top: 50%;
+        transform: translateY(-50%);
+        display: flex;
+        flex-direction: column;
+        gap: var(--s3);
+      }
+      .stackdots i {
+        width: 5px;
+        height: 5px;
+        border-radius: 50%;
+        background: var(--ink-4);
+      }
+      .stackdots i:first-child {
+        background: var(--ink-3);
+      }
+      .pagedots {
+        display: flex;
+        justify-content: center;
+        gap: var(--s8);
+        margin-top: var(--s21);
+      }
+      .pagedots i {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--ink-4);
+      }
+      .pagedots i:first-child {
+        background: var(--ink-3);
+      }
+
+      /* ---- tab bar, glass ---- */
+      .tabs {
+        position: absolute;
+        left: var(--s13);
+        right: var(--s13);
+        bottom: var(--s21);
+        display: flex;
+        gap: var(--s8);
+        align-items: center;
+        z-index: 5;
+      }
+      .tabs .bar {
+        flex: 1;
+        height: 62px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.72);
+        backdrop-filter: blur(21px) saturate(1.8);
+        -webkit-backdrop-filter: blur(21px) saturate(1.8);
+        box-shadow:
+          inset 0 0 0 1px rgba(255, 255, 255, 0.7),
+          0 8px 21px -8px rgba(0, 0, 0, 0.22);
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        padding: var(--s5);
+      }
+      .tabs .bar button {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 2px;
+        font-size: 10px;
+        font-weight: 800;
+        color: var(--ink-2);
+        border-radius: 999px;
+      }
+      .tabs .bar button svg {
+        width: 21px;
+        height: 21px;
+      }
+      .tabs .bar button.on {
+        background: rgba(118, 118, 128, 0.14);
+        color: var(--blue);
+      }
+      .tabs .plus {
+        width: 62px;
+        height: 62px;
+        border-radius: 50%;
+        background: var(--lime);
+        box-shadow:
+          inset 0 0 0 1px rgba(255, 255, 255, 0.5),
+          0 8px 21px -8px rgba(0, 0, 0, 0.3);
+        display: grid;
+        place-items: center;
+        color: #000;
+      }
+      .tabs .plus svg {
+        width: 26px;
+        height: 26px;
+        stroke-width: 2.6;
+      }
+      .homebar {
+        position: absolute;
+        left: 50%;
+        bottom: 8px;
+        width: 134px;
+        height: 5px;
+        border-radius: 3px;
+        background: #000;
+        transform: translateX(-50%);
+        z-index: 26;
+      }
+
+      /* ---- add sheet ---- */
+      .veil {
+        position: absolute;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.18);
+        backdrop-filter: blur(13px);
+        -webkit-backdrop-filter: blur(13px);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 320ms ease;
+        z-index: 10;
+      }
+      .sheet {
+        position: absolute;
+        left: var(--s8);
+        right: var(--s8);
+        bottom: var(--s8);
+        background: #fff;
+        border-radius: 34px;
+        padding: var(--s8) var(--s21) var(--s21);
+        box-shadow: 0 34px 55px -21px rgba(0, 0, 0, 0.4);
+        transform: translateY(110%);
+        transition: transform 560ms var(--spring);
+        z-index: 20;
+      }
+      .phone.open .veil {
+        opacity: 1;
+        pointer-events: auto;
+      }
+      .phone.open .sheet {
+        transform: none;
+      }
+      .grab {
+        width: 36px;
+        height: 5px;
+        border-radius: 3px;
+        background: var(--ink-4);
+        margin: 0 auto var(--s8);
+      }
+      .nav {
+        display: grid;
+        grid-template-columns: 1fr auto 1fr;
+        align-items: center;
+        height: 34px;
+      }
+      .nav .cancel {
+        color: var(--blue);
+        font-size: 17px;
+        font-weight: 600;
+      }
+      .nav h2 {
+        font-size: 17px;
+        font-weight: 800;
+      }
+      .send {
+        justify-self: end;
+        display: flex;
+        align-items: center;
+        gap: var(--s5);
+        height: 34px;
+        padding: 0 var(--s13) 0 var(--s5);
+        border-radius: 999px;
+        background: var(--blue);
+        color: #fff;
+        font-size: 15px;
+        font-weight: 800;
+        opacity: 0;
+        transform: scale(0.6);
+        pointer-events: none;
+        transition:
+          opacity 200ms ease,
+          transform 420ms var(--spring);
+      }
+      .send svg {
+        width: 24px;
+        height: 24px;
+        stroke-width: 2.6;
+      }
+      .sheet.has .send {
+        opacity: 1;
+        transform: none;
+        pointer-events: auto;
+      }
+      .modes {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: var(--s8);
+        margin-top: var(--s13);
+      }
+      .mode {
+        height: 104px;
+        border-radius: var(--r);
+        background: var(--sys-bg);
+        padding: var(--s13);
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        transition:
+          background 240ms ease,
+          color 240ms ease,
+          transform 300ms var(--spring);
+      }
+      .mode:active {
+        transform: scale(0.95);
+      }
+      .mode .gl {
+        width: 42px;
+        height: 42px;
+        border-radius: 50%;
+        background: #fff;
+        display: grid;
+        place-items: center;
+        color: var(--c);
+      }
+      .mode .gl svg {
+        width: 21px;
+        height: 21px;
+      }
+      .mode b {
+        display: block;
+        font-size: 15px;
+        font-weight: 800;
+      }
+      .mode small {
+        display: block;
+        font-size: 11px;
+        font-weight: 700;
+        color: var(--ink-3);
+      }
+      .mode.on {
+        background: var(--c);
+        color: #fff;
+      }
+      .mode.on small {
+        color: rgba(255, 255, 255, 0.8);
+      }
+      .field {
+        margin-top: var(--s13);
+        min-height: 55px;
+        border-radius: var(--s13);
+        background: var(--sys-bg);
+        padding: var(--s8) var(--s13);
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: var(--s8);
+      }
+      .field input {
+        flex: 1;
+        min-width: 180px;
+        height: 34px;
+        font-size: 15px;
+        font-weight: 700;
+        outline: none;
+        cursor: text;
+      }
+      .field input::placeholder {
+        color: var(--ink-3);
+      }
+      .shot {
+        width: 55px;
+        height: 55px;
+        border-radius: var(--s13);
+        overflow: hidden;
+        position: relative;
+        animation: pop 420ms var(--spring);
+      }
+      .shot img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+      }
+      @keyframes pop {
+        from {
+          transform: scale(0.5);
+          opacity: 0;
+        }
+      }
+      .wave {
+        display: none;
+        align-items: center;
+        gap: var(--s3);
+        height: 34px;
+      }
+      .sheet.listening .wave {
+        display: flex;
+      }
+      .wave i {
+        width: 3px;
+        height: 8px;
+        border-radius: 2px;
+        background: var(--red);
+        animation: wv 700ms ease-in-out infinite alternate;
+      }
+      @keyframes wv {
+        to {
+          height: 26px;
+        }
+      }
+      .again {
+        margin-top: var(--s21);
+      }
+      .again > span {
+        font-size: 13px;
+        font-weight: 800;
+        color: var(--ink-3);
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+      }
+      .chips {
+        display: flex;
+        gap: var(--s8);
+        margin-top: var(--s8);
+        flex-wrap: wrap;
+      }
+      .chip {
+        display: flex;
+        align-items: center;
+        gap: var(--s8);
+        padding: var(--s3) var(--s13) var(--s3) var(--s3);
+        border-radius: 999px;
+        background: var(--sys-bg);
+        font-size: 13px;
+        font-weight: 800;
+      }
+      .chip img {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        object-fit: cover;
+      }
+      .sheet .note {
+        margin-top: var(--s13);
+        font-size: 12px;
+        font-weight: 700;
+        color: var(--ink-3);
+      }
+
+      /* ---- notes ---- */
+      .notes {
+        margin: var(--s55) auto 0;
+        max-width: 72ch;
+        font-size: 13px;
+        color: var(--ink-2);
+      }
+      .notes h2 {
+        font-size: 15px;
+        font-weight: 800;
+        color: var(--ink);
+        margin-bottom: var(--s8);
+      }
+      .notes table {
+        border-collapse: collapse;
+        width: 100%;
+        margin: var(--s8) 0 var(--s21);
+      }
+      .notes td,
+      .notes th {
+        text-align: left;
+        padding: var(--s5) var(--s8) var(--s5) 0;
+        border-bottom: 1px solid var(--sep);
+        vertical-align: top;
+      }
+      .notes th {
+        font-weight: 800;
+        color: var(--ink);
+      }
+      #assert {
+        margin-bottom: var(--s21);
+        font-size: 12px;
+        font-weight: 800;
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          animation: none !important;
+          transition: none !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="doc">
+      <header>
+        <p class="eyebrow">iOS variation 42 · round twelve</p>
+        <h1>Widgets</h1>
+        <p class="lede">
+          The home as a screen of iOS widgets plus a Live Activity. The Dynamic
+          Island reads the plate while the widgets answer the four questions:
+          the score in Activity rings, today's kcal against 1 900, the next move
+          with a tick you press in place, and where LDL is going. Tap the tick:
+          the lifestyle ring springs forward and 72 counts to 74.
+        </p>
+      </header>
+
+      <section class="direction">
+        <div>
+          <b>Mood</b>Native Apple, nothing invented: system grey, white widgets,
+          one black Fitness widget.
+        </div>
+        <div>
+          <b>Accent</b>The three Fitness ring colours carry the three layers;
+          lime only on the plus and the island's reading bar.
+        </div>
+        <div>
+          <b>Type</b>SF Pro Rounded (ui-rounded), Nunito where the browser has
+          no rounded system face. Heavy numbers, tabular.
+        </div>
+        <div>
+          <b>Unusual idea</b>The Add flow lives in the Dynamic Island: you send,
+          the sheet drops, and the island grows to read the plate.
+        </div>
+      </section>
+
+      <section class="phones">
+        <div>
+          <p class="cap">
+            <span>01 · Home</span><span>tick a move · tap +</span>
+          </p>
+          <div class="phone" id="p1" data-live="1"></div>
+        </div>
+        <div>
+          <p class="cap">
+            <span>02 · Add</span><span>type, speak or snap</span>
+          </p>
+          <div class="phone open" id="p2"></div>
+        </div>
+      </section>
+
+      <section class="notes">
+        <h2>The score, in the rings</h2>
+        <table>
+          <tr>
+            <th>Ring</th>
+            <th>Today</th>
+            <th>Weight</th>
+            <th>Moves</th>
+          </tr>
+          <tr>
+            <td>Lifestyle, outer, red</td>
+            <td>sleep 100, moves 40, kcal 90, protein 78 → 77</td>
+            <td>0.40</td>
+            <td>every entry</td>
+          </tr>
+          <tr>
+            <td>Blood, middle, green</td>
+            <td>4 in range, 2 borderline, 1 off → 71</td>
+            <td>0.45</td>
+            <td>each draw</td>
+          </tr>
+          <tr>
+            <td>Genes, inner, blue</td>
+            <td>4 variants, fixed → 63</td>
+            <td>0.15</td>
+            <td>never</td>
+          </tr>
+          <tr>
+            <td>Score</td>
+            <td>0.40 × 77 + 0.45 × 71 + 0.15 × 63 = 72</td>
+            <td></td>
+            <td>daily</td>
+          </tr>
+          <tr>
+            <td>Per tick</td>
+            <td>
+              moves 40 → 60 → 80 → 100: lifestyle 77 → 82 → 87 → 92, score 72 →
+              74 → 76 → 78
+            </td>
+            <td></td>
+            <td>live</td>
+          </tr>
+        </table>
+        <p id="assert"></p>
+        <h2>The direction's rules</h2>
+        <table>
+          <tr>
+            <th>Rule</th>
+            <th>How</th>
+          </tr>
+          <tr>
+            <td>Widget sizes only</td>
+            <td>
+              Every block is a small (2 × 2), medium (4 × 2) or large (4 × 4)
+              widget on a 13 px gutter. Nothing else sits on the grey.
+            </td>
+          </tr>
+          <tr>
+            <td>One glance</td>
+            <td>
+              Above the tab bar: score (large), kcal (medium), next move and LDL
+              (two smalls). Meals and the forecast are one scroll down.
+            </td>
+          </tr>
+          <tr>
+            <td>Rings are Fitness rings</td>
+            <td>
+              17 px stroke, 2 px gap, round caps, the start arrows, colour on a
+              22 percent track, black widget. Red lifestyle, green blood, blue
+              genes.
+            </td>
+          </tr>
+          <tr>
+            <td>Interactive widget</td>
+            <td>
+              The tick is an in-widget button, as iOS 17 allows. The widget then
+              swaps to the next move with the system's blur-fade.
+            </td>
+          </tr>
+          <tr>
+            <td>One spring</td>
+            <td>
+              Damping 0.6, 1 000 ms, written as CSS linear() from the spring
+              equation (cubic-bezier overshoot where linear() is missing).
+              Rings, the island, the sheet, the numbers.
+            </td>
+          </tr>
+          <tr>
+            <td>Live Activity</td>
+            <td>
+              Expanded while reading (scan line over the photo, detected items
+              arriving, lime bar), a green check when done, then compact: the
+              rings and the score.
+            </td>
+          </tr>
+          <tr>
+            <td>Add sheet</td>
+            <td>
+              Three equal Control Center tiles, a field, recent meals as chips.
+              Send is hidden until there is a photo, a transcript or text.
+            </td>
+          </tr>
+        </table>
+      </section>
+    </main>
+
+    <script>
+      const I = {
+        chev: '<svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg>',
+        back: '<svg viewBox="0 0 24 24"><path d="m15 6-6 6 6 6"/></svg>',
+        bell: '<svg viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10 21a2 2 0 0 0 4 0"/></svg>',
+        info: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg>',
+        plus: '<svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>',
+        cam: '<svg viewBox="0 0 24 24"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>',
+        walk: '<svg viewBox="0 0 24 24"><circle cx="13" cy="4" r="1.5"/><path d="m10 21 2-6 3 3v3M8 12l3-3 3 1 2 3M11 9l-1 5-3 2"/></svg>',
+        moon: '<svg viewBox="0 0 24 24"><path d="M20 15A8 8 0 0 1 9 4a8 8 0 1 0 11 11z"/></svg>',
+        more: '<svg viewBox="0 0 24 24"><circle cx="6" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="18" cy="12" r="1"/></svg>',
+        home: '<svg viewBox="0 0 24 24"><path d="M3 11 12 4l9 7v9H3z"/><path d="M10 20v-6h4v6"/></svg>',
+        body: '<svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="2.5"/><path d="M9 10h6l1 5h-2v6h-4v-6H8z"/></svg>',
+        drop: '<svg viewBox="0 0 24 24"><path d="M12 3s6 7 6 11a6 6 0 0 1-12 0c0-4 6-11 6-11z"/></svg>',
+        pill: '<svg viewBox="0 0 24 24"><rect x="3" y="9" width="18" height="6" rx="3" transform="rotate(-45 12 12)"/><path d="m9 9 6 6"/></svg>',
+        dna: '<svg viewBox="0 0 24 24"><path d="M7 3c0 6 10 6 10 12M17 3c0 6-10 6-10 12M7 21c0-3 2-5 5-6M17 21c0-3-2-5-5-6M8 7h8M8 17h8"/></svg>',
+      };
+      Object.assign(I, {
+        check:
+          '<svg viewBox="0 0 24 24"><path d="M5 12.5 10 17.5 19 7"/></svg>',
+        flame:
+          '<svg viewBox="0 0 24 24"><path d="M12 3c1 4 6 6 6 11a6 6 0 0 1-12 0c0-3 2-4 2-7 2 1 3 3 3 5 1-2 1-6 1-9z"/></svg>',
+        fork: '<svg viewBox="0 0 24 24"><path d="M7 3v8a2 2 0 0 0 4 0V3M9 3v18M17 3c-2 2-3 5-3 8h3v10"/></svg>',
+        trend:
+          '<svg viewBox="0 0 24 24"><path d="M3 7l6 6 4-4 8 8M15 17h6v-6"/></svg>',
+        leaf: '<svg viewBox="0 0 24 24"><path d="M5 19c0-9 6-14 15-14 0 9-5 15-14 15M5 19l7-7"/></svg>',
+        text: '<svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h10M4 18h7"/></svg>',
+        mic: '<svg viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>',
+        up: '<svg viewBox="0 0 24 24"><path d="M12 19V6M6 11l6-6 6 6"/></svg>',
+        signal:
+          '<svg viewBox="0 0 18 12"><rect x="0" y="8" width="3" height="4" rx="1"/><rect x="5" y="5.5" width="3" height="6.5" rx="1"/><rect x="10" y="3" width="3" height="9" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1"/></svg>',
+        wifi: '<svg viewBox="0 0 18 12"><path d="M9 12 6.2 9a4 4 0 0 1 5.6 0zM3.4 6.2a8 8 0 0 1 11.2 0l-1.4 1.4a6 6 0 0 0-8.4 0zM.6 3.4a12 12 0 0 1 16.8 0L16 4.8a10 10 0 0 0-14 0z"/></svg>',
+        batt: '<svg class="batt" viewBox="0 0 26 12"><rect x="0.5" y="0.5" width="22" height="11" rx="3.5" fill="none" stroke="currentColor" stroke-opacity=".4"/><rect x="2" y="2" width="16" height="8" rx="2"/><rect x="24" y="4" width="1.6" height="4" rx=".8" opacity=".4"/></svg>',
+      });
+
+      // ---- the three layers ----
+      const LIFE = {
+        w: 0.4,
+        rows: [
+          { n: "Sleep", s: "7h 30 of 7h 30", p: 100 },
+          { n: "Moves", s: "2 of 5 ticked", p: 40 },
+          { n: "Calories", s: "1 497 of 1 900 kcal", p: 90 },
+          { n: "Protein", s: "93 of 120 g", p: 78 },
+        ],
+      };
+      const BLOOD = {
+        w: 0.45,
+        // x: where the dot sits on the rail (0..100); state drives the colour
+        rows: [
+          { n: "Vitamin D", s: "29 ng/mL · aim 40 to 60", x: 12, st: "rose" },
+          { n: "LDL", s: "131 mg/dL · aim under 100", x: 84, st: "amber" },
+          { n: "ApoB", s: "98 mg/dL · aim under 90", x: 80, st: "amber" },
+          { n: "hs-CRP", s: "0.6 mg/L", x: 30, st: "green" },
+          { n: "HbA1c", s: "5.3 %", x: 45, st: "green" },
+          { n: "Ferritin", s: "64 ng/mL", x: 50, st: "green" },
+          { n: "TPO", s: "18 IU/mL", x: 35, st: "green" },
+        ],
+      };
+      const GENES = {
+        w: 0.15,
+        rows: [
+          { n: "APOE ε3/ε4", s: "LDL responds more to saturated fat", p: 45 },
+          { n: "LPA rs10455872", s: "not carried", p: 100 },
+          { n: "MTHFR C677T", s: "heterozygous · folate form matters", p: 60 },
+          { n: "FTO rs9939609", s: "one copy · appetite", p: 45 },
+        ],
+      };
+      const pct = (rows) =>
+        Math.round(rows.reduce((a, r) => a + r.p, 0) / rows.length);
+      const life = pct(LIFE.rows); // 77
+      const blood = Math.round(
+        (BLOOD.rows.reduce(
+          (a, r) => a + { green: 1, amber: 0.5, rose: 0 }[r.st],
+          0,
+        ) /
+          BLOOD.rows.length) *
+          100,
+      ); // 71
+      const genes = pct(GENES.rows); // 62
+      const score = Math.round(
+        LIFE.w * life + BLOOD.w * blood + GENES.w * genes,
+      ); // 72
+      console.assert(score === 72, "score arithmetic drifted", score);
+
+      // ---- the receipt ----
+      const LOG = [
+        {
+          layer: "life",
+          ic: "img",
+          src: "img/08-pork-belly.jpg",
+          n: "Pork belly, salad",
+          s: "7:30 PM · 623 kcal · fat past the day's share",
+          d: -1,
+        },
+        {
+          layer: "life",
+          ic: "green-bg",
+          g: "walk",
+          n: "Walk after lunch",
+          s: "1:45 PM · 15 min · ticked",
+          d: 2,
+        },
+        {
+          layer: "life",
+          ic: "img",
+          src: "img/08-sardines-rye.jpg",
+          n: "Sardines on rye, kimchi",
+          s: "1:08 PM · 462 kcal · 38 g protein",
+          d: 1,
+        },
+        {
+          layer: "life",
+          ic: "gene-bg",
+          g: "pill",
+          n: "Selenium 200 µg",
+          s: "8:20 AM · ticked",
+          d: 0,
+        },
+        {
+          layer: "life",
+          ic: "img",
+          src: "img/08-oats.jpg",
+          n: "Oats with berries",
+          s: "8:15 AM · 412 kcal · 3 g beta-glucan",
+          d: 1,
+        },
+        {
+          layer: "life",
+          ic: "rose-bg",
+          g: "moon",
+          n: "Sleep",
+          s: "Last night · 7h 30",
+          d: 3,
+        },
+        {
+          layer: "blood",
+          ic: "blood-bg",
+          g: "drop",
+          n: "LDL 168 → 131",
+          s: "Aug 1 draw · off to borderline",
+          d: 6,
+        },
+        {
+          layer: "blood",
+          ic: "blood-bg",
+          g: "drop",
+          n: "Vitamin D 34 → 29",
+          s: "Aug 1 draw · borderline to off",
+          d: -4,
+        },
+        {
+          layer: "blood",
+          ic: "blood-bg",
+          g: "drop",
+          n: "Next draw",
+          s: "Nov 1 · LDL, ApoB, vitamin D",
+          d: null,
+        },
+        {
+          layer: "genes",
+          ic: "gene-bg",
+          g: "dna",
+          n: "Panel read once",
+          s: "Mar 2026 · four variants weighed",
+          d: null,
+        },
+      ];
+
+      // ---- page check: the assertion, made visible ----
+      document.getElementById("assert").textContent =
+        score === 72
+          ? `Assertion holds: score ${score} (life ${life}, blood ${blood}, genes ${genes}).`
+          : `Assertion FAILED: score ${score}.`;
+
+      // ---- the spring: damping 0.6, written as CSS linear() ----
+      const springAt = (t, zeta = 0.6, w0 = 12) => {
+        const wd = w0 * Math.sqrt(1 - zeta * zeta);
+        return (
+          1 -
+          Math.exp(-zeta * w0 * t) *
+            (Math.cos(wd * t) + ((zeta * w0) / wd) * Math.sin(wd * t))
+        );
+      };
+      if (CSS.supports("transition-timing-function", "linear(0, 1)")) {
+        const pts = [];
+        for (let i = 0; i <= 50; i++) pts.push(springAt(i / 50).toFixed(4));
+        pts[50] = "1";
+        document.documentElement.style.setProperty(
+          "--spring",
+          `linear(${pts.join(", ")})`,
+        );
+      }
+
+      // ---- today's data for the widgets (same numbers as every variation) ----
+      const GOAL = 1900;
+      const KCAL = 1497;
+      const MACROS = [
+        { n: "Protein", v: 93, t: 120, c: "var(--indigo)" },
+        { n: "Carbs", v: 93, t: 180, c: "var(--orange)" },
+        { n: "Fat", v: 84, t: 70, c: "var(--yellow)" },
+      ];
+      const to24 = (s) => {
+        const m = s.match(/(\d+):(\d+) (AM|PM)/);
+        let h = +m[1] % 12;
+        if (m[3] === "PM") h += 12;
+        return `${h}:${m[2]}`;
+      };
+      const MEALS = LOG.filter((r) => r.ic === "img")
+        .reverse()
+        .map((r) => ({
+          src: r.src,
+          n: r.n,
+          t: to24(r.s),
+          k: +r.s.match(/(\d+) kcal/)[1],
+          pork: r.src.includes("pork"),
+        }));
+      const MOVES = [
+        { n: "Selenium 200 µg", s: "ticked 8:20", done: true },
+        { n: "Walk after lunch", s: "15 min · ticked 13:45", done: true },
+        { n: "Walk after dinner", s: "15 min · before 20:30", done: false },
+        { n: "Psyllium, 10 g", s: "in water · before bed", done: false },
+        { n: "Lights out 23:00", s: "for 7h 30 again", done: false },
+      ];
+      const fmt = (n) => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+
+      // live values, recomputed from LIFE on every tick
+      const now = () => {
+        const done = MOVES.filter((m) => m.done).length;
+        LIFE.rows[1].p = done * 20;
+        LIFE.rows[1].s = `${done} of 5 ticked`;
+        const l = pct(LIFE.rows);
+        const sc = Math.round(LIFE.w * l + BLOOD.w * blood + GENES.w * genes);
+        return { done, life: l, score: sc };
+      };
+      const scoreIf = (extra) => {
+        const done = MOVES.filter((m) => m.done).length + extra;
+        const rows = LIFE.rows.map((r, i) =>
+          i === 1 ? { ...r, p: done * 20 } : r,
+        );
+        return Math.round(
+          LIFE.w * pct(rows) + BLOOD.w * blood + GENES.w * genes,
+        );
+      };
+
+      // ---- rings ----
+      const RINGS = [
+        { k: "life", r: 64, c: "var(--r-life)", arrows: 1 },
+        { k: "blood", r: 45, c: "var(--r-blood)", arrows: 2 },
+        { k: "genes", r: 26, c: "var(--r-gene)", arrows: 0 },
+      ];
+      const C = (r) => 2 * Math.PI * r;
+      const ringsSvg = (big = true) => {
+        const g = RINGS.map(
+          (R) => `
+            <circle class="trk" cx="76" cy="76" r="${R.r}" style="stroke:${R.c};stroke-opacity:.22"/>
+            <circle class="arc" data-ring="${R.k}" cx="76" cy="76" r="${R.r}" style="stroke:${R.c}"
+              stroke-dasharray="${C(R.r)}" stroke-dashoffset="${C(R.r)}" transform="rotate(-90 76 76)"/>`,
+        ).join("");
+        // the start arrows, as Fitness draws them: ›, ››, ↑
+        const a = RINGS.map((R) => {
+          const y = 76 - R.r;
+          if (R.arrows === 1)
+            return `<path class="arw" d="M73 ${y - 4} l4 4 -4 4"/>`;
+          if (R.arrows === 2)
+            return `<path class="arw" d="M70 ${y - 4} l4 4 -4 4 M75 ${y - 4} l4 4 -4 4"/>`;
+          return `<path class="arw" d="M76 ${y + 4} v-8 M72.5 ${y - 0.5} l3.5 -3.5 3.5 3.5"/>`;
+        }).join("");
+        return `<svg class="rings" viewBox="0 0 152 152">${g}${big ? a : ""}</svg>`;
+      };
+      const miniRings = () => {
+        const rs = [
+          [9, "var(--r-life)", 77],
+          [6, "var(--r-blood)", blood],
+          [3, "var(--r-gene)", genes],
+        ];
+        return `<svg viewBox="0 0 21 21">${rs
+          .map(
+            ([r, c, v]) =>
+              `<circle cx="10.5" cy="10.5" r="${r}" fill="none" stroke="${c}" stroke-opacity=".25" stroke-width="2.4"/>
+               <circle class="mini" data-v="${v}" cx="10.5" cy="10.5" r="${r}" fill="none" stroke="${c}" stroke-width="2.4" stroke-linecap="round"
+                 stroke-dasharray="${C(r)}" stroke-dashoffset="${C(r) * (1 - v / 100)}" transform="rotate(-90 10.5 10.5)"/>`,
+          )
+          .join("")}</svg>`;
+      };
+
+      // ---- LDL sparkline: Dec 9 2025 168, Aug 1 2026 131, eight weeks on 104 ----
+      const spark = () => {
+        const X = (d) => (d / 344) * 127 + 3;
+        const Y = (v) => 3 + ((172 - v) / 72) * 28;
+        const p0 = [X(0), Y(168)],
+          p1 = [X(235), Y(131)],
+          p2 = [X(344), Y(104)];
+        return `<svg class="spark" viewBox="0 0 133 34">
+          <line x1="3" x2="130" y1="${Y(100)}" y2="${Y(100)}" stroke="var(--ink-4)" stroke-width="1" stroke-dasharray="2 3"/>
+          <path d="M${p0} L${p1}" stroke="var(--green)"/>
+          <path d="M${p1} L${p2}" stroke="var(--green)" stroke-dasharray="3 4"/>
+          <circle cx="${p0[0]}" cy="${p0[1]}" r="3" fill="var(--green)" stroke="none"/>
+          <circle cx="${p1[0]}" cy="${p1[1]}" r="3.5" fill="var(--green)" stroke="#fff" stroke-width="1.5"/>
+          <circle cx="${p2[0]}" cy="${p2[1]}" r="3" fill="#fff" stroke="var(--green)" stroke-width="2"/>
+        </svg>`;
+      };
+
+      const moveBody = () => {
+        const next = MOVES.find((m) => !m.done);
+        return next
+          ? `<b>${next.n}</b><small>${next.s}</small>`
+          : `<b>All five done</b><small>the ring is as full as today gets</small>`;
+      };
+      const tickBtn = () => {
+        const next = MOVES.find((m) => !m.done);
+        const s0 = now().score;
+        return next
+          ? `<button class="tick" data-do="tick"><svg class="ck" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10.5"/><path d="M7.5 12.5 10.5 15.5 16.5 9" pathLength="1"/></svg>Tick<span class="gain">${s0} → ${scoreIf(1)}</span></button>`
+          : `<button class="tick" disabled><svg class="ck" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10.5" style="fill:var(--ink-4);stroke:var(--ink-4)"/></svg>Tap a dot to undo</button>`;
+      };
+      const pips = () =>
+        MOVES.map(
+          (m, i) =>
+            `<button class="${m.done ? "on" : ""}" data-pip="${i}" aria-label="${m.n}"></button>`,
+        ).join("");
+
+      const home = () => {
+        const v = now();
+        return `
+        <div class="status"><span>19:31</span><span class="sys">${I.signal}${I.wifi}${I.batt}</span></div>
+        <div class="island">
+          <div class="compact">${miniRings()}<b class="cscore">${v.score}</b></div>
+          <div class="expanded">
+            <div class="xrow">
+              <span class="thumb"><img src="img/08-pork-belly.jpg" alt=""></span>
+              <span class="tx"><b class="xt">Reading your plate…</b><small class="xs">looking</small></span>
+              <span class="trail">
+                <svg viewBox="0 0 34 34"><circle cx="17" cy="17" r="14" stroke="#2c2c2e" stroke-width="3.5"/>
+                  <circle class="xring" cx="17" cy="17" r="14" stroke="var(--lime)" stroke-width="3.5" stroke-dasharray="${C(14)}" stroke-dashoffset="${C(14)}"/></svg>
+                <span class="pc">0</span>
+                <span class="ok">${I.check}</span>
+              </span>
+            </div>
+            <div class="xbar"><i></i></div>
+          </div>
+        </div>
+
+        <div class="screen">
+          <div class="grid">
+            <div class="w l">
+              <div class="score-top">
+                ${ringsSvg()}
+                <div class="score-side">
+                  <div class="k">Health score</div>
+                  <div class="num"><span class="sc">0</span><span class="unit"> /100</span></div>
+                  <p class="ph">PhenoAge 36.2<br>at 39 · <em>2.8 y younger</em></p>
+                </div>
+              </div>
+              <div class="legend3">
+                <div style="--c:var(--r-life)">Lifestyle<span class="num"><span class="lv">${v.life}</span><span class="unit"> ×.40</span></span></div>
+                <div style="--c:var(--r-blood)">Blood<span class="num">${blood}<span class="unit"> ×.45</span></span></div>
+                <div style="--c:var(--r-gene)">Genes<span class="num">${genes}<span class="unit"> ×.15</span></span></div>
+              </div>
+              <div class="foot"><span>Up 2 since Monday</span><span>Next draw Nov 1</span></div>
+            </div>
+
+            <div class="w m">
+              <div class="wh" style="color:var(--orange)">${I.flame}Calories<span class="r">1 900 target</span></div>
+              <div class="kcal">
+                <div>
+                  <span class="num">${fmt(KCAL)}</span>
+                  <span class="of">of ${fmt(GOAL)} kcal</span>
+                  <div class="track" style="--c:var(--orange);--w:${((KCAL / GOAL) * 100).toFixed(1)}%"><i></i></div>
+                  <span class="left">${GOAL - KCAL} left</span>
+                </div>
+                <div class="macros">
+                  ${MACROS.map(
+                    (
+                      m,
+                    ) => `<div class="mac"><div><span>${m.n}</span><span class="${m.v > m.t ? "over" : ""}">${m.v} / ${m.t} g</span></div>
+                      <div class="track" style="--c:${m.v > m.t ? "var(--red)" : m.c};--w:${Math.min(100, (m.v / m.t) * 100).toFixed(1)}%"><i></i></div></div>`,
+                  ).join("")}
+                </div>
+              </div>
+            </div>
+
+            <div class="w s move">
+              <div class="wh">${I.walk}Next<span class="pips">${pips()}</span></div>
+              <div class="mv">${moveBody()}</div>
+              ${tickBtn()}
+            </div>
+
+            <div class="w s ldl">
+              <div class="wh">${I.drop}LDL<span class="flag">Borderline</span></div>
+              <div class="num">131<span class="unit"> mg/dL</span></div>
+              ${spark()}
+              <div class="to">→ 104 <span>in 8 weeks</span></div>
+            </div>
+
+            <div class="w m meals-w">
+              <div class="wh">${I.fork}Meals<span class="r">3 today · ${fmt(KCAL)} kcal</span></div>
+              <div class="meals">
+                ${MEALS.map(
+                  (
+                    m,
+                  ) => `<div class="meal ${m.pork ? "pork" : ""}"><div class="ph"><img src="${m.src}" alt="${m.n}"><span class="reading"></span></div>
+                    <div class="cap2"><span>${m.t}</span><span>${m.k}</span></div></div>`,
+                ).join("")}
+              </div>
+            </div>
+
+            <div class="w m fc">
+              <div class="wh">${I.trend}Forecast<span class="r">LDL</span></div>
+              <p>Keep this eight weeks and LDL lands near <em>104</em>, from 131.</p>
+              <small>The walk and the oats carry most of it · aim under 100</small>
+              <span class="stackdots"><i></i><i></i></span>
+            </div>
+          </div>
+          <div class="pagedots"><i></i><i></i></div>
+        </div>
+
+        <div class="tabs">
+          <div class="bar">
+            <button class="on">${I.home}Home</button>
+            <button>${I.body}Body</button>
+            <button>${I.drop}Blood</button>
+          </div>
+          <button class="plus" data-do="open" aria-label="Add">${I.plus}</button>
+        </div>
+
+        <div class="veil" data-do="close"></div>
+        <div class="sheet">
+          <div class="grab"></div>
+          <div class="nav">
+            <button class="cancel" data-do="close">Cancel</button>
+            <h2>Add</h2>
+            <button class="send" data-do="send">${I.up}Send</button>
+          </div>
+          <div class="modes">
+            <button class="mode" data-mode="photo" style="--c:var(--blue)"><span class="gl">${I.cam}</span><span><b>Photo</b><small>one or several</small></span></button>
+            <button class="mode" data-mode="voice" style="--c:var(--red)"><span class="gl">${I.mic}</span><span><b>Voice</b><small>say it once</small></span></button>
+            <button class="mode" data-mode="text" style="--c:var(--indigo)"><span class="gl">${I.text}</span><span><b>Text</b><small>type a line</small></span></button>
+          </div>
+          <div class="field">
+            <span class="shots"></span>
+            <span class="wave">${Array.from({ length: 13 }, (_, i) => `<i style="animation-delay:${(i % 5) * 90}ms"></i>`).join("")}</span>
+            <input type="text" placeholder="Sardines on rye, 15 min walk" />
+          </div>
+          <div class="again">
+            <span>Again today</span>
+            <div class="chips">
+              <button class="chip" data-again="Oats with berries"><img src="img/08-oats.jpg" alt="">Oats</button>
+              <button class="chip" data-again="Sardines on rye, kimchi"><img src="img/08-sardines-rye.jpg" alt="">Sardines</button>
+              <button class="chip" data-again="Eggs, two"><img src="img/08-eggs.jpg" alt="">Eggs</button>
+            </div>
+          </div>
+          <p class="note">Nothing leaves the phone until you send. We read it in the island.</p>
+        </div>
+        <div class="homebar"></div>`;
+      };
+
+      // ---- number counting on the spring ----
+      const count = (el, from, to, ms = 1000) => {
+        if (from === to) {
+          el.textContent = to;
+          return;
+        }
+        const t0 = performance.now();
+        const step = (t) => {
+          const k = Math.min(1, (t - t0) / ms);
+          el.textContent = Math.round(from + (to - from) * springAt(k));
+          if (k < 1) requestAnimationFrame(step);
+          else el.textContent = to;
+        };
+        requestAnimationFrame(step);
+      };
+
+      const phones = [...document.querySelectorAll(".phone")];
+      let shown = { score: 0, life: 0 };
+
+      const paint = (first) => {
+        const v = now();
+        for (const p of phones) {
+          const lifeArc = p.querySelector('[data-ring="life"]');
+          const vals = { life: v.life, blood, genes };
+          p.querySelectorAll(".arc").forEach((c, i) => {
+            const R = RINGS.find((R) => R.k === c.dataset.ring);
+            const off = C(R.r) * (1 - vals[R.k] / 100);
+            if (first) {
+              c.style.transitionDelay = `${i * 120}ms`;
+              requestAnimationFrame(() =>
+                requestAnimationFrame(() => (c.style.strokeDashoffset = off)),
+              );
+            } else {
+              c.style.transitionDelay = "0ms";
+              c.style.strokeDashoffset = off;
+            }
+          });
+          count(p.querySelector(".sc"), first ? 0 : shown.score, v.score);
+          count(p.querySelector(".lv"), first ? v.life : shown.life, v.life);
+          p.querySelector(".cscore").textContent = v.score;
+          const mini = p.querySelector(".compact .mini");
+          mini.style.strokeDashoffset = C(9) * (1 - v.life / 100);
+          p.querySelector(".pips").innerHTML = pips();
+        }
+        shown = { score: v.score, life: v.life };
+      };
+
+      const refreshMove = (p) => {
+        const mv = p.querySelector(".mv");
+        mv.classList.add("out");
+        setTimeout(() => {
+          mv.innerHTML = moveBody();
+          p.querySelector(".tick").outerHTML = tickBtn();
+          mv.classList.remove("out");
+        }, 260);
+      };
+
+      // ---- the Live Activity: reading the plate ----
+      const ITEMS = {
+        photo: ["pork belly", "lettuce", "rye bread", "vinaigrette"],
+        voice: ["two eggs", "tuna", "chilli", "olive oil"],
+        text: ["sardines", "rye", "kimchi"],
+      };
+      const RESULT = {
+        photo: ["Pork belly, salad", "623 kcal · 45 g protein · added"],
+        voice: ["Eggs, tuna with chilli", "estimate ready · added"],
+        text: ["Sardines on rye, kimchi", "462 kcal · 34 g protein · added"],
+      };
+      const readPlate = (p, kind = "photo", src) => {
+        clearTimeout(p._t);
+        clearInterval(p._iv);
+        const isl = p.querySelector(".island");
+        const bar = p.querySelector(".xbar i");
+        const ring = p.querySelector(".xring");
+        const pc = p.querySelector(".pc");
+        const xt = p.querySelector(".xt");
+        const xs = p.querySelector(".xs");
+        if (src) p.querySelector(".thumb img").src = src;
+        isl.classList.remove("done");
+        xt.textContent =
+          kind === "voice"
+            ? "Reading what you said…"
+            : kind === "text"
+              ? "Reading your note…"
+              : "Reading your plate…";
+        xs.textContent = "looking";
+        p.classList.add("live");
+        if (kind === "photo" && !src) p.classList.add("reading-pork");
+        const T = 7000;
+        const t0 = performance.now();
+        const items = ITEMS[kind];
+        p._iv = setInterval(() => {
+          const k = Math.min(1, (performance.now() - t0) / T);
+          // progress stalls where a reader would: fast, a pause, then the tail
+          const e = k < 0.5 ? k * 1.3 : 0.65 + (k - 0.5) * 0.7;
+          const v = Math.min(1, e);
+          bar.style.width = `${(v * 100).toFixed(1)}%`;
+          ring.style.strokeDashoffset = C(14) * (1 - v);
+          pc.textContent = Math.round(v * 100);
+          const n = Math.min(items.length, Math.floor(k * (items.length + 1)));
+          if (n)
+            xs.innerHTML = items
+              .slice(0, n)
+              .map((s, i) => (i === n - 1 ? `<em>${s}</em>` : s))
+              .join(" · ");
+          if (k >= 1) {
+            clearInterval(p._iv);
+            isl.classList.add("done");
+            pc.textContent = "";
+            xt.textContent = RESULT[kind][0];
+            xs.textContent = RESULT[kind][1];
+            p.classList.remove("reading-pork");
+            p._t = setTimeout(() => {
+              p.classList.remove("live");
+              if (p.dataset.live)
+                p._t = setTimeout(() => readPlate(p, "photo"), 4000);
+            }, 2600);
+          }
+        }, 60);
+      };
+
+      // ---- the Add sheet ----
+      const sheetState = (p) => {
+        const sh = p.querySelector(".sheet");
+        const has =
+          p.querySelector(".shots").children.length > 0 ||
+          p.querySelector(".field input").value.trim().length > 0;
+        sh.classList.toggle("has", has);
+      };
+      const resetSheet = (p) => {
+        p.querySelector(".shots").innerHTML = "";
+        p.querySelector(".field input").value = "";
+        p.querySelectorAll(".mode").forEach((m) => m.classList.remove("on"));
+        p.querySelector(".sheet").classList.remove("listening");
+        clearInterval(p._ty);
+        sheetState(p);
+      };
+      const typeInto = (p, text) => {
+        const inp = p.querySelector(".field input");
+        clearInterval(p._ty);
+        let i = 0;
+        p._ty = setInterval(() => {
+          inp.value = text.slice(0, ++i);
+          sheetState(p);
+          if (i >= text.length) {
+            clearInterval(p._ty);
+            p.querySelector(".sheet").classList.remove("listening");
+          }
+        }, 55);
+      };
+
+      for (const p of phones) {
+        p.innerHTML = home();
+        p.addEventListener("input", () => sheetState(p));
+        p.addEventListener("click", (e) => {
+          const t = e.target;
+          const pip = t.closest("[data-pip]");
+          if (pip) {
+            const m = MOVES[+pip.dataset.pip];
+            m.done = !m.done;
+            paint(false);
+            phones.forEach(refreshMove);
+            return;
+          }
+          const mode = t.closest("[data-mode]");
+          if (mode) {
+            p.querySelectorAll(".mode").forEach((m) =>
+              m.classList.toggle("on", m === mode),
+            );
+            const sh = p.querySelector(".sheet");
+            sh.classList.remove("listening");
+            const k = mode.dataset.mode;
+            if (k === "photo") {
+              const pics = ["img/08-salad.jpg", "img/08-tuna-chilli.jpg"];
+              const box = p.querySelector(".shots");
+              if (box.children.length < 2)
+                box.insertAdjacentHTML(
+                  "beforeend",
+                  `<span class="shot"><img src="${pics[box.children.length]}" alt=""></span>`,
+                );
+            } else if (k === "voice") {
+              sh.classList.add("listening");
+              p.querySelector(".field input").value = "";
+              setTimeout(
+                () => typeInto(p, "Two eggs and the tuna with chilli"),
+                1300,
+              );
+            } else {
+              p.querySelector(".field input").focus();
+            }
+            sheetState(p);
+            return;
+          }
+          const again = t.closest("[data-again]");
+          if (again) {
+            p.querySelector(".field input").value = again.dataset.again;
+            sheetState(p);
+            return;
+          }
+          const b = t.closest("[data-do]");
+          if (!b) return;
+          const d = b.dataset.do;
+          if (d === "open") p.classList.add("open");
+          if (d === "close") {
+            p.classList.remove("open");
+            resetSheet(p);
+          }
+          if (d === "send") {
+            const shot = p.querySelector(".shots img");
+            const on = p.querySelector(".mode.on");
+            const kind = shot
+              ? "photo"
+              : on && on.dataset.mode === "voice"
+                ? "voice"
+                : "text";
+            p.classList.remove("open");
+            readPlate(
+              p,
+              kind,
+              shot ? shot.getAttribute("src") : "img/08-sardines-rye.jpg",
+            );
+            setTimeout(() => resetSheet(p), 400);
+          }
+          if (d === "tick") {
+            const next = MOVES.find((m) => !m.done);
+            if (!next) return;
+            b.classList.add("done");
+            b.style.pointerEvents = "none";
+            setTimeout(() => {
+              next.done = true;
+              paint(false);
+              phones.forEach(refreshMove);
+            }, 520);
+          }
+        });
+      }
+      paint(true);
+      // phone 1 runs the Live Activity on a loop, starting a beat after load
+      setTimeout(() => readPlate(phones[0], "photo"), 500);
+    </script>
+  </body>
+</html>

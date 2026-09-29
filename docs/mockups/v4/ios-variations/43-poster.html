@@ -1,0 +1,1341 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Poster · iOS variation 43 · OpenVitals</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --page: #f2f2f0;
+        --paper: #ffffff;
+        --ink: #0a0a0a;
+        --ink-2: #555555;
+        --ink-3: #9a9a9a;
+        --ghost: #c8c8c8;
+        --red: #e5231b;
+        --s3: 3px;
+        --s5: 5px;
+        --s8: 8px;
+        --s13: 13px;
+        --s21: 21px;
+        --s34: 34px;
+        --s55: 55px;
+        --ease: cubic-bezier(0.65, 0, 0.35, 1);
+        --t: 610ms;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--page);
+        color: var(--ink);
+        font:
+          15px/1.35 "Inter Tight",
+          -apple-system,
+          system-ui,
+          sans-serif;
+        font-feature-settings: "tnum";
+      }
+      button {
+        font: inherit;
+        color: inherit;
+        background: none;
+        border: 0;
+        padding: 0;
+        cursor: pointer;
+        text-align: left;
+        -webkit-tap-highlight-color: transparent;
+      }
+      h1,
+      h2,
+      p {
+        margin: 0;
+      }
+
+      /* ---- page ---- */
+      .doc {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: var(--s55) var(--s21);
+      }
+      .doc > header {
+        margin-bottom: var(--s34);
+        max-width: 835px;
+        margin-inline: auto;
+      }
+      .eyebrow {
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--ink-3);
+      }
+      .doc h1 {
+        font-size: 55px;
+        font-weight: 800;
+        letter-spacing: -0.05em;
+        line-height: 1;
+        margin-top: var(--s5);
+      }
+      .doc h1 i {
+        font-style: normal;
+        color: var(--red);
+      }
+      .lede {
+        color: var(--ink-2);
+        margin-top: var(--s8);
+        max-width: 64ch;
+      }
+      .direction {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 0 var(--s13);
+        margin-top: var(--s21);
+        border-top: 2px solid var(--ink);
+        font-size: 13px;
+      }
+      .direction div {
+        padding-top: var(--s8);
+      }
+      .direction b {
+        display: block;
+        font-size: 11px;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        margin-bottom: var(--s3);
+      }
+      .direction span {
+        color: var(--ink-2);
+      }
+      .phones {
+        display: flex;
+        gap: var(--s55);
+        justify-content: center;
+        flex-wrap: wrap;
+      }
+      .cap {
+        display: flex;
+        justify-content: space-between;
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--ink-3);
+        margin-bottom: var(--s13);
+        width: 390px;
+      }
+      .cap button {
+        color: var(--ink);
+        text-decoration: underline;
+        text-underline-offset: 3px;
+      }
+
+      /* ---- phone ---- */
+      .phone {
+        width: 390px;
+        height: 844px;
+        border-radius: 55px;
+        border: 8px solid #111;
+        background: var(--paper);
+        box-shadow: 0 34px 55px -34px rgba(0, 0, 0, 0.45);
+        position: relative;
+        overflow: hidden;
+      }
+      .status {
+        height: 55px;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        padding: 0 var(--s34) var(--s8);
+        font-size: 14px;
+        font-weight: 700;
+        position: relative;
+        z-index: 4;
+      }
+      .status i {
+        position: absolute;
+        left: 50%;
+        top: 13px;
+        width: 120px;
+        height: 34px;
+        border-radius: 21px;
+        background: #000;
+        transform: translateX(-50%);
+      }
+      .screen {
+        position: absolute;
+        inset: 55px 0 0;
+        overflow-y: auto;
+        overflow-x: hidden;
+        padding: var(--s8) var(--s21) 144px;
+        scrollbar-width: none;
+      }
+      .screen::-webkit-scrollbar {
+        display: none;
+      }
+
+      /* the six-column grid every block sits on */
+      .g {
+        display: grid;
+        grid-template-columns: repeat(6, 1fr);
+        column-gap: var(--s8);
+      }
+      .c1-2 {
+        grid-column: 1 / 3;
+      }
+      .c1-3 {
+        grid-column: 1 / 4;
+      }
+      .c1-4 {
+        grid-column: 1 / 5;
+      }
+      .c1-6 {
+        grid-column: 1 / 7;
+      }
+      .c3-4 {
+        grid-column: 3 / 5;
+      }
+      .c4-6 {
+        grid-column: 4 / 7;
+      }
+      .c5-6 {
+        grid-column: 5 / 7;
+      }
+      .c6 {
+        grid-column: 6 / 7;
+      }
+
+      .gridlines {
+        position: absolute;
+        inset: 0 var(--s21);
+        pointer-events: none;
+        z-index: 3;
+        opacity: 0;
+        transition: opacity 377ms;
+        background: repeating-linear-gradient(
+          90deg,
+          rgba(229, 35, 27, 0.09) 0 calc((100% - 40px) / 6),
+          transparent calc((100% - 40px) / 6) calc((100% - 40px) / 6 + 8px)
+        );
+      }
+      .phone.grid .gridlines {
+        opacity: 1;
+      }
+
+      .k {
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+      }
+      .k.q {
+        color: var(--ink-3);
+      }
+      .rule {
+        border-top: 1px solid var(--ink);
+      }
+      .rule2 {
+        border-top: 3px solid var(--ink);
+      }
+
+      /* masthead */
+      .mast {
+        padding-bottom: var(--s5);
+      }
+      .mast .c6 {
+        text-align: right;
+      }
+
+      /* the number */
+      .hero {
+        margin-top: var(--s5);
+        position: relative;
+        padding-top: var(--s5);
+      }
+      .num {
+        font-size: 208px;
+        font-weight: 800;
+        letter-spacing: -0.075em;
+        line-height: 0.78;
+        margin-left: -34px;
+        display: inline-flex;
+        white-space: nowrap;
+      }
+      .hero .side {
+        margin-top: var(--s5);
+        font-size: 12px;
+        color: var(--ink-2);
+        align-items: baseline;
+      }
+      .hero .side .k {
+        color: var(--ink);
+      }
+      .hero .side b {
+        font-size: 21px;
+        font-weight: 800;
+        letter-spacing: -0.03em;
+        color: var(--ink);
+        margin-right: var(--s5);
+      }
+
+      /* digit roll */
+      .rd {
+        display: inline-block;
+        height: 0.78em;
+        overflow: hidden;
+        vertical-align: top;
+      }
+      .rs {
+        display: flex;
+        flex-direction: column;
+        transition: transform 987ms var(--ease);
+      }
+      .rs span {
+        height: 0.78em;
+        line-height: 0.78;
+        display: block;
+      }
+
+      /* the table */
+      .tab {
+        margin-top: var(--s13);
+      }
+      .tr {
+        align-items: baseline;
+        padding: var(--s3) 0;
+        border-top: 1px solid var(--ink);
+      }
+      .tr .n {
+        font-size: 15px;
+        font-weight: 700;
+      }
+      .tr .n em {
+        font-style: normal;
+        font-weight: 500;
+        color: var(--ink-3);
+        margin-left: var(--s5);
+        font-size: 13px;
+      }
+      .tr .n small.in {
+        display: inline;
+        margin-left: var(--s8);
+      }
+      .tr .n small {
+        display: block;
+        font-size: 11px;
+        font-weight: 500;
+        color: var(--ink-2);
+        margin-top: 2px;
+        white-space: nowrap;
+      }
+      .tr .v {
+        font-size: 30px;
+        font-weight: 800;
+        letter-spacing: -0.05em;
+        line-height: 0.78;
+        align-self: center;
+      }
+      .tr.last {
+        border-bottom: 1px solid var(--ink);
+      }
+      .pheno {
+        font-size: 12px;
+        color: var(--ink-2);
+        padding-top: var(--s5);
+      }
+      .pheno b {
+        color: var(--ink);
+      }
+
+      /* kcal as type */
+      .blk {
+        margin-top: var(--s8);
+      }
+      .blk > .g:first-child {
+        padding-bottom: var(--s5);
+      }
+      .kcal {
+        font-size: 44px;
+        font-weight: 800;
+        letter-spacing: -0.05em;
+        line-height: 0.9;
+        margin-top: var(--s5);
+        white-space: nowrap;
+      }
+      .kcal span {
+        color: var(--ghost);
+      }
+      .meals {
+        font-size: 12px;
+        color: var(--ink-2);
+        margin-top: var(--s8);
+      }
+      .meals b {
+        color: var(--ink);
+      }
+
+      /* the next move */
+      .next {
+        display: block;
+        margin: var(--s5) 0 var(--s8);
+        font-size: 26px;
+        font-weight: 800;
+        letter-spacing: -0.04em;
+        line-height: 1.08;
+        width: 100%;
+        transition:
+          opacity 377ms var(--ease),
+          transform 377ms var(--ease);
+      }
+      .next .s {
+        text-decoration: underline;
+        text-decoration-color: var(--red);
+        text-decoration-thickness: 3px;
+        text-underline-offset: 5px;
+        text-decoration-skip-ink: none;
+        background: linear-gradient(var(--red), var(--red)) no-repeat 0 58% / 0%
+          4px;
+        transition: background-size var(--t) var(--ease);
+      }
+      .next.done .s {
+        background-size: 100% 4px;
+        text-decoration-color: transparent;
+      }
+      .next.out {
+        opacity: 0;
+        transform: translateY(-13px);
+      }
+      .next.in {
+        opacity: 0;
+        transform: translateY(13px);
+        transition: none;
+      }
+      .next.fin .s {
+        text-decoration: none;
+      }
+      .hint {
+        font-size: 12px;
+        color: var(--ink-3);
+        margin-top: var(--s8);
+      }
+
+      /* the one chart */
+      .ldl {
+        display: block;
+        width: 100%;
+        height: auto;
+        margin-top: var(--s8);
+        overflow: visible;
+      }
+      .ldl text {
+        font-family: "Inter Tight", sans-serif;
+      }
+      .say {
+        margin-top: var(--s5);
+        font-size: 14px;
+        font-weight: 600;
+        line-height: 1.3;
+      }
+      .say b {
+        color: var(--red);
+      }
+
+      /* below the fold */
+      .trip {
+        margin-top: var(--s8);
+        row-gap: var(--s5);
+      }
+      .trip figure {
+        margin: 0;
+        grid-column: span 2;
+      }
+      .trip img {
+        width: 100%;
+        aspect-ratio: 1;
+        object-fit: cover;
+        display: block;
+        filter: grayscale(1) contrast(1.15);
+      }
+      .trip figcaption {
+        font-size: 11px;
+        margin-top: var(--s5);
+        color: var(--ink-2);
+        line-height: 1.25;
+      }
+      .trip figcaption b {
+        display: block;
+        color: var(--ink);
+        font-size: 13px;
+      }
+      .mv {
+        padding: var(--s5) 0;
+        border-top: 1px solid var(--ink);
+        font-size: 14px;
+        font-weight: 600;
+        align-items: baseline;
+      }
+      .mv .i {
+        font-size: 11px;
+        font-weight: 700;
+        color: var(--ink-3);
+      }
+      .mv .t {
+        grid-column: 2 / 6;
+      }
+      .mv .st {
+        grid-column: 6 / 7;
+        text-align: right;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+      }
+      .mv.on .t {
+        text-decoration: line-through;
+        text-decoration-color: var(--red);
+        text-decoration-thickness: 2px;
+        color: var(--ink-3);
+      }
+      .mv.on .st {
+        color: var(--red);
+      }
+      .colo {
+        margin-top: var(--s21);
+        font-size: 11px;
+        color: var(--ink-3);
+      }
+
+      /* tab bar: a ruled strip, the plus a red square */
+      .tabs {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: 76px;
+        background: var(--paper);
+        border-top: 1px solid var(--ink);
+        padding: var(--s8) var(--s21) 0;
+        z-index: 5;
+      }
+      .tabs button.t {
+        font-size: 13px;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        color: var(--ink-3);
+        padding-top: var(--s8);
+        align-self: start;
+      }
+      .tabs button.t.on {
+        color: var(--ink);
+        text-decoration: underline;
+        text-decoration-thickness: 2px;
+        text-underline-offset: 5px;
+      }
+      .plus {
+        grid-column: 6 / 7;
+        height: 44px;
+        background: var(--red);
+        color: #fff;
+        font-size: 34px;
+        font-weight: 600;
+        line-height: 44px;
+        text-align: center !important;
+      }
+      .homebar {
+        position: absolute;
+        left: 50%;
+        bottom: 8px;
+        width: 134px;
+        height: 5px;
+        border-radius: 3px;
+        background: var(--ink);
+        transform: translateX(-50%);
+        z-index: 9;
+      }
+
+      /* ---- Add: a full-screen typographic menu ---- */
+      .add {
+        position: absolute;
+        inset: 0;
+        z-index: 6;
+        padding: 55px var(--s21) 0;
+        background: rgba(255, 255, 255, 0.84);
+        backdrop-filter: blur(13px);
+        -webkit-backdrop-filter: blur(13px);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 377ms var(--ease);
+      }
+      .phone.open .add {
+        opacity: 1;
+        pointer-events: auto;
+      }
+      .add .hd {
+        padding: var(--s8) 0 var(--s5);
+        border-bottom: 3px solid var(--ink);
+      }
+      .add .hd .x {
+        grid-column: 5 / 7;
+        text-align: right;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+      }
+      .word {
+        display: block;
+        width: 100%;
+        border-bottom: 1px solid var(--ink);
+        padding: var(--s8) 0 var(--s8);
+        position: relative;
+        transform: translateY(21px);
+        opacity: 0;
+        transition:
+          transform 610ms var(--ease),
+          opacity 610ms var(--ease),
+          color 377ms var(--ease);
+      }
+      .phone.open .word {
+        transform: none;
+        opacity: 1;
+      }
+      .phone.open .word:nth-of-type(2) {
+        transition-delay: 89ms;
+      }
+      .phone.open .word:nth-of-type(3) {
+        transition-delay: 144ms;
+      }
+      .word .w {
+        display: block;
+        font-size: 89px;
+        font-weight: 800;
+        letter-spacing: -0.065em;
+        line-height: 0.8;
+        margin-left: -5px;
+      }
+      .word .i {
+        position: absolute;
+        right: 0;
+        top: var(--s8);
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+      }
+      .word small {
+        display: block;
+        font-size: 13px;
+        color: var(--ink-2);
+        margin-top: var(--s5);
+      }
+      .add.pick .word {
+        color: var(--ghost);
+      }
+      .add.pick .word small {
+        color: var(--ghost);
+      }
+      .add.pick .word.on,
+      .add.pick .word.on small {
+        color: var(--red);
+      }
+      .well {
+        margin-top: var(--s13);
+        min-height: 89px;
+      }
+      .well .p {
+        display: none;
+      }
+      .well .p.on {
+        display: block;
+      }
+      .shots {
+        display: grid;
+        grid-template-columns: repeat(6, 1fr);
+        gap: var(--s8);
+      }
+      .shots img {
+        grid-column: span 2;
+        width: 100%;
+        aspect-ratio: 1;
+        object-fit: cover;
+        filter: grayscale(1) contrast(1.15);
+        opacity: 0;
+        transform: scale(0.94);
+        transition:
+          opacity 377ms var(--ease),
+          transform 377ms var(--ease);
+      }
+      .shots img.on {
+        opacity: 1;
+        transform: none;
+      }
+      .wave {
+        display: flex;
+        gap: var(--s3);
+        align-items: center;
+        height: 34px;
+      }
+      .wave i {
+        width: 3px;
+        background: var(--red);
+        height: 5px;
+        animation: wv 610ms var(--ease) infinite alternate;
+      }
+      @keyframes wv {
+        to {
+          height: var(--h);
+        }
+      }
+      .trans,
+      .field {
+        font-size: 21px;
+        font-weight: 700;
+        letter-spacing: -0.03em;
+        line-height: 1.15;
+        margin-top: var(--s8);
+        min-height: 26px;
+      }
+      .field {
+        outline: none;
+        border-bottom: 3px solid var(--ink);
+        padding-bottom: var(--s5);
+      }
+      .field:empty::before {
+        content: "Sardines on rye, 15 min walk";
+        color: var(--ghost);
+      }
+      .send {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: 110px;
+        background: var(--red);
+        color: #fff;
+        padding: var(--s13) var(--s21) 0;
+        font-size: 55px;
+        font-weight: 800;
+        letter-spacing: -0.06em;
+        line-height: 1;
+        transform: translateY(100%);
+        transition: transform 610ms var(--ease);
+      }
+      .add.has .send {
+        transform: none;
+      }
+      .add.has ~ .homebar {
+        background: #fff;
+      }
+
+      /* ---- notes ---- */
+      .notes {
+        margin: var(--s55) auto 0;
+        max-width: 835px;
+        font-size: 13px;
+        color: var(--ink-2);
+      }
+      .notes h2 {
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--ink);
+        padding-top: var(--s8);
+        border-top: 3px solid var(--ink);
+      }
+      .notes table {
+        border-collapse: collapse;
+        width: 100%;
+        margin: var(--s8) 0 var(--s34);
+      }
+      .notes td,
+      .notes th {
+        text-align: left;
+        padding: var(--s5) var(--s8) var(--s5) 0;
+        border-bottom: 1px solid #d6d6d6;
+        vertical-align: top;
+      }
+      .notes th {
+        font-weight: 700;
+        color: var(--ink);
+      }
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          transition-duration: 0ms !important;
+          animation-duration: 0ms !important;
+          animation-delay: 0ms !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="doc">
+      <header>
+        <p class="eyebrow">iOS variation 43 · round twelve · fresh</p>
+        <h1>Poster<i>.</i></h1>
+        <p class="lede">
+          The home as a Swiss typographic poster. Six columns, black on white,
+          one red. The score is set too big for the phone and the phone crops
+          it. Everything else is type in a ruled table, and there is one chart:
+          LDL, where the blood is going.
+        </p>
+        <div class="direction">
+          <div>
+            <b>Mood</b
+            ><span
+              >A concert bill on a Zürich wall: loud number, quiet rules.</span
+            >
+          </div>
+          <div>
+            <b>Accent</b
+            ><span
+              >Signal red #E5231B, only where you act or the future is
+              drawn.</span
+            >
+          </div>
+          <div>
+            <b>Type</b
+            ><span
+              >Inter Tight 800 at 208 / 89 / 55 / 44 / 30 / 26, 500 to 700 below.
+              Tabular figures.</span
+            >
+          </div>
+          <div>
+            <b>The idea</b
+            ><span
+              >The next move is a sentence you strike out. The score rolls digit
+              by digit.</span
+            >
+          </div>
+        </div>
+      </header>
+
+      <section class="phones">
+        <div>
+          <p class="cap">
+            <span>01 · Home · tap the red sentence, then +</span
+            ><button data-grid="p1">Show grid</button>
+          </p>
+          <div class="phone" id="p1"></div>
+        </div>
+        <div>
+          <p class="cap">
+            <span>02 · Add · pick a word</span
+            ><span>Send only after content</span>
+          </p>
+          <div class="phone open" id="p2"></div>
+        </div>
+      </section>
+
+      <section class="notes">
+        <h2>The score</h2>
+        <table id="arith"></table>
+        <h2>The poster's rules</h2>
+        <table>
+          <tr>
+            <th>Rule</th>
+            <th>Where</th>
+            <th>Why</th>
+          </tr>
+          <tr>
+            <td>Six columns, 21 margins, 8 gutters</td>
+            <td>every block starts on a column line</td>
+            <td>flush-left rag, no centred text anywhere</td>
+          </tr>
+          <tr>
+            <td>One number cropped by the frame</td>
+            <td>72 at 208 px, 34 px past the left edge</td>
+            <td>the score is the poster's headline, too big to be contained</td>
+          </tr>
+          <tr>
+            <td>Red means act or future</td>
+            <td>the next-move underline and strike, the LDL line, +, Send</td>
+            <td>one accent, so the eye finds the two things that move</td>
+          </tr>
+          <tr>
+            <td>Rules, not cards</td>
+            <td>1 px hairlines between rows, 3 px under headers</td>
+            <td>structure from type and lines, no boxes, no shadows inside</td>
+          </tr>
+          <tr>
+            <td>One chart only</td>
+            <td>LDL 168, 131, then 104 dotted</td>
+            <td>every other number is set as type: kcal, weights, layers</td>
+          </tr>
+          <tr>
+            <td>Photos in greyscale</td>
+            <td>meal triptych, Add photo strip</td>
+            <td>keeps red as the only colour on the page</td>
+          </tr>
+          <tr>
+            <td>Motion</td>
+            <td>one easing (0.65, 0, 0.35, 1), 377 / 610 / 987 ms</td>
+            <td>strike 610, digit roll 987 ones-first, next sentence 377</td>
+          </tr>
+        </table>
+      </section>
+    </main>
+
+    <script>
+      const I = {
+        plus: "+",
+      };
+
+      // ---- the three layers (verbatim from 25-onion) ----
+      const LIFE = {
+        w: 0.4,
+        rows: [
+          { n: "Sleep", s: "7h 30 of 7h 30", p: 100 },
+          { n: "Moves", s: "2 of 5 ticked", p: 40 },
+          { n: "Calories", s: "1 497 of 1 900 kcal", p: 90 },
+          { n: "Protein", s: "93 of 120 g", p: 78 },
+        ],
+      };
+      const BLOOD = {
+        w: 0.45,
+        rows: [
+          { n: "Vitamin D", s: "29 ng/mL · aim 40 to 60", x: 12, st: "rose" },
+          { n: "LDL", s: "131 mg/dL · aim under 100", x: 84, st: "amber" },
+          { n: "ApoB", s: "98 mg/dL · aim under 90", x: 80, st: "amber" },
+          { n: "hs-CRP", s: "0.6 mg/L", x: 30, st: "green" },
+          { n: "HbA1c", s: "5.3 %", x: 45, st: "green" },
+          { n: "Ferritin", s: "64 ng/mL", x: 50, st: "green" },
+          { n: "TPO", s: "18 IU/mL", x: 35, st: "green" },
+        ],
+      };
+      const GENES = {
+        w: 0.15,
+        rows: [
+          { n: "APOE ε3/ε4", s: "LDL responds more to saturated fat", p: 45 },
+          { n: "LPA rs10455872", s: "not carried", p: 100 },
+          { n: "MTHFR C677T", s: "heterozygous · folate form matters", p: 60 },
+          { n: "FTO rs9939609", s: "one copy · appetite", p: 45 },
+        ],
+      };
+      const pct = (rows) =>
+        Math.round(rows.reduce((a, r) => a + r.p, 0) / rows.length);
+      let life = pct(LIFE.rows); // 77
+      const blood = Math.round(
+        (BLOOD.rows.reduce(
+          (a, r) => a + { green: 1, amber: 0.5, rose: 0 }[r.st],
+          0,
+        ) /
+          BLOOD.rows.length) *
+          100,
+      ); // 71
+      const genes = pct(GENES.rows); // 62.5 rounds to 63
+      let score = Math.round(LIFE.w * life + BLOOD.w * blood + GENES.w * genes); // 72
+      console.assert(score === 72, "score arithmetic drifted", score);
+
+      // ---- the receipt (verbatim from 25-onion) ----
+      const LOG = [
+        {
+          layer: "life",
+          ic: "img",
+          src: "img/08-pork-belly.jpg",
+          n: "Pork belly, salad",
+          s: "7:30 PM · 623 kcal · fat past the day's share",
+          d: -1,
+        },
+        {
+          layer: "life",
+          ic: "green-bg",
+          g: "walk",
+          n: "Walk after lunch",
+          s: "1:45 PM · 15 min · ticked",
+          d: 2,
+        },
+        {
+          layer: "life",
+          ic: "img",
+          src: "img/08-sardines-rye.jpg",
+          n: "Sardines on rye, kimchi",
+          s: "1:08 PM · 462 kcal · 38 g protein",
+          d: 1,
+        },
+        {
+          layer: "life",
+          ic: "gene-bg",
+          g: "pill",
+          n: "Selenium 200 µg",
+          s: "8:20 AM · ticked",
+          d: 0,
+        },
+        {
+          layer: "life",
+          ic: "img",
+          src: "img/08-oats.jpg",
+          n: "Oats with berries",
+          s: "8:15 AM · 412 kcal · 3 g beta-glucan",
+          d: 1,
+        },
+        {
+          layer: "life",
+          ic: "rose-bg",
+          g: "moon",
+          n: "Sleep",
+          s: "Last night · 7h 30",
+          d: 3,
+        },
+        {
+          layer: "blood",
+          ic: "blood-bg",
+          g: "drop",
+          n: "LDL 168 → 131",
+          s: "Aug 1 draw · off to borderline",
+          d: 6,
+        },
+        {
+          layer: "blood",
+          ic: "blood-bg",
+          g: "drop",
+          n: "Vitamin D 34 → 29",
+          s: "Aug 1 draw · borderline to off",
+          d: -4,
+        },
+        {
+          layer: "blood",
+          ic: "blood-bg",
+          g: "drop",
+          n: "Next draw",
+          s: "Nov 1 · LDL, ApoB, vitamin D",
+          d: null,
+        },
+        {
+          layer: "genes",
+          ic: "gene-bg",
+          g: "dna",
+          n: "Panel read once",
+          s: "Mar 2026 · four variants weighed",
+          d: null,
+        },
+      ];
+
+      // ---- the moves: two ticked, three to go ----
+      const MOVES_SEED = [
+        { n: "Selenium 200 µg with breakfast.", t: "8:20", on: true },
+        { n: "Walk 15 minutes after lunch.", t: "1:45", on: true },
+        { n: "5 g psyllium before dinner.", t: "", on: false },
+        { n: "Walk 15 min after dinner.", t: "", on: false },
+        { n: "20 min of squats and rows.", t: "", on: false },
+      ];
+      const MEALS = LOG.filter((r) => r.ic === "img").reverse(); // oats, sardines, pork belly
+      const KCAL = [412, 462, 623];
+      const eaten = KCAL.reduce((a, b) => a + b, 0); // 1 497
+      const sp = (n) => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+
+      // ---- digit roll: each digit a clipped strip 0..9, ones first ----
+      const strip = (d) =>
+        `<span class="rd"><span class="rs" style="transform:translateY(-${d * 10}%)">${[...Array(10).keys()].map((k) => `<span>${k}</span>`).join("")}</span></span>`;
+      const rollHTML = (n) => [...String(n)].map((d) => strip(+d)).join("");
+      const roll = (el, n) => {
+        const ds = [...String(n)];
+        const cols = el.querySelectorAll(".rs");
+        if (cols.length !== ds.length) return (el.innerHTML = rollHTML(n));
+        cols.forEach((c, i) => {
+          c.style.transitionDelay = (ds.length - 1 - i) * 144 + "ms";
+          c.style.transform = `translateY(-${+ds[i] * 10}%)`;
+        });
+      };
+
+      // ---- the one chart: LDL by date ----
+      const day = (s) => new Date(s + "T00:00:00Z").getTime() / 864e5;
+      const X0 = day("2025-12-09"),
+        X1 = day("2026-08-01"),
+        X2 = day("2026-11-18"); // today, Sep 23, plus eight weeks
+      const W = 332,
+        H = 110,
+        TOP = 39,
+        BOT = 84;
+      // numbers set as type in a row above the line, each over its own date
+      const xs = (d) => 5 + ((d - X0) / (X2 - X0)) * (W - 10);
+      const ys = (v) => TOP + ((168 - v) / (168 - 100)) * (BOT - TOP);
+      const chart = () => {
+        const a = [xs(X0), ys(168)],
+          b = [xs(X1), ys(131)],
+          c = [xs(X2), ys(104)];
+        const today = xs(day("2026-09-23"));
+        const num = (x, t, anchor, fill) =>
+          `<text x="${x}" y="26" text-anchor="${anchor}" font-size="30" font-weight="800" letter-spacing="-1.5" fill="${fill}">${t}</text>`;
+        return `<svg class="ldl" viewBox="0 0 ${W} ${H}" aria-label="LDL 168 to 131, projected 104">
+          <line x1="0" x2="${W}" y1="${ys(100)}" y2="${ys(100)}" stroke="#0a0a0a" stroke-width="1" stroke-dasharray="1 3"/>
+          <text x="0" y="${ys(100) - 5}" font-size="10" font-weight="700" fill="#9a9a9a" letter-spacing=".06em">AIM 100</text>
+          <line x1="${today}" x2="${today}" y1="31" y2="${BOT + 8}" stroke="#0a0a0a" stroke-width="1"/>
+          <text x="${today + 4}" y="40" font-size="10" font-weight="700" letter-spacing=".06em">TODAY</text>
+          <path class="line" d="M${a} L${b}" stroke="#e5231b" stroke-width="8" stroke-linecap="butt" fill="none"/>
+          <g class="proj">
+            <path d="M${b} L${c}" stroke="#e5231b" stroke-width="8" stroke-linecap="round" stroke-dasharray="0 13" fill="none"/>
+            ${num(W, "104", "end", "#e5231b")}
+          </g>
+          ${num(0, "168", "start", "#0a0a0a")}
+          ${num(b[0], "131", "middle", "#0a0a0a")}
+          <line x1="0" x2="${W}" y1="${BOT + 8}" y2="${BOT + 8}" stroke="#0a0a0a" stroke-width="1"/>
+          <text x="0" y="${BOT + 23}" font-size="11" font-weight="600" fill="#555">9 Dec 2025</text>
+          <text x="${b[0]}" y="${BOT + 23}" font-size="11" font-weight="600" fill="#555" text-anchor="middle">1 Aug</text>
+          <text x="${W}" y="${BOT + 23}" font-size="11" font-weight="700" fill="#e5231b" text-anchor="end">18 Nov</text>
+        </svg>`;
+      };
+
+      const home = () => `
+        <div class="status"><span>9:41</span><i></i><span>●●● ◔ ▮</span></div>
+        <div class="screen">
+          <div class="gridlines"></div>
+          <div class="g mast">
+            <span class="k c1-2">OpenVitals</span>
+            <span class="k q c3-4">No. 266</span>
+            <span class="k c5-6" style="text-align:right">Tue 23 Sep</span>
+          </div>
+          <div class="rule2"></div>
+
+          <div class="hero">
+            <div class="num" data-roll="score">${rollHTML(score)}</div>
+            <div class="g side">
+              <span class="k c1-2">Health score</span>
+              <span class="c3-4" style="white-space:nowrap;font-size:11px">PhenoAge <b style="font-size:13px;margin:0">36.2</b> at 39</span>
+              <span class="c5-6"><b>+2</b>since Mon</span>
+            </div>
+          </div>
+
+          <div class="tab">
+            <div class="g tr">
+              <span class="n c1-4" style="grid-column:1/6">Lifestyle<em>× .40</em><small class="in" data-life-detail></small></span>
+              <span class="v c6" data-roll="life">${rollHTML(life)}</span>
+            </div>
+            <div class="g tr">
+              <span class="n c1-4" style="grid-column:1/6">Blood<em>× .45</em><small class="in">4 in range · 2 borderline · 1 off</small></span>
+              <span class="v c6">${rollHTML(blood)}</span>
+            </div>
+            <div class="g tr last">
+              <span class="n c1-4" style="grid-column:1/6">Genes<em>× .15</em><small class="in">4 variants, fixed</small></span>
+              <span class="v c6">${rollHTML(genes)}</span>
+            </div>
+          </div>
+
+          <div class="blk">
+            <div class="g"><span class="k c1-3">Eaten today</span><span class="k q c4-6">kcal · 3 meals · ${sp(1900 - eaten)} left</span></div>
+            <div class="rule"></div>
+            <p class="kcal">${sp(eaten)} <span>/ 1 900</span></p>
+          </div>
+
+          <div class="blk">
+            <div class="g"><span class="k c1-3">Next move</span><span class="k q c4-6" data-moves-count></span></div>
+            <div class="rule"></div>
+            <button class="next" data-do="tick"><span class="s"></span></button>
+          </div>
+
+          <div class="blk">
+            <div class="g"><span class="k c1-3">LDL · mg/dL</span><span class="k q c4-6">Aim under 100</span></div>
+            <div class="rule"></div>
+            ${chart()}
+            <p class="say">Keep this eight weeks and LDL lands near <b>104</b>, from 131.</p>
+          </div>
+
+          <div class="blk">
+            <div class="g"><span class="k c1-3">On the plate</span><span class="k q c4-6">3 meals</span></div>
+            <div class="rule"></div>
+            <div class="g trip">
+              ${MEALS.map((m, i) => `<figure><img src="${m.src}" alt=""><figcaption><b>${KCAL[i]}</b>${m.s.split(" · ")[0]} · ${m.n}</figcaption></figure>`).join("")}
+            </div>
+          </div>
+
+          <div class="blk">
+            <div class="g"><span class="k c1-3">Moves</span><span class="k q c4-6" data-moves-count2></span></div>
+            <div data-moves></div>
+            <div class="rule"></div>
+          </div>
+          <p class="colo">Set in Inter Tight. Score = .40 lifestyle + .45 blood + .15 genes. PhenoAge after Levine 2018.</p>
+        </div>
+
+        <div class="tabs g">
+          <button class="t on">Home</button>
+          <button class="t">Body</button>
+          <button class="t" style="grid-column:3/5">Blood</button>
+          <button class="plus" data-do="open" aria-label="Add">+</button>
+        </div>
+
+        <div class="add">
+          <div class="g hd"><span class="k c1-3">Add to today</span><button class="x" data-do="close">Close ×</button></div>
+          <button class="word" data-pick="photo"><span class="w">PHOTO</span><span class="i">01</span><small>Point at the plate. Several at once.</small></button>
+          <button class="word" data-pick="voice"><span class="w">VOICE</span><span class="i">02</span><small>Say it. Meals and moves sorted.</small></button>
+          <button class="word" data-pick="text"><span class="w">TEXT</span><span class="i">03</span><small>Type it the way you'd text a friend.</small></button>
+          <div class="well">
+            <div class="p" data-p="photo"><div class="shots">
+              <img src="img/08-sardines-rye.jpg" alt=""><img src="img/08-salad.jpg" alt=""><img src="img/08-eggs.jpg" alt="">
+            </div></div>
+            <div class="p" data-p="voice">
+              <div class="wave">${[...Array(34)].map((_, i) => `<i style="--h:${8 + Math.round(Math.abs(Math.sin(i * 1.7)) * 26)}px;animation-delay:${(i % 8) * 55}ms"></i>`).join("")}</div>
+              <p class="trans"></p>
+            </div>
+            <div class="p" data-p="text"><p class="field" contenteditable="true"></p></div>
+          </div>
+          <button class="send" data-do="send">Send →</button>
+        </div>
+        <div class="homebar"></div>`;
+
+      const phones = [...document.querySelectorAll(".phone")];
+      for (const p of phones) {
+        p.innerHTML = home();
+        const moves = MOVES_SEED.map((m) => ({ ...m }));
+        // each phone keeps its own day: LIFE with the moves row swapped for this phone's count
+        const lifeAt = (n) => pct(LIFE.rows.map((r) => (r.n === "Moves" ? { ...r, p: n * 20 } : r)));
+        const add = p.querySelector(".add");
+        let timers = [];
+
+        const paintMoves = () => {
+          const n = moves.filter((m) => m.on).length;
+          p.querySelector("[data-moves]").innerHTML = moves
+            .map(
+              (m, i) =>
+                `<div class="g mv ${m.on ? "on" : ""}"><span class="i">0${i + 1}</span><span class="t">${m.n.replace(/\.$/, "")}</span><span class="st">${m.on ? "Done" : "To do"}</span></div>`,
+            )
+            .join("");
+          p.querySelector("[data-moves-count]").textContent = `${n} of 5 done`;
+          p.querySelector("[data-moves-count2]").textContent = `${n} of 5`;
+          const L = LIFE.rows;
+          p.querySelector("[data-life-detail]").textContent =
+            `moves ${n * 20} · sleep ${L[0].p} · kcal ${L[2].p}`;
+        };
+        const paintNext = () => {
+          const b = p.querySelector(".next");
+          const m = moves.find((x) => !x.on);
+          b.classList.remove("done");
+          b.classList.toggle("fin", !m);
+          b.querySelector(".s").textContent = m
+            ? m.n
+            : "Day done. Nothing left to strike.";
+        };
+
+        // tick: strike the sentence, recompute life and the score, roll, bring the next one
+        const tick = () => {
+          const b = p.querySelector(".next");
+          const m = moves.find((x) => !x.on);
+          if (!m || b.classList.contains("done")) return;
+          b.classList.add("done");
+          m.on = true;
+          const n = moves.filter((x) => x.on).length;
+          const lifeNow = lifeAt(n); // moves row p: 40 -> 60 -> 80 -> 100
+          const scoreNow = Math.round(LIFE.w * lifeNow + BLOOD.w * blood + GENES.w * genes);
+          setTimeout(() => {
+            roll(p.querySelector('[data-roll="life"]'), lifeNow);
+            roll(p.querySelector('[data-roll="score"]'), scoreNow);
+            paintMoves();
+          }, 610);
+          setTimeout(() => b.classList.add("out"), 1597);
+          setTimeout(() => {
+            b.classList.remove("out");
+            b.classList.add("in");
+            paintNext();
+            requestAnimationFrame(() =>
+              requestAnimationFrame(() => b.classList.remove("in")),
+            );
+          }, 1974);
+        };
+
+        const reset = () => {
+          timers.forEach(clearTimeout);
+          timers = [];
+          add.classList.remove("pick", "has");
+          add
+            .querySelectorAll(".word, .p, .shots img")
+            .forEach((e) => e.classList.remove("on"));
+          add.querySelector(".trans").textContent = "";
+          add.querySelector(".field").textContent = "";
+        };
+        const typeInto = (el, text, step) =>
+          [...text].forEach((ch, i) =>
+            timers.push(setTimeout(() => (el.textContent += ch), i * step)),
+          );
+        const pick = (k) => {
+          reset();
+          add.classList.add("pick");
+          add.querySelector(`[data-pick="${k}"]`).classList.add("on");
+          add.querySelector(`[data-p="${k}"]`).classList.add("on");
+          if (k === "photo") {
+            add.querySelectorAll(".shots img").forEach((im, i) =>
+              timers.push(
+                setTimeout(
+                  () => {
+                    im.classList.add("on");
+                    add.classList.add("has");
+                  },
+                  377 + i * 377,
+                ),
+              ),
+            );
+          }
+          if (k === "voice") {
+            const s =
+              "Sardines on rye with kimchi, then a fifteen minute walk.";
+            timers.push(setTimeout(() => add.classList.add("has"), 610));
+            typeInto(add.querySelector(".trans"), s, 34);
+          }
+          if (k === "text") {
+            const f = add.querySelector(".field");
+            f.focus();
+          }
+        };
+        add
+          .querySelector(".field")
+          .addEventListener("input", (e) =>
+            add.classList.toggle("has", e.target.textContent.trim().length > 0),
+          );
+
+        p.addEventListener("click", (e) => {
+          const pk = e.target.closest("[data-pick]");
+          if (pk) return pick(pk.dataset.pick);
+          const b = e.target.closest("[data-do]");
+          if (!b) return;
+          const d = b.dataset.do;
+          if (d === "tick") tick();
+          if (d === "open") {
+            reset();
+            p.classList.add("open");
+          }
+          if (d === "close" || d === "send") {
+            p.classList.remove("open");
+            reset();
+          }
+        });
+
+        paintMoves();
+        paintNext();
+
+        // the one chart draws itself: solid past first, then the dotted future lands
+        // ?still skips the intro (headless screenshots paint the first frame only)
+        if (!location.search.includes("still")) {
+        const ln = p.querySelector(".ldl .line");
+        const L0 = ln.getTotalLength();
+        ln.style.strokeDasharray = L0;
+        ln.animate([{ strokeDashoffset: L0 }, { strokeDashoffset: 0 }], {
+          duration: 1597, delay: 377, easing: "cubic-bezier(0.65, 0, 0.35, 1)", fill: "backwards",
+        });
+        p.querySelector(".ldl .proj").animate([{ opacity: 0 }, { opacity: 1 }], {
+          duration: 610, delay: 1974, easing: "cubic-bezier(0.65, 0, 0.35, 1)", fill: "backwards",
+        });
+        }
+      }
+
+      document.querySelector("[data-grid]").addEventListener("click", (e) => {
+        const p = document.getElementById(e.target.dataset.grid);
+        p.classList.toggle("grid");
+        e.target.textContent = p.classList.contains("grid")
+          ? "Hide grid"
+          : "Show grid";
+      });
+
+      // foot note: the arithmetic, from the same variables
+      document.getElementById("arith").innerHTML = `
+        <tr><th>Layer</th><th>Today</th><th>Weight</th><th>Moves</th></tr>
+        <tr><td>Lifestyle</td><td>sleep 100, moves 40, kcal 90, protein 78 → ${life}</td><td>0.40</td><td>every tick: moves +20</td></tr>
+        <tr><td>Blood</td><td>4 in range, 2 borderline, 1 off → ${blood}</td><td>0.45</td><td>each draw</td></tr>
+        <tr><td>Genes</td><td>45, 100, 60, 45 → 62.5, rounds to ${genes}</td><td>0.15</td><td>never</td></tr>
+        <tr><td>Score</td><td>0.40 × ${life} + 0.45 × ${blood} + 0.15 × ${genes} = ${score}</td><td></td><td>one tick → 74, two → 76, three → 78</td></tr>`;
+    </script>
+  </body>
+</html>

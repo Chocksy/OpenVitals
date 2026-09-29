@@ -1,0 +1,1745 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="theme-color" content="#fdf5ec" />
+    <title>Assay — the home screen as an instrument panel · OpenVitals</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Geist:wght@200..600&family=Geist+Mono:wght@200..500&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      /* ─────────────────────────────────────────────────────────────────
+         Tokens, copied verbatim from v4/system.css. No new palette.
+         ───────────────────────────────────────────────────────────────── */
+      :root {
+        --font-display: "Geist", "Inter", system-ui, -apple-system, sans-serif;
+        --font-mono: "Geist Mono", "JetBrains Mono", ui-monospace, "SF Mono",
+          monospace;
+
+        --canvas: #fdf5ec;
+        --canvas-deep: #f4e9dc;
+        --surface: rgba(255, 255, 255, 0.58);
+        --surface-hi: rgba(255, 255, 255, 0.78);
+        --surface-flat: #fefbf7;
+        --track: #ece0d1;
+        --hair: rgba(61, 42, 28, 0.12);
+
+        --ink: #3d2a1c;
+        --ink-2: #6d5744;
+        --ink-3: #7f6a59;
+
+        --ok: #2b7f3a;
+        --warn: #9a6413;
+        --bad: #c32b45;
+        --bad-fill: #e74d64;
+        --none: #7f6a59;
+
+        --navy: #0f2140;
+        --navy-ink: #f4f2ed;
+        --navy-ink-2: rgba(244, 242, 237, 0.72);
+        --navy-bad: #e3767c;
+        --navy-warn: #e0a63c;
+        --navy-ok: #8fc46a;
+        --sky: #d9e7f7;
+
+        --lime: #d7f24b;
+        --lime-ink: #1d2405;
+
+        --s3: 3px;
+        --s5: 5px;
+        --s8: 8px;
+        --s13: 13px;
+        --s21: 21px;
+        --s34: 34px;
+        --s55: 55px;
+        --r-inner: 13px;
+        --r-card: 21px;
+        --r-hero: 34px;
+        --r-pill: 999px;
+        --type-xs: 11px;
+        --type-sm: 13px;
+        --type-md: 15px;
+        --type-lg: 21px;
+        --type-xl: 34px;
+
+        --dur-fast: 250ms;
+        --ease: cubic-bezier(0.22, 1, 0.36, 1);
+      }
+      [data-theme="dark"],
+      .dark {
+        --canvas: #121110;
+        --canvas-deep: #0c0b0a;
+        --surface: #1c1a18;
+        --surface-hi: #24221f;
+        --surface-flat: #1c1a18;
+        --track: #2c2a26;
+        --ink: #f1efea;
+        --ink-2: #b4aea4;
+        --ink-3: #979083;
+        --hair: rgba(241, 239, 234, 0.11);
+        --ok: #8fc46a;
+        --warn: #e0a63c;
+        --bad: #e3767c;
+        --bad-fill: #e3767c;
+        --none: #979083;
+        --sky: #1b2b44;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+      html {
+        -webkit-text-size-adjust: 100%;
+      }
+      body {
+        margin: 0;
+        background: var(--canvas);
+        color: var(--ink);
+        font: 400 15px/1.5 var(--font-display);
+        -webkit-font-smoothing: antialiased;
+      }
+      h1,
+      h2,
+      h3,
+      h4,
+      p,
+      figure {
+        margin: 0;
+      }
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+      button {
+        font: inherit;
+        color: inherit;
+        border: 0;
+        background: none;
+        cursor: pointer;
+        min-height: 44px;
+        -webkit-tap-highlight-color: transparent;
+      }
+      button:focus-visible,
+      a:focus-visible {
+        outline: 2px solid var(--ink);
+        outline-offset: 3px;
+        border-radius: var(--s5);
+      }
+
+      /* ── page chrome ─────────────────────────────────────────────── */
+      .mast {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--s13);
+        padding: var(--s21) var(--s34);
+        border-bottom: 1px solid var(--hair);
+        position: sticky;
+        top: 0;
+        background: var(--canvas);
+        z-index: 5;
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: var(--s8);
+        font-size: var(--type-sm);
+        letter-spacing: -0.01em;
+      }
+      .brandmark {
+        color: var(--bad);
+      }
+      .muted {
+        color: var(--ink-3);
+      }
+      .mast button {
+        display: flex;
+        align-items: center;
+        gap: var(--s5);
+        font-size: var(--type-sm);
+        color: var(--ink-2);
+        padding: 0 var(--s13);
+        border: 1px solid var(--hair);
+        border-radius: var(--r-pill);
+      }
+      main {
+        max-width: 1440px;
+        margin: 0 auto;
+        padding: var(--s55) var(--s34) var(--s34);
+      }
+      .intro {
+        display: grid;
+        grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+        gap: var(--s34);
+        align-items: end;
+        padding-bottom: var(--s55);
+      }
+      .eyebrow {
+        font-family: var(--font-mono);
+        font-size: var(--type-xs);
+        letter-spacing: 0.14em;
+        color: var(--ink-3);
+        text-transform: uppercase;
+        padding-bottom: var(--s13);
+      }
+      h1 {
+        font-size: clamp(32px, 5vw, 58px);
+        font-weight: 300;
+        line-height: 1.02;
+        letter-spacing: -0.035em;
+      }
+      h1 em {
+        font-style: normal;
+        color: var(--ink-3);
+      }
+      .intro-aside p {
+        font-size: var(--type-md);
+        color: var(--ink-2);
+        max-width: 40ch;
+      }
+      .intro-aside small {
+        display: block;
+        padding-top: var(--s13);
+        font-size: var(--type-xs);
+        color: var(--ink-3);
+        max-width: 44ch;
+      }
+      .intro-key {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--s13);
+        padding-top: var(--s13);
+        font-family: var(--font-mono);
+        font-size: var(--type-xs);
+        color: var(--ink-3);
+      }
+      .intro-key span {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--s5);
+      }
+      .key-dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: currentColor;
+      }
+      .key-dot.off {
+        background: var(--bad);
+      }
+      .key-dot.border {
+        background: var(--warn);
+      }
+      .key-dot.on {
+        background: var(--ok);
+      }
+
+      .showcase {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(0, 393px));
+        justify-content: center;
+        gap: var(--s55) var(--s34);
+      }
+      .study {
+        max-width: 393px;
+      }
+      .study-caption {
+        display: flex;
+        align-items: baseline;
+        gap: var(--s8);
+        padding-bottom: var(--s13);
+        font-family: var(--font-mono);
+        font-size: var(--type-xs);
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--ink-3);
+      }
+      .study-caption b {
+        font-weight: 400;
+        color: var(--ink);
+        letter-spacing: 0.06em;
+      }
+      .design-caption {
+        padding-top: var(--s13);
+        font-size: var(--type-sm);
+        color: var(--ink-2);
+        max-width: 42ch;
+      }
+      .design-caption b {
+        display: block;
+        color: var(--ink);
+        font-weight: 500;
+        padding-bottom: var(--s3);
+      }
+
+      footer.page {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--s13) var(--s34);
+        justify-content: space-between;
+        padding: var(--s55) 0 var(--s21);
+        margin-top: var(--s55);
+        border-top: 1px solid var(--hair);
+        font-family: var(--font-mono);
+        font-size: var(--type-xs);
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--ink-3);
+      }
+      details.notes {
+        border-top: 1px solid var(--hair);
+        padding-top: var(--s21);
+      }
+      details.notes summary {
+        cursor: pointer;
+        font-size: var(--type-sm);
+        color: var(--ink-2);
+        padding-bottom: var(--s21);
+      }
+      .notes-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        gap: var(--s21) var(--s34);
+        font-size: var(--type-sm);
+        color: var(--ink-2);
+      }
+      .notes-grid b {
+        color: var(--ink);
+        font-weight: 500;
+      }
+      .notes-grid code {
+        font-family: var(--font-mono);
+        font-size: var(--type-xs);
+        color: var(--ink);
+      }
+
+      /* ── the phone: 393 × 852 ────────────────────────────────────── */
+      .phone {
+        width: 393px;
+        height: 852px;
+        background: var(--canvas);
+        color: var(--ink);
+        border-radius: 47px;
+        border: 6px solid var(--track);
+        overflow: hidden;
+        position: relative;
+        isolation: isolate;
+        display: flex;
+        flex-direction: column;
+        box-shadow: 0 21px 55px -34px rgba(23, 22, 20, 0.5);
+        container-type: inline-size;
+      }
+      .phone.dark {
+        border-color: #2c2a26;
+        background: var(--canvas);
+      }
+      .statusbar {
+        flex: none;
+        height: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 12px 26px 0;
+        font-family: var(--font-mono);
+        font-size: var(--type-xs);
+        color: var(--ink-2);
+        position: relative;
+      }
+      .island {
+        position: absolute;
+        left: calc(50% - 48px);
+        top: 9px;
+        width: 96px;
+        height: 26px;
+        border-radius: var(--r-pill);
+        background: #17161499;
+      }
+      .phone.dark .island {
+        background: #000;
+      }
+      .statusbar .rt {
+        display: flex;
+        gap: var(--s5);
+      }
+      .screenhead {
+        flex: none;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--s8);
+        padding: var(--s8) var(--s21) var(--s13);
+      }
+      .screenhead h2 {
+        font-size: var(--type-lg);
+        font-weight: 400;
+        letter-spacing: -0.03em;
+      }
+      .screenhead .head-meta {
+        font-family: var(--font-mono);
+        font-size: var(--type-xs);
+        color: var(--ink-3);
+        display: flex;
+        align-items: center;
+        gap: var(--s8);
+      }
+      .ic {
+        width: 19px;
+        height: 19px;
+        fill: none;
+        stroke: currentColor;
+        stroke-width: 1.6;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        flex: none;
+      }
+      .ic.i16 {
+        width: 15px;
+        height: 15px;
+      }
+      .ic.i22 {
+        width: 22px;
+        height: 22px;
+      }
+
+      .content {
+        flex: 1;
+        overflow: auto;
+        scrollbar-width: none;
+        overscroll-behavior: contain;
+        padding: 0 var(--s21) var(--s21);
+        display: flex;
+        flex-direction: column;
+        gap: var(--s13);
+      }
+      .content::-webkit-scrollbar {
+        display: none;
+      }
+      /* a scrolling flex column must not squeeze its cards */
+      .content > * {
+        flex: none;
+      }
+
+      .sentence {
+        font-size: var(--type-md);
+        line-height: 1.35;
+        letter-spacing: -0.015em;
+      }
+      .sentence span {
+        color: var(--ink-2);
+      }
+
+      /* segmented control — the draw window every number on the screen
+         is read against */
+      .seg {
+        display: flex;
+        gap: 2px;
+        padding: 3px;
+        background: var(--canvas-deep);
+        border-radius: var(--r-pill);
+      }
+      .phone.dark .seg {
+        background: var(--track);
+      }
+      .seg button {
+        flex: 1;
+        min-height: 32px;
+        border-radius: var(--r-pill);
+        font-size: var(--type-xs);
+        font-family: var(--font-mono);
+        letter-spacing: 0.02em;
+        color: var(--ink-3);
+        padding: 0 var(--s5);
+        transition: background var(--dur-fast) var(--ease),
+          color var(--dur-fast) var(--ease);
+      }
+      .seg button[aria-pressed="true"] {
+        background: var(--surface-flat);
+        color: var(--ink);
+        box-shadow: 0 1px 2px rgba(61, 42, 28, 0.12);
+      }
+
+      /* the navy status card: the one dark surface on the phone */
+      .navycard {
+        position: relative;
+        overflow: hidden;
+        border-radius: var(--r-card);
+        background: var(--navy);
+        color: var(--navy-ink);
+        padding: var(--s13) var(--s13) var(--s8);
+        display: flex;
+        flex-direction: column;
+        gap: var(--s8);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+      }
+      .navycard .c-bar {
+        position: absolute;
+        inset: 0 0 auto 0;
+        height: 3px;
+        background: var(--navy-bad);
+      }
+      .c-label {
+        font-family: var(--font-mono);
+        font-size: var(--type-xs);
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--navy-ink-2);
+      }
+      .c-topline {
+        display: flex;
+        align-items: baseline;
+        gap: var(--s8);
+      }
+      .c-num {
+        font-family: var(--font-mono);
+        font-size: var(--type-xl);
+        font-weight: 200;
+        letter-spacing: -0.03em;
+        line-height: 1;
+      }
+      .c-title {
+        font-size: var(--type-sm);
+        color: var(--navy-ink);
+      }
+      .c-counts {
+        font-family: var(--font-mono);
+        font-size: var(--type-xs);
+        color: var(--navy-ink-2);
+        display: flex;
+        justify-content: space-between;
+        gap: var(--s8);
+      }
+
+      /* the stacked distribution: 26 / 19 / 7 of 52, drawn to scale */
+      .dist {
+        display: flex;
+        height: 8px;
+        gap: 2px;
+        border-radius: var(--r-pill);
+        overflow: hidden;
+      }
+      .dist i {
+        display: block;
+        border-radius: var(--r-pill);
+      }
+      .dist .on {
+        background: var(--navy-ok);
+      }
+      .dist .border {
+        background: var(--navy-warn);
+      }
+      .dist .off {
+        background: var(--navy-bad);
+      }
+      /* five draws of the same three counts, oldest left */
+      .drawhist {
+        display: flex;
+        gap: 5px;
+        align-items: flex-end;
+        padding-top: var(--s3);
+      }
+      .drawhist figure {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+        align-items: stretch;
+      }
+      .drawhist .col {
+        display: flex;
+        flex-direction: column-reverse;
+        gap: 2px;
+        height: 42px;
+      }
+      .drawhist .col i {
+        display: block;
+        border-radius: 2px;
+        flex: none;
+      }
+      .drawhist .col .on {
+        background: var(--navy-ok);
+      }
+      .drawhist .col .border {
+        background: var(--navy-warn);
+      }
+      .drawhist .col .off {
+        background: var(--navy-bad);
+      }
+      .drawhist figcaption {
+        font-family: var(--font-mono);
+        font-size: 9px;
+        color: var(--navy-ink-2);
+        text-align: center;
+      }
+      .drawhist .now figcaption {
+        color: var(--navy-ink);
+      }
+
+      /* the goal tiles: four markers with a target, two up */
+      .tiles {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: var(--s8);
+      }
+      .tile {
+        --st: var(--none);
+        display: flex;
+        flex-direction: column;
+        gap: var(--s5);
+        padding: var(--s13) var(--s13) var(--s8);
+        border-radius: var(--r-inner);
+        background: var(--surface-flat);
+        border: 1px solid var(--hair);
+        text-align: left;
+        min-height: 128px;
+        width: 100%;
+        position: relative;
+        overflow: hidden;
+      }
+      .tile.off {
+        --st: var(--bad);
+      }
+      .tile.border {
+        --st: var(--warn);
+      }
+      .tile.on {
+        --st: var(--ok);
+      }
+      .tile::before {
+        content: "";
+        position: absolute;
+        inset: 0 auto 0 0;
+        width: 3px;
+        background: var(--st);
+      }
+      .t-name {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--s5);
+        font-size: var(--type-xs);
+        color: var(--ink-2);
+      }
+      .t-name .tri {
+        color: var(--st);
+        font-size: 9px;
+      }
+      .t-val {
+        display: flex;
+        align-items: baseline;
+        gap: 4px;
+        font-family: var(--font-mono);
+        font-weight: 200;
+        font-size: 27px;
+        letter-spacing: -0.03em;
+        line-height: 1;
+      }
+      .t-val em {
+        font-style: normal;
+        font-size: var(--type-xs);
+        font-weight: 400;
+        color: var(--ink-3);
+      }
+      .t-target {
+        font-family: var(--font-mono);
+        font-size: 10px;
+        color: var(--ink-3);
+      }
+      .spark {
+        display: block;
+        width: 100%;
+        height: 26px;
+        margin-top: auto;
+      }
+      .spark .line {
+        fill: none;
+        stroke: var(--st);
+        stroke-width: 1.4;
+        stroke-linejoin: round;
+        stroke-linecap: round;
+      }
+      .spark .band {
+        fill: var(--st);
+        opacity: 0.12;
+      }
+      .spark .pt {
+        fill: var(--st);
+      }
+      .t-togo {
+        font-size: 10px;
+        color: var(--st);
+        font-family: var(--font-mono);
+      }
+
+      /* the rail of four */
+      .rail-wrap {
+        margin: 0 calc(var(--s21) * -1);
+        padding: 0 var(--s21);
+        mask-image: linear-gradient(90deg, #000 calc(100% - 34px), transparent);
+      }
+      .rail {
+        display: flex;
+        gap: var(--s8);
+        overflow-x: auto;
+        scroll-snap-type: x mandatory;
+        scrollbar-width: none;
+        padding-bottom: 2px;
+      }
+      .rail::-webkit-scrollbar {
+        display: none;
+      }
+      .rail .card {
+        flex: 0 0 148px;
+        scroll-snap-align: start;
+        padding: var(--s8) var(--s13);
+        border-radius: var(--r-inner);
+        background: var(--surface-flat);
+        border: 1px solid var(--hair);
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+      }
+      .card .r-label {
+        font-family: var(--font-mono);
+        font-size: 10px;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--ink-3);
+      }
+      .card .r-num {
+        font-family: var(--font-mono);
+        font-size: var(--type-lg);
+        font-weight: 200;
+        letter-spacing: -0.03em;
+      }
+      .card .r-num em {
+        font-style: normal;
+        font-size: var(--type-xs);
+        color: var(--ink-3);
+      }
+      .card .r-line {
+        font-size: 10px;
+        color: var(--ink-3);
+        line-height: 1.3;
+      }
+
+      /* panels, rows, chips — the house components */
+      .panel {
+        border-radius: var(--r-card);
+        background: var(--surface-flat);
+        border: 1px solid var(--hair);
+        padding: var(--s13);
+        display: flex;
+        flex-direction: column;
+        gap: var(--s8);
+      }
+      .panel-head {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: var(--s8);
+      }
+      .panel-head h3 {
+        font-size: var(--type-sm);
+        font-weight: 500;
+        letter-spacing: -0.01em;
+      }
+      .panel-head .r {
+        font-family: var(--font-mono);
+        font-size: 10px;
+        color: var(--ink-3);
+        text-align: right;
+      }
+      .chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--s5);
+      }
+      .chip {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--s5);
+        padding: 5px var(--s8);
+        border-radius: var(--r-pill);
+        border: 1px solid var(--hair);
+        background: var(--canvas);
+        font-size: var(--type-xs);
+        color: var(--ink-2);
+      }
+      .dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: var(--none);
+        flex: none;
+      }
+      .dot.off {
+        background: var(--bad);
+      }
+      .dot.border {
+        background: var(--warn);
+      }
+      .dot.on {
+        background: var(--ok);
+      }
+      .dot.hollow {
+        background: none;
+        border: 1px solid var(--none);
+      }
+      .chip .tri {
+        color: var(--bad);
+        font-size: 8px;
+      }
+
+      .rows {
+        display: flex;
+        flex-direction: column;
+      }
+      .row {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: var(--s5) var(--s8);
+        align-items: baseline;
+        padding: var(--s8) 0;
+        border-top: 1px solid var(--hair);
+        text-align: left;
+        width: 100%;
+      }
+      .rows .row:first-child {
+        border-top: 0;
+        padding-top: 0;
+      }
+      .row b {
+        font-size: var(--type-sm);
+        font-weight: 500;
+      }
+      .row small {
+        display: block;
+        font-size: 10px;
+        color: var(--ink-3);
+        padding-top: 1px;
+      }
+      .row .val {
+        font-family: var(--font-mono);
+        font-size: var(--type-sm);
+        white-space: nowrap;
+      }
+      .state {
+        font-family: var(--font-mono);
+        font-size: 10px;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--none);
+      }
+      .state.off {
+        color: var(--bad);
+      }
+      .state.border {
+        color: var(--warn);
+      }
+      .state.on {
+        color: var(--ok);
+      }
+
+      .cap {
+        font-size: 10px;
+        line-height: 1.45;
+        color: var(--ink-3);
+      }
+
+      /* tab bar */
+      .tabbar {
+        flex: none;
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        align-items: center;
+        gap: var(--s3);
+        padding: var(--s8) var(--s13) var(--s21);
+        border-top: 1px solid var(--hair);
+        background: var(--surface-hi);
+        backdrop-filter: blur(21px);
+      }
+      .phone.dark .tabbar {
+        background: var(--surface-hi);
+      }
+      .tabbar a {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 3px;
+        font-size: 10px;
+        color: var(--ink-3);
+        min-height: 44px;
+        justify-content: center;
+      }
+      .tabbar a.on {
+        color: var(--ink);
+      }
+      .plusslot {
+        display: flex;
+        justify-content: center;
+      }
+      .plusslot button {
+        width: 46px;
+        height: 34px;
+        min-height: 34px;
+        border-radius: var(--r-pill);
+        background: var(--lime);
+        color: var(--lime-ink);
+        display: grid;
+        place-items: center;
+      }
+
+      @media (max-width: 880px) {
+        main {
+          padding: var(--s34) var(--s13) var(--s21);
+        }
+        .mast {
+          padding: var(--s13);
+        }
+        .intro {
+          grid-template-columns: 1fr;
+          align-items: start;
+        }
+        .phone {
+          max-width: 100%;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        * {
+          transition: none !important;
+          animation: none !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="mast">
+      <a href="index.html" class="brand"
+        ><span class="brandmark">✳</span> OpenVitals
+        <span class="muted">/</span>
+        <span class="muted">iOS variation 14 · Assay</span></a
+      >
+      <button id="theme" type="button" aria-pressed="false">
+        <svg class="ic i16" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9z" />
+        </svg>
+        <span>Change theme</span>
+      </button>
+    </header>
+
+    <main>
+      <section class="intro">
+        <div>
+          <div class="eyebrow">ASSAY / THE HOME SCREEN AS AN INSTRUMENT</div>
+          <h1>Fifty-two markers.<br /><em>Four of them are the work.</em></h1>
+        </div>
+        <div class="intro-aside">
+          <p>
+            Today already knows which markers have a target. Put those four on
+            the first screen, at full density, with the draws behind them.
+          </p>
+          <div class="intro-key">
+            <span><i class="key-dot off"></i>off</span
+            ><span><i class="key-dot border"></i>normal</span
+            ><span><i class="key-dot on"></i>optimal</span
+            ><span><i class="key-dot"></i>never measured</span>
+          </div>
+          <small
+            >Three states of one screen: with goals on file, without them, and
+            in the dark. Sample person, the design system’s own fixtures.</small
+          >
+        </div>
+      </section>
+
+      <section class="showcase" aria-label="iOS home screen concept">
+        <!-- ── 01 · the default home screen ───────────────────────── -->
+        <article class="study">
+          <div class="study-caption">
+            <span>01</span><b>Today, with four goals on file</b>
+          </div>
+          <div class="phone" id="p1">
+            <div class="statusbar">
+              <span>9:41</span><span class="island"></span
+              ><span class="rt"><span>LTE</span><span>100%</span></span>
+            </div>
+            <div class="screenhead">
+              <h2>Today</h2>
+              <span class="head-meta"
+                >Wed Sep 2 2026
+                <svg class="ic" viewBox="0 0 24 24" aria-hidden="true">
+                  <circle cx="12" cy="12" r="3" />
+                  <path
+                    d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"
+                  />
+                </svg>
+              </span>
+            </div>
+            <div class="content">
+              <p class="sentence">
+                Seven markers are off.
+                <span>Thyroid is the loudest one.</span>
+              </p>
+
+              <div class="seg" role="group" aria-label="Reading window">
+                <button type="button" aria-pressed="true" data-win="1">
+                  Last draw
+                </button>
+                <button type="button" aria-pressed="false" data-win="2">
+                  12 months
+                </button>
+                <button type="button" aria-pressed="false" data-win="3">
+                  All 5 draws
+                </button>
+              </div>
+
+              <div class="navycard">
+                <span class="c-bar"></span>
+                <div class="c-label">Status</div>
+                <div class="c-topline">
+                  <span class="c-num">7</span>
+                  <span class="c-title">Attention · 7 markers off</span>
+                </div>
+                <div class="dist" role="img"
+                  aria-label="52 markers: 26 optimal, 19 normal, 7 off">
+                  <i class="on" style="flex: 26"></i>
+                  <i class="border" style="flex: 19"></i>
+                  <i class="off" style="flex: 7"></i>
+                </div>
+                <div class="c-counts">
+                  <span>26 optimal · 19 normal · 7 off</span>
+                  <span>Aug 1 2026 draw</span>
+                </div>
+                <div class="drawhist" aria-hidden="true">
+                  <figure>
+                    <div class="col">
+                      <i class="on" style="height: 14px"></i>
+                      <i class="border" style="height: 12px"></i>
+                      <i class="off" style="height: 11px"></i>
+                    </div>
+                    <figcaption>Sep 24</figcaption>
+                  </figure>
+                  <figure>
+                    <div class="col">
+                      <i class="on" style="height: 17px"></i>
+                      <i class="border" style="height: 13px"></i>
+                      <i class="off" style="height: 10px"></i>
+                    </div>
+                    <figcaption>Mar 25</figcaption>
+                  </figure>
+                  <figure>
+                    <div class="col">
+                      <i class="on" style="height: 19px"></i>
+                      <i class="border" style="height: 14px"></i>
+                      <i class="off" style="height: 9px"></i>
+                    </div>
+                    <figcaption>Oct 25</figcaption>
+                  </figure>
+                  <figure>
+                    <div class="col">
+                      <i class="on" style="height: 20px"></i>
+                      <i class="border" style="height: 15px"></i>
+                      <i class="off" style="height: 8px"></i>
+                    </div>
+                    <figcaption>Feb 26</figcaption>
+                  </figure>
+                  <figure class="now">
+                    <div class="col">
+                      <i class="on" style="height: 21px"></i>
+                      <i class="border" style="height: 15px"></i>
+                      <i class="off" style="height: 6px"></i>
+                    </div>
+                    <figcaption>Aug 26</figcaption>
+                  </figure>
+                </div>
+              </div>
+
+              <div class="panel">
+                <div class="panel-head">
+                  <h3>Goals</h3>
+                  <span class="r">4 markers with a target</span>
+                </div>
+                <div class="tiles">
+                  <button class="tile off" type="button">
+                    <span class="t-name">TPO antibodies <b class="tri">▲</b></span>
+                    <span class="t-val">320<em>IU/mL</em></span>
+                    <span class="t-target">under 100 · due Dec 2026</span>
+                    <svg class="spark" viewBox="0 0 120 26" aria-hidden="true">
+                      <rect class="band" x="0" y="19" width="120" height="7" />
+                      <polyline class="line"
+                        points="4,6 33,5 62,9 91,8 116,11" />
+                      <circle class="pt" cx="116" cy="11" r="2.4" />
+                    </svg>
+                    <span class="t-togo">220 IU/mL to go · not on pace</span>
+                  </button>
+                  <button class="tile off" type="button">
+                    <span class="t-name">Vitamin D <b class="tri">▲</b></span>
+                    <span class="t-val">19<em>ng/mL</em></span>
+                    <span class="t-target">40–60 · due Dec 2026</span>
+                    <svg class="spark" viewBox="0 0 120 26" aria-hidden="true">
+                      <rect class="band" x="0" y="2" width="120" height="9" />
+                      <polyline class="line"
+                        points="4,23 33,22 62,20 91,19 116,17" />
+                      <circle class="pt" cx="116" cy="17" r="2.4" />
+                    </svg>
+                    <span class="t-togo">21 ng/mL to go · on pace</span>
+                  </button>
+                  <button class="tile off" type="button">
+                    <span class="t-name">Ferritin <b class="tri">▲</b></span>
+                    <span class="t-val">22<em>ng/mL</em></span>
+                    <span class="t-target">above 50 · no due date</span>
+                    <svg class="spark" viewBox="0 0 120 26" aria-hidden="true">
+                      <rect class="band" x="0" y="2" width="120" height="7" />
+                      <polyline class="line"
+                        points="4,18 33,20 62,19 91,21 116,20" />
+                      <circle class="pt" cx="116" cy="20" r="2.4" />
+                    </svg>
+                    <span class="t-togo">28 ng/mL to go · no projection yet</span>
+                  </button>
+                  <button class="tile border" type="button">
+                    <span class="t-name">HbA1c</span>
+                    <span class="t-val">5.6<em>%</em></span>
+                    <span class="t-target">under 5.4 · due Dec 2026</span>
+                    <svg class="spark" viewBox="0 0 120 26" aria-hidden="true">
+                      <rect class="band" x="0" y="17" width="120" height="9" />
+                      <polyline class="line"
+                        points="4,9 33,10 62,12 91,13 116,14" />
+                      <circle class="pt" cx="116" cy="14" r="2.4" />
+                    </svg>
+                    <span class="t-togo">0.2 % to go · on pace</span>
+                  </button>
+                </div>
+                <p class="cap">
+                  Five diamonds, five draws. Nothing between two draws is
+                  interpolated. The shaded band is the target, not a normal
+                  range.
+                </p>
+              </div>
+
+              <div class="rail-wrap">
+                <div class="rail" aria-label="Body, Blood, Meals, Plan">
+                  <div class="card">
+                    <span class="r-label">Body</span>
+                    <span class="r-num">7 234</span>
+                    <span class="r-line">steps · Sep 2 · Apple Health</span>
+                  </div>
+                  <div class="card">
+                    <span class="r-label">Blood</span>
+                    <span class="r-num">52</span>
+                    <span class="r-line">markers · last draw Aug 1 2026</span>
+                  </div>
+                  <div class="card">
+                    <span class="r-label">Meals</span>
+                    <span class="r-num">422 <em>kcal est.</em></span>
+                    <span class="r-line">lunch · from a photo · 13:05</span>
+                  </div>
+                  <div class="card">
+                    <span class="r-label">Plan</span>
+                    <span class="r-num">2 / 7</span>
+                    <span class="r-line">done today · resistance at 17:30</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="panel">
+                <div class="panel-head">
+                  <h3>Systems</h3><span class="r">12 · 3 off</span>
+                </div>
+                <div class="chips">
+                  <span class="chip"
+                    ><i class="dot off"></i>Thyroid<b class="tri">▲</b></span
+                  ><span class="chip"
+                    ><i class="dot off"></i>Vitamins<b class="tri">▲</b></span
+                  ><span class="chip"
+                    ><i class="dot off"></i>Lipids<b class="tri">▲</b></span
+                  ><span class="chip"><i class="dot border"></i>Blood sugar</span
+                  ><span class="chip"><i class="dot border"></i>Iron</span
+                  ><span class="chip"><i class="dot on"></i>Kidney</span
+                  ><span class="chip"><i class="dot on"></i>Liver</span
+                  ><span class="chip"
+                    ><i class="dot hollow"></i>Sex hormones</span
+                  >
+                </div>
+              </div>
+
+              <div class="panel">
+                <div class="panel-head">
+                  <h3>New for you</h3><span class="r">2 papers · 1 moved something</span>
+                </div>
+                <div class="rows">
+                  <div class="row">
+                    <div>
+                      <b>Selenium and TPO antibody titre</b>
+                      <small>RCT · 2026 · moved your selenium item</small>
+                    </div>
+                    <span class="state border">read</span>
+                  </div>
+                  <div class="row">
+                    <div>
+                      <b>Ferritin thresholds in non-anaemic fatigue</b>
+                      <small>Review · 2026 · nothing changed</small>
+                    </div>
+                    <span class="state">new</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <nav class="tabbar">
+              <a class="on" href="#"
+                ><svg class="ic i22" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8" />
+                  <path
+                    d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"
+                  /></svg
+                >Today</a
+              >
+              <a href="#"
+                ><svg class="ic i22" viewBox="0 0 24 24" aria-hidden="true">
+                  <path
+                    d="M22 12h-2.48a2 2 0 0 0-1.93 1.46l-2.35 8.36a.25.25 0 0 1-.48 0L9.24 2.18a.25.25 0 0 0-.48 0l-2.35 8.36A2 2 0 0 1 4.49 12H2"
+                  /></svg
+                >Body</a
+              >
+              <span class="plusslot"
+                ><button type="button" aria-label="Add data">
+                  <svg class="ic" viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M5 12h14M12 5v14" /></svg></button
+              ></span>
+              <a href="#"
+                ><svg class="ic i22" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z" />
+                  <circle cx="12" cy="13" r="3" /></svg
+                >Meals</a
+              >
+              <a href="#"
+                ><svg class="ic i22" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M8 2v4M16 2v4" />
+                  <rect width="18" height="18" x="3" y="4" rx="2" />
+                  <path d="M3 10h18" /></svg
+                >Plan</a
+              >
+            </nav>
+          </div>
+          <div class="design-caption">
+            <b>The four with a target come first.</b>
+            <p>
+              <code>/api/today</code> already returns <code>goals[]</code> with
+              value, band, <code>toGo</code> and <code>onPace</code>. Every word
+              on a tile is one of those fields, including “no projection yet”.
+            </p>
+          </div>
+        </article>
+
+        <!-- ── 02 · no goals on file ──────────────────────────────── -->
+        <article class="study">
+          <div class="study-caption">
+            <span>02</span><b>The same screen with no goal on file</b>
+          </div>
+          <div class="phone">
+            <div class="statusbar">
+              <span>9:41</span><span class="island"></span
+              ><span class="rt"><span>LTE</span><span>100%</span></span>
+            </div>
+            <div class="screenhead">
+              <h2>Today</h2>
+              <span class="head-meta"
+                >Wed Sep 2 2026
+                <svg class="ic" viewBox="0 0 24 24" aria-hidden="true">
+                  <circle cx="12" cy="12" r="3" />
+                  <path
+                    d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"
+                  />
+                </svg>
+              </span>
+            </div>
+            <div class="content">
+              <p class="sentence">
+                Thyroid is the one to move first.
+                <span>Nothing has a target yet.</span>
+              </p>
+
+              <div class="navycard">
+                <span class="c-bar"></span>
+                <div class="c-label">Status</div>
+                <div class="c-topline">
+                  <span class="c-num">7</span>
+                  <span class="c-title">Attention · 7 markers off</span>
+                </div>
+                <div class="dist" role="img"
+                  aria-label="52 markers: 26 optimal, 19 normal, 7 off">
+                  <i class="on" style="flex: 26"></i>
+                  <i class="border" style="flex: 19"></i>
+                  <i class="off" style="flex: 7"></i>
+                </div>
+                <div class="c-counts">
+                  <span>26 optimal · 19 normal · 7 off</span>
+                  <span>Aug 1 2026 draw</span>
+                </div>
+              </div>
+
+              <div class="panel">
+                <div class="panel-head">
+                  <h3>The seven that are off</h3>
+                  <span class="r">Aug 1 2026 draw</span>
+                </div>
+                <div class="rows">
+                  <div class="row">
+                    <div>
+                      <b>TPO antibodies</b><small>Thyroid · lab · Aug 1</small>
+                    </div>
+                    <span class="val">320 <em>IU/mL</em></span>
+                  </div>
+                  <div class="row">
+                    <div><b>Vitamin D</b><small>Vitamins · lab · Aug 1</small></div>
+                    <span class="val">19 <em>ng/mL</em></span>
+                  </div>
+                  <div class="row">
+                    <div><b>Ferritin</b><small>Iron · lab · Aug 1</small></div>
+                    <span class="val">22 <em>ng/mL</em></span>
+                  </div>
+                  <div class="row">
+                    <div>
+                      <b>ApoB</b><small>Lipids · lab · Aug 1</small>
+                    </div>
+                    <span class="val">112 <em>mg/dL</em></span>
+                  </div>
+                  <div class="row">
+                    <div><b>TSH</b><small>Thyroid · lab · Aug 1</small></div>
+                    <span class="val">5.9 <em>mIU/L</em></span>
+                  </div>
+                </div>
+                <p class="cap">
+                  Two more below. With no goal, the tile grid is not drawn at
+                  all — an empty <code>goals</code> array draws no card, so the
+                  markers themselves take the space.
+                </p>
+              </div>
+
+              <div class="rail-wrap">
+                <div class="rail">
+                  <div class="card">
+                    <span class="r-label">Body</span>
+                    <span class="r-num">7 234</span>
+                    <span class="r-line">steps · Sep 2 · Apple Health</span>
+                  </div>
+                  <div class="card">
+                    <span class="r-label">Blood</span>
+                    <span class="r-num">52</span>
+                    <span class="r-line">markers · last draw Aug 1 2026</span>
+                  </div>
+                  <div class="card">
+                    <span class="r-label">Plan</span>
+                    <span class="r-num">2 / 7</span>
+                    <span class="r-line">done today · resistance at 17:30</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="panel">
+                <div class="panel-head">
+                  <h3>Apple Health</h3>
+                  <span class="r">27 types · last sync 08:12</span>
+                </div>
+                <div class="rows">
+                  <div class="row">
+                    <div>
+                      <b>Resting heart rate</b
+                      ><small>RestingHeartRate · Apple Watch · Sep 2</small>
+                    </div>
+                    <span class="val">55 <em>bpm</em></span>
+                  </div>
+                  <div class="row">
+                    <div>
+                      <b>Sleep</b
+                      ><small>SleepAnalysis · Apple Watch · Sep 2</small>
+                    </div>
+                    <span class="val">6.8 <em>h</em></span>
+                  </div>
+                  <div class="row">
+                    <div>
+                      <b>Dietary protein</b
+                      ><small>DietaryProtein · logged in Health · Sep 2</small>
+                    </div>
+                    <span class="val">88 <em>g</em></span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="panel">
+                <div class="panel-head">
+                  <h3>Systems</h3><span class="r">12 · 3 off</span>
+                </div>
+                <div class="chips">
+                  <span class="chip"
+                    ><i class="dot off"></i>Thyroid<b class="tri">▲</b></span
+                  ><span class="chip"
+                    ><i class="dot off"></i>Vitamins<b class="tri">▲</b></span
+                  ><span class="chip"
+                    ><i class="dot off"></i>Lipids<b class="tri">▲</b></span
+                  ><span class="chip"><i class="dot border"></i>Blood sugar</span
+                  ><span class="chip"><i class="dot border"></i>Iron</span
+                  ><span class="chip"
+                    ><i class="dot hollow"></i>Sex hormones</span
+                  >
+                </div>
+              </div>
+            </div>
+            <nav class="tabbar">
+              <a class="on" href="#"
+                ><svg class="ic i22" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8" />
+                  <path
+                    d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"
+                  /></svg
+                >Today</a
+              >
+              <a href="#"
+                ><svg class="ic i22" viewBox="0 0 24 24" aria-hidden="true">
+                  <path
+                    d="M22 12h-2.48a2 2 0 0 0-1.93 1.46l-2.35 8.36a.25.25 0 0 1-.48 0L9.24 2.18a.25.25 0 0 0-.48 0l-2.35 8.36A2 2 0 0 1 4.49 12H2"
+                  /></svg
+                >Body</a
+              >
+              <span class="plusslot"
+                ><button type="button" aria-label="Add data">
+                  <svg class="ic" viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M5 12h14M12 5v14" /></svg></button
+              ></span>
+              <a href="#"
+                ><svg class="ic i22" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z" />
+                  <circle cx="12" cy="13" r="3" /></svg
+                >Meals</a
+              >
+              <a href="#"
+                ><svg class="ic i22" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M8 2v4M16 2v4" />
+                  <rect width="18" height="18" x="3" y="4" rx="2" />
+                  <path d="M3 10h18" /></svg
+                >Plan</a
+              >
+            </nav>
+          </div>
+          <div class="design-caption">
+            <b>No goal, no tiles, no invented target.</b>
+            <p>
+              <code>TodayView.swift</code> already falls back to the loudest
+              system when <code>goals</code> is empty. The screen then spends
+              the space on the seven readings and the Health rows instead.
+            </p>
+          </div>
+        </article>
+
+        <!-- ── 03 · dark ──────────────────────────────────────────── -->
+        <article class="study">
+          <div class="study-caption">
+            <span>03</span><b>The same density in the dark</b>
+          </div>
+          <div class="phone dark">
+            <div class="statusbar">
+              <span>9:41</span><span class="island"></span
+              ><span class="rt"><span>LTE</span><span>62%</span></span>
+            </div>
+            <div class="screenhead">
+              <h2>Today</h2>
+              <span class="head-meta"
+                >Wed Sep 2 2026
+                <svg class="ic" viewBox="0 0 24 24" aria-hidden="true">
+                  <circle cx="12" cy="12" r="3" />
+                  <path
+                    d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"
+                  />
+                </svg>
+              </span>
+            </div>
+            <div class="content">
+              <p class="sentence">
+                Seven markers are off.
+                <span>Thyroid is the loudest one.</span>
+              </p>
+
+              <div class="navycard">
+                <span class="c-bar"></span>
+                <div class="c-label">Status</div>
+                <div class="c-topline">
+                  <span class="c-num">7</span>
+                  <span class="c-title">Attention · 7 markers off</span>
+                </div>
+                <div class="dist" role="img"
+                  aria-label="52 markers: 26 optimal, 19 normal, 7 off">
+                  <i class="on" style="flex: 26"></i>
+                  <i class="border" style="flex: 19"></i>
+                  <i class="off" style="flex: 7"></i>
+                </div>
+                <div class="c-counts">
+                  <span>26 optimal · 19 normal · 7 off</span>
+                  <span>Aug 1 2026 draw</span>
+                </div>
+              </div>
+
+              <div class="panel">
+                <div class="panel-head">
+                  <h3>Goals</h3><span class="r">4 markers with a target</span>
+                </div>
+                <div class="tiles">
+                  <button class="tile off" type="button">
+                    <span class="t-name">TPO antibodies <b class="tri">▲</b></span>
+                    <span class="t-val">320<em>IU/mL</em></span>
+                    <span class="t-target">under 100</span>
+                    <svg class="spark" viewBox="0 0 120 26" aria-hidden="true">
+                      <rect class="band" x="0" y="19" width="120" height="7" />
+                      <polyline class="line" points="4,6 33,5 62,9 91,8 116,11" />
+                      <circle class="pt" cx="116" cy="11" r="2.4" />
+                    </svg>
+                    <span class="t-togo">220 to go</span>
+                  </button>
+                  <button class="tile off" type="button">
+                    <span class="t-name">Vitamin D <b class="tri">▲</b></span>
+                    <span class="t-val">19<em>ng/mL</em></span>
+                    <span class="t-target">40–60</span>
+                    <svg class="spark" viewBox="0 0 120 26" aria-hidden="true">
+                      <rect class="band" x="0" y="2" width="120" height="9" />
+                      <polyline class="line" points="4,23 33,22 62,20 91,19 116,17" />
+                      <circle class="pt" cx="116" cy="17" r="2.4" />
+                    </svg>
+                    <span class="t-togo">21 to go</span>
+                  </button>
+                  <button class="tile off" type="button">
+                    <span class="t-name">Ferritin <b class="tri">▲</b></span>
+                    <span class="t-val">22<em>ng/mL</em></span>
+                    <span class="t-target">above 50</span>
+                    <svg class="spark" viewBox="0 0 120 26" aria-hidden="true">
+                      <rect class="band" x="0" y="2" width="120" height="7" />
+                      <polyline class="line" points="4,18 33,20 62,19 91,21 116,20" />
+                      <circle class="pt" cx="116" cy="20" r="2.4" />
+                    </svg>
+                    <span class="t-togo">28 to go</span>
+                  </button>
+                  <button class="tile border" type="button">
+                    <span class="t-name">HbA1c</span>
+                    <span class="t-val">5.6<em>%</em></span>
+                    <span class="t-target">under 5.4</span>
+                    <svg class="spark" viewBox="0 0 120 26" aria-hidden="true">
+                      <rect class="band" x="0" y="17" width="120" height="9" />
+                      <polyline class="line" points="4,9 33,10 62,12 91,13 116,14" />
+                      <circle class="pt" cx="116" cy="14" r="2.4" />
+                    </svg>
+                    <span class="t-togo">0.2 to go</span>
+                  </button>
+                </div>
+              </div>
+
+              <div class="panel">
+                <div class="panel-head">
+                  <h3>Today’s plan</h3><span class="r">2 of 7 done</span>
+                </div>
+                <div class="rows">
+                  <div class="row">
+                    <div>
+                      <b>Selenium 200 µg</b><small>with breakfast · 08:00</small>
+                    </div>
+                    <span class="state on">done</span>
+                  </div>
+                  <div class="row">
+                    <div>
+                      <b>Vitamin D 4 000 IU</b><small>with a fat · 13:00</small>
+                    </div>
+                    <span class="state on">done</span>
+                  </div>
+                  <div class="row">
+                    <div>
+                      <b>Resistance session</b><small>45 min · 17:30</small>
+                    </div>
+                    <span class="state border">due</span>
+                  </div>
+                  <div class="row">
+                    <div>
+                      <b>Sardines, three tins a week</b
+                      ><small>0 % since Jun 14 2026</small>
+                    </div>
+                    <span class="state off">0 of 3</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="panel">
+                <div class="panel-head">
+                  <h3>Systems</h3><span class="r">12 · 3 off</span>
+                </div>
+                <div class="chips">
+                  <span class="chip"
+                    ><i class="dot off"></i>Thyroid<b class="tri">▲</b></span
+                  ><span class="chip"
+                    ><i class="dot off"></i>Vitamins<b class="tri">▲</b></span
+                  ><span class="chip"
+                    ><i class="dot off"></i>Lipids<b class="tri">▲</b></span
+                  ><span class="chip"><i class="dot border"></i>Blood sugar</span
+                  ><span class="chip"><i class="dot border"></i>Iron</span
+                  ><span class="chip"><i class="dot on"></i>Kidney</span
+                  ><span class="chip"
+                    ><i class="dot hollow"></i>Sex hormones</span
+                  >
+                </div>
+              </div>
+            </div>
+            <nav class="tabbar">
+              <a class="on" href="#"
+                ><svg class="ic i22" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8" />
+                  <path
+                    d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"
+                  /></svg
+                >Today</a
+              >
+              <a href="#"
+                ><svg class="ic i22" viewBox="0 0 24 24" aria-hidden="true">
+                  <path
+                    d="M22 12h-2.48a2 2 0 0 0-1.93 1.46l-2.35 8.36a.25.25 0 0 1-.48 0L9.24 2.18a.25.25 0 0 0-.48 0l-2.35 8.36A2 2 0 0 1 4.49 12H2"
+                  /></svg
+                >Body</a
+              >
+              <span class="plusslot"
+                ><button type="button" aria-label="Add data">
+                  <svg class="ic" viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M5 12h14M12 5v14" /></svg></button
+              ></span>
+              <a href="#"
+                ><svg class="ic i22" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z" />
+                  <circle cx="12" cy="13" r="3" /></svg
+                >Meals</a
+              >
+              <a href="#"
+                ><svg class="ic i22" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M8 2v4M16 2v4" />
+                  <rect width="18" height="18" x="3" y="4" rx="2" />
+                  <path d="M3 10h18" /></svg
+                >Plan</a
+              >
+            </nav>
+          </div>
+          <div class="design-caption">
+            <b>The navy card stays navy.</b>
+            <p>
+              Dark mode swaps the canvas and the ink, and the status card keeps
+              its own lightened spectrum, exactly as the design system’s dark
+              tokens define it.
+            </p>
+          </div>
+        </article>
+      </section>
+
+      <footer class="page">
+        <span>OPENVITALS · ASSAY</span>
+        <span>Sample person · design-system fixtures · static concept</span>
+        <a href="13-orbit.html">Previous exploration: Orbit ↗</a>
+      </footer>
+
+      <details class="notes">
+        <summary>Data, design and prototype notes</summary>
+        <div class="notes-grid">
+          <p>
+            <b>What changed against the current Today</b><br />The rail of three
+            keeps its job as a set of doorways, but it stops being the densest
+            thing on the screen. The four markers that carry a target move up
+            into a two-up grid, each one showing value, unit, target band, the
+            five draws behind it and the <code>toGo</code> line. That is the
+            same data <code>Api.Today.Goal</code> already carries; the
+            <code>GoalCard</code> ruler is one marker per card, this is four
+            markers per screen.
+          </p>
+          <p>
+            <b>The status card earns its size</b><br />It used to print three
+            counts as text. It now prints them as a bar to scale, plus the same
+            three counts across the last five draws, so a person with thousands
+            of readings can see whether the picture is moving without leaving
+            Today. Denominators are always explicit: 26 / 19 / 7 of 52.
+          </p>
+          <p>
+            <b>Real</b><br />The counters 26 optimal / 19 normal / 7 off, the 52
+            markers and the Aug 1 2026 draw; the twelve systems with sex
+            hormones never measured; TPO 320 → under 100 IU/mL, vitamin D 19 →
+            40–60 ng/mL, ferritin 22 → above 50 ng/mL, HbA1c 5.6 %; the protocol
+            items and sardines at 0 % since Jun 14 2026; 7 234 steps, 27
+            HealthKit types, 08:12 sync; the five-slot tab bar and the lime
+            capture control.
+          </p>
+          <p>
+            <b>Illustrative</b><br />The five-draw history and the sparkline
+            shapes are invented to show the form, not logged values. ApoB 112
+            and TSH 5.9 fill out the seven-off list. “On pace” and “not on pace”
+            are printed only where <code>onPace</code> could exist; ferritin
+            says “no projection yet” because a projection nobody made is not a
+            no.
+          </p>
+          <p>
+            <b>Prototype boundaries</b><br />One HTML file, no build, no
+            network beyond the Google Fonts link the design system already uses.
+            The reading-window control and the theme button are the only live
+            behaviour; nothing fetches, and no screen here has an endpoint that
+            does not already appear in <code>ios.html</code>’s data contract.
+            Controls are 44 px, focus is visible, reduced motion removes
+            transitions.
+          </p>
+          <p>
+            <b>What this deliberately does not do</b><br />No streak, no badge,
+            no score out of 100, no mood face row, no “Good morning” greeting
+            illustration. A person with 52 markers off does not need to be
+            congratulated; they need the four numbers with a target and the
+            draws behind them.
+          </p>
+        </div>
+      </details>
+    </main>
+
+    <script>
+      // Theme
+      var t = document.getElementById("theme");
+      t.addEventListener("click", function () {
+        var dark = document.documentElement.dataset.theme === "dark";
+        document.documentElement.dataset.theme = dark ? "light" : "dark";
+        t.setAttribute("aria-pressed", String(!dark));
+      });
+
+      // The reading window. Only the first frame carries it; it swaps the
+      // line under each tile, which is the only thing the window changes.
+      var togo = {
+        1: [
+          "220 IU/mL to go · not on pace",
+          "21 ng/mL to go · on pace",
+          "28 ng/mL to go · no projection yet",
+          "0.2 % to go · on pace",
+        ],
+        2: [
+          "+40 IU/mL over 12 months",
+          "−3 ng/mL over 12 months",
+          "−2 ng/mL over 12 months",
+          "+0.2 % over 12 months",
+        ],
+        3: [
+          "410 → 320 across 5 draws",
+          "27 → 19 across 5 draws",
+          "31 → 22 across 5 draws",
+          "5.2 → 5.6 across 5 draws",
+        ],
+      };
+      var seg = document.querySelector("#p1 .seg");
+      seg.addEventListener("click", function (e) {
+        var b = e.target.closest("button");
+        if (!b) return;
+        seg.querySelectorAll("button").forEach(function (o) {
+          o.setAttribute("aria-pressed", String(o === b));
+        });
+        var lines = togo[b.dataset.win];
+        document
+          .querySelectorAll("#p1 .tile .t-togo")
+          .forEach(function (el, i) {
+            el.textContent = lines[i];
+          });
+      });
+    </script>
+  </body>
+</html>

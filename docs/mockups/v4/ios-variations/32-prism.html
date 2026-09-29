@@ -1,0 +1,1497 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Prism · iOS variation 32 · OpenVitals</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --h: 215; /* hue = 330 - score x 1.6, set again in JS */
+        --page: #07080d;
+        --ink: rgba(255, 255, 255, 0.96);
+        --ink-2: rgba(255, 255, 255, 0.68);
+        --ink-3: rgba(255, 255, 255, 0.46);
+        --hair: rgba(255, 255, 255, 0.09);
+        --r: 20px;
+        --s5: 5px;
+        --s8: 8px;
+        --s13: 13px;
+        --s21: 21px;
+        --s34: 34px;
+        --s55: 55px;
+        --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--page);
+        color: var(--ink);
+        font:
+          15px/1.4 -apple-system,
+          Inter,
+          system-ui,
+          sans-serif;
+        font-feature-settings: "tnum", "cv11";
+        -webkit-font-smoothing: antialiased;
+      }
+      /* one flood on the page too, the same hue as the phones */
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        z-index: 0;
+        pointer-events: none;
+        background: radial-gradient(
+          70% 45% at 16% 4%,
+          hsl(var(--h) 85% 42% / 0.34),
+          transparent 72%
+        );
+      }
+      button {
+        font: inherit;
+        color: inherit;
+        background: none;
+        border: 0;
+        padding: 0;
+        cursor: pointer;
+        text-align: left;
+        -webkit-tap-highlight-color: transparent;
+      }
+      h1,
+      h2,
+      p {
+        margin: 0;
+      }
+      svg {
+        width: 20px;
+        height: 20px;
+        stroke: currentColor;
+        fill: none;
+        stroke-width: 1.7;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+      svg.ch {
+        width: 100%;
+        height: auto;
+        display: block;
+        stroke: none;
+        fill: none;
+        stroke-width: 1;
+      }
+
+      /* ---- page ---- */
+      .doc {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: var(--s55) var(--s21);
+        position: relative;
+        z-index: 1;
+      }
+      .doc > header,
+      .phones,
+      .notes {
+        width: 835px;
+        max-width: 100%;
+        margin-left: auto;
+        margin-right: auto;
+      }
+      .doc > header {
+        margin-bottom: var(--s34);
+      }
+      .doc > header .lede {
+        max-width: 58ch;
+      }
+      .eyebrow {
+        color: var(--ink-3);
+        font-size: 13px;
+        margin-bottom: var(--s5);
+      }
+      .doc h1 {
+        font-size: 34px;
+        font-weight: 600;
+        letter-spacing: -0.035em;
+      }
+      .lede {
+        color: var(--ink-2);
+        margin-top: var(--s8);
+      }
+      .phones {
+        display: flex;
+        gap: var(--s55);
+        justify-content: flex-start;
+        flex-wrap: wrap;
+      }
+      .cap {
+        display: block;
+        color: var(--ink-2);
+        font-size: 13px;
+        margin-bottom: var(--s13);
+        width: 390px;
+        padding: 0 8px;
+      }
+
+      /* ---- phone ---- */
+      .phone {
+        /* ONE light: a single source at 13% across, 1% down, declared once so
+           every pane can refract this exact image and every rim can be solved
+           against the same point. There is no second lobe anywhere. */
+        /* the falloff is long and gentle on purpose: over 150 px the light
+           must not cliff, and it has to stay legible on the bare screen
+           between the cards, or it reads as a fill rather than a light */
+        --light: radial-gradient(
+          172% 128% at 13% 1%,
+          hsl(var(--h) 100% 60%) 0%,
+          hsl(var(--h) 98% 48% / 0.94) 20%,
+          hsl(var(--h) 96% 40% / 0.82) 38%,
+          hsl(var(--h) 94% 32% / 0.66) 55%,
+          hsl(var(--h) 92% 25% / 0.48) 72%,
+          hsl(var(--h) 90% 18% / 0.3) 88%,
+          hsl(var(--h) 88% 14% / 0.18) 100%
+        );
+        font-variant-numeric: tabular-nums;
+        width: 390px;
+        height: 844px;
+        border-radius: 55px;
+        border: 8px solid #14151c;
+        background: #05060a;
+        box-shadow:
+          0 40px 80px -30px rgba(0, 0, 0, 0.9),
+          0 0 0 1px rgba(255, 255, 255, 0.06);
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+      }
+      .field {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        background-image: var(--light);
+        background-size: 100% 100%;
+      }
+      .veilbg {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        background:
+          radial-gradient(
+            140% 96% at 18% 6%,
+            transparent 0%,
+            rgba(4, 5, 9, 0.1) 44%,
+            rgba(4, 5, 9, 0.3) 74%,
+            rgba(4, 5, 9, 0.44) 100%
+          ),
+          linear-gradient(180deg, rgba(4, 5, 9, 0.42), transparent 18%);
+      }
+      .hem {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: 131px;
+        z-index: 3;
+        pointer-events: none;
+        /* the fold dissolves into the ground at the colour the light leaves
+           there, so the hem is not a black bar cutting across the falloff */
+        background: linear-gradient(
+          180deg,
+          transparent 0%,
+          rgba(4, 22, 50, 0.86) 8%,
+          rgb(4, 21, 48) 15%,
+          rgb(4, 15, 35) 100%
+        );
+      }
+      .status {
+        height: 55px;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        padding: 0 30px 9px;
+        font-size: 14.5px;
+        font-weight: 600;
+        letter-spacing: -0.01em;
+        position: relative;
+        z-index: 3;
+      }
+      .status i {
+        position: absolute;
+        left: 50%;
+        top: 12px;
+        width: 118px;
+        height: 34px;
+        border-radius: 21px;
+        background: #000;
+        transform: translateX(-50%);
+      }
+      .status .sig {
+        display: flex;
+        align-items: flex-end;
+        gap: 5px;
+      }
+      .status .sig svg {
+        width: auto;
+        height: 11px;
+        stroke: none;
+        fill: #fff;
+      }
+      .screen {
+        flex: 1;
+        overflow-y: auto;
+        padding: var(--s8) var(--s21) 150px;
+        scrollbar-width: none;
+        position: relative;
+        z-index: 2;
+      }
+      .screen::-webkit-scrollbar {
+        display: none;
+      }
+
+      /* ---- glass ---- */
+      .pane {
+        /* --a is the direction away from the one light source and --lit is how
+           much of it reaches this pane; both are solved in JS from the pane's
+           own position, so no pane invents its own lighting */
+        --a: 160deg;
+        --lit: 0.6;
+        position: relative;
+        border-radius: var(--r);
+        padding: 17px;
+        overflow: hidden;
+        isolation: isolate;
+        background: rgba(255, 255, 255, calc(0.022 + 0.035 * var(--lit)));
+        backdrop-filter: blur(18px) saturate(150%);
+        -webkit-backdrop-filter: blur(18px) saturate(150%);
+        box-shadow: 0 calc(8px + 14px * var(--lit)) 38px -22px rgba(0, 0, 0, 0.95);
+      }
+      .pane.d1 {
+        backdrop-filter: blur(28px) saturate(170%);
+        -webkit-backdrop-filter: blur(28px) saturate(170%);
+      }
+      /* the refraction: a magnified, displaced copy of the very same light,
+         aligned to this pane's position and weighted to the edges, where a
+         thick pane bends what is behind it */
+      .lens {
+        position: absolute;
+        inset: 0;
+        z-index: 0;
+        pointer-events: none;
+        background-image: var(--light);
+        background-repeat: no-repeat;
+        opacity: calc(0.1 + 0.6 * var(--lit));
+        filter: blur(8px) saturate(150%);
+        -webkit-mask: radial-gradient(
+          116% 116% at 50% 50%,
+          transparent 38%,
+          #000 100%
+        );
+        mask: radial-gradient(116% 116% at 50% 50%, transparent 38%, #000 100%);
+      }
+      /* the rim, varying around the perimeter with the light at the top-left */
+      /* the rim: bright where the light lands, gone on the far side */
+      .pane::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        z-index: 0;
+        border-radius: inherit;
+        padding: 1.5px;
+        pointer-events: none;
+        background: conic-gradient(
+          from var(--a) at 50% 50%,
+          rgba(255, 255, 255, 0.01) 0%,
+          rgba(255, 255, 255, 0.02) 22%,
+          rgba(255, 255, 255, calc(0.06 + 0.2 * var(--lit))) 40%,
+          rgba(255, 255, 255, calc(0.3 + 0.68 * var(--lit))) 47%,
+          #fff 50%,
+          rgba(255, 255, 255, calc(0.3 + 0.68 * var(--lit))) 53%,
+          rgba(255, 255, 255, calc(0.06 + 0.2 * var(--lit))) 60%,
+          hsl(calc(var(--h) + 74) 100% 80% / calc(0.18 * var(--lit))) 76%,
+          rgba(255, 255, 255, 0.01) 100%
+        );
+        -webkit-mask:
+          linear-gradient(#000 0 0) content-box,
+          linear-gradient(#000 0 0);
+        -webkit-mask-composite: xor;
+        mask:
+          linear-gradient(#000 0 0) content-box,
+          linear-gradient(#000 0 0);
+        mask-composite: exclude;
+      }
+      .pane > *:not(.lens) {
+        position: relative;
+        z-index: 1;
+      }
+
+      /* ---- type, four sizes ---- */
+      .ttl {
+        font-size: 13.5px;
+        font-weight: 600;
+        color: var(--ink-2);
+        letter-spacing: -0.01em;
+      }
+      .slab {
+        font-size: 12.5px;
+        font-weight: 600;
+        color: var(--ink-2);
+        margin: var(--s13) 0 2px;
+      }
+      .decomp {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        margin: 4px 0 var(--s13);
+        font-size: 12px;
+        color: var(--ink-2);
+      }
+      .decomp b {
+        font-size: 16px;
+        font-weight: 700;
+        letter-spacing: -0.03em;
+        color: var(--ink);
+        margin-right: 3px;
+      }
+      .decomp i {
+        width: 1px;
+        height: 11px;
+        background: rgba(255, 255, 255, 0.16);
+      }
+      .lbl {
+        font-size: 11px;
+        font-weight: 500;
+        color: rgba(255, 255, 255, 0.38);
+      }
+      /* the palette is the light plus one semantic colour, and this is it */
+      .lbl.flag {
+        color: #e8b23c;
+        font-weight: 600;
+      }
+      .lbl.off {
+        color: #f4708a;
+        font-weight: 600;
+      }
+      .num {
+        font-size: 29px;
+        font-weight: 700;
+        letter-spacing: -0.045em;
+        line-height: 1;
+      }
+      .num small {
+        font-size: 12.5px;
+        font-weight: 600;
+        color: var(--ink-3);
+        letter-spacing: -0.02em;
+        margin-left: 3px;
+      }
+      .under {
+        margin-top: 5px;
+        font-size: 12px;
+        color: var(--ink-2);
+      }
+      .note {
+        margin-top: 11px;
+        font-size: 12px;
+        line-height: 1.45;
+        color: var(--ink-3);
+      }
+      .note b {
+        color: rgba(255, 255, 255, 0.92);
+        font-weight: 600;
+      }
+      .stack {
+        display: grid;
+        gap: var(--s13);
+        margin-top: var(--s13);
+      }
+      .phead {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: var(--s8);
+        margin-bottom: 11px;
+      }
+
+      /* ---- top row ---- */
+      .top {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        height: 34px;
+      }
+      .top .lbl {
+        line-height: 34px;
+      }
+      .avatar {
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--ink-2);
+        background: rgba(255, 255, 255, 0.09);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.22);
+      }
+      .avatar svg {
+        width: 16px;
+        height: 16px;
+      }
+      .greet {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: var(--s8);
+        margin: 14px 0 11px;
+        font-size: 20px;
+        font-weight: 600;
+        letter-spacing: -0.03em;
+      }
+
+      /* ---- hero ---- */
+      .hero .big {
+        font-size: 66px;
+        font-weight: 700;
+        letter-spacing: -0.055em;
+        line-height: 0.86;
+      }
+      .hero .big small {
+        font-size: 18px;
+        font-weight: 600;
+        color: var(--ink-3);
+        letter-spacing: -0.02em;
+      }
+      .hero .line {
+        display: flex;
+        align-items: baseline;
+        gap: 6px;
+      }
+      /* the score's supporting line is the only explanation of 72, so it is
+         body copy, not a caption */
+      .hero .under {
+        font-size: 12.5px;
+        color: rgba(255, 255, 255, 0.72);
+        margin-top: 7px;
+      }
+      .hero .verdict {
+        font-size: 15px;
+        font-weight: 600;
+        letter-spacing: -0.02em;
+        color: var(--ink-3);
+      }
+
+      /* ---- meals ---- */
+      .row {
+        display: flex;
+        align-items: center;
+        gap: 11px;
+        padding: 9px 0;
+        border-bottom: 1px solid var(--hair);
+      }
+      .row:last-child {
+        border-bottom: 0;
+        padding-bottom: 0;
+      }
+      .row .ic {
+        width: 38px;
+        height: 38px;
+        border-radius: 12px;
+        flex: none;
+        overflow: hidden;
+        display: grid;
+        place-items: center;
+        background: rgba(255, 255, 255, 0.08);
+        box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.14);
+      }
+      .row .ic img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+      .row .ic svg {
+        width: 17px;
+        height: 17px;
+        color: var(--ink-2);
+      }
+      .row .t {
+        flex: 1;
+        min-width: 0;
+      }
+      .row .t b {
+        display: block;
+        font-size: 13.5px;
+        font-weight: 600;
+      }
+      .row .t small {
+        font-size: 11.5px;
+        color: var(--ink-3);
+      }
+      .row .v {
+        text-align: right;
+        font-size: 13.5px;
+        font-weight: 600;
+        letter-spacing: -0.02em;
+      }
+      .row .v small {
+        color: var(--ink-3);
+        font-weight: 500;
+        margin-left: 3px;
+      }
+
+      /* ---- tab bar: one capsule, the plus inside it ---- */
+      .tabs {
+        position: absolute;
+        left: var(--s21);
+        right: var(--s21);
+        bottom: 26px;
+        z-index: 4;
+        height: 58px;
+        border-radius: 24px;
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr 66px;
+        align-items: center;
+        padding: 5px;
+        overflow: hidden;
+        --a: 160deg;
+        --lit: 0.3;
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(26px) saturate(170%);
+        -webkit-backdrop-filter: blur(26px) saturate(170%);
+        box-shadow:
+          inset 0 1px 0 rgba(255, 255, 255, calc(0.26 + 0.6 * var(--lit))),
+          inset 0 -1px 0 rgba(0, 0, 0, 0.3),
+          0 16px 30px -14px rgba(0, 0, 0, 0.95);
+      }
+      .tabs button {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 3px;
+        height: 48px;
+        border-radius: 12px;
+        font-size: 10.5px;
+        font-weight: 500;
+        color: rgba(255, 255, 255, 0.62);
+      }
+      .tabs button svg {
+        width: 19px;
+        height: 19px;
+      }
+      .tabs button.on {
+        color: #fff;
+        font-weight: 600;
+        background: rgba(255, 255, 255, 0.1);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.28);
+      }
+      .tabs .plus {
+        position: relative;
+        color: #fff;
+      }
+      .tabs .plus::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: 5px;
+        bottom: 5px;
+        width: 1px;
+        background: rgba(255, 255, 255, 0.14);
+      }
+      .tabs .plus svg {
+        width: 23px;
+        height: 23px;
+      }
+      .homebar {
+        position: absolute;
+        left: 50%;
+        bottom: 10px;
+        width: 134px;
+        height: 5px;
+        border-radius: 3px;
+        background: rgba(255, 255, 255, 0.5);
+        transform: translateX(-50%);
+        z-index: 4;
+      }
+
+      /* ---- the risen sheet ---- */
+      .scrim {
+        position: absolute;
+        inset: 0;
+        z-index: 5;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 320ms var(--ease);
+        background: rgba(4, 5, 9, 0.56);
+        backdrop-filter: blur(3px) brightness(0.32);
+        -webkit-backdrop-filter: blur(3px) brightness(0.32);
+      }
+      .sheet {
+        position: absolute;
+        left: var(--s8);
+        right: var(--s8);
+        bottom: var(--s8);
+        z-index: 6;
+        border-radius: 30px;
+        padding: 12px 17px 26px;
+        transform: translateY(112%);
+        transition: transform 420ms var(--ease);
+        overflow: hidden;
+        isolation: isolate;
+        --a: 160deg;
+        --lit: 0.5;
+        background: rgba(255, 255, 255, calc(0.025 + 0.04 * var(--lit)));
+        backdrop-filter: blur(30px) saturate(170%);
+        -webkit-backdrop-filter: blur(30px) saturate(170%);
+        box-shadow: 0 -20px 60px -20px rgba(0, 0, 0, 0.9);
+      }
+      .sheet::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        z-index: 0;
+        border-radius: inherit;
+        padding: 1.5px;
+        pointer-events: none;
+        background: conic-gradient(
+          from var(--a) at 50% 50%,
+          rgba(255, 255, 255, 0.01) 0%,
+          rgba(255, 255, 255, 0.02) 22%,
+          rgba(255, 255, 255, calc(0.06 + 0.2 * var(--lit))) 40%,
+          rgba(255, 255, 255, calc(0.3 + 0.68 * var(--lit))) 47%,
+          #fff 50%,
+          rgba(255, 255, 255, calc(0.3 + 0.68 * var(--lit))) 53%,
+          rgba(255, 255, 255, calc(0.06 + 0.2 * var(--lit))) 60%,
+          hsl(calc(var(--h) + 74) 100% 80% / calc(0.18 * var(--lit))) 76%,
+          rgba(255, 255, 255, 0.01) 100%
+        );
+        -webkit-mask:
+          linear-gradient(#000 0 0) content-box,
+          linear-gradient(#000 0 0);
+        -webkit-mask-composite: xor;
+        mask:
+          linear-gradient(#000 0 0) content-box,
+          linear-gradient(#000 0 0);
+        mask-composite: exclude;
+      }
+      .sheet > *:not(.lens) {
+        position: relative;
+        z-index: 1;
+      }
+      .phone.open .scrim {
+        opacity: 1;
+        pointer-events: auto;
+      }
+      .phone.open .sheet {
+        transform: none;
+      }
+      .phone.open .screen,
+      .phone.open .tabs,
+      .phone.open .hem {
+        transform: scale(0.95);
+        transform-origin: 50% 30%;
+        transition: transform 420ms var(--ease);
+      }
+      .grab {
+        width: 40px;
+        height: 4px;
+        border-radius: 3px;
+        background: rgba(255, 255, 255, 0.32);
+        margin: 0 auto 14px;
+      }
+      .sheet h2 {
+        font-size: 21px;
+        font-weight: 600;
+        letter-spacing: -0.03em;
+      }
+      .lever {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 10px 0;
+        border-bottom: 1px solid var(--hair);
+      }
+      .lever:last-of-type {
+        border-bottom: 0;
+      }
+      .lever:last-of-type {
+        border-bottom: 0;
+      }
+      .lever .mk {
+        width: 15px;
+        flex: none;
+        display: grid;
+        place-items: center;
+        color: hsl(var(--h) 100% 72%);
+      }
+      .lever .mk svg {
+        width: 15px;
+        height: 15px;
+        stroke-width: 2.6;
+      }
+      .lever .t {
+        flex: 1;
+        min-width: 0;
+      }
+      .lever .t b {
+        display: block;
+        font-size: 13.5px;
+        font-weight: 600;
+      }
+      .lever .t small {
+        font-size: 11.5px;
+        color: var(--ink-3);
+      }
+      .lever .d {
+        font-size: 15px;
+        font-weight: 700;
+        letter-spacing: -0.03em;
+      }
+      .lever .d small {
+        font-size: 11px;
+        font-weight: 500;
+        color: var(--ink-3);
+        margin-left: 3px;
+      }
+
+      /* ---- notes ---- */
+      .notes {
+        margin-top: var(--s55);
+        font-family: ui-monospace, "SF Mono", "JetBrains Mono", Menlo,
+          Consolas, monospace;
+        font-size: 12px;
+        line-height: 1.5;
+        color: var(--ink-2);
+      }
+      .notes table {
+        font-variant-numeric: tabular-nums;
+      }
+      .notes h2 {
+        font-family: inherit;
+        font-size: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--ink);
+        margin-bottom: var(--s8);
+      }
+      .notes table {
+        border-collapse: collapse;
+        width: 100%;
+        margin: var(--s8) 0 var(--s21);
+      }
+      .notes td,
+      .notes th {
+        text-align: left;
+        padding: 7px 10px 7px 0;
+        border-bottom: 1px solid var(--hair);
+        vertical-align: top;
+      }
+      .notes th {
+        font-weight: 600;
+        color: var(--ink);
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .sheet,
+        .scrim {
+          transition: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="doc">
+      <header>        <h1>Prism</h1>
+        <p class="lede">
+          One light behind the glass, and every panel carries its chart.
+        </p>
+      </header>
+
+      <section class="phones">
+        <div>
+          <p class="cap">Today</p>
+          <div class="phone" id="p1"></div>
+        </div>
+        <div>
+          <p class="cap">LDL</p>
+          <div class="phone open" id="p2"></div>
+        </div>
+      </section>
+
+      <section class="notes">
+        <h2>The score, and the hue it sets</h2>
+        <table>
+          <tr>
+            <th>Layer</th>
+            <th>Today</th>
+            <th>Weight</th>
+            <th>Moves</th>
+          </tr>
+          <tr>
+            <td>Lifestyle</td>
+            <td>sleep 100, moves 40, kcal 90, protein 78 → 77</td>
+            <td>0.40</td>
+            <td>every entry</td>
+          </tr>
+          <tr>
+            <td>Blood</td>
+            <td>4 in range, 2 borderline, 1 off → 71</td>
+            <td>0.45</td>
+            <td>each draw</td>
+          </tr>
+          <tr>
+            <td>Genes</td>
+            <td>4 variants, fixed → 63</td>
+            <td>0.15</td>
+            <td>never</td>
+          </tr>
+          <tr>
+            <td>Score</td>
+            <td>0.40 × 77 + 0.45 × 71 + 0.15 × 63 = 72</td>
+            <td></td>
+            <td>daily</td>
+          </tr>
+          <tr>
+            <td>Hue</td>
+            <td>330 − 72 × 1.6 = 215</td>
+            <td></td>
+            <td>with the score</td>
+          </tr>
+        </table>
+
+
+      </section>
+    </main>
+
+    <script>
+      const I = {
+        chev: '<svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg>',
+        bell: '<svg viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10 21a2 2 0 0 0 4 0"/></svg>',
+        plus: '<svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>',
+        tick: '<svg viewBox="0 0 24 24"><path d="M12 4v14m0 0-5-5m5 5 5-5"/></svg>',
+        walk: '<svg viewBox="0 0 24 24"><circle cx="13" cy="4" r="1.5"/><path d="m10 21 2-6 3 3v3M8 12l3-3 3 1 2 3M11 9l-1 5-3 2"/></svg>',
+        home: '<svg viewBox="0 0 24 24"><path d="M3 11 12 4l9 7v9H3z"/><path d="M10 20v-6h4v6"/></svg>',
+        body: '<svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="2.5"/><path d="M9 10h6l1 5h-2v6h-4v-6H8z"/></svg>',
+        drop: '<svg viewBox="0 0 24 24"><path d="M12 3s6 7 6 11a6 6 0 0 1-12 0c0-4 6-11 6-11z"/></svg>',
+        pill: '<svg viewBox="0 0 24 24"><rect x="3" y="9" width="18" height="6" rx="3" transform="rotate(-45 12 12)"/><path d="m9 9 6 6"/></svg>',
+        // status bar, drawn rather than approximated with punctuation
+        signal:
+          '<svg viewBox="0 0 18 12"><rect x="0" y="8" width="3" height="4" rx="1"/><rect x="5" y="5.5" width="3" height="6.5" rx="1"/><rect x="10" y="3" width="3" height="9" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1"/></svg>',
+        wifi: '<svg viewBox="0 0 16 12"><path d="M8 11.2 5.9 8.6a3.4 3.4 0 0 1 4.2 0zM8 6.1c-1.5 0-2.9.5-4 1.5L2.6 5.9A8.2 8.2 0 0 1 8 3.9c2 0 3.9.7 5.4 2l-1.4 1.7a6.2 6.2 0 0 0-4-1.5zM8 1.6c-2.6 0-5 .9-6.8 2.5L0 2.6A12.2 12.2 0 0 1 8 0c3 0 5.8 1 8 2.6L14.8 4.1A10.2 10.2 0 0 0 8 1.6z"/></svg>',
+        batt: '<svg viewBox="0 0 25 12"><rect x="0.5" y="0.5" width="21" height="11" rx="3.2" style="fill:none;stroke:#fff;stroke-opacity:.45;stroke-width:1"/><rect x="2" y="2" width="15" height="8" rx="2"/><path d="M23 4.2v3.6a2.2 2.2 0 0 0 0-3.6z" style="fill-opacity:.45"/></svg>',
+      };
+
+      /* ---------- the three layers, from 25-onion, unchanged ---------- */
+      const LIFE = {
+        w: 0.4,
+        rows: [
+          { n: "Sleep", s: "7h 30 of 7h 30", p: 100 },
+          { n: "Moves", s: "2 of 5 ticked", p: 40 },
+          { n: "Calories", s: "1 497 of 1 900 kcal", p: 90 },
+          { n: "Protein", s: "93 of 120 g", p: 78 },
+        ],
+      };
+      const BLOOD = {
+        w: 0.45,
+        rows: [
+          { n: "Vitamin D", s: "29 ng/mL · aim 40 to 60", x: 12, st: "rose" },
+          { n: "LDL", s: "131 mg/dL · aim under 100", x: 84, st: "amber" },
+          { n: "ApoB", s: "98 mg/dL · aim under 90", x: 80, st: "amber" },
+          { n: "hs-CRP", s: "0.6 mg/L", x: 30, st: "green" },
+          { n: "HbA1c", s: "5.3 %", x: 45, st: "green" },
+          { n: "Ferritin", s: "64 ng/mL", x: 50, st: "green" },
+          { n: "TPO", s: "18 IU/mL", x: 35, st: "green" },
+        ],
+      };
+      const GENES = {
+        w: 0.15,
+        rows: [
+          { n: "APOE ε3/ε4", s: "LDL responds more to saturated fat", p: 45 },
+          { n: "LPA rs10455872", s: "not carried", p: 100 },
+          { n: "MTHFR C677T", s: "heterozygous · folate form matters", p: 60 },
+          { n: "FTO rs9939609", s: "one copy · appetite", p: 45 },
+        ],
+      };
+      const pct = (rows) =>
+        Math.round(rows.reduce((a, r) => a + r.p, 0) / rows.length);
+      const life = pct(LIFE.rows); // 77
+      const blood = Math.round(
+        (BLOOD.rows.reduce(
+          (a, r) => a + { green: 1, amber: 0.5, rose: 0 }[r.st],
+          0,
+        ) /
+          BLOOD.rows.length) *
+          100,
+      ); // 71
+      const genes = pct(GENES.rows); // 63
+      const score = Math.round(
+        LIFE.w * life + BLOOD.w * blood + GENES.w * genes,
+      ); // 72
+      console.assert(score === 72, "score arithmetic drifted", score);
+
+      const verdict =
+        score >= 80
+          ? "Strong"
+          : score >= 65
+            ? "On track"
+            : score >= 50
+              ? "Watch"
+              : "Act";
+
+      /* ---------- one hue, set by the score ---------- */
+      const HUE = Math.round(330 - score * 1.6); // 215
+      document.documentElement.style.setProperty("--h", HUE);
+      const A = `hsl(${HUE} 100% 68%)`; // the only accent on the phone
+      const AD = `hsl(${HUE} 100% 74%)`; // the same accent, lifted
+      const W9 = "rgba(255,255,255,.92)",
+        W7 = "rgba(255,255,255,.7)",
+        W5 = "rgba(255,255,255,.5)",
+        W38 = "rgba(255,255,255,.38)";
+      const AMBER = "#e8b23c",
+        ROSE = "#f4708a"; /* the only two other colours: borderline, off */
+      const STC = { green: W7, amber: AMBER, rose: ROSE };
+
+      /* ---------- the receipt ---------- */
+      const LOG = [
+        {
+          src: "img/08-pork-belly.jpg",
+          n: "Pork belly, salad",
+          s: "7:30 PM · fat past the day's share",
+          v: "623",
+          u: "kcal",
+        },
+        {
+          g: "walk",
+          n: "Walk after lunch",
+          s: "1:45 PM · 15 min",
+          v: "+2",
+          u: "",
+        },
+        {
+          src: "img/08-sardines-rye.jpg",
+          n: "Sardines on rye, kimchi",
+          s: "1:08 PM · 38 g protein",
+          v: "462",
+          u: "kcal",
+        },
+        { g: "pill", n: "Selenium 200 µg", s: "8:20 AM", v: "✓", u: "" },
+        {
+          src: "img/08-oats.jpg",
+          n: "Oats with berries",
+          s: "8:15 AM · 3 g beta-glucan",
+          v: "412",
+          u: "kcal",
+        },
+      ];
+
+      /* ---------- chart helpers ---------- */
+      const n1 = (x) => Math.round(x * 10) / 10;
+      const T = (x, y, t, o) =>
+        `<text x="${n1(x)}" y="${n1(y)}" style="fill:${o.c};font-size:${o.s || 10}px;font-weight:${o.w || 500};${o.a ? "text-anchor:" + o.a + ";" : ""}">${t}</text>`;
+
+      /* 1. the score, fourteen days */
+      const S14 = [64, 66, 65, 67, 66, 68, 67, 70, 69, 71, 70, 72, 71, 72];
+      function chartScore(u) {
+        const w = 300,
+          h = 72,
+          top = 6,
+          base = 52,
+          mn = 60,
+          mx = 78;
+        const X = (i) => 1 + (i / (S14.length - 1)) * (w - 2);
+        const Y = (v) => top + (1 - (v - mn) / (mx - mn)) * (base - top);
+        const d = S14.map(
+          (v, i) => `${i ? "L" : "M"}${n1(X(i))},${n1(Y(v))}`,
+        ).join(" ");
+        return `<svg class="ch" viewBox="0 0 ${w} ${h}" style="stroke:none;fill:none">
+          <defs>
+            <linearGradient id="sf-${u}" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stop-color="${A}" stop-opacity=".3"/>
+              <stop offset="1" stop-color="${A}" stop-opacity="0"/>
+            </linearGradient>
+          </defs>
+          <path d="${d} L${w - 1},${base} L1,${base} Z" style="fill:url(#sf-${u})"/>
+          <path d="${d}" style="fill:none;stroke:${A};stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round"/>
+          <line x1="1" y1="${base + 0.5}" x2="${w - 1}" y2="${base + 0.5}" style="stroke:rgba(255,255,255,.22);stroke-width:1"/>
+          <circle cx="${n1(X(13))}" cy="${n1(Y(72))}" r="3.4" style="fill:#fff"/>
+          ${T(1, h - 4, "14 days", { c: W38, s: 9.5 })}
+        </svg>`;
+      }
+
+      /* 2a. LDL on the home */
+      const LDL = [
+        { v: 168, d: "9 Dec 2025" },
+        { v: 131, d: "1 Aug 2026" },
+        { v: 104, d: "projected" },
+      ];
+      /* one grammar for every chart: the same y scale as the sheet, the same
+         hairline grid, the same gradient fill, measured points filled and
+         projected points hollow, dates along the foot */
+      /* the score sets the hue, so draw the mapping: a rail from 40 to 100
+         painted with the same formula, and the phone is the colour under the
+         marker. Nothing on screen says "215"; you can see it. */
+      /* the hue rule, drawn as the same glass as everything else: one chip
+         per five points of score, each carrying the colour that score would
+         set, and the chip at 72 lit with the same specular rim the panes get.
+         No ramp, no rainbow, and nothing on screen prints "215". */
+      function chartHue(u) {
+        const w = 300,
+          h = 34,
+          n = 9,
+          lo = 52,
+          hi = 92,
+          gap = 3,
+          cw = (w - (n - 1) * gap) / n;
+        const chips = Array.from({ length: n }, (_, i) => {
+          const v = lo + ((hi - lo) * i) / (n - 1);
+          const x = i * (cw + gap);
+          const on = Math.abs(v - score) <= (hi - lo) / (n - 1) / 2;
+          return (
+            `<rect x="${n1(x)}" y="${on ? 1 : 4}" width="${n1(cw)}" height="${on ? 17 : 11}" rx="3" style="fill:hsl(${Math.round(330 - v * 1.6)} ${on ? 92 : 48}% ${on ? 56 : 34}%);opacity:${on ? 1 : 0.5}"/>` +
+            (on
+              ? `<rect x="${n1(x) + 0.5}" y="1.5" width="${n1(cw) - 1}" height="16" rx="2.5" style="fill:none;stroke:rgba(255,255,255,.85);stroke-width:1"/>`
+              : "")
+          );
+        }).join("");
+        return `<svg class="ch" viewBox="0 0 ${w} ${h}" style="stroke:none;fill:none">
+          ${chips}
+          ${T(0, h - 3, "52", { c: W38, s: 9.5 })}
+          ${T(w / 2, h - 3, "the score picks the colour, and 72 is here", { c: W5, s: 9.5, a: "middle" })}
+          ${T(w, h - 3, "92", { c: W38, s: 9.5, a: "end" })}
+        </svg>`;
+      }
+      function chartLDLsmall(u) {
+        const w = 300,
+          h = 122,
+          padL = 4,
+          padR = 40,
+          padT = 26,
+          padB = 22,
+          lo = 96,
+          hi = 176;
+        const ts = [0, 235 / 291, 1];
+        const X = (t) => padL + t * (w - padL - padR);
+        const Y = (v) => padT + (1 - (v - lo) / (hi - lo)) * (h - padT - padB);
+        const base = h - padB;
+        const g = 5.5; /* the dashed tail starts clear of the measured dot */
+        const dx = X(ts[2]) - X(ts[1]),
+          dy = Y(104) - Y(131),
+          dl = Math.hypot(dx, dy);
+        return `<svg class="ch" viewBox="0 0 ${w} ${h}" style="stroke:none;fill:none">
+          <defs>
+            <linearGradient id="lf-${u}" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stop-color="${A}" stop-opacity=".3"/>
+              <stop offset="1" stop-color="${A}" stop-opacity="0"/>
+            </linearGradient>
+          </defs>
+          <path d="M${n1(X(ts[0]))},${n1(Y(168))} L${n1(X(ts[1]))},${n1(Y(131))} L${n1(X(ts[1]))},${base} L${n1(X(ts[0]))},${base} Z" style="fill:url(#lf-${u})"/>
+          <line x1="${padL}" y1="${n1(Y(100))}" x2="${n1(X(1))}" y2="${n1(Y(100))}" style="stroke:rgba(255,255,255,.3);stroke-width:1;stroke-dasharray:4 4"/>
+          ${T(padL, Y(100) - 5, "target, under 100", { c: W38, s: 9.5 })}
+          <path d="M${n1(X(ts[0]))},${n1(Y(168))} L${n1(X(ts[1]))},${n1(Y(131))}" style="fill:none;stroke:${A};stroke-width:2.4;stroke-linecap:round"/>
+          <path d="M${n1(X(ts[1]) + (dx / dl) * g)},${n1(Y(131) + (dy / dl) * g)} L${n1(X(ts[2]))},${n1(Y(104))}" style="fill:none;stroke:${A};stroke-width:2;stroke-dasharray:5 5;opacity:.72"/>
+          <circle cx="${n1(X(ts[0]))}" cy="${n1(Y(168))}" r="3.4" style="fill:${W7}"/>
+          <circle cx="${n1(X(ts[1]))}" cy="${n1(Y(131))}" r="5" style="fill:${AMBER}"/>
+          <circle cx="${n1(X(ts[2]))}" cy="${n1(Y(104))}" r="4" style="fill:none;stroke:${A};stroke-width:2"/>
+          ${T(X(ts[0]), Y(168) - 8, "168", { c: W7, s: 12, w: 600 })}
+          ${T(X(ts[1]) - 11, Y(131) - 9, "131", { c: AMBER, s: 14, w: 700, a: "end" })}
+          ${T(X(ts[2]) + 8, Y(104) + 4, "104", { c: A, s: 12, w: 600 })}
+          ${T(padL, h - 4, "9 Dec 2025", { c: W38, s: 9.5 })}
+          ${T(X(ts[1]), h - 4, "1 Aug 2026", { c: W5, s: 9.5, a: "middle" })}
+        </svg>`;
+      }
+      function chartLDLbig(u) {
+        const w = 316,
+          h = 214,
+          padL = 12,
+          padR = 40,
+          padT = 30,
+          padB = 26;
+        const span = 327; // 9 Dec 2025 to the 1 Nov 2026 draw
+        const t1 = 0.025,
+          t2 = 235 / span,
+          t3 = 291 / span;
+        const lo = 96,
+          hi = 180;
+        const X = (t) => padL + t * (w - padL - padR);
+        const Y = (v) => padT + (1 - (v - lo) / (hi - lo)) * (h - padT - padB);
+        const base = h - padB;
+        /* months ticked across the eleven months of the run */
+        const months = [
+          "D",
+          "J",
+          "F",
+          "M",
+          "A",
+          "M",
+          "J",
+          "J",
+          "A",
+          "S",
+          "O",
+          "N",
+        ];
+        const ticks = months
+          .map((m, i) => {
+            const t = (i * 30.5) / span;
+            if (t > 1) return "";
+            return `<line x1="${n1(X(t))}" y1="${base}" x2="${n1(X(t))}" y2="${base + (i % 3 === 0 ? 5 : 3)}" style="stroke:rgba(255,255,255,.22);stroke-width:1"/>`;
+          })
+          .join("");
+        /* the marks are labelled with their values, so a numeric y axis says
+           the same thing twice. One rule survives: the target at 100. */
+        const grid =
+          `<line x1="${padL}" y1="${n1(Y(100))}" x2="${n1(X(1))}" y2="${n1(Y(100))}" style="stroke:rgba(255,255,255,.3);stroke-width:1;stroke-dasharray:4 4"/>`;
+        /* the spread opens to plus or minus 9 over the eight weeks */
+        const N = 16;
+        let up = [],
+          dn = [];
+        for (let i = 0; i <= N; i++) {
+          const f = i / N,
+            t = t2 + (t3 - t2) * f,
+            v = 131 - 27 * f,
+            s = 9 * f;
+          up.push(`${n1(X(t))},${n1(Y(v + s))}`);
+          dn.unshift(`${n1(X(t))},${n1(Y(v - s))}`);
+        }
+        return `<svg class="ch" viewBox="0 0 ${w} ${h}" style="stroke:none;fill:none">
+          <defs>
+            <linearGradient id="bf-${u}" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stop-color="${A}" stop-opacity=".3"/>
+              <stop offset="1" stop-color="${A}" stop-opacity="0"/>
+            </linearGradient>
+            <linearGradient id="fg-${u}" x1="0" x2="1">
+              <stop offset=".72" stop-color="#fff"/>
+              <stop offset="1" stop-color="#fff" stop-opacity="0"/>
+            </linearGradient>
+            <mask id="fm-${u}"><rect x="0" y="0" width="${w}" height="${h}" fill="url(#fg-${u})"/></mask>
+          </defs>
+          <rect x="${padL}" y="${n1(Y(100))}" width="${n1(X(1) - padL)}" height="${n1(base - Y(100))}" style="fill:#fff;opacity:.05"/>
+          ${T(padL + 4, Y(100) - 6, "target range, under 100", { c: "rgba(255,255,255,.45)", s: 9.5 })}
+          ${grid}
+          ${ticks}
+          <line x1="${padL}" y1="${base + 0.5}" x2="${n1(X(1))}" y2="${base + 0.5}" style="stroke:rgba(255,255,255,.22);stroke-width:1"/>
+          <path d="M${n1(X(t1))},${n1(Y(168))} L${n1(X(t2))},${n1(Y(131))} L${n1(X(t2))},${base} L${n1(X(t1))},${base} Z" style="fill:url(#bf-${u});mask:url(#fm-${u})"/>
+          <polygon points="${up.join(" ")} ${dn.join(" ")}" style="fill:${A};opacity:.16"/>
+          <path d="M${n1(X(t1))},${n1(Y(168))} L${n1(X(t2))},${n1(Y(131))}" style="fill:none;stroke:${A};stroke-width:2.4;stroke-linecap:round"/>
+          <path d="M${n1(X(t2))},${n1(Y(131))} L${n1(X(t3))},${n1(Y(104))}" style="fill:none;stroke:${A};stroke-width:2;stroke-dasharray:5 5;stroke-linecap:round;opacity:.75"/>
+          <circle cx="${n1(X(t1))}" cy="${n1(Y(168))}" r="3.6" style="fill:${W7}"/>
+          <circle cx="${n1(X(t2))}" cy="${n1(Y(131))}" r="5.4" style="fill:${AMBER}"/>
+          <circle cx="${n1(X(t3))}" cy="${n1(Y(104))}" r="4.2" style="fill:none;stroke:${A};stroke-width:2"/>
+          ${T(X(t1) + 8, Y(168) - 9, "168", { c: W7, s: 12, w: 600 })}
+          ${T(X(t2) - 15, Y(131) + 6, "131", { c: AMBER, s: 15, w: 700, a: "end" })}
+          ${T(X(t3) + 9, Y(104) + 4, "104", { c: A, s: 12, w: 600 })}
+          ${T(padL + 4, h - 4, "9 Dec 2025", { c: W38, s: 9.5 })}
+          ${T(X(t2), h - 4, "1 Aug 2026", { c: W5, s: 9.5, a: "middle" })}
+          ${T(X(1), h - 4, "1 Nov", { c: W38, s: 9.5, a: "middle" })}
+        </svg>`;
+      }
+
+      /* 3. sleep, seven nights against the target */
+      const SLEEP = [
+        ["W", 6.8],
+        ["T", 7.2],
+        ["F", 6.4],
+        ["S", 7.9],
+        ["S", 7.1],
+        ["M", 6.9],
+        ["T", 7.5],
+      ];
+      function chartSleep(u) {
+        const w = 300,
+          h = 90,
+          top = 24,
+          bot = 66,
+          lo = 6.1,
+          hi = 8.2;
+        const Y = (v) => top + (1 - (v - lo) / (hi - lo)) * (bot - top);
+        const X = (i) => 38 + (i * (w - 52)) / 6;
+        const ty = Y(7.5);
+        const marks = SLEEP.map(([lbl, v], i) => {
+          const x = X(i),
+            y = Y(v),
+            last = i === 6,
+            met = v >= 7.5;
+          return `<line x1="${n1(x)}" y1="${n1(ty)}" x2="${n1(x)}" y2="${n1(y)}" style="stroke:${met ? A : "rgba(255,255,255,.26)"};stroke-width:1.5"/>
+            <circle cx="${n1(x)}" cy="${n1(y)}" r="${last ? 5.5 : 4}" style="fill:${last ? "#fff" : met ? A : "rgba(255,255,255,.4)"}"/>
+            ${T(x, h - 4, lbl, { c: last ? W7 : W38, s: 10, a: "middle" })}`;
+        }).join("");
+        return `<svg class="ch" viewBox="0 0 ${w} ${h}" style="stroke:none;fill:none">
+          ${T(w, 9, "target 7h 30", { c: W38, s: 10, a: "end" })}
+          <line x1="32" y1="${n1(Y(8))}" x2="${w}" y2="${n1(Y(8))}" style="stroke:rgba(255,255,255,.07);stroke-width:1"/>
+          <line x1="32" y1="${n1(Y(6.5))}" x2="${w}" y2="${n1(Y(6.5))}" style="stroke:rgba(255,255,255,.07);stroke-width:1"/>
+          ${T(26, Y(8) + 3.5, "8h", { c: W38, s: 10, a: "end" })}
+          ${T(26, Y(6.5) + 3.5, "6h30", { c: W38, s: 10, a: "end" })}
+          <line x1="32" y1="${n1(ty)}" x2="${w}" y2="${n1(ty)}" style="stroke:rgba(255,255,255,.4);stroke-width:1;stroke-dasharray:4 4"/>
+          ${marks}
+        </svg>`;
+      }
+
+      /* 4. today's fuel against target */
+      const FUEL = [
+        ["Calories", 1497, 1900, "kcal"],
+        ["Protein", 93, 120, "g"],
+      ];
+      const sp = (n) => n.toLocaleString("en-GB").replace(",", " ");
+      function chartFuel(u) {
+        const w = 300,
+          rh = 30,
+          h = FUEL.length * rh + 4;
+        const x0 = 60,
+          x1 = w - 122;
+        return `<svg class="ch" viewBox="0 0 ${w} ${h}" style="stroke:none;fill:none">
+          ${FUEL.map(([n, v, t, unit], i) => {
+            const y = i * rh + 14,
+              f = x0 + (v / t) * (x1 - x0);
+            return `${T(0, y + 4, n, { c: W7, s: 11.5 })}
+              <rect x="${x0}" y="${y - 3.5}" width="${x1 - x0}" height="7" rx="3.5" style="fill:rgba(255,255,255,.11)"/>
+              <rect x="${x0}" y="${y - 3.5}" width="${n1(f - x0)}" height="7" rx="3.5" style="fill:${A}"/>
+              <line x1="${x1}" y1="${y - 7}" x2="${x1}" y2="${y + 7}" style="stroke:rgba(255,255,255,.45);stroke-width:1.5"/>
+              ${T(w, y + 4, `${sp(v)} <tspan style="fill:${W38}">of ${sp(t)} ${unit}</tspan>`, { c: "#fff", s: 11.5, w: 600, a: "end" })}`;
+          }).join("")}
+        </svg>`;
+      }
+
+      /* 5. the seven markers on their reference bands */
+      function chartMarkers(u) {
+        const w = 300,
+          rh = 27,
+          h = BLOOD.rows.length * rh + 12;
+        const bx = 96,
+          bw = 126;
+        const rank = { rose: 0, amber: 1, green: 2 };
+        const order = BLOOD.rows
+          .slice()
+          .sort((a, b) => rank[a.st] - rank[b.st]);
+        return `<svg class="ch" viewBox="0 0 ${w} ${h}" style="stroke:none;fill:none">
+          ${T(w, 6, "reference range", { c: W38, s: 10, a: "end" })}
+          ${order
+            .map((r, i) => {
+              const y = i * rh + 22,
+                c = STC[r.st],
+                dx = bx + (r.x / 100) * bw;
+              return `${T(0, y + 4, r.n, { c: W7, s: 11.5 })}
+              <rect x="${bx}" y="${y - 3}" width="${bw}" height="6" rx="3" style="fill:rgba(255,255,255,.09)"/>
+              <rect x="${bx + bw * 0.2}" y="${y - 3}" width="${bw * 0.55}" height="6" rx="3" style="fill:rgba(255,255,255,.2)"/>
+              <circle cx="${n1(dx)}" cy="${y}" r="4.5" style="fill:${c};stroke:rgba(8,9,14,.85);stroke-width:1.5"/>
+              ${T(w, y + 4, r.s.split(" · ")[0], { c: c, s: 11.5, w: 600, a: "end" })}`;
+            })
+            .join("")}
+        </svg>`;
+      }
+
+      /* 6. the four variants, fixed */
+      function chartGenes(u) {
+        const w = 300,
+          rh = 24,
+          h = GENES.rows.length * rh + 2;
+        const bx = 132,
+          bw = w - bx - 26;
+        return `<svg class="ch" viewBox="0 0 ${w} ${h}" style="stroke:none;fill:none">
+          ${GENES.rows
+            .map((r, i) => {
+              const y = i * rh + 13;
+              return `${T(0, y + 4, r.n, { c: W7, s: 11 })}
+              <rect x="${bx}" y="${y - 3}" width="${bw}" height="6" rx="3" style="fill:rgba(255,255,255,.09)"/>
+              <rect x="${bx}" y="${y - 3}" width="${n1((r.p / 100) * bw)}" height="6" rx="3" style="fill:${A};opacity:.85"/>
+              ${T(w, y + 4, r.p, { c: W7, s: 11, w: 600, a: "end" })}`;
+            })
+            .join("")}
+        </svg>`;
+      }
+
+      /* 7. the day's calories, by meal */
+      function chartDay(u) {
+        const w = 300,
+          h = 8,
+          parts = [412, 462, 623];
+        let x = 0;
+        return `<svg class="ch" viewBox="0 0 ${w} ${h}" style="stroke:none;fill:none">
+          <rect x="0" y="1" width="${w}" height="6" rx="3" style="fill:rgba(255,255,255,.09)"/>
+          ${parts
+            .map((v, i) => {
+              const bw = (v / 1900) * w,
+                r = `<rect x="${n1(x)}" y="1" width="${n1(bw - 2)}" height="6" rx="3" style="fill:${A};opacity:${0.45 + i * 0.22}"/>`;
+              x += bw;
+              return r;
+            })
+            .join("")}
+        </svg>`;
+      }
+
+      /* ---------- the levers ---------- */
+      const LEVERS = [
+        { n: "Oats every morning", s: "3 g beta-glucan · 6 of 7 days", d: 9 },
+        { n: "Walk after lunch", s: "15 min · 5 days a week", d: 7 },
+        { n: "Fish twice a week", s: "2 dinners a week, not pork belly", d: 11 },
+      ];
+
+      /* ---------- render ---------- */
+      const mealRow = (r) => `
+        <div class="row">
+          <span class="ic">${r.src ? `<img src="${r.src}" alt="">` : I[r.g]}</span>
+          <span class="t"><b>${r.n}</b><small>${r.s}</small></span>
+          <span class="v">${r.v}${r.u ? `<small>${r.u}</small>` : ""}</span>
+        </div>`;
+
+      const home = (u) => `
+        <div class="field"></div>
+        <div class="veilbg"></div>
+        <div class="status">
+          <span>9:41</span><i></i>
+          <span class="sig">${I.signal}${I.wifi}${I.batt}</span>
+        </div>
+        <div class="screen">
+          <div class="top">
+            <span class="avatar">R</span>
+            <span class="lbl">Tuesday 9 September</span>
+            <span class="avatar">${I.bell}</span>
+          </div>
+          <p class="greet">Down 37 on LDL since December</p>
+          <p class="decomp"><b>${life}</b> lifestyle<i></i><b>${blood}</b> blood<i></i><b>${genes}</b> genes</p>
+
+          <div class="pane hero d1">
+            <div class="lens"></div>
+            <div class="line"><span class="big">${score}</span><span class="verdict">${verdict}</span></div>
+            <p class="under">PhenoAge 36.2 at 39 · up 2 since Monday</p>
+            ${chartScore(u)}
+            ${chartHue(u)}
+          </div>
+
+          <div class="stack">
+            <button class="pane" data-do="open">
+              <div class="lens"></div>
+              <div class="phead"><span class="ttl">LDL cholesterol</span><span class="lbl flag">borderline</span></div>
+              <span class="num">131<small>mg/dL</small></span>
+              <p class="under">1 August draw, down from 168 in December</p>
+              ${chartLDLsmall(u)}
+              <p class="note">Keep this eight weeks and <b>LDL lands near 104</b>, from 131.</p>
+            </button>
+
+            <div class="pane">
+              <div class="lens"></div>
+              <div class="phead"><span class="ttl">Sleep</span><span class="lbl">seven nights</span></div>
+              <span class="num">7h 30</span>
+              <p class="under">On target last night</p>
+              ${chartSleep(u)}
+              <div style="height:6px"></div>
+              ${chartFuel(u)}
+            </div>
+
+            <div class="pane">
+              <div class="lens"></div>
+              <div class="phead"><span class="ttl">The 1 August draw</span><span class="lbl off">one off, two borderline</span></div>
+              <span class="num">29<small>ng/mL</small></span>
+              <p class="under">Vitamin D, the only one outside its range</p>
+              ${chartMarkers(u)}
+            </div>
+
+            <div class="pane">
+              <div class="lens"></div>
+              <div class="phead"><span class="ttl">APOE</span><span class="lbl">read once</span></div>
+              <span class="num">ε3/ε4</span>
+              <p class="under">LDL responds more to saturated fat</p>
+              ${chartGenes(u)}
+            </div>
+
+            <div class="pane">
+              <div class="lens"></div>
+              <div class="phead"><span class="ttl">Today, 1 497 kcal</span><span class="lbl">five entries</span></div>
+              ${chartDay(u)}
+              <div style="height:10px"></div>
+              ${LOG.map(mealRow).join("")}
+            </div>
+          </div>
+        </div>
+
+        <div class="hem"></div>
+        <div class="tabs">
+          <button class="on">${I.home}Today</button>
+          <button>${I.body}Body</button>
+          <button>${I.drop}Blood</button>
+          <button class="plus">${I.plus}</button>
+        </div>
+
+        <div class="scrim" data-do="close"></div>
+        <div class="sheet">
+          <div class="lens"></div>
+          <div class="grab"></div>
+          <h2>LDL cholesterol</h2>
+          <p class="under">Two draws, the eight-week tail, and the next needle</p>
+          ${chartLDLbig(u)}
+          <p class="slab">What moves the tail</p>
+          ${LEVERS.map(
+            (l) => `
+            <div class="lever">
+              <span class="mk">${I.tick}</span>
+              <span class="t"><b>${l.n}</b><small>${l.s}</small></span>
+              <span class="d">−${l.d}<small>mg/dL</small></span>
+            </div>`,
+          ).join("")}
+        </div>
+
+        <div class="homebar"></div>`;
+
+      const phones = [...document.querySelectorAll(".phone")];
+      phones.forEach((p, i) => {
+        p.innerHTML = home(String.fromCharCode(97 + i));
+        p.addEventListener("click", (e) => {
+          const b = e.target.closest("[data-do]");
+          if (b) p.classList.toggle("open", b.dataset.do === "open");
+        });
+        p.querySelector(".screen").addEventListener("scroll", () => refract(p));
+      });
+
+      /* solve each pane's copy of the light: the pane centre samples the same
+         point as the field behind it, everything else is magnified by k and
+         pushed by `off`, so the edges bend and the middle stays honest */
+      /* the one source: the core of the first lobe of --light, 13% across and
+         1% down the field. Every pane's rim angle and brightness is solved
+         from its own distance and bearing to this single point, so the
+         lighting is one story for the whole screen, not per card. */
+      const SRC = [0.13, 0.01];
+      function refract(p) {
+        const f = p.querySelector(".field").getBoundingClientRect();
+        const k = 1.12,
+          off = 7;
+        const sx = f.left + f.width * SRC[0],
+          sy = f.top + f.height * SRC[1],
+          reach = Math.hypot(f.width, f.height) * 0.86;
+        p.querySelectorAll(".pane, .sheet, .tabs").forEach((el) => {
+          const b = el.getBoundingClientRect();
+          if (!b.width) return;
+          const dx = b.left + b.width / 2 - sx,
+            dy = b.top + b.height / 2 - sy;
+          /* CSS angles run clockwise from up, so up is -y */
+          const deg = (Math.atan2(dx, -dy) * 180) / Math.PI;
+          /* a gentle falloff over a short distance: the two top cards must
+             differ, not cliff. The rim and the shadow carry the direction. */
+          const lit = Math.min(1, Math.max(0.42, 1 - Math.hypot(dx, dy) / (reach * 1.5)));
+          el.style.setProperty("--a", `${n1((deg + 360) % 360)}deg`);
+          el.style.setProperty("--lit", n1(lit * 100) / 100);
+        });
+        p.querySelectorAll(".lens").forEach((el) => {
+          const b = el.getBoundingClientRect();
+          if (!b.width) return;
+          el.style.backgroundSize = `${n1(f.width * k)}px ${n1(f.height * k)}px`;
+          el.style.backgroundPosition =
+            `${n1(-k * (b.left - f.left) - (b.width * (k - 1)) / 2 - off)}px ` +
+            `${n1(-k * (b.top - f.top) - (b.height * (k - 1)) / 2 - off)}px`;
+        });
+      }
+      const refractAll = () => phones.forEach(refract);
+      refractAll();
+      addEventListener("resize", refractAll);
+      addEventListener("load", refractAll);
+      document.fonts && document.fonts.ready.then(refractAll);
+    </script>
+  </body>
+</html>

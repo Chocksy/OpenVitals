@@ -1,0 +1,1901 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Garden · iOS variation 39 · OpenVitals</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,400;1,9..144,500&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --page: #efe8da;
+        --bg: #fbf7ee;
+        --card: #fffdf7;
+        --ink: #2b2622;
+        --ink-2: #6b6158;
+        --ink-3: #a39888;
+        --line: #e6ddcc;
+        --sage: #8fa58a;
+        --sage-deep: #4f6b52;
+        --sage-soft: #e6ecdf;
+        --terra: #c2643f;
+        --terra-deep: #9c4a2b;
+        --terra-soft: #f5e1d5;
+        --ochre-soft: #f4ead0;
+        --soil: #85654d;
+        --soil-deep: #6a4f3c;
+        --root: #f3e8d4;
+        --water: #6f9ea3;
+        --green: #4f9a5b;
+        --amber: #d4922a;
+        --rose: #cf5169;
+        --r: 21px;
+        --s3: 3px;
+        --s5: 5px;
+        --s8: 8px;
+        --s13: 13px;
+        --s21: 21px;
+        --s34: 34px;
+        --s55: 55px;
+        --spring: cubic-bezier(0.34, 1.45, 0.64, 1);
+        --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+        --num: "Fraunces", Georgia, serif;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--page);
+        color: var(--ink);
+        font:
+          15px/1.4 -apple-system,
+          BlinkMacSystemFont,
+          "SF Pro Text",
+          system-ui,
+          sans-serif;
+        font-feature-settings: "tnum";
+      }
+      button,
+      input {
+        font: inherit;
+        color: inherit;
+        background: none;
+        border: 0;
+        padding: 0;
+        cursor: pointer;
+        -webkit-tap-highlight-color: transparent;
+        text-align: left;
+      }
+      h1,
+      h2,
+      h3,
+      p {
+        margin: 0;
+      }
+      svg {
+        width: 20px;
+        height: 20px;
+        stroke: currentColor;
+        fill: none;
+        stroke-width: 1.7;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+      .num {
+        font-family: var(--num);
+        font-variant-numeric: lining-nums tabular-nums;
+      }
+
+      /* ---- page ---- */
+      .doc {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: var(--s34) var(--s21) var(--s55);
+      }
+      .doc > header {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: var(--s34);
+        margin-bottom: var(--s21);
+        max-width: 835px;
+        margin-inline: auto;
+      }
+      .eyebrow {
+        color: var(--ink-3);
+        font-size: 13px;
+        margin-bottom: var(--s5);
+      }
+      .doc h1 {
+        font-family: var(--num);
+        font-size: 34px;
+        font-weight: 600;
+        letter-spacing: -0.02em;
+      }
+      .lede {
+        color: var(--ink-2);
+        margin-top: var(--s8);
+        font-size: 14px;
+      }
+      .dir {
+        font-size: 12.5px;
+        color: var(--ink-2);
+        border-left: 2px solid var(--terra);
+        padding-left: var(--s13);
+        display: grid;
+        grid-template-columns: 64px 1fr;
+        gap: var(--s3) var(--s8);
+        align-content: start;
+      }
+      .dir b {
+        color: var(--ink);
+        font-weight: 600;
+      }
+      .phones {
+        display: flex;
+        gap: var(--s55);
+        justify-content: center;
+        flex-wrap: wrap;
+      }
+      .cap {
+        display: flex;
+        justify-content: space-between;
+        color: var(--ink-3);
+        font-size: 13px;
+        margin-bottom: var(--s8);
+        width: 390px;
+      }
+
+      /* ---- phone ---- */
+      .phone {
+        width: 390px;
+        height: 844px;
+        border-radius: 55px;
+        border: 8px solid #2a2520;
+        background: var(--bg);
+        box-shadow: 0 34px 55px -34px rgba(60, 40, 20, 0.45);
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+      }
+      .status {
+        height: 55px;
+        flex: none;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        padding: 0 var(--s34) var(--s8);
+        font-size: 14px;
+        font-weight: 600;
+        position: relative;
+      }
+      .status i {
+        position: absolute;
+        left: 50%;
+        top: 13px;
+        width: 120px;
+        height: 34px;
+        border-radius: 21px;
+        background: #0b0d10;
+        transform: translateX(-50%);
+      }
+      .screen {
+        flex: 1;
+        overflow-y: auto;
+        padding: var(--s8) var(--s21) 130px;
+        scrollbar-width: none;
+        position: relative;
+      }
+      .screen::-webkit-scrollbar {
+        display: none;
+      }
+
+      /* ---- header ---- */
+      .top {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+      }
+      .top small {
+        display: block;
+        font-size: 12px;
+        color: var(--ink-3);
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+      }
+      .top h2 {
+        font-family: var(--num);
+        font-size: 26px;
+        font-weight: 400;
+        letter-spacing: -0.01em;
+        line-height: 1.15;
+      }
+      .top h2 em {
+        color: var(--sage-deep);
+      }
+      .avatar {
+        width: 42px;
+        height: 42px;
+        border-radius: 50%;
+        background: var(--sage-soft);
+        display: grid;
+        place-items: center;
+        font-size: 22px;
+      }
+      .sub {
+        margin: var(--s5) 0 var(--s13);
+        font-size: 13px;
+        color: var(--ink-2);
+      }
+
+      /* ---- the bed (plant) ---- */
+      .bed {
+        position: relative;
+        width: 332px;
+        height: 330px;
+        border-radius: var(--r);
+        overflow: hidden;
+        background: radial-gradient(
+          70% 60% at 45% 30%,
+          #f1f4e8 0%,
+          #f6f1e4 60%,
+          #f3ecdc 100%
+        );
+      }
+      .bed > svg {
+        position: absolute;
+        inset: 0;
+        width: 332px;
+        height: 330px;
+        stroke: none;
+        fill: none;
+      }
+      .lf,
+      .lft,
+      .bloom {
+        transition: transform 900ms var(--spring);
+      }
+      .node {
+        cursor: pointer;
+      }
+      .node .dot {
+        transition: r 300ms var(--ease);
+      }
+      .node.sel .dot {
+        r: 9;
+      }
+      .node.sel .halo {
+        animation: halo 1.6s var(--ease) infinite;
+      }
+      @keyframes halo {
+        0% {
+          r: 7;
+          opacity: 0.6;
+        }
+        100% {
+          r: 21;
+          opacity: 0;
+        }
+      }
+      .tag {
+        position: absolute;
+        display: inline-flex;
+        align-items: center;
+        gap: var(--s5);
+        height: 21px;
+        padding: 0 var(--s8);
+        border-radius: 999px;
+        background: rgba(255, 253, 247, 0.92);
+        box-shadow: 0 0 0 1px var(--line);
+        font-size: 11px;
+        color: var(--ink-2);
+        white-space: nowrap;
+        cursor: pointer;
+      }
+      .tag i {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: var(--c);
+      }
+      .tag b {
+        color: var(--ink);
+        font-family: var(--num);
+        font-weight: 600;
+        font-size: 13px;
+      }
+      .tag em {
+        font-style: normal;
+        color: var(--sage-deep);
+        font-weight: 600;
+      }
+      .rootl {
+        position: absolute;
+        font-size: 10.5px;
+        color: var(--root);
+        letter-spacing: 0.02em;
+        white-space: nowrap;
+      }
+      .rootl b {
+        font-weight: 600;
+      }
+      .potlabel {
+        position: absolute;
+        left: 252px;
+        top: 58px;
+        width: 70px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        transform-origin: 50% 100%;
+      }
+      .potlabel .head {
+        width: 70px;
+        height: 76px;
+        border-radius: 13px 13px 8px 8px;
+        background: linear-gradient(170deg, #cd7049, var(--terra) 60%, #b55a37);
+        color: #fff6ea;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 8px 13px -8px rgba(120, 50, 20, 0.6);
+      }
+      .potlabel .head small {
+        font-size: 8.5px;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        opacity: 0.85;
+      }
+      .potlabel .head b {
+        font-family: var(--num);
+        font-size: 40px;
+        font-weight: 600;
+        line-height: 1;
+        letter-spacing: -0.02em;
+      }
+      .potlabel .head span {
+        font-size: 9.5px;
+        opacity: 0.85;
+      }
+      .potlabel .stake {
+        width: 13px;
+        height: 90px;
+        background: linear-gradient(90deg, #b55a37, var(--terra));
+        clip-path: polygon(0 0, 100% 0, 100% 75%, 50% 100%, 0 75%);
+      }
+      .potlabel.bump {
+        animation: bump 600ms var(--spring);
+      }
+      @keyframes bump {
+        40% {
+          transform: rotate(-4deg) scale(1.06);
+        }
+      }
+
+      /* ---- key under the bed ---- */
+      .key {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: var(--s8);
+        margin-top: var(--s8);
+      }
+      .key div {
+        padding: var(--s8);
+        border-radius: 13px;
+        background: var(--card);
+        box-shadow: 0 0 0 1px var(--line);
+        font-size: 11px;
+        color: var(--ink-3);
+        line-height: 1.25;
+      }
+      .key div b {
+        display: block;
+        color: var(--ink);
+        font-family: var(--num);
+        font-size: 19px;
+        font-weight: 600;
+        margin-top: var(--s3);
+      }
+      .key div b em {
+        font-family: -apple-system, system-ui, sans-serif;
+        font-style: normal;
+        font-size: 10.5px;
+        color: var(--ink-3);
+        font-weight: 400;
+        margin-left: var(--s3);
+      }
+
+      /* ---- sections ---- */
+      .sec {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        margin: var(--s21) 0 var(--s8);
+      }
+      .sec h3 {
+        font-family: var(--num);
+        font-size: 19px;
+        font-weight: 400;
+      }
+      .sec span {
+        font-size: 12px;
+        color: var(--ink-3);
+      }
+
+      /* ---- moves ---- */
+      .moves {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--s8);
+      }
+      .mv {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--s8);
+        height: 34px;
+        padding: 0 var(--s13) 0 var(--s5);
+        border-radius: 999px;
+        background: var(--card);
+        box-shadow: 0 0 0 1px var(--line);
+        font-size: 13px;
+        transition: background 300ms var(--ease);
+      }
+      .mv .bx {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        box-shadow: inset 0 0 0 1.5px var(--ink-3);
+        display: grid;
+        place-items: center;
+        transition:
+          background 300ms var(--ease),
+          box-shadow 300ms var(--ease);
+      }
+      .mv .bx svg {
+        width: 14px;
+        height: 14px;
+        stroke: #fff;
+        stroke-width: 2.4;
+      }
+      .mv .bx path {
+        stroke-dasharray: 20 24;
+        stroke-dashoffset: 21;
+        opacity: 0;
+        transition:
+          stroke-dashoffset 420ms var(--ease) 120ms,
+          opacity 0ms linear 540ms;
+      }
+      .mv.on {
+        background: var(--sage-soft);
+        box-shadow: none;
+      }
+      .mv.on .bx {
+        background: var(--sage-deep);
+        box-shadow: none;
+      }
+      .mv.on .bx path {
+        stroke-dashoffset: 0;
+        opacity: 1;
+        transition:
+          stroke-dashoffset 420ms var(--ease) 120ms,
+          opacity 0ms linear 0ms;
+      }
+      .mv.next {
+        box-shadow: 0 0 0 1.5px var(--terra);
+      }
+      .mv.next::after {
+        content: "next";
+        font-size: 10px;
+        font-weight: 600;
+        color: var(--terra);
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+      }
+
+      /* ---- meals: seed packets ---- */
+      .meter {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        font-size: 12px;
+        color: var(--ink-3);
+      }
+      .meter b {
+        font-family: var(--num);
+        font-size: 21px;
+        font-weight: 600;
+        color: var(--ink);
+      }
+      .meter b small {
+        font-family: -apple-system, system-ui, sans-serif;
+        font-size: 12px;
+        font-weight: 400;
+        color: var(--ink-3);
+      }
+      .track {
+        height: 8px;
+        border-radius: 4px;
+        background: var(--line);
+        margin: var(--s5) 0 var(--s13);
+        overflow: hidden;
+      }
+      .track i {
+        display: block;
+        height: 100%;
+        width: var(--w);
+        border-radius: 4px;
+        background: var(--sage-deep);
+      }
+      .packets {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: var(--s8);
+      }
+      .pk {
+        position: relative;
+        background: var(--tint);
+        border-radius: 3px 3px 13px 13px;
+        padding: var(--s13) var(--s8) var(--s8);
+        box-shadow: 0 5px 8px -5px rgba(80, 50, 20, 0.25);
+      }
+      .pk::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 0;
+        height: 5px;
+        background:
+          linear-gradient(135deg, var(--bg) 50%, transparent 50%) 0 0 / 8px 5px,
+          linear-gradient(225deg, var(--bg) 50%, transparent 50%) 0 0 / 8px 5px;
+      }
+      .pk small {
+        display: block;
+        font-size: 9px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--ink-2);
+        text-align: center;
+      }
+      .pk .win {
+        margin: var(--s5) auto 0;
+        height: 68px;
+        border-radius: 34px 34px 5px 5px;
+        overflow: hidden;
+        box-shadow: 0 0 0 3px var(--card);
+      }
+      .pk .win img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+      }
+      .pk p {
+        font-family: var(--num);
+        font-style: italic;
+        font-size: 13px;
+        line-height: 1.2;
+        margin-top: var(--s8);
+        min-height: 32px;
+      }
+      .pk b {
+        display: block;
+        font-family: var(--num);
+        font-size: 21px;
+        font-weight: 600;
+        line-height: 1;
+        margin-top: var(--s5);
+      }
+      .pk b em {
+        font-family: -apple-system, system-ui, sans-serif;
+        font-style: normal;
+        font-weight: 400;
+        font-size: 11px;
+        color: var(--ink-2);
+        margin-left: var(--s3);
+      }
+
+      /* ---- watering can ---- */
+      .can {
+        position: relative;
+        background: var(--card);
+        border-radius: var(--r);
+        box-shadow: 0 0 0 1px var(--line);
+        padding: var(--s13) var(--s13) var(--s13);
+      }
+      .can h4 {
+        margin: 0;
+        font-family: var(--num);
+        font-weight: 400;
+        font-size: 19px;
+        line-height: 1.2;
+        max-width: 190px;
+      }
+      .can h4 b {
+        font-weight: 600;
+        color: var(--sage-deep);
+      }
+      .can > img {
+        position: absolute;
+        right: var(--s8);
+        top: var(--s3);
+        width: 96px;
+      }
+      .chart {
+        display: block;
+        width: 100%;
+        height: 144px;
+        margin-top: var(--s8);
+        stroke: none;
+        fill: none;
+        overflow: visible;
+      }
+      .drops {
+        animation: flow 1.4s linear infinite;
+      }
+      @keyframes flow {
+        to {
+          stroke-dashoffset: -10;
+        }
+      }
+      .say {
+        margin-top: var(--s8);
+        font-size: 13px;
+        line-height: 1.45;
+        color: var(--ink-2);
+      }
+      .say b {
+        color: var(--ink);
+        font-weight: 600;
+      }
+      .tip {
+        position: absolute;
+        pointer-events: none;
+        padding: var(--s3) var(--s8);
+        border-radius: 8px;
+        background: var(--ink);
+        color: #fff;
+        font-size: 11px;
+        white-space: nowrap;
+        transform: translate(-50%, -100%);
+        opacity: 0;
+        transition: opacity 150ms;
+      }
+
+      /* ---- tab bar ---- */
+      .tabs {
+        position: absolute;
+        left: var(--s13);
+        right: var(--s13);
+        bottom: var(--s21);
+        display: flex;
+        gap: var(--s8);
+        align-items: center;
+        z-index: 2;
+      }
+      .tabs .bar {
+        flex: 1;
+        height: 62px;
+        border-radius: 999px;
+        background: rgba(255, 252, 244, 0.8);
+        backdrop-filter: blur(21px);
+        -webkit-backdrop-filter: blur(21px);
+        box-shadow:
+          0 0 0 1px rgba(230, 221, 204, 0.8),
+          0 8px 21px -8px rgba(80, 50, 20, 0.3);
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        padding: var(--s5);
+      }
+      .tabs .bar button {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 2px;
+        font-size: 10px;
+        font-weight: 500;
+        color: var(--ink-3);
+        border-radius: 999px;
+      }
+      .tabs .bar button.on {
+        background: var(--sage-soft);
+        color: var(--sage-deep);
+      }
+      .tabs .plus {
+        width: 62px;
+        height: 62px;
+        border-radius: 50%;
+        background: var(--terra);
+        box-shadow: 0 8px 21px -8px rgba(156, 74, 43, 0.7);
+        display: grid;
+        place-items: center;
+        color: #fff6ea;
+      }
+      .tabs .plus svg {
+        width: 26px;
+        height: 26px;
+        stroke-width: 2;
+      }
+      .homebar {
+        position: absolute;
+        left: 50%;
+        bottom: 8px;
+        width: 134px;
+        height: 5px;
+        border-radius: 3px;
+        background: var(--ink);
+        opacity: 0.35;
+        transform: translateX(-50%);
+        z-index: 4;
+      }
+
+      /* ---- veil and sheets ---- */
+      .veil {
+        position: absolute;
+        inset: 0;
+        z-index: 3;
+        background: rgba(239, 232, 218, 0.55);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 320ms var(--ease);
+      }
+      .phone.add-open .veil {
+        opacity: 1;
+        pointer-events: auto;
+        backdrop-filter: blur(13px);
+        -webkit-backdrop-filter: blur(13px);
+      }
+      .phone.node-open .veil {
+        opacity: 1;
+        pointer-events: auto;
+        background: rgba(60, 45, 30, 0.12);
+      }
+      .sheet {
+        position: absolute;
+        z-index: 3;
+        left: var(--s8);
+        right: var(--s8);
+        bottom: var(--s8);
+        background: var(--card);
+        border-radius: 34px 34px 44px 44px;
+        padding: var(--s21);
+        box-shadow: 0 -8px 34px -13px rgba(60, 40, 20, 0.35);
+        transform: translateY(110%);
+        transition: transform 480ms var(--spring);
+      }
+      .phone.add-open .sheet.add,
+      .phone.node-open .sheet.nodecard {
+        transform: none;
+      }
+      .grab {
+        width: 34px;
+        height: 5px;
+        border-radius: 3px;
+        background: var(--line);
+        margin: calc(-1 * var(--s8)) auto var(--s13);
+      }
+      .sheet .x {
+        position: absolute;
+        right: var(--s21);
+        top: var(--s21);
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        background: var(--bg);
+        display: grid;
+        place-items: center;
+        color: var(--ink-2);
+      }
+      .sheet .x svg {
+        width: 16px;
+        height: 16px;
+      }
+      .add .hero {
+        padding-right: var(--s34);
+        display: flex;
+        align-items: center;
+        gap: var(--s13);
+      }
+      .add .hero img {
+        width: 76px;
+        flex: none;
+      }
+      .sheet h2 {
+        font-family: var(--num);
+        font-weight: 400;
+        font-size: 26px;
+        letter-spacing: -0.01em;
+        line-height: 1.1;
+      }
+      .sheet .lead {
+        color: var(--ink-2);
+        font-size: 13px;
+        margin-top: var(--s3);
+      }
+      .modes {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: var(--s8);
+        margin-top: var(--s21);
+      }
+      .mode {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        gap: var(--s5);
+        padding: var(--s13) var(--s5);
+        border-radius: 21px;
+        background: var(--bg);
+        box-shadow: 0 0 0 1px var(--line);
+        font-size: 13px;
+        font-weight: 600;
+      }
+      .mode span {
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        background: var(--sage-soft);
+        color: var(--sage-deep);
+        display: grid;
+        place-items: center;
+      }
+      .mode small {
+        font-weight: 400;
+        font-size: 11px;
+        color: var(--ink-3);
+        line-height: 1.25;
+      }
+      .mode.on {
+        box-shadow: 0 0 0 1.5px var(--sage-deep);
+        background: var(--sage-soft);
+      }
+      .mode.on span {
+        background: var(--sage-deep);
+        color: #fff;
+      }
+      .compose {
+        margin-top: var(--s13);
+        min-height: 55px;
+        border-radius: 21px;
+        background: var(--bg);
+        box-shadow: 0 0 0 1px var(--line);
+        padding: var(--s8) var(--s13);
+        display: flex;
+        align-items: center;
+        gap: var(--s8);
+        font-size: 13px;
+        color: var(--ink-3);
+      }
+      .compose input {
+        flex: 1;
+        outline: none;
+        cursor: text;
+        font-size: 14px;
+        color: var(--ink);
+      }
+      .compose .thumb {
+        width: 40px;
+        height: 40px;
+        border-radius: 8px;
+        overflow: hidden;
+        flex: none;
+      }
+      .compose .thumb img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+      .compose .wave {
+        display: flex;
+        align-items: center;
+        gap: var(--s3);
+        height: 34px;
+      }
+      .compose .wave i {
+        width: 3px;
+        border-radius: 2px;
+        background: var(--sage-deep);
+        animation: wv 700ms ease-in-out infinite alternate;
+      }
+      @keyframes wv {
+        from {
+          transform: scaleY(0.3);
+        }
+      }
+      .compose .said {
+        color: var(--ink);
+        font-family: var(--num);
+        font-style: italic;
+        font-size: 14px;
+      }
+      .send {
+        margin-top: var(--s13);
+        width: 100%;
+        height: 55px;
+        border-radius: 999px;
+        background: var(--terra);
+        color: #fff6ea;
+        font-weight: 600;
+        text-align: center;
+        display: none;
+      }
+      .send.show {
+        display: block;
+        animation: rise 420ms var(--spring);
+      }
+      @keyframes rise {
+        from {
+          transform: translateY(13px);
+          opacity: 0;
+        }
+      }
+
+      /* node card */
+      .nc-kicker {
+        display: flex;
+        align-items: center;
+        gap: var(--s5);
+        font-size: 11px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--ink-3);
+      }
+      .nc-kicker i {
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+        background: var(--c);
+      }
+      .nc-val {
+        display: flex;
+        align-items: baseline;
+        gap: var(--s8);
+        margin-top: var(--s8);
+      }
+      .nc-val b {
+        font-family: var(--num);
+        font-size: 55px;
+        font-weight: 600;
+        line-height: 0.9;
+        letter-spacing: -0.02em;
+      }
+      .nc-val small {
+        font-size: 13px;
+        color: var(--ink-3);
+      }
+      .nc-val .pill {
+        margin-left: auto;
+        padding: var(--s3) var(--s8);
+        border-radius: 999px;
+        background: var(--cs);
+        color: var(--c);
+        font-size: 12px;
+        font-weight: 600;
+        align-self: center;
+        white-space: nowrap;
+      }
+      .band {
+        position: relative;
+        height: 8px;
+        border-radius: 4px;
+        background: var(--line);
+        margin: var(--s21) 0 var(--s5);
+        overflow: hidden;
+      }
+      .band .ok {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 20%;
+        width: 55%;
+        background: #cfe3cf;
+      }
+      .band .pin {
+        position: absolute;
+        top: 0;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--c);
+        left: calc(var(--x) - 4px);
+      }
+      .band .ghost {
+        position: absolute;
+        top: 1.5px;
+        width: 5px;
+        height: 5px;
+        border-radius: 50%;
+        background: var(--sage-deep);
+        left: calc(var(--x) - 2.5px);
+      }
+      .bandl {
+        display: flex;
+        justify-content: space-between;
+        font-size: 11px;
+        color: var(--ink-3);
+      }
+      .aim {
+        font-size: 12.5px;
+        color: var(--ink-2);
+        margin-top: var(--s5);
+      }
+      .lvh {
+        font-size: 11px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--ink-3);
+        margin-top: var(--s13);
+      }
+      .levers {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--s5);
+        margin-top: var(--s5);
+      }
+      .lv {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--s5);
+        height: 29px;
+        padding: 0 var(--s8) 0 var(--s5);
+        border-radius: 999px;
+        box-shadow: 0 0 0 1px var(--line);
+        font-size: 12.5px;
+      }
+      .lv.on {
+        background: var(--sage-soft);
+        box-shadow: none;
+      }
+      .lv .bx {
+        width: 19px;
+        height: 19px;
+        border-radius: 50%;
+        box-shadow: inset 0 0 0 1.5px var(--ink-3);
+        display: grid;
+        place-items: center;
+        flex: none;
+      }
+      .lv .bx svg {
+        width: 11px;
+        height: 11px;
+        stroke: #fff;
+        stroke-width: 2.6;
+      }
+      .lv.on .bx {
+        background: var(--sage-deep);
+        box-shadow: none;
+      }
+
+      /* ---- notes ---- */
+      .notes {
+        margin: var(--s55) auto 0;
+        max-width: 72ch;
+        font-size: 13px;
+        color: var(--ink-2);
+      }
+      .notes h2 {
+        font-family: var(--num);
+        font-size: 19px;
+        font-weight: 600;
+        color: var(--ink);
+        margin-bottom: var(--s8);
+      }
+      .notes table {
+        border-collapse: collapse;
+        width: 100%;
+        margin: var(--s8) 0 var(--s21);
+      }
+      .notes td,
+      .notes th {
+        text-align: left;
+        padding: var(--s5) var(--s8) var(--s5) 0;
+        border-bottom: 1px solid var(--line);
+        vertical-align: top;
+      }
+      .notes th {
+        font-weight: 600;
+        color: var(--ink);
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .lf,
+        .lft,
+        .bloom,
+        .sheet {
+          transition: none;
+        }
+        .drops,
+        .node.sel .halo,
+        .potlabel.bump {
+          animation: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="doc">
+      <header>
+        <div>
+          <p class="eyebrow">iOS variation 39 · round twelve · score family</p>
+          <h1>Garden</h1>
+          <p class="lede">
+            The score is a plant you keep on the windowsill. Its anatomy is the
+            arithmetic: roots are genes, the stem is blood, the leaves are what
+            you did today. Tick a move and a leaflet unfurls.
+          </p>
+        </div>
+        <div class="dir">
+          <b>Mood</b
+          ><span>A windowsill plant you keep alive by showing up.</span>
+          <b>Accent</b
+          ><span
+            >Terracotta #C2643F on sage #8FA58A and cream; state colours stay on
+            the stem nodes only.</span
+          >
+          <b>Type</b
+          ><span
+            >Fraunces for every number and heading, the system face for UI
+            text.</span
+          >
+          <b>Idea</b
+          ><span
+            >Root thickness, node colour and leaf length are the score's inputs,
+            drawn to scale. The 72 is on the plant label stuck in the
+            soil.</span
+          >
+        </div>
+      </header>
+
+      <section class="phones">
+        <div>
+          <p class="cap">
+            <span>01 · Today</span><span>tick a move, tap a node, tap +</span>
+          </p>
+          <div class="phone" id="p1"></div>
+        </div>
+        <div>
+          <p class="cap">
+            <span>02 · LDL node</span><span>after tapping the stem</span>
+          </p>
+          <div class="phone" id="p2" data-node="1"></div>
+        </div>
+      </section>
+
+      <section class="notes">
+        <h2>The score, grown on the plant</h2>
+        <table>
+          <tr>
+            <th>Layer</th>
+            <th>Today</th>
+            <th>Weight</th>
+            <th>On the plant</th>
+          </tr>
+          <tr>
+            <td>Lifestyle</td>
+            <td>sleep 100, moves 40, kcal 90, protein 78 → 77</td>
+            <td>0.40</td>
+            <td>leaves</td>
+          </tr>
+          <tr>
+            <td>Blood</td>
+            <td>4 in range, 2 borderline, 1 off → 71</td>
+            <td>0.45</td>
+            <td>stem nodes</td>
+          </tr>
+          <tr>
+            <td>Genes</td>
+            <td>4 variants, fixed → 63</td>
+            <td>0.15</td>
+            <td>roots</td>
+          </tr>
+          <tr>
+            <td>Score</td>
+            <td>0.40 × 77 + 0.45 × 71 + 0.15 × 63 = 72</td>
+            <td></td>
+            <td>the plant label</td>
+          </tr>
+        </table>
+        <h2>The garden's rules</h2>
+        <table>
+          <tr>
+            <th>Part</th>
+            <th>Rule</th>
+            <th>Why</th>
+          </tr>
+          <tr>
+            <td>Roots</td>
+            <td>
+              4 strands, stroke width 1.5 + p × 0.075 px (45 → 4.9, 100 → 9)
+            </td>
+            <td>Genes are underground: fixed, and they hold the rest up</td>
+          </tr>
+          <tr>
+            <td>Stem</td>
+            <td>
+              7 nodes bottom to top, off first; colour is state, tag on every
+              node that is not green
+            </td>
+            <td>Blood is what runs through the plant</td>
+          </tr>
+          <tr>
+            <td>Leaves</td>
+            <td>
+              Sleep, kcal, protein: length 92 × p / 100 px. Moves: a sprig of 5
+              leaflets, one open per ticked move
+            </td>
+            <td>Lifestyle is the part that grows today</td>
+          </tr>
+          <tr>
+            <td>Bloom</td>
+            <td>The bud at the top opens when all 5 moves are ticked</td>
+            <td>The day complete</td>
+          </tr>
+          <tr>
+            <td>Seed packets</td>
+            <td>
+              One packet per meal, photo in an arched window, kcal in Fraunces
+            </td>
+            <td>What you put in the soil today</td>
+          </tr>
+          <tr>
+            <td>Watering can</td>
+            <td>
+              LDL past as a solid line, the projection as flowing drops into the
+              aim band
+            </td>
+            <td>Keep watering eight weeks and it lands near 104</td>
+          </tr>
+          <tr>
+            <td>Motion</td>
+            <td>
+              One spring (0.34, 1.45, 0.64, 1): 900 ms for leaves, 480 ms for
+              sheets; the score counts over 700 ms
+            </td>
+            <td>Growth overshoots a little, like a leaf opening</td>
+          </tr>
+        </table>
+      </section>
+    </main>
+
+    <script>
+      const I = {
+        plus: '<svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>',
+        x: '<svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg>',
+        check:
+          '<svg viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>',
+        cam: '<svg viewBox="0 0 24 24"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>',
+        mic: '<svg viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>',
+        text: '<svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h10M4 18h7"/></svg>',
+        home: '<svg viewBox="0 0 24 24"><path d="M3 11 12 4l9 7v9H3z"/><path d="M10 20v-6h4v6"/></svg>',
+        body: '<svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="2.5"/><path d="M9 10h6l1 5h-2v6h-4v-6H8z"/></svg>',
+        drop: '<svg viewBox="0 0 24 24"><path d="M12 3s6 7 6 11a6 6 0 0 1-12 0c0-4 6-11 6-11z"/></svg>',
+      };
+
+      // ---- the three layers (verbatim from 25-onion) ----
+      const LIFE = {
+        w: 0.4,
+        rows: [
+          { n: "Sleep", s: "7h 30 of 7h 30", p: 100 },
+          { n: "Moves", s: "2 of 5 ticked", p: 40 },
+          { n: "Calories", s: "1 497 of 1 900 kcal", p: 90 },
+          { n: "Protein", s: "93 of 120 g", p: 78 },
+        ],
+      };
+      const BLOOD = {
+        w: 0.45,
+        // x: where the dot sits on the rail (0..100); state drives the colour
+        rows: [
+          { n: "Vitamin D", s: "29 ng/mL · aim 40 to 60", x: 12, st: "rose" },
+          { n: "LDL", s: "131 mg/dL · aim under 100", x: 84, st: "amber" },
+          { n: "ApoB", s: "98 mg/dL · aim under 90", x: 80, st: "amber" },
+          { n: "hs-CRP", s: "0.6 mg/L", x: 30, st: "green" },
+          { n: "HbA1c", s: "5.3 %", x: 45, st: "green" },
+          { n: "Ferritin", s: "64 ng/mL", x: 50, st: "green" },
+          { n: "TPO", s: "18 IU/mL", x: 35, st: "green" },
+        ],
+      };
+      const GENES = {
+        w: 0.15,
+        rows: [
+          { n: "APOE ε3/ε4", s: "LDL responds more to saturated fat", p: 45 },
+          { n: "LPA rs10455872", s: "not carried", p: 100 },
+          { n: "MTHFR C677T", s: "heterozygous · folate form matters", p: 60 },
+          { n: "FTO rs9939609", s: "one copy · appetite", p: 45 },
+        ],
+      };
+      const pct = (rows) =>
+        Math.round(rows.reduce((a, r) => a + r.p, 0) / rows.length);
+      const life = pct(LIFE.rows); // 77
+      const blood = Math.round(
+        (BLOOD.rows.reduce(
+          (a, r) => a + { green: 1, amber: 0.5, rose: 0 }[r.st],
+          0,
+        ) /
+          BLOOD.rows.length) *
+          100,
+      ); // 71
+      const genes = pct(GENES.rows); // 62
+      const score = Math.round(
+        LIFE.w * life + BLOOD.w * blood + GENES.w * genes,
+      ); // 72
+      console.assert(score === 72, "score arithmetic drifted", score);
+
+      // ---- the receipt (verbatim from 25-onion) ----
+      const LOG = [
+        {
+          layer: "life",
+          ic: "img",
+          src: "img/08-pork-belly.jpg",
+          n: "Pork belly, salad",
+          s: "7:30 PM · 623 kcal · fat past the day's share",
+          d: -1,
+        },
+        {
+          layer: "life",
+          ic: "green-bg",
+          g: "walk",
+          n: "Walk after lunch",
+          s: "1:45 PM · 15 min · ticked",
+          d: 2,
+        },
+        {
+          layer: "life",
+          ic: "img",
+          src: "img/08-sardines-rye.jpg",
+          n: "Sardines on rye, kimchi",
+          s: "1:08 PM · 462 kcal · 38 g protein",
+          d: 1,
+        },
+        {
+          layer: "life",
+          ic: "gene-bg",
+          g: "pill",
+          n: "Selenium 200 µg",
+          s: "8:20 AM · ticked",
+          d: 0,
+        },
+        {
+          layer: "life",
+          ic: "img",
+          src: "img/08-oats.jpg",
+          n: "Oats with berries",
+          s: "8:15 AM · 412 kcal · 3 g beta-glucan",
+          d: 1,
+        },
+        {
+          layer: "life",
+          ic: "rose-bg",
+          g: "moon",
+          n: "Sleep",
+          s: "Last night · 7h 30",
+          d: 3,
+        },
+        {
+          layer: "blood",
+          ic: "blood-bg",
+          g: "drop",
+          n: "LDL 168 → 131",
+          s: "Aug 1 draw · off to borderline",
+          d: 6,
+        },
+        {
+          layer: "blood",
+          ic: "blood-bg",
+          g: "drop",
+          n: "Vitamin D 34 → 29",
+          s: "Aug 1 draw · borderline to off",
+          d: -4,
+        },
+        {
+          layer: "blood",
+          ic: "blood-bg",
+          g: "drop",
+          n: "Next draw",
+          s: "Nov 1 · LDL, ApoB, vitamin D",
+          d: null,
+        },
+        {
+          layer: "genes",
+          ic: "gene-bg",
+          g: "dna",
+          n: "Panel read once",
+          s: "Mar 2026 · four variants weighed",
+          d: null,
+        },
+      ];
+
+      // ---- the garden's own data ----
+      const MOVES = [
+        { n: "Walk after lunch", on: true },
+        { n: "Selenium 200 µg", on: true },
+        { n: "Psyllium 10 g", on: false },
+        { n: "Plant sterols 2 g", on: false },
+        { n: "Lift 30 min", on: false },
+      ];
+      const MEALS = LOG.filter((r) => r.ic === "img")
+        .reverse()
+        .map((r, i) => ({
+          n: ["Oats with berries", "Sardines on rye", "Pork belly salad"][i],
+          t: ["8:15 AM", "1:08 PM", "7:30 PM"][i],
+          kcal: [412, 462, 623][i],
+          src: r.src,
+          tint: ["var(--sage-soft)", "var(--ochre-soft)", "var(--terra-soft)"][
+            i
+          ],
+        }));
+      const KCAL = MEALS.reduce((a, m) => a + m.kcal, 0); // 1 497
+      const TARGET = 1900;
+
+      // live arithmetic: the same formula, Moves p = ticked / 5
+      const liveLife = (movesP) =>
+        pct(LIFE.rows.map((r) => (r.n === "Moves" ? { ...r, p: movesP } : r)));
+      const liveScore = (movesP) =>
+        Math.round(
+          LIFE.w * liveLife(movesP) + BLOOD.w * blood + GENES.w * genes,
+        );
+      console.assert(liveScore(40) === score, "live score drifted");
+
+      const STC = {
+        green: "var(--green)",
+        amber: "var(--amber)",
+        rose: "var(--rose)",
+      };
+      const STW = { green: "In range", amber: "Borderline", rose: "Off range" };
+      const STS = { green: "#e1efdf", amber: "#f7e8cc", rose: "#f7dbe0" };
+
+      // ---- plant geometry ----
+      const P = [
+        [146, 220],
+        [132, 160],
+        [168, 96],
+        [150, 30],
+      ];
+      const bez = (t) => {
+        const u = 1 - t;
+        const k = [u * u * u, 3 * u * u * t, 3 * u * t * t, t * t * t];
+        return {
+          x: k.reduce((a, c, i) => a + c * P[i][0], 0),
+          y: k.reduce((a, c, i) => a + c * P[i][1], 0),
+        };
+      };
+      const NODE_T = [0.12, 0.25, 0.37, 0.52, 0.64, 0.76, 0.88];
+      const LEAVES = [
+        { n: "Sleep", t: 0.8, a: -22 },
+        { n: "Protein", t: 0.46, a: -30 },
+        { n: "Calories", t: 0.6, a: 204 },
+      ];
+      const leafPath = (L) => {
+        const W = L * 0.4;
+        return `M0 0C${L * 0.25} ${-W * 0.8} ${L * 0.7} ${-W * 0.75} ${L} 0C${L * 0.7} ${W * 0.75} ${L * 0.25} ${W * 0.8} 0 0Z`;
+      };
+      const ROOTS = [
+        {
+          d: "M146 222C124 236 88 236 54 262",
+          tip: [8, 268],
+          label: "APOE <b>ε3/ε4</b>",
+        },
+        {
+          d: "M146 222C149 250 138 276 144 306",
+          tip: [152, 296],
+          label: "LPA",
+        },
+        {
+          d: "M146 222C166 238 198 244 224 276",
+          tip: [206, 282],
+          label: "MTHFR",
+        },
+        { d: "M146 224C132 244 110 268 98 296", tip: [48, 300], label: "FTO" },
+      ];
+      const HAIRS = [
+        "M96 240c-6 8-8 14-6 22",
+        "M74 250c-4-8-12-10-20-8",
+        "M143 262c8 4 12 10 12 18",
+        "M140 284c-8 2-12 8-12 14",
+        "M190 244c4 8 4 14 0 20",
+        "M210 260c8-2 14 0 18 6",
+        "M118 262c-8 0-14 4-16 10",
+        "M106 282c6 4 8 10 6 16",
+      ];
+
+      // deterministic soil speckles
+      let seed = 39;
+      const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+      const SPECK = Array.from({ length: 70 }, () => [
+        rnd() * 332,
+        226 + rnd() * 104,
+        0.6 + rnd() * 1.3,
+      ]);
+
+      const plant = () => {
+        const nodes = NODE_T.map((t, i) => ({
+          ...bez(t),
+          r: BLOOD.rows[i],
+          i,
+        }));
+        const leaves = LEAVES.map((l) => {
+          const pt = bez(l.t);
+          const row = LIFE.rows.find((r) => r.n === l.n);
+          return `<g transform="translate(${pt.x} ${pt.y}) rotate(${l.a})">
+              <g class="lf" data-s="${row.p / 100}" style="transform:scale(.01)">
+                <path d="${leafPath(92)}" fill="url(#leafg)"/>
+                <path d="M2 0Q46 -3 86 0" stroke="#e9efdf" stroke-width="1.2" stroke-linecap="round"/>
+              </g></g>`;
+        }).join("");
+        // the Moves sprig: five leaflets on a twig, one open per ticked move
+        const sp = bez(0.17);
+        const sprig = `<g transform="translate(${sp.x} ${sp.y}) rotate(198)">
+            <path d="M0 0Q50 -8 104 -2" stroke="var(--sage-deep)" stroke-width="2.2" stroke-linecap="round"/>
+            ${MOVES.map((m, i) => {
+              const x = 22 + i * 19;
+              const y = -5 + i * 0.3 - (i === 4 ? 1 : 0);
+              const a = i % 2 ? 58 : -58;
+              return `<g transform="translate(${x} ${y}) rotate(${a})">
+                  <circle r="2.6" fill="var(--sage)"/>
+                  <g class="lft" data-i="${i}" style="transform:scale(.01) rotate(-50deg)">
+                    <path d="${leafPath(27)}" fill="url(#leafg)"/>
+                  </g></g>`;
+            }).join("")}
+          </g>`;
+        const top = bez(1);
+        const bloom = `<g transform="translate(${top.x} ${top.y - 2})">
+            <ellipse rx="5" ry="8" fill="var(--sage)"/>
+            <g class="bloom" style="transform:scale(0)">
+              ${[0, 72, 144, 216, 288].map((a) => `<ellipse transform="rotate(${a}) translate(0 -9)" rx="6" ry="9" fill="#f0b39a"/>`).join("")}
+              <circle r="5" fill="var(--terra)"/>
+            </g></g>`;
+        const nodeSvg = nodes
+          .map(
+            (
+              n,
+            ) => `<g class="node" data-node="${n.i}" transform="translate(${n.x} ${n.y})">
+              <circle class="halo" r="7" fill="none" stroke="${STC[n.r.st]}" stroke-width="2" opacity="0"/>
+              <circle r="16" fill="transparent"/>
+              <circle class="dot" r="6.5" fill="${STC[n.r.st]}" stroke="#fbf7ee" stroke-width="2.5"/>
+            </g>`,
+          )
+          .join("");
+        const tags = nodes
+          .filter((n) => n.r.st !== "green")
+          .map((n) => {
+            const v = n.r.s.split(" ")[0];
+            const extra = n.r.n === "LDL" ? ` → <em>104</em>` : "";
+            return `<span class="tag" data-node="${n.i}" style="left:${n.x + 13}px;top:${n.y - 10.5}px;--c:${STC[n.r.st]}"><i></i>${n.r.n} <b>${v}</b>${extra}</span>`;
+          })
+          .join("");
+        const greens = nodes.filter((n) => n.r.st === "green");
+        const gl = greens[greens.length - 1];
+        return `<div class="bed">
+          <svg viewBox="0 0 332 330">
+            <defs>
+              <linearGradient id="leafg" x1="0" x2="1"><stop offset="0" stop-color="#6f8d6c"/><stop offset="1" stop-color="#a9bd9f"/></linearGradient>
+              <linearGradient id="soilg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8e6d53"/><stop offset="1" stop-color="#5f4635"/></linearGradient>
+            </defs>
+            <path d="M0 226Q40 214 84 222T170 219T250 223T332 218V330H0Z" fill="url(#soilg)"/>
+            ${SPECK.map(([x, y, r]) => `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${r.toFixed(1)}" fill="#a88a6e" opacity=".45"/>`).join("")}
+            ${HAIRS.map((d) => `<path d="${d}" stroke="var(--root)" stroke-width="1" opacity=".55" stroke-linecap="round"/>`).join("")}
+            ${ROOTS.map((r, i) => `<path d="${r.d}" stroke="var(--root)" stroke-width="${(1.5 + GENES.rows[i].p * 0.075).toFixed(1)}" stroke-linecap="round" opacity=".92"/>`).join("")}
+            <path d="M${P[0][0]} ${P[0][1] + 2}C${P[1].join(" ")} ${P[2].join(" ")} ${P[3].join(" ")}" stroke="var(--sage-deep)" stroke-width="5" stroke-linecap="round"/>
+            ${sprig}
+            ${leaves}
+            ${bloom}
+            ${nodeSvg}
+          </svg>
+          ${tags}
+          <span class="tag" data-node="${gl.i}" style="left:${gl.x + 13}px;top:${gl.y - 10.5}px;--c:var(--green)"><i></i>4 in range</span>
+          ${ROOTS.map((r) => `<span class="rootl" style="left:${r.tip[0]}px;top:${r.tip[1]}px">${r.label}</span>`).join("")}
+          <div class="potlabel"><div class="head"><small>Score</small><b class="sc">${score}</b><span>of 100</span></div><div class="stake"></div></div>
+        </div>`;
+      };
+
+      // ---- LDL chart: past solid, the projection as drops ----
+      const chart = (w, h, withCan) => {
+        const y = (v) => 8 + ((180 - v) / (180 - 90)) * (h - 30);
+        const X = { dec: 0, aug: w * 0.3, now: w * 0.4, end: w - 30 };
+        const drop = `M${X.now} ${y(131)}C${X.now + (X.end - X.now) * 0.35} ${y(131 - 18)} ${X.now + (X.end - X.now) * 0.65} ${y(104 + 2)} ${X.end} ${y(104)}`;
+        return `<svg class="chart" viewBox="0 0 ${w} ${h}" style="height:${h}px" data-w="${w}" data-h="${h}">
+          <rect x="0" y="${y(100)}" width="${w}" height="${h - 22 - y(100)}" fill="#e3ecde" rx="5"/>
+          <text x="5" y="${h - 27}" font-size="10" fill="var(--sage-deep)">aim under 100</text>
+          <path d="M${X.dec} ${y(168)}L${X.aug} ${y(131)}" stroke="var(--ink-2)" stroke-width="2.5" stroke-linecap="round"/>
+          <path d="M${X.aug} ${y(131)}L${X.now} ${y(131)}" stroke="var(--ink-3)" stroke-width="1.5" stroke-dasharray="2 4" stroke-linecap="round"/>
+          <path class="drops" d="${drop}" stroke="var(--water)" stroke-width="6" stroke-dasharray="0 10" stroke-linecap="round"/>
+          <circle cx="${X.dec}" cy="${y(168)}" r="4" fill="var(--ink-2)"/>
+          <circle cx="${X.aug}" cy="${y(131)}" r="4.5" fill="var(--amber)" stroke="#fffdf7" stroke-width="2"/>
+          <circle cx="${X.end}" cy="${y(104)}" r="6" fill="var(--sage-deep)" stroke="#fffdf7" stroke-width="2"/>
+          <text x="${X.dec + 8}" y="${y(168) + 4}" font-size="12" font-family="Fraunces" fill="var(--ink-2)">168</text>
+          <text x="${X.aug}" y="${y(131) - 10}" font-size="15" font-family="Fraunces" font-weight="600" fill="var(--ink)" text-anchor="middle">131</text>
+          <text x="${X.end}" y="${y(104) - 12}" font-size="21" font-family="Fraunces" font-weight="600" fill="var(--sage-deep)" text-anchor="middle">104</text>
+          ${[
+            [X.dec, "Dec 9", "start"],
+            [X.aug, "Aug 1", "middle"],
+            [X.now, "today", "start"],
+            [X.end, "+8 wk", "middle"],
+          ]
+            .map(
+              ([x, t, a]) =>
+                `<text x="${x}" y="${h - 4}" font-size="10" fill="var(--ink-3)" text-anchor="${a}">${t}</text>`,
+            )
+            .join("")}
+          <line class="cur" x1="0" x2="0" y1="0" y2="${h - 22}" stroke="var(--ink)" stroke-width="1" opacity="0"/>
+        </svg>`;
+      };
+      const SAY = `Keep this eight weeks and <b>LDL lands near 104</b>, from 131.`;
+
+      const moveChips = () =>
+        MOVES.map(
+          (m, i) =>
+            `<button class="mv" data-move="${i}"><span class="bx">${I.check}</span>${m.n}</button>`,
+        ).join("");
+
+      const packets = () =>
+        MEALS.map(
+          (m, i) => `<div class="pk" style="--tint:${m.tint}">
+            <small>No. ${i + 1} · ${m.t}</small>
+            <div class="win"><img src="${m.src}" alt=""></div>
+            <p>${m.n}</p>
+            <b>${m.kcal}<em>kcal</em></b>
+          </div>`,
+        ).join("");
+
+      const home = () => `
+        <div class="status"><span>9:41</span><i></i><span>●●● ◔ ▮</span></div>
+        <div class="screen">
+          <div class="top">
+            <div><small>Tuesday 23 Sep</small><h2>Razvan's <em>garden</em></h2></div>
+            <span class="avatar">🧑🏻</span>
+          </div>
+          <p class="sub">PhenoAge 36.2 at 39 · up 2 since Monday</p>
+          ${plant()}
+          <div class="key">
+            <div>Leaves · lifestyle<b class="lifev">${life}<em>× .40</em></b></div>
+            <div>Stem · blood<b>${blood}<em>× .45</em></b></div>
+            <div>Roots · genes<b>${genes}<em>× .15</em></b></div>
+          </div>
+
+          <div class="sec"><h3>Tend today</h3><span class="mvcount">2 of 5 · each opens a leaf</span></div>
+          <div class="moves">${moveChips()}</div>
+
+          <div class="sec"><h3>Planted today</h3><span>3 meals</span></div>
+          <div class="meter"><b>${Math.floor(KCAL / 1000)} ${KCAL % 1000}<small> of 1 900 kcal</small></b><span>${TARGET - KCAL} left · 93 of 120 g protein</span></div>
+          <div class="track"><i style="--w:${Math.round((KCAL / TARGET) * 100)}%"></i></div>
+          <div class="packets">${packets()}</div>
+
+          <div class="sec"><h3>The watering can</h3><span>LDL, mg/dL</span></div>
+          <div class="can">
+            <img src="img/39-can.png" alt="">
+            <h4>Water it eight weeks, <b>LDL lands near 104</b></h4>
+            ${chart(306, 144)}
+            <p class="say">${SAY} The walk and the oats carry most of it.</p>
+            <span class="tip"></span>
+          </div>
+        </div>
+
+        <div class="tabs">
+          <div class="bar">
+            <button class="on">${I.home}Home</button>
+            <button>${I.body}Body</button>
+            <button>${I.drop}Blood</button>
+          </div>
+          <button class="plus" data-do="add">${I.plus}</button>
+        </div>
+
+        <div class="veil" data-do="close"></div>
+        <div class="sheet add">
+          <div class="grab"></div>
+          <button class="x" data-do="close">${I.x}</button>
+          <div class="hero"><img src="img/39-sprout.png" alt=""><div><h2>Plant something</h2><p class="lead">A photo, a sentence, or just say it.</p></div></div>
+          <div class="modes">
+            <button class="mode" data-mode="photo"><span>${I.cam}</span>Photo<small>point at the plate</small></button>
+            <button class="mode" data-mode="voice"><span>${I.mic}</span>Voice<small>say what you ate</small></button>
+            <button class="mode" data-mode="text"><span>${I.text}</span>Text<small>type a line</small></button>
+          </div>
+          <div class="compose">Pick one above. Send shows up once there's something to send.</div>
+          <button class="send">Plant it</button>
+        </div>
+        <div class="sheet nodecard"></div>
+        <div class="homebar"></div>`;
+
+      const nodeCard = (i, movesOn) => {
+        const r = BLOOD.rows[i];
+        const [val, aim] = r.s.split(" · ");
+        const [num, ...unit] = val.split(" ");
+        const isLDL = r.n === "LDL";
+        return `<div class="grab"></div>
+          <button class="x" data-do="close">${I.x}</button>
+          <div class="nc-kicker" style="--c:${STC[r.st]}"><i></i>Stem node ${i + 1} of 7 · blood</div>
+          <h2 style="margin-top:5px">${isLDL ? "LDL cholesterol" : r.n}</h2>
+          <div class="nc-val" style="--c:${STC[r.st]};--cs:${STS[r.st]}"><b>${num}</b><small>${unit.join(" ")}</small><span class="pill">${STW[r.st]} · counts ${{ green: "1", amber: "½", rose: "0" }[r.st]}</span></div>
+          ${aim ? `<p class="aim">${aim[0].toUpperCase() + aim.slice(1)} · Aug 1 draw</p>` : ""}
+          ${
+            isLDL
+              ? `${chart(316, 104)}
+                <p class="say">${SAY} Dec 9 it was 168.</p>
+                <p class="lvh">What waters it</p>
+                <div class="levers">
+                  ${[
+                    ["Oats", true],
+                    ["Walk after lunch", movesOn[0]],
+                    ["Psyllium 10 g", movesOn[2]],
+                    ["Plant sterols 2 g", movesOn[3]],
+                  ]
+                    .map(([n, on]) => `<span class="lv ${on ? "on" : ""}"><span class="bx">${on ? I.check : ""}</span>${n}</span>`)
+                    .join("")}
+                </div>`
+              : `<div class="band" style="--c:${STC[r.st]}"><span class="ok"></span><span class="pin" style="--x:${r.x}%"></span></div>
+                <div class="bandl"><span>low</span><span>in range</span><span>high</span></div>
+                <p class="say">In range counts 1, borderline ½, off 0. Next draw Nov 1.</p>`
+          }`;
+      };
+
+      // ---- wire up each phone ----
+      for (const p of document.querySelectorAll(".phone")) {
+        p.innerHTML = home();
+        const moves = MOVES.map((m) => m.on);
+        let shown = score;
+        const sc = p.querySelector(".sc");
+        const lab = p.querySelector(".potlabel");
+
+        const countTo = (to) => {
+          const from = shown;
+          shown = to;
+          if (from === to) return;
+          lab.classList.remove("bump");
+          void lab.offsetWidth;
+          lab.classList.add("bump");
+          // 24 steps of 30 ms (~700 ms), timer-driven so it also lands in headless runs
+          let n = 0;
+          clearInterval(lab._t);
+          lab._t = setInterval(() => {
+            const k = ++n / 24;
+            sc.textContent = Math.round(from + (to - from) * (1 - Math.pow(1 - k, 3)));
+            if (n >= 24) clearInterval(lab._t);
+          }, 30);
+        };
+
+        const paint = () => {
+          const on = moves.filter(Boolean).length;
+          const movesP = (on / 5) * 100;
+          p.querySelectorAll(".mv").forEach((b, i) => {
+            b.classList.toggle("on", moves[i]);
+            b.classList.toggle("next", !moves[i] && moves.indexOf(false) === i);
+          });
+          p.querySelectorAll(".lft").forEach((g, i) => {
+            g.style.transform = moves[i]
+              ? "scale(1) rotate(0deg)"
+              : "scale(.01) rotate(-50deg)";
+          });
+          p.querySelector(".bloom").style.transform =
+            on === 5 ? "scale(1)" : "scale(0)";
+          p.querySelector(".lifev").firstChild.textContent = liveLife(movesP);
+          p.querySelector(".mvcount").textContent =
+            `${on} of 5 · each opens a leaf`;
+          countTo(liveScore(movesP));
+        };
+
+        const openNode = (i) => {
+          p.querySelectorAll(".node").forEach((n) =>
+            n.classList.toggle("sel", +n.dataset.node === i),
+          );
+          p.querySelector(".nodecard").innerHTML = nodeCard(i, moves);
+          bindChart(p.querySelector(".nodecard .chart"));
+          p.classList.remove("add-open");
+          p.classList.add("node-open");
+        };
+        const close = () => {
+          p.classList.remove("add-open", "node-open");
+          p.querySelectorAll(".node").forEach((n) => n.classList.remove("sel"));
+        };
+
+        // Add sheet: Send only after content
+        const compose = p.querySelector(".compose");
+        const send = p.querySelector(".send");
+        const setMode = (m) => {
+          p.querySelectorAll(".mode").forEach((b) =>
+            b.classList.toggle("on", b.dataset.mode === m),
+          );
+          send.classList.remove("show");
+          if (m === "photo") {
+            compose.innerHTML = `<span class="thumb"><img src="img/08-sardines-rye.jpg" alt=""></span><span class="thumb"><img src="img/08-salad.jpg" alt=""></span><span>2 photos · reading the plates</span>`;
+            setTimeout(() => send.classList.add("show"), 600);
+          } else if (m === "voice") {
+            compose.innerHTML = `<span class="wave">${Array.from({ length: 21 }, (_, i) => `<i style="height:${8 + ((i * 7) % 21)}px;animation-delay:${(i % 5) * 90}ms"></i>`).join("")}</span><span>listening…</span>`;
+            setTimeout(() => {
+              compose.innerHTML = `<span class="said">"Pork belly with salad and a slice of bread"</span>`;
+              send.classList.add("show");
+            }, 1300);
+          } else {
+            compose.innerHTML = `<input placeholder="Sardines on rye, 15 min walk" />`;
+            const inp = compose.querySelector("input");
+            inp.focus({ preventScroll: true });
+            inp.addEventListener("input", () =>
+              send.classList.toggle("show", inp.value.trim().length > 0),
+            );
+          }
+        };
+
+        p.addEventListener("click", (e) => {
+          const t = e.target;
+          const mv = t.closest("[data-move]");
+          if (mv) {
+            const i = +mv.dataset.move;
+            moves[i] = !moves[i];
+            return paint();
+          }
+          const nd = t.closest("[data-node]");
+          if (nd && !nd.classList.contains("phone"))
+            return openNode(+nd.dataset.node);
+          const md = t.closest("[data-mode]");
+          if (md) return setMode(md.dataset.mode);
+          const d = t.closest("[data-do]");
+          if (d?.dataset.do === "add") {
+            close();
+            p.classList.add("add-open");
+          } else if (d?.dataset.do === "close") close();
+          else if (t.closest(".send")) close();
+        });
+
+        bindChart(p.querySelector(".can .chart"));
+
+        // grow the leaves in, then set the day
+        requestAnimationFrame(() =>
+          requestAnimationFrame(() => {
+            p.querySelectorAll(".lf").forEach((g, i) => {
+              g.style.transitionDelay = `${i * 120}ms`;
+              g.style.transform = `scale(${g.dataset.s})`;
+            });
+            paint();
+          }),
+        );
+        if (p.dataset.node) openNode(+p.dataset.node);
+      }
+
+      // tooltip that follows the finger on the chart
+      function bindChart(svg) {
+        if (!svg) return;
+        const box = svg.closest(".can, .sheet");
+        let tip = box.querySelector(".tip");
+        if (!tip) {
+          tip = document.createElement("span");
+          tip.className = "tip";
+          box.appendChild(tip);
+        }
+        const cur = svg.querySelector(".cur");
+        const w = +svg.dataset.w;
+        svg.addEventListener("pointermove", (e) => {
+          const r = svg.getBoundingClientRect();
+          const x = ((e.clientX - r.left) / r.width) * w;
+          const now = w * 0.4;
+          const end = w - 30;
+          let txt;
+          if (x < w * 0.3)
+            txt = `LDL ${Math.round(168 - (37 * x) / (w * 0.3))} · before Aug 1`;
+          else if (x < now) txt = "131 · last draw, Aug 1";
+          else {
+            const u = Math.min(1, (x - now) / (end - now));
+            txt = `week ${Math.round(u * 8)} · near ${Math.round(131 - 27 * (1 - Math.pow(1 - u, 2)))}`;
+          }
+          cur.setAttribute("x1", x);
+          cur.setAttribute("x2", x);
+          cur.setAttribute("opacity", 0.3);
+          const br = box.getBoundingClientRect();
+          tip.style.left = `${e.clientX - br.left}px`;
+          tip.style.top = `${r.top - br.top + 8}px`;
+          tip.style.opacity = 1;
+          tip.textContent = txt;
+        });
+        svg.addEventListener("pointerleave", () => {
+          tip.style.opacity = 0;
+          cur.setAttribute("opacity", 0);
+        });
+      }
+
+      // visible check for the headless run
+      document.title += score === 72 ? " · score ok" : " · SCORE DRIFT";
+    </script>
+  </body>
+</html>

@@ -1,0 +1,1131 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Riso · iOS variation 29 · OpenVitals</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Anton&family=Archivo:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        /* three values in the whole file: paper, drum one, drum two */
+        --paper: #efe8d6;
+        --pink: #ff4d8d;
+        --blue: #2334a0;
+
+        /* drum two is off by this much. one offset, everything it prints */
+        --mx: 2.5px;
+        --my: -2px;
+
+        /* one screen in the file: 8 px pitch, 15°, one dot size */
+        --f: 8px;
+        --d: 2.6px;
+
+        /* one spacing scale, 6 px baseline */
+        --s6: 6px;
+        --s12: 12px;
+        --s18: 18px;
+        --s24: 24px;
+        --s36: 36px;
+        --s48: 48px;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--paper);
+        color: var(--blue);
+        font:
+          13px/1.45 Archivo,
+          -apple-system,
+          system-ui,
+          sans-serif;
+        font-feature-settings: "tnum";
+      }
+      h1,
+      h2,
+      p {
+        margin: 0;
+      }
+
+      /* ================= the press ================= */
+
+      /* every mark multiplies: blue landing on pink prints purple, only there */
+      .ink {
+        mix-blend-mode: multiply;
+      }
+      /* drum two, slipped. one transform, used by every pink thing */
+      .p {
+        transform: translate(var(--mx), var(--my));
+      }
+
+      /* one screen, one pitch, one angle, one dot. used large, three times */
+      .scr::before {
+        content: "";
+        position: absolute;
+        inset: -420px;
+        background-image: radial-gradient(
+          circle at 50% 50%,
+          var(--pink) var(--d),
+          transparent calc(var(--d) + 0.5px)
+        );
+        background-size: var(--f) var(--f);
+        transform: rotate(15deg);
+      }
+
+      /* a field of ink: soft edge, roller streak, paper showing through */
+      .fld {
+        position: absolute;
+        inset: 0;
+        z-index: -1;
+        background: var(--pink);
+        mix-blend-mode: multiply;
+        filter: blur(0.6px);
+      }
+      .fld.up {
+        top: -88px;
+      }
+      .fld::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: repeating-linear-gradient(
+          2deg,
+          color-mix(in srgb, var(--paper) 20%, transparent) 0 2px,
+          transparent 2px 37px
+        );
+      }
+      /* the field carries the whole page it prints on: cut, not machined */
+      .cutfld {
+        clip-path: polygon(
+          0.4% 1.5%,
+          38% 0%,
+          72% 1.2%,
+          100% 0.4%,
+          99.5% 97%,
+          61% 100%,
+          24% 98.2%,
+          0% 99.4%
+        );
+      }
+      .over {
+        position: relative;
+        mix-blend-mode: multiply;
+      }
+
+      /* solid ink, single drum: square corner, soft edge, no border */
+      .solid {
+        position: relative;
+        color: var(--paper);
+      }
+      .solid::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        z-index: -1;
+        background: var(--blue);
+        filter: blur(0.6px);
+      }
+      .solid::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        z-index: -1;
+        background: repeating-linear-gradient(
+          2deg,
+          color-mix(in srgb, var(--paper) 18%, transparent) 0 2px,
+          transparent 2px 41px
+        );
+      }
+
+      /* rules print on both drums, so every rule shows the slip */
+      .rl {
+        position: relative;
+        height: 1.5px;
+        background: var(--blue);
+        filter: blur(0.35px);
+      }
+      .rl.sec {
+        height: 3px;
+      }
+      .rl::after,
+      .cut::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: var(--pink);
+        mix-blend-mode: multiply;
+        transform: translate(var(--mx), var(--my));
+      }
+      .cut {
+        position: relative;
+        height: 1.5px;
+        background: repeating-linear-gradient(
+          90deg,
+          var(--blue) 0 7px,
+          transparent 7px 13px
+        );
+        filter: blur(0.35px);
+      }
+      .cut::after {
+        background: repeating-linear-gradient(
+          90deg,
+          var(--pink) 0 7px,
+          transparent 7px 13px
+        );
+      }
+
+      /* ================= type: three display sizes, one text face ======== */
+      .dsp {
+        font-family: Anton, Archivo, sans-serif;
+        font-weight: 400;
+        text-transform: uppercase;
+        letter-spacing: 0.005em;
+      }
+      .d1 {
+        font-size: 104px;
+        line-height: 0.76;
+      }
+      .d2 {
+        font-size: 40px;
+        line-height: 0.9;
+      }
+      .d3 {
+        font-size: 22px;
+        line-height: 1;
+      }
+      .lab {
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+      }
+      .meta {
+        font-size: 9px;
+        font-weight: 500;
+        letter-spacing: 0.06em;
+        line-height: 1.45;
+      }
+
+      /* ================= the sheet ================= */
+      .doc {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: var(--s48) var(--s24);
+      }
+      .doc > header {
+        margin-bottom: var(--s36);
+        max-width: 62ch;
+      }
+      .doc h1 {
+        margin: var(--s6) 0 var(--s12);
+      }
+      .lede {
+        margin-top: var(--s12);
+        max-width: 60ch;
+      }
+      .phones {
+        display: flex;
+        gap: var(--s48);
+        justify-content: center;
+        flex-wrap: wrap;
+      }
+      .cap {
+        display: flex;
+        justify-content: space-between;
+        width: 390px;
+        margin-bottom: var(--s12);
+        padding-bottom: var(--s6);
+      }
+
+      /* the frame is a printed rule around the page, not a device */
+      .phone {
+        width: 390px;
+        height: 844px;
+        border-radius: 4px;
+        border: 1.5px solid var(--blue);
+        background: var(--paper);
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+      }
+      .paper {
+        flex: 1;
+        position: relative;
+        isolation: isolate;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      }
+      /* the tooth of the stock: laid lines, printed, not noise */
+      .paper::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        z-index: 6;
+        pointer-events: none;
+        background: repeating-linear-gradient(
+          93deg,
+          color-mix(in srgb, var(--blue) 3%, transparent) 0 1px,
+          transparent 1px 7px
+        );
+      }
+      .head-run {
+        flex: none;
+        display: flex;
+        justify-content: space-between;
+        padding: var(--s12) var(--s18) var(--s6);
+      }
+      .sheet {
+        flex: 1;
+        overflow-y: auto;
+        padding: 0 var(--s18) 84px;
+        scrollbar-width: none;
+      }
+      .sheet::-webkit-scrollbar {
+        display: none;
+      }
+      .bleed {
+        margin: 0 calc(var(--s18) * -1);
+        padding: 0 var(--s18);
+      }
+      .page {
+        display: none;
+      }
+      .page.on {
+        display: block;
+      }
+
+      /* ================= masthead ================= */
+      .mast {
+        padding: 7px var(--s18) var(--s6);
+      }
+      .mast .strap {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 5px;
+      }
+
+      /* ============ the score: one pink field, blue type inside ========= */
+      .lock {
+        position: relative;
+        margin: var(--s18) calc(var(--s18) * -1) 0;
+        padding: var(--s12) var(--s18) var(--s12);
+      }
+      .lock .row {
+        display: flex;
+        align-items: flex-start;
+        gap: var(--s12);
+      }
+      .lock .col {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        height: 80px;
+        padding-top: 4px;
+      }
+      .lock .foot {
+        display: flex;
+        justify-content: space-between;
+        margin-top: var(--s6);
+      }
+
+      /* ================= bars ================= */
+      .bars {
+        margin-top: var(--s12);
+      }
+      .bar {
+        display: grid;
+        grid-template-columns: 70px 1fr 34px;
+        align-items: center;
+        column-gap: var(--s12);
+        margin-bottom: 7px;
+      }
+      .bwrap {
+        position: relative;
+        height: 16px;
+      }
+      .bwrap .fill {
+        position: absolute;
+        left: 0;
+        top: 1px;
+        height: 11px;
+        width: var(--w);
+        background: var(--blue);
+        filter: blur(0.5px);
+      }
+      .bwrap .base {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: 1.5px;
+        background: var(--blue);
+        filter: blur(0.35px);
+      }
+      .bar .val {
+        text-align: right;
+      }
+
+      /* ================= blocks ================= */
+      .blk {
+        margin-top: var(--s12);
+      }
+      .blk p {
+        margin-top: 3px;
+      }
+      .fig {
+        margin-top: var(--s12);
+      }
+      .fig svg {
+        display: block;
+        width: 100%;
+        height: auto;
+      }
+      .figcap {
+        margin-top: var(--s6);
+      }
+
+      /* ================= listings ================= */
+      .lst {
+        display: flex;
+        gap: var(--s12);
+        align-items: flex-start;
+        padding: 7px 0 var(--s12);
+      }
+      .duo {
+        width: 44px;
+        height: 44px;
+        flex: none;
+        position: relative;
+        isolation: isolate;
+        overflow: hidden;
+        background: var(--blue);
+      }
+      .duo img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+        filter: grayscale(1) contrast(0.78) brightness(1.85);
+        mix-blend-mode: screen;
+      }
+      .duo .tint {
+        position: absolute;
+        inset: -4px;
+        background: var(--pink);
+        mix-blend-mode: multiply;
+      }
+      .duo .dots {
+        position: absolute;
+        inset: 0;
+        overflow: hidden;
+        mix-blend-mode: multiply;
+      }
+      .mkbox {
+        width: 44px;
+        height: 44px;
+        flex: none;
+      }
+      .mkbox svg {
+        width: 100%;
+        height: 100%;
+        display: block;
+        filter: blur(0.35px);
+      }
+      .lst .t {
+        flex: 1;
+        min-width: 0;
+      }
+      .lst .t b {
+        font-weight: 700;
+      }
+      .lst .t small {
+        display: block;
+        margin-top: 2px;
+      }
+      .lst .d {
+        flex: none;
+        text-align: right;
+        min-width: 30px;
+        font-weight: 700;
+      }
+
+      /* the plate, printed big: page two's picture desk */
+      .plate {
+        position: relative;
+        isolation: isolate;
+        overflow: hidden;
+        height: 152px;
+        background: var(--blue);
+        margin-top: var(--s12);
+      }
+      .plate img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+        filter: grayscale(1) contrast(0.72) brightness(1.95);
+        mix-blend-mode: screen;
+      }
+      .plate .tint {
+        position: absolute;
+        inset: -6px;
+        background: var(--pink);
+        mix-blend-mode: multiply;
+      }
+      .plate .dots {
+        position: absolute;
+        inset: 0;
+        overflow: hidden;
+        mix-blend-mode: multiply;
+      }
+      .platecap {
+        display: flex;
+        justify-content: space-between;
+        margin-top: var(--s6);
+      }
+
+      /* ================= coupon, folio ================= */
+      .send {
+        position: relative;
+        margin: var(--s18) calc(var(--s18) * -1) 0;
+        padding: var(--s12) var(--s18) var(--s18);
+      }
+      .send .fld {
+        top: -10px;
+      }
+      .send .line {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        margin-top: var(--s6);
+      }
+      .folio {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 5;
+        padding: var(--s6) var(--s18) var(--s12);
+        background: var(--paper);
+      }
+      .folio .row {
+        display: flex;
+        gap: var(--s18);
+        margin-top: 7px;
+      }
+      .folio .fo {
+        position: relative;
+        padding-bottom: 4px;
+        white-space: nowrap;
+      }
+      .folio .fo i {
+        font-style: normal;
+        font-weight: 400;
+        font-size: 9px;
+        letter-spacing: 0.02em;
+      }
+      .folio .fo.on::after {
+        content: "";
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: 3px;
+        background: var(--blue);
+        filter: blur(0.35px);
+      }
+
+      /* ================= page two ================= */
+      .way {
+        padding: 9px 0;
+      }
+      .way .lab {
+        display: block;
+        margin-bottom: 3px;
+      }
+
+      /* ================= foot notes ================= */
+      .notes {
+        margin: var(--s48) auto 0;
+        max-width: 70ch;
+      }
+      .notes h2 {
+        margin: var(--s24) 0 var(--s6);
+      }
+      .notes table {
+        border-collapse: collapse;
+        width: 100%;
+        margin: var(--s6) 0 var(--s24);
+        table-layout: fixed;
+      }
+      .notes td,
+      .notes th {
+        text-align: left;
+        padding: 5px 10px 5px 0;
+        border-bottom: 1.5px solid var(--blue);
+        vertical-align: top;
+      }
+      .notes th {
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+      }
+      .notes .c1 {
+        width: 26%;
+      }
+      .notes .c3 {
+        width: 34%;
+      }
+      .notes code {
+        font-family: ui-monospace, Menlo, monospace;
+        font-size: 11.5px;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="doc">
+      <header>
+        <p class="lab">iOS variation 29</p>
+        <h1 class="dsp d2">Riso</h1>
+        <p class="lede">
+          Today printed as a two-drum zine: fluorescent pink and ultramarine on
+          newsprint. There is no third value in the file. Every purple on the page is
+          blue landing on pink, and the score is printed that way on
+          purpose: one pink field, the numerals blue inside it, so the overprint
+          is the largest thing on the sheet.
+        </p>
+        <p class="lede">
+          The pink drum is off by 2.5 px right and 2 px up, and everything it
+          prints is off: the fields, every rule, the photo edge, the projected
+          bar. One screen in the file, 8 px pitch at 15°, used three times and
+          always large. Same numbers as Onion: lifestyle 77 · blood 71 · genes
+          63 → 72.
+        </p>
+      </header>
+
+      <section class="phones">
+        <div>
+          <p class="cap lab">
+            <span>01 · Issue 251</span><span>page one</span>
+          </p>
+          <div class="phone" id="p1"></div>
+        </div>
+        <div>
+          <p class="cap lab">
+            <span>02 · Contribute</span><span>page two</span>
+          </p>
+          <div class="phone" id="p2" data-page="contribute"></div>
+        </div>
+      </section>
+
+      <section class="notes">
+        <h2 class="dsp d3">The score, printed on page one</h2>
+        <table>
+          <tr>
+            <th class="c1">Layer</th>
+            <th>What today looks like</th>
+            <th class="c3">Weight, and what moves it</th>
+          </tr>
+          <tr>
+            <td>Lifestyle</td>
+            <td>
+              Sleep full at 7h 30, two moves of five, calories and protein close
+              to target. 77.
+            </td>
+            <td>0.40 · every entry filed</td>
+          </tr>
+          <tr>
+            <td>Blood</td>
+            <td>
+              Four markers in range, two borderline, one off. In range counts
+              one, borderline a half, off nothing. 71.
+            </td>
+            <td>0.45 · each draw</td>
+          </tr>
+          <tr>
+            <td>Genes</td>
+            <td>Four variants read once in March, fixed since. 63.</td>
+            <td>0.15 · never</td>
+          </tr>
+          <tr>
+            <td>Score</td>
+            <td>0.40 × 77 + 0.45 × 71 + 0.15 × 63 = 72</td>
+            <td>reprints daily</td>
+          </tr>
+        </table>
+
+        <h2 class="dsp d3">The press</h2>
+        <table>
+          <tr>
+            <th class="c1">Rule</th>
+            <th>Build</th>
+            <th class="c3">What it carries</th>
+          </tr>
+          <tr>
+            <td>Two inks, no third value</td>
+            <td>
+              The file holds <code>--paper</code>, <code>--pink</code> and
+              <code>--blue</code>. No black, no grey, no tinted greys: small
+              type is full blue ink, the fields are full pink ink, and the phone
+              frame is a 1.5 px printed rule.
+            </td>
+            <td>
+              What looks like a third colour is an overlap, never a choice.
+            </td>
+          </tr>
+          <tr>
+            <td>The overprint is the page</td>
+            <td>
+              The pink field runs up through the masthead and the numerals are
+              set in blue on top of it, so
+              <code>#231058</code> covers the masthead and the whole score block
+              rather than a hairline of it. Fig. 1's landing and page two's coupon print the
+              same way.
+            </td>
+            <td>The one thing you see first is made of both drums.</td>
+          </tr>
+          <tr>
+            <td>One slip, whole drum</td>
+            <td>
+              <code>translate(2.5px, -2px)</code> on everything the pink drum
+              prints: the two fields, the underprint on every rule and every cut
+              line, the photo tint, the projected bar in Fig. 1.
+            </td>
+            <td>
+              The rules fringe pink on their top edge the whole way down the
+              page. A slipped drum, not a shadow on three headlines.
+            </td>
+          </tr>
+          <tr>
+            <td>One screen, used large</td>
+            <td>
+              8 px pitch, 15°, one dot size, in the CSS and in the SVG pattern.
+              It appears three times: the projected bar, the plate photograph on
+              page two, and the small photographs in the listings.
+            </td>
+            <td>
+              A screen means "not solid ink": the projection is screened, the
+              two draws behind it are not.
+            </td>
+          </tr>
+          <tr>
+            <td>Ink and paper, not fills</td>
+            <td>
+              Every field prints through a 0.6 px blur, with roller streaks
+              letting the stock show through and a cut edge instead of a
+              machined one. The stock carries laid lines at 4 % of the blue.
+            </td>
+            <td>
+              Hierarchy is scale and coverage: three display sizes (104, 40,
+              22), one text face at three sizes, one 6 px spacing scale.
+            </td>
+          </tr>
+        </table>
+
+        <h2 class="dsp d3">Fig. 1</h2>
+        <table>
+          <tr>
+            <th class="c1">Mark</th>
+            <th>Drawn as</th>
+            <th class="c3">Reads as</th>
+          </tr>
+          <tr>
+            <td>168 · 9 Dec 2025 and 131 · 1 Aug 2026</td>
+            <td>
+              solid blue bars, top edge cut off level by a degree, the number
+              knocked out of the ink at the same inset in each
+            </td>
+            <td>two draws that happened</td>
+          </tr>
+          <tr>
+            <td>104 · in eight weeks</td>
+            <td>
+              the same bar on the pink drum, screened rather than solid and
+              slipped with the rest of that drum, the number set in blue inside
+              it so it overprints
+            </td>
+            <td>not a draw, a landing</td>
+          </tr>
+          <tr>
+            <td>Aim under 100</td>
+            <td>
+              one dashed rule across the plate, the only dashed mark in the
+              figure, named in the caption
+            </td>
+            <td>the target, printed once, no axis furniture</td>
+          </tr>
+        </table>
+      </section>
+    </main>
+
+    <script>
+      /* ---------- the three layers, straight from Onion ---------- */
+      const LIFE = {
+        w: 0.4,
+        rows: [
+          { n: "Sleep", s: "7h 30 of 7h 30", p: 100 },
+          { n: "Moves", s: "2 of 5 ticked", p: 40 },
+          { n: "Calories", s: "1 497 of 1 900 kcal", p: 90 },
+          { n: "Protein", s: "93 of 120 g", p: 78 },
+        ],
+      };
+      const BLOOD = {
+        w: 0.45,
+        rows: [
+          { n: "Vitamin D", s: "29 ng/mL · aim 40 to 60", x: 12, st: "rose" },
+          { n: "LDL", s: "131 mg/dL · aim under 100", x: 84, st: "amber" },
+          { n: "ApoB", s: "98 mg/dL · aim under 90", x: 80, st: "amber" },
+          { n: "hs-CRP", s: "0.6 mg/L", x: 30, st: "green" },
+          { n: "HbA1c", s: "5.3 %", x: 45, st: "green" },
+          { n: "Ferritin", s: "64 ng/mL", x: 50, st: "green" },
+          { n: "TPO", s: "18 IU/mL", x: 35, st: "green" },
+        ],
+      };
+      const GENES = {
+        w: 0.15,
+        rows: [
+          { n: "APOE ε3/ε4", s: "LDL responds more to saturated fat", p: 45 },
+          { n: "LPA rs10455872", s: "not carried", p: 100 },
+          { n: "MTHFR C677T", s: "heterozygous · folate form matters", p: 60 },
+          { n: "FTO rs9939609", s: "one copy · appetite", p: 45 },
+        ],
+      };
+      const pct = (rows) =>
+        Math.round(rows.reduce((a, r) => a + r.p, 0) / rows.length);
+      const life = pct(LIFE.rows); // 77
+      const blood = Math.round(
+        (BLOOD.rows.reduce(
+          (a, r) => a + { green: 1, amber: 0.5, rose: 0 }[r.st],
+          0,
+        ) /
+          BLOOD.rows.length) *
+          100,
+      ); // 71
+      const genes = pct(GENES.rows); // 63
+      const score = Math.round(
+        LIFE.w * life + BLOOD.w * blood + GENES.w * genes,
+      ); // 72
+      console.assert(score === 72, "score arithmetic drifted", score);
+
+      const verdict =
+        score >= 80
+          ? "On form"
+          : score >= 65
+            ? "On track"
+            : score >= 50
+              ? "Watch it"
+              : "Act now";
+
+      /* ---------- the receipt, straight from Onion ---------- */
+      const LOG = [
+        {
+          ic: "img",
+          src: "img/08-pork-belly.jpg",
+          n: "Pork belly, salad",
+          s: "7:30 PM · 623 kcal · fat past the day's share",
+          d: -1,
+        },
+        {
+          ic: "walk",
+          n: "Walk after lunch",
+          s: "1:45 PM · 15 min · ticked",
+          d: 2,
+        },
+        {
+          ic: "img",
+          src: "img/08-sardines-rye.jpg",
+          n: "Sardines on rye, kimchi",
+          s: "1:08 PM · 462 kcal · 38 g protein",
+          d: 1,
+        },
+        { ic: "pill", n: "Selenium 200 µg", s: "8:20 AM · ticked", d: 0 },
+        {
+          ic: "img",
+          src: "img/08-oats.jpg",
+          n: "Oats with berries",
+          s: "8:15 AM · 412 kcal · 3 g beta-glucan",
+          d: 1,
+        },
+        { ic: "moon", n: "Sleep", s: "Last night · 7h 30", d: 3 },
+      ];
+
+      /* printed marks: cut shapes in one stroke weight, no scribble */
+      const MARKS = {
+        walk: '<svg viewBox="0 0 54 54" fill="none" stroke="#2334a0" stroke-width="3.5"><path d="M18 45 25 31l8 7 1 8M14 24l9-8 8 3 5 8M25 16l-2 15-9 5"/><rect x="27" y="6" width="8" height="8"/></svg>',
+        pill: '<svg viewBox="0 0 54 54" fill="none" stroke="#2334a0" stroke-width="3.5"><rect x="6" y="20" width="42" height="15" transform="rotate(-45 27 27)"/><path d="m19 24 11 11"/></svg>',
+        moon: '<svg viewBox="0 0 54 54" fill="none" stroke="#2334a0" stroke-width="3.5"><path d="M42 32A15 15 0 0 1 22 12a16 16 0 1 0 20 20Z"/></svg>',
+      };
+
+      /* ---------- pieces ---------- */
+      const barRow = (n, v) => `
+        <div class="bar">
+          <span class="lab ink">${n}</span>
+          <span class="bwrap">
+            <span class="fill ink" style="--w:${v}%"></span>
+            <span class="base ink"></span>
+          </span>
+          <span class="val dsp d3 ink">${v}</span>
+        </div>`;
+
+      /* Fig. 1 — two draws in solid ink, the landing screened on drum two */
+      const fig = (i) => {
+        /* one cut convention for all three bars: top edge off level by a degree */
+        const bar = (x, y) =>
+          `${x},${y} ${x + 96},${(y - 2.4).toFixed(1)} ${x + 97},124 ${x - 1},124.6`;
+        return `
+        <svg viewBox="0 0 330 146" role="img"
+             aria-label="LDL 168 in December 2025, 131 in August 2026, projected 104 in eight weeks">
+          <defs>
+            <pattern id="pp${i}" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(15)">
+              <circle cx="4" cy="4" r="2.6" fill="#ff4d8d"/>
+            </pattern>
+            <filter id="soft${i}" x="-6%" y="-6%" width="112%" height="112%">
+              <feGaussianBlur stdDeviation="0.5"/>
+            </filter>
+          </defs>
+          <style>
+            .fv { font-family:Anton,Archivo,sans-serif; font-size:22px; fill:#efe8d6 }
+            .fp { font-family:Anton,Archivo,sans-serif; font-size:22px; fill:#2334a0; mix-blend-mode:multiply }
+            .fd { font-family:Archivo,sans-serif; font-size:9px; font-weight:700; fill:#2334a0; letter-spacing:0.15em }
+          </style>
+          <g filter="url(#soft${i})">
+            <polygon points="${bar(4, 30)}" fill="#2334a0"/>
+            <polygon points="${bar(116, 54)}" fill="#2334a0"/>
+            <g transform="translate(2.5,-2)">
+              <polygon points="${bar(228, 72)}" fill="url(#pp${i})"/>
+            </g>
+            <path d="M2 122.5 H328 v3 H2 Z" fill="#2334a0"/>
+            <path d="M2 68 H328" stroke="#2334a0" stroke-width="1.5"
+                  stroke-dasharray="7 6" fill="none"/>
+          </g>
+          <text class="fv" x="14" y="52">168</text>
+          <text class="fv" x="126" y="76">131</text>
+          <text class="fp" x="238" y="92">104</text>
+          <text class="fd" x="4" y="138">9 DEC 2025</text>
+          <text class="fd" x="116" y="138">1 AUG 2026</text>
+          <text class="fd" x="228" y="138">IN 8 WEEKS</text>
+          <text class="fd" x="286" y="64">AIM 100</text>
+        </svg>`;
+      };
+
+      const listing = (r) => `
+        <div class="lst">
+          ${
+            r.ic === "img"
+              ? `<span class="duo ink"><img src="${r.src}" alt=""><span class="tint p"></span><span class="dots scr p"></span></span>`
+              : `<span class="mkbox ink">${MARKS[r.ic]}</span>`
+          }
+          <span class="t ink">
+            <b>${r.n}</b>
+            <small class="meta">${r.s}</small>
+          </span>
+          <span class="d ink">${r.d > 0 ? "+" + r.d : r.d}</span>
+        </div>`;
+
+      const masthead = (right) => `
+        <div class="mast solid bleed">
+          <div class="dsp d2">OpenVitals</div>
+          <div class="strap lab">
+            <span>Issue 251</span><span>Tue 9 Sep 2026</span><span>${right}</span>
+          </div>
+        </div>`;
+
+      const folio = (on) => `
+        <div class="folio">
+          <div class="rl ink"></div>
+          <div class="row lab">
+            ${[
+              ["Today", 1, "cover"],
+              ["Body", 4, "cover"],
+              ["Blood", 7, "cover"],
+              ["Contribute", 2, "contribute"],
+            ]
+              .map(
+                ([n, pg, target]) =>
+                  `<span class="fo ink${n.toLowerCase() === on ? " on" : ""}" data-page="${target}">${n} <i>${pg}</i></span>`,
+              )
+              .join("")}
+          </div>
+        </div>`;
+
+      const pageOne = (i) => `
+        <div class="page on" data-p="cover">
+          ${masthead("Razvan, 39")}
+
+          <!-- the hero: one pink field, every mark in it blue, so it overprints -->
+          <div class="lock">
+            <span class="fld cutfld up p"></span>
+            <span class="over">
+              <span class="row">
+                <span class="dsp d1">${score}</span>
+                <span class="col">
+                  <span class="dsp d3">/100</span>
+                  <span class="dsp d3">${verdict}</span>
+                </span>
+              </span>
+              <span class="foot lab">
+                <span>Health score · printed daily</span>
+                <span>PhenoAge 36.2</span>
+              </span>
+            </span>
+          </div>
+
+          <p style="margin-top:var(--s12)" class="ink">
+            Keep this eight weeks and <b>LDL lands near 104</b>, from 131. The
+            walk after lunch and the oats carry most of it.
+          </p>
+          <div class="rl ink" style="margin-top:var(--s12)"></div>
+
+          <div class="bars">
+            ${barRow("Blood", blood)}
+            ${barRow("Lifestyle", life)}
+            ${barRow("Genes", genes)}
+          </div>
+          <p class="meta ink">
+            Weighted .45 blood, .40 lifestyle, .15 genes. Bar length is the
+            layer, printed in one ink.
+          </p>
+          <div class="rl ink" style="margin-top:var(--s12)"></div>
+
+          <div class="blk">
+            <p class="lab ink">Vitamin D · the one marker off</p>
+            <p class="dsp d3 ink">29 ng/mL</p>
+            <p class="meta ink">Aim 40 to 60. Last read 1 Aug 2026.</p>
+          </div>
+          <div class="blk">
+            <p class="lab ink">LDL · borderline</p>
+            <p class="dsp d3 ink">131 mg/dL</p>
+            <p class="meta ink">Aim under 100. Down from 168 in December.</p>
+          </div>
+
+          <div class="fig">
+            ${fig(i)}
+            <p class="figcap meta ink">
+              Fig. 1 · LDL, mg/dL. Two draws in solid ink; the landing screened,
+              on the slipped drum. Dashed rule: aim under 100.
+            </p>
+          </div>
+
+          <div class="rl sec ink" style="margin-top:var(--s18)"></div>
+          <p class="lab ink" style="margin-top:var(--s12)">Today's listings</p>
+          ${LOG.map(
+            (r, k) =>
+              listing(r) +
+              (k < LOG.length - 1 ? '<div class="rl ink"></div>' : ""),
+          ).join("")}
+
+          <div style="margin-top:var(--s18)" data-page="contribute">
+            <div class="cut ink"></div>
+            <p class="dsp d3 ink" style="margin-top:var(--s12)">
+              Contribute to tomorrow's issue
+            </p>
+            <p class="meta ink">
+              Photograph the plate, speak it, or type it. Page two.
+            </p>
+          </div>
+        </div>`;
+
+      const pageTwo = (i) => `
+        <div class="page" data-p="contribute">
+          ${masthead("Page 2")}
+
+          <p class="dsp d2 ink" style="margin-top:var(--s12)">Contribute</p>
+          <p class="ink" style="margin-top:var(--s6)">
+            Today's issue closes at midnight. Three ways to file an entry, and
+            it sets straight into the listings on page one.
+          </p>
+          <div class="rl ink" style="margin-top:var(--s12)"></div>
+
+          <div class="way">
+            <span class="lab ink">One · photograph the plate</span>
+            <p class="ink">
+              One shot, on the table or in the hand. We read the portion and the
+              macros off the picture, and you correct us if we are wrong.
+            </p>
+          </div>
+          <div class="rl ink"></div>
+          <div class="way">
+            <span class="lab ink">Two · speak it</span>
+            <p class="ink">
+              "Salad with olive oil." Fifteen seconds, no form, and it files
+              under the hour you said it.
+            </p>
+          </div>
+          <div class="rl ink"></div>
+          <div class="way">
+            <span class="lab ink">Three · type it</span>
+            <p class="ink">Name and portion. Two words is enough for the listing.</p>
+          </div>
+
+          <div class="rl sec ink"></div>
+          <p class="lab ink" style="margin-top:var(--s12)">
+            Shot at 8:41 PM · sets as
+          </p>
+          <span class="plate ink" style="display:block">
+            <img src="img/08-salad.jpg" alt="" />
+            <span class="tint p"></span>
+            <span class="dots scr p"></span>
+          </span>
+          <div class="platecap lab ink">
+            <span>Salad, olive oil · 214 kcal</span><span>+1 to the score</span>
+          </div>
+
+          <!-- the coupon: the second field, blue type overprinting pink -->
+          <div class="send" data-page="cover">
+            <span class="fld cutfld p"></span>
+            <span class="over">
+              <span class="dsp d2">Send to today</span>
+              <span class="line lab">
+                <span>Tear here to file</span><span>Issue 251 · 11:59 PM</span>
+              </span>
+            </span>
+          </div>
+          <div class="cut ink" style="margin-top:var(--s6)"></div>
+          <p class="meta ink" style="margin-top:var(--s6)">
+            Nothing leaves the phone until you send. Filed today · 6 entries ·
+            1 497 kcal · 93 g protein.
+          </p>
+        </div>`;
+
+      const paper = (i) => `
+        <div class="paper">
+          <div class="head-run lab">
+            <span class="ink">9:41</span>
+            <span class="ink">OpenVitals daily</span>
+          </div>
+          <div class="sheet">
+            ${pageOne(i)}
+            ${pageTwo(i)}
+          </div>
+          ${folio("today")}
+        </div>`;
+
+      document.querySelectorAll(".phone").forEach((ph, i) => {
+        ph.innerHTML = paper(i + 1);
+        const show = (name) => {
+          ph.querySelectorAll(".page").forEach((pg) =>
+            pg.classList.toggle("on", pg.dataset.p === name),
+          );
+          ph.querySelector(".folio").outerHTML = folio(
+            name === "contribute" ? "contribute" : "today",
+          );
+          ph.querySelector(".sheet").scrollTop = 0;
+        };
+        ph.addEventListener("click", (e) => {
+          const b = e.target.closest("[data-page]");
+          if (b) show(b.dataset.page);
+        });
+        if (ph.dataset.page) show(ph.dataset.page);
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,197 @@
+{
+ "Function Health": {
+  "name": "Function Health",
+  "id": 6471280307,
+  "rating": 4.92954,
+  "n": 24454,
+  "shots": [
+   "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/29/9d/3d/299d3d93-9dcc-91f4-247e-c3eff10b73e9/5.5-AppStore-01.png/392x696bb.png",
+   "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/7c/19/cc/7c19cc71-bb62-3739-f661-b5b799100256/5.5-AppStore-02.png/392x696bb.png",
+   "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/e7/34/4e/e7344e26-5721-8e4d-75a6-919f96a8af4a/5.5-AppStore-03.png/392x696bb.png",
+   "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/62/93/d7/6293d785-41d8-3962-5288-aa019bbeb4cc/5.5-AppStore-04.png/392x696bb.png"
+  ],
+  "desc": "Function membership helps you take control of your health with 160+ lab tests each year, personalized Protocols, and Private AI Chat\u2014all backed by advanced science and your real data.   Built with top doctors, Function gives you the power to understand your body, track how it evolves, and make meaningful change.  NOW AVAILABLE: HOME OR OFFICE BLOOD DRAWS Schedule a concierge blood draw at your hom"
+ },
+ "Superpower health": {
+  "name": "Superpower",
+  "id": 6747997159,
+  "rating": 4.88929,
+  "n": 1391,
+  "shots": [
+   "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/fd/20/51/fd205183-adf2-734c-bfef-ada60b302711/App_Store_1.png/320x480bb.jpg",
+   "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/ad/6d/b8/ad6db89e-35f9-3929-d88e-11c88aa3d0b4/App_Store_2.png/320x480bb.jpg",
+   "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/03/e3/ad/03e3ad5d-2741-df1f-7f6d-4384b7e902d5/App_Store_3.png/320x480bb.jpg",
+   "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/04/1a/48/041a4891-2f15-7b8e-2724-76fa1bb154ff/App_Store_4.png/320x480bb.jpg"
+  ],
+  "desc": "Superpower is your home for health. Bring your health data into one secure place and turn it into clear, personalized action.  Superpower combines advanced lab testing, AI-powered insights, and clinician-supported care to help you understand what\u2019s happening in your body and what to do next. Get a complete view of your health and a plan tailored to your goals.  Whether you\u2019re focused on prevention"
+ },
+ "WHOOP": {
+  "name": "WHOOP",
+  "id": 933944389,
+  "rating": 4.8023,
+  "n": 74078,
+  "shots": [
+   "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/87/f9/30/87f930b3-02c7-9f66-d408-4713cd817c1c/EN-iOS-6.9-1320x2868-Vertical-Frame-01.jpg/320x480bb.jpg",
+   "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/3d/7a/9d/3d7a9da7-ad15-9e68-4322-1eabf9a8225f/iOS-6.9-1320x2868-Vertical-Frame_02-SLEEP.png/320x480bb.jpg",
+   "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/5b/5d/89/5b5d89bf-7b3c-6939-cf22-aec89e63c720/iOS-6.9-1320x2868-Vertical-Frame_03-RECOVERY.png/320x480bb.jpg",
+   "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/cc/34/8c/cc348c2f-8785-ffc8-7712-648555163b7e/iOS-6.9-1320x2868-Vertical-Frame_04-STRAIN.png/320x480bb.jpg"
+  ],
+  "desc": "WHOOP is the leading wearable that turns comprehensive health insights into daily action. By capturing dozens of data points every second, WHOOP delivers personalized Sleep, Strain, Recovery, Stress, and health insights\u201424/7. WHOOP uses those insights to provide coaching based on your body\u2019s unique physiology and recommends everything from when to go to bed to new daily behaviors that will help yo"
+ },
+ "Oura": {
+  "name": "Oura",
+  "id": 1043837948,
+  "rating": 4.86338,
+  "n": 294322,
+  "shots": [
+   "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/23/da/33/23da33a6-8ee1-0476-d8cc-9c97219d3658/02_-_AS_-_EN_-__1284x2778_-_Home_view_-_Morning.jpg/320x480bb.jpg",
+   "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/6c/6a/85/6c6a85cb-9fa2-cefe-5ae4-92939459a012/03_-_AS_-_EN_-__1284x2778_-_Vitals_-_Activity.jpg/320x480bb.jpg",
+   "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/16/47/db/1647db84-25a9-cff5-5cc9-5a90ec34b21c/04_-_AS_-_EN_-__1284x2778_-_My_health.jpg/320x480bb.jpg",
+   "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/f6/9d/17/f69d17f0-d638-258f-a8e1-1efd764ac7c7/05_-_AS_-_EN_-__1284x2778_-_Sleep_details.png/320x480bb.jpg"
+  ],
+  "desc": "Meet Oura Ring - the revolutionary smart ring that translates your body\u2019s most meaningful messages to transform how you feel every day.   The award-winning Oura App is your personal health companion, delivering valuable insights and daily recommendations to help you to make health and wellness a daily practice.   THREE DAILY SCORES Your Sleep, Activity, and Readiness scores give you a clear unders"
+ },
+ "Bevel AI Health Coach": {
+  "name": "Bevel: AI Health Coach",
+  "id": 6456176249,
+  "rating": 4.8449,
+  "n": 15804,
+  "shots": [
+   "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/5c/b0/15/5cb01577-0f6b-7da9-94f3-191570bf1f27/App_store_125.jpg/320x480bb.jpg",
+   "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/42/ad/7f/42ad7f25-5d36-e732-0db6-8df0e34e39d8/App_store_451.jpg/320x480bb.jpg",
+   "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/5f/aa/63/5faa639a-4875-955b-5c66-644eb1ca99ad/App_store_452.jpg/320x480bb.jpg",
+   "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/1c/1d/4a/1c1d4a2a-012f-cb4f-1fce-5718b0151e8b/App_store_453.jpg/320x480bb.jpg"
+  ],
+  "desc": "Bevel is the #1 app for improving your health, performance, and longevity, trusted by hundreds of thousands and backed by science.  From sleep and recovery to stress and strength training, Bevel transforms your health data into personalized guidance you can actually use. Whether you're training for something big or just trying to feel better day to day, Bevel helps you move smarter, recover faster"
+ },
+ "ZOE Health": {
+  "name": "ZOE Health: AI Meal Tracker",
+  "id": 1471632228,
+  "rating": 4.77344,
+  "n": 6965,
+  "shots": [
+   "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/e9/f5/d8/e9f5d8c4-e1c9-5721-fce6-8da5136eee1f/SC-1.png/320x480bb.jpg",
+   "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/2b/9b/09/2b9b09d1-491b-cdf6-40e4-d4acdbd4f7a7/SC-2.png/320x480bb.jpg",
+   "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/b0/9d/c5/b09dc51f-435a-87dd-2b4d-aca062848c53/SC-3.png/320x480bb.jpg",
+   "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/4e/9c/8b/4e9c8bc2-a5e5-04e4-05d1-990a5fe91a25/SC-4.png/320x480bb.jpg"
+  ],
+  "desc": "The ZOE App helps you build healthy eating habits, eat more mindfully, and understand your nutrition, one meal at a time. Because what you eat can improve your energy, mood, gut health, and sleep.  Powered by cutting-edge research, AI food scoring, microbiome data, and the world\u2019s largest nutrition study run by ZOE, our app delivers science-backed nutrition insights \u2014 cutting through the noise of "
+ },
+ "Welltory": {
+  "name": "Welltory: Stress & Heart Rate",
+  "id": 1074367771,
+  "rating": 4.73829,
+  "n": 132830,
+  "shots": [
+   "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/70/71/66/7071667e-6cee-02db-bb43-e3bfcad98ec9/01_English.jpg/320x480bb.jpg",
+   "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/26/34/d0/2634d0fb-3a6e-b024-9eb5-4b682f153355/02_English.jpg/320x480bb.jpg",
+   "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/06/30/fe/0630fe97-9721-c6e5-ceb1-c53116d7a800/03_English.jpg/320x480bb.jpg",
+   "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/2d/28/96/2d2896bc-7956-ad41-f376-0be5dbbc73ed/04_English.jpg/320x480bb.jpg"
+  ],
+  "desc": "Finally Understand What's Going On With Your Body  Trusted by 17 million users who want to reconnect with their bodies and feel better, featured by the App Store in Apps We Love, and collaborating with 25+ universities worldwide \u2014 including Harvard Medical School, Arizona State University, and Johns Hopkins \u2014 to advance health science.  \u2014 Your heart knows everything about you. Welltory helps you l"
+ },
+ "MacroFactor": {
+  "name": "MacroFactor - Macro Tracker",
+  "id": 1553503471,
+  "rating": 4.83617,
+  "n": 21860,
+  "shots": [
+   "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/4a/41/1f/4a411fb2-0586-dec3-7af3-2313dfafcf77/iPhone_14_Plus_-_13.png/320x480bb.jpg",
+   "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/2b/ab/2c/2bab2c02-31f5-3b53-59df-6d47d2f75dcf/iPhone_14_Plus_-_22.png/320x480bb.jpg",
+   "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/99/76/c7/9976c705-afb7-92f0-9258-21862fbecf3d/iPhone_14_Plus_-_21.png/320x480bb.jpg",
+   "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/f6/33/da/f633da25-9857-c034-ecf7-52d62e046477/iPhone_14_Plus_-_20.png/320x480bb.jpg"
+  ],
+  "desc": "MacroFactor combines innovative coaching algorithms with proven nutrition and behavioral science to help you reach your diet goals and achieve empowering, sustainable results.  MacroFactor uses a dynamic algorithm to adapt to changes in your metabolism and personalize your macro plan to keep you on track.  Download to start your 7-day trial of this premium, ad-free macro tracker app.   DIET SMARTE"
+ },
+ "Cal AI calorie": {
+  "name": "Cal AI - Calorie Tracker",
+  "id": 6480417616,
+  "rating": 4.80313,
+  "n": 361529,
+  "shots": [
+   "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/66/dd/5c/66dd5cab-7622-7caf-84c1-5fc5c16f5b39/28f8bc10-b990-4c88-be57-5003ba5d6483_SS1Small__U00281_U0029.png/392x696bb.png",
+   "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/33/52/fd/3352fd96-00a2-d63b-9362-f1fdaa21fe31/e93b538a-fce8-4568-94db-b2b5f69644e2_SS2Small__U00282_U0029.png/392x696bb.png",
+   "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/9f/b6/cd/9fb6cdca-5494-1a6e-f352-f7ed45756b38/06c53f71-a783-49ef-aeb8-2716c4a2e083_SS3Small__U00281_U0029.png/392x696bb.png",
+   "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/16/ca/3b/16ca3b16-fdd8-74e6-f0f6-b6070ee8547c/4ff1e0d2-b596-4b09-a8c0-99accd0d5c85_SS2Small__U00283_U0029.png/392x696bb.png"
+  ],
+  "desc": "HOW TO USE CAL AI:  1) Answer lifestyle questions to build your plan  2) Snap a photo of your meal*  3) Get your nutritional breakdown*  If you want to get your dream body, Cal AI will help you get there with less time spent than anyone else.  We aren't another complicated diet app. We want to empower everyone to be confident in their bodies with minimal time spent, but you have to work hard. We w"
+ },
+ "Gentler Streak": {
+  "name": "Gentler Streak Workout Tracker",
+  "id": 1576857102,
+  "rating": 4.70946,
+  "n": 8808,
+  "shots": [
+   "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/fc/43/dc/fc43dc40-f5df-a46d-3799-521f962107df/Valera_English_iPhone1.png/320x480bb.jpg",
+   "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/f7/d1/3f/f7d13f37-7120-0f03-881c-8fe0b8494472/Valera_English_iPhone2.png/320x480bb.jpg",
+   "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/c8/03/00/c80300ac-bd26-aba8-2d35-0e2d56bb8972/Valera_English_iPhone3.png/320x480bb.jpg",
+   "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/4d/d0/7c/4dd07c7b-9b01-e5ac-a29e-ece618aebf74/Valera_English_iPhone10.png/320x480bb.jpg"
+  ],
+  "desc": "Hey, welcome the Gentler Streak - the app that keeps your active life alive! An award-winning health and fitness tracker offers personalized guidance that adapts to your daily capabilities and not the other way around. For those of us who want to move consistently, not constantly.  Built with care by a small indie team.  \u2022 2024 Apple Design Award - Social Impact | 2022 Apple Watch App of the Year "
+ },
+ "Athlytic": {
+  "name": "Athlytic: Fitness & Recovery",
+  "id": 1543571755,
+  "rating": 4.79164,
+  "n": 10952,
+  "shots": [
+   "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/3c/ba/25/3cba25a7-c39f-1315-d97b-4d8e3a3decb2/Athlytic_app_store_assets_iPhone_1320x2868_260714_Artboard-1.png/320x480bb.jpg",
+   "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/fa/fa/b8/fafab895-5ba0-f812-63e9-c1a917dc2b78/Athlytic_app_store_assets_iPhone_1320x2868_260714_Artboard-2.png/320x480bb.jpg",
+   "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/c2/8c/d6/c28cd6b9-58df-2b4d-1203-e2c11b7bafe9/Athlytic_app_store_assets_iPhone_1320x2868_260714_Artboard-3.png/320x480bb.jpg",
+   "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/a5/56/5f/a5565fce-91b0-a883-005b-59fb45d50724/Athlytic_app_store_assets_iPhone_1320x2868_260714_Artboard-4.png/320x480bb.jpg"
+  ],
+  "desc": "Athlytic takes all the data that your Apple Watch collects and translates it into actionable insights.   RECOVERY:  We analyze your heart rate variability and resting heart rate to calculate how recovered you are and ready to train today.  EXERTION and TARGET EXERTION:  We monitor your cardiovascular load 24/7 and each day provide you with a Target Exertion range to stay in if you are training tod"
+ },
+ "Merios": {
+  "name": "Merios: Blood Test & Biomarker",
+  "id": 6760352598,
+  "rating": 5,
+  "n": 1,
+  "shots": [
+   "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/2f/f9/73/2ff9735e-cf23-f93e-f93b-60152db2aabd/01-your-health-measured.png/320x480bb.jpg",
+   "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/17/9a/ca/179acac0-c8c3-9e0b-9b6b-f4c61cee90bf/02-connected-apple-health.png/320x480bb.jpg",
+   "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/8c/59/b6/8c59b6b0-19bc-5e77-b57f-87777f313919/03-scan-decode-understand.png/320x480bb.jpg",
+   "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/84/ba/8d/84ba8db9-551e-4b70-24e9-43622934f66e/04-your-story-finally-legible.png/320x480bb.jpg"
+  ],
+  "desc": "Merios turns your blood test results into clear, actionable health insights \u2014 in seconds.  Simply scan or photograph your lab report. Our AI-powered OCR extracts your biomarkers automatically, then analyzes them against clinical reference ranges to give you a personalized health score and easy-to-understand explanations.  KEY FEATURES  \u2022 Smart Lab Scan \u2014 Take a photo of your blood work and let AI "
+ },
+ "Lumen metabolism": {
+  "name": "Lumen - Metabolic Coach",
+  "id": 1395149502,
+  "rating": 4.59431,
+  "n": 6537,
+  "shots": [
+   "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/0a/6c/a0/0a6ca003-9a8f-dd46-6ce9-9b549e35bdf6/5.5-1.png/392x696bb.png",
+   "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/e6/94/ad/e694adc5-03df-786c-2252-6b82ee451a14/5.5-2.png/392x696bb.png",
+   "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/86/de/86/86de86a7-d709-db8a-0109-bacdd5386698/5.5-3.png/392x696bb.png",
+   "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/73/ec/45/73ec45eb-fa95-3b36-acac-ed0d1b659052/5.5-4.png/392x696bb.png"
+  ],
+  "desc": "Do you want to take control of your metabolism, lose weight, and live a healthier lifestyle? With Lumen\u2019s personalized metabolic coach, you can!    Lumen is the world\u2019s first device to measure whether your body is burning fats or carbs - in a single breath. Say goodbye to guessing and hello to real-time metabolic insights, tailored daily nutrition plans, and recommendations on what to eat and when"
+ },
+ "Ultrahuman": {
+  "name": "Ultrahuman",
+  "id": 1491286709,
+  "rating": 4.52771,
+  "n": 7921,
+  "shots": [
+   "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/7b/e4/aa/7be4aa99-63b8-ceec-5282-119d4191739b/1.png/320x480bb.jpg",
+   "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/b1/7b/cd/b17bcddf-dcad-1e23-92ad-aedc6b4859ea/2.png/320x480bb.jpg",
+   "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/84/c0/4a/84c04a46-472a-166f-1512-7b487ecf1282/4.png/320x480bb.jpg",
+   "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/80/1c/79/801c79e2-1f26-f468-fd42-670dea98ea0b/3.png/320x480bb.jpg"
+  ],
+  "desc": "Ultrahuman helps you measure your health performance by creating a unified dashboard of your health. Using metrics from the Ultrahuman Ring, such as Sleep, Activity, Heart Rate (HR), Heart Rate Variability (HRV), Skin Temperature, and SPO2, we generate actionable scores for sleep quality, physical activity, recovery, and cardiovascular health. This empowers you to decode and effectively improve yo"
+ },
+ "Cronometer": {
+  "name": "Cronometer: Calorie Counter",
+  "id": 1145935738,
+  "rating": 4.77306,
+  "n": 97718,
+  "shots": [
+   "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/a9/d4/b3/a9d4b370-8901-cbd9-4aa4-207940a4d5df/iOS_6.9-8.png/320x480bb.jpg",
+   "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/31/a1/9a/31a19a3f-ae97-ac9b-fc90-db21f685ccf7/iOS_6.9-9.png/320x480bb.jpg",
+   "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/9b/1f/e1/9b1fe121-dedd-263e-ab1a-31958d3e4cfb/Slide_2_-_Iphone.png/320x480bb.jpg",
+   "https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/1e/f1/3f/1ef13f73-da1d-4390-e999-6ea231301020/iOS_6.9-7.png/320x480bb.jpg"
+  ],
+  "desc": "Cronometer is a powerful calorie counter, nutrition tracker, and food diary designed for accuracy.  Track calories, macros, fasting, and 95+ vitamins and minerals with one of the most trusted health and fitness apps available.   Whether you're using Cronometer as a weight loss tracker, macro tracker or overall metabolic health tracker, you'll get clear, reliable science-backed insights into your n"
+ }
+}

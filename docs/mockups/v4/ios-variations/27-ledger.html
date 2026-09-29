@@ -1,0 +1,1087 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Ledger · iOS variation 27 · OpenVitals</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Serif:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        /* two faces, one rule: printed stationery, and what was written on it */
+        --printed: "IBM Plex Serif", Georgia, "Times New Roman", serif;
+        --written: "IBM Plex Mono", ui-monospace, monospace;
+
+        --desk: #34302a;
+        --paper: #f5f0e2;
+        --board: #e6dcc4; /* the book's board, at the foot */
+        --carbon: #dde4d9; /* the slip: a cooler stock than the leaf */
+        --print: #6c8ba4; /* printed before a word was written */
+        --print-2: #b1c5d2; /* the ruling itself */
+        --ink: #1f1d19; /* what was written */
+        --red: #b0362b; /* a debit. nothing else */
+        --stamp: #4c3d7a; /* the examiner's stamp */
+        --pencil: #7c786e; /* memoranda */
+        --p: 20px; /* the pitch, which is the leading */
+        --base: 15px; /* where a baseline falls inside the pitch */
+        --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--desk);
+        color: #ddd6c2;
+        font: 400 15px/24px var(--printed);
+        -webkit-font-smoothing: antialiased;
+      }
+      button {
+        font: inherit;
+        color: inherit;
+        background: none;
+        border: 0;
+        padding: 0;
+        cursor: pointer;
+        -webkit-tap-highlight-color: transparent;
+        text-align: left;
+      }
+      h1,
+      h2,
+      p {
+        margin: 0;
+      }
+
+      /* ---- the desk: documentation, set apart from the product ---- */
+      .doc {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 55px 21px;
+      }
+      .doc > header {
+        margin-bottom: 34px;
+        max-width: 58ch;
+      }
+      .eyebrow {
+        color: #9d947f;
+        font-size: 12px;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+      }
+      .doc h1 {
+        font-size: 40px;
+        font-weight: 400;
+        letter-spacing: 0.01em;
+        margin: 4px 0 8px;
+        color: #f2ecdb;
+      }
+      .lede {
+        color: #c7bfa9;
+        font-size: 16px;
+        line-height: 26px;
+      }
+      .phones {
+        display: flex;
+        gap: 55px;
+        justify-content: center;
+        flex-wrap: wrap;
+      }
+      .cap {
+        display: flex;
+        justify-content: space-between;
+        color: #9d947f;
+        font-size: 12px;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        margin-bottom: 13px;
+        width: 390px;
+      }
+
+      /* ---- phone ---- */
+      .phone {
+        width: 390px;
+        height: 844px;
+        border-radius: 55px;
+        border: 8px solid #14120f;
+        background: var(--paper);
+        box-shadow: 0 34px 55px -34px rgba(0, 0, 0, 0.75);
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        color: var(--ink);
+        font-family: var(--written);
+        font-variant-numeric: tabular-nums;
+      }
+      /* the paper is the first pixel: the chrome never outweighs it */
+      .status {
+        height: 56px;
+        flex: none;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        padding: 0 30px 9px;
+        font-size: 12.5px;
+        letter-spacing: 0.03em;
+        color: rgba(31, 29, 25, 0.62);
+        position: relative;
+        background: var(--paper);
+        z-index: 2;
+      }
+      .status i {
+        position: absolute;
+        left: 50%;
+        top: 13px;
+        width: 112px;
+        height: 31px;
+        border-radius: 18px;
+        background: rgba(31, 29, 25, 0.4);
+        transform: translateX(-50%);
+      }
+
+      .screen {
+        flex: 1;
+        overflow-y: auto;
+        padding: var(--p) 0 8px;
+        scrollbar-width: none;
+        position: relative;
+        background: var(--paper);
+      }
+      .screen::-webkit-scrollbar {
+        display: none;
+      }
+
+      /*
+        One grid, one system. 8 | 36 | 8 | 172 | 8 | 30 | 8 | 44 | 8 | 44 | 8,
+        so the gutter centres are 48 (the margin), 228, 266, 318 and 370.
+        The stationery is printed only where entries are ruled into columns:
+        the head and the foot of the leaf are clear paper, which is why no
+        printed line can ever cross a written word.
+      */
+      .g {
+        display: grid;
+        grid-template-columns: 36px 172px 30px 44px 44px;
+        column-gap: 8px;
+        padding: 0 8px;
+      }
+      .g > * {
+        height: var(--p);
+        line-height: var(--p);
+        font-size: 12px;
+        overflow: hidden;
+        white-space: nowrap;
+        min-width: 0;
+      }
+      .ruled {
+        background-image:
+          linear-gradient(
+            to bottom,
+            transparent 0 var(--base),
+            var(--print-2) var(--base) calc(var(--base) + 1px),
+            transparent calc(var(--base) + 1px) var(--p)
+          ),
+          linear-gradient(var(--print), var(--print)),
+          linear-gradient(var(--print), var(--print)),
+          linear-gradient(var(--print), var(--print)),
+          linear-gradient(var(--print), var(--print)),
+          linear-gradient(var(--print), var(--print)),
+          linear-gradient(var(--print), var(--print));
+        background-size:
+          calc(100% - 49px) var(--p),
+          1px 100%,
+          1px 100%,
+          1px 100%,
+          1px 100%,
+          1px 100%,
+          1px 100%;
+        background-position:
+          49px 0,
+          47px 0,
+          49px 0,
+          228px 0,
+          266px 0,
+          318px 0,
+          370px 0;
+        background-repeat:
+          repeat-y, no-repeat, no-repeat, no-repeat, no-repeat, no-repeat,
+          no-repeat;
+      }
+      .d,
+      .part,
+      .fo,
+      .num {
+        font-family: var(--written);
+      }
+      .num {
+        text-align: right;
+        padding-right: 8px;
+      }
+      .dr {
+        color: var(--red);
+      }
+      .part {
+        padding: 0 6px 0 3px;
+        text-overflow: ellipsis;
+      }
+      .part .pr {
+        color: var(--print);
+      }
+      .fo {
+        text-align: center;
+      }
+      .tot {
+        font-weight: 600;
+      }
+
+      /* the column heads and everything else printed: the other face */
+      .ch {
+        font-family: var(--printed);
+        color: var(--print);
+        font-size: 13px;
+        font-variant: small-caps;
+        letter-spacing: 0.06em;
+      }
+      .ch.c2 {
+        grid-column: 2;
+        padding-left: 3px;
+      }
+      .ch.num {
+        padding-right: 8px;
+      }
+
+      /* rule hierarchy: hairline per row, double under a footing, heavy at a close */
+      .r2,
+      .r3 {
+        grid-column: 2 / -1;
+        position: relative;
+      }
+      .r2::before,
+      .r3::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 9px;
+        border-top: 1px solid var(--ink);
+      }
+      .r2::after {
+        content: "";
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 12px;
+        border-top: 1px solid var(--ink);
+      }
+      .r3::before {
+        border-top-width: 2.5px;
+      }
+      .wide.r2,
+      .wide.r3 {
+        grid-column: 1 / -1;
+      }
+
+      /* ---- the head of the leaf: clear paper ---- */
+      .hl {
+        grid-column: 1 / -1;
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        font-size: 12px;
+      }
+      .hl .pr {
+        font-family: var(--printed);
+        font-size: 13.5px;
+        color: var(--print);
+        font-variant: small-caps;
+        letter-spacing: 0.05em;
+      }
+
+      /* ---- the foot of the leaf: the balance, written last ---- */
+      .bal {
+        grid-column: 1 / -1;
+        height: calc(var(--p) * 4);
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        position: relative;
+      }
+      .bal .lab {
+        font-family: var(--printed);
+        font-size: 15px;
+        font-variant: small-caps;
+        letter-spacing: 0.05em;
+        color: var(--print);
+        line-height: 34px;
+      }
+      .bal .fig {
+        font-size: 64px;
+        line-height: 77px;
+        letter-spacing: 0.01em;
+        padding-right: 8px;
+      }
+      .stamp {
+        position: absolute;
+        left: 128px;
+        top: 10px;
+        border: 2.5px solid var(--stamp);
+        color: var(--stamp);
+        font-family: var(--printed);
+        font-size: 21px;
+        font-weight: 600;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        padding: 5px 14px 4px;
+        line-height: 1.05;
+        transform: rotate(-6.5deg);
+        mix-blend-mode: multiply;
+        filter: url(#inkbleed);
+        -webkit-mask-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='80'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.09' numOctaves='4' seed='7'/><feComponentTransfer><feFuncA type='discrete' tableValues='1 1 1 1 1 0.85 0.15 1 1 0.5'/></feComponentTransfer></filter><rect width='200' height='80' filter='url(%23n)'/></svg>");
+        mask-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='80'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.09' numOctaves='4' seed='7'/><feComponentTransfer><feFuncA type='discrete' tableValues='1 1 1 1 1 0.85 0.15 1 1 0.5'/></feComponentTransfer></filter><rect width='200' height='80' filter='url(%23n)'/></svg>");
+        -webkit-mask-size: 100% 100%;
+        mask-size: 100% 100%;
+      }
+      /* one impression per leaf: the second phone's is struck differently */
+      #p2 .stamp {
+        left: 116px;
+        top: 18px;
+        transform: rotate(-11deg);
+        -webkit-mask-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='80'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.14 0.07' numOctaves='3' seed='23'/><feComponentTransfer><feFuncA type='discrete' tableValues='1 1 0.4 1 1 0.75 1 0.1 1 1'/></feComponentTransfer></filter><rect width='200' height='80' filter='url(%23n)'/></svg>");
+        mask-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='80'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.14 0.07' numOctaves='3' seed='23'/><feComponentTransfer><feFuncA type='discrete' tableValues='1 1 0.4 1 1 0.75 1 0.1 1 1'/></feComponentTransfer></filter><rect width='200' height='80' filter='url(%23n)'/></svg>");
+      }
+
+      /* a memorandum belongs in the margin, under the rule, never in a column */
+      .note {
+        grid-column: 1 / -1;
+        height: calc(var(--p) * 3);
+        white-space: normal;
+        overflow: visible;
+        padding: 0 20px 0 49px;
+        color: var(--pencil);
+        font-family: var(--written);
+        font-size: 12px;
+        line-height: var(--p);
+      }
+      .spacer {
+        grid-column: 1 / -1;
+      }
+
+      /* ---- the foot: the book's board, not printed paper ---- */
+      .tabs {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: 60px;
+        padding: 9px 10px 0;
+        display: flex;
+        align-items: flex-start;
+        background: var(--board);
+        border-top: 1px solid var(--ink);
+        z-index: 2;
+      }
+      .tabs button {
+        flex: 1;
+        position: relative;
+        text-align: center;
+        font-family: var(--printed);
+        font-size: 14px;
+        line-height: var(--p);
+        font-variant: small-caps;
+        letter-spacing: 0.08em;
+        color: #8b8878;
+      }
+      .tabs button.on {
+        color: var(--ink);
+      }
+      .tabs button.on::after {
+        content: "";
+        position: absolute;
+        left: 14px;
+        right: 14px;
+        top: 22px;
+        border-top: 2px solid var(--ink);
+      }
+      .home {
+        position: absolute;
+        left: 50%;
+        bottom: 7px;
+        width: 130px;
+        height: 4px;
+        border-radius: 2px;
+        background: var(--ink);
+        opacity: 0.28;
+        transform: translateX(-50%);
+        z-index: 6;
+      }
+
+      /* ---- the posting slip: a second paper, cooler stock, lying on the book ---- */
+      .veil {
+        position: absolute;
+        inset: 0;
+        background: rgba(52, 48, 42, 0.42);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 300ms var(--ease);
+        z-index: 3;
+      }
+      .slip {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: 253px; /* its top edge lands on a rule of the book beneath */
+        background-color: var(--carbon);
+        padding: 18px 0 0;
+        transform: translateY(104%);
+        transition: transform 420ms var(--ease);
+        z-index: 4;
+        box-shadow:
+          0 -3px 0 rgba(20, 18, 15, 0.1),
+          0 -14px 26px -8px rgba(20, 18, 15, 0.6);
+        -webkit-mask-image: radial-gradient(
+          circle 4px at 7px 0,
+          transparent 0 3.6px,
+          #000 4.2px
+        );
+        mask-image: radial-gradient(
+          circle 4px at 7px 0,
+          transparent 0 3.6px,
+          #000 4.2px
+        );
+        -webkit-mask-size: 14px 100%;
+        mask-size: 14px 100%;
+        -webkit-mask-repeat: repeat-x;
+        mask-repeat: repeat-x;
+      }
+      .slip .ruled {
+        --print-2: #9fb2b6;
+      }
+      .phone.open .veil {
+        opacity: 1;
+        pointer-events: auto;
+      }
+      .phone.open .slip {
+        transform: none;
+      }
+      .slip .hl {
+        font-size: 12px;
+      }
+      .pick {
+        grid-column: 1 / -1;
+        display: flex;
+        gap: 10px;
+        padding-left: 3px;
+        font-family: var(--written);
+        font-size: 12px;
+      }
+      .pick b {
+        font-weight: 400;
+        border: 1px solid var(--ink);
+        padding: 0 7px;
+        line-height: 17px;
+        display: inline-block;
+      }
+      .pick s {
+        text-decoration: none;
+        color: #8d897d;
+        padding: 0 4px;
+      }
+      .post {
+        grid-column: 3 / -1;
+        border: 1.5px solid var(--ink);
+        text-align: center;
+        font-family: var(--printed);
+        font-size: 13px;
+        font-weight: 600;
+        font-variant: small-caps;
+        letter-spacing: 0.14em;
+        line-height: 17px;
+      }
+      .cancel {
+        font-family: var(--written);
+        font-size: 12px;
+      }
+
+      /* ---- notes: documentation, set in the printed face, no ledger rules ---- */
+      .notes {
+        margin: 60px auto 0;
+        max-width: 78ch;
+        font-size: 15px;
+        line-height: 25px;
+        color: #c6bda6;
+      }
+      .notes h2 {
+        font-size: 13px;
+        font-weight: 600;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: #f0e9d8;
+        margin: 34px 0 4px;
+      }
+      .notes table {
+        border-collapse: collapse;
+        width: 100%;
+      }
+      .notes td,
+      .notes th {
+        text-align: left;
+        padding: 4px 22px 4px 0;
+        vertical-align: baseline;
+        border: 0;
+      }
+      .notes th {
+        font-weight: 600;
+        font-size: 13px;
+        color: #efe7d4;
+        padding-bottom: 8px;
+      }
+      .notes td:first-child {
+        white-space: nowrap;
+        color: #efe7d4;
+        width: 1%;
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .slip,
+        .veil {
+          transition: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <svg
+      width="0"
+      height="0"
+      style="position: absolute; width: 0; height: 0"
+      aria-hidden="true"
+    >
+      <filter id="inkbleed" x="-10%" y="-10%" width="120%" height="120%">
+        <feTurbulence
+          type="fractalNoise"
+          baseFrequency="0.55"
+          numOctaves="3"
+          seed="11"
+          result="n"
+        />
+        <feDisplacementMap
+          in="SourceGraphic"
+          in2="n"
+          scale="2.6"
+          xChannelSelector="R"
+          yChannelSelector="G"
+        />
+      </filter>
+    </svg>
+
+    <main class="doc">
+      <header>
+        <p class="eyebrow">iOS variation 27</p>
+        <h1>Ledger</h1>
+        <p class="lede">
+          The day credited and debited, and the score as the balance carried
+          down.
+        </p>
+      </header>
+
+      <section class="phones">
+        <div>
+          <p class="cap">
+            <span>01 · The day's leaf</span><span>tap Post</span>
+          </p>
+          <div class="phone" id="p1"></div>
+        </div>
+        <div>
+          <p class="cap">
+            <span>02 · Posting slip</span><span>the entry</span>
+          </p>
+          <div class="phone open" id="p2"></div>
+        </div>
+      </section>
+
+      <section class="notes">
+        <h2>Two faces, one rule</h2>
+        <table>
+          <tr>
+            <th>Face</th>
+            <th>Carries</th>
+          </tr>
+          <tr>
+            <td>IBM Plex Serif</td>
+            <td>
+              Everything printed on the stationery before a word was written:
+              the running head, the column heads in small caps, the balance
+              label, the book's tabs, the stamp
+            </td>
+          </tr>
+          <tr>
+            <td>IBM Plex Mono</td>
+            <td>
+              Everything written onto it: dates, particulars, folios, and every
+              figure in the money columns, on tabular figures so the decimals
+              stack
+            </td>
+          </tr>
+        </table>
+
+        <h2>The balance, posted as accounts</h2>
+        <table>
+          <tr>
+            <th>Account</th>
+            <th>Today</th>
+            <th>Weight</th>
+            <th>Contribution</th>
+          </tr>
+          <tr>
+            <td>Lifestyle</td>
+            <td>sleep 100, moves 40, kcal 90, protein 78 → 77</td>
+            <td>.40</td>
+            <td>30.80</td>
+          </tr>
+          <tr>
+            <td>Blood</td>
+            <td>7 markers credited 1.00, shortfalls debited 2.00 → 71</td>
+            <td>.45</td>
+            <td>31.95</td>
+          </tr>
+          <tr>
+            <td>Genes</td>
+            <td>4 variants, fixed → 63</td>
+            <td>.15</td>
+            <td>9.45</td>
+          </tr>
+          <tr>
+            <td>Balance</td>
+            <td>footed and carried down at the foot of the leaf</td>
+            <td></td>
+            <td>72.20 → 72</td>
+          </tr>
+        </table>
+
+        <h2>One meaning per ink</h2>
+        <table>
+          <tr>
+            <th>Ink</th>
+            <th>Carries</th>
+          </tr>
+          <tr>
+            <td>Stationery blue</td>
+            <td>
+              printed before a word was written: the ruling, the column rules,
+              the margin rule, the heads, a reference range
+            </td>
+          </tr>
+          <tr>
+            <td>Black</td>
+            <td>written: particulars, dates, folios, credits, the balance</td>
+          </tr>
+          <tr>
+            <td>Red</td>
+            <td>a debit figure, and nothing else on the leaf</td>
+          </tr>
+          <tr>
+            <td>Violet</td>
+            <td>
+              the examiner's stamp, struck once per leaf, tilted, masked with
+              turbulence so the ink breaks, and overprinting the balance
+            </td>
+          </tr>
+          <tr>
+            <td>Pencil</td>
+            <td>a memorandum in the margin. A forecast is never posted</td>
+          </tr>
+        </table>
+
+        <h2>The stationery</h2>
+        <table>
+          <tr>
+            <th>Rule</th>
+            <th>How it is held</th>
+          </tr>
+          <tr>
+            <td>Pitch is leading</td>
+            <td>
+              a 20 px pitch ruled 1 px at 15 px into it, every line box 20 px,
+              so every written baseline lands on a printed rule
+            </td>
+          </tr>
+          <tr>
+            <td>Printed where ruled</td>
+            <td>
+              the ruling and the six column rules are printed on the ledger
+              block only. The head and the foot of the leaf are clear paper, so
+              no printed line can cross a written word, and no head can read as
+              an underlined link
+            </td>
+          </tr>
+          <tr>
+            <td>Columns</td>
+            <td>
+              date 36, particulars 172, folio 30, credit 44, debit 44, in 8 px
+              gutters with the rules down their centres. Particulars are left
+              aligned, one strategy, with the printed reference range set inline
+            </td>
+          </tr>
+          <tr>
+            <td>Rule weights</td>
+            <td>
+              hairline blue under every entry, a black double rule under a
+              footing, a 2.5 px black rule at an account close and under the
+              balance. The rules alone give the chapters
+            </td>
+          </tr>
+          <tr>
+            <td>The margin</td>
+            <td>
+              the double margin rule at 47 and 49 px is the only rule that runs
+              the full block height; the ruling starts to the right of it and
+              never crosses it
+            </td>
+          </tr>
+          <tr>
+            <td>The balance</td>
+            <td>
+              written last, at the foot, on clear paper, 64 px with its baseline
+              on the block's third rule, closed by a double rule and a heavy one
+            </td>
+          </tr>
+          <tr>
+            <td>Blood as double entry</td>
+            <td>
+              each marker credited 1.00, its shortfall debited 0.50 borderline
+              or 1.00 off. The four in range are footed on one line. 7.00
+              against 2.00, net 5.00 of 7, which is the 71 the account posts
+            </td>
+          </tr>
+          <tr>
+            <td>Designed to the height</td>
+            <td>
+              the leaf is 36 pitches from the status bar to the board and fills
+              them: no blank ruled rows at the foot. The slip is 253 px so its
+              perforation lands on a rule of the book beneath, never mid-entry
+            </td>
+          </tr>
+        </table>
+
+        <h2>Motion</h2>
+        <table>
+          <tr>
+            <th>What</th>
+            <th>Moves</th>
+            <th>Duration</th>
+            <th>Trigger</th>
+          </tr>
+          <tr>
+            <td>Slip</td>
+            <td>
+              rises full bleed from the foot, casting a shadow onto the leaf
+            </td>
+            <td>420 ms</td>
+            <td>Post tab</td>
+          </tr>
+          <tr>
+            <td>Veil</td>
+            <td>the leaf beneath dims, no blur</td>
+            <td>300 ms</td>
+            <td>slip opens</td>
+          </tr>
+          <tr>
+            <td>Reduced motion</td>
+            <td>slip and veil cut straight in</td>
+            <td>0</td>
+            <td>system setting</td>
+          </tr>
+        </table>
+      </section>
+    </main>
+
+    <script>
+      // ---- the three accounts (numbers as in 25-onion) ----
+      const LIFE = {
+        w: 0.4,
+        rows: [
+          { n: "Sleep", s: "7h 30 of 7h 30", p: 100 },
+          { n: "Moves", s: "2 of 5 ticked", p: 40 },
+          { n: "Calories", s: "1 497 of 1 900 kcal", p: 90 },
+          { n: "Protein", s: "93 of 120 g", p: 78 },
+        ],
+      };
+      const BLOOD = {
+        w: 0.45,
+        rows: [
+          { n: "Vit D 29 ng/mL", aim: "40–60", x: 12, st: "rose" },
+          { n: "LDL 131 mg/dL", aim: "<100", x: 84, st: "amber" },
+          { n: "ApoB 98 mg/dL", aim: "<90", x: 80, st: "amber" },
+          { n: "hs-CRP 0.6 mg/L", aim: "<1.0", x: 30, st: "green" },
+          { n: "HbA1c 5.3 %", aim: "<5.7", x: 45, st: "green" },
+          { n: "Ferritin 64 ng/mL", aim: "30–300", x: 50, st: "green" },
+          { n: "TPO 18 IU/mL", aim: "<35", x: 35, st: "green" },
+        ],
+      };
+      const GENES = {
+        w: 0.15,
+        rows: [
+          { n: "APOE ε3/ε4", s: "LDL responds more to saturated fat", p: 45 },
+          { n: "LPA rs10455872", s: "not carried", p: 100 },
+          { n: "MTHFR C677T", s: "heterozygous · folate form matters", p: 60 },
+          { n: "FTO rs9939609", s: "one copy · appetite", p: 45 },
+        ],
+      };
+      const pct = (rows) =>
+        Math.round(rows.reduce((a, r) => a + r.p, 0) / rows.length);
+      const CR = { green: 1, amber: 0.5, rose: 0 };
+      const life = pct(LIFE.rows); // 77
+      const bloodCr = BLOOD.rows.reduce((a, r) => a + CR[r.st], 0); // 5.00 net
+      const blood = Math.round((bloodCr / BLOOD.rows.length) * 100); // 71
+      const genes = pct(GENES.rows); // 63
+      const score = Math.round(
+        LIFE.w * life + BLOOD.w * blood + GENES.w * genes,
+      ); // 72
+      console.assert(score === 72, "score arithmetic drifted", score);
+      const verdict =
+        score >= 80
+          ? "Strong"
+          : score >= 65
+            ? "On track"
+            : score >= 50
+              ? "Watch"
+              : "Act";
+
+      // ---- the day book (25-onion's LOG, with a date, a folio, particulars) ----
+      const LOG = [
+        {
+          n: "Pork belly, salad",
+          d: -1,
+          date: "9 Sep",
+          fo: "L2",
+          part: "Pork belly 623 kcal",
+          ord: 8,
+        },
+        {
+          n: "Walk after lunch",
+          d: 2,
+          date: "9 Sep",
+          fo: "L3",
+          part: "Walk, lunch 15 min",
+          ord: 7,
+        },
+        {
+          n: "Sardines on rye, kimchi",
+          d: 1,
+          date: "9 Sep",
+          fo: "L2",
+          part: "Sardines, rye 462 kcal",
+          ord: 6,
+        },
+        {
+          n: "Selenium 200 µg",
+          d: 0,
+          date: "9 Sep",
+          fo: "L4",
+          part: "Selenium 200 µg",
+          ord: 5,
+        },
+        {
+          n: "Oats with berries",
+          d: 1,
+          date: "9 Sep",
+          fo: "L2",
+          part: "Oats, berries 412 kcal",
+          ord: 4,
+        },
+        {
+          n: "Sleep",
+          d: 3,
+          date: "9 Sep",
+          fo: "L1",
+          part: "Sleep, full night 7h30",
+          ord: 3,
+        },
+        {
+          n: "LDL 168 → 131",
+          d: 6,
+          date: "1 Aug",
+          fo: "B1",
+          part: "Draw · LDL 168→131",
+          ord: 1,
+        },
+        {
+          n: "Vitamin D 34 → 29",
+          d: -4,
+          date: "1 Aug",
+          fo: "B1",
+          part: "Draw · Vit D 34→29",
+          ord: 2,
+        },
+        {
+          n: "Next draw",
+          d: null,
+          date: "1 Nov",
+          fo: "B1",
+          part: "Next draw",
+          ord: 9,
+        },
+        {
+          n: "Panel read once",
+          d: null,
+          date: "Mar 26",
+          fo: "G1",
+          part: "Panel read once",
+          ord: 10,
+        },
+      ];
+
+      // the nil posting (selenium, d = 0) stays in the book but off this leaf
+      const posted = LOG.filter((r) => r.d !== null && r.d !== 0).sort(
+        (a, b) => a.ord - b.ord,
+      );
+      const crTotal = posted.reduce((a, r) => a + (r.d > 0 ? r.d : 0), 0); // 13
+      const drTotal = posted.reduce((a, r) => a + (r.d < 0 ? -r.d : 0), 0); // 5
+      const f2 = (n) => n.toFixed(2);
+
+      // ---- every written thing sits inside one column, left aligned ----
+      const row = (d, part, fo, cr, dr, cls = "") => `
+        <span class="d">${d}</span>
+        <span class="part ${cls}">${part}</span>
+        <span class="fo">${fo}</span>
+        <span class="num ${cls}">${cr}</span>
+        <span class="num dr ${cls}">${dr}</span>`;
+
+      const heads = () => `
+        <span class="ch">Date</span><span class="ch c2">Particulars</span>
+        <span class="ch" style="text-align:center">Fo.</span>
+        <span class="ch num">Cr.</span><span class="ch num">Dr.</span>`;
+
+      const accounts = () =>
+        [
+          ["Lifestyle", life, LIFE.w, "L"],
+          ["Blood", blood, BLOOD.w, "B"],
+          ["Genes", genes, GENES.w, "G"],
+        ]
+          .map(([n, v, w, fo]) =>
+            row("", `${n} ${v} × ${w.toFixed(2).slice(1)}`, fo, f2(v * w), ""),
+          )
+          .join("") +
+        row("", "Footing, accounts", "", f2(72.2), "", "tot") +
+        `<span class="r3"></span>`;
+
+      const daybook = () =>
+        posted
+          .map((r) =>
+            row(
+              r.date,
+              r.part,
+              r.fo,
+              r.d > 0 ? f2(r.d) : "",
+              r.d < 0 ? f2(-r.d) : "",
+            ),
+          )
+          .join("") +
+        row("", "Footing, day book", "", f2(crTotal), f2(drTotal), "tot") +
+        `<span class="r3"></span>`;
+
+      // the three that debit are written out; the four in range are footed as one
+      const off = BLOOD.rows.filter((r) => CR[r.st] < 1);
+      const inRange = BLOOD.rows.filter((r) => CR[r.st] === 1);
+      const bloodAcct = () =>
+        `<span class="d">1 Aug</span><span class="ch c2">Blood, the draw</span>
+         <span class="fo"></span><span></span><span></span>` +
+        off
+          .map((r) =>
+            row(
+              "",
+              `${r.n} <span class="pr">(${r.aim})</span>`,
+              "B1",
+              f2(1),
+              f2(1 - CR[r.st]),
+            ),
+          )
+          .join("") +
+        row(
+          "",
+          `${inRange.length} markers in range`,
+          "B1",
+          f2(inRange.length),
+          "",
+        ) +
+        row(
+          "",
+          `Footing, blood = ${blood}`,
+          "",
+          f2(BLOOD.rows.length),
+          f2(BLOOD.rows.length - bloodCr),
+          "tot",
+        ) +
+        `<span class="r3"></span>`;
+
+      // 36 pitches from the status bar to the board, all of them used
+      const page = () => `
+        <div class="g">
+          <span class="hl"><span class="pr">Day book</span><span>Razvan · 9 Sep 2026</span></span>
+          <span class="hl"><span class="pr">Brought forward</span><span>70 · PhenoAge 36.2 at 39</span></span>
+          <span class="r3 wide"></span>
+        </div>
+        <div class="g ruled">
+          ${heads()}
+          ${accounts()}
+          ${daybook()}
+          ${bloodAcct()}
+        </div>
+        <div class="g">
+          <span class="spacer"></span>
+          <div class="bal">
+            <span class="lab">Balance carried down</span>
+            <span class="stamp">${verdict}</span>
+            <span class="fig">${score}</span>
+          </div>
+          <span class="r2 wide"></span>
+          <span class="note">Keep this eight weeks and LDL lands near 104, from 131.</span>
+        </div>`;
+
+      const slip = () => `
+        <div class="veil" data-do="close"></div>
+        <div class="slip">
+          <div class="g">
+            <span class="hl"><span class="pr">Posting slip</span><span class="cancel" data-do="close">Cancel</span></span>
+            <span class="r3 wide"></span>
+            <span class="pick">Written from <b>the photograph</b><s>speak</s><s>by hand</s></span>
+            <span class="spacer"></span>
+          </div>
+          <div class="g ruled">
+            ${heads()}
+            ${row("9 Sep", "Sardines, rye 462 kcal", "L2", "1.00", "")}
+            ${row("", "", "", "", "")}
+          </div>
+          <div class="g">
+            <span class="r2 wide"></span>
+            <span class="note" style="height:var(--p)">Read from the plate, 1:08 PM</span>
+            <span class="spacer"></span>
+            <span></span><span></span>
+            <button class="post" data-do="close">Post it</button>
+          </div>
+        </div>`;
+
+      for (const p of document.querySelectorAll(".phone")) {
+        p.innerHTML = `
+          <div class="status"><span>9:41</span><i></i><span>5G 87%</span></div>
+          <div class="screen">${page()}</div>
+          <div class="tabs">
+            <button class="on">Day book</button>
+            <button>Body</button>
+            <button>Blood</button>
+            <button data-do="open">Post</button>
+          </div>
+          <div class="home"></div>
+          ${slip()}`;
+        p.addEventListener("click", (e) => {
+          const b = e.target.closest("[data-do]");
+          if (b) p.classList.toggle("open", b.dataset.do === "open");
+        });
+      }
+    </script>
+  </body>
+</html>

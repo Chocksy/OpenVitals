@@ -1,0 +1,3566 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Widgets II · iOS variation 47 · OpenVitals</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;600;700;800;900&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --sys-bg: #f2f2f7;
+        --sys-bg-2: #e5e5ea;
+        --ink: #000000;
+        --ink-2: #2c2c30;
+        /* secondary text darkened from #8e8e93 so it holds AA on frosted glass */
+        --ink-3: #4f4f56;
+        --ink-4: rgba(60, 60, 67, 0.28);
+        --sep: rgba(60, 60, 67, 0.14);
+        --blue: #007aff;
+        --green: #34c759;
+        --green-ink: #1a7f37;
+        --orange: #ff9500;
+        --orange-ink: #9a5200;
+        --red: #ff3b30;
+        --red-ink: #c4001a;
+        --indigo: #5856d6;
+        --yellow: #ffcc00;
+        /* Fitness ring colours, tuned for a light widget */
+        --r-life: #fa114f;
+        --r-blood: #8fd400;
+        --r-gene: #12c2e6;
+        --lime: #c8f560;
+        /* glass */
+        --glass: rgba(255, 255, 255, 0.6);
+        --glass-hi: rgba(255, 255, 255, 0.84);
+        --r: 21px;
+        --s3: 3px;
+        --s5: 5px;
+        --s8: 8px;
+        --s13: 13px;
+        --s21: 21px;
+        --s34: 34px;
+        --s55: 55px;
+        --spring: cubic-bezier(0.34, 1.4, 0.64, 1);
+        --zoom: cubic-bezier(0.25, 1.12, 0.4, 1);
+        --round:
+          ui-rounded, "SF Pro Rounded", "Nunito", system-ui, -apple-system,
+          sans-serif;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: #ffffff;
+        color: var(--ink);
+        font: 15px/1.35 var(--round);
+        font-feature-settings: "tnum";
+        -webkit-font-smoothing: antialiased;
+      }
+      button,
+      input {
+        font: inherit;
+        color: inherit;
+        background: none;
+        border: 0;
+        padding: 0;
+        cursor: pointer;
+        -webkit-tap-highlight-color: transparent;
+        text-align: left;
+      }
+      h1,
+      h2,
+      h3,
+      p {
+        margin: 0;
+      }
+      svg {
+        width: 20px;
+        height: 20px;
+        stroke: currentColor;
+        fill: none;
+        stroke-width: 2;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+
+      /* ---- page ---- */
+      .doc {
+        max-width: 1300px;
+        margin: 0 auto;
+        padding: var(--s13) var(--s21) var(--s55);
+      }
+      .doc > header {
+        margin: 0 auto var(--s21);
+        max-width: 1238px;
+      }
+      .doc > header > .lede {
+        max-width: 118ch;
+      }
+      .doc > header .t {
+        display: flex;
+        align-items: baseline;
+        gap: var(--s13);
+      }
+      .eyebrow {
+        color: #6c6c72;
+        font-size: 13px;
+        font-weight: 600;
+        margin-bottom: var(--s5);
+      }
+      .doc h1 {
+        font-size: 34px;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+      }
+      .lede {
+        color: var(--ink-2);
+        margin-top: var(--s8);
+      }
+      .direction {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: var(--s8);
+        margin: 0 auto var(--s21);
+        max-width: 1238px;
+      }
+      .direction div {
+        background: var(--sys-bg);
+        border-radius: var(--s13);
+        padding: var(--s8) var(--s13);
+        font-size: 12.5px;
+        line-height: 1.3;
+        color: var(--ink-2);
+      }
+      .direction b {
+        display: block;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        color: #6c6c72;
+        margin-bottom: var(--s3);
+      }
+      .phones {
+        display: flex;
+        gap: var(--s34);
+        justify-content: center;
+      }
+      .cap {
+        display: flex;
+        justify-content: space-between;
+        gap: var(--s8);
+        color: #6c6c72;
+        font-size: 13px;
+        font-weight: 600;
+        margin-bottom: var(--s8);
+        width: 390px;
+      }
+
+      /* ---- phone ---- */
+      .phone {
+        width: 390px;
+        height: 844px;
+        flex: none;
+        border-radius: 55px;
+        border: 8px solid #1c1c1e;
+        background: #f3d9d0;
+        box-shadow: 0 34px 55px -34px rgba(0, 0, 0, 0.45);
+        position: relative;
+        overflow: hidden;
+        overflow: clip; /* not a scroll container, so scrollIntoView cannot shift the phone */
+        isolation: isolate;
+      }
+
+      /* ---- the wallpaper: soft blobs drifting behind frosted glass ---- */
+      .wall {
+        position: absolute;
+        inset: -21%;
+        z-index: 0;
+        filter: blur(34px) saturate(1.15);
+        background:
+          radial-gradient(60% 45% at 20% 18%, #ffb199 0%, transparent 70%),
+          radial-gradient(55% 45% at 85% 30%, #b8a4ff 0%, transparent 70%),
+          radial-gradient(60% 50% at 25% 75%, #8ee6c4 0%, transparent 70%),
+          radial-gradient(55% 45% at 80% 85%, #8ccbff 0%, transparent 70%),
+          #f7d6cc;
+      }
+      .wall i {
+        position: absolute;
+        border-radius: 50%;
+        opacity: 0.85;
+      }
+      .wall i:nth-child(1) {
+        width: 55%;
+        height: 40%;
+        left: 5%;
+        top: 8%;
+        background: #ff9f8a;
+        animation: drift1 21s ease-in-out infinite alternate;
+      }
+      .wall i:nth-child(2) {
+        width: 50%;
+        height: 38%;
+        right: 2%;
+        top: 22%;
+        background: #a894ff;
+        animation: drift2 26s ease-in-out infinite alternate;
+      }
+      .wall i:nth-child(3) {
+        width: 60%;
+        height: 36%;
+        left: 0;
+        bottom: 12%;
+        background: #7fe0bb;
+        animation: drift3 34s ease-in-out infinite alternate;
+      }
+      .wall i:nth-child(4) {
+        width: 48%;
+        height: 34%;
+        right: 6%;
+        bottom: 4%;
+        background: #7cc2ff;
+        animation: drift2 29s ease-in-out -8s infinite alternate;
+      }
+      .wall i:nth-child(5) {
+        width: 34%;
+        height: 26%;
+        left: 34%;
+        top: 44%;
+        background: #ffd27a;
+        opacity: 0.6;
+        animation: drift1 38s ease-in-out -13s infinite alternate;
+      }
+      @keyframes drift1 {
+        to {
+          transform: translate(21%, 13%) scale(1.13);
+        }
+      }
+      @keyframes drift2 {
+        to {
+          transform: translate(-21%, 21%) scale(0.9);
+        }
+      }
+      @keyframes drift3 {
+        to {
+          transform: translate(13%, -21%) scale(1.2);
+        }
+      }
+
+      .status {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 55px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 3px var(--s34) 0 42px;
+        font-size: 16px;
+        font-weight: 700;
+        z-index: 25;
+        transition: opacity 240ms ease;
+      }
+      .status .sys {
+        display: flex;
+        gap: var(--s5);
+        align-items: center;
+      }
+      .status .sys svg {
+        width: 18px;
+        height: 12px;
+        stroke: none;
+        fill: currentColor;
+      }
+      .status .sys svg.batt {
+        width: 26px;
+      }
+      .phone.live .status {
+        opacity: 0;
+      }
+      .screen {
+        position: absolute;
+        inset: 0;
+        z-index: 1;
+        overflow-y: auto;
+        padding: 102px var(--s21) 130px;
+        scrollbar-width: none;
+        transform-origin: 50% 40%;
+        transition:
+          transform 560ms var(--zoom),
+          filter 400ms ease,
+          opacity 400ms ease;
+      }
+      .screen::-webkit-scrollbar {
+        display: none;
+      }
+      .date {
+        position: absolute;
+        top: 62px;
+        left: var(--s21);
+        right: var(--s21);
+        display: flex;
+        justify-content: space-between;
+        font-size: 13px;
+        font-weight: 800;
+        color: rgba(0, 0, 0, 0.72);
+        z-index: 2;
+      }
+
+      /* ---- the Dynamic Island (from 42) ---- */
+      .island {
+        position: absolute;
+        top: 11px;
+        left: 50%;
+        width: 126px;
+        height: 37px;
+        border-radius: 21px;
+        background: #000;
+        color: #fff;
+        transform: translateX(-50%);
+        z-index: 30;
+        overflow: hidden;
+        transition:
+          width 620ms var(--spring),
+          height 620ms var(--spring),
+          border-radius 620ms var(--spring);
+        box-shadow: 0 8px 21px -8px rgba(0, 0, 0, 0.5);
+      }
+      .phone.live .island {
+        width: 358px;
+        height: 84px;
+        border-radius: 34px;
+      }
+      .island .compact {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0 var(--s13);
+        transition: opacity 200ms ease;
+      }
+      .island .compact svg {
+        width: 21px;
+        height: 21px;
+        stroke: none;
+      }
+      .island .compact b {
+        font-size: 14px;
+        font-weight: 800;
+        color: #ff5c85;
+      }
+      .phone.live .island .compact {
+        opacity: 0;
+      }
+      .island .expanded {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 358px;
+        height: 84px;
+        padding: var(--s13) var(--s21);
+        opacity: 0;
+        transition: opacity 200ms ease;
+      }
+      .phone.live .island .expanded {
+        opacity: 1;
+        transition-delay: 180ms;
+      }
+      .xrow {
+        display: grid;
+        grid-template-columns: 44px 1fr 34px;
+        gap: var(--s13);
+        align-items: center;
+        height: 44px;
+      }
+      .xrow .thumb {
+        width: 44px;
+        height: 44px;
+        border-radius: var(--s13);
+        overflow: hidden;
+        position: relative;
+        background: #1c1c1e;
+      }
+      .xrow .thumb img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+      }
+      .xrow .thumb::after {
+        content: "";
+        position: absolute;
+        left: 0;
+        right: 0;
+        height: 13px;
+        top: -13px;
+        background: linear-gradient(
+          180deg,
+          transparent,
+          rgba(200, 245, 96, 0.75),
+          transparent
+        );
+        animation: scan 1300ms ease-in-out infinite;
+      }
+      .island.done .xrow .thumb::after {
+        display: none;
+      }
+      @keyframes scan {
+        to {
+          top: 44px;
+        }
+      }
+      .xrow .tx {
+        min-width: 0;
+      }
+      .xrow .tx b {
+        display: block;
+        font-size: 15px;
+        font-weight: 800;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .xrow .tx small {
+        display: block;
+        font-size: 12px;
+        font-weight: 600;
+        color: #aeaeb2;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .xrow .tx small em {
+        font-style: normal;
+        color: var(--lime);
+      }
+      .xrow .trail {
+        width: 34px;
+        height: 34px;
+        position: relative;
+      }
+      .xrow .trail svg {
+        width: 34px;
+        height: 34px;
+        transform: rotate(-90deg);
+      }
+      .xrow .trail .pc {
+        position: absolute;
+        inset: 0;
+        display: grid;
+        place-items: center;
+        font-size: 10px;
+        font-weight: 800;
+      }
+      .xrow .trail .ok {
+        position: absolute;
+        inset: 0;
+        border-radius: 50%;
+        background: var(--green);
+        display: grid;
+        place-items: center;
+        transform: scale(0);
+        transition: transform 520ms var(--spring);
+      }
+      .xrow .trail .ok svg {
+        width: 18px;
+        height: 18px;
+        transform: none;
+        stroke: #fff;
+        stroke-width: 3;
+      }
+      .island.done .trail .ok {
+        transform: scale(1);
+      }
+      .xbar {
+        margin-top: var(--s8);
+        height: 5px;
+        border-radius: 3px;
+        background: #2c2c2e;
+        overflow: hidden;
+      }
+      .xbar i {
+        display: block;
+        height: 5px;
+        width: 0;
+        border-radius: 3px;
+        background: var(--lime);
+      }
+      .island.done .xbar i {
+        background: var(--green);
+      }
+
+      /* ---- widgets: frosted glass on the wallpaper ---- */
+      .grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: var(--s13);
+      }
+      .w {
+        background: var(--glass);
+        backdrop-filter: blur(21px) saturate(1.8);
+        -webkit-backdrop-filter: blur(21px) saturate(1.8);
+        box-shadow:
+          inset 0 0 0 1px rgba(255, 255, 255, 0.55),
+          0 8px 21px -13px rgba(40, 20, 60, 0.35);
+        border-radius: var(--r);
+        padding: var(--s13);
+        position: relative;
+        overflow: hidden;
+        cursor: pointer;
+        transition:
+          transform 300ms var(--spring),
+          opacity 220ms ease;
+      }
+      .w:active {
+        transform: scale(0.97);
+      }
+      .w.lift {
+        opacity: 0;
+        transform: scale(1.04);
+      }
+      .w.m,
+      .w.l {
+        grid-column: span 2;
+      }
+      .w.s {
+        height: 159px;
+      }
+      .wh {
+        display: flex;
+        align-items: center;
+        gap: var(--s5);
+        font-size: 13px;
+        font-weight: 800;
+        height: 18px;
+        white-space: nowrap;
+      }
+      .wh svg {
+        width: 15px;
+        height: 15px;
+        stroke-width: 2.4;
+        flex: none;
+      }
+      .wh .r {
+        margin-left: auto;
+        font-weight: 700;
+        color: var(--ink-3);
+      }
+      .num {
+        font-weight: 800;
+        letter-spacing: -0.02em;
+        line-height: 1;
+      }
+      .unit {
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--ink-3);
+        letter-spacing: 0;
+      }
+
+      /* How am I doing: rings in colour on white glass */
+      .score-w .wh svg {
+        color: var(--r-life);
+      }
+      .score-top {
+        display: grid;
+        grid-template-columns: 124px 1fr;
+        gap: var(--s21);
+        align-items: center;
+        margin-top: var(--s8);
+      }
+      .rings {
+        width: 124px;
+        height: 124px;
+        display: block;
+      }
+      .rings .trk {
+        fill: none;
+        stroke-width: 17;
+      }
+      .rings .arc {
+        fill: none;
+        stroke-width: 17;
+        stroke-linecap: round;
+        transition: stroke-dashoffset 1000ms var(--spring);
+      }
+      .rings .arw {
+        stroke: rgba(0, 0, 0, 0.62);
+        stroke-width: 2.6;
+        fill: none;
+      }
+      .score-side .num {
+        font-size: 55px;
+      }
+      .score-side .num .unit {
+        font-size: 17px;
+      }
+      .legend3 {
+        display: flex;
+        flex-direction: column;
+        gap: var(--s3);
+        margin-top: var(--s8);
+      }
+      .legend3 div {
+        display: grid;
+        grid-template-columns: 8px 1fr auto;
+        gap: var(--s5);
+        align-items: center;
+        font-size: 12px;
+        font-weight: 800;
+        color: var(--ink-2);
+      }
+      .legend3 i {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--c);
+      }
+      .legend3 span:last-child {
+        color: var(--ink-3);
+      }
+      .delta-chip {
+        margin-left: auto;
+        font-size: 12px;
+        font-weight: 800;
+        color: var(--green-ink);
+        background: rgba(52, 199, 89, 0.16);
+        border-radius: 999px;
+        padding: 1px var(--s8);
+      }
+
+      /* What I ate: the kcal ring from Streak */
+      .kc-w .wh svg {
+        color: var(--orange);
+      }
+      .kc {
+        position: relative;
+        width: 110px;
+        height: 110px;
+        margin: var(--s8) auto 0;
+      }
+      .kc svg {
+        width: 110px;
+        height: 110px;
+        transform: rotate(-90deg);
+      }
+      .kc circle {
+        stroke-width: 9;
+        fill: none;
+      }
+      .kc .tr {
+        stroke: rgba(255, 149, 0, 0.2);
+      }
+      .kc .fl {
+        stroke: var(--orange);
+        stroke-linecap: round;
+        transition: stroke-dashoffset 900ms var(--spring);
+      }
+      .kc .c {
+        position: absolute;
+        inset: 0;
+        display: grid;
+        place-content: center;
+        text-align: center;
+      }
+      .kc .c b {
+        font-size: 21px;
+        font-weight: 800;
+        letter-spacing: -0.03em;
+        line-height: 1.05;
+      }
+      .kc .c small {
+        font-size: 11px;
+        font-weight: 700;
+        color: var(--ink-3);
+      }
+      .kc .c em {
+        font-style: normal;
+        font-size: 11px;
+        font-weight: 800;
+        color: var(--orange-ink);
+      }
+
+      /* Do next: slide to tick */
+      .next-w .wh svg {
+        color: var(--green-ink);
+      }
+      .pips {
+        margin-left: auto;
+        display: flex;
+        gap: var(--s3);
+      }
+      .pips i {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: rgba(60, 60, 67, 0.22);
+        transition: background 240ms ease;
+      }
+      .pips i.on {
+        background: var(--green);
+      }
+      .mv {
+        margin-top: var(--s8);
+        height: 68px;
+        transition:
+          opacity 260ms ease,
+          filter 260ms ease,
+          transform 260ms ease;
+      }
+      .mv.out {
+        opacity: 0;
+        filter: blur(5px);
+        transform: translateY(-5px);
+      }
+      .mv b {
+        display: block;
+        font-size: 17px;
+        font-weight: 800;
+        line-height: 1.15;
+        letter-spacing: -0.01em;
+      }
+      .mv small {
+        display: block;
+        margin-top: var(--s3);
+        font-size: 12px;
+        font-weight: 700;
+        color: var(--ink-3);
+      }
+      .slide {
+        position: absolute;
+        left: var(--s13);
+        right: var(--s13);
+        bottom: var(--s13);
+        height: 34px;
+        border-radius: 999px;
+        background: rgba(52, 199, 89, 0.16);
+        overflow: hidden;
+        touch-action: none;
+        cursor: default;
+      }
+      .slide .fillx {
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: calc(var(--x, 0px) + 34px);
+        background: rgba(52, 199, 89, 0.28);
+        border-radius: 999px;
+      }
+      .slide .lab {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: var(--s5);
+        padding-left: 34px;
+        font-size: 12px;
+        font-weight: 800;
+        color: var(--green-ink);
+        opacity: calc(1 - var(--k, 0));
+      }
+      .slide .knob {
+        position: absolute;
+        left: 3px;
+        top: 3px;
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        background: #fff;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        display: grid;
+        place-items: center;
+        color: var(--green);
+        transform: translateX(var(--x, 0px));
+        cursor: grab;
+        touch-action: none;
+      }
+      .slide.back .knob,
+      .slide.back .fillx {
+        transition:
+          transform 420ms var(--spring),
+          width 420ms var(--spring);
+      }
+      .slide .knob svg {
+        width: 16px;
+        height: 16px;
+        stroke-width: 3;
+      }
+      .slide .knob path {
+        stroke-dasharray: 1;
+        stroke-dashoffset: 1;
+        opacity: 0;
+      }
+      .slide.done .knob {
+        background: var(--green);
+        color: #fff;
+      }
+      .slide.done .knob path {
+        opacity: 1;
+        stroke-dashoffset: 0;
+        transition:
+          stroke-dashoffset 360ms ease 80ms,
+          opacity 0s 80ms;
+      }
+      .slide.done .fillx {
+        background: rgba(52, 199, 89, 0.5);
+      }
+      .slide .arrowhint {
+        position: absolute;
+        left: 13px;
+        top: 50%;
+        width: 8px;
+        height: 8px;
+        border-right: 2px solid var(--green-ink);
+        border-top: 2px solid var(--green-ink);
+        transform: translateY(-50%) rotate(45deg);
+        opacity: 0;
+      }
+      .slide.off {
+        background: rgba(60, 60, 67, 0.1);
+      }
+      .slide.off .lab {
+        color: var(--ink-3);
+        justify-content: center;
+        padding: 0;
+      }
+
+      /* Where blood is going */
+      .blood-w .wh svg {
+        color: var(--red-ink);
+      }
+      .flag {
+        margin-left: auto;
+        font-size: 11px;
+        font-weight: 800;
+        color: var(--orange-ink);
+        background: rgba(255, 149, 0, 0.16);
+        border-radius: 999px;
+        padding: 1px var(--s8);
+      }
+      .flag.rose {
+        color: var(--red-ink);
+        background: rgba(255, 59, 48, 0.13);
+      }
+      .bl {
+        display: grid;
+        grid-template-columns: 110px 1fr;
+        gap: var(--s13);
+        align-items: end;
+        margin-top: var(--s8);
+        padding-right: var(--s13);
+        transition:
+          opacity 260ms ease,
+          filter 260ms ease;
+      }
+      .bl.out,
+      .bsay.out {
+        opacity: 0;
+        filter: blur(5px);
+      }
+      .bl .nm {
+        font-size: 12px;
+        font-weight: 800;
+        color: var(--ink-2);
+      }
+      .bl .num {
+        font-size: 34px;
+        margin-top: var(--s3);
+      }
+      .bl .aim {
+        display: block;
+        margin-top: var(--s3);
+        font-size: 12px;
+        font-weight: 700;
+        color: var(--ink-3);
+      }
+      .bl svg.spark {
+        width: 100%;
+        height: 58px;
+        display: block;
+        stroke-width: 2.4;
+        overflow: visible;
+      }
+      .spark text {
+        font: 800 10px var(--round);
+        fill: var(--ink-3);
+        stroke: none;
+      }
+      .bsay {
+        margin-top: var(--s8);
+        padding-top: var(--s8);
+        border-top: 1px solid var(--sep);
+        font-size: 13px;
+        font-weight: 800;
+        line-height: 1.3;
+        padding-right: var(--s13);
+        transition:
+          opacity 260ms ease,
+          filter 260ms ease;
+      }
+      .bsay em {
+        font-style: normal;
+        color: var(--green-ink);
+      }
+      .bsay span {
+        color: var(--ink-3);
+      }
+      .sdots {
+        position: absolute;
+        right: 0;
+        top: 34px;
+        bottom: 13px;
+        width: 21px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        gap: var(--s3);
+      }
+      .sdots i {
+        width: 5px;
+        height: 5px;
+        border-radius: 50%;
+        background: rgba(60, 60, 67, 0.25);
+        transition:
+          background 200ms ease,
+          height 300ms var(--spring);
+      }
+      .sdots i.on {
+        background: var(--ink-2);
+        height: 13px;
+        border-radius: 3px;
+      }
+
+      /* Last 13 weeks: the calendar from Streak */
+      .streak-w .wh svg {
+        color: hsl(var(--hue) 70% 32%);
+        fill: hsl(var(--hue) 70% 80%);
+      }
+      .streak-w .wh .r {
+        display: flex;
+        gap: var(--s5);
+        align-items: center;
+      }
+      .hm {
+        position: relative;
+        display: grid;
+        grid-template-columns: 13px repeat(13, var(--cell));
+        grid-template-rows: 13px repeat(7, var(--cell));
+        gap: var(--s5);
+        margin-top: var(--s8);
+        justify-content: start;
+      }
+      .hm .mo {
+        font-size: 10px;
+        font-weight: 700;
+        color: var(--ink-3);
+        white-space: nowrap;
+        line-height: 13px;
+      }
+      .hm .dw {
+        font-size: 10px;
+        font-weight: 700;
+        color: var(--ink-3);
+        line-height: var(--cell);
+      }
+      .cell {
+        width: var(--cell);
+        height: var(--cell);
+        border-radius: 4px;
+        background: var(--c);
+        position: relative;
+        transition:
+          background 600ms ease,
+          opacity 320ms ease,
+          transform 320ms ease;
+        animation: pop 420ms var(--spring) both;
+        animation-delay: var(--d);
+        cursor: pointer;
+      }
+      @keyframes pop {
+        from {
+          transform: scale(0.3);
+          opacity: 0;
+        }
+      }
+      .cell.future {
+        background: none;
+        box-shadow: inset 0 0 0 1px rgba(60, 60, 67, 0.25);
+        cursor: default;
+      }
+      .cell.draw::after {
+        content: "";
+        position: absolute;
+        inset: calc(var(--cell) * 0.32);
+        border-radius: 50%;
+        background: #fff;
+      }
+      .cell.today {
+        z-index: 2;
+        transform: scale(var(--ts));
+        box-shadow: 0 0 0 1.2px #fff;
+        display: grid;
+        place-items: center;
+        font-size: 8px;
+        font-weight: 800;
+        color: #fff;
+        animation:
+          pop 420ms var(--spring) both,
+          beat 2.4s ease 1.4s infinite;
+        animation-delay: var(--d), 1.4s;
+      }
+      .cell.today::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        border-radius: 4px;
+        box-shadow: 0 0 0 0 var(--c);
+        animation: ring 2.4s ease 1.4s infinite;
+      }
+      @keyframes beat {
+        0%,
+        100% {
+          transform: scale(var(--ts));
+        }
+        12% {
+          transform: scale(calc(var(--ts) * 1.08));
+        }
+      }
+      @keyframes ring {
+        0% {
+          box-shadow: 0 0 0 0 var(--c);
+          opacity: 0.8;
+        }
+        70%,
+        100% {
+          box-shadow: 0 0 0 8px var(--c);
+          opacity: 0;
+        }
+      }
+      .phone.instant .zc .cell:not(.today) {
+        animation: none;
+      }
+      .phone.instant .zc .cell.today {
+        animation: beat 2.4s ease 1.4s infinite;
+      }
+      .hm .cell.on:not(.today) {
+        transform: scale(1.25);
+        box-shadow:
+          0 0 0 2px #fff,
+          0 0 0 3.5px var(--ink);
+        z-index: 1;
+      }
+      .hlegend {
+        margin-top: var(--s8);
+        display: flex;
+        align-items: center;
+        gap: var(--s3);
+        font-size: 10.5px;
+        font-weight: 700;
+        color: var(--ink-3);
+      }
+      .hlegend i {
+        width: 11px;
+        height: 11px;
+        border-radius: 3px;
+      }
+      .hlegend .gap {
+        flex: 1;
+      }
+      .hlegend .dot {
+        width: 11px;
+        height: 11px;
+        border-radius: 3px;
+        background: var(--ink-3);
+        position: relative;
+      }
+      .hlegend .dot::after {
+        content: "";
+        position: absolute;
+        inset: 3.5px;
+        border-radius: 50%;
+        background: #fff;
+      }
+      .flame-pop svg {
+        animation: flame 700ms var(--spring);
+      }
+      @keyframes flame {
+        40% {
+          transform: scale(1.4) rotate(-8deg);
+        }
+      }
+
+      /* Plates */
+      .meals-w .wh svg {
+        color: var(--orange);
+      }
+      .meals {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: var(--s8);
+        margin-top: var(--s8);
+      }
+      .meal {
+        border-radius: var(--s13);
+        transition:
+          opacity 220ms ease,
+          transform 300ms var(--spring);
+      }
+      .meal:active {
+        transform: scale(0.95);
+      }
+      .meal.lift {
+        opacity: 0;
+      }
+      .meal .ph {
+        height: 72px;
+        border-radius: var(--s13);
+        overflow: hidden;
+        position: relative;
+        background: var(--sys-bg);
+      }
+      .meal .ph img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+      }
+      .meal .ph .reading {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(
+          100deg,
+          transparent 30%,
+          rgba(255, 255, 255, 0.55) 50%,
+          transparent 70%
+        );
+        background-size: 250% 100%;
+        animation: shimmer 1300ms linear infinite;
+        opacity: 0;
+        transition: opacity 240ms ease;
+      }
+      .phone.reading-pork .meal.pork .reading {
+        opacity: 1;
+      }
+      @keyframes shimmer {
+        from {
+          background-position: 100% 0;
+        }
+        to {
+          background-position: -50% 0;
+        }
+      }
+      .meal .ph .q {
+        position: absolute;
+        right: var(--s5);
+        top: var(--s5);
+        font-size: 10px;
+        font-weight: 800;
+        color: #fff;
+        background: rgba(0, 0, 0, 0.55);
+        border-radius: 999px;
+        padding: 0 var(--s5);
+      }
+      .meal .cap2 {
+        display: flex;
+        justify-content: space-between;
+        margin-top: var(--s5);
+        font-size: 12px;
+        font-weight: 800;
+      }
+      .meal .cap2 span:first-child {
+        color: var(--ink-3);
+      }
+      .meal.empty .ph {
+        display: grid;
+        place-items: center;
+        background: rgba(255, 255, 255, 0.4);
+        box-shadow: inset 0 0 0 1.5px rgba(60, 60, 67, 0.2);
+        color: var(--ink-3);
+        font-size: 12px;
+        font-weight: 800;
+      }
+
+      .pagedots {
+        display: flex;
+        justify-content: center;
+        gap: var(--s8);
+        margin-top: var(--s21);
+      }
+      .pagedots i {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: rgba(0, 0, 0, 0.2);
+      }
+      .pagedots i:first-child {
+        background: rgba(0, 0, 0, 0.6);
+      }
+
+      /* ---- tab bar, glass ---- */
+      .tabs {
+        position: absolute;
+        left: var(--s13);
+        right: var(--s13);
+        bottom: var(--s21);
+        display: flex;
+        gap: var(--s8);
+        align-items: center;
+        z-index: 5;
+        transition: opacity 300ms ease;
+      }
+      .tabs .bar {
+        flex: 1;
+        height: 62px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.62);
+        backdrop-filter: blur(21px) saturate(1.8);
+        -webkit-backdrop-filter: blur(21px) saturate(1.8);
+        box-shadow:
+          inset 0 0 0 1px rgba(255, 255, 255, 0.7),
+          0 8px 21px -8px rgba(0, 0, 0, 0.22);
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        padding: var(--s5);
+      }
+      .tabs .bar button {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 2px;
+        font-size: 10px;
+        font-weight: 800;
+        color: var(--ink-2);
+        border-radius: 999px;
+      }
+      .tabs .bar button svg {
+        width: 21px;
+        height: 21px;
+      }
+      .tabs .bar button.on {
+        background: rgba(118, 118, 128, 0.16);
+        color: #0062cc;
+      }
+      .tabs .plus {
+        width: 62px;
+        height: 62px;
+        border-radius: 50%;
+        background: var(--lime);
+        box-shadow:
+          inset 0 0 0 1px rgba(255, 255, 255, 0.5),
+          0 8px 21px -8px rgba(0, 0, 0, 0.3);
+        display: grid;
+        place-items: center;
+        color: #000;
+      }
+      .tabs .plus svg {
+        width: 26px;
+        height: 26px;
+        stroke-width: 2.6;
+      }
+      .homebar {
+        position: absolute;
+        left: 50%;
+        bottom: 8px;
+        width: 134px;
+        height: 5px;
+        border-radius: 3px;
+        background: #000;
+        transform: translateX(-50%);
+        z-index: 26;
+      }
+
+      /* ---- the zoom: a widget grows into its detail view ---- */
+      .phone.zoomed .screen {
+        transform: scale(0.92);
+        filter: blur(5px);
+        opacity: 0.55;
+      }
+      .phone.zoomed .tabs,
+      .phone.zoomed .date {
+        opacity: 0;
+        pointer-events: none;
+      }
+      .zv {
+        position: absolute;
+        inset: 0;
+        z-index: 15;
+        background: var(--glass-hi);
+        backdrop-filter: blur(34px) saturate(1.8);
+        -webkit-backdrop-filter: blur(34px) saturate(1.8);
+        transition: clip-path 560ms var(--zoom);
+      }
+      .zc {
+        position: absolute;
+        inset: 0;
+        overflow-y: auto;
+        scrollbar-width: none;
+        padding: 62px var(--s21) var(--s55);
+        transition:
+          opacity 300ms ease,
+          transform 560ms var(--zoom);
+      }
+      .zc::-webkit-scrollbar {
+        display: none;
+      }
+      .phone.instant .zv,
+      .phone.instant .zc,
+      .phone.instant .screen,
+      .phone.instant .w,
+      .phone.instant .meal {
+        transition: none !important;
+      }
+      .zx {
+        position: absolute;
+        top: 58px;
+        right: var(--s21);
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        background: rgba(118, 118, 128, 0.2);
+        display: grid;
+        place-items: center;
+        z-index: 3;
+        transition: opacity 200ms ease;
+      }
+      .zx svg {
+        width: 16px;
+        height: 16px;
+        stroke-width: 2.8;
+      }
+      .zt {
+        font-size: 13px;
+        font-weight: 800;
+        color: var(--ink-3);
+        display: flex;
+        align-items: center;
+        gap: var(--s5);
+        height: 21px;
+      }
+      .zt svg {
+        width: 15px;
+        height: 15px;
+      }
+      .zh {
+        font-size: 28px;
+        font-weight: 900;
+        letter-spacing: -0.02em;
+        line-height: 1.1;
+        margin-top: var(--s3);
+        padding-right: var(--s34);
+      }
+      .zsub {
+        margin-top: var(--s5);
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--ink-3);
+      }
+      .card {
+        margin-top: var(--s13);
+        background: rgba(255, 255, 255, 0.78);
+        border-radius: var(--s13);
+        padding: var(--s13);
+      }
+      .card h3 {
+        font-size: 13px;
+        font-weight: 800;
+        color: var(--ink-3);
+        margin-bottom: var(--s8);
+      }
+      .row {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: var(--s8);
+        align-items: center;
+        font-size: 14px;
+        font-weight: 800;
+        padding: var(--s5) 0;
+      }
+      .row + .row {
+        border-top: 1px solid var(--sep);
+      }
+      .row small {
+        display: block;
+        font-size: 12px;
+        font-weight: 700;
+        color: var(--ink-3);
+      }
+      .row .v {
+        font-size: 15px;
+        text-align: right;
+      }
+      .bar5 {
+        height: 5px;
+        border-radius: 3px;
+        background: rgba(60, 60, 67, 0.12);
+        overflow: hidden;
+        margin-top: var(--s3);
+      }
+      .bar5 i {
+        display: block;
+        height: 5px;
+        border-radius: 3px;
+        background: var(--c);
+        width: var(--w);
+        transition: width 600ms var(--spring);
+      }
+      .rail {
+        position: relative;
+        height: 5px;
+        border-radius: 3px;
+        background: linear-gradient(
+          90deg,
+          #34c759 0 55%,
+          #ffcc00 55% 78%,
+          #ff6b5e 78%
+        );
+        margin-top: var(--s5);
+        opacity: 0.9;
+      }
+      .rail i {
+        position: absolute;
+        top: 50%;
+        width: 11px;
+        height: 11px;
+        border-radius: 50%;
+        background: #fff;
+        box-shadow: 0 0 0 2.5px var(--ink);
+        transform: translate(-50%, -50%);
+        left: var(--x);
+      }
+      .rail.rev {
+        background: linear-gradient(
+          90deg,
+          #ff6b5e 0 22%,
+          #ffcc00 22% 36%,
+          #34c759 36%
+        );
+      }
+      .mvrow {
+        display: grid;
+        grid-template-columns: 28px 1fr auto;
+        gap: var(--s13);
+        align-items: center;
+        width: 100%;
+        padding: var(--s8) 0;
+      }
+      .mvrow + .mvrow {
+        border-top: 1px solid var(--sep);
+      }
+      .mvrow .b {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        box-shadow: inset 0 0 0 2px var(--green);
+        display: grid;
+        place-items: center;
+        color: #fff;
+        transition: background 220ms ease;
+      }
+      .mvrow .b svg {
+        width: 16px;
+        height: 16px;
+        stroke-width: 3;
+        opacity: 0;
+      }
+      .mvrow.on .b {
+        background: var(--green);
+      }
+      .mvrow.on .b svg {
+        opacity: 1;
+      }
+      .mvrow b {
+        display: block;
+        font-size: 15px;
+        font-weight: 800;
+      }
+      .mvrow small {
+        display: block;
+        font-size: 12px;
+        font-weight: 700;
+        color: var(--ink-3);
+      }
+      .mvrow em {
+        font-style: normal;
+        font-size: 12px;
+        font-weight: 800;
+        color: var(--green-ink);
+      }
+      .bigproj svg {
+        width: 100%;
+        height: 120px;
+        display: block;
+        overflow: visible;
+      }
+      .bigproj text {
+        font: 800 10px var(--round);
+        fill: var(--ink-3);
+        stroke: none;
+      }
+      .bigproj text.big {
+        font-size: 13px;
+        fill: var(--green-ink);
+      }
+      .say {
+        font-size: 17px;
+        font-weight: 800;
+        line-height: 1.25;
+        letter-spacing: -0.01em;
+      }
+      .say em {
+        font-style: normal;
+        color: var(--green-ink);
+      }
+      .dayinfo {
+        margin-top: var(--s13);
+        min-height: 89px;
+      }
+      .dayinfo .d {
+        font-size: 12px;
+        font-weight: 800;
+        color: var(--ink-3);
+      }
+      .dayinfo .s {
+        display: flex;
+        align-items: baseline;
+        gap: var(--s8);
+        margin-top: var(--s3);
+      }
+      .dayinfo .s b {
+        font-size: 34px;
+        font-weight: 900;
+        letter-spacing: -0.03em;
+        line-height: 1;
+      }
+      .dayinfo .s i {
+        width: 11px;
+        height: 11px;
+        border-radius: 3px;
+        background: var(--c);
+        align-self: center;
+      }
+      .dayinfo .why {
+        margin-top: var(--s5);
+        font-size: 13px;
+        font-weight: 800;
+      }
+      .dayinfo .why span {
+        color: var(--ink-3);
+      }
+
+      /* meal edit */
+      .zc.mealv {
+        padding-top: 0;
+      }
+      .hero {
+        margin: 0 calc(var(--s21) * -1);
+        height: 262px;
+        position: relative;
+        overflow: hidden;
+      }
+      .hero img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+        animation: kb 13s ease-in-out infinite alternate;
+      }
+      @keyframes kb {
+        to {
+          transform: scale(1.08) translate(-2%, 1%);
+        }
+      }
+      .hero::after {
+        content: "";
+        position: absolute;
+        inset: auto 0 0 0;
+        height: 89px;
+        background: linear-gradient(180deg, transparent, rgba(0, 0, 0, 0.55));
+      }
+      .hero .ht {
+        position: absolute;
+        left: var(--s21);
+        right: var(--s21);
+        bottom: var(--s13);
+        z-index: 1;
+        color: #fff;
+      }
+      .hero .ht b {
+        display: block;
+        font-size: 24px;
+        font-weight: 900;
+        letter-spacing: -0.02em;
+        line-height: 1.1;
+      }
+      .hero .ht small {
+        font-size: 13px;
+        font-weight: 700;
+        opacity: 0.92;
+      }
+      .zv.mealz .zx {
+        background: rgba(0, 0, 0, 0.45);
+        color: #fff;
+      }
+      .portion {
+        display: grid;
+        grid-template-columns: 44px 1fr 44px;
+        gap: var(--s13);
+        align-items: center;
+      }
+      .portion button {
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        background: rgba(118, 118, 128, 0.16);
+        display: grid;
+        place-items: center;
+        transition: transform 300ms var(--spring);
+      }
+      .portion button:active {
+        transform: scale(0.9);
+      }
+      .portion button[disabled] {
+        opacity: 0.35;
+        cursor: default;
+      }
+      .portion .pv {
+        text-align: center;
+      }
+      .portion .pv b {
+        display: block;
+        font-size: 24px;
+        font-weight: 900;
+        letter-spacing: -0.02em;
+      }
+      .portion .pv small {
+        font-size: 12px;
+        font-weight: 700;
+        color: var(--ink-3);
+      }
+      .pk {
+        display: inline-block;
+        animation: bump 420ms var(--spring);
+      }
+      @keyframes bump {
+        from {
+          transform: scale(0.8);
+          opacity: 0.4;
+        }
+      }
+      .acts {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: var(--s8);
+        margin-top: var(--s13);
+      }
+      .act {
+        height: 48px;
+        border-radius: var(--s13);
+        background: rgba(255, 255, 255, 0.78);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: var(--s8);
+        font-size: 15px;
+        font-weight: 800;
+        color: #0062cc;
+      }
+      .act.del {
+        color: var(--red-ink);
+      }
+      .act svg {
+        width: 18px;
+        height: 18px;
+      }
+      .fix {
+        display: none;
+      }
+      .fix.on {
+        display: block;
+        animation: bump 360ms var(--spring);
+      }
+      .fix .chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--s8);
+      }
+      .fix .chips button {
+        padding: var(--s5) var(--s13);
+        border-radius: 999px;
+        background: rgba(118, 118, 128, 0.14);
+        font-size: 13px;
+        font-weight: 800;
+      }
+      .fix .chips button.on {
+        background: #0062cc;
+        color: #fff;
+      }
+      .fix .go {
+        margin-top: var(--s13);
+        display: none;
+        width: 100%;
+        height: 44px;
+        border-radius: 999px;
+        background: #0062cc;
+        color: #fff;
+        font-weight: 800;
+        text-align: center;
+      }
+      .fix.has .go {
+        display: block;
+        animation: bump 360ms var(--spring);
+      }
+      .fixnote {
+        margin-top: var(--s8);
+        font-size: 13px;
+        font-weight: 800;
+        color: var(--green-ink);
+      }
+      .confirm {
+        display: none;
+        margin-top: var(--s13);
+        background: rgba(255, 59, 48, 0.1);
+        border-radius: var(--s13);
+        padding: var(--s13);
+        font-size: 14px;
+        font-weight: 800;
+      }
+      .confirm.on {
+        display: block;
+        animation: bump 360ms var(--spring);
+      }
+      .confirm .acts {
+        margin-top: var(--s8);
+      }
+      .confirm .act.del {
+        background: var(--red);
+        color: #fff;
+      }
+
+      /* ---- add sheet (from 42, frosted) ---- */
+      .veil {
+        position: absolute;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.12);
+        backdrop-filter: blur(13px);
+        -webkit-backdrop-filter: blur(13px);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 320ms ease;
+        z-index: 18;
+      }
+      .sheet {
+        position: absolute;
+        left: var(--s8);
+        right: var(--s8);
+        bottom: var(--s8);
+        background: rgba(255, 255, 255, 0.86);
+        backdrop-filter: blur(34px) saturate(1.8);
+        -webkit-backdrop-filter: blur(34px) saturate(1.8);
+        border-radius: 34px;
+        padding: var(--s8) var(--s21) var(--s21);
+        box-shadow: 0 34px 55px -21px rgba(0, 0, 0, 0.4);
+        transform: translateY(110%);
+        transition: transform 560ms var(--spring);
+        z-index: 20;
+      }
+      .phone.open .veil {
+        opacity: 1;
+        pointer-events: auto;
+      }
+      .phone.open .sheet {
+        transform: none;
+      }
+      .grab {
+        width: 36px;
+        height: 5px;
+        border-radius: 3px;
+        background: rgba(60, 60, 67, 0.3);
+        margin: 0 auto var(--s8);
+      }
+      .nav {
+        display: grid;
+        grid-template-columns: 1fr auto 1fr;
+        align-items: center;
+        height: 34px;
+      }
+      .nav .cancel {
+        color: #0062cc;
+        font-size: 17px;
+        font-weight: 600;
+      }
+      .nav h2 {
+        font-size: 17px;
+        font-weight: 800;
+      }
+      .send {
+        justify-self: end;
+        display: flex;
+        align-items: center;
+        gap: var(--s5);
+        height: 34px;
+        padding: 0 var(--s13) 0 var(--s5);
+        border-radius: 999px;
+        background: #0062cc;
+        color: #fff;
+        font-size: 15px;
+        font-weight: 800;
+        opacity: 0;
+        transform: scale(0.6);
+        pointer-events: none;
+        transition:
+          opacity 200ms ease,
+          transform 420ms var(--spring);
+      }
+      .send svg {
+        width: 24px;
+        height: 24px;
+        stroke-width: 2.6;
+      }
+      .sheet.has .send {
+        opacity: 1;
+        transform: none;
+        pointer-events: auto;
+      }
+      .modes {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: var(--s8);
+        margin-top: var(--s13);
+      }
+      .mode {
+        height: 104px;
+        border-radius: var(--r);
+        background: rgba(118, 118, 128, 0.12);
+        padding: var(--s13);
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        transition:
+          background 240ms ease,
+          color 240ms ease,
+          transform 300ms var(--spring);
+      }
+      .mode:active {
+        transform: scale(0.95);
+      }
+      .mode .gl {
+        width: 42px;
+        height: 42px;
+        border-radius: 50%;
+        background: #fff;
+        display: grid;
+        place-items: center;
+        color: var(--c);
+      }
+      .mode .gl svg {
+        width: 21px;
+        height: 21px;
+      }
+      .mode b {
+        display: block;
+        font-size: 15px;
+        font-weight: 800;
+      }
+      .mode small {
+        display: block;
+        font-size: 11px;
+        font-weight: 700;
+        color: var(--ink-3);
+      }
+      .mode.on {
+        background: var(--c);
+        color: #fff;
+      }
+      .mode.on small {
+        color: rgba(255, 255, 255, 0.9);
+      }
+      .field {
+        margin-top: var(--s13);
+        min-height: 55px;
+        border-radius: var(--s13);
+        background: rgba(118, 118, 128, 0.12);
+        padding: var(--s8) var(--s13);
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: var(--s8);
+      }
+      .field input {
+        flex: 1;
+        min-width: 180px;
+        height: 34px;
+        font-size: 15px;
+        font-weight: 700;
+        outline: none;
+        cursor: text;
+      }
+      .field input::placeholder {
+        color: #6c6c72;
+      }
+      .shots {
+        display: flex;
+        gap: var(--s8);
+      }
+      .shot {
+        width: 55px;
+        height: 55px;
+        border-radius: var(--s13);
+        overflow: hidden;
+        position: relative;
+        animation: bump 420ms var(--spring);
+      }
+      .shot img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+      }
+      .wave {
+        display: none;
+        align-items: center;
+        gap: var(--s3);
+        height: 34px;
+      }
+      .sheet.listening .wave {
+        display: flex;
+      }
+      .wave i {
+        width: 3px;
+        height: 8px;
+        border-radius: 2px;
+        background: var(--red);
+        animation: wv 700ms ease-in-out infinite alternate;
+      }
+      @keyframes wv {
+        to {
+          height: 26px;
+        }
+      }
+      .again {
+        margin-top: var(--s21);
+      }
+      .again > span {
+        font-size: 13px;
+        font-weight: 800;
+        color: var(--ink-3);
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+      }
+      .chips {
+        display: flex;
+        gap: var(--s8);
+        margin-top: var(--s8);
+        flex-wrap: wrap;
+      }
+      .chip {
+        display: flex;
+        align-items: center;
+        gap: var(--s8);
+        padding: var(--s3) var(--s13) var(--s3) var(--s3);
+        border-radius: 999px;
+        background: rgba(118, 118, 128, 0.12);
+        font-size: 13px;
+        font-weight: 800;
+      }
+      .chip img {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        object-fit: cover;
+      }
+      .sheet .note {
+        margin-top: var(--s13);
+        font-size: 12px;
+        font-weight: 700;
+        color: var(--ink-3);
+      }
+
+      /* ---- notes ---- */
+      .notes {
+        margin: var(--s55) auto 0;
+        max-width: 80ch;
+        font-size: 13px;
+        color: var(--ink-2);
+      }
+      .notes h2 {
+        font-size: 15px;
+        font-weight: 800;
+        color: var(--ink);
+        margin-bottom: var(--s8);
+      }
+      .notes table {
+        border-collapse: collapse;
+        width: 100%;
+        margin: var(--s8) 0 var(--s21);
+      }
+      .notes td,
+      .notes th {
+        text-align: left;
+        padding: var(--s5) var(--s8) var(--s5) 0;
+        border-bottom: 1px solid var(--sep);
+        vertical-align: top;
+      }
+      .notes th {
+        font-weight: 800;
+        color: var(--ink);
+      }
+      #assert {
+        margin-bottom: var(--s21);
+        font-size: 12px;
+        font-weight: 800;
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          animation: none !important;
+          transition: none !important;
+        }
+      }
+      /* ambient clip from gen-video.sh (fal.ai Seedance): plays once on open, then rests on its last frame */
+      .phone { isolation: isolate; }
+      .amb { position: absolute; inset: -55px; width: calc(100% + 110px); height: calc(100% + 110px); object-fit: cover; pointer-events: none; z-index: 0; opacity: 0; filter: blur(21px) saturate(1.1); transition: opacity 1.4s ease; }
+      .amb.on { opacity: 0.8; }
+    </style>
+  </head>
+  <body>
+    <main class="doc">
+      <header>
+        <div class="t"><h1>Widgets II</h1><p class="eyebrow">iOS variation 47 · round thirteen</p></div>
+        <p class="lede">
+          Widgets on a drifting wallpaper, each in frosted glass and each
+          answering one question named in its title. A 13-week calendar shows
+          the past. Tap a widget and it zooms open; a plate opens a meal you can
+          resize, fix or delete. Slide Do next to tick: 72 springs to 74.
+        </p>
+      </header>
+
+      <section class="direction">
+        <div>
+          <b>Mood</b>An iPhone home screen on a soft day: drifting pastel wallpaper, glass widgets, only the island black.
+        </div>
+        <div>
+          <b>Accent</b>Ring red, green, blue for the layers; Matrix hue for past days; orange for food; lime on +.
+        </div>
+        <div>
+          <b>Type</b>SF Pro Rounded, Nunito as fallback. Heavy tabular numbers; 13 px titles phrased as the question.
+        </div>
+        <div>
+          <b>Unusual idea</b>Widgets are doors: each zooms into its detail view (the iOS 18 zoom). A move is ticked by sliding it.
+        </div>
+      </section>
+
+      <section class="phones">
+        <div>
+          <p class="cap">
+            <span>01 · Home, island reading a plate</span
+            ><span>slide to tick · tap a widget</span>
+          </p>
+          <div class="phone" id="p1" data-live="1"></div>
+        </div>
+        <div>
+          <p class="cap">
+            <span>02 · Last 13 weeks, mid-zoom</span
+            ><span>frozen at 62 % · tap to finish</span>
+          </p>
+          <div class="phone" id="p2" data-freeze="streak"></div>
+        </div>
+        <div>
+          <p class="cap">
+            <span>03 · Add over the wallpaper</span
+            ><span>Send shows once there is a photo</span>
+          </p>
+          <div class="phone open" id="p3" data-shot="1"></div>
+        </div>
+      </section>
+
+      <section class="notes">
+        <h2>The score, in the rings</h2>
+        <table>
+          <tr>
+            <th>Ring</th>
+            <th>Today</th>
+            <th>Weight</th>
+            <th>Moves</th>
+          </tr>
+          <tr>
+            <td>Lifestyle, outer, red</td>
+            <td>sleep 100, moves 40, kcal 90, protein 78 → 77</td>
+            <td>0.40</td>
+            <td>every entry</td>
+          </tr>
+          <tr>
+            <td>Blood, middle, green</td>
+            <td>4 in range, 2 borderline, 1 off → 71</td>
+            <td>0.45</td>
+            <td>each draw</td>
+          </tr>
+          <tr>
+            <td>Genes, inner, blue</td>
+            <td>4 variants, fixed → 63 (62.5 rounds up)</td>
+            <td>0.15</td>
+            <td>never</td>
+          </tr>
+          <tr>
+            <td>Score</td>
+            <td>0.40 × 77 + 0.45 × 71 + 0.15 × 63 = 72</td>
+            <td></td>
+            <td>daily</td>
+          </tr>
+          <tr>
+            <td>Per tick</td>
+            <td>
+              moves 40 → 60 → 80 → 100: lifestyle 77 → 82 → 87 → 92, score 72 →
+              74 → 76 → 78
+            </td>
+            <td></td>
+            <td>live</td>
+          </tr>
+        </table>
+        <p id="assert"></p>
+        <h2>The direction's rules</h2>
+        <table>
+          <tr>
+            <th>Rule</th>
+            <th>How</th>
+          </tr>
+          <tr>
+            <td>One question per widget</td>
+            <td>
+              How am I doing (rings), What I ate (kcal ring), Do next (the
+              move), Where blood is going (the worst marker), Last 13 weeks (the
+              calendar), Plates (each meal, tap to fix).
+            </td>
+          </tr>
+          <tr>
+            <td>Worst marker, not LDL</td>
+            <td>
+              Each BLOOD row is parsed for its value and aim. Rank = distance
+              past the aim edge as a share of that edge: LDL 31 %, vitamin D 28
+              %, ApoB 9 %. The top one shows, with its projection if one exists;
+              the stack dots page to the next (vitamin D has no projection until
+              the Nov 1 draw, and says so).
+            </td>
+          </tr>
+          <tr>
+            <td>Glass on a wallpaper</td>
+            <td>
+              Five blurred blobs drift on 21 to 38 s loops. Widgets are 60 %
+              white with a 21 px backdrop blur; secondary text is #4f4f56 so it
+              stays above 4.5 : 1 on the lightest glass.
+            </td>
+          </tr>
+          <tr>
+            <td>Zoom</td>
+            <td>
+              The detail view is clipped to the widget's rect and the clip opens
+              to the full screen (clip-path inset, 560 ms, a slight overshoot).
+              Home scales to 0.92 and blurs behind it. Close reverses it.
+            </td>
+          </tr>
+          <tr>
+            <td>Slide to tick</td>
+            <td>
+              Drag the knob past 70 % of the pill: the check draws, the red ring
+              springs, 72 counts to 74 and today's square in the calendar
+              recolours. Short of 70 % it springs back.
+            </td>
+          </tr>
+          <tr>
+            <td>Meal edit</td>
+            <td>
+              Portion ¼ to 2 in steps; kcal and macros follow and every widget
+              updates. Fix results offers the three usual corrections and
+              re-reads; Delete asks once and takes the kcal off today.
+            </td>
+          </tr>
+          <tr>
+            <td>Past days</td>
+            <td>
+              Streak's generator (mulberry32, seed 435) and its colour rule
+              <code>hsl(30 + s/100 · 110, 68%, 90 − (s − 55) · 2.4 %)</code>.
+              Today pulses; the Aug 1 draw has a white dot.
+            </td>
+          </tr>
+        </table>
+      </section>
+    </main>
+
+    <script>
+      const I = {
+        chev: '<svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg>',
+        back: '<svg viewBox="0 0 24 24"><path d="m15 6-6 6 6 6"/></svg>',
+        bell: '<svg viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10 21a2 2 0 0 0 4 0"/></svg>',
+        info: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg>',
+        plus: '<svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>',
+        cam: '<svg viewBox="0 0 24 24"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>',
+        walk: '<svg viewBox="0 0 24 24"><circle cx="13" cy="4" r="1.5"/><path d="m10 21 2-6 3 3v3M8 12l3-3 3 1 2 3M11 9l-1 5-3 2"/></svg>',
+        moon: '<svg viewBox="0 0 24 24"><path d="M20 15A8 8 0 0 1 9 4a8 8 0 1 0 11 11z"/></svg>',
+        more: '<svg viewBox="0 0 24 24"><circle cx="6" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="18" cy="12" r="1"/></svg>',
+        home: '<svg viewBox="0 0 24 24"><path d="M3 11 12 4l9 7v9H3z"/><path d="M10 20v-6h4v6"/></svg>',
+        body: '<svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="2.5"/><path d="M9 10h6l1 5h-2v6h-4v-6H8z"/></svg>',
+        drop: '<svg viewBox="0 0 24 24"><path d="M12 3s6 7 6 11a6 6 0 0 1-12 0c0-4 6-11 6-11z"/></svg>',
+        pill: '<svg viewBox="0 0 24 24"><rect x="3" y="9" width="18" height="6" rx="3" transform="rotate(-45 12 12)"/><path d="m9 9 6 6"/></svg>',
+        dna: '<svg viewBox="0 0 24 24"><path d="M7 3c0 6 10 6 10 12M17 3c0 6-10 6-10 12M7 21c0-3 2-5 5-6M17 21c0-3-2-5-5-6M8 7h8M8 17h8"/></svg>',
+      };
+      Object.assign(I, {
+        check:
+          '<svg viewBox="0 0 24 24"><path d="M5 12.5 10 17.5 19 7"/></svg>',
+        checkp:
+          '<svg viewBox="0 0 24 24"><path d="M5 12.5 10 17.5 19 7" pathLength="1"/></svg>',
+        flame:
+          '<svg viewBox="0 0 24 24"><path d="M12 3c1 4 6 6 6 11a6 6 0 0 1-12 0c0-3 2-4 2-7 2 1 3 3 3 5 1-2 1-6 1-9z"/></svg>',
+        fork: '<svg viewBox="0 0 24 24"><path d="M7 3v8a2 2 0 0 0 4 0V3M9 3v18M17 3c-2 2-3 5-3 8h3v10"/></svg>',
+        trend:
+          '<svg viewBox="0 0 24 24"><path d="M3 7l6 6 4-4 8 8M15 17h6v-6"/></svg>',
+        cal: '<svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="3"/><path d="M4 10h16M9 3v4M15 3v4"/></svg>',
+        ringi:
+          '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="4"/></svg>',
+        text: '<svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h10M4 18h7"/></svg>',
+        mic: '<svg viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>',
+        up: '<svg viewBox="0 0 24 24"><path d="M12 19V6M6 11l6-6 6 6"/></svg>',
+        x: '<svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg>',
+        minus: '<svg viewBox="0 0 24 24"><path d="M5 12h14"/></svg>',
+        wand: '<svg viewBox="0 0 24 24"><path d="m4 20 11-11M14 4v3M19 9h-3M17.5 5.5l-2 2M9 4l.5 1.5M20 14l-1.5-.5"/></svg>',
+        trash:
+          '<svg viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg>',
+        signal:
+          '<svg viewBox="0 0 18 12"><rect x="0" y="8" width="3" height="4" rx="1"/><rect x="5" y="5.5" width="3" height="6.5" rx="1"/><rect x="10" y="3" width="3" height="9" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1"/></svg>',
+        wifi: '<svg viewBox="0 0 18 12"><path d="M9 12 6.2 9a4 4 0 0 1 5.6 0zM3.4 6.2a8 8 0 0 1 11.2 0l-1.4 1.4a6 6 0 0 0-8.4 0zM.6 3.4a12 12 0 0 1 16.8 0L16 4.8a10 10 0 0 0-14 0z"/></svg>',
+        batt: '<svg class="batt" viewBox="0 0 26 12"><rect x="0.5" y="0.5" width="22" height="11" rx="3.5" fill="none" stroke="currentColor" stroke-opacity=".4"/><rect x="2" y="2" width="16" height="8" rx="2"/><rect x="24" y="4" width="1.6" height="4" rx=".8" opacity=".4"/></svg>',
+      });
+
+      // ---- the three layers (verbatim from 25-onion) ----
+      const LIFE = {
+        w: 0.4,
+        rows: [
+          { n: "Sleep", s: "7h 30 of 7h 30", p: 100 },
+          { n: "Moves", s: "2 of 5 ticked", p: 40 },
+          { n: "Calories", s: "1 497 of 1 900 kcal", p: 90 },
+          { n: "Protein", s: "93 of 120 g", p: 78 },
+        ],
+      };
+      const BLOOD = {
+        w: 0.45,
+        // x: where the dot sits on the rail (0..100); state drives the colour
+        rows: [
+          { n: "Vitamin D", s: "29 ng/mL · aim 40 to 60", x: 12, st: "rose" },
+          { n: "LDL", s: "131 mg/dL · aim under 100", x: 84, st: "amber" },
+          { n: "ApoB", s: "98 mg/dL · aim under 90", x: 80, st: "amber" },
+          { n: "hs-CRP", s: "0.6 mg/L", x: 30, st: "green" },
+          { n: "HbA1c", s: "5.3 %", x: 45, st: "green" },
+          { n: "Ferritin", s: "64 ng/mL", x: 50, st: "green" },
+          { n: "TPO", s: "18 IU/mL", x: 35, st: "green" },
+        ],
+      };
+      const GENES = {
+        w: 0.15,
+        rows: [
+          { n: "APOE ε3/ε4", s: "LDL responds more to saturated fat", p: 45 },
+          { n: "LPA rs10455872", s: "not carried", p: 100 },
+          { n: "MTHFR C677T", s: "heterozygous · folate form matters", p: 60 },
+          { n: "FTO rs9939609", s: "one copy · appetite", p: 45 },
+        ],
+      };
+      const pct = (rows) =>
+        Math.round(rows.reduce((a, r) => a + r.p, 0) / rows.length);
+      const life = pct(LIFE.rows); // 77
+      const blood = Math.round(
+        (BLOOD.rows.reduce(
+          (a, r) => a + { green: 1, amber: 0.5, rose: 0 }[r.st],
+          0,
+        ) /
+          BLOOD.rows.length) *
+          100,
+      ); // 71
+      const genes = pct(GENES.rows); // 63 (62.5 rounds up)
+      const score = Math.round(
+        LIFE.w * life + BLOOD.w * blood + GENES.w * genes,
+      ); // 72
+      console.assert(score === 72, "score arithmetic drifted", score);
+
+      // ---- the receipt ----
+      const LOG = [
+        {
+          layer: "life",
+          ic: "img",
+          src: "img/08-pork-belly.jpg",
+          n: "Pork belly, salad",
+          s: "7:30 PM · 623 kcal · fat past the day's share",
+          d: -1,
+        },
+        {
+          layer: "life",
+          ic: "green-bg",
+          g: "walk",
+          n: "Walk after lunch",
+          s: "1:45 PM · 15 min · ticked",
+          d: 2,
+        },
+        {
+          layer: "life",
+          ic: "img",
+          src: "img/08-sardines-rye.jpg",
+          n: "Sardines on rye, kimchi",
+          s: "1:08 PM · 462 kcal · 38 g protein",
+          d: 1,
+        },
+        {
+          layer: "life",
+          ic: "gene-bg",
+          g: "pill",
+          n: "Selenium 200 µg",
+          s: "8:20 AM · ticked",
+          d: 0,
+        },
+        {
+          layer: "life",
+          ic: "img",
+          src: "img/08-oats.jpg",
+          n: "Oats with berries",
+          s: "8:15 AM · 412 kcal · 3 g beta-glucan",
+          d: 1,
+        },
+        {
+          layer: "life",
+          ic: "rose-bg",
+          g: "moon",
+          n: "Sleep",
+          s: "Last night · 7h 30",
+          d: 3,
+        },
+        {
+          layer: "blood",
+          ic: "blood-bg",
+          g: "drop",
+          n: "LDL 168 → 131",
+          s: "Aug 1 draw · off to borderline",
+          d: 6,
+        },
+        {
+          layer: "blood",
+          ic: "blood-bg",
+          g: "drop",
+          n: "Vitamin D 34 → 29",
+          s: "Aug 1 draw · borderline to off",
+          d: -4,
+        },
+        {
+          layer: "blood",
+          ic: "blood-bg",
+          g: "drop",
+          n: "Next draw",
+          s: "Nov 1 · LDL, ApoB, vitamin D",
+          d: null,
+        },
+        {
+          layer: "genes",
+          ic: "gene-bg",
+          g: "dna",
+          n: "Panel read once",
+          s: "Mar 2026 · four variants weighed",
+          d: null,
+        },
+      ];
+
+      document.getElementById("assert").textContent =
+        score === 72
+          ? `Assertion holds: score ${score} (life ${life}, blood ${blood}, genes ${genes}).`
+          : `Assertion FAILED: score ${score}.`;
+
+      // ---- the spring: damping 0.6, written as CSS linear() ----
+      const springAt = (t, zeta = 0.6, w0 = 12) => {
+        const wd = w0 * Math.sqrt(1 - zeta * zeta);
+        return (
+          1 -
+          Math.exp(-zeta * w0 * t) *
+            (Math.cos(wd * t) + ((zeta * w0) / wd) * Math.sin(wd * t))
+        );
+      };
+      if (CSS.supports("transition-timing-function", "linear(0, 1)")) {
+        const pts = [];
+        for (let i = 0; i <= 50; i++) pts.push(springAt(i / 50).toFixed(4));
+        pts[50] = "1";
+        document.documentElement.style.setProperty(
+          "--spring",
+          `linear(${pts.join(", ")})`,
+        );
+      }
+
+      // ---- today ----
+      const GOAL = 1900;
+      const to24 = (s) => {
+        const m = s.match(/(\d+):(\d+) (AM|PM)/);
+        let h = +m[1] % 12;
+        if (m[3] === "PM") h += 12;
+        return `${h}:${m[2]}`;
+      };
+      // per-meal macros (g): protein, carbs, fat; they sum to the day's 93 / 93 / 84
+      const MAC = {
+        oats: [14, 58, 12],
+        sardines: [38, 30, 20],
+        pork: [41, 5, 52],
+      };
+      const MEALS = LOG.filter((r) => r.ic === "img")
+        .reverse()
+        .map((r) => {
+          const key = Object.keys(MAC).find((k) => r.src.includes(k));
+          return {
+            id: key,
+            src: r.src,
+            n: r.n,
+            t: to24(r.s),
+            k: +r.s.match(/(\d+) kcal/)[1],
+            m: MAC[key].slice(),
+            q: 1,
+            fixed: null,
+          };
+        });
+      const MACN = [
+        { n: "Protein", t: 120, c: "var(--indigo)" },
+        { n: "Carbs", t: 180, c: "var(--orange)" },
+        { n: "Fat", t: 70, c: "#e6b800" },
+      ];
+      const mealK = (m) => Math.round(m.k * m.q);
+      const kcalNow = () => MEALS.reduce((a, m) => a + mealK(m), 0);
+      const macNow = () =>
+        [0, 1, 2].map((i) =>
+          Math.round(MEALS.reduce((a, m) => a + m.m[i] * m.q, 0)),
+        );
+      console.assert(kcalNow() === 1497, "kcal drifted", kcalNow());
+      console.assert(
+        macNow().join() === "93,93,84",
+        "macros drifted",
+        macNow(),
+      );
+
+      const MOVES = [
+        { n: "Selenium 200 µg", s: "ticked 8:20", done: true },
+        { n: "Walk after lunch", s: "15 min · ticked 13:45", done: true },
+        { n: "Walk after dinner", s: "15 min · before 20:30", done: false },
+        { n: "Psyllium, 10 g", s: "in water · before bed", done: false },
+        { n: "Lights out 23:00", s: "for 7h 30 again", done: false },
+      ];
+      const fmt = (n) => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+
+      const now = () => {
+        const done = MOVES.filter((m) => m.done).length;
+        LIFE.rows[1].p = done * 20;
+        LIFE.rows[1].s = `${done} of 5 ticked`;
+        const l = pct(LIFE.rows);
+        const sc = Math.round(LIFE.w * l + BLOOD.w * blood + GENES.w * genes);
+        return { done, life: l, score: sc };
+      };
+      const scoreIf = (extra) => {
+        const done = MOVES.filter((m) => m.done).length + extra;
+        const rows = LIFE.rows.map((r, i) =>
+          i === 1 ? { ...r, p: done * 20 } : r,
+        );
+        return Math.round(
+          LIFE.w * pct(rows) + BLOOD.w * blood + GENES.w * genes,
+        );
+      };
+
+      // ---- blood: parse each row, rank by distance past the aim ----
+      const HIST = {
+        LDL: {
+          prev: 168,
+          proj: 104,
+          say: "Keep this eight weeks and LDL lands near <em>104</em>, from 131.",
+          why: "The walk and the oats carry most of it.",
+        },
+        "Vitamin D": { prev: 34 },
+      };
+      const MARKERS = BLOOD.rows
+        .map((r) => {
+          const m = r.s.match(
+            /^([\d.]+) (\S+)(?: · aim (?:under (\d+)|(\d+) to (\d+)))?/,
+          );
+          const v = +m[1];
+          const hi = m[3] ? +m[3] : m[5] ? +m[5] : null;
+          const lo = m[4] ? +m[4] : null;
+          let off = 0,
+            side = null;
+          if (hi != null && v > hi) {
+            off = (v - hi) / hi;
+            side = "over";
+          }
+          if (lo != null && v < lo) {
+            off = (lo - v) / lo;
+            side = "under";
+          }
+          return { ...r, v, unit: m[2], lo, hi, off, side, ...HIST[r.n] };
+        })
+        .filter((r) => r.off > 0)
+        .sort((a, b) => b.off - a.off);
+      console.assert(
+        MARKERS.map((m) => m.n).join() === "LDL,Vitamin D,ApoB",
+        "marker ranking drifted",
+      );
+
+      // ---- the 90 days before today (verbatim from 40-streak) ----
+      const START = new Date(2026, 5, 29);
+      const TODAY = 86;
+      const DRAW = 33; // Sat 1 Aug
+      function mulberry32(a) {
+        return function () {
+          a |= 0;
+          a = (a + 0x6d2b79f5) | 0;
+          let t = Math.imul(a ^ (a >>> 15), 1 | a);
+          t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+          return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+        };
+      }
+      const UP = [
+        ["All five moves ticked", "moves 100"],
+        ["Walked after every meal", "3 walks, 45 min"],
+        ["Slept 8h 05", "in bed by 22:50"],
+        ["Protein 131 g of 120", "sardines twice"],
+        ["Kcal on target, 1 880", "of 1 900"],
+        ["Psyllium before dinner", "soluble fibre, day 5"],
+      ];
+      const DOWN = [
+        ["Slept 5h 40", "in bed at 1:10"],
+        ["No moves ticked", "moves 0 of 5"],
+        ["2 480 kcal, over by 580", "birthday dinner"],
+        ["Protein 64 g of 120", "no fish or eggs"],
+        ["Dinner at 22:40", "fat past the day's share"],
+        ["Skipped the walks", "rain all day"],
+      ];
+      const DAYS = (() => {
+        const r = mulberry32(435);
+        const pick = mulberry32(40);
+        const out = [];
+        for (let i = 0; i < TODAY; i++) {
+          const dow = i % 7;
+          const trend = 64 + 8 * (i / (TODAY - 1));
+          const n = (r() + r() + r() - 1.5) * 12 - (dow >= 5 ? 4 : 0);
+          const L = Math.round(trend + n);
+          const B = i >= DRAW ? 71 : 64;
+          const s = Math.round(LIFE.w * L + BLOOD.w * B + GENES.w * genes);
+          const pts = Math.round(LIFE.w * (L - trend));
+          const pool = pts >= 0 ? UP : DOWN;
+          let why = pool[Math.floor(pick() * pool.length)];
+          let eff = pts;
+          if (i === DRAW) {
+            why = ["Blood draw: LDL 168 → 131", "blood layer 64 → 71"];
+            eff = Math.round(BLOOD.w * (71 - 64));
+          }
+          out.push({
+            i,
+            L,
+            B,
+            s,
+            why,
+            eff,
+            date: new Date(START.getTime() + i * 864e5),
+          });
+        }
+        return out;
+      })();
+      const lastWeek = Math.round(
+        DAYS.slice(TODAY - 9, TODAY - 2).reduce((a, d) => a + d.s, 0) / 7,
+      );
+      console.assert(lastWeek === 69, "last week drifted", lastWeek);
+      const hue = (s) => 30 + (s / 100) * 110;
+      const light = (s) => Math.max(34, Math.min(90, 90 - (s - 55) * 2.4));
+      const col = (s) =>
+        `hsl(${hue(s).toFixed(1)} 68% ${light(s).toFixed(1)}%)`;
+      const stateWord = (s) =>
+        s >= 80 ? "Strong" : s >= 65 ? "On track" : s >= 50 ? "Watch" : "Act";
+      const streakAt = (today) => {
+        let n = today >= 65 ? 1 : 0;
+        if (!n) return 0;
+        for (let i = TODAY - 1; i >= 0 && DAYS[i].s >= 65; i--) n++;
+        return n;
+      };
+      const fmtD = (d) =>
+        d.toLocaleDateString("en-GB", {
+          weekday: "short",
+          day: "numeric",
+          month: "short",
+        });
+
+      // ---- rings ----
+      const RINGS = [
+        { k: "life", r: 52, c: "var(--r-life)", arrows: 1 },
+        { k: "blood", r: 35, c: "var(--r-blood)", arrows: 2 },
+        { k: "genes", r: 18, c: "var(--r-gene)", arrows: 0 },
+      ];
+      const C = (r) => 2 * Math.PI * r;
+      const ringsSvg = (size = 124) => {
+        const g = RINGS.map(
+          (R) => `
+            <circle class="trk" cx="62" cy="62" r="${R.r}" style="stroke:${R.c};stroke-opacity:.2"/>
+            <circle class="arc" data-ring="${R.k}" cx="62" cy="62" r="${R.r}" style="stroke:${R.c}"
+              stroke-dasharray="${C(R.r)}" stroke-dashoffset="${C(R.r)}" transform="rotate(-90 62 62)"/>`,
+        ).join("");
+        const a = RINGS.map((R) => {
+          const y = 62 - R.r;
+          if (R.arrows === 1)
+            return `<path class="arw" d="M59 ${y - 4} l4 4 -4 4"/>`;
+          if (R.arrows === 2)
+            return `<path class="arw" d="M56 ${y - 4} l4 4 -4 4 M61 ${y - 4} l4 4 -4 4"/>`;
+          return `<path class="arw" d="M62 ${y + 4} v-8 M58.5 ${y - 0.5} l3.5 -3.5 3.5 3.5"/>`;
+        }).join("");
+        return `<svg class="rings" viewBox="0 0 124 124" style="width:${size}px;height:${size}px">${g}${a}</svg>`;
+      };
+      const miniRings = () => {
+        const rs = [
+          [9, "#ff5c85", 77],
+          [6, "#a6ff00", blood],
+          [3, "#19d3f3", genes],
+        ];
+        return `<svg viewBox="0 0 21 21">${rs
+          .map(
+            ([r, c, v], i) =>
+              `<circle cx="10.5" cy="10.5" r="${r}" fill="none" stroke="${c}" stroke-opacity=".25" stroke-width="2.4"/>
+               <circle class="${i === 0 ? "mini" : ""}" cx="10.5" cy="10.5" r="${r}" fill="none" stroke="${c}" stroke-width="2.4" stroke-linecap="round"
+                 stroke-dasharray="${C(r)}" stroke-dashoffset="${C(r) * (1 - v / 100)}" transform="rotate(-90 10.5 10.5)"/>`,
+          )
+          .join("")}</svg>`;
+      };
+
+      // ---- the marker sparkline: Dec 9 2025, Aug 1 2026, Nov 18 2026 ----
+      const spark = (M, w = 180, h = 58, labels = true) => {
+        const vals = [M.v, M.prev, M.proj, M.lo, M.hi].filter((x) => x != null);
+        const lo = Math.min(...vals) - 6,
+          hi = Math.max(...vals) + 6;
+        const X = (d) => 6 + (d / 344) * (w - 30);
+        const Y = (v) => 5 + ((hi - v) / (hi - lo)) * (h - 10);
+        const p1 = [X(235), Y(M.v)];
+        const p0 = M.prev != null ? [X(0), Y(M.prev)] : null;
+        const p2 = M.proj != null ? [X(344), Y(M.proj)] : null;
+        const band =
+          M.lo != null
+            ? `<rect x="0" y="${Y(M.hi)}" width="${w}" height="${Y(M.lo) - Y(M.hi)}" fill="rgba(52,199,89,.16)" stroke="none" rx="3"/>`
+            : `<rect x="0" y="${Y(M.hi)}" width="${w}" height="${h - Y(M.hi)}" fill="rgba(52,199,89,.16)" stroke="none" rx="3"/>`;
+        return `<svg class="spark" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">
+          ${band}
+          ${p0 ? `<path d="M${p0} L${p1}" stroke="var(--ink-2)"/>` : ""}
+          ${p2 ? `<path d="M${p1} L${p2}" stroke="var(--green-ink)" stroke-dasharray="3 4"/>` : ""}
+          ${p0 ? `<circle cx="${p0[0]}" cy="${p0[1]}" r="3" fill="var(--ink-2)" stroke="none"/>` : ""}
+          <circle cx="${p1[0]}" cy="${p1[1]}" r="4" fill="var(--ink)" stroke="#fff" stroke-width="1.5"/>
+          ${p2 ? `<circle cx="${p2[0]}" cy="${p2[1]}" r="4" fill="#fff" stroke="var(--green-ink)" stroke-width="2"/>` : ""}
+          ${labels && p2 ? `<text x="${p2[0] - 8}" y="${p2[1] - 7}" style="fill:var(--green-ink)">${M.proj}</text>` : ""}
+          ${labels && p0 ? `<text x="${p0[0] + 2}" y="${p0[1] + (p0[1] > h / 2 ? -7 : 13)}">${M.prev}</text>` : ""}
+        </svg>`;
+      };
+      const flagOf = (M) =>
+        `<span class="flag ${M.st === "rose" ? "rose" : ""}">${M.n} · ${Math.round(M.off * 100)} % ${M.side}</span>`;
+      const aimOf = (M) =>
+        M.lo != null ? `aim ${M.lo} to ${M.hi}` : `aim under ${M.hi}`;
+      const bloodBody = (k) => {
+        const M = MARKERS[k];
+        return `<div class="bl">
+            <div><span class="nm">${M.n}</span><div class="num">${M.v}<span class="unit"> ${M.unit}</span></div><span class="aim">${aimOf(M)}</span></div>
+            ${spark(M)}
+          </div>
+          <p class="bsay">${
+            M.proj != null
+              ? M.say
+              : `No projection yet: one draw moved it ${M.prev} → ${M.v}. <span>Retest Nov 1.</span>`
+          }</p>`;
+      };
+
+      // ---- the calendar ----
+      const grid = (cell, sc, big) => {
+        let h = "<span></span>";
+        for (let w = 0; w < 13; w++) {
+          const d0 = new Date(START.getTime() + w * 7 * 864e5);
+          let lab = "";
+          for (let k = 0; k < 7; k++) {
+            const d = new Date(d0.getTime() + k * 864e5);
+            if (d.getDate() === 1)
+              lab = [
+                "Jan",
+                "Feb",
+                "Mar",
+                "Apr",
+                "May",
+                "Jun",
+                "Jul",
+                "Aug",
+                "Sep",
+                "Oct",
+                "Nov",
+                "Dec",
+              ][d.getMonth()];
+          }
+          h += `<span class="mo" style="grid-column:${w + 2};grid-row:1">${lab}</span>`;
+        }
+        ["M", "", "W", "", "F", "", "S"].forEach((l, k) => {
+          h += `<span class="dw" style="grid-column:1;grid-row:${k + 2}">${l}</span>`;
+        });
+        for (let i = 0; i < 91; i++) {
+          const w = Math.floor(i / 7),
+            k = i % 7;
+          const pos = `grid-column:${w + 2};grid-row:${k + 2}`;
+          const d = `--d:${(w * 7 + k) * 5}ms`;
+          if (i > TODAY)
+            h += `<span class="cell future" style="${pos};${d}"></span>`;
+          else if (i === TODAY)
+            h += `<span class="cell today" data-day="${i}" style="${pos};${d};--c:${col(sc)}">${big ? sc : ""}</span>`;
+          else
+            h += `<span class="cell${i === DRAW ? " draw" : ""}" data-day="${i}" style="${pos};${d};--c:${col(DAYS[i].s)}"></span>`;
+        }
+        return `<div class="hm" style="--cell:${cell}px;--ts:${big ? 1.55 : 1.4}">${h}</div>`;
+      };
+      const hlegend = () =>
+        `<div class="hlegend"><span>60</span>${[60, 64, 68, 72, 76].map((s) => `<i style="background:${col(s)}"></i>`).join("")}<span>76</span><span class="gap"></span><span class="dot"></span><span>blood draw</span></div>`;
+
+      // ---- widget bodies ----
+      const moveBody = () => {
+        const next = MOVES.find((m) => !m.done);
+        return next
+          ? `<b>${next.n}</b><small>${next.s}</small>`
+          : `<b>All five done</b><small>the red ring is as full as today gets</small>`;
+      };
+      const slideHtml = () => {
+        const next = MOVES.find((m) => !m.done);
+        return next
+          ? `<div class="slide" data-slide><span class="fillx"></span><span class="lab">slide · ${now().score} → ${scoreIf(1)}</span><span class="knob">${I.checkp}</span></div>`
+          : `<div class="slide off"><span class="lab">tap Do next to undo</span></div>`;
+      };
+      const pips = () =>
+        MOVES.map((m) => `<i class="${m.done ? "on" : ""}"></i>`).join("");
+      const R49 = 49,
+        CK = C(R49);
+      const kcalInner = () => {
+        const k = kcalNow();
+        return `<b>${fmt(k)}</b><small>of ${fmt(GOAL)} kcal</small><em>${k <= GOAL ? `${fmt(GOAL - k)} left` : `${fmt(k - GOAL)} over`}</em>`;
+      };
+      const mealsInner = () =>
+        MEALS.map(
+          (
+            m,
+          ) => `<div class="meal ${m.id === "pork" ? "pork" : ""}" data-z="meal" data-id="${m.id}">
+            <div class="ph"><img src="${m.src}" alt="${m.n}"><span class="reading"></span>${m.q !== 1 ? `<span class="q">×${qLabel(m.q)}</span>` : ""}</div>
+            <div class="cap2"><span>${m.t}</span><span>${mealK(m)}</span></div></div>`,
+        ).join("") +
+        (MEALS.length < 3
+          ? Array.from(
+              { length: 3 - MEALS.length },
+              () =>
+                `<div class="meal empty"><div class="ph">+ add</div><div class="cap2"><span>&nbsp;</span></div></div>`,
+            ).join("")
+          : "");
+      const QS = [0.25, 0.5, 0.75, 1, 1.25, 1.5, 2];
+      const qLabel = (q) =>
+        ({
+          0.25: "¼",
+          0.5: "½",
+          0.75: "¾",
+          1: "1",
+          1.25: "1¼",
+          1.5: "1½",
+          2: "2",
+        })[q];
+
+      const home = (p) => {
+        const v = now();
+        return `
+        <div class="wall"><i></i><i></i><i></i><i></i><i></i></div>
+        <video class="amb" src="vid/47-wallpaper.mp4" autoplay muted playsinline aria-hidden="true"></video>
+        <div class="status"><span>19:31</span><span class="sys">${I.signal}${I.wifi}${I.batt}</span></div>
+        <div class="island">
+          <div class="compact">${miniRings()}<b class="cscore">${v.score}</b></div>
+          <div class="expanded">
+            <div class="xrow">
+              <span class="thumb"><img src="img/08-pork-belly.jpg" alt=""></span>
+              <span class="tx"><b class="xt">Reading your plate…</b><small class="xs">looking</small></span>
+              <span class="trail">
+                <svg viewBox="0 0 34 34"><circle cx="17" cy="17" r="14" stroke="#2c2c2e" stroke-width="3.5"/>
+                  <circle class="xring" cx="17" cy="17" r="14" stroke="var(--lime)" stroke-width="3.5" stroke-dasharray="${C(14)}" stroke-dashoffset="${C(14)}"/></svg>
+                <span class="pc">0</span>
+                <span class="ok">${I.check}</span>
+              </span>
+            </div>
+            <div class="xbar"><i></i></div>
+          </div>
+        </div>
+
+        <div class="screen">
+          <div class="grid">
+            <div class="w m score-w" data-z="score">
+              <div class="wh">${I.ringi}How am I doing<span class="delta-chip dch">+${v.score - lastWeek} vs last week</span></div>
+              <div class="score-top">
+                ${ringsSvg()}
+                <div class="score-side">
+                  <div class="num"><span class="sc">0</span><span class="unit"> /100</span></div>
+                  <div class="legend3">
+                    <div style="--c:var(--r-life)"><i></i><span>Lifestyle <span class="lv">${v.life}</span></span><span>×.40</span></div>
+                    <div style="--c:var(--r-blood)"><i></i><span>Blood ${blood}</span><span>×.45</span></div>
+                    <div style="--c:var(--r-gene)"><i></i><span>Genes ${genes}</span><span>×.15</span></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="w s kc-w" data-z="kcal">
+              <div class="wh">${I.flame}What I ate</div>
+              <div class="kc">
+                <svg viewBox="0 0 110 110"><circle class="tr" cx="55" cy="55" r="${R49}"/><circle class="fl" cx="55" cy="55" r="${R49}" stroke-dasharray="${CK}" stroke-dashoffset="${CK}"/></svg>
+                <div class="c">${kcalInner()}</div>
+              </div>
+            </div>
+
+            <div class="w s next-w" data-z="next">
+              <div class="wh">${I.walk}Do next<span class="pips">${pips()}</span></div>
+              <div class="mv">${moveBody()}</div>
+              <div class="slot">${slideHtml()}</div>
+            </div>
+
+            <div class="w m blood-w" data-z="blood">
+              <div class="wh">${I.drop}Where blood is going${flagOf(MARKERS[0])}</div>
+              <div class="bbody">${bloodBody(0)}</div>
+              <span class="sdots" data-sdots>${MARKERS.map((_, i) => `<i class="${i ? "" : "on"}"></i>`).join("")}</span>
+            </div>
+
+            <div class="w l streak-w" data-z="streak">
+              <div class="wh">${I.cal}Last 13 weeks<span class="r stk">${I.flame}<span>${streakAt(v.score)}-day streak at 65+</span></span></div>
+              ${grid(16, v.score, false)}
+              ${hlegend()}
+            </div>
+
+            <div class="w m meals-w">
+              <div class="wh">${I.fork}Plates, tap one to fix<span class="r mtot">${MEALS.length} today</span></div>
+              <div class="meals">${mealsInner()}</div>
+            </div>
+          </div>
+          <div class="pagedots"><i></i><i></i></div>
+        </div>
+
+        <div class="tabs">
+          <div class="bar">
+            <button class="on">${I.home}Home</button>
+            <button>${I.body}Body</button>
+            <button>${I.drop}Blood</button>
+          </div>
+          <button class="plus" data-do="open" aria-label="Add">${I.plus}</button>
+        </div>
+
+        <div class="zroot"></div>
+
+        <div class="veil" data-do="close"></div>
+        <div class="sheet">
+          <div class="grab"></div>
+          <div class="nav">
+            <button class="cancel" data-do="close">Cancel</button>
+            <h2>Add</h2>
+            <button class="send" data-do="send">${I.up}Send</button>
+          </div>
+          <div class="modes">
+            <button class="mode" data-mode="photo" style="--c:var(--blue)"><span class="gl">${I.cam}</span><span><b>Photo</b><small>one or several</small></span></button>
+            <button class="mode" data-mode="voice" style="--c:var(--red)"><span class="gl">${I.mic}</span><span><b>Voice</b><small>say it once</small></span></button>
+            <button class="mode" data-mode="text" style="--c:var(--indigo)"><span class="gl">${I.text}</span><span><b>Text</b><small>type a line</small></span></button>
+          </div>
+          <div class="field">
+            <span class="shots"></span>
+            <span class="wave">${Array.from({ length: 13 }, (_, i) => `<i style="animation-delay:${(i % 5) * 90}ms"></i>`).join("")}</span>
+            <input type="text" placeholder="Sardines on rye, 15 min walk" />
+          </div>
+          <div class="again">
+            <span>Again today</span>
+            <div class="chips">
+              <button class="chip" data-again="Oats with berries"><img src="img/08-oats.jpg" alt="">Oats</button>
+              <button class="chip" data-again="Sardines on rye, kimchi"><img src="img/08-sardines-rye.jpg" alt="">Sardines</button>
+              <button class="chip" data-again="Eggs, two"><img src="img/08-eggs.jpg" alt="">Eggs</button>
+            </div>
+          </div>
+          <p class="note">Nothing leaves the phone until you send. We read it in the island.</p>
+        </div>
+        <div class="homebar"></div>`;
+      };
+
+      // ---- detail views ----
+      const DETAIL = {
+        score: () => {
+          const v = now();
+          return `<div class="zt">${I.ringi}How am I doing</div>
+            <h2 class="zh">${v.score} of 100 · ${stateWord(v.score)}</h2>
+            <p class="zsub">+${v.score - lastWeek} on last week's ${lastWeek} · PhenoAge 36.2 at 39, 2.8 years younger</p>
+            <div style="display:grid;place-items:center;margin-top:21px">${ringsSvg(200)}</div>
+            <div class="card"><h3>Lifestyle ${v.life} · weight .40 · moves every entry</h3>
+              ${LIFE.rows.map((r) => `<div class="row"><span>${r.n}<small>${r.s}</small><div class="bar5" style="--c:var(--r-life);--w:${r.p}%"><i></i></div></span><span class="v">${r.p}</span></div>`).join("")}
+            </div>
+            <div class="card"><h3>Blood ${blood} · weight .45 · moves each draw</h3>
+              <div class="row"><span>4 in range, 2 borderline, 1 off<small>next draw Nov 1</small></span><span class="v">${blood}</span></div>
+            </div>
+            <div class="card"><h3>Genes ${genes} · weight .15 · fixed</h3>
+              ${GENES.rows.map((r) => `<div class="row"><span>${r.n}<small>${r.s}</small></span><span class="v">${r.p}</span></div>`).join("")}
+            </div>`;
+        },
+        kcal: () => {
+          const k = kcalNow(),
+            mm = macNow();
+          return `<div class="zt">${I.flame}What I ate</div>
+            <h2 class="zh">${fmt(k)} of ${fmt(GOAL)} kcal</h2>
+            <p class="zsub">${k <= GOAL ? `${fmt(GOAL - k)} left for today` : `${fmt(k - GOAL)} over`}</p>
+            <div class="card"><h3>Macros</h3>
+              ${MACN.map((m, i) => `<div class="row"><span>${m.n}<div class="bar5" style="--c:${mm[i] > m.t ? "var(--red)" : m.c};--w:${Math.min(100, (mm[i] / m.t) * 100).toFixed(1)}%"><i></i></div></span><span class="v" style="${mm[i] > m.t ? "color:var(--red-ink)" : ""}">${mm[i]} / ${m.t} g</span></div>`).join("")}
+            </div>
+            <div class="card"><h3>Meals · tap one to edit</h3>
+              ${MEALS.map((m) => `<button class="row" style="width:100%;grid-template-columns:44px 1fr auto" data-open-meal="${m.id}"><img src="${m.src}" alt="" style="width:44px;height:44px;border-radius:8px;object-fit:cover"><span>${m.n}<small>${m.t}${m.q !== 1 ? ` · ×${qLabel(m.q)}` : ""}</small></span><span class="v">${mealK(m)}</span></button>`).join("")}
+            </div>`;
+        },
+        next: () =>
+          `<div class="zt">${I.walk}Do next</div>
+            <h2 class="zh">${MOVES.filter((m) => m.done).length} of 5 moves done</h2>
+            <p class="zsub">Each tick is +20 on moves and about +2 on the score. Tap to tick or undo.</p>
+            <div class="card">${MOVES.map((m, i) => `<button class="mvrow ${m.done ? "on" : ""}" data-mv="${i}"><span class="b">${I.check}</span><span><b>${m.n}</b><small>${m.s}</small></span><em>${m.done ? "" : "+" + (scoreIf(1) - now().score)}</em></button>`).join("")}</div>`,
+        blood: () => {
+          const M = MARKERS[0];
+          return `<div class="zt">${I.drop}Where blood is going</div>
+            <h2 class="zh">${M.n} is furthest off</h2>
+            <p class="zsub">${M.v} ${M.unit}, ${aimOf(M)} · ${Math.round(M.off * 100)} % ${M.side}</p>
+            <div class="card bigproj"><h3>Dec 9 · Aug 1 · Nov 18 (projected)</h3>${spark(M, 300, 120).replace('class="spark"', "")}
+              <p class="say" style="margin-top:13px">${M.say}</p><p class="zsub">${M.why}</p></div>
+            <div class="card"><h3>Every marker, furthest off first</h3>
+              ${[
+                ...MARKERS,
+                ...BLOOD.rows.filter((r) => !MARKERS.find((m) => m.n === r.n)),
+              ]
+                .map(
+                  (r) =>
+                    `<div class="row"><span>${r.n}<small>${r.s}</small><div class="rail ${r.st === "rose" ? "rev" : ""}"><i style="--x:${r.x}%"></i></div></span><span class="v">${r.off ? Math.round(r.off * 100) + " %" : "in range"}</span></div>`,
+                )
+                .join("")}
+            </div>`;
+        },
+        streak: () => {
+          const s = now().score;
+          return `<div class="zt">${I.cal}Last 13 weeks</div>
+            <h2 class="zh">${streakAt(s)} days at 65 or better</h2>
+            <p class="zsub">Each square is one day's score. Tap a day to see why.</p>
+            <div class="card">${grid(19, s, true)}${hlegend()}
+              <div class="dayinfo"></div></div>
+            <div class="card"><h3>Weeks</h3>
+              ${[0, 1, 2, 3]
+                .map((w) => {
+                  const a = TODAY - 2 - 7 * (w + 1),
+                    arr = DAYS.slice(a, a + 7);
+                  const mean = Math.round(arr.reduce((x, d) => x + d.s, 0) / 7);
+                  return `<div class="row"><span>${fmtD(arr[0].date)} to ${fmtD(arr[6].date)}<div class="bar5" style="--c:${col(mean)};--w:${mean}%"><i></i></div></span><span class="v">${mean}</span></div>`;
+                })
+                .join("")}
+            </div>`;
+        },
+        meal: (id) => {
+          const m = MEALS.find((x) => x.id === id);
+          if (!m) return "";
+          const k = mealK(m);
+          const qi = QS.indexOf(m.q);
+          return `<div class="hero"><img src="${m.src}" alt=""><div class="ht"><b>${m.n}</b><small>${m.t} · read from your photo</small></div></div>
+            <div class="card"><h3>Portion</h3>
+              <div class="portion">
+                <button data-q="-1" ${qi === 0 ? "disabled" : ""} aria-label="Less">${I.minus}</button>
+                <div class="pv"><b><span class="pk">${qLabel(m.q)}</span> portion${m.q > 1 ? "s" : ""}</b><small><span class="pk">${k}</span> kcal · day ${fmt(kcalNow())} of ${fmt(GOAL)}</small></div>
+                <button data-q="1" ${qi === QS.length - 1 ? "disabled" : ""} aria-label="More">${I.plus}</button>
+              </div>
+            </div>
+            <div class="card"><h3>What's in it</h3>
+              ${MACN.map((x, i) => {
+                const g = Math.round(m.m[i] * m.q);
+                return `<div class="row"><span>${x.n}<div class="bar5" style="--c:${x.c};--w:${Math.min(100, (g / x.t) * 100).toFixed(1)}%"><i></i></div></span><span class="v">${g} g</span></div>`;
+              }).join("")}
+              ${macNow()[2] > 70 && m.m[2] * m.q >= 20 ? `<p class="zsub" style="color:var(--red-ink)">Fat is past the day's share: ${macNow()[2]} of 70 g.</p>` : ""}
+            </div>
+            <div class="acts">
+              <button class="act" data-do="fix">${I.wand}Fix results</button>
+              <button class="act del" data-do="del">${I.trash}Delete</button>
+            </div>
+            <div class="card fix"><h3>What did we get wrong?</h3>
+              <div class="chips">
+                <button data-fix="smaller">Smaller piece</button>
+                <button data-fix="lessfat">Leaner cut</button>
+                <button data-fix="bread">Add the bread</button>
+              </div>
+              <button class="go" data-do="reread">Re-read with this</button>
+            </div>
+            ${m.fixed ? `<p class="fixnote">${m.fixed}</p>` : ""}
+            <div class="confirm">Delete ${m.n}? ${k} kcal comes off today.
+              <div class="acts"><button class="act" data-do="undel">Keep it</button><button class="act del" data-do="delyes">Delete</button></div>
+            </div>`;
+        },
+      };
+
+      // ---- numbers on a clock, not rAF (headless virtual time freezes rAF) ----
+      const count = (el, from, to, ms = 900) => {
+        clearInterval(el._iv);
+        if (from === to) {
+          el.textContent = to;
+          return;
+        }
+        const t0 = Date.now();
+        el._iv = setInterval(() => {
+          const k = Math.min(1, (Date.now() - t0) / ms);
+          el.textContent = Math.round(from + (to - from) * springAt(k));
+          if (k >= 1) clearInterval(el._iv);
+        }, 30);
+        setTimeout(() => {
+          clearInterval(el._iv);
+          el.textContent = to;
+        }, ms + 60);
+      };
+
+      const phones = [...document.querySelectorAll(".phone")];
+      let shown = { score: 0, life: 0 };
+
+      const paint = (first) => {
+        const v = now();
+        const k = kcalNow();
+        for (const p of phones) {
+          const vals = { life: v.life, blood, genes };
+          p.querySelectorAll(".screen .arc, .zc .arc").forEach((c, i) => {
+            const R = RINGS.find((R) => R.k === c.dataset.ring);
+            const off = C(R.r) * (1 - vals[R.k] / 100);
+            c.style.transitionDelay = first ? `${(i % 3) * 120}ms` : "0ms";
+            if (first) setTimeout(() => (c.style.strokeDashoffset = off), 60);
+            else c.style.strokeDashoffset = off;
+          });
+          count(p.querySelector(".sc"), first ? 0 : shown.score, v.score);
+          p.querySelector(".lv").textContent = v.life;
+          p.querySelector(".cscore").textContent = v.score;
+          p.querySelector(".dch").textContent =
+            `${v.score - lastWeek >= 0 ? "+" : "−"}${Math.abs(v.score - lastWeek)} vs last week`;
+          p.querySelector(".compact .mini").style.strokeDashoffset =
+            C(9) * (1 - v.life / 100);
+          p.querySelector(".pips").innerHTML = pips();
+          // kcal ring
+          const fl = p.querySelector(".kc .fl");
+          const to = CK * (1 - Math.min(1, k / GOAL));
+          if (first) setTimeout(() => (fl.style.strokeDashoffset = to), 60);
+          else fl.style.strokeDashoffset = to;
+          p.querySelector(".kc .c").innerHTML = kcalInner();
+          // plates
+          p.querySelector(".meals").innerHTML = mealsInner();
+          p.querySelector(".mtot").textContent = `${MEALS.length} today`;
+          // today's square
+          p.querySelectorAll(".cell.today").forEach((t) => {
+            t.style.setProperty("--c", col(v.score));
+            if (t.textContent) t.textContent = v.score;
+          });
+          p.style.setProperty("--hue", hue(v.score).toFixed(1));
+          const stk = p.querySelector(".stk");
+          stk.querySelector("span").textContent =
+            `${streakAt(v.score)}-day streak at 65+`;
+          if (!first) {
+            stk.classList.remove("flame-pop");
+            void stk.offsetWidth;
+            stk.classList.add("flame-pop");
+          }
+        }
+        shown = { score: v.score, life: v.life };
+      };
+
+      const refreshMove = (p) => {
+        const mv = p.querySelector(".mv");
+        mv.classList.add("out");
+        setTimeout(() => {
+          mv.innerHTML = moveBody();
+          p.querySelector(".slot").innerHTML = slideHtml();
+          mv.classList.remove("out");
+        }, 260);
+      };
+      const everywhere = () => {
+        paint(false);
+        phones.forEach((q) => {
+          refreshMove(q);
+          if (q._z && q._z.kind !== "meal") rerenderDetail(q);
+        });
+      };
+
+      // ---- the zoom ----
+      const W0 = 374,
+        H0 = 828;
+      const rectIn = (p, el) => {
+        const pr = p.getBoundingClientRect(),
+          r = el.getBoundingClientRect();
+        return {
+          t: r.top - pr.top - 8,
+          l: r.left - pr.left - 8,
+          b: H0 - (r.bottom - pr.top - 8),
+          r: W0 - (r.right - pr.left - 8),
+        };
+      };
+      const setZ = (p, f) => {
+        const z = p._z;
+        const R = z.rect;
+        const rad = 21 + (47 - 21) * f;
+        const k = 1 - f;
+        z.el.style.clipPath = `inset(${R.t * k}px ${R.r * k}px ${R.b * k}px ${R.l * k}px round ${rad}px)`;
+        const zc = z.el.querySelector(".zc");
+        zc.style.opacity = f < 0.15 ? 0 : Math.min(1, (f - 0.15) / 0.6);
+        zc.style.transform = `scale(${0.9 + 0.1 * f})`;
+        zc.style.transformOrigin = `${R.l + (W0 - R.l - R.r) / 2}px ${R.t + (H0 - R.t - R.b) / 2}px`;
+        z.el.querySelector(".zx").style.opacity = f > 0.6 ? 1 : 0;
+        p.classList.toggle("zoomed", f > 0);
+        const s = p.querySelector(".screen");
+        s.style.transform = `scale(${1 - 0.08 * f})`;
+        s.style.filter = `blur(${5 * f}px)`;
+        s.style.opacity = 1 - 0.45 * f;
+      };
+      const rerenderDetail = (p) => {
+        const z = p._z;
+        const zc = z.el.querySelector(".zc");
+        const st = zc.scrollTop;
+        zc.innerHTML = DETAIL[z.kind](z.arg);
+        zc.scrollTop = st;
+        zc.querySelectorAll(".arc").forEach((c) => {
+          const R = RINGS.find((R) => R.k === c.dataset.ring);
+          const v = { life: now().life, blood, genes }[R.k];
+          c.style.strokeDashoffset = C(R.r) * (1 - v / 100);
+        });
+        if (z.kind === "streak") dayInfo(p, TODAY);
+      };
+      const openZ = (p, kind, src, arg, freeze) => {
+        if (p._z) return;
+        const el = document.createElement("div");
+        el.className = "zv" + (kind === "meal" ? " mealz" : "");
+        el.innerHTML = `<button class="zx" data-do="zclose" aria-label="Close">${I.x}</button><div class="zc ${kind === "meal" ? "mealv" : ""}"></div>`;
+        p.querySelector(".zroot").appendChild(el);
+        p._z = { kind, src, arg, el, rect: rectIn(p, src) };
+        rerenderDetail(p);
+        p.classList.add("instant");
+        setZ(p, 0);
+        void el.offsetWidth;
+        p.classList.remove("instant");
+        src.classList.add("lift");
+        if (freeze != null) {
+          p.classList.add("instant");
+          setZ(p, freeze);
+          p._frozen = true;
+          return;
+        }
+        setTimeout(() => setZ(p, 1), 20);
+      };
+      const closeZ = (p) => {
+        const z = p._z;
+        if (!z) return;
+        // the source may have been re-rendered (plates) or deleted
+        let src = z.src;
+        if (!src.isConnected && z.kind === "meal")
+          src = p.querySelector(`.meal[data-id="${z.arg}"]`) || null;
+        if (src) z.rect = rectIn(p, src);
+        setZ(p, 0);
+        setTimeout(() => {
+          z.el.remove();
+          if (src) src.classList.remove("lift");
+          p.querySelectorAll(".lift").forEach((x) =>
+            x.classList.remove("lift"),
+          );
+          p._z = null;
+          ["transform", "filter", "opacity"].forEach((k) =>
+            p.querySelector(".screen").style.removeProperty(k),
+          );
+        }, 520);
+      };
+
+      const dayInfo = (p, i) => {
+        const box = p.querySelector(".zc .dayinfo");
+        if (!box) return;
+        p.querySelectorAll(".zc .cell.on").forEach((c) =>
+          c.classList.remove("on"),
+        );
+        const cell = p.querySelector(`.zc .cell[data-day="${i}"]`);
+        if (cell) cell.classList.add("on");
+        const isToday = i === TODAY;
+        const s = isToday ? now().score : DAYS[i].s;
+        const D = isToday
+          ? {
+              L: now().life,
+              B: blood,
+              why: ["Moves " + LIFE.rows[1].s, "tick the next one for +2"],
+              eff: null,
+              date: new Date(2026, 8, 23),
+            }
+          : DAYS[i];
+        box.innerHTML = `<div class="d">${fmtD(D.date)}${isToday ? " · today" : ""}</div>
+          <div class="s" style="--c:${col(s)}"><i></i><b>${s}</b><span>${stateWord(s)}</span></div>
+          <div class="why">${D.why[0]} <span>· ${D.why[1]}${D.eff == null ? "" : ` · ${D.eff >= 0 ? "+" : "−"}${Math.abs(D.eff)}`}</span></div>`;
+      };
+
+      // ---- meal edits ----
+      const FIX = {
+        smaller: (m) => {
+          const i = QS.indexOf(m.q);
+          m.q = QS[Math.max(0, i - 1)];
+          return "smaller piece";
+        },
+        lessfat: (m) => {
+          m.k = Math.round(m.k * 0.85);
+          m.m[2] = Math.round(m.m[2] * 0.7);
+          return "leaner cut";
+        },
+        bread: (m) => {
+          m.k += 160;
+          m.m[1] += 30;
+          m.m[0] += 5;
+          return "a slice of bread added";
+        },
+      };
+      const mealChanged = (p) => {
+        paint(false);
+        phones.forEach((q) => {
+          if (q._z && q !== p) rerenderDetail(q);
+        });
+        if (p._z) rerenderDetail(p);
+      };
+
+      // ---- slide to tick ----
+      let drag = null;
+      window.addEventListener("pointermove", (e) => {
+        if (!drag) return;
+        const x = Math.max(0, Math.min(drag.max, e.clientX - drag.x0));
+        drag.moved = drag.moved || Math.abs(x) > 3;
+        drag.s.style.setProperty("--x", x + "px");
+        drag.s.style.setProperty("--k", (x / drag.max).toFixed(3));
+      });
+      window.addEventListener("pointerup", () => {
+        if (!drag) return;
+        const { s, max, p } = drag;
+        const x = parseFloat(s.style.getPropertyValue("--x")) || 0;
+        p._dragged = drag.moved;
+        drag = null;
+        if (x > max * 0.7) {
+          s.style.setProperty("--x", max + "px");
+          s.classList.add("done");
+          const next = MOVES.find((m) => !m.done);
+          setTimeout(() => {
+            if (next) next.done = true;
+            everywhere();
+          }, 520);
+        } else {
+          s.classList.add("back");
+          s.style.setProperty("--x", "0px");
+          s.style.setProperty("--k", "0");
+          setTimeout(() => s.classList.remove("back"), 440);
+        }
+      });
+
+      // ---- the Live Activity: reading the plate (from 42) ----
+      const ITEMS = {
+        photo: ["pork belly", "lettuce", "rye bread", "vinaigrette"],
+        voice: ["two eggs", "tuna", "chilli", "olive oil"],
+        text: ["sardines", "rye", "kimchi"],
+      };
+      const RESULT = {
+        photo: ["Pork belly, salad", "623 kcal · 41 g protein · added"],
+        voice: ["Eggs, tuna with chilli", "estimate ready · added"],
+        text: ["Sardines on rye, kimchi", "462 kcal · 38 g protein · added"],
+      };
+      const readPlate = (p, kind = "photo", src, T = 7000) => {
+        clearTimeout(p._t);
+        clearInterval(p._iv);
+        const isl = p.querySelector(".island");
+        const bar = p.querySelector(".xbar i");
+        const ring = p.querySelector(".xring");
+        const pc = p.querySelector(".pc");
+        const xt = p.querySelector(".xt");
+        const xs = p.querySelector(".xs");
+        if (src) p.querySelector(".thumb img").src = src;
+        isl.classList.remove("done");
+        xt.textContent =
+          kind === "voice"
+            ? "Reading what you said…"
+            : kind === "text"
+              ? "Reading your note…"
+              : "Reading your plate…";
+        xs.textContent = "looking";
+        p.classList.add("live");
+        if (kind === "photo" && !src) p.classList.add("reading-pork");
+        const t0 = Date.now();
+        const items = ITEMS[kind];
+        p._iv = setInterval(() => {
+          const k = Math.min(1, (Date.now() - t0) / T);
+          const e = k < 0.5 ? k * 1.3 : 0.65 + (k - 0.5) * 0.7;
+          const v = Math.min(1, e);
+          bar.style.width = `${(v * 100).toFixed(1)}%`;
+          ring.style.strokeDashoffset = C(14) * (1 - v);
+          pc.textContent = Math.round(v * 100);
+          const n = Math.min(items.length, Math.floor(k * (items.length + 1)));
+          if (n)
+            xs.innerHTML = items
+              .slice(0, n)
+              .map((s, i) => (i === n - 1 ? `<em>${s}</em>` : s))
+              .join(" · ");
+          if (k >= 1) {
+            clearInterval(p._iv);
+            isl.classList.add("done");
+            pc.textContent = "";
+            xt.textContent = RESULT[kind][0];
+            xs.textContent = RESULT[kind][1];
+            p.classList.remove("reading-pork");
+            p._t = setTimeout(() => {
+              p.classList.remove("live");
+              if (p.dataset.live)
+                p._t = setTimeout(() => readPlate(p, "photo"), 4000);
+            }, 2600);
+          }
+        }, 60);
+      };
+
+      // ---- the Add sheet (from 42) ----
+      const sheetState = (p) => {
+        const sh = p.querySelector(".sheet");
+        const has =
+          p.querySelector(".shots").children.length > 0 ||
+          p.querySelector(".field input").value.trim().length > 0;
+        sh.classList.toggle("has", has);
+      };
+      const resetSheet = (p) => {
+        p.querySelector(".shots").innerHTML = "";
+        p.querySelector(".field input").value = "";
+        p.querySelectorAll(".mode").forEach((m) => m.classList.remove("on"));
+        p.querySelector(".sheet").classList.remove("listening");
+        clearInterval(p._ty);
+        sheetState(p);
+      };
+      const typeInto = (p, text) => {
+        const inp = p.querySelector(".field input");
+        clearInterval(p._ty);
+        let i = 0;
+        p._ty = setInterval(() => {
+          inp.value = text.slice(0, ++i);
+          sheetState(p);
+          if (i >= text.length) {
+            clearInterval(p._ty);
+            p.querySelector(".sheet").classList.remove("listening");
+          }
+        }, 55);
+      };
+      const addPhoto = (p) => {
+        const pics = ["img/08-salad.jpg", "img/08-tuna-chilli.jpg"];
+        const box = p.querySelector(".shots");
+        if (box.children.length < 2)
+          box.insertAdjacentHTML(
+            "beforeend",
+            `<span class="shot"><img src="${pics[box.children.length]}" alt=""></span>`,
+          );
+      };
+
+      for (const p of phones) {
+        p.innerHTML = home(p);
+        p.addEventListener("input", () => sheetState(p));
+        p.addEventListener("pointerdown", (e) => {
+          const knob = e.target.closest(".knob");
+          if (!knob) return;
+          const s = knob.closest(".slide");
+          e.preventDefault();
+          drag = {
+            s,
+            p,
+            x0: e.clientX - (parseFloat(s.style.getPropertyValue("--x")) || 0),
+            max: s.clientWidth - 34,
+            moved: false,
+          };
+        });
+        p.addEventListener("click", (e) => {
+          const t = e.target;
+          if (p._dragged) {
+            p._dragged = false;
+            return;
+          }
+          if (t.closest(".slide")) return;
+          if (p._frozen && t.closest(".zv") && !t.closest("[data-do]")) {
+            // phone 2: finish the frozen zoom
+            p._frozen = false;
+            p.classList.remove("instant");
+            void p.offsetWidth;
+            setZ(p, 1);
+            return;
+          }
+          // smart stack: page the markers
+          const sd = t.closest("[data-sdots]");
+          if (sd) {
+            const w = sd.closest(".blood-w");
+            const k = ((+w.dataset.k || 0) + 1) % MARKERS.length;
+            w.dataset.k = k;
+            const body = w.querySelector(".bbody");
+            body
+              .querySelectorAll(".bl, .bsay")
+              .forEach((x) => x.classList.add("out"));
+            setTimeout(() => {
+              body.innerHTML = bloodBody(k);
+              w.querySelector(".flag").outerHTML = flagOf(MARKERS[k]);
+            }, 240);
+            sd.querySelectorAll("i").forEach((d, i) =>
+              d.classList.toggle("on", i === k),
+            );
+            return;
+          }
+          // inside a detail view
+          const day = t.closest(".zc .cell[data-day]");
+          if (day) return dayInfo(p, +day.dataset.day);
+          const mvr = t.closest("[data-mv]");
+          if (mvr) {
+            const m = MOVES[+mvr.dataset.mv];
+            m.done = !m.done;
+            everywhere();
+            return;
+          }
+          const om = t.closest("[data-open-meal]");
+          if (om) {
+            p._z.kind = "meal";
+            p._z.arg = om.dataset.openMeal;
+            p._z.el.classList.add("mealz");
+            p._z.el.querySelector(".zc").classList.add("mealv");
+            p._z.el.querySelector(".zc").scrollTop = 0;
+            rerenderDetail(p);
+            return;
+          }
+          const qb = t.closest("[data-q]");
+          if (qb) {
+            const m = MEALS.find((x) => x.id === p._z.arg);
+            const i = QS.indexOf(m.q) + +qb.dataset.q;
+            if (i >= 0 && i < QS.length) m.q = QS[i];
+            mealChanged(p);
+            return;
+          }
+          const fx = t.closest("[data-fix]");
+          if (fx) {
+            fx.classList.toggle("on");
+            const box = p.querySelector(".zc .fix");
+            box.classList.toggle("has", !!box.querySelector("[data-fix].on"));
+            return;
+          }
+          // a widget: zoom it open
+          const zsrc = t.closest("[data-z]");
+          if (zsrc && !p._z && !zsrc.closest(".zv")) {
+            openZ(p, zsrc.dataset.z, zsrc, zsrc.dataset.id);
+            return;
+          }
+          const mode = t.closest("[data-mode]");
+          if (mode) {
+            p.querySelectorAll(".mode").forEach((m) =>
+              m.classList.toggle("on", m === mode),
+            );
+            const sh = p.querySelector(".sheet");
+            sh.classList.remove("listening");
+            const k = mode.dataset.mode;
+            if (k === "photo") addPhoto(p);
+            else if (k === "voice") {
+              sh.classList.add("listening");
+              p.querySelector(".field input").value = "";
+              setTimeout(
+                () => typeInto(p, "Two eggs and the tuna with chilli"),
+                1300,
+              );
+            } else p.querySelector(".field input").focus();
+            sheetState(p);
+            return;
+          }
+          const again = t.closest("[data-again]");
+          if (again) {
+            p.querySelector(".field input").value = again.dataset.again;
+            sheetState(p);
+            return;
+          }
+          const b = t.closest("[data-do]");
+          if (!b) return;
+          const d = b.dataset.do;
+          if (d === "zclose") {
+            p._frozen = false;
+            p.classList.remove("instant");
+            closeZ(p);
+          }
+          if (d === "fix") p.querySelector(".zc .fix").classList.toggle("on");
+          if (d === "reread") {
+            const m = MEALS.find((x) => x.id === p._z.arg);
+            const before = mealK(m);
+            const picks = [...p.querySelectorAll(".zc [data-fix].on")].map(
+              (x) => x.dataset.fix,
+            );
+            b.textContent = "Reading it again…";
+            b.style.pointerEvents = "none";
+            setTimeout(() => {
+              const said = picks.map((k) => FIX[k](m));
+              m.fixed = `Fixed: ${said.join(", ")} · ${before} → ${mealK(m)} kcal`;
+              mealChanged(p);
+            }, 1100);
+          }
+          if (d === "del") {
+            p.querySelector(".zc .confirm").classList.add("on");
+            const zc = p.querySelector(".zc");
+            zc.scrollTo({ top: zc.scrollHeight, behavior: "smooth" });
+          }
+          if (d === "undel")
+            p.querySelector(".zc .confirm").classList.remove("on");
+          if (d === "delyes") {
+            const i = MEALS.findIndex((x) => x.id === p._z.arg);
+            closeZ(p);
+            setTimeout(() => {
+              if (i >= 0) MEALS.splice(i, 1);
+              mealChanged(p);
+              phones.forEach((q) => {
+                if (q !== p && q._z && q._z.kind === "meal") closeZ(q);
+              });
+            }, 540);
+          }
+          if (d === "open") p.classList.add("open");
+          if (d === "close") {
+            p.classList.remove("open");
+            resetSheet(p);
+          }
+          if (d === "send") {
+            const shot = p.querySelector(".shots img");
+            const on = p.querySelector(".mode.on");
+            const kind = shot
+              ? "photo"
+              : on && on.dataset.mode === "voice"
+                ? "voice"
+                : "text";
+            p.classList.remove("open");
+            readPlate(
+              p,
+              kind,
+              shot ? shot.getAttribute("src") : "img/08-sardines-rye.jpg",
+            );
+            setTimeout(() => resetSheet(p), 400);
+          }
+        });
+      }
+      paint(true);
+      // phone 1 runs the Live Activity on a loop, starting a beat after load
+      // (the first read runs slow so a headless screenshot always catches it)
+      // it starts expanded at first paint, so no transition can be caught half-way
+      readPlate(phones[0], "photo", null, 15000);
+      // phone 2 freezes the streak widget mid-zoom
+      setTimeout(() => {
+        const p = document.querySelector("[data-freeze]");
+        if (!p) return;
+        p.classList.add("instant");
+        p.querySelector(".screen").scrollTop = 377;
+        openZ(p, "streak", p.querySelector(".streak-w"), null, 0.62);
+      }, 400);
+      // phone 3: the sheet open with one photo, so Send shows
+      const p3 = document.querySelector("[data-shot]");
+      if (p3) {
+        p3.querySelector('[data-mode="photo"]').classList.add("on");
+        addPhoto(p3);
+        sheetState(p3);
+      }
+          // ambient video plays once on open, slowed and blurred, then holds its last frame
+      document.querySelectorAll("video.amb").forEach((v) => {
+        v.playbackRate = 0.5;
+        v.addEventListener("playing", () => v.classList.add("on"), { once: true });
+      });
+      // ambient video holds still for reduced motion
+      if (matchMedia("(prefers-reduced-motion: reduce)").matches)
+        document.querySelectorAll("video.amb").forEach((v) => { v.autoplay = false; v.pause(); v.classList.add("on"); });
+    </script>
+  </body>
+</html>

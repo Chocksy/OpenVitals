@@ -1,0 +1,1409 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Forecast · iOS variation 30 · OpenVitals</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Source+Serif+4:opsz,wght@8..60,300;8..60,400;8..60,600&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        /* chart paper, one ink, one alert hue, one typeface */
+        --page: #ddd9cc;
+        --paper: #f4f1e6;
+        --ink: #16202a;
+        --ink-2: #55606a;
+        --ink-3: #8d9088;
+        --hair: #c2bca9;
+        --alert: #a8331b;
+        --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", monospace;
+        --serif: "Source Serif 4", Georgia, "Times New Roman", serif;
+        /* 4 6 10 16 26 42 */
+        --u1: 4px;
+        --u2: 6px;
+        --u3: 10px;
+        --u4: 16px;
+        --u5: 26px;
+        --u6: 42px;
+        --ease: cubic-bezier(0.25, 0.7, 0.25, 1);
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--page);
+        color: var(--ink);
+        font: 400 12px/1.6 var(--mono);
+        font-feature-settings: "tnum";
+      }
+      button {
+        font: inherit;
+        color: inherit;
+        background: none;
+        border: 0;
+        padding: 0;
+        cursor: pointer;
+        text-align: left;
+        -webkit-tap-highlight-color: transparent;
+      }
+      h1,
+      h2,
+      p {
+        margin: 0;
+      }
+      table {
+        border-collapse: collapse;
+      }
+
+      /* ---- five type roles, one each ---- */
+      .display {
+        font-size: 56px;
+        font-weight: 400;
+        line-height: 0.86;
+        letter-spacing: -0.02em;
+      }
+      .h1 {
+        font-family: var(--serif);
+        font-size: 15px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+      }
+      .h2 {
+        font-size: 10px;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        color: var(--ink-2);
+      }
+      .body {
+        font-family: var(--serif);
+        font-size: 14px;
+        font-weight: 400;
+        line-height: 1.5;
+      }
+      .verdict {
+        font-family: var(--serif);
+        font-size: 21px;
+        font-weight: 400;
+        line-height: 1;
+        letter-spacing: 0;
+      }
+      .micro {
+        font-size: 8.5px;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: var(--ink-3);
+        line-height: 1.7;
+      }
+
+      /* ---- page: one measure, shared with the phones ---- */
+      .doc {
+        max-width: 860px;
+        margin: 0 auto;
+        padding: var(--u6) var(--u4) var(--u6);
+      }
+      .doc > header {
+        display: grid;
+        grid-template-columns: 300px 1fr;
+        gap: var(--u6);
+        align-items: start;
+        border-top: 1px solid var(--ink);
+        border-bottom: 1px solid var(--ink);
+        padding: var(--u3) 0 var(--u4);
+        margin-bottom: var(--u5);
+      }
+      .doc h1 {
+        font-family: var(--serif);
+        font-size: 40px;
+        font-weight: 500;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        line-height: 1;
+        margin-top: 2px;
+      }
+      .lede {
+        color: var(--ink-2);
+      }
+      .lede + .lede {
+        margin-top: var(--u3);
+        color: var(--ink-3);
+      }
+      .phones {
+        display: flex;
+        gap: var(--u6);
+        justify-content: center;
+        flex-wrap: wrap;
+      }
+      .cap {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: var(--u3);
+        width: 390px;
+      }
+
+      /* ---- phone ---- */
+      .phone {
+        width: 390px;
+        height: 844px;
+        border-radius: 55px;
+        border: 8px solid #14181c;
+        background: var(--paper);
+        box-shadow: 0 26px 42px -26px rgba(22, 32, 42, 0.5);
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+      }
+      .status {
+        height: 55px;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        padding: 0 26px var(--u2);
+        font-size: 13px;
+        font-weight: 500;
+        position: relative;
+        z-index: 7;
+      }
+      .status i {
+        position: absolute;
+        left: 50%;
+        top: 13px;
+        width: 118px;
+        height: 33px;
+        border-radius: 20px;
+        background: #0b0d10;
+        transform: translateX(-50%);
+      }
+      .screen {
+        flex: 1;
+        overflow-y: auto;
+        padding: 0 14px 110px;
+        scrollbar-width: none;
+        position: relative;
+      }
+      .screen::-webkit-scrollbar {
+        display: none;
+      }
+
+      /* ---- masthead ---- */
+      .mast {
+        border-top: 1px solid var(--ink);
+        padding-top: var(--u1);
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+      }
+      .meta {
+        padding: 1px 0 var(--u1);
+        border-bottom: 0.5px solid var(--hair);
+      }
+
+      /* ---- headline ---- */
+      .headline {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: var(--u4);
+        padding: var(--u2) 0 var(--u3);
+      }
+      .rt {
+        text-align: right;
+        padding-bottom: 2px;
+      }
+      .rt svg {
+        display: block;
+        margin-left: auto;
+      }
+
+      /* ---- sections: rules and whitespace, no boxes ---- */
+      .sec {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        gap: var(--u2);
+        border-top: 1px solid var(--ink);
+        padding: var(--u1) 0 var(--u2);
+      }
+      .bleed {
+        display: block;
+        width: 374px;
+        margin: 0 -14px;
+        height: auto;
+      }
+      svg text {
+        font-family: var(--mono);
+        fill: var(--ink);
+      }
+      .s-micro {
+        font-size: 7.6px;
+        font-weight: 500;
+        letter-spacing: 0.1em;
+        fill: var(--ink-2);
+      }
+      .s-rd {
+        font-size: 10px;
+        font-weight: 500;
+      }
+      .s-stn {
+        font-size: 10px;
+        font-weight: 600;
+        letter-spacing: 0.1em;
+      }
+      .s-iso {
+        font-size: 8.5px;
+        font-weight: 500;
+        fill: var(--ink-2);
+      }
+      .s-lab {
+        font-size: 8px;
+        font-weight: 500;
+        letter-spacing: 0.12em;
+        fill: var(--ink);
+      }
+      .alert {
+        fill: var(--alert);
+        font-weight: 500;
+      }
+      .say {
+        /* the fold lands in this gutter, so no row is ever cut by the tab bar */
+        padding: var(--u2) 0 92px;
+        color: var(--ink-2);
+      }
+      .say b {
+        color: var(--ink);
+        font-weight: 500;
+      }
+
+      /* ---- conditions ---- */
+      .obs {
+        width: 100%;
+        margin-bottom: var(--u2);
+      }
+      .obs td {
+        padding: 5px 0;
+        border-bottom: 0.5px solid var(--hair);
+        vertical-align: baseline;
+      }
+      .obs tr:last-child td {
+        border-bottom: 0;
+      }
+      .obs .t {
+        width: 46px;
+        color: var(--ink-2);
+      }
+      .obs .k {
+        color: var(--ink-3);
+        padding-left: var(--u2);
+      }
+      .obs .r {
+        text-align: right;
+        white-space: nowrap;
+      }
+      .obs .d {
+        text-align: right;
+        width: 32px;
+        color: var(--ink-2);
+      }
+      .obs .off {
+        color: var(--alert);
+      }
+
+      /* ---- climate ---- */
+      .climate {
+        padding-bottom: var(--u3);
+      }
+      .climate .val {
+        font-size: 21px;
+        font-weight: 400;
+        letter-spacing: 0.06em;
+        margin: var(--u2) 0 var(--u1);
+      }
+      .climate p {
+        color: var(--ink-2);
+      }
+      .stamp {
+        font-size: 8.5px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        color: var(--alert);
+        border: 1px solid var(--alert);
+        padding: 2px 5px;
+        white-space: nowrap;
+        transform: rotate(-1.5deg);
+        display: inline-block;
+      }
+      .src {
+        border-top: 0.5px solid var(--hair);
+        padding-top: var(--u2);
+      }
+
+      /* ---- tab bar ---- */
+      .tabs {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: 74px;
+        background: var(--paper);
+        border-top: 1px solid var(--ink);
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        padding: var(--u4) var(--u4) 0;
+        z-index: 4;
+      }
+      .tabs button {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: var(--u2);
+        font-size: 8.5px;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        color: var(--ink-3);
+      }
+      .tabs button i {
+        width: 7px;
+        height: 7px;
+        border: 1px solid currentColor;
+        border-radius: 50%;
+        display: block;
+      }
+      .tabs button.on i {
+        background: currentColor;
+      }
+      .tabs button.on {
+        color: var(--ink);
+        font-weight: 600;
+      }
+      .tabs button.on::after {
+        content: "";
+        display: block;
+        width: 16px;
+        height: 1px;
+        background: var(--ink);
+      }
+      .home {
+        position: absolute;
+        left: 50%;
+        bottom: 8px;
+        width: 134px;
+        height: 5px;
+        border-radius: 3px;
+        background: #16202a;
+        opacity: 0.28;
+        transform: translateX(-50%);
+        z-index: 5;
+      }
+
+      /* ---- the observation log page ---- */
+      .form {
+        position: absolute;
+        z-index: 6;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: var(--paper);
+        border-top: 1px solid var(--ink);
+        box-shadow: 0 -16px 30px -24px rgba(22, 32, 42, 0.5);
+        /* height tuned so the log's top rule lands exactly on the chart's
+           bottom edge when the screen rides down to the analysis rule */
+        padding: var(--u2) 14px 46px;
+        transform: translateY(103%);
+        transition: transform 380ms var(--ease);
+      }
+      .phone.open .form {
+        transform: none;
+      }
+      .fh {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        padding-bottom: var(--u1);
+      }
+      .field {
+        display: flex;
+        align-items: center;
+        gap: var(--u3);
+        border-bottom: 0.5px solid var(--hair);
+        padding: var(--u2) 0;
+        min-height: 30px;
+      }
+      .field > .h2 {
+        width: 68px;
+        flex: none;
+      }
+      .field .v {
+        flex: 1;
+      }
+      .field .v .micro {
+        display: block;
+      }
+      .box {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        margin-right: var(--u3);
+        font-size: 9.5px;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        font-weight: 500;
+        color: var(--ink-3);
+      }
+      .box i {
+        width: 10px;
+        height: 10px;
+        border: 1px solid var(--ink-3);
+        display: block;
+        position: relative;
+      }
+      .box.on {
+        color: var(--ink);
+      }
+      .box.on i {
+        border-color: var(--ink);
+      }
+      .box.on i::before,
+      .box.on i::after {
+        content: "";
+        position: absolute;
+        left: -1px;
+        top: 4px;
+        width: 12px;
+        height: 1px;
+        background: var(--ink);
+      }
+      .box.on i::before {
+        transform: rotate(45deg);
+      }
+      .box.on i::after {
+        transform: rotate(-45deg);
+      }
+      .file-btn {
+        font-family: var(--serif);
+        margin-top: var(--u3);
+        width: 100%;
+        border-top: 1px solid var(--ink);
+        border-bottom: 1px solid var(--ink);
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.22em;
+        padding: 10px;
+        text-align: center;
+      }
+
+      /* ---- notes ---- */
+      .notes {
+        margin-top: var(--u6);
+      }
+      .notes h2 {
+        border-top: 1px solid var(--ink);
+        padding-top: var(--u2);
+        margin-bottom: var(--u2);
+        font-family: var(--serif);
+        font-size: 16px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.18em;
+      }
+      .notes table {
+        width: 100%;
+        table-layout: fixed;
+        margin: var(--u2) 0 var(--u5);
+      }
+      .notes td:nth-child(2),
+      .notes td:last-child {
+        font-family: var(--serif);
+        font-size: 13.5px;
+      }
+      .notes .num {
+        font-family: var(--mono);
+        font-size: 12px;
+      }
+      .notes td,
+      .notes th {
+        text-align: left;
+        padding: 7px 14px 7px 0;
+        border-bottom: 0.5px solid var(--hair);
+        vertical-align: top;
+        line-height: 1.55;
+        color: var(--ink-2);
+      }
+      .notes th {
+        font-size: 10px;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        color: var(--ink);
+      }
+      .notes td:first-child {
+        color: var(--ink);
+      }
+      .notes th.num {
+        text-align: right;
+        padding-right: var(--u4);
+      }
+      .notes td.num {
+        text-align: right;
+        padding-right: var(--u4);
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .form {
+          transition: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="doc">
+      <header>
+        <div>
+          <p class="h2">iOS variation 30 · round eleven</p>
+          <h1>Forecast</h1>
+        </div>
+        <div>
+          <p class="lede body">
+            The body read as a synoptic chart, in the register of a weather
+            service bulletin. Three kinds of fact, kept apart by the drawing:
+            conditions now, the outlook, and climate. Two registers, serif for
+            the voice and mono for every reading. Chart paper, one ink, one red
+            on the single value that is off.
+          </p>
+          <p class="lede body">
+            The field steps across the front, so the contours pack against it
+            and open out in the plateaus. Eleven of them, every unit from 66 to
+            76, each labelled in a gap cut from its own line. Barbs carry the
+            weights at one flag per ten: lifestyle four, blood four and a half,
+            genes one and a half. The grammar is taught once, in the table
+            below; the phone never re-explains itself.
+          </p>
+        </div>
+      </header>
+
+      <section class="phones">
+        <div>
+          <p class="cap">
+            <span class="h2">01 · Chart</span
+            ><span class="h2">The 21:00 analysis</span>
+          </p>
+          <div class="phone" id="p1"></div>
+        </div>
+        <div>
+          <p class="cap">
+            <span class="h2">02 · Observation log</span
+            ><span class="h2">Filing a meal</span>
+          </p>
+          <div class="phone open" id="p2"></div>
+        </div>
+      </section>
+
+      <section class="notes">
+        <h2>The index</h2>
+        <table>
+          <colgroup>
+            <col style="width: 15%" />
+            <col style="width: 45%" />
+            <col style="width: 9%" />
+            <col style="width: 11%" />
+            <col style="width: 20%" />
+          </colgroup>
+          <tr>
+            <th>Layer</th>
+            <th>Readings today</th>
+            <th class="num">Index</th>
+            <th class="num">Weight</th>
+            <th>Moves</th>
+          </tr>
+          <tr>
+            <td>Lifestyle</td>
+            <td>sleep 100 · moves 40 · kcal 90 · protein 78</td>
+            <td class="num">77</td>
+            <td class="num">0.40</td>
+            <td>every entry</td>
+          </tr>
+          <tr>
+            <td>Blood</td>
+            <td>4 in range · 2 borderline · 1 off</td>
+            <td class="num">71</td>
+            <td class="num">0.45</td>
+            <td>each draw</td>
+          </tr>
+          <tr>
+            <td>Genes</td>
+            <td>4 variants · fixed</td>
+            <td class="num">63</td>
+            <td class="num">0.15</td>
+            <td>never</td>
+          </tr>
+          <tr>
+            <td>Index</td>
+            <td>0.40 × 77 + 0.45 × 71 + 0.15 × 63</td>
+            <td class="num">72</td>
+            <td class="num"></td>
+            <td>daily</td>
+          </tr>
+        </table>
+
+        <h2>The chart's grammar</h2>
+        <table>
+          <colgroup>
+            <col style="width: 20%" />
+            <col style="width: 42%" />
+            <col style="width: 38%" />
+          </colgroup>
+          <tr>
+            <th>Device</th>
+            <th>How it is drawn</th>
+            <th>What it carries</th>
+          </tr>
+          <tr>
+            <td>The field</td>
+            <td>
+              A gentle tilt, plus a 1.9-unit step across the front on a 40 px
+              scale, plus the three domains as broad anomalies (v − 72) × 0.42
+              on a σ 95 px kernel. Marching squares on a 3 px grid, segments
+              chained into whole contours, one Chaikin pass.
+            </td>
+            <td>
+              The gradient is four times steeper at the front than in the
+              western plateau, so the lines crowd where the change is and open
+              where nothing is happening. Contours run off every edge.
+            </td>
+          </tr>
+          <tr>
+            <td>Isobars</td>
+            <td>
+              Every unit from 66 to 76, eleven lines, every fourth heavier,
+              each labelled horizontally in a gap cut just wide enough for it
+            </td>
+            <td>
+              The gradient reads before the numbers do. The label never rotates,
+              so it never reads upside down.
+            </td>
+          </tr>
+          <tr>
+            <td>Station plot</td>
+            <td>
+              One circle diameter, four values in fixed slots, one barb length
+              and one barb angle at every station. The blackened fraction of the
+              circle is the domain index.
+            </td>
+            <td>
+              Lifestyle 7:30 / 1497 / 93 / +2, blood 131 / 29 / 98 / +6, genes
+              ε3/ε4 / C677T / 4 / 0.
+            </td>
+          </tr>
+          <tr>
+            <td>Barb</td>
+            <td>
+              One flag per 10 and a half flag per 5, on weight × 100. Same
+              shaft, same bearing, so only the feather count differs.
+            </td>
+            <td>
+              Lifestyle four flags, blood four and a half, genes one and a half.
+              The count is what says which domain moves the index most.
+            </td>
+          </tr>
+          <tr>
+            <td>Cold front</td>
+            <td>
+              One spline, one triangle size at an even 44 px of arc, labelled
+              off the chart edge on a leader
+            </td>
+            <td>LDL 168 → 131 since 9 Dec 2025, still passing.</td>
+          </tr>
+          <tr>
+            <td>Outlook</td>
+            <td>
+              No axis and no frame: a hairline median run, a soft wash for the
+              spread, ticks on one even step along a single baseline, the target
+              drawn as a dashed isobar with the same break-in-the-line label
+            </td>
+            <td>
+              Keep this eight weeks and LDL lands near 104, from 131. The cone
+              is the honest part.
+            </td>
+          </tr>
+          <tr>
+            <td>Climate</td>
+            <td>No box. A rule, a stamp, one line of ink.</td>
+            <td>
+              APOE ε3/ε4. It sets the range the forecast runs inside and is
+              never in the run.
+            </td>
+          </tr>
+        </table>
+
+        <h2>Motion</h2>
+        <table>
+          <colgroup>
+            <col style="width: 20%" />
+            <col style="width: 42%" />
+            <col style="width: 12%" />
+            <col style="width: 26%" />
+          </colgroup>
+          <tr>
+            <th>What</th>
+            <th>Moves</th>
+            <th>Duration</th>
+            <th>Trigger</th>
+          </tr>
+          <tr>
+            <td>Observation log</td>
+            <td>
+              rises from the bottom edge under a single ink rule; the chart
+              above stays lit, because the log points at the station it redraws
+            </td>
+            <td>380 ms</td>
+            <td>Observe</td>
+          </tr>
+          <tr>
+            <td>Redraw</td>
+            <td>the kcal slot steps 874 → 1497, the cover fills 71 → 77</td>
+            <td>on file</td>
+            <td>File observation</td>
+          </tr>
+          <tr>
+            <td>Reduced motion</td>
+            <td>the log cuts in</td>
+            <td>0</td>
+            <td>system setting</td>
+          </tr>
+        </table>
+      </section>
+    </main>
+
+    <script>
+      /* ---------------- data, straight from Onion ---------------- */
+      const LIFE = {
+        w: 0.4,
+        rows: [
+          { n: "Sleep", s: "7h 30 of 7h 30", p: 100 },
+          { n: "Moves", s: "2 of 5 ticked", p: 40 },
+          { n: "Calories", s: "1 497 of 1 900 kcal", p: 90 },
+          { n: "Protein", s: "93 of 120 g", p: 78 },
+        ],
+      };
+      const BLOOD = {
+        w: 0.45,
+        rows: [
+          { n: "Vitamin D", s: "29 ng/mL · aim 40 to 60", x: 12, st: "rose" },
+          { n: "LDL", s: "131 mg/dL · aim under 100", x: 84, st: "amber" },
+          { n: "ApoB", s: "98 mg/dL · aim under 90", x: 80, st: "amber" },
+          { n: "hs-CRP", s: "0.6 mg/L", x: 30, st: "green" },
+          { n: "HbA1c", s: "5.3 %", x: 45, st: "green" },
+          { n: "Ferritin", s: "64 ng/mL", x: 50, st: "green" },
+          { n: "TPO", s: "18 IU/mL", x: 35, st: "green" },
+        ],
+      };
+      const GENES = {
+        w: 0.15,
+        rows: [
+          { n: "APOE ε3/ε4", s: "LDL responds more to saturated fat", p: 45 },
+          { n: "LPA rs10455872", s: "not carried", p: 100 },
+          { n: "MTHFR C677T", s: "heterozygous · folate form matters", p: 60 },
+          { n: "FTO rs9939609", s: "one copy · appetite", p: 45 },
+        ],
+      };
+      const pct = (rows) =>
+        Math.round(rows.reduce((a, r) => a + r.p, 0) / rows.length);
+      const life = pct(LIFE.rows); // 77
+      const blood = Math.round(
+        (BLOOD.rows.reduce(
+          (a, r) => a + { green: 1, amber: 0.5, rose: 0 }[r.st],
+          0,
+        ) /
+          BLOOD.rows.length) *
+          100,
+      ); // 71
+      const genes = pct(GENES.rows); // 63
+      const score = Math.round(
+        LIFE.w * life + BLOOD.w * blood + GENES.w * genes,
+      ); // 72
+      console.assert(score === 72, "index arithmetic drifted", score);
+
+      const verdict =
+        score >= 80
+          ? "Set fair"
+          : score >= 65
+            ? "Fair, improving"
+            : score >= 50
+              ? "Unsettled"
+              : "Severe";
+
+      const LOG = [
+        { t: "07:00", n: "Sleep", k: "overnight", r: "7h30", d: "+3" },
+        {
+          t: "08:15",
+          n: "Oats with berries",
+          k: "meal",
+          r: "412 kcal",
+          d: "+1",
+        },
+        { t: "08:20", n: "Selenium 200 µg", k: "supplement", r: "·", d: "0" },
+        {
+          t: "13:08",
+          n: "Sardines on rye",
+          k: "meal · 38 g protein",
+          r: "462 kcal",
+          d: "+1",
+        },
+        { t: "13:45", n: "Walk after lunch", k: "15 min", r: "·", d: "+2" },
+        {
+          t: "19:30",
+          n: "Pork belly, salad",
+          k: "meal · fat past the share",
+          r: "623 kcal",
+          d: "−1",
+          off: true,
+        },
+      ];
+
+      /* ---------------- the front ---------------- */
+      const FRONT = [
+        [214, -14],
+        [198, 70],
+        [176, 150],
+        [148, 214],
+        [136, 286],
+        [142, 344],
+      ];
+      function crSample(P, n) {
+        const out = [],
+          pt = (i) => P[Math.max(0, Math.min(P.length - 1, i))];
+        for (let s = 0; s < P.length - 1; s++) {
+          const p0 = pt(s - 1),
+            p1 = pt(s),
+            p2 = pt(s + 1),
+            p3 = pt(s + 2);
+          for (let k = 0; k < n; k++) {
+            const t = k / n,
+              t2 = t * t,
+              t3 = t2 * t;
+            out.push([
+              0.5 *
+                (2 * p1[0] +
+                  (-p0[0] + p2[0]) * t +
+                  (2 * p0[0] - 5 * p1[0] + 4 * p2[0] - p3[0]) * t2 +
+                  (-p0[0] + 3 * p1[0] - 3 * p2[0] + p3[0]) * t3),
+              0.5 *
+                (2 * p1[1] +
+                  (-p0[1] + p2[1]) * t +
+                  (2 * p0[1] - 5 * p1[1] + 4 * p2[1] - p3[1]) * t2 +
+                  (-p0[1] + 3 * p1[1] - 3 * p2[1] + p3[1]) * t3),
+            ]);
+          }
+        }
+        out.push(P[P.length - 1]);
+        return out;
+      }
+      const FPTS = crSample(FRONT, 26);
+      function frontLine(pts, seed, step, size) {
+        let acc = 0,
+          next = seed,
+          tri = "";
+        for (let i = 1; i < pts.length; i++) {
+          const dx = pts[i][0] - pts[i - 1][0],
+            dy = pts[i][1] - pts[i - 1][1],
+            len = Math.hypot(dx, dy),
+            ux = dx / len,
+            uy = dy / len,
+            nx = -uy,
+            ny = ux;
+          acc += len;
+          if (acc >= next) {
+            next += step;
+            const bx = pts[i][0],
+              by = pts[i][1];
+            tri += `<path d="M${(bx - ux * size * 0.62).toFixed(1)} ${(by - uy * size * 0.62).toFixed(1)}L${(bx + nx * size).toFixed(1)} ${(by + ny * size).toFixed(1)}L${(bx + ux * size * 0.62).toFixed(1)} ${(by + uy * size * 0.62).toFixed(1)}Z" fill="var(--ink)"/>`;
+          }
+        }
+        return `<path d="${toPath(pts)}" fill="none" stroke="var(--ink)" stroke-width="1.7"/>${tri}`;
+      }
+
+      /* ---------------- the analysed field ----------------
+         a gentle tilt, a step across the front, and the three domains as broad
+         anomalies on top, so the contours pack where the front is and open out
+         in the plateaus instead of ringing each station */
+      const CW = 374,
+        CH = 300,
+        TX = 0.3,
+        TY = 0.8,
+        FA = 1.9,
+        FW = 40,
+        SIG = 95,
+        KA = 0.42;
+      const ST = [
+        {
+          id: "LIFESTYLE",
+          hl: "H",
+          x: 100,
+          y: 100,
+          v: life,
+          ul: "7:30",
+          ll: "1497",
+          ur: "93",
+          lr: "+2",
+          kt: 40,
+        },
+        {
+          id: "BLOOD",
+          hl: "",
+          x: 286,
+          y: 112,
+          v: blood,
+          ul: "131",
+          ll: "29",
+          llOff: true,
+          ur: "98",
+          lr: "+6",
+          kt: 45,
+        },
+        {
+          id: "GENES",
+          hl: "L",
+          x: 232,
+          y: 236,
+          v: genes,
+          ul: "ε3/ε4",
+          ll: "C677T",
+          ur: "4",
+          lr: "0",
+          kt: 15,
+        },
+      ];
+      const K2 = 2 * SIG * SIG;
+      /* where the front sits at this latitude */
+      function frontX(y) {
+        for (let i = 0; i < FPTS.length - 1; i++) {
+          const p = FPTS[i],
+            q = FPTS[i + 1];
+          if ((p[1] - y) * (q[1] - y) <= 0 && p[1] !== q[1])
+            return p[0] + ((q[0] - p[0]) * (y - p[1])) / (q[1] - p[1]);
+        }
+        return y < FPTS[0][1] ? FPTS[0][0] : FPTS[FPTS.length - 1][0];
+      }
+      function fld(x, y) {
+        let v =
+          score -
+          TX * ((x - CW / 2) / (CW / 2)) -
+          TY * ((y - CH / 2) / (CH / 2)) -
+          FA * Math.tanh((x - frontX(y)) / FW);
+        for (const s of ST)
+          v +=
+            (s.v - score) *
+            KA *
+            Math.exp(-((x - s.x) * (x - s.x) + (y - s.y) * (y - s.y)) / K2);
+        return v;
+      }
+
+      /* marching squares on a 3 px grid */
+      const GS = 3,
+        NX = Math.ceil(CW / GS),
+        NY = Math.ceil(CH / GS);
+      const F = [];
+      for (let j = 0; j <= NY; j++) {
+        F[j] = [];
+        for (let i = 0; i <= NX; i++) F[j][i] = fld(i * GS, j * GS);
+      }
+      function segments(level) {
+        const out = [];
+        const ip = (px, py, qx, qy, va, vb) => {
+          const t = (level - va) / (vb - va);
+          return [px + (qx - px) * t, py + (qy - py) * t];
+        };
+        for (let j = 0; j < NY; j++)
+          for (let i = 0; i < NX; i++) {
+            const x0 = i * GS,
+              y0 = j * GS,
+              x1 = x0 + GS,
+              y1 = y0 + GS;
+            const a = F[j][i],
+              b = F[j][i + 1],
+              c = F[j + 1][i + 1],
+              e = F[j + 1][i];
+            const k =
+              (a > level ? 8 : 0) |
+              (b > level ? 4 : 0) |
+              (c > level ? 2 : 0) |
+              (e > level ? 1 : 0);
+            if (k === 0 || k === 15) continue;
+            const top = () => ip(x0, y0, x1, y0, a, b),
+              right = () => ip(x1, y0, x1, y1, b, c),
+              bot = () => ip(x0, y1, x1, y1, e, c),
+              left = () => ip(x0, y0, x0, y1, a, e);
+            if (k === 1 || k === 14) out.push([left(), bot()]);
+            else if (k === 2 || k === 13) out.push([bot(), right()]);
+            else if (k === 3 || k === 12) out.push([left(), right()]);
+            else if (k === 4 || k === 11) out.push([top(), right()]);
+            else if (k === 6 || k === 9) out.push([top(), bot()]);
+            else if (k === 7 || k === 8) out.push([left(), top()]);
+            else if (k === 5) out.push([left(), top()], [bot(), right()]);
+            else if (k === 10) out.push([left(), bot()], [top(), right()]);
+          }
+        return out;
+      }
+      function chain(segs) {
+        const K = (p) => p[0].toFixed(2) + "|" + p[1].toFixed(2);
+        const at = new Map();
+        segs.forEach((s, i) => {
+          for (const p of s) {
+            const k = K(p);
+            if (!at.has(k)) at.set(k, []);
+            at.get(k).push(i);
+          }
+        });
+        const used = new Array(segs.length).fill(false),
+          out = [];
+        for (let i = 0; i < segs.length; i++) {
+          if (used[i]) continue;
+          used[i] = true;
+          const c = [segs[i][0], segs[i][1]];
+          for (let dir = 0; dir < 2; dir++) {
+            if (dir) c.reverse();
+            for (;;) {
+              const k = K(c[c.length - 1]);
+              let hit = null;
+              for (const j of at.get(k) || []) {
+                if (used[j]) continue;
+                const s = segs[j];
+                const nx = K(s[0]) === k ? s[1] : K(s[1]) === k ? s[0] : null;
+                if (!nx) continue;
+                used[j] = true;
+                hit = nx;
+                break;
+              }
+              if (!hit) break;
+              c.push(hit);
+            }
+          }
+          if (c.length > 3) out.push(c);
+        }
+        return out;
+      }
+      function smooth(pts) {
+        const closed =
+          Math.hypot(
+            pts[0][0] - pts[pts.length - 1][0],
+            pts[0][1] - pts[pts.length - 1][1],
+          ) < 1.5;
+        const out = closed ? [] : [pts[0]];
+        for (let i = 0; i < pts.length - 1; i++) {
+          const p = pts[i],
+            q = pts[i + 1];
+          out.push([p[0] * 0.75 + q[0] * 0.25, p[1] * 0.75 + q[1] * 0.25]);
+          out.push([p[0] * 0.25 + q[0] * 0.75, p[1] * 0.25 + q[1] * 0.75]);
+        }
+        out.push(closed ? out[0] : pts[pts.length - 1]);
+        return out;
+      }
+      const toPath = (pts) =>
+        pts
+          .map(
+            (p, i) => `${i ? "L" : "M"}${p[0].toFixed(1)} ${p[1].toFixed(1)}`,
+          )
+          .join("");
+
+      /* keep-out list: the station plots, the front, and every label already
+         placed. Labels are horizontal, always. */
+      const KEEP = [];
+      function isobars() {
+        let paths = "",
+          labels = "";
+        for (let lv = 66; lv <= 76; lv++) {
+          const wt = lv % 4 === 0 ? 1.3 : 0.55;
+          const lines = chain(segments(lv)).map(smooth);
+          lines.sort((a, b) => b.length - a.length);
+          const stroke = (pp) =>
+            (paths += `<path d="${toPath(pp)}" fill="none" stroke="var(--ink-2)" stroke-width="${wt}" stroke-opacity="0.9"/>`);
+          lines.forEach((pts, k) => {
+            const cut = k === 0 ? pick(pts) : -1;
+            if (cut < 0) return stroke(pts);
+            let a = cut,
+              b = cut,
+              run = 0;
+            while (a > 0 && run < 7) {
+              run += Math.hypot(
+                pts[a][0] - pts[a - 1][0],
+                pts[a][1] - pts[a - 1][1],
+              );
+              a--;
+            }
+            run = 0;
+            while (b < pts.length - 1 && run < 7) {
+              run += Math.hypot(
+                pts[b + 1][0] - pts[b][0],
+                pts[b + 1][1] - pts[b][1],
+              );
+              b++;
+            }
+            const head = pts.slice(0, a + 1),
+              tail = pts.slice(b);
+            if (head.length > 1) stroke(head);
+            if (tail.length > 1) stroke(tail);
+            KEEP.push(pts[cut]);
+            labels += `<text class="s-iso" text-anchor="middle" x="${pts[cut][0].toFixed(1)}" y="${(pts[cut][1] + 3).toFixed(1)}">${lv}</text>`;
+          });
+        }
+        return paths + labels;
+      }
+      function pick(pts) {
+        const n = pts.length;
+        if (n < 40) return -1;
+        for (let pass = 0; pass < 2; pass++) {
+          const gap = pass ? 40 : 62;
+          for (
+            let i = Math.floor(n * 0.1);
+            i < n - Math.floor(n * 0.1);
+            i += 2
+          ) {
+            const x = pts[i][0],
+              y = pts[i][1];
+            if (x < 16 || x > CW - 16 || y < 28 || y > CH - 30) continue;
+            let ok = true;
+            for (const s of ST)
+              if (Math.abs(x - s.x) < 62 && Math.abs(y - s.y) < 48) ok = false;
+            if (ok)
+              for (const t of KEEP)
+                if (Math.hypot(x - t[0], y - t[1]) < gap) {
+                  ok = false;
+                  break;
+                }
+            if (ok)
+              for (const q of FPTS)
+                if (Math.hypot(x - q[0], y - q[1]) < 16) {
+                  ok = false;
+                  break;
+                }
+            if (ok) return i;
+          }
+        }
+        return -1;
+      }
+
+      /* ---------------- station plot ----------------
+         one circle diameter, one barb length, one barb bearing (north), four
+         values in fixed slots, no arrow glyphs */
+      const R = 13;
+      function cover(cx, cy, r, f) {
+        const a = 2 * Math.PI * f - Math.PI / 2;
+        const x = cx + r * Math.cos(a),
+          y = cy + r * Math.sin(a);
+        return `<path d="M${cx} ${cy}L${cx} ${cy - r}A${r} ${r} 0 ${f > 0.5 ? 1 : 0} 1 ${x.toFixed(2)} ${y.toFixed(2)}Z" fill="var(--ink)"/>`;
+      }
+      function barb(cx, cy, kt) {
+        const y0 = cy - R,
+          L = 30,
+          y1 = y0 - L;
+        let s = `<line x1="${cx}" y1="${y0}" x2="${cx}" y2="${y1}"/>`;
+        const full = Math.floor(kt / 10),
+          half = Math.round((kt - full * 10) / 5);
+        let off = 0;
+        const feather = (len) => {
+          s += `<line x1="${cx}" y1="${y1 + off}" x2="${cx + len}" y2="${y1 + off + len * 0.42}"/>`;
+          off += 5.5;
+        };
+        for (let i = 0; i < full; i++) feather(11);
+        if (half) feather(5.5);
+        return `<g stroke="var(--ink)" stroke-width="1.1" fill="none" stroke-linecap="butt">${s}</g>`;
+      }
+      function station(s, slots) {
+        const L = s.x - R - 9,
+          Rt = s.x + R + 9;
+        /* the paper is knocked out behind every reading, so no contour runs
+           through a number */
+        const num = (cls, anchor, x, y, t) => {
+          const w = String(t).length * 6.2 + 4,
+            bx = anchor === "end" ? x - w + 2 : x - 2;
+          return `<rect x="${bx.toFixed(1)}" y="${y - 9}" width="${w.toFixed(1)}" height="12" fill="var(--paper)"/><text class="${cls}" text-anchor="${anchor}" x="${x}" y="${y}">${t}</text>`;
+        };
+        return `<g>
+          ${barb(s.x, s.y, s.kt)}
+          <circle cx="${s.x}" cy="${s.y}" r="${R}" fill="var(--paper)" stroke="var(--ink)" stroke-width="1"/>
+          ${cover(s.x, s.y, R, s.v / 100)}
+          ${num("s-rd", "end", L, s.y - 4, slots ? "1" : s.ul)}
+          ${num(s.llOff ? "s-rd alert" : "s-rd", "end", L, s.y + 14, slots ? "2" : s.ll)}
+          ${num("s-rd", "start", Rt, s.y - 4, slots ? "3" : s.ur)}
+          ${num("s-rd", "start", Rt, s.y + 14, slots ? "4" : s.lr)}
+          ${slots ? "" : `<rect x="${(s.x - (s.id.length + (s.hl ? 2 : 0) + 3) * 3.4).toFixed(1)}" y="${s.y + R + 4}" width="${((s.id.length + (s.hl ? 2 : 0) + 3) * 6.8).toFixed(1)}" height="14" fill="var(--paper)"/><text class="s-stn" text-anchor="middle" x="${s.x}" y="${s.y + R + 15}">${s.id}${s.hl ? " " + s.hl : ""} ${s.v}</text>`}
+        </g>`;
+      }
+
+      /* ---------------- the chart ---------------- */
+      function chartSvg() {
+        KEEP.length = 0;
+        /* the front label is horizontal, off in the top-left corner, on a
+           leader, with the paper knocked out behind it */
+        KEEP.push([80, 32], [186, 32]);
+        const iso = isobars();
+        return `<svg class="bleed" viewBox="0 12 ${CW} ${CH - 34}" role="img" aria-label="Synoptic analysis of the health index">
+          ${iso}
+          <g>${frontLine(FPTS, 40, 44, 7)}</g>
+          ${ST.map((s) => station(s)).join("")}
+          <g>
+            <path d="M164 32H206" stroke="var(--ink)" stroke-width="0.8"/>
+            <rect x="4" y="23" width="158" height="15" fill="var(--paper)"/>
+            <text class="s-lab" x="6" y="35">COLD FRONT · LDL 168 → 131</text>
+          </g>
+        </svg>`;
+      }
+
+      /* ---------------- outlook ---------------- */
+      function outlookSvg(sfx) {
+        const W = 374,
+          H = 104,
+          L = 44,
+          Rr = 322,
+          base = 82;
+        const vy = (v) => 12 + (131 - v) * 1.85;
+        const xw = (w) => L + (w / 8) * (Rr - L);
+        let run = "",
+          up = "",
+          dn = [];
+        for (let w = 0; w <= 8; w += 0.25) {
+          const v = 131 - 27 * Math.pow(w / 8, 0.92),
+            sp = 9 * Math.pow(w / 8, 1.35);
+          run += `${w ? "L" : "M"}${xw(w).toFixed(1)} ${vy(v).toFixed(1)}`;
+          up += `${w ? "L" : "M"}${xw(w).toFixed(1)} ${vy(v + sp).toFixed(1)}`;
+          dn.push(`${xw(w).toFixed(1)} ${vy(v - sp).toFixed(1)}`);
+        }
+        let ticks = "";
+        for (let w = 0; w <= 8; w += 2)
+          ticks += `<path d="M${xw(w).toFixed(1)} ${base - 4}v8" stroke="var(--ink-2)" stroke-width="0.6"/>
+            <text class="s-micro" text-anchor="middle" x="${xw(w).toFixed(1)}" y="${base + 18}">${w ? "W" + w : "NOW"}</text>`;
+        const ty = vy(100).toFixed(1);
+        return `<svg class="bleed" viewBox="0 0 ${W} ${H}" role="img" aria-label="Eight week LDL forecast run">
+          <path d="${up}L${dn.reverse().join("L")}Z" fill="var(--ink)" fill-opacity="0.09"/>
+          <path d="M${L} ${ty}h74" stroke="var(--ink)" stroke-width="0.9" stroke-dasharray="5 3"/>
+          <text class="s-iso" x="${L + 80}" y="${+ty + 3}">TARGET 100</text>
+          <path d="M${L + 148} ${ty}H${Rr + 14}" stroke="var(--ink)" stroke-width="0.9" stroke-dasharray="5 3"/>
+          <path d="${run}" fill="none" stroke="var(--ink)" stroke-width="1"/>
+          <circle cx="${L}" cy="${vy(131).toFixed(1)}" r="3.2" fill="var(--ink)"/>
+          <text class="s-rd" text-anchor="end" x="${L - 7}" y="${(vy(131) + 4).toFixed(1)}">131</text>
+          <circle cx="${Rr}" cy="${vy(104).toFixed(1)}" r="3.6" fill="var(--paper)" stroke="var(--ink)" stroke-width="1.4"/>
+          <text class="s-rd" x="${Rr + 8}" y="${(vy(104) + 4).toFixed(1)}">104</text>
+          <path d="M${L} ${base}H${Rr + 14}" stroke="var(--ink)" stroke-width="0.8"/>
+          ${ticks}
+          <text class="s-micro" text-anchor="end" x="${W - 8}" y="14">SPREAD · 80% OF RUNS</text>
+        </svg>`;
+      }
+
+      /* fourteen days of the index, ending on today's 72 */
+      function trace() {
+        const v = [68, 69, 69, 68, 69, 70, 70, 69, 70, 70, 71, 70, 71, 72],
+          W = 104,
+          H = 22;
+        const x = (i) => (i / (v.length - 1)) * (W - 4) + 2,
+          y = (n) => H - 3 - ((n - 67) / 6) * (H - 8);
+        let d = "";
+        v.forEach(
+          (n, i) =>
+            (d += `${i ? "L" : "M"}${x(i).toFixed(1)} ${y(n).toFixed(1)}`),
+        );
+        return `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" aria-label="Fourteen day tendency">
+          <path d="M0 ${H - 1}h${W}" stroke="var(--hair)" stroke-width="0.5"/>
+          <path d="${d}" fill="none" stroke="var(--ink)" stroke-width="1"/>
+        </svg>`;
+      }
+
+      /* ---------------- screen ---------------- */
+      const obsRow = (r) => `
+        <tr>
+          <td class="t">${r.t}</td>
+          <td>${r.n}<span class="k">${r.k}</span></td>
+          <td class="r ${r.off ? "off" : ""}">${r.r}</td>
+          <td class="d">${r.d}</td>
+        </tr>`;
+
+      const redrawSvg = () =>
+        `<svg viewBox="0 0 190 92" width="190" height="92" role="img" aria-label="The lifestyle station redrawn">
+          ${station(Object.assign({}, ST[0], { x: 92, y: 48 }))}
+        </svg>`;
+
+      const home = (sfx) => `
+        <div class="status"><span>21:04</span><i></i><span>●●● ◔ ▮</span></div>
+        <div class="screen">
+          <div class="mast"><span class="h1">OpenVitals Synoptic</span><span class="h2">Sheet 30</span></div>
+          <div class="meta h2">Tue 09 Sep 2026 · 21:00Z · OV-01 45.65N 25.61E</div>
+
+          <div class="headline">
+            <div>
+              <div class="h2">General index · of 100</div>
+              <div class="display">${score}</div>
+            </div>
+            <div class="rt">
+              <div class="verdict">${verdict}</div>
+              <div class="h2">+2 in 3 days</div>
+              ${trace()}
+              <div class="micro">14 days</div>
+            </div>
+          </div>
+
+          <div class="sec"><span class="h1">Synoptic analysis</span><span class="h2">Index field · 21:00Z</span></div>
+          ${chartSvg()}
+
+          <div class="sec"><span class="h1">Outlook · 8 weeks</span><span class="h2">LDL mg/dL</span></div>
+          ${outlookSvg(sfx)}
+          <p class="say body">Keep this eight weeks and <b>LDL lands near 104</b>, from 131.</p>
+
+          <div class="sec"><span class="h1">Conditions now</span><span class="h2">6 observations</span></div>
+          <table class="obs body">${LOG.map(obsRow).join("")}</table>
+
+          <div class="sec"><span class="h1">Climate</span><span class="stamp">Not forecastable</span></div>
+          <div class="climate">
+            <div class="val">APOE ε3/ε4</div>
+            <p class="body">Fixed at birth. It sets the range the forecast runs inside: LDL answers harder to saturated fat here, so the same eight weeks buy less than they would on ε3/ε3. Never predicted, never improves, weighed at 0.15.</p>
+          </div>
+
+          <p class="src micro">Analysis 21:00Z · next draw 01 Nov 2026 · PhenoAge 36.2 at 39<br>Field: sloping analysis, three station anomalies · Levine 2018 for PhenoAge</p>
+        </div>
+
+        <div class="tabs">
+          <button class="on"><i></i>Chart</button>
+          <button><i></i>Stations</button>
+          <button><i></i>Record</button>
+          <button data-do="open"><i></i>Observe</button>
+        </div>
+
+        <div class="form">
+          <div class="fh"><span class="h1">Observation log</span><button class="h2" data-do="close">Close</button></div>
+          <div class="field"><span class="h2">Entry no</span><span class="v body">0417 · 21:04 · Tue 09 Sep 2026</span></div>
+          <div class="field"><span class="h2">Station</span><span class="v body">OV-01 · Lifestyle</span></div>
+          <div class="field"><span class="h2">Method</span><span class="v">
+            <span class="box on"><i></i>Photograph</span><span class="box"><i></i>Speak</span><span class="box"><i></i>Type</span>
+          </span></div>
+          <div class="field"><span class="h2">Observed</span><span class="v body">Pork belly, salad
+            <span class="micro">623 kcal · 31 g protein · fat past the day's share</span></span></div>
+          <div class="field"><span class="h2">Redraws</span><span class="v">
+            ${redrawSvg()}
+            <span class="micro">Kcal slot 874 → 1497 · cover 71 → 77 · the station above</span></span></div>
+          <button class="file-btn">File observation</button>
+          <p class="micro">Filing reissues the 21:00 analysis at once. The outlook run waits for the next draw.</p>
+        </div>
+        <div class="home"></div>`;
+
+      document.querySelectorAll(".phone").forEach((p, i) => {
+        p.innerHTML = home(p.id || "s" + i);
+        /* the open phone rides down so the log edge lands on the chart edge and
+           the log points at the station it redraws */
+        if (p.classList.contains("open"))
+          p.querySelector(".screen").scrollTop = 142;
+        p.addEventListener("click", (e) => {
+          const b = e.target.closest("[data-do]");
+          if (b) p.classList.toggle("open", b.dataset.do === "open");
+        });
+      });
+    </script>
+  </body>
+</html>

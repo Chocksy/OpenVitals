@@ -1,0 +1,1056 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Onion · iOS variation 25 · OpenVitals</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --page: #eef0f4;
+        --bg: #ffffff;
+        --card: #ffffff;
+        --ink: #0f1420;
+        --ink-2: #5b6474;
+        --ink-3: #98a0ae;
+        --line: #e6e9ef;
+        --life: #2f6bff;
+        --life-soft: #e9f0ff;
+        --blood: #1fb3c9;
+        --blood-soft: #e0f6f9;
+        --gene: #7d4dff;
+        --gene-soft: #efe9ff;
+        --green: #17a361;
+        --green-soft: #e4f7ec;
+        --amber: #d98a11;
+        --amber-soft: #fff1da;
+        --rose: #e0446b;
+        --rose-soft: #fde6ec;
+        --r: 21px;
+        --s5: 5px;
+        --s8: 8px;
+        --s13: 13px;
+        --s21: 21px;
+        --s34: 34px;
+        --s55: 55px;
+        --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--page);
+        color: var(--ink);
+        font:
+          15px/1.4 Inter,
+          -apple-system,
+          system-ui,
+          sans-serif;
+        font-feature-settings: "tnum", "cv11";
+      }
+      button {
+        font: inherit;
+        color: inherit;
+        background: none;
+        border: 0;
+        padding: 0;
+        cursor: pointer;
+        -webkit-tap-highlight-color: transparent;
+        text-align: left;
+      }
+      h1,
+      h2,
+      p {
+        margin: 0;
+      }
+      svg {
+        width: 20px;
+        height: 20px;
+        stroke: currentColor;
+        fill: none;
+        stroke-width: 1.7;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+
+      /* ---- page ---- */
+      .doc {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: var(--s55) var(--s21);
+      }
+      .doc > header {
+        margin-bottom: var(--s34);
+        max-width: 64ch;
+      }
+      .eyebrow {
+        color: var(--ink-3);
+        font-size: 13px;
+        margin-bottom: var(--s5);
+      }
+      .doc h1 {
+        font-size: 34px;
+        font-weight: 600;
+        letter-spacing: -0.03em;
+      }
+      .lede {
+        color: var(--ink-2);
+        margin-top: var(--s8);
+      }
+      .lede + .lede {
+        font-size: 13px;
+        color: var(--ink-3);
+      }
+      .phones {
+        display: flex;
+        gap: var(--s55);
+        justify-content: center;
+        flex-wrap: wrap;
+      }
+      .cap {
+        display: flex;
+        justify-content: space-between;
+        color: var(--ink-3);
+        font-size: 13px;
+        margin-bottom: var(--s13);
+        width: 390px;
+      }
+
+      /* ---- phone ---- */
+      .phone {
+        width: 390px;
+        height: 844px;
+        border-radius: 55px;
+        border: 8px solid #1c1f24;
+        background: var(--bg);
+        box-shadow: 0 34px 55px -34px rgba(15, 20, 32, 0.45);
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+      }
+      .phone::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background:
+          radial-gradient(60% 30% at 28% 34%, #cfe0ff 0%, transparent 70%),
+          radial-gradient(50% 24% at 78% 40%, #d3f1f7 0%, transparent 70%);
+        pointer-events: none;
+      }
+      .status {
+        height: 55px;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        padding: 0 var(--s34) var(--s8);
+        font-size: 14px;
+        font-weight: 600;
+        position: relative;
+      }
+      .status i {
+        position: absolute;
+        left: 50%;
+        top: 13px;
+        width: 120px;
+        height: 34px;
+        border-radius: 21px;
+        background: #0b0d10;
+        transform: translateX(-50%);
+      }
+      .screen {
+        flex: 1;
+        overflow-y: auto;
+        padding: var(--s8) var(--s21) 130px;
+        scrollbar-width: none;
+        position: relative;
+      }
+      .screen::-webkit-scrollbar {
+        display: none;
+      }
+
+      /* ---- top row ---- */
+      .top {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .avatar {
+        width: 42px;
+        height: 42px;
+        border-radius: 50%;
+        background: var(--card);
+        box-shadow: 0 1px 2px rgba(15, 20, 32, 0.06);
+        display: grid;
+        place-items: center;
+        font-size: 22px;
+      }
+      .pill {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--s5);
+        padding: 9px 14px;
+        border-radius: 999px;
+        background: var(--card);
+        box-shadow: 0 1px 2px rgba(15, 20, 32, 0.06);
+        font-size: 13px;
+        font-weight: 500;
+      }
+      .pill svg {
+        width: 14px;
+        height: 14px;
+      }
+      .greet {
+        margin: var(--s21) 0 var(--s13);
+        font-size: 16px;
+        font-weight: 500;
+      }
+
+      /* ---- hero card ---- */
+      .hero {
+        background: var(--card);
+        border-radius: var(--r);
+        padding: var(--s21);
+        box-shadow:
+          0 1px 2px rgba(15, 20, 32, 0.05),
+          0 21px 34px -21px rgba(47, 107, 255, 0.35);
+        position: relative;
+        min-height: 232px;
+      }
+      .face {
+        display: none;
+      }
+      .face.on {
+        display: block;
+        animation: in 360ms var(--ease);
+      }
+      @keyframes in {
+        from {
+          opacity: 0;
+          transform: translateY(6px);
+        }
+      }
+      .score {
+        display: grid;
+        grid-template-columns: 132px 1fr;
+        gap: var(--s13);
+        align-items: center;
+      }
+      .rings {
+        width: 132px;
+        height: 132px;
+        transform: rotate(-90deg);
+      }
+      .rings circle {
+        fill: none;
+        stroke-width: 11;
+        stroke-linecap: round;
+        transition: stroke-dashoffset 900ms var(--ease);
+      }
+      .rings .track {
+        stroke: var(--line);
+      }
+      .ring-hit {
+        cursor: pointer;
+      }
+      .lbl {
+        display: flex;
+        align-items: center;
+        gap: var(--s8);
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--ink-2);
+      }
+      .lbl svg {
+        width: 15px;
+        height: 15px;
+        color: var(--ink-3);
+      }
+      .big {
+        margin-top: 4px;
+        font-size: 44px;
+        font-weight: 800;
+        letter-spacing: -0.05em;
+        line-height: 1;
+      }
+      .big small {
+        font-size: 22px;
+        font-weight: 600;
+        color: var(--ink-3);
+        letter-spacing: -0.02em;
+      }
+      .sub {
+        margin-top: var(--s8);
+        color: var(--ink-2);
+        font-size: 12.5px;
+        line-height: 1.35;
+      }
+      .legend {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: var(--s8);
+        margin-top: var(--s21);
+      }
+      .legend button {
+        padding: var(--s8) 10px;
+        border-radius: 13px;
+        background: var(--page);
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+      }
+      .legend button small {
+        font-size: 11px;
+        color: var(--ink-3);
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+      }
+      .legend button small i {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: var(--c);
+      }
+      .legend button b {
+        font-size: 17px;
+        font-weight: 700;
+        letter-spacing: -0.03em;
+      }
+      .legend button b em {
+        font-style: normal;
+        font-size: 11px;
+        color: var(--ink-3);
+        font-weight: 500;
+        margin-left: 3px;
+      }
+      .hero .foot {
+        margin-top: var(--s13);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 12px;
+        color: var(--ink-2);
+      }
+      .mark {
+        font-weight: 800;
+        font-size: 16px;
+        letter-spacing: -0.04em;
+        color: var(--life);
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .mark b {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--life), var(--blood));
+      }
+
+      /* layer faces */
+      .fhead {
+        display: flex;
+        align-items: center;
+        gap: var(--s8);
+        margin-bottom: var(--s13);
+      }
+      .fhead .back {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        background: var(--page);
+        display: grid;
+        place-items: center;
+        color: var(--ink-2);
+      }
+      .fhead .back svg {
+        width: 14px;
+        height: 14px;
+      }
+      .fhead b {
+        font-size: 15px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 7px;
+      }
+      .fhead b i {
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+        background: var(--c);
+      }
+      .fhead .w {
+        margin-left: auto;
+        font-size: 12px;
+        color: var(--ink-3);
+      }
+      .lr {
+        display: grid;
+        grid-template-columns: 1fr 96px 40px;
+        gap: var(--s13);
+        align-items: center;
+        padding: 7px 0;
+        font-size: 13px;
+      }
+      .lr .n {
+        font-weight: 500;
+      }
+      .lr .n small {
+        display: block;
+        color: var(--ink-3);
+        font-size: 11px;
+        font-weight: 400;
+      }
+      .rail {
+        height: 5px;
+        border-radius: 3px;
+        background: var(--line);
+        position: relative;
+      }
+      .rail::after {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: var(--w);
+        border-radius: 3px;
+        background: var(--c);
+      }
+      .rail.range::after {
+        left: 20%;
+        width: 55%;
+        background: var(--green-soft);
+      }
+      .rail.range i {
+        position: absolute;
+        top: -3px;
+        left: var(--x);
+        width: 11px;
+        height: 11px;
+        border-radius: 50%;
+        background: var(--c);
+        border: 2px solid #fff;
+        box-shadow: 0 0 0 1px var(--c);
+        z-index: 1;
+      }
+      .lr .d {
+        text-align: right;
+        font-weight: 700;
+        font-size: 13px;
+      }
+      .fnote {
+        margin-top: var(--s8);
+        font-size: 11.5px;
+        color: var(--ink-3);
+      }
+
+      /* ---- sentence ---- */
+      .say {
+        margin: var(--s21) 0 0;
+        font-size: 14px;
+        line-height: 1.45;
+        color: var(--ink-2);
+      }
+      .say b {
+        color: var(--ink);
+        font-weight: 600;
+      }
+
+      /* ---- quick actions ---- */
+      .acts {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        margin: var(--s21) 0;
+        text-align: center;
+      }
+      .acts button {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: var(--s8);
+        font-size: 13px;
+        font-weight: 500;
+      }
+      .acts span {
+        width: 46px;
+        height: 46px;
+        border-radius: 50%;
+        background: var(--life-soft);
+        color: var(--life);
+        display: grid;
+        place-items: center;
+      }
+      .acts span.solid {
+        background: var(--life);
+        color: #fff;
+      }
+
+      /* ---- list ---- */
+      .head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin: var(--s21) 0 var(--s8);
+        font-size: 15px;
+        font-weight: 500;
+      }
+      .row {
+        display: flex;
+        align-items: center;
+        gap: var(--s13);
+        padding: 11px 0;
+      }
+      .row .ic {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        flex: none;
+        overflow: hidden;
+      }
+      .row .ic img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+      .row .ic svg {
+        width: 17px;
+        height: 17px;
+      }
+      .row .t {
+        flex: 1;
+        min-width: 0;
+      }
+      .row .t b {
+        display: block;
+        font-weight: 600;
+        font-size: 14px;
+      }
+      .row .t small {
+        color: var(--ink-3);
+        font-size: 12px;
+      }
+      .row .v {
+        font-weight: 700;
+        font-size: 14px;
+        text-align: right;
+      }
+      .row .v small {
+        display: block;
+        font-weight: 500;
+        color: var(--ink-3);
+        font-size: 11px;
+      }
+      .up {
+        color: var(--green);
+      }
+      .dn {
+        color: var(--rose);
+      }
+      .zero {
+        color: var(--ink-3);
+      }
+      .life-bg {
+        background: var(--life-soft);
+        color: var(--life);
+      }
+      .blood-bg {
+        background: var(--blood-soft);
+        color: var(--blood);
+      }
+      .gene-bg {
+        background: var(--gene-soft);
+        color: var(--gene);
+      }
+      .green-bg {
+        background: var(--green-soft);
+        color: var(--green);
+      }
+      .rose-bg {
+        background: var(--rose-soft);
+        color: var(--rose);
+      }
+
+      /* ---- tab bar ---- */
+      .tabs {
+        position: absolute;
+        left: var(--s13);
+        right: var(--s13);
+        bottom: var(--s21);
+        display: flex;
+        gap: var(--s8);
+        align-items: center;
+      }
+      .tabs .bar {
+        flex: 1;
+        height: 62px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.82);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        box-shadow: 0 8px 21px -8px rgba(15, 20, 32, 0.25);
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        padding: 6px;
+      }
+      .tabs .bar button {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 2px;
+        font-size: 10px;
+        font-weight: 500;
+        color: var(--ink-3);
+        border-radius: 999px;
+      }
+      .tabs .bar button.on {
+        background: var(--life-soft);
+        color: var(--life);
+      }
+      .tabs .plus {
+        width: 62px;
+        height: 62px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.82);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        box-shadow: 0 8px 21px -8px rgba(15, 20, 32, 0.25);
+        display: grid;
+        place-items: center;
+        color: var(--ink-2);
+      }
+      .tabs .plus svg {
+        width: 24px;
+        height: 24px;
+      }
+      .home {
+        position: absolute;
+        left: 50%;
+        bottom: 8px;
+        width: 134px;
+        height: 5px;
+        border-radius: 3px;
+        background: #0f1420;
+        opacity: 0.35;
+        transform: translateX(-50%);
+      }
+
+      /* ---- notes ---- */
+      .notes {
+        margin: var(--s55) auto 0;
+        max-width: 64ch;
+        font-size: 13px;
+        color: var(--ink-2);
+      }
+      .notes h2 {
+        font-size: 15px;
+        font-weight: 600;
+        color: var(--ink);
+        margin-bottom: var(--s8);
+      }
+      .notes table {
+        border-collapse: collapse;
+        width: 100%;
+        margin: var(--s8) 0 var(--s21);
+      }
+      .notes td,
+      .notes th {
+        text-align: left;
+        padding: 6px 8px 6px 0;
+        border-bottom: 1px solid var(--line);
+        vertical-align: top;
+      }
+      .notes th {
+        font-weight: 600;
+        color: var(--ink);
+      }
+    </style>
+  </head>
+  <body>
+    <main class="doc">
+      <header>
+        <p class="eyebrow">iOS variation 25 · round nine</p>
+        <h1>Onion</h1>
+        <p class="lede">
+          Glow's skin, with the balance slot earned. Three rings, outer to
+          inner: what you did today, what your blood says, what your genes
+          weigh. One score in the centre, its weights printed on the card. Tap a
+          ring and the card turns to that layer. The list below is the receipt:
+          each entry with what it did to the score.
+        </p>
+        <p class="lede">
+          Lifestyle 40 · Blood 45 · Genes 15. The blood ring is the web home's
+          arithmetic (in range 1, borderline ½, off 0). Genes is a placeholder
+          weight until the variant panel lands. PhenoAge is the engine's, Levine
+          2018.
+        </p>
+      </header>
+
+      <section class="phones">
+        <div>
+          <p class="cap"><span>01 · Today</span><span>tap a ring</span></p>
+          <div class="phone" id="p1"></div>
+        </div>
+        <div>
+          <p class="cap">
+            <span>02 · Blood layer</span><span>after the tap</span>
+          </p>
+          <div class="phone" id="p2" data-face="blood"></div>
+        </div>
+      </section>
+
+      <section class="notes">
+        <h2>The score, shown on the card</h2>
+        <table>
+          <tr>
+            <th>Layer</th>
+            <th>Today</th>
+            <th>Weight</th>
+            <th>Moves</th>
+          </tr>
+          <tr>
+            <td>Lifestyle</td>
+            <td>sleep 100, moves 40, kcal 90, protein 78 → 77</td>
+            <td>0.40</td>
+            <td>every entry</td>
+          </tr>
+          <tr>
+            <td>Blood</td>
+            <td>4 in range, 2 borderline, 1 off → 71</td>
+            <td>0.45</td>
+            <td>each draw</td>
+          </tr>
+          <tr>
+            <td>Genes</td>
+            <td>4 variants, fixed → 63</td>
+            <td>0.15</td>
+            <td>never</td>
+          </tr>
+          <tr>
+            <td>Score</td>
+            <td>0.40 × 77 + 0.45 × 71 + 0.15 × 63 = 72</td>
+            <td></td>
+            <td>daily</td>
+          </tr>
+        </table>
+        <h2>Motion</h2>
+        <table>
+          <tr>
+            <th>What</th>
+            <th>Moves</th>
+            <th>Duration</th>
+            <th>Trigger</th>
+          </tr>
+          <tr>
+            <td>Rings</td>
+            <td>dash offset from empty to value, outer first</td>
+            <td>900 ms, staggered 120 ms</td>
+            <td>card appears</td>
+          </tr>
+          <tr>
+            <td>Face</td>
+            <td>fade and 6 px rise</td>
+            <td>360 ms</td>
+            <td>ring or legend tap</td>
+          </tr>
+          <tr>
+            <td>Reduced motion</td>
+            <td>rings land, faces cut</td>
+            <td>0</td>
+            <td>system setting</td>
+          </tr>
+        </table>
+      </section>
+    </main>
+
+    <script>
+      const I = {
+        chev: '<svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg>',
+        back: '<svg viewBox="0 0 24 24"><path d="m15 6-6 6 6 6"/></svg>',
+        bell: '<svg viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10 21a2 2 0 0 0 4 0"/></svg>',
+        info: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg>',
+        plus: '<svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>',
+        cam: '<svg viewBox="0 0 24 24"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>',
+        walk: '<svg viewBox="0 0 24 24"><circle cx="13" cy="4" r="1.5"/><path d="m10 21 2-6 3 3v3M8 12l3-3 3 1 2 3M11 9l-1 5-3 2"/></svg>',
+        moon: '<svg viewBox="0 0 24 24"><path d="M20 15A8 8 0 0 1 9 4a8 8 0 1 0 11 11z"/></svg>',
+        more: '<svg viewBox="0 0 24 24"><circle cx="6" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="18" cy="12" r="1"/></svg>',
+        home: '<svg viewBox="0 0 24 24"><path d="M3 11 12 4l9 7v9H3z"/><path d="M10 20v-6h4v6"/></svg>',
+        body: '<svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="2.5"/><path d="M9 10h6l1 5h-2v6h-4v-6H8z"/></svg>',
+        drop: '<svg viewBox="0 0 24 24"><path d="M12 3s6 7 6 11a6 6 0 0 1-12 0c0-4 6-11 6-11z"/></svg>',
+        pill: '<svg viewBox="0 0 24 24"><rect x="3" y="9" width="18" height="6" rx="3" transform="rotate(-45 12 12)"/><path d="m9 9 6 6"/></svg>',
+        dna: '<svg viewBox="0 0 24 24"><path d="M7 3c0 6 10 6 10 12M17 3c0 6-10 6-10 12M7 21c0-3 2-5 5-6M17 21c0-3-2-5-5-6M8 7h8M8 17h8"/></svg>',
+      };
+
+      // ---- the three layers ----
+      const LIFE = {
+        w: 0.4,
+        rows: [
+          { n: "Sleep", s: "7h 30 of 7h 30", p: 100 },
+          { n: "Moves", s: "2 of 5 ticked", p: 40 },
+          { n: "Calories", s: "1 497 of 1 900 kcal", p: 90 },
+          { n: "Protein", s: "93 of 120 g", p: 78 },
+        ],
+      };
+      const BLOOD = {
+        w: 0.45,
+        // x: where the dot sits on the rail (0..100); state drives the colour
+        rows: [
+          { n: "Vitamin D", s: "29 ng/mL · aim 40 to 60", x: 12, st: "rose" },
+          { n: "LDL", s: "131 mg/dL · aim under 100", x: 84, st: "amber" },
+          { n: "ApoB", s: "98 mg/dL · aim under 90", x: 80, st: "amber" },
+          { n: "hs-CRP", s: "0.6 mg/L", x: 30, st: "green" },
+          { n: "HbA1c", s: "5.3 %", x: 45, st: "green" },
+          { n: "Ferritin", s: "64 ng/mL", x: 50, st: "green" },
+          { n: "TPO", s: "18 IU/mL", x: 35, st: "green" },
+        ],
+      };
+      const GENES = {
+        w: 0.15,
+        rows: [
+          { n: "APOE ε3/ε4", s: "LDL responds more to saturated fat", p: 45 },
+          { n: "LPA rs10455872", s: "not carried", p: 100 },
+          { n: "MTHFR C677T", s: "heterozygous · folate form matters", p: 60 },
+          { n: "FTO rs9939609", s: "one copy · appetite", p: 45 },
+        ],
+      };
+      const pct = (rows) =>
+        Math.round(rows.reduce((a, r) => a + r.p, 0) / rows.length);
+      const life = pct(LIFE.rows); // 77
+      const blood = Math.round(
+        (BLOOD.rows.reduce(
+          (a, r) => a + { green: 1, amber: 0.5, rose: 0 }[r.st],
+          0,
+        ) /
+          BLOOD.rows.length) *
+          100,
+      ); // 71
+      const genes = pct(GENES.rows); // 62
+      const score = Math.round(
+        LIFE.w * life + BLOOD.w * blood + GENES.w * genes,
+      ); // 72
+      console.assert(score === 72, "score arithmetic drifted", score);
+
+      // ---- the receipt ----
+      const LOG = [
+        {
+          layer: "life",
+          ic: "img",
+          src: "img/08-pork-belly.jpg",
+          n: "Pork belly, salad",
+          s: "7:30 PM · 623 kcal · fat past the day's share",
+          d: -1,
+        },
+        {
+          layer: "life",
+          ic: "green-bg",
+          g: "walk",
+          n: "Walk after lunch",
+          s: "1:45 PM · 15 min · ticked",
+          d: 2,
+        },
+        {
+          layer: "life",
+          ic: "img",
+          src: "img/08-sardines-rye.jpg",
+          n: "Sardines on rye, kimchi",
+          s: "1:08 PM · 462 kcal · 38 g protein",
+          d: 1,
+        },
+        {
+          layer: "life",
+          ic: "gene-bg",
+          g: "pill",
+          n: "Selenium 200 µg",
+          s: "8:20 AM · ticked",
+          d: 0,
+        },
+        {
+          layer: "life",
+          ic: "img",
+          src: "img/08-oats.jpg",
+          n: "Oats with berries",
+          s: "8:15 AM · 412 kcal · 3 g beta-glucan",
+          d: 1,
+        },
+        {
+          layer: "life",
+          ic: "rose-bg",
+          g: "moon",
+          n: "Sleep",
+          s: "Last night · 7h 30",
+          d: 3,
+        },
+        {
+          layer: "blood",
+          ic: "blood-bg",
+          g: "drop",
+          n: "LDL 168 → 131",
+          s: "Aug 1 draw · off to borderline",
+          d: 6,
+        },
+        {
+          layer: "blood",
+          ic: "blood-bg",
+          g: "drop",
+          n: "Vitamin D 34 → 29",
+          s: "Aug 1 draw · borderline to off",
+          d: -4,
+        },
+        {
+          layer: "blood",
+          ic: "blood-bg",
+          g: "drop",
+          n: "Next draw",
+          s: "Nov 1 · LDL, ApoB, vitamin D",
+          d: null,
+        },
+        {
+          layer: "genes",
+          ic: "gene-bg",
+          g: "dna",
+          n: "Panel read once",
+          s: "Mar 2026 · four variants weighed",
+          d: null,
+        },
+      ];
+
+      // ---- render ----
+      const C = 2 * Math.PI;
+      const ring = (r, v, col, layer, delay) => `
+        <circle class="track" cx="66" cy="66" r="${r}"/>
+        <circle class="ring-hit" data-layer="${layer}" cx="66" cy="66" r="${r}" stroke="${col}"
+          stroke-dasharray="${C * r}" stroke-dashoffset="${C * r}" data-to="${C * r * (1 - v / 100)}" style="transition-delay:${delay}ms"/>`;
+
+      const scoreFace = () => `
+        <div class="face" data-face="score">
+          <div class="score">
+            <svg class="rings" viewBox="0 0 132 132">
+              ${ring(58, life, "var(--life)", "life", 0)}
+              ${ring(43, blood, "var(--blood)", "blood", 120)}
+              ${ring(28, genes, "var(--gene)", "genes", 240)}
+            </svg>
+            <div>
+              <div class="lbl">Health score ${I.info}</div>
+              <div class="big">${score}<small>/100</small></div>
+              <p class="sub">PhenoAge 36.2 at 39<br>Up 2 since Monday</p>
+            </div>
+          </div>
+          <div class="legend">
+            <button data-layer="life" style="--c:var(--life)"><small><i></i>Lifestyle</small><b>${life}<em>× .40</em></b></button>
+            <button data-layer="blood" style="--c:var(--blood)"><small><i></i>Blood</small><b>${blood}<em>× .45</em></b></button>
+            <button data-layer="genes" style="--c:var(--gene)"><small><i></i>Genes</small><b>${genes}<em>× .15</em></b></button>
+          </div>
+          <div class="foot"><span>Next draw Nov 1</span><span class="mark"><b></b>OpenVitals</span></div>
+        </div>`;
+
+      const layerFace = (key, title, col, L, note) => `
+        <div class="face" data-face="${key}">
+          <div class="fhead" style="--c:${col}">
+            <button class="back" data-layer="score">${I.back}</button>
+            <b><i></i>${title}</b>
+            <span class="w">${Math.round(L.w * 100)}% of the score</span>
+          </div>
+          ${L.rows
+            .map((r) =>
+              r.st
+                ? `<div class="lr"><span class="n">${r.n}<small>${r.s}</small></span>
+                     <span class="rail range" style="--x:${r.x}%;--c:var(--${r.st === "green" ? "green" : r.st === "amber" ? "amber" : "rose"})"><i></i></span>
+                     <span class="d" style="color:var(--${r.st === "green" ? "green" : r.st === "amber" ? "amber" : "rose"})">${{ green: 1, amber: "½", rose: 0 }[r.st]}</span></div>`
+                : `<div class="lr"><span class="n">${r.n}<small>${r.s}</small></span>
+                     <span class="rail" style="--w:${r.p}%;--c:${col}"></span>
+                     <span class="d">${r.p}</span></div>`,
+            )
+            .join("")}
+          <p class="fnote">${note}</p>
+        </div>`;
+
+      const row = (r) => `
+        <div class="row">
+          <span class="ic ${r.ic === "img" ? "" : r.ic}">${r.ic === "img" ? `<img src="${r.src}" alt="">` : I[r.g]}</span>
+          <span class="t"><b>${r.n}</b><small>${r.s}</small></span>
+          <span class="v ${r.d === null ? "zero" : r.d > 0 ? "up" : r.d < 0 ? "dn" : "zero"}">${
+            r.d === null ? "·" : r.d > 0 ? "+" + r.d : r.d === 0 ? "0" : r.d
+          }<small>${r.d === null ? "" : "score"}</small></span>
+        </div>`;
+
+      const LIST_HEAD = {
+        score: "Today",
+        life: "Today",
+        blood: "Since the last draw",
+        genes: "On file",
+      };
+      const list = (face) => {
+        const layer = face === "score" ? "life" : face;
+        return `<div class="head"><span>${LIST_HEAD[face]}</span><button class="pill">View all</button></div>
+          ${LOG.filter((r) => r.layer === layer)
+            .map(row)
+            .join("")}`;
+      };
+
+      const home = () => `
+        <div class="status"><span>9:41</span><i></i><span>●●● ◔ ▮</span></div>
+        <div class="screen">
+          <div class="top">
+            <span class="avatar">🧑🏻</span>
+            <button class="pill">Today ${I.chev}</button>
+            <span class="avatar">${I.bell}</span>
+          </div>
+          <p class="greet">Good evening, Razvan</p>
+          <div class="hero">
+            ${scoreFace()}
+            ${layerFace("life", "Lifestyle", "var(--life)", LIFE, "Each row is today against its target. Moves and meals change it as you log them.")}
+            ${layerFace("blood", "Blood", "var(--blood)", BLOOD, "In range counts 1, borderline ½, off 0. The dot is the last draw on the reference band. Off first.")}
+            ${layerFace("genes", "Genes", "var(--gene)", GENES, "Fixed. The weight says how much to trust the outer rings for this body, not a verdict.")}
+          </div>
+          <p class="say">Keep this eight weeks and <b>LDL lands near 104</b>, from 131. The walk and the oats carry most of it.</p>
+          <div class="acts">
+            <button><span class="solid">${I.cam}</span>Log meal</button>
+            <button><span>${I.walk}</span>Move</button>
+            <button><span>${I.moon}</span>Sleep</button>
+            <button><span>${I.more}</span>More</button>
+          </div>
+          <div class="list"></div>
+        </div>
+        <div class="tabs">
+          <div class="bar">
+            <button class="on">${I.home}Home</button>
+            <button>${I.body}Body</button>
+            <button>${I.drop}Blood</button>
+          </div>
+          <button class="plus">${I.plus}</button>
+        </div>
+        <div class="home"></div>`;
+
+      for (const p of document.querySelectorAll(".phone")) {
+        p.innerHTML = home();
+        const show = (face) => {
+          p.querySelectorAll(".face").forEach((f) =>
+            f.classList.toggle("on", f.dataset.face === face),
+          );
+          p.querySelector(".list").innerHTML = list(face);
+          if (face === "score")
+            requestAnimationFrame(() =>
+              p
+                .querySelectorAll(".ring-hit")
+                .forEach((c) => (c.style.strokeDashoffset = c.dataset.to)),
+            );
+        };
+        p.addEventListener("click", (e) => {
+          const b = e.target.closest("[data-layer]");
+          if (b) show(b.dataset.layer);
+        });
+        show(p.dataset.face || "score");
+      }
+    </script>
+  </body>
+</html>

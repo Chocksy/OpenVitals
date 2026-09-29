@@ -1,0 +1,1824 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Gauge · iOS variation 38 · OpenVitals</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --page: #0a0b0d;
+        --phone: #16181b;
+        --face: #0d0e10;
+        --panel: #111215;
+        --line: rgba(255, 255, 255, 0.07);
+        --line-2: rgba(255, 255, 255, 0.14);
+        --ink: #f1f0ec;
+        --ink-2: #a5a9b0;
+        --ink-3: #686d75;
+        --amber: #ffad2a;
+        --amber-dim: rgba(255, 173, 42, 0.14);
+        --amber-glow: rgba(255, 173, 42, 0.55);
+        --tick: rgba(255, 255, 255, 0.9);
+        --r: 21px;
+        --s3: 3px;
+        --s5: 5px;
+        --s8: 8px;
+        --s13: 13px;
+        --s21: 21px;
+        --s34: 34px;
+        --s55: 55px;
+        --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+        --num: "Barlow Condensed", "Arial Narrow", sans-serif;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--page);
+        color: var(--ink);
+        font:
+          14px/1.4 -apple-system,
+          system-ui,
+          sans-serif;
+        font-feature-settings: "tnum";
+      }
+      button {
+        font: inherit;
+        color: inherit;
+        background: none;
+        border: 0;
+        padding: 0;
+        cursor: pointer;
+        -webkit-tap-highlight-color: transparent;
+        text-align: left;
+      }
+      h1,
+      h2,
+      p {
+        margin: 0;
+      }
+      svg {
+        width: 20px;
+        height: 20px;
+        stroke: currentColor;
+        fill: none;
+        stroke-width: 1.7;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+      .n {
+        font-family: var(--num);
+        font-feature-settings: "tnum";
+      }
+
+      /* ---- page ---- */
+      .doc {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: var(--s34) var(--s21) var(--s55);
+      }
+      .doc > header {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: var(--s34);
+        margin-bottom: var(--s21);
+        align-items: end;
+      }
+      .eyebrow {
+        color: var(--ink-3);
+        font-size: 12px;
+        margin-bottom: var(--s5);
+      }
+      .doc h1 {
+        font-family: var(--num);
+        font-size: 34px;
+        font-weight: 600;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+      }
+      .lede {
+        color: var(--ink-2);
+        font-size: 13px;
+        margin-top: var(--s5);
+      }
+      .dir {
+        display: grid;
+        grid-template-columns: 70px 1fr;
+        gap: var(--s3) var(--s8);
+        font-size: 12px;
+        color: var(--ink-2);
+        border-left: 1px solid var(--line-2);
+        padding-left: var(--s13);
+      }
+      .dir dt {
+        font-family: var(--num);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--ink-3);
+      }
+      .dir dd {
+        margin: 0;
+      }
+      .dir dd b {
+        color: var(--amber);
+        font-weight: 600;
+      }
+      .phones {
+        display: flex;
+        gap: var(--s55);
+        justify-content: center;
+        flex-wrap: wrap;
+      }
+      .cap {
+        display: flex;
+        justify-content: space-between;
+        color: var(--ink-3);
+        font-size: 12px;
+        margin-bottom: var(--s8);
+        width: 390px;
+        font-family: var(--num);
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+      }
+
+      /* ---- phone ---- */
+      .phone {
+        width: 390px;
+        height: 844px;
+        border-radius: 55px;
+        border: 8px solid #000;
+        box-shadow:
+          0 0 0 1px #2a2c30,
+          0 34px 55px -21px rgba(0, 0, 0, 0.8);
+        background:
+          repeating-linear-gradient(
+            90deg,
+            rgba(255, 255, 255, 0.012) 0 1px,
+            transparent 1px 3px
+          ),
+          radial-gradient(120% 55% at 50% 0%, #24272c 0%, var(--phone) 60%);
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+      }
+      .status {
+        height: 55px;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        padding: 0 var(--s34) var(--s8);
+        font-size: 14px;
+        font-weight: 600;
+        position: relative;
+        flex: none;
+      }
+      .status i {
+        position: absolute;
+        left: 50%;
+        top: 13px;
+        width: 120px;
+        height: 34px;
+        border-radius: 21px;
+        background: #000;
+        transform: translateX(-50%);
+      }
+      .screen {
+        flex: 1;
+        overflow-y: auto;
+        padding: var(--s5) var(--s21) 130px;
+        scrollbar-width: none;
+        position: relative;
+      }
+      .screen::-webkit-scrollbar {
+        display: none;
+      }
+
+      /* ---- header ---- */
+      .top {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: var(--s8);
+      }
+      .top small {
+        display: block;
+        font-family: var(--num);
+        font-size: 12px;
+        letter-spacing: 0.12em;
+        color: var(--ink-3);
+        text-transform: uppercase;
+      }
+      .top b {
+        font-size: 21px;
+        font-weight: 600;
+        letter-spacing: -0.01em;
+      }
+      .lamps {
+        display: flex;
+        gap: var(--s8);
+        align-items: center;
+      }
+      .lamp {
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        color: #3a3d42;
+        background: #0e0f11;
+        box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.8);
+      }
+      .lamp svg {
+        width: 16px;
+        height: 16px;
+      }
+      .lamp.lit {
+        color: var(--amber);
+        filter: drop-shadow(0 0 5px var(--amber-glow));
+      }
+
+      /* ---- cluster ---- */
+      .cluster {
+        border-radius: 34px 34px var(--r) var(--r);
+        padding: var(--s8);
+        background: radial-gradient(
+          90% 70% at 50% 60%,
+          #17191c 0%,
+          #0b0c0e 80%
+        );
+        box-shadow:
+          0 0 0 1px #000,
+          0 1px 0 1px rgba(255, 255, 255, 0.06),
+          inset 0 -21px 34px rgba(0, 0, 0, 0.5);
+      }
+      .main {
+        width: 100%;
+        height: auto;
+        display: block;
+        stroke-width: 1;
+      }
+      .main text,
+      .sub text,
+      .fuel text {
+        font-family: var(--num);
+        stroke: none;
+      }
+      .needle {
+        fill: var(--amber);
+        stroke: none;
+        filter: drop-shadow(0 0 3px var(--amber-glow));
+      }
+      .lit {
+        stroke: var(--amber);
+      }
+      .subs {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: var(--s13);
+        margin-top: var(--s5);
+        padding: 0 var(--s5);
+      }
+      .subs > div {
+        text-align: center;
+      }
+      .sub {
+        width: 100%;
+        height: auto;
+        display: block;
+        stroke-width: 1;
+      }
+      .subs p {
+        font-family: var(--num);
+        font-size: 12px;
+        letter-spacing: 0.12em;
+        color: var(--ink-2);
+        text-transform: uppercase;
+        margin-top: -3px;
+      }
+      .subs p em {
+        font-style: normal;
+        color: var(--ink-3);
+        letter-spacing: 0.02em;
+        margin-left: var(--s3);
+      }
+
+      /* ---- panels ---- */
+      .duo {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: var(--s13);
+        margin-top: var(--s13);
+      }
+      .pnl {
+        border-radius: var(--r);
+        background: var(--panel);
+        box-shadow:
+          0 0 0 1px #000,
+          0 1px 0 1px rgba(255, 255, 255, 0.05),
+          inset 0 1px 0 rgba(255, 255, 255, 0.03);
+        padding: var(--s13);
+      }
+      .ttl {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-family: var(--num);
+        font-size: 12px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--ink-3);
+      }
+      .ttl svg {
+        width: 13px;
+        height: 13px;
+      }
+      .fuel {
+        width: 100%;
+        height: auto;
+        display: block;
+        margin-top: var(--s3);
+        stroke-width: 1;
+      }
+      .read {
+        display: flex;
+        align-items: baseline;
+        gap: var(--s3);
+        margin-top: var(--s3);
+      }
+      .read b {
+        font-family: var(--num);
+        font-size: 28px;
+        font-weight: 600;
+        line-height: 1;
+      }
+      .read span {
+        font-family: var(--num);
+        font-size: 13px;
+        color: var(--ink-3);
+      }
+      .rail {
+        margin-top: var(--s8);
+      }
+      .rail small {
+        display: flex;
+        justify-content: space-between;
+        font-family: var(--num);
+        font-size: 11px;
+        letter-spacing: 0.08em;
+        color: var(--ink-3);
+        text-transform: uppercase;
+      }
+      .rail i {
+        display: block;
+        height: 3px;
+        border-radius: 2px;
+        background: #26292e;
+        margin-top: var(--s3);
+        position: relative;
+        overflow: hidden;
+      }
+      .rail i::after {
+        content: "";
+        position: absolute;
+        inset: 0 auto 0 0;
+        width: var(--w);
+        background: var(--tick);
+      }
+
+      /* odometer */
+      .odo {
+        display: flex;
+        align-items: center;
+        gap: var(--s5);
+        margin-top: var(--s13);
+        cursor: pointer;
+      }
+      .drums {
+        display: flex;
+        gap: 2px;
+        padding: var(--s3);
+        border-radius: 5px;
+        background: #000;
+        box-shadow:
+          inset 0 0 0 1px #222,
+          0 1px 0 rgba(255, 255, 255, 0.06);
+      }
+      .drum {
+        width: 24px;
+        height: 34px;
+        overflow: hidden;
+        border-radius: 2px;
+        background: linear-gradient(
+          180deg,
+          #050505 0%,
+          #1d1f22 30%,
+          #25282c 50%,
+          #1d1f22 70%,
+          #050505 100%
+        );
+        position: relative;
+      }
+      .reel {
+        will-change: transform;
+      }
+      .reel span {
+        display: block;
+        height: 34px;
+        line-height: 34px;
+        text-align: center;
+        font-family: var(--num);
+        font-size: 26px;
+        font-weight: 600;
+        color: var(--ink);
+      }
+      .drum.last .reel span {
+        color: var(--amber);
+      }
+      .odo em {
+        font-style: normal;
+        font-family: var(--num);
+        font-size: 13px;
+        color: var(--ink-3);
+        line-height: 1.1;
+      }
+      .trip {
+        width: 100%;
+        height: 34px;
+        display: block;
+        margin-top: var(--s8);
+        stroke-width: 1;
+      }
+      .trip text {
+        font-family: var(--num);
+        stroke: none;
+        font-size: 11px;
+        fill: var(--ink-3);
+        letter-spacing: 0.06em;
+      }
+      .odo-foot {
+        font-family: var(--num);
+        font-size: 12px;
+        color: var(--ink-2);
+        letter-spacing: 0.04em;
+      }
+      .say {
+        margin-top: var(--s13);
+        font-size: 13px;
+        color: var(--ink-2);
+        line-height: 1.45;
+        padding: 0 var(--s5);
+      }
+      .say b {
+        color: var(--ink);
+        font-weight: 600;
+      }
+      .say b.a {
+        color: var(--amber);
+      }
+
+      /* ---- moves: switch panel ---- */
+      .moves {
+        margin-top: var(--s13);
+      }
+      .moves .ttl b {
+        color: var(--ink);
+        font-weight: 600;
+      }
+      .sw {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: var(--s8);
+        margin-top: var(--s8);
+      }
+      .sw button {
+        height: 55px;
+        border-radius: 13px;
+        background: linear-gradient(180deg, #1e2024, #141518);
+        box-shadow:
+          0 0 0 1px #000,
+          inset 0 1px 0 rgba(255, 255, 255, 0.07),
+          0 3px 5px rgba(0, 0, 0, 0.5);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-end;
+        gap: var(--s5);
+        padding-bottom: var(--s8);
+        position: relative;
+        color: var(--ink-3);
+        transition:
+          transform 120ms var(--ease),
+          color 240ms var(--ease);
+      }
+      .sw button:active {
+        transform: translateY(1px) scale(0.98);
+      }
+      .sw button::before {
+        /* the indicator lamp, centred on the top edge of the key face */
+        content: "";
+        position: absolute;
+        top: var(--s8);
+        left: 50%;
+        width: 13px;
+        height: 3px;
+        margin-left: -6.5px;
+        border-radius: 2px;
+        background: #2b2e33;
+        transition:
+          background 240ms var(--ease),
+          box-shadow 240ms var(--ease);
+      }
+      .sw button svg {
+        width: 18px;
+        height: 18px;
+      }
+      .sw button span {
+        font-family: var(--num);
+        font-size: 11px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+      .sw button.on {
+        color: var(--ink);
+      }
+      .sw button.on::before {
+        background: var(--amber);
+        box-shadow: 0 0 8px var(--amber-glow);
+      }
+      .sw button.next::before {
+        animation: blink 1.1s steps(1) infinite;
+      }
+      @keyframes blink {
+        50% {
+          background: var(--amber);
+          box-shadow: 0 0 8px var(--amber-glow);
+        }
+      }
+
+      /* ---- fuel log (meals) ---- */
+      .head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin: var(--s21) 0 var(--s5);
+        font-family: var(--num);
+        font-size: 12px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--ink-3);
+      }
+      .row {
+        display: flex;
+        align-items: center;
+        gap: var(--s13);
+        padding: var(--s8) 0;
+        border-top: 1px solid var(--line);
+      }
+      .row img {
+        width: 42px;
+        height: 42px;
+        border-radius: 8px;
+        object-fit: cover;
+        filter: saturate(0.85) brightness(0.9);
+      }
+      .row .t {
+        flex: 1;
+        min-width: 0;
+      }
+      .row .t b {
+        display: block;
+        font-weight: 600;
+        font-size: 14px;
+      }
+      .row .t small {
+        color: var(--ink-3);
+        font-size: 12px;
+      }
+      .row .v {
+        font-family: var(--num);
+        font-size: 21px;
+        font-weight: 600;
+        text-align: right;
+        line-height: 1;
+      }
+      .row .v small {
+        display: block;
+        font-size: 11px;
+        color: var(--ink-3);
+        letter-spacing: 0.08em;
+        font-weight: 500;
+      }
+
+      /* ---- tab bar ---- */
+      .tabs {
+        position: absolute;
+        left: var(--s13);
+        right: var(--s13);
+        bottom: var(--s21);
+        display: flex;
+        gap: var(--s8);
+        align-items: center;
+      }
+      .tabs .bar {
+        flex: 1;
+        height: 62px;
+        border-radius: 999px;
+        background: rgba(24, 26, 29, 0.78);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        box-shadow:
+          0 0 0 1px rgba(255, 255, 255, 0.07),
+          0 8px 21px -8px rgba(0, 0, 0, 0.8);
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        padding: 5px;
+      }
+      .tabs .bar button {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 2px;
+        font-family: var(--num);
+        font-size: 11px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--ink-3);
+        border-radius: 999px;
+      }
+      .tabs .bar button.on {
+        background: rgba(255, 255, 255, 0.08);
+        color: var(--ink);
+      }
+      .tabs .plus {
+        width: 62px;
+        height: 62px;
+        border-radius: 50%;
+        background: var(--amber);
+        color: #1a1204;
+        box-shadow:
+          0 0 0 1px #000,
+          0 0 21px -3px var(--amber-glow);
+        display: grid;
+        place-items: center;
+      }
+      .tabs .plus svg {
+        width: 24px;
+        height: 24px;
+        stroke-width: 2.2;
+      }
+      .home {
+        position: absolute;
+        left: 50%;
+        bottom: 8px;
+        width: 134px;
+        height: 5px;
+        border-radius: 3px;
+        background: #fff;
+        opacity: 0.4;
+        transform: translateX(-50%);
+      }
+
+      /* ---- add sheet ---- */
+      .veil {
+        position: absolute;
+        inset: 0;
+        background: rgba(8, 9, 10, 0.45);
+        backdrop-filter: blur(13px) saturate(0.8);
+        -webkit-backdrop-filter: blur(13px) saturate(0.8);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 320ms var(--ease);
+      }
+      .sheet {
+        position: absolute;
+        left: var(--s13);
+        right: var(--s13);
+        bottom: var(--s13);
+        background: linear-gradient(180deg, #1c1e22, #121316);
+        border-radius: 34px;
+        padding: var(--s21);
+        box-shadow:
+          0 0 0 1px #000,
+          0 1px 0 1px rgba(255, 255, 255, 0.06),
+          0 34px 55px -21px rgba(0, 0, 0, 0.9);
+        transform: translateY(110%);
+        transition: transform 460ms cubic-bezier(0.3, 1.3, 0.5, 1);
+      }
+      .phone.open .veil {
+        opacity: 1;
+        pointer-events: auto;
+      }
+      .phone.open .sheet {
+        transform: none;
+      }
+      .sheet .x {
+        position: absolute;
+        right: var(--s21);
+        top: var(--s21);
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        background: #0c0d0f;
+        display: grid;
+        place-items: center;
+        color: var(--ink-2);
+      }
+      .sheet .x svg {
+        width: 16px;
+        height: 16px;
+      }
+      .sheet h2 {
+        font-family: var(--num);
+        font-size: 21px;
+        font-weight: 600;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        line-height: 34px;
+      }
+      .sheet > p {
+        color: var(--ink-3);
+        font-size: 13px;
+        margin-top: var(--s3);
+      }
+      .keys {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: var(--s8);
+        margin-top: var(--s13);
+      }
+      .keys button {
+        height: 76px;
+        border-radius: 13px;
+        background: linear-gradient(180deg, #25282c, #17191c);
+        box-shadow:
+          0 0 0 1px #000,
+          inset 0 1px 0 rgba(255, 255, 255, 0.08),
+          0 3px 5px rgba(0, 0, 0, 0.5);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-end;
+        gap: var(--s5);
+        padding-bottom: var(--s8);
+        color: var(--ink-3);
+        position: relative;
+      }
+      .keys button::before {
+        content: "";
+        position: absolute;
+        top: var(--s8);
+        left: 50%;
+        width: 21px;
+        height: 3px;
+        margin-left: -10.5px;
+        border-radius: 2px;
+        background: #2b2e33;
+      }
+      .keys button.on {
+        color: var(--ink);
+      }
+      .keys button.on::before {
+        background: var(--amber);
+        box-shadow: 0 0 8px var(--amber-glow);
+      }
+      .keys svg {
+        width: 21px;
+        height: 21px;
+      }
+      .keys span {
+        font-family: var(--num);
+        font-size: 13px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+      .lcd {
+        margin-top: var(--s13);
+        height: 190px;
+        border-radius: 13px;
+        background: #07080a;
+        box-shadow:
+          inset 0 0 0 1px #1f2125,
+          inset 0 3px 13px rgba(0, 0, 0, 0.8);
+        position: relative;
+        overflow: hidden;
+      }
+      .lcd > div {
+        position: absolute;
+        inset: 0;
+        display: none;
+      }
+      .lcd > div.on {
+        display: block;
+      }
+      .vf img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        filter: brightness(0.7) saturate(0.85);
+      }
+      .vf .hint {
+        position: absolute;
+        left: var(--s13);
+        top: var(--s13);
+        font-family: var(--num);
+        font-size: 12px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--ink);
+        text-shadow: 0 1px 3px #000;
+      }
+      .shutter {
+        position: absolute;
+        left: 50%;
+        bottom: var(--s13);
+        width: 55px;
+        height: 55px;
+        margin-left: -27.5px;
+        border-radius: 50%;
+        border: 3px solid var(--ink);
+        display: grid;
+        place-items: center;
+      }
+      .shutter::after {
+        content: "";
+        width: 42px;
+        height: 42px;
+        border-radius: 50%;
+        background: var(--ink);
+      }
+      .shots {
+        position: absolute;
+        left: var(--s13);
+        bottom: var(--s13);
+        display: flex;
+        gap: var(--s5);
+      }
+      .shots img {
+        width: 42px;
+        height: 42px;
+        border-radius: 8px;
+        object-fit: cover;
+        box-shadow: 0 0 0 2px var(--amber);
+      }
+      .readout {
+        position: absolute;
+        right: var(--s13);
+        top: var(--s13);
+        font-family: var(--num);
+        font-size: 13px;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--amber);
+        text-align: right;
+        text-shadow: 0 1px 3px #000;
+      }
+      .voice {
+        display: grid;
+        place-items: center;
+      }
+      .voice .mic {
+        position: absolute;
+        left: 50%;
+        top: var(--s21);
+        width: 55px;
+        height: 55px;
+        margin-left: -27.5px;
+        border-radius: 50%;
+        background: #1c1e22;
+        box-shadow:
+          0 0 0 1px #000,
+          inset 0 1px 0 rgba(255, 255, 255, 0.08);
+        display: grid;
+        place-items: center;
+        color: var(--ink);
+      }
+      .voice.live .mic {
+        color: var(--amber);
+        box-shadow:
+          0 0 0 1px #000,
+          0 0 21px -3px var(--amber-glow);
+      }
+      .wave {
+        position: absolute;
+        left: var(--s21);
+        right: var(--s21);
+        top: 89px;
+        height: 34px;
+        display: flex;
+        align-items: center;
+        gap: 3px;
+      }
+      .wave i {
+        flex: 1;
+        height: 3px;
+        border-radius: 2px;
+        background: #2b2e33;
+      }
+      .voice.live .wave i {
+        background: var(--amber);
+        animation: wv 0.9s ease-in-out infinite alternate;
+      }
+      @keyframes wv {
+        to {
+          height: var(--h);
+        }
+      }
+      .voice .tx {
+        position: absolute;
+        left: var(--s21);
+        right: var(--s21);
+        bottom: var(--s21);
+        text-align: center;
+        font-size: 14px;
+        color: var(--ink-2);
+        min-height: 21px;
+      }
+      .txt textarea {
+        width: 100%;
+        height: 100%;
+        background: transparent;
+        border: 0;
+        resize: none;
+        padding: var(--s13);
+        color: var(--ink);
+        font:
+          15px/1.45 -apple-system,
+          system-ui,
+          sans-serif;
+        outline: none;
+      }
+      .txt textarea::placeholder {
+        color: var(--ink-3);
+      }
+      .send {
+        display: none;
+        margin-top: var(--s13);
+        width: 100%;
+        height: 55px;
+        border-radius: 999px;
+        background: var(--amber);
+        color: #1a1204;
+        font-family: var(--num);
+        font-size: 17px;
+        font-weight: 600;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        text-align: center;
+        box-shadow: 0 0 21px -5px var(--amber-glow);
+      }
+      .sheet.has .send {
+        display: block;
+        animation: rise 360ms var(--ease);
+      }
+      .sheet .empty {
+        margin-top: var(--s13);
+        height: 55px;
+        display: grid;
+        place-items: center;
+        font-family: var(--num);
+        font-size: 12px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--ink-3);
+        border-radius: 999px;
+        box-shadow: inset 0 0 0 1px #24272b;
+      }
+      .sheet.has .empty {
+        display: none;
+      }
+      @keyframes rise {
+        from {
+          opacity: 0;
+          transform: translateY(8px);
+        }
+      }
+
+      /* ---- notes ---- */
+      .notes {
+        margin: var(--s55) auto 0;
+        max-width: 72ch;
+        font-size: 13px;
+        color: var(--ink-2);
+      }
+      .notes h2 {
+        font-family: var(--num);
+        font-size: 17px;
+        font-weight: 600;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--ink);
+        margin-bottom: var(--s8);
+      }
+      .notes table {
+        border-collapse: collapse;
+        width: 100%;
+        margin: var(--s8) 0 var(--s21);
+      }
+      .notes td,
+      .notes th {
+        text-align: left;
+        padding: 5px 8px 5px 0;
+        border-bottom: 1px solid var(--line);
+        vertical-align: top;
+      }
+      .notes th {
+        font-weight: 600;
+        color: var(--ink);
+      }
+      #assert {
+        font-family: var(--num);
+        letter-spacing: 0.06em;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .sw button.next::before,
+        .voice.live .wave i {
+          animation: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="doc">
+      <header>
+        <div>
+          <p class="eyebrow">iOS variation 38 · round twelve · score family</p>
+          <h1>Gauge</h1>
+          <p class="lede">
+            The score as a car's instrument cluster. One big dial for 72, three
+            sub-dials for the layers, kcal as the fuel gauge, LDL as a trip
+            odometer rolling from 131 to 104. Moves are the switch panel: flip
+            one and every needle it touches swings on a spring.
+          </p>
+        </div>
+        <dl class="dir">
+          <dt>Mood</dt>
+          <dd>A night drive: graphite, white ticks, one warm amber lamp.</dd>
+          <dt>Accent</dt>
+          <dd>
+            <b>Amber #FFAD2A</b>: needles, lit arcs, lamps, the plus, Send.
+          </dd>
+          <dt>Type</dt>
+          <dd>
+            Barlow Condensed for every number and label, system sans for
+            sentences.
+          </dd>
+          <dt>Unusual</dt>
+          <dd>
+            Ignition sweep: needles swing to 100 and back on load, like a car
+            self-test. LDL reads as an odometer, not a chart.
+          </dd>
+        </dl>
+      </header>
+
+      <section class="phones">
+        <div>
+          <p class="cap">
+            <span>01 · Cluster</span
+            ><span>flip a switch · tap the odometer</span>
+          </p>
+          <div class="phone" id="p1"></div>
+        </div>
+        <div>
+          <p class="cap">
+            <span>02 · Add</span><span>over the blurred cluster</span>
+          </p>
+          <div class="phone open" id="p2"></div>
+        </div>
+      </section>
+
+      <section class="notes">
+        <h2>The score, on the dials</h2>
+        <table>
+          <tr>
+            <th>Dial</th>
+            <th>Today</th>
+            <th>Weight</th>
+            <th>Moves when</th>
+          </tr>
+          <tr>
+            <td>Lifestyle</td>
+            <td>sleep 100, moves 40, kcal 90, protein 78 → 77</td>
+            <td>0.40</td>
+            <td>a switch flips (moves = ticked × 20)</td>
+          </tr>
+          <tr>
+            <td>Blood</td>
+            <td>4 in range, 2 borderline, 1 off → 71</td>
+            <td>0.45</td>
+            <td>each draw</td>
+          </tr>
+          <tr>
+            <td>Genes</td>
+            <td>4 variants, fixed → 63</td>
+            <td>0.15</td>
+            <td>never</td>
+          </tr>
+          <tr>
+            <td>Score</td>
+            <td>
+              0.40 × 77 + 0.45 × 71 + 0.15 × 63 = 72 (a third move: life 82 →
+              74)
+            </td>
+            <td></td>
+            <td>live</td>
+          </tr>
+        </table>
+        <p id="assert"></p>
+        <h2>The cluster's rules</h2>
+        <table>
+          <tr>
+            <th>Instrument</th>
+            <th>Reads</th>
+            <th>Rule</th>
+          </tr>
+          <tr>
+            <td>Main dial</td>
+            <td>Health score 0 to 100</td>
+            <td>
+              180° sweep, minor tick every 2, major every 10; the amber lit arc
+              sits on its 3 px track, same thickness; the needle tip stops
+              inside the tick ring
+            </td>
+          </tr>
+          <tr>
+            <td>Sub-dials</td>
+            <td>Lifestyle, blood, genes</td>
+            <td>240° sweep, weight printed under each</td>
+          </tr>
+          <tr>
+            <td>Fuel</td>
+            <td>1 497 of 1 900 kcal</td>
+            <td>
+              E to F over 120°; F is the target, not a limit; protein on a 3 px
+              rail
+            </td>
+          </tr>
+          <tr>
+            <td>Odometer</td>
+            <td>LDL, now to eight weeks out</td>
+            <td>
+              real drum arithmetic (the tens roll only while the ones pass 9 →
+              0); the trip scale counts the weeks; tap to rerun
+            </td>
+          </tr>
+          <tr>
+            <td>Switch panel</td>
+            <td>Five moves</td>
+            <td>
+              lamp lit = ticked; the next move's lamp blinks like a turn signal
+            </td>
+          </tr>
+          <tr>
+            <td>Motion</td>
+            <td>Every needle</td>
+            <td>
+              one damped spring (k 90, c 11, about 10 % overshoot); ignition
+              sweep to 100 on load; reduced motion lands the needles with no
+              sweep
+            </td>
+          </tr>
+        </table>
+      </section>
+    </main>
+
+    <script>
+      const I = {
+        chev: '<svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg>',
+        back: '<svg viewBox="0 0 24 24"><path d="m15 6-6 6 6 6"/></svg>',
+        bell: '<svg viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10 21a2 2 0 0 0 4 0"/></svg>',
+        info: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg>',
+        plus: '<svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>',
+        cam: '<svg viewBox="0 0 24 24"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>',
+        walk: '<svg viewBox="0 0 24 24"><circle cx="13" cy="4" r="1.5"/><path d="m10 21 2-6 3 3v3M8 12l3-3 3 1 2 3M11 9l-1 5-3 2"/></svg>',
+        moon: '<svg viewBox="0 0 24 24"><path d="M20 15A8 8 0 0 1 9 4a8 8 0 1 0 11 11z"/></svg>',
+        more: '<svg viewBox="0 0 24 24"><circle cx="6" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="18" cy="12" r="1"/></svg>',
+        home: '<svg viewBox="0 0 24 24"><path d="M3 11 12 4l9 7v9H3z"/><path d="M10 20v-6h4v6"/></svg>',
+        body: '<svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="2.5"/><path d="M9 10h6l1 5h-2v6h-4v-6H8z"/></svg>',
+        drop: '<svg viewBox="0 0 24 24"><path d="M12 3s6 7 6 11a6 6 0 0 1-12 0c0-4 6-11 6-11z"/></svg>',
+        pill: '<svg viewBox="0 0 24 24"><rect x="3" y="9" width="18" height="6" rx="3" transform="rotate(-45 12 12)"/><path d="m9 9 6 6"/></svg>',
+        dna: '<svg viewBox="0 0 24 24"><path d="M7 3c0 6 10 6 10 12M17 3c0 6-10 6-10 12M7 21c0-3 2-5 5-6M17 21c0-3-2-5-5-6M8 7h8M8 17h8"/></svg>',
+      };
+
+      // ---- the three layers ----
+      const LIFE = {
+        w: 0.4,
+        rows: [
+          { n: "Sleep", s: "7h 30 of 7h 30", p: 100 },
+          { n: "Moves", s: "2 of 5 ticked", p: 40 },
+          { n: "Calories", s: "1 497 of 1 900 kcal", p: 90 },
+          { n: "Protein", s: "93 of 120 g", p: 78 },
+        ],
+      };
+      const BLOOD = {
+        w: 0.45,
+        // x: where the dot sits on the rail (0..100); state drives the colour
+        rows: [
+          { n: "Vitamin D", s: "29 ng/mL · aim 40 to 60", x: 12, st: "rose" },
+          { n: "LDL", s: "131 mg/dL · aim under 100", x: 84, st: "amber" },
+          { n: "ApoB", s: "98 mg/dL · aim under 90", x: 80, st: "amber" },
+          { n: "hs-CRP", s: "0.6 mg/L", x: 30, st: "green" },
+          { n: "HbA1c", s: "5.3 %", x: 45, st: "green" },
+          { n: "Ferritin", s: "64 ng/mL", x: 50, st: "green" },
+          { n: "TPO", s: "18 IU/mL", x: 35, st: "green" },
+        ],
+      };
+      const GENES = {
+        w: 0.15,
+        rows: [
+          { n: "APOE ε3/ε4", s: "LDL responds more to saturated fat", p: 45 },
+          { n: "LPA rs10455872", s: "not carried", p: 100 },
+          { n: "MTHFR C677T", s: "heterozygous · folate form matters", p: 60 },
+          { n: "FTO rs9939609", s: "one copy · appetite", p: 45 },
+        ],
+      };
+      const pct = (rows) =>
+        Math.round(rows.reduce((a, r) => a + r.p, 0) / rows.length);
+      const life = pct(LIFE.rows); // 77
+      const blood = Math.round(
+        (BLOOD.rows.reduce(
+          (a, r) => a + { green: 1, amber: 0.5, rose: 0 }[r.st],
+          0,
+        ) /
+          BLOOD.rows.length) *
+          100,
+      ); // 71
+      const genes = pct(GENES.rows); // 62
+      const score = Math.round(
+        LIFE.w * life + BLOOD.w * blood + GENES.w * genes,
+      ); // 72
+      console.assert(score === 72, "score arithmetic drifted", score);
+
+      // ---- the receipt ----
+      const LOG = [
+        {
+          layer: "life",
+          ic: "img",
+          src: "img/08-pork-belly.jpg",
+          n: "Pork belly, salad",
+          s: "7:30 PM · 623 kcal · fat past the day's share",
+          d: -1,
+        },
+        {
+          layer: "life",
+          ic: "green-bg",
+          g: "walk",
+          n: "Walk after lunch",
+          s: "1:45 PM · 15 min · ticked",
+          d: 2,
+        },
+        {
+          layer: "life",
+          ic: "img",
+          src: "img/08-sardines-rye.jpg",
+          n: "Sardines on rye, kimchi",
+          s: "1:08 PM · 462 kcal · 38 g protein",
+          d: 1,
+        },
+        {
+          layer: "life",
+          ic: "gene-bg",
+          g: "pill",
+          n: "Selenium 200 µg",
+          s: "8:20 AM · ticked",
+          d: 0,
+        },
+        {
+          layer: "life",
+          ic: "img",
+          src: "img/08-oats.jpg",
+          n: "Oats with berries",
+          s: "8:15 AM · 412 kcal · 3 g beta-glucan",
+          d: 1,
+        },
+        {
+          layer: "life",
+          ic: "rose-bg",
+          g: "moon",
+          n: "Sleep",
+          s: "Last night · 7h 30",
+          d: 3,
+        },
+        {
+          layer: "blood",
+          ic: "blood-bg",
+          g: "drop",
+          n: "LDL 168 → 131",
+          s: "Aug 1 draw · off to borderline",
+          d: 6,
+        },
+        {
+          layer: "blood",
+          ic: "blood-bg",
+          g: "drop",
+          n: "Vitamin D 34 → 29",
+          s: "Aug 1 draw · borderline to off",
+          d: -4,
+        },
+        {
+          layer: "blood",
+          ic: "blood-bg",
+          g: "drop",
+          n: "Next draw",
+          s: "Nov 1 · LDL, ApoB, vitamin D",
+          d: null,
+        },
+        {
+          layer: "genes",
+          ic: "gene-bg",
+          g: "dna",
+          n: "Panel read once",
+          s: "Mar 2026 · four variants weighed",
+          d: null,
+        },
+      ];
+
+      // ---- gauge-only glyphs ----
+      Object.assign(I, {
+        x: '<svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg>',
+        mic: '<svg viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>',
+        text: '<svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h10M4 18h7"/></svg>',
+        fork: '<svg viewBox="0 0 24 24"><path d="M7 3v8a2 2 0 0 0 4 0V3M9 11v10M16 3c-2 2-2 6 0 8v10"/></svg>',
+        leaf: '<svg viewBox="0 0 24 24"><path d="M5 19c0-9 6-14 15-14 0 9-5 15-14 15M5 19l7-7"/></svg>',
+        lift: '<svg viewBox="0 0 24 24"><path d="M6 7v10M3 9v6M18 7v10M21 9v6M6 12h12"/></svg>',
+        sun: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4 12H2M22 12h-2M5 5l1.5 1.5M17.5 17.5 19 19M5 19l1.5-1.5M17.5 6.5 19 5"/></svg>',
+      });
+
+      // five moves, two ticked (the walk and the selenium are in the LOG)
+      const MOVES0 = [
+        { n: "Walk", g: "walk", on: true },
+        { n: "Selenium", g: "pill", on: true },
+        { n: "Lift", g: "lift", on: false, long: "Resistance 30 min" },
+        { n: "Sterols", g: "leaf", on: false, long: "Plant sterols 2 g" },
+        { n: "Lights", g: "moon", on: false, long: "Lights out 23:30" },
+      ];
+      // live arithmetic: the Moves row is ticked × 20, the rest is the verbatim formula
+      const liveScore = (moves) => {
+        const on = moves.filter((m) => m.on).length;
+        const rows = LIFE.rows.map((r) =>
+          r.n === "Moves" ? { ...r, p: on * 20 } : r,
+        );
+        const l = pct(rows);
+        return {
+          on,
+          mp: on * 20,
+          l,
+          s: Math.round(LIFE.w * l + BLOOD.w * blood + GENES.w * genes),
+        };
+      };
+
+      // ---- geometry ----
+      const rad = (d) => (d * Math.PI) / 180;
+      const pt = (cx, cy, r, d) => [
+        cx + r * Math.cos(rad(d)),
+        cy + r * Math.sin(rad(d)),
+      ];
+      const f1 = (n) => n.toFixed(1);
+      const arc = (cx, cy, r, d0, d1) => {
+        if (d1 - d0 < 0.01) return "";
+        const [x0, y0] = pt(cx, cy, r, d0);
+        const [x1, y1] = pt(cx, cy, r, d1);
+        return `M${f1(x0)} ${f1(y0)}A${r} ${r} 0 ${d1 - d0 > 180 ? 1 : 0} 1 ${f1(x1)} ${f1(y1)}`;
+      };
+      const ticks = (
+        cx,
+        cy,
+        r,
+        d0,
+        sweep,
+        n,
+        major,
+        lMaj,
+        lMin,
+        wMaj,
+        wMin,
+      ) => {
+        let s = "";
+        for (let i = 0; i <= n; i++) {
+          const d = d0 + (sweep * i) / n;
+          const big = i % major === 0;
+          const [x0, y0] = pt(cx, cy, r, d);
+          const [x1, y1] = pt(cx, cy, r - (big ? lMaj : lMin), d);
+          s += `<line x1="${f1(x0)}" y1="${f1(y0)}" x2="${f1(x1)}" y2="${f1(y1)}" stroke="var(--tick)" stroke-width="${big ? wMaj : wMin}" opacity="${big ? 1 : 0.55}"/>`;
+        }
+        return s;
+      };
+
+      // main dial: centre (166,158), 180° from the left (180°) to the right (360°)
+      const M = { cx: 166, cy: 158, r: 148, d0: 180, sw: 180 };
+      const mainDial = () => {
+        let nums = "";
+        for (let v = 0; v <= 100; v += 10) {
+          const [x, y] = pt(M.cx, M.cy, 118, M.d0 + v * 1.8);
+          nums += `<text x="${f1(x)}" y="${f1(y + 5)}" text-anchor="middle" font-size="15" font-weight="500" fill="var(--ink-2)">${v}</text>`;
+        }
+        return `<svg class="main" viewBox="0 0 332 206">
+          <defs><radialGradient id="hub" cx="50%" cy="35%" r="70%"><stop offset="0" stop-color="#23262b"/><stop offset="1" stop-color="#08090a"/></radialGradient></defs>
+          <path d="${arc(M.cx, M.cy, M.r + 8, 180, 360)}" stroke="#23262a" stroke-width="3" fill="none"/>
+          <path class="lit" data-lit d="" stroke-width="3" fill="none" stroke-linecap="butt"/>
+          ${ticks(M.cx, M.cy, M.r, 180, 180, 50, 5, 13, 6, 2, 1)}
+          ${nums}
+                    <g data-needle><path class="needle" d="M${M.cx - 3} ${M.cy - 48} L${M.cx} ${M.cy - M.r + 4} L${M.cx + 3} ${M.cy - 48}Z"/></g>
+          <circle cx="${M.cx}" cy="${M.cy}" r="46" fill="url(#hub)" stroke="rgba(255,255,255,.12)"/>
+          <text data-read x="${M.cx}" y="${M.cy + 15}" text-anchor="middle" font-size="46" font-weight="600" fill="var(--ink)">0</text>
+          <text x="${M.cx}" y="${M.cy - 24}" text-anchor="middle" font-size="10" letter-spacing="2" fill="var(--ink-3)">SCORE</text>
+          <text x="${M.cx}" y="${M.cy + 32}" text-anchor="middle" font-size="10" letter-spacing="2" fill="var(--ink-3)">OF 100</text>
+          <text x="13" y="${M.cy + 26}" font-size="13" fill="var(--ink-3)" letter-spacing="1">PHENOAGE</text>
+          <text x="13" y="${M.cy + 47}" font-size="20" font-weight="600" fill="var(--ink)">36.2 <tspan font-size="13" fill="var(--ink-3)" font-weight="500">AT 39</tspan></text>
+          <text x="319" y="${M.cy + 26}" text-anchor="end" font-size="13" fill="var(--ink-3)" letter-spacing="1">SINCE MON</text>
+          <text data-since x="319" y="${M.cy + 47}" text-anchor="end" font-size="20" font-weight="600" fill="var(--amber)">+2</text>
+        </svg>`;
+      };
+
+      // sub-dial: 240° from lower left (150°) to lower right (390°)
+      const S = { cx: 50, cy: 50, r: 42, d0: 150, sw: 240 };
+      const subDial = (
+        key,
+      ) => `<svg class="sub" viewBox="0 0 100 84" data-sub="${key}">
+          <path d="${arc(S.cx, S.cy, S.r + 4, 150, 390)}" stroke="#23262a" stroke-width="2" fill="none"/>
+          <path class="lit" data-lit d="" stroke-width="2" fill="none" stroke-linecap="butt"/>
+          ${ticks(S.cx, S.cy, S.r, 150, 240, 20, 5, 8, 4, 1.6, 0.8)}
+          <g data-needle><path class="needle" d="M${S.cx - 2} ${S.cy} L${S.cx} ${S.cy - S.r + 3} L${S.cx + 2} ${S.cy}Z"/></g>
+          <circle cx="${S.cx}" cy="${S.cy}" r="5" fill="#0b0c0e" stroke="rgba(255,255,255,.2)"/>
+          <text data-read x="${S.cx}" y="${S.cy + 31}" text-anchor="middle" font-size="21" font-weight="600" fill="var(--ink)">0</text>
+        </svg>`;
+
+      // fuel: 120° from 210° to 330°
+      const F = { cx: 70, cy: 70, r: 54, d0: 210, sw: 120 };
+      const fuelDial = () => {
+        const lab = (v, t) => {
+          const [x, y] = pt(F.cx, F.cy, 38, F.d0 + v * 1.2);
+          return `<text x="${f1(x)}" y="${f1(y + 4)}" text-anchor="middle" font-size="12" font-weight="600" fill="var(--ink-2)">${t}</text>`;
+        };
+        return `<svg class="fuel" viewBox="0 0 140 76">
+          <path d="${arc(F.cx, F.cy, F.r + 4, 210, 330)}" stroke="#23262a" stroke-width="2" fill="none"/>
+          <path class="lit" data-lit d="" stroke-width="2" fill="none" stroke-linecap="butt"/>
+          ${ticks(F.cx, F.cy, F.r, 210, 120, 8, 2, 8, 4, 1.6, 0.8)}
+          ${lab(0, "E")}${lab(50, "½")}${lab(100, "F")}
+          <g data-needle><path class="needle" d="M${F.cx - 2} ${F.cy} L${F.cx} ${F.cy - F.r + 3} L${F.cx + 2} ${F.cy}Z"/></g>
+          <circle cx="${F.cx}" cy="${F.cy}" r="5" fill="#0b0c0e" stroke="rgba(255,255,255,.2)"/>
+        </svg>`;
+      };
+
+      const reel = () =>
+        `<div class="reel">${[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0].map((d) => `<span>${d}</span>`).join("")}</div>`;
+      const tripScale = () => {
+        let s = `<line x1="4" y1="8" x2="129" y2="8" stroke="#2b2e33" stroke-width="3" stroke-linecap="round"/>
+          <line data-trip x1="4" y1="8" x2="4" y2="8" stroke="var(--tick)" stroke-width="3" stroke-linecap="round"/>`;
+        for (let w = 0; w <= 8; w++) {
+          const x = 4 + (w * 125) / 8;
+          s += `<line x1="${x}" y1="13" x2="${x}" y2="${w % 4 ? 16 : 19}" stroke="var(--tick)" stroke-width="1" opacity=".55"/>`;
+        }
+        s += `<text x="4" y="31">WK 0</text><text x="66.5" y="31" text-anchor="middle">4</text><text x="129" y="31" text-anchor="end">8</text>`;
+        return `<svg class="trip" viewBox="0 0 133 34">${s}</svg>`;
+      };
+
+      const meals = LOG.filter((r) => r.ic === "img").reverse();
+      const mealRow = (r) => {
+        const [time, kcal] = r.s.split(" · ");
+        return `<div class="row"><img src="${r.src}" alt=""><span class="t"><b>${r.n}</b><small>${time}</small></span>
+          <span class="v">${kcal.replace(" kcal", "")}<small>KCAL</small></span></div>`;
+      };
+
+      const home = (moves) => `
+        <div class="status"><span>9:41</span><i></i><span>●●● ◔ ▮</span></div>
+        <div class="screen">
+          <div class="top">
+            <div><small>Tue 23 Sep · evening</small><b>Razvan</b></div>
+            <div class="lamps">
+              <span class="lamp lit" title="LDL borderline">${I.drop}</span>
+              <span class="lamp lit" title="Vitamin D off">${I.sun}</span>
+              <span class="lamp" title="Sleep on target">${I.moon}</span>
+            </div>
+          </div>
+
+          <div class="cluster">
+            ${mainDial()}
+            <div class="subs">
+              <div>${subDial("life")}<p>Life<em>×.40</em></p></div>
+              <div>${subDial("blood")}<p>Blood<em>×.45</em></p></div>
+              <div>${subDial("genes")}<p>Genes<em>×.15</em></p></div>
+            </div>
+          </div>
+
+          <div class="duo">
+            <div class="pnl">
+              <div class="ttl"><span>Fuel · kcal</span>${I.fork}</div>
+              ${fuelDial()}
+              <div class="read"><b>1 497</b><span>/ 1 900</span></div>
+            </div>
+            <div class="pnl" data-do="odo">
+              <div class="ttl"><span>LDL · trip</span>${I.drop}</div>
+              <div class="odo">
+                <div class="drums">
+                  <div class="drum">${reel()}</div>
+                  <div class="drum">${reel()}</div>
+                  <div class="drum last">${reel()}</div>
+                </div>
+                <em>mg<br>dL</em>
+              </div>
+              ${tripScale()}
+              <p class="odo-foot" data-odo-foot>Now 131 · Aug 1</p>
+            </div>
+          </div>
+
+          <p class="say">Keep this eight weeks and <b class="a">LDL lands near 104</b>, from 131. The walk and the oats carry most of it.</p>
+
+          <div class="moves">
+            <div class="ttl"><span>Moves <b data-count>2 / 5</b></span><span data-next></span></div>
+            <div class="sw">
+              ${moves.map((m, i) => `<button data-move="${i}">${I[m.g]}<span>${m.n}</span></button>`).join("")}
+            </div>
+          </div>
+
+          <div class="head"><span>Fuel log · today</span><span>1 497 kcal · 93 / 120 g protein</span></div>
+          ${meals.map(mealRow).join("")}
+        </div>
+
+        <div class="tabs">
+          <div class="bar">
+            <button class="on">${I.home}Home</button>
+            <button>${I.body}Body</button>
+            <button>${I.drop}Blood</button>
+          </div>
+          <button class="plus" data-do="open">${I.plus}</button>
+        </div>
+
+        <div class="veil" data-do="close"></div>
+        <div class="sheet">
+          <button class="x" data-do="close">${I.x}</button>
+          <h2>Add</h2>
+          <p>Point, speak or type. The cluster reads it.</p>
+          <div class="keys">
+            <button class="on" data-mode="photo">${I.cam}<span>Photo</span></button>
+            <button data-mode="voice">${I.mic}<span>Voice</span></button>
+            <button data-mode="text">${I.text}<span>Text</span></button>
+          </div>
+          <div class="lcd">
+            <div class="vf on" data-pane="photo">
+              <img src="img/08-salad.jpg" alt="">
+              <span class="hint">Frame the plate</span>
+              <div class="shots"></div>
+              <span class="readout"></span>
+              <button class="shutter" data-do="shoot" aria-label="Capture"></button>
+            </div>
+            <div class="voice" data-pane="voice">
+              <button class="mic" data-do="listen">${I.mic}</button>
+              <div class="wave">${Array.from({ length: 34 }, (_, i) => `<i style="--h:${5 + Math.round(Math.abs(Math.sin(i * 1.7)) * 26)}px;animation-delay:${(i % 7) * 70}ms"></i>`).join("")}</div>
+              <p class="tx">Tap the mic and say it</p>
+            </div>
+            <div class="txt" data-pane="text">
+              <textarea placeholder="Sardines on rye, 15 min walk, energy 7"></textarea>
+            </div>
+          </div>
+          <div class="empty">Send appears when there is something to send</div>
+          <button class="send" data-do="send">Send</button>
+        </div>
+        <div class="home"></div>`;
+
+      // ---- the spring ----
+      const REDUCE = matchMedia("(prefers-reduced-motion: reduce)").matches;
+      // a 16 ms timer clock instead of requestAnimationFrame, so headless
+      // screenshots (virtual time) see the needles settle too
+      const frame = (f) => setTimeout(() => f(performance.now()), 16);
+      const unframe = clearTimeout;
+      const NEEDLES = [];
+      let running = false;
+      const tick = (() => {
+        let last = 0;
+        const step = (now) => {
+          const dt = Math.min(0.033, last ? (now - last) / 1000 : 0.016);
+          last = now;
+          let busy = false;
+          for (const n of NEEDLES) {
+            if (Math.abs(n.t - n.a) < 0.02 && Math.abs(n.v) < 0.02) {
+              if (n.a !== n.t) ((n.a = n.t), n.draw(n.a));
+              n.v = 0;
+              continue;
+            }
+            busy = true;
+            n.v += (90 * (n.t - n.a) - 11 * n.v) * dt;
+            n.a += n.v * dt;
+            n.draw(n.a);
+          }
+          if (busy) frame(step);
+          else ((running = false), (last = 0));
+        };
+        return () => {
+          if (!running) ((running = true), frame(step));
+        };
+      })();
+      const needle = (svg, geo, fmt) => {
+        const g = svg.querySelector("[data-needle]");
+        const lit = svg.querySelector("[data-lit]");
+        const read = svg.querySelector("[data-read]");
+        const n = {
+          a: 0,
+          v: 0,
+          t: 0,
+          draw(a) {
+            const c = Math.max(0, Math.min(100, a));
+            const d = geo.d0 + (a / 100) * geo.sw;
+            g.setAttribute(
+              "transform",
+              `rotate(${(d - 270).toFixed(2)} ${geo.cx} ${geo.cy})`,
+            );
+            lit.setAttribute(
+              "d",
+              arc(
+                geo.cx,
+                geo.cy,
+                geo.r + (geo === M ? 8 : 4),
+                geo.d0,
+                geo.d0 + (c / 100) * geo.sw,
+              ),
+            );
+            if (read) read.textContent = fmt ? fmt(c) : Math.round(c);
+          },
+          to(v) {
+            n.t = v;
+            if (REDUCE) ((n.a = v), (n.v = 0), n.draw(v));
+            else tick();
+          },
+        };
+        n.draw(0);
+        NEEDLES.push(n);
+        return n;
+      };
+
+      // ---- the odometer ----
+      const odometer = (p) => {
+        const reels = [...p.querySelectorAll(".reel")];
+        const trip = p.querySelector("[data-trip]");
+        const foot = p.querySelector("[data-odo-foot]");
+        const set = (v) => {
+          const ones = v % 10;
+          const tens = (Math.floor(v / 10) % 10) + Math.max(0, ones - 9);
+          const hund = (Math.floor(v / 100) % 10) + Math.max(0, (v % 100) - 99);
+          [hund, tens, ones].forEach(
+            (pos, i) =>
+              (reels[i].style.transform =
+                `translateY(${(-pos * 34).toFixed(2)}px)`),
+          );
+          const wk = ((131 - v) / 27) * 8;
+          trip.setAttribute("x2", (4 + (wk * 125) / 8).toFixed(1));
+        };
+        let raf = 0;
+        const run = (delay) => {
+          unframe(raf);
+          set(131);
+          foot.textContent = "Now 131 · Aug 1";
+          if (REDUCE)
+            return (set(104), (foot.textContent = "Wk 8 · lands near 104"));
+          const t0 = performance.now() + delay;
+          const dur = 2600;
+          const step = (now) => {
+            const k = Math.max(0, Math.min(1, (now - t0) / dur));
+            const e = k < 0.5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2;
+            // count down: the drums roll backwards, so read the value as it falls
+            const v = 131 - 27 * e;
+            set(v);
+            if (k > 0)
+              foot.textContent = `Wk ${Math.min(8, Math.floor(((131 - v) / 27) * 8 + 0.001))} · ${Math.round(v)} mg/dL`;
+            if (k < 1) raf = frame(step);
+            else foot.textContent = "Wk 8 · lands near 104";
+          };
+          raf = frame(step);
+        };
+        return run;
+      };
+
+      for (const p of document.querySelectorAll(".phone")) {
+        const moves = MOVES0.map((m) => ({ ...m }));
+        p.innerHTML = home(moves);
+        const main = needle(p.querySelector(".main"), M);
+        const subs = {
+          life: needle(p.querySelector('[data-sub="life"]'), S),
+          blood: needle(p.querySelector('[data-sub="blood"]'), S),
+          genes: needle(p.querySelector('[data-sub="genes"]'), S),
+        };
+        const fuel = needle(p.querySelector(".fuel"), F);
+        const since = p.querySelector("[data-since]");
+        const odo = odometer(p);
+
+        const paint = () => {
+          const L = liveScore(moves);
+          main.to(L.s);
+          subs.life.to(L.l);
+          since.textContent = (L.s - 70 >= 0 ? "+" : "") + (L.s - 70);
+          p.querySelector("[data-count]").textContent =
+            `${L.on} / 5 · moves ${L.mp}`;
+          const next = moves.findIndex((m) => !m.on);
+          p.querySelectorAll("[data-move]").forEach((b, i) => {
+            b.classList.toggle("on", moves[i].on);
+            b.classList.toggle("next", i === next);
+          });
+          p.querySelector("[data-next]").textContent =
+            next < 0 ? "All five · day done" : `Next ▸ ${moves[next].long}`;
+          return L;
+        };
+
+        // ignition: every needle to the stop, then home to its value
+        [main, subs.life, subs.blood, subs.genes, fuel].forEach((n) =>
+          n.to(100),
+        );
+        setTimeout(
+          () => {
+            paint();
+            subs.blood.to(blood);
+            subs.genes.to(genes);
+            fuel.to((1497 / 1900) * 100);
+          },
+          REDUCE ? 0 : 650,
+        );
+        odo(REDUCE ? 0 : 900);
+
+        // the sheet
+        const sheet = p.querySelector(".sheet");
+        const mode = (m) => {
+          p.querySelectorAll("[data-mode]").forEach((b) =>
+            b.classList.toggle("on", b.dataset.mode === m),
+          );
+          p.querySelectorAll("[data-pane]").forEach((d) =>
+            d.classList.toggle("on", d.dataset.pane === m),
+          );
+          const ta = p.querySelector("textarea");
+          sheet.classList.toggle(
+            "has",
+            (m === "photo" && !!p.querySelector(".shots img")) ||
+              (m === "voice" &&
+                p.querySelector(".voice").classList.contains("done")) ||
+              (m === "text" && ta.value.trim() !== ""),
+          );
+          if (m === "text") ta.focus();
+        };
+        p.querySelector("textarea").addEventListener("input", (e) =>
+          sheet.classList.toggle("has", e.target.value.trim() !== ""),
+        );
+
+        p.addEventListener("click", (e) => {
+          const mv = e.target.closest("[data-move]");
+          if (mv) {
+            const m = moves[+mv.dataset.move];
+            m.on = !m.on;
+            paint();
+            return;
+          }
+          const k = e.target.closest("[data-mode]");
+          if (k) return mode(k.dataset.mode);
+          const b = e.target.closest("[data-do]");
+          if (!b) return;
+          const d = b.dataset.do;
+          if (d === "open") p.classList.add("open");
+          if (d === "close" || d === "send") p.classList.remove("open");
+          if (d === "odo") odo(0);
+          if (d === "shoot") {
+            const shots = p.querySelector(".shots");
+            if (shots.children.length >= 3) return;
+            shots.insertAdjacentHTML(
+              "beforeend",
+              `<img src="img/08-salad.jpg" alt="">`,
+            );
+            const ro = p.querySelector(".readout");
+            ro.textContent = "Reading…";
+            setTimeout(
+              () =>
+                (ro.innerHTML = "Salad, olive oil<br>≈ 240 kcal · 9 g protein"),
+              900,
+            );
+            sheet.classList.add("has");
+          }
+          if (d === "listen") {
+            const v = p.querySelector(".voice");
+            const tx = v.querySelector(".tx");
+            v.classList.add("live");
+            tx.textContent = "";
+            const said = "Fifteen minute walk after dinner, energy seven";
+            let i = 0;
+            const type = setInterval(() => {
+              tx.textContent = said.slice(0, ++i);
+              if (i >= said.length) {
+                clearInterval(type);
+                v.classList.remove("live");
+                v.classList.add("done");
+                sheet.classList.add("has");
+              }
+            }, 45);
+          }
+        });
+      }
+
+      document.getElementById("assert").textContent =
+        score === 72
+          ? `console.assert(score === 72) · passes · life ${life} · blood ${blood} · genes ${genes} · score ${score}`
+          : `SCORE DRIFTED: ${score}`;
+    </script>
+  </body>
+</html>

@@ -1,0 +1,1278 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Halo · iOS variation 34 · OpenVitals</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --page: #05060a;
+        --ground: #06070b;
+        --ink: #ffffff;
+        --g1: rgba(255, 255, 255, 0.92);
+        --g2: rgba(255, 255, 255, 0.55);
+        --g3: rgba(255, 255, 255, 0.3);
+        --ink-2: var(--g2);
+        --ink-3: var(--g3);
+        --hair: rgba(255, 255, 255, 0.08);
+        --s5: 5px;
+        --s8: 8px;
+        --s13: 13px;
+        --s21: 21px;
+        --s34: 34px;
+        --s55: 55px;
+        --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--page);
+        color: var(--ink);
+        font:
+          13.5px/1.45 Inter,
+          -apple-system,
+          system-ui,
+          sans-serif;
+        font-feature-settings: "tnum", "cv11";
+        -webkit-font-smoothing: antialiased;
+      }
+      button {
+        font: inherit;
+        color: inherit;
+        background: none;
+        border: 0;
+        padding: 0;
+        cursor: pointer;
+        -webkit-tap-highlight-color: transparent;
+        text-align: left;
+      }
+      h1,
+      h2,
+      p {
+        margin: 0;
+      }
+      svg {
+        width: 20px;
+        height: 20px;
+        stroke: currentColor;
+        fill: none;
+        stroke-width: 1.6;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+
+      /* ---- page ---- */
+      .doc {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: var(--s55) var(--s21);
+      }
+      .doc > header {
+        margin-bottom: var(--s34);
+        max-width: 62ch;
+      }
+      .eyebrow {
+        color: var(--ink-3);
+        font-size: 12.5px;
+        font-weight: 400;
+        margin-bottom: 6px;
+      }
+      .doc h1 {
+        font-size: 34px;
+        font-weight: 600;
+        letter-spacing: -0.04em;
+      }
+      .lede {
+        color: var(--ink-2);
+        margin-top: var(--s8);
+        font-size: 15px;
+      }
+      .phones {
+        display: flex;
+        gap: var(--s55);
+        justify-content: center;
+        flex-wrap: wrap;
+      }
+      .cap {
+        display: block;
+        color: var(--ink-3);
+        font-size: 12.5px;
+        font-weight: 400;
+        margin-bottom: var(--s13);
+        width: 390px;
+      }
+
+      /* ---- phone ---- */
+      .phone {
+        width: 390px;
+        height: 844px;
+        border-radius: 55px;
+        border: 11px solid #000;
+        background: var(--ground);
+        box-shadow:
+          0 0 0 1px #2b2e35,
+          0 0 0 2px #4a4e57,
+          0 0 0 3px #232630,
+          0 40px 70px -24px rgba(0, 0, 0, 0.95),
+          0 0 70px -30px hsl(var(--h) 60% 40% / 0.28);
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+      }
+      /* the room, lit: the surface itself falls away from the lamp */
+      .phone::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background:
+          radial-gradient(
+            44% 19% at 60% 25%,
+            hsl(var(--h) 46% 13%) 0%,
+            hsl(var(--h) 42% 10.5%) 40%,
+            transparent 100%
+          ),
+          radial-gradient(
+            88% 40% at 49% 19%,
+            hsl(var(--h) 42% 11%) 0%,
+            hsl(var(--h) 36% 9%) 22%,
+            hsl(var(--h) 30% 7.2%) 42%,
+            hsl(var(--h) 20% 5.6%) 62%,
+            var(--ground) 84%
+          );
+        pointer-events: none;
+        transition: opacity 460ms var(--ease);
+      }
+      .phone.open::before {
+        opacity: 0.42;
+      }
+      /* the same light, over the top of the type it reaches */
+      .phone::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        mix-blend-mode: screen;
+        background:
+          radial-gradient(
+            30% 12% at 61% 14%,
+            hsl(var(--h) 78% 58% / 0.3) 0%,
+            hsl(var(--h) 76% 54% / 0.12) 44%,
+            transparent 100%
+          ),
+          radial-gradient(
+            56% 20% at 48% 18%,
+            hsl(var(--h) 72% 54% / 0.13) 0%,
+            hsl(var(--h) 70% 50% / 0.055) 38%,
+            transparent 76%
+          );
+        pointer-events: none;
+        z-index: 6;
+        transition: opacity 460ms var(--ease);
+      }
+      .phone.open::after {
+        opacity: 0.45;
+      }
+      .status {
+        color: hsl(var(--h) 16% 88%);
+        height: 54px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 8px 26px 0;
+        position: relative;
+      }
+      .status time {
+        font-size: 15px;
+        font-weight: 600;
+        letter-spacing: -0.01em;
+        width: 62px;
+        text-align: center;
+      }
+      .status i {
+        position: absolute;
+        left: 50%;
+        top: 11px;
+        width: 125px;
+        height: 36px;
+        border-radius: 18px;
+        background: #000;
+        transform: translateX(-50%);
+      }
+      .status svg {
+        width: 62px;
+        height: 14px;
+        stroke: none;
+      }
+      .screen {
+        flex: 1;
+        overflow-y: auto;
+        padding: 2px var(--s21) 150px;
+        scrollbar-width: none;
+        position: relative;
+        transition:
+          filter 460ms var(--ease),
+          transform 460ms var(--ease);
+        transform-origin: 50% 0;
+      }
+      .screen::-webkit-scrollbar {
+        display: none;
+      }
+      /* the sheet pushes the screen back */
+      .phone.open .screen {
+        filter: brightness(0.42) saturate(0.75);
+        transform: scale(0.975);
+      }
+
+      /* ---- type: three sizes of heading, no small caps anywhere ---- */
+      .h1 {
+        font-size: 19px;
+        font-weight: 500;
+        letter-spacing: -0.03em;
+        color: var(--g1);
+      }
+      .h2 {
+        font-size: 13px;
+        font-weight: 400;
+        color: var(--g2);
+      }
+      .h2 span {
+        color: var(--g3);
+      }
+      .meta {
+        font-size: 11.5px;
+        font-weight: 400;
+        color: var(--ink-3);
+      }
+      .gap-xl {
+        margin-top: 62px;
+      }
+      .gap-l {
+        margin-top: 38px;
+      }
+      .gap-m {
+        margin-top: 26px;
+      }
+      .gap-s {
+        margin-top: 14px;
+      }
+      .hdr {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-bottom: 2px;
+      }
+      .hdr .meta {
+        color: hsl(var(--h) 12% 56%);
+      }
+      .hdr .chip {
+        color: hsl(var(--h) 10% 46%);
+      }
+      .hdr .chip svg {
+        width: 17px;
+        height: 17px;
+      }
+
+      /* one recipe: panes, split by a hairline, never a filled box */
+      /* tone and space, never a rule: a lamp lights surfaces, it does not draw lines */
+      .pane {
+        margin-top: 30px;
+      }
+      .lab {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        margin-bottom: var(--s8);
+      }
+
+      /* ---- dial ---- */
+      .dial {
+        position: relative;
+        margin-top: -2px;
+      }
+      .dial .mid {
+        position: absolute;
+        inset: 0;
+        padding-top: 34px;
+        display: grid;
+        place-content: center;
+        text-align: center;
+        pointer-events: none;
+      }
+      .num {
+        font-weight: 500;
+        letter-spacing: -0.045em;
+        font-feature-settings: "tnum";
+      }
+      .mid .n {
+        font-size: 84px;
+        line-height: 1;
+        color: hsl(var(--h) 48% 93%);
+      }
+      .pheno {
+        margin-top: -10px;
+        text-align: center;
+      }
+      .pheno b {
+        display: block;
+        font-size: 21px;
+        font-weight: 500;
+        letter-spacing: -0.032em;
+        color: hsl(var(--h) 34% 90%);
+      }
+      .pheno span {
+        display: block;
+        margin-top: 3px;
+        font-size: 12.5px;
+        color: hsl(var(--h) 16% 46%);
+      }
+
+      /* ---- charts: one stroke, one dot, one label size ---- */
+      .ch {
+        width: 100%;
+        height: auto;
+        display: block;
+        overflow: visible;
+      }
+      .ch text {
+        stroke: none;
+        font-family:
+          Inter,
+          -apple-system,
+          system-ui,
+          sans-serif;
+        font-size: 10px;
+        font-weight: 500;
+        fill: var(--ink-3);
+        font-feature-settings: "tnum";
+      }
+
+      /* ---- the three layers, one quiet line under everything ---- */
+      .facts {
+        font-size: 12.5px;
+        color: var(--g3);
+      }
+      .facts b {
+        font-weight: 500;
+        color: var(--g2);
+      }
+
+      /* ---- rows ---- */
+      .row {
+        display: flex;
+        align-items: baseline;
+        gap: var(--s13);
+        width: 100%;
+        padding: 15px 0;
+      }
+      .row .t {
+        flex: 1;
+        min-width: 0;
+      }
+      .row .t b {
+        display: block;
+        color: var(--g1);
+        font-size: 15px;
+        font-weight: 500;
+        letter-spacing: -0.01em;
+      }
+      .row .t small {
+        font-size: 12px;
+        color: var(--g3);
+      }
+      /* one column for every value, so the right edge is never ragged */
+      .row .v {
+        width: 108px;
+        flex: none;
+        text-align: right;
+        font-size: 24px;
+        font-weight: 500;
+        letter-spacing: -0.03em;
+        white-space: nowrap;
+      }
+      .row .v em {
+        font-style: normal;
+        vertical-align: baseline;
+        font-size: 11.5px;
+        font-weight: 400;
+        color: var(--g3);
+        margin-left: 5px;
+        letter-spacing: 0;
+      }
+
+      /* ---- the sentence: light, not a box ---- */
+      .say {
+        margin-top: 18px;
+        font-size: 14px;
+        line-height: 1.5;
+        letter-spacing: -0.01em;
+        color: var(--g2);
+      }
+
+      /* the fold is a page break: no header is ever sliced by the scrim */
+      .foldbreak {
+        margin-top: 168px;
+      }
+
+      /* ---- meals ---- */
+      .strip {
+        display: flex;
+        gap: var(--s13);
+        margin: 0 calc(-1 * var(--s21));
+        padding: 0 var(--s21);
+        overflow-x: auto;
+        scrollbar-width: none;
+      }
+      .strip::-webkit-scrollbar {
+        display: none;
+      }
+      .meal {
+        flex: none;
+        width: 98px;
+      }
+      .meal .pic {
+        width: 98px;
+        height: 74px;
+        border-radius: 14px;
+        overflow: hidden;
+        background: rgba(255, 255, 255, 0.05);
+        display: grid;
+        place-items: center;
+        color: var(--ink-3);
+      }
+      .meal .pic img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+      .meal b {
+        display: block;
+        margin-top: 7px;
+        font-size: 13.5px;
+        font-weight: 600;
+      }
+      .meal b em {
+        font-style: normal;
+        font-size: 10px;
+        font-weight: 500;
+        color: var(--ink-3);
+        margin-left: 2px;
+      }
+      .meal small {
+        display: block;
+        font-size: 10.5px;
+        color: var(--ink-3);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      /* ---- glass: the tab bar and the sheet, one recipe ---- */
+      .glass {
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(24px) saturate(165%);
+        -webkit-backdrop-filter: blur(24px) saturate(165%);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+      }
+      .tabs {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 2;
+        transition:
+          opacity 300ms var(--ease),
+          transform 300ms var(--ease);
+      }
+      /* the bar stays put and dims, so the phone keeps its floor */
+      .phone.open .tabs {
+        opacity: 0.55;
+        filter: brightness(0.5) saturate(0.6);
+        pointer-events: none;
+      }
+      .tabs .bar {
+        height: 82px;
+        display: flex;
+        align-items: flex-start;
+        padding: 9px 6px 0;
+        border-radius: 0;
+        border-left: 0;
+        border-right: 0;
+        border-bottom: 0;
+        background: rgba(9, 10, 14, 0.72);
+      }
+      .tabs .bar button {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+        font-size: 10.5px;
+        font-weight: 400;
+        color: rgba(255, 255, 255, 0.32);
+      }
+      .tabs .bar button svg {
+        width: 24px;
+        height: 24px;
+        stroke-width: 1.5;
+      }
+      /* the native signal: the active glyph is filled, not merely whiter */
+      .tabs .bar button.on {
+        color: rgba(255, 255, 255, 0.9);
+      }
+      .tabs .bar button.on svg {
+        fill: currentColor;
+        stroke: none;
+      }
+
+      /* the ground darkens under the bar so nothing is cut mid-row */
+      .fade {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: 152px;
+        background: linear-gradient(
+          180deg,
+          transparent 0%,
+          rgba(5, 6, 10, 0.62) 20%,
+          rgba(5, 6, 10, 0.95) 40%,
+          var(--ground) 54%
+        );
+        pointer-events: none;
+        z-index: 2;
+      }
+
+      /* ---- the detail sheet ---- */
+      .sheet {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 288px;
+        bottom: 0;
+        border-radius: 34px 34px 0 0;
+        border: 0;
+        border-top: 1px solid hsl(var(--h) 55% 62% / 0.3);
+        padding: 9px var(--s21) 46px;
+        overflow-y: auto;
+        scrollbar-width: none;
+        transform: translateY(110%);
+        transition: transform 460ms var(--ease);
+        box-shadow:
+          0 -1px 0 hsl(var(--h) 60% 70% / 0.1),
+          0 -14px 26px -6px rgba(0, 0, 0, 0.55),
+          0 -44px 90px -20px rgba(0, 0, 0, 0.95);
+        z-index: 3;
+      }
+      /* the edge catches the lamp, and the light dies across the first 200 px */
+      .sheet::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 0;
+        height: 210px;
+        border-radius: 34px 34px 0 0;
+        background: linear-gradient(
+          180deg,
+          hsl(var(--h) 45% 62% / 0.14) 0%,
+          hsl(var(--h) 42% 56% / 0.06) 26%,
+          transparent 100%
+        );
+        pointer-events: none;
+      }
+      .sheet > * {
+        position: relative;
+      }
+      .sheet::-webkit-scrollbar {
+        display: none;
+      }
+      .phone.open .sheet {
+        transform: none;
+      }
+      .grab {
+        width: 40px;
+        height: 5px;
+        border-radius: 3px;
+        margin: 0 auto var(--s13);
+        background: rgba(255, 255, 255, 0.42);
+      }
+      .ttl {
+        font-size: 13px;
+        font-weight: 400;
+        color: var(--g2);
+      }
+      .aim {
+        margin-top: 4px;
+        font-size: 12.5px;
+        line-height: 1.45;
+        color: var(--g3);
+      }
+      .sheet .now {
+        display: flex;
+        align-items: baseline;
+        gap: var(--s8);
+        margin-top: 3px;
+      }
+      .sheet .now b {
+        font-size: 46px;
+        line-height: 1;
+      }
+      .sheet .now span {
+        font-size: 12px;
+        color: var(--g3);
+      }
+      .sheet .now u {
+        text-decoration: none;
+        margin-left: auto;
+        font-size: 11.5px;
+        font-weight: 500;
+        color: rgba(255, 255, 255, 0.62);
+      }
+      .lev {
+        display: flex;
+        align-items: baseline;
+        gap: var(--s13);
+        padding: 8px 0;
+      }
+      .lev .t {
+        flex: 1;
+        min-width: 0;
+      }
+      .lev .t b {
+        display: block;
+        font-size: 14px;
+        font-weight: 500;
+      }
+      .lev .t small {
+        font-size: 11.5px;
+        color: var(--g3);
+      }
+      .lev .d {
+        width: 80px;
+        flex: none;
+        text-align: right;
+        font-size: 13px;
+        font-weight: 400;
+        white-space: nowrap;
+        color: var(--g2);
+      }
+      .lev .d em {
+        font-style: normal;
+        vertical-align: baseline;
+        font-size: 10.5px;
+        color: var(--g3);
+        margin-left: 3px;
+      }
+      /* what you are already doing, against what you have not done yet */
+      .lev.todo .t b {
+        color: var(--g2);
+      }
+
+      /* ---- notes ---- */
+      .notes {
+        margin: var(--s55) auto 0;
+        width: 835px;
+        max-width: 100%;
+        font-size: 12.5px;
+        color: var(--g2);
+        font-feature-settings: "tnum";
+      }
+      .notes h2 {
+        font-size: 14px;
+        font-weight: 600;
+        letter-spacing: -0.02em;
+        color: rgba(255, 255, 255, 0.8);
+        margin: var(--s34) 0 var(--s8);
+      }
+      .notes table {
+        border-collapse: collapse;
+        width: 100%;
+      }
+      .notes td,
+      .notes th {
+        text-align: left;
+        padding: 10px 21px 10px 0;
+        vertical-align: top;
+        font-weight: 400;
+      }
+      .notes th {
+        padding-top: 0;
+        padding-bottom: 7px;
+        font-size: 11.5px;
+        color: var(--g3);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.14);
+      }
+      .notes td {
+        border-top: 1px solid var(--hair);
+      }
+      .notes tr:first-of-type td {
+        border-top: 0;
+      }
+      .notes td:first-child {
+        color: var(--g1);
+        white-space: nowrap;
+        width: 132px;
+      }
+      .notes td:last-child,
+      .notes th:last-child {
+        padding-right: 0;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .sheet,
+        .screen,
+        .tabs,
+        .phone::before {
+          transition: none;
+        }
+        .seg {
+          animation: none;
+          stroke-dashoffset: 0;
+        }
+      }
+      /* the arc draws itself, segment by segment */
+      .seg {
+        stroke-dasharray: 14;
+        stroke-dashoffset: 14;
+        animation: draw 420ms var(--ease) var(--d) forwards;
+      }
+      @keyframes draw {
+        to {
+          stroke-dashoffset: 0;
+        }
+      }
+
+    </style>
+  </head>
+  <body>
+    <main class="doc">
+      <header>        <h1>Halo</h1>
+        <p class="lede">
+          One arc is the only light in the room, and its colour is the score.
+        </p>
+      </header>
+
+      <section class="phones">
+        <div>
+          <p class="cap">Today</p>
+          <div class="phone" id="p1"></div>
+        </div>
+        <div>
+          <p class="cap">LDL</p>
+          <div class="phone open" id="p2"></div>
+        </div>
+      </section>
+
+      <section class="notes">
+        <h2>The score</h2>
+        <table>
+          <tr>
+            <th>Layer</th>
+            <th>Today</th>
+            <th>Weight</th>
+            <th>Moves</th>
+          </tr>
+          <tr>
+            <td>Lifestyle</td>
+            <td>sleep 100, moves 40, kcal 90, protein 78, averaging 77</td>
+            <td>0.40</td>
+            <td>every entry</td>
+          </tr>
+          <tr>
+            <td>Blood</td>
+            <td>4 in range, 2 borderline, 1 off, scoring 71</td>
+            <td>0.45</td>
+            <td>each draw</td>
+          </tr>
+          <tr>
+            <td>Genes</td>
+            <td>4 variants, fixed, scoring 63</td>
+            <td>0.15</td>
+            <td>never</td>
+          </tr>
+          <tr>
+            <td>Score</td>
+            <td>0.40 × 77 + 0.45 × 71 + 0.15 × 63 = 72</td>
+            <td></td>
+            <td>daily</td>
+          </tr>
+        </table>
+
+        <h2>The draw, 1 Aug 2026</h2>
+        <table>
+          <tr>
+            <th>Marker</th>
+            <th>Result</th>
+            <th>Reference</th>
+            <th>State</th>
+          </tr>
+          <tr>
+            <td>Vitamin D</td>
+            <td>29 ng/mL</td>
+            <td>40 to 60</td>
+            <td>below</td>
+          </tr>
+          <tr>
+            <td>LDL</td>
+            <td>131 mg/dL</td>
+            <td>under 100</td>
+            <td>above, from 168 on 9 Dec 2025</td>
+          </tr>
+          <tr>
+            <td>ApoB</td>
+            <td>98 mg/dL</td>
+            <td>under 90</td>
+            <td>above</td>
+          </tr>
+          <tr>
+            <td>hs-CRP</td>
+            <td>0.6 mg/L</td>
+            <td>under 1.0</td>
+            <td>in range</td>
+          </tr>
+          <tr>
+            <td>HbA1c</td>
+            <td>5.3 %</td>
+            <td>under 5.7</td>
+            <td>in range</td>
+          </tr>
+          <tr>
+            <td>Ferritin</td>
+            <td>64 ng/mL</td>
+            <td>30 to 300</td>
+            <td>in range</td>
+          </tr>
+          <tr>
+            <td>TPO</td>
+            <td>18 IU/mL</td>
+            <td>under 35</td>
+            <td>in range</td>
+          </tr>
+        </table>
+
+        <h2>The projection</h2>
+        <table>
+          <tr>
+            <th>Point</th>
+            <th>LDL</th>
+            <th>Source</th>
+          </tr>
+          <tr>
+            <td>9 Dec 2025</td>
+            <td>168 mg/dL</td>
+            <td>drawn</td>
+          </tr>
+          <tr>
+            <td>1 Aug 2026</td>
+            <td>131 mg/dL</td>
+            <td>drawn</td>
+          </tr>
+          <tr>
+            <td>Eight weeks on</td>
+            <td>104 mg/dL</td>
+            <td>131 less 9 for the oats, 6 for the walking, 12 if the pork belly goes</td>
+          </tr>
+        </table>
+      </section>
+    </main>
+
+    <script>
+      /* ---------- icons ---------- */
+      const I = {
+        bell: '<svg viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10 21a2 2 0 0 0 4 0"/></svg>',
+        plus: '<svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>',
+        walk: '<svg viewBox="0 0 24 24"><circle cx="12" cy="6" r="2.6"/><path d="M6 21a6 6 0 0 1 12 0"/></svg>',
+        home: '<svg viewBox="0 0 24 24"><path d="M4 11.2 12 4.5l8 6.7V19a.8.8 0 0 1-.8.8H4.8A.8.8 0 0 1 4 19z"/></svg>',
+        body: '<svg viewBox="0 0 24 24"><circle cx="12" cy="6.5" r="2.6"/><path d="M5.5 20.2a6.5 6.5 0 0 1 13 0"/></svg>',
+        drop: '<svg viewBox="0 0 24 24"><path d="M12 4.4c3.8 4.8 5.7 7.3 5.7 9.7a5.7 5.7 0 0 1-11.4 0c0-2.4 1.9-4.9 5.7-9.7z"/></svg>',
+        bars: '<svg viewBox="0 0 62 14" aria-hidden="true"><rect x="0" y="8" width="3" height="3.5" rx="1" fill="#fff"/><rect x="4.6" y="5.8" width="3" height="5.7" rx="1" fill="#fff"/><rect x="9.2" y="3.6" width="3" height="7.9" rx="1" fill="#fff"/><rect x="13.8" y="1.6" width="3" height="9.9" rx="1" fill="#fff"/><path d="M21.4 5.6a7.6 7.6 0 0 1 10 0M23.6 8.1a4.4 4.4 0 0 1 5.6 0" stroke="#fff" stroke-width="1.5" fill="none" stroke-linecap="round"/><circle cx="26.4" cy="10.6" r="1.1" fill="#fff"/><rect x="38" y="2.2" width="21" height="9.6" rx="3.2" fill="none" stroke="rgba(255,255,255,.42)" stroke-width="1"/><rect x="39.4" y="3.7" width="14.5" height="6.6" rx="2" fill="#fff"/><path d="M60.4 5.6v2.8" stroke="rgba(255,255,255,.42)" stroke-width="1.6" stroke-linecap="round"/></svg>',
+      };
+
+      /* ---------- the three layers (from 25-onion, unchanged) ---------- */
+      const LIFE = {
+        w: 0.4,
+        rows: [
+          { n: "Sleep", s: "7h 30 of 7h 30", p: 100 },
+          { n: "Moves", s: "2 of 5 ticked", p: 40 },
+          { n: "Calories", s: "1 497 of 1 900 kcal", p: 90 },
+          { n: "Protein", s: "93 of 120 g", p: 78 },
+        ],
+      };
+      const BLOOD = {
+        w: 0.45,
+        rows: [
+          { n: "Vitamin D", s: "29 ng/mL · aim 40 to 60", x: 12, st: "rose" },
+          { n: "LDL", s: "131 mg/dL · aim under 100", x: 84, st: "amber" },
+          { n: "ApoB", s: "98 mg/dL · aim under 90", x: 80, st: "amber" },
+          { n: "hs-CRP", s: "0.6 mg/L", x: 30, st: "green" },
+          { n: "HbA1c", s: "5.3 %", x: 45, st: "green" },
+          { n: "Ferritin", s: "64 ng/mL", x: 50, st: "green" },
+          { n: "TPO", s: "18 IU/mL", x: 35, st: "green" },
+        ],
+      };
+      const GENES = {
+        w: 0.15,
+        rows: [
+          { n: "APOE ε3/ε4", s: "LDL responds more to saturated fat", p: 45 },
+          { n: "LPA rs10455872", s: "not carried", p: 100 },
+          { n: "MTHFR C677T", s: "heterozygous · folate form matters", p: 60 },
+          { n: "FTO rs9939609", s: "one copy · appetite", p: 45 },
+        ],
+      };
+      const pct = (rows) =>
+        Math.round(rows.reduce((a, r) => a + r.p, 0) / rows.length);
+      const life = pct(LIFE.rows); // 77
+      const blood = Math.round(
+        (BLOOD.rows.reduce(
+          (a, r) => a + { green: 1, amber: 0.5, rose: 0 }[r.st],
+          0,
+        ) /
+          BLOOD.rows.length) *
+          100,
+      ); // 71
+      const genes = pct(GENES.rows); // 63
+      const score = Math.round(
+        LIFE.w * life + BLOOD.w * blood + GENES.w * genes,
+      ); // 72
+      console.assert(score === 72, "score arithmetic drifted", score);
+
+      /* ---------- the hue, from the score ---------- */
+      // 0 is red, 20 amber, 100 phosphor green; 72 lands at 150
+      const HUE = Math.round(6 + (score / 100) * 200); // 150
+      const L = (l, a = 1) => `hsl(${HUE} 88% ${l}% / ${a})`; // the arc only
+      const W = (a) => `rgba(255,255,255,${a})`; // everything else is lit, not glowing
+      const LBL = W(0.34);
+
+      /* ---------- series ---------- */
+      const SLEEP = [6.8, 7.1, 6.4, 7.5, 8.0, 7.2, 7.5];
+      const LOG = [
+        {
+          src: "img/08-pork-belly.jpg",
+          n: "Pork belly, salad",
+          t: "7:30 PM",
+          v: "623",
+          u: "kcal",
+        },
+        {
+          src: "img/08-sardines-rye.jpg",
+          n: "Sardines, rye",
+          t: "1:08 PM",
+          v: "462",
+          u: "kcal",
+        },
+        { g: "walk", n: "Walk after lunch", t: "1:45 PM", v: "15", u: "min" },
+        {
+          src: "img/08-oats.jpg",
+          n: "Oats, berries",
+          t: "8:15 AM",
+          v: "412",
+          u: "kcal",
+        },
+      ];
+
+      /* ---------- helpers ---------- */
+      const CX = 174,
+        CY = 122,
+        R = 104,
+        A0 = -135,
+        SWEEP = 270;
+      const P = (r, a) => [
+        CX + r * Math.sin((a * Math.PI) / 180),
+        CY - r * Math.cos((a * Math.PI) / 180),
+      ];
+      const f = (n) => n.toFixed(2);
+      const sp = (n) => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+      const arc = (r, a0, a1) => {
+        const [x0, y0] = P(r, a0),
+          [x1, y1] = P(r, a1);
+        return `M${f(x0)},${f(y0)} A${r},${r} 0 ${Math.abs(a1 - a0) > 180 ? 1 : 0} 1 ${f(x1)},${f(y1)}`;
+      };
+      const ang = (v) => A0 + (SWEEP * v) / 100;
+      const pts = (vals, w, h, lo, hi, pad = 0) =>
+        vals.map((v, i) => [
+          pad + (i / (vals.length - 1)) * (w - pad * 2),
+          h - ((v - lo) / (hi - lo)) * h,
+        ]);
+      const line = (p) =>
+        p.map(([x, y], i) => `${i ? "L" : "M"}${f(x)},${f(y)}`).join(" ");
+      const under = (p, h) =>
+        `${line(p)} L${f(p[p.length - 1][0])},${h} L${f(p[0][0])},${h}Z`;
+
+      /* ---------- the dial ---------- */
+      const dial = (ix) => {
+        const end = ang(score);
+        const N = 48;
+        let seg = "";
+        for (let i = 0; i < N; i++) {
+          const a0 = A0 + (end - A0) * (i / N),
+            a1 = A0 + (end - A0) * ((i + 1) / N) + 0.7,
+            t = (i + 1) / N;
+          // one hue, ramped in light: dark at the start, bright at the cap
+          seg += `<path class="seg" style="--d:${i * 18}ms" d="${arc(R, a0, a1)}" stroke="hsl(${f(HUE + 14 - 14 * t)} ${f(34 + 28 * t)}% ${f(33 + 35 * t)}%)" stroke-width="19" fill="none" stroke-linecap="round"/>`;
+        }
+
+        return `
+        <div class="dial">
+          <svg class="ch" viewBox="0 0 348 210" aria-label="Health score, 72 out of 100">
+            <defs>
+              <filter id="core-${ix}" x="-40%" y="-40%" width="180%" height="180%">
+                <feGaussianBlur stdDeviation="3.5"/>
+              </filter>
+              <filter id="halo-${ix}" x="-90%" y="-90%" width="280%" height="280%">
+                <feGaussianBlur stdDeviation="26"/>
+              </filter>
+            </defs>
+            <path d="${arc(R, A0, A0 + SWEEP)}" stroke="rgba(255,255,255,.022)" stroke-width="19" fill="none" stroke-linecap="round"/>
+            <g filter="url(#halo-${ix})" opacity=".62">${seg}</g>
+            <g filter="url(#core-${ix})" opacity=".5">${seg}</g>
+            <g>${seg}</g>
+          </svg>
+          <div class="mid"><span class="n num">${score}</span></div>
+        </div>
+        <p class="pheno">
+          <b>2.8 years younger than 39</b
+          ><span>PhenoAge 36.2, drawn from the panel</span>
+        </p>`;
+      };
+
+      /* ---------- three factors ---------- */
+      const facts = () => `
+        <p class="facts gap-l">
+          Lifestyle <b>${life}</b> · Blood <b>${blood}</b> · Genes <b>${genes}</b>
+        </p>`;
+
+      /* ---------- the two that are off ---------- */
+      const off = () => `
+        <div class="gap-xl">
+          <p class="h1">Two markers are outside their range</p>
+          <p class="meta" style="margin-top:3px">
+            Five of seven are fine · drawn 1 Aug 2026
+          </p>
+          <div style="height:11px"></div>
+          <button class="row" data-do="open">
+            <span class="t"><b>Vitamin D</b><small>aim 40 to 60</small></span>
+            <span class="v num">29<em>ng/mL</em></span>
+          </button>
+          <button class="row" data-do="open">
+            <span class="t"><b>LDL cholesterol</b><small>aim under 100</small></span>
+            <span class="v num">131<em>mg/dL</em></span>
+          </button>
+        </div>`;
+
+      /* ---------- today ---------- */
+      const rail = (ix, key, val, target, unit, label) => {
+        const w = 332,
+          h = 26,
+          p = Math.min(val / target, 1);
+        return `<svg class="ch" viewBox="0 0 ${w} ${h}" aria-label="${label}, ${val} of ${target} ${unit}">
+          <defs><linearGradient id="tb-${ix}-${key}" x1="0" x2="1">
+            <stop offset="0" stop-color="${W(0.34)}"/><stop offset="1" stop-color="${W(0.72)}"/>
+          </linearGradient></defs>
+          <text x="0" y="9" fill="rgba(255,255,255,.62)">${label}</text>
+          <text x="${w}" y="9" text-anchor="end" fill="rgba(255,255,255,.62)">${sp(val)} of ${sp(target)} ${unit}</text>
+          <rect x="0" y="17" width="${w}" height="3" rx="1.5" fill="rgba(255,255,255,.10)" stroke="none"/>
+          <rect x="0" y="17" width="${f(w * p)}" height="3" rx="1.5" fill="url(#tb-${ix}-${key})" stroke="none"/>
+          <rect x="${w - 2}" y="14" width="2" height="9" rx="1" fill="rgba(255,255,255,.42)" stroke="none"/>
+        </svg>`;
+      };
+      const today = (ix) => `
+        <div class="pane foldbreak">
+          <p class="h2">Today · 4 entries</p>
+          ${rail(ix, "kcal", 1497, 1900, "kcal", "Calories")}
+          ${rail(ix, "pro", 93, 120, "g", "Protein")}
+          <div class="strip" style="margin-top:11px">
+            ${LOG.map(
+              (r) => `<div class="meal">
+              <span class="pic">${r.src ? `<img src="${r.src}" alt="">` : I[r.g]}</span>
+              <b>${r.v}<em>${r.u}</em></b>
+              <small>${r.n}</small>
+              <small>${r.t}</small>
+            </div>`,
+            ).join("")}
+          </div>
+        </div>`;
+
+      /* ---------- seven nights ---------- */
+      const sleepChart = (ix) => {
+        const w = 332,
+          h = 76,
+          lo = 5,
+          hi = 9;
+        const bw = 28,
+          gap = (w - SLEEP.length * bw) / (SLEEP.length - 1);
+        const ty = h - ((7.5 - lo) / (hi - lo)) * h;
+        const bars = SLEEP.map((v, i) => {
+          const x = i * (bw + gap),
+            bh = ((v - lo) / (hi - lo)) * h;
+          return `<rect x="${f(x)}" y="${f(h - bh)}" width="${bw}" height="${f(bh)}" rx="6" fill="url(#sb-${ix})" opacity="${i === SLEEP.length - 1 ? 1 : 0.55}" stroke="none"/>`;
+        }).join("");
+        const days = ["W", "T", "F", "S", "S", "M", "T"]
+          .map(
+            (d, i) =>
+              `<text x="${f(i * (bw + gap) + bw / 2)}" y="${h + 13}" text-anchor="middle">${d}</text>`,
+          )
+          .join("");
+        return `
+        <div class="pane">
+          <p class="h2">Sleep, seven nights · last night 7h 30, aim 7h 30</p>
+          <svg class="ch" viewBox="0 0 ${w} ${h + 16}" aria-label="Sleep over seven nights against the 7h 30 aim">
+            <defs><linearGradient id="sb-${ix}" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stop-color="${W(0.78)}"/><stop offset="1" stop-color="${W(0.16)}"/>
+            </linearGradient></defs>
+            ${bars}
+            <path d="M0,${f(ty)} L${w},${f(ty)}" stroke="rgba(255,255,255,.3)" stroke-width="1" stroke-dasharray="3 4"/>
+            ${days}
+          </svg>
+        </div>`;
+      };
+
+      /* ---------- seven markers ---------- */
+      const markers = (ix) => {
+        const w = 332,
+          rowH = 28,
+          x0 = 100,
+          x1 = 262;
+        const rows = BLOOD.rows
+          .map((r, i) => {
+            const y = i * rowH + 11,
+              ok = r.st === "green";
+            const dx = x0 + ((x1 - x0) * r.x) / 100;
+            return `
+            <text x="0" y="${y + 4}" font-size="11.5" fill="rgba(255,255,255,.78)">${r.n}</text>
+            <rect x="${x0}" y="${y - 1}" width="${x1 - x0}" height="2" rx="1" fill="${W(0.08)}" stroke="none"/>
+            <rect x="${f(x0 + (x1 - x0) * 0.2)}" y="${y - 1}" width="${f((x1 - x0) * 0.55)}" height="2" rx="1" fill="${W(0.2)}" stroke="none"/>
+            <circle cx="${f(dx)}" cy="${y}" r="${ok ? 2.6 : 3.6}" fill="${ok ? W(0.5) : "#fff"}" stroke="none"/>
+            <text x="${w}" y="${y + 4}" text-anchor="end" font-size="11" font-weight="${ok ? 400 : 600}" fill="${ok ? W(0.5) : "#fff"}">${r.s.split(" · ")[0]}</text>`;
+          })
+          .join("");
+        return `
+        <div class="pane">
+          <p class="h2">All seven markers</p>
+          <svg class="ch" viewBox="0 0 ${w} ${BLOOD.rows.length * rowH + 4}" aria-label="Every blood marker on its reference band">${rows}</svg>
+        </div>`;
+      };
+
+      /* ---------- the LDL sheet ---------- */
+      const ldlBig = () => {
+        const w = 332,
+          h = 78,
+          lo = 92,
+          hi = 176;
+        const x0 = 34;
+        const y = (v) => h - ((v - lo) / (hi - lo)) * h;
+        const xs = [x0 + 24, 172, 300];
+        const vs = [168, 131, 104];
+        // an axis, so the numbers sit on a scale instead of hovering
+        const axis = [160, 130, 100]
+          .map(
+            (v) => `<path d="M${x0},${f(y(v))} L${w},${f(y(v))}" stroke="${W(v === 100 ? 0.16 : 0.05)}" stroke-width="1"/>
+            <text x="${x0 - 8}" y="${f(y(v) + 3.5)}" text-anchor="end" fill="${W(0.34)}">${v}</text>`,
+          )
+          .join("");
+        const ticks = xs
+          .map(
+            (x, i) => `<path d="M${x},${f(y(vs[i]) + 7)} L${x},${h + 3}" stroke="${W(0.1)}" stroke-width="1"/>`,
+          )
+          .join("");
+        return `<svg class="ch" viewBox="0 0 ${w} ${h + 18}" aria-label="LDL 168 mg/dL in December 2025, 131 in August 2026, 104 projected">
+          <rect x="${x0}" y="${f(y(100))}" width="${w - x0}" height="${f(h - y(100))}" fill="${W(0.045)}" stroke="none"/>
+          ${axis}
+          ${ticks}
+          <path d="M${xs[0]},${f(y(168))} L${xs[1]},${f(y(131))}" fill="none" stroke="${W(0.8)}" stroke-width="2" stroke-linecap="round"/>
+          <path d="M${xs[1]},${f(y(131))} L${xs[2]},${f(y(104))}" fill="none" stroke="${W(0.26)}" stroke-width="2" stroke-linecap="round"/>
+          <circle cx="${xs[0]}" cy="${f(y(168))}" r="3" fill="${W(0.8)}" stroke="none"/>
+          <circle cx="${xs[1]}" cy="${f(y(131))}" r="3.6" fill="${W(0.95)}" stroke="none"/>
+          <circle cx="${xs[2]}" cy="${f(y(104))}" r="4" fill="var(--ground)" stroke="${W(0.34)}" stroke-width="1.6"/>
+          <text x="${xs[0]}" y="${f(y(168) - 9)}" text-anchor="middle" fill="${W(0.55)}">168</text>
+          <text x="${xs[1]}" y="${f(y(131) - 10)}" text-anchor="middle" font-size="12" fill="${W(0.95)}">131</text>
+          <text x="${xs[2]}" y="${f(y(104) - 10)}" text-anchor="middle" fill="${W(0.55)}">104</text>
+          <text x="${x0 - 8}" y="${h + 15}" text-anchor="end" fill="${W(0.26)}">mg/dL</text>
+          <text x="${xs[0]}" y="${h + 15}" text-anchor="middle">Dec 2025</text>
+          <text x="${xs[1]}" y="${h + 15}" text-anchor="middle" fill="${W(0.55)}">Aug 2026</text>
+          <text x="${xs[2]}" y="${h + 15}" text-anchor="middle">+8 weeks</text>
+        </svg>`;
+      };
+      const DOING = [
+        {
+          n: "Oats, 3 g beta-glucan",
+          s: "every morning, 34 of 56 days",
+          d: "−9",
+        },
+        { n: "Walk after meals", s: "15 min, 2 of 5 today", d: "−6" },
+      ];
+      const TODO = [
+        {
+          n: "Drop the pork belly, twice a week",
+          s: "sardines instead, not started",
+          d: "−12",
+        },
+      ];
+      const lever = (l, cls = "") => `<div class="lev ${cls}">
+        <span class="t"><b>${l.n}</b><small>${l.s}</small></span>
+        <span class="d">${l.d}<em>mg/dL</em></span>
+      </div>`;
+      const sheet = (ix) => `
+        <div class="sheet glass">
+          <div class="grab"></div>
+          <p class="ttl">LDL cholesterol</p>
+          <div class="now"><b class="num">131</b><span>mg/dL</span></div>
+          <p class="aim">Down 37 since 9 Dec 2025 · aim under 100</p>
+          <div style="margin-top:15px">${ldlBig()}</div>
+          <div class="gap-s">
+            <p class="h2">Already doing <span>· each takes LDL down</span></p>
+            ${DOING.map((l) => lever(l)).join("")}
+          </div>
+          <div class="gap-s">
+            <p class="h2">
+              Not started <span>· APOE ε3/ε4, so fat counts double</span>
+            </p>
+            ${TODO.map((l) => lever(l, "todo")).join("")}
+          </div>
+          <p class="say">
+            Eight more weeks of the first two and LDL is near 104, from 131.
+          </p>
+        </div>`;
+
+      /* ---------- the screen ---------- */
+      const home = (ix) => `
+        <div class="status"><time>9:41</time><i></i>${I.bars}</div>
+        <div class="screen">
+          <div class="hdr">
+            <span class="meta">Tue 9 Sep</span>
+            <span class="chip">${I.bell}</span>
+          </div>
+          ${dial(ix)}
+          ${off()}
+          ${facts()}
+          ${today(ix)}
+          ${sleepChart(ix)}
+          ${markers(ix)}
+        </div>
+        <div class="fade"></div>
+        <div class="tabs">
+          <div class="bar glass">
+            <button class="on">${I.home}Today</button>
+            <button>${I.plus}Add</button>
+            <button>${I.body}Body</button>
+            <button data-do="open">${I.drop}Blood</button>
+          </div>
+        </div>
+        ${sheet(ix)}`;
+
+      document.querySelectorAll(".phone").forEach((p, i) => {
+        p.style.setProperty("--h", HUE);
+        p.innerHTML = home(i + 1);
+        p.addEventListener("click", (e) => {
+          const b = e.target.closest("[data-do]");
+          if (b) p.classList.toggle("open", b.dataset.do === "open");
+        });
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,1192 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Aurora · iOS variation 31 · OpenVitals</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        /* written from the score in JS: the light's hue, its altitude, the
+           zenith it fades to, and the saturation the stops are scaled from */
+        --light: 6;
+        --zen: 255;
+        --sat: 47%;
+        --sun-y: 29.8%;
+        --page: #eceef2;
+        --ink: #101720;
+        --ink-2: #434e5b;
+        --ink-3: #78838f;
+        --line: #e2e6ec;
+        /* the cool is the zenith drawn deep; the warm is the light drawn deep */
+        --accent: hsl(var(--zen) 42% 24%);
+        --numeral: hsl(var(--zen) 38% 17%);
+        --warm: hsl(var(--light) 64% 41%);
+        /* concentric radii: bezel 55, minus the 8 bezel and the 12 inset */
+        --r-phone: 55px;
+        --r: 35px;
+        --inset: 12px;
+        --blur: 30px;
+        --hair: rgba(16, 23, 32, 0.14);
+        /* two text sizes: body and secondary */
+        --t-body: 15px;
+        --t-fine: 13px;
+        --u1: 4px;
+        --u2: 8px;
+        --u3: 12px;
+        --u4: 16px;
+        --u5: 24px;
+        --u6: 34px;
+        --u7: 55px;
+        --gutter: 40px;
+        --sheet-top: 152px;
+        --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+        --ui: Inter, -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+        --doc: "Source Serif 4", Iowan Old Style, Georgia, serif;
+        --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--page);
+        color: var(--ink);
+        font: var(--t-body) / 1.45 var(--ui);
+        font-variant-numeric: tabular-nums;
+        font-feature-settings: "tnum", "cv11";
+        -webkit-font-smoothing: antialiased;
+      }
+      button {
+        font: inherit;
+        color: inherit;
+        background: none;
+        border: 0;
+        padding: 0;
+        cursor: pointer;
+        text-align: left;
+        -webkit-tap-highlight-color: transparent;
+      }
+      h1,
+      h2,
+      h3,
+      p {
+        margin: 0;
+      }
+
+      /* ---------- the page is documentation: it is set in a serif ---------- */
+      .doc {
+        max-width: 1120px;
+        margin: 0 auto;
+        padding: var(--u7) var(--gutter);
+      }
+      .doc > header {
+        margin-bottom: var(--u6);
+        max-width: 58ch;
+      }
+      .eyebrow {
+        color: var(--ink-3);
+        font-size: var(--t-fine);
+        font-family: var(--ui);
+        letter-spacing: 0.02em;
+        margin-bottom: var(--u2);
+      }
+      .doc h1 {
+        font-family: var(--doc);
+        font-size: 40px;
+        font-weight: 600;
+        letter-spacing: -0.015em;
+      }
+      .lede {
+        font-family: var(--doc);
+        font-size: 19px;
+        line-height: 1.5;
+        color: var(--ink-2);
+        margin-top: var(--u3);
+      }
+      .phones {
+        display: flex;
+        gap: clamp(20px, 4vw, 55px);
+        flex-wrap: wrap;
+      }
+      .cap {
+        display: block;
+        color: var(--ink-3);
+        font-size: var(--t-fine);
+        margin-bottom: var(--u3);
+        width: 390px;
+        max-width: 100%;
+      }
+
+      /* ---------- the sky ----------
+         one moment of light. the score sets the light's hue and how high it
+         sits; the sky fades from that light to a zenith a fixed sweep away,
+         so no stop can land on the far side of the wheel. every layer is
+         inset:0, so no layer can leave a box edge in the air. */
+      .phone {
+        width: 390px;
+        height: 844px;
+        max-width: 100%;
+        border-radius: var(--r-phone);
+        border: 8px solid #1c1f24;
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        isolation: isolate;
+        box-shadow: 0 34px 55px -34px rgba(16, 23, 32, 0.45);
+      }
+      .sky {
+        position: absolute;
+        inset: 0;
+        z-index: 0;
+        pointer-events: none;
+      }
+      /* the sun, built as an optical object rather than a soft blob:
+         scatter (the widest, weakest wash), then the aureole along the
+         horizon under it, then the corona falling off fast, then a disc with
+         an actual edge. its altitude is the score, and the ticks on the right
+         are the scale it is measured against. */
+      .scatter {
+        background:
+          radial-gradient(
+            circle 420px at 72% var(--sun-y),
+            hsl(var(--light) 94% 78% / 0.3) 0%,
+            hsl(var(--light) 92% 76% / 0.14) 34%,
+            hsl(var(--light) 90% 74% / 0.05) 62%,
+            transparent 82%
+          ),
+          radial-gradient(
+            128% 22% at 72% 53%,
+            hsl(var(--light) 96% 82% / 0.34) 0%,
+            hsl(var(--light) 94% 80% / 0.1) 44%,
+            transparent 78%
+          );
+      }
+      .corona {
+        background: radial-gradient(
+          circle 128px at 72% var(--sun-y),
+          hsl(var(--light) 100% 94% / 0.72) 0%,
+          hsl(var(--light) 100% 92% / 0.36) 24%,
+          hsl(var(--light) 98% 88% / 0.14) 46%,
+          hsl(var(--light) 96% 86% / 0.05) 68%,
+          transparent 88%
+        );
+      }
+      .disc {
+        background: radial-gradient(
+          circle 27px at 72% var(--sun-y),
+          hsl(var(--light) 100% 99% / 0.98) 0%,
+          hsl(var(--light) 100% 98% / 0.96) 58%,
+          hsl(var(--light) 100% 96% / 0.72) 80%,
+          hsl(var(--light) 100% 94% / 0.24) 94%,
+          transparent 100%
+        );
+      }
+      /* the horizon: the air brightening into one line, drawn where the
+         tonal curve peaks, so the sun's height has something to sit above */
+      .horizon {
+        background: radial-gradient(
+          132% 17% at 50% 53%,
+          rgba(255, 255, 255, 0.46) 0%,
+          rgba(255, 255, 255, 0.16) 46%,
+          rgba(255, 255, 255, 0) 78%
+        );
+      }
+      .rule {
+        z-index: 1;
+      }
+      .rule svg {
+        display: block;
+        width: 100%;
+        height: 100%;
+      }
+      /* weather: two fields on soft-light, moving the light, not the hue */
+      .sky b {
+        position: absolute;
+        display: block;
+        border-radius: 50%;
+        filter: blur(64px);
+        mix-blend-mode: soft-light;
+        opacity: 0.6;
+      }
+      .sky .b1 {
+        width: 520px;
+        height: 360px;
+        left: -28%;
+        top: 8%;
+        background: radial-gradient(
+          circle at 50% 50%,
+          hsl(var(--zen) 86% 66%) 0%,
+          transparent 70%
+        );
+        animation: d1 41s var(--ease) infinite;
+      }
+      .sky .b2 {
+        width: 480px;
+        height: 340px;
+        left: -14%;
+        bottom: -12%;
+        background: radial-gradient(
+          circle at 50% 50%,
+          hsl(var(--light) 74% 54%) 0%,
+          transparent 70%
+        );
+        animation: d2 61s var(--ease) infinite;
+      }
+      @keyframes d1 {
+        50% {
+          transform: translate(46px, 38px) scale(1.16);
+        }
+      }
+      @keyframes d2 {
+        50% {
+          transform: translate(-32px, 20px) scale(1.2);
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .sky b {
+          animation: none;
+        }
+      }
+      /* grain: coarse enough to survive at 1x */
+      .grain {
+        position: absolute;
+        inset: 0;
+        z-index: 0;
+        pointer-events: none;
+        opacity: 0.48;
+        mix-blend-mode: overlay;
+        background-size: 260px 260px;
+        background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='260' height='260'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.4' numOctaves='2' stitchTiles='stitch'/><feColorMatrix type='saturate' values='0'/><feComponentTransfer><feFuncA type='linear' slope='0.9' intercept='-0.05'/></feComponentTransfer></filter><rect width='260' height='260' filter='url(%23n)'/></svg>");
+      }
+
+      /* ---------- status bar ---------- */
+      .status {
+        height: 54px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 27px 0;
+        position: relative;
+        z-index: 6;
+        color: var(--ink);
+      }
+      .status .clock {
+        font-size: var(--t-body);
+        font-weight: 600;
+        letter-spacing: -0.01em;
+      }
+      .status .glyphs {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .status .glyphs svg {
+        display: block;
+        fill: currentColor;
+      }
+      .island {
+        position: absolute;
+        left: 50%;
+        top: 11px;
+        width: 110px;
+        height: 32px;
+        border-radius: 16px;
+        background: #0b0d10;
+        transform: translateX(-50%);
+      }
+
+      /* ---------- screen 01 ----------
+         one rhythm: 8 inside a line, 16 between lines, 32 between blocks */
+      .screen {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+        padding: 0 20px 76px;
+        position: relative;
+        z-index: 1;
+        transform-origin: 50% 0;
+        transition:
+          transform 420ms var(--ease),
+          opacity 320ms var(--ease);
+      }
+      .lab {
+        font-size: var(--t-fine);
+        font-weight: 500;
+        color: var(--ink-2);
+      }
+      /* lit type: every dark thing on the sky is cool on the far side of the
+         light and warm on the sun's side, and casts away from the sun */
+      .lit {
+        background-image: linear-gradient(
+          104deg,
+          hsl(var(--zen) 38% 17%) 0%,
+          hsl(var(--zen) 33% 19%) 44%,
+          hsl(var(--light) 40% 24%) 88%,
+          hsl(var(--light) 44% 25%) 100%
+        );
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+      }
+      /* inline-block, so the light's gradient is measured across the glyphs
+         themselves and not across the whole column */
+      .hero .num {
+        display: inline-block;
+        font-size: 78px;
+        font-weight: 700;
+        letter-spacing: -0.06em;
+        line-height: 0.9;
+        margin: var(--u2) 0 0 -4px;
+      }
+      .verdict {
+        margin-top: var(--u3);
+        font-size: var(--t-body);
+        color: var(--ink-2);
+      }
+      .say {
+        display: block;
+        width: 100%;
+        margin-top: 30px;
+      }
+      .say .big {
+        display: block;
+        font-size: 28px;
+        line-height: 1.22;
+        font-weight: 600;
+        letter-spacing: -0.032em;
+      }
+      .say .fine {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin-top: var(--u4);
+        font-size: var(--t-fine);
+        font-weight: 600;
+        color: var(--numeral);
+      }
+      .say .fine svg {
+        width: 13px;
+        height: 13px;
+        fill: none;
+        stroke: currentColor;
+        stroke-width: 2;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+
+      /* no tab bar: four outline glyphs with no material is the stock iOS
+         placeholder, and the sheet is the navigation */
+      .home-bar {
+        position: absolute;
+        left: 50%;
+        bottom: 9px;
+        width: 140px;
+        height: 5px;
+        border-radius: 3px;
+        background: rgba(16, 23, 32, 0.72);
+        transform: translateX(-50%);
+        z-index: 6;
+      }
+
+      /* ---------- screen 02: the sheet as a material ---------- */
+      .veil {
+        position: absolute;
+        inset: 0;
+        z-index: 4;
+        background: rgba(255, 255, 255, 0.06);
+        -webkit-backdrop-filter: blur(var(--blur)) saturate(126%)
+          brightness(1.04);
+        backdrop-filter: blur(var(--blur)) saturate(126%) brightness(1.04);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 320ms var(--ease);
+      }
+      .phone.open .screen {
+        transform: scale(0.93) translateY(14px);
+        opacity: 0.3;
+      }
+      .sheet {
+        position: absolute;
+        z-index: 5;
+        left: var(--inset);
+        right: var(--inset);
+        bottom: var(--inset);
+        top: var(--sheet-top);
+        overflow: hidden;
+        border-radius: var(--r);
+        padding: 20px 20px 38px;
+        transform: translateY(108%);
+        transition: transform 420ms var(--ease);
+        /* no fill of its own: the sheet is the sky behind it, blurred, under
+           one flat white alpha. the light inside it is the light above it */
+        background: rgba(255, 255, 255, 0.46);
+        /* no saturation push either: a boost would repaint the sky it is
+           supposed to be showing */
+        -webkit-backdrop-filter: blur(var(--blur)) saturate(106%);
+        backdrop-filter: blur(var(--blur)) saturate(106%);
+        box-shadow:
+          0 1px 0 rgba(255, 255, 255, 0.9) inset,
+          0 0 0 1px rgba(16, 23, 32, 0.1),
+          0 2px 6px rgba(16, 23, 32, 0.12),
+          0 34px 60px -22px rgba(16, 23, 32, 0.62);
+      }
+      /* the specular edge: bright at the top-left, gone by the right */
+      .sheet::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        border-radius: inherit;
+        pointer-events: none;
+        padding: 1px;
+        background: linear-gradient(
+          122deg,
+          rgba(255, 255, 255, 1) 0%,
+          rgba(255, 255, 255, 0.5) 18%,
+          rgba(255, 255, 255, 0) 46%,
+          rgba(255, 255, 255, 0.32) 100%
+        );
+        -webkit-mask:
+          linear-gradient(#000 0 0) content-box,
+          linear-gradient(#000 0 0);
+        -webkit-mask-composite: xor;
+        mask-composite: exclude;
+      }
+      .phone.open .veil {
+        opacity: 1;
+        pointer-events: auto;
+      }
+      .phone.open .sheet {
+        transform: none;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .sheet,
+        .veil,
+        .screen {
+          transition: none;
+        }
+      }
+      .grip {
+        width: 40px;
+        height: 5px;
+        border-radius: 3px;
+        background: rgba(16, 23, 32, 0.22);
+        margin: 0 auto 26px;
+      }
+      .sheet h2 {
+        font-size: 19px;
+        font-weight: 600;
+        letter-spacing: -0.02em;
+      }
+      .lead {
+        display: flex;
+        align-items: center;
+        gap: var(--u2);
+        margin-top: 6px;
+        font-size: 40px;
+        font-weight: 700;
+        letter-spacing: -0.045em;
+        line-height: 1.05;
+      }
+      .lead s {
+        text-decoration: none;
+        color: var(--ink-2);
+      }
+      /* the arrow is cut to the numerals' weight and sits on their optical
+         centre, which is above the box centre because digits have no descender */
+      .lead svg {
+        width: 30px;
+        height: 22px;
+        flex: none;
+        align-self: center;
+        transform: translateY(-4px);
+        fill: none;
+        stroke: var(--ink-2);
+        stroke-width: 3.4;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+      /* one unit rule: 13 px, regular, ink-2, 4 px after its value */
+      .u {
+        font-size: var(--t-fine);
+        font-weight: 400;
+        font-style: normal;
+        letter-spacing: 0;
+        color: var(--ink-2);
+        margin-left: var(--u1);
+        align-self: flex-end;
+        padding-bottom: 5px;
+      }
+      .sheet .sub {
+        margin-top: var(--u2);
+        font-size: var(--t-fine);
+        color: var(--ink-2);
+      }
+      /* the out-of-range line is ink with the light's warmth in it, not a red
+         badge: on a peach sheet a red reads as a link in the wrong colour */
+      .sheet .sub b {
+        color: hsl(var(--light) 54% 26%);
+        font-weight: 600;
+      }
+      .stack {
+        margin-top: 14px;
+      }
+      .drop {
+        display: flex;
+        align-items: baseline;
+        gap: var(--u2);
+        font-size: 26px;
+        font-weight: 700;
+        letter-spacing: -0.03em;
+        color: var(--accent);
+      }
+      .drop .u {
+        align-self: auto;
+        padding-bottom: 0;
+      }
+      .drop small {
+        font-size: var(--t-fine);
+        font-weight: 400;
+        letter-spacing: 0;
+        color: var(--ink-2);
+      }
+      /* two columns and two ends: the name and its dose on the left, the
+         value and its bar on the right. the bar is the lever's share of the
+         27, so its length is a quantity and not a decoration */
+      .lev {
+        display: grid;
+        grid-template-columns: 1fr 132px;
+        column-gap: var(--u4);
+        align-items: start;
+        margin-top: 14px;
+      }
+      .lev b {
+        display: block;
+        font-weight: 600;
+        font-size: var(--t-body);
+      }
+      .lev .dose {
+        display: block;
+        font-size: var(--t-fine);
+        color: var(--ink-2);
+        margin-top: 1px;
+      }
+      .lev .r {
+        display: grid;
+        justify-items: end;
+        row-gap: var(--u2);
+      }
+      .lev .d {
+        display: grid;
+        grid-template-columns: auto 44px;
+        font-weight: 700;
+        font-size: var(--t-body);
+        color: var(--accent);
+        white-space: nowrap;
+        text-align: right;
+      }
+      .lev .d .u {
+        text-align: left;
+        align-self: auto;
+        padding-bottom: 0;
+      }
+      .lev .bar {
+        display: block;
+        width: 132px;
+        height: 7px;
+        border-radius: 4px;
+        background: hsl(var(--zen) 30% 38% / 0.16);
+        box-shadow: inset 0 0 0 1px hsl(var(--zen) 30% 38% / 0.14);
+      }
+      .lev .bar i {
+        display: block;
+        height: 100%;
+        border-radius: 4px;
+        background: var(--accent);
+      }
+
+      /* ---------- notes ---------- */
+      /* the foot notes are annotation, not product copy: one mono register,
+         one size, so nothing here can be mistaken for the phone's voice */
+      .notes {
+        margin: var(--u7) 0 0;
+        max-width: 92ch;
+        color: var(--ink-2);
+        font-family: var(--mono);
+        font-size: var(--t-fine);
+        line-height: 1.62;
+        border-top: 1px solid var(--line);
+        padding-top: var(--u5);
+      }
+      .notes h2 {
+        font-family: var(--mono);
+        font-size: var(--t-fine);
+        font-weight: 600;
+        color: var(--ink);
+        text-transform: uppercase;
+        letter-spacing: 0.09em;
+        margin: var(--u6) 0 var(--u3);
+      }
+      .notes p {
+        font-family: var(--mono);
+        font-size: var(--t-fine);
+        line-height: 1.62;
+        margin: var(--u2) 0 var(--u5);
+      }
+      .notes table {
+        border-collapse: collapse;
+        table-layout: fixed;
+        width: 100%;
+        font-family: var(--mono);
+        font-size: var(--t-fine);
+        margin: var(--u2) 0 var(--u5);
+      }
+      .notes td,
+      .notes th {
+        text-align: left;
+        padding: 9px 16px 9px 0;
+        border-bottom: 1px solid var(--line);
+        vertical-align: top;
+      }
+      .notes td:last-child,
+      .notes th:last-child {
+        padding-right: 0;
+      }
+      .notes th {
+        font-weight: 600;
+        color: var(--ink);
+        border-bottom-color: var(--ink-3);
+      }
+      .notes code {
+        font-family: inherit;
+        background: rgba(16, 23, 32, 0.055);
+        border-radius: 3px;
+        padding: 0 3px;
+      }
+      /* five scores, five skies, at the phone's own proportion */
+      .skies {
+        display: flex;
+        gap: var(--u4);
+        flex-wrap: wrap;
+        margin: var(--u3) 0 var(--u5);
+      }
+      .skies figure {
+        margin: 0;
+        width: 104px;
+      }
+      .skies span {
+        display: block;
+        height: 208px;
+        border-radius: 12px;
+        position: relative;
+        overflow: hidden;
+      }
+      .skies i {
+        position: absolute;
+        inset: 0;
+      }
+      .skies figcaption {
+        font-size: var(--t-fine);
+        color: var(--ink-3);
+        margin-top: var(--u2);
+      }
+      .skies b {
+        color: var(--ink);
+        font-weight: 600;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="doc">
+      <header>
+        <h1>Aurora</h1>
+        <p class="lede">
+          The sky is the score: it sets the hue of the light and how high the
+          light sits, so the home screen is that sky, the number and one
+          sentence, and every other figure lives in the sheet that covers it.
+        </p>
+      </header>
+
+      <section class="phones">
+        <div>
+          <p class="cap">Today</p>
+          <div class="phone" id="p1"></div>
+        </div>
+        <div>
+          <p class="cap">LDL</p>
+          <div class="phone open" id="p2"></div>
+        </div>
+      </section>
+
+      <section class="notes">
+        <h2>The score</h2>
+        <table>
+          <colgroup>
+            <col style="width: 16%" />
+            <col style="width: 62%" />
+            <col style="width: 22%" />
+          </colgroup>
+          <tr>
+            <th>Layer</th>
+            <th>Today</th>
+            <th>Weight</th>
+          </tr>
+          <tr>
+            <td>Lifestyle</td>
+            <td>sleep 100, moves 40, kcal 90, protein 78 → 77</td>
+            <td>0.40</td>
+          </tr>
+          <tr>
+            <td>Blood</td>
+            <td>4 in range, 2 borderline, 1 off → 71</td>
+            <td>0.45</td>
+          </tr>
+          <tr>
+            <td>Genes</td>
+            <td>4 variants, fixed → 63</td>
+            <td>0.15</td>
+          </tr>
+          <tr>
+            <td>Score</td>
+            <td colspan="2">0.40 × 77 + 0.45 × 71 + 0.15 × 63 = 72</td>
+          </tr>
+          <tr>
+            <td>Projection</td>
+            <td colspan="2">
+              saturated fat 12 + oats 9 + walks 6 = 27, so 131 − 27 = 104
+            </td>
+          </tr>
+        </table>
+
+        <h2>The light, from the score</h2>
+        <div class="skies" id="n-skies"></div>
+        <p id="n-hue"></p>
+
+        <h2>The draws</h2>
+        <table>
+          <colgroup>
+            <col style="width: 22%" />
+            <col style="width: 20%" />
+            <col style="width: 58%" />
+          </colgroup>
+          <tr>
+            <th>Date</th>
+            <th>LDL</th>
+            <th>Source</th>
+          </tr>
+          <tr>
+            <td>9 Dec 2025</td>
+            <td>168 mg/dL</td>
+            <td>venous panel</td>
+          </tr>
+          <tr>
+            <td>1 Aug 2026</td>
+            <td>131 mg/dL</td>
+            <td>venous panel</td>
+          </tr>
+          <tr>
+            <td>4 Nov 2026</td>
+            <td>104 mg/dL</td>
+            <td>projected from the three levers, not measured</td>
+          </tr>
+        </table>
+
+        <h2>Motion</h2>
+        <table>
+          <colgroup>
+            <col style="width: 20%" />
+            <col style="width: 50%" />
+            <col style="width: 30%" />
+          </colgroup>
+          <tr>
+            <th>What</th>
+            <th>Moves</th>
+            <th>Duration</th>
+          </tr>
+          <tr>
+            <td>Sky</td>
+            <td>two fields drift and scale on soft-light</td>
+            <td>41 / 61 s, none under reduced motion</td>
+          </tr>
+          <tr>
+            <td>Sheet</td>
+            <td>rises from the bottom edge, the screen falls back behind it</td>
+            <td>420 ms, none under reduced motion</td>
+          </tr>
+        </table>
+      </section>
+    </main>
+
+    <script>
+      /* ------------------------------------------------------------------ *
+       * chrome and icons. one family: 24 px box, 2 px stroke, no fills, the
+       * same amount of detail in each.
+       * ------------------------------------------------------------------ */
+      const G = {
+        signal:
+          '<svg viewBox="0 0 18 12" width="17" height="11"><rect x="0" y="8.4" width="3" height="3.6" rx="1"/><rect x="5" y="6" width="3" height="6" rx="1"/><rect x="10" y="3.2" width="3" height="8.8" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1"/></svg>',
+        wifi: '<svg viewBox="0 0 16 12" width="16" height="12"><path d="M8 11.4 5.7 8.6a3.6 3.6 0 0 1 4.6 0L8 11.4Z"/><path d="M3.5 6.1a7 7 0 0 1 9 0l-1.4 1.7a4.8 4.8 0 0 0-6.2 0L3.5 6.1Z"/><path d="M1 3.3a10.6 10.6 0 0 1 14 0l-1.4 1.7a8.4 8.4 0 0 0-11.2 0L1 3.3Z"/></svg>',
+        battery:
+          '<svg viewBox="0 0 26 12" width="26" height="12"><rect x=".6" y=".6" width="21" height="10.8" rx="3.4" fill="none" stroke="currentColor" stroke-opacity=".38" stroke-width="1.2"/><rect x="2.2" y="2.2" width="15" height="7.6" rx="2.2"/><path d="M23.4 4.3v3.4a2.2 2.2 0 0 0 0-3.4Z" opacity=".4"/></svg>',
+      };
+      const I = {
+        chev: '<svg viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></svg>',
+        arrow:
+          '<svg viewBox="0 0 30 22"><path d="M4 11h21m-7-7 7 7-7 7"/></svg>',
+      };
+
+      /* ------------------------------------------------------------------ *
+       * the three layers, from 25-onion, unchanged
+       * ------------------------------------------------------------------ */
+      const LIFE = {
+        w: 0.4,
+        rows: [
+          { n: "Sleep", s: "7h 30 of 7h 30", p: 100 },
+          { n: "Moves", s: "2 of 5 ticked", p: 40 },
+          { n: "Calories", s: "1 497 of 1 900 kcal", p: 90 },
+          { n: "Protein", s: "93 of 120 g", p: 78 },
+        ],
+      };
+      const BLOOD = {
+        w: 0.45,
+        rows: [
+          { n: "Vitamin D", v: "29", u: "ng/mL", x: 12, st: "off" },
+          { n: "LDL", v: "131", u: "mg/dL", x: 84, st: "edge" },
+          { n: "ApoB", v: "98", u: "mg/dL", x: 80, st: "edge" },
+          { n: "hs-CRP", v: "0.6", u: "mg/L", x: 30, st: "in" },
+          { n: "HbA1c", v: "5.3", u: "%", x: 45, st: "in" },
+          { n: "Ferritin", v: "64", u: "ng/mL", x: 50, st: "in" },
+          { n: "TPO", v: "18", u: "IU/mL", x: 35, st: "in" },
+        ],
+      };
+      const GENES = {
+        w: 0.15,
+        rows: [
+          { n: "APOE ε3/ε4", p: 45 },
+          { n: "LPA rs10455872", p: 100 },
+          { n: "MTHFR C677T", p: 60 },
+          { n: "FTO rs9939609", p: 45 },
+        ],
+      };
+      const LOG = [
+        {
+          src: "img/08-pork-belly.jpg",
+          n: "Pork belly, salad",
+          s: "7:30 PM · past the day's fat",
+          v: "623",
+          u: "kcal",
+        },
+        {
+          g: "walk",
+          n: "Walk after lunch",
+          s: "1:45 PM · ticked",
+          v: "15",
+          u: "min",
+        },
+        {
+          src: "img/08-sardines-rye.jpg",
+          n: "Sardines on rye, kimchi",
+          s: "1:08 PM · 38 g protein",
+          v: "462",
+          u: "kcal",
+        },
+        {
+          g: "pill",
+          n: "Selenium 200 µg",
+          s: "8:20 AM · ticked",
+          v: "✓",
+          u: "",
+        },
+        {
+          src: "img/08-oats.jpg",
+          n: "Oats with berries",
+          s: "8:15 AM · 3 g beta-glucan",
+          v: "412",
+          u: "kcal",
+        },
+      ];
+
+      const pct = (rows) =>
+        Math.round(rows.reduce((a, r) => a + r.p, 0) / rows.length);
+      const life = pct(LIFE.rows); // 77
+      const blood = Math.round(
+        (BLOOD.rows.reduce(
+          (a, r) => a + { in: 1, edge: 0.5, off: 0 }[r.st],
+          0,
+        ) /
+          BLOOD.rows.length) *
+          100,
+      ); // 71
+      const genes = pct(GENES.rows); // 63
+      const score = Math.round(
+        LIFE.w * life + BLOOD.w * blood + GENES.w * genes,
+      ); // 72
+      console.assert(score === 72, "score arithmetic drifted", score);
+
+      /* ------------------------------------------------------------------ *
+       * the light, from the score. one moment of light, four numbers:
+       *   hue      cold blue before dawn -> violet -> rose -> gold
+       *   sweep    how far the sky travels from that light to its zenith
+       *   altitude how high the light sits
+       *   sat      how much colour is in the air
+       * ------------------------------------------------------------------ */
+      const w = score / 100;
+      const LIGHT = Math.round(252 + w * 158) % 360; // 72 -> 6, an apricot dawn
+      const SWEEP = Math.round(64 + w * 66); // 72 -> 111
+      const ZEN = (LIGHT - SWEEP + 720) % 360; // 72 -> 255, periwinkle
+      const SAT = Math.round(28 + w * 26); // 72 -> 47
+      const ALT = +(60 - w * 42).toFixed(1); // 72 -> 29.8 % from the top
+
+      /* the eight stops: position, how far along the sweep, saturation, tone.
+         the tone peaks at 53 %, which is where the horizon is drawn */
+      const HZ = 53;
+      const STOPS = [
+        [0, 0, 0.6, 74],
+        [14, 0.14, 0.58, 79],
+        [30, 0.32, 0.62, 84],
+        [43, 0.54, 0.7, 88],
+        [HZ, 0.74, 0.84, 91],
+        [66, 0.9, 0.86, 86],
+        [84, 1, 0.72, 77],
+        [100, 1.06, 0.56, 68],
+      ];
+      const skyFor = (s) => {
+        const li = Math.round(252 + (s / 100) * 158) % 360,
+          sw = Math.round(64 + (s / 100) * 66),
+          zn = (li - sw + 720) % 360,
+          sa = Math.round(28 + (s / 100) * 26);
+        return (
+          "linear-gradient(180deg," +
+          STOPS.map(
+            ([at, f, m, l]) =>
+              `hsl(${Math.round(zn + f * sw)} ${Math.round(sa * m)}% ${l}%) ${at}%`,
+          ).join(",") +
+          ")"
+        );
+      };
+      /* the same four optical layers as the phone, at the swatch's scale */
+      const sunFor = (s) => {
+        const li = Math.round(252 + (s / 100) * 158) % 360,
+          alt = 60 - (s / 100) * 42;
+        return (
+          `radial-gradient(circle 7px at 72% ${alt}%, hsl(${li} 100% 99% / .98) 0%, hsl(${li} 100% 98% / .96) 58%, hsl(${li} 100% 96% / .7) 82%, transparent 100%),` +
+          `radial-gradient(circle 32px at 72% ${alt}%, hsl(${li} 100% 94% / .7) 0%, hsl(${li} 100% 92% / .34) 24%, hsl(${li} 98% 88% / .12) 48%, transparent 88%),` +
+          `radial-gradient(circle 108px at 72% ${alt}%, hsl(${li} 94% 78% / .3) 0%, hsl(${li} 92% 76% / .12) 36%, transparent 82%),` +
+          `radial-gradient(128% 22% at 72% ${HZ}%, hsl(${li} 96% 82% / .32) 0%, transparent 76%)`
+        );
+      };
+
+      /* the altitude scale: the horizon, and the five ticks the sun's height
+         is measured against. 0 sits on the horizon, 100 at the top tick. */
+      const altOf = (s) => 60 - (s / 100) * 42;
+      function skyRule(uid) {
+        const W = 374,
+          H = 828,
+          hz = (HZ / 100) * H;
+        let s = `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" aria-hidden="true">`;
+        s += `<defs><linearGradient id="hz-${uid}" x1="0" x2="1"><stop offset="0" stop-color="${ACC}" stop-opacity="0"/><stop offset=".22" stop-color="${ACC}" stop-opacity=".3"/><stop offset=".8" stop-color="${ACC}" stop-opacity=".3"/><stop offset="1" stop-color="${ACC}" stop-opacity="0"/></linearGradient></defs>`;
+        s += `<rect x="0" y="${hz.toFixed(1)}" width="${W}" height="1" fill="url(#hz-${uid})"/>`;
+        for (const t of [0, 25, 50, 75, 100]) {
+          const y = ((altOf(t) / 100) * H).toFixed(1);
+          s += `<path d="M326,${y} H340" stroke="${ACC}" stroke-opacity=".3" stroke-width="1"/>`;
+        }
+        /* the score is the rail's label: it is read where the sun is, and it
+           is the only place it is said */
+        const ys = +((altOf(score) / 100) * H).toFixed(1);
+        s += `<path d="M286,${ys} H310" stroke="${ACC}" stroke-opacity=".24" stroke-dasharray="2 4"/>`;
+        s += `<path d="M316,${ys} H340" stroke="${ACC}" stroke-opacity=".8" stroke-width="2"/>`;
+        s += `<text x="340" y="${ys - 13}" font-size="46" font-weight="700" letter-spacing="-2" fill="${NUM}" text-anchor="end">${score}</text>`;
+        s += `<text x="340" y="${ys - 63}" font-size="12" font-weight="500" fill="${ACC}" fill-opacity=".85" text-anchor="end">${verdict}, up 2 since Monday</text>`;
+        s += `<text x="324" y="${((altOf(100) / 100) * H - 7).toFixed(1)}" font-size="10" fill="${ACC}" fill-opacity=".4" text-anchor="end">100</text>`;
+        s += `<text x="324" y="${((altOf(0) / 100) * H - 7).toFixed(1)}" font-size="10" fill="${ACC}" fill-opacity=".4" text-anchor="end">0</text>`;
+        return s + "</svg>";
+      }
+
+      const R = document.documentElement.style;
+      R.setProperty("--light", LIGHT);
+      R.setProperty("--zen", ZEN);
+      R.setProperty("--sat", SAT + "%");
+      R.setProperty("--sun-y", ALT + "%");
+      R.setProperty("--sky", skyFor(score));
+
+      const ACC = `hsl(${ZEN} 42% 24%)`;
+      const ACC_2 = `hsl(${ZEN} 30% 38%)`;
+      const WARM = `hsl(${LIGHT} 64% 41%)`;
+      const NUM = `hsl(${ZEN} 38% 17%)`;
+      const INK2 = "#434e5b";
+      const verdict =
+        score >= 80
+          ? "Strong"
+          : score >= 65
+            ? "On track"
+            : score >= 50
+              ? "Watch"
+              : "Act";
+
+      /* ------------------------------------------------------------------ *
+       * the LDL series
+       * ------------------------------------------------------------------ */
+      const LDL = [
+        { d: 0, v: 168, lab: "9 Dec 25" },
+        { d: 235, v: 131, lab: "1 Aug 26" },
+      ];
+      const LDL_PROJ = { d: 330, v: 104, lab: "4 Nov 26" };
+      const LDL_AIM = 100;
+      const LEVERS = [
+        { n: "Saturated fat", s: "under 15 g a day", d: 12 },
+        { n: "Oats each morning", s: "3 g beta-glucan", d: 9 },
+        { n: "Walk after meals", s: "15 min, five a week", d: 6 },
+      ];
+      const DROP = LEVERS.reduce((a, l) => a + l.d, 0); // 27
+
+      /* ------------------------------------------------------------------ *
+       * the chart. a scale on the left (150 and 125, and the aim at 100),
+       * three dots, and a dotted drop from each dot to its own date, so no
+       * label has to be guessed at.
+       * ------------------------------------------------------------------ */
+      const SW = 2;
+      const T = (x, y, s, o = {}) =>
+        `<text x="${x}" y="${y}" font-size="${o.fs || 13}" font-weight="${o.fw || 400}" fill="${o.fill || INK2}" fill-opacity="${o.op || 1}" text-anchor="${o.a || "middle"}">${s}</text>`;
+
+      function ldlChart(uid) {
+        const W = 314,
+          H = 228,
+          base = 180,
+          top = 34;
+        const lo = 96,
+          hi = 180;
+        const L = 34; /* the left gutter carries the scale */
+        const x = (d) => L + 24 + (d / LDL_PROJ.d) * 216;
+        const y = (v) => base - ((v - lo) / (hi - lo)) * (base - top);
+        const pts = [...LDL, LDL_PROJ];
+        const P = pts.map((p) => `${x(p.d).toFixed(1)},${y(p.v).toFixed(1)}`);
+        let s = `<svg viewBox="0 0 ${W} ${H}" height="${H}" width="${W}" style="display:block;margin-top:10px" role="img" aria-label="LDL 168 in December 2025, 131 in August 2026, projected 104 in November, against an aim under 100">`;
+        /* the scale: two references, so the three values have a size */
+        for (const v of [175, 150, 125]) {
+          s += `<path d="M${L},${y(v).toFixed(1)} H${W}" stroke="${ACC}" stroke-opacity=".13"/>`;
+          s += T(L - 8, y(v) + 4, v, { a: "end", fs: 11, fill: ACC, op: 0.5 });
+        }
+        /* the aim: a dashed rule with the zone named at its left end. the
+           domain starts at 88 so the projected 104 sits clear above it */
+        s += `<path d="M${L},${y(LDL_AIM).toFixed(1)} H${W}" stroke="${ACC}" stroke-opacity=".45" stroke-dasharray="2 4"/>`;
+        s += T(L + 2, y(LDL_AIM) + 17, "aim, under 100", {
+          a: "start",
+          fill: ACC_2,
+          fw: 500,
+        });
+        /* each dot drops a dotted line to its own date */
+        pts.forEach((p) => {
+          s += `<path d="M${x(p.d).toFixed(1)},${(y(p.v) + 9).toFixed(1)} V${H - 20}" stroke="${ACC}" stroke-opacity=".22" stroke-dasharray="1 3"/>`;
+        });
+        s += `<path d="M${P[0]} L${P[1]}" fill="none" stroke="${ACC}" stroke-width="${SW}" stroke-linecap="round"/>`;
+        s += `<path d="M${P[1]} L${P[2]}" fill="none" stroke="${ACC}" stroke-opacity=".5" stroke-width="${SW}" stroke-linecap="round" stroke-dasharray="5 5"/>`;
+        LDL.forEach((p) => {
+          s += `<circle cx="${x(p.d).toFixed(1)}" cy="${y(p.v).toFixed(1)}" r="5" fill="${ACC}" stroke="#fff" stroke-width="${SW}"/>`;
+        });
+        s += `<circle cx="${x(LDL_PROJ.d).toFixed(1)}" cy="${y(LDL_PROJ.v).toFixed(1)}" r="5.5" fill="#fff" stroke="${ACC}" stroke-width="${SW}"/>`;
+        /* the measured pair carries the weight; the projection is a promise,
+           so it is lighter, muted, hollow and dashed */
+        LDL.forEach((p) => {
+          s += T(x(p.d), y(p.v) - 14, p.v, { fs: 15, fw: 700, fill: ACC });
+        });
+        s += T(x(LDL_PROJ.d), y(LDL_PROJ.v) - 14, LDL_PROJ.v, {
+          fs: 14,
+          fw: 500,
+          fill: ACC_2,
+          op: 0.85,
+        });
+        LDL.forEach((p) => {
+          s += T(x(p.d), H - 4, p.lab, { fs: 11 });
+        });
+        s += T(x(LDL_PROJ.d), H - 4, LDL_PROJ.lab, { fs: 11, op: 0.7 });
+        return s + "</svg>";
+      }
+
+      /* ------------------------------------------------------------------ *
+       * markup
+       * ------------------------------------------------------------------ */
+      const home = (uid) => `
+        <div class="sky" style="background:${skyFor(score)}"></div>
+        <div class="sky"><b class="b1"></b><b class="b2"></b></div>
+        <div class="sky scatter"></div>
+        <div class="sky corona"></div>
+        <div class="sky disc"></div>
+        <div class="sky horizon"></div>
+        <div class="sky rule">${skyRule(uid)}</div>
+        <div class="grain"></div>
+
+        <div class="status">
+          <span class="clock">9:41</span>
+          <i class="island"></i>
+          <span class="glyphs">${G.signal}${G.wifi}${G.battery}</span>
+        </div>
+
+        <div class="screen">
+          <button class="say" data-do="open">
+            <span class="big lit">Eight more weeks of this puts your LDL near 104.</span>
+            <span class="fine">From 131 mg/dL, drawn 1 August ${I.chev}</span>
+          </button>
+        </div>
+        <div class="home-bar"></div>
+
+        <div class="veil" data-do="close"></div>
+        <div class="sheet">
+          <div class="grip"></div>
+          <h2>LDL cholesterol</h2>
+          <p class="lead"><s>131</s>${I.arrow}104<span class="u">mg/dL</span></p>
+          <p class="sub"><b>31 over the aim today.</b> Drawn 1 August, and 9 December before it.</p>
+          ${ldlChart(uid)}
+          <div class="stack">
+            <p class="drop">−${DROP}<span class="u">mg/dL</span><small>over eight weeks</small></p>
+            ${LEVERS.map(
+              (l) =>
+                `<div class="lev"><span><b>${l.n}</b><span class="dose">${l.s}</span></span>` +
+                `<span class="r"><span class="d">−${l.d}<span class="u">mg/dL</span></span>` +
+                `<span class="bar" title="${Math.round((l.d / DROP) * 100)} % of the 27"><i style="width:${((l.d / DROP) * 100).toFixed(1)}%"></i></span></span></div>`,
+            ).join("")}
+          </div>
+        </div>`;
+
+      for (const p of document.querySelectorAll(".phone")) {
+        p.innerHTML = home(p.id);
+        p.addEventListener("click", (e) => {
+          const b = e.target.closest("[data-do]");
+          if (b) p.classList.toggle("open", b.dataset.do === "open");
+        });
+      }
+
+      /* ---------- notes: five scores, five skies ---------- */
+      document.getElementById("n-skies").innerHTML = [40, 60, 72, 85, 100]
+        .map(
+          (s) =>
+            `<figure><span style="background:${skyFor(s)}"><i style="background:${sunFor(s)}"></i></span>` +
+            `<figcaption><b>score ${s}</b><br>light ${Math.round(252 + (s / 100) * 158) % 360}°, ` +
+            `${Math.round(60 - (s / 100) * 42)} % down</figcaption></figure>`,
+        )
+        .join("");
+      document.getElementById("n-hue").innerHTML =
+        `<code>light = round(252 + score / 100 × 158) mod 360</code>, so the light runs from a cold blue 252° at nought, ` +
+        `through violet and rose, to an amber 50° at a hundred; for 72 it is <code>${LIGHT}°</code>. ` +
+        `<code>sweep = round(64 + score / 100 × 66)</code> is how far the sky travels from that light to its zenith, ` +
+        `<code>${SWEEP}°</code> here, which puts the zenith at <code>${ZEN}°</code>. ` +
+        `<code>altitude = 60 − score / 100 × 42</code> puts the sun <code>${ALT} %</code> down the screen, so a better score is a warmer light, higher up. ` +
+        `<code>saturation = round(28 + score / 100 × 26)</code> is <code>${SAT}%</code>. ` +
+        `The eight stops take ` +
+        STOPS.map(
+          ([at, f, m, l]) =>
+            `<code>${Math.round(ZEN + f * SWEEP)}°</code> at ${Math.round(SAT * m)} % / ${l} % on ${at} %`,
+        ).join(", ") +
+        `. Tone rises to 91 % at the horizon, drawn at ${HZ} %, and falls to 68 % at the floor. ` +
+        `Over it: the sun in four layers (a 27 px disc, a corona, a 420 px scatter and an aureole along the horizon), the altitude ticks the sun is read against, two drifting fields on <code>soft-light</code>, and a fractal-noise grain at 48 % on <code>overlay</code>. ` +
+        `The cool is <code>hsl(${ZEN} 42% 24%)</code> and the numeral <code>hsl(${ZEN} 38% 17%)</code>, both from the zenith; ` +
+        `the warm is <code>hsl(${LIGHT} 64% 41%)</code>, from the light itself.`;
+    </script>
+  </body>
+</html>

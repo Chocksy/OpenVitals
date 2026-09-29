@@ -1,0 +1,1340 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Platform · iOS variation 35 · OpenVitals</title>
+    <style>
+      :root {
+        --page: #e9edf1;
+        --ground: #f8fafb;
+        --card: #ffffff;
+        --ink: #232c36;
+        --ink-2: #5b6472;
+        --ink-3: #8a919b;
+        --ink-4: #aeb2bb;
+        --hair: #eceff3;
+        --line: #d3d8de;
+        --go: #05ca76;
+        --go-soft: #c9f2e3;
+        --stop: #fd6b6d;
+        --stop-soft: #ffe3e4;
+        --slate: #40596b;
+        --slate-2: #5e7384;
+        --shadow: 0 8px 24px -14px rgba(35, 44, 54, 0.5);
+        --shadow-lift: 0 14px 34px -16px rgba(35, 44, 54, 0.42);
+        --r-card: 16px;
+        --r-pill: 999px;
+        --s6: 6px;
+        --s10: 10px;
+        --s14: 14px;
+        --s20: 20px;
+        --s28: 28px;
+        --s40: 40px;
+      }
+      .dark {
+        --ground: #121b2a;
+        --card: #283247;
+        --card-2: #2b3852;
+        --ink: #ffffff;
+        --ink-2: #b6c0d0;
+        --ink-3: #8b97ad;
+        --ink-4: #6d7a91;
+        --hair: rgba(255, 255, 255, 0.08);
+        --line: rgba(255, 255, 255, 0.2);
+        --slate: #5e7384;
+        --slate-2: #4a5567;
+        --go-soft: rgba(5, 202, 118, 0.18);
+        --stop-soft: rgba(253, 107, 109, 0.18);
+        --shadow: 0 10px 26px -14px rgba(0, 0, 0, 0.8);
+        --shadow-lift: 0 16px 36px -16px rgba(0, 0, 0, 0.9);
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--page);
+        color: var(--ink);
+        font:
+          13.5px/1.45 -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          system-ui,
+          sans-serif;
+        font-feature-settings: "tnum";
+        -webkit-font-smoothing: antialiased;
+      }
+      h1,
+      h2,
+      h3,
+      p {
+        margin: 0;
+      }
+      button {
+        font: inherit;
+        color: inherit;
+        background: none;
+        border: 0;
+        padding: 0;
+        cursor: pointer;
+        text-align: left;
+        -webkit-tap-highlight-color: transparent;
+      }
+      svg {
+        stroke: currentColor;
+        fill: none;
+        stroke-width: 1.7;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+
+      /* ---------- page chrome ---------- */
+      .doc {
+        max-width: 1360px;
+        margin: 0 auto;
+        padding: var(--s40) var(--s20) var(--s40);
+      }
+      .doc > header {
+        margin-bottom: var(--s28);
+        max-width: 66ch;
+      }
+      .eyebrow {
+        color: var(--ink-3);
+        font-size: 11.5px;
+        font-weight: 600;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        margin-bottom: 8px;
+      }
+      .doc h1 {
+        font-size: 32px;
+        font-weight: 700;
+        letter-spacing: -0.035em;
+        line-height: 1.12;
+      }
+      .doc h1 em {
+        font-style: normal;
+        color: var(--ink-3);
+      }
+      .lede {
+        color: var(--ink-2);
+        margin-top: 10px;
+        font-size: 15px;
+        line-height: 1.5;
+      }
+      .phones {
+        display: flex;
+        gap: var(--s40);
+        justify-content: center;
+        flex-wrap: wrap;
+      }
+      .cap {
+        display: block;
+        width: 393px;
+        margin-bottom: var(--s14);
+      }
+      .cap b {
+        display: block;
+        font-size: 13px;
+        font-weight: 600;
+        letter-spacing: -0.01em;
+        color: var(--ink);
+      }
+      .cap b i {
+        font-style: normal;
+        color: var(--ink-4);
+        margin-right: 8px;
+        font-variant-numeric: tabular-nums;
+      }
+      .cap span {
+        display: block;
+        margin-top: 3px;
+        font-size: 12px;
+        color: var(--ink-3);
+        line-height: 1.4;
+      }
+
+      /* ---------- phone ---------- */
+      .phone {
+        width: 393px;
+        height: 852px;
+        border-radius: 54px;
+        border: 11px solid #11161d;
+        background: var(--ground);
+        color: var(--ink);
+        box-shadow:
+          0 0 0 1px #2b2e35,
+          0 0 0 2px #545a64,
+          0 26px 56px -26px rgba(20, 26, 34, 0.6);
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+      }
+
+      /* status bar */
+      .status {
+        height: 54px;
+        flex: none;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 8px 28px 0;
+        position: relative;
+        color: var(--ink);
+      }
+      .status time {
+        font-size: 15px;
+        font-weight: 600;
+        letter-spacing: -0.01em;
+        width: 62px;
+        text-align: center;
+      }
+      .status i {
+        position: absolute;
+        left: 50%;
+        top: 11px;
+        width: 124px;
+        height: 35px;
+        border-radius: 18px;
+        background: #11161d;
+        transform: translateX(-50%);
+      }
+      .status .sig {
+        width: 62px;
+        height: 13px;
+      }
+
+      /* scroll body */
+      .screen {
+        flex: 1;
+        overflow-y: auto;
+        padding: 0 var(--s20) 152px;
+        scrollbar-width: none;
+      }
+      .screen::-webkit-scrollbar {
+        display: none;
+      }
+
+      /* ---------- top row: balance pill + bell ---------- */
+      .toprow {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding-top: 4px;
+      }
+      .pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 9px;
+        height: 42px;
+        padding: 0 16px 0 7px;
+        border-radius: var(--r-pill);
+        background: var(--card);
+        box-shadow: var(--shadow);
+        font-size: 13.5px;
+        font-weight: 700;
+        letter-spacing: -0.01em;
+      }
+      .pill .tile {
+        width: 28px;
+        height: 28px;
+        border-radius: 9px;
+        background: var(--go-soft);
+        color: #04a961;
+        display: grid;
+        place-items: center;
+        flex: none;
+      }
+      .dark .pill .tile {
+        color: var(--go);
+      }
+      .pill .tile svg {
+        width: 15px;
+        height: 15px;
+      }
+      .pill u {
+        text-decoration: none;
+        font-weight: 500;
+        color: var(--ink-3);
+      }
+      .bell {
+        width: 42px;
+        height: 42px;
+        border-radius: var(--r-pill);
+        background: var(--card);
+        box-shadow: var(--shadow);
+        display: grid;
+        place-items: center;
+        position: relative;
+        color: var(--ink-2);
+        flex: none;
+      }
+      .bell svg {
+        width: 19px;
+        height: 19px;
+      }
+      .bell b {
+        position: absolute;
+        top: 9px;
+        right: 11px;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--stop);
+        border: 2px solid var(--card);
+      }
+
+      /* ---------- greeting ---------- */
+      .hello {
+        margin-top: 20px;
+        font-size: 26px;
+        font-weight: 700;
+        letter-spacing: -0.035em;
+        line-height: 1.24;
+      }
+      .hello span {
+        color: var(--ink-4);
+        font-weight: 500;
+      }
+      .hello em {
+        font-style: normal;
+        color: var(--stop);
+      }
+
+      /* the coverage rail, from the step rule under the source nav bar */
+      .rail {
+        margin-top: 14px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .rail .track {
+        flex: 1;
+        height: 3px;
+        border-radius: 2px;
+        background: var(--hair);
+        overflow: hidden;
+      }
+      .dark .rail .track {
+        background: rgba(255, 255, 255, 0.1);
+      }
+      .rail .track i {
+        display: block;
+        height: 100%;
+        border-radius: 2px;
+        background: var(--go);
+      }
+      .rail small {
+        font-size: 11.5px;
+        font-weight: 600;
+        color: var(--ink-3);
+        white-space: nowrap;
+      }
+
+      /* ---------- section headers ---------- */
+      .sec {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        margin: 26px 0 12px;
+      }
+      .sec h3 {
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--ink-3);
+        letter-spacing: -0.005em;
+      }
+      .sec a {
+        font-size: 12.5px;
+        font-weight: 700;
+        color: var(--go);
+        text-decoration: none;
+      }
+
+      /* ---------- the group rail (category cards, with a peek) ---------- */
+      .strip {
+        display: flex;
+        gap: 12px;
+        margin: 0 calc(-1 * var(--s20));
+        padding: 4px var(--s20) 10px;
+        overflow-x: auto;
+        scrollbar-width: none;
+      }
+      .strip::-webkit-scrollbar {
+        display: none;
+      }
+      .grp {
+        flex: none;
+        width: 132px;
+        background: var(--card);
+        border-radius: var(--r-card);
+        box-shadow: var(--shadow);
+        padding: 14px;
+      }
+      .grp .tile {
+        width: 38px;
+        height: 38px;
+        border-radius: 12px;
+        display: grid;
+        place-items: center;
+        margin-bottom: 12px;
+      }
+      .grp .tile svg {
+        width: 19px;
+        height: 19px;
+      }
+      .grp b {
+        display: block;
+        font-size: 15px;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+      }
+      .grp small {
+        display: block;
+        margin-top: 3px;
+        font-size: 12px;
+        color: var(--ink-4);
+      }
+      .grp small.bad {
+        color: var(--stop);
+        font-weight: 600;
+      }
+
+      /* ---------- the goal card: the train-list card, two decks ---------- */
+      .goal {
+        display: block;
+        width: 100%;
+        background: var(--card);
+        border-radius: var(--r-card);
+        box-shadow: var(--shadow);
+        margin-bottom: 12px;
+        overflow: hidden;
+      }
+      .goal .deck {
+        padding: 13px 16px;
+      }
+      .goal .deck + .deck {
+        border-top: 1px solid var(--hair);
+        padding: 11px 16px 13px;
+      }
+      .goal .top {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 10px;
+      }
+      .goal .top b {
+        font-size: 15.5px;
+        font-weight: 700;
+        letter-spacing: -0.022em;
+      }
+      .goal .top .now {
+        font-size: 15.5px;
+        font-weight: 700;
+        letter-spacing: -0.022em;
+        white-space: nowrap;
+      }
+      .goal .sub {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 10px;
+        margin-top: 2px;
+      }
+      .goal .sub small {
+        font-size: 12.5px;
+        color: var(--ink-4);
+      }
+      .goal .sub .pace {
+        font-size: 12.5px;
+        font-weight: 600;
+        white-space: nowrap;
+      }
+      .pace.on {
+        color: var(--go);
+      }
+      .pace.off {
+        color: var(--stop);
+      }
+      /* the leg: from -> to, with the gap named in the middle */
+      .leg {
+        display: grid;
+        grid-template-columns: 1fr auto 1fr;
+        align-items: center;
+      }
+      .leg .end {
+        min-width: 0;
+      }
+      .leg .end b {
+        display: block;
+        font-size: 14px;
+        font-weight: 700;
+        letter-spacing: -0.015em;
+      }
+      .leg .end small {
+        display: block;
+        font-size: 11px;
+        color: var(--ink-4);
+        margin-top: 1px;
+      }
+      .leg .end.to {
+        text-align: right;
+      }
+      .leg .mid {
+        padding: 0 10px;
+        text-align: center;
+        color: var(--ink-4);
+      }
+      .leg .mid span {
+        display: block;
+        font-size: 11px;
+        white-space: nowrap;
+      }
+      .leg .mid .wire {
+        display: block;
+        height: 11px;
+        width: 74px;
+        margin: 0 auto 2px;
+        color: var(--line);
+      }
+      .leg .mid .wire svg {
+        width: 74px;
+        height: 11px;
+      }
+
+      /* ---------- the board: the seat map ---------- */
+      .board {
+        background: var(--card);
+        border-radius: var(--r-card);
+        box-shadow: var(--shadow);
+        padding: 16px;
+      }
+      .board .bhead {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        margin-bottom: 13px;
+      }
+      .board .bhead b {
+        font-size: 15px;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+      }
+      .board .bhead small {
+        font-size: 12px;
+        color: var(--ink-4);
+      }
+      .cells {
+        display: grid;
+        grid-template-columns: repeat(13, 1fr);
+        gap: 5px;
+      }
+      .cells i {
+        display: block;
+        aspect-ratio: 1;
+        border-radius: 7px;
+        border: 1.5px solid transparent;
+      }
+      .cells i.opt {
+        background: var(--slate);
+      }
+      .cells i.nrm {
+        border-color: var(--line);
+      }
+      .cells i.off {
+        background: var(--stop-soft);
+        border-color: var(--stop);
+      }
+      .cells i.nev {
+        background: var(--hair);
+      }
+      .key {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px 14px;
+        margin-top: 14px;
+      }
+      .key span {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        font-size: 11.5px;
+        color: var(--ink-3);
+        white-space: nowrap;
+      }
+      .key i {
+        width: 15px;
+        height: 15px;
+        border-radius: 5px;
+        border: 1.5px solid transparent;
+        flex: none;
+      }
+      .key i.opt {
+        background: var(--slate);
+      }
+      .key i.nrm {
+        border-color: var(--line);
+      }
+      .key i.off {
+        background: var(--stop-soft);
+        border-color: var(--stop);
+      }
+      .key i.nev {
+        background: var(--hair);
+      }
+
+      /* ---------- the menu grid ---------- */
+      .menu {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 8px;
+        margin-top: 4px;
+      }
+      .menu button {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+        font-size: 11.5px;
+        font-weight: 500;
+        color: var(--ink-2);
+        text-align: center;
+      }
+      .menu .tile {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        background: var(--card);
+        box-shadow: var(--shadow);
+        display: grid;
+        place-items: center;
+      }
+      .menu .tile svg {
+        width: 20px;
+        height: 20px;
+      }
+
+      /* ---------- the next-draw card: the "next stop" bar ---------- */
+      .next {
+        margin-top: 14px;
+        background: var(--card);
+        border-radius: var(--r-card);
+        box-shadow: var(--shadow);
+        padding: 14px 16px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+      }
+      .next small {
+        display: block;
+        font-size: 11.5px;
+        color: var(--ink-4);
+      }
+      .next b {
+        display: block;
+        font-size: 15.5px;
+        font-weight: 700;
+        letter-spacing: -0.022em;
+        margin-top: 2px;
+      }
+      .next .when {
+        font-size: 12.5px;
+        color: var(--ink-3);
+        white-space: nowrap;
+        font-weight: 600;
+      }
+
+      /* ---------- phone 2: the goal composer, from the search form ---------- */
+      .empty {
+        background: var(--card);
+        border-radius: var(--r-card);
+        box-shadow: var(--shadow-lift);
+        padding: 6px 16px 16px;
+        position: relative;
+      }
+      .field {
+        padding: 14px 0;
+        border-bottom: 1px solid var(--hair);
+      }
+      .field:last-of-type {
+        border-bottom: 0;
+      }
+      .field small {
+        display: block;
+        font-size: 11.5px;
+        color: var(--ink-4);
+        margin-bottom: 4px;
+      }
+      .field b {
+        font-size: 16px;
+        font-weight: 700;
+        letter-spacing: -0.025em;
+      }
+      .field b.blank {
+        color: var(--ink-4);
+        font-weight: 500;
+      }
+      .swap {
+        position: absolute;
+        right: 16px;
+        top: 58px;
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
+        background: var(--go);
+        color: #fff;
+        display: grid;
+        place-items: center;
+        box-shadow: 0 8px 18px -8px rgba(5, 202, 118, 0.9);
+      }
+      .swap svg {
+        width: 17px;
+        height: 17px;
+        stroke-width: 2;
+      }
+      .cta {
+        display: block;
+        width: 100%;
+        margin-top: 16px;
+        height: 52px;
+        border-radius: 14px;
+        background: var(--go);
+        color: #fff;
+        font-size: 14px;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        text-align: center;
+        line-height: 52px;
+        box-shadow: 0 12px 24px -12px rgba(5, 202, 118, 0.9);
+      }
+      /* the fold is a page break: the next header clears the bar entirely */
+      .note {
+        margin-top: 14px;
+        padding-bottom: 78px;
+        font-size: 12.5px;
+        line-height: 1.5;
+        color: var(--ink-3);
+      }
+
+      /* ---------- tab bar ---------- */
+      .fade {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: 150px;
+        pointer-events: none;
+        z-index: 2;
+        background: linear-gradient(
+          180deg,
+          rgba(248, 250, 251, 0) 0%,
+          var(--ground) 46%
+        );
+      }
+      .dark .fade {
+        background: linear-gradient(
+          180deg,
+          rgba(18, 27, 42, 0) 0%,
+          var(--ground) 46%
+        );
+      }
+      .tabs {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: 92px;
+        z-index: 3;
+        background: var(--card);
+        border-top: 1px solid var(--hair);
+        display: flex;
+        align-items: flex-start;
+        padding: 11px 4px 0;
+        box-shadow: 0 -10px 26px -18px rgba(35, 44, 54, 0.5);
+      }
+      .tabs button {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 5px;
+        font-size: 10.5px;
+        font-weight: 600;
+        color: var(--ink-4);
+      }
+      .tabs button svg {
+        width: 22px;
+        height: 22px;
+      }
+      .tabs button.on {
+        color: var(--ink);
+      }
+      .tabs .add {
+        flex: none;
+        width: 58px;
+        align-self: flex-start;
+        margin-top: -22px;
+      }
+      .tabs .add span {
+        width: 54px;
+        height: 54px;
+        border-radius: 50%;
+        background: var(--go);
+        color: #fff;
+        display: grid;
+        place-items: center;
+        box-shadow: 0 12px 22px -10px rgba(5, 202, 118, 0.85);
+      }
+      .tabs .add svg {
+        width: 24px;
+        height: 24px;
+        stroke-width: 2.2;
+      }
+
+      /* ---------- notes ---------- */
+      .notes {
+        margin: var(--s40) auto 0;
+        max-width: 880px;
+        font-size: 13px;
+        color: var(--ink-2);
+      }
+      .notes > summary {
+        cursor: pointer;
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--ink);
+        padding: 12px 0;
+        border-top: 1px solid #d5dae0;
+      }
+      .notes h2 {
+        font-size: 14px;
+        font-weight: 700;
+        letter-spacing: -0.015em;
+        color: var(--ink);
+        margin: 24px 0 8px;
+      }
+      .notes table {
+        border-collapse: collapse;
+        width: 100%;
+      }
+      .notes td,
+      .notes th {
+        text-align: left;
+        padding: 9px 18px 9px 0;
+        vertical-align: top;
+        font-weight: 400;
+      }
+      .notes th {
+        padding-top: 0;
+        font-size: 11.5px;
+        color: var(--ink-3);
+        border-bottom: 1px solid #cfd5dc;
+      }
+      .notes td {
+        border-top: 1px solid #dfe4e9;
+      }
+      .notes td:first-child {
+        color: var(--ink);
+        font-weight: 600;
+        width: 190px;
+      }
+      .doc > footer {
+        margin: var(--s28) auto 0;
+        max-width: 880px;
+        font-size: 12px;
+        color: var(--ink-3);
+        border-top: 1px solid #d5dae0;
+        padding-top: 14px;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        * {
+          transition: none !important;
+          animation: none !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="doc">
+      <header>
+        <p class="eyebrow">Variation 35 · Platform</p>
+        <h1>Fifty-two seats on one board.<br /><em>Four of them are booked.</em></h1>
+        <p class="lede">
+          A train-booking kit lent this screen its manners: white cards floating
+          on a cool grey ground, one green for anything you can act on, and a
+          seat map that already knew how to show four states at once. A goal is
+          a leg of a journey, so it is drawn as one: where you are now, how far
+          is left, where you are going.
+        </p>
+      </header>
+
+      <section class="phones">
+        <div>
+          <p class="cap">
+            <b><i>01</i>Today, with four goals on file</b>
+            <span>The board first, then the four legs still in progress.</span>
+          </p>
+          <div class="phone" id="p1"></div>
+        </div>
+        <div>
+          <p class="cap">
+            <b><i>02</i>Today, with no goal on file</b>
+            <span
+              >No greyed-out card. The screen turns into the booking form and
+              asks for a destination.</span
+            >
+          </p>
+          <div class="phone" id="p2"></div>
+        </div>
+        <div>
+          <p class="cap">
+            <b><i>03</i>The same screen, dark</b>
+            <span>Navy ground, cards lift instead of glow, one green kept.</span>
+          </p>
+          <div class="phone dark" id="p3"></div>
+        </div>
+      </section>
+
+      <details class="notes">
+        <summary>Notes and the numbers on the screen</summary>
+
+        <h2>The draw, 1 Aug 2026</h2>
+        <table>
+          <tr>
+            <th>Band</th>
+            <th>Count</th>
+            <th>Drawn as</th>
+          </tr>
+          <tr>
+            <td>Optimal</td>
+            <td>26 of 52</td>
+            <td>filled slate cell</td>
+          </tr>
+          <tr>
+            <td>Normal</td>
+            <td>19 of 52</td>
+            <td>outlined cell</td>
+          </tr>
+          <tr>
+            <td>Off</td>
+            <td>7 of 52</td>
+            <td>red-tinted cell with a red edge</td>
+          </tr>
+          <tr>
+            <td>Never measured</td>
+            <td>0 of 52</td>
+            <td>flat grey cell; nothing was skipped on this draw</td>
+          </tr>
+        </table>
+
+        <h2>The four goals</h2>
+        <table>
+          <tr>
+            <th>Marker</th>
+            <th>Now</th>
+            <th>Target</th>
+            <th>To go</th>
+            <th>Pace</th>
+          </tr>
+          <tr>
+            <td>TPO antibodies</td>
+            <td>320 IU/mL</td>
+            <td>under 100</td>
+            <td>220 IU/mL</td>
+            <td>behind</td>
+          </tr>
+          <tr>
+            <td>Vitamin D</td>
+            <td>19 ng/mL</td>
+            <td>40 to 60</td>
+            <td>21 ng/mL</td>
+            <td>on pace</td>
+          </tr>
+          <tr>
+            <td>Ferritin</td>
+            <td>22 ng/mL</td>
+            <td>above 50</td>
+            <td>28 ng/mL</td>
+            <td>on pace</td>
+          </tr>
+          <tr>
+            <td>HbA1c</td>
+            <td>5.6 %</td>
+            <td>under 5.4</td>
+            <td>0.2 %</td>
+            <td>on pace</td>
+          </tr>
+        </table>
+
+        <h2>The panel by group</h2>
+        <table>
+          <tr>
+            <th>Group</th>
+            <th>Markers</th>
+            <th>Off</th>
+          </tr>
+          <tr>
+            <td>Thyroid</td>
+            <td>6</td>
+            <td>3</td>
+          </tr>
+          <tr>
+            <td>Vitamins</td>
+            <td>9</td>
+            <td>2</td>
+          </tr>
+          <tr>
+            <td>Iron</td>
+            <td>5</td>
+            <td>1</td>
+          </tr>
+          <tr>
+            <td>Metabolic</td>
+            <td>11</td>
+            <td>1</td>
+          </tr>
+          <tr>
+            <td>Lipids</td>
+            <td>7</td>
+            <td>0</td>
+          </tr>
+          <tr>
+            <td>Liver and kidney</td>
+            <td>8</td>
+            <td>0</td>
+          </tr>
+          <tr>
+            <td>Blood count</td>
+            <td>6</td>
+            <td>0</td>
+          </tr>
+        </table>
+      </details>
+
+      <footer>
+        OpenVitals · iOS home-screen variation 35 · sample person, sample panel.
+        Reference values are the app's own display bands, not clinical advice.
+      </footer>
+    </main>
+
+    <script>
+      /* ---------------- icons ---------------- */
+      const I = {
+        vial: '<svg viewBox="0 0 24 24"><path d="M9 3h6M10 3v11.5a2.5 2.5 0 0 0 5 0V3M9.5 11h5"/></svg>',
+        bell: '<svg viewBox="0 0 24 24"><path d="M6.5 9a5.5 5.5 0 0 1 11 0c0 6 2.5 8 2.5 8H4s2.5-2 2.5-8M10 20a2 2 0 0 0 4 0"/></svg>',
+        thyroid:
+          '<svg viewBox="0 0 24 24"><path d="M12 4v4M7.5 8a4.5 4.5 0 0 0 9 0M6 9c-1 4 .5 9 3 9s2-3 3-3 .5 3 3 3 4-5 3-9"/></svg>',
+        sun: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.6"/><path d="M12 3v2M12 19v2M4.6 4.6l1.4 1.4M18 18l1.4 1.4M3 12h2M19 12h2M6 18l-1.4 1.4M18 6l1.4-1.4"/></svg>',
+        iron: '<svg viewBox="0 0 24 24"><path d="M12 4.5c3.6 4.4 5.4 6.8 5.4 9a5.4 5.4 0 0 1-10.8 0c0-2.2 1.8-4.6 5.4-9z"/></svg>',
+        sugar:
+          '<svg viewBox="0 0 24 24"><path d="M4 15c2.5 0 2.5-6 5-6s2.5 6 5 6 2.5-4 4-4"/><circle cx="18" cy="7" r="1.4"/></svg>',
+        lipid:
+          '<svg viewBox="0 0 24 24"><circle cx="9" cy="9" r="4"/><circle cx="16" cy="15" r="3"/></svg>',
+        organ:
+          '<svg viewBox="0 0 24 24"><path d="M5 6h6c4 0 8 2.5 8 6.5S15.5 19 12 19c-2 0-3-1.5-3-3.5V6"/></svg>',
+        cells:
+          '<svg viewBox="0 0 24 24"><circle cx="8.5" cy="8.5" r="3.5"/><circle cx="15.5" cy="15" r="3.5"/><circle cx="16" cy="7" r="2"/></svg>',
+        upload:
+          '<svg viewBox="0 0 24 24"><path d="M12 16V5M8 9l4-4 4 4M4 16v2.5A1.5 1.5 0 0 0 5.5 20h13a1.5 1.5 0 0 0 1.5-1.5V16"/></svg>',
+        compare:
+          '<svg viewBox="0 0 24 24"><path d="M5 19V9M12 19V5M19 19v-7"/></svg>',
+        cal: '<svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="3"/><path d="M4 10h16M9 3v4M15 3v4"/></svg>',
+        share:
+          '<svg viewBox="0 0 24 24"><path d="M12 16V4M8.5 7.5 12 4l3.5 3.5"/><path d="M5 14v5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-5"/></svg>',
+        swap: '<svg viewBox="0 0 24 24"><path d="M8 4v16M8 20l-3.5-3.5M16 20V4M16 4l3.5 3.5"/></svg>',
+        home: '<svg viewBox="0 0 24 24"><path d="M4 11 12 4.6 20 11v8a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1z"/></svg>',
+        body: '<svg viewBox="0 0 24 24"><circle cx="12" cy="6" r="2.6"/><path d="M5.8 20a6.2 6.2 0 0 1 12.4 0"/></svg>',
+        meals:
+          '<svg viewBox="0 0 24 24"><path d="M6 3v8a2 2 0 0 0 4 0V3M8 11v10M17 3c-1.6 1.2-2.2 3-2.2 5 0 1.6.8 2.6 2.2 2.8V21"/></svg>',
+        plan: '<svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="3.5"/><path d="M8.5 12.5l2.2 2.2 4.5-4.6"/></svg>',
+        plus: '<svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>',
+        sig: '<svg class="sig" viewBox="0 0 62 13" aria-hidden="true"><rect x="0" y="7.6" width="3" height="3.4" rx="1"/><rect x="4.6" y="5.4" width="3" height="5.6" rx="1"/><rect x="9.2" y="3.2" width="3" height="7.8" rx="1"/><rect x="13.8" y="1.3" width="3" height="9.7" rx="1"/><path d="M21.4 5.2a7.6 7.6 0 0 1 10 0M23.6 7.7a4.4 4.4 0 0 1 5.6 0" stroke-width="1.5"/><circle cx="26.4" cy="10.2" r="1.1"/><rect x="38" y="1.8" width="21" height="9.4" rx="3.1" stroke-width="1" opacity=".45"/><rect x="39.4" y="3.3" width="14.5" height="6.4" rx="2"/><path d="M60.4 5.2v2.6" stroke-width="1.6" opacity=".45"/></svg>',
+      };
+      // the status bar and the board fill with ink, the rest strokes
+      const FILLED = (s) =>
+        s.replace("<svg", '<svg fill="currentColor" stroke="none"');
+
+      /* ---------------- data ---------------- */
+      const TOTAL = 52,
+        OFF = 7,
+        OPTIMAL = 26,
+        NORMAL = 19,
+        NEVER = 0;
+      console.assert(
+        OPTIMAL + NORMAL + OFF + NEVER === TOTAL,
+        "the bands must sum to 52",
+      );
+
+      const GROUPS = [
+        { n: "Thyroid", c: 6, off: 3, ic: "thyroid", t: "#fde6e6", f: "#d8534f" },
+        { n: "Vitamins", c: 9, off: 2, ic: "sun", t: "#fff1d9", f: "#c98a1a" },
+        { n: "Iron", c: 5, off: 1, ic: "iron", t: "#ffe3e4", f: "#c9524f" },
+        { n: "Metabolic", c: 11, off: 1, ic: "sugar", t: "#e3f0ff", f: "#3d77b8" },
+        { n: "Lipids", c: 7, off: 0, ic: "lipid", t: "#e6f1ec", f: "#3f8a68" },
+        {
+          n: "Liver and kidney",
+          c: 8,
+          off: 0,
+          ic: "organ",
+          t: "#ebe8fb",
+          f: "#6a5cc0",
+        },
+        { n: "Blood count", c: 6, off: 0, ic: "cells", t: "#e7eef3", f: "#42627a" },
+      ];
+      console.assert(
+        GROUPS.reduce((a, g) => a + g.c, 0) === TOTAL,
+        "the groups must sum to 52",
+      );
+      console.assert(
+        GROUPS.reduce((a, g) => a + g.off, 0) === OFF,
+        "the group misses must sum to 7",
+      );
+
+      const GOALS = [
+        {
+          n: "TPO antibodies",
+          grp: "Thyroid",
+          now: "320",
+          unit: "IU/mL",
+          from: "320",
+          to: "under 100",
+          gap: "220 IU/mL to go",
+          pace: "Behind",
+          ok: false,
+          note: "set 18 Feb 2026 · 2 draws",
+        },
+        {
+          n: "Vitamin D",
+          grp: "Vitamins",
+          now: "19",
+          unit: "ng/mL",
+          from: "19",
+          to: "40 to 60",
+          gap: "21 ng/mL to go",
+          pace: "On pace",
+          ok: true,
+          note: "set 18 Feb 2026 · 3 draws",
+        },
+        {
+          n: "Ferritin",
+          grp: "Iron",
+          now: "22",
+          unit: "ng/mL",
+          from: "22",
+          to: "above 50",
+          gap: "28 ng/mL to go",
+          pace: "On pace",
+          ok: true,
+          note: "set 9 May 2026 · 2 draws",
+        },
+        {
+          n: "HbA1c",
+          grp: "Metabolic",
+          now: "5.6",
+          unit: "%",
+          from: "5.6",
+          to: "under 5.4",
+          gap: "0.2 % to go",
+          pace: "On pace",
+          ok: true,
+          note: "set 9 May 2026 · 4 draws",
+        },
+      ];
+
+      const MENU = [
+        { ic: "upload", n: "Add result" },
+        { ic: "compare", n: "Compare" },
+        { ic: "cal", n: "Book draw" },
+        { ic: "share", n: "Export" },
+      ];
+
+      /* ---------------- pieces ---------------- */
+      const statusbar = () =>
+        `<div class="status"><time>9:41</time><i></i>${FILLED(I.sig)}</div>`;
+
+      const toprow = () => `
+        <div class="toprow">
+          <span class="pill"
+            ><span class="tile">${I.vial}</span>52 markers
+            <u>· 7 off</u></span
+          >
+          <button class="bell" aria-label="Notifications">${I.bell}<b></b></button>
+        </div>`;
+
+      const hello = (withGoals) => `
+        <h2 class="hello">
+          <span>Hi,</span><br />${
+            withGoals
+              ? `<em>Seven markers</em><br />are off today.`
+              : `Where do you<br />want these to go?`
+          }
+        </h2>
+        <div class="rail">
+          <span class="track"><i style="width:86.5%"></i></span>
+          <small>45 of 52 in range</small>
+        </div>`;
+
+      const strip = () => `
+        <div class="strip">
+          ${GROUPS.map(
+            (g) => `<div class="grp">
+              <span class="tile" style="background:${g.t};color:${g.f}">${I[g.ic]}</span>
+              <b>${g.n}</b>
+              <small class="${g.off ? "bad" : ""}">${
+                g.off ? `${g.off} off · ${g.c} markers` : `${g.c} markers`
+              }</small>
+            </div>`,
+          ).join("")}
+        </div>`;
+
+      const wire = () =>
+        `<span class="wire"><svg viewBox="0 0 74 11" aria-hidden="true"><circle cx="4" cy="5.5" r="3.2" stroke-width="1.6"/><path d="M9 5.5h52" stroke-width="1.4" stroke-dasharray="2 3.4"/><circle cx="69" cy="5.5" r="3.6" fill="#05ca76" stroke="none"/></svg></span>`;
+
+      const goalCard = (g) => `
+        <button class="goal">
+          <div class="deck">
+            <div class="top">
+              <b>${g.n}</b>
+              <span class="now">${g.now} <span style="font-weight:500;color:var(--ink-4);font-size:12.5px">${g.unit}</span></span>
+            </div>
+            <div class="sub">
+              <small>${g.grp} · ${g.note}</small>
+              <span class="pace ${g.ok ? "on" : "off"}">${g.pace}</span>
+            </div>
+          </div>
+          <div class="deck">
+            <div class="leg">
+              <span class="end"><b>${g.from}</b><small>now · 1 Aug draw</small></span>
+              <span class="mid">${wire()}<span>${g.gap}</span></span>
+              <span class="end to"><b>${g.to}</b><small>target</small></span>
+            </div>
+          </div>
+        </button>`;
+
+      /* the board: 26 optimal, then 19 normal, then 7 off, in reading order */
+      const board = () => {
+        const cells = [
+          ...Array(OPTIMAL).fill("opt"),
+          ...Array(NORMAL).fill("nrm"),
+          ...Array(OFF).fill("off"),
+        ]
+          .map((c) => `<i class="${c}"></i>`)
+          .join("");
+        return `
+        <div class="board">
+          <div class="bhead">
+            <b>The panel</b>
+            <small>Aug 1 2026 draw</small>
+          </div>
+          <div class="cells" role="img"
+            aria-label="52 markers: 26 optimal, 19 normal, 7 off, 0 never measured">${cells}</div>
+          <div class="key">
+            <span><i class="opt"></i>Optimal ${OPTIMAL}</span>
+            <span><i class="nrm"></i>Normal ${NORMAL}</span>
+            <span><i class="off"></i>Off ${OFF}</span>
+            <span><i class="nev"></i>Never measured ${NEVER}</span>
+          </div>
+        </div>`;
+      };
+
+      const menu = () => `
+        <div class="menu">
+          ${MENU.map(
+            (m) =>
+              `<button><span class="tile">${I[m.ic]}</span>${m.n}</button>`,
+          ).join("")}
+        </div>`;
+
+      const next = () => `
+        <div class="next">
+          <div>
+            <small>Next draw</small>
+            <b>Booked · Oct 14 2026</b>
+          </div>
+          <span class="when">in 6 weeks</span>
+        </div>`;
+
+      const composer = () => `
+        <div class="empty">
+          <div class="field">
+            <small>Marker</small>
+            <b>Vitamin D</b>
+          </div>
+          <div class="field">
+            <small>Target</small>
+            <b class="blank">Pick a range</b>
+          </div>
+          <div class="field">
+            <small>By when</small>
+            <b class="blank">Next draw, Oct 14 2026</b>
+          </div>
+          <span class="swap" aria-hidden="true">${I.swap}</span>
+          <span class="cta">Set the goal</span>
+        </div>
+        <p class="note">
+          Nothing is tracked toward a number yet. All 52 markers still come back
+          on every draw; a goal only adds a target to one of them.
+        </p>`;
+
+      const tabs = () => `
+        <div class="tabs">
+          <button class="on">${FILLED(I.home)}Today</button>
+          <button>${I.body}Body</button>
+          <button class="add" aria-label="Add"><span>${I.plus}</span></button>
+          <button>${I.meals}Meals</button>
+          <button>${I.plan}Plan</button>
+        </div>`;
+
+      /* ---------------- the screen ---------------- */
+      const home = (withGoals) => `
+        ${statusbar()}
+        <div class="screen">
+          ${toprow()}
+          ${hello(withGoals)}
+          ${
+            withGoals
+              ? `<div class="sec">
+                   <h3>All 52 markers</h3>
+                   <a href="#">See all</a>
+                 </div>
+                 ${board()}
+                 <div class="sec">
+                   <h3>Goals · 4 running</h3>
+                   <a href="#">See all</a>
+                 </div>
+                 ${GOALS.map(goalCard).join("")}`
+              : `<div class="sec">
+                   <h3>No goal on file</h3>
+                   <a href="#">Why goals</a>
+                 </div>
+                 ${composer()}
+                 <div class="sec">
+                   <h3>All 52 markers</h3>
+                   <a href="#">See all</a>
+                 </div>
+                 ${board()}`
+          }
+          <div class="sec">
+            <h3>Groups on the panel</h3>
+            <a href="#">See all</a>
+          </div>
+          ${strip()}
+          <div class="sec">
+            <h3>Shortcuts</h3>
+          </div>
+          ${menu()}
+          ${next()}
+        </div>
+        <div class="fade"></div>
+        ${tabs()}`;
+
+      document.getElementById("p1").innerHTML = home(true);
+      document.getElementById("p2").innerHTML = home(false);
+      document.getElementById("p3").innerHTML = home(true);
+    </script>
+  </body>
+</html>

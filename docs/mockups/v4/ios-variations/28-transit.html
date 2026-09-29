@@ -1,0 +1,1032 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Transit · iOS variation 28 · OpenVitals</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        /* a cold near-black, and one surface a hair lighter for the map */
+        --page: #080b11;
+        --bg: #0d1219;
+        --card: #141b24;
+        --map: #1b2430;
+        --ink: #f1f4f8;
+        --ink-2: #a3adba;
+        --ink-3: #7c8695;
+        --rule: rgba(255, 255, 255, 0.07);
+
+        /* the three lines, matched at L* 64.6 to 65.7 on this ground */
+        --life: #c9973f;
+        --blood: #4aa6d8;
+        --gene: #b78de6;
+        --alert: #ff4438;
+
+        --s1: 4px;
+        --s2: 8px;
+        --s3: 16px;
+        --s4: 24px;
+        --s5: 32px;
+        --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--page);
+        color: var(--ink);
+        font:
+          13px/1.45 Archivo,
+          "Helvetica Neue",
+          Arial,
+          sans-serif;
+        font-variant-numeric: tabular-nums;
+        -webkit-font-smoothing: antialiased;
+      }
+      button {
+        font: inherit;
+        color: inherit;
+        background: none;
+        border: 0;
+        padding: 0;
+        cursor: pointer;
+        text-align: left;
+        -webkit-tap-highlight-color: transparent;
+      }
+      h1,
+      h2,
+      p {
+        margin: 0;
+      }
+
+      /* ---------- page: one left edge for everything ---------- */
+      .doc {
+        width: 812px; /* 390 + 32 + 390 */
+        max-width: 100%;
+        margin: 0 auto;
+        padding: var(--s5) 0 var(--s5);
+      }
+      .doc > * {
+        margin-bottom: var(--s4);
+      }
+      .doc header {
+        max-width: 520px;
+      }
+      .eyebrow {
+        color: var(--ink-3);
+      }
+      .doc h1 {
+        font-size: 28px;
+        font-weight: 600;
+        letter-spacing: -0.03em;
+        margin: var(--s1) 0 var(--s2);
+      }
+      .lede {
+        color: var(--ink-2);
+      }
+      .phones {
+        display: flex;
+        gap: var(--s5);
+      }
+      .cap {
+        display: flex;
+        justify-content: space-between;
+        color: var(--ink-3);
+        margin-bottom: var(--s2);
+        width: 390px;
+      }
+
+      /* ---------- phone ---------- */
+      .phone {
+        width: 390px;
+        height: 844px;
+        border-radius: 52px;
+        border: 7px solid #04060a;
+        background: var(--bg);
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+      }
+      .status {
+        height: 50px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 14px var(--s5) 0;
+        font-weight: 600;
+        position: relative;
+        flex: none;
+      }
+      .status i {
+        position: absolute;
+        left: 50%;
+        top: 9px;
+        width: 116px;
+        height: 31px;
+        border-radius: 18px;
+        background: #04060a;
+        transform: translateX(-50%);
+      }
+      .status svg {
+        display: block;
+      }
+      .screen {
+        flex: 1;
+        overflow-y: auto;
+        padding: var(--s2) 21px 130px;
+        scrollbar-width: none;
+      }
+      .screen::-webkit-scrollbar {
+        display: none;
+      }
+
+      .mast {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        padding-bottom: var(--s2);
+      }
+      .mast b {
+        font-weight: 600;
+      }
+      .mast span {
+        color: var(--ink-2);
+      }
+
+      /* ---------- the map ---------- */
+      .map {
+        background: var(--map);
+        border-radius: 14px;
+        overflow: hidden;
+      }
+      .map > svg.net,
+      .crop > svg.net {
+        display: block;
+        width: 100%;
+        height: auto;
+      }
+      .net text {
+        font-family: Archivo, sans-serif;
+        font-size: 13px;
+        fill: var(--ink);
+      }
+
+      .key {
+        border-top: 1px solid var(--rule);
+        padding: var(--s3) 14px;
+        display: flex;
+        flex-direction: column;
+        gap: var(--s3);
+      }
+      .key .lines {
+        display: flex;
+        justify-content: space-between;
+      }
+      .key .marks {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: var(--s2);
+      }
+      .key span {
+        display: flex;
+        align-items: center;
+        gap: var(--s2);
+        font-size: 12px;
+        color: var(--ink-2);
+        white-space: nowrap;
+      }
+      .key svg {
+        display: block;
+        flex: none;
+      }
+      .key i {
+        width: 20px;
+        height: 5px;
+        border-radius: 3px;
+        background: var(--c);
+        flex: none;
+      }
+
+      /* the service board, the foot of the map card */
+      .board {
+        border-top: 1px solid var(--rule);
+        padding: 0 14px;
+      }
+      .board .brow {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        width: 100%;
+        height: 42px;
+      }
+      .board .brow + .brow {
+        border-top: 1px solid var(--rule);
+      }
+      .board .bar {
+        width: 5px;
+        height: 22px;
+        border-radius: 3px;
+        background: var(--c);
+        flex: none;
+      }
+      .board b {
+        font-weight: 600;
+      }
+      .board .st {
+        flex: 1;
+        font-size: 12px;
+        color: var(--ink-2);
+      }
+      .board .v {
+        font-weight: 600;
+      }
+      .board .v em {
+        font-style: normal;
+        font-weight: 400;
+        font-size: 12px;
+        color: var(--ink-2);
+        margin-left: 3px;
+      }
+
+      /* ---------- below the fold ---------- */
+      .sec {
+        font-weight: 600;
+        color: var(--ink-2);
+        margin: var(--s4) 0 var(--s2);
+      }
+      .stop {
+        display: flex;
+        gap: 14px;
+        width: 100%;
+        align-items: center;
+        padding: var(--s3) 0;
+        border-top: 1px solid var(--rule);
+      }
+      .stop:last-of-type {
+        border-bottom: 1px solid var(--rule);
+      }
+      .stop .bar {
+        width: 5px;
+        align-self: stretch;
+        border-radius: 3px;
+        background: var(--c);
+        flex: none;
+      }
+      .stop .t {
+        flex: 1;
+        min-width: 0;
+      }
+      .stop .t b {
+        display: block;
+        font-weight: 600;
+      }
+      .stop .t small {
+        display: block;
+        font-size: 12px;
+        color: var(--ink-2);
+      }
+      .stop .v {
+        text-align: right;
+        flex: none;
+        font-weight: 600;
+      }
+      .stop .v small {
+        display: block;
+        font-size: 12px;
+        font-weight: 400;
+        color: var(--ink-2);
+      }
+
+      .jr {
+        display: grid;
+        grid-template-columns: 46px 16px 1fr auto;
+        gap: 0 var(--s2);
+        align-items: center;
+        padding: var(--s2) 0;
+      }
+      .jr .tm,
+      .jr .d {
+        font-size: 12px;
+        color: var(--ink-2);
+      }
+      .jr .pin {
+        height: 100%;
+        position: relative;
+        display: grid;
+        place-items: center;
+      }
+      .jr .pin::before {
+        content: "";
+        position: absolute;
+        top: -8px;
+        bottom: -8px;
+        width: 5px;
+        background: var(--life);
+      }
+      .jr:first-of-type .pin::before {
+        top: 50%;
+      }
+      .jr:last-of-type .pin::before {
+        bottom: 50%;
+      }
+      .jr .pin i {
+        position: relative;
+        width: 5px;
+        height: 14px;
+        background: var(--ink);
+      }
+      .jr .t small {
+        font-size: 12px;
+        color: var(--ink-2);
+      }
+
+      .say {
+        margin-top: var(--s4);
+        padding-top: var(--s3);
+        border-top: 1px solid var(--rule);
+        color: var(--ink-2);
+      }
+      .say b {
+        color: var(--ink);
+        font-weight: 600;
+      }
+
+      /* ---------- bottom bar ---------- */
+      .tabs {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: 76px;
+        background: var(--bg);
+        border-top: 1px solid var(--rule);
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr 64px;
+        align-items: start;
+        z-index: 4;
+      }
+      .tabs button {
+        padding-top: var(--s3);
+        text-align: center;
+        color: var(--ink-3);
+      }
+      .tabs button.on {
+        color: var(--ink);
+        border-bottom: 2px solid var(--ink);
+        padding-bottom: 6px;
+      }
+      .tabs .add {
+        justify-self: center;
+        width: 34px;
+        height: 34px;
+        margin-top: 10px;
+        padding: 0;
+        border-radius: 50%;
+        background: var(--ink);
+        color: var(--bg);
+        font-size: 21px;
+        line-height: 32px;
+        text-align: center;
+      }
+      .homebar {
+        position: absolute;
+        left: 50%;
+        bottom: 8px;
+        width: 134px;
+        height: 5px;
+        border-radius: 3px;
+        background: var(--ink-3);
+        transform: translateX(-50%);
+        z-index: 5;
+      }
+
+      /* ---------- stop sheet ---------- */
+      .veil {
+        position: absolute;
+        inset: 0;
+        z-index: 6;
+        background: rgba(8, 11, 17, 0.62);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 260ms var(--ease);
+      }
+      .sheet {
+        position: absolute;
+        z-index: 7;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: var(--card);
+        border-top: 1px solid var(--rule);
+        border-radius: 18px 18px 0 0;
+        padding: var(--s3) 21px 28px;
+        transform: translateY(102%);
+        transition: transform 340ms var(--ease);
+      }
+      .phone.open .veil {
+        opacity: 1;
+        pointer-events: auto;
+      }
+      .phone.open .sheet {
+        transform: none;
+      }
+      .sheet .sh {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        gap: var(--s3);
+      }
+      .sheet h2 {
+        font-size: 22px;
+        font-weight: 600;
+        letter-spacing: -0.02em;
+      }
+      .sheet .sh small {
+        display: block;
+        font-size: 12px;
+        color: var(--ink-2);
+      }
+      .sheet .now {
+        font-size: 22px;
+        font-weight: 600;
+        letter-spacing: -0.02em;
+        flex: none;
+      }
+      .sheet .now em {
+        font-style: normal;
+        font-size: 12px;
+        font-weight: 400;
+        color: var(--ink-2);
+        margin-left: 4px;
+      }
+      .sheet .blk {
+        margin-top: var(--s3);
+      }
+      .sheet .blk > span {
+        display: block;
+        font-size: 12px;
+        color: var(--ink-2);
+        margin-bottom: var(--s2);
+      }
+      .sheet .crop {
+        background: var(--map);
+        border-radius: 10px;
+        overflow: hidden;
+      }
+      .draw {
+        display: flex;
+        justify-content: space-between;
+        padding: 6px 0;
+        border-top: 1px solid var(--rule);
+      }
+      .draw b {
+        font-weight: 600;
+      }
+      .ix {
+        display: flex;
+        gap: var(--s2);
+        align-items: baseline;
+        padding: 6px 0;
+        font-size: 12px;
+        color: var(--ink-2);
+      }
+      .ix i {
+        width: 20px;
+        height: 5px;
+        border-radius: 3px;
+        background: var(--c);
+        flex: none;
+        position: relative;
+        top: -3px;
+      }
+      .ix b {
+        color: var(--ink);
+        font-weight: 600;
+      }
+      .sheet .close {
+        display: block;
+        width: 100%;
+        margin-top: var(--s3);
+        padding: 14px;
+        text-align: center;
+        border: 1px solid var(--rule);
+        border-radius: var(--s2);
+        color: var(--ink-2);
+      }
+
+      /* ---------- foot notes, same left edge, lighter than the chrome ---- */
+      .notes {
+        color: var(--ink-2);
+      }
+      .notes h2 {
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--ink);
+        margin-bottom: var(--s2);
+      }
+      .notes table {
+        border-collapse: collapse;
+        width: 390px;
+        max-width: 100%;
+        margin-bottom: var(--s4);
+      }
+      .notes td,
+      .notes th {
+        text-align: left;
+        font-weight: 400;
+        padding: 6px 12px 6px 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        vertical-align: middle;
+      }
+      .notes th {
+        color: var(--ink);
+        white-space: nowrap;
+      }
+      .notes td svg {
+        display: block;
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .sheet,
+        .veil {
+          transition: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="doc">
+      <header>
+        <p class="eyebrow">iOS variation 28</p>
+        <h1>Transit</h1>
+        <p class="lede">
+          The body as a three-line network. Every station on one 52-unit rhythm,
+          every bend the same 45 degrees at the same radius, and a lozenge
+          wherever two lines meet because they share a cause.
+        </p>
+      </header>
+
+      <section class="phones">
+        <div>
+          <p class="cap"><span>01 · The network</span><span>tap LDL</span></p>
+          <div class="phone"></div>
+        </div>
+        <div>
+          <p class="cap"><span>02 · LDL</span><span>after the tap</span></p>
+          <div class="phone open"></div>
+        </div>
+      </section>
+
+      <section class="notes">
+        <h2>The score, which is the network status</h2>
+        <table>
+          <tr>
+            <th>Lifestyle</th>
+            <td>77</td>
+            <td>weighted 0.40</td>
+          </tr>
+          <tr>
+            <th>Blood</th>
+            <td>71</td>
+            <td>weighted 0.45</td>
+          </tr>
+          <tr>
+            <th>Genes</th>
+            <td>63</td>
+            <td>weighted 0.15</td>
+          </tr>
+          <tr>
+            <th>Score</th>
+            <td>72</td>
+            <td>0.40 × 77 + 0.45 × 71 + 0.15 × 63</td>
+          </tr>
+        </table>
+
+        <h2>Key</h2>
+        <table id="legend"></table>
+      </section>
+    </main>
+
+    <script>
+      "use strict";
+
+      /* ---------- data and arithmetic, unchanged from 25-onion ---------- */
+      const LIFE = {
+        w: 0.4,
+        rows: [
+          { n: "Sleep", s: "7h 30 of 7h 30", p: 100 },
+          { n: "Moves", s: "2 of 5 ticked", p: 40 },
+          { n: "Calories", s: "1 497 of 1 900 kcal", p: 90 },
+          { n: "Protein", s: "93 of 120 g", p: 78 },
+        ],
+      };
+      const BLOOD = {
+        w: 0.45,
+        rows: [
+          { n: "Vitamin D", s: "29 ng/mL · aim 40 to 60", x: 12, st: "rose" },
+          { n: "LDL", s: "131 mg/dL · aim under 100", x: 84, st: "amber" },
+          { n: "ApoB", s: "98 mg/dL · aim under 90", x: 80, st: "amber" },
+          { n: "hs-CRP", s: "0.6 mg/L", x: 30, st: "green" },
+          { n: "HbA1c", s: "5.3 %", x: 45, st: "green" },
+          { n: "Ferritin", s: "64 ng/mL", x: 50, st: "green" },
+          { n: "TPO", s: "18 IU/mL", x: 35, st: "green" },
+        ],
+      };
+      const GENES = {
+        w: 0.15,
+        rows: [
+          { n: "APOE ε3/ε4", s: "LDL responds more to saturated fat", p: 45 },
+          { n: "LPA rs10455872", s: "not carried", p: 100 },
+          { n: "MTHFR C677T", s: "heterozygous · folate form matters", p: 60 },
+          { n: "FTO rs9939609", s: "one copy · appetite", p: 45 },
+        ],
+      };
+      const pct = (rows) =>
+        Math.round(rows.reduce((a, r) => a + r.p, 0) / rows.length);
+      const life = pct(LIFE.rows); // 77
+      const blood = Math.round(
+        (BLOOD.rows.reduce(
+          (a, r) => a + { green: 1, amber: 0.5, rose: 0 }[r.st],
+          0,
+        ) /
+          BLOOD.rows.length) *
+          100,
+      ); // 71
+      const genes = pct(GENES.rows); // 63
+      const score = Math.round(
+        LIFE.w * life + BLOOD.w * blood + GENES.w * genes,
+      ); // 72
+      console.assert(score === 72, "score arithmetic drifted", score);
+
+      const verdict =
+        score >= 80
+          ? "Strong"
+          : score >= 65
+            ? "On track"
+            : score >= 50
+              ? "Watch"
+              : "Act";
+
+      const LOG = [
+        { t: "19:30", n: "Pork belly, salad", s: "623 kcal", d: "−1" },
+        { t: "13:45", n: "Walk after lunch", s: "15 min, ticked", d: "+2" },
+        {
+          t: "13:08",
+          n: "Sardines on rye",
+          s: "462 kcal, 38 g protein",
+          d: "+1",
+        },
+        { t: "08:20", n: "Selenium 200 µg", s: "ticked", d: "0" },
+        { t: "08:15", n: "Oats with berries", s: "412 kcal", d: "+1" },
+        { t: "—", n: "Sleep", s: "last night, 7h 30", d: "+3" },
+      ];
+
+      /* =========================================================
+         GEOMETRY
+         One design space, 360 x 476. The map renders it at 334, so
+         the scale is 334/360. The sheet renders a 315-unit-wide crop
+         of the SAME drawing at 292, which is the same 334/360, so a
+         stroke is the same width on both screens by construction.
+         ========================================================= */
+      const M = {
+        W: 360,
+        H: 476,
+        P: 52, // the one rhythm: every station is P from its neighbour
+        colA: 140, // the feeder corridor
+        lane: 192, // the track a feeder runs on beside the trunk
+        colB: 226, // the Blood trunk
+        lw: 7, // the one stroke width
+        R: 22, // the one corner radius
+        off: 30, // the one label offset, line centre to label trailing edge
+        top: 30,
+        ring: 9.5,
+      };
+      const OUTER = M.ring + M.lw / 2; // 13, the radius every mark shares
+      const IXR = 12; // the lozenge, barely proud of a station
+      const SPAN = M.colB - M.lane; // 34, what a lozenge spans
+      const D = M.P; // every diagonal drops exactly one pitch
+      const APP = M.P / 2; // the straight run either side of a diagonal
+      const row = (i) => M.top + i * M.P; // the only y any station may take
+
+      console.assert(M.lane - M.colA === D, "the diagonals are not 45 degrees");
+
+      const trunk = [
+        ["TPO", "in"],
+        ["Ferritin", "in"],
+        ["HbA1c", "in"],
+        ["hs-CRP", "in"],
+        ["Vitamin D", "off"],
+        ["Saturated fat", "ix"],
+        ["LDL", "bord"],
+        ["ApoB", "bord"],
+        ["APOE ε3/ε4", "ix"],
+      ].map(([n, st], i) => ({
+        n,
+        st,
+        x: M.colB,
+        y: row(i),
+        tap: n === "LDL",
+      }));
+
+      const lifeStops = [
+        ["Sleep", "in"],
+        ["Calories", "in"],
+        ["Protein", "bord"],
+        ["Moves", "off"],
+      ].map(([n, st], i) => ({ n, st, x: M.colA, y: row(i) }));
+
+      const geneStops = [
+        ["LPA", "in"],
+        ["MTHFR", "bord"],
+        ["FTO", "bord"],
+      ].map(([n, st], i) => ({ n, st, x: M.colA, y: row(i + 4) }));
+
+      const ySat = trunk[5].y;
+      const yApoe = trunk[8].y;
+
+      /* Each feeder: down the corridor, half a pitch, one 45 degree drop of
+         one pitch, half a pitch, into the lozenge. Identical shape, identical
+         radius, identical entry, one mirrored under the other. */
+      const routes = {
+        life: [
+          [M.colA, lifeStops[0].y],
+          [M.colA, lifeStops[3].y + APP],
+          [M.lane, lifeStops[3].y + APP + D],
+          [M.lane, ySat],
+        ],
+        gene: [
+          [M.colA, geneStops[0].y],
+          [M.colA, geneStops[2].y + APP],
+          [M.lane, geneStops[2].y + APP + D],
+          [M.lane, yApoe],
+        ],
+        blood: [
+          [M.colB, trunk[0].y],
+          [M.colB, trunk[8].y],
+        ],
+      };
+
+      /* rules the drawing must keep, checked at run time */
+      const arrive = (r) => r[2][1] + APP;
+      console.assert(
+        arrive(routes.life) === ySat,
+        "Lifestyle misses its lozenge",
+      );
+      console.assert(arrive(routes.gene) === yApoe, "Genes misses its lozenge");
+      console.assert(
+        (yApoe - ySat) % M.P === 0,
+        "the interchanges are not a whole number of stops apart",
+      );
+      console.assert(
+        [...trunk, ...lifeStops, ...geneStops].every(
+          (s) => (s.y - M.top) % M.P === 0,
+        ),
+        "a station is off the rhythm",
+      );
+      console.assert(
+        geneStops[0].y - (lifeStops[3].y + APP) >= M.P / 2,
+        "the Genes line starts inside the Lifestyle corner",
+      );
+
+      /* corners: a true arc, stepped back R·tan(theta/2) into each leg */
+      function poly(pts, R) {
+        const sub = (a, b) => [a[0] - b[0], a[1] - b[1]];
+        const unit = (v) => {
+          const L = Math.hypot(v[0], v[1]);
+          return [v[0] / L, v[1] / L];
+        };
+        let d = `M${pts[0][0]} ${pts[0][1]}`;
+        for (let i = 1; i < pts.length - 1; i++) {
+          const V = pts[i];
+          const a = unit(sub(pts[i - 1], V));
+          const b = unit(sub(pts[i + 1], V));
+          const theta = Math.acos(
+            Math.max(-1, Math.min(1, -(a[0] * b[0] + a[1] * b[1]))),
+          );
+          const t = Math.min(
+            R * Math.tan(theta / 2),
+            Math.hypot(...sub(pts[i - 1], V)) / 2,
+            Math.hypot(...sub(pts[i + 1], V)) / 2,
+          );
+          const A = [V[0] + a[0] * t, V[1] + a[1] * t];
+          const B = [V[0] + b[0] * t, V[1] + b[1] * t];
+          const sweep = a[0] * b[1] - a[1] * b[0] < 0 ? 1 : 0;
+          d += `L${A[0].toFixed(1)} ${A[1].toFixed(1)}A${R} ${R} 0 0 ${sweep} ${B[0].toFixed(1)} ${B[1].toFixed(1)}`;
+        }
+        const E = pts[pts.length - 1];
+        return d + `L${E[0]} ${E[1]}`;
+      }
+      console.assert(
+        !/[CQS]/.test(poly(routes.life, M.R)),
+        "a bend was drawn as a curve instead of an arc",
+      );
+
+      /* ---------- the whole glyph vocabulary, four marks, one function ----
+         Every mark on either screen, at any size, comes from here. A station
+         is always the same shape at the same 26-unit outer size. */
+      function mark(x, y, st) {
+        if (st === "in")
+          return `<path d="M${x - OUTER} ${y}H${x + OUTER}" stroke="var(--ink)" stroke-width="${M.lw}"/>`;
+        if (st === "bord")
+          return `<circle cx="${x}" cy="${y}" r="${M.ring}" fill="var(--map)" stroke="var(--ink)" stroke-width="${M.lw}"/>`;
+        if (st === "off")
+          return `<circle cx="${x}" cy="${y}" r="${OUTER}" fill="var(--alert)"/>`;
+        return `<rect x="${x - SPAN - IXR}" y="${y - IXR}" width="${SPAN + 2 * IXR}" height="${2 * IXR}" rx="${IXR}" fill="none" stroke="var(--ink)" stroke-width="${M.lw}"/>`;
+      }
+
+      /* the key and the legend show the same mark on the same track, upright,
+         at the same scale it is drawn on the map */
+      const chip = (st, px = 30) => {
+        const w = st === "ix" ? SPAN + 2 * IXR + M.lw : 2 * OUTER;
+        const cx = st === "ix" ? w - IXR - M.lw / 2 : w / 2;
+        const h = 40;
+        return `<svg width="${((px * w) / h).toFixed(1)}" height="${px}" viewBox="0 0 ${w} ${h}">
+          <path d="M${cx} 0V${h}" stroke="var(--ink-3)" stroke-width="${M.lw}"/>
+          ${mark(cx, h / 2, st)}
+        </svg>`;
+      };
+
+      const station = (s) => {
+        const left = s.x === M.colA;
+        return `<g${s.tap ? ' data-do="open" style="cursor:pointer"' : ""}>
+          ${s.tap ? `<rect x="${s.x - 26}" y="${s.y - 26}" width="${M.W - s.x + 26}" height="52" fill="transparent"/>` : ""}
+          ${mark(s.x, s.y, s.st)}
+          <text x="${left ? s.x - M.off : s.x + M.off}" y="${s.y + 4.5}" text-anchor="${left ? "end" : "start"}">${s.n}</text>
+        </g>`;
+      };
+
+      /* one drawing. The map is the whole viewBox, the sheet is a crop of it. */
+      const network = (vb = `0 0 ${M.W} ${M.H}`) => `
+        <svg class="net" viewBox="${vb}" role="img"
+          aria-label="Three lines, Lifestyle, Blood and Genes, meeting at Saturated fat and at APOE">
+          ${["life", "gene", "blood"]
+            .map(
+              (k) =>
+                `<path d="${poly(routes[k], M.R)}" fill="none" stroke="var(--${k})" stroke-width="${M.lw}" stroke-linecap="butt"/>`,
+            )
+            .join("")}
+          ${[...lifeStops, ...geneStops, ...trunk].map(station).join("")}
+        </svg>`;
+
+      const KEYMARKS = [
+        ["in", "In range"],
+        ["bord", "Borderline"],
+        ["off", "Out of range"],
+        ["ix", "Interchange"],
+      ];
+      const keyStrip = () => `
+        <div class="key">
+          <div class="lines">
+            <span style="--c:var(--life)"><i></i>Lifestyle ${life}</span>
+            <span style="--c:var(--blood)"><i></i>Blood ${blood}</span>
+            <span style="--c:var(--gene)"><i></i>Genes ${genes}</span>
+          </div>
+          <div class="marks">
+            ${KEYMARKS.map(([st, n]) => `<span>${chip(st, 26)}${n}</span>`).join("")}
+          </div>
+        </div>`;
+
+      /* ---------- below the fold ---------- */
+      const ALERTS = [
+        {
+          c: "blood",
+          n: "Vitamin D",
+          s: "Out of range",
+          v: "29",
+          u: "ng/mL",
+        },
+        {
+          c: "blood",
+          n: "LDL",
+          s: "Borderline",
+          v: "131",
+          u: "mg/dL",
+          tap: true,
+        },
+      ];
+      const alertRow = (r) => `
+        <button class="brow" ${r.tap ? 'data-do="open"' : ""}>
+          <span class="bar" style="--c:var(--${r.c})"></span>
+          <b>${r.n}</b>
+          <span class="st">${r.s}</span>
+          <span class="v">${r.v}<em>${r.u}</em></span>
+        </button>`;
+
+      const journey = (r) => `
+        <div class="jr">
+          <span class="tm">${r.t}</span>
+          <span class="pin"><i></i></span>
+          <span class="t"><b>${r.n}</b><br /><small>${r.s}</small></span>
+          <span class="d">${r.d}</span>
+        </div>`;
+
+      /* ---------- the sheet ----------
+         "Where it sits" is not a new drawing. It is the map itself, windowed
+         to the shared section. The sheet's content box is 334 wide, the same
+         as the screen's, so the crop keeps the full 360-unit width and every
+         stroke, station and gap is pixel for pixel the map's. */
+      const CROP = `0 ${ySat - 34} ${M.W} ${yApoe - ySat + 68}`;
+
+      const sheet = () => `
+        <div class="veil" data-do="close"></div>
+        <div class="sheet">
+          <div class="sh">
+            <span><h2>LDL</h2><small>Blood line, stop 7 of 9</small></span>
+            <span class="now">131<em>mg/dL</em></span>
+          </div>
+
+          <div class="blk">
+            <span>Where it sits, from the map</span>
+            <div class="crop">${network(CROP)}</div>
+          </div>
+
+          <div class="blk">
+            <span>The two draws</span>
+            <div class="draw"><span>9 Dec 2025</span><b>168 mg/dL</b></div>
+            <div class="draw"><span>1 Aug 2026</span><b>131 mg/dL</b></div>
+            <div class="draw"><span>Aim</span><b>under 100 mg/dL</b></div>
+          </div>
+
+          <div class="blk">
+            <span>The two stops either side</span>
+            <div class="ix" style="--c:var(--life)"><i></i><span><b>Saturated fat</b> — yesterday's fat went past the day's share.</span></div>
+            <div class="ix" style="--c:var(--gene)"><i></i><span><b>APOE ε3/ε4</b> — one ε4 copy, so LDL answers that fat more.</span></div>
+          </div>
+
+          <button class="close" data-do="close">Back to the network</button>
+        </div>`;
+
+      const STATUSBAR = `
+        <svg width="66" height="12" viewBox="0 0 66 12" fill="var(--ink)">
+          <rect x="0" y="7" width="3" height="5" rx="1"/>
+          <rect x="5" y="5" width="3" height="7" rx="1"/>
+          <rect x="10" y="2.5" width="3" height="9.5" rx="1"/>
+          <rect x="15" y="0" width="3" height="12" rx="1"/>
+          <path d="M28 3.4a7.6 7.6 0 0 1 9 0" stroke="var(--ink)" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+          <path d="M30 6.4a4.6 4.6 0 0 1 5 0" stroke="var(--ink)" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+          <circle cx="32.5" cy="9.6" r="1.3"/>
+          <rect x="45" y="1.5" width="18" height="9" rx="2.5" fill="none" stroke="var(--ink)" stroke-width="1.2" opacity=".5"/>
+          <rect x="46.5" y="3" width="12" height="6" rx="1.4"/>
+          <path d="M64.5 4.5v3" stroke="var(--ink)" stroke-width="1.6" opacity=".5" stroke-linecap="round"/>
+        </svg>`;
+
+      const home = () => `
+        <div class="status"><span>9:41</span><i></i>${STATUSBAR}</div>
+        <div class="screen">
+          <div class="mast">
+            <b>OpenVitals</b>
+            <span>${score} · ${verdict}</span>
+          </div>
+
+          <div class="map">
+            ${network()}
+            ${keyStrip()}
+            <div class="board">${ALERTS.map(alertRow).join("")}</div>
+          </div>
+
+          <p class="sec" style="margin-top:150px">Today, on the Lifestyle line</p>
+          ${LOG.map(journey).join("")}
+
+          <p class="say">Keep this eight weeks and <b>LDL lands near 104</b>, from 131. PhenoAge 36.2 at 39. Next draw 1 Nov 2026.</p>
+        </div>
+
+        <div class="tabs">
+          <button class="on">Network</button>
+          <button>Day</button>
+          <button>Draws</button>
+          <button class="add" data-do="open" aria-label="Add">+</button>
+        </div>
+        <div class="homebar"></div>
+        ${sheet()}`;
+
+      for (const p of document.querySelectorAll(".phone")) {
+        p.innerHTML = home();
+        p.addEventListener("click", (e) => {
+          const b = e.target.closest("[data-do]");
+          if (b) p.classList.toggle("open", b.dataset.do === "open");
+        });
+      }
+
+      /* the page legend is the same chip again, nothing new is drawn */
+      document.getElementById("legend").innerHTML = KEYMARKS.map(
+        ([st, n]) =>
+          `<tr><td>${chip(st, 24)}</td><th>${n}</th><td>${
+            {
+              in: "inside its reference range",
+              bord: "outside the aim, inside the range",
+              off: "outside the range, the only red on the screen",
+              ix: "one stop, two lines, one shared cause",
+            }[st]
+          }</td></tr>`,
+      ).join("");
+    </script>
+  </body>
+</html>

@@ -26,7 +26,8 @@ const THEME_SCRIPT = `(function(){
   var m = matchMedia("(prefers-color-scheme: dark)");
   function apply(){
     var pref = localStorage.getItem("theme");
-    var dark = pref === "dark" || (pref !== "light" && m.matches);
+    // light unless picked: iOS has no dark twin of the paper
+    var dark = pref === "dark" || (pref === "system" && m.matches);
     document.documentElement.dataset.theme = dark ? "dark" : "light";
   }
   apply(); m.addEventListener("change", apply);
