@@ -7463,6 +7463,12 @@ h1.c-title {
   text-decoration: underline;
   text-underline-offset: 3px;
 }
+/* Phase 44C: the check-in's "2 of 5" takes the progress bar's place */
+.setup-count {
+  flex: 1;
+  font-size: var(--type-xs);
+  color: var(--ink-2);
+}
 .setup-screen {
   display: grid;
   gap: var(--s13);

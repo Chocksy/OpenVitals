@@ -5,6 +5,7 @@ import { getDb } from "@/db";
 import { users } from "@/db/auth-schema";
 import { actionsForAll } from "@/lib/actions";
 import { setupDue } from "@/lib/setup-server";
+import { checkinDueFor } from "@/lib/checkin-server";
 import {
   genomeBody,
   planTodayBody,
@@ -80,6 +81,7 @@ export default async function Home({
   /** `?ask=<fact key>`: the question a link somewhere else asked for */
   /** `?hunch=<id>`: open that hunch's case on load (phase 40b) */
   /** `?home=1`: setup's "Finish later"; Home shows instead of `/setup` (43B) */
+  /** and instead of `/checkin` (44C) */
   searchParams: Promise<{ ask?: string; hunch?: string; home?: string }>;
 }) {
   const userId = await requireUserId();
@@ -91,6 +93,11 @@ export default async function Home({
    */
   const due = await setupDue(userId);
   if (due && params.home !== "1") redirect("/setup");
+  // Phase 44C: a due check-in shows first, as setup does. This reads state
+  // only, so a Home load never starts a round; "Ask later" comes back with
+  // `?home=1`.
+  if (params.home !== "1" && (await checkinDueFor(userId)))
+    redirect("/checkin");
   const want = params.ask;
   const day = localDay();
   const [

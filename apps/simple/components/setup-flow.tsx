@@ -15,6 +15,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type {
   PictureRow,
+  QuestionOption,
   SetupBody,
   SetupPost,
   SetupScreen,
@@ -218,32 +219,13 @@ export function SetupFlow({
         {s.kind === "question" && (
           <>
             <h1>{s.question}</h1>
-            <div className="setup-options">
-              {s.options.map((o) => (
-                <div key={o.label}>
-                  <Button
-                    job="quiet"
-                    className="setup-option"
-                    disabled={busy}
-                    onClick={() =>
-                      void go({
-                        screen: "question",
-                        key: s.key,
-                        value: o.label,
-                      })
-                    }
-                  >
-                    {o.label}
-                  </Button>
-                  {o.moves && (
-                    <p className="setup-moves">
-                      {o.label} moves {o.moves.name} {o.moves.from} →{" "}
-                      {o.moves.to}
-                    </p>
-                  )}
-                </div>
-              ))}
-            </div>
+            <QuestionOptions
+              options={s.options}
+              busy={busy}
+              onPick={(value) =>
+                void go({ screen: "question", key: s.key, value })
+              }
+            />
           </>
         )}
         {s.kind === "treatments" && <Treatments s={s} busy={busy} go={go} />}
@@ -283,6 +265,42 @@ export function SetupFlow({
   );
 }
 
+/**
+ * The options of a question screen, each with the engine's "moves" line under
+ * it. Phase 44C: exported so `/checkin` draws its questions the same way.
+ */
+export function QuestionOptions({
+  options,
+  busy,
+  onPick,
+}: {
+  options: QuestionOption[];
+  busy: boolean;
+  onPick: (label: string) => void;
+}) {
+  return (
+    <div className="setup-options">
+      {options.map((o) => (
+        <div key={o.label}>
+          <Button
+            job="quiet"
+            className="setup-option"
+            disabled={busy}
+            onClick={() => onPick(o.label)}
+          >
+            {o.label}
+          </Button>
+          {o.moves && (
+            <p className="setup-moves">
+              {o.label} moves {o.moves.name} {o.moves.from} → {o.moves.to}
+            </p>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+
 /* ── the picture ─────────────────────────────────────────────────────── */
 
 /**
@@ -302,22 +320,24 @@ function Bar({ p, from }: { p: number; from: number }) {
   );
 }
 
-function Picture({
+/** Phase 44C: exported for `/checkin`, which passes its own `hint`. */
+export function Picture({
   rows,
   prev,
+  hint = "These start as the odds for your sex and age. Each answer moves them.",
 }: {
   rows: PictureRow[];
   /** the picture before the last answer; null on the first screen shown */
   prev: PictureRow[] | null;
+  /** the line under the heading when there are rows */
+  hint?: string;
 }) {
   const moved = prev ? deltaOf(prev, rows) : new Map<string, number>();
   const was = new Map((prev ?? []).map((r) => [r.id, r.p]));
   return (
     <section className="setup-picture" aria-label="Your picture so far">
       <h2>Your picture so far</h2>
-      {rows.length > 0 && (
-        <p>These start as the odds for your sex and age. Each answer moves them.</p>
-      )}
+      {rows.length > 0 && <p>{hint}</p>}
       {rows.length === 0 ? (
         <p>Nothing stands out yet.</p>
       ) : (
