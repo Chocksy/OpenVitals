@@ -334,7 +334,7 @@ const toMonth = (d: unknown) => {
   return MONTH.test(s) ? s : null;
 };
 
-function treatmentsNow(value: unknown): Treatment[] {
+export function treatmentsNow(value: unknown): Treatment[] {
   if (!Array.isArray(value)) return [];
   return value.flatMap((t) => {
     const started = toMonth(t?.started);

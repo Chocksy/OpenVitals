@@ -26,6 +26,15 @@ export interface RoundItem {
   why: string;
   /** condition ids this answer is expected to move, for the `since` screen */
   ids: string[];
+  /**
+   * Phase 44B: the expected move per id in `ids` (0..1), so the `since`
+   * screen credits a moved bar to the answer that was meant to move it most.
+   */
+  swings?: Record<string, number>;
+  /** follow-ups: the plan item or treatment the screens are about */
+  text?: string;
+  /** follow-ups: what the effect screen asks about ("Ferritin", "How you feel") */
+  target?: string;
 }
 
 export interface CheckinState {
@@ -39,6 +48,10 @@ export interface CheckinState {
   nextDue: string; // ISO
   startBeliefs: Record<string, number> | null; // p per condition at round start
   recent: string[][]; // keys of the last 2 finished rounds
+  /** key -> ISO of its last skip; kept REPEAT_DAYS so a skip stays out that long */
+  skippedAt?: Record<string, string>;
+  /** follow-up item id -> ISO of its last answer, skip or skipped round */
+  followupAt?: Record<string, string>;
 }
 
 const HOUR_MS = 3_600_000;
@@ -94,6 +107,8 @@ export function firstState(
     nextDue: plusDays(setupDone ?? `${shipDay}T00:00:00Z`, 7),
     startBeliefs: null,
     recent: [],
+    skippedAt: {},
+    followupAt: {},
   };
 }
 
@@ -163,6 +178,14 @@ const idsMoved = (m: Move, ids: Set<string>): string[] =>
   m.moves
     .filter((x) => ids.has(x.id) && Math.abs(x.to - x.from) >= FLOOR)
     .map((x) => x.id);
+
+/** `idsMoved` with the size of each move, kept for the `since` screen. */
+const swingsOf = (m: Move, ids: Set<string>): Record<string, number> =>
+  Object.fromEntries(
+    m.moves
+      .filter((x) => ids.has(x.id) && Math.abs(x.to - x.from) >= FLOOR)
+      .map((x) => [x.id, Math.round(Math.abs(x.to - x.from) * 1000) / 1000]),
+  );
 
 function candidates(moves: Move[]): Candidate[] {
   const seen = new Set<string>();
@@ -284,6 +307,7 @@ export function pickRound(r: RoundInput): RoundItem[] {
       pool: 2,
       why: `The app has a weak hunch about ${nameOf(h.conditionId)}. This answer tells it more.`,
       ids: idsMoved(best.c.move, new Set([...r.watched, h.conditionId])),
+      swings: swingsOf(best.c.move, new Set([...r.watched, h.conditionId])),
     });
   }
 
@@ -308,6 +332,8 @@ export function pickRound(r: RoundInput): RoundItem[] {
         pool: 1,
         why: `You started this ${weeks} week${weeks === 1 ? "" : "s"} ago.`,
         ids: [],
+        text: followup.text,
+        target: followup.target,
       },
       {
         key: `followup_effect:${followup.itemId}`,
@@ -316,6 +342,8 @@ export function pickRound(r: RoundInput): RoundItem[] {
         pool: 1,
         why: "This tells the app if it helped.",
         ids: [],
+        text: followup.text,
+        target: followup.target,
       },
     );
     used += 2;
@@ -330,6 +358,7 @@ export function pickRound(r: RoundInput): RoundItem[] {
       pool: 1,
       why: factWhy(c),
       ids: idsMoved(c.move, r.watched),
+      swings: swingsOf(c.move, r.watched),
     });
     used++;
   }

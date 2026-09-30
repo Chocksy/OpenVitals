@@ -5,14 +5,13 @@
  * `saveFact` (or `habit_logs` for "Every day"). Web and iOS draw the same
  * JSON. Spec: docs/plans/2026-09-30-phase44-checkin-spec.md, part B.
  */
-import { and, eq, gte, inArray, isNull, like } from "drizzle-orm";
+import { and, eq, gte, inArray, isNull } from "drizzle-orm";
 import {
   getDb,
   goals,
   habitLogs,
   metrics,
   profileFactHistory,
-  profileFacts,
   protocolItems,
   type HunchExplanation,
 } from "@/db";
@@ -32,6 +31,7 @@ import {
 } from "./checkin";
 import { buildModelInput, saveFact, type ModelInput } from "./coverage";
 import { lastDays, localDay, shiftDay } from "./daily";
+import { factAt } from "./facts";
 import { catalogFor } from "./hkb";
 import { hunchRows, refreshHunches } from "./hunches";
 import {
@@ -52,8 +52,10 @@ import {
   optionsOf,
   pictureOf,
   setupDue,
+  treatmentsNow,
   type PictureRow,
   type QuestionOption,
+  type Treatment,
 } from "./setup-server";
 import type { SetupState } from "./setup";
 import { symptomByKey } from "./symptoms";
@@ -103,6 +105,7 @@ const SHIP_DAY = "2026-10-01";
 export const ADHERENCE = ["Every day", "Most days", "Some days", "Not at all"];
 export const EFFECT = ["Better", "Same", "Worse"];
 const ADHERENCE_Q = "How often did you do it this week?";
+const FOLLOWUP_DAYS = 14;
 
 /* ── pure helpers ─────────────────────────────────────────────────────── */
 
@@ -149,6 +152,8 @@ export function checkPost(body: CheckinPost): string | null {
  * The bars that moved since the round started, with the answer that moved
  * each. `asked` is the round's answered items; a bar none of them names moved
  * for another reason (a hunch refresh, a new reading) and says so with null.
+ * A condition with no start value (woken during the round) is left out: its
+ * "from" would be a 0 the engine never printed.
  */
 export function sinceOf(
   startBeliefs: Record<string, number>,
@@ -158,9 +163,10 @@ export function sinceOf(
   labels: Map<string, string>,
 ): Extract<CheckinScreen, { kind: "since" }>["moved"] {
   return after
+    .filter((b) => startBeliefs[b.id] != null)
     .map((b) => ({
       id: b.id,
-      from: pct(startBeliefs[b.id] ?? 0),
+      from: pct(startBeliefs[b.id]!),
       to: pct(b.p),
     }))
     .filter(
@@ -170,7 +176,10 @@ export function sinceOf(
     )
     .sort((a, b) => Math.abs(b.to - b.from) - Math.abs(a.to - a.from))
     .map((x) => {
-      const item = asked.find((i) => i.ids.includes(x.id));
+      // The answer that was expected to move this bar most gets the credit.
+      const item = asked
+        .filter((i) => i.ids.includes(x.id))
+        .sort((a, b) => (b.swings?.[x.id] ?? 0) - (a.swings?.[x.id] ?? 0))[0];
       return {
         id: x.id,
         name: names.get(x.id) ?? x.id,
@@ -190,11 +199,187 @@ export function labelOf(key: string): string {
   return `your ${what} answer`;
 }
 
+/**
+ * A follow-up screen's question names what it is about: the plan item or the
+ * treatment. Without a name it falls back to the spec's fixed copy.
+ */
+export function followupQuestion(item: RoundItem): string {
+  if (item.kind === "adherence")
+    return item.text
+      ? `${item.text}: how often in the last week?`
+      : ADHERENCE_Q;
+  const target = item.target ?? "How you feel";
+  return item.text
+    ? `${target} since you started ${item.text}`
+    : `${target} since you started`;
+}
+
+/** "Vitamin D3 (2000 IU)" -> "vitamin-d3-2000-iu": a treatment's follow-up id. */
+export const slugOf = (what: string): string =>
+  what
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+
+/**
+ * Phase 44B (spec B2.3): each current treatment started 7 or more days ago
+ * and not stopped. `started` is a month, read as its first day. The id is
+ * `t:<slug>`, so its keys never collide with a plan item's uuid.
+ */
+export function treatmentFollowups(
+  treatments: Treatment[],
+  today: string,
+): FollowupCandidate[] {
+  const weekAgo = shiftDay(today, -7);
+  return treatments
+    .filter((t) => !t.stopped && `${t.started}-01` <= weekAgo)
+    .map((t) => ({
+      itemId: `t:${slugOf(t.what)}`,
+      text: t.what,
+      target: "How you feel",
+      startedAt: `${t.started}-01T00:00:00Z`,
+    }));
+}
+
+const within = (iso: string, now: string, days: number) =>
+  Date.parse(now) - Date.parse(iso) < days * DAY_MS;
+
+/**
+ * Follow-ups not answered, skipped or skipped-with-their-round in the last
+ * 14 days (`followupAt`, which every follow-up post stamps).
+ */
+export function followupsDue(
+  candidates: FollowupCandidate[],
+  s: CheckinState,
+  now: string,
+): FollowupCandidate[] {
+  const at = s.followupAt ?? {};
+  return candidates.filter(
+    (c) => !at[c.itemId] || !within(at[c.itemId]!, now, FOLLOWUP_DAYS),
+  );
+}
+
+/** Keys skipped in the last REPEAT_DAYS: the repeat rule keeps them out. */
+export function recentSkips(s: CheckinState, now: string): string[] {
+  return Object.entries(s.skippedAt ?? {})
+    .filter(([, iso]) => within(iso, now, REPEAT_DAYS))
+    .map(([k]) => k);
+}
+
+/** The first item this round has neither answered nor skipped. */
+export const headOf = (s: CheckinState): RoundItem | null =>
+  s.queue.find((i) => !s.asked.includes(i.key) && !s.skipped.includes(i.key)) ??
+  null;
+
+/** What an answer writes: a fact, or `habit_logs` for a plan item done every day. */
+export type CheckinSave =
+  | { fact: string; value: string }
+  | { habit: string } // protocol_items.id
+  | null;
+
+const prune = (m: Record<string, string> | undefined, now: string) =>
+  Object.fromEntries(
+    Object.entries(m ?? {}).filter(([, iso]) => within(iso, now, REPEAT_DAYS)),
+  );
+
+/**
+ * One POST applied to the state, pure. Null means nothing changes: an answer
+ * for a key that is not the current question (a double tap or a stale
+ * screen), a round skip with no round, or `done` before the last answer.
+ * `trying` sets the next due date when the round closes.
+ */
+export function transition(
+  s: CheckinState,
+  body: CheckinPost,
+  now: string,
+  trying: boolean,
+): { next: CheckinState; save: CheckinSave } | null {
+  const b = body as Partial<Record<string, unknown>>;
+  const stamp = (
+    m: Record<string, string> | undefined,
+    items: RoundItem[],
+  ) => ({
+    ...prune(m, now),
+    ...Object.fromEntries(
+      items.filter((i) => i.itemId).map((i) => [i.itemId!, now]),
+    ),
+  });
+
+  if (b.later === true)
+    return {
+      next: {
+        ...s,
+        snoozedUntil: laterOf(now, (body as { offsetMin: number }).offsetMin),
+      },
+      save: null,
+    };
+
+  if (b.screen === "question") {
+    const q = body as Extract<CheckinPost, { screen: "question" }>;
+    const head = headOf(s);
+    if (!s.started || !head || head.key !== q.key) return null;
+    if (q.skip === true)
+      return {
+        next: {
+          ...s,
+          skipped: [...s.skipped, head.key],
+          skippedAt: { ...prune(s.skippedAt, now), [head.key]: now },
+          followupAt: head.itemId ? stamp(s.followupAt, [head]) : s.followupAt,
+        },
+        save: null,
+      };
+    const value = q.value!;
+    // A treatment (`t:` id) has no habit row, so its "Every day" is a fact.
+    const habit =
+      head.kind === "adherence" &&
+      value === "Every day" &&
+      head.itemId &&
+      !head.itemId.startsWith("t:");
+    return {
+      next: {
+        ...s,
+        asked: [...s.asked, head.key],
+        followupAt: head.itemId ? stamp(s.followupAt, [head]) : s.followupAt,
+      },
+      save: habit ? { habit: head.itemId! } : { fact: head.key, value },
+    };
+  }
+
+  const skip = b.skip === true;
+  const done = b.done === true;
+  if (!s.started) return null;
+  if (done && headOf(s)) return null;
+  if (!skip && !done) return null;
+  return {
+    next: {
+      ...s,
+      started: null,
+      queue: [],
+      asked: [],
+      skipped: [],
+      skippedAt: prune(s.skippedAt, now),
+      // A skipped round counts as its follow-ups' check: they wait 14 days.
+      followupAt: stamp(
+        s.followupAt,
+        s.queue.filter((i) => i.itemId),
+      ),
+      snoozedUntil: null,
+      lastDone: now,
+      nextDue: nextDueOf(now, trying),
+      startBeliefs: null,
+      recent: [s.queue.map((i) => i.key), ...s.recent].slice(0, 2),
+    },
+    save: null,
+  };
+}
+
 /** The hunch fields the check-in reads. */
 export interface HunchLike {
   id: string;
   state: string;
   explanations: HunchExplanation[] | null;
+  /** a hunch's own title, when the row has one; else the lead's name shows */
+  title?: string | null;
 }
 
 /**
@@ -327,11 +512,6 @@ export function roundInputOf(a: {
   };
 }
 
-/** The first item this round has neither answered nor skipped. */
-const headOf = (s: CheckinState): RoundItem | null =>
-  s.queue.find((i) => !s.asked.includes(i.key) && !s.skipped.includes(i.key)) ??
-  null;
-
 /**
  * A started round stays due until it is finished, skipped or snoozed, even
  * when setup is open again: it was either due when it started or forced by
@@ -414,34 +594,28 @@ async function tryingNow(userId: string): Promise<boolean> {
 }
 
 /**
- * Plan items started a week or more ago with no follow-up answer in the last
- * 14 days. `target` is the first marker the item names, else "How you feel".
+ * Plan items and treatments started a week or more ago whose follow-up was
+ * not asked in the last 14 days. A plan item's `target` is the first marker
+ * it names, else "How you feel".
  */
-async function followupsOf(userId: string): Promise<FollowupCandidate[]> {
+async function followupsOf(
+  userId: string,
+  s: CheckinState,
+  now: string,
+): Promise<FollowupCandidate[]> {
   const db = getDb();
-  const weekAgo = shiftDay(localDay(), -7);
-  const [items, answered] = await Promise.all([
+  const today = localDay();
+  const weekAgo = shiftDay(today, -7);
+  const [items, treatments] = await Promise.all([
     db
       .select()
       .from(protocolItems)
       .where(
         and(eq(protocolItems.userId, userId), eq(protocolItems.active, true)),
       ),
-    db
-      .select({ key: profileFacts.key })
-      .from(profileFacts)
-      .where(
-        and(
-          eq(profileFacts.userId, userId),
-          like(profileFacts.key, "followup_%"),
-          gte(profileFacts.answeredAt, new Date(Date.now() - 14 * DAY_MS)),
-        ),
-      ),
+    factAt(userId, "treatments", today),
   ]);
-  const recent = new Set(answered.map((a) => a.key.split(":")[1]));
-  const due = items.filter(
-    (i) => i.startedAt && i.startedAt <= weekAgo && !recent.has(i.id),
-  );
+  const due = items.filter((i) => i.startedAt && i.startedAt <= weekAgo);
   const codes = [
     ...new Set(due.map((i) => i.metricCodes?.[0]).filter(Boolean)),
   ] as string[];
@@ -452,16 +626,23 @@ async function followupsOf(userId: string): Promise<FollowupCandidate[]> {
         .where(inArray(metrics.code, codes))
     : [];
   const nameOf = new Map(named.map((m) => [m.code, m.name]));
-  return due.map((i) => ({
-    itemId: i.id,
-    text: i.text,
-    target: nameOf.get(i.metricCodes?.[0] ?? "") ?? "How you feel",
-    startedAt: `${i.startedAt}T00:00:00Z`,
-  }));
+  return followupsDue(
+    [
+      ...due.map((i) => ({
+        itemId: i.id,
+        text: i.text,
+        target: nameOf.get(i.metricCodes?.[0] ?? "") ?? "How you feel",
+        startedAt: `${i.startedAt}T00:00:00Z`,
+      })),
+      ...treatmentFollowups(treatmentsNow(treatments), today),
+    ],
+    s,
+    now,
+  );
 }
 
-/** Keys answered or confirmed in the last REPEAT_DAYS, plus last round's skips. */
-async function recentKeysOf(userId: string, s: CheckinState) {
+/** Keys answered or confirmed in the last REPEAT_DAYS, plus the skips in it. */
+async function recentKeysOf(userId: string, s: CheckinState, now: string) {
   const since = shiftDay(localDay(), -REPEAT_DAYS);
   const rows = await getDb()
     .select({
@@ -471,31 +652,11 @@ async function recentKeysOf(userId: string, s: CheckinState) {
     })
     .from(profileFactHistory)
     .where(eq(profileFactHistory.userId, userId));
-  const out = new Set(s.skipped);
+  const out = new Set(recentSkips(s, now));
   for (const r of rows)
     if (r.validFrom >= since || (r.confirmations ?? []).some((d) => d >= since))
       out.add(r.key);
   return out;
-}
-
-/** Close the round, answered or skipped: nothing is due until `nextDue`. */
-async function closeRound(userId: string, s: CheckinState, now: string) {
-  const trying = await tryingNow(userId);
-  return {
-    ...s,
-    started: null,
-    queue: [],
-    asked: [],
-    // Kept past the round so the next one leaves them out (the repeat rule).
-    skipped: s.skipped,
-    snoozedUntil: null,
-    lastDone: now,
-    nextDue: nextDueOf(now, trying),
-    startBeliefs: null,
-    recent: s.queue.length
-      ? [s.queue.map((i) => i.key), ...s.recent].slice(0, 2)
-      : s.recent,
-  } satisfies CheckinState;
 }
 
 const idle = (s: CheckinState): CheckinBody => ({
@@ -526,8 +687,8 @@ export async function checkinBody(
     const hunches = await hunchRows(userId);
     const { faded } = watchOf(rows, hunches);
     const [followups, recentKeys, trying] = await Promise.all([
-      followupsOf(userId),
-      recentKeysOf(userId, state),
+      followupsOf(userId, state, now),
+      recentKeysOf(userId, state, now),
       tryingNow(userId),
     ]);
     const queue = pickRound(
@@ -576,24 +737,17 @@ export async function checkinBody(
 
   if (head) {
     let screen: CheckinScreen;
-    if (head.kind === "adherence")
+    if (head.kind === "adherence" || head.kind === "effect")
       screen = {
         kind: "question",
         key: head.key,
-        question: ADHERENCE_Q,
+        question: followupQuestion(head),
         why: head.why,
-        options: ADHERENCE.map((label) => ({ label, moves: null })),
+        options: (head.kind === "adherence" ? ADHERENCE : EFFECT).map(
+          (label) => ({ label, moves: null }),
+        ),
       };
-    else if (head.kind === "effect") {
-      const target = (await targetOf(userId, head.itemId)) ?? "How you feel";
-      screen = {
-        kind: "question",
-        key: head.key,
-        question: `${target} since you started`,
-        why: head.why,
-        options: EFFECT.map((label) => ({ label, moves: null })),
-      };
-    } else {
+    else {
       // The key is unanswered in the probe, so its simulation is a fresh
       // answer's, faded or not.
       const move = nextMoves(probeOf(input, [head.key]), catalog).find(
@@ -644,11 +798,15 @@ export async function checkinBody(
     new Map(asked.map((i) => [i.key, labelOf(i.key)])),
   );
   const afterP = new Map(after.map((b) => [b.id, b.p]));
-  const hunchesMoved = watchOf(afterRows, await hunchRows(userId))
-    .leads.map((l) => ({
+  const hunchList: HunchLike[] = await hunchRows(userId);
+  const titleOf = new Map(hunchList.map((h) => [h.id, h.title ?? null]));
+  const hunchesMoved = watchOf(afterRows, hunchList)
+    .leads.filter((l) => start[l.conditionId] != null)
+    .map((l) => ({
       id: l.hunchId,
-      title: allNames.get(l.conditionId) ?? l.conditionId,
-      from: pct(start[l.conditionId] ?? 0),
+      title:
+        titleOf.get(l.hunchId) ?? allNames.get(l.conditionId) ?? l.conditionId,
+      from: pct(start[l.conditionId]!),
       to: pct(afterP.get(l.conditionId) ?? 0),
     }))
     .filter((h) => Math.abs(h.to - h.from) >= 2);
@@ -669,25 +827,6 @@ export async function checkinBody(
   };
 }
 
-/** The effect question's subject, read at draw time from the plan item. */
-async function targetOf(
-  userId: string,
-  itemId: string | undefined,
-): Promise<string | null> {
-  if (!itemId) return null;
-  const [item] = await getDb()
-    .select({ codes: protocolItems.metricCodes })
-    .from(protocolItems)
-    .where(and(eq(protocolItems.userId, userId), eq(protocolItems.id, itemId)));
-  const code = item?.codes?.[0];
-  if (!code) return null;
-  const [m] = await getDb()
-    .select({ name: metrics.name })
-    .from(metrics)
-    .where(eq(metrics.code, code));
-  return m?.name ?? null;
-}
-
 /**
  * One answer (or later, skip, done), written, then the next body. A bad POST
  * returns `{ error }` and writes nothing. A question POST for any key but the
@@ -700,37 +839,41 @@ export async function checkinPost(
   const error = checkPost(body);
   if (error) return { error };
   const now = new Date().toISOString();
-  let { state } = await stateOf(userId);
+  const b = body as Partial<Record<string, unknown>>;
+  // Read before the lock: only a closing post needs it, and it takes three
+  // connections the locked transaction should not wait on.
+  const closing =
+    b.screen !== "question" && (b.skip === true || b.done === true);
+  const trying = closing ? await tryingNow(userId) : false;
 
-  if ("later" in body) {
-    state = { ...state, snoozedUntil: laterOf(now, body.offsetMin) };
-  } else if ("screen" in body) {
-    const head = headOf(state);
-    if (!state.started || head?.key !== body.key) return checkinBody(userId);
-    if (body.skip) {
-      state = { ...state, skipped: [...state.skipped, head.key] };
-    } else {
-      const value = body.value!;
-      if (head.kind === "adherence" && value === "Every day" && head.itemId) {
-        const itemId = head.itemId;
-        await getDb()
-          .insert(habitLogs)
-          .values(
-            lastDays(7).map((day) => ({ userId, itemId, day, done: true })),
-          )
-          .onConflictDoNothing();
-      } else {
-        await saveFact(userId, head.key, value);
-      }
-      state = { ...state, asked: [...state.asked, head.key] };
-    }
-  } else {
-    // `skip` (the whole round) and `done` (the `since` screen closed) end the
-    // round the same way.
-    state = await closeRound(userId, state, now);
-  }
-
-  await save(userId, state);
+  // Phase 44B: the head check, the write and the state update happen under a
+  // row lock, so a double tap's second request waits, then finds the key
+  // already asked and writes nothing. NO KEY UPDATE, because `saveFact` runs on
+  // another connection and its inserts take KEY SHARE on this users row
+  // (their foreign key); FOR UPDATE would block them until the lock is gone.
+  // A failed save throws and rolls the state back, so the answer can be sent
+  // again.
+  await getDb().transaction(async (tx) => {
+    const [row] = await tx
+      .select({ checkin: users.checkin, setup: users.setup })
+      .from(users)
+      .where(eq(users.id, userId))
+      .for("no key update");
+    const setup = (row?.setup ?? null) as SetupState | null;
+    const state =
+      (row?.checkin as CheckinState | null) ??
+      firstState(setup?.done ?? null, SHIP_DAY);
+    const t = transition(state, body, now, trying);
+    if (!t) return;
+    if (t.save && "habit" in t.save) {
+      const itemId = t.save.habit;
+      await getDb()
+        .insert(habitLogs)
+        .values(lastDays(7).map((day) => ({ userId, itemId, day, done: true })))
+        .onConflictDoNothing();
+    } else if (t.save) await saveFact(userId, t.save.fact, t.save.value);
+    await tx.update(users).set({ checkin: t.next }).where(eq(users.id, userId));
+  });
   return checkinBody(userId);
 }
 
