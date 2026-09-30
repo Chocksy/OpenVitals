@@ -36,6 +36,16 @@ struct GalleryView: View {
                     NavigationLink("Hybrid Today, on the prototype's day") {
                         Mock.hybrid
                     }
+                    // Phase 43C: every setup screen from its fixture; taps
+                    // walk on through the canned screens, nothing is posted.
+                    ForEach(SetupFlow.fixtures, id: \.self) { name in
+                        if let b = SetupFlow.canned(name) {
+                            NavigationLink("Setup · \(name.dropFirst(6))") {
+                                SetupView(onClose: {}, initial: b, load: { b },
+                                          post: SetupFlow.walk)
+                            }
+                        }
+                    }
                     ForEach(Self.sections, id: \.id) { section in
                         Gallery.section(section.id)
                     }

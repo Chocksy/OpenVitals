@@ -2021,3 +2021,149 @@ extension Api {
         return f.string(from: date)
     }
 }
+
+// MARK: - setup (phase 43)
+
+extension Api {
+
+    /// One condition on the setup picture; `p` in 0...1.
+    struct PictureRow: Codable, Equatable, Identifiable {
+        let id: String
+        let name: String
+        let p: Double
+    }
+
+    /// A tap option, and the condition it moves most (whole percent).
+    struct SetupOption: Codable, Equatable {
+        struct Moves: Codable, Equatable {
+            let id: String
+            let name: String
+            let from: Int
+            let to: Int
+        }
+
+        let label: String
+        let moves: Moves?
+    }
+
+    /// A row of the treatments screen. Months as `YYYY-MM`.
+    struct Treatment: Codable, Equatable {
+        let what: String
+        /// "oral" | "iv" | "injection"
+        let route: String
+        let started: String
+        let stopped: String?
+    }
+
+    struct SetupReveal: Decodable, Equatable {
+        struct Test: Codable, Equatable {
+            let label: String
+            let price: String?
+        }
+
+        struct Action: Codable, Equatable {
+            let id: String
+            let title: String
+            let dose: String?
+        }
+
+        let fromAnswersOnly: Bool
+        let hunchId: String?
+        /// `case` on the wire: the same JSON as `GET /api/hunches/:id`.
+        let hunch: HunchCase?
+        let picture: [PictureRow]
+        let test: Test?
+        let action: Action?
+
+        enum CodingKeys: String, CodingKey {
+            case fromAnswersOnly, hunchId, picture, test, action
+            case hunch = "case"
+        }
+    }
+
+    /// `SetupScreen` in `lib/setup-server.ts`, switched on `kind`. A kind
+    /// this build does not know is a decode error, not a blank screen.
+    enum SetupScreen: Decodable, Equatable {
+        case intro(goals: [String])
+        case upload
+        case basics(sex: String?, birthYear: String?, country: String?)
+        case body(heightCm: String?, weightKg: String?, waistCm: String?)
+        case question(key: String, question: String, options: [SetupOption])
+        case treatments(current: [Treatment])
+        case data(needsUpload: Bool)
+        case reveal(SetupReveal)
+
+        var kind: String {
+            switch self {
+            case .intro: return "intro"
+            case .upload: return "upload"
+            case .basics: return "basics"
+            case .body: return "body"
+            case .question: return "question"
+            case .treatments: return "treatments"
+            case .data: return "data"
+            case .reveal: return "reveal"
+            }
+        }
+
+        private enum Keys: String, CodingKey {
+            case kind, goals, sex, birthYear, country, heightCm, weightKg, waistCm,
+                 key, question, options, current, needsUpload
+        }
+
+        init(from decoder: Decoder) throws {
+            let c = try decoder.container(keyedBy: Keys.self)
+            switch try c.decode(String.self, forKey: .kind) {
+            case "intro":
+                self = .intro(goals: try c.decode([String].self, forKey: .goals))
+            case "upload":
+                self = .upload
+            case "basics":
+                self = .basics(sex: try c.decodeIfPresent(String.self, forKey: .sex),
+                               birthYear: try c.decodeIfPresent(String.self, forKey: .birthYear),
+                               country: try c.decodeIfPresent(String.self, forKey: .country))
+            case "body":
+                self = .body(heightCm: try c.decodeIfPresent(String.self, forKey: .heightCm),
+                             weightKg: try c.decodeIfPresent(String.self, forKey: .weightKg),
+                             waistCm: try c.decodeIfPresent(String.self, forKey: .waistCm))
+            case "question":
+                self = .question(key: try c.decode(String.self, forKey: .key),
+                                 question: try c.decode(String.self, forKey: .question),
+                                 options: try c.decode([SetupOption].self, forKey: .options))
+            case "treatments":
+                self = .treatments(current: try c.decode([Treatment].self, forKey: .current))
+            case "data":
+                self = .data(needsUpload: try c.decode(Bool.self, forKey: .needsUpload))
+            case "reveal":
+                self = .reveal(try SetupReveal(from: decoder))
+            case let other:
+                throw DecodingError.dataCorruptedError(
+                    forKey: .kind, in: c, debugDescription: "unknown setup screen \(other)")
+            }
+        }
+    }
+
+    /// `GET /api/setup`, and every `POST` reply.
+    struct SetupBody: Decodable, Equatable {
+        struct Progress: Codable, Equatable {
+            let at: Int
+            let of: Int
+        }
+
+        let due: Bool
+        let screen: SetupScreen
+        let progress: Progress
+        let picture: [PictureRow]
+    }
+
+    /// `GET /api/setup`: the screen to draw now.
+    static func setup() async throws -> SetupBody {
+        try await send(get("api/setup"))
+    }
+
+    /// `POST /api/setup`: one screen's answers (`SetupPost` on the server),
+    /// then the next screen.
+    static func setupPost(_ body: [String: Any]) async throws -> SetupBody {
+        try await send(try json("api/setup", "POST", body))
+    }
+}

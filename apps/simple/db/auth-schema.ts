@@ -1,6 +1,8 @@
 /**
  * Pre-existing better-auth tables, mirrored EXACTLY from
- * packages/database/src/schema/users.ts. No new columns.
+ * packages/database/src/schema/users.ts. One column of this app's own:
+ * `users.setup` (phase 43A), added by the hand-written migration
+ * `drizzle/0031_users_setup.sql`.
  *
  * This file is deliberately NOT referenced by drizzle.config.ts so drizzle-kit
  * never emits CREATE/ALTER/DROP for these tables. It is imported only by the
@@ -14,7 +16,9 @@ import {
   timestamp,
   date,
   integer,
+  jsonb,
 } from "drizzle-orm/pg-core";
+import type { SetupState } from "@/lib/setup";
 
 export const users = pgTable("users", {
   id: text("id").primaryKey(),
@@ -30,6 +34,8 @@ export const users = pgTable("users", {
   bloodType: varchar("blood_type", { length: 5 }),
   showOptimalRanges: boolean("show_optimal_ranges").default(true),
   onboardingStep: integer("onboarding_step").default(0).notNull(),
+  /** Phase 43A: where the setup flow stands; null until it is first posted. */
+  setup: jsonb("setup").$type<SetupState | null>(),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

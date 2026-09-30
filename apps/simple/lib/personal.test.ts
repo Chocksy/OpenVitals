@@ -93,6 +93,11 @@ describe("labPoints and labChange", () => {
     expect(got).toEqual([{ date: "2024-01-01", value: 3, refLow: 0, refHigh: 5, unit: "mg/L" }]);
   });
 
+  it("drops a self-reported number (43)", () => {
+    const typed = { ...row("2024-01-04", 60), flags: ["self_reported" as const] };
+    expect(labPoints([row("2024-01-01", 2), typed]).map((p) => p.date)).toEqual(["2024-01-01"]);
+  });
+
   it("flags a new reference range on the last draw", () => {
     const p = (refHigh: number): LabPoint => ({ date: "x", value: 1, refLow: 0, refHigh, unit: "mg/L" });
     expect(labChange([p(5), p(5)])).toBe(false);

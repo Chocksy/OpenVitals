@@ -215,3 +215,30 @@ export function convert(
   const factor = conversionFactor(from, to, metricCode);
   return factor == null ? null : round(value * factor);
 }
+
+/**
+ * Phase 43H: the range a core lipid can take in mg/dL. A value outside it with
+ * no unit (or mg/dL) is not that marker: case A's "total cholesterol 2.56" was
+ * the TC/HDL ratio, and it drove an apoB discordance and a 60 % risk.
+ *
+ * ponytail: four lipids typed by hand, the ones a ratio lands on. Add a code
+ * when another mix-up turns up.
+ */
+export const PLAUSIBLE_MG_DL: Record<string, [number, number]> = {
+  total_cholesterol: [50, 500],
+  ldl_cholesterol: [10, 400],
+  hdl_cholesterol: [5, 200],
+  triglycerides: [10, 3000],
+};
+
+/** True only for a code in the table, unit none or mg/dL, value outside it. */
+export function implausible(
+  code: string,
+  value: number,
+  unit: string | null,
+): boolean {
+  const range = PLAUSIBLE_MG_DL[code];
+  const u = normalizeUnit(unit);
+  if (!range || (u && u !== "mg/dl")) return false;
+  return value < range[0] || value > range[1];
+}

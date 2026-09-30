@@ -1,0 +1,17 @@
+{
+  "due": true,
+  "screen": {
+    "kind": "intro",
+    "goals": [
+      "Feel better",
+      "Understand a result",
+      "Prevention",
+      "A diagnosis I have"
+    ]
+  },
+  "progress": {
+    "at": 0,
+    "of": 14
+  },
+  "picture": []
+}

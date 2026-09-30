@@ -84,6 +84,23 @@ describe("pickActions", () => {
     expect(rows[0]!.interventionId).toBe("int-1");
   });
 
+  it("marks a drug or a procedure off the papers as prescribed (43)", () => {
+    const rows = pickActions({
+      codes: [],
+      actions: [],
+      interventions: [
+        paper({ id: "a", name: "Tranexamic acid", kind: "drug" }),
+        paper({ id: "b", name: "Coil", kind: "procedure" }),
+        paper({ id: "c", name: "Iron bisglycinate", kind: "supplement" }),
+      ],
+    });
+    expect(rows.map((r) => [r.title, r.prescribed ?? false])).toEqual([
+      ["Coil", true],
+      ["Iron bisglycinate", false],
+      ["Tranexamic acid", true],
+    ]);
+  });
+
   it("ignores a plan action that targets another condition's markers", () => {
     const rows = pickActions({
       codes: ["tpo_antibodies"],

@@ -203,3 +203,88 @@ describe("chronic (phase 41B)", () => {
     ).toBe(false);
   });
 });
+
+describe("good news (phase 43E)", () => {
+  // Synthetic ferritin, lab range 20-250, one draw every six months. Seven
+  // draws near 16 teach the band that 16 is usual; 5 leaves it the worse way.
+  const series = (values: number[], extra: Partial<SignalsInput> = {}): SignalsInput => ({
+    ...input("owner"),
+    goals: [],
+    facts: {},
+    today: "2028-01-01",
+    markers: [
+      {
+        code: "ferritin",
+        name: "Ferritin",
+        unit: "ng/mL",
+        system: "iron" as const,
+        derived: false,
+        points: values.map((value, i) => ({
+          date: `${2023 + Math.floor(i / 2)}-${i % 2 ? "08" : "02"}-15`,
+          value,
+          refLow: 20,
+          refHigh: 250,
+          unit: "ng/mL",
+        })),
+      },
+    ],
+    ...extra,
+  });
+  const all = (i: SignalsInput) => {
+    const { raised, unraised } = signalsOf(i);
+    return [...raised, ...unraised].map((s) => s.key);
+  };
+
+  const low = [15, 17, 16, 18, 15, 17, 16, 5];
+
+  it("raises no good news when the last draw sits under the lab range", () => {
+    expect(all(series([...low, 16, 17]))).not.toContain(
+      "good_news:ferritin",
+    );
+  });
+
+  it("still raises it when the last draw is back inside the lab range", () => {
+    expect(all(series([...low, 22, 24]))).toContain(
+      "good_news:ferritin",
+    );
+  });
+
+  it("raises none while a likely or confirmed condition reads the marker", () => {
+    expect(
+      all(series([...low, 22, 24], { settled: ["ferritin"] })),
+    ).not.toContain("good_news:ferritin");
+  });
+});
+
+describe("drift numbers (phase 43I)", () => {
+  it("carries the first draw and the span the slope was read over", () => {
+    const i: SignalsInput = {
+      markers: [
+        {
+          code: "ldl_cholesterol",
+          name: "LDL Cholesterol",
+          unit: "mg/dL",
+          system: "lipids",
+          points: [
+            ["2026-03-05", 101],
+            ["2026-05-20", 114],
+            ["2026-08-18", 133],
+          ].map(([date, value]) => ({
+            date: String(date),
+            value: Number(value),
+            refLow: null,
+            refHigh: 130,
+            unit: "mg/dL",
+          })),
+        },
+      ],
+      goals: [],
+      facts: {},
+      causes: {},
+      today: "2026-09-01",
+    };
+    const { raised, unraised } = signalsOf(i);
+    const d = [...raised, ...unraised].find((s) => s.key === "drift:ldl_cholesterol")!;
+    expect(d.numbers).toMatchObject({ first: 101, firstDate: "2026-03-05", spanDays: 166 });
+  });
+});

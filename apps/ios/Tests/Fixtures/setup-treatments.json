@@ -1,0 +1,40 @@
+{
+  "due": true,
+  "screen": {
+    "kind": "treatments",
+    "current": [
+      {
+        "what": "Iron",
+        "route": "oral",
+        "started": "2025-03",
+        "stopped": "2025-09"
+      },
+      {
+        "what": "Vitamin D",
+        "route": "oral",
+        "started": "2026-01"
+      }
+    ]
+  },
+  "progress": {
+    "at": 11,
+    "of": 14
+  },
+  "picture": [
+    {
+      "id": "insulin_resistance",
+      "name": "Insulin resistance",
+      "p": 0.468
+    },
+    {
+      "id": "heavy_menstrual_bleeding",
+      "name": "Heavy menstrual bleeding",
+      "p": 0.336
+    },
+    {
+      "id": "hashimoto",
+      "name": "Autoimmune thyroiditis (Hashimoto's)",
+      "p": 0.255
+    }
+  ]
+}

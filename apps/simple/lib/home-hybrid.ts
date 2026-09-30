@@ -50,6 +50,15 @@ export function headingSentence(heading: HeadingRow[]): {
 } {
   const n = (w: HeadingRow["word"]) =>
     heading.filter((h) => h.word === w).length;
+  // Phase 43: straight out of setup every system is unmeasured, and "no
+  // systems heading away, no toward, no holding" reads like a clean bill.
+  if (heading.length && n("unmeasured") === heading.length)
+    return {
+      lead: "Nothing measured yet",
+      away: "",
+      rest: ".",
+      sub: "Your picture so far comes from your answers. A first blood test gives each system a heading.",
+    };
   const away = n("away");
   const lead = `${cap(word(away))} ${away === 1 ? "system" : "systems"} heading `;
   const rest = `, ${word(n("toward"))} toward, ${word(n("holding"))} holding.`;
@@ -59,6 +68,14 @@ export function headingSentence(heading: HeadingRow[]): {
     names.length
       ? `${and(names)} ${names.length === 1 ? "is" : "are"} moving away from your own history.`
       : "Nothing is moving away from your own history.",
+    // Phase 43D: "holding" is direction only; name a marker outside the lab range.
+    ...heading
+      .filter((h) => h.off && (h.word === "holding" || h.word === "toward"))
+      .slice(0, 2)
+      .map(
+        (h) =>
+          `${h.name} is ${h.word === "toward" ? "moving toward your history" : "holding"}, but ${h.off!.name} (${h.off!.value}) is ${h.off!.side} the lab range.`,
+      ),
     un === 0
       ? ""
       : un === 1

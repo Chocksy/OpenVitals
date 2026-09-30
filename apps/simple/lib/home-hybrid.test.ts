@@ -40,10 +40,38 @@ describe("headingSentence", () => {
     );
   });
 
+  it("says nothing is measured when every system is unmeasured (43)", () => {
+    const s = headingSentence([row("Liver", "unmeasured"), row("Iron", "unmeasured")]);
+    expect(s.lead + s.away + s.rest).toBe("Nothing measured yet.");
+    expect(s.sub).toContain("from your answers");
+  });
+
   it("says so when nothing moves away", () => {
     const s = headingSentence([row("Liver", "holding")]);
     expect(s.lead).toBe("No systems heading ");
     expect(s.sub).toBe("Nothing is moving away from your own history.");
+  });
+
+  // Phase 43D: "holding" read as "fine" while a marker sat under the lab range.
+  it("says when a holding system sits outside the lab range", () => {
+    const s = headingSentence([
+      {
+        ...row("Iron", "holding"),
+        off: { name: "Ferritin", value: "16.8 ng/mL", side: "below" },
+      },
+      row("Lipids", "holding"),
+    ]);
+    expect(s.sub).toContain(
+      "Iron is holding, but Ferritin (16.8 ng/mL) is below the lab range.",
+    );
+  });
+
+  it("names at most two such systems", () => {
+    const off = { name: "M", value: "1", side: "above" as const };
+    const s = headingSentence(
+      ["A", "B", "C"].map((n) => ({ ...row(n, "holding"), off })),
+    );
+    expect(s.sub.match(/is holding, but/g)).toHaveLength(2);
   });
 });
 

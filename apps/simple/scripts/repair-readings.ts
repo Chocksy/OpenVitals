@@ -18,7 +18,9 @@
  *  5. duplicates (metric, day, value to 4 decimals) go, keeping the row with
  *     an upload, then the one with a lab range; a range only the dropped row
  *     had is copied onto the kept one first (phase 42E);
- *  6. `uploads.readings_count` is recounted where it drifted.
+ *  6. lipid rows no mg/dL reading could be (a TC/HDL ratio stored as total
+ *     cholesterol, `implausible` in `lib/units.ts`) go (phase 43H);
+ *  7. `uploads.readings_count` is recounted where it drifted.
  *
  * Reads `flagged_extractions` and `import_jobs`, never writes them.
  */
@@ -30,7 +32,13 @@ import {
   canonicalCode,
   normalizeName,
 } from "@/lib/merge-metrics";
-import { conversionFactor, normalizeUnit, round } from "@/lib/units";
+import {
+  conversionFactor,
+  implausible as notThatMarker,
+  normalizeUnit,
+  PLAUSIBLE_MG_DL,
+  round,
+} from "@/lib/units";
 
 export interface MetricRow {
   code: string;
@@ -412,6 +420,23 @@ async function repairUser(
   }
 
   /* 6. the denormalised count */
+  // Phase 43H: a ratio or another unit on a lipid line is not that lipid.
+  const ratios = (
+    await c.query(
+      `select id, metric_code, value, unit, observed_at::text as day
+         from readings where user_id = $1 and value is not null
+          and metric_code = any($2::text[])
+        order by observed_at, metric_code`,
+      [userId, Object.keys(PLAUSIBLE_MG_DL)],
+    )
+  ).rows.filter((r) => notThatMarker(r.metric_code, Number(r.value), r.unit));
+  for (const r of ratios) {
+    await dropReading(c, r.id);
+    change(
+      `${r.day} ${r.metric_code} ${r.value} ${r.unit || "(no unit)"}: looks like a ratio or a different unit, removed`,
+    );
+  }
+
   const drift = (
     await c.query(
       `update uploads u set readings_count = n.n

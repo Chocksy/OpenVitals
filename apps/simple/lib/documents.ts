@@ -37,7 +37,7 @@ import {
 } from "./extract";
 import { canonicalCode } from "./merge-metrics";
 import { extractTextFromPdf } from "./pdf";
-import { convert } from "./units";
+import { convert, implausible } from "./units";
 
 /* ── the text ─────────────────────────────────────────────────────────── */
 
@@ -527,25 +527,31 @@ export async function acceptItems(
       const observedAt: string = p.date ?? meta?.date ?? localDay();
       const refLow = p.refLow ?? null;
       const refHigh = p.refHigh ?? null;
+      const unit: string | null = metric?.unit ?? p.unit ?? null;
+      // Phase 43H: a ratio on a lipid line is not that lipid, so it is not
+      // saved, before any duplicate rule; the item stays on the upload page.
+      const ratio = typeof value === "number" && implausible(code, value, unit);
       // Phase 42E: the same draw already on file (a lab upload, or this item
       // accepted before) is one row. It only gains the range it lacked.
-      const twin = (
-        await db
-          .select()
-          .from(readings)
-          .where(
-            and(
-              eq(readings.userId, userId),
-              eq(readings.metricCode, code),
-              eq(readings.observedAt, observedAt),
-              isNull(readings.source),
-            ),
-          )
-      ).find((r) =>
-        value != null
-          ? sameValue(r.value, value)
-          : r.valueText === String(p.value),
-      );
+      const twin = ratio
+        ? undefined
+        : (
+            await db
+              .select()
+              .from(readings)
+              .where(
+                and(
+                  eq(readings.userId, userId),
+                  eq(readings.metricCode, code),
+                  eq(readings.observedAt, observedAt),
+                  isNull(readings.source),
+                ),
+              )
+          ).find((r) =>
+            value != null
+              ? sameValue(r.value, value)
+              : r.valueText === String(p.value),
+          );
       if (twin) {
         if (
           twin.refLow == null &&
@@ -556,14 +562,14 @@ export async function acceptItems(
             .update(readings)
             .set({ refLow, refHigh })
             .where(eq(readings.id, twin.id));
-      } else {
+      } else if (!ratio) {
         await db.insert(readings).values({
           userId,
           uploadId: item.uploadId,
           metricCode: code,
           value,
           valueText: String(p.value),
-          unit: metric?.unit ?? p.unit ?? null,
+          unit,
           refLow,
           refHigh,
           observedAt,

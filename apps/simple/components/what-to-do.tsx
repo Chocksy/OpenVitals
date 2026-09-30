@@ -133,9 +133,12 @@ export function WhatToDo({
 
       {shown.length === 0 ? (
         <div className="mt-2 space-y-2">
-          <p className="t-body text-[length:var(--type-sm)] text-[var(--ink-3)]">
-            Nothing has been written for this one yet.
-          </p>
+          {/* Phase 43J: a note is something written; the placeholder is for an empty card. */}
+          {notes.length === 0 && (
+            <p className="t-body text-[length:var(--type-sm)] text-[var(--ink-3)]">
+              Nothing has been written for this one yet.
+            </p>
+          )}
           <Button
             size="sm"
             job="quiet"

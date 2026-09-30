@@ -50,11 +50,16 @@ export const ASSAY_CV: Record<string, number> = {
 // source; add a row when a marker's band looks too tight on /brain.
 const DEFAULT_CV = 0.05;
 
-/** The lab draws of one metric, one per day, oldest first. */
+/**
+ * The lab draws of one metric, one per day, oldest first. A self-reported
+ * number (setup's weight, phase 43) is no draw: it made Home say "last draw
+ * today" for a person who never gave blood.
+ */
 export function labPoints(rows: MetricRow["rows"]): LabPoint[] {
   const byDay = new Map<string, MetricRow["rows"]>();
   for (const r of rows) {
     if (r.source != null || r.value == null) continue;
+    if (r.flags?.includes("self_reported")) continue;
     const day = r.observedAt.slice(0, 10);
     byDay.set(day, [...(byDay.get(day) ?? []), r]);
   }

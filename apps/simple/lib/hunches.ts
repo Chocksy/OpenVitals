@@ -533,6 +533,72 @@ export function mergeCauses(
   return { raised: out.filter((s) => !merged.has(s.key)), merged };
 }
 
+/**
+ * Step 3 of the refresh for one row: how a hunch whose key no longer fires
+ * closes, or null to leave it. Phase 43E: good news that stops firing closes
+ * `superseded` at once, even on the same draw, because only a rule (the lab
+ * range, a settled belief) takes it away; the rest fade on a newer draw. Pure.
+ */
+export function fadeOf(
+  h: {
+    key: string;
+    kind: string;
+    state: string;
+    signal: Record<string, unknown>;
+  },
+  asOf: string,
+  firing: Set<string>,
+): { outcome: "faded" | "superseded"; outcomeLine: string } | null {
+  if (h.state === "closed" || firing.has(h.key)) return null;
+  if (h.kind === "good_news")
+    return {
+      outcome: "superseded",
+      outcomeLine: `As of the draw of ${asOf} this is no longer good news.`,
+    };
+  if (asOf <= String(h.signal.asOf ?? "")) return null;
+  return {
+    outcome: "faded",
+    outcomeLine:
+      h.kind === "gap"
+        ? `Measured on ${asOf}; the gap is closed.`
+        : `The draw of ${asOf} no longer fires the rule.`,
+  };
+}
+
+/**
+ * Phase 43G: one open hunch per marker direction. When `good_news:<code>` and
+ * `step:<code>` or `drift:<code>` are both open, the one whose signal began
+ * later (its `since`, else when the row opened) stays; the other closes. A tie
+ * keeps the adverse one. Pure.
+ */
+export function oneOpenPerMarker(
+  open: {
+    key: string;
+    kind: string;
+    codes: string[];
+    signal: Record<string, unknown>;
+    openedAt: Date | string;
+  }[],
+): { close: string; keep: string }[] {
+  const when = (h: (typeof open)[number]) =>
+    String(h.signal.since ?? "") || day(h.openedAt);
+  const out: { close: string; keep: string }[] = [];
+  for (const good of open.filter((h) => h.kind === "good_news")) {
+    const code = good.codes[0];
+    for (const bad of open.filter(
+      (h) => (h.kind === "step" || h.kind === "drift") && h.codes[0] === code,
+    )) {
+      const goodWins = when(good) > when(bad);
+      out.push(
+        goodWins
+          ? { close: bad.key, keep: good.key }
+          : { close: good.key, keep: bad.key },
+      );
+    }
+  }
+  return out;
+}
+
 const toExplanation = (c: Sourced, text = c.name): HunchExplanation => ({
   origin: c.origin ?? "catalog",
   id: c.id,
@@ -997,6 +1063,18 @@ export async function personOf(
         snap[0]?.beliefs ?? null,
       ),
       today,
+      // Phase 43E: markers a likely or confirmed belief reads get no good news.
+      settled: [
+        ...new Set(
+          evidence
+            .filter(
+              (r) =>
+                r.featureId.startsWith("metric:") &&
+                SETTLED.has(snap[0]?.beliefs?.[r.conditionId]?.state ?? ""),
+            )
+            .map((r) => r.featureId.slice(7)),
+        ),
+      ],
     },
     rows,
     points,
@@ -1856,17 +1934,29 @@ export async function refreshHunches(
     ...merged.keys(),
   ]);
   for (const h of existing) {
-    if (h.state === "closed" || done.has(h.key) || firing.has(h.key)) continue;
-    if (asOf <= asOfOf(h)) continue;
+    if (done.has(h.key)) continue;
+    const fade = fadeOf(h, asOf, firing);
+    if (!fade) continue;
+    await db
+      .update(hunches)
+      .set({ state: "closed", ...fade, closedAt: now, updatedAt: now })
+      .where(eq(hunches.id, h.id));
+  }
+
+  // 3b. Phase 43G: good news and a step or drift on one marker never both
+  // stay open; the older read closes.
+  const stillOpen = await db
+    .select()
+    .from(hunches)
+    .where(and(eq(hunches.userId, userId), eq(hunches.state, "open")));
+  for (const { close } of oneOpenPerMarker(stillOpen)) {
+    const h = stillOpen.find((x) => x.key === close)!;
     await db
       .update(hunches)
       .set({
         state: "closed",
-        outcome: "faded",
-        outcomeLine:
-          h.kind === "gap"
-            ? `Measured on ${asOf}; the gap is closed.`
-            : `The draw of ${asOf} no longer fires the rule.`,
+        outcome: "superseded",
+        outcomeLine: "A newer read of the same marker replaced this one.",
         closedAt: now,
         updatedAt: now,
       })

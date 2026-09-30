@@ -794,6 +794,18 @@ const ASKED: Record<
     options: ["This week", "This month", "Over a month", "Years"],
     revisitDays: 0, // asked about a specific finding, never on a clock
   },
+  // Phase 43A: the first setup screen. No evidence rule reads it; Home
+  // copy may later. Never re-asked on a clock.
+  setup_goal: {
+    question: "What brings you here?",
+    options: [
+      "Feel better",
+      "Understand a result",
+      "Prevention",
+      "A diagnosis I have",
+    ],
+    revisitDays: 0,
+  },
 };
 
 /** The four answers only a conditional edge asks for. */

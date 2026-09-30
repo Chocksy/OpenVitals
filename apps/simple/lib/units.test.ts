@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { normalizeUnit, convert, conversionFactor } from "./units";
+import { normalizeUnit, convert, conversionFactor, implausible } from "./units";
 
 describe("normalizeUnit", () => {
   /** [raw, canonical, expected to be the same unit] */
@@ -155,5 +155,18 @@ describe("convert", () => {
 
   it("returns null without a value", () => {
     expect(convert(null, "mg/L", "mg/dL", "crp")).toBeNull();
+  });
+});
+
+describe("implausible (phase 43H)", () => {
+  it("flags a lipid value no mg/dL reading could be: a ratio or another unit", () => {
+    expect(implausible("total_cholesterol", 2.56, null)).toBe(true);
+    expect(implausible("total_cholesterol", 2.56, "mg/dL")).toBe(true);
+    expect(implausible("total_cholesterol", 177.4, "mg/dL")).toBe(false);
+  });
+
+  it("leaves another unit (converted elsewhere) and codes outside the table", () => {
+    expect(implausible("total_cholesterol", 4.6, "mmol/L")).toBe(false);
+    expect(implausible("ferritin", 2, null)).toBe(false);
   });
 });

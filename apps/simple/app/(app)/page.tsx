@@ -1,4 +1,10 @@
+import Link from "next/link";
+import { redirect } from "next/navigation";
+import { eq } from "drizzle-orm";
+import { getDb } from "@/db";
+import { users } from "@/db/auth-schema";
 import { actionsForAll } from "@/lib/actions";
+import { setupDue } from "@/lib/setup-server";
 import {
   genomeBody,
   planTodayBody,
@@ -13,6 +19,7 @@ import {
   buildToday,
   buildTrend,
   firstMoveSentence,
+  topOfCard,
   goalsSentence,
   homeAskPlan,
   linkedAsk,
@@ -72,11 +79,18 @@ export default async function Home({
 }: {
   /** `?ask=<fact key>`: the question a link somewhere else asked for */
   /** `?hunch=<id>`: open that hunch's case on load (phase 40b) */
-  searchParams: Promise<{ ask?: string; hunch?: string }>;
+  /** `?home=1`: setup's "Finish later"; Home shows instead of `/setup` (43B) */
+  searchParams: Promise<{ ask?: string; hunch?: string; home?: string }>;
 }) {
   const userId = await requireUserId();
 
   const params = await searchParams;
+  /**
+   * Phase 43B: a new person lands on setup. "Finish later" comes back with
+   * `?home=1`; setup stays due, so the Day One card links back to it.
+   */
+  const due = await setupDue(userId);
+  if (due && params.home !== "1") redirect("/setup");
   const want = params.ask;
   const day = localDay();
   const [
@@ -108,7 +122,19 @@ export default async function Home({
     genomeBody(userId),
   ]);
 
-  if (rows.length === 0) return <EmptyHome />;
+  if (rows.length === 0) {
+    const [row] = due
+      ? await getDb()
+          .select({ setup: users.setup })
+          .from(users)
+          .where(eq(users.id, userId))
+      : [];
+    return (
+      <EmptyHome
+        setup={due ? (row?.setup ? "continue" : "start") : null}
+      />
+    );
+  }
 
   // The model writes one sentence per conclusion into `systems[].verdict`,
   // keyed by the condition id. No sentence yet: fall back to the catalog.
@@ -298,7 +324,11 @@ export default async function Home({
     done: planToday.done,
     total: planToday.total,
   });
-  const firstMove = firstMoveSentence(ledger.systems);
+  // Phase 43F: the sentence names card 01's system, so it and card 01 agree.
+  const firstMove = firstMoveSentence(
+    ledger.systems,
+    topOfCard(ledger.conclusions[0], ledger.systems, systemOf),
+  );
 
   const cards = railCards(ledger, today, {
     actions: actions.length,
@@ -366,6 +396,12 @@ export default async function Home({
   return (
     <HunchBoard initial={params.hunch ?? null}>
       <div className="home">
+        {/* 43B: setup's weight is a reading, so "Finish later" lands here, not on Day one */}
+        {due && (
+          <p className="legend">
+            <Link href="/setup">Continue setup</Link>, a few taps left.
+          </p>
+        )}
         <HyHero
           day={day}
           heading={hybrid.heading}

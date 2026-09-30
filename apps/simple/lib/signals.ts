@@ -99,6 +99,12 @@ export interface SignalsInput {
   /** kg pairs marked same-direction; none exist yet, so discordance is idle */
   sameDirection?: [string, string][];
   today: string;
+  /**
+   * Phase 43E: codes a likely or confirmed condition reads (its evidence).
+   * No good news on those: "back in your usual range" beside "Iron
+   * deficiency likely" says two opposite things.
+   */
+  settled?: string[];
 }
 
 /**
@@ -314,7 +320,18 @@ const outAt = (
  */
 // ponytail: good news for at most four draws after the exit, so it is news
 // once; lift the cap if the owner wants it on the shelf longer.
-function goodNewsOf(m: MarkerIn, pts: LabPoint[]) {
+function goodNewsOf(m: MarkerIn, pts: LabPoint[], settled = false) {
+  // Phase 43E: the band can learn years of deficiency as usual, so a last
+  // draw outside its own lab range is never good news; nor is one a settled
+  // belief reads.
+  const last = pts[pts.length - 1];
+  if (
+    settled ||
+    !last ||
+    (last.refLow != null && last.value < last.refLow) ||
+    (last.refHigh != null && last.value > last.refHigh)
+  )
+    return undefined;
   for (let i = pts.length - 1; i >= 0; i--) {
     const dir = outAt(pts, i, m.code);
     if (!dir) continue;
@@ -357,11 +374,27 @@ export function chronicOf(code: string, pts: LabPoint[]) {
   return { dir, out, years: +years.toFixed(1), first: out[0]!, floor };
 }
 
+/**
+ * Phase 43I: the first draw of a drift's window and the days the window
+ * spans, so the line can say "rose 32 since Mar" rather than a per-year speed
+ * read off five months. The slope itself is unchanged.
+ */
+const spanOf = (
+  fit: { from: string; to: string },
+  w: { value: number }[],
+) => ({
+  first: w[0]!.value,
+  firstDate: fit.from,
+  spanDays: Math.round((t(fit.to) - t(fit.from)) / 86_400_000),
+});
+
 /** Every rule on one marker, with the points up to and including `d`. */
 export function readMarker(
   m: MarkerIn,
   d: string,
   goal?: GoalIn,
+  /** Phase 43E: a likely or confirmed condition reads this code */
+  settled = false,
 ): MarkerRead | undefined {
   const pts = m.points.filter((p) => t(p.date) <= t(d));
   const last = pts[pts.length - 1];
@@ -401,6 +434,7 @@ export function readMarker(
           last: last.value,
           from: fit.from,
           to: fit.to,
+          ...spanOf(fit, w),
           ...(goal.low != null ? { goalLow: goal.low } : {}),
           ...(goal.high != null ? { goalHigh: goal.high } : {}),
           ...(goal.due ? { due: goal.due } : {}),
@@ -439,7 +473,7 @@ export function readMarker(
       ],
     });
 
-  const good = goodNewsOf(m, pts);
+  const good = goodNewsOf(m, pts, settled);
   const step = good ? undefined : stepOf(pts);
   if (good)
     hits.push({
@@ -526,6 +560,7 @@ export function readMarker(
         last: last.value,
         from: fit.from,
         to: fit.to,
+        ...spanOf(fit, w),
         driftMin: min,
       },
       rule: [
@@ -635,20 +670,22 @@ export function signalsOf(input: SignalsInput): {
       .filter((g) => g.low != null || g.high != null)
       .map((g) => g.code),
   );
+  const settledCodes = new Set(input.settled ?? []);
   const out: Signal[] = [];
 
   for (const m of input.markers) {
     const lastPt = m.points.filter((p) => t(p.date) <= t(asOf)).pop();
     if (!lastPt || t(asOf) - t(lastPt.date) > STALE_MS) continue;
     const goal = goalOf.get(m.code);
-    const now = readMarker(m, asOf, goal);
+    const settled = settledCodes.has(m.code);
+    const now = readMarker(m, asOf, goal, settled);
     if (!now) continue;
     const lc = labChange(m.points.filter((p) => t(p.date) <= t(asOf)));
     const evaluated = m.points
       .map((p) => p.date)
       .filter((d) => t(d) <= t(asOf));
     const replay = new Map(
-      evaluated.map((d) => [d, readMarker(m, d, goal)?.hits ?? []]),
+      evaluated.map((d) => [d, readMarker(m, d, goal, settled)?.hits ?? []]),
     );
     for (const h of now.hits) {
       const fired = new Set(

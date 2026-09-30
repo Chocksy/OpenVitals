@@ -16,7 +16,9 @@ import {
   closedList,
   differentialOf,
   differentialLine,
+  fadeOf,
   MIN_OTHER,
+  oneOpenPerMarker,
   linkFeature,
   outcomeOf,
   predictionsOf,
@@ -514,5 +516,57 @@ describe("42C: one case per problem", () => {
       "Not settled by tTG-IgA; the heavy-periods question would.",
     ]);
     expect(preds.every((p) => !/^If /.test(p.text))).toBe(true);
+  });
+});
+
+describe("43E: good news that no longer holds", () => {
+  const h = (key: string, kind: string, asOf: string) => ({
+    key, kind, state: "open", signal: { asOf },
+  });
+
+  it("closes an open good news with no matching signal as superseded, on the same draw", () => {
+    const f = fadeOf(h("good_news:ferritin", "good_news", "2026-04-23"), "2026-04-23", new Set());
+    expect(f?.outcome).toBe("superseded");
+  });
+
+  it("keeps faded for other kinds, and only on a newer draw", () => {
+    expect(fadeOf(h("step:ldl", "step", "2026-04-23"), "2026-04-23", new Set())).toBeNull();
+    expect(fadeOf(h("step:ldl", "step", "2026-04-23"), "2026-05-01", new Set())?.outcome).toBe("faded");
+    expect(fadeOf(h("good_news:crp", "good_news", "2026-04-23"), "2026-04-23", new Set(["good_news:crp"]))).toBeNull();
+  });
+});
+
+describe("43G: one open hunch per marker", () => {
+  const open = (key: string, since: string, openedAt = "2026-01-01") => ({
+    key,
+    kind: key.split(":")[0]!,
+    codes: [key.split(":")[1]!],
+    signal: { since },
+    openedAt: new Date(`${openedAt}T00:00:00Z`),
+  });
+
+  it("closes an older step when newer good news opens on the same marker", () => {
+    expect(
+      oneOpenPerMarker([
+        open("step:eosinophils_abs", "2024-11-20"),
+        open("good_news:eosinophils_abs", "2026-04-23"),
+        open("step:ldl_cholesterol", "2025-01-01"),
+      ]),
+    ).toEqual([{ close: "step:eosinophils_abs", keep: "good_news:eosinophils_abs" }]);
+  });
+
+  it("closes older good news when a newer step or drift opens", () => {
+    expect(
+      oneOpenPerMarker([
+        open("good_news:eosinophils_abs", "2025-02-01"),
+        open("step:eosinophils_abs", "2026-04-23"),
+      ]),
+    ).toEqual([{ close: "good_news:eosinophils_abs", keep: "step:eosinophils_abs" }]);
+    expect(
+      oneOpenPerMarker([
+        open("drift:ferritin", "2026-03-01"),
+        open("good_news:ferritin", "2025-02-01"),
+      ]),
+    ).toEqual([{ close: "good_news:ferritin", keep: "drift:ferritin" }]);
   });
 });

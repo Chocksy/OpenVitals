@@ -1,7 +1,7 @@
 import { currentUserId } from "@/lib/auth";
 import { saveFact } from "@/lib/coverage";
+import { checkFact } from "@/lib/fact-input";
 import { recordBeliefs } from "@/lib/ledger";
-import { PROFILE_QUESTIONS } from "@/lib/vectors";
 
 /**
  * One answered profile fact, and the two ways to edit one that already has a
@@ -19,21 +19,16 @@ export async function POST(req: Request) {
     date?: string;
     note?: string;
   };
-  if (!key || !PROFILE_QUESTIONS[key])
-    return Response.json({ error: "unknown question" }, { status: 400 });
-  if (typeof value !== "string" || !value.trim())
-    return Response.json({ error: "no answer" }, { status: 400 });
-
-  const options = PROFILE_QUESTIONS[key].options;
-  if (options && !options.includes(value))
-    return Response.json({ error: "not one of the options" }, { status: 400 });
+  const check = checkFact(key, value);
+  if (!check.ok) return Response.json({ error: check.error }, { status: 400 });
 
   if (kind && kind !== "changed" && kind !== "corrected")
     return Response.json({ error: "unknown edit" }, { status: 400 });
   if (date && !/^\d{4}-\d{2}-\d{2}$/.test(date))
     return Response.json({ error: "bad date" }, { status: 400 });
 
-  await saveFact(userId, key, value, {
+  // `checkFact` passed, so both are non-empty strings.
+  await saveFact(userId, key!, value!, {
     kind: kind as "changed" | "corrected" | undefined,
     date,
     note,

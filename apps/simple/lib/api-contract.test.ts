@@ -9,6 +9,7 @@ import {
   researchOf,
   seriesOf,
   wordOf,
+  wordsOf,
   writerOf,
 } from "./api-contract";
 import { adoptBodyOf } from "./actions";
@@ -1247,6 +1248,28 @@ describe("headingOf", () => {
     expect(word(h, "lipids")).toBe("toward");
     expect(word(h, "iron")).toBe("holding");
   });
+
+  // Phase 43D: a holding system still names a marker outside its lab range.
+  it("names the first marker outside the lab range on a holding system", () => {
+    const h = headingOf({
+      ...base,
+      hunches: [],
+      latest: new Map([
+        [
+          "ferritin",
+          { name: "Ferritin", value: 12.5, unit: "ng/mL", refLow: 20, refHigh: 250 },
+        ],
+        [
+          "ldl_cholesterol",
+          { name: "LDL", value: 90, unit: "mg/dL", refLow: null, refHigh: 130 },
+        ],
+      ]),
+    });
+    const iron = h.find((x) => x.id === "iron")!;
+    expect(iron.word).toBe("holding");
+    expect(iron.off).toEqual({ name: "Ferritin", value: "12.5 ng/mL", side: "below" });
+    expect(h.find((x) => x.id === "lipids")!.off).toBeUndefined();
+  });
 });
 
 describe("42C: the Watch order", () => {
@@ -1305,5 +1328,49 @@ describe("researchOf (42D)", () => {
       researchOf([{ ranAt: new Date("2026-09-01"), rows: { papers: 4 } }], ["x"]),
     ).toEqual({ at: "2026-09-01", papers: 4, moves: [] });
     expect(researchOf([], ["x"])).toBeNull();
+  });
+});
+
+describe("43I: speed from a short window", () => {
+  const drift = (numbers: Record<string, number | string>) =>
+    wordsOf(
+      {
+        kind: "drift",
+        codes: ["ldl_cholesterol"],
+        dir: "up",
+        since: String(numbers.firstDate),
+        system: "lipids",
+        numbers,
+      },
+      () => "LDL Cholesterol",
+      () => " mg/dL",
+    ).line;
+
+  it("gives the change since the first draw when the draws span under a year", () => {
+    const line = drift({
+      perYear: 68.4,
+      last: 133,
+      first: 101,
+      firstDate: "2026-03-05",
+      spanDays: 166,
+      from: "2026-03-05",
+      to: "2026-08-18",
+    });
+    expect(line).toBe("LDL Cholesterol rose 32 mg/dL since Mar 2026.");
+    expect(line).not.toContain("a year");
+  });
+
+  it("keeps the per-year line when the draws span a year or more", () => {
+    expect(
+      drift({
+        perYear: 12,
+        last: 133,
+        first: 110,
+        firstDate: "2024-08-01",
+        spanDays: 747,
+        from: "2024-08-01",
+        to: "2026-08-18",
+      }),
+    ).toBe("LDL Cholesterol is rising 12 mg/dL a year.");
   });
 });

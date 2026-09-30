@@ -1,0 +1,385 @@
+{
+  "due": true,
+  "screen": {
+    "kind": "reveal",
+    "fromAnswersOnly": false,
+    "hunchId": "1cdc464d-d996-4fc6-804a-d2b8a5311b21",
+    "case": {
+      "id": "1cdc464d-d996-4fc6-804a-d2b8a5311b21",
+      "kind": "cause",
+      "stamp": "WHY",
+      "system": null,
+      "line": "Iron deficiency is confirmed; the question now is why.",
+      "number": {
+        "value": 8.2,
+        "unit": "ng/mL"
+      },
+      "mini": {
+        "band": {
+          "median": 13.45,
+          "sd": 8.043105,
+          "n": 12,
+          "provisional": false
+        },
+        "lab": [
+          10,
+          291
+        ],
+        "last": 8.2,
+        "goal": null
+      },
+      "action": {
+        "kind": "answer",
+        "label": "Answer"
+      },
+      "state": "open",
+      "say": "The belief holds. The causes below could each explain it, and one test splits them.",
+      "series": [
+        {
+          "date": "2018-08-08",
+          "value": 9.8,
+          "file": "lab report, 8 Aug 2018",
+          "upload": "06d153c8-d798-4dd7-863f-8667710c8c57"
+        },
+        {
+          "date": "2019-01-19",
+          "value": 28.5,
+          "file": "lab report, 19 Jan 2019",
+          "upload": "bc2574ca-639b-4790-a080-b7445b28560d"
+        },
+        {
+          "date": "2019-07-13",
+          "value": 19.3,
+          "file": "lab report, 13 Jul 2019",
+          "upload": "0950efa5-aa17-4645-8891-def43dca6d0c"
+        },
+        {
+          "date": "2021-12-04",
+          "value": 51.75,
+          "file": "lab report, 4 Dec 2021",
+          "upload": "64e0e3e7-e0e2-4a71-9393-7fa23cca7de2"
+        },
+        {
+          "date": "2022-10-20",
+          "value": 16.8,
+          "file": "lab report, 20 Oct 2022",
+          "upload": "92079083-83d1-4b2a-83ef-7cfed2b5491d"
+        },
+        {
+          "date": "2024-05-13",
+          "value": 8.45,
+          "file": "lab report, 13 May 2024",
+          "upload": "5344f321-cc52-4a79-8f1e-e8a34116c102"
+        },
+        {
+          "date": "2024-10-10",
+          "value": 24.5,
+          "file": "lab report, 10 Oct 2024",
+          "upload": "0fa7ec65-421e-4af5-96ed-108de4434046"
+        },
+        {
+          "date": "2025-05-28",
+          "value": 6.9,
+          "file": "lab report, 28 May 2025",
+          "upload": "c2f94683-9d70-4c72-8067-b4bed3d6387c"
+        },
+        {
+          "date": "2025-12-09",
+          "value": 13.9,
+          "file": "lab report, 9 Dec 2025",
+          "upload": "e4d271b2-add9-4f43-ab04-1c5fba0262bc"
+        },
+        {
+          "date": "2026-03-05",
+          "value": 13,
+          "file": "lab report, 5 Mar 2026",
+          "upload": "ad3d694b-2296-483c-bcb8-014974b4f870"
+        },
+        {
+          "date": "2026-04-23",
+          "value": 6.1,
+          "file": "lab report, 23 Apr 2026",
+          "upload": "6dd5ef8c-992d-44c8-9457-e5ded08ee828"
+        },
+        {
+          "date": "2026-07-29",
+          "value": 10.7,
+          "file": "lab report, 29 Jul 2026",
+          "upload": "6cceac64-c887-4f6d-ad08-25a6c671739d"
+        },
+        {
+          "date": "2026-08-18",
+          "value": 8.2,
+          "file": "lab report, 18 Aug 2026",
+          "upload": "6cceac64-c887-4f6d-ad08-25a6c671739d"
+        }
+      ],
+      "bandAt": [
+        {
+          "date": "2022-10-20",
+          "median": 23.9,
+          "sd": 13.862309999999999
+        },
+        {
+          "date": "2024-05-13",
+          "median": 19.3,
+          "sd": 13.639919999999998
+        },
+        {
+          "date": "2024-10-10",
+          "median": 18.05,
+          "sd": 13.232205
+        },
+        {
+          "date": "2025-05-28",
+          "median": 19.3,
+          "sd": 13.639919999999998
+        },
+        {
+          "date": "2025-12-09",
+          "median": 18.05,
+          "sd": 13.232205
+        },
+        {
+          "date": "2026-03-05",
+          "median": 16.8,
+          "sd": 11.416019999999998
+        },
+        {
+          "date": "2026-04-23",
+          "median": 15.350000000000001,
+          "sd": 9.229185000000001
+        },
+        {
+          "date": "2026-07-29",
+          "median": 13.9,
+          "sd": 8.08017
+        },
+        {
+          "date": "2026-08-18",
+          "median": 13.45,
+          "sd": 8.043105
+        }
+      ],
+      "explanations": [
+        {
+          "id": "coeliac_disease",
+          "text": "Your genetic markers raise the risk of celiac disease, which limits how well your gut absorbs iron.",
+          "basis": "science",
+          "check": {
+            "op": ">",
+            "code": "ttg_iga",
+            "value": 10
+          },
+          "grade": "A",
+          "source": "Rubio-Tapia 2013 ACG guideline",
+          "weight": 0.007,
+          "predicts": "If your genetic markers raise the risk of celiac disease, which limits how well your gut absorbs iron: Tissue Transglutaminase IgA Antibody over 10 RU/mL.",
+          "conditionId": "coeliac_disease",
+          "origin": "catalog"
+        },
+        {
+          "id": "iron_deficiency_cause_gi",
+          "text": "Ongoing digestive irritation or reduced gut absorption can lead to lower iron levels over time.",
+          "basis": "science",
+          "check": {
+            "op": ">",
+            "code": "ttg_iga",
+            "value": 10
+          },
+          "grade": "A",
+          "source": "catalog: scored once iron_deficiency holds",
+          "weight": 0.07,
+          "predicts": "If ongoing digestive irritation or reduced gut absorption can lead to lower iron levels over time: Tissue Transglutaminase IgA Antibody over 10 RU/mL.",
+          "conditionId": "iron_deficiency_cause_gi",
+          "origin": "catalog"
+        },
+        {
+          "id": "outside:1",
+          "text": "Heavy menstrual periods can cause regular blood loss that lowers your body's iron stores.",
+          "basis": "hypothesis",
+          "check": null,
+          "grade": "E",
+          "source": null,
+          "weight": 0,
+          "predicts": "If heavy menstrual periods can cause regular blood loss that lowers your body's iron stores: Tissue Transglutaminase IgA Antibody under 10 RU/mL.",
+          "conditionId": null,
+          "origin": "model"
+        }
+      ],
+      "question": {
+        "text": "Which of these experiences sounds most familiar to you?",
+        "chips": [
+          {
+            "id": "c1",
+            "label": "Heavy menstrual bleeding",
+            "favours": [
+              "outside:1"
+            ]
+          },
+          {
+            "id": "c2",
+            "label": "Digestive upset after eating gluten",
+            "favours": [
+              "coeliac_disease"
+            ]
+          },
+          {
+            "id": "c3",
+            "label": "General stomach or bowel changes",
+            "favours": [
+              "iron_deficiency_cause_gi"
+            ]
+          },
+          {
+            "id": "c4",
+            "label": "None of these",
+            "favours": []
+          }
+        ]
+      },
+      "answer": null,
+      "test": {
+        "eur": 37.08,
+        "code": "ttg_iga",
+        "name": "tTG-IgA with total IgA",
+        "price": 194.98,
+        "currency": "RON",
+        "estimated": false
+      },
+      "predictions": null,
+      "writtenAt": null,
+      "outcome": null,
+      "outcomeLine": null,
+      "rule": [
+        "Iron deficiency is confirmed (p 0.93)",
+        "2 causes in the graph and catalog could explain it"
+      ],
+      "unknowns": [
+        "Our read is a differential, not a diagnosis: 64% stays other or unexplained.",
+        "Explanations marked unproven are not in the knowledge graph."
+      ],
+      "firedAt": [],
+      "differential": {
+        "options": [
+          {
+            "id": "atrophic_gastritis",
+            "name": "Atrophic gastritis",
+            "pct": 28,
+            "reason": "A paper counted it in 28% of people with iron deficiency.",
+            "sources": [
+              {
+                "label": "Annibale B 2001 Am J Med",
+                "doi": "10.1016/s0002-9343(01)00883-x",
+                "grade": "C",
+                "origin": "paper"
+              }
+            ],
+            "confirmTest": "Intrinsic factor antibodies"
+          },
+          {
+            "id": "iron_deficiency_cause_gi",
+            "name": "Iron loss or malabsorption from the gut",
+            "pct": 7,
+            "reason": "Ongoing digestive irritation or reduced gut absorption can lead to lower iron levels over time.",
+            "sources": [
+              {
+                "label": "In referred iron-deficiency series a gut cause is found in roughly a fifth of unselected adults, more in men (grade C).",
+                "doi": null,
+                "grade": "C",
+                "origin": "catalog"
+              }
+            ],
+            "confirmTest": "tTG-IgA with total IgA"
+          },
+          {
+            "id": "coeliac_disease",
+            "name": "Coeliac disease",
+            "pct": 0.7,
+            "reason": "Your genetic markers raise the risk of celiac disease, which limits how well your gut absorbs iron.",
+            "sources": [
+              {
+                "label": "Annibale B 2001 Am J Med",
+                "doi": "10.1016/s0002-9343(01)00883-x",
+                "grade": "C",
+                "origin": "paper"
+              }
+            ],
+            "confirmTest": "tTG-IgA with total IgA"
+          }
+        ],
+        "otherPct": 64,
+        "splitTest": "tTG-IgA with total IgA"
+      },
+      "bestRead": {
+        "specialty": "gastroenterologist"
+      },
+      "research": {
+        "at": "2026-09-29",
+        "papers": 12,
+        "moves": [
+          {
+            "conditionId": "atrophic_gastritis",
+            "name": "Atrophic gastritis",
+            "from": 12,
+            "to": 29,
+            "dois": [
+              "10.1016/s0002-9343(01)00883-x"
+            ],
+            "labels": [
+              "Annibale 2001"
+            ]
+          }
+        ]
+      },
+      "markers": []
+    },
+    "picture": [
+      {
+        "id": "insulin_resistance",
+        "name": "Insulin resistance",
+        "p": 0.468
+      },
+      {
+        "id": "heavy_menstrual_bleeding",
+        "name": "Heavy menstrual bleeding",
+        "p": 0.336
+      },
+      {
+        "id": "hashimoto",
+        "name": "Autoimmune thyroiditis (Hashimoto's)",
+        "p": 0.255
+      }
+    ],
+    "test": {
+      "label": "tTG-IgA with total IgA",
+      "price": "194.98 RON"
+    },
+    "action": {
+      "id": "int:seed_coeliac_gluten_free_trial",
+      "title": "Gluten-free trial",
+      "dose": "4 weeks"
+    }
+  },
+  "progress": {
+    "at": 13,
+    "of": 14
+  },
+  "picture": [
+    {
+      "id": "insulin_resistance",
+      "name": "Insulin resistance",
+      "p": 0.468
+    },
+    {
+      "id": "heavy_menstrual_bleeding",
+      "name": "Heavy menstrual bleeding",
+      "p": 0.336
+    },
+    {
+      "id": "hashimoto",
+      "name": "Autoimmune thyroiditis (Hashimoto's)",
+      "p": 0.255
+    }
+  ]
+}

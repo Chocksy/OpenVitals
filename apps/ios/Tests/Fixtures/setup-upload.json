@@ -1,0 +1,11 @@
+{
+  "due": true,
+  "screen": {
+    "kind": "upload"
+  },
+  "progress": {
+    "at": 1,
+    "of": 15
+  },
+  "picture": []
+}

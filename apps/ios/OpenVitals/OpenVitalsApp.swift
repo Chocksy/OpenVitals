@@ -81,6 +81,8 @@ struct Shell: View {
     @State private var opened = 0
     /// A question out from Add: the veil holds it open until the answer.
     @State private var sending = false
+    /// Phase 43C: a new person gets the setup flow over everything.
+    @State private var setup = false
     @Environment(\.accessibilityReduceMotion) private var reduce
 
     var body: some View {
@@ -152,6 +154,21 @@ struct Shell: View {
             island.stage(Fixtures.island)
             #endif
         }
+        .task { setup = await Self.setupDue() }
+        .fullScreenCover(isPresented: $setup) {
+            // "Finish later" only closes it: the server keeps it due, so the
+            // next launch asks again.
+            SetupView(onClose: { setup = false })
+        }
+    }
+
+    /// Asked once per launch. A failed ask is not due: the app opens as
+    /// always. A fixture run opens it only for `-OVScreen setup-<kind>`.
+    static func setupDue() async -> Bool {
+        #if DEBUG
+        if Fixtures.on { return Fixtures.screen?.hasPrefix("setup") == true }
+        #endif
+        return (try? await Api.setup())?.due == true
     }
 
     /// The +: the camera at once, unless a failed read left a draft; that

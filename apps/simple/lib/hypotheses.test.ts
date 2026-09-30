@@ -1091,3 +1091,17 @@ describe("share mixture", () => {
     expect(odds(r.mixture!.posterior)).toBeCloseTo(odds(0.4615) * 3, 1);
   });
 });
+
+describe('"Not sure"', () => {
+  it("reads as no answer, not as a No", () => {
+    const base = { sex: "female" as const, age: 36 };
+    const p = (sym_heavy_periods?: string) =>
+      score(
+        "heavy_menstrual_bleeding",
+        input({ ...base, profile: sym_heavy_periods ? { sym_heavy_periods } : {} }),
+        { catalog: CATALOG },
+      )!.score;
+    expect(p("Not sure")).toBe(p());
+    expect(p("No")).toBeLessThan(p());
+  });
+});

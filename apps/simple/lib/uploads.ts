@@ -30,7 +30,7 @@ import {
 import { looksLikeGenome, saveGenome } from "./genome";
 import { sameValue } from "./data";
 import { canonicalCode } from "./merge-metrics";
-import { convert } from "./units";
+import { convert, implausible } from "./units";
 
 /** Below this many characters the stored text is a scan artefact, not a report. */
 export const MIN_RAW_TEXT = 200;
@@ -208,6 +208,8 @@ export function planInsert(
   replace: string[];
   skipped: number;
   ranges: { id: string; refLow: number | null; refHigh: number | null }[];
+  /** Phase 43H: rows not saved, with why */
+  dropped: { row: NewRow; reason: string }[];
 } {
   const replace = new Set<string>();
   const ranges: {
@@ -222,7 +224,18 @@ export function planInsert(
   const insert: NewRow[] = [];
   const taken = new Set<string>();
   let skipped = 0;
-  for (const r of fresh) {
+  // Phase 43H: a ratio on a lipid line never becomes that lipid, before any
+  // duplicate rule can keep it.
+  const dropped: { row: NewRow; reason: string }[] = [];
+  const plausible = (r: NewRow) => {
+    if (r.value == null || !implausible(r.metricCode, r.value, r.unit))
+      return true;
+    dropped.push({ row: r, reason: "looks like a ratio or a different unit" });
+    return false;
+  };
+  const rows = fresh.filter(plausible);
+  const antes = antecedents.filter(plausible);
+  for (const r of rows) {
     const same = byDay.get(dayKey(r)) ?? [];
     for (const e of same) if (isAntecedent(e.flags)) replace.add(e.id);
     const twin = same.find((e) => !replace.has(e.id) && sameDraw(e, r));
@@ -252,7 +265,7 @@ export function planInsert(
     r.value != null &&
     sameValue(r.value, a.value) &&
     Math.abs(dayNo(r.observedAt) - dayNo(a.observedAt)) <= ANTECEDENT_NEAR_DAYS;
-  for (const a of antecedents) {
+  for (const a of antes) {
     const held = (byDay.get(dayKey(a)) ?? []).some((e) => !replace.has(e.id));
     const twin =
       existing.some((e) => !replace.has(e.id) && near(a, e)) ||
@@ -264,7 +277,7 @@ export function planInsert(
     taken.add(dayKey(a));
     insert.push(a);
   }
-  return { insert, replace: [...replace], skipped, ranges };
+  return { insert, replace: [...replace], skipped, ranges, dropped };
 }
 
 /** Share of an older upload's rows the newer one must repeat to be the same report. */
@@ -363,6 +376,8 @@ export interface LabSave {
   antecedents: number;
   skipped: number;
   superseded: string[];
+  /** Phase 43H: rows left out, with why */
+  dropped: { metricCode: string; value: number | null; reason: string }[];
 }
 
 /** Drop rows by id, and the curator questions that point at them. */
@@ -550,6 +565,11 @@ export async function saveReadings(
       antecedents: plan.insert.filter((r) => isAntecedent(r.flags)).length,
       skipped: plan.skipped,
       superseded,
+      dropped: plan.dropped.map((d) => ({
+        metricCode: d.row.metricCode,
+        value: d.row.value,
+        reason: d.reason,
+      })),
     };
   });
 }
@@ -746,6 +766,11 @@ export async function processUpload(
         `${saved.inserted} readings`,
         saved.antecedents && `${saved.antecedents} earlier values`,
         saved.skipped && `${saved.skipped} already stored`,
+        // Phase 43H: say what was left out and why, never drop it silently.
+        ...saved.dropped.map(
+          (d) =>
+            `${d.metricCode.replace(/_/g, " ")} ${d.value} left out: ${d.reason}`,
+        ),
         saved.superseded.length &&
           `replaces ${saved.superseded.length} earlier upload`,
         result.pending?.length && `${result.pending.length} still pending`,

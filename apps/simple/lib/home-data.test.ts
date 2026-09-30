@@ -1,7 +1,14 @@
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
-import { askKeyOf, homeAskPlan, railCards, systemTiles } from "./home-data";
+import {
+  askKeyOf,
+  firstMoveSentence,
+  homeAskPlan,
+  railCards,
+  systemTiles,
+  topOfCard,
+} from "./home-data";
 import type { DueFact } from "./revisit";
 import type { Ledger } from "./ledger";
 import type { Today } from "./home-data";
@@ -292,5 +299,47 @@ describe("the one input is keyed on its question", () => {
 
   it("remounts TodayAsk when the question changes", () => {
     expect(home).toContain("<TodayAsk key={ask.key}");
+  });
+});
+
+describe("43F: the one to move first follows card 01", () => {
+  const systems = [
+    {
+      id: "vitamins",
+      name: "Vitamins",
+      score: 0.9,
+      worst: { code: "vitamin_d", value: 12, unit: "ng/mL", status: "red" },
+    },
+    {
+      id: "iron",
+      name: "Iron",
+      score: 0.5,
+      worst: { code: "ferritin", value: 11, unit: "ng/mL", status: "amber" },
+    },
+  ] as Ledger["systems"];
+  const systemOf = new Map([
+    ["vitamin_d", "vitamins"],
+    ["ferritin", "iron"],
+  ]);
+
+  it("names card 01's system when there is one, the worst marker's otherwise", () => {
+    expect(firstMoveSentence(systems, { systemName: "Iron", tone: "bad" }).head).toBe(
+      "Iron is the one to move first",
+    );
+    expect(firstMoveSentence(systems).head).toBe("Vitamins is the one to move first");
+  });
+
+  it("reads card 01's system off its lead marker", () => {
+    const card = {
+      id: "iron_deficiency",
+      kind: "condition",
+      for: [{ input: "ferritin" }],
+    } as unknown as Parameters<typeof topOfCard>[0];
+    expect(topOfCard(card, systems, systemOf)).toEqual({ systemName: "Iron", tone: "warn" });
+    const marker = { id: "marker:vitamin_d", kind: "marker", for: [] } as unknown as Parameters<
+      typeof topOfCard
+    >[0];
+    expect(topOfCard(marker, systems, systemOf)?.systemName).toBe("Vitamins");
+    expect(topOfCard(undefined, systems, systemOf)).toBeUndefined();
   });
 });

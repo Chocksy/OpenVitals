@@ -23,7 +23,7 @@ import {
   type HunchQuestion,
   type HunchTest,
 } from "@/db";
-import { SYSTEMS } from "@/lib/graph";
+import { NODES, SYSTEMS } from "@/lib/graph";
 import { loadGraph } from "@/lib/kg";
 import {
   hunchOf,
@@ -68,6 +68,7 @@ import {
 import {
   buildToday,
   firstMoveSentence,
+  topOfCard,
   goalsSentence,
   railCards,
   systemTiles,
@@ -470,7 +471,21 @@ export async function todayBody(
     done: planToday.done,
     total: planToday.total,
   });
-  const fallback = firstMoveSentence(ledger.systems);
+  // Phase 43F: card 01's system, read the way the web page reads it.
+  const fallback = firstMoveSentence(
+    ledger.systems,
+    topOfCard(
+      ledger.conclusions[0],
+      ledger.systems,
+      new Map(
+        NODES.flatMap((n) =>
+          n.kind === "metric" && n.system
+            ? [[n.id.slice("metric:".length), n.system] as const]
+            : [],
+        ),
+      ),
+    ),
+  );
   const sentence = goalSaid
     ? {
         ...goalSaid,
@@ -1321,6 +1336,12 @@ export interface HeadingRow {
   name: string;
   word: "toward" | "holding" | "away" | "unmeasured";
   why: string;
+  /**
+   * Phase 43D: on a `holding` or `toward` system, its first marker whose last
+   * draw sits outside the lab range, so "holding" never reads as "fine".
+   * `value` is formatted with its unit ("16.8 ng/mL").
+   */
+  off?: { name: string; value: string; side: "below" | "above" };
 }
 
 const STAMP: Record<HunchKind, string> = {
@@ -1384,12 +1405,21 @@ export function wordsOf(
         say: `Your last ${n.k} draws all sit ${up ? "above" : "below"} every earlier draw. That is a new level, not one odd result.`,
       };
     case "drift": {
-      const rate = `${fmt(Math.abs(Number(n.perYear)))}${u} a year`;
       const goal = n.goalLow != null || n.goalHigh != null;
+      // Phase 43I: under a year of draws gives the change since the first
+      // one; a per-year speed off five months overstated LDL fivefold.
+      const short = n.spanDays != null && Number(n.spanDays) < 365;
+      const change = Number(n.last) - Number(n.first);
+      const moved = `${fmt(Math.abs(change))}${u} since ${monthOf(String(n.firstDate))}`;
+      const rate = `${fmt(Math.abs(Number(n.perYear)))}${u} a year`;
       return {
-        line: goal
-          ? `${nm} is moving away from your goal, ${up ? "up" : "down"} ${rate}.`
-          : `${nm} is ${up ? "rising" : "falling"} ${rate}.`,
+        line: short
+          ? goal
+            ? `${nm} is moving away from your goal, ${change > 0 ? "up" : "down"} ${moved}.`
+            : `${nm} ${change > 0 ? "rose" : "fell"} ${moved}.`
+          : goal
+            ? `${nm} is moving away from your goal, ${up ? "up" : "down"} ${rate}.`
+            : `${nm} is ${up ? "rising" : "falling"} ${rate}.`,
         say:
           n.landing != null
             ? `On the line through your last three draws it lands near ${fmt(Number(n.landing))}${u} on ${n.due}.`
@@ -1835,6 +1865,17 @@ export function headingOf(input: {
     target: { low: number | null; high: number | null };
     recentSlope: { perYear: number } | null;
   }[];
+  /** Phase 43D: the last lab draw per code, with its lab range. */
+  latest?: Map<
+    string,
+    {
+      name: string;
+      value: number;
+      unit: string | null;
+      refLow: number | null;
+      refHigh: number | null;
+    }
+  >;
 }): HeadingRow[] {
   const cutoff = input.lastDraw
     ? new Date(
@@ -1854,7 +1895,32 @@ export function headingOf(input: {
     if (low != null && g.value < low) return s > 0 ? "toward" : "away";
     return null;
   };
-  return SYSTEMS.map(({ id, name }) => {
+  // Phase 43D: first code of the system (in `systemOf` order) outside its lab range.
+  const offOf = (id: string): HeadingRow["off"] => {
+    for (const [code, sys] of input.systemOf) {
+      if (sys !== id) continue;
+      const l = input.latest?.get(code);
+      if (!l) continue;
+      const side =
+        l.refLow != null && l.value < l.refLow
+          ? ("below" as const)
+          : l.refHigh != null && l.value > l.refHigh
+            ? ("above" as const)
+            : null;
+      if (side)
+        return {
+          name: l.name,
+          value: `${fmt(l.value)}${l.unit ? ` ${l.unit}` : ""}`,
+          side,
+        };
+    }
+    return undefined;
+  };
+  const withOff = (r: HeadingRow): HeadingRow => {
+    const off = offOf(r.id);
+    return off ? { ...r, off } : r;
+  };
+  return SYSTEMS.map(({ id, name }): HeadingRow => {
     const measured =
       cutoff != null &&
       [...input.points].some(
@@ -1874,11 +1940,11 @@ export function headingOf(input: {
     const good = input.hunches.find(
       (h) => h.kind === "good_news" && touches(id, h),
     );
-    if (good) return { id, name, word: "toward" as const, why: good.line };
+    if (good) return withOff({ id, name, word: "toward", why: good.line });
     const toward = goals.find((g) => wayOf(g) === "toward");
     if (toward)
-      return { id, name, word: "toward" as const, why: `${toward.name} is moving toward your goal.` };
-    return { id, name, word: "holding" as const, why: "Nothing moved on your own draws." };
+      return withOff({ id, name, word: "toward", why: `${toward.name} is moving toward your goal.` });
+    return withOff({ id, name, word: "holding", why: "Nothing moved on your own draws." });
   });
 }
 
@@ -1942,6 +2008,26 @@ async function todayHunches(
       line: x.row.line,
     })),
     goals,
+    // Phase 43D: the last lab draw per code, from the same rows the rail reads.
+    latest: new Map(
+      rows.flatMap((m) => {
+        const p = ctx.points.get(m.code)?.at(-1);
+        return p
+          ? [
+              [
+                m.code,
+                {
+                  name: m.name,
+                  value: p.value,
+                  unit: p.unit,
+                  refLow: p.refLow,
+                  refHigh: p.refHigh,
+                },
+              ] as const,
+            ]
+          : [];
+      }),
+    ),
   });
   return {
     hunches: shelf,

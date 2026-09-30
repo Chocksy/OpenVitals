@@ -1,0 +1,14 @@
+{
+  "due": true,
+  "screen": {
+    "kind": "basics",
+    "sex": null,
+    "birthYear": null,
+    "country": null
+  },
+  "progress": {
+    "at": 1,
+    "of": 14
+  },
+  "picture": []
+}

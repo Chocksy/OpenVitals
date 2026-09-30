@@ -226,6 +226,23 @@ describe("toRows", () => {
 });
 
 describe("planInsert", () => {
+  // Phase 43H: a TC/HDL ratio printed on the total cholesterol line.
+  it("drops a lipid value that looks like a ratio, with the reason", () => {
+    const ratio = row({
+      metricCode: "total_cholesterol",
+      value: 2.56,
+      valueText: "2.56",
+      unit: null,
+      refLow: null,
+      refHigh: null,
+    });
+    const plan = planInsert([ratio, row()], [], []);
+    expect(plan.insert.map((r) => r.metricCode)).toEqual(["ferritin"]);
+    expect(plan.dropped).toEqual([
+      { row: ratio, reason: "looks like a ratio or a different unit" },
+    ]);
+  });
+
   it("skips a row identical on metric, day and value", () => {
     const plan = planInsert([row()], [], [stored("a")]);
     expect(plan.insert).toHaveLength(0);

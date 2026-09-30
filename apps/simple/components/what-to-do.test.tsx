@@ -131,6 +131,16 @@ describe("the What to do block", () => {
     expect(empty).not.toContain("Add all 0");
   });
 
+  // Phase 43J: a failed-treatment note is something written; no blank line under it.
+  it("prints no placeholder under a note", () => {
+    const noted = html({
+      ...base,
+      lines: [line({ id: "note:1", source: "note", title: "Oral iron did not raise ferritin." })],
+    });
+    expect(noted).toContain("Oral iron did not raise ferritin.");
+    expect(noted).not.toContain("Nothing has been written for this one yet");
+  });
+
   it("does not offer Add all for a single action", () => {
     const one = html({ ...base, lines: [line()] });
     expect(one).toContain("Add");

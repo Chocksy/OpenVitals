@@ -560,7 +560,7 @@ const SHOWN = 4;
  * on the list explains, the test that splits them, and who to see for the
  * top one.
  */
-function OurRead({ c }: { c: HunchCase }) {
+export function OurRead({ c }: { c: HunchCase }) {
   const d = c.differential;
   if (!d || !d.options.length) return null;
   const option = (o: (typeof d.options)[number], i: number) => (

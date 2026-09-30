@@ -1715,7 +1715,9 @@ function factText(m: ModelInput, key: string): string | null {
   const raw = m.profile[key];
   if (raw == null) return null;
   const text = Array.isArray(raw) ? raw.join(", ") : String(raw);
-  return text.trim() === "" ? null : text;
+  // "Not sure" is no answer: read as one, it fired every rule's lrNeg, so
+  // an unsure woman lost the same 34 to 19 on heavy periods as a "No".
+  return text.trim() === "" || text === "Not sure" ? null : text;
 }
 
 /**

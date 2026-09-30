@@ -747,8 +747,12 @@ export function EvidenceLegend() {
   return <p className="legend">{EVIDENCE_LEGEND}</p>;
 }
 
-/** Day one: `system.html` section 12. One sentence, one link, no dashes. */
-export function EmptyHome() {
+/**
+ * Day one: `system.html` section 12. One sentence, one link, no dashes.
+ * Phase 43B: while setup is due the card also links to `/setup`, "Start" or
+ * "Continue" by whether the person has answered anything there yet.
+ */
+export function EmptyHome({ setup }: { setup?: "start" | "continue" | null }) {
   return (
     <div className="empty">
       <span className="k">Day one</span>
@@ -759,6 +763,11 @@ export function EmptyHome() {
         Add a lab result, or a photo of one, and the first reading turns this
         into a ledger. Nothing here is a demo.
       </p>
+      {setup && (
+        <Link href="/setup">
+          {setup === "continue" ? "Continue setup" : "Start setup"}
+        </Link>
+      )}
       <Link href="/blood?tab=uploads">Add your first result</Link>
       <div className="mt-2">
         <GeneratePlan />

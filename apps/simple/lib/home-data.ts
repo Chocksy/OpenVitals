@@ -553,11 +553,25 @@ export function goalsSentence(
  * system cards by. It never says sick, because a system with a marker off its
  * band is not a diagnosis, and because the owner asked it not to.
  */
-export function firstMoveSentence(systems: Ledger["systems"]): {
+export function firstMoveSentence(
+  systems: Ledger["systems"],
+  /**
+   * Phase 43F: card 01's system. The ledger ranks beliefs and this sentence
+   * ranked markers, so they named different systems ("Vitamins" beside card
+   * 01 Iron); card 01 wins, the worst marker is the fallback.
+   */
+  top?: { systemName: string; tone: RailTone },
+): {
   head: string;
   tail: string;
   tone: RailTone;
 } {
+  if (top)
+    return {
+      head: `${top.systemName} is the one to move first`,
+      tail: "",
+      tone: top.tone,
+    };
   const measured = [...systems]
     .filter((s) => s.worst != null && s.worst.value != null)
     .sort(
@@ -580,6 +594,38 @@ const TONE_OF = {
   green: "ok",
   gray: "none",
 } as const;
+
+/**
+ * Phase 43F: the system card 01 belongs to, for `firstMoveSentence`. A marker
+ * card is its own code; a condition card reads its lead marker (the trend,
+ * the projection, then the FOR lines), mapped by the graph's metric systems.
+ */
+export function topOfCard(
+  c:
+    | Pick<Conclusion, "id" | "kind" | "trend" | "projection" | "for">
+    | undefined,
+  systems: Ledger["systems"],
+  systemOf: Map<string, string>,
+): { systemName: string; tone: RailTone } | undefined {
+  if (!c) return undefined;
+  const codes = [
+    ...(c.kind === "marker" ? [c.id.slice("marker:".length)] : []),
+    c.trend?.code,
+    c.projection?.code,
+    ...c.for.map((e) => e.input),
+  ];
+  for (const code of codes) {
+    const sys = code
+      ? systems.find((s) => s.id === systemOf.get(code))
+      : undefined;
+    if (sys)
+      return {
+        systemName: sys.name,
+        tone: sys.worst ? TONE_OF[sys.worst.status] : "none",
+      };
+  }
+  return undefined;
+}
 
 /** The first sentence of a reply, so a card never prints a paragraph. */
 const firstSentence = (text: string) =>

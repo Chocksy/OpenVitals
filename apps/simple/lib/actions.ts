@@ -49,6 +49,8 @@ export interface PlanLine {
    * which has nothing to adopt.
    */
   source: "plan" | "papers" | "note";
+  /** a drug or a procedure off the papers: it needs a doctor to start (43) */
+  prescribed?: true;
   /** index into `report.body.actions`, so "Add" can adopt it */
   index?: number;
   /** `hkb_interventions.id`, so "Add" can adopt the claim */
@@ -138,6 +140,8 @@ export interface InterventionLine {
   grade: string;
   /** `seed` for the hand-written catalog, `research` for a mined row */
   source?: string | null;
+  /** `drug`, `procedure`, `supplement`… as the row was filed */
+  kind?: string | null;
 }
 
 const short = (id: string) => id.replace(/^metric:/, "").replace(/_/g, " ");
@@ -314,6 +318,9 @@ export function pickActions({
         id: `int:${r.id}`,
         title: r.name,
         source: "papers",
+        ...(r.kind === "drug" || r.kind === "procedure"
+          ? { prescribed: true as const }
+          : {}),
         interventionId: r.id,
         dose: r.dose,
         basis,
@@ -371,6 +378,7 @@ const toLine = (r: {
   outcomeFeatureId: string | null;
   grade: string;
   source?: string | null;
+  kind?: string | null;
 }): InterventionLine => ({
   id: r.id,
   conditionId: r.conditionId,
@@ -382,6 +390,7 @@ const toLine = (r: {
   outcomeFeatureId: r.outcomeFeatureId,
   grade: r.grade,
   source: r.source,
+  kind: r.kind,
 });
 
 /**
