@@ -571,8 +571,15 @@ async function stateOf(userId: string) {
     setupDone,
     new Date().toISOString(),
   );
-  if (fresh) await save(userId, state);
-  return { state, setupDone, fresh };
+  if (!fresh) return { state, setupDone, fresh };
+  // Only into an empty column: a locked POST may have written a state since
+  // the read above, and that one wins. The re-read returns whichever landed.
+  await getDb()
+    .update(users)
+    .set({ checkin: state })
+    .where(and(eq(users.id, userId), isNull(users.checkin)));
+  const again = await stored(userId);
+  return { state: again.checkin ?? state, setupDone, fresh };
 }
 
 /**

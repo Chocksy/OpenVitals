@@ -70,13 +70,21 @@ describe("timing (44B)", () => {
       "2026-10-02T06:00:00.000Z",
     );
   });
-  it("asks later at 09:00 local the same day when tapped before 09:00", () => {
+  it("asks later before 09:00 local at 09:00 or in 3 hours, whichever is later", () => {
     // 01:00 in UTC+3 is 22:00Z the day before; 09:00 local is 06:00Z
     expect(laterOf("2026-09-30T22:00:00Z", 180)).toBe(
       "2026-10-01T06:00:00.000Z",
     );
-    // 07:30 local in UTC-5 is 12:30Z; 09:00 local is 14:00Z
-    expect(laterOf("2026-10-01T12:30:00Z", -300)).toBe(
+    // 06:30 local (03:30Z): +3 h is 09:30 local, later than 09:00
+    expect(laterOf("2026-10-01T03:30:00Z", 180)).toBe(
+      "2026-10-01T06:30:00.000Z",
+    );
+    // 08:55 local (05:55Z): +3 h is 11:55 local
+    expect(laterOf("2026-10-01T05:55:00Z", 180)).toBe(
+      "2026-10-01T08:55:00.000Z",
+    );
+    // 05:00 local in UTC-5 is 10:00Z; 09:00 local is 14:00Z
+    expect(laterOf("2026-10-01T10:00:00Z", -300)).toBe(
       "2026-10-01T14:00:00.000Z",
     );
     // 09:00 local on the dot takes the usual 3 hours

@@ -89,7 +89,8 @@ export function nextDueOf(lastDone: string, trying: boolean): string {
 /**
  * "Ask later": three hours on, unless that lands at or after 18:00 local (or
  * past midnight), then 09:00 local the next day. Before 09:00 local it is
- * 09:00 the same day, so a tap at 01:00 never brings a 04:00 reminder.
+ * the later of 09:00 that day and three hours on, so a tap at 01:00 never
+ * brings a 04:00 reminder.
  * `offsetMin` is minutes east of UTC.
  */
 export function laterOf(nowIso: string, offsetMin: number): string {
@@ -105,7 +106,11 @@ export function laterOf(nowIso: string, offsetMin: number): string {
         9,
       ) - off,
     ).toISOString();
-  if (local.getUTCHours() < 9) return morning(0);
+  if (local.getUTCHours() < 9) {
+    const plus3 = new Date(now + 3 * HOUR_MS).toISOString();
+    const nine = morning(0);
+    return plus3 > nine ? plus3 : nine;
+  }
   const later = new Date(now + off + 3 * HOUR_MS);
   if (later.getUTCDate() === local.getUTCDate() && later.getUTCHours() < 18) {
     return new Date(now + 3 * HOUR_MS).toISOString();
