@@ -12,6 +12,7 @@
  */
 import type { LatestValue, ModelInput } from "./coverage";
 import { slopeText, type Slope } from "./derived";
+import { daysBetween, fadeWeight } from "./fade";
 import { SYMPTOM_KEYS } from "./symptoms";
 import { parseBp, type Sex } from "./vectors";
 
@@ -1580,6 +1581,13 @@ export const HYPOTHESES: Hypothesis[] = withNegatives([
 
 /* ── the engine ───────────────────────────────────────────────────────── */
 
+/** Phase 44A: how old a fact answer is and how much of it still counts. */
+export interface Faded {
+  key: string;
+  days: number;
+  weight: number;
+}
+
 export interface HypothesisResult {
   id: string;
   name: string;
@@ -1593,6 +1601,8 @@ export interface HypothesisResult {
     lr: number;
     grade: Grade;
     discounted?: number;
+    /** Phase 44A: an old answer, counted less; only when weight < 0.9 */
+    faded?: Faded;
   }[];
   against: {
     rule: string;
@@ -1600,6 +1610,7 @@ export interface HypothesisResult {
     value: string;
     lr: number;
     grade: Grade;
+    faded?: Faded;
   }[];
   missing: { rule: string; input: string }[]; // evidence that could not be evaluated
   /** rules that held but read an input a stronger rule already scored */
@@ -2621,9 +2632,10 @@ export function scoreHypotheses(
       hit: boolean;
       /** the number the paper printed, for the card */
       stated: number;
-      /** the same number after the grade shrink, for the arithmetic */
+      /** the same number after the grade shrink and the fade, for the arithmetic */
       raw: number;
       key: string;
+      faded?: Faded;
     }[] = [];
     for (const rule of h.evidence) {
       const r = resolve(rule.input, m, scores);
@@ -2647,13 +2659,21 @@ export function scoreHypotheses(
       }
       const stated = hit ? rule.lr : rule.lrNeg;
       if (stated == null) continue;
+      // Phase 44A: an old answer pulls less. `lr ** w` scales the log-odds
+      // by w, on top of the grade shrink; a fact with no date never fades.
+      const fact = rule.input.fact;
+      const at = fact ? m.profileAt?.[fact] : undefined;
+      const days = at ? daysBetween(at, m.today) : 0;
+      const w = fact && at ? fadeWeight(fact, hit, days) : 1;
       fired.push({
         rule,
         r,
         hit,
         stated,
-        raw: effectiveLr(stated, rule),
+        raw: effectiveLr(stated, rule) ** w,
         key: inputKey(rule),
+        faded:
+          fact && w < 0.9 ? { key: fact, days, weight: round2(w) } : undefined,
       });
     }
 
@@ -2682,6 +2702,7 @@ export function scoreHypotheses(
       group?: string;
       positive: boolean;
       code?: string;
+      faded?: Faded;
     }
     const factors: Factor[] = [];
 
@@ -2701,7 +2722,7 @@ export function scoreHypotheses(
         });
       }
 
-      const { rule, r, hit, raw, stated } = winner;
+      const { rule, r, hit, raw, stated, faded } = winner;
       const conf = confounderFor(r.code, rule, tags);
       const lr = conf ? discountLr(raw, conf.discount) : raw;
       if (conf) confounded.push({ input: r.label, tag: conf.tag });
@@ -2722,6 +2743,7 @@ export function scoreHypotheses(
         group: rule.correlationGroup ?? correlationGroupOf(rule.input),
         positive: hit,
         code: r.code,
+        faded,
       });
     }
 
@@ -2828,6 +2850,7 @@ export function scoreHypotheses(
         ...(round2(f.lr) !== round2(f.stated)
           ? { discounted: round2(f.lr) }
           : {}),
+        ...(f.faded ? { faded: f.faded } : {}),
       };
       if (f.lr >= 1) {
         forList.push(entry);

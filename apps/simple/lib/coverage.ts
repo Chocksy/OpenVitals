@@ -115,6 +115,11 @@ export interface ModelInput {
   slopes?: Partial<Record<keyof ModelInput["derived"], Slope>>;
   /** What this person took and when, for `no_response:` and `treated:`. */
   treatments?: Treatment[];
+  /**
+   * Phase 44A: the day each fact was last answered or confirmed
+   * (key → YYYY-MM-DD); a key with no entry never fades.
+   */
+  profileAt?: Record<string, string>;
 }
 
 export interface CoverageRow {

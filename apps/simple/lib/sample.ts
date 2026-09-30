@@ -175,6 +175,12 @@ export function applyOverlay(input: ModelInput, overlay: Overlay): ModelInput {
     age,
     latest,
     derived: deriveAll(latest, sex, age),
+    // Phase 44A: a simulated answer is given today, so it drops its old date.
+    profileAt: Object.fromEntries(
+      Object.entries(input.profileAt ?? {}).filter(
+        ([k]) => !(k in overlay.facts),
+      ),
+    ),
   });
 }
 

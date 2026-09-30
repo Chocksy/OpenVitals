@@ -35,6 +35,8 @@ export interface Persona {
   today: string;
   facts: Record<string, unknown>;
   readings: PersonaReading[];
+  /** Phase 44A: when each fact was answered (YYYY-MM-DD); absent = today. */
+  profileAt?: Record<string, string>;
   tracker?: {
     days?: number;
     averages?: Record<string, number | null>;
@@ -98,6 +100,7 @@ export function personaToInput(p: Persona): ModelInput {
     age,
     latest,
     derived,
+    profileAt: p.profileAt,
   });
 }
 

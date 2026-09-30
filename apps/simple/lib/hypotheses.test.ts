@@ -1105,3 +1105,41 @@ describe('"Not sure"', () => {
     expect(p("No")).toBeLessThan(p());
   });
 });
+
+describe("fading (44A)", () => {
+  const TODAY = "2026-09-30";
+  const inputWith = (profile: Record<string, unknown>, today: string) =>
+    input({ today, profile });
+  // One symptom only, so the symptom cap and the correlation damp stay out
+  // of the way and the halving is exact.
+  const base = () => inputWith({ sym_cold: "No" }, TODAY);
+  const score = (m: ModelInput, id: string) =>
+    scoreHypotheses(m, { catalog: CATALOG }).find((r) => r.id === id)!;
+  const ID = "hypothyroidism"; // hypo_cold: lr 2, lrNeg 0.8
+
+  it("changes nothing at 0 days or without a date", () => {
+    const fresh = score({ ...base(), profileAt: { sym_cold: TODAY } }, ID);
+    const none = score(base(), ID);
+    expect(fresh.score).toBe(none.score);
+    expect(none.against.find((e) => e.faded)).toBeUndefined();
+  });
+  it("pulls half the log-odds for a symptom No at 90 days", () => {
+    const empty = score(inputWith({}, TODAY), ID).score;
+    const fresh = score(base(), ID).score;
+    const old = score({ ...base(), profileAt: { sym_cold: "2026-07-02" } }, ID);
+    const lo = (p: number) => Math.log(p / (1 - p));
+    expect(lo(old.score) - lo(empty)).toBeCloseTo(
+      (lo(fresh) - lo(empty)) / 2,
+      1,
+    );
+    expect(old.against.find((e) => e.faded)?.faded).toMatchObject({
+      key: "sym_cold",
+      days: 90,
+      weight: 0.5,
+    });
+  });
+  it("never fades a fixed fact", () => {
+    const m = { ...base(), profileAt: { sex: "2010-01-01" } };
+    expect(score(m, ID).score).toBe(score(base(), ID).score);
+  });
+});
