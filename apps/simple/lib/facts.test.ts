@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import {
+  answerDates,
   dayBefore,
   eventConfounders,
   historyLine,
@@ -272,5 +273,32 @@ describe("life events as draw context", () => {
         ferritin: "2026-05-05",
       }),
     ).toEqual({});
+  });
+});
+
+describe("answerDates (44A)", () => {
+  const rows = [
+    {
+      key: "sym_cold",
+      validFrom: "2025-01-10",
+      validTo: "2025-06-01",
+      confirmations: null,
+    },
+    {
+      key: "sym_cold",
+      validFrom: "2025-06-01",
+      validTo: null,
+      confirmations: ["2025-09-01", "2026-03-01"],
+    },
+  ];
+  it("uses the last confirmation on or before the day", () => {
+    expect(answerDates(rows, "2026-01-01")).toEqual({ sym_cold: "2025-09-01" });
+    expect(answerDates(rows, "2026-09-30")).toEqual({ sym_cold: "2026-03-01" });
+  });
+  it("uses the row that held on the day", () => {
+    expect(answerDates(rows, "2025-03-01")).toEqual({ sym_cold: "2025-01-10" });
+  });
+  it("leaves out a key with no row yet", () => {
+    expect(answerDates(rows, "2024-12-31")).toEqual({});
   });
 });

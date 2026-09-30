@@ -234,6 +234,46 @@ export async function profileAt(
 }
 
 /**
+ * Phase 44A: the day each fact was last answered or confirmed, as it stood on
+ * `date`. Per key, the row that held that day (the `valueAt` rule), then the
+ * later of its start and its last confirmation on or before the day. A key
+ * with no row yet has no entry, and a key with no entry never fades. Pure.
+ */
+export function answerDates(
+  rows: {
+    key: string;
+    validFrom: string;
+    validTo: string | null;
+    confirmations: string[] | null;
+    changeKind?: string;
+  }[],
+  date: string,
+): Record<string, string> {
+  const byKey = new Map<string, HistoryRow[]>();
+  rows.forEach((r, i) =>
+    byKey.set(r.key, [
+      ...(byKey.get(r.key) ?? []),
+      {
+        id: String(i),
+        validFrom: r.validFrom,
+        validTo: r.validTo,
+        changeKind: r.changeKind ?? "changed",
+        value: null,
+      },
+    ]),
+  );
+  const out: Record<string, string> = {};
+  for (const [key, list] of byKey) {
+    const held = valueAt(list, date);
+    if (!held) continue;
+    out[key] = (rows[Number(held.id)]!.confirmations ?? [])
+      .filter((d) => d <= date)
+      .reduce((a, b) => (b > a ? b : a), held.validFrom);
+  }
+  return out;
+}
+
+/**
  * One fact written: the current value in `profile_facts`, and the period it
  * holds for in `profile_fact_history`. Everything that writes a fact goes
  * through here, so nothing can move without leaving a row behind.

@@ -18,7 +18,13 @@ import {
   type ReviewSubject,
 } from "@/db";
 import { toCountryCode } from "./countries";
-import { allHistory, CYCLE_FACT, profileAt, writeFact } from "./facts";
+import {
+  allHistory,
+  answerDates,
+  CYCLE_FACT,
+  profileAt,
+  writeFact,
+} from "./facts";
 import { localDay, shiftDay } from "./daily";
 import { getMetricRows } from "./data";
 import {
@@ -222,12 +228,16 @@ export interface HeldFact {
  * The trailing 7-day median of the device readings stands in for the fact,
  * unless the person answered that question themselves in the last 30 days: a
  * user answer always wins. Nothing is written; the next call recomputes it.
+ *
+ * Phase 44A: a value read off the phone is this week's, so every key it
+ * replaces is dated `today` in `answeredAt` (updated in place) and never fades.
  */
 export function overlayPhoneFacts(
   profile: Record<string, unknown>,
   held: HeldFact[],
   series: Record<string, { date: string; value: number }[]>,
   today: string,
+  answeredAt: Record<string, string> = {},
 ): Record<string, unknown> {
   const byKey = new Map(held.map((f) => [f.key, f]));
   const windowFrom = shiftDay(today, -(OVERLAY_DAYS - 1));
@@ -248,7 +258,10 @@ export function overlayPhoneFacts(
         .filter((p) => p.date >= windowFrom && p.date <= today)
         .map((p) => p.value),
     );
-    if (value != null) out[key] = String(value);
+    if (value != null) {
+      out[key] = String(value);
+      answeredAt[key] = today;
+    }
   }
   return out;
 }
@@ -371,6 +384,20 @@ export async function buildModelInput(
     ? Object.fromEntries(facts.map((f) => [f.key, f.value]))
     : facts;
 
+  // Phase 44A: the day each answer was last given or confirmed, so the scorer
+  // can fade old ones. The live path also reads `profile_facts`, whose
+  // `confirmed_at` can be later than anything in the history.
+  const answered = answerDates(history, today);
+  if (Array.isArray(facts))
+    for (const f of facts)
+      for (const d of [
+        f.answeredAt instanceof Date
+          ? f.answeredAt.toISOString().slice(0, 10)
+          : f.answeredAt,
+        f.confirmedAt,
+      ])
+        if (d && d <= today && d > (answered[f.key] ?? "")) answered[f.key] = d;
+
   // The replay path reads the profile as it stood on a day, so it keeps the
   // written history and nothing is overlaid on top of it.
   const profile = Array.isArray(facts)
@@ -386,6 +413,7 @@ export async function buildModelInput(
           ]),
         ),
         today,
+        answered,
       )
     : stated;
 
@@ -469,6 +497,7 @@ export async function buildModelInput(
     derived,
     ...(egfrSlope ? { slopes: { egfr: egfrSlope } } : {}),
     ...(treatments.length ? { treatments } : {}),
+    profileAt: answered,
   });
 }
 

@@ -334,6 +334,37 @@ describe("facts the phone measures (phase 24b)", () => {
     expect(out.resting_hr).toBe("51");
   });
 
+  it("dates a value it read off the phone today (44A)", () => {
+    const at: Record<string, string> = {
+      resting_hr: "2025-08-20",
+      waist_cm: "2026-01-02",
+    };
+    overlayPhoneFacts(
+      { resting_hr: "62", waist_cm: "93" },
+      [{ key: "resting_hr", source: "user", answeredAt: "2025-08-20" }],
+      {
+        resting_heart_rate: week,
+        waist_cm: [{ date: "2026-06-01", value: 88 }],
+      },
+      "2026-08-30",
+      at,
+    );
+    // the phone replaced resting_hr; waist_cm kept the old answer and its day
+    expect(at).toEqual({ resting_hr: "2026-08-30", waist_cm: "2026-01-02" });
+  });
+
+  it("keeps the day of an answer the phone yields to (44A)", () => {
+    const at: Record<string, string> = { resting_hr: "2026-08-20" };
+    overlayPhoneFacts(
+      { resting_hr: "62" },
+      [{ key: "resting_hr", source: "user", answeredAt: "2026-08-20" }],
+      { resting_heart_rate: week },
+      "2026-08-30",
+      at,
+    );
+    expect(at).toEqual({ resting_hr: "2026-08-20" });
+  });
+
   it("leaves the profile alone when the phone has sent nothing lately", () => {
     const out = overlayPhoneFacts(
       { waist_cm: "93" },
