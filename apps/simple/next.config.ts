@@ -46,6 +46,9 @@ const nextConfig: NextConfig = {
       ? { resolveAlias: { "@/lib/auth": "./lib/dev-auth.ts" } }
       : {}),
   },
+  // Long `next dev` sessions grew Turbopack's in-memory cache to 19 GB.
+  // Above this cap it evicts entries (bytes).
+  experimental: { turbopackMemoryLimit: 4 * 1024 ** 3 },
   serverExternalPackages: ["pdfjs-dist", "pg"],
   redirects: async () =>
     folded.map(([source, destination]) => ({
