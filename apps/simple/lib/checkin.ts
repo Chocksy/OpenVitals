@@ -242,8 +242,14 @@ export function pickRound(r: RoundInput): RoundItem[] {
 
   const factWhy = (c: Candidate): string => {
     if (r.faded.has(c.key)) {
-      const months = Math.max(1, Math.round((r.ages.get(c.key) ?? 0) / 30));
+      const age = r.ages.get(c.key);
       const value = r.values.get(c.key);
+      // No age on file: "1 month" would be a made-up number, so say less.
+      if (age == null)
+        return value
+          ? `It's been a while since you said ${value}.`
+          : "It's been a while since you answered this.";
+      const months = Math.max(1, Math.round(age / 30));
       const span = `${months} month${months === 1 ? "" : "s"}`;
       return value
         ? `It's been ${span} since you said ${value}.`

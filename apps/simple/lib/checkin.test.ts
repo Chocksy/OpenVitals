@@ -273,9 +273,7 @@ describe("pickRound (44B)", () => {
         mv("h1", { coeliac: [0.1, 0.3] }),
         mv("h2", { lupus: [0.2, 0.4] }),
       ],
-      faded: new Map(
-        ["f1", "f2", "f3", "f4", "f5", "f6"].map((k) => [k, 0.3]),
-      ),
+      faded: new Map(["f1", "f2", "f3", "f4", "f5", "f6"].map((k) => [k, 0.3])),
       hunches: [
         { hunchId: "a", conditionId: "coeliac", p: 0.1 },
         { hunchId: "b", conditionId: "lupus", p: 0.2 },
@@ -361,6 +359,16 @@ describe("pickRound (44B)", () => {
       hunches: [{ hunchId: "a", conditionId: "coeliac", p: 0.1 }],
     });
     expect(pickRound(r)).toEqual([]);
+  });
+
+  it("says 'a while' for a faded key with no age on file", () => {
+    const r = input({
+      watched: W,
+      moves: [mv("sym_cold", { hypothyroidism: [0.3, 0.5] })],
+      faded: new Map([["sym_cold", 0.3]]),
+      values: new Map([["sym_cold", "No"]]),
+    });
+    expect(pickRound(r)[0]?.why).toBe("It's been a while since you said No.");
   });
 
   it("writes a why for a faded key and for a hunch", () => {
