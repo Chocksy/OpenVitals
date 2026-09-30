@@ -748,11 +748,14 @@ export function EditFact({
   label,
   value,
   today,
+  note,
 }: {
   factKey: string;
   label: string;
   value: string;
   today?: string;
+  /** Phase 44A: how much this answer still counts, when it has faded */
+  note?: string;
 }) {
   const { run, busy, error } = useAction();
   const [text, setText] = useState(value);
@@ -766,6 +769,11 @@ export function EditFact({
           onChange={(e) => setText(e.target.value)}
           className="inp mini w-44"
         />
+        {note && (
+          <span className="t-num text-[length:var(--type-xs)] text-[var(--ink-3)]">
+            · {note}
+          </span>
+        )}
         <button
           className={`${rowAction} text-[var(--ink-3)] hover:text-[var(--ink)]`}
           disabled={busy || !text.trim() || text === value}

@@ -23,6 +23,7 @@ import { recordCalibration } from "./calibration";
 import { buildModelInput, type ModelInput } from "./coverage";
 import { eventConfounders } from "./facts";
 import { explainKey } from "./explain";
+import { fadeWords } from "./fade";
 import { getMetricRows, type MetricRow, type Point } from "./data";
 import { SYSTEMS } from "./graph";
 import { graphState, worstMember } from "./graph-state";
@@ -41,6 +42,7 @@ import {
   type HState,
   type Hypothesis,
   type HypothesisResult,
+  type Faded,
   type Lens,
 } from "./hypotheses";
 import { nextMoves, type Move } from "./infogain";
@@ -49,9 +51,25 @@ import { wakeConditions } from "./wake";
 import { latestReport } from "./report";
 import { queueResearch } from "./research";
 import type { Status } from "./status";
+import { plural } from "./utils";
 
 /** One line of evidence, exactly as `scoreHypotheses` emits it. */
 export type EvidenceLine = HypothesisResult["for"][number];
+
+/**
+ * Phase 44A: how much an old answer still counts, in words, so a card never
+ * leans on a year-old "No" without saying so.
+ */
+export function fadeNote(value: string, faded: Faded): string {
+  const d = faded.days;
+  const age =
+    d < 14
+      ? plural(d, "day")
+      : d < 60
+        ? plural(Math.floor(d / 7), "week")
+        : plural(Math.round(d / 30), "month");
+  return `you said ${value}, ${age} ago, counting ${fadeWords(faded.weight)}`;
+}
 
 export interface Conclusion {
   /** condition id, `marker:<code>` for an off marker no condition reads */
@@ -77,6 +95,8 @@ export interface Conclusion {
     label: string;
     value: string;
     date?: string;
+    /** Phase 44A: "you said No, 11 months ago, counting half" */
+    note?: string;
   }[];
   /** the three best moves that touch this conclusion */
   next: Move[];
@@ -971,12 +991,17 @@ export async function buildLedger(
         ...facts.flatMap((key) => {
           const v = input.profile[key];
           if (v == null || String(v).trim() === "") return [];
+          const value = Array.isArray(v) ? v.join(", ") : String(v);
+          const faded = [...h.for, ...h.against].find(
+            (e) => e.faded?.key === key,
+          )?.faded;
           return [
             {
               kind: "fact" as const,
               id: key,
               label: explainKey(key),
-              value: Array.isArray(v) ? v.join(", ") : String(v),
+              value,
+              ...(faded ? { note: fadeNote(value, faded) } : {}),
             },
           ];
         }),

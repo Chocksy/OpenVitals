@@ -18,6 +18,7 @@ import type {
 import {
   beliefsOf,
   byRank,
+  fadeNote,
   improvedOf,
   isConclusion,
   isLoud,
@@ -824,5 +825,27 @@ describe("rulerLead", () => {
       { input: "ferritin" },
     ]);
     expect(lead?.code).toBe("ferritin");
+  });
+});
+
+/* ── phase 44A: an old answer says how much it still counts ───────────── */
+
+describe("fadeNote", () => {
+  it("words a faded answer (44A)", () => {
+    expect(fadeNote("No", { key: "sym_cold", days: 330, weight: 0.08 })).toBe(
+      "you said No, 11 months ago, counting little",
+    );
+    expect(fadeNote("Yes", { key: "sym_cold", days: 45, weight: 0.84 })).toBe(
+      "you said Yes, 6 weeks ago, counting almost fully",
+    );
+  });
+
+  it("counts days under two weeks and rounds months", () => {
+    expect(fadeNote("No", { key: "sym_cold", days: 9, weight: 0.5 })).toBe(
+      "you said No, 9 days ago, counting half",
+    );
+    expect(fadeNote("No", { key: "sym_cold", days: 75, weight: 0.5 })).toBe(
+      "you said No, 3 months ago, counting half",
+    );
   });
 });

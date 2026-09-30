@@ -310,6 +310,7 @@ function NotRight({ inputs }: { inputs: Conclusion["inputs"] }) {
               factKey={i.id}
               label={i.label}
               value={i.value}
+              note={i.note}
             />
           ),
         )}
