@@ -260,6 +260,44 @@ describe("pickRound (44B)", () => {
     expect(round[1]).toMatchObject({ kind: "effect", itemId: "item-old" });
   });
 
+  it("counts a follow-up's two screens as two of the 5 places", () => {
+    const r = input({
+      watched: W,
+      moves: [
+        mv("f1", { hypothyroidism: [0.3, 0.6] }),
+        mv("f2", { hypothyroidism: [0.3, 0.55] }),
+        mv("f3", { hypothyroidism: [0.3, 0.5] }),
+        mv("f4", { hypothyroidism: [0.3, 0.45] }),
+        mv("f5", { hypothyroidism: [0.3, 0.4] }),
+        mv("f6", { hypothyroidism: [0.3, 0.35] }),
+        mv("h1", { coeliac: [0.1, 0.3] }),
+        mv("h2", { lupus: [0.2, 0.4] }),
+      ],
+      faded: new Map(
+        ["f1", "f2", "f3", "f4", "f5", "f6"].map((k) => [k, 0.3]),
+      ),
+      hunches: [
+        { hunchId: "a", conditionId: "coeliac", p: 0.1 },
+        { hunchId: "b", conditionId: "lupus", p: 0.2 },
+      ],
+      followups: [
+        {
+          itemId: "item-1",
+          text: "Walk after dinner",
+          target: "Energy",
+          startedAt: "2026-09-17T10:00:00Z",
+        },
+      ],
+    });
+    expect(keys(r)).toEqual([
+      "followup_adherence:item-1",
+      "followup_effect:item-1",
+      "f1",
+      "h1",
+      "h2",
+    ]);
+  });
+
   it("ranks a sibling above a key asked in the last 2 rounds", () => {
     const r = input({
       watched: W,

@@ -214,14 +214,15 @@ function otherAngle(
 /**
  * The questions for one round, pool 1 (updates) then pool 2 (hunches).
  *
- * Phase 44B: a follow-up item takes one place and skips the floor; the
- * spec's ranking has no swing for keys no rule reads.
+ * Phase 44B: a follow-up item skips the floor, since the spec's ranking has
+ * no swing for keys no rule reads. Its two screens take two places, so a
+ * round never holds more than ROUND_MAX questions.
  */
 export function pickRound(r: RoundInput): RoundItem[] {
   const all = candidates(r.moves);
   const nameOf = (id: string) => r.names.get(id) ?? id;
 
-  // Pool 1: one follow-up (two screens, one place), then faded and missing
+  // Pool 1: one follow-up (two screens, two places), then faded and missing
   // keys by how far they move a watched condition.
   const followup = [...r.followups].sort(
     (a, b) => Date.parse(a.startedAt) - Date.parse(b.startedAt),
@@ -257,7 +258,7 @@ export function pickRound(r: RoundInput): RoundItem[] {
   // Pool 2: hunches between 5% and 40%, weakest first, each with the free
   // question that pulls its lead condition furthest apart.
   const taken = new Set(
-    pool1Facts.slice(0, POOL1_MAX - (followup ? 1 : 0)).map((c) => c.key),
+    pool1Facts.slice(0, POOL1_MAX - (followup ? 2 : 0)).map((c) => c.key),
   );
   const pool2: RoundItem[] = [];
   for (const h of [...r.hunches]
@@ -281,11 +282,12 @@ export function pickRound(r: RoundInput): RoundItem[] {
   }
 
   // Fill: pool 1 up to 3 places, pool 2 up to 2, then pool 1 takes whatever
-  // pool 2 left (pool 2 is capped at two hunches, so it never tops up).
+  // pool 2 left.
+  // Pool 2 never tops up pool 1: the spec's "two hunches at most" is the more specific rule.
   const places1 = ROUND_MAX - pool2.length;
   const pool1: RoundItem[] = [];
   let used = 0;
-  if (followup && used < places1) {
+  if (followup && used + 2 <= places1) {
     const weeks = Math.max(
       1,
       Math.round(
@@ -310,7 +312,7 @@ export function pickRound(r: RoundInput): RoundItem[] {
         ids: [],
       },
     );
-    used++;
+    used += 2;
   }
   const inPool2 = new Set(pool2.map((i) => i.key));
   for (const c of pool1Facts) {
