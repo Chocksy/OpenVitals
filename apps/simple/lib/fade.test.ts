@@ -27,6 +27,9 @@ describe("fade (44A)", () => {
     ).toBe("followup");
     expect(fadeWeight("followup_adherence:x", true, 60)).toBeCloseTo(0.5);
   });
+  it("fades alcohol as a habit, not a symptom", () => {
+    expect(fadeClassOf("sym_alcohol")).toBe("habit");
+  });
   it("words the weight", () => {
     expect(fadeWords(0.8)).toBe("almost fully");
     expect(fadeWords(0.5)).toBe("half");

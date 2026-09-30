@@ -81,6 +81,8 @@ const CLASS: Record<string, FadeClass> = {
       "grip_kg",
       "neck_cm",
       "menopause_status",
+      // A habit though it lives in SYMPTOMS; listed after them so it wins.
+      "sym_alcohol",
     ].map((k) => [k, "habit" as const]),
   ),
 };
