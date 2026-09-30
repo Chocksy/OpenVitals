@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { requireUserId } from "@/lib/auth";
 import { checkinBody, forceCheckin } from "@/lib/checkin-server";
@@ -21,7 +22,23 @@ export default async function CheckinPage({
     // forceCheckin alone does not start a round while setup is open; the
     // forced body does, and a started round stays due.
     await forceCheckin(userId);
-    await checkinBody(userId, { force: true });
+    const forced = await checkinBody(userId, { force: true });
+    // Nothing worth asking: say so, not a silent bounce Home.
+    if (!forced.screen)
+      return (
+        <main className="setup-page">
+          <div className="setup">
+            <h1>Nothing to ask right now</h1>
+            <p className="setup-hint">
+              No question would move your picture by 2 points or more.
+              The app asks again when an answer gets old or a hunch opens.
+            </p>
+            <Link className="setup-next" href="/?home=1">
+              Open my home
+            </Link>
+          </div>
+        </main>
+      );
     redirect("/checkin");
   }
   const body = await checkinBody(userId);
