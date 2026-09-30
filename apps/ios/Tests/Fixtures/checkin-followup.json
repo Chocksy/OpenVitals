@@ -1,0 +1,21 @@
+{
+  "due": true,
+  "dueAt": "2026-10-08T06:00:00.000Z",
+  "screen": {
+    "kind": "question",
+    "key": "followup_adherence:00000000-0000-4000-8000-000000000001",
+    "question": "Iron bisglycinate 25 mg: how often in the last week?",
+    "why": "You started this 2 weeks ago.",
+    "options": [
+      { "label": "Every day", "moves": null },
+      { "label": "Most days", "moves": null },
+      { "label": "Some days", "moves": null },
+      { "label": "Not at all", "moves": null }
+    ]
+  },
+  "progress": { "at": 3, "of": 5 },
+  "picture": [
+    { "id": "iron_deficiency", "name": "Iron deficiency", "p": 0.412 },
+    { "id": "hashimoto", "name": "Autoimmune thyroiditis (Hashimoto's)", "p": 0.255 }
+  ]
+}

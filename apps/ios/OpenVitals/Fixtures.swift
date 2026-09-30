@@ -427,6 +427,182 @@ enum Fixtures {
   ]
 }
 """#,
+        "checkin-followup": #"""
+{
+  "due": true,
+  "dueAt": "2026-10-08T06:00:00.000Z",
+  "screen": {
+    "kind": "question",
+    "key": "followup_adherence:00000000-0000-4000-8000-000000000001",
+    "question": "Iron bisglycinate 25 mg: how often in the last week?",
+    "why": "You started this 2 weeks ago.",
+    "options": [
+      {
+        "label": "Every day",
+        "moves": null
+      },
+      {
+        "label": "Most days",
+        "moves": null
+      },
+      {
+        "label": "Some days",
+        "moves": null
+      },
+      {
+        "label": "Not at all",
+        "moves": null
+      }
+    ]
+  },
+  "progress": {
+    "at": 3,
+    "of": 5
+  },
+  "picture": [
+    {
+      "id": "iron_deficiency",
+      "name": "Iron deficiency",
+      "p": 0.412
+    },
+    {
+      "id": "hashimoto",
+      "name": "Autoimmune thyroiditis (Hashimoto's)",
+      "p": 0.255
+    }
+  ]
+}
+"""#,
+        "checkin-idle": #"""
+{
+  "due": false,
+  "dueAt": "2026-10-08T06:00:00.000Z",
+  "screen": null,
+  "progress": {
+    "at": 0,
+    "of": 0
+  },
+  "picture": []
+}
+"""#,
+        "checkin-question": #"""
+{
+  "due": true,
+  "dueAt": "2026-10-08T06:00:00.000Z",
+  "screen": {
+    "kind": "question",
+    "key": "sym_cold",
+    "question": "Do you feel cold when others don't?",
+    "why": "This answer moves Autoimmune thyroiditis (Hashimoto's).",
+    "options": [
+      {
+        "label": "Yes",
+        "moves": {
+          "id": "hashimoto",
+          "name": "Autoimmune thyroiditis (Hashimoto's)",
+          "from": 26,
+          "to": 38
+        }
+      },
+      {
+        "label": "No",
+        "moves": {
+          "id": "hashimoto",
+          "name": "Autoimmune thyroiditis (Hashimoto's)",
+          "from": 26,
+          "to": 19
+        }
+      }
+    ]
+  },
+  "progress": {
+    "at": 1,
+    "of": 5
+  },
+  "picture": [
+    {
+      "id": "iron_deficiency",
+      "name": "Iron deficiency",
+      "p": 0.412
+    },
+    {
+      "id": "hashimoto",
+      "name": "Autoimmune thyroiditis (Hashimoto's)",
+      "p": 0.255
+    },
+    {
+      "id": "insulin_resistance",
+      "name": "Insulin resistance",
+      "p": 0.198
+    }
+  ]
+}
+"""#,
+        "checkin-since": #"""
+{
+  "due": true,
+  "dueAt": "2026-10-08T06:00:00.000Z",
+  "screen": {
+    "kind": "since",
+    "moved": [
+      {
+        "id": "iron_deficiency",
+        "name": "Iron deficiency",
+        "from": 41,
+        "to": 61,
+        "by": "your hair loss answer"
+      },
+      {
+        "id": "hashimoto",
+        "name": "Autoimmune thyroiditis (Hashimoto's)",
+        "from": 26,
+        "to": 19,
+        "by": "your cold intolerance answer"
+      },
+      {
+        "id": "insulin_resistance",
+        "name": "Insulin resistance",
+        "from": 20,
+        "to": 23,
+        "by": null
+      }
+    ],
+    "hunches": [
+      {
+        "id": "00000000-0000-4000-8000-000000000002",
+        "title": "Iron deficiency",
+        "from": 41,
+        "to": 61
+      }
+    ],
+    "test": {
+      "label": "Ferritin",
+      "price": "€11"
+    }
+  },
+  "progress": {
+    "at": 5,
+    "of": 5
+  },
+  "picture": [
+    {
+      "id": "iron_deficiency",
+      "name": "Iron deficiency",
+      "p": 0.61
+    },
+    {
+      "id": "insulin_resistance",
+      "name": "Insulin resistance",
+      "p": 0.23
+    },
+    {
+      "id": "hashimoto",
+      "name": "Autoimmune thyroiditis (Hashimoto's)",
+      "p": 0.19
+    }
+  ]
+}
+"""#,
         "genome": #"""
 {
   "file": {

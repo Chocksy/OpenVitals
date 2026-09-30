@@ -46,6 +46,17 @@ struct GalleryView: View {
                             }
                         }
                     }
+                    // Phase 44D: every check-in body from its fixture, the
+                    // idle one included; taps walk the canned round, no
+                    // reminder is set.
+                    ForEach(CheckinFlow.fixtures, id: \.self) { name in
+                        if let b = CheckinFlow.canned(name) {
+                            NavigationLink("Check-in · \(name.dropFirst(8))") {
+                                CheckinView(onClose: {}, initial: b, load: { b },
+                                            post: CheckinFlow.walk, live: false)
+                            }
+                        }
+                    }
                     ForEach(Self.sections, id: \.id) { section in
                         Gallery.section(section.id)
                     }

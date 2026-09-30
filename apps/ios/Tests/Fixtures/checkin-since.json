@@ -1,0 +1,22 @@
+{
+  "due": true,
+  "dueAt": "2026-10-08T06:00:00.000Z",
+  "screen": {
+    "kind": "since",
+    "moved": [
+      { "id": "iron_deficiency", "name": "Iron deficiency", "from": 41, "to": 61, "by": "your hair loss answer" },
+      { "id": "hashimoto", "name": "Autoimmune thyroiditis (Hashimoto's)", "from": 26, "to": 19, "by": "your cold intolerance answer" },
+      { "id": "insulin_resistance", "name": "Insulin resistance", "from": 20, "to": 23, "by": null }
+    ],
+    "hunches": [
+      { "id": "00000000-0000-4000-8000-000000000002", "title": "Iron deficiency", "from": 41, "to": 61 }
+    ],
+    "test": { "label": "Ferritin", "price": "€11" }
+  },
+  "progress": { "at": 5, "of": 5 },
+  "picture": [
+    { "id": "iron_deficiency", "name": "Iron deficiency", "p": 0.61 },
+    { "id": "insulin_resistance", "name": "Insulin resistance", "p": 0.23 },
+    { "id": "hashimoto", "name": "Autoimmune thyroiditis (Hashimoto's)", "p": 0.19 }
+  ]
+}

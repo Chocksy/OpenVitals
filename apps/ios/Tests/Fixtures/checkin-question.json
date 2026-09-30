@@ -1,0 +1,26 @@
+{
+  "due": true,
+  "dueAt": "2026-10-08T06:00:00.000Z",
+  "screen": {
+    "kind": "question",
+    "key": "sym_cold",
+    "question": "Do you feel cold when others don't?",
+    "why": "This answer moves Autoimmune thyroiditis (Hashimoto's).",
+    "options": [
+      {
+        "label": "Yes",
+        "moves": { "id": "hashimoto", "name": "Autoimmune thyroiditis (Hashimoto's)", "from": 26, "to": 38 }
+      },
+      {
+        "label": "No",
+        "moves": { "id": "hashimoto", "name": "Autoimmune thyroiditis (Hashimoto's)", "from": 26, "to": 19 }
+      }
+    ]
+  },
+  "progress": { "at": 1, "of": 5 },
+  "picture": [
+    { "id": "iron_deficiency", "name": "Iron deficiency", "p": 0.412 },
+    { "id": "hashimoto", "name": "Autoimmune thyroiditis (Hashimoto's)", "p": 0.255 },
+    { "id": "insulin_resistance", "name": "Insulin resistance", "p": 0.198 }
+  ]
+}

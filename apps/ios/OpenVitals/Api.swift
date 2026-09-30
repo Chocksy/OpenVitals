@@ -2167,3 +2167,84 @@ extension Api {
         try await send(try json("api/setup", "POST", body))
     }
 }
+
+// MARK: - check-in (phase 44)
+
+extension Api {
+
+    /// `CheckinScreen` in `lib/checkin-server.ts`, switched on `kind`. A
+    /// follow-up on a plan item is a plain `question` whose options move
+    /// nothing; the item is named in the question text.
+    enum CheckinScreen: Decodable, Equatable {
+        /// A condition that moved over the round, in whole percent. `by` names
+        /// the answer that moved it most, when one did.
+        struct Moved: Codable, Equatable, Identifiable {
+            let id: String
+            let name: String
+            let from: Int
+            let to: Int
+            let by: String?
+        }
+
+        struct Hunch: Codable, Equatable, Identifiable {
+            let id: String
+            let title: String
+            let from: Int
+            let to: Int
+        }
+
+        case question(key: String, question: String, why: String, options: [SetupOption])
+        case since(moved: [Moved], hunches: [Hunch], test: SetupReveal.Test?)
+
+        var kind: String {
+            switch self {
+            case .question: return "question"
+            case .since: return "since"
+            }
+        }
+
+        private enum Keys: String, CodingKey {
+            case kind, key, question, why, options, moved, hunches, test
+        }
+
+        init(from decoder: Decoder) throws {
+            let c = try decoder.container(keyedBy: Keys.self)
+            switch try c.decode(String.self, forKey: .kind) {
+            case "question":
+                self = .question(key: try c.decode(String.self, forKey: .key),
+                                 question: try c.decode(String.self, forKey: .question),
+                                 why: try c.decode(String.self, forKey: .why),
+                                 options: try c.decode([SetupOption].self, forKey: .options))
+            case "since":
+                self = .since(moved: try c.decode([Moved].self, forKey: .moved),
+                              hunches: try c.decode([Hunch].self, forKey: .hunches),
+                              test: try c.decodeIfPresent(SetupReveal.Test.self, forKey: .test))
+            case let other:
+                throw DecodingError.dataCorruptedError(
+                    forKey: .kind, in: c, debugDescription: "unknown check-in screen \(other)")
+            }
+        }
+    }
+
+    /// `GET /api/checkin`, and every `POST` reply. `screen` is nil when no
+    /// round is due.
+    struct CheckinBody: Decodable, Equatable {
+        let due: Bool
+        /// ISO: the snooze if later, else the next due date.
+        let dueAt: String
+        let screen: CheckinScreen?
+        let progress: SetupBody.Progress
+        let picture: [PictureRow]
+    }
+
+    /// `GET /api/checkin`: starts a round only when one is due.
+    static func checkin() async throws -> CheckinBody {
+        try await send(get("api/checkin"))
+    }
+
+    /// `POST /api/checkin` (`CheckinPost` on the server): an answer, a skip,
+    /// `later`, a round skip or `done`; the reply is the next screen.
+    static func checkinPost(_ body: [String: Any]) async throws -> CheckinBody {
+        try await send(try json("api/checkin", "POST", body))
+    }
+}

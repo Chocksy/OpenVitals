@@ -365,7 +365,8 @@ struct SetupView: View {
 
 // MARK: - pieces
 
-private struct Title: View {
+/// Phase 44D: internal, the check-in draws its headings with it too.
+struct Title: View {
     let text: String
     var sub: String?
 
@@ -455,9 +456,12 @@ private struct Field: View {
 }
 
 /// Up to three bars, each with its share and how far the last answer moved it.
-private struct PictureCard: View {
+/// Phase 44D: internal, the check-in shows it under its questions with its
+/// own hint (the bars no longer start from sex and age there).
+struct PictureCard: View {
     let rows: [Api.PictureRow]
     var deltas: [String: Int] = [:]
+    var hint = "These start as the odds for your sex and age. Each answer moves them."
 
     var body: some View {
         VStack(alignment: .leading, spacing: DesignTokens.s8) {
@@ -465,7 +469,7 @@ private struct PictureCard: View {
             if rows.isEmpty {
                 Text("Nothing stands out yet.").hType(14, .regular, Hy.ink2)
             } else {
-                Text("These start as the odds for your sex and age. Each answer moves them.")
+                Text(hint)
                     .hType(13, .regular, Hy.ink2)
                     .fixedSize(horizontal: false, vertical: true)
             }
@@ -623,9 +627,12 @@ private struct BodyScreen: View {
     }
 }
 
-private struct QuestionScreen: View {
+/// Phase 44D: internal, the check-in asks with it. `why` is the check-in's
+/// line under the question; setup has none.
+struct QuestionScreen: View {
     let key: String
     let question: String
+    var why: String?
     let options: [Api.SetupOption]
     let busy: Bool
     let tap: () -> Void
@@ -633,7 +640,7 @@ private struct QuestionScreen: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: DesignTokens.s13) {
-            Title(text: question)
+            Title(text: question, sub: why)
             ForEach(options, id: \.label) { o in
                 Choice(label: o.label, note: SetupFlow.movesLine(o)) {
                     tap()

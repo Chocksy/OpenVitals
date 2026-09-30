@@ -83,6 +83,7 @@ struct Shell: View {
     @State private var sending = false
     /// Phase 43C: a new person gets the setup flow over everything.
     @State private var setup = false
+    @State private var checkin = false
     @Environment(\.accessibilityReduceMotion) private var reduce
 
     var body: some View {
@@ -154,11 +155,17 @@ struct Shell: View {
             island.stage(Fixtures.island)
             #endif
         }
-        .task { setup = await Self.setupDue() }
+        .task {
+            setup = await Self.setupDue()
+            checkin = await Self.checkinDue(after: setup)
+        }
         .fullScreenCover(isPresented: $setup) {
             // "Finish later" only closes it: the server keeps it due, so the
             // next launch asks again.
             SetupView(onClose: { setup = false })
+        }
+        .fullScreenCover(isPresented: $checkin) {
+            CheckinView(onClose: { checkin = false })
         }
     }
 
@@ -169,6 +176,19 @@ struct Shell: View {
         if Fixtures.on { return Fixtures.screen?.hasPrefix("setup") == true }
         #endif
         return (try? await Api.setup())?.due == true
+    }
+
+    /// Phase 44D: the check-in, full screen while a round is due, never over
+    /// setup. The GET starts a round only when one is due, which is when it
+    /// shows. Each launch also moves the one reminder to the new `dueAt`.
+    /// A fixture run opens it only for `-OVScreen checkin-<kind>`.
+    static func checkinDue(after setup: Bool) async -> Bool {
+        #if DEBUG
+        if Fixtures.on { return !setup && Fixtures.screen?.hasPrefix("checkin") == true }
+        #endif
+        guard let b = try? await Api.checkin() else { return false }
+        await CheckinReminder.schedule(at: b.dueAt)
+        return !setup && b.due && b.screen != nil
     }
 
     /// The +: the camera at once, unless a failed read left a draft; that
