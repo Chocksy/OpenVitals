@@ -52,6 +52,27 @@ export interface CheckinState {
   skippedAt?: Record<string, string>;
   /** follow-up item id -> ISO of its last answer, skip or skipped round */
   followupAt?: Record<string, string>;
+  /**
+   * Phase 44B: the `since` screen, worked out once when the queue emptied.
+   * The hunch refresh and the ledger row run then, so a later load (Home's
+   * redirect, an iOS launch) only reads this. Cleared when the round closes.
+   */
+  since?: SinceSaved | null;
+}
+
+/** The `since` screen as stored: what moved, and the picture after. */
+export interface SinceSaved {
+  refreshedAt: string; // ISO
+  moved: {
+    id: string;
+    name: string;
+    from: number;
+    to: number;
+    by: string | null;
+  }[];
+  hunches: { id: string; title: string; from: number; to: number }[];
+  test: { label: string; price: string | null } | null;
+  picture: { id: string; name: string; p: number }[];
 }
 
 const HOUR_MS = 3_600_000;
@@ -67,34 +88,39 @@ export function nextDueOf(lastDone: string, trying: boolean): string {
 
 /**
  * "Ask later": three hours on, unless that lands at or after 18:00 local (or
- * past midnight), then 09:00 local the next day. `offsetMin` is minutes east
- * of UTC.
+ * past midnight), then 09:00 local the next day. Before 09:00 local it is
+ * 09:00 the same day, so a tap at 01:00 never brings a 04:00 reminder.
+ * `offsetMin` is minutes east of UTC.
  */
 export function laterOf(nowIso: string, offsetMin: number): string {
   const now = Date.parse(nowIso);
   const off = offsetMin * 60_000;
   const local = new Date(now + off);
+  const morning = (days: number) =>
+    new Date(
+      Date.UTC(
+        local.getUTCFullYear(),
+        local.getUTCMonth(),
+        local.getUTCDate() + days,
+        9,
+      ) - off,
+    ).toISOString();
+  if (local.getUTCHours() < 9) return morning(0);
   const later = new Date(now + off + 3 * HOUR_MS);
   if (later.getUTCDate() === local.getUTCDate() && later.getUTCHours() < 18) {
     return new Date(now + 3 * HOUR_MS).toISOString();
   }
-  const nextMorning = Date.UTC(
-    local.getUTCFullYear(),
-    local.getUTCMonth(),
-    local.getUTCDate() + 1,
-    9,
-  );
-  return new Date(nextMorning - off).toISOString();
+  return morning(1);
 }
 
 /**
  * The state before any round: due a week after setup finished, or a week
- * after this phase shipped (`shipDay`, YYYY-MM-DD) for an account that never
- * ran setup.
+ * after this first read (`nowIso`) for an account that never ran setup. The
+ * caller writes it on that read, so the week counts from there.
  */
 export function firstState(
   setupDone: string | null,
-  shipDay: string,
+  nowIso: string,
 ): CheckinState {
   return {
     round: 0,
@@ -104,7 +130,7 @@ export function firstState(
     skipped: [],
     snoozedUntil: null,
     lastDone: null,
-    nextDue: plusDays(setupDone ?? `${shipDay}T00:00:00Z`, 7),
+    nextDue: plusDays(setupDone ?? nowIso, 7),
     startBeliefs: null,
     recent: [],
     skippedAt: {},
@@ -340,7 +366,8 @@ export function pickRound(r: RoundInput): RoundItem[] {
         kind: "effect",
         itemId: followup.itemId,
         pool: 1,
-        why: "This tells the app if it helped.",
+        // Phase 44B: nothing reads this answer yet, so the copy promises nothing.
+        why: "How it is going since you started.",
         ids: [],
         text: followup.text,
         target: followup.target,

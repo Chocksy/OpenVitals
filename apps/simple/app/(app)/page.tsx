@@ -93,10 +93,16 @@ export default async function Home({
    */
   const due = await setupDue(userId);
   if (due && params.home !== "1") redirect("/setup");
-  // Phase 44C: a due check-in shows first, as setup does. This reads state
-  // only, so a Home load never starts a round; "Ask later" comes back with
-  // `?home=1`.
-  if (params.home !== "1" && (await checkinDueFor(userId)))
+  // Phase 44C: a due check-in shows first, as setup does. This never starts
+  // a round; "Ask later" comes back with `?home=1`. A deep link (`?ask=`,
+  // `?hunch=`) opens what it points at, and the check-in waits for the next
+  // Home load.
+  if (
+    params.home !== "1" &&
+    !params.ask &&
+    !params.hunch &&
+    (await checkinDueFor(userId))
+  )
     redirect("/checkin");
   const want = params.ask;
   const day = localDay();

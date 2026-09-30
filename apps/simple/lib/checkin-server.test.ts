@@ -6,7 +6,9 @@ import {
   followupQuestion,
   followupsDue,
   probeOf,
+  readState,
   recentSkips,
+  savedSince,
   roundInputOf,
   sinceOf,
   slugOf,
@@ -370,7 +372,7 @@ const q = (key: string): RoundItem => ({
 });
 const started = (queue: RoundItem[], over: Partial<CheckinState> = {}) =>
   ({
-    ...firstState(null, "2026-10-01"),
+    ...firstState(null, "2026-10-01T00:00:00Z"),
     round: 1,
     started: "2026-10-15T09:00:00.000Z",
     queue,
@@ -414,7 +416,7 @@ describe("transition", () => {
     expect(t?.next.nextDue).toBe("2026-10-22T10:00:00.000Z");
   });
   it("a stale done or skip with no round is a no-op", () => {
-    const idle = firstState(null, "2026-10-01");
+    const idle = firstState(null, "2026-10-01T00:00:00Z");
     expect(transition(idle, { done: true }, NOW, true)).toBeNull();
     expect(transition(idle, { skip: true }, NOW, true)).toBeNull();
   });
@@ -488,5 +490,42 @@ describe("repeat rules across rounds", () => {
     expect(followupsDue(c, skippedRound, "2026-10-22T10:00:00.000Z")).toEqual(
       [],
     );
+  });
+});
+
+/* ── the stored `since` and the first read (44B review) ───────────────── */
+
+describe("since, worked out once", () => {
+  const since = {
+    refreshedAt: NOW,
+    moved: [{ id: "a", name: "A", from: 20, to: 30, by: null }],
+    hunches: [],
+    test: null,
+    picture: [{ id: "a", name: "A", p: 0.3 }],
+  };
+  it("reads the stored screen once the queue is used up, not before", () => {
+    const answered = started([q("a")], { asked: ["a"], since });
+    expect(savedSince(answered)).toEqual(since);
+    expect(savedSince(started([q("a")], { since }))).toBeNull();
+    expect(savedSince(started([q("a")], { asked: ["a"] }))).toBeNull();
+  });
+  it("clears it when the round closes, done or skipped", () => {
+    const s = started([q("a")], { asked: ["a"], since });
+    const done = transition(s, { done: true }, NOW, true)!.next;
+    expect(done.since).toBeNull();
+    expect(savedSince(done)).toBeNull();
+    expect(transition(s, { skip: true }, NOW, true)!.next.since).toBeNull();
+  });
+});
+
+describe("first read", () => {
+  it("starts the week on the first read for an account with no state", () => {
+    const r = readState(null, null, "2026-11-20T15:30:00.000Z");
+    expect(r.fresh).toBe(true);
+    expect(r.state.nextDue).toBe("2026-11-27T15:30:00.000Z");
+  });
+  it("keeps a stored state as it is", () => {
+    const s = started([q("a")]);
+    expect(readState(s, null, NOW)).toEqual({ state: s, fresh: false });
   });
 });

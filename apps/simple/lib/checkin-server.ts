@@ -29,6 +29,7 @@ import {
   type HunchLead,
   type RoundInput,
   type RoundItem,
+  type SinceSaved,
 } from "./checkin";
 import { buildModelInput, saveFact, type ModelInput } from "./coverage";
 import { lastDays, localDay, shiftDay } from "./daily";
@@ -70,18 +71,7 @@ export type CheckinScreen =
       why: string;
       options: QuestionOption[];
     }
-  | {
-      kind: "since";
-      moved: {
-        id: string;
-        name: string;
-        from: number;
-        to: number;
-        by: string | null;
-      }[];
-      hunches: { id: string; title: string; from: number; to: number }[];
-      test: { label: string; price: string | null } | null;
-    };
+  | ({ kind: "since" } & Omit<SinceSaved, "refreshedAt" | "picture">);
 
 export interface CheckinBody {
   due: boolean;
@@ -98,10 +88,6 @@ export type CheckinPost =
   | { later: true; offsetMin: number }
   | { skip: true }
   | { done: true };
-
-// ponytail: the ship day is a constant; the real deploy day moves it by a few
-// days at most, and only for accounts that never ran setup.
-const SHIP_DAY = "2026-10-01";
 
 export const ADHERENCE = ["Every day", "Most days", "Some days", "Not at all"];
 export const EFFECT = ["Better", "Same", "Worse"];
@@ -278,6 +264,24 @@ export const headOf = (s: CheckinState): RoundItem | null =>
   s.queue.find((i) => !s.asked.includes(i.key) && !s.skipped.includes(i.key)) ??
   null;
 
+/** The stored `since` screen, when the round's queue is used up and it was worked out. */
+export const savedSince = (s: CheckinState): SinceSaved | null =>
+  s.started && !headOf(s) ? (s.since ?? null) : null;
+
+/**
+ * Phase 44B: the stored state, or the first one and `fresh`, which the caller
+ * writes. With no hard-coded ship day, the week counts from this first read.
+ */
+export function readState(
+  checkin: CheckinState | null,
+  setupDone: string | null,
+  now: string,
+): { state: CheckinState; fresh: boolean } {
+  return checkin
+    ? { state: checkin, fresh: false }
+    : { state: firstState(setupDone, now), fresh: true };
+}
+
 /** What an answer writes: a fact, or `habit_logs` for a plan item done every day. */
 export type CheckinSave =
   | { fact: string; value: string }
@@ -374,6 +378,7 @@ export function transition(
       lastDone: now,
       nextDue: nextDueOf(now, trying),
       startBeliefs: null,
+      since: null,
       recent: [s.queue.map((i) => i.key), ...s.recent].slice(0, 2),
     },
     save: null,
@@ -561,10 +566,40 @@ async function save(userId: string, s: CheckinState) {
 async function stateOf(userId: string) {
   const { checkin, setup } = await stored(userId);
   const setupDone = setup?.done ?? null;
-  if (checkin) return { state: checkin, setupDone };
-  const state = firstState(setupDone, SHIP_DAY);
-  await save(userId, state);
-  return { state, setupDone };
+  const { state, fresh } = readState(
+    checkin,
+    setupDone,
+    new Date().toISOString(),
+  );
+  if (fresh) await save(userId, state);
+  return { state, setupDone, fresh };
+}
+
+/**
+ * Phase 44B: the `since` screen, stored once. Under the row lock, and only
+ * while the same round is still open without one, so a `done` or `skip` that
+ * landed during the refresh is never undone.
+ */
+async function saveSince(userId: string, s: CheckinState, since: SinceSaved) {
+  await getDb().transaction(async (tx) => {
+    const [row] = await tx
+      .select({ checkin: users.checkin })
+      .from(users)
+      .where(eq(users.id, userId))
+      .for("no key update");
+    const cur = (row?.checkin ?? null) as CheckinState | null;
+    if (
+      !cur ||
+      cur.round !== s.round ||
+      cur.started !== s.started ||
+      cur.since
+    )
+      return;
+    await tx
+      .update(users)
+      .set({ checkin: { ...cur, since } })
+      .where(eq(users.id, userId));
+  });
 }
 
 /**
@@ -674,6 +709,19 @@ const idle = (s: CheckinState): CheckinBody => ({
   picture: [],
 });
 
+const sinceBody = (s: CheckinState, saved: SinceSaved): CheckinBody => ({
+  due: true,
+  dueAt: dueAtOf(s),
+  screen: {
+    kind: "since",
+    moved: saved.moved,
+    hunches: saved.hunches,
+    test: saved.test,
+  },
+  progress: { at: s.asked.length + s.skipped.length, of: s.queue.length },
+  picture: saved.picture,
+});
+
 export async function checkinBody(
   userId: string,
   opts: { force?: boolean } = {},
@@ -684,6 +732,11 @@ export async function checkinBody(
   const { setupDone } = first;
   if (!opts.force && !(await dueNow(userId, state, setupDone, now)))
     return idle(state);
+
+  // Phase 44B: a `since` already worked out is only read, so a reload, Home's
+  // redirect or an iOS launch never runs the refresh again.
+  const kept = savedSince(state);
+  if (kept) return sinceBody(state, kept);
 
   const input = await buildModelInput(userId);
   let catalog = await catalogFor(userId);
@@ -731,6 +784,7 @@ export async function checkinBody(
       skipped: [],
       snoozedUntil: null,
       startBeliefs: Object.fromEntries(before.map((b) => [b.id, b.p])),
+      since: null,
     };
     await save(userId, state);
   }
@@ -783,8 +837,9 @@ export async function checkinBody(
   }
 
   // Every item answered or skipped: what moved. The hunches and the ledger
-  // are refreshed as a Home load would; a failed refresh (a model call inside
-  // a wake) must not hide the screen, so the engine's own scores stand.
+  // are refreshed as a Home load would, once: the result is stored below. A
+  // failed refresh (a model call inside a wake) must not hide the screen, so
+  // the engine's own scores stand, and it is not tried again.
   try {
     await refreshHunches(userId);
     await recordBeliefs(userId);
@@ -820,18 +875,15 @@ export async function checkinBody(
   const m = nextMoves(input, catalog).find(
     (x) => x.kind === "test" && x.priced,
   );
-  return {
-    due: true,
-    dueAt: dueAtOf(state),
-    screen: {
-      kind: "since",
-      moved,
-      hunches: hunchesMoved,
-      test: m ? { label: m.label, price: `€${Math.round(m.cost)}` } : null,
-    },
-    progress,
+  const since: SinceSaved = {
+    refreshedAt: now,
+    moved,
+    hunches: hunchesMoved,
+    test: m ? { label: m.label, price: `€${Math.round(m.cost)}` } : null,
     picture: pictureOf(after, allNames),
   };
+  await saveSince(userId, state, since);
+  return sinceBody(state, since);
 }
 
 /**
@@ -868,7 +920,7 @@ export async function checkinPost(
     const setup = (row?.setup ?? null) as SetupState | null;
     const state =
       (row?.checkin as CheckinState | null) ??
-      firstState(setup?.done ?? null, SHIP_DAY);
+      firstState(setup?.done ?? null, now);
     const t = transition(state, body, now, trying);
     if (!t) return;
     if (t.save && "habit" in t.save) {
@@ -895,10 +947,13 @@ export async function forceCheckin(userId: string): Promise<void> {
   });
 }
 
-/** Reads state only; never starts a round (Home and the iOS launch call it). */
+/**
+ * Never starts a round (Home calls it). An account with no state yet is not
+ * due: its first state is written here, so a web-only account's week starts
+ * on its first Home load instead of never.
+ */
 export async function checkinDueFor(userId: string): Promise<boolean> {
-  const { checkin, setup } = await stored(userId);
-  const setupDone = setup?.done ?? null;
-  const state = checkin ?? firstState(setupDone, SHIP_DAY);
+  const { state, setupDone, fresh } = await stateOf(userId);
+  if (fresh) return false;
   return dueNow(userId, state, setupDone, new Date().toISOString());
 }

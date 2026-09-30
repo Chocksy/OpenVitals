@@ -115,12 +115,13 @@ Migration `0032_users_checkin.sql`.
 - `nextDueOf(lastDone, trying)`: `lastDone + 7 days` while something is
   being tried, else `+ 14`. "Being tried": a `protocol_items` row active
   with `started_at` in the last 60 days, an open hunch, or a goal.
-- `laterOf(now)`: `now + 3 h` if that is before 18:00 local, else next
-  day 09:00 local.
+- `laterOf(now)`: 09:00 local the same day before 09:00 local; else
+  `now + 3 h` if that is before 18:00 local, else next day 09:00 local.
 - Due when `now >= nextDue`, `now >= snoozedUntil` (if set), setup is
   not due, and setup finished at least 7 days ago. The first `nextDue`
   is setup's finish plus 7 days. An account that never ran setup gets
-  `nextDue` = the day this phase ships plus 7 days.
+  `nextDue` = its first read (Home or `/api/checkin`) plus 7 days,
+  written on that read (final review I3: no hard-coded ship day).
 - "Skip this round": `lastDone = now`, `nextDue` recomputed, nothing asked.
 
 ### B2. Picking the round (`pickRound`)

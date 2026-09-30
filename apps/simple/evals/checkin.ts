@@ -229,7 +229,7 @@ function run(j: Journey, catalog: Catalog): Result {
   let pEndWith = p0;
   let pEndWithout = p0;
 
-  let state: CheckinState = firstState(`${day0}T00:00:00Z`, day0);
+  let state: CheckinState = firstState(`${day0}T00:00:00Z`, `${day0}T00:00:00Z`);
   const skippedAt: Record<string, string> = {};
   const rounds: Round[] = [];
 

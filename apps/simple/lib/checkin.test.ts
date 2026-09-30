@@ -70,8 +70,22 @@ describe("timing (44B)", () => {
       "2026-10-02T06:00:00.000Z",
     );
   });
+  it("asks later at 09:00 local the same day when tapped before 09:00", () => {
+    // 01:00 in UTC+3 is 22:00Z the day before; 09:00 local is 06:00Z
+    expect(laterOf("2026-09-30T22:00:00Z", 180)).toBe(
+      "2026-10-01T06:00:00.000Z",
+    );
+    // 07:30 local in UTC-5 is 12:30Z; 09:00 local is 14:00Z
+    expect(laterOf("2026-10-01T12:30:00Z", -300)).toBe(
+      "2026-10-01T14:00:00.000Z",
+    );
+    // 09:00 local on the dot takes the usual 3 hours
+    expect(laterOf("2026-10-01T06:00:00Z", 180)).toBe(
+      "2026-10-01T09:00:00.000Z",
+    );
+  });
   it("is never due while setup is due or within 7 days of setup", () => {
-    const s = firstState("2026-10-01T10:00:00Z", "2026-10-01");
+    const s = firstState("2026-10-01T10:00:00Z", "2026-10-01T10:00:00Z");
     expect(checkinDue(s, true, null, "2026-12-01T00:00:00Z")).toBe(false);
     expect(
       checkinDue(s, false, "2026-10-01T10:00:00Z", "2026-10-04T10:00:00Z"),
@@ -82,20 +96,25 @@ describe("timing (44B)", () => {
   });
   it("waits for a snooze", () => {
     const s = {
-      ...firstState(null, "2026-10-01"),
+      ...firstState(null, "2026-10-01T00:00:00Z"),
       snoozedUntil: "2026-10-09T06:00:00Z",
     };
     expect(checkinDue(s, false, null, "2026-10-08T12:00:00Z")).toBe(false);
     expect(checkinDue(s, false, null, "2026-10-09T06:00:00Z")).toBe(true);
   });
-  it("starts an account that never ran setup 7 days after ship", () => {
-    expect(firstState(null, "2026-10-01").nextDue).toBe(
-      "2026-10-08T00:00:00.000Z",
+  it("starts an account that never ran setup 7 days after its first read", () => {
+    expect(firstState(null, "2026-11-20T15:30:00.000Z").nextDue).toBe(
+      "2026-11-27T15:30:00.000Z",
     );
+  });
+  it("starts an account that finished setup 7 days after setup, whatever the read day", () => {
+    expect(
+      firstState("2026-10-01T10:00:00Z", "2026-11-20T15:30:00.000Z").nextDue,
+    ).toBe("2026-10-08T10:00:00.000Z");
   });
   it("keeps a round in progress due until it is finished, unless snoozed", () => {
     const s = {
-      ...firstState(null, "2026-10-01"),
+      ...firstState(null, "2026-10-01T00:00:00Z"),
       nextDue: "2026-10-20T00:00:00.000Z",
       started: "2026-10-09T10:00:00.000Z",
     };
@@ -257,7 +276,11 @@ describe("pickRound (44B)", () => {
       pool: 1,
       why: "You started this 4 weeks ago.",
     });
-    expect(round[1]).toMatchObject({ kind: "effect", itemId: "item-old" });
+    expect(round[1]).toMatchObject({
+      kind: "effect",
+      itemId: "item-old",
+      why: "How it is going since you started.",
+    });
   });
 
   it("counts a follow-up's two screens as two of the 5 places", () => {

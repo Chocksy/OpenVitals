@@ -84,7 +84,10 @@ struct Shell: View {
     /// Phase 43C: a new person gets the setup flow over everything.
     @State private var setup = false
     @State private var checkin = false
+    /// True while a check-in ask is out; the launch ask holds it from the start.
+    @State private var checking = true
     @Environment(\.accessibilityReduceMotion) private var reduce
+    @Environment(\.scenePhase) private var phase
 
     var body: some View {
         screen
@@ -158,6 +161,18 @@ struct Shell: View {
         .task {
             setup = await Self.setupDue()
             checkin = await Self.checkinDue(after: setup)
+            checking = false
+        }
+        // Phase 44D: a reminder tap on a suspended app resumes it without a
+        // launch, so the check-in is asked again each time the app comes
+        // forward. Never over setup, an open check-in or the launch ask.
+        .onChange(of: phase) { _, now in
+            guard now == .active, !checking, !setup, !checkin else { return }
+            checking = true
+            Task {
+                checkin = await Self.checkinDue(after: setup)
+                checking = false
+            }
         }
         .fullScreenCover(isPresented: $setup) {
             // "Finish later" only closes it: the server keeps it due, so the
@@ -180,7 +195,8 @@ struct Shell: View {
 
     /// Phase 44D: the check-in, full screen while a round is due, never over
     /// setup. The GET starts a round only when one is due, which is when it
-    /// shows. Each launch also moves the one reminder to the new `dueAt`.
+    /// shows. Each launch and each return to the front also moves the one
+    /// reminder to the new `dueAt`.
     /// A fixture run opens it only for `-OVScreen checkin-<kind>`.
     static func checkinDue(after setup: Bool) async -> Bool {
         #if DEBUG
