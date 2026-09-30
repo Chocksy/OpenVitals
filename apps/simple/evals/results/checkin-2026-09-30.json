@@ -1,0 +1,2848 @@
+{
+  "ranAt": "2026-09-30T15:56:46.247Z",
+  "kbRevision": 75,
+  "results": [
+    {
+      "id": "a1at_female_41",
+      "conditions": [
+        "a1at_deficiency"
+      ],
+      "planted": {
+        "key": "sym_breathless",
+        "yes": "Yes",
+        "condition": "a1at_deficiency"
+      },
+      "setupKeys": [
+        "menopause_status",
+        "sym_cycle",
+        "sym_hair_skin",
+        "sym_thirst",
+        "sym_weight",
+        "sleep_snoring",
+        "sym_phq2_interest"
+      ],
+      "setupSkipped": [
+        "sym_heavy_periods"
+      ],
+      "reachWith": null,
+      "reachWithout": null,
+      "p0": 0.000474,
+      "pEndWith": 0.00054,
+      "pEndWithout": 0.00054,
+      "answered": 6,
+      "skipped": 5,
+      "rounds": [
+        {
+          "day": 7,
+          "keys": [
+            "sym_heavy_periods",
+            "sym_alcohol",
+            "sym_energy"
+          ],
+          "answered": [
+            "sym_alcohol",
+            "sym_energy"
+          ],
+          "skipped": [
+            "sym_heavy_periods"
+          ]
+        },
+        {
+          "day": 21,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 35,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 49,
+          "keys": [
+            "sym_heavy_periods"
+          ],
+          "answered": [],
+          "skipped": [
+            "sym_heavy_periods"
+          ]
+        },
+        {
+          "day": 63,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 77,
+          "keys": [
+            "sym_cold",
+            "sym_bowel"
+          ],
+          "answered": [
+            "sym_cold",
+            "sym_bowel"
+          ],
+          "skipped": []
+        },
+        {
+          "day": 91,
+          "keys": [
+            "sym_heavy_periods"
+          ],
+          "answered": [],
+          "skipped": [
+            "sym_heavy_periods"
+          ]
+        },
+        {
+          "day": 105,
+          "keys": [
+            "sym_thirst"
+          ],
+          "answered": [
+            "sym_thirst"
+          ],
+          "skipped": []
+        },
+        {
+          "day": 119,
+          "keys": [
+            "sym_cycle"
+          ],
+          "answered": [
+            "sym_cycle"
+          ],
+          "skipped": []
+        },
+        {
+          "day": 133,
+          "keys": [
+            "sym_heavy_periods"
+          ],
+          "answered": [],
+          "skipped": [
+            "sym_heavy_periods"
+          ]
+        },
+        {
+          "day": 147,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 161,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 175,
+          "keys": [
+            "sym_heavy_periods"
+          ],
+          "answered": [],
+          "skipped": [
+            "sym_heavy_periods"
+          ]
+        }
+      ],
+      "plantedReasked": "no",
+      "plantedAskedDay": null
+    },
+    {
+      "id": "addisons_female_38",
+      "conditions": [
+        "addisons"
+      ],
+      "planted": {
+        "key": "sym_salt_craving",
+        "yes": "Yes",
+        "condition": "addisons"
+      },
+      "setupKeys": [
+        "sym_cycle",
+        "sym_hair_skin",
+        "sym_thirst",
+        "sym_phq2_interest",
+        "sym_bloating",
+        "sym_joint",
+        "sleep_snoring"
+      ],
+      "setupSkipped": [
+        "sym_heavy_periods"
+      ],
+      "reachWith": null,
+      "reachWithout": null,
+      "p0": 0.006,
+      "pEndWith": 0.006,
+      "pEndWithout": 0.006,
+      "answered": 5,
+      "skipped": 5,
+      "rounds": [
+        {
+          "day": 7,
+          "keys": [
+            "sym_heavy_periods",
+            "sym_energy"
+          ],
+          "answered": [
+            "sym_energy"
+          ],
+          "skipped": [
+            "sym_heavy_periods"
+          ]
+        },
+        {
+          "day": 21,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 35,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 49,
+          "keys": [
+            "sym_heavy_periods"
+          ],
+          "answered": [],
+          "skipped": [
+            "sym_heavy_periods"
+          ]
+        },
+        {
+          "day": 63,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 77,
+          "keys": [
+            "sym_cold",
+            "sym_bowel"
+          ],
+          "answered": [
+            "sym_cold",
+            "sym_bowel"
+          ],
+          "skipped": []
+        },
+        {
+          "day": 91,
+          "keys": [
+            "sym_heavy_periods"
+          ],
+          "answered": [],
+          "skipped": [
+            "sym_heavy_periods"
+          ]
+        },
+        {
+          "day": 105,
+          "keys": [
+            "sym_thirst"
+          ],
+          "answered": [
+            "sym_thirst"
+          ],
+          "skipped": []
+        },
+        {
+          "day": 119,
+          "keys": [
+            "sym_cycle"
+          ],
+          "answered": [
+            "sym_cycle"
+          ],
+          "skipped": []
+        },
+        {
+          "day": 133,
+          "keys": [
+            "sym_heavy_periods"
+          ],
+          "answered": [],
+          "skipped": [
+            "sym_heavy_periods"
+          ]
+        },
+        {
+          "day": 147,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 161,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 175,
+          "keys": [
+            "sym_heavy_periods"
+          ],
+          "answered": [],
+          "skipped": [
+            "sym_heavy_periods"
+          ]
+        }
+      ],
+      "plantedReasked": "no",
+      "plantedAskedDay": null
+    },
+    {
+      "id": "ckd3_male_70",
+      "conditions": [
+        "ckd",
+        "hypertension"
+      ],
+      "planted": {
+        "key": "sleep_snoring",
+        "yes": "Most nights",
+        "condition": "hypertension"
+      },
+      "setupKeys": [
+        "sym_thirst",
+        "sym_joint",
+        "sym_phq2_interest",
+        "sym_alcohol",
+        "sym_energy",
+        "sym_hair_skin",
+        "sym_phq2_down"
+      ],
+      "setupSkipped": [
+        "sym_bloating"
+      ],
+      "reachWith": 0,
+      "reachWithout": 0,
+      "p0": 0.911,
+      "pEndWith": 0.911,
+      "pEndWithout": 0.911,
+      "answered": 3,
+      "skipped": 0,
+      "rounds": [
+        {
+          "day": 7,
+          "keys": [
+            "sym_weight"
+          ],
+          "answered": [
+            "sym_weight"
+          ],
+          "skipped": []
+        },
+        {
+          "day": 21,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 35,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 49,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 63,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 77,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 91,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 105,
+          "keys": [
+            "sym_thirst"
+          ],
+          "answered": [
+            "sym_thirst"
+          ],
+          "skipped": []
+        },
+        {
+          "day": 119,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 133,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 147,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 161,
+          "keys": [
+            "sym_sleepiness"
+          ],
+          "answered": [
+            "sym_sleepiness"
+          ],
+          "skipped": []
+        },
+        {
+          "day": 175,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        }
+      ],
+      "plantedReasked": "no",
+      "plantedAskedDay": null
+    },
+    {
+      "id": "crc_family_history_m42",
+      "conditions": [
+        "cancer_screening_due"
+      ],
+      "planted": null,
+      "setupKeys": [],
+      "setupSkipped": [],
+      "reachWith": 0,
+      "reachWithout": 0,
+      "p0": 0.889,
+      "pEndWith": 0.889,
+      "pEndWithout": 0.889,
+      "answered": 0,
+      "skipped": 0,
+      "rounds": [
+        {
+          "day": 7,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 21,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 35,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 49,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 63,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 77,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 91,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 105,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 119,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 133,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 147,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 161,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 175,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        }
+      ],
+      "plantedReasked": "n/a",
+      "plantedAskedDay": null
+    },
+    {
+      "id": "fabry_male_33",
+      "conditions": [
+        "fabry"
+      ],
+      "planted": {
+        "key": "sym_acroparesthesia",
+        "yes": "Yes",
+        "condition": "fabry"
+      },
+      "setupKeys": [
+        "sym_thirst",
+        "sleep_snoring",
+        "sym_joint",
+        "sym_phq2_interest",
+        "sym_alcohol",
+        "sym_energy",
+        "sym_hair_skin",
+        "sym_phq2_down"
+      ],
+      "setupSkipped": [],
+      "reachWith": null,
+      "reachWithout": null,
+      "p0": 0.0000945,
+      "pEndWith": 0.000134,
+      "pEndWithout": 0.000134,
+      "answered": 1,
+      "skipped": 0,
+      "rounds": [
+        {
+          "day": 7,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 21,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 35,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 49,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 63,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 77,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 91,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 105,
+          "keys": [
+            "sym_thirst"
+          ],
+          "answered": [
+            "sym_thirst"
+          ],
+          "skipped": []
+        },
+        {
+          "day": 119,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 133,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 147,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 161,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 175,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        }
+      ],
+      "plantedReasked": "no",
+      "plantedAskedDay": null
+    },
+    {
+      "id": "gilbert_male_30",
+      "conditions": [
+        "gilbert"
+      ],
+      "planted": null,
+      "setupKeys": [
+        "sym_thirst",
+        "sleep_snoring",
+        "sym_joint",
+        "sym_phq2_interest",
+        "sym_alcohol",
+        "sym_energy",
+        "sym_phq2_down",
+        "sym_bloating"
+      ],
+      "setupSkipped": [],
+      "reachWith": null,
+      "reachWithout": null,
+      "p0": 0.14,
+      "pEndWith": 0.14,
+      "pEndWithout": 0.14,
+      "answered": 1,
+      "skipped": 0,
+      "rounds": [
+        {
+          "day": 7,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 21,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 35,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 49,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 63,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 77,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 91,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 105,
+          "keys": [
+            "sym_thirst"
+          ],
+          "answered": [
+            "sym_thirst"
+          ],
+          "skipped": []
+        },
+        {
+          "day": 119,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 133,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 147,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 161,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 175,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        }
+      ],
+      "plantedReasked": "n/a",
+      "plantedAskedDay": null
+    },
+    {
+      "id": "history_t2d_path_m45",
+      "conditions": [
+        "insulin_resistance"
+      ],
+      "planted": {
+        "key": "sym_weight",
+        "yes": "Gained",
+        "condition": "insulin_resistance"
+      },
+      "setupKeys": [],
+      "setupSkipped": [],
+      "reachWith": 0,
+      "reachWithout": 0,
+      "p0": 0.98,
+      "pEndWith": 0.987,
+      "pEndWithout": 0.98,
+      "answered": 1,
+      "skipped": 0,
+      "rounds": [
+        {
+          "day": 7,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 21,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 35,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 49,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 63,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 77,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 91,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 105,
+          "keys": [
+            "sym_thirst"
+          ],
+          "answered": [
+            "sym_thirst"
+          ],
+          "skipped": []
+        },
+        {
+          "day": 119,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 133,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 147,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 161,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 175,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        }
+      ],
+      "plantedReasked": "no",
+      "plantedAskedDay": null
+    },
+    {
+      "id": "history_t2d_stalled_m45",
+      "conditions": [
+        "insulin_resistance"
+      ],
+      "planted": {
+        "key": "sym_weight",
+        "yes": "Gained",
+        "condition": "insulin_resistance"
+      },
+      "setupKeys": [],
+      "setupSkipped": [],
+      "reachWith": 0,
+      "reachWithout": 0,
+      "p0": 0.98,
+      "pEndWith": 0.987,
+      "pEndWithout": 0.98,
+      "answered": 1,
+      "skipped": 0,
+      "rounds": [
+        {
+          "day": 7,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 21,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 35,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 49,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 63,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 77,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 91,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 105,
+          "keys": [
+            "sym_thirst"
+          ],
+          "answered": [
+            "sym_thirst"
+          ],
+          "skipped": []
+        },
+        {
+          "day": 119,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 133,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 147,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 161,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 175,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        }
+      ],
+      "plantedReasked": "no",
+      "plantedAskedDay": null
+    },
+    {
+      "id": "haemochromatosis_ferritin_m52",
+      "conditions": [
+        "haemochromatosis"
+      ],
+      "planted": {
+        "key": "sym_joint",
+        "yes": "Yes",
+        "condition": "haemochromatosis"
+      },
+      "setupKeys": [
+        "sym_thirst",
+        "sleep_snoring",
+        "sym_phq2_interest",
+        "sym_alcohol",
+        "sym_energy",
+        "sym_hair_skin",
+        "sym_phq2_down",
+        "sym_sleepiness"
+      ],
+      "setupSkipped": [],
+      "reachWith": null,
+      "reachWithout": null,
+      "p0": 0.018,
+      "pEndWith": 0.018,
+      "pEndWithout": 0.018,
+      "answered": 2,
+      "skipped": 0,
+      "rounds": [
+        {
+          "day": 7,
+          "keys": [
+            "sym_weight"
+          ],
+          "answered": [
+            "sym_weight"
+          ],
+          "skipped": []
+        },
+        {
+          "day": 21,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 35,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 49,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 63,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 77,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 91,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 105,
+          "keys": [
+            "sym_thirst"
+          ],
+          "answered": [
+            "sym_thirst"
+          ],
+          "skipped": []
+        },
+        {
+          "day": 119,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 133,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 147,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 161,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 175,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        }
+      ],
+      "plantedReasked": "no",
+      "plantedAskedDay": null
+    },
+    {
+      "id": "haemochromatosis_female_47",
+      "conditions": [
+        "haemochromatosis"
+      ],
+      "planted": {
+        "key": "sym_joint",
+        "yes": "Yes",
+        "condition": "haemochromatosis"
+      },
+      "setupKeys": [
+        "menopause_status"
+      ],
+      "setupSkipped": [
+        "sym_heavy_periods",
+        "sym_hair_skin",
+        "sym_cycle",
+        "sym_thirst",
+        "sym_weight",
+        "sym_cold",
+        "sleep_snoring"
+      ],
+      "reachWith": null,
+      "reachWithout": null,
+      "p0": 0.012,
+      "pEndWith": 0.012,
+      "pEndWithout": 0.012,
+      "answered": 1,
+      "skipped": 41,
+      "rounds": [
+        {
+          "day": 7,
+          "keys": [
+            "sym_heavy_periods",
+            "sym_cycle",
+            "sym_hair_skin",
+            "sym_thirst",
+            "sym_weight"
+          ],
+          "answered": [],
+          "skipped": [
+            "sym_heavy_periods",
+            "sym_cycle",
+            "sym_hair_skin",
+            "sym_thirst",
+            "sym_weight"
+          ]
+        },
+        {
+          "day": 21,
+          "keys": [
+            "sym_cold",
+            "sleep_snoring",
+            "sym_bowel",
+            "sym_alcohol",
+            "sym_energy"
+          ],
+          "answered": [
+            "sym_energy"
+          ],
+          "skipped": [
+            "sym_cold",
+            "sleep_snoring",
+            "sym_bowel",
+            "sym_alcohol"
+          ]
+        },
+        {
+          "day": 35,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 49,
+          "keys": [
+            "sym_heavy_periods",
+            "sym_cycle",
+            "sym_thirst",
+            "sym_weight",
+            "sym_hair_skin"
+          ],
+          "answered": [],
+          "skipped": [
+            "sym_heavy_periods",
+            "sym_cycle",
+            "sym_thirst",
+            "sym_weight",
+            "sym_hair_skin"
+          ]
+        },
+        {
+          "day": 63,
+          "keys": [
+            "sleep_snoring",
+            "sym_cold",
+            "sym_bowel",
+            "sym_alcohol"
+          ],
+          "answered": [],
+          "skipped": [
+            "sleep_snoring",
+            "sym_cold",
+            "sym_bowel",
+            "sym_alcohol"
+          ]
+        },
+        {
+          "day": 77,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 91,
+          "keys": [
+            "sym_heavy_periods",
+            "sym_cycle",
+            "sym_hair_skin",
+            "sym_thirst",
+            "sym_weight"
+          ],
+          "answered": [],
+          "skipped": [
+            "sym_heavy_periods",
+            "sym_cycle",
+            "sym_hair_skin",
+            "sym_thirst",
+            "sym_weight"
+          ]
+        },
+        {
+          "day": 105,
+          "keys": [
+            "sleep_snoring",
+            "sym_cold",
+            "sym_bowel",
+            "sym_alcohol"
+          ],
+          "answered": [],
+          "skipped": [
+            "sleep_snoring",
+            "sym_cold",
+            "sym_bowel",
+            "sym_alcohol"
+          ]
+        },
+        {
+          "day": 119,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 133,
+          "keys": [
+            "sym_heavy_periods",
+            "sym_cycle",
+            "sym_hair_skin",
+            "sym_thirst",
+            "sym_weight"
+          ],
+          "answered": [],
+          "skipped": [
+            "sym_heavy_periods",
+            "sym_cycle",
+            "sym_hair_skin",
+            "sym_thirst",
+            "sym_weight"
+          ]
+        },
+        {
+          "day": 147,
+          "keys": [
+            "sleep_snoring",
+            "sym_cold",
+            "sym_bowel",
+            "sym_alcohol"
+          ],
+          "answered": [],
+          "skipped": [
+            "sleep_snoring",
+            "sym_cold",
+            "sym_bowel",
+            "sym_alcohol"
+          ]
+        },
+        {
+          "day": 161,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 175,
+          "keys": [
+            "sym_heavy_periods",
+            "sym_cycle",
+            "sym_hair_skin",
+            "sym_thirst",
+            "sym_weight"
+          ],
+          "answered": [],
+          "skipped": [
+            "sym_heavy_periods",
+            "sym_cycle",
+            "sym_hair_skin",
+            "sym_thirst",
+            "sym_weight"
+          ]
+        }
+      ],
+      "plantedReasked": "no",
+      "plantedAskedDay": null
+    },
+    {
+      "id": "hashimoto_early_female_36",
+      "conditions": [
+        "hashimoto",
+        "iron_deficiency",
+        "vitamin_d_deficiency"
+      ],
+      "planted": {
+        "key": "sym_energy",
+        "yes": "Yes",
+        "condition": "hashimoto"
+      },
+      "setupKeys": [
+        "sym_heavy_periods",
+        "sym_cycle",
+        "sym_phq2_interest",
+        "sleep_snoring",
+        "sym_phq2_down"
+      ],
+      "setupSkipped": [
+        "sym_thirst",
+        "sym_bloating",
+        "sym_joint"
+      ],
+      "reachWith": 0,
+      "reachWithout": 0,
+      "p0": 0.416,
+      "pEndWith": 0.491,
+      "pEndWithout": 0.299,
+      "answered": 4,
+      "skipped": 5,
+      "rounds": [
+        {
+          "day": 7,
+          "keys": [
+            "sym_thirst"
+          ],
+          "answered": [],
+          "skipped": [
+            "sym_thirst"
+          ]
+        },
+        {
+          "day": 21,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 35,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 49,
+          "keys": [
+            "sym_thirst"
+          ],
+          "answered": [],
+          "skipped": [
+            "sym_thirst"
+          ]
+        },
+        {
+          "day": 63,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 77,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 91,
+          "keys": [
+            "sym_thirst"
+          ],
+          "answered": [],
+          "skipped": [
+            "sym_thirst"
+          ]
+        },
+        {
+          "day": 105,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 119,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 133,
+          "keys": [
+            "sym_thirst"
+          ],
+          "answered": [],
+          "skipped": [
+            "sym_thirst"
+          ]
+        },
+        {
+          "day": 147,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 161,
+          "keys": [
+            "sym_hair_skin",
+            "sym_cold",
+            "sym_bowel",
+            "sym_energy"
+          ],
+          "answered": [
+            "sym_hair_skin",
+            "sym_cold",
+            "sym_bowel",
+            "sym_energy"
+          ],
+          "skipped": []
+        },
+        {
+          "day": 175,
+          "keys": [
+            "sym_thirst"
+          ],
+          "answered": [],
+          "skipped": [
+            "sym_thirst"
+          ]
+        }
+      ],
+      "plantedReasked": "no",
+      "plantedAskedDay": 161
+    },
+    {
+      "id": "hashimoto_from_scratch_f34_ro",
+      "conditions": [
+        "hashimoto",
+        "iron_deficiency",
+        "vitamin_d_deficiency"
+      ],
+      "planted": {
+        "key": "sym_energy",
+        "yes": "Yes",
+        "condition": "hashimoto"
+      },
+      "setupKeys": [
+        "sym_heavy_periods",
+        "sym_cycle",
+        "sym_phq2_interest",
+        "sym_phq2_down",
+        "sym_cold"
+      ],
+      "setupSkipped": [
+        "sym_thirst",
+        "sym_bloating",
+        "sym_joint"
+      ],
+      "reachWith": 0,
+      "reachWithout": 0,
+      "p0": 0.416,
+      "pEndWith": 0.371,
+      "pEndWithout": 0.329,
+      "answered": 3,
+      "skipped": 5,
+      "rounds": [
+        {
+          "day": 7,
+          "keys": [
+            "sym_thirst",
+            "sym_hair_skin",
+            "sym_weight",
+            "sym_bowel"
+          ],
+          "answered": [
+            "sym_hair_skin",
+            "sym_weight",
+            "sym_bowel"
+          ],
+          "skipped": [
+            "sym_thirst"
+          ]
+        },
+        {
+          "day": 21,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 35,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 49,
+          "keys": [
+            "sym_thirst"
+          ],
+          "answered": [],
+          "skipped": [
+            "sym_thirst"
+          ]
+        },
+        {
+          "day": 63,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 77,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 91,
+          "keys": [
+            "sym_thirst"
+          ],
+          "answered": [],
+          "skipped": [
+            "sym_thirst"
+          ]
+        },
+        {
+          "day": 105,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 119,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 133,
+          "keys": [
+            "sym_thirst"
+          ],
+          "answered": [],
+          "skipped": [
+            "sym_thirst"
+          ]
+        },
+        {
+          "day": 147,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 161,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 175,
+          "keys": [
+            "sym_thirst"
+          ],
+          "answered": [],
+          "skipped": [
+            "sym_thirst"
+          ]
+        }
+      ],
+      "plantedReasked": "no",
+      "plantedAskedDay": null
+    },
+    {
+      "id": "insulin_resistant_male_45",
+      "conditions": [
+        "insulin_resistance",
+        "nafld"
+      ],
+      "planted": {
+        "key": "sym_weight",
+        "yes": "Gained",
+        "condition": "insulin_resistance"
+      },
+      "setupKeys": [
+        "sym_thirst",
+        "sleep_snoring",
+        "sym_joint",
+        "sym_phq2_interest",
+        "sym_alcohol",
+        "sym_energy",
+        "sym_hair_skin",
+        "sym_phq2_down"
+      ],
+      "setupSkipped": [],
+      "reachWith": 0,
+      "reachWithout": 0,
+      "p0": 0.802,
+      "pEndWith": 0.806,
+      "pEndWithout": 0.808,
+      "answered": 1,
+      "skipped": 0,
+      "rounds": [
+        {
+          "day": 7,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 21,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 35,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 49,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 63,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 77,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 91,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 105,
+          "keys": [
+            "sym_thirst"
+          ],
+          "answered": [
+            "sym_thirst"
+          ],
+          "skipped": []
+        },
+        {
+          "day": 119,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 133,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 147,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 161,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 175,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        }
+      ],
+      "plantedReasked": "no",
+      "plantedAskedDay": null
+    },
+    {
+      "id": "interview_fatigue_coffee_m41",
+      "conditions": [
+        "cancer_screening_due"
+      ],
+      "planted": null,
+      "setupKeys": [],
+      "setupSkipped": [],
+      "reachWith": 0,
+      "reachWithout": 0,
+      "p0": 0.8,
+      "pEndWith": 0.8,
+      "pEndWithout": 0.8,
+      "answered": 0,
+      "skipped": 0,
+      "rounds": [
+        {
+          "day": 7,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 21,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 35,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 49,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 63,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 77,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 91,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 105,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 119,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 133,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 147,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 161,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 175,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        }
+      ],
+      "plantedReasked": "n/a",
+      "plantedAskedDay": null
+    },
+    {
+      "id": "iron_gi_cause_m45",
+      "conditions": [
+        "iron_deficiency",
+        "iron_deficiency_cause_gi",
+        "coeliac_disease"
+      ],
+      "planted": {
+        "key": "sym_energy",
+        "yes": "Yes",
+        "condition": "iron_deficiency"
+      },
+      "setupKeys": [
+        "sleep_snoring",
+        "sym_thirst",
+        "sym_joint",
+        "sym_phq2_interest",
+        "sym_alcohol",
+        "sym_phq2_down",
+        "sym_sleepiness"
+      ],
+      "setupSkipped": [
+        "sym_bloating"
+      ],
+      "reachWith": null,
+      "reachWithout": null,
+      "p0": 0.072,
+      "pEndWith": 0.081,
+      "pEndWithout": 0.081,
+      "answered": 1,
+      "skipped": 0,
+      "rounds": [
+        {
+          "day": 7,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 21,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 35,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 49,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 63,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 77,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 91,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 105,
+          "keys": [
+            "sym_thirst"
+          ],
+          "answered": [
+            "sym_thirst"
+          ],
+          "skipped": []
+        },
+        {
+          "day": 119,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 133,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 147,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 161,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 175,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        }
+      ],
+      "plantedReasked": "no",
+      "plantedAskedDay": null
+    },
+    {
+      "id": "iron_low_female_30",
+      "conditions": [
+        "iron_deficiency"
+      ],
+      "planted": {
+        "key": "sym_energy",
+        "yes": "Yes",
+        "condition": "iron_deficiency"
+      },
+      "setupKeys": [
+        "sym_heavy_periods",
+        "sym_cycle",
+        "sym_phq2_interest",
+        "sym_phq2_down",
+        "sym_cold"
+      ],
+      "setupSkipped": [
+        "sym_thirst",
+        "sym_bloating",
+        "sym_joint"
+      ],
+      "reachWith": 0,
+      "reachWithout": 0,
+      "p0": 0.516,
+      "pEndWith": 0.39,
+      "pEndWithout": 0.39,
+      "answered": 2,
+      "skipped": 5,
+      "rounds": [
+        {
+          "day": 7,
+          "keys": [
+            "sym_thirst",
+            "sym_hair_skin",
+            "sym_bowel"
+          ],
+          "answered": [
+            "sym_hair_skin",
+            "sym_bowel"
+          ],
+          "skipped": [
+            "sym_thirst"
+          ]
+        },
+        {
+          "day": 21,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 35,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 49,
+          "keys": [
+            "sym_thirst"
+          ],
+          "answered": [],
+          "skipped": [
+            "sym_thirst"
+          ]
+        },
+        {
+          "day": 63,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 77,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 91,
+          "keys": [
+            "sym_thirst"
+          ],
+          "answered": [],
+          "skipped": [
+            "sym_thirst"
+          ]
+        },
+        {
+          "day": 105,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 119,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 133,
+          "keys": [
+            "sym_thirst"
+          ],
+          "answered": [],
+          "skipped": [
+            "sym_thirst"
+          ]
+        },
+        {
+          "day": 147,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 161,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 175,
+          "keys": [
+            "sym_thirst"
+          ],
+          "answered": [],
+          "skipped": [
+            "sym_thirst"
+          ]
+        }
+      ],
+      "plantedReasked": "no",
+      "plantedAskedDay": null
+    },
+    {
+      "id": "mcas_female_29",
+      "conditions": [
+        "mast_cell_activation"
+      ],
+      "planted": {
+        "key": "sym_dizzy_standing",
+        "yes": "Yes",
+        "condition": "mast_cell_activation"
+      },
+      "setupKeys": [
+        "sym_hair_skin",
+        "sleep_snoring",
+        "sym_thirst",
+        "sym_phq2_interest",
+        "sym_cycle",
+        "sym_bloating",
+        "sym_joint"
+      ],
+      "setupSkipped": [
+        "sym_heavy_periods"
+      ],
+      "reachWith": null,
+      "reachWithout": null,
+      "p0": 0.000084,
+      "pEndWith": 0.0000958,
+      "pEndWithout": 0.0000958,
+      "answered": 5,
+      "skipped": 5,
+      "rounds": [
+        {
+          "day": 7,
+          "keys": [
+            "sym_heavy_periods",
+            "sym_alcohol",
+            "sym_energy"
+          ],
+          "answered": [
+            "sym_alcohol",
+            "sym_energy"
+          ],
+          "skipped": [
+            "sym_heavy_periods"
+          ]
+        },
+        {
+          "day": 21,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 35,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 49,
+          "keys": [
+            "sym_heavy_periods"
+          ],
+          "answered": [],
+          "skipped": [
+            "sym_heavy_periods"
+          ]
+        },
+        {
+          "day": 63,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 77,
+          "keys": [
+            "sym_cold",
+            "sym_bowel"
+          ],
+          "answered": [
+            "sym_cold",
+            "sym_bowel"
+          ],
+          "skipped": []
+        },
+        {
+          "day": 91,
+          "keys": [
+            "sym_heavy_periods"
+          ],
+          "answered": [],
+          "skipped": [
+            "sym_heavy_periods"
+          ]
+        },
+        {
+          "day": 105,
+          "keys": [
+            "sym_thirst"
+          ],
+          "answered": [
+            "sym_thirst"
+          ],
+          "skipped": []
+        },
+        {
+          "day": 119,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 133,
+          "keys": [
+            "sym_heavy_periods"
+          ],
+          "answered": [],
+          "skipped": [
+            "sym_heavy_periods"
+          ]
+        },
+        {
+          "day": 147,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 161,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 175,
+          "keys": [
+            "sym_heavy_periods"
+          ],
+          "answered": [],
+          "skipped": [
+            "sym_heavy_periods"
+          ]
+        }
+      ],
+      "plantedReasked": "no",
+      "plantedAskedDay": null
+    },
+    {
+      "id": "pcos_from_interview_f28",
+      "conditions": [
+        "pcos"
+      ],
+      "planted": {
+        "key": "sym_weight",
+        "yes": "Gained",
+        "condition": "pcos"
+      },
+      "setupKeys": [
+        "sym_cycle",
+        "hirsutism_acne"
+      ],
+      "setupSkipped": [
+        "sym_heavy_periods"
+      ],
+      "reachWith": 0,
+      "reachWithout": 0,
+      "p0": 0.426,
+      "pEndWith": 0.244,
+      "pEndWithout": 0.244,
+      "answered": 0,
+      "skipped": 7,
+      "rounds": [
+        {
+          "day": 7,
+          "keys": [
+            "sym_heavy_periods"
+          ],
+          "answered": [],
+          "skipped": [
+            "sym_heavy_periods"
+          ]
+        },
+        {
+          "day": 21,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 35,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 49,
+          "keys": [
+            "sym_heavy_periods"
+          ],
+          "answered": [],
+          "skipped": [
+            "sym_heavy_periods"
+          ]
+        },
+        {
+          "day": 63,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 77,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 91,
+          "keys": [
+            "sym_heavy_periods"
+          ],
+          "answered": [],
+          "skipped": [
+            "sym_heavy_periods"
+          ]
+        },
+        {
+          "day": 105,
+          "keys": [
+            "sym_thirst"
+          ],
+          "answered": [],
+          "skipped": [
+            "sym_thirst"
+          ]
+        },
+        {
+          "day": 119,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 133,
+          "keys": [
+            "sym_heavy_periods"
+          ],
+          "answered": [],
+          "skipped": [
+            "sym_heavy_periods"
+          ]
+        },
+        {
+          "day": 147,
+          "keys": [
+            "sym_thirst"
+          ],
+          "answered": [],
+          "skipped": [
+            "sym_thirst"
+          ]
+        },
+        {
+          "day": 161,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 175,
+          "keys": [
+            "sym_heavy_periods"
+          ],
+          "answered": [],
+          "skipped": [
+            "sym_heavy_periods"
+          ]
+        }
+      ],
+      "plantedReasked": "no",
+      "plantedAskedDay": null
+    },
+    {
+      "id": "pernicious_anaemia_female_52",
+      "conditions": [
+        "b12_deficiency",
+        "atrophic_gastritis",
+        "anaemia_other"
+      ],
+      "planted": {
+        "key": "sym_energy",
+        "yes": "Yes",
+        "condition": "b12_deficiency"
+      },
+      "setupKeys": [
+        "menopause_status",
+        "sleep_snoring",
+        "sym_thirst",
+        "sym_phq2_interest",
+        "sym_joint",
+        "sym_alcohol"
+      ],
+      "setupSkipped": [
+        "sym_heavy_periods",
+        "sym_cycle"
+      ],
+      "reachWith": 0,
+      "reachWithout": 0,
+      "p0": 0.486,
+      "pEndWith": 0.486,
+      "pEndWithout": 0.486,
+      "answered": 2,
+      "skipped": 10,
+      "rounds": [
+        {
+          "day": 7,
+          "keys": [
+            "sym_cycle",
+            "sym_heavy_periods"
+          ],
+          "answered": [],
+          "skipped": [
+            "sym_cycle",
+            "sym_heavy_periods"
+          ]
+        },
+        {
+          "day": 21,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 35,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 49,
+          "keys": [
+            "sym_cycle",
+            "sym_heavy_periods"
+          ],
+          "answered": [],
+          "skipped": [
+            "sym_cycle",
+            "sym_heavy_periods"
+          ]
+        },
+        {
+          "day": 63,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 77,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 91,
+          "keys": [
+            "sym_cycle",
+            "sym_heavy_periods"
+          ],
+          "answered": [],
+          "skipped": [
+            "sym_cycle",
+            "sym_heavy_periods"
+          ]
+        },
+        {
+          "day": 105,
+          "keys": [
+            "sym_thirst",
+            "sym_energy"
+          ],
+          "answered": [
+            "sym_thirst",
+            "sym_energy"
+          ],
+          "skipped": []
+        },
+        {
+          "day": 119,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 133,
+          "keys": [
+            "sym_cycle",
+            "sym_heavy_periods"
+          ],
+          "answered": [],
+          "skipped": [
+            "sym_cycle",
+            "sym_heavy_periods"
+          ]
+        },
+        {
+          "day": 147,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 161,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 175,
+          "keys": [
+            "sym_cycle",
+            "sym_heavy_periods"
+          ],
+          "answered": [],
+          "skipped": [
+            "sym_cycle",
+            "sym_heavy_periods"
+          ]
+        }
+      ],
+      "plantedReasked": "no",
+      "plantedAskedDay": null
+    },
+    {
+      "id": "screening_f52_smoker",
+      "conditions": [
+        "cancer_screening_due",
+        "perimenopause"
+      ],
+      "planted": {
+        "key": "sym_energy",
+        "yes": "Yes",
+        "condition": "perimenopause"
+      },
+      "setupKeys": [],
+      "setupSkipped": [
+        "sym_heavy_periods"
+      ],
+      "reachWith": 0,
+      "reachWithout": 0,
+      "p0": 0.978,
+      "pEndWith": 0.874,
+      "pEndWithout": 0.874,
+      "answered": 0,
+      "skipped": 5,
+      "rounds": [
+        {
+          "day": 7,
+          "keys": [
+            "sym_heavy_periods"
+          ],
+          "answered": [],
+          "skipped": [
+            "sym_heavy_periods"
+          ]
+        },
+        {
+          "day": 21,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 35,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 49,
+          "keys": [
+            "sym_heavy_periods"
+          ],
+          "answered": [],
+          "skipped": [
+            "sym_heavy_periods"
+          ]
+        },
+        {
+          "day": 63,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 77,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 91,
+          "keys": [
+            "sym_heavy_periods"
+          ],
+          "answered": [],
+          "skipped": [
+            "sym_heavy_periods"
+          ]
+        },
+        {
+          "day": 105,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 119,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 133,
+          "keys": [
+            "sym_heavy_periods"
+          ],
+          "answered": [],
+          "skipped": [
+            "sym_heavy_periods"
+          ]
+        },
+        {
+          "day": 147,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 161,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 175,
+          "keys": [
+            "sym_heavy_periods"
+          ],
+          "answered": [],
+          "skipped": [
+            "sym_heavy_periods"
+          ]
+        }
+      ],
+      "plantedReasked": "no",
+      "plantedAskedDay": null
+    },
+    {
+      "id": "sibo_male_44",
+      "conditions": [
+        "sibo"
+      ],
+      "planted": {
+        "key": "sym_bloating",
+        "yes": "Yes",
+        "condition": "sibo"
+      },
+      "setupKeys": [
+        "sym_thirst",
+        "sleep_snoring",
+        "sym_tingling",
+        "sym_alcohol",
+        "sym_joint",
+        "sym_phq2_interest",
+        "sym_energy",
+        "sym_hair_skin"
+      ],
+      "setupSkipped": [],
+      "reachWith": null,
+      "reachWithout": null,
+      "p0": 0.146,
+      "pEndWith": 0.195,
+      "pEndWithout": 0.195,
+      "answered": 2,
+      "skipped": 0,
+      "rounds": [
+        {
+          "day": 7,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 21,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 35,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 49,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 63,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 77,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 91,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 105,
+          "keys": [
+            "sym_thirst",
+            "sym_tingling"
+          ],
+          "answered": [
+            "sym_thirst",
+            "sym_tingling"
+          ],
+          "skipped": []
+        },
+        {
+          "day": 119,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 133,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 147,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 161,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 175,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        }
+      ],
+      "plantedReasked": "no",
+      "plantedAskedDay": null
+    },
+    {
+      "id": "wilson_male_24",
+      "conditions": [
+        "wilson"
+      ],
+      "planted": {
+        "key": "sym_tremor",
+        "yes": "Yes",
+        "condition": "wilson"
+      },
+      "setupKeys": [
+        "sleep_snoring",
+        "sym_thirst",
+        "sym_joint",
+        "sym_phq2_interest",
+        "sym_alcohol",
+        "sym_energy",
+        "sym_sleepiness",
+        "sym_hair_skin"
+      ],
+      "setupSkipped": [],
+      "reachWith": null,
+      "reachWithout": null,
+      "p0": 0.0000587,
+      "pEndWith": 0.0000641,
+      "pEndWithout": 0.0000641,
+      "answered": 2,
+      "skipped": 0,
+      "rounds": [
+        {
+          "day": 7,
+          "keys": [
+            "sym_weight"
+          ],
+          "answered": [
+            "sym_weight"
+          ],
+          "skipped": []
+        },
+        {
+          "day": 21,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 35,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 49,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 63,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 77,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 91,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 105,
+          "keys": [
+            "sym_thirst"
+          ],
+          "answered": [
+            "sym_thirst"
+          ],
+          "skipped": []
+        },
+        {
+          "day": 119,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 133,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 147,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 161,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        },
+        {
+          "day": 175,
+          "keys": [],
+          "answered": [],
+          "skipped": []
+        }
+      ],
+      "plantedReasked": "no",
+      "plantedAskedDay": null
+    }
+  ]
+}

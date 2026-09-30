@@ -31,6 +31,7 @@
     "eval:photos": "tsx --env-file=.env evals/photos.ts",
     "eval:replay": "tsx --env-file=.env evals/replay.ts",
     "eval:setup": "tsx --env-file=.env evals/setup.ts",
+    "eval:checkin": "tsx --env-file=.env evals/checkin.ts",
     "hkb:import": "tsx scripts/hkb-import-ontology.ts",
     "hkb:ring2:build": "tsx scripts/hkb-ring2-build.ts",
     "hkb:research": "tsx --env-file=.env scripts/hkb-research.ts",
