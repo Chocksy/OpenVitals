@@ -26,6 +26,13 @@ import { CONFOUNDERS } from "./hypotheses";
 import { addDays, revisitAtFor, SKIP_DAYS } from "./revisit";
 
 export type ChangeKind = "initial" | "changed" | "corrected";
+
+type Db = ReturnType<typeof getDb>;
+/**
+ * Phase 44B: the pool or a transaction. `writeFact` takes one so the check-in
+ * can save an answer on the connection that holds its row lock.
+ */
+export type DbOrTx = Db | Parameters<Parameters<Db["transaction"]>[0]>[0];
 export type FactSource = "user" | "document" | "genome" | "system";
 
 /** The cycle answer is about one draw, so its row is dated to that draw. */
@@ -161,8 +168,9 @@ const toRow = (r: ProfileFactHistory): HistoryRow => ({
 export async function historyFor(
   userId: string,
   key: string,
+  db: DbOrTx = getDb(),
 ): Promise<HistoryRow[]> {
-  const rows = await getDb()
+  const rows = await db
     .select()
     .from(profileFactHistory)
     .where(
@@ -289,11 +297,11 @@ export async function writeFact(
     note?: string;
     source?: FactSource;
   } = {},
+  db: DbOrTx = getDb(),
 ): Promise<void> {
-  const db = getDb();
   const source = opts.source ?? "user";
   const today = localDay();
-  const rows = await backfilled(userId, key);
+  const rows = await backfilled(userId, key, db);
   const previous = rows
     .filter((r) => r.changeKind !== "corrected" && r.validTo == null)
     .at(-1);
@@ -370,7 +378,7 @@ export async function confirmFact(
     .set({ confirmedAt: today, revisitAt })
     .where(eq(profileFacts.id, current.id));
 
-  const rows = await backfilled(userId, key);
+  const rows = await backfilled(userId, key, db);
   const open = rows
     .filter((r) => r.changeKind !== "corrected" && r.validTo == null)
     .at(-1);
@@ -442,11 +450,14 @@ export async function skipFact(
  * was answered, so "This changed" keeps the old value instead of pretending
  * there never was one.
  */
-async function backfilled(userId: string, key: string): Promise<HistoryRow[]> {
-  const rows = await historyFor(userId, key);
+async function backfilled(
+  userId: string,
+  key: string,
+  db: DbOrTx,
+): Promise<HistoryRow[]> {
+  const rows = await historyFor(userId, key, db);
   if (rows.length) return rows;
 
-  const db = getDb();
   const [current] = await db
     .select()
     .from(profileFacts)

@@ -5,6 +5,7 @@
  * `saveFact` (or `habit_logs` for "Every day"). Web and iOS draw the same
  * JSON. Spec: docs/plans/2026-09-30-phase44-checkin-spec.md, part B.
  */
+import { createHash } from "node:crypto";
 import { and, eq, gte, inArray, isNull } from "drizzle-orm";
 import {
   getDb,
@@ -214,12 +215,18 @@ export function followupQuestion(item: RoundItem): string {
     : `${target} since you started`;
 }
 
-/** "Vitamin D3 (2000 IU)" -> "vitamin-d3-2000-iu": a treatment's follow-up id. */
-export const slugOf = (what: string): string =>
-  what
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
+/**
+ * "Vitamin D3 (2000 IU)" -> "vitamin-d3-2000-iu": a treatment's follow-up id.
+ * A name with no Latin letters or digits ("Левотироксин") would slug to
+ * nothing, so it takes a short stable hash of the lowercased name instead.
+ */
+export function slugOf(what: string): string {
+  const lower = what.trim().toLowerCase();
+  const slug = lower.replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+  return (
+    slug || `h${createHash("sha1").update(lower).digest("hex").slice(0, 8)}`
+  );
+}
 
 /**
  * Phase 44B (spec B2.3): each current treatment started 7 or more days ago
@@ -846,13 +853,12 @@ export async function checkinPost(
     b.screen !== "question" && (b.skip === true || b.done === true);
   const trying = closing ? await tryingNow(userId) : false;
 
-  // Phase 44B: the head check, the write and the state update happen under a
-  // row lock, so a double tap's second request waits, then finds the key
-  // already asked and writes nothing. NO KEY UPDATE, because `saveFact` runs on
-  // another connection and its inserts take KEY SHARE on this users row
-  // (their foreign key); FOR UPDATE would block them until the lock is gone.
-  // A failed save throws and rolls the state back, so the answer can be sent
-  // again.
+  // Phase 44B: the head check, the write and the state update happen in one
+  // transaction under a row lock, so a double tap's second request waits,
+  // then finds the key already asked and writes nothing. Every write runs on
+  // `tx`: a second pool connection inside the lock could starve the pool
+  // (max 5) with the row held. The answer and the state commit or roll back
+  // together, so a failed save can simply be sent again.
   await getDb().transaction(async (tx) => {
     const [row] = await tx
       .select({ checkin: users.checkin, setup: users.setup })
@@ -867,11 +873,12 @@ export async function checkinPost(
     if (!t) return;
     if (t.save && "habit" in t.save) {
       const itemId = t.save.habit;
-      await getDb()
+      await tx
         .insert(habitLogs)
         .values(lastDays(7).map((day) => ({ userId, itemId, day, done: true })))
         .onConflictDoNothing();
-    } else if (t.save) await saveFact(userId, t.save.fact, t.save.value);
+    } else if (t.save)
+      await saveFact(userId, t.save.fact, t.save.value, {}, tx);
     await tx.update(users).set({ checkin: t.next }).where(eq(users.id, userId));
   });
   return checkinBody(userId);

@@ -327,6 +327,12 @@ describe("treatment follow-ups", () => {
   it("slugs the name", () => {
     expect(slugOf("Vitamin D3 (2000 IU)")).toBe("vitamin-d3-2000-iu");
   });
+  it("hashes a name with no Latin letters, stably", () => {
+    const a = slugOf("Левотироксин");
+    expect(a).toMatch(/^h[0-9a-f]{8}$/);
+    expect(slugOf("ЛЕВОТИРОКСИН")).toBe(a);
+    expect(slugOf("Метформин")).not.toBe(a);
+  });
   it("keeps current treatments started a week or more ago", () => {
     const out = treatmentFollowups(
       [

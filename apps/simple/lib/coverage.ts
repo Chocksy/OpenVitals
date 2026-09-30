@@ -24,6 +24,7 @@ import {
   CYCLE_FACT,
   profileAt,
   writeFact,
+  type DbOrTx,
 } from "./facts";
 import { localDay, shiftDay } from "./daily";
 import { getMetricRows } from "./data";
@@ -709,6 +710,7 @@ export async function saveFact(
   key: string,
   raw: string,
   edit: { kind?: "changed" | "corrected"; date?: string; note?: string } = {},
+  db: DbOrTx = getDb(),
 ): Promise<void> {
   const trimmed = raw.trim();
   const value: unknown = LIST_FACTS.has(key)
@@ -723,15 +725,18 @@ export async function saveFact(
   // of that draw and not on the day it was typed in.
   const date =
     edit.date ??
-    (key === CYCLE_FACT ? await lastDrawDate(userId) : undefined) ??
+    (key === CYCLE_FACT ? await lastDrawDate(userId, db) : undefined) ??
     undefined;
 
-  await writeFact(userId, key, value, { ...edit, date, source: "user" });
+  await writeFact(userId, key, value, { ...edit, date, source: "user" }, db);
 }
 
 /** The newest observation this person has, whatever the marker. */
-async function lastDrawDate(userId: string): Promise<string | undefined> {
-  const [row] = await getDb()
+async function lastDrawDate(
+  userId: string,
+  db: DbOrTx,
+): Promise<string | undefined> {
+  const [row] = await db
     .select({ observedAt: readings.observedAt })
     .from(readings)
     .where(eq(readings.userId, userId))
