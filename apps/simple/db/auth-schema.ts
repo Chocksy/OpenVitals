@@ -1,8 +1,9 @@
 /**
  * Pre-existing better-auth tables, mirrored EXACTLY from
- * packages/database/src/schema/users.ts. One column of this app's own:
- * `users.setup` (phase 43A), added by the hand-written migration
- * `drizzle/0031_users_setup.sql`.
+ * packages/database/src/schema/users.ts. Two columns of this app's own:
+ * `users.setup` (phase 43A) and `users.checkin` (phase 44B), added by the
+ * hand-written migrations `drizzle/0031_users_setup.sql` and
+ * `drizzle/0032_users_checkin.sql`.
  *
  * This file is deliberately NOT referenced by drizzle.config.ts so drizzle-kit
  * never emits CREATE/ALTER/DROP for these tables. It is imported only by the
@@ -18,6 +19,7 @@ import {
   integer,
   jsonb,
 } from "drizzle-orm/pg-core";
+import type { CheckinState } from "@/lib/checkin";
 import type { SetupState } from "@/lib/setup";
 
 export const users = pgTable("users", {
@@ -36,6 +38,8 @@ export const users = pgTable("users", {
   onboardingStep: integer("onboarding_step").default(0).notNull(),
   /** Phase 43A: where the setup flow stands; null until it is first posted. */
   setup: jsonb("setup").$type<SetupState | null>(),
+  /** Phase 44B: where the check-in stands; null until it is first read. */
+  checkin: jsonb("checkin").$type<CheckinState | null>(),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
