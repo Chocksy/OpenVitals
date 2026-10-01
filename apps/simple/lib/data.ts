@@ -1,4 +1,5 @@
 import { and, asc, eq, lte, sql } from "drizzle-orm";
+import { cache } from "react";
 import {
   getDb,
   metrics,
@@ -159,11 +160,25 @@ function toRow(
  * Every metric the user has data for, oldest reading first, plus derived rows.
  * `asOf` keeps only readings observed on or before that day (the blind replay,
  * phase 41D): a metric first measured later does not exist yet.
+ *
+ * Home calls this from about eighteen helpers, and each call read every
+ * reading again. React's `cache` keeps one result per request, keyed on the
+ * user and the day, so a render reads them once. Every caller gets the same
+ * array: read it, never sort or change it in place. Outside a render (route
+ * handlers, scripts, tests) it runs every time, as before.
  */
-export async function getMetricRows(
+export function getMetricRows(
   userId: string,
   opts: { asOf?: string } = {},
 ): Promise<MetricRow[]> {
+  return metricRowsOnce(userId, opts.asOf);
+}
+
+const metricRowsOnce = cache(async function metricRowsOnce(
+  userId: string,
+  asOf: string | undefined,
+): Promise<MetricRow[]> {
+  const opts = { asOf };
   await ensureImported();
   const db = getDb();
   const [defs, all, overrides, sexFact] = await Promise.all([
@@ -288,7 +303,7 @@ export async function getMetricRows(
       x.sortOrder - y.sortOrder ||
       x.name.localeCompare(y.name),
   );
-}
+});
 
 /** code -> display name, for chips that reference metrics by code. */
 export async function getMetricNames(): Promise<Map<string, string>> {
