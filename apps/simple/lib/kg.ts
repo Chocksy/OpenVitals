@@ -75,22 +75,42 @@ export function rowsToGraph(rows: { nodes: KgNode[]; edges: KgEdge[] }): Graph {
 }
 
 const TTL = 60_000;
-let cache: { at: number; graph: Graph } | null = null;
 
 /**
- * The graph for this request. Cached for a minute in module scope, so a page
- * that computes the personal state ten times reads the tables once.
+ * The cache lives on globalThis, like the pool in `db/index.ts`. Next loads this
+ * module more than once per process (rsc, route, old HMR copies); a module
+ * `let` gave each its own full graph. It holds the promise, so callers that
+ * arrive mid-load share one read. `at` is Infinity until the load settles.
+ */
+const g = globalThis as unknown as {
+  __kgGraph?: { at: number; graph: Promise<Graph> };
+};
+
+/**
+ * The graph for this request. Cached for a minute per process, so a page that
+ * computes the personal state ten times reads the tables once.
+ *
+ * ponytail: one shared copy of the whole Monarch graph is still hundreds of MB
+ * per process. Upgrade path: load only the edges a request needs.
  */
 export async function loadGraph(): Promise<Graph> {
-  if (cache && Date.now() - cache.at < TTL) return cache.graph;
-  const graph = (await fromDb()) ?? CODE_GRAPH;
-  cache = { at: Date.now(), graph };
-  return graph;
+  const hit = g.__kgGraph;
+  if (hit && Date.now() - hit.at < TTL) return hit.graph;
+  const entry = {
+    at: Infinity,
+    graph: fromDb().then((graph) => graph ?? CODE_GRAPH),
+  };
+  entry.graph.then(
+    () => (entry.at = Date.now()),
+    () => g.__kgGraph === entry && (g.__kgGraph = undefined),
+  );
+  g.__kgGraph = entry;
+  return entry.graph;
 }
 
 /** The seed and the importers call this so the next read sees their writes. */
 export const forgetGraph = () => {
-  cache = null;
+  g.__kgGraph = undefined;
 };
 
 async function fromDb(): Promise<Graph | null> {
