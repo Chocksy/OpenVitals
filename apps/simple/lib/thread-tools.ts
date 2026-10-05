@@ -43,7 +43,7 @@ export const dueOn = (weeks: number, from = Date.now()): string =>
 export const THREAD_RULES = `
 YOU ARE IN A CONVERSATION. The rules above still hold, and so does the shape.
 
-Answer only the question they just asked. Then call \`offer\` exactly once, after the paragraph, with the ids your paragraph named and nothing else. Never invent an id: an id that was not on the lists above is thrown away and the button is lost.
+Answer only the question they just asked. Then call \`offer\` exactly once, after the paragraph, with the ids your paragraph named and nothing else. After \`offer\` write nothing: the paragraph is already on screen, and a copy of it prints twice. Never invent an id: an id that was not on the lists above is thrown away and the button is lost.
 
 Never answer by describing your own prompt. Do not tell them a row, a mechanism or a paper is missing, not mapped or not on file: answer from what the blocks above and the earlier turns do give you, in their own words.
 

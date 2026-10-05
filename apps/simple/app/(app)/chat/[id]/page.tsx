@@ -17,10 +17,13 @@ export const dynamic = "force-dynamic";
 
 export default async function ThreadPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ ask?: string }>;
 }) {
   const { id } = await params;
+  const { ask } = await searchParams;
   const userId = await requireUserId();
   // ponytail: the id goes straight into a uuid column, so a junk path segment
   // would be a database error rather than a 404.
@@ -51,6 +54,7 @@ export default async function ThreadPage({
       <Thread
         id={thread.id}
         about={thread.about ?? undefined}
+        ask={ask?.trim() || undefined}
         /**
          * The row id is the key React renders on. The SDK hands the assistant
          * message back without one, so two stored answers would collide.

@@ -1711,6 +1711,22 @@ select:focus-visible {
     overflow: hidden;
     color: var(--ink);
   }
+  /* A tall answer scrolls inside the body; the head and the foot stay put.
+     `[open]` only, so the author `display` never shows a closed dialog. */
+  .sheet[open] {
+    display: flex;
+    flex-direction: column;
+    max-height: calc(100dvh - 2 * var(--s21));
+  }
+  .sheet[open] > .sheet-head,
+  .sheet[open] > .sheet-foot {
+    flex-shrink: 0;
+  }
+  .sheet[open] > .sheet-body {
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
   .sheet::backdrop {
     background: color-mix(in srgb, var(--navy) 45%, transparent);
     backdrop-filter: blur(3px);

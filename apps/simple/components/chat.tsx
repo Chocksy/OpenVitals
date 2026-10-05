@@ -17,7 +17,7 @@
  * Nothing here decides anything. A chip acts through the engine's own routes;
  * a chip click never goes back through the model.
  */
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport, type UIMessage } from "ai";
@@ -227,16 +227,22 @@ function Turn({
   message: UIMessage;
   onAnswered: (text: string) => void;
 }) {
+  /** The model sometimes repeats its paragraph after `offer`; print it once. */
+  const said = new Set<string>();
   return (
     <>
       {message.parts.map((raw, i) => {
         const part = raw as ToolPart & { text?: string };
-        if (part.type === "text")
+        if (part.type === "text") {
+          const text = (part.text ?? "").trim();
+          if (!text || said.has(text)) return null;
+          said.add(text);
           return (
             <p key={i} className="answer whitespace-pre-line">
               <LabelledProse text={part.text ?? ""} />
             </p>
           );
+        }
         if (!part.type.startsWith("tool-")) return null;
         if (part.state !== "output-available") return null;
 
@@ -340,11 +346,14 @@ export function Thread({
   id,
   about,
   initial = [],
+  ask,
 }: {
   /** absent for a thread that does not exist yet */
   id?: string;
   about?: string;
   initial?: UIMessage[];
+  /** a follow-up the composer typed, sent once when the thread opens */
+  ask?: string;
 }) {
   const router = useRouter();
   const [input, setInput] = useState("");
@@ -381,6 +390,18 @@ export function Thread({
     setInput("");
     void sendMessage({ text });
   };
+
+  /**
+   * The composer's follow-up. The `?ask=` is dropped from the address first,
+   * so a reload shows the thread and never sends the question twice.
+   */
+  const asked = useRef(false);
+  useEffect(() => {
+    if (!ask || asked.current) return;
+    asked.current = true;
+    window.history.replaceState(null, "", window.location.pathname);
+    void sendMessage({ text: ask });
+  }, [ask, sendMessage]);
 
   /**
    * The fold, and why it is a `<details>`: everything above the last two

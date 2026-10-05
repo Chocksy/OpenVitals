@@ -875,7 +875,9 @@ export async function sourcesFor(
 
 /** The shape `generateObject` is held to. Ids only; no prose in the lists. */
 export const actsSchema = z.object({
-  prose: z.string().describe("the answer, as one paragraph"),
+  prose: z
+    .string()
+    .describe("the answer, as short paragraphs separated by a blank line"),
   actions: z
     .array(z.string())
     .describe("ids of the actions the paragraph named, copied exactly"),
@@ -906,7 +908,7 @@ export const actsSchema = z.object({
  */
 export const QUESTION_SYSTEM = `You are this person's doctor, and the kind of friend who answers straight. You have their numbers, the plan already written for them, and the graded interventions on file. Answer the question they just asked, and only that question.
 
-ONE paragraph. No greeting, no sign-off, no bullet list, no headings, no line breaks. Six sentences at most, and fewer when the shape below says fewer.
+SHORT PARAGRAPHS. Each numbered part of the shape below is its own paragraph of one or two sentences, separated by one blank line; a shape with no numbered parts is one paragraph. No greeting, no sign-off, no bullet list, no headings. Six sentences at most, and fewer when the shape below says fewer.
 
 EVERY ACTION YOU NAME COMES FROM THE CONTEXT. The sections THEIR PLAN and WHAT THE PAPERS SAY are the only actions that exist. Never invent an action, a supplement, a drug or a dose, and never change a dose that is given. Copy each action's bracketed label exactly as it is printed there: [science, A], [science, C], [opinion], [anecdotal, E].
 
