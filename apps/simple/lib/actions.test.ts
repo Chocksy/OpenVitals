@@ -73,6 +73,21 @@ describe("pickActions", () => {
     expect(rows[1]!.title).toBe("Myo-inositol");
   });
 
+  it("counts the plan and the papers apart when asked, so a long plan cannot crowd the papers out", () => {
+    const opts = {
+      codes: ["tpo_antibodies"],
+      actions: [action({ title: "A" }), action({ title: "B" })],
+      interventions: [paper({ name: "Myo-inositol" })],
+      limit: 2,
+    };
+    expect(pickActions(opts).map((r) => r.source)).toEqual(["plan", "plan"]);
+    expect(pickActions({ ...opts, each: true }).map((r) => r.source)).toEqual([
+      "plan",
+      "plan",
+      "papers",
+    ]);
+  });
+
   it("falls back to the graded interventions when the plan has nothing", () => {
     const rows = pickActions({
       codes: ["tpo_antibodies"],
@@ -348,7 +363,6 @@ describe("pickActions and the treatment history (phase 42A)", () => {
   });
 });
 
-
 /* ── what a target reads like (phase 30d, UX note 6) ──────────────────── */
 
 describe("aimOf", () => {
@@ -399,7 +413,7 @@ describe("aimOf", () => {
   it("never prints the engine's own arrow grammar", () => {
     const out = aimOf({
       code: "alt",
-        direction: "down" as const,
+      direction: "down" as const,
       expect: "<25 U/L",
       measureAfterWeeks: 24,
     });
@@ -539,8 +553,8 @@ describe("saysSomething (UX note 7)", () => {
   });
 
   it("accepts a row with a sentence somebody wrote", () => {
-    expect(
-      saysSomething(line({ why: "It lowers ALT in a small RCT." })),
-    ).toBe(true);
+    expect(saysSomething(line({ why: "It lowers ALT in a small RCT." }))).toBe(
+      true,
+    );
   });
 });

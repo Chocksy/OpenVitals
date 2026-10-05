@@ -261,15 +261,31 @@ export async function briefFor(
    * LDL while three sat on Home under Cardiovascular risk. A marker belongs to
    * every condition that reads it, so those conditions' rows come first.
    */
+  /**
+   * A question that names neither, "what supplements should I add for my
+   * lipids?", reads from the three conditions the engine rates highest, short
+   * of unlikely. Without them it saw the plan and no paper at all, and said
+   * nothing else was on file.
+   */
   const feeds = namedCodes.length
     ? catalog
         .filter((h) => metricCodesOf(h).some((c) => namedCodes.includes(c)))
         .map((h) => h.id)
-    : [];
+    : conditionId
+      ? []
+      : scored
+          .filter((h) => h.state !== "unlikely")
+          .slice(0, 3)
+          .map((h) => h.id);
 
-  let actions = await actionsFor(userId, conditionId, 6);
+  /**
+   * Eight plan rows and eight paper rows, counted apart. One shared six went
+   * to a nine-action plan first, so "what other supplements?" was told there
+   * were none while plant sterols sat on file at grade A.
+   */
+  let actions = await actionsFor(userId, conditionId, 8, true);
   if (feeds.length) {
-    const fed = await actionsForAll(userId, feeds, 6);
+    const fed = await actionsForAll(userId, feeds, 8, true);
     const seen = new Set(actions.map((a) => a.id));
     for (const line of Object.values(fed).flat())
       if (!seen.has(line.id)) {
@@ -346,9 +362,7 @@ export async function briefFor(
     const hit = scored.find((h) => h.id === id);
     return hit ? displayNameOf(hit) : id.replace(/_/g, " ");
   };
-  const mechanisms = graph
-    ? mechanismsFor(graph, whyCodes)
-    : [];
+  const mechanisms = graph ? mechanismsFor(graph, whyCodes) : [];
   const settles = moves
     .filter((m) => m.kind === "test")
     .slice(0, 5)

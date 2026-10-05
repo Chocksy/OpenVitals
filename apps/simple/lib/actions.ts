@@ -189,6 +189,8 @@ export interface PickOptions {
   active?: { code: string; routes: string[] }[];
   /** titles the person said "Not for me" to (`dismissed_actions`) */
   dismissed?: string[];
+  /** `limit` per half, so a long plan cannot crowd the papers out */
+  each?: boolean;
 }
 
 /** Words that make an action parenteral; no such word reads as oral. */
@@ -255,6 +257,7 @@ export function pickActions({
   failed = [],
   active = [],
   dismissed = [],
+  each = false,
 }: PickOptions): PlanLine[] {
   // Phase 42A: a treatment that failed on a route, or runs today, is not a
   // thing to do. Tests are exempt ("Iron saturation" matches the iron words).
@@ -335,7 +338,9 @@ export function pickActions({
       };
     });
 
-  const lines = [...mine, ...papers].slice(0, limit);
+  const lines = each
+    ? [...mine.slice(0, limit), ...papers.slice(0, limit)]
+    : [...mine, ...papers].slice(0, limit);
   return dropped ? [failedLine(dropped), ...lines] : lines;
 }
 
@@ -402,6 +407,7 @@ export async function actionsFor(
   userId: string,
   conditionId: string | null,
   limit = 3,
+  each = false,
 ): Promise<PlanLine[]> {
   if (conditionId == null) {
     const report = await latestReport(userId);
@@ -414,7 +420,7 @@ export async function actionsFor(
       anyAction: true,
     });
   }
-  const all = await actionsForAll(userId, [conditionId], limit);
+  const all = await actionsForAll(userId, [conditionId], limit, each);
   return all[conditionId] ?? [];
 }
 
@@ -426,6 +432,7 @@ export async function actionsForAll(
   userId: string,
   conditionIds: string[],
   limit = 3,
+  each = false,
 ): Promise<Record<string, PlanLine[]>> {
   const out: Record<string, PlanLine[]> = {};
   if (!conditionIds.length) return out;
@@ -468,6 +475,7 @@ export async function actionsForAll(
         return routes ? [{ code, routes: routes.split(", ") }] : [];
       }),
       dismissed: Array.isArray(dismissed) ? dismissed.map(String) : [],
+      each,
     });
   }
   return out;

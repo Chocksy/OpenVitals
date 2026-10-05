@@ -8,6 +8,7 @@
  */
 import {
   convertToModelMessages,
+  hasToolCall,
   stepCountIs,
   type LanguageModel,
   type ModelMessage,
@@ -107,7 +108,7 @@ export interface Turn {
     system: string;
     messages: ModelMessage[];
     tools: ToolSet;
-    stopWhen: StopCondition<ToolSet>;
+    stopWhen: StopCondition<ToolSet>[];
     providerOptions: Parameters<typeof streamText>[0]["providerOptions"];
   };
   /** whether the provider is carrying the context, not us */
@@ -203,7 +204,11 @@ export async function prepareTurn(
       system: `${systemForTurn(brief, isFollowUp)}\n\n${brief.facts}\n${THREAD_RULES}`,
       messages: [...history, ...turn],
       tools: threadTools(userId, brief, its.id),
-      stopWhen: stepCountIs(4),
+      /**
+       * `offer` closes the turn. Asked to write nothing after it, the model
+       * still printed its paragraph a second time, or called `offer` twice.
+       */
+      stopWhen: [stepCountIs(4), hasToolCall("offer")],
       providerOptions,
     },
     save: async (produced, ui) => {
