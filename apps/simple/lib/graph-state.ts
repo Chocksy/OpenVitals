@@ -492,10 +492,18 @@ export function worstMember(
  * The personal state over the graph in the database, with the in-code graph as
  * the fallback. Every async caller (`/graph`, `/plan`, the report, the ledger)
  * uses this; `computeGraphState` stays pure for the tests.
+ *
+ * A Monarch node carries no system, codes or metric, so `focus` is the only
+ * way one gains importance, and an edge goes live only between two warm
+ * nodes. The focus matches are the only Monarch rows that can change the
+ * answer, so they are the only ones loaded.
  */
 export async function graphState(
   m: ModelInput,
   opts: { focus?: string[]; adoptedCodes?: string[]; top?: number } = {},
 ): Promise<GraphState> {
-  return computeGraphState(m, { ...opts, graph: await loadGraph() });
+  return computeGraphState(m, {
+    ...opts,
+    graph: await loadGraph({ names: opts.focus }),
+  });
 }

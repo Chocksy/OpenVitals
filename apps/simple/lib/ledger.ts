@@ -479,8 +479,8 @@ export async function recordBeliefs(
 
 /**
  * A condition that just became worth arguing about is a condition worth
- * reading papers on. The queue is drained by the timer in
- * `instrumentation.ts`, and a condition read in the last 90 days is skipped.
+ * reading papers on. The queue is drained by the daily worker
+ * (`scripts/worker.ts`), and a condition read in the last 90 days is skipped.
  */
 async function queueNewlyPossible(
   rows: HypothesisResult[],

@@ -604,6 +604,13 @@ export interface ReportContext {
   context: string;
 }
 
+/** What the person said they care about, as the graph's `focus` reads it. */
+export const focusOf = (input: ModelInput): string[] =>
+  String(input.profile.focus ?? "")
+    .split(",")
+    .map((f) => f.trim())
+    .filter(Boolean);
+
 /**
  * Everything the model reads, from an input that is already loaded. Pure, so
  * the evals build a persona in memory and get the same context pack the job
@@ -621,10 +628,7 @@ export function buildContextFromInput(
     ...fireRules(input),
     ...matched.flatMap((p) => p.pattern.effects.escalations),
   ];
-  const focus = String(input.profile.focus ?? "")
-    .split(",")
-    .map((f) => f.trim())
-    .filter(Boolean);
+  const focus = focusOf(input);
   const adoptedCodes =
     extras.adoptedCodes ?? tracker.items.flatMap((i) => i.metricCodes ?? []);
   const graph = computeGraphState(input, {
@@ -760,7 +764,7 @@ export async function buildReportContext(
     tracker,
     previous,
     catalog,
-    graph: await loadGraph(),
+    graph: await loadGraph({ names: focusOf(input) }),
     documents: await documentSummaries(userId),
     interventions: await interventionSummaries(),
   });

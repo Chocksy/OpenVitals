@@ -2,7 +2,7 @@ import Link from "next/link";
 import { requireUserId } from "@/lib/auth";
 import { buildModelInput } from "@/lib/coverage";
 import { queueQuestions } from "@/lib/ask";
-import { buildBubbles, viewBoxOf } from "@/lib/bubbles";
+import { bubbleNeed, buildBubbles, viewBoxOf } from "@/lib/bubbles";
 import { computeGraphState, worstMember } from "@/lib/graph-state";
 import { NODES, SYSTEMS, type SystemId } from "@/lib/graph";
 import { loadGenome } from "@/lib/genome";
@@ -162,8 +162,11 @@ export default async function GraphPage({
   const patterns = matchPatterns(input).filter((p) => p.matched);
   const matchedIds = new Set(patterns.map((p) => p.pattern.id));
   const unmatched = PATTERNS.filter((p) => !matchedIds.has(p.id));
-  const loaded = await loadGraph();
-  const graph = computeGraphState(input, { top: HOT_NODES, graph: loaded });
+  // No focus here, so no Monarch row can warm a node: the core is the state.
+  const graph = computeGraphState(input, {
+    top: HOT_NODES,
+    graph: await loadGraph(),
+  });
   const importance = new Map(graph.nodes.map((n) => [n.id, n.importance]));
 
   if (!systems) {
@@ -171,11 +174,12 @@ export default async function GraphPage({
       catalogFor(userId),
       loadGenome(userId),
     ]);
+    const beliefs = scoreHypotheses(input, { catalog, lens });
     const bubbles = buildBubbles({
-      graph: loaded,
+      graph: await loadGraph(bubbleNeed(beliefs)),
       state: graph,
       m: input,
-      beliefs: scoreHypotheses(input, { catalog, lens }),
+      beliefs,
       moves: nextMoves(input, catalog, { lens }),
       lens,
       matched: matchedIds,

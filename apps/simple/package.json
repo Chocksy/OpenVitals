@@ -15,6 +15,7 @@
     "kg:seed": "tsx lib/graph.ts",
     "kg:import:monarch": "tsx scripts/kg-import-monarch.ts",
     "curate": "tsx lib/curator.ts",
+    "worker": "tsx scripts/worker.ts",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "eval": "tsx --env-file=.env evals/run.ts",

@@ -280,6 +280,11 @@ export async function briefFor(
   if (!actions.length && conditionId)
     actions = await actionsFor(userId, null, 6);
   const kind = questionKind(question);
+  const whyCodes = namedCodes.length
+    ? namedCodes
+    : spec
+      ? metricCodesOf(spec)
+      : [];
 
   const [context, projections, sources, graph] = await Promise.all([
     chatContext(userId).catch(() => ""),
@@ -287,7 +292,11 @@ export async function briefFor(
     CITES_SOURCES.includes(kind)
       ? sourcesFor(conditionId).catch(() => [] as SourceCandidate[])
       : Promise.resolve([] as SourceCandidate[]),
-    kind === "why" ? loadGraph().catch(() => null) : Promise.resolve(null),
+    kind === "why"
+      ? loadGraph({ touching: whyCodes.map((c) => `metric:${c}`) }).catch(
+          () => null,
+        )
+      : Promise.resolve(null),
   ]);
   const conclusions = scored
     .filter((h) => h.score >= 0.05)
@@ -338,10 +347,7 @@ export async function briefFor(
     return hit ? displayNameOf(hit) : id.replace(/_/g, " ");
   };
   const mechanisms = graph
-    ? mechanismsFor(
-        graph,
-        namedCodes.length ? namedCodes : spec ? metricCodesOf(spec) : [],
-      )
+    ? mechanismsFor(graph, whyCodes)
     : [];
   const settles = moves
     .filter((m) => m.kind === "test")

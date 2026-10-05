@@ -14,7 +14,7 @@ import { scoreHypotheses, type HypothesisResult, type Lens } from "./hypotheses"
 import { nextMoves, type Move } from "./infogain";
 import { buildTree, type TreeNode } from "./tree";
 import { matchPatterns } from "./patterns";
-import { buildContextFromInput } from "./report";
+import { buildContextFromInput, focusOf } from "./report";
 import { buildScenarioInput, EMPTY_OVERLAY, type Overlay, type Scenario } from "./sample";
 import type { Vector } from "./vectors";
 
@@ -173,7 +173,8 @@ export async function runBrain(
     lens,
     catalog,
   });
-  const loaded = await loadGraph();
+  // The context pack matches `focus` against node names; the state does not.
+  const loaded = await loadGraph({ names: focusOf(input) });
   const graph = computeGraphState(input, { graph: loaded });
   const { context } = buildContextFromInput(input, {
     catalog,
@@ -214,7 +215,7 @@ export async function brainContext(s: Scenario, overlay: Overlay = EMPTY_OVERLAY
   const input = await buildScenarioInput(s, overlay);
   return buildContextFromInput(input, {
     catalog: await catalogOf(s),
-    graph: await loadGraph(),
+    graph: await loadGraph({ names: focusOf(input) }),
     tracker: {
       from: input.today,
       to: input.today,

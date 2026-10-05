@@ -1,18 +1,23 @@
 /**
- * The Node half of `instrumentation.ts`. Kept in its own file so the Edge
- * build never traces the import scripts and their `node:` modules; the
- * runtime check in `instrumentation.ts` is inlined at build time.
- */
-/**
- * The daily curator pass, the 30-day plan refresh, the Monday weekly review,
- * and the knowledge base reading papers on its own.
+ * The scheduled jobs, run once and then exit: the daily curator pass, the
+ * 30-day plan refresh, the Monday weekly review, and the knowledge base
+ * reading papers on its own. `pnpm worker`, once a day, from cron or a
+ * Coolify scheduled task.
  *
- * ponytail: in-process timer; move to an external cron if there is ever more
- * than one web replica. Every branch is guarded by `hkb_import_runs`, so a
- * restart never re-runs anything that already ran this month or this year.
+ * It used to be a timer inside the web server, which then carried the import
+ * scripts and the research pipeline in memory. The research and import
+ * branches are guarded by `hkb_import_runs`, so a second run never re-reads
+ * or re-imports anything that already ran this month or this year.
  */
-const DAY = 24 * 60 * 60 * 1000;
-const FIRST_RUN = 5 * 60 * 1000;
+export {};
+
+for (const f of [".env", "../../.env"]) {
+  try {
+    process.loadEnvFile(f);
+  } catch {
+    /* optional: production passes the environment in */
+  }
+}
 
 /** How often the knowledge base re-reads the literature, and re-imports. */
 const RESEARCH_EVERY_DAYS = 30;
@@ -23,9 +28,26 @@ const MONARCH_EVERY_DAYS = 30;
 /** Papers per condition on a scheduled pass. The manual run asks for more. */
 const MAX_PAPERS = 10;
 
+/** The curator over everyone, stale plans, and Monday's weekly review. */
+async function daily() {
+  const { runCuratorForAllUsers } = await import("@/lib/curator");
+  const users = await runCuratorForAllUsers("daily");
+  console.log(`[curator] daily pass over ${users} user(s)`);
+
+  const { generateStaleReports } = await import("@/lib/report");
+  const plans = await generateStaleReports();
+  console.log(`[plan] generated ${plans} report(s)`);
+
+  if (new Date().getDay() === 1) {
+    const { generateWeeklyForAllUsers } = await import("@/lib/ai");
+    const n = await generateWeeklyForAllUsers();
+    console.log(`[weekly] generated ${n} review(s)`);
+  }
+}
+
 /**
  * The monthly sweep over the whole catalog, then the queue somebody's
- * differential filled during the month, then the policy over everything that
+ * differential filled since the last run, then the policy over everything that
  * is still `proposed`, then the graph imports. Nothing here waits for a click.
  *
  * The mechanism search rides inside `researchRun`, after the evidence and
@@ -39,7 +61,7 @@ async function knowledge() {
   const { runPolicy } = await import("@/scripts/hkb-policy");
 
   const monthly = await dueAgain("hkb-research", RESEARCH_EVERY_DAYS);
-  const onDemand = takeQueuedResearch();
+  const onDemand = await takeQueuedResearch();
 
   if (monthly) {
     const { getDb, hkbConditions } = await import("@/db");
@@ -93,36 +115,20 @@ async function knowledge() {
   }
 }
 
-export function start() {
-
-  const tick = async () => {
-    try {
-      const { runCuratorForAllUsers } = await import("@/lib/curator");
-      const users = await runCuratorForAllUsers("daily");
-      console.log(`[curator] daily pass over ${users} user(s)`);
-
-      const { generateStaleReports } = await import("@/lib/report");
-      const plans = await generateStaleReports();
-      console.log(`[plan] generated ${plans} report(s)`);
-
-      if (new Date().getDay() === 1) {
-        const { generateWeeklyForAllUsers } = await import("@/lib/ai");
-        const n = await generateWeeklyForAllUsers();
-        console.log(`[weekly] generated ${n} review(s)`);
-      }
-    } catch (e) {
-      console.error("[curator] daily pass failed:", e);
-    }
-
-    try {
-      await knowledge();
-    } catch (e) {
-      console.error("[hkb] scheduled pass failed:", e);
-    }
-  };
-
-  setTimeout(() => {
-    void tick();
-    setInterval(() => void tick(), DAY).unref?.();
-  }, FIRST_RUN).unref?.();
+try {
+  await daily();
+} catch (e) {
+  console.error("[curator] daily pass failed:", e);
+  process.exitCode = 1;
 }
+
+try {
+  await knowledge();
+} catch (e) {
+  console.error("[hkb] scheduled pass failed:", e);
+  process.exitCode = 1;
+}
+
+const { pool } = await import("@/db");
+await pool().end();
+process.exit();

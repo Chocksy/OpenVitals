@@ -34,7 +34,8 @@ imported since the last reset.
 ## The curator
 
 `lib/curator.ts` keeps metric identity, units and ranges healthy. It runs after
-every upload, once a day from `instrumentation.ts`, and on demand:
+every upload, once a day from the worker (`pnpm worker`, see
+`scripts/worker.ts`), and on demand:
 
 ```bash
 pnpm --filter simple curate                    # all users, trigger 'manual'
@@ -74,7 +75,7 @@ Labs tell you where you are. The tracker is how you move.
 - The weekly review (`kind = 'weekly'` in `simple_insights`) is an honest coach
   reading your week against the one before it: 3 wins, 3 concerns, 3 actions you
   can adopt into the protocol in one click, plus adherence and per-metric notes.
-  The Monday timer in `instrumentation.ts` writes one per user per week; the
+  The worker's Monday run (`scripts/worker.ts`) writes one per user per week; the
   button on `/insights` writes one on demand.
 
 ## Export

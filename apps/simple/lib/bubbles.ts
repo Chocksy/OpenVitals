@@ -36,7 +36,7 @@ import {
 } from "./hypotheses";
 import { byRank, displayNameOf, titleOf } from "./ledger";
 import type { Move } from "./infogain";
-import type { Graph } from "./kg";
+import type { Graph, GraphNeed } from "./kg";
 
 /**
  * The outlines. "test" is its own since phase 24a: a test bubble is not a
@@ -347,6 +347,23 @@ export function layout(
 
 /* ── the picture ──────────────────────────────────────────────────────── */
 
+/**
+ * The Monarch rows the stage reads: a condition node for every belief (most
+ * catalog conditions, `condition:hypertension` among them, came in with
+ * Monarch), the edges between those and the core, and every node's degree
+ * over the whole table for the tie-break. A Monarch phenotype or gene has no
+ * importance here, so it could only take a slot no ranked node wanted.
+ */
+export const bubbleNeed = (beliefs: HypothesisResult[]): GraphNeed => ({
+  ids: beliefs.flatMap((b) => [
+    `condition:${b.id}`,
+    ...Object.keys(HYPOTHESIS_ALIAS)
+      .filter((k) => HYPOTHESIS_ALIAS[k] === b.id)
+      .map((k) => `condition:${k}`),
+  ]),
+  degree: true,
+});
+
 export interface BubbleOptions {
   graph: Graph;
   state: GraphState;
@@ -444,11 +461,13 @@ export function buildBubbles(opts: BubbleOptions): BubbleGraph {
 
   const importance = new Map(state.nodes.map((n) => [n.id, n.importance]));
   const byId = new Map(graph.nodes.map((n) => [n.id, n]));
-  const degree = new Map<string, number>();
-  for (const e of graph.edges) {
-    degree.set(e.from, (degree.get(e.from) ?? 0) + 1);
-    degree.set(e.to, (degree.get(e.to) ?? 0) + 1);
-  }
+  // A slice of the database carries the whole table's counts.
+  const degree = graph.degree ?? new Map<string, number>();
+  if (!graph.degree)
+    for (const e of graph.edges) {
+      degree.set(e.from, (degree.get(e.from) ?? 0) + 1);
+      degree.set(e.to, (degree.get(e.to) ?? 0) + 1);
+    }
 
   const belief = new Map(beliefs.map((b) => [b.id, b]));
   const hypothesisOf = (node: GraphNode): HypothesisResult | undefined => {

@@ -1160,6 +1160,18 @@ export const hkbImportRuns = pgTable("hkb_import_runs", {
   notes: text("notes"),
 });
 
+/**
+ * Conditions somebody's differential just made interesting, waiting for the
+ * worker's next research pass. Web requests insert; `scripts/worker.ts`
+ * drains it. A table, not a Set, because the two run in different processes.
+ */
+export const hkbResearchQueue = pgTable("hkb_research_queue", {
+  conditionId: text("condition_id").primaryKey(),
+  queuedAt: timestamp("queued_at", { withTimezone: true })
+    .defaultNow()
+    .notNull(),
+});
+
 export type HkbTerm = typeof hkbTerms.$inferSelect;
 export type HkbAnnotation = typeof hkbAnnotations.$inferSelect;
 export type HkbImportRun = typeof hkbImportRuns.$inferSelect;

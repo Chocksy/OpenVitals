@@ -232,6 +232,13 @@
       "when": 1790784000000,
       "tag": "0032_users_checkin",
       "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "7",
+      "when": 1791207658069,
+      "tag": "0033_research_queue",
+      "breakpoints": true
     }
   ]
 }

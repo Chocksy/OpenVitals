@@ -48,7 +48,9 @@ const nextConfig: NextConfig = {
   },
   // Long `next dev` sessions grew Turbopack's in-memory cache to 19 GB.
   // Above this cap it evicts entries (bytes).
-  experimental: { turbopackMemoryLimit: 4 * 1024 ** 3 },
+  // ponytail: Turbopack fills its in-memory cache up to this cap; 4 GB made the
+  // dev server sit at ~3 GB. Raise it if recompiles get slow.
+  experimental: { turbopackMemoryLimit: 1.5 * 1024 ** 3 },
   serverExternalPackages: ["pdfjs-dist", "pg"],
   redirects: async () =>
     folded.map(([source, destination]) => ({

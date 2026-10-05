@@ -24,6 +24,7 @@ import {
   hkbFeatures,
   hkbImportRuns,
   hkbInterventions,
+  hkbResearchQueue,
   hkbTests,
   kgEdges,
 } from "@/db";
@@ -42,7 +43,7 @@ import {
   type GraphEdge,
   type GraphNode,
 } from "./graph";
-import { forgetGraph, loadGraph, mintNode } from "./kg";
+import { forgetGraph, loadAllNodes, mintNode } from "./kg";
 import { dueAgain } from "./hkb-import";
 import { decide, statusOf, type PolicyInput } from "./hkb-policy";
 import { convert, normalizeUnit } from "./units";
@@ -2054,33 +2055,34 @@ export async function researchInterventions(
 /* ── the queue ────────────────────────────────────────────────────────── */
 
 /**
- * Conditions somebody's differential just made interesting.
- *
- * ponytail: a module-level Set, drained by the same in-process timer that runs
- * the curator. There is one web replica; when there are two, this becomes a
- * table and nothing else changes.
+ * Conditions somebody's differential just made interesting. Web requests add
+ * to `hkb_research_queue`; the worker (`scripts/worker.ts`) drains it, so the
+ * queue is a table both processes can see.
  */
-const queued = new Set<string>();
 
 /** How long a condition is left alone after a research run. */
 export const RESEARCH_COOLDOWN_DAYS = 90;
 
 /** Ask for a condition to be read, unless it was read in the last 90 days. */
 export async function queueResearch(conditionId: string): Promise<boolean> {
-  if (queued.has(conditionId)) return false;
   if (
     !(await dueAgain("hkb-research", RESEARCH_COOLDOWN_DAYS, `${conditionId}:`))
   )
     return false;
-  queued.add(conditionId);
-  return true;
+  const added = await getDb()
+    .insert(hkbResearchQueue)
+    .values({ conditionId })
+    .onConflictDoNothing()
+    .returning({ id: hkbResearchQueue.conditionId });
+  return added.length > 0;
 }
 
-/** Everything asked for since the last drain. */
-export function takeQueuedResearch(): string[] {
-  const out = [...queued];
-  queued.clear();
-  return out;
+/** Everything asked for since the last drain, oldest first, and empty it. */
+export async function takeQueuedResearch(): Promise<string[]> {
+  const rows = await getDb().delete(hkbResearchQueue).returning();
+  return rows
+    .sort((a, b) => a.queuedAt.getTime() - b.queuedAt.getTime())
+    .map((r) => r.conditionId);
 }
 
 /** The rows, minus the (condition, name, outcome) keys already on the table. */
@@ -2460,7 +2462,7 @@ export async function researchMechanisms(
 ): Promise<{ rows: MechanismRow[]; counts: MechanismCounts }> {
   const maxPapers = options.maxPapers ?? MECHANISM_PAPERS;
   const extract = options.extract ?? llmMechanisms(options.modelId);
-  const nodes = options.nodes ?? (await loadGraph()).nodes;
+  const nodes = options.nodes ?? (await loadAllNodes());
 
   const found: Paper[] = [];
   for (const query of mechanismQueries(condition.name, features, options.now))

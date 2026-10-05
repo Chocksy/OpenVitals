@@ -884,7 +884,6 @@ export async function personOf(
     rows,
     goalRows,
     factRows,
-    graph,
     stored,
     testRows,
     snap,
@@ -905,7 +904,6 @@ export async function personOf(
           Object.entries(p).map(([key, value]) => ({ key, value })),
         )
       : db.select().from(profileFacts).where(eq(profileFacts.userId, userId)),
-    loadGraph(),
     db
       .select({
         conditionId: hkbEvidence.conditionId,
@@ -1021,6 +1019,21 @@ export async function personOf(
         origin: "paper" as const,
       })),
   ];
+  // The graph edges `causesFrom` and `causesOfCondition` read: the ones on a
+  // marker of this person's and the ones on a settled condition. Monarch's
+  // gene edges land on conditions, so a settled belief can need them.
+  const settledIds = Object.entries(snap[0]?.beliefs ?? {})
+    .filter(([, b]) => SETTLED.has(b.state))
+    .map(([id]) => id);
+  const graph = await loadGraph({
+    touching: [
+      ...rows.map((r) => `metric:${GRAPH_ALIAS[r.code] ?? r.code}`),
+      ...settledIds.flatMap((id) => [
+        `condition:${id}`,
+        `condition:${id.replace(/_disease$/, "")}`,
+      ]),
+    ],
+  });
   const systemOf = new Map(
     graph.nodes
       .filter((n) => n.kind === "metric")
