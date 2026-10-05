@@ -39,6 +39,32 @@ final class ResearchTests: XCTestCase {
         XCTAssertEqual(PaperCard.ink("none"), Hy.ink3)
     }
 
+    /// The "Not read yet" card says what the rows hold: a row with a plain
+    /// line is more than a title, and neither kind has a grade.
+    func testTheUnreadNoteSaysWhatIsThere() throws {
+        let rows = try rows()
+        XCTAssertTrue(ResearchView.unreadNote(rows).contains("abstract in plain words"))
+        let bare = rows.map { p in
+            var q = p
+            q.summary = nil
+            return q
+        }
+        XCTAssertTrue(ResearchView.unreadNote(bare).contains("nothing else"))
+    }
+
+    /// A paper that backs an action draws Ask and Add; one that backs none
+    /// draws Ask only.
+    @MainActor
+    func testACardDrawsItsDoors() throws {
+        var paper = try XCTUnwrap(try rows().first)
+        paper.action = Api.Paper.Action(id: "int:iron", title: "Oral iron",
+                                        dose: "60 mg/day", grade: "A")
+        let image = try Hosted.image(
+            ResearchView(rows: [paper] + (try rows()).dropFirst().prefix(1)))
+        Hosted.keep(image, "papers-card-action", in: self)
+        XCTAssertNotNil(image.cgImage)
+    }
+
     @MainActor
     func testResearchDraws() throws {
         let image = try Hosted.image(ResearchView(rows: try rows()))

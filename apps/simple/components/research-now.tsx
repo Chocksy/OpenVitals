@@ -8,16 +8,21 @@
  * it, and a run inside the cooldown comes back as a receipt with the day it
  * last read rather than as a failure.
  *
- * Discuss opens the composer about the paper. `POST /api/plan/discuss` cannot
- * take one — it wants a `reportId` and an `actionIndex` and appends the reply
- * to that action's notes — so the paper travels as the composer's subject, the
- * same way `ActionButtons` sends an action.
+ * "Ask about this" opens the full-page chat with the paper's question, the
+ * same `/chat?ask=…&about=…` every other question goes to. The chat cannot see
+ * the paper, so the question carries what the row knows (`askAbout` in
+ * `lib/research-watch.ts`), and `about` is the condition the row was filed
+ * for, so the answer reads that condition's evidence.
+ *
+ * "Add to plan" is the same `/api/plan/adopt` the Act-on-it chips post, and it
+ * only exists on a row whose paper is behind an accepted intervention.
  */
 import { useEffect, useState, useTransition } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { MessageSquare, Search } from "lucide-react";
-import { openComposer } from "./composer";
-import { Button } from "./ui-kit";
+import { Loader2, MessageSquare, Plus, Search } from "lucide-react";
+import { toast } from "./motion";
+import { Button, StateWord } from "./ui-kit";
 
 export interface PickCondition {
   id: string;
@@ -106,14 +111,99 @@ export function ResearchNow({ conditions }: { conditions: PickCondition[] }) {
   );
 }
 
-export function DiscussPaper({ title }: { title: string }) {
+/** `/chat?ask=…&about=…`, the one door every question goes through. */
+export const paperChatHref = (ask: string, about?: string | null): string => {
+  const params = new URLSearchParams({ ask });
+  if (about) params.set("about", about);
+  return `/chat?${params}`;
+};
+
+export function DiscussPaper({
+  title,
+  ask,
+  about,
+}: {
+  title: string;
+  /** the row's own question; a title-only one when the caller has none */
+  ask?: string;
+  about?: string | null;
+}) {
   return (
-    <Button
-      size="sm"
-      job="text"
-      onClick={() => openComposer("", { label: `the paper “${title}”` })}
+    <Link
+      className="b b-text b-sm"
+      href={paperChatHref(
+        ask ?? `What does this paper mean for me? “${title}”.`,
+        about,
+      )}
     >
-      <MessageSquare className="size-3.5" /> Discuss
+      <MessageSquare className="size-3.5" aria-hidden="true" /> Ask about this
+    </Link>
+  );
+}
+
+/**
+ * "Add to plan" for the action a paper stands behind. One post, the toast
+ * with its undo, and the word "added" in the button's place, exactly as the
+ * Act-on-it chip does it.
+ */
+export function AddPaperAction({
+  id,
+  title,
+}: {
+  /** `int:<intervention id>`, as `adoptBodyOf` reads it */
+  id: string;
+  title: string;
+}) {
+  const router = useRouter();
+  const [busy, setBusy] = useState(false);
+  const [added, setAdded] = useState<string | null>(null);
+
+  const post = async (body: unknown) => {
+    const res = await fetch("/api/plan/adopt", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    return (await res.json().catch(() => ({}))) as {
+      id?: string;
+      error?: string;
+    };
+  };
+
+  const add = async () => {
+    setBusy(true);
+    const res = await post({ id });
+    setBusy(false);
+    if (res.error) {
+      toast(`${title} was not added: ${res.error}`);
+      return;
+    }
+    setAdded(res.id ?? "");
+    toast(`Added ${title} to your protocol`, {
+      label: "undo",
+      run: async () => {
+        if (res.id) await post({ removeIds: [res.id] });
+        setAdded(null);
+        router.refresh();
+      },
+    });
+    router.refresh();
+  };
+
+  if (added != null)
+    return (
+      <StateWord tone="on" data-act="added">
+        added
+      </StateWord>
+    );
+  return (
+    <Button size="sm" job="quiet" disabled={busy} onClick={() => void add()}>
+      {busy ? (
+        <Loader2 className="ic spin" aria-hidden="true" />
+      ) : (
+        <Plus className="ic" aria-hidden="true" />
+      )}
+      Add to plan
     </Button>
   );
 }

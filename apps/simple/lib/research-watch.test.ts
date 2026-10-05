@@ -1,12 +1,18 @@
 import { describe, expect, it } from "vitest";
 import {
+  askAbout,
   catalogWith,
+  cleanLine,
   externalIdOf,
   findingOf,
   MOVE_FLOOR,
   moveOf,
+  plainAbstract,
   proposalRule,
   sortWatch,
+  summaryOf,
+  toApiPaper,
+  whyShown,
   WATCH_DAYS,
   watchDue,
   watchRows,
@@ -15,6 +21,7 @@ import {
   type WatchCandidate,
   type WatchCondition,
 } from "./research-watch";
+import type { PaperWatch } from "@/db";
 import type { Proposal } from "./research";
 import type { Catalog } from "./hypotheses";
 
@@ -261,5 +268,108 @@ describe("the order the panel reads", () => {
       "unseen-flat",
       "seen-moves",
     ]);
+  });
+});
+
+describe("a row a person can read and act on", () => {
+  const stored = (over: Partial<PaperWatch> = {}): PaperWatch =>
+    ({
+      id: "r1",
+      userId: "u1",
+      conditionId: "ascvd_risk",
+      source: "epmc",
+      externalId: "10.1/psyllium",
+      title: "Psyllium and LDL cholesterol: a meta-analysis",
+      journal: "Am J Clin Nutr",
+      url: "https://doi.org/10.1/psyllium",
+      publishedAt: "2026-08-02",
+      grade: null,
+      finding: null,
+      abstract: "<h4>Results</h4>Psyllium lowered LDL.",
+      summary: null,
+      moves: null,
+      foundAt: new Date("2026-09-01T00:00:00Z"),
+      seenAt: null,
+      dismissedAt: null,
+      ...over,
+    }) as PaperWatch;
+
+  it("prints the plain line, and treats the empty one as none", () => {
+    expect(summaryOf(stored({ summary: "  It lowered LDL. " }))).toBe(
+      "It lowered LDL.",
+    );
+    expect(summaryOf(stored({ summary: "" }))).toBeNull();
+    expect(summaryOf(stored())).toBeNull();
+  });
+
+  it("says why the row is here: a move first, then a topic, then a condition", () => {
+    const names = new Map([
+      ["ascvd_risk", "Heart and artery disease risk"],
+      ["topic:psyllium", "Psyllium"],
+    ]);
+    expect(whyShown(stored(), names)).toBe(
+      "Your results flag Heart and artery disease risk as possible.",
+    );
+    expect(whyShown(stored({ conditionId: "topic:psyllium" }), names)).toBe(
+      "You watch Psyllium.",
+    );
+    expect(
+      whyShown(
+        stored({
+          moves: {
+            conclusionId: "ascvd_risk",
+            name: "ASCVD risk",
+            direction: "down",
+            delta: -0.04,
+          },
+        }),
+        names,
+      ),
+    ).toBe("It changes how likely ASCVD risk is for you.");
+    // no map: the id, readable, never a blank
+    expect(whyShown(stored())).toBe("Your results flag ascvd risk as possible.");
+  });
+
+  it("asks with what the row knows, and nothing it does not", () => {
+    expect(askAbout(stored())).toBe(
+      "What does this paper mean for me? “Psyllium and LDL cholesterol: a meta-analysis” (Am J Clin Nutr, 2026).",
+    );
+    expect(
+      askAbout(stored({ summary: "Psyllium lowered LDL by 13 mg/dL." })),
+    ).toContain("What it found: Psyllium lowered LDL by 13 mg/dL.");
+  });
+
+  it("puts the line, the reason, the question and the action on the wire", () => {
+    const action = {
+      id: "int:psyllium_ldl",
+      title: "Psyllium",
+      dose: "10 g/day",
+      grade: "A",
+    };
+    const api = toApiPaper(
+      stored({ summary: "Psyllium lowered LDL." }),
+      new Map([["ascvd_risk", "ASCVD risk"]]),
+      new Map([["10.1/psyllium", action]]),
+    );
+    expect(api.summary).toBe("Psyllium lowered LDL.");
+    expect(api.why).toBe("Your results flag ASCVD risk as possible.");
+    expect(api.conditionName).toBe("ASCVD risk");
+    expect(api.ask).toContain("What it found: Psyllium lowered LDL.");
+    expect(api.about).toBe("ascvd_risk");
+    expect(api.action).toEqual(action);
+    // a topic row is about no condition, and a row with no action has none
+    const topic = toApiPaper(stored({ conditionId: "topic:psyllium" }));
+    expect(topic.about).toBeNull();
+    expect(topic.action).toBeNull();
+  });
+
+  it("hands the model prose, and keeps one clean sentence back", () => {
+    expect(plainAbstract("<h4>Results</h4>Psyllium  lowered\nLDL.")).toBe(
+      "Results Psyllium lowered LDL.",
+    );
+    expect(plainAbstract(null)).toBe("");
+    expect(cleanLine("  “It lowered LDL.” ")).toBe("It lowered LDL.");
+    expect(cleanLine("")).toBeNull();
+    expect(cleanLine(null)).toBeNull();
   });
 });

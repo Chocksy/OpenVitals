@@ -780,6 +780,36 @@ final class ContractTests: XCTestCase {
         }
     }
 
+    /// A title alone tells nobody what a paper found or what to do. Every row
+    /// says why it is here and what "Ask about this" sends; the plain line
+    /// and the action are there when the server has them, and decode when
+    /// they are absent (a body cached before the fields existed).
+    func testEveryPaperSaysWhyAndWhatToAsk() throws {
+        let list = try decode("research", as: Api.ResearchList.self)
+        XCTAssertTrue(list.rows.contains { $0.plain != nil })
+        for paper in list.rows {
+            XCTAssertFalse(paper.why?.isEmpty ?? true, paper.id)
+            let ask = try XCTUnwrap(paper.ask, paper.id)
+            XCTAssertTrue(ask.contains(paper.title), paper.id)
+            if let plain = paper.plain { XCTAssertTrue(ask.contains(plain), paper.id) }
+            XCTAssertEqual(paper.about,
+                           paper.conditionId.hasPrefix("topic:") ? nil : paper.conditionId)
+            XCTAssertEqual(paper.chatStart.ask, ask)
+            XCTAssertEqual(paper.chatStart.about, paper.about)
+            if let action = paper.action {
+                XCTAssertTrue(action.id.hasPrefix("int:"), action.id)
+                XCTAssertTrue(["A", "B", "C", "D", "E"].contains(action.grade))
+            }
+        }
+        let bare = #"{"rows":[{"id":"p","conditionId":"topic:iron","source":"epmc","externalId":"x","title":"T","journal":null,"url":null,"publishedAt":null,"grade":null,"finding":null,"abstract":null,"moves":null,"read":false,"foundAt":null,"seenAt":null,"dismissedAt":null}]}"#
+        let old = try JSONDecoder().decode(Api.ResearchList.self, from: Data(bare.utf8)).rows[0]
+        XCTAssertNil(old.plain)
+        XCTAssertNil(old.action)
+        XCTAssertEqual(old.chatStart.ask, "What does this paper mean for me? “T”.")
+        let action = #"{"id":"int:x","title":"Iron","dose":null,"grade":"A"}"#
+        XCTAssertEqual(try JSONDecoder().decode(Api.Paper.Action.self, from: Data(action.utf8)).id, "int:x")
+    }
+
     /// "New for you" is hidden when nothing moved anything, which is what this
     /// account looks like today: fifteen rows, none of them read.
     func testNewForYouIsEmptyWhenNothingMovedAnything() throws {

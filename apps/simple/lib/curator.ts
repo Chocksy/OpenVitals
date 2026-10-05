@@ -42,7 +42,7 @@ import { jsonObjectIn, model } from "./extract";
 import { rereadPosts } from "./compose";
 import { inGoal, localDay } from "./daily";
 import { planRawVerify, rawVerifyScope } from "./raw-verify";
-import { runWatchForUser } from "./research-watch";
+import { explainPapers, runWatchForUser } from "./research-watch";
 import { runTopicsForUser, syncTopicsFromProtocol } from "./topic-watch";
 import { runSecondPass } from "./second-pass";
 import { BOUNDS, SEX_RANGES } from "./vectors";
@@ -68,7 +68,9 @@ export type Check =
   /** phase 34a: the notes kept while the reader was down, read at last */
   | "unread_posts"
   /** phase 35: the topic watch, after the condition watch on the daily pass */
-  | "topic_watch";
+  | "topic_watch"
+  /** the plain line under each paper, written once after both watches */
+  | "paper_summaries";
 
 /** The subset of a reading the planners need. */
 export interface ReadingLike {
@@ -1481,6 +1483,21 @@ export async function runCurator(
         t.checked = topics.length;
         t.fixed = topics.reduce((n, r) => n + r.stored, 0);
         t.queued = topics.reduce((n, r) => n + r.outcomes, 0);
+      }
+
+      /**
+       * The plain line under each paper, written once from the stored
+       * abstract: what tonight filed, and anything an earlier pass left
+       * behind. Quiet on failure, like the two watches above it.
+       */
+      const explained = await explainPapers(userId).catch((e) => {
+        console.error("[curator] the plain-line pass failed:", e);
+        return 0;
+      });
+      if (explained) {
+        const x = bump("paper_summaries");
+        x.checked = explained;
+        x.fixed = explained;
       }
     }
 

@@ -11,8 +11,11 @@
  */
 import { currentUserId } from "@/lib/auth";
 import {
+  explainPapers,
   lastWatch,
   listWatch,
+  paperActions,
+  paperNames,
   runWatch,
   toApiPaper,
   watchConditions,
@@ -24,7 +27,6 @@ import {
   getTopic,
   runTopic,
   topicDue,
-  topicLabels,
   topicSince,
   TOPIC_DAYS,
 } from "@/lib/topic-watch";
@@ -43,8 +45,13 @@ export async function GET(req: Request) {
       ? { conditionId: url.searchParams.get("condition")! }
       : {}),
   });
-  const labels = await topicLabels(userId);
-  return Response.json({ rows: rows.map((r) => toApiPaper(r, labels)) });
+  const [names, actions] = await Promise.all([
+    paperNames(userId, rows),
+    paperActions(rows),
+  ]);
+  return Response.json({
+    rows: rows.map((r) => toApiPaper(r, names, actions)),
+  });
 }
 
 /**
@@ -92,6 +99,7 @@ export async function POST(req: Request) {
         ? { maxPapers: Math.min(max, 40) }
         : {}),
     });
+    await explained(userId);
     return Response.json({ ok: true, ...result });
   }
 
@@ -127,5 +135,16 @@ export async function POST(req: Request) {
       : {}),
     now,
   });
+  await explained(userId);
   return Response.json({ ok: true, ...result });
 }
+
+/**
+ * The plain line for what the run just filed, while the person waits for the
+ * run anyway. Never fatal: a row left without one gets it on the nightly pass.
+ */
+const explained = (userId: string) =>
+  explainPapers(userId).catch((e) => {
+    console.error("[research] the plain-line pass failed:", e);
+    return 0;
+  });

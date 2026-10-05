@@ -5468,6 +5468,17 @@ a.t-tab {
   content: "· ";
   color: var(--ink-3);
 }
+/* the paper in plain words: the line a person reads first, so it is ink and
+   not ink-2, and it sits straight under the citation it explains */
+.paper .psum {
+  grid-column: 2;
+  margin: 0;
+  font-size: var(--type-sm);
+  line-height: 1.55;
+  color: var(--ink);
+  max-width: 72ch;
+  text-wrap: pretty;
+}
 .paper .pfound {
   grid-column: 2;
   margin: 0;

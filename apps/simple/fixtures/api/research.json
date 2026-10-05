@@ -3,6 +3,7 @@
     {
       "id": "fa01b993-b78b-4c6d-b9e7-1d234d65465c",
       "conditionId": "ascvd_risk",
+      "conditionName": "Atherosclerotic risk",
       "source": "epmc",
       "externalId": "10.1016/j.ypmed.2026.108653",
       "title": "Concurrent psychiatric, somatic, and social vulnerabilities in patients at increased cardiovascular risk in the Netherlands",
@@ -15,12 +16,18 @@
       "moves": null,
       "read": false,
       "foundAt": "2026-09-03T07:51:37.375Z",
-      "seenAt": null,
-      "dismissedAt": null
+      "seenAt": "2026-09-30T10:11:45.658Z",
+      "dismissedAt": null,
+      "summary": "In 34,392 Dutch primary care patients aged 40-70, the group with mental health and socioeconomic vulnerability was linked to higher five-year risk of major cardiovascular events (hazard ratio 1.52) and the highest healthcare spending.",
+      "why": "Your results flag Atherosclerotic risk as possible.",
+      "ask": "What does this paper mean for me? “Concurrent psychiatric, somatic, and social vulnerabilities in patients at increased cardiovascular risk in the Netherlands” (Prev Med, 2026). What it found: In 34,392 Dutch primary care patients aged 40-70, the group with mental health and socioeconomic vulnerability was linked to higher five-year risk of major cardiovascular events (hazard ratio 1.52) and the highest healthcare spending.",
+      "about": "ascvd_risk",
+      "action": null
     },
     {
       "id": "1aad62c5-3f7d-40ca-aa04-45ca9a75269a",
       "conditionId": "ascvd_risk",
+      "conditionName": "Atherosclerotic risk",
       "source": "epmc",
       "externalId": "10.21203/rs.3.rs-10391004/v1",
       "title": "Sex-Specific Cardiovascular Risk Phenotypes Integrating Cardiometabolic, Psychosocial, and Autoimmune Determinants: A Population-Based Cross-sectional Study",
@@ -33,12 +40,18 @@
       "moves": null,
       "read": false,
       "foundAt": "2026-09-03T07:51:37.375Z",
-      "seenAt": null,
-      "dismissedAt": null
+      "seenAt": "2026-09-30T10:11:45.692Z",
+      "dismissedAt": null,
+      "summary": "In a cross-sectional study of 138,507 adults in Catalonia, five cardiovascular risk profiles emerged, and in women, existing heart disease was linked to age, hypertension, diabetes, depression and multiple conditions.",
+      "why": "Your results flag Atherosclerotic risk as possible.",
+      "ask": "What does this paper mean for me? “Sex-Specific Cardiovascular Risk Phenotypes Integrating Cardiometabolic, Psychosocial, and Autoimmune Determinants: A Population-Based Cross-sectional Study” (2026). What it found: In a cross-sectional study of 138,507 adults in Catalonia, five cardiovascular risk profiles emerged, and in women, existing heart disease was linked to age, hypertension, diabetes, depression and multiple conditions.",
+      "about": "ascvd_risk",
+      "action": null
     },
     {
       "id": "75c5f3c6-c41f-471b-9d93-c66b9a9d34b1",
       "conditionId": "ascvd_risk",
+      "conditionName": "Atherosclerotic risk",
       "source": "epmc",
       "externalId": "10.1093/nutrit/nuag116",
       "title": "Association Between Vitamin D Deficiency and Cardiovascular Risk Factors in Children and Adolescents: A Systematic Review",
@@ -51,12 +64,18 @@
       "moves": null,
       "read": false,
       "foundAt": "2026-09-03T07:51:37.375Z",
-      "seenAt": null,
-      "dismissedAt": null
+      "seenAt": "2026-09-30T10:11:45.669Z",
+      "dismissedAt": null,
+      "summary": "A systematic review in children and adolescents linked low vitamin D to obesity markers, with mixed findings for other risks; supplement trials showed little effect, and a causal link was not established.",
+      "why": "Your results flag Atherosclerotic risk as possible.",
+      "ask": "What does this paper mean for me? “Association Between Vitamin D Deficiency and Cardiovascular Risk Factors in Children and Adolescents: A Systematic Review” (Nutr Rev, 2026). What it found: A systematic review in children and adolescents linked low vitamin D to obesity markers, with mixed findings for other risks; supplement trials showed little effect, and a causal link was not established.",
+      "about": "ascvd_risk",
+      "action": null
     },
     {
       "id": "b4aa8733-2e0d-44b2-8e84-46f63db84e12",
       "conditionId": "ascvd_risk",
+      "conditionName": "Atherosclerotic risk",
       "source": "epmc",
       "externalId": "10.1097/hco.0000000000001335",
       "title": "Plaque vulnerability and cardiovascular risk factor burden in acute coronary syndromes: insights from optical coherence tomography",
@@ -69,12 +88,18 @@
       "moves": null,
       "read": false,
       "foundAt": "2026-09-03T07:51:37.375Z",
-      "seenAt": null,
-      "dismissedAt": null
+      "seenAt": "2026-09-30T10:11:45.699Z",
+      "dismissedAt": null,
+      "summary": "This review reports that in people with acute coronary syndromes, more modifiable risk factors were linked to more vulnerable features of the artery plaque causing the problem on optical coherence tomography imaging.",
+      "why": "Your results flag Atherosclerotic risk as possible.",
+      "ask": "What does this paper mean for me? “Plaque vulnerability and cardiovascular risk factor burden in acute coronary syndromes: insights from optical coherence tomography” (Curr Opin Cardiol, 2026). What it found: This review reports that in people with acute coronary syndromes, more modifiable risk factors were linked to more vulnerable features of the artery plaque causing the problem on optical coherence tomography imaging.",
+      "about": "ascvd_risk",
+      "action": null
     },
     {
       "id": "ef031fda-9dd9-40c7-99ab-ce9b84c002a3",
       "conditionId": "hypertension",
+      "conditionName": "High blood pressure",
       "source": "epmc",
       "externalId": "10.1007/s40292-026-00802-8",
       "title": "Correction: Triglyceride-Glucose Index and Mortality Risk in the General Population: A Systematic Review and Meta-analysis of Prospective Studies",
@@ -87,12 +112,18 @@
       "moves": null,
       "read": false,
       "foundAt": "2026-09-03T07:51:36.475Z",
-      "seenAt": null,
-      "dismissedAt": null
+      "seenAt": "2026-09-30T10:11:45.716Z",
+      "dismissedAt": null,
+      "summary": null,
+      "why": "Your results flag High blood pressure as possible.",
+      "ask": "What does this paper mean for me? “Correction: Triglyceride-Glucose Index and Mortality Risk in the General Population: A Systematic Review and Meta-analysis of Prospective Studies” (High Blood Press Cardiovasc Prev, 2026).",
+      "about": "hypertension",
+      "action": null
     },
     {
       "id": "a724a224-1ba9-4d1d-bfdc-bd9bb7c5d276",
       "conditionId": "hypertension",
+      "conditionName": "High blood pressure",
       "source": "epmc",
       "externalId": "10.1007/s40292-026-00813-5",
       "title": "Pathophysiology and Clinical Relevance of Microvascular Remodeling in Arterial Hypertension",
@@ -105,12 +136,18 @@
       "moves": null,
       "read": false,
       "foundAt": "2026-09-03T07:51:36.475Z",
-      "seenAt": null,
-      "dismissedAt": null
+      "seenAt": "2026-09-30T10:11:45.698Z",
+      "dismissedAt": null,
+      "summary": "This is a review article on how long-term high blood pressure changes the body's smallest blood vessels and links to organ damage; it reports no new health result.",
+      "why": "Your results flag High blood pressure as possible.",
+      "ask": "What does this paper mean for me? “Pathophysiology and Clinical Relevance of Microvascular Remodeling in Arterial Hypertension” (High Blood Press Cardiovasc Prev, 2026). What it found: This is a review article on how long-term high blood pressure changes the body's smallest blood vessels and links to organ damage; it reports no new health result.",
+      "about": "hypertension",
+      "action": null
     },
     {
       "id": "d3c2ca17-c1e5-4d11-8d11-68f728fd9bab",
       "conditionId": "hypertension",
+      "conditionName": "High blood pressure",
       "source": "epmc",
       "externalId": "10.1080/08037051.2026.2715846",
       "title": "Burden of high blood pressure and associated risk for all-cause and cardiovascular mortality among US young adults",
@@ -123,12 +160,18 @@
       "moves": null,
       "read": false,
       "foundAt": "2026-09-03T07:51:36.475Z",
-      "seenAt": null,
-      "dismissedAt": null
+      "seenAt": "2026-09-30T10:11:45.712Z",
+      "dismissedAt": null,
+      "summary": "In 18,271 US young adults followed through 2019, prehypertension and hypertension were linked to higher risk of death from any cause (1.82 and 2.39 times higher, respectively).",
+      "why": "Your results flag High blood pressure as possible.",
+      "ask": "What does this paper mean for me? “Burden of high blood pressure and associated risk for all-cause and cardiovascular mortality among US young adults” (Blood Press, 2026). What it found: In 18,271 US young adults followed through 2019, prehypertension and hypertension were linked to higher risk of death from any cause (1.82 and 2.39 times higher, respectively).",
+      "about": "hypertension",
+      "action": null
     },
     {
       "id": "55d6ef99-7a48-444b-8b91-c66044d81ea0",
       "conditionId": "hypertension",
+      "conditionName": "High blood pressure",
       "source": "epmc",
       "externalId": "10.64898/2026.07.22.26358725",
       "title": "Under Pressure: The Burden of Hypertension on Armenia’s Ambulance System",
@@ -141,12 +184,18 @@
       "moves": null,
       "read": false,
       "foundAt": "2026-09-03T07:51:36.475Z",
-      "seenAt": null,
-      "dismissedAt": null
+      "seenAt": "2026-09-30T10:11:45.707Z",
+      "dismissedAt": null,
+      "summary": "In Armenian ambulance calls from 2016 to July 2022, 28.8% of adults with a complaint reported only high blood pressure; 61.0% were over 60, 70.1% were women, and 9.2% went to hospital.",
+      "why": "Your results flag High blood pressure as possible.",
+      "ask": "What does this paper mean for me? “Under Pressure: The Burden of Hypertension on Armenia’s Ambulance System” (2026). What it found: In Armenian ambulance calls from 2016 to July 2022, 28.8% of adults with a complaint reported only high blood pressure; 61.0% were over 60, 70.1% were women, and 9.2% went to hospital.",
+      "about": "hypertension",
+      "action": null
     },
     {
       "id": "bea9e73c-0695-46d0-bdbc-f4ce2832612f",
       "conditionId": "hypertension",
+      "conditionName": "High blood pressure",
       "source": "epmc",
       "externalId": "10.1177/20420188261480541",
       "title": "Unrecognized primary aldosteronism may confound outcomes in adrenal Cushing's syndrome",
@@ -159,12 +208,18 @@
       "moves": null,
       "read": false,
       "foundAt": "2026-09-03T07:51:36.475Z",
-      "seenAt": null,
-      "dismissedAt": null
+      "seenAt": "2026-09-30T10:11:45.705Z",
+      "dismissedAt": null,
+      "summary": "In a Colombian registry of 130 patients, none of the 22 with adrenal Cushing's syndrome had been screened for aldosterone excess (primary aldosteronism) before surgery.",
+      "why": "Your results flag High blood pressure as possible.",
+      "ask": "What does this paper mean for me? “Unrecognized primary aldosteronism may confound outcomes in adrenal Cushing's syndrome” (Ther Adv Endocrinol Metab, 2026). What it found: In a Colombian registry of 130 patients, none of the 22 with adrenal Cushing's syndrome had been screened for aldosterone excess (primary aldosteronism) before surgery.",
+      "about": "hypertension",
+      "action": null
     },
     {
       "id": "c1990e5e-31d9-4e68-80ab-c8cadf4cb958",
       "conditionId": "insulin_resistance",
+      "conditionName": "Insulin resistance",
       "source": "epmc",
       "externalId": "10.1111/jog.70480",
       "title": "Perinatal Changes in Serum Fibroblast Growth Factor 21 and Their Association With Postpartum Insulin Resistance in Women With Gestational Diabetes Mellitus",
@@ -177,12 +232,18 @@
       "moves": null,
       "read": false,
       "foundAt": "2026-09-03T07:51:35.803Z",
-      "seenAt": null,
-      "dismissedAt": null
+      "seenAt": "2026-09-30T10:11:45.743Z",
+      "dismissedAt": null,
+      "summary": "In 45 women with gestational diabetes and 30 controls, blood levels of fibroblast growth factor 21 rose in late pregnancy, and early-pregnancy levels were linked to insulin resistance after delivery.",
+      "why": "Your results flag Insulin resistance as possible.",
+      "ask": "What does this paper mean for me? “Perinatal Changes in Serum Fibroblast Growth Factor 21 and Their Association With Postpartum Insulin Resistance in Women With Gestational Diabetes Mellitus” (J Obstet Gynaecol Res, 2026). What it found: In 45 women with gestational diabetes and 30 controls, blood levels of fibroblast growth factor 21 rose in late pregnancy, and early-pregnancy levels were linked to insulin resistance after delivery.",
+      "about": "insulin_resistance",
+      "action": null
     },
     {
       "id": "e40c64c4-f7c3-40a4-a26d-db192a463c4d",
       "conditionId": "insulin_resistance",
+      "conditionName": "Insulin resistance",
       "source": "epmc",
       "externalId": "10.14814/phy2.71093",
       "title": "Sex differences in insulin resistance and associated metabolic and inflammatory markers among adults with and without HIV in Zambia",
@@ -195,12 +256,18 @@
       "moves": null,
       "read": false,
       "foundAt": "2026-09-03T07:51:35.803Z",
-      "seenAt": null,
-      "dismissedAt": null
+      "seenAt": "2026-09-30T10:11:45.748Z",
+      "dismissedAt": null,
+      "summary": "In 233 adults in Zambia with and without HIV, women had higher insulin resistance than men, and HIV-positive status was linked to lower insulin resistance.",
+      "why": "Your results flag Insulin resistance as possible.",
+      "ask": "What does this paper mean for me? “Sex differences in insulin resistance and associated metabolic and inflammatory markers among adults with and without HIV in Zambia” (Physiol Rep, 2026). What it found: In 233 adults in Zambia with and without HIV, women had higher insulin resistance than men, and HIV-positive status was linked to lower insulin resistance.",
+      "about": "insulin_resistance",
+      "action": null
     },
     {
       "id": "40306d41-3af5-4a8e-90d9-8bfe0b65fc50",
       "conditionId": "insulin_resistance",
+      "conditionName": "Insulin resistance",
       "source": "epmc",
       "externalId": "10.1097/pn9.0000000000000143",
       "title": "Determining the mediation role of CRP and IL-6 for associations between carotenoids, vitamin A, and vitamin E and insulin resistance in elderly",
@@ -213,12 +280,18 @@
       "moves": null,
       "read": false,
       "foundAt": "2026-09-03T07:51:35.803Z",
-      "seenAt": null,
-      "dismissedAt": null
+      "seenAt": "2026-09-30T10:11:45.753Z",
+      "dismissedAt": null,
+      "summary": "In 747 older US adults, higher lycopene and β-cryptoxanthin were linked to lower insulin resistance, while higher γ-tocopherol was linked to higher insulin resistance, partly through C-reactive protein.",
+      "why": "Your results flag Insulin resistance as possible.",
+      "ask": "What does this paper mean for me? “Determining the mediation role of CRP and IL-6 for associations between carotenoids, vitamin A, and vitamin E and insulin resistance in elderly” (Precis Nutr, 2026). What it found: In 747 older US adults, higher lycopene and β-cryptoxanthin were linked to lower insulin resistance, while higher γ-tocopherol was linked to higher insulin resistance, partly through C-reactive protein.",
+      "about": "insulin_resistance",
+      "action": null
     },
     {
       "id": "6224bb62-f4ab-4737-a643-a4ed16ffee86",
       "conditionId": "insulin_resistance",
+      "conditionName": "Insulin resistance",
       "source": "epmc",
       "externalId": "10.1016/j.jdiacomp.2026.109360",
       "title": "Brain insulin resistance: A link between obstructive sleep apnea and cognitive impairment",
@@ -231,12 +304,18 @@
       "moves": null,
       "read": false,
       "foundAt": "2026-09-03T07:51:35.803Z",
-      "seenAt": null,
-      "dismissedAt": null
+      "seenAt": "2026-09-30T10:11:45.756Z",
+      "dismissedAt": null,
+      "summary": "In 284 people with obstructive sleep apnea, markers of brain insulin resistance were linked to mild cognitive impairment; weight loss lowered them in 23 patients, but CPAP therapy did not.",
+      "why": "Your results flag Insulin resistance as possible.",
+      "ask": "What does this paper mean for me? “Brain insulin resistance: A link between obstructive sleep apnea and cognitive impairment” (J Diabetes Complications, 2026). What it found: In 284 people with obstructive sleep apnea, markers of brain insulin resistance were linked to mild cognitive impairment; weight loss lowered them in 23 patients, but CPAP therapy did not.",
+      "about": "insulin_resistance",
+      "action": null
     },
     {
       "id": "990d7c60-3e40-4930-ac12-6e453f422f7e",
       "conditionId": "insulin_resistance",
+      "conditionName": "Insulin resistance",
       "source": "epmc",
       "externalId": "10.1007/s00592-026-02795-1",
       "title": "Exploring the therapeutic response to sodium-glucose cotransporter-2 inhibition in INSR-related insulin resistance monogenic diabetes: case-based analysis and narrative review",
@@ -249,12 +328,18 @@
       "moves": null,
       "read": false,
       "foundAt": "2026-09-03T07:51:35.803Z",
-      "seenAt": null,
-      "dismissedAt": null
+      "seenAt": "2026-09-30T10:11:45.717Z",
+      "dismissedAt": null,
+      "summary": "In one 63-year-old man with INSR-related insulin resistance diabetes, an SGLT2 inhibitor improved glucose control, and eight reviewed cases showed HbA1c drops of 1.4-3.6%.",
+      "why": "Your results flag Insulin resistance as possible.",
+      "ask": "What does this paper mean for me? “Exploring the therapeutic response to sodium-glucose cotransporter-2 inhibition in INSR-related insulin resistance monogenic diabetes: case-based analysis and narrative review” (Acta Diabetol, 2026). What it found: In one 63-year-old man with INSR-related insulin resistance diabetes, an SGLT2 inhibitor improved glucose control, and eight reviewed cases showed HbA1c drops of 1.4-3.6%.",
+      "about": "insulin_resistance",
+      "action": null
     },
     {
       "id": "daf2052c-d99e-424f-a26f-e426a42871a3",
       "conditionId": "ascvd_risk",
+      "conditionName": "Atherosclerotic risk",
       "source": "epmc",
       "externalId": "10.1111/ijpo.70148",
       "title": "Hepatic Steatosis and Cardiovascular Risk in Obesity: A 10-Year Follow-Up Study From Childhood Into Young Adulthood",
@@ -267,8 +352,13 @@
       "moves": null,
       "read": false,
       "foundAt": "2026-09-03T07:51:37.375Z",
-      "seenAt": "2026-09-03T07:56:48.706Z",
-      "dismissedAt": null
+      "seenAt": "2026-09-04T10:11:46.640Z",
+      "dismissedAt": null,
+      "summary": "In 52 children with severe obesity followed 10 years, fatty liver in young adulthood, not childhood, was linked to a carotid artery wall thickness 0.035 mm greater.",
+      "why": "Your results flag Atherosclerotic risk as possible.",
+      "ask": "What does this paper mean for me? “Hepatic Steatosis and Cardiovascular Risk in Obesity: A 10-Year Follow-Up Study From Childhood Into Young Adulthood” (Pediatr Obes, 2026). What it found: In 52 children with severe obesity followed 10 years, fatty liver in young adulthood, not childhood, was linked to a carotid artery wall thickness 0.035 mm greater.",
+      "about": "ascvd_risk",
+      "action": null
     }
   ]
 }

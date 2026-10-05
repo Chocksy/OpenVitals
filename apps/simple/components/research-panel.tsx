@@ -12,16 +12,33 @@
  * invents a sentence: `finding` is the intake's own quote and `moves` is the
  * scorer run twice, with and without the paper's rule.
  *
- * Server components, but for the two writes: "Research now" and "Discuss",
- * which are in `components/research-now.tsx`.
+ * A title is not something a person can act on, so each row also says, from
+ * what is stored: the paper in plain words (`summary`, written once by
+ * `explainPapers`), why it is on this person's list (`whyShown`), the plan
+ * action it stands behind when there is one, and two doors: ask about it, or
+ * add that action.
+ *
+ * Server components, but for the writes: "Research now", "Ask about this"
+ * and "Add to plan", which are in `components/research-now.tsx`.
  */
 import Link from "next/link";
 import { ExternalLink, FileText } from "lucide-react";
 import type { PaperWatch } from "@/db";
-import type { WatchCondition } from "@/lib/research-watch";
+import {
+  askAbout,
+  summaryOf,
+  whyShown,
+  type PaperAction,
+  type WatchCondition,
+} from "@/lib/research-watch";
 import { dayLabel, plural } from "@/lib/utils";
 import { EvidenceChip } from "./evidence-chip";
-import { DiscussPaper, ResearchNow, SeenOnOpen } from "./research-now";
+import {
+  AddPaperAction,
+  DiscussPaper,
+  ResearchNow,
+  SeenOnOpen,
+} from "./research-now";
 import { WatchTopic } from "./topic-actions";
 import { StateWord, type StateTone } from "./ui-kit";
 
@@ -48,8 +65,21 @@ export function movesLine(row: PaperWatch): string {
     : `${direction} ${deltaWords(delta)}`;
 }
 
-export function PaperRow({ row }: { row: PaperWatch }) {
+/** What a row needs beyond itself, from `paperNames` and `paperActions`. */
+export interface PaperLookups {
+  names?: Map<string, string>;
+  actions?: Map<string, PaperAction>;
+}
+
+export function PaperRow({
+  row,
+  names,
+  actions,
+}: { row: PaperWatch } & PaperLookups) {
   const moved = row.moves;
+  const summary = summaryOf(row);
+  const action = actions?.get(row.externalId) ?? null;
+  const about = row.conditionId.startsWith("topic:") ? null : row.conditionId;
   return (
     <div className="paper">
       <span className="pg">
@@ -68,7 +98,22 @@ export function PaperRow({ row }: { row: PaperWatch }) {
           </span>
         )}
       </div>
+      {summary && <p className="psum">{summary}</p>}
       {row.finding && <p className="pfound">{row.finding}</p>}
+      <div className="pmoves">
+        <span className="arrow">for you →</span>
+        <span>{whyShown(row, names)}</span>
+      </div>
+      {action && (
+        <div className="pmoves">
+          <span className="arrow">backs →</span>
+          <span>
+            {action.title}
+            {action.dose ? ` · ${action.dose}` : ""}
+          </span>
+          <EvidenceChip basis="science" grade={action.grade} />
+        </div>
+      )}
       <div className="pmoves">
         <span className="arrow">moves →</span>
         {moved ? (
@@ -93,7 +138,8 @@ export function PaperRow({ row }: { row: PaperWatch }) {
             <ExternalLink className="ic" aria-hidden="true" /> Open
           </a>
         )}
-        <DiscussPaper title={row.title} />
+        <DiscussPaper title={row.title} ask={askAbout(row)} about={about} />
+        {action && <AddPaperAction id={action.id} title={action.title} />}
       </div>
     </div>
   );
@@ -126,7 +172,9 @@ export function ResearchSection({
   cooldownDays,
   topics = [],
   topicDays = 30,
-}: {
+  names: paperNames,
+  actions,
+}: PaperLookups & {
   rows: PaperWatch[];
   conditions: WatchCondition[];
   /** the newest `found_at` this person has, as `YYYY-MM-DD`, or null */
@@ -170,7 +218,12 @@ export function ResearchSection({
         ) : (
           <div className="rowlist">
             {rows.map((row) => (
-              <PaperRow key={row.id} row={row} />
+              <PaperRow
+                key={row.id}
+                row={row}
+                names={paperNames}
+                actions={actions}
+              />
             ))}
             <SeenOnOpen
               ids={rows.filter((r) => r.seenAt == null).map((r) => r.id)}
@@ -317,14 +370,17 @@ export function ResearchCompact({
           <div key={row.id} className="markerrow said">
             <div className="nm">
               <b>{row.title}</b>
+              {/* the plain line when there is one: a journal and a date
+                  tell nobody what the paper found */}
               <span>
-                {[
-                  row.journal,
-                  row.publishedAt ? dayLabel(row.publishedAt, true) : null,
-                  row.grade ? `grade ${row.grade}` : null,
-                ]
-                  .filter(Boolean)
-                  .join(" · ")}
+                {summaryOf(row) ??
+                  [
+                    row.journal,
+                    row.publishedAt ? dayLabel(row.publishedAt, true) : null,
+                    row.grade ? `grade ${row.grade}` : null,
+                  ]
+                    .filter(Boolean)
+                    .join(" · ")}
               </span>
             </div>
             <div />

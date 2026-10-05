@@ -243,8 +243,10 @@ describe("GET /api/body", () => {
       expect(num(r.value), String(r.type)).toBe(true);
       if (r.when) expect(r.when as string).toMatch(DAY);
       // Who wrote it, never the pipeline that carried it, and never blank.
-      expect(String(r.source).length, `${String(r.type)} has no writer`)
-        .toBeGreaterThan(0);
+      expect(
+        String(r.source).length,
+        `${String(r.type)} has no writer`,
+      ).toBeGreaterThan(0);
       expect(r.source, `${String(r.type)} names the pipeline`).not.toBe(
         "healthkit",
       );
@@ -449,6 +451,35 @@ describe("GET /api/research", () => {
       }
     }
   });
+
+  /**
+   * A title alone tells nobody what a paper found or what to do about it. Each
+   * row carries the plain line (null until the pass reads it), why it is on
+   * the list, the question "Ask about this" sends, and the action it backs.
+   */
+  it("says each paper in plain words, why it is here, and what to do", () => {
+    const rows = b.rows as Record<string, never>[];
+    for (const r of rows) {
+      expect(str(r.summary)).toBe(true);
+      if (r.summary) expect(String(r.summary).length).toBeGreaterThan(0);
+      expect(typeof r.why).toBe("string");
+      expect(String(r.why).length).toBeGreaterThan(0);
+      expect(typeof r.ask).toBe("string");
+      expect(String(r.ask)).toContain(String(r.title));
+      expect(str(r.about)).toBe(true);
+      if (String(r.conditionId).startsWith("topic:"))
+        expect(r.about).toBeNull();
+      else expect(r.about).toBe(r.conditionId);
+      const a = r.action as Record<string, unknown> | null;
+      if (a) {
+        expect(String(a.id)).toMatch(/^int:/);
+        expect(typeof a.title).toBe("string");
+        expect(str(a.dose)).toBe(true);
+        expect(["A", "B", "C", "D", "E"]).toContain(a.grade);
+      }
+    }
+    expect(rows.some((r) => r.summary != null)).toBe(true);
+  });
 });
 
 describe("GET /api/genome", () => {
@@ -603,11 +634,12 @@ describe("what a goal reads like, and what the sentence says", () => {
   });
 
   it("says none, never 'no', when the day has not started", () => {
-    expect(goalsSentence([goal("Ferritin", 45, null)], { done: 0, total: 4 }))
-      .toEqual({
-        head: "One thing you are moving:",
-        tail: "Ferritin to 45. None of four done today.",
-      });
+    expect(
+      goalsSentence([goal("Ferritin", 45, null)], { done: 0, total: 4 }),
+    ).toEqual({
+      head: "One thing you are moving:",
+      tail: "Ferritin to 45. None of four done today.",
+    });
   });
 
   it("names three and counts the rest", () => {
@@ -635,7 +667,12 @@ describe("the sentence when there is no goal", () => {
     id: string,
     name: string,
     score: number,
-    worst?: { code: string; value: number | null; unit: string | null; status: string },
+    worst?: {
+      code: string;
+      value: number | null;
+      unit: string | null;
+      status: string;
+    },
   ) => ({ id, name, score, ...(worst ? { worst } : {}) }) as never;
 
   it("names the loudest system, and never says sick", () => {
@@ -826,11 +863,14 @@ describe("GET /api/today, the score (phase 37)", () => {
     expect(typeof score.streak).toBe("number");
     const caps = score.maxChange as Record<string, unknown>;
     expect(Object.keys(caps).length).toBeGreaterThan(0);
-    for (const [k, v] of Object.entries(caps)) expect(typeof v, k).toBe("number");
+    for (const [k, v] of Object.entries(caps))
+      expect(typeof v, k).toBe("number");
   });
 
   it("is scoreOf over its own input, so the phone's preview starts where the server is", () => {
-    expect(scoreOf(score.input as ScoreInput)).toEqual(score.result as ScoreResult);
+    expect(scoreOf(score.input as ScoreInput)).toEqual(
+      score.result as ScoreResult,
+    );
   });
 
   it("gives targets two numbers or nulls and says whether they are estimates", () => {
@@ -957,7 +997,8 @@ function checkRow(r: Record<string, unknown>) {
   const mini = r.mini as Record<string, unknown>;
   const band = mini.band as Record<string, unknown> | null;
   if (band) {
-    for (const k of ["median", "sd", "n"]) expect(typeof band[k], k).toBe("number");
+    for (const k of ["median", "sd", "n"])
+      expect(typeof band[k], k).toBe("number");
     expect(typeof band.provisional).toBe("boolean");
   }
   for (const k of ["lab", "goal"]) {
@@ -1048,7 +1089,9 @@ describe("GET /api/hunches/[id]", () => {
     for (const e of ex) {
       expect(["paper", "catalog", "model", "you"]).toContain(e.origin);
       expect(["A", "B", "C", "D", "E"]).toContain(e.grade);
-      expect(["science", "opinion", "anecdotal", "hypothesis"]).toContain(e.basis);
+      expect(["science", "opinion", "anecdotal", "hypothesis"]).toContain(
+        e.basis,
+      );
       expect(str(e.predicts)).toBe(true);
       const ch = e.check as Record<string, unknown> | null;
       if (ch) expect(["<", ">", "between"]).toContain(ch.op);
@@ -1079,7 +1122,9 @@ describe("GET /api/hunches/[id]", () => {
     }
     expect(Math.abs(total - 100)).toBeLessThanOrEqual(2);
     expect(str(d!.splitTest)).toBe(true);
-    expect(typeof (c.bestRead as Record<string, unknown>).specialty).toBe("string");
+    expect(typeof (c.bestRead as Record<string, unknown>).specialty).toBe(
+      "string",
+    );
   });
 
   it("says what the last case research moved here, or null (42D)", () => {
@@ -1098,7 +1143,10 @@ describe("GET /api/hunches/[id]", () => {
   });
 
   it("asks one question with three to five chips, or none", () => {
-    const q = c.question as { text: string; chips: Record<string, unknown>[] } | null;
+    const q = c.question as {
+      text: string;
+      chips: Record<string, unknown>[];
+    } | null;
     if (!q) return;
     expect(typeof q.text).toBe("string");
     expect(q.chips.length).toBeGreaterThanOrEqual(3);
@@ -1154,7 +1202,8 @@ describe("GET /api/today, hunches, Heading and confidence (phase 39)", () => {
     const c = b.confidence as Record<string, unknown>;
     if (c.lastDraw) expect(c.lastDraw as string).toMatch(DAY);
     expect(num(c.days)).toBe(true);
-    for (const k of ["measured", "total", "open"]) expect(typeof c[k], k).toBe("number");
+    for (const k of ["measured", "total", "open"])
+      expect(typeof c[k], k).toBe("number");
     expect(c.total).toBe(12);
   });
 
@@ -1213,8 +1262,18 @@ describe("headingOf", () => {
       ["tsh", [{ date: "2023-01-01" }]],
     ]),
     hunches: [
-      { kind: "cluster", codes: ["ferritin"], system: "iron", line: "Iron fell." },
-      { kind: "good_news", codes: ["crp"], system: "inflammation", line: "CRP is back." },
+      {
+        kind: "cluster",
+        codes: ["ferritin"],
+        system: "iron",
+        line: "Iron fell.",
+      },
+      {
+        kind: "good_news",
+        codes: ["crp"],
+        system: "inflammation",
+        line: "CRP is back.",
+      },
     ],
     goals: [
       {
@@ -1257,7 +1316,13 @@ describe("headingOf", () => {
       latest: new Map([
         [
           "ferritin",
-          { name: "Ferritin", value: 12.5, unit: "ng/mL", refLow: 20, refHigh: 250 },
+          {
+            name: "Ferritin",
+            value: 12.5,
+            unit: "ng/mL",
+            refLow: 20,
+            refHigh: 250,
+          },
         ],
         [
           "ldl_cholesterol",
@@ -1267,7 +1332,11 @@ describe("headingOf", () => {
     });
     const iron = h.find((x) => x.id === "iron")!;
     expect(iron.word).toBe("holding");
-    expect(iron.off).toEqual({ name: "Ferritin", value: "12.5 ng/mL", side: "below" });
+    expect(iron.off).toEqual({
+      name: "Ferritin",
+      value: "12.5 ng/mL",
+      side: "below",
+    });
     expect(h.find((x) => x.id === "lipids")!.off).toBeUndefined();
   });
 });
@@ -1275,7 +1344,9 @@ describe("headingOf", () => {
 describe("42C: the Watch order", () => {
   it("puts an open cause first and chronic after cluster", () => {
     const kinds = ["gap", "step", "chronic", "cluster", "drift", "cause"];
-    const hs = kinds.map((kind) => ({ kind }) as Parameters<typeof byStory>[0][number]);
+    const hs = kinds.map(
+      (kind) => ({ kind }) as Parameters<typeof byStory>[0][number],
+    );
     expect(byStory(hs).map((h) => h.kind)).toEqual([
       "cause",
       "cluster",
@@ -1319,13 +1390,19 @@ describe("researchOf (42D)", () => {
   it("else the newest run, which moved nothing here", () => {
     expect(
       researchOf(
-        [run("2026-09-29", 12, [move("hashimoto", 0.2, 0.4)]), run("2026-09-22", 3, [])],
+        [
+          run("2026-09-29", 12, [move("hashimoto", 0.2, 0.4)]),
+          run("2026-09-22", 3, []),
+        ],
         ["atrophic_gastritis"],
       ),
     ).toEqual({ at: "2026-09-29", papers: 12, moves: [] });
     // an older run row with no moves at all reads the same
     expect(
-      researchOf([{ ranAt: new Date("2026-09-01"), rows: { papers: 4 } }], ["x"]),
+      researchOf(
+        [{ ranAt: new Date("2026-09-01"), rows: { papers: 4 } }],
+        ["x"],
+      ),
     ).toEqual({ at: "2026-09-01", papers: 4, moves: [] });
     expect(researchOf([], ["x"])).toBeNull();
   });

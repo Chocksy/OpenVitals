@@ -85,7 +85,12 @@ import { genomeVerdicts, loadGenome, movedIds } from "@/lib/genome";
 import { genomeVerdict } from "@/lib/genome-catalog";
 import { orderVerdicts } from "@/lib/genome-view";
 import { previewLines } from "@/lib/projections";
-import { listWatch, toApiPaper, type ApiPaper } from "@/lib/research-watch";
+import {
+  listWatch,
+  paperActions,
+  toApiPaper,
+  type ApiPaper,
+} from "@/lib/research-watch";
 import {
   designWords,
   findingsFor,
@@ -1189,6 +1194,7 @@ export async function topicBody(
 
   const relevance = relevanceOf(row, person, findings);
   const labels = new Map([[`topic:${row.topic}`, row.label]]);
+  const actions = await paperActions(papers);
   const marked = findings.filter((f) => f.outcomeFeatureId);
   const preview = marked.length
     ? await previewLines([...new Set(marked.map((f) => f.name))].slice(0, 4))
@@ -1206,7 +1212,7 @@ export async function topicBody(
     associations: findings
       .filter((f) => isAssociation(f.studyType))
       .map(toApiFinding),
-    papers: papers.map((p) => toApiPaper(p, labels)),
+    papers: papers.map((p) => toApiPaper(p, labels, actions)),
   };
 }
 

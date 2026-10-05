@@ -24,7 +24,13 @@ import { notFound } from "next/navigation";
 import { ChevronLeft, ExternalLink, FileText } from "lucide-react";
 import { requireUserId } from "@/lib/auth";
 import { previewLines } from "@/lib/projections";
-import { listWatch } from "@/lib/research-watch";
+import {
+  askAbout,
+  listWatch,
+  paperActions,
+  summaryOf,
+  whyShown,
+} from "@/lib/research-watch";
 import {
   designWords,
   directionWords,
@@ -39,10 +45,10 @@ import {
   associationLine,
   TOPIC_DAYS,
 } from "@/lib/topic-watch";
-import type { TopicFinding } from "@/db";
+import type { PaperWatch, TopicFinding } from "@/db";
 import { dayLabel, plural } from "@/lib/utils";
 import { EvidenceChip } from "@/components/evidence-chip";
-import { DiscussPaper } from "@/components/research-now";
+import { AddPaperAction, DiscussPaper } from "@/components/research-now";
 import { TopicActions } from "@/components/topic-actions";
 import { StateWord } from "@/components/ui-kit";
 
@@ -56,9 +62,19 @@ const nextRunDay = (lastRun: Date | null): string | null =>
         .slice(0, 10)
     : null;
 
-function FindingRow({ row, topic }: { row: TopicFinding; topic: string }) {
+function FindingRow({
+  row,
+  topic,
+  filed,
+}: {
+  row: TopicFinding;
+  topic: string;
+  /** this person's `paper_watch` row for the same paper: its plain line */
+  filed?: PaperWatch;
+}) {
   const association = isAssociation(row.studyType);
   const paper = row.paper;
+  const summary = filed ? summaryOf(filed) : null;
   return (
     <div className="paper">
       <span className="pg">
@@ -79,6 +95,7 @@ function FindingRow({ row, topic }: { row: TopicFinding; topic: string }) {
         )}
         {row.population && <span>{row.population}</span>}
       </div>
+      {summary && <p className="psum">{summary}</p>}
       <p className="pfound">
         <b>{row.outcomeText}</b>
         {row.effect ? `: ${row.effect}` : ""} ·{" "}
@@ -111,7 +128,10 @@ function FindingRow({ row, topic }: { row: TopicFinding; topic: string }) {
             <ExternalLink className="ic" aria-hidden="true" /> Open
           </a>
         )}
-        <DiscussPaper title={paper?.title ?? row.name} />
+        <DiscussPaper
+          title={paper?.title ?? row.name}
+          {...(filed ? { ask: askAbout(filed) } : {})}
+        />
       </div>
     </div>
   );
@@ -141,6 +161,9 @@ export default async function TopicPage({
   const associations = findings.filter((f) => isAssociation(f.studyType));
   const read = papers.filter((p) => p.grade != null || p.finding != null);
   const unread = papers.filter((p) => p.grade == null && p.finding == null);
+  const byPaper = new Map(papers.map((p) => [p.externalId, p]));
+  const actions = await paperActions(papers);
+  const labels = new Map([[`topic:${row.topic}`, row.label]]);
 
   const marked = [
     ...new Set(findings.filter((f) => f.outcomeFeatureId).map((f) => f.name)),
@@ -261,7 +284,12 @@ export default async function TopicPage({
             {trials.length ? (
               <div className="rowlist">
                 {trials.map((f) => (
-                  <FindingRow key={f.id} row={f} topic={row.label} />
+                  <FindingRow
+                    key={f.id}
+                    row={f}
+                    topic={row.label}
+                    filed={byPaper.get(f.paperExternalId)}
+                  />
                 ))}
               </div>
             ) : (
@@ -283,7 +311,12 @@ export default async function TopicPage({
             {associations.length ? (
               <div className="rowlist">
                 {associations.map((f) => (
-                  <FindingRow key={f.id} row={f} topic={row.label} />
+                  <FindingRow
+                    key={f.id}
+                    row={f}
+                    topic={row.label}
+                    filed={byPaper.get(f.paperExternalId)}
+                  />
                 ))}
               </div>
             ) : (
@@ -354,42 +387,56 @@ export default async function TopicPage({
             <span className="r">{plural(unread.length, "paper")}</span>
           </div>
           <div className="rowlist">
-            {unread.map((p) => (
-              <div className="paper" key={p.id}>
-                <span className="pg">
-                  <FileText className="ic" aria-hidden="true" />
-                </span>
-                <div className="ptitle">{p.title}</div>
-                <div className="pcite">
-                  {p.journal && <span>{p.journal}</span>}
-                  {p.foundAt && (
-                    <span>
-                      found{" "}
-                      {dayLabel(p.foundAt.toISOString().slice(0, 10), true)}
-                    </span>
-                  )}
-                </div>
-                <div className="pmoves">
-                  <StateWord tone="none">found, not read yet</StateWord>
-                  <span>
-                    the reader could not run; the title and the journal are all
-                    that is stored
+            {unread.map((p) => {
+              const summary = summaryOf(p);
+              const action = actions.get(p.externalId);
+              return (
+                <div className="paper" key={p.id}>
+                  <span className="pg">
+                    <FileText className="ic" aria-hidden="true" />
                   </span>
+                  <div className="ptitle">{p.title}</div>
+                  <div className="pcite">
+                    {p.journal && <span>{p.journal}</span>}
+                    {p.foundAt && (
+                      <span>
+                        found{" "}
+                        {dayLabel(p.foundAt.toISOString().slice(0, 10), true)}
+                      </span>
+                    )}
+                  </div>
+                  {summary && <p className="psum">{summary}</p>}
+                  <div className="pmoves">
+                    <span className="arrow">for you →</span>
+                    <span>{whyShown(p, labels)}</span>
+                  </div>
+                  <div className="pmoves">
+                    <StateWord tone="none">found, not read yet</StateWord>
+                    <span>
+                      {summary
+                        ? "not graded: the line above is the abstract in plain words, and nothing here is scored"
+                        : "the reader could not run; the title and the journal are all that is stored"}
+                    </span>
+                  </div>
+                  <div className="pact">
+                    {p.url && (
+                      <a
+                        className="b b-quiet b-sm"
+                        href={p.url}
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        <ExternalLink className="ic" aria-hidden="true" /> Open
+                      </a>
+                    )}
+                    <DiscussPaper title={p.title} ask={askAbout(p)} />
+                    {action && (
+                      <AddPaperAction id={action.id} title={action.title} />
+                    )}
+                  </div>
                 </div>
-                <div className="pact">
-                  {p.url && (
-                    <a
-                      className="b b-quiet b-sm"
-                      href={p.url}
-                      target="_blank"
-                      rel="noreferrer"
-                    >
-                      <ExternalLink className="ic" aria-hidden="true" /> Open
-                    </a>
-                  )}
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </section>
       )}

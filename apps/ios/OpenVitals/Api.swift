@@ -1566,6 +1566,40 @@ extension Api {
         let foundAt: String?
         let seenAt: String?
         let dismissedAt: String?
+        /// The paper in plain words, written once on the server from the
+        /// stored abstract. Null until that pass has read the row. Optional
+        /// so a body cached before the field existed still decodes.
+        var summary: String? = nil
+        /// Why this row is on this person's list, one sentence.
+        var why: String? = nil
+        /// The question "Ask about this" sends, carrying what the row knows.
+        var ask: String? = nil
+        /// The condition id the chat is about; nil for a topic row.
+        var about: String? = nil
+        /// The plan action this very paper backs, when one is on file.
+        var action: Action? = nil
+
+        /// One action a paper backs, as `POST /api/plan/adopt` takes it.
+        struct Action: Codable, Equatable {
+            /// `int:<intervention id>`
+            let id: String
+            let title: String
+            let dose: String?
+            let grade: String
+        }
+
+        /// The chat a paper's "Ask about this" opens: the row's own question,
+        /// sent at once, about the condition it was filed for.
+        var chatStart: ChatStart {
+            ChatStart(about: about,
+                      ask: ask ?? "What does this paper mean for me? “\(title)”.")
+        }
+
+        /// The plain line, or nil when there is none to print.
+        var plain: String? {
+            guard let summary, !summary.isEmpty else { return nil }
+            return summary
+        }
 
         /// "Prev Med · Aug 27 2026", the citation line.
         var cite: [String] {

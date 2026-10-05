@@ -1,6 +1,11 @@
 /** Mark one paper seen, or dismiss it. Phase 32a section 1. */
 import { currentUserId } from "@/lib/auth";
-import { patchWatch, toApiPaper } from "@/lib/research-watch";
+import {
+  paperActions,
+  paperNames,
+  patchWatch,
+  toApiPaper,
+} from "@/lib/research-watch";
 
 export async function PATCH(
   req: Request,
@@ -24,5 +29,11 @@ export async function PATCH(
       : {}),
   });
   if (!row) return Response.json({ error: "not found" }, { status: 404 });
-  return Response.json(toApiPaper(row));
+  // The phone swaps the row it had for this one, so it carries the same name
+  // and the same action the list gave it.
+  const [names, actions] = await Promise.all([
+    paperNames(userId, [row]),
+    paperActions([row]),
+  ]);
+  return Response.json(toApiPaper(row, names, actions));
 }

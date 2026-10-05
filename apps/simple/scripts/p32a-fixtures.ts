@@ -37,8 +37,12 @@ import { localDay } from "@/lib/daily";
 import { scoreDays } from "@/lib/score-days";
 import { dayTotals, mealRowOf, toApiMeal } from "@/lib/meals";
 import type { Meal } from "@/db";
-import { listWatch, toApiPaper } from "@/lib/research-watch";
-import { topicLabels } from "@/lib/topic-watch";
+import {
+  listWatch,
+  paperActions,
+  paperNames,
+  toApiPaper,
+} from "@/lib/research-watch";
 
 const OUT = path.join(process.cwd(), "fixtures/api");
 
@@ -76,9 +80,13 @@ async function main() {
   write("today", await todayBody(owner.id));
   write("body", await bodyBody(bodyOwner.id, day));
   write("plan-today", await planTodayBody(owner.id, day));
-  const labels = await topicLabels(owner.id);
+  const papers = await listWatch(owner.id);
+  const [names, actions] = await Promise.all([
+    paperNames(owner.id, papers),
+    paperActions(papers),
+  ]);
   write("research", {
-    rows: (await listWatch(owner.id)).map((r) => toApiPaper(r, labels)),
+    rows: papers.map((r) => toApiPaper(r, names, actions)),
   });
   write("research-topics", await topicsBody(owner.id));
   /* The first topic on the list, whichever it is: a fixture of an empty topic

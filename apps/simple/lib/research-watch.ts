@@ -22,9 +22,30 @@
  * `researchCondition` takes an injectable extractor, so every function below
  * is testable without a model call and without a network.
  */
-import { and, desc, eq, gt, inArray, isNotNull, isNull, sql } from "drizzle-orm";
-import { getDb, paperWatch, type PaperMove, type PaperWatch } from "@/db";
+import {
+  and,
+  desc,
+  eq,
+  gt,
+  inArray,
+  isNotNull,
+  isNull,
+  ne,
+  or,
+  sql,
+} from "drizzle-orm";
+import { z } from "zod";
+import {
+  getDb,
+  hkbConditions,
+  hkbInterventions,
+  paperWatch,
+  topicWatch,
+  type PaperMove,
+  type PaperWatch,
+} from "@/db";
 import { buildModelInput } from "@/lib/coverage";
+import { generateObjectSafe } from "@/lib/extract";
 import { catalogFor } from "@/lib/hkb";
 import {
   scoreHypotheses,
@@ -398,11 +419,12 @@ export async function runWatch(
     proposal,
   }));
 
-  const facts = options.withDates === false
-    ? new Map<string, PaperFacts>()
-    : await paperFacts(condition.name, since, now).catch(
-        () => new Map<string, PaperFacts>(),
-      );
+  const facts =
+    options.withDates === false
+      ? new Map<string, PaperFacts>()
+      : await paperFacts(condition.name, since, now).catch(
+          () => new Map<string, PaperFacts>(),
+        );
   const values = watchRows(userId, condition, candidates, moves, facts);
   let stored = 0;
   if (values.length) {
@@ -473,7 +495,13 @@ async function searchOnlyWatch(
       .returning({ id: paperWatch.id });
     stored = written.length;
   }
-  return { conditionId: condition.id, since, found: found.length, stored, moved: 0 };
+  return {
+    conditionId: condition.id,
+    since,
+    found: found.length,
+    stored,
+    moved: 0,
+  };
 }
 
 /**
@@ -643,6 +671,32 @@ export interface ApiPaper {
   foundAt: string | null;
   seenAt: string | null;
   dismissedAt: string | null;
+  /**
+   * The paper in plain words, from `explainPapers`: what was studied, in
+   * whom, and what came out. Null until that pass has read the row, and null
+   * when it read it and the abstract gave it nothing to say.
+   */
+  summary: string | null;
+  /** why this row is on this person's list, in one sentence */
+  why: string;
+  /** the question "Ask about this" sends, with what the row knows in it */
+  ask: string;
+  /** the condition id the chat is about, or null for a topic row */
+  about: string | null;
+  /**
+   * The plan action this very paper stands behind, when one is on file:
+   * an accepted, graded `hkb_interventions` row citing this DOI or PMID.
+   * Null is the usual answer, and no button is drawn for it.
+   */
+  action: PaperAction | null;
+}
+
+/** One action a paper backs, as `/api/plan/adopt` takes it (`int:<id>`). */
+export interface PaperAction {
+  id: string;
+  title: string;
+  dose: string | null;
+  grade: string;
 }
 
 /**
@@ -660,6 +714,8 @@ export function toApiPaper(
    * topic itself rather than a blank.
    */
   labels?: Map<string, string>,
+  /** the action behind each paper, by external id, from `paperActions` */
+  actions?: Map<string, PaperAction>,
 ): ApiPaper {
   return {
     id: r.id,
@@ -679,7 +735,286 @@ export function toApiPaper(
     foundAt: r.foundAt?.toISOString() ?? null,
     seenAt: r.seenAt?.toISOString() ?? null,
     dismissedAt: r.dismissedAt?.toISOString() ?? null,
+    summary: summaryOf(r),
+    why: whyShown(r, labels),
+    ask: askAbout(r),
+    about: r.conditionId.startsWith("topic:") ? null : r.conditionId,
+    action: actions?.get(r.externalId) ?? null,
   };
+}
+
+/* ── making a row readable ────────────────────────────────────────────── */
+
+/** The stored plain line, or null; the empty string means "read, nothing to say". */
+export const summaryOf = (r: Pick<PaperWatch, "summary">): string | null =>
+  r.summary?.trim() || null;
+
+/**
+ * Why this row is on this person's list, in one sentence.
+ *
+ * Every row was filed for a reason the row itself carries: a topic they
+ * watch, or a condition their ledger had at possible or louder when the watch
+ * ran. A row that moved a number says that instead, because that is the
+ * stronger reason.
+ */
+export function whyShown(
+  r: Pick<PaperWatch, "conditionId" | "moves">,
+  names?: Map<string, string>,
+): string {
+  const name =
+    conditionNameOf(r.conditionId, names) ?? r.conditionId.replace(/_/g, " ");
+  if (r.moves) return `It changes how likely ${r.moves.name} is for you.`;
+  if (r.conditionId.startsWith("topic:")) return `You watch ${name}.`;
+  return `Your results flag ${name} as possible.`;
+}
+
+/**
+ * The question "Ask about this" sends. The chat cannot see the paper, so the
+ * question carries what the row knows: the title, the journal and year, and
+ * the plain line when there is one. Nothing is added that the row lacks.
+ */
+export function askAbout(
+  r: Pick<PaperWatch, "title" | "journal" | "publishedAt" | "summary">,
+): string {
+  const cite = [r.journal, r.publishedAt?.slice(0, 4)]
+    .filter(Boolean)
+    .join(", ");
+  const found = summaryOf(r);
+  return [
+    `What does this paper mean for me? “${r.title}”${cite ? ` (${cite})` : ""}.`,
+    found ? `What it found: ${found}` : null,
+  ]
+    .filter(Boolean)
+    .join(" ");
+}
+
+/**
+ * The names to print for each condition id on these rows: the catalog's name
+ * for a condition, the person's own label for a topic. `conditionNameOf`
+ * reads this map, so a catalog row is named rather than left blank.
+ */
+export async function paperNames(
+  userId: string,
+  rows: Pick<PaperWatch, "conditionId">[],
+): Promise<Map<string, string>> {
+  const ids = [...new Set(rows.map((r) => r.conditionId))];
+  const catalog = ids.filter((id) => !id.startsWith("topic:"));
+  const db = getDb();
+  const [named, topics] = await Promise.all([
+    catalog.length
+      ? db
+          .select({ id: hkbConditions.id, name: hkbConditions.name })
+          .from(hkbConditions)
+          .where(inArray(hkbConditions.id, catalog))
+      : [],
+    ids.length > catalog.length
+      ? db
+          .select({ topic: topicWatch.topic, label: topicWatch.label })
+          .from(topicWatch)
+          .where(eq(topicWatch.userId, userId))
+      : [],
+  ]);
+  return new Map([
+    ...named.map((c) => [c.id, c.name] as const),
+    ...topics.map((t) => [`topic:${t.topic}`, t.label] as const),
+  ]);
+}
+
+/** The order a grade is best in, for picking one action per paper. */
+const GRADES = ["A", "B", "C", "D", "E"];
+
+/**
+ * The plan action each paper stands behind, by external id.
+ *
+ * Only an accepted, graded intervention whose own paper is this paper counts:
+ * a row for the same condition from a different paper is not "what this
+ * paper says to do". A drug or a procedure is left out, because starting one
+ * takes a doctor and an Add button would say otherwise.
+ */
+export async function paperActions(
+  rows: Pick<PaperWatch, "externalId">[],
+): Promise<Map<string, PaperAction>> {
+  const keys = [...new Set(rows.map((r) => r.externalId.toLowerCase()))];
+  if (!keys.length) return new Map();
+  const found = await getDb()
+    .select()
+    .from(hkbInterventions)
+    .where(
+      and(
+        eq(hkbInterventions.status, "accepted"),
+        or(
+          inArray(sql<string>`lower(${hkbInterventions.paper}->>'doi')`, keys),
+          inArray(sql<string>`${hkbInterventions.paper}->>'pmid'`, keys),
+        ),
+      ),
+    );
+  const out = new Map<string, PaperAction>();
+  for (const r of found.sort(
+    (a, b) => GRADES.indexOf(a.grade) - GRADES.indexOf(b.grade),
+  )) {
+    if (r.kind === "drug" || r.kind === "procedure") continue;
+    const key = r.paper?.doi?.toLowerCase() ?? r.paper?.pmid ?? null;
+    if (!key || out.has(key)) continue;
+    out.set(key, {
+      id: `int:${r.id}`,
+      title: r.name,
+      dose: r.dose,
+      grade: r.grade,
+    });
+  }
+  return out;
+}
+
+/* ── the plain line, written once ─────────────────────────────────────── */
+
+/** Abstracts per call: eight short paragraphs is one cheap prompt. */
+export const EXPLAIN_BATCH = 8;
+
+export const EXPLAIN_PROMPT = `You rewrite medical papers for a person with no medical training.
+
+For each numbered paper, write ONE sentence of at most 30 words that says what was studied, in whom, and what came out.
+
+Rules:
+- Use only what the title and abstract say. Never add a number, a dose, an effect or a population the abstract does not state.
+- Keep the paper's own numbers with their units ("lowered LDL by about 13 mg/dL", "in 3,400 adults with type 2 diabetes").
+- Plain words. Spell out an abbreviation the first time, or use the everyday word ("blood pressure", not "BP").
+- An observational study finds a link, not a cause: write "was linked to", never "caused" or "lowered".
+- No advice. Never say what the reader should do.
+- When the paper reports no result (a protocol, a correction, a commentary, a methods paper), say what kind of paper it is and that it reports no health result.
+- When the abstract is missing or says nothing you can use, return null for that paper.`;
+
+const explainSchema = z.object({
+  items: z.array(
+    z.object({
+      /** the paper's number in the prompt, from 1 */
+      n: z.number().int(),
+      line: z.string().nullable(),
+    }),
+  ),
+});
+
+/** What the plain-line pass reads per paper. */
+export interface ExplainInput {
+  title: string;
+  journal: string | null;
+  abstract: string | null;
+  finding: string | null;
+}
+
+/** One batch in, one line (or null) per paper out, in the same order. */
+export interface Explainer {
+  (papers: ExplainInput[]): Promise<(string | null)[]>;
+}
+
+/** An abstract as prose: Europe PMC's `<h4>` headings and tags come off. */
+export const plainAbstract = (text: string | null): string =>
+  (text ?? "")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, 3000);
+
+/** A line the model wrote, cleaned: one sentence, no wrapping quotes, capped. */
+export const cleanLine = (line: string | null | undefined): string | null => {
+  const t = (line ?? "")
+    .trim()
+    .replace(/^["“'”]+|["”'“]+$/g, "")
+    .trim();
+  return t ? t.slice(0, 300) : null;
+};
+
+/** The default explainer: `AI_DEFAULT_MODEL` through the shared object helper. */
+export const llmExplain =
+  (modelId?: string): Explainer =>
+  async (papers) => {
+    const numbered = papers
+      .map(
+        (p, i) =>
+          `[${i + 1}] ${p.title} (${p.journal ?? "?"})\n` +
+          (plainAbstract(p.abstract) || "(no abstract)") +
+          (p.finding ? `\nKey sentence: ${p.finding}` : ""),
+      )
+      .join("\n\n");
+    const { object } = await generateObjectSafe({
+      model: modelId,
+      schema: explainSchema,
+      system: EXPLAIN_PROMPT,
+      prompt: `PAPERS:\n${numbered}`,
+      maxOutputTokens: 2000,
+    });
+    return papers.map((_, i) =>
+      cleanLine(object.items.find((x) => x.n === i + 1)?.line),
+    );
+  };
+
+/**
+ * Write the plain line for this person's rows that have none yet.
+ *
+ * A row is only ever explained once: the line is stored, and a row the model
+ * had nothing to say about is stored as the empty string so the next pass
+ * skips it. The same paper already explained for somebody else is copied, not
+ * paid for again: the line is about the paper, not the person. Returns how
+ * many rows got a line.
+ */
+export async function explainPapers(
+  userId: string,
+  options: { limit?: number; explain?: Explainer } = {},
+): Promise<number> {
+  const db = getDb();
+  const rows = await db
+    .select()
+    .from(paperWatch)
+    .where(
+      and(
+        eq(paperWatch.userId, userId),
+        isNull(paperWatch.summary),
+        isNull(paperWatch.dismissedAt),
+        or(isNotNull(paperWatch.abstract), isNotNull(paperWatch.finding)),
+      ),
+    )
+    .orderBy(desc(paperWatch.foundAt))
+    .limit(options.limit ?? 24);
+  if (!rows.length) return 0;
+
+  const done = await db
+    .select({ externalId: paperWatch.externalId, summary: paperWatch.summary })
+    .from(paperWatch)
+    .where(
+      and(
+        inArray(
+          paperWatch.externalId,
+          rows.map((r) => r.externalId),
+        ),
+        isNotNull(paperWatch.summary),
+        ne(paperWatch.summary, ""),
+      ),
+    );
+  const known = new Map(done.map((d) => [d.externalId, d.summary!]));
+
+  const set = (id: string, summary: string) =>
+    db.update(paperWatch).set({ summary }).where(eq(paperWatch.id, id));
+
+  let written = 0;
+  const todo: PaperWatch[] = [];
+  for (const r of rows) {
+    const copy = known.get(r.externalId);
+    if (copy) {
+      await set(r.id, copy);
+      written++;
+    } else todo.push(r);
+  }
+
+  const explain = options.explain ?? llmExplain();
+  for (let i = 0; i < todo.length; i += EXPLAIN_BATCH) {
+    const batch = todo.slice(i, i + EXPLAIN_BATCH);
+    const lines = await explain(batch);
+    for (const [k, r] of batch.entries()) {
+      const line = lines[k] ?? null;
+      await set(r.id, line ?? "");
+      if (line) written++;
+    }
+  }
+  return written;
 }
 
 /** "topic:cold exposure" is "cold exposure" unless the watch list names it. */

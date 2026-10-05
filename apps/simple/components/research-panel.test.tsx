@@ -48,6 +48,7 @@ const paper = (over: Partial<Row> & { id: string }): Row =>
     grade: "A",
     finding: "Three months of selenium cut TPO antibodies by 21 %.",
     abstract: null,
+    summary: null,
     moves: null,
     foundAt: new Date("2026-08-01T00:00:00Z"),
     seenAt: null,
@@ -112,6 +113,49 @@ describe("one paper row", () => {
     );
     expect(html2).toContain("Hashimoto&#x27;s");
     expect(html2).toContain("down 4 points");
+  });
+});
+
+describe("a row a person can act on", () => {
+  const action = {
+    id: "int:selenium_tpo",
+    title: "Selenium",
+    dose: "200 µg/day",
+    grade: "A",
+  };
+  const html = renderToStaticMarkup(
+    <PaperRow
+      row={paper({
+        id: "s",
+        summary: "In 400 adults, selenium lowered thyroid antibodies by a fifth.",
+      })}
+      names={new Map([["hashimoto", "Hashimoto's thyroiditis"]])}
+      actions={new Map([["doi:s", action]])}
+    />,
+  );
+
+  it("leads with the paper in plain words", () => {
+    expect(html).toContain('class="psum"');
+    expect(html).toContain("selenium lowered thyroid antibodies by a fifth");
+  });
+
+  it("says why it is on this person's list", () => {
+    expect(html).toContain("for you →");
+    expect(html).toContain("Your results flag Hashimoto&#x27;s thyroiditis as possible.");
+  });
+
+  it("asks about it in the full-page chat, about its condition", () => {
+    expect(html).toContain("Ask about this");
+    expect(html).toMatch(/href="\/chat\?ask=[^"]*about=hashimoto"/);
+  });
+
+  it("offers the action it backs, with its grade, and only then", () => {
+    expect(html).toContain("backs →");
+    expect(html).toContain("Selenium · 200 µg/day");
+    expect(html).toContain("Add to plan");
+    const bare = renderToStaticMarkup(<PaperRow row={paper({ id: "t" })} />);
+    expect(bare).not.toContain("Add to plan");
+    expect(bare).not.toContain('class="psum"');
   });
 });
 

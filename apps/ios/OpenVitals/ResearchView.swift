@@ -16,6 +16,12 @@ struct ResearchView: View {
     @State private var filter = "All"
     @State private var running = ""
     @State private var said = ""
+    /// The chat an "Ask about this" opened, over this sheet.
+    @State private var chat: ChatStart?
+    /// Action ids added from a card, with the protocol row each one made,
+    /// so the button stays "Added" and its undo knows what to take back.
+    @State private var added: [String: String] = [:]
+    @State private var adding = ""
     @Environment(\.openURL) private var openURL
     @Environment(\.dismiss) private var dismiss
 
@@ -49,6 +55,28 @@ struct ResearchView: View {
         }
         .environment(\.colorScheme, .light)
         .task { if live { await load() } }
+        // Research is a sheet, so the Shell's chat cover cannot open over it:
+        // the chat opens here instead, the same screen.
+        .fullScreenCover(item: $chat) { start in
+            ChatScreen(start: start, close: { chat = nil })
+        }
+    }
+
+    /// What the "Not read yet" card says. A row with a plain line has more
+    /// than a title, so the card does not claim otherwise; neither kind has
+    /// a grade, and the card says that either way.
+    static func unreadNote(_ rows: [Api.Paper]) -> String {
+        let unread = rows.filter { !$0.read }
+        let lead = unread.contains { $0.plain != nil }
+            ? "here have no grade yet. The plain line under a title is the "
+                + "abstract in plain words, not a verdict. The grade and the "
+                + "one-line "
+            : "here have a title, a journal and a date and nothing else. "
+                + "The grade and the one-line "
+        return "\(Design.plural(unread.count, "paper", "papers")) " + lead
+            + "finding come from the intake, which reads each abstract with "
+            + "the model; it has not run on these rows, so nothing here "
+            + "claims to move a number."
     }
 
     /// The header's line, under the count it does not repeat: "2 moved
@@ -84,13 +112,7 @@ struct ResearchView: View {
                 VStack(alignment: .leading, spacing: DesignTokens.s5) {
                     CardLabel(text: "Not read yet · \(Design.number(unread))",
                               glyph: "hourglass")
-                    Text("\(Design.plural(unread, "paper", "papers")) "
-                         + "here have a title, a journal and a date and "
-                         + "nothing else. The grade and the one-line "
-                         + "finding come from the intake, which reads "
-                         + "each abstract with the model; it has not "
-                         + "run on these rows, so nothing here claims "
-                         + "to move a number.")
+                    Text(Self.unreadNote(rows))
                         .hType(13, .regular, Hy.ink2)
                         .fixedSize(horizontal: false, vertical: true)
                 }
@@ -144,15 +166,19 @@ struct ResearchView: View {
         } else {
             LazyVStack(alignment: .leading, spacing: DesignTokens.s8) {
                 ForEach(shown) { p in
-                    Button { Task { await open(p) } } label: { PaperCard(paper: p) }
-                        .buttonStyle(Pressed(scale: 0.98))
+                    // The card is no longer one big button: it carries its own
+                    // doors (open, ask, add), and a button may not hold buttons.
+                    PaperCard(paper: p,
+                              open: { Task { await open(p) } },
+                              ask: { chat = p.chatStart },
+                              add: p.action.map { a in { Task { await add(a) } } },
+                              added: p.action.map { added[$0.id] != nil } ?? false,
+                              adding: p.action?.id == adding && !adding.isEmpty)
                         .contextMenu {
                             Button("Open in Safari") {
                                 Task { await open(p) }
                             }
                         }
-                        .accessibilityHint("Opens the paper in Safari and "
-                                           + "marks it seen")
                 }
             }
         }
@@ -226,6 +252,21 @@ struct ResearchView: View {
         }
     }
 
+    /// "Add to plan": the same `POST /api/plan/adopt` the chat's chips send.
+    private func add(_ action: Api.Paper.Action) async {
+        guard added[action.id] == nil else { return }
+        adding = action.id
+        defer { adding = "" }
+        do {
+            if Fixtures.on || !live { added[action.id] = ""; return }
+            let done = try await Api.adopt(id: action.id)
+            added[action.id] = done.id ?? ""
+            NotificationCenter.default.post(name: .ovPlanChanged, object: nil)
+        } catch {
+            said = "\(action.title) was not added: \(error.localizedDescription)"
+        }
+    }
+
     private func run(_ id: String) async {
         running = id
         defer { running = "" }
@@ -288,12 +329,52 @@ struct HyChips: View {
 }
 
 /// One paper as a card: the title, the journal and the date with the grade,
-/// what it found, and the word for what it moves in that word's colour. The
-/// whole card is the tap.
+/// the paper in plain words, why it is here, what it found, the action it
+/// backs, and the word for what it moves in that word's colour. The words
+/// are the tap that opens the paper; the doors are under them.
 struct PaperCard: View {
     let paper: Api.Paper
+    var open: () -> Void = {}
+    /// Nil draws no Ask button (the tests' plain card).
+    var ask: (() -> Void)? = nil
+    /// Nil when the paper backs no action: then no Add button is drawn.
+    var add: (() -> Void)? = nil
+    var added = false
+    var adding = false
 
     var body: some View {
+        VStack(alignment: .leading, spacing: DesignTokens.s8) {
+            words
+                .contentShape(Rectangle())
+                .onTapGesture(perform: open)
+                .accessibilityElement(children: .combine)
+                .accessibilityAddTraits(.isButton)
+                .accessibilityHint("Opens the paper in Safari and marks it seen")
+            doors
+        }
+        .hyCard()
+    }
+
+    /// Open, Ask about this, and Add to plan when the paper backs an action.
+    @ViewBuilder private var doors: some View {
+        if ask != nil || add != nil {
+            HStack(spacing: DesignTokens.s8) {
+                if let ask {
+                    HyAction(title: "Ask about this", kind: .secondary,
+                             wide: false, action: ask)
+                }
+                if let add {
+                    HyAction(title: added ? "Added" : adding ? "Adding…" : "Add to plan",
+                             kind: .primary, wide: false, action: add)
+                        .disabled(added || adding)
+                }
+                Spacer(minLength: 0)
+            }
+            .padding(.top, 2)
+        }
+    }
+
+    private var words: some View {
         VStack(alignment: .leading, spacing: DesignTokens.s5) {
             Text(paper.title).hType(15, .semibold, Hy.ink)
                 .multilineTextAlignment(.leading)
@@ -308,6 +389,12 @@ struct PaperCard: View {
                         .padding(.vertical, 1)
                         .background(Capsule().fill(Hy.paper2))
                 }
+            }
+            if let summary = paper.plain {
+                // The plain line is what a person reads first: ink, not ink2.
+                Text(summary).hType(14, .regular, Hy.ink)
+                    .multilineTextAlignment(.leading)
+                    .fixedSize(horizontal: false, vertical: true)
             }
             if paper.read {
                 Text(paper.found).hType(13, .regular, Hy.ink2)
@@ -336,10 +423,24 @@ struct PaperCard: View {
                 }
                 .padding(.top, 2)
             }
+            if let why = paper.why, !why.isEmpty {
+                line("for you", why)
+            }
+            if let action = paper.action {
+                line("backs", [action.title, action.dose, "grade \(action.grade)"]
+                    .compactMap { $0 }.joined(separator: " · "))
+            }
         }
-        .hyCard()
-        .contentShape(Rectangle())
-        .accessibilityElement(children: .combine)
+    }
+
+    /// "for you  Your results flag …": the small label, then the words.
+    private func line(_ label: String, _ text: String) -> some View {
+        HStack(alignment: .firstTextBaseline, spacing: DesignTokens.s8) {
+            Text(label).hType(11, .medium, Hy.ink3)
+            Text(text).hType(13, .regular, Hy.ink2)
+                .multilineTextAlignment(.leading)
+                .fixedSize(horizontal: false, vertical: true)
+        }
     }
 
     /// `movesTone` in the Hybrid colours: up is rose, down is green, nothing
@@ -437,6 +538,13 @@ struct NewForYou: View {
                                     .ovType(.xs, mono: true)
                                     .foregroundStyle(Design.ink3)
                                 if let grade = p.grade { Glyph(mark: grade) }
+                            }
+                            // what it found, in plain words, when the server has it
+                            if let plain = p.plain {
+                                Text(plain).ovType(.sm, leading: 1.45)
+                                    .foregroundStyle(Design.ink2)
+                                    .fixedSize(horizontal: false, vertical: true)
+                                    .multilineTextAlignment(.leading)
                             }
                             HStack(alignment: .firstTextBaseline,
                                    spacing: DesignTokens.s8) {

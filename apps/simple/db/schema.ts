@@ -1505,6 +1505,13 @@ export const paperWatch = pgTable(
     /** one sentence of what it found, the intake's own */
     finding: text("finding"),
     abstract: text("abstract"),
+    /**
+     * The same paper in plain words: what was studied, in whom, and what came
+     * out, written once from the stored abstract by `explainPapers` and kept.
+     * Null until that pass reaches the row; an empty string when it read the
+     * row and there was nothing to say, so the pass never pays for it twice.
+     */
+    summary: text("summary"),
     moves: jsonb("moves").$type<PaperMove>(),
     foundAt: timestamp("found_at", { withTimezone: true }).defaultNow(),
     seenAt: timestamp("seen_at", { withTimezone: true }),

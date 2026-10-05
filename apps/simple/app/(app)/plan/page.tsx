@@ -43,7 +43,13 @@ import { matchPatterns } from "@/lib/patterns";
 import { asksFromMoves, inlineAsks } from "@/lib/asking";
 import { bootstrapProtocol, getGoals, getProtocol } from "@/lib/daily-data";
 import { localDay } from "@/lib/daily";
-import { listWatch, watchConditions, WATCH_DAYS } from "@/lib/research-watch";
+import {
+  listWatch,
+  paperActions,
+  paperNames,
+  watchConditions,
+  WATCH_DAYS,
+} from "@/lib/research-watch";
 import { topicsBody } from "@/lib/api-contract";
 import { TOPIC_DAYS } from "@/lib/topic-watch";
 import { getMetricNames } from "@/lib/data";
@@ -347,6 +353,11 @@ export default async function PlanPage({
 
   /** Phase 35 section C: the topics list, under "New for you". */
   const { topics } = await topicsBody(userId);
+  /** What each paper row needs beyond itself: a name, and the action it backs. */
+  const [paperNamed, paperBacked] = await Promise.all([
+    paperNames(userId, papers),
+    paperActions(papers),
+  ]);
   const lastRun =
     papers
       .map((p) => p.foundAt?.toISOString().slice(0, 10) ?? "")
@@ -468,6 +479,8 @@ export default async function PlanPage({
         cooldownDays={WATCH_DAYS}
         topics={topics}
         topicDays={TOPIC_DAYS}
+        names={paperNamed}
+        actions={paperBacked}
       />
     ),
 
