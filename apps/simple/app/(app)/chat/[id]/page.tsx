@@ -6,7 +6,7 @@
  */
 import { notFound } from "next/navigation";
 import { ChevronLeft } from "lucide-react";
-import { and, asc, eq } from "drizzle-orm";
+import { and, asc, desc, eq } from "drizzle-orm";
 import type { UIMessage } from "ai";
 import { getDb } from "@/db";
 import { threadMessages, threads } from "@/db/schema";
@@ -35,7 +35,12 @@ export default async function ThreadPage({
     .select()
     .from(threadMessages)
     .where(eq(threadMessages.threadId, thread.id))
-    .orderBy(asc(threadMessages.createdAt));
+    .orderBy(
+      // One insert writes a turn's question and answer with the same
+      // timestamp; "user" sorts after "assistant", so desc puts the question first.
+      asc(threadMessages.createdAt),
+      desc(threadMessages.role),
+    );
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">

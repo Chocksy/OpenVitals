@@ -6,7 +6,7 @@
  * zero data retention and for a BAA, which for a blood-panel app is the wrong
  * trade, so we keep the table and the two queries.
  */
-import { and, desc, eq } from "drizzle-orm";
+import { and, asc, desc, eq } from "drizzle-orm";
 import { getDb, threads, threadMessages } from "@/db";
 import { currentUserId } from "@/lib/auth";
 
@@ -40,7 +40,12 @@ export async function GET(req: Request) {
     .select({ ui: threadMessages.ui })
     .from(threadMessages)
     .where(eq(threadMessages.threadId, id))
-    .orderBy(threadMessages.createdAt);
+    .orderBy(
+      // One insert writes a turn's question and answer with the same
+      // timestamp; "user" sorts after "assistant", so desc puts the question first.
+      asc(threadMessages.createdAt),
+      desc(threadMessages.role),
+    );
   return Response.json({
     thread: {
       id: thread.id,

@@ -16,6 +16,11 @@ struct HunchCaseView: View {
     /// On Blood's pushed page: "‹ Blood".
     var back: (() -> Void)?
 
+    /// "Ask about this": a new thread, the question waiting. No `about`: a
+    /// hunch has several candidate causes, and naming one would treat it as
+    /// the answer.
+    @State private var asking: ChatStart?
+
     private var c: Api.HunchCase? { desk.cases[id] ?? row.map(Api.HunchCase.init(row:)) }
 
     var body: some View {
@@ -34,6 +39,7 @@ struct HunchCaseView: View {
             }
         }
         .task { await desk.load(id) }
+        .fullScreenCover(item: $asking) { ChatScreen(start: $0, close: { asking = nil }) }
     }
 
     // MARK: depth 2, the top
@@ -95,6 +101,9 @@ struct HunchCaseView: View {
         }
         if let d = c.differential { OurRead(d: d, specialty: c.bestRead?.specialty, research: c.research) }
         chart(c)
+        HyAction(title: "Ask about this", kind: .secondary) {
+            asking = ChatStart(draft: "\(c.row.line) What does this mean for me, and what should I do next?")
+        }
     }
 
     static func system(_ id: String) -> String {

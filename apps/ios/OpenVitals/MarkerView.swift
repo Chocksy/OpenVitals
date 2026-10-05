@@ -22,12 +22,18 @@ struct MarkerView: View {
     @State private var note = ""
     @State private var busy = false
     @State private var said = ""
+    /// "Ask about this": a new thread over the sheet, the question waiting.
+    @State private var asking: ChatStart?
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: DesignTokens.s13) {
                 top
                 head
+                HyAction(title: "Ask about this", kind: .secondary) {
+                    asking = .about(marker: marker.name)
+                }
+                .padding(.horizontal, DesignTokens.s21)
                 chart
                 readings
                 goalCard
@@ -46,6 +52,8 @@ struct MarkerView: View {
         .presentationCornerRadius(42)
         .presentationBackground { ZStack { Hy.card; GrainTile() } }
         .onAppear { goal = marker.goal; fill(marker.goal) }
+        // Its own cover: Shell cannot present over this system sheet.
+        .fullScreenCover(item: $asking) { ChatScreen(start: $0, close: { asking = nil }) }
     }
 
     // MARK: - the parts

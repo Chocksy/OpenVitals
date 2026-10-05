@@ -111,6 +111,7 @@ struct AddVeil: View {
 struct AddSheet: View {
     @Environment(IslandModel.self) private var island: IslandModel?
     @Environment(\.accessibilityReduceMotion) private var reduce
+    @Environment(\.openChat) private var openChat
     @Binding var busy: Bool
     let close: () -> Void
     /// D5: the Photo tile hands over to the camera, with the words so far.
@@ -507,6 +508,13 @@ struct AddSheet: View {
         guard Self.canSend(payload, busy: busy) else { return }
         if CaptureRun.route(payload) == .island {
             _ = await run.send(payload)
+            dismiss()
+            return
+        }
+        // A question goes to the chat, as the web's Add does: a thread the
+        // person can carry on. Without a Shell it is answered here.
+        if let openChat {
+            openChat(ChatStart(ask: payload.text.trimmingCharacters(in: .whitespacesAndNewlines)))
             dismiss()
             return
         }

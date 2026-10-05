@@ -16,7 +16,7 @@ import {
   type ToolSet,
   type UIMessage,
 } from "ai";
-import { eq } from "drizzle-orm";
+import { asc, desc, eq } from "drizzle-orm";
 import { getDb, threads, threadMessages } from "@/db";
 import type { Thread } from "@/db/schema";
 import { briefFor, type Brief } from "./brief";
@@ -166,7 +166,12 @@ export async function prepareTurn(
     .select({ model: threadMessages.model })
     .from(threadMessages)
     .where(eq(threadMessages.threadId, its.id))
-    .orderBy(threadMessages.createdAt);
+    .orderBy(
+      // One insert writes a turn's question and answer with the same
+      // timestamp; "user" sorts after "assistant", so desc puts the question first.
+      asc(threadMessages.createdAt),
+      desc(threadMessages.role),
+    );
   const isFollowUp = stored.length > 0;
 
   const brief = await briefFor(

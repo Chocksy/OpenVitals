@@ -1,0 +1,96 @@
+data: {"type":"start"}
+
+data: {"type":"start-step"}
+
+data: {"type":"reasoning-start","id":"tY8Rn6na8sWadnjs"}
+
+data: {"type":"reasoning-delta","id":"tY8Rn6na8sWadnjs","delta":"I'm structuring a conc"}
+
+data: {"type":"reasoning-delta","id":"tY8Rn6na8sWadnjs","delta":"ise response: first laying out the lipid panel numbers (LDL up to 131, ApoB 99, non-HDL 167, Lp(a) normal) with"}
+
+data: {"type":"reasoning-delta","id":"tY8Rn6na8sWadnjs","delta":" the cardiovascular risk estimate, then narrowing down to two or three key actions like the psyllium/oats plan and the statin decision point."}
+
+data: {"type":"reasoning-delta","id":"tY8Rn6na8sWadnjs","delta":"\n\nI"}
+
+data: {"type":"reasoning-delta","id":"tY8Rn6na8sWadnjs","delta":"'ll settle on three concrete suggestions — psyllium plus oats, plant sterols (2-3g/day), and flagging a statin discussion with a GP or cardiologist around atorvastatin 10-20mg/day — then wrap up by no"}
+
+data: {"type":"reasoning-delta","id":"tY8Rn6na8sWadnjs","delta":"ting LDL and ApoB should be rechecked at 12 weeks. I'll keep the questions section tight, skipping tangents like ancestry, and since there are no evidence rows to cite, I'll le"}
+
+data: {"type":"reasoning-delta","id":"tY8Rn6na8sWadnjs","delta":"ave the sources section empty."}
+
+data: {"type":"reasoning-delta","id":"tY8Rn6na8sWadnjs","delta":""}
+
+data: {"type":"reasoning-end","id":"tY8Rn6na8sWadnjs","providerMetadata":{"openrouter":{"reasoning_details":[{"type":"reasoning.text","text":"I'm structuring a concise response: first laying out the lipid panel numbers (LDL up to 131, ApoB 99, non-HDL 167, Lp(a) normal) with the cardiovascular risk estimate, then narrowing down to two or three key actions like the psyllium/oats plan and the statin decision point.\n\nI'll settle on three concrete suggestions — psyllium plus oats, plant sterols (2-3g/day), and flagging a statin discussion with a GP or cardiologist around atorvastatin 10-20mg/day — then wrap up by noting LDL and ApoB should be rechecked at 12 weeks. I'll keep the questions section tight, skipping tangents like ancestry, and since there are no evidence rows to cite, I'll leave the sources section empty.","format":"anthropic-claude-v1","index":0,"signature":"CAQS4g4KEAgSGAI4AUIIdGhpbmtpbmcSDEo3pJnLjQeAi6TkUBoME6bFkJcwEmX+fW0wIjA7HqElKEnUQvjm8CXnQQJouo8FAGGyyQpzLQ7yNhHeEuzsF/LMUtLqoEe4Lui0RFsq/w2N1Z7p/h2yPOxWCNh8Feazqg93spbzAr7SH/NOKXGeXwA1BKzFwGBtn5XovQha562fURxZGAdleARcmuE4L0wQwjiHY1eAveoRSj9lWpvknQmQhj1u8URnlMGuI9Wx7c0+34VQ7QFSnO1BbwsVUd8VoSZvNrpWNPr6tN4zTzRUuNt5CDqXUv6Jk3nuoa36XLE3ueC+xfz9bgFBOEbED6pS2Z5tJHlSYh36ngVkNI5Cngq5mT4bmHoAGX9cH7rZ70cmeMyHHJkAKSiLsycfFr0ugCD5b2a9SW+ngBOC8rakRhgJc/mCHx8MjRSMF+qenmO1oPMhgpV9dm57iCL358gFAGRo4kfVpS3Y2OjjkuMG6rDKTcD+wAfBvC7EKyTaqRX89bmzNyXQxqPMdDNJI7p6ydxRe9zyCUYUwCm5WyPA44T/uzEB5DxjIdm5GhmjNQ4b+r+RqUa/WlYn0R8rNpUaC5Zi48W7amrHVHXGEriuWAJYwhIpluSSe0SHn8DVy5iKlicxsCTxDs7LmAa0cWF5XbSF+jhqDy9fQs3Nqb4k5z5akLPs1yZCIqVNWfrWnYN/PGKOZGbv/974WOpzUm17rBX6pgNRu6cee7aiKLxw7pi15fMSjtajTpX5Kld2HbUWFjkJG6IImE8DssHNpaazwF0U1TkHrqbllSx4exN3tXtnuC6idkfGq5uLXSdxXclIGFFTqqoRz55Qzt6R7zXXKPk92TvSvDGIR9FhWnfhbolR8s40J+J67UmVu6LmI1oNM4HKEo73ik/aXestBfK1xfLQojg8Su9ivwLh7mzWur1+B2+1y8Vqmyk4TDIQYwq3D4Pww3LTkMBSa/gPCu11P2i6oXcT0QcpRXWBQgtAzGFwiAGLCgaVB/8d+IrIB46dUlroB7Szle+nwwWdK6XHMhri0hjvWCkd8lgpfIYyEq+vt06GUzPMrrDyLIIm0JNzLiaEmUFfxITIEiFD8YUGVXBIScg/QIF4FQ0IQ0XlVHF7clV+8+BhASt2S8mpbiUXhiM8Xifv0UAble08/yCgvkuFS1z2h6fOlC1I23vEozHGEjpaTSJhKDF+ldlGx3XExZhqHyGVubcf1rspRGTPnASQIdYV75NlNyEHYSRzyXtHI+T+CKKl11L+IiXrK+II3Bfbgf/32vrjBFSFuskgWob/W4pTZm3mTW5jpEuVrB6Dqe1Uu41zhrD4jcbRp7Qd17O451NbYw5Yk1EkS6cqXNjgEop0ecY5LwsGm2+JfFG2XMcwUEuuW8KpYSRlkWJYG5SulILqkpGq+4dyeWeFcNVBPORueLLTOm5UKLNd3YulfbML6QDYo83LgjAbc1var9oCB6RBuMISH84IgcrH0sE23LfVtchn0FL4c7XfqvQjUZq2oW6pA8VPP157EYq/VPSuTJ6qg1EVhfNfV61uxmpVPNK89AX0R2yIlWYgIUTLy+7newV+9FUT2o9eQTHOhep630pWy+eE8Uv3o7TUBn5gZRGuhu/pYbvmwxwWjL8c4nP8beyzuE8vltFYTyLfjcfDayRoN/zcHpNaDI5tOj5FLtKJP5hi58Km19KMrzu7RaV81+obhrgBFxcapGmogP9Syo70ho0lhx0GpFaKmAHyA0SwMmXi1fDeuSNQQpkaRCPTcGoKiQ7JR3v7t9953zAjJxqDA55jjwrKG19hB4ZNBTX5zKYpoFJCyI0F3qv1/ld1lt0QpZz+YVESUuKsxBMJR1f1mum6Bb60Be7qtRm31XkZd1q6I6eYxIIPnWShAIs+i8nrPrMwyEcta9jqU0Ln262E984c77xU/NC115xS+Sb0ua1TK1u0ECaV64zUH+ZgJhiXkUxoY2Za0fVLk2UXMLRAaC/CXSq3y3nkuko1hg9DH9pONjOMQP7aqng/PgKPo//GrCVqZ/LHdqnrX/LGmkGQ3uJ+mH4IK0uH0LU6nrNcVBe0lpu6PO6A1u3Wb+FYQxsyuz56zWKPZQwbRp6J1g85WSS9X09z3NlYPzXlvQ3t3F//n93VIB91jv9gz09Cz5Kv+lN90dWqKuLXP7/ICy2bzTGzYXYQZb6tpy+oA2k4xv8HaIE2l2CThuDedJEed3MNu0SoYGu5kXxRrgC2v6L1wA1Sz6q+4nAWYDIxZweHIK+BEApF2Qwfj3nMHLzdT5uBaFM5slFXXycBtBRUOaD7yOeddGi7aJ2Q6dGc9IjnQVanf/dUXelb8JGJ+PPqBjejHRzsVl7slVReI2Gjp5osxw0wAEbhBpLnonYdM57PxyBtWkLUJBbZZNl/th8c1EI4fWF6j5JCcbt8r//qJnFvcum3+5rY0abJ8IHf3H8fkgurNgW00XndbHJqb9R1q/x7TBlrl/ECvSZ3La64hACHBCZBvcXlv6EYAQ==.eyJlbmRwb2ludF9zbHVnIjoiYW50aHJvcGljL2NsYXVkZS1zb25uZXQtNS41LTIwMjYwOTI4fGNsYXVkZS1vbi1hd3MifQ"}]}}}
+
+data: {"type":"text-start","id":"gen-1791231645-QqWE2eK5tJRd6x8qsl9O"}
+
+data: {"type":"text-delta","id":"gen-1791231645-QqWE2eK5tJRd6x8qsl9O","delta":"Your LDL is 131 mg/dL, up from"}
+
+data: {"type":"text-delta","id":"gen-1791231645-QqWE2eK5tJRd6x8qsl9O","delta":" 117 in December. That is above the 100 limit and well over the optimal under 70. ApoB is 99 against an optimal under 80, and non-HDL is 167 against under"}
+
+data: {"type":"text-delta","id":"gen-1791231645-QqWE2eK5tJRd6x8qsl9O","delta":" 130. Lp(a) is 25, which is fine. The engine puts cardiovascular risk at possible (43 %).\n\nStart with psyllium husk 10 g/day plus about 70 g of oats (3 g beta-glucan) daily for 12 weeks ["}
+
+data: {"type":"text-delta","id":"gen-1791231645-QqWE2eK5tJRd6x8qsl9O","delta":"science]. That should take LDL down roughly 13 mg/dL from the psyllium and about 10 from the oats, so 131 to about 110-118. You can add plant sterols or"}
+
+data: {"type":"text-delta","id":"gen-1791231645-QqWE2eK5tJRd6x8qsl9O","delta":" stanols, 2-3 g/day with a meal [science, A, guideline]. If the repeat numbers are still high, ask a GP or cardiologist about atorvastatin 10-20 mg/day, once daily [opinion]. That dose should lower LDL by"}
+
+data: {"type":"text-delta","id":"gen-1791231645-QqWE2eK5tJRd6x8qsl9O","delta":" about 42 mg/dL, and ApoB should fall from 99 to under 80.\n\nRepeat LDL and ApoB after 12 weeks on the fibre. That result decides the statin question."}
+
+data: {"type":"tool-input-start","toolCallId":"toolu_01N3SU58168dEK4QLSA4MAvp","toolName":"offer"}
+
+data: {"type":"tool-input-delta","toolCallId":"toolu_01N3SU58168dEK4QLSA4MAvp","inputTextDelta":""}
+
+data: {"type":"tool-input-delta","toolCallId":"toolu_01N3SU58168dEK4QLSA4MAvp","inputTextDelta":"{\"prose_done\": true"}
+
+data: {"type":"tool-input-delta","toolCallId":"toolu_01N3SU58168dEK4QLSA4MAvp","inputTextDelta":", \"actions\": [\"plan:e2baca46-cadf-457f-9feb-ef16"}
+
+data: {"type":"tool-input-delta","toolCallId":"toolu_01N3SU58168dEK4QLSA4MAvp","inputTextDelta":"678d3b07:3\",\"int:seed_ascvd_risk_plant_sterols_and_stanols_condition\",\"plan:e2baca46-cadf-457f-9feb-ef16678d3b07:10\"]"}
+
+data: {"type":"tool-input-delta","toolCallId":"toolu_01N3SU58168dEK4QLSA4MAvp","inputTextDelta":", \"tests\": [{\"code\":\"ldl_cholesterol\",\"weeks\":12},{\"code\":\"apolipoprotein_b\",\"weeks\":12}]"}
+
+data: {"type":"tool-input-delta","toolCallId":"toolu_01N3SU58168dEK4QLSA4MAvp","inputTextDelta":", \"questions\": []"}
+
+data: {"type":"tool-input-delta","toolCallId":"toolu_01N3SU58168dEK4QLSA4MAvp","inputTextDelta":", \"sources\": []"}
+
+data: {"type":"tool-input-delta","toolCallId":"toolu_01N3SU58168dEK4QLSA4MAvp","inputTextDelta":"}"}
+
+data: {"type":"tool-input-available","toolCallId":"toolu_01N3SU58168dEK4QLSA4MAvp","toolName":"offer","input":{"prose_done":true,"actions":["plan:e2baca46-cadf-457f-9feb-ef16678d3b07:3","int:seed_ascvd_risk_plant_sterols_and_stanols_condition","plan:e2baca46-cadf-457f-9feb-ef16678d3b07:10"],"tests":[{"code":"ldl_cholesterol","weeks":12},{"code":"apolipoprotein_b","weeks":12}],"questions":[],"sources":[]},"providerMetadata":{"openrouter":{"reasoning_details":[{"type":"reasoning.text","text":"I'm structuring a concise response: first laying out the lipid panel numbers (LDL up to 131, ApoB 99, non-HDL 167, Lp(a) normal) with the cardiovascular risk estimate, then narrowing down to two or three key actions like the psyllium/oats plan and the statin decision point.\n\nI'll settle on three concrete suggestions — psyllium plus oats, plant sterols (2-3g/day), and flagging a statin discussion with a GP or cardiologist around atorvastatin 10-20mg/day — then wrap up by noting LDL and ApoB should be rechecked at 12 weeks. I'll keep the questions section tight, skipping tangents like ancestry, and since there are no evidence rows to cite, I'll leave the sources section empty.","format":"anthropic-claude-v1","index":0,"signature":"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.eyJlbmRwb2ludF9zbHVnIjoiYW50aHJvcGljL2NsYXVkZS1zb25uZXQtNS41LTIwMjYwOTI4fGNsYXVkZS1vbi1hd3MifQ"}]}}}
+
+data: {"type":"text-end","id":"gen-1791231645-QqWE2eK5tJRd6x8qsl9O"}
+
+data: {"type":"tool-output-available","toolCallId":"toolu_01N3SU58168dEK4QLSA4MAvp","output":{"actions":[{"id":"plan:e2baca46-cadf-457f-9feb-ef16678d3b07:3","title":"Psyllium fibre 10 g/day plus oats for LDL","source":"plan","index":3,"kind":"food","dose":"10 g psyllium husk plus about 70 g oats (3 g beta-glucan) · psyllium husk powder or capsules · daily · for 12 weeks","basis":"science","label":"[science]","why":"Soluble fibre lowers LDL and ApoB without a drug.","target":"ldl cholesterol down → LDL down about 13 mg/dL from psyllium and about 10 from oats, so 131 to roughly 110-118, measure after 12 weeks","aim":"aim: LDL cholesterol to LDL down about 13 mg/dL from psyllium and about 10 from oats, so 131 to roughly 110-118 · retest in 12 weeks"},{"id":"int:seed_ascvd_risk_plant_sterols_and_stanols_condition","title":"Plant sterols and stanols","source":"papers","interventionId":"seed_ascvd_risk_plant_sterols_and_stanols_condition","dose":"2-3 g/day with a meal","basis":"science","grade":"A","label":"[science, A, guideline]","why":"what the guidelines and meta-analyses report for this condition, grade A","target":null,"aim":null},{"id":"plan:e2baca46-cadf-457f-9feb-ef16678d3b07:10","title":"Statin decision gate at the 12-week lipid recheck","source":"plan","index":10,"kind":"doctor","dose":"Ask about atorvastatin 10-20 mg/day (label range 10-80 mg); the expected LDL fall is about 42 mg/dL, and the label allows 10-20 mg as moderate intensity · once daily, only if the doctor agrees","basis":"opinion","label":"[opinion]","why":"At 39 with LDL 131 and no known family history, food and fibre go first, and a statin is decided by the repeat numbers.","target":"apolipoprotein b down → ApoB from 99 to under 80 mg/dL on treatment, measure after 12 weeks","aim":"aim: ApoB to from 99 to under 80 mg/dL on treatment · retest in 12 weeks"}],"tests":[{"code":"ldl_cholesterol","name":"LDL cholesterol","weeks":12,"selfOrder":true},{"code":"apolipoprotein_b","name":"ApoB","weeks":12,"selfOrder":true}],"questions":[],"sources":[],"dropped":[],"options":{}},"providerMetadata":{"openrouter":{"reasoning_details":[{"type":"reasoning.text","text":"I'm structuring a concise response: first laying out the lipid panel numbers (LDL up to 131, ApoB 99, non-HDL 167, Lp(a) normal) with the cardiovascular risk estimate, then narrowing down to two or three key actions like the psyllium/oats plan and the statin decision point.\n\nI'll settle on three concrete suggestions — psyllium plus oats, plant sterols (2-3g/day), and flagging a statin discussion with a GP or cardiologist around atorvastatin 10-20mg/day — then wrap up by noting LDL and ApoB should be rechecked at 12 weeks. I'll keep the questions section tight, skipping tangents like ancestry, and since there are no evidence rows to cite, I'll leave the sources section empty.","format":"anthropic-claude-v1","index":0,"signature":"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.eyJlbmRwb2ludF9zbHVnIjoiYW50aHJvcGljL2NsYXVkZS1zb25uZXQtNS41LTIwMjYwOTI4fGNsYXVkZS1vbi1hd3MifQ"}]}}}
+
+data: {"type":"finish-step"}
+
+data: {"type":"start-step"}
+
+data: {"type":"text-start","id":"gen-1791231655-FMRloyet3P64O6Xm55I5"}
+
+data: {"type":"text-delta","id":"gen-1791231655-FMRloyet3P64O6Xm55I5","delta":"Your LDL is 131"}
+
+data: {"type":"text-delta","id":"gen-1791231655-FMRloyet3P64O6Xm55I5","delta":" mg/dL. That"}
+
+data: {"type":"text-delta","id":"gen-1791231655-FMRloyet3P64O6Xm55I5","delta":" is the main"}
+
+data: {"type":"text-delta","id":"gen-1791231655-FMRloyet3P64O6Xm55I5","delta":" number"}
+
+data: {"type":"text-delta","id":"gen-1791231655-FMRloyet3P64O6Xm55I5","delta":" to"}
+
+data: {"type":"text-delta","id":"gen-1791231655-FMRloyet3P64O6Xm55I5","delta":" act"}
+
+data: {"type":"text-delta","id":"gen-1791231655-FMRloyet3P64O6Xm55I5","delta":" on, and the"}
+
+data: {"type":"text-delta","id":"gen-1791231655-FMRloyet3P64O6Xm55I5","delta":" three steps above are how"}
+
+data: {"type":"text-delta","id":"gen-1791231655-FMRloyet3P64O6Xm55I5","delta":" to b"}
+
+data: {"type":"text-delta","id":"gen-1791231655-FMRloyet3P64O6Xm55I5","delta":"ring it down."}
+
+data: {"type":"text-end","id":"gen-1791231655-FMRloyet3P64O6Xm55I5"}
+
+data: {"type":"finish-step"}
+
+data: {"type":"finish","finishReason":"stop"}
+
+data: [DONE]
+

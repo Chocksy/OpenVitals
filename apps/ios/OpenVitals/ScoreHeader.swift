@@ -16,6 +16,7 @@ struct ScoreHeader: View {
 
     @Environment(\.islandPush) private var push
     @Environment(\.accessibilityReduceMotion) private var reduce
+    @Environment(\.openChat) private var openChat
     @State private var open = Fixtures.calendar || Fixtures.screen == "heading"
     /// The strip day the why line reads out.
     @State private var picked: String?
@@ -98,6 +99,18 @@ struct ScoreHeader: View {
                 Pill(text: pill)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
+            if let openChat {
+                Button { openChat(.everything) } label: {
+                    Image(systemName: "bubble.left.and.text.bubble.right.fill")
+                        .font(.system(size: 15))
+                        .foregroundStyle(Hy.mist)
+                        .frame(width: 42, height: 42)
+                        .background(Circle().fill(Hy.plum2))
+                        .overlay(Circle().strokeBorder(Hy.plum3, lineWidth: 1))
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("Everything you asked")
+            }
             Button(action: avatar) {
                 Image(systemName: "person.fill")
                     .font(.system(size: 17))

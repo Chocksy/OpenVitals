@@ -1,0 +1,121 @@
+{
+  "thread": {
+    "id": "8b7a0100-d078-4491-9294-b09c1f6997c2",
+    "title": "what supplements should i take to fix my blood work?",
+    "about": null,
+    "lastTurnAt": "2026-10-05T20:16:25.516Z"
+  },
+  "messages": [
+    {
+      "id": "yZChuSDyRtPf1jfR",
+      "role": "user",
+      "parts": [
+        {
+          "text": "what supplements should i take to fix my blood work?",
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "id": "",
+      "role": "assistant",
+      "parts": [
+        {
+          "type": "step-start"
+        },
+        {
+          "id": "aYNigJVuCNLDOQCr",
+          "text": "Looking at the plan, psyllium fibre is really the only formally recorded supplement, so I should stick to that rather than inventing recommendations for vitamin D or B12 that aren't backed by anything on file. I'll frame my answer around the one documented supplement while noting the key lab numbers—LDL at 131, ApoB at 99—that justify why fibre matters here, and ask what else they're currently taking before suggesting more.",
+          "type": "reasoning",
+          "state": "done"
+        },
+        {
+          "text": "Your fixable numbers are the lipids: LDL is 131 mg/dL (optimal is under 70), ApoB is 99 (optimal is under 80), and total cholesterol is 217. Fasting insulin of 5.7 is borderline, just above the optimal ceiling of 5. Vitamin D at 32.7 and B12 at 472 are inside the reference range and only slightly under optimal.\n\nThe only supplement in your plan is psyllium husk 10 g/day with about 70 g of oats [science], which should take LDL from 131 to roughly 110-118. The rest is food: protein and vegetables before the starch at each main meal [science]. If the repeat numbers still run high, ask your GP about atorvastatin 10-20 mg/day [opinion]. I have nothing on file that says vitamin D or B12 pills would fix your blood work.\n\nRecheck the lipid panel, including ApoB, after 12 weeks. Tell me what supplements you already take, because that could change this.",
+          "type": "text",
+          "state": "done"
+        },
+        {
+          "type": "tool-offer",
+          "input": {
+            "tests": [],
+            "actions": [
+              "plan:e2baca46-cadf-457f-9feb-ef16678d3b07:3",
+              "plan:e2baca46-cadf-457f-9feb-ef16678d3b07:1",
+              "plan:e2baca46-cadf-457f-9feb-ef16678d3b07:10"
+            ],
+            "sources": [],
+            "questions": [
+              "supplements"
+            ],
+            "prose_done": true
+          },
+          "state": "output-available",
+          "output": {
+            "tests": [],
+            "actions": [
+              {
+                "id": "plan:e2baca46-cadf-457f-9feb-ef16678d3b07:3",
+                "aim": "aim: LDL cholesterol to LDL down about 13 mg/dL from psyllium and about 10 from oats, so 131 to roughly 110-118 · retest in 12 weeks",
+                "why": "Soluble fibre lowers LDL and ApoB without a drug.",
+                "dose": "10 g psyllium husk plus about 70 g oats (3 g beta-glucan) · psyllium husk powder or capsules · daily · for 12 weeks",
+                "kind": "food",
+                "basis": "science",
+                "index": 3,
+                "label": "[science]",
+                "title": "Psyllium fibre 10 g/day plus oats for LDL",
+                "source": "plan",
+                "target": "ldl cholesterol down → LDL down about 13 mg/dL from psyllium and about 10 from oats, so 131 to roughly 110-118, measure after 12 weeks"
+              },
+              {
+                "id": "plan:e2baca46-cadf-457f-9feb-ef16678d3b07:1",
+                "aim": "aim: Fasting glucose to from 87 to 82-85 mg/dL · retest in 12 weeks",
+                "why": "Protein and vegetables before starch flatten the glucose and insulin rise after the meal.",
+                "dose": "25-30 g protein and a plate of vegetables or legumes before the starch · every main meal, 2-3 per day · for 12 weeks, then continue",
+                "kind": "food",
+                "basis": "science",
+                "index": 1,
+                "label": "[science]",
+                "title": "Eat protein and fibre first at each meal",
+                "source": "plan",
+                "target": "glucose down → Fasting glucose from 87 to 82-85 mg/dL, measure after 12 weeks"
+              },
+              {
+                "id": "plan:e2baca46-cadf-457f-9feb-ef16678d3b07:10",
+                "aim": "aim: ApoB to from 99 to under 80 mg/dL on treatment · retest in 12 weeks",
+                "why": "At 39 with LDL 131 and no known family history, food and fibre go first, and a statin is decided by the repeat numbers.",
+                "dose": "Ask about atorvastatin 10-20 mg/day (label range 10-80 mg); the expected LDL fall is about 42 mg/dL, and the label allows 10-20 mg as moderate intensity · once daily, only if the doctor agrees",
+                "kind": "doctor",
+                "basis": "opinion",
+                "index": 10,
+                "label": "[opinion]",
+                "title": "Statin decision gate at the 12-week lipid recheck",
+                "source": "plan",
+                "target": "apolipoprotein b down → ApoB from 99 to under 80 mg/dL on treatment, measure after 12 weeks"
+              }
+            ],
+            "dropped": [],
+            "options": {
+              "supplements": []
+            },
+            "sources": [],
+            "questions": [
+              {
+                "key": "supplements",
+                "question": "Which supplements do you take, and at what dose? Separate with commas."
+              }
+            ]
+          },
+          "toolCallId": "toolu_01Cf9sc4FfqNgvyvYRn7b6bE"
+        },
+        {
+          "type": "step-start"
+        },
+        {
+          "text": "Your plan has one supplement for this: psyllium husk 10 g/day with about 70 g of oats. I'm not adding vitamin D or B12 pills, because I have no evidence on file that they would fix your blood work.",
+          "type": "text",
+          "state": "done"
+        }
+      ]
+    }
+  ]
+}

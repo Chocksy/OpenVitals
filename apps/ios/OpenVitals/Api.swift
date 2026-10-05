@@ -486,7 +486,7 @@ enum Api {
     /// `also` names the statuses whose body is still an answer rather than an
     /// error. `POST /api/research` replies 429 with when it last looked, and
     /// "it last looked on Aug 1" is an answer, not a failure.
-    private static func send<T: Decodable>(
+    static func send<T: Decodable>(
         _ req: URLRequest, also: Set<Int> = []
     ) async throws -> T {
         let (data, response) = try await URLSession.shared.data(for: req)
@@ -1835,7 +1835,7 @@ extension Api {
         cached(get("api/markers", query: ["days": String(days)]))
     }
 
-    private static func json(_ path: String, _ method: String,
+    static func json(_ path: String, _ method: String,
                              _ body: [String: Any]?) throws -> URLRequest {
         var req = URLRequest(url: baseURL.appendingPathComponent(path))
         req.httpMethod = method

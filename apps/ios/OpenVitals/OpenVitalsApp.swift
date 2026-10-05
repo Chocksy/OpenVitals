@@ -86,6 +86,8 @@ struct Shell: View {
     @State private var checkin = false
     /// True while a check-in ask is out; the launch ask holds it from the start.
     @State private var checking = true
+    /// The chat, full screen: the header's chat circle, a question from Add.
+    @State private var chat: ChatStart? = Shell.stagedChat
     @Environment(\.accessibilityReduceMotion) private var reduce
     @Environment(\.scenePhase) private var phase
 
@@ -151,6 +153,7 @@ struct Shell: View {
             // The camera hides it too, as the system camera does.
             .statusBarHidden((island.activity != nil && island.geometry.hasIsland)
                              || add?.isCamera == true)
+            .environment(\.openChat, { chat = $0 })
             .environment(island)
             .background(Hy.paper.ignoresSafeArea())
         .task {
@@ -181,6 +184,9 @@ struct Shell: View {
         }
         .fullScreenCover(isPresented: $checkin) {
             CheckinView(onClose: { checkin = false })
+        }
+        .fullScreenCover(item: $chat) { start in
+            ChatScreen(start: start, close: { chat = nil })
         }
     }
 
@@ -220,6 +226,19 @@ struct Shell: View {
         if Fixtures.sheet == "capture" || Fixtures.screen == "capture"
             || Fixtures.screen == "words" { return .sheet(nil) }
         return nil
+    }
+
+    /// `-OVScreen chat` opens "Everything you asked"; `chat-thread` opens the
+    /// newest thread from it (with `-OVAsk` sent as a follow-up); `chat-ask`
+    /// starts a new thread on `-OVAsk`.
+    static var stagedChat: ChatStart? {
+        switch Fixtures.screen {
+        case "chat", "chat-thread": return .everything
+        case "chat-ask":
+            return ChatStart(ask: UserDefaults.standard.string(forKey: "OVAsk")
+                             ?? "What does my LDL mean and what should I do about it?")
+        default: return nil
+        }
     }
 
     private func openAdd(_ kept: CapturePayload?) {
