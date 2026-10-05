@@ -939,8 +939,11 @@ export const llmExplain =
       model: modelId,
       schema: explainSchema,
       system: EXPLAIN_PROMPT,
+      /**
+       * The shared default, not a tight cap: Sonnet thinks before it answers,
+       * and 2 000 tokens ran out on a batch of eight before the lines came.
+       */
       prompt: `PAPERS:\n${numbered}`,
-      maxOutputTokens: 2000,
     });
     return papers.map((_, i) =>
       cleanLine(object.items.find((x) => x.n === i + 1)?.line),
