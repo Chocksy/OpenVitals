@@ -56,9 +56,9 @@ export async function POST(request: Request) {
       return Response.json({ error: "type a word or two" }, { status: 400 });
 
     if (body.about || askIntent(q) === "question") {
-      const answer = await answerQuestion(userId, q, { about: body.about });
-      /** phase 28c: the composer's "Continue this" link needs no other flag. */
-      return Response.json({ ...answer, threadable: true });
+      return Response.json(
+        await answerQuestion(userId, q, { about: body.about }),
+      );
     }
 
     const answer = await answerAsk(userId, q);

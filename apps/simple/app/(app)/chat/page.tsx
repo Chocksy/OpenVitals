@@ -13,7 +13,13 @@ import { plural } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
-export default async function ChatPage() {
+export default async function ChatPage({
+  searchParams,
+}: {
+  /** a question the composer or a card's Discuss handed over, sent once */
+  searchParams: Promise<{ ask?: string; about?: string }>;
+}) {
+  const { ask, about } = await searchParams;
   const userId = await requireUserId();
   const rows = await getDb()
     .select()
@@ -33,7 +39,7 @@ export default async function ChatPage() {
         </p>
       </div>
 
-      <Thread />
+      <Thread ask={ask?.trim() || undefined} about={about || undefined} />
 
       <section className="panel">
         <div className="panel-head">

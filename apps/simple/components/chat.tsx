@@ -392,7 +392,7 @@ export function Thread({
   };
 
   /**
-   * The composer's follow-up. The `?ask=` is dropped from the address first,
+   * A question handed over by the composer. The `?ask=` is dropped first,
    * so a reload shows the thread and never sends the question twice.
    */
   const asked = useRef(false);

@@ -92,8 +92,6 @@ export interface Answer {
   kind?: string;
   /** phase 28a: the papers the answer cited, after the guard */
   sources?: AskSource[];
-  /** phase 28c: this answer can become a thread */
-  threadable?: boolean;
   error?: string;
 }
 

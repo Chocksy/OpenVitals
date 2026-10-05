@@ -14,7 +14,12 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Camera, Check, Circle, Loader2, Plus, X } from "lucide-react";
-import { autoAskToken, openingMode, showsBox } from "@/lib/ask-intent";
+import {
+  askIntent,
+  autoAskToken,
+  openingMode,
+  showsBox,
+} from "@/lib/ask-intent";
 import type { ActionRead, ActionSubject } from "@/lib/compose";
 import { AskAnswer, type Answer } from "./ask-answer";
 import { toast } from "./motion";
@@ -273,9 +278,6 @@ export function Composer({
   const [about, setAbout] = useState<About | null>(null);
   /** what the words say about that action: the phase 27 addendum's chip */
   const [read, setRead] = useState<ActionRead | null>(null);
-  /** the follow-up typed under an answer, and whether it is on its way */
-  const [more, setMore] = useState("");
-  const [continuing, setContinuing] = useState(false);
   /** the last opening that was auto-submitted, so it can only happen once */
   const autoAsked = useRef(0);
 
@@ -408,6 +410,20 @@ export function Composer({
   const askIt = async (q: string, aboutId?: string) => {
     const asking = q.trim();
     if (asking.length < 2 && !aboutId) return;
+    /**
+     * A question is a conversation, and a conversation gets the whole page:
+     * `/chat` sends it as the thread's first turn, the same grounded answer
+     * `/api/ask` gives, with room to scroll and follow up. Only a bare word
+     * (the ontology lookup) is still answered in this sheet.
+     */
+    if (aboutId || askIntent(asking) === "question") {
+      const params = new URLSearchParams({ ask: asking || "Tell me about it" });
+      if (aboutId) params.set("about", aboutId);
+      reset();
+      dialog.current?.close();
+      router.push(`/chat?${params}`);
+      return;
+    }
     setPosting(true);
     setError("");
     setQuestion(asking);
@@ -424,36 +440,6 @@ export function Composer({
     setPosting(false);
     sessionStorage.removeItem(DRAFT_KEY);
     setAsked(data);
-  };
-
-  /**
-   * A follow-up turns the answer on screen into a thread and carries on there.
-   * The answer is not re-asked: `/api/chat/threads` stores it as the first
-   * turn, and the thread page sends the follow-up as the second.
-   */
-  const continueIt = async () => {
-    const next = more.trim();
-    if (!next || !asked || continuing) return;
-    setContinuing(true);
-    const res = await fetch("/api/chat/threads", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({
-        question,
-        answer: asked,
-        ...(about?.id ? { about: about.id } : {}),
-      }),
-    });
-    const { id } = (await res.json().catch(() => ({}))) as { id?: string };
-    setContinuing(false);
-    if (!id) {
-      setError("Could not start the conversation. Try again.");
-      return;
-    }
-    setMore("");
-    reset();
-    dialog.current?.close();
-    router.push(`/chat/${id}?ask=${encodeURIComponent(next)}`);
   };
 
   /** A photo up, chips back. Nothing is written until "Save these" is tapped. */
@@ -888,12 +874,6 @@ export function Composer({
             </div>
           )}
 
-          {asked?.threadable && (
-            <button className="asklink self-start" onClick={reset}>
-              Ask another
-            </button>
-          )}
-
           {posted?.reply && (
             <p className="t-body border-l-2 border-[var(--ink)] pl-[var(--s13)]">
               {posted.reply}
@@ -926,38 +906,8 @@ export function Composer({
               <Camera className="ic" /> Photo
             </button>
           )}
-          {asked?.threadable ? (
-            <form
-              className="ask w-full"
-              onSubmit={(e) => {
-                e.preventDefault();
-                void continueIt();
-              }}
-            >
-              <textarea
-                className="q"
-                rows={1}
-                value={more}
-                onChange={(e) => setMore(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key !== "Enter" || e.shiftKey) return;
-                  e.preventDefault();
-                  void continueIt();
-                }}
-                placeholder="Ask a follow-up"
-              />
-              <button
-                type="submit"
-                className="askbtn"
-                disabled={continuing || !more.trim()}
-              >
-                {continuing ? <Loader2 className="ic spin" /> : "Ask"}
-              </button>
-            </form>
-          ) : (
-            <span className="grow" />
-          )}
-          {asked?.threadable ? null : posted || asked ? (
+          <span className="grow" />
+          {posted || asked ? (
             <>
               <Button job="quiet" onClick={reset}>
                 {asked ? "Ask another" : "Write another"}
