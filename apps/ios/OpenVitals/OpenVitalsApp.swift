@@ -230,10 +230,11 @@ struct Shell: View {
 
     /// `-OVScreen chat` opens "Everything you asked"; `chat-thread` opens the
     /// newest thread from it (with `-OVAsk` sent as a follow-up); `chat-ask`
-    /// starts a new thread on `-OVAsk`.
+    /// starts a new thread on `-OVAsk`; `chat-new` is the Ask card's empty one.
     static var stagedChat: ChatStart? {
         switch Fixtures.screen {
         case "chat", "chat-thread": return .everything
+        case "chat-new": return ChatStart()
         case "chat-ask":
             return ChatStart(ask: UserDefaults.standard.string(forKey: "OVAsk")
                              ?? "What does my LDL mean and what should I do about it?")

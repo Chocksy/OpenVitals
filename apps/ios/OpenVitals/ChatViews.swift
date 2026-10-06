@@ -19,42 +19,35 @@ extension EnvironmentValues {
 
 // MARK: - the Ask card on Today
 
-/// The web's `AskLine` as a Today card: type a question, Ask opens the chat
-/// with it sent; the line under it opens "Everything you asked". Hidden
+/// The web's `AskLine` as a Today card, but a button: a field on Today sat
+/// under the keyboard, so the tap opens a new chat with its own composer
+/// already focused. The line under it opens "Everything you asked". Hidden
 /// outside the Shell, where there is no chat to open.
 struct AskCard: View {
     @Environment(\.openChat) private var openChat
-    @State private var text = ""
     @State private var count: Int?
-    @FocusState private var typing: Bool
-
-    private var question: String { text.trimmingCharacters(in: .whitespacesAndNewlines) }
 
     var body: some View {
         if let openChat {
             VStack(spacing: 0) {
-                HStack(spacing: DesignTokens.s8) {
-                    Image(systemName: "questionmark.bubble")
-                        .font(.system(size: 15))
-                        .foregroundStyle(Hy.ink3)
-                    TextField("Ask, or tell me what changed", text: $text)
-                        .font(.grotesk(15))
-                        .foregroundStyle(Hy.ink)
-                        .focused($typing)
-                        .submitLabel(.send)
-                        .onSubmit { ask(openChat) }
-                    Button { ask(openChat) } label: {
+                Button { openChat(ChatStart()) } label: {
+                    HStack(spacing: DesignTokens.s8) {
+                        Image(systemName: "questionmark.bubble")
+                            .font(.system(size: 15))
+                            .foregroundStyle(Hy.ink3)
+                        Text("Ask, or tell me what changed")
+                            .hType(15, .regular, Hy.ink3)
+                            .frame(maxWidth: .infinity, alignment: .leading)
                         Text("Ask").hType(13, .semibold, Hy.cream)
                             .padding(.horizontal, DesignTokens.s13)
                             .frame(height: 34)
                             .background(Capsule().fill(Hy.plum))
-                            .contentShape(Capsule())
                     }
-                    .buttonStyle(Pressed(scale: 0.94))
-                    .disabled(question.isEmpty)
-                    .opacity(question.isEmpty ? 0.45 : 1)
+                    .padding(.vertical, DesignTokens.s8)
+                    .contentShape(Rectangle())
                 }
-                .padding(.vertical, DesignTokens.s8)
+                .buttonStyle(Pressed(scale: 0.98))
+                .accessibilityLabel("Ask a question")
                 Rectangle().fill(Hy.line).frame(height: 1)
                 Button { openChat(.everything) } label: {
                     HStack {
@@ -76,13 +69,6 @@ struct AskCard: View {
             .padding(.horizontal, DesignTokens.s21)
             .task { count = try? await ChatApi.threads().threads.count }
         }
-    }
-
-    private func ask(_ openChat: (ChatStart) -> Void) {
-        guard !question.isEmpty else { return }
-        openChat(ChatStart(ask: question))
-        text = ""
-        typing = false
     }
 }
 
@@ -282,6 +268,8 @@ struct ChatThreadView: View {
             started = true
             await model.load()
             if let ask = start.ask { await model.send(ask) }
+            // A new chat opened empty (Today's Ask card): the keyboard comes up.
+            else if model.isNew { typing = true }
         }
     }
 
@@ -301,7 +289,8 @@ struct ChatThreadView: View {
 
     private var input: some View {
         HStack(alignment: .bottom, spacing: DesignTokens.s8) {
-            TextField("Ask a follow-up, or tell me something", text: $model.input, axis: .vertical)
+            TextField(model.isNew ? "Ask, or tell me what changed" : "Ask a follow-up, or tell me something",
+                      text: $model.input, axis: .vertical)
                 .font(.grotesk(16))
                 .foregroundStyle(Hy.ink)
                 .lineLimit(1...5)
