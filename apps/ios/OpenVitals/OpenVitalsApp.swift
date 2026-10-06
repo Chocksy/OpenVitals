@@ -86,7 +86,7 @@ struct Shell: View {
     @State private var checkin = false
     /// True while a check-in ask is out; the launch ask holds it from the start.
     @State private var checking = true
-    /// The chat, full screen: the header's chat circle, a question from Add.
+    /// The chat, full screen: Today's Ask card, a question from Add.
     @State private var chat: ChatStart? = Shell.stagedChat
     @Environment(\.accessibilityReduceMotion) private var reduce
     @Environment(\.scenePhase) private var phase

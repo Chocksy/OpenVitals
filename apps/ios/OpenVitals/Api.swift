@@ -1617,9 +1617,10 @@ extension Api {
                 : "found, not read yet"
         }
 
-        /// A row nothing has read has nothing to say about what it moves, so
-        /// it says nothing rather than repeating itself.
-        var showsMoves: Bool { read }
+        /// Only a paper that moves a number of yours says what it moves. A
+        /// row that moves nothing, or that nothing has read, stays quiet
+        /// rather than printing "nothing for you" on every row.
+        var showsMoves: Bool { moves != nil }
 
         /// What it moves: the thing it moves, named. A paper that moves
         /// nothing says "nothing for you" in the same place, and one nothing
@@ -1936,11 +1937,27 @@ extension Api {
         let stored: Int?
         let moved: Int?
         let error: String?
+        /// A topic run (`runTopic`): the topic, how many findings it wrote,
+        /// whether the reader ran, and the cooldown length on a 429.
+        var topic: String? = nil
+        var outcomes: Int? = nil
+        var read: Bool? = nil
+        var reason: String? = nil
+        var days: Int? = nil
+    }
+
+    /// `POST /api/research` takes `{ topic }` for a watched topic and
+    /// `{ conditionId }` for a condition. A paper row files a topic under
+    /// `topic:<topic>`, so that prefix picks the topic body.
+    static func researchBody(_ id: String) -> [String: String] {
+        id.hasPrefix("topic:")
+            ? ["topic": String(id.dropFirst("topic:".count))]
+            : ["conditionId": id]
     }
 
     static func researchNow(conditionId: String) async throws -> ResearchRun {
-        try await send(try json("api/research", "POST",
-                                ["conditionId": conditionId]), also: [429])
+        try await send(try json("api/research", "POST", researchBody(conditionId)),
+                       also: [429])
     }
 
     // MARK: hunches (phase 39)

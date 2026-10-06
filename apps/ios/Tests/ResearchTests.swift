@@ -33,6 +33,43 @@ final class ResearchTests: XCTestCase {
     }
 
     /// The word for what a paper moves wears the colour of its direction.
+    /// `POST /api/research` takes `{ topic }` for a watched topic; sending a
+    /// `topic:` id as a condition is the 404 "not yours".
+    func testResearchNowPicksTheBodyByTheId() throws {
+        XCTAssertEqual(Api.researchBody("topic:full"), ["topic": "full"])
+        XCTAssertEqual(Api.researchBody("topic:cold exposure"), ["topic": "cold exposure"])
+        XCTAssertEqual(Api.researchBody("ascvd_risk"), ["conditionId": "ascvd_risk"])
+        XCTAssertEqual(ResearchView.name("topic:cold exposure"), "Cold exposure")
+    }
+
+    /// A topic's reply: the cooldown with `days`, and a run with `runTopic`'s
+    /// fields. Both decode, and say the topic's own rule.
+    func testATopicRunDecodesAndSaysItsRule() throws {
+        let wait = try JSONDecoder().decode(Api.ResearchRun.self, from: Data("""
+            {"ok":false,"cooldown":true,"lastRun":"2026-09-20","since":"2026-09-20","days":30}
+            """.utf8))
+        XCTAssertEqual(wait.days, 30)
+        XCTAssertTrue(ResearchView.said("topic:full", wait).hasSuffix("One run per topic per 30 days."))
+        XCTAssertTrue(ResearchView.said("ldl", wait).hasSuffix("per condition per ninety days."))
+        let ran = try JSONDecoder().decode(Api.ResearchRun.self, from: Data("""
+            {"ok":true,"topic":"full","since":"2026-09-06","found":12,"stored":4,
+             "outcomes":1,"read":false,"reason":"no key"}
+            """.utf8))
+        XCTAssertEqual(ran.outcomes, 1)
+        XCTAssertEqual(ran.read, false)
+        XCTAssertTrue(ResearchView.said("topic:full", ran).hasSuffix("4 kept, 1 finding."))
+        XCTAssertEqual(ResearchView.footnote(topics: true, conditions: false).prefix(36),
+                       "One run per topic per thirty days. I")
+    }
+
+    /// The moves line shows only when the paper moves something: "moves
+    /// nothing for you" on every row says nothing.
+    func testTheMovesLineOnlyWhenSomethingMoves() throws {
+        for paper in try rows() {
+            XCTAssertEqual(paper.showsMoves, paper.moves != nil, paper.id)
+        }
+    }
+
     func testTheMovesWordColours() {
         XCTAssertEqual(PaperCard.ink("bad"), Hy.rose)
         XCTAssertEqual(PaperCard.ink("ok"), Hy.green)

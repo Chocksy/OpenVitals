@@ -4,7 +4,7 @@ import UIKit
 // The chat screens: "Everything you asked", one thread, and a new one. One
 // full-screen cover; the list and the thread swap inside it.
 
-/// Shell's door to the chat: the header's chat circle and a question typed
+/// Shell's door to the chat: Today's Ask card and a question typed
 /// into Add. Nil outside the Shell, where Add answers in its own sheet.
 private struct OpenChatKey: EnvironmentKey {
     static let defaultValue: ((ChatStart) -> Void)? = nil
@@ -14,6 +14,75 @@ extension EnvironmentValues {
     var openChat: ((ChatStart) -> Void)? {
         get { self[OpenChatKey.self] }
         set { self[OpenChatKey.self] = newValue }
+    }
+}
+
+// MARK: - the Ask card on Today
+
+/// The web's `AskLine` as a Today card: type a question, Ask opens the chat
+/// with it sent; the line under it opens "Everything you asked". Hidden
+/// outside the Shell, where there is no chat to open.
+struct AskCard: View {
+    @Environment(\.openChat) private var openChat
+    @State private var text = ""
+    @State private var count: Int?
+    @FocusState private var typing: Bool
+
+    private var question: String { text.trimmingCharacters(in: .whitespacesAndNewlines) }
+
+    var body: some View {
+        if let openChat {
+            VStack(spacing: 0) {
+                HStack(spacing: DesignTokens.s8) {
+                    Image(systemName: "questionmark.bubble")
+                        .font(.system(size: 15))
+                        .foregroundStyle(Hy.ink3)
+                    TextField("Ask, or tell me what changed", text: $text)
+                        .font(.grotesk(15))
+                        .foregroundStyle(Hy.ink)
+                        .focused($typing)
+                        .submitLabel(.send)
+                        .onSubmit { ask(openChat) }
+                    Button { ask(openChat) } label: {
+                        Text("Ask").hType(13, .semibold, Hy.cream)
+                            .padding(.horizontal, DesignTokens.s13)
+                            .frame(height: 34)
+                            .background(Capsule().fill(Hy.plum))
+                            .contentShape(Capsule())
+                    }
+                    .buttonStyle(Pressed(scale: 0.94))
+                    .disabled(question.isEmpty)
+                    .opacity(question.isEmpty ? 0.45 : 1)
+                }
+                .padding(.vertical, DesignTokens.s8)
+                Rectangle().fill(Hy.line).frame(height: 1)
+                Button { openChat(.everything) } label: {
+                    HStack {
+                        Text("Everything you asked" + (count.map { $0 > 0 ? " · \($0)" : "" } ?? ""))
+                            .hType(13, .medium, Hy.ink2)
+                        Spacer()
+                        Image(systemName: "chevron.right")
+                            .font(.system(size: 11, weight: .semibold))
+                            .foregroundStyle(Hy.ink3)
+                    }
+                    .padding(.vertical, DesignTokens.s13)
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(Pressed(scale: 0.98))
+            }
+            .padding(.horizontal, DesignTokens.s13)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .grained(Hy.card, radius: 21, shadow: 0.3)
+            .padding(.horizontal, DesignTokens.s21)
+            .task { count = try? await ChatApi.threads().threads.count }
+        }
+    }
+
+    private func ask(_ openChat: (ChatStart) -> Void) {
+        guard !question.isEmpty else { return }
+        openChat(ChatStart(ask: question))
+        text = ""
+        typing = false
     }
 }
 

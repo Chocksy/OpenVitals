@@ -184,14 +184,16 @@ struct ResearchView: View {
         }
     }
 
-    /// Research now, one condition at a time. The list is the conditions the
-    /// rows already name, which are this person's own: `POST /api/research`
-    /// refuses any other, and the phone never offers one it would refuse.
+    /// Research now, one condition or topic at a time. The list is the ids
+    /// the rows already name, which are this person's own: `POST
+    /// /api/research` refuses any other, and the phone never offers one it
+    /// would refuse. A `topic:` id goes up as `{ topic }` (`researchBody`).
     @ViewBuilder private var conditions: some View {
         let ids = Array(NSOrderedSet(array: rows.map(\.conditionId))
             .array as? [String] ?? [])
         if !ids.isEmpty {
-            ShelfTitle("Research now", Design.plural(ids.count, "condition", "conditions"))
+            let topics = ids.filter { $0.hasPrefix("topic:") }.count
+            ShelfTitle("Research now", Self.counted(conditions: ids.count - topics, topics: topics))
                 .padding(.top, DesignTokens.s21)
             VStack(alignment: .leading, spacing: 0) {
                 ForEach(Array(ids.enumerated()), id: \.element) { i, id in
@@ -207,9 +209,7 @@ struct ResearchView: View {
                     }
                     .padding(.vertical, DesignTokens.s8)
                 }
-                Text("One run per condition per ninety days. Inside that "
-                     + "window the server says when it last looked rather "
-                     + "than pretending it ran.")
+                Text(Self.footnote(topics: topics > 0, conditions: topics < ids.count))
                     .hType(11, .regular, Hy.ink3)
                     .fixedSize(horizontal: false, vertical: true)
                     .padding(.top, DesignTokens.s8)
@@ -218,10 +218,31 @@ struct ResearchView: View {
         }
     }
 
-    /// "ascvd_risk" → "Ascvd risk". The id is what the ledger calls it; the
-    /// phone does not invent a prettier name for it.
+    /// "2 conditions · 1 topic".
+    static func counted(conditions: Int, topics: Int) -> String {
+        [conditions > 0 ? Design.plural(conditions, "condition", "conditions") : nil,
+         topics > 0 ? Design.plural(topics, "topic", "topics") : nil]
+            .compactMap { $0 }.joined(separator: " · ")
+    }
+
+    /// The cooldown, said for what is on the list: a condition waits ninety
+    /// days between runs, a topic thirty (`TOPIC_DAYS`).
+    static func footnote(topics: Bool, conditions: Bool) -> String {
+        let rule = switch (conditions, topics) {
+        case (true, true): "One run per condition per ninety days, per topic per thirty."
+        case (false, true): "One run per topic per thirty days."
+        default: "One run per condition per ninety days."
+        }
+        return rule + " Inside that window the server says when it last looked "
+            + "rather than pretending it ran."
+    }
+
+    /// "ascvd_risk" → "Ascvd risk", "topic:cold exposure" → "Cold exposure".
+    /// The id is what the ledger calls it; the phone does not invent a
+    /// prettier name for it.
     static func name(_ id: String) -> String {
-        let words = id.replacingOccurrences(of: "_", with: " ")
+        let bare = id.hasPrefix("topic:") ? String(id.dropFirst("topic:".count)) : id
+        let words = bare.replacingOccurrences(of: "_", with: " ")
         return words.prefix(1).uppercased() + words.dropFirst()
     }
 
@@ -267,20 +288,32 @@ struct ResearchView: View {
         }
     }
 
+    /// What a run says back. A topic run counts findings, not moves, and
+    /// its cooldown is the server's `days`.
+    static func said(_ id: String, _ result: Api.ResearchRun) -> String {
+        let topic = id.hasPrefix("topic:")
+        if result.ok == true {
+            return "Looked at \(name(id)) since \(Design.day(result.since)). "
+                + "\(Design.number(result.found ?? 0)) found, "
+                + "\(Design.number(result.stored ?? 0)) kept, "
+                + (topic
+                   ? Design.plural(result.outcomes ?? 0, "finding", "findings") + "."
+                   : "\(Design.number(result.moved ?? 0)) moved something.")
+        }
+        let wait = topic
+            ? "One run per topic per \(result.days.map { "\($0) days" } ?? "thirty days")."
+            : "One run per condition per ninety days."
+        return "Already looked at \(name(id))"
+            + (result.lastRun.map { " on \(Design.day($0))" } ?? "")
+            + ". " + wait
+    }
+
     private func run(_ id: String) async {
         running = id
         defer { running = "" }
         do {
             let result = try await Api.researchNow(conditionId: id)
-            said = result.ok == true
-                ? "Looked at \(Self.name(id)) since "
-                    + "\(Design.day(result.since)). "
-                    + "\(Design.number(result.found ?? 0)) found, "
-                    + "\(Design.number(result.stored ?? 0)) kept, "
-                    + "\(Design.number(result.moved ?? 0)) moved something."
-                : "Already looked at \(Self.name(id))"
-                    + (result.lastRun.map { " on \(Design.day($0))" } ?? "")
-                    + ". One run per condition per ninety days."
+            said = Self.said(id, result)
             await load()
         } catch {
             said = error.localizedDescription
@@ -546,12 +579,14 @@ struct NewForYou: View {
                                     .fixedSize(horizontal: false, vertical: true)
                                     .multilineTextAlignment(.leading)
                             }
-                            HStack(alignment: .firstTextBaseline,
-                                   spacing: DesignTokens.s8) {
-                                Text("moves →").ovType(.sm, mono: true)
-                                    .foregroundStyle(Design.ink3)
-                                StateWord(word: p.movesWord,
-                                          tone: p.movesTone)
+                            if p.showsMoves {
+                                HStack(alignment: .firstTextBaseline,
+                                       spacing: DesignTokens.s8) {
+                                    Text("moves →").ovType(.sm, mono: true)
+                                        .foregroundStyle(Design.ink3)
+                                    StateWord(word: p.movesWord,
+                                              tone: p.movesTone)
+                                }
                             }
                         }
                         .frame(maxWidth: .infinity, alignment: .leading)

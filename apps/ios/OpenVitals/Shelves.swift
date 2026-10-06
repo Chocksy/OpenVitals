@@ -22,6 +22,9 @@ struct Shelves: View {
                 DoShelf(model: model)
                     .lagging(lag, row: 0)
                     .padding(.top, DesignTokens.s21)
+                AskCard()
+                    .lagging(lag, row: 1)
+                    .padding(.top, DesignTokens.s21)
                 ShelfTitle("Today so far", "food · sleep · moves")
                     .padding(.top, DesignTokens.s21)
                 HShelf { TodaySoFar(model: model) }
