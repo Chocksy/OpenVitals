@@ -136,11 +136,18 @@ struct SignInView: View {
         VStack(alignment: .leading, spacing: 0) {
             Text("Sign in").textCase(.uppercase)
                 .hType(11, .medium, Hy.mist, tracking: 0.12)
-            Text("Halewell")
-                .hType(44, .semibold, Hy.cream, tracking: -0.04)
-                .lineLimit(1)
-                .minimumScaleFactor(0.7)
-                .padding(.top, DesignTokens.s5)
+            HStack(spacing: DesignTokens.s8) {
+                Image("HalewellMark")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(height: 48)
+                    .accessibilityHidden(true)
+                Text("Halewell")
+                    .hType(44, .semibold, Hy.cream, tracking: -0.04)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.7)
+            }
+            .padding(.top, DesignTokens.s5)
             Text("Welcome back.").hType(15, .medium, Hy.lime)
         }
         .frame(maxWidth: .infinity, alignment: .leading)

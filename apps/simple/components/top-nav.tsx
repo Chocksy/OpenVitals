@@ -95,6 +95,7 @@ export function TopNav({
       >
         <div className="topbar mx-auto max-w-[1400px] px-4">
           <Link href="/" className="brand">
+            <img src="/halewell-mark.png" alt="" className="brand-mark" />
             Halewell
           </Link>
 

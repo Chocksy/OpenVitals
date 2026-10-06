@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Space_Grotesk } from "next/font/google";
 import { GeistMono } from "geist/font/mono";
 import "./globals.css";
@@ -16,7 +16,18 @@ const grotesk = Space_Grotesk({
 export const metadata: Metadata = {
   title: "Halewell",
   description: "Personal biomarker tracker",
+  /** The brand kit's files, served from `public/`. */
+  icons: {
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/icon-32.png", type: "image/png", sizes: "32x32" },
+    ],
+    apple: { url: "/icon-180.png", sizes: "180x180" },
+  },
+  manifest: "/site.webmanifest",
 };
+
+export const viewport: Viewport = { themeColor: "#2B1033" };
 
 /**
  * Nothing but the shell. The nav lives in the (app) layout so it always renders

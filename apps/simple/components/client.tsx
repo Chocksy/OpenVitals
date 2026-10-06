@@ -59,7 +59,10 @@ export function LoginForm({ google }: { google: boolean }) {
       </div>
       <div className="logincard">
         <div className="loginhead">
-          <span className="brand">Halewell</span>
+          <span className="brand">
+            <img src="/halewell-mark.png" alt="" className="brand-mark" />
+            Halewell
+          </span>
           <p className="t-meta">
             {mode === "in"
               ? "Welcome back."

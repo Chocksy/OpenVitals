@@ -338,12 +338,20 @@ select:focus-visible {
     min-height: 55px;
   }
   .topbar .brand {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--s8);
     font-size: var(--type-md);
     font-weight: 600;
     letter-spacing: -0.02em;
     margin-right: var(--s8);
     color: var(--cream);
     text-decoration: none;
+  }
+  /* the three pebbles, a little taller than the word beside them */
+  .brand-mark {
+    height: 1.4em;
+    width: auto;
   }
   .topbar .grow {
     flex: 1;
@@ -358,7 +366,7 @@ select:focus-visible {
   .pills a {
     display: flex;
     align-items: center;
-    gap: var(--s5);
+    gap: var(--s8);
     padding: var(--s5) var(--s13);
     border-radius: var(--r-pill);
     font-size: var(--type-sm);
@@ -922,7 +930,7 @@ select:focus-visible {
   .optchip {
     display: inline-flex;
     align-items: center;
-    gap: var(--s5);
+    gap: var(--s8);
     min-height: 40px;
     border: 0;
     border-radius: var(--r-pill);
@@ -951,7 +959,7 @@ select:focus-visible {
   .state {
     display: inline-flex;
     align-items: center;
-    gap: var(--s5);
+    gap: var(--s8);
     font-size: var(--type-sm);
     color: var(--st, var(--ink-3));
     white-space: nowrap;
@@ -1014,7 +1022,7 @@ select:focus-visible {
   .chip {
     display: inline-flex;
     align-items: center;
-    gap: var(--s5);
+    gap: var(--s8);
     padding: var(--s5) var(--s13);
     border-radius: var(--r-pill);
     background: var(--card);
@@ -1353,7 +1361,7 @@ select:focus-visible {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    gap: var(--s5);
+    gap: var(--s8);
     min-width: 0;
     animation: hy-tin 600ms var(--ease) both;
     animation-delay: calc(var(--k, 0) * 40ms);
@@ -1642,7 +1650,7 @@ select:focus-visible {
     cursor: pointer;
     display: inline-flex;
     align-items: center;
-    gap: var(--s5);
+    gap: var(--s8);
     font-size: var(--type-sm);
     color: var(--ink-2);
   }
@@ -1663,7 +1671,7 @@ select:focus-visible {
   .asklink {
     display: inline-flex;
     align-items: center;
-    gap: var(--s5);
+    gap: var(--s8);
     font-size: var(--type-sm);
     color: var(--ink-2);
     background: none;
@@ -1772,7 +1780,7 @@ select:focus-visible {
   .gchip {
     display: inline-flex;
     align-items: center;
-    gap: var(--s5);
+    gap: var(--s8);
     border-radius: var(--r-pill);
     padding: var(--s5) var(--s13);
     font-family: var(--font-num);
@@ -2366,7 +2374,7 @@ select:focus-visible {
   .hist-legend span {
     display: inline-flex;
     align-items: center;
-    gap: var(--s5);
+    gap: var(--s8);
   }
   .hist-legend i {
     width: 8px;
@@ -3109,7 +3117,7 @@ select:focus-visible {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: var(--s5);
+    gap: var(--s8);
     min-width: 0;
     text-decoration: none;
     color: inherit;
@@ -3366,7 +3374,7 @@ select:focus-visible {
   .hmkey {
     display: flex;
     align-items: center;
-    gap: var(--s5);
+    gap: var(--s8);
     font-family: var(--font-num);
     font-size: var(--type-xs);
     color: var(--ink-3);
@@ -3563,7 +3571,9 @@ select:focus-visible {
     margin-bottom: var(--s21);
   }
   .loginhead .brand {
-    display: block;
+    display: flex;
+    align-items: center;
+    gap: var(--s8);
     font-size: var(--type-lg);
     letter-spacing: -0.03em;
     margin-bottom: var(--s3);
@@ -3961,7 +3971,7 @@ select:focus-visible {
     cursor: pointer;
     display: inline-flex;
     align-items: center;
-    gap: var(--s5);
+    gap: var(--s8);
   }
   .askbtn:disabled {
     opacity: 0.5;
@@ -3984,7 +3994,7 @@ select:focus-visible {
   .stateline {
     display: flex;
     align-items: center;
-    gap: var(--s5);
+    gap: var(--s8);
     font-size: var(--type-xs);
     color: var(--ink-3);
     margin-top: var(--s8);
