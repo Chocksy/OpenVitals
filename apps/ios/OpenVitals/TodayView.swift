@@ -52,8 +52,8 @@ struct TodayView: View {
             }
         }
         .task { await load() }
-        .sheet(isPresented: $settings) { SettingsView() }
-        .sheet(isPresented: $research) { ResearchView() }
+        .fullScreenCover(isPresented: $settings) { SettingsView() }
+        .fullScreenCover(isPresented: $research) { ResearchView() }
     }
 
     private var researchRow: some View {

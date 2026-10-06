@@ -1083,7 +1083,7 @@ struct HybridTodayView: View {
                 }
             }
         }
-        .sheet(isPresented: $settings) { SettingsView() }
+        .fullScreenCover(isPresented: $settings) { SettingsView() }
     }
 
     // MARK: the sheet

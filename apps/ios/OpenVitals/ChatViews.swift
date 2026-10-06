@@ -139,10 +139,7 @@ struct ChatListView: View {
                      line: "Swipe left on one to delete it.") {
                 ChatCircle(glyph: "xmark", label: "Close", dark: true, action: close)
             }
-            .padding(.horizontal, DesignTokens.s21)
-            .padding(.top, DesignTokens.s13)
-            .padding(.bottom, DesignTokens.s21)
-            .background(Hy.plum.ignoresSafeArea(edges: .top))
+            .zIndex(1)
 
             if !model.loaded {
                 ProgressView().tint(Hy.ink2).frame(maxWidth: .infinity, maxHeight: .infinity)

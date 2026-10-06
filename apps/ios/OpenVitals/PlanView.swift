@@ -325,7 +325,7 @@ struct PlanView: View {
         }
         .sensoryFeedback(.success, trigger: model.stored)
         .task { await model.load() }
-        .sheet(isPresented: $research) { ResearchView() }
+        .fullScreenCover(isPresented: $research) { ResearchView() }
     }
 
     /// Under the header's line: 5 tall, lime over mist, done / adopted.
