@@ -11,6 +11,7 @@ import {
   hasToolCall,
   stepCountIs,
   type LanguageModel,
+  type PrepareStepFunction,
   type ModelMessage,
   type StopCondition,
   type streamText,
@@ -109,6 +110,7 @@ export interface Turn {
     messages: ModelMessage[];
     tools: ToolSet;
     stopWhen: StopCondition<ToolSet>[];
+    prepareStep: PrepareStepFunction<ToolSet>;
     providerOptions: Parameters<typeof streamText>[0]["providerOptions"];
   };
   /** whether the provider is carrying the context, not us */
@@ -209,6 +211,16 @@ export async function prepareTurn(
        * still printed its paragraph a second time, or called `offer` twice.
        */
       stopWhen: [stepCountIs(4), hasToolCall("offer")],
+      /**
+       * After a \`look_up\` the model wrote its whole answer into its
+       * reasoning and called \`offer\` with no text, so the turn saved
+       * nothing. With the tools off it has to write. Looked-up papers carry
+       * no ids, so the buttons that step loses were never there.
+       */
+      prepareStep: ({ steps }) =>
+        steps.some((s) => s.toolCalls.some((c) => c.toolName === "look_up"))
+          ? { activeTools: [] }
+          : {},
       providerOptions,
     },
     save: async (produced, ui) => {

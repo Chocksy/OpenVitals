@@ -1,5 +1,5 @@
 /**
- * The five things a turn in a thread can do.
+ * The six things a turn in a thread can do.
  *
  * Phase 28c. Principle 3 at the level of a tool: the model picks ids out of the
  * closed sets it was handed, and every handler re-validates before it writes.
@@ -19,11 +19,14 @@ import { saveFact } from "./coverage";
 import { recordBeliefs } from "./ledger";
 import { pickActs, type Acts } from "./lookup";
 import { RETEST_WEEKS } from "./projection";
+import { epmc, toPaper } from "./research";
 import { PROFILE_QUESTIONS } from "./vectors";
 
 /** Two years. Anything past it is the model inventing a schedule. */
 const MAX_WEEKS = 104;
 const DAY = 86_400_000;
+/** Papers one `look_up` reads: enough to compare, few enough to stay short. */
+const LOOK_UP_PAPERS = 5;
 
 /** The weeks a retest actually gets: what was asked, clamped, or the usual. */
 export function retestWeeks(code: string, asked?: number): number {
@@ -56,6 +59,8 @@ When they rule something out — a drug no doctor will prescribe them, a food th
 How to carry out an action already on the lists is not a new action: what form to buy, what the label should say, how to take it. Answer that plainly, the way a pharmacist would. Never name a brand or a shop.
 
 When they say \`the first one\`, \`that one\` or \`the retest\`, they mean what YOU offered last turn, in the order you offered it. Read your own last \`offer\` call and pass back that exact id. Never reach past your own last offer for something that sounds similar.
+
+When the lists above have nothing for what they asked — a supplement, food or substance named by them that is not on the lists, such as berberine, or more options after they ruled out what the lists hold — call \`look_up\` once, before you write, with a short search such as "berberine LDL cholesterol". Never answer that you have no data or no graded evidence without looking it up first. Answer from the papers it hands back: what each found, with its size when the abstract gives one and the dose the trials used, labelled [paper, <year>, <study type>] and named by title. A looked-up paper is not an action on their lists: it has no id and no button, so say they can add it on the plan page. If the papers found nothing useful, say so in one sentence. This replaces the rules above that say only the listed actions and listed papers exist, and only for what \`look_up\` hands back.
 
 \`offer\` only draws the buttons. It writes nothing, adds nothing and schedules nothing. When they ask you to add an action, record a fact or plan a retest, call \`adopt_action\`, \`record_fact\` or \`plan_retest\` for it. Never write that you have added, recorded, planned, scheduled, set or noted anything unless one of those tools handed you back a receipt for it in this turn, and never say you will do it later.`;
 
@@ -104,9 +109,7 @@ export function threadTools(
       description:
         "Say what your paragraph just named, as ids from the lists you were given. Call this once, after the paragraph.",
       inputSchema: z.object({
-        prose_done: z
-          .boolean()
-          .describe("true once the paragraph is written"),
+        prose_done: z.boolean().describe("true once the paragraph is written"),
         actions: z
           .array(z.string())
           .describe("ids of the actions the paragraph named, copied exactly"),
@@ -126,7 +129,10 @@ export function threadTools(
           .describe("ids of the rows in WHAT THE EVIDENCE SAYS you read from"),
       }),
       execute: async (input): Promise<Offered> => {
-        const acts = pickActs(input as Parameters<typeof pickActs>[0], candidates);
+        const acts = pickActs(
+          input as Parameters<typeof pickActs>[0],
+          candidates,
+        );
         if (acts.dropped.length)
           console.warn(
             `[thread ${threadId}] dropped ${acts.dropped.length} invented id(s): ${acts.dropped.join(", ")}`,
@@ -139,8 +145,49 @@ export function threadTools(
         return {
           ...acts,
           options: Object.fromEntries(
-            acts.questions.map((q) => [q.key, PROFILE_QUESTIONS[q.key]?.options ?? []]),
+            acts.questions.map((q) => [
+              q.key,
+              PROFILE_QUESTIONS[q.key]?.options ?? [],
+            ]),
           ),
+        };
+      },
+    }),
+
+    look_up: tool({
+      description:
+        "Search the medical literature (meta-analyses, reviews, trials) when the lists have nothing for the question. Returns up to 5 papers with their abstracts' findings.",
+      inputSchema: z.object({
+        query: z
+          .string()
+          .describe("a short search, e.g. 'berberine LDL cholesterol'"),
+      }),
+      execute: async ({ query }) => {
+        const hits = await epmc(
+          // Full-text matches and Europe PMC's date order brought schizophrenia
+          // trials for "berberine LDL"; title/abstract by citations brings the
+          // dyslipidaemia meta-analyses.
+          `(TITLE:(${query}) OR ABSTRACT:(${query})) AND (PUB_TYPE:"Meta-Analysis" OR PUB_TYPE:"Systematic Review" OR PUB_TYPE:"Randomized Controlled Trial") AND HAS_ABSTRACT:y AND PUB_YEAR:[${new Date().getFullYear() - 15} TO 3000] sort_cited:y`,
+          "core",
+          LOOK_UP_PAPERS,
+        );
+        if (hits.failed) return { papers: [], note: "the search is down" };
+        // ponytail: last 1 200 chars of the abstract is results + conclusion;
+        // the stored plain line (research papers) is the upgrade if this reads badly.
+        const papers = hits
+          .map((h) => ({ ...toPaper(h), type: h.pubTypeList?.pubType ?? [] }))
+          .filter((p) => !p.retracted)
+          .map((p) => ({
+            title: p.title,
+            year: p.year,
+            type: p.type.join(", "),
+            journal: p.journal,
+            url: p.url,
+            findings: p.abstract.replace(/<[^>]*>/g, "").slice(-1200),
+          }));
+        return {
+          papers,
+          next: "Now write your answer from these papers as text, then call offer.",
         };
       },
     }),
@@ -149,11 +196,12 @@ export function threadTools(
       description:
         "Add one action from THEIR PLAN or WHAT THE PAPERS SAY to what they actually do. Only ids printed in those sections.",
       inputSchema: z.object({
-        id: z.string().describe("the id printed after \"id\" in the prompt"),
+        id: z.string().describe('the id printed after "id" in the prompt'),
       }),
       execute: async ({ id }): Promise<Receipt> => {
         const hit = candidates.actions.find((a) => a.id === id);
-        if (!hit) return failed(`${id} was never on offer, so nothing was added`);
+        if (!hit)
+          return failed(`${id} was never on offer, so nothing was added`);
         const done = await adopt(userId, { id });
         if ("error" in done) return failed(done.error);
         return {
@@ -181,9 +229,7 @@ export function threadTools(
         if (!q) return failed(`${key} is not a question this app asks`);
         if (!value.trim()) return failed("no answer to record");
         if (q.options && !q.options.includes(value))
-          return failed(
-            `"${value}" is not one of: ${q.options.join(", ")}`,
-          );
+          return failed(`"${value}" is not one of: ${q.options.join(", ")}`);
         if (date && !/^\d{4}-\d{2}-\d{2}$/.test(date))
           return failed("a date has to be YYYY-MM-DD");
         await saveFact(userId, key, value, { kind, date, note });
@@ -229,7 +275,8 @@ export function threadTools(
       }),
       execute: async ({ code, weeks }): Promise<Receipt> => {
         const hit = candidates.tests.find((t) => t.code === code);
-        if (!hit) return failed(`${code} was never on offer, so nothing was planned`);
+        if (!hit)
+          return failed(`${code} was never on offer, so nothing was planned`);
         /**
          * ponytail: a retest is a goal with a date on it and no target. That
          * is what `/api/goals` has written since phase 27 and what the Next
