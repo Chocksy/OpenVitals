@@ -4,8 +4,8 @@
  * Phase 32a section 1, `docs/mockups/v4/research.html` sections 01, 02, 03 and
  * 05. One row a paper: the title, the journal with the grade the intake gave
  * it and the day it was published, one sentence of what it found, and what it
- * would move. That last line is the point — a paper that moves nothing says
- * "nothing for you", as plainly as the ones that move something.
+ * would move. A paper that moves nothing leaves that line off; the "for you"
+ * line already says why it is on the list.
  *
  * The rows come from `paper_watch` through `listWatch`, already sorted unseen
  * first and then by what they move. Nothing here re-sorts, re-scores or
@@ -114,19 +114,17 @@ export function PaperRow({
           <EvidenceChip basis="science" grade={action.grade} />
         </div>
       )}
-      <div className="pmoves">
-        <span className="arrow">moves →</span>
-        {moved ? (
-          <>
-            <StateWord tone={MOVE_TONE[moved.direction] ?? "none"}>
-              {moved.name}
-            </StateWord>
-            <span>{movesLine(row)}</span>
-          </>
-        ) : (
-          <StateWord tone="none">nothing for you</StateWord>
-        )}
-      </div>
+      {/* A paper that moves nothing says so by saying nothing: "for you"
+          above already says why it is here. */}
+      {moved && (
+        <div className="pmoves">
+          <span className="arrow">moves →</span>
+          <StateWord tone={MOVE_TONE[moved.direction] ?? "none"}>
+            {moved.name}
+          </StateWord>
+          <span>{movesLine(row)}</span>
+        </div>
+      )}
       <div className="pact">
         {row.url && (
           <a

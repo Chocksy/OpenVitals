@@ -99,8 +99,8 @@ describe("one paper row", () => {
     expect(html).toContain("cut TPO antibodies by 21 %");
   });
 
-  it("says nothing for you rather than leaving the line off", () => {
-    expect(html).toContain("nothing for you");
+  it("leaves the moves line off when the paper moves nothing", () => {
+    expect(html).not.toContain("moves →");
   });
 
   it("opens the paper where it was stored", () => {

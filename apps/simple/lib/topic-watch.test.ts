@@ -441,5 +441,12 @@ describe("where a topic comes from", () => {
       "psyllium husk",
     );
     expect(firstNounPhrase("Walk 30 minutes")).toBe("Walk");
+    expect(firstNounPhrase("Omega 3 supliment")).toBe("Omega 3 supliment");
+    expect(
+      firstNounPhrase("Full-body resistance training twice weekly — 45 minutes"),
+    ).toBe("Full-body resistance training");
+    expect(
+      firstNounPhrase("Post-meal 15-minute walking habit — 15 minutes brisk"),
+    ).toBe("Post-meal");
   });
 });

@@ -1044,10 +1044,15 @@ export async function topicLabels(
 export function firstNounPhrase(text: string): string {
   const cut = text
     .replace(/^(take|start|add|use|do|keep|continue)\s+/i, "")
+    /**
+     * A number cuts only when a unit follows it, and a hyphen only when it
+     * stands apart: "Omega 3", "Full-body" and "Post-meal" were watched as
+     * `omega`, `full` and `post`, and filed papers on autism.
+     */
     .split(
-      /\s+(?:\d|with\b|at\b|for\b|per\b|every\b|before\b|after\b|daily\b|twice\b|on\b|in\b|to\b)/i,
+      /\s+(?:\d+(?:\.\d+)?[\s-]*(?:g|mg|mcg|µg|iu|ml|l|kg|minutes?|min|hours?|h|times?|x|days?|weeks?|steps?|reps?|sets?)\b|with\b|at\b|for\b|per\b|every\b|before\b|after\b|daily\b|twice\b|on\b|in\b|to\b)/i,
     )[0]!
-    .split(/[,;:(–—-]/)[0]!;
+    .split(/[,;:(–—]|\s-\s/)[0]!;
   return cut.trim().replace(/\s+/g, " ").slice(0, 60);
 }
 
