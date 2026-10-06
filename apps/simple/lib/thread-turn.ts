@@ -193,6 +193,8 @@ export async function prepareTurn(
    */
   const history = compacts ? past : past.slice(-FALLBACK_WINDOW);
   const turn = await convertToModelMessages([message]);
+  /** The thread rules go last, after the data, so they win over the shape. */
+  const system = `${systemForTurn(brief, isFollowUp)}\n\n${brief.facts}\n${THREAD_RULES}`;
 
   return {
     thread: its,
@@ -200,10 +202,7 @@ export async function prepareTurn(
     compacts,
     args: {
       model,
-      /**
-       * The thread rules go last, after the data, so they win over the shape.
-       */
-      system: `${systemForTurn(brief, isFollowUp)}\n\n${brief.facts}\n${THREAD_RULES}`,
+      system,
       messages: [...history, ...turn],
       tools: threadTools(userId, brief, its.id),
       /**
@@ -214,8 +213,10 @@ export async function prepareTurn(
       /**
        * After a \`look_up\` the model wrote its whole answer into its
        * reasoning and called \`offer\` with no text, so the turn saved
-       * nothing. With the tools off it has to write. Looked-up papers carry
-       * no ids, so the buttons that step loses were never there.
+       * nothing, even when told in so many words to write first. With the
+       * tools off it has to write.
+       * ponytail: that turn loses its buttons; a text step then a forced
+       * \`offer\` step is the upgrade if the missing Add buttons matter.
        */
       prepareStep: ({ steps }) =>
         steps.some((s) => s.toolCalls.some((c) => c.toolName === "look_up"))

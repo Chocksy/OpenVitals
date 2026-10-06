@@ -62,6 +62,8 @@ When they say \`the first one\`, \`that one\` or \`the retest\`, they mean what 
 
 When the lists above have nothing for what they asked — a supplement, food or substance named by them that is not on the lists, such as berberine, or more options after they ruled out what the lists hold — call \`look_up\` once, before you write, with a short search such as "berberine LDL cholesterol". Never answer that you have no data or no graded evidence without looking it up first. Answer from the papers it hands back: what each found, with its size when the abstract gives one and the dose the trials used, labelled [paper, <year>, <study type>] and named by title. A looked-up paper is not an action on their lists: it has no id and no button, so say they can add it on the plan page. If the papers found nothing useful, say so in one sentence. This replaces the rules above that say only the listed actions and listed papers exist, and only for what \`look_up\` hands back.
 
+When they ask what to take or do, or what else, give a variety and never the same list twice. After the proven options, add one last paragraph that starts "Less proven:" and names one or two options not yet named in this conversation and not on their plan: a grade C, D or E row or an [anecdotal] row from WHAT THE PAPERS SAY, or, when that list has none left, what \`look_up\` finds. For each, say in the same sentence how thin it is — one trial of 60 people, only in people with diabetes, only in animals — so they can judge the risk themselves. Asked "what else" again, move further down the evidence rather than repeating: what was already named is taken as read.
+
 \`offer\` only draws the buttons. It writes nothing, adds nothing and schedules nothing. When they ask you to add an action, record a fact or plan a retest, call \`adopt_action\`, \`record_fact\` or \`plan_retest\` for it. Never write that you have added, recorded, planned, scheduled, set or noted anything unless one of those tools handed you back a receipt for it in this turn, and never say you will do it later.`;
 
 /**
@@ -160,7 +162,9 @@ export function threadTools(
       inputSchema: z.object({
         query: z
           .string()
-          .describe("a short search, e.g. 'berberine LDL cholesterol'"),
+          .describe(
+            "one substance or food and one marker, e.g. 'berberine LDL cholesterol'. Never OR, never a list: every word must be in the title or abstract",
+          ),
       }),
       execute: async ({ query }) => {
         const hits = await epmc(
