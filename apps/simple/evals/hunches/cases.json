@@ -375,7 +375,7 @@
     "source": "WHO 2024 hepatitis testing guidance",
     "conditionId": "hepatitis_bc",
     "check": {
-     "code": "hbs_ag_screening",
+     "code": "hbs_antigen",
      "op": ">",
      "value": 0.5
     }
@@ -999,7 +999,7 @@
     "source": "EASL 2017 hepatitis B guideline",
     "conditionId": "hepatitis_bc",
     "check": {
-     "code": "hbs_ag_screening",
+     "code": "hbs_antigen",
      "op": ">",
      "value": 0.5
     }
@@ -1765,7 +1765,7 @@
    "id": "hbsag_with_anti_hcv",
    "name": "HBsAg with anti-HCV",
    "featureIds": [
-    "hbs_ag_screening",
+    "hbs_antigen",
     "hcv_antibodies"
    ],
    "cost": 1,

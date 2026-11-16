@@ -10,9 +10,9 @@
  * row the retest planner has always written and the row the draw line reads
  * back as a planned draw.
  *
- * The mockup's "due by cadence" panel is not here: the app has no per-marker
- * retest cadence to compute from. What it has is the goals somebody actually
- * planned, so that is what the second panel says.
+ * "Due for a recheck" is the mockup's "due by cadence" panel: the yearly core
+ * against its last draw and every marker an open hunch says is moving
+ * (`lib/recheck.ts`). It comes first because it is most of a real draw.
  */
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -40,7 +40,7 @@ export interface DrawCandidate {
   lastDrawn?: string | null;
   /** already on a dated goal */
   plannedFor?: string | null;
-  group: "now" | "planned" | "wait";
+  group: "recheck" | "now" | "planned" | "wait";
 }
 
 const WEEKS = [4, 8, 12];
@@ -137,6 +137,23 @@ export function PlanDraw({ candidates }: { candidates: DrawCandidate[] }) {
   return (
     <div className="grid2">
       <div className="stackv">
+        {byGroup("recheck").length > 0 && (
+          <div className="panel">
+            <div className="panel-head">
+              <h3>Due for a recheck</h3>
+              <span className="r">moving, or due by date</span>
+            </div>
+            {byGroup("recheck").map((c) => (
+              <Row
+                key={c.code}
+                c={c}
+                on={picked.includes(c.code)}
+                toggle={() => toggle(c.code)}
+              />
+            ))}
+          </div>
+        )}
+
         <div className="panel">
           <div className="panel-head">
             <h3>Worth it now</h3>

@@ -400,6 +400,18 @@ const INSULIN_RESISTANCE: Hypothesis = {
       confoundedBy: ["glucose", "insulin"],
     },
     {
+      // The measured thing itself, well under the cut-off. Without this a
+      // HOMA of 1.2 said nothing and a population prior of a half stood.
+      id: "ir_homa_low",
+      input: { derived: "homaIr" },
+      when: { below: 1.5 },
+      lr: 0.4,
+      grade: "C",
+      source:
+        "Matthews 1985 Diabetologia; Ascaso 2003 Diabetes Care put the insulin-resistant cut-off at the 90th centile (HOMA 3.8). Below 1.5 sits well inside the sensitive range; the 0.4 is this app's estimate.",
+      confoundedBy: ["glucose", "insulin"],
+    },
+    {
       id: "ir_tg_hdl_high",
       input: { derived: "tgHdl" },
       when: { above: 2 },

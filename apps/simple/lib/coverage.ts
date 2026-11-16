@@ -138,7 +138,7 @@ export interface CoverageRow {
 
 const DAY = 86_400_000;
 
-const daysBetweenDates = (from: string, to: string) =>
+export const daysBetweenDates = (from: string, to: string) =>
   Math.floor((new Date(to).getTime() - new Date(from).getTime()) / DAY);
 
 /** "male"/"female" from whatever the answer was stored as. */
@@ -174,6 +174,22 @@ export const refHighFor = (
   code: string,
   printed: number | null | undefined,
 ): number | null => printed ?? DEFAULT_REF_HIGH[code] ?? null;
+
+/** Markers whose rules assume a fasting morning draw. */
+const FASTING = new Set(["glucose", "insulin"]);
+
+/**
+ * "Negativ" on a serology is a result, not a blank. Only for the categorical
+ * markers (cut-off 0.5 in `DEFAULT_REF_HIGH`), so a misfiled "negative" on a
+ * numeric marker stays unreadable instead of becoming a zero.
+ */
+export function qualitative(code: string, text: string | null | undefined) {
+  if (DEFAULT_REF_HIGH[code] !== 0.5 || !text) return null;
+  const t = text.toLowerCase();
+  if (/\b(negativ|negative|nonreactiv|non-reactive|absent)/.test(t)) return 0;
+  if (/\b(pozitiv|positive|reactiv|reactive|prezent|present)/.test(t)) return 1;
+  return null;
+}
 
 export function optimalFor(
   code: string,
@@ -424,26 +440,33 @@ export async function buildModelInput(
   const latest: Record<string, LatestValue> = {};
   for (const m of rows) {
     const withValue = m.rows.filter((r) => r.value != null);
+    // A fasting marker reads the last lab draw: a meter or CGM value in Health
+    // is not a fasting glucose, and it used to outvote the lab two days earlier.
+    const row =
+      (FASTING.has(m.code) &&
+        m.rows.findLast((r) => r.source == null && r.value != null)) ||
+      m.latest;
+    const value = row.value ?? qualitative(m.code, row.valueText);
     // `getMetricRows` already resolved override -> sex -> catalog.
     const [optimalLow, optimalHigh] = [m.optimalLow, m.optimalHigh];
-    const refHigh = refHighFor(m.code, m.latest.refHigh);
+    const refHigh = refHighFor(m.code, row.refHigh);
     latest[m.code] = {
-      value: m.latest.value,
-      unit: m.latest.unit ?? m.unit,
-      date: m.latest.observedAt,
+      value,
+      unit: row.unit ?? m.unit,
+      date: row.observedAt,
       status: statusOf({
-        value: m.latest.value,
-        refLow: m.latest.refLow,
+        value,
+        refLow: row.refLow,
         refHigh,
         optimalLow,
         optimalHigh,
       }),
       optimalLow,
       optimalHigh,
-      refLow: m.latest.refLow,
+      refLow: row.refLow,
       refHigh,
       prev: withValue[withValue.length - 2]?.value ?? null,
-      unverified: (m.latest.flags ?? []).includes("unverified"),
+      unverified: (row.flags ?? []).includes("unverified"),
       slope: slopePerYear(m.points, today),
       history: historyOf(
         labPoints(m.rows).map((p) => ({
@@ -481,13 +504,13 @@ export async function buildModelInput(
   // The fact is one list with every course in it; on a past day the courses
   // not begun yet are not part of what the person had said.
   if (asOf && Array.isArray(profile.treatments))
-    profile.treatments = profile.treatments.filter(
-      (t) => String(t?.started ?? "").slice(0, 10) <= today,
-    ).map((t) =>
-      t?.stopped && String(t.stopped).slice(0, 10) > today
-        ? { ...t, stopped: null }
-        : t,
-    );
+    profile.treatments = profile.treatments
+      .filter((t) => String(t?.started ?? "").slice(0, 10) <= today)
+      .map((t) =>
+        t?.stopped && String(t.stopped).slice(0, 10) > today
+          ? { ...t, stopped: null }
+          : t,
+      );
 
   return applyPatternTargets({
     today,

@@ -58,6 +58,7 @@ export const MERGES: Record<string, string> = {
   anti_thyroglobulin_antibodies: "anti_thyroglobulin",
   hbs_ag: "hbs_antigen",
   hbsag_qualitative: "hbs_antigen",
+  hbs_ag_screening: "hbs_antigen",
   anti_hcv: "hcv_antibodies",
   helicobacter_pylori_antigen_stool: "h_pylori_stool_antigen",
   folic_acid_vitamin_b9: "folic_acid",

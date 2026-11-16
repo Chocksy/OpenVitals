@@ -9,6 +9,8 @@ import { catalogFor } from "@/lib/hkb";
 import { scoreHypotheses } from "@/lib/hypotheses";
 import { nextMoves } from "@/lib/infogain";
 import { displayNameOf } from "@/lib/ledger";
+import { hunchRows } from "@/lib/hunches";
+import { rechecksOf } from "@/lib/recheck";
 import type { MetricRow } from "@/lib/data";
 import { PlanDraw, type DrawCandidate } from "@/components/plan-draw";
 
@@ -16,6 +18,11 @@ export const dynamic = "force-dynamic";
 
 /**
  * Plan a draw, reached from the Draws tab: `docs/mockups/v4/plan-draw.html`.
+ *
+ * "Due for a recheck" is the monitoring half (`lib/recheck.ts`): the yearly
+ * core against its last draw, plus every marker an open hunch says is moving.
+ * The engine below never lists those, because a marker on file settles no
+ * condition however far it drifts.
  *
  * "Worth it now" is the information-gain engine's own ranking of the tests it
  * would buy, with the pair of posteriors each answer would produce. "Already
@@ -40,7 +47,7 @@ const money = (n: number) => `€${Math.round(n)}`;
 export default async function PlanDrawPage() {
   const userId = await requireUserId();
   const db = getDb();
-  const [rows, input, catalog, open] = await Promise.all([
+  const [rows, input, catalog, open, hunches] = await Promise.all([
     getMetricRows(userId),
     buildModelInput(userId),
     catalogFor(userId),
@@ -52,14 +59,23 @@ export default async function PlanDrawPage() {
       })
       .from(goals)
       .where(and(eq(goals.userId, userId), isNull(goals.achievedAt))),
+    hunchRows(userId),
   ]);
 
   const scored = scoreHypotheses(input, { catalog });
   const nameOf = new Map(scored.map((h) => [h.id, displayNameOf(h)]));
   /* The engine ranks a free question above every test, so a short list is
      all questions. Ask for the whole ranking and keep the tests out of it. */
+  /* A questionnaire is free and needs no needle: it belongs with the
+     questions, not on a lab sheet. */
+  const questionnaires = new Set(
+    catalog
+      .flatMap((h) => h.discriminators)
+      .filter((d) => d.unit === "points" || /questionnaire/i.test(d.test))
+      .map((d) => d.test),
+  );
   const moves = nextMoves(input, catalog, { max: 200 }).filter(
-    (m) => m.kind === "test",
+    (m) => m.kind === "test" && !questionnaires.has(m.label),
   );
 
   const byCode = new Map<string, MetricRow>(rows.map((m) => [m.code, m]));
@@ -70,6 +86,25 @@ export default async function PlanDrawPage() {
   const planned = new Set(open.filter((g) => g.due).map((g) => g.metricCode));
   const candidates: DrawCandidate[] = [];
   const seen = new Set<string>();
+
+  for (const r of rechecksOf(
+    input,
+    hunches.filter((h) => h.state === "open"),
+  )) {
+    const code = r.codes[0]!;
+    for (const c of r.codes) seen.add(c);
+    candidates.push({
+      code,
+      name: r.name,
+      cost: "cost 1",
+      why: r.why,
+      post: null,
+      lastDrawn: r.lastDate,
+      plannedFor: open.find((g) => g.metricCode === code)?.due ?? null,
+      group: planned.has(code) ? "planned" : "recheck",
+    });
+  }
+  const rechecks = candidates.length;
 
   for (const m of moves) {
     const code = codeOf(m.featureId);
@@ -113,7 +148,7 @@ export default async function PlanDrawPage() {
           ? "wait"
           : "now",
     });
-    if (candidates.length >= MAX_ROWS) break;
+    if (candidates.length - rechecks >= MAX_ROWS) break;
   }
 
   /* Every dated goal the engine did not already list: somebody planned it. */

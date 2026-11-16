@@ -2799,7 +2799,7 @@ const HEPATITIS_BC: Hypothesis = {
   evidence: [
     {
       id: "hep_hbsag",
-      input: { metric: "hbs_ag_screening" },
+      input: { metric: "hbs_antigen" },
       when: { above: 0.5 },
       lr: 50,
       lrNeg: 0.1,
@@ -2831,7 +2831,7 @@ const HEPATITIS_BC: Hypothesis = {
   discriminators: [
     {
       test: "HBsAg with anti-HCV",
-      codes: ["hbs_ag_screening", "hcv_antibodies"],
+      codes: ["hbs_antigen", "hcv_antibodies"],
       cost: 1,
       lrPos: 40,
       lrNeg: 0.08,

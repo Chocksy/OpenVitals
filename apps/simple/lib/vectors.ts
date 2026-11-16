@@ -1277,7 +1277,7 @@ export const DEFAULT_REF_HIGH: Record<string, number> = {
   // Categorical, reported as positive or negative.
   ema_iga: 0.5,
   antibodie_endomysial_iga: 0.5,
-  hbs_ag_screening: 0.5,
+  hbs_antigen: 0.5,
   hcv_antibodies: 0.5,
   hcv_rna: 0.5,
   parietal_cell_antibodies: 0.5,
