@@ -18,6 +18,7 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Calendar, Check, ClipboardCopy } from "lucide-react";
 import { dayLabel, plural } from "@/lib/utils";
+import { romanianSheet } from "@/lib/ro-sheet";
 import { Button, StateWord } from "./ui-kit";
 
 export interface DrawCandidate {
@@ -88,7 +89,14 @@ function Row({
   );
 }
 
-export function PlanDraw({ candidates }: { candidates: DrawCandidate[] }) {
+export function PlanDraw({
+  candidates,
+  romanian = false,
+}: {
+  candidates: DrawCandidate[];
+  /** the person lives in Romania: offer the sheet in the lab's language */
+  romanian?: boolean;
+}) {
   const router = useRouter();
   const [weeks, setWeeks] = useState(12);
   const [picked, setPicked] = useState<string[]>(() =>
@@ -270,6 +278,17 @@ export function PlanDraw({ candidates }: { candidates: DrawCandidate[] }) {
             <ClipboardCopy className="ic" aria-hidden="true" />
             Copy for your doctor
           </Button>
+          {romanian && (
+            <Button
+              job="quiet"
+              onClick={() =>
+                void navigator.clipboard?.writeText(romanianSheet(due, sheet))
+              }
+            >
+              <ClipboardCopy className="ic" aria-hidden="true" />
+              Copy in Romanian
+            </Button>
+          )}
           {done && <StateWord tone="on">{done}</StateWord>}
         </div>
       </div>

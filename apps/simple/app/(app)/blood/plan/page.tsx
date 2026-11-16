@@ -9,6 +9,7 @@ import { catalogFor } from "@/lib/hkb";
 import { scoreHypotheses } from "@/lib/hypotheses";
 import { nextMoves } from "@/lib/infogain";
 import { displayNameOf } from "@/lib/ledger";
+import { toCountryCode } from "@/lib/countries";
 import { hunchRows } from "@/lib/hunches";
 import { rechecksOf } from "@/lib/recheck";
 import type { MetricRow } from "@/lib/data";
@@ -195,7 +196,10 @@ export default async function PlanDrawPage() {
           <Link href="/blood?tab=markers">Every marker</Link>
         </div>
       ) : (
-        <PlanDraw candidates={candidates} />
+        <PlanDraw
+          candidates={candidates}
+          romanian={toCountryCode(input.profile.country) === "RO"}
+        />
       )}
     </div>
   );
