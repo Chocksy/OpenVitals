@@ -78,6 +78,7 @@ export default async function UploadPage({
         refHigh: readings.refHigh,
         observedAt: readings.observedAt,
         flags: readings.flags,
+        storedAt: readings.createdAt,
       })
       .from(readings)
       .innerJoin(metrics, eq(metrics.code, readings.metricCode))
@@ -292,7 +293,16 @@ export default async function UploadPage({
           uploadState(status) === "parsed" &&
           upload.createdAt &&
           Date.now() - upload.createdAt.getTime() < 86_400_000 && (
-            <RefreshUntil deadline={upload.createdAt.getTime() + 5 * 60_000} />
+            <RefreshUntil
+              deadline={
+                // a file opened later with its password starts the wait then
+                Math.max(
+                  upload.createdAt.getTime(),
+                  ...rows.map((r) => r.storedAt?.getTime() ?? 0),
+                ) +
+                5 * 60_000
+              }
+            />
           )}
 
         {/* No receipt at all means the file was read before this phase: the

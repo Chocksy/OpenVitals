@@ -242,6 +242,13 @@ describe("goalState", () => {
     expect(goalState([{ value: 95, observedAt: "2026-11-17", createdAt: stored }], g)).toBe("achieved");
     expect(goalState([{ value: 131, observedAt: "2026-11-17", createdAt: stored }], { ...g, due: null })).toBe("open");
   });
+  it("never lets a word result close a dated target goal on an old number", () => {
+    const g = { ...draw, targetHigh: 100, due: "2027-02-09" };
+    const june = { value: 95, observedAt: "2026-06-01", createdAt: new Date("2026-06-02T00:00:00Z") };
+    const word = { value: null, valueText: "Proba hemolizata", observedAt: "2026-11-17", createdAt: stored };
+    expect(goalState([june, word], g)).toBe("open");
+    expect(goalState([{ ...june, value: 131 }, word], g)).toBe("open");
+  });
   it("closes a planned draw on a word result", () => {
     expect(goalState([{ value: null, valueText: "Negativ", observedAt: "2026-11-17", createdAt: stored }], draw)).toBe("achieved");
   });

@@ -828,7 +828,7 @@ export function EditFact({
  */
 export function RefreshUntil({ deadline }: { deadline: number }) {
   const router = useRouter();
-  const [gaveUp, setGaveUp] = useState(() => Date.now() > deadline);
+  const [gaveUp, setGaveUp] = useState(false);
   useEffect(() => {
     if (Date.now() > deadline) return setGaveUp(true);
     const t = setInterval(() => {

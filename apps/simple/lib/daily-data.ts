@@ -356,7 +356,12 @@ function toGoalView(
     start: start?.value ?? null,
     gap: current == null ? 0 : goalGap(current, g.targetLow, g.targetHigh),
     progress: goalProgress(start?.value, current, g.targetLow, g.targetHigh),
-    reached: inGoal(current, g.targetLow, g.targetHigh),
+    // Closed by the curator (`goalState`), or an undated target the current
+    // value sits inside. A dated goal is a retest: only the curator closes it,
+    // so an old value inside the band never hides the draw it plans.
+    reached:
+      g.achievedAt != null ||
+      (g.due == null && inGoal(current, g.targetLow, g.targetHigh)),
   };
 }
 

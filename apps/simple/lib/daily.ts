@@ -104,9 +104,9 @@ export function goalState(
   const earliest = new Date(made.getTime() - JUST_DID_DAYS * 86_400_000)
     .toISOString()
     .slice(0, 10);
-  const withValue = rows.filter((r) => r.value != null);
-  // A word result ("Negativ") answers a planned draw as well as a number.
-  const drawn = rows.some(
+  // The rows that answer this plan: stored after it, drawn no earlier than
+  // a week before it. A word result ("Negativ") is a draw too.
+  const fresh = rows.filter(
     (r) =>
       (r.value != null || !!r.valueText) &&
       r.createdAt != null &&
@@ -114,18 +114,23 @@ export function goalState(
       r.observedAt.slice(0, 10) >= earliest,
   );
   if (goal.targetLow == null && goal.targetHigh == null)
-    return drawn ? "achieved" : "open";
-  const latest = [...withValue]
-    .sort((a, b) => a.observedAt.localeCompare(b.observedAt))
-    .pop();
-  // A dated target goal is a retest: the value already on file, from before
-  // the plan, never answers it.
-  if (
-    (goal.due == null || drawn) &&
-    inGoal(latest?.value, goal.targetLow, goal.targetHigh)
-  )
-    return "achieved";
-  return drawn && goal.due ? "drawn" : "open";
+    return fresh.length ? "achieved" : "open";
+  const newest = (rs: typeof rows) =>
+    rs
+      .filter((r) => r.value != null)
+      .sort((a, b) => a.observedAt.localeCompare(b.observedAt))
+      .pop();
+  // An undated target goal reads the whole history.
+  if (goal.due == null)
+    return inGoal(newest(rows)?.value, goal.targetLow, goal.targetHigh)
+      ? "achieved"
+      : "open";
+  // A dated one is a retest: only a number stored after the plan answers it.
+  const answer = newest(fresh);
+  if (!answer) return "open";
+  return inGoal(answer.value, goal.targetLow, goal.targetHigh)
+    ? "achieved"
+    : "drawn";
 }
 
 /** Distance to the nearest edge of the goal band. 0 once inside. */
