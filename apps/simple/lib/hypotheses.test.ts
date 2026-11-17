@@ -216,6 +216,8 @@ describe("iron_deficiency", () => {
     const onSteroid = at({ medications: "Prednisone 5 mg" });
     expect(onSteroid.score).toBeLessThan(plain.score);
     expect(onSteroid.confounded.map((c) => c.tag)).toContain("steroid_use");
+    for (const label of ["Prednison 5 mg", "Dexametazonă 8 mg", "Symbicort Turbuhaler"])
+      expect(at({ medications: label }).confounded.map((c) => c.tag)).toContain("steroid_use");
     // No draw time on file: the morning cut-off counts, but weaker than LR 30.
     expect(plain.confounded.map((c) => c.tag)).toContain("draw_time_unknown");
     const rule = plain.for.find((f) => f.rule === "addison_cortisol_low");

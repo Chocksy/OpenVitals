@@ -2312,8 +2312,10 @@ function autoTags(m: ModelInput): Record<string, string[]> {
   return tags;
 }
 
+// Stems, so Romanian and brand spellings match too ("Prednison",
+// "Dexametazonă", "Metilprednisolon"); none of them hits "nonsteroidal".
 const STEROIDS =
-  "prednisolone|prednisone|dexamethasone|hydrocortisone|methylprednisolone|budesonide|fluticasone|beclomethasone|corticosteroid|corticoid|cortizon|medrol";
+  "predniso|dexamet|hydrocort|budesonid|flutica|beclomet|mometa|betamet|triamcin|clobeta|corticoster|corticoid|cortizon|medrol|symbicort|seretide|pulmicort|flixotide";
 
 /** The tag that discounts this marker's draw, if any. */
 function confounderFor(
