@@ -1,11 +1,18 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { and, asc, eq } from "drizzle-orm";
+import { and, asc, eq, inArray, lt } from "drizzle-orm";
 import { ChevronDown, ChevronLeft } from "lucide-react";
 import { requireUserId } from "@/lib/auth";
-import { documentItems, genomeVariants, getDb, metrics, readings } from "@/db";
+import {
+  documentItems,
+  genomeVariants,
+  getDb,
+  goals,
+  metrics,
+  readings,
+} from "@/db";
 import { callGenome, genomeVerdicts } from "@/lib/genome";
-import { movedNothing, receiptLine } from "@/lib/read-receipt";
+import { drawAnswers, movedNothing, receiptLine } from "@/lib/read-receipt";
 import {
   findUpload,
   localPath,
@@ -15,7 +22,12 @@ import {
   type UploadState,
 } from "@/lib/uploads";
 import { cn, dayLabel, plural } from "@/lib/utils";
-import { ChangeKind, DeleteUpload, ReanalyzeUpload } from "@/components/client";
+import {
+  ChangeKind,
+  DeleteUpload,
+  ReanalyzeUpload,
+  RefreshUntil,
+} from "@/components/client";
 import { DocumentItems } from "@/components/document-items";
 import { GenomeTable } from "@/components/genome-table";
 import { ReadingRows } from "@/components/reading-rows";
@@ -103,6 +115,37 @@ export default async function UploadPage({
           .orderBy(asc(documentItems.createdAt))
       : [];
 
+  /* What this draw answered: each marker against its last value, and the
+     reason it was planned when it was. */
+  const codes = [...new Set(rows.map((r) => r.metricCode))];
+  const drawDay = rows.map((r) => r.observedAt).sort().pop();
+  const [earlier, notes] =
+    kind === "lab" && codes.length && drawDay
+      ? await Promise.all([
+          db
+            .select({
+              metricCode: readings.metricCode,
+              value: readings.value,
+              observedAt: readings.observedAt,
+            })
+            .from(readings)
+            .where(
+              and(
+                eq(readings.userId, userId),
+                inArray(readings.metricCode, codes),
+                lt(readings.observedAt, drawDay),
+              ),
+            ),
+          db
+            .select({ metricCode: goals.metricCode, note: goals.note })
+            .from(goals)
+            .where(
+              and(eq(goals.userId, userId), inArray(goals.metricCode, codes)),
+            ),
+        ])
+      : [[], []];
+  const answers = drawAnswers(rows, earlier, notes);
+
   const called = kind === "genome" ? callGenome(variants) : [];
   /** Computed once here; the gene table below reads the same array. */
   const verdicts = genomeVerdicts(
@@ -167,6 +210,7 @@ export default async function UploadPage({
               <>
                 <ReanalyzeUpload
                   id={upload.id}
+                  needsPassword={status === "needs_password"}
                   disabled={!canRedo}
                   title={
                     canRedo ? undefined : "the original file is not on this machine"
@@ -235,6 +279,15 @@ export default async function UploadPage({
           </div>
         </div>
 
+        <RefreshUntil
+          waiting={
+            !receipt &&
+            kind === "lab" &&
+            uploadState(status) === "parsed" &&
+            Date.now() - (upload.createdAt?.getTime() ?? 0) < 5 * 60_000
+          }
+        />
+
         {/* No receipt at all means the file was read before this phase: the
             page says nothing rather than claiming nothing moved. */}
         {receipt && (
@@ -252,6 +305,27 @@ export default async function UploadPage({
                 </span>
               </div>
             </div>
+          </div>
+        )}
+
+        {answers.length > 0 && (
+          <div className="rowlist mb-[var(--s13)]">
+            <div className="sub mt-0">
+              <h3>This draw answered</h3>
+              <span>each marker against its last value</span>
+            </div>
+            {answers.map((a) => (
+              <div className="verdict border" key={a.code}>
+                <div className="vq">{a.name}</div>
+                <p className="vsay">{a.why ?? "not planned, read anyway"}</p>
+                <div className="vside">
+                  <span className="vx">
+                    {a.from ?? "first"} → {a.to}
+                    {a.unit ? ` ${a.unit}` : ""}
+                  </span>
+                </div>
+              </div>
+            ))}
           </div>
         )}
 

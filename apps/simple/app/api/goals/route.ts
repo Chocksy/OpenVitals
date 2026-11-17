@@ -42,12 +42,17 @@ export async function POST(req: Request) {
     // A new target restarts the clock.
     achievedAt: null,
   };
+  /* On an existing goal, touch only what was sent: planning a draw date must
+     not wipe the target number somebody set before. */
+  const sent = Object.fromEntries(
+    Object.entries(set).filter(([k]) => k === "achievedAt" || k in b),
+  );
   const [row] = await getDb()
     .insert(goals)
     .values({ userId, metricCode, ...set })
     .onConflictDoUpdate({
       target: [goals.userId, goals.metricCode],
-      set: { ...set, createdAt: sql`now()` },
+      set: { ...sent, createdAt: sql`now()` },
     })
     .returning();
   /* Phase 34 section 1: the phone posts this too, and the owner is the

@@ -32,15 +32,10 @@ import {
   type ReviewSubject,
 } from "@/db";
 import { queueQuestions } from "./ask";
-import {
-  optimalFor,
-  saveFact,
-  toAge,
-  toSex,
-} from "./coverage";
+import { optimalFor, saveFact, toAge, toSex } from "./coverage";
 import { jsonObjectIn, model } from "./extract";
 import { rereadPosts } from "./compose";
-import { inGoal, localDay } from "./daily";
+import { goalDone, localDay } from "./daily";
 import { planRawVerify, rawVerifyScope } from "./raw-verify";
 import { explainPapers, runWatchForUser } from "./research-watch";
 import { runTopicsForUser, syncTopicsFromProtocol } from "./topic-watch";
@@ -364,7 +359,8 @@ export function planRefScale(
           r.refLow == null ? null : r.refLow * f,
           r.refHigh! * f,
           r.value!,
-        ) && (usual == null || ratio(r.refHigh! * f, usual) <= 3),
+        ) &&
+        (usual == null || ratio(r.refHigh! * f, usual) <= 3),
     );
     if (fits.length !== 1) continue;
 
@@ -512,7 +508,6 @@ export function planMissingRange(
 /* ------------------------------------------------------------------ *
  * 6. implausible_value
  * ------------------------------------------------------------------ */
-
 
 /** Outside the physiological bounds, or 50x outside the printed range. */
 export function planImplausible(
@@ -961,7 +956,9 @@ async function planMissingOptimal(
   if (!candidates.length || !hasKey()) return nothing;
   const batch = candidates.slice(0, LLM_BATCH);
 
-  const answer = await askJson<{ ranges?: (OptimalProposal & { code: string })[] }>(
+  const answer = await askJson<{
+    ranges?: (OptimalProposal & { code: string })[];
+  }>(
     `You are a preventive-medicine reference. For each biomarker give the OPTIMAL range for THIS person (not the lab reference range), in the unit given.
 Return, for each: low, high, the unit you used, the source, the basis and a one-sentence rationale.
 "source" must be a named guideline or a named author ("Endocrine Society 2011", "Attia/Outlive", "AHA 2019"), never "general consensus".
@@ -1142,7 +1139,9 @@ export async function runCurator(
         .filter(
           (i) =>
             i.status === "open" &&
-            ["implausible", "foreign_reading", "confirm_value"].includes(i.kind),
+            ["implausible", "foreign_reading", "confirm_value"].includes(
+              i.kind,
+            ),
         )
         .map((i) => i.subject?.readingId ?? "")
         .filter(Boolean),
@@ -1230,7 +1229,12 @@ export async function runCurator(
     /** The band in force before this run: the user's own, then sex, then catalog. */
     const bandBefore = (code: string): [number | null, number | null] => {
       const m = allMetrics.find((x) => x.code === code);
-      return optimalFor(code, sex, [m?.optimalLow ?? null, m?.optimalHigh ?? null], had);
+      return optimalFor(
+        code,
+        sex,
+        [m?.optimalLow ?? null, m?.optimalHigh ?? null],
+        had,
+      );
     };
 
     /** Write one band for THIS user. The shared catalog columns stay untouched. */
@@ -1261,7 +1265,8 @@ export async function runCurator(
               source && TRUSTED_OPTIMAL_SOURCES.includes(source)
                 ? "science"
                 : "opinion",
-            rationale: "proposed for review before the app settled ranges itself",
+            rationale:
+              "proposed for review before the app settled ranges itself",
           },
           m,
           labRange(code),
@@ -1330,7 +1335,7 @@ export async function runCurator(
     bump("foreign_reading").checked = targets.length;
     actions.push(...planForeignReadings(targets, history, byCode));
 
-    // 7. goal_check: a reading inside the target band closes the goal.
+    // 7. goal_check: a reading inside the band, or a planned draw that was drawn, closes the goal.
     const openGoals = await db
       .select()
       .from(goalsTable)
@@ -1341,7 +1346,7 @@ export async function runCurator(
         .filter((r) => r.metricCode === g.metricCode && r.value != null)
         .sort((a, b) => a.observedAt.localeCompare(b.observedAt))
         .pop();
-      if (!inGoal(latest?.value, g.targetLow, g.targetHigh)) continue;
+      if (!goalDone(latest, g)) continue;
       await db
         .update(goalsTable)
         .set({ achievedAt: new Date() })
@@ -1707,7 +1712,11 @@ export async function applyAnswer(
     if (answer.startsWith("Discard")) {
       await db.delete(readingsTable).where(eq(readingsTable.id, s.readingId));
       status = "applied";
-    } else if (answer.startsWith("Use the sheet") && r && s.sheetValue != null) {
+    } else if (
+      answer.startsWith("Use the sheet") &&
+      r &&
+      s.sheetValue != null
+    ) {
       // The second pass read the sheet again and the person took its number.
       await db
         .update(readingsTable)
@@ -1716,7 +1725,8 @@ export async function applyAnswer(
           flags: addFlags(r, {
             raw_verified: {
               orig: { value: r.value, refLow: r.refLow, refHigh: r.refHigh },
-              sheet: s.evidenceLine ?? s.sheet ?? "read again by the second pass",
+              sheet:
+                s.evidenceLine ?? s.sheet ?? "read again by the second pass",
             },
           }),
         })

@@ -105,3 +105,60 @@ export async function recordUploadMove(
     return null;
   }
 }
+
+export interface DrawAnswer {
+  code: string;
+  name: string;
+  from: number | null;
+  to: number;
+  unit: string | null;
+  /** the reason it was put on the sheet, when it was planned */
+  why: string | null;
+}
+
+/**
+ * What a lab file answered: each marker in it against its own last value,
+ * the planned ones first with the reason they were planned. A goal note
+ * reads "planned draw · 18 Nov 2026 · Outside the lab range, ...".
+ *
+ * Pure, so `lib/read-receipt.test.ts` runs it.
+ */
+export function drawAnswers(
+  rows: {
+    metricCode: string;
+    metricName: string;
+    value: number | null;
+    unit: string | null;
+    observedAt: string;
+  }[],
+  earlier: { metricCode: string; value: number | null; observedAt: string }[],
+  notes: { metricCode: string; note: string | null }[],
+): DrawAnswer[] {
+  const out: DrawAnswer[] = [];
+  for (const r of rows) {
+    if (r.value == null) continue;
+    const prev = earlier
+      .filter(
+        (e) =>
+          e.metricCode === r.metricCode &&
+          e.value != null &&
+          e.observedAt < r.observedAt,
+      )
+      .sort((a, b) => a.observedAt.localeCompare(b.observedAt))
+      .pop();
+    const note = notes.find((n) => n.metricCode === r.metricCode)?.note ?? "";
+    const why = note.startsWith("planned draw")
+      ? note.split(" · ").slice(2).join(" · ") || "planned"
+      : null;
+    if (!prev && !why) continue;
+    out.push({
+      code: r.metricCode,
+      name: r.metricName,
+      from: prev?.value ?? null,
+      to: r.value,
+      unit: r.unit,
+      why,
+    });
+  }
+  return out.sort((a, b) => Number(!!b.why) - Number(!!a.why));
+}

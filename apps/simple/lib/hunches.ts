@@ -1787,7 +1787,7 @@ export async function refreshHunches(
   for (const h of existing) {
     if (h.state !== "testing" || !h.test?.code || !h.writtenAt) continue;
     const reading = (person.points.get(h.test.code) ?? []).find(
-      (p) => p.date > day(h.writtenAt!),
+      (p) => p.date >= day(h.writtenAt!),
     );
     if (!reading) continue;
     done.add(h.key);

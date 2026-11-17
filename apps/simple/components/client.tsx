@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Copy, Mail, Play, RefreshCw, Search, Upload } from "lucide-react";
@@ -156,7 +156,10 @@ export function UploadButton() {
         ? `Imported as ${json.kind}: ${json.note ?? `${json.count} results`}`
         : `Failed: ${json.error}`,
     );
-    router.refresh();
+    // The receipt lives on the file's own page: go there, success or a
+    // locked PDF, so the next step is in front of you.
+    if (json.uploadId) router.push(`/blood/uploads/${json.uploadId}`);
+    else router.refresh();
   }
 
   return (
@@ -227,19 +230,36 @@ export function ReanalyzeUpload({
   id,
   disabled,
   title,
+  needsPassword,
 }: {
   id: string;
   disabled?: boolean;
   title?: string;
+  /** the PDF is locked: ask for the password the lab sent with it */
+  needsPassword?: boolean;
 }) {
   const { run, busy, error } = useAction();
+  const [password, setPassword] = useState("");
   return (
     <span className="inline-flex items-center gap-2">
+      {needsPassword && (
+        <input
+          type="password"
+          className="inp"
+          placeholder="PDF password"
+          aria-label="PDF password"
+          autoComplete="off"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+        />
+      )}
       <button
         className="b b-quiet b-sm"
-        disabled={busy || disabled}
+        disabled={busy || disabled || (needsPassword && !password)}
         title={title}
-        onClick={() => run(`/api/uploads/${id}/reanalyze`, {})}
+        onClick={() =>
+          run(`/api/uploads/${id}/reanalyze`, password ? { password } : {})
+        }
       >
         <RefreshCw className={busy ? "ic animate-spin" : "ic"} />
         {busy ? "Reanalyzing…" : "Reanalyze"}
@@ -799,4 +819,22 @@ export function EditFact({
       />
     </div>
   );
+}
+
+/**
+ * The curator runs after the upload answers, so the receipt lands a little
+ * later. Refresh the page every few seconds until it does, for two minutes.
+ */
+export function RefreshUntil({ waiting }: { waiting: boolean }) {
+  const router = useRouter();
+  useEffect(() => {
+    if (!waiting) return;
+    const started = Date.now();
+    const t = setInterval(() => {
+      if (Date.now() - started > 120_000) clearInterval(t);
+      else router.refresh();
+    }, 4000);
+    return () => clearInterval(t);
+  }, [waiting, router]);
+  return waiting ? <p className="t-meta">Reading what this file changed…</p> : null;
 }

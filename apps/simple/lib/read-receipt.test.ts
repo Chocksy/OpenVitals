@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { movedNothing, movedOf, receiptLine } from "./read-receipt";
+import { drawAnswers, movedNothing, movedOf, receiptLine } from "./read-receipt";
 import type { LedgerSnapshot } from "./ledger-diff";
 
 /**
@@ -190,5 +190,26 @@ describe("receiptLine", () => {
       snap([card("ir", 1, 41)]),
     );
     expect(receiptLine(m)).toBe("1 settled");
+  });
+});
+
+describe("drawAnswers", () => {
+  it("puts the planned markers first, with the reason and the last value", () => {
+    const out = drawAnswers(
+      [
+        { metricCode: "hdl_cholesterol", metricName: "HDL", value: 52, unit: "mg/dL", observedAt: "2026-11-17" },
+        { metricCode: "ferritin", metricName: "Ferritin", value: 85, unit: "ng/mL", observedAt: "2026-11-17" },
+        { metricCode: "brand_new", metricName: "New", value: 1, unit: null, observedAt: "2026-11-17" },
+      ],
+      [
+        { metricCode: "ferritin", value: 94.4, observedAt: "2025-12-09" },
+        { metricCode: "ferritin", value: 79.6, observedAt: "2026-04-23" },
+        { metricCode: "hdl_cholesterol", value: 50, observedAt: "2026-04-23" },
+      ],
+      [{ metricCode: "ferritin", note: "planned draw · 18 Nov 2026 · Falling every draw." }],
+    );
+    expect(out.map((a) => a.code)).toEqual(["ferritin", "hdl_cholesterol"]);
+    expect(out[0]).toMatchObject({ from: 79.6, to: 85, why: "Falling every draw." });
+    expect(out[1]!.why).toBeNull();
   });
 });

@@ -7,6 +7,7 @@ import {
   goalProgress,
   heatmapBucket,
   humanLogged,
+  goalDone,
   inGoal,
   partialDay,
   lastDays,
@@ -217,5 +218,21 @@ describe("whose day is it (phase 24b)", () => {
     expect(partialDay(18, 12000)).toBe(false);
     expect(partialDay(6, 12000)).toBe(true);
     expect(partialDay(23, null)).toBe(true);
+  });
+});
+
+describe("goalDone", () => {
+  const plannedOn = new Date("2026-11-16T09:00:00Z");
+  const draw = { targetLow: null, targetHigh: null, createdAt: plannedOn };
+  it("closes a planned draw once a reading lands on or after the plan day", () => {
+    expect(goalDone({ value: 80, observedAt: "2026-11-17" }, draw)).toBe(true);
+    expect(goalDone({ value: 80, observedAt: "2026-11-16" }, draw)).toBe(true);
+    expect(goalDone({ value: 80, observedAt: "2026-04-23" }, draw)).toBe(false);
+    expect(goalDone(undefined, draw)).toBe(false);
+  });
+  it("keeps a target goal open until the value is inside the band", () => {
+    const g = { targetLow: null, targetHigh: 100, createdAt: plannedOn };
+    expect(goalDone({ value: 131, observedAt: "2026-11-17" }, g)).toBe(false);
+    expect(goalDone({ value: 95, observedAt: "2026-11-17" }, g)).toBe(true);
   });
 });

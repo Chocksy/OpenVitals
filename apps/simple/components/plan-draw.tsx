@@ -44,7 +44,8 @@ export interface DrawCandidate {
   group: "recheck" | "now" | "planned" | "wait";
 }
 
-const WEEKS = [4, 8, 12];
+/** 0 is "this week": a draw you are doing now, or just did. */
+const WEEKS = [0, 4, 8, 12];
 
 /** `2026-11-24`, N weeks from today, in the browser's own day. */
 const dayIn = (weeks: number): string => {
@@ -125,19 +126,24 @@ export function PlanDraw({
   const plan = async () => {
     setBusy(true);
     setDone("");
+    const failed: string[] = [];
     for (const c of sheet) {
-      await fetch("/api/goals", {
+      const res = await fetch("/api/goals", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           metricCode: c.code,
           due,
-          note: `planned draw · ${dayLabel(due, true)}`,
+          note: `planned draw · ${dayLabel(due, true)} · ${c.why}`.slice(0, 300),
         }),
       });
+      if (!res.ok) failed.push(c.name);
     }
     setBusy(false);
-    setDone(`${sheet.length} planned for ${dayLabel(due, true)}.`);
+    setDone(
+      `${sheet.length - failed.length} planned for ${dayLabel(due, true)}.` +
+        (failed.length ? ` Not saved: ${failed.join(", ")}.` : ""),
+    );
     router.refresh();
   };
 
@@ -243,7 +249,7 @@ export function PlanDraw({
               className={w === weeks ? "f on" : "f"}
               onClick={() => setWeeks(w)}
             >
-              {w} wk · {dayLabel(dayIn(w))}
+              {w ? `${w} wk` : "this week"} · {dayLabel(dayIn(w))}
             </button>
           ))}
         </div>

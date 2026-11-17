@@ -51,7 +51,10 @@ export function streak(
 }
 
 /** Percent of `window` days on which the habit was done. */
-export function adherence(doneDays: Iterable<string>, window: string[]): number {
+export function adherence(
+  doneDays: Iterable<string>,
+  window: string[],
+): number {
   if (window.length === 0) return 0;
   const set = new Set(doneDays);
   const done = window.filter((d) => set.has(d)).length;
@@ -66,6 +69,26 @@ export function inGoal(
   if (value == null) return false;
   if (low == null && high == null) return false;
   return (low == null || value >= low) && (high == null || value <= high);
+}
+
+/**
+ * A goal is done when its value is inside the band, or, for a planned draw
+ * with no number on it, when a reading was collected on or after the day the
+ * draw was planned: the question was "measure this", and it was.
+ */
+export function goalDone(
+  latest: { value: number | null; observedAt: string } | undefined,
+  goal: {
+    targetLow: number | null;
+    targetHigh: number | null;
+    createdAt: Date | null;
+  },
+): boolean {
+  if (!latest) return false;
+  if (goal.targetLow != null || goal.targetHigh != null)
+    return inGoal(latest.value, goal.targetLow, goal.targetHigh);
+  const planned = (goal.createdAt ?? new Date()).toISOString().slice(0, 10);
+  return latest.observedAt.slice(0, 10) >= planned;
 }
 
 /** Distance to the nearest edge of the goal band. 0 once inside. */
@@ -119,7 +142,6 @@ export function rollingAverage(
     );
   });
 }
-
 
 /* ------------------------------------------------------------------ *
  * The /today form, described once so the client and the server agree.
@@ -193,9 +215,7 @@ export function humanLogged(
   const owned = new Set(wrote);
   return Object.entries(values).some(
     ([key, v]) =>
-      v != null &&
-      v !== "" &&
-      !(PHONE_COLUMNS.includes(key) && owned.has(key)),
+      v != null && v !== "" && !(PHONE_COLUMNS.includes(key) && owned.has(key)),
   );
 }
 
