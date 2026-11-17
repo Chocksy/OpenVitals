@@ -14,8 +14,8 @@ pnpm --filter simple import-legacy             # copies metric_definitions + obs
 pnpm --filter simple dev                       # http://localhost:3001
 ```
 
-`import-legacy` is idempotent. It also runs automatically on the first request
-if `readings` is empty.
+`import-legacy` is idempotent. The container runs it on every start; on a
+fresh local database, run it once by hand.
 
 Duplicate legacy codes for the same biomarker (`mch` and
 `mean_corpuscular_hemoglobin`, `alt` and `alt_tgp`, ...) collapse onto one

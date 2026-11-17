@@ -242,4 +242,13 @@ describe("goalState", () => {
     expect(goalState([{ value: 95, observedAt: "2026-11-17", createdAt: stored }], g)).toBe("achieved");
     expect(goalState([{ value: 131, observedAt: "2026-11-17", createdAt: stored }], { ...g, due: null })).toBe("open");
   });
+  it("closes a planned draw on a word result", () => {
+    expect(goalState([{ value: null, valueText: "Negativ", observedAt: "2026-11-17", createdAt: stored }], draw)).toBe("achieved");
+  });
+  it("keeps a re-planned target goal open on a value from before the plan", () => {
+    const g = { ...draw, targetHigh: 100, due: "2027-02-09" };
+    const old = [{ value: 95, observedAt: "2026-06-01", createdAt: new Date("2026-06-02T00:00:00Z") }];
+    expect(goalState(old, g)).toBe("open");
+    expect(goalState(old, { ...g, due: null })).toBe("achieved");
+  });
 });

@@ -87,7 +87,12 @@ const JUST_DID_DAYS = 7;
  * file uploaded later does not count either.
  */
 export function goalState(
-  rows: { value: number | null; observedAt: string; createdAt?: Date | null }[],
+  rows: {
+    value: number | null;
+    valueText?: string | null;
+    observedAt: string;
+    createdAt?: Date | null;
+  }[],
   goal: {
     targetLow: number | null;
     targetHigh: number | null;
@@ -100,8 +105,10 @@ export function goalState(
     .toISOString()
     .slice(0, 10);
   const withValue = rows.filter((r) => r.value != null);
-  const drawn = withValue.some(
+  // A word result ("Negativ") answers a planned draw as well as a number.
+  const drawn = rows.some(
     (r) =>
+      (r.value != null || !!r.valueText) &&
       r.createdAt != null &&
       r.createdAt > made &&
       r.observedAt.slice(0, 10) >= earliest,
@@ -111,7 +118,13 @@ export function goalState(
   const latest = [...withValue]
     .sort((a, b) => a.observedAt.localeCompare(b.observedAt))
     .pop();
-  if (inGoal(latest?.value, goal.targetLow, goal.targetHigh)) return "achieved";
+  // A dated target goal is a retest: the value already on file, from before
+  // the plan, never answers it.
+  if (
+    (goal.due == null || drawn) &&
+    inGoal(latest?.value, goal.targetLow, goal.targetHigh)
+  )
+    return "achieved";
   return drawn && goal.due ? "drawn" : "open";
 }
 

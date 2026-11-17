@@ -284,14 +284,16 @@ export default async function UploadPage({
           </div>
         </div>
 
-        <RefreshUntil
-          waiting={
-            !receipt &&
-            kind === "lab" &&
-            uploadState(status) === "parsed" &&
-            Date.now() - (upload.createdAt?.getTime() ?? 0) < 5 * 60_000
-          }
-        />
+        {/* One deadline for server and client: five minutes after the upload.
+            Past it, a missing receipt says to reload instead of vanishing;
+            a day on, it is a file read before receipts and says nothing. */}
+        {!receipt &&
+          kind === "lab" &&
+          uploadState(status) === "parsed" &&
+          upload.createdAt &&
+          Date.now() - upload.createdAt.getTime() < 86_400_000 && (
+            <RefreshUntil deadline={upload.createdAt.getTime() + 5 * 60_000} />
+          )}
 
         {/* No receipt at all means the file was read before this phase: the
             page says nothing rather than claiming nothing moved. */}

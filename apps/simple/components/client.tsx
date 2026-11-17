@@ -823,23 +823,22 @@ export function EditFact({
 
 /**
  * The curator runs after the upload answers, so the receipt lands a little
- * later. Refresh the page every few seconds until it does, for two minutes.
+ * later. Refresh the page every few seconds until it does or the deadline
+ * passes; the page stops rendering this once the receipt is there.
  */
-export function RefreshUntil({ waiting }: { waiting: boolean }) {
+export function RefreshUntil({ deadline }: { deadline: number }) {
   const router = useRouter();
-  const [gaveUp, setGaveUp] = useState(false);
+  const [gaveUp, setGaveUp] = useState(() => Date.now() > deadline);
   useEffect(() => {
-    if (!waiting) return;
-    const started = Date.now();
+    if (Date.now() > deadline) return setGaveUp(true);
     const t = setInterval(() => {
-      if (Date.now() - started > RECEIPT_WAIT_MS) {
+      if (Date.now() > deadline) {
         clearInterval(t);
         setGaveUp(true);
       } else router.refresh();
     }, 4000);
     return () => clearInterval(t);
-  }, [waiting, router]);
-  if (!waiting) return null;
+  }, [deadline, router]);
   return (
     <p className="t-meta">
       {gaveUp
@@ -849,6 +848,3 @@ export function RefreshUntil({ waiting }: { waiting: boolean }) {
   );
 }
 
-/** How long the upload page polls for its receipt: the same five minutes
- *  the page itself waits (`blood/uploads/[id]/page.tsx`). */
-const RECEIPT_WAIT_MS = 5 * 60_000;
