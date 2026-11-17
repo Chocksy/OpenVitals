@@ -4,19 +4,23 @@ import { rechecksOf } from "./recheck";
 
 const at = (
   date: string,
-  status: LatestValue["status"] = "green",
+  value: number,
+  status: LatestValue["status"],
+  ref: [number | null, number | null],
+  perYear?: number,
 ): LatestValue => ({
-  value: 1,
+  value,
   unit: null,
   date,
   status,
   optimalLow: null,
   optimalHigh: null,
-  refLow: null,
-  refHigh: null,
+  refLow: ref[0],
+  refHigh: ref[1],
+  ...(perYear != null ? { slope: { perYear, years: 4, n: 5 } } : {}),
 });
 
-/* A 39-year-old man, last full panel seven months ago, folate two years ago. */
+/* A real 39-year-old man's last draw, seven months before "today". */
 const APRIL = "2026-04-23";
 const input: ModelInput = {
   today: "2026-11-16",
@@ -25,26 +29,27 @@ const input: ModelInput = {
   age: 39,
   derived: {},
   latest: {
-    ldl_cholesterol: at(APRIL, "red"),
-    hdl_cholesterol: at(APRIL, "red"),
-    triglycerides: at(APRIL),
-    apolipoprotein_b: at(APRIL),
-    ferritin: at(APRIL),
-    vitamin_b12: at(APRIL),
-    homocysteine: at(APRIL),
-    folic_acid: at("2024-05-13"),
-    vitamin_d: at(APRIL, "amber"),
-    hba1c: at(APRIL),
-    glucose: at(APRIL),
-    insulin: at(APRIL),
-    tsh: at("2026-10-01"),
-    lp_a: at(APRIL),
+    ldl_cholesterol: at(APRIL, 131, "red", [0, 100], 5.6),
+    hdl_cholesterol: at(APRIL, 50, "red", [60, null], -1.8),
+    triglycerides: at(APRIL, 106, "amber", [null, 150], 9.6),
+    apolipoprotein_b: at(APRIL, 99, "amber", [55, 140], 5),
+    vitamin_d: at(APRIL, 32.7, "amber", [30, 100], -5.2),
+    ferritin: at(APRIL, 79.6, "green", [22, 322], -9.9),
+    vitamin_b12: at(APRIL, 472, "amber", [197, 771], 50),
+    homocysteine: at(APRIL, 9.6, "green", [5.5, 16.2]),
+    folic_acid: at("2024-05-13", 15.5, "green", [3.2, 19.6]),
+    glucose: at(APRIL, 87, "amber", [74, 106], 1.7),
+    insulin: at(APRIL, 5.7, "amber", [3, 25]),
+    hba1c: at(APRIL, 5, "green", [4, 6]),
+    tsh: at(APRIL, 1.1, "green", [0.55, 4.78]),
+    lp_a: at(APRIL, 25, "green", [0, 30]),
   },
 };
 
 const hunches = [
   { kind: "drift", codes: ["ldl_cholesterol"] },
   { kind: "cluster", codes: ["homocysteine", "ferritin", "vitamin_b12"] },
+  { kind: "gap", codes: ["folic_acid"] },
   { kind: "cause", codes: ["alt", "glucose", "hba1c", "insulin"] },
 ];
 
@@ -53,26 +58,33 @@ describe("rechecksOf", () => {
   const ids = out.map((r) => r.id);
   const why = (id: string) => out.find((r) => r.id === id)?.why ?? "";
 
-  it("lists the drifting lipids and the iron cluster first", () => {
-    expect(why("lipids")).toMatch(/^Drifting/);
-    expect(why("ferritin")).toMatch(/^Moved the worse way/);
-    expect(why("b12")).toMatch(/^Moved the worse way/);
+  it("buys the out-of-range lipid panel and ApoB with it", () => {
+    expect(why("lipids")).toMatch(/lab range/);
+    expect(why("apob")).toMatch(/lipid panel/);
   });
 
-  it("calls a two-year-old folate stale and an amber vitamin D due", () => {
-    expect(why("folate")).toMatch(/once a year/);
-    expect(why("vitamin_d")).toMatch(/optimal band/);
+  it("buys a vitamin D whose own trend has crossed the range by now", () => {
+    expect(why("vitamin_d")).toMatch(/on its trend/i);
   });
 
-  it("puts the rest of a seven-month-old core on the same needle", () => {
-    expect(why("hba1c")).toMatch(/Same needle/);
-    expect(ids.indexOf("hba1c")).toBeGreaterThan(ids.indexOf("folate"));
+  it("does not buy normal values just because they are old or near a band", () => {
+    for (const id of [
+      "ferritin",
+      "b12",
+      "homocysteine",
+      "folate",
+      "glucose",
+      "insulin",
+      "hba1c",
+      "tsh",
+      "lpa",
+    ])
+      expect(ids).not.toContain(id);
   });
 
-  it("skips a recent TSH, a once-in-a-life Lp(a) and a cause hunch", () => {
-    expect(ids).not.toContain("tsh");
-    expect(ids).not.toContain("lpa");
-    expect(why("glucose")).not.toMatch(/moving|drift/);
+  it("buys nothing inside three months of the last draw", () => {
+    const soon = rechecksOf({ ...input, today: "2026-06-01" }, hunches);
+    expect(soon.filter((r) => !r.why.startsWith("Never"))).toEqual([]);
   });
 });
 

@@ -100,7 +100,11 @@ export function PlanDraw({
   const router = useRouter();
   const [weeks, setWeeks] = useState(12);
   const [picked, setPicked] = useState<string[]>(() =>
-    candidates.filter((c) => c.group !== "wait").map((c) => c.code),
+    // Only what has a reason starts on the sheet. The engine's own picks are
+    // there to read and tick, not to pay for by default.
+    candidates
+      .filter((c) => c.group === "recheck" || c.group === "planned")
+      .map((c) => c.code),
   );
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState("");
