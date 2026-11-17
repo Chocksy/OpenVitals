@@ -171,8 +171,8 @@ const RULES: Rule[] = [
     metrics: ["testosterone_total"],
   },
   // cortisol MW 362.5: 1 nmol/L = 0.3625 ng/mL = 0.03625 ug/dL
-  { from: "nmol/l", to: "ng/ml", factor: 0.3625, metrics: ["cortisol"] },
-  { from: "nmol/l", to: "ug/dl", factor: 0.03625, metrics: ["cortisol"] },
+  { from: "nmol/l", to: "ng/ml", factor: 0.3625, metrics: ["cortisol", "acth_stim_cortisol"] },
+  { from: "nmol/l", to: "ug/dl", factor: 0.03625, metrics: ["cortisol", "acth_stim_cortisol"] },
   {
     from: "nmol/l",
     to: "ng/dl",

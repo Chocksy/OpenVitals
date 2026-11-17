@@ -486,18 +486,15 @@ export const MARKERS: Marker[] = [
   },
   {
     code: "acth_stim_cortisol",
-    name: "Peak Cortisol after ACTH Stimulation (30 or 60 min)",
+    name: "Cortisol 60 min after ACTH Stimulation",
     unit: "mcg/dL",
     kind: "lab",
     category: "hormone",
-    // Only the post-stimulation time points: the 0-min value on a Synacthen
-    // sheet is a plain cortisol and must not land here.
-    aliases: [
-      "cortisol 30 min post-ACTH",
-      "cortisol 60 min post-ACTH",
-      "Cortizol la 30 min după Synacthen",
-      "Cortizol la 60 min după Synacthen",
-    ],
+    // The 60-minute value only: the 0 and 30 minute values on the same sheet
+    // share its date, and two rows on one day leave `latest` to chance.
+    // ponytail: a 30-minute peak above 18 is missed; take the same-day max if
+    // that ever matters.
+    aliases: ["cortisol 60 min post-ACTH", "Cortizol la 60 min după Synacthen"],
   },
   {
     code: "ovarian_ultrasound",

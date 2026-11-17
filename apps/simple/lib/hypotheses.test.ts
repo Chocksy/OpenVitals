@@ -221,6 +221,13 @@ describe("iron_deficiency", () => {
     const rule = plain.for.find((f) => f.rule === "addison_cortisol_low");
     expect(rule?.discounted).toBeLessThan(30);
     expect(rule?.discounted).toBeGreaterThan(5);
+    // A high cortisol rules out at any hour; an NSAID is not a steroid.
+    const high = scoreHypotheses(
+      input({ latest: { cortisol: value(20) }, profile: { medications: "Nonsteroidal anti-inflammatory" } }),
+      { catalog: CATALOG },
+    ).find((h) => h.id === "addisons")!;
+    expect(high.confounded).toEqual([]);
+    expect(high.against.find((a) => a.rule === "addison_cortisol_normal")?.lr).toBe(0.05);
   });
 
   it("is discounted by a hand-applied confounder tag too", () => {

@@ -74,6 +74,10 @@ describe("convert", () => {
     expect(convert(5_120_000, "/mm³", "10^6/uL", "rbc")).toBeCloseTo(5.12, 5);
   });
 
+  it("nmol/L to ug/dL for a Synacthen cortisol", () => {
+    expect(convert(500, "nmol/L", "mcg/dL", "acth_stim_cortisol")).toBeCloseTo(18.125, 3);
+  });
+
   it("ng/mL to ug/dL for cortisol", () => {
     expect(convert(180, "ng/ml", "ug/dL", "cortisol")).toBeCloseTo(18, 5);
   });

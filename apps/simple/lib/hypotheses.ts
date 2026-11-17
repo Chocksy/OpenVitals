@@ -2298,18 +2298,22 @@ function autoTags(m: ModelInput): Record<string, string[]> {
   const crp = m.latest.hs_crp ?? m.latest.crp;
   const limit = crp?.optimalHigh ?? crp?.refHigh ?? 3;
   if (crp?.value != null && crp.value > limit) tags.ferritin = ["acute_illness"];
-  // A steroid on the medication list makes a low cortisol iatrogenic. Without
-  // one, the cut-offs still assume an 8 am draw and a reading stores only its
-  // date. ponytail: always tagged; store the draw time to lift it.
-  if (m.latest.cortisol)
-    tags.cortisol = [
-      factIncludes(m, "medications", STEROIDS) ? "steroid_use" : "draw_time_unknown",
-    ];
+  // A steroid on the medication list skews cortisol either way (suppression,
+  // assay cross-reaction). Without one, only a low result is in doubt: the
+  // cut-off assumes an 8 am draw and a reading stores only its date, while a
+  // high one shows working adrenals at any hour. ponytail: store the draw time
+  // to lift the tag.
+  const cortisol = m.latest.cortisol?.value;
+  if (cortisol != null) {
+    if (factIncludes(m, "medications", STEROIDS))
+      tags.cortisol = ["steroid_use"];
+    else if (cortisol < 15) tags.cortisol = ["draw_time_unknown"];
+  }
   return tags;
 }
 
 const STEROIDS =
-  "prednisolone|prednisone|dexamethasone|hydrocortisone|methylprednisolone|budesonide|fluticasone|beclomethasone|steroid|cortizon|medrol";
+  "prednisolone|prednisone|dexamethasone|hydrocortisone|methylprednisolone|budesonide|fluticasone|beclomethasone|corticosteroid|corticoid|cortizon|medrol";
 
 /** The tag that discounts this marker's draw, if any. */
 function confounderFor(
