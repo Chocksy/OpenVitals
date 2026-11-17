@@ -2122,7 +2122,7 @@ const MALE_HYPOGONADISM: Hypothesis = {
       grade: "A",
       source:
         "Bhasin 2018 J Clin Endocrinol Metab (Endocrine Society guideline): 264 ng/dL is the harmonised lower limit on a morning fasted sample.",
-      confoundedBy: ["testosterone"],
+      confoundedBy: ["testosterone_total"],
     },
     {
       id: "hypogonad_testosterone_borderline",

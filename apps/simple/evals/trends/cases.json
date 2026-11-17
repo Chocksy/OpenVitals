@@ -31,7 +31,7 @@
     "expect": {
       "isClaim": true,
       "intervention": "cold plunge",
-      "markers": ["cortisol_am"],
+      "markers": ["cortisol"],
       "direction": "down",
       "sourceKind": "podcast",
       "horizonGrade": "E",

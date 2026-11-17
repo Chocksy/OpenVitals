@@ -468,7 +468,7 @@ export const VECTORS: Vector[] = [
     lenses: ["energy", "mood"],
     name: "Testosterone",
     tier: 2,
-    codes: ["testosterone"],
+    codes: ["testosterone_total"],
     staleDays: YEAR,
     appliesTo: { sex: "male" },
     why: "Energy, muscle and mood, and a sign of other problems when it is low.",
@@ -1075,7 +1075,8 @@ export const RULES: Rule[] = [
   },
   {
     id: "testosterone_low",
-    when: (m) => m.sex === "male" && (val(m, "testosterone") ?? Infinity) < 300,
+    when: (m) =>
+      m.sex === "male" && (val(m, "testosterone_total") ?? Infinity) < 300,
     suggest: "Repeat testosterone fasted in the morning, with LH, FSH and SHBG",
     why: "A single low testosterone means little; the repeat plus the pituitary hormones says whether the cause is treatable.",
     tier: 2,
@@ -1209,7 +1210,7 @@ export const SEX_RANGES: Record<
   // U/L
   alt: { male: [null, 30], female: [null, 20] },
   // ng/dL
-  testosterone: { male: [500, 900], female: [15, 70] },
+  testosterone_total: { male: [500, 900], female: [15, 70] },
   // mg/dL
   creatinine: { male: [0.8, 1.1], female: [0.6, 0.9] },
   // mg/dL
@@ -1276,7 +1277,6 @@ export const DEFAULT_REF_HIGH: Record<string, number> = {
   anti_thyroglobulin: 115,
   // Categorical, reported as positive or negative.
   ema_iga: 0.5,
-  antibodie_endomysial_iga: 0.5,
   hbs_antigen: 0.5,
   hcv_antibodies: 0.5,
   hcv_rna: 0.5,

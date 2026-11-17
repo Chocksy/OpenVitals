@@ -1510,7 +1510,7 @@
    "id": "total_and_free_testosterone",
    "name": "Total and free testosterone",
    "featureIds": [
-    "testosterone",
+    "testosterone_total",
     "free_testosterone"
    ],
    "cost": 1,

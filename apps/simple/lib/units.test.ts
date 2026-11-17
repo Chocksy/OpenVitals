@@ -79,7 +79,7 @@ describe("convert", () => {
   });
 
   it("ng/mL to ng/dL for testosterone", () => {
-    expect(convert(5.4, "ng/ml", "ng/dL", "testosterone")).toBeCloseTo(540, 5);
+    expect(convert(5.4, "ng/ml", "ng/dL", "testosterone_total")).toBeCloseTo(540, 5);
   });
 
   it("mg/L to mg/dL for CRP", () => {

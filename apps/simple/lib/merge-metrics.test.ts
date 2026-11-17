@@ -49,6 +49,9 @@ const PAIRS: [string, string, string][] = [
   ["hemoglobin_a1c", "Hemoglobin A1c", "hba1c"],
   ["alkaline_phosphatase", "Alkaline Phosphatase", "alp"],
   ["serum_phosphorus", "Phosphorus", "phosphorus"],
+  ["testosterone", "Testosterone", "testosterone_total"],
+  ["cortisol_am", "Cortisol AM", "cortisol"],
+  ["antibodie_endomysial_iga", "Endomysial Antibodies IgA", "ema_iga"],
 ];
 
 describe("canonicalCode", () => {

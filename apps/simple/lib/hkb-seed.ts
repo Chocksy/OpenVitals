@@ -19,12 +19,14 @@ import {
   hkbPriorModifiers,
   hkbPriors,
   hkbTests,
+  metrics,
 } from "@/db";
 import { sql } from "drizzle-orm";
 import { GENOME_CATALOG } from "./genome-catalog";
 import { CATALOG } from "./hkb-catalog";
 import { interventionRows } from "./hkb-interventions";
 import { EXOME_TEST } from "./infogain";
+import { MARKERS } from "./markers";
 import {
   featureIdOf,
   recordRevision,
@@ -352,6 +354,25 @@ export async function seedHkb(catalog: Catalog = CATALOG) {
       .values(i)
       .onConflictDoUpdate({ target: hkbInterventions.id, set: withoutId(i) });
 
+  // A rule can only fire on a code an upload can land on, and an upload only
+  // lands on a code the extraction prompt lists, i.e. one with a `metrics`
+  // row. So every lab marker the knowledge reads gets a row. Never an
+  // update: a name or unit real data already set stays.
+  const labMarkers = MARKERS.filter((m) => m.kind === "lab");
+  const added = await db
+    .insert(metrics)
+    .values(
+      labMarkers.map((m) => ({
+        code: m.code,
+        name: m.name,
+        category: m.category!,
+        unit: m.unit,
+        aliases: m.aliases ?? null,
+      })),
+    )
+    .onConflictDoNothing()
+    .returning({ code: metrics.code });
+
   await recordRevision(
     `seed: ${rows.conditions.length} conditions, ${rows.evidence.length} evidence rows, ` +
       `${rows.priors.length} priors, ${rows.tests.length} tests, ` +
@@ -367,6 +388,7 @@ export async function seedHkb(catalog: Catalog = CATALOG) {
     tests: rows.tests.length,
     links: rows.links.length,
     interventions: interventions.length,
+    metrics: added.length,
   };
 }
 
@@ -387,7 +409,7 @@ if (
       console.log(
         `[hkb:seed] conditions=${n.conditions} features=${n.features} tests=${n.tests} ` +
           `priors=${n.priors} modifiers=${n.modifiers} evidence=${n.evidence} links=${n.links} ` +
-          `interventions=${n.interventions}`,
+          `interventions=${n.interventions} metrics=${n.metrics}`,
       ),
     )
     .then(() => pool().end())

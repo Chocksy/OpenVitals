@@ -41,7 +41,7 @@
       { "code": "homocysteine", "value": 8.2, "unit": "µmol/L", "refLow": 5, "refHigh": 15, "optimalHigh": 10, "date": "2026-08-15" },
       { "code": "vitamin_b12", "value": 520, "unit": "pg/mL", "refLow": 200, "refHigh": 900, "date": "2026-08-15" },
       { "code": "folic_acid", "value": 12, "unit": "ng/mL", "refLow": 3, "refHigh": 20, "date": "2026-08-15" },
-      { "code": "testosterone", "value": 640, "unit": "ng/dL", "refLow": 300, "refHigh": 950, "date": "2026-08-15" },
+      { "code": "testosterone_total", "value": 640, "unit": "ng/dL", "refLow": 300, "refHigh": 950, "date": "2026-08-15" },
       { "code": "hemoglobin", "value": 15.1, "unit": "g/dL", "refLow": 13.8, "refHigh": 17.2, "date": "2026-08-15" },
       { "code": "wbc", "value": 5.6, "unit": "10^3/µL", "refLow": 4, "refHigh": 11, "date": "2026-08-15" },
       { "code": "platelets", "value": 245, "unit": "10^3/µL", "refLow": 150, "refHigh": 400, "date": "2026-08-15" },

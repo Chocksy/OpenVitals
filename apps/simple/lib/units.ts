@@ -164,11 +164,21 @@ const RULES: Rule[] = [
   { from: "umol/l", to: "mg/dl", factor: 0.0168, metrics: ["uric_acid"] },
   { from: "umol/l", to: "ug/dl", factor: 5.587, metrics: ["iron"] },
   { from: "nmol/l", to: "ng/ml", factor: 0.4, metrics: ["vitamin_d"] },
-  { from: "nmol/l", to: "ng/ml", factor: 0.288, metrics: ["testosterone"] },
+  {
+    from: "nmol/l",
+    to: "ng/ml",
+    factor: 0.288,
+    metrics: ["testosterone_total"],
+  },
   // cortisol MW 362.5: 1 nmol/L = 0.3625 ng/mL = 0.03625 ug/dL
   { from: "nmol/l", to: "ng/ml", factor: 0.3625, metrics: ["cortisol"] },
   { from: "nmol/l", to: "ug/dl", factor: 0.03625, metrics: ["cortisol"] },
-  { from: "nmol/l", to: "ng/dl", factor: 28.8, metrics: ["testosterone"] },
+  {
+    from: "nmol/l",
+    to: "ng/dl",
+    factor: 28.8,
+    metrics: ["testosterone_total"],
+  },
   { from: "pmol/l", to: "pg/ml", factor: 0.777, metrics: ["free_t4"] },
   { from: "pmol/l", to: "pg/ml", factor: 0.651, metrics: ["free_t3"] },
   { from: "pmol/l", to: "ng/dl", factor: 0.0777, metrics: ["free_t4"] },

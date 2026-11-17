@@ -31,12 +31,8 @@ import {
   type Hypothesis,
 } from "./hypotheses";
 import type { ModelInput } from "./coverage";
-import {
-  BOUNDS,
-  DEFAULT_REF_HIGH,
-  PROFILE_QUESTIONS,
-  VECTORS,
-} from "./vectors";
+import { MARKER } from "./markers";
+import { BOUNDS, PROFILE_QUESTIONS } from "./vectors";
 
 const rules: { h: Hypothesis; e: EvidenceRule }[] = CATALOG.flatMap((h) =>
   h.evidence.map((e) => ({ h, e })),
@@ -240,7 +236,6 @@ const SEXED_MARKERS = [
   "uric_acid",
   "hematocrit",
   "hemoglobin",
-  "testosterone",
   "testosterone_total",
 ];
 
@@ -430,12 +425,12 @@ describe("graph hygiene", () => {
         n.id.slice("metric:".length),
       ),
     );
+    // `MARKER` holds every code the knowledge reads (`lib/markers.test.ts`
+    // keeps it that way), which covers the cut-offs, bounds, vectors and
+    // tests this union used to list one by one.
     const known = new Set([
       ...metricNodes,
-      ...Object.keys(DEFAULT_REF_HIGH),
-      ...Object.keys(BOUNDS),
-      ...VECTORS.flatMap((v) => v.codes ?? []),
-      ...CATALOG.flatMap((h) => h.discriminators.flatMap((d) => d.codes)),
+      ...MARKER.keys(),
       ...GENOME_CATALOG.map((r) => r.factKey),
     ]);
     const bad = NODES.flatMap((n) =>

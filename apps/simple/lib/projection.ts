@@ -266,7 +266,7 @@ export const BETTER_HIGH = new Set([
   "vitamin_b12",
   "vo2max_est",
   "grip_kg",
-  "testosterone",
+  "testosterone_total",
 ]);
 
 export function betterDirection(

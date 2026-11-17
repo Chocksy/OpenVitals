@@ -251,7 +251,7 @@ describe("pcos", () => {
         age: 28,
         profile: { sym_cycle: "Irregular", hirsutism_acne: "Yes" },
         latest: {
-          testosterone: value(95, { optimalLow: 15, optimalHigh: 70 }),
+          testosterone_total: value(95, { optimalLow: 15, optimalHigh: 70 }),
         },
       }),
     )!;
@@ -266,7 +266,7 @@ describe("pcos", () => {
         age: 28,
         profile: { sym_cycle: "Regular", hirsutism_acne: "No" },
         latest: {
-          testosterone: value(30, { optimalLow: 15, optimalHigh: 70 }),
+          testosterone_total: value(30, { optimalLow: 15, optimalHigh: 70 }),
         },
       }),
     )!;

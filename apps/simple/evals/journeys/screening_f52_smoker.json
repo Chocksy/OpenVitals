@@ -232,7 +232,7 @@
         "date": "2026-08-01"
       },
       {
-        "code": "testosterone",
+        "code": "testosterone_total",
         "value": 42,
         "unit": "ng/dL",
         "date": "2026-08-01"

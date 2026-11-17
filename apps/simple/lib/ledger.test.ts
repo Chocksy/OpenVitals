@@ -509,7 +509,7 @@ describe("explainKey", () => {
 
   it("still prefers a name the graph does carry", () => {
     expect(explainKey("hba1c")).toBe("HbA1c");
-    expect(explainKey("testosterone")).toBe("Testosterone");
+    expect(explainKey("testosterone_total")).toBe("Testosterone");
   });
 
   it("leaves a compound key as words", () => {

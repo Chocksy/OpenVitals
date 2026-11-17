@@ -3396,7 +3396,7 @@ export const INTERVENTIONS: SeedIntervention[] = [
     kind: "drug",
     dose: "15-25 mg/day, split into two or three doses",
     duration: "lifelong",
-    outcomeFeatureId: "metric:cortisol_am",
+    outcomeFeatureId: "metric:cortisol",
     effect: "15-25 mg/day of hydrocortisone, or 20-35 mg/day of cortisone acetate",
     direction: "up",
     grade: "A",

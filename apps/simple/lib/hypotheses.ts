@@ -299,7 +299,15 @@ export const CONFOUNDERS: {
   },
   {
     tag: "heavy_training",
-    markers: ["ck", "ast", "alt", "ggt", "wbc", "testosterone", "ferritin"],
+    markers: [
+      "ck",
+      "ast",
+      "alt",
+      "ggt",
+      "wbc",
+      "testosterone_total",
+      "ferritin",
+    ],
     discount: 0.5,
     why: "Hard training leaks muscle enzymes into the blood and moves the same markers a liver problem would.",
   },
@@ -323,7 +331,7 @@ export const CONFOUNDERS: {
   },
   {
     tag: "luteal_phase",
-    markers: ["estradiol", "progesterone", "lh", "fsh", "testosterone"],
+    markers: ["estradiol", "progesterone", "lh", "fsh", "testosterone_total"],
     discount: 0.5,
     why: "Female hormone results only compare within the same phase of the cycle.",
   },
@@ -1043,13 +1051,13 @@ const PCOS: Hypothesis = {
     },
     {
       id: "pcos_testosterone",
-      input: { metric: "testosterone" },
+      input: { metric: "testosterone_total" },
       when: { aboveOptimal: true },
       lr: 4,
       grade: "A",
       source:
         "Rotterdam 2003 criteria: biochemical hyperandrogenism; the band here is already sex-adjusted.",
-      confoundedBy: ["testosterone"],
+      confoundedBy: ["testosterone_total"],
     },
     {
       id: "pcos_shbg",
@@ -1083,7 +1091,7 @@ const PCOS: Hypothesis = {
   discriminators: [
     {
       test: "Total and free testosterone",
-      codes: ["testosterone", "free_testosterone"],
+      codes: ["testosterone_total", "free_testosterone"],
       cost: 1,
       lrPos: 4,
       lrNeg: 0.5,

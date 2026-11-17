@@ -122,8 +122,12 @@ export const CLAIM_MARKERS: { code: string; name: string; words: RegExp }[] = [
   { code: "tsh", name: "TSH", words: /\btsh\b/i },
   { code: "free_t4", name: "free T4", words: /\bft4\b|\bfree t4\b/i },
   { code: "uric_acid", name: "uric acid", words: /\buric acid\b|\burate\b/i },
-  { code: "cortisol_am", name: "morning cortisol", words: /\bcortisol\b/i },
-  { code: "testosterone", name: "testosterone", words: /\btestosterone\b/i },
+  { code: "cortisol", name: "morning cortisol", words: /\bcortisol\b/i },
+  {
+    code: "testosterone_total",
+    name: "testosterone",
+    words: /\btestosterone\b/i,
+  },
   {
     code: "bp_systolic",
     name: "systolic blood pressure",

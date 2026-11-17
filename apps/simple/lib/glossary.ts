@@ -291,7 +291,7 @@ const DRAFTS: Draft[] = [
 
   /* ── sex hormones ────────────────────────────────────────────────────── */
   {
-    id: "testosterone",
+    id: "testosterone_total",
     label: "Testosterone",
     what: "The main male sex hormone; women make it too, in smaller amounts.",
     unit: "ng/dL",

@@ -37,6 +37,7 @@ import {
   type History,
   type Slope,
 } from "./derived";
+import { MARKERS } from "./markers";
 import { labPoints } from "./personal";
 import { applyPatternTargets } from "./patterns";
 import { statusOf, type Status } from "./status";
@@ -177,7 +178,9 @@ export const refHighFor = (
 ): number | null => printed ?? DEFAULT_REF_HIGH[code] ?? null;
 
 /** Markers whose rules assume a fasting morning draw. */
-const FASTING = new Set(["glucose", "insulin"]);
+export const FASTING = new Set(
+  MARKERS.filter((m) => m.fasting).map((m) => m.code),
+);
 
 /**
  * "Negativ" on a serology is a result, not a blank. Only for the categorical

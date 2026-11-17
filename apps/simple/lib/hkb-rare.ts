@@ -82,7 +82,7 @@ const ADDISONS: Hypothesis = {
     },
     {
       id: "addison_cortisol_low",
-      input: { metric: "cortisol_am" },
+      input: { metric: "cortisol" },
       when: { below: 5 },
       lr: 30,
       grade: "A",
@@ -91,7 +91,7 @@ const ADDISONS: Hypothesis = {
     },
     {
       id: "addison_cortisol_normal",
-      input: { metric: "cortisol_am" },
+      input: { metric: "cortisol" },
       when: { above: 15 },
       lr: 0.05,
       grade: "A",
@@ -124,7 +124,7 @@ const ADDISONS: Hypothesis = {
     },
     {
       test: "Morning cortisol",
-      codes: ["cortisol_am"],
+      codes: ["cortisol"],
       cost: 1,
       lrPos: 30,
       lrNeg: 0.05,

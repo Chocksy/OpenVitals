@@ -182,7 +182,7 @@ export const SYSTEMS: { id: SystemId; name: string; headline: string[] }[] = [
   {
     id: "sex_hormones",
     name: "Sex hormones",
-    headline: ["testosterone", "estradiol", "fsh", "lh"],
+    headline: ["testosterone_total", "estradiol", "fsh", "lh"],
   },
   { id: "adrenal", name: "Stress hormones", headline: ["cortisol"] },
   { id: "inflammation", name: "Inflammation", headline: ["hs_crp", "crp"] },
@@ -234,7 +234,7 @@ const METRICS: [string, string, SystemId][] = [
   ["free_t3", "Free T3", "thyroid"],
   ["tpo_antibodies", "TPO antibodies", "thyroid"],
   ["anti_thyroglobulin", "Thyroglobulin antibodies", "thyroid"],
-  ["testosterone", "Testosterone", "sex_hormones"],
+  ["testosterone_total", "Testosterone", "sex_hormones"],
   ["estradiol", "Estradiol", "sex_hormones"],
   ["fsh", "FSH", "sex_hormones"],
   ["lh", "LH", "sex_hormones"],
@@ -831,7 +831,7 @@ export const EDGES: GraphEdge[] = [
     { when: { from: "high" } },
   ),
   e(
-    "metric:testosterone",
+    "metric:testosterone_total",
     "risk:mortality",
     "lowers",
     1,
@@ -950,7 +950,7 @@ export const EDGES: GraphEdge[] = [
   ),
   e(
     "metric:vitamin_d",
-    "metric:testosterone",
+    "metric:testosterone_total",
     "raises",
     1,
     "speculative",
@@ -1211,7 +1211,7 @@ export const EDGES: GraphEdge[] = [
   ),
   e(
     "condition:osa",
-    "metric:testosterone",
+    "metric:testosterone_total",
     "lowers",
     2,
     "probable",

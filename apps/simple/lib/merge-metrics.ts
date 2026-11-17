@@ -91,6 +91,11 @@ export const MERGES: Record<string, string> = {
   white_blood_cell_count: "wbc",
   red_blood_cell_count: "rbc",
   platelet_count: "platelets",
+  // Old knowledge spellings (batch 3): the rules now read the codes real
+  // uploads land on, and these fold any straggler onto them.
+  testosterone: "testosterone_total",
+  cortisol_am: "cortisol",
+  antibodie_endomysial_iga: "ema_iga",
 };
 
 /** Generated from the legacy catalog: normalised name → canonical code. */

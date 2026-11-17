@@ -90,7 +90,7 @@
       "grip_kg": "24"
     },
     "labs": {
-      "cortisol_am": 3,
+      "cortisol": 3,
       "acth_stim_cortisol": 12,
       "tsh": 3.1,
       "free_t4": 1.1,
