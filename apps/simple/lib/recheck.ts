@@ -71,7 +71,8 @@ export function rechecksOf(
     const out = codes.find((c) => outOfRange(m, c, days));
     if (r.state === "never") {
       // Tier 2 is conditional: never having had a PSA is not a reason here.
-      if (v.tier === 1) due.push(row("Never measured: one baseline is worth having."));
+      if (v.tier === 1)
+        due.push(row("Never measured: one baseline is worth having."));
     } else if (days < FLAGGED_DAYS) continue;
     else if (out)
       due.push(
@@ -108,12 +109,17 @@ export function rechecksOf(
 function outOfRange(m: ModelInput, code: string, days: number): boolean {
   const l = m.latest[code];
   if (!l || l.value == null) return false;
-  if (l.status === "red" && l.refHigh != null && l.value > l.refHigh) return true;
+  if (l.status === "red" && l.refHigh != null && l.value > l.refHigh)
+    return true;
   if (l.status === "red" && l.refLow != null && l.value < l.refLow) return true;
   const now =
-    l.slope && l.slope.n >= 3 ? l.value + (l.slope.perYear * days) / 365 : l.value;
+    l.slope && l.slope.n >= 3
+      ? l.value + (l.slope.perYear * days) / 365
+      : l.value;
+  // A floor of zero is no floor: a CRP falling toward it is good news.
   return (
-    (l.refHigh != null && now > l.refHigh) || (l.refLow != null && now < l.refLow)
+    (l.refHigh != null && now > l.refHigh) ||
+    (l.refLow != null && l.refLow > 0 && now < l.refLow)
   );
 }
 

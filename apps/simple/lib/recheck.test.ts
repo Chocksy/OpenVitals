@@ -43,6 +43,7 @@ const input: ModelInput = {
     hba1c: at(APRIL, 5, "green", [4, 6]),
     tsh: at(APRIL, 1.1, "green", [0.55, 4.78]),
     lp_a: at(APRIL, 25, "green", [0, 30]),
+    crp: at(APRIL, 0.64, "green", [0, 3.3], -1.7),
   },
 };
 
@@ -78,6 +79,7 @@ describe("rechecksOf", () => {
       "hba1c",
       "tsh",
       "lpa",
+      "crp",
     ])
       expect(ids).not.toContain(id);
   });
