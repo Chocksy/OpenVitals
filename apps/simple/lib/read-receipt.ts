@@ -132,8 +132,34 @@ export function drawAnswers(
     observedAt: string;
   }[],
   earlier: { metricCode: string; value: number | null; observedAt: string }[],
-  notes: { metricCode: string; note: string | null }[],
+  notes: {
+    metricCode: string;
+    note: string | null;
+    createdAt?: Date | null;
+    achievedAt?: Date | null;
+  }[],
 ): DrawAnswer[] {
+  /* A goal's reason belongs to a draw only when the goal was made before it
+     (a day of slack for the UTC clock) and was still open on that day: a plan
+     made in November never explains an April file. */
+  const planFor = (code: string, drawDay: string) => {
+    const dayOf = (d: Date) => d.toISOString().slice(0, 10);
+    const next = (d: string) =>
+      new Date(new Date(`${d}T00:00:00Z`).getTime() + 86_400_000)
+        .toISOString()
+        .slice(0, 10);
+    const g = notes.find(
+      (n) =>
+        n.metricCode === code &&
+        (!n.createdAt || dayOf(n.createdAt) <= next(drawDay)) &&
+        (!n.achievedAt || dayOf(n.achievedAt) >= drawDay),
+    );
+    const note = g?.note ?? "";
+    if (note.startsWith("planned draw"))
+      return note.split(" · ").slice(2).join(" · ") || "planned";
+    if (note.startsWith("retest") || note.startsWith("hunch test")) return note;
+    return null;
+  };
   const out: DrawAnswer[] = [];
   for (const r of rows) {
     if (r.value == null) continue;
@@ -146,10 +172,7 @@ export function drawAnswers(
       )
       .sort((a, b) => a.observedAt.localeCompare(b.observedAt))
       .pop();
-    const note = notes.find((n) => n.metricCode === r.metricCode)?.note ?? "";
-    const why = note.startsWith("planned draw")
-      ? note.split(" · ").slice(2).join(" · ") || "planned"
-      : null;
+    const why = planFor(r.metricCode, r.observedAt.slice(0, 10));
     if (!prev && !why) continue;
     out.push({
       code: r.metricCode,

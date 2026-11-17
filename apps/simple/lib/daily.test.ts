@@ -7,7 +7,7 @@ import {
   goalProgress,
   heatmapBucket,
   humanLogged,
-  goalDone,
+  goalState,
   inGoal,
   partialDay,
   lastDays,
@@ -221,18 +221,25 @@ describe("whose day is it (phase 24b)", () => {
   });
 });
 
-describe("goalDone", () => {
-  const plannedOn = new Date("2026-11-16T09:00:00Z");
-  const draw = { targetLow: null, targetHigh: null, createdAt: plannedOn };
-  it("closes a planned draw once a reading lands on or after the plan day", () => {
-    expect(goalDone({ value: 80, observedAt: "2026-11-17" }, draw)).toBe(true);
-    expect(goalDone({ value: 80, observedAt: "2026-11-16" }, draw)).toBe(true);
-    expect(goalDone({ value: 80, observedAt: "2026-04-23" }, draw)).toBe(false);
-    expect(goalDone(undefined, draw)).toBe(false);
+describe("goalState", () => {
+  const made = new Date("2026-11-16T09:00:00Z");
+  const stored = new Date("2026-11-20T08:00:00Z");
+  const draw = { targetLow: null, targetHigh: null, due: "2026-11-18", createdAt: made };
+  it("closes a planned draw once a new reading is stored for it", () => {
+    expect(goalState([{ value: 80, observedAt: "2026-11-17", createdAt: stored }], draw)).toBe("achieved");
+    // drawn a few days before the plan ("I just did it") still counts
+    expect(goalState([{ value: 80, observedAt: "2026-11-12", createdAt: stored }], draw)).toBe("achieved");
   });
-  it("keeps a target goal open until the value is inside the band", () => {
-    const g = { targetLow: null, targetHigh: 100, createdAt: plannedOn };
-    expect(goalDone({ value: 131, observedAt: "2026-11-17" }, g)).toBe(false);
-    expect(goalDone({ value: 95, observedAt: "2026-11-17" }, g)).toBe(true);
+  it("never closes on the reading that prompted it, or on an old file", () => {
+    const before = new Date("2026-11-16T07:00:00Z");
+    expect(goalState([{ value: 80, observedAt: "2026-11-16", createdAt: before }], draw)).toBe("open");
+    expect(goalState([{ value: 80, observedAt: "2026-04-23", createdAt: stored }], draw)).toBe("open");
+    expect(goalState([], draw)).toBe("open");
+  });
+  it("keeps a missed target open but spends its date", () => {
+    const g = { ...draw, targetHigh: 100 };
+    expect(goalState([{ value: 131, observedAt: "2026-11-17", createdAt: stored }], g)).toBe("drawn");
+    expect(goalState([{ value: 95, observedAt: "2026-11-17", createdAt: stored }], g)).toBe("achieved");
+    expect(goalState([{ value: 131, observedAt: "2026-11-17", createdAt: stored }], { ...g, due: null })).toBe("open");
   });
 });

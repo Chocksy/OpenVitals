@@ -137,7 +137,12 @@ export default async function UploadPage({
               ),
             ),
           db
-            .select({ metricCode: goals.metricCode, note: goals.note })
+            .select({
+              metricCode: goals.metricCode,
+              note: goals.note,
+              createdAt: goals.createdAt,
+              achievedAt: goals.achievedAt,
+            })
             .from(goals)
             .where(
               and(eq(goals.userId, userId), inArray(goals.metricCode, codes)),
@@ -314,8 +319,8 @@ export default async function UploadPage({
               <h3>This draw answered</h3>
               <span>each marker against its last value</span>
             </div>
-            {answers.map((a) => (
-              <div className="verdict border" key={a.code}>
+            {answers.map((a, i) => (
+              <div className="verdict border" key={`${a.code}-${i}`}>
                 <div className="vq">{a.name}</div>
                 <p className="vsay">{a.why ?? "not planned, read anyway"}</p>
                 <div className="vside">

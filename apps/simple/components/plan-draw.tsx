@@ -51,7 +51,8 @@ const WEEKS = [0, 4, 8, 12];
 const dayIn = (weeks: number): string => {
   const d = new Date();
   d.setDate(d.getDate() + weeks * 7);
-  return d.toISOString().slice(0, 10);
+  // en-CA formats as YYYY-MM-DD in the browser's own zone, not UTC.
+  return d.toLocaleDateString("en-CA");
 };
 
 function Row({

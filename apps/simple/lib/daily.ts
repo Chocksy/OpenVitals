@@ -71,24 +71,48 @@ export function inGoal(
   return (low == null || value >= low) && (high == null || value <= high);
 }
 
+/** A draw done up to this long before it was planned still answers the plan. */
+const JUST_DID_DAYS = 7;
+
 /**
- * A goal is done when its value is inside the band, or, for a planned draw
- * with no number on it, when a reading was collected on or after the day the
- * draw was planned: the question was "measure this", and it was.
+ * Where a goal stands after the readings it can see.
+ *
+ * "achieved": a target goal whose latest value is inside the band, or a
+ * date-only goal (a planned draw) that was drawn. "drawn": a target goal
+ * that was drawn but missed, so its date is spent and the target stays.
+ *
+ * A draw counts only when it was stored after the goal was made, so the
+ * reading that prompted a retest never closes it. Its collection day may sit
+ * up to a week before the plan ("I just did it"), and no earlier, so an old
+ * file uploaded later does not count either.
  */
-export function goalDone(
-  latest: { value: number | null; observedAt: string } | undefined,
+export function goalState(
+  rows: { value: number | null; observedAt: string; createdAt?: Date | null }[],
   goal: {
     targetLow: number | null;
     targetHigh: number | null;
+    due: string | null;
     createdAt: Date | null;
   },
-): boolean {
-  if (!latest) return false;
-  if (goal.targetLow != null || goal.targetHigh != null)
-    return inGoal(latest.value, goal.targetLow, goal.targetHigh);
-  const planned = (goal.createdAt ?? new Date()).toISOString().slice(0, 10);
-  return latest.observedAt.slice(0, 10) >= planned;
+): "achieved" | "drawn" | "open" {
+  const made = goal.createdAt ?? new Date();
+  const earliest = new Date(made.getTime() - JUST_DID_DAYS * 86_400_000)
+    .toISOString()
+    .slice(0, 10);
+  const withValue = rows.filter((r) => r.value != null);
+  const drawn = withValue.some(
+    (r) =>
+      r.createdAt != null &&
+      r.createdAt > made &&
+      r.observedAt.slice(0, 10) >= earliest,
+  );
+  if (goal.targetLow == null && goal.targetHigh == null)
+    return drawn ? "achieved" : "open";
+  const latest = [...withValue]
+    .sort((a, b) => a.observedAt.localeCompare(b.observedAt))
+    .pop();
+  if (inGoal(latest?.value, goal.targetLow, goal.targetHigh)) return "achieved";
+  return drawn && goal.due ? "drawn" : "open";
 }
 
 /** Distance to the nearest edge of the goal band. 0 once inside. */

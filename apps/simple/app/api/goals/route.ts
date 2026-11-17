@@ -42,11 +42,16 @@ export async function POST(req: Request) {
     // A new target restarts the clock.
     achievedAt: null,
   };
-  /* On an existing goal, touch only what was sent: planning a draw date must
-     not wipe the target number somebody set before. */
-  const sent = Object.fromEntries(
-    Object.entries(set).filter(([k]) => k === "achievedAt" || k in b),
-  );
+  /* A body with a target key is the whole goal form (web GoalForm, iOS: both
+     send the targets, null when cleared), so it replaces every field. A
+     date-only plan touches only what it sent, so planning a draw keeps a
+     target somebody set before. */
+  const whole = "targetLow" in b || "targetHigh" in b;
+  const sent = whole
+    ? set
+    : Object.fromEntries(
+        Object.entries(set).filter(([k]) => k === "achievedAt" || k in b),
+      );
   const [row] = await getDb()
     .insert(goals)
     .values({ userId, metricCode, ...set })

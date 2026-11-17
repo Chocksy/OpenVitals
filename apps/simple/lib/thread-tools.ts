@@ -300,7 +300,8 @@ export function threadTools(
           .values({ userId, metricCode: code, ...set })
           .onConflictDoUpdate({
             target: [goals.userId, goals.metricCode],
-            set: { ...set, createdAt: sql`now()` },
+            // A retest date leaves a target somebody set alone.
+            set: { due, note: set.note, achievedAt: null, createdAt: sql`now()` },
           });
         return {
           ok: true,

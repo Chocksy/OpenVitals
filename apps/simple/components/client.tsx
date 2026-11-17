@@ -827,14 +827,28 @@ export function EditFact({
  */
 export function RefreshUntil({ waiting }: { waiting: boolean }) {
   const router = useRouter();
+  const [gaveUp, setGaveUp] = useState(false);
   useEffect(() => {
     if (!waiting) return;
     const started = Date.now();
     const t = setInterval(() => {
-      if (Date.now() - started > 120_000) clearInterval(t);
-      else router.refresh();
+      if (Date.now() - started > RECEIPT_WAIT_MS) {
+        clearInterval(t);
+        setGaveUp(true);
+      } else router.refresh();
     }, 4000);
     return () => clearInterval(t);
   }, [waiting, router]);
-  return waiting ? <p className="t-meta">Reading what this file changed…</p> : null;
+  if (!waiting) return null;
+  return (
+    <p className="t-meta">
+      {gaveUp
+        ? "Still working on what this file changed. Reload the page in a few minutes."
+        : "Reading what this file changed…"}
+    </p>
+  );
 }
+
+/** How long the upload page polls for its receipt: the same five minutes
+ *  the page itself waits (`blood/uploads/[id]/page.tsx`). */
+const RECEIPT_WAIT_MS = 5 * 60_000;

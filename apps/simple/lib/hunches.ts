@@ -15,8 +15,10 @@ import {
   gt,
   inArray,
   like,
+  isNotNull,
   notInArray,
   or,
+  sql,
 } from "drizzle-orm";
 import { z } from "zod";
 import {
@@ -1787,7 +1789,7 @@ export async function refreshHunches(
   for (const h of existing) {
     if (h.state !== "testing" || !h.test?.code || !h.writtenAt) continue;
     const reading = (person.points.get(h.test.code) ?? []).find(
-      (p) => p.date >= day(h.writtenAt!),
+      (p) => p.date > day(h.writtenAt!),
     );
     if (!reading) continue;
     done.add(h.key);
@@ -2142,7 +2144,17 @@ export async function acceptTest(userId: string, id: string) {
         due,
         note: `hunch test: ${h.test.name}`,
       })
-      .onConflictDoNothing()
+      // An open goal for the marker wins; a closed one is spent, so reuse it.
+      .onConflictDoUpdate({
+        target: [goalsTable.userId, goalsTable.metricCode],
+        set: {
+          due,
+          note: `hunch test: ${h.test.name}`,
+          achievedAt: null,
+          createdAt: sql`now()`,
+        },
+        setWhere: isNotNull(goalsTable.achievedAt),
+      })
       .catch(() => undefined);
   }
   return { ok: true as const };

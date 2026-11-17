@@ -35,7 +35,7 @@ import { queueQuestions } from "./ask";
 import { optimalFor, saveFact, toAge, toSex } from "./coverage";
 import { jsonObjectIn, model } from "./extract";
 import { rereadPosts } from "./compose";
-import { goalDone, localDay } from "./daily";
+import { goalState, localDay } from "./daily";
 import { planRawVerify, rawVerifyScope } from "./raw-verify";
 import { explainPapers, runWatchForUser } from "./research-watch";
 import { runTopicsForUser, syncTopicsFromProtocol } from "./topic-watch";
@@ -79,6 +79,8 @@ export interface ReadingLike {
   refHigh: number | null;
   observedAt: string;
   flags: ReadingFlag[] | null;
+  /** when the row was stored; goal_check needs it, the planners do not */
+  createdAt?: Date | null;
 }
 
 export interface MetricLike {
@@ -1065,6 +1067,7 @@ export async function runCurator(
               refHigh: r.refHigh,
               observedAt: r.observedAt,
               flags: r.flags,
+              createdAt: r.createdAt,
             }),
           ),
         ),
@@ -1335,21 +1338,22 @@ export async function runCurator(
     bump("foreign_reading").checked = targets.length;
     actions.push(...planForeignReadings(targets, history, byCode));
 
-    // 7. goal_check: a reading inside the band, or a planned draw that was drawn, closes the goal.
+    // 7. goal_check: a value inside the band, or a planned draw that was
+    // drawn, closes the goal; a target goal drawn and missed loses its date.
     const openGoals = await db
       .select()
       .from(goalsTable)
       .where(and(eq(goalsTable.userId, userId), isNull(goalsTable.achievedAt)));
     bump("goal_check").checked = openGoals.length;
     for (const g of openGoals) {
-      const latest = history
-        .filter((r) => r.metricCode === g.metricCode && r.value != null)
-        .sort((a, b) => a.observedAt.localeCompare(b.observedAt))
-        .pop();
-      if (!goalDone(latest, g)) continue;
+      const state = goalState(
+        history.filter((r) => r.metricCode === g.metricCode),
+        g,
+      );
+      if (state === "open") continue;
       await db
         .update(goalsTable)
-        .set({ achievedAt: new Date() })
+        .set(state === "achieved" ? { achievedAt: new Date() } : { due: null })
         .where(eq(goalsTable.id, g.id));
       bump("goal_check").fixed++;
     }

@@ -213,3 +213,16 @@ describe("drawAnswers", () => {
     expect(out[1]!.why).toBeNull();
   });
 });
+
+describe("drawAnswers reasons", () => {
+  const row = { metricCode: "ferritin", metricName: "Ferritin", value: 80, unit: null, observedAt: "2026-04-23" };
+  const earlier = [{ metricCode: "ferritin", value: 94, observedAt: "2025-12-09" }];
+  it("never explains an old file with a plan made after it", () => {
+    const later = [{ metricCode: "ferritin", note: "planned draw · 18 Nov 2026 · Falling.", createdAt: new Date("2026-11-16T09:00:00Z"), achievedAt: null }];
+    expect(drawAnswers([row], earlier, later)[0]!.why).toBeNull();
+  });
+  it("reads a chat retest or a hunch test as planned", () => {
+    const retest = [{ metricCode: "ferritin", note: "retest Ferritin after 12 weeks", createdAt: new Date("2026-01-20T09:00:00Z"), achievedAt: null }];
+    expect(drawAnswers([row], earlier, retest)[0]!.why).toBe("retest Ferritin after 12 weeks");
+  });
+});
