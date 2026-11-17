@@ -249,6 +249,12 @@ describe("goalState", () => {
     expect(goalState([june, word], g)).toBe("open");
     expect(goalState([{ ...june, value: 131 }, word], g)).toBe("open");
   });
+  it("never closes a dated target on an older sheet uploaded after the plan", () => {
+    const g = { ...draw, targetHigh: 100, due: "2026-12-10" };
+    const now = { value: 131, observedAt: "2026-11-15", createdAt: new Date("2026-11-15T10:00:00Z") };
+    const late = { value: 95, observedAt: "2026-11-12", createdAt: stored };
+    expect(goalState([now, late], g)).toBe("open");
+  });
   it("closes a planned draw on a word result", () => {
     expect(goalState([{ value: null, valueText: "Negativ", observedAt: "2026-11-17", createdAt: stored }], draw)).toBe("achieved");
   });

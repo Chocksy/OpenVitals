@@ -127,7 +127,9 @@ export function goalState(
       : "open";
   // A dated one is a retest: only a number stored after the plan answers it.
   const answer = newest(fresh);
-  if (!answer) return "open";
+  // An older sheet uploaded late does not outrank a newer number on file.
+  if (!answer || answer.observedAt < (newest(rows)?.observedAt ?? ""))
+    return "open";
   return inGoal(answer.value, goal.targetLow, goal.targetHigh)
     ? "achieved"
     : "drawn";

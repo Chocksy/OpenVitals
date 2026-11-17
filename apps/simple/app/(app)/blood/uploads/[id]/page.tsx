@@ -172,6 +172,12 @@ export default async function UploadPage({
    * one are different facts.
    */
   const receipt = upload.moved ?? null;
+  /** When the rows were last written: a file opened later with its password
+   *  starts the receipt wait then, not at the first upload. */
+  const readAt = Math.max(
+    upload.createdAt?.getTime() ?? 0,
+    ...rows.map((r) => r.storedAt?.getTime() ?? 0),
+  );
   const quiet = movedNothing(receipt);
   const changed = receipt
     ? receipt.new + receipt.resolved + receipt.stronger + receipt.weaker
@@ -291,18 +297,8 @@ export default async function UploadPage({
         {!receipt &&
           kind === "lab" &&
           uploadState(status) === "parsed" &&
-          upload.createdAt &&
-          Date.now() - upload.createdAt.getTime() < 86_400_000 && (
-            <RefreshUntil
-              deadline={
-                // a file opened later with its password starts the wait then
-                Math.max(
-                  upload.createdAt.getTime(),
-                  ...rows.map((r) => r.storedAt?.getTime() ?? 0),
-                ) +
-                5 * 60_000
-              }
-            />
+          Date.now() - readAt < 86_400_000 && (
+            <RefreshUntil deadline={readAt + 5 * 60_000} />
           )}
 
         {/* No receipt at all means the file was read before this phase: the
