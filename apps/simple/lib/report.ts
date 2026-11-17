@@ -7,6 +7,7 @@
  * the call: dose ceilings, one test action per fired rule, at most eight
  * actions. See `postProcess`.
  */
+import { cache } from "react";
 import { desc, eq } from "drizzle-orm";
 import { z } from "zod";
 import {
@@ -1087,7 +1088,12 @@ export function postProcess(
 
 /* ── the call ─────────────────────────────────────────────────────────── */
 
-export async function latestReport(userId: string): Promise<Report | null> {
+export function latestReport(userId: string): Promise<Report | null> {
+  return latestReportOnce(userId);
+}
+const latestReportOnce = cache(latestReportUncached);
+
+async function latestReportUncached(userId: string): Promise<Report | null> {
   const [row] = await getDb()
     .select()
     .from(reports)

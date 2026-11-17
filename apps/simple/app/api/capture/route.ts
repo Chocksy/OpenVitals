@@ -24,7 +24,6 @@ import {
 import type { Chip } from "@/lib/compose";
 import { localDay } from "@/lib/daily";
 import { mealItemsOf, mealRowFromChips, saveMeal } from "@/lib/meals";
-import { ensureImported } from "@/lib/import-legacy";
 import { recordBeliefs } from "@/lib/ledger";
 import { runCurator } from "@/lib/curator";
 import { ledgerNow, recordUploadMove } from "@/lib/read-receipt";
@@ -180,7 +179,6 @@ async function handOver(
   fileName: string,
   want: "lab" | "document",
 ) {
-  await ensureImported();
   const db = getDb();
   const hash = sha256(buffer);
   const [dupe] = await db

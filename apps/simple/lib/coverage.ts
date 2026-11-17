@@ -9,6 +9,7 @@
  * Everything except `buildModelInput` and `queueProfileQuestions` is pure, so
  * the whole model is testable without a database.
  */
+import { cache } from "react";
 import { and, desc, eq } from "drizzle-orm";
 import {
   getDb,
@@ -377,7 +378,21 @@ export function treatmentsFrom(
  * day. `seed` lays facts over that profile, for a case file's dated
  * treatments.
  */
-export async function buildModelInput(
+export function buildModelInput(
+  userId: string,
+  asOf?: string,
+  seed?: Record<string, unknown>,
+): Promise<ModelInput> {
+  // `seed` is an object, which `cache` would key on by identity: skip it.
+  return seed
+    ? buildModelInputUncached(userId, asOf, seed)
+    : buildModelInputOnce(userId, asOf);
+}
+const buildModelInputOnce = cache((userId: string, asOf: string | undefined) =>
+  buildModelInputUncached(userId, asOf),
+);
+
+async function buildModelInputUncached(
   userId: string,
   asOf?: string,
   seed: Record<string, unknown> = {},

@@ -10,7 +10,7 @@ import {
   type ReadingFlag,
 } from "@/db";
 import { optimalFor, toSex, type OptimalOverrides } from "./coverage";
-import { ensureImported } from "./import-legacy";
+import { memo } from "./request-memo";
 import { statusOf, type Status } from "./status";
 
 export interface Point {
@@ -164,14 +164,17 @@ function toRow(
  * Home calls this from about eighteen helpers, and each call read every
  * reading again. React's `cache` keeps one result per request, keyed on the
  * user and the day, so a render reads them once. Every caller gets the same
- * array: read it, never sort or change it in place. Outside a render (route
- * handlers, scripts, tests) it runs every time, as before.
+ * array: read it, never sort or change it in place. Outside a render, a route
+ * wrapped in `withRequestMemo` shares one result the same way; scripts, tests
+ * and other routes run it every time, as before.
  */
 export function getMetricRows(
   userId: string,
   opts: { asOf?: string } = {},
 ): Promise<MetricRow[]> {
-  return metricRowsOnce(userId, opts.asOf);
+  return memo(`getMetricRows:${userId}:${opts.asOf ?? ""}`, () =>
+    metricRowsOnce(userId, opts.asOf),
+  );
 }
 
 const metricRowsOnce = cache(async function metricRowsOnce(
@@ -179,7 +182,6 @@ const metricRowsOnce = cache(async function metricRowsOnce(
   asOf: string | undefined,
 ): Promise<MetricRow[]> {
   const opts = { asOf };
-  await ensureImported();
   const db = getDb();
   const [defs, all, overrides, sexFact] = await Promise.all([
     db.select().from(metrics),

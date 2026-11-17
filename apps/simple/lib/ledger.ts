@@ -6,6 +6,7 @@
  * says what to do about it, the readings say what improved. The LLM only ever
  * writes the one sentence on a card, and that arrives from the latest report.
  */
+import { cache } from "react";
 import { and, asc, desc, eq, gt, isNull, lt } from "drizzle-orm";
 import {
   beliefSnapshots,
@@ -783,9 +784,19 @@ export const weeksUntil = (due: string, today: string): number =>
     ),
   );
 
-export async function buildLedger(
+export function buildLedger(
   userId: string,
   lens: Lens = "lifespan",
+): Promise<Ledger> {
+  return buildLedgerOnce(userId, lens);
+}
+// Writes at most one belief snapshot a day; sharing one result per render
+// only drops the duplicate check.
+const buildLedgerOnce = cache(buildLedgerUncached);
+
+async function buildLedgerUncached(
+  userId: string,
+  lens: Lens,
 ): Promise<Ledger> {
   const db = getDb();
   const [

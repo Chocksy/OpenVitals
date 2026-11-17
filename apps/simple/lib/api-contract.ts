@@ -10,6 +10,7 @@
  * times are `HH:MM`, numbers are numbers, every number carries its unit, and
  * every estimate carries `estimated: true`.
  */
+import { cache } from "react";
 import { and, desc, eq, inArray, isNull } from "drizzle-orm";
 import {
   getDb,
@@ -281,9 +282,25 @@ export interface ScoreDays {
  * contributions as levers and the marker's lab draws as its history. `rows`
  * is `getMetricRows` when the caller already has it.
  */
-export async function todayGoals(
+export function todayGoals(
   userId: string,
   day: string = localDay(),
+  rows?: MetricRow[],
+): Promise<TodayGoal[]> {
+  // An array argument would key `cache` on identity, so only the call without
+  // one is shared; `getMetricRows` is itself shared per render and per
+  // `withRequestMemo` request.
+  return rows
+    ? todayGoalsUncached(userId, day, rows)
+    : todayGoalsOnce(userId, day);
+}
+const todayGoalsOnce = cache((userId: string, day: string) =>
+  todayGoalsUncached(userId, day),
+);
+
+async function todayGoalsUncached(
+  userId: string,
+  day: string,
   rows?: MetricRow[],
 ): Promise<TodayGoal[]> {
   const [views, protocol, projections, metrics] = await Promise.all([
@@ -471,7 +488,7 @@ export async function todayBody(
    * to move first. It never says sick: this app can say a marker is off its
    * band and it cannot diagnose anybody.
    */
-  const goals = await todayGoals(userId, day, rows);
+  const goals = await todayGoals(userId, day);
   const goalSaid = goalsSentence(goals, {
     done: planToday.done,
     total: planToday.total,
@@ -868,9 +885,17 @@ export interface PlanTodayBody {
  * "Suggested" rows are the report's own actions that have not been adopted.
  * Nothing here invents one: an action the plan never wrote never appears.
  */
-export async function planTodayBody(
+export function planTodayBody(
   userId: string,
   day: string = localDay(),
+): Promise<PlanTodayBody> {
+  return planTodayBodyOnce(userId, day);
+}
+const planTodayBodyOnce = cache(planTodayBodyUncached);
+
+async function planTodayBodyUncached(
+  userId: string,
+  day: string,
 ): Promise<PlanTodayBody> {
   const [protocol, goals, report] = await Promise.all([
     getProtocol(userId),
@@ -990,7 +1015,12 @@ export interface GenomeBody {
  * `verdicts` carries the eight fields section 3 names and not the internal
  * `geneIds`; the gene list below is where a client goes for the rows.
  */
-export async function genomeBody(userId: string): Promise<GenomeBody> {
+export function genomeBody(userId: string): Promise<GenomeBody> {
+  return genomeBodyOnce(userId);
+}
+const genomeBodyOnce = cache(genomeBodyUncached);
+
+async function genomeBodyUncached(userId: string): Promise<GenomeBody> {
   const [file] = await getDb()
     .select({ name: uploads.fileName, at: uploads.createdAt })
     .from(uploads)

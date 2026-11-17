@@ -5,6 +5,7 @@
  * ponytail: the counters, the score and the attention list moved into
  * `lib/ledger.ts` with the phase-12 rewrite, so this file is one function now.
  */
+import { cache } from "react";
 import { and, desc, eq, gte, inArray, isNotNull } from "drizzle-orm";
 import {
   checkinPosts,
@@ -203,7 +204,12 @@ export interface Today {
  * fact keys the information-gain engine currently wants. The arithmetic stays
  * in `lib/revisit.ts`, which is why it is testable to the day.
  */
-export async function buildToday(userId: string): Promise<Today> {
+export function buildToday(userId: string): Promise<Today> {
+  return buildTodayOnce(userId);
+}
+const buildTodayOnce = cache(buildTodayUncached);
+
+async function buildTodayUncached(userId: string): Promise<Today> {
   const db = getDb();
   const [m, catalog] = await Promise.all([
     buildModelInput(userId),

@@ -1,7 +1,6 @@
 import { and, eq, ne } from "drizzle-orm";
 import { getDb, uploads } from "@/db";
 import { currentUserId } from "@/lib/auth";
-import { ensureImported } from "@/lib/import-legacy";
 import { runCurator } from "@/lib/curator";
 import { recordBeliefs } from "@/lib/ledger";
 import { ledgerNow, recordUploadMove } from "@/lib/read-receipt";
@@ -26,7 +25,6 @@ export async function POST(req: Request) {
   if (!(file instanceof File))
     return Response.json({ error: "no file" }, { status: 400 });
 
-  await ensureImported();
   const db = getDb();
   const buffer = Buffer.from(await file.arrayBuffer());
   const hash = sha256(buffer);
@@ -107,7 +105,8 @@ export async function POST(req: Request) {
           generateReport(userId, "upload").catch((e) =>
             console.error("[plan] upload report failed:", e),
           ),
-        );
+        )
+        .catch((e) => console.error("[upload] curator or receipt failed:", e));
     else if (result.kind === "genome")
       void recordBeliefs(userId)
         .then(() => recordUploadMove(userId, upload!.id, before))

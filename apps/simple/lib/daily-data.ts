@@ -3,6 +3,7 @@
  * thin: they call one loader here and render. Everything is scoped to one
  * user. The Body page's own day list and trend series live in `body-data.ts`.
  */
+import { cache } from "react";
 import { and, asc, desc, eq, gte, inArray, isNull, lte, sql } from "drizzle-orm";
 import {
   getDb,
@@ -38,6 +39,7 @@ import {
 
 export type { HabitView, LogValues } from "./daily";
 import { getMetricRows, type MetricRow, type Point } from "./data";
+import { memo } from "./request-memo";
 import { statusOf, type Status } from "./status";
 
 export interface TodayView {
@@ -218,7 +220,12 @@ export async function getToday(
 }
 
 /** Active and archived protocol items with their 30-day strips. */
-export async function getProtocol(userId: string) {
+export function getProtocol(userId: string) {
+  return getProtocolOnce(userId);
+}
+const getProtocolOnce = cache(getProtocolUncached);
+
+async function getProtocolUncached(userId: string) {
   const db = getDb();
   const day = localDay();
   const window30 = lastDays(30, day);
@@ -353,7 +360,12 @@ function toGoalView(
   };
 }
 
-export async function getGoals(userId: string): Promise<GoalView[]> {
+export function getGoals(userId: string): Promise<GoalView[]> {
+  return memo(`getGoals:${userId}`, () => getGoalsOnce(userId));
+}
+const getGoalsOnce = cache(getGoalsUncached);
+
+async function getGoalsUncached(userId: string): Promise<GoalView[]> {
   const [rows, metricRows] = await Promise.all([
     getDb()
       .select()

@@ -1,8 +1,7 @@
 /**
  * The scheduled jobs, run once and then exit: the daily curator pass, the
- * 30-day plan refresh, the Monday weekly review, and the knowledge base
- * reading papers on its own. `pnpm worker`, once a day, from cron or a
- * Coolify scheduled task.
+ * 30-day plan refresh, and the knowledge base reading papers on its own.
+ * `pnpm worker`, once a day, from cron or a Coolify scheduled task.
  *
  * It used to be a timer inside the web server, which then carried the import
  * scripts and the research pipeline in memory. The research and import
@@ -28,7 +27,7 @@ const MONARCH_EVERY_DAYS = 30;
 /** Papers per condition on a scheduled pass. The manual run asks for more. */
 const MAX_PAPERS = 10;
 
-/** The curator over everyone, stale plans, and Monday's weekly review. */
+/** The curator over everyone, then stale plans. */
 async function daily() {
   const { runCuratorForAllUsers } = await import("@/lib/curator");
   const users = await runCuratorForAllUsers("daily");
@@ -37,12 +36,6 @@ async function daily() {
   const { generateStaleReports } = await import("@/lib/report");
   const plans = await generateStaleReports();
   console.log(`[plan] generated ${plans} report(s)`);
-
-  if (new Date().getDay() === 1) {
-    const { generateWeeklyForAllUsers } = await import("@/lib/ai");
-    const n = await generateWeeklyForAllUsers();
-    console.log(`[weekly] generated ${n} review(s)`);
-  }
 }
 
 /**
