@@ -206,6 +206,23 @@ describe("iron_deficiency", () => {
     expect(inflamed.confounded.map((c) => c.tag)).toContain("acute_illness");
   });
 
+  it("does not read a low cortisol as Addison's on a steroid", () => {
+    const low = { latest: { cortisol: value(3) } };
+    const at = (profile = {}) =>
+      scoreHypotheses(input({ ...low, profile }), { catalog: CATALOG }).find(
+        (h) => h.id === "addisons",
+      )!;
+    const plain = at();
+    const onSteroid = at({ medications: "Prednisone 5 mg" });
+    expect(onSteroid.score).toBeLessThan(plain.score);
+    expect(onSteroid.confounded.map((c) => c.tag)).toContain("steroid_use");
+    // No draw time on file: the morning cut-off counts, but weaker than LR 30.
+    expect(plain.confounded.map((c) => c.tag)).toContain("draw_time_unknown");
+    const rule = plain.for.find((f) => f.rule === "addison_cortisol_low");
+    expect(rule?.discounted).toBeLessThan(30);
+    expect(rule?.discounted).toBeGreaterThan(5);
+  });
+
   it("is discounted by a hand-applied confounder tag too", () => {
     const plain = score("iron_deficiency", matching)!;
     const tagged = score("iron_deficiency", matching, {

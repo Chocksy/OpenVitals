@@ -75,6 +75,49 @@ export const MARKERS: Marker[] = [
     ro: "Apolipoproteina B (ApoB)",
   },
   {
+    code: "non_hdl_cholesterol",
+    name: "Non-HDL Cholesterol",
+    unit: "mg/dL",
+    kind: "lab",
+    category: "lipid",
+  },
+  {
+    code: "vldl_cholesterol",
+    name: "VLDL Cholesterol",
+    unit: "mg/dL",
+    kind: "lab",
+    category: "lipid",
+  },
+  {
+    code: "apolipoprotein_a1",
+    name: "Apolipoprotein A1",
+    unit: "mg/dL",
+    kind: "lab",
+    category: "lipid",
+  },
+  {
+    code: "prolactin",
+    name: "Prolactin",
+    unit: "ng/mL",
+    kind: "lab",
+    category: "hormone",
+  },
+  {
+    code: "chloride",
+    name: "Chloride",
+    unit: "mEq/L",
+    kind: "lab",
+    category: "metabolic",
+  },
+  {
+    code: "direct_bilirubin",
+    name: "Direct Bilirubin",
+    unit: "mg/dL",
+    kind: "lab",
+    category: "hepatic",
+  },
+  { code: "weight", name: "Weight", unit: "lbs", kind: "vital" },
+  {
     code: "lp_a",
     name: "Lipoprotein(a)",
     unit: "mg/dL",
@@ -443,17 +486,17 @@ export const MARKERS: Marker[] = [
   },
   {
     code: "acth_stim_cortisol",
-    name: "Cortisol after ACTH Stimulation",
+    name: "Peak Cortisol after ACTH Stimulation (30 or 60 min)",
     unit: "mcg/dL",
     kind: "lab",
     category: "hormone",
+    // Only the post-stimulation time points: the 0-min value on a Synacthen
+    // sheet is a plain cortisol and must not land here.
     aliases: [
-      "ACTH stimulation test",
-      "Synacthen test",
-      "cosyntropin stimulation test",
+      "cortisol 30 min post-ACTH",
       "cortisol 60 min post-ACTH",
-      "Test la Synacthen",
-      "Cortizol după stimulare cu ACTH",
+      "Cortizol la 30 min după Synacthen",
+      "Cortizol la 60 min după Synacthen",
     ],
   },
   {
@@ -853,15 +896,15 @@ export const MARKERS: Marker[] = [
   },
   {
     code: "breath_h2_peak",
-    name: "Breath Hydrogen Rise",
+    name: "Breath Hydrogen Peak Rise over Baseline",
     unit: "ppm",
     kind: "lab",
     category: "digestive",
+    // The rise, not a single timed sample of the panel.
     aliases: [
-      "hydrogen breath test",
-      "lactulose breath test",
-      "glucose breath test",
-      "Test respirator cu hidrogen",
+      "hydrogen rise over baseline",
+      "peak H2 rise",
+      "Creștere maximă H2 față de bazal",
     ],
   },
   {

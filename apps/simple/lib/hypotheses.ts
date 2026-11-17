@@ -336,6 +336,18 @@ export const CONFOUNDERS: {
     why: "Female hormone results only compare within the same phase of the cycle.",
   },
   {
+    tag: "steroid_use",
+    markers: ["cortisol"],
+    discount: 0.1,
+    why: "A steroid tablet, inhaler or cream suppresses the body's own cortisol, so a low result says nothing about the adrenals.",
+  },
+  {
+    tag: "draw_time_unknown",
+    markers: ["cortisol"],
+    discount: 0.3,
+    why: "Cortisol falls by half from 8 am to the afternoon, and a reading carries only its date, so a low one may just be a late draw.",
+  },
+  {
     tag: "winter",
     markers: ["vitamin_d"],
     discount: 0.6,
@@ -2282,11 +2294,22 @@ function factIncludes(m: ModelInput, fact: string, includes: string): boolean {
  * "CRP high hides an empty iron store" does not need a human to click it.
  */
 function autoTags(m: ModelInput): Record<string, string[]> {
+  const tags: Record<string, string[]> = {};
   const crp = m.latest.hs_crp ?? m.latest.crp;
-  if (crp?.value == null) return {};
-  const limit = crp.optimalHigh ?? crp.refHigh ?? 3;
-  return crp.value > limit ? { ferritin: ["acute_illness"] } : {};
+  const limit = crp?.optimalHigh ?? crp?.refHigh ?? 3;
+  if (crp?.value != null && crp.value > limit) tags.ferritin = ["acute_illness"];
+  // A steroid on the medication list makes a low cortisol iatrogenic. Without
+  // one, the cut-offs still assume an 8 am draw and a reading stores only its
+  // date. ponytail: always tagged; store the draw time to lift it.
+  if (m.latest.cortisol)
+    tags.cortisol = [
+      factIncludes(m, "medications", STEROIDS) ? "steroid_use" : "draw_time_unknown",
+    ];
+  return tags;
 }
+
+const STEROIDS =
+  "prednisolone|prednisone|dexamethasone|hydrocortisone|methylprednisolone|budesonide|fluticasone|beclomethasone|steroid|cortizon|medrol";
 
 /** The tag that discounts this marker's draw, if any. */
 function confounderFor(

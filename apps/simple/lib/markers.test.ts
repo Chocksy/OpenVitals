@@ -6,6 +6,7 @@
  * while every real reading is `testosterone_total`) and simply never fire,
  * with nothing red anywhere. Pure: no database.
  */
+import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { FASTING } from "./coverage";
 import { CATALOG } from "./hkb-catalog";
@@ -13,14 +14,23 @@ import { INTERVENTIONS } from "./hkb-interventions";
 import { CONFOUNDERS, HYPOTHESES } from "./hypotheses";
 import { MARKER, MARKERS } from "./markers";
 import { MERGES } from "./merge-metrics";
+import { BETTER_HIGH, BETTER_LOW } from "./projection";
 import { RO } from "./ro-sheet";
+import { CLAIM_MARKERS } from "./trends";
 import { BOUNDS, DEFAULT_REF_HIGH, SEX_RANGES, VECTORS } from "./vectors";
 
 /** code → where it is read, e.g. "rule pcos/pcos_testosterone". */
 const refs = new Map<string, string[]>();
 const read = (code: string | undefined, where: string) => {
-  if (code) refs.set(code, [...(refs.get(code) ?? []), where]);
+  if (code && !NOT_MARKERS.has(code))
+    refs.set(code, [...(refs.get(code) ?? []), where]);
 };
+/**
+ * Keys that share a code list but are not reading codes: a derived value, a
+ * daily-log column, and `urea`, which a unit rule converts although every
+ * urea on file is stored as `bun` (open question, so it is not seeded).
+ */
+const NOT_MARKERS = new Set(["homaIr", "weight_kg", "urea"]);
 
 /** Lab codes a rule compares against a number, so the number needs a unit. */
 const numeric = new Set<string>();
@@ -53,6 +63,16 @@ for (const k of Object.keys(RO)) read(k, "RO");
 for (const i of INTERVENTIONS)
   if (i.outcomeFeatureId?.startsWith("metric:"))
     read(i.outcomeFeatureId.slice("metric:".length), `intervention ${i.name}`);
+
+for (const c of [...BETTER_HIGH, ...BETTER_LOW]) read(c, "BETTER_HIGH/LOW");
+for (const c of CLAIM_MARKERS) read(c.code, "CLAIM_MARKERS");
+// Codes that sit inside closures and an unexported table, read off the source.
+const src = (f: string) => readFileSync(new URL(f, import.meta.url), "utf8");
+for (const f of ["./vectors.ts", "./patterns.ts"])
+  for (const [, c] of src(f).matchAll(/\bval\(m, "([a-z0-9_]+)"/g))
+    read(c, `val() ${f}`);
+for (const [, list] of src("./units.ts").matchAll(/metrics: \[([^\]]*)\]/g))
+  for (const [, c] of list!.matchAll(/"([a-z0-9_]+)"/g)) read(c, "units RULES");
 
 const show = (code: string) => `${code} (${refs.get(code)!.join(", ")})`;
 
