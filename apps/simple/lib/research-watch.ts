@@ -513,7 +513,12 @@ async function searchOnlyWatch(
  */
 export async function runWatchForUser(
   userId: string,
-  options: ResearchOptions & { now?: Date; max?: number } = {},
+  options: ResearchOptions & {
+    now?: Date;
+    max?: number;
+    /** batch 5B: the curator keeps a short line per failure on its run row */
+    onError?: (short: string) => void;
+  } = {},
 ): Promise<WatchResult[]> {
   const now = options.now ?? new Date();
   const conditions = await watchConditions(userId);
@@ -524,6 +529,9 @@ export async function runWatchForUser(
       out.push(await runWatch(userId, condition, options));
     } catch (e) {
       console.error(`[watch] ${condition.id} failed:`, e);
+      options.onError?.(
+        `watch ${condition.id}: ${(e instanceof Error ? e.message : String(e)).slice(0, 80)}`,
+      );
     }
   }
   return out;

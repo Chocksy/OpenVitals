@@ -205,10 +205,12 @@ final class TodayModel {
         } catch {
             self.error = error.localizedDescription
         }
-        if let plan = await plan { self.plan = plan }
+        let freshPlan = await plan
+        if let freshPlan { self.plan = freshPlan }
         if let meals = await meals { self.meals = meals }
         if let days = await days { self.days = days.days }
         loaded = true
+        if live { Reminders.loaded(plan: freshPlan, goals: error.isEmpty ? today?.goals : nil) }
     }
 
     // MARK: derived
@@ -454,7 +456,10 @@ final class TodayModel {
         let freshMeals = await meals
         if let freshMeals { self.meals = freshMeals }
         guard writes == 0 else { return }
-        if let plan = await plan { self.plan = plan }
+        if let plan = await plan {
+            self.plan = plan
+            Reminders.loaded(plan: plan, goals: today?.goals)
+        }
         if let days = await days { self.days = days.days }
         // The server has every write now: its meals take over from the
         // local copies, except one a portion burst has not sent yet.

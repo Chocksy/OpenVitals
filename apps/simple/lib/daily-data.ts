@@ -39,6 +39,7 @@ import {
 
 export type { HabitView, LogValues } from "./daily";
 import { getMetricRows, type MetricRow, type Point } from "./data";
+import { markersFor } from "./projections";
 import { memo } from "./request-memo";
 import { statusOf, type Status } from "./status";
 
@@ -48,7 +49,8 @@ export interface TodayView {
   /** Phase 23c: what the phone sent for this day, when it sent anything. */
   wearable: DailyWearable | null;
   nutrition: DailyNutrition | null;
-  habits: HabitView[];
+  /** `logged30` is false when the item has no row at all in 30 days: "not logged" */
+  habits: (HabitView & { logged30: boolean })[];
   streak: number;
   /**
    * Phase 24b: yesterday, when today is not over. A complete day above the
@@ -98,7 +100,7 @@ export async function getToday(
   const db = getDb();
   const from = lastDays(HEAT_DAYS, day)[0]!;
 
-  const [logs, items, habits, posts] = await Promise.all([
+  const [logs, items, allHabits, posts] = await Promise.all([
     db
       .select()
       .from(dailyLogs)
@@ -123,7 +125,6 @@ export async function getToday(
       .where(
         and(
           eq(habitLogs.userId, userId),
-          eq(habitLogs.done, true),
           gte(habitLogs.day, from),
           lte(habitLogs.day, day),
         ),
@@ -136,15 +137,23 @@ export async function getToday(
 
   const window30 = lastDays(30, day);
   const week = new Set(lastDays(7, day));
+  const in30 = new Set(window30);
+  // Any row, ticked or unticked, says the person logged the item; no row at
+  // all in the window is "not logged", which is unknown and not 0 %.
+  const logged30 = new Set(
+    allHabits.filter((h) => in30.has(h.day)).map((h) => h.itemId),
+  );
+  const habits = allHabits.filter((h) => h.done);
   const doneByItem = new Map<string, Set<string>>();
   for (const h of habits) {
     if (!doneByItem.has(h.itemId)) doneByItem.set(h.itemId, new Set());
     doneByItem.get(h.itemId)!.add(h.day);
   }
 
-  const habitViews: HabitView[] = items.map((it) => {
+  const habitViews: TodayView["habits"] = items.map((it) => {
     const done = doneByItem.get(it.id) ?? new Set<string>();
     return {
+      logged30: logged30.has(it.id),
       id: it.id,
       text: it.text,
       why: it.why,
@@ -241,14 +250,16 @@ async function getProtocolUncached(userId: string) {
       .where(
         and(
           eq(habitLogs.userId, userId),
-          eq(habitLogs.done, true),
           gte(habitLogs.day, window30[0]!),
         ),
       ),
   ]);
 
+  // No row at all in the window is "not logged": unknown, never 0 %.
+  const logged = new Set(habits.map((h) => h.itemId));
   const doneByItem = new Map<string, Set<string>>();
   for (const h of habits) {
+    if (!h.done) continue;
     if (!doneByItem.has(h.itemId)) doneByItem.set(h.itemId, new Set());
     doneByItem.get(h.itemId)!.add(h.day);
   }
@@ -259,6 +270,7 @@ async function getProtocolUncached(userId: string) {
       ...it,
       metricCodes: it.metricCodes ?? [],
       adherence30: adherence(done, window30),
+      logged30: logged.has(it.id),
       strip30: window30.map((d) => (done.has(d) ? 1 : 0)),
     };
   });
@@ -297,15 +309,20 @@ export async function bootstrapProtocol(userId: string): Promise<number> {
   const adopt = items.filter((_, i) => didIt.has(i));
   if (!adopt.length) return 0;
 
-  await db.insert(protocolItems).values(
-    adopt.map((it) => ({
+  const today = localDay();
+  const rows = await Promise.all(
+    adopt.map(async (it) => ({
       userId,
       text: it.text,
       why: it.why,
-      metricCodes: it.metricCodes ?? [],
+      metricCodes: it.metricCodes?.length
+        ? it.metricCodes
+        : await markersFor(it.text),
       sourceInsightId: plan.id,
+      startedAt: today,
     })),
   );
+  await db.insert(protocolItems).values(rows);
   return adopt.length;
 }
 
@@ -358,10 +375,15 @@ function toGoalView(
     progress: goalProgress(start?.value, current, g.targetLow, g.targetHigh),
     // Closed by the curator (`goalState`), or an undated target the current
     // value sits inside. A dated goal is a retest: only the curator closes it,
-    // so an old value inside the band never hides the draw it plans.
+    // so an old value inside the band never hides the draw it plans. Batch
+    // 5B, after 5A's freshness rule: an undated goal is only reached by a
+    // reading drawn after it was set, never by the one that prompted it.
     reached:
       g.achievedAt != null ||
-      (g.due == null && inGoal(current, g.targetLow, g.targetHigh)),
+      (g.due == null &&
+        latest != null &&
+        latest.observedAt.slice(0, 10) > created &&
+        inGoal(current, g.targetLow, g.targetHigh)),
   };
 }
 
@@ -714,14 +736,23 @@ export interface TrackerSummary {
     text: string;
     cadence: string;
     done: number;
-    adherence: number;
+    /**
+     * Percent of the window ticked, or null when the item has no
+     * `habit_logs` row at all in it: "not logged" is unknown, not 0 %.
+     */
+    adherence: number | null;
+    /** false when nothing was logged for it in the window */
+    logged: boolean;
     /** What this item is meant to move; feeds the graph's action boost. */
     metricCodes?: string[];
   }[];
   /** Mean of every number the user logged, over the days they logged it. */
   averages: Record<string, number | null>;
   loggedDays: number;
-  adherencePct: number;
+  /** mean over the logged items only; null when none was logged */
+  adherencePct: number | null;
+  /** how many active items have no row at all in the window */
+  notLogged?: number;
 }
 
 const AVERAGED = [
@@ -768,27 +799,31 @@ export async function getTrackerSummary(
       .where(
         and(
           eq(habitLogs.userId, userId),
-          eq(habitLogs.done, true),
           gte(habitLogs.day, from),
           lte(habitLogs.day, end),
         ),
       ),
   ]);
 
+  const logged = new Set(habits.map((h) => h.itemId));
   const doneByItem = new Map<string, string[]>();
   for (const h of habits)
-    doneByItem.set(h.itemId, [...(doneByItem.get(h.itemId) ?? []), h.day]);
+    if (h.done)
+      doneByItem.set(h.itemId, [...(doneByItem.get(h.itemId) ?? []), h.day]);
 
   const rows = items.map((it) => {
     const done = doneByItem.get(it.id) ?? [];
+    const isLogged = logged.has(it.id);
     return {
       text: it.text,
       cadence: it.cadence,
       done: done.length,
-      adherence: adherence(done, window),
+      adherence: isLogged ? adherence(done, window) : null,
+      logged: isLogged,
       metricCodes: it.metricCodes ?? [],
     };
   });
+  const measured = rows.filter((r) => r.adherence != null);
 
   const averages = Object.fromEntries(
     AVERAGED.map((k) => {
@@ -812,8 +847,11 @@ export async function getTrackerSummary(
     items: rows,
     averages,
     loggedDays: logs.length,
-    adherencePct: rows.length
-      ? Math.round(rows.reduce((s, r) => s + r.adherence, 0) / rows.length)
-      : 0,
+    adherencePct: measured.length
+      ? Math.round(
+          measured.reduce((s, r) => s + r.adherence!, 0) / measured.length,
+        )
+      : null,
+    notLogged: rows.length - measured.length,
   };
 }

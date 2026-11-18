@@ -32,6 +32,9 @@ import { DocumentItems } from "@/components/document-items";
 import { GenomeTable } from "@/components/genome-table";
 import { ReadingRows } from "@/components/reading-rows";
 import { StateWord, type StateTone } from "@/components/ui-kit";
+import { WhatChangedCard } from "@/components/home";
+import { whatChanged } from "@/lib/home-data";
+import { localDay } from "@/lib/daily";
 
 export const dynamic = "force-dynamic";
 
@@ -151,6 +154,11 @@ export default async function UploadPage({
         ])
       : [[], []];
   const answers = drawAnswers(rows, earlier, notes);
+  /** Batch 5B: what this draw said about what the person is doing. */
+  const sinceStart =
+    kind === "lab" && rows.length
+      ? await whatChanged(userId, localDay(), { uploadId: id })
+      : { lines: [], untracked: [] };
 
   const called = kind === "genome" ? callGenome(variants) : [];
   /** Computed once here; the gene table below reads the same array. */
@@ -303,6 +311,12 @@ export default async function UploadPage({
 
         {/* No receipt at all means the file was read before this phase: the
             page says nothing rather than claiming nothing moved. */}
+        {sinceStart.lines.length > 0 && (
+          <div className="mb-[var(--s13)]">
+            <WhatChangedCard changed={sinceStart} inline />
+          </div>
+        )}
+
         {receipt && (
           <div className="rowlist mb-[var(--s13)]">
             <div className={cn("verdict", quiet ? "on" : "border")}>

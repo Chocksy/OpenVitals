@@ -33,6 +33,7 @@ import {
   type Finding,
 } from "@/lib/explain";
 import type { Today } from "@/lib/home-data";
+import type { WhatChanged } from "@/lib/changes";
 import type { Conclusion, Ledger } from "@/lib/ledger";
 import type { Move } from "@/lib/infogain";
 import type { HState, Grade, Lens } from "@/lib/hypotheses";
@@ -49,6 +50,7 @@ import { TodayAsk } from "./today-ask";
 import { WhatToDo } from "./what-to-do";
 import { HistoryChart } from "./history-chart";
 import { StateWord, type StateTone } from "./ui-kit";
+import { TookItMostDays } from "./plan-tick";
 
 export { KeyTrends } from "./key-trends";
 
@@ -774,5 +776,104 @@ export function EmptyHome({ setup }: { setup?: "start" | "continue" | null }) {
         <GeneratePlan />
       </div>
     </div>
+  );
+}
+
+/**
+ * Batch 5B: "What changed". One line per marker an active item names, read
+ * against the day the item started, better ones first, then goals reached in
+ * the last 30 days. Home prints it at the top while the newest draw is the
+ * latest event; the upload page prints the same block for its own draw.
+ *
+ * An item with no tick since it started says "not logged" and offers one tap,
+ * "I took it most days", rather than letting a missing tick read as 0 %.
+ */
+export function WhatChangedCard({
+  changed,
+  research,
+  title = "What changed",
+  inline = false,
+}: {
+  changed: WhatChanged;
+  /** the research line, small, under the card */
+  research?: string | null;
+  title?: string;
+  /** inside another panel (the upload page): a sub-heading, not a panel */
+  inline?: boolean;
+}) {
+  const { lines, untracked } = changed;
+  if (!lines.length) return research ? <ResearchLine line={research} /> : null;
+  const better = lines.filter((l) => l.better).length;
+  const said = `${better} of ${plural(lines.length, "change")} for the better`;
+  const body = (
+    <>
+      <ul className="space-y-1">
+        {lines.map((l, i) => (
+          <li
+            key={`${l.kind}-${l.code}-${l.itemId ?? ""}-${i}`}
+            className="t-body flex flex-wrap items-baseline gap-x-2 text-[length:var(--type-sm)] text-[var(--ink-2)]"
+          >
+            <StateWord
+              tone={l.kind === "reached" || l.better ? "on" : "border"}
+              dot
+            >
+              {l.kind === "reached" ? "goal" : l.better ? "better" : "worse"}
+            </StateWord>
+            <span className="t-num text-[var(--ink)]">{l.text}</span>
+            {l.logged === false && (
+              <span className="t-meta text-[length:var(--type-xs)]">
+                not logged
+              </span>
+            )}
+          </li>
+        ))}
+      </ul>
+      {untracked.length > 0 && (
+        <div className="mt-3 space-y-2 border-t border-[var(--hair)] pt-3">
+          {untracked.map((u) => (
+            <div
+              key={u.itemId}
+              className="flex flex-wrap items-center justify-between gap-2"
+            >
+              <span className="t-meta text-[length:var(--type-sm)]">
+                {u.title}: no ticks since {dayLabel(u.start)}. Taken anyway?
+              </span>
+              <TookItMostDays itemId={u.itemId} until={u.until} title={u.title} />
+            </div>
+          ))}
+        </div>
+      )}
+    </>
+  );
+  if (inline)
+    return (
+      <div>
+        <div className="sub mt-0">
+          <h3>{title}</h3>
+          <span>{said}</span>
+        </div>
+        {body}
+      </div>
+    );
+  return (
+    <section className="space-y-2">
+      <div className="panel">
+        <div className="panel-head">
+          <h3>{title}</h3>
+          <span className="r">{said}</span>
+        </div>
+        {body}
+      </div>
+      {research && <ResearchLine line={research} />}
+    </section>
+  );
+}
+
+/** "This week research read N papers, kept M findings, changed K rules." */
+export function ResearchLine({ line }: { line: string }) {
+  return (
+    <p className="legend">
+      <Link href="/plan#research">{line}</Link>
+    </p>
   );
 }

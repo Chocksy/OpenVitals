@@ -2,6 +2,8 @@ import { and, eq } from "drizzle-orm";
 import { getDb, protocolItems } from "@/db";
 import { currentUserId } from "@/lib/auth";
 import { SLOTS } from "@/lib/plan-line";
+import { localDay } from "@/lib/daily";
+import { markersFor } from "@/lib/projections";
 
 /** `time_of_day` is one of the seven slots or a literal `HH:MM`, nothing else. */
 const CLOCK = /^([01]\d|2[0-3]):[0-5]\d$/;
@@ -58,6 +60,11 @@ export async function POST(req: Request) {
   const endsAt = (b.endsAt ?? "").trim() || null;
   if (endsAt && !DATE.test(endsAt)) return bad("bad end date");
 
+  // Batch 5A item 6: a bare line ("Berberine") gets the markers its matched
+  // intervention moves, so "since you started" and projections can read it.
+  const given = Array.isArray(b.metricCodes) ? b.metricCodes : [];
+  const metricCodes = given.length ? given : await markersFor(text);
+
   const [row] = await getDb()
     .insert(protocolItems)
     .values({
@@ -65,8 +72,9 @@ export async function POST(req: Request) {
       text: text.slice(0, 300),
       why: b.why?.slice(0, 500) ?? null,
       cadence: b.cadence === "weekly" ? "weekly" : "daily",
-      metricCodes: Array.isArray(b.metricCodes) ? b.metricCodes : [],
+      metricCodes,
       sourceInsightId: b.sourceInsightId ?? null,
+      startedAt: localDay(),
       timeOfDay,
       daysOfWeek,
       doseAmount: b.doseAmount == null ? null : String(b.doseAmount),

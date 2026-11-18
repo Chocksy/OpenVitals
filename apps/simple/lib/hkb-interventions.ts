@@ -158,6 +158,36 @@ export const INTERVENTIONS: SeedIntervention[] = [
     quote:
       "Overall, structured exercise training (23 studies) was associated with a decline in HbA(1c) level (-0.67%; 95% confidence interval [CI], -0.84% to -0.49%; I(2), 91.3%) compared with control participants.",
   },
+  /* Berberine (batch 5A). Zhao 2023 pools only placebo-controlled trials;
+   * fasting glucose -0.52 mmol/L x 18.02 = -9.4 mg/dL. Lan 2015 (PMID 25498346)
+   * was checked too and left out: its abstract pools no number. The abstract
+   * states no dose or duration; the dose is the one the trials commonly
+   * used. PMID checked against PubMed. */
+  {
+    conditionId: "insulin_resistance",
+    name: "Berberine",
+    kind: "supplement",
+    dose: "500 mg two or three times a day, with meals",
+    duration: null,
+    outcomeFeatureId: "metric:glucose",
+    effect: "-9.4 mg/dL (0.52 mmol/L x 18.02; 95% CI -0.72 to -0.33 mmol/L)",
+    direction: "down",
+    grade: "A",
+    studyType: "meta",
+    population: "18 placebo-controlled randomised trials, n = 1,522",
+    caution:
+      "Not in pregnancy or breastfeeding; it adds to the effect of diabetes drugs and slows how fast several others are cleared, so check what else is taken.",
+    paper: {
+      doi: "10.1016/j.tjnut.2023.08.016",
+      pmid: "37598753",
+      title:
+        "Overall and Sex-Specific Effect of Berberine on Glycemic and Insulin-Related Traits: a Systematic Review and Meta-Analysis of Randomized Controlled Trials",
+      year: 2023,
+      journal: "Journal of Nutrition",
+    },
+    quote:
+      "Berberine lowered fasting glucose (-0.52 mmol/L, 95% CI -0.72 to -0.33; 18 studies, n = 1522), HbA1c (-4.48 mmol/mol, 95% CI -6.53 to -2.44, 7 studies, n = 756), fasting insulin (-2.36 mU/L, 95% CI -3.64 to -1.08, 11 studies, n = 966), HOMA-IR (-0.85, 95% CI -1.16 to -0.53,12 studies, n = 1065), and 2-h postprandial glucose (-1.81 mmol/L, 95% CI -2.37 to -1.24, 4 studies, n = 501).",
+  },
   {
     conditionId: "insulin_resistance",
     name: "Mediterranean diet",
@@ -1187,6 +1217,36 @@ export const INTERVENTIONS: SeedIntervention[] = [
     },
     quote:
       "Supplementation of a median dose of ∼10.2 g psyllium significantly reduced LDL cholesterol (MD = -0.33 mmol/L; 95% CI: -0.38, -0.27 mmol/L; P",
+  },
+  /* Berberine (batch 5A). Ju 2018 pools 16 trials; the abstract itself says
+   * the trials are heterogeneous and mostly at high risk of bias, which the
+   * file's convention still grades A as a meta-analysis. LDL -0.38 mmol/L
+   * x 38.67 = -14.7 mg/dL. The abstract states no dose or duration; the
+   * dose is the one the trials commonly used. PMID checked against PubMed. */
+  {
+    conditionId: "ascvd_risk",
+    name: "Berberine",
+    kind: "supplement",
+    dose: "500 mg two or three times a day, with meals",
+    duration: null,
+    outcomeFeatureId: "metric:ldl_cholesterol",
+    effect: "-14.7 mg/dL (0.38 mmol/L x 38.67; 95% CI -0.53 to -0.22 mmol/L)",
+    direction: "down",
+    grade: "A",
+    studyType: "meta",
+    population: "16 randomised trials in dyslipidaemia, n = 2,147",
+    caution:
+      "Not in pregnancy or breastfeeding; it slows how fast several drugs are cleared (ciclosporin among them), so check what else is taken. Stomach upset is the common side effect.",
+    paper: {
+      doi: "10.1016/j.phymed.2018.09.212",
+      pmid: "30466986",
+      title:
+        "Efficacy and safety of berberine for dyslipidaemias: A systematic review and meta-analysis of randomized clinical trials",
+      year: 2018,
+      journal: "Phytomedicine",
+    },
+    quote:
+      "Meta-analysis showed that berberine significantly reduced levels of total cholesterol (TC) (MD = -0.47 mmol/l 95% CI [-0.64, -0.31], p < 0.00001), low-density lipoprotein cholesterol (LDL-C) (MD =-0.38 mmol/l 95% CI [-0.53, -0.22], p < 0.00001) and triglycerides (TG) (MD = -0.28 mmol/l 95% CI [-0.46, -0.10], p = 0.002).",
   },
   {
     conditionId: "ascvd_risk",

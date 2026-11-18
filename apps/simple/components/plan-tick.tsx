@@ -131,3 +131,46 @@ export function AdoptSuggested({
     </Button>
   );
 }
+
+/**
+ * Batch 5B: "I took it most days", on the What changed card.
+ *
+ * An item nobody ticked since it started reads "not logged", and a draw just
+ * came back. One tap posts `POST /api/habits/backfill`, which writes a done
+ * tick for each day from the item's start to the draw that has no row yet.
+ * Days already logged, ticked or not, are left as they are.
+ */
+export function TookItMostDays({
+  itemId,
+  until,
+  title,
+}: {
+  itemId: string;
+  until: string;
+  title: string;
+}) {
+  const { save, busy } = useSave();
+  const [done, setDone] = useState(false);
+
+  if (done)
+    return (
+      <span className="state on">
+        <Check className="size-3" /> Logged
+      </span>
+    );
+
+  return (
+    <Button
+      size="sm"
+      job="quiet"
+      disabled={busy}
+      aria-label={`I took ${title} most days`}
+      onClick={async () => {
+        if (await save("/api/habits/backfill", { itemId, until }))
+          setDone(true);
+      }}
+    >
+      <Check /> I took it most days
+    </Button>
+  );
+}

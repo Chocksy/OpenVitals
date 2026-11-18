@@ -27,8 +27,10 @@ import {
   optionsFor,
   railCards,
   recentFindings,
+  researchWeekFor,
   systemTiles,
   targetSaid,
+  whatChanged,
   type RailGoal,
   type TrendMetric,
 } from "@/lib/home-data";
@@ -51,8 +53,10 @@ import {
   SectionHeader,
   SinceLine,
   TodayQuestions,
+  WhatChangedCard,
   type MarkerGroup,
 } from "@/components/home";
+import { researchLine } from "@/lib/changes";
 import {
   HomeLight,
   HomeRail,
@@ -119,6 +123,8 @@ export default async function Home({
     planToday,
     hybrid,
     genome,
+    changed,
+    research,
   ] = await Promise.all([
     buildLedger(userId),
     latestReport(userId),
@@ -133,6 +139,8 @@ export default async function Home({
     // phase 40b: the plum header, the goal hero, Today and the hunches
     todayBody(userId, day),
     genomeBody(userId),
+    whatChanged(userId, day),
+    researchWeekFor(userId),
   ]);
 
   if (rows.length === 0) {
@@ -421,6 +429,10 @@ export default async function Home({
           confidence={hybrid.confidence}
           pending={hybrid.pending}
         />
+
+        {/* batch 5B: what the newest draw said about what this person is
+            doing, and one line on what research did this week */}
+        <WhatChangedCard changed={changed} research={researchLine(research)} />
 
         {hero ? (
           <GoalHero g={hero} />

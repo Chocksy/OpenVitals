@@ -1040,6 +1040,19 @@ export async function runCurator(
   const [run] = await db.insert(curatorRuns).values({ trigger }).returning();
   const stats: CuratorStats = {};
   const bump = (c: Check) => (stats[c] ??= blank());
+  /**
+   * Batch 5B: research failures used to be console-only, so no surface could
+   * say "Europe PMC 503". Each one is also kept here, short, and lands on
+   * `curator_runs.error` when the run finishes.
+   */
+  const researchErrors: string[] = [];
+  const noteFailure = (where: string, e: unknown) =>
+    researchErrors.push(
+      `${where}: ${(e instanceof Error ? e.message : String(e)).slice(0, 80)}`,
+    );
+  const errorText = (fatal?: string) =>
+    [fatal, ...researchErrors].filter(Boolean).join("; ").slice(0, 500) ||
+    null;
 
   try {
     for (const [code, unit] of Object.entries(CATALOG_UNITS))
@@ -1457,6 +1470,7 @@ export async function runCurator(
        */
       const reread = await rereadPosts(userId).catch((e) => {
         console.error("[curator] the re-read failed:", e);
+        noteFailure("re-read", e);
         return { read: 0, stillDown: true };
       });
       if (reread.read) {
@@ -1465,8 +1479,11 @@ export async function runCurator(
         u.fixed = reread.read;
       }
 
-      const runs = await runWatchForUser(userId).catch((e) => {
+      const runs = await runWatchForUser(userId, {
+        onError: (m) => researchErrors.push(m),
+      }).catch((e) => {
         console.error("[curator] research watch failed:", e);
+        noteFailure("research watch", e);
         return [];
       });
       if (runs.length) {
@@ -1482,9 +1499,14 @@ export async function runCurator(
        * adopted yesterday is a topic tonight without anybody typing it.
        */
       const topics = await syncTopicsFromProtocol(userId)
-        .then(() => runTopicsForUser(userId))
+        .then(() =>
+          runTopicsForUser(userId, {
+            onError: (m) => researchErrors.push(m),
+          }),
+        )
         .catch((e) => {
           console.error("[curator] topic watch failed:", e);
+          noteFailure("topic watch", e);
           return [];
         });
       if (topics.length) {
@@ -1501,6 +1523,7 @@ export async function runCurator(
        */
       const explained = await explainPapers(userId).catch((e) => {
         console.error("[curator] the plain-line pass failed:", e);
+        noteFailure("paper summaries", e);
         return 0;
       });
       if (explained) {
@@ -1526,9 +1549,15 @@ export async function runCurator(
           const due = daily ? await c.dailyCase(userId) : null;
           if (due && !due.why) return;
           const r = await c.researchCase(userId, { seedDois: due?.seeds });
-          if (r.failed) console.error(`[curator] case research: ${r.failed}`);
+          if (r.failed) {
+            console.error(`[curator] case research: ${r.failed}`);
+            noteFailure("case research", r.failed);
+          }
         })
-        .catch((e) => console.error("[curator] case research failed:", e))
+        .catch((e) => {
+          console.error("[curator] case research failed:", e);
+          noteFailure("case research", e);
+        })
         .finally(() => caseRunning.delete(userId));
     }
 
@@ -1540,7 +1569,7 @@ export async function runCurator(
 
     await db
       .update(curatorRuns)
-      .set({ finishedAt: new Date(), stats })
+      .set({ finishedAt: new Date(), stats, error: errorText() })
       .where(eq(curatorRuns.id, run!.id));
     return stats;
   } catch (e) {
@@ -1548,7 +1577,7 @@ export async function runCurator(
     console.error("[curator] run failed:", e);
     await db
       .update(curatorRuns)
-      .set({ finishedAt: new Date(), stats, error })
+      .set({ finishedAt: new Date(), stats, error: errorText(error) })
       .where(eq(curatorRuns.id, run!.id));
     return stats;
   }

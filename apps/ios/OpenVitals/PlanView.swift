@@ -149,8 +149,10 @@ final class PlanModel {
         if plan == nil { plan = Api.cachedPlanToday() }
         if papers.isEmpty { papers = Api.cachedResearch()?.rows ?? [] }
         do {
-            plan = try await fetch()
+            let fresh = try await fetch()
+            plan = fresh
             error = ""
+            Reminders.loaded(plan: fresh)
         } catch {
             self.error = error.localizedDescription
         }
@@ -159,7 +161,10 @@ final class PlanModel {
 
     /// The plan again after a write. A failed read leaves the screen as it was.
     private func reload() async {
-        if let fresh = try? await fetch() { plan = fresh }
+        if let fresh = try? await fetch() {
+            plan = fresh
+            Reminders.loaded(plan: fresh)
+        }
     }
 
     // MARK: writes

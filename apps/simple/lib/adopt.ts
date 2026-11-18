@@ -6,32 +6,132 @@
  * could not adopt anything without a second copy of it. The route is now four
  * lines around this function and the tool calls the same one.
  */
-import { and, eq, inArray } from "drizzle-orm";
+import { and, desc, eq, inArray, isNotNull, sql } from "drizzle-orm";
 import {
   getDb,
   goals,
   hkbInterventions,
   metrics,
   protocolItems,
+  readings,
   reports,
   reviewItems,
   type ReportAction,
 } from "@/db";
 import { adoptBodyOf } from "@/lib/actions";
-import { localDay } from "@/lib/daily";
+import { localDay, shiftDay } from "@/lib/daily";
 import { addMonths, scheduleOf } from "@/lib/plan-line";
 import { recordBeliefs } from "@/lib/ledger";
+import { markersFor } from "@/lib/projections";
 import { queueResearch } from "@/lib/research";
 
 const DAY = 86_400_000;
 
-/** The first number in "LDL down to 70 mg/dL". */
-const firstNumber = (text: string): number | null => {
-  const hit = text.replace(/[,\s](?=\d{3}\b)/g, "").match(/\d+(?:\.\d+)?/);
-  return hit ? Number(hit[0]) : null;
-};
+const NUMBER = String.raw`(\d+(?:\.\d+)?)`;
+const ROUGHLY = String.raw`(?:(?:about|around|roughly|approximately|approx\.?|under|below|over|above|at least|at most|less than|more than)\s*|[~<>≤≥]\s*)?`;
+/** "131 to about 118", "131 mg/dL → 118": where it starts, then where it lands. */
+const TRANSITION = new RegExp(
+  String.raw`(?<![a-z])${NUMBER}\s*(?:[a-zµ%/]+\s*)?(?:→|->|=>|\bto\b|\btowards\b)\s*${ROUGHLY}${NUMBER}`,
+  "i",
+);
+/** "70-100 mg/dL": a band, not a sum. */
+const RANGE = new RegExp(String.raw`(?<![a-z\d.])${NUMBER}\s*[-–—]\s*${NUMBER}`, "i");
+/** "-13", "−13 mg/dL", "+5": a change, signed. */
+const SIGNED = new RegExp(String.raw`(?:^|[\s(])([+\-−])\s*${NUMBER}`);
+/** "down about 13", "lower by 13", "drop of 13": a change, in words. */
+const WORDED = new RegExp(
+  String.raw`\b(?:(?:down|up|lower(?:ed|s)?|higher|drops?|falls?|reduc(?:e|es|ed|tion)|decreas(?:e|es|ed)|increas(?:e|es|ed)|rais(?:e|es|ed)|rises?)\s+(?:by\s+|of\s+)?|\bby\s+)${ROUGHLY}${NUMBER}\s*(%)?`,
+  "i",
+);
+/** A number that is a time or a date, never a target: "in 12 weeks", "2026-12-01". */
+const NOT_A_TARGET =
+  /\b\d{4}-\d{2}-\d{2}\b|\b\d+(?:\.\d+)?\s*(?:weeks?|wks?|months?|days?|years?|yrs?|h|hours?)\b/gi;
+
+const round2 = (v: number) => Math.round(v * 100) / 100;
+
+/**
+ * The value a target's `expect` aims at, or null when it does not say one.
+ *
+ * Batch 5A. The old reading took the first number, so "131 to about 118
+ * mg/dL" stored 131, the value it started from, and the next curator pass
+ * closed the goal the day after on the reading that prompted it. The forms:
+ *
+ *  - "131 to about 118 mg/dL", "131 → 118": where it lands, 118; a landing
+ *    on the wrong side of the start for the direction is unclear, so null;
+ *  - "70-100 mg/dL": the band's far edge for the direction (down: 100); a
+ *    "band" whose ends run downhill ("131 - 118") is unclear, so null;
+ *  - "down about 13 mg/dL", "-13", "lower by 13": `latest` moved by 13 in
+ *    the target's direction, null without a latest value or for a relative
+ *    percent ("down 10 %"), which is no number in the marker's unit;
+ *  - one number and nothing else: that number;
+ *  - anything else: null, and no goal is written.
+ *
+ * Pure.
+ */
+export function goalTarget(
+  expect: string,
+  direction: "up" | "down",
+  latest: number | null | undefined,
+): number | null {
+  const text = expect
+    .replace(/(\d)[,\s](?=\d{3}\b)/g, "$1")
+    .replace(NOT_A_TARGET, " ");
+
+  const move = TRANSITION.exec(text);
+  if (move) {
+    const [from, to] = [Number(move[1]), Number(move[2])];
+    if (direction === "down" ? to > from : to < from) return null;
+    return to;
+  }
+
+  const band = RANGE.exec(text);
+  if (band) {
+    const [a, b] = [Number(band[1]), Number(band[2])];
+    return a < b ? (direction === "down" ? b : a) : null;
+  }
+
+  const relative = (n: number, sign: 1 | -1 | null): number | null => {
+    if (latest == null || !Number.isFinite(n) || n === 0) return null;
+    const way = direction === "down" ? -1 : 1;
+    if (sign != null && sign !== way) return null;
+    return round2(latest + way * n);
+  };
+  const signed = SIGNED.exec(text);
+  if (signed) {
+    if (/^\s*%/.test(text.slice(signed.index + signed[0].length))) return null;
+    return relative(Number(signed[2]), signed[1] === "+" ? 1 : -1);
+  }
+  const worded = WORDED.exec(text);
+  if (worded) return worded[2] ? null : relative(Number(worded[1]), null);
+
+  const numbers = [...text.matchAll(/(?<![a-z\d.])\d+(?:\.\d+)?/gi)];
+  return numbers.length === 1 ? Number(numbers[0]![0]) : null;
+}
 
 const DATE = /^\d{4}-\d{2}-\d{2}$/;
+
+/** The newest value of each marker, for a target that is a change ("-13"). */
+async function latestValues(
+  userId: string,
+  codes: string[],
+): Promise<Map<string, number>> {
+  if (!codes.length) return new Map();
+  const rows = await getDb()
+    .select({ code: readings.metricCode, value: readings.value })
+    .from(readings)
+    .where(
+      and(
+        eq(readings.userId, userId),
+        inArray(readings.metricCode, codes),
+        isNotNull(readings.value),
+      ),
+    )
+    .orderBy(desc(readings.observedAt));
+  const out = new Map<string, number>();
+  for (const r of rows)
+    if (r.value != null && !out.has(r.code)) out.set(r.code, r.value);
+  return out;
+}
 
 /**
  * The id of the protocol item this action already is, when it is one.
@@ -178,9 +278,10 @@ export async function adopt(
         userId,
         text,
         why: why.slice(0, 500),
-        metricCodes: code ? [code] : [],
+        metricCodes: code ? [code] : await markersFor(text),
         cadence: "daily",
         ...scheduleColumns(text, startedAt),
+        startedAt: startedAt ?? localDay(),
       })
       .returning({ id: protocolItems.id });
     await queueResearch(row.conditionId).catch(() => false);
@@ -218,16 +319,23 @@ export async function adopt(
     return { ok: true, id: already, already: true };
   }
 
+  /**
+   * Batch 5A. Every item carries the day it started, so "since you started"
+   * has a date to count from (8 of 8 of the owner's items had none). An
+   * action with no targets borrows the markers its intervention moves.
+   */
+  const started = startedAt ?? localDay();
+  const targeted = action.targets.map((t) => t.code);
   const [item] = await db
     .insert(protocolItems)
     .values({
       userId,
       text,
       why: action.why.slice(0, 500),
-      metricCodes: action.targets.map((t) => t.code),
+      metricCodes: targeted.length ? targeted : await markersFor(text),
       cadence: /week/i.test(action.dose?.schedule ?? "") ? "weekly" : "daily",
       ...scheduleColumns(text, startedAt),
-      ...(startedAt ? { startedAt } : {}),
+      startedAt: started,
     })
     .returning({ id: protocolItems.id });
 
@@ -259,29 +367,36 @@ export async function adopt(
       )
     : new Set<string>();
 
+  /**
+   * Batch 5A. A goal aims where the target says it lands ("131 to about 118"
+   * is 118, not 131), is due when the target says to measure, and is made
+   * now, so only a reading stored after today can close it (`goalState`).
+   */
+  const latest = await latestValues(userId, codes);
   for (const t of action.targets) {
     if (!known.has(t.code)) continue;
-    const target = firstNumber(t.expect);
+    const target = goalTarget(t.expect, t.direction, latest.get(t.code));
     if (target == null) continue;
     const band =
       t.direction === "down"
         ? { targetLow: null, targetHigh: target }
         : { targetLow: target, targetHigh: null };
+    const due =
+      t.measureAfterWeeks > 0
+        ? shiftDay(started, Math.round(t.measureAfterWeeks * 7))
+        : null;
+    const set = {
+      ...band,
+      due,
+      note: `${action.title}: ${t.expect}`,
+      achievedAt: null,
+    };
     await db
       .insert(goals)
-      .values({
-        userId,
-        metricCode: t.code,
-        ...band,
-        note: `${action.title}: ${t.expect}`,
-      })
+      .values({ userId, metricCode: t.code, ...set })
       .onConflictDoUpdate({
         target: [goals.userId, goals.metricCode],
-        set: {
-          ...band,
-          note: `${action.title}: ${t.expect}`,
-          achievedAt: null,
-        },
+        set: { ...set, createdAt: sql`now()` },
       });
   }
 

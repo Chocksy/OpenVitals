@@ -47,6 +47,8 @@ export interface PlanItem {
   withWhat: string | null;
   endsAt: string | null;
   adherence30: number;
+  /** false when the item has no row at all in 30 days: "not logged" */
+  logged30?: boolean;
   strip30: number[];
 }
 
@@ -100,7 +102,9 @@ export function tagOf(it: PlanItem | null, goal: GoalRef | undefined): string {
   if (it.daysOfWeek == null && !hasDose(it)) return "every day";
   const ticked = it.strip30.some((v) => v === 1);
   if (!ticked && goal) return `goal · ${goal.metricName}`;
-  return `protocol · ${it.adherence30} %`;
+  return it.logged30 === false
+    ? "protocol · not logged"
+    : `protocol · ${it.adherence30} %`;
 }
 
 const isSlot = (s: string | null): s is Slot =>

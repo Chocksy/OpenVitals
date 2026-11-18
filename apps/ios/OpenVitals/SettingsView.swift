@@ -16,6 +16,8 @@ struct SettingsView: View {
     @State private var mustAsk = true
     @State private var confirmResync = false
     @State private var showServer = false
+    /// Batch 5C: the plan reminders switch, stored as "off" so on is the default.
+    @AppStorage(Reminders.offKey) private var remindersOff = false
     #if DEBUG
     @State private var showGallery = false
     #endif
@@ -49,6 +51,7 @@ struct SettingsView: View {
             health
             types
             if !model.seenNotUsed.isEmpty { seenNotUsed }
+            reminders
             server
             account
             #if DEBUG
@@ -240,6 +243,31 @@ struct SettingsView: View {
                      + "no rule for them. They are named here rather than silently "
                      + "dropped, and nothing about them is sent.")
                     .padding(.top, DesignTokens.s8)
+            }
+        }
+    }
+
+    /// Plan reminders on or off. Off clears every pending one at once; on
+    /// builds them again from the last plan, asking iOS first if it never has.
+    private var reminders: some View {
+        SettingsShelf("Reminders", remindersOff ? "off" : "on") {
+            VStack(alignment: .leading, spacing: DesignTokens.s8) {
+                Toggle("Plan reminders", isOn: Binding(
+                    get: { !remindersOff },
+                    set: { on in
+                        remindersOff = !on
+                        guard live else { return }
+                        Task { @MainActor in
+                            if on, await Reminders.shouldAskNow() { await Reminders.allow() }
+                            else { await Reminders.rebuild() }
+                        }
+                    }))
+                    .hType(15, .medium, Hy.ink)
+                    .tint(Hy.plum3)
+                    .frame(minHeight: 44)
+                FinePrint("One a day at each time your plan has items: morning 08:00, "
+                     + "midday 12:30, dinner 19:00, evening 21:30. Retests a week "
+                     + "before and on the day. The check-in reminder is separate.")
             }
         }
     }

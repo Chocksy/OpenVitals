@@ -909,7 +909,11 @@ export async function runTopic(
  */
 export async function runTopicsForUser(
   userId: string,
-  options: TopicRunOptions & { max?: number } = {},
+  options: TopicRunOptions & {
+    max?: number;
+    /** batch 5B: the curator keeps a short line per failure on its run row */
+    onError?: (short: string) => void;
+  } = {},
 ): Promise<TopicResult[]> {
   const now = options.now ?? new Date();
   const rows = await listTopics(userId);
@@ -920,6 +924,9 @@ export async function runTopicsForUser(
       out.push(await runTopic(userId, row, options));
     } catch (e) {
       console.error(`[topic] ${row.topic} failed:`, e);
+      options.onError?.(
+        `topic ${row.topic}: ${(e instanceof Error ? e.message : String(e)).slice(0, 80)}`,
+      );
     }
   }
   return out;

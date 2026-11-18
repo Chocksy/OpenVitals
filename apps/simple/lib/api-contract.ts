@@ -73,8 +73,10 @@ import {
   goalsSentence,
   railCards,
   systemTiles,
+  whatChanged,
   type RailTone,
 } from "@/lib/home-data";
+import type { ChangeLine } from "@/lib/changes";
 import { actionsForAll } from "@/lib/actions";
 import { buildLedger } from "@/lib/ledger";
 import { explainKey } from "@/lib/explain";
@@ -152,6 +154,13 @@ export interface TodayGoal {
 export interface TodayBody {
   sentence: { head: string; tail: string; tone: RailTone };
   goals: TodayGoal[];
+  /**
+   * Batch 5B: the "What changed" card. Each active item's markers against
+   * the day it started, read on the newest draw while that draw is under 30
+   * days old, better ones first, then goals reached in the last 30 days.
+   * Additive: a client that does not know the field ignores it.
+   */
+  changes: ChangeLine[];
   status: {
     off: number;
     borderline: number;
@@ -549,14 +558,16 @@ export async function todayBody(
     genes: genesLayer(genome.file ? genome.verdicts : null),
   });
 
-  const [glance, pending] = await Promise.all([
+  const [glance, pending, changed] = await Promise.all([
     todayHunches(userId, rows, goals, day),
     pendingOf(userId),
+    whatChanged(userId, day),
   ]);
 
   return {
     sentence,
     goals,
+    changes: changed.lines,
     ...glance,
     pending,
     status: {
@@ -939,7 +950,8 @@ async function planTodayBodyUncached(
       tag,
       done: doneIds.has(o.itemId),
       // `adherence30` is a whole percent; the contract carries a fraction.
-      adherence: item.adherence30 / 100,
+      // No tick at all in the window is "not logged", which is null, not 0.
+      adherence: item.logged30 ? item.adherence30 / 100 : null,
     };
   });
 

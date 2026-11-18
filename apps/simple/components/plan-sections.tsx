@@ -45,6 +45,8 @@ export interface ProtocolRow {
   startedAt: string | null;
   metricCodes: string[];
   adherence30: number;
+  /** false when the item has no row at all in 30 days: "not logged" */
+  logged30?: boolean;
   strip30: number[];
 }
 
@@ -82,9 +84,13 @@ export function ProtocolItemRow({
         {item.why && <div className="psub">{item.why}</div>}
       </div>
       <div>
-        <span className="pct">{item.adherence30} %</span>
+        <span className="pct">
+          {item.logged30 === false ? "not logged" : `${item.adherence30} %`}
+        </span>
         <div className="t-meta text-right text-[length:var(--type-xs)]">
-          {done === 0
+          {item.logged30 === false
+            ? "no ticks in 30 days"
+            : done === 0
             ? "never ticked"
             : `${done} of the last 30 days`}
         </div>

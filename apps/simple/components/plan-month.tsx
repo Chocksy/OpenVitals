@@ -347,7 +347,9 @@ export function ThisWeek({
                         : "no marker named yet")}
                   </div>
                 </div>
-                <span className="pct">{it.adherence30} %</span>
+                <span className="pct">
+                  {it.logged30 === false ? "not logged" : `${it.adherence30} %`}
+                </span>
                 <div className="strip30" aria-hidden="true">
                   {it.strip30.map((v, i) => (
                     <s
@@ -451,7 +453,10 @@ export function Supplements({
                   <td>
                     {aim ?? (
                       <StateWord tone="none">
-                        nothing measured · {it.adherence30} %
+                        nothing measured ·{" "}
+                        {it.logged30 === false
+                          ? "not logged"
+                          : `${it.adherence30} %`}
                       </StateWord>
                     )}
                   </td>

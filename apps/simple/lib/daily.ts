@@ -77,9 +77,9 @@ const JUST_DID_DAYS = 7;
 /**
  * Where a goal stands after the readings it can see.
  *
- * "achieved": a target goal whose latest value is inside the band, or a
- * date-only goal (a planned draw) that was drawn. "drawn": a target goal
- * that was drawn but missed, so its date is spent and the target stays.
+ * "achieved": a target goal whose newest fresh value is inside the band, or
+ * a date-only goal (a planned draw) that was drawn. "drawn": a dated target
+ * goal that was drawn but missed, so its date is spent and the target stays.
  *
  * A draw counts only when it was stored after the goal was made, so the
  * reading that prompted a retest never closes it. Its collection day may sit
@@ -120,19 +120,16 @@ export function goalState(
       .filter((r) => r.value != null)
       .sort((a, b) => a.observedAt.localeCompare(b.observedAt))
       .pop();
-  // An undated target goal reads the whole history.
-  if (goal.due == null)
-    return inGoal(newest(rows)?.value, goal.targetLow, goal.targetHigh)
-      ? "achieved"
-      : "open";
-  // A dated one is a retest: only a number stored after the plan answers it.
+  // Dated or not, only a number stored after the goal answers it. Batch 5A:
+  // an undated target used to read the whole history, so a goal whose band
+  // held the reading that prompted it closed the next night on that reading.
   const answer = newest(fresh);
   // An older sheet uploaded late does not outrank a newer number on file.
   if (!answer || answer.observedAt < (newest(rows)?.observedAt ?? ""))
     return "open";
-  return inGoal(answer.value, goal.targetLow, goal.targetHigh)
-    ? "achieved"
-    : "drawn";
+  if (inGoal(answer.value, goal.targetLow, goal.targetHigh)) return "achieved";
+  // A dated miss spends its date; an undated one has none to spend.
+  return goal.due == null ? "open" : "drawn";
 }
 
 /** Distance to the nearest edge of the goal band. 0 once inside. */

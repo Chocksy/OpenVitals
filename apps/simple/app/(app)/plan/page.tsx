@@ -51,6 +51,8 @@ import {
   WATCH_DAYS,
 } from "@/lib/research-watch";
 import { topicsBody } from "@/lib/api-contract";
+import { researchLine } from "@/lib/changes";
+import { researchWeekFor } from "@/lib/home-data";
 import { TOPIC_DAYS } from "@/lib/topic-watch";
 import { getMetricNames } from "@/lib/data";
 import { catalogFor } from "@/lib/hkb";
@@ -354,9 +356,10 @@ export default async function PlanPage({
   /** Phase 35 section C: the topics list, under "New for you". */
   const { topics } = await topicsBody(userId);
   /** What each paper row needs beyond itself: a name, and the action it backs. */
-  const [paperNamed, paperBacked] = await Promise.all([
+  const [paperNamed, paperBacked, week] = await Promise.all([
     paperNames(userId, papers),
     paperActions(papers),
+    researchWeekFor(userId),
   ]);
   const lastRun =
     papers
@@ -481,6 +484,7 @@ export default async function PlanPage({
         topicDays={TOPIC_DAYS}
         names={paperNamed}
         actions={paperBacked}
+        weekLine={researchLine(week)}
       />
     ),
 

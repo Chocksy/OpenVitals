@@ -569,3 +569,59 @@ describe("rule ids never reach a title", () => {
   });
 });
 
+
+describe("adherence is ticks, not doses (batch 5B)", () => {
+  const tracker: TrackerSummary = {
+    from: "2026-10-19",
+    to: "2026-11-17",
+    items: [
+      {
+        text: "Psyllium husk 5 g with lunch and dinner",
+        cadence: "daily",
+        done: 0,
+        adherence: null,
+        logged: false,
+        metricCodes: ["ldl_cholesterol"],
+      },
+      {
+        text: "Berberine 500 mg",
+        cadence: "daily",
+        done: 6,
+        adherence: 20,
+        logged: true,
+      },
+    ],
+    averages: {},
+    loggedDays: 0,
+    adherencePct: 20,
+    notLogged: 1,
+  };
+  const { context } = buildContextFromInput(
+    {
+      today: "2026-11-18",
+      profile: {},
+      sex: "male",
+      age: 40,
+      latest: {},
+      derived: {},
+    },
+    { tracker },
+  );
+
+  it("says not logged, never 0 %, for an item with no ticks", () => {
+    expect(context).toContain(
+      '"Psyllium husk 5 g with lunch and dinner" (daily): not logged',
+    );
+    expect(context).not.toMatch(/Psyllium[^\n]*0% adherence/);
+    expect(context).toContain("ticked 6x, 20% of days ticked");
+    expect(context).toContain("| 1 not logged");
+  });
+
+  it("forbids stopping an item on missing ticks alone", async () => {
+    const { SYSTEM_PROMPT } = await import("./report");
+    expect(SYSTEM_PROMPT).toContain("ADHERENCE IS TICKS, NOT DOSES");
+    expect(SYSTEM_PROMPT).toContain(
+      "never advise stopping, pausing or dropping an item from missing or sparse ticks alone",
+    );
+  });
+});

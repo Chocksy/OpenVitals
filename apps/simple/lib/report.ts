@@ -177,6 +177,8 @@ FIRED RULES: every rule in the FIRED RULES section becomes its own "test" action
 
 DISMISSED: never propose anything in the DISMISSED ACTIONS list again.
 
+ADHERENCE IS TICKS, NOT DOSES. The PROTOCOL AND ADHERENCE section counts the days this person tapped a tick. People take things without tapping. An item marked "not logged" is unknown, not 0%, and a low tick count is a low tick count. Never write that the plan "is not getting done", never call adherence low, and never advise stopping, pausing or dropping an item from missing or sparse ticks alone. Judge an item by its marker: if the marker it names moved the right way since it started, say so and keep it. When ticks are sparse, say "not logged" and ask once whether they are taking it.
+
 FAILED TREATMENTS: a "no_response:<marker>" fact means that treatment, on that route, was taken long enough and did not move the marker. Never propose it again on that route; say what the next step is instead.
 
 FACTS ARE NOT ACTIONS: missing interview facts are asked as questions by the app, never as actions; do not write actions like "report your height".
@@ -652,7 +654,9 @@ export function buildContextFromInput(
       ? tracker.items
           .map(
             (i) =>
-              `- "${i.text}" (${i.cadence}): done ${i.done}x, ${i.adherence}% adherence`,
+              i.adherence == null
+                ? `- "${i.text}" (${i.cadence}): not logged (no ticks in the window; unknown, not 0%)`
+                : `- "${i.text}" (${i.cadence}): ticked ${i.done}x, ${i.adherence}% of days ticked`,
           )
           .join("\n")
       : "- nothing adopted yet");
@@ -700,7 +704,7 @@ ${graphLines(graph)}
 
 PROTOCOL AND ADHERENCE, LAST 30 DAYS (${tracker.from} to ${tracker.to}):
 ${protocol}
-days logged: ${tracker.loggedDays} | averages: ${averages || "nothing logged"} | overall adherence ${tracker.adherencePct}%
+days logged: ${tracker.loggedDays} | averages: ${averages || "nothing logged"} | overall adherence ${tracker.adherencePct == null ? "not logged" : `${tracker.adherencePct}% of days ticked, over logged items only`}${tracker.notLogged ? ` | ${tracker.notLogged} not logged` : ""}
 
 QUESTIONS ALREADY WAITING FOR AN ANSWER: ${open.map((q) => q.key).join(", ") || "none"}
 

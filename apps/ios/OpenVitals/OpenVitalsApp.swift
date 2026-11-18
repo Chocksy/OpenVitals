@@ -1,4 +1,5 @@
 import SwiftUI
+import UserNotifications
 
 /// HealthKit relaunches the app in the background to deliver new samples, and
 /// only observers registered at launch hear it. So they start here, not when
@@ -8,6 +9,8 @@ final class AppDelegate: NSObject, UIApplicationDelegate {
                      didFinishLaunchingWithOptions
                      launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil) -> Bool {
         Task { @MainActor in await HealthSyncModel.shared.launch() }
+        // A tap on a plan reminder picks the tab; set before that tap lands.
+        UNUserNotificationCenter.current().delegate = ReminderTaps.shared
         return true
     }
 }

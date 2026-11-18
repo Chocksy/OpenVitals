@@ -46,10 +46,12 @@ function useSave() {
 }
 
 /** "daily · 24 of the last 30 days", or what the cadence actually says. */
-const cadenceLine = (h: HabitView) =>
-  h.cadence === "weekly"
-    ? `weekly · ${h.weekCount} of the last 7 days`
-    : `daily · ${h.adherence30}% of the last 30 days`;
+const cadenceLine = (h: HabitView & { logged30?: boolean }) =>
+  h.logged30 === false
+    ? `${h.cadence} · not logged`
+    : h.cadence === "weekly"
+      ? `weekly · ${h.weekCount} of the last 7 days`
+      : `daily · ${h.adherence30}% of the last 30 days`;
 
 export function HabitChecklist({
   day,

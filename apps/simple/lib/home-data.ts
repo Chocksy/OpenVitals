@@ -6,13 +6,18 @@
  * `lib/ledger.ts` with the phase-12 rewrite, so this file is one function now.
  */
 import { cache } from "react";
-import { and, desc, eq, gte, inArray, isNotNull } from "drizzle-orm";
+import { and, desc, eq, gte, inArray, isNotNull, sql } from "drizzle-orm";
 import {
   checkinPosts,
   documentItems,
   genomeVariants,
   getDb,
+  goals as goalsTable,
+  habitLogs,
+  hkbImportRuns,
+  hkbRevisions,
   lifeEvents,
+  paperWatch,
   profileFacts,
   profileFactHistory,
   protocolItems,
@@ -21,7 +26,19 @@ import {
   type CheckinPost,
 } from "@/db";
 import { askSurfaces, type Ask, type AskPlan } from "./asking";
+import {
+  changeText,
+  reachedText,
+  researchWeek,
+  shortTitle,
+  sinceStarted,
+  type ChangeLine,
+  type ResearchWeek,
+  type UntrackedItem,
+  type WhatChanged,
+} from "./changes";
 import { notesReadUnseen } from "./compose";
+import { getMetricRows } from "./data";
 import { buildModelInput } from "./coverage";
 import {
   documentFinding,
@@ -855,4 +872,214 @@ export function systemTiles(systems: Ledger["systems"]): SystemTile[] {
         href: w ? `/blood/m/${w.code}` : "/graph",
       };
     });
+}
+
+/* ── batch 5B: what changed, and what research did ────────────────────── */
+
+const CHANGE_DAYS = 30;
+const dayMs = 86_400_000;
+const isoDay = (d: Date) => d.toISOString().slice(0, 10);
+
+/**
+ * The "What changed" card: each active item's markers against the day it
+ * started, read on the newest draw, plus goals the curator closed in the last
+ * 30 days. On Home the card stands while the newest draw (or the newest lab
+ * upload) is under 30 days old; with `uploadId` it is that file's draw only,
+ * and the goals it closed.
+ */
+export async function whatChanged(
+  userId: string,
+  day: string,
+  opts: { uploadId?: string } = {},
+): Promise<WhatChanged> {
+  const db = getDb();
+  const [items, rows, goals] = await Promise.all([
+    db
+      .select()
+      .from(protocolItems)
+      .where(
+        and(eq(protocolItems.userId, userId), eq(protocolItems.active, true)),
+      ),
+    getMetricRows(userId),
+    db.select().from(goalsTable).where(eq(goalsTable.userId, userId)),
+  ]);
+
+  const byCode = new Map(rows.map((m) => [m.code, m]));
+  const lab = rows.flatMap((m) =>
+    m.rows
+      .filter((r) => r.source == null && r.value != null)
+      .map((r) => ({
+        code: m.code,
+        value: r.value!,
+        date: r.observedAt.slice(0, 10),
+        optimalLow: m.optimalLow,
+        optimalHigh: m.optimalHigh,
+      })),
+  );
+
+  let drawDay: string | null = null;
+  let codes: Set<string> | null = null;
+  let since: Date;
+  if (opts.uploadId) {
+    const [mine, [up]] = await Promise.all([
+      db
+        .select({ code: readings.metricCode, at: readings.observedAt })
+        .from(readings)
+        .where(
+          and(
+            eq(readings.userId, userId),
+            eq(readings.uploadId, opts.uploadId),
+          ),
+        ),
+      db
+        .select({ createdAt: uploads.createdAt })
+        .from(uploads)
+        .where(and(eq(uploads.id, opts.uploadId), eq(uploads.userId, userId))),
+    ]);
+    if (!mine.length) return { lines: [], untracked: [] };
+    codes = new Set(mine.map((r) => r.code));
+    drawDay = mine.map((r) => String(r.at).slice(0, 10)).sort().pop()!;
+    since = new Date((up?.createdAt ?? new Date()).getTime() - dayMs);
+  } else {
+    drawDay = lab.reduce<string | null>(
+      (max, r) => (!max || r.date > max ? r.date : max),
+      null,
+    );
+    const [newest] = await db
+      .select({ createdAt: uploads.createdAt })
+      .from(uploads)
+      .where(and(eq(uploads.userId, userId), eq(uploads.kind, "lab")))
+      .orderBy(desc(uploads.createdAt))
+      .limit(1);
+    const anchor = [drawDay, newest?.createdAt ? isoDay(newest.createdAt) : null]
+      .filter((d): d is string => !!d)
+      .sort()
+      .pop();
+    const fresh =
+      anchor != null &&
+      Date.parse(day) - Date.parse(anchor) <= CHANGE_DAYS * dayMs;
+    if (!fresh) drawDay = null;
+    since = new Date(Date.parse(day) - CHANGE_DAYS * dayMs);
+  }
+
+  const nameOf = (code: string) =>
+    byCode.get(code)?.name ?? code.replace(/_/g, " ");
+  const unitOf = (code: string) =>
+    byCode.get(code)?.latest.unit ?? byCode.get(code)?.unit ?? null;
+
+  const changes = drawDay
+    ? sinceStarted(
+        items.map((i) => ({ ...i, metricCodes: i.metricCodes ?? [] })),
+        lab,
+      ).filter(
+        (c) => c.after.date === drawDay && (!codes || codes.has(c.code)),
+      )
+    : [];
+
+  // An item with no row at all since it started is "not logged", not 0 %.
+  const itemIds = [...new Set(changes.map((c) => c.item.id))];
+  const ticks = itemIds.length
+    ? await db
+        .select({ itemId: habitLogs.itemId, day: habitLogs.day })
+        .from(habitLogs)
+        .where(
+          and(
+            eq(habitLogs.userId, userId),
+            inArray(habitLogs.itemId, itemIds),
+          ),
+        )
+    : [];
+  const loggedIds = new Set(
+    changes
+      .filter((c) =>
+        ticks.some((t) => t.itemId === c.item.id && t.day >= c.item.start),
+      )
+      .map((c) => c.item.id),
+  );
+
+  const lines: ChangeLine[] = changes.map((c) => ({
+    kind: "since",
+    code: c.code,
+    name: nameOf(c.code),
+    unit: unitOf(c.code),
+    text: changeText(c, nameOf(c.code)),
+    better: c.better,
+    itemId: c.item.id,
+    logged: loggedIds.has(c.item.id),
+    before: c.before,
+    after: c.after,
+    delta: c.delta,
+    pct: c.pct,
+  }));
+
+  for (const g of goals) {
+    if (!g.achievedAt || g.achievedAt < since) continue;
+    if (codes && !codes.has(g.metricCode)) continue;
+    if (g.targetLow == null && g.targetHigh == null) continue;
+    lines.push({
+      kind: "reached",
+      code: g.metricCode,
+      name: nameOf(g.metricCode),
+      unit: unitOf(g.metricCode),
+      text: reachedText(nameOf(g.metricCode), g.targetLow, g.targetHigh),
+      better: true,
+      itemId: null,
+      logged: null,
+      before: null,
+      after: null,
+      delta: null,
+      pct: null,
+    });
+  }
+
+  const untracked: UntrackedItem[] = [];
+  for (const c of changes) {
+    if (loggedIds.has(c.item.id)) continue;
+    if (untracked.some((u) => u.itemId === c.item.id)) continue;
+    untracked.push({
+      itemId: c.item.id,
+      title: shortTitle(c.item.text),
+      start: c.item.start,
+      until: c.after.date,
+    });
+  }
+
+  return { lines, untracked };
+}
+
+/**
+ * What research did this week: case reads (global, the knowledge base is
+ * shared), this person's watched papers, and every non-seed revision.
+ */
+export async function researchWeekFor(
+  userId: string,
+  now: Date = new Date(),
+): Promise<ResearchWeek> {
+  const db = getDb();
+  const from = new Date(now.getTime() - 7 * dayMs);
+  const [caseReads, papers, revisions] = await Promise.all([
+    db
+      .select({ ranAt: hkbImportRuns.ranAt, rows: hkbImportRuns.rows })
+      .from(hkbImportRuns)
+      .where(
+        and(
+          eq(hkbImportRuns.script, "case-read"),
+          gte(hkbImportRuns.ranAt, from),
+        ),
+      ),
+    db
+      .select({ foundAt: paperWatch.foundAt, moves: paperWatch.moves })
+      .from(paperWatch)
+      .where(and(eq(paperWatch.userId, userId), gte(paperWatch.foundAt, from))),
+    db
+      .select({
+        changedAt: hkbRevisions.changedAt,
+        summary: hkbRevisions.summary,
+      })
+      .from(hkbRevisions)
+      .where(sql`${hkbRevisions.summary} not ilike 'seed%'`)
+      .orderBy(desc(hkbRevisions.changedAt))
+      .limit(200),
+  ]);
+  return researchWeek({ caseReads, papers, revisions }, now);
 }

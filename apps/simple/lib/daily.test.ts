@@ -262,6 +262,21 @@ describe("goalState", () => {
     const g = { ...draw, targetHigh: 100, due: "2027-02-09" };
     const old = [{ value: 95, observedAt: "2026-06-01", createdAt: new Date("2026-06-02T00:00:00Z") }];
     expect(goalState(old, g)).toBe("open");
-    expect(goalState(old, { ...g, due: null })).toBe("achieved");
+    // Batch 5A: undated, the same old value no longer closes it either.
+    expect(goalState(old, { ...g, due: null })).toBe("open");
+  });
+  it("never closes an undated goal on the reading that prompted it (psyllium, 2026-10-05)", () => {
+    // The owner's goal: adopted 2026-10-05 with target_high 131 and no date.
+    // The night after, 131 <= 131 on the April draw closed it.
+    const adopted = new Date("2026-10-05T12:00:00Z");
+    const april = { value: 131, observedAt: "2026-04-23", createdAt: new Date("2026-04-24T08:00:00Z") };
+    const g = { targetLow: null, targetHigh: 131, due: null, createdAt: adopted };
+    expect(goalState([april], g)).toBe("open");
+    // The November draw is news, and 104 is inside the band.
+    const november = { value: 104, observedAt: "2026-11-17", createdAt: new Date("2026-11-17T18:00:00Z") };
+    expect(goalState([april, november], g)).toBe("achieved");
+    expect(goalState([april, november], { ...g, targetHigh: 118 })).toBe("achieved");
+    // A fresh miss keeps an undated goal open, with no date to spend.
+    expect(goalState([april, { ...november, value: 125 }], { ...g, targetHigh: 118 })).toBe("open");
   });
 });

@@ -172,6 +172,7 @@ export function ResearchSection({
   topicDays = 30,
   names: paperNames,
   actions,
+  weekLine,
 }: PaperLookups & {
   rows: PaperWatch[];
   conditions: WatchCondition[];
@@ -181,12 +182,15 @@ export function ResearchSection({
   /** phase 35: the topics this person watches, and the box that adds one */
   topics?: TopicRow[];
   topicDays?: number;
+  /** batch 5B: "This week research read N papers, kept M findings, ..." */
+  weekLine?: string;
 }) {
   const moving = rows.filter((r) => r.moves != null).length;
   const names = conditions.map((c) => c.name);
 
   return (
     <section id="research" className="space-y-6 scroll-mt-24">
+      {weekLine && <p className="legend">{weekLine}</p>}
       <div className="panel">
         <div className="panel-head">
           <h3>New for you</h3>
