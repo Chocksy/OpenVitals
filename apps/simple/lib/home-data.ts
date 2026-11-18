@@ -6,7 +6,7 @@
  * `lib/ledger.ts` with the phase-12 rewrite, so this file is one function now.
  */
 import { cache } from "react";
-import { and, desc, eq, gte, inArray, isNotNull, sql } from "drizzle-orm";
+import { and, desc, eq, gt, gte, inArray, isNotNull, sql } from "drizzle-orm";
 import {
   checkinPosts,
   documentItems,
@@ -28,6 +28,7 @@ import {
 import { askSurfaces, type Ask, type AskPlan } from "./asking";
 import {
   changeText,
+  reachedHere,
   reachedText,
   researchWeek,
   shortTitle,
@@ -920,6 +921,7 @@ export async function whatChanged(
   let drawDay: string | null = null;
   let codes: Set<string> | null = null;
   let since: Date;
+  let until: Date | null = null;
   if (opts.uploadId) {
     const [mine, [up]] = await Promise.all([
       db
@@ -940,6 +942,22 @@ export async function whatChanged(
     codes = new Set(mine.map((r) => r.code));
     drawDay = mine.map((r) => String(r.at).slice(0, 10)).sort().pop()!;
     since = new Date((up?.createdAt ?? new Date()).getTime() - dayMs);
+    // A goal a later draw reached belongs to that draw's page, not this one.
+    if (up?.createdAt) {
+      const [next] = await db
+        .select({ createdAt: uploads.createdAt })
+        .from(uploads)
+        .where(
+          and(
+            eq(uploads.userId, userId),
+            eq(uploads.kind, "lab"),
+            gt(uploads.createdAt, up.createdAt),
+          ),
+        )
+        .orderBy(uploads.createdAt)
+        .limit(1);
+      until = next?.createdAt ?? null;
+    }
   } else {
     drawDay = lab.reduce<string | null>(
       (max, r) => (!max || r.date > max ? r.date : max),
@@ -1015,7 +1033,7 @@ export async function whatChanged(
   }));
 
   for (const g of goals) {
-    if (!g.achievedAt || g.achievedAt < since) continue;
+    if (!reachedHere(g.achievedAt, since, until)) continue;
     if (codes && !codes.has(g.metricCode)) continue;
     if (g.targetLow == null && g.targetHigh == null) continue;
     lines.push({

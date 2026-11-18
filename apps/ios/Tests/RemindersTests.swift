@@ -96,6 +96,18 @@ final class RemindersTests: XCTestCase {
         XCTAssertTrue(s.allSatisfy { $0.id.hasPrefix(Reminders.prefix) })
     }
 
+    func testRetestsBeatWeeklyItemsUnderTheCap() {
+        let rows: [Api.PlanDay.Row] = (0..<12).map { i in
+            var r = row("W\(i)", time: String(format: "%02d:00", i + 6))
+            r.daysOfWeek = [1, 2, 3, 4, 5, 6]
+            return r
+        }
+        let s = Reminders.schedule(rows: rows, goals: [goal("ldl", "LDL", due: "2026-12-20")],
+                                   now: date(2026, 11, 18), calendar: calendar)
+        XCTAssertEqual(s.count, Reminders.cap)
+        XCTAssertEqual(Array(s.prefix(2).map(\.id)), ["plan.retest.ldl.week", "plan.retest.ldl.due"])
+    }
+
     func testAskWaitsFourteenDaysAfterNotNow() {
         let now = Date()
         XCTAssertTrue(Reminders.shouldAsk(now: now, status: .notDetermined, off: false, notNow: nil))

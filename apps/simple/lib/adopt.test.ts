@@ -86,6 +86,8 @@ describe("goalTarget never reads a size of change as the target", () => {
     ["Raise above 30 ng/mL", "up", 22, 30],
     ["Increase over 40 ng/mL", "up", 22, 40],
     ["Lower to ≤100 by 10 Feb", "down", 131, 100],
+    ["LDL below 100 by Feb 10", "down", 131, 100],
+    ["lower to 100 by 1 Mar 2027", "down", 131, 100],
     ["lower by about 13 mg/dL", "down", 131, 118],
     ["A 7-day average under 100", "down", 110, 100],
     ["2-hour OGTT under 140", "down", 160, 140],

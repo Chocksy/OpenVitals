@@ -47,7 +47,7 @@ const WORDED = new RegExp(
 );
 /** A number that is a time or a date, never a target: "in 12 weeks", "2026-12-01". */
 const NOT_A_TARGET =
-  /\b\d{4}-\d{2}-\d{2}\b|\b\d+(?:\.\d+)?\s*-?\s*(?:weeks?|wks?|months?|days?|years?|yrs?|h|hours?)\b|\b25\s*-?\s*oh\b|\bby\s+\d{1,2}\s+(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\b/gi;
+  /\b\d{4}-\d{2}-\d{2}\b|\b\d+(?:\.\d+)?\s*-?\s*(?:weeks?|wks?|months?|days?|years?|yrs?|h|hours?)\b|\b25\s*-?\s*oh\b|\bby\s+(?:\d{1,2}\s+(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*|(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\s+\d{1,2}(?:st|nd|rd|th)?)\b(?:,?\s+\d{4}\b)?/gi;
 /**
  * A size of change: never an absolute target on its own. A bare "%" is a
  * unit ("<5.4%" HbA1c); only a percent next to a change word is a change.

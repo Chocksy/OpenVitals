@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   changeText,
   missingDays,
+  reachedHere,
   reachedText,
   researchLine,
   researchWeek,
@@ -194,3 +195,14 @@ describe("sinceStarted: unchanged is not worse", () => {
   });
 });
 
+
+describe("reachedHere", () => {
+  const april = new Date("2026-04-22T10:00:00Z");
+  const nov = new Date("2026-11-17T10:00:00Z");
+  const closed = new Date("2026-11-18T05:00:00Z");
+  it("keeps a goal the November draw reached off the April page", () => {
+    expect(reachedHere(closed, april, nov)).toBe(false);
+    expect(reachedHere(closed, new Date("2026-11-16T10:00:00Z"), null)).toBe(true);
+    expect(reachedHere(null, april, null)).toBe(false);
+  });
+});

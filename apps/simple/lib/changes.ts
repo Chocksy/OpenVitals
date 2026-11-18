@@ -318,3 +318,16 @@ export interface WhatChanged {
   lines: ChangeLine[];
   untracked: UntrackedItem[];
 }
+
+/**
+ * A reached goal belongs to the page of the draw that reached it: on or after
+ * `since`, and before the next draw (`until`) when the page is an older one.
+ * Pure.
+ */
+export function reachedHere(
+  achievedAt: Date | null,
+  since: Date,
+  until: Date | null,
+): boolean {
+  return !!achievedAt && achievedAt >= since && (!until || achievedAt < until);
+}

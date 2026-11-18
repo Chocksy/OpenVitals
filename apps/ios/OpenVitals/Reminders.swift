@@ -200,7 +200,8 @@ enum Reminders {
     @MainActor
     static func loaded(plan: Api.PlanDay? = nil, goals: [Api.Today.Goal]? = nil,
                        retests: [Api.Today.Retest]? = nil) {
-        guard live else { return }
+        // A fetch that lands after sign-out must not bring the old account back.
+        guard live, Api.signedIn else { return }
         if let plan { rows = plan.rows + (plan.weekly ?? []) }
         if let goals { self.goals = goals }
         if let retests { dated = retests }
@@ -230,6 +231,8 @@ enum Reminders {
             try? await center.add(UNNotificationRequest(identifier: p.id, content: content,
                                                         trigger: trigger))
         }
+        // Signed out while the last add was in flight: take it back.
+        if gen != generation { await clear() }
     }
 
     /// Every pending plan reminder gone; the check-in's stays.
