@@ -346,9 +346,16 @@ export async function seedHkb(catalog: Catalog = CATALOG) {
       .values(e)
       .onConflictDoUpdate({
         target: hkbEvidence.id,
-        set: withoutId(e),
-        // A rule a human overrode on /hkb keeps the human's numbers and status.
-        setWhere: sql`coalesce(${hkbEvidence.reviewNote}, '') not like 'override%'`,
+        set: {
+          ...withoutId(e),
+          // A rule a human overrode on /hkb keeps the four columns /hkb edits;
+          // everything else (the cut, the source) still follows the code. A
+          // retired row that comes back is revived either way.
+          lrPos: sql`case when ${OVERRIDDEN} then ${hkbEvidence.lrPos} else excluded.lr_pos end`,
+          lrNeg: sql`case when ${OVERRIDDEN} then ${hkbEvidence.lrNeg} else excluded.lr_neg end`,
+          grade: sql`case when ${OVERRIDDEN} then ${hkbEvidence.grade} else excluded.grade end`,
+          status: sql`case when ${OVERRIDDEN} and ${hkbEvidence.status} <> 'retired' then ${hkbEvidence.status} else excluded.status end`,
+        },
       });
 
   for (const l of rows.links)
@@ -454,6 +461,8 @@ export async function seedHkb(catalog: Catalog = CATALOG) {
     retired,
   };
 }
+
+const OVERRIDDEN = sql`coalesce(${hkbEvidence.reviewNote}, '') like 'override%'`;
 
 const withoutId = <T extends { id: string }>({ id, ...rest }: T) => rest;
 
