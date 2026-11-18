@@ -133,8 +133,12 @@ enum Reminders {
         var out: [(Date, PlannedReminder)] = []
         // Target goals first (their projection knows the retest), then the
         // date-only ones `goals` leaves out, one per marker.
+        // A spent projection retest gives way to the goal's own due date.
+        let today = calendar.startOfDay(for: now)
         var all: [(code: String, name: String, iso: String)] = goals.compactMap { g in
-            (g.projection?.retestAt ?? g.target.due).map { (g.code, g.name, $0) }
+            [g.projection?.retestAt, g.target.due].compactMap { $0 }
+                .first { localDay($0, calendar).map { $0 >= today } ?? false }
+                .map { (g.code, g.name, $0) }
         }
         for r in dated where !all.contains(where: { $0.code == r.code }) {
             all.append((r.code, r.name, r.due))

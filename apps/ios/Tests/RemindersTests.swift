@@ -137,6 +137,14 @@ final class RemindersTests: XCTestCase {
         XCTAssertEqual(s[1].body, "Lift")
     }
 
+    func testASpentProjectionGivesWayToTheDueDate() {
+        let s = Reminders.retests([goal("ldl", "LDL", due: "2026-12-20", retestAt: "2026-11-10")],
+                                  now: date(2026, 11, 18), calendar: calendar)
+        XCTAssertEqual(s.map(\.id), ["plan.retest.ldl.week", "plan.retest.ldl.due"])
+        XCTAssertEqual(s[1].when.day, 20)
+        XCTAssertEqual(s[1].when.month, 12)
+    }
+
     func testDateOnlyRetestsJoinOncePerMarker() {
         let s = Reminders.retests([goal("ldl", "LDL", due: "2026-12-20")],
                                   dated: [.init(code: "ldl", name: "LDL", due: "2027-01-01"),

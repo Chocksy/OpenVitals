@@ -1070,8 +1070,9 @@ export async function whatChanged(
 }
 
 /**
- * What research did this week: case reads (global, the knowledge base is
- * shared), this person's watched papers, and every non-seed revision.
+ * What research did this week: case reads and case runs (global, the
+ * knowledge base is shared), this person's watched papers, and every
+ * non-seed revision.
  */
 export async function researchWeekFor(
   userId: string,
