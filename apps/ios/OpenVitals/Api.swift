@@ -712,6 +712,14 @@ extension Api {
 
         let sentence: Sentence
         let goals: [Goal]
+        /// Every open goal with a due date, date-only retests included.
+        /// Optional so an older server decodes.
+        struct Retest: Codable, Equatable {
+            let code: String
+            let name: String
+            let due: String
+        }
+        var retests: [Retest]? = nil
         let status: Status
         let body: BodyCard
         let blood: BloodCard
@@ -1320,6 +1328,9 @@ extension Api {
             let tag: String
             let done: Bool
             let adherence: Double?
+            /// ISO weekdays (1 = Monday) the item runs on; nil runs every
+            /// day. Optional so an older server decodes.
+            var daysOfWeek: [Int]? = nil
 
             /// Only ever unique when the server sent an item id. Two protocol
             /// lines can share a title, an hour and no id at all, so a list

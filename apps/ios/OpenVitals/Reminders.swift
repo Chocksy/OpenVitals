@@ -55,7 +55,7 @@ enum Reminders {
     static func groups(_ rows: [Api.PlanDay.Row]) -> [Group] {
         var titles: [String: [String]] = [:]
         var at: [String: (label: String, hour: Int, minute: Int)] = [:]
-        for row in rows where row.itemId != nil {
+        for row in rows where row.itemId != nil && (row.daysOfWeek ?? []).isEmpty {
             if let slot = row.slot.map({ $0 == "lunch" ? "midday" : $0 }),
                let s = slots.first(where: { $0.key == slot }) {
                 titles[s.key, default: []].append(row.title)
@@ -85,6 +85,7 @@ enum Reminders {
     /// Items and goals in, notification requests out: the slots first (they
     /// repeat daily), then the retests soonest first, capped at `cap`.
     static func schedule(rows: [Api.PlanDay.Row], goals: [Api.Today.Goal],
+                         dated: [Api.Today.Retest] = [],
                          now: Date = Date(), calendar: Calendar = .current) -> [PlannedReminder] {
         let daily = groups(rows).map { g in
             PlannedReminder(id: "\(prefix)slot.\(g.key)", title: g.label,
@@ -92,17 +93,51 @@ enum Reminders {
                             when: DateComponents(hour: g.hour, minute: g.minute),
                             repeats: true)
         }
-        return Array((daily + retests(goals, now: now, calendar: calendar)).prefix(cap))
+        return Array((daily + weekly(rows)
+                      + retests(goals, dated: dated, now: now, calendar: calendar)).prefix(cap))
+    }
+
+    /// An item that runs on some weekdays only: one weekly repeat per day it
+    /// runs, at its slot or clock time. Apple counts weekdays from Sunday = 1.
+    static func weekly(_ rows: [Api.PlanDay.Row]) -> [PlannedReminder] {
+        var out: [PlannedReminder] = []
+        for row in rows {
+            guard let item = row.itemId, let days = row.daysOfWeek, !days.isEmpty else { continue }
+            let at: (label: String, hour: Int, minute: Int)?
+            if let slot = row.slot.map({ $0 == "lunch" ? "midday" : $0 }),
+               let s = slots.first(where: { $0.key == slot }) {
+                at = (s.label, s.hour, s.minute)
+            } else if let time = row.time, let hm = clock(time) {
+                at = (time, hm.hour, hm.minute)
+            } else { at = nil }
+            guard let at else { continue }
+            for iso in days where (1...7).contains(iso) {
+                out.append(PlannedReminder(
+                    id: "\(prefix)item.\(item).\(iso)", title: at.label, body: row.title,
+                    when: DateComponents(hour: at.hour, minute: at.minute, weekday: iso % 7 + 1),
+                    repeats: true))
+            }
+        }
+        return out
     }
 
     /// The retest date: the projection's `retestAt`, else the goal's due date.
     /// One at 09:00 on the day, one at 09:00 seven days before; past ones go.
-    static func retests(_ goals: [Api.Today.Goal], now: Date = Date(),
+    static func retests(_ goals: [Api.Today.Goal], dated: [Api.Today.Retest] = [],
+                        now: Date = Date(),
                         calendar: Calendar = .current) -> [PlannedReminder] {
         var out: [(Date, PlannedReminder)] = []
-        for g in goals {
-            guard let iso = g.projection?.retestAt ?? g.target.due,
-                  let day = localDay(iso, calendar) else { continue }
+        // Target goals first (their projection knows the retest), then the
+        // date-only ones `goals` leaves out, one per marker.
+        var all: [(code: String, name: String, iso: String)] = goals.compactMap { g in
+            (g.projection?.retestAt ?? g.target.due).map { (g.code, g.name, $0) }
+        }
+        for r in dated where !all.contains(where: { $0.code == r.code }) {
+            all.append((r.code, r.name, r.due))
+        }
+        for g in all {
+            let iso = g.iso
+            guard let day = localDay(iso, calendar) else { continue }
             let marks: [(Int, String, String)] = [
                 (-7, "week", "\(g.name) retest in a week"),
                 (0, "due", "\(g.name) retest is due"),
@@ -141,14 +176,17 @@ enum Reminders {
     /// (both) rebuild from the same picture.
     @MainActor private static var rows: [Api.PlanDay.Row]?
     @MainActor private static var goals: [Api.Today.Goal] = []
+    @MainActor private static var dated: [Api.Today.Retest] = []
 
     /// Called whenever the plan or Today loads. Waits for a plan before the
     /// first rebuild, so a goals-only call never drops the slot reminders.
     @MainActor
-    static func loaded(plan: Api.PlanDay? = nil, goals: [Api.Today.Goal]? = nil) {
+    static func loaded(plan: Api.PlanDay? = nil, goals: [Api.Today.Goal]? = nil,
+                       retests: [Api.Today.Retest]? = nil) {
         guard live else { return }
         if let plan { rows = plan.rows }
         if let goals { self.goals = goals }
+        if let retests { dated = retests }
         Task { await rebuild() }
     }
 
@@ -164,7 +202,7 @@ enum Reminders {
         guard !off, let rows else { return }
         let status = await center.notificationSettings().authorizationStatus
         guard status == .authorized || status == .provisional else { return }
-        for p in schedule(rows: rows, goals: goals) {
+        for p in schedule(rows: rows, goals: goals, dated: dated) {
             let content = UNMutableNotificationContent()
             content.title = p.title
             content.body = p.body
@@ -225,7 +263,7 @@ final class ReminderTaps: NSObject, UNUserNotificationCenterDelegate {
     static let shared = ReminderTaps()
 
     static func tab(for id: String) -> Int? {
-        if id.hasPrefix("\(Reminders.prefix)slot.") { return 0 }
+        if id.hasPrefix("\(Reminders.prefix)slot.") || id.hasPrefix("\(Reminders.prefix)item.") { return 0 }
         if id.hasPrefix("\(Reminders.prefix)retest.") { return 2 }
         return nil
     }

@@ -161,6 +161,11 @@ export interface TodayBody {
    * Additive: a client that does not know the field ignores it.
    */
   changes: ChangeLine[];
+  /**
+   * Every open goal with a due date, date-only retests included (`goals`
+   * leaves those out): the phone schedules its retest reminders from this.
+   */
+  retests: { code: string; name: string; due: string }[];
   status: {
     off: number;
     borderline: number;
@@ -558,16 +563,25 @@ export async function todayBody(
     genes: genesLayer(genome.file ? genome.verdicts : null),
   });
 
-  const [glance, pending, changed] = await Promise.all([
+  const [glance, pending, changed, allGoals] = await Promise.all([
     todayHunches(userId, rows, goals, day),
     pendingOf(userId),
     whatChanged(userId, day),
+    getGoals(userId),
   ]);
+  const retests = allGoals
+    .filter((g) => !g.achievedAt && g.due && g.due >= day)
+    .map((g) => ({
+      code: g.metricCode,
+      name: rows.find((m) => m.code === g.metricCode)?.name ?? g.metricCode,
+      due: g.due!,
+    }));
 
   return {
     sentence,
     goals,
     changes: changed.lines,
+    retests,
     ...glance,
     pending,
     status: {
@@ -880,6 +894,8 @@ export interface PlanTodayBody {
     title: string;
     why: string;
     tag: "protocol" | "goal" | "every day" | "suggested";
+    /** ISO weekdays (1 = Monday) the item runs on; null runs every day */
+    daysOfWeek: number[] | null;
     done: boolean;
     /** 0 to 1: the share of the last 30 days it was done. */
     adherence: number | null;
@@ -948,6 +964,7 @@ async function planTodayBodyUncached(
       title: item.text,
       why: item.why ?? "",
       tag,
+      daysOfWeek: item.daysOfWeek?.length ? item.daysOfWeek : null,
       done: doneIds.has(o.itemId),
       // `adherence30` is a whole percent; the contract carries a fraction.
       // No tick at all in the window is "not logged", which is null, not 0.
@@ -973,6 +990,7 @@ async function planTodayBodyUncached(
       title: action.title,
       why: action.why,
       tag: "suggested",
+      daysOfWeek: null,
       done: false,
       adherence: null,
     });

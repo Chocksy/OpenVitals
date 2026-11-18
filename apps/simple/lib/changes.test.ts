@@ -171,3 +171,18 @@ describe("missingDays", () => {
     expect(missingDays("2020-01-01", "2026-01-01", [], 10)).toHaveLength(10);
   });
 });
+
+describe("sinceStarted: unchanged is not worse", () => {
+  it("marks a flat HbA1c 5.0 -> 5.0 as same", () => {
+    const [c] = sinceStarted(
+      [{ id: "b", text: "Berberine", metricCodes: ["hba1c"], startedAt: "2026-10-05", createdAt: null, active: true }],
+      [
+        { code: "hba1c", value: 5, date: "2026-04-23", optimalLow: null, optimalHigh: 5.4 },
+        { code: "hba1c", value: 5, date: "2026-11-17", optimalLow: null, optimalHigh: 5.4 },
+      ],
+    );
+    expect(c?.same).toBe(true);
+    expect(c?.better).toBe(false);
+  });
+});
+

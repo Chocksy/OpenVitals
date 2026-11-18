@@ -814,10 +814,22 @@ export function WhatChangedCard({
             className="t-body flex flex-wrap items-baseline gap-x-2 text-[length:var(--type-sm)] text-[var(--ink-2)]"
           >
             <StateWord
-              tone={l.kind === "reached" || l.better ? "on" : "border"}
+              tone={
+                l.kind === "reached" || l.better
+                  ? "on"
+                  : l.same
+                    ? "none"
+                    : "border"
+              }
               dot
             >
-              {l.kind === "reached" ? "goal" : l.better ? "better" : "worse"}
+              {l.kind === "reached"
+                ? "goal"
+                : l.better
+                  ? "better"
+                  : l.same
+                    ? "same"
+                    : "worse"}
             </StateWord>
             <span className="t-num text-[var(--ink)]">{l.text}</span>
             {l.logged === false && (

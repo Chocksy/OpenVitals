@@ -107,8 +107,33 @@ final class RemindersTests: XCTestCase {
         XCTAssertFalse(Reminders.shouldAsk(now: now, status: .notDetermined, off: true, notNow: nil))
     }
 
+    func testWeekdayItemsRepeatWeeklyNotDaily() {
+        var lift = row("Lift", slot: "evening")
+        lift.daysOfWeek = [1, 3, 7]
+        let s = Reminders.schedule(rows: [row("Omega 3", slot: "morning"), lift], goals: [],
+                                   now: date(2026, 11, 18), calendar: calendar)
+        XCTAssertEqual(s.map(\.id), ["plan.slot.morning", "plan.item.id-Lift.1",
+                                     "plan.item.id-Lift.3", "plan.item.id-Lift.7"])
+        // ISO Monday is Apple weekday 2, ISO Sunday is Apple weekday 1.
+        XCTAssertEqual(s[1].when, DateComponents(hour: 21, minute: 30, weekday: 2))
+        XCTAssertEqual(s[3].when.weekday, 1)
+        XCTAssertTrue(s[1].repeats)
+        XCTAssertEqual(s[1].body, "Lift")
+    }
+
+    func testDateOnlyRetestsJoinOncePerMarker() {
+        let s = Reminders.retests([goal("ldl", "LDL", due: "2026-12-20")],
+                                  dated: [.init(code: "ldl", name: "LDL", due: "2027-01-01"),
+                                          .init(code: "tsh", name: "TSH", due: "2026-12-30")],
+                                  now: date(2026, 11, 18), calendar: calendar)
+        XCTAssertEqual(s.map(\.id), ["plan.retest.ldl.week", "plan.retest.ldl.due",
+                                     "plan.retest.tsh.week", "plan.retest.tsh.due"])
+        XCTAssertEqual(s[1].when.day, 20)
+    }
+
     func testATapPicksTheTab() {
         XCTAssertEqual(ReminderTaps.tab(for: "plan.slot.morning"), 0)
+        XCTAssertEqual(ReminderTaps.tab(for: "plan.item.abc.3"), 0)
         XCTAssertEqual(ReminderTaps.tab(for: "plan.retest.ldl.due"), 2)
         XCTAssertNil(ReminderTaps.tab(for: "checkin"))
     }

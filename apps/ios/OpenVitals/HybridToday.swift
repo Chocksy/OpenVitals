@@ -210,7 +210,8 @@ final class TodayModel {
         if let meals = await meals { self.meals = meals }
         if let days = await days { self.days = days.days }
         loaded = true
-        if live { Reminders.loaded(plan: freshPlan, goals: error.isEmpty ? today?.goals : nil) }
+        if live { Reminders.loaded(plan: freshPlan, goals: error.isEmpty ? today?.goals : nil,
+                                   retests: error.isEmpty ? today?.retests : nil) }
     }
 
     // MARK: derived
@@ -458,7 +459,7 @@ final class TodayModel {
         guard writes == 0 else { return }
         if let plan = await plan {
             self.plan = plan
-            Reminders.loaded(plan: plan, goals: today?.goals)
+            Reminders.loaded(plan: plan, goals: today?.goals, retests: today?.retests)
         }
         if let days = await days { self.days = days.days }
         // The server has every write now: its meals take over from the

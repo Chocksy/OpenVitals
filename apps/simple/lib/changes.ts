@@ -41,6 +41,8 @@ export interface SinceChange {
   /** percent change against `before`, one decimal; null when before is 0 */
   pct: number | null;
   better: boolean;
+  /** no move worth a word: equal values, or the same distance to the band */
+  same: boolean;
 }
 
 const dayOf = (d: Date | string | null): string | null =>
@@ -106,6 +108,11 @@ export function sinceStarted(
             : low != null || high != null
               ? gapTo(after.value, low, high) < gapTo(before.value, low, high)
               : false;
+      const same =
+        delta === 0 ||
+        (way !== "lower" &&
+          way !== "higher" &&
+          gapTo(after.value, low, high) === gapTo(before.value, low, high));
       out.push({
         item: { id: item.id, text: item.text, start },
         code,
@@ -114,12 +121,14 @@ export function sinceStarted(
         delta,
         pct: before.value === 0 ? null : round((delta / before.value) * 100, 1),
         better,
+        same,
       });
     }
   }
   return out.sort(
     (a, b) =>
       Number(b.better) - Number(a.better) ||
+      Number(b.same) - Number(a.same) ||
       Math.abs(b.pct ?? 0) - Math.abs(a.pct ?? 0),
   );
 }
@@ -282,6 +291,8 @@ export interface ChangeLine {
   /** "LDL 131 → 104 since Psyllium husk, 5 Oct", "Reached: LDL ≤118" */
   text: string;
   better: boolean;
+  /** unchanged, neither better nor worse */
+  same: boolean;
   /** the protocol item a `since` line reads, null for `reached` */
   itemId: string | null;
   /** false when the item has no tick since it started: "not logged" */

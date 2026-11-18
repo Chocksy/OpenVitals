@@ -970,7 +970,8 @@ export async function whatChanged(
   const changes = drawDay
     ? sinceStarted(
         items.map((i) => ({ ...i, metricCodes: i.metricCodes ?? [] })),
-        lab,
+        // An older upload compares against its own draw, not a later one.
+        lab.filter((r) => r.date <= drawDay!),
       ).filter(
         (c) => c.after.date === drawDay && (!codes || codes.has(c.code)),
       )
@@ -1004,6 +1005,7 @@ export async function whatChanged(
     unit: unitOf(c.code),
     text: changeText(c, nameOf(c.code)),
     better: c.better,
+    same: c.same,
     itemId: c.item.id,
     logged: loggedIds.has(c.item.id),
     before: c.before,
@@ -1023,6 +1025,7 @@ export async function whatChanged(
       unit: unitOf(g.metricCode),
       text: reachedText(nameOf(g.metricCode), g.targetLow, g.targetHigh),
       better: true,
+      same: false,
       itemId: null,
       logged: null,
       before: null,

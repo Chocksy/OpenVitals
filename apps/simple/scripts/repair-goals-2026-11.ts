@@ -131,7 +131,12 @@ async function repairUser(
       next.due === g.due
     )
       continue;
-    await tx.update(goals).set(next).where(eq(goals.id, g.id));
+    // A target that moved is judged again: the nightly goal check re-closes
+    // it only when a fresh reading sits inside the corrected band.
+    await tx
+      .update(goals)
+      .set({ ...next, achievedAt: null })
+      .where(eq(goals.id, g.id));
     say(
       `b ${g.metricCode}: target ${g.targetLow ?? "-"}..${g.targetHigh ?? "-"} -> ${next.targetLow ?? "-"}..${next.targetHigh ?? "-"}, due ${g.due ?? "none"} -> ${next.due ?? "none"}`,
     );
