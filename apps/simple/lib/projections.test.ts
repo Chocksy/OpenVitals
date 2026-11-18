@@ -138,17 +138,31 @@ describe("projectionStart and baselineAt", () => {
     expect(baselineAt(ldl, "2026-11-17")?.value).toBe(104);
   });
 
-  it("starts at the later of two items so both count from one baseline", () => {
-    const berberine = { ...adopted, itemId: "b", adoptedAt: "2026-10-20" };
+  it("anchors on the first item, credits the second for its own weeks, and the draw answers", () => {
+    const berberine = { ...adopted, itemId: "b", adoptedAt: "2026-11-10" };
     const start = projectionStart(
       "ldl_cholesterol",
       [adopted, berberine],
       null,
       "2026-11-18",
     );
-    expect(start).toBe("2026-10-20");
-    expect(cycleActions([adopted, berberine], start)).toHaveLength(2);
-    expect(baselineAt(ldl, start)?.value).toBe(131);
+    expect(start).toBe("2026-10-05");
+    const credited = cycleActions([adopted, berberine], start, "ldl_cholesterol");
+    expect(credited).toHaveLength(2);
+    const p = project({
+      code: "ldl_cholesterol",
+      unit: "mg/dL",
+      from: baselineAt(ldl, start)!.value,
+      fromDate: start,
+      actions: credited,
+    });
+    // the same effect, fewer weeks on: the later starter moves it less
+    expect(Math.abs(p.contributions[1]!.delta)).toBeLessThan(
+      Math.abs(p.contributions[0]!.delta),
+    );
+    expect(drawFor({ madeAt: p.fromDate, retestAt: p.retestAt }, ldl)?.observedAt).toBe(
+      "2026-11-17",
+    );
   });
 
   it("is today for a marker nothing adopted moves, and never later", () => {
@@ -198,7 +212,7 @@ describe("the owner's psyllium, end to end in arithmetic", () => {
 });
 
 describe("cycleActions", () => {
-  it("credits only what had started by the projection's start", () => {
+  it("credits only what started before the retest window opens", () => {
     const a = (itemId: string, adoptedAt: string): AdoptedAction => ({
       itemId,
       text: itemId,
@@ -207,7 +221,9 @@ describe("cycleActions", () => {
     });
     const psyllium = a("psyllium", "2026-10-05");
     const berberine = a("berberine", "2026-11-18");
-    expect(cycleActions([psyllium, berberine], "2026-10-05")).toEqual([psyllium]);
-    expect(cycleActions([psyllium, berberine], "2026-11-18")).toEqual([psyllium, berberine]);
+    // LDL retests at 8 weeks, its window opens 2 weeks before: 2026-11-16.
+    expect(cycleActions([psyllium, berberine], "2026-10-05", "ldl_cholesterol")).toEqual([psyllium]);
+    expect(cycleActions([psyllium, a("b", "2026-11-15")], "2026-10-05", "ldl_cholesterol")).toHaveLength(2);
+    expect(cycleActions([psyllium, berberine], "2026-11-18", "ldl_cholesterol")).toEqual([psyllium, berberine]);
   });
 });

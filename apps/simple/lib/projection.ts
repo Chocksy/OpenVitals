@@ -344,7 +344,12 @@ export function project(input: ProjectInput): Projection {
     const adherence = action.adherence ?? input.adherence ?? 1;
     // A twelve-week trial read at six weeks has delivered about half of it.
     const trial = durationWeeks(e.duration) ?? retestWeeks;
-    const reached = Math.min(1, horizonWeeks / Math.max(trial, 1));
+    // An action that started after the cycle did has had fewer weeks.
+    const on =
+      action.adoptedAt > fromDate
+        ? Math.max(0, horizonWeeks - weeksBetween(fromDate, action.adoptedAt))
+        : horizonWeeks;
+    const reached = Math.min(1, on / Math.max(trial, 1));
     // What this person's own closed cycles say about this exact pair.
     const mine = input.personal?.[pairKey(e.name, code)];
     if (mine) personal.push(personalLine(e.name, mine));

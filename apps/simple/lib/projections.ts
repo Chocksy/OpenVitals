@@ -307,9 +307,10 @@ export async function projectionsFor(
  * Batch 5A. It used to be today, always, which is right on the day of the
  * adoption and wrong for anything adopted before its intervention matched:
  * the owner's psyllium (2026-10-05) would have been projected from the
- * November draw it should have predicted. Now it is the day the latest
- * action that moves the marker started (so every action in the cycle runs
- * from one baseline and none is left out), or the day the previous projection
+ * November draw it should have predicted. Now it is the day the earliest
+ * action that moves the marker started (so the retest window anchors on the
+ * first change; later starters are credited for their own weeks on, see
+ * `cycleActions` and `project`), or the day the previous projection
  * for it was resolved when that is later (each draw opens the next cycle),
  * and never after today.
  */
@@ -328,21 +329,27 @@ export function projectionStart(
     .map((a) => a.adoptedAt)
     .filter((d) => d <= today)
     .sort();
-  let start = starts.at(-1) ?? today;
+  let start = starts[0] ?? today;
   if (lastResolved && lastResolved > start) start = lastResolved;
   return start > today ? today : start;
 }
 
 /**
- * The actions a projection starting on `fromDate` may credit: only those
- * already started. A later adoption waits for the next cycle, so an earlier
- * draw never resolves an outcome for it. Pure.
+ * The actions a projection starting on `fromDate` may credit: those started
+ * before its retest window opens, so the draw that answers it always comes
+ * after every action it credits. `project` scales a later starter by its own
+ * weeks on; anything later waits for the next cycle. Pure.
  */
 export function cycleActions(
   actions: AdoptedAction[],
   fromDate: string,
+  code: string,
 ): AdoptedAction[] {
-  return actions.filter((a) => a.adoptedAt <= fromDate);
+  const opens = addWeeks(
+    addWeeks(fromDate, RETEST_WEEKS[code] ?? 12),
+    -RESOLVE_WINDOW_WEEKS,
+  );
+  return actions.filter((a) => a.adoptedAt < opens);
 }
 
 /** The last value drawn on or before `day`, oldest-first rows. Pure. */
@@ -404,7 +411,7 @@ export async function makeProjections(
       unit: row.unit ?? "",
       from: from.value,
       fromDate,
-      actions: cycleActions(actions, fromDate),
+      actions: cycleActions(actions, fromDate, code),
       personal,
       optimalLow: row.optimalLow,
       optimalHigh: row.optimalHigh,
