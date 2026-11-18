@@ -17,6 +17,7 @@ import {
   matchIntervention,
   matchInterventions,
   projectionStart,
+  tickedShare,
 } from "./projections";
 
 const seed = interventionRows();
@@ -226,5 +227,16 @@ describe("cycleActions", () => {
     expect(cycleActions([psyllium, berberine], "2026-10-05", "ldl_cholesterol")).toEqual([psyllium]);
     expect(cycleActions([psyllium, a("b", "2026-11-15")], "2026-10-05", "ldl_cholesterol")).toHaveLength(2);
     expect(cycleActions([psyllium, berberine], "2026-11-18", "ldl_cholesterol")).toEqual([psyllium, berberine]);
+  });
+});
+
+describe("tickedShare", () => {
+  const days = (n: number) =>
+    new Set(Array.from({ length: n }, (_, i) => `2026-11-${String(i + 1).padStart(2, "0")}`));
+  it("reads one tick in 30 days as not logged, not 3%", () => {
+    expect(tickedShare(days(1), days(30))).toBeUndefined();
+  });
+  it("measures a week or more of ticks", () => {
+    expect(tickedShare(days(15), days(30))).toBe(0.5);
   });
 });

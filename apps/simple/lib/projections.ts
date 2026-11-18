@@ -62,7 +62,10 @@ const SUBSTANCES: [RegExp, string][] = [
   [/\bselenium\b/, "Selenium"],
   [/\boat bran\b|\boats?\b|\bbeta ?glucan\b/, "Oat beta-glucan"],
   [/\bplant sterols?\b|\bstanols?\b/, "Plant sterols and stanols"],
-  [/\bcyanocobalamin\b|\bmethylcobalamin\b|\bvitamin b12\b|\bb12\b/, "Oral cyanocobalamin"],
+  [
+    /\bcyanocobalamin\b|\bmethylcobalamin\b|\bvitamin b12\b|\bb12\b/,
+    "Oral cyanocobalamin",
+  ],
 ];
 
 /**
@@ -171,6 +174,22 @@ const toEffect = (row: {
  */
 type Db = Pick<ReturnType<typeof getDb>, "select" | "insert" | "update">;
 
+/** Ticked days in the 30-day window below which adherence is "not logged". */
+export const SPARSE_TICKS = 7;
+
+/**
+ * Share of `window` days ticked done. Under `SPARSE_TICKS` it is undefined
+ * ("not logged"), not 3%: a sparse ticker would shrink every prediction to
+ * nothing and then inflate the personal multiplier when it resolves.
+ */
+export const tickedShare = (
+  done: Set<string>,
+  window: Set<string>,
+): number | undefined => {
+  const hit = [...window].filter((d) => done.has(d)).length;
+  return hit >= SPARSE_TICKS ? hit / window.size : undefined;
+};
+
 /**
  * Everything this person has adopted, with its effect size and adherence.
  * One entry per (item, intervention row): a line whose intervention moves two
@@ -208,14 +227,13 @@ export async function adoptedActions(
     const done = new Set(
       logs.filter((l) => l.itemId === item.id && l.done).map((l) => l.day),
     );
-    const hit = [...window].filter((d) => done.has(d)).length;
     const base = {
       itemId: item.id,
       text: item.text,
       adoptedAt:
         item.startedAt ??
         (item.createdAt ?? new Date()).toISOString().slice(0, 10),
-      adherence: done.size ? hit / window.size : undefined,
+      adherence: tickedShare(done, window),
     };
     const matches = matchInterventions(item.text, effects);
     if (!matches.length) return [{ ...base, effect: null }];
