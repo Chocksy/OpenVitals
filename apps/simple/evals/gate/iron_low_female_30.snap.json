@@ -1,0 +1,52 @@
+{
+  "id": "iron_low_female_30",
+  "top": [
+    {
+      "id": "hypertension",
+      "state": "possible",
+      "p": 0.32
+    },
+    {
+      "id": "insulin_resistance",
+      "state": "possible",
+      "p": 0.3
+    },
+    {
+      "id": "ascvd_risk",
+      "state": "possible",
+      "p": 0.25
+    },
+    {
+      "id": "low_fitness_sarcopenia",
+      "state": "possible",
+      "p": 0.25
+    },
+    {
+      "id": "iron_deficiency",
+      "state": "confirmed",
+      "p": 0.93
+    }
+  ],
+  "rules": [
+    "bp_log",
+    "ferritin_low",
+    "iron_coeliac",
+    "iron_saturation",
+    "kidney_two_markers",
+    "lpa_once",
+    "vitamin_d_measure"
+  ],
+  "evidence": [
+    "anaemia_other:anaemia_hb_low",
+    "chronic_inflammation:inflam_hscrp_high",
+    "coeliac_disease:coeliac_iron",
+    "depression:discriminator:TSH",
+    "hyperthyroidism:hyper_tsh_low",
+    "hypothyroidism:hypo_tsh_high",
+    "iron_deficiency:iron_ferritin_15",
+    "iron_deficiency:iron_rdw"
+  ],
+  "patterns": [
+    "iron_deficiency_no_anemia"
+  ]
+}

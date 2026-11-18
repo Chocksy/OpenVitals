@@ -1,0 +1,67 @@
+{
+  "id": "healthy_male_28",
+  "top": [
+    {
+      "id": "sleep_apnoea",
+      "state": "unlikely",
+      "p": 0.21
+    },
+    {
+      "id": "hypertension",
+      "state": "unlikely",
+      "p": 0.12
+    },
+    {
+      "id": "low_fitness_sarcopenia",
+      "state": "unlikely",
+      "p": 0.12
+    },
+    {
+      "id": "nafld",
+      "state": "unlikely",
+      "p": 0.2
+    },
+    {
+      "id": "ascvd_risk",
+      "state": "unlikely",
+      "p": 0.08
+    }
+  ],
+  "rules": [],
+  "evidence": [
+    "alcohol_use_disorder:aud_ggt",
+    "anaemia_other:anaemia_ferritin_normal",
+    "anaemia_other:anaemia_hb_low",
+    "anaemia_other:discriminator:B12 with folate",
+    "ascvd_risk:ascvd_apob_low",
+    "ascvd_risk:ascvd_ldl",
+    "ascvd_risk:ascvd_lpa",
+    "chronic_inflammation:inflam_hscrp_high",
+    "ckd:ckd_egfr_low",
+    "depression:discriminator:TSH",
+    "familial_hypercholesterolaemia:fh_ldl_severe",
+    "folate_deficiency:folate_low",
+    "gout_hyperuricaemia:gout_urate_high",
+    "haemochromatosis:hfe_tsat_high",
+    "hashimoto:hashi_family_negative",
+    "hypertension:htn_home_bp_high",
+    "hyperthyroidism:hyper_tsh_low",
+    "hypothyroidism:hypo_tsh_high",
+    "insulin_resistance:ir_family_negative",
+    "insulin_resistance:ir_hba1c_low",
+    "insulin_resistance:ir_homa_low",
+    "insulin_resistance:ir_insulin",
+    "insulin_resistance:ir_tg_hdl_low",
+    "insulin_resistance:ir_waist_height",
+    "iron_deficiency:iron_ferritin_100",
+    "iron_deficiency:iron_tsat",
+    "low_fitness_sarcopenia:fitness_grip_low",
+    "lpa_elevated:lpa_high",
+    "nafld:nafld_alt",
+    "nafld:nafld_waist_normal",
+    "sleep_apnoea:osa_no_snoring",
+    "type2_diabetes:t2d_hba1c_normal",
+    "vitamin_d_deficiency:vitd_low"
+  ],
+  "patterns": []
+}

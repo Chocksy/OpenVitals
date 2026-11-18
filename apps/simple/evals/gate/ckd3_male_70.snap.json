@@ -1,0 +1,67 @@
+{
+  "id": "ckd3_male_70",
+  "top": [
+    {
+      "id": "hypertension",
+      "state": "likely",
+      "p": 0.94
+    },
+    {
+      "id": "ckd",
+      "state": "likely",
+      "p": 0.91
+    },
+    {
+      "id": "insulin_resistance",
+      "state": "likely",
+      "p": 0.83
+    },
+    {
+      "id": "type2_diabetes",
+      "state": "likely",
+      "p": 0.66
+    },
+    {
+      "id": "low_fitness_sarcopenia",
+      "state": "likely",
+      "p": 0.6
+    }
+  ],
+  "rules": [
+    "apob_on_every_draw",
+    "bp_log",
+    "colonoscopy_age",
+    "fitness_baseline",
+    "kidney_two_markers",
+    "lpa_once",
+    "ogtt_if_insulin_resistant",
+    "psa_discuss",
+    "vitamin_d_measure"
+  ],
+  "evidence": [
+    "anaemia_other:anaemia_hb_low",
+    "ascvd_risk:ascvd_ldl",
+    "chronic_inflammation:inflam_hscrp_high",
+    "ckd:ckd_egfr_low",
+    "ckd:ckd_hypertension",
+    "familial_hypercholesterolaemia:fh_ldl_severe",
+    "gilbert:gilbert_haemoglobin_normal",
+    "gout_hyperuricaemia:gout_urate_high",
+    "hashimoto:hashi_family_negative",
+    "hypertension:htn_home_bp_high",
+    "hypertension:htn_waist",
+    "insulin_resistance:ir_family_negative",
+    "insulin_resistance:ir_hba1c_high",
+    "insulin_resistance:ir_tg_hdl_high",
+    "insulin_resistance:ir_waist_height",
+    "iron_deficiency:iron_hb",
+    "low_fitness_sarcopenia:fitness_age",
+    "nafld:nafld_ir",
+    "nafld:nafld_tg",
+    "nafld:nafld_waist",
+    "sleep_apnoea:osa_bp",
+    "type2_diabetes:t2d_hba1c_pre",
+    "type2_diabetes:t2d_ir"
+  ],
+  "patterns": []
+}

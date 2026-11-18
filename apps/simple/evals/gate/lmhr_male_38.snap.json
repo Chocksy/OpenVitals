@@ -1,0 +1,59 @@
+{
+  "id": "lmhr_male_38",
+  "top": [
+    {
+      "id": "ascvd_risk",
+      "state": "possible",
+      "p": 0.51
+    },
+    {
+      "id": "hypertension",
+      "state": "possible",
+      "p": 0.32
+    },
+    {
+      "id": "low_fitness_sarcopenia",
+      "state": "possible",
+      "p": 0.25
+    },
+    {
+      "id": "nafld",
+      "state": "possible",
+      "p": 0.27
+    },
+    {
+      "id": "lpa_elevated",
+      "state": "unlikely",
+      "p": 0.2
+    }
+  ],
+  "rules": [
+    "apob_on_every_draw",
+    "bp_log",
+    "kidney_two_markers",
+    "lmhr_apob_lpa",
+    "lmhr_cac",
+    "lmhr_carb_trial",
+    "lpa_once",
+    "vitamin_d_measure"
+  ],
+  "evidence": [
+    "ascvd_risk:ascvd_ldl",
+    "ascvd_risk:ascvd_non_hdl",
+    "b12_deficiency:b12_diet_negative",
+    "chronic_inflammation:inflam_hscrp_high",
+    "familial_hypercholesterolaemia:fh_ldl_severe",
+    "hashimoto:hashi_family_negative",
+    "insulin_resistance:ir_family_negative",
+    "insulin_resistance:ir_hba1c_low",
+    "insulin_resistance:ir_homa_low",
+    "insulin_resistance:ir_insulin",
+    "insulin_resistance:ir_tg_hdl_low",
+    "insulin_resistance:ir_waist_height",
+    "nafld:nafld_waist_normal",
+    "type2_diabetes:t2d_hba1c_normal"
+  ],
+  "patterns": [
+    "lmhr"
+  ]
+}

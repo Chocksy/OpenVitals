@@ -1,0 +1,69 @@
+{
+  "id": "insulin_resistant_male_45",
+  "top": [
+    {
+      "id": "insulin_resistance",
+      "state": "likely",
+      "p": 0.95
+    },
+    {
+      "id": "type2_diabetes",
+      "state": "likely",
+      "p": 0.71
+    },
+    {
+      "id": "hypertension",
+      "state": "possible",
+      "p": 0.46
+    },
+    {
+      "id": "nafld",
+      "state": "likely",
+      "p": 0.9
+    },
+    {
+      "id": "cancer_screening_due",
+      "state": "possible",
+      "p": 0.4
+    }
+  ],
+  "rules": [
+    "apob_on_every_draw",
+    "bp_log",
+    "colonoscopy_age",
+    "fitness_baseline",
+    "ir_ogtt",
+    "kidney_two_markers",
+    "liver_workup",
+    "lpa_once",
+    "ogtt_if_insulin_resistant",
+    "vitamin_d_measure"
+  ],
+  "evidence": [
+    "a1at_deficiency:a1at_alt",
+    "alcohol_use_disorder:aud_ggt",
+    "ascvd_risk:ascvd_ldl",
+    "familial_hypercholesterolaemia:fh_ldl_severe",
+    "gilbert:gilbert_enzymes_normal",
+    "haemochromatosis:hfe_alt",
+    "hashimoto:hashi_family_negative",
+    "hepatitis_bc:hep_alt",
+    "hypertension:htn_waist",
+    "insulin_resistance:ir_alt",
+    "insulin_resistance:ir_family_negative",
+    "insulin_resistance:ir_homa",
+    "insulin_resistance:ir_insulin",
+    "insulin_resistance:ir_tg_hdl_high",
+    "insulin_resistance:ir_waist_height",
+    "nafld:nafld_alt",
+    "nafld:nafld_ggt",
+    "nafld:nafld_ir",
+    "nafld:nafld_tg",
+    "nafld:nafld_waist",
+    "type2_diabetes:t2d_ir",
+    "wilson:wilson_alt"
+  ],
+  "patterns": [
+    "insulin_resistance_early"
+  ]
+}

@@ -1,0 +1,65 @@
+{
+  "id": "hashimoto_early_female_36",
+  "top": [
+    {
+      "id": "hypertension",
+      "state": "possible",
+      "p": 0.32
+    },
+    {
+      "id": "insulin_resistance",
+      "state": "possible",
+      "p": 0.28
+    },
+    {
+      "id": "ascvd_risk",
+      "state": "possible",
+      "p": 0.25
+    },
+    {
+      "id": "low_fitness_sarcopenia",
+      "state": "possible",
+      "p": 0.25
+    },
+    {
+      "id": "hashimoto",
+      "state": "likely",
+      "p": 0.87
+    }
+  ],
+  "rules": [
+    "bp_log",
+    "ferritin_low",
+    "hashimoto_b12_ferritin",
+    "hashimoto_coeliac",
+    "hashimoto_full_panel",
+    "hashimoto_pregnancy",
+    "hashimoto_repeat_tsh",
+    "hashimoto_ultrasound",
+    "iron_coeliac",
+    "iron_saturation",
+    "kidney_two_markers",
+    "lpa_once",
+    "thyroid_workup",
+    "vitamin_d_refresh"
+  ],
+  "evidence": [
+    "anaemia_other:anaemia_hb_low",
+    "coeliac_disease:coeliac_iron",
+    "depression:discriminator:TSH",
+    "hashimoto:hashi_family_negative",
+    "hashimoto:hashi_tpo",
+    "hashimoto:hashi_tsh_mid",
+    "hyperthyroidism:hyper_ft4_high",
+    "hyperthyroidism:hyper_tsh_low",
+    "hypothyroidism:hypo_ft4_low",
+    "hypothyroidism:hypo_tsh_high",
+    "insulin_resistance:ir_family_negative",
+    "iron_deficiency:iron_ferritin_30",
+    "vitamin_d_deficiency:vitd_low"
+  ],
+  "patterns": [
+    "hashimoto",
+    "iron_deficiency_no_anemia"
+  ]
+}
