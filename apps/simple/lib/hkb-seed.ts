@@ -18,10 +18,12 @@ import {
   hkbInterventions,
   hkbPriorModifiers,
   hkbPriors,
+  hkbRevisions,
   hkbTests,
   metrics,
 } from "@/db";
-import { sql } from "drizzle-orm";
+import { createHash } from "node:crypto";
+import { and, desc, eq, like, notInArray, sql } from "drizzle-orm";
 import { GENOME_CATALOG } from "./genome-catalog";
 import { CATALOG } from "./hkb-catalog";
 import { interventionRows } from "./hkb-interventions";
@@ -373,11 +375,63 @@ export async function seedHkb(catalog: Catalog = CATALOG) {
     .onConflictDoNothing()
     .returning({ code: metrics.code });
 
-  await recordRevision(
-    `seed: ${rows.conditions.length} conditions, ${rows.evidence.length} evidence rows, ` +
-      `${rows.priors.length} priors, ${rows.tests.length} tests, ` +
-      `${interventions.length} interventions`,
-  );
+  // Seed rows the code no longer has stop counting. Retired, not deleted, so
+  // an adopted action or an old snapshot that names one still resolves. Only
+  // for the full catalog: a partial seed must not retire the rest.
+  // ponytail: evidence and interventions only, the two that score; an orphan
+  // condition, test or feature is inert until a rule names it again.
+  let retired = 0;
+  if (catalog === CATALOG) {
+    const ev = await db
+      .update(hkbEvidence)
+      .set({ status: "retired" })
+      .where(
+        and(
+          eq(hkbEvidence.status, "seed"),
+          notInArray(
+            hkbEvidence.id,
+            rows.evidence.map((e) => e.id),
+          ),
+        ),
+      )
+      .returning({ id: hkbEvidence.id });
+    const iv = await db
+      .update(hkbInterventions)
+      .set({ status: "retired" })
+      .where(
+        and(
+          like(hkbInterventions.id, "seed\\_%"),
+          eq(hkbInterventions.status, "accepted"),
+          notInArray(
+            hkbInterventions.id,
+            interventions.map((i) => i.id),
+          ),
+        ),
+      )
+      .returning({ id: hkbInterventions.id });
+    retired = ev.length + iv.length;
+  }
+
+  // One revision per change, not per boot: "what the knowledge learned" on
+  // Home lists every revision since the last snapshot.
+  const hash = createHash("sha256")
+    .update(JSON.stringify([rows, interventions, labMarkers]))
+    .digest("hex")
+    .slice(0, 12);
+  const [last] = await db
+    .select({ summary: hkbRevisions.summary })
+    .from(hkbRevisions)
+    .where(like(hkbRevisions.summary, "seed:%"))
+    .orderBy(desc(hkbRevisions.id))
+    .limit(1);
+  if (retired > 0 || !last?.summary.endsWith(`#${hash}`))
+    await recordRevision(
+      `seed: ${rows.conditions.length} conditions, ${rows.evidence.length} evidence rows, ` +
+        `${rows.priors.length} priors, ${rows.tests.length} tests, ` +
+        `${interventions.length} interventions` +
+        (retired ? `, ${retired} retired` : "") +
+        ` #${hash}`,
+    );
 
   return {
     conditions: rows.conditions.length,
@@ -389,6 +443,7 @@ export async function seedHkb(catalog: Catalog = CATALOG) {
     links: rows.links.length,
     interventions: interventions.length,
     metrics: added.length,
+    retired,
   };
 }
 
@@ -409,7 +464,7 @@ if (
       console.log(
         `[hkb:seed] conditions=${n.conditions} features=${n.features} tests=${n.tests} ` +
           `priors=${n.priors} modifiers=${n.modifiers} evidence=${n.evidence} links=${n.links} ` +
-          `interventions=${n.interventions} metrics=${n.metrics}`,
+          `interventions=${n.interventions} metrics=${n.metrics} retired=${n.retired}`,
       ),
     )
     .then(() => pool().end())
