@@ -29,6 +29,8 @@ const DAY = 86_400_000;
 
 const NUMBER = String.raw`(\d+(?:\.\d+)?)`;
 const ROUGHLY = String.raw`(?:(?:about|around|roughly|approximately|approx\.?|under|below|over|above|at least|at most|less than|more than)\s*|[~<>≤≥]\s*)?`;
+/** Only "about": a landing word ("below 100") after a verb is a target, not a size. */
+const ABOUT = String.raw`(?:(?:about|around|roughly|approximately|approx\.?)\s*|~\s*)?`;
 /** "131 to about 118", "131 mg/dL → 118": where it starts, then where it lands. */
 const TRANSITION = new RegExp(
   String.raw`(?<![a-z])${NUMBER}\s*(?:[a-zµ%/]+\s*)?(?:→|->|=>|\bto\b|\btowards\b)\s*${ROUGHLY}${NUMBER}`,
@@ -40,12 +42,12 @@ const RANGE = new RegExp(String.raw`(?<![a-z\d.])${NUMBER}\s*[-–—]\s*${NUMBE
 const SIGNED = new RegExp(String.raw`(?:^|[\s(])([+\-−])\s*${NUMBER}`);
 /** "down about 13", "lower by 13", "drop of 13": a change, in words. */
 const WORDED = new RegExp(
-  String.raw`\b(?:(?:down|up|lower(?:ed|s)?|higher|drops?|falls?|reduc(?:e|es|ed|tion)|decreas(?:e|es|ed)|increas(?:e|es|ed)|rais(?:e|es|ed)|rises?)\s+(?:by\s+|of\s+)?|\bby\s+)${ROUGHLY}${NUMBER}\s*(%)?`,
+  String.raw`\b(?:(?:down|up|lower(?:ed|s)?|higher|drops?|falls?|reduc(?:e|es|ed|tion)|decreas(?:e|es|ed)|increas(?:e|es|ed)|rais(?:e|es|ed)|rises?)\s+(?:by\s+|of\s+)?|\bby\s+)${ABOUT}${NUMBER}\s*(%)?`,
   "i",
 );
 /** A number that is a time or a date, never a target: "in 12 weeks", "2026-12-01". */
 const NOT_A_TARGET =
-  /\b\d{4}-\d{2}-\d{2}\b|\b\d+(?:\.\d+)?\s*-?\s*(?:weeks?|wks?|months?|days?|years?|yrs?|h|hours?)\b|\b25\s*-?\s*oh\b/gi;
+  /\b\d{4}-\d{2}-\d{2}\b|\b\d+(?:\.\d+)?\s*-?\s*(?:weeks?|wks?|months?|days?|years?|yrs?|h|hours?)\b|\b25\s*-?\s*oh\b|\bby\s+\d{1,2}\s+(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\b/gi;
 /**
  * A size of change: never an absolute target on its own. A bare "%" is a
  * unit ("<5.4%" HbA1c); only a percent next to a change word is a change.

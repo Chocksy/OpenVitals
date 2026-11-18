@@ -40,6 +40,7 @@ final class Session: ObservableObject {
     func signOut() async {
         await Api.signOut()
         HealthSyncModel.shared.reset()
+        await Reminders.reset()
         Api.clearCache()
         remember(nil)
         refresh()

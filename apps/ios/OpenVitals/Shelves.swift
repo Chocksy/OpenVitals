@@ -23,7 +23,7 @@ struct Shelves: View {
                     .lagging(lag, row: 0)
                     .padding(.top, DesignTokens.s21)
                 // Batch 5C: asks to send plan reminders, until answered.
-                ReminderAskCard(rows: model.doRows, ticks: model.confirmed)
+                ReminderAskCard(rows: model.doRows + (model.plan?.weekly ?? []), ticks: model.confirmed)
                     .lagging(lag, row: 1)
                 AskCard()
                     .lagging(lag, row: 1)
