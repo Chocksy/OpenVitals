@@ -943,21 +943,22 @@ export async function whatChanged(
     drawDay = mine.map((r) => String(r.at).slice(0, 10)).sort().pop()!;
     since = new Date((up?.createdAt ?? new Date()).getTime() - dayMs);
     // A goal a later draw reached belongs to that draw's page, not this one.
-    if (up?.createdAt) {
-      const [next] = await db
-        .select({ createdAt: uploads.createdAt })
-        .from(uploads)
-        .where(
-          and(
-            eq(uploads.userId, userId),
-            eq(uploads.kind, "lab"),
-            gt(uploads.createdAt, up.createdAt),
-          ),
-        )
-        .orderBy(uploads.createdAt)
-        .limit(1);
-      until = next?.createdAt ?? null;
-    }
+    // "Later" is the draw day, not the upload time: two PDFs of one draw
+    // share it, and the goal check runs after both land.
+    const [next] = await db
+      .select({ createdAt: uploads.createdAt })
+      .from(readings)
+      .innerJoin(uploads, eq(readings.uploadId, uploads.id))
+      .where(
+        and(
+          eq(readings.userId, userId),
+          eq(uploads.kind, "lab"),
+          gt(readings.observedAt, drawDay),
+        ),
+      )
+      .orderBy(uploads.createdAt)
+      .limit(1);
+    until = next?.createdAt ?? null;
   } else {
     drawDay = lab.reduce<string | null>(
       (max, r) => (!max || r.date > max ? r.date : max),

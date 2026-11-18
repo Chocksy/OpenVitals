@@ -181,7 +181,7 @@ enum Reminders {
     @MainActor private static var rows: [Api.PlanDay.Row]?
     @MainActor private static var goals: [Api.Today.Goal] = []
     @MainActor private static var dated: [Api.Today.Retest] = []
-    /// Bumped on sign-out: a rebuild already past its awaits stops adding.
+    /// Bumped by every rebuild and by sign-out: only the newest rebuild adds.
     @MainActor private static var generation = 0
 
     /// Sign-out: the last account's reminders and loads go, and nothing
@@ -214,6 +214,7 @@ enum Reminders {
     static func rebuild() async {
         guard live else { return }
         let center = UNUserNotificationCenter.current()
+        generation += 1
         let gen = generation
         // No plan loaded yet (a cold start offline): keep what is scheduled.
         guard off || rows != nil else { return }
@@ -222,7 +223,8 @@ enum Reminders {
         let status = await center.notificationSettings().authorizationStatus
         guard status == .authorized || status == .provisional else { return }
         for p in schedule(rows: rows, goals: goals, dated: dated) {
-            guard gen == generation else { return }
+            // A newer rebuild, the switch turned off, or a sign-out: stop.
+            guard gen == generation, !off else { break }
             let content = UNMutableNotificationContent()
             content.title = p.title
             content.body = p.body
@@ -231,8 +233,8 @@ enum Reminders {
             try? await center.add(UNNotificationRequest(identifier: p.id, content: content,
                                                         trigger: trigger))
         }
-        // Signed out while the last add was in flight: take it back.
-        if gen != generation { await clear() }
+        // Off or signed out while an add was in flight: take it back.
+        if off || Self.rows == nil { await clear() }
     }
 
     /// Every pending plan reminder gone; the check-in's stays.

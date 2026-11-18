@@ -47,7 +47,7 @@ const WORDED = new RegExp(
 );
 /** A number that is a time or a date, never a target: "in 12 weeks", "2026-12-01". */
 const NOT_A_TARGET =
-  /\b\d{4}-\d{2}-\d{2}\b|\b\d+(?:\.\d+)?\s*-?\s*(?:weeks?|wks?|months?|days?|years?|yrs?|h|hours?)\b|\b25\s*-?\s*oh\b|\bby\s+(?:\d{1,2}\s+(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*|(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\s+\d{1,2}(?:st|nd|rd|th)?)\b(?:,?\s+\d{4}\b)?/gi;
+  /\b\d{4}-\d{2}-\d{2}\b|\b\d+(?:\.\d+)?\s*-?\s*(?:weeks?|wks?|months?|days?|years?|yrs?|h|hours?)\b|\b25\s*-?\s*oh\b|\bby\s+(?:\d{1,2}\s+(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*|(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\s+\d{1,2}(?:st|nd|rd|th)?)\b(?:,?\s+\d{4}\b)?|\bby\s+(?:the\s+end\s+of\s+)?(?:(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\s+)?(?:19|20)\d{2}\b(?![-/])|\b\d{1,2}\/\d{1,2}\/\d{2,4}\b|\bby\s+end\s+of\s+(?:19|20)\d{2}\b/gi;
 /**
  * A size of change: never an absolute target on its own. A bare "%" is a
  * unit ("<5.4%" HbA1c); only a percent next to a change word is a change.
@@ -108,7 +108,8 @@ export function goalTarget(
     if (latest == null || !Number.isFinite(n) || n === 0) return null;
     const way = direction === "down" ? -1 : 1;
     if (sign != null && sign !== way) return null;
-    return round2(latest + way * n);
+    const to = round2(latest + way * n);
+    return to > 0 ? to : null;
   };
   const signed = SIGNED.exec(text);
   if (signed) {
