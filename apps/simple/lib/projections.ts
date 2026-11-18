@@ -307,8 +307,9 @@ export async function projectionsFor(
  * Batch 5A. It used to be today, always, which is right on the day of the
  * adoption and wrong for anything adopted before its intervention matched:
  * the owner's psyllium (2026-10-05) would have been projected from the
- * November draw it should have predicted. Now it is the day the earliest
- * action that moves the marker started, or the day the previous projection
+ * November draw it should have predicted. Now it is the day the latest
+ * action that moves the marker started (so every action in the cycle runs
+ * from one baseline and none is left out), or the day the previous projection
  * for it was resolved when that is later (each draw opens the next cycle),
  * and never after today.
  */
@@ -325,8 +326,9 @@ export function projectionStart(
         a.effect?.outcomeFeatureId === `derived:${code}`,
     )
     .map((a) => a.adoptedAt)
+    .filter((d) => d <= today)
     .sort();
-  let start = starts[0] ?? today;
+  let start = starts.at(-1) ?? today;
   if (lastResolved && lastResolved > start) start = lastResolved;
   return start > today ? today : start;
 }

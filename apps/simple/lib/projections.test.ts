@@ -138,6 +138,19 @@ describe("projectionStart and baselineAt", () => {
     expect(baselineAt(ldl, "2026-11-17")?.value).toBe(104);
   });
 
+  it("starts at the later of two items so both count from one baseline", () => {
+    const berberine = { ...adopted, itemId: "b", adoptedAt: "2026-10-20" };
+    const start = projectionStart(
+      "ldl_cholesterol",
+      [adopted, berberine],
+      null,
+      "2026-11-18",
+    );
+    expect(start).toBe("2026-10-20");
+    expect(cycleActions([adopted, berberine], start)).toHaveLength(2);
+    expect(baselineAt(ldl, start)?.value).toBe(131);
+  });
+
   it("is today for a marker nothing adopted moves, and never later", () => {
     expect(projectionStart("hba1c", [adopted], null, "2026-11-18")).toBe(
       "2026-11-18",
