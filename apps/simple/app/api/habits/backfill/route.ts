@@ -5,6 +5,7 @@ import { missingDays, startOf } from "@/lib/changes";
 import { localDay } from "@/lib/daily";
 
 const DATE = /^\d{4}-\d{2}-\d{2}$/;
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 /**
  * Batch 5B: "I took it most days". A done tick for each day from the item's
@@ -20,7 +21,7 @@ export async function POST(req: Request) {
     itemId?: string;
     until?: string;
   };
-  if (!itemId || !until || !DATE.test(until))
+  if (!itemId || !UUID.test(itemId) || !until || !DATE.test(until))
     return Response.json({ error: "bad body" }, { status: 400 });
 
   const db = getDb();

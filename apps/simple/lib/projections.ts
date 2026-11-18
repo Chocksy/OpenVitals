@@ -48,85 +48,22 @@ const normalise = (s: string) =>
     .trim();
 
 /**
- * Words too common to say which intervention a line is: units of time, meals,
- * the word "vitamin" (D and B12 share it), and the generic kinds. A token has
- * to survive this list and be five letters or longer to count.
+ * The words a plan line uses for a seed row whose clinical name it will never
+ * contain ("Psyllium husk" for "Psyllium fibre"). ponytail: an explicit list,
+ * because overlap on any shared word matched "Cut added sugar" to ezetimibe
+ * and "Folate" to a B12 test. Add a line when a supplement row is added.
  */
-const STOP = new Set([
-  "vitamin",
-  "vitamins",
-  "supplement",
-  "supplements",
-  "supplementation",
-  "daily",
-  "weekly",
-  "twice",
-  "times",
-  "fibre",
-  "fiber",
-  "with",
-  "before",
-  "after",
-  "minutes",
-  "hours",
-  "weeks",
-  "months",
-  "lunch",
-  "dinner",
-  "breakfast",
-  "meals",
-  "morning",
-  "evening",
-  "night",
-  "bedtime",
-  "training",
-  "exercise",
-  "habit",
-  "water",
-  "glass",
-  "tablet",
-  "tablets",
-  "capsule",
-  "capsules",
-  "powder",
-  "extract",
-  "intake",
-  "therapy",
-  "treatment",
-  "replacement",
-  "start",
-  "starting",
-  "every",
-  "about",
-  "least",
-  "lower",
-  "higher",
-  "reduce",
-  "increase",
-  "plus",
-  "other",
-  "while",
-  "until",
-  "during",
-  "dose",
-  "doses",
-  "grams",
-]);
-
-/** Spellings that name the same thing: "D3" is cholecalciferol. */
-const ALIAS: [RegExp, string][] = [
-  [/\bvitamin d ?3?\b|\bd3\b/g, " cholecalciferol "],
-  [/\bvitamin b12\b|\bb12\b/g, " cobalamin "],
+const SUBSTANCES: [RegExp, string][] = [
+  [/\bpsyllium\b|\bispaghula\b/, "Psyllium fibre"],
+  [/\bberberine\b/, "Berberine"],
+  [/\bvitamin d ?3?\b|\bd3\b|\bcholecalciferol\b/, "Cholecalciferol, daily"],
+  [/\bomega ?3\b|\bfish oil\b|\bepa\b/, "Omega-3 (EPA-predominant)"],
+  [/\bcreatine\b/, "Creatine monohydrate"],
+  [/\bselenium\b/, "Selenium"],
+  [/\boat bran\b|\boats?\b|\bbeta ?glucan\b/, "Oat beta-glucan"],
+  [/\bplant sterols?\b|\bstanols?\b/, "Plant sterols and stanols"],
+  [/\bcyanocobalamin\b|\bmethylcobalamin\b|\bvitamin b12\b|\bb12\b/, "Oral cyanocobalamin"],
 ];
-
-/** The words in a line that say which intervention it is. */
-export function distinctiveTokens(text: string): Set<string> {
-  let t = normalise(text);
-  for (const [re, to] of ALIAS) t = t.replace(re, to);
-  return new Set(
-    t.split(" ").filter((w) => w.length >= 5 && !STOP.has(w) && !/\d/.test(w)),
-  );
-}
 
 /**
  * The intervention row an adopted action is.
@@ -134,12 +71,9 @@ export function distinctiveTokens(text: string): Set<string> {
  * First the old rule: the one whose name the action's text contains, or the
  * other way round. Batch 5A: the plan writes its own words ("Psyllium husk
  * 5 g with lunch and dinner") and the seed has "Psyllium fibre", so nothing
- * matched and no projection was ever written. The fallback is distinctive
- * word overlap (`distinctiveTokens`): the row sharing the most such words
- * wins, then the row with the fewest words of its own (the closer name), then
- * the shorter name. ponytail: still no fuzzy matching and no model; a line
- * that shares no distinctive word with any row has no effect size, which the
- * projection says out loud.
+ * matched and no projection was ever written. The fallback is the
+ * `SUBSTANCES` list. A line that matches neither has no effect size, which
+ * the projection says out loud.
  */
 export function matchIntervention<T extends { name: string }>(
   text: string,
@@ -154,22 +88,9 @@ export function matchIntervention<T extends { name: string }>(
     .sort((a, b) => b.name.length - a.name.length);
   if (hits[0]) return hits[0];
 
-  const mine = distinctiveTokens(text);
-  if (!mine.size) return null;
-  const scored = rows
-    .map((r) => {
-      const theirs = distinctiveTokens(r.name);
-      const shared = [...theirs].filter((w) => mine.has(w)).length;
-      return { r, shared, own: theirs.size };
-    })
-    .filter((s) => s.shared > 0)
-    .sort(
-      (a, b) =>
-        b.shared - a.shared ||
-        a.own - b.own ||
-        a.r.name.length - b.r.name.length,
-    );
-  return scored[0]?.r ?? null;
+  for (const [re, name] of SUBSTANCES)
+    if (re.test(t)) return rows.find((r) => r.name === name) ?? null;
+  return null;
 }
 
 /**

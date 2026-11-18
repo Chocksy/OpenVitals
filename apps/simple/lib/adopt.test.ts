@@ -62,3 +62,26 @@ describe("goalTarget", () => {
     expect(goalTarget("under 100 by 2026-12-01", "down", 131)).toBe(100);
   });
 });
+
+describe("goalTarget never reads a size of change as the target", () => {
+  const cases: [string, "up" | "down", number | null, number | null][] = [
+    ["down by 15-20 mg/dL", "down", 131, 116],
+    ["raise by 5-10 mg/dL", "up", 40, 45],
+    ["a 10-20% drop", "down", 131, null],
+    ["about 10% lower", "down", 131, null],
+    ["13 mg/dL lower", "down", 131, null],
+    ["≥20% reduction", "down", 131, null],
+    ["50% reduction", "down", 131, null],
+    ["10% rise", "up", 40, null],
+    ["20-45 %", "up", 30, null],
+    ["A 7-day average under 100", "down", 110, 100],
+    ["2-hour OGTT under 140", "down", 160, 140],
+    ["25-OH vitamin D result on file", "up", 20, null],
+    ["131 to about 118 mg/dL", "down", 131, 118],
+    ["70-100 mg/dL", "down", 120, 100],
+    ["-13", "down", 131, 118],
+  ];
+  for (const [expect_, dir, latest, want] of cases)
+    it(expect_, () => expect(goalTarget(expect_, dir, latest)).toBe(want));
+});
+

@@ -463,7 +463,7 @@ export function projectionLines(rows: ProjectionLine[]): string {
           : `not yet measured, retest ${p.retestAt}`;
       const adherence =
         p.adherence != null
-          ? `; adherence ${Math.round(p.adherence * 100)} %`
+          ? `; ticked on ${Math.round(p.adherence * 100)} % of days (ticks, not doses)`
           : "";
       return `- projection ${p.code}: expected ${p.expected}${u} (${p.low}–${p.high}) by ${p.retestAt}; ${judged}${adherence}`;
     })

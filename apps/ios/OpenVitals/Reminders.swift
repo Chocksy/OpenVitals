@@ -158,6 +158,8 @@ enum Reminders {
     static func rebuild() async {
         guard live else { return }
         let center = UNUserNotificationCenter.current()
+        // No plan loaded yet (a cold start offline): keep what is scheduled.
+        guard off || rows != nil else { return }
         await clear()
         guard !off, let rows else { return }
         let status = await center.notificationSettings().authorizationStatus

@@ -54,6 +54,26 @@ describe("matchIntervention on the seed rows", () => {
     expect(matchIntervention("Vitamin supplement daily", seed)).toBeNull();
   });
 
+  it("does not match a lifestyle line to a drug or a test", () => {
+    for (const line of [
+      "Cut added sugar",
+      "Folate 400 mcg",
+      "Testosterone check with your doctor",
+      "Intermittent fasting 16:8",
+      "Weight-bearing exercise",
+    ])
+      expect(matchIntervention(line, seed), line).toBeNull();
+  });
+
+  it("matches the common supplement spellings", () => {
+    expect(matchIntervention("Omega 3 supliment", seed)?.name).toBe(
+      "Omega-3 (EPA-predominant)",
+    );
+    expect(matchIntervention("Fish oil 2 g daily", seed)?.name).toBe(
+      "Omega-3 (EPA-predominant)",
+    );
+  });
+
   it("keeps the old substring rule first", () => {
     expect(
       matchIntervention("Ezetimibe added to a statin, 10 mg", seed)?.name,
