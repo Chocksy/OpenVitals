@@ -331,6 +331,18 @@ export function projectionStart(
   return start > today ? today : start;
 }
 
+/**
+ * The actions a projection starting on `fromDate` may credit: only those
+ * already started. A later adoption waits for the next cycle, so an earlier
+ * draw never resolves an outcome for it. Pure.
+ */
+export function cycleActions(
+  actions: AdoptedAction[],
+  fromDate: string,
+): AdoptedAction[] {
+  return actions.filter((a) => a.adoptedAt <= fromDate);
+}
+
 /** The last value drawn on or before `day`, oldest-first rows. Pure. */
 export function baselineAt(
   rows: { observedAt: string; value: number | null }[],
@@ -390,7 +402,7 @@ export async function makeProjections(
       unit: row.unit ?? "",
       from: from.value,
       fromDate,
-      actions,
+      actions: cycleActions(actions, fromDate),
       personal,
       optimalLow: row.optimalLow,
       optimalHigh: row.optimalHigh,

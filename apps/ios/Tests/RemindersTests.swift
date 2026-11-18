@@ -143,6 +143,11 @@ final class RemindersTests: XCTestCase {
         XCTAssertEqual(s.map(\.id), ["plan.retest.ldl.week", "plan.retest.ldl.due"])
         XCTAssertEqual(s[1].when.day, 20)
         XCTAssertEqual(s[1].when.month, 12)
+        // Retest day itself, after its 09:00: the due date still gets its reminder.
+        let late = Reminders.retests([goal("ldl", "LDL", due: "2026-11-25", retestAt: "2026-11-18")],
+                                     now: date(2026, 11, 18, 10), calendar: calendar)
+        XCTAssertEqual(late.map(\.id), ["plan.retest.ldl.due"])
+        XCTAssertEqual(late.first?.when.day, 25)
     }
 
     func testDateOnlyRetestsJoinOncePerMarker() {

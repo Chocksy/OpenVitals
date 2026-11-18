@@ -92,6 +92,7 @@ describe("goalTarget never reads a size of change as the target", () => {
     ["LDL under 100 by 10/02/2027", "down", 131, 100],
     ["LDL under 100 by 12/2027", "down", 131, 100],
     ["eGFR above 60 mL/min/1.73m2", "up", 50, 60],
+    ["eGFR above 60 mL/min/1.73 m^2", "up", 50, 60],
     ["LDL below 100 by Feb 2027", "down", 131, 100],
     ["LDL below 100 by end of 2027", "down", 131, 100],
     ["down 200 mg/dL", "down", 131, null],

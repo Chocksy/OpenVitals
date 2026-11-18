@@ -11,6 +11,7 @@ import { interventionRows } from "./hkb-interventions";
 import { project, type AdoptedAction } from "./projection";
 import {
   baselineAt,
+  cycleActions,
   drawFor,
   markersOf,
   matchIntervention,
@@ -180,5 +181,20 @@ describe("the owner's psyllium, end to end in arithmetic", () => {
     expect(
       drawFor(made, [{ observedAt: "2026-10-20", value: 120 }]),
     ).toBeNull();
+  });
+});
+
+describe("cycleActions", () => {
+  it("credits only what had started by the projection's start", () => {
+    const a = (itemId: string, adoptedAt: string): AdoptedAction => ({
+      itemId,
+      text: itemId,
+      adoptedAt,
+      effect: null,
+    });
+    const psyllium = a("psyllium", "2026-10-05");
+    const berberine = a("berberine", "2026-11-18");
+    expect(cycleActions([psyllium, berberine], "2026-10-05")).toEqual([psyllium]);
+    expect(cycleActions([psyllium, berberine], "2026-11-18")).toEqual([psyllium, berberine]);
   });
 });
