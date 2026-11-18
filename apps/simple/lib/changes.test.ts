@@ -139,6 +139,12 @@ describe("researchWeek", () => {
           { ranAt: at("2026-11-16"), rows: [] },
           { ranAt: at("2026-10-01"), rows: [{}] },
         ],
+        caseRuns: [
+          // two raw proposals read, one survived judging
+          { ranAt: at("2026-11-17"), rows: { proposals: 2, accepted: 1 } },
+          { ranAt: at("2026-11-16"), rows: { proposals: 3, accepted: 0 } },
+          { ranAt: at("2026-10-01"), rows: { accepted: 5 } },
+        ],
         papers: [
           { foundAt: at("2026-11-15"), moves: { direction: "down" } },
           { foundAt: at("2026-11-15"), moves: null },
@@ -153,17 +159,17 @@ describe("researchWeek", () => {
     );
     expect(w).toEqual({
       read: 4,
-      kept: 3,
+      kept: 2,
       changed: 1,
       lastChange: "2026-11-14",
     });
     expect(researchLine(w)).toBe(
-      "This week research read 4 papers, kept 3 findings, changed 1 rule. Last rule change: 14 Nov.",
+      "This week research read 4 papers, kept 2 findings, changed 1 rule. Last rule change: 14 Nov.",
     );
   });
 
   it("says zero plainly and leaves the last change off when there is none", () => {
-    const w = researchWeek({ caseReads: [], papers: [], revisions: [] }, now);
+    const w = researchWeek({ caseReads: [], caseRuns: [], papers: [], revisions: [] }, now);
     expect(researchLine(w)).toBe(
       "This week research read 0 papers, kept 0 findings, changed 0 rules.",
     );

@@ -1079,16 +1079,16 @@ export async function researchWeekFor(
 ): Promise<ResearchWeek> {
   const db = getDb();
   const from = new Date(now.getTime() - 7 * dayMs);
-  const [caseReads, papers, revisions] = await Promise.all([
+  const runs = (script: string) =>
     db
       .select({ ranAt: hkbImportRuns.ranAt, rows: hkbImportRuns.rows })
       .from(hkbImportRuns)
       .where(
-        and(
-          eq(hkbImportRuns.script, "case-read"),
-          gte(hkbImportRuns.ranAt, from),
-        ),
-      ),
+        and(eq(hkbImportRuns.script, script), gte(hkbImportRuns.ranAt, from)),
+      );
+  const [caseReads, caseRuns, papers, revisions] = await Promise.all([
+    runs("case-read"),
+    runs("case-run"),
     db
       .select({ foundAt: paperWatch.foundAt, moves: paperWatch.moves })
       .from(paperWatch)
@@ -1103,5 +1103,5 @@ export async function researchWeekFor(
       .orderBy(desc(hkbRevisions.changedAt))
       .limit(200),
   ]);
-  return researchWeek({ caseReads, papers, revisions }, now);
+  return researchWeek({ caseReads, caseRuns, papers, revisions }, now);
 }

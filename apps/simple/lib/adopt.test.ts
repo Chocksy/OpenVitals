@@ -90,6 +90,7 @@ describe("goalTarget never reads a size of change as the target", () => {
     ["lower to 100 by 1 Mar 2027", "down", 131, 100],
     ["LDL under 100 by 2027", "down", 131, 100],
     ["LDL under 100 by 10/02/2027", "down", 131, 100],
+    ["LDL under 100 by 12/2027", "down", 131, 100],
     ["LDL below 100 by Feb 2027", "down", 131, 100],
     ["LDL below 100 by end of 2027", "down", 131, 100],
     ["down 200 mg/dL", "down", 131, null],

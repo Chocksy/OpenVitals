@@ -193,6 +193,8 @@ export function reachedText(
 export interface ResearchWeekRows {
   /** `hkb_import_runs` rows with script `case-read` */
   caseReads: { ranAt: Date | null; rows: unknown }[];
+  /** `case-run` rows: their `accepted` counter is what survived judging */
+  caseRuns: { ranAt: Date | null; rows: unknown }[];
   /** this person's `paper_watch` rows */
   papers: { foundAt: Date | null; moves: unknown }[];
   /** `hkb_revisions` */
@@ -212,8 +214,8 @@ const isSeed = (summary: string) => /^seed\b/i.test(summary.trim());
 
 /**
  * What research did in the seven days up to `now`: papers read (every
- * case-read row and every paper the watch filed), findings kept (the items a
- * case read proposed, plus watched papers that moved something), and rules
+ * case-read row and every paper the watch filed), findings kept (what case
+ * runs accepted after judging, plus watched papers that moved something), and rules
  * changed (non-seed revisions).
  */
 export function researchWeek(
@@ -227,8 +229,16 @@ export function researchWeek(
 
   const reads = rows.caseReads.filter((r) => inWeek(r.ranAt));
   const papers = rows.papers.filter((p) => inWeek(p.foundAt));
+  // A case read caches raw proposals before judging; only `accepted` on the
+  // run that judged them counts as kept.
+  const accepted = (r: unknown) => {
+    const n = (r as { accepted?: unknown } | null)?.accepted;
+    return typeof n === "number" && n > 0 ? n : 0;
+  };
   const kept =
-    reads.reduce((n, r) => n + (Array.isArray(r.rows) ? r.rows.length : 0), 0) +
+    rows.caseRuns
+      .filter((r) => inWeek(r.ranAt))
+      .reduce((n, r) => n + accepted(r.rows), 0) +
     papers.filter((p) => p.moves != null).length;
 
   const real = rows.revisions.filter((r) => !isSeed(r.summary));
