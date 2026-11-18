@@ -156,6 +156,7 @@ describe("projectionStart and baselineAt", () => {
       fromDate: start,
       actions: credited,
     });
+    expect(p.assumptions.some((a) => a.includes("started 2026-11-10"))).toBe(true)
     // the same effect, fewer weeks on: the later starter moves it less
     expect(Math.abs(p.contributions[1]!.delta)).toBeLessThan(
       Math.abs(p.contributions[0]!.delta),

@@ -349,7 +349,8 @@ export function cycleActions(
     addWeeks(fromDate, RETEST_WEEKS[code] ?? 12),
     -RESOLVE_WINDOW_WEEKS,
   );
-  return actions.filter((a) => a.adoptedAt < opens);
+  const today = localDay();
+  return actions.filter((a) => a.adoptedAt < opens && a.adoptedAt <= today);
 }
 
 /** The last value drawn on or before `day`, oldest-first rows. Pure. */

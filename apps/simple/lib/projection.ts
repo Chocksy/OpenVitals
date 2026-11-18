@@ -310,6 +310,7 @@ export function project(input: ProjectInput): Projection {
   const contributions: Projection["contributions"] = [];
   const gaps: string[] = [];
   const personal: string[] = [];
+  const late: string[] = [];
   let total = 0;
   let variance = 0;
 
@@ -350,6 +351,10 @@ export function project(input: ProjectInput): Projection {
         ? Math.max(0, horizonWeeks - weeksBetween(fromDate, action.adoptedAt))
         : horizonWeeks;
     const reached = Math.min(1, on / Math.max(trial, 1));
+    if (on < horizonWeeks)
+      late.push(
+        `${e.name} started ${action.adoptedAt}, so it is credited for ${round2(on)} of ${horizonWeeks} weeks`,
+      );
     // What this person's own closed cycles say about this exact pair.
     const mine = input.personal?.[pairKey(e.name, code)];
     if (mine) personal.push(personalLine(e.name, mine));
@@ -394,7 +399,7 @@ export function project(input: ProjectInput): Projection {
     assumptions.push(
       `${code} is already inside its optimal band, and every effect size here comes from a trial that recruited people outside it: nothing is projected`,
     );
-  assumptions.push(...personal);
+  assumptions.push(...personal, ...late);
   const stated = input.actions
     .map((a) => a.adherence ?? input.adherence)
     .filter((a): a is number => a != null);
