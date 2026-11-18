@@ -279,7 +279,7 @@ async function evidenceTab(status: string, condition: string) {
       )}
     >
       <div className="filters mb-[var(--s13)]">
-        {["all", "proposed", "seed", "accepted", "rejected"].map((s) => (
+        {["all", "proposed", "seed", "accepted", "rejected", "retired"].map((s) => (
           <Link
             key={s}
             href={href(s, condition)}

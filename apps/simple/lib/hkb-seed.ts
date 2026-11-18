@@ -278,11 +278,14 @@ export async function seedHkb(catalog: Catalog = CATALOG) {
   });
   const db = getDb();
 
-  for (const c of rows.conditions)
+  // `in_catalog` is a switch on /hkb: inserted on, never reset by a re-seed.
+  for (const c of rows.conditions) {
+    const { id, inCatalog, ...set } = c;
     await db
       .insert(hkbConditions)
       .values(c)
-      .onConflictDoUpdate({ target: hkbConditions.id, set: withoutId(c) });
+      .onConflictDoUpdate({ target: hkbConditions.id, set });
+  }
 
   // Like `cost_by_country` below: a unit the importer or a human already
   // filled in is not wiped by a re-seed, because the catalog has no unit of
@@ -341,7 +344,12 @@ export async function seedHkb(catalog: Catalog = CATALOG) {
     await db
       .insert(hkbEvidence)
       .values(e)
-      .onConflictDoUpdate({ target: hkbEvidence.id, set: withoutId(e) });
+      .onConflictDoUpdate({
+        target: hkbEvidence.id,
+        set: withoutId(e),
+        // A rule a human overrode on /hkb keeps the human's numbers and status.
+        setWhere: sql`coalesce(${hkbEvidence.reviewNote}, '') not like 'override%'`,
+      });
 
   for (const l of rows.links)
     await db.insert(hkbConditionTests).values(l).onConflictDoNothing();

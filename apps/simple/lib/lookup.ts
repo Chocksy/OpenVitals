@@ -867,7 +867,7 @@ export async function sourcesFor(
   ]);
   return rankSources([
     ...evidence
-      .filter((r) => r.status !== "rejected")
+      .filter((r) => r.status !== "rejected" && r.status !== "retired")
       .map((r) => evidenceSource({ ...r, lrPos: r.lrPos })),
     ...interventions.map(interventionSource),
   ]).slice(0, MAX_SOURCES);
