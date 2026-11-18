@@ -698,11 +698,11 @@ const SIBO: Hypothesis = {
     {
       id: "sibo_dysbiosis",
       input: { metric: "dysbiosis_index" },
-      when: { above: 3 },
+      when: { above: 2 },
       lr: 4,
       grade: "C",
       source:
-        "Casén 2015 Aliment Pharmacol Ther: the GA-map dysbiosis index separates IBS and IBD patients from healthy controls at a cut-off of 3 on a 1-5 scale. Grade C for using it as evidence of overgrowth specifically.",
+        "Casén 2015 Aliment Pharmacol Ther: on the GA-map 1-5 scale, 1-2 is normobiosis and 3-5 is dysbiosis, which separates IBS and IBD patients from healthy controls. Grade C for using it as evidence of overgrowth specifically.",
     },
     {
       id: "sibo_calprotectin",

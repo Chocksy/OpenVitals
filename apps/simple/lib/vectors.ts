@@ -1032,7 +1032,7 @@ export const RULES: Rule[] = [
     id: "liver_workup",
     when: (m) => {
       const alt = val(m, "alt");
-      const cap = m.sex === "female" ? 20 : 30;
+      const cap = SEX_RANGES.alt![m.sex === "female" ? "female" : "male"][1]!;
       const ggt = m.latest.ggt;
       const ggtHigh =
         ggt?.value != null &&
@@ -1305,7 +1305,7 @@ export const DEFAULT_REF_HIGH: Record<string, number> = {
   // ppm rise. Rezaie 2017 North American Consensus: 20 ppm within 90 minutes.
   breath_h2_peak: 20,
   // index 1-5. Casén 2015 Aliment Pharmacol Ther: above 2 is dysbiosis.
-  dysbiosis_index: 2.5,
+  dysbiosis_index: 2,
   // Categorical: a phenotype report is positive or negative.
   aat_phenotype: 0.5,
   // U/L. Kwo 2017 Am J Gastroenterol (ACG): the conventional laboratory upper

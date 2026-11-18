@@ -2820,7 +2820,8 @@ const HEPATITIS_BC: Hypothesis = {
     {
       id: "hep_alt",
       input: { metric: "alt" },
-      when: { above: 45 },
+      // the laboratory upper limit, as in DEFAULT_REF_HIGH
+      when: { above: 40 },
       lr: 2,
       grade: "B",
       source:

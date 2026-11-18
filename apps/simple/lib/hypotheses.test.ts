@@ -206,6 +206,14 @@ describe("iron_deficiency", () => {
     expect(inflamed.confounded.map((c) => c.tag)).toContain("acute_illness");
   });
 
+  it("counts a dysbiosis index of 3: 3-5 is dysbiosis on the GA-map scale", () => {
+    const sibo = scoreHypotheses(
+      input({ latest: { dysbiosis_index: value(3) } }),
+      { catalog: CATALOG },
+    ).find((h) => h.id === "sibo")!;
+    expect(sibo.for.map((f) => f.rule)).toContain("sibo_dysbiosis");
+  });
+
   it("does not read a low cortisol as Addison's on a steroid", () => {
     const low = { latest: { cortisol: value(3) } };
     const at = (profile = {}) =>
