@@ -373,7 +373,14 @@ export const CONFOUNDERS: {
   },
   {
     tag: "dehydration",
-    markers: ["hemoglobin", "hematocrit", "albumin", "creatinine", "bun"],
+    markers: [
+      "hemoglobin",
+      "hematocrit",
+      "albumin",
+      "creatinine",
+      "bun",
+      "urea",
+    ],
     discount: 0.6,
     why: "Haemoconcentration raises every count in the sample without changing the person.",
   },

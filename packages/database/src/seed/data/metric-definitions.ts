@@ -51,7 +51,6 @@ export const metricDefinitionSeeds: MetricDefinitionSeed[] = [
     aliases: [
       "blood urea nitrogen",
       "urea nitrogen",
-      "urea",
       "serum urea nitrogen",
     ],
     referenceRangeLow: 7,

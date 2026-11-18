@@ -25,12 +25,8 @@ const read = (code: string | undefined, where: string) => {
   if (code && !NOT_MARKERS.has(code))
     refs.set(code, [...(refs.get(code) ?? []), where]);
 };
-/**
- * Keys that share a code list but are not reading codes: a derived value, a
- * daily-log column, and `urea`, which a unit rule converts although every
- * urea on file is stored as `bun` (open question, so it is not seeded).
- */
-const NOT_MARKERS = new Set(["homaIr", "weight_kg", "urea"]);
+/** Keys that share a code list but are not reading codes: a derived value and a daily-log column. */
+const NOT_MARKERS = new Set(["homaIr", "weight_kg"]);
 
 /** Lab codes a rule compares against a number, so the number needs a unit. */
 const numeric = new Set<string>();

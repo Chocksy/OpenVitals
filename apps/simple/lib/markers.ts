@@ -325,6 +325,16 @@ export const MARKERS: Marker[] = [
     kind: "lab",
     category: "metabolic",
   },
+  // Romanian sheets print urea ("Uree", ref ~13-43 mg/dL), not BUN; BUN is
+  // urea / 2.14. Two codes so neither reads against the other's range.
+  {
+    code: "urea",
+    name: "Urea",
+    unit: "mg/dL",
+    kind: "lab",
+    category: "metabolic",
+    aliases: ["Uree", "Uree serică", "Serum urea"],
+  },
   {
     code: "ck",
     name: "Creatine Kinase",
