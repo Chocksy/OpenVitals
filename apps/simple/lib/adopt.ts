@@ -46,9 +46,16 @@ const WORDED = new RegExp(
 /** A number that is a time or a date, never a target: "in 12 weeks", "2026-12-01". */
 const NOT_A_TARGET =
   /\b\d{4}-\d{2}-\d{2}\b|\b\d+(?:\.\d+)?\s*-?\s*(?:weeks?|wks?|months?|days?|years?|yrs?|h|hours?)\b|\b25\s*-?\s*oh\b/gi;
-/** A size of change or a percent: never an absolute target on its own. */
+/**
+ * A size of change: never an absolute target on its own. A bare "%" is a
+ * unit ("<5.4%" HbA1c); only a percent next to a change word is a change.
+ */
+const PERCENT_CHANGE =
+  /\d\s*%\s*(?:drop|fall|reduction|decrease|increase|rise|lower|higher|less|more)|\bby\s+(?:about\s+|around\s+|roughly\s+)?\d/i;
 const CHANGE =
-  /%|\bby\s+(?:about\s+|around\s+|roughly\s+)?\d|\b(?:down|up)\b(?!\s+to\b)|\b(?:drops?|falls?|lower(?:ed|s)?|higher|reduc\w*|decreas\w*|increas\w*|rais\w*|rises?)\b/i;
+  /\b(?:down|up)\b(?!\s+to\b)|\b(?:drops?|falls?|lower(?:ed|s)?|higher|reduc\w*|decreas\w*|increas\w*|rais\w*|rises?)\b/i;
+/** "Lower LDL to under 100", "raise it above 40": a change word that names its landing. */
+const LANDS = /(?:\bto|\bbelow|\bunder|\babove|\bover|[<>≤≥])\s*(?:about\s+|around\s+|roughly\s+|under\s+|below\s+|above\s+|over\s+)?\d/i;
 
 const round2 = (v: number) => Math.round(v * 100) / 100;
 
@@ -87,7 +94,8 @@ export function goalTarget(
     return to;
   }
 
-  const change = CHANGE.test(text);
+  const change =
+    PERCENT_CHANGE.test(text) || (CHANGE.test(text) && !LANDS.test(text));
   const band = change ? null : RANGE.exec(text);
   if (band) {
     const [a, b] = [Number(band[1]), Number(band[2])];

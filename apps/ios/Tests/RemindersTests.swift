@@ -110,10 +110,14 @@ final class RemindersTests: XCTestCase {
     func testWeekdayItemsRepeatWeeklyNotDaily() {
         var lift = row("Lift", slot: "evening")
         lift.daysOfWeek = [1, 3, 7]
-        let s = Reminders.schedule(rows: [row("Omega 3", slot: "morning"), lift], goals: [],
-                                   now: date(2026, 11, 18), calendar: calendar)
-        XCTAssertEqual(s.map(\.id), ["plan.slot.morning", "plan.item.id-Lift.1",
-                                     "plan.item.id-Lift.3", "plan.item.id-Lift.7"])
+        var dinner = row("Lift", slot: "dinner")
+        dinner.daysOfWeek = [1]
+        // Today's row and the week's copy of it make one reminder each day.
+        let s = Reminders.schedule(rows: [row("Omega 3", slot: "morning"), lift, lift, dinner],
+                                   goals: [], now: date(2026, 11, 18), calendar: calendar)
+        XCTAssertEqual(s.map(\.id), ["plan.slot.morning", "plan.item.id-Lift.2130.1",
+                                     "plan.item.id-Lift.2130.3", "plan.item.id-Lift.2130.7",
+                                     "plan.item.id-Lift.1900.1"])
         // ISO Monday is Apple weekday 2, ISO Sunday is Apple weekday 1.
         XCTAssertEqual(s[1].when, DateComponents(hour: 21, minute: 30, weekday: 2))
         XCTAssertEqual(s[3].when.weekday, 1)

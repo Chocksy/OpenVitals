@@ -105,6 +105,14 @@ describe("sinceStarted", () => {
     );
     expect(c?.better).toBe(true);
   });
+
+  it("says nothing for a marker with no direction and no band", () => {
+    const tsh = [
+      { code: "tsh", value: 10, date: "2026-04-23" },
+      { code: "tsh", value: 20, date: "2026-11-17" },
+    ];
+    expect(sinceStarted([{ ...psyllium, metricCodes: ["tsh"] }], tsh)).toEqual([]);
+  });
 });
 
 describe("text", () => {

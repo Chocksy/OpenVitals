@@ -1350,6 +1350,10 @@ extension Api {
         let done: Int
         let total: Int
         let rows: [Row]
+        /// Every slot of every weekday-only item in the coming week, so its
+        /// weekly reminders survive a load on a day it does not run.
+        /// Optional so an older server decodes.
+        var weekly: [Row]? = nil
 
         /// The id a list keys a row on. The item id when the server sent one,
         /// and otherwise the position with the title, never the bare title:

@@ -100,6 +100,8 @@ export function sinceStarted(
       const low = after.optimalLow ?? before.optimalLow;
       const high = after.optimalHigh ?? before.optimalHigh;
       const way = betterDirection(code, low, high);
+      // No direction and no band: neither better, worse nor same can be said.
+      if (way !== "lower" && way !== "higher" && low == null && high == null) continue;
       const better =
         way === "lower"
           ? delta < 0

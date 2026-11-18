@@ -101,6 +101,7 @@ enum Reminders {
     /// runs, at its slot or clock time. Apple counts weekdays from Sunday = 1.
     static func weekly(_ rows: [Api.PlanDay.Row]) -> [PlannedReminder] {
         var out: [PlannedReminder] = []
+        var seen = Set<String>()
         for row in rows {
             guard let item = row.itemId, let days = row.daysOfWeek, !days.isEmpty else { continue }
             let at: (label: String, hour: Int, minute: Int)?
@@ -111,9 +112,11 @@ enum Reminders {
                 at = (time, hm.hour, hm.minute)
             } else { at = nil }
             guard let at else { continue }
-            for iso in days where (1...7).contains(iso) {
+            // Today's row and the week's row are the same slot: one reminder.
+            let key = String(format: "%@.%02d%02d", item, at.hour, at.minute)
+            for iso in days where (1...7).contains(iso) && seen.insert("\(key).\(iso)").inserted {
                 out.append(PlannedReminder(
-                    id: "\(prefix)item.\(item).\(iso)", title: at.label, body: row.title,
+                    id: "\(prefix)item.\(key).\(iso)", title: at.label, body: row.title,
                     when: DateComponents(hour: at.hour, minute: at.minute, weekday: iso % 7 + 1),
                     repeats: true))
             }
@@ -184,7 +187,7 @@ enum Reminders {
     static func loaded(plan: Api.PlanDay? = nil, goals: [Api.Today.Goal]? = nil,
                        retests: [Api.Today.Retest]? = nil) {
         guard live else { return }
-        if let plan { rows = plan.rows }
+        if let plan { rows = plan.rows + (plan.weekly ?? []) }
         if let goals { self.goals = goals }
         if let retests { dated = retests }
         Task { await rebuild() }
@@ -297,13 +300,15 @@ struct ReminderAskCard: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            if shown, !groups.isEmpty {
+            if shown, !groups.isEmpty || !Reminders.weekly(rows).isEmpty {
                 VStack(alignment: .leading, spacing: DesignTokens.s8) {
                     CardLabel(text: "Reminders", glyph: "bell")
                     Text("Get a reminder at the time you take your plan")
                         .hType(15, .semibold, Hy.ink)
                         .fixedSize(horizontal: false, vertical: true)
-                    Text(groups.map { "\($0.label) \(String(format: "%02d:%02d", $0.hour, $0.minute))" }
+                    Text((groups.map { "\($0.label) \(String(format: "%02d:%02d", $0.hour, $0.minute))" }
+                          + Reminders.weekly(rows).map { "\($0.body), \($0.title)" })
+                        .reduce(into: [String]()) { if !$0.contains($1) { $0.append($1) } }
                         .joined(separator: " · "))
                         .hType(13, .regular, Hy.ink2)
                         .fixedSize(horizontal: false, vertical: true)

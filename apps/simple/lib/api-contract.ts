@@ -48,7 +48,7 @@ import {
 import { fmt, type Signal } from "@/lib/signals";
 import { getBodyDay } from "@/lib/body-data";
 import type { Status } from "@/lib/status";
-import { goalGap, inGoal, localDay } from "@/lib/daily";
+import { goalGap, inGoal, localDay, shiftDay } from "@/lib/daily";
 import { getGoals, getProtocol, getToday } from "@/lib/daily-data";
 import { getMeals } from "@/lib/meals";
 import {
@@ -900,6 +900,12 @@ export interface PlanTodayBody {
     /** 0 to 1: the share of the last 30 days it was done. */
     adherence: number | null;
   }[];
+  /**
+   * Batch 5 round 2. Every slot of every weekday-only item in the coming
+   * week, whatever today is, so the phone can keep its weekly reminders on
+   * the days the item does not run. Same row shape; never ticked here.
+   */
+  weekly: PlanTodayBody["rows"];
 }
 
 /**
@@ -996,11 +1002,33 @@ async function planTodayBodyUncached(
     });
   }
 
+  const seen = new Set<string>();
+  const weekly: PlanTodayBody["rows"] = [];
+  for (const o of occurrences(active.map(occurrenceItemOf), day, shiftDay(day, 6))) {
+    const item = byId.get(o.itemId)!;
+    const key = `${o.itemId}|${o.slot ?? o.time}`;
+    if (!item.daysOfWeek?.length || seen.has(key)) continue;
+    seen.add(key);
+    weekly.push({
+      itemId: o.itemId,
+      adoptId: null,
+      time: o.time,
+      slot: o.slot,
+      title: item.text,
+      why: item.why ?? "",
+      tag: "protocol",
+      daysOfWeek: item.daysOfWeek,
+      done: false,
+      adherence: null,
+    });
+  }
+
   return {
     day,
     done: rows.filter((r) => r.done).length,
     total: rows.length,
     rows,
+    weekly,
   };
 }
 
