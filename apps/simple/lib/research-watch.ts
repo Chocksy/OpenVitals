@@ -1046,8 +1046,10 @@ export async function patchWatch(
   id: string,
   patch: { seen?: boolean; dismissed?: boolean },
 ): Promise<PaperWatch | null> {
-  const set: Partial<typeof paperWatch.$inferInsert> = {};
-  if (patch.seen != null) set.seenAt = patch.seen ? new Date() : null;
+  const set: Record<string, unknown> = {};
+  // The first open is kept: reopening an old paper does not make it new again.
+  if (patch.seen != null)
+    set.seenAt = patch.seen ? sql`coalesce(${paperWatch.seenAt}, now())` : null;
   if (patch.dismissed != null)
     set.dismissedAt = patch.dismissed ? new Date() : null;
   if (!Object.keys(set).length) return null;

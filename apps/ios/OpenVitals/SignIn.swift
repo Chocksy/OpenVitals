@@ -42,6 +42,7 @@ final class Session: ObservableObject {
         HealthSyncModel.shared.reset()
         await Reminders.reset()
         Api.clearCache()
+        LabNotice.reset()
         remember(nil)
         refresh()
     }

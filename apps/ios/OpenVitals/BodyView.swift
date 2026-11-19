@@ -88,7 +88,7 @@ struct BodyView: View {
 
     private var header: some View {
         HyHeader(title: "Body", value: life.map(String.init), word: Score.word(life),
-                 line: BodyText.line(day, ended: ended)) {
+                 line: BodyText.header(day, ended: ended)) {
             SyncButton(busy: syncing || health.busy) { Task { await sync() } }
         }
     }
@@ -155,7 +155,18 @@ struct BodyView: View {
                 }
                 .hyCard()
             } else {
-                TypeGrid(rows: day.rows)
+                let split = BodyText.dietary(day.rows)
+                TypeGrid(rows: split.rows, day: day.day)
+                if split.folded {
+                    HStack(spacing: DesignTokens.s8) {
+                        Image(systemName: "fork.knife").font(.system(size: 13))
+                            .foregroundStyle(Hy.ink3)
+                            .accessibilityHidden(true)
+                        Text("No meals logged today").hType(13, .medium, Hy.ink2)
+                    }
+                    .hyCard()
+                    .padding(.top, DesignTokens.s13)
+                }
             }
         } else if error.isEmpty {
             Text("Asking the server…").hType(13, .regular, Hy.ink3).hyCard()
@@ -291,6 +302,47 @@ enum BodyText {
     /// The word under a type's value: its state, or "nothing today".
     static func word(_ row: Api.BodyDay.Row) -> String {
         row.value == nil ? "nothing today" : row.word
+    }
+
+    /// The header line, led by the sleep fix when sleep has gone quiet. A
+    /// failed sync's message wins: it is what to fix first.
+    static func header(_ day: Api.BodyDay?, ended: Ended? = nil) -> String? {
+        let base = line(day, ended: ended)
+        if case .failed = ended { return base }
+        guard let gap = sleepGap(day) else { return base }
+        return base.map { "\(gap) · \($0)" } ?? gap
+    }
+
+    /// "Sleep not synced since Oct 21 2026" when no night in the last 7 days
+    /// has hours; nil while sleep is fresh or the day has no sleep row.
+    static func sleepGap(_ day: Api.BodyDay?) -> String? {
+        guard let day, let sleep = day.rows.first(where: {
+            $0.identifier == "HKCategoryTypeIdentifierSleepAnalysis" || $0.type == "sleep_duration"
+        }) else { return nil }
+        if sleep.when.isEmpty { return "Sleep not synced yet" }
+        let gap = ScreensKit.days(from: sleep.when, to: day.day) ?? 0
+        guard gap > 7 else { return nil }
+        return "Sleep not synced since \(Design.day(sleep.when))"
+    }
+
+    /// More than 30 days before the page's day: drawn grey, with its date.
+    static func stale(_ row: Api.BodyDay.Row, day: String) -> Bool {
+        row.value != nil && (ScreensKit.days(from: row.when, to: day) ?? 0) > 30
+    }
+
+    /// "Calorie app · Nov 19 2026": the writer by name, never its bundle id.
+    static func provenance(_ row: Api.BodyDay.Row) -> String {
+        [ScreensKit.sourceName(row.source), row.when.isEmpty ? "" : Design.day(row.when)]
+            .filter { !$0.isEmpty }
+            .joined(separator: " · ")
+    }
+
+    /// The four Dietary tiles fold into one "No meals logged today" row when
+    /// none has a number. One with a number keeps all four.
+    static func dietary(_ rows: [Api.BodyDay.Row]) -> (rows: [Api.BodyDay.Row], folded: Bool) {
+        let diet = rows.filter { $0.identifier.hasPrefix("HKQuantityTypeIdentifierDietary") }
+        guard !diet.isEmpty, diet.allSatisfy({ $0.value == nil }) else { return (rows, false) }
+        return (rows.filter { !$0.identifier.hasPrefix("HKQuantityTypeIdentifierDietary") }, true)
     }
 
     /// "P 41 · C 64 · F 20 g"; a macro the meal has no number for is a dash.
@@ -441,14 +493,15 @@ private struct EveryMealCard: View {
 /// share its height.
 private struct TypeGrid: View {
     let rows: [Api.BodyDay.Row]
+    var day = ""
 
     var body: some View {
         Grid(horizontalSpacing: DesignTokens.s13, verticalSpacing: DesignTokens.s13) {
             ForEach(Array(stride(from: 0, to: rows.count, by: 2)), id: \.self) { i in
                 GridRow {
-                    TypeCard(row: rows[i])
+                    TypeCard(row: rows[i], day: day)
                     if i + 1 < rows.count {
-                        TypeCard(row: rows[i + 1])
+                        TypeCard(row: rows[i + 1], day: day)
                     } else {
                         Color.clear.gridCellUnsizedAxes([.horizontal, .vertical])
                     }
@@ -463,8 +516,10 @@ private struct TypeGrid: View {
 /// colour, where it came from on one line.
 private struct TypeCard: View {
     let row: Api.BodyDay.Row
+    var day = ""
 
     private var measured: Bool { row.value != nil }
+    private var stale: Bool { BodyText.stale(row, day: day) }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -474,7 +529,7 @@ private struct TypeCard: View {
                 .fixedSize(horizontal: false, vertical: true)
             HStack(alignment: .firstTextBaseline, spacing: 3) {
                 Text(measured ? row.display : "—")
-                    .hType(21, .semibold, Hy.ink, tracking: -0.03)
+                    .hType(21, .semibold, stale ? Hy.ink3 : Hy.ink, tracking: -0.03)
                     .lineLimit(1)
                 if measured, let unit = row.unit, !unit.isEmpty {
                     Text(unit).hType(11, .regular, Hy.ink2).lineLimit(1)
@@ -482,10 +537,10 @@ private struct TypeCard: View {
             }
             .padding(.top, DesignTokens.s5)
             Text(BodyText.word(row))
-                .hType(11, .medium, measured ? HyState.ink(row.word) : Hy.ink3)
+                .hType(11, .medium, measured && !stale ? HyState.ink(row.word) : Hy.ink3)
                 .lineLimit(1)
             Spacer(minLength: DesignTokens.s5)
-            Text(row.provenance).hType(11, .regular, Hy.ink3)
+            Text(BodyText.provenance(row)).hType(11, .regular, Hy.ink3)
                 .lineLimit(1)
         }
         .padding(DesignTokens.s13)

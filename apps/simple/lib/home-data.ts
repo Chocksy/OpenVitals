@@ -26,13 +26,17 @@ import {
   type CheckinPost,
 } from "@/db";
 import { askSurfaces, type Ask, type AskPlan } from "./asking";
+import { SPARSE_TICKS } from "./projections";
 import {
+  asksBackfill,
   changeText,
+  orderLines,
   reachedHere,
   reachedText,
   researchWeek,
   shortTitle,
   sinceStarted,
+  worseText,
   type ChangeLine,
   type ResearchWeek,
   type UntrackedItem,
@@ -744,6 +748,7 @@ export function railCards(
         ? `Newest draw ${new Date(opts.drawDate).toLocaleDateString("en-US", {
             month: "short",
             day: "numeric",
+            timeZone: "UTC", // a YYYY-MM-DD day, not an instant
           })}`
         : ""),
     ...(opts.sentence ? { line2: opts.sentence } : {}),
@@ -978,7 +983,14 @@ export async function whatChanged(
       anchor != null &&
       Date.parse(day) - Date.parse(anchor) <= CHANGE_DAYS * dayMs;
     if (!fresh) drawDay = null;
-    since = new Date(Date.parse(day) - CHANGE_DAYS * dayMs);
+    // Reached goals belong to the newest upload's draw, like the upload path:
+    // a later unrelated draw does not re-announce them.
+    since = new Date(
+      Math.max(
+        Date.parse(day) - CHANGE_DAYS * dayMs,
+        newest?.createdAt ? newest.createdAt.getTime() - dayMs : 0,
+      ),
+    );
   }
 
   const nameOf = (code: string) =>
@@ -996,11 +1008,16 @@ export async function whatChanged(
       )
     : [];
 
-  // An item with no row at all since it started is "not logged", not 0 %.
+  // Same rule as Plan's `untilDraw`: under SPARSE_TICKS done ticks since the
+  // start, with days left to fill, is "not logged" and offers the backfill.
   const itemIds = [...new Set(changes.map((c) => c.item.id))];
   const ticks = itemIds.length
     ? await db
-        .select({ itemId: habitLogs.itemId, day: habitLogs.day })
+        .select({
+          itemId: habitLogs.itemId,
+          day: habitLogs.day,
+          done: habitLogs.done,
+        })
         .from(habitLogs)
         .where(
           and(
@@ -1011,8 +1028,14 @@ export async function whatChanged(
     : [];
   const loggedIds = new Set(
     changes
-      .filter((c) =>
-        ticks.some((t) => t.itemId === c.item.id && t.day >= c.item.start),
+      .filter(
+        (c) =>
+          !asksBackfill(
+            c.item.start,
+            c.after.date,
+            ticks.filter((t) => t.itemId === c.item.id),
+            SPARSE_TICKS,
+          ),
       )
       .map((c) => c.item.id),
   );
@@ -1022,7 +1045,10 @@ export async function whatChanged(
     code: c.code,
     name: nameOf(c.code),
     unit: unitOf(c.code),
-    text: changeText(c, nameOf(c.code)),
+    // Batch 6: a better line credits the item; a worse one asks for a retest.
+    text: c.better
+      ? changeText(c, nameOf(c.code))
+      : worseText(c, nameOf(c.code)),
     better: c.better,
     same: c.same,
     itemId: c.item.id,
@@ -1066,7 +1092,7 @@ export async function whatChanged(
     });
   }
 
-  return { lines, untracked };
+  return { lines: orderLines(lines), untracked };
 }
 
 /**

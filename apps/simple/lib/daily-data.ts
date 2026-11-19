@@ -39,7 +39,7 @@ import {
 
 export type { HabitView, LogValues } from "./daily";
 import { getMetricRows, type MetricRow, type Point } from "./data";
-import { markersFor } from "./projections";
+import { markersFor, SPARSE_TICKS } from "./projections";
 import { memo } from "./request-memo";
 import { statusOf, type Status } from "./status";
 
@@ -737,8 +737,8 @@ export interface TrackerSummary {
     cadence: string;
     done: number;
     /**
-     * Percent of the window ticked, or null when the item has no
-     * `habit_logs` row at all in it: "not logged" is unknown, not 0 %.
+     * Percent of the window ticked, or null when the item has fewer than
+     * `SPARSE_TICKS` done ticks in it: "not logged" is unknown, not 0 %.
      */
     adherence: number | null;
     /** false when nothing was logged for it in the window */
@@ -818,7 +818,12 @@ export async function getTrackerSummary(
       text: it.text,
       cadence: it.cadence,
       done: done.length,
-      adherence: isLogged ? adherence(done, window) : null,
+      // Batch 6: under `SPARSE_TICKS` done ticks is "not logged" too, the
+      // rule Plan's rows and the projections read.
+      adherence:
+        isLogged && done.length >= SPARSE_TICKS
+          ? adherence(done, window)
+          : null,
       logged: isLogged,
       metricCodes: it.metricCodes ?? [],
     };

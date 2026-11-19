@@ -11,6 +11,10 @@ final class AppDelegate: NSObject, UIApplicationDelegate {
         Task { @MainActor in await HealthSyncModel.shared.launch() }
         // A tap on a plan reminder picks the tab; set before that tap lands.
         UNUserNotificationCenter.current().delegate = ReminderTaps.shared
+        // Batch 6: a plan reminder's Done action, and the lab refresh.
+        Reminders.registerCategories()
+        LabNotice.register()
+        LabNotice.schedule()
         return true
     }
 }
@@ -157,6 +161,7 @@ struct Shell: View {
             .statusBarHidden((island.activity != nil && island.geometry.hasIsland)
                              || add?.isCamera == true)
             .environment(\.openChat, { chat = $0 })
+            .environment(\.shellCovered, checking || setup || checkin || chat != nil || add != nil)
             .environment(island)
             .background(Hy.paper.ignoresSafeArea())
         .task {

@@ -364,9 +364,13 @@ struct DoCard: View {
                 }
                 .frame(width: 55, height: 55)
                 VStack(alignment: .leading, spacing: 3) {
-                    Text(row.title)
+                    Text(ScreensKit.short(row.title))
                         .hType(21, .semibold, Hy.ink, tracking: -0.02)
                         .lineLimit(1)
+                    // The dose or duration the short title cut off.
+                    if let rest = ScreensKit.split(row.title).rest {
+                        Text(rest).hType(13, .regular, Hy.ink).lineLimit(1)
+                    }
                     Text(Self.sub(row))
                         .hType(13, .regular, Hy.ink2)
                         .lineLimit(1)

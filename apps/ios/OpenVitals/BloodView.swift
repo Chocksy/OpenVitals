@@ -14,6 +14,8 @@ struct BloodView: View {
     @State private var error = ""
     @State private var query = ""
     @State private var filter = "All"
+    /// Set once the person taps a chip, so a reload never moves it again.
+    @State private var chose = false
     @State private var open: Api.Markers.Marker?
     /// Phase 39: Worth a look, the rows Blood opens on.
     @State private var hunches: Api.HunchesBody?
@@ -49,6 +51,7 @@ struct BloodView: View {
         }
         _desk = State(initialValue: desk)
         _error = State(initialValue: error)
+        _filter = State(initialValue: markers.map { Self.opening($0) } ?? "All")
         live = false
     }
 
@@ -115,6 +118,10 @@ struct BloodView: View {
 
     @ViewBuilder
     private func shelves(_ markers: Api.Markers) -> some View {
+        let since = Self.since(today)
+        if !since.isEmpty {
+            sinceCard(since).padding(.bottom, DesignTokens.s21)
+        }
         if let glance = hunches?.glance, !glance.isEmpty {
             ShelfTitle("Worth a look", "\(hunches?.open.count ?? 0) open · "
                        + "\(hunches?.goodNews.count ?? 0) good news")
@@ -152,6 +159,55 @@ struct BloodView: View {
             .fixedSize(horizontal: false, vertical: true)
             .padding(.horizontal, DesignTokens.s21)
             .padding(.top, DesignTokens.s13)
+    }
+
+    /// "Since your Nov 17 2026 draw": the lines that moved on the newest
+    /// draw, reached and better first, the same lines Home's What changed has.
+    private func sinceCard(_ lines: [Api.Today.Change]) -> some View {
+        VStack(alignment: .leading, spacing: DesignTokens.s8) {
+            CardLabel(text: today?.status.drawDate.map { "Since your \(Design.day($0)) draw" }
+                      ?? "Since your last draw",
+                      glyph: "arrow.left.arrow.right")
+            // One row per marker, the items folded in, as Home's What changed.
+            ForEach(WhatChangedCard.rows(lines)) { r in
+                HStack(alignment: .firstTextBaseline, spacing: DesignTokens.s8) {
+                    Image(systemName: r.id.hasPrefix("reached") ? "checkmark.circle.fill"
+                          : r.tone == "good" ? "arrow.up.right" : "exclamationmark.circle")
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundStyle(r.tone == "good" ? Hy.green : Hy.amber)
+                        .accessibilityHidden(true)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(r.head).hType(13, .regular, Hy.ink)
+                        if !r.since.isEmpty {
+                            Text("since " + r.since.joined(separator: " · "))
+                                .hType(12, .regular, Hy.ink2)
+                        }
+                    }
+                    .fixedSize(horizontal: false, vertical: true)
+                }
+            }
+        }
+        .hyCard()
+    }
+
+    /// The draw's lines worth reading: unchanged ones dropped, reached first,
+    /// then better, then worse.
+    static func since(_ today: Api.Today?) -> [Api.Today.Change] {
+        let lines = (today?.changes ?? []).filter { !$0.same }
+        return lines.filter { $0.kind == "reached" }
+            + lines.filter { $0.kind != "reached" && $0.better }
+            + lines.filter { $0.kind != "reached" && !$0.better }
+    }
+
+    /// Blood opens on Off when a recent marker is off; otherwise on All.
+    /// Off markers over a year old ("old, retest") do not count.
+    static func opening(_ markers: Api.Markers, today: String = Api.localDay()) -> String {
+        markers.markers.contains { $0.word == "off" && !isOld($0, today: today) } ? "Off" : "All"
+    }
+
+    /// A last reading over a year old is a date, not a state: "old, retest".
+    static func isOld(_ marker: Api.Markers.Marker, today: String = Api.localDay()) -> Bool {
+        (ScreensKit.days(from: marker.date, to: today) ?? 0) > 365
     }
 
     /// A new person: no draw on file, so nothing to list and nothing to judge.
@@ -201,7 +257,7 @@ struct BloodView: View {
             HStack(spacing: DesignTokens.s8) {
                 ForEach(Api.Markers.filters, id: \.self) { name in
                     let on = filter == name
-                    Button { filter = name } label: {
+                    Button { filter = name; chose = true } label: {
                         HStack(spacing: DesignTokens.s5) {
                             Text(name).font(.grotesk(13, .semibold))
                             Text(Design.number(markers.count(name)))
@@ -292,10 +348,12 @@ struct BloodView: View {
             + rows.filter { !outside($0) && $0.signal == nil }
     }
 
-    /// Off first, then borderline, each in the server's order.
-    static func needsALook(_ markers: Api.Markers) -> [Api.Markers.Marker] {
-        markers.markers.filter { $0.word == "off" }
-            + markers.markers.filter { $0.word == "borderline" }
+    /// Off first, then borderline, each in the server's order. A reading
+    /// over a year old is left out: it needs a retest, not a look.
+    static func needsALook(_ markers: Api.Markers,
+                           today: String = Api.localDay()) -> [Api.Markers.Marker] {
+        let fresh = markers.markers.filter { !isOld($0, today: today) }
+        return fresh.filter { $0.word == "off" } + fresh.filter { $0.word == "borderline" }
     }
 
     /// Goals with a projection, the ones the plan moves most first: the same
@@ -343,6 +401,7 @@ struct BloodView: View {
 
     private func load() async {
         if markers == nil { markers = Api.cachedMarkers() }
+        if let cached = markers, !chose { filter = Self.opening(cached) }
         if today == nil { today = Api.cachedToday() }
         if hunches == nil { hunches = Api.cachedHunches() }
         async let asked = try? await Api.today()
@@ -350,6 +409,7 @@ struct BloodView: View {
         do {
             let got = try await Api.markers()
             markers = got
+            if !chose { filter = Self.opening(got) }
             error = ""
             // `-OVScreen marker` opens the first marker that has a goal, so a
             // screenshot run reaches the marker sheet with no tap.
@@ -505,7 +565,8 @@ struct CorridorRow: View {
     private var goal: [Double?]? { marker.goal.map { [$0.low, $0.high] } }
 
     var body: some View {
-        let status = Self.status(marker)
+        let status = BloodView.isOld(marker) ? (word: "old, retest", ink: Hy.ink3)
+            : Self.status(marker)
         VStack(alignment: .leading, spacing: DesignTokens.s8) {
             Button(action: toggle) {
                 HStack(spacing: DesignTokens.s8) {

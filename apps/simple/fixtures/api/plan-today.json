@@ -12,7 +12,8 @@
       "why": "Vitamin D 32.68 is below 40; take it with the day's first fat.",
       "tag": "protocol",
       "done": false,
-      "adherence": 0.71
+      "adherence": 0.71,
+      "untilDraw": null
     },
     {
       "itemId": "a9d3f2e4-1c6b-4e0a-8f57-2b9e7c1d4a60",
@@ -23,7 +24,8 @@
       "why": "LDL 131 is above the 70–100 goal; soluble fibre binds bile acids.",
       "tag": "goal",
       "done": true,
-      "adherence": 0.9
+      "adherence": 0.9,
+      "untilDraw": null
     },
     {
       "itemId": "e4c81b7f-6a2d-4f39-b0c5-8d17e3a9f2c4",
@@ -34,7 +36,8 @@
       "why": "Lowers the glucose peak after eating and moves LDL a little.",
       "tag": "goal",
       "done": false,
-      "adherence": 0.5
+      "adherence": 0.5,
+      "untilDraw": null
     },
     {
       "itemId": "71f6a0d2-9e3b-4c85-a4d1-f02b6e8c7a39",
@@ -45,7 +48,8 @@
       "why": "Muscle is where glucose goes; the cheapest lever for early insulin resistance.",
       "tag": "protocol",
       "done": false,
-      "adherence": 0.33
+      "adherence": 0.33,
+      "untilDraw": null
     },
     {
       "itemId": "c3a7e9b5-0d4f-4a62-9e18-5f2c8b6d1e03",
@@ -56,7 +60,8 @@
       "why": "Eating them first flattens the glucose curve of the rest of the plate.",
       "tag": "every day",
       "done": false,
-      "adherence": null
+      "adherence": null,
+      "untilDraw": null
     },
     {
       "itemId": null,
@@ -67,7 +72,8 @@
       "why": "Magnesium sits low in its band and edge magnesium->sleep_quality exists; cheap to try before judging sleep.",
       "tag": "suggested",
       "done": false,
-      "adherence": null
+      "adherence": null,
+      "untilDraw": null
     }
   ]
 }

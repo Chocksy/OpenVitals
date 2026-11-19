@@ -257,6 +257,11 @@ struct AddSheet: View {
     private var compose: some View {
         VStack(spacing: 0) {
             modes
+            Text(AddCamera.labHint)
+                .hType(11, .regular, Hy.ink2)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .fixedSize(horizontal: false, vertical: true)
+                .padding(.top, DesignTokens.s8)
             well.padding(.top, DesignTokens.s13)
             if hasContent {
                 sendButton

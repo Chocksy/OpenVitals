@@ -14,6 +14,11 @@ struct PlannedReminder: Equatable {
     /// Hour and minute for a daily repeat; a full date for a one-off.
     let when: DateComponents
     let repeats: Bool
+    /// Batch 6: the plan items the reminder is for, so its Done action can
+    /// tick them. Empty on a retest reminder.
+    var itemIds: [String] = []
+    /// `Reminders.category` on a plan reminder: it carries the Done action.
+    var category: String? = nil
 }
 
 enum Reminders {
@@ -25,6 +30,10 @@ enum Reminders {
     static let snooze: TimeInterval = 14 * 24 * 3600
     /// 64 is iOS's pending limit; the check-in takes one, three are spare.
     static let cap = 60
+    /// Batch 6: the category every plan reminder wears, and its one action.
+    static let category = "plan.slot"
+    static let doneAction = "plan.done"
+    static let itemsKey = "itemIds"
 
     // MARK: slots
 
@@ -47,6 +56,7 @@ enum Reminders {
         let hour: Int
         let minute: Int
         let titles: [String]
+        var itemIds: [String] = []
     }
 
     /// Today's tickable rows by slot (or clock time), in the order the day
@@ -54,21 +64,25 @@ enum Reminders {
     /// suggestion has no item to tick and is left out too.
     static func groups(_ rows: [Api.PlanDay.Row]) -> [Group] {
         var titles: [String: [String]] = [:]
+        var ids: [String: [String]] = [:]
         var at: [String: (label: String, hour: Int, minute: Int)] = [:]
         for row in rows where row.itemId != nil && (row.daysOfWeek ?? []).isEmpty {
+            let key: String
             if let slot = row.slot.map({ $0 == "lunch" ? "midday" : $0 }),
                let s = slots.first(where: { $0.key == slot }) {
-                titles[s.key, default: []].append(row.title)
-                at[s.key] = (s.label, s.hour, s.minute)
+                key = s.key
+                at[key] = (s.label, s.hour, s.minute)
             } else if let time = row.time, let hm = clock(time) {
-                let key = String(format: "%02d:%02d", hm.hour, hm.minute)
-                titles[key, default: []].append(row.title)
+                key = String(format: "%02d:%02d", hm.hour, hm.minute)
                 at[key] = (key, hm.hour, hm.minute)
-            }
+            } else { continue }
+            titles[key, default: []].append(row.title)
+            if let id = row.itemId, !(ids[key] ?? []).contains(id) { ids[key, default: []].append(id) }
         }
         return titles.keys
             .map { k in Group(key: k, label: at[k]!.label, hour: at[k]!.hour,
-                              minute: at[k]!.minute, titles: titles[k]!) }
+                              minute: at[k]!.minute, titles: titles[k]!,
+                              itemIds: ids[k] ?? []) }
             .sorted { ($0.hour, $0.minute, $0.key) < ($1.hour, $1.minute, $1.key) }
     }
 
@@ -89,13 +103,70 @@ enum Reminders {
                          now: Date = Date(), calendar: Calendar = .current) -> [PlannedReminder] {
         let daily = groups(rows).map { g in
             PlannedReminder(id: "\(prefix)slot.\(g.key)", title: g.label,
-                            body: g.titles.joined(separator: ", "),
+                            body: ([g.titles.joined(separator: ", ")]
+                                   + [reason(g.titles, goals: goals)].compactMap { $0 })
+                                .joined(separator: " · "),
                             when: DateComponents(hour: g.hour, minute: g.minute),
-                            repeats: true)
+                            repeats: true, itemIds: g.itemIds, category: category)
         }
         // Retests before weekly items: a big weekly plan must not crowd them out.
         return Array((daily + retests(goals, dated: dated, now: now, calendar: calendar)
                       + weekly(rows)).prefix(cap))
+    }
+
+    /// Batch 6: why the slot matters, when a goal's marker is moved by one of
+    /// its items: "LDL 104, goal held" or "LDL 131, 13 mg/dL to go".
+    static func reason(_ titles: [String], goals: [Api.Today.Goal]) -> String? {
+        let same = { (a: String, b: String) -> Bool in
+            let a = a.lowercased(), b = b.lowercased()
+            return !a.isEmpty && !b.isEmpty && (a == b || a.hasPrefix(b) || b.hasPrefix(a))
+        }
+        for g in goals {
+            guard let value = g.value,
+                  g.moves.contains(where: { m in titles.contains { same(m.title, $0) } })
+            else { continue }
+            let state = (g.toGo ?? 1) <= 0 ? "goal held" : g.toGoLine
+            return "\(g.name) \(Design.number(value)), \(state)"
+        }
+        return nil
+    }
+
+    /// The notification a planned reminder posts: its Done action and the
+    /// item ids that action ticks ride along.
+    static func content(_ p: PlannedReminder) -> UNMutableNotificationContent {
+        let content = UNMutableNotificationContent()
+        content.title = p.title
+        content.body = p.body
+        content.sound = .default
+        if let category = p.category { content.categoryIdentifier = category }
+        if !p.itemIds.isEmpty { content.userInfo = [itemsKey: p.itemIds] }
+        return content
+    }
+
+    /// "Done" ticks the items from the lock screen without opening the app.
+    static var categories: Set<UNNotificationCategory> {
+        let done = UNNotificationAction(identifier: doneAction, title: "Done", options: [])
+        return [UNNotificationCategory(identifier: category, actions: [done],
+                                       intentIdentifiers: [], options: [])]
+    }
+
+    /// Set once at launch, next to the delegate.
+    static func registerCategories() {
+        UNUserNotificationCenter.current().setNotificationCategories(categories)
+    }
+
+    /// The item ids a delivered reminder carries.
+    static func itemIds(_ userInfo: [AnyHashable: Any]) -> [String] {
+        userInfo[itemsKey] as? [String] ?? []
+    }
+
+    /// The Done action: tick each item for today, tell Home, and lay the
+    /// reminders out again.
+    @MainActor
+    static func done(_ ids: [String], day: String = Api.localDay()) async {
+        for id in ids { _ = try? await Api.tick(itemId: id, day: day, done: true) }
+        NotificationCenter.default.post(name: .ovPlanChanged, object: nil)
+        await rebuild()
     }
 
     /// An item that runs on some weekdays only: one weekly repeat per day it
@@ -119,7 +190,7 @@ enum Reminders {
                 out.append(PlannedReminder(
                     id: "\(prefix)item.\(key).\(iso)", title: at.label, body: row.title,
                     when: DateComponents(hour: at.hour, minute: at.minute, weekday: iso % 7 + 1),
-                    repeats: true))
+                    repeats: true, itemIds: [item], category: category))
             }
         }
         return out
@@ -233,10 +304,7 @@ enum Reminders {
         for p in schedule(rows: rows, goals: goals, dated: dated) {
             // A newer rebuild, the switch turned off, or a sign-out: stop.
             guard gen == generation, !off else { break }
-            let content = UNMutableNotificationContent()
-            content.title = p.title
-            content.body = p.body
-            content.sound = .default
+            let content = content(p)
             let trigger = UNCalendarNotificationTrigger(dateMatching: p.when, repeats: p.repeats)
             try? await center.add(UNNotificationRequest(identifier: p.id, content: content,
                                                         trigger: trigger))
@@ -297,12 +365,24 @@ final class ReminderTaps: NSObject, UNUserNotificationCenterDelegate {
     static func tab(for id: String) -> Int? {
         if id.hasPrefix("\(Reminders.prefix)slot.") || id.hasPrefix("\(Reminders.prefix)item.") { return 0 }
         if id.hasPrefix("\(Reminders.prefix)retest.") { return 2 }
+        if id == LabNotice.notificationId { return 0 }
         return nil
     }
 
     func userNotificationCenter(_ center: UNUserNotificationCenter,
                                 didReceive response: UNNotificationResponse,
                                 withCompletionHandler completionHandler: @escaping () -> Void) {
+        // Batch 6: Done ticks the slot's items in the background; the app
+        // stays closed and the tab stays where it was.
+        if response.actionIdentifier == Reminders.doneAction {
+            let ids = Reminders.itemIds(response.notification.request.content.userInfo)
+            Task { @MainActor in
+                // The day the reminder fired, not the day of the tap.
+                await Reminders.done(ids, day: Api.localDay(response.notification.date))
+                completionHandler()
+            }
+            return
+        }
         if let tab = Self.tab(for: response.notification.request.identifier) {
             // `Shell` keeps its tab in `@AppStorage("tab")`.
             UserDefaults.standard.set(tab, forKey: "tab")

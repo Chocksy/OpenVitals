@@ -32,7 +32,22 @@ struct FocusDeck: View {
         let pose: CGSize
     }
 
-    private var pile: [Api.PlanDay.Row] { model.focusPile }
+    /// Only what is due by now: this time slot, anything left from earlier
+    /// ones, and the rows with no time. Later slots wait for their hour.
+    private var pile: [Api.PlanDay.Row] {
+        ScreensKit.dealt(model.focusPile, now: ScreensKit.slotNow())
+    }
+
+    /// Open rows from later slots, not dealt yet.
+    private var later: Int { model.focusPile.count - pile.count }
+
+    /// The score with the dealt pile ticked: the footer's promise counts only
+    /// the cards on the table.
+    private var dealtAllDone: Int? {
+        guard var input = model.input, let m = input.moves else { return model.result?.score }
+        input.moves = .init(done: min(m.due, m.done + pile.count), due: m.due)
+        return Score.of(input).score
+    }
     private var full: CGRect { CGRect(origin: .zero, size: size) }
 
     var body: some View {
@@ -132,7 +147,7 @@ struct FocusDeck: View {
 
     @ViewBuilder
     private var note: some View {
-        if !pile.isEmpty, let all = model.allDone {
+        if !pile.isEmpty, let all = dealtAllDone {
             (Text("Tick \(pile.count == 1 ? "this one" : "all \(pile.count)") and today lands on ")
                 + Text("\(all)").font(.grotesk(13, .semibold)).foregroundColor(Hy.cream)
                 + Text("."))
@@ -146,7 +161,7 @@ struct FocusDeck: View {
     private var table: some View {
         TableFloat(running: on && !reduce) {
             ZStack(alignment: .top) {
-                FocusEmpty(model: model, back: close, chip: chip)
+                FocusEmpty(model: model, later: later, back: close, chip: chip)
                     .opacity(pile.isEmpty && exits.isEmpty ? 1 : 0)
                     .animation(Motion.animation(Curve.ease.animation(0.6).delay(0.2),
                                                 reduce: reduce),
@@ -221,7 +236,7 @@ struct FocusDeck: View {
         Task { @MainActor in
             try? await Task.sleep(for: .milliseconds(420))
             exits.removeAll()
-            if had > 0, model.focusPile.isEmpty { celebrate() }
+            if had > 0, pile.isEmpty { celebrate() }
         }
     }
 
@@ -352,6 +367,14 @@ private struct FocusCard: View {
 
     private var index: Int { (model.doRows.firstIndex { $0.itemId == row.itemId } ?? 0) + 1 }
 
+    /// "for LDL" when the row moves a marker with a goal, else the score gain.
+    private var footer: String {
+        if let goal = ScreensKit.goal(for: row, in: model.today?.goals ?? []) {
+            return "for \(goal.name)"
+        }
+        return "+\(model.gain ?? 0) to the score"
+    }
+
     var body: some View {
         VStack(spacing: 0) {
             HStack {
@@ -379,12 +402,18 @@ private struct FocusCard: View {
             .buttonStyle(.plain)
             .padding(.top, DesignTokens.s34)
             .accessibilityLabel("Tick \(row.title)")
-            Text(row.title)
+            Text(ScreensKit.short(row.title))
                 .hType(34, .semibold, Hy.ink, tracking: -0.04)
                 .multilineTextAlignment(.center)
                 .lineLimit(2)
                 .minimumScaleFactor(0.7)
                 .padding(.top, DesignTokens.s21)
+            // The dose or duration the short title cut off.
+            if let rest = ScreensKit.split(row.title).rest {
+                Text(rest).hType(15, .regular, Hy.ink2)
+                    .multilineTextAlignment(.center)
+                    .lineLimit(2)
+            }
             (Text(DoCard.sub(row))
              + (row.why.isEmpty ? Text("") : Text("\nfor ") + Text(row.why).foregroundColor(Hy.ink)))
                 .hType(13, .regular, Hy.ink2)
@@ -395,7 +424,7 @@ private struct FocusCard: View {
             HStack {
                 Text("← skip").foregroundStyle(Hy.rose)
                 Spacer()
-                Text("+\(model.gain ?? 0) to the score")
+                Text(footer)
                     .font(.grotesk(11, .medium))
                     .tracking(0.44)
                     .textCase(nil)
@@ -522,6 +551,7 @@ private struct Chips: View {
 /// chips, and a lime way home.
 private struct FocusEmpty: View {
     let model: TodayModel
+    var later = 0
     let back: () -> Void
     /// `FocusDeck.chip`, the one tick and untick the card's chips use.
     let chip: (Api.PlanDay.Row) -> Void
@@ -532,6 +562,7 @@ private struct FocusEmpty: View {
         let skipped = model.doRows.filter { !$0.done && model.skipped.contains($0.itemId ?? "") }.count
         return "\(model.movesDone) of \(model.doRows.count) ticked"
             + (skipped > 0 ? " · \(skipped) skipped, tap its chip to bring it back"
+                : later > 0 ? " · \(later) more later today"
                 : " · the rest is eating and sleeping")
     }
 
@@ -557,7 +588,7 @@ private struct FocusEmpty: View {
                     .offset(y: -8 * k)
             }
             .frame(width: 144, height: 144)
-            Text("Nothing left to do")
+            Text(later > 0 ? "Done for now" : "Nothing left to do")
                 .hType(34, .semibold, Hy.cream, tracking: -0.04)
                 .padding(.top, DesignTokens.s21)
             Text(line)

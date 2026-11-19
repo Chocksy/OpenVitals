@@ -655,7 +655,7 @@ export function buildContextFromInput(
           .map(
             (i) =>
               i.adherence == null
-                ? `- "${i.text}" (${i.cadence}): not logged (no ticks in the window; unknown, not 0%)`
+                ? `- "${i.text}" (${i.cadence}): not logged (under 7 ticks in the window; unknown, not 0%)`
                 : `- "${i.text}" (${i.cadence}): ticked ${i.done}x, ${i.adherence}% of days ticked`,
           )
           .join("\n")

@@ -295,6 +295,17 @@ final class TodayModel {
     /// Days in a row at 65 or more, ending today.
     var run: Int { DayGrid.run(grid) }
 
+    /// The longest run at 65 or more in the 13 weeks.
+    var best: Int { DayGrid.best(grid) }
+
+    /// Batch 6: something went into Lifestyle today (sleep, food, a tick).
+    /// False draws "not logged" where a bare 0 would read as a verdict.
+    var lifeLogged: Bool {
+        guard let input else { return false }
+        return input.sleepHours != nil || (input.kcal ?? 0) > 0
+            || (input.proteinG ?? 0) > 0 || (input.moves?.done ?? 0) > 0
+    }
+
     // MARK: ticks
 
     private func row(_ id: String) -> Api.PlanDay.Row? { doRows.first { $0.itemId == id } }
@@ -882,6 +893,19 @@ enum DayGrid {
         run(scores: cells.filter { !$0.future }.map(\.score))
     }
 
+    /// The longest run at 65 or more anywhere in `scores`.
+    static func best(scores: [Int?]) -> Int {
+        var top = 0, n = 0
+        for s in scores {
+            if let s, s >= 65 { n += 1; top = max(top, n) } else { n = 0 }
+        }
+        return top
+    }
+
+    static func best(_ cells: [DayCell]) -> Int {
+        best(scores: cells.filter { !$0.future }.map(\.score))
+    }
+
     // The grid's box: a 13 label column and 13 week columns of 17, 5 apart,
     // under a 13 month row, centred in the header.
     static let cellSide: CGFloat = 17
@@ -912,10 +936,13 @@ enum DayGrid {
     }
 
     /// The why line under the strip.
-    static func why(open: Bool, run: Int, selected: DayCell?, score: Int?,
+    static func why(open: Bool, run: Int, best: Int = 0, selected: DayCell?, score: Int?,
                     done: Int, due: Int) -> String {
         // A score under 65 today breaks the run; "0-day run" reads as a bug.
-        let streak = run > 0 ? "\(run)-day run at 65+" : "No run at 65+ now"
+        // Batch 6: with no run, the best one in 13 weeks, or how to start one.
+        let streak = run > 0 ? "\(run)-day run at 65+"
+            : best > 0 ? "Best run: \(Design.plural(best, "day", "days")) at 65+"
+            : "Tick today to start a run"
         if open { return "\(streak) · tap a day" }
         guard let cell = selected else {
             return "\(streak) · tap for 13 weeks"
@@ -974,8 +1001,18 @@ struct HybridTodayView: View {
     @State private var pillHide: Task<Void, Never>?
     /// The meal sheet or the targets form, over the shelves.
     @State private var sheet: TodaySheet?
+    /// Batch 6: the one-time "Your 17 Nov results" cover, and the chat its
+    /// Change or Drop opens once it has gone.
+    @State private var lab: LabCover?
+    @State private var labChat: ChatStart?
+    @Environment(\.openChat) private var openChat
+    @Environment(\.shellCovered) private var shellCovered
     /// On `Shell`; absent in the gallery and the render tests.
     @Environment(IslandModel.self) private var island: IslandModel?
+
+    struct LabCover: Identifiable {
+        let id: String
+    }
 
     struct Flight: Identifiable {
         let id = UUID()
@@ -1090,6 +1127,37 @@ struct HybridTodayView: View {
             }
         }
         .fullScreenCover(isPresented: $settings) { SettingsView() }
+        // Watches the draw key, so a new draw with the same headline still shows.
+        .onChange(of: LabNotice.key(headline: model.today?.headline,
+                                    drawDate: model.today?.status.drawDate),
+                  initial: true) { _, _ in showLab() }
+        // Not over Settings: it waits and shows once Settings closes.
+        .onChange(of: settings) { _, open in if !open { showLab() } }
+        .onChange(of: shellCovered) { _, covered in if !covered { showLab() } }
+        .background {
+            // Its own anchor, so it never fights the settings cover.
+            Color.clear.fullScreenCover(item: $lab, onDismiss: {
+                if let start = labChat { labChat = nil; openChat?(start) }
+            }) { cover in
+                if let today = model.today {
+                    LabNoticeView(today: today) { start in
+                        labChat = start
+                        lab = nil
+                    }
+                    // Seen once it is on screen: a cover another sheet blocked comes back.
+                    .onAppear { LabNotice.markSeen(cover.id) }
+                }
+            }
+        }
+    }
+
+    /// The one-time results cover, for a draw key not seen yet.
+    private func showLab() {
+        guard Reminders.live, lab == nil, !settings, !shellCovered,
+              let key = LabNotice.key(headline: model.today?.headline,
+                                      drawDate: model.today?.status.drawDate),
+              LabNotice.shouldShow(key, seen: LabNotice.seen) else { return }
+        lab = LabCover(id: key)
     }
 
     // MARK: the sheet

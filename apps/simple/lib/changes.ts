@@ -156,12 +156,33 @@ export const shortDay = (day: string): string => {
   return m && d ? `${d} ${MONTHS[m - 1]}` : day;
 };
 
-/** "Psyllium husk 5 g with lunch and dinner" → "Psyllium husk". */
+const UNITS = new Set(
+  "g mg mcg µg iu ml l kg min mins minute minutes h hr hrs hour hours x times steps km cups cup tbsp tsp caps capsules tablets %".split(
+    " ",
+  ),
+);
+
+/**
+ * "Psyllium husk 5 g with lunch and dinner" → "Psyllium husk". A small number
+ * right after one word with no unit after it is part of the name ("Omega 3
+ * 2 g" → "Omega 3"), the same rule as iOS `ScreensKit.split`.
+ */
 export const shortTitle = (text: string): string => {
-  const cut = text.search(
-    /\s(\d|with\b|before\b|after\b|at\b|every\b|daily\b)|\s[—–-]\s|[,(:;·]/,
-  );
-  return (cut > 0 ? text.slice(0, cut) : text).trim();
+  const cuts =
+    /\s(\d|with\b|before\b|after\b|at\b|every\b|daily\b)|\s[—–-]\s|[,(:;·]/g;
+  for (const m of text.matchAll(cuts)) {
+    const at = m.index!;
+    if (at === 0) continue;
+    const head = text.slice(0, at);
+    const [number, next] = text.slice(at + 1).split(" ");
+    const partOfName =
+      /^\s\d/.test(m[0]) &&
+      !head.includes(" ") &&
+      /^\d{1,2}$/.test(number ?? "") &&
+      (next == null || !UNITS.has(next.toLowerCase()));
+    if (!partOfName) return head.trim();
+  }
+  return text.trim();
 };
 
 const num = (n: number) => String(round(n, 2));
@@ -169,6 +190,17 @@ const num = (n: number) => String(round(n, 2));
 /** "LDL 131 → 104 since Psyllium husk, 5 Oct" */
 export function changeText(c: SinceChange, name: string): string {
   return `${name} ${num(c.before.value)} → ${num(c.after.value)} since ${shortTitle(c.item.text)}, ${shortDay(c.item.start)}`;
+}
+
+/**
+ * "Triglycerides 106 → 139. Retest before changing anything."
+ *
+ * Batch 6: a worse line names no item. One draw against one start day cannot
+ * say which of eight things moved a marker the wrong way, so it asks for the
+ * retest instead of blaming whatever started last.
+ */
+export function worseText(c: SinceChange, name: string): string {
+  return `${name} ${num(c.before.value)} → ${num(c.after.value)}. Retest before changing anything.`;
 }
 
 /** "Reached: LDL ≤118" */
@@ -266,6 +298,22 @@ export function researchLine(w: ResearchWeek): string {
 /* ── the one-tap backfill ──────────────────────────────────────────────── */
 
 /**
+ * "Took it most days?" applies: fewer than `sparse` done ticks since the
+ * start, and some day from the start to `until` has no row yet (a backfill
+ * would write something). Rows are every habit_logs row of the item.
+ */
+export function asksBackfill(
+  start: string,
+  until: string,
+  rows: { day: string; done: boolean }[],
+  sparse: number,
+): boolean {
+  const done = rows.filter((r) => r.done && r.day >= start).length;
+  if (done >= sparse) return false;
+  return missingDays(start, until, rows.map((r) => r.day), 1).length > 0;
+}
+
+/**
  * The days from `start` to `until` inclusive that have no `habit_logs` row,
  * for "I took it most days". Capped so a bad date cannot write a decade.
  */
@@ -340,4 +388,159 @@ export function reachedHere(
   until: Date | null,
 ): boolean {
   return !!achievedAt && achievedAt >= since && (!until || achievedAt < until);
+}
+
+/**
+ * Batch 6: the card, shorter and fair. Unchanged lines go; reached goals come
+ * first, then better lines by the size of the move, then worse ones. Pure.
+ */
+export function orderLines(lines: ChangeLine[]): ChangeLine[] {
+  const rank = (l: ChangeLine) =>
+    l.kind === "reached" ? 0 : l.better ? 1 : 2;
+  // A worse line names no item, so two items on one marker are one line.
+  const seen = new Set<string>();
+  return lines
+    .filter((l) => !l.same)
+    .filter((l) => {
+      if (l.kind !== "since" || l.better) return true;
+      if (seen.has(l.code)) return false;
+      seen.add(l.code);
+      return true;
+    })
+    .map((l, i) => ({ l, i }))
+    .sort(
+      (a, b) =>
+        rank(a.l) - rank(b.l) ||
+        (rank(a.l) === 1
+          ? Math.abs(b.l.pct ?? 0) - Math.abs(a.l.pct ?? 0)
+          : 0) ||
+        a.i - b.i,
+    )
+    .map(({ l }) => l);
+}
+
+/**
+ * One line for the header: the best better move and how many goals the draw
+ * reached. "LDL 131 → 104 · 2 goals reached". Null when neither exists. Pure.
+ */
+export function headlineOf(lines: ChangeLine[]): string | null {
+  const best = orderLines(lines).find(
+    (l) => l.kind === "since" && l.better && l.before && l.after,
+  );
+  const reached = new Set(
+    lines.filter((l) => l.kind === "reached").map((l) => l.code),
+  ).size;
+  // A draw with only worse lines still gets its moment: the first worse move.
+  const lead =
+    best ??
+    (reached
+      ? undefined
+      : orderLines(lines).find((l) => l.kind === "since" && l.before && l.after));
+  const parts = [
+    lead
+      ? `${lead.name} ${num(lead.before!.value)} → ${num(lead.after!.value)}`
+      : null,
+    reached ? `${reached} goal${reached === 1 ? "" : "s"} reached` : null,
+  ].filter(Boolean);
+  return parts.length ? parts.join(" · ") : null;
+}
+
+/* ── batch 6: one paper for Home ──────────────────────────────────────── */
+
+/** The fields of a `paper_watch` row the pick reads. */
+export interface PaperPick {
+  id: string;
+  conditionId: string;
+  grade: string | null;
+  moves: { conclusionId: string } | null;
+  publishedAt: string | null;
+  foundAt: Date | null;
+  seenAt: Date | null;
+}
+
+export interface PaperContext {
+  /** `YYYY-MM-DD`, the person's day: the pick holds for all of it */
+  day: string;
+  /** active plan item lines */
+  items: string[];
+  /** marker codes the person is acting on: open goals and active items */
+  codes: Set<string>;
+  /** marker names for those codes, lower case */
+  names: string[];
+  /** a condition id's evidence markers, for a non-topic row */
+  markersOf: (conditionId: string) => string[];
+}
+
+const GRADED = new Set(["A", "B", "C"]);
+
+/** A topic or condition row that touches what the person is doing. */
+export function paperMatches(p: PaperPick, ctx: PaperContext): boolean {
+  if (p.conditionId.startsWith("topic:")) {
+    const topic = p.conditionId.slice("topic:".length).trim().toLowerCase();
+    if (!topic) return false;
+    return (
+      ctx.items.some((t) => {
+        const line = t.toLowerCase();
+        const short = shortTitle(t).toLowerCase();
+        return line.includes(topic) || (!!short && topic.includes(short));
+      }) || ctx.names.some((n) => n.includes(topic) || topic.includes(n))
+    );
+  }
+  return ctx.markersOf(p.conditionId).some((c) => ctx.codes.has(c));
+}
+
+/**
+ * The one paper Home shows today. Graded A to C only. Unseen before seen,
+ * then papers that move something, then papers that touch an active item or
+ * an open goal's marker, then the newest by `publishedAt`, then the id.
+ *
+ * Stable for the day: "seen" is read as of the day's start, so opening the
+ * paper does not swap it out, and a paper filed during the day only shows
+ * when nothing older qualifies. So at most one new paper a day. Pure.
+ */
+export function pickPaper<T extends PaperPick>(
+  rows: T[],
+  ctx: PaperContext,
+): T | null {
+  // Local midnight, the same clock `localDay()` reads the day on.
+  const start = Date.parse(`${ctx.day.slice(0, 10)}T00:00:00`);
+  const graded = rows.filter((r) => r.grade != null && GRADED.has(r.grade));
+  const older = graded.filter(
+    (r) => r.foundAt == null || r.foundAt.getTime() < start,
+  );
+  // Nothing from before today: the first paper filed today holds the day, so
+  // a better one filed this afternoon waits for tomorrow.
+  const first = [...graded].sort(
+    (a, b) =>
+      (a.foundAt?.getTime() ?? 0) - (b.foundAt?.getTime() ?? 0) ||
+      a.id.localeCompare(b.id),
+  )[0];
+  const pool = older.length ? older : first ? [first] : [];
+  const unseen = (r: T) => r.seenAt == null || r.seenAt.getTime() >= start;
+  const key = (r: T) =>
+    (unseen(r) ? 4 : 0) + (r.moves ? 2 : 0) + (paperMatches(r, ctx) ? 1 : 0);
+  return (
+    [...pool].sort(
+      (a, b) =>
+        key(b) - key(a) ||
+        (b.publishedAt ?? "").localeCompare(a.publishedAt ?? "") ||
+        a.id.localeCompare(b.id),
+    )[0] ?? null
+  );
+}
+
+/**
+ * "You: LDL 104", for the first marker the paper's moved condition reads that
+ * the person has a value for. Null when the paper moves nothing, or the
+ * person has none of its markers. Pure.
+ */
+export function youLine(
+  markers: string[],
+  latest: Map<string, { name: string; value: number }>,
+): string | null {
+  for (const code of markers) {
+    const hit = latest.get(code);
+    if (hit) return `You: ${hit.name} ${num(hit.value)}`;
+  }
+  return null;
 }

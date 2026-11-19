@@ -160,6 +160,48 @@ final class RemindersTests: XCTestCase {
         XCTAssertEqual(s[1].when.day, 20)
     }
 
+    func testSlotRemindersCarryTheirItemsAndTheDoneCategory() {
+        let s = Reminders.schedule(rows: owner, goals: [], now: date(2026, 11, 18), calendar: calendar)
+        let morning = s[0]
+        XCTAssertEqual(morning.category, Reminders.category)
+        XCTAssertEqual(morning.category, "plan.slot")
+        XCTAssertEqual(morning.itemIds, ["id-Berberine 500 mg", "id-Omega 3", "id-Vitamin D3 4000 IU"])
+        let content = Reminders.content(morning)
+        XCTAssertEqual(content.categoryIdentifier, "plan.slot")
+        XCTAssertEqual(Reminders.itemIds(content.userInfo), morning.itemIds)
+        // The suggestion has no item, so nothing to tick.
+        XCTAssertFalse(s.flatMap(\.itemIds).contains { $0.contains("creatine") })
+        // A retest carries no items and no Done.
+        let retest = Reminders.retests([goal("ldl", "LDL", due: "2026-12-20")],
+                                       now: date(2026, 11, 18), calendar: calendar)[0]
+        XCTAssertNil(retest.category)
+        XCTAssertTrue(Reminders.content(retest).userInfo.isEmpty)
+        XCTAssertEqual(Reminders.itemIds([:]), [])
+    }
+
+    func testTheDoneActionStaysInTheBackground() throws {
+        let category = try XCTUnwrap(Reminders.categories.first { $0.identifier == "plan.slot" })
+        XCTAssertEqual(category.actions.map(\.identifier), [Reminders.doneAction])
+        XCTAssertEqual(category.actions.first?.title, "Done")
+        XCTAssertFalse(category.actions.first!.options.contains(.foreground))
+    }
+
+    func testASlotSaysWhyWhenItsItemMovesAGoal() {
+        let held = Api.Today.Goal(code: "ldl", name: "LDL", value: 104, unit: "mg/dL",
+                                  target: .init(low: nil, high: 118, due: nil), toGo: 0, onPace: nil,
+                                  paceLine: nil, moves: [.init(title: "Berberine 500 mg", done: false)],
+                                  projection: nil)
+        let s = Reminders.schedule(rows: owner, goals: [held], now: date(2026, 11, 18), calendar: calendar)
+        XCTAssertEqual(s[0].body, "Berberine 500 mg, Omega 3, Vitamin D3 4000 IU · LDL 104, goal held")
+        XCTAssertEqual(s[1].body, "Psyllium husk 10 g, Walk 10 minutes")
+        let open = Api.Today.Goal(code: "apob", name: "ApoB", value: 100, unit: "mg/dL",
+                                  target: .init(low: nil, high: 90, due: nil), toGo: 10, onPace: nil,
+                                  paceLine: nil, moves: [.init(title: "Psyllium husk", done: false)],
+                                  projection: nil)
+        XCTAssertEqual(Reminders.reason(["Psyllium husk 10 g"], goals: [open]), "ApoB 100, 10 mg/dL to go")
+        XCTAssertNil(Reminders.reason(["Omega 3"], goals: [open]))
+    }
+
     func testATapPicksTheTab() {
         XCTAssertEqual(ReminderTaps.tab(for: "plan.slot.morning"), 0)
         XCTAssertEqual(ReminderTaps.tab(for: "plan.item.abc.3"), 0)

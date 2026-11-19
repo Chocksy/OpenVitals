@@ -19,13 +19,22 @@ struct Shelves: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 0) {
-                if let changes = model.today?.changes, !changes.isEmpty {
-                    WhatChangedCard(changes: changes)
+                let changes = model.today?.changes ?? []
+                let untracked = model.today?.untracked ?? []
+                if !changes.isEmpty || !untracked.isEmpty {
+                    WhatChangedCard(changes: changes, untracked: untracked,
+                                    reload: { await model.load() })
                         .padding(.top, DesignTokens.s21)
                 }
                 DoShelf(model: model)
                     .lagging(lag, row: 0)
                     .padding(.top, DesignTokens.s21)
+                // Batch 6: one paper picked for him today, under Do now.
+                if let research = model.today?.research {
+                    ForYouCard(research: research)
+                        .lagging(lag, row: 1)
+                        .padding(.top, DesignTokens.s21)
+                }
                 // Batch 5C: asks to send plan reminders, until answered.
                 ReminderAskCard(rows: model.doRows + (model.plan?.weekly ?? []), ticks: model.confirmed)
                     .lagging(lag, row: 1)
@@ -193,36 +202,60 @@ extension View {
 /// Batch 5: what the newest draw changed since each item started, one row
 /// per marker ("LDL Cholesterol 131 → 104", "since Psyllium husk, 5 Oct ·
 /// Berberine, 27 Sep"), then the goals it reached.
+/// Batch 6: three rows, then "N more"; under them, one "Took it most days?"
+/// per plan item with too few ticks to count.
 struct WhatChangedCard: View {
     let changes: [Api.Today.Change]
+    var untracked: [Api.Today.Untracked] = []
+    var reload: () async -> Void = {}
 
-    private struct Row: Identifiable {
+    @State private var expanded = false
+    @State private var busy: String?
+    @State private var marked: Set<String> = []
+    @State private var failed: String?
+
+    struct Row: Identifiable, Equatable {
         let id: String
         let head: String
         var since: [String]
-        let colour: Color
+        let tone: String
+
+        var colour: Color {
+            switch tone {
+            case "good": return Hy.green
+            case "same": return Hy.ink3
+            default: return Hy.rose
+            }
+        }
     }
 
-    private var rows: [Row] {
+    /// One row per marker and kind, the "since" parts folded into it.
+    static func rows(_ changes: [Api.Today.Change]) -> [Row] {
         var out: [Row] = []
         for c in changes {
             let parts = c.text.components(separatedBy: " since ")
             let head = parts[0]
-            let colour = c.kind == "reached" || c.better ? Hy.green : c.same ? Hy.ink3 : Hy.rose
+            let tone = c.kind == "reached" || c.better ? "good" : c.same ? "same" : "bad"
             if let i = out.firstIndex(where: { $0.id == c.kind + head }) {
                 if parts.count > 1 { out[i].since.append(parts[1]) }
             } else {
                 out.append(Row(id: c.kind + head, head: head,
-                               since: parts.count > 1 ? [parts[1]] : [], colour: colour))
+                               since: parts.count > 1 ? [parts[1]] : [], tone: tone))
             }
         }
         return out
     }
 
+    static let shown = 3
+
+    private var rows: [Row] { Self.rows(changes) }
+    private var visible: [Row] { expanded ? rows : Array(rows.prefix(Self.shown)) }
+    private var asks: [Api.Today.Untracked] { untracked.filter { !marked.contains($0.itemId) } }
+
     var body: some View {
         VStack(alignment: .leading, spacing: DesignTokens.s8) {
             CardLabel(text: "What changed", glyph: "arrow.down.right")
-            ForEach(rows) { r in
+            ForEach(visible) { r in
                 HStack(alignment: .firstTextBaseline, spacing: DesignTokens.s8) {
                     Circle().fill(r.colour).frame(width: 8, height: 8)
                     VStack(alignment: .leading, spacing: 2) {
@@ -235,8 +268,129 @@ struct WhatChangedCard: View {
                     .fixedSize(horizontal: false, vertical: true)
                 }
             }
+            if rows.count > Self.shown {
+                Button {
+                    withAnimation(.easeInOut(duration: 0.25)) { expanded.toggle() }
+                } label: {
+                    Text(expanded ? "Show less" : "\(rows.count - Self.shown) more")
+                        .hType(13, .semibold, Hy.plum)
+                        .padding(.vertical, 2)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+            }
+            ForEach(asks) { u in
+                VStack(alignment: .leading, spacing: DesignTokens.s5) {
+                    if u.id == asks.first?.id, !rows.isEmpty {
+                        Rectangle().fill(Hy.line).frame(height: 1)
+                            .padding(.vertical, DesignTokens.s5)
+                    }
+                    Text("Took \(u.title) most days?")
+                        .hType(14, .semibold, Hy.ink)
+                        .fixedSize(horizontal: false, vertical: true)
+                    Text("Your ticks are too few to count it.")
+                        .hType(12, .regular, Hy.ink2)
+                    HStack(spacing: DesignTokens.s8) {
+                        HyAction(title: busy == u.itemId ? "Saving…" : "Yes, mark it",
+                                 kind: .secondary, wide: false) { mark(u) }
+                            .disabled(busy != nil)
+                        if failed == u.itemId {
+                            Text("Could not save. Try again.")
+                                .hType(12, .regular, Hy.rose)
+                        }
+                        Spacer(minLength: 0)
+                    }
+                }
+            }
         }
         .hyCard()
+    }
+
+    private func mark(_ u: Api.Today.Untracked) {
+        busy = u.itemId
+        failed = nil
+        Task { @MainActor in
+            do {
+                try await Api.backfill(itemId: u.itemId, until: u.until)
+                marked.insert(u.itemId)
+                busy = nil
+                NotificationCenter.default.post(name: .ovPlanChanged, object: nil)
+                await reload()
+            } catch {
+                failed = u.itemId
+                busy = nil
+            }
+        }
+    }
+}
+
+/// Batch 6: research picked for him, under Do now. One paper: its grade, what
+/// it found in one sentence, where he stands on the marker it moves, and two
+/// doors. With no paper, only the week's line.
+struct ForYouCard: View {
+    let research: Api.Today.Research
+
+    @Environment(\.openChat) private var openChat
+    @Environment(\.openURL) private var openURL
+
+    /// The finding's first sentence, or the title when nothing has read it.
+    static func headline(_ paper: Api.Paper) -> String {
+        guard let finding = paper.finding?.trimmingCharacters(in: .whitespacesAndNewlines),
+              !finding.isEmpty else { return paper.title }
+        if let end = finding.range(of: ". ") {
+            return String(finding[..<end.lowerBound]) + "."
+        }
+        return finding
+    }
+
+    var body: some View {
+        if let paper = research.paper {
+            VStack(alignment: .leading, spacing: DesignTokens.s8) {
+                CardLabel(text: "For you", glyph: "doc.text.magnifyingglass")
+                HStack(spacing: DesignTokens.s8) {
+                    if let grade = paper.grade {
+                        Text("Grade \(grade)").hType(11, .semibold, Hy.ink2)
+                            .padding(.horizontal, DesignTokens.s5)
+                            .padding(.vertical, 1)
+                            .background(Capsule().fill(Hy.paper2))
+                    }
+                    Text(paper.cite.joined(separator: " · "))
+                        .hType(11, .regular, Hy.ink3)
+                        .lineLimit(1)
+                }
+                Text(Self.headline(paper)).hType(15, .semibold, Hy.ink)
+                    .multilineTextAlignment(.leading)
+                    .fixedSize(horizontal: false, vertical: true)
+                if let you = research.you, !you.isEmpty {
+                    Text(you).hType(13, .medium, Hy.ink2)
+                }
+                HStack(spacing: DesignTokens.s8) {
+                    if let openChat {
+                        HyAction(title: "Ask about this", kind: .secondary, wide: false) {
+                            openChat(paper.chatStart)
+                        }
+                    }
+                    if let url = paper.url.flatMap(URL.init(string:)) {
+                        HyAction(title: "Open", kind: .text, wide: false) {
+                            openURL(url)
+                            guard !Fixtures.on else { return }
+                            Task { _ = try? await Api.seePaper(id: paper.id) }
+                        }
+                    }
+                    Spacer(minLength: 0)
+                }
+                .padding(.top, 2)
+                if let line = research.line, !line.isEmpty {
+                    Text(line).hType(11, .regular, Hy.ink3)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            }
+            .hyCard()
+        } else if let line = research.line, !line.isEmpty {
+            Text(line).hType(12, .regular, Hy.ink2)
+                .fixedSize(horizontal: false, vertical: true)
+                .padding(.horizontal, DesignTokens.s21)
+        }
     }
 }
 

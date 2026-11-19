@@ -29,7 +29,8 @@ final class BloodTests: XCTestCase {
 
     func testNeedsALookIsOffThenBorderline() throws {
         let (markers, _) = try canned()
-        let look = BloodView.needsALook(markers)
+        // Against the oldest draw's day nothing is old, so all 28 stay.
+        let look = BloodView.needsALook(markers, today: "2012-08-08")
         XCTAssertEqual(look.count, 28)
         XCTAssertTrue(look.prefix(6).allSatisfy { $0.word == "off" })
         XCTAssertTrue(look.dropFirst(6).allSatisfy { $0.word == "borderline" })

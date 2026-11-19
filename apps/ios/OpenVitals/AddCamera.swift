@@ -47,6 +47,11 @@ struct AddCamera: View {
 
     /// The strip, left to right; Photo is the camera itself.
     static let modes: [AddMode] = [.voice, .photo, .text]
+
+    /// Under the modes. A photo of a lab sheet goes to the upload pipeline
+    /// (`/api/capture`); the phone has no file path yet, so a PDF goes on the
+    /// website.
+    static let labHint = "Lab report? Take a photo of each page, or upload the PDF on the website."
     /// A sideways drag past this picks the next mode, as the iOS camera does.
     static let swipe: CGFloat = 55
     static let stripItem: CGFloat = 72
@@ -179,7 +184,14 @@ struct AddCamera: View {
 
     private var shooter: some View {
         VStack(spacing: DesignTokens.s21) {
-            strip
+            VStack(spacing: DesignTokens.s5) {
+                strip
+                Text(Self.labHint)
+                    .hType(11, .regular, Hy.cream.opacity(0.7))
+                    .multilineTextAlignment(.center)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .padding(.horizontal, DesignTokens.s21)
+            }
             HStack(spacing: 0) {
                 gallery
                 Spacer(minLength: 0)

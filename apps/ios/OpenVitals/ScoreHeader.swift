@@ -33,6 +33,14 @@ struct ScoreHeader: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             rowA
+            // Batch 6: what the last draw moved, one line under the score.
+            if let headline = model.today?.headline, !headline.isEmpty {
+                Text(headline)
+                    .hType(13, .medium, Hy.cream)
+                    .lineLimit(1)
+                    .truncationMode(.tail)
+                    .padding(.top, DesignTokens.s8)
+            }
             layers
             strip
             if open {
@@ -117,8 +125,10 @@ struct ScoreHeader: View {
         HStack(spacing: DesignTokens.s13) {
             // The ghost jumps to the new width as the card leaves; the solid
             // fill follows when it lands.
-            LayerBar(name: "Lifestyle", value: result?.life, colour: Hy.lifeLt,
-                     ghost: model.result?.life)
+            LayerBar(name: "Lifestyle", value: model.lifeLogged ? result?.life : nil,
+                     colour: Hy.lifeLt,
+                     ghost: model.lifeLogged ? model.result?.life : nil,
+                     empty: "not logged")
             LayerBar(name: "Blood", value: result?.blood, colour: Hy.bloodLt)
             LayerBar(name: "Genes", value: result?.genes, colour: Hy.geneLt)
         }
@@ -186,7 +196,7 @@ struct ScoreHeader: View {
 
     private var why: some View {
         let cell = model.strip.first { $0.day == picked }
-        let line = DayGrid.why(open: open, run: model.run, selected: cell, score: score,
+        let line = DayGrid.why(open: open, run: model.run, best: model.best, selected: cell, score: score,
                                done: model.movesDone, due: model.doRows.count)
         return HStack(spacing: DesignTokens.s8) {
             Text(line)
@@ -310,6 +320,8 @@ private struct LayerBar: View {
     let colour: Color
     /// Lifestyle's dashed ghost: the live value, ahead of the solid fill.
     var ghost: Int??
+    /// The word for no value: "no data", or Lifestyle's "not logged".
+    var empty = "no data"
 
     var body: some View {
         VStack(alignment: .leading, spacing: DesignTokens.s5) {
@@ -321,7 +333,7 @@ private struct LayerBar: View {
                         .contentTransition(.numericText(value: Double(value)))
                         .motion(Curve.spring.animation(0.9), value: value)
                 } else {
-                    Text("no data").hType(11, .regular, Hy.mist)
+                    Text(empty).hType(11, .regular, Hy.mist)
                 }
             }
             GeometryReader { g in

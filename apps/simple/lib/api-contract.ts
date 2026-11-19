@@ -16,6 +16,7 @@ import {
   getDb,
   habitLogs,
   hkbImportRuns,
+  hkbInterventions,
   readings,
   uploads,
   type Hunch,
@@ -73,16 +74,31 @@ import {
   goalsSentence,
   railCards,
   systemTiles,
+  researchWeekFor,
   whatChanged,
   type RailTone,
 } from "@/lib/home-data";
-import type { ChangeLine } from "@/lib/changes";
+import {
+  asksBackfill,
+  headlineOf,
+  pickPaper,
+  researchLine,
+  shortTitle,
+  startOf,
+  youLine,
+  type ChangeLine,
+  type UntrackedItem,
+} from "@/lib/changes";
 import { actionsForAll } from "@/lib/actions";
 import { buildLedger } from "@/lib/ledger";
 import { explainKey } from "@/lib/explain";
 import { latestReport } from "@/lib/report";
 import { MAX_CHANGE, projectionLine } from "@/lib/projection";
-import { projectionsFor } from "@/lib/projections";
+import {
+  matchInterventions,
+  projectionsFor,
+  SPARSE_TICKS,
+} from "@/lib/projections";
 import { fmtCategory } from "@/lib/utils";
 import { genomeVerdicts, loadGenome, movedIds } from "@/lib/genome";
 import { genomeVerdict } from "@/lib/genome-catalog";
@@ -91,6 +107,7 @@ import { previewLines } from "@/lib/projections";
 import {
   listWatch,
   paperActions,
+  paperNames,
   toApiPaper,
   type ApiPaper,
 } from "@/lib/research-watch";
@@ -166,6 +183,23 @@ export interface TodayBody {
    * leaves those out): the phone schedules its retest reminders from this.
    */
   retests: { code: string; name: string; due: string }[];
+  /**
+   * Batch 6. Items on the card with no tick since they started, offered
+   * "Took it most days?" (`POST /api/habits/backfill` up to `until`).
+   */
+  untracked: UntrackedItem[];
+  /** "LDL 131 → 104 · 2 goals reached"; null with no recent draw change */
+  headline: string | null;
+  /**
+   * Batch 6: the research card. `line` is what research did this week,
+   * `paper` is one paper for today (the `GET /api/research` row shape) and
+   * `you` is this person's value of a marker the paper moves.
+   */
+  research: {
+    line: string | null;
+    paper: ApiPaper | null;
+    you: string | null;
+  } | null;
   status: {
     off: number;
     borderline: number;
@@ -427,11 +461,8 @@ export async function todayBody(
   const todo = await actionsForAll(userId, [...new Set(loudIds)]);
   const todoCount = Object.values(todo).reduce((n, l) => n + l.length, 0);
 
-  const drawDate =
-    rows.reduce(
-      (max, m) => (m.latest.observedAt > max ? m.latest.observedAt : max),
-      "",
-    ) || null;
+  // The newest lab draw, not the newest reading: phone rows sync daily.
+  const drawDate = labDays(rows).at(-1) ?? null;
 
   const actions = report?.body.actions ?? [];
   const cards = railCards(ledger, today, {
@@ -570,6 +601,13 @@ export async function todayBody(
     whatChanged(userId, day),
     getGoals(userId),
   ]);
+  // An extra on Home: a failed read hides the card, not the whole screen.
+  const research = await todayResearch(userId, day, rows, allGoals).catch(
+    (e: unknown) => {
+      console.error("todayResearch failed", e);
+      return null;
+    },
+  );
   const retests = allGoals
     .filter((g) => !g.achievedAt && g.due && g.due >= day)
     .map((g) => ({
@@ -583,6 +621,12 @@ export async function todayBody(
     goals,
     changes: changed.lines,
     retests,
+    untracked: changed.untracked,
+    // Only with a fresh draw: a goal closed without one is no "new results".
+    headline: changed.lines.some((l) => l.kind === "since")
+      ? headlineOf(changed.lines)
+      : null,
+    research,
     ...glance,
     pending,
     status: {
@@ -637,6 +681,67 @@ export async function todayBody(
         ? null
         : { hours: input.sleepHours, bed: null, wake: null, stages: [] },
   };
+}
+
+/**
+ * Batch 6: the research card on Home. The week's line, one paper picked by
+ * `pickPaper` (moves first, then what touches an active item or an open
+ * goal's marker, then the newest; A to C only; stable for the day), printed
+ * by the same `toApiPaper` `GET /api/research` uses, and "You: LDL 104" for
+ * the first marker the paper's moved condition reads that this person has.
+ */
+export async function todayResearch(
+  userId: string,
+  day: string,
+  rows: MetricRow[],
+  goals: Awaited<ReturnType<typeof getGoals>>,
+): Promise<TodayBody["research"]> {
+  const [week, papers, protocol, catalog] = await Promise.all([
+    researchWeekFor(userId),
+    listWatch(userId, { limit: 200 }),
+    getProtocol(userId),
+    catalogFor(userId),
+  ]);
+  const markersOf = (id: string) => [
+    ...new Set(
+      (catalog.find((h) => h.id === id)?.evidence ?? [])
+        .map((e) => e.input.metric)
+        .filter((m): m is string => !!m),
+    ),
+  ];
+  const active = protocol.filter((p) => p.active);
+  const codes = new Set([
+    ...goals.filter((g) => !g.achievedAt).map((g) => g.metricCode),
+    ...active.flatMap((p) => p.metricCodes),
+  ]);
+  const nameOf = (code: string) =>
+    rows.find((m) => m.code === code)?.name ?? explainKey(code);
+  const pick = pickPaper(papers, {
+    day,
+    items: active.map((p) => p.text),
+    codes,
+    names: [...codes].map((c) => nameOf(c).toLowerCase()),
+    markersOf,
+  });
+
+  let paper: ApiPaper | null = null;
+  let you: string | null = null;
+  if (pick) {
+    const [names, actions] = await Promise.all([
+      paperNames(userId, [pick]),
+      paperActions([pick]),
+    ]);
+    paper = toApiPaper(pick, names, actions);
+    if (pick.moves) {
+      const latest = new Map(
+        rows
+          .filter((m) => m.latest.value != null)
+          .map((m) => [m.code, { name: m.name, value: m.latest.value! }]),
+      );
+      you = youLine(markersOf(pick.moves.conclusionId), latest);
+    }
+  }
+  return { line: researchLine(week), paper, you };
 }
 
 /* ── GET /api/body ────────────────────────────────────────────────────── */
@@ -898,8 +1003,17 @@ export interface PlanTodayBody {
     /** ISO weekdays (1 = Monday) the item runs on; null runs every day */
     daysOfWeek: number[] | null;
     done: boolean;
-    /** 0 to 1: the share of the last 30 days it was done. */
+    /**
+     * 0 to 1: the share of the last 30 days it was done. Null ("not logged")
+     * under `SPARSE_TICKS` done ticks in the window: sparse ticks are unknown.
+     */
     adherence: number | null;
+    /**
+     * Batch 6. The newest draw after the item started, when the item has
+     * fewer than `SPARSE_TICKS` done ticks since then: the `until` of
+     * "Took it most days?" (`POST /api/habits/backfill`). Null otherwise.
+     */
+    untilDraw: string | null;
   }[];
   /**
    * Batch 5 round 2. Every slot of every weekday-only item in the coming
@@ -907,6 +1021,55 @@ export interface PlanTodayBody {
    * the days the item does not run. Same row shape; never ticked here.
    */
   weekly: PlanTodayBody["rows"];
+}
+
+/**
+ * Batch 6: a plan row's adherence. `adherence30` is a whole percent and the
+ * contract carries a fraction; under `SPARSE_TICKS` done ticks in the 30-day
+ * window it is null, "not logged", the same rule the projections and the
+ * report prompt read. Pure.
+ */
+export function adherenceOf(item: {
+  adherence30: number;
+  strip30: number[];
+}): number | null {
+  const done = item.strip30.reduce((n, d) => n + d, 0);
+  return done >= SPARSE_TICKS ? item.adherence30 / 100 : null;
+}
+
+/** Every lab draw day (`source` null), oldest first. Pure. */
+export function labDays(rows: MetricRow[]): string[] {
+  return [
+    ...new Set(
+      rows.flatMap((m) =>
+        m.rows
+          .filter((r) => r.source == null && r.value != null)
+          .map((r) => r.observedAt.slice(0, 10)),
+      ),
+    ),
+  ].sort();
+}
+
+/**
+ * Batch 6: a report action already on the plan. The same intervention
+ * (`matchInterventions` over the accepted rows), the same short title, or the
+ * line it was adopted as. Pure.
+ */
+export function onProtocolAlready(
+  title: string,
+  active: string[],
+  interventions: { name: string }[],
+): boolean {
+  const norm = (t: string) => t.trim().toLowerCase();
+  const short = norm(shortTitle(title));
+  const hit = matchInterventions(title, interventions)[0]?.name;
+  return active.some(
+    (t) =>
+      t.startsWith(title) ||
+      (!!short && norm(shortTitle(t)) === short) ||
+      (hit != null &&
+        matchInterventions(t, interventions).some((r) => r.name === hit)),
+  );
 }
 
 /**
@@ -931,11 +1094,17 @@ async function planTodayBodyUncached(
   userId: string,
   day: string,
 ): Promise<PlanTodayBody> {
-  const [protocol, goals, report] = await Promise.all([
-    getProtocol(userId),
-    getGoals(userId),
-    latestReport(userId),
-  ]);
+  const [protocol, goals, report, metricRows, interventions] =
+    await Promise.all([
+      getProtocol(userId),
+      getGoals(userId),
+      latestReport(userId),
+      getMetricRows(userId),
+      getDb()
+        .select({ name: hkbInterventions.name })
+        .from(hkbInterventions)
+        .where(eq(hkbInterventions.status, "accepted")),
+    ]);
 
   const active = protocol.filter((p) => p.active);
   const byId = new Map(active.map((p) => [p.id, p]));
@@ -950,6 +1119,39 @@ async function planTodayBodyUncached(
     .from(habitLogs)
     .where(and(eq(habitLogs.userId, userId), eq(habitLogs.day, day)));
   const doneIds = new Set(ticks.filter((t) => t.done).map((t) => t.itemId));
+
+  // Batch 6: "Took it most days?" needs the done ticks since each start.
+  const starts = new Map(active.map((p) => [p.id, startOf(p)]));
+  const rowsOf = new Map<string, { day: string; done: boolean }[]>();
+  if (active.length) {
+    const all = await getDb()
+      .select({
+        itemId: habitLogs.itemId,
+        day: habitLogs.day,
+        done: habitLogs.done,
+      })
+      .from(habitLogs)
+      .where(
+        and(
+          eq(habitLogs.userId, userId),
+          inArray(
+            habitLogs.itemId,
+            active.map((p) => p.id),
+          ),
+        ),
+      );
+    for (const t of all)
+      rowsOf.set(t.itemId, [...(rowsOf.get(t.itemId) ?? []), t]);
+  }
+  const drawDays = labDays(metricRows);
+  const untilDrawOf = (id: string): string | null => {
+    const start = starts.get(id);
+    const draw = start && drawDays.filter((d) => d > start).at(-1);
+    if (!start || !draw) return null;
+    return asksBackfill(start, draw, rowsOf.get(id) ?? [], SPARSE_TICKS)
+      ? draw
+      : null;
+  };
 
   const rows: PlanTodayBody["rows"] = due.map((o) => {
     const item = byId.get(o.itemId)!;
@@ -973,9 +1175,8 @@ async function planTodayBodyUncached(
       tag,
       daysOfWeek: item.daysOfWeek?.length ? item.daysOfWeek : null,
       done: doneIds.has(o.itemId),
-      // `adherence30` is a whole percent; the contract carries a fraction.
-      // No tick at all in the window is "not logged", which is null, not 0.
-      adherence: item.logged30 ? item.adherence30 / 100 : null,
+      adherence: adherenceOf(item),
+      untilDraw: untilDrawOf(o.itemId),
     };
   });
 
@@ -988,7 +1189,7 @@ async function planTodayBodyUncached(
   /* the index counts every action, tests included: it is the one `adopt` reads back */
   for (const [i, action] of (report?.body.actions ?? []).entries()) {
     if (action.kind === "test") continue;
-    if (adopted.some((t) => t.startsWith(action.title))) continue;
+    if (onProtocolAlready(action.title, adopted, interventions)) continue;
     rows.push({
       itemId: null,
       adoptId: `plan:${report!.id}:${i}`,
@@ -1000,6 +1201,7 @@ async function planTodayBodyUncached(
       daysOfWeek: null,
       done: false,
       adherence: null,
+      untilDraw: null,
     });
   }
 
@@ -1021,6 +1223,7 @@ async function planTodayBodyUncached(
       daysOfWeek: item.daysOfWeek,
       done: false,
       adherence: null,
+      untilDraw: null,
     });
   }
 

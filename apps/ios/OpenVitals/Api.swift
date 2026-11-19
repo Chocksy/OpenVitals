@@ -730,8 +730,33 @@ extension Api {
             let text: String
             let better: Bool
             let same: Bool
+            /// Batch 6: the plan item a "since" line names, and whether it
+            /// was ticked enough to count. Nil on an older server.
+            var itemId: String? = nil
+            var logged: Bool? = nil
         }
         var changes: [Change]? = nil
+        /// Batch 6: plan items with too few ticks to credit before the draw.
+        /// Home asks "Took it most days?" for each. Nil on an older server.
+        struct Untracked: Codable, Equatable, Identifiable {
+            let itemId: String
+            let title: String
+            let start: String
+            let until: String
+            var id: String { itemId }
+        }
+        var untracked: [Untracked]? = nil
+        /// Batch 6: "LDL 131 → 104 · 2 goals reached". Nil when no draw
+        /// changed anything lately, or on an older server.
+        var headline: String? = nil
+        /// Batch 6: the research week line and one paper picked for today.
+        struct Research: Codable, Equatable {
+            var line: String? = nil
+            var paper: Paper? = nil
+            /// "You: LDL 104", for the marker the paper moves.
+            var you: String? = nil
+        }
+        var research: Research? = nil
         let status: Status
         let body: BodyCard
         let blood: BloodCard
@@ -1343,6 +1368,9 @@ extension Api {
             /// ISO weekdays (1 = Monday) the item runs on; nil runs every
             /// day. Optional so an older server decodes.
             var daysOfWeek: [Int]? = nil
+            /// Batch 6: the latest draw after the item started, when it has
+            /// too few ticks since then. Plan offers "Took it most days?".
+            var untilDraw: String? = nil
 
             /// Only ever unique when the server sent an item id. Two protocol
             /// lines can share a title, an hour and no id at all, so a list

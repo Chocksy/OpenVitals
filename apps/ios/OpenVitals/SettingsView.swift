@@ -1,4 +1,5 @@
 import SwiftUI
+import UserNotifications
 
 /// Settings, reached from Today's gear. The Apple Health permission list with
 /// its per-type counts, the honest "seen, not used", the account and the
@@ -16,6 +17,9 @@ struct SettingsView: View {
     @State private var mustAsk = true
     @State private var confirmResync = false
     @State private var showServer = false
+    @State private var showDetails = false
+    /// What iOS says about notifications; nil until asked.
+    @State private var notify: UNAuthorizationStatus?
     /// Batch 5C: the plan reminders switch, stored as "off" so on is the default.
     @AppStorage(Reminders.offKey) private var remindersOff = false
     #if DEBUG
@@ -48,10 +52,9 @@ struct SettingsView: View {
                 close
             }
         } content: {
-            health
-            types
-            if !model.seenNotUsed.isEmpty { seenNotUsed }
             reminders
+            health
+            details
             server
             account
             #if DEBUG
@@ -62,7 +65,19 @@ struct SettingsView: View {
         .task {
             guard live else { return }
             mustAsk = await model.needsAsking()
+            notify = await UNUserNotificationCenter.current().notificationSettings()
+                .authorizationStatus
             await model.loadTotals()
+        }
+    }
+
+    /// The Reminders status line: one plain sentence.
+    static func reminderStatus(off: Bool, status: UNAuthorizationStatus?) -> String {
+        if off { return "Off. No plan reminders." }
+        switch status {
+        case .denied: return "Blocked in iOS Settings, so none can arrive."
+        case .notDetermined: return "On once you allow notifications."
+        default: return "On. One nudge at each time your plan has items."
         }
     }
 
@@ -143,14 +158,10 @@ struct SettingsView: View {
                         .hType(13, .regular, Hy.ink2)
                         .fixedSize(horizontal: false, vertical: true)
                 }
-                FinePrint("Counted in the database, not by this phone. iOS never "
-                     + "reveals which types you granted, so a type with nothing "
-                     + "sent is either empty or not granted. To change access, "
-                     + "open Health, tap your picture, then Apps, then OpenVitals.")
-                FinePrint("A normal sync sends again, whole, every day that changed. "
-                     + "Resync forgets its place and reads every year Apple Health "
-                     + "holds; the server writes each day over the old one, so "
-                     + "nothing doubles.")
+                FinePrint("To change what the app reads, open Health, tap your "
+                     + "picture, then Apps.")
+                FinePrint("Resync reads all your Health history again, and nothing "
+                     + "is counted twice.")
             }
             .motion(Curve.ease.animation(0.32), value: model.busy)
         }
@@ -173,14 +184,28 @@ struct SettingsView: View {
     /// Every type, one row each: a green dot when the server holds rows for
     /// it, and the one line that says what it holds. A dot, not a tick: the
     /// row reports, it does not toggle.
-    private var types: some View {
-        SettingsShelf("Every type", "what the server holds") {
-            let _ = model.revision
-            VStack(alignment: .leading, spacing: 0) {
-                ForEach(Array(HK.types.enumerated()), id: \.element.identifier) { i, spec in
-                    if i > 0 { Hy.line.frame(height: 1) }
-                    typeRow(spec)
+    /// Every type and the ones seen but not used, folded: most days nobody
+    /// needs them.
+    private var details: some View {
+        SettingsShelf("Sync details", sendingNote) {
+            HyFold(open: $showDetails) {
+                VStack(alignment: .leading, spacing: 0) {
+                    types
+                    if !model.seenNotUsed.isEmpty { seenNotUsed.padding(.top, DesignTokens.s13) }
                 }
+            } label: {
+                Text("Every Health type and what the server holds")
+                    .hType(13, .medium, Hy.ink2)
+            }
+        }
+    }
+
+    private var types: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            let _ = model.revision
+            ForEach(Array(HK.types.enumerated()), id: \.element.identifier) { i, spec in
+                if i > 0 { Hy.line.frame(height: 1) }
+                typeRow(spec)
             }
         }
     }
@@ -234,16 +259,14 @@ struct SettingsView: View {
     // MARK: - the rest
 
     private var seenNotUsed: some View {
-        SettingsShelf("Seen, not used", Design.plural(model.seenNotUsed.count, "type", "types")) {
-            VStack(alignment: .leading, spacing: DesignTokens.s5) {
-                ForEach(model.seenNotUsed, id: \.self) { name in
-                    Text(name).hType(13, .medium, Hy.ink)
-                }
-                FinePrint("Your phone offered these HealthKit types and the engine has "
-                     + "no rule for them. They are named here rather than silently "
-                     + "dropped, and nothing about them is sent.")
-                    .padding(.top, DesignTokens.s8)
+        VStack(alignment: .leading, spacing: DesignTokens.s5) {
+            Text("Seen, not used · \(Design.plural(model.seenNotUsed.count, "type", "types"))")
+                .hType(13, .semibold, Hy.ink)
+            ForEach(model.seenNotUsed, id: \.self) { name in
+                Text(name).hType(13, .medium, Hy.ink)
             }
+            FinePrint("Your phone has these, but the app does not use them yet.")
+                .padding(.top, DesignTokens.s8)
         }
     }
 
@@ -260,14 +283,24 @@ struct SettingsView: View {
                         Task { @MainActor in
                             if on, await Reminders.shouldAskNow() { await Reminders.allow() }
                             else { await Reminders.rebuild() }
+                            notify = await UNUserNotificationCenter.current()
+                                .notificationSettings().authorizationStatus
                         }
                     }))
                     .hType(15, .medium, Hy.ink)
                     .tint(Hy.plum3)
                     .frame(minHeight: 44)
-                FinePrint("One a day at each time your plan has items: morning 08:00, "
-                     + "midday 12:30, dinner 19:00, evening 21:30. Retests a week "
-                     + "before and on the day. The check-in reminder is separate.")
+                Text(Self.reminderStatus(off: remindersOff, status: notify))
+                    .hType(13, .medium, notify == .denied && !remindersOff ? Hy.rose : Hy.ink)
+                    .fixedSize(horizontal: false, vertical: true)
+                if notify == .denied, !remindersOff {
+                    HyAction(title: "Open iOS Settings", kind: .secondary, wide: false) {
+                        if let url = URL(string: UIApplication.openSettingsURLString) {
+                            openURL(url)
+                        }
+                    }
+                }
+                FinePrint("Times: morning 08:00, midday 12:30, dinner 19:00, evening 21:30.")
             }
         }
     }
@@ -338,7 +371,7 @@ struct SettingsView: View {
                 HyAction(title: "Sign out", kind: .destructive) {
                     Task { await session.signOut() }
                 }
-                FinePrint("Email and password only. Google sign-in is on the website.")
+                FinePrint("This app signs in with email. Google sign-in is on the website.")
             }
         }
     }

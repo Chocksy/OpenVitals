@@ -20,6 +20,7 @@ struct PlanPill: Equatable {
         case already
         case saved
         case failed
+        case filled
     }
 
     /// Counts every pill shown, so the same words twice still restart the 4 s.
@@ -32,6 +33,7 @@ struct PlanPill: Equatable {
         case .already: return "Already on your plan"
         case .saved: return "Added to your plan"
         case .failed: return "That did not save"
+        case .filled: return "Marked as taken most days"
         }
     }
 
@@ -77,6 +79,9 @@ final class PlanModel {
     private(set) var suggesting = false
     /// Counts the ticks the server stored. The view buzzes `.success` on it.
     private(set) var stored = 0
+    private(set) var filling: Set<String> = []
+    /// Item id to the draw date its "Took it most days?" fills up to.
+    var untilDraw: [String: String] = [:]
 
     @ObservationIgnored
     var fetch: () async throws -> Api.PlanDay = { try await Api.planToday() }
@@ -104,6 +109,16 @@ final class PlanModel {
     /// `POST /api/plan` with `{}`.
     @ObservationIgnored
     var sendSuggest: () async throws -> Void = { _ = try await Api.newSuggestions() }
+    @ObservationIgnored
+    var sendBackfill: (_ itemId: String, _ until: String) async throws -> Void = {
+        try await Api.backfill(itemId: $0, until: $1)
+    }
+    @ObservationIgnored
+    var readUntilDraw: (Api.PlanDay) -> [String: String] = { plan in
+        Dictionary(plan.rows.compactMap { row in
+            row.itemId.flatMap { id in row.untilDraw.flatMap { $0.isEmpty ? nil : (id, $0) } }
+        }, uniquingKeysWith: { a, _ in a })
+    }
     /// Tells Today the plan moved.
     @ObservationIgnored
     var changed: () -> Void = {
@@ -151,6 +166,7 @@ final class PlanModel {
         do {
             let fresh = try await fetch()
             plan = fresh
+            untilDraw = readUntilDraw(fresh)
             error = ""
             Reminders.loaded(plan: fresh)
         } catch {
@@ -163,7 +179,26 @@ final class PlanModel {
     private func reload() async {
         if let fresh = try? await fetch() {
             plan = fresh
+            untilDraw = readUntilDraw(fresh)
             Reminders.loaded(plan: fresh)
+        }
+    }
+
+    /// "Took it most days?": ticks from the item's start to the draw, on the
+    /// days with no tick yet, then reads the plan back.
+    func backfill(_ row: Api.PlanDay.Row) async {
+        guard let itemId = row.itemId, let until = untilDraw[itemId],
+              !filling.contains(itemId) else { return }
+        filling.insert(itemId)
+        defer { filling.remove(itemId) }
+        do {
+            try await sendBackfill(itemId, until)
+            untilDraw[itemId] = nil
+            show(.filled)
+            changed()
+            await reload()
+        } catch {
+            show(.failed)
         }
     }
 
@@ -401,7 +436,10 @@ struct PlanView: View {
                     .padding(.top, DesignTokens.s5)
             }
             ForEach(Array(rows.enumerated()), id: \.element.id) { i, pair in
-                TodayPlanRow(row: pair.row, busy: model.saving.contains(pair.id)) {
+                TodayPlanRow(row: pair.row, busy: model.saving.contains(pair.id),
+                             until: pair.row.itemId.flatMap { model.untilDraw[$0] },
+                             filling: pair.row.itemId.map { model.filling.contains($0) } == true,
+                             backfill: { Task { await model.backfill(pair.row) } }) {
                     Task { await model.tick(pair.id, pair.row) }
                 }
                 if i < rows.count - 1 {
@@ -511,6 +549,9 @@ struct PlanView: View {
 private struct TodayPlanRow: View {
     let row: Api.PlanDay.Row
     let busy: Bool
+    var until: String? = nil
+    var filling = false
+    var backfill: () -> Void = {}
     let tick: () -> Void
 
     var body: some View {
@@ -524,27 +565,40 @@ private struct TodayPlanRow: View {
                 .frame(width: 55, alignment: .leading)
                 .padding(.top, 3)
             VStack(alignment: .leading, spacing: 3) {
-                Text(row.title)
+                let title = ScreensKit.split(row.title)
+                Text(title.short)
                     .hType(15, .semibold, row.done ? Hy.ink3 : Hy.ink)
                     .strikethrough(row.done, color: Hy.ink3)
                     .fixedSize(horizontal: false, vertical: true)
+                if let rest = title.rest {
+                    Text(rest).hType(13, .regular, Hy.ink3)
+                        .lineLimit(2)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
                 if !row.why.isEmpty {
                     Text(row.why).hType(13, .regular, Hy.ink2)
                         .lineLimit(2)
                         .fixedSize(horizontal: false, vertical: true)
                 }
-                HStack(spacing: DesignTokens.s8) {
-                    Text(row.tag).hType(11, .medium, Hy.ink2)
-                        .padding(.horizontal, DesignTokens.s8)
-                        .padding(.vertical, 2)
-                        .background(Capsule().fill(Hy.paper2))
-                    if let a = row.adherence {
-                        Text("\(Int((a * 100).rounded()))% of the last 30 days")
-                            .hType(11, .regular, Hy.ink3)
-                            .lineLimit(1)
+                Text(ScreensKit.adherence(row.adherence))
+                    .hType(11, .regular, Hy.ink3)
+                    .lineLimit(1)
+                    .padding(.top, 2)
+                if let until {
+                    Button(action: backfill) {
+                        Text(filling ? "Marking…" : "Took it most days?")
+                            .hType(13, .semibold, Hy.plum)
+                            .padding(.horizontal, DesignTokens.s13)
+                            .frame(minHeight: 34)
+                            .background(Capsule().fill(Hy.lime))
+                            .contentShape(Capsule())
                     }
+                    .buttonStyle(Pressed(scale: 0.94))
+                    .disabled(filling)
+                    .padding(.top, DesignTokens.s5)
+                    .accessibilityHint("Marks \(ScreensKit.short(row.title)) as taken on the "
+                                       + "days with no tick up to \(Design.day(until))")
                 }
-                .padding(.top, 2)
             }
             .motion(Curve.ease.animation(0.3), value: row.done)
             Spacer(minLength: 0)
@@ -557,7 +611,8 @@ private struct TodayPlanRow: View {
             .buttonStyle(Pressed(scale: 0.9))
             .disabled(busy)
             .padding(.top, -DesignTokens.s8)
-            .accessibilityLabel(row.done ? "Done: \(row.title)" : "Tick \(row.title)")
+            .accessibilityLabel(row.done ? "Done: \(ScreensKit.short(row.title))"
+                                         : "Tick \(ScreensKit.short(row.title))")
         }
         .padding(.vertical, DesignTokens.s13)
     }
@@ -572,9 +627,15 @@ private struct SuggestionCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: DesignTokens.s8) {
             CardLabel(text: "Suggested", glyph: "sparkles")
-            Text(row.title).hType(17, .semibold, Hy.ink, tracking: -0.02)
-                .lineLimit(3)
+            let title = ScreensKit.split(row.title)
+            Text(title.short).hType(17, .semibold, Hy.ink, tracking: -0.02)
+                .lineLimit(2)
                 .fixedSize(horizontal: false, vertical: true)
+            if let rest = title.rest {
+                Text(rest).hType(13, .regular, Hy.ink3)
+                    .lineLimit(2)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
             Text(row.why).hType(13, .regular, Hy.ink2)
                 .lineLimit(4)
                 .fixedSize(horizontal: false, vertical: true)
