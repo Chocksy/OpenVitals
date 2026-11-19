@@ -51,8 +51,15 @@ struct DoShelf: View {
                 Text("Do now")
                     .hType(17, .semibold, Hy.ink, tracking: -0.02)
                     .fixedSize()
-                Pips(rows: model.doRows) { row in
-                    if row.done { model.untick(row) } else { act.fly(row, .zero) }
+                // Eight pips and the Focus button are wider than a phone:
+                // fall back to a count instead of pushing the screen wide.
+                ViewThatFits(in: .horizontal) {
+                    Pips(rows: model.doRows) { row in
+                        if row.done { model.untick(row) } else { act.fly(row, .zero) }
+                    }
+                    Text("\(model.doRows.filter(\.done).count) of \(model.doRows.count)")
+                        .hType(13, .semibold, Hy.ink2)
+                        .fixedSize()
                 }
                 Spacer(minLength: 0)
                 if !model.nothingPlanned {
@@ -368,13 +375,15 @@ struct DoCard: View {
             HStack {
                 Text("← later").foregroundStyle(Hy.rose)
                 Spacer(minLength: DesignTokens.s5)
-                Text("for \(row.why)")
-                    .textCase(nil)
-                    .hType(11, .medium, Hy.ink2, tracking: 0.02)
-                    .lineLimit(1)
-                    .padding(.vertical, 3)
-                    .padding(.horizontal, DesignTokens.s8)
-                    .background(Capsule().fill(Hy.paper))
+                if !row.why.isEmpty {
+                    Text("for \(row.why)")
+                        .textCase(nil)
+                        .hType(11, .medium, Hy.ink2, tracking: 0.02)
+                        .lineLimit(1)
+                        .padding(.vertical, 3)
+                        .padding(.horizontal, DesignTokens.s8)
+                        .background(Capsule().fill(Hy.paper))
+                }
                 Spacer(minLength: DesignTokens.s5)
                 Text("done →").foregroundStyle(Hy.green)
             }

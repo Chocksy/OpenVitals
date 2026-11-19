@@ -159,7 +159,7 @@ export const shortDay = (day: string): string => {
 /** "Psyllium husk 5 g with lunch and dinner" → "Psyllium husk". */
 export const shortTitle = (text: string): string => {
   const cut = text.search(
-    /\s(\d|with\b|before\b|after\b|at\b|every\b|daily\b)|[,(:;·]/,
+    /\s(\d|with\b|before\b|after\b|at\b|every\b|daily\b)|\s[—–-]\s|[,(:;·]/,
   );
   return (cut > 0 ? text.slice(0, cut) : text).trim();
 };

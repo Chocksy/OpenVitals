@@ -720,6 +720,18 @@ extension Api {
             let due: String
         }
         var retests: [Retest]? = nil
+        /// Batch 5: "LDL 131 → 104 since Psyllium husk, 5 Oct" and
+        /// "Reached: LDL ≤118", newest draw only. Optional so an older
+        /// server decodes.
+        struct Change: Codable, Equatable {
+            /// "since" | "reached"
+            let kind: String
+            let code: String
+            let text: String
+            let better: Bool
+            let same: Bool
+        }
+        var changes: [Change]? = nil
         let status: Status
         let body: BodyCard
         let blood: BloodCard

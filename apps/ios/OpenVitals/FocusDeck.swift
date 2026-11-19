@@ -385,7 +385,8 @@ private struct FocusCard: View {
                 .lineLimit(2)
                 .minimumScaleFactor(0.7)
                 .padding(.top, DesignTokens.s21)
-            (Text(DoCard.sub(row)) + Text("\nfor ") + Text(row.why).foregroundColor(Hy.ink))
+            (Text(DoCard.sub(row))
+             + (row.why.isEmpty ? Text("") : Text("\nfor ") + Text(row.why).foregroundColor(Hy.ink)))
                 .hType(13, .regular, Hy.ink2)
                 .multilineTextAlignment(.center)
                 .lineLimit(3)
@@ -466,9 +467,22 @@ private struct Chips: View {
     let tap: (Api.PlanDay.Row) -> Void
 
     var body: some View {
-        HStack(alignment: .top) {
+        // Eight 55 chips are wider than the card: scroll them instead of
+        // pushing the card off both edges.
+        ViewThatFits(in: .horizontal) {
+            row(spaced: true)
+            ScrollView(.horizontal, showsIndicators: false) { row(spaced: false) }
+        }
+        .padding(.top, DesignTokens.s13)
+        .overlay(alignment: .top) {
+            (dark ? Hy.cream.opacity(0.14) : Hy.line).frame(height: 1)
+        }
+    }
+
+    private func row(spaced: Bool) -> some View {
+        HStack(alignment: .top, spacing: spaced ? nil : DesignTokens.s13) {
             ForEach(Array(model.doRows.enumerated()), id: \.offset) { i, row in
-                if i > 0 { Spacer(minLength: 0) }
+                if spaced, i > 0 { Spacer(minLength: 0) }
                 let now = row.itemId == current
                 let skip = !row.done && model.skipped.contains(row.itemId ?? "")
                 Button { tap(row) } label: {
@@ -494,10 +508,6 @@ private struct Chips: View {
                 .accessibilityLabel(row.title)
                 .accessibilityValue(row.done ? "done" : skip ? "skipped" : "not done")
             }
-        }
-        .padding(.top, DesignTokens.s13)
-        .overlay(alignment: .top) {
-            (dark ? Hy.cream.opacity(0.14) : Hy.line).frame(height: 1)
         }
     }
 

@@ -337,9 +337,10 @@ async function todayGoalsUncached(
   const doneIds = new Set(ticks.filter((t) => t.done).map((t) => t.itemId));
 
   return open.map((g) => {
+    // Open cycles only: a checked one ("next draw Nov 8", already drawn)
+    // would read as a forecast on the Heading shelf.
     const projection =
       projections.find((p) => p.code === g.metricCode && !p.resolvedAt) ??
-      projections.find((p) => p.code === g.metricCode) ??
       null;
     const reached = inGoal(g.current, g.targetLow, g.targetHigh);
     const points = labPoints(

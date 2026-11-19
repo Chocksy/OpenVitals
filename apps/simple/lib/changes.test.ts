@@ -119,6 +119,9 @@ describe("sinceStarted", () => {
 describe("text", () => {
   it("cuts a protocol line to its name", () => {
     expect(shortTitle("Berberine 500 mg before meals")).toBe("Berberine");
+    expect(
+      shortTitle("Full-body resistance training twice weekly — 45 min"),
+    ).toBe("Full-body resistance training twice weekly");
     expect(shortTitle("Aronia")).toBe("Aronia");
   });
   it("words a reached goal", () => {

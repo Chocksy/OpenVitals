@@ -19,6 +19,10 @@ struct Shelves: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 0) {
+                if let changes = model.today?.changes, !changes.isEmpty {
+                    WhatChangedCard(changes: changes)
+                        .padding(.top, DesignTokens.s21)
+                }
                 DoShelf(model: model)
                     .lagging(lag, row: 0)
                     .padding(.top, DesignTokens.s21)
@@ -186,6 +190,56 @@ extension View {
 }
 
 /// `.tc .lbl`: 11 caps, .12em, ink2, a 15 glyph on the right.
+/// Batch 5: what the newest draw changed since each item started, one row
+/// per marker ("LDL Cholesterol 131 → 104", "since Psyllium husk, 5 Oct ·
+/// Berberine, 27 Sep"), then the goals it reached.
+struct WhatChangedCard: View {
+    let changes: [Api.Today.Change]
+
+    private struct Row: Identifiable {
+        let id: String
+        let head: String
+        var since: [String]
+        let colour: Color
+    }
+
+    private var rows: [Row] {
+        var out: [Row] = []
+        for c in changes {
+            let parts = c.text.components(separatedBy: " since ")
+            let head = parts[0]
+            let colour = c.kind == "reached" || c.better ? Hy.green : c.same ? Hy.ink3 : Hy.rose
+            if let i = out.firstIndex(where: { $0.id == c.kind + head }) {
+                if parts.count > 1 { out[i].since.append(parts[1]) }
+            } else {
+                out.append(Row(id: c.kind + head, head: head,
+                               since: parts.count > 1 ? [parts[1]] : [], colour: colour))
+            }
+        }
+        return out
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: DesignTokens.s8) {
+            CardLabel(text: "What changed", glyph: "arrow.down.right")
+            ForEach(rows) { r in
+                HStack(alignment: .firstTextBaseline, spacing: DesignTokens.s8) {
+                    Circle().fill(r.colour).frame(width: 8, height: 8)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(r.head).hType(15, .semibold, Hy.ink)
+                        if !r.since.isEmpty {
+                            Text("since " + r.since.joined(separator: " · "))
+                                .hType(12, .regular, Hy.ink2)
+                        }
+                    }
+                    .fixedSize(horizontal: false, vertical: true)
+                }
+            }
+        }
+        .hyCard()
+    }
+}
+
 struct CardLabel: View {
     let text: String
     let glyph: String
