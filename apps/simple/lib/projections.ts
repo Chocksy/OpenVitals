@@ -356,19 +356,27 @@ export function projectionStart(
  * The actions a projection starting on `fromDate` may credit: those started
  * before its retest window opens, so the draw that answers it always comes
  * after every action it credits. `project` scales a later starter by its own
- * weeks on; anything later waits for the next cycle. Pure.
+ * weeks on; anything later waits for the next cycle. A cycle that starts on
+ * the draw that closed the last one (`followOn`) credits only what started on
+ * or after that draw: the older actions are already in its baseline. Pure.
  */
 export function cycleActions(
   actions: AdoptedAction[],
   fromDate: string,
   code: string,
+  followOn = false,
 ): AdoptedAction[] {
   const opens = addWeeks(
     addWeeks(fromDate, RETEST_WEEKS[code] ?? 12),
     -RESOLVE_WINDOW_WEEKS,
   );
   const today = localDay();
-  return actions.filter((a) => a.adoptedAt < opens && a.adoptedAt <= today);
+  return actions.filter(
+    (a) =>
+      a.adoptedAt < opens &&
+      a.adoptedAt <= today &&
+      (!followOn || a.adoptedAt >= fromDate),
+  );
 }
 
 /** The last value drawn on or before `day`, oldest-first rows. Pure. */
@@ -430,7 +438,12 @@ export async function makeProjections(
       unit: row.unit ?? "",
       from: from.value,
       fromDate,
-      actions: cycleActions(actions, fromDate, code),
+      actions: cycleActions(
+        actions,
+        fromDate,
+        code,
+        fromDate === lastResolved.get(code),
+      ),
       personal,
       optimalLow: row.optimalLow,
       optimalHigh: row.optimalHigh,

@@ -228,6 +228,21 @@ describe("cycleActions", () => {
     expect(cycleActions([psyllium, a("b", "2026-11-15")], "2026-10-05", "ldl_cholesterol")).toHaveLength(2);
     expect(cycleActions([psyllium, berberine], "2026-11-18", "ldl_cholesterol")).toEqual([psyllium, berberine]);
   });
+
+  it("does not credit again what a closed cycle's draw already shows", () => {
+    const a = (itemId: string, adoptedAt: string): AdoptedAction => ({
+      itemId,
+      text: itemId,
+      adoptedAt,
+      effect: null,
+    });
+    const psyllium = a("psyllium", "2026-10-05");
+    const fresh = a("fresh", "2026-11-17");
+    // The 2026-11-17 draw closed the last cycle at 104: psyllium is in it.
+    expect(
+      cycleActions([psyllium, fresh], "2026-11-17", "ldl_cholesterol", true),
+    ).toEqual([fresh]);
+  });
 });
 
 describe("tickedShare", () => {
